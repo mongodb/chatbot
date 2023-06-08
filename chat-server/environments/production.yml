@@ -1,0 +1,21 @@
+# TODO: Set up production environment
+# service:
+#   targetPort: 3000
+
+# env:
+#   PORT: 3000
+#   SNOOTY_DB_NAME: snooty_prod
+
+# envSecrets:
+#   ATLAS_URI: snooty-data-api
+
+# ingress:
+#   enabled: true
+#   hosts:
+#     - snooty-data-api.docs.prod.corp.mongodb.com
+
+# resources:
+#   limits:
+#     memory: 1300Mi
+#   requests:
+#     memory: 1100Mi

@@ -1,0 +1,5 @@
+node_modules/
+tests/
+jest*
+README.md
+.env.example

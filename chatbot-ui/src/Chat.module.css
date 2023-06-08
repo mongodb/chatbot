@@ -1,0 +1,36 @@
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.message_list {
+  display: flex;
+  flex-direction: column;
+  max-height: 750px;
+  /* border: 1px solid gray; */
+  overflow-y: scroll;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+/* width */
+.message_list::-webkit-scrollbar {
+  width: 3px;
+  background: #D9D9D9;
+}
+
+/* Track */
+.message_list::-webkit-scrollbar-track {
+  background: #ffffff;
+}
+
+/* Handle */
+.message_list::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+/* Handle on hover */
+.message_list::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

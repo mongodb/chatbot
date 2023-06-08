@@ -1,0 +1,38 @@
+.message {
+  display: flex;
+  flex-direction: row;
+}
+
+.message_avatar {
+  width: 40px;
+  height: 40px;
+  /* background: black; */
+  border: 1px solid black;
+  border-radius: 50%;
+  flex: none;
+  position: relative;
+}
+
+.message_avatar_user {
+
+}
+
+.message_avatar_assistant {
+  background: black;
+}
+
+.message_avatar_icon {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+}
+
+.message_text {
+  padding: 8px 24px 0px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.message_rating {}
+.message_rating_icon {}

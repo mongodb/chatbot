@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "outDir": "./build",
+    "allowJs": false,
+    "target": "ES5",
+    "esModuleInterop": true,
+    "lib": ["ES2020"],
+    "downlevelIteration": true,
+    "strictNullChecks": true,
+    "strict": true,
+    "declaration": true,
+    "declarationMap": true,
+    "resolveJsonModule": true
+  },
+  "sourceMap": true,
+  "include": [
+    "./src/**/*.ts"
+  ],
+  "exclude": [
+    "**/*.test.ts"
+  ]
+}

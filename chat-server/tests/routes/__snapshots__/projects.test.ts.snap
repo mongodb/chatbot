@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test projects routes should return all data based on project ID 1`] = `
+[
+  "{"type":"timestamp","data":1685714694420}",
+  "{"type":"metadata","data":{"_id":"646bae50c41d7b9a472b6078","project":"docs","branch":"master","title":"MongoDB Manual","eol":false,"slugToTitle":{},"toctreeorder":{},"parentPaths":{},"static_files":{},"build_id":"642ec854c38bedd45ed31234","created_at":"2023-04-06T14:25:40.000Z"}}",
+  "{"type":"page","data":{"_id":"646fa1958c4f35b1d3d83edf","page_id":"docs/docsworker-xlarge/master/data-center-awareness","filename":"data-center-awareness.txt","ast":{"foo":"no assets"},"static_assets":[],"created_at":"2023-04-06T13:25:40.000Z","updated_at":"2023-04-06T13:25:40.000Z","deleted":false}}",
+  "{"type":"page","data":{"_id":"646fa1958c4f35b1d3d83ee0","page_id":"docs/docsworker-xlarge/master/data-center-foo","filename":"data-center-foo.txt","ast":{"foo":"deleted"},"static_assets":[],"created_at":"2023-04-06T13:25:40.000Z","updated_at":"2023-04-06T14:25:40.000Z","deleted":true}}",
+  "{"type":"page","data":{"_id":"646fa1958c4f35b1d3d83ee1","page_id":"docs/docsworker-xlarge/master/tutorial/insert-documents","filename":"tutorial/insert-documents.txt","ast":{"foo":"1 asset example"},"static_assets":[{"checksum":"d4dbe419766d19842ba5624cb41f6b873a513b620049e759a923894bef17742c","key":"/images/CSFLE_Master_Key_KMS.png"}],"created_at":"2023-04-06T13:25:40.000Z","updated_at":"2023-04-06T14:25:40.000Z","deleted":false}}",
+  "{"type":"page","data":{"_id":"646fa1958c4f35b1d3d83ee2","page_id":"docs/docsworker-xlarge/master/tutorial/update-documents","filename":"tutorial/update-documents.txt","ast":{},"static_assets":[{"checksum":"ba1b4507fc789827edd02f979130e9633a0020b498cba915c0773403b37aedd5","key":"/images/compass-update-doc-button.png"},{"checksum":"9617b2e1a8065e4a1699c15fc8ea1e085a41b4021debeaef1793a6cb431a9659","key":"/images/compass-update-edit-mode.png"}],"created_at":"2023-04-06T13:25:40.000Z","updated_at":"2023-04-06T13:25:40.000Z","deleted":false}}",
+  "{"type":"asset","data":{"checksum":"9617b2e1a8065e4a1699c15fc8ea1e085a41b4021debeaef1793a6cb431a9659","assetData":{"$binary":{"base64":"YXNzZXQtZXhhbXBsZQ==","subType":"00"}},"filenames":["/images/compass-update-edit-mode.png"]}}",
+  "{"type":"asset","data":{"checksum":"ba1b4507fc789827edd02f979130e9633a0020b498cba915c0773403b37aedd5","assetData":{"$binary":{"base64":"YXNzZXQtZXhhbXBsZQ==","subType":"00"}},"filenames":["/images/compass-update-doc-button.png"]}}",
+  "{"type":"asset","data":{"checksum":"d4dbe419766d19842ba5624cb41f6b873a513b620049e759a923894bef17742c","assetData":{"$binary":{"base64":"YXNzZXQtZXhhbXBsZQ==","subType":"00"}},"filenames":["/images/CSFLE_Master_Key_KMS.png"]}}",
+]
+`;
+
+exports[`Test projects routes should return documents updated after given timestamp 1`] = `
+[
+  "{"type":"timestamp","data":1685714694420}",
+  "{"type":"metadata","data":{}}",
+  "{"type":"page","data":{"_id":"646fa1958c4f35b1d3d83ee0","page_id":"docs/docsworker-xlarge/master/data-center-foo","filename":"data-center-foo.txt","ast":{"foo":"deleted"},"static_assets":[],"created_at":"2023-04-06T13:25:40.000Z","updated_at":"2023-04-06T14:25:40.000Z","deleted":true}}",
+  "{"type":"page","data":{"_id":"646fa1958c4f35b1d3d83ee1","page_id":"docs/docsworker-xlarge/master/tutorial/insert-documents","filename":"tutorial/insert-documents.txt","ast":{"foo":"1 asset example"},"static_assets":[{"checksum":"d4dbe419766d19842ba5624cb41f6b873a513b620049e759a923894bef17742c","key":"/images/CSFLE_Master_Key_KMS.png"}],"created_at":"2023-04-06T13:25:40.000Z","updated_at":"2023-04-06T14:25:40.000Z","deleted":false}}",
+  "{"type":"asset","data":{"checksum":"d4dbe419766d19842ba5624cb41f6b873a513b620049e759a923894bef17742c","assetData":{"$binary":{"base64":"YXNzZXQtZXhhbXBsZQ==","subType":"00"}},"filenames":["/images/CSFLE_Master_Key_KMS.png"]}}",
+]
+`;

@@ -1,0 +1,21 @@
+# TODO: Set up staging environment
+# service:
+#   targetPort: 3000
+
+# env:
+#   PORT: 3000
+#   SNOOTY_DB_NAME: snooty_stage
+
+# envSecrets:
+#   ATLAS_URI: snooty-data-api-staging
+
+# ingress:
+#   enabled: true
+#   hosts:
+#     - snooty-data-api.docs.staging.corp.mongodb.com
+
+# resources:
+#   limits:
+#     memory: 1300Mi
+#   requests:
+#     memory: 1100Mi

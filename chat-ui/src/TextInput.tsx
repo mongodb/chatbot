@@ -7,12 +7,10 @@ import { useKeyPress } from "./useKeyPress";
 type IconInputProps = Omit<TextInputProps, "sizeVariant" | "state"> & {
   glyph: keyof typeof glyphs;
   "aria-label": string;
+  "aria-labelledby": string;
 };
 
 export function IconInput({ glyph, ...props }: IconInputProps) {
-  if (!props["aria-label"]) {
-    console.warn("IconInput requires an aria-label prop");
-  }
   return (
     <div className={styles.input_wrapper}>
       <TextInput
@@ -26,7 +24,7 @@ export function IconInput({ glyph, ...props }: IconInputProps) {
   );
 }
 
-type SpecificIconInputProps = Omit<IconInputProps, "glyph" | "aria-label"> & {
+type SpecificIconInputProps = Omit<IconInputProps, "glyph" | "aria-label" | "aria-labelledby"> & {
   // onSubmit: (text: string) => void
 };
 
@@ -39,6 +37,7 @@ export function ChatInput(props: SpecificIconInputProps) {
     <IconInput
       glyph="SMS"
       aria-label="MongoDB AI Chatbot Message Input"
+      aria-labelledby="TBD - FIXME"
       placeholder={`Type a message or type "/" to select a prompt`}
       {...props}
     />
@@ -50,6 +49,7 @@ export function WizardInput(props: SpecificIconInputProps) {
     <IconInput
       glyph="Wizard"
       aria-label="MongoDB AI Chatbot Message Input"
+      aria-labelledby="TBD - FIXME"
       placeholder="Ask MongoDB AI a Question"
       {...props}
     />

@@ -15,7 +15,7 @@ export default function ChatbotModal() {
         <H3>MongoDB AI</H3>
         <Badge variant="green">Experimental</Badge>
       </div>
-      <Chat messages={conversation.messages} />
+      <Chat messages={conversation.messages} addMessage={conversation.addMessage}/>
     </Card>
   );
 }

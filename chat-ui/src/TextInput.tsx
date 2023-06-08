@@ -2,44 +2,52 @@ import TextInput, { TextInputProps } from "@leafygreen-ui/text-input";
 import Icon, { glyphs } from "@leafygreen-ui/icon";
 
 import styles from "./TextInput.module.css";
-import { useKeyPress } from "./useKeyPress";
+import { useState } from "react";
 
-type IconInputProps = Omit<TextInputProps, "sizeVariant" | "state"> & {
+type IconInputProps = {
   glyph: keyof typeof glyphs;
   "aria-label": string;
   "aria-labelledby": string;
+  placeholder: string;
+  handleSend: (text: string) => void;
 };
 
-export function IconInput({ glyph, ...props }: IconInputProps) {
+export function IconInput(props: IconInputProps) {
+  const [inputText, setInputText] = useState("");
+
   return (
     <div className={styles.input_wrapper}>
       <TextInput
+        value={inputText}
         className={styles.input_field}
         sizeVariant="small"
         state="none"
+        onChange={(e) => {
+          setInputText(e.target.value);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            props.handleSend?.(inputText);
+            setInputText("");
+          }
+        }}
         {...props}
       />
-      <Icon className={styles.input_icon} glyph={glyph} />
+      <Icon className={styles.input_icon} glyph={props.glyph} />
     </div>
   );
 }
 
-type SpecificIconInputProps = Omit<IconInputProps, "glyph" | "aria-label" | "aria-labelledby"> & {
-  // onSubmit: (text: string) => void
-};
+type SpecificIconInputProps = Pick<IconInputProps, "handleSend">
 
 export function ChatInput(props: SpecificIconInputProps) {
-  useKeyPress("Enter", (e) => {
-    console.log("Enter key pressed", e);
-  })
-
   return (
     <IconInput
       glyph="SMS"
       aria-label="MongoDB AI Chatbot Message Input"
       aria-labelledby="TBD - FIXME"
       placeholder={`Type a message or type "/" to select a prompt`}
-      {...props}
+      handleSend={props.handleSend}
     />
   );
 }

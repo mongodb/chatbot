@@ -1,10 +1,16 @@
 import Banner from "@leafygreen-ui/banner";
 import { ChatInput } from "./TextInput";
-import { Message, MessageData } from "./Message";
+import { Message, MessageData, SenderType } from "./Message";
 
 import styles from "./Chat.module.css";
 
-export function Chat({ messages, addMessage }: { messages: MessageData[], addMessage: (message: MessageData) => void }) {
+export function Chat({
+  messages,
+  addMessage,
+}: {
+  messages: MessageData[];
+  addMessage: (sender: SenderType, text: string) => void;
+}) {
   return (
     <div className={styles.chat}>
       <div className={styles.message_list}>
@@ -16,7 +22,11 @@ export function Chat({ messages, addMessage }: { messages: MessageData[], addMes
         This is an experimental AI chatbot. All information should be verified
         prior to use.
       </Banner>
-      <ChatInput onSubmit={(message) => addMessage(message.text)} />
+      <ChatInput
+        handleSend={(text: string) => {
+          addMessage("user", text);
+        }}
+      />
     </div>
   );
 }

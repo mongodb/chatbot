@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useCallback } from "react";
+import { createContext, useReducer, useCallback } from "react";
 import { MessageData, SenderType, createMessage } from "./Message";
 
 type ConversationState = {
@@ -8,7 +8,8 @@ type ConversationState = {
 type ConversationAction =
   | { type: "addMessage"; sender: SenderType; text: string }
   | { type: "modifyMessage"; messageId: MessageData["id"]; text: string }
-  | { type: "deleteMessage"; messageId: MessageData["id"] };
+  | { type: "deleteMessage"; messageId: MessageData["id"] }
+  | { type: "rateMessage"; messageId: MessageData["id"]; rating: boolean };
 
 function conversationReducer(
   state: ConversationState,
@@ -99,18 +100,22 @@ type ConversationProviderValue = ConversationState & {
   addMessage: (sender: SenderType, text: string) => void;
   modifyMessage: (messageId: string, text: string) => void;
   deleteMessage: (messageId: string) => void;
+  rateMessage: (messageId: string, rating: boolean) => void;
 };
 
 export const ConversationContext = createContext<ConversationProviderValue>({
   ...defaultState,
   addMessage: () => {
-    return null;
+    return;
   },
   modifyMessage: () => {
-    return null;
+    return;
   },
   deleteMessage: () => {
-    return null;
+    return;
+  },
+  rateMessage: () => {
+    return;
   },
 });
 
@@ -133,11 +138,16 @@ export default function ConversationProvider({
     dispatch({ type: "deleteMessage", messageId });
   }, []);
 
+  const rateMessage = useCallback((messageId: string, rating: boolean) => {
+    dispatch({ type: "rateMessage", messageId, rating });
+  }, []);
+
   const providerValue = {
     ...state,
     addMessage,
     modifyMessage,
     deleteMessage,
+    rateMessage,
   } satisfies ConversationProviderValue;
 
   return (

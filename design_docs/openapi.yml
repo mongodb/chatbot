@@ -1,0 +1,227 @@
+openapi: 3.1.0
+info:
+  title: Docs AI Chat API
+  version: 1.0.0
+  license:
+    name: TBD
+    url: TBD
+servers:
+  - url: http://TBD.mongodb.com/v1/ # URL TBD
+paths:
+  /start:
+    post:
+      operationId: start
+      summary: Start a new conversation with the chatbot
+      description: |
+        This endpoint is used to start a new conversation with the chatbot.
+        The response contains metadata for the conversation.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_ip:
+                  type: string
+                  format: ipv4
+                  description: The IP address of the user performing the conversation.
+              required: [user_ip]
+      responses:
+        "200":
+          description: |
+            Successful operation. Respond with text.
+            Response format depends on `stream` query parameter.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversation_id:
+                    type: string
+                    description: Unique identifier for the conversation
+                required: [conversation_id]
+        "400":
+          description: Invalid input
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal server error
+      security:
+        - CORS: []
+  /respond:
+    post:
+      operationId: respond
+      summary: Respond to chat from client
+      description: |
+        If the `stream` query parameter is `true`, the server will respond with a stream
+        of data as it's generated (`text/event-stream`). If `stream` is `false`, the server will
+        return the full string in `text/plain` format once all data is generated.
+      parameters:
+        - name: stream
+          in: query
+          schema:
+            type: boolean
+            default: false # TODO: consider if `true` (stream by default) is better
+          description: |
+            Whether or not the server should stream responses
+            or wait for all responses to be generated before sending them back
+            to the client.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Message"
+        required: true
+      responses:
+        "200":
+          description: |
+            Successful operation. Respond with text.
+            Response format depends on `stream` query parameter.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+            text/plain:
+              schema:
+                type: string
+        "400":
+          description: Invalid input
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal server error
+      security:
+        - CORS: []
+
+  /add:
+    post:
+      operationId: add
+      summary: Add content to service for a URL and it's associated text.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddRequest"
+      responses:
+        "204":
+          description: Successful operation
+        "400":
+          description: Invalid input
+        "401":
+          description: Unauthorized
+        "409":
+          description: Conflict, data with URL already exists
+        "500":
+          description: Internal server error
+      security:
+        - ApiKeyAuth: []
+
+  /rate:
+    post:
+      operationId: rate
+      summary: Rate a response
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RateRequest"
+      responses:
+        "204":
+          description: Successful operation
+        "400":
+          description: Invalid input
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found, data with URL does not exist
+        "500":
+          description: Internal server error
+      security:
+        - CORS: []
+
+  /remove:
+    delete:
+      operationId: remove
+      summary: Remove all content associated with a URL
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteRequest"
+      responses:
+        "204":
+          description: Successful operation
+        "400":
+          description: Invalid input
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found, data with URL does not exist
+        "500":
+          description: Internal server error
+      security:
+        - ApiKeyAuth: []
+
+components:
+  securitySchemes:
+    CORS: # TODO: validate that this is the correct way to represent CORS as security schema in OpenAPI spec
+      type: apiKey
+      in: header
+      name: Origin
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+  schemas:
+    AddRequest:
+      type: object
+      properties:
+        text:
+          type: string
+        url:
+          type: string
+          format: uri
+        site:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+        tags:
+          type: array
+          items:
+            type: string
+      required: [text, url, site, tags]
+    DeleteRequest:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+      required: [url]
+    Message:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [assistant, user]
+        content:
+          type: string
+          format: markdown
+          description: |
+            Markdown-formatted response to user's chat message in the context
+            of the conversation.
+    RateRequest:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+        rating:
+          type: boolean
+          description: Set to `true` if the user liked the response, `false` otherwise.
+      required: [url, rating]

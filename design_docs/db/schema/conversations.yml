@@ -1,0 +1,37 @@
+# Schema for the MongoDB collection that stores ratings
+$schema: http://json-schema.org/draft-07/schema#
+type: object
+properties:
+  messages:
+    type: array
+    items:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [assistant, user]
+        content:
+          type: string
+          format: markdown
+          description: |
+            Markdown-formatted response to user's chat message in the context
+            of the conversation.
+        rating:
+          type: boolean
+          description: |
+            Set to `true` if the user liked the response, `false` if the user didn't like the response.
+            No value if user didn't rate the response.
+
+            Note that only messages with `role: "assistant"` can be rated.
+      required: [role, content]
+  user_ip:
+    type: string
+    format: ipv4
+    description: The IP address of the user performing the conversation.
+  time_created:
+    type: BsonDate
+    description: The date the conversation was created.
+  last_updated:
+    type: BsonDate
+    description: The date the conversation was last updated.
+  required: [messages, user_ip, time_created, last_updated]

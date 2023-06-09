@@ -1,5 +1,5 @@
 import { createContext, useReducer, useCallback } from "react";
-import { MessageData, SenderType, createMessage } from "./Message";
+import { MessageData, SenderType } from "./Message";
 
 type ConversationState = {
   messages: MessageData[];
@@ -11,10 +11,30 @@ type ConversationAction =
   | { type: "deleteMessage"; messageId: MessageData["id"] }
   | { type: "rateMessage"; messageId: MessageData["id"]; rating: boolean };
 
+function createMessage(senderType: SenderType, text: string): MessageData {
+  return {
+    id: Math.random().toString(),
+    text,
+    sender: {
+      id: Math.random().toString(),
+      type: senderType,
+    },
+  };
+}
+
 function conversationReducer(
   state: ConversationState,
   action: ConversationAction
 ) {
+  function getMessageIndex(messageId: MessageData["id"]) {
+    const messageIndex = state.messages.findIndex(
+      (message) => message.id === messageId
+    );
+    if (messageIndex === -1) {
+      console.error(`Message(${messageId}) not found in state`);
+    }
+    return messageIndex;
+  }
   switch (action.type) {
     case "addMessage": {
       return {
@@ -26,13 +46,8 @@ function conversationReducer(
       };
     }
     case "modifyMessage": {
-      const messageIndex = state.messages.findIndex(
-        (message) => message.id === action.messageId
-      );
-      if (messageIndex === -1) {
-        console.error(`Message(${action.messageId}) not found in state`);
-        return state;
-      }
+      const messageIndex = getMessageIndex(action.messageId);
+      if (messageIndex === -1) return state;
       return {
         ...state,
         messages: [
@@ -43,17 +58,27 @@ function conversationReducer(
       };
     }
     case "deleteMessage": {
-      const messageIndex = state.messages.findIndex(
-        (message) => message.id === action.messageId
-      );
-      if (messageIndex === -1) {
-        console.error(`Message(${action.messageId}) not found in state`);
-        return state;
-      }
+      const messageIndex = getMessageIndex(action.messageId);
+      if (messageIndex === -1) return state;
       return {
         ...state,
         messages: [
           ...state.messages.slice(0, messageIndex),
+          ...state.messages.slice(messageIndex + 1),
+        ],
+      };
+    }
+    case "rateMessage": {
+      const messageIndex = getMessageIndex(action.messageId);
+      if (messageIndex === -1) return state;
+      return {
+        ...state,
+        messages: [
+          ...state.messages.slice(0, messageIndex),
+          {
+            ...state.messages[messageIndex],
+            rating: action.rating,
+          },
           ...state.messages.slice(messageIndex + 1),
         ],
       };
@@ -96,7 +121,7 @@ const defaultState = {
   messages,
 } satisfies ConversationState;
 
-type ConversationProviderValue = ConversationState & {
+export type ConversationProviderValue = ConversationState & {
   addMessage: (sender: SenderType, text: string) => void;
   modifyMessage: (messageId: string, text: string) => void;
   deleteMessage: (messageId: string) => void;

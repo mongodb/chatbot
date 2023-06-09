@@ -9,10 +9,10 @@ type IconInputProps = {
   "aria-label": string;
   "aria-labelledby": string;
   placeholder: string;
-  handleSend: (text: string) => void;
+  onSubmit: (text: string) => void;
 };
 
-export function IconInput(props: IconInputProps) {
+export function IconInput({ onSubmit, ...props }: IconInputProps) {
   const [inputText, setInputText] = useState("");
 
   return (
@@ -27,7 +27,7 @@ export function IconInput(props: IconInputProps) {
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
-            props.handleSend?.(inputText);
+            onSubmit?.(inputText);
             setInputText("");
           }
         }}
@@ -38,7 +38,7 @@ export function IconInput(props: IconInputProps) {
   );
 }
 
-type SpecificIconInputProps = Pick<IconInputProps, "handleSend">
+type SpecificIconInputProps = Pick<IconInputProps, "onSubmit">;
 
 export function ChatInput(props: SpecificIconInputProps) {
   return (
@@ -47,7 +47,7 @@ export function ChatInput(props: SpecificIconInputProps) {
       aria-label="MongoDB AI Chatbot Message Input"
       aria-labelledby="TBD - FIXME"
       placeholder={`Type a message or type "/" to select a prompt`}
-      handleSend={props.handleSend}
+      {...props}
     />
   );
 }

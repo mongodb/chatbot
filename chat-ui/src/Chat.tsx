@@ -3,19 +3,23 @@ import { ChatInput } from "./TextInput";
 import { Message, MessageData, SenderType } from "./Message";
 
 import styles from "./Chat.module.css";
+import { ConversationProviderValue } from "./ConversationProvider";
 
-export function Chat({
-  messages,
-  addMessage,
-}: {
-  messages: MessageData[];
-  addMessage: (sender: SenderType, text: string) => void;
-}) {
+type ChatProps = Pick<
+  ConversationProviderValue,
+  "messages" | "addMessage" | "rateMessage"
+>;
+
+export function Chat(props: ChatProps) {
   return (
     <div className={styles.chat}>
       <div className={styles.message_list}>
-        {messages.map((message) => (
-          <Message key={message.id} message={message} />
+        {props.messages.map((message) => (
+          <Message
+            key={message.id}
+            message={message}
+            rateMessage={props.rateMessage}
+          />
         ))}
       </div>
       <Banner variant="warning">
@@ -23,8 +27,8 @@ export function Chat({
         prior to use.
       </Banner>
       <ChatInput
-        handleSend={(text: string) => {
-          addMessage("user", text);
+        onSubmit={(text: string) => {
+          props.addMessage("user", text);
         }}
       />
     </div>

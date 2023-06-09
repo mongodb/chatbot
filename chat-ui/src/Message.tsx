@@ -2,6 +2,8 @@ import Icon from "@leafygreen-ui/icon";
 import IconButton from "@leafygreen-ui/icon-button";
 import { Body, Description } from "@leafygreen-ui/typography";
 import styles from "./Message.module.css";
+import { ConversationProviderValue } from "./ConversationProvider";
+import { useEffect, useRef } from "react";
 
 export type SenderType = "user" | "assistant" | "system";
 
@@ -12,18 +14,8 @@ export type MessageData = {
     id: string;
     type: SenderType;
   };
+  rating?: boolean;
 };
-
-export function createMessage(senderType: SenderType, text: string): MessageData {
-  return {
-    id: Math.random().toString(),
-    text,
-    sender: {
-      id: Math.random().toString(),
-      type: senderType,
-    },
-  }
-}
 
 function Avatar({ type }: { type: SenderType }) {
   const className = {
@@ -55,27 +47,61 @@ function Avatar({ type }: { type: SenderType }) {
   );
 }
 
-export function MessageRating() {
+type MessageRatingProps = {
+  messageId: string;
+  rateMessage: ConversationProviderValue["rateMessage"];
+  value?: boolean;
+};
+
+export function MessageRating({ messageId, rateMessage, value }: MessageRatingProps) {
   return (
     <div className={styles.message_rating}>
       <Description>Rate this response:</Description>
-      <IconButton size="large" aria-label="Thumbs Up">
+      <IconButton
+        size="large"
+        aria-label="Thumbs up this message"
+        active={value === true}
+        onClick={() => rateMessage(messageId, true)}
+      >
         <Icon className={styles.message_rating_icon} glyph="ArrowUp" />
       </IconButton>
-      <IconButton size="large" aria-label="Thumbs Down">
+      <IconButton
+        size="large"
+        aria-label="Thumbs down this message"
+        active={value === false}
+        onClick={() => rateMessage(messageId, false)}
+      >
         <Icon className={styles.message_rating_icon} glyph="ArrowDown" />
       </IconButton>
     </div>
   );
 }
 
-export function Message({ message }: { message: MessageData }) {
+type MessageProps = {
+  message: MessageData;
+  rateMessage: ConversationProviderValue["rateMessage"];
+};
+
+export function Message(props: MessageProps) {
+  const messageRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    messageRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  }, [])
   return (
-    <div className={styles.message}>
-      <Avatar type={message.sender.type} />
+    <div className={styles.message} ref={messageRef}>
+      <Avatar type={props.message.sender.type} />
       <div className={styles.message_text}>
-        <Body baseFontSize={16}>{message.text}</Body>
-        {message.sender.type === "assistant" && <MessageRating />}
+        <Body baseFontSize={16}>{props.message.text}</Body>
+        {props.message.sender.type === "assistant" && (
+          <MessageRating
+            messageId={props.message.id}
+            rateMessage={props.rateMessage}
+            value={props.message.rating}
+          />
+        )}
       </div>
     </div>
   );

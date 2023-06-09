@@ -4,9 +4,10 @@ import { createLogger, Logger, transports, format } from 'winston';
 let logger: Logger | null = null;
 
 // Helper function to format JSON message
-export const createMessage = (message: string, requestId?: string) => {
+export const createMessage = (message: string, requestBody?: any, requestId?: string) => {
   return {
     message,
+    requestBody,
     reqId: requestId || null,
   };
 };

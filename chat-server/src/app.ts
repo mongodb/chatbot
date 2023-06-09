@@ -1,10 +1,9 @@
 import express, { ErrorRequestHandler, RequestHandler } from 'express';
 import dotenv from 'dotenv';
 import { MongoClient, ObjectId } from 'mongodb';
+import { respondRouter } from './routes/respond';
 // Configure dotenv early so env variables can be read in imported files
 dotenv.config();
-// import buildsRouter from './routes/builds';
-import projectsRouter from './routes/projects';
 import { setupClient } from './services/database';
 import { createMessage, initiateLogger } from './services/logger';
 import { getRequestId } from './utils';
@@ -37,7 +36,7 @@ const reqHandler: RequestHandler = (req, _res, next) => {
   // logs related to the same request
   req.headers['req-id'] = reqId;
   const message = `Request for: ${req.url}`;
-  logger.info(createMessage(message, reqId));
+  logger.info(createMessage(message, req.body, reqId));
   next();
 };
 
@@ -48,12 +47,7 @@ export const setupApp = async ({ mongoClient }: AppSettings) => {
 
   const app = express();
   app.use(reqHandler);
-  // TODO: Add routes
-  // app.use('/builds', buildsRouter);
-  // app.use('/projects', projectsRouter);
-  app.get('/', (_req, res) => {
-    res.send('Hello World! 🧙🧙🧙🧙');
-  });
+  app.use('/respond', respondRouter);
   app.use(errorHandler);
 
   return app;

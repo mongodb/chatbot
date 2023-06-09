@@ -1,3 +1,4 @@
+// TODO: add DB methods relevant for this project
 import { Db, MongoClient, ObjectId } from 'mongodb';
 import { initiateLogger } from './logger';
 

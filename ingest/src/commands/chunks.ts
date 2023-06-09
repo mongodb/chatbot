@@ -15,7 +15,29 @@ const commandModule: CommandModule<
   },
   async handler({ since }) {
     try {
-      await updateChunks({ since: new Date(since) });
+      await updateChunks({
+        since: new Date(since),
+
+        // TODO: PageStore is a stand-in for Atlas (but can be mocked for testing)
+        pageStore: {
+          async loadPages() {
+            return [];
+          },
+          async updatePages() {
+            return;
+          },
+        },
+
+        // TODO: ChunkStore is a stand-in for Atlas (but can be mocked for testing)
+        chunkStore: {
+          async deleteChunks() {
+            return;
+          },
+          async updateChunks() {
+            return;
+          },
+        },
+      });
     } catch (error) {
       console.error(error);
       process.exit(1);

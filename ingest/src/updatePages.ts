@@ -4,22 +4,12 @@
  */
 export const updatePages = async (args: {
   sources: DataSource[];
+  pageStore: PageStore;
 }): Promise<void> => {
-  // TODO: Connect to Atlas
-  const store = {
-    async loadPages() {
-      // TODO
-      return [];
-    },
-    async updatePages(pages: PersistedPage[]) {
-      // TODO
-    },
-  };
-
   const pages = await fetchPages(args);
   await persistPages({
     pages,
-    store,
+    store: args.pageStore,
   });
 };
 
@@ -58,7 +48,7 @@ export type DataSource = {
 };
 
 // TODO: This is a stand-in for Atlas
-export type DataStore = {
+export type PageStore = {
   loadPages(): Promise<PersistedPage[]>;
   updatePages(pages: PersistedPage[]): Promise<void>;
 };
@@ -77,7 +67,7 @@ export const fetchPages = async (args: {
   Persists pages that have changed.
  */
 export const persistPages = async (args: {
-  store: DataStore;
+  store: PageStore;
   pages: Page[];
 }): Promise<void> => {
   // TODO: Persist pages that have changed

@@ -9,7 +9,17 @@ const commandModule: CommandModule<PagesCommandArgs> = {
   handler: async (args) => {
     try {
       await updatePages({
-        sources: [], // TODO
+        sources: [], // TODO: Load data source interfaces based on args
+
+        // TODO: PageStore is a stand-in for Atlas (but can be mocked for testing)
+        pageStore: {
+          async loadPages() {
+            return [];
+          },
+          async updatePages() {
+            return;
+          },
+        },
       });
     } catch (error) {
       console.error(error);

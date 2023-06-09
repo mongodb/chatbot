@@ -1,31 +1,34 @@
-import { PersistedPage } from "./updatePages";
+import { PersistedPage, PageStore } from "./updatePages";
 
-export const updateChunks = async (args: { since: Date }): Promise<void> => {
-  const changedPages = await loadChangedPages(args);
-
-  // TODO: This is a stand-in for an Atlas collection
-  const store = {
-    async deleteChunks() {
-      // TODO
-    },
-    async updateChunks() {
-      // TODO
-    },
-  };
+/**
+  (Re-)chunks the pages in the page store that have changed since the given date
+  and stores the chunks in the chunk store.
+ */
+export const updateChunks = async ({
+  since,
+  chunkStore,
+  pageStore,
+}: {
+  since: Date;
+  chunkStore: ChunkStore;
+  pageStore: PageStore;
+}): Promise<void> => {
+  const changedPages = await loadChangedPages({ since, pageStore });
 
   const promises = changedPages.map(async (page) => {
     switch (page.action) {
       case "deleted":
-        return deleteChunksForPage({ store, page });
+        return deleteChunksForPage({ store: chunkStore, page });
       case "created": // fallthrough
       case "updated":
-        return updateChunksForPage({ store, page });
+        return updateChunksForPage({ store: chunkStore, page });
     }
   });
 
   await Promise.all(promises);
 };
 
+// TODO: This is a stand-in for an Atlas collection
 export type ChunkStore = {
   deleteChunks(): Promise<void>;
   updateChunks(args: {
@@ -36,6 +39,7 @@ export type ChunkStore = {
 
 export const loadChangedPages = async (args: {
   since: Date;
+  pageStore: PageStore;
 }): Promise<PersistedPage[]> => {
   // TODO
   return [];

@@ -14,7 +14,6 @@
 }
 
 .message_avatar_user {
-
 }
 
 .message_avatar_assistant {
@@ -34,5 +33,7 @@
   gap: 4px;
 }
 
-.message_rating {}
-.message_rating_icon {}
+.message_rating {
+}
+.message_rating_icon {
+}

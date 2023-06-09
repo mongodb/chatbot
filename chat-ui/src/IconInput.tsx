@@ -1,7 +1,7 @@
 import TextInput from "@leafygreen-ui/text-input";
 import Icon, { glyphs } from "@leafygreen-ui/icon";
 
-import styles from "./TextInput.module.css";
+import styles from "./IconInput.module.css";
 import { useState } from "react";
 
 type IconInputProps = {
@@ -9,8 +9,10 @@ type IconInputProps = {
   "aria-label": string;
   "aria-labelledby": string;
   placeholder: string;
-  onSubmit: (text: string) => void;
+  onSubmit?: (text: string) => void;
 };
+
+export type SpecificIconInputProps = Pick<IconInputProps, "onSubmit">;
 
 export function IconInput({ onSubmit, ...props }: IconInputProps) {
   const [inputText, setInputText] = useState("");
@@ -35,31 +37,5 @@ export function IconInput({ onSubmit, ...props }: IconInputProps) {
       />
       <Icon className={styles.input_icon} glyph={props.glyph} />
     </div>
-  );
-}
-
-type SpecificIconInputProps = Pick<IconInputProps, "onSubmit">;
-
-export function ChatInput(props: SpecificIconInputProps) {
-  return (
-    <IconInput
-      glyph="SMS"
-      aria-label="MongoDB AI Chatbot Message Input"
-      aria-labelledby="TBD - FIXME"
-      placeholder={`Type a message or type "/" to select a prompt`}
-      {...props}
-    />
-  );
-}
-
-export function WizardInput(props: SpecificIconInputProps) {
-  return (
-    <IconInput
-      glyph="Wizard"
-      aria-label="MongoDB AI Chatbot Message Input"
-      aria-labelledby="TBD - FIXME"
-      placeholder="Ask MongoDB AI a Question"
-      {...props}
-    />
   );
 }

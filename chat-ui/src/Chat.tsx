@@ -1,5 +1,5 @@
 import Banner from "@leafygreen-ui/banner";
-import { ChatInput } from "./TextInput";
+import { IconInput } from "./IconInput";
 import { Message } from "./Message";
 
 import styles from "./Chat.module.css";
@@ -26,7 +26,11 @@ export function Chat(props: ChatProps) {
         This is an experimental AI chatbot. All information should be verified
         prior to use.
       </Banner>
-      <ChatInput
+      <IconInput
+        glyph="SMS"
+        aria-label="MongoDB AI Chatbot Message Input"
+        aria-labelledby="TBD - FIXME"
+        placeholder={`Type a message or type "/" to select a prompt`}
         onSubmit={(text: string) => {
           props.addMessage("user", text);
         }}

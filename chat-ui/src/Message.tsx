@@ -53,23 +53,23 @@ type MessageRatingProps = {
   value?: boolean;
 };
 
-export function MessageRating({ messageId, rateMessage, value }: MessageRatingProps) {
+export function MessageRating(props: MessageRatingProps) {
   return (
     <div className={styles.message_rating}>
       <Description>Rate this response:</Description>
       <IconButton
         size="large"
         aria-label="Thumbs up this message"
-        active={value === true}
-        onClick={() => rateMessage(messageId, true)}
+        active={props.value === true}
+        onClick={() => props.rateMessage(props.messageId, true)}
       >
         <Icon className={styles.message_rating_icon} glyph="ArrowUp" />
       </IconButton>
       <IconButton
         size="large"
         aria-label="Thumbs down this message"
-        active={value === false}
-        onClick={() => rateMessage(messageId, false)}
+        active={props.value === false}
+        onClick={() => props.rateMessage(props.messageId, false)}
       >
         <Icon className={styles.message_rating_icon} glyph="ArrowDown" />
       </IconButton>
@@ -89,7 +89,7 @@ export function Message(props: MessageProps) {
       behavior: "smooth",
       block: "end",
     });
-  }, [])
+  }, []);
   return (
     <div className={styles.message} ref={messageRef}>
       <Avatar type={props.message.sender.type} />

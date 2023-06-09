@@ -19,8 +19,10 @@ specifiers:
   buffer: ^6.0.3
   esbuild: ^0.17.19
   eslint: ^8.38.0
+  eslint-config-prettier: ^8.8.0
   eslint-plugin-react-hooks: ^4.6.0
   eslint-plugin-react-refresh: ^0.3.4
+  prettier: ^2.8.8
   react: ^18.2.0
   react-dom: ^18.2.0
   stream-browserify: ^3.0.0
@@ -40,6 +42,7 @@ dependencies:
   '@leafygreen-ui/typography': 16.5.0_3llk5cd7yj6loggwiyxymsljpa
   buffer: 6.0.3
   esbuild: 0.17.19
+  prettier: 2.8.8
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
   stream-browserify: 3.0.0
@@ -51,6 +54,7 @@ devDependencies:
   '@typescript-eslint/parser': 5.59.9_tizxnkcvjrb4cldxgwq5h3lj5u
   '@vitejs/plugin-react': 4.0.0_vite@4.3.9
   eslint: 8.42.0
+  eslint-config-prettier: 8.8.0_eslint@8.42.0
   eslint-plugin-react-hooks: 4.6.0_eslint@8.42.0
   eslint-plugin-react-refresh: 0.3.5_eslint@8.42.0
   typescript: 5.1.3
@@ -1296,6 +1300,15 @@ packages:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
     engines: {node: '>=10'}
 
+  /eslint-config-prettier/8.8.0_eslint@8.42.0:
+    resolution: {integrity: sha512-wLbQiFre3tdGgpDv67NQKnJuTlcUVYHas3k+DZCc2U2BadthoEY4B7hLPvAxaqdyOGCzuLfii2fqGph10va7oA==}
+    hasBin: true
+    peerDependencies:
+      eslint: '>=7.0.0'
+    dependencies:
+      eslint: 8.42.0
+    dev: true
+
   /eslint-plugin-react-hooks/4.6.0_eslint@8.42.0:
     resolution: {integrity: sha512-oFc7Itz9Qxh2x4gNHStv3BqJq54ExXmfC+a1NjAta66IAN87Wu0R/QArgIS9qKzX3dXKPI9H5crl9QchNMY9+g==}
     engines: {node: '>=10'}
@@ -1919,6 +1932,12 @@ packages:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
     dev: true
+
+  /prettier/2.8.8:
+    resolution: {integrity: sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==}
+    engines: {node: '>=10.13.0'}
+    hasBin: true
+    dev: false
 
   /process-nextick-args/2.0.1:
     resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}

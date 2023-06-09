@@ -9,7 +9,6 @@ name: test-chat-server
 trigger:
   branch:
     - main
-    - DOCSP-30565 # TODO: remove later when ready to merge
   event:
     - push
     - tag

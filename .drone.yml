@@ -66,7 +66,7 @@ steps:
   - name: promote-staging-chat-server
     image: drone/cli:1.4.0-alpine
     commands:
-      - drone build promote mongodb/docs-chat ${DRONE_BUILD_NUMBER} staging
+      - drone build promote mongodb/docs-chatbot ${DRONE_BUILD_NUMBER} staging
     environment:
       DRONE_SERVER: ${DRONE_SYSTEM_PROTO}://${DRONE_SYSTEM_HOST}
       DRONE_TOKEN:

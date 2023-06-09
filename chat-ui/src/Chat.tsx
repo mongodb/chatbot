@@ -4,6 +4,7 @@ import { Message } from "./Message";
 
 import styles from "./Chat.module.css";
 import { ConversationProviderValue } from "./ConversationProvider";
+import { useState } from "react";
 
 type ChatProps = Pick<
   ConversationProviderValue,
@@ -11,6 +12,8 @@ type ChatProps = Pick<
 >;
 
 export function Chat(props: ChatProps) {
+  const [inputText, setInputText] = useState("");
+
   return (
     <div className={styles.chat}>
       <div className={styles.message_list}>
@@ -31,8 +34,15 @@ export function Chat(props: ChatProps) {
         aria-label="MongoDB AI Chatbot Message Input"
         aria-labelledby="TBD - FIXME"
         placeholder={`Type a message or type "/" to select a prompt`}
-        onSubmit={(text: string) => {
-          props.addMessage("user", text);
+        value={inputText}
+        onChange={(e) => {
+          setInputText(e.target.value);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            props.addMessage("user", inputText);
+            setInputText("");
+          }
         }}
       />
     </div>

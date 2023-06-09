@@ -5,15 +5,19 @@ import CallToActionInput from "./CallToActionInput";
 
 function App() {
   return (
-    <div style={{
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      gap: "20px"
-    }}>
-      <div style={{
-        width: "650px"
-      }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "20px",
+      }}
+    >
+      <div
+        style={{
+          width: "650px",
+        }}
+      >
         <CallToActionInput />
       </div>
       <ConversationProvider>

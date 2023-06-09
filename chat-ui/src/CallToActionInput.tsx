@@ -3,7 +3,7 @@ import { Body, Link } from "@leafygreen-ui/typography";
 import { IconInput } from "./IconInput";
 import styles from "./CallToActionInput.module.css";
 
-export default function CallToActionInput(props: object) {
+export default function CallToActionInput() {
   return (
     <div className={styles.cta_container}>
       <IconInput
@@ -15,7 +15,8 @@ export default function CallToActionInput(props: object) {
       <div className={styles.cta_disclosure}>
         <Badge variant="blue">Experimental</Badge>
         <Body>
-          By interacting with this chatbot, you agree to xyz. <Link href="#">Terms & Conditions</Link>
+          By interacting with this chatbot, you agree to xyz.{" "}
+          <Link href="#">Terms & Conditions</Link>
         </Body>
       </div>
     </div>

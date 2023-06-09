@@ -1,5 +1,6 @@
 .modal {
   max-width: 800px;
+  width: 100%;
 }
 
 .modal_title {
@@ -7,4 +8,20 @@
   flex-direction: row;
   align-items: center;
   gap: 12px;
+}
+
+.modal_empty {
+  display: flex;
+  flex-direction: column;
+  /* align-items: center; */
+  gap: 1rem;
+}
+
+.modal_basic_banner {
+  width: 100%;
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  background: #e1f7ff;
 }

@@ -6,6 +6,7 @@ name: test
 trigger:
   branch:
     - main
+    - DOCSP-30565 # TODO: remove later when ready to merge
   event:
     - push
     - tag
@@ -16,7 +17,8 @@ steps:
     commands:
       - npm ci
       - npm run lint
-      - npm run test
+      # Skipping testing for now since we don't have any tests
+      # - npm run test
 
 ---
 depends_on: ['test']
@@ -31,7 +33,7 @@ trigger:
     - push
 
 steps:
-  # Bulds and publishes Docker image for staging
+  # Builds and publishes Docker image for staging
   - name: publish-staging
     image: plugins/kaniko-ecr
     settings:
@@ -78,7 +80,7 @@ steps:
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: docs
       # TODO: replace with our own server..real name TBD
-      release: docs-chat
+      release: chat-server
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME},ingress.enabled=true,ingress.hosts[0]=snooty-data-api.docs.staging.corp.mongodb.com
       values_files: ['environments/staging.yml']
       api_server: https://api.staging.corp.mongodb.com

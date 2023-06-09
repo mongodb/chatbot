@@ -92,7 +92,7 @@ steps:
       chart_version: 4.12.3
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: docs
-      release: chat-server
+      release: ${DRONE_REPO_NAME}-chat-server
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME},ingress.enabled=true,ingress.hosts[0]=chat-server.docs.staging.corp.mongodb.com
       values_files: ["chat-server/environments/staging.yml"]
       api_server: https://api.staging.corp.mongodb.com
@@ -100,7 +100,9 @@ steps:
         from_secret: staging_kubernetes_token
 
 ---
+# --------------------
 # NOTE: not worrying about production stuff just yet
+# --------------------
 depends_on: ["test-chat-server"]
 kind: pipeline
 type: kubernetes

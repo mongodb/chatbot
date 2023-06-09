@@ -1,4 +1,4 @@
-# Schema for the MongoDB collection that stores content
+# Schema for the MongoDB collection that stores full page data
 $schema: http://json-schema.org/draft-07/schema#
 type: object
 properties:
@@ -7,32 +7,20 @@ properties:
     format: uri
     description: The URL of the page with the chunk content.
     example: https://www.mongodb.com/docs/mongodb-analyzer/current/install/
-  text:
+  body:
     type: string
     description: The text content of the chunk.
     example: Learn how to install the MongoDB Analyzer in your .NET application...
-  num_tokens:
-    type: integer
-    description: The number of embedding tokens in the chunk.
-    example: 100
-  embedding:
-    type: array
-    items:
-      type: number
-    description: The vector embedding of the chunk.
-    example:
-      [-0.022169992, -0.016545685, -0.036343243, 0.06757348, -0.0034870696, …]
   last_updated:
-    type: string
-    format: date-time
-    description: The date the chunk was last updated.
+    type: BsonDate
+    description: The date the page was last updated.
     example: 2021-01-01T00:00:00.000Z
-  site:
+  data_source:
     type: object
     properties:
       name:
         type: string
-        description: The name of the website the chunk belongs to.
+        description: The name of the data source the page belongs to.
         example: MongoDB Analyzer
       url:
         type: string
@@ -42,6 +30,13 @@ properties:
     required:
       - name
       - url
+  action:
+    type: string
+    enum:
+      - added
+      - updated
+      - deleted
+    description: The action that should be taken with the page.
   tags:
     type: array
     items:
@@ -51,10 +46,10 @@ properties:
       - .net
       - c#
     uniqueItems: true
+
 required:
   - url
-  - text
-  - num_tokens
-  - embedding
+  - body
   - last_updated
-  - site
+  - data_source
+  - action

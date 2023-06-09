@@ -52,7 +52,7 @@ export const setupApp = async ({ mongoClient }: AppSettings) => {
   // app.use('/builds', buildsRouter);
   // app.use('/projects', projectsRouter);
   app.get('/', (_req, res) => {
-    res.send('Hello World! 🧙');
+    res.send('Hello World! 🧙🧙');
   });
   app.use(errorHandler);
 

@@ -1,6 +1,6 @@
 import Banner from "@leafygreen-ui/banner";
 import { ChatInput } from "./TextInput";
-import { Message, MessageData, SenderType } from "./Message";
+import { Message } from "./Message";
 
 import styles from "./Chat.module.css";
 import { ConversationProviderValue } from "./ConversationProvider";

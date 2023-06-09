@@ -1,4 +1,4 @@
-import TextInput, { TextInputProps } from "@leafygreen-ui/text-input";
+import TextInput from "@leafygreen-ui/text-input";
 import Icon, { glyphs } from "@leafygreen-ui/icon";
 
 import styles from "./TextInput.module.css";

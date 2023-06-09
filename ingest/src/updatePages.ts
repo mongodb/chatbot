@@ -70,5 +70,7 @@ export const persistPages = async (args: {
   store: PageStore;
   pages: Page[];
 }): Promise<void> => {
+  // TODO: Load pages from store
+  // TODO: Compare pages in store with incoming pages
   // TODO: Persist pages that have changed
 };

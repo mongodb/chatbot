@@ -28,7 +28,7 @@ steps:
       # - npm run test
 
 ---
-depends_on: ["test"]
+depends_on: ["test-chat-server"]
 kind: pipeline
 type: kubernetes
 name: staging-build-chat-server
@@ -50,7 +50,7 @@ steps:
     settings:
       create_repository: true
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
-      repo: docs/${DRONE_REPO_NAME}
+      repo: docs/${DRONE_REPO_NAME}-chat-server
       tags:
         - git-${DRONE_COMMIT_SHA:0:7}-staging
         - latest-staging
@@ -63,7 +63,6 @@ steps:
   - name: promote-staging
     image: drone/cli:1.4.0-alpine
     commands:
-      # TODO: how to incorporate entering the chat-server directory?
       - drone build promote mongodb/docs-chat ${DRONE_BUILD_NUMBER} staging
     environment:
       DRONE_SERVER: ${DRONE_SYSTEM_PROTO}://${DRONE_SYSTEM_HOST}
@@ -99,7 +98,7 @@ steps:
 
 ---
 # NOTE: not worrying about production stuff just yet
-depends_on: ["test"]
+depends_on: ["test-chat-server"]
 kind: pipeline
 type: kubernetes
 name: production-build-chat-server

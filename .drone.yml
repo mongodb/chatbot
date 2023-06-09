@@ -1,7 +1,7 @@
+---
 # ---
 # Chat Server pipelines
 # ---
----
 kind: pipeline
 type: kubernetes
 name: test-chat-server

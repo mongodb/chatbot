@@ -2,37 +2,37 @@ import { Db, MongoClient, ObjectId } from 'mongodb';
 import { initiateLogger } from './logger';
 
 // TODO: define interfaces for database documents
-// interface StaticAsset {
-//   checksum: string;
-//   key: string;
-// }
+interface StaticAsset {
+  checksum: string;
+  key: string;
+}
 
-// export interface AssetDocument {
-//   _id: string;
-//   data: BinaryData;
-// }
+export interface AssetDocument {
+  _id: string;
+  data: BinaryData;
+}
 
-// interface PageDocument {
-//   _id: ObjectId;
-//   page_id: string;
-//   filename: string;
-//   ast: object;
-//   source: string;
-//   static_assets: StaticAsset[];
-//   build_id: ObjectId;
-//   created_at: Date;
-// }
+interface PageDocument {
+  _id: ObjectId;
+  page_id: string;
+  filename: string;
+  ast: object;
+  source: string;
+  static_assets: StaticAsset[];
+  build_id: ObjectId;
+  created_at: Date;
+}
 
-// interface UpdatedPageDocument {
-//   _id: ObjectId;
-//   page_id: string;
-//   filename: string;
-//   ast: object;
-//   static_assets: StaticAsset[];
-//   created_at: Date;
-//   updated_at: Date;
-//   deleted: boolean;
-// }
+interface UpdatedPageDocument {
+  _id: ObjectId;
+  page_id: string;
+  filename: string;
+  ast: object;
+  static_assets: StaticAsset[];
+  created_at: Date;
+  updated_at: Date;
+  deleted: boolean;
+}
 
 export type PageDocType = PageDocument | UpdatedPageDocument;
 

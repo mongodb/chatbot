@@ -1,7 +1,10 @@
 ---
+# ---
+# Chat Server pipelines
+# ---
 kind: pipeline
 type: kubernetes
-name: test
+name: test-chat-server
 
 trigger:
   branch:
@@ -9,35 +12,48 @@ trigger:
   event:
     - push
     - tag
+  paths:
+    include:
+      - chat-server/**/*
 
 steps:
   - name: test
     image: node:18
     commands:
+      - cd chat-server
       - npm ci
       - npm run lint
-      - npm run test
+      # TODO add back in when working test suite exists
+      # Skipping testing for now since we don't have any tests
+      # - npm run test
 
 ---
-depends_on: ['test']
+depends_on: ["test-chat-server"]
 kind: pipeline
 type: kubernetes
-name: staging-build
+name: staging-build-chat-server
 
 trigger:
   branch:
     - main
+    - DOCSP-30565 # TODO: remove later when ready to merge
   event:
     - push
+  paths:
+    include:
+      - chat-server/**/*
 
 steps:
-  # Bulds and publishes Docker image for staging
-  - name: publish-staging
+  # Builds and publishes Docker image for staging
+  - name: publish-staging-chat-server
+    # TODO: find Dockerfile in the chat-server directory
     image: plugins/kaniko-ecr
     settings:
+      dockerfile: chat-server/Dockerfile
+      context: chat-server
       create_repository: true
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
-      repo: docs/${DRONE_REPO_NAME}
+      repo: docs/${DRONE_REPO_NAME}-chat-server
       tags:
         - git-${DRONE_COMMIT_SHA:0:7}-staging
         - latest-staging
@@ -47,11 +63,10 @@ steps:
         from_secret: ecr_secret_key
 
   # Promotes current drone build to staging environment
-  - name: promote-staging
+  - name: promote-staging-chat-server
     image: drone/cli:1.4.0-alpine
     commands:
-      # TODO: replace with our own server..real name TBD
-      - drone build promote mongodb/docs-chat ${DRONE_BUILD_NUMBER} staging
+      - drone build promote mongodb/docs-chatbot ${DRONE_BUILD_NUMBER} staging
     environment:
       DRONE_SERVER: ${DRONE_SYSTEM_PROTO}://${DRONE_SYSTEM_HOST}
       DRONE_TOKEN:
@@ -60,7 +75,7 @@ steps:
 ---
 kind: pipeline
 type: kubernetes
-name: staging-deploy
+name: staging-deploy-chat-server
 
 trigger:
   event:
@@ -70,26 +85,31 @@ trigger:
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion
-  - name: deploy-staging
+  - name: deploy-staging-chat-server
     image: quay.io/mongodb/drone-helm:v3
     settings:
       chart: mongodb/web-app
       chart_version: 4.12.3
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: docs
-      # TODO: replace with our own server..real name TBD
-      release: docs-chat
-      values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME},ingress.enabled=true,ingress.hosts[0]=snooty-data-api.docs.staging.corp.mongodb.com
-      values_files: ['environments/staging.yml']
+      release: chat-server
+      values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-server.docs.staging.corp.mongodb.com
+      values_files: ["chat-server/environments/staging.yml"]
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
 
 ---
-depends_on: ['test']
+# --------------------
+# TODO: Validate production deployment.
+# Not worrying about production stuff just yet.
+# The below config *should* work, but it hasn't been tested yet, so odds are that
+# it will need to be tweaked.
+# --------------------
+depends_on: ["test-chat-server"]
 kind: pipeline
 type: kubernetes
-name: production-build
+name: production-build-chat-server
 
 trigger:
   event:
@@ -97,12 +117,12 @@ trigger:
 
 steps:
   # Builds and publishes Docker image for production
-  - name: publish-production
+  - name: publish-production-chat-server
     image: plugins/kaniko-ecr
     settings:
       create_repository: true
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
-      repo: docs/${DRONE_REPO_NAME}
+      repo: docs/${DRONE_REPO_NAME}-chat-server
       tags:
         - git-${DRONE_COMMIT_SHA:0:7}-production
         - latest-production
@@ -112,10 +132,9 @@ steps:
         from_secret: ecr_secret_key
 
   # Promotes current drone build to production environment
-  - name: promote-production
+  - name: promote-production-chat-server
     image: drone/cli:1.4.0-alpine
     commands:
-      # TODO: replace with our own server..real name TBD
       - drone build promote docs-chat ${DRONE_BUILD_NUMBER} production
     environment:
       DRONE_SERVER: ${DRONE_SYSTEM_PROTO}://${DRONE_SYSTEM_HOST}
@@ -125,7 +144,7 @@ steps:
 ---
 kind: pipeline
 type: kubernetes
-name: production-deploy
+name: production-deploy-chat-server
 
 trigger:
   event:
@@ -135,17 +154,16 @@ trigger:
 
 steps:
   # Deploys Docker image associated with production build that triggered promotion
-  - name: deploy-production
+  - name: deploy-production-chat-server
     image: quay.io/mongodb/drone-helm:v3
     settings:
       chart: mongodb/web-app
       chart_version: 4.12.3
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: docs
-      # TODO: replace with our own server..real name TBD
       release: docs-chat
-      values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-production,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME},ingress.enabled=true,ingress.hosts[0]=snooty-data-api.docs.prod.corp.mongodb.com
-      values_files: ['environments/production.yml']
+      values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-production,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-server.docs.prod.corp.mongodb.com
+      values_files: ["chat-server/environments/production.yml"]
       api_server: https://api.prod.corp.mongodb.com
       kubernetes_token:
         from_secret: prod_kubernetes_token

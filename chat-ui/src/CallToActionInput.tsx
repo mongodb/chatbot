@@ -1,24 +1,50 @@
+import styles from "./CallToActionInput.module.css";
 import Badge from "@leafygreen-ui/badge";
 import { Body, Link } from "@leafygreen-ui/typography";
+import Modal from "@leafygreen-ui/modal";
 import { IconInput } from "./IconInput";
-import styles from "./CallToActionInput.module.css";
+import useInputFocusRef from "./useInputFocusRef";
+import { useState, useEffect } from "react";
+import { ChatbotModalContent } from "./Modal"
 
-export default function CallToActionInput() {
+type CallToActionInputProps = {
+  showModal: boolean;
+};
+
+export default function CallToActionInput(props: CallToActionInputProps) {
+  const [modalOpen, setModalOpen] = useState(false);
+  const { inputRef, isInputFocused } = useInputFocusRef({
+    onFocus: () => {
+      if(!modalOpen) {
+        setModalOpen(true)
+      }
+    }
+  });
+
   return (
-    <div className={styles.cta_container}>
-      <IconInput
-        glyph="Wizard"
-        aria-label="MongoDB AI Chatbot Message Input"
-        aria-labelledby="TBD - FIXME"
-        placeholder="Ask MongoDB AI a Question"
-      />
-      <div className={styles.cta_disclosure}>
-        <Badge variant="blue">Experimental</Badge>
-        <Body>
-          By interacting with this chatbot, you agree to xyz.{" "}
-          <Link href="#">Terms & Conditions</Link>
-        </Body>
+    <>
+      <div className={styles.cta_container}>
+        <IconInput
+          ref={inputRef}
+          glyph="Wizard"
+          aria-label="MongoDB AI Chatbot Message Input"
+          aria-labelledby="TBD - FIXME"
+          placeholder="Ask MongoDB AI a Question"
+        />
+        <div className={styles.cta_disclosure}>
+          <Badge variant="blue">Experimental</Badge>
+          <Body>
+            By interacting with this chatbot, you agree to xyz.{" "}
+            <Link href="#">Terms & Conditions</Link>
+            {isInputFocused ? " with focus" : " without focus"}
+          </Body>
+        </div>
       </div>
-    </div>
+      {props.showModal ? (
+        <Modal open={modalOpen} setOpen={setModalOpen} size="large">
+          <ChatbotModalContent />
+        </Modal>
+      ) : null}
+    </>
   );
 }

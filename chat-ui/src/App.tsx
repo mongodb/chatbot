@@ -1,5 +1,5 @@
 import LeafyGreenProvider from "@leafygreen-ui/leafygreen-provider";
-import ChatbotModal from "./Modal";
+import ChatbotModalCard from "./Modal";
 import ConversationProvider from "./ConversationProvider";
 import CallToActionInput from "./CallToActionInput";
 
@@ -13,16 +13,25 @@ function App() {
         gap: "20px",
       }}
     >
-      <div
-        style={{
-          width: "650px",
-        }}
-      >
-        <CallToActionInput />
-      </div>
-      <ConversationProvider>
-        <ChatbotModal />
-      </ConversationProvider>
+        <div
+          style={{
+            width: "650px",
+          }}
+        >
+          <CallToActionInput
+            showModal={false}
+          />
+        </div>
+        <ChatbotModalCard />
+        <div
+          style={{
+            width: "650px",
+          }}
+        >
+          <CallToActionInput
+            showModal={true}
+          />
+        </div>
     </div>
   );
 }
@@ -30,7 +39,9 @@ function App() {
 export default function LGApp() {
   return (
     <LeafyGreenProvider>
-      <App />
+      <ConversationProvider>
+        <App />
+      </ConversationProvider>
     </LeafyGreenProvider>
   );
 }

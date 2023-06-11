@@ -9,6 +9,7 @@ specifiers:
   '@leafygreen-ui/icon': ^11.16.1
   '@leafygreen-ui/icon-button': ^15.0.11
   '@leafygreen-ui/leafygreen-provider': ^3.1.3
+  '@leafygreen-ui/modal': ^15.0.3
   '@leafygreen-ui/text-input': ^12.1.13
   '@leafygreen-ui/typography': ^16.5.0
   '@types/react': ^18.0.37
@@ -38,6 +39,7 @@ dependencies:
   '@leafygreen-ui/icon': 11.16.1
   '@leafygreen-ui/icon-button': 15.0.11_3llk5cd7yj6loggwiyxymsljpa
   '@leafygreen-ui/leafygreen-provider': 3.1.3_react@18.2.0
+  '@leafygreen-ui/modal': 15.0.3_rhmyb3gwq6r6pubwx4nxylyepu
   '@leafygreen-ui/text-input': 12.1.13_3llk5cd7yj6loggwiyxymsljpa
   '@leafygreen-ui/typography': 16.5.0_3llk5cd7yj6loggwiyxymsljpa
   buffer: 6.0.3
@@ -779,12 +781,47 @@ packages:
       react: 18.2.0
     dev: false
 
+  /@leafygreen-ui/modal/15.0.3_rhmyb3gwq6r6pubwx4nxylyepu:
+    resolution: {integrity: sha512-SifAL0vitAkmfXDom2JK9WJPQ7kauQrqFlegNEGdNnGPhSoGWSKi74obfdcIA6H256G7fiDYYDrreBRmpIcyTg==}
+    peerDependencies:
+      '@leafygreen-ui/leafygreen-provider': ^3.1.3
+    dependencies:
+      '@leafygreen-ui/emotion': 4.0.4
+      '@leafygreen-ui/hooks': 7.7.4
+      '@leafygreen-ui/icon': 11.16.1
+      '@leafygreen-ui/icon-button': 15.0.11_3llk5cd7yj6loggwiyxymsljpa
+      '@leafygreen-ui/leafygreen-provider': 3.1.3_react@18.2.0
+      '@leafygreen-ui/lib': 10.3.4_react@18.2.0
+      '@leafygreen-ui/palette': 4.0.4
+      '@leafygreen-ui/portal': 4.1.3_biqbaboplfbrettd7655fr4n2y
+      '@leafygreen-ui/tokens': 2.1.0
+      focus-trap-react: 8.11.3_v2m5e27vhdewzwhryxwfaorcca
+      polished: 4.2.2
+      prop-types: 15.8.1
+      react-transition-group: 4.4.5_biqbaboplfbrettd7655fr4n2y
+    transitivePeerDependencies:
+      - react
+      - react-dom
+    dev: false
+
   /@leafygreen-ui/palette/4.0.4:
     resolution: {integrity: sha512-nuZy2RtKHAGpIKrDduqC8P8PvajJRT1hQURoisYMiB32NmEEHGEhtHw4MlS+Kv92HFA0jxgMdZUHKTXq83BhjA==}
     dev: false
 
   /@leafygreen-ui/polymorphic/1.3.2:
     resolution: {integrity: sha512-av3FtFGf86c9ccIrgEArBhum0M+IklpBvnONsW70mMtEXKnJsGwGwY+HkuSAxbUpjGFIkIPbn5bIp1rHwAIOHA==}
+    dev: false
+
+  /@leafygreen-ui/portal/4.1.3_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-1xhdSrioQTWHplUzlOcwXL3l4e/d4Clirm294Rdifeo7n04XQHPIxhRH1bCtJNyYOdI0NtD0DD4v1C28mvYhjw==}
+    peerDependencies:
+      react-dom: ^17.0.0
+    dependencies:
+      '@leafygreen-ui/hooks': 7.7.4
+      '@leafygreen-ui/lib': 10.3.4_react@18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    transitivePeerDependencies:
+      - react
     dev: false
 
   /@leafygreen-ui/text-input/12.1.13_3llk5cd7yj6loggwiyxymsljpa:
@@ -1242,6 +1279,13 @@ packages:
       esutils: 2.0.3
     dev: true
 
+  /dom-helpers/5.2.1:
+    resolution: {integrity: sha512-nRCa7CK3VTrM2NmGkIy4cbK7IZlgBE/PYMn55rrXefr5xXDP0LdtfPnblFDoVdcAfslJ7or6iqAUnx0CCGIWQA==}
+    dependencies:
+      '@babel/runtime': 7.22.3
+      csstype: 3.1.2
+    dev: false
+
   /duplexer2/0.1.4:
     resolution: {integrity: sha512-asLFVfWWtJ90ZyOUHMqk7/S2w2guQKxUI2itj3d92ADHhxUSbCMGi1f1cBcJ7xM1To+pE/Khbwo1yuNbMEPKeA==}
     dependencies:
@@ -1503,6 +1547,26 @@ packages:
   /flatted/3.2.7:
     resolution: {integrity: sha512-5nqDSxl8nn5BSNxyR3n4I6eDmbolI6WT+QqR547RwxQapgjQBmtktdP+HTBb/a/zLsbzERTONyUB5pefh5TtjQ==}
     dev: true
+
+  /focus-trap-react/8.11.3_v2m5e27vhdewzwhryxwfaorcca:
+    resolution: {integrity: sha512-y126gMYuB1aVYiEZSP6/v9bAfVmAIUVixanhcoMelkz7bOh+l0c3h05CEHC8S63ztxdRI2AAPS9AsTat6jlDeQ==}
+    peerDependencies:
+      prop-types: ^15.8.1
+      react: '>=16.0.0'
+      react-dom: '>=16.0.0'
+    dependencies:
+      focus-trap: 6.9.4
+      prop-types: 15.8.1
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+      tabbable: 5.3.3
+    dev: false
+
+  /focus-trap/6.9.4:
+    resolution: {integrity: sha512-v2NTsZe2FF59Y+sDykKY+XjqZ0cPfhq/hikWVL88BqLivnNiEffAsac6rP6H45ff9wG9LL5ToiDqrLEP9GX9mw==}
+    dependencies:
+      tabbable: 5.3.3
+    dev: false
 
   /fs.realpath/1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
@@ -1979,6 +2043,20 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
+  /react-transition-group/4.4.5_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-pZcd1MCJoiKiBR2NRxeCRg13uCXbydPnmB4EOeRrY7480qNWO8IIgQG6zlDkm6uRMsURXPuKq0GWtiM59a5Q6g==}
+    peerDependencies:
+      react: '>=16.6.0'
+      react-dom: '>=16.6.0'
+    dependencies:
+      '@babel/runtime': 7.22.3
+      dom-helpers: 5.2.1
+      loose-envify: 1.4.0
+      prop-types: 15.8.1
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    dev: false
+
   /react/18.2.0:
     resolution: {integrity: sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==}
     engines: {node: '>=0.10.0'}
@@ -2184,6 +2262,10 @@ packages:
   /supports-preserve-symlinks-flag/1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
+    dev: false
+
+  /tabbable/5.3.3:
+    resolution: {integrity: sha512-QD9qKY3StfbZqWOPLp0++pOrAVb/HbUi5xCc8cUo4XjP19808oaMiDzn0leBY5mCespIBM0CIZePzZjgzR83kA==}
     dev: false
 
   /text-table/0.2.0:

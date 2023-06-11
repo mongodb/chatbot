@@ -1,6 +1,7 @@
 import Card from "@leafygreen-ui/card";
 import Badge from "@leafygreen-ui/badge";
 import { H3, Overline } from "@leafygreen-ui/typography";
+import Modal from "@leafygreen-ui/modal";
 
 import { Chat } from "./Chat";
 import { IconInput } from "./IconInput";
@@ -63,15 +64,19 @@ function ConversationWithMessages() {
   );
 }
 
-export default function ChatbotModal() {
+export function ChatbotModalContent() {
   const conversation = useConversation();
+  return conversation.messages.length === 0 ? (
+    <EmptyConversation />
+  ) : (
+    <ConversationWithMessages />
+  );
+}
+
+export default function ChatbotModalCard() {
   return (
     <Card className={styles.modal}>
-      {conversation.messages.length === 0 ? (
-        <EmptyConversation />
-      ) : (
-        <ConversationWithMessages />
-      )}
+      <ChatbotModalContent />
     </Card>
   );
 }

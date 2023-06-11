@@ -11,17 +11,6 @@ type ConversationAction =
   | { type: "deleteMessage"; messageId: MessageData["id"] }
   | { type: "rateMessage"; messageId: MessageData["id"]; rating: boolean };
 
-function createMessage(senderType: SenderType, text: string): MessageData {
-  return {
-    id: Math.random().toString(),
-    text,
-    sender: {
-      id: Math.random().toString(),
-      type: senderType,
-    },
-  };
-}
-
 function conversationReducer(
   state: ConversationState,
   action: ConversationAction

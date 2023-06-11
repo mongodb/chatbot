@@ -1,10 +1,9 @@
 import Card from "@leafygreen-ui/card";
 import Badge from "@leafygreen-ui/badge";
 import { H3, Overline } from "@leafygreen-ui/typography";
-import Modal from "@leafygreen-ui/modal";
 
-import { Chat } from "./Chat";
-import { IconInput } from "./IconInput";
+import Chat from "./Chat";
+import IconInput from "./IconInput";
 import useConversation from "./useConversation";
 
 import styles from "./Modal.module.css";

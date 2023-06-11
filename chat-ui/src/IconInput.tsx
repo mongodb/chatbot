@@ -10,7 +10,7 @@ export type IconInputProps = TextInputProps & {
 
 export type SpecificIconInputProps = Pick<IconInputProps, "onSubmit">;
 
-export const IconInput = forwardRef<HTMLInputElement, IconInputProps>(
+const IconInput = forwardRef<HTMLInputElement, IconInputProps>(
   function IconInput(props: IconInputProps, ref) {
     return (
       <div className={styles.input_wrapper}>
@@ -27,3 +27,4 @@ export const IconInput = forwardRef<HTMLInputElement, IconInputProps>(
     );
   }
 );
+export default IconInput;

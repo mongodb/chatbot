@@ -13,25 +13,21 @@ function App() {
         gap: "20px",
       }}
     >
-        <div
-          style={{
-            width: "650px",
-          }}
-        >
-          <CallToActionInput
-            showModal={false}
-          />
-        </div>
-        <ChatbotModalCard />
-        <div
-          style={{
-            width: "650px",
-          }}
-        >
-          <CallToActionInput
-            showModal={true}
-          />
-        </div>
+      <div
+        style={{
+          width: "650px",
+        }}
+      >
+        <CallToActionInput showModal={false} />
+      </div>
+      <ChatbotModalCard />
+      <div
+        style={{
+          width: "650px",
+        }}
+      >
+        <CallToActionInput showModal={true} />
+      </div>
     </div>
   );
 }

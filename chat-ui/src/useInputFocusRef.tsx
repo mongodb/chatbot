@@ -1,29 +1,36 @@
 import { useEffect, useRef, useState } from "react";
 
 type UseInputFocusRefArgsProps = {
-  onFocus?: (event: FocusEvent) => void
-  onBlur?: (event: FocusEvent) => void
-}
+  onFocus?: (event: FocusEvent) => void;
+  onBlur?: (event: FocusEvent) => void;
+};
 
-export default function useInputFocusRef(props: UseInputFocusRefArgsProps) {
+export default function useInputFocusRef({
+  onFocus,
+  onBlur,
+}: UseInputFocusRefArgsProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
   useEffect(() => {
+    const inputElement = inputRef.current;
+    if (!inputElement) {
+      return;
+    }
     const focusHandler = (e: FocusEvent) => {
-      props.onFocus?.(e)
+      onFocus?.(e);
       setIsInputFocused(true);
     };
     const blurHandler = (e: FocusEvent) => {
-      props.onBlur?.(e)
+      onBlur?.(e);
       setIsInputFocused(false);
     };
 
-    inputRef.current?.addEventListener("focus", focusHandler);
-    inputRef.current?.addEventListener("blur", blurHandler);
+    inputElement.addEventListener("focus", focusHandler);
+    inputElement.addEventListener("blur", blurHandler);
     return () => {
-      inputRef.current?.removeEventListener("focus", focusHandler);
-      inputRef.current?.removeEventListener("blur", blurHandler);
+      inputElement.removeEventListener("focus", focusHandler);
+      inputElement.removeEventListener("blur", blurHandler);
     };
-  }, []);
+  }, [onFocus, onBlur]);
   return { inputRef, isInputFocused };
 }

@@ -17,7 +17,7 @@ export type MessageData = {
   rating?: boolean;
 };
 
-function Avatar({ type }: { type: SenderType }) {
+export function Avatar({ type }: { type: SenderType }) {
   const className = {
     user: `${styles.message_avatar} ${styles.message_avatar_user}`,
     assistant: `${styles.message_avatar} ${styles.message_avatar_assistant}`,

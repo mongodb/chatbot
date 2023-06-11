@@ -2,10 +2,10 @@ import styles from "./CallToActionInput.module.css";
 import Badge from "@leafygreen-ui/badge";
 import { Body, Link } from "@leafygreen-ui/typography";
 import Modal from "@leafygreen-ui/modal";
-import { IconInput } from "./IconInput";
+import IconInput from "./IconInput";
 import useInputFocusRef from "./useInputFocusRef";
-import { useState, useEffect } from "react";
-import { ChatbotModalContent } from "./Modal"
+import { useState } from "react";
+import { ChatbotModalContent } from "./Modal";
 
 type CallToActionInputProps = {
   showModal: boolean;
@@ -13,12 +13,12 @@ type CallToActionInputProps = {
 
 export default function CallToActionInput(props: CallToActionInputProps) {
   const [modalOpen, setModalOpen] = useState(false);
-  const { inputRef, isInputFocused } = useInputFocusRef({
+  const { inputRef } = useInputFocusRef({
     onFocus: () => {
-      if(!modalOpen) {
-        setModalOpen(true)
+      if (!modalOpen) {
+        setModalOpen(true);
       }
-    }
+    },
   });
 
   return (
@@ -36,7 +36,6 @@ export default function CallToActionInput(props: CallToActionInputProps) {
           <Body>
             By interacting with this chatbot, you agree to xyz.{" "}
             <Link href="#">Terms & Conditions</Link>
-            {isInputFocused ? " with focus" : " without focus"}
           </Body>
         </div>
       </div>

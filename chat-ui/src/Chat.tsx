@@ -1,5 +1,5 @@
 import Banner from "@leafygreen-ui/banner";
-import { IconInput } from "./IconInput";
+import IconInput from "./IconInput";
 import { Message } from "./Message";
 
 import styles from "./Chat.module.css";
@@ -11,7 +11,7 @@ type ChatProps = Pick<
   "messages" | "addMessage" | "rateMessage"
 >;
 
-export function Chat(props: ChatProps) {
+export default function Chat(props: ChatProps) {
   const [inputText, setInputText] = useState("");
 
   return (

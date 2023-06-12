@@ -3,11 +3,11 @@ import IconInput from "./IconInput";
 import { Message } from "./Message";
 
 import styles from "./Chat.module.css";
-import { ConversationProviderValue } from "./ConversationProvider";
+import { ConversationPayload } from "./useConversation";
 import { useState } from "react";
 
 type ChatProps = Pick<
-  ConversationProviderValue,
+  ConversationPayload,
   "messages" | "addMessage" | "rateMessage"
 >;
 

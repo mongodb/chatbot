@@ -1,6 +1,5 @@
 import LeafyGreenProvider from "@leafygreen-ui/leafygreen-provider";
 import { ChatbotModalCard } from "./Modal";
-import ConversationProvider from "./ConversationProvider";
 import CallToActionInput from "./CallToActionInput";
 import { Message } from "./Message";
 import createMessage from "./createMessage";
@@ -41,9 +40,7 @@ function App() {
 export default function LGApp() {
   return (
     <LeafyGreenProvider>
-      <ConversationProvider>
-        <App />
-      </ConversationProvider>
+      <App />
     </LeafyGreenProvider>
   );
 }

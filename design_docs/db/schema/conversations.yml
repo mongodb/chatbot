@@ -2,11 +2,14 @@
 $schema: http://json-schema.org/draft-07/schema#
 type: object
 properties:
-  messages:
+  _id:
+    bsonType: objectId
     type: array
     items:
       type: object
       properties:
+        id:
+          type: string
         role:
           type: string
           enum: [assistant, user]
@@ -28,10 +31,10 @@ properties:
     type: string
     format: ipv4
     description: The IP address of the user performing the conversation.
-  time_created:
-    type: BsonDate
+  createdAt:
+    bsonType: date
     description: The date the conversation was created.
-  last_updated:
-    type: BsonDate
+  updatedAt:
+    bsonType: date
     description: The date the conversation was last updated.
-  required: [messages, user_ip, time_created, last_updated]
+  required: [messages, user_ip, createdAt, updatedAt]

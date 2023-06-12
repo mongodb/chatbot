@@ -2,21 +2,19 @@ import express, { ErrorRequestHandler, RequestHandler } from 'express';
 import dotenv from 'dotenv';
 import { MongoClient, ObjectId } from 'mongodb';
 import { respondRouter } from './routes/respond';
+import { rateRouter } from './routes/rate';
+import { startRouter } from './routes/start';
 // Configure dotenv early so env variables can be read in imported files
 dotenv.config();
-import { setupClient } from './services/database';
-import { createMessage, initiateLogger } from './services/logger';
+import { createMessage, logger } from './services/logger';
 import { getRequestId } from './utils';
 
 interface AppSettings {
   mongoClient?: MongoClient;
 }
 
-const logger = initiateLogger();
-
 // General error handler; called at usage of next() in routes
-// eslint-disable-next-line  @typescript-eslint/no-unused-vars
-const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
+const errorHandler: ErrorRequestHandler = (err, req, res) => {
   const reqId = getRequestId(req);
   logger.error(createMessage(`Error Request Handler caught an error: ${err}`, reqId));
   const status = err.status || 500;
@@ -40,14 +38,12 @@ const reqHandler: RequestHandler = (req, _res, next) => {
   next();
 };
 
-export const setupApp = async ({ mongoClient }: AppSettings) => {
-  if (mongoClient) {
-    await setupClient(mongoClient);
-  }
-
+export const setupApp = async () => {
   const app = express();
   app.use(reqHandler);
   app.use('/respond', respondRouter);
+  app.use('/rate', rateRouter);
+  app.use('/start', startRouter);
   app.use(errorHandler);
 
   return app;

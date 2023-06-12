@@ -11,6 +11,8 @@ class EmbeddingService {
   }
 }
 
+// Abstract interface for embedding provider to make it easier to swap out
+// different providers in the future.
 abstract class EmbeddingProvider {
   abstract createEmbedding(text: string): Promise<number[]>;
 }
@@ -34,5 +36,4 @@ class OpenAIEmbeddingProvider extends EmbeddingProvider {
 }
 
 const openAIProvider = new OpenAIEmbeddingProvider(process.env.OPENAI_ENDPOINT!, process.env.OPENAI_API_KEY!);
-const embeddings = new EmbeddingService(openAIProvider);
-export { embeddings };
+export const embeddings = new EmbeddingService(openAIProvider);

@@ -1,7 +1,7 @@
 import { Configuration, OpenAIApi } from 'openai';
+import { logger } from './logger';
 
 interface LlmAnswerQuestionParams {
-  question: string;
   conversation: Conversation;
   chunks: Content[];
 }
@@ -12,13 +12,27 @@ class LlmService {
     this.llmProvider = llmProvider;
   }
 
-  async answerQuestion({ question, conversation, chunks }: LlmAnswerQuestionParams) {
-    return this.llmProvider.answerQuestion({ question, conversation, chunks });
+  async answerQuestionStream({ conversation, chunks }: LlmAnswerQuestionParams) {
+    logger.info('Conversation: ', conversation);
+    logger.info('Chunks: ', chunks);
+    const answer = await this.llmProvider.answerQuestionStream({ conversation, chunks });
+    logger.info('Answer: ', answer);
+    return answer;
+  }
+  async answerQuestionAwaited({ conversation, chunks }: LlmAnswerQuestionParams) {
+    logger.info('Conversation: ', conversation);
+    logger.info('Chunks: ', chunks);
+    const answer = await this.llmProvider.answerQuestionAwaited({ conversation, chunks });
+    logger.info('Answer: ', answer);
+    return answer;
   }
 }
 
+// Abstract interface for embedding provider to make it easier to swap out
+// different providers in the future.
 abstract class LlmProvider {
-  abstract answerQuestion({ question, conversation, chunks }: LlmAnswerQuestionParams): Promise<string>;
+  abstract answerQuestionStream({ conversation, chunks }: LlmAnswerQuestionParams): Promise<string>;
+  abstract answerQuestionAwaited({ conversation, chunks }: LlmAnswerQuestionParams): Promise<string>;
 }
 
 class OpenAILlmProvider extends LlmProvider {
@@ -33,12 +47,17 @@ class OpenAILlmProvider extends LlmProvider {
     this.openaiClient = new OpenAIApi(configuration);
   }
 
-  async answerQuestion({ question, conversation, chunks }: LlmAnswerQuestionParams) {
-    // TODO: do stuff with the openaiClient
-    return 'answer';
+  // NOTE: for streaming implementation, see // NOTE: for example streaming data, see https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
+  async answerQuestionStream({ conversation, chunks }: LlmAnswerQuestionParams) {
+    // TODO: stream in response and then return final answer
+    return await 'answer';
+  }
+
+  async answerQuestionAwaited({ conversation, chunks }: LlmAnswerQuestionParams) {
+    // TODO: implement this
+    return await 'answer';
   }
 }
 
 const openAIProvider = new OpenAILlmProvider(process.env.OPENAI_ENDPOINT!, process.env.OPENAI_API_KEY!);
-const llm = new LlmService(openAIProvider);
-export { llm };
+export const llm = new LlmService(openAIProvider);

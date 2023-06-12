@@ -2,8 +2,8 @@ import { Configuration, OpenAIApi } from 'openai';
 
 interface LlmAnswerQuestionParams {
   question: string;
-  conversation: object; // TODO: define conversation type
-  chunks: object[]; // TODO: define chunk type
+  conversation: Conversation;
+  chunks: Content[];
 }
 
 class LlmService {
@@ -27,7 +27,7 @@ class OpenAILlmProvider extends LlmProvider {
   constructor(endpoint: string, apiKey: string) {
     super();
     const configuration = new Configuration({
-      basePath: endpoint, // TODO: validate that this correct..never used not their default endpoint before
+      basePath: endpoint, // TODO: validate that this correct..never used endpoint besides their default before
       apiKey: apiKey,
     });
     this.openaiClient = new OpenAIApi(configuration);

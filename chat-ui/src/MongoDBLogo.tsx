@@ -1,10 +1,4 @@
-type SVGProps = {
-  width?: string
-  height?: string
-  viewBox?: string;
-};
-
-export function LeafSVG(props: SVGProps) {
+export function LeafSVG() {
   return (
     <svg
       width="40"

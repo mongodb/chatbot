@@ -3,7 +3,7 @@ import IconButton from "@leafygreen-ui/icon-button";
 import { Body, Description } from "@leafygreen-ui/typography";
 import styles from "./Message.module.css";
 import { ConversationPayload } from "./useConversation";
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { LeafSVG } from "./MongoDBLogo";
 
 export type SenderType = "user" | "assistant" | "system";
@@ -36,11 +36,6 @@ export function Avatar({ type }: { type: SenderType }) {
           <div
             className={`${styles.message_avatar} ${styles.message_avatar_assistant}`}
           >
-            {/* <Icon
-              className={styles.message_avatar_icon}
-              glyph="Wizard"
-              color="#00ff00"
-            /> */}
             <LeafSVG />
           </div>
         );

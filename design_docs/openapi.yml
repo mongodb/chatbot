@@ -6,166 +6,229 @@ info:
     name: TBD
     url: TBD
 servers:
-  - url: http://TBD.mongodb.com/v1/ # URL TBD
+  - url: http://TBD.mongodb.com/v1
+security:
+  - ApiKeyAuth: []
 paths:
-  /start:
+  /conversations:
     post:
-      operationId: start
-      summary: Start a new conversation with the chatbot
-      description: |
-        This endpoint is used to start a new conversation with the chatbot.
-        The response contains metadata for the conversation.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                user_ip:
-                  type: string
-                  format: ipv4
-                  description: The IP address of the user performing the conversation.
-              required: [user_ip]
+      operationId: createConversation
+      summary: Start a new conversation
       responses:
-        "200":
-          description: |
-            Successful operation. Respond with text.
-            Response format depends on `stream` query parameter.
+        200:
+          description: OK
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  conversation_id:
-                    type: string
-                    description: Unique identifier for the conversation
-                required: [conversation_id]
-        "400":
-          description: Invalid input
-        "401":
-          description: Unauthorized
-        "500":
-          description: Internal server error
-      security:
-        - CORS: []
-  /respond:
-    post:
-      operationId: respond
-      summary: Respond to chat from client
-      description: |
-        If the `stream` query parameter is `true`, the server will respond with a stream
-        of data as it's generated (`text/event-stream`). If `stream` is `false`, the server will
-        return the full string in `text/plain` format once all data is generated.
-      parameters:
-        - name: stream
-          in: query
-          schema:
-            type: boolean
-            default: false # TODO: consider if `true` (stream by default) is better
-          description: |
-            Whether or not the server should stream responses
-            or wait for all responses to be generated before sending them back
-            to the client.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: "#/components/schemas/Message"
-        required: true
-      responses:
-        "200":
-          description: |
-            Successful operation. Respond with text.
-            Response format depends on `stream` query parameter.
-          content:
-            text/event-stream:
-              schema:
-                type: string
-            text/plain:
-              schema:
-                type: string
-        "400":
-          description: Invalid input
-        "401":
-          description: Unauthorized
-        "500":
-          description: Internal server error
-      security:
-        - CORS: []
+                $ref: '#/components/schemas/Conversation'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/InternalServerError'
 
-  /rate:
+  /conversations/{conversationId}:
+    get:
+      operationId: getConversation
+      summary: Get a conversation
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      operationId: deleteConversation
+      summary: Delete a conversation
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+      responses:
+        204:
+          description: Deleted
+        400:
+          $ref: '#/components/responses/BadRequest'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+
+  /conversations/{conversationId}/messages:
     post:
-      operationId: rate
-      summary: Rate a response
+      operationId: addMessage
+      summary: Send a message to the conversation
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RateRequest"
+              $ref: '#/components/schemas/Message'
       responses:
-        "204":
-          description: Successful operation
-        "400":
-          description: Invalid input
-        "401":
-          description: Unauthorized
-        "404":
-          description: Not found, data with URL does not exist
-        "500":
-          description: Internal server error
-      security:
-        - CORS: []
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+
+  /conversations/{conversationId}/messages/{messageId}:
+    get:
+      operationId: getMessage
+      summary: Get a message
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+        - $ref: "#/components/parameters/messageId"
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+
+  /conversations/{conversationId}/messages/{messageId}/rating:
+    post:
+      operationId: rateMessage
+      summary: Rate a message
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+        - $ref: "#/components/parameters/messageId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRating'
+      responses:
+        204:
+          description: Rating Saved
+        400:
+          $ref: '#/components/responses/BadRequest'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/InternalServerError'
 
 components:
   securitySchemes:
-    CORS: # TODO: validate that this is the correct way to represent CORS as security schema in OpenAPI spec
-      type: apiKey
-      in: header
-      name: Origin
     ApiKeyAuth:
       type: apiKey
       in: header
       name: X-API-KEY
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
   schemas:
+    Conversation:
+      type: object
+      required:
+        - messages
+        - user_ip
+        - createdAt
+        - updatedAt
+      properties:
+        _id:
+          type: string
+          description: The unique identifier for a conversation.
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+        user_ip:
+          type: string
+          format: ipv4
+          description: The IP address of the user performing the conversation.
+        createdAt:
+          type: integer
+          description: The date the conversation was created.
+        updatedAt:
+          type: integer
+          description: The date the conversation was last updated.
     Message:
       type: object
+      required:
+        - role
+        - content
+        - createdAt
       properties:
+        id:
+          type: string
+          description: The unique identifier for a message.
         role:
           type: string
-          enum: [assistant, user]
+          enum: [user, assistant, system]
         content:
           type: string
           format: markdown
           description: |
             Markdown-formatted response to user's chat message in the context
             of the conversation.
-        timestamp:
-          type: integer
-          description: |
-            Unix timestamp for when the message was sent. Only present when message
-            is in the response.
-      required:
-        - role
-        - content
-    RateRequest:
-      type: object
-      properties:
-        messages:
-          type: array
-          items:
-            $ref: "#/components/schemas/Message"
         rating:
           type: boolean
-          description: Set to `true` if the user liked the response, `false` otherwise.
-        id:
-          type: string
-          description: conversation ID
-        ip_address:
-          type: string
-          description: user IP address
-        message_index: 
-          type: number
-          description: Index in the messages array of message being updated.
-      required: [url, rating, id, ip_address, message_index]
+          description: |
+            Set to `true` if the user liked the response, `false` if the user didn't like the response.
+            No value if user didn't rate the response.
+            Note that only messages with `role: "assistant"` can be rated.
+        createdAt:
+          type: integer
+          description: |
+            Unix timestamp for when the message was sent.
+    MessageRating:
+      type: object
+      properties:
+        rating:
+          type: boolean
+    ErrorResponse:
+      type: object
+  parameters:
+    conversationId:
+      name: conversationId
+      required: true
+      in: path
+      schema:
+        type: string
+      description: The unique identifier for a conversation.
+    messageId:
+      name: messageId
+      required: true
+      in: path
+      schema:
+        type: string
+      description: The unique identifier for a message.

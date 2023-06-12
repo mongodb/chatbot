@@ -17,25 +17,23 @@ class MongoDBDatabase {
       // TODO: implement this
       return true;
     },
-    create: async ({ ip_address }: { ip_address: string }) => {
+    create: async ({ ipAddress }: { ipAddress: string }) => {
       // TODO: implement this
-      return { id: '', ip_address };
+      return { id: '', ipAddress };
     },
 
     findById: async ({ id }: { id: string }) => {
       // TODO: implement this
-      return { id: '', ip_address: '', messages: [], time_created: new Date() };
+      return { _id: new ObjectId(), ipAddress: '', messages: [], timeCreated: new Date() };
     },
 
     rateMessage: async ({
-      id,
-      conversation,
-      message_index,
+      conversationId,
+      messageId,
       rating,
     }: {
-      id: string;
-      conversation: Message[];
-      message_index: number;
+      conversationId: string;
+      messageId: string;
       rating: boolean;
     }) => {
       // TODO: implement this

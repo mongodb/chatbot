@@ -1,9 +1,7 @@
 import express, { ErrorRequestHandler, RequestHandler } from 'express';
 import dotenv from 'dotenv';
 import { MongoClient, ObjectId } from 'mongodb';
-import { respondRouter } from './routes/respond';
-import { rateRouter } from './routes/rate';
-import { startRouter } from './routes/start';
+import { conversationsRouter } from './routes/conversations';
 // Configure dotenv early so env variables can be read in imported files
 dotenv.config();
 import { createMessage, logger } from './services/logger';
@@ -41,9 +39,7 @@ const reqHandler: RequestHandler = (req, _res, next) => {
 export const setupApp = async () => {
   const app = express();
   app.use(reqHandler);
-  app.use('/respond', respondRouter);
-  app.use('/rate', rateRouter);
-  app.use('/start', startRouter);
+  app.use('/conversations', conversationsRouter);
   app.use(errorHandler);
 
   return app;

@@ -159,4 +159,13 @@ components:
         rating:
           type: boolean
           description: Set to `true` if the user liked the response, `false` otherwise.
-      required: [url, rating]
+        id:
+          type: string
+          description: conversation ID
+        ip_address:
+          type: string
+          description: user IP address
+        message_index: 
+          type: number
+          description: Index in the messages array of message being updated.
+      required: [url, rating, id, ip_address, message_index]

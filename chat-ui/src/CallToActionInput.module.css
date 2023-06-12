@@ -13,3 +13,7 @@
   flex-direction: row;
   gap: 8px;
 }
+
+.modal_content {
+  margin-top: 1rem;
+}

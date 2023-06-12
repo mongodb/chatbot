@@ -63,7 +63,7 @@ function ConversationWithMessages() {
   );
 }
 
-export function ChatbotModalContent() {
+export default function ChatbotModalContent() {
   const conversation = useConversation();
   return conversation.messages.length === 0 ? (
     <EmptyConversation />
@@ -72,7 +72,7 @@ export function ChatbotModalContent() {
   );
 }
 
-export default function ChatbotModalCard() {
+export function ChatbotModalCard() {
   return (
     <Card className={styles.modal}>
       <ChatbotModalContent />

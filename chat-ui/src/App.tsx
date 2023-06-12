@@ -1,5 +1,5 @@
 import LeafyGreenProvider from "@leafygreen-ui/leafygreen-provider";
-import ChatbotModalCard from "./Modal";
+import { ChatbotModalCard } from "./Modal";
 import ConversationProvider from "./ConversationProvider";
 import CallToActionInput from "./CallToActionInput";
 

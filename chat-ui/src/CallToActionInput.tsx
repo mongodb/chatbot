@@ -5,7 +5,7 @@ import Modal from "@leafygreen-ui/modal";
 import IconInput from "./IconInput";
 import useInputFocusRef from "./useInputFocusRef";
 import { useState } from "react";
-import { ChatbotModalContent } from "./Modal";
+import ChatbotModalContent from "./Modal";
 
 type CallToActionInputProps = {
   showModal: boolean;
@@ -41,7 +41,9 @@ export default function CallToActionInput(props: CallToActionInputProps) {
       </div>
       {props.showModal ? (
         <Modal open={modalOpen} setOpen={setModalOpen} size="large">
-          <ChatbotModalContent />
+          <div className={styles.modal_content}>
+            <ChatbotModalContent />
+          </div>
         </Modal>
       ) : null}
     </>

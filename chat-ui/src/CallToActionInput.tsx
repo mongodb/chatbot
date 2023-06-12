@@ -6,12 +6,14 @@ import IconInput from "./IconInput";
 import useInputFocusRef from "./useInputFocusRef";
 import { useState } from "react";
 import ChatbotModalContent from "./Modal";
+import useConversation from "./useConversation";
 
 type CallToActionInputProps = {
   showModal: boolean;
 };
 
 export default function CallToActionInput(props: CallToActionInputProps) {
+  const conversation = useConversation();
   const [modalOpen, setModalOpen] = useState(false);
   const { inputRef } = useInputFocusRef({
     onFocus: () => {
@@ -42,7 +44,7 @@ export default function CallToActionInput(props: CallToActionInputProps) {
       {props.showModal ? (
         <Modal open={modalOpen} setOpen={setModalOpen} size="large">
           <div className={styles.modal_content}>
-            <ChatbotModalContent />
+            <ChatbotModalContent conversation={conversation} />
           </div>
         </Modal>
       ) : null}

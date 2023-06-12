@@ -4,14 +4,13 @@ import { H3, Overline } from "@leafygreen-ui/typography";
 
 import Chat from "./Chat";
 import IconInput from "./IconInput";
-import useConversation from "./useConversation";
+import useConversation, { ConversationPayload } from "./useConversation";
 
 import styles from "./Modal.module.css";
 import SuggestedPrompts from "./SuggestedPrompts";
 import { useState } from "react";
 
-function EmptyConversation() {
-  const conversation = useConversation();
+function EmptyConversation({ addMessage }: ConversationPayload) {
   const [inputText, setInputText] = useState("");
 
   return (
@@ -27,14 +26,14 @@ function EmptyConversation() {
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
-            conversation.addMessage("user", inputText);
+            addMessage("user", inputText);
             setInputText("");
           }
         }}
       />
       {inputText.length === 0 ? (
         <SuggestedPrompts
-          onPromptSelected={(text) => conversation.addMessage("user", text)}
+          onPromptSelected={(text) => addMessage("user", text)}
         />
       ) : (
         <div className={styles.modal_basic_banner}>
@@ -46,8 +45,11 @@ function EmptyConversation() {
   );
 }
 
-function ConversationWithMessages() {
-  const conversation = useConversation();
+function ConversationWithMessages({
+  messages,
+  addMessage,
+  rateMessage,
+}: ConversationPayload) {
   return (
     <>
       <div className={styles.modal_title}>
@@ -55,27 +57,31 @@ function ConversationWithMessages() {
         <Badge variant="green">Experimental</Badge>
       </div>
       <Chat
-        messages={conversation.messages}
-        addMessage={conversation.addMessage}
-        rateMessage={conversation.rateMessage}
+        messages={messages}
+        addMessage={addMessage}
+        rateMessage={rateMessage}
       />
     </>
   );
 }
 
-export default function ChatbotModalContent() {
-  const conversation = useConversation();
+export default function ChatbotModalContent({
+  conversation,
+}: {
+  conversation: ConversationPayload;
+}) {
   return conversation.messages.length === 0 ? (
-    <EmptyConversation />
+    <EmptyConversation {...conversation} />
   ) : (
-    <ConversationWithMessages />
+    <ConversationWithMessages {...conversation} />
   );
 }
 
 export function ChatbotModalCard() {
+  const conversation = useConversation();
   return (
     <Card className={styles.modal}>
-      <ChatbotModalContent />
+      <ChatbotModalContent conversation={conversation} />
     </Card>
   );
 }

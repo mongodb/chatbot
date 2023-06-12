@@ -1,15 +1,12 @@
-import { MessageData, SenderType } from "./Message";
+import { MessageData, Role } from "./Message";
 
 export default function createMessage(
-  senderType: SenderType,
-  text: string
+  role: Role,
+  content: string
 ): MessageData {
   return {
     id: Math.random().toString(),
-    text,
-    sender: {
-      id: Math.random().toString(),
-      type: senderType,
-    },
+    role,
+    content,
   };
 }

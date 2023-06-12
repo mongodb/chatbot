@@ -6,50 +6,51 @@ import { ConversationPayload } from "./useConversation";
 import { useEffect, useRef } from "react";
 import { LeafSVG } from "./MongoDBLogo";
 
-export type SenderType = "user" | "assistant" | "system";
+export type Role = "user" | "assistant" | "system";
 
 export type MessageData = {
   id: string;
-  text: string;
-  sender: {
-    id: string;
-    type: SenderType;
-  };
+  role: Role;
+  content: string;
   rating?: boolean;
 };
 
 
-export function Avatar({ type }: { type: SenderType }) {
-    switch (type) {
-      case "user":
-        return (
-          <div className={`${styles.message_avatar} ${styles.message_avatar_user}`}>
-            <Icon
-              className={styles.message_avatar_icon}
-              glyph="Person"
-              color="#000000"
-            />
-          </div>
-        );
-      case "assistant":
-        return (
-          <div
-            className={`${styles.message_avatar} ${styles.message_avatar_assistant}`}
-          >
-            <LeafSVG />
-          </div>
-        );
-      case "system":
-        return (
-          <div className={`${styles.message_avatar} ${styles.message_avatar_system}`}>
-            <Icon
-              className={styles.message_avatar_icon}
-              glyph="Settings"
-              color="#000000"
-            />
-          </div>
-        );
-    }
+export function Avatar({ role }: { role: Role }) {
+  switch (role) {
+    case "user":
+      return (
+        <div
+          className={`${styles.message_avatar} ${styles.message_avatar_user}`}
+        >
+          <Icon
+            className={styles.message_avatar_icon}
+            glyph="Person"
+            color="#000000"
+          />
+        </div>
+      );
+    case "assistant":
+      return (
+        <div
+          className={`${styles.message_avatar} ${styles.message_avatar_assistant}`}
+        >
+          <LeafSVG />
+        </div>
+      );
+    case "system":
+      return (
+        <div
+          className={`${styles.message_avatar} ${styles.message_avatar_system}`}
+        >
+          <Icon
+            className={styles.message_avatar_icon}
+            glyph="Settings"
+            color="#000000"
+          />
+        </div>
+      );
+  }
 }
 
 type MessageRatingProps = {
@@ -97,10 +98,10 @@ export function Message(props: MessageProps) {
   }, []);
   return (
     <div className={styles.message} ref={messageRef}>
-      <Avatar type={props.message.sender.type} />
+      <Avatar role={props.message.role} />
       <div className={styles.message_text}>
-        <Body baseFontSize={16}>{props.message.text}</Body>
-        {props.message.sender.type === "assistant" && (
+        <Body baseFontSize={16}>{props.message.content}</Body>
+        {props.message.role === "assistant" && (
           <MessageRating
             messageId={props.message.id}
             rateMessage={props.rateMessage}

@@ -50,10 +50,15 @@ conversationsRouter.post(
     try {
       // TODO: implement type checking on the request
 
+      const ipAddress = ""; // TODO: refactor to get IP address with middleware
+
       const stream = Boolean(req.params.stream);
       const { conversation, id } = req.body;
       const latestMessage = conversation[conversation.length - 1];
-      const embedding = await embeddings.createEmbedding(latestMessage.content);
+      const embedding = await embeddings.createEmbedding({
+        text: latestMessage.content,
+        userIp: ipAddress,
+      });
       const chunks = await database.content.findVectorMatches({ embedding });
 
       const conversationInDb = await database.conversations.findById({ id });

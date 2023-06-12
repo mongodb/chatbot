@@ -109,6 +109,12 @@ export const defaultConversationState = {
       content: `Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.`,
       role: "user",
     },
+    {
+      id: "4",
+      content:
+        '# H1\n\ntext\n\n## H2\n\ntext\n\n### H3\n\nHere\'s some code that you can use to query MongoDB:\n\n```python\nimport pymongo\n\n# Connect to MongoDB\nclient = pymongo.MongoClient("mongodb://localhost:27017/")\ndb = client["your_database_name"]\ncollection = db["your_collection_name"]\n\n# Define the query\nquery = { "field_name": "desired_value" }\n\n# Execute the query\nresults = collection.find(query)\n\n# Process the results\nfor result in results:\n    print(result)\n\n# Close the MongoDB connection\nclient.close()\n```\n\nI hope this helps!',
+      role: "user",
+    },
   ],
 } satisfies ConversationState;
 

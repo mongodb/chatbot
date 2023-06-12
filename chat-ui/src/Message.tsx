@@ -1,9 +1,10 @@
+import { useEffect, useRef } from "react";
 import Icon from "@leafygreen-ui/icon";
 import IconButton from "@leafygreen-ui/icon-button";
 import { Body, Description } from "@leafygreen-ui/typography";
 import styles from "./Message.module.css";
 import { ConversationPayload } from "./useConversation";
-import { useEffect, useRef } from "react";
+import LGMarkdown from "./LGMarkdown";
 import { LeafSVG } from "./MongoDBLogo";
 
 export type Role = "user" | "assistant" | "system";
@@ -14,7 +15,6 @@ export type MessageData = {
   content: string;
   rating?: boolean;
 };
-
 
 export function Avatar({ role }: { role: Role }) {
   switch (role) {
@@ -100,7 +100,9 @@ export function Message(props: MessageProps) {
     <div className={styles.message} ref={messageRef}>
       <Avatar role={props.message.role} />
       <div className={styles.message_text}>
-        <Body baseFontSize={16}>{props.message.content}</Body>
+        <LGMarkdown>
+          {props.message.content}
+        </LGMarkdown>
         {props.message.role === "assistant" && (
           <MessageRating
             messageId={props.message.id}

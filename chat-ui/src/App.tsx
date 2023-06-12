@@ -2,6 +2,8 @@ import LeafyGreenProvider from "@leafygreen-ui/leafygreen-provider";
 import { ChatbotModalCard } from "./Modal";
 import ConversationProvider from "./ConversationProvider";
 import CallToActionInput from "./CallToActionInput";
+import { Message } from "./Message";
+import createMessage from "./createMessage";
 
 function App() {
   return (
@@ -13,6 +15,7 @@ function App() {
         gap: "20px",
       }}
     >
+      <Message message={createMessage("assistant", "hi")} rateMessage={() => {}}/>
       <div
         style={{
           width: "650px",

@@ -2,8 +2,9 @@ import Icon from "@leafygreen-ui/icon";
 import IconButton from "@leafygreen-ui/icon-button";
 import { Body, Description } from "@leafygreen-ui/typography";
 import styles from "./Message.module.css";
-import { ConversationProviderValue } from "./ConversationProvider";
-import { useEffect, useRef } from "react";
+import { ConversationPayload } from "./useConversation";
+import { useCallback, useEffect, useRef } from "react";
+import { LeafSVG } from "./MongoDBLogo";
 
 export type SenderType = "user" | "assistant" | "system";
 
@@ -17,39 +18,48 @@ export type MessageData = {
   rating?: boolean;
 };
 
+
 export function Avatar({ type }: { type: SenderType }) {
-  const className = {
-    user: `${styles.message_avatar} ${styles.message_avatar_user}`,
-    assistant: `${styles.message_avatar} ${styles.message_avatar_assistant}`,
-    system: `${styles.message_avatar} ${styles.message_avatar_system}`,
-  }[type];
-
-  const glyph = {
-    user: "Person",
-    assistant: "Wizard",
-    system: "Settings",
-  }[type];
-
-  const color = {
-    user: "#000000",
-    assistant: "#00ff00",
-    system: "#ff0000",
-  }[type];
-
-  return (
-    <div className={className}>
-      <Icon
-        className={styles.message_avatar_icon}
-        glyph={glyph}
-        color={color}
-      />
-    </div>
-  );
+    switch (type) {
+      case "user":
+        return (
+          <div className={`${styles.message_avatar} ${styles.message_avatar_user}`}>
+            <Icon
+              className={styles.message_avatar_icon}
+              glyph="Person"
+              color="#000000"
+            />
+          </div>
+        );
+      case "assistant":
+        return (
+          <div
+            className={`${styles.message_avatar} ${styles.message_avatar_assistant}`}
+          >
+            {/* <Icon
+              className={styles.message_avatar_icon}
+              glyph="Wizard"
+              color="#00ff00"
+            /> */}
+            <LeafSVG />
+          </div>
+        );
+      case "system":
+        return (
+          <div className={`${styles.message_avatar} ${styles.message_avatar_system}`}>
+            <Icon
+              className={styles.message_avatar_icon}
+              glyph="Settings"
+              color="#000000"
+            />
+          </div>
+        );
+    }
 }
 
 type MessageRatingProps = {
   messageId: string;
-  rateMessage: ConversationProviderValue["rateMessage"];
+  rateMessage: ConversationPayload["rateMessage"];
   value?: boolean;
 };
 
@@ -79,7 +89,7 @@ export function MessageRating(props: MessageRatingProps) {
 
 type MessageProps = {
   message: MessageData;
-  rateMessage: ConversationProviderValue["rateMessage"];
+  rateMessage: ConversationPayload["rateMessage"];
 };
 
 export function Message(props: MessageProps) {

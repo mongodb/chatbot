@@ -15,7 +15,10 @@ function App() {
         gap: "20px",
       }}
     >
-      <Message message={createMessage("assistant", "hi")} rateMessage={() => {}}/>
+      <Message
+        message={createMessage("assistant", "hi")}
+        rateMessage={() => {}}
+      />
       <div
         style={{
           width: "650px",

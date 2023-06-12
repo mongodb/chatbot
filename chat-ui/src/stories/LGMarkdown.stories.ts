@@ -26,6 +26,8 @@ Each paragraph can span multiple lines. And have multiple sentences!
 
 A paragraph can also contain formatted text, like *italics* or **bold** words.
 
+You can link to a URL using markdown link notation, e.g. [LeafyGreen UI](mongodb.design)
+
 If you want to talk about code in a paragraph, you can use \`inline code\`. Wow!
 
 Or you can use a markdown code block like this:
@@ -37,10 +39,10 @@ function helloWorld() {
   return "Hello, world!" satisfies HelloWorld;
 }
 \`\`\`
-`
+`;
 
 export const Markdown: Story = {
   args: {
-    children: StoryMarkdown
+    children: StoryMarkdown,
   },
 };

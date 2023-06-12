@@ -100,9 +100,7 @@ export function Message(props: MessageProps) {
     <div className={styles.message} ref={messageRef}>
       <Avatar role={props.message.role} />
       <div className={styles.message_text}>
-        <LGMarkdown>
-          {props.message.content}
-        </LGMarkdown>
+        <LGMarkdown>{props.message.content}</LGMarkdown>
         {props.message.role === "assistant" && (
           <MessageRating
             messageId={props.message.id}

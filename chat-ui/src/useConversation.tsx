@@ -41,10 +41,7 @@ function conversationReducer(
     case "addMessage": {
       return {
         ...state,
-        messages: [
-          ...state.messages,
-          createMessage(action.role, action.text),
-        ],
+        messages: [...state.messages, createMessage(action.role, action.text)],
       };
     }
     case "modifyMessage": {

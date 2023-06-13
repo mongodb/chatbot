@@ -1,4 +1,4 @@
-import { Configuration, OpenAIApi } from 'openai';
+import { Configuration, OpenAIApi } from "openai";
 
 class EmbeddingService {
   private embeddingProvider: EmbeddingProvider;
@@ -35,5 +35,8 @@ class OpenAIEmbeddingProvider extends EmbeddingProvider {
   }
 }
 
-const openAIProvider = new OpenAIEmbeddingProvider(process.env.OPENAI_ENDPOINT!, process.env.OPENAI_API_KEY!);
+const openAIProvider = new OpenAIEmbeddingProvider(
+  process.env.OPENAI_ENDPOINT!,
+  process.env.OPENAI_API_KEY!
+);
 export const embeddings = new EmbeddingService(openAIProvider);

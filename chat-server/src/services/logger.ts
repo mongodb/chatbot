@@ -1,7 +1,11 @@
-import { createLogger, Logger, transports, format } from 'winston';
+import { createLogger, Logger, transports, format } from "winston";
 
 // Helper function to format JSON message
-export const createMessage = (message: string, requestBody?: any, requestId?: string) => {
+export const createMessage = (
+  message: string,
+  requestBody?: any,
+  requestId?: string
+) => {
   return {
     message,
     requestBody,
@@ -24,7 +28,7 @@ const initiateLogger = () => {
     ],
   });
 
-  logger.info('Logger created');
+  logger.info("Logger created");
 
   return logger;
 };

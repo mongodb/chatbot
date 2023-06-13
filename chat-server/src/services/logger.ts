@@ -1,12 +1,14 @@
-import { createLogger, Logger, transports, format } from 'winston';
-
-// Acts as global logger object as long as it's created by `initiaLogger` funciton
-let logger: Logger | null = null;
+import { createLogger, Logger, transports, format } from "winston";
 
 // Helper function to format JSON message
-export const createMessage = (message: string, requestId?: string) => {
+export const createMessage = (
+  message: string,
+  requestBody?: any,
+  requestId?: string
+) => {
   return {
     message,
+    requestBody,
     reqId: requestId || null,
   };
 };
@@ -17,13 +19,8 @@ export const createMessage = (message: string, requestId?: string) => {
  *
  * @returns logger
  */
-export const initiateLogger = () => {
-  // Reuse global logger
-  if (logger) {
-    return logger;
-  }
-
-  logger = createLogger({
+const initiateLogger = () => {
+  const logger = createLogger({
     transports: [
       new transports.Console({
         format: format.json(),
@@ -31,7 +28,9 @@ export const initiateLogger = () => {
     ],
   });
 
-  logger.info('Logger created');
+  logger.info("Logger created");
 
   return logger;
 };
+
+export const logger = initiateLogger();

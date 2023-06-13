@@ -1,7 +1,7 @@
 {
   "name": "docs-chat-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "The Q&A server for the docs AI chatbot.",
   "main": "index.js",
   "scripts": {
     "build": "rm -rf ./dist/ && tsc",
@@ -24,6 +24,7 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "mongodb": "^5.2.0",
+    "openai": "^3.2.1",
     "stream-json": "^1.8.0",
     "winston": "^3.9.0"
   },

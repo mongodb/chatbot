@@ -1,9 +1,20 @@
-import { Configuration, CreateEmbeddingRequest, OpenAIApi } from "openai";
+import { OpenAIClient } from "../integrations/openai";
+import { logger } from "./logger";
+import dotenv from "dotenv";
+import { stripIndent } from "common-tags";
+dotenv.config();
 
 interface EmbeddingParams {
   text: string;
   userIp: string;
 }
+
+interface EmbeddingResponse {
+  status: number;
+  errorData?: any;
+  embeddings?: number[];
+}
+
 class EmbeddingService {
   private embeddingProvider: EmbeddingProvider;
   constructor(embeddingProvider: EmbeddingProvider) {
@@ -21,44 +32,63 @@ abstract class EmbeddingProvider {
   abstract createEmbedding({
     text,
     userIp,
-  }: EmbeddingParams): Promise<number[]>;
+  }: EmbeddingParams): Promise<EmbeddingResponse>;
 }
 
 class OpenAIEmbeddingProvider extends EmbeddingProvider {
-  private openaiClient: OpenAIApi;
-  private embeddingModel: string;
+  private openaiClient: OpenAIClient;
 
-  constructor(endpoint: string, apiKey: string, embeddingModel: string) {
+  constructor(openaiClient: OpenAIClient) {
     super();
-    const configuration = new Configuration({
-      basePath: endpoint, // TODO: validate that this correct..never used endpoint besides their default before
-      apiKey: apiKey,
-    });
-    this.openaiClient = new OpenAIApi(configuration);
-    this.embeddingModel = embeddingModel;
+
+    this.openaiClient = openaiClient;
   }
 
   async createEmbedding({ text, userIp }: EmbeddingParams) {
-    const embeddingRequest: CreateEmbeddingRequest = {
-      model: this.embeddingModel,
+    const embeddingRequest = {
       input: text,
       user: userIp,
     };
-    const { status, data } = await this.openaiClient.createEmbedding(
-      embeddingRequest
-    );
-    if (status !== 200) {
-      throw new Error(`OpenAI API returned status ${status}`);
-    }
-    const embeddings = data.data[0].embedding;
+    try {
+      const res = await this.openaiClient.embeddings.create(embeddingRequest);
 
-    return embeddings;
+      const embeddings = res.data.data[0].embedding;
+      const { status } = res;
+
+      return { embeddings, status };
+    } catch (err: any) {
+      // Catch axios errors which occur if response 4XX or 5XX
+      if (err.response?.status && err.response?.data?.error) {
+        logger.error(
+          stripIndent`OpenAI Embedding API returned an error:
+          status: ${err.response.status}
+          error: ${err.response.data.error}`
+        );
+        return {
+          status: err.response.status,
+          errorData: err.response.data.error,
+        };
+      }
+      // Catch other errors
+      logger.error(`Unexpected error: ${err}`);
+      return {
+        status: 500,
+        errorData: { message: "Unexpected error response", err },
+      };
+    }
   }
 }
 
-const openAIProvider = new OpenAIEmbeddingProvider(
-  process.env.OPENAI_ENDPOINT!,
-  process.env.OPENAI_API_KEY!,
-  process.env.OPENAI_EMBEDDING_MODEL!
+const {
+  OPENAI_ENDPOINT,
+  OPENAI_API_KEY,
+  OPENAI_EMBEDDING_DEPLOYMENT,
+  OPENAI_EMBEDDING_MODEL_VERSION,
+} = process.env;
+const openaiClient = new OpenAIClient(
+  `${OPENAI_ENDPOINT!}${OPENAI_EMBEDDING_DEPLOYMENT!}`,
+  OPENAI_API_KEY!,
+  OPENAI_EMBEDDING_MODEL_VERSION!
 );
-export const embeddings = new EmbeddingService(openAIProvider);
+const openAIEmbeddingProvider = new OpenAIEmbeddingProvider(openaiClient);
+export const embeddings = new EmbeddingService(openAIEmbeddingProvider);

@@ -1,6 +1,7 @@
 module.exports = {
   env: {
     node: true,
+    "jest/globals": true,
   },
   root: true,
   parser: "@typescript-eslint/parser",
@@ -8,9 +9,10 @@ module.exports = {
     "eslint:recommended",
     "plugin:prettier/recommended",
     "plugin:@typescript-eslint/recommended",
+    "plugin:jest/recommended",
   ],
   ignorePatterns: ["dist/", "node_modules/"],
-  plugins: ["@typescript-eslint"],
+  plugins: ["@typescript-eslint", "jest"],
   parserOptions: {
     ecmaVersion: 2018,
     sourceType: "module",

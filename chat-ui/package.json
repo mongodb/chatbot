@@ -17,6 +17,7 @@
     "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
     "@leafygreen-ui/badge": "^8.0.7",
     "@leafygreen-ui/banner": "^7.0.8",
+    "@leafygreen-ui/button": "^20.2.0",
     "@leafygreen-ui/card": "^9.0.8",
     "@leafygreen-ui/code": "^14.2.6",
     "@leafygreen-ui/icon": "^11.16.1",

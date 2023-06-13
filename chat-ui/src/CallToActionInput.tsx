@@ -3,7 +3,7 @@ import Badge from "@leafygreen-ui/badge";
 import { Body, Link } from "@leafygreen-ui/typography";
 import Modal from "@leafygreen-ui/modal";
 import IconInput from "./IconInput";
-import useInputFocusRef from "./useInputFocusRef";
+import useInputFocusListener from "./useInputFocusListener";
 import { useState } from "react";
 import ChatbotModalContent from "./Modal";
 import useConversation from "./useConversation";
@@ -15,7 +15,7 @@ type CallToActionInputProps = {
 export default function CallToActionInput(props: CallToActionInputProps) {
   const conversation = useConversation();
   const [modalOpen, setModalOpen] = useState(false);
-  const { inputRef } = useInputFocusRef({
+  const { inputRef } = useInputFocusListener({
     onFocus: () => {
       if (!modalOpen) {
         setModalOpen(true);
@@ -42,7 +42,14 @@ export default function CallToActionInput(props: CallToActionInputProps) {
         </div>
       </div>
       {props.showModal ? (
-        <Modal open={modalOpen} setOpen={setModalOpen} size="large">
+        <Modal open={modalOpen} setOpen={isOpening => {
+          setModalOpen(isOpening);
+          if(isOpening) {
+            inputRef.current.focus()
+          } else {
+            inputRef.current.blur()
+          }
+        }} size="large">
           <div className={styles.modal_content}>
             <ChatbotModalContent conversation={conversation} />
           </div>

@@ -5,6 +5,7 @@ specifiers:
   '@esbuild-plugins/node-modules-polyfill': ^0.2.2
   '@leafygreen-ui/badge': ^8.0.7
   '@leafygreen-ui/banner': ^7.0.8
+  '@leafygreen-ui/button': ^20.2.0
   '@leafygreen-ui/card': ^9.0.8
   '@leafygreen-ui/code': ^14.2.6
   '@leafygreen-ui/icon': ^11.16.1
@@ -47,6 +48,7 @@ dependencies:
   '@esbuild-plugins/node-modules-polyfill': 0.2.2_esbuild@0.17.19
   '@leafygreen-ui/badge': 8.0.7_3llk5cd7yj6loggwiyxymsljpa
   '@leafygreen-ui/banner': 7.0.8_3llk5cd7yj6loggwiyxymsljpa
+  '@leafygreen-ui/button': 20.2.0_3llk5cd7yj6loggwiyxymsljpa
   '@leafygreen-ui/card': 9.0.8_3llk5cd7yj6loggwiyxymsljpa
   '@leafygreen-ui/code': 14.2.6_rhmyb3gwq6r6pubwx4nxylyepu
   '@leafygreen-ui/icon': 11.16.1

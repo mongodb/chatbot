@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 
-type UseInputFocusRefArgsProps = {
+type UseInputFocusListenerArgsProps = {
   onFocus?: (event: FocusEvent) => void;
   onBlur?: (event: FocusEvent) => void;
 };
 
-export default function useInputFocusRef({
+export default function useInputFocusListener({
   onFocus,
   onBlur,
-}: UseInputFocusRefArgsProps) {
+}: UseInputFocusListenerArgsProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
   useEffect(() => {

@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from "react";
 import Card from "@leafygreen-ui/card";
 import Badge from "@leafygreen-ui/badge";
 import { H3, Overline } from "@leafygreen-ui/typography";
@@ -8,7 +9,6 @@ import useConversation, { ConversationPayload } from "./useConversation";
 
 import styles from "./Modal.module.css";
 import SuggestedPrompts from "./SuggestedPrompts";
-import { useState } from "react";
 
 function EmptyConversation({ addMessage }: ConversationPayload) {
   const [inputText, setInputText] = useState("");

@@ -1,4 +1,6 @@
 import Banner from "@leafygreen-ui/banner";
+import Button from "@leafygreen-ui/button";
+import Icon from "@leafygreen-ui/icon";
 import IconInput from "./IconInput";
 import { Message } from "./Message";
 
@@ -13,6 +15,11 @@ type ChatProps = Pick<
 
 export default function Chat(props: ChatProps) {
   const [inputText, setInputText] = useState("");
+
+  const handleSubmit = () => {
+    props.addMessage("user", inputText);
+    setInputText("");
+  };
 
   return (
     <div className={styles.chat}>
@@ -29,22 +36,29 @@ export default function Chat(props: ChatProps) {
         This is an experimental AI chatbot. All information should be verified
         prior to use.
       </Banner>
-      <IconInput
-        glyph="SMS"
-        aria-label="MongoDB AI Chatbot Message Input"
-        aria-labelledby="TBD - FIXME"
-        placeholder={`Type a message or type "/" to select a prompt`}
-        value={inputText}
-        onChange={(e) => {
-          setInputText(e.target.value);
+      <form
+        className={styles.input_form}
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
         }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            props.addMessage("user", inputText);
-            setInputText("");
-          }
-        }}
-      />
+      >
+        <IconInput
+          glyph="SMS"
+          aria-label="MongoDB AI Chatbot Message Input"
+          aria-labelledby="TBD - FIXME"
+          placeholder={`Type a message or type "/" to select a prompt`}
+          value={inputText}
+          onChange={(e) => {
+            setInputText(e.target.value);
+          }}
+        />
+        <Button className={styles.input_form_submit} type="submit" rightGlyph={
+          <Icon glyph="Wizard" />
+        }>
+          Send
+        </Button>
+      </form>
     </div>
   );
 }

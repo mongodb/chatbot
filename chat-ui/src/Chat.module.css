@@ -1,7 +1,7 @@
 .chat {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 1rem;
 }
 
 .message_list {
@@ -9,13 +9,23 @@
   flex-direction: column;
   max-height: 550px;
   overflow-y: scroll;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.input_form {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+}
+
+.input_form_submit {
+  height: 2rem;
 }
 
 /* width */
 .message_list::-webkit-scrollbar {
-  width: 3px;
+  width: 0.25rem;
   background: #d9d9d9;
 }
 

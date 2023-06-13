@@ -1,7 +1,7 @@
 {
   "name": "docs-chat-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "The Q&A server for the docs AI chatbot.",
   "main": "index.js",
   "scripts": {
     "build": "rm -rf ./dist/ && tsc",

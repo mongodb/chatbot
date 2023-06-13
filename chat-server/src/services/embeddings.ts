@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { Configuration, OpenAIApi } from "openai";
-=======
-import { Configuration, CreateEmbeddingRequest, OpenAIApi } from 'openai';
->>>>>>> 658f6f7 (draft embeddings service, tests, and integrations)
+import { Configuration, CreateEmbeddingRequest, OpenAIApi } from "openai";
 
 interface EmbeddingParams {
   text: string;
@@ -22,7 +18,10 @@ class EmbeddingService {
 // Abstract interface for embedding provider to make it easier to swap out
 // different providers in the future.
 abstract class EmbeddingProvider {
-  abstract createEmbedding({ text, userIp }: EmbeddingParams): Promise<number[]>;
+  abstract createEmbedding({
+    text,
+    userIp,
+  }: EmbeddingParams): Promise<number[]>;
 }
 
 class OpenAIEmbeddingProvider extends EmbeddingProvider {
@@ -45,7 +44,9 @@ class OpenAIEmbeddingProvider extends EmbeddingProvider {
       input: text,
       user: userIp,
     };
-    const { status, data } = await this.openaiClient.createEmbedding(embeddingRequest);
+    const { status, data } = await this.openaiClient.createEmbedding(
+      embeddingRequest
+    );
     if (status !== 200) {
       throw new Error(`OpenAI API returned status ${status}`);
     }

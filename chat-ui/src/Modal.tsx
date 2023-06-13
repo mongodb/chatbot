@@ -10,7 +10,7 @@ import useConversation, { ConversationPayload } from "./useConversation";
 import styles from "./Modal.module.css";
 import SuggestedPrompts from "./SuggestedPrompts";
 
-function EmptyConversation({ addMessage }: ConversationPayload) {
+export function EmptyConversation({ addMessage }: ConversationPayload) {
   const [inputText, setInputText] = useState("");
 
   return (
@@ -45,7 +45,7 @@ function EmptyConversation({ addMessage }: ConversationPayload) {
   );
 }
 
-function ConversationWithMessages({
+export function ConversationWithMessages({
   messages,
   addMessage,
   rateMessage,

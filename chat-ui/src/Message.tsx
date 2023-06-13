@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import Icon from "@leafygreen-ui/icon";
 import IconButton from "@leafygreen-ui/icon-button";
-import { Body, Description } from "@leafygreen-ui/typography";
+import { Description } from "@leafygreen-ui/typography";
 import styles from "./Message.module.css";
 import { ConversationPayload } from "./useConversation";
 import LGMarkdown from "./LGMarkdown";

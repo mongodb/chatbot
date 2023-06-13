@@ -1,16 +1,20 @@
 import styles from "./CallToActionInput.module.css";
+import { useState, useRef, useEffect } from "react";
 import Badge from "@leafygreen-ui/badge";
+import Card from "@leafygreen-ui/card";
 import { Body, Link } from "@leafygreen-ui/typography";
 import Modal from "@leafygreen-ui/modal";
 import IconInput from "./IconInput";
 import useInputFocusListener from "./useInputFocusListener";
-import { useState } from "react";
-import ChatbotModalContent from "./Modal";
+import ChatbotModalContent, {
+  EmptyConversation,
+  ConversationWithMessages,
+} from "./Modal";
 import useConversation from "./useConversation";
+import useElementBoundingBoxClickHandler from "./useElementBoundingBoxClickHandler";
+import { Transition, CSSTransition } from "react-transition-group";
 
-type CallToActionInputProps = {
-  showModal: boolean;
-};
+type CallToActionInputProps = {};
 
 export default function CallToActionInput(props: CallToActionInputProps) {
   const conversation = useConversation();
@@ -23,9 +27,15 @@ export default function CallToActionInput(props: CallToActionInputProps) {
     },
   });
 
+  const cardRef = useElementBoundingBoxClickHandler({
+    onClickOutside: () => {
+      setModalOpen(false);
+    },
+  });
+
   return (
-    <>
-      <div className={styles.cta_container}>
+    <div ref={cardRef}>
+      <Card className={styles.cta_container}>
         <IconInput
           ref={inputRef}
           glyph="Wizard"
@@ -33,28 +43,24 @@ export default function CallToActionInput(props: CallToActionInputProps) {
           aria-labelledby="TBD - FIXME"
           placeholder="Ask MongoDB AI a Question"
         />
-        <div className={styles.cta_disclosure}>
-          <Badge variant="blue">Experimental</Badge>
-          <Body>
-            By interacting with this chatbot, you agree to xyz.{" "}
-            <Link href="#">Terms & Conditions</Link>
-          </Body>
-        </div>
-      </div>
-      {props.showModal ? (
-        <Modal open={modalOpen} setOpen={isOpening => {
-          setModalOpen(isOpening);
-          if(isOpening) {
-            inputRef.current.focus()
-          } else {
-            inputRef.current.blur()
-          }
-        }} size="large">
-          <div className={styles.modal_content}>
-            <ChatbotModalContent conversation={conversation} />
+        {!modalOpen ? (
+          <div className={styles.cta_disclosure}>
+            <Badge variant="blue">Experimental</Badge>
+            <Body>
+              By interacting with this chatbot, you agree to xyz.{" "}
+              <Link href="#">Terms & Conditions</Link>
+            </Body>
           </div>
-        </Modal>
-      ) : null}
-    </>
+        ) : (
+          <div className={styles.modal_content}>
+            {conversation.messages.length === 0 ? (
+              <EmptyConversation {...conversation} />
+            ) : (
+              <ConversationWithMessages {...conversation} />
+            )}
+          </div>
+        )}
+      </Card>
+    </div>
   );
 }

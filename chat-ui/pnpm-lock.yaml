@@ -38,6 +38,7 @@ specifiers:
   react: ^18.2.0
   react-dom: ^18.2.0
   react-markdown: ^8.0.7
+  react-transition-group: ^4.4.5
   storybook: ^7.0.20
   stream-browserify: ^3.0.0
   typescript: ^5.0.2
@@ -63,6 +64,7 @@ dependencies:
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
   react-markdown: 8.0.7_i2bxsyfskhzbpjanbovidbfj7u
+  react-transition-group: 4.4.5_biqbaboplfbrettd7655fr4n2y
   stream-browserify: 3.0.0
 
 devDependencies:

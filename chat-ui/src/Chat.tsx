@@ -53,9 +53,11 @@ export default function Chat(props: ChatProps) {
             setInputText(e.target.value);
           }}
         />
-        <Button className={styles.input_form_submit} type="submit" rightGlyph={
-          <Icon glyph="Wizard" />
-        }>
+        <Button
+          className={styles.input_form_submit}
+          type="submit"
+          rightGlyph={<Icon glyph="Wizard" />}
+        >
           Send
         </Button>
       </form>

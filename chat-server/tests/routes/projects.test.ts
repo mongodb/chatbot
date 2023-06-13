@@ -6,8 +6,8 @@ import { sampleMetadata } from "../sampleData/metadata";
 const timestamp = 1685714694420;
 
 describe("Test projects routes", () => {
-  // process.env.ATLAS_URI should be defined by default in globalSetup.ts
-  const client = new MongoClient(process.env.ATLAS_URI!);
+  // process.env.MONGODB_CONNECTION_URI should be defined by default in globalSetup.ts
+  const client = new MongoClient(process.env.MONGODB_CONNECTION_URI!);
   let app: Express.Application;
 
   beforeAll(async () => {

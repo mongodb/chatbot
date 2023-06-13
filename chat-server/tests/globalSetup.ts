@@ -35,7 +35,6 @@ export default async function globalSetup() {
   const uri = instance.getUri();
   (global as any).__MONGOINSTANCE = instance;
   process.env.MONGODB_CONNECTION_URI = uri.slice(0, uri.lastIndexOf("/"));
-  process.env.BUILDER_USER = "docsworker-xlarge";
-  process.env.MONGODB_DB_NAME = "snooty_dev";
+  process.env.MONGODB_DB_NAME = "docs_chat";
   await loadData();
 }

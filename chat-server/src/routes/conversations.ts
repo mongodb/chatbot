@@ -23,9 +23,6 @@ conversationsRouter.post(
       if (!conversationInDb) {
         return res.status(404).json({ error: "Conversation not found" });
       }
-      if (conversationInDb.ipAddress !== ipAddress) {
-        return res.status(403).json({ error: "IP address does not match" });
-      }
       res.status(204).json({ id: conversationInDb.id });
     } catch (err) {
       next(err);

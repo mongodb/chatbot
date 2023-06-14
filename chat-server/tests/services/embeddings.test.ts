@@ -1,7 +1,6 @@
-import { OpenAIEmbeddingProvider } from "../../src/services/embeddings";
-import { OpenAIClient } from "../../src/integrations/openai";
-import dotenv from "dotenv";
-dotenv.config();
+import { OpenAiEmbeddingProvider } from "../../src/services/embeddings";
+import { OpenAiEmbeddingsClient } from "../../src/integrations/openai";
+import "dotenv/config";
 
 const {
   OPENAI_ENDPOINT,
@@ -9,13 +8,13 @@ const {
   OPENAI_EMBEDDING_DEPLOYMENT,
   OPENAI_EMBEDDING_MODEL_VERSION,
 } = process.env;
-const openaiClient = new OpenAIClient(
+const openAiClient = new OpenAiEmbeddingsClient(
   OPENAI_ENDPOINT!,
   OPENAI_EMBEDDING_DEPLOYMENT!,
   OPENAI_API_KEY!,
   OPENAI_EMBEDDING_MODEL_VERSION!
 );
-const embeddings = new OpenAIEmbeddingProvider(openaiClient);
+const embeddings = new OpenAiEmbeddingProvider(openAiClient);
 
 describe("Embeddings", () => {
   const userIp = "abc123";

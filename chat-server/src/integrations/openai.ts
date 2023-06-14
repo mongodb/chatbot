@@ -1,11 +1,19 @@
-// TODO: Consider refactoring to use new Azure OpenAI client SDK - https://www.npmjs.com/package/@azure/openai
+// TODO: Consider refactoring to use new Azure OpenAi client SDK - https://www.npmjs.com/package/@azure/openai
 import axios from "axios";
-import { CreateEmbeddingResponse } from "openai";
+import { CreateEmbeddingResponse as OpenAiEmbeddingResponse } from "openai";
 interface CreateEmbeddingParams {
   input: string;
   user: string;
 }
-export class OpenAIClient {
+interface CreateEmbeddingResponse {
+  data: OpenAiEmbeddingResponse;
+  status: number;
+}
+
+interface OpenAiEmbeddingsClientInterface {
+  create: (params: CreateEmbeddingParams) => Promise<CreateEmbeddingResponse>;
+}
+export class OpenAiEmbeddingsClient implements OpenAiEmbeddingsClientInterface {
   resourcePath: string;
   apiKey: string;
   apiVersion: string;
@@ -20,22 +28,20 @@ export class OpenAIClient {
     this.apiVersion = apiVersion;
   }
 
-  embeddings = {
-    create: async ({ input, user }: CreateEmbeddingParams) => {
-      const { status, data } = await axios.post<CreateEmbeddingResponse>(
-        `${this.resourcePath}/embeddings?api-version=${this.apiVersion}`,
-        {
-          input,
-          user,
+  async create({ input, user }: CreateEmbeddingParams) {
+    const { status, data } = await axios.post<OpenAiEmbeddingResponse>(
+      `${this.resourcePath}/embeddings?api-version=${this.apiVersion}`,
+      {
+        input,
+        user,
+      },
+      {
+        headers: {
+          "api-key": this.apiKey,
+          "Content-Type": "application/json",
         },
-        {
-          headers: {
-            "api-key": this.apiKey,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      return { status, data };
-    },
-  };
+      }
+    );
+    return { status, data };
+  }
 }

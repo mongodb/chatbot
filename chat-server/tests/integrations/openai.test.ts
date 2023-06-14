@@ -1,16 +1,15 @@
 import { Axios } from "axios";
-import { OpenAIClient } from "../../src/integrations/openai";
-import dotenv from "dotenv";
-dotenv.config();
+import { OpenAiEmbeddingsClient } from "../../src/integrations/openai";
+import "dotenv/config";
 
-describe("OpenAI", () => {
+describe("OpenAi", () => {
   const {
     OPENAI_ENDPOINT,
     OPENAI_API_KEY,
     OPENAI_EMBEDDING_DEPLOYMENT,
     OPENAI_EMBEDDING_MODEL_VERSION,
   } = process.env;
-  const openaiClient = new OpenAIClient(
+  const openAiClient = new OpenAiEmbeddingsClient(
     OPENAI_ENDPOINT!,
     OPENAI_EMBEDDING_DEPLOYMENT!,
     OPENAI_API_KEY!,
@@ -21,18 +20,17 @@ describe("OpenAI", () => {
       const userIp = "abc123";
 
       test("Should return an array of numbers of length 1536", async () => {
-        const { data: embeddingResponse, status } =
-          await openaiClient.embeddings.create({
-            input: "Hello world",
-            user: userIp,
-          });
+        const { data: embeddingResponse, status } = await openAiClient.create({
+          input: "Hello world",
+          user: userIp,
+        });
         expect(status).toBe(200);
         expect(embeddingResponse.data[0].embedding).toHaveLength(1536);
       });
       test("Should return an error if the input too large", async () => {
         const input = "Hello world! ".repeat(8192);
         await expect(
-          openaiClient.embeddings.create({
+          openAiClient.create({
             input,
             user: userIp,
           })

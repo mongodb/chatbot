@@ -1,6 +1,4 @@
-import dotenv from "dotenv";
-// Configure dotenv early so env variables can be read in imported files
-dotenv.config();
+import "dotenv/config";
 import { setupApp } from "./app";
 import { database } from "./services/database";
 import { logger } from "./services/logger";

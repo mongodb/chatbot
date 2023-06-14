@@ -4,6 +4,8 @@ import { database } from "../services/database";
 import { llm } from "../services/llm";
 import { dataStreamer } from "../services/dataStreamer";
 
+// TODO: for all non-2XX or 3XX responses, see how/if can better implement
+// error handling. can/should we pass stuff to next() and process elsewhere?
 const conversationsRouter = Router();
 
 /**
@@ -63,6 +65,7 @@ conversationsRouter.post(
       if (status !== 200) {
         return res.status(status).json({ error: "Embedding error" });
       }
+      // TODO: see if can refactor to avoid using `!` here. refer to https://github.com/mongodb/docs-chatbot/pull/6/files#r1229729636
       const chunks = await database.content.findVectorMatches({
         embedding: embeddingRes!,
       });

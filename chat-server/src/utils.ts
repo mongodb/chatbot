@@ -1,6 +1,5 @@
 import { Request } from "express";
-import dotenv from "dotenv";
-dotenv.config();
+
 /**
  * Checks for req-id Request Header. Returns an empty string if the header is not
  * a truthy string.

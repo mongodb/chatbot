@@ -1,7 +1,6 @@
 module.exports = {
   env: {
     node: true,
-    "jest/globals": true,
   },
   root: true,
   parser: "@typescript-eslint/parser",
@@ -17,4 +16,12 @@ module.exports = {
     ecmaVersion: 2018,
     sourceType: "module",
   },
+  overrides: [
+    {
+      files: ["test/**/*.ts"],
+      env: {
+        "jest/globals": true,
+      },
+    },
+  ],
 };

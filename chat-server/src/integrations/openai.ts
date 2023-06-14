@@ -1,7 +1,18 @@
-// TODO: Consider refactoring to use new Azure OpenAi client SDK - https://www.npmjs.com/package/@azure/openai
 import axios from "axios";
-import { CreateEmbeddingResponse as OpenAiEmbeddingResponse } from "openai";
-export interface CreateEmbeddingParams {
+import {
+  CreateChatCompletionRequest,
+  CreateChatCompletionResponse,
+  CreateEmbeddingResponse as OpenAiEmbeddingResponse,
+} from "openai";
+import {
+  OpenAIClient,
+  AzureKeyCredential,
+  ChatMessage,
+  GetChatCompletionsOptions,
+  ChatCompletions,
+} from "@azure/openai";
+
+interface CreateEmbeddingParams {
   input: string;
   user: string;
 }
@@ -13,6 +24,7 @@ export interface CreateEmbeddingResponse {
 export interface OpenAiEmbeddingsClientInterface {
   create: (params: CreateEmbeddingParams) => Promise<CreateEmbeddingResponse>;
 }
+// TODO: refactor to wrap https://www.npmjs.com/package/@azure/openai
 export class OpenAiEmbeddingsClient implements OpenAiEmbeddingsClientInterface {
   resourcePath: string;
   apiKey: string;
@@ -23,7 +35,7 @@ export class OpenAiEmbeddingsClient implements OpenAiEmbeddingsClientInterface {
     apiKey: string,
     apiVersion: string
   ) {
-    this.resourcePath = basePath + deployment;
+    this.resourcePath = basePath + "openai/deployments/" + deployment;
     this.apiKey = apiKey;
     this.apiVersion = apiVersion;
   }
@@ -43,5 +55,45 @@ export class OpenAiEmbeddingsClient implements OpenAiEmbeddingsClientInterface {
       }
     );
     return { status, data };
+  }
+}
+
+interface OpenAiChatClientInterface {
+  chatAwaited: (params: ChatParams) => Promise<ChatCompletions>;
+  chatStream: (
+    params: ChatParams
+  ) => Promise<AsyncIterable<Omit<ChatCompletions, "usage">>>;
+}
+
+interface ChatParams {
+  messages: ChatMessage[];
+  options?: GetChatCompletionsOptions;
+}
+export class OpenAiChatClient implements OpenAiChatClientInterface {
+  deployment: string;
+  openAiClient: OpenAIClient;
+  constructor(basePath: string, deployment: string, apiKey: string) {
+    this.deployment = deployment;
+    this.openAiClient = new OpenAIClient(
+      basePath,
+      new AzureKeyCredential(apiKey)
+    );
+  }
+
+  async chatAwaited({ messages, options }: ChatParams) {
+    const completion = await this.openAiClient.getChatCompletions(
+      this.deployment,
+      messages,
+      options
+    );
+    return completion;
+  }
+  async chatStream({ messages, options }: ChatParams) {
+    const completionStream = await this.openAiClient.listChatCompletions(
+      this.deployment,
+      messages,
+      options
+    );
+    return completionStream;
   }
 }

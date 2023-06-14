@@ -1,4 +1,5 @@
-import { ChatCompletions, ChatMessage } from "@azure/openai";
+// TODO: add better error handling logic like the embeddings service
+import { ChatMessage } from "@azure/openai";
 import {
   OpenAiChatClient,
   SYSTEM_PROMPT,

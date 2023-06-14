@@ -1,9 +1,15 @@
-import { Configuration, OpenAIApi } from "openai";
+import { ChatCompletions, ChatMessage } from "@azure/openai";
+import {
+  OpenAiChatClient,
+  SYSTEM_PROMPT,
+  GENERATE_USER_PROMPT,
+  OPENAI_LLM_CONFIG_OPTIONS,
+} from "../integrations/openai";
 import { logger } from "./logger";
 
 interface LlmAnswerQuestionParams {
   messages: Message[];
-  chunks: Content[];
+  chunks: string[];
 }
 
 class LlmService {
@@ -40,38 +46,94 @@ interface LlmProvider {
   answerQuestionStream({
     messages,
     chunks,
-  }: LlmAnswerQuestionParams): Promise<string>;
+  }: LlmAnswerQuestionParams): Promise<AsyncIterable<any>>;
   answerQuestionAwaited({
     messages,
     chunks,
-  }: LlmAnswerQuestionParams): Promise<string>;
+  }: LlmAnswerQuestionParams): Promise<ChatMessage>;
 }
 
 class OpenAILlmProvider implements LlmProvider {
-  private openaiClient: OpenAIApi;
+  private openAiChatClient: OpenAiChatClient;
 
-  constructor(endpoint: string, apiKey: string) {
-    const configuration = new Configuration({
-      basePath: endpoint, // TODO: validate that this correct..never used endpoint besides their default before
-      apiKey: apiKey,
-    });
-    this.openaiClient = new OpenAIApi(configuration);
+  constructor(openAiChatClient: OpenAiChatClient) {
+    this.openAiChatClient = openAiChatClient;
   }
 
   // NOTE: for streaming implementation, see // NOTE: for example streaming data, see https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
   async answerQuestionStream({ messages, chunks }: LlmAnswerQuestionParams) {
-    // TODO: stream in response and then return final answer
-    return await "answer";
+    this.validateConversation(messages);
+    const lastMessage = messages[messages.length - 1];
+    const newestMessageForLlm = GENERATE_USER_PROMPT({
+      question: lastMessage.content,
+      chunks,
+    });
+    const messagesForLlm = [...messages, newestMessageForLlm];
+    const completionStream = await this.openAiChatClient.chatStream({
+      messages: messagesForLlm,
+      options: { ...OPENAI_LLM_CONFIG_OPTIONS, stream: true },
+    });
+    return completionStream;
   }
 
   async answerQuestionAwaited({ messages, chunks }: LlmAnswerQuestionParams) {
-    // TODO: implement this
-    return await "answer";
+    this.validateConversation(messages);
+    const lastMessage = messages[messages.length - 1];
+    const newestMessageForLlm = GENERATE_USER_PROMPT({
+      question: lastMessage.content,
+      chunks,
+    });
+    const messagesForLlm = [...messages, newestMessageForLlm];
+    const {
+      choices: [choice],
+    } = await this.openAiChatClient.chatAwaited({
+      messages: messagesForLlm,
+      options: OPENAI_LLM_CONFIG_OPTIONS,
+    });
+    const { message } = choice;
+    if (!message) {
+      throw new Error("No message returned from OpenAI");
+    }
+    return message;
+  }
+
+  // TODO: consider adding additional validation that messages follow the pattern
+  // system, assistant, user, assistant, user, etc.
+  // Are there any other things which we should validate here?
+  private validateConversation(messages: Message[]) {
+    if (messages.length === 0) {
+      throw new Error("No messages provided");
+    }
+    const firstMessage = messages[0];
+    if (
+      firstMessage.content !== SYSTEM_PROMPT.content ||
+      firstMessage.role !== SYSTEM_PROMPT.role
+    ) {
+      throw new Error(
+        `First message must be system prompt: ${JSON.stringify(SYSTEM_PROMPT)}`
+      );
+    }
+    // 3 b/c must be system prompt, initial message from chatbot and latest user prompt
+    if (messages.length >= 3) {
+      throw new Error("No messages provided");
+    }
+    const secondToLastMessage = messages[messages.length - 2];
+    if (secondToLastMessage.role !== "assistant") {
+      throw new Error(`Second to last message must be assistant message`);
+    }
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage.role !== "user") {
+      throw new Error(`Last message must be user message`);
+    }
   }
 }
 
-const openAIProvider = new OpenAILlmProvider(
-  process.env.OPENAI_ENDPOINT!,
-  process.env.OPENAI_API_KEY!
+const { OPENAI_ENDPOINT, OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_API_KEY } =
+  process.env;
+const openAiClient = new OpenAiChatClient(
+  OPENAI_ENDPOINT!,
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT!,
+  OPENAI_API_KEY!
 );
+const openAIProvider = new OpenAILlmProvider(openAiClient);
 export const llm = new LlmService(openAIProvider);

@@ -62,13 +62,7 @@ class OpenAILlmProvider implements LlmProvider {
 
   // NOTE: for streaming implementation, see // NOTE: for example streaming data, see https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
   async answerQuestionStream({ messages, chunks }: LlmAnswerQuestionParams) {
-    this.validateConversation(messages);
-    const lastMessage = messages[messages.length - 1];
-    const newestMessageForLlm = GENERATE_USER_PROMPT({
-      question: lastMessage.content,
-      chunks,
-    });
-    const messagesForLlm = [...messages, newestMessageForLlm];
+    const messagesForLlm = this.prepConversationForLlm({ messages, chunks });
     const completionStream = await this.openAiChatClient.chatStream({
       messages: messagesForLlm,
       options: { ...OPENAI_LLM_CONFIG_OPTIONS, stream: true },
@@ -77,13 +71,7 @@ class OpenAILlmProvider implements LlmProvider {
   }
 
   async answerQuestionAwaited({ messages, chunks }: LlmAnswerQuestionParams) {
-    this.validateConversation(messages);
-    const lastMessage = messages[messages.length - 1];
-    const newestMessageForLlm = GENERATE_USER_PROMPT({
-      question: lastMessage.content,
-      chunks,
-    });
-    const messagesForLlm = [...messages, newestMessageForLlm];
+    const messagesForLlm = this.prepConversationForLlm({ messages, chunks });
     const {
       choices: [choice],
     } = await this.openAiChatClient.chatAwaited({
@@ -95,6 +83,18 @@ class OpenAILlmProvider implements LlmProvider {
       throw new Error("No message returned from OpenAI");
     }
     return message;
+  }
+  private prepConversationForLlm({
+    messages,
+    chunks,
+  }: LlmAnswerQuestionParams) {
+    this.validateConversation(messages);
+    const lastMessage = messages[messages.length - 1];
+    const newestMessageForLlm = GENERATE_USER_PROMPT({
+      question: lastMessage.content,
+      chunks,
+    });
+    return [...messages.slice(0, -1), newestMessageForLlm];
   }
 
   // TODO: consider adding additional validation that messages follow the pattern
@@ -113,7 +113,7 @@ class OpenAILlmProvider implements LlmProvider {
         `First message must be system prompt: ${JSON.stringify(SYSTEM_PROMPT)}`
       );
     }
-    // 3 b/c must be system prompt, initial message from chatbot and latest user prompt
+    // 3 b/c must be at least 1) system prompt, 2) initial message from chatbot and 3) latest user prompt
     if (messages.length >= 3) {
       throw new Error("No messages provided");
     }
@@ -128,6 +128,7 @@ class OpenAILlmProvider implements LlmProvider {
   }
 }
 
+// Export singleton instance of LLM service for use in application
 const { OPENAI_ENDPOINT, OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_API_KEY } =
   process.env;
 const openAiClient = new OpenAiChatClient(

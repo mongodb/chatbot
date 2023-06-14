@@ -1,7 +1,5 @@
 import LeafyGreenProvider from "@leafygreen-ui/leafygreen-provider";
 import CallToActionInput from "./CallToActionInput";
-import { Message } from "./Message";
-import createMessage from "./createMessage";
 
 function App() {
   return (

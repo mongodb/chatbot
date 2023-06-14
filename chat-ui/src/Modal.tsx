@@ -1,46 +1,33 @@
-import { useState, useRef, useEffect } from "react";
 import Card from "@leafygreen-ui/card";
 import Badge from "@leafygreen-ui/badge";
 import { H3, Overline } from "@leafygreen-ui/typography";
 
 import Chat from "./Chat";
-import IconInput from "./IconInput";
 import useConversation, { ConversationPayload } from "./useConversation";
 
 import styles from "./Modal.module.css";
 import SuggestedPrompts from "./SuggestedPrompts";
 
-export function EmptyConversation({ addMessage }: ConversationPayload) {
-  const [inputText, setInputText] = useState("");
+type EmptyConversationProps = {
+  addMessage: ConversationPayload["addMessage"];
+  showSuggestedPrompts: boolean;
+  showExperimentalBanner: boolean;
+};
 
+export function EmptyConversation(props: EmptyConversationProps) {
   return (
     <div className={styles.modal_empty}>
-      {/* <IconInput
-        glyph="Wizard"
-        aria-label="MongoDB AI Chatbot Message Input"
-        aria-labelledby="TBD - FIXME"
-        placeholder="Ask MongoDB AI a Question"
-        value={inputText}
-        onChange={(e) => {
-          setInputText(e.target.value);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            addMessage("user", inputText);
-            setInputText("");
-          }
-        }}
-      /> */}
-      {inputText.length === 0 ? (
+      {props.showSuggestedPrompts ? (
         <SuggestedPrompts
-          onPromptSelected={(text) => addMessage("user", text)}
+          onPromptSelected={(text) => props.addMessage("user", text)}
         />
-      ) : (
+      ) : null}
+      {props.showExperimentalBanner ? (
         <div className={styles.modal_basic_banner}>
           <Overline>ASK MONGODB AI</Overline>
           <Badge variant="blue">Experimental</Badge>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

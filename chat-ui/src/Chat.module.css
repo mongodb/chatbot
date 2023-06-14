@@ -13,7 +13,7 @@
   margin-top: 1rem;
 }
 
-.input_form {
+/* .input_form {
   display: flex;
   flex-direction: row;
   gap: 0.5rem;
@@ -21,7 +21,7 @@
 
 .input_form_submit {
   height: 2rem;
-}
+} */
 
 /* width */
 .message_list::-webkit-scrollbar {

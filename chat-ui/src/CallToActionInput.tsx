@@ -1,18 +1,16 @@
 import styles from "./CallToActionInput.module.css";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import Badge from "@leafygreen-ui/badge";
 import Card from "@leafygreen-ui/card";
 import { Body, Link } from "@leafygreen-ui/typography";
-import IconInput from "./IconInput";
-import ChatbotModalContent, {
-  EmptyConversation,
-  ConversationWithMessages,
-} from "./Modal";
+import { EmptyConversation, ConversationWithMessages } from "./Modal";
 import useConversation, { ConversationPayload } from "./useConversation";
-import { Transition, CSSTransition } from "react-transition-group";
+import {
+  Transition,
+  // CSSTransition
+} from "react-transition-group";
 import { useClickAway } from "@uidotdev/usehooks";
-import Button from "@leafygreen-ui/button";
-import Icon from "@leafygreen-ui/icon";
+import WizardInput from "./ChatInput";
 
 const transitionClassName = {
   entering: " s-focused s-entering",
@@ -52,32 +50,19 @@ function CTACard({
   return (
     <Card ref={cardRef} className={cardClassName}>
       {showMainInput ? (
-        <>
-          <IconInput
-            glyph="Wizard"
-            aria-label="MongoDB AI Chatbot Message Input"
-            aria-labelledby="TBD - FIXME"
-            placeholder="Ask MongoDB AI a Question"
-            onFocus={() => {
-              if (!active) {
-                setActive(true);
-              }
-            }}
-            value={inputText}
-            onChange={(e) => {
-              setInputText(e.target.value);
-            }}
-          />
-          {inputText.length === 0 ? null : (
-            <Button
-              className={styles.input_form_submit}
-              type="submit"
-              rightGlyph={<Icon glyph="Wizard" />}
-            >
-              Send
-            </Button>
-          )}
-        </>
+        <WizardInput
+          showSubmitButton={inputText.length > 0}
+          placeholder="Ask MongoDB AI a Question"
+          onFocus={() => {
+            if (!active) {
+              setActive(true);
+            }
+          }}
+          value={inputText}
+          onChange={(e) => {
+            setInputText(e.target.value);
+          }}
+        />
       ) : null}
       {!active ? (
         <div className={styles.cta_disclosure}>
@@ -90,7 +75,11 @@ function CTACard({
       ) : (
         <div className={styles.modal_content}>
           {isEmptyConversation ? (
-            <EmptyConversation {...conversation} />
+            <EmptyConversation
+              addMessage={conversation.addMessage}
+              showSuggestedPrompts={inputText.length === 0}
+              showExperimentalBanner={inputText.length > 0}
+            />
           ) : (
             <ConversationWithMessages
               {...conversation}

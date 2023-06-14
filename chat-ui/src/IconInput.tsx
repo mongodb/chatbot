@@ -1,8 +1,7 @@
-import TextInput, { TextInputProps } from "@leafygreen-ui/text-input";
-import Icon, { glyphs } from "@leafygreen-ui/icon";
-
 import styles from "./IconInput.module.css";
-import { useState, forwardRef } from "react";
+import { forwardRef } from "react";
+import Icon, { glyphs } from "@leafygreen-ui/icon";
+import TextInput, { TextInputProps } from "@leafygreen-ui/text-input";
 
 export type IconInputProps = TextInputProps & {
   glyph: keyof typeof glyphs;

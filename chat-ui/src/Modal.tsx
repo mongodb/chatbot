@@ -15,7 +15,7 @@ export function EmptyConversation({ addMessage }: ConversationPayload) {
 
   return (
     <div className={styles.modal_empty}>
-      <IconInput
+      {/* <IconInput
         glyph="Wizard"
         aria-label="MongoDB AI Chatbot Message Input"
         aria-labelledby="TBD - FIXME"
@@ -30,7 +30,7 @@ export function EmptyConversation({ addMessage }: ConversationPayload) {
             setInputText("");
           }
         }}
-      />
+      /> */}
       {inputText.length === 0 ? (
         <SuggestedPrompts
           onPromptSelected={(text) => addMessage("user", text)}

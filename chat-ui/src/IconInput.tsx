@@ -2,18 +2,18 @@ import TextInput, { TextInputProps } from "@leafygreen-ui/text-input";
 import Icon, { glyphs } from "@leafygreen-ui/icon";
 
 import styles from "./IconInput.module.css";
-import { forwardRef } from "react";
+import { useState, forwardRef } from "react";
 
 export type IconInputProps = TextInputProps & {
   glyph: keyof typeof glyphs;
 };
 
-export type SpecificIconInputProps = Pick<IconInputProps, "onSubmit">;
-
 const IconInput = forwardRef<HTMLInputElement, IconInputProps>(
   function IconInput(props: IconInputProps, ref) {
+    const [focused, setFocused] = useState(false);
     return (
       <div className={styles.input_wrapper}>
+        {focused}
         <TextInput
           ref={ref}
           aria-label="Text input with an icon"

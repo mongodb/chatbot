@@ -26,6 +26,7 @@
     "@leafygreen-ui/modal": "^15.0.3",
     "@leafygreen-ui/text-input": "^12.1.13",
     "@leafygreen-ui/typography": "^16.5.0",
+    "@uidotdev/usehooks": "^2.0.1",
     "buffer": "^6.0.3",
     "esbuild": "^0.17.19",
     "prettier": "^2.8.8",

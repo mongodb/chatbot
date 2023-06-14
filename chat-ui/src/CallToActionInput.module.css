@@ -10,6 +10,12 @@
   border-top-left-radius: 6px; */
 }
 
+.input_form {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+}
+
 .cta_disclosure {
   display: flex;
   flex-direction: row;
@@ -17,7 +23,7 @@
 }
 
 .modal_content {
-  margin-top: 1rem;
+  width: 100%;
 }
 
 .card {

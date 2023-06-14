@@ -1,4 +1,5 @@
 import axios from "axios";
+import { CreateEmbeddingResponse } from "openai";
 interface CreateEmbeddingParams {
   input: string;
   user: string;
@@ -15,7 +16,7 @@ export class OpenAIClient {
 
   embeddings = {
     create: async ({ input, user }: CreateEmbeddingParams) => {
-      const { status, data } = await axios.post(
+      const { status, data } = await axios.post<CreateEmbeddingResponse>(
         `${this.basePath}/embeddings?api-version=${this.apiVersion}`,
         {
           input,

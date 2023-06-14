@@ -55,11 +55,17 @@ conversationsRouter.post(
       const stream = Boolean(req.params.stream);
       const { conversation, id } = req.body;
       const latestMessage = conversation[conversation.length - 1];
-      const embedding = await embeddings.createEmbedding({
-        text: latestMessage.content,
-        userIp: ipAddress,
+      const { status, embeddings: embeddingRes } =
+        await embeddings.createEmbedding({
+          text: latestMessage.content,
+          userIp: ipAddress,
+        });
+      if (status !== 200) {
+        return res.status(status).json({ error: "Embedding error" });
+      }
+      const chunks = await database.content.findVectorMatches({
+        embedding: embeddingRes!,
       });
-      const chunks = await database.content.findVectorMatches({ embedding });
 
       const conversationInDb = await database.conversations.findById({ id });
       if (!conversationInDb) {

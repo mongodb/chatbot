@@ -35,7 +35,7 @@ abstract class EmbeddingProvider {
   }: EmbeddingParams): Promise<EmbeddingResponse>;
 }
 
-class OpenAIEmbeddingProvider extends EmbeddingProvider {
+export class OpenAIEmbeddingProvider extends EmbeddingProvider {
   private openaiClient: OpenAIClient;
 
   constructor(openaiClient: OpenAIClient) {

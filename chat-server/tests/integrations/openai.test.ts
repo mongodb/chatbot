@@ -11,7 +11,8 @@ describe("OpenAI", () => {
     OPENAI_EMBEDDING_MODEL_VERSION,
   } = process.env;
   const openaiClient = new OpenAIClient(
-    `${OPENAI_ENDPOINT!}${OPENAI_EMBEDDING_DEPLOYMENT!}`,
+    OPENAI_ENDPOINT!,
+    OPENAI_EMBEDDING_DEPLOYMENT!,
     OPENAI_API_KEY!,
     OPENAI_EMBEDDING_MODEL_VERSION!
   );

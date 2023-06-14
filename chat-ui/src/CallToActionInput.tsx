@@ -8,62 +8,104 @@ import ChatbotModalContent, {
   EmptyConversation,
   ConversationWithMessages,
 } from "./Modal";
-import useConversation from "./useConversation";
+import useConversation, { ConversationPayload } from "./useConversation";
 import { Transition, CSSTransition } from "react-transition-group";
 import { useClickAway } from "@uidotdev/usehooks";
+import Button from "@leafygreen-ui/button";
+import Icon from "@leafygreen-ui/icon";
 
-// type ReactTransitionGroupState = "entering" | "entered" | "exiting" | "exited";
+const transitionClassName = {
+  entering: " s-focused s-entering",
+  entered: " s-focused s-entered",
+  exiting: " s-focused s-exiting",
+  exited: "",
+};
 
-// function CTACard({ state }: { state: ReactTransitionGroupState }) {
-//   let cardClassName = `${styles.card} ${transitionClassName[state]}`;
-//   if (state === "exited") {
-//     cardClassName += ` ${styles["s-unfocused"]}`;
-//   }
-//   return (
-//     <Card ref={cardRef} className={cardClassName}>
-//       {showMainInput ? (
-//         <IconInput
-//           glyph="Wizard"
-//           aria-label="MongoDB AI Chatbot Message Input"
-//           aria-labelledby="TBD - FIXME"
-//           placeholder="Ask MongoDB AI a Question"
-//           onFocus={() => {
-//             if (!modalOpen) {
-//               setModalOpen(true);
-//             }
-//           }}
-//           value={inputText}
-//           onChange={(e) => {
-//             setInputText(e.target.value);
-//           }}
-//         />
-//       ) : null}
-//       {!modalOpen ? (
-//         <div className={styles.cta_disclosure}>
-//           <Badge variant="blue">Experimental</Badge>
-//           <Body>
-//             By interacting with this chatbot, you agree to xyz.{" "}
-//             <Link href="#">Terms & Conditions</Link>
-//           </Body>
-//         </div>
-//       ) : (
-//         <div className={styles.modal_content}>
-//           {isEmptyConversation ? (
-//             <EmptyConversation {...conversation} />
-//           ) : (
-//             <ConversationWithMessages {...conversation} />
-//           )}
-//         </div>
-//       )}
-//     </Card>
-//   );
-// }
+type ReactTransitionGroupState = "entering" | "entered" | "exiting" | "exited";
 
-type CallToActionInputProps = {};
+type CTACardProps = {
+  active: boolean;
+  cardRef: React.RefObject<HTMLDivElement>;
+  conversation: ConversationPayload;
+  inputText: string;
+  setActive: React.Dispatch<React.SetStateAction<boolean>>;
+  setInputText: React.Dispatch<React.SetStateAction<string>>;
+  state: ReactTransitionGroupState;
+};
 
-export default function CallToActionInput(props: CallToActionInputProps) {
-  const conversation = useConversation();
+function CTACard({
+  active,
+  cardRef,
+  conversation,
+  inputText,
+  setActive,
+  setInputText,
+  state,
+}: CTACardProps) {
   const isEmptyConversation = conversation.messages.length === 0;
+  const showMainInput = !active || isEmptyConversation;
+
+  let cardClassName = `${styles.card} ${transitionClassName[state]}`;
+  if (state === "exited") {
+    cardClassName += ` ${styles["s-unfocused"]}`;
+  }
+  return (
+    <Card ref={cardRef} className={cardClassName}>
+      {showMainInput ? (
+        <>
+          <IconInput
+            glyph="Wizard"
+            aria-label="MongoDB AI Chatbot Message Input"
+            aria-labelledby="TBD - FIXME"
+            placeholder="Ask MongoDB AI a Question"
+            onFocus={() => {
+              if (!active) {
+                setActive(true);
+              }
+            }}
+            value={inputText}
+            onChange={(e) => {
+              setInputText(e.target.value);
+            }}
+          />
+          {inputText.length === 0 ? null : (
+            <Button
+              className={styles.input_form_submit}
+              type="submit"
+              rightGlyph={<Icon glyph="Wizard" />}
+            >
+              Send
+            </Button>
+          )}
+        </>
+      ) : null}
+      {!active ? (
+        <div className={styles.cta_disclosure}>
+          <Badge variant="blue">Experimental</Badge>
+          <Body>
+            By interacting with this chatbot, you agree to xyz.{" "}
+            <Link href="#">Terms & Conditions</Link>
+          </Body>
+        </div>
+      ) : (
+        <div className={styles.modal_content}>
+          {isEmptyConversation ? (
+            <EmptyConversation {...conversation} />
+          ) : (
+            <ConversationWithMessages
+              {...conversation}
+              inputText={inputText}
+              setInputText={setInputText}
+            />
+          )}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+export default function CallToActionInput() {
+  const conversation = useConversation();
   const [modalOpen, setModalOpen] = useState(false);
 
   const cardBoundingBoxRef = useClickAway(() => {
@@ -71,15 +113,6 @@ export default function CallToActionInput(props: CallToActionInputProps) {
   });
 
   const cardRef = useRef<HTMLDivElement>(null);
-
-  const transitionClassName = {
-    entering: " s-focused s-entering",
-    entered: " s-focused s-entered",
-    exiting: " s-focused s-exiting",
-    exited: "",
-  };
-
-  const showMainInput = !modalOpen || isEmptyConversation;
 
   const [inputText, setInputText] = useState("");
   const handleSubmit = () => {
@@ -105,50 +138,17 @@ export default function CallToActionInput(props: CallToActionInputProps) {
             exit: 250,
           }}
         >
-          {(state: "entering" | "entered" | "exiting" | "exited") => {
-            let cardClassName = `${styles.card} ${transitionClassName[state]}`;
-            if (state === "exited") {
-              cardClassName += ` ${styles["s-unfocused"]}`;
-            }
-            return (
-              <Card ref={cardRef} className={cardClassName}>
-                {showMainInput ? (
-                  <IconInput
-                    glyph="Wizard"
-                    aria-label="MongoDB AI Chatbot Message Input"
-                    aria-labelledby="TBD - FIXME"
-                    placeholder="Ask MongoDB AI a Question"
-                    onFocus={() => {
-                      if (!modalOpen) {
-                        setModalOpen(true);
-                      }
-                    }}
-                    value={inputText}
-                    onChange={(e) => {
-                      setInputText(e.target.value);
-                    }}
-                  />
-                ) : null}
-                {!modalOpen ? (
-                  <div className={styles.cta_disclosure}>
-                    <Badge variant="blue">Experimental</Badge>
-                    <Body>
-                      By interacting with this chatbot, you agree to xyz.{" "}
-                      <Link href="#">Terms & Conditions</Link>
-                    </Body>
-                  </div>
-                ) : (
-                  <div className={styles.modal_content}>
-                    {isEmptyConversation ? (
-                      <EmptyConversation {...conversation} />
-                    ) : (
-                      <ConversationWithMessages {...conversation} />
-                    )}
-                  </div>
-                )}
-              </Card>
-            );
-          }}
+          {(state: "entering" | "entered" | "exiting" | "exited") => (
+            <CTACard
+              cardRef={cardRef}
+              conversation={conversation}
+              state={state}
+              active={modalOpen}
+              setActive={setModalOpen}
+              inputText={inputText}
+              setInputText={setInputText}
+            />
+          )}
         </Transition>
       </form>
     </div>

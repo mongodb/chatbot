@@ -10,10 +10,8 @@ export type IconInputProps = TextInputProps & {
 
 const IconInput = forwardRef<HTMLInputElement, IconInputProps>(
   function IconInput(props: IconInputProps, ref) {
-    const [focused, setFocused] = useState(false);
     return (
       <div className={styles.input_wrapper}>
-        {focused}
         <TextInput
           ref={ref}
           aria-label="Text input with an icon"

@@ -10,17 +10,13 @@ import { useState } from "react";
 
 type ChatProps = Pick<
   ConversationPayload,
-  "messages" | "addMessage" | "rateMessage"
->;
+  "messages" | "rateMessage"
+> & {
+  inputText: string;
+  setInputText: React.Dispatch<React.SetStateAction<string>>;
+}
 
 export default function Chat(props: ChatProps) {
-  const [inputText, setInputText] = useState("");
-
-  const handleSubmit = () => {
-    props.addMessage("user", inputText);
-    setInputText("");
-  };
-
   return (
     <div className={styles.chat}>
       <div className={styles.message_list}>
@@ -36,21 +32,15 @@ export default function Chat(props: ChatProps) {
         This is an experimental AI chatbot. All information should be verified
         prior to use.
       </Banner>
-      <form
-        className={styles.input_form}
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit();
-        }}
-      >
+      <div className={styles.input_form}>
         <IconInput
           glyph="SMS"
           aria-label="MongoDB AI Chatbot Message Input"
           aria-labelledby="TBD - FIXME"
           placeholder={`Type a message or type "/" to select a prompt`}
-          value={inputText}
+          value={props.inputText}
           onChange={(e) => {
-            setInputText(e.target.value);
+            props.setInputText(e.target.value);
           }}
         />
         <Button
@@ -60,7 +50,7 @@ export default function Chat(props: ChatProps) {
         >
           Send
         </Button>
-      </form>
+      </div>
     </div>
   );
 }

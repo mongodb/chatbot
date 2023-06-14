@@ -45,11 +45,17 @@ export function EmptyConversation({ addMessage }: ConversationPayload) {
   );
 }
 
+type ConversationWithMessagesProps = ConversationPayload & {
+  inputText: string;
+  setInputText: React.Dispatch<React.SetStateAction<string>>;
+};
+
 export function ConversationWithMessages({
   messages,
-  addMessage,
   rateMessage,
-}: ConversationPayload) {
+  inputText,
+  setInputText,
+}: ConversationWithMessagesProps) {
   return (
     <>
       <div className={styles.modal_title}>
@@ -58,8 +64,9 @@ export function ConversationWithMessages({
       </div>
       <Chat
         messages={messages}
-        addMessage={addMessage}
         rateMessage={rateMessage}
+        inputText={inputText}
+        setInputText={setInputText}
       />
     </>
   );

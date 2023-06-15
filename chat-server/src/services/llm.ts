@@ -36,22 +36,21 @@ class LlmService {
 
 // Abstract interface for embedding provider to make it easier to swap out
 // different providers in the future.
-abstract class LlmProvider {
-  abstract answerQuestionStream({
+interface LlmProvider {
+  answerQuestionStream({
     messages,
     chunks,
   }: LlmAnswerQuestionParams): Promise<string>;
-  abstract answerQuestionAwaited({
+  answerQuestionAwaited({
     messages,
     chunks,
   }: LlmAnswerQuestionParams): Promise<string>;
 }
 
-class OpenAILlmProvider extends LlmProvider {
+class OpenAILlmProvider implements LlmProvider {
   private openaiClient: OpenAIApi;
 
   constructor(endpoint: string, apiKey: string) {
-    super();
     const configuration = new Configuration({
       basePath: endpoint, // TODO: validate that this correct..never used endpoint besides their default before
       apiKey: apiKey,

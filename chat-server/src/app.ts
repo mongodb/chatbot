@@ -1,9 +1,7 @@
 import express, { ErrorRequestHandler, RequestHandler } from "express";
-import dotenv from "dotenv";
+import "dotenv/config";
 import { MongoClient, ObjectId } from "mongodb";
 import { conversationsRouter } from "./routes/conversations";
-// Configure dotenv early so env variables can be read in imported files
-dotenv.config();
 import { createMessage, logger } from "./services/logger";
 import { getRequestId } from "./utils";
 

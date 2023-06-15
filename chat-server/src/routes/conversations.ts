@@ -4,6 +4,8 @@ import { database } from "../services/database";
 import { llm } from "../services/llm";
 import { dataStreamer } from "../services/dataStreamer";
 
+// TODO: for all non-2XX or 3XX responses, see how/if can better implement
+// error handling. can/should we pass stuff to next() and process elsewhere?
 const conversationsRouter = Router();
 
 /**
@@ -50,11 +52,23 @@ conversationsRouter.post(
     try {
       // TODO: implement type checking on the request
 
+      const ipAddress = ""; // TODO: refactor to get IP address with middleware
+
       const stream = Boolean(req.params.stream);
       const { conversation, id } = req.body;
       const latestMessage = conversation[conversation.length - 1];
-      const embedding = await embeddings.createEmbedding(latestMessage.content);
-      const chunks = await database.content.findVectorMatches({ embedding });
+      const { status, embeddings: embeddingRes } =
+        await embeddings.createEmbedding({
+          text: latestMessage.content,
+          userIp: ipAddress,
+        });
+      if (status !== 200) {
+        return res.status(status).json({ error: "Embedding error" });
+      }
+      // TODO: see if can refactor to avoid using `!` here. refer to https://github.com/mongodb/docs-chatbot/pull/6/files#r1229729636
+      const chunks = await database.content.findVectorMatches({
+        embedding: embeddingRes!,
+      });
 
       const conversationInDb = await database.conversations.findById({ id });
       if (!conversationInDb) {

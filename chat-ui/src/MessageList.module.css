@@ -8,6 +8,11 @@
   width: 100%;
 }
 
+.message_list_item {
+  display: flex;
+  flex-direction: row;
+}
+
 /* width */
 .message_list::-webkit-scrollbar {
   width: 0.25rem;

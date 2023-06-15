@@ -75,7 +75,7 @@ export default class ConversationService {
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve(createMessage("user", message));
-      }, 900);
+      }, 1900);
     });
   }
 

@@ -73,12 +73,12 @@ export function MessageRating(props: MessageRatingProps) {
   );
 }
 
-type MessageProps = {
+export type MessageProps = {
   message: MessageData;
   rateMessage: Conversation["rateMessage"];
 };
 
-export function Message(props: MessageProps) {
+export default function Message(props: MessageProps) {
   const messageRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     messageRef.current?.scrollIntoView({

@@ -11,8 +11,9 @@ import { useClickAway } from "@uidotdev/usehooks";
 import ChatInput from "./ChatInput";
 import SuggestedPrompts from "./SuggestedPrompts";
 import { H3, Overline } from "@leafygreen-ui/typography";
-import MessageList from "./MessageList";
-import { conversationService } from "./services/conversations";
+import MessageList, { MessageListItem } from "./MessageList";
+import Message from "./Message";
+import { PageLoader } from "@leafygreen-ui/loading-indicator";
 
 function Disclosure() {
   return (
@@ -34,7 +35,6 @@ type CTACardProps = {
   setActive: React.Dispatch<React.SetStateAction<boolean>>;
   setInputText: React.Dispatch<React.SetStateAction<string>>;
   handleSubmit: (text: string) => Promise<void>;
-  addingMessage: boolean;
   awaitingReply: boolean;
 };
 
@@ -46,10 +46,8 @@ function CTACard({
   setActive,
   setInputText,
   handleSubmit,
-  addingMessage,
   awaitingReply,
 }: CTACardProps) {
-  const isActiveLoading = active && !conversation.conversationId;
   const isEmptyConversation = conversation.messages.length === 0;
   const showSuggestedPrompts = inputText.length === 0;
   const showExperimentalBanner = inputText.length > 0;
@@ -67,10 +65,20 @@ function CTACard({
             <H3>MongoDB AI</H3>
             <Badge variant="green">Experimental</Badge>
           </div>
-          <MessageList
-            messages={conversation.messages}
-            rateMessage={conversation.rateMessage}
-          />
+          <MessageList>
+            {conversation.messages.map((message) => (
+              <Message
+                key={message.id}
+                message={message}
+                rateMessage={conversation.rateMessage}
+              />
+            ))}
+            {(awaitingReply) && (
+              <MessageListItem>
+                <PageLoader className={styles.awaiting_response_loader} />
+              </MessageListItem>
+            )}
+          </MessageList>
           <Banner className={styles.lg_banner} variant="warning">
             This is an experimental AI chatbot. All information should be
             verified prior to use.
@@ -82,7 +90,11 @@ function CTACard({
         ref={inputRef}
         key="wizard-input"
         showSubmitButton={inputText.length > 0}
-        placeholder="Ask MongoDB AI a Question"
+        placeholder={
+          awaitingReply
+            ? "MongoDB AI is answering..."
+            : "Ask MongoDB AI a Question"
+        }
         onFocus={() => {
           if (!active) {
             setActive(true);
@@ -95,7 +107,7 @@ function CTACard({
         onChange={(e) => {
           setInputText(e.target.value);
         }}
-        disableSubmitButton={addingMessage}
+        loading={awaitingReply}
       />
 
       {!active ? (
@@ -127,9 +139,7 @@ function CTACard({
 export default function Chatbot() {
   const conversation = useConversation();
   const [active, setActive] = useState(false);
-  const [addingMessage, setAddingMessage] = useState(false);
   const [awaitingReply, setAwaitingReply] = useState(false);
-  const [loading, setLoading] = useState(false);
   // When the Chatbot first becomes active, create a new conversation
   useEffect(() => {
     if (active && !conversation.conversationId) {
@@ -143,14 +153,14 @@ export default function Chatbot() {
       console.error(`Cannot addMessage without a conversationId`);
       return;
     }
-    setAddingMessage(true);
+    if(awaitingReply) return;
     try {
-      await conversation.addMessage("user", text);
       setInputText("");
+      setAwaitingReply(true);
+      await conversation.addMessage("user", text);
     } catch (e) {
       console.error(e);
     }
-    setAddingMessage(false);
     setAwaitingReply(true);
     setTimeout(() => {
       setAwaitingReply(false);
@@ -163,8 +173,6 @@ export default function Chatbot() {
 
   return (
     <div className={styles.cta_container} ref={cardBoundingBoxRef}>
-      {addingMessage ? "adding message" : null}
-      {awaitingReply ? "awaiting reply" : null}
       <form
         className={styles.input_form}
         onSubmit={(e) => {
@@ -191,7 +199,6 @@ export default function Chatbot() {
             inputText={inputText}
             setInputText={setInputText}
             handleSubmit={handleSubmit}
-            addingMessage={addingMessage}
             awaitingReply={awaitingReply}
           />
         </CSSTransition>

@@ -2,6 +2,7 @@ import styles from "./ChatInput.module.css";
 import { forwardRef } from "react";
 import Icon from "@leafygreen-ui/icon";
 import Button from "@leafygreen-ui/button";
+import { Spinner } from "@leafygreen-ui/loading-indicator";
 import IconInput, { IconInputProps } from "./IconInput";
 
 export type ChatInputProps = Omit<
@@ -11,13 +12,20 @@ export type ChatInputProps = Omit<
   inputGlyph?: IconInputProps["glyph"];
   sendButtonGlyph?: IconInputProps["glyph"];
   showSubmitButton: boolean;
-  disableSubmitButton?: boolean;
+  loading?: boolean;
   onButtonClick?: (e: MouseEvent) => void;
 };
 
 const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(
   function ChatInput(
-    { inputGlyph, sendButtonGlyph, showSubmitButton, disableSubmitButton=false, onButtonClick, ...props },
+    {
+      inputGlyph,
+      sendButtonGlyph,
+      showSubmitButton,
+      loading = false,
+      onButtonClick,
+      ...props
+    },
     ref
   ) {
     return (
@@ -39,9 +47,9 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(
             onClick={(e) => {
               onButtonClick?.(e);
             }}
-            disabled={disableSubmitButton}
+            disabled={loading}
           >
-            Send
+            {loading ? <Spinner displayOption="default-horizontal" /> : "Send"}
           </Button>
         ) : null}
       </div>

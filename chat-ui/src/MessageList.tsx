@@ -1,19 +1,22 @@
 import styles from "./MessageList.module.css";
-import { Message } from "./Message";
-import { Conversation } from "./useConversation";
+import { MessageProps } from "./Message";
+import { ReactElement, ReactNode } from "react";
 
-type MessageListProps = Pick<Conversation, "messages" | "rateMessage">;
+type MessageListItemProps = { children: JSX.Element };
 
-export default function MessageList(props: MessageListProps) {
-  return (
-    <div className={styles.message_list}>
-      {props.messages.map((message) => (
-        <Message
-          key={message.id}
-          message={message}
-          rateMessage={props.rateMessage}
-        />
-      ))}
-    </div>
-  );
+export function MessageListItem({ children }: MessageListItemProps) {
+  return <div className={styles.message_list_item}>{children}</div>;
+}
+
+type MessageListChild =
+  | ReactElement<MessageProps>
+  | ReactElement<MessageListItemProps>;
+
+type MessageListProps = {
+  children: MessageListChild | MessageListChild[];
+  // children: JSX.Element;
+};
+
+export default function MessageList({ children }: MessageListProps) {
+  return <div className={styles.message_list}>{children}</div>;
 }

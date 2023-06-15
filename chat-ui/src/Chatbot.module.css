@@ -61,6 +61,7 @@
   max-width: 700px;
   gap: 12px;
   border-top-left-radius: 6px;
+  padding-top: 1rem;
 
   transition: all 0.25s ease;
   position: relative;

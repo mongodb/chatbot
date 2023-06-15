@@ -4,7 +4,7 @@ import Badge from "@leafygreen-ui/badge";
 import Banner from "@leafygreen-ui/banner";
 import Card from "@leafygreen-ui/card";
 import Box from "@leafygreen-ui/box";
-import { Body, Link } from "@leafygreen-ui/typography";
+import { Subtitle, Body, Link } from "@leafygreen-ui/typography";
 import useConversation, { Conversation } from "./useConversation";
 import { CSSTransition } from "react-transition-group";
 import { useClickAway } from "@uidotdev/usehooks";
@@ -58,12 +58,12 @@ function CTACard({
     // TODO: Make this work with <Card>. For some reason, <Card>
     // does not accept a ref prop even though it wraps <Box>, which
     // takes the ref just fine.
-    <Box ref={cardRef} className={styles.card + " card"}>
+    <Card ref={cardRef} className={styles.card + " card"}>
       {active && !isEmptyConversation ? (
         <>
           <div className={styles.card_content_title}>
-            <H3>MongoDB AI</H3>
-            <Badge variant="green">Experimental</Badge>
+            <Subtitle>MongoDB AI</Subtitle>
+            <Badge variant="blue">Experimental</Badge>
           </div>
           <MessageList>
             {conversation.messages.map((message) => (
@@ -132,7 +132,7 @@ function CTACard({
           </div>
         </div>
       ) : null}
-    </Box>
+    </Card>
   );
 }
 

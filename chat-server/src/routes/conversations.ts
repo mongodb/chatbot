@@ -3,6 +3,7 @@ import { embeddings } from "../services/embeddings";
 import { database } from "../services/database";
 import { llm } from "../services/llm";
 import { dataStreamer } from "../services/dataStreamer";
+import { ChatMessage } from "@azure/openai";
 
 // TODO: for all non-2XX or 3XX responses, see how/if can better implement
 // error handling. can/should we pass stuff to next() and process elsewhere?
@@ -94,6 +95,7 @@ conversationsRouter.post(
           messages: [...conversationInDb.messages, latestMessage],
           chunks,
         });
+
         const successfulOperation = await database.conversations.addMessage({
           conversation: conversationInDb,
           answer,

@@ -37,11 +37,7 @@ const componentsMap = {
     return <H3>{text}</H3>;
   },
   p: ({ children, ...props }) => {
-    return (
-      <Body baseFontSize={16} {...props}>
-        {children}
-      </Body>
-    );
+    return <Body {...props}>{children}</Body>;
   },
 } satisfies ReactMarkdownComponentsMap;
 

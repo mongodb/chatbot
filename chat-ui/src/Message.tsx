@@ -1,20 +1,14 @@
 import { useEffect, useRef } from "react";
 import Icon from "@leafygreen-ui/icon";
 import IconButton from "@leafygreen-ui/icon-button";
-import { Body, Description } from "@leafygreen-ui/typography";
+import { Description } from "@leafygreen-ui/typography";
 import styles from "./Message.module.css";
-import { ConversationPayload } from "./useConversation";
+import { Conversation } from "./useConversation";
 import LGMarkdown from "./LGMarkdown";
-import { LeafSVG } from "./MongoDBLogo";
+import { MessageData, Role } from "./services/conversations";
+import { GeneralContentUserIcon, MongoDBLogoIcon } from "./CustomIcon";
 
-export type Role = "user" | "assistant" | "system";
 
-export type MessageData = {
-  id: string;
-  role: Role;
-  content: string;
-  rating?: boolean;
-};
 
 export function Avatar({ role }: { role: Role }) {
   switch (role) {
@@ -23,11 +17,9 @@ export function Avatar({ role }: { role: Role }) {
         <div
           className={`${styles.message_avatar} ${styles.message_avatar_user}`}
         >
-          <Icon
-            className={styles.message_avatar_icon}
-            glyph="Person"
-            color="#000000"
-          />
+          <div className={styles.message_avatar_icon_container}>
+            <GeneralContentUserIcon className={styles.message_avatar_icon} />
+          </div>
         </div>
       );
     case "assistant":
@@ -35,7 +27,9 @@ export function Avatar({ role }: { role: Role }) {
         <div
           className={`${styles.message_avatar} ${styles.message_avatar_assistant}`}
         >
-          <LeafSVG />
+          <div className={styles.message_avatar_icon_container}>
+            <MongoDBLogoIcon className={styles.message_avatar_icon} />
+          </div>
         </div>
       );
     case "system":
@@ -55,7 +49,7 @@ export function Avatar({ role }: { role: Role }) {
 
 type MessageRatingProps = {
   messageId: string;
-  rateMessage: ConversationPayload["rateMessage"];
+  rateMessage: Conversation["rateMessage"];
   value?: boolean;
 };
 
@@ -64,7 +58,6 @@ export function MessageRating(props: MessageRatingProps) {
     <div className={styles.message_rating}>
       <Description>Rate this response:</Description>
       <IconButton
-        size="large"
         aria-label="Thumbs up this message"
         active={props.value === true}
         onClick={() => props.rateMessage(props.messageId, true)}
@@ -72,7 +65,6 @@ export function MessageRating(props: MessageRatingProps) {
         <Icon className={styles.message_rating_icon} glyph="ArrowUp" />
       </IconButton>
       <IconButton
-        size="large"
         aria-label="Thumbs down this message"
         active={props.value === false}
         onClick={() => props.rateMessage(props.messageId, false)}
@@ -83,12 +75,12 @@ export function MessageRating(props: MessageRatingProps) {
   );
 }
 
-type MessageProps = {
+export type MessageProps = {
   message: MessageData;
-  rateMessage: ConversationPayload["rateMessage"];
+  rateMessage: Conversation["rateMessage"];
 };
 
-export function Message(props: MessageProps) {
+export default function Message(props: MessageProps) {
   const messageRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     messageRef.current?.scrollIntoView({

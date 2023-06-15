@@ -1,8 +1,13 @@
 import { useReducer } from "react";
-import { MessageData, Role } from "./Message";
+import {
+  MessageData,
+  Role,
+  conversationService,
+} from "./services/conversations";
 import createMessage from "./createMessage";
 
-type ConversationState = {
+export type ConversationState = {
+  conversationId?: string;
   messages: MessageData[];
   // user_ip: string;
   // time_created: Date;
@@ -10,19 +15,22 @@ type ConversationState = {
 };
 
 type ConversationAction =
+  | { type: "setConversation"; conversation: Required<ConversationState> }
   | { type: "addMessage"; role: Role; text: string }
   | { type: "modifyMessage"; messageId: MessageData["id"]; text: string }
   | { type: "deleteMessage"; messageId: MessageData["id"] }
   | { type: "rateMessage"; messageId: MessageData["id"]; rating: boolean };
 
 type ConversationActor = {
+  // setConversationId: (conversationId: string) => void;
+  createConversation: () => void;
   addMessage: (role: Role, text: string) => void;
   modifyMessage: (messageId: string, text: string) => void;
   deleteMessage: (messageId: string) => void;
   rateMessage: (messageId: string, rating: boolean) => void;
 };
 
-export type ConversationPayload = ConversationState & ConversationActor;
+export type Conversation = ConversationState & ConversationActor;
 
 function conversationReducer(
   state: ConversationState,
@@ -37,26 +45,51 @@ function conversationReducer(
     }
     return messageIndex;
   }
+  if (action.type !== "setConversation" && !state.conversationId) {
+    console.error("Cannot perform action without conversationId");
+    return state;
+  }
   switch (action.type) {
+    case "setConversation": {
+      return {
+        ...action.conversation,
+      };
+    }
     case "addMessage": {
+      if (!state.conversationId) {
+        console.error(`Cannot addMessage without a conversationId`);
+      }
+      const newMessage = createMessage(action.role, action.text);
       return {
         ...state,
-        messages: [...state.messages, createMessage(action.role, action.text)],
+        messages: [...state.messages, newMessage],
       };
     }
     case "modifyMessage": {
+      if (!state.conversationId) {
+        console.error(`Cannot modifyMessage without a conversationId`);
+        return state;
+      }
       const messageIndex = getMessageIndex(action.messageId);
       if (messageIndex === -1) return state;
+      const modifiedMessage = {
+        ...state.messages[messageIndex],
+        text: action.text,
+      };
       return {
         ...state,
         messages: [
           ...state.messages.slice(0, messageIndex),
-          { ...state.messages[messageIndex], text: action.text },
+          modifiedMessage,
           ...state.messages.slice(messageIndex + 1),
         ],
       };
     }
     case "deleteMessage": {
+      if (!state.conversationId) {
+        console.error(`Cannot deleteMessage without a conversationId`);
+        return state;
+      }
       const messageIndex = getMessageIndex(action.messageId);
       if (messageIndex === -1) return state;
       return {
@@ -68,16 +101,21 @@ function conversationReducer(
       };
     }
     case "rateMessage": {
+      if (!state.conversationId) {
+        console.error(`Cannot rateMessage without a conversationId`);
+        return state;
+      }
       const messageIndex = getMessageIndex(action.messageId);
       if (messageIndex === -1) return state;
+      const ratedMessage = {
+        ...state.messages[messageIndex],
+        rating: action.rating,
+      };
       return {
         ...state,
         messages: [
           ...state.messages.slice(0, messageIndex),
-          {
-            ...state.messages[messageIndex],
-            rating: action.rating,
-          },
+          ratedMessage,
           ...state.messages.slice(messageIndex + 1),
         ],
       };
@@ -90,58 +128,92 @@ function conversationReducer(
 }
 
 export const defaultConversationState = {
-  messages: [
-    // {
-    //   id: "1",
-    //   content: "What is the best flavor of ice cream dog?",
-    //   role: "user",
-    // },
-    // {
-    //   id: "2",
-    //   content: `As an AI, I don't have personal preferences, but I can tell you that the "best" flavor of ice cream is subjective and varies depending on individual tastes. Some popular flavors include vanilla, chocolate, strawberry, mint chocolate chip, cookies and cream, and many more. Ultimately, the best flavor of ice cream is the one that you enjoy the most!`,
-    //   role: "assistant",
-    // },
-    // {
-    //   id: "3",
-    //   content: `Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.`,
-    //   role: "user",
-    // },
-    // {
-    //   id: "4",
-    //   content:
-    //     '# H1\n\ntext\n\n## H2\n\ntext\n\n### H3\n\nHere\'s some code that you can use to query MongoDB:\n\n```python\nimport pymongo\n\n# Connect to MongoDB\nclient = pymongo.MongoClient("mongodb://localhost:27017/")\ndb = client["your_database_name"]\ncollection = db["your_collection_name"]\n\n# Define the query\nquery = { "field_name": "desired_value" }\n\n# Execute the query\nresults = collection.find(query)\n\n# Process the results\nfor result in results:\n    print(result)\n\n# Close the MongoDB connection\nclient.close()\n```\n\nI hope this helps!',
-    //   role: "user",
-    // },
-  ],
+  messages: [],
 } satisfies ConversationState;
 
 export default function useConversation() {
-  const [state, dispatch] = useReducer(
+  const [state, _dispatch] = useReducer(
     conversationReducer,
     defaultConversationState
   );
-
-  const addMessage = (role: Role, text: string) => {
-    dispatch({ type: "addMessage", role, text });
+  const dispatch = (...args: Parameters<typeof _dispatch>) => {
+    console.log(`dispatch`, ...args);
+    _dispatch(...args);
   };
 
-  const modifyMessage = (messageId: string, text: string) => {
+  const setConversation = (conversation: Required<ConversationState>) => {
+    console.log(`setConversation`, conversation);
+    dispatch({ type: "setConversation", conversation });
+  };
+
+  const createConversation = async () => {
+    try {
+      if (state.conversationId) {
+        console.error(
+          `Cannot createConversation when conversationId already exists`
+        );
+        return state;
+      }
+      console.log(`Creating conversation`);
+      const conversation = await conversationService.createConversation();
+      console.log(`Created conversation`, conversation);
+      setConversation(conversation);
+    } catch (error) {
+      console.error(`Failed to create conversation: ${error}`);
+    }
+  };
+
+  const addMessage = async (role: Role, text: string) => {
+    if (!state.conversationId) {
+      console.error(`Cannot addMessage without a conversationId`);
+      return;
+    }
+    try {
+      dispatch({ type: "addMessage", role, text });
+      await conversationService.addMessage({
+        conversationId: state.conversationId,
+        message: text,
+      });
+    } catch (error) {
+      console.error(`Failed to add message: ${error}`);
+    }
+  };
+
+  const modifyMessage = async (messageId: string, text: string) => {
+    if (!state.conversationId) {
+      console.error(`Cannot modifyMessage without a conversationId`);
+      return;
+    }
     dispatch({ type: "modifyMessage", messageId, text });
   };
 
-  const deleteMessage = (messageId: string) => {
+  const deleteMessage = async (messageId: string) => {
+    if (!state.conversationId) {
+      console.error(`Cannot deleteMessage without a conversationId`);
+      return;
+    }
     dispatch({ type: "deleteMessage", messageId });
   };
 
-  const rateMessage = (messageId: string, rating: boolean) => {
+  const rateMessage = async (messageId: string, rating: boolean) => {
+    if (!state.conversationId) {
+      console.error(`Cannot rateMessage without a conversationId`);
+      return;
+    }
+    await conversationService.rateMessage({
+      conversationId: state.conversationId,
+      messageId,
+      rating,
+    });
     dispatch({ type: "rateMessage", messageId, rating });
   };
 
   return {
     ...state,
+    createConversation,
     addMessage,
     modifyMessage,
     deleteMessage,
     rateMessage,
-  } satisfies ConversationPayload;
+  } satisfies Conversation;
 }

@@ -1,11 +1,12 @@
 import { createContext } from "react";
 import useConversation, {
   defaultConversationState,
-  ConversationPayload,
+  Conversation,
 } from "./useConversation";
 
-export const ConversationContext = createContext<ConversationPayload>({
+export const ConversationContext = createContext<Conversation>({
   ...defaultConversationState,
+  setConversationId() {},
   addMessage: () => {},
   modifyMessage: () => {},
   deleteMessage: () => {},

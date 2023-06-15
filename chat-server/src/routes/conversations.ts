@@ -4,6 +4,7 @@ import { database } from "../services/database";
 import { llm } from "../services/llm";
 import { dataStreamer } from "../services/dataStreamer";
 import { ChatMessage } from "@azure/openai";
+import { OpenAiChatMessage } from "../integrations/openai";
 
 // TODO: for all non-2XX or 3XX responses, see how/if can better implement
 // error handling. can/should we pass stuff to next() and process elsewhere?
@@ -84,7 +85,10 @@ conversationsRouter.post(
         answer = await dataStreamer.answer({
           res,
           answer: llm.answerQuestionStream({
-            messages: [...conversationInDb.messages, latestMessage],
+            messages: [
+              ...conversationInDb.messages,
+              latestMessage,
+            ] as OpenAiChatMessage[],
             chunks,
           }),
           conversation: conversationInDb,
@@ -92,7 +96,10 @@ conversationsRouter.post(
         });
       } else {
         answer = await llm.answerQuestionAwaited({
-          messages: [...conversationInDb.messages, latestMessage],
+          messages: [
+            ...conversationInDb.messages,
+            latestMessage,
+          ] as OpenAiChatMessage[],
           chunks,
         });
 

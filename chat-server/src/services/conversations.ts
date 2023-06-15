@@ -1,8 +1,29 @@
 import { ObjectId, Db, Collection } from "mongodb";
-import { MongoDB } from "../integrations/mongodb";
+import { mongodb } from "../integrations/mongodb";
 import { OpenAiChatMessage, SYSTEM_PROMPT } from "../integrations/openai";
-import { ChatMessage } from "@azure/openai";
 
+export interface Message {
+  /** Unique identifier for the message. */
+  id: ObjectId;
+  /** The role of the message in the context of the conversation. */
+  role: string;
+  /** Markdown-formatted response to user's chat message in the context of the conversation. */
+  content: string;
+  /** Set to `true` if the user liked the response, `false` if the user didn't like the response. No value if user didn't rate the response. Note that only messages with `role: "assistant"` can be rated. */
+  rating?: boolean;
+  /** The date the message was created. */
+  timeCreated: Date;
+}
+
+export interface Conversation {
+  _id: ObjectId;
+  /** Messages in the conversation. */
+  messages: Message[];
+  /** The IP address of the user performing the conversation. */
+  ipAddress: string;
+  /** The date the conversation was created. */
+  timeCreated: Date;
+}
 export interface CreateConversationParams {
   ipAddress: string;
 }
@@ -14,8 +35,8 @@ export interface FindByIdParams {
   _id: ObjectId;
 }
 export interface RateMessageParams {
-  conversationId: string;
-  messageId: string;
+  conversationId: ObjectId;
+  messageId: ObjectId;
   rating: boolean;
 }
 export interface ConversationsServiceInterface {
@@ -119,3 +140,5 @@ export class ConversationsService implements ConversationsServiceInterface {
     };
   }
 }
+
+export const conversationsService = new ConversationsService(mongodb.db);

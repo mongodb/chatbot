@@ -6,10 +6,11 @@ import {
   SYSTEM_PROMPT,
   GENERATE_USER_PROMPT,
   OPENAI_LLM_CONFIG_OPTIONS,
+  OpenAiChatMessage,
 } from "../integrations/openai";
 
 export interface LlmAnswerQuestionParams {
-  messages: ChatMessage[];
+  messages: OpenAiChatMessage[];
   chunks: string[];
 }
 
@@ -29,7 +30,7 @@ export interface LlmProvider<T, U> {
 export type OpenAiStreamingResponse = AsyncIterable<
   Omit<ChatCompletions, "usage">
 >;
-export type OpenAiAwaitedResponse = ChatMessage;
+export type OpenAiAwaitedResponse = OpenAiChatMessage;
 export class OpenAiLlmProvider
   implements LlmProvider<OpenAiStreamingResponse, OpenAiAwaitedResponse>
 {
@@ -55,7 +56,7 @@ export class OpenAiLlmProvider
   async answerQuestionAwaited({
     messages,
     chunks,
-  }: LlmAnswerQuestionParams): Promise<ChatMessage> {
+  }: LlmAnswerQuestionParams): Promise<OpenAiChatMessage> {
     const messagesForLlm = this.prepConversationForLlm({ messages, chunks });
     const {
       choices: [choice],
@@ -67,7 +68,7 @@ export class OpenAiLlmProvider
     if (!message) {
       throw new Error("No message returned from OpenAI");
     }
-    return message;
+    return message as OpenAiChatMessage;
   }
   private prepConversationForLlm({
     messages,
@@ -85,7 +86,7 @@ export class OpenAiLlmProvider
   // TODO: consider adding additional validation that messages follow the pattern
   // system, assistant, user, assistant, user, etc.
   // Are there any other things which we should validate here?
-  private validateConversation(messages: ChatMessage[]) {
+  private validateConversation(messages: OpenAiChatMessage[]) {
     if (messages.length === 0) {
       throw new Error("No messages provided");
     }

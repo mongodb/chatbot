@@ -5,7 +5,7 @@
     "target": "es2016",
     "module": "CommonJS",
     "esModuleInterop": true,
-    "lib": ["ES2020"],
+    "lib": ["ES2020", "DOM"],
     "downlevelIteration": true,
     "strictNullChecks": true,
     "strict": true,

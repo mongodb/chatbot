@@ -30,7 +30,7 @@ export const updateChunks = async ({
 
 // TODO: This is a stand-in for an Atlas collection
 export type ChunkStore = {
-  deleteChunks(): Promise<void>;
+  deleteChunks(args: { page: PersistedPage }): Promise<void>;
   updateChunks(args: {
     page: PersistedPage;
     chunks: EmbeddedChunk[];
@@ -67,6 +67,7 @@ export const updateChunksForPage = async ({
 };
 
 export type Chunk = {
+  source: string;
   url: string;
   text: string;
   // ... TODO ...

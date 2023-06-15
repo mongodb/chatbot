@@ -7,16 +7,15 @@ import {
   GENERATE_USER_PROMPT,
   OPENAI_LLM_CONFIG_OPTIONS,
 } from "../integrations/openai";
-import { logger } from "./logger";
 
-interface LlmAnswerQuestionParams {
+export interface LlmAnswerQuestionParams {
   messages: ChatMessage[];
   chunks: string[];
 }
 
 // Abstract interface for embedding provider to make it easier to swap out
 // different providers in the future.
-interface LlmProvider<T, U> {
+export interface LlmProvider<T, U> {
   answerQuestionStream({
     messages,
     chunks,
@@ -27,9 +26,11 @@ interface LlmProvider<T, U> {
   }: LlmAnswerQuestionParams): Promise<U>;
 }
 
-type OpenAiStreamingResponse = AsyncIterable<Omit<ChatCompletions, "usage">>;
-type OpenAiAwaitedResponse = ChatMessage;
-export class OpenAILlmProvider
+export type OpenAiStreamingResponse = AsyncIterable<
+  Omit<ChatCompletions, "usage">
+>;
+export type OpenAiAwaitedResponse = ChatMessage;
+export class OpenAiLlmProvider
   implements LlmProvider<OpenAiStreamingResponse, OpenAiAwaitedResponse>
 {
   private openAiChatClient: OpenAiChatClient;
@@ -116,4 +117,4 @@ const openAiClient = new OpenAiChatClient(
   OPENAI_CHAT_COMPLETION_DEPLOYMENT!,
   OPENAI_API_KEY!
 );
-export const llm = new OpenAILlmProvider(openAiClient);
+export const llm = new OpenAiLlmProvider(openAiClient);

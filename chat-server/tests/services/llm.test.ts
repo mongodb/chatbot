@@ -4,7 +4,7 @@ import {
   SYSTEM_PROMPT,
   GENERATE_USER_PROMPT,
 } from "../../src/integrations/openai";
-import { OpenAILlmProvider } from "../../src/services/llm";
+import { OpenAiLlmProvider } from "../../src/services/llm";
 import "dotenv/config";
 
 jest.setTimeout(10000);
@@ -45,7 +45,7 @@ describe("LLM", () => {
       OPENAI_CHAT_COMPLETION_DEPLOYMENT!,
       OPENAI_API_KEY!
     );
-    const openAiLlmService = new OpenAILlmProvider(openAiClient);
+    const openAiLlmService = new OpenAiLlmProvider(openAiClient);
 
     test("should answer question in conversation - awaited", async () => {
       const response = await openAiLlmService.answerQuestionAwaited({

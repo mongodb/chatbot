@@ -55,7 +55,7 @@ export class OpenAiEmbeddingsClient implements OpenAiEmbeddingsClientInterface {
   }
 }
 
-interface OpenAiChatClientInterface {
+export interface OpenAiChatClientInterface {
   chatAwaited: (params: ChatParams) => Promise<ChatCompletions>;
   chatStream: (
     params: ChatParams

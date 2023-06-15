@@ -1,6 +1,7 @@
 // TODO: add DB methods relevant for this project
 import { Db, MongoClient, ObjectId } from "mongodb";
 import { logger } from "./logger";
+import { ChatMessage } from "@azure/openai";
 
 class MongoDBDatabase {
   private client: MongoClient;
@@ -18,7 +19,7 @@ class MongoDBDatabase {
       answer,
     }: {
       conversation: Conversation;
-      answer: string;
+      answer: ChatMessage;
     }) => {
       // TODO: implement this
       return true;

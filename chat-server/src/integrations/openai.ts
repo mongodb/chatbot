@@ -1,9 +1,5 @@
 import axios from "axios";
-import {
-  CreateChatCompletionRequest,
-  CreateChatCompletionResponse,
-  CreateEmbeddingResponse as OpenAiEmbeddingResponse,
-} from "openai";
+import { CreateEmbeddingResponse as OpenAiEmbeddingResponse } from "openai";
 import {
   OpenAIClient,
   AzureKeyCredential,

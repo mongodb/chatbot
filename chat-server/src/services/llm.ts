@@ -1,5 +1,6 @@
 // TODO: add better error handling logic like the embeddings service
-import { ChatMessage } from "@azure/openai";
+import { ChatMessage, ChatCompletions } from "@azure/openai";
+import "dotenv/config";
 import {
   OpenAiChatClient,
   SYSTEM_PROMPT,
@@ -9,52 +10,28 @@ import {
 import { logger } from "./logger";
 
 interface LlmAnswerQuestionParams {
-  messages: Message[];
+  messages: ChatMessage[];
   chunks: string[];
-}
-
-class LlmService {
-  private llmProvider: LlmProvider;
-  constructor(llmProvider: LlmProvider) {
-    this.llmProvider = llmProvider;
-  }
-
-  async answerQuestionStream({ messages, chunks }: LlmAnswerQuestionParams) {
-    logger.info("Conversation: ", messages);
-    logger.info("Chunks: ", chunks);
-    const answer = await this.llmProvider.answerQuestionStream({
-      messages,
-      chunks,
-    });
-    logger.info("Answer: ", answer);
-    return answer;
-  }
-  async answerQuestionAwaited({ messages, chunks }: LlmAnswerQuestionParams) {
-    logger.info("Conversation: ", messages);
-    logger.info("Chunks: ", chunks);
-    const answer = await this.llmProvider.answerQuestionAwaited({
-      messages,
-      chunks,
-    });
-    logger.info("Answer: ", answer);
-    return answer;
-  }
 }
 
 // Abstract interface for embedding provider to make it easier to swap out
 // different providers in the future.
-interface LlmProvider {
+interface LlmProvider<T, U> {
   answerQuestionStream({
     messages,
     chunks,
-  }: LlmAnswerQuestionParams): Promise<AsyncIterable<any>>;
+  }: LlmAnswerQuestionParams): Promise<T>;
   answerQuestionAwaited({
     messages,
     chunks,
-  }: LlmAnswerQuestionParams): Promise<ChatMessage>;
+  }: LlmAnswerQuestionParams): Promise<U>;
 }
 
-class OpenAILlmProvider implements LlmProvider {
+type OpenAiStreamingResponse = AsyncIterable<Omit<ChatCompletions, "usage">>;
+type OpenAiAwaitedResponse = ChatMessage;
+export class OpenAILlmProvider
+  implements LlmProvider<OpenAiStreamingResponse, OpenAiAwaitedResponse>
+{
   private openAiChatClient: OpenAiChatClient;
 
   constructor(openAiChatClient: OpenAiChatClient) {
@@ -62,7 +39,10 @@ class OpenAILlmProvider implements LlmProvider {
   }
 
   // NOTE: for streaming implementation, see // NOTE: for example streaming data, see https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
-  async answerQuestionStream({ messages, chunks }: LlmAnswerQuestionParams) {
+  async answerQuestionStream({
+    messages,
+    chunks,
+  }: LlmAnswerQuestionParams): Promise<OpenAiStreamingResponse> {
     const messagesForLlm = this.prepConversationForLlm({ messages, chunks });
     const completionStream = await this.openAiChatClient.chatStream({
       messages: messagesForLlm,
@@ -71,7 +51,10 @@ class OpenAILlmProvider implements LlmProvider {
     return completionStream;
   }
 
-  async answerQuestionAwaited({ messages, chunks }: LlmAnswerQuestionParams) {
+  async answerQuestionAwaited({
+    messages,
+    chunks,
+  }: LlmAnswerQuestionParams): Promise<ChatMessage> {
     const messagesForLlm = this.prepConversationForLlm({ messages, chunks });
     const {
       choices: [choice],
@@ -92,7 +75,7 @@ class OpenAILlmProvider implements LlmProvider {
     this.validateConversation(messages);
     const lastMessage = messages[messages.length - 1];
     const newestMessageForLlm = GENERATE_USER_PROMPT({
-      question: lastMessage.content,
+      question: lastMessage.content!,
       chunks,
     });
     return [...messages.slice(0, -1), newestMessageForLlm];
@@ -101,7 +84,7 @@ class OpenAILlmProvider implements LlmProvider {
   // TODO: consider adding additional validation that messages follow the pattern
   // system, assistant, user, assistant, user, etc.
   // Are there any other things which we should validate here?
-  private validateConversation(messages: Message[]) {
+  private validateConversation(messages: ChatMessage[]) {
     if (messages.length === 0) {
       throw new Error("No messages provided");
     }
@@ -113,10 +96,6 @@ class OpenAILlmProvider implements LlmProvider {
       throw new Error(
         `First message must be system prompt: ${JSON.stringify(SYSTEM_PROMPT)}`
       );
-    }
-    // 3 b/c must be at least 1) system prompt, 2) initial message from chatbot and 3) latest user prompt
-    if (messages.length >= 3) {
-      throw new Error("No messages provided");
     }
     const secondToLastMessage = messages[messages.length - 2];
     if (secondToLastMessage.role !== "assistant") {
@@ -137,5 +116,4 @@ const openAiClient = new OpenAiChatClient(
   OPENAI_CHAT_COMPLETION_DEPLOYMENT!,
   OPENAI_API_KEY!
 );
-const openAIProvider = new OpenAILlmProvider(openAiClient);
-export const llm = new LlmService(openAIProvider);
+export const llm = new OpenAILlmProvider(openAiClient);

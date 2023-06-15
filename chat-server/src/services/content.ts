@@ -1,4 +1,5 @@
-import { ObjectId } from "mongodb";
+import { Collection, Db, ObjectId } from "mongodb";
+import { mongodb } from "../integrations/mongodb";
 interface Site {
   /** The name of the website the chunk belongs to. */
   name: string;
@@ -25,24 +26,51 @@ interface Content {
   tags?: string[];
 }
 
-// TODO: implement content service
-export const content = {
-  findVectorMatches: async ({ embedding }: { embedding: number[] }) => {
-    const dummyContent: Content[] = [
-      {
-        _id: new ObjectId(),
-        url: "https://www.mongodb.com/",
-        text: "MongoDB is a general purpose, document-based, distributed database built for modern application developers and for the cloud era.",
-        numTokens: 100,
-        embedding: [0.1, 0.2, 0.3],
-        lastUpdated: new Date(),
-        site: {
-          name: "MongoDB",
-          url: "https://www.mongodb.com/",
+export interface ContentServiceInterface {
+  findVectorMatches({ embedding }: { embedding: number[] }): Promise<Content[]>;
+}
+
+export interface ContentServiceOptions {
+  k: number;
+  path: string;
+  indexName: string;
+  minScore: number;
+}
+
+class ContentService implements ContentServiceInterface {
+  private database: Db;
+  private contentCollection: Collection<Content>;
+  private options: ContentServiceOptions;
+  constructor(db: Db, options: ContentServiceOptions) {
+    this.database = db;
+    this.contentCollection = this.database.collection("content");
+    this.options = options;
+  }
+  async findVectorMatches({ embedding }: { embedding: number[] }) {
+    const matchingContent = await this.contentCollection
+      .aggregate<Content>([
+        {
+          $search: {
+            index: this.options.indexName,
+            knnBeta: {
+              vector: embedding,
+              path: this.options.path,
+              k: this.options.k,
+              // TODO: get it so only returns score >= .9
+            },
+          },
         },
-        tags: ["database", "cloud"],
-      },
-    ];
-    return dummyContent;
-  },
+      ])
+      .toArray();
+    return matchingContent;
+  }
+}
+
+const options: ContentServiceOptions = {
+  k: 10,
+  path: "embedding",
+  indexName: mongodb.vectorSearchIndexName || "default",
+  minScore: 0.9,
 };
+
+export const content = new ContentService(mongodb.db, options);

@@ -11,12 +11,13 @@ export type ChatInputProps = Omit<
   inputGlyph?: IconInputProps["glyph"];
   sendButtonGlyph?: IconInputProps["glyph"];
   showSubmitButton: boolean;
+  disableSubmitButton?: boolean;
   onButtonClick?: (e: MouseEvent) => void;
 };
 
 const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(
   function ChatInput(
-    { inputGlyph, sendButtonGlyph, showSubmitButton, onButtonClick, ...props },
+    { inputGlyph, sendButtonGlyph, showSubmitButton, disableSubmitButton=false, onButtonClick, ...props },
     ref
   ) {
     return (
@@ -38,6 +39,7 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(
             onClick={(e) => {
               onButtonClick?.(e);
             }}
+            disabled={disableSubmitButton}
           >
             Send
           </Button>

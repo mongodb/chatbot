@@ -56,7 +56,6 @@ export function MessageRating(props: MessageRatingProps) {
     <div className={styles.message_rating}>
       <Description>Rate this response:</Description>
       <IconButton
-        size="large"
         aria-label="Thumbs up this message"
         active={props.value === true}
         onClick={() => props.rateMessage(props.messageId, true)}
@@ -64,7 +63,6 @@ export function MessageRating(props: MessageRatingProps) {
         <Icon className={styles.message_rating_icon} glyph="ArrowUp" />
       </IconButton>
       <IconButton
-        size="large"
         aria-label="Thumbs down this message"
         active={props.value === false}
         onClick={() => props.rateMessage(props.messageId, false)}

@@ -1,5 +1,5 @@
 import createMessage from "../createMessage";
-import { Conversation, ConversationState } from "../useConversation";
+import { ConversationState } from "../useConversation";
 
 export type Role = "user" | "assistant" | "system";
 
@@ -33,7 +33,7 @@ export default class ConversationService {
 
   async createConversation(): Promise<Required<ConversationState>> {
     console.log("services/conversations::createConversation");
-    const path = `/conversations`;
+    // const path = `/conversations`;
     // const resp = await fetch(this.getUrl(path), {
     //   method: "POST",
     //   headers: {
@@ -41,10 +41,18 @@ export default class ConversationService {
     //   },
     // });
     // const data = await resp.json();
-    return {
-      conversationId: "42",
-      messages: [],
-    };
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          conversationId: "42",
+          messages: [],
+        });
+      }, 300);
+    });
+    // return {
+    //   conversationId: "42",
+    //   messages: [],
+    // };
   }
 
   async addMessage({
@@ -54,8 +62,8 @@ export default class ConversationService {
     conversationId: string;
     message: string;
   }): Promise<MessageData> {
-    console.log("services/conversations::addMessage", conversationId, message)
-    const path = `/conversations/${conversationId}/messages`;
+    console.log("services/conversations::addMessage", conversationId, message);
+    // const path = `/conversations/${conversationId}/messages`;
     // const resp = await fetch(this.getUrl(path), {
     //   method: "POST",
     //   headers: {
@@ -64,7 +72,11 @@ export default class ConversationService {
     //   body: JSON.stringify({ message }),
     // });
     // const data = await resp.json();
-    return createMessage("user", message);
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(createMessage("user", message));
+      }, 900);
+    });
   }
 
   async rateMessage({
@@ -76,8 +88,13 @@ export default class ConversationService {
     messageId: string;
     rating: boolean;
   }): Promise<void> {
-    console.log("services/conversations::rateMessage", conversationId, messageId, rating);
-    const path = `/conversations/${conversationId}/messages/${messageId}/rating}`;
+    console.log(
+      "services/conversations::rateMessage",
+      conversationId,
+      messageId,
+      rating
+    );
+    // const path = `/conversations/${conversationId}/messages/${messageId}/rating}`;
     // await fetch(this.getUrl(path), {
     //   method: "POST",
     //   headers: {
@@ -85,7 +102,12 @@ export default class ConversationService {
     //   },
     //   body: JSON.stringify({ rating }),
     // });
-    return;
+
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, 300);
+    });
   }
 }
 

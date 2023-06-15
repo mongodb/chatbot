@@ -14,6 +14,7 @@
 }
 
 .message_avatar_user {
+  background: white;
 }
 
 .message_avatar_assistant {
@@ -31,9 +32,20 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  flex-grow: 1;
 }
 
 .message_rating {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: 4px;
+  width: 100%;
 }
+
+.message_rating > p {
+  line-height: 28px;
+}
+
 .message_rating_icon {
 }

@@ -1,7 +1,10 @@
-import { useEffect, useLayoutEffect, useReducer } from "react";
-import { MessageData, Role, conversationService } from "./services/conversations";
+import { useReducer } from "react";
+import {
+  MessageData,
+  Role,
+  conversationService,
+} from "./services/conversations";
 import createMessage from "./createMessage";
-// import { conversationService } from "./services/conversations";
 
 export type ConversationState = {
   conversationId?: string;
@@ -12,14 +15,15 @@ export type ConversationState = {
 };
 
 type ConversationAction =
-  | { type: "setConversationId"; conversationId: string }
+  | { type: "setConversation"; conversation: Required<ConversationState> }
   | { type: "addMessage"; role: Role; text: string }
   | { type: "modifyMessage"; messageId: MessageData["id"]; text: string }
   | { type: "deleteMessage"; messageId: MessageData["id"] }
   | { type: "rateMessage"; messageId: MessageData["id"]; rating: boolean };
 
 type ConversationActor = {
-  setConversationId: (conversationId: string) => void;
+  // setConversationId: (conversationId: string) => void;
+  createConversation: () => void;
   addMessage: (role: Role, text: string) => void;
   modifyMessage: (messageId: string, text: string) => void;
   deleteMessage: (messageId: string) => void;
@@ -41,15 +45,14 @@ function conversationReducer(
     }
     return messageIndex;
   }
-  if (action.type !== "setConversationId" && !state.conversationId) {
+  if (action.type !== "setConversation" && !state.conversationId) {
     console.error("Cannot perform action without conversationId");
     return state;
   }
   switch (action.type) {
-    case "setConversationId": {
+    case "setConversation": {
       return {
-        ...state,
-        conversationId: action.conversationId,
+        ...action.conversation,
       };
     }
     case "addMessage": {
@@ -57,10 +60,6 @@ function conversationReducer(
         console.error(`Cannot addMessage without a conversationId`);
       }
       const newMessage = createMessage(action.role, action.text);
-      // conversationService.addMessage({
-      //   conversationId: state.conversationId,
-      //   message: newMessage,
-      // });
       return {
         ...state,
         messages: [...state.messages, newMessage],
@@ -69,7 +68,7 @@ function conversationReducer(
     case "modifyMessage": {
       if (!state.conversationId) {
         console.error(`Cannot modifyMessage without a conversationId`);
-        return state
+        return state;
       }
       const messageIndex = getMessageIndex(action.messageId);
       if (messageIndex === -1) return state;
@@ -89,7 +88,7 @@ function conversationReducer(
     case "deleteMessage": {
       if (!state.conversationId) {
         console.error(`Cannot deleteMessage without a conversationId`);
-        return state
+        return state;
       }
       const messageIndex = getMessageIndex(action.messageId);
       if (messageIndex === -1) return state;
@@ -104,23 +103,19 @@ function conversationReducer(
     case "rateMessage": {
       if (!state.conversationId) {
         console.error(`Cannot rateMessage without a conversationId`);
-        return state
+        return state;
       }
       const messageIndex = getMessageIndex(action.messageId);
       if (messageIndex === -1) return state;
-      // conversationService.rateMessage({
-      //   conversationId: state.conversationId,
-      //   messageId: action.messageId,
-      //   rating: action.rating,
-      // });
+      const ratedMessage = {
+        ...state.messages[messageIndex],
+        rating: action.rating,
+      };
       return {
         ...state,
         messages: [
           ...state.messages.slice(0, messageIndex),
-          {
-            ...state.messages[messageIndex],
-            rating: action.rating,
-          },
+          ratedMessage,
           ...state.messages.slice(messageIndex + 1),
         ],
       };
@@ -133,7 +128,7 @@ function conversationReducer(
 }
 
 export const defaultConversationState = {
-  conversationId: "123",
+  // conversationId: "123",
   messages: [
     // {
     //   id: "1",
@@ -160,13 +155,35 @@ export const defaultConversationState = {
 } satisfies ConversationState;
 
 export default function useConversation() {
-  const [state, dispatch] = useReducer(
+  const [state, _dispatch] = useReducer(
     conversationReducer,
     defaultConversationState
   );
+  const dispatch = (...args: Parameters<typeof _dispatch>) => {
+    console.log(`dispatch`, ...args);
+    _dispatch(...args);
+  };
 
-  const setConversationId = (conversationId: string) => {
-    dispatch({ type: "setConversationId", conversationId });
+  const setConversation = (conversation: Required<ConversationState>) => {
+    console.log(`setConversation`, conversation);
+    dispatch({ type: "setConversation", conversation });
+  };
+
+  const createConversation = async () => {
+    try {
+      if (state.conversationId) {
+        console.error(
+          `Cannot createConversation when conversationId already exists`
+        );
+        return state;
+      }
+      console.log(`Creating conversation`);
+      const conversation = await conversationService.createConversation();
+      console.log(`Created conversation`, conversation);
+      setConversation(conversation);
+    } catch (error) {
+      console.error(`Failed to create conversation: ${error}`);
+    }
   };
 
   const addMessage = async (role: Role, text: string) => {
@@ -186,10 +203,18 @@ export default function useConversation() {
   };
 
   const modifyMessage = async (messageId: string, text: string) => {
+    if (!state.conversationId) {
+      console.error(`Cannot modifyMessage without a conversationId`);
+      return;
+    }
     dispatch({ type: "modifyMessage", messageId, text });
   };
 
   const deleteMessage = async (messageId: string) => {
+    if (!state.conversationId) {
+      console.error(`Cannot deleteMessage without a conversationId`);
+      return;
+    }
     dispatch({ type: "deleteMessage", messageId });
   };
 
@@ -206,18 +231,9 @@ export default function useConversation() {
     dispatch({ type: "rateMessage", messageId, rating });
   };
 
-  useEffect(() => {
-    async function createConversationOnLoad() {
-      const { conversationId } = await conversationService.createConversation();
-      if(!conversationId) throw new Error(`Failed to create conversation`);
-      setConversationId(conversationId);
-    }
-    createConversationOnLoad();
-  }, []);
-
   return {
     ...state,
-    setConversationId,
+    createConversation,
     addMessage,
     modifyMessage,
     deleteMessage,

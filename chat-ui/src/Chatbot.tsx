@@ -1,5 +1,5 @@
 import styles from "./Chatbot.module.css";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Badge from "@leafygreen-ui/badge";
 import Banner from "@leafygreen-ui/banner";
 import Card from "@leafygreen-ui/card";
@@ -11,7 +11,7 @@ import { useClickAway } from "@uidotdev/usehooks";
 import ChatInput from "./ChatInput";
 import SuggestedPrompts from "./SuggestedPrompts";
 import { H3, Overline } from "@leafygreen-ui/typography";
-import Chat, { MessageList } from "./Chat";
+import MessageList from "./MessageList";
 import { conversationService } from "./services/conversations";
 
 function Disclosure() {
@@ -34,6 +34,8 @@ type CTACardProps = {
   setActive: React.Dispatch<React.SetStateAction<boolean>>;
   setInputText: React.Dispatch<React.SetStateAction<string>>;
   handleSubmit: (text: string) => Promise<void>;
+  addingMessage: boolean;
+  awaitingReply: boolean;
 };
 
 function CTACard({
@@ -44,16 +46,21 @@ function CTACard({
   setActive,
   setInputText,
   handleSubmit,
+  addingMessage,
+  awaitingReply,
 }: CTACardProps) {
+  const isActiveLoading = active && !conversation.conversationId;
   const isEmptyConversation = conversation.messages.length === 0;
   const showSuggestedPrompts = inputText.length === 0;
   const showExperimentalBanner = inputText.length > 0;
+
+  const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     // TODO: Make this work with <Card>. For some reason, <Card>
     // does not accept a ref prop even though it wraps <Box>, which
     // takes the ref just fine.
-    <Card ref={cardRef} className={styles.card + " card"}>
+    <Box ref={cardRef} className={styles.card + " card"}>
       {active && !isEmptyConversation ? (
         <>
           <div className={styles.card_content_title}>
@@ -72,6 +79,7 @@ function CTACard({
       ) : null}
 
       <ChatInput
+        ref={inputRef}
         key="wizard-input"
         showSubmitButton={inputText.length > 0}
         placeholder="Ask MongoDB AI a Question"
@@ -87,6 +95,7 @@ function CTACard({
         onChange={(e) => {
           setInputText(e.target.value);
         }}
+        disableSubmitButton={addingMessage}
       />
 
       {!active ? (
@@ -111,29 +120,41 @@ function CTACard({
           </div>
         </div>
       ) : null}
-    </Card>
+    </Box>
   );
 }
 
 export default function Chatbot() {
   const conversation = useConversation();
   const [active, setActive] = useState(false);
+  const [addingMessage, setAddingMessage] = useState(false);
+  const [awaitingReply, setAwaitingReply] = useState(false);
+  const [loading, setLoading] = useState(false);
+  // When the Chatbot first becomes active, create a new conversation
+  useEffect(() => {
+    if (active && !conversation.conversationId) {
+      conversation.createConversation();
+    }
+  }, [active, conversation]);
+
   const [inputText, setInputText] = useState("");
   const handleSubmit = async (text: string) => {
     if (!conversation.conversationId) {
       console.error(`Cannot addMessage without a conversationId`);
       return;
     }
+    setAddingMessage(true);
     try {
-      await conversationService.addMessage({
-        conversationId: conversation.conversationId,
-        message: text,
-      });
-      conversation.addMessage("user", text);
+      await conversation.addMessage("user", text);
       setInputText("");
     } catch (e) {
       console.error(e);
     }
+    setAddingMessage(false);
+    setAwaitingReply(true);
+    setTimeout(() => {
+      setAwaitingReply(false);
+    }, 4000);
   };
   const cardBoundingBoxRef = useClickAway(() => {
     setActive(false);
@@ -142,6 +163,8 @@ export default function Chatbot() {
 
   return (
     <div className={styles.cta_container} ref={cardBoundingBoxRef}>
+      {addingMessage ? "adding message" : null}
+      {awaitingReply ? "awaiting reply" : null}
       <form
         className={styles.input_form}
         onSubmit={(e) => {
@@ -168,6 +191,8 @@ export default function Chatbot() {
             inputText={inputText}
             setInputText={setInputText}
             handleSubmit={handleSubmit}
+            addingMessage={addingMessage}
+            awaitingReply={awaitingReply}
           />
         </CSSTransition>
       </form>

@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { setupApp } from "./app";
-import { database } from "./services/database";
 import { logger } from "./services/logger";
+import { mongodb } from "./integrations/mongodb";
 
 const PORT = process.env.PORT || 3000;
 
@@ -14,7 +14,7 @@ const startServer = async () => {
 
   process.on("SIGINT", async () => {
     logger.info("SIGINT signal received");
-    await database.closeDBConnection();
+    await mongodb.close();
     server.close();
   });
 };

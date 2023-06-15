@@ -1,3 +1,21 @@
+.cta_disclosure {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+}
+
+.basic_banner {
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  background: #e1f7ff;
+}
+
+.lg_banner {
+  width: calc(100% - 32px); /* 32px is the padding on the <Banner> component */
+}
+
 .cta_container {
   /* display: flex;
   flex-direction: column;
@@ -16,14 +34,22 @@
   gap: 0.5rem;
 }
 
-.cta_disclosure {
+.chat {
   display: flex;
-  flex-direction: row;
-  gap: 8px;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.modal_content {
+.card_content {
   width: 100%;
+}
+
+.card_content_title {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: -1rem; /* We don't want the flex gap after the title, so this cancels it out */
 }
 
 .card {
@@ -40,12 +66,12 @@
   position: relative;
 }
 
-.cta-card-enter {
+.card-enter {
   /* opacity: 0; */
   padding: 24px;
 }
 
-.cta-card-enter-active {
+.card-enter-active {
   opacity: 1;
   transition: all 250ms ease;
   /* position: absolute; */
@@ -60,9 +86,10 @@
   padding: 24px;
 }
 
-.cta-card-exit {}
+.card-exit {
+}
 
-.cta-card-exit-active {
+.card-exit-active {
   /* Undo @leafygreen-ui/card styles for unfocused state */
   padding: 0;
   margin: 0;

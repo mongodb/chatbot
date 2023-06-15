@@ -3,18 +3,10 @@ import Icon from "@leafygreen-ui/icon";
 import IconButton from "@leafygreen-ui/icon-button";
 import { Description } from "@leafygreen-ui/typography";
 import styles from "./Message.module.css";
-import { ConversationPayload } from "./useConversation";
+import { Conversation } from "./useConversation";
 import LGMarkdown from "./LGMarkdown";
 import { LeafSVG } from "./MongoDBLogo";
-
-export type Role = "user" | "assistant" | "system";
-
-export type MessageData = {
-  id: string;
-  role: Role;
-  content: string;
-  rating?: boolean;
-};
+import { MessageData, Role } from "./services/conversations";
 
 export function Avatar({ role }: { role: Role }) {
   switch (role) {
@@ -55,7 +47,7 @@ export function Avatar({ role }: { role: Role }) {
 
 type MessageRatingProps = {
   messageId: string;
-  rateMessage: ConversationPayload["rateMessage"];
+  rateMessage: Conversation["rateMessage"];
   value?: boolean;
 };
 
@@ -85,7 +77,7 @@ export function MessageRating(props: MessageRatingProps) {
 
 type MessageProps = {
   message: MessageData;
-  rateMessage: ConversationPayload["rateMessage"];
+  rateMessage: Conversation["rateMessage"];
 };
 
 export function Message(props: MessageProps) {

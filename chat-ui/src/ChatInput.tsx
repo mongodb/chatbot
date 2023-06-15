@@ -1,8 +1,8 @@
 import styles from "./ChatInput.module.css";
 import { forwardRef } from "react";
 import Icon from "@leafygreen-ui/icon";
-import IconInput, { IconInputProps } from "./IconInput";
 import Button from "@leafygreen-ui/button";
+import IconInput, { IconInputProps } from "./IconInput";
 
 export type ChatInputProps = Omit<
   IconInputProps,
@@ -19,7 +19,7 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(
     ref
   ) {
     return (
-      <div className={styles.wizard_input_container}>
+      <div className={styles.chat_input_container}>
         <IconInput
           ref={ref}
           glyph={inputGlyph ?? "Wizard"}

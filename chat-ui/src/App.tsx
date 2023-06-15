@@ -1,5 +1,5 @@
 import LeafyGreenProvider from "@leafygreen-ui/leafygreen-provider";
-import CallToActionInput from "./CallToActionInput";
+import Chatbot from "./Chatbot";
 
 function App() {
   return (
@@ -16,7 +16,7 @@ function App() {
           width: "650px",
         }}
       >
-        <CallToActionInput showModal={true} />
+        <Chatbot />
       </div>
     </div>
   );

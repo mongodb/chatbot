@@ -26,6 +26,7 @@ export default function SuggestedPrompts(props: SuggestedPromptsProps) {
       {suggestedPrompts.map((prompt) => (
         <Body
           key={prompt.key}
+          className={styles.prompt}
           onClick={() => {
             props.onPromptSelected(prompt.text);
           }}

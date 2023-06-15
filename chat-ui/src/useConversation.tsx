@@ -1,8 +1,10 @@
 import { useReducer } from "react";
-import { MessageData, Role } from "./Message";
+import { MessageData, Role } from "./services/conversations";
 import createMessage from "./createMessage";
+// import { conversationService } from "./services/conversations";
 
 type ConversationState = {
+  conversationId?: string;
   messages: MessageData[];
   // user_ip: string;
   // time_created: Date;
@@ -10,24 +12,27 @@ type ConversationState = {
 };
 
 type ConversationAction =
+  | { type: "setConversationId"; conversationId: string }
   | { type: "addMessage"; role: Role; text: string }
   | { type: "modifyMessage"; messageId: MessageData["id"]; text: string }
   | { type: "deleteMessage"; messageId: MessageData["id"] }
   | { type: "rateMessage"; messageId: MessageData["id"]; rating: boolean };
 
 type ConversationActor = {
+  setConversationId: (conversationId: string) => void;
   addMessage: (role: Role, text: string) => void;
   modifyMessage: (messageId: string, text: string) => void;
   deleteMessage: (messageId: string) => void;
   rateMessage: (messageId: string, rating: boolean) => void;
 };
 
-export type ConversationPayload = ConversationState & ConversationActor;
+export type Conversation = ConversationState & ConversationActor;
 
 function conversationReducer(
   state: ConversationState,
   action: ConversationAction
 ) {
+  console.log("state", state);
   function getMessageIndex(messageId: MessageData["id"]) {
     const messageIndex = state.messages.findIndex(
       (message) => message.id === messageId
@@ -38,10 +43,27 @@ function conversationReducer(
     return messageIndex;
   }
   switch (action.type) {
-    case "addMessage": {
+    case "setConversationId": {
       return {
         ...state,
-        messages: [...state.messages, createMessage(action.role, action.text)],
+        conversationId: action.conversationId,
+      };
+    }
+    case "addMessage": {
+      if (!state.conversationId) {
+        console.error(
+          `Cannot add a message to a conversation that doesn't exist`
+        );
+        return state;
+      }
+      const newMessage = createMessage(action.role, action.text);
+      // conversationService.addMessage({
+      //   conversationId: state.conversationId,
+      //   message: newMessage,
+      // });
+      return {
+        ...state,
+        messages: [...state.messages, newMessage],
       };
     }
     case "modifyMessage": {
@@ -90,6 +112,7 @@ function conversationReducer(
 }
 
 export const defaultConversationState = {
+  conversationId: "123",
   messages: [
     // {
     //   id: "1",
@@ -121,6 +144,10 @@ export default function useConversation() {
     defaultConversationState
   );
 
+  const setConversationId = (conversationId: string) => {
+    dispatch({ type: "setConversationId", conversationId });
+  };
+
   const addMessage = (role: Role, text: string) => {
     dispatch({ type: "addMessage", role, text });
   };
@@ -139,9 +166,10 @@ export default function useConversation() {
 
   return {
     ...state,
+    setConversationId,
     addMessage,
     modifyMessage,
     deleteMessage,
     rateMessage,
-  } satisfies ConversationPayload;
+  } satisfies Conversation;
 }

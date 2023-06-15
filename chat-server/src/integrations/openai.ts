@@ -1,16 +1,16 @@
 // TODO: Consider refactoring to use new Azure OpenAi client SDK - https://www.npmjs.com/package/@azure/openai
 import axios from "axios";
 import { CreateEmbeddingResponse as OpenAiEmbeddingResponse } from "openai";
-interface CreateEmbeddingParams {
+export interface CreateEmbeddingParams {
   input: string;
   user: string;
 }
-interface CreateEmbeddingResponse {
+export interface CreateEmbeddingResponse {
   data: OpenAiEmbeddingResponse;
   status: number;
 }
 
-interface OpenAiEmbeddingsClientInterface {
+export interface OpenAiEmbeddingsClientInterface {
   create: (params: CreateEmbeddingParams) => Promise<CreateEmbeddingResponse>;
 }
 export class OpenAiEmbeddingsClient implements OpenAiEmbeddingsClientInterface {

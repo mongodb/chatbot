@@ -2,18 +2,18 @@ import { OpenAiEmbeddingsClient } from "../integrations/openai";
 import { logger } from "./logger";
 import { stripIndent } from "common-tags";
 
-interface EmbeddingParams {
+export interface EmbeddingParams {
   text: string;
   userIp: string;
 }
 
-interface EmbeddingResponse {
+export interface EmbeddingResponse {
   status: number;
   errorData?: any;
   embeddings?: number[];
 }
 
-class EmbeddingService {
+export class EmbeddingService {
   private embeddingProvider: EmbeddingProvider;
   constructor(embeddingProvider: EmbeddingProvider) {
     this.embeddingProvider = embeddingProvider;
@@ -26,7 +26,7 @@ class EmbeddingService {
 
 // Abstract interface for embedding provider to make it easier to swap out
 // different providers in the future.
-interface EmbeddingProvider {
+export interface EmbeddingProvider {
   createEmbedding({
     text,
     userIp,

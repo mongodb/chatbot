@@ -1,3 +1,5 @@
+//when i add the import, typescript can't find the types
+// import { ObjectId } from "mongodb";
 interface Site {
   /** The name of the website the chunk belongs to. */
   name: string;
@@ -17,24 +19,23 @@ interface Content {
   /** The vector embedding of the chunk. */
   embedding: number[];
   /** The date the chunk was last updated. */
-  last_updated: Date;
+  lastUpdated: Date;
   /** Website the chunk belongs to. */
   site: Site;
   /** The tags associated with the chunk. */
   tags?: string[];
 }
-
 interface Message {
   /** Unique identifier for the message. */
   id: ObjectId;
   /** The role of the message in the context of the conversation. */
-  role: "system" | "assistant" | "user";
+  role: string;
   /** Markdown-formatted response to user's chat message in the context of the conversation. */
   content: string;
   /** Set to `true` if the user liked the response, `false` if the user didn't like the response. No value if user didn't rate the response. Note that only messages with `role: "assistant"` can be rated. */
   rating?: boolean;
   /** The date the message was created. */
-  time_created: Date;
+  timeCreated: Date;
 }
 
 interface Conversation {

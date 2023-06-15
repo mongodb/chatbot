@@ -40,37 +40,41 @@
   position: relative;
 }
 
-.card.s-unfocused {
+.cta-card-enter {
+  /* opacity: 0; */
+  padding: 24px;
+}
+
+.cta-card-enter-active {
+  opacity: 1;
+  transition: all 250ms ease;
+  /* position: absolute; */
+  /* left: 16px; */
+  /* top: 16px; */
+  /* width: 200%; */
+  border-top-left-radius: 6px;
+  /* background: red; */
+
+  /* This simulates padding in <Box /> to make it more like <Card /> */
+  /* When/if you can fix the <Card /> ref issue you can delete this.*/
+  padding: 24px;
+}
+
+.cta-card-exit {}
+
+.cta-card-exit-active {
   /* Undo @leafygreen-ui/card styles for unfocused state */
   padding: 0;
   margin: 0;
   box-shadow: none;
   border: none;
   min-height: 0;
-  width: calc(100% - 32px);
+  width: 100%;
 }
 
-.card.s-focused {
-  position: absolute;
-  left: 16px;
-  top: 16px;
-  /* width: 200%; */
-  border-top-left-radius: 6px;
-}
-
-.card.s-entering {
-}
-
-.card.s-exiting {
-}
-
-.card.s-entered {
+/* .card.s-entered {
   width: 200%;
-}
-
-.card.redbg {
-  background: red;
-}
+} */
 
 .input {
   transition: all 0.5s ease;

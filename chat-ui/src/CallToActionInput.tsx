@@ -2,12 +2,13 @@ import styles from "./CallToActionInput.module.css";
 import { useState, useRef } from "react";
 import Badge from "@leafygreen-ui/badge";
 import Card from "@leafygreen-ui/card";
+import Box from "@leafygreen-ui/box";
 import { Body, Link } from "@leafygreen-ui/typography";
 import { EmptyConversation, ConversationWithMessages } from "./Modal";
 import useConversation, { ConversationPayload } from "./useConversation";
 import {
-  Transition,
-  // CSSTransition
+  // Transition,
+  CSSTransition,
 } from "react-transition-group";
 import { useClickAway } from "@uidotdev/usehooks";
 import WizardInput from "./ChatInput";
@@ -19,7 +20,7 @@ const transitionClassName = {
   exited: "",
 };
 
-type ReactTransitionGroupState = "entering" | "entered" | "exiting" | "exited";
+// type ReactTransitionGroupState = "entering" | "entered" | "exiting" | "exited";
 
 type CTACardProps = {
   active: boolean;
@@ -28,7 +29,7 @@ type CTACardProps = {
   inputText: string;
   setActive: React.Dispatch<React.SetStateAction<boolean>>;
   setInputText: React.Dispatch<React.SetStateAction<string>>;
-  state: ReactTransitionGroupState;
+  // state: ReactTransitionGroupState;
 };
 
 function CTACard({
@@ -38,17 +39,16 @@ function CTACard({
   inputText,
   setActive,
   setInputText,
-  state,
-}: CTACardProps) {
+}: // state,
+CTACardProps) {
   const isEmptyConversation = conversation.messages.length === 0;
   const showMainInput = !active || isEmptyConversation;
 
-  let cardClassName = `${styles.card} ${transitionClassName[state]}`;
-  if (state === "exited") {
-    cardClassName += ` ${styles["s-unfocused"]}`;
-  }
   return (
-    <Card ref={cardRef} className={cardClassName}>
+    // TODO: Make this work with <Card>. For some reason, <Card>
+    // does not accept a ref prop even though it wraps <Box>, which
+    // takes the ref just fine.
+    <Box ref={cardRef} className={styles.card + " card"}>
       {showMainInput ? (
         <WizardInput
           showSubmitButton={inputText.length > 0}
@@ -89,25 +89,23 @@ function CTACard({
           )}
         </div>
       )}
-    </Card>
+    </Box>
   );
 }
 
 export default function CallToActionInput() {
   const conversation = useConversation();
-  const [modalOpen, setModalOpen] = useState(false);
-
-  const cardBoundingBoxRef = useClickAway(() => {
-    setModalOpen(false);
-  });
-
-  const cardRef = useRef<HTMLDivElement>(null);
-
+  const [active, setActive] = useState(false);
   const [inputText, setInputText] = useState("");
   const handleSubmit = () => {
     conversation.addMessage("user", inputText);
     setInputText("");
   };
+
+  const cardBoundingBoxRef = useClickAway(() => {
+    setActive(false);
+  });
+  const cardRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className={styles.cta_container} ref={cardBoundingBoxRef}>
@@ -118,27 +116,26 @@ export default function CallToActionInput() {
           handleSubmit();
         }}
       >
-        <Transition
+        <CSSTransition
           nodeRef={cardRef}
-          in={modalOpen}
-          timeout={{
-            appear: 250,
-            enter: 250,
-            exit: 250,
+          in={active}
+          timeout={250}
+          classNames={{
+            enterActive: styles["cta-card-enter"],
+            enterDone: styles["cta-card-enter-active"],
+            exitActive: styles["cta-card-exit"],
+            exitDone: styles["cta-card-exit-active"],
           }}
         >
-          {(state: "entering" | "entered" | "exiting" | "exited") => (
-            <CTACard
-              cardRef={cardRef}
-              conversation={conversation}
-              state={state}
-              active={modalOpen}
-              setActive={setModalOpen}
-              inputText={inputText}
-              setInputText={setInputText}
-            />
-          )}
-        </Transition>
+          <CTACard
+            cardRef={cardRef}
+            conversation={conversation}
+            active={active}
+            setActive={setActive}
+            inputText={inputText}
+            setInputText={setInputText}
+          />
+        </CSSTransition>
       </form>
     </div>
   );

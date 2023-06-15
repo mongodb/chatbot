@@ -1,9 +1,13 @@
+import createMessage from "../createMessage";
+import { Conversation, ConversationState } from "../useConversation";
+
 export type Role = "user" | "assistant" | "system";
 
 export type MessageData = {
   id: string;
   role: Role;
   content: string;
+  createdAt: string;
   rating?: boolean;
 };
 
@@ -27,16 +31,20 @@ export default class ConversationService {
     return this.serverUrl + path;
   }
 
-  async createConversation() {
+  async createConversation(): Promise<Required<ConversationState>> {
+    console.log("services/conversations::createConversation");
     const path = `/conversations`;
-    const resp = await fetch(this.getUrl(path), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const data = await resp.json();
-    return data;
+    // const resp = await fetch(this.getUrl(path), {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    // });
+    // const data = await resp.json();
+    return {
+      conversationId: "42",
+      messages: [],
+    };
   }
 
   async addMessage({
@@ -44,18 +52,19 @@ export default class ConversationService {
     message,
   }: {
     conversationId: string;
-    message: MessageData;
-  }) {
+    message: string;
+  }): Promise<MessageData> {
+    console.log("services/conversations::addMessage", conversationId, message)
     const path = `/conversations/${conversationId}/messages`;
-    const resp = await fetch(this.getUrl(path), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ message }),
-    });
-    const data = await resp.json();
-    return data;
+    // const resp = await fetch(this.getUrl(path), {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify({ message }),
+    // });
+    // const data = await resp.json();
+    return createMessage("user", message);
   }
 
   async rateMessage({
@@ -66,17 +75,17 @@ export default class ConversationService {
     conversationId: string;
     messageId: string;
     rating: boolean;
-  }) {
+  }): Promise<void> {
+    console.log("services/conversations::rateMessage", conversationId, messageId, rating);
     const path = `/conversations/${conversationId}/messages/${messageId}/rating}`;
-    const resp = await fetch(this.getUrl(path), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ rating }),
-    });
-    const data = await resp.json();
-    return data;
+    // await fetch(this.getUrl(path), {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify({ rating }),
+    // });
+    return;
   }
 }
 

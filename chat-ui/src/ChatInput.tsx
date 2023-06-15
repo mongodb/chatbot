@@ -11,11 +11,12 @@ export type ChatInputProps = Omit<
   inputGlyph?: IconInputProps["glyph"];
   sendButtonGlyph?: IconInputProps["glyph"];
   showSubmitButton: boolean;
+  onButtonClick?: (e: MouseEvent) => void;
 };
 
 const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(
   function ChatInput(
-    { inputGlyph, sendButtonGlyph, showSubmitButton, ...props },
+    { inputGlyph, sendButtonGlyph, showSubmitButton, onButtonClick, ...props },
     ref
   ) {
     return (
@@ -34,6 +35,9 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(
             className={styles.input_form_submit}
             type="submit"
             rightGlyph={sendButtonGlyph && <Icon glyph={sendButtonGlyph} />}
+            onClick={(e) => {
+              onButtonClick?.(e);
+            }}
           >
             Send
           </Button>

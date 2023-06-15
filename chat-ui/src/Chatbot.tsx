@@ -8,10 +8,11 @@ import { Body, Link } from "@leafygreen-ui/typography";
 import useConversation, { Conversation } from "./useConversation";
 import { CSSTransition } from "react-transition-group";
 import { useClickAway } from "@uidotdev/usehooks";
-import WizardInput from "./ChatInput";
+import ChatInput from "./ChatInput";
 import SuggestedPrompts from "./SuggestedPrompts";
 import { H3, Overline } from "@leafygreen-ui/typography";
 import Chat, { MessageList } from "./Chat";
+import { conversationService } from "./services/conversations";
 
 function Disclosure() {
   return (
@@ -32,6 +33,7 @@ type CTACardProps = {
   inputText: string;
   setActive: React.Dispatch<React.SetStateAction<boolean>>;
   setInputText: React.Dispatch<React.SetStateAction<string>>;
+  handleSubmit: (text: string) => Promise<void>;
 };
 
 function CTACard({
@@ -41,6 +43,7 @@ function CTACard({
   inputText,
   setActive,
   setInputText,
+  handleSubmit,
 }: CTACardProps) {
   const isEmptyConversation = conversation.messages.length === 0;
   const showSuggestedPrompts = inputText.length === 0;
@@ -68,7 +71,7 @@ function CTACard({
         </>
       ) : null}
 
-      <WizardInput
+      <ChatInput
         key="wizard-input"
         showSubmitButton={inputText.length > 0}
         placeholder="Ask MongoDB AI a Question"
@@ -76,6 +79,9 @@ function CTACard({
           if (!active) {
             setActive(true);
           }
+        }}
+        onButtonClick={() => {
+          setActive(true);
         }}
         value={inputText}
         onChange={(e) => {
@@ -90,9 +96,9 @@ function CTACard({
           <div className={styles.chat}>
             {showSuggestedPrompts ? (
               <SuggestedPrompts
-                onPromptSelected={(text) =>
-                  conversation.addMessage("user", text)
-                }
+                onPromptSelected={async (text) => {
+                  await handleSubmit(text);
+                }}
               />
             ) : null}
 
@@ -113,11 +119,22 @@ export default function Chatbot() {
   const conversation = useConversation();
   const [active, setActive] = useState(false);
   const [inputText, setInputText] = useState("");
-  const handleSubmit = () => {
-    conversation.addMessage("user", inputText);
-    setInputText("");
+  const handleSubmit = async (text: string) => {
+    if (!conversation.conversationId) {
+      console.error(`Cannot addMessage without a conversationId`);
+      return;
+    }
+    try {
+      await conversationService.addMessage({
+        conversationId: conversation.conversationId,
+        message: text,
+      });
+      conversation.addMessage("user", text);
+      setInputText("");
+    } catch (e) {
+      console.error(e);
+    }
   };
-
   const cardBoundingBoxRef = useClickAway(() => {
     setActive(false);
   });
@@ -129,7 +146,7 @@ export default function Chatbot() {
         className={styles.input_form}
         onSubmit={(e) => {
           e.preventDefault();
-          handleSubmit();
+          handleSubmit(inputText);
         }}
       >
         <CSSTransition
@@ -150,6 +167,7 @@ export default function Chatbot() {
             setActive={setActive}
             inputText={inputText}
             setInputText={setInputText}
+            handleSubmit={handleSubmit}
           />
         </CSSTransition>
       </form>

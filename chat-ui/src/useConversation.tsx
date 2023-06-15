@@ -1,9 +1,9 @@
-import { useReducer } from "react";
-import { MessageData, Role } from "./services/conversations";
+import { useEffect, useLayoutEffect, useReducer } from "react";
+import { MessageData, Role, conversationService } from "./services/conversations";
 import createMessage from "./createMessage";
 // import { conversationService } from "./services/conversations";
 
-type ConversationState = {
+export type ConversationState = {
   conversationId?: string;
   messages: MessageData[];
   // user_ip: string;
@@ -32,7 +32,6 @@ function conversationReducer(
   state: ConversationState,
   action: ConversationAction
 ) {
-  console.log("state", state);
   function getMessageIndex(messageId: MessageData["id"]) {
     const messageIndex = state.messages.findIndex(
       (message) => message.id === messageId
@@ -41,6 +40,10 @@ function conversationReducer(
       console.error(`Message(${messageId}) not found in state`);
     }
     return messageIndex;
+  }
+  if (action.type !== "setConversationId" && !state.conversationId) {
+    console.error("Cannot perform action without conversationId");
+    return state;
   }
   switch (action.type) {
     case "setConversationId": {
@@ -51,10 +54,7 @@ function conversationReducer(
     }
     case "addMessage": {
       if (!state.conversationId) {
-        console.error(
-          `Cannot add a message to a conversation that doesn't exist`
-        );
-        return state;
+        console.error(`Cannot addMessage without a conversationId`);
       }
       const newMessage = createMessage(action.role, action.text);
       // conversationService.addMessage({
@@ -67,18 +67,30 @@ function conversationReducer(
       };
     }
     case "modifyMessage": {
+      if (!state.conversationId) {
+        console.error(`Cannot modifyMessage without a conversationId`);
+        return state
+      }
       const messageIndex = getMessageIndex(action.messageId);
       if (messageIndex === -1) return state;
+      const modifiedMessage = {
+        ...state.messages[messageIndex],
+        text: action.text,
+      };
       return {
         ...state,
         messages: [
           ...state.messages.slice(0, messageIndex),
-          { ...state.messages[messageIndex], text: action.text },
+          modifiedMessage,
           ...state.messages.slice(messageIndex + 1),
         ],
       };
     }
     case "deleteMessage": {
+      if (!state.conversationId) {
+        console.error(`Cannot deleteMessage without a conversationId`);
+        return state
+      }
       const messageIndex = getMessageIndex(action.messageId);
       if (messageIndex === -1) return state;
       return {
@@ -90,8 +102,17 @@ function conversationReducer(
       };
     }
     case "rateMessage": {
+      if (!state.conversationId) {
+        console.error(`Cannot rateMessage without a conversationId`);
+        return state
+      }
       const messageIndex = getMessageIndex(action.messageId);
       if (messageIndex === -1) return state;
+      // conversationService.rateMessage({
+      //   conversationId: state.conversationId,
+      //   messageId: action.messageId,
+      //   rating: action.rating,
+      // });
       return {
         ...state,
         messages: [
@@ -148,21 +169,51 @@ export default function useConversation() {
     dispatch({ type: "setConversationId", conversationId });
   };
 
-  const addMessage = (role: Role, text: string) => {
-    dispatch({ type: "addMessage", role, text });
+  const addMessage = async (role: Role, text: string) => {
+    if (!state.conversationId) {
+      console.error(`Cannot addMessage without a conversationId`);
+      return;
+    }
+    try {
+      await conversationService.addMessage({
+        conversationId: state.conversationId,
+        message: text,
+      });
+      dispatch({ type: "addMessage", role, text });
+    } catch (error) {
+      console.error(`Failed to add message: ${error}`);
+    }
   };
 
-  const modifyMessage = (messageId: string, text: string) => {
+  const modifyMessage = async (messageId: string, text: string) => {
     dispatch({ type: "modifyMessage", messageId, text });
   };
 
-  const deleteMessage = (messageId: string) => {
+  const deleteMessage = async (messageId: string) => {
     dispatch({ type: "deleteMessage", messageId });
   };
 
-  const rateMessage = (messageId: string, rating: boolean) => {
+  const rateMessage = async (messageId: string, rating: boolean) => {
+    if (!state.conversationId) {
+      console.error(`Cannot rateMessage without a conversationId`);
+      return;
+    }
+    await conversationService.rateMessage({
+      conversationId: state.conversationId,
+      messageId,
+      rating,
+    });
     dispatch({ type: "rateMessage", messageId, rating });
   };
+
+  useEffect(() => {
+    async function createConversationOnLoad() {
+      const { conversationId } = await conversationService.createConversation();
+      if(!conversationId) throw new Error(`Failed to create conversation`);
+      setConversationId(conversationId);
+    }
+    createConversationOnLoad();
+  }, []);
 
   return {
     ...state,

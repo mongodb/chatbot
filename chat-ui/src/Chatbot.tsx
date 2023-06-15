@@ -58,7 +58,7 @@ function CTACard({
     // TODO: Make this work with <Card>. For some reason, <Card>
     // does not accept a ref prop even though it wraps <Box>, which
     // takes the ref just fine.
-    <Card ref={cardRef} className={styles.card + " card"}>
+    <Box ref={cardRef} className={styles.card + " card"}>
       {active && !isEmptyConversation ? (
         <>
           <div className={styles.card_content_title}>
@@ -74,7 +74,7 @@ function CTACard({
               />
             ))}
             {(awaitingReply) && (
-              <MessageListItem>
+              <MessageListItem key="awaiting-response-loader">
                 <PageLoader className={styles.awaiting_response_loader} />
               </MessageListItem>
             )}
@@ -132,7 +132,7 @@ function CTACard({
           </div>
         </div>
       ) : null}
-    </Card>
+    </Box>
   );
 }
 

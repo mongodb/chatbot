@@ -5,8 +5,10 @@ import { Description } from "@leafygreen-ui/typography";
 import styles from "./Message.module.css";
 import { Conversation } from "./useConversation";
 import LGMarkdown from "./LGMarkdown";
-import { LeafSVG } from "./MongoDBLogo";
 import { MessageData, Role } from "./services/conversations";
+import { GeneralContentUserIcon, MongoDBLogoIcon } from "./CustomIcon";
+
+
 
 export function Avatar({ role }: { role: Role }) {
   switch (role) {
@@ -15,11 +17,9 @@ export function Avatar({ role }: { role: Role }) {
         <div
           className={`${styles.message_avatar} ${styles.message_avatar_user}`}
         >
-          <Icon
-            className={styles.message_avatar_icon}
-            glyph="Person"
-            color="#000000"
-          />
+          <div className={styles.message_avatar_icon_container}>
+            <GeneralContentUserIcon className={styles.message_avatar_icon} />
+          </div>
         </div>
       );
     case "assistant":
@@ -27,7 +27,9 @@ export function Avatar({ role }: { role: Role }) {
         <div
           className={`${styles.message_avatar} ${styles.message_avatar_assistant}`}
         >
-          <LeafSVG />
+          <div className={styles.message_avatar_icon_container}>
+            <MongoDBLogoIcon className={styles.message_avatar_icon} />
+          </div>
         </div>
       );
     case "system":

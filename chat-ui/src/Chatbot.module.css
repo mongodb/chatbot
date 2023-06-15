@@ -82,12 +82,15 @@
   border-top-left-radius: 6px;
   /* background: red; */
 
+  width: 120%;
+
   /* This simulates padding in <Box /> to make it more like <Card /> */
   /* When/if you can fix the <Card /> ref issue you can delete this.*/
   padding: 24px;
 }
 
 .card-exit {
+  padding: 0;
 }
 
 .card-exit-active {

@@ -6,8 +6,8 @@
 .message_avatar {
   width: 40px;
   height: 40px;
-  /* background: black; */
-  border: 1px solid black;
+  margin-bottom: 6px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
   border-radius: 50%;
   flex: none;
   position: relative;
@@ -21,6 +21,9 @@
   background: black;
 }
 
+.message_avatar_icon_container {
+  padding-top: 6px;
+}
 .message_avatar_icon {
   position: absolute;
   left: 12px;

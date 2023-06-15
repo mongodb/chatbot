@@ -45,7 +45,20 @@ export default class ConversationService {
       setTimeout(() => {
         resolve({
           conversationId: "42",
-          messages: [],
+          messages: [
+            // {
+            //   id: "1",
+            //   content: "What is the best flavor of ice cream dog?",
+            //   role: "user",
+            //   createdAt: "1"
+            // },
+            // {
+            //   id: "2",
+            //   content: `As an AI, I don't have personal preferences, but I can tell you that the "best" flavor of ice cream is subjective and varies depending on individual tastes. Some popular flavors include vanilla, chocolate, strawberry, mint chocolate chip, cookies and cream, and many more. Ultimately, the best flavor of ice cream is the one that you enjoy the most!`,
+            //   role: "assistant",
+            //   createdAt: "2"
+            // },
+          ],
         });
       }, 300);
     });

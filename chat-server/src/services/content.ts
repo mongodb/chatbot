@@ -1,13 +1,14 @@
 import { Collection, Db, ObjectId } from "mongodb";
 import { mongodb } from "../integrations/mongodb";
-interface Site {
+
+export interface Site {
   /** The name of the website the chunk belongs to. */
   name: string;
   /** The base URL of the website the chunk belongs to. */
   url: string;
 }
 
-interface Content {
+export interface Content {
   /** Unique identifier */
   _id: ObjectId;
   /** The URL of the page with the chunk content. */

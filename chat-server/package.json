@@ -11,7 +11,8 @@
     "lint": "eslint --ext .js,.jsx,.ts,.tsx .",
     "prettier": "prettier '**/*.{js,jsx,ts,tsx,json,md}'",
     "start": "node ./dist/index.js",
-    "test": "jest --forceExit"
+    "test": "jest --forceExit",
+    "seed-content:dev": "ts-node seed-content"
   },
   "engines": {
     "node": "^18",
@@ -25,6 +26,8 @@
     "common-tags": "^1.8.2",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "gpt3-tokenizer": "^1.1.5",
+    "langchain": "^0.0.95",
     "mongodb": "^5.2.0",
     "openai": "^3.2.1",
     "stream-json": "^1.8.0",

@@ -6,7 +6,7 @@ interface MongoDBInterface {
   close: () => Promise<void>;
 }
 export class MongoDB implements MongoDBInterface {
-  private mongoClient: MongoClient;
+  mongoClient: MongoClient;
   db: Db;
   vectorSearchIndexName?: string;
   constructor(

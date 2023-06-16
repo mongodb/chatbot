@@ -28,9 +28,20 @@ export const updateChunks = async ({
   await Promise.all(promises);
 };
 
-// TODO: This is a stand-in for an Atlas collection
 export type ChunkStore = {
+  /**
+    Load the chunks for the given page.
+   */
+  loadChunks(args: { page: PersistedPage }): Promise<EmbeddedChunk[]>;
+
+  /**
+    Delete all chunks for the given page.
+   */
   deleteChunks(args: { page: PersistedPage }): Promise<void>;
+
+  /**
+    Replace all chunks for the given page with the given chunks.
+   */
   updateChunks(args: {
     page: PersistedPage;
     chunks: EmbeddedChunk[];

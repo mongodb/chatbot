@@ -1,6 +1,7 @@
-import { Db, MongoClient, UpdateResult } from "mongodb";
+import { strict as assert } from "assert";
+import { MongoClient } from "mongodb";
 import { PageStore, PersistedPage } from "./updatePages";
-import { ChunkStore } from "./updateChunks";
+import { ChunkStore, EmbeddedChunk } from "./updateChunks";
 
 export type DatabaseConnection = {
   /**
@@ -11,6 +12,9 @@ export type DatabaseConnection = {
   close(force?: boolean): Promise<void>;
 };
 
+/**
+  Create a connection to the database.
+ */
 export const makeDatabaseConnection = async ({
   connectionUri,
   databaseName,
@@ -20,28 +24,36 @@ export const makeDatabaseConnection = async ({
 }): Promise<DatabaseConnection & PageStore & ChunkStore> => {
   const client = await new MongoClient(connectionUri).connect();
   const db = client.db(databaseName);
-  const chunksCollection = db.collection("chunks");
+  const chunksCollection = db.collection<EmbeddedChunk>("chunks");
   const pagesCollection = db.collection<PersistedPage>("pages");
   const instance: DatabaseConnection & PageStore & ChunkStore = {
-    close: client.close,
+    close: (force) => client.close(force),
+
+    async loadChunks({ page }) {
+      return await chunksCollection.find(pageIdentity(page)).toArray();
+    },
 
     async deleteChunks({ page }) {
-      const deleteResult = await chunksCollection.deleteMany({
-        page,
-      });
+      const deleteResult = await chunksCollection.deleteMany(
+        pageIdentity(page)
+      );
       if (!deleteResult.acknowledged) {
         throw new Error("Chunk deletion not acknowledged!");
       }
     },
 
     async updateChunks({ page, chunks }) {
+      chunks.forEach((chunk) => {
+        assert(
+          chunk.source === page.source && chunk.url === page.url,
+          `Chunk source/url (${chunk.source} / ${chunk.url}) must match give page source/url (${page.source} / ${page.url})!`
+        );
+      });
       await client.withSession(async (session) => {
         await session.withTransaction(async () => {
           // First delete all the chunks for the given page
           const deleteResult = await chunksCollection.deleteMany(
-            {
-              page,
-            },
+            pageIdentity(page),
             { session }
           );
           if (!deleteResult.acknowledged) {
@@ -71,20 +83,32 @@ export const makeDatabaseConnection = async ({
     },
 
     async updatePages(pages) {
-      const results = await pagesCollection.updateMany(
-        pages.map(({ source, url }) => ({ source, url })),
-        [...pages],
-        { upsert: true }
+      await Promise.all(
+        pages.map(async (page) => {
+          const result = await pagesCollection.updateOne(
+            pageIdentity(page),
+            { $set: page },
+            { upsert: true }
+          );
+          if (!result.acknowledged) {
+            throw new Error(`update pages not acknowledged!`);
+          }
+          if (!result.modifiedCount && !result.upsertedCount) {
+            throw new Error(
+              `Page ${JSON.stringify(pageIdentity(page))} not updated!`
+            );
+          }
+        })
       );
-      if (!results.acknowledged) {
-        throw new Error(`update pages not acknowledged!`);
-      }
-      if (results.modifiedCount + results.upsertedCount !== pages.length) {
-        throw new Error(
-          `unexpected result: given ${pages.length}, modified ${results.modifiedCount} and upserted ${results.upsertedCount}`
-        );
-      }
     },
   };
   return instance;
 };
+
+/**
+  Returns a query filter that represents a unique page in the system.
+ */
+export const pageIdentity = ({ url, source }: PersistedPage) => ({
+  url,
+  source,
+});

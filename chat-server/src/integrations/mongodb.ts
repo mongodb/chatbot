@@ -1,6 +1,7 @@
 import { MongoClient, Db } from "mongodb";
 
 interface MongoDBInterface {
+  mongoClient: MongoClient;
   db: Db;
   vectorSearchIndexName?: string;
   close: () => Promise<void>;

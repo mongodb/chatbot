@@ -2,21 +2,19 @@
   "compilerOptions": {
     "outDir": "./build",
     "allowJs": false,
-    "target": "ES5",
+    "target": "es2016",
+    "module": "CommonJS",
     "esModuleInterop": true,
-    "lib": ["ES2020"],
+    "lib": ["ES2020", "DOM"],
     "downlevelIteration": true,
     "strictNullChecks": true,
     "strict": true,
     "declaration": true,
     "declarationMap": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "moduleResolution": "nodenext"
   },
   "sourceMap": true,
-  "include": [
-    "./src/**/*.ts"
-  ],
-  "exclude": [
-    "**/*.test.ts"
-  ]
+  "include": ["./src/**/*.ts"],
+  "exclude": ["**/*.test.ts"]
 }

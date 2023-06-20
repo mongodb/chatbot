@@ -49,7 +49,7 @@ export type DataSource = {
 
 // TODO: This is a stand-in for Atlas
 export type PageStore = {
-  loadPages(): Promise<PersistedPage[]>;
+  loadPages(args: { source: string }): Promise<PersistedPage[]>;
   updatePages(pages: PersistedPage[]): Promise<void>;
 };
 

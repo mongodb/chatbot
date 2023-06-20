@@ -1,5 +1,7 @@
 import * as yargs from "yargs";
 
+import "dotenv/config";
+
 function commandDir<T>(
   argv: yargs.Argv<T>,
   directory: string,

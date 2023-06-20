@@ -24,9 +24,10 @@ export function makeCreateConversationRoute({
       const conversationInDb = await conversations.create({
         ipAddress,
       });
-      if (!conversationInDb) {
-        return res.status(404).json({ error: "Conversation not found" });
-      }
+      // TODO: add processing to not just return the conversation in DB. should:
+      // 1. strip out some data. see util file
+      // 2. remove system prompt..maybe also in that util file?
+
       res.status(204).json({ conversation: conversationInDb });
     } catch (err) {
       next(err);

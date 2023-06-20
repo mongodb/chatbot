@@ -1,9 +1,6 @@
 import * as yargs from "yargs";
 
-import dotenv from "dotenv";
-
-// Configure dotenv early so env variables can be read in imported files
-dotenv.config();
+import "dotenv/config";
 
 function commandDir<T>(
   argv: yargs.Argv<T>,

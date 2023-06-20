@@ -9,6 +9,15 @@ import {
 } from "@azure/openai";
 import { stripIndent } from "common-tags";
 
+export type OpenAiMessageRole = "system" | "assistant" | "user";
+
+export interface OpenAiChatMessage extends ChatMessage {
+  /** The role of the message in the context of the conversation. */
+  role: OpenAiMessageRole;
+  /** Response to user's chat message in the context of the conversation. */
+  content: string;
+}
+
 interface CreateEmbeddingParams {
   input: string;
   user: string;
@@ -63,7 +72,7 @@ export interface OpenAiChatClientInterface {
 }
 
 interface ChatParams {
-  messages: ChatMessage[];
+  messages: OpenAiChatMessage[];
   options?: GetChatCompletionsOptions;
 }
 export class OpenAiChatClient implements OpenAiChatClientInterface {
@@ -96,7 +105,7 @@ export class OpenAiChatClient implements OpenAiChatClientInterface {
 }
 
 // ~~~MAGIC OPENAI VALUES~~~
-export const SYSTEM_PROMPT: ChatMessage = {
+export const SYSTEM_PROMPT: OpenAiChatMessage = {
   role: "system",
   content: stripIndent`You are expert MongoDB documentation chatbot.
   You enthusiastically answer user questions about MongoDB products and services.
@@ -111,6 +120,11 @@ export const SYSTEM_PROMPT: ChatMessage = {
   ONLY use code snippets present in the information given to you.
   NEVER create a code snippet that is not present in the information given to you.`,
 };
+
+export const ASSISTANT_PROMPT: OpenAiChatMessage = {
+  role: "assistant",
+  content: "Hello, I'm a MongoDB chatbot. How can I help you today?",
+};
 export const OPENAI_LLM_CONFIG_OPTIONS: GetChatCompletionsOptions = {
   temperature: 0.3,
   maxTokens: 500,
@@ -124,7 +138,7 @@ interface GenerateUserPromptParams {
 export function GENERATE_USER_PROMPT({
   question,
   chunks,
-}: GenerateUserPromptParams): ChatMessage {
+}: GenerateUserPromptParams): OpenAiChatMessage {
   const context = chunks.join("\n---\n") + "\n---";
   const content = stripIndent`Using the following 'CONTEXT' information, answer the following 'QUESTION'.
   Different pieces of context are separated by "---".

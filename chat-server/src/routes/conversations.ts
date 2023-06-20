@@ -3,7 +3,8 @@ import { embeddings } from "../services/embeddings";
 import { database } from "../services/database";
 import { llm } from "../services/llm";
 import { dataStreamer } from "../services/dataStreamer";
-import { ChatMessage } from "@azure/openai";
+import { OpenAiChatMessage } from "../integrations/openai";
+import { Message } from "../services/conversations";
 
 // TODO: for all non-2XX or 3XX responses, see how/if can better implement
 // error handling. can/should we pass stuff to next() and process elsewhere?
@@ -58,17 +59,13 @@ conversationsRouter.post(
       const stream = Boolean(req.params.stream);
       const { conversation, id } = req.body;
       const latestMessage = conversation[conversation.length - 1];
-      const { status, embeddings: embeddingRes } =
-        await embeddings.createEmbedding({
-          text: latestMessage.content,
-          userIp: ipAddress,
-        });
-      if (status !== 200) {
-        return res.status(status).json({ error: "Embedding error" });
-      }
-      // TODO: see if can refactor to avoid using `!` here. refer to https://github.com/mongodb/docs-chatbot/pull/6/files#r1229729636
+      // TODO: implement error handling
+      const { embedding } = await embeddings.createEmbedding({
+        text: latestMessage.content,
+        userIp: ipAddress,
+      });
       const chunks = await database.content.findVectorMatches({
-        embedding: embeddingRes!,
+        embedding,
       });
 
       const conversationInDb = await database.conversations.findById({ id });
@@ -84,7 +81,10 @@ conversationsRouter.post(
         answer = await dataStreamer.answer({
           res,
           answer: llm.answerQuestionStream({
-            messages: [...conversationInDb.messages, latestMessage],
+            messages: [
+              ...conversationInDb.messages,
+              latestMessage,
+            ] as OpenAiChatMessage[],
             chunks,
           }),
           conversation: conversationInDb,
@@ -92,7 +92,10 @@ conversationsRouter.post(
         });
       } else {
         answer = await llm.answerQuestionAwaited({
-          messages: [...conversationInDb.messages, latestMessage],
+          messages: [
+            ...conversationInDb.messages,
+            latestMessage,
+          ] as OpenAiChatMessage[],
           chunks,
         });
 

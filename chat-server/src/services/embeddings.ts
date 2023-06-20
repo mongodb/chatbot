@@ -8,9 +8,7 @@ export interface EmbeddingParams {
 }
 
 export interface EmbeddingResponse {
-  status: number;
-  errorData?: any;
-  embeddings?: number[];
+  embedding: number[];
 }
 
 export class EmbeddingService {
@@ -40,18 +38,19 @@ export class OpenAiEmbeddingProvider implements EmbeddingProvider {
     this.openAiEmbeddingsClient = openAiEmbeddingsClient;
   }
 
-  async createEmbedding({ text, userIp }: EmbeddingParams) {
+  async createEmbedding({
+    text,
+    userIp,
+  }: EmbeddingParams): Promise<EmbeddingResponse> {
     const embeddingRequest = {
       input: text,
       user: userIp,
     };
+    let embedding: number[] = [];
     try {
       const res = await this.openAiEmbeddingsClient.create(embeddingRequest);
 
-      const embeddings = res.data.data[0].embedding;
-      const { status } = res;
-
-      return { embeddings, status };
+      embedding = res.data.data[0].embedding;
     } catch (err: any) {
       // Catch axios errors which occur if response 4XX or 5XX
       if (err.response?.status && err.response?.data?.error) {
@@ -60,22 +59,14 @@ export class OpenAiEmbeddingProvider implements EmbeddingProvider {
           data: { error },
         } = err.response;
         logger.error(
-          stripIndent`OpenAi Embedding API returned an error:
+          stripIndent`OpenAI Embedding API returned an error:
           status: ${status}
-          error: ${error}`
+          error: ${JSON.stringify(error)}`
         );
-        return {
-          status: status,
-          errorData: error,
-        };
+        throw new Error("OpenAI Embedding API returned an error");
       }
-      // Catch other errors
-      logger.error(`Unexpected error: ${err}`);
-      return {
-        status: 500,
-        errorData: { message: "Unexpected error response", err },
-      };
     }
+    return { embedding };
   }
 }
 

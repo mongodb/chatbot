@@ -3,6 +3,8 @@ import {
   OpenAiChatClient,
   SYSTEM_PROMPT,
   GENERATE_USER_PROMPT,
+  OpenAiChatClientInterface,
+  OpenAiChatMessage,
 } from "../../src/integrations/openai";
 import { OpenAiLlmProvider } from "../../src/services/llm";
 import "dotenv/config";
@@ -31,7 +33,7 @@ const conversation = [
     role: "user",
     content: "How do I connect to my cluster?",
   },
-];
+] as OpenAiChatMessage[];
 
 describe("LLM", () => {
   describe("OpenAiLlmProvider", () => {

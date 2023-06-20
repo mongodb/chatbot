@@ -18,3 +18,29 @@ export const getRequestId = (req: Request) => {
     return reqId;
   }
 };
+
+// helpers
+
+interface MessageResponse {
+  id: string;
+  role: string;
+  content: string;
+  rating?: boolean;
+}
+export interface ConversationResponse {
+  id: string;
+  messages: MessageResponse[];
+}
+export function convertConversationToResponse(
+  conversation: Conversation
+): ConversationResponse {
+  return {
+    id: conversation._id.toString(),
+    messages: conversation.messages.map((message) => ({
+      id: message.id.toString(),
+      role: message.role,
+      content: message.content,
+      rating: message.rating,
+    })),
+  };
+}

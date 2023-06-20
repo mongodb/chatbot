@@ -1,13 +1,14 @@
 import express, { ErrorRequestHandler, RequestHandler } from "express";
 import "dotenv/config";
 import { MongoClient, ObjectId } from "mongodb";
-import { conversationsRouter } from "./routes/conversations";
+import { makeConversationsRouter } from "./routes/conversations";
 import { createMessage, logger } from "./services/logger";
 import { getRequestId } from "./utils";
-
-interface AppSettings {
-  mongoClient?: MongoClient;
-}
+import { llm } from "./services/llm";
+import { embeddings } from "./services/embeddings";
+import { dataStreamer } from "./services/dataStreamer";
+import { content } from "./services/content";
+import { conversationsService } from "./services/conversations";
 
 // General error handler; called at usage of next() in routes
 const errorHandler: ErrorRequestHandler = (err, req, res) => {
@@ -39,7 +40,16 @@ const reqHandler: RequestHandler = (req, _res, next) => {
 export const setupApp = async () => {
   const app = express();
   app.use(reqHandler);
-  app.use("/conversations", conversationsRouter);
+  app.use(
+    "/conversations",
+    makeConversationsRouter({
+      llm,
+      embeddings,
+      dataStreamer,
+      content,
+      conversations: conversationsService,
+    })
+  );
   app.use(errorHandler);
 
   return app;

@@ -57,7 +57,6 @@ export class ContentService implements ContentServiceInterface {
               vector: embedding,
               path: this.options.path,
               k: this.options.k,
-              // TODO: get it so only returns score >= .9
             },
           },
         },
@@ -69,7 +68,6 @@ export class ContentService implements ContentServiceInterface {
           },
         },
         { $match: { score: { $gte: this.options.minScore } } },
-        { $project: { score: 0 } },
       ])
       .toArray();
     return matchingContent;

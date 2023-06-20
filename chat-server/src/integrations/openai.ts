@@ -9,11 +9,11 @@ import {
 } from "@azure/openai";
 import { stripIndent } from "common-tags";
 
-export type OpenAiMessageEnum = "system" | "assistant" | "user";
+export type OpenAiMessageRole = "system" | "assistant" | "user";
 
 export interface OpenAiChatMessage extends ChatMessage {
   /** The role of the message in the context of the conversation. */
-  role: OpenAiMessageEnum;
+  role: OpenAiMessageRole;
   /** Response to user's chat message in the context of the conversation. */
   content: string;
 }

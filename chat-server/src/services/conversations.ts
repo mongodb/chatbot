@@ -4,7 +4,7 @@ import {
   OpenAiChatMessage,
   SYSTEM_PROMPT,
   ASSISTANT_PROMPT,
-  OpenAiMessageEnum,
+  OpenAiMessageRole,
 } from "../integrations/openai";
 
 export interface Message {
@@ -43,7 +43,7 @@ export interface RateMessageParams {
   conversationId: ObjectId;
   messageId: ObjectId;
   rating: boolean;
-  role?: OpenAiMessageEnum;
+  role?: OpenAiMessageRole;
 }
 export interface ConversationsServiceInterface {
   create: ({ ipAddress }: CreateConversationParams) => Promise<Conversation>;

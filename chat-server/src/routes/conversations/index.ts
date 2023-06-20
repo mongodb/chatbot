@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { EmbeddingService } from "../../services/embeddings";
-import { LlmProvider } from "../../services/llm";
+import {
+  LlmProvider,
+  OpenAiAwaitedResponse,
+  OpenAiStreamingResponse,
+} from "../../services/llm";
 import { DataStreamerServiceInterface } from "../../services/dataStreamer";
 import {
   ConversationsServiceInterface,
@@ -26,7 +30,7 @@ export function makeConversationsRouter({
   dataStreamer,
   content,
   conversations,
-}: ConversationsRouterParams<T, U>) {
+}: ConversationsRouterParams<OpenAiStreamingResponse, OpenAiAwaitedResponse>) {
   const conversationsRouter = Router();
 
   /**

@@ -11,7 +11,12 @@ import {
 } from "../../services/conversations";
 import { DataStreamerServiceInterface } from "../../services/dataStreamer";
 import { EmbeddingService } from "../../services/embeddings";
-import { LlmProvider } from "../../services/llm";
+import {
+  LlmProvider,
+  OpenAiAwaitedResponse,
+  OpenAiStreamingResponse,
+} from "../../services/llm";
+import { ObjectId } from "mongodb";
 
 interface RequestWithStreamParam extends ExpressRequest {
   params: {
@@ -27,7 +32,7 @@ export interface AddMessageToConversationRouteParams {
   content: ContentServiceInterface;
   conversations: ConversationsServiceInterface;
   embeddings: EmbeddingService;
-  llm: LlmProvider<T, U>;
+  llm: LlmProvider<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   dataStreamer: DataStreamerServiceInterface;
 }
 export function makeAddMessageToConversationRoute({

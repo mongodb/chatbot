@@ -6,6 +6,8 @@ import {
 } from "../../src/services/conversations";
 import { BSON } from "mongodb";
 
+jest.setTimeout(100000);
+
 describe("Conversations Service", () => {
   const { MONGODB_CONNECTION_URI } = process.env;
   const mongodb = new MongoDB(
@@ -39,11 +41,10 @@ describe("Conversations Service", () => {
     const conversation = await conversationsService.create({
       ipAddress,
     });
-    // TODO: rename variable answer b/c makes no sense b/c it's a question
-    const answer = "Tell me about MongoDB";
+    const content = "Tell me about MongoDB";
     const newMessage = await conversationsService.addUserMessage({
       conversationId: conversation._id,
-      answer,
+      content,
     });
     expect(newMessage).toBe(true);
 
@@ -52,7 +53,7 @@ describe("Conversations Service", () => {
       .findOne({ _id: conversation._id });
     expect(conversationInDb).toHaveProperty("messages");
     expect(conversationInDb?.messages).toHaveLength(3);
-    expect(conversationInDb?.messages[2].content).toStrictEqual(answer);
+    expect(conversationInDb?.messages[2].content).toStrictEqual(content);
   });
   test("Should find a conversation by id", async () => {
     const ipAddress = new BSON.UUID().toString();
@@ -69,17 +70,17 @@ describe("Conversations Service", () => {
     const conversation = await conversationsService.create({
       ipAddress,
     });
-    const messageId = conversation.messages[0].id;
+    const messageId = conversation.messages[1].id;
     const rating = true;
     const result = await conversationsService.rateMessage({
       conversationId: conversation._id,
       messageId,
       rating,
     });
-    expect(result).toBe(true);
     const conversationInDb = await mongodb.db
       .collection<Conversation>("conversations")
       .findOne({ _id: conversation._id });
-    expect(conversationInDb?.messages[2].rating).toBe(rating);
+    expect(result).toBe(true);
+    expect(conversationInDb?.messages[1].rating).toBe(rating);
   });
 });

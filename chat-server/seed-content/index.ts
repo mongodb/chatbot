@@ -74,7 +74,7 @@ async function createChunksForDevHubDocument({
         text: content.text,
         userIp: "",
       });
-      content.embedding = chunkEmbedding.embeddings || [];
+      content.embedding = chunkEmbedding.embedding || [];
       return content;
     })
   );
@@ -87,6 +87,7 @@ function sleep(ms: number) {
 async function main() {
   const baseUrl = "https://mongodb.com/developer";
   const content = [];
+  const fileOut = "./seed-content/data/dev-center/sample-out.json";
   for await (const devHubDoc of sampleDevCenterData) {
     const chunks = await createChunksForDevHubDocument({
       splitter,
@@ -101,7 +102,6 @@ async function main() {
   const flattedContentWithOutEmptyEmbeddings = flattenedContent.filter(
     (content) => !!content.embedding.length
   );
-  const fileOut = "./seed-content/data/dev-center/sample-out.json";
   fs.writeFileSync(
     fileOut,
     JSON.stringify(flattedContentWithOutEmptyEmbeddings, null, 2)

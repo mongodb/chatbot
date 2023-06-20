@@ -38,7 +38,7 @@ export interface ContentServiceOptions {
   minScore: number;
 }
 
-class ContentService implements ContentServiceInterface {
+export class ContentService implements ContentServiceInterface {
   private database: Db;
   private contentCollection: Collection<Content>;
   private options: ContentServiceOptions;
@@ -61,6 +61,15 @@ class ContentService implements ContentServiceInterface {
             },
           },
         },
+        {
+          $addFields: {
+            score: {
+              $meta: "searchScore",
+            },
+          },
+        },
+        { $match: { score: { $gte: this.options.minScore } } },
+        { $project: { score: 0 } },
       ])
       .toArray();
     return matchingContent;

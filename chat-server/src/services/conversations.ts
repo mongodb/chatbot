@@ -1,6 +1,11 @@
 import { ObjectId, Db, Collection } from "mongodb";
 import { mongodb } from "../integrations/mongodb";
-import { OpenAiChatMessage, SYSTEM_PROMPT } from "../integrations/openai";
+import {
+  OpenAiChatMessage,
+  SYSTEM_PROMPT,
+  ASSISTANT_PROMPT,
+  OpenAiMessageEnum,
+} from "../integrations/openai";
 
 export interface Message {
   /** Unique identifier for the message. */
@@ -29,7 +34,7 @@ export interface CreateConversationParams {
 }
 export interface AddMessageParams {
   conversationId: ObjectId;
-  answer: string;
+  content: string;
 }
 export interface FindByIdParams {
   _id: ObjectId;
@@ -38,12 +43,13 @@ export interface RateMessageParams {
   conversationId: ObjectId;
   messageId: ObjectId;
   rating: boolean;
+  role?: OpenAiMessageEnum;
 }
 export interface ConversationsServiceInterface {
   create: ({ ipAddress }: CreateConversationParams) => Promise<Conversation>;
   addUserMessage: ({
     conversationId,
-    answer,
+    content,
   }: AddMessageParams) => Promise<boolean>;
   findById: ({ _id }: FindByIdParams) => Promise<Conversation | null>;
   rateMessage: ({
@@ -65,7 +71,10 @@ export class ConversationsService implements ConversationsServiceInterface {
     const newConversation = {
       _id: new ObjectId(),
       ipAddress,
-      messages: [this.createMessageFromChatMessage(SYSTEM_PROMPT)],
+      messages: [
+        this.createMessageFromChatMessage(SYSTEM_PROMPT),
+        this.createMessageFromChatMessage(ASSISTANT_PROMPT),
+      ],
       timeCreated: new Date(),
     };
     const insertResult = await this.conversationsCollection.insertOne(
@@ -81,11 +90,10 @@ export class ConversationsService implements ConversationsServiceInterface {
     return newConversation;
   }
 
-  // TODO: figure out why getting error on _id
-  async addUserMessage({ conversationId, answer }: AddMessageParams) {
+  async addUserMessage({ conversationId, content }: AddMessageParams) {
     const newMessage = this.createMessageFromChatMessage({
       role: "user",
-      content: answer,
+      content,
     });
     const updateResult = await this.conversationsCollection.updateOne(
       {
@@ -111,16 +119,25 @@ export class ConversationsService implements ConversationsServiceInterface {
     return conversation;
   }
 
-  async rateMessage({ conversationId, messageId, rating }: RateMessageParams) {
+  async rateMessage({
+    conversationId,
+    messageId,
+    rating,
+    role,
+  }: RateMessageParams) {
     const updateResult = await this.conversationsCollection.updateOne(
       {
         _id: conversationId,
-        "messages.id": messageId,
       },
       {
         $set: {
-          "messages.$.rating": rating,
+          "messages.$[message].rating": rating,
         },
+      },
+      {
+        arrayFilters: [
+          { "message.id": messageId, "message.role": role || "assistant" },
+        ],
       }
     );
     if (!updateResult.acknowledged || updateResult.matchedCount === 0) {

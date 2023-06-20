@@ -9,6 +9,9 @@ function App() {
         flexDirection: "column",
         alignItems: "center",
         gap: "20px",
+        background: "#001E2B",
+        padding: "20px",
+        height: "90vh",
       }}
     >
       <div

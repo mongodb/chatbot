@@ -11,25 +11,24 @@ export type MessageData = {
   rating?: boolean;
 };
 
-type ConversationServiceConfig = {
-  serverUrl: string;
-};
+// type ConversationServiceConfig = {
+//   serverUrl: string;
+// };
 
 export default class ConversationService {
-  private serverUrl: string;
+  // private serverUrl: string;
+  // constructor(config: ConversationServiceConfig) {
+  //   this.serverUrl = config.serverUrl;
+  // }
 
-  constructor(config: ConversationServiceConfig) {
-    this.serverUrl = config.serverUrl;
-  }
-
-  private getUrl(path: string) {
-    if (!path.startsWith("/")) {
-      throw new Error(
-        `Invalid path: ${path} - ConversationService paths must start with /`
-      );
-    }
-    return this.serverUrl + path;
-  }
+  // private getUrl(path: string) {
+  //   if (!path.startsWith("/")) {
+  //     throw new Error(
+  //       `Invalid path: ${path} - ConversationService paths must start with /`
+  //     );
+  //   }
+  //   return this.serverUrl + path;
+  // }
 
   async createConversation(): Promise<Required<ConversationState>> {
     console.log("services/conversations::createConversation");
@@ -124,6 +123,5 @@ export default class ConversationService {
   }
 }
 
-export const conversationService = new ConversationService({
-  serverUrl: "http://localhost:3000",
-});
+export const conversationService = new ConversationService();
+// { serverUrl: "http://localhost:3000" }

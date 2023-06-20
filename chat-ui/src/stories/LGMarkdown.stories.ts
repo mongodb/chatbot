@@ -7,7 +7,7 @@ const meta = {
   component: LGMarkdown,
   tags: ["autodocs"],
   argTypes: {},
-} satisfies Meta<typeof Message>;
+} satisfies Meta<typeof LGMarkdown>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Message } from "../Message";
+import Message from "../Message";
 import createMessage from "../createMessage";
 
 // More on how to set up stories at: https://storybook.js.org/docs/react/writing-stories/introduction
@@ -14,6 +14,10 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+function rateMessage(messageId: string, rating: boolean) {
+  console.log("rateMessage", messageId, rating);
+}
+
 // More on writing stories with args: https://storybook.js.org/docs/react/writing-stories/args
 export const UserMessage: Story = {
   args: {
@@ -21,6 +25,7 @@ export const UserMessage: Story = {
       "user",
       "How do you import or migrate data into MongoDB Atlas?"
     ),
+    rateMessage,
   },
 };
 
@@ -30,5 +35,6 @@ export const AssistantMessage: Story = {
       "assistant",
       "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged."
     ),
+    rateMessage,
   },
 };

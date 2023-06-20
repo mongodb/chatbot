@@ -6,7 +6,7 @@ import useConversation, {
 
 export const ConversationContext = createContext<Conversation>({
   ...defaultConversationState,
-  setConversationId() {},
+  createConversation: () => {},
   addMessage: () => {},
   modifyMessage: () => {},
   deleteMessage: () => {},

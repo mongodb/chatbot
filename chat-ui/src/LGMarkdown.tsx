@@ -1,5 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import Code, { Language } from "@leafygreen-ui/code";
+import type { Language as SupportedLanguageValue } from "@leafygreen-ui/code";
 import { Body, H1, H2, H3, InlineCode, Link } from "@leafygreen-ui/typography";
 
 type ReactMarkdownProps = Parameters<typeof ReactMarkdown>[0];
@@ -22,7 +23,9 @@ const componentsMap = {
       );
       language = "none";
     }
-    return <Code language={language}>{codeString}</Code>;
+    return (
+      <Code language={language as SupportedLanguageValue}>{codeString}</Code>
+    );
   },
   h1: (props) => {
     const text = props.children.join(" - ");

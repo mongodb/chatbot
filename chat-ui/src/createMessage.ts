@@ -1,4 +1,4 @@
-import { MessageData, Role } from "./Message";
+import { MessageData, Role } from "./services/conversations";
 
 export default function createMessage(
   role: Role,
@@ -8,5 +8,6 @@ export default function createMessage(
     id: Math.random().toString(),
     role,
     content,
+    createdAt: new Date().toISOString(),
   };
 }

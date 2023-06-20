@@ -1,8 +1,12 @@
-import { IconProps, createGlyphComponent, createIconComponent } from "@leafygreen-ui/icon";
+import {
+  IconProps,
+  createGlyphComponent,
+  createIconComponent,
+} from "@leafygreen-ui/icon";
 import { LeafSVG } from "./MongoDBLogo";
 
 const customGlyphs = {
-  GeneralContentUser: createGlyphComponent("GeneralContentUser", (props) => (
+  GeneralContentUser: createGlyphComponent("GeneralContentUser", () => (
     <svg
       width="40"
       height="24"
@@ -21,7 +25,7 @@ const customGlyphs = {
       />
     </svg>
   )),
-  MongoDBLogo: createGlyphComponent("MongoDBLogo", (props) => <LeafSVG />),
+  MongoDBLogo: createGlyphComponent("MongoDBLogo", () => <LeafSVG />),
 };
 
 const CustomIcon = createIconComponent(customGlyphs);

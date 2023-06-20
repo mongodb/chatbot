@@ -5,6 +5,13 @@
   width: 100%;
 }
 
+.input_form {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+}
+
 .input_form_submit {
   height: 2rem;
 }

@@ -16,18 +16,18 @@ type Story = StoryObj<typeof meta>;
 // More on writing stories with args: https://storybook.js.org/docs/react/writing-stories/args
 export const UserAvatar: Story = {
   args: {
-    type: "user",
+    role: "user",
   },
 };
 
 export const AssistantAvatar: Story = {
   args: {
-    type: "assistant",
+    role: "assistant",
   },
 };
 
 export const SystemAvatar: Story = {
   args: {
-    type: "system",
+    role: "system",
   },
 };

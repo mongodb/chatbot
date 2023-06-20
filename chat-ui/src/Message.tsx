@@ -8,8 +8,6 @@ import LGMarkdown from "./LGMarkdown";
 import { MessageData, Role } from "./services/conversations";
 import { GeneralContentUserIcon, MongoDBLogoIcon } from "./CustomIcon";
 
-
-
 export function Avatar({ role }: { role: Role }) {
   switch (role) {
     case "user":
@@ -75,12 +73,22 @@ export function MessageRating(props: MessageRatingProps) {
   );
 }
 
-export type MessageProps = {
-  message: MessageData;
-  rateMessage: Conversation["rateMessage"];
+type ComponentMessageProps = {
+  role: Role;
+  children: React.ReactNode;
 };
 
+type DataMessageProps = {
+  message: MessageData;
+  rateMessage: Conversation["rateMessage"];
+  hideRating?: boolean;
+};
+
+export type MessageProps = DataMessageProps | ComponentMessageProps;
+
 export default function Message(props: MessageProps) {
+  const isComponentMessage = "children" in props;
+
   const messageRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     messageRef.current?.scrollIntoView({
@@ -88,19 +96,26 @@ export default function Message(props: MessageProps) {
       block: "end",
     });
   }, []);
+
+  const role = isComponentMessage ? props.role : props.message.role;
+
   return (
     <div className={styles.message} ref={messageRef}>
-      <Avatar role={props.message.role} />
-      <div className={styles.message_text}>
-        <LGMarkdown>{props.message.content}</LGMarkdown>
-        {props.message.role === "assistant" && (
-          <MessageRating
-            messageId={props.message.id}
-            rateMessage={props.rateMessage}
-            value={props.message.rating}
-          />
-        )}
-      </div>
+      <Avatar role={role} />
+      {isComponentMessage ? (
+        <div className={styles.message_text}>{props.children}</div>
+      ) : (
+        <div className={styles.message_text}>
+          <LGMarkdown>{props.message.content}</LGMarkdown>
+          {!props.hideRating && props.message.role === "assistant" && (
+            <MessageRating
+              messageId={props.message.id}
+              rateMessage={props.rateMessage}
+              value={props.message.rating}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }

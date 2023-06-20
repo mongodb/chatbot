@@ -1,7 +1,11 @@
-.cta_disclosure {
+.disclosure {
   display: flex;
   flex-direction: row;
   gap: 8px;
+}
+
+.disclosure > p {
+  color: white;
 }
 
 .basic_banner {
@@ -16,19 +20,7 @@
   width: calc(100% - 32px); /* 32px is the padding on the <Banner> component */
 }
 
-.cta_container {
-  /* display: flex;
-  flex-direction: column;
-  align-items: start;
-  height: 100%;
-  width: 100%;
-  max-width: 700px;
-  gap: 12px;
-
-  border-top-left-radius: 6px; */
-}
-
-.input_form {
+.chatbot_container {
   display: flex;
   flex-direction: row;
   gap: 0.5rem;
@@ -65,24 +57,37 @@
 
   transition: all 0.25s ease;
   position: relative;
+
+  padding: 0;
+  /* width: 90%; */
+
+  border-radius: 24px;
+  border-top-left-radius: 6px;
+  box-shadow: none;
+  background: transparent;
 }
 
 .card-enter {
   /* opacity: 0; */
   padding: 24px;
+  /* width: calc(100% - 48px); */
+  box-shadow: 0 4px 10px -4px rgba(0, 30, 43, 0.3);
+  background: white;
 }
 
 .card-enter-active {
   opacity: 1;
   transition: all 250ms ease;
+  /* width: 120%; */
+
   /* position: absolute; */
   /* left: 16px; */
   /* top: 16px; */
   /* width: 200%; */
   border-top-left-radius: 6px;
   /* background: red; */
-
-  width: 120%;
+  box-shadow: 0 4px 10px -4px rgba(0, 30, 43, 0.3);
+  background: white;
 
   /* This simulates padding in <Box /> to make it more like <Card /> */
   /* When/if you can fix the <Card /> ref issue you can delete this.*/
@@ -90,7 +95,7 @@
 }
 
 .card-exit {
-  padding: 0;
+  padding: 0 0 24px 0px;
 }
 
 .card-exit-active {
@@ -100,7 +105,8 @@
   box-shadow: none;
   border: none;
   min-height: 0;
-  width: 100%;
+
+  transition: all 100ms ease;
 }
 
 /* .card.s-entered {
@@ -114,6 +120,7 @@
 
 .awaiting_response_loader {
   display: flex;
+  flex-direction: column;
   flex-grow: 1;
   justify-content: center;
 }

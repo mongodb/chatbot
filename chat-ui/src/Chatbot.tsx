@@ -2,7 +2,7 @@ import styles from "./Chatbot.module.css";
 import { useState, useRef, useEffect } from "react";
 import Badge from "@leafygreen-ui/badge";
 import Banner from "@leafygreen-ui/banner";
-import Card from "@leafygreen-ui/card";
+// import Card from "@leafygreen-ui/card";
 import Box from "@leafygreen-ui/box";
 import { Subtitle, Body, Link } from "@leafygreen-ui/typography";
 import useConversation, { Conversation } from "./useConversation";
@@ -10,16 +10,18 @@ import { CSSTransition } from "react-transition-group";
 import { useClickAway } from "@uidotdev/usehooks";
 import ChatInput from "./ChatInput";
 import SuggestedPrompts from "./SuggestedPrompts";
-import { H3, Overline } from "@leafygreen-ui/typography";
-import MessageList, { MessageListItem } from "./MessageList";
+import { Overline } from "@leafygreen-ui/typography";
+import MessageList from "./MessageList";
 import Message from "./Message";
-import { PageLoader } from "@leafygreen-ui/loading-indicator";
+import { ParagraphSkeleton } from "@leafygreen-ui/skeleton-loader";
+
+export const ChatbotStyles = styles;
 
 function Disclosure() {
   return (
-    <div className={styles.cta_disclosure}>
+    <div className={styles.disclosure}>
       <Badge variant="blue">Experimental</Badge>
-      <Body>
+      <Body color={"#FFFFFF"}>
         By interacting with this chatbot, you agree to MongoDB's{" "}
         <Link href="#TODO">Terms & Conditions</Link>
       </Body>
@@ -58,7 +60,7 @@ function CTACard({
     // TODO: Make this work with <Card>. For some reason, <Card>
     // does not accept a ref prop even though it wraps <Box>, which
     // takes the ref just fine.
-    <Box ref={cardRef} className={styles.card + " card"}>
+    <Box ref={cardRef} className={styles.card}>
       {active && !isEmptyConversation ? (
         <>
           <div className={styles.card_content_title}>
@@ -73,10 +75,10 @@ function CTACard({
                 rateMessage={conversation.rateMessage}
               />
             ))}
-            {(awaitingReply) && (
-              <MessageListItem key="awaiting-response-loader">
-                <PageLoader className={styles.awaiting_response_loader} />
-              </MessageListItem>
+            {awaitingReply && (
+              <Message role="assistant">
+                <ParagraphSkeleton />
+              </Message>
             )}
           </MessageList>
           <Banner className={styles.lg_banner} variant="warning">
@@ -89,7 +91,7 @@ function CTACard({
       <ChatInput
         ref={inputRef}
         key="wizard-input"
-        showSubmitButton={inputText.length > 0}
+        showSubmitButton={active && inputText.length > 0}
         placeholder={
           awaitingReply
             ? "MongoDB AI is answering..."
@@ -108,6 +110,9 @@ function CTACard({
           setInputText(e.target.value);
         }}
         loading={awaitingReply}
+        handleSubmit={() => {
+          handleSubmit(inputText);
+        }}
       />
 
       {!active ? (
@@ -137,6 +142,7 @@ function CTACard({
 }
 
 export default function Chatbot() {
+  console.log("Chatbot rendered xx");
   const conversation = useConversation();
   const [active, setActive] = useState(false);
   const [awaitingReply, setAwaitingReply] = useState(false);
@@ -153,7 +159,7 @@ export default function Chatbot() {
       console.error(`Cannot addMessage without a conversationId`);
       return;
     }
-    if(awaitingReply) return;
+    if (awaitingReply) return;
     try {
       setInputText("");
       setAwaitingReply(true);
@@ -164,6 +170,10 @@ export default function Chatbot() {
     setAwaitingReply(true);
     setTimeout(() => {
       setAwaitingReply(false);
+      conversation.addMessage(
+        "assistant",
+        "This is a test response.\n\nHere's some code you could run if you're brave enough:\n\n```javascript\nfunction hello() {\n  console.log('hello, world!');\n}\n\nhello()\n```\n"
+      );
     }, 4000);
   };
   const cardBoundingBoxRef = useClickAway(() => {
@@ -172,37 +182,32 @@ export default function Chatbot() {
   const cardRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className={styles.cta_container} ref={cardBoundingBoxRef}>
-      <form
-        className={styles.input_form}
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit(inputText);
+    <div className={styles.chatbot_container} ref={cardBoundingBoxRef}>
+      <CSSTransition
+        nodeRef={cardRef}
+        in={active}
+        timeout={{
+          enter: 250,
+          exit: 200,
+        }}
+        classNames={{
+          enterActive: styles["card-enter"],
+          enterDone: styles["card-enter-active"],
+          exitActive: styles["card-exit"],
+          exitDone: styles["card-exit-active"],
         }}
       >
-        <CSSTransition
-          nodeRef={cardRef}
-          in={active}
-          timeout={250}
-          classNames={{
-            enterActive: styles["card-enter"],
-            enterDone: styles["card-enter-active"],
-            exitActive: styles["card-exit"],
-            exitDone: styles["card-exit-active"],
-          }}
-        >
-          <CTACard
-            cardRef={cardRef}
-            conversation={conversation}
-            active={active}
-            setActive={setActive}
-            inputText={inputText}
-            setInputText={setInputText}
-            handleSubmit={handleSubmit}
-            awaitingReply={awaitingReply}
-          />
-        </CSSTransition>
-      </form>
+        <CTACard
+          cardRef={cardRef}
+          conversation={conversation}
+          active={active}
+          setActive={setActive}
+          inputText={inputText}
+          setInputText={setInputText}
+          handleSubmit={handleSubmit}
+          awaitingReply={awaitingReply}
+        />
+      </CSSTransition>
     </div>
   );
 }

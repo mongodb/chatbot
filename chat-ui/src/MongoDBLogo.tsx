@@ -1,5 +1,3 @@
-import style from "./Message.module.css";
-
 export function LeafSVG(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg

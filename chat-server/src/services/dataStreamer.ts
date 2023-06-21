@@ -4,6 +4,8 @@ import { Readable } from "stream";
 import { chain } from "stream-chain";
 import { Duplex, stringer } from "stream-json/jsonl/Stringer";
 import { logger } from "./logger";
+import { Conversation } from "./conversations";
+import { Content } from "./content";
 
 interface AnswerParams {
   res: Response;
@@ -12,7 +14,10 @@ interface AnswerParams {
   chunks: Content[];
 }
 
-class DataStreamer {
+export interface DataStreamerServiceInterface {
+  answer(params: AnswerParams): Promise<string>;
+}
+export class DataStreamerService {
   // NOTE: for example streaming data, see https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
   async answer({ res, answer, conversation, chunks }: AnswerParams) {
     // TODO: do stuff with the response
@@ -20,4 +25,4 @@ class DataStreamer {
   }
 }
 
-export const dataStreamer = new DataStreamer();
+export const dataStreamer = new DataStreamerService();

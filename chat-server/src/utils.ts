@@ -1,4 +1,5 @@
 import { Request } from "express";
+import { Conversation } from "./services/conversations";
 
 /**
  * Checks for req-id Request Header. Returns an empty string if the header is not

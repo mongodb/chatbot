@@ -31,6 +31,7 @@ export type OpenAiStreamingResponse = AsyncIterable<
   Omit<ChatCompletions, "usage">
 >;
 export type OpenAiAwaitedResponse = OpenAiChatMessage;
+
 export class OpenAiLlmProvider
   implements LlmProvider<OpenAiStreamingResponse, OpenAiAwaitedResponse>
 {

@@ -1,16 +1,26 @@
+import deepEqual from "deep-equal";
+
 /**
   Fetches pages from data sources and stores those that have changed in the data
   store.
  */
-export const updatePages = async (args: {
+export const updatePages = async ({
+  sources,
+  pageStore,
+}: {
   sources: DataSource[];
   pageStore: PageStore;
 }): Promise<void> => {
-  const pages = await fetchPages(args);
-  await persistPages({
-    pages,
-    store: args.pageStore,
-  });
+  await Promise.all(
+    sources.map(async (source) => {
+      const pages = await source.fetchPages();
+      await persistPages({
+        pages,
+        store: pageStore,
+        sourceName: source.name,
+      });
+    })
+  );
 };
 
 /**
@@ -24,10 +34,12 @@ export type Page = {
   /**
     Data source name.
    */
-  source: string;
+  sourceName: string;
 
   tags: string[];
 };
+
+export type PageAction = "created" | "updated" | "deleted";
 
 /**
   Represents a page stored in the database.
@@ -38,7 +50,7 @@ export type PersistedPage = Page & {
    */
   updated: Date;
 
-  action: "created" | "updated" | "deleted";
+  action: PageAction;
 };
 
 export type DataSource = {
@@ -47,30 +59,94 @@ export type DataSource = {
   fetchPages(): Promise<Page[]>;
 };
 
-// TODO: This is a stand-in for Atlas
 export type PageStore = {
-  loadPages(args: { source: string }): Promise<PersistedPage[]>;
+  loadPages(args: { sourceName: string }): Promise<PersistedPage[]>;
   updatePages(pages: PersistedPage[]): Promise<void>;
-};
-
-/**
-  Fetch pages from given data sources.
- */
-export const fetchPages = async (args: {
-  sources: DataSource[];
-}): Promise<Page[]> => {
-  // TODO: Fetch data from sources
-  return [];
 };
 
 /**
   Persists pages that have changed.
  */
-export const persistPages = async (args: {
+export const persistPages = async ({
+  store,
+  pages,
+  sourceName,
+}: {
   store: PageStore;
   pages: Page[];
+  sourceName: string;
 }): Promise<void> => {
-  // TODO: Load pages from store
-  // TODO: Compare pages in store with incoming pages
-  // TODO: Persist pages that have changed
+  const changedPages = await findChangedPages({
+    oldPages: await store.loadPages({ sourceName }),
+    newPages: pages,
+  });
+
+  await store.updatePages(changedPages);
 };
+
+export const findChangedPages = async ({
+  oldPages: oldPagesIn,
+  newPages: newPagesIn,
+}: {
+  oldPages: Page[];
+  newPages: Page[];
+}): Promise<PersistedPage[]> => {
+  const oldPages = new Map(oldPagesIn.map((page) => [page.url, page]));
+  const newPages = new Map(newPagesIn.map((page) => [page.url, page]));
+
+  const deletedPages = [...oldPages]
+    .filter(([url]) => !newPages.has(url))
+    .map(
+      ([, page]): PersistedPage => ({
+        ...page,
+        updated: new Date(),
+        action: "deleted",
+      })
+    );
+
+  const createdPages = [...newPages]
+    .filter(([url]) => !oldPages.has(url))
+    .map(
+      ([, page]): PersistedPage => ({
+        ...page,
+        updated: new Date(),
+        action: "created",
+      })
+    );
+
+  const updatedPages = [...newPages]
+    .filter(([url, page]) => {
+      const oldPage = oldPages.get(url);
+      if (!oldPage) {
+        return false;
+      }
+      // Filter out pages that haven't changed
+      return !deepEqual(
+        comparablePartialPage(oldPage),
+        comparablePartialPage(page)
+      );
+    })
+    .map(
+      ([, page]): PersistedPage => ({
+        ...page,
+        updated: new Date(),
+        action: "updated",
+      })
+    );
+
+  return [...createdPages, ...deletedPages, ...updatedPages];
+};
+
+const comparablePartialPage = ({
+  url,
+  sourceName,
+  body,
+  format,
+  tags,
+}: Page): Partial<Page> => ({
+  url,
+  sourceName,
+  body,
+  format,
+  tags,
+});

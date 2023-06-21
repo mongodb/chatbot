@@ -21,6 +21,7 @@
   "devDependencies": {
     "@babel/preset-typescript": "^7",
     "@babel/types": "^7.22.5",
+    "@types/deep-equal": "^1.0.1",
     "@types/jest": "^26",
     "@types/node": "^12",
     "@typescript-eslint/eslint-plugin": "^5",
@@ -38,6 +39,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "deep-equal": "^2.2.1",
     "dotenv": "^16",
     "mongodb": "^5",
     "yargs": "^17"

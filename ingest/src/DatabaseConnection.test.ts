@@ -55,7 +55,7 @@ describe("DatabaseConnection", () => {
       action: "created",
       body: "foo",
       format: "md",
-      source: "source1",
+      sourceName: "source1",
       tags: [],
       updated: new Date(),
       url: "/x/y/z",
@@ -67,14 +67,14 @@ describe("DatabaseConnection", () => {
     await store.updateChunks({
       page,
       chunks: [
-        { embedding: [], source: page.source, text: "foo", url: page.url },
+        { embedding: [], source: page.sourceName, text: "foo", url: page.url },
       ],
     });
 
     expect(await store.loadChunks({ page })).toMatchObject([
       {
         embedding: [],
-        source: "source1",
+        sourceName: "source1",
         text: "foo",
         url: "/x/y/z",
       },
@@ -82,14 +82,14 @@ describe("DatabaseConnection", () => {
 
     // Won't find chunks for some other page
     expect(
-      await store.loadChunks({ page: { ...page, source: "source2" } })
+      await store.loadChunks({ page: { ...page, sourceName: "source2" } })
     ).toStrictEqual([]);
     expect(
       await store.loadChunks({ page: { ...page, url: page.url + "/" } })
     ).toStrictEqual([]);
 
     // Won't delete some other page's chunks
-    await store.deleteChunks({ page: { ...page, source: "source2" } });
+    await store.deleteChunks({ page: { ...page, sourceName: "source2" } });
     expect((await store.loadChunks({ page })).length).toBe(1);
 
     // Deletes chunks for page
@@ -104,13 +104,13 @@ describe("DatabaseConnection", () => {
       action: "created",
       body: "foo",
       format: "md",
-      source: "source1",
+      sourceName: "source1",
       tags: [],
       updated: new Date(),
       url: "/x/y/z",
     };
 
-    let pages = await store.loadPages({ source: "source1" });
+    let pages = await store.loadPages({ sourceName: "source1" });
     expect(pages).toStrictEqual([]);
 
     await store.updatePages([
@@ -119,13 +119,13 @@ describe("DatabaseConnection", () => {
       { ...page, url: "3" },
     ]);
 
-    pages = await store.loadPages({ source: "source1" });
+    pages = await store.loadPages({ sourceName: "source1" });
     expect(pages.length).toBe(3);
     expect(pages[1]).toMatchObject({ url: "2", action: "created" });
 
     await store.updatePages([{ ...page, url: "2", action: "deleted" }]);
 
-    pages = await store.loadPages({ source: "source1" });
+    pages = await store.loadPages({ sourceName: "source1" });
     expect(pages.length).toBe(3);
     expect(pages[1]).toMatchObject({ url: "2", action: "deleted" });
   });

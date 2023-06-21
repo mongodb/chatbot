@@ -1,30 +1,34 @@
-import { Conversation } from "../../services/conversations";
+import { Conversation, Message } from "../../services/conversations";
 
-export interface MessageResponse {
+export interface ApiMessage {
   id: string;
   role: string;
   content: string;
   rating?: boolean;
   createdAt: number;
 }
-export interface ConversationResponse {
+export interface ApiConversation {
   _id: string;
-  messages: MessageResponse[];
+  messages: ApiMessage[];
   createdAt: number;
 }
-export function convertConversationToResponse(
+
+export function convertMessageFromDbToApi(message: Message): ApiMessage {
+  return {
+    id: message.id.toString(),
+    role: message.role,
+    content: message.content,
+    rating: message.rating,
+    createdAt: message.createdAt.getTime(),
+  };
+}
+export function convertConversationFromDbToApi(
   conversation: Conversation
-): ConversationResponse {
+): ApiConversation {
   conversation.messages.shift(); // Remove the system prompt
   return {
     _id: conversation._id.toString(),
-    messages: conversation.messages.map((message) => ({
-      id: message.id.toString(),
-      role: message.role,
-      content: message.content,
-      rating: message.rating,
-      createdAt: message.createdAt.getTime(),
-    })),
+    messages: conversation.messages.map(convertMessageFromDbToApi),
     createdAt: conversation.createdAt.getTime(),
   };
 }

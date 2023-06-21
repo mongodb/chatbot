@@ -4,7 +4,7 @@ import {
   Request as ExpressRequest,
 } from "express";
 import { ConversationsServiceInterface } from "../../services/conversations";
-import { convertConversationToResponse } from "./utils";
+import { convertConversationFromDbToApi } from "./utils";
 import { logger } from "../../services/logger";
 
 export interface CreateConversationRouteParams {
@@ -28,7 +28,7 @@ export function makeCreateConversationRoute({
       });
 
       const responseConversation =
-        convertConversationToResponse(conversationInDb);
+        convertConversationFromDbToApi(conversationInDb);
       res.status(200).json({ conversation: responseConversation });
       logger.info(`Created conversation ${conversationInDb._id.toString()}`);
     } catch (err) {

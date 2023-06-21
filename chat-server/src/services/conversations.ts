@@ -32,9 +32,10 @@ export interface Conversation {
 export interface CreateConversationParams {
   ipAddress: string;
 }
-export interface AddMessageParams {
+export interface AddConversationMessageParams {
   conversationId: ObjectId;
   content: string;
+  role: "user" | "assistant";
 }
 export interface FindByIdParams {
   _id: ObjectId;
@@ -47,10 +48,11 @@ export interface RateMessageParams {
 }
 export interface ConversationsServiceInterface {
   create: ({ ipAddress }: CreateConversationParams) => Promise<Conversation>;
-  addUserMessage: ({
+  addConversationMessage: ({
     conversationId,
     content,
-  }: AddMessageParams) => Promise<boolean>;
+    role,
+  }: AddConversationMessageParams) => Promise<Message>;
   findById: ({ _id }: FindByIdParams) => Promise<Conversation | null>;
   rateMessage: ({
     conversationId,
@@ -90,9 +92,13 @@ export class ConversationsService implements ConversationsServiceInterface {
     return newConversation;
   }
 
-  async addUserMessage({ conversationId, content }: AddMessageParams) {
+  async addConversationMessage({
+    conversationId,
+    content,
+    role,
+  }: AddConversationMessageParams) {
     const newMessage = this.createMessageFromChatMessage({
-      role: "user",
+      role,
       content,
     });
     const updateResult = await this.conversationsCollection.updateOne(
@@ -108,7 +114,7 @@ export class ConversationsService implements ConversationsServiceInterface {
     if (!updateResult.acknowledged || updateResult.matchedCount === 0) {
       throw new Error("Failed to insert message");
     }
-    return true;
+    return newMessage;
   }
 
   async findById({ _id }: FindByIdParams) {

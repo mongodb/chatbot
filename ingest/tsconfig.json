@@ -3,7 +3,7 @@
     "outDir": "./build",
     "allowJs": false,
     "target": "es2016",
-    "module": "CommonJS",
+    "module": "NodeNext",
     "esModuleInterop": true,
     "lib": ["ES2020", "DOM"],
     "downlevelIteration": true,

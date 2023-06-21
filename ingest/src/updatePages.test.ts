@@ -1,10 +1,4 @@
-import {
-  DataSource,
-  persistPages,
-  Page,
-  PageStore,
-  PersistedPage,
-} from "./updatePages";
+import { persistPages, Page, PageStore, PersistedPage } from "./updatePages";
 
 export class MockPageStore implements PageStore {
   pages: PersistedPage[] = [];

@@ -1,4 +1,5 @@
-import { getChangedPages } from "./getChangedPages";
+import { getChangedPages } from "./getChangedPages.js";
+import { DataSource } from "./DataSource.js";
 
 /**
   Fetches pages from data sources and stores those that have changed in the data
@@ -51,12 +52,6 @@ export type PersistedPage = Page & {
   updated: Date;
 
   action: PageAction;
-};
-
-export type DataSource = {
-  name: string;
-
-  fetchPages(): Promise<Page[]>;
 };
 
 export type PageStore = {

@@ -1,5 +1,5 @@
 import { CommandModule } from "yargs";
-import { updatePages } from "../updatePages";
+import { updatePages } from "../updatePages.js";
 
 // TODO: Option for which data source
 type PagesCommandArgs = Record<string, never>;

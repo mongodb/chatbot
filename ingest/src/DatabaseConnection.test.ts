@@ -6,7 +6,7 @@ import {
   DatabaseConnection,
 } from "./DatabaseConnection";
 import { PageStore, PersistedPage } from "./updatePages";
-import { ChunkStore, EmbeddedChunk } from "./updateChunks";
+import { ChunkStore } from "./updateChunks";
 
 export type DbServer = {
   connectionUri: string;

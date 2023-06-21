@@ -8,7 +8,7 @@ export interface MessageResponse {
   createdAt: number;
 }
 export interface ConversationResponse {
-  id: string;
+  _id: string;
   messages: MessageResponse[];
   createdAt: number;
 }
@@ -17,7 +17,7 @@ export function convertConversationToResponse(
 ): ConversationResponse {
   conversation.messages.shift(); // Remove the system prompt
   return {
-    id: conversation._id.toString(),
+    _id: conversation._id.toString(),
     messages: conversation.messages.map((message) => ({
       id: message.id.toString(),
       role: message.role,

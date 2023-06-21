@@ -163,11 +163,11 @@ components:
     Conversation:
       type: object
       required:
-        - id
+        - _id
         - messages
         - createdAt
       properties:
-        id:
+        _id:
           type: string
           description: The unique identifier for a conversation.
         messages:

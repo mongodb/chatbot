@@ -4,7 +4,8 @@ import {
 } from "../../src/integrations/openai";
 import "dotenv/config";
 import { stripIndent } from "common-tags";
-import { ChatCompletions } from "@azure/openai";
+
+jest.setTimeout(10000);
 
 describe("OpenAi", () => {
   describe("Embeddings", () => {

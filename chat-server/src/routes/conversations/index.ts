@@ -30,13 +30,10 @@ export function makeConversationsRouter({
 }: ConversationsRouterParams<OpenAiStreamingResponse, OpenAiAwaitedResponse>) {
   const conversationsRouter = Router();
 
-  const createConversationRoute = makeCreateConversationRoute({
-    conversations,
-  });
   /**
    * Create new conversation.
    */
-  conversationsRouter.post("/", createConversationRoute);
+  conversationsRouter.post("/", makeCreateConversationRoute({ conversations }));
 
   /**
    * Create a new message from the user and get response from the LLM.

@@ -15,10 +15,6 @@ interface RatingRequest extends ExpressRequest {
     messageId: string;
   };
   body: {
-    conversation: Message[];
-    id: string;
-    ip_address: string;
-    message_index: number;
     rating: boolean;
   };
 }

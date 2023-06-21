@@ -50,6 +50,7 @@ function CTACard({
   handleSubmit,
   awaitingReply,
 }: CTACardProps) {
+  console.log("CONVERSATION IS::", conversation);
   const isEmptyConversation = conversation.messages.length === 0;
   const showSuggestedPrompts = inputText.length === 0;
   const showExperimentalBanner = inputText.length > 0;

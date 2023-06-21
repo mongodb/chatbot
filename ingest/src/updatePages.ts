@@ -1,4 +1,4 @@
-import deepEqual from "deep-equal";
+import { getChangedPages } from "./getChangedPages";
 
 /**
   Fetches pages from data sources and stores those that have changed in the data
@@ -76,77 +76,10 @@ export const persistPages = async ({
   pages: Page[];
   sourceName: string;
 }): Promise<void> => {
-  const changedPages = await findChangedPages({
+  const changedPages = await getChangedPages({
     oldPages: await store.loadPages({ sourceName }),
     newPages: pages,
   });
 
   await store.updatePages(changedPages);
 };
-
-export const findChangedPages = async ({
-  oldPages: oldPagesIn,
-  newPages: newPagesIn,
-}: {
-  oldPages: Page[];
-  newPages: Page[];
-}): Promise<PersistedPage[]> => {
-  const oldPages = new Map(oldPagesIn.map((page) => [page.url, page]));
-  const newPages = new Map(newPagesIn.map((page) => [page.url, page]));
-
-  const deletedPages = [...oldPages]
-    .filter(([url]) => !newPages.has(url))
-    .map(
-      ([, page]): PersistedPage => ({
-        ...page,
-        updated: new Date(),
-        action: "deleted",
-      })
-    );
-
-  const createdPages = [...newPages]
-    .filter(([url]) => !oldPages.has(url))
-    .map(
-      ([, page]): PersistedPage => ({
-        ...page,
-        updated: new Date(),
-        action: "created",
-      })
-    );
-
-  const updatedPages = [...newPages]
-    .filter(([url, page]) => {
-      const oldPage = oldPages.get(url);
-      if (!oldPage) {
-        return false;
-      }
-      // Filter out pages that haven't changed
-      return !deepEqual(
-        comparablePartialPage(oldPage),
-        comparablePartialPage(page)
-      );
-    })
-    .map(
-      ([, page]): PersistedPage => ({
-        ...page,
-        updated: new Date(),
-        action: "updated",
-      })
-    );
-
-  return [...createdPages, ...deletedPages, ...updatedPages];
-};
-
-const comparablePartialPage = ({
-  url,
-  sourceName,
-  body,
-  format,
-  tags,
-}: Page): Partial<Page> => ({
-  url,
-  sourceName,
-  body,
-  format,
-  tags,
-});

@@ -14,17 +14,26 @@ import {
   OpenAiAwaitedResponse,
   OpenAiStreamingResponse,
 } from "../../services/llm";
-import { ApiConversation, convertMessageFromDbToApi } from "./utils";
+import {
+  ApiConversation,
+  ApiMessage,
+  convertMessageFromDbToApi,
+} from "./utils";
 import { sendErrorResponse } from "../../utils";
 import { logger } from "../../services/logger";
 
 const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 
-interface RequestWithStreamParam extends ExpressRequest {
+interface AddMessageRequest extends ExpressRequest {
   params: {
+    conversationId: string;
+  };
+  body: {
+    message: string;
+  };
+  query: {
     stream: string;
   };
-  body: ApiConversation;
 }
 export interface AddMessageToConversationRouteParams {
   content: ContentServiceInterface;
@@ -41,28 +50,30 @@ export function makeAddMessageToConversationRoute({
   embeddings,
 }: AddMessageToConversationRouteParams) {
   return async (
-    req: RequestWithStreamParam,
+    req: AddMessageRequest,
     res: ExpressResponse,
     next: NextFunction
   ) => {
     try {
-      // TODO: implement type checking on the request
+      const {
+        params: { conversationId: conversationIdString },
+        body: { message },
+        query: { stream },
+      } = req;
+      const conversationId = new ObjectId(conversationIdString);
 
-      if (!validateApiConversationFormatting({ conversation: req.body })) {
-        return sendErrorResponse(res, 400, "Invalid conversation formatting");
-      }
+      // TODO: implement type checking on the request
 
       const ipAddress = "<NOT CAPTURING IP ADDRESS YET>"; // TODO: refactor to get IP address with middleware
 
-      const stream = Boolean(req.params.stream);
-      const { messages, id } = req.body;
-      const latestMessage = messages[messages.length - 1];
-      if (latestMessage.content.length > MAX_INPUT_LENGTH) {
+      const shouldStream = Boolean(stream);
+      const latestMessage = message;
+      if (latestMessage.length > MAX_INPUT_LENGTH) {
         return sendErrorResponse(res, 400, "Message too long");
       }
 
       const conversationInDb = await conversations.findById({
-        _id: new ObjectId(id),
+        _id: new ObjectId(conversationId),
       });
       if (!conversationInDb) {
         return sendErrorResponse(res, 404, "Conversation not found");
@@ -78,14 +89,14 @@ export function makeAddMessageToConversationRoute({
       const chunks = await getContentForText({
         embeddings,
         ipAddress,
-        text: latestMessage.content,
+        text: latestMessage,
         content,
       });
 
       const chunkTexts = chunks.map((chunk) => chunk.text);
 
       let answer;
-      if (stream) {
+      if (shouldStream) {
         throw new Error("Streaming not implemented yet");
         // answer = await dataStreamer.answer({
         //   res,
@@ -121,7 +132,7 @@ export function makeAddMessageToConversationRoute({
         // Would limit database calls.
         await conversations.addConversationMessage({
           conversationId: conversationInDb._id,
-          content: latestMessage.content,
+          content: latestMessage,
           role: "user",
         });
         const newMessage = await conversations.addConversationMessage({

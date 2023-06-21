@@ -17,7 +17,7 @@ export interface Message {
   /** Set to `true` if the user liked the response, `false` if the user didn't like the response. No value if user didn't rate the response. Note that only messages with `role: "assistant"` can be rated. */
   rating?: boolean;
   /** The date the message was created. */
-  timeCreated: Date;
+  createdAt: Date;
 }
 
 export interface Conversation {
@@ -27,7 +27,7 @@ export interface Conversation {
   /** The IP address of the user performing the conversation. */
   ipAddress: string;
   /** The date the conversation was created. */
-  timeCreated: Date;
+  createdAt: Date;
 }
 export interface CreateConversationParams {
   ipAddress: string;
@@ -75,7 +75,7 @@ export class ConversationsService implements ConversationsServiceInterface {
         this.createMessageFromChatMessage(SYSTEM_PROMPT),
         this.createMessageFromChatMessage(ASSISTANT_PROMPT),
       ],
-      timeCreated: new Date(),
+      createdAt: new Date(),
     };
     const insertResult = await this.conversationsCollection.insertOne(
       newConversation
@@ -153,7 +153,7 @@ export class ConversationsService implements ConversationsServiceInterface {
       id: new ObjectId(),
       role: chatMessage.role,
       content: chatMessage.content,
-      timeCreated: new Date(),
+      createdAt: new Date(),
     };
   }
 }

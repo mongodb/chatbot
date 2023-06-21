@@ -165,7 +165,7 @@ components:
       required:
         - id
         - messages
-        - timeCreated
+        - createdAt
       properties:
         id:
           type: string
@@ -174,7 +174,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Message"
-        timeCreated:
+        createdAt:
           type: integer
           description: Unix timestamp for when the conversation was created.
     Message:
@@ -183,7 +183,7 @@ components:
         - id
         - role
         - content
-        - timeCreated
+        - createdAt
       properties:
         id:
           type: string
@@ -203,7 +203,7 @@ components:
             Set to `true` if the user liked the response, `false` if the user didn't like the response.
             No value if user didn't rate the response.
             Note that only messages with `role: "assistant"` can be rated.
-        timeCreated:
+        createdAt:
           type: integer
           description: |
             Unix timestamp for when the message was sent.

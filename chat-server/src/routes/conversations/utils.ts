@@ -5,12 +5,12 @@ export interface MessageResponse {
   role: string;
   content: string;
   rating?: boolean;
-  timeCreated: number;
+  createdAt: number;
 }
 export interface ConversationResponse {
   id: string;
   messages: MessageResponse[];
-  timeCreated: number;
+  createdAt: number;
 }
 export function convertConversationToResponse(
   conversation: Conversation
@@ -23,8 +23,8 @@ export function convertConversationToResponse(
       role: message.role,
       content: message.content,
       rating: message.rating,
-      timeCreated: message.timeCreated.getTime(),
+      createdAt: message.createdAt.getTime(),
     })),
-    timeCreated: conversation.timeCreated.getTime(),
+    createdAt: conversation.createdAt.getTime(),
   };
 }

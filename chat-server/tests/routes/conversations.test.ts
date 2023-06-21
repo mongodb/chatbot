@@ -55,7 +55,7 @@ describe("Conversations Router", () => {
       expect(assistantMessage.content).toBe(ASSISTANT_PROMPT.content);
       expect(assistantMessage.role).toBe(ASSISTANT_PROMPT.role);
       expect(assistantMessage.rating).toBe(undefined);
-      expect(assistantMessage.timeCreated).toBeGreaterThan(before);
+      expect(assistantMessage.createdAt).toBeGreaterThan(before);
     });
   });
 });

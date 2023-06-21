@@ -1,10 +1,12 @@
+import request from "supertest";
 import "dotenv/config";
 import { MongoDB } from "../../src/integrations/mongodb";
 import {
+  ASSISTANT_PROMPT,
   OpenAiChatClient,
   OpenAiEmbeddingsClient,
+  SYSTEM_PROMPT,
 } from "../../src/integrations/openai";
-import { makeConversationsRouter } from "../../src/routes/conversations";
 import {
   ContentService,
   ContentServiceOptions,
@@ -15,64 +17,45 @@ import {
   EmbeddingService,
   OpenAiEmbeddingProvider,
 } from "../../src/services/embeddings";
-import { OpenAiLlmProvider } from "../../src/services/llm";
+import { makeCreateConversationRoute } from "../../src/routes/conversations/createConversation";
+import express from "express";
+import { ConversationResponse } from "../../src/routes/conversations/utils";
 
-// Set up
-const {
-  OPENAI_ENDPOINT,
-  OPENAI_API_KEY,
-  OPENAI_EMBEDDING_DEPLOYMENT,
-  OPENAI_EMBEDDING_MODEL_VERSION,
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-} = process.env;
-const openAiLlmClient = new OpenAiChatClient(
-  OPENAI_ENDPOINT!,
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT!,
-  OPENAI_API_KEY!
-);
-const llm = new OpenAiLlmProvider(openAiLlmClient);
-const openaiEmbeddingsClient = new OpenAiEmbeddingsClient(
-  OPENAI_ENDPOINT!,
-  OPENAI_EMBEDDING_DEPLOYMENT!,
-  OPENAI_API_KEY!,
-  OPENAI_EMBEDDING_MODEL_VERSION!
-);
-const openAiEmbeddingProvider = new OpenAiEmbeddingProvider(
-  openaiEmbeddingsClient
-);
-const embeddings = new EmbeddingService(openAiEmbeddingProvider);
-const dataStreamer = new DataStreamerService();
-const {
-  MONGODB_CONNECTION_URI,
-  VECTOR_SEARCH_INDEX_NAME,
-  MONGODB_DATABASE_NAME,
-} = process.env;
+const { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } = process.env;
+
 const mongodb = new MongoDB(MONGODB_CONNECTION_URI!, MONGODB_DATABASE_NAME!);
-const options: ContentServiceOptions = {
-  k: 5,
-  path: "embedding",
-  indexName: VECTOR_SEARCH_INDEX_NAME!,
-  minScore: 0.9,
-};
-const content = new ContentService(mongodb.db, options);
-const testConversationsCollection = `conversations-test-${Date.now()}`;
-const conversations = new ConversationsService(
-  mongodb.mongoClient.db(testConversationsCollection)
+
+const testConversationDb = mongodb.mongoClient.db(
+  `conversations-test-${Date.now()}`
 );
+const conversations = new ConversationsService(testConversationDb);
 
 describe("Conversations Router", () => {
   afterAll(async () => {
+    await testConversationDb.dropDatabase();
     await mongodb.close();
   });
 
-  const conversationsRouter = makeConversationsRouter({
-    llm,
-    embeddings,
-    dataStreamer,
-    content,
-    conversations,
-  });
+  const app = express();
+  app.use(express.json()); // for parsing application/json
+
+  // create route with mock service
   describe("POST /conversations/", () => {
-    // TODO: test the create conversation route
+    app.post("/conversations/", makeCreateConversationRoute({ conversations }));
+    it("should respond with 204 and create a conversation", async () => {
+      const before = Date.now();
+      const res = await request(app).post("/conversations/").send();
+      const conversation: ConversationResponse = res.body.conversation;
+      console.log({ conversation });
+      const [assistantMessage] = conversation.messages;
+      expect(res.statusCode).toEqual(200);
+
+      expect(conversation.messages).toHaveLength(1);
+      expect(typeof assistantMessage.id).toBe("string");
+      expect(assistantMessage.content).toBe(ASSISTANT_PROMPT.content);
+      expect(assistantMessage.role).toBe(ASSISTANT_PROMPT.role);
+      expect(assistantMessage.rating).toBe(undefined);
+      expect(assistantMessage.timeCreated).toBeGreaterThan(before);
+    });
   });
 });

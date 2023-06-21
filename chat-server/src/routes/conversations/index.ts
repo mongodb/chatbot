@@ -6,10 +6,7 @@ import {
   OpenAiStreamingResponse,
 } from "../../services/llm";
 import { DataStreamerServiceInterface } from "../../services/dataStreamer";
-import {
-  ConversationsServiceInterface,
-  Message,
-} from "../../services/conversations";
+import { ConversationsServiceInterface } from "../../services/conversations";
 import { ContentServiceInterface } from "../../services/content";
 import { makeRateMessageRoute } from "./rateMessage";
 import { makeCreateConversationRoute } from "./createConversation";
@@ -33,10 +30,13 @@ export function makeConversationsRouter({
 }: ConversationsRouterParams<OpenAiStreamingResponse, OpenAiAwaitedResponse>) {
   const conversationsRouter = Router();
 
+  const createConversationRoute = makeCreateConversationRoute({
+    conversations,
+  });
   /**
    * Create new conversation.
    */
-  conversationsRouter.post("/", makeCreateConversationRoute({ conversations }));
+  conversationsRouter.post("/", createConversationRoute);
 
   /**
    * Create a new message from the user and get response from the LLM.

@@ -55,7 +55,7 @@ improvements and additions for all versions of the manual from its GitHub
 repository.
 
 The most up-to-date, current, and stable version of the manual is
-always available at \"https://www.mongodb.com/docs/manual/\".
+always available at "https://www.mongodb.com/docs/manual/".
 
 
 

@@ -11,8 +11,6 @@
     "build": "tsc -b",
     "watch": "tsc -b -w",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "verbose": "test -- --verbose",
-    "coverage": "test -- --coverage",
     "docs": "npx typedoc --excludePrivate --exclude '**/*.test.ts' --out docs src",
     "release": "release-it"
   },

@@ -38,7 +38,7 @@ type CTACardProps = {
   setInputText:
     | React.Dispatch<React.SetStateAction<string>>
     | ((text: string) => void);
-  isValidInputText: boolean;
+  inputTextError: string;
   handleSubmit: (text: string) => Promise<void>;
   awaitingReply: boolean;
 };
@@ -50,7 +50,7 @@ function CTACard({
   inputText,
   setActive,
   setInputText,
-  isValidInputText,
+  inputTextError,
   handleSubmit,
   awaitingReply,
 }: CTACardProps) {
@@ -101,11 +101,9 @@ function CTACard({
             ? "MongoDB AI is answering..."
             : "Ask MongoDB AI a Question"
         }
-        state={isValidInputText ? "none" : "error"}
-        errorMessage={
-          isValidInputText ? "" : "Input must be less than 300 characters"
-        }
-        canSubmit={isValidInputText}
+        state={inputTextError ? "error" : "none"}
+        errorMessage={inputTextError}
+        canSubmit={inputTextError.length === 0}
         onFocus={() => {
           if (!active) {
             setActive(true);
@@ -160,11 +158,18 @@ export default function Chatbot() {
     }
   }, [active, conversation]);
 
-  const [inputText, setInputText] = useState("");
-  const [isValidInputText, setIsValidInputText] = useState(true);
-  function validateInputText(text: string) {
+  const [inputData, setInputData] = useState({
+    text: "",
+    error: "",
+  });
+  const inputText = inputData.text;
+  const inputTextError = inputData.error;
+  function setInputText(text: string) {
     const isValid = text.length <= 300;
-    setIsValidInputText(isValid);
+    setInputData({
+      text,
+      error: isValid ? "" : "Input must be less than 300 characters",
+    });
   }
 
   const handleSubmit = async (text: string) => {
@@ -172,7 +177,7 @@ export default function Chatbot() {
       console.error(`Cannot addMessage without a conversationId`);
       return;
     }
-    if (!isValidInputText) {
+    if (inputData.error) {
       console.error(`Cannot addMessage with invalid input text`);
       return;
     }
@@ -221,11 +226,8 @@ export default function Chatbot() {
             active={active}
             setActive={setActive}
             inputText={inputText}
-            setInputText={(text: string) => {
-              validateInputText(text);
-              setInputText(text);
-            }}
-            isValidInputText={isValidInputText}
+            setInputText={setInputText}
+            inputTextError={inputTextError}
             handleSubmit={handleSubmit}
             awaitingReply={awaitingReply}
           />

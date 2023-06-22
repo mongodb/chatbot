@@ -68,6 +68,9 @@ export const makeSnootyDataSource = async ({
   return {
     name,
     async fetchPages() {
+      // TODO: The manifest can be quite large (>100MB) so this could stand to
+      // be re-architected to use AsyncGenerators and update page-by-page. For
+      // now we can just accept the memory cost.
       const { body } = await fetch(manifestUrl);
       if (body === null) {
         return [];

@@ -1,7 +1,7 @@
 import { strict as assert } from "assert";
 import { MongoClient } from "mongodb";
-import { PageStore, PersistedPage } from "./updatePages.js";
-import { ChunkStore, EmbeddedChunk } from "./updateChunks.js";
+import { PageStore, PersistedPage } from "./updatePages";
+import { ChunkStore, EmbeddedChunk } from "./updateChunks";
 
 export type DatabaseConnection = {
   /**

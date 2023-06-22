@@ -1,5 +1,5 @@
-import { getChangedPages } from "./getChangedPages.js";
-import { DataSource } from "./DataSource.js";
+import { getChangedPages } from "./getChangedPages";
+import { DataSource } from "./DataSource";
 
 /**
   Fetches pages from data sources and stores those that have changed in the data
@@ -12,16 +12,14 @@ export const updatePages = async ({
   sources: DataSource[];
   pageStore: PageStore;
 }): Promise<void> => {
-  await Promise.all(
-    sources.map(async (source) => {
-      const pages = await source.fetchPages();
-      await persistPages({
-        pages,
-        store: pageStore,
-        sourceName: source.name,
-      });
-    })
-  );
+  for await (const source of sources) {
+    const pages = await source.fetchPages();
+    await persistPages({
+      pages,
+      store: pageStore,
+      sourceName: source.name,
+    });
+  }
 };
 
 /**

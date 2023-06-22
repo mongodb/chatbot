@@ -1,4 +1,4 @@
-import { PersistedPage, PageStore } from "./updatePages.js";
+import { PersistedPage, PageStore } from "./updatePages";
 
 /**
   (Re-)chunks the pages in the page store that have changed since the given date

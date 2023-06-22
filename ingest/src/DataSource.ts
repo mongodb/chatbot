@@ -1,4 +1,4 @@
-import { Page } from "./updatePages.js";
+import { Page } from "./updatePages";
 
 /**
   Represents a source of page data.

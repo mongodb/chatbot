@@ -1,5 +1,5 @@
 import { CommandModule } from "yargs";
-import { updateChunks } from "../updateChunks.js";
+import { updateChunks } from "../updateChunks";
 
 type ChunksCommandArgs = {
   since: string;

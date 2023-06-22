@@ -10,7 +10,7 @@ export type DataSource = {
   name: string;
 
   /**
-    Fetches all pages in the data source.
+    Fetches pages in the data source.
    */
   fetchPages(): Promise<Page[]>;
 };

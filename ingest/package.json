@@ -3,7 +3,6 @@
   "version": "0.0.1",
   "description": "Ingests data sources and stores embeddings.",
   "main": "./build/main.js",
-  "type": "module",
   "bin": {
     "ingest": "./build/main.js"
   },
@@ -11,9 +10,9 @@
     "clean": "rm -rf build",
     "build": "tsc -b",
     "watch": "tsc -b -w",
-    "test": "jest",
-    "verbose": "jest --verbose",
-    "coverage": "jest --coverage",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "verbose": "test -- --verbose",
+    "coverage": "test -- --coverage",
     "docs": "npx typedoc --excludePrivate --exclude '**/*.test.ts' --out docs src",
     "release": "release-it"
   },
@@ -45,8 +44,6 @@
     "dotenv": "^16",
     "mongodb": "^5",
     "node-fetch": "^3.3.1",
-    "readable-web-to-node-stream": "^3.0.2",
-    "stream-json": "^1.8.0",
     "yargs": "^17"
   }
 }

@@ -1,7 +1,8 @@
 import fs from "fs";
 import { createInterface } from "readline";
-import { DataSource } from "./DataSource.js";
-import { Page } from "./updatePages.js";
+import { DataSource } from "./DataSource";
+import { Page } from "./updatePages";
+import { snootyAstToMd } from "./snootyAstToMd";
 
 // These types are what's in the snooty manifest jsonl file.
 export type SnootyTimestampEntry = {
@@ -31,7 +32,7 @@ export type SnootyTextNode = SnootyNode & {
 
 export type SnootyPage = {
   page_id: string;
-  ast: Record<string, SnootyNode>;
+  ast: SnootyNode;
 };
 
 export type SnootyPageEntry = {
@@ -47,9 +48,15 @@ export type SnootyAssetEntry = {
 export const makeSnootyDataSource = async ({
   name,
   manifestUrl,
+  baseUrl,
 }: {
   name: string;
   manifestUrl: string;
+
+  /**
+    The base url used in links etc
+   */
+  baseUrl: string;
 }): Promise<DataSource> => {
   const fetch =
     new URL(manifestUrl).protocol === "file:"
@@ -85,7 +92,7 @@ export const makeSnootyDataSource = async ({
                 (async () => {
                   const page = await handlePage(
                     (entry as SnootyPageEntry).data,
-                    { sourceName: name }
+                    { sourceName: name, baseUrl }
                   );
                   pages.push(page);
                 })()
@@ -121,14 +128,16 @@ const handlePage = async (
   page: SnootyPage,
   {
     sourceName,
+    baseUrl,
   }: {
     sourceName: string;
+    baseUrl: string;
   }
 ): Promise<Page> => {
   return {
     url: page.page_id,
     sourceName,
-    body: "This is a page", // TODO
+    body: snootyAstToMd(page.ast, { baseUrl }),
     format: "md",
     tags: [],
   };

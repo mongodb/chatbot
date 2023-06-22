@@ -35,7 +35,9 @@ type CTACardProps = {
   conversation: Conversation;
   inputText: string;
   setActive: React.Dispatch<React.SetStateAction<boolean>>;
-  setInputText: React.Dispatch<React.SetStateAction<string>>;
+  setInputText:
+    | React.Dispatch<React.SetStateAction<string>>
+    | ((text: string) => void);
   isValidInputText: boolean;
   handleSubmit: (text: string) => Promise<void>;
   awaitingReply: boolean;
@@ -100,7 +102,9 @@ function CTACard({
             : "Ask MongoDB AI a Question"
         }
         state={isValidInputText ? "none" : "error"}
-        errorMessage={isValidInputText ? "" : "Input must be less than 300 characters"}
+        errorMessage={
+          isValidInputText ? "" : "Input must be less than 300 characters"
+        }
         canSubmit={isValidInputText}
         onFocus={() => {
           if (!active) {
@@ -120,9 +124,7 @@ function CTACard({
         }}
       />
 
-      {!active ? (
-        <Disclosure />
-      ) : isEmptyConversation ? (
+      {active && isEmptyConversation ? (
         <div className={styles.card_content}>
           <div className={styles.chat}>
             {showSuggestedPrompts ? (
@@ -170,7 +172,7 @@ export default function Chatbot() {
       console.error(`Cannot addMessage without a conversationId`);
       return;
     }
-    if(!isValidInputText) {
+    if (!isValidInputText) {
       console.error(`Cannot addMessage with invalid input text`);
       return;
     }
@@ -212,20 +214,23 @@ export default function Chatbot() {
           exitDone: styles["card-exit-active"],
         }}
       >
-        <CTACard
-          cardRef={cardRef}
-          conversation={conversation}
-          active={active}
-          setActive={setActive}
-          inputText={inputText}
-          setInputText={(text) => {
-            validateInputText(text);
-            setInputText(text)
-          }}
-          isValidInputText={isValidInputText}
-          handleSubmit={handleSubmit}
-          awaitingReply={awaitingReply}
-        />
+        <>
+          <CTACard
+            cardRef={cardRef}
+            conversation={conversation}
+            active={active}
+            setActive={setActive}
+            inputText={inputText}
+            setInputText={(text: string) => {
+              validateInputText(text);
+              setInputText(text);
+            }}
+            isValidInputText={isValidInputText}
+            handleSubmit={handleSubmit}
+            awaitingReply={awaitingReply}
+          />
+          {!active ? <Disclosure /> : null}
+        </>
       </CSSTransition>
     </div>
   );

@@ -36,6 +36,7 @@ type CTACardProps = {
   inputText: string;
   setActive: React.Dispatch<React.SetStateAction<boolean>>;
   setInputText: React.Dispatch<React.SetStateAction<string>>;
+  isValidInputText: boolean;
   handleSubmit: (text: string) => Promise<void>;
   awaitingReply: boolean;
 };
@@ -47,6 +48,7 @@ function CTACard({
   inputText,
   setActive,
   setInputText,
+  isValidInputText,
   handleSubmit,
   awaitingReply,
 }: CTACardProps) {
@@ -97,6 +99,9 @@ function CTACard({
             ? "MongoDB AI is answering..."
             : "Ask MongoDB AI a Question"
         }
+        state={isValidInputText ? "none" : "error"}
+        errorMessage={isValidInputText ? "" : "Input must be less than 300 characters"}
+        canSubmit={isValidInputText}
         onFocus={() => {
           if (!active) {
             setActive(true);
@@ -154,9 +159,19 @@ export default function Chatbot() {
   }, [active, conversation]);
 
   const [inputText, setInputText] = useState("");
+  const [isValidInputText, setIsValidInputText] = useState(true);
+  function validateInputText(text: string) {
+    const isValid = text.length <= 300;
+    setIsValidInputText(isValid);
+  }
+
   const handleSubmit = async (text: string) => {
     if (!conversation.conversationId) {
       console.error(`Cannot addMessage without a conversationId`);
+      return;
+    }
+    if(!isValidInputText) {
+      console.error(`Cannot addMessage with invalid input text`);
       return;
     }
     if (awaitingReply) return;
@@ -203,7 +218,11 @@ export default function Chatbot() {
           active={active}
           setActive={setActive}
           inputText={inputText}
-          setInputText={setInputText}
+          setInputText={(text) => {
+            validateInputText(text);
+            setInputText(text)
+          }}
+          isValidInputText={isValidInputText}
           handleSubmit={handleSubmit}
           awaitingReply={awaitingReply}
         />

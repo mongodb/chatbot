@@ -14,6 +14,7 @@ export type ChatInputProps = Omit<
   sendButtonGlyph?: IconInputProps["glyph"];
   showSubmitButton: boolean;
   loading?: boolean;
+  canSubmit?: boolean;
   handleSubmit?: (e: React.FormEvent<HTMLFormElement>) => void;
   onButtonClick?: (e: React.MouseEvent) => void;
 };
@@ -26,6 +27,7 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(
       sendButtonGlyph,
       showSubmitButton,
       loading = false,
+      canSubmit = true,
       handleSubmit,
       onButtonClick,
       ...props
@@ -42,7 +44,9 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(
           onSubmit={(e) => {
             e.preventDefault();
             // const inputText = (e.currentTarget.elements.namedItem("chatbotInput") as HTMLInputElement).value;
-            handleSubmit?.(e);
+            if (canSubmit) {
+              handleSubmit?.(e);
+            }
           }}
         >
           <IconInput
@@ -72,7 +76,7 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(
               onClick={(e) => {
                 onButtonClick?.(e);
               }}
-              disabled={loading}
+              disabled={loading || !canSubmit}
             >
               {loading ? (
                 <Spinner displayOption="default-horizontal" />

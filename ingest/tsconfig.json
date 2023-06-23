@@ -12,7 +12,7 @@
     "declaration": true,
     "declarationMap": true,
     "resolveJsonModule": true,
-    "moduleResolution": "nodenext"
+    "moduleResolution": "Node"
   },
   "sourceMap": true,
   "include": ["./src/**/*.ts"],

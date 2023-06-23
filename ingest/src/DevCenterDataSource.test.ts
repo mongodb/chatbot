@@ -15,6 +15,7 @@ describe("DevCenterDataSource", () => {
       collectionName: "search_content_prod",
       databaseName: "devcenter",
       connectionUri: DEVCENTER_CONNECTION_URI,
+      baseUrl: "https://example.com",
     });
 
     const pages = await source.fetchPages();

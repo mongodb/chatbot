@@ -3,46 +3,46 @@ import { createInterface } from "readline";
 import { DataSource } from "./DataSource";
 import { Page } from "./updatePages";
 import { snootyAstToMd } from "./snootyAstToMd";
+import nodeFetch from "node-fetch";
 
 // These types are what's in the snooty manifest jsonl file.
-export type SnootyTimestampEntry = {
-  type: "timestamp";
-  data: number;
+export type SnootyManifestEntry = {
+  type: "page" | "timestamp" | "metadata" | "asset";
+  data: unknown;
 };
 
-export type SnootyMetadataEntry = {
-  type: "metadata";
-  data: Record<string, unknown>;
+/**
+  Represents a page entry in a Snooty manifest file.
+ */
+export type SnootyPageEntry = SnootyManifestEntry & {
+  type: "page";
+  data: SnootyPageData;
 };
 
-// TODO
-export type SnootyAsset = Record<string, unknown>;
-
+/**
+  A node in the Snooty AST.
+ */
 export type SnootyNode = {
   type: string;
   children?: (SnootyNode | SnootyTextNode)[];
   [key: string]: unknown;
 };
 
+/**
+  A Snooty AST node with a text value.
+ */
 export type SnootyTextNode = SnootyNode & {
   type: "text";
   children: never;
   value: string;
 };
 
-export type SnootyPage = {
+/**
+  A page in the Snooty manifest.
+ */
+export type SnootyPageData = {
   page_id: string;
   ast: SnootyNode;
-};
-
-export type SnootyPageEntry = {
-  type: "page";
-  data: SnootyPage;
-};
-
-export type SnootyAssetEntry = {
-  type: "asset";
-  data: Record<string, unknown>;
 };
 
 export const makeSnootyDataSource = async ({
@@ -58,12 +58,14 @@ export const makeSnootyDataSource = async ({
    */
   baseUrl: string;
 }): Promise<DataSource> => {
+  // Use a different fetcher depending on whether we are opening a local or
+  // remote file
   const fetch =
     new URL(manifestUrl).protocol === "file:"
       ? async (url: string) => ({
           body: fs.createReadStream(new URL(url).pathname),
         })
-      : (await import("node-fetch")).default;
+      : nodeFetch;
 
   return {
     name,
@@ -80,16 +82,8 @@ export const makeSnootyDataSource = async ({
       const pages: Page[] = [];
       await new Promise<void>((resolve, reject) => {
         stream.on("line", async (line) => {
-          const entry = JSON.parse(line) as
-            | SnootyAssetEntry
-            | SnootyTimestampEntry
-            | SnootyMetadataEntry
-            | SnootyPageEntry;
+          const entry = JSON.parse(line) as SnootyManifestEntry;
           switch (entry.type) {
-            case "asset":
-              return linePromises.push(
-                handleAsset((entry as SnootyAssetEntry).data)
-              );
             case "page":
               return linePromises.push(
                 (async () => {
@@ -100,9 +94,15 @@ export const makeSnootyDataSource = async ({
                   pages.push(page);
                 })()
               );
+            case "asset":
+              // Nothing to do with assets (images...) for now
+              return;
             case "metadata":
+              // Nothing to do with metadata document for now
+              return;
             case "timestamp":
-              return; // TODO?
+              // Nothing to do with timestamp document for now
+              return;
             default:
               return reject(
                 new Error(
@@ -123,12 +123,8 @@ export const makeSnootyDataSource = async ({
   };
 };
 
-const handleAsset = async (asset: SnootyAsset): Promise<void> => {
-  // TODO
-};
-
 const handlePage = async (
-  page: SnootyPage,
+  page: SnootyPageData,
   {
     sourceName,
     baseUrl,

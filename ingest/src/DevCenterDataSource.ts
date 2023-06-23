@@ -15,11 +15,13 @@ export const makeDevCenterDataSource = async ({
   connectionUri,
   databaseName,
   collectionName,
+  baseUrl,
 }: {
   name: string;
   connectionUri: string;
   databaseName: string;
   collectionName: string;
+  baseUrl: string;
 }): Promise<DataSource> => {
   return {
     name,
@@ -37,7 +39,7 @@ export const makeDevCenterDataSource = async ({
             format: "md",
             sourceName: name,
             tags: [], // TODO
-            url: document.calculated_slug, // TODO: should these have the baseurl baked in?
+            url: baseUrl + document.calculated_slug,
           });
         }
         return pages;

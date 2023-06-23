@@ -1,5 +1,10 @@
-import { Request } from "express";
+import {
+  Request as ExpressRequest,
+  Response as ExpressResponse,
+} from "express";
 import { Conversation } from "./services/conversations";
+import { logger } from "./services/logger";
+import { stripIndent } from "common-tags";
 
 /**
  * Checks for req-id Request Header. Returns an empty string if the header is not
@@ -8,7 +13,7 @@ import { Conversation } from "./services/conversations";
  * @param req
  * @returns
  */
-export const getRequestId = (req: Request) => {
+export const getRequestId = (req: ExpressRequest) => {
   const reqId = req.headers["req-id"];
   if (!reqId) {
     return undefined;
@@ -17,4 +22,17 @@ export const getRequestId = (req: Request) => {
   } else {
     return reqId;
   }
+};
+
+export const sendErrorResponse = (
+  res: ExpressResponse,
+  httpStatus: number,
+  errorMessage: string,
+  errorDetails?: string
+) => {
+  logger.error(
+    stripIndent`Responding with ${httpStatus} status and error message: ${errorMessage}.
+    ${errorDetails ? `Error details: ${errorDetails}` : ""}`
+  );
+  return res.status(httpStatus).json({ error: errorMessage });
 };

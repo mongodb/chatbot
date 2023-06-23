@@ -1,5 +1,5 @@
 // TODO: add better error handling logic like the embeddings service
-import { ChatMessage, ChatCompletions } from "@azure/openai";
+import { ChatCompletions } from "@azure/openai";
 import "dotenv/config";
 import {
   OpenAiChatClient,

@@ -1,14 +1,14 @@
 import express, { ErrorRequestHandler, RequestHandler } from "express";
+import cors from "cors";
 import "dotenv/config";
-import { MongoClient, ObjectId } from "mongodb";
 import { makeConversationsRouter } from "./routes/conversations";
-import { createMessage, logger } from "./services/logger";
-import { getRequestId } from "./utils";
 import { llm } from "./services/llm";
 import { embeddings } from "./services/embeddings";
 import { dataStreamer } from "./services/dataStreamer";
 import { content } from "./services/content";
 import { conversationsService } from "./services/conversations";
+import { ObjectId } from "mongodb";
+import { createMessage, logger } from "./services/logger";
 
 // General error handler; called at usage of next() in routes
 const errorHandler: ErrorRequestHandler = (err, req, res) => {
@@ -25,22 +25,21 @@ const errorHandler: ErrorRequestHandler = (err, req, res) => {
     res.end();
   }
 };
-
-// TODO: check with raymund if we'd need this for the current project
-// or if only snooty-data-api specific
-// const reqHandler: RequestHandler = (req, _res, next) => {
-//   const reqId = new ObjectId().toString();
-//   // Custom header specifically for a request ID. This ID will be used to track
-//   // logs related to the same request
-//   req.headers["req-id"] = reqId;
-//   const message = `Request for: ${req.url}`;
-//   logger.info(createMessage(message, req.body, reqId));
-//   next();
-// };
+// Apply to all logs in the app
+const reqHandler: RequestHandler = (req, _res, next) => {
+  const reqId = new ObjectId().toString();
+  // Custom header specifically for a request ID. This ID will be used to track
+  // logs related to the same request
+  req.headers["req-id"] = reqId;
+  const message = `Request for: ${req.url}`;
+  logger.info(createMessage(message, req.body, reqId));
+  next();
+};
 
 export const setupApp = async () => {
   const app = express();
-  // app.use(reqHandler);
+  app.use(cors()); // TODO: add specific options to only allow certain origins
+  app.use(reqHandler);
   app.use(
     "/conversations",
     makeConversationsRouter({

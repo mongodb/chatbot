@@ -3,9 +3,14 @@ import {
   Response as ExpressResponse,
   NextFunction,
 } from "express";
-import { OpenAiChatMessage } from "../../integrations/openai";
-import { ContentServiceInterface } from "../../services/content";
+import { ObjectId } from "mongodb";
 import {
+  OpenAiChatMessage,
+  OpenAiMessageRole,
+} from "../../integrations/openai";
+import { Content, ContentServiceInterface } from "../../services/content";
+import {
+  Conversation,
   ConversationsServiceInterface,
   Message,
 } from "../../services/conversations";
@@ -16,16 +21,27 @@ import {
   OpenAiAwaitedResponse,
   OpenAiStreamingResponse,
 } from "../../services/llm";
-import { ObjectId } from "mongodb";
+import {
+  ApiConversation,
+  ApiMessage,
+  convertMessageFromDbToApi,
+} from "./utils";
+import { sendErrorResponse } from "../../utils";
+import { logger } from "../../services/logger";
 
-interface RequestWithStreamParam extends ExpressRequest {
+const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
+
+export interface AddMessageRequestBody {
+  message: string;
+}
+
+export interface AddMessageRequest extends ExpressRequest {
   params: {
-    stream: string;
+    conversationId: string;
   };
-  body: {
-    conversation: Message[];
-    id: string;
-    ipAddress: string;
+  body: AddMessageRequestBody;
+  query: {
+    stream: string;
   };
 }
 export interface AddMessageToConversationRouteParams {
@@ -43,73 +59,195 @@ export function makeAddMessageToConversationRoute({
   embeddings,
 }: AddMessageToConversationRouteParams) {
   return async (
-    req: RequestWithStreamParam,
+    req: AddMessageRequest,
     res: ExpressResponse,
     next: NextFunction
   ) => {
     try {
-      // TODO: implement type checking on the request
+      const {
+        params: { conversationId: conversationIdString },
+        body: { message },
+        query: { stream },
+      } = req;
+      let conversationId: ObjectId;
+      try {
+        conversationId = new ObjectId(conversationIdString);
+      } catch (err) {
+        return sendErrorResponse(res, 400, "Invalid conversation ID");
+      }
 
-      const ipAddress = "<NOT CAPTURING IP ADDRESS YET>"; // TODO: refactor to get IP address with middleware
+      // TODO:(DOCSP-30863) implement type checking on the request
 
-      const stream = Boolean(req.params.stream);
-      const { conversation, id } = req.body;
-      const latestMessage = conversation[conversation.length - 1];
-      // TODO: implement error handling
-      const { embedding } = await embeddings.createEmbedding({
-        text: latestMessage.content,
-        userIp: ipAddress,
+      const ipAddress = "<NOT CAPTURING IP ADDRESS YET>"; // TODO:(DOCSP-30843) refactor to get IP address with middleware
+
+      const shouldStream = Boolean(stream);
+      const latestMessageText = message;
+      if (latestMessageText.length > MAX_INPUT_LENGTH) {
+        return sendErrorResponse(res, 400, "Message too long");
+      }
+
+      let conversationInDb: Conversation | null;
+      try {
+        conversationInDb = await conversations.findById({
+          _id: conversationId,
+        });
+      } catch (err) {
+        return sendErrorResponse(res, 500, "Error finding conversation");
+      }
+
+      if (!conversationInDb) {
+        return sendErrorResponse(res, 404, "Conversation not found");
+      }
+      if (conversationInDb.ipAddress !== ipAddress) {
+        return sendErrorResponse(res, 403, "IP address does not match");
+      }
+
+      // Find content matches for latest message
+      // TODO: consider refactoring this to feed in all messages to the embeddings service
+      // And then as a future step, we can use LLM pre-processing to create a better input
+      // to the embedding service.
+      const chunks = await getContentForText({
+        embeddings,
+        ipAddress,
+        text: latestMessageText,
+        content,
       });
-      const chunks = await content.findVectorMatches({
-        embedding,
-      });
+
       const chunkTexts = chunks.map((chunk) => chunk.text);
 
-      const conversationInDb = await conversations.findById({
-        _id: new ObjectId(id),
-      });
-      if (!conversationInDb) {
-        return res.status(404).json({ error: "Conversation not found" });
-      }
-      if (conversationInDb.ipAddress !== req.body.ipAddress) {
-        return res.status(403).json({ error: "IP address does not match" });
-      }
-
       let answer;
-      if (stream) {
-        answer = await dataStreamer.answer({
-          res,
-          answer: llm.answerQuestionStream({
-            messages: [
-              ...conversationInDb.messages,
-              latestMessage,
-            ] as OpenAiChatMessage[],
-            chunks: chunkTexts,
-          }),
-          conversation: conversationInDb,
-          chunks,
-        });
+      if (shouldStream) {
+        // TODO:(DOCSP-30866) add streaming support to endpoint
+        throw new Error("Streaming not implemented yet");
+        // answer = await dataStreamer.answer({
+        //   res,
+        //   answer: llm.answerQuestionStream({
+        //     messages: [
+        //       ...conversationInDb.messages,
+        //       latestMessageText,
+        //     ] as OpenAiChatMessage[],
+        //     chunks: chunkTexts,
+        //   }),
+        //   conversation: conversationInDb,
+        //   chunks,
+        // });
       } else {
-        answer = await llm.answerQuestionAwaited({
-          messages: [
-            ...conversationInDb.messages,
+        const latestMessage: OpenAiChatMessage = {
+          content: latestMessageText,
+          role: "user",
+        };
+        try {
+          const messages = [
+            ...conversationInDb.messages.map(convertDbMessageToOpenAiMessage),
             latestMessage,
-          ] as OpenAiChatMessage[],
-          chunks: chunkTexts,
-        });
-
-        const successfulOperation = await conversations.addUserMessage({
-          conversationId: conversationInDb._id,
-          content: answer.content,
-        });
-        if (successfulOperation) {
-          return res.status(200).send(answer);
-        } else {
-          return res.status(500).json({ error: "Internal server error" });
+          ];
+          logger.info(`LLM query: ${JSON.stringify(messages)}`);
+          answer = await llm.answerQuestionAwaited({
+            messages,
+            chunks: chunkTexts,
+          });
+          logger.info(`LLM response: ${JSON.stringify(answer)}`);
+        } catch (err: any) {
+          logger.error("Error from LLM: " + JSON.stringify(err));
+          return sendErrorResponse(res, 500, "Error from LLM", err.message);
         }
+        // TODO: consider refactoring addConversationMessage to take in an array of messages.
+        // Would limit database calls.
+        await conversations.addConversationMessage({
+          conversationId: conversationInDb._id,
+          content: latestMessageText,
+          role: "user",
+        });
+        const newMessage = await conversations.addConversationMessage({
+          conversationId: conversationInDb._id,
+          content: answer.content + generateFurtherReading({ chunks }),
+          role: "assistant",
+        });
+        const apiRes = convertMessageFromDbToApi(newMessage);
+        res.status(200).json(apiRes);
       }
     } catch (err) {
+      logger.error("An unexpected error occurred: " + JSON.stringify(err));
       next(err);
     }
   };
+}
+
+export interface GetContentForTextParams {
+  embeddings: EmbeddingService;
+  ipAddress: string;
+  text: string;
+  content: ContentServiceInterface;
+}
+
+export function convertDbMessageToOpenAiMessage(
+  message: Message
+): OpenAiChatMessage {
+  return {
+    content: message.content,
+    role: message.role as OpenAiMessageRole,
+  };
+}
+
+export async function getContentForText({
+  embeddings,
+  content,
+  text,
+  ipAddress,
+}: GetContentForTextParams) {
+  const { embedding } = await embeddings.createEmbedding({
+    text,
+    userIp: ipAddress,
+  });
+  const chunks = await content.findVectorMatches({
+    embedding,
+  });
+  return chunks;
+}
+
+export interface GenerateFurtherReadingParams {
+  chunks: Content[];
+}
+export function generateFurtherReading({
+  chunks,
+}: GenerateFurtherReadingParams) {
+  if (chunks.length === 0) {
+    return "";
+  }
+  const heading = "\n\nArticles Referenced:\n";
+  const uniqueLinks = Array.from(new Set(chunks.map((chunk) => chunk.url)));
+
+  const linksText =
+    uniqueLinks.reduce((acc, link) => {
+      const linkListItem = `${link}\n`;
+      return acc + linkListItem;
+    }, "") + "\n";
+  return heading + linksText;
+}
+
+export function validateApiConversationFormatting({
+  conversation,
+}: {
+  conversation: ApiConversation;
+}) {
+  const { messages } = conversation;
+  if (
+    messages?.length === 0 || // Must be messages in the conversation
+    messages.length % 2 !== 0 // Must be an even number of messages
+  ) {
+    return false;
+  }
+  // Must alternate between assistant and user
+  for (let i = 0; i < messages.length; i++) {
+    const message = messages[i];
+    const isAssistant = i % 2 === 0;
+    if (isAssistant && message.role !== "assistant") {
+      return false;
+    }
+    if (!isAssistant && message.role !== "user") {
+      return false;
+    }
+  }
+
+  return true;
 }

@@ -1,13 +1,13 @@
 import request from "supertest";
 import "dotenv/config";
 import {
-  ASSISTANT_PROMPT,
   OpenAiChatClient,
   OpenAiEmbeddingsClient,
   MongoDB,
   EmbeddingService,
   OpenAiEmbeddingProvider,
 } from "chat-core";
+import { ASSISTANT_PROMPT } from "../../aiConstants";
 import {
   Conversation,
   ConversationsService,
@@ -33,7 +33,7 @@ import { OpenAiLlmProvider } from "../../services/llm";
 import { DataStreamerService } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
-import { makeRateMessageRoute } from "../../src/routes/conversations/rateMessage";
+import { makeRateMessageRoute } from "./rateMessage";
 
 jest.setTimeout(100000);
 const {

@@ -43,7 +43,6 @@ describe("Conversations Service", () => {
       conversationId: conversation._id,
       role: "user",
       content,
-      role: "user",
     });
     expect(newMessage.content).toBe(content);
 

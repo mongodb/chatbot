@@ -1,7 +1,9 @@
-import { stripIndent } from "common-tags";
-import { OpenAiChatClient, SYSTEM_PROMPT, OpenAiChatMessage } from "chat-core";
-import { OpenAiLlmProvider } from "./llm";
 import "dotenv/config";
+
+import { stripIndent } from "common-tags";
+import { OpenAiChatClient, OpenAiChatMessage } from "chat-core";
+import { OpenAiLlmProvider } from "./llm";
+import { SYSTEM_PROMPT } from "../aiConstants";
 
 jest.setTimeout(10000);
 

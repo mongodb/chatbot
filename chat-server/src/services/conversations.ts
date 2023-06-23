@@ -4,10 +4,9 @@ import {
   Collection,
   mongodb,
   OpenAiChatMessage,
-  SYSTEM_PROMPT,
-  ASSISTANT_PROMPT,
   OpenAiMessageRole,
 } from "chat-core";
+import { SYSTEM_PROMPT, ASSISTANT_PROMPT } from "../aiConstants";
 
 export interface Message {
   /** Unique identifier for the message. */

@@ -1,13 +1,12 @@
 // TODO: add better error handling logic like the embeddings service
 import { ChatCompletions } from "@azure/openai";
 import "dotenv/config";
+import { OpenAiChatClient, OpenAiChatMessage } from "chat-core";
 import {
-  OpenAiChatClient,
   SYSTEM_PROMPT,
   GENERATE_USER_PROMPT,
   OPENAI_LLM_CONFIG_OPTIONS,
-  OpenAiChatMessage,
-} from "chat-core";
+} from "../aiConstants";
 
 export interface LlmAnswerQuestionParams {
   messages: OpenAiChatMessage[];

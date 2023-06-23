@@ -2,8 +2,7 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { Conversation } from "./services/conversations";
-import { logger } from "./services/logger";
+import { logger } from "chat-core";
 import { stripIndent } from "common-tags";
 
 /**

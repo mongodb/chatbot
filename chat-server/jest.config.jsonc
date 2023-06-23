@@ -1,4 +1,3 @@
 {
-  "preset": "ts-jest",
-  "setupFilesAfterEnv": ["<rootDir>/tests/setupAfterEnv.ts"]
+  "preset": "ts-jest"
 }

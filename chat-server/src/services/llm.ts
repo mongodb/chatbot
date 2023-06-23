@@ -7,7 +7,7 @@ import {
   GENERATE_USER_PROMPT,
   OPENAI_LLM_CONFIG_OPTIONS,
   OpenAiChatMessage,
-} from "../integrations/openai";
+} from "chat-core";
 
 export interface LlmAnswerQuestionParams {
   messages: OpenAiChatMessage[];

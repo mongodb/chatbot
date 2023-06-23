@@ -4,9 +4,7 @@ import { Content } from "../src/services/content";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Document } from "langchain/dist/document";
 import GPT3Tokenizer from "gpt3-tokenizer";
-import { embeddings } from "../src/services/embeddings";
-import { ObjectId } from "mongodb";
-import { mongodb } from "../src/integrations/mongodb";
+import { ObjectId, embeddings, mongodb } from "chat-core";
 
 /**
  * Note that not capturing all fields, just ones used in the content mapping.

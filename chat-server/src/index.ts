@@ -1,7 +1,6 @@
 import "dotenv/config";
 import { setupApp } from "./app";
-import { logger } from "./services/logger";
-import { mongodb } from "./integrations/mongodb";
+import { logger, mongodb } from "chat-core";
 
 const PORT = process.env.PORT || 3000;
 

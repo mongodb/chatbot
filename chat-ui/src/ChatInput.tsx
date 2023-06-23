@@ -43,7 +43,6 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(
           className={styles.input_form}
           onSubmit={(e) => {
             e.preventDefault();
-            // const inputText = (e.currentTarget.elements.namedItem("chatbotInput") as HTMLInputElement).value;
             if (canSubmit) {
               handleSubmit?.(e);
             }

@@ -185,10 +185,11 @@ export default function useConversation() {
     }
     try {
       dispatch({ type: "addMessage", role, text });
-      await conversationService.addMessage({
+      const response = await conversationService.addMessage({
         conversationId: state.conversationId,
         message: text,
       });
+      dispatch({ type: "addMessage", role: "assistant", text: response.content });
     } catch (error) {
       console.error(`Failed to add message: ${error}`);
     }

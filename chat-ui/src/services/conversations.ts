@@ -60,8 +60,11 @@ export default class ConversationService {
         "Content-Type": "application/json",
       },
     });
-    const { conversation } = await resp.json();
-    return conversation;
+    const conversation = await resp.json();
+    return {
+      ...conversation,
+      conversationId: conversation._id,
+    };
   }
 
   async addMessage({
@@ -72,7 +75,7 @@ export default class ConversationService {
     message: string;
   }): Promise<MessageData> {
     console.log("services/conversations::addMessage", conversationId, message);
-    const path = `/conversations/${conversationId}/messages/`;
+    const path = `/conversations/${conversationId}/messages`;
     const resp = await fetch(this.getUrl(path), {
       method: "POST",
       headers: {
@@ -80,8 +83,8 @@ export default class ConversationService {
       },
       body: JSON.stringify({ message }),
     });
-    const { message: responseMessage } = await resp.json();
-    return responseMessage;
+    const data = await resp.json();
+    return data;
   }
 
   async rateMessage({

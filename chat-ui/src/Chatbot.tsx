@@ -32,7 +32,7 @@ type CTACardProps = {
   cardRef: React.RefObject<HTMLDivElement>;
   conversation: Conversation;
   inputText: string;
-  setActive: React.Dispatch<React.SetStateAction<boolean>>;
+  activate: () => void;
   setInputText: (text: string) => void;
   inputTextError: string;
   handleSubmit: (text: string) => Promise<void>;
@@ -44,12 +44,13 @@ function CTACard({
   cardRef,
   conversation,
   inputText,
-  setActive,
+  activate,
   setInputText,
   inputTextError,
   handleSubmit,
   awaitingReply,
 }: CTACardProps) {
+  console.log("CONVERSATION IS::", conversation);
   const isEmptyConversation = conversation.messages.length === 0;
   const showSuggestedPrompts = inputText.length === 0;
   const showExperimentalBanner = inputText.length > 0;
@@ -102,11 +103,11 @@ function CTACard({
         canSubmit={inputTextError.length === 0}
         onFocus={() => {
           if (!active) {
-            setActive(true);
+            activate();
           }
         }}
         onButtonClick={() => {
-          setActive(true);
+          activate();
         }}
         value={inputText}
         onChange={(e) => {
@@ -152,13 +153,26 @@ function CTACard({
 export default function Chatbot() {
   const conversation = useConversation();
   const [active, setActive] = useState(false);
+  const [creatingConversation, setCreatingConversation] = useState(false);
   const [awaitingReply, setAwaitingReply] = useState(false);
+
+  function activate() {
+    if(active) {
+      return
+    }
+    setActive(true);
+    if(!conversation.conversationId) {
+      handleCreateConversation();
+    }
+  }
 
   const hasConversation = conversation.conversationId !== undefined;
   const hasError = conversation.error.length > 0;
   async function handleCreateConversation() {
     try {
+      setCreatingConversation(true)
       await conversation.createConversation();
+      setCreatingConversation(false)
     } catch (e) {
       const errorMessage =
         typeof e === "string"
@@ -170,12 +184,19 @@ export default function Chatbot() {
     }
   }
 
-  useEffect(() => {
-    // When the Chatbot first becomes active, create a new conversation
-    if (active && !hasConversation && !hasError) {
-      handleCreateConversation();
-    }
-  }, [active, hasConversation, hasError, handleCreateConversation]);
+  // useEffect(() => {
+  //   console.log({
+  //     "active": active,
+  //     "!hasConversation": !hasConversation,
+  //     "!creatingConversation": !creatingConversation,
+  //     "!hasError": !hasError,
+  //   })
+  //   // When the Chatbot first becomes active, create a new conversation
+  //   if (active && !hasConversation && !creatingConversation && !hasError) {
+  //     console.log("run")
+  //     handleCreateConversation();
+  //   }
+  // }, [active, creatingConversation, hasConversation, hasError, handleCreateConversation]);
 
   const [inputData, setInputData] = useState({
     text: "",
@@ -207,15 +228,17 @@ export default function Chatbot() {
       await conversation.addMessage("user", text);
     } catch (e) {
       console.error(e);
-    }
-    setAwaitingReply(true);
-    setTimeout(() => {
+    } finally {
       setAwaitingReply(false);
-      conversation.addMessage(
-        "assistant",
-        "This is a test response.\n\nHere's some code you could run if you're brave enough:\n\n```javascript\nfunction hello() {\n  console.log('hello, world!');\n}\n\nhello()\n```\n"
-      );
-    }, 4000);
+    }
+    // setAwaitingReply(true);
+    // setTimeout(() => {
+    //   setAwaitingReply(false);
+    //   conversation.addMessage(
+    //     "assistant",
+    //     "This is a test response.\n\nHere's some code you could run if you're brave enough:\n\n```javascript\nfunction hello() {\n  console.log('hello, world!');\n}\n\nhello()\n```\n"
+    //   );
+    // }, 4000);
     // setTimeout(() => {
     //   conversation.addMessage(
     //     "system",
@@ -251,7 +274,7 @@ export default function Chatbot() {
             cardRef={cardRef}
             conversation={conversation}
             active={active}
-            setActive={setActive}
+            activate={activate}
             inputText={inputText}
             setInputText={setInputText}
             inputTextError={inputTextError}

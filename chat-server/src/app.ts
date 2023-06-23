@@ -39,6 +39,7 @@ const reqHandler: RequestHandler = (req, _res, next) => {
 export const setupApp = async () => {
   const app = express();
   app.use(cors()); // TODO: add specific options to only allow certain origins
+  app.use(express.json());
   app.use(reqHandler);
   app.use(
     "/conversations",

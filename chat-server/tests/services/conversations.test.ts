@@ -42,11 +42,12 @@ describe("Conversations Service", () => {
       ipAddress,
     });
     const content = "Tell me about MongoDB";
-    const newMessage = await conversationsService.addUserMessage({
+    const newMessage = await conversationsService.addConversationMessage({
       conversationId: conversation._id,
+      role: "user",
       content,
     });
-    expect(newMessage).toBe(true);
+    expect(newMessage.content).toBe(content);
 
     const conversationInDb = await mongodb.db
       .collection<Conversation>("conversations")

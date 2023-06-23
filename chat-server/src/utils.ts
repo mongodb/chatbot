@@ -4,6 +4,7 @@ import {
 } from "express";
 import { Conversation } from "./services/conversations";
 import { logger } from "./services/logger";
+import { stripIndent } from "common-tags";
 
 /**
  * Checks for req-id Request Header. Returns an empty string if the header is not
@@ -26,10 +27,12 @@ export const getRequestId = (req: ExpressRequest) => {
 export const sendErrorResponse = (
   res: ExpressResponse,
   httpStatus: number,
-  errorMessage: string
+  errorMessage: string,
+  errorDetails?: string
 ) => {
   logger.error(
-    `Responding with ${httpStatus} status and error message: ${errorMessage}`
+    stripIndent`Responding with ${httpStatus} status and error message: ${errorMessage}.
+    ${errorDetails ? `Error details: ${errorDetails}` : ""}`
   );
   return res.status(httpStatus).json({ error: errorMessage });
 };

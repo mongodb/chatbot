@@ -74,7 +74,7 @@ export class ContentService implements ContentServiceInterface {
   }
 }
 
-const options: ContentServiceOptions = {
+export const options: ContentServiceOptions = {
   k: 10,
   path: "embedding",
   indexName: mongodb.vectorSearchIndexName || "default",

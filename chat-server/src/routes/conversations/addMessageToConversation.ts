@@ -4,9 +4,16 @@ import {
   NextFunction,
 } from "express";
 import { ObjectId } from "mongodb";
-import { OpenAiChatMessage } from "../../integrations/openai";
+import {
+  OpenAiChatMessage,
+  OpenAiMessageRole,
+} from "../../integrations/openai";
 import { Content, ContentServiceInterface } from "../../services/content";
-import { ConversationsServiceInterface } from "../../services/conversations";
+import {
+  Conversation,
+  ConversationsServiceInterface,
+  Message,
+} from "../../services/conversations";
 import { DataStreamerServiceInterface } from "../../services/dataStreamer";
 import { EmbeddingService } from "../../services/embeddings";
 import {
@@ -24,13 +31,15 @@ import { logger } from "../../services/logger";
 
 const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 
-interface AddMessageRequest extends ExpressRequest {
+export interface AddMessageRequestBody {
+  message: string;
+}
+
+export interface AddMessageRequest extends ExpressRequest {
   params: {
     conversationId: string;
   };
-  body: {
-    message: string;
-  };
+  body: AddMessageRequestBody;
   query: {
     stream: string;
   };
@@ -60,21 +69,32 @@ export function makeAddMessageToConversationRoute({
         body: { message },
         query: { stream },
       } = req;
-      const conversationId = new ObjectId(conversationIdString);
+      let conversationId: ObjectId;
+      try {
+        conversationId = new ObjectId(conversationIdString);
+      } catch (err) {
+        return sendErrorResponse(res, 400, "Invalid conversation ID");
+      }
 
-      // TODO: implement type checking on the request
+      // TODO:(DOCSP-30863) implement type checking on the request
 
-      const ipAddress = "<NOT CAPTURING IP ADDRESS YET>"; // TODO: refactor to get IP address with middleware
+      const ipAddress = "<NOT CAPTURING IP ADDRESS YET>"; // TODO:(DOCSP-30843) refactor to get IP address with middleware
 
       const shouldStream = Boolean(stream);
-      const latestMessage = message;
-      if (latestMessage.length > MAX_INPUT_LENGTH) {
+      const latestMessageText = message;
+      if (latestMessageText.length > MAX_INPUT_LENGTH) {
         return sendErrorResponse(res, 400, "Message too long");
       }
 
-      const conversationInDb = await conversations.findById({
-        _id: new ObjectId(conversationId),
-      });
+      let conversationInDb: Conversation | null;
+      try {
+        conversationInDb = await conversations.findById({
+          _id: conversationId,
+        });
+      } catch (err) {
+        return sendErrorResponse(res, 500, "Error finding conversation");
+      }
+
       if (!conversationInDb) {
         return sendErrorResponse(res, 404, "Conversation not found");
       }
@@ -89,7 +109,7 @@ export function makeAddMessageToConversationRoute({
       const chunks = await getContentForText({
         embeddings,
         ipAddress,
-        text: latestMessage,
+        text: latestMessageText,
         content,
       });
 
@@ -97,13 +117,14 @@ export function makeAddMessageToConversationRoute({
 
       let answer;
       if (shouldStream) {
+        // TODO:(DOCSP-30866) add streaming support to endpoint
         throw new Error("Streaming not implemented yet");
         // answer = await dataStreamer.answer({
         //   res,
         //   answer: llm.answerQuestionStream({
         //     messages: [
         //       ...conversationInDb.messages,
-        //       latestMessage,
+        //       latestMessageText,
         //     ] as OpenAiChatMessage[],
         //     chunks: chunkTexts,
         //   }),
@@ -111,28 +132,30 @@ export function makeAddMessageToConversationRoute({
         //   chunks,
         // });
       } else {
+        const latestMessage: OpenAiChatMessage = {
+          content: latestMessageText,
+          role: "user",
+        };
         try {
           const messages = [
-            ...conversationInDb.messages,
+            ...conversationInDb.messages.map(convertDbMessageToOpenAiMessage),
             latestMessage,
-          ] as OpenAiChatMessage[];
+          ];
           logger.info(`LLM query: ${JSON.stringify(messages)}`);
           answer = await llm.answerQuestionAwaited({
-            messages: [
-              ...conversationInDb.messages,
-              latestMessage,
-            ] as OpenAiChatMessage[],
+            messages,
             chunks: chunkTexts,
           });
           logger.info(`LLM response: ${JSON.stringify(answer)}`);
-        } catch (err) {
-          return sendErrorResponse(res, 500, "Error from LLM");
+        } catch (err: any) {
+          logger.error("Error from LLM: " + JSON.stringify(err));
+          return sendErrorResponse(res, 500, "Error from LLM", err.message);
         }
         // TODO: consider refactoring addConversationMessage to take in an array of messages.
         // Would limit database calls.
         await conversations.addConversationMessage({
           conversationId: conversationInDb._id,
-          content: latestMessage,
+          content: latestMessageText,
           role: "user",
         });
         const newMessage = await conversations.addConversationMessage({
@@ -144,6 +167,7 @@ export function makeAddMessageToConversationRoute({
         res.status(200).json(apiRes);
       }
     } catch (err) {
+      logger.error("An unexpected error occurred: " + JSON.stringify(err));
       next(err);
     }
   };
@@ -156,11 +180,20 @@ export interface GetContentForTextParams {
   content: ContentServiceInterface;
 }
 
+export function convertDbMessageToOpenAiMessage(
+  message: Message
+): OpenAiChatMessage {
+  return {
+    content: message.content,
+    role: message.role as OpenAiMessageRole,
+  };
+}
+
 export async function getContentForText({
   embeddings,
-  ipAddress,
-  text,
   content,
+  text,
+  ipAddress,
 }: GetContentForTextParams) {
   const { embedding } = await embeddings.createEmbedding({
     text,
@@ -178,11 +211,15 @@ export interface GenerateFurtherReadingParams {
 export function generateFurtherReading({
   chunks,
 }: GenerateFurtherReadingParams) {
-  const heading = "\n\n## Further Reading\n\n";
-  const uniqueLinks = new Array(new Set(chunks.map((chunk) => chunk.url)));
+  if (chunks.length === 0) {
+    return "";
+  }
+  const heading = "\n\nArticles Referenced:\n";
+  const uniqueLinks = Array.from(new Set(chunks.map((chunk) => chunk.url)));
+
   const linksText =
     uniqueLinks.reduce((acc, link) => {
-      const linkListItem = `- ${link}\n`;
+      const linkListItem = `${link}\n`;
       return acc + linkListItem;
     }, "") + "\n";
   return heading + linksText;
@@ -200,6 +237,7 @@ export function validateApiConversationFormatting({
   ) {
     return false;
   }
+  // Must alternate between assistant and user
   for (let i = 0; i < messages.length; i++) {
     const message = messages[i];
     const isAssistant = i % 2 === 0;

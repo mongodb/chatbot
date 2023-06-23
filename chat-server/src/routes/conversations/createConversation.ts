@@ -19,8 +19,9 @@ export function makeCreateConversationRoute({
     next: NextFunction
   ) => {
     try {
-      // TODO: implement type checking on the request
-      const ipAddress = "<NOT CAPTURING IP ADDRESS YET>"; // TODO: refactor to get IP address with middleware
+      // TODO:(DOCSP-30863) implement type checking on the request
+
+      const ipAddress = "<NOT CAPTURING IP ADDRESS YET>"; // TODO:(DOCSP-30843) refactor to get IP address with middleware
       logger.info(`Creating conversation for IP address ${ipAddress}`);
 
       const conversationInDb = await conversations.create({
@@ -29,7 +30,7 @@ export function makeCreateConversationRoute({
 
       const responseConversation =
         convertConversationFromDbToApi(conversationInDb);
-      res.status(200).json({ conversation: responseConversation });
+      res.status(200).json(responseConversation);
       logger.info(`Created conversation ${conversationInDb._id.toString()}`);
     } catch (err) {
       next(err);

@@ -30,9 +30,9 @@ export function makeRateMessageRoute({
     next: NextFunction
   ) => {
     try {
-      // TODO: implement type checking on the request
+      // TODO:(DOCSP-30863) implement type checking on the request
 
-      const ipAddress = ""; // TODO: refactor to get IP address with middleware
+      const ipAddress = "<NOT CAPTURING IP ADDRESS YET>"; // TODO:(DOCSP-30843) refactor to get IP address with middleware
 
       const { conversationId, messageId } = req.params;
       const { rating } = req.body;

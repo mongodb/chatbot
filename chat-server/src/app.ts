@@ -25,9 +25,7 @@ const errorHandler: ErrorRequestHandler = (err, req, res) => {
     res.end();
   }
 };
-
-// TODO: check with raymund if we'd need this for the current project
-// or if only snooty-data-api specific
+// Apply to all logs in the app
 const reqHandler: RequestHandler = (req, _res, next) => {
   const reqId = new ObjectId().toString();
   // Custom header specifically for a request ID. This ID will be used to track

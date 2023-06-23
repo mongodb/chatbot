@@ -37,8 +37,9 @@ export function Avatar({ role }: { role: Role }) {
         >
           <Icon
             className={styles.message_avatar_icon}
-            glyph="Settings"
-            color="#000000"
+            // glyph="Settings"
+            glyph="Megaphone"
+            color="#ffffff"
           />
         </div>
       );

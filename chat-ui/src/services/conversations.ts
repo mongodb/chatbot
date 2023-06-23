@@ -40,7 +40,7 @@ export default class ConversationService {
     //   },
     // });
     // const data = await resp.json();
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       setTimeout(() => {
         resolve({
           conversationId: "42",

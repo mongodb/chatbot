@@ -21,6 +21,10 @@
   background: black;
 }
 
+.message_avatar_system {
+  background: black;
+}
+
 .message_avatar_icon_container {
   padding-top: 6px;
 }

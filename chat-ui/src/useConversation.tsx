@@ -9,6 +9,7 @@ import createMessage from "./createMessage";
 export type ConversationState = {
   conversationId?: string;
   messages: MessageData[];
+  error?: string;
   // user_ip: string;
   // time_created: Date;
   // last_updated: Date;
@@ -16,14 +17,15 @@ export type ConversationState = {
 
 type ConversationAction =
   | { type: "setConversation"; conversation: Required<ConversationState> }
+  | { type: "setConversationError"; errorMessage: string }
   | { type: "addMessage"; role: Role; text: string }
   | { type: "modifyMessage"; messageId: MessageData["id"]; text: string }
   | { type: "deleteMessage"; messageId: MessageData["id"] }
   | { type: "rateMessage"; messageId: MessageData["id"]; rating: boolean };
 
 type ConversationActor = {
-  // setConversationId: (conversationId: string) => void;
   createConversation: () => void;
+  endConversationWithError: (errorMessage: string) => void;
   addMessage: (role: Role, text: string) => void;
   modifyMessage: (messageId: string, text: string) => void;
   deleteMessage: (messageId: string) => void;
@@ -45,14 +47,17 @@ function conversationReducer(
     }
     return messageIndex;
   }
-  if (action.type !== "setConversation" && !state.conversationId) {
-    console.error("Cannot perform action without conversationId");
-    return state;
-  }
   switch (action.type) {
     case "setConversation": {
       return {
         ...action.conversation,
+        error: "",
+      };
+    }
+    case "setConversationError": {
+      return {
+        ...state,
+        error: action.errorMessage,
       };
     }
     case "addMessage": {
@@ -129,6 +134,7 @@ function conversationReducer(
 
 export const defaultConversationState = {
   messages: [],
+  error: "",
 } satisfies ConversationState;
 
 export default function useConversation() {
@@ -136,14 +142,24 @@ export default function useConversation() {
     conversationReducer,
     defaultConversationState
   );
+  // const dispatch = _dispatch;
   const dispatch = (...args: Parameters<typeof _dispatch>) => {
     console.log(`dispatch`, ...args);
     _dispatch(...args);
   };
 
   const setConversation = (conversation: Required<ConversationState>) => {
-    console.log(`setConversation`, conversation);
-    dispatch({ type: "setConversation", conversation });
+    dispatch({
+      type: "setConversation",
+      conversation: {
+        error: "",
+        ...conversation,
+      },
+    });
+  };
+
+  const endConversationWithError = (errorMessage: string) => {
+    dispatch({ type: "setConversationError", errorMessage });
   };
 
   const createConversation = async () => {
@@ -154,12 +170,11 @@ export default function useConversation() {
         );
         return state;
       }
-      console.log(`Creating conversation`);
       const conversation = await conversationService.createConversation();
-      console.log(`Created conversation`, conversation);
       setConversation(conversation);
     } catch (error) {
       console.error(`Failed to create conversation: ${error}`);
+      throw error;
     }
   };
 
@@ -211,6 +226,7 @@ export default function useConversation() {
   return {
     ...state,
     createConversation,
+    endConversationWithError,
     addMessage,
     modifyMessage,
     deleteMessage,

@@ -15,8 +15,6 @@ import MessageList from "./MessageList";
 import Message from "./Message";
 import { ParagraphSkeleton } from "@leafygreen-ui/skeleton-loader";
 
-export const ChatbotStyles = styles;
-
 function Disclosure() {
   return (
     <div className={styles.disclosure}>
@@ -35,9 +33,7 @@ type CTACardProps = {
   conversation: Conversation;
   inputText: string;
   setActive: React.Dispatch<React.SetStateAction<boolean>>;
-  setInputText:
-    | React.Dispatch<React.SetStateAction<string>>
-    | ((text: string) => void);
+  setInputText: (text: string) => void;
   inputTextError: string;
   handleSubmit: (text: string) => Promise<void>;
   awaitingReply: boolean;
@@ -123,40 +119,63 @@ function CTACard({
       />
 
       {active && isEmptyConversation ? (
-        <div className={styles.card_content}>
-          <div className={styles.chat}>
-            {showSuggestedPrompts ? (
-              <SuggestedPrompts
-                onPromptSelected={async (text) => {
-                  await handleSubmit(text);
-                }}
-              />
-            ) : null}
+        !conversation.error ? (
+          <div className={styles.card_content}>
+            <div className={styles.chat}>
+              {showSuggestedPrompts ? (
+                <SuggestedPrompts
+                  onPromptSelected={async (text) => {
+                    await handleSubmit(text);
+                  }}
+                />
+              ) : null}
 
-            {showExperimentalBanner ? (
-              <div className={styles.basic_banner}>
-                <Overline>ASK MONGODB AI</Overline>
-                <Badge variant="blue">Experimental</Badge>
-              </div>
-            ) : null}
+              {showExperimentalBanner ? (
+                <div className={styles.basic_banner}>
+                  <Overline>ASK MONGODB AI</Overline>
+                  <Badge variant="blue">Experimental</Badge>
+                </div>
+              ) : null}
+            </div>
           </div>
-        </div>
+        ) : (
+          <Banner className={styles.lg_banner} variant="danger">
+            Something went wrong. Try reloading the page and starting a new
+            conversation.
+          </Banner>
+        )
       ) : null}
     </Box>
   );
 }
 
 export default function Chatbot() {
-  console.log("Chatbot rendered xx");
   const conversation = useConversation();
   const [active, setActive] = useState(false);
   const [awaitingReply, setAwaitingReply] = useState(false);
-  // When the Chatbot first becomes active, create a new conversation
-  useEffect(() => {
-    if (active && !conversation.conversationId) {
-      conversation.createConversation();
+
+  const hasConversation = conversation.conversationId !== undefined;
+  const hasError = conversation.error.length > 0;
+  async function handleCreateConversation() {
+    try {
+      await conversation.createConversation();
+    } catch (e) {
+      const errorMessage =
+        typeof e === "string"
+          ? e
+          : e instanceof Error
+          ? e.msg
+          : "Failed to create conversation.";
+      conversation.endConversationWithError(errorMessage);
     }
-  }, [active, conversation]);
+  }
+
+  useEffect(() => {
+    // When the Chatbot first becomes active, create a new conversation
+    if (active && !hasConversation && !hasError) {
+      handleCreateConversation();
+    }
+  }, [active, hasConversation, hasError, handleCreateConversation]);
 
   const [inputData, setInputData] = useState({
     text: "",
@@ -197,29 +216,37 @@ export default function Chatbot() {
         "This is a test response.\n\nHere's some code you could run if you're brave enough:\n\n```javascript\nfunction hello() {\n  console.log('hello, world!');\n}\n\nhello()\n```\n"
       );
     }, 4000);
+    // setTimeout(() => {
+    //   conversation.addMessage(
+    //     "system",
+    //     `#### There was a problem sending your message.\n\n#### Try asking your question again or reloading the page.`
+    //   );
+    // }, 300);
   };
+
   const cardBoundingBoxRef = useClickAway(() => {
     setActive(false);
   });
+
   const cardRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className={styles.chatbot_container} ref={cardBoundingBoxRef}>
-      <CSSTransition
-        nodeRef={cardRef}
-        in={active}
-        timeout={{
-          enter: 250,
-          exit: 200,
-        }}
-        classNames={{
-          enterActive: styles["card-enter"],
-          enterDone: styles["card-enter-active"],
-          exitActive: styles["card-exit"],
-          exitDone: styles["card-exit-active"],
-        }}
-      >
-        <>
+      <>
+        <CSSTransition
+          nodeRef={cardRef}
+          in={active}
+          timeout={{
+            enter: 250,
+            exit: 200,
+          }}
+          classNames={{
+            enterActive: styles["card-enter"],
+            enterDone: styles["card-enter-active"],
+            exitActive: styles["card-exit"],
+            exitDone: styles["card-exit-active"],
+          }}
+        >
           <CTACard
             cardRef={cardRef}
             conversation={conversation}
@@ -231,9 +258,9 @@ export default function Chatbot() {
             handleSubmit={handleSubmit}
             awaitingReply={awaitingReply}
           />
-          {!active ? <Disclosure /> : null}
-        </>
-      </CSSTransition>
+        </CSSTransition>
+        {!active ? <Disclosure /> : null}
+      </>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import ReactMarkdown from "react-markdown";
 import Code, { Language } from "@leafygreen-ui/code";
 import type { Language as SupportedLanguageValue } from "@leafygreen-ui/code";
-import { Body, H1, H2, H3, InlineCode, Link } from "@leafygreen-ui/typography";
+import { Body, H1, H2, H3, Overline, InlineCode, Link } from "@leafygreen-ui/typography";
 
 type ReactMarkdownProps = Parameters<typeof ReactMarkdown>[0];
 type ReactMarkdownComponentsMap = ReactMarkdownProps["components"];
@@ -38,6 +38,10 @@ const componentsMap = {
   h3: (props) => {
     const text = props.children.join(" - ");
     return <H3>{text}</H3>;
+  },
+  h4: (props) => {
+    const text = props.children.join(" - ");
+    return <Overline>{text}</Overline>;
   },
   p: ({ children, ...props }) => {
     return <Body {...props}>{children}</Body>;

@@ -1,9 +1,6 @@
 import "dotenv/config";
-import { MongoDB } from "../../src/integrations/mongodb";
-import {
-  Conversation,
-  ConversationsService,
-} from "../../src/services/conversations";
+import { MongoDB } from "chat-core";
+import { Conversation, ConversationsService } from "./conversations";
 import { BSON } from "mongodb";
 
 jest.setTimeout(100000);

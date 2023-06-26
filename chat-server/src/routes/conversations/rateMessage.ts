@@ -9,8 +9,7 @@ import {
   NextFunction,
 } from "express";
 import { sendErrorResponse } from "../../utils";
-import { log } from "winston";
-import { logger } from "../../services/logger";
+import { logger } from "chat-core";
 
 interface RatingRequest extends ExpressRequest {
   params: {

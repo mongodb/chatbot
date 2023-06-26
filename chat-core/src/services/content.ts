@@ -1,4 +1,5 @@
-import { mongodb, Collection, Db, ObjectId } from "chat-core";
+import { Collection, Db, ObjectId } from "mongodb";
+import { mongodb } from "../integrations/mongodb";
 
 export interface Site {
   /** The name of the website the chunk belongs to. */
@@ -73,7 +74,7 @@ export class ContentService implements ContentServiceInterface {
   }
 }
 
-export const options: ContentServiceOptions = {
+const options: ContentServiceOptions = {
   k: 10,
   path: "embedding",
   indexName: mongodb.vectorSearchIndexName || "default",

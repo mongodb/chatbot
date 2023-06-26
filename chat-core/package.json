@@ -1,0 +1,43 @@
+{
+  "name": "chat-core",
+  "version": "0.0.1",
+  "description": "Common elements used by the chatbot components.",
+  "main": "./src/index.ts",
+  "scripts": {
+    "clean": "rm -rf build",
+    "build": "tsc -b",
+    "watch": "tsc -b -w",
+    "test": "jest",
+    "docs": "npx typedoc --excludePrivate --exclude '**/*.test.ts' --out docs src"
+  },
+  "author": "MongoDB, Inc.",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/preset-typescript": "^7",
+    "@babel/types": "^7",
+    "@types/common-tags": "^1",
+    "@types/jest": "^26",
+    "@types/node": "^12",
+    "@typescript-eslint/eslint-plugin": "^5",
+    "@typescript-eslint/parser": "^5",
+    "eslint": "^8",
+    "eslint-config-prettier": "^8",
+    "eslint-plugin-prettier": "^4",
+    "eslint-plugin-tsdoc": "^0.2.14",
+    "jest": "^29",
+    "mongodb-memory-server": "^8",
+    "prettier": "^2",
+    "release-it": "^15",
+    "ts-jest": "^29",
+    "typedoc": "^0",
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@azure/openai": "^1.0.0-beta.2",
+    "common-tags": "^1",
+    "dotenv": "^16",
+    "mongodb": "^5.6.0",
+    "openai": "^3",
+    "winston": "^3"
+  }
+}

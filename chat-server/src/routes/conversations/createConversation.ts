@@ -5,7 +5,7 @@ import {
 } from "express";
 import { ConversationsServiceInterface } from "../../services/conversations";
 import { convertConversationFromDbToApi } from "./utils";
-import { logger } from "../../services/logger";
+import { logger } from "chat-core";
 
 export interface CreateConversationRouteParams {
   conversations: ConversationsServiceInterface;

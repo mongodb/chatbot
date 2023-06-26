@@ -3,11 +3,13 @@ import {
   Response as ExpressResponse,
   NextFunction,
 } from "express";
-import { ObjectId } from "mongodb";
 import {
   OpenAiChatMessage,
+  ObjectId,
   OpenAiMessageRole,
-} from "../../integrations/openai";
+  EmbeddingService,
+  logger,
+} from "chat-core";
 import { Content, ContentServiceInterface } from "../../services/content";
 import {
   Conversation,
@@ -15,7 +17,7 @@ import {
   Message,
 } from "../../services/conversations";
 import { DataStreamerServiceInterface } from "../../services/dataStreamer";
-import { EmbeddingService } from "../../services/embeddings";
+
 import {
   LlmProvider,
   OpenAiAwaitedResponse,
@@ -27,7 +29,6 @@ import {
   convertMessageFromDbToApi,
 } from "./utils";
 import { sendErrorResponse } from "../../utils";
-import { logger } from "../../services/logger";
 
 const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 

@@ -1,15 +1,11 @@
 // TODO: understand what's happening here
 import { Response } from "express";
-import { Readable } from "stream";
-import { chain } from "stream-chain";
-import { Duplex, stringer } from "stream-json/jsonl/Stringer";
-import { logger } from "./logger";
 import { Conversation } from "./conversations";
 import { Content } from "./content";
 
 interface AnswerParams {
   res: Response;
-  answer: any; // TODO: figure out what streaming type is
+  answer: unknown; // TODO: figure out what streaming type is
   conversation: Conversation;
   chunks: Content[];
 }

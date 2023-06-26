@@ -1,16 +1,18 @@
 import request from "supertest";
 import "dotenv/config";
-import { MongoDB } from "../../src/integrations/mongodb";
 import {
-  ASSISTANT_PROMPT,
   OpenAiChatClient,
   OpenAiEmbeddingsClient,
-} from "../../src/integrations/openai";
+  MongoDB,
+  EmbeddingService,
+  OpenAiEmbeddingProvider,
+} from "chat-core";
+import { ASSISTANT_PROMPT } from "../../aiConstants";
 import {
   Conversation,
   ConversationsService,
   Message,
-} from "../../src/services/conversations";
+} from "../../services/conversations";
 import express from "express";
 import {
   AddMessageRequestBody,
@@ -19,26 +21,19 @@ import {
   generateFurtherReading,
   validateApiConversationFormatting,
   getContentForText,
-} from "../../src/routes/conversations/addMessageToConversation";
-import { makeCreateConversationRoute } from "../../src/routes/conversations/createConversation";
-import {
-  ApiConversation,
-  ApiMessage,
-} from "../../src/routes/conversations/utils";
+} from "./addMessageToConversation";
+import { makeCreateConversationRoute } from "./createConversation";
+import { ApiConversation, ApiMessage } from "./utils";
 import {
   Content,
   ContentService,
   options as contentServiceOptions,
-} from "../../src/services/content";
-import {
-  EmbeddingService,
-  OpenAiEmbeddingProvider,
-} from "../../src/services/embeddings";
-import { OpenAiLlmProvider } from "../../src/services/llm";
-import { DataStreamerService } from "../../src/services/dataStreamer";
+} from "../../services/content";
+import { OpenAiLlmProvider } from "../../services/llm";
+import { DataStreamerService } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
-import { makeRateMessageRoute } from "../../src/routes/conversations/rateMessage";
+import { makeRateMessageRoute } from "./rateMessage";
 
 jest.setTimeout(100000);
 const {

@@ -1,11 +1,12 @@
-import { ObjectId, Db, Collection } from "mongodb";
-import { mongodb } from "../integrations/mongodb";
 import {
+  ObjectId,
+  Db,
+  Collection,
+  mongodb,
   OpenAiChatMessage,
-  SYSTEM_PROMPT,
-  ASSISTANT_PROMPT,
   OpenAiMessageRole,
-} from "../integrations/openai";
+} from "chat-core";
+import { SYSTEM_PROMPT, ASSISTANT_PROMPT } from "../aiConstants";
 
 export interface Message {
   /** Unique identifier for the message. */

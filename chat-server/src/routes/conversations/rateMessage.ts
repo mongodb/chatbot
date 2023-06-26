@@ -1,13 +1,16 @@
 import { ObjectId } from "mongodb";
 import {
+  Conversation,
   ConversationsServiceInterface,
-  Message,
 } from "../../services/conversations";
 import {
   Request as ExpressRequest,
   Response as ExpressResponse,
   NextFunction,
 } from "express";
+import { sendErrorResponse } from "../../utils";
+import { log } from "winston";
+import { logger } from "../../services/logger";
 
 interface RatingRequest extends ExpressRequest {
   params: {
@@ -34,29 +37,58 @@ export function makeRateMessageRoute({
 
       const ipAddress = "<NOT CAPTURING IP ADDRESS YET>"; // TODO:(DOCSP-30843) refactor to get IP address with middleware
 
-      const { conversationId, messageId } = req.params;
+      const { conversationId: conversationIdStr, messageId: messageIdStr } =
+        req.params;
       const { rating } = req.body;
-
-      const conversationInDb = await conversations.findById({
-        _id: new ObjectId(conversationId),
-      });
-      if (!conversationInDb) {
-        return res.status(404).json({ error: "Conversation not found" });
+      let conversationId: ObjectId, messageId: ObjectId;
+      try {
+        conversationId = new ObjectId(conversationIdStr);
+      } catch (err) {
+        return sendErrorResponse(res, 400, "Invalid conversation ID");
       }
+      try {
+        messageId = new ObjectId(messageIdStr);
+      } catch (err) {
+        return sendErrorResponse(res, 400, "Invalid message ID");
+      }
+
+      let conversationInDb: Conversation;
+      try {
+        conversationInDb = await conversations.findById({
+          _id: conversationId,
+        });
+      } catch (err) {
+        return sendErrorResponse(res, 404, "Conversation not found");
+      }
+      if (
+        !conversationInDb.messages.find((message) =>
+          message.id.equals(messageId)
+        )
+      ) {
+        return sendErrorResponse(res, 404, "Message not found");
+      }
+
       if (conversationInDb.ipAddress !== ipAddress) {
-        return res
-          .status(403)
-          .json({ error: "IP address does not match conversation" });
+        return sendErrorResponse(
+          res,
+          403,
+          "Invalid IP address for conversation"
+        );
       }
       const successfulOperation = await conversations.rateMessage({
-        conversationId: new ObjectId(conversationId),
-        messageId: new ObjectId(messageId),
+        conversationId: conversationId,
+        messageId: messageId,
         rating,
       });
+
       if (successfulOperation) {
-        return res.status(204);
+        res.sendStatus(204);
+        logger.info(
+          `Rated message ${messageIdStr} in conversation ${conversationIdStr} with rating ${rating}`
+        );
+        return;
       } else {
-        return res.status(404).json({ error: "Message not found" });
+        return sendErrorResponse(res, 500, "Invalid rating");
       }
     } catch (err) {
       next(err);

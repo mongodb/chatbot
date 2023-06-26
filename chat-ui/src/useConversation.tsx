@@ -171,7 +171,10 @@ export default function useConversation() {
         return state;
       }
       const conversation = await conversationService.createConversation();
-      setConversation(conversation);
+      setConversation({
+        ...conversation,
+        error: "",
+      });
     } catch (error) {
       console.error(`Failed to create conversation: ${error}`);
       throw error;
@@ -189,7 +192,11 @@ export default function useConversation() {
         conversationId: state.conversationId,
         message: text,
       });
-      dispatch({ type: "addMessage", role: "assistant", text: response.content });
+      dispatch({
+        type: "addMessage",
+        role: "assistant",
+        text: response.content,
+      });
     } catch (error) {
       console.error(`Failed to add message: ${error}`);
     }

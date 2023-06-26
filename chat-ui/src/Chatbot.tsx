@@ -157,22 +157,22 @@ export default function Chatbot() {
   const [awaitingReply, setAwaitingReply] = useState(false);
 
   function activate() {
-    if(active) {
-      return
+    if (active) {
+      return;
     }
     setActive(true);
-    if(!conversation.conversationId) {
+    if (!conversation.conversationId) {
       handleCreateConversation();
     }
   }
 
   const hasConversation = conversation.conversationId !== undefined;
-  const hasError = conversation.error.length > 0;
+  const hasError = conversation.error?.length > 0 ?? false;
   async function handleCreateConversation() {
     try {
-      setCreatingConversation(true)
+      setCreatingConversation(true);
       await conversation.createConversation();
-      setCreatingConversation(false)
+      setCreatingConversation(false);
     } catch (e) {
       const errorMessage =
         typeof e === "string"

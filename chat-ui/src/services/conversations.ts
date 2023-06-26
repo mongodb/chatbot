@@ -17,7 +17,7 @@ type ConversationServiceConfig = {
 
 export default class ConversationService {
   private serverUrl: string;
-  
+
   constructor(config: ConversationServiceConfig) {
     this.serverUrl = config.serverUrl;
   }
@@ -33,27 +33,7 @@ export default class ConversationService {
 
   async createConversation(): Promise<Required<ConversationState>> {
     console.log("services/conversations::createConversation");
-    // return new Promise((resolve, reject) => {
-    //   setTimeout(() => {
-    //     resolve({
-    //       conversationId: "42",
-    //       messages: [
-    //         // {
-    //         //   id: "1",
-    //         //   content: "What is the best flavor of ice cream dog?",
-    //         //   role: "user",
-    //         //   createdAt: "1"
-    //         // },
-    //         // {
-    //         //   id: "2",
-    //         //   content: `As an AI, I don't have personal preferences, but I can tell you that the "best" flavor of ice cream is subjective and varies depending on individual tastes. Some popular flavors include vanilla, chocolate, strawberry, mint chocolate chip, cookies and cream, and many more. Ultimately, the best flavor of ice cream is the one that you enjoy the most!`,
-    //         //   role: "assistant",
-    //         //   createdAt: "2"
-    //         // },
-    //       ],
-    //     });
-    //   }, 300);
-    const path = `/conversations/`;
+    const path = `/conversations`;
     const resp = await fetch(this.getUrl(path), {
       method: "POST",
       headers: {
@@ -102,21 +82,17 @@ export default class ConversationService {
       messageId,
       rating
     );
-    // const path = `/conversations/${conversationId}/messages/${messageId}/rating}`;
-    // await fetch(this.getUrl(path), {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({ rating }),
-    // });
-
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, 300);
+    const path = `/conversations/${conversationId}/messages/${messageId}/rating`;
+    await fetch(this.getUrl(path), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ rating }),
     });
   }
 }
 
-export const conversationService = new ConversationService({ serverUrl: "http://localhost:3000" });
+export const conversationService = new ConversationService({
+  serverUrl: "http://localhost:3000",
+});

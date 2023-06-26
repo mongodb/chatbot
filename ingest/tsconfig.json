@@ -3,7 +3,7 @@
     "outDir": "./build",
     "allowJs": false,
     "target": "es2016",
-    "module": "CommonJS",
+    "module": "NodeNext",
     "esModuleInterop": true,
     "lib": ["ES2020", "DOM"],
     "downlevelIteration": true,
@@ -12,7 +12,7 @@
     "declaration": true,
     "declarationMap": true,
     "resolveJsonModule": true,
-    "moduleResolution": "nodenext"
+    "moduleResolution": "Node"
   },
   "sourceMap": true,
   "include": ["./src/**/*.ts"],

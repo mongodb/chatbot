@@ -10,9 +10,7 @@
     "clean": "rm -rf build",
     "build": "tsc -b",
     "watch": "tsc -b -w",
-    "test": "jest",
-    "verbose": "jest --verbose",
-    "coverage": "jest --coverage",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "docs": "npx typedoc --excludePrivate --exclude '**/*.test.ts' --out docs src",
     "release": "release-it"
   },
@@ -21,6 +19,7 @@
   "devDependencies": {
     "@babel/preset-typescript": "^7",
     "@babel/types": "^7.22.5",
+    "@types/deep-equal": "^1.0.1",
     "@types/jest": "^26",
     "@types/node": "^12",
     "@typescript-eslint/eslint-plugin": "^5",
@@ -38,8 +37,10 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "deep-equal": "^2.2.1",
     "dotenv": "^16",
     "mongodb": "^5",
+    "node-fetch": "^3.3.1",
     "yargs": "^17"
   }
 }

@@ -45,8 +45,8 @@ export const makeDatabaseConnection = async ({
     async updateChunks({ page, chunks }) {
       chunks.forEach((chunk) => {
         assert(
-          chunk.source === page.source && chunk.url === page.url,
-          `Chunk source/url (${chunk.source} / ${chunk.url}) must match give page source/url (${page.source} / ${page.url})!`
+          chunk.source === page.sourceName && chunk.url === page.url,
+          `Chunk source/url (${chunk.source} / ${chunk.url}) must match give page source/url (${page.sourceName} / ${page.url})!`
         );
       });
       await client.withSession(async (session) => {
@@ -78,8 +78,8 @@ export const makeDatabaseConnection = async ({
       });
     },
 
-    async loadPages({ source }) {
-      return pagesCollection.find({ source }).toArray();
+    async loadPages({ sourceName }) {
+      return pagesCollection.find({ sourceName }).toArray();
     },
 
     async updatePages(pages) {
@@ -108,7 +108,7 @@ export const makeDatabaseConnection = async ({
 /**
   Returns a query filter that represents a unique page in the system.
  */
-export const pageIdentity = ({ url, source }: PersistedPage) => ({
+export const pageIdentity = ({ url, sourceName }: PersistedPage) => ({
   url,
-  source,
+  sourceName,
 });

@@ -30,6 +30,9 @@ const commandModule: CommandModule<
 
         // TODO: ChunkStore is a stand-in for Atlas (but can be mocked for testing)
         chunkStore: {
+          async loadChunks() {
+            return [];
+          },
           async deleteChunks() {
             return;
           },

@@ -1,10 +1,4 @@
-import {
-  fetchPages,
-  persistPages,
-  Page,
-  PageStore,
-  PersistedPage,
-} from "./updatePages";
+import { persistPages, Page, PageStore, PersistedPage } from "./updatePages";
 
 export class MockPageStore implements PageStore {
   pages: PersistedPage[] = [];
@@ -21,28 +15,10 @@ export class MockPageStore implements PageStore {
 const examplePage: Page = {
   body: "",
   format: "md",
-  source: "test",
+  sourceName: "test",
   tags: [],
   url: "https://example.com/test",
 };
-
-describe("fetchPages", () => {
-  it("fetches pages from the data source", async () => {
-    const pages = await fetchPages({
-      sources: [
-        {
-          name: "test",
-          async fetchPages() {
-            return [{ ...examplePage }];
-          },
-        },
-      ],
-    });
-
-    expect(pages.length).toBe(1);
-    expect(pages[0]).toStrictEqual(examplePage);
-  });
-});
 
 describe("persistPages", () => {
   it("persists pages in the page store", async () => {
@@ -51,6 +27,7 @@ describe("persistPages", () => {
     await persistPages({
       pages: [{ ...examplePage }],
       store,
+      sourceName: "test",
     });
 
     const pages = await store.loadPages();

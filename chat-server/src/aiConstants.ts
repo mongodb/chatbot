@@ -27,7 +27,7 @@ export const OPENAI_LLM_CONFIG_OPTIONS: GetChatCompletionsOptions = {
   maxTokens: 500,
 };
 
-interface GenerateUserPromptParams {
+export interface GenerateUserPromptParams {
   question: string;
   chunks: string[];
 }

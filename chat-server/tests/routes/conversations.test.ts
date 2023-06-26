@@ -38,6 +38,7 @@ import { OpenAiLlmProvider } from "../../src/services/llm";
 import { DataStreamerService } from "../../src/services/dataStreamer";
 import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
+import { makeRateMessageRoute } from "../../src/routes/conversations/rateMessage";
 
 jest.setTimeout(100000);
 const {
@@ -426,6 +427,126 @@ describe("Conversations Router", () => {
             conversation: incorrectConversationOrder,
           });
           expect(validation).toBe(false);
+        });
+      });
+    });
+  });
+  describe("POST /conversations/:conversationId/messages/:messageId/rating", () => {
+    const app = express();
+    app.use(express.json()); // for parsing application/json
+    const testDbName = `conversations-test-${Date.now()}`;
+    const mongodb = new MongoDB(MONGODB_CONNECTION_URI!, testDbName);
+
+    const conversations = new ConversationsService(mongodb.db);
+    app.post(
+      "/conversations/:conversationId/messages/:messageId/rating",
+      makeRateMessageRoute({ conversations })
+    );
+    const ipAddress = "<NOT CAPTURING IP ADDRESS YET>";
+    let conversation: Conversation;
+    let testMsg: Message;
+    beforeAll(async () => {
+      conversation = await conversations.create({ ipAddress });
+      testMsg = await conversations.addConversationMessage({
+        conversationId: conversation._id,
+        content: "hello",
+        role: "assistant",
+      });
+    });
+
+    afterAll(async () => {
+      await mongodb.db.dropDatabase();
+      await mongodb.close();
+    });
+    test("Should return 204 for valid rating", async () => {
+      const response = await request(app)
+        .post(
+          `/conversations/${conversation._id}/messages/${testMsg.id}/rating`
+        )
+        .send({ rating: true });
+
+      expect(response.statusCode).toBe(204);
+      expect(response.body).toEqual({});
+      const updatedConversation = await conversations.findById({
+        _id: conversation._id,
+      });
+      expect(
+        updatedConversation.messages[updatedConversation.messages.length - 1]
+          .rating
+      ).toBe(true);
+    });
+    test("Should return 400 for invalid conversation ID", async () => {
+      const response = await request(app)
+        .post(
+          `/conversations/123/messages/${conversation.messages[0].id}/rating`
+        )
+        .send({ rating: true });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: "Invalid conversation ID",
+      });
+    });
+    test("Should return 400 for invalid message ID", async () => {
+      const response = await request(app)
+        .post(`/conversations/${testMsg.id}/messages/123/rating`)
+        .send({ rating: true });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: "Invalid message ID",
+      });
+    });
+    test("Should return 404 for conversation not in DB", async () => {
+      const response = await request(app)
+        .post(
+          `/conversations/${new ObjectId().toHexString()}/messages/${
+            testMsg.id
+          }/rating`
+        )
+        .send({ rating: true });
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toEqual({
+        error: "Conversation not found",
+      });
+    });
+    test("Should return 404 for message not in conversation", async () => {
+      const response = await request(app)
+        .post(
+          `/conversations/${
+            conversation._id
+          }/messages/${new ObjectId().toHexString()}/rating`
+        )
+        .send({ rating: true });
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toEqual({
+        error: "Message not found",
+      });
+    });
+    // TODO:(DOCSP-30843) when properly configure IP address capture and validation,
+    // this test will need to be refactored.
+    describe("IP address validation", () => {
+      beforeEach(async () => {
+        const ipAddress = "abc.123.xyz.456";
+        conversation = await conversations.create({ ipAddress });
+        testMsg = await conversations.addConversationMessage({
+          conversationId: conversation._id,
+          content: "hi",
+          role: "user",
+        });
+      });
+      test("Should return 403 for invalid IP address", async () => {
+        const response = await request(app)
+          .post(
+            `/conversations/${conversation._id}/messages/${testMsg.id}/rating`
+          )
+          .send({ rating: true });
+
+        expect(response.statusCode).toBe(403);
+        expect(response.body).toEqual({
+          error: "Invalid IP address for conversation",
         });
       });
     });

@@ -53,7 +53,7 @@ export interface ConversationsServiceInterface {
     content,
     role,
   }: AddConversationMessageParams) => Promise<Message>;
-  findById: ({ _id }: FindByIdParams) => Promise<Conversation | null>;
+  findById: ({ _id }: FindByIdParams) => Promise<Conversation>;
   rateMessage: ({
     conversationId,
     messageId,

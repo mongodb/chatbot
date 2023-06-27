@@ -10,6 +10,8 @@ RUN npm ci
 WORKDIR /app/chat-server
 COPY chat-server/src/ ./src/
 COPY chat-server/package*.json ./tsconfig.json ./
+RUN echo pwd
+RUN ls
 RUN npm ci && npm run build
 
 # Main image

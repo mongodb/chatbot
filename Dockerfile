@@ -17,13 +17,12 @@ RUN npm ci && npm run build
 # Main image
 FROM node:18-alpine as main
 ENV NODE_ENV=production
-WORKDIR /app
+WORKDIR /app/chat-server
 
 # Install only production dependencies
-COPY --from=builder /app/chat-core ./chat-core/
-COPY --from=builder /app/chat-server/package*.json ./chat-server/
-RUN cd chat-core && npm ci
-RUN cd chat-server && npm ci
+COPY --from=builder /app/chat-core ../chat-core/
+COPY --from=builder /app/chat-server/package*.json ./
+RUN npm ci
 
 # Get built JS file
 COPY --from=builder /app/chat-server/dist ./dist

@@ -64,4 +64,4 @@ If there are errors flagged through `prettier`, use:
 npm run format:fix
 ```
 
-TRIgGER TEST
+TRIgGER TEST!

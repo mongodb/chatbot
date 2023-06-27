@@ -1,7 +1,10 @@
 import { strict as assert } from "assert";
 import { MongoClient } from "mongodb";
 import { PageStore, PersistedPage } from "./updatePages";
-import { ChunkStore, EmbeddedChunk } from "./updateChunks";
+import {
+  EmbeddedContentStore,
+  EmbeddedEmbeddedContent,
+} from "./updateEmbeddedContent";
 
 export type DatabaseConnection = {
   /**
@@ -21,57 +24,62 @@ export const makeDatabaseConnection = async ({
 }: {
   connectionUri: string;
   databaseName: string;
-}): Promise<DatabaseConnection & PageStore & ChunkStore> => {
+}): Promise<DatabaseConnection & PageStore & EmbeddedContentStore> => {
   const client = await new MongoClient(connectionUri).connect();
   const db = client.db(databaseName);
-  const chunksCollection = db.collection<EmbeddedChunk>("chunks");
+  const embeddedContentCollection =
+    db.collection<EmbeddedEmbeddedContent>("embeddedContent");
   const pagesCollection = db.collection<PersistedPage>("pages");
-  const instance: DatabaseConnection & PageStore & ChunkStore = {
+  const instance: DatabaseConnection & PageStore & EmbeddedContentStore = {
     close: (force) => client.close(force),
 
-    async loadChunks({ page }) {
-      return await chunksCollection.find(pageIdentity(page)).toArray();
+    async loadEmbeddedContent({ page }) {
+      return await embeddedContentCollection.find(pageIdentity(page)).toArray();
     },
 
-    async deleteChunks({ page }) {
-      const deleteResult = await chunksCollection.deleteMany(
+    async deleteEmbeddedContent({ page }) {
+      const deleteResult = await embeddedContentCollection.deleteMany(
         pageIdentity(page)
       );
       if (!deleteResult.acknowledged) {
-        throw new Error("Chunk deletion not acknowledged!");
+        throw new Error("EmbeddedContent deletion not acknowledged!");
       }
     },
 
-    async updateChunks({ page, chunks }) {
-      chunks.forEach((chunk) => {
+    async updateEmbeddedContent({ page, embeddedContent }) {
+      embeddedContent.forEach((embeddedContent) => {
         assert(
-          chunk.source === page.sourceName && chunk.url === page.url,
-          `Chunk source/url (${chunk.source} / ${chunk.url}) must match give page source/url (${page.sourceName} / ${page.url})!`
+          embeddedContent.source === page.sourceName &&
+            embeddedContent.url === page.url,
+          `EmbeddedContent source/url (${embeddedContent.source} / ${embeddedContent.url}) must match give page source/url (${page.sourceName} / ${page.url})!`
         );
       });
       await client.withSession(async (session) => {
         await session.withTransaction(async () => {
-          // First delete all the chunks for the given page
-          const deleteResult = await chunksCollection.deleteMany(
+          // First delete all the embeddedContent for the given page
+          const deleteResult = await embeddedContentCollection.deleteMany(
             pageIdentity(page),
             { session }
           );
           if (!deleteResult.acknowledged) {
-            throw new Error("Chunk deletion not acknowledged!");
+            throw new Error("EmbeddedContent deletion not acknowledged!");
           }
 
-          // Insert the chunks for the page
-          const insertResult = await chunksCollection.insertMany([...chunks], {
-            session,
-          });
+          // Insert the embedded content for the page
+          const insertResult = await embeddedContentCollection.insertMany(
+            [...embeddedContent],
+            {
+              session,
+            }
+          );
 
           if (!insertResult.acknowledged) {
-            throw new Error("Chunk insertion not acknowledged!");
+            throw new Error("EmbeddedContent insertion not acknowledged!");
           }
           const { insertedCount } = insertResult;
-          if (insertedCount !== chunks.length) {
+          if (insertedCount !== embeddedContent.length) {
             throw new Error(
-              `Expected ${chunks.length} chunks inserted, got ${insertedCount}`
+              `Expected ${embeddedContent.length} inserted, got ${insertedCount}`
             );
           }
         });

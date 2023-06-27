@@ -1,4 +1,4 @@
-import { loadChangedPages } from "./updateChunks";
+import { loadChangedPages } from "./updateEmbeddedContent";
 import { MockPageStore } from "./updatePages.test";
 
 describe("loadChangedPages", () => {

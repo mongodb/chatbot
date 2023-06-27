@@ -6,7 +6,7 @@ import {
   DatabaseConnection,
 } from "./DatabaseConnection";
 import { PageStore, PersistedPage } from "./updatePages";
-import { ChunkStore } from "./updateChunks";
+import { EmbeddedContentStore } from "./updateEmbeddedContent";
 
 export type DbServer = {
   connectionUri: string;
@@ -33,7 +33,9 @@ afterAll(async () => {
 });
 
 describe("DatabaseConnection", () => {
-  let store: (DatabaseConnection & PageStore & ChunkStore) | undefined;
+  let store:
+    | (DatabaseConnection & PageStore & EmbeddedContentStore)
+    | undefined;
   beforeEach(async () => {
     assert(server !== undefined);
     store = await makeDatabaseConnection({
@@ -48,7 +50,7 @@ describe("DatabaseConnection", () => {
     await store.close();
   });
 
-  it("handles chunks", async () => {
+  it("handles embedded content", async () => {
     assert(store);
 
     const page: PersistedPage = {
@@ -61,17 +63,17 @@ describe("DatabaseConnection", () => {
       url: "/x/y/z",
     };
 
-    const chunks = await store.loadChunks({ page });
-    expect(chunks).toStrictEqual([]);
+    const embeddedContent = await store.loadEmbeddedContent({ page });
+    expect(embeddedContent).toStrictEqual([]);
 
-    await store.updateChunks({
+    await store.updateEmbeddedContent({
       page,
-      chunks: [
+      embeddedContent: [
         { embedding: [], source: page.sourceName, text: "foo", url: page.url },
       ],
     });
 
-    expect(await store.loadChunks({ page })).toMatchObject([
+    expect(await store.loadEmbeddedContent({ page })).toMatchObject([
       {
         embedding: [],
         sourceName: "source1",
@@ -80,21 +82,27 @@ describe("DatabaseConnection", () => {
       },
     ]);
 
-    // Won't find chunks for some other page
+    // Won't find embedded content for some other page
     expect(
-      await store.loadChunks({ page: { ...page, sourceName: "source2" } })
+      await store.loadEmbeddedContent({
+        page: { ...page, sourceName: "source2" },
+      })
     ).toStrictEqual([]);
     expect(
-      await store.loadChunks({ page: { ...page, url: page.url + "/" } })
+      await store.loadEmbeddedContent({
+        page: { ...page, url: page.url + "/" },
+      })
     ).toStrictEqual([]);
 
-    // Won't delete some other page's chunks
-    await store.deleteChunks({ page: { ...page, sourceName: "source2" } });
-    expect((await store.loadChunks({ page })).length).toBe(1);
+    // Won't delete some other page's embedded content
+    await store.deleteEmbeddedContent({
+      page: { ...page, sourceName: "source2" },
+    });
+    expect((await store.loadEmbeddedContent({ page })).length).toBe(1);
 
-    // Deletes chunks for page
-    await store.deleteChunks({ page });
-    expect(await store.loadChunks({ page })).toStrictEqual([]);
+    // Deletes embedded content for page
+    await store.deleteEmbeddedContent({ page });
+    expect(await store.loadEmbeddedContent({ page })).toStrictEqual([]);
   });
 
   it("handles pages", async () => {

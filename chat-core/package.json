@@ -2,7 +2,7 @@
   "name": "chat-core",
   "version": "0.0.1",
   "description": "Common elements used by the chatbot components.",
-  "main": "./src/index.ts",
+  "main": "./build/index.js",
   "scripts": {
     "clean": "rm -rf build",
     "build": "tsc -b",

@@ -4,7 +4,7 @@ FROM node:18-alpine as builder
 # Set up chat-core
 WORKDIR /app/chat-core
 COPY chat-core ./
-RUN npm ci
+RUN npm ci && npm run build
 
 # Set up chat-server
 WORKDIR /app/chat-server

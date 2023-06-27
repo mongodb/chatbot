@@ -4,6 +4,7 @@
   "description": "",
   "scripts": {
     "add-search-index:dev": "ts-node add-search-index.ts .env.dev",
+    "add-search-index:test": "ts-node add-search-index.ts .env.test",
     "add-search-index:staging": "ts-node add-search-index.ts .env.staging"
   },
   "keywords": [],

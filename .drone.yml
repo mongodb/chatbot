@@ -16,6 +16,7 @@ trigger:
   paths:
     include:
       - chat-server/**/*
+      - chat-core/**/*
 
 steps:
   - name: test

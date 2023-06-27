@@ -7,7 +7,7 @@ import {
 } from "../../services/llm";
 import { DataStreamerServiceInterface } from "../../services/dataStreamer";
 import { ConversationsServiceInterface } from "../../services/conversations";
-import { ContentServiceInterface } from "../../services/content";
+import { ContentServiceInterface } from "chat-core";
 import { makeRateMessageRoute } from "./rateMessage";
 import { makeCreateConversationRoute } from "./createConversation";
 import { makeAddMessageToConversationRoute } from "./addMessageToConversation";

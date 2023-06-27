@@ -1,11 +1,13 @@
 import "dotenv/config";
-import { MongoDB } from "../../src/integrations/mongodb";
+import { MongoDB } from "../integrations/mongodb";
 import {
   ContentService,
   ContentServiceOptions,
-} from "../../src/services/content";
-import { embeddings } from "../../src/services/embeddings";
+  makeContentServiceOptions,
+} from "./content";
 import { stripIndent } from "common-tags";
+import { OpenAiEmbeddingsClient } from "../integrations/openai";
+import { EmbeddingService, OpenAiEmbeddingProvider } from "./embeddings";
 
 describe("Content Service", () => {
   const {
@@ -14,6 +16,20 @@ describe("Content Service", () => {
     MONGODB_DATABASE_NAME,
   } = process.env;
   const mongodb = new MongoDB(MONGODB_CONNECTION_URI!, MONGODB_DATABASE_NAME!);
+  const {
+    OPENAI_ENDPOINT,
+    OPENAI_API_KEY,
+    OPENAI_EMBEDDING_DEPLOYMENT,
+    OPENAI_EMBEDDING_MODEL_VERSION,
+  } = process.env;
+  const openaiClient = new OpenAiEmbeddingsClient(
+    OPENAI_ENDPOINT!,
+    OPENAI_EMBEDDING_DEPLOYMENT!,
+    OPENAI_API_KEY!,
+    OPENAI_EMBEDDING_MODEL_VERSION!
+  );
+  const openAiEmbeddingProvider = new OpenAiEmbeddingProvider(openaiClient);
+  const embeddings = new EmbeddingService(openAiEmbeddingProvider);
 
   afterAll(async () => {
     await mongodb.close();
@@ -49,5 +65,21 @@ describe("Content Service", () => {
     });
     const matches = await contentService.findVectorMatches({ embedding });
     expect(matches).toHaveLength(0);
+  });
+  test("Creates content service options", () => {
+    const defaultOptions = makeContentServiceOptions();
+    expect(defaultOptions).toStrictEqual({
+      k: 10,
+      path: "embedding",
+      indexName: "default",
+      minScore: 0.9,
+    });
+    const customOptions = makeContentServiceOptions({ indexName: "custom" });
+    expect(customOptions).toStrictEqual({
+      k: 10,
+      path: "embedding",
+      indexName: "custom",
+      minScore: 0.9,
+    });
   });
 });

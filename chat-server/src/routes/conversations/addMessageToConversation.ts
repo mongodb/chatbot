@@ -10,7 +10,7 @@ import {
   EmbeddingService,
   logger,
 } from "chat-core";
-import { Content, ContentServiceInterface } from "../../services/content";
+import { Content, ContentServiceInterface } from "chat-core";
 import {
   Conversation,
   ConversationsServiceInterface,
@@ -23,11 +23,7 @@ import {
   OpenAiAwaitedResponse,
   OpenAiStreamingResponse,
 } from "../../services/llm";
-import {
-  ApiConversation,
-  ApiMessage,
-  convertMessageFromDbToApi,
-} from "./utils";
+import { ApiConversation, convertMessageFromDbToApi } from "./utils";
 import { sendErrorResponse } from "../../utils";
 
 const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM

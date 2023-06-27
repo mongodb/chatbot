@@ -1,4 +1,4 @@
-import { createLogger, Logger, transports, format } from "winston";
+import { createLogger, transports, format } from "winston";
 
 // Helper function to format JSON message
 export const createMessage = (

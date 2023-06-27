@@ -3,11 +3,51 @@ import cors from "cors";
 import "dotenv/config";
 import { makeConversationsRouter } from "./routes/conversations";
 import { llm } from "./services/llm";
-import { embeddings, createMessage, logger } from "chat-core";
-import { dataStreamer } from "./services/dataStreamer";
-import { content } from "./services/content";
-import { conversationsService } from "./services/conversations";
+import {
+  createMessage,
+  logger,
+  MongoDB,
+  ContentService,
+  makeContentServiceOptions,
+  OpenAiEmbeddingsClient,
+  OpenAiEmbeddingProvider,
+  EmbeddingService,
+} from "chat-core";
+import { DataStreamerService } from "./services/dataStreamer";
 import { ObjectId } from "mongodb";
+import { ConversationsService } from "./services/conversations";
+
+const {
+  MONGODB_CONNECTION_URI,
+  MONGODB_DATABASE_NAME,
+  VECTOR_SEARCH_INDEX_NAME,
+} = process.env;
+// Create instances of services
+export const mongodb = new MongoDB(
+  MONGODB_CONNECTION_URI!,
+  MONGODB_DATABASE_NAME!,
+  VECTOR_SEARCH_INDEX_NAME!
+);
+const contentServiceOptions = makeContentServiceOptions({
+  indexName: mongodb.vectorSearchIndexName,
+});
+const content = new ContentService(mongodb.db, contentServiceOptions);
+const {
+  OPENAI_ENDPOINT,
+  OPENAI_API_KEY,
+  OPENAI_EMBEDDING_DEPLOYMENT,
+  OPENAI_EMBEDDING_MODEL_VERSION,
+} = process.env;
+const openaiClient = new OpenAiEmbeddingsClient(
+  OPENAI_ENDPOINT!,
+  OPENAI_EMBEDDING_DEPLOYMENT!,
+  OPENAI_API_KEY!,
+  OPENAI_EMBEDDING_MODEL_VERSION!
+);
+const openAiEmbeddingProvider = new OpenAiEmbeddingProvider(openaiClient);
+const embeddings = new EmbeddingService(openAiEmbeddingProvider);
+const conversationsService = new ConversationsService(mongodb.db);
+const dataStreamer = new DataStreamerService();
 
 // General error handler; called at usage of next() in routes
 const errorHandler: ErrorRequestHandler = (err, req, res) => {

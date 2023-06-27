@@ -1,6 +1,6 @@
 import fs from "fs";
 import dotenv from "dotenv";
-import { Content } from "../src/services/content";
+import { Content } from "chat-core";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Document } from "langchain/dist/document";
 import GPT3Tokenizer from "gpt3-tokenizer";
@@ -49,45 +49,45 @@ interface CreateChunkForDevhubDocParams {
   baseUrl: string;
   tokenizer: GPT3Tokenizer;
 }
-// TODO: see above TODO
-// async function createChunksForDevHubDocument({
-//   splitter,
-//   tokenizer,
-//   devHubDoc,
-//   baseUrl,
-// }: CreateChunkForDevhubDocParams): Promise<Content[]> {
-//   console.log("Chunking doc:", devHubDoc.name);
-//   let chunks: Document<Record<string, any>>[] = [];
-//   try {
-//     chunks = await splitter.createDocuments([devHubDoc.content]);
-//   } catch (e) {
-//     console.log("Error splitting document", devHubDoc.name);
-//   }
-//   const contentWithoutEmbeddings = chunks.map<Content>((chunk) => ({
-//     _id: new ObjectId(),
-//     text: chunk.pageContent,
-//     url: `${baseUrl}${devHubDoc.calculated_slug}`,
-//     site: {
-//       name: "dev-center",
-//       url: baseUrl,
-//     },
-//     tags: ["dev-center"],
-//     numTokens: tokenizer.encode(chunk.pageContent).bpe.length,
-//     embedding: [],
-//     lastUpdated: new Date(),
-//   }));
-//   const contentWithEmbeddings = await Promise.all(
-//     contentWithoutEmbeddings.map(async (content) => {
-//       const chunkEmbedding = await embeddings.createEmbedding({
-//         text: content.text,
-//         userIp: "",
-//       });
-//       content.embedding = chunkEmbedding.embedding || [];
-//       return content;
-//     })
-//   );
-//   return contentWithEmbeddings;
-// }
+//TODO: see above TODO
+async function createChunksForDevHubDocument({
+  splitter,
+  tokenizer,
+  devHubDoc,
+  baseUrl,
+}: CreateChunkForDevhubDocParams): Promise<Content[]> {
+  console.log("Chunking doc:", devHubDoc.name);
+  let chunks: Document<Record<string, any>>[] = [];
+  try {
+    chunks = await splitter.createDocuments([devHubDoc.content]);
+  } catch (e) {
+    console.log("Error splitting document", devHubDoc.name);
+  }
+  const contentWithoutEmbeddings = chunks.map<Content>((chunk) => ({
+    _id: new ObjectId(),
+    text: chunk.pageContent,
+    url: `${baseUrl}${devHubDoc.calculated_slug}`,
+    site: {
+      name: "dev-center",
+      url: baseUrl,
+    },
+    tags: ["dev-center"],
+    numTokens: tokenizer.encode(chunk.pageContent).bpe.length,
+    embedding: [],
+    lastUpdated: new Date(),
+  }));
+  const contentWithEmbeddings = await Promise.all(
+    contentWithoutEmbeddings.map(async (content) => {
+      const chunkEmbedding = await embeddings.createEmbedding({
+        text: content.text,
+        userIp: "",
+      });
+      content.embedding = chunkEmbedding.embedding || [];
+      return content;
+    })
+  );
+  return contentWithEmbeddings;
+}
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));

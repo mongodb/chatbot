@@ -1,7 +1,7 @@
 // TODO: understand what's happening here
 import { Response } from "express";
 import { Conversation } from "./conversations";
-import { Content } from "./content";
+import { Content } from "chat-core";
 
 interface AnswerParams {
   res: Response;
@@ -20,5 +20,3 @@ export class DataStreamerService {
     return "answer";
   }
 }
-
-export const dataStreamer = new DataStreamerService();

@@ -1,5 +1,4 @@
 import { Collection, Db, ObjectId } from "mongodb";
-import { mongodb } from "../integrations/mongodb";
 
 export interface Site {
   /** The name of the website the chunk belongs to. */
@@ -74,11 +73,13 @@ export class ContentService implements ContentServiceInterface {
   }
 }
 
-const options: ContentServiceOptions = {
-  k: 10,
-  path: "embedding",
-  indexName: mongodb.vectorSearchIndexName || "default",
-  minScore: 0.9,
-};
-
-export const content = new ContentService(mongodb.db, options);
+export function makeContentServiceOptions(
+  contentServiceOptions?: Partial<ContentServiceOptions>
+): ContentServiceOptions {
+  return {
+    k: contentServiceOptions?.k || 10,
+    path: contentServiceOptions?.path || "embedding",
+    indexName: contentServiceOptions?.indexName || "default",
+    minScore: contentServiceOptions?.minScore || 0.9,
+  };
+}

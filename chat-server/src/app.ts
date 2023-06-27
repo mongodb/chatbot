@@ -50,18 +50,13 @@ const conversationsService = new ConversationsService(mongodb.db);
 const dataStreamer = new DataStreamerService();
 
 // General error handler; called at usage of next() in routes
-const errorHandler: ErrorRequestHandler = (err, req, res) => {
-  // const reqId = getRequestId(req);
-  // logger.error(
-  //   createMessage(`Error Request Handler caught an error: ${err}`, reqId)
-  // );
+const errorHandler: ErrorRequestHandler = (err, _req, res) => {
   const status = err.status || 500;
-  res.status(status).json({ error: err.message || "Internal Server Error" });
-  if (res.writable && !res.headersSent) {
-    res.status(status).json({ error: err.message });
+
+  if (!res.headersSent) {
+    res.status(status).json({ error: err.message || "Internal Server Error" });
   } else {
-    // Ensure response ends if headers were already sent
-    res.end();
+    logger.error(err);
   }
 };
 // Apply to all logs in the app
@@ -90,6 +85,9 @@ export const setupApp = async () => {
       conversations: conversationsService,
     })
   );
+  app.all("*", (req, res, next) => {
+    return res.status(404).json({ error: "Not Found" }).send();
+  });
   app.use(errorHandler);
 
   return app;

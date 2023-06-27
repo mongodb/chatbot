@@ -1,21 +1,21 @@
 import { CommandModule } from "yargs";
-import { updateChunks } from "../updateChunks";
+import { updateEmbeddedContent } from "../updateEmbeddedContent";
 
-type ChunksCommandArgs = {
+type EmbeddedContentCommandArgs = {
   since: string;
 };
 
 const commandModule: CommandModule<
   Record<string, unknown>,
-  ChunksCommandArgs
+  EmbeddedContentCommandArgs
 > = {
-  command: "chunks",
+  command: "embed",
   builder(args) {
     return args.string("since");
   },
   async handler({ since }) {
     try {
-      await updateChunks({
+      await updateEmbeddedContent({
         since: new Date(since),
 
         // TODO: PageStore is a stand-in for Atlas (but can be mocked for testing)
@@ -28,15 +28,15 @@ const commandModule: CommandModule<
           },
         },
 
-        // TODO: ChunkStore is a stand-in for Atlas (but can be mocked for testing)
-        chunkStore: {
-          async loadChunks() {
+        // TODO: EmbeddedContentStore is a stand-in for Atlas (but can be mocked for testing)
+        embeddedContentStore: {
+          async loadEmbeddedContent() {
             return [];
           },
-          async deleteChunks() {
+          async deleteEmbeddedContent() {
             return;
           },
-          async updateChunks() {
+          async updateEmbeddedContent() {
             return;
           },
         },
@@ -46,7 +46,7 @@ const commandModule: CommandModule<
       process.exit(1);
     }
   },
-  describe: "Update chunks data from pages",
+  describe: "Update embedded content data from pages",
 };
 
 export default commandModule;

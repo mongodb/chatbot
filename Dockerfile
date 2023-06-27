@@ -2,9 +2,9 @@
 FROM node:18-alpine as builder
 WORKDIR /app
 
-COPY ../chat-core ./chat-core/
-COPY src/ ./src/
-COPY package*.json tsconfig.json ./
+COPY chat-core ./chat-core/
+COPY chat-server/src/ ./src/
+COPY chat-server/package*.json chat-server/tsconfig.json ./
 RUN npm ci && npm run build
 
 # Main image
@@ -13,8 +13,8 @@ ENV NODE_ENV=production
 WORKDIR /app
 
 # Install only production dependencies
-COPY ../chat-core ./chat-core/
-COPY package*.json ./
+COPY chat-core ./chat-core/
+COPY chat-server/package*.json ./
 RUN npm ci --omit=dev
 
 # Get built JS file

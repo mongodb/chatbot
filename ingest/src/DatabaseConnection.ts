@@ -1,10 +1,7 @@
 import { strict as assert } from "assert";
 import { MongoClient } from "mongodb";
 import { PageStore, PersistedPage } from "./updatePages";
-import {
-  EmbeddedContentStore,
-  EmbeddedEmbeddedContent,
-} from "./updateEmbeddedContent";
+import { EmbeddedContentStore, ContentChunk } from "./updateEmbeddedContent";
 
 export type DatabaseConnection = {
   /**
@@ -28,7 +25,7 @@ export const makeDatabaseConnection = async ({
   const client = await new MongoClient(connectionUri).connect();
   const db = client.db(databaseName);
   const embeddedContentCollection =
-    db.collection<EmbeddedEmbeddedContent>("embeddedContent");
+    db.collection<ContentChunk>("embedded_content");
   const pagesCollection = db.collection<PersistedPage>("pages");
   const instance: DatabaseConnection & PageStore & EmbeddedContentStore = {
     close: (force) => client.close(force),

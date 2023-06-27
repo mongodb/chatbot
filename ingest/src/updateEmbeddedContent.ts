@@ -38,9 +38,7 @@ export type EmbeddedContentStore = {
   /**
     Load the embeddedContent for the given page.
    */
-  loadEmbeddedContent(args: {
-    page: PersistedPage;
-  }): Promise<EmbeddedEmbeddedContent[]>;
+  loadEmbeddedContent(args: { page: PersistedPage }): Promise<ContentChunk[]>;
 
   /**
     Delete all embeddedContent for the given page.
@@ -52,7 +50,7 @@ export type EmbeddedContentStore = {
    */
   updateEmbeddedContent(args: {
     page: PersistedPage;
-    embeddedContent: EmbeddedEmbeddedContent[];
+    embeddedContent: EmbeddedContent[];
   }): Promise<void>;
 };
 
@@ -80,9 +78,7 @@ export const updateEmbeddedContentForPage = async ({
 }): Promise<void> => {
   const chunks = await chunkPage(page);
 
-  const embeddedEmbeddedContent = await Promise.all(
-    chunks.map(embedContent)
-  );
+  const embeddedEmbeddedContent = await Promise.all(chunks.map(embedContent));
 
   await store.updateEmbeddedContent({
     page,
@@ -99,7 +95,7 @@ export type ContentChunk = {
 
 export const chunkPage = async (
   page: PersistedPage
-): Promise<Chunk[]> => {
+): Promise<ContentChunk[]> => {
   // TODO
   return [];
 };
@@ -109,8 +105,8 @@ export type EmbeddedContent = ContentChunk & {
 };
 
 export const embedContent = async (
-  embeddedContent: EmbeddedContent
-): Promise<EmbeddedEmbeddedContent> => {
+  content: ContentChunk
+): Promise<EmbeddedContent> => {
   // TODO
-  return { ...embeddedContent, embedding: [] };
+  return { ...content, embedding: [] };
 };

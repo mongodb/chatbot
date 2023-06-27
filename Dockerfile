@@ -4,13 +4,13 @@ FROM node:18-alpine as builder
 # Set up chat-core
 WORKDIR /app/chat-core
 COPY chat-core ./
-RUN npm ci --omit=dev
+RUN npm ci
 
 # Set up chat-server
 WORKDIR /app/chat-server
 COPY chat-server/src/ ./src/
 COPY chat-server/package*.json ./tsconfig.json ./
-RUN npm ci --omit=dev && npm run build
+RUN npm ci && npm run build
 
 # Main image
 FROM node:18-alpine as main

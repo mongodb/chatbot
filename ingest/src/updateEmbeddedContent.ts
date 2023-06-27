@@ -1,4 +1,11 @@
-import { PersistedPage, PageStore } from "./updatePages";
+import {
+  EmbedFunc,
+  EmbeddedContent,
+  EmbeddedContentStore,
+  PersistedPage,
+  Page,
+  PageStore,
+} from "chat-core";
 
 /**
   (Re-)embeddedContent the pages in the page store that have changed since the given date
@@ -8,18 +15,19 @@ export const updateEmbeddedContent = async ({
   since,
   embeddedContentStore,
   pageStore,
+  embed,
 }: {
   since: Date;
   embeddedContentStore: EmbeddedContentStore;
   pageStore: PageStore;
+  embed: EmbedFunc;
 }): Promise<void> => {
-  const changedPages = await loadChangedPages({ since, pageStore });
+  const changedPages = await pageStore.loadPages({ updated: since });
 
   const promises = changedPages.map(async (page) => {
     switch (page.action) {
       case "deleted":
-        return deleteEmbeddedContentForPage({
-          store: embeddedContentStore,
+        return await embeddedContentStore.deleteEmbeddedContent({
           page,
         });
       case "created": // fallthrough
@@ -27,6 +35,7 @@ export const updateEmbeddedContent = async ({
         return updateEmbeddedContentForPage({
           store: embeddedContentStore,
           page,
+          embed,
         });
     }
   });
@@ -34,79 +43,39 @@ export const updateEmbeddedContent = async ({
   await Promise.all(promises);
 };
 
-export type EmbeddedContentStore = {
-  /**
-    Load the embeddedContent for the given page.
-   */
-  loadEmbeddedContent(args: { page: PersistedPage }): Promise<ContentChunk[]>;
-
-  /**
-    Delete all embeddedContent for the given page.
-   */
-  deleteEmbeddedContent(args: { page: PersistedPage }): Promise<void>;
-
-  /**
-    Replace all embeddedContent for the given page with the given embeddedContent.
-   */
-  updateEmbeddedContent(args: {
-    page: PersistedPage;
-    embeddedContent: EmbeddedContent[];
-  }): Promise<void>;
-};
-
-export const loadChangedPages = async (args: {
-  since: Date;
-  pageStore: PageStore;
-}): Promise<PersistedPage[]> => {
-  // TODO
-  return [];
-};
-
-export const deleteEmbeddedContentForPage = async (args: {
-  page: PersistedPage;
-  store: EmbeddedContentStore;
-}): Promise<void> => {
-  // TODO: Delete embeddedContent for page
-};
-
 export const updateEmbeddedContentForPage = async ({
   page,
   store,
+  embed,
 }: {
   page: PersistedPage;
   store: EmbeddedContentStore;
+  embed: EmbedFunc;
 }): Promise<void> => {
-  const chunks = await chunkPage(page);
+  const contentChunks = await chunkPage(page);
 
-  const embeddedEmbeddedContent = await Promise.all(chunks.map(embedContent));
+  const embeddedContent = await Promise.all(
+    contentChunks.map(async (chunk): Promise<EmbeddedContent> => {
+      const { embedding } = await embed({
+        text: chunk.text,
+        userIp: "",
+      });
+      return {
+        ...chunk,
+        embedding,
+        updated: new Date(),
+      };
+    })
+  );
 
   await store.updateEmbeddedContent({
     page,
-    embeddedContent: embeddedEmbeddedContent,
+    embeddedContent,
   });
 };
 
-export type ContentChunk = {
-  source: string;
-  url: string;
-  text: string;
-  // ... TODO ...
-};
+export type ContentChunk = Omit<EmbeddedContent, "embedding" | "updated">;
 
-export const chunkPage = async (
-  page: PersistedPage
-): Promise<ContentChunk[]> => {
-  // TODO
+export const chunkPage = async (page: Page): Promise<ContentChunk[]> => {
   return [];
-};
-
-export type EmbeddedContent = ContentChunk & {
-  embedding: number[];
-};
-
-export const embedContent = async (
-  content: ContentChunk
-): Promise<EmbeddedContent> => {
-  // TODO
-  return { ...content, embedding: [] };
 };

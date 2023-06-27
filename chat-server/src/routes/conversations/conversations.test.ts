@@ -2,10 +2,10 @@ import request from "supertest";
 import "dotenv/config";
 import {
   OpenAiChatClient,
-  OpenAiEmbeddingsClient,
   MongoDB,
-  EmbeddingService,
-  OpenAiEmbeddingProvider,
+  makeOpenAiEmbedFunc,
+  assertEnvVars,
+  CORE_ENV_VARS,
 } from "chat-core";
 import { ASSISTANT_PROMPT } from "../../aiConstants";
 import {
@@ -36,24 +36,25 @@ import { ObjectId } from "mongodb";
 import { makeRateMessageRoute } from "./rateMessage";
 
 jest.setTimeout(100000);
-const {
-  MONGODB_CONNECTION_URI,
-  MONGODB_DATABASE_NAME,
-  OPENAI_ENDPOINT,
-  OPENAI_API_KEY,
-  OPENAI_EMBEDDING_DEPLOYMENT,
-  OPENAI_EMBEDDING_MODEL_VERSION,
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  VECTOR_SEARCH_INDEX_NAME,
-} = process.env;
 
 describe("Conversations Router", () => {
+  const {
+    MONGODB_CONNECTION_URI,
+    MONGODB_DATABASE_NAME,
+    OPENAI_ENDPOINT,
+    OPENAI_API_KEY,
+    OPENAI_EMBEDDING_DEPLOYMENT,
+    OPENAI_EMBEDDING_MODEL_VERSION,
+    OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    VECTOR_SEARCH_INDEX_NAME,
+  } = assertEnvVars(CORE_ENV_VARS);
+
   // create route with mock service
   describe("POST /conversations/", () => {
     const app = express();
     app.use(express.json()); // for parsing application/json
     const testDbName = `conversations-test-${Date.now()}`;
-    const mongodb = new MongoDB(MONGODB_CONNECTION_URI!, testDbName);
+    const mongodb = new MongoDB(MONGODB_CONNECTION_URI, testDbName);
 
     const conversations = new ConversationsService(mongodb.db);
     afterAll(async () => {
@@ -87,16 +88,16 @@ describe("Conversations Router", () => {
     // set up conversations service
     const conversationMessageTestDbName = `convo-msg-test-${Date.now()}`;
     const conversationsMongoDb = new MongoDB(
-      MONGODB_CONNECTION_URI!,
+      MONGODB_CONNECTION_URI,
       conversationMessageTestDbName
     );
     const conversations = new ConversationsService(conversationsMongoDb.db);
 
     // set up content service
     const contentMongoDb = new MongoDB(
-      MONGODB_CONNECTION_URI!,
-      MONGODB_DATABASE_NAME!,
-      VECTOR_SEARCH_INDEX_NAME!
+      MONGODB_CONNECTION_URI,
+      MONGODB_DATABASE_NAME,
+      VECTOR_SEARCH_INDEX_NAME
     );
     const content = new ContentService(
       contentMongoDb.db,
@@ -106,16 +107,12 @@ describe("Conversations Router", () => {
     );
 
     // set up embeddings service
-    const embeddings = new EmbeddingService(
-      new OpenAiEmbeddingProvider(
-        new OpenAiEmbeddingsClient(
-          OPENAI_ENDPOINT!,
-          OPENAI_EMBEDDING_DEPLOYMENT!,
-          OPENAI_API_KEY!,
-          OPENAI_EMBEDDING_MODEL_VERSION!
-        )
-      )
-    );
+    const embed = makeOpenAiEmbedFunc({
+      apiKey: OPENAI_API_KEY,
+      apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
+      baseUrl: OPENAI_ENDPOINT,
+      deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+    });
 
     // set up llm service
     const llm = new OpenAiLlmProvider(
@@ -135,7 +132,7 @@ describe("Conversations Router", () => {
       makeAddMessageToConversationRoute({
         conversations,
         content,
-        embeddings,
+        embed,
         llm,
         dataStreamer,
       })
@@ -223,7 +220,7 @@ describe("Conversations Router", () => {
           const text = "MongoDB Atlas";
 
           const chunks = await getContentForText({
-            embeddings,
+            embed,
             text,
             content,
             ipAddress,
@@ -235,7 +232,7 @@ describe("Conversations Router", () => {
           const text =
             "asdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjafdshgjfkhfdugytfasfghjkujufgjdfhstgragtyjuikol";
           const chunks = await getContentForText({
-            embeddings,
+            embed,
             text,
             content,
             ipAddress,

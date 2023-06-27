@@ -37,6 +37,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "chat-core": "file:../chat-core",
     "deep-equal": "^2.2.1",
     "dotenv": "^16",
     "mongodb": "^5",

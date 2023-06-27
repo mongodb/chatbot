@@ -10,9 +10,9 @@ import {
   MongoDB,
   ContentService,
   makeContentServiceOptions,
-  OpenAiEmbeddingsClient,
-  OpenAiEmbeddingProvider,
-  EmbeddingService,
+  CORE_ENV_VARS,
+  assertEnvVars,
+  makeOpenAiEmbedFunc,
 } from "chat-core";
 import { DataStreamerService } from "./services/dataStreamer";
 import { ObjectId } from "mongodb";
@@ -22,31 +22,30 @@ const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
   VECTOR_SEARCH_INDEX_NAME,
-} = process.env;
+  OPENAI_ENDPOINT,
+  OPENAI_API_KEY,
+  OPENAI_EMBEDDING_DEPLOYMENT,
+  OPENAI_EMBEDDING_MODEL_VERSION,
+} = assertEnvVars(CORE_ENV_VARS);
+
 // Create instances of services
 export const mongodb = new MongoDB(
-  MONGODB_CONNECTION_URI!,
-  MONGODB_DATABASE_NAME!,
-  VECTOR_SEARCH_INDEX_NAME!
+  MONGODB_CONNECTION_URI,
+  MONGODB_DATABASE_NAME,
+  VECTOR_SEARCH_INDEX_NAME
 );
 const contentServiceOptions = makeContentServiceOptions({
   indexName: mongodb.vectorSearchIndexName,
 });
 const content = new ContentService(mongodb.db, contentServiceOptions);
-const {
-  OPENAI_ENDPOINT,
-  OPENAI_API_KEY,
-  OPENAI_EMBEDDING_DEPLOYMENT,
-  OPENAI_EMBEDDING_MODEL_VERSION,
-} = process.env;
-const openaiClient = new OpenAiEmbeddingsClient(
-  OPENAI_ENDPOINT!,
-  OPENAI_EMBEDDING_DEPLOYMENT!,
-  OPENAI_API_KEY!,
-  OPENAI_EMBEDDING_MODEL_VERSION!
-);
-const openAiEmbeddingProvider = new OpenAiEmbeddingProvider(openaiClient);
-const embeddings = new EmbeddingService(openAiEmbeddingProvider);
+
+const embed = makeOpenAiEmbedFunc({
+  apiKey: OPENAI_API_KEY,
+  apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
+  baseUrl: OPENAI_ENDPOINT,
+  deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+});
+
 const conversationsService = new ConversationsService(mongodb.db);
 const dataStreamer = new DataStreamerService();
 
@@ -82,7 +81,7 @@ export const setupApp = async () => {
     "/conversations",
     makeConversationsRouter({
       llm,
-      embeddings,
+      embed,
       dataStreamer,
       content,
       conversations: conversationsService,

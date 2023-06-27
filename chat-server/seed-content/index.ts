@@ -2,9 +2,9 @@ import fs from "fs";
 import dotenv from "dotenv";
 import {
   Content,
-  EmbeddingService,
-  OpenAiEmbeddingProvider,
-  OpenAiEmbeddingsClient,
+  makeOpenAiEmbedFunc,
+  CORE_ENV_VARS,
+  assertEnvVars,
 } from "chat-core";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Document } from "langchain/dist/document";
@@ -22,18 +22,19 @@ const {
   OPENAI_API_KEY,
   OPENAI_EMBEDDING_DEPLOYMENT,
   OPENAI_EMBEDDING_MODEL_VERSION,
-} = process.env;
-console.log("MONGODB_CONNECTION_URI", MONGODB_CONNECTION_URI!);
-console.log("MONGODB_DATABASE_NAME", MONGODB_DATABASE_NAME!);
-const mongodb = new MongoClient(MONGODB_CONNECTION_URI!);
-const openaiClient = new OpenAiEmbeddingsClient(
-  OPENAI_ENDPOINT!,
-  OPENAI_EMBEDDING_DEPLOYMENT!,
-  OPENAI_API_KEY!,
-  OPENAI_EMBEDDING_MODEL_VERSION!
-);
-const openAiEmbeddingProvider = new OpenAiEmbeddingProvider(openaiClient);
-const embeddings = new EmbeddingService(openAiEmbeddingProvider);
+} = assertEnvVars(CORE_ENV_VARS);
+
+console.log("MONGODB_CONNECTION_URI", MONGODB_CONNECTION_URI);
+console.log("MONGODB_DATABASE_NAME", MONGODB_DATABASE_NAME);
+
+const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
+
+const embed = makeOpenAiEmbedFunc({
+  apiKey: OPENAI_API_KEY,
+  apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
+  baseUrl: OPENAI_ENDPOINT,
+  deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+});
 
 /**
  * Note that not capturing all fields, just ones used in the content mapping.
@@ -96,7 +97,7 @@ async function createChunksForDevHubDocument({
   }));
   const contentWithEmbeddings = await Promise.all(
     contentWithoutEmbeddings.map(async (content) => {
-      const chunkEmbedding = await embeddings.createEmbedding({
+      const chunkEmbedding = await embed({
         text: content.text,
         userIp: "",
       });
@@ -140,7 +141,7 @@ async function main() {
 
   console.log("Adding data to MongoDB");
   const contentCollection = mongodb
-    .db(MONGODB_DATABASE_NAME!)
+    .db(MONGODB_DATABASE_NAME)
     .collection("content");
   const flattedContentWithOutEmptyEmbeddings = JSON.parse(
     fs.readFileSync(fileOut, "utf-8")

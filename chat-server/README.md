@@ -25,7 +25,7 @@ Use the `.env.example` file to help configure a local `.env` file.
 The server relies on some cloud-only services:
 
 - The `content` service relies on Atlas Vector Search.
-- The `llm` and `embeddings` services rely on the OpenAI APIs.
+- The `llm` and embeddings services rely on the OpenAI APIs.
 
 If this is your first time setting up the server, contact a member of the development
 team for credentials.

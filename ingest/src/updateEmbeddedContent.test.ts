@@ -1,9 +1,8 @@
-import { loadChangedPages } from "./updateEmbeddedContent";
-import { MockPageStore } from "./updatePages.test";
+import { makeMockPageStore } from "./updatePages.test";
 
 describe("loadChangedPages", () => {
   it("loads pages that have changed since the given date", async () => {
-    const pageStore = new MockPageStore();
+    const pageStore = makeMockPageStore();
 
     await pageStore.updatePages([
       {
@@ -26,9 +25,8 @@ describe("loadChangedPages", () => {
       },
     ]);
 
-    const changedPages = await loadChangedPages({
-      since: new Date("2000-01-01"),
-      pageStore,
+    const changedPages = await pageStore.loadPages({
+      updated: new Date("2000-01-01"),
     });
 
     expect(changedPages.length).toBe(1);

@@ -7,7 +7,7 @@ import {
   OpenAiChatMessage,
   ObjectId,
   OpenAiMessageRole,
-  EmbeddingService,
+  EmbedFunc,
   logger,
 } from "chat-core";
 import { Content, ContentServiceInterface } from "chat-core";
@@ -44,7 +44,7 @@ export interface AddMessageRequest extends ExpressRequest {
 export interface AddMessageToConversationRouteParams {
   content: ContentServiceInterface;
   conversations: ConversationsServiceInterface;
-  embeddings: EmbeddingService;
+  embed: EmbedFunc;
   llm: LlmProvider<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   dataStreamer: DataStreamerServiceInterface;
 }
@@ -53,7 +53,7 @@ export function makeAddMessageToConversationRoute({
   conversations,
   llm,
   dataStreamer,
-  embeddings,
+  embed,
 }: AddMessageToConversationRouteParams) {
   return async (
     req: AddMessageRequest,
@@ -100,11 +100,11 @@ export function makeAddMessageToConversationRoute({
       }
 
       // Find content matches for latest message
-      // TODO: consider refactoring this to feed in all messages to the embeddings service
+      // TODO: consider refactoring this to feed in all messages to the embed function
       // And then as a future step, we can use LLM pre-processing to create a better input
       // to the embedding service.
       const chunks = await getContentForText({
-        embeddings,
+        embed,
         ipAddress,
         text: latestMessageText,
         content,
@@ -171,7 +171,7 @@ export function makeAddMessageToConversationRoute({
 }
 
 export interface GetContentForTextParams {
-  embeddings: EmbeddingService;
+  embed: EmbedFunc;
   ipAddress: string;
   text: string;
   content: ContentServiceInterface;
@@ -187,12 +187,12 @@ export function convertDbMessageToOpenAiMessage(
 }
 
 export async function getContentForText({
-  embeddings,
+  embed,
   content,
   text,
   ipAddress,
 }: GetContentForTextParams) {
-  const { embedding } = await embeddings.createEmbedding({
+  const { embedding } = await embed({
     text,
     userIp: ipAddress,
   });

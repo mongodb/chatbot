@@ -220,7 +220,7 @@ describe("Conversations Router", () => {
       describe("getContentForText()", () => {
         const ipAddress = "someIpAddress";
         test("Should return content for relevant text", async () => {
-          const text = "MongoDB";
+          const text = "MongoDB Atlas";
 
           const chunks = await getContentForText({
             embeddings,

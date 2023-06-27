@@ -23,6 +23,7 @@ steps:
     commands:
       - cd chat-core
       - npm ci
+      - npm test
       - cd ..
       - cd chat-server
       - npm ci
@@ -35,7 +36,6 @@ steps:
       MONGODB_DATABASE_NAME: docs-chatbot-test
       VECTOR_SEARCH_INDEX_NAME: default
       OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
-      # TODO: add to Drone secrets
       MONGODB_CONNECTION_URI:
         from_secret: mongodb_connection_uri
       OPENAI_ENDPOINT:

@@ -10,9 +10,15 @@ RUN npm ci && npm run build
 WORKDIR /app/chat-server
 COPY chat-server/src/ ./src/
 COPY chat-server/package*.json chat-server/tsconfig.json ./
-RUN pwd
-RUN ls
 RUN npm ci && npm run build
+
+# Set up chat-ui
+# NOTE: This must be done after setting up chat-server so that
+# static asset directory exists for build to output files to.
+WORKDIR /app/chat-ui
+COPY chat-ui ./
+RUN npm ci && npm run build:static-site:staging
+
 
 # Main image
 FROM node:18-alpine as main

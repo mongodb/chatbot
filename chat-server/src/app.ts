@@ -1,6 +1,7 @@
 import express, { ErrorRequestHandler, RequestHandler } from "express";
 import cors from "cors";
 import "dotenv/config";
+import path from "path";
 import { makeConversationsRouter } from "./routes/conversations";
 import { llm } from "./services/llm";
 import {
@@ -72,9 +73,14 @@ const reqHandler: RequestHandler = (req, _res, next) => {
 
 export const setupApp = async () => {
   const app = express();
+  app.use(express.static("static"));
   app.use(cors()); // TODO: add specific options to only allow certain origins
   app.use(express.json());
   app.use(reqHandler);
+  // TODO: consider only serving this from the staging env
+  app.get("/", (_req, res) => {
+    res.sendFile("static", "index.html");
+  });
   app.use(
     "/conversations",
     makeConversationsRouter({

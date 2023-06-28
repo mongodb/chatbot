@@ -30,19 +30,21 @@ export function Avatar({ role }: { role: Role }) {
           </div>
         </div>
       );
-    case "system":
-      return (
-        <div
-          className={`${styles.message_avatar} ${styles.message_avatar_system}`}
-        >
-          <Icon
-            className={styles.message_avatar_icon}
-            // glyph="Settings"
-            glyph="Megaphone"
-            color="#ffffff"
-          />
-        </div>
-      );
+    // TODO: i think this can be removed b/c we never expose the system prompt
+    // to the user
+    // case "system":
+    //   return (
+    //     <div
+    //       className={`${styles.message_avatar} ${styles.message_avatar_system}`}
+    //     >
+    //       <Icon
+    //         className={styles.message_avatar_icon}
+    //         // glyph="Settings"
+    //         glyph="Megaphone"
+    //         color="#ffffff"
+    //       />
+    //     </div>
+    //   );
   }
 }
 

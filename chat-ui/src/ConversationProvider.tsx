@@ -11,6 +11,10 @@ export const ConversationContext = createContext<Conversation>({
   modifyMessage: () => {},
   deleteMessage: () => {},
   rateMessage: () => {},
+  // TODO: implement
+  endConversationWithError: function (errorMessage: string): void {
+    throw new Error("Function not implemented.");
+  },
 });
 
 export default function ConversationProvider({

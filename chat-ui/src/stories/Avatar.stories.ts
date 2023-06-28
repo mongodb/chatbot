@@ -26,8 +26,8 @@ export const AssistantAvatar: Story = {
   },
 };
 
-export const SystemAvatar: Story = {
-  args: {
-    role: "system",
-  },
-};
+// export const SystemAvatar: Story = {
+//   args: {
+//     role: "system",
+//   },
+// };

@@ -3,3 +3,6 @@
 .secrets*
 dist/
 node_modules/
+
+static/**/*
+!static/.gitinclude

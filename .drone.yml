@@ -17,6 +17,7 @@ trigger:
     include:
       - chat-server/**/*
       - chat-core/**/*
+      - chat-ui/**/*
 
 steps:
   - name: test
@@ -64,6 +65,8 @@ trigger:
   paths:
     include:
       - chat-server/**/*
+      - chat-core/**/*
+      - chat-ui/**/*
 
 steps:
   # Builds and publishes Docker image for staging

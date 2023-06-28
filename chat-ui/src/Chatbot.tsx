@@ -1,5 +1,5 @@
 import styles from "./Chatbot.module.css";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import Badge from "@leafygreen-ui/badge";
 import Banner from "@leafygreen-ui/banner";
 // import Card from "@leafygreen-ui/card";
@@ -166,7 +166,7 @@ export default function Chatbot() {
     }
   }
 
-  const hasConversation = conversation.conversationId !== undefined;
+  const hasConversation = conversation?.conversationId !== undefined;
   const hasError = conversation.error?.length > 0 ?? false;
   async function handleCreateConversation() {
     try {
@@ -178,7 +178,7 @@ export default function Chatbot() {
         typeof e === "string"
           ? e
           : e instanceof Error
-          ? e.msg
+          ? e.message
           : "Failed to create conversation.";
       conversation.endConversationWithError(errorMessage);
     }

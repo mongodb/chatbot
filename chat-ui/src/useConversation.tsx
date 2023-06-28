@@ -149,13 +149,7 @@ export default function useConversation() {
   };
 
   const setConversation = (conversation: Required<ConversationState>) => {
-    dispatch({
-      type: "setConversation",
-      conversation: {
-        error: "",
-        ...conversation,
-      },
-    });
+    dispatch({ type: "setConversation", conversation });
   };
 
   const endConversationWithError = (errorMessage: string) => {
@@ -168,7 +162,7 @@ export default function useConversation() {
         console.error(
           `Cannot createConversation when conversationId already exists`
         );
-        return state;
+        return;
       }
       const conversation = await conversationService.createConversation();
       setConversation({

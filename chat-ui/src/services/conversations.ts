@@ -1,4 +1,3 @@
-import createMessage from "../createMessage";
 import { ConversationState } from "../useConversation";
 
 export type Role = "user" | "assistant";

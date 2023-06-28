@@ -73,14 +73,13 @@ const reqHandler: RequestHandler = (req, _res, next) => {
 
 export const setupApp = async () => {
   const app = express();
-  app.use(express.static("static"));
   app.use(cors()); // TODO: add specific options to only allow certain origins
   app.use(express.json());
   app.use(reqHandler);
   // TODO: consider only serving this from the staging env
-  const filePath = path.join(__dirname, "static", "index.html");
+  const sitePath = path.join(process.cwd(), "static", "index.html");
   app.get("/", (_req, res) => {
-    res.sendFile(filePath);
+    res.sendFile(sitePath);
   });
   app.use(
     "/conversations",

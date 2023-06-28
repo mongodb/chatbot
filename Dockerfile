@@ -28,7 +28,9 @@ WORKDIR /app
 
 COPY --from=builder /app/chat-core ./chat-core/
 RUN cd chat-core && npm ci
-COPY --from=builder /app/chat-server ./chat-server/
+COPY --from=builder /app/chat-server/package*.json ./chat-server/
+COPY --from=builder /app/chat-server/static ./chat-server/static
+COPY --from=builder /app/chat-server/dist ./chat-server/dist
 RUN cd chat-server && npm ci
 
 

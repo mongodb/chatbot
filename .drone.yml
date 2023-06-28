@@ -62,7 +62,6 @@ trigger:
     - DOCSP-30964 # TODO: remove this line once DOCSP-30964 is resolved
   event:
     - push
-    - pull_request
   paths:
     include:
       - chat-server/**/*

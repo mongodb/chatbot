@@ -78,10 +78,6 @@ export const setupApp = async () => {
   app.use(cors()); // TODO: add specific options to only allow certain origins
   app.use(express.json());
   app.use(reqHandler);
-  // const sitePath = path.join(process.cwd(), "static", "index.html");
-  // app.get("/", (_req, res) => {
-  //   res.sendFile(sitePath);
-  // });
   app.use(
     "/conversations",
     makeConversationsRouter({

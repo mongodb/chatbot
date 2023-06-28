@@ -166,8 +166,8 @@ export default function Chatbot() {
     }
   }
 
-  const hasConversation = conversation?.conversationId !== undefined;
-  const hasError = conversation.error?.length > 0 ?? false;
+  // const hasConversation = conversation.conversationId !== undefined;
+  // const hasError = conversation.error?.length > 0 ?? false;
   async function handleCreateConversation() {
     try {
       setCreatingConversation(true);

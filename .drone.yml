@@ -74,7 +74,6 @@ steps:
     image: plugins/kaniko-ecr
     settings:
       dockerfile: Dockerfile
-      # context: chat-server
       create_repository: true
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
       repo: docs/${DRONE_REPO_NAME}-chat-server

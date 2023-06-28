@@ -78,8 +78,9 @@ export const setupApp = async () => {
   app.use(express.json());
   app.use(reqHandler);
   // TODO: consider only serving this from the staging env
+  const filePath = path.join(__dirname, "static", "index.html");
   app.get("/", (_req, res) => {
-    res.sendFile("static", "index.html");
+    res.sendFile(filePath);
   });
   app.use(
     "/conversations",

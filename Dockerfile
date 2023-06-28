@@ -9,6 +9,7 @@ RUN npm ci && npm run build
 # Set up chat-server
 WORKDIR /app/chat-server
 COPY chat-server/src/ ./src/
+COPY chat-server/static ./static/
 COPY chat-server/package*.json chat-server/tsconfig.json ./
 RUN npm ci && npm run build
 

@@ -11,6 +11,7 @@ export const ConversationContext = createContext<Conversation>({
   modifyMessage: () => {},
   deleteMessage: () => {},
   rateMessage: () => {},
+  endConversationWithError: () => {},
 });
 
 export default function ConversationProvider({

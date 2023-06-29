@@ -23,14 +23,3 @@ export class MongoDB implements MongoDBInterface {
     await this.mongoClient.close();
   }
 }
-
-const {
-  MONGODB_CONNECTION_URI,
-  MONGODB_DATABASE_NAME,
-  VECTOR_SEARCH_INDEX_NAME,
-} = process.env;
-export const mongodb = new MongoDB(
-  MONGODB_CONNECTION_URI!,
-  MONGODB_DATABASE_NAME!,
-  VECTOR_SEARCH_INDEX_NAME!
-);

@@ -17,7 +17,14 @@ const {
   ATLAS_ADMIN_API_KEY,
   ATLAS_ADMIN_API_SECRET,
 } = process.env;
-
+console.log({
+  GROUP_ID,
+  CLUSTER_NAME,
+  DB_NAME,
+  COLL_NAME,
+  ATLAS_ADMIN_API_KEY,
+  ATLAS_ADMIN_API_SECRET,
+});
 const requestUrl = `https://cloud.mongodb.com/api/atlas/v2/groups/${GROUP_ID}/clusters/${CLUSTER_NAME}/fts/indexes`;
 
 const payload = {

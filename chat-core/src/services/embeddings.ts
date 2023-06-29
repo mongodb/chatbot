@@ -69,19 +69,3 @@ export class OpenAiEmbeddingProvider implements EmbeddingProvider {
     return { embedding };
   }
 }
-
-// Export singleton instance of embedding service for use in application
-const {
-  OPENAI_ENDPOINT,
-  OPENAI_API_KEY,
-  OPENAI_EMBEDDING_DEPLOYMENT,
-  OPENAI_EMBEDDING_MODEL_VERSION,
-} = process.env;
-const openaiClient = new OpenAiEmbeddingsClient(
-  OPENAI_ENDPOINT!,
-  OPENAI_EMBEDDING_DEPLOYMENT!,
-  OPENAI_API_KEY!,
-  OPENAI_EMBEDDING_MODEL_VERSION!
-);
-const openAiEmbeddingProvider = new OpenAiEmbeddingProvider(openaiClient);
-export const embeddings = new EmbeddingService(openAiEmbeddingProvider);

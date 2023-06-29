@@ -5,7 +5,7 @@ import { OpenAiChatClient, OpenAiChatMessage } from "chat-core";
 import { OpenAiLlmProvider } from "./llm";
 import { SYSTEM_PROMPT } from "../aiConstants";
 
-jest.setTimeout(10000);
+jest.setTimeout(100000);
 
 const chunks = [
   stripIndent`You can connect to your cluster in a variety of ways. In this tutorial, you use one of the following methods:

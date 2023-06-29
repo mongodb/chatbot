@@ -27,8 +27,8 @@ import { ApiConversation, ApiMessage } from "./utils";
 import {
   Content,
   ContentService,
-  options as contentServiceOptions,
-} from "../../services/content";
+  makeContentServiceOptions,
+} from "chat-core/src/services/content";
 import { OpenAiLlmProvider } from "../../services/llm";
 import { DataStreamerService } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
@@ -44,6 +44,7 @@ const {
   OPENAI_EMBEDDING_DEPLOYMENT,
   OPENAI_EMBEDDING_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  VECTOR_SEARCH_INDEX_NAME,
 } = process.env;
 
 describe("Conversations Router", () => {
@@ -94,11 +95,14 @@ describe("Conversations Router", () => {
     // set up content service
     const contentMongoDb = new MongoDB(
       MONGODB_CONNECTION_URI!,
-      MONGODB_DATABASE_NAME!
+      MONGODB_DATABASE_NAME!,
+      VECTOR_SEARCH_INDEX_NAME!
     );
     const content = new ContentService(
       contentMongoDb.db,
-      contentServiceOptions
+      makeContentServiceOptions({
+        indexName: contentMongoDb.vectorSearchIndexName,
+      })
     );
 
     // set up embeddings service
@@ -216,7 +220,7 @@ describe("Conversations Router", () => {
       describe("getContentForText()", () => {
         const ipAddress = "someIpAddress";
         test("Should return content for relevant text", async () => {
-          const text = "MongoDB";
+          const text = "MongoDB Atlas";
 
           const chunks = await getContentForText({
             embeddings,

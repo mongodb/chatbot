@@ -3,11 +3,18 @@ service:
 
 env:
   PORT: 3000
-  MONGODB_DB_NAME: docs_chat_staging
+  OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
+  OPENAI_EMBEDDING_MODEL_VERSION: 2023-03-15-preview
+  MONGODB_DATABASE_NAME: docs-chatbot-staging
+  VECTOR_SEARCH_INDEX_NAME: default
+  OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
 
-# TODO: add this via kubectl when database is created
-# envSecrets:
-#   MONGODB_CONNECTION_URI: chat-server-atlas-uri-staging
+envSecrets:
+  MONGODB_CONNECTION_URI: docs-chatbot-staging
+  OPENAI_ENDPOINT: docs-chatbot-staging
+  OPENAI_API_KEY: docs-chatbot-staging
+  OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-staging
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-staging
 
 ingress:
   enabled: true

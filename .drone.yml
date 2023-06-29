@@ -9,23 +9,46 @@ name: test-chat-server
 trigger:
   branch:
     - main
+    - DOCSP-30964 # TODO: remove this line once DOCSP-30964 is resolved
   event:
     - push
     - tag
   paths:
     include:
       - chat-server/**/*
+      - chat-core/**/*
+      - chat-ui/**/*
 
 steps:
   - name: test
     image: node:18
     commands:
+      - cd chat-core
+      - npm ci
+      - npm test
+      - npm run build
+      - cd ..
       - cd chat-server
       - npm ci
       - npm run lint
-      # TODO add back in when working test suite exists
-      # Skipping testing for now since we don't have any tests
-      # - npm run test
+      - npm run test
+    environment:
+      PORT: 3000
+      OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
+      OPENAI_EMBEDDING_MODEL_VERSION: 2023-03-15-preview
+      MONGODB_DATABASE_NAME: docs-chatbot-test
+      VECTOR_SEARCH_INDEX_NAME: default
+      OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
+      MONGODB_CONNECTION_URI:
+        from_secret: mongodb_connection_uri
+      OPENAI_ENDPOINT:
+        from_secret: openai_endpoint
+      OPENAI_API_KEY:
+        from_secret: openai_api_key
+      OPENAI_EMBEDDING_DEPLOYMENT:
+        from_secret: openai_embedding_deployment
+      OPENAI_CHAT_COMPLETION_DEPLOYMENT:
+        from_secret: openai_chat_completion_deployment
 
 ---
 depends_on: ["test-chat-server"]
@@ -36,21 +59,21 @@ name: staging-build-chat-server
 trigger:
   branch:
     - main
-    - DOCSP-30565 # TODO: remove later when ready to merge
+    - DOCSP-30964 # TODO: remove this line once DOCSP-30964 is resolved
   event:
     - push
   paths:
     include:
       - chat-server/**/*
+      - chat-core/**/*
+      - chat-ui/**/*
 
 steps:
   # Builds and publishes Docker image for staging
   - name: publish-staging-chat-server
-    # TODO: find Dockerfile in the chat-server directory
     image: plugins/kaniko-ecr
     settings:
-      dockerfile: chat-server/Dockerfile
-      context: chat-server
+      dockerfile: Dockerfile
       create_repository: true
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
       repo: docs/${DRONE_REPO_NAME}-chat-server

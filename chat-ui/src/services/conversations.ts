@@ -1,4 +1,3 @@
-import createMessage from "../createMessage";
 import { ConversationState } from "../useConversation";
 
 export type Role = "user" | "assistant";
@@ -94,5 +93,5 @@ export default class ConversationService {
 }
 
 export const conversationService = new ConversationService({
-  serverUrl: "http://localhost:3000",
+  serverUrl: import.meta.env.VITE_SERVER_BASE_URL,
 });

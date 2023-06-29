@@ -1,5 +1,5 @@
 import styles from "./Chatbot.module.css";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import Badge from "@leafygreen-ui/badge";
 import Banner from "@leafygreen-ui/banner";
 // import Card from "@leafygreen-ui/card";
@@ -153,7 +153,6 @@ function CTACard({
 export default function Chatbot() {
   const conversation = useConversation();
   const [active, setActive] = useState(false);
-  const [creatingConversation, setCreatingConversation] = useState(false);
   const [awaitingReply, setAwaitingReply] = useState(false);
 
   function activate() {
@@ -166,37 +165,19 @@ export default function Chatbot() {
     }
   }
 
-  const hasConversation = conversation.conversationId !== undefined;
-  const hasError = conversation.error?.length > 0 ?? false;
   async function handleCreateConversation() {
     try {
-      setCreatingConversation(true);
       await conversation.createConversation();
-      setCreatingConversation(false);
     } catch (e) {
       const errorMessage =
         typeof e === "string"
           ? e
           : e instanceof Error
-          ? e.msg
+          ? e.message
           : "Failed to create conversation.";
       conversation.endConversationWithError(errorMessage);
     }
   }
-
-  // useEffect(() => {
-  //   console.log({
-  //     "active": active,
-  //     "!hasConversation": !hasConversation,
-  //     "!creatingConversation": !creatingConversation,
-  //     "!hasError": !hasError,
-  //   })
-  //   // When the Chatbot first becomes active, create a new conversation
-  //   if (active && !hasConversation && !creatingConversation && !hasError) {
-  //     console.log("run")
-  //     handleCreateConversation();
-  //   }
-  // }, [active, creatingConversation, hasConversation, hasError, handleCreateConversation]);
 
   const [inputData, setInputData] = useState({
     text: "",

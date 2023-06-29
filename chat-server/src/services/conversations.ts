@@ -2,7 +2,6 @@ import {
   ObjectId,
   Db,
   Collection,
-  mongodb,
   OpenAiChatMessage,
   OpenAiMessageRole,
 } from "chat-core";
@@ -164,5 +163,3 @@ export class ConversationsService implements ConversationsServiceInterface {
     };
   }
 }
-
-export const conversationsService = new ConversationsService(mongodb.db);

@@ -1,10 +1,39 @@
 import fs from "fs";
-import "dotenv/config";
-import { Content } from "../src/services/content";
+import dotenv from "dotenv";
+import {
+  Content,
+  EmbeddingService,
+  OpenAiEmbeddingProvider,
+  OpenAiEmbeddingsClient,
+} from "chat-core";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Document } from "langchain/dist/document";
 import GPT3Tokenizer from "gpt3-tokenizer";
-import { ObjectId, embeddings, mongodb } from "chat-core";
+import { MongoClient, ObjectId } from "mongodb";
+
+const [_, __, envFile] = process.argv;
+dotenv.config({ path: envFile });
+console.log("envFile", envFile);
+
+const {
+  MONGODB_CONNECTION_URI,
+  MONGODB_DATABASE_NAME,
+  OPENAI_ENDPOINT,
+  OPENAI_API_KEY,
+  OPENAI_EMBEDDING_DEPLOYMENT,
+  OPENAI_EMBEDDING_MODEL_VERSION,
+} = process.env;
+console.log("MONGODB_CONNECTION_URI", MONGODB_CONNECTION_URI!);
+console.log("MONGODB_DATABASE_NAME", MONGODB_DATABASE_NAME!);
+const mongodb = new MongoClient(MONGODB_CONNECTION_URI!);
+const openaiClient = new OpenAiEmbeddingsClient(
+  OPENAI_ENDPOINT!,
+  OPENAI_EMBEDDING_DEPLOYMENT!,
+  OPENAI_API_KEY!,
+  OPENAI_EMBEDDING_MODEL_VERSION!
+);
+const openAiEmbeddingProvider = new OpenAiEmbeddingProvider(openaiClient);
+const embeddings = new EmbeddingService(openAiEmbeddingProvider);
 
 /**
  * Note that not capturing all fields, just ones used in the content mapping.
@@ -26,8 +55,6 @@ const sampleDevCenterData: DevHubSearchManifestDocument[] = JSON.parse(
   fs.readFileSync("./seed-content/data/dev-center/sample-in.json", "utf8")
 );
 
-const dataForAtlas = [];
-
 const splitter = new RecursiveCharacterTextSplitter({
   chunkSize: 2000,
   chunkOverlap: 0,
@@ -40,6 +67,7 @@ interface CreateChunkForDevhubDocParams {
   baseUrl: string;
   tokenizer: GPT3Tokenizer;
 }
+//TODO: see above TODO
 async function createChunksForDevHubDocument({
   splitter,
   tokenizer,
@@ -84,32 +112,39 @@ function sleep(ms: number) {
 }
 async function main() {
   const baseUrl = "https://mongodb.com/developer";
-  const content = [];
+  const content: Content[] = [];
   const fileOut = "./seed-content/data/dev-center/sample-out.json";
-  for await (const devHubDoc of sampleDevCenterData) {
-    const chunks = await createChunksForDevHubDocument({
-      splitter,
-      tokenizer,
-      devHubDoc,
-      baseUrl,
-    });
-    await sleep(1000); // need to sleep to avoid rate limiting from AI API 😢
-    content.push(chunks);
-  }
-  const flattenedContent = content.flat();
-  const flattedContentWithOutEmptyEmbeddings = flattenedContent.filter(
-    (content) => !!content.embedding.length
-  );
-  fs.writeFileSync(
-    fileOut,
-    JSON.stringify(flattedContentWithOutEmptyEmbeddings, null, 2)
-  );
-  console.log(
-    `Wrote ${flattedContentWithOutEmptyEmbeddings.length} chunks to ${fileOut}`
-  );
+  // comment out start -- comment out if only want to push existing data to MongoDB
+  // for await (const devHubDoc of sampleDevCenterData) {
+  //   const chunks = await createChunksForDevHubDocument({
+  //     splitter,
+  //     tokenizer,
+  //     devHubDoc,
+  //     baseUrl,
+  //   });
+  //   await sleep(1000); // need to sleep to avoid rate limiting from AI API 😢
+  //   content.push(...chunks);
+  // }
+  // const flattenedContent = content.flat();
+  // const flattedContentWithOutEmptyEmbeddings = flattenedContent.filter(
+  //   (content) => !!content.embedding.length
+  // );
+  // fs.writeFileSync(
+  //   fileOut,
+  //   JSON.stringify(flattedContentWithOutEmptyEmbeddings, null, 2)
+  // );
+  // console.log(
+  //   `Wrote ${flattedContentWithOutEmptyEmbeddings.length} chunks to ${fileOut}`
+  // );
+  // comment out end
 
   console.log("Adding data to MongoDB");
-  const contentCollection = mongodb.db.collection("content");
+  const contentCollection = mongodb
+    .db(MONGODB_DATABASE_NAME!)
+    .collection("content");
+  const flattedContentWithOutEmptyEmbeddings = JSON.parse(
+    fs.readFileSync(fileOut, "utf-8")
+  );
   console.log("Deleting existing data from MongoDB");
   await contentCollection.deleteMany({});
   console.log("Inserting data into MongoDB");

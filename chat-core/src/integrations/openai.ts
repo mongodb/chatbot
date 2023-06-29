@@ -7,7 +7,6 @@ import {
   GetChatCompletionsOptions,
   ChatCompletions,
 } from "@azure/openai";
-import { stripIndent } from "common-tags";
 
 export type OpenAiMessageRole = "system" | "assistant" | "user";
 

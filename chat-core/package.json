@@ -2,7 +2,7 @@
   "name": "chat-core",
   "version": "0.0.1",
   "description": "Common elements used by the chatbot components.",
-  "main": "./src/index.ts",
+  "main": "./build/index.js",
   "scripts": {
     "clean": "rm -rf build",
     "build": "tsc -b",
@@ -35,7 +35,7 @@
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.2",
     "common-tags": "^1",
-    "dotenv": "^16",
+    "dotenv": "^16.3.1",
     "mongodb": "^5.6.0",
     "openai": "^3",
     "winston": "^3"

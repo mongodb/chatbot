@@ -1,7 +1,7 @@
 import { stripIndent } from "common-tags";
 import { strict as assert } from "assert";
 import { ObjectId } from "mongodb";
-import { MongoMemoryReplSet } from "mongodb-memory-server";
+
 import {
   makeDatabaseConnection,
   DatabaseConnection,
@@ -15,29 +15,16 @@ import { assertEnvVars } from "./assertEnvVars";
 import { CORE_ENV_VARS } from "./CoreEnvVars";
 import { makeOpenAiEmbedFunc } from "./OpenAiEmbedFunc";
 import "dotenv/config";
+import { makeMemoryDbServer, DbServer } from "./MemoryDbServer";
 
-export type DbServer = {
-  connectionUri: string;
-  stop(): Promise<boolean>;
-};
-
-export const makeDbServer = async (): Promise<DbServer> => {
-  const mongod = await MongoMemoryReplSet.create();
-  const connectionUri = mongod.getUri();
-  return {
-    connectionUri,
-    stop: () => mongod.stop(),
-  };
-};
-
-let server: DbServer | undefined;
+let memoryDbServer: DbServer | undefined;
 
 beforeAll(async () => {
-  server = await makeDbServer();
+  memoryDbServer = await makeMemoryDbServer();
 });
 
 afterAll(async () => {
-  await server?.stop();
+  await memoryDbServer?.stop();
 });
 
 describe("DatabaseConnection", () => {
@@ -66,9 +53,9 @@ describe("DatabaseConnection", () => {
     | (DatabaseConnection & PageStore & EmbeddedContentStore)
     | undefined;
   beforeEach(async () => {
-    assert(server !== undefined);
+    assert(memoryDbServer);
     store = await makeDatabaseConnection({
-      connectionUri: server.connectionUri,
+      connectionUri: memoryDbServer.connectionUri,
       databaseName: `test-${ObjectId.generate()}`,
     });
     assert(store);

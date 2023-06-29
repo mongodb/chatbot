@@ -7,7 +7,7 @@ import {
 } from "../../services/llm";
 import { DataStreamerServiceInterface } from "../../services/dataStreamer";
 import { ConversationsServiceInterface } from "../../services/conversations";
-import { ContentServiceInterface } from "chat-core";
+import { EmbeddedContentStore } from "chat-core";
 import { makeRateMessageRoute } from "./rateMessage";
 import { makeCreateConversationRoute } from "./createConversation";
 import { makeAddMessageToConversationRoute } from "./addMessageToConversation";
@@ -18,14 +18,15 @@ export interface ConversationsRouterParams<T, U> {
   llm: LlmProvider<T, U>;
   embed: EmbedFunc;
   dataStreamer: DataStreamerServiceInterface;
-  content: ContentServiceInterface;
+  store: EmbeddedContentStore;
   conversations: ConversationsServiceInterface;
 }
+
 export function makeConversationsRouter({
   llm,
   embed,
   dataStreamer,
-  content,
+  store,
   conversations,
 }: ConversationsRouterParams<OpenAiStreamingResponse, OpenAiAwaitedResponse>) {
   const conversationsRouter = Router();
@@ -41,7 +42,7 @@ export function makeConversationsRouter({
   conversationsRouter.post(
     "/:conversationId/messages",
     makeAddMessageToConversationRoute({
-      content,
+      store,
       conversations,
       embed,
       llm,

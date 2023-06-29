@@ -526,8 +526,6 @@ describe("Conversations Router", () => {
         error: "Message not found",
       });
     });
-    // TODO:(DOCSP-30843) when properly configure IP address capture and validation,
-    // this test will need to be refactored.
     describe("Correct IP address validation", () => {
       beforeEach(async () => {
         const ipAddress = "127.0.0.1";

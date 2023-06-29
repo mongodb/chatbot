@@ -61,6 +61,16 @@ export interface ConversationsServiceInterface {
   }: RateMessageParams) => Promise<boolean>;
 }
 
+export const conversationConstants = {
+  NO_RELEVANT_CONTENT: `Unfortunately, I do not know how to respond to your message.
+
+Please try to rephrase your message. Adding more details can help me respond with a relevant answer.`,
+  LLM_NOT_WORKING: `Unfortunately, my chat functionality is not working at the moment,
+so I can not respond to your message. Please try again later.
+
+However, here are some links that might provide some helpful information for your message:`,
+};
+
 export class ConversationsService implements ConversationsServiceInterface {
   private database: Db;
   private conversationsCollection: Collection<Conversation>;

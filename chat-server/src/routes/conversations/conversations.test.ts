@@ -16,6 +16,7 @@ import {
 } from "chat-core";
 import { ASSISTANT_PROMPT } from "../../aiConstants";
 import {
+  conversationConstants,
   Conversation,
   ConversationsService,
   Message,
@@ -23,6 +24,7 @@ import {
 import express from "express";
 import {
   AddMessageRequestBody,
+  addMessagesToDatabase,
   makeAddMessageToConversationRoute,
   convertDbMessageToOpenAiMessage,
   generateFurtherReading,
@@ -104,6 +106,7 @@ describe("Conversations Router", () => {
   });
 
   describe("POST /conversations/:conversationId/messages", () => {
+    const endpointUrl = "/conversations/:conversationId/messages/";
     const app = express();
     app.use(express.json()); // for parsing application/json
     // set up conversations service
@@ -172,6 +175,21 @@ describe("Conversations Router", () => {
     // TODO: make real data streamer
     const dataStreamer = new DataStreamerService();
 
+<<<<<<< HEAD
+=======
+    app.post(
+      endpointUrl,
+      makeAddMessageToConversationRoute({
+        conversations,
+        content,
+        embeddings,
+        llm,
+        dataStreamer,
+      })
+    );
+    // For set up. Need to create conversation before can add to it.
+    app.post("/conversations/", makeCreateConversationRoute({ conversations }));
+>>>>>>> e2929c9 (full draft of changes)
     let _id: string;
     beforeEach(async () => {
       const createConversationRes = await request(app)
@@ -188,7 +206,7 @@ describe("Conversations Router", () => {
             "how can i use mongodb products to help me build my new mobile app?",
         };
         const res = await request(app)
-          .post(`/conversations/${_id}/messages/`)
+          .post(endpointUrl.replace(":conversationId", _id))
           .send(requestBody);
         const message: ApiMessage = res.body;
         expect(res.statusCode).toEqual(200);
@@ -201,7 +219,7 @@ describe("Conversations Router", () => {
             `,
         };
         const res2 = await request(app)
-          .post(`/conversations/${_id}/messages/`)
+          .post(endpointUrl.replace(":conversationId", _id))
           .send(request2Body);
         const message2: ApiMessage = res2.body;
         expect(res2.statusCode).toEqual(200);
@@ -223,222 +241,386 @@ describe("Conversations Router", () => {
       // TODO: (DOCSP-30945) add in soon. just not including in DOCSP-30616 so that we can build on top of it
     });
 
-    describe("Utility functions", () => {
-      test("convertDbMessageToOpenAiMessage()", () => {
-        const sampleDbMessage: Message = {
-          id: new ObjectId(),
-          content: "hello",
-          role: "user",
-          createdAt: new Date(),
-          rating: true,
-        };
-
-        const sampleApiMessage =
-          convertDbMessageToOpenAiMessage(sampleDbMessage);
-        expect(sampleApiMessage).toStrictEqual({
-          content: sampleDbMessage.content,
-          role: sampleDbMessage.role,
-        });
-      });
-
-      describe("getContentForText()", () => {
-        const ipAddress = "someIpAddress";
-        test("Should return content for relevant text", async () => {
-          assert(store);
-          const text = "MongoDB Atlas";
-          const chunks = await getContentForText({
-            embed,
-            text,
-            store,
-            ipAddress,
+    describe("Edge cases", () => {
+      describe("No content for user message", () => {
+        const conversationMessageTestDbName = `convo-msg-test-${Date.now()}`;
+        const conversationsMongoDb = new MongoDB(
+          MONGODB_CONNECTION_URI!,
+          conversationMessageTestDbName
+        );
+        const conversations = new ConversationsService(conversationsMongoDb.db);
+        let conversationId: ObjectId;
+        beforeAll(async () => {
+          const { _id } = await conversations.create({
+            ipAddress: "<NOT CAPTURING IP ADDRESS YET>",
           });
-          expect(chunks).toBeDefined();
-          expect(chunks.length).toBeGreaterThan(0);
+          conversationId = _id;
         });
-        test("Should not return content for irrelevant text", async () => {
-          assert(store);
-          const text =
+        afterAll(async () => {
+          await conversationsMongoDb.db.dropDatabase();
+          await conversationsMongoDb.close();
+        });
+
+        const app = express();
+        app.use(express.json());
+        app.post(
+          endpointUrl,
+          makeAddMessageToConversationRoute({
+            conversations,
+            content,
+            embeddings,
+            llm,
+            dataStreamer,
+          })
+        );
+        test("Should respond with 200 and static response", async () => {
+          const nonsenseMessage =
             "asdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjafdshgjfkhfdugytfasfghjkujufgjdfhstgragtyjuikol";
-          const chunks = await getContentForText({
-            embed,
-            text,
-            store,
-            ipAddress,
+          const response = await request(app)
+            .post(
+              endpointUrl.replace(":conversationId", conversationId.toString())
+            )
+            .send({ message: nonsenseMessage });
+          expect(response.statusCode).toBe(200);
+
+          expect(response.body.content).toEqual(
+            conversationConstants.NO_RELEVANT_CONTENT
+          );
+        });
+        describe("LLM not available but vector search is", () => {
+          const brokenLLmService = new OpenAiLlmProvider(
+            new OpenAiChatClient(
+              OPENAI_ENDPOINT!,
+              OPENAI_CHAT_COMPLETION_DEPLOYMENT!,
+              "definitelyNotARealApiKey"
+            )
+          );
+          const app = express();
+          app.use(express.json());
+          app.post(
+            endpointUrl,
+            makeAddMessageToConversationRoute({
+              conversations,
+              content,
+              embeddings,
+              llm: brokenLLmService,
+              dataStreamer,
+            })
+          );
+          test("should respond with 200, static message, and vector search results", async () => {
+            const messageThatHasSearchResults = "Why use MongoDB?";
+            const response = await request(app)
+              .post(
+                endpointUrl.replace(
+                  ":conversationId",
+                  conversationId.toString()
+                )
+              )
+              .send({ message: messageThatHasSearchResults });
+            expect(response.statusCode).toBe(200);
+            expect(
+              response.body.content.startsWith(
+                conversationConstants.LLM_NOT_WORKING
+              )
+            ).toBe(true);
+            const markdownLinkRegex =
+              /\[\w+.*\]\(https?:\/\/.*\?tck=docs_chatbot\)/g;
+            console.log(response.body.content);
+            expect(markdownLinkRegex.test(response.body.content)).toBe(true);
           });
-          expect(chunks).toBeDefined();
-          expect(chunks.length).toBe(0);
         });
       });
-      describe("generateFurtherReading()", () => {
-        // Chunk 1 and 2 are the same page. Chunk 3 is a different page.
-        const chunk1: EmbeddedContent = {
-          url: "https://mongodb.com/docs/realm/sdk/node/",
-          text: "blah blah blah",
-          tokenCount: 100,
-          embedding: [0.1, 0.2, 0.3],
-          updated: new Date(),
-          sourceName: "MongoDB Realm",
-        };
-        const chunk2: EmbeddedContent = {
-          url: "https://mongodb.com/docs/realm/sdk/node/",
-          text: "blah blah blah",
-          tokenCount: 100,
-          embedding: [0.1, 0.2, 0.3],
-          updated: new Date(),
-          sourceName: "MongoDB Realm",
-        };
-        const chunk3: EmbeddedContent = {
-          url: "https://mongodb.com/docs/realm/sdk/node/xyz",
-          text: "blah blah blah",
-          tokenCount: 100,
-          embedding: [0.1, 0.2, 0.3],
-          updated: new Date(),
-          sourceName: "MongoDB Realm",
-        };
-        test("No sources should return empty string", () => {
-          const noChunks: EmbeddedContent[] = [];
-          const noFurtherReading = generateFurtherReading({ chunks: noChunks });
-          expect(noFurtherReading).toEqual("");
-        });
-        test("One source should return one link", () => {
-          const oneChunk: EmbeddedContent[] = [chunk1];
-          const oneFurtherReading = generateFurtherReading({
-            chunks: oneChunk,
-          });
-          const expectedOneFurtherReading = `\n\nArticles Referenced:\n${oneChunk[0].url}\n\n`;
-          expect(oneFurtherReading).toEqual(expectedOneFurtherReading);
-        });
-        test("Multiple sources from same page should return one link", () => {
-          const twoChunksSamePage: EmbeddedContent[] = [chunk1, chunk2];
-          const oneFurtherReadingSamePage = generateFurtherReading({
-            chunks: twoChunksSamePage,
-          });
-          const expectedOneFurtherReadingSamePage = `\n\nArticles Referenced:\n${twoChunksSamePage[0].url}\n\n`;
-          expect(oneFurtherReadingSamePage).toEqual(
-            expectedOneFurtherReadingSamePage
+
+      describe("Utility functions", () => {
+        describe("addMessagesToDatabase()", () => {
+          const conversationMessageTestDbName = `convo-msg-test-${Date.now()}`;
+          const conversationsMongoDb = new MongoDB(
+            MONGODB_CONNECTION_URI!,
+            conversationMessageTestDbName
           );
-        });
-        test("Multiple sources from different pages should return 1 link per page", () => {
-          const twoChunksDifferentPage: EmbeddedContent[] = [chunk1, chunk3];
-          const multipleFurtherReadingDifferentPage = generateFurtherReading({
-            chunks: twoChunksDifferentPage,
-          });
-          const expectedMultipleFurtherReadingDifferentPage = `\n\nArticles Referenced:\n${twoChunksDifferentPage[0].url}\n${twoChunksDifferentPage[1].url}\n\n`;
-          expect(multipleFurtherReadingDifferentPage).toEqual(
-            expectedMultipleFurtherReadingDifferentPage
+          const conversations = new ConversationsService(
+            conversationsMongoDb.db
           );
-          // All three sources. Two from the same page. One from a different page.
-          const threeChunks: EmbeddedContent[] = [chunk1, chunk2, chunk3];
-          const multipleSourcesWithSomePageOverlap = generateFurtherReading({
-            chunks: threeChunks,
+          let conversationId: ObjectId;
+          beforeAll(async () => {
+            const { _id } = await conversations.create({
+              ipAddress: "someIpAddress",
+            });
+            conversationId = _id;
           });
-          const expectedMultipleSourcesWithSomePageOverlap = `\n\nArticles Referenced:\n${threeChunks[0].url}\n${threeChunks[2].url}\n\n`;
-          expect(multipleSourcesWithSomePageOverlap).toEqual(
-            expectedMultipleSourcesWithSomePageOverlap
-          );
+          afterAll(async () => {
+            await conversationsMongoDb.db.dropDatabase();
+            await conversationsMongoDb.close();
+          });
+          test("Should add messages to the database", async () => {
+            const userMessageContent = "hello";
+            const assistantMessageContent = "hi";
+            const { userMessage, assistantMessage } =
+              await addMessagesToDatabase({
+                conversationId,
+                userMessageContent,
+                assistantMessageContent,
+                conversations,
+              });
+            expect(userMessage.content).toBe(userMessageContent);
+            expect(assistantMessage.content).toBe(assistantMessageContent);
+            const conversationInDb = await conversations.findById({
+              _id: conversationId,
+            });
+            expect(
+              conversationInDb?.messages.find(
+                ({ role, content }) =>
+                  role === "user" && content === userMessageContent
+              )
+            ).toBeDefined();
+            expect(
+              conversationInDb?.messages.find(
+                ({ role, content }) =>
+                  role === "assistant" && content === assistantMessageContent
+              )
+            );
+          });
         });
-      });
-      describe("validateApiConversationFormatting()", () => {
-        test("Should validate correctly formatted conversation", () => {
-          const correctlyFormattedConversation: ApiConversation = {
-            _id: new ObjectId().toHexString(),
-            messages: [
-              {
-                content: "hi",
-                role: "assistant",
-                createdAt: Date.now(),
-                id: new ObjectId().toHexString(),
-              },
-              {
-                content: "hello",
-                role: "user",
-                createdAt: Date.now(),
-                id: new ObjectId().toHexString(),
-              },
-              {
-                content: "bye",
-                role: "assistant",
-                createdAt: Date.now(),
-                id: new ObjectId().toHexString(),
-              },
-              {
-                content: "good bye",
-                role: "user",
-                createdAt: Date.now(),
-                id: new ObjectId().toHexString(),
-              },
-            ],
-            createdAt: Date.now(),
+        test("convertDbMessageToOpenAiMessage()", () => {
+          const sampleDbMessage: Message = {
+            id: new ObjectId(),
+            content: "hello",
+            role: "user",
+            createdAt: new Date(),
+            rating: true,
           };
-          const validation = validateApiConversationFormatting({
-            conversation: correctlyFormattedConversation,
+
+          const sampleApiMessage =
+            convertDbMessageToOpenAiMessage(sampleDbMessage);
+          expect(sampleApiMessage).toStrictEqual({
+            content: sampleDbMessage.content,
+            role: sampleDbMessage.role,
           });
-          expect(validation).toBe(true);
         });
-        test("Should not validate empty conversation", () => {
-          const emptyConversation: ApiConversation = {
-            _id: new ObjectId().toHexString(),
-            messages: [],
-            createdAt: Date.now(),
-          };
-          const validation = validateApiConversationFormatting({
-            conversation: emptyConversation,
+
+        describe("getContentForText()", () => {
+          const ipAddress = "someIpAddress";
+          test("Should return content for relevant text", async () => {
+            const text = "MongoDB Atlas";
+
+            const chunks = await getContentForText({
+              embeddings,
+              text,
+              content,
+              ipAddress,
+            });
+            expect(chunks).toBeDefined();
+            expect(chunks.length).toBeGreaterThan(0);
           });
-          expect(validation).toBe(false);
+          test("Should not return content for irrelevant text", async () => {
+            const text =
+              "asdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjafdshgjfkhfdugytfasfghjkujufgjdfhstgragtyjuikol";
+            const chunks = await getContentForText({
+              embeddings,
+              text,
+              content,
+              ipAddress,
+            });
+            expect(chunks).toBeDefined();
+            expect(chunks.length).toBe(0);
+          });
         });
-        test("Should not validate odd number of messages", () => {
-          const oddNumberOfMessages: ApiConversation = {
-            _id: new ObjectId().toHexString(),
-            messages: [
-              {
-                content: "hi",
-                role: "assistant",
-                createdAt: Date.now(),
-                id: new ObjectId().toHexString(),
-              },
-              {
-                content: "hello",
-                role: "user",
-                createdAt: Date.now(),
-                id: new ObjectId().toHexString(),
-              },
-              {
-                content: "bye",
-                role: "assistant",
-                createdAt: Date.now(),
-                id: new ObjectId().toHexString(),
-              },
-            ],
-            createdAt: Date.now(),
+        describe("generateFurtherReading()", () => {
+          // Chunk 1 and 2 are the same page. Chunk 3 is a different page.
+          const chunk1 = {
+            _id: new ObjectId(),
+            url: "https://mongodb.com/docs/realm/sdk/node/",
+            text: "blah blah blah",
+            numTokens: 100,
+            embedding: [0.1, 0.2, 0.3],
+            lastUpdated: new Date(),
+            site: {
+              name: "MongoDB Realm",
+              url: "https://mongodb.com/docs/realm/",
+            },
           };
-          const validation = validateApiConversationFormatting({
-            conversation: oddNumberOfMessages,
+          const chunk2 = {
+            _id: new ObjectId(),
+            url: "https://mongodb.com/docs/realm/sdk/node/",
+            text: "blah blah blah",
+            numTokens: 100,
+            embedding: [0.1, 0.2, 0.3],
+            lastUpdated: new Date(),
+            site: {
+              name: "MongoDB Realm",
+              url: "https://mongodb.com/docs/realm/",
+            },
+          };
+          const chunk3 = {
+            _id: new ObjectId(),
+            url: "https://mongodb.com/docs/realm/sdk/node/xyz",
+            text: "blah blah blah",
+            numTokens: 100,
+            embedding: [0.1, 0.2, 0.3],
+            lastUpdated: new Date(),
+            site: {
+              name: "MongoDB Realm",
+              url: "https://mongodb.com/docs/realm/",
+            },
+          };
+          const tck = "?tck=docs_chatbot";
+          test("No sources should return empty string", () => {
+            const noChunks: Content[] = [];
+            const noFurtherReading = generateFurtherReading({
+              chunks: noChunks,
+            });
+            expect(noFurtherReading).toEqual("");
           });
-          expect(validation).toBe(false);
+          test("One source should return one link", () => {
+            const oneChunk: Content[] = [chunk1];
+            const oneFurtherReading = generateFurtherReading({
+              chunks: oneChunk,
+            });
+            const url = oneChunk[0].url;
+            const expectedOneFurtherReading = `\n\nFurther Reading:\n[${url}](${url}${tck})\n\n`;
+            expect(oneFurtherReading).toEqual(expectedOneFurtherReading);
+          });
+          test("Multiple sources from same page should return one link", () => {
+            const twoChunksSamePage: Content[] = [chunk1, chunk2];
+            const oneFurtherReadingSamePage = generateFurtherReading({
+              chunks: twoChunksSamePage,
+            });
+            const url = twoChunksSamePage[0].url;
+            const expectedOneFurtherReadingSamePage = `\n\nFurther Reading:\n[${url}](${url}${tck})\n\n`;
+            expect(oneFurtherReadingSamePage).toEqual(
+              expectedOneFurtherReadingSamePage
+            );
+          });
+          test("Multiple sources from different pages should return 1 link per page", () => {
+            const twoChunksDifferentPage: Content[] = [chunk1, chunk3];
+            const multipleFurtherReadingDifferentPage = generateFurtherReading({
+              chunks: twoChunksDifferentPage,
+            });
+            const [url1, url2] = [
+              twoChunksDifferentPage[0].url,
+              twoChunksDifferentPage[1].url,
+            ];
+            const expectedMultipleFurtherReadingDifferentPage = `\n\nFurther Reading:\n[${url1}](${url1}${tck})\n[${url2}](${url2}${tck})\n\n`;
+            expect(multipleFurtherReadingDifferentPage).toEqual(
+              expectedMultipleFurtherReadingDifferentPage
+            );
+            // All three sources. Two from the same page. One from a different page.
+            const threeChunks: Content[] = [chunk1, chunk2, chunk3];
+            const multipleSourcesWithSomePageOverlap = generateFurtherReading({
+              chunks: threeChunks,
+            });
+            const [otherUrl1, otherUrl2] = [
+              threeChunks[0].url,
+              threeChunks[2].url,
+            ];
+            const expectedMultipleSourcesWithSomePageOverlap = `\n\nFurther Reading:\n[${otherUrl1}](${otherUrl1}${tck})\n[${otherUrl2}](${otherUrl2}${tck})\n\n`;
+            expect(multipleSourcesWithSomePageOverlap).toEqual(
+              expectedMultipleSourcesWithSomePageOverlap
+            );
+          });
         });
-        test("Should not validate incorrect conversation order", () => {
-          const incorrectConversationOrder: ApiConversation = {
-            _id: new ObjectId().toHexString(),
-            messages: [
-              {
-                content: "hi",
-                role: "assistant",
-                createdAt: Date.now(),
-                id: new ObjectId().toHexString(),
-              },
-              {
-                content: "bye",
-                role: "assistant",
-                createdAt: Date.now(),
-                id: new ObjectId().toHexString(),
-              },
-            ],
-            createdAt: Date.now(),
-          };
-          const validation = validateApiConversationFormatting({
-            conversation: incorrectConversationOrder,
+        describe("validateApiConversationFormatting()", () => {
+          test("Should validate correctly formatted conversation", () => {
+            const correctlyFormattedConversation: ApiConversation = {
+              _id: new ObjectId().toHexString(),
+              messages: [
+                {
+                  content: "hi",
+                  role: "assistant",
+                  createdAt: Date.now(),
+                  id: new ObjectId().toHexString(),
+                },
+                {
+                  content: "hello",
+                  role: "user",
+                  createdAt: Date.now(),
+                  id: new ObjectId().toHexString(),
+                },
+                {
+                  content: "bye",
+                  role: "assistant",
+                  createdAt: Date.now(),
+                  id: new ObjectId().toHexString(),
+                },
+                {
+                  content: "good bye",
+                  role: "user",
+                  createdAt: Date.now(),
+                  id: new ObjectId().toHexString(),
+                },
+              ],
+              createdAt: Date.now(),
+            };
+            const validation = validateApiConversationFormatting({
+              conversation: correctlyFormattedConversation,
+            });
+            expect(validation).toBe(true);
           });
-          expect(validation).toBe(false);
+          test("Should not validate empty conversation", () => {
+            const emptyConversation: ApiConversation = {
+              _id: new ObjectId().toHexString(),
+              messages: [],
+              createdAt: Date.now(),
+            };
+            const validation = validateApiConversationFormatting({
+              conversation: emptyConversation,
+            });
+            expect(validation).toBe(false);
+          });
+          test("Should not validate odd number of messages", () => {
+            const oddNumberOfMessages: ApiConversation = {
+              _id: new ObjectId().toHexString(),
+              messages: [
+                {
+                  content: "hi",
+                  role: "assistant",
+                  createdAt: Date.now(),
+                  id: new ObjectId().toHexString(),
+                },
+                {
+                  content: "hello",
+                  role: "user",
+                  createdAt: Date.now(),
+                  id: new ObjectId().toHexString(),
+                },
+                {
+                  content: "bye",
+                  role: "assistant",
+                  createdAt: Date.now(),
+                  id: new ObjectId().toHexString(),
+                },
+              ],
+              createdAt: Date.now(),
+            };
+            const validation = validateApiConversationFormatting({
+              conversation: oddNumberOfMessages,
+            });
+            expect(validation).toBe(false);
+          });
+          test("Should not validate incorrect conversation order", () => {
+            const incorrectConversationOrder: ApiConversation = {
+              _id: new ObjectId().toHexString(),
+              messages: [
+                {
+                  content: "hi",
+                  role: "assistant",
+                  createdAt: Date.now(),
+                  id: new ObjectId().toHexString(),
+                },
+                {
+                  content: "bye",
+                  role: "assistant",
+                  createdAt: Date.now(),
+                  id: new ObjectId().toHexString(),
+                },
+              ],
+              createdAt: Date.now(),
+            };
+            const validation = validateApiConversationFormatting({
+              conversation: incorrectConversationOrder,
+            });
+            expect(validation).toBe(false);
+          });
         });
       });
     });
@@ -553,20 +735,105 @@ describe("Conversations Router", () => {
         conversation = await conversations.create({ ipAddress });
         testMsg = await conversations.addConversationMessage({
           conversationId: conversation._id,
-          content: "hi",
-          role: "user",
+          content: "hello",
+          role: "assistant",
         });
       });
-      test("Should return 403 for invalid IP address", async () => {
+
+      afterAll(async () => {
+        await mongodb.db.dropDatabase();
+        await mongodb.close();
+      });
+      test("Should return 204 for valid rating", async () => {
         const response = await request(app)
           .post(
             `/conversations/${conversation._id}/messages/${testMsg.id}/rating`
           )
           .send({ rating: true });
 
-        expect(response.statusCode).toBe(403);
+        expect(response.statusCode).toBe(204);
+        expect(response.body).toEqual({});
+        const updatedConversation = await conversations.findById({
+          _id: conversation._id,
+        });
+        expect(
+          updatedConversation.messages[updatedConversation.messages.length - 1]
+            .rating
+        ).toBe(true);
+      });
+      test("Should return 400 for invalid conversation ID", async () => {
+        const response = await request(app)
+          .post(
+            `/conversations/123/messages/${conversation.messages[0].id}/rating`
+          )
+          .send({ rating: true });
+
+        expect(response.statusCode).toBe(400);
         expect(response.body).toEqual({
-          error: "Invalid IP address for conversation",
+          error: "Invalid conversation ID",
+        });
+      });
+      test("Should return 400 for invalid message ID", async () => {
+        const response = await request(app)
+          .post(`/conversations/${testMsg.id}/messages/123/rating`)
+          .send({ rating: true });
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toEqual({
+          error: "Invalid message ID",
+        });
+      });
+      test("Should return 404 for conversation not in DB", async () => {
+        const response = await request(app)
+          .post(
+            `/conversations/${new ObjectId().toHexString()}/messages/${
+              testMsg.id
+            }/rating`
+          )
+          .send({ rating: true });
+
+        expect(response.statusCode).toBe(404);
+        expect(response.body).toEqual({
+          error: "Conversation not found",
+        });
+      });
+      test("Should return 404 for message not in conversation", async () => {
+        const response = await request(app)
+          .post(
+            `/conversations/${
+              conversation._id
+            }/messages/${new ObjectId().toHexString()}/rating`
+          )
+          .send({ rating: true });
+
+        expect(response.statusCode).toBe(404);
+        expect(response.body).toEqual({
+          error: "Message not found",
+        });
+      });
+      // TODO:(DOCSP-30843) when properly configure IP address capture and validation,
+      // this test will need to be refactored.
+      describe("IP address validation", () => {
+        beforeEach(async () => {
+          const ipAddress = "abc.123.xyz.456";
+          conversation = await conversations.create({ ipAddress });
+          testMsg = await conversations.addConversationMessage({
+            conversationId: conversation._id,
+            content: "hi",
+            role: "user",
+          });
+        });
+        test("Should return 403 for invalid IP address", async () => {
+          const response = await request(app)
+            .post(
+              `/conversations/${conversation._id}/messages/${testMsg.id}/rating`
+            )
+            .send({ rating: true });
+
+          expect(response.statusCode).toBe(403);
+          expect(response.body).toEqual({
+            error: "Invalid IP address for conversation",
+          });
         });
       });
     });

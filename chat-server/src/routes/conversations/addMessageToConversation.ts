@@ -25,22 +25,23 @@ import {
 } from "../../services/llm";
 import { ApiConversation, convertMessageFromDbToApi } from "./utils";
 import { sendErrorResponse } from "../../utils";
+import { z } from "zod";
 
 const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 
-export interface AddMessageRequestBody {
-  message: string;
-}
+export type AddMessageRequest = z.infer<typeof AddMessageRequest>;
+export const AddMessageRequest = z.object({
+  params: z.object({
+    conversationId: z.string(),
+  }),
+  body: z.object({
+    message: z.string(),
+  }),
+  query: z.object({
+    stream: z.string().optional(),
+  }),
+});
 
-export interface AddMessageRequest extends ExpressRequest {
-  params: {
-    conversationId: string;
-  };
-  body: AddMessageRequestBody;
-  query: {
-    stream: string;
-  };
-}
 export interface AddMessageToConversationRouteParams {
   content: ContentServiceInterface;
   conversations: ConversationsServiceInterface;
@@ -61,11 +62,15 @@ export function makeAddMessageToConversationRoute({
     next: NextFunction
   ) => {
     try {
+      const requestParseResult = AddMessageRequest.safeParse(req);
+      if (requestParseResult.success === false) {
+        return sendErrorResponse(res, 400, `Invalid request`);
+      }
       const {
         params: { conversationId: conversationIdString },
         body: { message },
         query: { stream },
-      } = req;
+      } = requestParseResult.data;
       let conversationId: ObjectId;
       try {
         conversationId = new ObjectId(conversationIdString);

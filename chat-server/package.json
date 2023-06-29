@@ -8,7 +8,7 @@
     "dev": "nodemon src/index.ts",
     "format": "npm run prettier -- --check",
     "format:fix": "npm run prettier -- --write",
-    "lint": "eslint --ext .js,.jsx,.ts,.tsx .",
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
     "prettier": "prettier '**/*.{js,jsx,ts,tsx,json,md}'",
     "start": "node ./dist/index.js",
     "test": "jest --forceExit",
@@ -24,8 +24,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "chat-core": "file:../chat-core",
+    "@azure/openai": "^1.0.0-beta.2",
     "common-tags": "^1.8.2",
+    "chat-core": "file:../chat-core",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
@@ -33,8 +34,8 @@
     "langchain": "^0.0.95",
     "openai": "^3.2.1",
     "stream-json": "^1.8.0",
-    "@azure/openai": "^1.0.0-beta.2",
-    "winston": "^3.9.0"
+    "winston": "^3.9.0",
+    "zod": "^3.21.4"
   },
   "devDependencies": {
     "@babel/core": "^7.22.5",

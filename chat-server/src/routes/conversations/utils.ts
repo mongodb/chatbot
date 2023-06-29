@@ -1,17 +1,21 @@
 import { Conversation, Message } from "../../services/conversations";
+import { z } from "zod";
 
-export interface ApiMessage {
-  id: string;
-  role: string;
-  content: string;
-  rating?: boolean;
-  createdAt: number;
-}
-export interface ApiConversation {
-  _id: string;
-  messages: ApiMessage[];
-  createdAt: number;
-}
+export type ApiMessage = z.infer<typeof ApiMessage>;
+export const ApiMessage = z.object({
+  id: z.string(),
+  role: z.string(),
+  content: z.string(),
+  rating: z.boolean().optional(),
+  createdAt: z.number(),
+});
+
+export type ApiConversation = z.infer<typeof ApiConversation>;
+export const ApiConversation = z.object({
+  _id: z.string(),
+  messages: z.array(ApiMessage),
+  createdAt: z.number(),
+});
 
 export function convertMessageFromDbToApi(message: Message): ApiMessage {
   return {

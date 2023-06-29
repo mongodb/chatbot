@@ -10,16 +10,19 @@ import {
 } from "express";
 import { sendErrorResponse } from "../../utils";
 import { logger } from "chat-core";
+import { z } from "zod";
 
-interface RatingRequest extends ExpressRequest {
-  params: {
-    conversationId: string;
-    messageId: string;
-  };
-  body: {
-    rating: boolean;
-  };
-}
+export type RatingRequest = z.infer<typeof RatingRequest>;
+export const RatingRequest = z.object({
+  params: z.object({
+    conversationId: z.string(),
+    messageId: z.string(),
+  }),
+  body: z.object({
+    rating: z.boolean(),
+  }),
+});
+
 export interface RateMessageRouteParams {
   conversations: ConversationsServiceInterface;
 }

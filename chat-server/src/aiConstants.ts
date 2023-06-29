@@ -18,10 +18,6 @@ export const SYSTEM_PROMPT: OpenAiChatMessage = {
   NEVER create a code snippet that is not present in the information given to you.`,
 };
 
-export const ASSISTANT_PROMPT: OpenAiChatMessage = {
-  role: "assistant",
-  content: "Hello, I'm a MongoDB chatbot. How can I help you today?",
-};
 export const OPENAI_LLM_CONFIG_OPTIONS: GetChatCompletionsOptions = {
   temperature: 0.3,
   maxTokens: 500,

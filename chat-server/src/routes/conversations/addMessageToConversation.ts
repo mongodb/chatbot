@@ -61,18 +61,28 @@ export function makeAddMessageToConversationRoute({
     next: NextFunction
   ) => {
     try {
-      const {
-        params: { conversationId: conversationIdString },
-        body: { message },
-        query: { stream },
-      } = req;
+      // const {
+      //   params: { conversationId: conversationIdString },
+      //   body: { message },
+      //   query: { stream },
+      // } = req;
+
+      const conversationIdString = req.params.conversationId;
+      const message = req.body.message;
+      const stream = req.query.stream;
+
+      console.log("conversationIdString", conversationIdString);
+      console.log("message", message);
+      console.log("stream", stream);
+
       let conversationId: ObjectId;
       try {
         conversationId = new ObjectId(conversationIdString);
       } catch (err) {
         return sendErrorResponse(res, 400, "Invalid conversation ID");
       }
-
+      console.log("conversationId", conversationId);
+      console.log("message", message);
       // TODO:(DOCSP-30863) implement type checking on the request
 
       const ipAddress = "<NOT CAPTURING IP ADDRESS YET>"; // TODO:(DOCSP-30843) refactor to get IP address with middleware
@@ -83,7 +93,8 @@ export function makeAddMessageToConversationRoute({
         return sendErrorResponse(res, 400, "Message too long");
       }
 
-      let conversationInDb: Conversation | null;
+      // let conversationInDb: Conversation | null;
+      let conversationInDb: Conversation;
       try {
         conversationInDb = await conversations.findById({
           _id: conversationId,
@@ -110,40 +121,47 @@ export function makeAddMessageToConversationRoute({
         content,
       });
 
+      const furtherReading = generateFurtherReading({ chunks });
+
       const chunkTexts = chunks.map((chunk) => chunk.text);
 
-      let answer;
+      const latestMessage = {
+        content: latestMessageText,
+        role: "user",
+      } satisfies OpenAiChatMessage;
+
+      const messages = [
+        ...conversationInDb.messages.map(convertDbMessageToOpenAiMessage),
+        latestMessage,
+      ] satisfies OpenAiChatMessage[];
+
+      let answerContent;
       if (shouldStream) {
         // TODO:(DOCSP-30866) add streaming support to endpoint
-        throw new Error("Streaming not implemented yet");
-        // answer = await dataStreamer.answer({
-        //   res,
-        //   answer: llm.answerQuestionStream({
-        //     messages: [
-        //       ...conversationInDb.messages,
-        //       latestMessageText,
-        //     ] as OpenAiChatMessage[],
-        //     chunks: chunkTexts,
-        //   }),
-        //   conversation: conversationInDb,
-        //   chunks,
-        // });
+        const answerStream = await llm.answerQuestionStream({
+          messages,
+          chunks: chunkTexts,
+        });
+        const answer = await dataStreamer.answer({
+          res,
+          answerStream,
+          furtherReading,
+        });
+        logger.info(`LLM response: ${JSON.stringify(answer)}`);
+        answerContent = answer + furtherReading;
       } else {
-        const latestMessage: OpenAiChatMessage = {
-          content: latestMessageText,
-          role: "user",
-        };
         try {
           const messages = [
             ...conversationInDb.messages.map(convertDbMessageToOpenAiMessage),
             latestMessage,
           ];
           logger.info(`LLM query: ${JSON.stringify(messages)}`);
-          answer = await llm.answerQuestionAwaited({
+          const answer = await llm.answerQuestionAwaited({
             messages,
             chunks: chunkTexts,
           });
           logger.info(`LLM response: ${JSON.stringify(answer)}`);
+          answerContent = answer.content + furtherReading;
         } catch (err: any) {
           logger.error("Error from LLM: " + JSON.stringify(err));
           return sendErrorResponse(res, 500, "Error from LLM", err.message);
@@ -152,12 +170,11 @@ export function makeAddMessageToConversationRoute({
         // Would limit database calls.
         await conversations.addConversationMessage({
           conversationId: conversationInDb._id,
-          content: latestMessageText,
-          role: "user",
+          ...latestMessage,
         });
         const newMessage = await conversations.addConversationMessage({
           conversationId: conversationInDb._id,
-          content: answer.content + generateFurtherReading({ chunks }),
+          content: answerContent,
           role: "assistant",
         });
         const apiRes = convertMessageFromDbToApi(newMessage);
@@ -211,12 +228,12 @@ export function generateFurtherReading({
   if (chunks.length === 0) {
     return "";
   }
-  const heading = "\n\nArticles Referenced:\n";
+  const heading = "\n\n**Articles Referenced:**\n\n";
   const uniqueLinks = Array.from(new Set(chunks.map((chunk) => chunk.url)));
 
   const linksText =
     uniqueLinks.reduce((acc, link) => {
-      const linkListItem = `${link}\n`;
+      const linkListItem = `- [${link}](${link})\n`;
       return acc + linkListItem;
     }, "") + "\n";
   return heading + linksText;

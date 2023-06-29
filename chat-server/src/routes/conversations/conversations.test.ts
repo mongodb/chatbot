@@ -7,7 +7,6 @@ import {
   EmbeddingService,
   OpenAiEmbeddingProvider,
 } from "chat-core";
-import { ASSISTANT_PROMPT } from "../../aiConstants";
 import {
   Conversation,
   ConversationsService,
@@ -65,15 +64,9 @@ describe("Conversations Router", () => {
       const before = Date.now();
       const res = await request(app).post("/conversations/").send();
       const conversation: ApiConversation = res.body;
-      const [assistantMessage] = conversation.messages;
       expect(res.statusCode).toEqual(200);
 
-      expect(conversation.messages).toHaveLength(1);
-      expect(typeof assistantMessage.id).toBe("string");
-      expect(assistantMessage.content).toBe(ASSISTANT_PROMPT.content);
-      expect(assistantMessage.role).toBe(ASSISTANT_PROMPT.role);
-      expect(assistantMessage.rating).toBe(undefined);
-      expect(assistantMessage.createdAt).toBeGreaterThan(before);
+      expect(conversation.messages).toHaveLength(0);
       const count = await mongodb.db
         .collection("conversations")
         .countDocuments();

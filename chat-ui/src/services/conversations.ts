@@ -1,4 +1,5 @@
 import { ConversationState } from "../useConversation";
+import { fetchEventSource } from "@microsoft/fetch-event-source";
 
 export type Role = "user" | "assistant";
 
@@ -21,13 +22,18 @@ export default class ConversationService {
     this.serverUrl = config.serverUrl;
   }
 
-  private getUrl(path: string) {
+  private getUrl(path: string, queryParams: Record<string, string> = {}) {
     if (!path.startsWith("/")) {
       throw new Error(
         `Invalid path: ${path} - ConversationService paths must start with /`
       );
     }
-    return this.serverUrl + path;
+    const resolvedUrl = this.serverUrl + path;
+    const queryString = new URLSearchParams(queryParams).toString();
+    if (!queryString) {
+      return resolvedUrl;
+    }
+    return `${resolvedUrl}?${queryString}`
   }
 
   async createConversation(): Promise<Required<ConversationState>> {
@@ -62,6 +68,29 @@ export default class ConversationService {
     });
     const data = await resp.json();
     return data;
+  }
+
+  async addMessageStreaming({
+    conversationId,
+    message,
+    onStreamEvent,
+  }: {
+    conversationId: string;
+    message: string;
+    onStreamEvent: (data: string) => void;
+  }): Promise<void> {
+    const path = `/conversations/${conversationId}/messages`;
+    await fetchEventSource(this.getUrl(path, { stream: "true" }), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message }),
+      onmessage(ev) {
+        const formattedData = ev.data.replaceAll(`\\n`, `\n`)
+        onStreamEvent(formattedData);
+      },
+    });
   }
 
   async rateMessage({

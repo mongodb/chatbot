@@ -35,6 +35,7 @@ type CTACardProps = {
   activate: () => void;
   setInputText: (text: string) => void;
   inputTextError: string;
+  streamingMessage?: string;
   handleSubmit: (text: string) => Promise<void>;
   awaitingReply: boolean;
 };
@@ -47,6 +48,7 @@ function CTACard({
   activate,
   setInputText,
   inputTextError,
+  streamingMessage,
   handleSubmit,
   awaitingReply,
 }: CTACardProps) {
@@ -75,11 +77,21 @@ function CTACard({
                 rateMessage={conversation.rateMessage}
               />
             ))}
-            {awaitingReply && (
-              <Message role="assistant">
-                <ParagraphSkeleton />
-              </Message>
-            )}
+            {awaitingReply &&
+              (streamingMessage ? (
+                <Message
+                  message={{
+                    id: "streaming-message",
+                    role: "assistant",
+                    content: streamingMessage,
+                    createdAt: Date.now(),
+                  }}
+                />
+              ) : (
+                <Message role="assistant">
+                  <ParagraphSkeleton />
+                </Message>
+              ))}
           </MessageList>
           <Banner className={styles.lg_banner} variant="warning">
             This is an experimental AI chatbot. All information should be
@@ -258,6 +270,7 @@ export default function Chatbot() {
             inputText={inputText}
             setInputText={setInputText}
             inputTextError={inputTextError}
+            streamingMessage={conversation.streamingMessage}
             handleSubmit={handleSubmit}
             awaitingReply={awaitingReply}
           />

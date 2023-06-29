@@ -46,11 +46,11 @@ const componentsMap = {
   p: ({ children, ...props }) => {
     return <Body {...props}>{children}</Body>;
   },
-  ol: ({ children, ...props }) => {
-    return <Body as="ol" {...props}>{children}</Body>;
+  ol: ({ children, ordered, ...props }) => {
+    return <Body as="ol" ordered={String(ordered)} {...props}>{children}</Body>;
   },
-  ul: ({ children, ...props }) => {
-    return <Body as="ul" {...props}>{children}</Body>;
+  ul: ({ children, ordered, ...props }) => {
+    return <Body as="ul" ordered={String(ordered)} {...props}>{children}</Body>;
   },
 } satisfies ReactMarkdownComponentsMap;
 

@@ -6,9 +6,12 @@ import {
 } from "./services/conversations";
 import createMessage from "./createMessage";
 
+const SHOULD_STREAM = true;
+
 export type ConversationState = {
   conversationId?: string;
   messages: MessageData[];
+  streamingMessage?: string;
   error?: string;
   // user_ip: string;
   // time_created: Date;
@@ -21,7 +24,9 @@ type ConversationAction =
   | { type: "addMessage"; role: Role; text: string }
   | { type: "modifyMessage"; messageId: MessageData["id"]; text: string }
   | { type: "deleteMessage"; messageId: MessageData["id"] }
-  | { type: "rateMessage"; messageId: MessageData["id"]; rating: boolean };
+  | { type: "rateMessage"; messageId: MessageData["id"]; rating: boolean }
+  | { type: "addToStreamingResponse"; data: string }
+  | { type: "finishStreamingResponse" };
 
 type ConversationActor = {
   createConversation: () => void;
@@ -125,6 +130,29 @@ function conversationReducer(
         ],
       };
     }
+    case "addToStreamingResponse": {
+      return {
+        ...state,
+        streamingMessage: (state.streamingMessage ?? "") + action.data,
+      }
+    }
+    case "finishStreamingResponse": {
+      const streamingMessage = state.streamingMessage;
+      if (!streamingMessage) {
+        console.error(
+          `Cannot finishStreamingResponse without a streamingMessage`
+        );
+        return state;
+      }
+      return {
+        ...state,
+        messages: [
+          ...state.messages,
+          createMessage("assistant", streamingMessage),
+        ],
+        streamingMessage: undefined,
+      };
+    }
     default: {
       console.error("Unhandled action", action);
       throw new Error(`Unhandled action type`);
@@ -182,15 +210,27 @@ export default function useConversation() {
     }
     try {
       dispatch({ type: "addMessage", role, text });
-      const response = await conversationService.addMessage({
-        conversationId: state.conversationId,
-        message: text,
-      });
-      dispatch({
-        type: "addMessage",
-        role: "assistant",
-        text: response.content,
-      });
+      if (SHOULD_STREAM) {
+        await conversationService.addMessageStreaming({
+          conversationId: state.conversationId,
+          message: text,
+          onStreamEvent: (data) => {
+            // console.log(`onStreamEvent`, data)
+            dispatch({ type: "addToStreamingResponse", data: data });
+          },
+        });
+        dispatch({ type: "finishStreamingResponse" });
+      } else {
+        const response = await conversationService.addMessage({
+          conversationId: state.conversationId,
+          message: text,
+        });
+        dispatch({
+          type: "addMessage",
+          role: "assistant",
+          text: response.content,
+        });
+      }
     } catch (error) {
       console.error(`Failed to add message: ${error}`);
     }

@@ -2,12 +2,18 @@
 import { Response } from "express";
 import { Conversation } from "./conversations";
 import { Content } from "chat-core";
+import { OpenAiStreamingResponse } from "./llm";
 
 interface AnswerParams {
   res: Response;
-  answer: unknown; // TODO: figure out what streaming type is
-  conversation: Conversation;
-  chunks: Content[];
+  answerStream: OpenAiStreamingResponse;
+  furtherReading?: string;
+  // conversation: Conversation;
+  // chunks: Content[];
+}
+
+function escapeNewlines(str: string) {
+  return str.replaceAll(`\n`, `\\n`);
 }
 
 export interface DataStreamerServiceInterface {
@@ -15,8 +21,32 @@ export interface DataStreamerServiceInterface {
 }
 export class DataStreamerService {
   // NOTE: for example streaming data, see https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
-  async answer({ res, answer, conversation, chunks }: AnswerParams) {
-    // TODO: do stuff with the response
-    return "answer";
+  async answer({ res, answerStream, furtherReading }: AnswerParams) {
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders(); // flush the headers to establish SSE with client
+
+    // If the client closes the connection, stop sending events
+    res.on("close", () => {
+      res.end();
+    });
+
+    let str = "";
+    for await (const event of answerStream) {
+      for (const choice of event.choices) {
+        if (choice.delta) {
+          const content = escapeNewlines(choice.delta.content ?? "");
+          res.write(`data: ${content}\n\n`);
+          str += content;
+        }
+      }
+    }
+    if (furtherReading) {
+      res.write(`data: ${escapeNewlines(furtherReading)}\n\n`);
+    }
+    res.end();
+    return str;
   }
 }

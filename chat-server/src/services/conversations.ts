@@ -5,7 +5,7 @@ import {
   OpenAiChatMessage,
   OpenAiMessageRole,
 } from "chat-core";
-import { SYSTEM_PROMPT, ASSISTANT_PROMPT } from "../aiConstants";
+import { SYSTEM_PROMPT } from "../aiConstants";
 
 export interface Message {
   /** Unique identifier for the message. */
@@ -75,7 +75,6 @@ export class ConversationsService implements ConversationsServiceInterface {
       ipAddress,
       messages: [
         this.createMessageFromChatMessage(SYSTEM_PROMPT),
-        this.createMessageFromChatMessage(ASSISTANT_PROMPT),
       ],
       createdAt: new Date(),
     };

@@ -75,9 +75,12 @@ export class OpenAiLlmProvider
     chunks,
   }: LlmAnswerQuestionParams) {
     this.validateConversation(messages);
-    const lastMessage = messages[messages.length - 1];
+    const lastMessage = messages.at(-1);
+    if (!lastMessage) {
+      throw new Error("No last message");
+    }
     const newestMessageForLlm = GENERATE_USER_PROMPT({
-      question: lastMessage.content!,
+      question: lastMessage.content,
       chunks,
     });
     return [...messages.slice(0, -1), newestMessageForLlm];
@@ -87,10 +90,13 @@ export class OpenAiLlmProvider
   // system, assistant, user, assistant, user, etc.
   // Are there any other things which we should validate here?
   private validateConversation(messages: OpenAiChatMessage[]) {
+    // Messages should never be empty
     if (messages.length === 0) {
       throw new Error("No messages provided");
     }
+    // First message should always be the system prompt
     const firstMessage = messages[0];
+    console.log("firstMessage", firstMessage)
     if (
       firstMessage.content !== SYSTEM_PROMPT.content ||
       firstMessage.role !== SYSTEM_PROMPT.role
@@ -99,13 +105,21 @@ export class OpenAiLlmProvider
         `First message must be system prompt: ${JSON.stringify(SYSTEM_PROMPT)}`
       );
     }
-    const secondToLastMessage = messages[messages.length - 2];
-    if (secondToLastMessage.role !== "assistant") {
-      throw new Error(`Second to last message must be assistant message`);
+    // Second message should always be from the user
+    const secondMessage = messages[1];
+    console.log("secondMessage", secondMessage)
+    if (secondMessage.role !== "user") {
+      throw new Error(`Second message must be a user message`);
     }
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage.role !== "user") {
-      throw new Error(`Last message must be user message`);
+    if (messages.length >= 3) {
+      const secondToLastMessage = messages.at(-2);
+      const lastMessage = messages.at(-1);
+      if (!secondToLastMessage || !lastMessage) {
+        throw new Error(`Second to last and last message must exist`)
+      }
+      if (secondToLastMessage.role === lastMessage.role) {
+        throw new Error(`Messages must alternate roles`);
+      }
     }
   }
 }

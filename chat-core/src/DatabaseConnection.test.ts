@@ -174,6 +174,38 @@ describe("DatabaseConnection", () => {
     expect(pages[1]).toMatchObject({ url: "2", action: "deleted" });
   });
 
+  it("loads pages that have changed since the given date", async () => {
+    assert(store);
+
+    await store.updatePages([
+      {
+        action: "created",
+        body: "The Matrix (1999) comes out",
+        format: "md",
+        sourceName: "",
+        tags: [],
+        updated: new Date("1999-03-31"),
+        url: "matrix1",
+      },
+      {
+        action: "created",
+        body: "The Matrix: Reloaded (2003) comes out",
+        format: "md",
+        sourceName: "",
+        tags: [],
+        updated: new Date("2003-05-15"),
+        url: "matrix2",
+      },
+    ]);
+
+    const changedPages = await store.loadPages({
+      updated: new Date("2000-01-01"),
+    });
+
+    expect(changedPages.length).toBe(1);
+    expect(changedPages[0].url).toBe("matrix2");
+  });
+
   it("successfully finds nearest neighbors for relevant query", async () => {
     assert(store);
 

@@ -128,7 +128,7 @@ export const makeDatabaseConnection = async ({
         filter.sourceName = args.sourceName;
       }
       if (args?.updated !== undefined) {
-        filter.updated = args.updated;
+        filter.updated = { $gte: args.updated };
       }
       return pagesCollection.find(filter).toArray();
     },

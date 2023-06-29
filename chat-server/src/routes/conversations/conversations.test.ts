@@ -433,6 +433,7 @@ describe("Conversations Router", () => {
   describe("POST /conversations/:conversationId/messages/:messageId/rating", () => {
     const app = express();
     app.use(express.json()); // for parsing application/json
+    app.set("trust proxy", true);
     const testDbName = `conversations-test-${Date.now()}`;
     const mongodb = new MongoDB(MONGODB_CONNECTION_URI!, testDbName);
 
@@ -441,7 +442,7 @@ describe("Conversations Router", () => {
       "/conversations/:conversationId/messages/:messageId/rating",
       makeRateMessageRoute({ conversations })
     );
-    const ipAddress = "<NOT CAPTURING IP ADDRESS YET>";
+    const ipAddress = "127.0.0.1";
     let conversation: Conversation;
     let testMsg: Message;
     beforeAll(async () => {
@@ -462,6 +463,7 @@ describe("Conversations Router", () => {
         .post(
           `/conversations/${conversation._id}/messages/${testMsg.id}/rating`
         )
+        .set("X-Forwarded-For", ipAddress)
         .send({ rating: true });
 
       expect(response.statusCode).toBe(204);
@@ -526,9 +528,9 @@ describe("Conversations Router", () => {
     });
     // TODO:(DOCSP-30843) when properly configure IP address capture and validation,
     // this test will need to be refactored.
-    describe("IP address validation", () => {
+    describe("Correct IP address validation", () => {
       beforeEach(async () => {
-        const ipAddress = "abc.123.xyz.456";
+        const ipAddress = "127.0.0.1";
         conversation = await conversations.create({ ipAddress });
         testMsg = await conversations.addConversationMessage({
           conversationId: conversation._id,
@@ -536,11 +538,12 @@ describe("Conversations Router", () => {
           role: "user",
         });
       });
-      test("Should return 403 for invalid IP address", async () => {
+      test("Should return 403 for different but valid IP address", async () => {
         const response = await request(app)
           .post(
             `/conversations/${conversation._id}/messages/${testMsg.id}/rating`
           )
+          .set("X-Forwarded-For", "192.158.1.38") // different IP address
           .send({ rating: true });
 
         expect(response.statusCode).toBe(403);

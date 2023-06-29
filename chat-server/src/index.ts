@@ -1,11 +1,11 @@
 import "dotenv/config";
-import { setupApp, mongodb } from "./app";
+import { setupApp } from "./app";
 import { logger } from "chat-core";
 
 const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {
-  const app = await setupApp();
+  const { app, mongodb } = await setupApp();
 
   const server = app.listen(PORT, () => {
     logger.info(`Server listening on port: ${PORT}`);

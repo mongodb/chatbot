@@ -1,5 +1,6 @@
 {
   "preset": "ts-jest",
   "setupFiles": ["<rootDir>/src/jestSetUp.ts"],
-  "testPathIgnorePatterns": ["<rootDir>/dist"]
+  "testPathIgnorePatterns": ["<rootDir>/dist"],
+  "transformIgnorePatterns": ["/node_modules/(?!is-ip)"]
 }

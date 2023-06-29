@@ -1,3 +1,4 @@
+import { isIP } from "net";
 import { Conversation, Message } from "../../services/conversations";
 
 export interface ApiMessage {
@@ -31,4 +32,8 @@ export function convertConversationFromDbToApi(
     messages: conversation.messages.map(convertMessageFromDbToApi),
     createdAt: conversation.createdAt.getTime(),
   };
+}
+
+export function isValidIp(ip: string) {
+  return isIP(ip) > 0;
 }

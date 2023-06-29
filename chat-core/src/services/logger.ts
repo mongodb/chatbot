@@ -1,15 +1,23 @@
 import { createLogger, transports, format } from "winston";
 
 // Helper function to format JSON message
-export const createMessage = (
-  message: string,
-  requestBody?: any,
-  requestId?: string
-) => {
+interface CreateMessageParams {
+  message: string;
+  requestBody?: any;
+  requestId?: string;
+  ipAddress?: string;
+}
+export const createMessage = ({
+  message,
+  requestBody,
+  requestId,
+  ipAddress,
+}: CreateMessageParams) => {
   return {
     message,
     requestBody,
-    reqId: requestId || null,
+    requestId,
+    ipAddress,
   };
 };
 

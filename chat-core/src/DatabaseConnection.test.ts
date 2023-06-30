@@ -6,7 +6,7 @@ import {
   makeDatabaseConnection,
   DatabaseConnection,
 } from "./DatabaseConnection";
-import { Page, PageStore, PersistedPage } from "./Page";
+import { PageStore, PersistedPage } from "./Page";
 import {
   EmbeddedContentStore,
   FindNearestNeighborsOptions,
@@ -14,46 +14,36 @@ import {
 import { assertEnvVars } from "./assertEnvVars";
 import { CORE_ENV_VARS } from "./CoreEnvVars";
 import { makeOpenAiEmbedFunc } from "./OpenAiEmbedFunc";
+import { makeMemoryDbServer, DbServer } from "./MemoryDbServer";
+
 import "dotenv/config";
 
 describe("DatabaseConnection", () => {
-  const {
-    MONGODB_CONNECTION_URI,
-    OPENAI_ENDPOINT,
-    OPENAI_API_KEY,
-    OPENAI_EMBEDDING_DEPLOYMENT,
-    OPENAI_EMBEDDING_MODEL_VERSION,
-    VECTOR_SEARCH_INDEX_NAME,
-  } = assertEnvVars(CORE_ENV_VARS);
-  const embed = makeOpenAiEmbedFunc({
-    baseUrl: OPENAI_ENDPOINT,
-    apiKey: OPENAI_API_KEY,
-    apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
-    deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+  let server: DbServer | undefined;
+  beforeAll(async () => {
+    server = await makeMemoryDbServer();
   });
 
-  const findNearestNeighborOptions: FindNearestNeighborsOptions = {
-    k: 5,
-    path: "embedding",
-    indexName: VECTOR_SEARCH_INDEX_NAME,
-    minScore: 0.9,
-  };
+  afterAll(async () => {
+    server?.stop();
+  });
 
   let store:
     | (DatabaseConnection & PageStore & EmbeddedContentStore)
     | undefined;
   beforeEach(async () => {
+    assert(server);
+    const { connectionUri } = server;
     // Need to use real Atlas connection in order to run vector searches
     const databaseName = `test-database-${Date.now()}`;
     store = await makeDatabaseConnection({
-      connectionUri: MONGODB_CONNECTION_URI,
+      connectionUri,
       databaseName,
     });
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     assert(store);
-    await store.debugDropDatabase();
     await store.close();
   });
 
@@ -189,17 +179,53 @@ describe("DatabaseConnection", () => {
     expect(changedPages.length).toBe(1);
     expect(changedPages[0].url).toBe("matrix2");
   });
+});
+
+describe("nearest neighbor search", () => {
+  const {
+    MONGODB_CONNECTION_URI,
+    MONGODB_DATABASE_NAME,
+    OPENAI_ENDPOINT,
+    OPENAI_API_KEY,
+    OPENAI_EMBEDDING_DEPLOYMENT,
+    OPENAI_EMBEDDING_MODEL_VERSION,
+    VECTOR_SEARCH_INDEX_NAME,
+  } = assertEnvVars(CORE_ENV_VARS);
+
+  const embed = makeOpenAiEmbedFunc({
+    baseUrl: OPENAI_ENDPOINT,
+    apiKey: OPENAI_API_KEY,
+    apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
+    deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+  });
+
+  const findNearestNeighborOptions: FindNearestNeighborsOptions = {
+    k: 5,
+    path: "embedding",
+    indexName: VECTOR_SEARCH_INDEX_NAME,
+    minScore: 0.9,
+  };
+
+  let store:
+    | (DatabaseConnection & PageStore & EmbeddedContentStore)
+    | undefined;
+  beforeEach(async () => {
+    // Need to use real Atlas connection in order to run vector searches
+    const databaseName = MONGODB_DATABASE_NAME;
+    store = await makeDatabaseConnection({
+      connectionUri: MONGODB_CONNECTION_URI,
+      databaseName,
+    });
+  });
+
+  afterEach(async () => {
+    assert(store);
+    await store.close();
+  });
 
   it("successfully finds nearest neighbors for relevant query", async () => {
     assert(store);
-    const testPage: Page = {
-      url: "test",
-      sourceName: "test",
-    } as Page;
-    await store.updateEmbeddedContent({
-      page: testPage,
-      embeddedContent: [],
-    });
+
     const query = "Connect to MongoDB with Node.js";
     const { embedding } = await embed({
       text: query,

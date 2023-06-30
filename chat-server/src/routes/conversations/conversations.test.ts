@@ -237,8 +237,34 @@ describe("Conversations Router", () => {
     describe.skip("Streamed response", () => {
       // TODO: (DOCSP-30620) add in when data streamer is implemented
     });
-    describe.skip("Error handing", () => {
-      // TODO: (DOCSP-30945) add in soon. just not including in DOCSP-30616 so that we can build on top of it
+    describe("Error handing", () => {
+      test("should respond 400 if invalid conversation ID", async () => {
+        // TODO: implement
+      });
+      test("should respond 400 if input is too long", async () => {
+        // TODO: implement
+      });
+      test("should respond 400 if cannot find conversation for conversation ID in request", async () => {
+        // TODO: implement
+      });
+      test("should return 403 if IP address in request doesn't match IP address in conversation", async () => {
+        // TODO: implement
+      });
+      test("should respond 500 if error with content service", async () => {
+        // TODO: implement
+      });
+      test("Should respond 500 if error with conversation service", async () => {
+        // TODO: implement
+      });
+      test("Should respond 500 if error with data streaming service", async () => {
+        // TODO: implement
+      });
+      test("should respond 500 if error with embed service", async () => {
+        // TODO: implement
+      });
+      test("should respond 500 if error with LLM service", async () => {
+        // TODO: implement
+      });
     });
 
     describe("Edge cases", () => {

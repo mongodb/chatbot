@@ -1,5 +1,12 @@
-import express, { Express, ErrorRequestHandler, RequestHandler } from "express";
+import express, {
+  ErrorRequestHandler,
+  RequestHandler,
+  Request as ExpressRequest,
+  Response as ExpressResponse,
+  NextFunction,
+} from "express";
 import cors from "cors";
+import timeout from "connect-timeout";
 import "dotenv/config";
 import { makeConversationsRouter } from "./routes/conversations";
 import { llm } from "./services/llm";
@@ -18,7 +25,11 @@ const errorHandler: ErrorRequestHandler = (err, _req, res) => {
   const status = err.status || 500;
 
   if (!res.headersSent) {
-    res.status(status).json({ error: err.message || "Internal Server Error" });
+    return sendErrorResponse(
+      res,
+      status,
+      err.message || "Internal Server Error"
+    );
   } else {
     logger.error(err);
   }
@@ -46,11 +57,14 @@ export const makeApp = async ({
   conversationsService: ConversationsServiceInterface;
 }): Promise<Express> => {
   const app = express();
+  app.use(timeout(REQUEST_TIMEOUT));
   // TODO: consider only serving this from the staging env
-  app.use(express.static("static"));
   app.use(cors()); // TODO: add specific options to only allow certain origins
   app.use(express.json());
   app.use(reqHandler);
+  app.use(haltOnTimedOut);
+  app.use(express.static("static"));
+  app.use(haltOnTimedOut);
   app.use(
     "/conversations",
     makeConversationsRouter({
@@ -61,8 +75,9 @@ export const makeApp = async ({
       conversations: conversationsService,
     })
   );
-  app.all("*", (req, res, next) => {
-    return res.status(404).json({ error: "Not Found" }).send();
+  app.use(haltOnTimedOut);
+  app.all("*", (_req, res, _next) => {
+    return sendErrorResponse(res, 404, "Not Found");
   });
   app.use(errorHandler);
 

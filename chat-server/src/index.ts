@@ -31,7 +31,7 @@ const startServer = async () => {
     VECTOR_SEARCH_INDEX_NAME
   );
 
-  const conversationsService = new ConversationsService(mongodb.db);
+  const conversations = new ConversationsService(mongodb.db);
   const dataStreamer = new DataStreamerService();
 
   const store = await makeDatabaseConnection({
@@ -50,7 +50,7 @@ const startServer = async () => {
     const app = await makeApp({
       embed,
       store,
-      conversationsService,
+      conversations,
       dataStreamer,
     });
 

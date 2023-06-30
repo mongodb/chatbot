@@ -31,6 +31,17 @@ export type OpenAiStreamingResponse = AsyncIterable<
 >;
 export type OpenAiAwaitedResponse = OpenAiChatMessage;
 
+interface MakeOpenAiLlmProviderParams {
+  apiKey: string;
+  // TODO: resume here
+}
+
+// TODO: just implement the makeThing pattern now and get it over with.. otherwise more trouble than it's worth
+export function makeOpenAiLlmProvider({}: MakeOpenAiLlmProviderParams): LlmProvider<
+  OpenAiStreamingResponse,
+  OpenAiAwaitedResponse
+> {}
+
 export class OpenAiLlmProvider
   implements LlmProvider<OpenAiStreamingResponse, OpenAiAwaitedResponse>
 {

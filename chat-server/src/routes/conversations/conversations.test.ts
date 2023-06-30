@@ -13,6 +13,7 @@ import {
   makeDatabaseConnection,
   makeMemoryDbServer,
   DbServer,
+  EmbedFunc,
 } from "chat-core";
 import { ASSISTANT_PROMPT } from "../../aiConstants";
 import {
@@ -31,14 +32,18 @@ import {
   generateFurtherReading,
   validateApiConversationFormatting,
   getContentForText,
+  MAX_INPUT_LENGTH,
+  AddMessageToConversationRouteParams,
 } from "./addMessageToConversation";
 import { makeCreateConversationRoute } from "./createConversation";
 import { ApiConversation, ApiMessage } from "./utils";
-import { OpenAiLlmProvider } from "../../services/llm";
+import { LlmProvider, OpenAiLlmProvider } from "../../services/llm";
 import { DataStreamerService } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
 import { makeRateMessageRoute } from "./rateMessage";
+import e from "connect-timeout";
+import { makeApp } from "../../app";
 
 jest.setTimeout(100000);
 
@@ -136,6 +141,8 @@ describe("Conversations Router", () => {
     let conversationsMongoDb: MongoDB | undefined;
     let conversations: ConversationsServiceInterface;
 
+    let defaultRouteConfig: AddMessageToConversationRouteParams;
+
     beforeAll(async () => {
       assert(memoryDbServer);
       const { connectionUri } = memoryDbServer;
@@ -150,16 +157,17 @@ describe("Conversations Router", () => {
         conversationMessageTestDbName
       );
       conversations = new ConversationsService(conversationsMongoDb.db);
+      defaultRouteConfig = {
+        conversations,
+        store,
+        embed,
+        llm,
+        dataStreamer,
+      };
 
       app.post(
         "/conversations/:conversationId/messages/",
-        makeAddMessageToConversationRoute({
-          conversations,
-          store,
-          embed,
-          llm,
-          dataStreamer,
-        })
+        makeAddMessageToConversationRoute(defaultRouteConfig)
       );
       // For set up. Need to create conversation before can add to it.
       app.post(
@@ -223,31 +231,110 @@ describe("Conversations Router", () => {
     });
     describe("Error handing", () => {
       test("should respond 400 if invalid conversation ID", async () => {
-        // TODO: implement
+        const notAValidId = "not-a-valid-id";
+        const res = await request(app)
+          .post(endpointUrl.replace(":conversationId", notAValidId))
+          .send({
+            message: "hello",
+          });
+        expect(res.statusCode).toEqual(400);
+        expect(res.body).toStrictEqual({
+          error: "Invalid conversation ID",
+          status: 400,
+        });
       });
       test("should respond 400 if input is too long", async () => {
-        // TODO: implement
+        const tooLongMessage = "a".repeat(MAX_INPUT_LENGTH + 1);
+        const res = await request(app)
+          .post(endpointUrl.replace(":conversationId", _id))
+          .send({
+            message: tooLongMessage,
+          });
+        expect(res.statusCode).toEqual(400);
+        expect(res.body).toStrictEqual({
+          error: "Input too long",
+          status: 400,
+        });
       });
       test("should respond 400 if cannot find conversation for conversation ID in request", async () => {
         // TODO: implement
+        const anotherObjectId = new ObjectId().toHexString();
+        const res = await request(app)
+          .post(endpointUrl.replace(":conversationId", anotherObjectId))
+          .send({
+            message: "hello",
+          });
+        expect(res.statusCode).toEqual(400);
+        expect(res.body).toStrictEqual({
+          error: "Cannot find conversation for conversation ID",
+          status: 400,
+        });
       });
       test("should return 403 if IP address in request doesn't match IP address in conversation", async () => {
-        // TODO: implement
+        // TODO: this is done in DOCSP-30843
+      });
+
+      test("should respond 500 if error with embed service", async () => {
+        const mockBrokenEmbedFunc: EmbedFunc = (args) => {
+          throw new Error("mock error");
+        };
+        const app = makeApp({
+          ...defaultRouteConfig,
+          embed: mockBrokenEmbedFunc,
+        });
+
+        const res = await request(app)
+          .post(endpointUrl.replace(":conversationId", _id))
+          .send({ message: "hello" });
+        expect(res.statusCode).toEqual(500);
+        // TODO: find error message
+        console.log(res.body);
+      });
+
+      test("Should respond 500 if error with conversation service", async () => {
+        const mockBrokenConversationsService: ConversationsServiceInterface = {
+          async create({ ipAddress }) {
+            throw new Error("mock error");
+          },
+          async addConversationMessage({ conversationId, content, role }) {
+            throw new Error("mock error");
+          },
+          async findById({ _id }) {
+            throw new Error("mock error");
+          },
+          async rateMessage({ conversationId, messageId, rating }) {
+            throw new Error("mock error");
+          },
+        };
+        const app = makeApp({
+          ...defaultRouteConfig,
+          conversations: mockBrokenConversationsService,
+        });
+        const res = await request(app)
+          .post(endpointUrl.replace(":conversationId", _id))
+          .send({ message: "hello" });
+        expect(res.statusCode).toEqual(500);
+        // TODO: find error message
+      });
+      test("Should respond 500 if error with data streaming service", async () => {
+        // TODO: (DOCSP-30620) implement with data streaming service
       });
       test("should respond 500 if error with content service", async () => {
         // TODO: implement
       });
-      test("Should respond 500 if error with conversation service", async () => {
-        // TODO: implement
-      });
-      test("Should respond 500 if error with data streaming service", async () => {
-        // TODO: implement
-      });
-      test("should respond 500 if error with embed service", async () => {
-        // TODO: implement
-      });
       test("should respond 500 if error with LLM service", async () => {
-        // TODO: implement
+        const mockBrokenLLMService: OpenAiLlmProvider = {
+          answerQuestionStream({ messages, chunks }) {
+            throw new Error("mock error");
+          },
+          answerQuestionAwaited({ messages, chunks }) {
+            throw new Error("mock error");
+          },
+        };
+        const app = makeApp({
+          ...defaultRouteConfig,
+          llm: mockBrokenLLMService,
+        });
       });
     });
 

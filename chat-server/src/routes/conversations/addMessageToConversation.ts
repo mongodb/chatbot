@@ -27,7 +27,7 @@ import {
 import { ApiConversation, convertMessageFromDbToApi } from "./utils";
 import { sendErrorResponse } from "../../utils";
 
-const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
+export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 
 // - [ ] Rate limit exceeded
 //   - If too many clients are using the chatbot, friendly response message in chat saying that there are too many users and the user should try again later.

@@ -59,12 +59,12 @@ export const makeApp = async ({
   embed,
   dataStreamer,
   store,
-  conversationsService,
+  conversations,
 }: {
   embed: EmbedFunc;
   store: EmbeddedContentStore;
   dataStreamer: DataStreamerServiceInterface;
-  conversationsService: ConversationsServiceInterface;
+  conversations: ConversationsServiceInterface;
 }): Promise<Express> => {
   const app = express();
   app.use(timeout(REQUEST_TIMEOUT));
@@ -82,7 +82,7 @@ export const makeApp = async ({
       embed,
       dataStreamer,
       store,
-      conversations: conversationsService,
+      conversations,
     })
   );
   app.use(haltOnTimedOut);

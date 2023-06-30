@@ -92,13 +92,15 @@ export type MessageProps = DataMessageProps | ComponentMessageProps;
 export default function Message(props: MessageProps) {
   const isComponentMessage = "children" in props;
 
+  const messageText = isComponentMessage ? null : props.message.content;
+
   const messageRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     messageRef.current?.scrollIntoView({
       behavior: "smooth",
       block: "end",
     });
-  }, []);
+  }, [messageText]);
 
   const role = isComponentMessage ? props.role : props.message.role;
 

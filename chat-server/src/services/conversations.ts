@@ -73,9 +73,7 @@ export class ConversationsService implements ConversationsServiceInterface {
     const newConversation = {
       _id: new ObjectId(),
       ipAddress,
-      messages: [
-        this.createMessageFromChatMessage(SYSTEM_PROMPT),
-      ],
+      messages: [this.createMessageFromChatMessage(SYSTEM_PROMPT)],
       createdAt: new Date(),
     };
     const insertResult = await this.conversationsCollection.insertOne(

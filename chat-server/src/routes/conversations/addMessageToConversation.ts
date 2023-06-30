@@ -71,18 +71,12 @@ export function makeAddMessageToConversationRoute({
       const message = req.body.message;
       const stream = req.query.stream;
 
-      console.log("conversationIdString", conversationIdString);
-      console.log("message", message);
-      console.log("stream", stream);
-
       let conversationId: ObjectId;
       try {
         conversationId = new ObjectId(conversationIdString);
       } catch (err) {
         return sendErrorResponse(res, 400, "Invalid conversation ID");
       }
-      console.log("conversationId", conversationId);
-      console.log("message", message);
       // TODO:(DOCSP-30863) implement type checking on the request
 
       const ipAddress = "<NOT CAPTURING IP ADDRESS YET>"; // TODO:(DOCSP-30843) refactor to get IP address with middleware
@@ -162,9 +156,11 @@ export function makeAddMessageToConversationRoute({
           });
           logger.info(`LLM response: ${JSON.stringify(answer)}`);
           answerContent = answer.content + furtherReading;
-        } catch (err: any) {
+        } catch (err: unknown) {
+          const errorMessage =
+            err instanceof Error ? err.message : JSON.stringify(err as object);
           logger.error("Error from LLM: " + JSON.stringify(err));
-          return sendErrorResponse(res, 500, "Error from LLM", err.message);
+          return sendErrorResponse(res, 500, "Error from LLM", errorMessage);
         }
         // TODO: consider refactoring addConversationMessage to take in an array of messages.
         // Would limit database calls.
@@ -233,7 +229,7 @@ export function generateFurtherReading({
 
   const linksText =
     uniqueLinks.reduce((acc, link) => {
-      const linkListItem = `- [${link}](${link})\n`;
+      const linkListItem = `- [${link}](${link})\n\n`;
       return acc + linkListItem;
     }, "") + "\n";
   return heading + linksText;

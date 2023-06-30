@@ -96,7 +96,6 @@ export class OpenAiLlmProvider
     }
     // First message should always be the system prompt
     const firstMessage = messages[0];
-    console.log("firstMessage", firstMessage)
     if (
       firstMessage.content !== SYSTEM_PROMPT.content ||
       firstMessage.role !== SYSTEM_PROMPT.role
@@ -107,7 +106,6 @@ export class OpenAiLlmProvider
     }
     // Second message should always be from the user
     const secondMessage = messages[1];
-    console.log("secondMessage", secondMessage)
     if (secondMessage.role !== "user") {
       throw new Error(`Second message must be a user message`);
     }
@@ -115,7 +113,7 @@ export class OpenAiLlmProvider
       const secondToLastMessage = messages.at(-2);
       const lastMessage = messages.at(-1);
       if (!secondToLastMessage || !lastMessage) {
-        throw new Error(`Second to last and last message must exist`)
+        throw new Error(`Second to last and last message must exist`);
       }
       if (secondToLastMessage.role === lastMessage.role) {
         throw new Error(`Messages must alternate roles`);

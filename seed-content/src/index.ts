@@ -140,9 +140,10 @@ async function main() {
   // comment out end
 
   console.log("Adding data to MongoDB");
+
   const contentCollection = mongodb
     .db(MONGODB_DATABASE_NAME)
-    .collection("content");
+    .collection("embedded_content");
   const flattedContentWithOutEmptyEmbeddings = JSON.parse(
     fs.readFileSync(fileOut, "utf-8")
   );

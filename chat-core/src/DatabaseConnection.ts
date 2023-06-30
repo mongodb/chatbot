@@ -29,7 +29,8 @@ export const makeDatabaseConnection = async ({
 }): Promise<DatabaseConnection & PageStore & EmbeddedContentStore> => {
   const client = await new MongoClient(connectionUri).connect();
   const db = client.db(databaseName);
-  const embeddedContentCollection = db.collection<EmbeddedContent>("content");
+  const embeddedContentCollection =
+    db.collection<EmbeddedContent>("embedded_content");
   const pagesCollection = db.collection<PersistedPage>("pages");
   const instance: DatabaseConnection & PageStore & EmbeddedContentStore = {
     async close(force) {

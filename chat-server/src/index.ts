@@ -46,28 +46,28 @@ const startServer = async () => {
     deployment: OPENAI_EMBEDDING_DEPLOYMENT,
   });
 
-  try {
-    const app = await makeApp({
-      embed,
-      store,
-      conversationsService,
-      dataStreamer,
-    });
+  const app = await makeApp({
+    embed,
+    store,
+    conversationsService,
+    dataStreamer,
+  });
 
-    const server = app.listen(PORT, () => {
-      logger.info(`Server listening on port: ${PORT}`);
-    });
+  const server = app.listen(PORT, () => {
+    logger.info(`Server listening on port: ${PORT}`);
+  });
 
-    process.on("SIGINT", async () => {
-      logger.info("SIGINT signal received");
-      await mongodb.close();
-      await store.close();
-      server.close();
-    });
-  } finally {
+  process.on("SIGINT", async () => {
+    logger.info("SIGINT signal received");
     await mongodb.close();
     await store.close();
-  }
+    await new Promise<void>((resolve, reject) => {
+      server.close((error) => {
+        error ? reject(error) : resolve();
+      });
+    });
+    process.exit(1);
+  });
 };
 
 try {

@@ -6,7 +6,7 @@ import {
   makeDatabaseConnection,
   DatabaseConnection,
 } from "./DatabaseConnection";
-import { PageStore, PersistedPage } from "./Page";
+import { Page, PageStore, PersistedPage } from "./Page";
 import {
   EmbeddedContentStore,
   FindNearestNeighborsOptions,
@@ -192,7 +192,14 @@ describe("DatabaseConnection", () => {
 
   it("successfully finds nearest neighbors for relevant query", async () => {
     assert(store);
-
+    const testPage: Page = {
+      url: "test",
+      sourceName: "test",
+    } as Page;
+    await store.updateEmbeddedContent({
+      page: testPage,
+      embeddedContent: [],
+    });
     const query = "Connect to MongoDB with Node.js";
     const { embedding } = await embed({
       text: query,

@@ -64,8 +64,10 @@ export type EmbeddedContentStore = {
   findNearestNeighbors(
     vector: number[],
     options?: Partial<FindNearestNeighborsOptions>
-  ): Promise<EmbeddedContent[]>;
+  ): Promise<WithScore<EmbeddedContent>[]>;
 };
+
+export type WithScore<T> = T & { score: number };
 
 export type FindNearestNeighborsOptions = {
   /**

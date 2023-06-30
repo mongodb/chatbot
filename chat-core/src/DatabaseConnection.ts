@@ -5,6 +5,7 @@ import {
   EmbeddedContentStore,
   EmbeddedContent,
   FindNearestNeighborsOptions,
+  WithScore,
 } from "./EmbeddedContent";
 
 export type DatabaseConnection = {
@@ -99,7 +100,7 @@ export const makeDatabaseConnection = async ({
         ...(options ?? {}),
       };
       return embeddedContentCollection
-        .aggregate<EmbeddedContent>([
+        .aggregate<WithScore<EmbeddedContent>>([
           {
             $search: {
               index: indexName,

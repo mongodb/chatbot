@@ -50,17 +50,18 @@ To run tests, use:
 npm run test
 ```
 
-## Linting
+## Linting & Formatting
 
-We use `eslint` for linting and `prettier` for formatting. `prettier` is configured to run on lint, so feel free to just use:
+We use `eslint` for linting and `prettier` for formatting.
+
+To lint the code and find any warnings or errors, run:
 
 ```
 npm run lint
 ```
 
-If there are errors flagged through `prettier`, use:
+To format the code, run:
 
 ```
-npm run format:fix
+npm run format
 ```
-

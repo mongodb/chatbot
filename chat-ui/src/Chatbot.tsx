@@ -228,6 +228,7 @@ export default function Chatbot() {
   };
 
   const cardBoundingBoxRef = useClickAway(() => {
+    console.log("click away");
     setActive(false);
   });
 

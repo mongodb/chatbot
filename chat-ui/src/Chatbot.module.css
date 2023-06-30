@@ -108,3 +108,46 @@
   flex-grow: 1;
   justify-content: center;
 }
+
+@media screen and (min-width: 769px) {
+  .card-enter {
+    width: 100%;
+    background-color: red;
+  }
+  .card-enter-active {
+    width: 100%;
+    background-color: red;
+  }
+}
+
+@media screen and (max-width: 768px) and (min-width: 481px) {
+  .chatbot_container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 1rem;
+  }
+  .card-enter {
+  }
+  .card-enter-active {
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .chatbot_container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 1rem;
+  }
+  .card-enter {
+    flex-grow: 1;
+  }
+  .card-enter-active {
+    flex-grow: 1;
+  }
+}

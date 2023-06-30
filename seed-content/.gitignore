@@ -1,0 +1,12 @@
+data
+
+build/
+
+.env*
+!.env.example
+.secrets*
+
+node_modules/
+
+static/**/*
+!static/.gitinclude

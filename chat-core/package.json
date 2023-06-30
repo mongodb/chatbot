@@ -29,6 +29,7 @@
     "prettier": "^2",
     "release-it": "^15",
     "ts-jest": "^29",
+    "ts-node": "^10",
     "typedoc": "^0",
     "typescript": "^5"
   },

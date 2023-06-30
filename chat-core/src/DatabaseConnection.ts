@@ -1,6 +1,6 @@
 import { strict as assert } from "assert";
 import { MongoClient, Filter } from "mongodb";
-import { PageStore, PersistedPage } from "./Page";
+import { PageStore, Page, PersistedPage } from "./Page";
 import {
   EmbeddedContentStore,
   EmbeddedContent,
@@ -33,7 +33,9 @@ export const makeDatabaseConnection = async ({
     db.collection<EmbeddedContent>("embedded_content");
   const pagesCollection = db.collection<PersistedPage>("pages");
   const instance: DatabaseConnection & PageStore & EmbeddedContentStore = {
-    close: (force) => client.close(force),
+    async close(force) {
+      client.close(force);
+    },
 
     async loadEmbeddedContent({ page }) {
       return await embeddedContentCollection.find(pageIdentity(page)).toArray();
@@ -160,7 +162,7 @@ export const makeDatabaseConnection = async ({
 /**
   Returns a query filter that represents a unique page in the system.
  */
-export const pageIdentity = ({ url, sourceName }: PersistedPage) => ({
+export const pageIdentity = ({ url, sourceName }: Page) => ({
   url,
   sourceName,
 });

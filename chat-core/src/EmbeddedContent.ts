@@ -1,4 +1,4 @@
-import { PersistedPage } from "./Page";
+import { Page } from "./Page";
 
 export interface EmbeddedContent {
   /**
@@ -41,20 +41,18 @@ export type EmbeddedContentStore = {
   /**
     Load the embedded content for the given page.
    */
-  loadEmbeddedContent(args: {
-    page: PersistedPage;
-  }): Promise<EmbeddedContent[]>;
+  loadEmbeddedContent(args: { page: Page }): Promise<EmbeddedContent[]>;
 
   /**
     Delete all embedded content for the given page.
    */
-  deleteEmbeddedContent(args: { page: PersistedPage }): Promise<void>;
+  deleteEmbeddedContent(args: { page: Page }): Promise<void>;
 
   /**
     Replace all embedded content for the given page with the given embedded content.
    */
   updateEmbeddedContent(args: {
-    page: PersistedPage;
+    page: Page;
     embeddedContent: EmbeddedContent[];
   }): Promise<void>;
 

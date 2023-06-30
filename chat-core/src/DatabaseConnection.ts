@@ -15,6 +15,11 @@ export type DatabaseConnection = {
     @param force - Force close, emitting no events
    */
   close(force?: boolean): Promise<void>;
+
+  /**
+    Drop the database.
+   */
+  debugDropDatabase(): Promise<void>;
 };
 
 /**
@@ -33,7 +38,13 @@ export const makeDatabaseConnection = async ({
     db.collection<EmbeddedContent>("embedded_content");
   const pagesCollection = db.collection<PersistedPage>("pages");
   const instance: DatabaseConnection & PageStore & EmbeddedContentStore = {
-    close: (force) => client.close(force),
+    async close(force) {
+      client.close(force);
+    },
+
+    async debugDropDatabase() {
+      await db.dropDatabase();
+    },
 
     async loadEmbeddedContent({ page }) {
       return await embeddedContentCollection.find(pageIdentity(page)).toArray();

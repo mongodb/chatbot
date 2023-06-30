@@ -15,20 +15,10 @@ import { assertEnvVars } from "./assertEnvVars";
 import { CORE_ENV_VARS } from "./CoreEnvVars";
 import { makeOpenAiEmbedFunc } from "./OpenAiEmbedFunc";
 import "dotenv/config";
-import { makeMemoryDbServer, DbServer } from "./MemoryDbServer";
-
-let memoryDbServer: DbServer | undefined;
-
-beforeAll(async () => {
-  memoryDbServer = await makeMemoryDbServer();
-});
-
-afterAll(async () => {
-  await memoryDbServer?.stop();
-});
 
 describe("DatabaseConnection", () => {
   const {
+    MONGODB_CONNECTION_URI,
     OPENAI_ENDPOINT,
     OPENAI_API_KEY,
     OPENAI_EMBEDDING_DEPLOYMENT,
@@ -53,16 +43,17 @@ describe("DatabaseConnection", () => {
     | (DatabaseConnection & PageStore & EmbeddedContentStore)
     | undefined;
   beforeEach(async () => {
-    assert(memoryDbServer);
+    // Need to use real Atlas connection in order to run vector searches
+    const databaseName = `test-database-${Date.now()}`;
     store = await makeDatabaseConnection({
-      connectionUri: memoryDbServer.connectionUri,
-      databaseName: `test-${ObjectId.generate()}`,
+      connectionUri: MONGODB_CONNECTION_URI,
+      databaseName,
     });
-    assert(store);
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     assert(store);
+    await store.debugDropDatabase();
     await store.close();
   });
 
@@ -152,13 +143,19 @@ describe("DatabaseConnection", () => {
 
     pages = await store.loadPages({ sourceName: "source1" });
     expect(pages.length).toBe(3);
-    expect(pages[1]).toMatchObject({ url: "2", action: "created" });
+    expect(pages.find(({ url }) => url === "2")).toMatchObject({
+      url: "2",
+      action: "created",
+    });
 
     await store.updatePages([{ ...page, url: "2", action: "deleted" }]);
 
     pages = await store.loadPages({ sourceName: "source1" });
     expect(pages.length).toBe(3);
-    expect(pages[1]).toMatchObject({ url: "2", action: "deleted" });
+    expect(pages.find(({ url }) => url === "2")).toMatchObject({
+      url: "2",
+      action: "deleted",
+    });
   });
 
   it("loads pages that have changed since the given date", async () => {

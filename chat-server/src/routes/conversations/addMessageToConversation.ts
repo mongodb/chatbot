@@ -129,6 +129,12 @@ export function makeAddMessageToConversationRoute({
         latestMessage,
       ] satisfies OpenAiChatMessage[];
 
+      // Get (but don't await, yet) a Promise for the user message db insert
+      const addUserMessagePromise = conversations.addConversationMessage({
+        conversationId: conversationInDb._id,
+        ...latestMessage,
+      });
+
       let answerContent;
       if (shouldStream) {
         // TODO:(DOCSP-30866) add streaming support to endpoint
@@ -160,21 +166,28 @@ export function makeAddMessageToConversationRoute({
           const errorMessage =
             err instanceof Error ? err.message : JSON.stringify(err as object);
           logger.error("Error from LLM: " + JSON.stringify(err));
+          await addUserMessagePromise;
           return sendErrorResponse(res, 500, "Error from LLM", errorMessage);
         }
-        // TODO: consider refactoring addConversationMessage to take in an array of messages.
-        // Would limit database calls.
-        await conversations.addConversationMessage({
-          conversationId: conversationInDb._id,
-          ...latestMessage,
-        });
-        const newMessage = await conversations.addConversationMessage({
-          conversationId: conversationInDb._id,
-          content: answerContent,
-          role: "assistant",
-        });
-        const apiRes = convertMessageFromDbToApi(newMessage);
-        res.status(200).json(apiRes);
+      }
+      // TODO: consider refactoring addConversationMessage to take in an array of messages.
+      // Would limit database calls.
+
+      // Now that we're done with the LLM call, we can await the user message db insert
+      await addUserMessagePromise;
+      // ... and add the assistant message the LLM just generated
+      const newMessage = await conversations.addConversationMessage({
+        conversationId: conversationInDb._id,
+        content: answerContent,
+        role: "assistant",
+      });
+      if (shouldStream) {
+        res.write(
+          `data: ${JSON.stringify({ type: "finished", data: newMessage })}\n\n`
+        );
+        res.end();
+      } else {
+        res.status(200).json(convertMessageFromDbToApi(newMessage));
       }
     } catch (err) {
       logger.error("An unexpected error occurred: " + JSON.stringify(err));

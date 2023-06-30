@@ -15,6 +15,23 @@ type ConversationServiceConfig = {
   serverUrl: string;
 };
 
+class RetriableError<Data extends object = object> extends Error {
+  retryAfter: number;
+  data?: Data;
+
+  constructor(
+    message: string,
+    config: { retryAfter?: number; data?: Data } = {}
+  ) {
+    const { retryAfter = 1000, data } = config;
+    super();
+    this.name = "RetriableError";
+    this.message = message;
+    this.retryAfter = retryAfter;
+    this.data = data;
+  }
+}
+
 export default class ConversationService {
   private serverUrl: string;
 
@@ -33,7 +50,7 @@ export default class ConversationService {
     if (!queryString) {
       return resolvedUrl;
     }
-    return `${resolvedUrl}?${queryString}`
+    return `${resolvedUrl}?${queryString}`;
   }
 
   async createConversation(): Promise<Required<ConversationState>> {
@@ -73,13 +90,32 @@ export default class ConversationService {
   async addMessageStreaming({
     conversationId,
     message,
-    onStreamEvent,
+    onResponseDelta,
   }: {
     conversationId: string;
     message: string;
-    onStreamEvent: (data: string) => void;
+    onResponseDelta: (delta: string) => void;
   }): Promise<void> {
     const path = `/conversations/${conversationId}/messages`;
+
+    const maxRetries = 2;
+    let retryCount = 0;
+    let moreToStream = true;
+
+    type ConversationStreamEvent =
+      | { type: "delta"; data: string }
+      | { type: "finished"; data: MessageData };
+
+    const isConversationStreamEvent = (
+      event: object
+    ): event is ConversationStreamEvent => {
+      const e = event as ConversationStreamEvent;
+      return (
+        (e.type === "delta" && typeof e.data === "string") ||
+        (e.type === "finished" && typeof e.data.id === "string" && typeof e.data.role === "string" && typeof e.data.content === "string" && typeof e.data.createdAt === "string")
+      )
+    }
+
     await fetchEventSource(this.getUrl(path, { stream: "true" }), {
       method: "POST",
       headers: {
@@ -87,8 +123,58 @@ export default class ConversationService {
       },
       body: JSON.stringify({ message }),
       onmessage(ev) {
-        const formattedData = ev.data.replaceAll(`\\n`, `\n`)
-        onStreamEvent(formattedData);
+        const event = JSON.parse(ev.data);
+        if (!isConversationStreamEvent(event)) {
+          throw new Error(`Invalid event received from server: ${ev.data}`);
+        }
+        switch (event.type) {
+          case "delta": {
+            const formattedData = event.data.replaceAll(`\\n`, `\n`);
+            onResponseDelta(formattedData);
+            break;
+          }
+          case "finished": {
+            moreToStream = false;
+            break;
+          }
+        }
+      },
+
+      async onopen(response) {
+        if (
+          response.ok &&
+          response.headers.get("content-type") === "text/event-stream"
+        ) {
+          return; // everything's good
+        } else if (
+          response.status >= 400 &&
+          response.status < 500 &&
+          response.status !== 429
+        ) {
+          // client-side errors are usually non-retriable:
+          throw new Error(`Chatbot stream error: ${response.statusText}`);
+        } else {
+          // other errors are possibly retriable
+          throw new RetriableError("Chatbot stream error", {
+            retryAfter: 1000,
+            data: response,
+          });
+        }
+      },
+      onclose() {
+        if(moreToStream) {
+          throw new RetriableError("Chatbot stream closed unexpectedly");
+        }
+      },
+      onerror(err) {
+        if (
+          err instanceof RetriableError &&
+          moreToStream &&
+          retryCount++ < maxRetries
+        ) {
+          return err.retryAfter;
+        }
+        throw err; // rethrow to stop the operation
       },
     });
   }

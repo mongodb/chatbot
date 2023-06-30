@@ -172,7 +172,7 @@ export default function useConversation() {
   );
   // const dispatch = _dispatch;
   const dispatch = (...args: Parameters<typeof _dispatch>) => {
-    console.log(`dispatch`, ...args);
+    // console.log(`dispatch`, ...args);
     _dispatch(...args);
   };
 
@@ -214,9 +214,8 @@ export default function useConversation() {
         await conversationService.addMessageStreaming({
           conversationId: state.conversationId,
           message: text,
-          onStreamEvent: (data) => {
-            // console.log(`onStreamEvent`, data)
-            dispatch({ type: "addToStreamingResponse", data: data });
+          onResponseDelta: (data) => {
+            dispatch({ type: "addToStreamingResponse", data });
           },
         });
         dispatch({ type: "finishStreamingResponse" });

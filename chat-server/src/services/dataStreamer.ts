@@ -38,15 +38,16 @@ export class DataStreamerService {
       for (const choice of event.choices) {
         if (choice.delta) {
           const content = escapeNewlines(choice.delta.content ?? "");
-          res.write(`data: ${content}\n\n`);
+          const event = { type: "delta", data: content };
+          res.write(`data: ${JSON.stringify(event)}\n\n`);
           str += content;
         }
       }
     }
     if (furtherReading) {
-      res.write(`data: ${escapeNewlines(furtherReading)}\n\n`);
+      const event = { type: "delta", data: furtherReading };
+      res.write(`data: ${JSON.stringify(event)}\n\n`);
     }
-    res.end();
     return str;
   }
 }

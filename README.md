@@ -4,6 +4,8 @@ Repo holding resources related to the MongoDB AI Chatbot. The Chatbot uses the M
 
 More coming soon!
 
+## Search Index Configuration
+
 ```json
 {
   "mappings": {

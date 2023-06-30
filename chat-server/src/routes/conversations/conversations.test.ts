@@ -11,6 +11,7 @@ import {
   DatabaseConnection,
   EmbeddedContent,
   makeDatabaseConnection,
+  FindNearestNeighborsOptions,
 } from "chat-core";
 import { ASSISTANT_PROMPT } from "../../aiConstants";
 import {
@@ -46,7 +47,14 @@ describe("Conversations Router", () => {
     OPENAI_EMBEDDING_DEPLOYMENT,
     OPENAI_EMBEDDING_MODEL_VERSION,
     OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    VECTOR_SEARCH_INDEX_NAME,
   } = assertEnvVars(CORE_ENV_VARS);
+  const findNearestNeighborsOptions: FindNearestNeighborsOptions = {
+    k: 5,
+    path: "embedding",
+    indexName: VECTOR_SEARCH_INDEX_NAME,
+    minScore: 0.9,
+  };
 
   // create route with mock service
   describe("POST /conversations/", () => {
@@ -120,6 +128,7 @@ describe("Conversations Router", () => {
           embed,
           llm,
           dataStreamer,
+          findNearestNeighborsOptions,
         })
       );
       // For set up. Need to create conversation before can add to it.
@@ -235,6 +244,7 @@ describe("Conversations Router", () => {
             text,
             store,
             ipAddress,
+            findNearestNeighborsOptions,
           });
           expect(chunks).toBeDefined();
           expect(chunks.length).toBeGreaterThan(0);
@@ -248,6 +258,7 @@ describe("Conversations Router", () => {
             text,
             store,
             ipAddress,
+            findNearestNeighborsOptions,
           });
           expect(chunks).toBeDefined();
           expect(chunks.length).toBe(0);

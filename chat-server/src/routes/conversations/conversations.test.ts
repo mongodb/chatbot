@@ -20,6 +20,7 @@ import {
   Conversation,
   ConversationsService,
   Message,
+  ConversationsServiceInterface,
 } from "../../services/conversations";
 import express from "express";
 import {
@@ -41,7 +42,7 @@ import { makeRateMessageRoute } from "./rateMessage";
 
 jest.setTimeout(100000);
 
-let memoryDbServer: DbServer | undefined;
+let memoryDbServer: DbServer;
 
 beforeAll(async () => {
   memoryDbServer = await makeMemoryDbServer();
@@ -60,6 +61,24 @@ describe("Conversations Router", () => {
     OPENAI_EMBEDDING_MODEL_VERSION,
     OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   } = assertEnvVars(CORE_ENV_VARS);
+  // set up embeddings service
+  const embed = makeOpenAiEmbedFunc({
+    apiKey: OPENAI_API_KEY,
+    apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
+    baseUrl: OPENAI_ENDPOINT,
+    deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+  });
+
+  // set up llm service
+  const llm = new OpenAiLlmProvider(
+    new OpenAiChatClient(
+      OPENAI_ENDPOINT,
+      OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+      OPENAI_API_KEY
+    )
+  );
+  // TODO: implement data streaming service
+  const dataStreamer = new DataStreamerService();
 
   // create route with mock service
   describe("POST /conversations/", () => {
@@ -68,7 +87,7 @@ describe("Conversations Router", () => {
     const testDbName = `conversations-test-${Date.now()}`;
 
     let mongodb: MongoDB | undefined;
-    let conversations: ConversationsService | undefined;
+    let conversations: ConversationsService;
     beforeAll(async () => {
       assert(memoryDbServer);
       const { connectionUri } = memoryDbServer;
@@ -112,9 +131,10 @@ describe("Conversations Router", () => {
     // set up conversations service
     const conversationMessageTestDbName = `convo-msg-test-${Date.now()}`;
 
-    let store: (EmbeddedContentStore & DatabaseConnection) | undefined;
+    let store: EmbeddedContentStore & DatabaseConnection;
 
     let conversationsMongoDb: MongoDB | undefined;
+    let conversations: ConversationsServiceInterface;
 
     beforeAll(async () => {
       assert(memoryDbServer);
@@ -129,7 +149,7 @@ describe("Conversations Router", () => {
         connectionUri,
         conversationMessageTestDbName
       );
-      const conversations = new ConversationsService(conversationsMongoDb.db);
+      conversations = new ConversationsService(conversationsMongoDb.db);
 
       app.post(
         "/conversations/:conversationId/messages/",
@@ -154,42 +174,6 @@ describe("Conversations Router", () => {
       await store?.close();
     });
 
-    // set up embeddings service
-    const embed = makeOpenAiEmbedFunc({
-      apiKey: OPENAI_API_KEY,
-      apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
-      baseUrl: OPENAI_ENDPOINT,
-      deployment: OPENAI_EMBEDDING_DEPLOYMENT,
-    });
-
-    // set up llm service
-    const llm = new OpenAiLlmProvider(
-      new OpenAiChatClient(
-        OPENAI_ENDPOINT,
-        OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-        OPENAI_API_KEY
-      )
-    );
-
-    // set up data streamer
-    // TODO: make real data streamer
-    const dataStreamer = new DataStreamerService();
-
-<<<<<<< HEAD
-=======
-    app.post(
-      endpointUrl,
-      makeAddMessageToConversationRoute({
-        conversations,
-        content,
-        embeddings,
-        llm,
-        dataStreamer,
-      })
-    );
-    // For set up. Need to create conversation before can add to it.
-    app.post("/conversations/", makeCreateConversationRoute({ conversations }));
->>>>>>> e2929c9 (full draft of changes)
     let _id: string;
     beforeEach(async () => {
       const createConversationRes = await request(app)
@@ -269,22 +253,12 @@ describe("Conversations Router", () => {
 
     describe("Edge cases", () => {
       describe("No content for user message", () => {
-        const conversationMessageTestDbName = `convo-msg-test-${Date.now()}`;
-        const conversationsMongoDb = new MongoDB(
-          MONGODB_CONNECTION_URI!,
-          conversationMessageTestDbName
-        );
-        const conversations = new ConversationsService(conversationsMongoDb.db);
         let conversationId: ObjectId;
         beforeAll(async () => {
           const { _id } = await conversations.create({
             ipAddress: "<NOT CAPTURING IP ADDRESS YET>",
           });
           conversationId = _id;
-        });
-        afterAll(async () => {
-          await conversationsMongoDb.db.dropDatabase();
-          await conversationsMongoDb.close();
         });
 
         const app = express();
@@ -293,8 +267,8 @@ describe("Conversations Router", () => {
           endpointUrl,
           makeAddMessageToConversationRoute({
             conversations,
-            content,
-            embeddings,
+            store,
+            embed,
             llm,
             dataStreamer,
           })
@@ -316,8 +290,8 @@ describe("Conversations Router", () => {
         describe("LLM not available but vector search is", () => {
           const brokenLLmService = new OpenAiLlmProvider(
             new OpenAiChatClient(
-              OPENAI_ENDPOINT!,
-              OPENAI_CHAT_COMPLETION_DEPLOYMENT!,
+              OPENAI_ENDPOINT,
+              OPENAI_CHAT_COMPLETION_DEPLOYMENT,
               "definitelyNotARealApiKey"
             )
           );
@@ -327,8 +301,8 @@ describe("Conversations Router", () => {
             endpointUrl,
             makeAddMessageToConversationRoute({
               conversations,
-              content,
-              embeddings,
+              store,
+              embed,
               llm: brokenLLmService,
               dataStreamer,
             })
@@ -359,24 +333,12 @@ describe("Conversations Router", () => {
 
       describe("Utility functions", () => {
         describe("addMessagesToDatabase()", () => {
-          const conversationMessageTestDbName = `convo-msg-test-${Date.now()}`;
-          const conversationsMongoDb = new MongoDB(
-            MONGODB_CONNECTION_URI!,
-            conversationMessageTestDbName
-          );
-          const conversations = new ConversationsService(
-            conversationsMongoDb.db
-          );
           let conversationId: ObjectId;
           beforeAll(async () => {
             const { _id } = await conversations.create({
               ipAddress: "someIpAddress",
             });
             conversationId = _id;
-          });
-          afterAll(async () => {
-            await conversationsMongoDb.db.dropDatabase();
-            await conversationsMongoDb.close();
           });
           test("Should add messages to the database", async () => {
             const userMessageContent = "hello";
@@ -404,7 +366,7 @@ describe("Conversations Router", () => {
                 ({ role, content }) =>
                   role === "assistant" && content === assistantMessageContent
               )
-            );
+            ).toBeDefined();
           });
         });
         test("convertDbMessageToOpenAiMessage()", () => {
@@ -430,9 +392,9 @@ describe("Conversations Router", () => {
             const text = "MongoDB Atlas";
 
             const chunks = await getContentForText({
-              embeddings,
+              embed,
               text,
-              content,
+              store,
               ipAddress,
             });
             expect(chunks).toBeDefined();
@@ -442,9 +404,9 @@ describe("Conversations Router", () => {
             const text =
               "asdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjafdshgjfkhfdugytfasfghjkujufgjdfhstgragtyjuikol";
             const chunks = await getContentForText({
-              embeddings,
+              embed,
               text,
-              content,
+              store,
               ipAddress,
             });
             expect(chunks).toBeDefined();
@@ -457,48 +419,39 @@ describe("Conversations Router", () => {
             _id: new ObjectId(),
             url: "https://mongodb.com/docs/realm/sdk/node/",
             text: "blah blah blah",
-            numTokens: 100,
+            tokenCount: 100,
             embedding: [0.1, 0.2, 0.3],
-            lastUpdated: new Date(),
-            site: {
-              name: "MongoDB Realm",
-              url: "https://mongodb.com/docs/realm/",
-            },
+            updated: new Date(),
+            sourceName: "realm",
           };
           const chunk2 = {
             _id: new ObjectId(),
             url: "https://mongodb.com/docs/realm/sdk/node/",
             text: "blah blah blah",
-            numTokens: 100,
+            tokenCount: 100,
             embedding: [0.1, 0.2, 0.3],
-            lastUpdated: new Date(),
-            site: {
-              name: "MongoDB Realm",
-              url: "https://mongodb.com/docs/realm/",
-            },
+            updated: new Date(),
+            sourceName: "realm",
           };
           const chunk3 = {
             _id: new ObjectId(),
             url: "https://mongodb.com/docs/realm/sdk/node/xyz",
             text: "blah blah blah",
-            numTokens: 100,
+            tokenCount: 100,
             embedding: [0.1, 0.2, 0.3],
-            lastUpdated: new Date(),
-            site: {
-              name: "MongoDB Realm",
-              url: "https://mongodb.com/docs/realm/",
-            },
+            updated: new Date(),
+            sourceName: "realm",
           };
           const tck = "?tck=docs_chatbot";
           test("No sources should return empty string", () => {
-            const noChunks: Content[] = [];
+            const noChunks: EmbeddedContent[] = [];
             const noFurtherReading = generateFurtherReading({
               chunks: noChunks,
             });
             expect(noFurtherReading).toEqual("");
           });
           test("One source should return one link", () => {
-            const oneChunk: Content[] = [chunk1];
+            const oneChunk: EmbeddedContent[] = [chunk1];
             const oneFurtherReading = generateFurtherReading({
               chunks: oneChunk,
             });
@@ -507,7 +460,7 @@ describe("Conversations Router", () => {
             expect(oneFurtherReading).toEqual(expectedOneFurtherReading);
           });
           test("Multiple sources from same page should return one link", () => {
-            const twoChunksSamePage: Content[] = [chunk1, chunk2];
+            const twoChunksSamePage: EmbeddedContent[] = [chunk1, chunk2];
             const oneFurtherReadingSamePage = generateFurtherReading({
               chunks: twoChunksSamePage,
             });
@@ -518,7 +471,7 @@ describe("Conversations Router", () => {
             );
           });
           test("Multiple sources from different pages should return 1 link per page", () => {
-            const twoChunksDifferentPage: Content[] = [chunk1, chunk3];
+            const twoChunksDifferentPage: EmbeddedContent[] = [chunk1, chunk3];
             const multipleFurtherReadingDifferentPage = generateFurtherReading({
               chunks: twoChunksDifferentPage,
             });
@@ -531,7 +484,7 @@ describe("Conversations Router", () => {
               expectedMultipleFurtherReadingDifferentPage
             );
             // All three sources. Two from the same page. One from a different page.
-            const threeChunks: Content[] = [chunk1, chunk2, chunk3];
+            const threeChunks: EmbeddedContent[] = [chunk1, chunk2, chunk3];
             const multipleSourcesWithSomePageOverlap = generateFurtherReading({
               chunks: threeChunks,
             });
@@ -658,8 +611,8 @@ describe("Conversations Router", () => {
     const testDbName = `conversations-test-${Date.now()}`;
     const ipAddress = "<NOT CAPTURING IP ADDRESS YET>";
 
-    let mongodb: MongoDB | undefined;
-    let conversations: ConversationsService | undefined;
+    let mongodb: MongoDB;
+    let conversations: ConversationsService;
     let conversation: Conversation;
     let testMsg: Message;
 
@@ -756,7 +709,7 @@ describe("Conversations Router", () => {
     // this test will need to be refactored.
     describe("IP address validation", () => {
       beforeEach(async () => {
-        const ipAddress = "abc.123.xyz.456";
+        const ipAddress = "<NOT CAPTURING IP ADDRESS YET>";
         assert(conversations);
         conversation = await conversations.create({ ipAddress });
         testMsg = await conversations.addConversationMessage({
@@ -764,11 +717,6 @@ describe("Conversations Router", () => {
           content: "hello",
           role: "assistant",
         });
-      });
-
-      afterAll(async () => {
-        await mongodb.db.dropDatabase();
-        await mongodb.close();
       });
       test("Should return 204 for valid rating", async () => {
         const response = await request(app)

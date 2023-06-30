@@ -246,7 +246,7 @@ export async function addMessagesToDatabase({
 }
 
 export interface GenerateFurtherReadingParams {
-  chunks: Content[];
+  chunks: EmbeddedContent[];
   hasHeading?: boolean;
 }
 export function generateFurtherReading({

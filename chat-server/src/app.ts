@@ -1,4 +1,5 @@
 import express, {
+  Express,
   ErrorRequestHandler,
   RequestHandler,
   Request as ExpressRequest,
@@ -19,6 +20,7 @@ import {
 import { DataStreamerServiceInterface } from "./services/dataStreamer";
 import { ObjectId } from "mongodb";
 import { ConversationsServiceInterface } from "./services/conversations";
+import { sendErrorResponse } from "./utils";
 
 // General error handler; called at usage of next() in routes
 const errorHandler: ErrorRequestHandler = (err, _req, res) => {
@@ -34,7 +36,7 @@ const errorHandler: ErrorRequestHandler = (err, _req, res) => {
     logger.error(err);
   }
 };
-// Apply to all logs in the app
+// TODO:(DOCSP-31121) Apply to all logs in the app
 const reqHandler: RequestHandler = (req, _res, next) => {
   const reqId = new ObjectId().toString();
   // Custom header specifically for a request ID. This ID will be used to track
@@ -45,6 +47,14 @@ const reqHandler: RequestHandler = (req, _res, next) => {
   next();
 };
 
+const haltOnTimedOut: RequestHandler = (req, res, next) => {
+  if (req.timedout) {
+    logger.error("Request timed out");
+    next(new Error("Request timeout"));
+  }
+};
+
+export const REQUEST_TIMEOUT = 60000; // 60 seconds
 export const makeApp = async ({
   embed,
   dataStreamer,

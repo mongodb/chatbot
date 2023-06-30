@@ -1,16 +1,17 @@
-import { persistPages, Page, PageStore, PersistedPage } from "./updatePages";
+import { Page, PageStore, PersistedPage } from "chat-core";
+import { persistPages } from "./updatePages";
 
-export class MockPageStore implements PageStore {
-  pages: PersistedPage[] = [];
-
-  loadPages = async (): Promise<PersistedPage[]> => {
-    return this.pages;
+export const makeMockPageStore = (): PageStore => {
+  let pages: PersistedPage[] = [];
+  return {
+    async loadPages() {
+      return pages;
+    },
+    async updatePages(args: PersistedPage[]) {
+      pages = [...args];
+    },
   };
-
-  updatePages = async (args: PersistedPage[]): Promise<void> => {
-    this.pages = [...args];
-  };
-}
+};
 
 const examplePage: Page = {
   body: "",
@@ -22,7 +23,7 @@ const examplePage: Page = {
 
 describe("persistPages", () => {
   it("persists pages in the page store", async () => {
-    const store = new MockPageStore();
+    const store = makeMockPageStore();
 
     await persistPages({
       pages: [{ ...examplePage }],

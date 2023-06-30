@@ -1,11 +1,18 @@
+import { strict as assert } from "assert";
 import request from "supertest";
 import "dotenv/config";
 import {
   OpenAiChatClient,
-  OpenAiEmbeddingsClient,
   MongoDB,
-  EmbeddingService,
-  OpenAiEmbeddingProvider,
+  makeOpenAiEmbedFunc,
+  assertEnvVars,
+  CORE_ENV_VARS,
+  EmbeddedContentStore,
+  DatabaseConnection,
+  EmbeddedContent,
+  makeDatabaseConnection,
+  makeMemoryDbServer,
+  DbServer,
 } from "chat-core";
 import { ASSISTANT_PROMPT } from "../../aiConstants";
 import {
@@ -24,11 +31,6 @@ import {
 } from "./addMessageToConversation";
 import { makeCreateConversationRoute } from "./createConversation";
 import { ApiConversation, ApiMessage } from "./utils";
-import {
-  Content,
-  ContentService,
-  makeContentServiceOptions,
-} from "chat-core/src/services/content";
 import { OpenAiLlmProvider } from "../../services/llm";
 import { DataStreamerService } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
@@ -36,31 +38,51 @@ import { ObjectId } from "mongodb";
 import { makeRateMessageRoute } from "./rateMessage";
 
 jest.setTimeout(100000);
-const {
-  MONGODB_CONNECTION_URI,
-  MONGODB_DATABASE_NAME,
-  OPENAI_ENDPOINT,
-  OPENAI_API_KEY,
-  OPENAI_EMBEDDING_DEPLOYMENT,
-  OPENAI_EMBEDDING_MODEL_VERSION,
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  VECTOR_SEARCH_INDEX_NAME,
-} = process.env;
+
+let memoryDbServer: DbServer | undefined;
+
+beforeAll(async () => {
+  memoryDbServer = await makeMemoryDbServer();
+});
+
+afterAll(async () => {
+  await memoryDbServer?.stop();
+});
 
 describe("Conversations Router", () => {
+  const {
+    MONGODB_DATABASE_NAME,
+    OPENAI_ENDPOINT,
+    OPENAI_API_KEY,
+    OPENAI_EMBEDDING_DEPLOYMENT,
+    OPENAI_EMBEDDING_MODEL_VERSION,
+    OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  } = assertEnvVars(CORE_ENV_VARS);
+
   // create route with mock service
   describe("POST /conversations/", () => {
     const app = express();
     app.use(express.json()); // for parsing application/json
     const testDbName = `conversations-test-${Date.now()}`;
-    const mongodb = new MongoDB(MONGODB_CONNECTION_URI!, testDbName);
 
-    const conversations = new ConversationsService(mongodb.db);
-    afterAll(async () => {
-      await mongodb.db.dropDatabase();
-      await mongodb.close();
+    let mongodb: MongoDB | undefined;
+    let conversations: ConversationsService | undefined;
+    beforeAll(async () => {
+      assert(memoryDbServer);
+      const { connectionUri } = memoryDbServer;
+      mongodb = new MongoDB(connectionUri, testDbName);
+      conversations = new ConversationsService(mongodb.db);
+      app.post(
+        "/conversations/",
+        makeCreateConversationRoute({ conversations })
+      );
     });
-    app.post("/conversations/", makeCreateConversationRoute({ conversations }));
+
+    afterAll(async () => {
+      await mongodb?.db.dropDatabase();
+      await mongodb?.close();
+    });
+
     it("should respond with 200 and create a conversation", async () => {
       const before = Date.now();
       const res = await request(app).post("/conversations/").send();
@@ -74,7 +96,7 @@ describe("Conversations Router", () => {
       expect(assistantMessage.role).toBe(ASSISTANT_PROMPT.role);
       expect(assistantMessage.rating).toBe(undefined);
       expect(assistantMessage.createdAt).toBeGreaterThan(before);
-      const count = await mongodb.db
+      const count = await mongodb?.db
         .collection("conversations")
         .countDocuments();
       expect(count).toBe(1);
@@ -86,43 +108,63 @@ describe("Conversations Router", () => {
     app.use(express.json()); // for parsing application/json
     // set up conversations service
     const conversationMessageTestDbName = `convo-msg-test-${Date.now()}`;
-    const conversationsMongoDb = new MongoDB(
-      MONGODB_CONNECTION_URI!,
-      conversationMessageTestDbName
-    );
-    const conversations = new ConversationsService(conversationsMongoDb.db);
 
-    // set up content service
-    const contentMongoDb = new MongoDB(
-      MONGODB_CONNECTION_URI!,
-      MONGODB_DATABASE_NAME!,
-      VECTOR_SEARCH_INDEX_NAME!
-    );
-    const content = new ContentService(
-      contentMongoDb.db,
-      makeContentServiceOptions({
-        indexName: contentMongoDb.vectorSearchIndexName,
-      })
-    );
+    let store: (EmbeddedContentStore & DatabaseConnection) | undefined;
+
+    let conversationsMongoDb: MongoDB | undefined;
+
+    beforeAll(async () => {
+      assert(memoryDbServer);
+      const { connectionUri } = memoryDbServer;
+
+      store = await makeDatabaseConnection({
+        connectionUri,
+        databaseName: MONGODB_DATABASE_NAME,
+      });
+
+      conversationsMongoDb = new MongoDB(
+        connectionUri,
+        conversationMessageTestDbName
+      );
+      const conversations = new ConversationsService(conversationsMongoDb.db);
+
+      app.post(
+        "/conversations/:conversationId/messages/",
+        makeAddMessageToConversationRoute({
+          conversations,
+          store,
+          embed,
+          llm,
+          dataStreamer,
+        })
+      );
+      // For set up. Need to create conversation before can add to it.
+      app.post(
+        "/conversations/",
+        makeCreateConversationRoute({ conversations })
+      );
+    });
+
+    afterAll(async () => {
+      await conversationsMongoDb?.db.dropDatabase();
+      await conversationsMongoDb?.close();
+      await store?.close();
+    });
 
     // set up embeddings service
-    const embeddings = new EmbeddingService(
-      new OpenAiEmbeddingProvider(
-        new OpenAiEmbeddingsClient(
-          OPENAI_ENDPOINT!,
-          OPENAI_EMBEDDING_DEPLOYMENT!,
-          OPENAI_API_KEY!,
-          OPENAI_EMBEDDING_MODEL_VERSION!
-        )
-      )
-    );
+    const embed = makeOpenAiEmbedFunc({
+      apiKey: OPENAI_API_KEY,
+      apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
+      baseUrl: OPENAI_ENDPOINT,
+      deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+    });
 
     // set up llm service
     const llm = new OpenAiLlmProvider(
       new OpenAiChatClient(
-        OPENAI_ENDPOINT!,
-        OPENAI_CHAT_COMPLETION_DEPLOYMENT!,
-        OPENAI_API_KEY!
+        OPENAI_ENDPOINT,
+        OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+        OPENAI_API_KEY
       )
     );
 
@@ -130,18 +172,6 @@ describe("Conversations Router", () => {
     // TODO: make real data streamer
     const dataStreamer = new DataStreamerService();
 
-    app.post(
-      "/conversations/:conversationId/messages/",
-      makeAddMessageToConversationRoute({
-        conversations,
-        content,
-        embeddings,
-        llm,
-        dataStreamer,
-      })
-    );
-    // For set up. Need to create conversation before can add to it.
-    app.post("/conversations/", makeCreateConversationRoute({ conversations }));
     let _id: string;
     beforeEach(async () => {
       const createConversationRes = await request(app)
@@ -149,12 +179,6 @@ describe("Conversations Router", () => {
         .send();
       const res: ApiConversation = createConversationRes.body;
       _id = res._id;
-    });
-
-    afterAll(async () => {
-      await conversationsMongoDb.db.dropDatabase();
-      await conversationsMongoDb.close();
-      await contentMongoDb.close();
     });
 
     describe("Awaited response", () => {
@@ -183,7 +207,7 @@ describe("Conversations Router", () => {
         expect(res2.statusCode).toEqual(200);
         expect(message2.role).toBe("assistant");
         expect(message2.content).toContain("Realm");
-        const conversationInDb = await conversationsMongoDb.db
+        const conversationInDb = await conversationsMongoDb?.db
           .collection<Conversation>("conversations")
           .findOne({
             _id: new ObjectId(_id),
@@ -220,24 +244,25 @@ describe("Conversations Router", () => {
       describe("getContentForText()", () => {
         const ipAddress = "someIpAddress";
         test("Should return content for relevant text", async () => {
+          assert(store);
           const text = "MongoDB Atlas";
-
           const chunks = await getContentForText({
-            embeddings,
+            embed,
             text,
-            content,
+            store,
             ipAddress,
           });
           expect(chunks).toBeDefined();
           expect(chunks.length).toBeGreaterThan(0);
         });
         test("Should not return content for irrelevant text", async () => {
+          assert(store);
           const text =
             "asdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjafdshgjfkhfdugytfasfghjkujufgjdfhstgragtyjuikol";
           const chunks = await getContentForText({
-            embeddings,
+            embed,
             text,
-            content,
+            store,
             ipAddress,
           });
           expect(chunks).toBeDefined();
@@ -246,49 +271,37 @@ describe("Conversations Router", () => {
       });
       describe("generateFurtherReading()", () => {
         // Chunk 1 and 2 are the same page. Chunk 3 is a different page.
-        const chunk1 = {
-          _id: new ObjectId(),
+        const chunk1: EmbeddedContent = {
           url: "https://mongodb.com/docs/realm/sdk/node/",
           text: "blah blah blah",
-          numTokens: 100,
+          tokenCount: 100,
           embedding: [0.1, 0.2, 0.3],
-          lastUpdated: new Date(),
-          site: {
-            name: "MongoDB Realm",
-            url: "https://mongodb.com/docs/realm/",
-          },
+          updated: new Date(),
+          sourceName: "MongoDB Realm",
         };
-        const chunk2 = {
-          _id: new ObjectId(),
+        const chunk2: EmbeddedContent = {
           url: "https://mongodb.com/docs/realm/sdk/node/",
           text: "blah blah blah",
-          numTokens: 100,
+          tokenCount: 100,
           embedding: [0.1, 0.2, 0.3],
-          lastUpdated: new Date(),
-          site: {
-            name: "MongoDB Realm",
-            url: "https://mongodb.com/docs/realm/",
-          },
+          updated: new Date(),
+          sourceName: "MongoDB Realm",
         };
-        const chunk3 = {
-          _id: new ObjectId(),
+        const chunk3: EmbeddedContent = {
           url: "https://mongodb.com/docs/realm/sdk/node/xyz",
           text: "blah blah blah",
-          numTokens: 100,
+          tokenCount: 100,
           embedding: [0.1, 0.2, 0.3],
-          lastUpdated: new Date(),
-          site: {
-            name: "MongoDB Realm",
-            url: "https://mongodb.com/docs/realm/",
-          },
+          updated: new Date(),
+          sourceName: "MongoDB Realm",
         };
         test("No sources should return empty string", () => {
-          const noChunks: Content[] = [];
+          const noChunks: EmbeddedContent[] = [];
           const noFurtherReading = generateFurtherReading({ chunks: noChunks });
           expect(noFurtherReading).toEqual("");
         });
         test("One source should return one link", () => {
-          const oneChunk: Content[] = [chunk1];
+          const oneChunk: EmbeddedContent[] = [chunk1];
           const oneFurtherReading = generateFurtherReading({
             chunks: oneChunk,
           });
@@ -296,7 +309,7 @@ describe("Conversations Router", () => {
           expect(oneFurtherReading).toEqual(expectedOneFurtherReading);
         });
         test("Multiple sources from same page should return one link", () => {
-          const twoChunksSamePage: Content[] = [chunk1, chunk2];
+          const twoChunksSamePage: EmbeddedContent[] = [chunk1, chunk2];
           const oneFurtherReadingSamePage = generateFurtherReading({
             chunks: twoChunksSamePage,
           });
@@ -306,7 +319,7 @@ describe("Conversations Router", () => {
           );
         });
         test("Multiple sources from different pages should return 1 link per page", () => {
-          const twoChunksDifferentPage: Content[] = [chunk1, chunk3];
+          const twoChunksDifferentPage: EmbeddedContent[] = [chunk1, chunk3];
           const multipleFurtherReadingDifferentPage = generateFurtherReading({
             chunks: twoChunksDifferentPage,
           });
@@ -315,7 +328,7 @@ describe("Conversations Router", () => {
             expectedMultipleFurtherReadingDifferentPage
           );
           // All three sources. Two from the same page. One from a different page.
-          const threeChunks: Content[] = [chunk1, chunk2, chunk3];
+          const threeChunks: EmbeddedContent[] = [chunk1, chunk2, chunk3];
           const multipleSourcesWithSomePageOverlap = generateFurtherReading({
             chunks: threeChunks,
           });
@@ -433,18 +446,24 @@ describe("Conversations Router", () => {
   describe("POST /conversations/:conversationId/messages/:messageId/rating", () => {
     const app = express();
     app.use(express.json()); // for parsing application/json
-    const testDbName = `conversations-test-${Date.now()}`;
-    const mongodb = new MongoDB(MONGODB_CONNECTION_URI!, testDbName);
 
-    const conversations = new ConversationsService(mongodb.db);
-    app.post(
-      "/conversations/:conversationId/messages/:messageId/rating",
-      makeRateMessageRoute({ conversations })
-    );
+    const testDbName = `conversations-test-${Date.now()}`;
     const ipAddress = "<NOT CAPTURING IP ADDRESS YET>";
+
+    let mongodb: MongoDB | undefined;
+    let conversations: ConversationsService | undefined;
     let conversation: Conversation;
     let testMsg: Message;
+
     beforeAll(async () => {
+      assert(memoryDbServer);
+      mongodb = new MongoDB(memoryDbServer.connectionUri, testDbName);
+      conversations = new ConversationsService(mongodb.db);
+
+      app.post(
+        "/conversations/:conversationId/messages/:messageId/rating",
+        makeRateMessageRoute({ conversations })
+      );
       conversation = await conversations.create({ ipAddress });
       testMsg = await conversations.addConversationMessage({
         conversationId: conversation._id,
@@ -454,8 +473,8 @@ describe("Conversations Router", () => {
     });
 
     afterAll(async () => {
-      await mongodb.db.dropDatabase();
-      await mongodb.close();
+      await mongodb?.db.dropDatabase();
+      await mongodb?.close();
     });
     test("Should return 204 for valid rating", async () => {
       const response = await request(app)
@@ -466,6 +485,7 @@ describe("Conversations Router", () => {
 
       expect(response.statusCode).toBe(204);
       expect(response.body).toEqual({});
+      assert(conversations);
       const updatedConversation = await conversations.findById({
         _id: conversation._id,
       });
@@ -529,6 +549,7 @@ describe("Conversations Router", () => {
     describe("IP address validation", () => {
       beforeEach(async () => {
         const ipAddress = "abc.123.xyz.456";
+        assert(conversations);
         conversation = await conversations.create({ ipAddress });
         testMsg = await conversations.addConversationMessage({
           conversationId: conversation._id,

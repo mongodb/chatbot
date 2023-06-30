@@ -1,6 +1,6 @@
 import { MongoClient } from "mongodb";
+import { Page } from "chat-core";
 import { DataSource } from "./DataSource";
-import { Page } from "./updatePages";
 
 // This type is based on what's in the DevCenter search_content_prod collection
 export type DevCenterEntry = {

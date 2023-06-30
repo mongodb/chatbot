@@ -1,9 +1,9 @@
 import fs from "fs";
 import { createInterface } from "readline";
-import { DataSource } from "./DataSource";
-import { Page } from "./updatePages";
-import { snootyAstToMd } from "./snootyAstToMd";
+import { Page } from "chat-core";
 import nodeFetch from "node-fetch";
+import { DataSource } from "./DataSource";
+import { snootyAstToMd } from "./snootyAstToMd";
 
 // These types are what's in the snooty manifest jsonl file.
 export type SnootyManifestEntry = {

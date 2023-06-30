@@ -1,13 +1,13 @@
 // TODO: understand what's happening here
 import { Response } from "express";
+import { EmbeddedContent } from "chat-core";
 import { Conversation } from "./conversations";
-import { Content } from "chat-core";
 
 interface AnswerParams {
   res: Response;
   answer: unknown; // TODO: figure out what streaming type is
   conversation: Conversation;
-  chunks: Content[];
+  chunks: EmbeddedContent[];
 }
 
 export interface DataStreamerServiceInterface {

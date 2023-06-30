@@ -7,10 +7,10 @@ import {
   OpenAiChatMessage,
   ObjectId,
   OpenAiMessageRole,
-  EmbeddingService,
+  EmbedFunc,
   logger,
 } from "chat-core";
-import { Content, ContentServiceInterface } from "chat-core";
+import { EmbeddedContent, EmbeddedContentStore } from "chat-core";
 import {
   Conversation,
   ConversationsServiceInterface,
@@ -42,18 +42,19 @@ export interface AddMessageRequest extends ExpressRequest {
   };
 }
 export interface AddMessageToConversationRouteParams {
-  content: ContentServiceInterface;
+  store: EmbeddedContentStore;
   conversations: ConversationsServiceInterface;
-  embeddings: EmbeddingService;
+  embed: EmbedFunc;
   llm: LlmProvider<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   dataStreamer: DataStreamerServiceInterface;
 }
+
 export function makeAddMessageToConversationRoute({
-  content,
+  store,
   conversations,
   llm,
   dataStreamer,
-  embeddings,
+  embed,
 }: AddMessageToConversationRouteParams) {
   return async (
     req: AddMessageRequest,
@@ -100,14 +101,14 @@ export function makeAddMessageToConversationRoute({
       }
 
       // Find content matches for latest message
-      // TODO: consider refactoring this to feed in all messages to the embeddings service
+      // TODO: consider refactoring this to feed in all messages to the embed function
       // And then as a future step, we can use LLM pre-processing to create a better input
       // to the embedding service.
       const chunks = await getContentForText({
-        embeddings,
+        embed,
         ipAddress,
         text: latestMessageText,
-        content,
+        store,
       });
 
       const chunkTexts = chunks.map((chunk) => chunk.text);
@@ -171,10 +172,10 @@ export function makeAddMessageToConversationRoute({
 }
 
 export interface GetContentForTextParams {
-  embeddings: EmbeddingService;
+  embed: EmbedFunc;
   ipAddress: string;
   text: string;
-  content: ContentServiceInterface;
+  store: EmbeddedContentStore;
 }
 
 export function convertDbMessageToOpenAiMessage(
@@ -187,23 +188,20 @@ export function convertDbMessageToOpenAiMessage(
 }
 
 export async function getContentForText({
-  embeddings,
-  content,
+  embed,
+  store,
   text,
   ipAddress,
 }: GetContentForTextParams) {
-  const { embedding } = await embeddings.createEmbedding({
+  const { embedding } = await embed({
     text,
     userIp: ipAddress,
   });
-  const chunks = await content.findVectorMatches({
-    embedding,
-  });
-  return chunks;
+  return store.findNearestNeighbors(embedding);
 }
 
 export interface GenerateFurtherReadingParams {
-  chunks: Content[];
+  chunks: EmbeddedContent[];
 }
 export function generateFurtherReading({
   chunks,

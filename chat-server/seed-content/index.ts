@@ -24,9 +24,6 @@ const {
   OPENAI_EMBEDDING_MODEL_VERSION,
 } = assertEnvVars(CORE_ENV_VARS);
 
-console.log("MONGODB_CONNECTION_URI", MONGODB_CONNECTION_URI);
-console.log("MONGODB_DATABASE_NAME", MONGODB_DATABASE_NAME);
-
 const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 
 const embed = makeOpenAiEmbedFunc({

@@ -1,3 +1,13 @@
+/*
+  This script transforms pre-June 30th format "sample-out.json" into a
+  post-June 30th "EmbeddedContent" file.
+
+  To run:
+
+  $ npm run build
+  $ node ./build/transformSample ./data/dev-center/sample-out-old.json > ./data/dev-center/sample-out.json
+*/
+
 import { promises as fs } from "fs";
 import * as Path from "path";
 import { strict as assert } from "assert";

@@ -104,6 +104,16 @@ export function makeAddMessageToConversationRoute({
         return sendErrorResponse(res, 403, "IP address does not match");
       }
 
+      if (conversationInDb.messages.length >= MAX_MESSAGES_IN_CONVERSATION) {
+        return sendErrorResponse(
+          res,
+          403,
+          `You cannot send more messages to this conversation. ` +
+            `Max messages (${MAX_MESSAGES_IN_CONVERSATION}, including system prompt) exceeded. ` +
+            `Start a new conversation.`
+        );
+      }
+
       let answer: OpenAiChatMessage;
 
       // Find content matches for latest message

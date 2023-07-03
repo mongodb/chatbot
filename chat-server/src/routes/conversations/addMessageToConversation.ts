@@ -123,7 +123,7 @@ export function makeAddMessageToConversationRoute({
       // TODO: consider refactoring this to feed in all messages to the embed function
       // And then as a future step, we can use LLM pre-processing to create a better input
       // to the embedding service.
-      let chunks: WithScore<EmbeddedContent>[] | undefined;
+      let chunks: WithScore<EmbeddedContent>[];
       try {
         chunks = await getContentForText({
           embed,
@@ -134,8 +134,8 @@ export function makeAddMessageToConversationRoute({
         });
       } catch (err) {
         logger.error("Error getting content for text:", JSON.stringify(err));
+        return sendErrorResponse(res, 500, "Error getting content for text");
       }
-      assert(chunks);
       if (!chunks || chunks.length === 0) {
         logger.info("No matching content found");
         const { assistantMessage } = await addMessagesToDatabase({
@@ -237,7 +237,10 @@ export async function getContentForText({
     text,
     userIp: ipAddress,
   });
-  return store.findNearestNeighbors(embedding, findNearestNeighborsOptions);
+  return await store.findNearestNeighbors(
+    embedding,
+    findNearestNeighborsOptions
+  );
 }
 
 interface AddMessagesToDatabaseParams {

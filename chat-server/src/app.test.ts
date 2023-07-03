@@ -85,7 +85,6 @@ describe("App", () => {
         try {
           throw new Error("Unexpected error");
         } catch (e) {
-          console.log("passing error");
           next(e);
         }
       });

@@ -28,7 +28,6 @@ import {
 
 // General error handler; called at usage of next() in routes
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
-  console.log("inside the error handler");
   const status = err.status || 500;
 
   // TODO: what does res.headersSent do?

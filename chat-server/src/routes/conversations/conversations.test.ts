@@ -264,7 +264,6 @@ describe("Conversations Router", () => {
           .send({
             message: "hello",
           });
-        console.log(res.body);
         expect(res.statusCode).toEqual(404);
         expect(res.body).toStrictEqual({
           error: "Conversation not found",
@@ -311,8 +310,9 @@ describe("Conversations Router", () => {
           .post(endpointUrl.replace(":conversationId", _id))
           .send({ message: "hello" });
         expect(res.statusCode).toEqual(500);
-        // TODO: find error message
-        console.log(res.body);
+        expect(res.body).toStrictEqual({
+          error: "Error getting content for text",
+        });
       });
 
       test("Should respond 500 if error with conversation service", async () => {
@@ -339,7 +339,9 @@ describe("Conversations Router", () => {
           .post(endpointUrl.replace(":conversationId", _id))
           .send({ message: "hello" });
         expect(res.statusCode).toEqual(500);
-        // TODO: find error message
+        expect(res.body).toStrictEqual({
+          error: "Error finding conversation",
+        });
       });
       test.skip("Should respond 500 if error with data streaming service", async () => {
         // TODO: (DOCSP-30620) implement with data streaming service
@@ -349,7 +351,9 @@ describe("Conversations Router", () => {
           loadEmbeddedContent: jest.fn().mockResolvedValue(undefined),
           deleteEmbeddedContent: jest.fn().mockResolvedValue(undefined),
           updateEmbeddedContent: jest.fn().mockResolvedValue(undefined),
-          findNearestNeighbors: jest.fn().mockResolvedValue(undefined),
+          findNearestNeighbors: () => {
+            throw new Error("mock error");
+          },
         };
         const app = await makeApp({
           ...defaultRouteConfig,
@@ -359,7 +363,9 @@ describe("Conversations Router", () => {
           .post(endpointUrl.replace(":conversationId", _id))
           .send({ message: "hello" });
         expect(res.statusCode).toEqual(500);
-        // TODO: find error message
+        expect(res.body).toStrictEqual({
+          error: "Error getting content for text",
+        });
       });
     });
 
@@ -384,7 +390,6 @@ describe("Conversations Router", () => {
             .post(calledEndpoint)
 
             .send({ message: nonsenseMessage });
-          console.log(response.body);
           expect(response.statusCode).toBe(200);
 
           expect(response.body.content).toEqual(
@@ -432,7 +437,6 @@ describe("Conversations Router", () => {
               endpointUrl.replace(":conversationId", conversationId.toString())
             )
             .send({ message: messageThatHasSearchResults });
-          console.log(response.body);
           expect(response.statusCode).toBe(200);
           expect(
             response.body.content.startsWith(
@@ -441,7 +445,6 @@ describe("Conversations Router", () => {
           ).toBe(true);
           const markdownLinkRegex =
             /\[\w+.*\]\(https?:\/\/.*\?tck=docs_chatbot\)/g;
-          console.log(response.body.content);
           expect(markdownLinkRegex.test(response.body.content)).toBe(true);
         });
       });

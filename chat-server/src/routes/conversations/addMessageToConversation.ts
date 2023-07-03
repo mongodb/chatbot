@@ -9,6 +9,7 @@ import {
   OpenAiMessageRole,
   EmbedFunc,
   logger,
+  FindNearestNeighborsOptions,
 } from "chat-core";
 import { EmbeddedContent, EmbeddedContentStore } from "chat-core";
 import {
@@ -51,6 +52,7 @@ export interface AddMessageToConversationRouteParams {
   embed: EmbedFunc;
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   dataStreamer: DataStreamerServiceInterface;
+  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
 }
 
 export function makeAddMessageToConversationRoute({
@@ -59,6 +61,7 @@ export function makeAddMessageToConversationRoute({
   llm,
   dataStreamer,
   embed,
+  findNearestNeighborsOptions,
 }: AddMessageToConversationRouteParams) {
   return async (
     req: AddMessageRequest,
@@ -125,6 +128,7 @@ export function makeAddMessageToConversationRoute({
         ipAddress,
         text: latestMessageText,
         store,
+        findNearestNeighborsOptions,
       });
       if (chunks.length === 0) {
         logger.info("No matching content found");
@@ -204,6 +208,7 @@ export interface GetContentForTextParams {
   ipAddress: string;
   text: string;
   store: EmbeddedContentStore;
+  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
 }
 
 export function convertDbMessageToOpenAiMessage(
@@ -220,12 +225,13 @@ export async function getContentForText({
   store,
   text,
   ipAddress,
+  findNearestNeighborsOptions,
 }: GetContentForTextParams) {
   const { embedding } = await embed({
     text,
     userIp: ipAddress,
   });
-  return store.findNearestNeighbors(embedding);
+  return store.findNearestNeighbors(embedding, findNearestNeighborsOptions);
 }
 
 interface AddMessagesToDatabaseParams {

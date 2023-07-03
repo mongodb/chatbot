@@ -14,6 +14,8 @@ import {
   makeMemoryDbServer,
   DbServer,
   EmbedFunc,
+  FindNearestNeighborsOptions,
+
 } from "chat-core";
 import { ASSISTANT_PROMPT } from "../../aiConstants";
 import {
@@ -59,13 +61,16 @@ afterAll(async () => {
 
 describe("Conversations Router", () => {
   const {
+    MONGODB_CONNECTION_URI,
     MONGODB_DATABASE_NAME,
     OPENAI_ENDPOINT,
     OPENAI_API_KEY,
     OPENAI_EMBEDDING_DEPLOYMENT,
     OPENAI_EMBEDDING_MODEL_VERSION,
     OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    VECTOR_SEARCH_INDEX_NAME,
   } = assertEnvVars(CORE_ENV_VARS);
+
   // set up embeddings service
   const embed = makeOpenAiEmbedFunc({
     apiKey: OPENAI_API_KEY,
@@ -83,6 +88,13 @@ describe("Conversations Router", () => {
   // TODO: implement data streaming service
   const dataStreamer = new DataStreamerService();
 
+  const findNearestNeighborsOptions: FindNearestNeighborsOptions = {
+    k: 5,
+    path: "embedding",
+    indexName: VECTOR_SEARCH_INDEX_NAME,
+    minScore: 0.9,
+  };
+
   // create route with mock service
   describe("POST /conversations/", () => {
     const app = express();
@@ -92,9 +104,7 @@ describe("Conversations Router", () => {
     let mongodb: MongoDB | undefined;
     let conversations: ConversationsService;
     beforeAll(async () => {
-      assert(memoryDbServer);
-      const { connectionUri } = memoryDbServer;
-      mongodb = new MongoDB(connectionUri, testDbName);
+      mongodb = new MongoDB(MONGODB_CONNECTION_URI, testDbName);
       conversations = new ConversationsService(mongodb.db);
       app.post(
         "/conversations/",
@@ -142,16 +152,13 @@ describe("Conversations Router", () => {
     let defaultRouteConfig: AddMessageToConversationRouteParams;
 
     beforeAll(async () => {
-      assert(memoryDbServer);
-      const { connectionUri } = memoryDbServer;
-
       store = await makeDatabaseConnection({
-        connectionUri,
+        connectionUri: MONGODB_CONNECTION_URI,
         databaseName: MONGODB_DATABASE_NAME,
       });
 
       conversationsMongoDb = new MongoDB(
-        connectionUri,
+        MONGODB_CONNECTION_URI,
         conversationMessageTestDbName
       );
       conversations = new ConversationsService(conversationsMongoDb.db);
@@ -489,6 +496,7 @@ describe("Conversations Router", () => {
             text,
             store,
             ipAddress,
+            findNearestNeighborsOptions,
           });
           expect(chunks).toBeDefined();
           expect(chunks.length).toBeGreaterThan(0);
@@ -501,6 +509,7 @@ describe("Conversations Router", () => {
             text,
             store,
             ipAddress,
+            findNearestNeighborsOptions,
           });
           expect(chunks).toBeDefined();
           expect(chunks.length).toBe(0);
@@ -709,8 +718,7 @@ describe("Conversations Router", () => {
     let testMsg: Message;
 
     beforeAll(async () => {
-      assert(memoryDbServer);
-      mongodb = new MongoDB(memoryDbServer.connectionUri, testDbName);
+      mongodb = new MongoDB(MONGODB_CONNECTION_URI, testDbName);
       conversations = new ConversationsService(mongodb.db);
 
       app.post(

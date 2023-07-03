@@ -1,15 +1,18 @@
 import fs from "fs";
 import dotenv from "dotenv";
 import {
-  Content,
+  EmbeddedContent,
   makeOpenAiEmbedFunc,
   CORE_ENV_VARS,
   assertEnvVars,
+  MongoClient,
+  ObjectId,
+  WithId,
 } from "chat-core";
+import * as Path from "path";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Document } from "langchain/dist/document";
 import GPT3Tokenizer from "gpt3-tokenizer";
-import { MongoClient, ObjectId } from "mongodb";
 
 const [_, __, envFile] = process.argv;
 dotenv.config({ path: envFile });
@@ -50,7 +53,10 @@ interface DevHubSearchManifestDocument {
 }
 
 const sampleDevCenterData: DevHubSearchManifestDocument[] = JSON.parse(
-  fs.readFileSync("./seed-content/data/dev-center/sample-in.json", "utf8")
+  fs.readFileSync(
+    Path.resolve(__dirname, "../data/dev-center/sample-in.json"),
+    "utf8"
+  )
 );
 
 const splitter = new RecursiveCharacterTextSplitter({
@@ -71,7 +77,7 @@ async function createChunksForDevHubDocument({
   tokenizer,
   devHubDoc,
   baseUrl,
-}: CreateChunkForDevhubDocParams): Promise<Content[]> {
+}: CreateChunkForDevhubDocParams): Promise<EmbeddedContent[]> {
   console.log("Chunking doc:", devHubDoc.name);
   let chunks: Document<Record<string, any>>[] = [];
   try {
@@ -79,19 +85,18 @@ async function createChunksForDevHubDocument({
   } catch (e) {
     console.log("Error splitting document", devHubDoc.name);
   }
-  const contentWithoutEmbeddings = chunks.map<Content>((chunk) => ({
-    _id: new ObjectId(),
-    text: chunk.pageContent,
-    url: `${baseUrl}${devHubDoc.calculated_slug}`,
-    site: {
-      name: "dev-center",
-      url: baseUrl,
-    },
-    tags: ["dev-center"],
-    numTokens: tokenizer.encode(chunk.pageContent).bpe.length,
-    embedding: [],
-    lastUpdated: new Date(),
-  }));
+  const contentWithoutEmbeddings = chunks.map<WithId<EmbeddedContent>>(
+    (chunk) => ({
+      _id: new ObjectId(),
+      text: chunk.pageContent,
+      url: `${baseUrl}${devHubDoc.calculated_slug}`,
+      sourceName: "dev-center",
+      tags: [],
+      tokenCount: tokenizer.encode(chunk.pageContent).bpe.length,
+      embedding: [],
+      updated: new Date(),
+    })
+  );
   const contentWithEmbeddings = await Promise.all(
     contentWithoutEmbeddings.map(async (content) => {
       const chunkEmbedding = await embed({
@@ -109,9 +114,7 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 async function main() {
-  const baseUrl = "https://mongodb.com/developer";
-  const content: Content[] = [];
-  const fileOut = "./seed-content/data/dev-center/sample-out.json";
+  const fileOut = Path.resolve(__dirname, "../data/dev-center/sample-out.json");
   // comment out start -- comment out if only want to push existing data to MongoDB
   // for await (const devHubDoc of sampleDevCenterData) {
   //   const chunks = await createChunksForDevHubDocument({
@@ -137,9 +140,10 @@ async function main() {
   // comment out end
 
   console.log("Adding data to MongoDB");
+
   const contentCollection = mongodb
     .db(MONGODB_DATABASE_NAME)
-    .collection("content");
+    .collection("embedded_content");
   const flattedContentWithOutEmptyEmbeddings = JSON.parse(
     fs.readFileSync(fileOut, "utf-8")
   );

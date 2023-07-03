@@ -14,6 +14,7 @@ import {
   logger,
   EmbeddedContentStore,
   EmbedFunc,
+  FindNearestNeighborsOptions,
 } from "chat-core";
 import { DataStreamerServiceInterface } from "./services/dataStreamer";
 import { ObjectId } from "mongodb";
@@ -70,6 +71,7 @@ export const makeApp = async ({
   conversations,
   llm,
   requestTimeout = REQUEST_TIMEOUT,
+  findNearestNeighborsOptions,
 }: {
   embed: EmbedFunc;
   store: EmbeddedContentStore;
@@ -77,6 +79,7 @@ export const makeApp = async ({
   conversations: ConversationsServiceInterface;
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   requestTimeout?: number;
+  findNearestNeighborsOptions: FindNearestNeighborsOptions;
 }): Promise<Express> => {
   const app = express();
   app.use(makeHandleTimeoutMiddleware(requestTimeout));
@@ -93,6 +96,7 @@ export const makeApp = async ({
       dataStreamer,
       store,
       conversations,
+      findNearestNeighborsOptions,
     })
   );
   app.all("*", (_req, res, _next) => {

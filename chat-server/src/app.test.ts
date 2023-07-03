@@ -61,6 +61,13 @@ describe("App", () => {
       conversations,
       dataStreamer,
       llm,
+      findNearestNeighborsOptions: {
+        // Default options
+        indexName: "default",
+        path: "embedding",
+        k: 3,
+        minScore: 0.9,
+      },
     });
   });
 

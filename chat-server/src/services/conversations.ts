@@ -53,7 +53,7 @@ export interface ConversationsServiceInterface {
     content,
     role,
   }: AddConversationMessageParams) => Promise<Message>;
-  findById: ({ _id }: FindByIdParams) => Promise<Conversation>;
+  findById: ({ _id }: FindByIdParams) => Promise<Conversation | null>;
   rateMessage: ({
     conversationId,
     messageId,
@@ -129,9 +129,6 @@ export class ConversationsService implements ConversationsServiceInterface {
 
   async findById({ _id }: FindByIdParams) {
     const conversation = await this.conversationsCollection.findOne({ _id });
-    if (!conversation) {
-      throw new Error("Conversation not found");
-    }
     return conversation;
   }
 

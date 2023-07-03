@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { EmbedFunc } from "chat-core";
+import { EmbedFunc, FindNearestNeighborsOptions } from "chat-core";
 import {
   Llm,
   OpenAiAwaitedResponse,
@@ -20,6 +20,7 @@ export interface ConversationsRouterParams<T, U> {
   dataStreamer: DataStreamerServiceInterface;
   store: EmbeddedContentStore;
   conversations: ConversationsServiceInterface;
+  findNearestNeighborsOptions: FindNearestNeighborsOptions;
 }
 
 export function makeConversationsRouter({
@@ -28,6 +29,7 @@ export function makeConversationsRouter({
   dataStreamer,
   store,
   conversations,
+  findNearestNeighborsOptions,
 }: ConversationsRouterParams<OpenAiStreamingResponse, OpenAiAwaitedResponse>) {
   const conversationsRouter = Router();
 
@@ -47,6 +49,7 @@ export function makeConversationsRouter({
       embed,
       llm,
       dataStreamer,
+      findNearestNeighborsOptions,
     })
   );
 

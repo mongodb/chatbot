@@ -3,6 +3,7 @@ import {
   Response as ExpressResponse,
   NextFunction,
 } from "express";
+import { strict as assert } from "assert";
 import {
   OpenAiChatMessage,
   ObjectId,
@@ -10,6 +11,7 @@ import {
   EmbedFunc,
   logger,
   FindNearestNeighborsOptions,
+  WithScore,
 } from "chat-core";
 import { EmbeddedContent, EmbeddedContentStore } from "chat-core";
 import {
@@ -29,9 +31,7 @@ import { ApiConversation, convertMessageFromDbToApi } from "./utils";
 import { sendErrorResponse } from "../../utils";
 
 export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
-export const MAX_MESSAGES_IN_CONVERSATION = 12; // magic number for max messages in a conversation
-// - [ ] Rate limit exceeded
-//   - If too many clients are using the chatbot, friendly response message in chat saying that there are too many users and the user should try again later.
+export const MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
 
 export interface AddMessageRequestBody {
   message: string;
@@ -52,7 +52,7 @@ export interface AddMessageToConversationRouteParams {
   embed: EmbedFunc;
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   dataStreamer: DataStreamerServiceInterface;
-  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
+  findNearestNeighborsOptions: FindNearestNeighborsOptions;
 }
 
 export function makeAddMessageToConversationRoute({
@@ -110,7 +110,7 @@ export function makeAddMessageToConversationRoute({
       if (conversationInDb.messages.length >= MAX_MESSAGES_IN_CONVERSATION) {
         return sendErrorResponse(
           res,
-          403,
+          400,
           `You cannot send more messages to this conversation. ` +
             `Max messages (${MAX_MESSAGES_IN_CONVERSATION}, including system prompt) exceeded. ` +
             `Start a new conversation.`
@@ -123,14 +123,20 @@ export function makeAddMessageToConversationRoute({
       // TODO: consider refactoring this to feed in all messages to the embed function
       // And then as a future step, we can use LLM pre-processing to create a better input
       // to the embedding service.
-      const chunks = await getContentForText({
-        embed,
-        ipAddress,
-        text: latestMessageText,
-        store,
-        findNearestNeighborsOptions,
-      });
-      if (chunks.length === 0) {
+      let chunks: WithScore<EmbeddedContent>[] | undefined;
+      try {
+        chunks = await getContentForText({
+          embed,
+          ipAddress,
+          text: latestMessageText,
+          store,
+          findNearestNeighborsOptions,
+        });
+      } catch (err) {
+        logger.error("Error getting content for text:", JSON.stringify(err));
+      }
+      assert(chunks);
+      if (!chunks || chunks.length === 0) {
         logger.info("No matching content found");
         const { assistantMessage } = await addMessagesToDatabase({
           conversations,

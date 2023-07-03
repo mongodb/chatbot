@@ -41,6 +41,13 @@ const startServer = async () => {
     databaseName: MONGODB_DATABASE_NAME,
   });
 
+  const findNearestNeighborsOptions = {
+    k: 5,
+    path: "embedding",
+    indexName: VECTOR_SEARCH_INDEX_NAME,
+    minScore: 0.9,
+  };
+
   const embed = makeOpenAiEmbedFunc({
     apiKey: OPENAI_API_KEY,
     apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
@@ -54,14 +61,14 @@ const startServer = async () => {
     baseUrl: OPENAI_ENDPOINT,
   });
 
-  try {
-    const app = await makeApp({
-      embed,
-      store,
-      conversations,
-      dataStreamer,
-      llm,
-    });
+  const app = await makeApp({
+    embed,
+    store,
+    conversations,
+    dataStreamer,
+    llm,
+    findNearestNeighborsOptions,
+  });
 
   const server = app.listen(PORT, () => {
     logger.info(`Server listening on port: ${PORT}`);

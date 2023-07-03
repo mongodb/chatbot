@@ -2,7 +2,6 @@ import { strict as assert } from "assert";
 import request from "supertest";
 import "dotenv/config";
 import {
-  OpenAiChatClient,
   MongoDB,
   makeOpenAiEmbedFunc,
   assertEnvVars,
@@ -15,7 +14,6 @@ import {
   DbServer,
   EmbedFunc,
   FindNearestNeighborsOptions,
-
 } from "chat-core";
 import { ASSISTANT_PROMPT } from "../../aiConstants";
 import {
@@ -25,7 +23,7 @@ import {
   Message,
   ConversationsServiceInterface,
 } from "../../services/conversations";
-import express from "express";
+import express, { Express } from "express";
 import {
   AddMessageRequestBody,
   addMessagesToDatabase,
@@ -36,6 +34,7 @@ import {
   getContentForText,
   MAX_INPUT_LENGTH,
   AddMessageToConversationRouteParams,
+  MAX_MESSAGES_IN_CONVERSATION,
 } from "./addMessageToConversation";
 import { makeCreateConversationRoute } from "./createConversation";
 import { ApiConversation, ApiMessage } from "./utils";
@@ -44,22 +43,21 @@ import { DataStreamerService } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
 import { makeRateMessageRoute } from "./rateMessage";
-import e from "connect-timeout";
 import { makeApp } from "../../app";
 
 jest.setTimeout(100000);
 
-let memoryDbServer: DbServer;
-
-beforeAll(async () => {
-  memoryDbServer = await makeMemoryDbServer();
-});
-
-afterAll(async () => {
-  await memoryDbServer?.stop();
-});
-
 describe("Conversations Router", () => {
+  let memoryDbServer: DbServer;
+
+  beforeAll(async () => {
+    memoryDbServer = await makeMemoryDbServer();
+  });
+
+  afterAll(async () => {
+    await memoryDbServer?.stop();
+  });
+
   const {
     MONGODB_CONNECTION_URI,
     MONGODB_DATABASE_NAME,
@@ -96,7 +94,7 @@ describe("Conversations Router", () => {
   };
 
   // create route with mock service
-  describe("POST /conversations/", () => {
+  describe("POST /conversations", () => {
     const app = express();
     app.use(express.json()); // for parsing application/json
     const testDbName = `conversations-test-${Date.now()}`;
@@ -107,7 +105,7 @@ describe("Conversations Router", () => {
       mongodb = new MongoDB(MONGODB_CONNECTION_URI, testDbName);
       conversations = new ConversationsService(mongodb.db);
       app.post(
-        "/conversations/",
+        "/conversations",
         makeCreateConversationRoute({ conversations })
       );
     });
@@ -138,11 +136,9 @@ describe("Conversations Router", () => {
   });
 
   describe("POST /conversations/:conversationId/messages", () => {
-    const endpointUrl = "/conversations/:conversationId/messages/";
+    const endpointUrl = "/conversations/:conversationId/messages";
     const app = express();
     app.use(express.json()); // for parsing application/json
-    // set up conversations service
-    const conversationMessageTestDbName = `convo-msg-test-${Date.now()}`;
 
     let store: EmbeddedContentStore & DatabaseConnection;
 
@@ -157,6 +153,7 @@ describe("Conversations Router", () => {
         databaseName: MONGODB_DATABASE_NAME,
       });
 
+      const conversationMessageTestDbName = `convo-msg-test-${Date.now()}`;
       conversationsMongoDb = new MongoDB(
         MONGODB_CONNECTION_URI,
         conversationMessageTestDbName
@@ -168,15 +165,16 @@ describe("Conversations Router", () => {
         embed,
         llm,
         dataStreamer,
+        findNearestNeighborsOptions,
       };
 
       app.post(
-        "/conversations/:conversationId/messages/",
+        endpointUrl,
         makeAddMessageToConversationRoute(defaultRouteConfig)
       );
       // For set up. Need to create conversation before can add to it.
       app.post(
-        "/conversations/",
+        "/conversations",
         makeCreateConversationRoute({ conversations })
       );
     });
@@ -190,7 +188,7 @@ describe("Conversations Router", () => {
     let _id: string;
     beforeEach(async () => {
       const createConversationRes = await request(app)
-        .post("/conversations/")
+        .post("/conversations")
         .send();
       const res: ApiConversation = createConversationRes.body;
       _id = res._id;
@@ -245,7 +243,6 @@ describe("Conversations Router", () => {
         expect(res.statusCode).toEqual(400);
         expect(res.body).toStrictEqual({
           error: "Invalid conversation ID",
-          status: 400,
         });
       });
       test("should respond 400 if input is too long", async () => {
@@ -257,36 +254,55 @@ describe("Conversations Router", () => {
           });
         expect(res.statusCode).toEqual(400);
         expect(res.body).toStrictEqual({
-          error: "Input too long",
-          status: 400,
+          error: "Message too long",
         });
       });
-      test("should respond 400 if cannot find conversation for conversation ID in request", async () => {
-        // TODO: implement
+      test("should respond 404 if cannot find conversation for conversation ID in request", async () => {
         const anotherObjectId = new ObjectId().toHexString();
         const res = await request(app)
           .post(endpointUrl.replace(":conversationId", anotherObjectId))
           .send({
             message: "hello",
           });
-        expect(res.statusCode).toEqual(400);
+        console.log(res.body);
+        expect(res.statusCode).toEqual(404);
         expect(res.body).toStrictEqual({
-          error: "Cannot find conversation for conversation ID",
-          status: 400,
+          error: "Conversation not found",
         });
       });
       test("should return 403 if IP address in request doesn't match IP address in conversation", async () => {
         // TODO: this is done in DOCSP-30843
       });
       test("Should return 400 if number of messages in conversation exceeds limit", async () => {
-        // TODO: implement;
+        const { _id } = await conversations.create({
+          ipAddress: "<NOT CAPTURING IP ADDRESS YET>",
+        });
+        // Init conversation with max length
+        for await (const i of Array(MAX_MESSAGES_IN_CONVERSATION - 1)) {
+          const role = i % 2 === 0 ? "assistant" : "user";
+          await conversations.addConversationMessage({
+            conversationId: _id,
+            content: `message ${i}`,
+            role,
+          });
+        }
+        const res = await request(app)
+          .post(endpointUrl.replace(":conversationId", _id.toString()))
+          .send({
+            message: "hello",
+          });
+        expect(res.statusCode).toEqual(400);
+        expect(res.body).toStrictEqual({
+          error:
+            `You cannot send more messages to this conversation. ` +
+            `Max messages (${MAX_MESSAGES_IN_CONVERSATION}, including system prompt) exceeded. ` +
+            `Start a new conversation.`,
+        });
       });
 
       test("should respond 500 if error with embed service", async () => {
-        const mockBrokenEmbedFunc: EmbedFunc = (args) => {
-          throw new Error("mock error");
-        };
-        const app = makeApp({
+        const mockBrokenEmbedFunc: EmbedFunc = jest.fn();
+        const app = await makeApp({
           ...defaultRouteConfig,
           embed: mockBrokenEmbedFunc,
         });
@@ -314,8 +330,9 @@ describe("Conversations Router", () => {
             throw new Error("mock error");
           },
         };
-        const app = makeApp({
+        const app = await makeApp({
           ...defaultRouteConfig,
+
           conversations: mockBrokenConversationsService,
         });
         const res = await request(app)
@@ -328,17 +345,15 @@ describe("Conversations Router", () => {
         // TODO: (DOCSP-30620) implement with data streaming service
       });
       test("should respond 500 if error with content service", async () => {
-        // TODO: implement
-      });
-      test("should respond 500 if error with LLM service", async () => {
-        const brokenLLmService = makeOpenAiLlm({
-          baseUrl: OPENAI_ENDPOINT,
-          deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-          apiKey: "definitelyNotARealApiKey",
-        });
-        const app = makeApp({
+        const brokenStore: EmbeddedContentStore = {
+          loadEmbeddedContent: jest.fn().mockResolvedValue(undefined),
+          deleteEmbeddedContent: jest.fn().mockResolvedValue(undefined),
+          updateEmbeddedContent: jest.fn().mockResolvedValue(undefined),
+          findNearestNeighbors: jest.fn().mockResolvedValue(undefined),
+        };
+        const app = await makeApp({
           ...defaultRouteConfig,
-          llm: brokenLLmService,
+          store: brokenStore,
         });
         const res = await request(app)
           .post(endpointUrl.replace(":conversationId", _id))
@@ -350,34 +365,26 @@ describe("Conversations Router", () => {
 
     describe("Edge cases", () => {
       describe("No vector search content for user message", () => {
-        let conversationId: ObjectId;
+        let conversationId: string;
         beforeAll(async () => {
           const { _id } = await conversations.create({
             ipAddress: "<NOT CAPTURING IP ADDRESS YET>",
           });
-          conversationId = _id;
+          conversationId = _id.toString();
         });
 
-        const app = express();
-        app.use(express.json());
-        app.post(
-          endpointUrl,
-          makeAddMessageToConversationRoute({
-            conversations,
-            store,
-            embed,
-            llm,
-            dataStreamer,
-          })
-        );
         test("Should respond with 200 and static response", async () => {
           const nonsenseMessage =
-            "asdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjafdshgjfkhfdugytfasfghjkujufgjdfhstgragtyjuikol";
+            "asdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfjdfhstgragtyjuikol";
+          const calledEndpoint = endpointUrl.replace(
+            ":conversationId",
+            conversationId.toString()
+          );
           const response = await request(app)
-            .post(
-              endpointUrl.replace(":conversationId", conversationId.toString())
-            )
+            .post(calledEndpoint)
+
             .send({ message: nonsenseMessage });
+          console.log(response.body);
           expect(response.statusCode).toBe(200);
 
           expect(response.body.content).toEqual(
@@ -391,25 +398,33 @@ describe("Conversations Router", () => {
           deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
           apiKey: "definitelyNotARealApiKey",
         });
-        let conversationId: ObjectId;
-        beforeAll(async () => {
+
+        let conversationId: ObjectId,
+          conversations: ConversationsServiceInterface,
+          app: Express;
+        beforeEach(async () => {
+          const dbName = `test-${Date.now()}`;
+          memoryDbServer = await makeMemoryDbServer();
+          const memoryMongo = new MongoDB(memoryDbServer.connectionUri, dbName);
+          conversations = new ConversationsService(memoryMongo.db);
           const { _id } = await conversations.create({
             ipAddress: "<NOT CAPTURING IP ADDRESS YET>",
           });
           conversationId = _id;
+          app = express();
+          app.use(express.json());
+          app.post(
+            endpointUrl,
+            makeAddMessageToConversationRoute({
+              conversations,
+              store,
+              embed,
+              llm: brokenLLmService,
+              dataStreamer,
+              findNearestNeighborsOptions,
+            })
+          );
         });
-        const app = express();
-        app.use(express.json());
-        app.post(
-          endpointUrl,
-          makeAddMessageToConversationRoute({
-            conversations,
-            store,
-            embed,
-            llm: brokenLLmService,
-            dataStreamer,
-          })
-        );
         test("should respond with 200, static message, and vector search results", async () => {
           const messageThatHasSearchResults = "Why use MongoDB?";
           const response = await request(app)
@@ -417,6 +432,7 @@ describe("Conversations Router", () => {
               endpointUrl.replace(":conversationId", conversationId.toString())
             )
             .send({ message: messageThatHasSearchResults });
+          console.log(response.body);
           expect(response.statusCode).toBe(200);
           expect(
             response.body.content.startsWith(
@@ -750,6 +766,7 @@ describe("Conversations Router", () => {
       const updatedConversation = await conversations.findById({
         _id: conversation._id,
       });
+      assert(updatedConversation);
       expect(
         updatedConversation.messages[updatedConversation.messages.length - 1]
           .rating
@@ -805,6 +822,7 @@ describe("Conversations Router", () => {
         error: "Message not found",
       });
     });
+
     // TODO:(DOCSP-30843) when properly configure IP address capture and validation,
     // this test will need to be refactored.
     describe("IP address validation", () => {
@@ -818,75 +836,6 @@ describe("Conversations Router", () => {
           role: "assistant",
         });
       });
-      test("Should return 204 for valid rating", async () => {
-        const response = await request(app)
-          .post(
-            `/conversations/${conversation._id}/messages/${testMsg.id}/rating`
-          )
-          .send({ rating: true });
-
-        expect(response.statusCode).toBe(204);
-        expect(response.body).toEqual({});
-        const updatedConversation = await conversations.findById({
-          _id: conversation._id,
-        });
-        expect(
-          updatedConversation.messages[updatedConversation.messages.length - 1]
-            .rating
-        ).toBe(true);
-      });
-      test("Should return 400 for invalid conversation ID", async () => {
-        const response = await request(app)
-          .post(
-            `/conversations/123/messages/${conversation.messages[0].id}/rating`
-          )
-          .send({ rating: true });
-
-        expect(response.statusCode).toBe(400);
-        expect(response.body).toEqual({
-          error: "Invalid conversation ID",
-        });
-      });
-      test("Should return 400 for invalid message ID", async () => {
-        const response = await request(app)
-          .post(`/conversations/${testMsg.id}/messages/123/rating`)
-          .send({ rating: true });
-
-        expect(response.statusCode).toBe(400);
-        expect(response.body).toEqual({
-          error: "Invalid message ID",
-        });
-      });
-      test("Should return 404 for conversation not in DB", async () => {
-        const response = await request(app)
-          .post(
-            `/conversations/${new ObjectId().toHexString()}/messages/${
-              testMsg.id
-            }/rating`
-          )
-          .send({ rating: true });
-
-        expect(response.statusCode).toBe(404);
-        expect(response.body).toEqual({
-          error: "Conversation not found",
-        });
-      });
-      test("Should return 404 for message not in conversation", async () => {
-        const response = await request(app)
-          .post(
-            `/conversations/${
-              conversation._id
-            }/messages/${new ObjectId().toHexString()}/rating`
-          )
-          .send({ rating: true });
-
-        expect(response.statusCode).toBe(404);
-        expect(response.body).toEqual({
-          error: "Message not found",
-        });
-      });
-      // TODO:(DOCSP-30843) when properly configure IP address capture and validation,
-      // this test will need to be refactored.
       describe("IP address validation", () => {
         beforeEach(async () => {
           const ipAddress = "abc.123.xyz.456";

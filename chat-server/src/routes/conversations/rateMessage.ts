@@ -3,11 +3,7 @@ import {
   Conversation,
   ConversationsServiceInterface,
 } from "../../services/conversations";
-import {
-  Request as ExpressRequest,
-  Response as ExpressResponse,
-  NextFunction,
-} from "express";
+import { Response as ExpressResponse, NextFunction } from "express";
 import { sendErrorResponse } from "../../utils";
 import { logger } from "chat-core";
 import { z } from "zod";

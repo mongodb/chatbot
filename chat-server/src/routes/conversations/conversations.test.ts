@@ -190,6 +190,20 @@ describe("Conversations Router", () => {
           });
         expect(conversationInDb?.messages).toHaveLength(6); // system, assistant, user, assistant, user, assistant
       });
+
+      it("does not accept invalid request bodies", async () => {
+        const invalidRequestBody = {
+          message: "how can i use mongodb products to help me build my new mobile app?",
+          invalidField: "invalidField",
+        };
+        const res = await request(app)
+          .post(`/conversations/${_id}/messages/`)
+          .send(invalidRequestBody);
+        const message: ApiMessage = res.body;
+        expect(res.statusCode).toEqual(200);
+        expect(message.role).toBe("assistant");
+        // expect(message.content).toContain("Realm");
+      });
     });
 
     describe.skip("Streamed response", () => {

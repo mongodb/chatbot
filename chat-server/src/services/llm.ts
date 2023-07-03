@@ -15,7 +15,7 @@ export interface LlmAnswerQuestionParams {
 
 // Abstract interface for embedding provider to make it easier to swap out
 // different providers in the future.
-export interface LlmProvider<T, U> {
+export interface Llm<T, U> {
   answerQuestionStream({
     messages,
     chunks,
@@ -31,102 +31,85 @@ export type OpenAiStreamingResponse = AsyncIterable<
 >;
 export type OpenAiAwaitedResponse = OpenAiChatMessage;
 
-interface MakeOpenAiLlmProviderParams {
+interface MakeOpenAiLlmParams {
   apiKey: string;
-  // TODO: resume here
+  deployment: string;
+  baseUrl: string;
 }
 
-// TODO: just implement the makeThing pattern now and get it over with.. otherwise more trouble than it's worth
-export function makeOpenAiLlmProvider({}: MakeOpenAiLlmProviderParams): LlmProvider<
-  OpenAiStreamingResponse,
-  OpenAiAwaitedResponse
-> {}
-
-export class OpenAiLlmProvider
-  implements LlmProvider<OpenAiStreamingResponse, OpenAiAwaitedResponse>
-{
-  private openAiChatClient: OpenAiChatClient;
-
-  constructor(openAiChatClient: OpenAiChatClient) {
-    this.openAiChatClient = openAiChatClient;
-  }
-
-  // NOTE: for streaming implementation, see // NOTE: for example streaming data, see https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
-  async answerQuestionStream({
-    messages,
-    chunks,
-  }: LlmAnswerQuestionParams): Promise<OpenAiStreamingResponse> {
-    const messagesForLlm = this.prepConversationForLlm({ messages, chunks });
-    const completionStream = await this.openAiChatClient.chatStream({
-      messages: messagesForLlm,
-      options: { ...OPENAI_LLM_CONFIG_OPTIONS, stream: true },
-    });
-    return completionStream;
-  }
-
-  async answerQuestionAwaited({
-    messages,
-    chunks,
-  }: LlmAnswerQuestionParams): Promise<OpenAiChatMessage> {
-    const messagesForLlm = this.prepConversationForLlm({ messages, chunks });
-    const {
-      choices: [choice],
-    } = await this.openAiChatClient.chatAwaited({
-      messages: messagesForLlm,
-      options: OPENAI_LLM_CONFIG_OPTIONS,
-    });
-    const { message } = choice;
-    if (!message) {
-      throw new Error("No message returned from OpenAI");
-    }
-    return message as OpenAiChatMessage;
-  }
-  private prepConversationForLlm({
-    messages,
-    chunks,
-  }: LlmAnswerQuestionParams) {
-    this.validateConversation(messages);
-    const lastMessage = messages[messages.length - 1];
-    const newestMessageForLlm = GENERATE_USER_PROMPT({
-      question: lastMessage.content!,
+export function makeOpenAiLlm({
+  apiKey,
+  deployment,
+  baseUrl,
+}: MakeOpenAiLlmParams): Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse> {
+  const openAiChatClient = new OpenAiChatClient(baseUrl, deployment, apiKey);
+  return {
+    // NOTE: for streaming implementation, see // NOTE: for example streaming data, see https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
+    async answerQuestionStream({
+      messages,
       chunks,
-    });
-    return [...messages.slice(0, -1), newestMessageForLlm];
-  }
-
-  // TODO: consider adding additional validation that messages follow the pattern
-  // system, assistant, user, assistant, user, etc.
-  // Are there any other things which we should validate here?
-  private validateConversation(messages: OpenAiChatMessage[]) {
-    if (messages.length === 0) {
-      throw new Error("No messages provided");
-    }
-    const firstMessage = messages[0];
-    if (
-      firstMessage.content !== SYSTEM_PROMPT.content ||
-      firstMessage.role !== SYSTEM_PROMPT.role
-    ) {
-      throw new Error(
-        `First message must be system prompt: ${JSON.stringify(SYSTEM_PROMPT)}`
-      );
-    }
-    const secondToLastMessage = messages[messages.length - 2];
-    if (secondToLastMessage.role !== "assistant") {
-      throw new Error(`Second to last message must be assistant message`);
-    }
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage.role !== "user") {
-      throw new Error(`Last message must be user message`);
-    }
-  }
+    }: LlmAnswerQuestionParams): Promise<OpenAiStreamingResponse> {
+      const messagesForLlm = prepConversationForOpenAiLlm({ messages, chunks });
+      const completionStream = await openAiChatClient.chatStream({
+        messages: messagesForLlm,
+        options: { ...OPENAI_LLM_CONFIG_OPTIONS, stream: true },
+      });
+      return completionStream;
+    },
+    async answerQuestionAwaited({
+      messages,
+      chunks,
+    }: LlmAnswerQuestionParams): Promise<OpenAiChatMessage> {
+      const messagesForLlm = prepConversationForOpenAiLlm({ messages, chunks });
+      const {
+        choices: [choice],
+      } = await openAiChatClient.chatAwaited({
+        messages: messagesForLlm,
+        options: OPENAI_LLM_CONFIG_OPTIONS,
+      });
+      const { message } = choice;
+      if (!message) {
+        throw new Error("No message returned from OpenAI");
+      }
+      return message as OpenAiChatMessage;
+    },
+  };
 }
 
-// Export singleton instance of LLM service for use in application
-const { OPENAI_ENDPOINT, OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_API_KEY } =
-  process.env;
-const openAiClient = new OpenAiChatClient(
-  OPENAI_ENDPOINT!,
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT!,
-  OPENAI_API_KEY!
-);
-export const llm = new OpenAiLlmProvider(openAiClient);
+function prepConversationForOpenAiLlm({
+  messages,
+  chunks,
+}: LlmAnswerQuestionParams): OpenAiChatMessage[] {
+  validateOpenAiConversation(messages);
+  const lastMessage = messages[messages.length - 1];
+  const newestMessageForLlm = GENERATE_USER_PROMPT({
+    question: lastMessage.content,
+    chunks,
+  });
+  return [...messages.slice(0, -1), newestMessageForLlm];
+}
+// TODO: consider adding additional validation that messages follow the pattern
+// system, assistant, user, assistant, user, etc.
+// Are there any other things which we should validate here?
+function validateOpenAiConversation(messages: OpenAiChatMessage[]) {
+  if (messages.length === 0) {
+    throw new Error("No messages provided");
+  }
+  const firstMessage = messages[0];
+  if (
+    firstMessage.content !== SYSTEM_PROMPT.content ||
+    firstMessage.role !== SYSTEM_PROMPT.role
+  ) {
+    throw new Error(
+      `First message must be system prompt: ${JSON.stringify(SYSTEM_PROMPT)}`
+    );
+  }
+  const secondToLastMessage = messages[messages.length - 2];
+  if (secondToLastMessage.role !== "assistant") {
+    throw new Error(`Second to last message must be assistant message`);
+  }
+  const lastMessage = messages[messages.length - 1];
+  if (lastMessage.role !== "user") {
+    throw new Error(`Last message must be user message`);
+  }
+}

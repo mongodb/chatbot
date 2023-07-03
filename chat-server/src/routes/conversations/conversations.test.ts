@@ -37,7 +37,7 @@ import {
 } from "./addMessageToConversation";
 import { makeCreateConversationRoute } from "./createConversation";
 import { ApiConversation, ApiMessage } from "./utils";
-import { LlmProvider, OpenAiLlmProvider } from "../../services/llm";
+import { makeOpenAiLlm } from "../../services/llm";
 import { DataStreamerService } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
@@ -75,13 +75,11 @@ describe("Conversations Router", () => {
   });
 
   // set up llm service
-  const llm = new OpenAiLlmProvider(
-    new OpenAiChatClient(
-      OPENAI_ENDPOINT,
-      OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-      OPENAI_API_KEY
-    )
-  );
+  const llm = makeOpenAiLlm({
+    baseUrl: OPENAI_ENDPOINT,
+    deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    apiKey: OPENAI_API_KEY,
+  });
   // TODO: implement data streaming service
   const dataStreamer = new DataStreamerService();
 
@@ -323,18 +321,20 @@ describe("Conversations Router", () => {
         // TODO: implement
       });
       test("should respond 500 if error with LLM service", async () => {
-        const mockBrokenLLMService: OpenAiLlmProvider = {
-          answerQuestionStream({ messages, chunks }) {
-            throw new Error("mock error");
-          },
-          answerQuestionAwaited({ messages, chunks }) {
-            throw new Error("mock error");
-          },
-        };
+        const brokenLLmService = makeOpenAiLlm({
+          baseUrl: OPENAI_ENDPOINT,
+          deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+          apiKey: "definitelyNotARealApiKey",
+        });
         const app = makeApp({
           ...defaultRouteConfig,
-          llm: mockBrokenLLMService,
+          llm: brokenLLmService,
         });
+        const res = await request(app)
+          .post(endpointUrl.replace(":conversationId", _id))
+          .send({ message: "hello" });
+        expect(res.statusCode).toEqual(500);
+        // TODO: find error message
       });
     });
 
@@ -375,13 +375,11 @@ describe("Conversations Router", () => {
           );
         });
         describe("LLM not available but vector search is", () => {
-          const brokenLLmService = new OpenAiLlmProvider(
-            new OpenAiChatClient(
-              OPENAI_ENDPOINT,
-              OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-              "definitelyNotARealApiKey"
-            )
-          );
+          const brokenLLmService = makeOpenAiLlm({
+            baseUrl: OPENAI_ENDPOINT,
+            deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+            apiKey: "definitelyNotARealApiKey",
+          });
           const app = express();
           app.use(express.json());
           app.post(

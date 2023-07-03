@@ -20,7 +20,7 @@ import {
 import { DataStreamerServiceInterface } from "../../services/dataStreamer";
 
 import {
-  LlmProvider,
+  Llm,
   OpenAiAwaitedResponse,
   OpenAiStreamingResponse,
 } from "../../services/llm";
@@ -28,7 +28,7 @@ import { ApiConversation, convertMessageFromDbToApi } from "./utils";
 import { sendErrorResponse } from "../../utils";
 
 export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
-
+export const MAX_MESSAGES_IN_CONVERSATION = 12; // magic number for max messages in a conversation
 // - [ ] Rate limit exceeded
 //   - If too many clients are using the chatbot, friendly response message in chat saying that there are too many users and the user should try again later.
 
@@ -49,7 +49,7 @@ export interface AddMessageToConversationRouteParams {
   store: EmbeddedContentStore;
   conversations: ConversationsServiceInterface;
   embed: EmbedFunc;
-  llm: LlmProvider<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
+  llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   dataStreamer: DataStreamerServiceInterface;
 }
 

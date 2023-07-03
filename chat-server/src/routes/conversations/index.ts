@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { EmbedFunc } from "chat-core";
 import {
-  LlmProvider,
+  Llm,
   OpenAiAwaitedResponse,
   OpenAiStreamingResponse,
 } from "../../services/llm";
@@ -15,7 +15,7 @@ import { makeAddMessageToConversationRoute } from "./addMessageToConversation";
 // TODO: for all non-2XX or 3XX responses, see how/if can better implement
 // error handling. can/should we pass stuff to next() and process elsewhere?
 export interface ConversationsRouterParams<T, U> {
-  llm: LlmProvider<T, U>;
+  llm: Llm<T, U>;
   embed: EmbedFunc;
   dataStreamer: DataStreamerServiceInterface;
   store: EmbeddedContentStore;

@@ -2,15 +2,13 @@ import express, {
   Express,
   ErrorRequestHandler,
   RequestHandler,
+  NextFunction,
   Request as ExpressRequest,
   Response as ExpressResponse,
-  NextFunction,
 } from "express";
 import cors from "cors";
-import timeout from "connect-timeout";
 import "dotenv/config";
 import { makeConversationsRouter } from "./routes/conversations";
-import { llm } from "./services/llm";
 import {
   createMessage,
   logger,
@@ -21,11 +19,18 @@ import { DataStreamerServiceInterface } from "./services/dataStreamer";
 import { ObjectId } from "mongodb";
 import { ConversationsServiceInterface } from "./services/conversations";
 import { sendErrorResponse } from "./utils";
+import {
+  Llm,
+  OpenAiAwaitedResponse,
+  OpenAiStreamingResponse,
+} from "./services/llm";
 
 // General error handler; called at usage of next() in routes
-const errorHandler: ErrorRequestHandler = (err, _req, res) => {
+export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+  console.log("inside the error handler");
   const status = err.status || 500;
 
+  // TODO: what does res.headersSent do?
   if (!res.headersSent) {
     return sendErrorResponse(
       res,
@@ -47,11 +52,14 @@ const reqHandler: RequestHandler = (req, _res, next) => {
   next();
 };
 
-const haltOnTimedOut: RequestHandler = (req, res, next) => {
-  if (req.timedout) {
-    logger.error("Request timed out");
-    next(new Error("Request timeout"));
-  }
+export const makeHandleTimeoutMiddleware = (apiTimeout: number) => {
+  return (req: ExpressRequest, res: ExpressResponse, next: NextFunction) => {
+    // Set the server response timeout for all HTTP responses
+    res.setTimeout(apiTimeout, () => {
+      return sendErrorResponse(res, 504, "Response timeout");
+    });
+    next();
+  };
 };
 
 export const REQUEST_TIMEOUT = 60000; // 60 seconds
@@ -60,21 +68,23 @@ export const makeApp = async ({
   dataStreamer,
   store,
   conversations,
+  llm,
+  requestTimeout = REQUEST_TIMEOUT,
 }: {
   embed: EmbedFunc;
   store: EmbeddedContentStore;
   dataStreamer: DataStreamerServiceInterface;
   conversations: ConversationsServiceInterface;
+  llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
+  requestTimeout?: number;
 }): Promise<Express> => {
   const app = express();
-  app.use(timeout(REQUEST_TIMEOUT));
+  app.use(makeHandleTimeoutMiddleware(requestTimeout));
   // TODO: consider only serving this from the staging env
   app.use(cors()); // TODO: add specific options to only allow certain origins
   app.use(express.json());
   app.use(reqHandler);
-  app.use(haltOnTimedOut);
   app.use(express.static("static"));
-  app.use(haltOnTimedOut);
   app.use(
     "/conversations",
     makeConversationsRouter({
@@ -85,7 +95,6 @@ export const makeApp = async ({
       conversations,
     })
   );
-  app.use(haltOnTimedOut);
   app.all("*", (_req, res, _next) => {
     return sendErrorResponse(res, 404, "Not Found");
   });

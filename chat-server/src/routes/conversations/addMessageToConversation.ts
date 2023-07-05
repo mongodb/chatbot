@@ -281,7 +281,7 @@ export function generateFurtherReading({
   if (chunks.length === 0) {
     return "";
   }
-  const heading = hasHeading ? "\n\nFurther Reading:\n" : "";
+  const heading = hasHeading ? "\n\nFurther Reading:\n\n" : "";
   const uniqueLinks = Array.from(new Set(chunks.map((chunk) => chunk.url)));
 
   const linksText =

@@ -62,7 +62,6 @@ describe("App", () => {
       dataStreamer,
       llm,
       findNearestNeighborsOptions: {
-        // Default options
         indexName: "default",
         path: "embedding",
         k: 3,

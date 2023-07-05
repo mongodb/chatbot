@@ -44,7 +44,7 @@ export function makeOpenAiLlm({
 }: MakeOpenAiLlmParams): Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse> {
   const openAiChatClient = new OpenAiChatClient(baseUrl, deployment, apiKey);
   return {
-    // NOTE: for streaming implementation, see // NOTE: for example streaming data, see https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
+    // NOTE: for example streaming data, see https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
     async answerQuestionStream({
       messages,
       chunks,

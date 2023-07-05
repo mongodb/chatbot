@@ -1,5 +1,8 @@
 import * as Path from "path";
+import * as url from "url";
 import { makeSnootyDataSource } from "./SnootyDataSource";
+
+const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
 describe("SnootyDataSource", () => {
   it("successfully loads pages", async () => {

@@ -1,4 +1,4 @@
-import * as yargs from "yargs";
+import yargs from "yargs";
 
 import "dotenv/config";
 
@@ -19,7 +19,7 @@ function commandDir<T>(
 }
 
 async function main() {
-  const argv = commandDir(yargs.help(), "commands").demandCommand();
+  const argv = commandDir(yargs(), "commands").demandCommand();
 
   // Accessing this property executes CLI
   argv.argv;

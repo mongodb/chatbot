@@ -4,6 +4,7 @@ import { makeDevCenterDataSource } from "./DevCenterDataSource";
 import "dotenv/config";
 
 describe("DevCenterDataSource", () => {
+  jest.setTimeout(20000);
   it("loads pages from dev center", async () => {
     const { DEVCENTER_CONNECTION_URI } = process.env;
     assert(

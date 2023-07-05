@@ -10,12 +10,17 @@ type PagesCommandArgs = {
   source: string | string[];
 };
 
-const commandModule: CommandModule<PagesCommandArgs> = {
+const commandModule: CommandModule<
+  Record<string, unknown>,
+  PagesCommandArgs
+> = {
   command: "pages",
   builder(args) {
-    return args.string("source");
+    return args.string("source").demandOption("source");
   },
   handler: async ({ source }) => {
+    const requestedSources = new Set(Array.isArray(source) ? source : [source]);
+
     const {
       DEVCENTER_CONNECTION_URI,
       MONGODB_CONNECTION_URI,
@@ -45,9 +50,20 @@ const commandModule: CommandModule<PagesCommandArgs> = {
       baseUrl: "https://www.mongodb.com/developer",
     });
 
+    const sources = [...snootySources, devCenterSource].filter(({ name }) =>
+      requestedSources.has(name)
+    );
+
+    if (sources.length === 0) {
+      console.error("Request at least one source.");
+      return;
+    }
+
+    console.log(`Loaded sources:\n${sources.map(({ name }) => `- ${name}\n`)}`);
+
     try {
       await updatePages({
-        sources: [...snootySources, devCenterSource],
+        sources,
         pageStore,
       });
     } catch (error) {

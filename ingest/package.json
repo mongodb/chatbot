@@ -22,6 +22,7 @@
     "@types/deep-equal": "^1.0.1",
     "@types/jest": "^26",
     "@types/node": "^12",
+    "@types/node-fetch": "^2.6.4",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
     "eslint": "^8",

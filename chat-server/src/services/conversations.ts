@@ -53,13 +53,23 @@ export interface ConversationsServiceInterface {
     content,
     role,
   }: AddConversationMessageParams) => Promise<Message>;
-  findById: ({ _id }: FindByIdParams) => Promise<Conversation>;
+  findById: ({ _id }: FindByIdParams) => Promise<Conversation | null>;
   rateMessage: ({
     conversationId,
     messageId,
     rating,
   }: RateMessageParams) => Promise<boolean>;
 }
+
+export const conversationConstants = {
+  NO_RELEVANT_CONTENT: `Unfortunately, I do not know how to respond to your message.
+
+Please try to rephrase your message. Adding more details can help me respond with a relevant answer.`,
+  LLM_NOT_WORKING: `Unfortunately, my chat functionality is not working at the moment,
+so I cannot respond to your message. Please try again later.
+
+However, here are some links that might provide some helpful information for your message:`,
+};
 
 export class ConversationsService implements ConversationsServiceInterface {
   private database: Db;
@@ -119,9 +129,6 @@ export class ConversationsService implements ConversationsServiceInterface {
 
   async findById({ _id }: FindByIdParams) {
     const conversation = await this.conversationsCollection.findOne({ _id });
-    if (!conversation) {
-      throw new Error("Conversation not found");
-    }
     return conversation;
   }
 

@@ -10,6 +10,7 @@ import {
 } from "chat-core";
 import { ConversationsService } from "./services/conversations";
 import { DataStreamerService } from "./services/dataStreamer";
+import { makeOpenAiLlm } from "./services/llm";
 
 const PORT = process.env.PORT || 3000;
 
@@ -22,6 +23,7 @@ const startServer = async () => {
     OPENAI_API_KEY,
     OPENAI_EMBEDDING_DEPLOYMENT,
     OPENAI_EMBEDDING_MODEL_VERSION,
+    OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   } = assertEnvVars(CORE_ENV_VARS);
 
   // Create instances of services
@@ -31,13 +33,20 @@ const startServer = async () => {
     VECTOR_SEARCH_INDEX_NAME
   );
 
-  const conversationsService = new ConversationsService(mongodb.db);
+  const conversations = new ConversationsService(mongodb.db);
   const dataStreamer = new DataStreamerService();
 
   const store = await makeDatabaseConnection({
     connectionUri: MONGODB_CONNECTION_URI,
     databaseName: MONGODB_DATABASE_NAME,
   });
+
+  const findNearestNeighborsOptions = {
+    k: 5,
+    path: "embedding",
+    indexName: VECTOR_SEARCH_INDEX_NAME,
+    minScore: 0.9,
+  };
 
   const embed = makeOpenAiEmbedFunc({
     apiKey: OPENAI_API_KEY,
@@ -46,11 +55,19 @@ const startServer = async () => {
     deployment: OPENAI_EMBEDDING_DEPLOYMENT,
   });
 
+  const llm = makeOpenAiLlm({
+    apiKey: OPENAI_API_KEY,
+    deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    baseUrl: OPENAI_ENDPOINT,
+  });
+
   const app = await makeApp({
     embed,
     store,
-    conversationsService,
+    conversations,
     dataStreamer,
+    llm,
+    findNearestNeighborsOptions,
   });
 
   const server = app.listen(PORT, () => {

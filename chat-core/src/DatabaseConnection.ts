@@ -96,7 +96,7 @@ export const makeDatabaseConnection = async ({
         indexName: "default",
         path: "embedding",
         k: 3,
-        minScore: 0.5,
+        minScore: 0.9,
 
         // User options override
         ...(options ?? {}),

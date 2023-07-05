@@ -1,9 +1,12 @@
+data
+
+build/
+
 .env*
 !.env.example
 .secrets*
-dist/
+
 node_modules/
 
 static/**/*
 !static/.gitinclude
-seed-content/**/*.json

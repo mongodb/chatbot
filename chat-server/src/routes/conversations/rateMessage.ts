@@ -1,4 +1,5 @@
 import { ObjectId } from "mongodb";
+import { strict as assert } from "assert";
 import {
   Conversation,
   ConversationsServiceInterface,
@@ -51,11 +52,13 @@ export function makeRateMessageRoute({
         return sendErrorResponse(res, 400, "Invalid message ID");
       }
 
-      let conversationInDb: Conversation;
+      let conversationInDb: Conversation | null;
       try {
         conversationInDb = await conversations.findById({
           _id: conversationId,
         });
+
+        assert(conversationInDb);
       } catch (err) {
         return sendErrorResponse(res, 404, "Conversation not found");
       }

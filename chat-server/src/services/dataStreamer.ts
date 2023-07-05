@@ -1,25 +1,25 @@
-// TODO: understand what's happening here
 import { Response } from "express";
-import { Conversation } from "./conversations";
-import { Content } from "chat-core";
 import { OpenAiStreamingResponse } from "./llm";
-
-interface AnswerParams {
-  res: Response;
-  answerStream: OpenAiStreamingResponse;
-  furtherReading?: string;
-  // conversation: Conversation;
-  // chunks: Content[];
-}
 
 function escapeNewlines(str: string) {
   return str.replaceAll(`\n`, `\\n`);
 }
 
+interface AnswerParams {
+  res: Response;
+  answerStream: OpenAiStreamingResponse;
+  furtherReading?: string;
+}
+
 export interface DataStreamerServiceInterface {
   answer(params: AnswerParams): Promise<string>;
 }
-export class DataStreamerService {
+
+export class DataStreamerService implements DataStreamerServiceInterface {
+  static sendDataEvent({ res, data }: { res: Response; data: object }) {
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  }
+
   // NOTE: for example streaming data, see https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
   async answer({ res, answerStream, furtherReading }: AnswerParams) {
     res.setHeader("Cache-Control", "no-cache");

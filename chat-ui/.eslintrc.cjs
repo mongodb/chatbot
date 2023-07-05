@@ -3,14 +3,15 @@ module.exports = {
     browser: true,
     es2020: true,
   },
+  root: true,
+  parser: "@typescript-eslint/parser",
   extends: [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:react-hooks/recommended",
-    "prettier",
     "plugin:storybook/recommended",
+    "prettier",
   ],
-  parser: "@typescript-eslint/parser",
   parserOptions: {
     ecmaVersion: "latest",
     sourceType: "module",

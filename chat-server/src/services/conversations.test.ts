@@ -63,6 +63,12 @@ describe("Conversations Service", () => {
     });
     expect(conversationInDb).toStrictEqual(conversation);
   });
+  test("Should return null if cannot find a conversation by id", async () => {
+    const conversationInDb = await conversationsService.findById({
+      _id: new BSON.ObjectId(),
+    });
+    expect(conversationInDb).toBeNull();
+  });
   test("Should rate a message", async () => {
     const ipAddress = new BSON.UUID().toString();
     const conversation = await conversationsService.create({

@@ -1,5 +1,6 @@
 import { MongoClient, Db } from "mongodb";
 
+// TODO: Remove MongoDB implementation and replace uses of it with the "Store" pattern (see EmbeddedContentStore)
 interface MongoDBInterface {
   mongoClient: MongoClient;
   db: Db;

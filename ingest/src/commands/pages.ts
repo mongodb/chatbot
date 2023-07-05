@@ -1,21 +1,31 @@
 import { CommandModule } from "yargs";
+import { assertEnvVars, makeDatabaseConnection } from "chat-core";
 import { updatePages } from "../updatePages";
 import { makeSnootyDataSource } from "../SnootyDataSource";
 import { makeDevCenterDataSource } from "../DevCenterDataSource";
 import { snootyProjects } from "../snootyProjects";
+import { INGEST_ENV_VARS } from "../IngestEnvVars";
 
-// TODO: Option for which data source
-type PagesCommandArgs = Record<string, never>;
+type PagesCommandArgs = {
+  source: string | string[];
+};
 
 const commandModule: CommandModule<PagesCommandArgs> = {
   command: "pages",
-  handler: async (args) => {
-    const { DEVCENTER_CONNECTION_URI } = process.env;
-    if (!DEVCENTER_CONNECTION_URI) {
-      throw new Error(
-        `missing env var: DEVCENTER_CONNECTION_URI. Did you copy .env.example and fill it out?`
-      );
-    }
+  builder(args) {
+    return args.string("source");
+  },
+  handler: async ({ source }) => {
+    const {
+      DEVCENTER_CONNECTION_URI,
+      MONGODB_CONNECTION_URI,
+      MONGODB_DATABASE_NAME,
+    } = assertEnvVars(INGEST_ENV_VARS);
+
+    const pageStore = await makeDatabaseConnection({
+      connectionUri: MONGODB_CONNECTION_URI,
+      databaseName: MONGODB_DATABASE_NAME,
+    });
 
     const snootySources = await Promise.all(
       snootyProjects.map(({ project, baseUrl }) =>
@@ -38,16 +48,7 @@ const commandModule: CommandModule<PagesCommandArgs> = {
     try {
       await updatePages({
         sources: [...snootySources, devCenterSource],
-
-        // TODO: PageStore is a stand-in for Atlas (but can be mocked for testing)
-        pageStore: {
-          async loadPages() {
-            return [];
-          },
-          async updatePages() {
-            return;
-          },
-        },
+        pageStore,
       });
     } catch (error) {
       console.error(error);

@@ -1,5 +1,5 @@
 import deepEqual from "deep-equal";
-import { Page, PersistedPage } from "./updatePages";
+import { Page, PersistedPage } from "chat-core";
 
 /**
   Given sets of old and new pages, returns the pages that need to be created,

@@ -51,6 +51,8 @@ const commandModule: CommandModule<
     } catch (error) {
       console.error(error);
       process.exit(1);
+    } finally {
+      await store.close();
     }
   },
   describe: "Update embedded content data from pages",

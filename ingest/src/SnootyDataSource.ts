@@ -134,7 +134,7 @@ const handlePage = async (
   }
 ): Promise<Page> => {
   return {
-    url: page.page_id,
+    url: `${baseUrl}/${page.page_id}`,
     sourceName,
     body: snootyAstToMd(page.ast, { baseUrl }),
     format: "md",

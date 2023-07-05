@@ -27,11 +27,6 @@ const commandModule: CommandModule<
       MONGODB_DATABASE_NAME,
     } = assertEnvVars(INGEST_ENV_VARS);
 
-    const pageStore = await makeDatabaseConnection({
-      connectionUri: MONGODB_CONNECTION_URI,
-      databaseName: MONGODB_DATABASE_NAME,
-    });
-
     const snootySources = await Promise.all(
       snootyProjects.map(({ project, baseUrl }) =>
         makeSnootyDataSource({
@@ -50,18 +45,31 @@ const commandModule: CommandModule<
       baseUrl: "https://www.mongodb.com/developer",
     });
 
-    const sources = [...snootySources, devCenterSource].filter(({ name }) =>
+    // TODO: This could be externalized
+    const availableSources = [...snootySources, devCenterSource];
+
+    const sources = availableSources.filter(({ name }) =>
       requestedSources.has(name)
     );
 
-    if (sources.length === 0) {
-      console.error("Request at least one source.");
-      return;
-    }
-
-    console.log(`Loaded sources:\n${sources.map(({ name }) => `- ${name}\n`)}`);
+    const pageStore = await makeDatabaseConnection({
+      connectionUri: MONGODB_CONNECTION_URI,
+      databaseName: MONGODB_DATABASE_NAME,
+    });
 
     try {
+      if (sources.length === 0) {
+        throw new Error(
+          `Request at least one valid source. Available sources:\n${availableSources
+            .map(({ name }) => `- ${name}`)
+            .join("\n")}`
+        );
+      }
+
+      console.log(
+        `Loaded sources:\n${sources.map(({ name }) => `- ${name}`).join("\n")}`
+      );
+
       await updatePages({
         sources,
         pageStore,
@@ -69,6 +77,8 @@ const commandModule: CommandModule<
     } catch (error) {
       console.error(error);
       process.exit(1);
+    } finally {
+      await pageStore.close();
     }
   },
   describe: "Update pages data from sources",

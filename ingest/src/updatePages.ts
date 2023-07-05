@@ -13,14 +13,16 @@ export const updatePages = async ({
   sources: DataSource[];
   pageStore: PageStore;
 }): Promise<void> => {
-  for await (const source of sources) {
-    const pages = await source.fetchPages();
-    await persistPages({
-      pages,
-      store: pageStore,
-      sourceName: source.name,
-    });
-  }
+  await Promise.all(
+    sources.map(async (source) => {
+      const pages = await source.fetchPages();
+      await persistPages({
+        pages,
+        store: pageStore,
+        sourceName: source.name,
+      });
+    })
+  );
 };
 
 /**

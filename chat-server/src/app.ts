@@ -30,7 +30,6 @@ import {
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   const status = err.status || 500;
 
-  // TODO: what does res.headersSent do?
   if (!res.headersSent) {
     return sendErrorResponse(
       res,

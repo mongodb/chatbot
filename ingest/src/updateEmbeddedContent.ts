@@ -3,9 +3,9 @@ import {
   EmbeddedContent,
   EmbeddedContentStore,
   PersistedPage,
-  Page,
   PageStore,
 } from "chat-core";
+import { chunkPage } from "./chunkPage";
 
 /**
   (Re-)embeddedContent the pages in the page store that have changed since the given date
@@ -58,7 +58,7 @@ export const updateEmbeddedContentForPage = async ({
     contentChunks.map(async (chunk): Promise<EmbeddedContent> => {
       const { embedding } = await embed({
         text: chunk.text,
-        userIp: "",
+        userIp: "127.0.0.1",
       });
       return {
         ...chunk,
@@ -72,10 +72,4 @@ export const updateEmbeddedContentForPage = async ({
     page,
     embeddedContent,
   });
-};
-
-export type ContentChunk = Omit<EmbeddedContent, "embedding" | "updated">;
-
-export const chunkPage = async (page: Page): Promise<ContentChunk[]> => {
-  return [];
 };

@@ -17,9 +17,9 @@ const commandModule: CommandModule<
 > = {
   command: "embed",
   builder(args) {
-    return args.string("since");
+    return args.string("since").demandOption("since"); // TODO: Option for specific source?
   },
-  async handler({ since }) {
+  async handler({ since: sinceIn }) {
     const {
       MONGODB_CONNECTION_URI,
       MONGODB_DATABASE_NAME,
@@ -36,6 +36,10 @@ const commandModule: CommandModule<
       deployment: OPENAI_EMBEDDING_DEPLOYMENT,
     });
 
+    const since = new Date(sinceIn);
+
+    console.log(`Embedding pages updated since ${since}`);
+
     const store = await makeDatabaseConnection({
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
@@ -43,14 +47,11 @@ const commandModule: CommandModule<
 
     try {
       await updateEmbeddedContent({
-        since: new Date(since),
+        since,
         pageStore: store,
         embeddedContentStore: store,
         embed,
       });
-    } catch (error) {
-      console.error(error);
-      process.exit(1);
     } finally {
       await store.close();
     }

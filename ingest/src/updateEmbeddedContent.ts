@@ -4,6 +4,7 @@ import {
   EmbeddedContentStore,
   PersistedPage,
   PageStore,
+  logger,
 } from "chat-core";
 import { chunkPage, ChunkOptions } from "./chunkPage";
 
@@ -25,25 +26,32 @@ export const updateEmbeddedContent = async ({
   chunkOptions?: Partial<ChunkOptions>;
 }): Promise<void> => {
   const changedPages = await pageStore.loadPages({ updated: since });
-
-  const promises = changedPages.map(async (page) => {
+  logger.info(`Found ${changedPages.length} changed pages since ${since}`);
+  for await (const page of changedPages) {
     switch (page.action) {
       case "deleted":
-        return await embeddedContentStore.deleteEmbeddedContent({
+        logger.info(
+          `Deleting embedded content for ${page.sourceName}:${page.url}`
+        );
+        await embeddedContentStore.deleteEmbeddedContent({
           page,
         });
+        break;
       case "created": // fallthrough
       case "updated":
-        return updateEmbeddedContentForPage({
+        logger.info(
+          `${
+            page.action === "created" ? "Creating" : "Updating"
+          } embedded content for ${page.sourceName}:${page.url}`
+        );
+        await updateEmbeddedContentForPage({
           store: embeddedContentStore,
           page,
           chunkOptions,
           embed,
         });
     }
-  });
-
-  await Promise.all(promises);
+  }
 };
 
 export const updateEmbeddedContentForPage = async ({

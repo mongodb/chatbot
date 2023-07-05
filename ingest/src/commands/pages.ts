@@ -74,9 +74,6 @@ const commandModule: CommandModule<
         sources,
         pageStore,
       });
-    } catch (error) {
-      console.error(error);
-      process.exit(1);
     } finally {
       await pageStore.close();
     }

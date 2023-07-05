@@ -77,7 +77,7 @@ export const makeApp = async ({
   conversations: ConversationsServiceInterface;
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   requestTimeout?: number;
-  findNearestNeighborsOptions: FindNearestNeighborsOptions;
+  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
 }): Promise<Express> => {
   const app = express();
   app.use(makeHandleTimeoutMiddleware(requestTimeout));

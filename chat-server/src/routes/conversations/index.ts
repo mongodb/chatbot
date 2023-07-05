@@ -20,7 +20,7 @@ export interface ConversationsRouterParams<T, U> {
   dataStreamer: DataStreamerServiceInterface;
   store: EmbeddedContentStore;
   conversations: ConversationsServiceInterface;
-  findNearestNeighborsOptions: FindNearestNeighborsOptions;
+  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
 }
 
 export function makeConversationsRouter({

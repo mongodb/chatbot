@@ -52,7 +52,7 @@ export interface AddMessageToConversationRouteParams {
   embed: EmbedFunc;
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   dataStreamer: DataStreamerServiceInterface;
-  findNearestNeighborsOptions: FindNearestNeighborsOptions;
+  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
 }
 
 export function makeAddMessageToConversationRoute({
@@ -284,11 +284,12 @@ export function generateFurtherReading({
   const heading = hasHeading ? "\n\nFurther Reading:\n\n" : "";
   const uniqueLinks = Array.from(new Set(chunks.map((chunk) => chunk.url)));
 
-  const linksText =
-    uniqueLinks.reduce((acc, link) => {
-      const linkListItem = `[${link}](${link}?tck=docs_chatbot)\n`;
-      return acc + linkListItem;
-    }, "") + "\n";
+  const linksText = uniqueLinks.reduce((acc, link) => {
+    const url = new URL(link);
+    url.searchParams.append("tck", "docs_chatbot");
+    const linkListItem = `[${url.origin + url.pathname}](${url.href})\n\n`;
+    return acc + linkListItem;
+  }, "");
   return heading + linksText;
 }
 

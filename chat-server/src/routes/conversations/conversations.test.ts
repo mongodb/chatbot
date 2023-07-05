@@ -577,7 +577,7 @@ describe("Conversations Router", () => {
             chunks: oneChunk,
           });
           const url = oneChunk[0].url;
-          const expectedOneFurtherReading = `\n\nFurther Reading:\n[${url}](${url}${tck})\n\n`;
+          const expectedOneFurtherReading = `\n\nFurther Reading:\n\n[${url}](${url}${tck})\n\n`;
           expect(oneFurtherReading).toEqual(expectedOneFurtherReading);
         });
         test("Multiple sources from same page should return one link", () => {
@@ -586,7 +586,7 @@ describe("Conversations Router", () => {
             chunks: twoChunksSamePage,
           });
           const url = twoChunksSamePage[0].url;
-          const expectedOneFurtherReadingSamePage = `\n\nFurther Reading:\n[${url}](${url}${tck})\n\n`;
+          const expectedOneFurtherReadingSamePage = `\n\nFurther Reading:\n\n[${url}](${url}${tck})\n\n`;
           expect(oneFurtherReadingSamePage).toEqual(
             expectedOneFurtherReadingSamePage
           );
@@ -600,7 +600,7 @@ describe("Conversations Router", () => {
             twoChunksDifferentPage[0].url,
             twoChunksDifferentPage[1].url,
           ];
-          const expectedMultipleFurtherReadingDifferentPage = `\n\nFurther Reading:\n[${url1}](${url1}${tck})\n[${url2}](${url2}${tck})\n\n`;
+          const expectedMultipleFurtherReadingDifferentPage = `\n\nFurther Reading:\n\n[${url1}](${url1}${tck})\n\n[${url2}](${url2}${tck})\n\n`;
           expect(multipleFurtherReadingDifferentPage).toEqual(
             expectedMultipleFurtherReadingDifferentPage
           );
@@ -613,7 +613,7 @@ describe("Conversations Router", () => {
             threeChunks[0].url,
             threeChunks[2].url,
           ];
-          const expectedMultipleSourcesWithSomePageOverlap = `\n\nFurther Reading:\n[${otherUrl1}](${otherUrl1}${tck})\n[${otherUrl2}](${otherUrl2}${tck})\n\n`;
+          const expectedMultipleSourcesWithSomePageOverlap = `\n\nFurther Reading:\n\n[${otherUrl1}](${otherUrl1}${tck})\n\n[${otherUrl2}](${otherUrl2}${tck})\n\n`;
           expect(multipleSourcesWithSomePageOverlap).toEqual(
             expectedMultipleSourcesWithSomePageOverlap
           );

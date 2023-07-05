@@ -27,6 +27,15 @@ describe("Embeddings", () => {
   });
   test("Should return an error if the input too large", async () => {
     const input = "Hello world! ".repeat(8192);
+    const embed = makeOpenAiEmbedFunc({
+      baseUrl: OPENAI_ENDPOINT,
+      apiKey: OPENAI_API_KEY,
+      apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
+      deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+      backoffOptions: {
+        numOfAttempts: 1,
+      },
+    });
     await expect(
       embed({
         text: input,

@@ -42,6 +42,7 @@ export const chunkPage = async (
 
   return chunks.map(
     ({ pageContent }): ContentChunk => ({
+      // TODO: Add chunkIndex to this document
       sourceName: page.sourceName,
       url: page.url,
       text: pageContent,

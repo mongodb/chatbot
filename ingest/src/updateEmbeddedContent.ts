@@ -5,7 +5,7 @@ import {
   PersistedPage,
   PageStore,
 } from "chat-core";
-import { chunkPage } from "./chunkPage";
+import { chunkPage, ChunkOptions } from "./chunkPage";
 
 /**
   (Re-)embeddedContent the pages in the page store that have changed since the given date
@@ -16,11 +16,13 @@ export const updateEmbeddedContent = async ({
   embeddedContentStore,
   pageStore,
   embed,
+  chunkOptions,
 }: {
   since: Date;
   embeddedContentStore: EmbeddedContentStore;
   pageStore: PageStore;
   embed: EmbedFunc;
+  chunkOptions?: Partial<ChunkOptions>;
 }): Promise<void> => {
   const changedPages = await pageStore.loadPages({ updated: since });
 
@@ -35,6 +37,7 @@ export const updateEmbeddedContent = async ({
         return updateEmbeddedContentForPage({
           store: embeddedContentStore,
           page,
+          chunkOptions,
           embed,
         });
     }
@@ -47,12 +50,14 @@ export const updateEmbeddedContentForPage = async ({
   page,
   store,
   embed,
+  chunkOptions,
 }: {
   page: PersistedPage;
   store: EmbeddedContentStore;
   embed: EmbedFunc;
+  chunkOptions?: Partial<ChunkOptions>;
 }): Promise<void> => {
-  const contentChunks = await chunkPage(page);
+  const contentChunks = await chunkPage(page, chunkOptions);
 
   const embeddedContent = await Promise.all(
     contentChunks.map(async (chunk): Promise<EmbeddedContent> => {

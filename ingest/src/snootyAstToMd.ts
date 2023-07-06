@@ -91,6 +91,10 @@ export const snootyAstToMd = (
         .join("")}**`;
       break;
 
+    case "target":
+      // Ignore targets as they are not rendered
+      break;
+
     default:
       text += node.children
         .map((subnode) => snootyAstToMd(subnode, options, parentHeadingLevel))

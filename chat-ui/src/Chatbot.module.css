@@ -22,11 +22,9 @@
 }
 
 .chatbot_container {
-  position: absolute;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  width: 100%;
 }
 
 .chat {
@@ -109,41 +107,43 @@
   justify-content: center;
 }
 
-@media screen and (min-width: 769px) {
+/* @media screen and (min-width: var(--breakpoint-medium)) { */
+@media screen and (min-width: 768px) {
   .card-enter {
     width: 100%;
-    background-color: red;
   }
   .card-enter-active {
     width: 100%;
-    background-color: red;
   }
 }
 
-@media screen and (max-width: 768px) and (min-width: 481px) {
+/* @media screen and (max-width: var(--breakpoint-medium)) and (min-width: var(--breakpoint-small)) { */
+@media screen and (max-width: 767px) {
   .chatbot_container {
     position: absolute;
     top: 0;
     right: 0;
     bottom: 0;
     left: 0;
+    box-sizing: border-box;
     padding: 1rem;
+    background: #ffffff80;
+  }
+  .card {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
   }
   .card-enter {
+    border-top-left-radius: 24px;
   }
   .card-enter-active {
+    border-top-left-radius: 24px;
   }
 }
 
 @media screen and (max-width: 480px) {
-  .chatbot_container {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    padding: 1rem;
-  }
   .card-enter {
     flex-grow: 1;
   }

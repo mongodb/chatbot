@@ -247,44 +247,58 @@ export default function Chatbot() {
   };
 
   const cardBoundingBoxRef = useClickAway(() => {
-    console.log("click away");
     setActive(false);
   });
 
   const cardRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className={styles.chatbot_container} ref={cardBoundingBoxRef}>
-      <>
-        <CSSTransition
-          nodeRef={cardRef}
-          in={active}
-          timeout={{
-            enter: 250,
-            exit: 200,
-          }}
-          classNames={{
-            enterActive: styles["card-enter"],
-            enterDone: styles["card-enter-active"],
-            exitActive: styles["card-exit"],
-            exitDone: styles["card-exit-active"],
-          }}
-        >
-          <CTACard
-            cardRef={cardRef}
-            conversation={conversation}
-            active={active}
-            activate={activate}
-            deactivate={deactivate}
-            inputText={inputText}
-            setInputText={setInputText}
-            inputTextError={inputTextError}
-            handleSubmit={handleSubmit}
-            awaitingReply={awaitingReply}
-          />
-        </CSSTransition>
-        {!active ? <Disclosure /> : null}
-      </>
-    </div>
+    <CSSTransition
+      nodeRef={cardBoundingBoxRef}
+      in={active}
+      timeout={{
+        enter: 250,
+        exit: 200,
+      }}
+      classNames={{
+        enterActive: styles["chatbot_container-enter"],
+        enterDone: styles["chatbot_container-enter-active"],
+        exitActive: styles["chatbot_container-exit"],
+        exitDone: styles["chatbot_container-exit-active"],
+      }}
+    >
+      <div className={styles.chatbot_container} ref={cardBoundingBoxRef}>
+        <>
+          <CSSTransition
+            nodeRef={cardRef}
+            in={active}
+            timeout={{
+              enter: 250,
+              exit: 200,
+            }}
+            classNames={{
+              enterActive: styles["card-enter"],
+              enterDone: styles["card-enter-active"],
+              exitActive: styles["card-exit"],
+              exitDone: styles["card-exit-active"],
+            }}
+          >
+            <CTACard
+              cardRef={cardRef}
+              conversation={conversation}
+              active={active}
+              activate={activate}
+              deactivate={deactivate}
+              inputText={inputText}
+              setInputText={setInputText}
+              inputTextError={inputTextError}
+              handleSubmit={handleSubmit}
+              awaitingReply={awaitingReply}
+            />
+          </CSSTransition>
+          {!active ? <Disclosure /> : null}
+        </>
+      </div>
+    </CSSTransition>
   );
 }

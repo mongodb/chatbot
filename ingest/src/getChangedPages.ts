@@ -9,13 +9,19 @@ export const getChangedPages = async ({
   oldPages: oldPagesIn,
   newPages: newPagesIn,
 }: {
-  oldPages: Page[];
+  // Need to know the 'action' of the old pages in order to restore in case of
+  // prior deletion
+  oldPages: Omit<PersistedPage, "updated">[];
   newPages: Page[];
-}): Promise<PersistedPage[]> => {
+}): Promise<{
+  deleted: PersistedPage[];
+  created: PersistedPage[];
+  updated: PersistedPage[];
+}> => {
   const oldPages = new Map(oldPagesIn.map((page) => [page.url, page]));
   const newPages = new Map(newPagesIn.map((page) => [page.url, page]));
 
-  const deletedPages = [...oldPages]
+  const deleted = [...oldPages]
     .filter(([url]) => !newPages.has(url))
     .map(
       ([, page]): PersistedPage => ({
@@ -25,8 +31,15 @@ export const getChangedPages = async ({
       })
     );
 
-  const createdPages = [...newPages]
-    .filter(([url]) => !oldPages.has(url))
+  const created = [...newPages]
+    .filter(([url]) => {
+      const oldPage = oldPages.get(url);
+      if (oldPage === undefined) {
+        return true;
+      }
+      // Was it formerly deleted? If so, restore
+      return oldPage.action === "deleted";
+    })
     .map(
       ([, page]): PersistedPage => ({
         ...page,
@@ -35,7 +48,7 @@ export const getChangedPages = async ({
       })
     );
 
-  const updatedPages = [...newPages]
+  const updated = [...newPages]
     .filter(([url, page]) => {
       const oldPage = oldPages.get(url);
       if (!oldPage) {
@@ -55,7 +68,7 @@ export const getChangedPages = async ({
       })
     );
 
-  return [...createdPages, ...deletedPages, ...updatedPages];
+  return { deleted, created, updated };
 };
 
 /**

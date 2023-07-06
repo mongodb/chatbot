@@ -40,16 +40,13 @@ export const persistPages = async ({
   const oldPages = await store.loadPages({ sourceName });
   logger.info(`${sourceName} had ${oldPages.length} in the store`);
 
-  const changedPages = await getChangedPages({
+  const { created, updated, deleted } = await getChangedPages({
     oldPages,
     newPages: pages,
   });
 
   logger.info(
-    `${changedPages.length} ${
-      changedPages.length === 1 ? "page has" : "pages have"
-    } changed`
+    `${deleted.length} deleted / ${created.length} created / ${updated.length} updated`
   );
-
-  await store.updatePages(changedPages);
+  await store.updatePages([...deleted, ...created, ...updated]);
 };

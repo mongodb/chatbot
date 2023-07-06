@@ -18,7 +18,7 @@ describe("SnootyDataSource", () => {
       format: "md",
       sourceName: "snooty",
       tags: [],
-      url: "docs/docsworker-xlarge/master/about",
+      url: "https://mongodb.com/docs/about",
       body: `# About MongoDB Documentation
 
 The MongoDB Manual contains
@@ -65,7 +65,7 @@ To report an issue with this manual or to make a change request, file
 a ticket at the
 MongoDB DOCS Project on Jira.
 
-Contribute to the Documentation
+
 
 ## Contribute to the Documentation
 

@@ -28,6 +28,9 @@ export type PersistedPage = Page & {
    */
   updated: Date;
 
+  /**
+    The action upon last update.
+   */
   action: PageAction;
 };
 

@@ -18,7 +18,6 @@ import {
 } from "chat-core";
 import { DataStreamerServiceInterface } from "./services/dataStreamer";
 import { ObjectId } from "mongodb";
-import { ConversationsService } from "./services/conversations";
 import { ConversationsServiceInterface } from "./services/conversations";
 import { sendErrorResponse } from "./utils";
 import {
@@ -112,5 +111,5 @@ export const makeApp = async ({
   });
   app.use(errorHandler);
 
-  return { app, mongodb };
+  return app;
 };

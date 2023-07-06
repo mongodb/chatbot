@@ -11,7 +11,7 @@ import {
 } from "express";
 import { sendErrorResponse } from "../../utils";
 import { logger } from "chat-core";
-import { isValidIp } from "./utils";
+import { areEquivalentIpAddresses, isValidIp } from "./utils";
 
 interface RatingRequest extends ExpressRequest {
   params: {
@@ -74,9 +74,7 @@ export function makeRateMessageRoute({
         return sendErrorResponse(res, 404, "Message not found");
       }
 
-      if (conversationInDb.ipAddress !== ip) {
-        console.log("CONVERSATION IP::", conversationInDb.ipAddress);
-        console.log("IP::", ip);
+      if (!areEquivalentIpAddresses(conversationInDb.ipAddress, ip)) {
         return sendErrorResponse(
           res,
           403,

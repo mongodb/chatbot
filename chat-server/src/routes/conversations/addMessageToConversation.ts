@@ -27,7 +27,12 @@ import {
   OpenAiAwaitedResponse,
   OpenAiStreamingResponse,
 } from "../../services/llm";
-import { ApiConversation, convertMessageFromDbToApi, isValidIp } from "./utils";
+import {
+  ApiConversation,
+  areEquivalentIpAddresses,
+  convertMessageFromDbToApi,
+  isValidIp,
+} from "./utils";
 import { sendErrorResponse } from "../../utils";
 
 export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
@@ -106,7 +111,8 @@ export function makeAddMessageToConversationRoute({
       if (!conversationInDb) {
         return sendErrorResponse(res, 404, "Conversation not found");
       }
-      if (conversationInDb.ipAddress !== ip) {
+      if (!areEquivalentIpAddresses(conversationInDb.ipAddress, ip)) {
+        console.table({ dbId: conversationInDb.ipAddress, ip });
         return sendErrorResponse(res, 403, "IP address does not match");
       }
 

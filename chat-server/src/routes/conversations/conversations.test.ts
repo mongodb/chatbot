@@ -47,6 +47,9 @@ import { makeApp } from "../../app";
 
 jest.setTimeout(100000);
 
+// ip address for local host
+const ipAddress = "127.0.0.1";
+
 describe("Conversations Router", () => {
   let memoryDbServer: DbServer;
 
@@ -189,6 +192,7 @@ describe("Conversations Router", () => {
     beforeEach(async () => {
       const createConversationRes = await request(app)
         .post("/conversations")
+        .set("X-FORWARDED-FOR", ipAddress)
         .send();
       const res: ApiConversation = createConversationRes.body;
       _id = res._id;
@@ -202,6 +206,7 @@ describe("Conversations Router", () => {
         };
         const res = await request(app)
           .post(endpointUrl.replace(":conversationId", _id))
+          .set("X-FORWARDED-FOR", ipAddress)
           .send(requestBody);
         const message: ApiMessage = res.body;
         expect(res.statusCode).toEqual(200);
@@ -237,6 +242,7 @@ describe("Conversations Router", () => {
         const notAValidId = "not-a-valid-id";
         const res = await request(app)
           .post(endpointUrl.replace(":conversationId", notAValidId))
+          .set("X-FORWARDED-FOR", ipAddress)
           .send({
             message: "hello",
           });
@@ -249,6 +255,7 @@ describe("Conversations Router", () => {
         const tooLongMessage = "a".repeat(MAX_INPUT_LENGTH + 1);
         const res = await request(app)
           .post(endpointUrl.replace(":conversationId", _id))
+          .set("X-FORWARDED-FOR", ipAddress)
           .send({
             message: tooLongMessage,
           });
@@ -261,6 +268,7 @@ describe("Conversations Router", () => {
         const anotherObjectId = new ObjectId().toHexString();
         const res = await request(app)
           .post(endpointUrl.replace(":conversationId", anotherObjectId))
+          .set("X-FORWARDED-FOR", ipAddress)
           .send({
             message: "hello",
           });
@@ -274,7 +282,7 @@ describe("Conversations Router", () => {
       });
       test("Should return 400 if number of messages in conversation exceeds limit", async () => {
         const { _id } = await conversations.create({
-          ipAddress: "<NOT CAPTURING IP ADDRESS YET>",
+          ipAddress,
         });
         // Init conversation with max length
         for await (const i of Array(MAX_MESSAGES_IN_CONVERSATION - 1)) {
@@ -287,6 +295,7 @@ describe("Conversations Router", () => {
         }
         const res = await request(app)
           .post(endpointUrl.replace(":conversationId", _id.toString()))
+          .set("X-Forwarded-For", ipAddress) // different IP address
           .send({
             message: "hello",
           });
@@ -308,6 +317,7 @@ describe("Conversations Router", () => {
 
         const res = await request(app)
           .post(endpointUrl.replace(":conversationId", _id))
+          .set("X-FORWARDED-FOR", ipAddress)
           .send({ message: "hello" });
         expect(res.statusCode).toEqual(500);
         expect(res.body).toStrictEqual({
@@ -337,6 +347,7 @@ describe("Conversations Router", () => {
         });
         const res = await request(app)
           .post(endpointUrl.replace(":conversationId", _id))
+          .set("X-FORWARDED-FOR", ipAddress)
           .send({ message: "hello" });
         expect(res.statusCode).toEqual(500);
         expect(res.body).toStrictEqual({
@@ -361,6 +372,7 @@ describe("Conversations Router", () => {
         });
         const res = await request(app)
           .post(endpointUrl.replace(":conversationId", _id))
+          .set("X-FORWARDED-FOR", ipAddress)
           .send({ message: "hello" });
         expect(res.statusCode).toEqual(500);
         expect(res.body).toStrictEqual({
@@ -374,7 +386,7 @@ describe("Conversations Router", () => {
         let conversationId: string;
         beforeAll(async () => {
           const { _id } = await conversations.create({
-            ipAddress: "<NOT CAPTURING IP ADDRESS YET>",
+            ipAddress,
           });
           conversationId = _id.toString();
         });
@@ -388,7 +400,7 @@ describe("Conversations Router", () => {
           );
           const response = await request(app)
             .post(calledEndpoint)
-
+            .set("X-FORWARDED-FOR", ipAddress)
             .send({ message: nonsenseMessage });
           expect(response.statusCode).toBe(200);
 
@@ -413,7 +425,7 @@ describe("Conversations Router", () => {
           const memoryMongo = new MongoDB(memoryDbServer.connectionUri, dbName);
           conversations = new ConversationsService(memoryMongo.db);
           const { _id } = await conversations.create({
-            ipAddress: "<NOT CAPTURING IP ADDRESS YET>",
+            ipAddress,
           });
           conversationId = _id;
           app = express();
@@ -436,6 +448,7 @@ describe("Conversations Router", () => {
             .post(
               endpointUrl.replace(":conversationId", conversationId.toString())
             )
+            .set("X-FORWARDED-FOR", ipAddress)
             .send({ message: messageThatHasSearchResults });
           expect(response.statusCode).toBe(200);
           expect(
@@ -454,7 +467,7 @@ describe("Conversations Router", () => {
         let conversationId: ObjectId;
         beforeAll(async () => {
           const { _id } = await conversations.create({
-            ipAddress: "someIpAddress",
+            ipAddress,
           });
           conversationId = _id;
         });
@@ -506,7 +519,6 @@ describe("Conversations Router", () => {
       });
 
       describe("getContentForText()", () => {
-        const ipAddress = "someIpAddress";
         test("Should return content for relevant text", async () => {
           const text = "MongoDB Atlas";
 
@@ -728,10 +740,8 @@ describe("Conversations Router", () => {
     const app = express();
     app.use(express.json()); // for parsing application/json
     app.set("trust proxy", true);
-    const ipAddress = "127.0.0.1";
 
     const testDbName = `conversations-test-${Date.now()}`;
-    const ipAddress = "<NOT CAPTURING IP ADDRESS YET>";
 
     let mongodb: MongoDB;
     let conversations: ConversationsService;
@@ -742,10 +752,12 @@ describe("Conversations Router", () => {
       mongodb = new MongoDB(MONGODB_CONNECTION_URI, testDbName);
       conversations = new ConversationsService(mongodb.db);
 
-      app.post(
-        "/conversations/:conversationId/messages/:messageId/rating",
-        makeRateMessageRoute({ conversations })
-      );
+      app
+        .post(
+          "/conversations/:conversationId/messages/:messageId/rating",
+          makeRateMessageRoute({ conversations })
+        )
+        .set("X-FORWARDED-FOR", ipAddress);
       conversation = await conversations.create({ ipAddress });
       testMsg = await conversations.addConversationMessage({
         conversationId: conversation._id,
@@ -783,6 +795,7 @@ describe("Conversations Router", () => {
         .post(
           `/conversations/123/messages/${conversation.messages[0].id}/rating`
         )
+        .set("X-FORWARDED-FOR", ipAddress)
         .send({ rating: true });
 
       expect(response.statusCode).toBe(400);
@@ -793,6 +806,7 @@ describe("Conversations Router", () => {
     test("Should return 400 for invalid message ID", async () => {
       const response = await request(app)
         .post(`/conversations/${testMsg.id}/messages/123/rating`)
+        .set("X-FORWARDED-FOR", ipAddress)
         .send({ rating: true });
 
       expect(response.statusCode).toBe(400);
@@ -807,6 +821,7 @@ describe("Conversations Router", () => {
             testMsg.id
           }/rating`
         )
+        .set("X-FORWARDED-FOR", ipAddress)
         .send({ rating: true });
 
       expect(response.statusCode).toBe(404);
@@ -821,6 +836,7 @@ describe("Conversations Router", () => {
             conversation._id
           }/messages/${new ObjectId().toHexString()}/rating`
         )
+        .set("X-FORWARDED-FOR", ipAddress)
         .send({ rating: true });
 
       expect(response.statusCode).toBe(404);
@@ -832,7 +848,6 @@ describe("Conversations Router", () => {
     // this test will need to be refactored.
     describe("IP address validation", () => {
       beforeEach(async () => {
-        const ipAddress = "127.0.0.1";
         assert(conversations);
 
         conversation = await conversations.create({ ipAddress });
@@ -843,40 +858,17 @@ describe("Conversations Router", () => {
         });
       });
       test("Should return 403 for different but valid IP address", async () => {
+        const differentIpAddress = "192.158.1.38";
         const response = await request(app)
           .post(
             `/conversations/${conversation._id}/messages/${testMsg.id}/rating`
           )
-          .set("X-Forwarded-For", "192.158.1.38") // different IP address
+          .set("X-Forwarded-For", differentIpAddress)
           .send({ rating: true });
 
         expect(response.statusCode).toBe(403);
         expect(response.body).toEqual({
           error: "Invalid IP address for conversation",
-
-       // TODO: See what's going on here
-       describe("IP address validation", () => {
-        beforeEach(async () => {
-          const ipAddress = "abc.123.xyz.456";
-          conversation = await conversations.create({ ipAddress });
-          testMsg = await conversations.addConversationMessage({
-            conversationId: conversation._id,
-            content: "hi",
-            role: "user",
-          });
-        });
-        test("Should return 403 for invalid IP address", async () => {
-          const response = await request(app)
-            .post(
-              `/conversations/${conversation._id}/messages/${testMsg.id}/rating`
-            )
-            .send({ rating: true });
-
-          expect(response.statusCode).toBe(403);
-          expect(response.body).toEqual({
-            error: "Invalid IP address for conversation",
-          });
-
         });
       });
     });

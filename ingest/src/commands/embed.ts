@@ -9,17 +9,15 @@ import { INGEST_ENV_VARS } from "../IngestEnvVars";
 
 type EmbeddedContentCommandArgs = {
   since: string;
+  source?: string;
 };
 
-const commandModule: CommandModule<
-  Record<string, unknown>,
-  EmbeddedContentCommandArgs
-> = {
+const commandModule: CommandModule<unknown, EmbeddedContentCommandArgs> = {
   command: "embed",
   builder(args) {
-    return args.string("since").demandOption("since"); // TODO: Option for specific source?
+    return args.string("since").string("source").demandOption("since");
   },
-  async handler({ since }) {
+  async handler({ since, source }) {
     const {
       MONGODB_CONNECTION_URI,
       MONGODB_DATABASE_NAME,
@@ -41,9 +39,17 @@ const commandModule: CommandModule<
       databaseName: MONGODB_DATABASE_NAME,
     });
 
+    const sourceNames =
+      source === undefined
+        ? undefined
+        : Array.isArray(source)
+        ? source
+        : [source];
+
     try {
       await updateEmbeddedContent({
         since: new Date(since),
+        sourceNames,
         pageStore: store,
         embeddedContentStore: store,
         embed,

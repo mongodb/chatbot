@@ -37,7 +37,7 @@ export const persistPages = async ({
   pages: Page[];
   sourceName: string;
 }): Promise<void> => {
-  const oldPages = await store.loadPages({ sourceName });
+  const oldPages = await store.loadPages({ sources: [sourceName] });
   logger.info(`${sourceName} had ${oldPages.length} in the store`);
 
   const { created, updated, deleted } = await getChangedPages({

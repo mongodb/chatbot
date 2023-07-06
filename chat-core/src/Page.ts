@@ -36,8 +36,18 @@ export type PersistedPage = Page & {
 
 export type PageStore = {
   loadPages(args?: {
+    /**
+      If specified, refines the query to load pages with an updated date later
+      or equal to the given date.
+     */
     updated?: Date;
-    sourceName?: string;
+
+    /**
+      The names of the sources to load pages from. If undefined, loads available
+      pages from all sources.
+     */
+    sources?: string[];
   }): Promise<PersistedPage[]>;
+
   updatePages(pages: PersistedPage[]): Promise<void>;
 };

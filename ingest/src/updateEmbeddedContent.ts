@@ -16,6 +16,7 @@ export const updateEmbeddedContent = async ({
   since,
   embeddedContentStore,
   pageStore,
+  sourceNames,
   embed,
   chunkOptions,
 }: {
@@ -24,9 +25,17 @@ export const updateEmbeddedContent = async ({
   pageStore: PageStore;
   embed: EmbedFunc;
   chunkOptions?: Partial<ChunkOptions>;
+  sourceNames?: string[];
 }): Promise<void> => {
-  const changedPages = await pageStore.loadPages({ updated: since });
-  logger.info(`Found ${changedPages.length} changed pages since ${since}`);
+  const changedPages = await pageStore.loadPages({
+    updated: since,
+    sources: sourceNames,
+  });
+  logger.info(
+    `Found ${changedPages.length} changed pages since ${since}${
+      sourceNames ? ` in sources: ${sourceNames.join(", ")}` : ""
+    }`
+  );
   for await (const page of changedPages) {
     switch (page.action) {
       case "deleted":

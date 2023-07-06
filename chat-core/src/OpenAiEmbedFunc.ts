@@ -59,6 +59,7 @@ export const makeOpenAiEmbedFunc = ({
   url.searchParams.append("api-version", apiVersion);
   return async ({ text, userIp }) => {
     return backOff(async () => {
+      console.log(url.toString());
       try {
         const { data } = await axios.post<CreateEmbeddingResponse>(
           url.toString(),

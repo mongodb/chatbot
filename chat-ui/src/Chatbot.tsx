@@ -84,8 +84,10 @@ function CTACard({
                     id: "streaming-message",
                     role: "assistant",
                     content: streamingMessage,
-                    createdAt: Date.now(),
+                    createdAt: String(Date.now()),
                   }}
+                  rateMessage={conversation.rateMessage}
+                  hideRating={true}
                 />
               ) : (
                 <Message role="assistant">

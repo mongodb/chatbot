@@ -91,10 +91,12 @@ export default class ConversationService {
     conversationId,
     message,
     onResponseDelta,
+    onResponseFinished,
   }: {
     conversationId: string;
     message: string;
     onResponseDelta: (delta: string) => void;
+    onResponseFinished: (message: MessageData) => void;
   }): Promise<void> {
     const path = `/conversations/${conversationId}/messages`;
 
@@ -112,9 +114,13 @@ export default class ConversationService {
       const e = event as ConversationStreamEvent;
       return (
         (e.type === "delta" && typeof e.data === "string") ||
-        (e.type === "finished" && typeof e.data.id === "string" && typeof e.data.role === "string" && typeof e.data.content === "string" && typeof e.data.createdAt === "string")
-      )
-    }
+        (e.type === "finished" &&
+          typeof e.data.id === "string" &&
+          typeof e.data.role === "string" &&
+          typeof e.data.content === "string" &&
+          typeof e.data.createdAt === "number")
+      );
+    };
 
     await fetchEventSource(this.getUrl(path, { stream: "true" }), {
       method: "POST",
@@ -135,6 +141,11 @@ export default class ConversationService {
           }
           case "finished": {
             moreToStream = false;
+            const formattedMessageData = {
+              ...event.data,
+              content: event.data.content.replaceAll(`\\n`, `\n`)
+            }
+            onResponseFinished(formattedMessageData);
             break;
           }
         }
@@ -162,7 +173,7 @@ export default class ConversationService {
         }
       },
       onclose() {
-        if(moreToStream) {
+        if (moreToStream) {
           throw new RetriableError("Chatbot stream closed unexpectedly");
         }
       },
@@ -173,6 +184,9 @@ export default class ConversationService {
           retryCount++ < maxRetries
         ) {
           return err.retryAfter;
+        }
+        if (err instanceof Error) {
+          throw new Error(err.message);
         }
         throw err; // rethrow to stop the operation
       },

@@ -26,7 +26,7 @@ type ConversationAction =
   | { type: "deleteMessage"; messageId: MessageData["id"] }
   | { type: "rateMessage"; messageId: MessageData["id"]; rating: boolean }
   | { type: "addToStreamingResponse"; data: string }
-  | { type: "finishStreamingResponse" };
+  | { type: "finishStreamingResponse"; completeMessage?: string };
 
 type ConversationActor = {
   createConversation: () => void;
@@ -134,22 +134,22 @@ function conversationReducer(
       return {
         ...state,
         streamingMessage: (state.streamingMessage ?? "") + action.data,
-      }
+      };
     }
     case "finishStreamingResponse": {
+      const completeMessage = action.completeMessage;
       const streamingMessage = state.streamingMessage;
-      if (!streamingMessage) {
+      if (!streamingMessage && !completeMessage) {
         console.error(
           `Cannot finishStreamingResponse without a streamingMessage`
         );
         return state;
       }
+      const messages = [...state.messages, completeMessage ?? streamingMessage];
+
       return {
         ...state,
-        messages: [
-          ...state.messages,
-          createMessage("assistant", streamingMessage),
-        ],
+        messages,
         streamingMessage: undefined,
       };
     }
@@ -163,6 +163,7 @@ function conversationReducer(
 export const defaultConversationState = {
   messages: [],
   error: "",
+  streamingMessage: undefined,
 } satisfies ConversationState;
 
 export default function useConversation() {
@@ -170,7 +171,6 @@ export default function useConversation() {
     conversationReducer,
     defaultConversationState
   );
-  // const dispatch = _dispatch;
   const dispatch = (...args: Parameters<typeof _dispatch>) => {
     // console.log(`dispatch`, ...args);
     _dispatch(...args);
@@ -217,8 +217,11 @@ export default function useConversation() {
           onResponseDelta: (data) => {
             dispatch({ type: "addToStreamingResponse", data });
           },
+          onResponseFinished: (message) => {
+            dispatch({ type: "finishStreamingResponse", completeMessage: message });
+          },
         });
-        dispatch({ type: "finishStreamingResponse" });
+        // dispatch({ type: "finishStreamingResponse" });
       } else {
         const response = await conversationService.addMessage({
           conversationId: state.conversationId,

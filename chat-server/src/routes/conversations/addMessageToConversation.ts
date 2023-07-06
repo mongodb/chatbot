@@ -19,7 +19,7 @@ import {
   Message,
   conversationConstants,
 } from "../../services/conversations";
-import { DataStreamerServiceInterface } from "../../services/dataStreamer";
+import { DataStreamerService } from "../../services/dataStreamer";
 
 import {
   Llm,
@@ -50,7 +50,7 @@ export interface AddMessageToConversationRouteParams {
   conversations: ConversationsServiceInterface;
   embed: EmbedFunc;
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
-  dataStreamer: DataStreamerServiceInterface;
+  dataStreamer: DataStreamerService;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
 }
 
@@ -94,19 +94,23 @@ export function makeAddMessageToConversationRoute({
         return sendErrorResponse(res, 400, "Message too long");
       }
 
-      // let conversationInDb: Conversation | null;
-      let conversationInDb: Conversation;
+      let conversationInDb: Conversation | null;
       try {
         conversationInDb = await conversations.findById({
           _id: conversationId,
         });
       } catch (err) {
-        return sendErrorResponse(res, 500, "Error finding conversation");
+        return sendErrorResponse(
+          res,
+          500,
+          "Internal error while finding conversation"
+        );
       }
 
       if (!conversationInDb) {
         return sendErrorResponse(res, 404, "Conversation not found");
       }
+
       if (conversationInDb.ipAddress !== ipAddress) {
         return sendErrorResponse(res, 403, "IP address does not match");
       }
@@ -149,7 +153,20 @@ export function makeAddMessageToConversationRoute({
           assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,
         });
         const apiRes = convertMessageFromDbToApi(assistantMessage);
-        res.status(200).json(apiRes);
+        if (shouldStream) {
+          dataStreamer.setServerSentEventHeaders(res);
+          dataStreamer.sendData({
+            res,
+            data: {
+              type: "finished",
+              data: apiRes,
+            },
+          });
+          res.end();
+          return;
+        } else {
+          return res.status(200).json(apiRes);
+        }
       }
 
       const furtherReading = generateFurtherReading({ chunks });
@@ -165,12 +182,6 @@ export function makeAddMessageToConversationRoute({
         ...conversationInDb.messages.map(convertDbMessageToOpenAiMessage),
         latestMessage,
       ] satisfies OpenAiChatMessage[];
-
-      // Get (but don't await, yet) a Promise for the user message db insert
-      const addUserMessagePromise = conversations.addConversationMessage({
-        conversationId: conversationInDb._id,
-        ...latestMessage,
-      });
 
       let answerContent;
       if (shouldStream) {
@@ -203,7 +214,6 @@ export function makeAddMessageToConversationRoute({
           const errorMessage =
             err instanceof Error ? err.message : JSON.stringify(err as object);
           logger.error("Error from LLM: " + errorMessage);
-          await addUserMessagePromise;
           logger.info("LLM error: returning just the vector search results");
           answer = {
             role: "assistant",
@@ -215,24 +225,26 @@ export function makeAddMessageToConversationRoute({
           answerContent = answer.content;
         }
       }
-      // TODO: consider refactoring addConversationMessage to take in an array of messages.
-      // Would limit database calls.
 
-      // Now that we're done with the LLM call, we can await the user message db insert
-      await addUserMessagePromise;
-      // ... and add the assistant message the LLM just generated
-      const newMessage = await conversations.addConversationMessage({
-        conversationId: conversationInDb._id,
-        content: answerContent,
-        role: "assistant",
+      const { assistantMessage } = await addMessagesToDatabase({
+        conversations,
+        conversationId,
+        userMessageContent: latestMessageText,
+        assistantMessageContent: answerContent,
       });
+
       if (shouldStream) {
-        res.write(
-          `data: ${JSON.stringify({ type: "finished", data: newMessage })}\n\n`
-        );
+        dataStreamer.sendData({
+          res,
+          data: {
+            type: "finished",
+            data: convertMessageFromDbToApi(assistantMessage),
+          },
+        });
         res.end();
+        return;
       } else {
-        res.status(200).json(convertMessageFromDbToApi(newMessage));
+        res.status(200).json(convertMessageFromDbToApi(assistantMessage));
       }
     } catch (err) {
       logger.error("An unexpected error occurred: " + JSON.stringify(err));
@@ -240,17 +252,6 @@ export function makeAddMessageToConversationRoute({
     }
   };
 }
-
-
-        const { assistantMessage } = await addMessagesToDatabase({
-          conversations,
-          conversationId,
-          userMessageContent: latestMessageText,
-          assistantMessageContent: answer.content,
-        });
-        const apiRes = convertMessageFromDbToApi(assistantMessage);
-        res.status(200).json(apiRes);
-
 
 export interface GetContentForTextParams {
   embed: EmbedFunc;

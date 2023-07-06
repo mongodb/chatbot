@@ -46,6 +46,12 @@ const componentsMap = {
   p: ({ children, ...props }) => {
     return <Body {...props}>{children}</Body>;
   },
+  ol: ({ children, ...props }) => {
+    return <Body as="ol" {...props}>{children}</Body>;
+  },
+  ul: ({ children, ...props }) => {
+    return <Body as="ul" {...props}>{children}</Body>;
+  },
 } satisfies ReactMarkdownComponentsMap;
 
 type LGMarkdownProps = {

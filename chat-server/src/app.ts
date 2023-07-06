@@ -1,34 +1,47 @@
-import express, { ErrorRequestHandler, RequestHandler } from "express";
+import express, {
+  Express,
+  ErrorRequestHandler,
+  RequestHandler,
+  NextFunction,
+  Request as ExpressRequest,
+  Response as ExpressResponse,
+} from "express";
 import cors from "cors";
 import "dotenv/config";
-import path from "path";
 import { makeConversationsRouter } from "./routes/conversations";
-import { llm } from "./services/llm";
 import {
   createMessage,
   logger,
-  MongoDB,
-  ContentService,
-  makeContentServiceOptions,
-  OpenAiEmbeddingsClient,
-  OpenAiEmbeddingProvider,
-  EmbeddingService,
+  EmbeddedContentStore,
+  EmbedFunc,
+  FindNearestNeighborsOptions,
 } from "chat-core";
-import { DataStreamerService } from "./services/dataStreamer";
+import { DataStreamerServiceInterface } from "./services/dataStreamer";
 import { ObjectId } from "mongodb";
 import { ConversationsService } from "./services/conversations";
+import { ConversationsServiceInterface } from "./services/conversations";
+import { sendErrorResponse } from "./utils";
+import {
+  Llm,
+  OpenAiAwaitedResponse,
+  OpenAiStreamingResponse,
+} from "./services/llm";
 
 // General error handler; called at usage of next() in routes
-const errorHandler: ErrorRequestHandler = (err, _req, res) => {
+export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   const status = err.status || 500;
 
   if (!res.headersSent) {
-    res.status(status).json({ error: err.message || "Internal Server Error" });
+    return sendErrorResponse(
+      res,
+      status,
+      err.message || "Internal Server Error"
+    );
   } else {
     logger.error(err);
   }
 };
-// Apply to all logs in the app
+// TODO:(DOCSP-31121) Apply to all logs in the app
 const reqHandler: RequestHandler = (req, _res, next) => {
   const { ip } = req;
   const reqId = new ObjectId().toString();
@@ -47,57 +60,55 @@ const reqHandler: RequestHandler = (req, _res, next) => {
   next();
 };
 
-export const setupApp = async () => {
-  const {
-    MONGODB_CONNECTION_URI,
-    MONGODB_DATABASE_NAME,
-    VECTOR_SEARCH_INDEX_NAME,
-  } = process.env;
-  // Create instances of services
-  const mongodb = new MongoDB(
-    MONGODB_CONNECTION_URI!,
-    MONGODB_DATABASE_NAME!,
-    VECTOR_SEARCH_INDEX_NAME!
-  );
-  const contentServiceOptions = makeContentServiceOptions({
-    indexName: mongodb.vectorSearchIndexName,
-  });
-  const content = new ContentService(mongodb.db, contentServiceOptions);
-  const {
-    OPENAI_ENDPOINT,
-    OPENAI_API_KEY,
-    OPENAI_EMBEDDING_DEPLOYMENT,
-    OPENAI_EMBEDDING_MODEL_VERSION,
-  } = process.env;
-  const openaiClient = new OpenAiEmbeddingsClient(
-    OPENAI_ENDPOINT!,
-    OPENAI_EMBEDDING_DEPLOYMENT!,
-    OPENAI_API_KEY!,
-    OPENAI_EMBEDDING_MODEL_VERSION!
-  );
-  const openAiEmbeddingProvider = new OpenAiEmbeddingProvider(openaiClient);
-  const embeddings = new EmbeddingService(openAiEmbeddingProvider);
-  const conversationsService = new ConversationsService(mongodb.db);
-  const dataStreamer = new DataStreamerService();
+export const makeHandleTimeoutMiddleware = (apiTimeout: number) => {
+  return (req: ExpressRequest, res: ExpressResponse, next: NextFunction) => {
+    // Set the server response timeout for all HTTP responses
+    res.setTimeout(apiTimeout, () => {
+      return sendErrorResponse(res, 504, "Response timeout");
+    });
+    next();
+  };
+};
+
+export const REQUEST_TIMEOUT = 60000; // 60 seconds
+export const makeApp = async ({
+  embed,
+  dataStreamer,
+  store,
+  conversations,
+  llm,
+  requestTimeout = REQUEST_TIMEOUT,
+  findNearestNeighborsOptions,
+}: {
+  embed: EmbedFunc;
+  store: EmbeddedContentStore;
+  dataStreamer: DataStreamerServiceInterface;
+  conversations: ConversationsServiceInterface;
+  llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
+  requestTimeout?: number;
+  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
+}): Promise<Express> => {
   const app = express();
+  app.use(makeHandleTimeoutMiddleware(requestTimeout));
   app.set("trust proxy", true);
   // TODO: consider only serving this from the staging env
-  app.use(express.static("static"));
   app.use(cors()); // TODO: add specific options to only allow certain origins
   app.use(express.json());
   app.use(reqHandler);
+  app.use(express.static("static"));
   app.use(
     "/conversations",
     makeConversationsRouter({
       llm,
-      embeddings,
+      embed,
       dataStreamer,
-      content,
-      conversations: conversationsService,
+      store,
+      conversations,
+      findNearestNeighborsOptions,
     })
   );
-  app.all("*", (req, res, next) => {
-    return res.status(404).json({ error: "Not Found" }).send();
+  app.all("*", (_req, res, _next) => {
+    return sendErrorResponse(res, 404, "Not Found");
   });
   app.use(errorHandler);
 

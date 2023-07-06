@@ -31,7 +31,6 @@ export default class ConversationService {
   }
 
   async createConversation(): Promise<Required<ConversationState>> {
-    console.log("services/conversations::createConversation");
     const path = `/conversations`;
     const resp = await fetch(this.getUrl(path), {
       method: "POST",
@@ -53,7 +52,6 @@ export default class ConversationService {
     conversationId: string;
     message: string;
   }): Promise<MessageData> {
-    console.log("services/conversations::addMessage", conversationId, message);
     const path = `/conversations/${conversationId}/messages`;
     const resp = await fetch(this.getUrl(path), {
       method: "POST",
@@ -75,12 +73,6 @@ export default class ConversationService {
     messageId: string;
     rating: boolean;
   }): Promise<void> {
-    console.log(
-      "services/conversations::rateMessage",
-      conversationId,
-      messageId,
-      rating
-    );
     const path = `/conversations/${conversationId}/messages/${messageId}/rating`;
     await fetch(this.getUrl(path), {
       method: "POST",

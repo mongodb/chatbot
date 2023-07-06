@@ -1,8 +1,8 @@
 import "dotenv/config";
 
 import { stripIndent } from "common-tags";
-import { OpenAiChatClient, OpenAiChatMessage } from "chat-core";
-import { OpenAiLlmProvider } from "./llm";
+import { CORE_ENV_VARS, OpenAiChatMessage, assertEnvVars } from "chat-core";
+import { makeOpenAiLlm } from "./llm";
 import { SYSTEM_PROMPT } from "../aiConstants";
 
 jest.setTimeout(100000);
@@ -31,19 +31,16 @@ const conversation = [
   },
 ] as OpenAiChatMessage[];
 
+const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_CHAT_COMPLETION_DEPLOYMENT } =
+  assertEnvVars(CORE_ENV_VARS);
+
 describe("LLM", () => {
-  describe("OpenAiLlmProvider", () => {
-    const {
-      OPENAI_ENDPOINT,
-      OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-      OPENAI_API_KEY,
-    } = process.env;
-    const openAiClient = new OpenAiChatClient(
-      OPENAI_ENDPOINT!,
-      OPENAI_CHAT_COMPLETION_DEPLOYMENT!,
-      OPENAI_API_KEY!
-    );
-    const openAiLlmService = new OpenAiLlmProvider(openAiClient);
+  describe("OpenAI Llm", () => {
+    const openAiLlmService = makeOpenAiLlm({
+      baseUrl: OPENAI_ENDPOINT,
+      deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+      apiKey: OPENAI_API_KEY,
+    });
 
     test("should answer question in conversation - awaited", async () => {
       const response = await openAiLlmService.answerQuestionAwaited({

@@ -3,30 +3,35 @@ import {
   Response as ExpressResponse,
   NextFunction,
 } from "express";
+import { strict as assert } from "assert";
 import {
   OpenAiChatMessage,
   ObjectId,
   OpenAiMessageRole,
-  EmbeddingService,
+  EmbedFunc,
   logger,
+  FindNearestNeighborsOptions,
+  WithScore,
 } from "chat-core";
-import { Content, ContentServiceInterface } from "chat-core";
+import { EmbeddedContent, EmbeddedContentStore } from "chat-core";
 import {
   Conversation,
   ConversationsServiceInterface,
   Message,
+  conversationConstants,
 } from "../../services/conversations";
 import { DataStreamerServiceInterface } from "../../services/dataStreamer";
 
 import {
-  LlmProvider,
+  Llm,
   OpenAiAwaitedResponse,
   OpenAiStreamingResponse,
 } from "../../services/llm";
 import { ApiConversation, convertMessageFromDbToApi, isValidIp } from "./utils";
 import { sendErrorResponse } from "../../utils";
 
-const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
+export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
+export const MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
 
 export interface AddMessageRequestBody {
   message: string;
@@ -42,18 +47,21 @@ export interface AddMessageRequest extends ExpressRequest {
   };
 }
 export interface AddMessageToConversationRouteParams {
-  content: ContentServiceInterface;
+  store: EmbeddedContentStore;
   conversations: ConversationsServiceInterface;
-  embeddings: EmbeddingService;
-  llm: LlmProvider<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
+  embed: EmbedFunc;
+  llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   dataStreamer: DataStreamerServiceInterface;
+  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
 }
+
 export function makeAddMessageToConversationRoute({
-  content,
+  store,
   conversations,
   llm,
   dataStreamer,
-  embeddings,
+  embed,
+  findNearestNeighborsOptions,
 }: AddMessageToConversationRouteParams) {
   return async (
     req: AddMessageRequest,
@@ -102,20 +110,54 @@ export function makeAddMessageToConversationRoute({
         return sendErrorResponse(res, 403, "IP address does not match");
       }
 
+      if (conversationInDb.messages.length >= MAX_MESSAGES_IN_CONVERSATION) {
+        return sendErrorResponse(
+          res,
+          400,
+          `You cannot send more messages to this conversation. ` +
+            `Max messages (${MAX_MESSAGES_IN_CONVERSATION}, including system prompt) exceeded. ` +
+            `Start a new conversation.`
+        );
+      }
+
+      let answer: OpenAiChatMessage;
+
       // Find content matches for latest message
-      // TODO: consider refactoring this to feed in all messages to the embeddings service
+      // TODO: consider refactoring this to feed in all messages to the embed function
       // And then as a future step, we can use LLM pre-processing to create a better input
       // to the embedding service.
-      const chunks = await getContentForText({
-        embeddings,
-        ipAddress: ip,
-        text: latestMessageText,
-        content,
-      });
+
+      let chunks: WithScore<EmbeddedContent>[];
+      try {
+        chunks = await getContentForText({
+          embed,
+          ipAddress: ip,
+          text: latestMessageText,
+          store,
+          findNearestNeighborsOptions,
+        });
+      } catch (err) {
+        logger.error("Error getting content for text:", JSON.stringify(err));
+        return sendErrorResponse(res, 500, "Error getting content for text");
+      }
+      if (!chunks || chunks.length === 0) {
+        logger.info("No matching content found");
+        const { assistantMessage } = await addMessagesToDatabase({
+          conversations,
+          conversationId,
+          userMessageContent: latestMessageText,
+          assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,
+        });
+        const apiRes = convertMessageFromDbToApi(assistantMessage);
+        res.status(200).json(apiRes);
+      }
 
       const chunkTexts = chunks.map((chunk) => chunk.text);
+      const latestMessage: OpenAiChatMessage = {
+        content: latestMessageText,
+        role: "user",
+      };
 
-      let answer;
       if (shouldStream) {
         // TODO:(DOCSP-30866) add streaming support to endpoint
         throw new Error("Streaming not implemented yet");
@@ -132,10 +174,6 @@ export function makeAddMessageToConversationRoute({
         //   chunks,
         // });
       } else {
-        const latestMessage: OpenAiChatMessage = {
-          content: latestMessageText,
-          role: "user",
-        };
         try {
           const messages = [
             ...conversationInDb.messages.map(convertDbMessageToOpenAiMessage),
@@ -146,24 +184,26 @@ export function makeAddMessageToConversationRoute({
             messages,
             chunks: chunkTexts,
           });
+          answer.content += generateFurtherReading({ chunks });
           logger.info(`LLM response: ${JSON.stringify(answer)}`);
         } catch (err: any) {
           logger.error("Error from LLM: " + JSON.stringify(err));
-          return sendErrorResponse(res, 500, "Error from LLM", err.message);
+          logger.info("Only sending vector search results to user");
+          answer = {
+            role: "assistant",
+            content:
+              conversationConstants.LLM_NOT_WORKING +
+              "\n\n" +
+              generateFurtherReading({ chunks, hasHeading: false }),
+          };
         }
-        // TODO: consider refactoring addConversationMessage to take in an array of messages.
-        // Would limit database calls.
-        await conversations.addConversationMessage({
-          conversationId: conversationInDb._id,
-          content: latestMessageText,
-          role: "user",
+        const { assistantMessage } = await addMessagesToDatabase({
+          conversations,
+          conversationId,
+          userMessageContent: latestMessageText,
+          assistantMessageContent: answer.content,
         });
-        const newMessage = await conversations.addConversationMessage({
-          conversationId: conversationInDb._id,
-          content: answer.content + generateFurtherReading({ chunks }),
-          role: "assistant",
-        });
-        const apiRes = convertMessageFromDbToApi(newMessage);
+        const apiRes = convertMessageFromDbToApi(assistantMessage);
         res.status(200).json(apiRes);
       }
     } catch (err) {
@@ -174,10 +214,11 @@ export function makeAddMessageToConversationRoute({
 }
 
 export interface GetContentForTextParams {
-  embeddings: EmbeddingService;
+  embed: EmbedFunc;
   ipAddress: string;
   text: string;
-  content: ContentServiceInterface;
+  store: EmbeddedContentStore;
+  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
 }
 
 export function convertDbMessageToOpenAiMessage(
@@ -190,38 +231,69 @@ export function convertDbMessageToOpenAiMessage(
 }
 
 export async function getContentForText({
-  embeddings,
-  content,
+  embed,
+  store,
   text,
   ipAddress,
+  findNearestNeighborsOptions,
 }: GetContentForTextParams) {
-  const { embedding } = await embeddings.createEmbedding({
+  const { embedding } = await embed({
     text,
     userIp: ipAddress,
   });
-  const chunks = await content.findVectorMatches({
+  return await store.findNearestNeighbors(
     embedding,
+    findNearestNeighborsOptions
+  );
+}
+
+interface AddMessagesToDatabaseParams {
+  conversationId: ObjectId;
+  userMessageContent: string;
+  assistantMessageContent: string;
+  conversations: ConversationsServiceInterface;
+}
+export async function addMessagesToDatabase({
+  conversationId,
+  userMessageContent,
+  assistantMessageContent,
+  conversations,
+}: AddMessagesToDatabaseParams) {
+  // TODO: consider refactoring addConversationMessage to take in an array of messages.
+  // Would limit database calls.
+  const userMessage = await conversations.addConversationMessage({
+    conversationId,
+    content: userMessageContent,
+    role: "user",
   });
-  return chunks;
+  const assistantMessage = await conversations.addConversationMessage({
+    conversationId,
+    content: assistantMessageContent,
+    role: "assistant",
+  });
+  return { userMessage, assistantMessage };
 }
 
 export interface GenerateFurtherReadingParams {
-  chunks: Content[];
+  chunks: EmbeddedContent[];
+  hasHeading?: boolean;
 }
 export function generateFurtherReading({
   chunks,
+  hasHeading = true,
 }: GenerateFurtherReadingParams) {
   if (chunks.length === 0) {
     return "";
   }
-  const heading = "\n\nArticles Referenced:\n";
+  const heading = hasHeading ? "\n\nFurther Reading:\n\n" : "";
   const uniqueLinks = Array.from(new Set(chunks.map((chunk) => chunk.url)));
 
-  const linksText =
-    uniqueLinks.reduce((acc, link) => {
-      const linkListItem = `${link}\n`;
-      return acc + linkListItem;
-    }, "") + "\n";
+  const linksText = uniqueLinks.reduce((acc, link) => {
+    const url = new URL(link);
+    url.searchParams.append("tck", "docs_chatbot");
+    const linkListItem = `[${url.origin + url.pathname}](${url.href})\n\n`;
+    return acc + linkListItem;
+  }, "");
   return heading + linksText;
 }
 

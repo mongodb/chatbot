@@ -18,10 +18,21 @@ trigger:
       - chat-core/**/*
       - chat-ui/**/*
 
+services:
+  - name: mongodb
+    image: mongo
+    ports:
+      - 27017
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
 steps:
   - name: test
     image: node:18
     commands:
+      - apt-get update && apt-get install -y libssl1.1
       - cd chat-core
       - npm ci
       - npm test
@@ -48,6 +59,9 @@ steps:
         from_secret: openai_embedding_deployment
       OPENAI_CHAT_COMPLETION_DEPLOYMENT:
         from_secret: openai_chat_completion_deployment
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
 
 ---
 depends_on: ["test-all"]

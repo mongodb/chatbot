@@ -4,12 +4,11 @@
 # ---
 kind: pipeline
 type: kubernetes
-name: test-chat-server
+name: test-all
 
 trigger:
-  branch:
-    - main
-    - DOCSP-30964 # TODO: remove this line once DOCSP-30964 is resolved
+  # branch:
+  #   - main
   event:
     - push
     - tag
@@ -51,7 +50,7 @@ steps:
         from_secret: openai_chat_completion_deployment
 
 ---
-depends_on: ["test-chat-server"]
+depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes
 name: staging-build-chat-server
@@ -59,7 +58,6 @@ name: staging-build-chat-server
 trigger:
   branch:
     - main
-    - DOCSP-30964 # TODO: remove this line once DOCSP-30964 is resolved
   event:
     - push
   paths:
@@ -129,7 +127,7 @@ steps:
 # The below config *should* work, but it hasn't been tested yet, so odds are that
 # it will need to be tweaked.
 # --------------------
-depends_on: ["test-chat-server"]
+depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes
 name: production-build-chat-server

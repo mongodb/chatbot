@@ -134,7 +134,7 @@ const handlePage = async (
   }
 ): Promise<Page> => {
   return {
-    url: `${baseUrl}/${page.page_id}`,
+    url: (new URL(page.page_id, baseUrl)).href
     sourceName,
     body: snootyAstToMd(page.ast, { baseUrl }),
     format: "md",

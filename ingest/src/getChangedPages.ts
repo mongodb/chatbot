@@ -21,8 +21,18 @@ export const getChangedPages = async ({
   const oldPages = new Map(oldPagesIn.map((page) => [page.url, page]));
   const newPages = new Map(newPagesIn.map((page) => [page.url, page]));
 
+  // Perform set difference to find deleted, created, and changed pages.
+
+  // deleted = elements in old but not in new
   const deleted = [...oldPages]
-    .filter(([url]) => !newPages.has(url))
+    .filter(([url, { action }]) => {
+      if (action === "deleted") {
+        // If already marked deleted in the old set, no need to delete again
+        return false;
+      }
+      // If it does not exist in the new set, it was deleted
+      return !newPages.has(url);
+    })
     .map(
       ([, page]): PersistedPage => ({
         ...page,
@@ -31,6 +41,7 @@ export const getChangedPages = async ({
       })
     );
 
+  // created = elements in new but not in old
   const created = [...newPages]
     .filter(([url]) => {
       const oldPage = oldPages.get(url);
@@ -48,6 +59,7 @@ export const getChangedPages = async ({
       })
     );
 
+  // updated = elements in both old and new
   const updated = [...newPages]
     .filter(([url, page]) => {
       const oldPage = oldPages.get(url);

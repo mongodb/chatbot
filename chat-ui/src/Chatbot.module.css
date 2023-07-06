@@ -42,7 +42,12 @@
   flex-direction: row;
   align-items: center;
   gap: 12px;
+  width: 100%;
   margin-bottom: -1rem; /* We don't want the flex gap after the title, so this cancels it out */
+}
+
+.card_content_title__right {
+  margin-left: auto;
 }
 
 .card {
@@ -51,6 +56,7 @@
   align-items: start;
   width: 100%;
   max-width: 700px;
+  min-width: 322px;
   gap: 12px;
   padding-top: 1rem;
   transition: all 0.25s ease;

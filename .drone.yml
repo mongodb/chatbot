@@ -24,6 +24,11 @@ services:
     ports:
       - 27017
     restart: always
+    commands:
+      - which mongod
+    volumes:
+      - name: mongodb-binary
+        path: /usr/bin
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
@@ -42,6 +47,9 @@ steps:
       - npm ci
       - npm run lint
       - npm run test
+    volumes:
+      - name: mongodb-binary
+        path: /mongodb-binary
     environment:
       PORT: 3000
       OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
@@ -62,6 +70,7 @@ steps:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
       ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+      MONGOMS_SYSTEM_BINARY: /mongodb-binary/mongod
 
 ---
 depends_on: ["test-all"]

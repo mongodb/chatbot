@@ -112,7 +112,6 @@ export function makeAddMessageToConversationRoute({
         return sendErrorResponse(res, 404, "Conversation not found");
       }
       if (!areEquivalentIpAddresses(conversationInDb.ipAddress, ip)) {
-        console.table({ dbId: conversationInDb.ipAddress, ip });
         return sendErrorResponse(res, 403, "IP address does not match");
       }
 

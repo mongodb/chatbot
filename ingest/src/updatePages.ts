@@ -1,4 +1,4 @@
-import { Page, PageStore } from "chat-core";
+import { logger, Page, PageStore } from "chat-core";
 import { getChangedPages } from "./getChangedPages";
 import { DataSource } from "./DataSource";
 
@@ -14,7 +14,9 @@ export const updatePages = async ({
   pageStore: PageStore;
 }): Promise<void> => {
   for await (const source of sources) {
+    logger.info(`Fetching pages for ${source.name}`);
     const pages = await source.fetchPages();
+    logger.info(`${source.name} returned ${pages.length} pages`);
     await persistPages({
       pages,
       store: pageStore,
@@ -35,10 +37,19 @@ export const persistPages = async ({
   pages: Page[];
   sourceName: string;
 }): Promise<void> => {
+  const oldPages = await store.loadPages({ sourceName });
+  logger.info(`${sourceName} had ${oldPages.length} in the store`);
+
   const changedPages = await getChangedPages({
-    oldPages: await store.loadPages({ sourceName }),
+    oldPages,
     newPages: pages,
   });
+
+  logger.info(
+    `${changedPages.length} ${
+      changedPages.length === 1 ? "page has" : "pages have"
+    } changed`
+  );
 
   await store.updatePages(changedPages);
 };

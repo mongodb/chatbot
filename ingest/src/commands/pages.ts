@@ -1,5 +1,5 @@
 import { CommandModule } from "yargs";
-import { assertEnvVars, makeDatabaseConnection } from "chat-core";
+import { assertEnvVars, logger, makeDatabaseConnection } from "chat-core";
 import { updatePages } from "../updatePages";
 import { makeSnootyDataSource } from "../SnootyDataSource";
 import { makeDevCenterDataSource } from "../DevCenterDataSource";
@@ -45,7 +45,6 @@ const commandModule: CommandModule<
       baseUrl: "https://www.mongodb.com/developer",
     });
 
-    // TODO: This could be externalized
     const availableSources = [...snootySources, devCenterSource];
 
     const sources = availableSources.filter(({ name }) =>
@@ -66,7 +65,7 @@ const commandModule: CommandModule<
         );
       }
 
-      console.log(
+      logger.info(
         `Loaded sources:\n${sources.map(({ name }) => `- ${name}`).join("\n")}`
       );
 

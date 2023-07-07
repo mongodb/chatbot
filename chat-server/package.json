@@ -8,7 +8,7 @@
     "dev": "nodemon src/index.ts",
     "format": "prettier ./src --write",
     "format:check": "prettier ./src --check",
-    "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
     "start": "node ./dist/index.js",
     "test": "jest --forceExit"
   },

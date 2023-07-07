@@ -10,8 +10,6 @@ import {
   DatabaseConnection,
   EmbeddedContent,
   makeDatabaseConnection,
-  makeMemoryDbServer,
-  DbServer,
   EmbedFunc,
   FindNearestNeighborsOptions,
 } from "chat-core";
@@ -48,16 +46,6 @@ import { makeApp } from "../../app";
 jest.setTimeout(100000);
 
 describe("Conversations Router", () => {
-  let memoryDbServer: DbServer;
-
-  beforeAll(async () => {
-    memoryDbServer = await makeMemoryDbServer();
-  });
-
-  afterAll(async () => {
-    await memoryDbServer?.stop();
-  });
-
   const {
     MONGODB_CONNECTION_URI,
     MONGODB_DATABASE_NAME,
@@ -407,11 +395,11 @@ describe("Conversations Router", () => {
         let conversationId: ObjectId,
           conversations: ConversationsServiceInterface,
           app: Express;
+        let testMongo: MongoDB;
         beforeEach(async () => {
           const dbName = `test-${Date.now()}`;
-          memoryDbServer = await makeMemoryDbServer();
-          const memoryMongo = new MongoDB(memoryDbServer.connectionUri, dbName);
-          conversations = new ConversationsService(memoryMongo.db);
+          testMongo = new MongoDB(MONGODB_CONNECTION_URI, dbName);
+          conversations = new ConversationsService(testMongo.db);
           const { _id } = await conversations.create({
             ipAddress: "<NOT CAPTURING IP ADDRESS YET>",
           });
@@ -429,6 +417,10 @@ describe("Conversations Router", () => {
               findNearestNeighborsOptions,
             })
           );
+        });
+        afterEach(async () => {
+          await testMongo.db.dropDatabase();
+          await testMongo.close();
         });
         test("should respond with 200, static message, and vector search results", async () => {
           const messageThatHasSearchResults = "Why use MongoDB?";

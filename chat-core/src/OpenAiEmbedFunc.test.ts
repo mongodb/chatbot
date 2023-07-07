@@ -4,7 +4,6 @@ import { assertEnvVars } from "./assertEnvVars";
 import { makeOpenAiEmbedFunc } from "./OpenAiEmbedFunc";
 import { CORE_ENV_VARS } from "./CoreEnvVars";
 import express from "express";
-import fetch from "node-fetch";
 
 describe("OpenAiEmbedFunc", () => {
   const {
@@ -45,7 +44,7 @@ describe("OpenAiEmbedFunc", () => {
         text: input,
         userIp,
       })
-    ).rejects.toThrow("OpenAI Embedding API returned an error");
+    ).rejects.toThrow("Request failed with status code 400");
   });
 
   it("should automatically retry on failure", async () => {
@@ -55,7 +54,7 @@ describe("OpenAiEmbedFunc", () => {
     let serverHitCount = 0;
     app.post(path, (_req, res) => {
       ++serverHitCount;
-      res.statusCode = 400;
+      res.statusCode = 429;
       res.send();
     });
     const server = app.listen(10191);
@@ -73,7 +72,7 @@ describe("OpenAiEmbedFunc", () => {
         await embed({ text: "", userIp: "" });
       } catch (e: any) {
         // Expected to fail - server returns 400
-        expect(e.message).toContain("Request failed with status code 400");
+        expect(e.message).toContain("Request failed with status code 429");
       }
       expect(serverHitCount).toBe(3);
     } finally {

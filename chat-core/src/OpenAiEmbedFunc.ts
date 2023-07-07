@@ -79,7 +79,7 @@ export const makeOpenAiEmbedFunc = ({
         ...backoffOptions,
         async retry(err, attemptNumber) {
           // Catch axios errors which occur if response 4XX or 5XX
-          if (!err.response?.status || !err.response?.data?.error) {
+          if (!err.response?.status && !err.response?.data?.error) {
             logger.error(
               `OpenAI Embedding API request failed with unknown error: ${err}`
             );

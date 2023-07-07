@@ -40,6 +40,7 @@
   flex-direction: column;
   gap: 4px;
   flex-grow: 1;
+  width: 1px; /* This is a hack to make the message text wrap */
 }
 
 .message_rating {

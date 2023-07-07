@@ -115,7 +115,6 @@ describe("Conversations Router", () => {
     });
 
     it("should respond with 200 and create a conversation", async () => {
-      const before = Date.now();
       const res = await request(app).post("/conversations/").send();
       const conversation: ApiConversation = res.body;
       expect(res.statusCode).toEqual(200);
@@ -225,6 +224,7 @@ describe("Conversations Router", () => {
     describe.skip("Streamed response", () => {
       // TODO: (DOCSP-30620) add in when data streamer is implemented
     });
+
     describe("Error handing", () => {
       test("should respond 400 if invalid conversation ID", async () => {
         const notAValidId = "not-a-valid-id";
@@ -310,16 +310,16 @@ describe("Conversations Router", () => {
 
       test("Should respond 500 if error with conversation service", async () => {
         const mockBrokenConversationsService: ConversationsServiceInterface = {
-          async create({ ipAddress }) {
+          async create() {
             throw new Error("mock error");
           },
-          async addConversationMessage({ conversationId, content, role }) {
+          async addConversationMessage() {
             throw new Error("mock error");
           },
-          async findById({ _id }) {
+          async findById() {
             throw new Error("mock error");
           },
-          async rateMessage({ conversationId, messageId, rating }) {
+          async rateMessage() {
             throw new Error("mock error");
           },
         };
@@ -336,9 +336,11 @@ describe("Conversations Router", () => {
           error: "Error finding conversation",
         });
       });
+
       test.skip("Should respond 500 if error with data streaming service", async () => {
         // TODO: (DOCSP-30620) implement with data streaming service
       });
+
       test("should respond 500 if error with content service", async () => {
         const brokenStore: EmbeddedContentStore = {
           loadEmbeddedContent: jest.fn().mockResolvedValue(undefined),

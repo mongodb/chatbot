@@ -18,20 +18,10 @@ trigger:
       - chat-core/**/*
       - chat-ui/**/*
 
-services:
-  - name: mongodb
-    image: mongo
-    ports:
-      - 27017
-    restart: always
-    commands:
-      - mongod --replSet rs0 --bind_ip_all --port 27017
-
 steps:
   - name: test
     image: node:18
     commands:
-      # - apt-get update && apt-get install -y libssl1.1
       - cd chat-core
       - npm ci
       - npm test
@@ -41,9 +31,6 @@ steps:
       - npm ci
       - npm run lint
       - npm run test
-    volumes:
-      - name: mongodb-binary
-        path: /mongodb-binary
     environment:
       PORT: 3000
       OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
@@ -61,7 +48,6 @@ steps:
         from_secret: openai_embedding_deployment
       OPENAI_CHAT_COMPLETION_DEPLOYMENT:
         from_secret: openai_chat_completion_deployment
-      MONGODB_TEST_CONNECTION_URI: mongodb://localhost:27017/?replicaSet=rs0
 
 ---
 depends_on: ["test-all"]

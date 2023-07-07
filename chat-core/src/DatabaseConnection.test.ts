@@ -12,36 +12,34 @@ import {
 import { assertEnvVars } from "./assertEnvVars";
 import { CORE_ENV_VARS } from "./CoreEnvVars";
 import { makeOpenAiEmbedFunc } from "./OpenAiEmbedFunc";
-import { makeMemoryDbServer, DbServer } from "./MemoryDbServer";
-
 import "dotenv/config";
 
+const {
+  MONGODB_CONNECTION_URI,
+  MONGODB_DATABASE_NAME,
+  OPENAI_ENDPOINT,
+  OPENAI_API_KEY,
+  OPENAI_EMBEDDING_DEPLOYMENT,
+  OPENAI_EMBEDDING_MODEL_VERSION,
+  VECTOR_SEARCH_INDEX_NAME,
+} = assertEnvVars(CORE_ENV_VARS);
+
 describe("DatabaseConnection", () => {
-  let server: DbServer | undefined;
-  beforeAll(async () => {
-    server = await makeMemoryDbServer();
-  });
-
-  afterAll(async () => {
-    server?.stop();
-  });
-
   let store:
     | (DatabaseConnection & PageStore & EmbeddedContentStore)
     | undefined;
   beforeEach(async () => {
-    assert(server);
-    const { connectionUri } = server;
     // Need to use real Atlas connection in order to run vector searches
     const databaseName = `test-database-${Date.now()}`;
     store = await makeDatabaseConnection({
-      connectionUri,
+      connectionUri: MONGODB_CONNECTION_URI,
       databaseName,
     });
   });
 
   afterEach(async () => {
     assert(store);
+    await store.drop();
     await store.close();
   });
 
@@ -180,16 +178,6 @@ describe("DatabaseConnection", () => {
 });
 
 describe("nearest neighbor search", () => {
-  const {
-    MONGODB_CONNECTION_URI,
-    MONGODB_DATABASE_NAME,
-    OPENAI_ENDPOINT,
-    OPENAI_API_KEY,
-    OPENAI_EMBEDDING_DEPLOYMENT,
-    OPENAI_EMBEDDING_MODEL_VERSION,
-    VECTOR_SEARCH_INDEX_NAME,
-  } = assertEnvVars(CORE_ENV_VARS);
-
   const embed = makeOpenAiEmbedFunc({
     baseUrl: OPENAI_ENDPOINT,
     apiKey: OPENAI_API_KEY,

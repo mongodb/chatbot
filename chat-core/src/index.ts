@@ -2,7 +2,6 @@ export * from "./CoreEnvVars";
 export * from "./DatabaseConnection";
 export * from "./EmbedFunc";
 export * from "./EmbeddedContent";
-export * from "./MemoryDbServer";
 export * from "./OpenAiEmbedFunc";
 export * from "./Page";
 export * from "./assertEnvVars";

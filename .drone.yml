@@ -25,13 +25,7 @@ services:
       - 27017
     restart: always
     commands:
-      - which mongod
-    volumes:
-      - name: mongodb-binary
-        path: /usr/bin
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+      - mongod --replSet rs0 --bind_ip_all --port 27017
 
 steps:
   - name: test
@@ -67,10 +61,7 @@ steps:
         from_secret: openai_embedding_deployment
       OPENAI_CHAT_COMPLETION_DEPLOYMENT:
         from_secret: openai_chat_completion_deployment
-      ME_CONFIG_MONGODB_ADMINUSERNAME: root
-      ME_CONFIG_MONGODB_ADMINPASSWORD: example
-      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
-      MONGOMS_SYSTEM_BINARY: /mongodb-binary/mongod
+      MONGODB_TEST_CONNECTION_URI: mongodb://localhost:27017/?replicaSet=rs0
 
 ---
 depends_on: ["test-all"]

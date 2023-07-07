@@ -7,11 +7,10 @@ type: kubernetes
 name: test-all
 
 trigger:
-  # branch:
-  #   - main
   event:
     - push
     - tag
+    - pull_request
   paths:
     include:
       - chat-server/**/*

@@ -7,7 +7,7 @@ function App() {
     <div className={styles.app_background}>
       <div
         style={{
-          width: "650px",
+          width: "750px",
         }}
       >
         <Chatbot />

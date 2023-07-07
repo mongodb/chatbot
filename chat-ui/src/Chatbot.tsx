@@ -18,14 +18,34 @@ import IconButton from "@leafygreen-ui/icon-button";
 import Icon from "@leafygreen-ui/icon";
 
 function Disclosure() {
+  const TermsOfUse = () => (
+    <Link href={"https://www.mongodb.com/legal/terms-of-use"}>
+      Terms of Use
+    </Link>
+  );
+  const AcceptableUsePolicy = () => (
+    <Link href={"https://www.mongodb.com/legal/acceptable-use-policy"}>
+      Acceptable Use Policy
+    </Link>
+  );
+
   return (
     <div className={styles.disclosure}>
       <Badge variant="blue">Experimental</Badge>
       <Body color={"#FFFFFF"}>
-        By interacting with this chatbot, you agree to MongoDB's{" "}
-        <Link href="#TODO">Terms & Conditions</Link>
+        This is a generative AI chatbot. By interacting with it, you agree to
+        MongoDB's <TermsOfUse /> and <AcceptableUsePolicy />.
       </Body>
     </div>
+  );
+}
+
+function VerifyInformationBanner() {
+  return (
+    <Banner className={styles.lg_banner} variant="warning">
+      This is an experimental generative AI chatbot. All information should be
+      verified prior to use.
+    </Banner>
   );
 }
 
@@ -94,12 +114,10 @@ function CTACard({
               </Message>
             )}
           </MessageList>
-          <Banner className={styles.lg_banner} variant="warning">
-            This is an experimental AI chatbot. All information should be
-            verified prior to use.
-          </Banner>
         </>
       ) : null}
+
+      {active ? <VerifyInformationBanner /> : null}
 
       <ChatInput
         ref={inputRef}
@@ -178,7 +196,7 @@ export default function Chatbot() {
   }
 
   function deactivate() {
-    if(active) {
+    if (active) {
       setActive(false);
     }
   }

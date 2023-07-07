@@ -18,13 +18,13 @@ export type ChunkOptions = {
 };
 
 const defaultChunkOptions: ChunkOptions = {
-  chunkSize: 2000,
+  chunkSize: 1000,
   chunkOverlap: 0,
   tokenizer: new GPT3Tokenizer({ type: "gpt3" }),
 };
 
 /**
-  Returns 
+  Returns chunked of a content page.
  */
 export const chunkPage = async (
   page: Page,
@@ -41,8 +41,8 @@ export const chunkPage = async (
   const chunks = await splitter.createDocuments([page.body]);
 
   return chunks.map(
-    ({ pageContent }): ContentChunk => ({
-      // TODO: Add chunkIndex to this document
+    ({ pageContent }, chunkIndex): ContentChunk => ({
+      chunkIndex,
       sourceName: page.sourceName,
       url: page.url,
       text: pageContent,

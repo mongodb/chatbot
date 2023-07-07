@@ -58,9 +58,8 @@ export const makeOpenAiEmbedFunc = ({
   );
   url.searchParams.append("api-version", apiVersion);
   return async ({ text, userIp }) => {
-    return backOff(async () => {
-      console.log(url.toString());
-      try {
+    return backOff(
+      async () => {
         const { data } = await axios.post<CreateEmbeddingResponse>(
           url.toString(),
           {
@@ -75,20 +74,36 @@ export const makeOpenAiEmbedFunc = ({
           }
         );
         return { embedding: data.data[0].embedding };
-      } catch (err: any) {
-        // Catch axios errors which occur if response 4XX or 5XX
-        if (err.response?.status && err.response?.data?.error) {
+      },
+      {
+        ...backoffOptions,
+        async retry(err, attemptNumber) {
+          // Catch axios errors which occur if response 4XX or 5XX
+          if (!err.response?.status || !err.response?.data?.error) {
+            logger.error(
+              `OpenAI Embedding API request failed with unknown error: ${err}`
+            );
+            return false;
+          }
           const {
             status,
             data: { error },
           } = err.response;
-          const message = stripIndent`OpenAI Embedding API returned an error:
+
+          if (status !== 429 /* HTTP 429: Too Many Requests */) {
+            const message = stripIndent`OpenAI Embedding API returned an error:
 - status: ${status}
 - error: ${JSON.stringify(error)}`;
-          logger.error(message);
-          throw new Error(message);
-        } else throw err;
+            logger.error(message);
+            return false;
+          }
+
+          logger.info(
+            `OpenAI Embedding API rate limited (attempt ${attemptNumber - 1})`
+          );
+          return true; // Keep trying until max attempts
+        },
       }
-    }, backoffOptions);
+    );
   };
 };

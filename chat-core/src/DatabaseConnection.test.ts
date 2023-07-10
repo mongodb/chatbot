@@ -118,7 +118,7 @@ describe("DatabaseConnection", () => {
       url: "/x/y/z",
     };
 
-    let pages = await store.loadPages({ sourceName: "source1" });
+    let pages = await store.loadPages({ sources: ["source1"] });
     expect(pages).toStrictEqual([]);
 
     await store.updatePages([
@@ -127,7 +127,7 @@ describe("DatabaseConnection", () => {
       { ...page, url: "3" },
     ]);
 
-    pages = await store.loadPages({ sourceName: "source1" });
+    pages = await store.loadPages({ sources: ["source1"] });
     expect(pages.length).toBe(3);
     expect(pages.find(({ url }) => url === "2")).toMatchObject({
       url: "2",
@@ -136,7 +136,7 @@ describe("DatabaseConnection", () => {
 
     await store.updatePages([{ ...page, url: "2", action: "deleted" }]);
 
-    pages = await store.loadPages({ sourceName: "source1" });
+    pages = await store.loadPages({ sources: ["source1"] });
     expect(pages.length).toBe(3);
     expect(pages.find(({ url }) => url === "2")).toMatchObject({
       url: "2",

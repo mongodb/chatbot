@@ -132,8 +132,8 @@ export const makeDatabaseConnection = async ({
 
     async loadPages(args) {
       const filter: Filter<PersistedPage> = {};
-      if (args?.sourceName !== undefined) {
-        filter.sourceName = args.sourceName;
+      if (args?.sources !== undefined) {
+        filter.sourceName = { $in: args.sources };
       }
       if (args?.updated !== undefined) {
         filter.updated = { $gte: args.updated };

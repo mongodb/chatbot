@@ -27,7 +27,12 @@ import {
   OpenAiAwaitedResponse,
   OpenAiStreamingResponse,
 } from "../../services/llm";
-import { ApiConversation, convertMessageFromDbToApi } from "./utils";
+import {
+  ApiConversation,
+  areEquivalentIpAddresses,
+  convertMessageFromDbToApi,
+  isValidIp,
+} from "./utils";
 import { sendErrorResponse } from "../../utils";
 
 export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
@@ -73,6 +78,7 @@ export function makeAddMessageToConversationRoute({
         params: { conversationId: conversationIdString },
         body: { message },
         query: { stream },
+        ip,
       } = req;
       let conversationId: ObjectId;
       try {
@@ -83,7 +89,9 @@ export function makeAddMessageToConversationRoute({
 
       // TODO:(DOCSP-30863) implement type checking on the request
 
-      const ipAddress = "<NOT CAPTURING IP ADDRESS YET>"; // TODO:(DOCSP-30843) refactor to get IP address with middleware
+      if (!isValidIp(ip)) {
+        return sendErrorResponse(res, 400, `Invalid IP address ${ip}`);
+      }
 
       const shouldStream = Boolean(stream);
       const latestMessageText = message;
@@ -103,7 +111,7 @@ export function makeAddMessageToConversationRoute({
       if (!conversationInDb) {
         return sendErrorResponse(res, 404, "Conversation not found");
       }
-      if (conversationInDb.ipAddress !== ipAddress) {
+      if (!areEquivalentIpAddresses(conversationInDb.ipAddress, ip)) {
         return sendErrorResponse(res, 403, "IP address does not match");
       }
 
@@ -123,11 +131,12 @@ export function makeAddMessageToConversationRoute({
       // TODO: consider refactoring this to feed in all messages to the embed function
       // And then as a future step, we can use LLM pre-processing to create a better input
       // to the embedding service.
+
       let chunks: WithScore<EmbeddedContent>[];
       try {
         chunks = await getContentForText({
           embed,
-          ipAddress,
+          ipAddress: ip,
           text: latestMessageText,
           store,
           findNearestNeighborsOptions,

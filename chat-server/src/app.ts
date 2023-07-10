@@ -42,12 +42,20 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
 };
 // TODO:(DOCSP-31121) Apply to all logs in the app
 const reqHandler: RequestHandler = (req, _res, next) => {
+  const { ip } = req;
   const reqId = new ObjectId().toString();
   // Custom header specifically for a request ID. This ID will be used to track
   // logs related to the same request
   req.headers["req-id"] = reqId;
   const message = `Request for: ${req.url}`;
-  logger.info(createMessage(message, req.body, reqId));
+  logger.info(
+    createMessage({
+      message,
+      requestBody: req.body,
+      requestId: reqId,
+      ipAddress: ip,
+    })
+  );
   next();
 };
 
@@ -81,6 +89,7 @@ export const makeApp = async ({
 }): Promise<Express> => {
   const app = express();
   app.use(makeHandleTimeoutMiddleware(requestTimeout));
+  app.set("trust proxy", true);
   // TODO: consider only serving this from the staging env
   app.use(cors()); // TODO: add specific options to only allow certain origins
   app.use(express.json());

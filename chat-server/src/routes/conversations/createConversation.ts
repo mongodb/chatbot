@@ -4,7 +4,8 @@ import {
   Request as ExpressRequest,
 } from "express";
 import { ConversationsServiceInterface } from "../../services/conversations";
-import { convertConversationFromDbToApi } from "./utils";
+import { convertConversationFromDbToApi, isValidIp } from "./utils";
+import { sendErrorResponse } from "../../utils";
 import { logger } from "chat-core";
 
 export interface CreateConversationRouteParams {
@@ -19,13 +20,16 @@ export function makeCreateConversationRoute({
     next: NextFunction
   ) => {
     try {
+      const { ip } = req;
       // TODO:(DOCSP-30863) implement type checking on the request
 
-      const ipAddress = "<NOT CAPTURING IP ADDRESS YET>"; // TODO:(DOCSP-30843) refactor to get IP address with middleware
-      logger.info(`Creating conversation for IP address ${ipAddress}`);
+      if (!isValidIp(ip)) {
+        return sendErrorResponse(res, 400, `Invalid IP address ${ip}`);
+      }
+      logger.info(`Creating conversation for IP address: ${ip}`);
 
       const conversationInDb = await conversations.create({
-        ipAddress,
+        ipAddress: ip,
       });
 
       const responseConversation =

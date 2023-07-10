@@ -11,6 +11,7 @@ import {
 } from "express";
 import { sendErrorResponse } from "../../utils";
 import { logger } from "chat-core";
+import { areEquivalentIpAddresses, isValidIp } from "./utils";
 
 interface RatingRequest extends ExpressRequest {
   params: {
@@ -33,9 +34,12 @@ export function makeRateMessageRoute({
     next: NextFunction
   ) => {
     try {
+      const { ip } = req;
       // TODO:(DOCSP-30863) implement type checking on the request
 
-      const ipAddress = "<NOT CAPTURING IP ADDRESS YET>"; // TODO:(DOCSP-30843) refactor to get IP address with middleware
+      if (!isValidIp(ip)) {
+        return sendErrorResponse(res, 400, `Invalid IP address ${ip}`);
+      }
 
       const { conversationId: conversationIdStr, messageId: messageIdStr } =
         req.params;
@@ -70,7 +74,7 @@ export function makeRateMessageRoute({
         return sendErrorResponse(res, 404, "Message not found");
       }
 
-      if (conversationInDb.ipAddress !== ipAddress) {
+      if (!areEquivalentIpAddresses(conversationInDb.ipAddress, ip)) {
         return sendErrorResponse(
           res,
           403,

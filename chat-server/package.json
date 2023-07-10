@@ -27,6 +27,7 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "gpt3-tokenizer": "^1.1.5",
+    "ip-address": "^8.1.0",
     "langchain": "^0.0.95",
     "openai": "^3.2.1",
     "stream-json": "^1.8.0",

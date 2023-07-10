@@ -15,7 +15,6 @@ import { assertEnvVars } from "./assertEnvVars";
 import { CORE_ENV_VARS } from "./CoreEnvVars";
 import { makeOpenAiEmbedFunc } from "./OpenAiEmbedFunc";
 import "dotenv/config";
-import { describe } from "node:test";
 
 const {
   MONGODB_CONNECTION_URI,

@@ -4,7 +4,7 @@ import { makeSnootyDataSource } from "./SnootyDataSource";
 describe("SnootyDataSource", () => {
   it("successfully loads pages", async () => {
     const source = await makeSnootyDataSource({
-      baseUrl: "https://mongodb.com/docs/",
+      baseUrl: "https://mongodb.com/docs/manual",
       manifestUrl: `file://${Path.resolve(
         __dirname,
         "../test/snooty_sample_data.txt"
@@ -18,7 +18,7 @@ describe("SnootyDataSource", () => {
       format: "md",
       sourceName: "snooty",
       tags: [],
-      url: "https://mongodb.com/docs/about",
+      url: "https://mongodb.com/docs/manual/about",
       body: `# About MongoDB Documentation
 
 The MongoDB Manual contains

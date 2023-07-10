@@ -5,7 +5,7 @@ import {
 } from "express";
 import { ConversationsServiceInterface } from "../../services/conversations";
 import { convertConversationFromDbToApi, isValidIp } from "./utils";
-import { sendErrorResponse } from "../../utils";
+import { logRequest, sendErrorResponse } from "../../utils";
 import { logger } from "chat-core";
 
 export interface CreateConversationRouteParams {
@@ -24,9 +24,17 @@ export function makeCreateConversationRoute({
       // TODO:(DOCSP-30863) implement type checking on the request
 
       if (!isValidIp(ip)) {
-        return sendErrorResponse(res, 400, `Invalid IP address ${ip}`);
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
+          res,
+          httpStatus: 400,
+          errorMessage: `Invalid IP address ${ip}`,
+        });
       }
-      logger.info(`Creating conversation for IP address: ${ip}`);
+      logRequest({
+        reqId: req.headers["req-id"] as string,
+        message: `Creating conversation for IP address: ${ip}`,
+      });
 
       const conversationInDb = await conversations.create({
         ipAddress: ip,
@@ -35,7 +43,10 @@ export function makeCreateConversationRoute({
       const responseConversation =
         convertConversationFromDbToApi(conversationInDb);
       res.status(200).json(responseConversation);
-      logger.info(`Created conversation ${conversationInDb._id.toString()}`);
+      logRequest({
+        reqId: req.headers["req-id"] as string,
+        message: `Responding with conversation ${conversationInDb._id.toString()}`,
+      });
     } catch (err) {
       next(err);
     }

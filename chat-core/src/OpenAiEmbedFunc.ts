@@ -90,10 +90,11 @@ export const makeOpenAiEmbedFunc = ({
             data: { error },
           } = err.response;
 
+          const errorMessage = error?.message ?? "Unknown error";
           if (status !== 429 /* HTTP 429: Too Many Requests */) {
             const message = stripIndent`OpenAI Embedding API returned an error:
 - status: ${status}
-- error: ${JSON.stringify(error)}`;
+- error: ${errorMessage}`;
             logger.error(message);
             return false;
           }
@@ -101,12 +102,12 @@ export const makeOpenAiEmbedFunc = ({
           logger.info(
             `OpenAI Embedding API rate limited (attempt ${
               attemptNumber - 1
-            }): ${error.message}`
+            }): ${errorMessage}`
           );
 
           // Quick optimization for retry where we wait as long as it tells us
           // to (if it does)
-          const matches = /retry after ([0-9]+) seconds/.exec(error.message);
+          const matches = /retry after ([0-9]+) seconds/.exec(errorMessage);
           const waitSeconds = matches ? parseInt(matches[1]) : 0;
           if (waitSeconds) {
             await new Promise((resolve) =>

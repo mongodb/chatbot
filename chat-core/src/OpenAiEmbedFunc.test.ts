@@ -71,7 +71,7 @@ describe("OpenAiEmbedFunc", () => {
       try {
         await embed({ text: "", userIp: "" });
       } catch (e: any) {
-        // Expected to fail - server returns 400
+        // Expected to fail - server returns 429
         expect(e.message).toContain("Request failed with status code 429");
       }
       expect(serverHitCount).toBe(3);

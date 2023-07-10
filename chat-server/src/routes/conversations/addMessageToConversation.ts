@@ -3,7 +3,6 @@ import {
   Response as ExpressResponse,
   NextFunction,
 } from "express";
-import { strict as assert } from "assert";
 import {
   OpenAiChatMessage,
   ObjectId,
@@ -33,7 +32,7 @@ import {
   convertMessageFromDbToApi,
   isValidIp,
 } from "./utils";
-import { sendErrorResponse } from "../../utils";
+import { logRequest, sendErrorResponse } from "../../utils";
 
 export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 export const MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
@@ -84,19 +83,34 @@ export function makeAddMessageToConversationRoute({
       try {
         conversationId = new ObjectId(conversationIdString);
       } catch (err) {
-        return sendErrorResponse(res, 400, "Invalid conversation ID");
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
+          res,
+          httpStatus: 400,
+          errorMessage: "Invalid conversation ID",
+        });
       }
 
       // TODO:(DOCSP-30863) implement type checking on the request
 
       if (!isValidIp(ip)) {
-        return sendErrorResponse(res, 400, `Invalid IP address ${ip}`);
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
+          res,
+          httpStatus: 400,
+          errorMessage: `Invalid IP address ${ip}`,
+        });
       }
 
       const shouldStream = Boolean(stream);
       const latestMessageText = message;
       if (latestMessageText.length > MAX_INPUT_LENGTH) {
-        return sendErrorResponse(res, 400, "Message too long");
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
+          res,
+          httpStatus: 400,
+          errorMessage: "Message too long",
+        });
       }
 
       let conversationInDb: Conversation | null;
@@ -105,24 +119,41 @@ export function makeAddMessageToConversationRoute({
           _id: conversationId,
         });
       } catch (err) {
-        return sendErrorResponse(res, 500, "Error finding conversation");
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
+          res,
+          httpStatus: 500,
+          errorMessage: "Error finding conversation",
+        });
       }
 
       if (!conversationInDb) {
-        return sendErrorResponse(res, 404, "Conversation not found");
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
+          res,
+          httpStatus: 404,
+          errorMessage: "Conversation not found",
+        });
       }
       if (!areEquivalentIpAddresses(conversationInDb.ipAddress, ip)) {
-        return sendErrorResponse(res, 403, "IP address does not match");
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
+          res,
+          httpStatus: 403,
+          errorMessage: "IP address does not match",
+        });
       }
 
       if (conversationInDb.messages.length >= MAX_MESSAGES_IN_CONVERSATION) {
-        return sendErrorResponse(
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
           res,
-          400,
-          `You cannot send more messages to this conversation. ` +
+          httpStatus: 400,
+          errorMessage:
+            `You cannot send more messages to this conversation. ` +
             `Max messages (${MAX_MESSAGES_IN_CONVERSATION}, including system prompt) exceeded. ` +
-            `Start a new conversation.`
-        );
+            `Start a new conversation.`,
+        });
       }
 
       let answer: OpenAiChatMessage;
@@ -142,11 +173,19 @@ export function makeAddMessageToConversationRoute({
           findNearestNeighborsOptions,
         });
       } catch (err) {
-        logger.error("Error getting content for text:", JSON.stringify(err));
-        return sendErrorResponse(res, 500, "Error getting content for text");
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
+          res,
+          httpStatus: 500,
+          errorMessage: "Error getting content for text",
+          errorDetails: JSON.stringify(err),
+        });
       }
       if (!chunks || chunks.length === 0) {
-        logger.info("No matching content found");
+        logRequest({
+          reqId: req.headers["req-id"] as string,
+          message: "No matching content found",
+        });
         const { assistantMessage } = await addMessagesToDatabase({
           conversations,
           conversationId,
@@ -184,16 +223,29 @@ export function makeAddMessageToConversationRoute({
             ...conversationInDb.messages.map(convertDbMessageToOpenAiMessage),
             latestMessage,
           ];
-          logger.info(`LLM query: ${JSON.stringify(messages)}`);
+          logRequest({
+            reqId: req.headers["req-id"] as string,
+            message: `LLM query: ${JSON.stringify(messages)}`,
+          });
           answer = await llm.answerQuestionAwaited({
             messages,
             chunks: chunkTexts,
           });
           answer.content += generateFurtherReading({ chunks });
-          logger.info(`LLM response: ${JSON.stringify(answer)}`);
+          logRequest({
+            reqId: req.headers["req-id"] as string,
+            message: `LLM response: ${JSON.stringify(answer)}`,
+          });
         } catch (err: any) {
-          logger.error("Error from LLM: " + JSON.stringify(err));
-          logger.info("Only sending vector search results to user");
+          logRequest({
+            reqId: req.headers["req-id"] as string,
+            message: `LLM error: ${JSON.stringify(err)}`,
+            type: "error",
+          });
+          logRequest({
+            reqId: req.headers["req-id"] as string,
+            message: "Only sending vector search results to user",
+          });
           answer = {
             role: "assistant",
             content:
@@ -212,7 +264,11 @@ export function makeAddMessageToConversationRoute({
         res.status(200).json(apiRes);
       }
     } catch (err) {
-      logger.error("An unexpected error occurred: " + JSON.stringify(err));
+      logRequest({
+        reqId: req.headers["req-id"] as string,
+        message: "An unexpected error occurred: " + JSON.stringify(err),
+        type: "error",
+      });
       next(err);
     }
   };

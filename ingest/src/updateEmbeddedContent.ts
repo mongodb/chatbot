@@ -36,7 +36,7 @@ export const updateEmbeddedContent = async ({
       sourceNames ? ` in sources: ${sourceNames.join(", ")}` : ""
     }`
   );
-  for await (const page of changedPages) {
+  for (const page of changedPages) {
     switch (page.action) {
       case "deleted":
         logger.info(
@@ -76,19 +76,20 @@ export const updateEmbeddedContentForPage = async ({
 }): Promise<void> => {
   const contentChunks = await chunkPage(page, chunkOptions);
 
-  const embeddedContent = await Promise.all(
-    contentChunks.map(async (chunk): Promise<EmbeddedContent> => {
-      const { embedding } = await embed({
-        text: chunk.text,
-        userIp: "127.0.0.1",
-      });
-      return {
-        ...chunk,
-        embedding,
-        updated: new Date(),
-      };
-    })
-  );
+  const embeddedContent: EmbeddedContent[] = [];
+  // Process sequentially because we're likely to hit rate limits before any
+  // other performance bottleneck
+  for (const chunk of contentChunks) {
+    const { embedding } = await embed({
+      text: chunk.text,
+      userIp: "127.0.0.1",
+    });
+    embeddedContent.push({
+      ...chunk,
+      embedding,
+      updated: new Date(),
+    });
+  }
 
   await store.updateEmbeddedContent({
     page,

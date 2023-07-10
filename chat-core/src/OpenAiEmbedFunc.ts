@@ -99,8 +99,21 @@ export const makeOpenAiEmbedFunc = ({
           }
 
           logger.info(
-            `OpenAI Embedding API rate limited (attempt ${attemptNumber - 1})`
+            `OpenAI Embedding API rate limited (attempt ${
+              attemptNumber - 1
+            }): ${error.message}`
           );
+
+          // Quick optimization for retry where we wait as long as it tells us
+          // to (if it does)
+          const matches = /retry after ([0-9]+) seconds/.exec(error.message);
+          const waitSeconds = matches ? parseInt(matches[1]) : 0;
+          if (waitSeconds) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, waitSeconds * 1000)
+            );
+          }
+
           return true; // Keep trying until max attempts
         },
       }

@@ -32,6 +32,10 @@ const commandModule: CommandModule<unknown, EmbeddedContentCommandArgs> = {
       apiKey: OPENAI_API_KEY,
       apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
       deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+      backoffOptions: {
+        numOfAttempts: 25,
+        startingDelay: 1000,
+      },
     });
 
     const store = await makeDatabaseConnection({

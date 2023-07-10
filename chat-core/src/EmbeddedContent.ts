@@ -63,6 +63,11 @@ export type EmbeddedContentStore = {
     vector: number[],
     options?: Partial<FindNearestNeighborsOptions>
   ): Promise<WithScore<EmbeddedContent>[]>;
+  findMmrNearestNeighbors(
+    vector: number[],
+    options?: Partial<FindNearestNeighborsOptions>,
+    mmrOptions?: Partial<MmrOptions>
+  ): Promise<WithScore<EmbeddedContent>[]>;
 };
 
 export type WithScore<T> = T & { score: number };
@@ -87,4 +92,9 @@ export type FindNearestNeighborsOptions = {
     The minimum nearest-neighbor score threshold between 0-1.
    */
   minScore: number;
+};
+
+export type MmrOptions = {
+  lambdaMult: number;
+  k: number;
 };

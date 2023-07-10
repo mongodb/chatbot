@@ -3,6 +3,8 @@ import { strict as assert } from "assert";
 import {
   makeDatabaseConnection,
   DatabaseConnection,
+  cosineSimilarity,
+  maximalMarginalRelevance,
 } from "./DatabaseConnection";
 import { Page, PageStore, PersistedPage } from "./Page";
 import {
@@ -13,6 +15,7 @@ import { assertEnvVars } from "./assertEnvVars";
 import { CORE_ENV_VARS } from "./CoreEnvVars";
 import { makeOpenAiEmbedFunc } from "./OpenAiEmbedFunc";
 import "dotenv/config";
+import { describe } from "node:test";
 
 const {
   MONGODB_CONNECTION_URI,
@@ -252,5 +255,74 @@ describe("nearest neighbor search", () => {
       findNearestNeighborOptions
     );
     expect(matches).toHaveLength(0);
+  });
+});
+
+describe.skip("MMR nearest neighbor search", () => {
+  // TODO: test the EmbeddedContent#findMmrNearestNeighbors() method
+});
+
+describe("Maximum marginal relevance utils", () => {
+  describe("cosineSimilarity()", () => {
+    test("should return the correct cosine similarity of 2D vectors", () => {
+      const A = [
+        [1, 2, 3],
+        [7, 8, 9],
+      ];
+      const B = [
+        [4, 5, 6],
+        [10, 11, 12],
+      ];
+      const expected = [
+        [0.9746318461970762, 0.9512583076673059],
+        [0.9981908926857269, 0.9996186252006534],
+      ];
+
+      expect(cosineSimilarity(A, B)).toEqual(expected);
+    });
+  });
+  describe("maximalMarginalRelevance()", () => {
+    test("should return the correct MMR (trivial example)", () => {
+      const queryEmbedding = [1, 2, 3];
+      const embeddingList = [
+        [10, 11, 12],
+        [4, 5, 6],
+        [16, 17, 18],
+        [13, 14, 15],
+        [7, 8, 9],
+        [22, 23, 24],
+        [19, 20, 21],
+      ];
+      const indexes = maximalMarginalRelevance(queryEmbedding, embeddingList);
+      console.log(indexes);
+      const expected = [1, 4, 0, 3];
+      expect(indexes).toEqual(expected);
+    });
+    test("should return the correct MMR (less-trivial example)", () => {
+      // embeddings taken from langchain test - https://github.com/hwchase17/langchain/blob/master/tests/unit_tests/test_math_utils.py
+      // Vectors that are 30, 45 and 75 degrees from query vector (cosine similarity of
+      // 0.87, 0.71, 0.26) and the latter two are 15 and 60 degree from the first
+      // (cosine similarity 0.97 and 0.71). So for 3rd vector be chosen, must be case that
+      // 0.71lambda - 0.97(1 - lambda) < 0.26lambda - 0.71(1-lambda)
+      // -> lambda ~< .26 / .71
+      const queryEmbedding = [1, 0];
+      const embeddingList = [
+        [3 ** 0.5, 1],
+        [1, 1],
+        [1, 2 + 3 ** 0.5],
+      ];
+
+      const lambda = 25 / 71;
+      const k = 2;
+      const indexes = maximalMarginalRelevance(
+        queryEmbedding,
+        embeddingList,
+        lambda,
+        k
+      );
+      console.log(indexes);
+      const expected = [0, 2];
+      expect(indexes).toEqual(expected);
+    });
   });
 });

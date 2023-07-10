@@ -29,8 +29,11 @@ export interface LogRequestParams {
   type?: "info" | "error";
 }
 
-export const logRequest = ({ reqId, message, type }: LogRequestParams) => {
-  type = type || "info";
+export const logRequest = ({
+  reqId,
+  message,
+  type = "info",
+}: LogRequestParams) => {
   logger[type]({ reqId, message });
 };
 

@@ -17,6 +17,14 @@ export const updatePages = async ({
     logger.info(`Fetching pages for ${source.name}`);
     const pages = await source.fetchPages();
     logger.info(`${source.name} returned ${pages.length} pages`);
+    if (pages.length === 0) {
+      // If a flaky data source returns no pages, we would mark all pages in
+      // that source as deleted. This is probably not wanted.
+      logger.warn(
+        `Expected at least 1 page from ${source.name}. Discarding result.`
+      );
+      continue;
+    }
     await persistPages({
       pages,
       store: pageStore,

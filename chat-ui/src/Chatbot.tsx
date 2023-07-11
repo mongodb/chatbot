@@ -14,6 +14,8 @@ import { Overline } from "@leafygreen-ui/typography";
 import MessageList from "./MessageList";
 import Message from "./Message";
 import { ParagraphSkeleton } from "@leafygreen-ui/skeleton-loader";
+import IconButton from "@leafygreen-ui/icon-button";
+import Icon from "@leafygreen-ui/icon";
 
 function Disclosure() {
   return (
@@ -33,6 +35,7 @@ type CTACardProps = {
   conversation: Conversation;
   inputText: string;
   activate: () => void;
+  deactivate: () => void;
   setInputText: (text: string) => void;
   inputTextError: string;
   handleSubmit: (text: string) => Promise<void>;
@@ -45,6 +48,7 @@ function CTACard({
   conversation,
   inputText,
   activate,
+  deactivate,
   setInputText,
   inputTextError,
   handleSubmit,
@@ -66,6 +70,15 @@ function CTACard({
           <div className={styles.card_content_title}>
             <Subtitle>MongoDB AI</Subtitle>
             <Badge variant="blue">Experimental</Badge>
+
+            <IconButton
+              className={styles.card_content_title__right}
+              aria-label="Close the chatbot window"
+              active={false}
+              onClick={() => deactivate()}
+            >
+              <Icon glyph="X" />
+            </IconButton>
           </div>
           <MessageList>
             {conversation.messages.map((message) => (
@@ -164,6 +177,12 @@ export default function Chatbot() {
     }
   }
 
+  function deactivate() {
+    if(active) {
+      setActive(false);
+    }
+  }
+
   async function handleCreateConversation() {
     try {
       await conversation.createConversation();
@@ -234,36 +253,52 @@ export default function Chatbot() {
   const cardRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className={styles.chatbot_container} ref={cardBoundingBoxRef}>
-      <>
-        <CSSTransition
-          nodeRef={cardRef}
-          in={active}
-          timeout={{
-            enter: 250,
-            exit: 200,
-          }}
-          classNames={{
-            enterActive: styles["card-enter"],
-            enterDone: styles["card-enter-active"],
-            exitActive: styles["card-exit"],
-            exitDone: styles["card-exit-active"],
-          }}
-        >
-          <CTACard
-            cardRef={cardRef}
-            conversation={conversation}
-            active={active}
-            activate={activate}
-            inputText={inputText}
-            setInputText={setInputText}
-            inputTextError={inputTextError}
-            handleSubmit={handleSubmit}
-            awaitingReply={awaitingReply}
-          />
-        </CSSTransition>
-        {!active ? <Disclosure /> : null}
-      </>
-    </div>
+    <CSSTransition
+      nodeRef={cardBoundingBoxRef}
+      in={active}
+      timeout={{
+        enter: 250,
+        exit: 200,
+      }}
+      classNames={{
+        enterActive: styles["chatbot_container-enter"],
+        enterDone: styles["chatbot_container-enter-active"],
+        exitActive: styles["chatbot_container-exit"],
+        exitDone: styles["chatbot_container-exit-active"],
+      }}
+    >
+      <div className={styles.chatbot_container} ref={cardBoundingBoxRef}>
+        <>
+          <CSSTransition
+            nodeRef={cardRef}
+            in={active}
+            timeout={{
+              enter: 250,
+              exit: 200,
+            }}
+            classNames={{
+              enterActive: styles["card-enter"],
+              enterDone: styles["card-enter-active"],
+              exitActive: styles["card-exit"],
+              exitDone: styles["card-exit-active"],
+            }}
+          >
+            <CTACard
+              cardRef={cardRef}
+              conversation={conversation}
+              active={active}
+              activate={activate}
+              deactivate={deactivate}
+              inputText={inputText}
+              setInputText={setInputText}
+              inputTextError={inputTextError}
+              handleSubmit={handleSubmit}
+              awaitingReply={awaitingReply}
+            />
+          </CSSTransition>
+          {!active ? <Disclosure /> : null}
+        </>
+      </div>
+    </CSSTransition>
   );
 }

@@ -9,7 +9,7 @@ import {
   makeOpenAiEmbedFunc,
 } from "chat-core";
 import { ConversationsService } from "./services/conversations";
-import { DataStreamerService } from "./services/dataStreamer";
+import { DataStreamer } from "./services/dataStreamer";
 import { makeOpenAiLlm } from "./services/llm";
 
 const PORT = process.env.PORT || 3000;
@@ -34,7 +34,7 @@ const startServer = async () => {
   );
 
   const conversations = new ConversationsService(mongodb.db);
-  const dataStreamer = new DataStreamerService();
+  const dataStreamer = new DataStreamer();
 
   const store = await makeDatabaseConnection({
     connectionUri: MONGODB_CONNECTION_URI,

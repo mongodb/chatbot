@@ -159,11 +159,17 @@ export class ConversationsService implements ConversationsServiceInterface {
   private createMessageFromChatMessage(
     chatMessage: OpenAiChatMessage
   ): Message {
-    return {
-      id: new ObjectId(),
-      role: chatMessage.role,
-      content: chatMessage.content,
-      createdAt: new Date(),
-    };
+    return createMessageFromOpenAIChatMessage(chatMessage);
   }
+}
+
+export function createMessageFromOpenAIChatMessage(
+  chatMessage: OpenAiChatMessage
+): Message {
+  return {
+    id: new ObjectId(),
+    role: chatMessage.role,
+    content: chatMessage.content,
+    createdAt: new Date(),
+  };
 }

@@ -1,89 +1,118 @@
 import { Response } from "express";
 import { OpenAiStreamingResponse } from "./llm";
+import { logger } from "chat-core";
 
-function escapeNewlines(str: string) {
+function escapeNewlines(str: string): string {
   return str.replaceAll(`\n`, `\\n`);
 }
 
-interface AnswerParams {
-  res: Response;
-  answerStream: OpenAiStreamingResponse;
-  furtherReading?: string;
+interface ServerSentEventDispatcher<Data extends object | string> {
+  connect(): void;
+  disconnect(): void;
+  sendData(data: Data): void;
+  sendEvent(eventType: string, data: Data): void;
 }
 
-interface ServerSentEventDispatcher {
-  sendData(args: { res: Response; data: object }): void;
-  sendEvent(args: { res: Response; eventType: string; data: object }): void;
-}
-type SendDataArgs = Parameters<ServerSentEventDispatcher["sendData"]>[0];
-type SendEventArgs = Parameters<ServerSentEventDispatcher["sendEvent"]>[0];
-
-export class DataStreamerService implements ServerSentEventDispatcher {
-  static setServerSentEventHeaders(res: Response) {
-    const CacheControl = res.getHeader("Cache-Control");
-    const ContentType = res.getHeader("Content-Type");
-    const Connection = res.getHeader("Connection");
-
-    if (!CacheControl && !ContentType && !Connection) {
+function makeServerSentEventDispatcher<D extends object | string = object | string>(res: Response): ServerSentEventDispatcher<D> {
+  return {
+    connect() {
+      // Define SSE headers and flush them to the client to establish a connection
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Connection", "keep-alive");
-      res.flushHeaders(); // flush the headers to establish SSE with client
+      res.flushHeaders();
+    },
+    disconnect() {
+      res.end();
+    },
+    sendData(data) {
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    },
+    sendEvent(eventType, data) {
+      res.write(`event: ${eventType}\n`);
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    },
+  };
+}
+
+interface StreamParams {
+  stream: OpenAiStreamingResponse;
+  furtherReading?: string;
+
+}
+
+type ChatbotStreamEvent =
+  | { type: "delta"; data: string }
+  | { type: "finished"; data: object }
+
+export class DataStreamer {
+  private res?: Response;
+  private sse?: ServerSentEventDispatcher<ChatbotStreamEvent>;
+  connected: boolean;
+
+  constructor() {
+    this.connected = false;
+  }
+
+  connect(res: Response) {
+    if (this.connected) {
+      throw new Error("Tried to connect SSE, but it was already connected.");
     }
-
-    return res;
-  }
-
-  setServerSentEventHeaders(res: Response) {
-    return DataStreamerService.setServerSentEventHeaders(res);
-  }
-
-  static sendData({ res, data }: SendDataArgs) {
-    res = DataStreamerService.setServerSentEventHeaders(res);
-    res.write(`data: ${JSON.stringify(data)}\n\n`);
-  }
-
-  static sendEvent({ res, eventType, data }: SendEventArgs) {
-    res = DataStreamerService.setServerSentEventHeaders(res);
-    res.write(`event: ${eventType}\n`);
-    res.write(`data: ${JSON.stringify(data)}\n\n`);
-  }
-
-  sendData(args: SendDataArgs) {
-    return DataStreamerService.sendData(args);
-  }
-
-  sendEvent(args: SendEventArgs) {
-    return DataStreamerService.sendEvent(args);
-  }
-
-  // NOTE: for example streaming data, see https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
-  async answer({ res, answerStream, furtherReading }: AnswerParams) {
+    this.res = res;
+    this.sse = makeServerSentEventDispatcher<ChatbotStreamEvent>(res);
     // If the client closes the connection, stop sending events
     res.on("close", () => {
-      res.end();
+      if (this.connected) {
+        this.disconnect();
+      }
     });
+    this.sse.connect();
+    this.connected = true;
+  }
 
-    let str = "";
-    for await (const event of answerStream) {
-      for (const choice of event.choices) {
-        if (choice.delta) {
-          const content = escapeNewlines(choice.delta.content ?? "");
-          this.sendData({
-            res,
-            data: { type: "delta", data: content },
-          });
-          str += content;
-        }
+  disconnect() {
+    if (!this.connected) {
+      throw new Error(
+        "Tried to disconnect SSE, but it was already disconnected."
+      );
+    }
+    this.sse?.disconnect();
+    this.sse = undefined;
+    this.res = undefined;
+    this.connected = false;
+  }
+
+  streamData(data: ChatbotStreamEvent) {
+    if (!this.connected) {
+      throw new Error(
+        `Tried to stream data, but there's no SSE connection. Call DataStreamer.connect() first.`
+      );
+    }
+    this.sse?.sendData(data);
+  }
+
+  async stream({ stream }: StreamParams) {
+    let streamedData = "";
+    for await (const event of stream) {
+      // The event could contain many choices, but we only want the first one
+      const choice = event.choices[0];
+      if (choice.delta) {
+        const content = escapeNewlines(choice.delta.content ?? "");
+        const delta = {
+          type: "delta",
+          data: content,
+        } satisfies ChatbotStreamEvent;
+        this.streamData(delta);
+        streamedData += content;
+      } else if (choice.message) {
+        logger.warn(
+          `Unexpected message in stream: no delta. Message: ${JSON.stringify(
+            choice.message
+          )}`
+        );
       }
     }
-    if (furtherReading) {
-      this.sendData({
-        res,
-        data: { type: "delta", data: furtherReading },
-      });
-    }
-    return str;
+    return streamedData;
   }
 }

@@ -62,6 +62,16 @@ export default class ConversationService {
       },
     });
     const conversation = await resp.json();
+    if (resp.status === 400) {
+      throw new Error(`Bad request: ${conversation.error}`);
+    }
+    if (resp.status === 429) {
+      // TODO: Handle rate limiting
+      throw new Error(`Rate limited: ${conversation.error}`);
+    }
+    if (resp.status >= 500) {
+      throw new Error(`Server error: ${conversation.error}`);
+    }
     return {
       ...conversation,
       conversationId: conversation._id,
@@ -84,23 +94,39 @@ export default class ConversationService {
       body: JSON.stringify({ message }),
     });
     const data = await resp.json();
+    if (resp.status === 400) {
+      throw new Error(`Bad request: ${data.message}`);
+    }
+    if (resp.status === 404) {
+      throw new Error(`Conversation not found: ${data.message}`);
+    }
+    if (resp.status === 429) {
+      // TODO: Handle rate limiting
+      throw new Error(`Rate limited: ${data.message}`);
+    }
+    if (resp.status >= 500) {
+      throw new Error(`Server error: ${data.message}`);
+    }
     return data;
   }
 
   async addMessageStreaming({
     conversationId,
     message,
+    maxRetries = 0,
     onResponseDelta,
     onResponseFinished,
+    signal,
   }: {
     conversationId: string;
     message: string;
+    maxRetries: number;
     onResponseDelta: (delta: string) => void;
     onResponseFinished: (message: MessageData) => void;
+    signal?: AbortSignal;
   }): Promise<void> {
     const path = `/conversations/${conversationId}/messages`;
 
-    const maxRetries = 2;
     let retryCount = 0;
     let moreToStream = true;
 
@@ -123,11 +149,13 @@ export default class ConversationService {
     };
 
     await fetchEventSource(this.getUrl(path, { stream: "true" }), {
+      signal: signal ?? null,
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ message }),
+
       onmessage(ev) {
         const event = JSON.parse(ev.data);
         if (!isConversationStreamEvent(event)) {
@@ -143,8 +171,8 @@ export default class ConversationService {
             moreToStream = false;
             const formattedMessageData = {
               ...event.data,
-              content: event.data.content.replaceAll(`\\n`, `\n`)
-            }
+              content: event.data.content.replaceAll(`\\n`, `\n`),
+            };
             onResponseFinished(formattedMessageData);
             break;
           }
@@ -157,7 +185,9 @@ export default class ConversationService {
           response.headers.get("content-type") === "text/event-stream"
         ) {
           return; // everything's good
-        } else if (
+        }
+
+        if (
           response.status >= 400 &&
           response.status < 500 &&
           response.status !== 429
@@ -178,6 +208,7 @@ export default class ConversationService {
         }
       },
       onerror(err) {
+        console.log("services/conversations/onerror", err);
         if (
           err instanceof RetriableError &&
           moreToStream &&

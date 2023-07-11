@@ -99,6 +99,7 @@ export default function Message(props: MessageProps) {
     messageRef.current?.scrollIntoView({
       behavior: "smooth",
       block: "end",
+      inline: "nearest",
     });
   }, [messageText]);
 

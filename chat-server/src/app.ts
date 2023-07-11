@@ -15,7 +15,7 @@ import {
   EmbedFunc,
   FindNearestNeighborsOptions,
 } from "chat-core";
-import { DataStreamerService } from "./services/dataStreamer";
+import { DataStreamer } from "./services/dataStreamer";
 import { ObjectId } from "mongodb";
 import { ConversationsServiceInterface } from "./services/conversations";
 import { logRequest, sendErrorResponse } from "./utils";
@@ -82,7 +82,7 @@ export const makeApp = async ({
 }: {
   embed: EmbedFunc;
   store: EmbeddedContentStore;
-  dataStreamer: DataStreamerService;
+  dataStreamer: DataStreamer;
   conversations: ConversationsServiceInterface;
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   requestTimeout?: number;

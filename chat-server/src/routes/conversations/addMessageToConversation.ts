@@ -19,7 +19,7 @@ import {
   Message,
   conversationConstants,
 } from "../../services/conversations";
-import { DataStreamerService } from "../../services/dataStreamer";
+import { DataStreamer } from "../../services/dataStreamer";
 
 import {
   Llm,
@@ -55,7 +55,7 @@ export interface AddMessageToConversationRouteParams {
   conversations: ConversationsServiceInterface;
   embed: EmbedFunc;
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
-  dataStreamer: DataStreamerService;
+  dataStreamer: DataStreamer;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
 }
 
@@ -193,15 +193,12 @@ export function makeAddMessageToConversationRoute({
         });
         const apiRes = convertMessageFromDbToApi(assistantMessage);
         if (shouldStream) {
-          dataStreamer.setServerSentEventHeaders(res);
-          dataStreamer.sendData({
-            res,
-            data: {
-              type: "finished",
-              data: apiRes,
-            },
+          dataStreamer.connect(res);
+          dataStreamer.streamData({
+            type: "finished",
+            data: apiRes,
           });
-          res.end();
+          dataStreamer.disconnect();
           return;
         } else {
           return res.status(200).json(apiRes);
@@ -228,10 +225,9 @@ export function makeAddMessageToConversationRoute({
           messages,
           chunks: chunkTexts,
         });
-        const answer = await dataStreamer.answer({
-          res,
-          answerStream,
-          furtherReading,
+        dataStreamer.connect(res);
+        const answer = await dataStreamer.stream({
+          stream: answerStream,
         });
         logger.info(`LLM response: ${JSON.stringify(answer)}`);
         answerContent = answer + furtherReading;
@@ -249,15 +245,17 @@ export function makeAddMessageToConversationRoute({
             messages,
             chunks: chunkTexts,
           });
-          answer.content += generateFurtherReading({ chunks });
           logRequest({
             reqId: req.headers["req-id"] as string,
             message: `LLM response: ${JSON.stringify(answer)}`,
           });
-        } catch (err: any) {
+          answerContent = answer.content + furtherReading;
+        } catch (err) {
+          const errorMessage =
+            err instanceof Error ? err.message : JSON.stringify(err);
           logRequest({
             reqId: req.headers["req-id"] as string,
-            message: `LLM error: ${JSON.stringify(err)}`,
+            message: `LLM error: ${errorMessage}`,
             type: "error",
           });
           logRequest({
@@ -268,15 +266,14 @@ export function makeAddMessageToConversationRoute({
             role: "assistant",
             content:
               conversationConstants.LLM_NOT_WORKING +
-              "\n\n" +
-              generateFurtherReading({ chunks, hasHeading: false }),
+              removeFurtherReadingHeading(furtherReading),
           } satisfies OpenAiChatMessage;
           answerContent = answer.content;
         }
       }
 
-      if(!answerContent) {
-        throw new Error("No answer content")
+      if (!answerContent) {
+        throw new Error("No answer content");
       }
 
       const { assistantMessage } = await addMessagesToDatabase({
@@ -287,14 +284,11 @@ export function makeAddMessageToConversationRoute({
       });
 
       if (shouldStream) {
-        dataStreamer.sendData({
-          res,
-          data: {
-            type: "finished",
-            data: convertMessageFromDbToApi(assistantMessage),
-          },
+        dataStreamer.streamData({
+          type: "finished",
+          data: convertMessageFromDbToApi(assistantMessage),
         });
-        res.end();
+        dataStreamer.disconnect();
         return;
       } else {
         res.status(200).json(convertMessageFromDbToApi(assistantMessage));
@@ -375,6 +369,14 @@ export interface GenerateFurtherReadingParams {
   chunks: EmbeddedContent[];
   hasHeading?: boolean;
 }
+
+const furtherReadingHeading = "\n\nFurther Reading:\n\n";
+
+export function removeFurtherReadingHeading(text: string) {
+  const headingPattern = new RegExp(furtherReadingHeading);
+  return text.replace(headingPattern, "");
+}
+
 export function generateFurtherReading({
   chunks,
   hasHeading = true,
@@ -382,7 +384,7 @@ export function generateFurtherReading({
   if (chunks.length === 0) {
     return "";
   }
-  const heading = hasHeading ? "\n\nFurther Reading:\n\n" : "";
+  const heading = hasHeading ? furtherReadingHeading : "";
   const uniqueLinks = Array.from(new Set(chunks.map((chunk) => chunk.url)));
 
   const linksText = uniqueLinks.reduce((acc, link) => {

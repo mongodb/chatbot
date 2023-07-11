@@ -1,5 +1,5 @@
 import styles from "./Chatbot.module.css";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import Badge from "@leafygreen-ui/badge";
 import Banner from "@leafygreen-ui/banner";
 // import Card from "@leafygreen-ui/card";
@@ -29,6 +29,15 @@ function Disclosure() {
   );
 }
 
+function ErrorBanner() {
+  return (
+    <Banner className={styles.lg_banner} variant="danger">
+      Something went wrong. Try reloading the page and starting a new
+      conversation.
+    </Banner>
+  );
+}
+
 type CTACardProps = {
   active: boolean;
   cardRef: React.RefObject<HTMLDivElement>;
@@ -38,7 +47,6 @@ type CTACardProps = {
   deactivate: () => void;
   setInputText: (text: string) => void;
   inputTextError: string;
-  streamingMessage?: string;
   handleSubmit: (text: string) => Promise<void>;
   awaitingReply: boolean;
 };
@@ -52,7 +60,6 @@ function CTACard({
   deactivate,
   setInputText,
   inputTextError,
-  streamingMessage,
   handleSubmit,
   awaitingReply,
 }: CTACardProps) {
@@ -90,23 +97,11 @@ function CTACard({
                 rateMessage={conversation.rateMessage}
               />
             ))}
-            {awaitingReply &&
-              (streamingMessage ? (
-                <Message
-                  message={{
-                    id: "streaming-message",
-                    role: "assistant",
-                    content: streamingMessage,
-                    createdAt: String(Date.now()),
-                  }}
-                  rateMessage={conversation.rateMessage}
-                  hideRating={true}
-                />
-              ) : (
-                <Message role="assistant">
-                  <ParagraphSkeleton />
-                </Message>
-              ))}
+            {(awaitingReply && !conversation.isStreamingMessage) ? (
+              <Message role="assistant">
+                <ParagraphSkeleton />
+              </Message>
+            ) : null}
           </MessageList>
           <Banner className={styles.lg_banner} variant="warning">
             This is an experimental AI chatbot. All information should be
@@ -115,62 +110,64 @@ function CTACard({
         </>
       ) : null}
 
-      <ChatInput
-        ref={inputRef}
-        key="wizard-input"
-        showSubmitButton={active && inputText.length > 0}
-        placeholder={
-          awaitingReply
-            ? "MongoDB AI is answering..."
-            : "Ask MongoDB AI a Question"
-        }
-        state={inputTextError ? "error" : "none"}
-        errorMessage={inputTextError}
-        canSubmit={inputTextError.length === 0}
-        onFocus={() => {
-          if (!active) {
-            activate();
+      {active && conversation.error ? <ErrorBanner /> : null}
+
+      {!active || !conversation.error ? (
+        <ChatInput
+          ref={inputRef}
+          key="wizard-input"
+          showSubmitButton={
+            active && inputText.length > 0 && !conversation.error
           }
-        }}
-        onButtonClick={() => {
-          activate();
-        }}
-        value={inputText}
-        onChange={(e) => {
-          setInputText(e.target.value);
-        }}
-        loading={awaitingReply}
-        handleSubmit={() => {
-          handleSubmit(inputText);
-        }}
-      />
+          disabled={active && Boolean(conversation.error?.length)}
+          placeholder={
+            conversation.error
+              ? "Something went wrong. Try reloading the page and starting a new conversation."
+              : awaitingReply
+              ? "MongoDB AI is answering..."
+              : "Ask MongoDB AI a Question"
+          }
+          state={inputTextError ? "error" : "none"}
+          errorMessage={inputTextError}
+          canSubmit={inputTextError.length === 0 && !conversation.error}
+          onFocus={() => {
+            if (!active) {
+              activate();
+            }
+          }}
+          onButtonClick={() => {
+            activate();
+          }}
+          value={inputText}
+          onChange={(e) => {
+            setInputText(e.target.value);
+          }}
+          loading={awaitingReply}
+          handleSubmit={() => {
+            handleSubmit(inputText);
+          }}
+        />
+      ) : null}
 
-      {active && isEmptyConversation ? (
-        !conversation.error ? (
-          <div className={styles.card_content}>
-            <div className={styles.chat}>
-              {showSuggestedPrompts ? (
-                <SuggestedPrompts
-                  onPromptSelected={async (text) => {
-                    await handleSubmit(text);
-                  }}
-                />
-              ) : null}
+      {active && isEmptyConversation && !conversation.error ? (
+        <div className={styles.card_content}>
+          <div className={styles.chat}>
+            {showSuggestedPrompts ? (
+              <SuggestedPrompts
+                onPromptSelected={async (text) => {
+                  await handleSubmit(text);
+                }}
+              />
+            ) : null}
 
-              {showExperimentalBanner ? (
-                <div className={styles.basic_banner}>
-                  <Overline>ASK MONGODB AI</Overline>
-                  <Badge variant="blue">Experimental</Badge>
-                </div>
-              ) : null}
-            </div>
+            {showExperimentalBanner ? (
+              <div className={styles.basic_banner}>
+                <Overline>ASK MONGODB AI</Overline>
+                <Badge variant="blue">Experimental</Badge>
+              </div>
+            ) : null}
           </div>
-        ) : (
-          <Banner className={styles.lg_banner} variant="danger">
-            Something went wrong. Try reloading the page and starting a new
-            conversation.
-          </Banner>
-        )
+        </div>
       ) : null}
     </Box>
   );
@@ -181,33 +178,19 @@ export default function Chatbot() {
   const [active, setActive] = useState(false);
   const [awaitingReply, setAwaitingReply] = useState(false);
 
-  function activate() {
+  async function activate() {
     if (active) {
       return;
     }
     setActive(true);
     if (!conversation.conversationId) {
-      handleCreateConversation();
+      await conversation.createConversation();
     }
   }
 
   function deactivate() {
-    if(active) {
+    if (active) {
       setActive(false);
-    }
-  }
-
-  async function handleCreateConversation() {
-    try {
-      await conversation.createConversation();
-    } catch (e) {
-      const errorMessage =
-        typeof e === "string"
-          ? e
-          : e instanceof Error
-          ? e.message
-          : "Failed to create conversation.";
-      conversation.endConversationWithError(errorMessage);
     }
   }
 
@@ -244,20 +227,6 @@ export default function Chatbot() {
     } finally {
       setAwaitingReply(false);
     }
-    // setAwaitingReply(true);
-    // setTimeout(() => {
-    //   setAwaitingReply(false);
-    //   conversation.addMessage(
-    //     "assistant",
-    //     "This is a test response.\n\nHere's some code you could run if you're brave enough:\n\n```javascript\nfunction hello() {\n  console.log('hello, world!');\n}\n\nhello()\n```\n"
-    //   );
-    // }, 4000);
-    // setTimeout(() => {
-    //   conversation.addMessage(
-    //     "system",
-    //     `#### There was a problem sending your message.\n\n#### Try asking your question again or reloading the page.`
-    //   );
-    // }, 300);
   };
 
   const cardBoundingBoxRef = useClickAway(() => {

@@ -26,9 +26,9 @@ export interface Llm<T, U> {
   }: LlmAnswerQuestionParams): Promise<U>;
 }
 
-export type OpenAiStreamingResponse = AsyncIterable<
-  Omit<ChatCompletions, "usage">
->;
+export type OpenAIChatCompletionWithoutUsage = Omit<ChatCompletions, "usage">
+
+export type OpenAiStreamingResponse = AsyncIterable<OpenAIChatCompletionWithoutUsage>;
 export type OpenAiAwaitedResponse = OpenAiChatMessage;
 
 interface MakeOpenAiLlmParams {

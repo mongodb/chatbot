@@ -10,7 +10,7 @@ import {
 } from "chat-core";
 import { errorHandler, makeApp, makeHandleTimeoutMiddleware } from "./app";
 import { ConversationsService } from "./services/conversations";
-import { DataStreamerService } from "./services/dataStreamer";
+import { DataStreamer } from "./services/dataStreamer";
 import { makeOpenAiLlm } from "./services/llm";
 
 describe("App", () => {
@@ -33,7 +33,7 @@ describe("App", () => {
   );
 
   const conversations = new ConversationsService(mongodb.db);
-  const dataStreamer = new DataStreamerService();
+  const dataStreamer = new DataStreamer();
 
   const embed = makeOpenAiEmbedFunc({
     apiKey: OPENAI_API_KEY,

@@ -6,7 +6,6 @@ import {
 import { ConversationsServiceInterface } from "../../services/conversations";
 import { convertConversationFromDbToApi, isValidIp } from "./utils";
 import { logRequest, sendErrorResponse } from "../../utils";
-import { logger } from "chat-core";
 
 export interface CreateConversationRouteParams {
   conversations: ConversationsServiceInterface;

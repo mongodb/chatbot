@@ -36,7 +36,7 @@ import {
 import { makeCreateConversationRoute } from "./createConversation";
 import { ApiConversation, ApiMessage } from "./utils";
 import { makeOpenAiLlm } from "../../services/llm";
-import { DataStreamerService } from "../../services/dataStreamer";
+import { DataStreamer } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
 import { makeRateMessageRoute } from "./rateMessage";
@@ -73,8 +73,7 @@ describe("Conversations Router", () => {
     deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     apiKey: OPENAI_API_KEY,
   });
-  // TODO: implement data streaming service
-  const dataStreamer = new DataStreamerService();
+  const dataStreamer = new DataStreamer();
 
   const findNearestNeighborsOptions: FindNearestNeighborsOptions = {
     k: 5,
@@ -214,8 +213,21 @@ describe("Conversations Router", () => {
       });
     });
 
-    describe.skip("Streamed response", () => {
-      // TODO: (DOCSP-30620) add in when data streamer is implemented
+    describe("Streamed response", () => {
+      it("should respond with a 200 text/event-stream", async () => {
+        const requestBody = {
+          message:
+            "how can i use mongodb products to help me build my new mobile app?",
+        } satisfies AddMessageRequestBody;
+        const res = await request(app)
+          .post(endpointUrl.replace(":conversationId", _id))
+          .send(requestBody);
+        expect(res.statusCode).toEqual(200);
+        // const message: ApiMessage = res.body;
+        // expect(message.role).toBe("assistant");
+        // expect(message.content).toContain("Realm");
+        expect(1).toBe(2);
+      });
     });
 
     describe("Error handing", () => {
@@ -334,10 +346,6 @@ describe("Conversations Router", () => {
         expect(res.body).toStrictEqual({
           error: "Error finding conversation",
         });
-      });
-
-      test.skip("Should respond 500 if error with data streaming service", async () => {
-        // TODO: (DOCSP-30620) implement with data streaming service
       });
 
       test("should respond 500 if error with content service", async () => {

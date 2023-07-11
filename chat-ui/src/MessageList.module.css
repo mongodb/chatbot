@@ -1,11 +1,11 @@
 .message_list {
   display: flex;
   flex-direction: column;
-  max-height: 550px;
   overflow-y: scroll;
   gap: 1rem;
   margin-top: 1rem;
   width: 100%;
+  flex-grow: 1;
 }
 
 .message_list_item {

@@ -5,9 +5,9 @@
   "main": "build/index.js",
   "scripts": {
     "build": "rm -rf ./build/ && tsc",
-    "seed-content:dev": "node ./build/index.js .env",
-    "seed-content:test": "node ./build/index.js .env.test",
-    "seed-content:staging": "node ./build/index.js .env.staging"
+    "seed-content:dev": "npm run build && node ./build/index.js .env",
+    "seed-content:test": "npm run build && node ./build/index.js .env.test",
+    "seed-content:staging": "npm run build && node ./build/index.js .env.staging"
   },
   "engines": {
     "node": "^18",

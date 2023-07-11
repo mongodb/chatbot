@@ -23,15 +23,40 @@ export const getRequestId = (req: ExpressRequest) => {
   }
 };
 
-export const sendErrorResponse = (
-  res: ExpressResponse,
-  httpStatus: number,
-  errorMessage: string,
-  errorDetails?: string
-) => {
-  logger.error(
-    stripIndent`Responding with ${httpStatus} status and error message: ${errorMessage}.
-    ${errorDetails ? `Error details: ${errorDetails}` : ""}`
-  );
+export interface LogRequestParams {
+  reqId: string;
+  message: string;
+  type?: "info" | "error";
+}
+
+export const logRequest = ({
+  reqId,
+  message,
+  type = "info",
+}: LogRequestParams) => {
+  logger[type]({ reqId, message });
+};
+
+export interface ErrorResponseParams {
+  reqId: string;
+  res: ExpressResponse;
+  httpStatus: number;
+  errorMessage: string;
+  errorDetails?: string;
+}
+
+export const sendErrorResponse = ({
+  reqId,
+  res,
+  httpStatus,
+  errorMessage,
+  errorDetails,
+}: ErrorResponseParams) => {
+  logRequest({
+    reqId,
+    type: "error",
+    message: stripIndent`Responding with ${httpStatus} status and error message: ${errorMessage}.
+    ${errorDetails ? `Error details: ${errorDetails}` : ""}`,
+  });
   return res.status(httpStatus).json({ error: errorMessage });
 };

@@ -152,7 +152,7 @@ async function main() {
   console.log("Inserting data into MongoDB");
   await contentCollection.insertMany(flattedContentWithOutEmptyEmbeddings);
   console.log(
-    `Inserted ${flattedContentWithOutEmptyEmbeddings.length} documents into MongoDB collection 'content'`
+    `Inserted ${flattedContentWithOutEmptyEmbeddings.length} documents into MongoDB collection 'embedded_content'`
   );
   await mongodb.close();
 }

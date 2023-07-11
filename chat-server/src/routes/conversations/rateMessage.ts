@@ -9,8 +9,9 @@ import {
   Response as ExpressResponse,
   NextFunction,
 } from "express";
-import { sendErrorResponse } from "../../utils";
+import { logRequest, sendErrorResponse } from "../../utils";
 import { logger } from "chat-core";
+import { areEquivalentIpAddresses, isValidIp } from "./utils";
 
 interface RatingRequest extends ExpressRequest {
   params: {
@@ -33,9 +34,17 @@ export function makeRateMessageRoute({
     next: NextFunction
   ) => {
     try {
+      const { ip } = req;
       // TODO:(DOCSP-30863) implement type checking on the request
 
-      const ipAddress = "<NOT CAPTURING IP ADDRESS YET>"; // TODO:(DOCSP-30843) refactor to get IP address with middleware
+      if (!isValidIp(ip)) {
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
+          res,
+          httpStatus: 400,
+          errorMessage: `Invalid IP address ${ip}`,
+        });
+      }
 
       const { conversationId: conversationIdStr, messageId: messageIdStr } =
         req.params;
@@ -44,12 +53,22 @@ export function makeRateMessageRoute({
       try {
         conversationId = new ObjectId(conversationIdStr);
       } catch (err) {
-        return sendErrorResponse(res, 400, "Invalid conversation ID");
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
+          res,
+          httpStatus: 400,
+          errorMessage: "Invalid conversation ID",
+        });
       }
       try {
         messageId = new ObjectId(messageIdStr);
       } catch (err) {
-        return sendErrorResponse(res, 400, "Invalid message ID");
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
+          res,
+          httpStatus: 400,
+          errorMessage: "Invalid message ID",
+        });
       }
 
       let conversationInDb: Conversation | null;
@@ -60,22 +79,33 @@ export function makeRateMessageRoute({
 
         assert(conversationInDb);
       } catch (err) {
-        return sendErrorResponse(res, 404, "Conversation not found");
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
+          res,
+          httpStatus: 404,
+          errorMessage: "Conversation not found",
+        });
       }
       if (
         !conversationInDb.messages.find((message) =>
           message.id.equals(messageId)
         )
       ) {
-        return sendErrorResponse(res, 404, "Message not found");
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
+          res,
+          httpStatus: 404,
+          errorMessage: "Message not found",
+        });
       }
 
-      if (conversationInDb.ipAddress !== ipAddress) {
-        return sendErrorResponse(
+      if (!areEquivalentIpAddresses(conversationInDb.ipAddress, ip)) {
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
           res,
-          403,
-          "Invalid IP address for conversation"
-        );
+          httpStatus: 403,
+          errorMessage: "Invalid IP address for conversation",
+        });
       }
       const successfulOperation = await conversations.rateMessage({
         conversationId: conversationId,
@@ -85,12 +115,18 @@ export function makeRateMessageRoute({
 
       if (successfulOperation) {
         res.sendStatus(204);
-        logger.info(
-          `Rated message ${messageIdStr} in conversation ${conversationIdStr} with rating ${rating}`
-        );
+        logRequest({
+          reqId: req.headers["req-id"] as string,
+          message: `Rated message ${messageIdStr} in conversation ${conversationIdStr} with rating ${rating}`,
+        });
         return;
       } else {
-        return sendErrorResponse(res, 500, "Invalid rating");
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
+          res,
+          httpStatus: 500,
+          errorMessage: "Invalid rating",
+        });
       }
     } catch (err) {
       next(err);

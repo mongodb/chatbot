@@ -15,6 +15,7 @@ export type DatabaseConnection = {
     @param force - Force close, emitting no events
    */
   close(force?: boolean): Promise<void>;
+  drop(): Promise<void>;
 };
 
 /**
@@ -33,6 +34,10 @@ export const makeDatabaseConnection = async ({
     db.collection<EmbeddedContent>("embedded_content");
   const pagesCollection = db.collection<PersistedPage>("pages");
   const instance: DatabaseConnection & PageStore & EmbeddedContentStore = {
+    async drop() {
+      await db.dropDatabase();
+    },
+
     async close(force) {
       client.close(force);
     },
@@ -127,8 +132,8 @@ export const makeDatabaseConnection = async ({
 
     async loadPages(args) {
       const filter: Filter<PersistedPage> = {};
-      if (args?.sourceName !== undefined) {
-        filter.sourceName = args.sourceName;
+      if (args?.sources !== undefined) {
+        filter.sourceName = { $in: args.sources };
       }
       if (args?.updated !== undefined) {
         filter.updated = { $gte: args.updated };

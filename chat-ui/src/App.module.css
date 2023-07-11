@@ -2,7 +2,8 @@ body {
   margin: 0;
 }
 
-.app {
+.app_background {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;

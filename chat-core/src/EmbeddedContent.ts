@@ -35,6 +35,11 @@ export interface EmbeddedContent {
     Arbitrary tags associated with the content.
    */
   tags?: string[];
+
+  /**
+    The order of the chunk if this content was chunked from a larger page.
+   */
+  chunkIndex?: number;
 }
 
 export type EmbeddedContentStore = {

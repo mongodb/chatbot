@@ -26,8 +26,13 @@ import {
   OpenAiAwaitedResponse,
   OpenAiStreamingResponse,
 } from "../../services/llm";
-import { ApiConversation, convertMessageFromDbToApi } from "./utils";
-import { sendErrorResponse } from "../../utils";
+import {
+  ApiConversation,
+  areEquivalentIpAddresses,
+  convertMessageFromDbToApi,
+  isValidIp,
+} from "./utils";
+import { logRequest, sendErrorResponse } from "../../utils";
 
 export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 export const MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
@@ -68,30 +73,43 @@ export function makeAddMessageToConversationRoute({
     next: NextFunction
   ) => {
     try {
-      // const {
-      //   params: { conversationId: conversationIdString },
-      //   body: { message },
-      //   query: { stream },
-      // } = req;
-
-      const conversationIdString = req.params.conversationId;
-      const message = req.body.message;
-      const stream = req.query.stream;
-
+      const {
+        params: { conversationId: conversationIdString },
+        body: { message },
+        query: { stream },
+        ip,
+      } = req;
       let conversationId: ObjectId;
       try {
         conversationId = new ObjectId(conversationIdString);
       } catch (err) {
-        return sendErrorResponse(res, 400, "Invalid conversation ID");
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
+          res,
+          httpStatus: 400,
+          errorMessage: "Invalid conversation ID",
+        });
       }
       // TODO:(DOCSP-30863) implement type checking on the request
 
-      const ipAddress = "<NOT CAPTURING IP ADDRESS YET>"; // TODO:(DOCSP-30843) refactor to get IP address with middleware
+      if (!isValidIp(ip)) {
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
+          res,
+          httpStatus: 400,
+          errorMessage: `Invalid IP address ${ip}`,
+        });
+      }
 
       const shouldStream = Boolean(stream);
       const latestMessageText = message;
       if (latestMessageText.length > MAX_INPUT_LENGTH) {
-        return sendErrorResponse(res, 400, "Message too long");
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
+          res,
+          httpStatus: 400,
+          errorMessage: "Message too long",
+        });
       }
 
       let conversationInDb: Conversation | null;
@@ -100,29 +118,41 @@ export function makeAddMessageToConversationRoute({
           _id: conversationId,
         });
       } catch (err) {
-        return sendErrorResponse(
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
           res,
-          500,
-          "Internal error while finding conversation"
-        );
+          httpStatus: 500,
+          errorMessage: "Error finding conversation",
+        });
       }
 
       if (!conversationInDb) {
-        return sendErrorResponse(res, 404, "Conversation not found");
+        return sendErrorResponse({
+          res,
+          reqId: req.headers["req-id"] as string,
+          httpStatus: 404,
+          errorMessage: "Conversation not found",
+        });
       }
-
-      if (conversationInDb.ipAddress !== ipAddress) {
-        return sendErrorResponse(res, 403, "IP address does not match");
+      if (!areEquivalentIpAddresses(conversationInDb.ipAddress, ip)) {
+        return sendErrorResponse({
+          res,
+          reqId: req.headers["req-id"] as string,
+          httpStatus: 403,
+          errorMessage: "IP address does not match",
+        });
       }
 
       if (conversationInDb.messages.length >= MAX_MESSAGES_IN_CONVERSATION) {
-        return sendErrorResponse(
+        return sendErrorResponse({
           res,
-          400,
-          `You cannot send more messages to this conversation. ` +
+          reqId: req.headers["req-id"] as string,
+          httpStatus: 400,
+          errorMessage:
+            `You cannot send more messages to this conversation. ` +
             `Max messages (${MAX_MESSAGES_IN_CONVERSATION}, including system prompt) exceeded. ` +
-            `Start a new conversation.`
-        );
+            `Start a new conversation.`,
+        });
       }
 
       let answer: OpenAiChatMessage;
@@ -131,21 +161,30 @@ export function makeAddMessageToConversationRoute({
       // TODO: consider refactoring this to feed in all messages to the embed function
       // And then as a future step, we can use LLM pre-processing to create a better input
       // to the embedding service.
+
       let chunks: WithScore<EmbeddedContent>[];
       try {
         chunks = await getContentForText({
           embed,
-          ipAddress,
+          ipAddress: ip,
           text: latestMessageText,
           store,
           findNearestNeighborsOptions,
         });
       } catch (err) {
-        logger.error("Error getting content for text:", JSON.stringify(err));
-        return sendErrorResponse(res, 500, "Error getting content for text");
+        return sendErrorResponse({
+          reqId: req.headers["req-id"] as string,
+          res,
+          httpStatus: 500,
+          errorMessage: "Error getting content for text",
+          errorDetails: JSON.stringify(err),
+        });
       }
       if (!chunks || chunks.length === 0) {
-        logger.info("No matching content found");
+        logRequest({
+          reqId: req.headers["req-id"] as string,
+          message: "No matching content found",
+        });
         const { assistantMessage } = await addMessagesToDatabase({
           conversations,
           conversationId,
@@ -202,19 +241,29 @@ export function makeAddMessageToConversationRoute({
             ...conversationInDb.messages.map(convertDbMessageToOpenAiMessage),
             latestMessage,
           ];
-          logger.info(`LLM query: ${JSON.stringify(messages)}`);
-          const answer = await llm.answerQuestionAwaited({
+          logRequest({
+            reqId: req.headers["req-id"] as string,
+            message: `LLM query: ${JSON.stringify(messages)}`,
+          });
+          answer = await llm.answerQuestionAwaited({
             messages,
             chunks: chunkTexts,
           });
           answer.content += generateFurtherReading({ chunks });
-          logger.info(`LLM response: ${JSON.stringify(answer)}`);
-          answerContent = answer.content;
-        } catch (err: unknown) {
-          const errorMessage =
-            err instanceof Error ? err.message : JSON.stringify(err as object);
-          logger.error("Error from LLM: " + errorMessage);
-          logger.info("LLM error: returning just the vector search results");
+          logRequest({
+            reqId: req.headers["req-id"] as string,
+            message: `LLM response: ${JSON.stringify(answer)}`,
+          });
+        } catch (err: any) {
+          logRequest({
+            reqId: req.headers["req-id"] as string,
+            message: `LLM error: ${JSON.stringify(err)}`,
+            type: "error",
+          });
+          logRequest({
+            reqId: req.headers["req-id"] as string,
+            message: "Only sending vector search results to user",
+          });
           answer = {
             role: "assistant",
             content:
@@ -224,6 +273,10 @@ export function makeAddMessageToConversationRoute({
           } satisfies OpenAiChatMessage;
           answerContent = answer.content;
         }
+      }
+
+      if(!answerContent) {
+        throw new Error("No answer content")
       }
 
       const { assistantMessage } = await addMessagesToDatabase({
@@ -247,7 +300,11 @@ export function makeAddMessageToConversationRoute({
         res.status(200).json(convertMessageFromDbToApi(assistantMessage));
       }
     } catch (err) {
-      logger.error("An unexpected error occurred: " + JSON.stringify(err));
+      logRequest({
+        reqId: req.headers["req-id"] as string,
+        message: "An unexpected error occurred: " + JSON.stringify(err),
+        type: "error",
+      });
       next(err);
     }
   };

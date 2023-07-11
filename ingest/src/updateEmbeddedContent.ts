@@ -101,7 +101,7 @@ export const updateEmbeddedContentForPage = async ({
 
   // Process sequentially because we're likely to hit rate limits before any
   // other performance bottleneck
-  for (const i in contentChunks) {
+  for (let i = 0; i < contentChunks.length; ++i) {
     const chunk = contentChunks[i];
     logger.info(
       `Vectorizing chunk ${i + 1}/${contentChunks.length} for ${

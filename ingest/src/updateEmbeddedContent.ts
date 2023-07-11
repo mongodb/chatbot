@@ -48,11 +48,6 @@ export const updateEmbeddedContent = async ({
         break;
       case "created": // fallthrough
       case "updated":
-        logger.info(
-          `${
-            page.action === "created" ? "Creating" : "Updating"
-          } embedded content for ${page.sourceName}:${page.url}`
-        );
         await updateEmbeddedContentForPage({
           store: embeddedContentStore,
           page,
@@ -76,10 +71,43 @@ export const updateEmbeddedContentForPage = async ({
 }): Promise<void> => {
   const contentChunks = await chunkPage(page, chunkOptions);
 
+  // In order to resume where we left off (in case of script restart), compare
+  // the date of any existing chunks with the page updated date. If the chunks
+  // have been updated since the page was updated (and we have the expected
+  // number of chunks), assume the embedded content for that page is complete
+  // and up-to-date. To force an update, you can delete the chunks from the
+  // collection.
+  const existingContent = await store.loadEmbeddedContent({
+    page,
+  });
+  if (
+    existingContent.length !== 0 &&
+    existingContent[0].updated > page.updated &&
+    contentChunks.length === existingContent.length
+  ) {
+    logger.info(
+      `Embedded content for ${page.sourceName}:${page.url} already updated (${existingContent[0].updated}) since page update date (${page.updated}). Skipping embedding.`
+    );
+    return;
+  }
+
+  logger.info(
+    `${
+      page.action === "created" ? "Creating" : "Updating"
+    } embedded content for ${page.sourceName}:${page.url}`
+  );
+
   const embeddedContent: EmbeddedContent[] = [];
+
   // Process sequentially because we're likely to hit rate limits before any
   // other performance bottleneck
-  for (const chunk of contentChunks) {
+  for (let i = 0; i < contentChunks.length; ++i) {
+    const chunk = contentChunks[i];
+    logger.info(
+      `Vectorizing chunk ${i + 1}/${contentChunks.length} for ${
+        page.sourceName
+      }:${page.url}`
+    );
     const { embedding } = await embed({
       text: chunk.text,
       userIp: "127.0.0.1",

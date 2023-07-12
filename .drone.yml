@@ -262,8 +262,9 @@ steps:
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: docs
       release: ingest-service
-      values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-ingest-service,ingress.enabled=true,ingress.hosts[0]=ingest-service.docs.staging.corp.mongodb.com
-      values_files: ["ingest/environments/staging.yml"]
+      values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-ingest-service
+      values_files:
+        - ingest/environments/staging.yml
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token

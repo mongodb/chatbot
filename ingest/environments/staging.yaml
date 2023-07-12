@@ -1,0 +1,32 @@
+image:
+  repository: node
+  tag: 18
+
+cronJobs:
+  - name: script
+    # TODO: figure out correct schedule
+    schedule: "1 * * * *"
+    command: ["node", ".", "all"]
+    env:
+      OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
+      OPENAI_EMBEDDING_MODEL_VERSION: 2023-03-15-preview
+      MONGODB_DATABASE_NAME: docs-chatbot-staging
+      VECTOR_SEARCH_INDEX_NAME: default
+      OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
+    envSecrets:
+      MONGODB_CONNECTION_URI: docs-chatbot-staging
+      OPENAI_ENDPOINT: docs-chatbot-staging
+      OPENAI_API_KEY: docs-chatbot-staging
+      OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-staging
+      OPENAI_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-staging
+      DEVCENTER_CONNECTION_URI: docs-chatbot-staging # TODO: Add to k8s secrets
+    # TODO: figure out correct resources
+    resources:
+      # guaranteed amount of resources
+      requests:
+        cpu: 100m
+        memory: 5Gi
+      # maximum allowed resources
+      limits:
+        cpu: 500m
+        memory: 10Gi

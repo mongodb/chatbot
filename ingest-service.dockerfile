@@ -8,7 +8,7 @@ COPY chat-core ./
 RUN npm ci && npm run build
 
 # Set up ingest service
-WORKDIR /ingest-service
+WORKDIR /ingest
 COPY ingest/src/ ./src/
 COPY ingest/package*.json ingest/tsconfig.json ./
 RUN npm ci && npm run build

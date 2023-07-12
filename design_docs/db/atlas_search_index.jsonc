@@ -1,7 +1,7 @@
 {
   "name": "knnTestIndex",
   "database": "docs_chat",
-  "collectionName": "content",
+  "collectionName": "embedded_content",
   "mappings": {
     "dynamic": true,
     "fields": {

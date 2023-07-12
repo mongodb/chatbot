@@ -536,7 +536,6 @@ describe("Conversations Router", () => {
             ipAddress,
             findNearestNeighborsOptions,
           });
-          console.log("CHUNKS: ", chunks);
           expect(chunks).toBeDefined();
           expect(chunks.length).toBe(0);
         });

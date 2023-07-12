@@ -7,8 +7,11 @@ jest.setTimeout(100000);
 
 describe("Conversations Service", () => {
   const { MONGODB_CONNECTION_URI } = process.env;
+  if (!MONGODB_CONNECTION_URI) {
+    throw new Error("Missing MONGODB_CONNECTION_URI");
+  }
   const mongodb = new MongoDB(
-    MONGODB_CONNECTION_URI!,
+    MONGODB_CONNECTION_URI,
     `conversations-test-${new Date().getTime()}` // New DB for each test run
   );
 

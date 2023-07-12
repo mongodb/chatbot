@@ -122,7 +122,7 @@ export default class ConversationService {
     message: string;
     maxRetries: number;
     onResponseDelta: (delta: string) => void;
-    onResponseFinished: (message: MessageData) => void;
+    onResponseFinished: (messageId: string) => void;
     signal?: AbortSignal;
   }): Promise<void> {
     const path = `/conversations/${conversationId}/messages`;
@@ -132,7 +132,7 @@ export default class ConversationService {
 
     type ConversationStreamEvent =
       | { type: "delta"; data: string }
-      | { type: "finished"; data: MessageData };
+      | { type: "finished"; data: string };
 
     const isConversationStreamEvent = (
       event: object
@@ -140,11 +140,7 @@ export default class ConversationService {
       const e = event as ConversationStreamEvent;
       return (
         (e.type === "delta" && typeof e.data === "string") ||
-        (e.type === "finished" &&
-          typeof e.data.id === "string" &&
-          typeof e.data.role === "string" &&
-          typeof e.data.content === "string" &&
-          typeof e.data.createdAt === "number")
+        (e.type === "finished" && typeof e.data === "string")
       );
     };
 
@@ -169,11 +165,8 @@ export default class ConversationService {
           }
           case "finished": {
             moreToStream = false;
-            const formattedMessageData = {
-              ...event.data,
-              content: event.data.content.replaceAll(`\\n`, `\n`),
-            };
-            onResponseFinished(formattedMessageData);
+            const messageId = event.data;
+            onResponseFinished(messageId);
             break;
           }
         }

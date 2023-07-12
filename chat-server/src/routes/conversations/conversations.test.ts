@@ -209,24 +209,23 @@ describe("Conversations Router", () => {
           .findOne({
             _id: new ObjectId(_id),
           });
-        expect(conversationInDb?.messages).toHaveLength(6); // system, assistant, user, assistant, user, assistant
+        expect(conversationInDb?.messages).toHaveLength(5); // system, user, assistant, user, assistant
       });
     });
 
     describe("Streamed response", () => {
-      it("should respond with a 200 text/event-stream", async () => {
+      it("should respond with a 200 text/event-stream that streams the response", async () => {
         const requestBody = {
           message:
             "how can i use mongodb products to help me build my new mobile app?",
         } satisfies AddMessageRequestBody;
         const res = await request(app)
-          .post(endpointUrl.replace(":conversationId", _id))
+          .post(endpointUrl.replace(":conversationId", _id) + "?stream=true")
           .send(requestBody);
         expect(res.statusCode).toEqual(200);
-        // const message: ApiMessage = res.body;
-        // expect(message.role).toBe("assistant");
-        // expect(message.content).toContain("Realm");
-        expect(1).toBe(2);
+        expect(res.header["content-type"]).toBe("text/event-stream");
+        expect(res.text).toContain(`data: {"type":"delta","data":"`);
+        expect(res.text).toContain(`data: {"type":"finished","data":"`);
       });
     });
 
@@ -537,6 +536,7 @@ describe("Conversations Router", () => {
             ipAddress,
             findNearestNeighborsOptions,
           });
+          console.log("CHUNKS: ", chunks);
           expect(chunks).toBeDefined();
           expect(chunks.length).toBe(0);
         });

@@ -1,5 +1,5 @@
 import styles from "./Chatbot.module.css";
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef } from "react";
 import Badge from "@leafygreen-ui/badge";
 import Banner from "@leafygreen-ui/banner";
 // import Card from "@leafygreen-ui/card";

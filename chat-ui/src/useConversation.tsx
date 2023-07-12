@@ -8,8 +8,7 @@ import createMessage, { createMessageId } from "./createMessage";
 
 const SHOULD_STREAM = true;
 // const SHOULD_STREAM = false;
-const StreamingMessageId = "streaming-response";
-
+const STREAMING_MESSAGE_ID = "streaming-response";
 export type ConversationState = {
   conversationId?: string;
   messages: MessageData[];
@@ -145,7 +144,7 @@ function conversationReducer(
       }
 
       const messageIndex = state.messages.findIndex(
-        (msg) => msg.id === StreamingMessageId
+        (msg) => msg.id === STREAMING_MESSAGE_ID
       );
       if (messageIndex === -1) {
         return {
@@ -155,7 +154,7 @@ function conversationReducer(
             ...state.messages,
             {
               ...createMessage("assistant", action.data),
-              id: StreamingMessageId,
+              id: STREAMING_MESSAGE_ID,
             },
           ],
         };
@@ -178,7 +177,7 @@ function conversationReducer(
     }
     case "finishStreamingResponse": {
       const messageIndex = state.messages.findIndex(
-        (msg) => msg.id === StreamingMessageId
+        (msg) => msg.id === STREAMING_MESSAGE_ID
       );
       if (messageIndex === -1) {
         console.error(
@@ -287,8 +286,8 @@ export default function useConversation() {
           onResponseDelta: async (data: string) => {
             streamedMessage += data;
           },
-          onResponseFinished: async (message: MessageData) => {
-            streamedMessageId = message.id;
+          onResponseFinished: async (messageId: string) => {
+            streamedMessageId = messageId;
             finishedStreaming = true;
           },
           signal: abortController.signal,

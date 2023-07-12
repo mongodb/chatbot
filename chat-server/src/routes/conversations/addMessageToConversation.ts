@@ -195,8 +195,12 @@ export function makeAddMessageToConversationRoute({
         if (shouldStream) {
           dataStreamer.connect(res);
           dataStreamer.streamData({
+            type: "delta",
+            data: apiRes.content,
+          });
+          dataStreamer.streamData({
             type: "finished",
-            data: apiRes,
+            data: apiRes.id,
           });
           dataStreamer.disconnect();
           return;
@@ -230,6 +234,10 @@ export function makeAddMessageToConversationRoute({
           stream: answerStream,
         });
         logger.info(`LLM response: ${JSON.stringify(answer)}`);
+        await dataStreamer.streamData({
+          type: "delta",
+          data: furtherReading,
+        });
         answerContent = answer + furtherReading;
       } else {
         try {
@@ -283,15 +291,16 @@ export function makeAddMessageToConversationRoute({
         assistantMessageContent: answerContent,
       });
 
+      const apiRes = convertMessageFromDbToApi(assistantMessage);
       if (shouldStream) {
         dataStreamer.streamData({
           type: "finished",
-          data: convertMessageFromDbToApi(assistantMessage),
+          data: apiRes.id,
         });
         dataStreamer.disconnect();
         return;
       } else {
-        res.status(200).json(convertMessageFromDbToApi(assistantMessage));
+        res.status(200).json(apiRes);
       }
     } catch (err) {
       logRequest({

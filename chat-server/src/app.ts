@@ -10,7 +10,6 @@ import cors from "cors";
 import "dotenv/config";
 import { makeConversationsRouter } from "./routes/conversations";
 import {
-  logger,
   EmbeddedContentStore,
   EmbedFunc,
   FindNearestNeighborsOptions,

@@ -44,7 +44,7 @@ interface StreamParams {
 
 type ChatbotStreamEvent =
   | { type: "delta"; data: string }
-  | { type: "finished"; data: object }
+  | { type: "finished"; data: string }
 
 export class DataStreamer {
   private res?: Response;

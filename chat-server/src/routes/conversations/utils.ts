@@ -6,7 +6,7 @@ import { z } from "zod";
 export type ApiMessage = z.infer<typeof ApiMessage>;
 export const ApiMessage = z.object({
   id: z.string(),
-  role: z.string(),
+  role: z.enum(["system", "assistant", "user"]),
   content: z.string(),
   rating: z.boolean().optional(),
   createdAt: z.number(),

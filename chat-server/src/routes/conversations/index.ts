@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { EmbedFunc, FindNearestNeighborsOptions } from "chat-core";
+import validateRequestSchema from "../../middleware/validateRequestSchema";
 import {
   Llm,
   OpenAiAwaitedResponse,
@@ -8,9 +9,15 @@ import {
 import { DataStreamerServiceInterface } from "../../services/dataStreamer";
 import { ConversationsServiceInterface } from "../../services/conversations";
 import { EmbeddedContentStore } from "chat-core";
-import { makeRateMessageRoute } from "./rateMessage";
-import { makeCreateConversationRoute } from "./createConversation";
-import { makeAddMessageToConversationRoute } from "./addMessageToConversation";
+import { RateMessageRequest, makeRateMessageRoute } from "./rateMessage";
+import {
+  CreateConversationRequest,
+  makeCreateConversationRoute,
+} from "./createConversation";
+import {
+  AddMessageRequest,
+  makeAddMessageToConversationRoute,
+} from "./addMessageToConversation";
 
 // TODO: for all non-2XX or 3XX responses, see how/if can better implement
 // error handling. can/should we pass stuff to next() and process elsewhere?
@@ -36,19 +43,24 @@ export function makeConversationsRouter({
   /**
    * Create new conversation.
    */
-  conversationsRouter.post("/", makeCreateConversationRoute({ conversations }));
+  conversationsRouter.post(
+    "/",
+    validateRequestSchema(CreateConversationRequest),
+    makeCreateConversationRoute({ conversations })
+  );
 
   /**
    * Create a new message from the user and get response from the LLM.
    */
   conversationsRouter.post(
     "/:conversationId/messages",
+    validateRequestSchema(AddMessageRequest),
     makeAddMessageToConversationRoute({
       store,
       conversations,
-      embed,
       llm,
       dataStreamer,
+      embed,
       findNearestNeighborsOptions,
     })
   );
@@ -58,6 +70,7 @@ export function makeConversationsRouter({
    */
   conversationsRouter.post(
     "/:conversationId/messages/:messageId/rating",
+    validateRequestSchema(RateMessageRequest),
     makeRateMessageRoute({ conversations })
   );
 

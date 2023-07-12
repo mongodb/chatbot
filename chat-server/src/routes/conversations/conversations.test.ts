@@ -223,7 +223,8 @@ describe("Conversations Router", () => {
 
       it("does not accept invalid request bodies", async () => {
         const invalidRequestBody = {
-          message: "how can i use mongodb products to help me build my new mobile app?",
+          message:
+            "how can i use mongodb products to help me build my new mobile app?",
           invalidField: "invalidField",
         };
         const res = await request(app)

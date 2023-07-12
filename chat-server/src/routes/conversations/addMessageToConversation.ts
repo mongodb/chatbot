@@ -8,7 +8,6 @@ import {
   ObjectId,
   OpenAiMessageRole,
   EmbedFunc,
-  logger,
   FindNearestNeighborsOptions,
   WithScore,
 } from "chat-core";
@@ -28,15 +27,21 @@ import {
 } from "../../services/llm";
 import {
   ApiConversation,
+  ApiMessage,
   areEquivalentIpAddresses,
   convertMessageFromDbToApi,
   isValidIp,
 } from "./utils";
-import { logRequest, sendErrorResponse } from "../../utils";
+import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
 
 export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 export const MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
+
+export type AddMessageRequestBody = z.infer<typeof AddMessageRequestBody>;
+export const AddMessageRequestBody = z.object({
+  message: z.string(),
+});
 
 export type AddMessageRequest = z.infer<typeof AddMessageRequest>;
 export const AddMessageRequest = z.object({
@@ -49,11 +54,11 @@ export const AddMessageRequest = z.object({
   query: z.object({
     stream: z.string().optional(),
   }),
-  body: z.object({
-    message: z.string(),
-  }),
+  body: AddMessageRequestBody,
   ip: z.string(),
 });
+
+// ExpressResponse;
 
 export interface AddMessageToConversationRouteParams {
   store: EmbeddedContentStore;
@@ -68,15 +73,16 @@ export function makeAddMessageToConversationRoute({
   store,
   conversations,
   llm,
-  dataStreamer,
+  // dataStreamer,
   embed,
   findNearestNeighborsOptions,
 }: AddMessageToConversationRouteParams) {
   return async (
-    req: AddMessageRequest,
-    res: ExpressResponse,
+    req: ExpressRequest,
+    res: ExpressResponse<ApiMessage>,
     next: NextFunction
   ) => {
+    const reqId = getRequestId(req);
     try {
       const {
         params: { conversationId: conversationIdString },
@@ -84,13 +90,14 @@ export function makeAddMessageToConversationRoute({
         query: { stream },
         ip,
       } = req;
+      // TODO:(DOCSP-30863) implement type checking on the request
 
       let conversationId: ObjectId;
       try {
         conversationId = new ObjectId(conversationIdString);
       } catch (err) {
         return sendErrorResponse({
-          reqId: req.headers["req-id"],
+          reqId,
           res,
           httpStatus: 400,
           errorMessage: "Invalid conversation ID",
@@ -99,7 +106,7 @@ export function makeAddMessageToConversationRoute({
 
       if (!isValidIp(ip)) {
         return sendErrorResponse({
-          reqId: req.headers["req-id"],
+          reqId,
           res,
           httpStatus: 400,
           errorMessage: `Invalid IP address ${ip}`,
@@ -110,7 +117,7 @@ export function makeAddMessageToConversationRoute({
       const latestMessageText = message;
       if (latestMessageText.length > MAX_INPUT_LENGTH) {
         return sendErrorResponse({
-          reqId: req.headers["req-id"],
+          reqId,
           res,
           httpStatus: 400,
           errorMessage: "Message too long",
@@ -124,7 +131,7 @@ export function makeAddMessageToConversationRoute({
         });
       } catch (err) {
         return sendErrorResponse({
-          reqId: req.headers["req-id"],
+          reqId,
           res,
           httpStatus: 500,
           errorMessage: "Error finding conversation",
@@ -133,7 +140,7 @@ export function makeAddMessageToConversationRoute({
 
       if (!conversationInDb) {
         return sendErrorResponse({
-          reqId: req.headers["req-id"],
+          reqId,
           res,
           httpStatus: 404,
           errorMessage: "Conversation not found",
@@ -141,7 +148,7 @@ export function makeAddMessageToConversationRoute({
       }
       if (!areEquivalentIpAddresses(conversationInDb.ipAddress, ip)) {
         return sendErrorResponse({
-          reqId: req.headers["req-id"],
+          reqId,
           res,
           httpStatus: 403,
           errorMessage: "IP address does not match",
@@ -150,7 +157,7 @@ export function makeAddMessageToConversationRoute({
 
       if (conversationInDb.messages.length >= MAX_MESSAGES_IN_CONVERSATION) {
         return sendErrorResponse({
-          reqId: req.headers["req-id"],
+          reqId,
           res,
           httpStatus: 400,
           errorMessage:
@@ -178,7 +185,7 @@ export function makeAddMessageToConversationRoute({
         });
       } catch (err) {
         return sendErrorResponse({
-          reqId: req.headers["req-id"],
+          reqId,
           res,
           httpStatus: 500,
           errorMessage: "Error getting content for text",
@@ -187,7 +194,7 @@ export function makeAddMessageToConversationRoute({
       }
       if (!chunks || chunks.length === 0) {
         logRequest({
-          reqId: req.headers["req-id"],
+          reqId,
           message: "No matching content found",
         });
         const { assistantMessage } = await addMessagesToDatabase({
@@ -197,7 +204,7 @@ export function makeAddMessageToConversationRoute({
           assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,
         });
         const apiRes = convertMessageFromDbToApi(assistantMessage);
-        res.status(200).json(apiRes);
+        return res.status(200).json(apiRes);
       }
 
       const chunkTexts = chunks.map((chunk) => chunk.text);
@@ -228,7 +235,7 @@ export function makeAddMessageToConversationRoute({
             latestMessage,
           ];
           logRequest({
-            reqId: req.headers["req-id"],
+            reqId,
             message: `LLM query: ${JSON.stringify(messages)}`,
           });
           answer = await llm.answerQuestionAwaited({
@@ -237,17 +244,17 @@ export function makeAddMessageToConversationRoute({
           });
           answer.content += generateFurtherReading({ chunks });
           logRequest({
-            reqId: req.headers["req-id"],
+            reqId,
             message: `LLM response: ${JSON.stringify(answer)}`,
           });
-        } catch (err: any) {
+        } catch (err) {
           logRequest({
-            reqId: req.headers["req-id"],
+            reqId,
             message: `LLM error: ${JSON.stringify(err)}`,
             type: "error",
           });
           logRequest({
-            reqId: req.headers["req-id"],
+            reqId,
             message: "Only sending vector search results to user",
           });
           answer = {
@@ -265,11 +272,11 @@ export function makeAddMessageToConversationRoute({
           assistantMessageContent: answer.content,
         });
         const apiRes = convertMessageFromDbToApi(assistantMessage);
-        res.status(200).json(apiRes);
+        return res.status(200).json(apiRes);
       }
     } catch (err) {
       logRequest({
-        reqId: req.headers["req-id"],
+        reqId,
         message: "An unexpected error occurred: " + JSON.stringify(err),
         type: "error",
       });

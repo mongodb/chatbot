@@ -1,7 +1,12 @@
 import { strict as assert } from "assert";
-import { MongoClient } from "mongodb";
-import { PageStore, PersistedPage } from "./updatePages";
-import { EmbeddedContentStore, ContentChunk } from "./updateEmbeddedContent";
+import { MongoClient, Filter } from "mongodb";
+import { PageStore, Page, PersistedPage } from "./Page";
+import {
+  EmbeddedContentStore,
+  EmbeddedContent,
+  FindNearestNeighborsOptions,
+  WithScore,
+} from "./EmbeddedContent";
 
 export type DatabaseConnection = {
   /**
@@ -10,6 +15,7 @@ export type DatabaseConnection = {
     @param force - Force close, emitting no events
    */
   close(force?: boolean): Promise<void>;
+  drop(): Promise<void>;
 };
 
 /**
@@ -25,10 +31,16 @@ export const makeDatabaseConnection = async ({
   const client = await new MongoClient(connectionUri).connect();
   const db = client.db(databaseName);
   const embeddedContentCollection =
-    db.collection<ContentChunk>("embedded_content");
+    db.collection<EmbeddedContent>("embedded_content");
   const pagesCollection = db.collection<PersistedPage>("pages");
   const instance: DatabaseConnection & PageStore & EmbeddedContentStore = {
-    close: (force) => client.close(force),
+    async drop() {
+      await db.dropDatabase();
+    },
+
+    async close(force) {
+      client.close(force);
+    },
 
     async loadEmbeddedContent({ page }) {
       return await embeddedContentCollection.find(pageIdentity(page)).toArray();
@@ -46,9 +58,9 @@ export const makeDatabaseConnection = async ({
     async updateEmbeddedContent({ page, embeddedContent }) {
       embeddedContent.forEach((embeddedContent) => {
         assert(
-          embeddedContent.source === page.sourceName &&
+          embeddedContent.sourceName === page.sourceName &&
             embeddedContent.url === page.url,
-          `EmbeddedContent source/url (${embeddedContent.source} / ${embeddedContent.url}) must match give page source/url (${page.sourceName} / ${page.url})!`
+          `EmbeddedContent source/url (${embeddedContent.sourceName} / ${embeddedContent.url}) must match give page source/url (${page.sourceName} / ${page.url})!`
         );
       });
       await client.withSession(async (session) => {
@@ -83,8 +95,50 @@ export const makeDatabaseConnection = async ({
       });
     },
 
-    async loadPages({ sourceName }) {
-      return pagesCollection.find({ sourceName }).toArray();
+    async findNearestNeighbors(vector, options) {
+      const { indexName, path, k, minScore }: FindNearestNeighborsOptions = {
+        // Default options
+        indexName: "default",
+        path: "embedding",
+        k: 3,
+        minScore: 0.9,
+
+        // User options override
+        ...(options ?? {}),
+      };
+      return embeddedContentCollection
+        .aggregate<WithScore<EmbeddedContent>>([
+          {
+            $search: {
+              index: indexName,
+              knnBeta: {
+                vector,
+                path,
+                k,
+              },
+            },
+          },
+          {
+            $addFields: {
+              score: {
+                $meta: "searchScore",
+              },
+            },
+          },
+          { $match: { score: { $gte: minScore } } },
+        ])
+        .toArray();
+    },
+
+    async loadPages(args) {
+      const filter: Filter<PersistedPage> = {};
+      if (args?.sources !== undefined) {
+        filter.sourceName = { $in: args.sources };
+      }
+      if (args?.updated !== undefined) {
+        filter.updated = { $gte: args.updated };
+      }
+      return pagesCollection.find(filter).toArray();
     },
 
     async updatePages(pages) {
@@ -113,7 +167,7 @@ export const makeDatabaseConnection = async ({
 /**
   Returns a query filter that represents a unique page in the system.
  */
-export const pageIdentity = ({ url, sourceName }: PersistedPage) => ({
+export const pageIdentity = ({ url, sourceName }: Page) => ({
   url,
   sourceName,
 });

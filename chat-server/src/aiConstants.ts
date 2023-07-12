@@ -14,7 +14,7 @@ export const SYSTEM_PROMPT: OpenAiChatMessage = {
   based on the context information, say "Sorry, I don't know how to help with that."
   Format your responses using Markdown.
   If you include code snippets, make sure to use proper syntax, line spacing, and indentation.
-  ONLY use code snippets present in the information given to you.
+  ONLY use code snippets present in the CONTEXT information given to you.
   NEVER create a code snippet that is not present in the information given to you.`,
 };
 
@@ -23,7 +23,7 @@ export const ASSISTANT_PROMPT: OpenAiChatMessage = {
   content: "Hello, I'm a MongoDB chatbot. How can I help you today?",
 };
 export const OPENAI_LLM_CONFIG_OPTIONS: GetChatCompletionsOptions = {
-  temperature: 0.3,
+  temperature: 0.1,
   maxTokens: 500,
 };
 

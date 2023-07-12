@@ -1,4 +1,12 @@
-import { PersistedPage, PageStore } from "./updatePages";
+import {
+  EmbedFunc,
+  EmbeddedContent,
+  EmbeddedContentStore,
+  PersistedPage,
+  PageStore,
+  logger,
+} from "chat-core";
+import { chunkPage, ChunkOptions } from "./chunkPage";
 
 /**
   (Re-)embeddedContent the pages in the page store that have changed since the given date
@@ -8,105 +16,111 @@ export const updateEmbeddedContent = async ({
   since,
   embeddedContentStore,
   pageStore,
+  sourceNames,
+  embed,
+  chunkOptions,
 }: {
   since: Date;
   embeddedContentStore: EmbeddedContentStore;
   pageStore: PageStore;
+  embed: EmbedFunc;
+  chunkOptions?: Partial<ChunkOptions>;
+  sourceNames?: string[];
 }): Promise<void> => {
-  const changedPages = await loadChangedPages({ since, pageStore });
-
-  const promises = changedPages.map(async (page) => {
+  const changedPages = await pageStore.loadPages({
+    updated: since,
+    sources: sourceNames,
+  });
+  logger.info(
+    `Found ${changedPages.length} changed pages since ${since}${
+      sourceNames ? ` in sources: ${sourceNames.join(", ")}` : ""
+    }`
+  );
+  for (const page of changedPages) {
     switch (page.action) {
       case "deleted":
-        return deleteEmbeddedContentForPage({
-          store: embeddedContentStore,
+        logger.info(
+          `Deleting embedded content for ${page.sourceName}:${page.url}`
+        );
+        await embeddedContentStore.deleteEmbeddedContent({
           page,
         });
+        break;
       case "created": // fallthrough
       case "updated":
-        return updateEmbeddedContentForPage({
+        await updateEmbeddedContentForPage({
           store: embeddedContentStore,
           page,
+          chunkOptions,
+          embed,
         });
     }
-  });
-
-  await Promise.all(promises);
-};
-
-export type EmbeddedContentStore = {
-  /**
-    Load the embeddedContent for the given page.
-   */
-  loadEmbeddedContent(args: { page: PersistedPage }): Promise<ContentChunk[]>;
-
-  /**
-    Delete all embeddedContent for the given page.
-   */
-  deleteEmbeddedContent(args: { page: PersistedPage }): Promise<void>;
-
-  /**
-    Replace all embeddedContent for the given page with the given embeddedContent.
-   */
-  updateEmbeddedContent(args: {
-    page: PersistedPage;
-    embeddedContent: EmbeddedContent[];
-  }): Promise<void>;
-};
-
-export const loadChangedPages = async (args: {
-  since: Date;
-  pageStore: PageStore;
-}): Promise<PersistedPage[]> => {
-  // TODO
-  return [];
-};
-
-export const deleteEmbeddedContentForPage = async (args: {
-  page: PersistedPage;
-  store: EmbeddedContentStore;
-}): Promise<void> => {
-  // TODO: Delete embeddedContent for page
+  }
 };
 
 export const updateEmbeddedContentForPage = async ({
   page,
   store,
+  embed,
+  chunkOptions,
 }: {
   page: PersistedPage;
   store: EmbeddedContentStore;
+  embed: EmbedFunc;
+  chunkOptions?: Partial<ChunkOptions>;
 }): Promise<void> => {
-  const chunks = await chunkPage(page);
+  const contentChunks = await chunkPage(page, chunkOptions);
 
-  const embeddedEmbeddedContent = await Promise.all(chunks.map(embedContent));
+  // In order to resume where we left off (in case of script restart), compare
+  // the date of any existing chunks with the page updated date. If the chunks
+  // have been updated since the page was updated (and we have the expected
+  // number of chunks), assume the embedded content for that page is complete
+  // and up-to-date. To force an update, you can delete the chunks from the
+  // collection.
+  const existingContent = await store.loadEmbeddedContent({
+    page,
+  });
+  if (
+    existingContent.length !== 0 &&
+    existingContent[0].updated > page.updated &&
+    contentChunks.length === existingContent.length
+  ) {
+    logger.info(
+      `Embedded content for ${page.sourceName}:${page.url} already updated (${existingContent[0].updated}) since page update date (${page.updated}). Skipping embedding.`
+    );
+    return;
+  }
+
+  logger.info(
+    `${
+      page.action === "created" ? "Creating" : "Updating"
+    } embedded content for ${page.sourceName}:${page.url}`
+  );
+
+  const embeddedContent: EmbeddedContent[] = [];
+
+  // Process sequentially because we're likely to hit rate limits before any
+  // other performance bottleneck
+  for (let i = 0; i < contentChunks.length; ++i) {
+    const chunk = contentChunks[i];
+    logger.info(
+      `Vectorizing chunk ${i + 1}/${contentChunks.length} for ${
+        page.sourceName
+      }:${page.url}`
+    );
+    const { embedding } = await embed({
+      text: chunk.text,
+      userIp: "127.0.0.1",
+    });
+    embeddedContent.push({
+      ...chunk,
+      embedding,
+      updated: new Date(),
+    });
+  }
 
   await store.updateEmbeddedContent({
     page,
-    embeddedContent: embeddedEmbeddedContent,
+    embeddedContent,
   });
-};
-
-export type ContentChunk = {
-  source: string;
-  url: string;
-  text: string;
-  // ... TODO ...
-};
-
-export const chunkPage = async (
-  page: PersistedPage
-): Promise<ContentChunk[]> => {
-  // TODO
-  return [];
-};
-
-export type EmbeddedContent = ContentChunk & {
-  embedding: number[];
-};
-
-export const embedContent = async (
-  content: ContentChunk
-): Promise<EmbeddedContent> => {
-  // TODO
-  return { ...content, embedding: [] };
 };

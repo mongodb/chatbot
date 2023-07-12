@@ -1,3 +1,5 @@
+import { isIP } from "net";
+import { Address6 } from "ip-address";
 import { Conversation, Message } from "../../services/conversations";
 import { z } from "zod";
 
@@ -35,4 +37,18 @@ export function convertConversationFromDbToApi(
     messages: conversation.messages.map(convertMessageFromDbToApi),
     createdAt: conversation.createdAt.getTime(),
   };
+}
+
+export function isValidIp(ip: string) {
+  return isIP(ip) > 0;
+}
+
+export function areEquivalentIpAddresses(ip1: string, ip2: string) {
+  if (Address6.isValid(ip1)) {
+    ip1 = new Address6(ip1).to4().correctForm();
+  }
+  if (Address6.isValid(ip2)) {
+    ip2 = new Address6(ip2).to4().correctForm();
+  }
+  return ip1 === ip2;
 }

@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
+    "module": "commonjs",
     "outDir": "./build",
     "allowJs": false,
-    "target": "es2016",
-    "module": "NodeNext",
+    "target": "es2020",
     "esModuleInterop": true,
     "lib": ["ES2020", "DOM"],
     "downlevelIteration": true,
@@ -11,8 +11,7 @@
     "strict": true,
     "declaration": true,
     "declarationMap": true,
-    "resolveJsonModule": true,
-    "moduleResolution": "Node"
+    "resolveJsonModule": true
   },
   "sourceMap": true,
   "include": ["./src/**/*.ts"],

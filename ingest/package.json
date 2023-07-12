@@ -22,6 +22,7 @@
     "@types/deep-equal": "^1.0.1",
     "@types/jest": "^26",
     "@types/node": "^12",
+    "@types/node-fetch": "^2.6.4",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
     "eslint": "^8",
@@ -37,10 +38,14 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "chat-core": "file:../chat-core",
     "deep-equal": "^2.2.1",
     "dotenv": "^16",
+    "exponential-backoff": "^3.1.1",
+    "gpt3-tokenizer": "^1.1.5",
+    "langchain": "^0.0.102",
     "mongodb": "^5",
-    "node-fetch": "^3.3.1",
+    "node-fetch": "^2",
     "yargs": "^17"
   }
 }

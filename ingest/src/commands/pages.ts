@@ -1,21 +1,31 @@
 import { CommandModule } from "yargs";
+import { assertEnvVars, logger, makeDatabaseConnection } from "chat-core";
 import { updatePages } from "../updatePages";
 import { makeSnootyDataSource } from "../SnootyDataSource";
 import { makeDevCenterDataSource } from "../DevCenterDataSource";
 import { snootyProjects } from "../snootyProjects";
+import { INGEST_ENV_VARS } from "../IngestEnvVars";
 
-// TODO: Option for which data source
-type PagesCommandArgs = Record<string, never>;
+type PagesCommandArgs = {
+  source: string | string[];
+};
 
-const commandModule: CommandModule<PagesCommandArgs> = {
+const commandModule: CommandModule<
+  Record<string, unknown>,
+  PagesCommandArgs
+> = {
   command: "pages",
-  handler: async (args) => {
-    const { DEVCENTER_CONNECTION_URI } = process.env;
-    if (!DEVCENTER_CONNECTION_URI) {
-      throw new Error(
-        `missing env var: DEVCENTER_CONNECTION_URI. Did you copy .env.example and fill it out?`
-      );
-    }
+  builder(args) {
+    return args.string("source").demandOption("source");
+  },
+  handler: async ({ source }) => {
+    const requestedSources = new Set(Array.isArray(source) ? source : [source]);
+
+    const {
+      DEVCENTER_CONNECTION_URI,
+      MONGODB_CONNECTION_URI,
+      MONGODB_DATABASE_NAME,
+    } = assertEnvVars(INGEST_ENV_VARS);
 
     const snootySources = await Promise.all(
       snootyProjects.map(({ project, baseUrl }) =>
@@ -35,23 +45,36 @@ const commandModule: CommandModule<PagesCommandArgs> = {
       baseUrl: "https://www.mongodb.com/developer",
     });
 
-    try {
-      await updatePages({
-        sources: [...snootySources, devCenterSource],
+    const availableSources = [...snootySources, devCenterSource];
 
-        // TODO: PageStore is a stand-in for Atlas (but can be mocked for testing)
-        pageStore: {
-          async loadPages() {
-            return [];
-          },
-          async updatePages() {
-            return;
-          },
-        },
+    const sources = availableSources.filter(({ name }) =>
+      requestedSources.has(name)
+    );
+
+    const pageStore = await makeDatabaseConnection({
+      connectionUri: MONGODB_CONNECTION_URI,
+      databaseName: MONGODB_DATABASE_NAME,
+    });
+
+    try {
+      if (sources.length === 0) {
+        throw new Error(
+          `Request at least one valid source. Available sources:\n${availableSources
+            .map(({ name }) => `- ${name}`)
+            .join("\n")}`
+        );
+      }
+
+      logger.info(
+        `Loaded sources:\n${sources.map(({ name }) => `- ${name}`).join("\n")}`
+      );
+
+      await updatePages({
+        sources,
+        pageStore,
       });
-    } catch (error) {
-      console.error(error);
-      process.exit(1);
+    } finally {
+      await pageStore.close();
     }
   },
   describe: "Update pages data from sources",

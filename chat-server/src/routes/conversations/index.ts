@@ -1,13 +1,13 @@
 import { Router } from "express";
-import { EmbeddingService } from "chat-core";
+import { EmbedFunc, FindNearestNeighborsOptions } from "chat-core";
 import {
-  LlmProvider,
+  Llm,
   OpenAiAwaitedResponse,
   OpenAiStreamingResponse,
 } from "../../services/llm";
 import { DataStreamerServiceInterface } from "../../services/dataStreamer";
 import { ConversationsServiceInterface } from "../../services/conversations";
-import { ContentServiceInterface } from "chat-core";
+import { EmbeddedContentStore } from "chat-core";
 import { makeRateMessageRoute } from "./rateMessage";
 import { makeCreateConversationRoute } from "./createConversation";
 import { makeAddMessageToConversationRoute } from "./addMessageToConversation";
@@ -15,18 +15,21 @@ import { makeAddMessageToConversationRoute } from "./addMessageToConversation";
 // TODO: for all non-2XX or 3XX responses, see how/if can better implement
 // error handling. can/should we pass stuff to next() and process elsewhere?
 export interface ConversationsRouterParams<T, U> {
-  llm: LlmProvider<T, U>;
-  embeddings: EmbeddingService;
+  llm: Llm<T, U>;
+  embed: EmbedFunc;
   dataStreamer: DataStreamerServiceInterface;
-  content: ContentServiceInterface;
+  store: EmbeddedContentStore;
   conversations: ConversationsServiceInterface;
+  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
 }
+
 export function makeConversationsRouter({
   llm,
-  embeddings,
+  embed,
   dataStreamer,
-  content,
+  store,
   conversations,
+  findNearestNeighborsOptions,
 }: ConversationsRouterParams<OpenAiStreamingResponse, OpenAiAwaitedResponse>) {
   const conversationsRouter = Router();
 
@@ -41,11 +44,12 @@ export function makeConversationsRouter({
   conversationsRouter.post(
     "/:conversationId/messages",
     makeAddMessageToConversationRoute({
-      content,
+      store,
       conversations,
-      embeddings,
+      embed,
       llm,
       dataStreamer,
+      findNearestNeighborsOptions,
     })
   );
 

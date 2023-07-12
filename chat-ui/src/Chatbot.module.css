@@ -22,11 +22,9 @@
 }
 
 .chatbot_container {
-  position: absolute;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  width: 100%;
 }
 
 .chat {
@@ -44,7 +42,12 @@
   flex-direction: row;
   align-items: center;
   gap: 12px;
+  width: 100%;
   margin-bottom: -1rem; /* We don't want the flex gap after the title, so this cancels it out */
+}
+
+.card_content_title__right {
+  margin-left: auto;
 }
 
 .card {
@@ -53,6 +56,7 @@
   align-items: start;
   width: 100%;
   max-width: 700px;
+  min-width: 322px;
   gap: 12px;
   padding-top: 1rem;
   transition: all 0.25s ease;
@@ -107,4 +111,53 @@
   flex-direction: column;
   flex-grow: 1;
   justify-content: center;
+}
+
+@media screen and (min-width: 768px) {
+  .card-enter {
+    width: 100%;
+  }
+  .card-enter-active {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .chatbot_container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    box-sizing: border-box;
+    padding: 1rem;
+  }
+  .chatbot_container-enter {
+    background: #ffffff80;
+  }
+  .chatbot_container-enter-active {
+    background: #ffffff80;
+  }
+
+  .card {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+  }
+  .card-enter {
+    border-top-left-radius: 24px;
+  }
+  .card-enter-active {
+    border-top-left-radius: 24px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .card-enter {
+    flex-grow: 1;
+  }
+  .card-enter-active {
+    flex-grow: 1;
+  }
 }

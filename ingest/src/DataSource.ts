@@ -1,4 +1,4 @@
-import { Page } from "./updatePages";
+import { Page } from "chat-core";
 
 /**
   Represents a source of page data.

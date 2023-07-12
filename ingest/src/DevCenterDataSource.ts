@@ -48,8 +48,8 @@ export const makeDevCenterDataSource = async ({
             url: /^https?:\/\//.test(document.calculated_slug)
               ? document.calculated_slug
               : new URL(
-                  document.calculated_slug,
-                  baseUrl.replace(/\/?$/, "/")
+                  document.calculated_slug.replace(/^\/?/, ""), // Strip leading slash (if present) to not clobber baseUrl path
+                  baseUrl.replace(/\/?$/, "/") // Add trailing slash to not lose last segment of baseUrl
                 ).toString(),
           });
         }

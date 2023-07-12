@@ -206,7 +206,6 @@ name: staging-build-ingest-service
 trigger:
   branch:
     - main
-    - DOCSP-30584 # TODO: remove when done testing
   event:
     - push
   paths:

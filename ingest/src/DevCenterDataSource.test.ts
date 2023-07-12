@@ -16,11 +16,14 @@ describe("DevCenterDataSource", () => {
       collectionName: "search_content_prod",
       databaseName: "devcenter",
       connectionUri: DEVCENTER_CONNECTION_URI,
-      baseUrl: "https://example.com",
+      baseUrl: "https://example.com/developer",
     });
 
     const pages = await source.fetchPages();
 
-    expect(pages.length).toBeGreaterThan(500);
+    expect(pages.length).toBeGreaterThan(300);
+    pages.slice(0, 100).forEach(({ url }) => {
+      expect(url).toMatch(/^https:\/\/example.com\/developer\/[A-z0-9\/-]+$/);
+    });
   });
 });

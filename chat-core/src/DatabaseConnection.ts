@@ -74,6 +74,10 @@ export const makeDatabaseConnection = async ({
             throw new Error("EmbeddedContent deletion not acknowledged!");
           }
 
+          if (embeddedContent.length === 0) {
+            // Done
+            return;
+          }
           // Insert the embedded content for the page
           const insertResult = await embeddedContentCollection.insertMany(
             [...embeddedContent],

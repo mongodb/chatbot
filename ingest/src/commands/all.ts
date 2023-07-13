@@ -6,6 +6,7 @@ import {
   assertEnvVars,
   EmbeddedContentStore,
   PageStore,
+  logger,
 } from "chat-core";
 import { MongoClient } from "mongodb";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
@@ -63,6 +64,8 @@ export const doAllCommand = async ({
     const lastSuccessfulRunDate =
       await ingestMetaStore.loadLastSuccessfulRunDate();
 
+    logger.info(`Last successful run date: ${lastSuccessfulRunDate}`);
+
     await doPagesCommand({
       store: pageStore,
     });
@@ -73,6 +76,7 @@ export const doAllCommand = async ({
       embeddedContentStore,
     });
 
+    logger.info(`Updating last successful run date`);
     await ingestMetaStore.updateLastSuccessfulRunDate();
   } finally {
     await ingestMetaStore.close();

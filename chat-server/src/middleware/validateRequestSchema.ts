@@ -11,22 +11,22 @@ function generateZodErrorMessage(error: ZodError) {
   });
 }
 
-export default function validateZodSchema(schema: AnyZodObject) {
+export default function validateRequestSchema(schema: AnyZodObject) {
   return async (req: Request, res: Response, next: NextFunction) => {
     const result = await schema.safeParseAsync(req);
-    if (!result.success) {
-      const reqId = getRequestId(req);
-      logRequest({
-        reqId,
-        message: generateZodErrorMessage(result.error),
-      });
-      return sendErrorResponse({
-        reqId,
-        res,
-        httpStatus: 400,
-        errorMessage: "Invalid request",
-      });
+    if (result.success) {
+      return next();
     }
-    next();
+    const reqId = getRequestId(req);
+    logRequest({
+      reqId,
+      message: generateZodErrorMessage(result.error),
+    });
+    return sendErrorResponse({
+      reqId,
+      res,
+      httpStatus: 400,
+      errorMessage: "Invalid request",
+    });
   };
 }

@@ -18,7 +18,7 @@ import {
 import { DataStreamerServiceInterface } from "./services/dataStreamer";
 import { ObjectId } from "mongodb";
 import { ConversationsServiceInterface } from "./services/conversations";
-import { logRequest, sendErrorResponse } from "./utils";
+import { getRequestId, logRequest, sendErrorResponse } from "./utils";
 import {
   Llm,
   OpenAiAwaitedResponse,
@@ -26,19 +26,21 @@ import {
 } from "./services/llm";
 
 // General error handler; called at usage of next() in routes
-export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+export const errorHandler: ErrorRequestHandler = (err, req, res) => {
+  const reqId = getRequestId(req);
   const httpStatus = err.status || 500;
+  const errorMessage = err.message || "Internal Server Error";
 
   if (!res.headersSent) {
     return sendErrorResponse({
-      reqId: _req.headers["req-id"] as string,
+      reqId,
       res,
       httpStatus,
-      errorMessage: err.message || "Internal Server Error",
+      errorMessage,
     });
   } else {
     logRequest({
-      reqId: _req.headers["req-id"] as string,
+      reqId,
       type: "error",
       message: JSON.stringify(err),
     });

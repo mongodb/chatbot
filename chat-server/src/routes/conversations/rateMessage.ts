@@ -84,8 +84,12 @@ export function makeRateMessageRoute({
           _id: conversationId,
         });
 
-        assert(conversationInDb);
+        console.log("lookedFor", conversationId, "conversationInDb", conversationInDb);
+        if (!conversationInDb) {
+          throw new Error("Conversation not found");
+        };
       } catch (err) {
+        console.error("OOPSIE", err)
         return sendErrorResponse({
           reqId,
           res,
@@ -93,6 +97,7 @@ export function makeRateMessageRoute({
           errorMessage: "Conversation not found",
         });
       }
+
       if (
         !conversationInDb.messages.find((message) =>
           message.id.equals(messageId)
@@ -119,6 +124,7 @@ export function makeRateMessageRoute({
         messageId: messageId,
         rating,
       });
+      console.log("successfulOperation", successfulOperation);
 
       if (successfulOperation) {
         res.sendStatus(204);
@@ -131,7 +137,7 @@ export function makeRateMessageRoute({
         return sendErrorResponse({
           reqId,
           res,
-          httpStatus: 500,
+          httpStatus: 400,
           errorMessage: "Invalid rating",
         });
       }

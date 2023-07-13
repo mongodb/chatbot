@@ -1,5 +1,5 @@
 import { CommandModule } from "yargs";
-import { doPagesCommand } from "./pages";
+import { doPagesCommand as officialDoPages } from "./pages";
 import { doEmbedCommand } from "./embed";
 import {
   makeDatabaseConnection,
@@ -22,7 +22,12 @@ const commandModule: CommandModule<unknown, unknown> = {
     });
 
     try {
-      await doAllCommand({ pageStore: store, embeddedContentStore: store });
+      await doAllCommand({
+        pageStore: store,
+        embeddedContentStore: store,
+        connectionUri: MONGODB_CONNECTION_URI,
+        databaseName: MONGODB_DATABASE_NAME,
+      });
     } finally {
       await store.close();
     }
@@ -32,19 +37,25 @@ const commandModule: CommandModule<unknown, unknown> = {
 
 export default commandModule;
 
-const doAllCommand = async ({
+export const doAllCommand = async ({
   pageStore,
   embeddedContentStore,
+  connectionUri,
+  databaseName,
+  doPagesCommand = officialDoPages,
 }: {
   pageStore: PageStore;
   embeddedContentStore: EmbeddedContentStore;
-}) => {
-  const { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } =
-    assertEnvVars(INGEST_ENV_VARS);
+  connectionUri: string;
+  databaseName: string;
 
+  // Mockable for unit test - otherwise will actually load pages from all
+  // sources, waste time
+  doPagesCommand?: typeof officialDoPages;
+}) => {
   const ingestMetaStore = await makeIngestMetaStore({
-    connectionUri: MONGODB_CONNECTION_URI,
-    databaseName: MONGODB_DATABASE_NAME,
+    connectionUri,
+    databaseName,
     entryId: "all",
   });
 

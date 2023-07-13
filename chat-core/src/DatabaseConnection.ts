@@ -56,6 +56,7 @@ export const makeDatabaseConnection = async ({
     },
 
     async updateEmbeddedContent({ page, embeddedContent }) {
+      assert(embeddedContent.length !== 0);
       embeddedContent.forEach((embeddedContent) => {
         assert(
           embeddedContent.sourceName === page.sourceName &&

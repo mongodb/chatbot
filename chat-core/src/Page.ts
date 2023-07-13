@@ -49,5 +49,8 @@ export type PageStore = {
     sources?: string[];
   }): Promise<PersistedPage[]>;
 
+  /**
+    Updates or adds the given pages in the store.
+   */
   updatePages(pages: PersistedPage[]): Promise<void>;
 };

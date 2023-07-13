@@ -20,3 +20,4 @@ node .
 Add commands to `src/commands/`. The CLI automatically picks up any non-test .ts
 file that default-exports a `yargs.CommandModule`. See existing commands for
 example.
+

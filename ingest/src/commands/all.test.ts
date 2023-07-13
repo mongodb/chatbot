@@ -1,7 +1,8 @@
 import { PageStore, EmbeddedContentStore, assertEnvVars } from "chat-core";
-import { INGEST_ENV_VARS } from "../IngestEnvVars";
-import { doAllCommand, makeIngestMetaStore } from "./all";
 import { MongoClient } from "mongodb";
+import { INGEST_ENV_VARS } from "../IngestEnvVars";
+import { doAllCommand } from "./all";
+import { makeIngestMetaStore } from "../IngestMetaStore";
 
 import "dotenv/config";
 

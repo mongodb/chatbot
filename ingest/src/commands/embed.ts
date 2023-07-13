@@ -17,9 +17,21 @@ type EmbeddedContentCommandArgs = {
 const commandModule: CommandModule<unknown, EmbeddedContentCommandArgs> = {
   command: "embed",
   builder(args) {
-    return args.string("since").string("source").demandOption("since");
+    return args
+      .string("since")
+      .option("source", {
+        string: true,
+        description:
+          "A source name to load. If unspecified, loads all sources.",
+      })
+      .demandOption("since");
   },
   async handler({ since, source }) {
+    if (isNaN(Date.parse(since))) {
+      throw new Error(
+        `The value for 'since' (${since}) must be a valid JavaScript date string.`
+      );
+    }
     const { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } =
       assertEnvVars(INGEST_ENV_VARS);
 

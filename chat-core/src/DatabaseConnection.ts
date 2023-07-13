@@ -56,6 +56,7 @@ export const makeDatabaseConnection = async ({
     },
 
     async updateEmbeddedContent({ page, embeddedContent }) {
+      assert(embeddedContent.length !== 0);
       embeddedContent.forEach((embeddedContent) => {
         assert(
           embeddedContent.sourceName === page.sourceName &&
@@ -74,10 +75,6 @@ export const makeDatabaseConnection = async ({
             throw new Error("EmbeddedContent deletion not acknowledged!");
           }
 
-          if (embeddedContent.length === 0) {
-            // Done
-            return;
-          }
           // Insert the embedded content for the page
           const insertResult = await embeddedContentCollection.insertMany(
             [...embeddedContent],

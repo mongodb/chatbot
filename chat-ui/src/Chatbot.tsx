@@ -90,18 +90,22 @@ function CTACard({
             </IconButton>
           </div>
           <MessageList>
-            {conversation.messages.map((message) => (
-              <Message
-                key={message.id}
-                message={message}
-                rateMessage={conversation.rateMessage}
-              />
-            ))}
-            {(awaitingReply && !conversation.isStreamingMessage) ? (
-              <Message role="assistant">
-                <ParagraphSkeleton />
-              </Message>
-            ) : null}
+            {conversation.messages.map((message) => {
+              const showLoadingSkeleton = conversation.isStreamingMessage
+                ? message.id === conversation.streamingMessage?.id && conversation.streamingMessage?.content === ""
+                : awaitingReply;
+              return showLoadingSkeleton ? (
+                <Message key={message.id} role="assistant">
+                  <ParagraphSkeleton />
+                </Message>
+              ) : (
+                <Message
+                  key={message.id}
+                  message={message}
+                  rateMessage={conversation.rateMessage}
+                />
+              );
+            })}
           </MessageList>
           <Banner className={styles.lg_banner} variant="warning">
             This is an experimental AI chatbot. All information should be

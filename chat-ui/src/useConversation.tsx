@@ -5,6 +5,7 @@ import {
   conversationService,
 } from "./services/conversations";
 import createMessage, { createMessageId } from "./createMessage";
+import { updateArrayElementAt } from "./utils";
 
 const SHOULD_STREAM = true;
 // const SHOULD_STREAM = false;
@@ -14,6 +15,7 @@ export type ConversationState = {
   messages: MessageData[];
   error?: string;
   isStreamingMessage: boolean;
+  streamingMessage?: MessageData;
   // user_ip: string;
   // time_created: Date;
   // last_updated: Date;
@@ -26,7 +28,8 @@ type ConversationAction =
   | { type: "modifyMessage"; messageId: MessageData["id"]; content: string }
   | { type: "deleteMessage"; messageId: MessageData["id"] }
   | { type: "rateMessage"; messageId: MessageData["id"]; rating: boolean }
-  | { type: "addToStreamingResponse"; data: string }
+  | { type: "createStreamingResponse"; data: string }
+  | { type: "appendStreamingResponse"; data: string }
   | { type: "finishStreamingResponse"; messageId: MessageData["id"] };
 
 type ConversationActor = {
@@ -54,10 +57,18 @@ function conversationReducer(
     const messageIndex = state.messages.findIndex(
       (message) => message.id === messageId
     );
-    if (messageIndex === -1) {
-      console.error(`Message(${messageId}) not found in state`);
-    }
     return messageIndex;
+  }
+  function getStreamingMessage() {
+    const streamingMessageIndex = getMessageIndex(STREAMING_MESSAGE_ID);
+    const streamingMessage =
+      streamingMessageIndex === -1
+        ? null
+        : state.messages[streamingMessageIndex];
+    return {
+      streamingMessageIndex,
+      streamingMessage,
+    };
   }
   switch (action.type) {
     case "setConversation": {
@@ -88,7 +99,12 @@ function conversationReducer(
         return state;
       }
       const messageIndex = getMessageIndex(action.messageId);
-      if (messageIndex === -1) return state;
+      if (messageIndex === -1) {
+        console.error(
+          `Cannot modifyMessage because message with id ${action.messageId} does not exist`
+        );
+        return state;
+      }
       const modifiedMessage = {
         ...state.messages[messageIndex],
         content: action.content,
@@ -108,7 +124,12 @@ function conversationReducer(
         return state;
       }
       const messageIndex = getMessageIndex(action.messageId);
-      if (messageIndex === -1) return state;
+      if (messageIndex === -1) {
+        console.error(
+          `Cannot deleteMessage because message with id ${action.messageId} does not exist`
+        );
+        return state;
+      }
       return {
         ...state,
         messages: [
@@ -123,7 +144,13 @@ function conversationReducer(
         return state;
       }
       const messageIndex = getMessageIndex(action.messageId);
-      if (messageIndex === -1) return state;
+      if (messageIndex === -1) {
+        console.error(
+          `Cannot rateMessage because message with id ${action.messageId} does not exist`
+        );
+        return state;
+      }
+
       const ratedMessage = {
         ...state.messages[messageIndex],
         rating: action.rating,
@@ -137,68 +164,78 @@ function conversationReducer(
         ],
       };
     }
-    case "addToStreamingResponse": {
+    case "createStreamingResponse": {
       if (!state.conversationId) {
-        console.error(`Cannot addToStreamingResponse without a conversationId`);
+        console.error(
+          `Cannot createStreamingResponse without a conversationId`
+        );
         return state;
       }
-
-      const messageIndex = state.messages.findIndex(
-        (msg) => msg.id === STREAMING_MESSAGE_ID
-      );
-      if (messageIndex === -1) {
-        return {
-          ...state,
-          isStreamingMessage: true,
-          messages: [
-            ...state.messages,
-            {
-              ...createMessage("assistant", action.data),
-              id: STREAMING_MESSAGE_ID,
-            },
-          ],
-        };
+      let { streamingMessage } = getStreamingMessage();
+      if (streamingMessage) {
+        console.error(
+          `Cannot createStreamingResponse because a streamingMessage already exists`
+        );
+        return state;
       }
-
-      const message = state.messages[messageIndex];
-      const updatedMessage = {
-        ...message,
-        content: message.content + action.data,
+      streamingMessage = {
+        ...createMessage("assistant", action.data),
+        id: STREAMING_MESSAGE_ID,
       };
       return {
         ...state,
         isStreamingMessage: true,
-        messages: [
-          ...state.messages.slice(0, messageIndex),
-          updatedMessage,
-          ...state.messages.slice(messageIndex + 1),
-        ],
+        streamingMessage,
+        messages: [...state.messages, streamingMessage],
+      };
+    }
+    case "appendStreamingResponse": {
+      if (!state.conversationId) {
+        console.error(`Cannot appendStreamingResponse without a conversationId`);
+        return state;
+      }
+      const { streamingMessage, streamingMessageIndex } = getStreamingMessage();
+      if (!streamingMessage) {
+        console.error(
+          `Cannot appendStreamingResponse without a streamingMessage. Make sure to dispatch createStreamingResponse first.`
+        );
+        return state;
+      }
+      const modifiedMessage = {
+        ...streamingMessage,
+        content: streamingMessage.content + action.data,
+      };
+      return {
+        ...state,
+        messages: updateArrayElementAt(
+          state.messages,
+          streamingMessageIndex,
+          modifiedMessage
+        ),
       };
     }
     case "finishStreamingResponse": {
-      const messageIndex = state.messages.findIndex(
-        (msg) => msg.id === STREAMING_MESSAGE_ID
-      );
-      if (messageIndex === -1) {
+      const { streamingMessage, streamingMessageIndex } = getStreamingMessage();
+      if (!streamingMessage) {
         console.error(
           `Cannot finishStreamingResponse without a streamingMessage`
         );
         return state;
       }
-      const streamedMessage = state.messages[messageIndex];
       const finalMessage = {
-        ...streamedMessage,
+        ...streamingMessage,
         id: action.messageId,
       };
 
       return {
         ...state,
         isStreamingMessage: false,
-        messages: [
-          ...state.messages.slice(0, messageIndex),
-          finalMessage,
-          ...state.messages.slice(messageIndex + 1),
-        ],
+        streamingMessage: undefined,
+        messages: updateArrayElementAt(
+          state.messages,
+          streamingMessageIndex,
+          finalMessage
+        ),
       };
     }
     default: {
@@ -265,20 +302,24 @@ export default function useConversation() {
     const streamingIntervalMs = 50;
     const streamingInterval = setInterval(() => {
       if (streamedMessage) {
-        dispatch({ type: "addToStreamingResponse", data: streamedMessage });
+        dispatch({ type: "appendStreamingResponse", data: streamedMessage });
         streamedMessage = "";
       }
       if (finishedStreaming) {
-        if(!streamedMessageId) {
-          streamedMessageId = createMessageId()
+        if (!streamedMessageId) {
+          streamedMessageId = createMessageId();
         }
-        dispatch({ type: "finishStreamingResponse", messageId: streamedMessageId });
+        dispatch({
+          type: "finishStreamingResponse",
+          messageId: streamedMessageId,
+        });
       }
     }, streamingIntervalMs);
 
     try {
       dispatch({ type: "addMessage", role, content });
       if (SHOULD_STREAM) {
+        dispatch({ type: "createStreamingResponse", data: "" });
         await conversationService.addMessageStreaming({
           conversationId: state.conversationId,
           message: content,
@@ -345,10 +386,15 @@ export default function useConversation() {
     dispatch({ type: "rateMessage", messageId, rating });
   };
 
+  const streamingMessage = state.messages.find(
+    (m) => m.id === STREAMING_MESSAGE_ID
+  );
+
   return {
     ...state,
     createConversation,
     endConversationWithError,
+    streamingMessage,
     addMessage,
     modifyMessage,
     deleteMessage,

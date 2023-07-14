@@ -36,7 +36,7 @@ import {
 import { makeCreateConversationRoute } from "./createConversation";
 import { ApiConversation, ApiMessage } from "./utils";
 import { makeOpenAiLlm } from "../../services/llm";
-import { DataStreamer } from "../../services/dataStreamer";
+import { makeDataStreamer } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
 import { makeRateMessageRoute } from "./rateMessage";
@@ -73,7 +73,7 @@ describe("Conversations Router", () => {
     deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     apiKey: OPENAI_API_KEY,
   });
-  const dataStreamer = new DataStreamer();
+  const dataStreamer = makeDataStreamer();
 
   const findNearestNeighborsOptions: FindNearestNeighborsOptions = {
     k: 5,

@@ -13,7 +13,11 @@ interface ServerSentEventDispatcher<Data extends object | string> {
   sendEvent(eventType: string, data: Data): void;
 }
 
-function makeServerSentEventDispatcher<D extends object | string = object | string>(res: Response): ServerSentEventDispatcher<D> {
+type ServerSentEventData = object | string;
+
+function makeServerSentEventDispatcher<
+  D extends ServerSentEventData = ServerSentEventData
+>(res: Response): ServerSentEventDispatcher<D> {
   return {
     connect() {
       // Define SSE headers and flush them to the client to establish a connection
@@ -39,80 +43,85 @@ function makeServerSentEventDispatcher<D extends object | string = object | stri
 interface StreamParams {
   stream: OpenAiStreamingResponse;
   furtherReading?: string;
-
 }
 
 type ChatbotStreamEvent =
   | { type: "delta"; data: string }
-  | { type: "finished"; data: string }
+  | { type: "finished"; data: string };
 
-export class DataStreamer {
-  private res?: Response;
-  private sse?: ServerSentEventDispatcher<ChatbotStreamEvent>;
+export interface DataStreamer {
   connected: boolean;
+  connect(res: Response): void;
+  disconnect(): void;
+  streamData(data: ChatbotStreamEvent): void;
+  stream(params: StreamParams): Promise<string>;
+}
 
-  constructor() {
-    this.connected = false;
-  }
+export function makeDataStreamer(): DataStreamer {
+  let _connected = false;
+  let _sse: ServerSentEventDispatcher<ChatbotStreamEvent> | undefined;
 
-  connect(res: Response) {
-    if (this.connected) {
-      throw new Error("Tried to connect SSE, but it was already connected.");
-    }
-    this.res = res;
-    this.sse = makeServerSentEventDispatcher<ChatbotStreamEvent>(res);
-    // If the client closes the connection, stop sending events
-    res.on("close", () => {
+  return {
+    get connected() {
+      return _connected;
+    },
+    connect(res) {
       if (this.connected) {
-        this.disconnect();
+        throw new Error("Tried to connect SSE, but it was already connected.");
       }
-    });
-    this.sse.connect();
-    this.connected = true;
-  }
+      _sse = makeServerSentEventDispatcher<ChatbotStreamEvent>(res);
+      // If the client closes the connection, stop sending events
+      res.on("close", () => {
+        if (this.connected) {
+          this.disconnect();
+        }
+      });
+      _sse.connect();
+      _connected = true;
+    },
 
-  disconnect() {
-    if (!this.connected) {
-      throw new Error(
-        "Tried to disconnect SSE, but it was already disconnected."
-      );
-    }
-    this.sse?.disconnect();
-    this.sse = undefined;
-    this.res = undefined;
-    this.connected = false;
-  }
-
-  streamData(data: ChatbotStreamEvent) {
-    if (!this.connected) {
-      throw new Error(
-        `Tried to stream data, but there's no SSE connection. Call DataStreamer.connect() first.`
-      );
-    }
-    this.sse?.sendData(data);
-  }
-
-  async stream({ stream }: StreamParams) {
-    let streamedData = "";
-    for await (const event of stream) {
-      // The event could contain many choices, but we only want the first one
-      const choice = event.choices[0];
-      if (choice.delta) {
-        const content = escapeNewlines(choice.delta.content ?? "");
-        const delta = {
-          type: "delta",
-          data: content,
-        } satisfies ChatbotStreamEvent;
-        this.streamData(delta);
-        streamedData += content;
-      } else if (choice.message) {
-        logger.warn(
-          `Unexpected message in stream: no delta. Message: ${JSON.stringify(
-            choice.message
-          )}`
+    disconnect() {
+      if (!this.connected) {
+        throw new Error(
+          "Tried to disconnect SSE, but it was already disconnected."
         );
       }
-    }
-    return streamedData;
-  }
+      _sse?.disconnect();
+      _sse = undefined;
+      // _res = undefined;
+      _connected = false;
+    },
+
+    streamData(data: ChatbotStreamEvent) {
+      if (!this.connected) {
+        throw new Error(
+          `Tried to stream data, but there's no SSE connection. Call DataStreamer.connect() first.`
+        );
+      }
+      _sse?.sendData(data);
+    },
+
+    async stream({ stream }: StreamParams) {
+      let streamedData = "";
+      for await (const event of stream) {
+        // The event could contain many choices, but we only want the first one
+        const choice = event.choices[0];
+        if (choice.delta) {
+          const content = escapeNewlines(choice.delta.content ?? "");
+          this.streamData({
+            type: "delta",
+            data: content,
+          });
+          streamedData += content;
+        } else if (choice.message) {
+          logger.warn(
+            `Unexpected message in stream: no delta. Message: ${JSON.stringify(
+              choice.message
+            )}`
+          );
+        }
+      }
+      return streamedData;
+    },
+  };
 }

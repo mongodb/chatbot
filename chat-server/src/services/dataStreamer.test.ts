@@ -1,10 +1,10 @@
-import { DataStreamer } from "./dataStreamer";
+import { makeDataStreamer } from "./dataStreamer";
 import { getMockRes } from "@jest-mock/express";
 import type { OpenAIChatCompletionWithoutUsage } from "./llm";
 
 const mockRes = getMockRes();
 let res: typeof mockRes.res;
-const dataStreamer = new DataStreamer();
+const dataStreamer = makeDataStreamer();
 describe("Data Streaming", () => {
   beforeEach(() => {
     res = mockRes.res;

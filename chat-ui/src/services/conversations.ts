@@ -45,12 +45,12 @@ export default class ConversationService {
         `Invalid path: ${path} - ConversationService paths must start with /`
       );
     }
-    const resolvedUrl = this.serverUrl + path;
+    const url = new URL(path, this.serverUrl)
     const queryString = new URLSearchParams(queryParams).toString();
     if (!queryString) {
-      return resolvedUrl;
+      return url.toString();
     }
-    return `${resolvedUrl}?${queryString}`;
+    return `${url}?${queryString}`;
   }
 
   async createConversation(): Promise<Required<ConversationState>> {

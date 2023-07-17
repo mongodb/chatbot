@@ -4,6 +4,6 @@
   },
   "github": {
     "release": true,
-    "releaseName": "ingest@${version}"
+    "releaseName": "chat-server@${version}"
   }
 }

@@ -4,6 +4,6 @@
   },
   "github": {
     "release": true,
-    "releaseName": "chat-ui-v${version}"
+    "releaseName": "chat-ui@${version}"
   }
 }

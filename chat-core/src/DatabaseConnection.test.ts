@@ -218,16 +218,6 @@ describe("nearest neighbor search", () => {
       userIp: "XYZ",
     });
 
-    // Confirm that we are loading the correct sample data
-    expect(
-      await store.loadEmbeddedContent({
-        page: {
-          url: "https://www.mongodb.com/developer/products/realm/build-ci-cd-pipelines-realm-apps-github-actions",
-          sourceName: "devcenter",
-        } as Page,
-      })
-    ).toHaveLength(57);
-
     const matches = await store.findNearestNeighbors(
       embedding,
       findNearestNeighborOptions

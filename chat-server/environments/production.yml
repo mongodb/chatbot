@@ -1,23 +1,38 @@
 service:
   targetPort: 3000
 
-# TODO: add all the stuff here
 env:
   PORT: 3000
-  MONGODB_DATABASE_NAME: docs_chat_prod
+  OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
+  OPENAI_EMBEDDING_MODEL_VERSION: 2023-03-15-preview
+  MONGODB_DATABASE_NAME: docs-chatbot-prod
+  VECTOR_SEARCH_INDEX_NAME: default
+  OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
 
-# TODO: add this via kubectl when database is created
-# envSecrets:
-#   MONGODB_CONNECTION_URI: chat-server-atlas-uri-prod
+envSecrets:
+  MONGODB_CONNECTION_URI: docs-chatbot-prod
+  OPENAI_ENDPOINT: docs-chatbot-prod
+  OPENAI_API_KEY: docs-chatbot-prod
+  OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-prod
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-prod
 
 ingress:
   enabled: true
   hosts:
     - chat-server.docs.prod.corp.mongodb.com
 
-# TODO: update this to do the elastic-beanstalky stuff
 resources:
   limits:
     memory: 1300Mi
   requests:
     memory: 1100Mi
+# TODO: update this to do the elastic-beanstalky stuff
+# need to define resource requests. see kanopy docs and https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details
+# autoscaling:
+#   minReplicas: 2
+#   maxReplicas: 5
+#   metrics:
+#     - type: Resource
+#       resource:
+#         name: cpu
+#         targetAverageUtilization: 80

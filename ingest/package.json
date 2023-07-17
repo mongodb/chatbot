@@ -13,7 +13,7 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
     "docs": "npx typedoc --excludePrivate --exclude '**/*.test.ts' --out docs src",
-    "release": "release-it"
+    "release": "release-it --ci"
   },
   "author": "",
   "license": "ISC",

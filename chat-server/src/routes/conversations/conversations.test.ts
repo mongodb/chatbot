@@ -381,7 +381,7 @@ describe("Conversations Router", () => {
 
         test("Should respond with 200 and static response", async () => {
           const nonsenseMessage =
-            "asdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfjdfhstgragtyjuikol";
+            "asdlfkjasdlfk jasdlfkjasdlfk jasdlfkjasdlfjdfhstgra gtyjuikolsdfghjsdghj;sgf;dlfjda; kssdghj;f'afskj ;glskjsfd'aks dsaglfslj; gaflad four score and seven years ago fsdglfsgdj fjlgdfsghjldf lfsgajlhgf";
           const calledEndpoint = endpointUrl.replace(
             ":conversationId",
             conversationId.toString()
@@ -526,13 +526,16 @@ describe("Conversations Router", () => {
         });
         test("Should not return content for irrelevant text", async () => {
           const text =
-            "asdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjafdshgjfkhfdugytfasfghjkujufgjdfhstgragtyjuikol";
+            "asdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjafdshgjfkhfdugytfasfghjkujufgjdfhstgragtyjuikolaf;ldkgsdjfnh;ks'l;addfsghjklafjklsgfjgreaj;agre;jlg;ljewrqjknerqnkjkgn;jwr;lwreg";
           const chunks = await getContentForText({
             embed,
             text,
             store,
             ipAddress,
-            findNearestNeighborsOptions,
+            findNearestNeighborsOptions: {
+              ...findNearestNeighborsOptions,
+              minScore: 99,
+            },
           });
           expect(chunks).toBeDefined();
           expect(chunks.length).toBe(0);

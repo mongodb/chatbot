@@ -222,11 +222,11 @@ describe("nearest neighbor search", () => {
     expect(
       await store.loadEmbeddedContent({
         page: {
-          url: "https://mongodb.com/developer/products/realm/build-ci-cd-pipelines-realm-apps-github-actions",
-          sourceName: "dev-center",
+          url: "https://www.mongodb.com/developer/products/realm/build-ci-cd-pipelines-realm-apps-github-actions",
+          sourceName: "devcenter",
         } as Page,
       })
-    ).toHaveLength(29);
+    ).toHaveLength(57);
 
     const matches = await store.findNearestNeighbors(
       embedding,

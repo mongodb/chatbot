@@ -139,8 +139,9 @@ type: kubernetes
 name: production-build-chat-server
 
 trigger:
-  event:
-    - tag
+  ref:
+    include:
+      - refs/tags/chat-server-*
 
 steps:
   # Builds and publishes Docker image for production
@@ -148,6 +149,7 @@ steps:
     image: plugins/kaniko-ecr
     settings:
       create_repository: true
+      dockerfile: chat-server.dockerfile
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
       repo: docs/${DRONE_REPO_NAME}-chat-server
       tags:
@@ -192,7 +194,7 @@ steps:
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-production,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-server.docs.prod.corp.mongodb.com
       values_files: ["chat-server/environments/production.yml"]
       api_server: https://api.prod.corp.mongodb.com
-      kubernetes_token:
+      kubernetes_token: # TODO: add token or already there?
         from_secret: prod_kubernetes_token
 
 # Ingest service

@@ -1,9 +1,10 @@
 service:
   targetPort: 3000
 
+# TODO: add all the stuff here
 env:
   PORT: 3000
-  MONGODB_DB_NAME: docs_chat_prod
+  MONGODB_DATABASE_NAME: docs_chat_prod
 
 # TODO: add this via kubectl when database is created
 # envSecrets:
@@ -14,6 +15,7 @@ ingress:
   hosts:
     - chat-server.docs.prod.corp.mongodb.com
 
+# TODO: update this to do the elastic-beanstalky stuff
 resources:
   limits:
     memory: 1300Mi

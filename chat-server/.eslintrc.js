@@ -26,7 +26,7 @@ module.exports = {
   ],
   settings: {
     jest: {
-      version: 26,
+      version: 29,
     },
   },
 };

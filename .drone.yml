@@ -119,12 +119,6 @@ steps:
         from_secret: staging_kubernetes_token
 
 ---
-# --------------------
-# TODO: Validate production deployment.
-# Not worrying about production stuff just yet.
-# The below config *should* work, but it hasn't been tested yet, so odds are that
-# it will need to be tweaked.
-# --------------------
 depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes

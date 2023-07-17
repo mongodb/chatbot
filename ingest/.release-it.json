@@ -1,12 +1,14 @@
 {
   "git": {
-    "tag": false
+    "tag": false,
+    "push": true,
+    "tagName": "${packageName}-v${version}"
   },
   "npm": {
     "publish": false
   },
   "github": {
-    "releaseName": "ingest@${version}",
+    "releaseName": "${packageName}-v${version}",
     "draft": true,
     "release": true
   },

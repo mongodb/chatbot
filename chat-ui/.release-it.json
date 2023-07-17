@@ -1,10 +1,16 @@
 {
+  "git": {
+    "tag": false,
+    "push": true,
+    "tagName": "${packageName}-v${version}"
+  },
   "npm": {
     "publish": false
   },
   "github": {
-    "release": true,
-    "releaseName": "chat-ui@${version}"
+    "releaseName": "${packageName}-v${version}",
+    "draft": true,
+    "release": true
   },
   "hooks": {
     "before:init": ["git pull", "npm run build", "npm run lint", "npm run test"]

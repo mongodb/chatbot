@@ -127,7 +127,7 @@ name: production-build-chat-server
 trigger:
   ref:
     include:
-      - refs/tags/chat-server@*
+      - refs/tags/chat-server-v*
 
 steps:
   # Builds and publishes Docker image for production

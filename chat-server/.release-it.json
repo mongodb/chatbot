@@ -1,18 +1,26 @@
 {
+<<<<<<< HEAD
   "git": {
     "tag": false,
     "push": true,
     "tagName": "chat-server-v${version}"
   },
+=======
+>>>>>>> 50e29c6 (add release-it conf for relevant packages)
   "npm": {
     "publish": false
   },
   "github": {
+<<<<<<< HEAD
     "releaseName": "chat-server-v${version}",
     "draft": true,
     "release": true
   },
   "hooks": {
     "before:init": ["git pull", "npm run build", "npm run lint", "npm run test"]
+=======
+    "release": true,
+    "releaseName": "chat-server@${version}"
+>>>>>>> 50e29c6 (add release-it conf for relevant packages)
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "docs-chat-server",
+  "name": "chat-server",
   "version": "1.0.0",
   "description": "Q&A server for the MongoDB Docs AI chatbot.",
   "main": "index.js",

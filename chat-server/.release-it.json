@@ -5,5 +5,8 @@
   "github": {
     "release": true,
     "releaseName": "chat-server@${version}"
+  },
+  "hooks": {
+    "before:init": ["git pull", "npm run build", "npm run lint", "npm run test"]
   }
 }

@@ -15,7 +15,9 @@
     "build": "lerna run build",
     "test": "lerna run test",
     "lint": "lerna run lint",
-    "prepublish": "lerna run prepublish"
+    "prepublish": "lerna run prepublish",
+    "publish": "lerna run publish",
+    "release": "lerna run release"
   },
   "devDependencies": {
     "lerna": "^5.6.2"

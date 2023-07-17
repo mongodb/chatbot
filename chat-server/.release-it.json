@@ -1,10 +1,14 @@
 {
+  "git": {
+    "tag": false
+  },
   "npm": {
     "publish": false
   },
   "github": {
-    "release": true,
-    "releaseName": "chat-server@${version}"
+    "releaseName": "chat-server@${version}",
+    "draft": true,
+    "release": true
   },
   "hooks": {
     "before:init": ["git pull", "npm run build", "npm run lint", "npm run test"]

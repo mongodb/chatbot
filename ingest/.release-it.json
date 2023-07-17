@@ -3,7 +3,10 @@
     "publish": false
   },
   "github": {
-    "release": true,
-    "releaseName": "ingest@${version}"
+    "releaseName": "ingest@${version}",
+    "draft": true
+  },
+  "hooks": {
+    "before:init": ["git pull", "npm run build", "npm run lint", "npm run test"]
   }
 }

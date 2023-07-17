@@ -1,7 +1,6 @@
 service:
   targetPort: 3000
 
-# TODO: add all the stuff here
 env:
   PORT: 3000
   OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
@@ -22,7 +21,6 @@ ingress:
   hosts:
     - chat-server.docs.prod.corp.mongodb.com
 
-# TODO: update this to do the elastic-beanstalky stuff
 resources:
   limits:
     memory: 1300Mi

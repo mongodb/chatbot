@@ -13,7 +13,7 @@
     "test": "jest --forceExit",
     "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
     "docs": "npx typedoc --excludePrivate --exclude '**/*.test.ts' --out docs src",
-    "release": "release-it --ci"
+    "release": "release-it"
   },
   "author": "",
   "license": "ISC",

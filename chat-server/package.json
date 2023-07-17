@@ -11,7 +11,7 @@
     "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
     "start": "node ./dist/index.js",
     "test": "jest --forceExit",
-    "release": "release-it --ci"
+    "release": "release-it"
   },
   "engines": {
     "node": "^18",

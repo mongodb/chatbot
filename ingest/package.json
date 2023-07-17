@@ -1,6 +1,6 @@
 {
   "name": "ingest",
-  "version": "0.0.4-0",
+  "version": "0.0.4",
   "description": "Ingests data sources and stores embeddings.",
   "main": "./build/main.js",
   "bin": {

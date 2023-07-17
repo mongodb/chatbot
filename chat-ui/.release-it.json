@@ -3,6 +3,7 @@
     "publish": false
   },
   "github": {
-    "release": true
+    "release": true,
+    "releaseName": "chat-ui-v${version}"
   }
 }

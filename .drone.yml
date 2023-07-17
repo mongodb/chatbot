@@ -22,19 +22,11 @@ steps:
   - name: test
     image: node:18
     commands:
-      - cd chat-core
       - npm ci
-      - npm test
       - npm run build
-      - cd ..
-      - cd chat-server
-      - npm ci
       - npm run lint
       - npm run test
-      - cd ..
-      - cd ingest
-      - npm ci
-      - npm run test
+
     environment:
       PORT: 3000
       OPENAI_EMBEDDING_MODEL: text-embedding-ada-002

@@ -21,6 +21,12 @@
 =======
     "release": true,
     "releaseName": "chat-server@${version}"
+<<<<<<< HEAD
 >>>>>>> 50e29c6 (add release-it conf for relevant packages)
+=======
+  },
+  "hooks": {
+    "before:init": ["git pull", "npm run build", "npm run lint", "npm run test"]
+>>>>>>> 527facf (add release-it conf for relevant packages)
   }
 }

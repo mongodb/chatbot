@@ -29,8 +29,6 @@ To create a new production release:
 1. Create a pull request for the branch. Get it reviewed using the standard review process.
 1. Once the PR is approved and merged, publish the release draft corresponding to the changes in the PR.
    You can find the release draft in the draft tag: <https://github.com/mongodb/docs-chatbot/releases>.
-   DO NOT change the release name. The name is used to create the tag,
-   which is used to create the production release.
 1. When the release is published, the Drone CI will pick up the corresponding git tag,
    and trigger a deploy from it.
 

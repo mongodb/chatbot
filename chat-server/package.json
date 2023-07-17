@@ -1,6 +1,6 @@
 {
   "name": "chat-server",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Q&A server for the MongoDB Docs AI chatbot.",
   "main": "index.js",
   "scripts": {

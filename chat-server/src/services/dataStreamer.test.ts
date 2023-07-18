@@ -20,6 +20,11 @@ describe("Data Streaming", () => {
     expect(res.flushHeaders).toHaveBeenCalledTimes(1);
   });
 
+  it("Only connects through one Response at a time and safely rejects additional connections", () => {
+    expect(() => dataStreamer.connect(res)).toThrow(Error);
+    expect(res.flushHeaders).toHaveBeenCalledTimes(1);
+  });
+
   it("Streams SSE data manually to the client", () => {
     dataStreamer.streamData({
       type: "delta",
@@ -78,6 +83,28 @@ describe("Data Streaming", () => {
     expect(streamedText).toBe("Once upon a time there was a very long string.");
     expect(res.write).toHaveBeenCalledTimes(3);
   });
+
+  it("Bails out when a client closes a connection", () => {
+    res.emit("close");
+    expect(res.end).toHaveBeenCalledTimes(1);
+    expect(dataStreamer.disconnect).toHaveBeenCalledTimes(1);
+    expect(dataStreamer.connected).toBe(false);
+    expect(() =>
+      dataStreamer.streamData({ type: "delta", data: "test" })
+    ).toThrow(Error);
+    expect(async () => {
+      const s = {
+        [Symbol.asyncIterator]() {
+          return {
+            async next() {
+              return { done: true };
+            },
+          };
+        },
+      } as AsyncIterable<{ done: boolean }>;
+      await dataStreamer.stream(s);
+    }).toThrow(Error);
+  });
 });
 
 function createChatCompletionWithDelta(deltaText: string) {
@@ -89,18 +116,22 @@ function createChatCompletionWithDelta(deltaText: string) {
         index: 0,
         delta: true,
         message: {
-          content: deltaText
-        }
-      })
+          content: deltaText,
+        },
+      }),
     ],
-  }
+  };
 }
 
-function createChatCoice(data: { index: number, delta: boolean, message: { role?: "assistant" | "user", content: string } }) {
+function createChatCoice(data: {
+  index: number;
+  delta: boolean;
+  message: { role?: "assistant" | "user"; content: string };
+}) {
   return {
     index: data.index,
     finishReason: null,
     delta: data.delta ? data.message : undefined,
     message: data.delta ? undefined : data.message,
-  }
+  };
 }

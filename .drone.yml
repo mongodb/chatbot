@@ -1,7 +1,3 @@
----
-# ---
-# Chat Server pipelines
-# ---
 kind: pipeline
 type: kubernetes
 name: test-all
@@ -47,6 +43,9 @@ steps:
       DEVCENTER_CONNECTION_URI:
         from_secret: devcenter_connection_uri
 
+# ---
+# Chat Server pipelines
+# ---
 ---
 depends_on: ["test-all"]
 kind: pipeline
@@ -58,6 +57,7 @@ trigger:
     - main
   event:
     - push
+
   paths:
     include:
       - chat-server/**/*
@@ -125,6 +125,8 @@ type: kubernetes
 name: production-build-chat-server
 
 trigger:
+  event:
+    - tag
   ref:
     include:
       - refs/tags/chat-server-v*

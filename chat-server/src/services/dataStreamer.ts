@@ -1,6 +1,7 @@
 import { Response } from "express";
 import { OpenAiStreamingResponse } from "./llm";
 import { logger } from "chat-core";
+import { References } from "../routes/conversations/addMessageToConversation";
 
 function escapeNewlines(str: string): string {
   return str.replaceAll(`\n`, `\\n`);
@@ -44,11 +45,12 @@ function makeServerSentEventDispatcher<
 
 interface StreamParams {
   stream: OpenAiStreamingResponse;
-  furtherReading?: string;
+  references?: string;
 }
 
 type ChatbotStreamEvent =
   | { type: "delta"; data: string }
+  | { type: "references"; data: References }
   | { type: "finished"; data: string };
 
 export interface DataStreamer {

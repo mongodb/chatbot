@@ -1,12 +1,14 @@
 import { isIP } from "net";
 import { Address6 } from "ip-address";
 import { Conversation, Message } from "../../services/conversations";
+import { References } from "./addMessageToConversation";
 export interface ApiMessage {
   id: string;
   role: string;
   content: string;
   rating?: boolean;
   createdAt: number;
+  references?: References;
 }
 export interface ApiConversation {
   _id: string;
@@ -21,6 +23,7 @@ export function convertMessageFromDbToApi(message: Message): ApiMessage {
     content: message.content,
     rating: message.rating,
     createdAt: message.createdAt.getTime(),
+    references: message.references,
   };
 }
 export function convertConversationFromDbToApi(

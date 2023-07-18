@@ -4,6 +4,7 @@ type: object
 properties:
   _id:
     bsonType: objectId
+  messages:
     type: array
     items:
       type: object
@@ -26,6 +27,16 @@ properties:
             No value if user didn't rate the response.
 
             Note that only messages with `role: "assistant"` can be rated.
+        references:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              url:
+                type: string
+                format: uri
       required: [role, content]
   user_ip:
     type: string

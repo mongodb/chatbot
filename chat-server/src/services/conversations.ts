@@ -6,6 +6,7 @@ import {
   OpenAiMessageRole,
 } from "chat-core";
 import { SYSTEM_PROMPT } from "../aiConstants";
+import { References } from "../routes/conversations/addMessageToConversation";
 
 export interface Message {
   /** Unique identifier for the message. */
@@ -18,6 +19,8 @@ export interface Message {
   rating?: boolean;
   /** The date the message was created. */
   createdAt: Date;
+  /** Further reading links for the message. */
+  references?: References;
 }
 
 export interface Conversation {
@@ -35,7 +38,8 @@ export interface CreateConversationParams {
 export interface AddConversationMessageParams {
   conversationId: ObjectId;
   content: string;
-  role: "user" | "assistant";
+  role: OpenAiMessageRole;
+  references?: References;
 }
 export interface FindByIdParams {
   _id: ObjectId;
@@ -44,7 +48,6 @@ export interface RateMessageParams {
   conversationId: ObjectId;
   messageId: ObjectId;
   rating: boolean;
-  role?: OpenAiMessageRole;
 }
 export interface ConversationsServiceInterface {
   create: ({ ipAddress }: CreateConversationParams) => Promise<Conversation>;
@@ -52,6 +55,7 @@ export interface ConversationsServiceInterface {
     conversationId,
     content,
     role,
+    references,
   }: AddConversationMessageParams) => Promise<Message>;
   findById: ({ _id }: FindByIdParams) => Promise<Conversation | null>;
   rateMessage: ({
@@ -103,11 +107,13 @@ export class ConversationsService implements ConversationsServiceInterface {
     conversationId,
     content,
     role,
+    references,
   }: AddConversationMessageParams) {
-    const newMessage = this.createMessageFromChatMessage({
-      role,
-      content,
-    });
+    const newMessage = this.createMessageFromChatMessage({ role, content });
+    if (references) {
+      newMessage.references = references;
+    }
+
     const updateResult = await this.conversationsCollection.updateOne(
       {
         _id: conversationId,
@@ -129,12 +135,7 @@ export class ConversationsService implements ConversationsServiceInterface {
     return conversation;
   }
 
-  async rateMessage({
-    conversationId,
-    messageId,
-    rating,
-    role,
-  }: RateMessageParams) {
+  async rateMessage({ conversationId, messageId, rating }: RateMessageParams) {
     const updateResult = await this.conversationsCollection.updateOne(
       {
         _id: conversationId,
@@ -146,7 +147,7 @@ export class ConversationsService implements ConversationsServiceInterface {
       },
       {
         arrayFilters: [
-          { "message.id": messageId, "message.role": role || "assistant" },
+          { "message.id": messageId, "message.role": "assistant" },
         ],
       }
     );

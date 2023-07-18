@@ -9,11 +9,27 @@ export type MessageData = {
   content: string;
   createdAt: string;
   rating?: boolean;
+  references?: References;
 };
 
 type ConversationServiceConfig = {
   serverUrl: string;
 };
+
+// TODO - move References types to chat-core and share with addMessageToConversation.ts
+export interface Reference {
+  url: string;
+  title: string;
+}
+export type References = Reference[];
+
+export function formatReferences(references: References) {
+  const heading = "\n\n**Further reading:**\n\n";
+  const listOfLinks = references
+    .map((entry) => `[${entry.title}](${entry.url})`)
+    .join("\n\n");
+  return heading + listOfLinks;
+}
 
 class RetriableError<Data extends object = object> extends Error {
   retryAfter: number;
@@ -45,7 +61,7 @@ export default class ConversationService {
         `Invalid path: ${path} - ConversationService paths must start with /`
       );
     }
-    const url = new URL(path, this.serverUrl)
+    const url = new URL(path, this.serverUrl);
     const queryString = new URLSearchParams(queryParams).toString();
     if (!queryString) {
       return url.toString();
@@ -115,6 +131,7 @@ export default class ConversationService {
     message,
     maxRetries = 0,
     onResponseDelta,
+    onReferences,
     onResponseFinished,
     signal,
   }: {
@@ -122,6 +139,7 @@ export default class ConversationService {
     message: string;
     maxRetries: number;
     onResponseDelta: (delta: string) => void;
+    onReferences: (references: References) => void;
     onResponseFinished: (messageId: string) => void;
     signal?: AbortSignal;
   }): Promise<void> {
@@ -132,6 +150,7 @@ export default class ConversationService {
 
     type ConversationStreamEvent =
       | { type: "delta"; data: string }
+      | { type: "references"; data: References }
       | { type: "finished"; data: string };
 
     const isConversationStreamEvent = (
@@ -140,6 +159,7 @@ export default class ConversationService {
       const e = event as ConversationStreamEvent;
       return (
         (e.type === "delta" && typeof e.data === "string") ||
+        (e.type === "references" && typeof e.data === "object") ||
         (e.type === "finished" && typeof e.data === "string")
       );
     };
@@ -161,6 +181,10 @@ export default class ConversationService {
           case "delta": {
             const formattedData = event.data.replaceAll(`\\n`, `\n`);
             onResponseDelta(formattedData);
+            break;
+          }
+          case "references": {
+            onReferences(event.data);
             break;
           }
           case "finished": {

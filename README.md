@@ -15,7 +15,7 @@ This project uses `release-it` to create production releases.
 #### `chat-server` and `ingest`
 
 For `chat-server` and `ingest`, both of which are published to a MongoDB server environment,
-production releases are triggered by creating a git tag prefaced with the package name (e.g. `chat-server@version-number).
+production releases are triggered by creating a git tag prefaced with the package name (e.g. `chat-server-v{version-number}`).
 
 To create a new production release:
 

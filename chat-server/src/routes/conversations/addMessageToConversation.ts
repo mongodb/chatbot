@@ -19,7 +19,7 @@ import {
   Message,
   conversationConstants,
 } from "../../services/conversations";
-import { DataStreamerServiceInterface } from "../../services/dataStreamer";
+import { DataStreamer } from "../../services/dataStreamer";
 
 import {
   Llm,
@@ -55,7 +55,7 @@ export interface AddMessageToConversationRouteParams {
   conversations: ConversationsServiceInterface;
   embed: EmbedFunc;
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
-  dataStreamer: DataStreamerServiceInterface;
+  dataStreamer: DataStreamer;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
 }
 
@@ -90,7 +90,6 @@ export function makeAddMessageToConversationRoute({
           errorMessage: "Invalid conversation ID",
         });
       }
-
       // TODO:(DOCSP-30863) implement type checking on the request
 
       if (!isValidIp(ip)) {
@@ -129,16 +128,16 @@ export function makeAddMessageToConversationRoute({
 
       if (!conversationInDb) {
         return sendErrorResponse({
-          reqId: req.headers["req-id"] as string,
           res,
+          reqId: req.headers["req-id"] as string,
           httpStatus: 404,
           errorMessage: "Conversation not found",
         });
       }
       if (!areEquivalentIpAddresses(conversationInDb.ipAddress, ip)) {
         return sendErrorResponse({
-          reqId: req.headers["req-id"] as string,
           res,
+          reqId: req.headers["req-id"] as string,
           httpStatus: 403,
           errorMessage: "IP address does not match",
         });
@@ -146,8 +145,8 @@ export function makeAddMessageToConversationRoute({
 
       if (conversationInDb.messages.length >= MAX_MESSAGES_IN_CONVERSATION) {
         return sendErrorResponse({
-          reqId: req.headers["req-id"] as string,
           res,
+          reqId: req.headers["req-id"] as string,
           httpStatus: 400,
           errorMessage:
             `You cannot send more messages to this conversation. ` +
@@ -193,30 +192,53 @@ export function makeAddMessageToConversationRoute({
           assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,
         });
         const apiRes = convertMessageFromDbToApi(assistantMessage);
-        res.status(200).json(apiRes);
+        if (shouldStream) {
+          dataStreamer.connect(res);
+          dataStreamer.streamData({
+            type: "delta",
+            data: apiRes.content,
+          });
+          dataStreamer.streamData({
+            type: "finished",
+            data: apiRes.id,
+          });
+          dataStreamer.disconnect();
+          return;
+        } else {
+          return res.status(200).json(apiRes);
+        }
       }
 
+      const furtherReading = generateFurtherReading({ chunks });
+
       const chunkTexts = chunks.map((chunk) => chunk.text);
-      const latestMessage: OpenAiChatMessage = {
+
+      const latestMessage = {
         content: latestMessageText,
         role: "user",
-      };
+      } satisfies OpenAiChatMessage;
 
+      const messages = [
+        ...conversationInDb.messages.map(convertDbMessageToOpenAiMessage),
+        latestMessage,
+      ] satisfies OpenAiChatMessage[];
+
+      let answerContent;
       if (shouldStream) {
-        // TODO:(DOCSP-30866) add streaming support to endpoint
-        throw new Error("Streaming not implemented yet");
-        // answer = await dataStreamer.answer({
-        //   res,
-        //   answer: llm.answerQuestionStream({
-        //     messages: [
-        //       ...conversationInDb.messages,
-        //       latestMessageText,
-        //     ] as OpenAiChatMessage[],
-        //     chunks: chunkTexts,
-        //   }),
-        //   conversation: conversationInDb,
-        //   chunks,
-        // });
+        const answerStream = await llm.answerQuestionStream({
+          messages,
+          chunks: chunkTexts,
+        });
+        dataStreamer.connect(res);
+        const answer = await dataStreamer.stream({
+          stream: answerStream,
+        });
+        logger.info(`LLM response: ${JSON.stringify(answer)}`);
+        await dataStreamer.streamData({
+          type: "delta",
+          data: furtherReading,
+        });
+        answerContent = answer + furtherReading;
       } else {
         try {
           const messages = [
@@ -231,15 +253,17 @@ export function makeAddMessageToConversationRoute({
             messages,
             chunks: chunkTexts,
           });
-          answer.content += generateFurtherReading({ chunks });
           logRequest({
             reqId: req.headers["req-id"] as string,
             message: `LLM response: ${JSON.stringify(answer)}`,
           });
-        } catch (err: any) {
+          answerContent = answer.content + furtherReading;
+        } catch (err) {
+          const errorMessage =
+            err instanceof Error ? err.message : JSON.stringify(err);
           logRequest({
             reqId: req.headers["req-id"] as string,
-            message: `LLM error: ${JSON.stringify(err)}`,
+            message: `LLM error: ${errorMessage}`,
             type: "error",
           });
           logRequest({
@@ -250,17 +274,32 @@ export function makeAddMessageToConversationRoute({
             role: "assistant",
             content:
               conversationConstants.LLM_NOT_WORKING +
-              "\n\n" +
-              generateFurtherReading({ chunks, hasHeading: false }),
-          };
+              removeFurtherReadingHeading(furtherReading),
+          } satisfies OpenAiChatMessage;
+          answerContent = answer.content;
         }
-        const { assistantMessage } = await addMessagesToDatabase({
-          conversations,
-          conversationId,
-          userMessageContent: latestMessageText,
-          assistantMessageContent: answer.content,
+      }
+
+      if (!answerContent) {
+        throw new Error("No answer content");
+      }
+
+      const { assistantMessage } = await addMessagesToDatabase({
+        conversations,
+        conversationId,
+        userMessageContent: latestMessageText,
+        assistantMessageContent: answerContent,
+      });
+
+      const apiRes = convertMessageFromDbToApi(assistantMessage);
+      if (shouldStream) {
+        dataStreamer.streamData({
+          type: "finished",
+          data: apiRes.id,
         });
-        const apiRes = convertMessageFromDbToApi(assistantMessage);
+        dataStreamer.disconnect();
+        return;
+      } else {
         res.status(200).json(apiRes);
       }
     } catch (err) {
@@ -339,6 +378,14 @@ export interface GenerateFurtherReadingParams {
   chunks: EmbeddedContent[];
   hasHeading?: boolean;
 }
+
+const furtherReadingHeading = "\n\nFurther Reading:\n\n";
+
+export function removeFurtherReadingHeading(text: string) {
+  const headingPattern = new RegExp(furtherReadingHeading);
+  return text.replace(headingPattern, "");
+}
+
 export function generateFurtherReading({
   chunks,
   hasHeading = true,
@@ -346,7 +393,7 @@ export function generateFurtherReading({
   if (chunks.length === 0) {
     return "";
   }
-  const heading = hasHeading ? "\n\nFurther Reading:\n\n" : "";
+  const heading = hasHeading ? furtherReadingHeading : "";
   const uniqueLinks = Array.from(new Set(chunks.map((chunk) => chunk.url)));
 
   const linksText = uniqueLinks.reduce((acc, link) => {

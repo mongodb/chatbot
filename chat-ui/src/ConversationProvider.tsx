@@ -6,12 +6,24 @@ import useConversation, {
 
 export const ConversationContext = createContext<Conversation>({
   ...defaultConversationState,
-  createConversation: () => {},
-  addMessage: () => {},
-  modifyMessage: () => {},
-  deleteMessage: () => {},
-  rateMessage: () => {},
-  endConversationWithError: () => {},
+  createConversation: () => {
+    return;
+  },
+  addMessage: () => {
+    return;
+  },
+  modifyMessage: () => {
+    return;
+  },
+  deleteMessage: () => {
+    return;
+  },
+  rateMessage: () => {
+    return;
+  },
+  endConversationWithError: () => {
+    return;
+  },
 });
 
 export default function ConversationProvider({

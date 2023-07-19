@@ -5,7 +5,7 @@ import {
   OpenAiChatMessage,
   OpenAiMessageRole,
 } from "chat-core";
-import { SYSTEM_PROMPT, ASSISTANT_PROMPT } from "../aiConstants";
+import { SYSTEM_PROMPT } from "../aiConstants";
 
 export interface Message {
   /** Unique identifier for the message. */
@@ -83,10 +83,7 @@ export class ConversationsService implements ConversationsServiceInterface {
     const newConversation = {
       _id: new ObjectId(),
       ipAddress,
-      messages: [
-        this.createMessageFromChatMessage(SYSTEM_PROMPT),
-        this.createMessageFromChatMessage(ASSISTANT_PROMPT),
-      ],
+      messages: [this.createMessageFromChatMessage(SYSTEM_PROMPT)],
       createdAt: new Date(),
     };
     const insertResult = await this.conversationsCollection.insertOne(
@@ -162,11 +159,17 @@ export class ConversationsService implements ConversationsServiceInterface {
   private createMessageFromChatMessage(
     chatMessage: OpenAiChatMessage
   ): Message {
-    return {
-      id: new ObjectId(),
-      role: chatMessage.role,
-      content: chatMessage.content,
-      createdAt: new Date(),
-    };
+    return createMessageFromOpenAIChatMessage(chatMessage);
   }
+}
+
+export function createMessageFromOpenAIChatMessage(
+  chatMessage: OpenAiChatMessage
+): Message {
+  return {
+    id: new ObjectId(),
+    role: chatMessage.role,
+    content: chatMessage.content,
+    createdAt: new Date(),
+  };
 }

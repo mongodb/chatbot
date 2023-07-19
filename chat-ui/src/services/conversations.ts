@@ -1,4 +1,5 @@
 import { ConversationState } from "../useConversation";
+import { fetchEventSource } from "@microsoft/fetch-event-source";
 
 export type Role = "user" | "assistant";
 
@@ -14,6 +15,23 @@ type ConversationServiceConfig = {
   serverUrl: string;
 };
 
+class RetriableError<Data extends object = object> extends Error {
+  retryAfter: number;
+  data?: Data;
+
+  constructor(
+    message: string,
+    config: { retryAfter?: number; data?: Data } = {}
+  ) {
+    const { retryAfter = 1000, data } = config;
+    super();
+    this.name = "RetriableError";
+    this.message = message;
+    this.retryAfter = retryAfter;
+    this.data = data;
+  }
+}
+
 export default class ConversationService {
   private serverUrl: string;
 
@@ -21,13 +39,18 @@ export default class ConversationService {
     this.serverUrl = config.serverUrl;
   }
 
-  private getUrl(path: string) {
+  private getUrl(path: string, queryParams: Record<string, string> = {}) {
     if (!path.startsWith("/")) {
       throw new Error(
         `Invalid path: ${path} - ConversationService paths must start with /`
       );
     }
-    return this.serverUrl + path;
+    const url = new URL(path, this.serverUrl)
+    const queryString = new URLSearchParams(queryParams).toString();
+    if (!queryString) {
+      return url.toString();
+    }
+    return `${url}?${queryString}`;
   }
 
   async createConversation(): Promise<Required<ConversationState>> {
@@ -39,6 +62,16 @@ export default class ConversationService {
       },
     });
     const conversation = await resp.json();
+    if (resp.status === 400) {
+      throw new Error(`Bad request: ${conversation.error}`);
+    }
+    if (resp.status === 429) {
+      // TODO: Handle rate limiting
+      throw new Error(`Rate limited: ${conversation.error}`);
+    }
+    if (resp.status >= 500) {
+      throw new Error(`Server error: ${conversation.error}`);
+    }
     return {
       ...conversation,
       conversationId: conversation._id,
@@ -61,7 +94,127 @@ export default class ConversationService {
       body: JSON.stringify({ message }),
     });
     const data = await resp.json();
+    if (resp.status === 400) {
+      throw new Error(`Bad request: ${data.message}`);
+    }
+    if (resp.status === 404) {
+      throw new Error(`Conversation not found: ${data.message}`);
+    }
+    if (resp.status === 429) {
+      // TODO: Handle rate limiting
+      throw new Error(`Rate limited: ${data.message}`);
+    }
+    if (resp.status >= 500) {
+      throw new Error(`Server error: ${data.message}`);
+    }
     return data;
+  }
+
+  async addMessageStreaming({
+    conversationId,
+    message,
+    maxRetries = 0,
+    onResponseDelta,
+    onResponseFinished,
+    signal,
+  }: {
+    conversationId: string;
+    message: string;
+    maxRetries: number;
+    onResponseDelta: (delta: string) => void;
+    onResponseFinished: (messageId: string) => void;
+    signal?: AbortSignal;
+  }): Promise<void> {
+    const path = `/conversations/${conversationId}/messages`;
+
+    let retryCount = 0;
+    let moreToStream = true;
+
+    type ConversationStreamEvent =
+      | { type: "delta"; data: string }
+      | { type: "finished"; data: string };
+
+    const isConversationStreamEvent = (
+      event: object
+    ): event is ConversationStreamEvent => {
+      const e = event as ConversationStreamEvent;
+      return (
+        (e.type === "delta" && typeof e.data === "string") ||
+        (e.type === "finished" && typeof e.data === "string")
+      );
+    };
+
+    await fetchEventSource(this.getUrl(path, { stream: "true" }), {
+      signal: signal ?? null,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message }),
+
+      onmessage(ev) {
+        const event = JSON.parse(ev.data);
+        if (!isConversationStreamEvent(event)) {
+          throw new Error(`Invalid event received from server: ${ev.data}`);
+        }
+        switch (event.type) {
+          case "delta": {
+            const formattedData = event.data.replaceAll(`\\n`, `\n`);
+            onResponseDelta(formattedData);
+            break;
+          }
+          case "finished": {
+            moreToStream = false;
+            const messageId = event.data;
+            onResponseFinished(messageId);
+            break;
+          }
+        }
+      },
+
+      async onopen(response) {
+        if (
+          response.ok &&
+          response.headers.get("content-type") === "text/event-stream"
+        ) {
+          return; // everything's good
+        }
+
+        if (
+          response.status >= 400 &&
+          response.status < 500 &&
+          response.status !== 429
+        ) {
+          // client-side errors are usually non-retriable:
+          throw new Error(`Chatbot stream error: ${response.statusText}`);
+        } else {
+          // other errors are possibly retriable
+          throw new RetriableError("Chatbot stream error", {
+            retryAfter: 1000,
+            data: response,
+          });
+        }
+      },
+      onclose() {
+        if (moreToStream) {
+          throw new RetriableError("Chatbot stream closed unexpectedly");
+        }
+      },
+      onerror(err) {
+        console.log("services/conversations/onerror", err);
+        if (
+          err instanceof RetriableError &&
+          moreToStream &&
+          retryCount++ < maxRetries
+        ) {
+          return err.retryAfter;
+        }
+        if (err instanceof Error) {
+          throw new Error(err.message);
+        }
+        throw err; // rethrow to stop the operation
+      },
+    });
   }
 
   async rateMessage({

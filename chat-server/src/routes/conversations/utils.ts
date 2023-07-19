@@ -26,10 +26,12 @@ export function convertMessageFromDbToApi(message: Message): ApiMessage {
 export function convertConversationFromDbToApi(
   conversation: Conversation
 ): ApiConversation {
-  conversation.messages.shift(); // Remove the system prompt
+  const nonSystemMessages = conversation.messages.filter(
+    (msg) => msg.role !== "system"
+  );
   return {
     _id: conversation._id.toString(),
-    messages: conversation.messages.map(convertMessageFromDbToApi),
+    messages: nonSystemMessages.map(convertMessageFromDbToApi),
     createdAt: conversation.createdAt.getTime(),
   };
 }

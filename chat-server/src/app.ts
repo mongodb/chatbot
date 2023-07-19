@@ -10,12 +10,11 @@ import cors from "cors";
 import "dotenv/config";
 import { makeConversationsRouter } from "./routes/conversations";
 import {
-  logger,
   EmbeddedContentStore,
   EmbedFunc,
   FindNearestNeighborsOptions,
 } from "chat-core";
-import { DataStreamerServiceInterface } from "./services/dataStreamer";
+import { DataStreamer } from "./services/dataStreamer";
 import { ObjectId } from "mongodb";
 import { ConversationsServiceInterface } from "./services/conversations";
 import { logRequest, sendErrorResponse } from "./utils";
@@ -82,7 +81,7 @@ export const makeApp = async ({
 }: {
   embed: EmbedFunc;
   store: EmbeddedContentStore;
-  dataStreamer: DataStreamerServiceInterface;
+  dataStreamer: DataStreamer;
   conversations: ConversationsServiceInterface;
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   requestTimeout?: number;

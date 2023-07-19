@@ -10,7 +10,6 @@ import {
   NextFunction,
 } from "express";
 import { logRequest, sendErrorResponse } from "../../utils";
-import { logger } from "chat-core";
 import { areEquivalentIpAddresses, isValidIp } from "./utils";
 
 interface RatingRequest extends ExpressRequest {

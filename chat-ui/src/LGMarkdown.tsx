@@ -8,7 +8,11 @@ type ReactMarkdownComponentsMap = ReactMarkdownProps["components"];
 
 const componentsMap = {
   a: ({ children, href }) => {
-    return <Link href={href}>{children}</Link>;
+    return (
+      <Link hideExternalIcon href={href}>
+        {children}
+      </Link>
+    );
   },
   code: ({ inline, children, className }) => {
     const codeString = children.join("\n");
@@ -46,10 +50,10 @@ const componentsMap = {
   p: ({ children, ...props }) => {
     return <Body {...props}>{children}</Body>;
   },
-  ol: ({ children, ...props }) => {
+  ol: ({ children, ordered, ...props }) => {
     return <Body as="ol" {...props}>{children}</Body>;
   },
-  ul: ({ children, ...props }) => {
+  ul: ({ children, ordered, ...props }) => {
     return <Body as="ul" {...props}>{children}</Body>;
   },
 } satisfies ReactMarkdownComponentsMap;

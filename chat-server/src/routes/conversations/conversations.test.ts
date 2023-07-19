@@ -13,7 +13,6 @@ import {
   EmbedFunc,
   FindNearestNeighborsOptions,
 } from "chat-core";
-import { ASSISTANT_PROMPT } from "../../aiConstants";
 import {
   conversationConstants,
   Conversation,
@@ -37,7 +36,7 @@ import {
 import { makeCreateConversationRoute } from "./createConversation";
 import { ApiConversation, ApiMessage } from "./utils";
 import { makeOpenAiLlm } from "../../services/llm";
-import { DataStreamerService } from "../../services/dataStreamer";
+import { makeDataStreamer } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
 import { makeRateMessageRoute } from "./rateMessage";
@@ -74,8 +73,7 @@ describe("Conversations Router", () => {
     deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     apiKey: OPENAI_API_KEY,
   });
-  // TODO: implement data streaming service
-  const dataStreamer = new DataStreamerService();
+  const dataStreamer = makeDataStreamer();
 
   const findNearestNeighborsOptions: FindNearestNeighborsOptions = {
     k: 5,
@@ -107,18 +105,11 @@ describe("Conversations Router", () => {
     });
 
     it("should respond with 200 and create a conversation", async () => {
-      const before = Date.now();
       const res = await request(app).post("/conversations/").send();
       const conversation: ApiConversation = res.body;
-      const [assistantMessage] = conversation.messages;
       expect(res.statusCode).toEqual(200);
 
-      expect(conversation.messages).toHaveLength(1);
-      expect(typeof assistantMessage.id).toBe("string");
-      expect(assistantMessage.content).toBe(ASSISTANT_PROMPT.content);
-      expect(assistantMessage.role).toBe(ASSISTANT_PROMPT.role);
-      expect(assistantMessage.rating).toBe(undefined);
-      expect(assistantMessage.createdAt).toBeGreaterThan(before);
+      expect(conversation.messages).toHaveLength(0);
       const count = await mongodb?.db
         .collection("conversations")
         .countDocuments();
@@ -218,13 +209,26 @@ describe("Conversations Router", () => {
           .findOne({
             _id: new ObjectId(_id),
           });
-        expect(conversationInDb?.messages).toHaveLength(6); // system, assistant, user, assistant, user, assistant
+        expect(conversationInDb?.messages).toHaveLength(5); // system, user, assistant, user, assistant
       });
     });
 
-    describe.skip("Streamed response", () => {
-      // TODO: (DOCSP-30620) add in when data streamer is implemented
+    describe("Streamed response", () => {
+      it("should respond with a 200 text/event-stream that streams the response", async () => {
+        const requestBody = {
+          message:
+            "how can i use mongodb products to help me build my new mobile app?",
+        } satisfies AddMessageRequestBody;
+        const res = await request(app)
+          .post(endpointUrl.replace(":conversationId", _id) + "?stream=true")
+          .send(requestBody);
+        expect(res.statusCode).toEqual(200);
+        expect(res.header["content-type"]).toBe("text/event-stream");
+        expect(res.text).toContain(`data: {"type":"delta","data":"`);
+        expect(res.text).toContain(`data: {"type":"finished","data":"`);
+      });
     });
+
     describe("Error handing", () => {
       test("should respond 400 if invalid conversation ID", async () => {
         const notAValidId = "not-a-valid-id";
@@ -315,16 +319,16 @@ describe("Conversations Router", () => {
 
       test("Should respond 500 if error with conversation service", async () => {
         const mockBrokenConversationsService: ConversationsServiceInterface = {
-          async create({ ipAddress }) {
+          async create() {
             throw new Error("mock error");
           },
-          async addConversationMessage({ conversationId, content, role }) {
+          async addConversationMessage() {
             throw new Error("mock error");
           },
-          async findById({ _id }) {
+          async findById() {
             throw new Error("mock error");
           },
-          async rateMessage({ conversationId, messageId, rating }) {
+          async rateMessage() {
             throw new Error("mock error");
           },
         };
@@ -342,9 +346,7 @@ describe("Conversations Router", () => {
           error: "Error finding conversation",
         });
       });
-      test.skip("Should respond 500 if error with data streaming service", async () => {
-        // TODO: (DOCSP-30620) implement with data streaming service
-      });
+
       test("should respond 500 if error with content service", async () => {
         const brokenStore: EmbeddedContentStore = {
           loadEmbeddedContent: jest.fn().mockResolvedValue(undefined),

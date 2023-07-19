@@ -51,6 +51,7 @@
     "@leafygreen-ui/skeleton-loader": "^1.0.1",
     "@leafygreen-ui/text-input": "^12.1.13",
     "@leafygreen-ui/typography": "^16.5.0",
+    "@microsoft/fetch-event-source": "^2.0.1",
     "@uidotdev/usehooks": "^2.0.1",
     "buffer": "^6.0.3",
     "esbuild": "^0.17.19",

@@ -1,6 +1,16 @@
 import { MongoClient } from "mongodb";
 import { Page, logger } from "chat-core";
 import { DataSource } from "./DataSource";
+import { ProjectBase } from "./ProjectBase";
+
+export type DevCenterProjectConfig = ProjectBase & {
+  type: "devcenter";
+  name: string;
+  connectionUri: string;
+  databaseName: string;
+  collectionName: string;
+  baseUrl: string;
+};
 
 // This type is based on what's in the DevCenter search_content_prod collection
 export type DevCenterEntry = {
@@ -16,13 +26,7 @@ export const makeDevCenterDataSource = async ({
   databaseName,
   collectionName,
   baseUrl,
-}: {
-  name: string;
-  connectionUri: string;
-  databaseName: string;
-  collectionName: string;
-  baseUrl: string;
-}): Promise<DataSource> => {
+}: DevCenterProjectConfig): Promise<DataSource> => {
   return {
     name,
     async fetchPages() {

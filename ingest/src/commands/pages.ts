@@ -8,7 +8,7 @@ import {
 import { updatePages } from "../updatePages";
 import { makeSnootyDataSource } from "../SnootyDataSource";
 import { makeDevCenterDataSource } from "../DevCenterDataSource";
-import { snootyProjects } from "../snootyProjects";
+import { projectsSourcesConfig } from "../projectSources";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
 
 type PagesCommandArgs = {
@@ -67,11 +67,12 @@ export const doPagesCommand = async ({
   );
 
   const devCenterSource = await makeDevCenterDataSource({
+    type: "devcenter",
     name: "devcenter",
     collectionName: "search_content_prod",
     databaseName: "devcenter",
-    connectionUri: DEVCENTER_CONNECTION_URI,
     baseUrl: "https://www.mongodb.com/developer",
+    connectionUri: DEVCENTER_CONNECTION_URI,
   });
 
   const availableSources = [...snootySources, devCenterSource];

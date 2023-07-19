@@ -1,6 +1,6 @@
 {
-  "name": "docs-chat-server",
-  "version": "1.0.0",
+  "name": "chat-server",
+  "version": "1.0.2",
   "description": "Q&A server for the MongoDB Docs AI chatbot.",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,8 @@
     "format:check": "prettier ./src --check",
     "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
     "start": "node ./dist/index.js",
-    "test": "jest --forceExit"
+    "test": "jest --forceExit",
+    "release": "release-it"
   },
   "engines": {
     "node": "^18",
@@ -29,6 +30,7 @@
     "gpt3-tokenizer": "^1.1.5",
     "ip-address": "^8.1.0",
     "langchain": "^0.0.95",
+    "mongodb": "^5.7.0",
     "openai": "^3.2.1",
     "stream-json": "^1.8.0",
     "winston": "^3.9.0"
@@ -54,6 +56,7 @@
     "mongodb-memory-server": "^8.12.2",
     "nodemon": "^2.0.22",
     "prettier": "^2.8.7",
+    "release-it": "^15",
     "supertest": "^6.3.3",
     "ts-jest": "^29.1.0",
     "ts-node": "^10.9.1",

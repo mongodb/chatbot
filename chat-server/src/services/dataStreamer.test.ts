@@ -1,28 +1,34 @@
 import { makeDataStreamer } from "./dataStreamer";
-import { getMockRes } from "@jest-mock/express";
-import type { OpenAIChatCompletionWithoutUsage } from "./llm";
+import type { OpenAIChatCompletionWithoutUsage, OpenAiStreamingResponse } from "./llm";
+import { createResponse } from "node-mocks-http";
+import { EventEmitter } from "events";
 
-const mockRes = getMockRes();
-let res: typeof mockRes.res;
+let res: ReturnType<typeof createResponse>;
 const dataStreamer = makeDataStreamer();
 describe("Data Streaming", () => {
   beforeEach(() => {
-    res = mockRes.res;
+    res = createResponse({
+      eventEmitter: EventEmitter,
+    });
     dataStreamer.connect(res);
   });
 
   afterEach(() => {
-    mockRes.clearMockRes();
-    dataStreamer?.disconnect();
+    if(dataStreamer.connected) {
+      dataStreamer?.disconnect();
+    }
   });
 
   it("Flushes headers on connect to begin an SSE stream", () => {
-    expect(res.flushHeaders).toHaveBeenCalledTimes(1);
+    expect(res.header("Content-Type")).toBe("text/event-stream");
+    expect(res.header("Cache-Control")).toBe("no-cache");
+    expect(res.header("Access-Control-Allow-Origin")).toBe("*");
+    expect(res.header("Access-Control-Allow-Credentials")).toBe("true");
+    expect(res.header("Connection")).toBe("keep-alive");
   });
 
   it("Only connects through one Response at a time and safely rejects additional connections", () => {
     expect(() => dataStreamer.connect(res)).toThrow(Error);
-    expect(res.flushHeaders).toHaveBeenCalledTimes(1);
   });
 
   it("Streams SSE data manually to the client", () => {
@@ -30,31 +36,21 @@ describe("Data Streaming", () => {
       type: "delta",
       data: "test",
     });
-    expect(res.write).toHaveBeenCalledTimes(1);
-    expect(res.write).toHaveBeenCalledWith(
-      `data: {"type":"delta","data":"test"}\n\n`
-    );
     dataStreamer.streamData({
       type: "delta",
       data: "Once upon",
     });
     dataStreamer.streamData({
       type: "delta",
-      data: "a time there was a",
+      data: " a time there was a",
     });
     dataStreamer.streamData({
       type: "delta",
-      data: "very long string.",
+      data: " very long string.",
     });
-    expect(res.write).toHaveBeenCalledTimes(4);
-    expect(res.write).toHaveBeenCalledWith(
-      `data: {"type":"delta","data":"Once upon"}\n\n`
-    );
-    expect(res.write).toHaveBeenCalledWith(
-      `data: {"type":"delta","data":"a time there was a"}\n\n`
-    );
-    expect(res.write).toHaveBeenCalledWith(
-      `data: {"type":"delta","data":"very long string."}\n\n`
+    const data = res._getData();
+    expect(data).toBe(
+      `data: {"type":"delta","data":"test"}\n\ndata: {"type":"delta","data":"Once upon"}\n\ndata: {"type":"delta","data":" a time there was a"}\n\ndata: {"type":"delta","data":" very long string."}\n\n`
     );
   });
 
@@ -81,29 +77,30 @@ describe("Data Streaming", () => {
 
     const streamedText = await dataStreamer.stream({ stream });
     expect(streamedText).toBe("Once upon a time there was a very long string.");
-    expect(res.write).toHaveBeenCalledTimes(3);
+    const data = res._getData();
+    expect(data).toBe(`data: {"type":"delta","data":"Once upon"}\n\ndata: {"type":"delta","data":" a time there was a"}\n\ndata: {"type":"delta","data":" very long string."}\n\n`);
   });
 
-  it("Bails out when a client closes a connection", () => {
+  it("Bails out when a client closes a connection", async () => {
     res.emit("close");
-    expect(res.end).toHaveBeenCalledTimes(1);
-    expect(dataStreamer.disconnect).toHaveBeenCalledTimes(1);
     expect(dataStreamer.connected).toBe(false);
     expect(() =>
       dataStreamer.streamData({ type: "delta", data: "test" })
     ).toThrow(Error);
-    expect(async () => {
-      const s = {
+    await expect(async () => {
+      const stream = {
         [Symbol.asyncIterator]() {
           return {
             async next() {
-              return { done: true };
+              return {
+                done: true,
+              };
             },
           };
         },
-      } as AsyncIterable<{ done: boolean }>;
-      await dataStreamer.stream(s);
-    }).toThrow(Error);
+      } as OpenAiStreamingResponse;
+      await dataStreamer.stream({ stream });
+    }).rejects.toThrow(Error);
   });
 });
 

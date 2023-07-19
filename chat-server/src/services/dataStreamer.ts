@@ -20,12 +20,14 @@ function makeServerSentEventDispatcher<
 >(res: Response): ServerSentEventDispatcher<D> {
   return {
     connect() {
-      // Define SSE headers and flush them to the client to establish a connection
-      res.setHeader("Cache-Control", "no-cache");
-      res.setHeader("Content-Type", "text/event-stream");
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      res.setHeader("Connection", "keep-alive");
-      res.flushHeaders();
+      // Define SSE headers and respond to the client to establish a connection
+      res.writeHead(200, {
+        "Cache-Control": "no-cache",
+        "Content-Type": "text/event-stream",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": "true",
+        Connection: "keep-alive",
+      });
     },
     disconnect() {
       res.end();
@@ -58,26 +60,26 @@ export interface DataStreamer {
 }
 
 export function makeDataStreamer(): DataStreamer {
-  let _connected = false;
-  let _sse: ServerSentEventDispatcher<ChatbotStreamEvent> | undefined;
+  let connected = false;
+  let sse: ServerSentEventDispatcher<ChatbotStreamEvent> | undefined;
 
   return {
     get connected() {
-      return _connected;
+      return connected;
     },
     connect(res) {
       if (this.connected) {
         throw new Error("Tried to connect SSE, but it was already connected.");
       }
-      _sse = makeServerSentEventDispatcher<ChatbotStreamEvent>(res);
+      sse = makeServerSentEventDispatcher<ChatbotStreamEvent>(res);
       // If the client closes the connection, stop sending events
       res.on("close", () => {
         if (this.connected) {
           this.disconnect();
         }
       });
-      _sse.connect();
-      _connected = true;
+      sse.connect();
+      connected = true;
     },
 
     disconnect() {
@@ -86,10 +88,9 @@ export function makeDataStreamer(): DataStreamer {
           "Tried to disconnect SSE, but it was already disconnected."
         );
       }
-      _sse?.disconnect();
-      _sse = undefined;
-      // _res = undefined;
-      _connected = false;
+      sse?.disconnect();
+      sse = undefined;
+      connected = false;
     },
 
     streamData(data: ChatbotStreamEvent) {
@@ -98,10 +99,15 @@ export function makeDataStreamer(): DataStreamer {
           `Tried to stream data, but there's no SSE connection. Call DataStreamer.connect() first.`
         );
       }
-      _sse?.sendData(data);
+      sse?.sendData(data);
     },
 
     async stream({ stream }: StreamParams) {
+      if (!this.connected) {
+        throw new Error(
+          `Tried to stream data, but there's no SSE connection. Call DataStreamer.connect() first.`
+        );
+      }
       let streamedData = "";
       for await (const event of stream) {
         // The event could contain many choices, but we only want the first one

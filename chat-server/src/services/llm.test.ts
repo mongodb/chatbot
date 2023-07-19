@@ -21,11 +21,6 @@ const chunks = [
 const conversation = [
   SYSTEM_PROMPT,
   {
-    role: "assistant",
-    content:
-      "Hello, I'm a MongoDB documentation chatbot. How can I help you today?",
-  },
-  {
     role: "user",
     content: "How do I connect to my cluster?",
   },
@@ -95,7 +90,7 @@ describe("LLM", () => {
         `First message must be system prompt: ${JSON.stringify(SYSTEM_PROMPT)}`
       );
     });
-    test("should not answer if second to last message not assistant", async () => {
+    test("should not answer if the second to last message is not assistant", async () => {
       const response = async () =>
         await openAiLlmService.answerQuestionAwaited({
           messages: [
@@ -111,19 +106,16 @@ describe("LLM", () => {
           ],
           chunks,
         });
-      await expect(response).rejects.toThrow(
-        "Second to last message must be assistant message"
-      );
+      await expect(response).rejects.toThrow("Messages must alternate roles");
     });
     test("should not answer if last message not user", async () => {
-      const response = async () =>
+      const test = async () =>
         await openAiLlmService.answerQuestionAwaited({
           messages: [
             SYSTEM_PROMPT,
             {
-              role: "assistant",
-              content:
-                "Hello, I'm a MongoDB documentation chatbot. How can I help you today?",
+              role: "user",
+              content: "What's the capital of the United States of America?",
             },
             {
               role: "assistant",
@@ -133,9 +125,7 @@ describe("LLM", () => {
           ],
           chunks,
         });
-      await expect(response).rejects.toThrow(
-        "Last message must be user message"
-      );
+      await expect(test).rejects.toThrow("Last message must be user message");
     });
   });
 });

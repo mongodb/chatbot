@@ -118,5 +118,9 @@ function validateOpenAiConversation(messages: OpenAiChatMessage[]) {
     if (secondToLastMessage.role === lastMessage.role) {
       throw new Error(`Messages must alternate roles`);
     }
+
+    if (lastMessage.role !== "user") {
+      throw new Error("Last message must be user message");
+    }
   }
 }

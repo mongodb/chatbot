@@ -382,8 +382,7 @@ describe("Conversations Router", () => {
         });
 
         test("Should respond with 200 and static response", async () => {
-          const nonsenseMessage =
-            "asdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfjdfhstgragtyjuikol";
+          const nonsenseMessage = "can you do math?";
           const calledEndpoint = endpointUrl.replace(
             ":conversationId",
             conversationId.toString()
@@ -527,8 +526,9 @@ describe("Conversations Router", () => {
           expect(chunks.length).toBeGreaterThan(0);
         });
         test("Should not return content for irrelevant text", async () => {
-          const text =
-            "asdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjafdshgjfkhfdugytfasfghjkujufgjdfhstgragtyjuikol";
+          const text = "can you do math?";
+          // const text =
+          //   "asdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjafdshgjfkhfdugytfasfghjkujufgjdfhstgragtyjuikol";
           const chunks = await getContentForText({
             embed,
             text,

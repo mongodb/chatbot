@@ -53,8 +53,8 @@ describe("Conversations Service", () => {
       .collection<Conversation>("conversations")
       .findOne({ _id: conversation._id });
     expect(conversationInDb).toHaveProperty("messages");
-    expect(conversationInDb?.messages).toHaveLength(3);
-    expect(conversationInDb?.messages[2].content).toStrictEqual(content);
+    expect(conversationInDb?.messages).toHaveLength(2);
+    expect(conversationInDb?.messages[1].content).toStrictEqual(content);
   });
   test("Should find a conversation by id", async () => {
     const ipAddress = new BSON.UUID().toString();
@@ -74,20 +74,33 @@ describe("Conversations Service", () => {
   });
   test("Should rate a message", async () => {
     const ipAddress = new BSON.UUID().toString();
-    const conversation = await conversationsService.create({
+    const { _id: conversationId } = await conversationsService.create({
       ipAddress,
     });
-    const messageId = conversation.messages[1].id;
-    const rating = true;
-    const result = await conversationsService.rateMessage({
-      conversationId: conversation._id,
-      messageId,
-      rating,
+
+    await conversationsService.addConversationMessage({
+      conversationId,
+      role: "user",
+      content: "What is the MongoDB Document Model?",
     });
+
+    const assistantMessage = await conversationsService.addConversationMessage({
+      conversationId,
+      role: "assistant",
+      content: "That's a good question! Let me explain...",
+    });
+
+    const result = await conversationsService.rateMessage({
+      conversationId,
+      messageId: assistantMessage.id,
+      rating: true,
+    });
+
     const conversationInDb = await mongodb.db
       .collection<Conversation>("conversations")
-      .findOne({ _id: conversation._id });
+      .findOne({ _id: conversationId });
+
     expect(result).toBe(true);
-    expect(conversationInDb?.messages[1].rating).toBe(rating);
+    expect(conversationInDb?.messages[2].rating).toBe(true);
   });
 });

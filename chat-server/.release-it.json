@@ -2,13 +2,13 @@
   "git": {
     "tag": false,
     "push": true,
-    "tagName": "chat-ui-v${version}"
+    "tagName": "chat-server-v${version}"
   },
   "npm": {
     "publish": false
   },
   "github": {
-    "releaseName": "chat-ui-v${version}",
+    "releaseName": "chat-server-v${version}",
     "draft": true,
     "release": true
   },

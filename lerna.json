@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/lerna/schemas/lerna-schema.json",
+  "useNx": true,
+  "useWorkspaces": true,
+  "version": "independent",
+  "packages": [
+    "chat-core",
+    "chat-server",
+    "chat-ui",
+    "ingest",
+    "mongodb-atlas",
+    "seed-content"
+  ]
+}

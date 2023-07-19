@@ -3,7 +3,7 @@
   "description": "UI components for the MongoDB Docs Chatbot",
   "author": "MongoDB, Inc.",
   "license": "Apache-2.0",
-  "version": "0.0.1-8",
+  "version": "0.0.1",
   "type": "module",
   "files": [
     "dist",

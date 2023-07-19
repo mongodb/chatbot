@@ -23,7 +23,7 @@ describe("DevCenterDataSource", () => {
 
     expect(pages.length).toBeGreaterThan(300);
     pages.slice(0, 100).forEach(({ url }) => {
-      expect(url).toMatch(/^https:\/\/example.com\/developer\/[A-z0-9\/-]+$/);
+      expect(url).toMatch(/^https:\/\/example.com\/developer\/[A-z0-9/-]+$/);
     });
   });
 });

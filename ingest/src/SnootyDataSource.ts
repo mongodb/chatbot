@@ -94,7 +94,7 @@ export const makeSnootyDataSource = async ({
       // TODO: The manifest can be quite large (>100MB) so this could stand to
       // be re-architected to use AsyncGenerators and update page-by-page. For
       // now we can just accept the memory cost.
-      const getBranchDocumentsUrl = `${snootyDataApiEndpoint}/${name}/${currentBranch}/documents`;
+      const getBranchDocumentsUrl = `${snootyDataApiEndpoint}/projects/${name}/${currentBranch}/documents`;
       const { body } = await nodeFetch(getBranchDocumentsUrl);
       if (body === null) {
         return [];
@@ -111,7 +111,7 @@ export const makeSnootyDataSource = async ({
                 (async () => {
                   const page = await handlePage(
                     (entry as SnootyPageEntry).data,
-                    { sourceName: name, baseUrl, tags: tags ?? [] }
+                    { sourceName: `snooty-${name}`, baseUrl, tags: tags ?? [] }
                   );
                   pages.push(page);
                 })()
@@ -211,7 +211,7 @@ export const getSnootyProjectBaseUrl = async ({
     branchMetaData,
     `For project '${projectName}', no active branch found for '${branchName}'.`
   );
-  return branchMetaData.fullUrl.replace("http://", "https://");;
+  return branchMetaData.fullUrl.replace("http://", "https://");
 };
 
 const handlePage = async (

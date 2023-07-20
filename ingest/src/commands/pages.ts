@@ -61,7 +61,7 @@ export const doPagesCommand = async ({
       makeSnootyDataSource({
         baseUrl,
         manifestUrl: `https://snooty-data-api.mongodb.com/projects/${project}/master/documents`,
-        name: `snooty-${project}`,
+        name: project,
       })
     )
   );

@@ -71,6 +71,15 @@ export const updateEmbeddedContentForPage = async ({
 }): Promise<void> => {
   const contentChunks = await chunkPage(page, chunkOptions);
 
+  if (contentChunks.length === 0) {
+    // This could happen if source returned a page with no content
+    logger.warn(
+      `No content for page ${page.sourceName}:${page.url} - deleting any existing content and continuing`
+    );
+    await store.deleteEmbeddedContent({ page });
+    return;
+  }
+
   // In order to resume where we left off (in case of script restart), compare
   // the date of any existing chunks with the page updated date. If the chunks
   // have been updated since the page was updated (and we have the expected
@@ -81,7 +90,6 @@ export const updateEmbeddedContentForPage = async ({
     page,
   });
   if (
-    existingContent.length !== 0 &&
     existingContent[0].updated > page.updated &&
     contentChunks.length === existingContent.length
   ) {

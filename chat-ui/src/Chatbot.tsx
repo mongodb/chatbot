@@ -18,14 +18,43 @@ import IconButton from "@leafygreen-ui/icon-button";
 import Icon from "@leafygreen-ui/icon";
 
 function Disclosure() {
+  const TermsOfUse = () => (
+    <Link href={"https://www.mongodb.com/legal/terms-of-use"}>
+      Terms of Use
+    </Link>
+  );
+  const AcceptableUsePolicy = () => (
+    <Link href={"https://www.mongodb.com/legal/acceptable-use-policy"}>
+      Acceptable Use Policy
+    </Link>
+  );
+
   return (
     <div className={styles.disclosure}>
       <Badge variant="blue">Experimental</Badge>
       <Body color={"#FFFFFF"}>
-        By interacting with this chatbot, you agree to MongoDB's{" "}
-        <Link href="#TODO">Terms & Conditions</Link>
+        This is a generative AI chatbot. By interacting with it, you agree to
+        MongoDB's <TermsOfUse /> and <AcceptableUsePolicy />.
       </Body>
     </div>
+  );
+}
+
+function ErrorBanner() {
+  return (
+    <Banner className={styles.lg_banner} variant="danger">
+      Something went wrong. Try reloading the page and starting a new
+      conversation.     
+    </Banner>
+  );
+}
+
+function VerifyInformationBanner() {
+  return (
+    <Banner className={styles.lg_banner} variant="warning">
+      This is an experimental generative AI chatbot. All information should be
+      verified prior to use.
+    </Banner>
   );
 }
 
@@ -81,82 +110,86 @@ function CTACard({
             </IconButton>
           </div>
           <MessageList>
-            {conversation.messages.map((message) => (
-              <Message
-                key={message.id}
-                message={message}
-                rateMessage={conversation.rateMessage}
-              />
-            ))}
-            {awaitingReply && (
-              <Message role="assistant">
-                <ParagraphSkeleton />
-              </Message>
-            )}
+            {conversation.messages.map((message) => {
+              const showLoadingSkeleton = conversation.isStreamingMessage
+                ? message.id === conversation.streamingMessage?.id && conversation.streamingMessage?.content === ""
+                : awaitingReply;
+              return showLoadingSkeleton ? (
+                <Message key={message.id} role="assistant">
+                  <ParagraphSkeleton />
+                </Message>
+              ) : (
+                <Message
+                  key={message.id}
+                  message={message}
+                  rateMessage={conversation.rateMessage}
+                />
+              );
+            })}
           </MessageList>
-          <Banner className={styles.lg_banner} variant="warning">
-            This is an experimental AI chatbot. All information should be
-            verified prior to use.
-          </Banner>
         </>
       ) : null}
 
-      <ChatInput
-        ref={inputRef}
-        key="wizard-input"
-        showSubmitButton={active && inputText.length > 0}
-        placeholder={
-          awaitingReply
-            ? "MongoDB AI is answering..."
-            : "Ask MongoDB AI a Question"
-        }
-        state={inputTextError ? "error" : "none"}
-        errorMessage={inputTextError}
-        canSubmit={inputTextError.length === 0}
-        onFocus={() => {
-          if (!active) {
-            activate();
+      {active && conversation.error ? <ErrorBanner /> : null}
+        
+      {active ? <VerifyInformationBanner /> : null}
+
+      {!active || !conversation.error ? (
+        <ChatInput
+          ref={inputRef}
+          key="wizard-input"
+          showSubmitButton={
+            active && inputText.length > 0 && !conversation.error
           }
-        }}
-        onButtonClick={() => {
-          activate();
-        }}
-        value={inputText}
-        onChange={(e) => {
-          setInputText(e.target.value);
-        }}
-        loading={awaitingReply}
-        handleSubmit={() => {
-          handleSubmit(inputText);
-        }}
-      />
+          disabled={active && Boolean(conversation.error?.length)}
+          placeholder={
+            conversation.error
+              ? "Something went wrong. Try reloading the page and starting a new conversation."
+              : awaitingReply
+              ? "MongoDB AI is answering..."
+              : "Ask MongoDB AI a Question"
+          }
+          state={inputTextError ? "error" : "none"}
+          errorMessage={inputTextError}
+          canSubmit={inputTextError.length === 0 && !conversation.error}
+          onFocus={() => {
+            if (!active) {
+              activate();
+            }
+          }}
+          onButtonClick={() => {
+            activate();
+          }}
+          value={inputText}
+          onChange={(e) => {
+            setInputText(e.target.value);
+          }}
+          loading={awaitingReply}
+          handleSubmit={() => {
+            handleSubmit(inputText);
+          }}
+        />
+      ) : null}
 
-      {active && isEmptyConversation ? (
-        !conversation.error ? (
-          <div className={styles.card_content}>
-            <div className={styles.chat}>
-              {showSuggestedPrompts ? (
-                <SuggestedPrompts
-                  onPromptSelected={async (text) => {
-                    await handleSubmit(text);
-                  }}
-                />
-              ) : null}
+      {active && isEmptyConversation && !conversation.error ? (
+        <div className={styles.card_content}>
+          <div className={styles.chat}>
+            {showSuggestedPrompts ? (
+              <SuggestedPrompts
+                onPromptSelected={async (text) => {
+                  await handleSubmit(text);
+                }}
+              />
+            ) : null}
 
-              {showExperimentalBanner ? (
-                <div className={styles.basic_banner}>
-                  <Overline>ASK MONGODB AI</Overline>
-                  <Badge variant="blue">Experimental</Badge>
-                </div>
-              ) : null}
-            </div>
+            {showExperimentalBanner ? (
+              <div className={styles.basic_banner}>
+                <Overline>ASK MONGODB AI</Overline>
+                <Badge variant="blue">Experimental</Badge>
+              </div>
+            ) : null}
           </div>
-        ) : (
-          <Banner className={styles.lg_banner} variant="danger">
-            Something went wrong. Try reloading the page and starting a new
-            conversation.
-          </Banner>
-        )
+        </div>
       ) : null}
     </Box>
   );
@@ -167,33 +200,19 @@ export default function Chatbot() {
   const [active, setActive] = useState(false);
   const [awaitingReply, setAwaitingReply] = useState(false);
 
-  function activate() {
+  async function activate() {
     if (active) {
       return;
     }
     setActive(true);
     if (!conversation.conversationId) {
-      handleCreateConversation();
+      await conversation.createConversation();
     }
   }
 
   function deactivate() {
-    if(active) {
+    if (active) {
       setActive(false);
-    }
-  }
-
-  async function handleCreateConversation() {
-    try {
-      await conversation.createConversation();
-    } catch (e) {
-      const errorMessage =
-        typeof e === "string"
-          ? e
-          : e instanceof Error
-          ? e.message
-          : "Failed to create conversation.";
-      conversation.endConversationWithError(errorMessage);
     }
   }
 
@@ -230,20 +249,6 @@ export default function Chatbot() {
     } finally {
       setAwaitingReply(false);
     }
-    // setAwaitingReply(true);
-    // setTimeout(() => {
-    //   setAwaitingReply(false);
-    //   conversation.addMessage(
-    //     "assistant",
-    //     "This is a test response.\n\nHere's some code you could run if you're brave enough:\n\n```javascript\nfunction hello() {\n  console.log('hello, world!');\n}\n\nhello()\n```\n"
-    //   );
-    // }, 4000);
-    // setTimeout(() => {
-    //   conversation.addMessage(
-    //     "system",
-    //     `#### There was a problem sending your message.\n\n#### Try asking your question again or reloading the page.`
-    //   );
-    // }, 300);
   };
 
   const cardBoundingBoxRef = useClickAway(() => {

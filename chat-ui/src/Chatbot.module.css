@@ -55,7 +55,6 @@
   flex-direction: column;
   align-items: start;
   width: 100%;
-  max-width: 700px;
   min-width: 322px;
   gap: 12px;
   padding-top: 1rem;
@@ -65,6 +64,7 @@
   border-top-left-radius: 6px;
   box-shadow: none;
   background: transparent;
+  max-width: 850px;
 }
 
 .card-enter {
@@ -73,6 +73,8 @@
   background: white;
   border-radius: 24px;
   border-top-left-radius: 6px;
+
+  width: 100%;
 }
 
 .card-enter-active {
@@ -82,6 +84,8 @@
   background: white;
   border-radius: 24px;
   border-top-left-radius: 6px;
+
+  width: 100%;
 
   /* This simulates padding in <Box /> to make it more like <Card /> */
   /* When/if you can fix the <Card /> ref issue you can delete this. */

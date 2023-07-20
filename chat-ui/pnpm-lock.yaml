@@ -15,6 +15,7 @@ specifiers:
   '@leafygreen-ui/skeleton-loader': ^1.0.1
   '@leafygreen-ui/text-input': ^12.1.13
   '@leafygreen-ui/typography': ^16.5.0
+  '@microsoft/fetch-event-source': ^2.0.1
   '@storybook/addon-essentials': ^7.0.20
   '@storybook/addon-interactions': ^7.0.20
   '@storybook/addon-links': ^7.0.20
@@ -66,6 +67,7 @@ dependencies:
   '@leafygreen-ui/skeleton-loader': 1.0.1_3llk5cd7yj6loggwiyxymsljpa
   '@leafygreen-ui/text-input': 12.1.13_3llk5cd7yj6loggwiyxymsljpa
   '@leafygreen-ui/typography': 16.5.0_3llk5cd7yj6loggwiyxymsljpa
+  '@microsoft/fetch-event-source': 2.0.1
   '@uidotdev/usehooks': 2.0.1_biqbaboplfbrettd7655fr4n2y
   buffer: 6.0.3
   esbuild: 0.17.19
@@ -3501,6 +3503,10 @@ packages:
       '@types/react': 18.2.8
       react: 18.2.0
     dev: true
+
+  /@microsoft/fetch-event-source/2.0.1:
+    resolution: {integrity: sha512-W6CLUJ2eBMw3Rec70qrsEW0jOm/3twwJv21mrmj2yORiaVmVYGS4sSS5yUwvQc1ZlDLYGPnClVWmUUMagKNsfA==}
+    dev: false
 
   /@ndelangen/get-tarball/3.0.9:
     resolution: {integrity: sha512-9JKTEik4vq+yGosHYhZ1tiH/3WpUS0Nh0kej4Agndhox8pAdWhEx5knFVRcb/ya9knCRCs1rPxNrSXTDdfVqpA==}

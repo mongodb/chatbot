@@ -16,6 +16,16 @@ module.exports = {
     ecmaVersion: 2018,
     sourceType: "module",
   },
+  rules: {
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        varsIgnorePattern: "^_",
+        argsIgnorePattern: "^_",
+        ignoreRestSiblings: true,
+      },
+    ],
+  },
   overrides: [
     {
       files: ["test/**/*.ts"],
@@ -24,4 +34,9 @@ module.exports = {
       },
     },
   ],
+  settings: {
+    jest: {
+      version: 29,
+    },
+  },
 };

@@ -1,6 +1,6 @@
 {
   "name": "ingest",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "description": "Ingests data sources and stores embeddings.",
   "main": "./build/main.js",
   "bin": {
@@ -11,6 +11,7 @@
     "build": "tsc -b",
     "watch": "tsc -b -w",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
     "docs": "npx typedoc --excludePrivate --exclude '**/*.test.ts' --out docs src",
     "release": "release-it"
   },

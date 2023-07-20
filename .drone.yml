@@ -1,7 +1,3 @@
----
-# ---
-# Chat Server pipelines
-# ---
 kind: pipeline
 type: kubernetes
 name: test-all
@@ -16,20 +12,17 @@ trigger:
       - chat-server/**/*
       - chat-core/**/*
       - chat-ui/**/*
+      - ingest/**/*
 
 steps:
   - name: test
     image: node:18
     commands:
-      - cd chat-core
       - npm ci
-      - npm test
       - npm run build
-      - cd ..
-      - cd chat-server
-      - npm ci
       - npm run lint
       - npm run test
+
     environment:
       PORT: 3000
       OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
@@ -47,7 +40,12 @@ steps:
         from_secret: openai_embedding_deployment
       OPENAI_CHAT_COMPLETION_DEPLOYMENT:
         from_secret: openai_chat_completion_deployment
+      DEVCENTER_CONNECTION_URI:
+        from_secret: devcenter_connection_uri
 
+# ---
+# Chat Server pipelines
+# ---
 ---
 depends_on: ["test-all"]
 kind: pipeline
@@ -59,6 +57,7 @@ trigger:
     - main
   event:
     - push
+
   paths:
     include:
       - chat-server/**/*
@@ -70,7 +69,7 @@ steps:
   - name: publish-staging-chat-server
     image: plugins/kaniko-ecr
     settings:
-      dockerfile: Dockerfile
+      dockerfile: chat-server.dockerfile
       create_repository: true
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
       repo: docs/${DRONE_REPO_NAME}-chat-server
@@ -120,12 +119,6 @@ steps:
         from_secret: staging_kubernetes_token
 
 ---
-# --------------------
-# TODO: Validate production deployment.
-# Not worrying about production stuff just yet.
-# The below config *should* work, but it hasn't been tested yet, so odds are that
-# it will need to be tweaked.
-# --------------------
 depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes
@@ -134,12 +127,16 @@ name: production-build-chat-server
 trigger:
   event:
     - tag
+  ref:
+    include:
+      - refs/tags/chat-server-v*
 
 steps:
   # Builds and publishes Docker image for production
   - name: publish-production-chat-server
     image: plugins/kaniko-ecr
     settings:
+      dockerfile: chat-server.dockerfile
       create_repository: true
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
       repo: docs/${DRONE_REPO_NAME}-chat-server
@@ -155,7 +152,7 @@ steps:
   - name: promote-production-chat-server
     image: drone/cli:1.4.0-alpine
     commands:
-      - drone build promote docs-chat ${DRONE_BUILD_NUMBER} production
+      - drone build promote mongodb/docs-chatbot ${DRONE_BUILD_NUMBER} production
     environment:
       DRONE_SERVER: ${DRONE_SYSTEM_PROTO}://${DRONE_SYSTEM_HOST}
       DRONE_TOKEN:
@@ -187,3 +184,76 @@ steps:
       api_server: https://api.prod.corp.mongodb.com
       kubernetes_token:
         from_secret: prod_kubernetes_token
+
+# Ingest service
+
+---
+depends_on: ["test-all"]
+kind: pipeline
+type: kubernetes
+name: staging-build-ingest-service
+
+trigger:
+  branch:
+    - main
+  event:
+    - push
+  paths:
+    include:
+      - ingest/**/*
+      - chat-core/**/*
+
+steps:
+  # Builds and publishes Docker image for staging
+  - name: publish-staging-ingest-service
+    image: plugins/kaniko-ecr
+    settings:
+      dockerfile: ingest-service.dockerfile
+      create_repository: true
+      registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
+      repo: docs/${DRONE_REPO_NAME}-ingest-service
+      tags:
+        - git-${DRONE_COMMIT_SHA:0:7}-staging
+        - latest-staging
+      access_key:
+        from_secret: ecr_access_key
+      secret_key:
+        from_secret: ecr_secret_key
+
+  # Promotes current drone build to staging environment
+  - name: promote-staging-ingest-service
+    image: drone/cli:1.4.0-alpine
+    commands:
+      - drone build promote mongodb/docs-chatbot ${DRONE_BUILD_NUMBER} staging
+    environment:
+      DRONE_SERVER: ${DRONE_SYSTEM_PROTO}://${DRONE_SYSTEM_HOST}
+      DRONE_TOKEN:
+        from_secret: drone_token
+
+---
+kind: pipeline
+type: kubernetes
+name: staging-deploy-ingest-service
+
+trigger:
+  event:
+    - promote
+  target:
+    - staging
+
+steps:
+  # Deploys docker image associated with staging build that triggered promotion
+  - name: deploy-staging-ingest-service
+    image: quay.io/mongodb/drone-helm:v3
+    settings:
+      chart: mongodb/cronjobs
+      chart_version: 1.7.1
+      add_repos: [mongodb=https://10gen.github.io/helm-charts]
+      namespace: docs
+      release: ingest-service
+      values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-ingest-service
+      values_files:
+        - ingest/environments/staging.yml
+      api_server: https://api.staging.corp.mongodb.com
+      kubernetes_token:
+        from_secret: staging_kubernetes_token

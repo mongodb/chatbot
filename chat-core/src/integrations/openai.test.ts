@@ -2,7 +2,7 @@ import { OpenAiChatClient } from "../../src/integrations/openai";
 import "dotenv/config";
 import { stripIndent } from "common-tags";
 
-jest.setTimeout(10000);
+jest.setTimeout(61000);
 
 describe("OpenAi", () => {
   describe("Chat", () => {

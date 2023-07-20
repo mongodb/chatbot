@@ -13,3 +13,19 @@ When you run it:
 - If you get a 403 error, it's probably because you're IP address isn't on the allow list.
   You can go on the NYC VPN to access.
 - If you get a 400 error, it's likely because the index already exists.
+
+## Atlas Search Index Configuration
+
+```json
+{
+  "mappings": {
+    "fields": {
+      "embedding": {
+        "dimensions": 1536,
+        "similarity": "cosine",
+        "type": "knnVector"
+      }
+    }
+  }
+}
+```

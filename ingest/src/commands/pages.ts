@@ -1,5 +1,10 @@
 import { CommandModule } from "yargs";
-import { assertEnvVars, logger, makeDatabaseConnection } from "chat-core";
+import {
+  assertEnvVars,
+  logger,
+  makeDatabaseConnection,
+  PageStore,
+} from "chat-core";
 import { updatePages } from "../updatePages";
 import { makeSnootyDataSource } from "../SnootyDataSource";
 import { makeDevCenterDataSource } from "../DevCenterDataSource";
@@ -7,7 +12,7 @@ import { snootyProjects } from "../snootyProjects";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
 
 type PagesCommandArgs = {
-  source: string | string[];
+  source?: string | string[];
 };
 
 const commandModule: CommandModule<
@@ -16,68 +21,80 @@ const commandModule: CommandModule<
 > = {
   command: "pages",
   builder(args) {
-    return args.string("source").demandOption("source");
+    return args.option("source", {
+      string: true,
+      description: "A source name to load. If unspecified, loads all sources.",
+    });
   },
   handler: async ({ source }) => {
-    const requestedSources = new Set(Array.isArray(source) ? source : [source]);
+    const { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } =
+      assertEnvVars(INGEST_ENV_VARS);
 
-    const {
-      DEVCENTER_CONNECTION_URI,
-      MONGODB_CONNECTION_URI,
-      MONGODB_DATABASE_NAME,
-    } = assertEnvVars(INGEST_ENV_VARS);
-
-    const snootySources = await Promise.all(
-      snootyProjects.map(({ project, baseUrl }) =>
-        makeSnootyDataSource({
-          baseUrl,
-          manifestUrl: `https://snooty-data-api.mongodb.com/projects/${project}/master/documents`,
-          name: `snooty-${project}`,
-        })
-      )
-    );
-
-    const devCenterSource = await makeDevCenterDataSource({
-      name: "devcenter",
-      collectionName: "search_content_prod",
-      databaseName: "devcenter",
-      connectionUri: DEVCENTER_CONNECTION_URI,
-      baseUrl: "https://www.mongodb.com/developer",
-    });
-
-    const availableSources = [...snootySources, devCenterSource];
-
-    const sources = availableSources.filter(({ name }) =>
-      requestedSources.has(name)
-    );
-
-    const pageStore = await makeDatabaseConnection({
+    const store = await makeDatabaseConnection({
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
     });
 
     try {
-      if (sources.length === 0) {
-        throw new Error(
-          `Request at least one valid source. Available sources:\n${availableSources
-            .map(({ name }) => `- ${name}`)
-            .join("\n")}`
-        );
-      }
-
-      logger.info(
-        `Loaded sources:\n${sources.map(({ name }) => `- ${name}`).join("\n")}`
-      );
-
-      await updatePages({
-        sources,
-        pageStore,
-      });
+      await doPagesCommand({ source, store });
     } finally {
-      await pageStore.close();
+      await store.close();
     }
   },
   describe: "Update pages data from sources",
 };
 
 export default commandModule;
+
+export const doPagesCommand = async ({
+  source,
+  store,
+}: PagesCommandArgs & {
+  store: PageStore;
+}) => {
+  const { DEVCENTER_CONNECTION_URI } = assertEnvVars(INGEST_ENV_VARS);
+
+  const requestedSources = new Set(Array.isArray(source) ? source : [source]);
+
+  const snootySources = await Promise.all(
+    snootyProjects.map(({ project, baseUrl }) =>
+      makeSnootyDataSource({
+        baseUrl,
+        manifestUrl: `https://snooty-data-api.mongodb.com/projects/${project}/master/documents`,
+        name: `snooty-${project}`,
+      })
+    )
+  );
+
+  const devCenterSource = await makeDevCenterDataSource({
+    name: "devcenter",
+    collectionName: "search_content_prod",
+    databaseName: "devcenter",
+    connectionUri: DEVCENTER_CONNECTION_URI,
+    baseUrl: "https://www.mongodb.com/developer",
+  });
+
+  const availableSources = [...snootySources, devCenterSource];
+
+  const sources =
+    source === undefined
+      ? availableSources
+      : availableSources.filter(({ name }) => requestedSources.has(name));
+
+  if (sources.length === 0) {
+    throw new Error(
+      `Request at least one valid source. Available sources:\n${availableSources
+        .map(({ name }) => `- ${name}`)
+        .join("\n")}`
+    );
+  }
+
+  logger.info(
+    `Loaded sources:\n${sources.map(({ name }) => `- ${name}`).join("\n")}`
+  );
+
+  await updatePages({
+    sources,
+    pageStore: store,
+  });
+};

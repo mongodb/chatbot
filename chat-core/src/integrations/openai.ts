@@ -49,7 +49,10 @@ export class OpenAiChatClient implements OpenAiChatClientInterface {
     const completionStream = await this.openAiClient.listChatCompletions(
       this.deployment,
       messages,
-      options
+      {
+        ...options,
+        stream: true,
+      }
     );
     return completionStream;
   }

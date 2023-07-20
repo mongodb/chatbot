@@ -26,9 +26,9 @@ export interface Llm<T, U> {
   }: LlmAnswerQuestionParams): Promise<U>;
 }
 
-export type OpenAiStreamingResponse = AsyncIterable<
-  Omit<ChatCompletions, "usage">
->;
+export type OpenAIChatCompletionWithoutUsage = Omit<ChatCompletions, "usage">
+
+export type OpenAiStreamingResponse = AsyncIterable<OpenAIChatCompletionWithoutUsage>;
 export type OpenAiAwaitedResponse = OpenAiChatMessage;
 
 interface MakeOpenAiLlmParams {
@@ -104,12 +104,23 @@ function validateOpenAiConversation(messages: OpenAiChatMessage[]) {
       `First message must be system prompt: ${JSON.stringify(SYSTEM_PROMPT)}`
     );
   }
-  const secondToLastMessage = messages[messages.length - 2];
-  if (secondToLastMessage.role !== "assistant") {
-    throw new Error(`Second to last message must be assistant message`);
+  if (messages.length < 2) {
+    throw new Error("No user message provided");
   }
-  const lastMessage = messages[messages.length - 1];
-  if (lastMessage.role !== "user") {
-    throw new Error(`Last message must be user message`);
+  const secondMessage = messages[1];
+  if (secondMessage.role !== "user") {
+    throw new Error("Second message must be user message");
+  }
+  if(messages.length > 2) {
+    const secondToLastMessage = messages[messages.length - 2];
+    const lastMessage = messages[messages.length - 1];
+
+    if (secondToLastMessage.role === lastMessage.role) {
+      throw new Error(`Messages must alternate roles`);
+    }
+
+    if (lastMessage.role !== "user") {
+      throw new Error("Last message must be user message");
+    }
   }
 }

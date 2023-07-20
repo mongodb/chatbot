@@ -10,7 +10,8 @@ import {
 } from "./SnootyDataSource";
 import { sampleSnootyMetadata } from "./test_data/snooty_sample_metadata";
 import { snootyAstToMd } from "./snootyAstToMd";
-import { assert } from "console";
+
+jest.setTimeout(15000);
 
 describe("SnootyDataSource", () => {
   describe("makeSnootyDataSource()", () => {

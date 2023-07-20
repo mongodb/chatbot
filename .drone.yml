@@ -55,6 +55,7 @@ name: staging-build-chat-server
 trigger:
   branch:
     - main
+    - monorepo_docker_fix # TODO: remove before merge
   event:
     - push
 

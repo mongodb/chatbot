@@ -2,6 +2,7 @@
 FROM node:18-alpine as builder
 
 # Install all dependencies
+RUN ls
 RUN npm ci && npm run bootstrap && npm run build
 # Set up chat-core
 WORKDIR /app

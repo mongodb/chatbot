@@ -7,18 +7,17 @@ import {
 import createMessage, { createMessageId } from "./createMessage";
 import { updateArrayElementAt } from "./utils";
 
-const SHOULD_STREAM = true;
-// const SHOULD_STREAM = false;
+// If SSE is supported, use it to stream responses from the server as
+// they're created instead of awaiting the entire response
+const SHOULD_STREAM = Boolean(EventSource);
 const STREAMING_MESSAGE_ID = "streaming-response";
+
 export type ConversationState = {
   conversationId?: string;
   messages: MessageData[];
   error?: string;
   isStreamingMessage: boolean;
   streamingMessage?: MessageData;
-  // user_ip: string;
-  // time_created: Date;
-  // last_updated: Date;
 };
 
 type ConversationAction =

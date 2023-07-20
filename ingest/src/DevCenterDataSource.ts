@@ -3,9 +3,7 @@ import { Page, logger } from "chat-core";
 import { DataSource } from "./DataSource";
 import { ProjectBase } from "./ProjectBase";
 
-export type DevCenterProjectConfig = ProjectBase & {
-  type: "devcenter";
-  name: string;
+export type DevCenterProjectConfig = ProjectBase<"devcenter"> & {
   connectionUri: string;
   databaseName: string;
   collectionName: string;

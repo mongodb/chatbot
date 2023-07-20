@@ -4,7 +4,7 @@ import { Page } from "chat-core";
 import nodeFetch from "node-fetch";
 import { DataSource } from "./DataSource";
 import { snootyAstToMd } from "./snootyAstToMd";
-import { ProjectBase } from "./ProjectBase";
+// import { ProjectBase } from "./ProjectBase";
 import assert from "assert";
 
 // These types are what's in the snooty manifest jsonl file.
@@ -48,24 +48,20 @@ export type SnootyPageData = {
   tags?: string[];
 };
 
-export type SnootyProjectConfig = ProjectBase & {
-  type: "snooty";
-  /**
-   * Snooty project name
-   * @example "kotlin"
-   */
+export interface ProjectBase<T> {
+  type: T;
   name: string;
+  tags?: string[];
+}
+
+export type SnootyProjectConfig = ProjectBase<"snooty"> & {
   /**
    * Git branch name for the current (search indexed) version of the site
    * @example "v4.10"
    */
   // TODO: we won't need this when it's added to the Snooty Data API (https://jira.mongodb.org/browse/DOP-3860)
   currentBranch: string;
-  /**
-   * Tags to include in all documents from the site in the embedded_content collection
-   * @example ["kotlin", "docs", "driver"]
-   */
-  tags?: string[];
+
   // TODO: we don't need the following config option yet, but we will when we
   // implement versions in the chatbot.
   // /**

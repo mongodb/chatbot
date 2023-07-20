@@ -8,7 +8,7 @@ import {
   getSnootyProjectBaseUrl,
   makeSnootyDataSource,
 } from "./SnootyDataSource";
-import { sampleSnootyMetadata } from "../test/snooty_sample_metadata";
+import { sampleSnootyMetadata } from "./test_data/snooty_sample_metadata";
 import { snootyAstToMd } from "./snootyAstToMd";
 import { assert } from "console";
 
@@ -22,7 +22,7 @@ describe("SnootyDataSource", () => {
     };
     const sampleDataPath = Path.resolve(
       __dirname,
-      "../test/snooty_sample_data.txt"
+      "./test_data/snooty_sample_data.txt"
     );
     const baseMock = nock("https://snooty-data-api.mongodb.com/prod/");
     beforeAll(() => {

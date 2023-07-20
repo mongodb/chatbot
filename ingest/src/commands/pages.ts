@@ -6,9 +6,12 @@ import {
   PageStore,
 } from "chat-core";
 import { updatePages } from "../updatePages";
-import { makeSnootyDataSource } from "../SnootyDataSource";
-import { makeDevCenterDataSource } from "../DevCenterDataSource";
-import { projectsSourcesConfig } from "../projectSources";
+import { makeSnootyDataSource, SnootyProjectConfig } from "../SnootyDataSource";
+import {
+  DevCenterProjectConfig,
+  makeDevCenterDataSource,
+} from "../DevCenterDataSource";
+import { projectSourcesConfig } from "../projectSources";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
 
 type PagesCommandArgs = {
@@ -56,24 +59,18 @@ export const doPagesCommand = async ({
 
   const requestedSources = new Set(Array.isArray(source) ? source : [source]);
 
+  const snootyConfigs = projectSourcesConfig.filter(
+    (project) => project.type === "snooty"
+  ) as SnootyProjectConfig[];
   const snootySources = await Promise.all(
-    snootyProjects.map(({ project, baseUrl }) =>
-      makeSnootyDataSource({
-        baseUrl,
-        manifestUrl: `https://snooty-data-api.mongodb.com/projects/${project}/master/documents`,
-        name: project,
-      })
-    )
+    snootyConfigs.map(makeSnootyDataSource)
   );
 
-  const devCenterSource = await makeDevCenterDataSource({
-    type: "devcenter",
-    name: "devcenter",
-    collectionName: "search_content_prod",
-    databaseName: "devcenter",
-    baseUrl: "https://www.mongodb.com/developer",
-    connectionUri: DEVCENTER_CONNECTION_URI,
-  });
+  const devCenterConfig = projectSourcesConfig.find(
+    (project) => project.type === "devcenter"
+  ) as DevCenterProjectConfig;
+  const devCenterSource =
+    devCenterConfig && (await makeDevCenterDataSource(devCenterConfig));
 
   const availableSources = [...snootySources, devCenterSource];
 

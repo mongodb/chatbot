@@ -26,6 +26,7 @@
     "build:component": "tsc && vite build --config vite.config.component.js",
     "build:static-site:dev": "tsc && vite build --config vite.config.static-site.js --mode development",
     "build:static-site:staging": "tsc && vite build --config vite.config.static-site.js --mode staging",
+    "build": "npm run build:static-site:staging",
     "preview:static-site:dev": "npm run build:static-site:dev && vite preview --base ./ --config vite.config.static-site.js",
     "preview:static-site:staging": "npm run build:static-site:staging && vite preview --base ./ --config vite.config.static-site.js",
     "format": "prettier ./src --write",

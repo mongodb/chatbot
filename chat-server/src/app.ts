@@ -25,7 +25,7 @@ import {
 } from "./services/llm";
 
 // General error handler; called at usage of next() in routes
-export const errorHandler: ErrorRequestHandler = (err, req, res) => {
+export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   const reqId = getRequestId(req);
   const httpStatus = err.status || 500;
   const errorMessage = err.message || "Internal Server Error";
@@ -110,7 +110,7 @@ export const makeApp = async ({
   );
   app.all("*", (req, res, _next) => {
     return sendErrorResponse({
-      reqId: req.headers["req-id"] as string,
+      reqId: getRequestId(req),
       res,
       httpStatus: 404,
       errorMessage: "Not Found",

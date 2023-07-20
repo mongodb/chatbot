@@ -34,6 +34,7 @@ import {
 } from "./utils";
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
+import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 
 export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 export const MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
@@ -44,19 +45,21 @@ export const AddMessageRequestBody = z.object({
 });
 
 export type AddMessageRequest = z.infer<typeof AddMessageRequest>;
-export const AddMessageRequest = z.object({
-  headers: z.object({
-    "req-id": z.string(),
-  }),
-  params: z.object({
-    conversationId: z.string(),
-  }),
-  query: z.object({
-    stream: z.string().optional(),
-  }),
-  body: AddMessageRequestBody,
-  ip: z.string(),
-});
+export const AddMessageRequest = SomeExpressRequest.merge(
+  z.object({
+    headers: z.object({
+      "req-id": z.string(),
+    }),
+    params: z.object({
+      conversationId: z.string(),
+    }),
+    query: z.object({
+      stream: z.string().optional(),
+    }),
+    body: AddMessageRequestBody,
+    ip: z.string(),
+  })
+)
 
 // ExpressResponse;
 
@@ -90,7 +93,6 @@ export function makeAddMessageToConversationRoute({
         query: { stream },
         ip,
       } = req;
-      // TODO:(DOCSP-30863) implement type checking on the request
 
       let conversationId: ObjectId;
       try {
@@ -245,7 +247,10 @@ export function makeAddMessageToConversationRoute({
         const answer = await dataStreamer.stream({
           stream: answerStream,
         });
-        logger.info(`LLM response: ${JSON.stringify(answer)}`);
+        logRequest({
+          reqId,
+          message: `LLM response: ${JSON.stringify(answer)}`,
+        });
         await dataStreamer.streamData({
           type: "delta",
           data: furtherReading,

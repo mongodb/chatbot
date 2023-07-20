@@ -12,37 +12,41 @@ import {
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { areEquivalentIpAddresses, isValidIp } from "./utils";
 import { z } from "zod";
+import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 
 export type RateMessageRequest = z.infer<typeof RateMessageRequest>;
-export const RateMessageRequest = z.object({
-  headers: z.object({
-    "req-id": z.string(),
-  }),
-  params: z.object({
-    conversationId: z.string(),
-    messageId: z.string(),
-  }),
-  body: z.object({
-    rating: z.boolean(),
-  }),
-  ip: z.string(),
-});
+
+export const RateMessageRequest = SomeExpressRequest.merge(
+  z.object({
+    headers: z.object({
+      "req-id": z.string(),
+    }),
+    params: z.object({
+      conversationId: z.string(),
+      messageId: z.string(),
+    }),
+    body: z.object({
+      rating: z.boolean(),
+    }),
+    ip: z.string(),
+  })
+);
 
 export interface RateMessageRouteParams {
   conversations: ConversationsServiceInterface;
 }
+
 export function makeRateMessageRoute({
   conversations,
 }: RateMessageRouteParams) {
   return async (
     req: ExpressRequest,
-    res: ExpressResponse,
+    res: ExpressResponse<void>,
     next: NextFunction
   ) => {
     const reqId = getRequestId(req);
     try {
       const { ip } = req;
-      // TODO:(DOCSP-30863) implement type checking on the request
 
       if (!isValidIp(ip)) {
         return sendErrorResponse({
@@ -84,12 +88,10 @@ export function makeRateMessageRoute({
           _id: conversationId,
         });
 
-        console.log("lookedFor", conversationId, "conversationInDb", conversationInDb);
         if (!conversationInDb) {
           throw new Error("Conversation not found");
-        };
+        }
       } catch (err) {
-        console.error("OOPSIE", err)
         return sendErrorResponse({
           reqId,
           res,
@@ -124,7 +126,6 @@ export function makeRateMessageRoute({
         messageId: messageId,
         rating,
       });
-      console.log("successfulOperation", successfulOperation);
 
       if (successfulOperation) {
         res.sendStatus(204);

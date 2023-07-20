@@ -33,10 +33,6 @@ import {
   AddMessageToConversationRouteParams,
   MAX_MESSAGES_IN_CONVERSATION,
 } from "./addMessageToConversation";
-import {
-  CreateConversationRequest,
-  makeCreateConversationRoute,
-} from "./createConversation";
 import { ApiConversation, ApiMessage } from "./utils";
 import { makeOpenAiLlm } from "../../services/llm";
 import { makeDataStreamer } from "../../services/dataStreamer";
@@ -44,7 +40,6 @@ import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
 import { makeRateMessageRoute } from "./rateMessage";
 import { makeApp } from "../../app";
-import validateRequestSchema from "../../middleware/validateRequestSchema";
 
 jest.setTimeout(100000);
 
@@ -86,28 +81,40 @@ describe("Conversations Router", () => {
     minScore: 0.9,
   };
 
+  const testDbName = `conversations-test-${Date.now()}`;
+  const mongodb = new MongoDB(MONGODB_CONNECTION_URI, testDbName);
+
+  let defaultRouteConfig: AddMessageToConversationRouteParams;
+  let app: Express;
+  let store: EmbeddedContentStore;
+  let conversations: ConversationsServiceInterface;
+
+  beforeAll(async () => {
+    store = await makeDatabaseConnection({
+      connectionUri: MONGODB_CONNECTION_URI,
+      databaseName: MONGODB_DATABASE_NAME,
+    });
+    conversations = new ConversationsService(mongodb.db);
+
+    defaultRouteConfig = {
+      conversations,
+      dataStreamer,
+      embed,
+      findNearestNeighborsOptions,
+      llm,
+      store,
+    };
+
+    app = await makeApp(defaultRouteConfig);
+  });
+
+  afterAll(async () => {
+    await mongodb?.db.dropDatabase();
+    await mongodb?.close();
+  });
+
   // create route with mock service
   describe("POST /conversations", () => {
-    const app = express();
-    app.use(express.json()); // for parsing application/json
-    const testDbName = `conversations-test-${Date.now()}`;
-
-    let mongodb: MongoDB | undefined;
-    let conversations: ConversationsService;
-    beforeAll(async () => {
-      mongodb = new MongoDB(MONGODB_CONNECTION_URI, testDbName);
-      conversations = new ConversationsService(mongodb.db);
-      app.post(
-        "/conversations",
-        makeCreateConversationRoute({ conversations })
-      );
-    });
-
-    afterAll(async () => {
-      await mongodb?.db.dropDatabase();
-      await mongodb?.close();
-    });
-
     it("should respond with 200 and create a conversation", async () => {
       const res = await request(app).post("/conversations/").send();
       const conversation: ApiConversation = res.body;
@@ -115,73 +122,25 @@ describe("Conversations Router", () => {
 
       expect(conversation.messages).toHaveLength(0);
       const count = await mongodb?.db
-        .collection("conversations")
+        .collection<Conversation>("conversations")
         .countDocuments();
       expect(count).toBe(1);
     });
   });
+
   describe("POST /conversations/:conversationId/messages", () => {
     const endpointUrl = "/conversations/:conversationId/messages";
-    const app = express();
-    app.use(express.json()); // for parsing application/json
-
-    let store: EmbeddedContentStore & DatabaseConnection;
-
-    let conversationsMongoDb: MongoDB | undefined;
-    let conversations: ConversationsServiceInterface;
-
-    let defaultRouteConfig: AddMessageToConversationRouteParams;
-
-    beforeAll(async () => {
-      store = await makeDatabaseConnection({
-        connectionUri: MONGODB_CONNECTION_URI,
-        databaseName: MONGODB_DATABASE_NAME,
-      });
-
-      const conversationMessageTestDbName = `convo-msg-test-${Date.now()}`;
-      conversationsMongoDb = new MongoDB(
-        MONGODB_CONNECTION_URI,
-        conversationMessageTestDbName
-      );
-      conversations = new ConversationsService(conversationsMongoDb.db);
-      defaultRouteConfig = {
-        conversations,
-        store,
-        embed,
-        llm,
-        dataStreamer,
-        findNearestNeighborsOptions,
-      };
-
-      app.post(
-        endpointUrl,
-        validateRequestSchema(AddMessageRequestBody),
-        makeAddMessageToConversationRoute(defaultRouteConfig)
-      );
-      // For set up. Need to create conversation before can add to it.
-      app.post(
-        "/conversations",
-        validateRequestSchema(CreateConversationRequest),
-        makeCreateConversationRoute({ conversations })
-      );
-    });
-
-    afterAll(async () => {
-      await conversationsMongoDb?.db.dropDatabase();
-      await conversationsMongoDb?.close();
-      await store?.close();
-    });
-
-    let _id: string;
+    let conversationId: string;
     let testEndpointUrl: string;
+
     beforeEach(async () => {
       const createConversationRes = await request(app)
         .post("/conversations")
         .set("X-FORWARDED-FOR", ipAddress)
         .send();
       const res: ApiConversation = createConversationRes.body;
-      _id = res._id;
-      testEndpointUrl = endpointUrl.replace(":conversationId", _id);
+      conversationId = res._id;
+      testEndpointUrl = endpointUrl.replace(":conversationId", conversationId);
     });
 
     describe("Awaited response", () => {
@@ -205,30 +164,18 @@ describe("Conversations Router", () => {
             `,
         };
         const res2 = await request(app)
-          .post(endpointUrl.replace(":conversationId", _id))
+          .post(endpointUrl.replace(":conversationId", conversationId))
           .send(request2Body);
         const message2: ApiMessage = res2.body;
         expect(res2.statusCode).toEqual(200);
         expect(message2.role).toBe("assistant");
         expect(message2.content).toContain("Realm");
-        const conversationInDb = await conversationsMongoDb?.db
+        const conversationInDb = await mongodb?.db
           .collection<Conversation>("conversations")
           .findOne({
-            _id: new ObjectId(_id),
+            _id: new ObjectId(conversationId),
           });
         expect(conversationInDb?.messages).toHaveLength(5); // system, user, assistant, user, assistant
-      });
-
-      it("does not accept invalid request bodies", async () => {
-        const invalidRequestBody = {
-          message:
-            "how can i use mongodb products to help me build my new mobile app?",
-          invalidField: "invalidField",
-        };
-        const res = await request(app)
-          .post(testEndpointUrl)
-          .send(invalidRequestBody);
-        expect(res.statusCode).toEqual(400);
       });
     });
 
@@ -239,7 +186,10 @@ describe("Conversations Router", () => {
             "how can i use mongodb products to help me build my new mobile app?",
         } satisfies AddMessageRequestBody;
         const res = await request(app)
-          .post(endpointUrl.replace(":conversationId", _id) + "?stream=true")
+          .post(
+            endpointUrl.replace(":conversationId", conversationId) +
+              "?stream=true"
+          )
           .send(requestBody);
         expect(res.statusCode).toEqual(200);
         expect(res.header["content-type"]).toBe("text/event-stream");
@@ -262,10 +212,18 @@ describe("Conversations Router", () => {
           error: "Invalid conversation ID",
         });
       });
+
+      it("should return 400 for invalid request bodies", async () => {
+        const res = await request(app)
+          .post(endpointUrl.replace(":conversationId", conversationId))
+          .send({ msg: "howdy there" });
+        expect(res.statusCode).toEqual(400);
+      });
+
       test("should respond 400 if input is too long", async () => {
         const tooLongMessage = "a".repeat(MAX_INPUT_LENGTH + 1);
         const res = await request(app)
-          .post(endpointUrl.replace(":conversationId", _id))
+          .post(endpointUrl.replace(":conversationId", conversationId))
           .set("X-FORWARDED-FOR", ipAddress)
           .send({
             message: tooLongMessage,
@@ -297,13 +255,14 @@ describe("Conversations Router", () => {
         });
         // Init conversation with max length
         for await (const i of Array(MAX_MESSAGES_IN_CONVERSATION - 1)) {
-          const role = i % 2 === 0 ? "assistant" : "user";
+          const role = i % 2 === 0 ? "user" : "assistant";
           await conversations.addConversationMessage({
             conversationId: _id,
             content: `message ${i}`,
             role,
           });
         }
+
         const res = await request(app)
           .post(endpointUrl.replace(":conversationId", _id.toString()))
           .set("X-Forwarded-For", ipAddress) // different IP address
@@ -327,7 +286,7 @@ describe("Conversations Router", () => {
         });
 
         const res = await request(app)
-          .post(endpointUrl.replace(":conversationId", _id))
+          .post(endpointUrl.replace(":conversationId", conversationId))
           .set("X-FORWARDED-FOR", ipAddress)
           .send({ message: "hello" });
         expect(res.statusCode).toEqual(500);
@@ -353,11 +312,11 @@ describe("Conversations Router", () => {
         };
         const app = await makeApp({
           ...defaultRouteConfig,
-
           conversations: mockBrokenConversationsService,
         });
+
         const res = await request(app)
-          .post(endpointUrl.replace(":conversationId", _id))
+          .post(endpointUrl.replace(":conversationId", conversationId))
           .set("X-FORWARDED-FOR", ipAddress)
           .send({ message: "hello" });
         expect(res.statusCode).toEqual(500);
@@ -379,8 +338,9 @@ describe("Conversations Router", () => {
           ...defaultRouteConfig,
           store: brokenStore,
         });
+
         const res = await request(app)
-          .post(endpointUrl.replace(":conversationId", _id))
+          .post(endpointUrl.replace(":conversationId", conversationId))
           .set("X-FORWARDED-FOR", ipAddress)
           .send({ message: "hello" });
         expect(res.statusCode).toEqual(500);
@@ -392,20 +352,12 @@ describe("Conversations Router", () => {
 
     describe("Edge cases", () => {
       describe("No vector search content for user message", () => {
-        let conversationId: string;
-        beforeAll(async () => {
-          const { _id } = await conversations.create({
-            ipAddress,
-          });
-          conversationId = _id.toString();
-        });
-
         test("Should respond with 200 and static response", async () => {
           const nonsenseMessage =
             "asdlfkjasdlfk jasdlfkjasdlfk jasdlfkjasdlfjdfhstgra gtyjuikolsdfghjsdghj;sgf;dlfjda; kssdghj;f'afskj ;glskjsfd'aks dsaglfslj; gaflad four score and seven years ago fsdglfsgdj fjlgdfsghjldf lfsgajlhgf";
           const calledEndpoint = endpointUrl.replace(
             ":conversationId",
-            conversationId.toString()
+            conversationId
           );
           const response = await request(app)
             .post(calledEndpoint)
@@ -502,14 +454,24 @@ describe("Conversations Router", () => {
           });
           expect(
             conversationInDb?.messages.find(
-              ({ role, content }) =>
-                role === "user" && content === userMessageContent
+              ({
+                role,
+                content,
+              }: {
+                role: "system" | "user" | "assistant";
+                content: string;
+              }) => role === "user" && content === userMessageContent
             )
           ).toBeDefined();
           expect(
             conversationInDb?.messages.find(
-              ({ role, content }) =>
-                role === "assistant" && content === assistantMessageContent
+              ({
+                role,
+                content,
+              }: {
+                role: "system" | "user" | "assistant";
+                content: string;
+              }) => role === "assistant" && content === assistantMessageContent
             )
           ).toBeDefined();
         });
@@ -752,55 +714,27 @@ describe("Conversations Router", () => {
       });
     });
   });
+
   describe("POST /conversations/:conversationId/messages/:messageId/rating", () => {
     const endpointUrl =
       "/conversations/:conversationId/messages/:messageId/rating";
-    const app = express();
-    app.use(express.json()); // for parsing application/json
-    app.set("trust proxy", true);
 
-    const testDbName = `conversations-test-${Date.now()}`;
-
-    let mongodb: MongoDB;
-    let conversations: ConversationsService;
     let conversation: Conversation;
     let testMsg: Message;
-
-    beforeAll(async () => {
-      mongodb = new MongoDB(MONGODB_CONNECTION_URI, testDbName);
-      conversations = new ConversationsService(mongodb.db);
-      app
-        .post(endpointUrl, makeRateMessageRoute({ conversations }))
-        .set("X-FORWARDED-FOR", ipAddress);
-    });
-
-    let conversationId: string;
     let testEndpointUrl: string;
     beforeEach(async () => {
       conversation = await conversations.create({ ipAddress });
-      conversationId = conversation._id.toHexString();
       testMsg = await conversations.addConversationMessage({
         conversationId: conversation._id,
         content: "hello",
         role: "assistant",
       });
       testEndpointUrl = endpointUrl
-        .replace(":conversationId", conversationId)
+        .replace(":conversationId", conversation._id.toHexString())
         .replace(":messageId", String(testMsg.id));
-      console.dir({
-        conversationId,
-        testMsg,
-        testEndpointUrl,
-      })
-    });
-
-    afterAll(async () => {
-      await mongodb?.db.dropDatabase();
-      await mongodb?.close();
     });
 
     test("Should return 204 for valid rating", async () => {
-      console.log("testEndpointUrl", testEndpointUrl);
       const response = await request(app)
         .post(testEndpointUrl)
         .set("X-Forwarded-For", ipAddress)

@@ -5,34 +5,37 @@ import {
 } from "express";
 import { z } from "zod";
 import { ConversationsServiceInterface } from "../../services/conversations";
-import { convertConversationFromDbToApi, isValidIp } from "./utils";
+import { ApiConversation, convertConversationFromDbToApi, isValidIp } from "./utils";
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
+import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 
 export type CreateConversationRequest = z.infer<
   typeof CreateConversationRequest
 >;
-export const CreateConversationRequest = z.object({
-  headers: z.object({
-    "req-id": z.string(),
-  }),
-  ip: z.string(),
-});
+export const CreateConversationRequest = SomeExpressRequest.merge(
+  z.object({
+    headers: z.object({
+      "req-id": z.string(),
+    }),
+    ip: z.string(),
+  })
+);
 
 export interface CreateConversationRouteParams {
   conversations: ConversationsServiceInterface;
 }
+
 export function makeCreateConversationRoute({
   conversations,
 }: CreateConversationRouteParams) {
   return async (
     req: ExpressRequest,
-    res: ExpressResponse,
+    res: ExpressResponse<ApiConversation>,
     next: NextFunction
   ) => {
     const reqId = getRequestId(req);
     try {
       const { ip } = req;
-      // TODO:(DOCSP-30863) implement type checking on the request
 
       if (!isValidIp(ip)) {
         return sendErrorResponse({

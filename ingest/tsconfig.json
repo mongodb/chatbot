@@ -1,22 +1,3 @@
-// {
-//   "compilerOptions": {
-//     "module": "commonjs",
-//     "outDir": "./build",
-//     "allowJs": false,
-//     "target": "es2020",
-//     "esModuleInterop": true,
-//     "lib": ["ES2020", "DOM"],
-//     "downlevelIteration": true,
-//     "strictNullChecks": true,
-//     "strict": true,
-//     "declaration": true,
-//     "declarationMap": true,
-//     "resolveJsonModule": true
-//   },
-//   "sourceMap": true,
-//   "include": ["./src/**/*.ts"],
-//   "exclude": ["**/*.test.ts", "node_modules"]
-// }
 {
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig to read more about this file */

@@ -110,15 +110,13 @@ export function makeDataStreamer(): DataStreamer {
       }
       let streamedData = "";
       for await (const event of stream) {
-        // The event could contain many choices, but we only want the first one
-        console.log("EVENT::", event);
         if (event.choices.length === 0) {
-          throw new Error("No choices in event");
+          continue;
         }
+        // The event could contain many choices, but we only want the first one
         const choice = event.choices[0];
         if (choice.delta) {
           const content = escapeNewlines(choice.delta.content ?? "");
-          console.log("CONTENT::", content);
           this.streamData({
             type: "delta",
             data: content,

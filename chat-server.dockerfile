@@ -4,7 +4,6 @@ FROM node:18-alpine as builder
 # Install all dependencies && set up project
 WORKDIR /app
 COPY . ./
-RUN ls
 RUN npm ci && npm run bootstrap && npm run build
 
 # Main image

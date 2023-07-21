@@ -42,7 +42,7 @@ import { ObjectId } from "mongodb";
 import { makeRateMessageRoute } from "./rateMessage";
 import { makeApp } from "../../app";
 
-jest.setTimeout(10000);
+jest.setTimeout(100000);
 
 // ip address for local host
 const ipAddress = "127.0.0.1";

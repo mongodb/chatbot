@@ -303,7 +303,6 @@ export function makeAddMessageToConversationRoute({
         res.status(200).json(apiRes);
       }
     } catch (err) {
-      console.log(err);
       logRequest({
         reqId: req.headers["req-id"] as string,
         message: "An unexpected error occurred: " + JSON.stringify(err),

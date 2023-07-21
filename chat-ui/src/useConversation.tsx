@@ -9,8 +9,8 @@ import {
 import createMessage, { createMessageId } from "./createMessage";
 import { updateArrayElementAt } from "./utils";
 
-const SHOULD_STREAM = true;
-// const SHOULD_STREAM = false;
+// const SHOULD_STREAM = true;
+const SHOULD_STREAM = false;
 const STREAMING_MESSAGE_ID = "streaming-response";
 export type ConversationState = {
   conversationId?: string;
@@ -348,7 +348,7 @@ export default function useConversation() {
           conversationId: state.conversationId,
           message: content,
         });
-        references = response.sse ?? null;
+        references = response.references ?? null;
         const referencesContent = references
           ? formatReferences(references)
           : "";

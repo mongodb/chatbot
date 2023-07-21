@@ -32,6 +32,7 @@ import {
   MAX_INPUT_LENGTH,
   AddMessageToConversationRouteParams,
   MAX_MESSAGES_IN_CONVERSATION,
+  createLinkReference,
 } from "./addMessageToConversation";
 import { makeCreateConversationRoute } from "./createConversation";
 import { ApiConversation, ApiMessage } from "./utils";
@@ -510,7 +511,28 @@ describe("Conversations Router", () => {
           role: sampleDbMessage.role,
         });
       });
-
+      test("createLinkReference", () => {
+        const links = [
+          "https://www.example.com/",
+          "https://www.example.com/2",
+          "https://www.subdomin.example.com/baz",
+        ]
+        const linkReferences = links.map(link => createLinkReference(link));
+        expect(linkReferences).toStrictEqual([
+          {
+            title: "https://www.example.com/",
+            url: "https://www.example.com/?tck=docs_chatbot",
+          },
+          {
+            title: "https://www.example.com/2",
+            url: "https://www.example.com/2?tck=docs_chatbot",
+          },
+          {
+            title: "https://www.subdomin.example.com/baz",
+            url: "https://www.subdomin.example.com/baz?tck=docs_chatbot",
+          },
+        ]);
+      });
       describe("getContentForText()", () => {
         test("Should return content for relevant text", async () => {
           const text = "MongoDB Atlas";

@@ -385,9 +385,17 @@ export interface Reference {
 
 export type References = Reference[];
 
+export const createLinkReference = (link: string): Reference => {
+  const url = new URL(link);
+  url.searchParams.append("tck", "docs_chatbot");
+  return {
+    url: url.href,
+    title: url.origin + url.pathname,
+  };
+};
+
 export interface GenerateReferencesParams {
   chunks: EmbeddedContent[];
-  hasHeading?: boolean;
 }
 
 export function generateReferences({ chunks }: GenerateReferencesParams): References {
@@ -395,16 +403,7 @@ export function generateReferences({ chunks }: GenerateReferencesParams): Refere
     return [];
   }
   const uniqueLinks = Array.from(new Set(chunks.map((chunk) => chunk.url)));
-  const mapLinkToReference = (link: string): Reference => {
-    const url = new URL(link);
-    url.searchParams.append("tck", "docs_chatbot");
-    return {
-      url: url.href,
-      title: url.origin + url.pathname,
-    };
-  };
-
-  return uniqueLinks.map((link) => mapLinkToReference(link));
+  return uniqueLinks.map((link) => createLinkReference(link));
 }
 
 export function validateApiConversationFormatting({

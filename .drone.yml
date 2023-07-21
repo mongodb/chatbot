@@ -197,6 +197,7 @@ name: staging-build-ingest-service
 trigger:
   branch:
     - main
+    - monorepo_docker_fix # TODO: remove before merge
   event:
     - push
   paths:

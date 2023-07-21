@@ -4,8 +4,8 @@ import { Page } from "chat-core";
 import nodeFetch from "node-fetch";
 import { DataSource } from "./DataSource";
 import { snootyAstToMd } from "./snootyAstToMd";
-// import { ProjectBase } from "./ProjectBase";
-import assert from "assert";
+import { ProjectBase } from "./ProjectBase";
+import { strict as assert } from "assert";
 
 // These types are what's in the snooty manifest jsonl file.
 export type SnootyManifestEntry = {
@@ -47,12 +47,6 @@ export type SnootyPageData = {
   ast: SnootyNode;
   tags?: string[];
 };
-
-export interface ProjectBase<T> {
-  type: T;
-  name: string;
-  tags?: string[];
-}
 
 export type SnootyProjectConfig = ProjectBase<"snooty"> & {
   /**
@@ -151,7 +145,8 @@ export interface Branch {
    */
   gitBranchName: string;
   /**
-   * Whether or not the branch is active
+   * Whether or not the branch is active. Note that this is either a boolean or a string "true"
+   * For more context, see https://jira.mongodb.org/browse/DOP-3862
    * @example true | "true"
    */
   active: boolean | "true";

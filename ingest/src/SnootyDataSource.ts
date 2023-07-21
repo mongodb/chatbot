@@ -48,7 +48,8 @@ export type SnootyPageData = {
   tags?: string[];
 };
 
-export type SnootyProjectConfig = ProjectBase<"snooty"> & {
+export type SnootyProjectConfig = ProjectBase & {
+  type: "snooty";
   /**
    * Git branch name for the current (search indexed) version of the site
    * @example "v4.10"

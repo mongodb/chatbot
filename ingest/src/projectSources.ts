@@ -198,7 +198,6 @@ export const snootyProjectConfig: SnootyProjectConfig[] = [
 export const devCenterProjectConfig: DevCenterProjectConfig = {
   type: "devcenter",
   name: "devcenter",
-  connectionUri: DEVCENTER_CONNECTION_URI,
   collectionName: "search_content_prod",
   databaseName: "devcenter",
   baseUrl: "https://www.mongodb.com/developer",

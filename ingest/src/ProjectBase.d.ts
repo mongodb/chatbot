@@ -1,12 +1,12 @@
 /**
  * Base project type used in all project data sources (snooty sites, devcenter, etc.)
  */
-export interface ProjectBase<T extends string> {
+export interface ProjectBase {
   /**
    * Type of project
    * @example "snooty" | "devcenter"
    */
-  type: T;
+  type: string;
   /**
    * Snooty project name
    * @example "kotlin"

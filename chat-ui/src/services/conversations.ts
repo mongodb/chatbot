@@ -26,7 +26,7 @@ export type References = Reference[];
 export function formatReferences(references: References) {
   const heading = "\n\n**Further reading:**\n\n";
   const listOfLinks = references
-    .map((entry) => `[${entry.title}](${entry.url})`)
+    .map((entry) => `- [${entry.title}](${entry.url})`)
     .join("\n\n");
   return heading + listOfLinks;
 }

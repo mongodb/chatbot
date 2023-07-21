@@ -31,6 +31,7 @@ properties:
           type: array
           items:
             type: object
+            required: [title, url]
             properties:
               title:
                 type: string

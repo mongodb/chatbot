@@ -14,18 +14,19 @@ import { snootyAstToMd } from "./snootyAstToMd";
 jest.setTimeout(15000);
 
 describe("SnootyDataSource", () => {
+  const sourceConfig: SnootyProjectConfig = {
+    type: "snooty",
+    name: "docs",
+    currentBranch: "v6.0",
+    tags: ["docs", "manual"],
+  };
+  const snootyDataApiEndpoint = "https://snooty-data-api.mongodb.com/prod";
   describe("makeSnootyDataSource()", () => {
-    const sourceConfig = {
-      type: "snooty",
-      name: "docs",
-      currentBranch: "v6.0",
-      tags: ["docs", "manual"],
-    };
     const sampleDataPath = Path.resolve(
       __dirname,
       "./test_data/snooty_sample_data.txt"
     );
-    const baseMock = nock("https://snooty-data-api.mongodb.com/prod/");
+    const baseMock = nock(snootyDataApiEndpoint);
     beforeAll(() => {
       baseMock
         .get(
@@ -69,7 +70,7 @@ describe("SnootyDataSource", () => {
       const baseUrl = await getSnootyProjectBaseUrl({
         projectName: "docs",
         branchName: "v4.4",
-        snootyDataApiEndpoint: "https://snooty-data-api.mongodb.com/prod",
+        snootyDataApiEndpoint,
       });
       expect(baseUrl).toBe("https://mongodb.com/docs/v4.4");
     });
@@ -77,7 +78,7 @@ describe("SnootyDataSource", () => {
       const baseUrlPromise = getSnootyProjectBaseUrl({
         projectName: "docs",
         branchName: "not-a-branch",
-        snootyDataApiEndpoint: "https://snooty-data-api.mongodb.com/prod",
+        snootyDataApiEndpoint,
       });
       await expect(baseUrlPromise).rejects.toThrow();
     });
@@ -85,7 +86,7 @@ describe("SnootyDataSource", () => {
       const baseUrlPromise = getSnootyProjectBaseUrl({
         projectName: "not-a-project",
         branchName: "v4.4",
-        snootyDataApiEndpoint: "https://snooty-data-api.mongodb.com/prod",
+        snootyDataApiEndpoint,
       });
       await expect(baseUrlPromise).rejects.toThrow();
     });

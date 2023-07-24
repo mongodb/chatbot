@@ -29,7 +29,6 @@
     "build": "npm run build:static-site:staging",
     "preview:static-site:dev": "npm run build:static-site:dev && vite preview --base ./ --config vite.config.static-site.js",
     "preview:static-site:staging": "npm run build:static-site:staging && vite preview --base ./ --config vite.config.static-site.js",
-    "build": "npm run build:static-site:staging",
     "format": "prettier ./src --write",
     "format:check": "prettier ./src --check",
     "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives --max-warnings 0",
@@ -64,6 +63,7 @@
     "stream-browserify": "^3.0.0"
   },
   "devDependencies": {
+    "@rollup/plugin-inject": "^5.0.3",
     "@storybook/addon-essentials": "^7.0.20",
     "@storybook/addon-interactions": "^7.0.20",
     "@storybook/addon-links": "^7.0.20",
@@ -82,14 +82,16 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.3.4",
     "eslint-plugin-storybook": "^0.6.12",
+    "node-stdlib-browser": "^1.2.0",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-refresh": "^0.14.0",
     "release-it": "^15.11.0",
+    "rollup": "^3.26.3",
     "storybook": "^7.0.20",
     "typescript": "^5.0.2",
-    "vite": "^4.3.9",
+    "vite": "^4.4.7",
     "vite-plugin-libcss": "^1.1.0",
     "vite-plugin-node-polyfills": "^0.9.0"
   }

@@ -12,10 +12,10 @@ describe("DevCenterDataSource", () => {
       "env var DEVCENTER_CONNECTION_URI not defined. Did you copy .env.example to .env and fill it in?"
     );
     const source = await makeDevCenterDataSource({
+      type: "devcenter",
       name: "devcenter",
       collectionName: "search_content_prod",
       databaseName: "devcenter",
-      connectionUri: DEVCENTER_CONNECTION_URI,
       baseUrl: "https://example.com/developer",
     });
 

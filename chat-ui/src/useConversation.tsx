@@ -192,7 +192,9 @@ function conversationReducer(
     }
     case "appendStreamingResponse": {
       if (!state.conversationId) {
-        console.error(`Cannot appendStreamingResponse without a conversationId`);
+        console.error(
+          `Cannot appendStreamingResponse without a conversationId`
+        );
         return state;
       }
       const { streamingMessage, streamingMessageIndex } = getStreamingMessage();
@@ -298,23 +300,31 @@ export default function useConversation() {
     // Stream control
     const abortController = new AbortController();
     let finishedStreaming = false;
+    let finishedBuffering = false;
     let streamedMessageId: string | null = null;
-    let streamedMessage = "";
     let references: References | null = null;
+    let bufferedTokens: string[] = [];
     const streamingIntervalMs = 50;
     const streamingInterval = setInterval(() => {
-      if (streamedMessage) {
-        dispatch({ type: "appendStreamingResponse", data: streamedMessage });
-        streamedMessage = "";
+      const [nextToken, ...remainingTokens] = bufferedTokens;
+
+      bufferedTokens = remainingTokens;
+
+      if (nextToken) {
+        dispatch({ type: "appendStreamingResponse", data: nextToken });
       }
-      if (references) {
+
+      const allBufferedTokensDispatched =
+        finishedStreaming && bufferedTokens.length === 0;
+
+      if (references && allBufferedTokensDispatched) {
         dispatch({
           type: "appendStreamingResponse",
           data: formatReferences(references),
         });
         references = null;
       }
-      if (finishedStreaming) {
+      if (!finishedBuffering && allBufferedTokensDispatched) {
         if (!streamedMessageId) {
           streamedMessageId = createMessageId();
         }
@@ -322,6 +332,7 @@ export default function useConversation() {
           type: "finishStreamingResponse",
           messageId: streamedMessageId,
         });
+        finishedBuffering = true;
       }
     }, streamingIntervalMs);
 
@@ -334,7 +345,7 @@ export default function useConversation() {
           message: content,
           maxRetries: 0,
           onResponseDelta: async (data: string) => {
-            streamedMessage += data;
+            bufferedTokens = [...bufferedTokens, data];
           },
           onReferences: async (data: References) => {
             references = data;
@@ -366,11 +377,18 @@ export default function useConversation() {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       endConversationWithError(errorMessage);
-    } finally {
-      setTimeout(() => {
-        clearInterval(streamingInterval);
-      }, streamingIntervalMs);
     }
+
+    let cleanupInterval: ReturnType<typeof setInterval> | undefined;
+    return new Promise<void>((resolve) => {
+      cleanupInterval = setInterval(() => {
+        if (finishedBuffering) {
+          clearInterval(streamingInterval);
+          clearInterval(cleanupInterval);
+          resolve();
+        }
+      }, streamingIntervalMs / 2);
+    });
   };
 
   const modifyMessage = async (messageId: string, content: string) => {

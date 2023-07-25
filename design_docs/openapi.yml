@@ -243,7 +243,7 @@ components:
                 type: string
                 format: uri
                 description: |
-                  URL to the reference. For example, "https://mongodb.com/docs/atlas/getting-started/".
+                  URL to the reference. For example, "https://mongodb.com/docs/atlas/getting-started?tck=docs_chat".
     MessageRating:
       type: object
       properties:

@@ -239,7 +239,6 @@ export default class ConversationService {
     });
   }
 }
-console.log("SERVER URL::", import.meta.env.VITE_SERVER_BASE_URL);
 export const conversationService = new ConversationService({
   serverUrl: import.meta.env.VITE_SERVER_BASE_URL,
 });

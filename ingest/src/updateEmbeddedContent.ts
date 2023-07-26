@@ -90,6 +90,7 @@ export const updateEmbeddedContentForPage = async ({
     page,
   });
   if (
+    existingContent.length &&
     existingContent[0].updated > page.updated &&
     contentChunks.length === existingContent.length
   ) {

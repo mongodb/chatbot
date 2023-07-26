@@ -1,114 +1,94 @@
-import * as Path from "path";
-import { makeSnootyDataSource } from "./SnootyDataSource";
+import nock from "nock";
+import fs from "fs";
+import Path from "path";
+import JSONL from "jsonl-parse-stringify";
+import {
+  SnootyNode,
+  SnootyProjectConfig,
+  getSnootyProjectBaseUrl,
+  makeSnootyDataSource,
+} from "./SnootyDataSource";
+import { sampleSnootyMetadata } from "./test_data/snooty_sample_metadata";
+import { snootyAstToMd } from "./snootyAstToMd";
+
+jest.setTimeout(15000);
 
 describe("SnootyDataSource", () => {
-  it("successfully loads pages", async () => {
-    const source = await makeSnootyDataSource({
-      baseUrl: "https://mongodb.com/docs/manual",
-      manifestUrl: `file://${Path.resolve(
-        __dirname,
-        "../test/snooty_sample_data.txt"
-      )}`,
-      name: "snooty",
+  const sourceConfig: SnootyProjectConfig = {
+    type: "snooty",
+    name: "docs",
+    currentBranch: "v6.0",
+    tags: ["docs", "manual"],
+  };
+  const snootyDataApiEndpoint = "https://snooty-data-api.mongodb.com/prod";
+  describe("makeSnootyDataSource()", () => {
+    const sampleDataPath = Path.resolve(
+      __dirname,
+      "./test_data/snooty_sample_data.txt"
+    );
+    const baseMock = nock(snootyDataApiEndpoint);
+    beforeAll(() => {
+      baseMock
+        .get(
+          `/projects/${sourceConfig.name}/${sourceConfig.currentBranch}/documents`
+        )
+        .reply(200, () => fs.createReadStream(sampleDataPath));
+      baseMock.get("/projects").reply(200, sampleSnootyMetadata);
     });
+    afterAll(() => {
+      nock.cleanAll();
+    });
+    it("successfully loads pages", async () => {
+      // TODO: fix typescript typing
+      const source = await makeSnootyDataSource(
+        sourceConfig as SnootyProjectConfig
+      );
 
-    const pages = await source.fetchPages();
-    expect(pages.length).toBe(12);
-    expect(pages[0]).toMatchObject({
-      format: "md",
-      sourceName: "snooty",
-      tags: [],
-      url: "https://mongodb.com/docs/manual/about",
-      body: `# About MongoDB Documentation
-
-The MongoDB Manual contains
-comprehensive documentation on MongoDB. This page describes the
-manual's licensing, editions, and versions, and describes how to make a
-change request and how to contribute to the manual.
-
-## License
-
-This work is licensed under a Creative Commons
-Attribution-NonCommercial-ShareAlike 3.0 United States License
-
-© MongoDB, Inc. 2008-2022
-
-
-
-## Man Pages
-
-In addition to the MongoDB Manual, you can
-access the MongoDB Man Pages,
-which are also distributed with the official MongoDB Packages.
-
-
-
-## Version and Revisions
-
-This version of the manual reflects version 7.0
-of MongoDB.
-
-See the MongoDB Documentation Project Page
-for an overview of all editions and output formats of the MongoDB
-Manual. You can see the full revision history and track ongoing
-improvements and additions for all versions of the manual from its GitHub
-repository.
-
-The most up-to-date, current, and stable version of the manual is
-always available at "https://www.mongodb.com/docs/manual/".
-
-
-
-## Report an Issue or Make a Change Request
-
-To report an issue with this manual or to make a change request, file
-a ticket at the
-MongoDB DOCS Project on Jira.
-
-
-
-## Contribute to the Documentation
-
-The entire documentation source for this manual is available in the
-mongodb/docs repository,
-which is one of the
-MongoDB project repositories on GitHub.
-
-To contribute to the documentation, you can open a
-GitHub account, fork the
-mongodb/docs repository,
-make a change, and issue a pull request.
-
-In order for the documentation team to accept your change, you must
-complete the
-MongoDB Contributor Agreement.
-
-You can clone the repository by issuing the following command at your
-system shell:
-
-\`\`\`bash
-git clone git://github.com/mongodb/docs.git
-\`\`\`
-
-### About the Documentation Process
-
-The MongoDB Manual uses Sphinx, a
-sophisticated documentation engine built upon Python Docutils. The original reStructured Text files, as well as all
-necessary Sphinx extensions and build tools, are available in the same
-repository as the documentation.
-
-For more information on the MongoDB documentation process, see the
-Meta Documentation.
-
-If you have any questions, please feel free to open a Jira Case.
-
-
-
-
-
-
-
-`,
+      const pages = await source.fetchPages();
+      expect(pages.length).toBe(12);
+      const astPages = JSONL.parse<{ type: string; data: { ast: SnootyNode } }>(
+        fs.readFileSync(sampleDataPath, "utf8")
+      );
+      const baseUrl = "https://mongodb.com/docs/v6.0";
+      const pageAst = astPages.find(
+        (entry: { type: string }) => entry.type === "page"
+      )?.data.ast;
+      console.log(pageAst);
+      expect(pageAst).toBeDefined();
+      const firstPageText = snootyAstToMd(pageAst!, { baseUrl });
+      expect(pages[0]).toMatchObject({
+        format: "md",
+        sourceName: "snooty-docs",
+        tags: ["docs", "manual"],
+        url: "https://mongodb.com/docs/v6.0/about",
+        body: firstPageText,
+      });
+    });
+  });
+  describe("getSnootyProjectBaseUrl()", () => {
+    it("gets project base url", async () => {
+      const baseUrl = await getSnootyProjectBaseUrl({
+        projectName: "docs",
+        branchName: "v4.4",
+        snootyDataApiEndpoint,
+      });
+      expect(baseUrl).toBe("https://mongodb.com/docs/v4.4");
+    });
+    it("throws for invalid branch", async () => {
+      const baseUrlPromise = getSnootyProjectBaseUrl({
+        projectName: "docs",
+        branchName: "not-a-branch",
+        snootyDataApiEndpoint,
+      });
+      await expect(baseUrlPromise).rejects.toThrow();
+    });
+    it("throws for invalid project", async () => {
+      const baseUrlPromise = getSnootyProjectBaseUrl({
+        projectName: "not-a-project",
+        branchName: "v4.4",
+        snootyDataApiEndpoint,
+      });
+      await expect(baseUrlPromise).rejects.toThrow();
     });
   });
 });

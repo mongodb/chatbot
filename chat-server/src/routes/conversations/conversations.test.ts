@@ -120,8 +120,8 @@ describe("Conversations Router", () => {
 
   describe("POST /conversations/:conversationId/messages", () => {
     const endpointUrl = "/conversations/:conversationId/messages";
-    const app = express();
-    app.use(express.json()); // for parsing application/json
+
+    let app: Express;
 
     let store: EmbeddedContentStore & DatabaseConnection;
 
@@ -151,15 +151,9 @@ describe("Conversations Router", () => {
         findNearestNeighborsOptions,
       };
 
-      app.post(
-        endpointUrl,
-        makeAddMessageToConversationRoute(defaultRouteConfig)
-      );
-      // For set up. Need to create conversation before can add to it.
-      app.post(
-        "/conversations",
-        makeCreateConversationRoute({ conversations })
-      );
+      app = await makeApp({
+        ...defaultRouteConfig,
+      });
     });
 
     afterAll(async () => {
@@ -223,6 +217,7 @@ describe("Conversations Router", () => {
         const res = await request(app)
           .post(endpointUrl.replace(":conversationId", _id) + "?stream=true")
           .send(requestBody);
+        console.log("RES::", res);
         expect(res.statusCode).toEqual(200);
         expect(res.header["content-type"]).toBe("text/event-stream");
         expect(res.text).toContain(`data: {"type":"delta","data":"`);

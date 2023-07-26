@@ -112,6 +112,9 @@ export function makeDataStreamer(): DataStreamer {
       }
       let streamedData = "";
       for await (const event of stream) {
+        if (event.choices.length === 0) {
+          continue;
+        }
         // The event could contain many choices, but we only want the first one
         const choice = event.choices[0];
         if (choice.delta) {

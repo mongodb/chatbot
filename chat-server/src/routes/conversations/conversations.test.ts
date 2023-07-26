@@ -40,7 +40,7 @@ import { makeDataStreamer } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
 import { makeRateMessageRoute } from "./rateMessage";
-import { makeApp } from "../../app";
+import { makeApp, CONVERSATIONS_API_V1_PREFIX } from "../../app";
 
 jest.setTimeout(100000);
 
@@ -94,7 +94,7 @@ describe("Conversations Router", () => {
       mongodb = new MongoDB(MONGODB_CONNECTION_URI, testDbName);
       conversations = new ConversationsService(mongodb.db);
       app.post(
-        "/conversations",
+        CONVERSATIONS_API_V1_PREFIX,
         makeCreateConversationRoute({ conversations })
       );
     });
@@ -105,7 +105,7 @@ describe("Conversations Router", () => {
     });
 
     it("should respond with 200 and create a conversation", async () => {
-      const res = await request(app).post("/conversations/").send();
+      const res = await request(app).post(CONVERSATIONS_API_V1_PREFIX).send();
       const conversation: ApiConversation = res.body;
       expect(res.statusCode).toEqual(200);
 
@@ -118,7 +118,8 @@ describe("Conversations Router", () => {
   });
 
   describe("POST /conversations/:conversationId/messages", () => {
-    const endpointUrl = "/conversations/:conversationId/messages";
+    const endpointUrl =
+      CONVERSATIONS_API_V1_PREFIX + "/:conversationId/messages";
 
     let app: Express;
 
@@ -164,7 +165,7 @@ describe("Conversations Router", () => {
     let _id: string;
     beforeEach(async () => {
       const createConversationRes = await request(app)
-        .post("/conversations")
+        .post(CONVERSATIONS_API_V1_PREFIX)
         .set("X-FORWARDED-FOR", ipAddress)
         .send();
       const res: ApiConversation = createConversationRes.body;
@@ -216,7 +217,6 @@ describe("Conversations Router", () => {
         const res = await request(app)
           .post(endpointUrl.replace(":conversationId", _id) + "?stream=true")
           .send(requestBody);
-        console.log("RES::", res);
         expect(res.statusCode).toEqual(200);
         expect(res.header["content-type"]).toBe("text/event-stream");
         expect(res.text).toContain(`data: {"type":"delta","data":"`);
@@ -746,7 +746,8 @@ describe("Conversations Router", () => {
 
       app
         .post(
-          "/conversations/:conversationId/messages/:messageId/rating",
+          CONVERSATIONS_API_V1_PREFIX +
+            "/:conversationId/messages/:messageId/rating",
           makeRateMessageRoute({ conversations })
         )
         .set("X-FORWARDED-FOR", ipAddress);
@@ -765,7 +766,7 @@ describe("Conversations Router", () => {
     test("Should return 204 for valid rating", async () => {
       const response = await request(app)
         .post(
-          `/conversations/${conversation._id}/messages/${testMsg.id}/rating`
+          `${CONVERSATIONS_API_V1_PREFIX}/${conversation._id}/messages/${testMsg.id}/rating`
         )
         .set("X-Forwarded-For", ipAddress)
         .send({ rating: true });
@@ -785,7 +786,7 @@ describe("Conversations Router", () => {
     test("Should return 400 for invalid conversation ID", async () => {
       const response = await request(app)
         .post(
-          `/conversations/123/messages/${conversation.messages[0].id}/rating`
+          `${CONVERSATIONS_API_V1_PREFIX}/123/messages/${conversation.messages[0].id}/rating`
         )
         .set("X-FORWARDED-FOR", ipAddress)
         .send({ rating: true });
@@ -797,7 +798,9 @@ describe("Conversations Router", () => {
     });
     test("Should return 400 for invalid message ID", async () => {
       const response = await request(app)
-        .post(`/conversations/${testMsg.id}/messages/123/rating`)
+        .post(
+          `${CONVERSATIONS_API_V1_PREFIX}/${testMsg.id}/messages/123/rating`
+        )
         .set("X-FORWARDED-FOR", ipAddress)
         .send({ rating: true });
 
@@ -809,7 +812,7 @@ describe("Conversations Router", () => {
     test("Should return 404 for conversation not in DB", async () => {
       const response = await request(app)
         .post(
-          `/conversations/${new ObjectId().toHexString()}/messages/${
+          `${CONVERSATIONS_API_V1_PREFIX}/${new ObjectId().toHexString()}/messages/${
             testMsg.id
           }/rating`
         )
@@ -824,7 +827,7 @@ describe("Conversations Router", () => {
     test("Should return 404 for message not in conversation", async () => {
       const response = await request(app)
         .post(
-          `/conversations/${
+          `${CONVERSATIONS_API_V1_PREFIX}/${
             conversation._id
           }/messages/${new ObjectId().toHexString()}/rating`
         )
@@ -853,7 +856,7 @@ describe("Conversations Router", () => {
         const differentIpAddress = "192.158.1.38";
         const response = await request(app)
           .post(
-            `/conversations/${conversation._id}/messages/${testMsg.id}/rating`
+            `${CONVERSATIONS_API_V1_PREFIX}/${conversation._id}/messages/${testMsg.id}/rating`
           )
           .set("X-Forwarded-For", differentIpAddress)
           .send({ rating: true });

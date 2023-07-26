@@ -27,7 +27,7 @@ describe("SnootyDataSource", () => {
       "./test_data/snooty_sample_data.txt"
     );
     const baseMock = nock(snootyDataApiEndpoint);
-    beforeAll(() => {
+    beforeEach(() => {
       baseMock
         .get(
           `/projects/${sourceConfig.name}/${sourceConfig.currentBranch}/documents`
@@ -35,7 +35,7 @@ describe("SnootyDataSource", () => {
         .reply(200, () => fs.createReadStream(sampleDataPath));
       baseMock.get("/projects").reply(200, sampleSnootyMetadata);
     });
-    afterAll(() => {
+    afterEach(() => {
       nock.cleanAll();
     });
     it("successfully loads pages", async () => {
@@ -50,18 +50,37 @@ describe("SnootyDataSource", () => {
         fs.readFileSync(sampleDataPath, "utf8")
       );
       const baseUrl = "https://mongodb.com/docs/v6.0";
-      const pageAst = astPages.find(
+      const pageAst = astPages.filter(
         (entry: { type: string }) => entry.type === "page"
-      )?.data.ast;
+      )[1]?.data.ast;
       console.log(pageAst);
       expect(pageAst).toBeDefined();
       const firstPageText = snootyAstToMd(pageAst!, { baseUrl });
+      expect(pages[1]).toMatchObject({
+        format: "md",
+        sourceName: "snooty-docs",
+        tags: ["docs", "manual"],
+        url: "https://mongodb.com/docs/v6.0/administration/",
+        body: firstPageText,
+      });
+    });
+    it("removes 'index' from page_id", async () => {
+      const source = await makeSnootyDataSource(
+        sourceConfig as SnootyProjectConfig
+      );
+      const pages = await source.fetchPages();
+      expect(pages.length).toBe(12);
       expect(pages[0]).toMatchObject({
         format: "md",
         sourceName: "snooty-docs",
         tags: ["docs", "manual"],
-        url: "https://mongodb.com/docs/v6.0/about",
-        body: firstPageText,
+        url: "https://mongodb.com/docs/v6.0/",
+      });
+      expect(pages[2]).toMatchObject({
+        format: "md",
+        sourceName: "snooty-docs",
+        tags: ["docs", "manual"],
+        url: "https://mongodb.com/docs/v6.0/administration/analyzing-mongodb-performance/",
       });
     });
   });

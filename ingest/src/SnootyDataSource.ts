@@ -220,9 +220,18 @@ const handlePage = async (
 ): Promise<Page> => {
   // Strip first three path segments - according to Snooty team, they'll always
   // be ${property}/docsworker-xlarge/${branch}
-  const pagePath = page.page_id.split("/").slice(3).join("/");
+  const pagePath = page.page_id
+    .split("/")
+    .slice(3)
+    .join("/")
+    .replace(/\/?$/, "/"); // Add trailing slash
+
   return {
-    url: new URL(pagePath, baseUrl.replace(/\/?$/, "/")).href,
+    url: new URL(pagePath, baseUrl.replace(/\/?$/, "/")).href.replace(
+      // Remove 'index' which would create broken links
+      /\/index\/$/,
+      "/"
+    ),
     sourceName,
     body: snootyAstToMd(page.ast, { baseUrl }),
     format: "md",

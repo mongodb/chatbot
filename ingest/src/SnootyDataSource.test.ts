@@ -76,11 +76,29 @@ describe("SnootyDataSource", () => {
         tags: ["docs", "manual"],
         url: "https://mongodb.com/docs/v6.0/",
       });
+
+      // This one has index at the end of a subpath
       expect(pages[2]).toMatchObject({
         format: "md",
         sourceName: "snooty-docs",
         tags: ["docs", "manual"],
         url: "https://mongodb.com/docs/v6.0/administration/analyzing-mongodb-performance/",
+      });
+
+      // This has index in the middle of the page_id that should not be stripped
+      expect(pages[3]).toMatchObject({
+        format: "md",
+        sourceName: "snooty-docs",
+        tags: ["docs", "manual"],
+        url: "https://mongodb.com/docs/v6.0/administration/index/backup-sharded-clusters/",
+      });
+
+      // This has index but part of a wider phrase so should not be stripped
+      expect(pages[4]).toMatchObject({
+        format: "md",
+        sourceName: "snooty-docs",
+        tags: ["docs", "manual"],
+        url: "https://mongodb.com/docs/v6.0/administration/change-streams-production-recommendations/how-to-index/",
       });
     });
   });

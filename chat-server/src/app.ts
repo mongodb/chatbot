@@ -69,6 +69,9 @@ export const makeHandleTimeoutMiddleware = (apiTimeout: number) => {
   };
 };
 
+export const API_V1_PREFIX = "/api/v1";
+export const CONVERSATIONS_API_V1_PREFIX = `${API_V1_PREFIX}/conversations`;
+
 export const REQUEST_TIMEOUT = 60000; // 60 seconds
 export const makeApp = async ({
   embed,
@@ -90,13 +93,13 @@ export const makeApp = async ({
   const app = express();
   app.use(makeHandleTimeoutMiddleware(requestTimeout));
   app.set("trust proxy", true);
-  // TODO: consider only serving this from the staging env
   app.use(cors()); // TODO: add specific options to only allow certain origins
   app.use(express.json());
   app.use(reqHandler);
+  // TODO: consider only serving this from the staging env
   app.use(express.static("static"));
   app.use(
-    "/conversations",
+    CONVERSATIONS_API_V1_PREFIX,
     makeConversationsRouter({
       llm,
       embed,

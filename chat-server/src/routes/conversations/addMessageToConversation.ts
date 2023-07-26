@@ -309,6 +309,9 @@ export function makeAddMessageToConversationRoute({
         message: "An unexpected error occurred: " + JSON.stringify(err),
         type: "error",
       });
+      if(dataStreamer.connected) {
+        dataStreamer.disconnect();
+      }
       next(err);
     }
   };

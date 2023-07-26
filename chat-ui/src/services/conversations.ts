@@ -1,5 +1,6 @@
 import { ConversationState } from "../useConversation";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
+import type { References } from "chat-core";
 
 export type Role = "user" | "assistant";
 
@@ -16,14 +17,10 @@ type ConversationServiceConfig = {
   serverUrl: string;
 };
 
-// TODO - move References types to chat-core and share with addMessageToConversation.ts
-export interface Reference {
-  url: string;
-  title: string;
-}
-export type References = Reference[];
-
-export function formatReferences(references: References) {
+export function formatReferences(references: References): string {
+  if (references.length === 0) {
+    return ""
+  }
   const heading = "\n\n**Further reading:**\n\n";
   const listOfLinks = references
     .map((entry) => `- [${entry.title}](${entry.url})`)

@@ -226,8 +226,8 @@ describe("Conversations Router", () => {
         expect(res.statusCode).toEqual(200);
         expect(res.header["content-type"]).toBe("text/event-stream");
         expect(res.text).toContain(`data: {"type":"delta","data":"`);
-        expect(res.text).toContain(`data: {"type":"finished","data":"`);
         expect(res.text).toContain(`data: {"type":"references","data":[{`);
+        expect(res.text).toContain(`data: {"type":"finished","data":"`);
       });
     });
 

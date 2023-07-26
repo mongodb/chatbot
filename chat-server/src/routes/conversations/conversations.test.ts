@@ -191,6 +191,7 @@ describe("Conversations Router", () => {
               "?stream=true"
           )
           .send(requestBody);
+        console.log("RES::", res);
         expect(res.statusCode).toEqual(200);
         expect(res.header["content-type"]).toBe("text/event-stream");
         expect(res.text).toContain(`data: {"type":"delta","data":"`);

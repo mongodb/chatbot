@@ -1,6 +1,15 @@
 import { MongoClient } from "mongodb";
-import { Page, logger } from "chat-core";
+import { Page, assertEnvVars, logger } from "chat-core";
 import { DataSource } from "./DataSource";
+import { ProjectBase } from "./ProjectBase";
+import { INGEST_ENV_VARS } from "./IngestEnvVars";
+
+export type DevCenterProjectConfig = ProjectBase & {
+  type: "devcenter";
+  databaseName: string;
+  collectionName: string;
+  baseUrl: string;
+};
 
 // This type is based on what's in the DevCenter search_content_prod collection
 export type DevCenterEntry = {
@@ -12,21 +21,16 @@ export type DevCenterEntry = {
 
 export const makeDevCenterDataSource = async ({
   name,
-  connectionUri,
   databaseName,
   collectionName,
   baseUrl,
-}: {
-  name: string;
-  connectionUri: string;
-  databaseName: string;
-  collectionName: string;
-  baseUrl: string;
-}): Promise<DataSource> => {
+}: DevCenterProjectConfig): Promise<DataSource> => {
+  const { DEVCENTER_CONNECTION_URI } = assertEnvVars(INGEST_ENV_VARS);
+
   return {
     name,
     async fetchPages() {
-      const client = await new MongoClient(connectionUri).connect();
+      const client = await new MongoClient(DEVCENTER_CONNECTION_URI).connect();
       try {
         const db = client.db(databaseName);
         const collection = db.collection<DevCenterEntry>(collectionName);

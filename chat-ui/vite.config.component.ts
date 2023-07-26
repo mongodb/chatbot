@@ -10,7 +10,7 @@ export default defineConfig({
   plugins: [
     nodePolyfills({
       exclude: [
-        "fs", // Excludes the polyfill for `fs` and `node:fs`.
+        "fs" as never, // Excludes the polyfill for `fs` and `node:fs`.
       ],
       globals: {
         Buffer: true,

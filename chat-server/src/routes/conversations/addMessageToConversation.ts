@@ -61,8 +61,6 @@ export const AddMessageRequest = SomeExpressRequest.merge(
   })
 )
 
-// ExpressResponse;
-
 export interface AddMessageToConversationRouteParams {
   store: EmbeddedContentStore;
   conversations: ConversationsServiceInterface;

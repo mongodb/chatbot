@@ -1,0 +1,10 @@
+flowchart
+    B[Pages command]
+    C[Embed command]
+    B --> D(fetch pages from source)
+    D --> E(store pages in Atlas)
+    
+    C --> F(fetch pages from Atlas)
+    F -- for pages marked\n 'created' or 'updated' --> G(make embeddings)
+    G --> H(store embeddings in Atlas)
+    F -- for pages marked 'deleted' --> I(delete embeddings\nfor page)

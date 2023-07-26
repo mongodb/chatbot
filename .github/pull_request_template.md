@@ -1,4 +1,4 @@
-Jira:
+Jira: https://jira.mongodb.org/browse/TICKET_NUMBER
 
 ## Proposed Changes
 

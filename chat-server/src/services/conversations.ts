@@ -6,7 +6,7 @@ import {
   OpenAiMessageRole,
 } from "chat-core";
 import { SYSTEM_PROMPT } from "../aiConstants";
-import { References } from "../routes/conversations/addMessageToConversation";
+import { References } from "chat-core";
 
 export interface Message {
   /** Unique identifier for the message. */

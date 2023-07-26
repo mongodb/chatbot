@@ -1,7 +1,6 @@
 import { Response } from "express";
 import { OpenAiStreamingResponse } from "./llm";
-import { logger } from "chat-core";
-import { References } from "../routes/conversations/addMessageToConversation";
+import { logger, References } from "chat-core";
 
 function escapeNewlines(str: string): string {
   return str.replaceAll(`\n`, `\\n`);

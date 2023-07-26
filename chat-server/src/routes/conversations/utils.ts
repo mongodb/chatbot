@@ -1,7 +1,7 @@
 import { isIP } from "net";
 import { Address6 } from "ip-address";
 import { Conversation, Message } from "../../services/conversations";
-import { References } from "./addMessageToConversation";
+import { References } from "chat-core";
 export interface ApiMessage {
   id: string;
   role: string;

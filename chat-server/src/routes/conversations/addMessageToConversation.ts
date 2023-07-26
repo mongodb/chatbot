@@ -12,6 +12,8 @@ import {
   EmbeddedContentStore,
   logger,
   FindNearestNeighborsOptions,
+  References,
+  Reference,
   WithScore,
 } from "chat-core";
 import {
@@ -380,13 +382,6 @@ export async function addMessagesToDatabase({
   });
   return { userMessage, assistantMessage };
 }
-
-export interface Reference {
-  url: string;
-  title: string;
-}
-
-export type References = Reference[];
 
 export const createLinkReference = (link: string): Reference => {
   const url = new URL(link);

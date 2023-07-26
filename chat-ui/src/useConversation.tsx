@@ -1,6 +1,6 @@
 import { useReducer } from "react";
+import { References } from "chat-core";
 import {
-  References,
   MessageData,
   Role,
   conversationService,

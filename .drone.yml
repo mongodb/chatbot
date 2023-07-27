@@ -101,27 +101,27 @@ trigger:
     - promote
   target:
     - staging
-    
-    steps:
-      # Deploys docker image associated with staging build that triggered promotion
-      - name: deploy-staging-chat-server
-        image: quay.io/mongodb/drone-helm:v3
-        settings:
-          chart: mongodb/web-app
-          chart_version: 4.12.3
-          add_repos: [mongodb=https://10gen.github.io/helm-charts]
-          namespace: docs
-          release: chat-server
-          values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-server.docs.staging.corp.mongodb.com
-          values_files: ["chat-server/environments/staging.yml"]
-          api_server: https://api.staging.corp.mongodb.com
-          kubernetes_token:
-            from_secret: staging_kubernetes_token
-        when:
-          ref:
-            - "!refs/tags/chat-server-qa-*"
-          branch:
-            - main
+
+  steps:
+    # Deploys docker image associated with staging build that triggered promotion
+    - name: deploy-staging-chat-server
+      image: quay.io/mongodb/drone-helm:v3
+      settings:
+        chart: mongodb/web-app
+        chart_version: 4.12.3
+        add_repos: [mongodb=https://10gen.github.io/helm-charts]
+        namespace: docs
+        release: chat-server
+        values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-server.docs.staging.corp.mongodb.com
+        values_files: ["chat-server/environments/staging.yml"]
+        api_server: https://api.staging.corp.mongodb.com
+        kubernetes_token:
+          from_secret: staging_kubernetes_token
+      when:
+        ref:
+          - "!refs/tags/chat-server-qa-*"
+        branch:
+          - main
 ---
 depends_on: ["test-all"]
 kind: pipeline

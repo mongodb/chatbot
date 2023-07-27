@@ -4,7 +4,7 @@ import Badge from "@leafygreen-ui/badge";
 import Banner from "@leafygreen-ui/banner";
 // import Card from "@leafygreen-ui/card";
 import Box from "@leafygreen-ui/box";
-import { Subtitle, Body, Link } from "@leafygreen-ui/typography";
+import { Subtitle, Body, Link, InlineCode } from "@leafygreen-ui/typography";
 import useConversation, { Conversation } from "./useConversation";
 import { CSSTransition } from "react-transition-group";
 import { useClickAway } from "@uidotdev/usehooks";
@@ -44,7 +44,7 @@ function ErrorBanner() {
   return (
     <Banner className={styles.lg_banner} variant="danger">
       Something went wrong. Try reloading the page and starting a new
-      conversation.     
+      conversation.
     </Banner>
   );
 }
@@ -56,6 +56,16 @@ function VerifyInformationBanner() {
       verified prior to use.
     </Banner>
   );
+}
+
+function ConversationIdInfo({ conversation }: { conversation: Conversation }) {
+  return import.meta.env.VITE_QA ? (
+    <div>
+      <Body>
+        Conversation ID: <InlineCode>{conversation.conversationId}</InlineCode>
+      </Body>
+    </div>
+  ) : null;
 }
 
 type CTACardProps = {
@@ -96,6 +106,7 @@ function CTACard({
     <Box ref={cardRef} className={styles.card}>
       {active && !isEmptyConversation ? (
         <>
+          <ConversationIdInfo conversation={conversation} />
           <div className={styles.card_content_title}>
             <Subtitle>MongoDB AI</Subtitle>
             <Badge variant="blue">Experimental</Badge>
@@ -112,7 +123,8 @@ function CTACard({
           <MessageList>
             {conversation.messages.map((message) => {
               const showLoadingSkeleton = conversation.isStreamingMessage
-                ? message.id === conversation.streamingMessage?.id && conversation.streamingMessage?.content === ""
+                ? message.id === conversation.streamingMessage?.id &&
+                  conversation.streamingMessage?.content === ""
                 : awaitingReply;
               return showLoadingSkeleton ? (
                 <Message key={message.id} role="assistant">
@@ -131,7 +143,7 @@ function CTACard({
       ) : null}
 
       {active && conversation.error ? <ErrorBanner /> : null}
-        
+
       {active ? <VerifyInformationBanner /> : null}
 
       {!active || !conversation.error ? (

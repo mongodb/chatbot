@@ -121,9 +121,9 @@ steps:
     when:
       ref:
         - "!refs/tags/chat-server-qa-*"
-      branch:
-        - main
-        - DOCSP-31574 # TODO: remove before merge
+      # branch:
+      #   - main
+      #   - DOCSP-31574 # TODO: remove before merge
 ---
 depends_on: ["test-all"]
 kind: pipeline

@@ -55,6 +55,7 @@ name: staging-build-chat-server
 trigger:
   branch:
     - main
+    - DOCSP-31574 # TODO: remove before merge
   event:
     - push
 
@@ -122,6 +123,7 @@ steps:
         - "!refs/tags/chat-server-qa-*"
       branch:
         - main
+        - DOCSP-31574 # TODO: remove before merge
 ---
 depends_on: ["test-all"]
 kind: pipeline
@@ -186,7 +188,7 @@ steps:
       chart_version: 4.12.3
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: docs
-      release: chat-server
+      release: chat-server-qa
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-qa,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-qa.docs.staging.corp.mongodb.com
       values_files: ["chat-server/environments/qa.yml"]
       api_server: https://api.staging.corp.mongodb.com

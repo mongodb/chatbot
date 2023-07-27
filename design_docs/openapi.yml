@@ -71,11 +71,25 @@ paths:
       summary: Send a message to the conversation
       parameters:
         - $ref: "#/components/parameters/conversationId"
+        - name: stream
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: |
+            If `true`, the response will be streamed to the client. This is useful for long-running conversations.
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Message"
+              type: object
+              required: [message]
+              properties:
+                message:
+                  type: string
+                  format: markdown
+                  description: |
+                    Markdown-formatted message from the user.
       responses:
         200:
           description: OK
@@ -207,6 +221,29 @@ components:
           type: integer
           description: |
             Unix timestamp for when the message was sent.
+        references:
+          type: array
+          description: |
+            List of references to external resources that are relevant
+            to the message. For example, if the message is a response to
+            a user's question about how to connect, the list of
+            references could include links to the documentation, dev
+            center articles, or a video lesson on MongoDB University.
+          items:
+            type: object
+            required: [title, url]
+            properties:
+              title:
+                type: string
+                description: |
+                  Title of the reference. This is what shows up in
+                  rendered links. For example, "How to connect to
+                  MongoDB Atlas".
+              url:
+                type: string
+                format: uri
+                description: |
+                  URL to the reference. For example, "https://mongodb.com/docs/atlas/getting-started?tck=docs_chat".
     MessageRating:
       type: object
       properties:

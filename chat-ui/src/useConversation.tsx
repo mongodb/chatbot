@@ -1,8 +1,10 @@
 import { useReducer } from "react";
+import { References } from "chat-core";
 import {
   MessageData,
   Role,
   conversationService,
+  formatReferences,
 } from "./services/conversations";
 import createMessage, { createMessageId } from "./createMessage";
 import { updateArrayElementAt } from "./utils";
@@ -298,11 +300,19 @@ export default function useConversation() {
     let finishedStreaming = false;
     let streamedMessageId: string | null = null;
     let streamedMessage = "";
+    let references: References | null = null;
     const streamingIntervalMs = 50;
     const streamingInterval = setInterval(() => {
       if (streamedMessage) {
         dispatch({ type: "appendStreamingResponse", data: streamedMessage });
         streamedMessage = "";
+      }
+      if (references) {
+        dispatch({
+          type: "appendStreamingResponse",
+          data: formatReferences(references),
+        });
+        references = null;
       }
       if (finishedStreaming) {
         if (!streamedMessageId) {
@@ -326,6 +336,9 @@ export default function useConversation() {
           onResponseDelta: async (data: string) => {
             streamedMessage += data;
           },
+          onReferences: async (data: References) => {
+            references = data;
+          },
           onResponseFinished: async (messageId: string) => {
             streamedMessageId = messageId;
             finishedStreaming = true;
@@ -337,10 +350,14 @@ export default function useConversation() {
           conversationId: state.conversationId,
           message: content,
         });
+        references = response.references ?? null;
+        const referencesContent = references
+          ? formatReferences(references)
+          : "";
         dispatch({
           type: "addMessage",
           role: "assistant",
-          content: response.content,
+          content: response.content + referencesContent,
         });
       }
     } catch (error) {

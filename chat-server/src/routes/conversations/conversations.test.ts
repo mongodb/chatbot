@@ -25,12 +25,13 @@ import {
   addMessagesToDatabase,
   makeAddMessageToConversationRoute,
   convertDbMessageToOpenAiMessage,
-  generateFurtherReading,
+  generateReferences,
   validateApiConversationFormatting,
   getContentForText,
   MAX_INPUT_LENGTH,
   AddMessageToConversationRouteParams,
   MAX_MESSAGES_IN_CONVERSATION,
+  createLinkReference,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
 import { makeOpenAiLlm } from "../../services/llm";
@@ -202,7 +203,7 @@ describe("Conversations Router", () => {
     });
 
     describe("Streamed response", () => {
-      it("should respond with a 200 text/event-stream that streams the response", async () => {
+      it("should respond with a 200 text/event-stream that streams the response & further reading references", async () => {
         const requestBody = {
           message:
             "how can i use mongodb products to help me build my new mobile app?",
@@ -216,6 +217,7 @@ describe("Conversations Router", () => {
         expect(res.statusCode).toEqual(200);
         expect(res.header["content-type"]).toBe("text/event-stream");
         expect(res.text).toContain(`data: {"type":"delta","data":"`);
+        expect(res.text).toContain(`data: {"type":"references","data":[{`);
         expect(res.text).toContain(`data: {"type":"finished","data":"`);
       });
     });
@@ -267,9 +269,6 @@ describe("Conversations Router", () => {
         expect(res.body).toStrictEqual({
           error: "Conversation not found",
         });
-      });
-      test("should return 403 if IP address in request doesn't match IP address in conversation", async () => {
-        // TODO: this is done in DOCSP-30843
       });
       test("Should return 400 if number of messages in conversation exceeds limit", async () => {
         const { _id } = await conversations.create({
@@ -443,9 +442,7 @@ describe("Conversations Router", () => {
               conversationConstants.LLM_NOT_WORKING
             )
           ).toBe(true);
-          const markdownLinkRegex =
-            /\[\w+.*\]\(https?:\/\/.*\?tck=docs_chatbot\)/g;
-          expect(markdownLinkRegex.test(response.body.content)).toBe(true);
+          expect(response.body.references.length).toBeGreaterThan(0);
         });
       });
     });
@@ -466,6 +463,9 @@ describe("Conversations Router", () => {
               conversationId,
               userMessageContent,
               assistantMessageContent,
+              assistantMessageReferences: [
+                { url: "https://www.example.com/", title: "Example Reference" },
+              ],
               conversations,
             }
           );
@@ -514,7 +514,28 @@ describe("Conversations Router", () => {
           role: sampleDbMessage.role,
         });
       });
-
+      test("createLinkReference", () => {
+        const links = [
+          "https://www.example.com/",
+          "https://www.example.com/2",
+          "https://www.subdomin.example.com/baz",
+        ]
+        const linkReferences = links.map(link => createLinkReference(link));
+        expect(linkReferences).toStrictEqual([
+          {
+            title: "https://www.example.com/",
+            url: "https://www.example.com/?tck=docs_chatbot",
+          },
+          {
+            title: "https://www.example.com/2",
+            url: "https://www.example.com/2?tck=docs_chatbot",
+          },
+          {
+            title: "https://www.subdomin.example.com/baz",
+            url: "https://www.subdomin.example.com/baz?tck=docs_chatbot",
+          },
+        ]);
+      });
       describe("getContentForText()", () => {
         test("Should return content for relevant text", async () => {
           const text = "MongoDB Atlas";
@@ -546,7 +567,7 @@ describe("Conversations Router", () => {
           expect(chunks.length).toBe(0);
         });
       });
-      describe("generateFurtherReading()", () => {
+      describe("generateReferences()", () => {
         // Chunk 1 and 2 are the same page. Chunk 3 is a different page.
         const chunk1 = {
           _id: new ObjectId(),
@@ -575,57 +596,72 @@ describe("Conversations Router", () => {
           updated: new Date(),
           sourceName: "realm",
         };
-        const tck = "?tck=docs_chatbot";
         test("No sources should return empty string", () => {
           const noChunks: EmbeddedContent[] = [];
-          const noFurtherReading = generateFurtherReading({
+          const noReferences = generateReferences({
             chunks: noChunks,
           });
-          expect(noFurtherReading).toEqual("");
+          expect(noReferences).toEqual([]);
         });
         test("One source should return one link", () => {
           const oneChunk: EmbeddedContent[] = [chunk1];
-          const oneFurtherReading = generateFurtherReading({
+          const oneReference = generateReferences({
             chunks: oneChunk,
           });
-          const url = oneChunk[0].url;
-          const expectedOneFurtherReading = `\n\nFurther Reading:\n\n[${url}](${url}${tck})\n\n`;
-          expect(oneFurtherReading).toEqual(expectedOneFurtherReading);
+          const expectedOneReference = [
+            {
+              title: "https://mongodb.com/docs/realm/sdk/node/",
+              url: "https://mongodb.com/docs/realm/sdk/node/?tck=docs_chatbot",
+            },
+          ];
+          expect(oneReference).toEqual(expectedOneReference);
         });
         test("Multiple sources from same page should return one link", () => {
           const twoChunksSamePage: EmbeddedContent[] = [chunk1, chunk2];
-          const oneFurtherReadingSamePage = generateFurtherReading({
+          const oneReferenceSamePage = generateReferences({
             chunks: twoChunksSamePage,
           });
-          const url = twoChunksSamePage[0].url;
-          const expectedOneFurtherReadingSamePage = `\n\nFurther Reading:\n\n[${url}](${url}${tck})\n\n`;
-          expect(oneFurtherReadingSamePage).toEqual(
-            expectedOneFurtherReadingSamePage
-          );
+          const expectedOneReferenceSamePage = [
+            {
+              title: "https://mongodb.com/docs/realm/sdk/node/",
+              url: "https://mongodb.com/docs/realm/sdk/node/?tck=docs_chatbot",
+            },
+          ];
+          expect(oneReferenceSamePage).toEqual(expectedOneReferenceSamePage);
         });
         test("Multiple sources from different pages should return 1 link per page", () => {
           const twoChunksDifferentPage: EmbeddedContent[] = [chunk1, chunk3];
-          const multipleFurtherReadingDifferentPage = generateFurtherReading({
+          const multipleReferencesDifferentPage = generateReferences({
             chunks: twoChunksDifferentPage,
           });
-          const [url1, url2] = [
-            twoChunksDifferentPage[0].url,
-            twoChunksDifferentPage[1].url,
+          const expectedMultipleReferencesDifferentPage = [
+            {
+              title: "https://mongodb.com/docs/realm/sdk/node/",
+              url: "https://mongodb.com/docs/realm/sdk/node/?tck=docs_chatbot",
+            },
+            {
+              title: "https://mongodb.com/docs/realm/sdk/node/xyz",
+              url: "https://mongodb.com/docs/realm/sdk/node/xyz?tck=docs_chatbot",
+            },
           ];
-          const expectedMultipleFurtherReadingDifferentPage = `\n\nFurther Reading:\n\n[${url1}](${url1}${tck})\n\n[${url2}](${url2}${tck})\n\n`;
-          expect(multipleFurtherReadingDifferentPage).toEqual(
-            expectedMultipleFurtherReadingDifferentPage
+          expect(multipleReferencesDifferentPage).toEqual(
+            expectedMultipleReferencesDifferentPage
           );
           // All three sources. Two from the same page. One from a different page.
           const threeChunks: EmbeddedContent[] = [chunk1, chunk2, chunk3];
-          const multipleSourcesWithSomePageOverlap = generateFurtherReading({
+          const multipleSourcesWithSomePageOverlap = generateReferences({
             chunks: threeChunks,
           });
-          const [otherUrl1, otherUrl2] = [
-            threeChunks[0].url,
-            threeChunks[2].url,
+          const expectedMultipleSourcesWithSomePageOverlap = [
+            {
+              title: "https://mongodb.com/docs/realm/sdk/node/",
+              url: "https://mongodb.com/docs/realm/sdk/node/?tck=docs_chatbot",
+            },
+            {
+              title: "https://mongodb.com/docs/realm/sdk/node/xyz",
+              url: "https://mongodb.com/docs/realm/sdk/node/xyz?tck=docs_chatbot",
+            },
           ];
-          const expectedMultipleSourcesWithSomePageOverlap = `\n\nFurther Reading:\n\n[${otherUrl1}](${otherUrl1}${tck})\n\n[${otherUrl2}](${otherUrl2}${tck})\n\n`;
           expect(multipleSourcesWithSomePageOverlap).toEqual(
             expectedMultipleSourcesWithSomePageOverlap
           );

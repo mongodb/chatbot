@@ -8,10 +8,13 @@ import {
   ObjectId,
   OpenAiMessageRole,
   EmbedFunc,
+  EmbeddedContent,
+  EmbeddedContentStore,
   FindNearestNeighborsOptions,
+  References,
+  Reference,
   WithScore,
 } from "chat-core";
-import { EmbeddedContent, EmbeddedContentStore } from "chat-core";
 import {
   Conversation,
   ConversationsServiceInterface,
@@ -202,6 +205,7 @@ export function makeAddMessageToConversationRoute({
           conversationId,
           userMessageContent: latestMessageText,
           assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,
+          assistantMessageReferences: [],
         });
         const apiRes = convertMessageFromDbToApi(assistantMessage);
         if (shouldStream) {
@@ -221,7 +225,7 @@ export function makeAddMessageToConversationRoute({
         }
       }
 
-      const furtherReading = generateFurtherReading({ chunks });
+      const references = generateReferences({ chunks });
 
       const chunkTexts = chunks.map((chunk) => chunk.text);
 
@@ -242,18 +246,17 @@ export function makeAddMessageToConversationRoute({
           chunks: chunkTexts,
         });
         dataStreamer.connect(res);
-        const answer = await dataStreamer.stream({
+        answerContent = await dataStreamer.stream({
           stream: answerStream,
         });
         logRequest({
           reqId,
-          message: `LLM response: ${JSON.stringify(answer)}`,
+          message: `LLM response: ${JSON.stringify(answerContent)}`,
         });
         await dataStreamer.streamData({
-          type: "delta",
-          data: furtherReading,
+          type: "references",
+          data: references,
         });
-        answerContent = answer + furtherReading;
       } else {
         try {
           const messages = [
@@ -272,7 +275,7 @@ export function makeAddMessageToConversationRoute({
             reqId,
             message: `LLM response: ${JSON.stringify(answer)}`,
           });
-          answerContent = answer.content + furtherReading;
+          answerContent = answer.content;
         } catch (err) {
           const errorMessage =
             err instanceof Error ? err.message : JSON.stringify(err);
@@ -287,9 +290,7 @@ export function makeAddMessageToConversationRoute({
           });
           answer = {
             role: "assistant",
-            content:
-              conversationConstants.LLM_NOT_WORKING +
-              removeFurtherReadingHeading(furtherReading),
+            content: conversationConstants.LLM_NOT_WORKING,
           } satisfies OpenAiChatMessage;
           answerContent = answer.content;
         }
@@ -304,6 +305,7 @@ export function makeAddMessageToConversationRoute({
         conversationId,
         userMessageContent: latestMessageText,
         assistantMessageContent: answerContent,
+        assistantMessageReferences: references,
       });
 
       const apiRes = convertMessageFromDbToApi(assistantMessage);
@@ -323,6 +325,9 @@ export function makeAddMessageToConversationRoute({
         message: "An unexpected error occurred: " + JSON.stringify(err),
         type: "error",
       });
+      if(dataStreamer.connected) {
+        dataStreamer.disconnect();
+      }
       next(err);
     }
   };
@@ -366,12 +371,14 @@ interface AddMessagesToDatabaseParams {
   conversationId: ObjectId;
   userMessageContent: string;
   assistantMessageContent: string;
+  assistantMessageReferences: References;
   conversations: ConversationsServiceInterface;
 }
 export async function addMessagesToDatabase({
   conversationId,
   userMessageContent,
   assistantMessageContent,
+  assistantMessageReferences,
   conversations,
 }: AddMessagesToDatabaseParams) {
   // TODO: consider refactoring addConversationMessage to take in an array of messages.
@@ -385,39 +392,30 @@ export async function addMessagesToDatabase({
     conversationId,
     content: assistantMessageContent,
     role: "assistant",
+    references: assistantMessageReferences,
   });
   return { userMessage, assistantMessage };
 }
 
-export interface GenerateFurtherReadingParams {
+export const createLinkReference = (link: string): Reference => {
+  const url = new URL(link);
+  url.searchParams.append("tck", "docs_chatbot");
+  return {
+    url: url.href,
+    title: url.origin + url.pathname,
+  };
+};
+
+export interface GenerateReferencesParams {
   chunks: EmbeddedContent[];
-  hasHeading?: boolean;
 }
 
-const furtherReadingHeading = "\n\nFurther Reading:\n\n";
-
-export function removeFurtherReadingHeading(text: string) {
-  const headingPattern = new RegExp(furtherReadingHeading);
-  return text.replace(headingPattern, "");
-}
-
-export function generateFurtherReading({
-  chunks,
-  hasHeading = true,
-}: GenerateFurtherReadingParams) {
+export function generateReferences({ chunks }: GenerateReferencesParams): References {
   if (chunks.length === 0) {
-    return "";
+    return [];
   }
-  const heading = hasHeading ? furtherReadingHeading : "";
   const uniqueLinks = Array.from(new Set(chunks.map((chunk) => chunk.url)));
-
-  const linksText = uniqueLinks.reduce((acc, link) => {
-    const url = new URL(link);
-    url.searchParams.append("tck", "docs_chatbot");
-    const linkListItem = `[${url.origin + url.pathname}](${url.href})\n\n`;
-    return acc + linkListItem;
-  }, "");
-  return heading + linksText;
+  return uniqueLinks.map((link) => createLinkReference(link));
 }
 
 export function validateApiConversationFormatting({

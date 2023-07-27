@@ -1,6 +1,7 @@
 import { isIP } from "net";
 import { Address6 } from "ip-address";
 import { Conversation, Message } from "../../services/conversations";
+import { References } from "chat-core";
 import { z } from "zod";
 
 export type ApiMessage = z.infer<typeof ApiMessage>;
@@ -10,6 +11,7 @@ export const ApiMessage = z.object({
   content: z.string(),
   rating: z.boolean().optional(),
   createdAt: z.number(),
+  references: References.optional(),
 });
 
 export type ApiConversation = z.infer<typeof ApiConversation>;
@@ -26,6 +28,7 @@ export function convertMessageFromDbToApi(message: Message): ApiMessage {
     content: message.content,
     rating: message.rating,
     createdAt: message.createdAt.getTime(),
+    references: message.references,
   };
 }
 export function convertConversationFromDbToApi(

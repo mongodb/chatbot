@@ -1,5 +1,6 @@
-import { ConversationState } from "../useConversation";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
+import type { References } from "chat-core";
+import { ConversationState } from "../useConversation";
 
 export type Role = "user" | "assistant";
 
@@ -9,11 +10,23 @@ export type MessageData = {
   content: string;
   createdAt: string;
   rating?: boolean;
+  references?: References;
 };
 
 type ConversationServiceConfig = {
   serverUrl: string;
 };
+
+export function formatReferences(references: References): string {
+  if (references.length === 0) {
+    return ""
+  }
+  const heading = "\n\n**Further reading:**\n\n";
+  const listOfLinks = references
+    .map((entry) => `- [${entry.title}](${entry.url})`)
+    .join("\n\n");
+  return heading + listOfLinks;
+}
 
 class RetriableError<Data extends object = object> extends Error {
   retryAfter: number;
@@ -118,6 +131,7 @@ export default class ConversationService {
     message,
     maxRetries = 0,
     onResponseDelta,
+    onReferences,
     onResponseFinished,
     signal,
   }: {
@@ -125,6 +139,7 @@ export default class ConversationService {
     message: string;
     maxRetries: number;
     onResponseDelta: (delta: string) => void;
+    onReferences: (references: References) => void;
     onResponseFinished: (messageId: string) => void;
     signal?: AbortSignal;
   }): Promise<void> {
@@ -135,6 +150,7 @@ export default class ConversationService {
 
     type ConversationStreamEvent =
       | { type: "delta"; data: string }
+      | { type: "references"; data: References }
       | { type: "finished"; data: string };
 
     const isConversationStreamEvent = (
@@ -143,6 +159,7 @@ export default class ConversationService {
       const e = event as ConversationStreamEvent;
       return (
         (e.type === "delta" && typeof e.data === "string") ||
+        (e.type === "references" && typeof e.data === "object") ||
         (e.type === "finished" && typeof e.data === "string")
       );
     };
@@ -164,6 +181,10 @@ export default class ConversationService {
           case "delta": {
             const formattedData = event.data.replaceAll(`\\n`, `\n`);
             onResponseDelta(formattedData);
+            break;
+          }
+          case "references": {
+            onReferences(event.data);
             break;
           }
           case "finished": {

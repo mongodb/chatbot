@@ -387,7 +387,7 @@ export default function useConversation() {
           clearInterval(cleanupInterval);
           resolve();
         }
-      }, streamingIntervalMs / 2);
+      }, streamingIntervalMs);
     });
   };
 

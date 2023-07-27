@@ -1,6 +1,6 @@
-import { ConversationState } from "../useConversation";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import type { References } from "chat-core";
+import { ConversationState } from "../useConversation";
 
 export type Role = "user" | "assistant";
 

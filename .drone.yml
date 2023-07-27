@@ -139,11 +139,15 @@ steps:
   # Builds and publishes Docker image for qa
   - name: publish-qa-chat-server
     image: plugins/kaniko-ecr
+    environment:
+      ENVIRONMENT: qa
     settings:
       dockerfile: chat-server.dockerfile
       create_repository: true
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
       repo: docs/${DRONE_REPO_NAME}-chat-server
+      build_args:
+        - ENVIRONMENT
       tags:
         - git-${DRONE_COMMIT_SHA:0:7}-qa
         - latest-qa

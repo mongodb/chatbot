@@ -77,12 +77,14 @@ describe("SnootyDataSource", () => {
         url: "https://mongodb.com/docs/v6.0/",
       });
 
-      // This one has index at the end of a subpath
+      // This one has index at the end of a subpath, so it should not be
+      // stripped because only index at the root of a project has special
+      // handling in Snooty
       expect(pages[2]).toMatchObject({
         format: "md",
         sourceName: "snooty-docs",
         tags: ["docs", "manual"],
-        url: "https://mongodb.com/docs/v6.0/administration/analyzing-mongodb-performance/",
+        url: "https://mongodb.com/docs/v6.0/administration/analyzing-mongodb-performance/index/",
       });
 
       // This has index in the middle of the page_id that should not be stripped

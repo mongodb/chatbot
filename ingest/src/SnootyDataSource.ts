@@ -223,13 +223,17 @@ const handlePage = async (
   const pagePath = page.page_id
     .split("/")
     .slice(3)
-    .join("/")
-    .replace(/\/?$/, "/"); // Add trailing slash
+    .filter((segment, i) => {
+      // Remove `index` if it's the only segment, as that would create broken links.
+      // `index` in subdirectories is fine - Snooty has special case handling for
+      // `/index` only.
+      return i !== 0 || segment !== "index";
+    })
+    .join("/");
 
   return {
     url: new URL(pagePath, baseUrl.replace(/\/?$/, "/")).href.replace(
-      // Remove 'index' which would create broken links
-      /\/index\/$/,
+      /\/?$/, // Add trailing slash
       "/"
     ),
     sourceName,

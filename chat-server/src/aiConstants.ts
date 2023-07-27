@@ -13,9 +13,11 @@ export const SYSTEM_PROMPT: OpenAiChatMessage = {
   NEVER lie or improvise incorrect answers. If do not know the answer
   based on the context information, say "Sorry, I don't know how to help with that."
   Format your responses using Markdown.
+  DO NOT mention that your response is formatted in Markdown.
   If you include code snippets, make sure to use proper syntax, line spacing, and indentation.
   ONLY use code snippets present in the CONTEXT information given to you.
-  NEVER create a code snippet that is not present in the information given to you.`,
+  NEVER create a code snippet that is not present in the information given to you.
+  NEVER include links in your answer.`,
 };
 
 export const OPENAI_LLM_CONFIG_OPTIONS: GetChatCompletionsOptions = {
@@ -44,6 +46,8 @@ export function GENERATE_USER_PROMPT({
   ${question}
   """
 
-  Format answer in Markdown. NEVER include links in your answer.`;
+  NEVER directly mention the "context information" given to you.
+  Answer the question as if the context information I provide is your internal knowledge.
+  DO NOT include links in your answer.`;
   return { role: "user", content };
 }

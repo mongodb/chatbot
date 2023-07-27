@@ -58,7 +58,10 @@ export default class ConversationService {
         `Invalid path: ${path} - ConversationService paths must start with /`
       );
     }
-    const url = new URL(path, this.serverUrl);
+    const url = new URL(
+      path.replace(/^\/?/, ""), // Strip leading slash (if present) to not clobber baseUrl path
+      this.serverUrl.replace(/\/?$/, "/") // Add trailing slash to not lose last segment of baseUrl
+    );
     const queryString = new URLSearchParams(queryParams).toString();
     if (!queryString) {
       return url.toString();
@@ -257,7 +260,6 @@ export default class ConversationService {
     });
   }
 }
-
 export const conversationService = new ConversationService({
   serverUrl: import.meta.env.VITE_SERVER_BASE_URL,
 });

@@ -13,14 +13,11 @@ import { stripIndent } from "common-tags";
  * @returns
  */
 export const getRequestId = (req: ExpressRequest) => {
-  const reqId = req.headers["req-id"];
+  const reqId = req.header("req-id");
   if (!reqId) {
-    return undefined;
-  } else if (Array.isArray(reqId)) {
-    return undefined;
-  } else {
-    return reqId;
+    return "";
   }
+  return reqId;
 };
 
 export interface LogRequestParams {

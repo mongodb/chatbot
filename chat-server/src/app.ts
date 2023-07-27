@@ -17,7 +17,7 @@ import {
 import { DataStreamer } from "./services/dataStreamer";
 import { ObjectId } from "mongodb";
 import { ConversationsServiceInterface } from "./services/conversations";
-import { logRequest, sendErrorResponse } from "./utils";
+import { getRequestId, logRequest, sendErrorResponse } from "./utils";
 import {
   Llm,
   OpenAiAwaitedResponse,
@@ -25,19 +25,21 @@ import {
 } from "./services/llm";
 
 // General error handler; called at usage of next() in routes
-export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
+  const reqId = getRequestId(req);
   const httpStatus = err.status || 500;
+  const errorMessage = err.message || "Internal Server Error";
 
   if (!res.headersSent) {
     return sendErrorResponse({
-      reqId: _req.headers["req-id"] as string,
+      reqId,
       res,
       httpStatus,
-      errorMessage: err.message || "Internal Server Error",
+      errorMessage,
     });
   } else {
     logRequest({
-      reqId: _req.headers["req-id"] as string,
+      reqId,
       type: "error",
       message: JSON.stringify(err),
     });
@@ -69,6 +71,9 @@ export const makeHandleTimeoutMiddleware = (apiTimeout: number) => {
   };
 };
 
+export const API_V1_PREFIX = "/api/v1";
+export const CONVERSATIONS_API_V1_PREFIX = `${API_V1_PREFIX}/conversations`;
+
 export const REQUEST_TIMEOUT = 60000; // 60 seconds
 export const makeApp = async ({
   embed,
@@ -90,13 +95,13 @@ export const makeApp = async ({
   const app = express();
   app.use(makeHandleTimeoutMiddleware(requestTimeout));
   app.set("trust proxy", true);
-  // TODO: consider only serving this from the staging env
   app.use(cors()); // TODO: add specific options to only allow certain origins
   app.use(express.json());
   app.use(reqHandler);
+  // TODO: consider only serving this from the staging env
   app.use(express.static("static"));
   app.use(
-    "/conversations",
+    CONVERSATIONS_API_V1_PREFIX,
     makeConversationsRouter({
       llm,
       embed,
@@ -108,7 +113,7 @@ export const makeApp = async ({
   );
   app.all("*", (req, res, _next) => {
     return sendErrorResponse({
-      reqId: req.headers["req-id"] as string,
+      reqId: getRequestId(req),
       res,
       httpStatus: 404,
       errorMessage: "Not Found",

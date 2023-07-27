@@ -6,7 +6,7 @@ info:
     name: TBD
     url: TBD
 servers:
-  - url: http://TBD.mongodb.com/v1
+  - url: http://knowledge.mongodb.com/api/v1
 security:
   - ApiKeyAuth: []
 paths:

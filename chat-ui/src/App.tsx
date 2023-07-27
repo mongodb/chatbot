@@ -7,7 +7,9 @@ function App() {
     <div className={styles.app_background}>
       <div
         style={{
-          width: "750px",
+          maxWidth: "750px",
+          minWidth: "315px",
+          width: "100%",
         }}
       >
         <Chatbot />
@@ -18,7 +20,7 @@ function App() {
 
 export default function LGApp() {
   return (
-    <LeafyGreenProvider>
+    <LeafyGreenProvider darkMode={false}>
       <App />
     </LeafyGreenProvider>
   );

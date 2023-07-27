@@ -106,7 +106,7 @@
     "node_modules",
     "dist",
     "**/*.test.ts",
-    "**/test-helpers.ts",
+    "**/testHelpers.ts",
     "jestSetUp.ts"
   ],
   "include": ["./src/**/*.ts"]

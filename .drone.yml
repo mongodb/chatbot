@@ -102,6 +102,7 @@ trigger:
   target:
     - staging
 
+# FOO
 steps:
   # Deploys docker image associated with staging build that triggered promotion
   - name: deploy-staging-chat-server

@@ -135,7 +135,7 @@ trigger:
     - tag
   ref:
     include:
-      - refs/tags/chat-server-qa
+      - refs/tags/chat-server-qa-*
 
 steps:
   # Builds and publishes Docker image for qa

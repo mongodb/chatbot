@@ -7,7 +7,6 @@ import {
   assertEnvVars,
   CORE_ENV_VARS,
   EmbeddedContentStore,
-  DatabaseConnection,
   EmbeddedContent,
   makeDatabaseConnection,
   EmbedFunc,
@@ -38,7 +37,6 @@ import { makeOpenAiLlm } from "../../services/llm";
 import { makeDataStreamer } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
-import { makeRateMessageRoute } from "./rateMessage";
 import { makeApp } from "../../app";
 
 jest.setTimeout(100000);
@@ -191,7 +189,6 @@ describe("Conversations Router", () => {
               "?stream=true"
           )
           .send(requestBody);
-        console.log("RES::", res);
         expect(res.statusCode).toEqual(200);
         expect(res.header["content-type"]).toBe("text/event-stream");
         expect(res.text).toContain(`data: {"type":"delta","data":"`);

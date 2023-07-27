@@ -5,11 +5,11 @@ import { getRequestId, logRequest, sendErrorResponse } from "../utils";
 
 export const SomeExpressRequest = z.object({
   ip: z.string(),
-  headers: z.object({}),
-  params: z.object({}),
-  query: z.object({}),
-  body: z.object({}),
-});
+  headers: z.object({}).optional(),
+  params: z.object({}).optional(),
+  query: z.object({}).optional(),
+  body: z.object({}).optional(),
+}).strict();
 
 function generateZodErrorMessage(error: ZodError) {
   return generateErrorMessage(error.issues, {
@@ -19,18 +19,20 @@ function generateZodErrorMessage(error: ZodError) {
   });
 }
 
-export default function validateRequestSchema(schema: typeof SomeExpressRequest) {
+export default function validateRequestSchema(schema: AnyZodObject) {
+  schema = SomeExpressRequest.merge(schema);
   return async (req: Request, res: Response, next: NextFunction) => {
     const result = await schema.safeParseAsync(req);
     if (result.success) {
       return next();
     }
     const reqId = getRequestId(req);
+    const message = generateZodErrorMessage(result.error);
     logRequest({
       reqId,
-      message: generateZodErrorMessage(result.error),
+      message,
     });
-    return sendErrorResponse({
+    sendErrorResponse({
       reqId,
       res,
       httpStatus: 400,

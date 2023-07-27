@@ -9,36 +9,48 @@ import {
   Response as ExpressResponse,
   NextFunction,
 } from "express";
-import { logRequest, sendErrorResponse } from "../../utils";
+import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { areEquivalentIpAddresses, isValidIp } from "./utils";
+import { z } from "zod";
+import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 
-interface RatingRequest extends ExpressRequest {
-  params: {
-    conversationId: string;
-    messageId: string;
-  };
-  body: {
-    rating: boolean;
-  };
-}
+export type RateMessageRequest = z.infer<typeof RateMessageRequest>;
+
+export const RateMessageRequest = SomeExpressRequest.merge(
+  z.object({
+    headers: z.object({
+      "req-id": z.string(),
+    }),
+    params: z.object({
+      conversationId: z.string(),
+      messageId: z.string(),
+    }),
+    body: z.object({
+      rating: z.boolean(),
+    }),
+    ip: z.string(),
+  })
+);
+
 export interface RateMessageRouteParams {
   conversations: ConversationsServiceInterface;
 }
+
 export function makeRateMessageRoute({
   conversations,
 }: RateMessageRouteParams) {
   return async (
-    req: RatingRequest,
-    res: ExpressResponse,
+    req: ExpressRequest,
+    res: ExpressResponse<void>,
     next: NextFunction
   ) => {
+    const reqId = getRequestId(req);
     try {
       const { ip } = req;
-      // TODO:(DOCSP-30863) implement type checking on the request
 
       if (!isValidIp(ip)) {
         return sendErrorResponse({
-          reqId: req.headers["req-id"] as string,
+          reqId,
           res,
           httpStatus: 400,
           errorMessage: `Invalid IP address ${ip}`,
@@ -53,7 +65,7 @@ export function makeRateMessageRoute({
         conversationId = new ObjectId(conversationIdStr);
       } catch (err) {
         return sendErrorResponse({
-          reqId: req.headers["req-id"] as string,
+          reqId,
           res,
           httpStatus: 400,
           errorMessage: "Invalid conversation ID",
@@ -63,7 +75,7 @@ export function makeRateMessageRoute({
         messageId = new ObjectId(messageIdStr);
       } catch (err) {
         return sendErrorResponse({
-          reqId: req.headers["req-id"] as string,
+          reqId,
           res,
           httpStatus: 400,
           errorMessage: "Invalid message ID",
@@ -76,22 +88,25 @@ export function makeRateMessageRoute({
           _id: conversationId,
         });
 
-        assert(conversationInDb);
+        if (!conversationInDb) {
+          throw new Error("Conversation not found");
+        }
       } catch (err) {
         return sendErrorResponse({
-          reqId: req.headers["req-id"] as string,
+          reqId,
           res,
           httpStatus: 404,
           errorMessage: "Conversation not found",
         });
       }
+
       if (
         !conversationInDb.messages.find((message) =>
           message.id.equals(messageId)
         )
       ) {
         return sendErrorResponse({
-          reqId: req.headers["req-id"] as string,
+          reqId,
           res,
           httpStatus: 404,
           errorMessage: "Message not found",
@@ -100,7 +115,7 @@ export function makeRateMessageRoute({
 
       if (!areEquivalentIpAddresses(conversationInDb.ipAddress, ip)) {
         return sendErrorResponse({
-          reqId: req.headers["req-id"] as string,
+          reqId,
           res,
           httpStatus: 403,
           errorMessage: "Invalid IP address for conversation",
@@ -115,15 +130,15 @@ export function makeRateMessageRoute({
       if (successfulOperation) {
         res.sendStatus(204);
         logRequest({
-          reqId: req.headers["req-id"] as string,
+          reqId,
           message: `Rated message ${messageIdStr} in conversation ${conversationIdStr} with rating ${rating}`,
         });
         return;
       } else {
         return sendErrorResponse({
-          reqId: req.headers["req-id"] as string,
+          reqId,
           res,
-          httpStatus: 500,
+          httpStatus: 400,
           errorMessage: "Invalid rating",
         });
       }

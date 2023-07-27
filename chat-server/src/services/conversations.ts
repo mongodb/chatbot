@@ -11,7 +11,7 @@ export interface Message {
   /** Unique identifier for the message. */
   id: ObjectId;
   /** The role of the message in the context of the conversation. */
-  role: string;
+  role: "system" | "assistant" | "user";
   /** Markdown-formatted response to user's chat message in the context of the conversation. */
   content: string;
   /** Set to `true` if the user liked the response, `false` if the user didn't like the response. No value if user didn't rate the response. Note that only messages with `role: "assistant"` can be rated. */

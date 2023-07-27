@@ -84,7 +84,7 @@ describe("App", () => {
         try {
           throw new Error("Unexpected error");
         } catch (e) {
-          next(e);
+          return next(e);
         }
       });
       errorApp.use(errorHandler);

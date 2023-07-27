@@ -119,11 +119,9 @@ steps:
       kubernetes_token:
         from_secret: staging_kubernetes_token
     when:
-      ref:
-        - "!refs/tags/chat-server-qa-*"
-      # branch:
-      #   - main
-      #   - DOCSP-31574 # TODO: remove before merge
+      branch:
+        - main
+        - DOCSP-31574 # TODO: remove before merge
 ---
 depends_on: ["test-all"]
 kind: pipeline

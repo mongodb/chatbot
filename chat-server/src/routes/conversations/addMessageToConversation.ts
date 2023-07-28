@@ -62,7 +62,7 @@ export const AddMessageRequest = SomeExpressRequest.merge(
     body: AddMessageRequestBody,
     ip: z.string(),
   })
-)
+);
 
 export interface AddMessageToConversationRouteParams {
   store: EmbeddedContentStore;
@@ -325,7 +325,7 @@ export function makeAddMessageToConversationRoute({
         message: "An unexpected error occurred: " + JSON.stringify(err),
         type: "error",
       });
-      if(dataStreamer.connected) {
+      if (dataStreamer.connected) {
         dataStreamer.disconnect();
       }
       next(err);
@@ -410,7 +410,9 @@ export interface GenerateReferencesParams {
   chunks: EmbeddedContent[];
 }
 
-export function generateReferences({ chunks }: GenerateReferencesParams): References {
+export function generateReferences({
+  chunks,
+}: GenerateReferencesParams): References {
   if (chunks.length === 0) {
     return [];
   }

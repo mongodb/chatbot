@@ -32,7 +32,7 @@ describe("SnootyDataSource", () => {
       "./test_data/snooty_sample_data.txt"
     );
     const baseMock = nock(snootyDataApiBaseUrl);
-    beforeAll(() => {
+    beforeEach(() => {
       baseMock
         .get(`/projects/${project.name}/${project.currentBranch}/documents`)
         .reply(200, () => fs.createReadStream(sampleDataPath));
@@ -42,7 +42,6 @@ describe("SnootyDataSource", () => {
       nock.cleanAll();
     });
     it("successfully loads pages", async () => {
-      // TODO: fix typescript typing
       const source = await makeSnootyDataSource({
         name: `snooty-test`,
         project,
@@ -69,9 +68,11 @@ describe("SnootyDataSource", () => {
       });
     });
     it("removes 'index' from page_id", async () => {
-      const source = await makeSnootyDataSource(
-        sourceConfig as SnootyProjectConfig
-      );
+      const source = await makeSnootyDataSource({
+        name: "snooty-docs",
+        project: project,
+        snootyDataApiBaseUrl,
+      });
       const pages = await source.fetchPages();
       expect(pages.length).toBe(12);
       expect(pages[0]).toMatchObject({

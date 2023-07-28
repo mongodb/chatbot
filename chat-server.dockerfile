@@ -1,6 +1,8 @@
 # Build stage
 FROM node:18-alpine as builder
 
+ARG ENVIRONMENT
+ENV ENVIRONMENT=${ENVIRONMENT}
 # Install all dependencies && set up project
 WORKDIR /app
 COPY . ./

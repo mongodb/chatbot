@@ -5,7 +5,11 @@ import { INGEST_ENV_VARS } from "./IngestEnvVars";
 
 const { DEVCENTER_CONNECTION_URI } = assertEnvVars(INGEST_ENV_VARS);
 
-export const snootyProjectConfig: SnootyProjectConfig[] = [
+// 'baseUrl' to be filled in by the Snooty Data API GET projects endpoint -
+// unless you want to specify one to override whatever the Data API says
+export const snootyProjectConfig: (Omit<SnootyProjectConfig, "baseUrl"> & {
+  baseUrl?: string;
+})[] = [
   {
     type: "snooty",
     name: "cloud-docs",

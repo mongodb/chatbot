@@ -6,13 +6,13 @@ import {
   PageStore,
 } from "chat-core";
 import { updatePages } from "../updatePages";
-import { makeSnootyDataSource, SnootyProjectConfig } from "../SnootyDataSource";
 import {
   DevCenterProjectConfig,
   makeDevCenterDataSource,
 } from "../DevCenterDataSource";
-import { projectSourcesConfig } from "../projectSources";
+import { projectSourcesConfig, snootyProjectConfig } from "../projectSources";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
+import { prepareSnootySources } from "../SnootyProjectsInfo";
 
 type PagesCommandArgs = {
   source?: string | string[];
@@ -55,16 +55,12 @@ export const doPagesCommand = async ({
 }: PagesCommandArgs & {
   store: PageStore;
 }) => {
-  const { DEVCENTER_CONNECTION_URI } = assertEnvVars(INGEST_ENV_VARS);
-
   const requestedSources = new Set(Array.isArray(source) ? source : [source]);
 
-  const snootyConfigs = projectSourcesConfig.filter(
-    (project) => project.type === "snooty"
-  ) as SnootyProjectConfig[];
-  const snootySources = await Promise.all(
-    snootyConfigs.map(makeSnootyDataSource)
-  );
+  const snootySources = await prepareSnootySources({
+    projects: snootyProjectConfig,
+    snootyDataApiBaseUrl: "https://snooty-data-api.mongodb.com/prod/",
+  });
 
   const devCenterConfig = projectSourcesConfig.find(
     (project) => project.type === "devcenter"

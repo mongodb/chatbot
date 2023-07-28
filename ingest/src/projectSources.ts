@@ -1,9 +1,5 @@
-import { assertEnvVars } from "chat-core";
 import { DevCenterProjectConfig } from "./DevCenterDataSource";
 import { SnootyProjectConfig } from "./SnootyDataSource";
-import { INGEST_ENV_VARS } from "./IngestEnvVars";
-
-const { DEVCENTER_CONNECTION_URI } = assertEnvVars(INGEST_ENV_VARS);
 
 // 'baseUrl' to be filled in by the Snooty Data API GET projects endpoint -
 // unless you want to specify one to override whatever the Data API says

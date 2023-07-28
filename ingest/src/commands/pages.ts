@@ -1,4 +1,5 @@
 import { CommandModule } from "yargs";
+import { strict as assert } from "assert";
 import {
   assertEnvVars,
   logger,
@@ -64,9 +65,9 @@ export const doPagesCommand = async ({
 
   const devCenterConfig = projectSourcesConfig.find(
     (project) => project.type === "devcenter"
-  ) as DevCenterProjectConfig;
-  const devCenterSource =
-    devCenterConfig && (await makeDevCenterDataSource(devCenterConfig));
+  ) as DevCenterProjectConfig | undefined;
+  assert(devCenterConfig !== undefined);
+  const devCenterSource = await makeDevCenterDataSource(devCenterConfig);
 
   const availableSources = [...snootySources, devCenterSource];
 

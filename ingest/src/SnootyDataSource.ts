@@ -209,9 +209,22 @@ const handlePage = async (
 ): Promise<Page> => {
   // Strip first three path segments - according to Snooty team, they'll always
   // be ${property}/docsworker-xlarge/${branch}
-  const pagePath = page.page_id.split("/").slice(3).join("/");
+  const pagePath = page.page_id
+    .split("/")
+    .slice(3)
+    .filter((segment, i) => {
+      // Remove `index` if it's the only segment, as that would create broken links.
+      // `index` in subdirectories is fine - Snooty has special case handling for
+      // `/index` only.
+      return i !== 0 || segment !== "index";
+    })
+    .join("/");
+
   return {
-    url: new URL(pagePath, baseUrl.replace(/\/?$/, "/")).href,
+    url: new URL(pagePath, baseUrl.replace(/\/?$/, "/")).href.replace(
+      /\/?$/, // Add trailing slash
+      "/"
+    ),
     sourceName,
     body: snootyAstToMd(page.ast, { baseUrl }),
     format: "md",

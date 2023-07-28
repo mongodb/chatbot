@@ -1,11 +1,10 @@
 import fs from "fs";
 import { createInterface } from "readline";
 import { Page } from "chat-core";
-import nodeFetch from "node-fetch";
+import fetch from "node-fetch";
 import { DataSource } from "./DataSource";
 import { snootyAstToMd } from "./snootyAstToMd";
 import { ProjectBase } from "./ProjectBase";
-import { strict as assert } from "assert";
 
 // These types are what's in the snooty manifest jsonl file.
 export type SnootyManifestEntry = {
@@ -64,29 +63,50 @@ export type SnootyProjectConfig = ProjectBase & {
   //  * @example ["master", "v4.11"]
   //  */
   // additionalBranches?: string[];
+
+  /**
+    The base URL of pages within the project site.
+   */
+  baseUrl: string;
+};
+
+export type MakeSnootyDataSourceArgs = {
+  /**
+    The data source name.
+   */
+  name: string;
+
+  /**
+    The configuration for the Snooty project.
+   */
+  project: SnootyProjectConfig;
+
+  /**
+    The base URL for Snooty Data API requests.
+   */
+  snootyDataApiBaseUrl: string;
 };
 
 export const makeSnootyDataSource = async ({
-  name,
-  currentBranch,
-  tags,
-}: SnootyProjectConfig): Promise<DataSource> => {
-  const snootyDataApiEndpoint = "https://snooty-data-api.mongodb.com/prod";
-  const baseUrl = await getSnootyProjectBaseUrl({
-    projectName: name,
-    branchName: currentBranch,
-    snootyDataApiEndpoint,
-  });
-  const snootyName = `snooty-${name}`;
-
+  name: sourceName,
+  project,
+  snootyDataApiBaseUrl,
+}: MakeSnootyDataSourceArgs): Promise<DataSource> => {
+  const { baseUrl, currentBranch, name: snootyProjectName, tags } = project;
   return {
-    name: snootyName,
+    baseUrl,
+    currentBranch,
+    snootyProjectName,
+    name: sourceName,
     async fetchPages() {
       // TODO: The manifest can be quite large (>100MB) so this could stand to
       // be re-architected to use AsyncGenerators and update page-by-page. For
       // now we can just accept the memory cost.
-      const getBranchDocumentsUrl = `${snootyDataApiEndpoint}/projects/${name}/${currentBranch}/documents`;
-      const { body } = await nodeFetch(getBranchDocumentsUrl);
+      const getBranchDocumentsUrl = new URL(
+        `projects/${snootyProjectName}/${currentBranch}/documents`,
+        snootyDataApiBaseUrl
+      );
+      const { body } = await fetch(getBranchDocumentsUrl);
       if (body === null) {
         return [];
       }
@@ -102,7 +122,7 @@ export const makeSnootyDataSource = async ({
                 (async () => {
                   const page = await handlePage(
                     (entry as SnootyPageEntry).data,
-                    { sourceName: `snooty-${name}`, baseUrl, tags: tags ?? [] }
+                    { sourceName, baseUrl, tags: tags ?? [] }
                   );
                   pages.push(page);
                 })()
@@ -133,7 +153,7 @@ export const makeSnootyDataSource = async ({
       await Promise.allSettled(linePromises);
       return pages;
     },
-  };
+  } as DataSource;
 };
 
 /**
@@ -174,37 +194,6 @@ export interface SnootyProject {
    */
   branches: Branch[];
 }
-
-/** Schema for API response from https://snooty-data-api.mongodb.com/prod/projects */
-export interface GetSnootyProjectsResponse {
-  data: SnootyProject[];
-}
-
-export const getSnootyProjectBaseUrl = async ({
-  projectName,
-  branchName,
-  snootyDataApiEndpoint,
-}: {
-  projectName: string;
-  branchName: string;
-  snootyDataApiEndpoint: string;
-}) => {
-  const response = await nodeFetch(`${snootyDataApiEndpoint}/projects`);
-  const { data: projectMetadata }: GetSnootyProjectsResponse =
-    await response.json();
-  const siteMetadata = projectMetadata.find(
-    (snootyProject) => snootyProject.project === projectName
-  );
-  const branchMetaData = siteMetadata?.branches.find(
-    (branch) => branch.active && branch.gitBranchName === branchName
-  );
-  // Make sure there is an active branch at the specified branch name
-  assert(
-    branchMetaData,
-    `For project '${projectName}', no active branch found for '${branchName}'.`
-  );
-  return branchMetaData.fullUrl.replace("http://", "https://");
-};
 
 const handlePage = async (
   page: SnootyPageData,

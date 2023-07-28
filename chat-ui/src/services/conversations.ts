@@ -17,15 +17,19 @@ type ConversationServiceConfig = {
   serverUrl: string;
 };
 
-export function formatReferences(references: References): string {
+export function formatReferencesTokens(references: References): string[] {
   if (references.length === 0) {
-    return ""
+    return [];
   }
   const heading = "\n\n**Further reading:**\n\n";
-  const listOfLinks = references
-    .map((entry) => `- [${entry.title}](${entry.url})`)
-    .join("\n\n");
-  return heading + listOfLinks;
+  const listOfLinks = references.map(
+    (entry) => `- [${entry.title}](${entry.url})`
+  );
+  return [heading, ...listOfLinks];
+}
+
+export function formatReferences(references: References): string {
+  return formatReferencesTokens(references).join("\n\n");
 }
 
 class RetriableError<Data extends object = object> extends Error {

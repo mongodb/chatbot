@@ -55,7 +55,6 @@ name: staging-build-chat-server
 trigger:
   branch:
     - main
-    - DOCSP-31574 # TODO: remove before merge
   event:
     - push
 
@@ -121,7 +120,6 @@ steps:
     when:
       branch:
         - main
-        - DOCSP-31574 # TODO: remove before merge
 ---
 depends_on: ["test-all"]
 kind: pipeline

@@ -53,7 +53,6 @@ describe("SnootyDataSource", () => {
       const pageAst = astPages.filter(
         (entry: { type: string }) => entry.type === "page"
       )[1]?.data.ast;
-      console.log(pageAst);
       expect(pageAst).toBeDefined();
       const firstPageText = snootyAstToMd(pageAst!, { baseUrl });
       expect(pages[1]).toMatchObject({

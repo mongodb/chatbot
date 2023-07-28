@@ -4,7 +4,7 @@ module.exports = {
   },
   root: true,
   parser: "@typescript-eslint/parser",
-  plugins: ["@typescript-eslint"],
+  plugins: ["@typescript-eslint", "jsdoc"],
   extends: [
     "eslint:recommended",
     "prettier",
@@ -12,4 +12,5 @@ module.exports = {
     "plugin:@typescript-eslint/recommended",
   ],
   ignorePatterns: ["**/build/*"],
+  rules: { "jsdoc/require-asterisk-prefix": ["error", "never"] },
 };

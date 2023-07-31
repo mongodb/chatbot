@@ -97,7 +97,13 @@ export const makeDatabaseConnection = async ({
     },
 
     async findNearestNeighbors(vector, options) {
-      const { indexName, path, k, minScore }: FindNearestNeighborsOptions = {
+      const {
+        indexName,
+        path,
+        k,
+        minScore,
+        filter,
+      }: Partial<FindNearestNeighborsOptions> = {
         // Default options
         indexName: "default",
         path: "embedding",
@@ -116,6 +122,7 @@ export const makeDatabaseConnection = async ({
                 vector,
                 path,
                 k,
+                filter,
               },
             },
           },

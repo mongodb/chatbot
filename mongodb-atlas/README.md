@@ -26,6 +26,10 @@ When you run it:
         "dimensions": 1536,
         "similarity": "cosine",
         "type": "knnVector"
+      },
+      "sourceName": {
+        "analyzer": "lucene.keyword",
+        "type": "string"
       }
     }
   }

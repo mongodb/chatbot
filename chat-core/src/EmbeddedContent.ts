@@ -92,4 +92,9 @@ export type FindNearestNeighborsOptions = {
     The minimum nearest-neighbor score threshold between 0-1.
    */
   minScore: number;
+
+  /**
+    Atlas Search filter expression.
+   */
+  filter: Record<string, unknown>;
 };

@@ -1,20 +1,20 @@
 {
-  "name": "chat-ui",
-  "description": "UI components for the MongoDB Docs Chatbot",
+  "name": "mongodb-chatbot-ui",
+  "description": "UI for the MongoDB AI Chatbot",
   "author": "MongoDB, Inc.",
   "license": "Apache-2.0",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "type": "module",
   "files": [
     "dist",
     "README.md"
   ],
-  "main": "./dist/docs-chatbot.umd.js",
-  "module": "./dist/docs-chatbot.es.js",
+  "main": "./dist/mongodb-chatbot-ui.umd.js",
+  "module": "./dist/mongodb-chatbot-ui.es.js",
   "exports": {
     ".": {
-      "import": "./dist/docs-chatbot.es.js",
-      "require": "./dist/docs-chatbot.umd.js"
+      "import": "./dist/mongodb-chatbot-ui.es.js",
+      "require": "./dist/mongodb-chatbot-ui.umd.js"
     },
     "./css": {
       "import": "./dist/style.css",

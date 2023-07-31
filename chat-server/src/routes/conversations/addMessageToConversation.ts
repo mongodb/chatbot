@@ -361,9 +361,56 @@ export async function getContentForText({
     text,
     userIp: ipAddress,
   });
-  return await store.findNearestNeighbors(
+
+  let results = await store.findNearestNeighbors(
     embedding,
     findNearestNeighborsOptions
+  );
+  if (shouldBoostMongoDbManual({ text })) {
+    results = await boostManualResults({
+      embedding,
+      existingResults: results,
+      findNearestNeighborsOptions,
+      store,
+    });
+  }
+  return results;
+}
+
+export function shouldBoostMongoDbManual({ text }: { text: string }): boolean {
+  return text.split(" ").length <= 3;
+}
+
+export async function boostManualResults({
+  embedding,
+  existingResults,
+  findNearestNeighborsOptions,
+  store,
+}: {
+  embedding: number[];
+  existingResults: WithScore<EmbeddedContent>[];
+  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
+  numResults?: number;
+  store: EmbeddedContentStore;
+}) {
+  const manualResults = await store.findNearestNeighbors(embedding, {
+    ...findNearestNeighborsOptions,
+    filter: {
+      text: {
+        path: "sourceName",
+        query: "snooty-docs",
+      },
+    },
+    k: 3,
+    minScore: 0.88,
+  });
+
+  const newResults = existingResults.filter((result) =>
+    manualResults.every((manualResult) => manualResult.text !== result.text)
+  );
+  return [...manualResults, ...newResults].slice(
+    0,
+    findNearestNeighborsOptions?.k ?? 5
   );
 }
 

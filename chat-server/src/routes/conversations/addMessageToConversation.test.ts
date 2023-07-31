@@ -29,6 +29,8 @@ import {
   AddMessageToConversationRouteParams,
   MAX_MESSAGES_IN_CONVERSATION,
   createLinkReference,
+  shouldBoostMongoDbManual,
+  boostManualResults,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
 import { makeOpenAiLlm } from "../../services/llm";
@@ -485,6 +487,104 @@ describe("POST /conversations/:conversationId/messages", () => {
         });
         expect(chunks).toBeDefined();
         expect(chunks.length).toBe(0);
+      });
+    });
+    describe("shouldBoostMongoDbManual()", () => {
+      test("Should boost MongoDB manual", () => {
+        const text = "insert one";
+        expect(shouldBoostMongoDbManual({ text })).toBe(true);
+      });
+      test("Should not boost MongoDB manual", () => {
+        const text = "blah blah blah length > 3";
+        expect(shouldBoostMongoDbManual({ text })).toBe(false);
+      });
+    });
+    describe("boostManualResults()", () => {
+      const sharedResult = {
+        _id: new ObjectId(),
+        url: "https://mongodb.com/docs",
+        text: "blah blah blah",
+        tokenCount: 100,
+        embedding: [0.1, 0.2, 0.3],
+        updated: new Date(),
+        sourceName: "snooty-docs", // only important value
+        score: 0.98,
+      };
+      const mockManualResults = [
+        sharedResult,
+        {
+          _id: new ObjectId(),
+          url: "https://mongodb.com/docs",
+          text: "lorem ipsum",
+          tokenCount: 100,
+          embedding: [0.1, 0.2, 0.3],
+          updated: new Date(),
+          sourceName: "snooty-docs", // only important value
+          score: 0.91,
+        },
+      ];
+      const mockStore: EmbeddedContentStore = {
+        loadEmbeddedContent: jest.fn(),
+        deleteEmbeddedContent: jest.fn(),
+        updateEmbeddedContent: jest.fn(),
+        async findNearestNeighbors() {
+          return mockManualResults;
+        },
+      };
+      const existingResults = [
+        {
+          _id: new ObjectId(),
+          url: "https://mongodb.com/docs/",
+          text: "foo bar baz",
+          tokenCount: 100,
+          embedding: [0.1, 0.2, 0.3],
+          updated: new Date(),
+          sourceName: "not-snooty-docs", // only important value
+          score: 0.99,
+        },
+        sharedResult,
+        {
+          _id: new ObjectId(),
+          url: "https://mongodb.com/docs/",
+          text: "four score and seven years ago",
+          tokenCount: 100,
+          embedding: [0.1, 0.2, 0.3],
+          updated: new Date(),
+          sourceName: "not-snooty-docs", // only important value
+          score: 0.955,
+        },
+        {
+          _id: new ObjectId(),
+          url: "https://mongodb.com/docs/",
+          text: "one small step for man, one giant leap for mankind",
+          tokenCount: 100,
+          embedding: [0.1, 0.2, 0.3],
+          updated: new Date(),
+          sourceName: "not-snooty-docs", // only important value
+          score: 0.95,
+        },
+        {
+          _id: new ObjectId(),
+          url: "https://mongodb.com/docs/",
+          text: "everything you own in a box to the left",
+          tokenCount: 100,
+          embedding: [0.1, 0.2, 0.3],
+          updated: new Date(),
+          sourceName: "not-snooty-docs", // only important value
+          score: 0.95,
+        },
+      ];
+      const embedding = [0.1, 0.2, 0.3];
+      test("Boosts manual results", async () => {
+        const results = await boostManualResults({
+          embedding,
+          existingResults,
+          store: mockStore,
+        });
+        expect(results).toHaveLength(5);
+        expect(results[0]).toStrictEqual(sharedResult);
+        expect(results[1]).toStrictEqual(mockManualResults[1]);
+        expect(results[2]).toStrictEqual(existingResults[0]);
       });
     });
     describe("generateReferences()", () => {

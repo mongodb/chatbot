@@ -40,7 +40,7 @@ export const updateEmbeddedContent = async ({
     switch (page.action) {
       case "deleted":
         logger.info(
-          `Deleting embedded content for ${page.sourceName}:${page.url}`
+          `Deleting embedded content for ${page.sourceName}: ${page.url}`
         );
         await embeddedContentStore.deleteEmbeddedContent({
           page,

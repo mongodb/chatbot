@@ -91,7 +91,10 @@ export const makeOpenAiEmbedFunc = ({
           } = err.response;
 
           const errorMessage = error?.message ?? "Unknown error";
-          if (status !== 429 /* HTTP 429: Too Many Requests */) {
+          if (
+            status !== 429 /* HTTP 429: Too Many Requests */ &&
+            status !== 503 /* HTTP 503: Service Unavailable */
+          ) {
             const message = stripIndent`OpenAI Embedding API returned an error:
 - status: ${status}
 - error: ${errorMessage}`;

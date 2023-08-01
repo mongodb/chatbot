@@ -98,7 +98,6 @@ export const makeOpenAiEmbedFunc = ({
                 attemptNumber - 1
               }): ${errorMessage}`
             );
-            console.log("Retry-After::", err?.response?.headers["retry-after"]);
 
             // Quick optimization for retry where we wait as long as it tells us
             // to (if it does)

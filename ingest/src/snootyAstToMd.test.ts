@@ -64,7 +64,6 @@ describe("snootyAstToMd", () => {
     const result = snootyAstToMd(page.data.ast, {
       baseUrl: "/",
     });
-    writeFileSync("./definitionListSample.md", result, { encoding: "utf-8" });
     expect(result.startsWith("# $merge (aggregation)")).toBe(true);
     const expectedToInclude = `Writes the results of the [aggregation pipeline](//core/aggregation-pipeline/#) to a specified collection. The
 [\`$merge\`](/reference/operator/aggregation/merge/#mongodb-pipeline-pipe.-merge) operator must be the **last** stage in the

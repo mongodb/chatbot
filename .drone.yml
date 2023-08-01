@@ -273,6 +273,7 @@ name: staging-build-ingest-service
 trigger:
   branch:
     - main
+    - fix_ingest_drone # TODO: remove before merge
   event:
     - push
   paths:

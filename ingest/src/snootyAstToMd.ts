@@ -11,6 +11,7 @@ export const snootyAstToMd = (
   parentHeadingLevel = 0,
   text = ""
 ): string => {
+  // Base cases (terminal nodes)
   if (node.children === undefined) {
     // value nodes
     switch (node.type) {
@@ -20,10 +21,15 @@ export const snootyAstToMd = (
       case "code":
         text += `\`\`\`${node.lang}\n${node.value}\n\`\`\`\n\n`;
         break;
+
       default:
         break;
     }
     return text;
+  }
+  // Just render line break for target_identifier
+  if (node.type === "target_identifier") {
+    return text + `\n`;
   }
 
   // parent nodes
@@ -91,10 +97,6 @@ export const snootyAstToMd = (
         .join("")}**`;
       break;
 
-    case "target":
-      // Ignore targets as they are not rendered
-      break;
-
     default:
       text += node.children
         .map((subnode) => snootyAstToMd(subnode, options, parentHeadingLevel))
@@ -102,5 +104,5 @@ export const snootyAstToMd = (
       break;
   }
 
-  return text;
+  return text.replaceAll(/\n{3,}/g, "\n\n").trimStart(); // remove extra newlines with just 2
 };

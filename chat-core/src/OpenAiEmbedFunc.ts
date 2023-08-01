@@ -91,34 +91,43 @@ export const makeOpenAiEmbedFunc = ({
           } = err.response;
 
           const errorMessage = error?.message ?? "Unknown error";
-          if (
-            status !== 429 /* HTTP 429: Too Many Requests */ &&
-            status !== 503 /* HTTP 503: Service Unavailable */
-          ) {
-            const message = stripIndent`OpenAI Embedding API returned an error:
+          const FIVE_SECONDS = 5;
+          if (status === 429) {
+            logger.info(
+              `OpenAI Embedding API rate limited (attempt ${
+                attemptNumber - 1
+              }): ${errorMessage}`
+            );
+            console.log("Retry-After::", err?.response?.headers["retry-after"]);
+
+            // Quick optimization for retry where we wait as long as it tells us
+            // to (if it does)
+            const matches = /retry after ([0-9]+) seconds/.exec(errorMessage);
+            const waitSeconds = matches ? parseInt(matches[1]) : FIVE_SECONDS;
+            if (waitSeconds) {
+              await new Promise((resolve) =>
+                setTimeout(resolve, waitSeconds * 1000)
+              );
+            }
+
+            return true; // Keep trying until max attempts
+          }
+          if (status >= 500) {
+            logger.info(
+              `OpenAI Embedding API unavailable (attempt ${
+                attemptNumber - 1
+              }): ${errorMessage}`
+            );
+            await new Promise((resolve) =>
+              setTimeout(resolve, FIVE_SECONDS * 1000)
+            );
+            return true; // Keep trying until max attempts
+          }
+          const message = stripIndent`OpenAI Embedding API returned an error:
 - status: ${status}
 - error: ${errorMessage}`;
-            logger.error(message);
-            return false;
-          }
-
-          logger.info(
-            `OpenAI Embedding API rate limited (attempt ${
-              attemptNumber - 1
-            }): ${errorMessage}`
-          );
-
-          // Quick optimization for retry where we wait as long as it tells us
-          // to (if it does)
-          const matches = /retry after ([0-9]+) seconds/.exec(errorMessage);
-          const waitSeconds = matches ? parseInt(matches[1]) : 0;
-          if (waitSeconds) {
-            await new Promise((resolve) =>
-              setTimeout(resolve, waitSeconds * 1000)
-            );
-          }
-
-          return true; // Keep trying until max attempts
+          logger.error(message);
+          return false;
         },
       }
     );

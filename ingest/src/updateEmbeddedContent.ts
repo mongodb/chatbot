@@ -115,7 +115,7 @@ export const updateEmbeddedContentForPage = async ({
     logger.info(
       `Vectorizing chunk ${i + 1}/${contentChunks.length} for ${
         page.sourceName
-      }:${page.url}`
+      }: ${page.url}`
     );
     const { embedding } = await embed({
       text: chunk.text,

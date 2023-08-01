@@ -336,6 +336,7 @@ steps:
         from_secret: staging_kubernetes_token
       branch:
         - main
+        - fix_ingest_drone # TODO: remove before merge
 ---
 depends_on: ["test-all"]
 kind: pipeline

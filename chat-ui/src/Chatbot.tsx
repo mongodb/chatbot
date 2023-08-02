@@ -6,7 +6,7 @@ import Badge from "@leafygreen-ui/badge";
 import Banner from "@leafygreen-ui/banner";
 import Modal, { ModalProps } from "@leafygreen-ui/modal";
 import { ParagraphSkeleton } from "@leafygreen-ui/skeleton-loader";
-import { Body, Link, Error as ErrorText } from "@leafygreen-ui/typography";
+import { Body, Link, Error as ErrorText, InlineCode } from "@leafygreen-ui/typography";
 import { Avatar } from "@lg-chat/avatar";
 import { InputBar } from "@lg-chat/input-bar";
 import { Message } from "@lg-chat/message";

@@ -61,6 +61,7 @@ name: staging-build-chat-server
 trigger:
   branch:
     - main
+    - lg-chat # TODO - Delete before merge
   event:
     - push
 
@@ -137,6 +138,7 @@ steps:
     when:
       branch:
         - main
+        - lg-chat # TODO - Delete before merge
 ---
 depends_on: ["test-all"]
 kind: pipeline
@@ -310,6 +312,7 @@ name: staging-build-ingest-service
 trigger:
   branch:
     - main
+    - lg-chat # TODO - Delete before merge
   event:
     - push
   paths:

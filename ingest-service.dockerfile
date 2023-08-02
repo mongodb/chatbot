@@ -3,7 +3,7 @@ FROM node:18-alpine as builder
 
 WORKDIR /app
 COPY . ./
-RUN npm ci -- --scope='{chat-core,ingest}' --stream --parallel && npm run bootstrap -- --scope='{chat-core,ingest}' --stream --parallel && npm run build -- --scope='{chat-core,ingest}' --stream --parallel
+RUN npm run bootstrap -- --scope='{chat-core,ingest}' && npm run build -- --scope='{chat-core,ingest}' --stream --parallel
 
 # Main image
 FROM node:18-alpine as main

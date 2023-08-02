@@ -42,6 +42,12 @@ steps:
         from_secret: openai_chat_completion_deployment
       DEVCENTER_CONNECTION_URI:
         from_secret: devcenter_connection_uri
+      LG_ARTIFACTORY_PASSWORD:
+        from_secret: lg_artifactory_password
+      LG_ARTIFACTORY_USERNAME:
+        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_EMAIL:
+        from_secret: lg_artifactory_email
 
 # ---
 # Chat Server pipelines

@@ -1,6 +1,9 @@
 import { strict as assert } from "assert";
-import { makeDevCenterDataSource } from "./DevCenterDataSource";
-
+import {
+  createDevCenterPageBody,
+  makeDevCenterDataSource,
+} from "./DevCenterDataSource";
+import { devCenterDoc } from "./test_data/sampleDevCenterDoc";
 import "dotenv/config";
 
 describe("DevCenterDataSource", () => {
@@ -25,5 +28,28 @@ describe("DevCenterDataSource", () => {
     pages.slice(0, 100).forEach(({ url }) => {
       expect(url).toMatch(/^https:\/\/example.com\/developer\/[A-z0-9/-]+$/);
     });
+  });
+});
+describe("createDevCenterPageBody()", () => {
+  it("removes all markdown links", () => {
+    const pageBody = createDevCenterPageBody({
+      title: devCenterDoc.name,
+      content: devCenterDoc.content,
+    });
+    expect(pageBody).not.toMatch(/\[.*\]\(.*\)/);
+  });
+  it("adds title to beginning of page if it exists", () => {
+    const pageBody = createDevCenterPageBody({
+      title: devCenterDoc.name,
+      content: devCenterDoc.content,
+    });
+    expect(pageBody).toMatch(/^# .*\n\n/);
+  });
+  it("does not add title to beginning of page if it does not exists", () => {
+    const pageBody = createDevCenterPageBody({
+      title: "",
+      content: devCenterDoc.content,
+    });
+    expect(pageBody).not.toMatch(/^# .*\n\n/);
   });
 });

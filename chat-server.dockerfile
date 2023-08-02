@@ -12,7 +12,7 @@ ENV LG_ARTIFACTORY_EMAIL=${LG_ARTIFACTORY_EMAIL}
 # Install all dependencies && set up project
 WORKDIR /app
 COPY . ./
-RUN npm ci && npm run bootstrap && npm run build
+RUN npm install lerna && npm run bootstrap && npm run build
 
 # Main image
 FROM node:18-alpine as main

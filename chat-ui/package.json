@@ -16,7 +16,7 @@
       "import": "./dist/mongodb-chatbot-ui.es.js",
       "require": "./dist/mongodb-chatbot-ui.umd.js"
     },
-    "./css": {
+    "./styles": {
       "import": "./dist/style.css",
       "require": "./dist/style.css"
     }
@@ -39,6 +39,9 @@
     "build-storybook": "storybook build",
     "release": "release-it"
   },
+  "bundleDependencies": [
+    "chat-core"
+  ],
   "dependencies": {
     "@leafygreen-ui/badge": "^8.0.7",
     "@leafygreen-ui/banner": "^7.0.8",

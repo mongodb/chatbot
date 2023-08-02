@@ -57,6 +57,7 @@ export const makeOpenAiEmbedFunc = ({
     "embeddings"
   );
   url.searchParams.append("api-version", apiVersion);
+  const DEFAULT_WAIT_SECONDS = 5;
   return async ({ text, userIp }) => {
     return backOff(
       async () => {
@@ -91,7 +92,6 @@ export const makeOpenAiEmbedFunc = ({
           } = err.response;
 
           const errorMessage = error?.message ?? "Unknown error";
-          const FIVE_SECONDS = 5;
           if (status === 429) {
             logger.info(
               `OpenAI Embedding API rate limited (attempt ${
@@ -102,7 +102,9 @@ export const makeOpenAiEmbedFunc = ({
             // Quick optimization for retry where we wait as long as it tells us
             // to (if it does)
             const matches = /retry after ([0-9]+) seconds/.exec(errorMessage);
-            const waitSeconds = matches ? parseInt(matches[1]) : FIVE_SECONDS;
+            const waitSeconds = matches
+              ? parseInt(matches[1])
+              : DEFAULT_WAIT_SECONDS;
             if (waitSeconds) {
               await new Promise((resolve) =>
                 setTimeout(resolve, waitSeconds * 1000)
@@ -111,6 +113,7 @@ export const makeOpenAiEmbedFunc = ({
 
             return true; // Keep trying until max attempts
           }
+          // Azure OpenAI service returns 5XX errors for rate limiting in addition to 429
           if (status >= 500) {
             logger.info(
               `OpenAI Embedding API unavailable (attempt ${
@@ -118,7 +121,7 @@ export const makeOpenAiEmbedFunc = ({
               }): ${errorMessage}`
             );
             await new Promise((resolve) =>
-              setTimeout(resolve, FIVE_SECONDS * 1000)
+              setTimeout(resolve, DEFAULT_WAIT_SECONDS * 1000)
             );
             return true; // Keep trying until max attempts
           }

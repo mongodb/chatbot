@@ -60,11 +60,13 @@ describe("snootyAstToMd", () => {
     expect(result.split("\n")[0]).toBe("# FAQ");
   });
   it("does not render links", () => {
+    const baseUrl = "https://some-base-url.com/";
     const result = snootyAstToMd(samplePage.data.ast, {
-      baseUrl: "https://some-base-url.com/",
+      baseUrl,
     });
     // expect result to not include something like [link text](https://some-base-url.com/faq)
-    expect(result.includes("](https://some-base-url.com/")).toBe(false);
+    const expectedNotIncludes = `](${baseUrl})`;
+    expect(result.includes(expectedNotIncludes)).toBe(false);
   });
   it("renders definition lists", () => {
     const result = snootyAstToMd(samplePage.data.ast, {

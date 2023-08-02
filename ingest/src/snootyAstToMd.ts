@@ -85,7 +85,6 @@ export const snootyAstToMd = (
     //   } else if (node.url && typeof node.url === "string") {
     //     url = node.url;
     //   }
-
     //   text += `[${node.children
     //     .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
     //     .join("")}](${url})`;

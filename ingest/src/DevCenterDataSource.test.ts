@@ -1,6 +1,6 @@
 import { strict as assert } from "assert";
 import {
-  createDevCenterPageBody,
+  makeDevCenterPageBody,
   makeDevCenterDataSource,
 } from "./DevCenterDataSource";
 import { devCenterDoc } from "./test_data/sampleDevCenterDoc";
@@ -30,23 +30,23 @@ describe("DevCenterDataSource", () => {
     });
   });
 });
-describe("createDevCenterPageBody()", () => {
+describe("makeDevCenterPageBody()", () => {
   it("removes all markdown links", () => {
-    const pageBody = createDevCenterPageBody({
+    const pageBody = makeDevCenterPageBody({
       title: devCenterDoc.name,
       content: devCenterDoc.content,
     });
     expect(pageBody).not.toMatch(/\[.*\]\(.*\)/);
   });
   it("adds title to beginning of page if it exists", () => {
-    const pageBody = createDevCenterPageBody({
+    const pageBody = makeDevCenterPageBody({
       title: devCenterDoc.name,
       content: devCenterDoc.content,
     });
     expect(pageBody).toMatch(/^# .*\n\n/);
   });
   it("does not add title to beginning of page if it does not exists", () => {
-    const pageBody = createDevCenterPageBody({
+    const pageBody = makeDevCenterPageBody({
       title: "",
       content: devCenterDoc.content,
     });

@@ -61,10 +61,8 @@ name: staging-build-chat-server
 trigger:
   branch:
     - main
-    - lg-chat # TODO - Delete before merge
-  # TODO uncomment the push event
-  # event:
-  #   - push
+  event:
+    - push
 
   paths:
     include:
@@ -110,36 +108,35 @@ steps:
       DRONE_TOKEN:
         from_secret: drone_token
 
-# ---
-# kind: pipeline
-# type: kubernetes
-# name: staging-deploy-chat-server
+---
+kind: pipeline
+type: kubernetes
+name: staging-deploy-chat-server
 
-# trigger:
-#   event:
-#     - promote
-#   target:
-#     - staging
+trigger:
+  event:
+    - promote
+  target:
+    - staging
 
-# steps:
-#   # Deploys docker image associated with staging build that triggered promotion
-#   - name: deploy-staging-chat-server
-#     image: quay.io/mongodb/drone-helm:v3
-#     settings:
-#       chart: mongodb/web-app
-#       chart_version: 4.12.3
-#       add_repos: [mongodb=https://10gen.github.io/helm-charts]
-#       namespace: docs
-#       release: chat-server
-#       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-server.docs.staging.corp.mongodb.com
-#       values_files: ["chat-server/environments/staging.yml"]
-#       api_server: https://api.staging.corp.mongodb.com
-#       kubernetes_token:
-#         from_secret: staging_kubernetes_token
-#     when:
-#       branch:
-#         - main
-#         - lg-chat # TODO - Delete before merge
+steps:
+  # Deploys docker image associated with staging build that triggered promotion
+  - name: deploy-staging-chat-server
+    image: quay.io/mongodb/drone-helm:v3
+    settings:
+      chart: mongodb/web-app
+      chart_version: 4.12.3
+      add_repos: [mongodb=https://10gen.github.io/helm-charts]
+      namespace: docs
+      release: chat-server
+      values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-server.docs.staging.corp.mongodb.com
+      values_files: ["chat-server/environments/staging.yml"]
+      api_server: https://api.staging.corp.mongodb.com
+      kubernetes_token:
+        from_secret: staging_kubernetes_token
+    when:
+      branch:
+        - main
 ---
 depends_on: ["test-all"]
 kind: pipeline
@@ -147,15 +144,11 @@ type: kubernetes
 name: qa-build-chat-server
 
 trigger:
-  branch:
-    - lg-chat # TODO - Delete before merge
-
-# trigger:
-#   event:
-#     - tag
-#   ref:
-#     include:
-#       - refs/tags/chat-server-qa-*
+  event:
+    - tag
+  ref:
+    include:
+      - refs/tags/chat-server-qa-*
 
 steps:
   # Builds and publishes Docker image for qa
@@ -197,35 +190,35 @@ steps:
       DRONE_TOKEN:
         from_secret: drone_token
 
-# ---
-# kind: pipeline
-# type: kubernetes
-# name: qa-deploy-chat-server
+---
+kind: pipeline
+type: kubernetes
+name: qa-deploy-chat-server
 
-# trigger:
-#   event:
-#     - promote
-#   target:
-#     - staging
+trigger:
+  event:
+    - promote
+  target:
+    - staging
 
-# steps:
-#   # Deploys docker image associated with staging build that triggered promotion
-#   - name: deploy-qa-chat-server
-#     image: quay.io/mongodb/drone-helm:v3
-#     settings:
-#       chart: mongodb/web-app
-#       chart_version: 4.12.3
-#       add_repos: [mongodb=https://10gen.github.io/helm-charts]
-#       namespace: docs
-#       release: chat-server-qa
-#       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-qa,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-qa.docs.staging.corp.mongodb.com
-#       values_files: ["chat-server/environments/qa.yml"]
-#       api_server: https://api.staging.corp.mongodb.com
-#       kubernetes_token:
-#         from_secret: staging_kubernetes_token
-#     when:
-#       ref:
-#         - refs/tags/chat-server-qa-*
+steps:
+  # Deploys docker image associated with staging build that triggered promotion
+  - name: deploy-qa-chat-server
+    image: quay.io/mongodb/drone-helm:v3
+    settings:
+      chart: mongodb/web-app
+      chart_version: 4.12.3
+      add_repos: [mongodb=https://10gen.github.io/helm-charts]
+      namespace: docs
+      release: chat-server-qa
+      values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-qa,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-qa.docs.staging.corp.mongodb.com
+      values_files: ["chat-server/environments/qa.yml"]
+      api_server: https://api.staging.corp.mongodb.com
+      kubernetes_token:
+        from_secret: staging_kubernetes_token
+    when:
+      ref:
+        - refs/tags/chat-server-qa-*
 
 ---
 depends_on: ["test-all"]
@@ -234,15 +227,11 @@ type: kubernetes
 name: production-build-chat-server
 
 trigger:
-  branch:
-    - lg-chat # TODO - Delete before merge
-
-# trigger:
-#   event:
-#     - tag
-#   ref:
-#     include:
-#       - refs/tags/chat-server-v*
+  event:
+    - tag
+  ref:
+    include:
+      - refs/tags/chat-server-v*
 
 steps:
   # Builds and publishes Docker image for production
@@ -282,32 +271,32 @@ steps:
       DRONE_TOKEN:
         from_secret: drone_token
 
-# ---
-# kind: pipeline
-# type: kubernetes
-# name: production-deploy-chat-server
+---
+kind: pipeline
+type: kubernetes
+name: production-deploy-chat-server
 
-# trigger:
-#   event:
-#     - promote
-#   target:
-#     - production
+trigger:
+  event:
+    - promote
+  target:
+    - production
 
-# steps:
-#   # Deploys Docker image associated with production build that triggered promotion
-#   - name: deploy-production-chat-server
-#     image: quay.io/mongodb/drone-helm:v3
-#     settings:
-#       chart: mongodb/web-app
-#       chart_version: 4.12.3
-#       add_repos: [mongodb=https://10gen.github.io/helm-charts]
-#       namespace: docs
-#       release: docs-chat
-#       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-production,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-server.docs.prod.corp.mongodb.com
-#       values_files: ["chat-server/environments/production.yml"]
-#       api_server: https://api.prod.corp.mongodb.com
-#       kubernetes_token:
-#         from_secret: prod_kubernetes_token
+steps:
+  # Deploys Docker image associated with production build that triggered promotion
+  - name: deploy-production-chat-server
+    image: quay.io/mongodb/drone-helm:v3
+    settings:
+      chart: mongodb/web-app
+      chart_version: 4.12.3
+      add_repos: [mongodb=https://10gen.github.io/helm-charts]
+      namespace: docs
+      release: docs-chat
+      values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-production,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-server.docs.prod.corp.mongodb.com
+      values_files: ["chat-server/environments/production.yml"]
+      api_server: https://api.prod.corp.mongodb.com
+      kubernetes_token:
+        from_secret: prod_kubernetes_token
 
 # ---
 # Ingest service
@@ -320,17 +309,13 @@ name: staging-build-ingest-service
 
 trigger:
   branch:
-    - lg-chat # TODO - Delete before merge
-
-# trigger:
-#   branch:
-#     - main
-#   event:
-#     - push
-#   paths:
-#     include:
-#       - ingest/**/*
-#       - chat-core/**/*
+    - main
+  event:
+    - push
+  paths:
+    include:
+      - ingest/**/*
+      - chat-core/**/*
 
 steps:
   # Builds and publishes Docker image for staging
@@ -370,38 +355,38 @@ steps:
       DRONE_TOKEN:
         from_secret: drone_token
 
-# ---
-# kind: pipeline
-# type: kubernetes
-# name: staging-deploy-ingest-service
+---
+kind: pipeline
+type: kubernetes
+name: staging-deploy-ingest-service
 
-# trigger:
-#   event:
-#     - promote
-#   target:
-#     - staging
+trigger:
+  event:
+    - promote
+  target:
+    - staging
 
-# steps:
-#   # Deploys docker image associated with staging build that triggered promotion
-#   - name: deploy-staging-ingest-service
-#     image: quay.io/mongodb/drone-helm:v3
-#     settings:
-#       chart: mongodb/cronjobs
-#       chart_version: 1.7.1
-#       add_repos: [mongodb=https://10gen.github.io/helm-charts]
-#       namespace: docs
-#       release: ingest-service
-#       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-ingest-service
-#       values_files:
-#         - ingest/environments/staging.yml
-#       api_server: https://api.staging.corp.mongodb.com
-#       kubernetes_token:
-#         from_secret: staging_kubernetes_token
-#     when:
-#       ref:
-#         - "!refs/tags/chat-server-qa-*"
-#       branch:
-#         - main
+steps:
+  # Deploys docker image associated with staging build that triggered promotion
+  - name: deploy-staging-ingest-service
+    image: quay.io/mongodb/drone-helm:v3
+    settings:
+      chart: mongodb/cronjobs
+      chart_version: 1.7.1
+      add_repos: [mongodb=https://10gen.github.io/helm-charts]
+      namespace: docs
+      release: ingest-service
+      values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-ingest-service
+      values_files:
+        - ingest/environments/staging.yml
+      api_server: https://api.staging.corp.mongodb.com
+      kubernetes_token:
+        from_secret: staging_kubernetes_token
+    when:
+      ref:
+        - "!refs/tags/chat-server-qa-*"
+      branch:
+        - main
 ---
 depends_on: ["test-all"]
 kind: pipeline
@@ -409,15 +394,11 @@ type: kubernetes
 name: production-build-ingest-service
 
 trigger:
-  branch:
-    - lg-chat # TODO - Delete before merge
-
-# trigger:
-#   event:
-#     - tag
-#   ref:
-#     include:
-#       - refs/tags/ingest-v*
+  event:
+    - tag
+  ref:
+    include:
+      - refs/tags/ingest-v*
 
 steps:
   # Builds and publishes Docker image for production
@@ -457,31 +438,31 @@ steps:
       DRONE_TOKEN:
         from_secret: drone_token
 
-# ---
-# kind: pipeline
-# type: kubernetes
-# name: production-deploy-ingest-service
+---
+kind: pipeline
+type: kubernetes
+name: production-deploy-ingest-service
 
-# trigger:
-#   event:
-#     - promote
-#   target:
-#     - production
+trigger:
+  event:
+    - promote
+  target:
+    - production
 
-# steps:
-#   # Deploys Docker image associated with production build that triggered promotion
-#   # TODO: update to use cron chart
-#   - name: deploy-production-ingest-service
-#     image: quay.io/mongodb/drone-helm:v3
-#     settings:
-#       chart: mongodb/cronjobs
-#       chart_version: 1.7.1
-#       add_repos: [mongodb=https://10gen.github.io/helm-charts]
-#       namespace: docs
-#       release: ingest-service
-#       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-production,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-ingest-service
-#       values_files:
-#         - ingest/environments/production.yml
-#       api_server: https://api.prod.corp.mongodb.com
-#       kubernetes_token:
-#         from_secret: prod_kubernetes_token
+steps:
+  # Deploys Docker image associated with production build that triggered promotion
+  # TODO: update to use cron chart
+  - name: deploy-production-ingest-service
+    image: quay.io/mongodb/drone-helm:v3
+    settings:
+      chart: mongodb/cronjobs
+      chart_version: 1.7.1
+      add_repos: [mongodb=https://10gen.github.io/helm-charts]
+      namespace: docs
+      release: ingest-service
+      values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-production,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-ingest-service
+      values_files:
+        - ingest/environments/production.yml
+      api_server: https://api.prod.corp.mongodb.com
+      kubernetes_token:
+        from_secret: prod_kubernetes_token

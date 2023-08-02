@@ -70,7 +70,6 @@ describe("snootyAstToMd", () => {
     const result = snootyAstToMd(samplePage.data.ast, {
       baseUrl: "/",
     });
-    console.log(result);
     expect(result.startsWith("# $merge (aggregation)")).toBe(true);
     const expectedToInclude = `Writes the results of the aggregation pipeline to a specified collection. The \`$merge\` operator must be the **last** stage in the pipeline.`;
     expect(result.includes(expectedToInclude)).toBe(true);

@@ -1,4 +1,3 @@
-import fs from "fs";
 import { createInterface } from "readline";
 import { Page } from "chat-core";
 import fetch from "node-fetch";
@@ -49,11 +48,11 @@ export type SnootyPageData = {
 
 export type SnootyProjectConfig = ProjectBase & {
   type: "snooty";
+
   /**
-   * Git branch name for the current (search indexed) version of the site
-   * @example "v4.10"
+    Git branch name for the current (search indexed) version of the site.
+    @example "v4.10"
    */
-  // TODO: we won't need this when it's added to the Snooty Data API (https://jira.mongodb.org/browse/DOP-3860)
   currentBranch: string;
 
   // TODO: we don't need the following config option yet, but we will when we
@@ -91,12 +90,19 @@ export const makeSnootyDataSource = async ({
   name: sourceName,
   project,
   snootyDataApiBaseUrl,
-}: MakeSnootyDataSourceArgs): Promise<DataSource> => {
+}: MakeSnootyDataSourceArgs): Promise<
+  DataSource & {
+    _baseUrl: string;
+    _currentBranch: string;
+    _snootyProjectName: string;
+  }
+> => {
   const { baseUrl, currentBranch, name: snootyProjectName, tags } = project;
   return {
-    baseUrl,
-    currentBranch,
-    snootyProjectName,
+    // Additional members for testing purposes
+    _baseUrl: baseUrl,
+    _currentBranch: currentBranch,
+    _snootyProjectName: snootyProjectName,
     name: sourceName,
     async fetchPages() {
       // TODO: The manifest can be quite large (>100MB) so this could stand to
@@ -153,44 +159,51 @@ export const makeSnootyDataSource = async ({
       await Promise.allSettled(linePromises);
       return pages;
     },
-  } as DataSource;
+  };
 };
 
 /**
- * Branch with site
+  Branch with site
  */
 export interface Branch {
   /**
-   * Name of git branch
-   * @example "master"
+    Name of git branch
+    @example "master"
    */
   gitBranchName: string;
+
   /**
-   * Whether or not the branch is active. Note that this is either a boolean or a string "true"
-   * For more context, see https://jira.mongodb.org/browse/DOP-3862
-   * @example true | "true"
+    Whether or not the branch is active.
+    @example true
    */
-  active: boolean | "true";
+  active: boolean;
+
   /**
-   * Base URL of the site
-   * @example "https://mongodb.com/docs/kotlin/coroutine/upcoming"
+    Base URL of the site
+    @example "https://mongodb.com/docs/kotlin/coroutine/upcoming"
    */
   fullUrl: string;
+
+  /**
+    Whether this is the 'current, active branch' (rather than a previous or
+    upcoming version).
+   */
+  isStableBranch: boolean;
 }
 
 export interface SnootyProject {
   /**
-   * Snooty repo name
-   * @example "docs-kotlin"
+    Snooty repo name
+    @example "docs-kotlin"
    */
   repoName: string;
   /**
-   * Snooty project name
-   * @example "kotlin"
+    Snooty project name
+    @example "kotlin"
    */
   project: string;
   /**
-   * Branches of repo that correspond to a site
+    Branches of repo that correspond to a site
    */
   branches: Branch[];
 }

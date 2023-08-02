@@ -1,5 +1,5 @@
 import styles from "./Chatbot.module.css";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import SuggestedPrompts, { SuggestedPrompt } from "./SuggestedPrompts";
 import useConversation, { Conversation } from "./useConversation";
 import Badge from "@leafygreen-ui/badge";

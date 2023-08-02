@@ -3,6 +3,11 @@ import { readFileSync, writeFileSync } from "fs";
 import { snootyAstToMd } from "./snootyAstToMd";
 
 describe("snootyAstToMd", () => {
+  const samplePage = JSON.parse(
+    readFileSync(Path.resolve(__dirname, "./test_data/samplePage.json"), {
+      encoding: "utf-8",
+    })
+  );
   it("doesn't render targets", () => {
     const ast = {
       type: "root",
@@ -54,20 +59,21 @@ describe("snootyAstToMd", () => {
     });
     expect(result.split("\n")[0]).toBe("# FAQ");
   });
+  it("does not render links", () => {
+    const baseUrl = "https://some-base-url.com/";
+    const result = snootyAstToMd(samplePage.data.ast, {
+      baseUrl,
+    });
+    // expect result to not include something like [link text](https://some-base-url.com/faq)
+    const expectedNotIncludes = `](${baseUrl})`;
+    expect(result.includes(expectedNotIncludes)).toBe(false);
+  });
   it("renders definition lists", () => {
-    const page = JSON.parse(
-      readFileSync(
-        Path.resolve(__dirname, "./test_data/definitionListSample.json"),
-        { encoding: "utf-8" }
-      )
-    );
-    const result = snootyAstToMd(page.data.ast, {
+    const result = snootyAstToMd(samplePage.data.ast, {
       baseUrl: "/",
     });
     expect(result.startsWith("# $merge (aggregation)")).toBe(true);
-    const expectedToInclude = `Writes the results of the [aggregation pipeline](//core/aggregation-pipeline/#) to a specified collection. The
-[\`$merge\`](/reference/operator/aggregation/merge/#mongodb-pipeline-pipe.-merge) operator must be the **last** stage in the
-pipeline.`;
+    const expectedToInclude = `Writes the results of the aggregation pipeline to a specified collection. The \`$merge\` operator must be the **last** stage in the pipeline.`;
     expect(result.includes(expectedToInclude)).toBe(true);
   });
 });

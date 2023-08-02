@@ -45,7 +45,10 @@ export const makeDevCenterDataSource = async ({
             continue;
           }
           pages.push({
-            body: document.content,
+            body: makeDevCenterPageBody({
+              title: document.name,
+              content: document.content,
+            }),
             format: "md",
             sourceName: name,
             tags: [], // TODO
@@ -64,3 +67,27 @@ export const makeDevCenterDataSource = async ({
     },
   };
 };
+
+export function makeDevCenterPageBody({
+  title,
+  content,
+}: {
+  title?: string;
+  content: string;
+}) {
+  const mdTitle = title ? `# ${title}\n\n` : "";
+  content = mdTitle + content;
+  const mdLink = /!?\[(.*?)\]\(.*?\)/g;
+  return (
+    content
+      // remove images and links
+      .replaceAll(mdLink, (match, text) => {
+        // remove images
+        if (match.startsWith("!")) {
+          return "";
+        } else return text;
+      })
+      // remove unnecessary newlines
+      .replaceAll(/\n{3,}/g, "\n\n")
+  );
+}

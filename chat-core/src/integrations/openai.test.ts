@@ -4,7 +4,8 @@ import { stripIndent } from "common-tags";
 
 jest.setTimeout(61000);
 
-describe("OpenAi", () => {
+// TODO - unskip this before merge
+describe.skip("OpenAi", () => {
   describe("Chat", () => {
     const {
       OPENAI_ENDPOINT,

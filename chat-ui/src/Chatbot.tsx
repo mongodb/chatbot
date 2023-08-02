@@ -248,6 +248,8 @@ function ChatbotModal({
           title="MongoDB AI"
         />
 
+        <ConversationIdInfo conversation={conversation} />
+
         {active && !isEmptyConversation ? (
           <MessageFeed className={styles.message_feed}>
             {conversation.messages.map((message) => {
@@ -316,14 +318,14 @@ function ChatbotModal({
                       },
                       ol: ({ children, ordered, ...props }) => {
                         return (
-                          <Body as ="ol" {...props}>
+                          <Body as="ol" {...props}>
                             {children}
                           </Body>
                         );
                       },
                       ul: ({ children, ordered, ...props }) => {
                         return (
-                          <Body as ="ul" {...props}>
+                          <Body as="ul" {...props}>
                             {children}
                           </Body>
                         );
@@ -422,4 +424,14 @@ function VerifyInformationBanner() {
       verified prior to use.
     </Banner>
   );
+}
+
+function ConversationIdInfo({ conversation }: { conversation: Conversation }) {
+  return import.meta.env.VITE_QA ? (
+    <div>
+      <Body>
+        Conversation ID: <InlineCode>{conversation.conversationId}</InlineCode>
+      </Body>
+    </div>
+  ) : null;
 }

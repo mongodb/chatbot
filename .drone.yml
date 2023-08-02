@@ -336,11 +336,22 @@ steps:
   # Builds and publishes Docker image for staging
   - name: publish-staging-ingest-service
     image: plugins/kaniko-ecr
+    environment:
+      LG_ARTIFACTORY_PASSWORD:
+        from_secret: lg_artifactory_password
+      LG_ARTIFACTORY_USERNAME:
+        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_EMAIL:
+        from_secret: lg_artifactory_email
     settings:
       dockerfile: ingest-service.dockerfile
       create_repository: true
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
       repo: docs/${DRONE_REPO_NAME}-ingest-service
+      build_args:
+        - LG_ARTIFACTORY_PASSWORD
+        - LG_ARTIFACTORY_USERNAME
+        - LG_ARTIFACTORY_EMAIL
       tags:
         - git-${DRONE_COMMIT_SHA:0:7}-staging
         - latest-staging
@@ -412,11 +423,22 @@ steps:
   # Builds and publishes Docker image for production
   - name: publish-production-ingest-service
     image: plugins/kaniko-ecr
+    environment:
+      LG_ARTIFACTORY_PASSWORD:
+        from_secret: lg_artifactory_password
+      LG_ARTIFACTORY_USERNAME:
+        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_EMAIL:
+        from_secret: lg_artifactory_email
     settings:
       dockerfile: ingest-service.dockerfile
       create_repository: true
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
       repo: docs/${DRONE_REPO_NAME}-ingest-service
+      build_args:
+        - LG_ARTIFACTORY_PASSWORD
+        - LG_ARTIFACTORY_USERNAME
+        - LG_ARTIFACTORY_EMAIL
       tags:
         - git-${DRONE_COMMIT_SHA:0:7}-production
         - latest-production

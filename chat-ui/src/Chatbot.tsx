@@ -11,7 +11,7 @@ import { Avatar } from "@lg-chat/avatar";
 import { InputBar } from "@lg-chat/input-bar";
 import { Message } from "@lg-chat/message";
 import { MessageFeed } from "@lg-chat/message-feed";
-import { MessageRatingProps } from "@lg-chat/message-rating";
+import { MessageRating, MessageRatingProps } from "@lg-chat/message-rating";
 import { TitleBar } from "@lg-chat/title-bar";
 import { Role } from "./services/conversations";
 
@@ -248,8 +248,6 @@ function ChatbotModal({
           title="MongoDB AI"
         />
 
-        <ConversationIdInfo conversation={conversation} />
-
         {active && !isEmptyConversation ? (
           <MessageFeed className={styles.message_feed}>
             {conversation.messages.map((message) => {
@@ -290,8 +288,14 @@ function ChatbotModal({
                     <Avatar variant={getAvatarVariantForRole(message.role)} />
                   }
                   sourceType={showLoadingSkeleton ? undefined : "markdown"}
-                  componentOverrides={
-                    showLoadingSkeleton
+                  componentOverrides={{
+                    MessageRating: (props: MessageRatingProps) => (
+                      <MessageRating
+                        {...props}
+                        className={styles.message_rating}
+                      />
+                    ),
+                    ...(showLoadingSkeleton
                       ? {
                           MessageContent: () => (
                             <ParagraphSkeleton
@@ -299,8 +303,8 @@ function ChatbotModal({
                             />
                           ),
                         }
-                      : undefined
-                  }
+                      : {}),
+                  }}
                   markdownProps={{
                     className: styles.markdown_container,
                     children: showLoadingSkeleton ? "" : message.content, // TODO - remove when lg-chat omits this prop from the TS type
@@ -379,6 +383,8 @@ function ChatbotModal({
           ) : null}
 
           {inputTextError ? <ErrorText>{inputTextError}</ErrorText> : null}
+
+          <ConversationIdInfo conversation={conversation} />
         </div>
       </div>
     </Modal>
@@ -428,9 +434,9 @@ function VerifyInformationBanner() {
 
 function ConversationIdInfo({ conversation }: { conversation: Conversation }) {
   return import.meta.env.VITE_QA ? (
-    <div>
+    <div className={styles.conversation_id_info}>
       <Body>
-        Conversation ID: <InlineCode>{conversation.conversationId}</InlineCode>
+        Conversation ID:{" "}<InlineCode>{conversation.conversationId}</InlineCode>
       </Body>
     </div>
   ) : null;

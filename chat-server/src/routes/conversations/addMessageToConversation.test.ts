@@ -48,7 +48,7 @@ describe("POST /conversations/:conversationId/messages", () => {
   let ipAddress: string;
   let embed: EmbedFunc;
   let dataStreamer: ReturnType<typeof makeDataStreamer>;
-  let findNearestNeighborsOptions: FindNearestNeighborsOptions;
+  let findNearestNeighborsOptions: Partial<FindNearestNeighborsOptions>;
   let store: EmbeddedContentStore;
   let conversations: ConversationsServiceInterface;
   let app: Express;

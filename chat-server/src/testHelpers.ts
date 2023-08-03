@@ -47,7 +47,7 @@ export async function makeConversationsRoutesDefaults() {
     databaseName: MONGODB_DATABASE_NAME,
   });
 
-  const findNearestNeighborsOptions: FindNearestNeighborsOptions = {
+  const findNearestNeighborsOptions: Partial<FindNearestNeighborsOptions> = {
     k: 5,
     path: "embedding",
     indexName: VECTOR_SEARCH_INDEX_NAME,

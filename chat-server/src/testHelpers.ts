@@ -11,6 +11,7 @@ import { makeOpenAiLlm } from "./services/llm";
 import { makeDataStreamer } from "./services/dataStreamer";
 import { ConversationsService } from "./services/conversations";
 import { makeApp } from "./app";
+import { config as conf } from "./config";
 
 export async function makeConversationsRoutesDefaults() {
   // ip address for local host
@@ -39,6 +40,7 @@ export async function makeConversationsRoutesDefaults() {
     baseUrl: OPENAI_ENDPOINT,
     deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     apiKey: OPENAI_API_KEY,
+    llmConfig: conf.llm,
   });
   const dataStreamer = makeDataStreamer();
 
@@ -57,7 +59,10 @@ export async function makeConversationsRoutesDefaults() {
   const testDbName = `conversations-test-${Date.now()}`;
   const mongodb = new MongoDB(MONGODB_CONNECTION_URI, testDbName);
 
-  const conversations = new ConversationsService(mongodb.db);
+  const conversations = new ConversationsService(
+    mongodb.db,
+    conf.llm.systemPrompt
+  );
   const appConfig = {
     conversations,
     dataStreamer,

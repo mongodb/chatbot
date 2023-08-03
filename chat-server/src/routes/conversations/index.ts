@@ -18,6 +18,7 @@ import {
   AddMessageRequest,
   makeAddMessageToConversationRoute,
 } from "./addMessageToConversation";
+import { SearchBooster } from "../../AppConfig";
 
 // TODO: for all non-2XX or 3XX responses, see how/if can better implement
 // error handling. can/should we pass stuff to next() and process elsewhere?
@@ -28,6 +29,7 @@ export interface ConversationsRouterParams<T, U> {
   store: EmbeddedContentStore;
   conversations: ConversationsServiceInterface;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
+  searchBoosters?: SearchBooster[];
 }
 
 export function makeConversationsRouter({
@@ -37,6 +39,7 @@ export function makeConversationsRouter({
   store,
   conversations,
   findNearestNeighborsOptions,
+  searchBoosters,
 }: ConversationsRouterParams<OpenAiStreamingResponse, OpenAiAwaitedResponse>) {
   const conversationsRouter = Router();
 
@@ -62,6 +65,7 @@ export function makeConversationsRouter({
       dataStreamer,
       embed,
       findNearestNeighborsOptions,
+      searchBoosters,
     })
   );
 

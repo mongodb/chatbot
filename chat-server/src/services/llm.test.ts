@@ -3,7 +3,7 @@ import "dotenv/config";
 import { stripIndent } from "common-tags";
 import { CORE_ENV_VARS, OpenAiChatMessage, assertEnvVars } from "chat-core";
 import { makeOpenAiLlm } from "./llm";
-import { SYSTEM_PROMPT } from "../aiConstants";
+import { config } from "../config";
 
 jest.setTimeout(100000);
 
@@ -19,7 +19,7 @@ const chunks = [
   Serverless instances don't support connecting via certain drivers or driver versions at this time. To learn more, see Serverless Instance Limitations.`,
 ];
 const conversation = [
-  SYSTEM_PROMPT,
+  config.llm.systemPrompt,
   {
     role: "user",
     content: "How do I connect to my cluster?",
@@ -35,6 +35,7 @@ describe("LLM", () => {
       baseUrl: OPENAI_ENDPOINT,
       deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
       apiKey: OPENAI_API_KEY,
+      llmConfig: config.llm,
     });
 
     test("should answer question in conversation - awaited", async () => {
@@ -87,14 +88,16 @@ describe("LLM", () => {
           chunks,
         });
       await expect(response).rejects.toThrow(
-        `First message must be system prompt: ${JSON.stringify(SYSTEM_PROMPT)}`
+        `First message must be system prompt: ${JSON.stringify(
+          config.llm.systemPrompt
+        )}`
       );
     });
     test("should not answer if the second to last message is not assistant", async () => {
       const response = async () =>
         await openAiLlmService.answerQuestionAwaited({
           messages: [
-            SYSTEM_PROMPT,
+            config.llm.systemPrompt,
             {
               role: "user",
               content: "How do I connect to my cluster?",
@@ -112,7 +115,7 @@ describe("LLM", () => {
       const test = async () =>
         await openAiLlmService.answerQuestionAwaited({
           messages: [
-            SYSTEM_PROMPT,
+            config.llm.systemPrompt,
             {
               role: "user",
               content: "What's the capital of the United States of America?",

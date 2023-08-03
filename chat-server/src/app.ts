@@ -23,6 +23,7 @@ import {
   OpenAiAwaitedResponse,
   OpenAiStreamingResponse,
 } from "./services/llm";
+import { SearchBooster } from "./AppConfig";
 
 // General error handler; called at usage of next() in routes
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
@@ -83,6 +84,7 @@ export const makeApp = async ({
   llm,
   requestTimeout = REQUEST_TIMEOUT,
   findNearestNeighborsOptions,
+  searchBoosters,
 }: {
   embed: EmbedFunc;
   store: EmbeddedContentStore;
@@ -91,6 +93,7 @@ export const makeApp = async ({
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   requestTimeout?: number;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
+  searchBoosters?: SearchBooster[];
 }): Promise<Express> => {
   const app = express();
   app.use(makeHandleTimeoutMiddleware(requestTimeout));
@@ -109,6 +112,7 @@ export const makeApp = async ({
       store,
       conversations,
       findNearestNeighborsOptions,
+      searchBoosters,
     })
   );
   app.all("*", (req, res, _next) => {

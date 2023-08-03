@@ -2,6 +2,7 @@ import "dotenv/config";
 import { MongoDB } from "chat-core";
 import { Conversation, ConversationsService } from "./conversations";
 import { BSON } from "mongodb";
+import { config } from "../config";
 
 jest.setTimeout(100000);
 
@@ -23,7 +24,10 @@ describe("Conversations Service", () => {
     await mongodb.close();
   });
 
-  const conversationsService = new ConversationsService(mongodb.db);
+  const conversationsService = new ConversationsService(
+    mongodb.db,
+    config.llm.systemPrompt
+  );
   test("Should create a conversation", async () => {
     const ipAddress = new BSON.UUID().toString();
     const conversation = await conversationsService.create({

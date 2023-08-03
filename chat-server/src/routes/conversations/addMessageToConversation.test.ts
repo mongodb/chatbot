@@ -29,8 +29,6 @@ import {
   AddMessageToConversationRouteParams,
   MAX_MESSAGES_IN_CONVERSATION,
   createLinkReference,
-  shouldBoostMongoDbManual,
-  boostManualResults,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
 import { makeOpenAiLlm } from "../../services/llm";
@@ -39,6 +37,7 @@ import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
 import { makeApp, CONVERSATIONS_API_V1_PREFIX } from "../../app";
 import { makeConversationsRoutesDefaults } from "../../testHelpers";
+import { config } from "../../config";
 
 jest.setTimeout(100000);
 
@@ -321,6 +320,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         baseUrl: OPENAI_ENDPOINT,
         deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
         apiKey: "definitelyNotARealApiKey",
+        llmConfig: config.llm,
       });
 
       let conversationId: ObjectId,
@@ -330,7 +330,10 @@ describe("POST /conversations/:conversationId/messages", () => {
       beforeEach(async () => {
         const dbName = `test-${Date.now()}`;
         testMongo = new MongoDB(MONGODB_CONNECTION_URI, dbName);
-        conversations = new ConversationsService(testMongo.db);
+        conversations = new ConversationsService(
+          testMongo.db,
+          config.llm.systemPrompt
+        );
         const { _id } = await conversations.create({
           ipAddress,
         });
@@ -462,20 +465,20 @@ describe("POST /conversations/:conversationId/messages", () => {
       test("Should return content for relevant text", async () => {
         const text = "MongoDB Atlas";
 
-        const chunks = await getContentForText({
+        const { results } = await getContentForText({
           embed,
           text,
           store,
           ipAddress,
           findNearestNeighborsOptions,
         });
-        expect(chunks).toBeDefined();
-        expect(chunks.length).toBeGreaterThan(0);
+        expect(results).toBeDefined();
+        expect(results.length).toBeGreaterThan(0);
       });
       test("Should not return content for irrelevant text", async () => {
         const text =
           "asdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjafdshgjfkhfdugytfasfghjkujufgjdfhstgragtyjuikolaf;ldkgsdjfnh;ks'l;addfsghjklafjklsgfjgreaj;agre;jlg;ljewrqjknerqnkjkgn;jwr;lwreg";
-        const chunks = await getContentForText({
+        const { results } = await getContentForText({
           embed,
           text,
           store,
@@ -485,106 +488,8 @@ describe("POST /conversations/:conversationId/messages", () => {
             minScore: 99,
           },
         });
-        expect(chunks).toBeDefined();
-        expect(chunks.length).toBe(0);
-      });
-    });
-    describe("shouldBoostMongoDbManual()", () => {
-      test("Should boost MongoDB manual", () => {
-        const text = "insert one";
-        expect(shouldBoostMongoDbManual({ text })).toBe(true);
-      });
-      test("Should not boost MongoDB manual", () => {
-        const text = "blah blah blah length > 3";
-        expect(shouldBoostMongoDbManual({ text })).toBe(false);
-      });
-    });
-    describe("boostManualResults()", () => {
-      const sharedResult = {
-        _id: new ObjectId(),
-        url: "https://mongodb.com/docs",
-        text: "blah blah blah",
-        tokenCount: 100,
-        embedding: [0.1, 0.2, 0.3],
-        updated: new Date(),
-        sourceName: "snooty-docs", // only important value
-        score: 0.98,
-      };
-      const mockManualResults = [
-        sharedResult,
-        {
-          _id: new ObjectId(),
-          url: "https://mongodb.com/docs",
-          text: "lorem ipsum",
-          tokenCount: 100,
-          embedding: [0.1, 0.2, 0.3],
-          updated: new Date(),
-          sourceName: "snooty-docs", // only important value
-          score: 0.91,
-        },
-      ];
-      const mockStore: EmbeddedContentStore = {
-        loadEmbeddedContent: jest.fn(),
-        deleteEmbeddedContent: jest.fn(),
-        updateEmbeddedContent: jest.fn(),
-        async findNearestNeighbors() {
-          return mockManualResults;
-        },
-      };
-      const existingResults = [
-        {
-          _id: new ObjectId(),
-          url: "https://mongodb.com/docs/",
-          text: "foo bar baz",
-          tokenCount: 100,
-          embedding: [0.1, 0.2, 0.3],
-          updated: new Date(),
-          sourceName: "not-snooty-docs", // only important value
-          score: 0.99,
-        },
-        sharedResult,
-        {
-          _id: new ObjectId(),
-          url: "https://mongodb.com/docs/",
-          text: "four score and seven years ago",
-          tokenCount: 100,
-          embedding: [0.1, 0.2, 0.3],
-          updated: new Date(),
-          sourceName: "not-snooty-docs", // only important value
-          score: 0.955,
-        },
-        {
-          _id: new ObjectId(),
-          url: "https://mongodb.com/docs/",
-          text: "one small step for man, one giant leap for mankind",
-          tokenCount: 100,
-          embedding: [0.1, 0.2, 0.3],
-          updated: new Date(),
-          sourceName: "not-snooty-docs", // only important value
-          score: 0.95,
-        },
-        {
-          _id: new ObjectId(),
-          url: "https://mongodb.com/docs/",
-          text: "everything you own in a box to the left",
-          tokenCount: 100,
-          embedding: [0.1, 0.2, 0.3],
-          updated: new Date(),
-          sourceName: "not-snooty-docs", // only important value
-          score: 0.95,
-        },
-      ];
-      const embedding = [0.1, 0.2, 0.3];
-      test("Boosts manual results", async () => {
-        const results = await boostManualResults({
-          embedding,
-          existingResults,
-          store: mockStore,
-        });
-        expect(results).toHaveLength(5);
-        expect(results[0]).toStrictEqual(sharedResult);
-        expect(results[1]).toStrictEqual(mockManualResults[1]);
-        expect(results[2]).toStrictEqual(existingResults[0]);
+        expect(results).toBeDefined();
+        expect(results.length).toBe(0);
       });
     });
     describe("generateReferences()", () => {

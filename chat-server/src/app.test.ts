@@ -12,6 +12,7 @@ import { errorHandler, makeApp, makeHandleTimeoutMiddleware } from "./app";
 import { ConversationsService } from "./services/conversations";
 import { makeDataStreamer } from "./services/dataStreamer";
 import { makeOpenAiLlm } from "./services/llm";
+import { config } from "./config";
 
 describe("App", () => {
   const {
@@ -32,7 +33,10 @@ describe("App", () => {
     VECTOR_SEARCH_INDEX_NAME
   );
 
-  const conversations = new ConversationsService(mongodb.db);
+  const conversations = new ConversationsService(
+    mongodb.db,
+    config.llm.systemPrompt
+  );
   const dataStreamer = makeDataStreamer();
 
   const embed = makeOpenAiEmbedFunc({
@@ -46,6 +50,7 @@ describe("App", () => {
     apiKey: OPENAI_API_KEY,
     deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     baseUrl: OPENAI_ENDPOINT,
+    llmConfig: config.llm,
   });
 
   let store: EmbeddedContentStore;

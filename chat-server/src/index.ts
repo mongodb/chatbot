@@ -11,6 +11,7 @@ import {
 import { ConversationsService } from "./services/conversations";
 import { makeDataStreamer } from "./services/dataStreamer";
 import { makeOpenAiLlm } from "./services/llm";
+import { config } from "./config";
 
 const PORT = process.env.PORT || 3000;
 
@@ -33,7 +34,10 @@ const startServer = async () => {
     VECTOR_SEARCH_INDEX_NAME
   );
 
-  const conversations = new ConversationsService(mongodb.db);
+  const conversations = new ConversationsService(
+    mongodb.db,
+    config.llm.systemPrompt
+  );
 
   const dataStreamer = makeDataStreamer();
 
@@ -60,6 +64,7 @@ const startServer = async () => {
     apiKey: OPENAI_API_KEY,
     deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     baseUrl: OPENAI_ENDPOINT,
+    llmConfig: config.llm,
   });
 
   const app = await makeApp({
@@ -69,6 +74,7 @@ const startServer = async () => {
     dataStreamer,
     llm,
     findNearestNeighborsOptions,
+    searchBoosters: config.conversations?.searchBoosters,
   });
 
   const server = app.listen(PORT, () => {

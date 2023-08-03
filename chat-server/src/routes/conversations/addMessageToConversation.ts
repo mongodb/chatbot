@@ -22,6 +22,7 @@ import {
   conversationConstants,
 } from "../../services/conversations";
 import { DataStreamer } from "../../services/dataStreamer";
+import { SearchBooster } from "../../AppConfig";
 
 import {
   Llm,
@@ -71,6 +72,7 @@ export interface AddMessageToConversationRouteParams {
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   dataStreamer: DataStreamer;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
+  searchBoosters?: SearchBooster[];
 }
 
 export function makeAddMessageToConversationRoute({
@@ -80,6 +82,7 @@ export function makeAddMessageToConversationRoute({
   dataStreamer,
   embed,
   findNearestNeighborsOptions,
+  searchBoosters,
 }: AddMessageToConversationRouteParams) {
   return async (
     req: ExpressRequest,
@@ -179,13 +182,25 @@ export function makeAddMessageToConversationRoute({
 
       let chunks: WithScore<EmbeddedContent>[];
       try {
-        chunks = await getContentForText({
+        const { embedding, results } = await getContentForText({
           embed,
           ipAddress: ip,
           text: latestMessageText,
           store,
           findNearestNeighborsOptions,
         });
+        chunks = results;
+        if (searchBoosters?.length) {
+          for await (const booster of searchBoosters) {
+            if (booster.shouldBoost({ text: latestMessageText })) {
+              chunks = await booster.boost({
+                existingResults: chunks,
+                embedding,
+                store,
+              });
+            }
+          }
+        }
       } catch (err) {
         return sendErrorResponse({
           reqId,
@@ -362,56 +377,11 @@ export async function getContentForText({
     userIp: ipAddress,
   });
 
-  let results = await store.findNearestNeighbors(
+  const results = await store.findNearestNeighbors(
     embedding,
     findNearestNeighborsOptions
   );
-  if (shouldBoostMongoDbManual({ text })) {
-    results = await boostManualResults({
-      embedding,
-      existingResults: results,
-      findNearestNeighborsOptions,
-      store,
-    });
-  }
-  return results;
-}
-
-export function shouldBoostMongoDbManual({ text }: { text: string }): boolean {
-  return text.split(" ").length <= 3;
-}
-
-export async function boostManualResults({
-  embedding,
-  existingResults,
-  findNearestNeighborsOptions,
-  store,
-}: {
-  embedding: number[];
-  existingResults: WithScore<EmbeddedContent>[];
-  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
-  numResults?: number;
-  store: EmbeddedContentStore;
-}) {
-  const manualResults = await store.findNearestNeighbors(embedding, {
-    ...findNearestNeighborsOptions,
-    filter: {
-      text: {
-        path: "sourceName",
-        query: "snooty-docs",
-      },
-    },
-    k: 3,
-    minScore: 0.88,
-  });
-
-  const newResults = existingResults.filter((result) =>
-    manualResults.every((manualResult) => manualResult.text !== result.text)
-  );
-  return [...manualResults, ...newResults].slice(
-    0,
-    findNearestNeighborsOptions?.k ?? 5
-  );
+  return { embedding, results };
 }
 
 interface AddMessagesToDatabaseParams {

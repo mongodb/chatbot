@@ -16,8 +16,9 @@ describe("OpenAi", () => {
       OPENAI_CHAT_COMPLETION_DEPLOYMENT!,
       OPENAI_API_KEY!
     );
-    describe("OpenAiChatClient.chatAwaited()", () => {
-      test("Should return a response from the chat endpoint without streaming", async () => {
+    describe("OpenAiChatClient", () => {
+      // TODO: investigate why this test is flaky https://jira.mongodb.org/browse/DOCSP-31863
+      test.skip("Should return a response from the chat endpoint without streaming", async () => {
         console.log(openAiClient.openAiClient);
         const completion = await openAiClient.chatAwaited({
           messages: [

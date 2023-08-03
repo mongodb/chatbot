@@ -31,12 +31,7 @@ const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_CHAT_COMPLETION_DEPLOYMENT } =
 
 describe("LLM", () => {
   describe("OpenAI Llm", () => {
-    const openAiLlmService = makeOpenAiLlm({
-      baseUrl: OPENAI_ENDPOINT,
-      deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-      apiKey: OPENAI_API_KEY,
-      llmConfig: config.llm,
-    });
+    const openAiLlmService = makeOpenAiLlm(config.llm);
 
     test("should answer question in conversation - awaited", async () => {
       const response = await openAiLlmService.answerQuestionAwaited({

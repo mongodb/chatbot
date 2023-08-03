@@ -317,10 +317,10 @@ describe("POST /conversations/:conversationId/messages", () => {
         OPENAI_CHAT_COMPLETION_DEPLOYMENT,
       } = assertEnvVars(CORE_ENV_VARS);
       const brokenLLmService = makeOpenAiLlm({
+        ...config.llm,
         baseUrl: OPENAI_ENDPOINT,
         deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
         apiKey: "definitelyNotARealApiKey",
-        llmConfig: config.llm,
       });
 
       let conversationId: ObjectId,

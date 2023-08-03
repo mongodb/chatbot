@@ -1,6 +1,17 @@
 import { stripIndent } from "common-tags";
 import { AppConfig } from "./AppConfig";
 import { makeBoostOnAtlasSearchFilter } from "./processors/makeBoostOnAtlasSearchFilter";
+import { CORE_ENV_VARS, assertEnvVars } from "chat-core";
+const {
+  MONGODB_CONNECTION_URI,
+  MONGODB_DATABASE_NAME,
+  VECTOR_SEARCH_INDEX_NAME,
+  OPENAI_ENDPOINT,
+  OPENAI_API_KEY,
+  OPENAI_EMBEDDING_DEPLOYMENT,
+  OPENAI_EMBEDDING_MODEL_VERSION,
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+} = assertEnvVars(CORE_ENV_VARS);
 
 /**
   Boost results from the MongoDB manual so that 'k' results from the manual
@@ -29,6 +40,9 @@ export const boostManual = makeBoostOnAtlasSearchFilter({
 // TODO: expand this to remove all conf from index.ts
 export const config: AppConfig = {
   llm: {
+    apiKey: OPENAI_API_KEY,
+    deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    baseUrl: OPENAI_ENDPOINT,
     systemPrompt: {
       role: "system",
       content: stripIndent`You are expert MongoDB documentation chatbot.
@@ -77,5 +91,26 @@ export const config: AppConfig = {
   },
   conversations: {
     searchBoosters: [boostManual],
+  },
+  findNearestNeighborsOptions: {
+    k: 5,
+    path: "embedding",
+    indexName: VECTOR_SEARCH_INDEX_NAME,
+    minScore: 0.9,
+  },
+  embed: {
+    apiKey: OPENAI_API_KEY,
+    apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
+    baseUrl: OPENAI_ENDPOINT,
+    deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+  },
+  embeddedContentStore: {
+    connectionUri: MONGODB_CONNECTION_URI,
+    databaseName: MONGODB_DATABASE_NAME,
+  },
+  mongodb: {
+    connectionUri: MONGODB_CONNECTION_URI,
+    databaseName: MONGODB_DATABASE_NAME,
+    vectorSearchIndexName: VECTOR_SEARCH_INDEX_NAME,
   },
 };

@@ -28,19 +28,14 @@ export type OpenAiStreamingResponse =
   AsyncIterable<OpenAIChatCompletionWithoutUsage>;
 export type OpenAiAwaitedResponse = OpenAiChatMessage;
 
-interface MakeOpenAiLlmParams {
-  apiKey: string;
-  deployment: string;
-  baseUrl: string;
-  llmConfig: LlmConfig;
-}
-
 export function makeOpenAiLlm({
   apiKey,
   deployment,
   baseUrl,
-  llmConfig: { openAiLmmConfigOptions, generateUserPrompt, systemPrompt },
-}: MakeOpenAiLlmParams): Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse> {
+  openAiLmmConfigOptions,
+  generateUserPrompt,
+  systemPrompt,
+}: LlmConfig): Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse> {
   const openAiChatClient = new OpenAiChatClient(baseUrl, deployment, apiKey);
   return {
     // NOTE: for example streaming data, see https://github.com/openai/openai-node/issues/18#issuecomment-1369996933

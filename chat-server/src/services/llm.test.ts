@@ -37,6 +37,7 @@ describe("LLM", () => {
       apiKey: OPENAI_API_KEY,
     });
 
+    // TODO: investigate why this test is flaky https://jira.mongodb.org/browse/DOCSP-31863
     test.skip("should answer question in conversation - awaited", async () => {
       const response = await openAiLlmService.answerQuestionAwaited({
         messages: conversation,

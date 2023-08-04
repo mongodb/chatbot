@@ -185,7 +185,7 @@ describe("nearest neighbor search", () => {
     deployment: OPENAI_EMBEDDING_DEPLOYMENT,
   });
 
-  const findNearestNeighborOptions: FindNearestNeighborsOptions = {
+  const findNearestNeighborOptions: Partial<FindNearestNeighborsOptions> = {
     k: 5,
     path: "embedding",
     indexName: VECTOR_SEARCH_INDEX_NAME,
@@ -223,6 +223,55 @@ describe("nearest neighbor search", () => {
       findNearestNeighborOptions
     );
     expect(matches).toHaveLength(5);
+  });
+  test("Should filter content to only match specific sourceName", async () => {
+    assert(store);
+    const query = "db.collection.insertOne()";
+    const filter = {
+      text: {
+        path: "sourceName",
+        query: "snooty-docs",
+      },
+    };
+    const { embedding } = await embed({
+      text: query,
+      userIp: "XYZ",
+    });
+
+    const matches = await store.findNearestNeighbors(embedding, {
+      ...findNearestNeighborOptions,
+      filter,
+    });
+    console.log(matches);
+    expect(
+      matches.filter((match) => match.sourceName !== "snooty-docs")
+    ).toHaveLength(0);
+  });
+  test("Should filter content to not match a non-existent source", async () => {
+    assert(store);
+    const query = "db.collection.insertOne()";
+    const filter = {
+      text: {
+        path: "sourceName",
+        query: "not-a-source-name",
+      },
+    };
+    const { embedding } = await embed({
+      text: query,
+      userIp: "XYZ",
+    });
+
+    const noMatches = await store.findNearestNeighbors(embedding, {
+      ...findNearestNeighborOptions,
+      filter,
+    });
+    expect(noMatches).toHaveLength(0);
+    // Validate that search works on same query for all sources
+    const matches = await store.findNearestNeighbors(
+      embedding,
+      findNearestNeighborOptions
+    );
+    expect(matches.length).toBeGreaterThan(0);
   });
 
   it("does not find nearest neighbors for irrelevant query", async () => {

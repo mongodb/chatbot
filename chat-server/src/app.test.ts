@@ -1,10 +1,8 @@
 import express, { Express } from "express";
 import request from "supertest";
 import {
-  CORE_ENV_VARS,
   EmbeddedContentStore,
   MongoDB,
-  assertEnvVars,
   makeDatabaseConnection,
   makeOpenAiEmbedFunc,
 } from "chat-core";
@@ -12,49 +10,30 @@ import { errorHandler, makeApp, makeHandleTimeoutMiddleware } from "./app";
 import { ConversationsService } from "./services/conversations";
 import { makeDataStreamer } from "./services/dataStreamer";
 import { makeOpenAiLlm } from "./services/llm";
+import { config } from "./config";
 
 describe("App", () => {
-  const {
-    MONGODB_CONNECTION_URI,
-    MONGODB_DATABASE_NAME,
-    VECTOR_SEARCH_INDEX_NAME,
-    OPENAI_ENDPOINT,
-    OPENAI_API_KEY,
-    OPENAI_EMBEDDING_DEPLOYMENT,
-    OPENAI_EMBEDDING_MODEL_VERSION,
-    OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  } = assertEnvVars(CORE_ENV_VARS);
-
   // Create instances of services
   const mongodb = new MongoDB(
-    MONGODB_CONNECTION_URI,
-    MONGODB_DATABASE_NAME,
-    VECTOR_SEARCH_INDEX_NAME
+    config.mongodb.connectionUri,
+    config.mongodb.databaseName,
+    config.mongodb.vectorSearchIndexName
   );
 
-  const conversations = new ConversationsService(mongodb.db);
+  const conversations = new ConversationsService(
+    mongodb.db,
+    config.llm.systemPrompt
+  );
   const dataStreamer = makeDataStreamer();
 
-  const embed = makeOpenAiEmbedFunc({
-    apiKey: OPENAI_API_KEY,
-    apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
-    baseUrl: OPENAI_ENDPOINT,
-    deployment: OPENAI_EMBEDDING_DEPLOYMENT,
-  });
+  const embed = makeOpenAiEmbedFunc(config.embed);
 
-  const llm = makeOpenAiLlm({
-    apiKey: OPENAI_API_KEY,
-    deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-    baseUrl: OPENAI_ENDPOINT,
-  });
+  const llm = makeOpenAiLlm(config.llm);
 
   let store: EmbeddedContentStore;
   let app: Express;
   beforeAll(async () => {
-    store = await makeDatabaseConnection({
-      connectionUri: MONGODB_CONNECTION_URI,
-      databaseName: MONGODB_DATABASE_NAME,
-    });
+    store = await makeDatabaseConnection(config.embeddedContentStore);
     app = await makeApp({
       embed,
       store,

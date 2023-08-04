@@ -1,12 +1,8 @@
 // TODO: add better error handling logic like the embeddings service
-import { ChatCompletions } from "@azure/openai";
+import { ChatCompletions, GetChatCompletionsOptions } from "@azure/openai";
 import "dotenv/config";
 import { OpenAiChatClient, OpenAiChatMessage } from "chat-core";
-import {
-  SYSTEM_PROMPT,
-  GENERATE_USER_PROMPT,
-  OPENAI_LLM_CONFIG_OPTIONS,
-} from "../aiConstants";
+import { LlmConfig } from "../AppConfig";
 
 export interface LlmAnswerQuestionParams {
   messages: OpenAiChatMessage[];
@@ -26,21 +22,34 @@ export interface Llm<T, U> {
   }: LlmAnswerQuestionParams): Promise<U>;
 }
 
-export type OpenAIChatCompletionWithoutUsage = Omit<ChatCompletions, "usage">
+export type OpenAIChatCompletionWithoutUsage = Omit<ChatCompletions, "usage">;
 
-export type OpenAiStreamingResponse = AsyncIterable<OpenAIChatCompletionWithoutUsage>;
+export type OpenAiStreamingResponse =
+  AsyncIterable<OpenAIChatCompletionWithoutUsage>;
 export type OpenAiAwaitedResponse = OpenAiChatMessage;
 
-interface MakeOpenAiLlmParams {
+export interface MakeOpenAiLlmParams {
   apiKey: string;
   deployment: string;
   baseUrl: string;
+  systemPrompt: OpenAiChatMessage & { role: "system" };
+  openAiLmmConfigOptions: GetChatCompletionsOptions;
+  generateUserPrompt: ({
+    question,
+    chunks,
+  }: {
+    question: string;
+    chunks: string[];
+  }) => OpenAiChatMessage & { role: "user" };
 }
 
 export function makeOpenAiLlm({
   apiKey,
   deployment,
   baseUrl,
+  openAiLmmConfigOptions,
+  generateUserPrompt,
+  systemPrompt,
 }: MakeOpenAiLlmParams): Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse> {
   const openAiChatClient = new OpenAiChatClient(baseUrl, deployment, apiKey);
   return {
@@ -49,10 +58,15 @@ export function makeOpenAiLlm({
       messages,
       chunks,
     }: LlmAnswerQuestionParams): Promise<OpenAiStreamingResponse> {
-      const messagesForLlm = prepConversationForOpenAiLlm({ messages, chunks });
+      const messagesForLlm = prepConversationForOpenAiLlm({
+        messages,
+        chunks,
+        generateUserPrompt,
+        systemPrompt,
+      });
       const completionStream = await openAiChatClient.chatStream({
         messages: messagesForLlm,
-        options: { ...OPENAI_LLM_CONFIG_OPTIONS, stream: true },
+        options: { ...openAiLmmConfigOptions, stream: true },
       });
       return completionStream;
     },
@@ -60,12 +74,17 @@ export function makeOpenAiLlm({
       messages,
       chunks,
     }: LlmAnswerQuestionParams): Promise<OpenAiChatMessage> {
-      const messagesForLlm = prepConversationForOpenAiLlm({ messages, chunks });
+      const messagesForLlm = prepConversationForOpenAiLlm({
+        messages,
+        chunks,
+        generateUserPrompt,
+        systemPrompt,
+      });
       const {
         choices: [choice],
       } = await openAiChatClient.chatAwaited({
         messages: messagesForLlm,
-        options: OPENAI_LLM_CONFIG_OPTIONS,
+        options: openAiLmmConfigOptions,
       });
       const { message } = choice;
       if (!message) {
@@ -79,10 +98,15 @@ export function makeOpenAiLlm({
 function prepConversationForOpenAiLlm({
   messages,
   chunks,
-}: LlmAnswerQuestionParams): OpenAiChatMessage[] {
-  validateOpenAiConversation(messages);
+  generateUserPrompt,
+  systemPrompt,
+}: LlmAnswerQuestionParams & {
+  generateUserPrompt: LlmConfig["generateUserPrompt"];
+  systemPrompt: LlmConfig["systemPrompt"];
+}): OpenAiChatMessage[] {
+  validateOpenAiConversation(messages, systemPrompt);
   const lastMessage = messages[messages.length - 1];
-  const newestMessageForLlm = GENERATE_USER_PROMPT({
+  const newestMessageForLlm = generateUserPrompt({
     question: lastMessage.content,
     chunks,
   });
@@ -91,17 +115,20 @@ function prepConversationForOpenAiLlm({
 // TODO: consider adding additional validation that messages follow the pattern
 // system, assistant, user, assistant, user, etc.
 // Are there any other things which we should validate here?
-function validateOpenAiConversation(messages: OpenAiChatMessage[]) {
+function validateOpenAiConversation(
+  messages: OpenAiChatMessage[],
+  systemPrompt: LlmConfig["systemPrompt"]
+) {
   if (messages.length === 0) {
     throw new Error("No messages provided");
   }
   const firstMessage = messages[0];
   if (
-    firstMessage.content !== SYSTEM_PROMPT.content ||
-    firstMessage.role !== SYSTEM_PROMPT.role
+    firstMessage.content !== systemPrompt.content ||
+    firstMessage.role !== systemPrompt.role
   ) {
     throw new Error(
-      `First message must be system prompt: ${JSON.stringify(SYSTEM_PROMPT)}`
+      `First message must be system prompt: ${JSON.stringify(systemPrompt)}`
     );
   }
   if (messages.length < 2) {
@@ -111,7 +138,7 @@ function validateOpenAiConversation(messages: OpenAiChatMessage[]) {
   if (secondMessage.role !== "user") {
     throw new Error("Second message must be user message");
   }
-  if(messages.length > 2) {
+  if (messages.length > 2) {
     const secondToLastMessage = messages[messages.length - 2];
     const lastMessage = messages[messages.length - 1];
 

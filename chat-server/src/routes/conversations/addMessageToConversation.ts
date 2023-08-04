@@ -38,6 +38,7 @@ import {
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
+import { SearchBooster } from "../../processors/SearchBooster";
 
 export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 export const MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
@@ -71,6 +72,7 @@ export interface AddMessageToConversationRouteParams {
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   dataStreamer: DataStreamer;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
+  searchBoosters?: SearchBooster[];
 }
 
 export function makeAddMessageToConversationRoute({
@@ -80,6 +82,7 @@ export function makeAddMessageToConversationRoute({
   dataStreamer,
   embed,
   findNearestNeighborsOptions,
+  searchBoosters,
 }: AddMessageToConversationRouteParams) {
   return async (
     req: ExpressRequest,
@@ -179,13 +182,25 @@ export function makeAddMessageToConversationRoute({
 
       let chunks: WithScore<EmbeddedContent>[];
       try {
-        chunks = await getContentForText({
+        const { embedding, results } = await getContentForText({
           embed,
           ipAddress: ip,
           text: latestMessageText,
           store,
           findNearestNeighborsOptions,
         });
+        chunks = results;
+        if (searchBoosters?.length) {
+          for (const booster of searchBoosters) {
+            if (booster.shouldBoost({ text: latestMessageText })) {
+              chunks = await booster.boost({
+                existingResults: chunks,
+                embedding,
+                store,
+              });
+            }
+          }
+        }
       } catch (err) {
         return sendErrorResponse({
           reqId,
@@ -361,10 +376,12 @@ export async function getContentForText({
     text,
     userIp: ipAddress,
   });
-  return await store.findNearestNeighbors(
+
+  const results = await store.findNearestNeighbors(
     embedding,
     findNearestNeighborsOptions
   );
+  return { embedding, results };
 }
 
 interface AddMessagesToDatabaseParams {

@@ -37,6 +37,7 @@ import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
 import { makeApp, CONVERSATIONS_API_V1_PREFIX } from "../../app";
 import { makeConversationsRoutesDefaults } from "../../testHelpers";
+import { config } from "../../config";
 
 jest.setTimeout(100000);
 
@@ -46,7 +47,7 @@ describe("POST /conversations/:conversationId/messages", () => {
   let ipAddress: string;
   let embed: EmbedFunc;
   let dataStreamer: ReturnType<typeof makeDataStreamer>;
-  let findNearestNeighborsOptions: FindNearestNeighborsOptions;
+  let findNearestNeighborsOptions: Partial<FindNearestNeighborsOptions>;
   let store: EmbeddedContentStore;
   let conversations: ConversationsServiceInterface;
   let app: Express;
@@ -316,6 +317,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         OPENAI_CHAT_COMPLETION_DEPLOYMENT,
       } = assertEnvVars(CORE_ENV_VARS);
       const brokenLLmService = makeOpenAiLlm({
+        ...config.llm,
         baseUrl: OPENAI_ENDPOINT,
         deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
         apiKey: "definitelyNotARealApiKey",
@@ -328,7 +330,10 @@ describe("POST /conversations/:conversationId/messages", () => {
       beforeEach(async () => {
         const dbName = `test-${Date.now()}`;
         testMongo = new MongoDB(MONGODB_CONNECTION_URI, dbName);
-        conversations = new ConversationsService(testMongo.db);
+        conversations = new ConversationsService(
+          testMongo.db,
+          config.llm.systemPrompt
+        );
         const { _id } = await conversations.create({
           ipAddress,
         });
@@ -460,20 +465,20 @@ describe("POST /conversations/:conversationId/messages", () => {
       test("Should return content for relevant text", async () => {
         const text = "MongoDB Atlas";
 
-        const chunks = await getContentForText({
+        const { results } = await getContentForText({
           embed,
           text,
           store,
           ipAddress,
           findNearestNeighborsOptions,
         });
-        expect(chunks).toBeDefined();
-        expect(chunks.length).toBeGreaterThan(0);
+        expect(results).toBeDefined();
+        expect(results.length).toBeGreaterThan(0);
       });
       test("Should not return content for irrelevant text", async () => {
         const text =
           "asdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjafdshgjfkhfdugytfasfghjkujufgjdfhstgragtyjuikolaf;ldkgsdjfnh;ks'l;addfsghjklafjklsgfjgreaj;agre;jlg;ljewrqjknerqnkjkgn;jwr;lwreg";
-        const chunks = await getContentForText({
+        const { results } = await getContentForText({
           embed,
           text,
           store,
@@ -483,8 +488,8 @@ describe("POST /conversations/:conversationId/messages", () => {
             minScore: 99,
           },
         });
-        expect(chunks).toBeDefined();
-        expect(chunks.length).toBe(0);
+        expect(results).toBeDefined();
+        expect(results.length).toBe(0);
       });
     });
     describe("generateReferences()", () => {

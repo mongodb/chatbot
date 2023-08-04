@@ -4,19 +4,22 @@ import {
   FindNearestNeighborsOptions,
   EmbeddedContentStore,
 } from "chat-core";
-import { SearchBooster } from "../AppConfig";
+import { SearchBooster } from "./SearchBooster";
 
-type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
-type FindNearestNeighborOptionsWithFilter = WithRequired<
-  WithRequired<Partial<FindNearestNeighborsOptions>, "filter">,
-  "k"
+export type WithFilterAndK<T> = T & {
+  filter: Record<string, unknown>;
+  k: number;
+};
+type FindNearestNeighborOptionsWithFilterAndK = WithFilterAndK<
+  Partial<FindNearestNeighborsOptions>
 >;
+
 export function makeBoostOnAtlasSearchFilter({
   findNearestNeighborsOptions,
   totalMaxK,
   shouldBoostFunc,
 }: {
-  findNearestNeighborsOptions: FindNearestNeighborOptionsWithFilter;
+  findNearestNeighborsOptions: FindNearestNeighborOptionsWithFilterAndK;
   totalMaxK: number;
   shouldBoostFunc: ({ text }: { text: string }) => boolean;
 }): SearchBooster {

@@ -18,7 +18,7 @@ import {
   AddMessageRequest,
   makeAddMessageToConversationRoute,
 } from "./addMessageToConversation";
-import { SearchBooster } from "../../AppConfig";
+import { SearchBooster } from "../../processors/SearchBooster";
 
 // TODO: for all non-2XX or 3XX responses, see how/if can better implement
 // error handling. can/should we pass stuff to next() and process elsewhere?

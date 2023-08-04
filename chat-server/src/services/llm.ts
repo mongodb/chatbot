@@ -1,5 +1,5 @@
 // TODO: add better error handling logic like the embeddings service
-import { ChatCompletions } from "@azure/openai";
+import { ChatCompletions, GetChatCompletionsOptions } from "@azure/openai";
 import "dotenv/config";
 import { OpenAiChatClient, OpenAiChatMessage } from "chat-core";
 import { LlmConfig } from "../AppConfig";
@@ -28,6 +28,21 @@ export type OpenAiStreamingResponse =
   AsyncIterable<OpenAIChatCompletionWithoutUsage>;
 export type OpenAiAwaitedResponse = OpenAiChatMessage;
 
+export interface MakeOpenAiLlmParams {
+  apiKey: string;
+  deployment: string;
+  baseUrl: string;
+  systemPrompt: OpenAiChatMessage & { role: "system" };
+  openAiLmmConfigOptions: GetChatCompletionsOptions;
+  generateUserPrompt: ({
+    question,
+    chunks,
+  }: {
+    question: string;
+    chunks: string[];
+  }) => OpenAiChatMessage & { role: "user" };
+}
+
 export function makeOpenAiLlm({
   apiKey,
   deployment,
@@ -35,7 +50,7 @@ export function makeOpenAiLlm({
   openAiLmmConfigOptions,
   generateUserPrompt,
   systemPrompt,
-}: LlmConfig): Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse> {
+}: MakeOpenAiLlmParams): Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse> {
   const openAiChatClient = new OpenAiChatClient(baseUrl, deployment, apiKey);
   return {
     // NOTE: for example streaming data, see https://github.com/openai/openai-node/issues/18#issuecomment-1369996933

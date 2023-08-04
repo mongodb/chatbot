@@ -23,7 +23,7 @@ import {
   OpenAiAwaitedResponse,
   OpenAiStreamingResponse,
 } from "./services/llm";
-import { SearchBooster } from "./AppConfig";
+import { SearchBooster } from "./processors/SearchBooster";
 
 // General error handler; called at usage of next() in routes
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {

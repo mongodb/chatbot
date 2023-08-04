@@ -1,62 +1,31 @@
-import { GetChatCompletionsOptions } from "@azure/openai";
+import { MakeOpenAiLlmParams } from "./services/llm";
+import { SearchBooster } from "./processors/SearchBooster";
+import { MakeDatabaseConnectionParams } from "chat-core";
+export type LlmConfig = MakeOpenAiLlmParams;
 import {
-  OpenAiChatMessage,
-  WithScore,
-  EmbeddedContent,
-  EmbeddedContentStore,
+  MakeOpenAiEmbedFuncArgs,
+  FindNearestNeighborsOptions,
 } from "chat-core";
 
-export interface LlmConfig {
-  apiKey: string;
-  deployment: string;
-  baseUrl: string;
-  systemPrompt: OpenAiChatMessage & { role: "system" };
-  openAiLmmConfigOptions: GetChatCompletionsOptions;
-  generateUserPrompt: ({
-    question,
-    chunks,
-  }: {
-    question: string;
-    chunks: string[];
-  }) => OpenAiChatMessage & { role: "user" };
-}
+export type EmbedConfig = MakeOpenAiEmbedFuncArgs;
 
-export interface EmbedConfig {
-  apiKey: string;
-  apiVersion: string;
-  baseUrl: string;
-  deployment: string;
-}
+export type FindNearestNeighborsOptionsConfig = Omit<
+  FindNearestNeighborsOptions,
+  "filter"
+> & {
+  filter?: FindNearestNeighborsOptions["filter"];
+};
 
-export interface FindNearestNeighborsOptions {
-  k: number;
-  path: string;
-  indexName: string;
-  minScore: number;
-}
+export type EmbeddedContentStoreConfig = MakeDatabaseConnectionParams;
 
-export interface EmbeddedContentStoreConfig {
-  connectionUri: string;
-  databaseName: string;
-}
-
+// TODO: refactor have this type come from chat-core when the MongoDb class is
+// refactored to a function following make pattern. Alternatively, we could likely
+// remove MongoDb as a direct dependency and include it in the make conversation service
+// and make embedded content store functions.
 export interface MongoDbConfig {
   connectionUri: string;
   databaseName: string;
   vectorSearchIndexName: string;
-}
-
-export interface SearchBooster {
-  shouldBoost: ({ text }: { text: string }) => boolean;
-  boost: ({
-    existingResults,
-    embedding,
-    store,
-  }: {
-    embedding: number[];
-    existingResults: WithScore<EmbeddedContent>[];
-    store: EmbeddedContentStore;
-  }) => Promise<WithScore<EmbeddedContent>[]>;
 }
 
 export interface AppConfig {
@@ -64,7 +33,7 @@ export interface AppConfig {
   conversations: {
     searchBoosters?: SearchBooster[];
   };
-  findNearestNeighborsOptions: FindNearestNeighborsOptions;
+  findNearestNeighborsOptions: FindNearestNeighborsOptionsConfig;
   embeddedContentStore: EmbeddedContentStoreConfig;
   mongodb: MongoDbConfig;
   embed: EmbedConfig;

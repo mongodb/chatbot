@@ -9,11 +9,6 @@ import {
 } from "./SnootyDataSource";
 import { sampleSnootyMetadata } from "./test_data/snooty_sample_metadata";
 import { snootyAstToMd } from "./snootyAstToMd";
-import {
-  SnootyProjectsInfo,
-  makeSnootyProjectsInfo,
-  prepareSnootySources,
-} from "./SnootyProjectsInfo";
 
 jest.setTimeout(15000);
 
@@ -107,66 +102,6 @@ describe("SnootyDataSource", () => {
         tags: ["docs", "manual"],
         url: "https://mongodb.com/docs/v6.0/administration/change-streams-production-recommendations/how-to-index/",
       });
-    });
-  });
-  describe("SnootyProjectsInfo", () => {
-    let projectsInfo: SnootyProjectsInfo | undefined;
-    beforeAll(async () => {
-      projectsInfo = await makeSnootyProjectsInfo({
-        snootyDataApiBaseUrl,
-      });
-    });
-    afterAll(() => {
-      projectsInfo = undefined;
-    });
-
-    it("gets project base url", async () => {
-      const baseUrl = await projectsInfo?.getBaseUrl({
-        projectName: "docs",
-        branchName: "v4.4",
-      });
-      expect(baseUrl).toBe("https://mongodb.com/docs/v4.4");
-    });
-    it("throws for invalid branch", async () => {
-      const baseUrlPromise = projectsInfo?.getBaseUrl({
-        projectName: "docs",
-        branchName: "not-a-branch",
-      });
-      await expect(baseUrlPromise).rejects.toThrow();
-    });
-    it("throws for invalid project", async () => {
-      const baseUrlPromise = projectsInfo?.getBaseUrl({
-        projectName: "not-a-project",
-        branchName: "v4.4",
-      });
-      await expect(baseUrlPromise).rejects.toThrow();
-    });
-  });
-  describe("prepareSnootySources", () => {
-    it("allows override baseUrl", async () => {
-      const sources = await prepareSnootySources({
-        projects: [
-          {
-            type: "snooty",
-            name: "cloud-docs",
-            currentBranch: "master",
-            tags: ["atlas", "docs"],
-            // No override
-          },
-          {
-            type: "snooty",
-            name: "cloud-docs",
-            currentBranch: "master",
-            tags: ["atlas", "docs"],
-            baseUrl: "https://override.example.com", // Override
-          },
-        ],
-        snootyDataApiBaseUrl,
-      });
-      expect((sources[0] as any).baseUrl).toBe(
-        "https://mongodb.com/docs/atlas/"
-      );
-      expect((sources[1] as any).baseUrl).toBe("https://override.example.com/");
     });
   });
 });

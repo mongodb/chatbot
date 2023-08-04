@@ -334,9 +334,6 @@ steps:
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
-    when:
-      ref:
-        - "!refs/tags/chat-server-qa-*"
       branch:
         - main
 ---

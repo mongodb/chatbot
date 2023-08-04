@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "dev": "lerna run dev --scope='{chat-server,chat-ui}' --stream --parallel",
+    "dev": "lerna run dev --scope='{chat-server,mongodb-chatbot-ui}' --stream --parallel",
     "clean": "lerna clean",
     "build": "lerna run build",
     "test": "lerna run test",

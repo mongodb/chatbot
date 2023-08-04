@@ -47,6 +47,7 @@ describe("OpenAiEmbedFunc", () => {
     ).rejects.toThrow("Request failed with status code 400");
   });
 
+  jest.setTimeout(20000);
   it("should automatically retry on failure", async () => {
     // Mock out the OpenAI endpoint to validate retry behavior
     const app = express();

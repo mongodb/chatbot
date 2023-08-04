@@ -26,7 +26,7 @@ export default defineConfig({
     lib: {
       entry: entryPath,
       name: "Chatbot",
-      fileName: (format) => `docs-chatbot.${format}.js`,
+      fileName: (format) => `mongodb-chatbot-ui.${format}.js`,
     },
     rollupOptions: {
       external: ["react", "react-dom"],

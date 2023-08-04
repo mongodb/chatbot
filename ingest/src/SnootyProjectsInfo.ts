@@ -1,12 +1,13 @@
 import fetch from "node-fetch";
 import {
-  SnootyProjectConfig,
   SnootyProject,
   makeSnootyDataSource,
+  Branch,
 } from "./SnootyDataSource";
+import { LocallySpecifiedSnootyProjectConfig } from "./projectSources";
 
 /** Schema for API response from https://snooty-data-api.mongodb.com/prod/projects */
-type GetSnootyProjectsResponse = {
+export type GetSnootyProjectsResponse = {
   data: SnootyProject[];
 };
 
@@ -15,24 +16,41 @@ export type SnootyProjectsInfo = {
     projectName: string;
     branchName: string;
   }): Promise<string>;
+
+  getCurrentBranch(args: { projectName: string }): Promise<Branch>;
 };
 
 /**
-  Creates a SnootyProjectsInfo object from the Snooty Data API GET projects endpoint.
+  Creates a SnootyProjectsInfo object from the Snooty Data API GET projects
+  endpoint.
  */
 export const makeSnootyProjectsInfo = async ({
   snootyDataApiBaseUrl,
 }: {
   snootyDataApiBaseUrl: string;
-}): Promise<SnootyProjectsInfo> => {
+}): Promise<SnootyProjectsInfo & { _data: typeof data }> => {
   const response = await fetch(new URL("projects", snootyDataApiBaseUrl));
   const { data }: GetSnootyProjectsResponse = await response.json();
+
+  // Fix Snooty API data
+  data.forEach((project) => {
+    project.branches.forEach((branch) => {
+      // Fix booleans that might be string "true" instead of boolean `true`. For more
+      // context, see https://jira.mongodb.org/browse/DOP-3862
+      branch.active =
+        (branch.active as unknown) === "true" || branch.active === true;
+
+      // Some urls are http instead of https
+      branch.fullUrl = branch.fullUrl.replace("http://", "https://");
+    });
+  });
+
   return {
+    _data: data,
+
     async getBaseUrl({ projectName, branchName }) {
-      const siteMetadata = data.find(
-        (snootyProject) => snootyProject.project === projectName
-      );
-      const branchMetaData = siteMetadata?.branches.find(
+      const metadata = data.find(({ project }) => project === projectName);
+      const branchMetaData = metadata?.branches.find(
         (branch) => branch.active && branch.gitBranchName === branchName
       );
       // Make sure there is an active branch at the specified branch name
@@ -42,6 +60,19 @@ export const makeSnootyProjectsInfo = async ({
         );
       }
       return branchMetaData.fullUrl.replace("http://", "https://");
+    },
+
+    async getCurrentBranch({ projectName }) {
+      const metadata = data.find(({ project }) => project === projectName);
+      const currentBranch = metadata?.branches.find(
+        ({ active, isStableBranch }) => active && isStableBranch
+      );
+      if (currentBranch === undefined) {
+        throw new Error(
+          `For project '${projectName}', no active branch found with isStableBranch == true.`
+        );
+      }
+      return currentBranch;
     },
   };
 };
@@ -54,9 +85,7 @@ export const prepareSnootySources = async ({
   projects,
   snootyDataApiBaseUrl,
 }: {
-  projects: (Omit<SnootyProjectConfig, "baseUrl"> & {
-    baseUrl?: string;
-  })[];
+  projects: LocallySpecifiedSnootyProjectConfig[];
   snootyDataApiBaseUrl: string;
 }) => {
   const snootyProjectsInfo = await makeSnootyProjectsInfo({
@@ -64,15 +93,24 @@ export const prepareSnootySources = async ({
   });
   return await Promise.all(
     projects.map(async (project) => {
+      const { name: projectName } = project;
+      const currentBranch =
+        project.currentBranch ??
+        (
+          await snootyProjectsInfo.getCurrentBranch({
+            projectName,
+          })
+        ).gitBranchName;
       return await makeSnootyDataSource({
         name: `snooty-${project.name}`,
         project: {
           ...project,
+          currentBranch,
           baseUrl:
             project.baseUrl?.replace(/\/?$/, "/") ??
             (await snootyProjectsInfo.getBaseUrl({
-              projectName: project.name,
-              branchName: project.currentBranch,
+              projectName,
+              branchName: currentBranch,
             })),
         },
         snootyDataApiBaseUrl,

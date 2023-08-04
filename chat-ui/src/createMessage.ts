@@ -2,7 +2,7 @@ import { MessageData, Role } from "./services/conversations";
 
 export function createMessageId() {
   const now = Date.now();
-  const nonce = Math.floor(Math.random() * 1000);
+  const nonce = Math.floor(Math.random() * 100000);
   return String(now + nonce);
 }
 

@@ -63,7 +63,8 @@
 
 .message_feed > div {
   box-sizing: border-box;
-  height: 60vh;
+  min-height: 20rem;
+  max-height: 60vh;
 }
 
 .message div {

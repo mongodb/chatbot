@@ -1,21 +1,395 @@
 import styles from "./Chatbot.module.css";
 import { useState, useRef } from "react";
+import SuggestedPrompts, { SuggestedPrompt } from "./SuggestedPrompts";
+import useConversation, { Conversation } from "./useConversation";
 import Badge from "@leafygreen-ui/badge";
 import Banner from "@leafygreen-ui/banner";
-// import Card from "@leafygreen-ui/card";
-import Box from "@leafygreen-ui/box";
-import { Subtitle, Body, Link, InlineCode } from "@leafygreen-ui/typography";
-import useConversation, { Conversation } from "./useConversation";
-import { CSSTransition } from "react-transition-group";
-import { useClickAway } from "@uidotdev/usehooks";
-import ChatInput from "./ChatInput";
-import SuggestedPrompts from "./SuggestedPrompts";
-import { Overline } from "@leafygreen-ui/typography";
-import MessageList from "./MessageList";
-import Message from "./Message";
+import Modal, { ModalProps } from "@leafygreen-ui/modal";
 import { ParagraphSkeleton } from "@leafygreen-ui/skeleton-loader";
-import IconButton from "@leafygreen-ui/icon-button";
-import Icon from "@leafygreen-ui/icon";
+import { Body, Link, Error as ErrorText, InlineCode } from "@leafygreen-ui/typography";
+import { Avatar } from "@lg-chat/avatar";
+import { InputBar } from "@lg-chat/input-bar";
+import { Message } from "@lg-chat/message";
+import { MessageFeed } from "@lg-chat/message-feed";
+import { MessageRating, MessageRatingProps } from "@lg-chat/message-rating";
+import { TitleBar } from "@lg-chat/title-bar";
+import { Role } from "./services/conversations";
+
+const MAX_INPUT_CHARACTERS = 300;
+
+const suggestedPrompts = [
+  { key: "deploy", text: "How do you deploy a free cluster in Atlas?" },
+  {
+    key: "import",
+    text: "How do you import or migrate data into MongoDB Atlas?",
+  },
+  { key: "get-started", text: "Get started with MongoDB" },
+  { key: "why-search", text: "Why should I use Atlas Search?" },
+] satisfies SuggestedPrompt[];
+
+function isSender(role: Role) {
+  return role === "user";
+}
+
+function getAvatarVariantForRole(role: Role) {
+  const avatarVariant = (
+    {
+      user: "user",
+      assistant: "mongo",
+    } as const
+  )[role];
+  return avatarVariant;
+}
+
+export default function Chatbot() {
+  const conversation = useConversation();
+  const [initialInputFocused, setInitialInputFocused] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [awaitingReply, setAwaitingReply] = useState(false);
+  const inputBarRef = useRef<HTMLFormElement>(null);
+
+  async function openModal() {
+    if (modalOpen) {
+      return;
+    }
+    setModalOpen(true);
+    if (!conversation.conversationId) {
+      await conversation.createConversation();
+    }
+  }
+
+  function closeModal() {
+    setModalOpen(false);
+  }
+
+  const [inputData, setInputData] = useState({
+    text: "",
+    error: "",
+  });
+  const inputText = inputData.text;
+  const inputTextError = inputData.error;
+  function setInputText(text: string) {
+    const isValid = text.length <= MAX_INPUT_CHARACTERS;
+    setInputData({
+      text,
+      error: isValid
+        ? ""
+        : `Input must be less than ${MAX_INPUT_CHARACTERS} characters`,
+    });
+  }
+
+  const handleSubmit = async (text: string) => {
+    if (!conversation.conversationId) {
+      console.error(`Cannot addMessage without a conversationId`);
+      return;
+    }
+    if (inputData.error) {
+      console.error(`Cannot addMessage with invalid input text`);
+      return;
+    }
+    // Don't let users submit a message that is empty or only whitespace
+    if (text.replace(/\s/g, "").length === 0) return;
+    // Don't let users submit a message if we're already waiting for a reply
+    if (awaitingReply) return;
+    try {
+      setInputText("");
+      setAwaitingReply(true);
+      openModal();
+      await conversation.addMessage("user", text);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setAwaitingReply(false);
+    }
+  };
+
+  const showDisclosure =
+    !initialInputFocused ||
+    (initialInputFocused && conversation.messages.length > 0);
+
+  const showSuggestedPrompts =
+    initialInputFocused &&
+    !awaitingReply &&
+    conversation.messages.length === 0 &&
+    inputText.length === 0;
+
+  return (
+    <div className={styles.chatbot_container}>
+      <div className={styles.chatbot_input}>
+        <InputBar
+          key={"initialInput"}
+          textareaProps={{
+            value: !modalOpen ? inputText : "",
+            onChange: (e) => {
+              if (!modalOpen) setInputText(e.target.value);
+            },
+            placeholder: conversation.error
+              ? "Something went wrong. Try reloading the page and starting a new conversation."
+              : awaitingReply
+              ? "MongoDB AI is answering..."
+              : "Ask MongoDB AI a Question",
+          }}
+          onMessageSend={(messageContent) => {
+            const canSubmit =
+              inputTextError.length === 0 && !conversation.error;
+            if (canSubmit) {
+              handleSubmit(messageContent);
+              if (!modalOpen) openModal();
+            }
+          }}
+          onFocus={async () => {
+            setInitialInputFocused(true);
+            if (conversation.messages.length > 0) {
+              openModal();
+            } else {
+              setMenuOpen(true);
+            }
+            if (!conversation.conversationId) {
+              await conversation.createConversation();
+            }
+          }}
+          onBlur={() => {
+            setInitialInputFocused(false);
+            setMenuOpen(false);
+          }}
+        />
+        {menuOpen ? (
+          <SuggestedPrompts
+            prompts={showSuggestedPrompts ? suggestedPrompts : []}
+            onPromptSelected={async (text) => {
+              await handleSubmit(text);
+              openModal();
+            }}
+          />
+        ) : null}
+
+        {showDisclosure ? <Disclosure /> : null}
+      </div>
+      <ChatbotModal
+        inputBarRef={inputBarRef}
+        active={modalOpen}
+        conversation={conversation}
+        inputText={inputText}
+        setInputText={setInputText}
+        inputTextError={inputTextError}
+        handleSubmit={handleSubmit}
+        awaitingReply={awaitingReply}
+        open={modalOpen}
+        shouldClose={() => {
+          setMenuOpen(false);
+          closeModal();
+          return true;
+        }}
+      />
+    </div>
+  );
+}
+
+type ChatbotModalProps = {
+  inputBarRef: React.RefObject<HTMLFormElement>;
+  active: boolean;
+  conversation: Conversation;
+  inputText: string;
+  setInputText: (text: string) => void;
+  inputTextError: string;
+  handleSubmit: (text: string) => Promise<void>;
+  awaitingReply: boolean;
+  open: boolean;
+  shouldClose: ModalProps["shouldClose"];
+};
+
+function ChatbotModal({
+  open,
+  shouldClose,
+  inputBarRef,
+  active,
+  conversation,
+  inputText,
+  setInputText,
+  inputTextError,
+  handleSubmit,
+  awaitingReply,
+}: ChatbotModalProps) {
+  const isEmptyConversation = conversation.messages.length === 0;
+
+  // TODO - Work with LG Chat to make InputBar focusable.
+  //
+  // Focus the input bar when the modal opens. This lets the user start
+  // typing another message while the previous message is still being
+  // processed.
+  // const focusInputBar = useCallback(() => {
+  //   const textarea = inputBarRef.current?.getElementsByTagName("textarea")[0];
+  //   if (textarea) {
+  //     textarea.focus();
+  //   }
+  // }, [inputBarRef]);
+
+  // useEffect(() => {
+  //   if (open) {
+  //     focusInputBar();
+  //   }
+  // }, [open, focusInputBar]);
+
+  const ActiveInputBarId = "active-input-bar";
+
+  return (
+    <Modal
+      className={styles.modal_container}
+      open={open}
+      size="large"
+      initialFocus={`#${ActiveInputBarId}`}
+      shouldClose={shouldClose}
+    >
+      <div className={styles.card}>
+        <TitleBar
+          className={styles.title_bar}
+          badgeText="Experimental"
+          title="MongoDB AI"
+        />
+
+        {active && !isEmptyConversation ? (
+          <MessageFeed className={styles.message_feed}>
+            {conversation.messages.map((message) => {
+              const showLoadingSkeleton = conversation.isStreamingMessage
+                ? message.id === conversation.streamingMessage?.id &&
+                  conversation.streamingMessage?.content === ""
+                : awaitingReply;
+              return (
+                <Message
+                  key={message.id}
+                  className={styles.message}
+                  isSender={isSender(message.role)}
+                  messageRatingProps={
+                    message.role === "assistant"
+                      ? {
+                          description: "Rate this response:",
+                          onChange: (e) => {
+                            const value = e.target
+                              .value as MessageRatingProps["value"];
+                            if (!value) {
+                              return;
+                            }
+                            conversation.rateMessage(
+                              message.id,
+                              value === "liked" ? true : false
+                            );
+                          },
+                          value:
+                            message.rating === undefined
+                              ? undefined
+                              : message.rating
+                              ? "liked"
+                              : "disliked",
+                        }
+                      : undefined
+                  }
+                  avatar={
+                    <Avatar variant={getAvatarVariantForRole(message.role)} />
+                  }
+                  sourceType={showLoadingSkeleton ? undefined : "markdown"}
+                  componentOverrides={{
+                    MessageRating: (props: MessageRatingProps) => (
+                      <MessageRating
+                        {...props}
+                        className={styles.message_rating}
+                      />
+                    ),
+                    ...(showLoadingSkeleton
+                      ? {
+                          MessageContent: () => (
+                            <ParagraphSkeleton
+                              className={styles.loading_skeleton}
+                            />
+                          ),
+                        }
+                      : {}),
+                  }}
+                  markdownProps={{
+                    className: styles.markdown_container,
+                    children: showLoadingSkeleton ? "" : message.content, // TODO - remove when lg-chat omits this prop from the TS type
+                    linkTarget: "_blank",
+                    components: {
+                      a: ({ children, href }) => {
+                        return (
+                          <Link hideExternalIcon href={href}>
+                            {children}
+                          </Link>
+                        );
+                      },
+                      p: ({ children, ...props }) => {
+                        return <Body {...props}>{children}</Body>;
+                      },
+                      ol: ({ children, ordered, ...props }) => {
+                        return (
+                          <Body as="ol" {...props}>
+                            {children}
+                          </Body>
+                        );
+                      },
+                      ul: ({ children, ordered, ...props }) => {
+                        return (
+                          <Body as="ul" {...props}>
+                            {children}
+                          </Body>
+                        );
+                      },
+                      li: ({ children, ordered, node, ...props }) => {
+                        return (
+                          <Body as="li" {...props}>
+                            {children}
+                          </Body>
+                        );
+                      },
+                    },
+                  }}
+                >
+                  {showLoadingSkeleton ? "" : message.content}
+                </Message>
+              );
+            })}
+          </MessageFeed>
+        ) : null}
+
+        <div className={styles.chatbot_input}>
+          {conversation.error ? <ErrorBanner /> : null}
+
+          <VerifyInformationBanner />
+
+          {!conversation.error ? (
+            <InputBar
+              ref={inputBarRef}
+              disabled={active && Boolean(conversation.error?.length)}
+              onMessageSend={(messageContent) => {
+                const canSubmit =
+                  inputTextError.length === 0 && !conversation.error;
+                if (canSubmit) {
+                  handleSubmit(messageContent);
+                }
+              }}
+              textareaProps={{
+                id: ActiveInputBarId,
+                value: inputText,
+                onChange: (e) => {
+                  setInputText(e.target.value);
+                },
+                placeholder: conversation.error
+                  ? "Something went wrong. Try reloading the page and starting a new conversation."
+                  : awaitingReply
+                  ? "MongoDB AI is answering..."
+                  : "Ask MongoDB AI a Question",
+              }}
+            />
+          ) : null}
+
+          {inputTextError ? <ErrorText>{inputTextError}</ErrorText> : null}
+
+          <ConversationIdInfo conversation={conversation} />
+        </div>
+      </div>
+    </Modal>
+  );
+}
 
 function Disclosure() {
   const TermsOfUse = () => (
@@ -42,7 +416,7 @@ function Disclosure() {
 
 function ErrorBanner() {
   return (
-    <Banner className={styles.lg_banner} variant="danger">
+    <Banner variant="danger">
       Something went wrong. Try reloading the page and starting a new
       conversation.
     </Banner>
@@ -51,7 +425,7 @@ function ErrorBanner() {
 
 function VerifyInformationBanner() {
   return (
-    <Banner className={styles.lg_banner} variant="warning">
+    <Banner variant="warning">
       This is an experimental generative AI chatbot. All information should be
       verified prior to use.
     </Banner>
@@ -60,262 +434,10 @@ function VerifyInformationBanner() {
 
 function ConversationIdInfo({ conversation }: { conversation: Conversation }) {
   return import.meta.env.VITE_QA ? (
-    <div>
+    <div className={styles.conversation_id_info}>
       <Body>
-        Conversation ID: <InlineCode>{conversation.conversationId}</InlineCode>
+        Conversation ID:{" "}<InlineCode>{conversation.conversationId}</InlineCode>
       </Body>
     </div>
   ) : null;
-}
-
-type CTACardProps = {
-  active: boolean;
-  cardRef: React.RefObject<HTMLDivElement>;
-  conversation: Conversation;
-  inputText: string;
-  activate: () => void;
-  deactivate: () => void;
-  setInputText: (text: string) => void;
-  inputTextError: string;
-  handleSubmit: (text: string) => Promise<void>;
-  awaitingReply: boolean;
-};
-
-function CTACard({
-  active,
-  cardRef,
-  conversation,
-  inputText,
-  activate,
-  deactivate,
-  setInputText,
-  inputTextError,
-  handleSubmit,
-  awaitingReply,
-}: CTACardProps) {
-  const isEmptyConversation = conversation.messages.length === 0;
-  const showSuggestedPrompts = inputText.length === 0;
-  const showExperimentalBanner = inputText.length > 0;
-
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  return (
-    // TODO: Make this work with <Card>. For some reason, <Card>
-    // does not accept a ref prop even though it wraps <Box>, which
-    // takes the ref just fine.
-    <Box ref={cardRef} className={styles.card}>
-      {active && !isEmptyConversation ? (
-        <>
-          <ConversationIdInfo conversation={conversation} />
-          <div className={styles.card_content_title}>
-            <Subtitle>MongoDB AI</Subtitle>
-            <Badge variant="blue">Experimental</Badge>
-
-            <IconButton
-              className={styles.card_content_title__right}
-              aria-label="Close the chatbot window"
-              active={false}
-              onClick={() => deactivate()}
-            >
-              <Icon glyph="X" />
-            </IconButton>
-          </div>
-          <MessageList>
-            {conversation.messages.map((message) => {
-              const showLoadingSkeleton = conversation.isStreamingMessage
-                ? message.id === conversation.streamingMessage?.id &&
-                  conversation.streamingMessage?.content === ""
-                : awaitingReply;
-              return showLoadingSkeleton ? (
-                <Message key={message.id} role="assistant">
-                  <ParagraphSkeleton />
-                </Message>
-              ) : (
-                <Message
-                  key={message.id}
-                  message={message}
-                  rateMessage={conversation.rateMessage}
-                />
-              );
-            })}
-          </MessageList>
-        </>
-      ) : null}
-
-      {active && conversation.error ? <ErrorBanner /> : null}
-
-      {active ? <VerifyInformationBanner /> : null}
-
-      {!active || !conversation.error ? (
-        <ChatInput
-          ref={inputRef}
-          key="wizard-input"
-          showSubmitButton={
-            active && inputText.length > 0 && !conversation.error
-          }
-          disabled={active && Boolean(conversation.error?.length)}
-          placeholder={
-            conversation.error
-              ? "Something went wrong. Try reloading the page and starting a new conversation."
-              : awaitingReply
-              ? "MongoDB AI is answering..."
-              : "Ask MongoDB AI a Question"
-          }
-          state={inputTextError ? "error" : "none"}
-          errorMessage={inputTextError}
-          canSubmit={inputTextError.length === 0 && !conversation.error}
-          onFocus={() => {
-            if (!active) {
-              activate();
-            }
-          }}
-          onButtonClick={() => {
-            activate();
-          }}
-          value={inputText}
-          onChange={(e) => {
-            setInputText(e.target.value);
-          }}
-          loading={awaitingReply}
-          handleSubmit={() => {
-            handleSubmit(inputText);
-          }}
-        />
-      ) : null}
-
-      {active && isEmptyConversation && !conversation.error ? (
-        <div className={styles.card_content}>
-          <div className={styles.chat}>
-            {showSuggestedPrompts ? (
-              <SuggestedPrompts
-                onPromptSelected={async (text) => {
-                  await handleSubmit(text);
-                }}
-              />
-            ) : null}
-
-            {showExperimentalBanner ? (
-              <div className={styles.basic_banner}>
-                <Overline>ASK MONGODB AI</Overline>
-                <Badge variant="blue">Experimental</Badge>
-              </div>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
-    </Box>
-  );
-}
-
-export default function Chatbot() {
-  const conversation = useConversation();
-  const [active, setActive] = useState(false);
-  const [awaitingReply, setAwaitingReply] = useState(false);
-
-  async function activate() {
-    if (active) {
-      return;
-    }
-    setActive(true);
-    if (!conversation.conversationId) {
-      await conversation.createConversation();
-    }
-  }
-
-  function deactivate() {
-    if (active) {
-      setActive(false);
-    }
-  }
-
-  const [inputData, setInputData] = useState({
-    text: "",
-    error: "",
-  });
-  const inputText = inputData.text;
-  const inputTextError = inputData.error;
-  function setInputText(text: string) {
-    const isValid = text.length <= 300;
-    setInputData({
-      text,
-      error: isValid ? "" : "Input must be less than 300 characters",
-    });
-  }
-
-  const handleSubmit = async (text: string) => {
-    if (!conversation.conversationId) {
-      console.error(`Cannot addMessage without a conversationId`);
-      return;
-    }
-    if (inputData.error) {
-      console.error(`Cannot addMessage with invalid input text`);
-      return;
-    }
-    if (awaitingReply) return;
-    try {
-      setInputText("");
-      setAwaitingReply(true);
-      await conversation.addMessage("user", text);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setAwaitingReply(false);
-    }
-  };
-
-  const cardBoundingBoxRef = useClickAway(() => {
-    setActive(false);
-  });
-
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  return (
-    <CSSTransition
-      nodeRef={cardBoundingBoxRef}
-      in={active}
-      timeout={{
-        enter: 250,
-        exit: 200,
-      }}
-      classNames={{
-        enterActive: styles["chatbot_container-enter"],
-        enterDone: styles["chatbot_container-enter-active"],
-        exitActive: styles["chatbot_container-exit"],
-        exitDone: styles["chatbot_container-exit-active"],
-      }}
-    >
-      <div className={styles.chatbot_container} ref={cardBoundingBoxRef}>
-        <>
-          <CSSTransition
-            nodeRef={cardRef}
-            in={active}
-            timeout={{
-              enter: 250,
-              exit: 200,
-            }}
-            classNames={{
-              enterActive: styles["card-enter"],
-              enterDone: styles["card-enter-active"],
-              exitActive: styles["card-exit"],
-              exitDone: styles["card-exit-active"],
-            }}
-          >
-            <CTACard
-              cardRef={cardRef}
-              conversation={conversation}
-              active={active}
-              activate={activate}
-              deactivate={deactivate}
-              inputText={inputText}
-              setInputText={setInputText}
-              inputTextError={inputTextError}
-              handleSubmit={handleSubmit}
-              awaitingReply={awaitingReply}
-            />
-          </CSSTransition>
-          {!active ? <Disclosure /> : null}
-        </>
-      </div>
-    </CSSTransition>
-  );
 }

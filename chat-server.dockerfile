@@ -3,10 +3,16 @@ FROM node:18-alpine as builder
 
 ARG ENVIRONMENT
 ENV ENVIRONMENT=${ENVIRONMENT}
+ARG LG_ARTIFACTORY_PASSWORD
+ENV LG_ARTIFACTORY_PASSWORD=${LG_ARTIFACTORY_PASSWORD}
+ARG LG_ARTIFACTORY_USERNAME
+ENV LG_ARTIFACTORY_USERNAME=${LG_ARTIFACTORY_USERNAME}
+ARG LG_ARTIFACTORY_EMAIL
+ENV LG_ARTIFACTORY_EMAIL=${LG_ARTIFACTORY_EMAIL}
 # Install all dependencies && set up project
 WORKDIR /app
 COPY . ./
-RUN npm ci && npm run bootstrap && npm run build
+RUN npm install lerna && npm run bootstrap && npm run build
 
 # Main image
 FROM node:18-alpine as main

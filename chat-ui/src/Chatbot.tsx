@@ -98,7 +98,7 @@ export default function Chatbot() {
       openModal();
       await conversation.addMessage("user", text);
     } catch (e) {
-      console.error(e);
+      console.error(e)
     } finally {
       setAwaitingReply(false);
     }
@@ -130,12 +130,11 @@ export default function Chatbot() {
               ? "MongoDB AI is answering..."
               : "Ask MongoDB AI a Question",
           }}
-          onMessageSend={(messageContent) => {
+          onMessageSend={async (messageContent) => {
             const canSubmit =
               inputTextError.length === 0 && !conversation.error;
             if (canSubmit) {
-              handleSubmit(messageContent);
-              if (!modalOpen) openModal();
+              await handleSubmit(messageContent);
             }
           }}
           onFocus={async () => {
@@ -159,7 +158,6 @@ export default function Chatbot() {
             prompts={showSuggestedPrompts ? suggestedPrompts : []}
             onPromptSelected={async (text) => {
               await handleSubmit(text);
-              openModal();
             }}
           />
         ) : null}
@@ -254,7 +252,7 @@ function ChatbotModal({
               const showLoadingSkeleton = conversation.isStreamingMessage
                 ? message.id === conversation.streamingMessage?.id &&
                   conversation.streamingMessage?.content === ""
-                : awaitingReply;
+                : false;
               return (
                 <Message
                   key={message.id}
@@ -308,7 +306,6 @@ function ChatbotModal({
                   markdownProps={{
                     className: styles.markdown_container,
                     children: showLoadingSkeleton ? "" : message.content, // TODO - remove when lg-chat omits this prop from the TS type
-                    linkTarget: "_blank",
                     components: {
                       a: ({ children, href }) => {
                         return (
@@ -350,9 +347,10 @@ function ChatbotModal({
             })}
           </MessageFeed>
         ) : null}
-
         <div className={styles.chatbot_input}>
-          {conversation.error ? <ErrorBanner /> : null}
+          {conversation.error ? (
+            <ErrorBanner message={conversation.error} />
+          ) : null}
 
           <VerifyInformationBanner />
 
@@ -414,11 +412,16 @@ function Disclosure() {
   );
 }
 
-function ErrorBanner() {
+function ErrorBanner({
+  message = "Something went wrong.",
+}: {
+  message?: string;
+}) {
   return (
     <Banner variant="danger">
-      Something went wrong. Try reloading the page and starting a new
-      conversation.
+      {message}
+      <br />
+      Reload the page to start a new conversation.
     </Banner>
   );
 }
@@ -433,10 +436,10 @@ function VerifyInformationBanner() {
 }
 
 function ConversationIdInfo({ conversation }: { conversation: Conversation }) {
-  return import.meta.env.VITE_QA ? (
+  return (import.meta.env.VITE_QA !== "false") ? (
     <div className={styles.conversation_id_info}>
       <Body>
-        Conversation ID:{" "}<InlineCode>{conversation.conversationId}</InlineCode>
+        Conversation ID: <InlineCode>{conversation.conversationId}</InlineCode>
       </Body>
     </div>
   ) : null;

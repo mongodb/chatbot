@@ -436,7 +436,7 @@ function VerifyInformationBanner() {
 }
 
 function ConversationIdInfo({ conversation }: { conversation: Conversation }) {
-  return (import.meta.env.VITE_QA !== "false") ? (
+  return import.meta.env.VITE_QA === "true" ? (
     <div className={styles.conversation_id_info}>
       <Body>
         Conversation ID: <InlineCode>{conversation.conversationId}</InlineCode>

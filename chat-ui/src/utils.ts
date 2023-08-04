@@ -1,4 +1,4 @@
-function ensureArrayIndexInBounds(arr: any[], index: number) {
+function ensureArrayIndexInBounds<T>(arr: T[], index: number) {
   const isInBounds = index >= 0 && index < arr.length
   if (!isInBounds) {
     throw new Error(

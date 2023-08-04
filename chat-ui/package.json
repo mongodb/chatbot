@@ -40,7 +40,13 @@
     "release": "release-it"
   },
   "bundleDependencies": [
-    "chat-core"
+    "chat-core",
+    "@lg-chat/avatar",
+    "@lg-chat/input-bar",
+    "@lg-chat/message",
+    "@lg-chat/message-feed",
+    "@lg-chat/message-rating",
+    "@lg-chat/title-bar"
   ],
   "dependencies": {
     "@leafygreen-ui/badge": "^8.0.7",
@@ -60,7 +66,6 @@
     "@leafygreen-ui/typography": "^16.5.0",
     "@lg-chat/avatar": "^1.0.0",
     "@lg-chat/input-bar": "^1.0.0",
-    "@lg-chat/lg-markdown": "^1.0.0",
     "@lg-chat/message": "^1.0.0",
     "@lg-chat/message-feed": "^1.0.0",
     "@lg-chat/message-rating": "^1.0.0",

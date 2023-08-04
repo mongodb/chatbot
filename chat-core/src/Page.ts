@@ -3,7 +3,17 @@
  */
 export type Page = {
   url: string;
+
+  /**
+    A human-readable title.
+   */
+  title: string;
+
+  /**
+    The text of the page.
+   */
   body: string;
+
   format: "md" | "txt";
 
   /**

@@ -4,6 +4,7 @@ import { getChangedPages } from "./getChangedPages";
 describe("getChangedPages", () => {
   it("gets changed pages", async () => {
     const pageTemplate: Omit<Page, "url"> = {
+      title: "page",
       body: "abc",
       format: "md",
       sourceName: "test",
@@ -48,6 +49,7 @@ describe("getChangedPages", () => {
   });
   it("detects changed tags", async () => {
     const page: Page = {
+      title: "page",
       body: "abc",
       format: "md",
       sourceName: "test",

@@ -1,6 +1,6 @@
 import Path from "path";
-import { readFileSync, writeFileSync } from "fs";
-import { snootyAstToMd } from "./snootyAstToMd";
+import { readFileSync } from "fs";
+import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
 
 describe("snootyAstToMd", () => {
   const samplePage = JSON.parse(
@@ -94,6 +94,13 @@ describe("snootyAstToMd", () => {
     it("Renders code examples without language", () => {
       expect(result).toContain("```\n");
       expect(result).not.toContain("```undefined\n");
+    });
+  });
+  describe("getTitleFromSnootyAst", () => {
+    it("extracts a title", () => {
+      expect(getTitleFromSnootyAst(samplePage.data.ast)).toBe(
+        "$merge (aggregation)"
+      );
     });
   });
 });

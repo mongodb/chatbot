@@ -7,7 +7,7 @@ export type Page = {
   /**
     A human-readable title.
    */
-  title: string;
+  title?: string;
 
   /**
     The text of the page.

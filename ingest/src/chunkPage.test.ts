@@ -1,5 +1,5 @@
 import { Page } from "chat-core";
-import { chunkPage, prependFrontMatter } from "./chunkPage";
+import { chunkPage, standardFrontMatterUpdater } from "./chunkPage";
 
 describe("chunkPage", () => {
   const page: Page = {
@@ -74,7 +74,7 @@ Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibend
     let chunks = await chunkPage(
       { ...page, body: "This is some text\n" },
       {
-        transform: prependFrontMatter,
+        transform: standardFrontMatterUpdater,
       }
     );
     expect(chunks).toHaveLength(1);
@@ -86,7 +86,7 @@ Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibend
         text: `---
 pageTitle: Test Page
 sourceName: test-source
-hasCodeExample: false
+hasCodeBlock: false
 ---
 
 This is some text`,
@@ -101,7 +101,7 @@ This is some text`,
         body: "This text has a code example:\n\n```js\nlet foo = 1 + 1;\n```\n\nNeat, huh?",
       },
       {
-        transform: prependFrontMatter,
+        transform: standardFrontMatterUpdater,
       }
     );
     expect(chunks).toHaveLength(1);
@@ -113,8 +113,9 @@ This is some text`,
         text: `---
 pageTitle: Test Page
 sourceName: test-source
-hasCodeExample: true
-codeExampleLanguage: js
+hasCodeBlock: true
+codeBlockLanguages:
+  - js
 ---
 
 This text has a code example:
@@ -124,7 +125,7 @@ let foo = 1 + 1;
 \`\`\`
 
 Neat, huh?`,
-        tokenCount: 60,
+        tokenCount: 64,
         url: "test",
       },
     ]);
@@ -135,7 +136,7 @@ Neat, huh?`,
         body: "This text has an unspecified code example:\n\n```\nlet foo = 1 + 1;\n```\n\nNeat, huh?",
       },
       {
-        transform: prependFrontMatter,
+        transform: standardFrontMatterUpdater,
       }
     );
     expect(chunks).toHaveLength(1);
@@ -147,7 +148,7 @@ Neat, huh?`,
         text: `---
 pageTitle: Test Page
 sourceName: test-source
-hasCodeExample: true
+hasCodeBlock: true
 ---
 
 This text has an unspecified code example:
@@ -161,5 +162,42 @@ Neat, huh?`,
         url: "test",
       },
     ]);
+  });
+
+  it("can update existing frontmatter", async () => {
+    const chunks = await chunkPage(
+      {
+        ...page,
+        body: `---
+someString: Who knows
+someArray:
+  - 1
+  - 2
+  - foo
+hasCodeBlock: true
+---
+
+This is some text\n`,
+      },
+      {
+        transform: standardFrontMatterUpdater,
+      }
+    );
+    expect(chunks).toHaveLength(1);
+
+    // Note that it includes the original frontmatter and only overrides the
+    // field that would be set by the standardFrontMatterUpdater (hasCodeBlock)
+    expect(chunks[0].text).toBe(`---
+someString: Who knows
+someArray:
+  - 1
+  - 2
+  - foo
+hasCodeBlock: false
+pageTitle: Test Page
+sourceName: test-source
+---
+
+This is some text`);
   });
 });

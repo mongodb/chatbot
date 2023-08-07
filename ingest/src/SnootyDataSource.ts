@@ -239,7 +239,7 @@ const handlePage = async (
       "/"
     ),
     sourceName,
-    title: getTitleFromSnootyAst(page.ast) ?? page.page_id,
+    title: getTitleFromSnootyAst(page.ast),
     body: snootyAstToMd(page.ast, { baseUrl }),
     format: "md",
     tags,

@@ -253,14 +253,27 @@ export default class ConversationService {
           if (moreToStream && retryCount++ < maxRetries) {
             return err.retryAfter;
           }
-          (err.data.json() as Promise<{ error: string }>).then((errorBody) => {
-            throw new Error(errorBody.error);
-          });
-        }
-        if (err instanceof Error) {
+          // Past this point we no longer want to retry, so
+          // rethrow to stop the operation and let the error
+          // bubble up to the caller.
+          if (!err.data) {
+            throw new Error(err.message);
+          }
+
+          if (err.data instanceof Response) {
+            const errorBodyPromise = err.data.json() as Promise<{
+              error: string;
+            }>;
+            errorBodyPromise.then((errorBody) => {
+              throw new Error(errorBody.error);
+            });
+          } else {
+            throw new Error(err.message);
+          }
+        } else if (err instanceof Error) {
           throw new Error(err.message);
         }
-        throw err; // rethrow to stop the operation
+        throw err;
       },
     });
   }

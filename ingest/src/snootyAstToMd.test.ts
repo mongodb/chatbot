@@ -81,5 +81,30 @@ describe("snootyAstToMd", () => {
       baseUrl: "/",
     });
     writeFileSync("samplePage.md", result, { encoding: "utf-8" });
+    // TODO: remove bullet points from table entries
+    const expected = `The \`$merge\` takes a document with the following fields:
+
+<table>
+
+<tr>
+
+<td>
+
+- Field
+
+</td>
+
+<td>
+
+- Description
+
+</td>
+
+</tr>`;
+    // expect(result).toContain(expected);
+    const openingTagCount = result.split("<table>").length - 1;
+    const closingTagCount = result.split("</table>").length - 1;
+    expect(openingTagCount).toBe(5);
+    expect(openingTagCount).toBe(closingTagCount);
   });
 });

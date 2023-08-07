@@ -76,4 +76,10 @@ describe("snootyAstToMd", () => {
     const expectedToInclude = `Writes the results of the aggregation pipeline to a specified collection. The \`$merge\` operator must be the **last** stage in the pipeline.`;
     expect(result.includes(expectedToInclude)).toBe(true);
   });
+  it("renders HTML tables", () => {
+    const result = snootyAstToMd(samplePage.data.ast, {
+      baseUrl: "/",
+    });
+    writeFileSync("samplePage.md", result, { encoding: "utf-8" });
+  });
 });

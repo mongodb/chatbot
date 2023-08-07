@@ -2,6 +2,7 @@ import { SnootyNode } from "./SnootyDataSource";
 
 export type SnootyAstToMdOptions = {
   baseUrl: string;
+  parentIsTable?: boolean;
 };
 
 // Adapted from https://github.com/mongodben/snooty-ast-to-md/blob/main/index.js
@@ -58,13 +59,57 @@ export const snootyAstToMd = (
         .join("")}\n\n`;
       break;
     case "list":
+      if (options.parentIsTable) {
+        text += node.children
+          .map(
+            (listItem) =>
+              `\n\n<tr>\n\n${snootyAstToMd(
+                listItem,
+                { ...options, parentIsTable: true },
+                parentHeadingLevel
+              )}\n\n</tr>\n\n`
+          )
+          .join("\n");
+        break;
+      }
       text += node.children
-        .map((listItem) => snootyAstToMd(listItem, options, parentHeadingLevel))
+        .map((listItem) =>
+          snootyAstToMd(
+            listItem,
+            { ...options, parentIsTable: false },
+            parentHeadingLevel
+          )
+        )
         .join("\n");
       break;
     case "listItem":
+      if (
+        options.parentIsTable &&
+        node.children.length &&
+        Array.isArray(node.children) &&
+        (node.children[0].children as []).length
+      ) {
+        const tdNode = node.children[0].children as SnootyNode[];
+        text += tdNode
+          .map(
+            (child) =>
+              `\n\n<td>\n\n${snootyAstToMd(
+                child,
+                { ...options, parentIsTable: false },
+                parentHeadingLevel
+              )}\n\n</td>\n\n`
+          )
+          .join("");
+        break;
+      }
       text += `- ${node.children
-        .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
+        .map((child) =>
+          snootyAstToMd(
+            child,
+            { ...options, parentIsTable: false },
+            parentHeadingLevel
+          )
+        )
         .join("")}`;
       break;
     // TODO: figure out ordered lists
@@ -75,6 +120,24 @@ export const snootyAstToMd = (
       text += `\`${node.children
         .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
         .join("")}\``;
+      break;
+    case "directive":
+      if (node.name === "list-table") {
+        text += `\n\n<table>\n${node.children
+          .map((child) =>
+            snootyAstToMd(
+              child,
+              { ...options, parentIsTable: true },
+              parentHeadingLevel
+            )
+          )
+          .join("")}\n\n</table>\n\n`;
+        break;
+      }
+      // other "directive" nodes not parsed in particular way
+      text += node.children
+        .map((subnode) => snootyAstToMd(subnode, options, parentHeadingLevel))
+        .join("");
       break;
     // No longer including links
     // case "ref_role": {

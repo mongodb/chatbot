@@ -1,6 +1,6 @@
 import Path from "path";
 import { readFileSync, writeFileSync } from "fs";
-import { snootyAstToMd } from "./snootyAstToMd";
+import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
 
 describe("snootyAstToMd", () => {
   const samplePage = JSON.parse(
@@ -96,6 +96,7 @@ describe("snootyAstToMd", () => {
       expect(result).not.toContain("```undefined\n");
     });
   });
+
   it("renders HTML tables", () => {
     const samplePage = JSON.parse(
       readFileSync(
@@ -191,5 +192,13 @@ Stop and fail the aggregation operation. Any changes to the output collection fr
     const closingTagCount = result.split("</td>").length - 1;
     expect(openingTagCount).toBe(8);
     expect(openingTagCount).toBe(closingTagCount);
+  });
+
+  describe("getTitleFromSnootyAst", () => {
+    it("extracts a title", () => {
+      expect(getTitleFromSnootyAst(samplePage.data.ast)).toBe(
+        "$merge (aggregation)"
+      );
+    });
   });
 });

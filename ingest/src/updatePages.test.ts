@@ -14,6 +14,7 @@ export const makeMockPageStore = (): PageStore => {
 };
 
 const examplePage: Page = {
+  title: "Example",
   body: "",
   format: "md",
   sourceName: "test",

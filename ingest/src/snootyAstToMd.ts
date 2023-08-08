@@ -208,3 +208,28 @@ export const snootyAstToMd = (
 
   return text.replaceAll(/\n{3,}/g, "\n\n").trimStart(); // remove extra newlines with just 2
 };
+
+const findNode = (
+  node: SnootyNode,
+  predicate: (node: SnootyNode) => boolean
+): SnootyNode | undefined => {
+  if (predicate(node)) {
+    return node;
+  }
+  for (const child of node.children ?? []) {
+    const result = findNode(child, predicate);
+    if (result) {
+      return result;
+    }
+  }
+  return undefined;
+};
+
+export const getTitleFromSnootyAst = (node: SnootyNode): string | undefined => {
+  const firstHeading = findNode(node, ({ type }) => type === "heading");
+  if (!firstHeading) {
+    return undefined;
+  }
+  const textNode = findNode(firstHeading, ({ type }) => type === "text");
+  return textNode?.value as string;
+};

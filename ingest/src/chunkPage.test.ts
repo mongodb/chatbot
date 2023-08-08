@@ -1,11 +1,11 @@
 import { Page } from "chat-core";
-import { chunkPage } from "./chunkPage";
+import { chunkPage, standardFrontMatterUpdater } from "./chunkPage";
 
 describe("chunkPage", () => {
-  it("chunks pages", async () => {
-    const page: Page = {
-      url: "test",
-      body: `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam tempus mattis turpis sed ornare. Etiam fermentum malesuada mauris at feugiat. Proin vel augue vel velit pellentesque eleifend. Integer elit nisl, mattis non felis mollis, efficitur ornare nunc. Etiam eu semper magna. Proin molestie suscipit quam egestas ultrices. Donec eget eleifend libero. Morbi euismod, turpis sit amet convallis egestas, enim metus ornare nisi, vel egestas est purus vel arcu. Duis ut augue nec purus ultrices ultrices. Sed quis mauris felis.
+  const page: Page = {
+    url: "test",
+    title: "Test Page",
+    body: `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam tempus mattis turpis sed ornare. Etiam fermentum malesuada mauris at feugiat. Proin vel augue vel velit pellentesque eleifend. Integer elit nisl, mattis non felis mollis, efficitur ornare nunc. Etiam eu semper magna. Proin molestie suscipit quam egestas ultrices. Donec eget eleifend libero. Morbi euismod, turpis sit amet convallis egestas, enim metus ornare nisi, vel egestas est purus vel arcu. Duis ut augue nec purus ultrices ultrices. Sed quis mauris felis.
 
 Morbi lacinia pharetra vestibulum. Aliquam fringilla, arcu in porta mollis, ligula felis vulputate nibh, sed dignissim libero velit ac leo. In bibendum a eros id imperdiet. Pellentesque ac nulla id nisl maximus vulputate. Vivamus in luctus ante. Curabitur blandit lobortis nunc, id consequat diam dignissim semper. Proin quis sem purus. Duis nibh risus, tempor eget elementum id, mattis eget odio. Donec eu nisl quis leo posuere iaculis eu eu libero. Aenean non elit tincidunt, tincidunt nisl at, commodo lectus.
 
@@ -14,10 +14,11 @@ In orci massa, vulputate eu eros non, venenatis commodo nibh. Donec nec faucibus
 Praesent a neque diam. Sed ultricies nunc quam, sed maximus risus dignissim sit amet. Phasellus scelerisque massa hendrerit urna convallis finibus. Fusce ornare odio eros, id ultrices nisl sodales quis. Aenean sed ullamcorper enim, sit amet varius lectus. Duis ut vestibulum eros. Maecenas bibendum felis at laoreet eleifend.
 
 Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibendum in vel diam. Pellentesque varius dapibus molestie. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Mauris blandit metus sit amet libero pretium, sit amet cursus sem tempor. Proin euismod ut mi vitae luctus. Etiam pulvinar lacus nulla, vel placerat lacus pharetra auctor.`,
-      format: "md",
-      sourceName: "test-source",
-      tags: ["a", "b"],
-    };
+    format: "md",
+    sourceName: "test-source",
+    tags: ["a", "b"],
+  };
+  it("chunks pages", async () => {
     const chunks = await chunkPage(page, { chunkSize: 2000, chunkOverlap: 0 });
     expect(chunks).toHaveLength(2);
     expect(chunks).toStrictEqual([
@@ -38,5 +39,165 @@ Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibend
         url: "test",
       },
     ]);
+  });
+
+  it("allows transformation", async () => {
+    const chunks = await chunkPage(page, {
+      chunkSize: 2000,
+      chunkOverlap: 0,
+      async transform(chunk) {
+        return { ...chunk, text: "Transformed!" };
+      },
+    });
+    expect(chunks).toHaveLength(2);
+    expect(chunks).toStrictEqual([
+      {
+        chunkIndex: 0,
+        sourceName: "test-source",
+        tags: ["a", "b"],
+        text: "Transformed!",
+        tokenCount: 3, // Calculated after transformation
+        url: "test",
+      },
+      {
+        chunkIndex: 1,
+        sourceName: "test-source",
+        tags: ["a", "b"],
+        text: "Transformed!",
+        tokenCount: 3, // Calculated after transformation
+        url: "test",
+      },
+    ]);
+  });
+
+  it("can add frontmatter", async () => {
+    let chunks = await chunkPage(
+      { ...page, body: "This is some text\n" },
+      {
+        transform: standardFrontMatterUpdater,
+      }
+    );
+    expect(chunks).toHaveLength(1);
+    expect(chunks).toStrictEqual([
+      {
+        chunkIndex: 0,
+        sourceName: "test-source",
+        tags: ["a", "b"],
+        text: `---
+pageTitle: Test Page
+sourceName: test-source
+hasCodeBlock: false
+---
+
+This is some text`,
+        tokenCount: 28, // Calculated after transformation
+        url: "test",
+      },
+    ]);
+
+    chunks = await chunkPage(
+      {
+        ...page,
+        body: "This text has a code example:\n\n```js\nlet foo = 1 + 1;\n```\n\nNeat, huh?",
+      },
+      {
+        transform: standardFrontMatterUpdater,
+      }
+    );
+    expect(chunks).toHaveLength(1);
+    expect(chunks).toStrictEqual([
+      {
+        chunkIndex: 0,
+        sourceName: "test-source",
+        tags: ["a", "b"],
+        text: `---
+pageTitle: Test Page
+sourceName: test-source
+hasCodeBlock: true
+codeBlockLanguages:
+  - js
+---
+
+This text has a code example:
+
+\`\`\`js
+let foo = 1 + 1;
+\`\`\`
+
+Neat, huh?`,
+        tokenCount: 64,
+        url: "test",
+      },
+    ]);
+
+    chunks = await chunkPage(
+      {
+        ...page,
+        body: "This text has an unspecified code example:\n\n```\nlet foo = 1 + 1;\n```\n\nNeat, huh?",
+      },
+      {
+        transform: standardFrontMatterUpdater,
+      }
+    );
+    expect(chunks).toHaveLength(1);
+    expect(chunks).toStrictEqual([
+      {
+        chunkIndex: 0,
+        sourceName: "test-source",
+        tags: ["a", "b"],
+        text: `---
+pageTitle: Test Page
+sourceName: test-source
+hasCodeBlock: true
+---
+
+This text has an unspecified code example:
+
+\`\`\`
+let foo = 1 + 1;
+\`\`\`
+
+Neat, huh?`,
+        tokenCount: 54,
+        url: "test",
+      },
+    ]);
+  });
+
+  it("can update existing frontmatter", async () => {
+    const chunks = await chunkPage(
+      {
+        ...page,
+        body: `---
+someString: Who knows
+someArray:
+  - 1
+  - 2
+  - foo
+hasCodeBlock: true
+---
+
+This is some text\n`,
+      },
+      {
+        transform: standardFrontMatterUpdater,
+      }
+    );
+    expect(chunks).toHaveLength(1);
+
+    // Note that it includes the original frontmatter and only overrides the
+    // field that would be set by the standardFrontMatterUpdater (hasCodeBlock)
+    expect(chunks[0].text).toBe(`---
+someString: Who knows
+someArray:
+  - 1
+  - 2
+  - foo
+hasCodeBlock: false
+pageTitle: Test Page
+sourceName: test-source
+---
+
+This is some text`);
   });
 });

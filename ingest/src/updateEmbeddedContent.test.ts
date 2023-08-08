@@ -22,6 +22,7 @@ export const makeMockEmbeddedContentStore = (): EmbeddedContentStore => {
 };
 
 const examplePage: Page = {
+  title: "Example",
   body: "this is a test page",
   format: "md",
   sourceName: "test",

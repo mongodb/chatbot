@@ -2,7 +2,7 @@ import { createInterface } from "readline";
 import { Page } from "chat-core";
 import fetch from "node-fetch";
 import { DataSource } from "./DataSource";
-import { snootyAstToMd } from "./snootyAstToMd";
+import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
 import { ProjectBase } from "./ProjectBase";
 
 // These types are what's in the snooty manifest jsonl file.
@@ -239,6 +239,7 @@ const handlePage = async (
       "/"
     ),
     sourceName,
+    title: getTitleFromSnootyAst(page.ast),
     body: snootyAstToMd(page.ast, { baseUrl }),
     format: "md",
     tags,

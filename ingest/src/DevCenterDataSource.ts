@@ -45,6 +45,7 @@ export const makeDevCenterDataSource = async ({
             continue;
           }
           pages.push({
+            title: document.name,
             body: makeDevCenterPageBody({
               title: document.name,
               content: document.content,

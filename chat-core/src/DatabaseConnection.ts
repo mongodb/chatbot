@@ -18,16 +18,20 @@ export type DatabaseConnection = {
   drop(): Promise<void>;
 };
 
+export interface MakeDatabaseConnectionParams {
+  connectionUri: string;
+  databaseName: string;
+}
+
 /**
   Create a connection to the database.
  */
 export const makeDatabaseConnection = async ({
   connectionUri,
   databaseName,
-}: {
-  connectionUri: string;
-  databaseName: string;
-}): Promise<DatabaseConnection & PageStore & EmbeddedContentStore> => {
+}: MakeDatabaseConnectionParams): Promise<
+  DatabaseConnection & PageStore & EmbeddedContentStore
+> => {
   const client = await new MongoClient(connectionUri).connect();
   const db = client.db(databaseName);
   const embeddedContentCollection =
@@ -97,7 +101,13 @@ export const makeDatabaseConnection = async ({
     },
 
     async findNearestNeighbors(vector, options) {
-      const { indexName, path, k, minScore }: FindNearestNeighborsOptions = {
+      const {
+        indexName,
+        path,
+        k,
+        minScore,
+        filter,
+      }: Partial<FindNearestNeighborsOptions> = {
         // Default options
         indexName: "default",
         path: "embedding",
@@ -116,6 +126,7 @@ export const makeDatabaseConnection = async ({
                 vector,
                 path,
                 k,
+                filter,
               },
             },
           },

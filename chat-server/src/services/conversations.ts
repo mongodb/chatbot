@@ -5,8 +5,9 @@ import {
   OpenAiChatMessage,
   OpenAiMessageRole,
 } from "chat-core";
-import { SYSTEM_PROMPT } from "../aiConstants";
 import { References } from "chat-core";
+import { Llm } from "./llm";
+import { LlmConfig } from "../AppConfig";
 
 export interface Message {
   /** Unique identifier for the message. */
@@ -78,16 +79,18 @@ However, here are some links that might provide some helpful information for you
 export class ConversationsService implements ConversationsServiceInterface {
   private database: Db;
   private conversationsCollection: Collection<Conversation>;
-  constructor(database: Db) {
+  private systemPrompt: LlmConfig["systemPrompt"];
+  constructor(database: Db, systemPrompt: LlmConfig["systemPrompt"]) {
     this.database = database;
     this.conversationsCollection =
       this.database.collection<Conversation>("conversations");
+    this.systemPrompt = systemPrompt;
   }
   async create({ ipAddress }: CreateConversationParams) {
     const newConversation = {
       _id: new ObjectId(),
       ipAddress,
-      messages: [this.createMessageFromChatMessage(SYSTEM_PROMPT)],
+      messages: [this.createMessageFromChatMessage(this.systemPrompt)],
       createdAt: new Date(),
     };
     const insertResult = await this.conversationsCollection.insertOne(

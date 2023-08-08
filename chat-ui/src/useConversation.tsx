@@ -7,7 +7,7 @@ import {
   formatReferences,
 } from "./services/conversations";
 import createMessage, { createMessageId } from "./createMessage";
-import { updateArrayElementAt } from "./utils";
+import { removeArrayElementAt, updateArrayElementAt } from "./utils";
 
 // If SSE is supported, use it to stream responses from the server as
 // they're created instead of awaiting the entire response
@@ -31,7 +31,8 @@ type ConversationAction =
   | { type: "rateMessage"; messageId: MessageData["id"]; rating: boolean }
   | { type: "createStreamingResponse"; data: string }
   | { type: "appendStreamingResponse"; data: string }
-  | { type: "finishStreamingResponse"; messageId: MessageData["id"] };
+  | { type: "finishStreamingResponse"; messageId: MessageData["id"] }
+  | { type: "cancelStreamingResponse"; };
 
 type ConversationActor = {
   createConversation: () => void;
@@ -241,6 +242,27 @@ function conversationReducer(
         ),
       };
     }
+    case "cancelStreamingResponse": {
+      const { streamingMessage, streamingMessageIndex } = getStreamingMessage();
+      if (!streamingMessage) {
+        console.error(
+          `Cannot cancelStreamingResponse without a streamingMessage`
+        );
+        return state;
+      }
+
+      const messages = removeArrayElementAt(
+        state.messages,
+        streamingMessageIndex
+      );
+
+      return {
+        ...state,
+        isStreamingMessage: false,
+        streamingMessage: undefined,
+        messages,
+      };
+    }
     default: {
       console.error("Unhandled action", action);
       throw new Error(`Unhandled action type`);
@@ -300,7 +322,7 @@ export default function useConversation() {
     // Stream control
     const abortController = new AbortController();
     let finishedStreaming = false;
-    let finishedBuffering = false;
+    let finishedBuffering = !SHOULD_STREAM;
     let streamedMessageId: string | null = null;
     let references: References | null = null;
     let bufferedTokens: string[] = [];
@@ -357,6 +379,10 @@ export default function useConversation() {
           signal: abortController.signal,
         });
       } else {
+        // We start a streaming response to indicate the loading state
+        // but we'll never append to it since the response message comes
+        // in all at once.
+        dispatch({ type: "createStreamingResponse", data: "" });
         const response = await conversationService.addMessage({
           conversationId: state.conversationId,
           message: content,
@@ -365,6 +391,7 @@ export default function useConversation() {
         const referencesContent = references
           ? formatReferences(references)
           : "";
+        dispatch({ type: "cancelStreamingResponse" });
         dispatch({
           type: "addMessage",
           role: "assistant",
@@ -376,7 +403,11 @@ export default function useConversation() {
       console.error(`Failed to add message: ${error}`);
       const errorMessage =
         error instanceof Error ? error.message : String(error);
+      dispatch({ type: "cancelStreamingResponse" });
+      clearInterval(streamingInterval);
+
       endConversationWithError(errorMessage);
+      throw error;
     }
 
     let cleanupInterval: ReturnType<typeof setInterval> | undefined;

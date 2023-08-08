@@ -24,7 +24,7 @@ export const snootyAstToMd = (
             : node.value;
         break;
       case "code":
-        text += `\`\`\`${node.lang}\n${node.value}\n\`\`\`\n\n`;
+        text += `\`\`\`${node.lang || ""}\n${node.value}\n\`\`\`\n\n`;
         break;
 
       default:

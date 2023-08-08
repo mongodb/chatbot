@@ -41,11 +41,21 @@ class RetriableError<Data extends object = object> extends Error {
     config: { retryAfter?: number; data?: Data } = {}
   ) {
     const { retryAfter = 1000, data } = config;
-    super();
+    super(message);
     this.name = "RetriableError";
     this.message = message;
     this.retryAfter = retryAfter;
     this.data = data;
+  }
+}
+
+export class TimeoutError<Data extends object = object> extends Error {
+  data?: Data;
+
+  constructor(message: string) {
+    super(message);
+    this.name = "TimeoutError";
+    this.message = message;
   }
 }
 
@@ -115,17 +125,19 @@ export default class ConversationService {
     });
     const data = await resp.json();
     if (resp.status === 400) {
-      throw new Error(`Bad request: ${data.message}`);
+      throw new Error(data.error);
     }
     if (resp.status === 404) {
-      throw new Error(`Conversation not found: ${data.message}`);
+      throw new Error(`Conversation not found: ${data.error}`);
     }
     if (resp.status === 429) {
-      // TODO: Handle rate limiting
-      throw new Error(`Rate limited: ${data.message}`);
+      throw new Error(`Rate limited: ${data.error}`);
+    }
+    if (resp.status === 504) {
+      throw new TimeoutError(data.error);
     }
     if (resp.status >= 500) {
-      throw new Error(`Server error: ${data.message}`);
+      throw new Error(`Server error: ${data.error}`);
     }
     return data;
   }
@@ -208,8 +220,13 @@ export default class ConversationService {
           return; // everything's good
         }
 
+        if (response.status === 400) {
+          const data = await response.json();
+          throw new Error(data.error ?? `Bad request`);
+        }
+
         if (
-          response.status >= 400 &&
+          response.status > 400 &&
           response.status < 500 &&
           response.status !== 429
         ) {
@@ -217,10 +234,13 @@ export default class ConversationService {
           throw new Error(`Chatbot stream error: ${response.statusText}`);
         } else {
           // other errors are possibly retriable
-          throw new RetriableError("Chatbot stream error", {
-            retryAfter: 1000,
-            data: response,
-          });
+          throw new RetriableError(
+            `Chatbot stream error: ${response.statusText}`,
+            {
+              retryAfter: 1000,
+              data: response,
+            }
+          );
         }
       },
       onclose() {
@@ -229,18 +249,31 @@ export default class ConversationService {
         }
       },
       onerror(err) {
-        console.log("services/conversations/onerror", err);
-        if (
-          err instanceof RetriableError &&
-          moreToStream &&
-          retryCount++ < maxRetries
-        ) {
-          return err.retryAfter;
-        }
-        if (err instanceof Error) {
+        if (err instanceof RetriableError) {
+          if (moreToStream && retryCount++ < maxRetries) {
+            return err.retryAfter;
+          }
+          // Past this point we no longer want to retry, so
+          // rethrow to stop the operation and let the error
+          // bubble up to the caller.
+          if (!err.data) {
+            throw new Error(err.message);
+          }
+
+          if (err.data instanceof Response) {
+            const errorBodyPromise = err.data.json() as Promise<{
+              error: string;
+            }>;
+            errorBodyPromise.then((errorBody) => {
+              throw new Error(errorBody.error);
+            });
+          } else {
+            throw new Error(err.message);
+          }
+        } else if (err instanceof Error) {
           throw new Error(err.message);
         }
-        throw err; // rethrow to stop the operation
+        throw err;
       },
     });
   }

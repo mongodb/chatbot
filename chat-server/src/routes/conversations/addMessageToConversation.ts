@@ -38,6 +38,7 @@ import {
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
+import { SearchBooster } from "../../processors/SearchBooster";
 
 export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 export const MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
@@ -71,6 +72,7 @@ export interface AddMessageToConversationRouteParams {
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   dataStreamer: DataStreamer;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
+  searchBoosters?: SearchBooster[];
 }
 
 export function makeAddMessageToConversationRoute({
@@ -80,6 +82,7 @@ export function makeAddMessageToConversationRoute({
   dataStreamer,
   embed,
   findNearestNeighborsOptions,
+  searchBoosters,
 }: AddMessageToConversationRouteParams) {
   return async (
     req: ExpressRequest,
@@ -159,14 +162,13 @@ export function makeAddMessageToConversationRoute({
       }
 
       if (conversationInDb.messages.length >= MAX_MESSAGES_IN_CONVERSATION) {
+        // The end user doesn't see the system prompt, so we subtract 1 to account for that.
+        const numMessagesVisibleToUser = MAX_MESSAGES_IN_CONVERSATION - 1;
         return sendErrorResponse({
           reqId,
           res,
           httpStatus: 400,
-          errorMessage:
-            `You cannot send more messages to this conversation. ` +
-            `Max messages (${MAX_MESSAGES_IN_CONVERSATION}, including system prompt) exceeded. ` +
-            `Start a new conversation.`,
+          errorMessage: `Max messages (${numMessagesVisibleToUser}) exceeded. You cannot send more messages in this conversation.`,
         });
       }
 
@@ -179,13 +181,25 @@ export function makeAddMessageToConversationRoute({
 
       let chunks: WithScore<EmbeddedContent>[];
       try {
-        chunks = await getContentForText({
+        const { embedding, results } = await getContentForText({
           embed,
           ipAddress: ip,
           text: latestMessageText,
           store,
           findNearestNeighborsOptions,
         });
+        chunks = results;
+        if (searchBoosters?.length) {
+          for (const booster of searchBoosters) {
+            if (booster.shouldBoost({ text: latestMessageText })) {
+              chunks = await booster.boost({
+                existingResults: chunks,
+                embedding,
+                store,
+              });
+            }
+          }
+        }
       } catch (err) {
         return sendErrorResponse({
           reqId,
@@ -361,10 +375,12 @@ export async function getContentForText({
     text,
     userIp: ipAddress,
   });
-  return await store.findNearestNeighbors(
+
+  const results = await store.findNearestNeighbors(
     embedding,
     findNearestNeighborsOptions
   );
+  return { embedding, results };
 }
 
 interface AddMessagesToDatabaseParams {

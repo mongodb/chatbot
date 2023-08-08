@@ -38,6 +38,10 @@ const payload = {
         similarity: "cosine",
         type: "knnVector",
       },
+      sourceName: {
+        analyzer: "lucene.keyword",
+        type: "string",
+      },
     },
   },
 };

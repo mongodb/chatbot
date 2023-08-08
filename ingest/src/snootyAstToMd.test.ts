@@ -66,7 +66,7 @@ describe("snootyAstToMd", () => {
     });
     // expect result to not include something like [link text](https://some-base-url.com/faq)
     const expectedNotIncludes = `](${baseUrl})`;
-    expect(result.includes(expectedNotIncludes)).toBe(false);
+    expect(result).not.toContain(expectedNotIncludes);
   });
   it("renders definition lists", () => {
     const result = snootyAstToMd(samplePage.data.ast, {
@@ -74,7 +74,27 @@ describe("snootyAstToMd", () => {
     });
     expect(result.startsWith("# $merge (aggregation)")).toBe(true);
     const expectedToInclude = `Writes the results of the aggregation pipeline to a specified collection. The \`$merge\` operator must be the **last** stage in the pipeline.`;
-    expect(result.includes(expectedToInclude)).toBe(true);
+    expect(result).toContain(expectedToInclude);
+  });
+  describe("Renders code blocks", () => {
+    const samplePage = JSON.parse(
+      readFileSync(
+        Path.resolve(__dirname, "./test_data/samplePageWithCodeExamples.json"),
+        {
+          encoding: "utf-8",
+        }
+      )
+    );
+    const result = snootyAstToMd(samplePage.data.ast, {
+      baseUrl: "/",
+    });
+    it("Renders code examples with language", () => {
+      expect(result).toContain("```json\n");
+    });
+    it("Renders code examples without language", () => {
+      expect(result).toContain("```\n");
+      expect(result).not.toContain("```undefined\n");
+    });
   });
   it("renders HTML tables", () => {
     const result = snootyAstToMd(samplePage.data.ast, {

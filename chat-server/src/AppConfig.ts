@@ -37,5 +37,5 @@ export interface AppConfig {
   embeddedContentStore: EmbeddedContentStoreConfig;
   mongodb: MongoDbConfig;
   embed: EmbedConfig;
-  maxRequestTimeout?: number;
+  maxRequestTimeoutMs?: number;
 }

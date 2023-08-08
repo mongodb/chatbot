@@ -75,14 +75,14 @@ export const makeHandleTimeoutMiddleware = (apiTimeout: number) => {
 export const API_V1_PREFIX = "/api/v1";
 export const CONVERSATIONS_API_V1_PREFIX = `${API_V1_PREFIX}/conversations`;
 
-export const REQUEST_TIMEOUT_MS = 60000;
+export const DEFAULT_MAX_REQUEST_TIMEOUT_MS = 60000;
 export const makeApp = async ({
   embed,
   dataStreamer,
   store,
   conversations,
   llm,
-  requestTimeout = REQUEST_TIMEOUT_MS,
+  maxRequestTimeoutMs = DEFAULT_MAX_REQUEST_TIMEOUT_MS,
   findNearestNeighborsOptions,
   searchBoosters,
 }: {
@@ -91,12 +91,12 @@ export const makeApp = async ({
   dataStreamer: DataStreamer;
   conversations: ConversationsServiceInterface;
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
-  requestTimeout?: number;
+  maxRequestTimeoutMs?: number;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
   searchBoosters?: SearchBooster[];
 }): Promise<Express> => {
   const app = express();
-  app.use(makeHandleTimeoutMiddleware(requestTimeout));
+  app.use(makeHandleTimeoutMiddleware(maxRequestTimeoutMs));
   app.set("trust proxy", true);
   app.use(cors()); // TODO: add specific options to only allow certain origins
   app.use(express.json());

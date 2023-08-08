@@ -75,14 +75,14 @@ export const makeHandleTimeoutMiddleware = (apiTimeout: number) => {
 export const API_V1_PREFIX = "/api/v1";
 export const CONVERSATIONS_API_V1_PREFIX = `${API_V1_PREFIX}/conversations`;
 
-export const REQUEST_TIMEOUT = 60000; // 60 seconds
+export const REQUEST_TIMEOUT_MS = 60000;
 export const makeApp = async ({
   embed,
   dataStreamer,
   store,
   conversations,
   llm,
-  requestTimeout = REQUEST_TIMEOUT,
+  requestTimeout = REQUEST_TIMEOUT_MS,
   findNearestNeighborsOptions,
   searchBoosters,
 }: {

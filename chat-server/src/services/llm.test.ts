@@ -1,11 +1,11 @@
 import "dotenv/config";
 
 import { stripIndent } from "common-tags";
-import { CORE_ENV_VARS, OpenAiChatMessage, assertEnvVars } from "chat-core";
+import { OpenAiChatMessage } from "chat-core";
 import { makeOpenAiLlm } from "./llm";
 import { config } from "../config";
 
-jest.setTimeout(100000);
+jest.setTimeout(30000);
 
 const chunks = [
   stripIndent`You can connect to your cluster in a variety of ways. In this tutorial, you use one of the following methods:
@@ -26,15 +26,10 @@ const conversation = [
   },
 ] as OpenAiChatMessage[];
 
-const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_CHAT_COMPLETION_DEPLOYMENT } =
-  assertEnvVars(CORE_ENV_VARS);
-
 describe("LLM", () => {
   describe("OpenAI Llm", () => {
     const openAiLlmService = makeOpenAiLlm(config.llm);
-
-    // TODO: investigate why this test is flaky https://jira.mongodb.org/browse/DOCSP-31863
-    test.skip("should answer question in conversation - awaited", async () => {
+    test("should answer question in conversation - awaited", async () => {
       const response = await openAiLlmService.answerQuestionAwaited({
         messages: conversation,
         chunks,

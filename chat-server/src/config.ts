@@ -103,6 +103,10 @@ export const config: AppConfig = {
     apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
     baseUrl: OPENAI_ENDPOINT,
     deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+    backoffOptions: {
+      numOfAttempts: 3,
+      maxDelay: 5000,
+    },
   },
   embeddedContentStore: {
     connectionUri: MONGODB_CONNECTION_URI,

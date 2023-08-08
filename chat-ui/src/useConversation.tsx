@@ -270,7 +270,7 @@ function conversationReducer(
   }
 }
 
-export default function useConversation() {
+export function useConversation() {
   const [state, _dispatch] = useReducer(
     conversationReducer,
     defaultConversationState

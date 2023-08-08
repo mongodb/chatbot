@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
-import SuggestedPrompts, { SuggestedPrompt } from "./SuggestedPrompts";
-import useConversation, { Conversation } from "./useConversation";
+import { SuggestedPrompts, SuggestedPrompt } from "./SuggestedPrompts";
+import { useConversation, Conversation } from "./useConversation";
 import Badge from "@leafygreen-ui/badge";
 import Banner from "@leafygreen-ui/banner";
 import Modal, { ModalProps } from "@leafygreen-ui/modal";
@@ -154,7 +154,7 @@ function getAvatarVariantForRole(role: Role) {
   return avatarVariant;
 }
 
-export default function Chatbot() {
+export function Chatbot() {
   const conversation = useConversation();
   const [initialInputFocused, setInitialInputFocused] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);

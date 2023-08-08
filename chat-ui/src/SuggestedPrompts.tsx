@@ -42,7 +42,7 @@ type SuggestedPromptsProps = {
   suggestedPromptProps?: MenuItemProps;
 };
 
-export default function SuggestedPrompts(props: SuggestedPromptsProps) {
+export function SuggestedPrompts(props: SuggestedPromptsProps) {
   return (
     <Card>
       <div className={styles.prompts_container}>

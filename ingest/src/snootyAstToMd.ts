@@ -5,7 +5,6 @@ export type SnootyAstToMdOptions = {
   parentIsTable?: boolean;
 };
 
-// Adapted from https://github.com/mongodben/snooty-ast-to-md/blob/main/index.js
 export const snootyAstToMd = (
   node: SnootyNode,
   options: SnootyAstToMdOptions,
@@ -50,7 +49,7 @@ export const snootyAstToMd = (
       break;
     case "heading":
       text += `${"#".repeat(parentHeadingLevel)} ${node.children
-        .map((child) => snootyAstToMd(child, options, parentHeadingLevel, text))
+        .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
         .join("")}\n\n`;
       break;
     case "paragraph":

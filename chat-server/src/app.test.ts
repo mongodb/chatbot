@@ -83,7 +83,9 @@ describe("App", () => {
       timeoutApp.use(makeHandleTimeoutMiddleware(shortTimeOut / 10));
       timeoutApp.get("/response-timeout-test", (_req, res, _next) => {
         setTimeout(() => {
-          return res.send("ok");
+          if (!res.headersSent) {
+            return res.send("ok");
+          }
         }, shortTimeOut);
       });
 

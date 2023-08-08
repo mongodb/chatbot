@@ -55,8 +55,8 @@ describe("makePreprocessMongoDbUserQuery()", () => {
     expect(outputQuery).toContain("code example");
     expect(outputQuery).toContain("aggregation");
     expect(outputQuery).toContain("?");
-    expect(programmingLanguages?.length).toBeFalsy();
-    expect(mongoDbProducts![0]).toBe("driver");
+    expect(programmingLanguages).toHaveLength(0);
+    expect(mongoDbProducts[0]).toBe("driver");
   });
   test("should ID programming languages", async () => {
     const query = "python aggregation";
@@ -66,7 +66,7 @@ describe("makePreprocessMongoDbUserQuery()", () => {
       messages,
     });
     const { programmingLanguages } = response;
-    expect(programmingLanguages![0]).toBe("python");
+    expect(programmingLanguages[0]).toBe("python");
   });
   test("should ID products", async () => {
     const query = "create a chart";
@@ -76,7 +76,7 @@ describe("makePreprocessMongoDbUserQuery()", () => {
       messages,
     });
     const { mongoDbProducts } = response;
-    expect(mongoDbProducts![0]).toBe("charts");
+    expect(mongoDbProducts[0]).toBe("charts");
   });
   test("should be aware of MongoDB", async () => {
     const query = "ruby lookup example";

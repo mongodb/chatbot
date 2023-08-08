@@ -63,7 +63,7 @@ export function makePreprocessMongoDbUserQuery({
     if (!response.success) {
       throw new Error(response.message);
     }
-    return response.data;
+    return appendMetadataToPreprocessorResponse(response.data);
   };
 }
 
@@ -97,4 +97,11 @@ ${query}
 <Standalone question>`;
 
   return prompt;
+}
+
+export function appendMetadataToPreprocessorResponse(
+  response: MongoDbUserQueryPreprocessorResponse
+): MongoDbUserQueryPreprocessorResponse {
+  // TODO: append metadata as frontmatter to preprocessor response
+  return response;
 }

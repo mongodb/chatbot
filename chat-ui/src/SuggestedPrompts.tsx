@@ -1,8 +1,35 @@
-import styles from "./SuggestedPrompts.module.css";
 import Badge from "@leafygreen-ui/badge";
 import Card from "@leafygreen-ui/card";
 import { MenuItem, MenuItemProps } from "@leafygreen-ui/menu";
 import { Overline } from "@leafygreen-ui/typography";
+import { css } from "@emotion/css";
+
+const styles = {
+  prompts_container: css`
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    list-style-type: none;
+  `,
+  prompts_container_header: css`
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: left;
+  `,
+  prompt: css`
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #000000;
+
+    &:hover {
+      cursor: pointer;
+      background: #e1f7ff;
+    }
+  `,
+};
 
 export type SuggestedPrompt = {
   key: string;

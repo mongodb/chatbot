@@ -82,9 +82,7 @@ describe("snootyAstToMd", () => {
     });
     writeFileSync("samplePage.md", result, { encoding: "utf-8" });
     // TODO: remove bullet points from table entries
-    const expected = `The \`$merge\` takes a document with the following fields:
-
-<table>
+    const expected = `<table>
 
 <tr>
 
@@ -101,7 +99,7 @@ describe("snootyAstToMd", () => {
 </td>
 
 </tr>`;
-    // expect(result).toContain(expected);
+    expect(result).toContain(expected);
     const openingTagCount = result.split("<table>").length - 1;
     const closingTagCount = result.split("</table>").length - 1;
     expect(openingTagCount).toBe(5);

@@ -123,7 +123,7 @@ export const snootyAstToMd = (
       break;
     case "directive":
       if (node.name === "list-table") {
-        text += `\n\n<table>\n${node.children
+        text += `\n\n<table>\n\n${node.children
           .map((child) =>
             snootyAstToMd(
               child,

@@ -57,3 +57,32 @@ export const sendErrorResponse = ({
   });
   return res.status(httpStatus).json({ error: errorMessage });
 };
+
+export function retryAsyncOperation<T>(
+  promise: Promise<T>,
+  retries = 4,
+  delayMs = 3000
+): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const operation = promise;
+    const timeout = new Promise<never>((_, rejectTimeout) => {
+      setTimeout(() => {
+        rejectTimeout(new Error("Timed out"));
+      }, delayMs);
+    });
+
+    Promise.race([operation, timeout])
+      .then((result) => {
+        resolve(result);
+      })
+      .catch((error) => {
+        if (retries === 0) {
+          reject(error);
+        } else {
+          console.log(`Retrying... ${retries} attempts left`);
+          console.log(promise);
+          resolve(retryAsyncOperation<T>(promise, retries - 1, delayMs));
+        }
+      });
+  });
+}

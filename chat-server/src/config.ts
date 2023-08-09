@@ -131,4 +131,5 @@ export const config: AppConfig = {
     databaseName: MONGODB_DATABASE_NAME,
     vectorSearchIndexName: VECTOR_SEARCH_INDEX_NAME,
   },
+  maxRequestTimeoutMs: 30000,
 };

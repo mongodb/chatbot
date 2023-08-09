@@ -33,7 +33,13 @@ export class OpenAiChatClient implements OpenAiChatClientInterface {
     this.deployment = deployment;
     this.openAiClient = new OpenAIClient(
       basePath,
-      new AzureKeyCredential(apiKey)
+      new AzureKeyCredential(apiKey),
+      {
+        retryOptions: {
+          maxRetries: 2,
+          maxRetryDelayInMs: 5000,
+        },
+      }
     );
   }
 

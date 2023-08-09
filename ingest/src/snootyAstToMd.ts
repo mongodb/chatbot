@@ -1,16 +1,26 @@
 import { SnootyNode } from "./SnootyDataSource";
 
+enum TableMode {
+  IN_TABLE = 0,
+  IN_ROW,
+  IN_COLUMN,
+}
+
 export type SnootyAstToMdOptions = {
   baseUrl: string;
+  table?: {
+    mode: TableMode;
+    headerRows: number;
+  };
 };
 
-// Adapted from https://github.com/mongodben/snooty-ast-to-md/blob/main/index.js
 export const snootyAstToMd = (
   node: SnootyNode,
   options: SnootyAstToMdOptions,
   parentHeadingLevel = 0,
   text = ""
 ): string => {
+  const { table } = options;
   // Base cases (terminal nodes)
   if (node.children === undefined) {
     // value nodes
@@ -49,7 +59,7 @@ export const snootyAstToMd = (
       break;
     case "heading":
       text += `${"#".repeat(parentHeadingLevel)} ${node.children
-        .map((child) => snootyAstToMd(child, options, parentHeadingLevel, text))
+        .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
         .join("")}\n\n`;
       break;
     case "paragraph":
@@ -58,23 +68,113 @@ export const snootyAstToMd = (
         .join("")}\n\n`;
       break;
     case "list":
-      text += node.children
-        .map((listItem) => snootyAstToMd(listItem, options, parentHeadingLevel))
-        .join("\n");
+      if (table && table.mode < TableMode.IN_COLUMN) {
+        const tag =
+          table.mode === TableMode.IN_TABLE
+            ? "tr"
+            : table.headerRows > 0
+            ? "th"
+            : "td";
+        text += node.children
+          .map((listItem, i) => {
+            return [
+              `<${tag}>`,
+              snootyAstToMd(
+                listItem,
+                {
+                  ...options,
+                  // Advance table mode to next mode:
+                  // - from <table> (IN_TABLE) --> <tr> (IN_ROW)
+                  // - OR from <tr> (IN_ROW) --> <td> (IN_COLUMN)
+                  table: {
+                    mode: table.mode + 1,
+                    headerRows:
+                      // (Hacky) Set "headerRows" to 0 after that number of rows
+                      tag === "tr" && i >= table.headerRows
+                        ? 0
+                        : table.headerRows,
+                  },
+                },
+                parentHeadingLevel
+              ),
+              `</${tag}>`,
+            ].join("\n");
+          })
+          .join("\n");
+      } else {
+        text += node.children
+          .map((listItem) =>
+            snootyAstToMd(
+              listItem,
+              {
+                ...options,
+
+                // Clear table if already IN_COLUMN
+                table: undefined,
+              },
+              parentHeadingLevel
+            )
+          )
+          .join("\n");
+      }
       break;
     case "listItem":
-      text += `- ${node.children
-        .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
-        .join("")}`;
+      if (options.table) {
+        // Table information in snooty AST is expressed in terms of lists and
+        // listItems under a list-table directive. We don't want to render the
+        // list bullets in the table, so we handle tables differently.
+        text += node.children
+          .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
+          .join("");
+      } else {
+        // Actual list
+        text += `- ${node.children
+          .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
+          .join("")}`;
+      }
       break;
     // TODO: figure out ordered lists
-    // TODO: figure out tables
 
     // recursive inline cases
     case "literal":
       text += `\`${node.children
         .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
         .join("")}\``;
+      break;
+    case "directive":
+      if (node.name === "list-table") {
+        const directiveOptions = (node as { options?: Record<string, unknown> })
+          .options;
+        const headerRows =
+          directiveOptions &&
+          typeof directiveOptions["header-rows"] === "number"
+            ? directiveOptions["header-rows"]
+            : 0;
+        text += [
+          "<table>",
+          node.children
+            .map((child) =>
+              snootyAstToMd(
+                child,
+                {
+                  ...options,
+                  table: {
+                    mode: TableMode.IN_TABLE,
+                    headerRows,
+                  },
+                },
+                parentHeadingLevel
+              )
+            )
+            .join(""),
+          "</table>",
+        ].join("\n");
+      } else {
+        // other "directive" nodes not parsed in particular way
+        text += node.children
+          .map((subnode) => snootyAstToMd(subnode, options, parentHeadingLevel))
+          .join("");
+      }
       break;
     // No longer including links
     // case "ref_role": {

@@ -43,6 +43,8 @@ const startServer = async () => {
     findNearestNeighborsOptions: config.findNearestNeighborsOptions,
     searchBoosters: config.conversations?.searchBoosters,
     userQueryPreprocessor: config.conversations?.userQueryPreprocessor,
+    maxRequestTimeoutMs: config.maxRequestTimeoutMs,
+
   });
 
   const server = app.listen(PORT, () => {

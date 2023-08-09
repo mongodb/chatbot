@@ -24,6 +24,10 @@ const azureOpenAiServiceConfig: AzureOpenAiServiceConfig = {
 
 const messages = [
   {
+    content: "system_prompt",
+    role: "system",
+  },
+  {
     content: "aggregation",
     role: "user",
   },
@@ -40,6 +44,8 @@ jest.setTimeout(30000);
 describe("makePreprocessMongoDbUserQuery()", () => {
   const preprocessMongoDbUserQuery = makePreprocessMongoDbUserQuery({
     azureOpenAiServiceConfig,
+    numRetries: 0,
+    retryDelayMs: 5000,
   });
   test("should convert user message into something that's more conversationally relevant", async () => {
     const response = await preprocessMongoDbUserQuery({
@@ -110,5 +116,45 @@ code example
 
 <Standalone question>`;
     expect(prompt).toBe(expected);
+  });
+  test("should remove the system prompt", () => {
+    const prompt = generateMongoDbQueryPreProcessorPrompt({
+      query,
+      messages: messages.slice(1),
+    });
+    expect(prompt).not.toContain("SYSTEM:");
+  });
+  test("should expand one word queries", () => {
+    const query = "oneWord";
+    const messages: QueryPreprocessorMessage[] = [];
+    const prompt = generateMongoDbQueryPreProcessorPrompt({ query, messages });
+    expect(prompt).toContain("oneWord for MongoDB");
+  });
+  test("should not expand queries with multiple words", () => {
+    const query = "multiple words";
+    const messages: QueryPreprocessorMessage[] = [];
+    const prompt = generateMongoDbQueryPreProcessorPrompt({ query, messages });
+    expect(prompt).not.toContain("multiple words for MongoDB");
+  });
+  test("should not expand queries word 'mongodb'", () => {
+    const messages: QueryPreprocessorMessage[] = [];
+    expect(
+      generateMongoDbQueryPreProcessorPrompt({
+        query: "MongoDB",
+        messages,
+      })
+    ).not.toContain("MongoDB for MongoDB");
+    expect(
+      generateMongoDbQueryPreProcessorPrompt({
+        query: "mongodb",
+        messages,
+      })
+    ).not.toContain("mongodb for MongoDB");
+    expect(
+      generateMongoDbQueryPreProcessorPrompt({
+        query: "mongoDb",
+        messages,
+      })
+    ).not.toContain("mongoDb for MongoDB");
   });
 });

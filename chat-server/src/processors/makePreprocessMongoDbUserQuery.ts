@@ -70,14 +70,24 @@ export function makePreprocessMongoDbUserQuery({
 export function generateMongoDbQueryPreProcessorPrompt({
   query,
   messages,
+  numMessagesToInclude = 4,
 }: {
   query: string;
   messages: QueryPreprocessorMessage[];
+  numMessagesToInclude?: number;
 }) {
+  query = query.trim();
+
+  // If the query is only one word, add "for MongoDB" to the end of it. This is to help the LLM
+  // Also, if the query is "mongodb", don't add "for MongoDB" to the end of it
+  // since that doesn't make logical sense.
+  if (query.split(/\s/).length === 1 && query.toLowerCase() !== "mongodb") {
+    query += " for MongoDB";
+  }
   const conversationHistory = messages.length
     ? messages
         .filter((message) => message.role !== "system") // remove system message
-        .slice(-4) // only use last 4 messages
+        .slice(0 - numMessagesToInclude) // only use last 4 messages
         .reduce((acc, message) => {
           return `${acc}\n\n${message.role.toUpperCase()}:\n${message.content}`;
         }, "") // convert conversation to string

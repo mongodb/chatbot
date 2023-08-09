@@ -120,8 +120,9 @@ export const snootyAstToMd = (
       break;
     case "listItem":
       if (options.table) {
-        // Table information in snooty AST is expressed in terms of
-        // lists/listItems under a list-table directive
+        // Table information in snooty AST is expressed in terms of lists and
+        // listItems under a list-table directive. We don't want to render the
+        // list bullets in the table, so we handle tables differently.
         text += node.children
           .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
           .join("");

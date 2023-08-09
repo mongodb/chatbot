@@ -39,6 +39,8 @@ import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import { SearchBooster } from "../../processors/SearchBooster";
+import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
+import { stripIndent } from "common-tags";
 
 export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 export const MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
@@ -73,6 +75,7 @@ export interface AddMessageToConversationRouteParams {
   dataStreamer: DataStreamer;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
   searchBoosters?: SearchBooster[];
+  userQueryPreprocessor?: QueryPreprocessorFunc;
 }
 
 export function makeAddMessageToConversationRoute({
@@ -83,6 +86,7 @@ export function makeAddMessageToConversationRoute({
   embed,
   findNearestNeighborsOptions,
   searchBoosters,
+  userQueryPreprocessor,
 }: AddMessageToConversationRouteParams) {
   return async (
     req: ExpressRequest,
@@ -174,17 +178,41 @@ export function makeAddMessageToConversationRoute({
 
       let answer: OpenAiChatMessage;
 
+      let preprocessedUserMessageContent: string | undefined;
+      // Try to preprocess the user's message. If the user's message cannot be preprocessed
+      // (likely due to LLM timeout), then we will just use the original message.
+      console.log("outside");
+      if (userQueryPreprocessor) {
+        console.log("inside");
+        try {
+          const { query } = await userQueryPreprocessor({
+            query: latestMessageText,
+            messages: conversationInDb.messages,
+          });
+          preprocessedUserMessageContent = query;
+          logRequest({
+            reqId,
+            message: stripIndent`Successfully preprocessed user query.
+              Original query: ${latestMessageText}
+              Preprocessed query: ${preprocessedUserMessageContent}`,
+          });
+        } catch (err: unknown) {
+          logRequest({
+            reqId,
+            type: "error",
+            message: `Error preprocessing query: ${JSON.stringify(
+              err
+            )}. Using original query: ${latestMessageText}`,
+          });
+        }
+      }
       // Find content matches for latest message
-      // TODO: consider refactoring this to feed in all messages to the embed function
-      // And then as a future step, we can use LLM pre-processing to create a better input
-      // to the embedding service.
-
       let chunks: WithScore<EmbeddedContent>[];
       try {
         const { embedding, results } = await getContentForText({
           embed,
           ipAddress: ip,
-          text: latestMessageText,
+          text: preprocessedUserMessageContent || latestMessageText,
           store,
           findNearestNeighborsOptions,
         });
@@ -217,7 +245,8 @@ export function makeAddMessageToConversationRoute({
         const { assistantMessage } = await addMessagesToDatabase({
           conversations,
           conversationId,
-          userMessageContent: latestMessageText,
+          preprocessedUserMessageContent: preprocessedUserMessageContent,
+          originalUserMessageContent: latestMessageText,
           assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,
           assistantMessageReferences: [],
         });
@@ -317,7 +346,8 @@ export function makeAddMessageToConversationRoute({
       const { assistantMessage } = await addMessagesToDatabase({
         conversations,
         conversationId,
-        userMessageContent: latestMessageText,
+        originalUserMessageContent: message,
+        preprocessedUserMessageContent,
         assistantMessageContent: answerContent,
         assistantMessageReferences: references,
       });
@@ -385,14 +415,16 @@ export async function getContentForText({
 
 interface AddMessagesToDatabaseParams {
   conversationId: ObjectId;
-  userMessageContent: string;
+  originalUserMessageContent: string;
+  preprocessedUserMessageContent?: string;
   assistantMessageContent: string;
   assistantMessageReferences: References;
   conversations: ConversationsServiceInterface;
 }
 export async function addMessagesToDatabase({
   conversationId,
-  userMessageContent,
+  originalUserMessageContent,
+  preprocessedUserMessageContent,
   assistantMessageContent,
   assistantMessageReferences,
   conversations,
@@ -401,7 +433,8 @@ export async function addMessagesToDatabase({
   // Would limit database calls.
   const userMessage = await conversations.addConversationMessage({
     conversationId,
-    content: userMessageContent,
+    content: originalUserMessageContent,
+    preprocessedContent: preprocessedUserMessageContent,
     role: "user",
   });
   const assistantMessage = await conversations.addConversationMessage({

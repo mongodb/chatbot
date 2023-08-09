@@ -386,7 +386,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         const assistantMessageContent = "hi";
         const { userMessage, assistantMessage } = await addMessagesToDatabase({
           conversationId,
-          userMessageContent,
+          originalUserMessageContent: userMessageContent,
           assistantMessageContent,
           assistantMessageReferences: [
             { url: "https://www.example.com/", title: "Example Reference" },

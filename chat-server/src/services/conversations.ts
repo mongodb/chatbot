@@ -14,8 +14,10 @@ export interface Message {
   id: ObjectId;
   /** The role of the message in the context of the conversation. */
   role: "system" | "assistant" | "user";
-  /** Markdown-formatted response to user's chat message in the context of the conversation. */
+  /** Message that occurs in the conversation. */
   content: string;
+  /** Only used when role is "user". The preprocessed content of the message that is sent to vector search. */
+  preProcessedContent?: string;
   /** Set to `true` if the user liked the response, `false` if the user didn't like the response. No value if user didn't rate the response. Note that only messages with `role: "assistant"` can be rated. */
   rating?: boolean;
   /** The date the message was created. */
@@ -39,6 +41,7 @@ export interface CreateConversationParams {
 export interface AddConversationMessageParams {
   conversationId: ObjectId;
   content: string;
+  preprocessedContent?: string;
   role: OpenAiMessageRole;
   references?: References;
 }
@@ -55,6 +58,7 @@ export interface ConversationsServiceInterface {
   addConversationMessage: ({
     conversationId,
     content,
+    preprocessedContent,
     role,
     references,
   }: AddConversationMessageParams) => Promise<Message>;

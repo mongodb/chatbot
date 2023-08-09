@@ -173,6 +173,7 @@ programmingLanguages:
 mongoDbProducts:
   - charts
 ---
+
 foo`;
     expect(output.query).toBe(expected);
   });

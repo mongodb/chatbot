@@ -1,9 +1,9 @@
-import { updateFrontmatter } from "./updateFrontmatter";
-describe("updateFrontmatter()", () => {
+import { updateFrontMatter } from "./updateFrontMatter";
+describe("updateFrontMatter()", () => {
   test("should add frontmatter", () => {
     const text = "foo";
     const metadata = { bar: "baz", a: ["b", "c"] };
-    const output = updateFrontmatter(text, metadata);
+    const output = updateFrontMatter(text, metadata);
     const expected = `---
 bar: baz
 a:
@@ -22,7 +22,7 @@ lorem: ipsum
 
 foo`;
     const metadata = { bar: "qux", a: ["b", "c"] };
-    const output = updateFrontmatter(text, metadata);
+    const output = updateFrontMatter(text, metadata);
     const expected = `---
 bar: qux
 lorem: ipsum

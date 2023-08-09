@@ -7,7 +7,7 @@ import {
   QueryPreprocessorMessage,
 } from "./QueryPreprocessorFunc";
 import { retryAsyncOperation } from "../utils";
-import { updateFrontmatter } from "chat-core";
+import { updateFrontMatter } from "chat-core";
 
 export interface AzureOpenAiServiceConfig {
   apiKey: string;
@@ -113,7 +113,7 @@ ${query}
 export function appendMetadataToPreprocessorResponse(
   response: MongoDbUserQueryPreprocessorResponse
 ): MongoDbUserQueryPreprocessorResponse {
-  response.query = updateFrontmatter(response.query, {
+  response.query = updateFrontMatter(response.query, {
     programmingLanguages: response.programmingLanguages,
     mongoDbProducts: response.mongoDbProducts,
   });

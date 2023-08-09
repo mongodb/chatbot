@@ -3,7 +3,7 @@ import frontmatter from "front-matter";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import GPT3Tokenizer from "gpt3-tokenizer";
 import { EmbeddedContent, Page } from "chat-core";
-import { updateFrontmatter } from "chat-core";
+import { updateFrontMatter } from "chat-core";
 
 export type ContentChunk = Omit<EmbeddedContent, "embedding" | "updated">;
 
@@ -126,7 +126,7 @@ export const makeChunkFrontMatterUpdater = <
     // Update chunk with new front matter in yaml format
     return {
       ...chunk,
-      text: updateFrontmatter(body, metadata),
+      text: updateFrontMatter(body, metadata),
     };
   };
 };

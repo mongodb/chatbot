@@ -1,6 +1,6 @@
 import frontmatter from "front-matter";
 import yaml from "yaml";
-export function updateFrontmatter(
+export function updateFrontMatter(
   text: string,
   metadata: Record<string, unknown>
 ): string {

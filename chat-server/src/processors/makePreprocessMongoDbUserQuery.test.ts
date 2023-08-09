@@ -2,6 +2,7 @@ import "dotenv/config";
 import { CORE_ENV_VARS, assertEnvVars } from "chat-core";
 import {
   AzureOpenAiServiceConfig,
+  appendMetadataToPreprocessorResponse,
   generateMongoDbQueryPreProcessorPrompt,
   makePreprocessMongoDbUserQuery,
 } from "./makePreprocessMongoDbUserQuery";
@@ -156,5 +157,23 @@ code example
         messages,
       })
     ).not.toContain("mongoDb for MongoDB");
+  });
+});
+describe("appendMetadataToPreprocessorResponse()", () => {
+  test("should append metadata to the query", () => {
+    const response = {
+      query: "foo",
+      programmingLanguages: ["javascript"],
+      mongoDbProducts: ["charts"],
+    };
+    const output = appendMetadataToPreprocessorResponse(response);
+    const expected = `---
+programmingLanguages:
+  - javascript
+mongoDbProducts:
+  - charts
+---
+foo`;
+    expect(output.query).toBe(expected);
   });
 });

@@ -7,7 +7,7 @@ import {
   PageStore,
 } from "chat-core";
 import { updateEmbeddedContent } from "../updateEmbeddedContent";
-import { standardFrontMatterUpdater } from "../chunkPage";
+import { standardChunkFrontMatterUpdater } from "../chunkPage";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
 
 type EmbeddedContentCommandArgs = {
@@ -100,7 +100,7 @@ export const doEmbedCommand = async ({
     embeddedContentStore,
     embed,
     chunkOptions: {
-      transform: standardFrontMatterUpdater,
+      transform: standardChunkFrontMatterUpdater,
     },
   });
 };

@@ -52,7 +52,6 @@ describe("POST /conversations/:conversationId/messages", () => {
   let store: EmbeddedContentStore;
   let conversations: ConversationsServiceInterface;
   let app: Express;
-  console.log("trigger");
 
   beforeAll(async () => {
     ({

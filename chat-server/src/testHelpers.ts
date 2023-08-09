@@ -29,6 +29,8 @@ export async function makeConversationsRoutesDefaults() {
 
   const testDbName = `conversations-test-${Date.now()}`;
   const mongodb = new MongoDB(conf.mongodb.connectionUri, testDbName);
+  const searchBoosters = conf.conversations!.searchBoosters;
+  const userQueryPreprocessor = conf.conversations!.userQueryPreprocessor;
 
   const conversations = new ConversationsService(
     mongodb.db,
@@ -41,6 +43,8 @@ export async function makeConversationsRoutesDefaults() {
     findNearestNeighborsOptions,
     llm,
     store,
+    searchBoosters,
+    userQueryPreprocessor,
   };
   const app = await makeApp(appConfig);
 
@@ -55,5 +59,7 @@ export async function makeConversationsRoutesDefaults() {
     conversations,
     appConfig,
     app,
+    searchBoosters,
+    userQueryPreprocessor,
   };
 }

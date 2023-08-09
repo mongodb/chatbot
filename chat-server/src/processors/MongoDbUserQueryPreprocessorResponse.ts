@@ -17,6 +17,8 @@ export interface MongoDbUserQueryPreprocessorResponse {
     rephrase the latest user query to make it more meaningful.
     Rephrase the query into a question if it's not already one.
     The the query generated here is passed to semantic search.
+    If you do not know how to rephrase the query, respond "DO_NOT_ANSWER".
+    If the query is negative toward MongoDB, respond "DO_NOT_ANSWER".
   */
   query: string;
 }

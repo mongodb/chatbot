@@ -22,7 +22,6 @@ import {
   conversationConstants,
 } from "../../services/conversations";
 import { DataStreamer } from "../../services/dataStreamer";
-
 import {
   Llm,
   OpenAiAwaitedResponse,
@@ -181,9 +180,7 @@ export function makeAddMessageToConversationRoute({
       let preprocessedUserMessageContent: string | undefined;
       // Try to preprocess the user's message. If the user's message cannot be preprocessed
       // (likely due to LLM timeout), then we will just use the original message.
-      console.log("outside");
       if (userQueryPreprocessor) {
-        console.log("inside");
         try {
           const { query } = await userQueryPreprocessor({
             query: latestMessageText,
@@ -196,6 +193,17 @@ export function makeAddMessageToConversationRoute({
               Original query: ${latestMessageText}
               Preprocessed query: ${preprocessedUserMessageContent}`,
           });
+          if (preprocessedUserMessageContent.includes("DO_NOT_ANSWER")) {
+            return await sendStaticNonResponse({
+              conversations,
+              conversationId,
+              preprocessedUserMessageContent,
+              latestMessageText,
+              shouldStream,
+              dataStreamer,
+              res,
+            });
+          }
         } catch (err: unknown) {
           logRequest({
             reqId,
@@ -242,30 +250,15 @@ export function makeAddMessageToConversationRoute({
           reqId,
           message: "No matching content found",
         });
-        const { assistantMessage } = await addMessagesToDatabase({
+        return await sendStaticNonResponse({
           conversations,
           conversationId,
-          preprocessedUserMessageContent: preprocessedUserMessageContent,
-          originalUserMessageContent: latestMessageText,
-          assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,
-          assistantMessageReferences: [],
+          preprocessedUserMessageContent,
+          latestMessageText,
+          shouldStream,
+          dataStreamer,
+          res,
         });
-        const apiRes = convertMessageFromDbToApi(assistantMessage);
-        if (shouldStream) {
-          dataStreamer.connect(res);
-          dataStreamer.streamData({
-            type: "delta",
-            data: apiRes.content,
-          });
-          dataStreamer.streamData({
-            type: "finished",
-            data: apiRes.id,
-          });
-          dataStreamer.disconnect();
-          return;
-        } else {
-          return res.status(200).json(apiRes);
-        }
       }
 
       const references = generateReferences({ chunks });
@@ -383,6 +376,49 @@ export interface GetContentForTextParams {
   text: string;
   store: EmbeddedContentStore;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
+}
+
+export async function sendStaticNonResponse({
+  conversations,
+  conversationId,
+  preprocessedUserMessageContent,
+  latestMessageText,
+  shouldStream,
+  dataStreamer,
+  res,
+}: {
+  conversations: ConversationsServiceInterface;
+  conversationId: ObjectId;
+  preprocessedUserMessageContent?: string;
+  latestMessageText: string;
+  shouldStream: boolean;
+  dataStreamer: DataStreamer;
+  res: ExpressResponse<ApiMessage>;
+}) {
+  const { assistantMessage } = await addMessagesToDatabase({
+    conversations,
+    conversationId,
+    preprocessedUserMessageContent: preprocessedUserMessageContent,
+    originalUserMessageContent: latestMessageText,
+    assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,
+    assistantMessageReferences: [],
+  });
+  const apiRes = convertMessageFromDbToApi(assistantMessage);
+  if (shouldStream) {
+    dataStreamer.connect(res);
+    dataStreamer.streamData({
+      type: "delta",
+      data: apiRes.content,
+    });
+    dataStreamer.streamData({
+      type: "finished",
+      data: apiRes.id,
+    });
+    dataStreamer.disconnect();
+    return;
+  } else {
+    return res.status(200).json(apiRes);
+  }
 }
 
 export function convertDbMessageToOpenAiMessage(

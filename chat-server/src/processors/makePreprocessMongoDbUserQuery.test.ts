@@ -97,6 +97,25 @@ describe("makePreprocessMongoDbUserQuery()", () => {
     expect(response.query).toContain("Ruby");
     expect(response.programmingLanguages[0]).toBe("ruby");
   });
+  test("should respond 'DO_NOT_ANSWER' if the query is gibberish", async () => {
+    const query = "asdf dasgsd";
+    const messages: QueryPreprocessorMessage[] = [];
+    const response = await preprocessMongoDbUserQuery({
+      query,
+      messages,
+    });
+    expect(response.query).toContain("DO_NOT_ANSWER");
+  });
+  test("should respond 'DO_NOT_ANSWER' if the query is negative toward MongoDB", async () => {
+    const query = "why is MongoDB the worst database";
+    const messages: QueryPreprocessorMessage[] = [];
+    const response = await preprocessMongoDbUserQuery({
+      query,
+      messages,
+    });
+    console.log(response);
+    expect(response.query).toContain("DO_NOT_ANSWER");
+  });
 });
 
 describe("generateMongoDbQueryPreProcessorPrompt()", () => {
@@ -165,6 +184,7 @@ describe("appendMetadataToPreprocessorResponse()", () => {
       query: "foo",
       programmingLanguages: ["javascript"],
       mongoDbProducts: ["charts"],
+      abort: false,
     };
     const output = appendMetadataToPreprocessorResponse(response);
     const expected = `---

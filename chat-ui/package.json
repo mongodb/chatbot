@@ -11,19 +11,18 @@
   ],
   "main": "./dist/mongodb-chatbot-ui.umd.js",
   "module": "./dist/mongodb-chatbot-ui.es.js",
+  "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/mongodb-chatbot-ui.es.js",
-      "require": "./dist/mongodb-chatbot-ui.umd.js"
-    },
-    "./styles": {
-      "import": "./dist/style.css",
-      "require": "./dist/style.css"
+      "require": "./dist/mongodb-chatbot-ui.umd.js",
+      "types": "./dist/types/index.d.ts"
     }
   },
   "scripts": {
     "dev": "vite --config vite.config.component.js --mode development",
-    "build:component": "tsc && vite build --config vite.config.component.js",
+    "build:dts": "tsc --project tsconfig.declarations.json",
+    "build:component": "tsc && vite build --config vite.config.component.js && npm run build:dts",
     "build:static-site:dev": "tsc && vite build --config vite.config.static-site.js --mode development",
     "build:static-site:staging": "tsc && vite build --config vite.config.static-site.js --mode staging",
     "build:static-site:qa": "tsc && vite build --config vite.config.static-site.js --mode qa",
@@ -49,6 +48,7 @@
     "@lg-chat/title-bar"
   ],
   "dependencies": {
+    "@emotion/css": "^11.11.2",
     "@leafygreen-ui/badge": "^8.0.7",
     "@leafygreen-ui/banner": "^7.0.8",
     "@leafygreen-ui/box": "^3.1.4",
@@ -61,6 +61,7 @@
     "@leafygreen-ui/loading-indicator": "^1.0.0",
     "@leafygreen-ui/menu": "^22.0.2",
     "@leafygreen-ui/modal": "^15.0.3",
+    "@leafygreen-ui/palette": "^4.0.5",
     "@leafygreen-ui/skeleton-loader": "^1.0.1",
     "@leafygreen-ui/text-input": "^12.1.13",
     "@leafygreen-ui/typography": "^16.5.0",
@@ -107,7 +108,7 @@
     "release-it": "^15.11.0",
     "rollup": "^3.26.3",
     "storybook": "^7.0.20",
-    "typescript": "^5.0.2",
+    "typescript": "^5.1.6",
     "vite": "^4.4.7",
     "vite-plugin-libcss": "^1.1.0",
     "vite-plugin-node-polyfills": "^0.9.0"

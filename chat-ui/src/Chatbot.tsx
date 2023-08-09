@@ -1,7 +1,6 @@
-import styles from "./Chatbot.module.css";
 import { useState, useRef } from "react";
-import SuggestedPrompts, { SuggestedPrompt } from "./SuggestedPrompts";
-import useConversation, { Conversation } from "./useConversation";
+import { SuggestedPrompts, SuggestedPrompt } from "./SuggestedPrompts";
+import { useConversation, Conversation } from "./useConversation";
 import Badge from "@leafygreen-ui/badge";
 import Banner from "@leafygreen-ui/banner";
 import Modal, { ModalProps } from "@leafygreen-ui/modal";
@@ -14,6 +13,120 @@ import { MessageFeed } from "@lg-chat/message-feed";
 import { MessageRating, MessageRatingProps } from "@lg-chat/message-rating";
 import { TitleBar } from "@lg-chat/title-bar";
 import { Role } from "./services/conversations";
+import { palette } from "@leafygreen-ui/palette";
+import { css } from "@emotion/css";
+
+const styles = {
+  "disclosure": css`
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+
+    & > p {
+      color: white;
+    }
+  }`,
+  "chatbot_container": css`
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    & * {
+      box-sizing: border-box;
+    }
+  }`,
+  "chatbot_input": css`
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+  `,
+  "conversation_id_info": css`
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  `,
+  "title_bar": css`
+    box-sizing: border-box;
+    margin-bottom: -1rem; /* This is to offset the .card gap */
+
+    width: calc(100% + 64px);
+    margin-left: -32px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  `,
+  "modal_container": css`
+    z-index: 2;
+
+    & * {
+      box-sizing: border-box;
+    }
+
+    & div[role=dialog] {
+      padding-top: 8px;
+      background: ${palette.gray.light3};
+    }
+
+    @media screen and (max-width: 1024px) {
+      & div[role=dialog] {
+        width: 100%;
+      }
+
+      & > div {
+        padding: 32px 18px;
+      }
+    }
+  `,
+  "message_feed": css`
+    width: calc(100% + 64px);
+    margin-left: -32px;
+    margin-bottom: -1rem; /* This is to offset the .chat_input margin-top */
+
+    & > div {
+      box-sizing: border-box;
+      min-height: 20rem;
+      max-height: 60vh;
+    }
+
+    @media screen and (max-width: 1024px) {
+      & > div {
+        max-height: 70vh;
+      }
+    }
+    @media screen and (max-width: 767px) {
+      & > div {
+        height: 65vh;
+      }
+    }
+  `,
+  // This is a hacky fix for weird white-space issues in LG Chat.
+  "markdown_container": css`
+    white-space: normal;
+  `,
+  // End hacky fix
+  "message_rating": css`
+    margin-top: 1rem;
+  `,
+  "loading_skeleton": css`
+    margin-bottom: 16px;
+  `,
+  "card": css`
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    width: 100%;
+    gap: 1rem;
+    padding-top: 1rem;
+    transition: all 0.25s ease;
+    position: relative;
+    padding: 0;
+    border-top-left-radius: 6px;
+    box-shadow: none;
+    background: transparent;
+    box-sizing: border-box;
+  `,
+}
 
 const MAX_INPUT_CHARACTERS = 300;
 
@@ -41,7 +154,7 @@ function getAvatarVariantForRole(role: Role) {
   return avatarVariant;
 }
 
-export default function Chatbot() {
+export function Chatbot() {
   const conversation = useConversation();
   const [initialInputFocused, setInitialInputFocused] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -256,7 +369,6 @@ function ChatbotModal({
               return (
                 <Message
                   key={message.id}
-                  className={styles.message}
                   isSender={isSender(message.role)}
                   messageRatingProps={
                     message.role === "assistant"

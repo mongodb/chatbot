@@ -3,7 +3,7 @@ import frontmatter from "front-matter";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import GPT3Tokenizer from "gpt3-tokenizer";
 import { EmbeddedContent, Page } from "chat-core";
-import yaml from "yaml";
+import { updateFrontmatter } from "chat-core";
 
 export type ContentChunk = Omit<EmbeddedContent, "embedding" | "updated">;
 
@@ -99,7 +99,7 @@ export const chunkPage = async (
   Create a function that adds or updates front matter metadata to the chunk
   text.
  */
-export const makeFrontMatterUpdater = <
+export const makeChunkFrontMatterUpdater = <
   T extends Record<string, unknown> = Record<string, unknown>
 >(
   getMetadata: ChunkMetadataGetter<T>
@@ -126,9 +126,7 @@ export const makeFrontMatterUpdater = <
     // Update chunk with new front matter in yaml format
     return {
       ...chunk,
-      text: ["---", yaml.stringify(metadata).trimEnd(), "---", "", body].join(
-        "\n"
-      ),
+      text: updateFrontmatter(body, metadata),
     };
   };
 };
@@ -176,6 +174,6 @@ export const standardMetadataGetter: ChunkMetadataGetter<{
   return metadata;
 };
 
-export const standardFrontMatterUpdater = makeFrontMatterUpdater(
+export const standardChunkFrontMatterUpdater = makeChunkFrontMatterUpdater(
   standardMetadataGetter
 );

@@ -1,5 +1,5 @@
 import { Page } from "chat-core";
-import { chunkPage, standardFrontMatterUpdater } from "./chunkPage";
+import { chunkPage, standardChunkFrontMatterUpdater } from "./chunkPage";
 
 describe("chunkPage", () => {
   const page: Page = {
@@ -74,7 +74,7 @@ Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibend
     let chunks = await chunkPage(
       { ...page, body: "This is some text\n" },
       {
-        transform: standardFrontMatterUpdater,
+        transform: standardChunkFrontMatterUpdater,
       }
     );
     expect(chunks).toHaveLength(1);
@@ -101,7 +101,7 @@ This is some text`,
         body: "This text has a code example:\n\n```js\nlet foo = 1 + 1;\n```\n\nNeat, huh?",
       },
       {
-        transform: standardFrontMatterUpdater,
+        transform: standardChunkFrontMatterUpdater,
       }
     );
     expect(chunks).toHaveLength(1);
@@ -136,7 +136,7 @@ Neat, huh?`,
         body: "This text has an unspecified code example:\n\n```\nlet foo = 1 + 1;\n```\n\nNeat, huh?",
       },
       {
-        transform: standardFrontMatterUpdater,
+        transform: standardChunkFrontMatterUpdater,
       }
     );
     expect(chunks).toHaveLength(1);
@@ -180,13 +180,13 @@ hasCodeBlock: true
 This is some text\n`,
       },
       {
-        transform: standardFrontMatterUpdater,
+        transform: standardChunkFrontMatterUpdater,
       }
     );
     expect(chunks).toHaveLength(1);
 
     // Note that it includes the original frontmatter and only overrides the
-    // field that would be set by the standardFrontMatterUpdater (hasCodeBlock)
+    // field that would be set by the standardChunkFrontMatterUpdater (hasCodeBlock)
     expect(chunks[0].text).toBe(`---
 someString: Who knows
 someArray:

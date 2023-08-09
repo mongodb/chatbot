@@ -1,6 +1,7 @@
 import Path from "path";
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync } from "fs";
 import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
+import { SnootyNode } from "./SnootyDataSource";
 
 describe("snootyAstToMd", () => {
   const samplePage = JSON.parse(
@@ -109,8 +110,6 @@ describe("snootyAstToMd", () => {
     const result = snootyAstToMd(samplePage.data.ast, {
       baseUrl: "/",
     });
-    writeFileSync("samplePage.md", result, { encoding: "utf-8" });
-    // TODO: remove bullet points from table entries
     const expected = `<table>
 <tr>
 <th>
@@ -192,6 +191,179 @@ Stop and fail the aggregation operation. Any changes to the output collection fr
     const closingTagCount = result.split("</td>").length - 1;
     expect(openingTagCount).toBe(8);
     expect(openingTagCount).toBe(closingTagCount);
+  });
+
+  it("renders HTML tables with multiple header rows", () => {
+    const ast: SnootyNode = {
+      type: "root",
+      position: { start: { line: 0 } },
+      children: [
+        {
+          type: "directive",
+          children: [
+            {
+              type: "list",
+              children: [
+                {
+                  type: "listItem",
+                  children: [
+                    {
+                      type: "list",
+                      children: [
+                        {
+                          type: "listItem",
+                          children: [
+                            {
+                              type: "paragraph",
+                              children: [
+                                {
+                                  type: "text",
+                                  value: "h1",
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                        {
+                          type: "listItem",
+                          children: [
+                            {
+                              type: "paragraph",
+                              children: [
+                                {
+                                  type: "text",
+                                  value: "h2",
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "listItem",
+                  children: [
+                    {
+                      type: "list",
+                      children: [
+                        {
+                          type: "listItem",
+                          children: [
+                            {
+                              type: "paragraph",
+                              children: [
+                                {
+                                  type: "text",
+                                  value: "h3",
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                        {
+                          type: "listItem",
+                          children: [
+                            {
+                              type: "paragraph",
+                              children: [
+                                {
+                                  type: "text",
+                                  value: "h4",
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "listItem",
+                  children: [
+                    {
+                      type: "list",
+                      children: [
+                        {
+                          type: "listItem",
+                          children: [
+                            {
+                              type: "paragraph",
+                              children: [
+                                {
+                                  type: "text",
+                                  value: "d1",
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                        {
+                          type: "listItem",
+                          children: [
+                            {
+                              type: "paragraph",
+                              children: [
+                                {
+                                  type: "text",
+                                  value: "d2",
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          name: "list-table",
+          options: {
+            "header-rows": 2,
+          },
+        },
+      ],
+    };
+    const result = snootyAstToMd(ast, {
+      baseUrl: "/",
+    });
+    const expected = `<table>
+<tr>
+<th>
+h1
+
+</th>
+<th>
+h2
+
+</th>
+</tr>
+<tr>
+<th>
+h3
+
+</th>
+<th>
+h4
+
+</th>
+</tr>
+<tr>
+<td>
+d1
+
+</td>
+<td>
+d2
+
+</td>
+</tr>
+</table>`;
+    expect(result).toBe(expected);
   });
 
   describe("getTitleFromSnootyAst", () => {

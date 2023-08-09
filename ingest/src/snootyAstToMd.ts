@@ -10,7 +10,7 @@ export type SnootyAstToMdOptions = {
   baseUrl: string;
   table?: {
     mode: TableMode;
-    needsHeaderRow: boolean;
+    headerRows: number;
   };
 };
 
@@ -72,7 +72,7 @@ export const snootyAstToMd = (
         const tag =
           table.mode === TableMode.IN_TABLE
             ? "tr"
-            : table.needsHeaderRow
+            : table.headerRows > 0
             ? "th"
             : "td";
         text += node.children
@@ -88,11 +88,11 @@ export const snootyAstToMd = (
                   // - OR from <tr> (IN_ROW) --> <td> (IN_COLUMN)
                   table: {
                     mode: table.mode + 1,
-                    needsHeaderRow:
-                      // (Hacky) Set "needsHeaderRow" to false after the first row
-                      table.mode === TableMode.IN_TABLE && i > 0
-                        ? false
-                        : table.needsHeaderRow,
+                    headerRows:
+                      // (Hacky) Set "headerRows" to 0 after that number of rows
+                      tag === "tr" && i >= table.headerRows
+                        ? 0
+                        : table.headerRows,
                   },
                 },
                 parentHeadingLevel
@@ -145,9 +145,11 @@ export const snootyAstToMd = (
       if (node.name === "list-table") {
         const directiveOptions = (node as { options?: Record<string, unknown> })
           .options;
-        const needsHeaderRow = directiveOptions
-          ? directiveOptions["header-rows"] === 1
-          : false;
+        const headerRows =
+          directiveOptions &&
+          typeof directiveOptions["header-rows"] === "number"
+            ? directiveOptions["header-rows"]
+            : 0;
         text += [
           "<table>",
           node.children
@@ -158,7 +160,7 @@ export const snootyAstToMd = (
                   ...options,
                   table: {
                     mode: TableMode.IN_TABLE,
-                    needsHeaderRow,
+                    headerRows,
                   },
                 },
                 parentHeadingLevel

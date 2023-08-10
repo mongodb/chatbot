@@ -1,4 +1,4 @@
-export {};
+import "jest";
 declare global {
   namespace jest {
     interface Matchers<R> {
@@ -6,7 +6,7 @@ declare global {
         For use with the LLM qualitative testing framework.
         @param expected - The expected output description
        */
-      toMeetChatQualityStandard: (expected: any) => object;
+      toMeetChatQualityStandard: (expected: string) => Promise<R>;
     }
   }
 }

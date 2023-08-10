@@ -15,7 +15,7 @@ const {
  */
 export async function meetsChatQualityStandards(
   received: string,
-  expectedOutputDescription: string
+  expectedOutputDescription: any
 ) {
   const result = await checkResponseQuality(
     received,
@@ -36,7 +36,9 @@ export async function meetsChatQualityStandards(
 
       Received:
       ${received}
+
       Expected output: ${expectedOutputDescription}
+
       Reason: ${result?.reason}`,
     };
   } else {
@@ -47,6 +49,7 @@ export async function meetsChatQualityStandards(
 
       Received:
       ${received}
+
       Expected output: ${expectedOutputDescription}`,
     };
   }

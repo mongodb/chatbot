@@ -5,5 +5,10 @@ import { meetsChatQualityStandards } from "./llmQualitativeTesting/meetsChatQual
 logger.transports.forEach((t) => (t.silent = true));
 
 expect.extend({
-  toMeetChatQualityStandard: meetsChatQualityStandards,
+  async toMeetChatQualityStandard(
+    received: string,
+    expectedOutputDescription: string
+  ) {
+    return meetsChatQualityStandards(received, expectedOutputDescription);
+  },
 });

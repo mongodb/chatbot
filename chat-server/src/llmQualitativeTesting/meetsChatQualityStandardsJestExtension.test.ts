@@ -15,6 +15,7 @@ describe("meetsChatQualityStandards()", () => {
 
     Received:
     ${conversation}
+
     Expected output: ${expectation}`;
     expect(result.pass).toBe(true);
     expect(result.message()).toContain(expectedResponseMessage);
@@ -31,7 +32,9 @@ describe("meetsChatQualityStandards()", () => {
 
     Received:
     ${conversation}
+
     Expected output: ${expectation}
+
     Reason: `;
     expect(result.pass).toBe(false);
     expect(result.message()).toContain(expectedResponseMessage);
@@ -45,6 +48,6 @@ describe("meetsChatQualityStandards() used as jest extension", () => {
     ASSISTANT: Your name is Jasper.`;
     const expectation =
       "The assistant should correctly respond with the user's name.";
-    expect(conversation).toMeetChatQualityStandard(expectation);
+    await expect(conversation).toMeetChatQualityStandard(expectation);
   });
 });

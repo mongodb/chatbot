@@ -109,5 +109,5 @@
     "**/testHelpers.ts",
     "jestSetUp.ts"
   ],
-  "include": ["./src/**/*.ts"]
+  "include": ["./src/**/*.ts", "./src/jestSetUp.d.ts"]
 }

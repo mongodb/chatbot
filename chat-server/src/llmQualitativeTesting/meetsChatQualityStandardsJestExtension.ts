@@ -5,8 +5,8 @@ import { CORE_ENV_VARS, assertEnvVars } from "chat-core";
 const {
   OPENAI_ENDPOINT,
   OPENAI_API_KEY,
-  OPENAI_EMBEDDING_DEPLOYMENT,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_CHAT_COMPLETION_MODEL_VERSION,
 } = assertEnvVars(CORE_ENV_VARS);
 
 /**
@@ -24,8 +24,8 @@ export async function meetsChatQualityStandards(
     {
       apiKey: OPENAI_API_KEY,
       baseUrl: OPENAI_ENDPOINT,
-      deployment: OPENAI_EMBEDDING_DEPLOYMENT,
-      version: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+      deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+      version: OPENAI_CHAT_COMPLETION_MODEL_VERSION,
     }
   );
 
@@ -36,7 +36,7 @@ export async function meetsChatQualityStandards(
         stripIndents`Message did not meet quality standards.
 
       Received:
-      ${JSON.stringify(received, null, 2)}
+      ${received}
       Expected output: ${expectedOutputDescription}
       Reason: ${result?.reason}`,
     };
@@ -47,7 +47,7 @@ export async function meetsChatQualityStandards(
         stripIndents`Message met quality standards.
 
       Received:
-      ${JSON.stringify(received, null, 2)}
+      ${received}
       Expected output: ${expectedOutputDescription}`,
     };
   }

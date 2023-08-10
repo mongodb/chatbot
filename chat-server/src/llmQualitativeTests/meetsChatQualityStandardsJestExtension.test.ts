@@ -1,3 +1,4 @@
+import "../../global.d";
 import { stripIndents } from "common-tags";
 import { meetsChatQualityStandards } from "./meetsChatQualityStandardsJestExtension";
 import "./meetsChatQualityStandardsJestExtension";
@@ -47,7 +48,7 @@ describe("meetsChatQualityStandards() used as jest extension", () => {
     USER: What's my name?
     ASSISTANT: Your name is Jasper.`;
     const expectation =
-      "The assistant should NOT correctly respond with the user's name.";
+      "The assistant should correctly respond with the user's name.";
     await expect(conversation).toMeetChatQualityStandard(expectation);
   });
 });

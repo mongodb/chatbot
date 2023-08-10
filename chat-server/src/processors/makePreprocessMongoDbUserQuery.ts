@@ -64,7 +64,10 @@ export function makePreprocessMongoDbUserQuery({
     if (!response.success) {
       throw new Error(response.message);
     }
-    return appendMetadataToPreprocessorResponse(response.data);
+    return {
+      ...appendMetadataToPreprocessorResponse(response.data),
+      doNotAnswer: response.data.query === "DO_NOT_ANSWER",
+    };
   };
 }
 

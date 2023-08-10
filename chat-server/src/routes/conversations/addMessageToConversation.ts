@@ -182,7 +182,7 @@ export function makeAddMessageToConversationRoute({
       // (likely due to LLM timeout), then we will just use the original message.
       if (userQueryPreprocessor) {
         try {
-          const { query } = await userQueryPreprocessor({
+          const { query, doNotAnswer } = await userQueryPreprocessor({
             query: latestMessageText,
             messages: conversationInDb.messages,
           });
@@ -193,7 +193,7 @@ export function makeAddMessageToConversationRoute({
               Original query: ${latestMessageText}
               Preprocessed query: ${preprocessedUserMessageContent}`,
           });
-          if (preprocessedUserMessageContent.includes("DO_NOT_ANSWER")) {
+          if (doNotAnswer) {
             return await sendStaticNonResponse({
               conversations,
               conversationId,

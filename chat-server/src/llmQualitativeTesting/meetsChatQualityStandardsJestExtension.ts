@@ -8,7 +8,6 @@ const {
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
 } = assertEnvVars(CORE_ENV_VARS);
-
 /**
  *
  * @param received - The output from the LLM

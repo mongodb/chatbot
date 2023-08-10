@@ -5,32 +5,40 @@
  */
 import { request } from "urllib";
 import dotenv from "dotenv";
+import { getEnvironmentValue } from "./utils";
 
 const [_, __, envFile] = process.argv;
 dotenv.config({ path: envFile });
 
-const {
+const GROUP_ID = getEnvironmentValue(process.env, "GROUP_ID");
+const CLUSTER_NAME = getEnvironmentValue(process.env, "CLUSTER_NAME");
+const DB_NAME = getEnvironmentValue(process.env, "DB_NAME");
+const EMBEDDED_CONTENT_COLL_NAME = getEnvironmentValue(
+  process.env,
+  "EMBEDDED_CONTENT_COLL_NAME"
+);
+const ATLAS_ADMIN_API_KEY = getEnvironmentValue(
+  process.env,
+  "ATLAS_ADMIN_API_KEY"
+);
+const ATLAS_ADMIN_API_SECRET = getEnvironmentValue(
+  process.env,
+  "ATLAS_ADMIN_API_SECRET"
+);
+
+console.log("Creating a search index with the following parameters:", {
   GROUP_ID,
   CLUSTER_NAME,
   DB_NAME,
-  COLL_NAME,
-  ATLAS_ADMIN_API_KEY,
-  ATLAS_ADMIN_API_SECRET,
-} = process.env;
-console.log({
-  GROUP_ID,
-  CLUSTER_NAME,
-  DB_NAME,
-  COLL_NAME,
-  ATLAS_ADMIN_API_KEY,
-  ATLAS_ADMIN_API_SECRET,
+  EMBEDDED_CONTENT_COLL_NAME,
 });
+
 const requestUrl = `https://cloud.mongodb.com/api/atlas/v2/groups/${GROUP_ID}/clusters/${CLUSTER_NAME}/fts/indexes`;
 
 const payload = {
   name: "default",
   database: DB_NAME,
-  collectionName: COLL_NAME,
+  collectionName: EMBEDDED_CONTENT_COLL_NAME,
   mappings: {
     fields: {
       embedding: {

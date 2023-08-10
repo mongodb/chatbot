@@ -55,9 +55,7 @@ describe("checkResponseQuality()", () => {
 
     Mentions:
     - Postgres is SQL
-    - MongoDB is document-based an NoSQL
-
-    Fair and balanced answer`;
+    - MongoDB is document-based an NoSQL`;
     const result = await checkResponseQuality(
       conversation,
       expectation,

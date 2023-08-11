@@ -62,7 +62,7 @@ describe("makePreprocessMongoDbUserQuery()", () => {
     expect(outputQuery).toContain("code example");
     expect(outputQuery).toContain("aggregation");
     expect(outputQuery).toContain("?");
-    expect(programmingLanguages).toHaveLength(0);
+    expect(programmingLanguages).toStrictEqual(["shell"]);
     expect(mongoDbProducts[0]).toBeDefined();
   });
   test("should ID programming languages", async () => {
@@ -114,7 +114,6 @@ describe("makePreprocessMongoDbUserQuery()", () => {
       query,
       messages,
     });
-    console.log(response);
     expect(response.query).toContain("DO_NOT_ANSWER");
   });
 });

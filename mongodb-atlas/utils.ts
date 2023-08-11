@@ -4,7 +4,7 @@
  * @returns The value of the environment variable.
  * @throws If the environment variable is not set.
  */
-export function getEnvironmentValue(env: NodeJS.ProcessEnv, name: string) {
+export function getEnvironmentValue(name: string) {
   const value = process.env[name]
   if (!value) {
     throw new Error(`Environment value ${name} is not set. Define it in the .env file.`)

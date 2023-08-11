@@ -9,19 +9,10 @@ import { getEnvironmentValue } from "./utils";
 const [_, __, envFile] = process.argv;
 dotenv.config({ path: envFile });
 
-const MONGODB_CONNECTION_URI = getEnvironmentValue(
-  process.env,
-  "MONGODB_CONNECTION_URI"
-);
-const DB_NAME = getEnvironmentValue(process.env, "DB_NAME");
-const CONVERSATIONS_COLL_NAME = getEnvironmentValue(
-  process.env,
-  "CONVERSATIONS_COLL_NAME"
-);
-const CONVERSATIONS_TTL_SECONDS = getEnvironmentValue(
-  process.env,
-  "CONVERSATIONS_TTL_SECONDS"
-);
+const MONGODB_CONNECTION_URI = getEnvironmentValue("MONGODB_CONNECTION_URI");
+const DB_NAME = getEnvironmentValue("DB_NAME");
+const CONVERSATIONS_COLL_NAME = getEnvironmentValue("CONVERSATIONS_COLL_NAME");
+const CONVERSATIONS_TTL_SECONDS = getEnvironmentValue("CONVERSATIONS_TTL_SECONDS");
 
 const expireAfterSeconds = Number(CONVERSATIONS_TTL_SECONDS);
 if (Number.isNaN(expireAfterSeconds) || expireAfterSeconds <= 0) {

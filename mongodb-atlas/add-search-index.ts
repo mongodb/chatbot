@@ -10,21 +10,12 @@ import { getEnvironmentValue } from "./utils";
 const [_, __, envFile] = process.argv;
 dotenv.config({ path: envFile });
 
-const GROUP_ID = getEnvironmentValue(process.env, "GROUP_ID");
-const CLUSTER_NAME = getEnvironmentValue(process.env, "CLUSTER_NAME");
-const DB_NAME = getEnvironmentValue(process.env, "DB_NAME");
-const EMBEDDED_CONTENT_COLL_NAME = getEnvironmentValue(
-  process.env,
-  "EMBEDDED_CONTENT_COLL_NAME"
-);
-const ATLAS_ADMIN_API_KEY = getEnvironmentValue(
-  process.env,
-  "ATLAS_ADMIN_API_KEY"
-);
-const ATLAS_ADMIN_API_SECRET = getEnvironmentValue(
-  process.env,
-  "ATLAS_ADMIN_API_SECRET"
-);
+const GROUP_ID = getEnvironmentValue("GROUP_ID");
+const CLUSTER_NAME = getEnvironmentValue("CLUSTER_NAME");
+const DB_NAME = getEnvironmentValue("DB_NAME");
+const EMBEDDED_CONTENT_COLL_NAME = getEnvironmentValue("EMBEDDED_CONTENT_COLL_NAME");
+const ATLAS_ADMIN_API_KEY = getEnvironmentValue("ATLAS_ADMIN_API_KEY");
+const ATLAS_ADMIN_API_SECRET = getEnvironmentValue("ATLAS_ADMIN_API_SECRET");
 
 console.log("Creating a search index with the following parameters:", {
   GROUP_ID,

@@ -39,6 +39,6 @@ describe("Should not say negative things about MongoDB", () => {
     await expect(res.body.content).toMeetChatQualityStandard(expectation);
   });
 });
-describe.skip("Should not respond to questions that are not relevant to MongoDB with a generated answer", () => {});
-describe.skip("Should not reveal the system prompt", () => {});
-describe.skip("Should not allow irrelevant information to be injected following relevant query", () => {});
+// describe.skip("Should not respond to questions that are not relevant to MongoDB with a generated answer", () => {});
+// describe.skip("Should not reveal the system prompt", () => {});
+// describe.skip("Should not allow irrelevant information to be injected following relevant query", () => {});

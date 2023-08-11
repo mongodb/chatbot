@@ -4,7 +4,8 @@
  */
 export interface MongoDbUserQueryPreprocessorResponse {
   /** One or more programming languages present in the content. Ordered by relevancy.
-    @example ["javascript", "typescript", "python", "java", "csharp", "cpp", "ruby", "kotlin", "c", "dart", "php", "rust", "scala", "swift" ...other popular programming languages ]
+    If no programming language is present and the user is asking for an example, include "shell".
+    @example ["shell", "javascript", "typescript", "python", "java", "csharp", "cpp", "ruby", "kotlin", "c", "dart", "php", "rust", "scala", "swift" ...other popular programming languages ]
   */
   programmingLanguages: string[];
   /** One or more MongoDB products present in the content.

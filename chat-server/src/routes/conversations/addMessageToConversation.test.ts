@@ -38,6 +38,7 @@ import { ObjectId } from "mongodb";
 import { makeApp, CONVERSATIONS_API_V1_PREFIX } from "../../app";
 import { makeConversationsRoutesDefaults } from "../../testHelpers";
 import { config } from "../../config";
+import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
 
 jest.setTimeout(100000);
 
@@ -289,25 +290,35 @@ describe("POST /conversations/:conversationId/messages", () => {
   });
 
   describe("Edge cases", () => {
-    describe("No vector search content for user message", () => {
-      test("Should respond with 200 and static response", async () => {
-        const nonsenseMessage =
-          "asdlfkjasdlfk jasdlfkjasdlfk jasdlfkjasdlfjdfhstgra gtyjuikolsdfghjsdghj;sgf;dlfjda; kssdghj;f'afskj ;glskjsfd'aks dsaglfslj; gaflad four score and seven years ago fsdglfsgdj fjlgdfsghjldf lfsgajlhgf";
-        const calledEndpoint = endpointUrl.replace(
-          ":conversationId",
-          conversationId
-        );
-        const response = await request(app)
-          .post(calledEndpoint)
-          .set("X-FORWARDED-FOR", ipAddress)
-          .send({ message: nonsenseMessage });
-        expect(response.statusCode).toBe(200);
-
-        expect(response.body.content).toEqual(
-          conversationConstants.NO_RELEVANT_CONTENT
-        );
-      });
+    test("Should respond with 200 and static response if query is negative toward MongoDB", async () => {
+      const query = "why is MongoDB a terrible database";
+      const res = await request(app)
+        .post(endpointUrl.replace(":conversationId", conversationId))
+        .set("X-FORWARDED-FOR", ipAddress)
+        .send({ message: query });
+      expect(res.statusCode).toEqual(200);
+      expect(res.body.content).toEqual(
+        conversationConstants.NO_RELEVANT_CONTENT
+      );
     });
+    test("Should respond with 200 and static response if no vector search content for user message", async () => {
+      const nonsenseMessage =
+        "asdlfkjasdlfk jasdlfkjasdlfk jasdlfkjasdlfjdfhstgra gtyjuikolsdfghjsdghj;sgf;dlfjda; kssdghj;f'afskj ;glskjsfd'aks dsaglfslj; gaflad four score and seven years ago fsdglfsgdj fjlgdfsghjldf lfsgajlhgf";
+      const calledEndpoint = endpointUrl.replace(
+        ":conversationId",
+        conversationId
+      );
+      const response = await request(app)
+        .post(calledEndpoint)
+        .set("X-FORWARDED-FOR", ipAddress)
+        .send({ message: nonsenseMessage });
+      expect(response.statusCode).toBe(200);
+
+      expect(response.body.content).toEqual(
+        conversationConstants.NO_RELEVANT_CONTENT
+      );
+    });
+
     describe("LLM not available but vector search is", () => {
       const {
         MONGODB_CONNECTION_URI,
@@ -386,7 +397,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         const assistantMessageContent = "hi";
         const { userMessage, assistantMessage } = await addMessagesToDatabase({
           conversationId,
-          userMessageContent,
+          originalUserMessageContent: userMessageContent,
           assistantMessageContent,
           assistantMessageReferences: [
             { url: "https://www.example.com/", title: "Example Reference" },

@@ -2,6 +2,7 @@ import { stripIndent } from "common-tags";
 import { AppConfig } from "./AppConfig";
 import { makeBoostOnAtlasSearchFilter } from "./processors/makeBoostOnAtlasSearchFilter";
 import { CORE_ENV_VARS, assertEnvVars } from "chat-core";
+import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
 const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -10,6 +11,7 @@ const {
   OPENAI_API_KEY,
   OPENAI_EMBEDDING_DEPLOYMENT,
   OPENAI_EMBEDDING_MODEL_VERSION,
+  OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
 } = assertEnvVars(CORE_ENV_VARS);
 
@@ -35,6 +37,17 @@ export const boostManual = makeBoostOnAtlasSearchFilter({
     minScore: 0.88,
   },
   totalMaxK: 5,
+});
+
+const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({
+  azureOpenAiServiceConfig: {
+    apiKey: OPENAI_API_KEY,
+    baseUrl: OPENAI_ENDPOINT,
+    deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    version: OPENAI_CHAT_COMPLETION_MODEL_VERSION,
+  },
+  numRetries: 0,
+  retryDelayMs: 5000,
 });
 
 // TODO: expand this to remove all conf from index.ts
@@ -91,6 +104,7 @@ export const config: AppConfig = {
   },
   conversations: {
     searchBoosters: [boostManual],
+    userQueryPreprocessor: mongoDbUserQueryPreprocessor,
   },
   findNearestNeighborsOptions: {
     k: 5,

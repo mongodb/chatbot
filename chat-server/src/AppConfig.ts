@@ -6,6 +6,7 @@ import {
   MakeOpenAiEmbedFuncArgs,
   FindNearestNeighborsOptions,
 } from "chat-core";
+import { QueryPreprocessorFunc } from "./processors/QueryPreprocessorFunc";
 
 export type EmbedConfig = MakeOpenAiEmbedFuncArgs;
 
@@ -32,6 +33,7 @@ export interface AppConfig {
   llm: LlmConfig;
   conversations: {
     searchBoosters?: SearchBooster[];
+    userQueryPreprocessor?: QueryPreprocessorFunc;
   };
   findNearestNeighborsOptions: FindNearestNeighborsOptionsConfig;
   embeddedContentStore: EmbeddedContentStoreConfig;

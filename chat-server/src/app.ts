@@ -24,6 +24,7 @@ import {
   OpenAiStreamingResponse,
 } from "./services/llm";
 import { SearchBooster } from "./processors/SearchBooster";
+import { QueryPreprocessorFunc } from "./processors/QueryPreprocessorFunc";
 
 // General error handler; called at usage of next() in routes
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
@@ -85,6 +86,7 @@ export const makeApp = async ({
   maxRequestTimeoutMs = DEFAULT_MAX_REQUEST_TIMEOUT_MS,
   findNearestNeighborsOptions,
   searchBoosters,
+  userQueryPreprocessor,
 }: {
   embed: EmbedFunc;
   store: EmbeddedContentStore;
@@ -94,6 +96,7 @@ export const makeApp = async ({
   maxRequestTimeoutMs?: number;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
   searchBoosters?: SearchBooster[];
+  userQueryPreprocessor?: QueryPreprocessorFunc;
 }): Promise<Express> => {
   const app = express();
   app.use(makeHandleTimeoutMiddleware(maxRequestTimeoutMs));
@@ -113,6 +116,7 @@ export const makeApp = async ({
       conversations,
       findNearestNeighborsOptions,
       searchBoosters,
+      userQueryPreprocessor,
     })
   );
   app.all("*", (req, res, _next) => {

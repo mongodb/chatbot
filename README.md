@@ -17,27 +17,33 @@ production.
 
 To publish to QA:
 
-1. Create a new branch for your QA build. The branch should use the following
-   naming convention: `chat-server-qa-{build-id}`.
+1. Check out the `qa` branch and pull any upstream changes. Here, `upstream` is
+   the name of the `mongodb/docs-chatbot` remote repo.
 
    ```sh
-   git checkout -b chat-server-qa-0.0.42
+   git fetch upstream
+   git checkout qa
+   git pull upstream qa
    ```
 
-2. Apply any commits you want to build to the new branch. In many cases you'll
-   just build from the same commits as `main`. However, you might want to QA
-   only a subset of commits from `main`.
+2. Apply any commits you want to build to the branch. In many cases you'll just
+   build from the same commits as `main`. However, you might want to QA only a
+   subset of commits from `main`.
 
-3. Push the branch to this upstream GitHub repo
+3. Add a tag to the latest commit on the `qa` branch using the following naming scheme: `chat-server-qa-<Build ID>`
+
+   ```
+   git tag chat-server-qa-0.0.42 -a
+   ```
+
+4. Push the branch to this upstream GitHub repo
 
    ```sh
-   git push upstream chat-server-qa-0.0.42
+   git push upstream qa
    ```
 
-4. Add a tag with the same name as the branch to the branch.
-
-Once you've added the tag, the Drone CI automatically builds and deploys the
-branch to the QA server.
+Once you've added the tag to the upstream repo, the Drone CI automatically
+builds and deploys the branch to the QA server.
 
 ### Production Deployments
 
@@ -55,14 +61,7 @@ To create a new production release:
    git pull upstream main
    ```
 
-2. Create a new branch for your release. The branch should use the following naming convention:
-   `package-name@semver-for-release`.
-
-   ```sh
-   git checkout -b chat-server@1.0.0
-   ```
-
-3. In the relevant package directory (e.g `chat-server`) run the release
+2. In the relevant package directory (e.g `chat-server`) run the release
    command. This gets the package ready for a new release.
 
    ```sh
@@ -72,10 +71,10 @@ To create a new production release:
    When prompted create a draft Github release. The URL for the release draft is
    present in the output of CLI operation. You can use this later.
 
-4. Create a pull request for the branch. Get it reviewed using the standard
+3. Create a pull request for the branch. Get it reviewed using the standard
    review process.
 
-5. Once the PR is approved and merged, publish the draft release. You can find
+4. Once the PR is approved and merged, publish the draft release. You can find
    the release draft in the draft tag:
    <https://github.com/mongodb/docs-chatbot/releases>.
 

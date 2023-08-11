@@ -266,7 +266,7 @@ export function makeAddMessageToConversationRoute({
       const chunkTexts = chunks.map((chunk) => chunk.text);
 
       const latestMessage = {
-        content: latestMessageText,
+        content: preprocessedUserMessageContent || latestMessageText,
         role: "user",
       } satisfies OpenAiChatMessage;
 

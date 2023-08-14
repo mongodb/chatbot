@@ -16,7 +16,7 @@ import {
 } from "chat-core";
 import { DataStreamer } from "./services/dataStreamer";
 import { ObjectId } from "mongodb";
-import { ConversationsServiceInterface } from "./services/conversations";
+import { ConversationsService } from "./services/conversations";
 import { getRequestId, logRequest, sendErrorResponse } from "./utils";
 import {
   Llm,
@@ -91,7 +91,7 @@ export const makeApp = async ({
   embed: EmbedFunc;
   store: EmbeddedContentStore;
   dataStreamer: DataStreamer;
-  conversations: ConversationsServiceInterface;
+  conversations: ConversationsService;
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   maxRequestTimeoutMs?: number;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;

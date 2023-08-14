@@ -1,12 +1,5 @@
-import {
-  ObjectId,
-  Db,
-  Collection,
-  OpenAiChatMessage,
-  OpenAiMessageRole,
-} from "chat-core";
+import { ObjectId, Db, OpenAiChatMessage, OpenAiMessageRole } from "chat-core";
 import { References } from "chat-core";
-import { Llm } from "./llm";
 import { LlmConfig } from "../AppConfig";
 
 export interface Message {
@@ -53,7 +46,7 @@ export interface RateMessageParams {
   messageId: ObjectId;
   rating: boolean;
 }
-export interface ConversationsServiceInterface {
+export interface ConversationsService {
   create: ({ ipAddress }: CreateConversationParams) => Promise<Conversation>;
   addConversationMessage: ({
     conversationId,
@@ -80,95 +73,91 @@ so I cannot respond to your message. Please try again later.
 However, here are some links that might provide some helpful information for your message:`,
 };
 
-export class ConversationsService implements ConversationsServiceInterface {
-  private database: Db;
-  private conversationsCollection: Collection<Conversation>;
-  private systemPrompt: LlmConfig["systemPrompt"];
-  constructor(database: Db, systemPrompt: LlmConfig["systemPrompt"]) {
-    this.database = database;
-    this.conversationsCollection =
-      this.database.collection<Conversation>("conversations");
-    this.systemPrompt = systemPrompt;
-  }
-  async create({ ipAddress }: CreateConversationParams) {
-    const newConversation = {
-      _id: new ObjectId(),
-      ipAddress,
-      messages: [this.createMessageFromChatMessage(this.systemPrompt)],
-      createdAt: new Date(),
-    };
-    const insertResult = await this.conversationsCollection.insertOne(
-      newConversation
-    );
+export function makeConversationsService(
+  database: Db,
+  systemPrompt: LlmConfig["systemPrompt"]
+): ConversationsService {
+  const conversationsCollection =
+    database.collection<Conversation>("conversations");
+  return {
+    async create({ ipAddress }: CreateConversationParams) {
+      const newConversation = {
+        _id: new ObjectId(),
+        ipAddress,
+        messages: [createMessageFromOpenAIChatMessage(systemPrompt)],
+        createdAt: new Date(),
+      };
+      const insertResult = await conversationsCollection.insertOne(
+        newConversation
+      );
 
-    if (
-      !insertResult.acknowledged ||
-      insertResult.insertedId !== newConversation._id
-    ) {
-      throw new Error("Failed to insert conversation");
-    }
-    return newConversation;
-  }
-
-  async addConversationMessage({
-    conversationId,
-    content,
-    role,
-    references,
-  }: AddConversationMessageParams) {
-    const newMessage = this.createMessageFromChatMessage({ role, content });
-    if (references) {
-      newMessage.references = references;
-    }
-
-    const updateResult = await this.conversationsCollection.updateOne(
-      {
-        _id: conversationId,
-      },
-      {
-        $push: {
-          messages: newMessage,
-        },
+      if (
+        !insertResult.acknowledged ||
+        insertResult.insertedId !== newConversation._id
+      ) {
+        throw new Error("Failed to insert conversation");
       }
-    );
-    if (!updateResult.acknowledged || updateResult.matchedCount === 0) {
-      throw new Error("Failed to insert message");
-    }
-    return newMessage;
-  }
+      return newConversation;
+    },
 
-  async findById({ _id }: FindByIdParams) {
-    const conversation = await this.conversationsCollection.findOne({ _id });
-    return conversation;
-  }
-
-  async rateMessage({ conversationId, messageId, rating }: RateMessageParams) {
-    const updateResult = await this.conversationsCollection.updateOne(
-      {
-        _id: conversationId,
-      },
-      {
-        $set: {
-          "messages.$[message].rating": rating,
-        },
-      },
-      {
-        arrayFilters: [
-          { "message.id": messageId, "message.role": "assistant" },
-        ],
+    async addConversationMessage({
+      conversationId,
+      content,
+      role,
+      references,
+    }: AddConversationMessageParams) {
+      const newMessage = createMessageFromOpenAIChatMessage({ role, content });
+      if (references) {
+        newMessage.references = references;
       }
-    );
-    if (!updateResult.acknowledged || updateResult.matchedCount === 0) {
-      throw new Error("Failed to rate message");
-    }
-    return true;
-  }
 
-  private createMessageFromChatMessage(
-    chatMessage: OpenAiChatMessage
-  ): Message {
-    return createMessageFromOpenAIChatMessage(chatMessage);
-  }
+      const updateResult = await conversationsCollection.updateOne(
+        {
+          _id: conversationId,
+        },
+        {
+          $push: {
+            messages: newMessage,
+          },
+        }
+      );
+      if (!updateResult.acknowledged || updateResult.matchedCount === 0) {
+        throw new Error("Failed to insert message");
+      }
+      return newMessage;
+    },
+
+    async findById({ _id }: FindByIdParams) {
+      const conversation = await conversationsCollection.findOne({ _id });
+      return conversation;
+    },
+
+    async rateMessage({
+      conversationId,
+      messageId,
+      rating,
+    }: RateMessageParams) {
+      const updateResult = await conversationsCollection.updateOne(
+        {
+          _id: conversationId,
+        },
+        {
+          $set: {
+            "messages.$[message].rating": rating,
+          },
+        },
+        {
+          arrayFilters: [
+            { "message.id": messageId, "message.role": "assistant" },
+          ],
+        }
+      );
+      if (!updateResult.acknowledged || updateResult.matchedCount === 0) {
+        throw new Error("Failed to rate message");
+      }
+      return true;
+    },
+  };
 }
 
 export function createMessageFromOpenAIChatMessage(

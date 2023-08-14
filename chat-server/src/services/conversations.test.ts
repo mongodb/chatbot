@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { MongoDB } from "chat-core";
-import { Conversation, ConversationsService } from "./conversations";
+import { Conversation, makeConversationsService } from "./conversations";
 import { BSON } from "mongodb";
 import { config } from "../config";
 
@@ -24,7 +24,7 @@ describe("Conversations Service", () => {
     await mongodb.close();
   });
 
-  const conversationsService = new ConversationsService(
+  const conversationsService = makeConversationsService(
     mongodb.db,
     config.llm.systemPrompt
   );

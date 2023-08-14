@@ -7,7 +7,7 @@ import {
   makeOpenAiEmbedFunc,
 } from "chat-core";
 import { errorHandler, makeApp, makeHandleTimeoutMiddleware } from "./app";
-import { ConversationsService } from "./services/conversations";
+import { makeConversationsService } from "./services/conversations";
 import { makeDataStreamer } from "./services/dataStreamer";
 import { makeOpenAiLlm } from "./services/llm";
 import { config } from "./config";
@@ -20,7 +20,7 @@ describe("App", () => {
     config.mongodb.vectorSearchIndexName
   );
 
-  const conversations = new ConversationsService(
+  const conversations = makeConversationsService(
     mongodb.db,
     config.llm.systemPrompt
   );

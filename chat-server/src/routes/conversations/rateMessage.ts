@@ -1,8 +1,7 @@
 import { ObjectId } from "mongodb";
-import { strict as assert } from "assert";
 import {
   Conversation,
-  ConversationsServiceInterface,
+  ConversationsService,
 } from "../../services/conversations";
 import {
   Request as ExpressRequest,
@@ -33,7 +32,7 @@ export const RateMessageRequest = SomeExpressRequest.merge(
 );
 
 export interface RateMessageRouteParams {
-  conversations: ConversationsServiceInterface;
+  conversations: ConversationsService;
 }
 
 export function makeRateMessageRoute({

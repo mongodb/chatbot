@@ -4,8 +4,12 @@ import {
   Request as ExpressRequest,
 } from "express";
 import { z } from "zod";
-import { ConversationsServiceInterface } from "../../services/conversations";
-import { ApiConversation, convertConversationFromDbToApi, isValidIp } from "./utils";
+import { ConversationsService } from "../../services/conversations";
+import {
+  ApiConversation,
+  convertConversationFromDbToApi,
+  isValidIp,
+} from "./utils";
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 
@@ -22,7 +26,7 @@ export const CreateConversationRequest = SomeExpressRequest.merge(
 );
 
 export interface CreateConversationRouteParams {
-  conversations: ConversationsServiceInterface;
+  conversations: ConversationsService;
 }
 
 export function makeCreateConversationRoute({

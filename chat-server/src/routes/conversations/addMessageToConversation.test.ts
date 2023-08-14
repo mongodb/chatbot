@@ -14,7 +14,7 @@ import {
   Conversation,
   ConversationsService,
   Message,
-  ConversationsServiceInterface,
+  makeConversationsService,
 } from "../../services/conversations";
 import express, { Express } from "express";
 import {
@@ -50,7 +50,7 @@ describe("POST /conversations/:conversationId/messages", () => {
   let dataStreamer: ReturnType<typeof makeDataStreamer>;
   let findNearestNeighborsOptions: Partial<FindNearestNeighborsOptions>;
   let store: EmbeddedContentStore;
-  let conversations: ConversationsServiceInterface;
+  let conversations: ConversationsService;
   let app: Express;
 
   beforeAll(async () => {
@@ -235,7 +235,7 @@ describe("POST /conversations/:conversationId/messages", () => {
     });
 
     test("Should respond 500 if error with conversation service", async () => {
-      const mockBrokenConversationsService: ConversationsServiceInterface = {
+      const mockBrokenConversationsService: ConversationsService = {
         async create() {
           throw new Error("mock error");
         },
@@ -333,13 +333,13 @@ describe("POST /conversations/:conversationId/messages", () => {
       });
 
       let conversationId: ObjectId,
-        conversations: ConversationsServiceInterface,
+        conversations: ConversationsService,
         app: Express;
       let testMongo: MongoDB;
       beforeEach(async () => {
         const dbName = `test-${Date.now()}`;
         testMongo = new MongoDB(MONGODB_CONNECTION_URI, dbName);
-        conversations = new ConversationsService(
+        conversations = makeConversationsService(
           testMongo.db,
           config.llm.systemPrompt
         );

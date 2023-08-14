@@ -17,7 +17,7 @@ import {
 } from "chat-core";
 import {
   Conversation,
-  ConversationsServiceInterface,
+  ConversationsService,
   Message,
   conversationConstants,
 } from "../../services/conversations";
@@ -68,7 +68,7 @@ export const AddMessageRequest = SomeExpressRequest.merge(
 
 export interface AddMessageToConversationRouteParams {
   store: EmbeddedContentStore;
-  conversations: ConversationsServiceInterface;
+  conversations: ConversationsService;
   embed: EmbedFunc;
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   dataStreamer: DataStreamer;
@@ -387,7 +387,7 @@ export async function sendStaticNonResponse({
   dataStreamer,
   res,
 }: {
-  conversations: ConversationsServiceInterface;
+  conversations: ConversationsService;
   conversationId: ObjectId;
   preprocessedUserMessageContent?: string;
   latestMessageText: string;
@@ -455,7 +455,7 @@ interface AddMessagesToDatabaseParams {
   preprocessedUserMessageContent?: string;
   assistantMessageContent: string;
   assistantMessageReferences: References;
-  conversations: ConversationsServiceInterface;
+  conversations: ConversationsService;
 }
 export async function addMessagesToDatabase({
   conversationId,

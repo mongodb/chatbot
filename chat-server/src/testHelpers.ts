@@ -7,7 +7,7 @@ import {
 
 import { makeOpenAiLlm } from "./services/llm";
 import { makeDataStreamer } from "./services/dataStreamer";
-import { ConversationsService } from "./services/conversations";
+import { makeConversationsService } from "./services/conversations";
 import { makeApp } from "./app";
 import { config as conf } from "./config";
 
@@ -32,7 +32,7 @@ export async function makeConversationsRoutesDefaults() {
   const searchBoosters = conf.conversations!.searchBoosters;
   const userQueryPreprocessor = conf.conversations!.userQueryPreprocessor;
 
-  const conversations = new ConversationsService(
+  const conversations = makeConversationsService(
     mongodb.db,
     conf.llm.systemPrompt
   );

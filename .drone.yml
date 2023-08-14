@@ -463,3 +463,28 @@ steps:
       api_server: https://api.prod.corp.mongodb.com
       kubernetes_token:
         from_secret: prod_kubernetes_token
+# ---
+# Chat UI
+# ---
+---
+kind: pipeline
+name: publish-chat-ui
+
+trigger:
+  event:
+    - tag
+  ref:
+    include:
+      - refs/tags/chat-ui-v*
+
+steps:
+  - name: npm
+    image: plugins/npm
+    settings:
+      folder: chat-ui
+      username:
+        from_secret: mongodb_chatbot_ui_npm_username
+      email:
+        from_secret: mongodb_chatbot_ui_npm_email
+      password:
+        from_secret: mongodb_chatbot_ui_npm_token

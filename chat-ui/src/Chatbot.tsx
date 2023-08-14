@@ -39,7 +39,7 @@ const styles = {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.5rem;
     margin-top: 1rem;
   `,
   "conversation_id_info": css`
@@ -232,6 +232,7 @@ export function Chatbot() {
       <div className={styles.chatbot_input}>
         <InputBar
           key={"initialInput"}
+          badgeText="Experimental"
           textareaProps={{
             value: !modalOpen ? inputText : "",
             onChange: (e) => {
@@ -515,7 +516,6 @@ function Disclosure() {
 
   return (
     <div className={styles.disclosure}>
-      <Badge variant="blue">Experimental</Badge>
       <Body color={"#FFFFFF"}>
         This is a generative AI chatbot. By interacting with it, you agree to
         MongoDB's <TermsOfUse /> and <AcceptableUsePolicy />.

@@ -5,7 +5,7 @@ import { MongoDB } from "chat-core";
 import {
   Conversation,
   Message,
-  ConversationsServiceInterface,
+  ConversationsService,
 } from "../../services/conversations";
 import { Express } from "express";
 import { ObjectId } from "mongodb";
@@ -19,7 +19,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
   const endpointUrl =
     CONVERSATIONS_API_V1_PREFIX + "/:conversationId/messages/:messageId/rating";
   let app: Express;
-  let conversations: ConversationsServiceInterface;
+  let conversations: ConversationsService;
   let conversation: Conversation;
   let testMsg: Message;
   let testEndpointUrl: string;

@@ -7,7 +7,7 @@ import {
   OpenAiStreamingResponse,
 } from "../../services/llm";
 import { DataStreamer } from "../../services/dataStreamer";
-import { ConversationsServiceInterface } from "../../services/conversations";
+import { ConversationsService } from "../../services/conversations";
 import { EmbeddedContentStore } from "chat-core";
 import { RateMessageRequest, makeRateMessageRoute } from "./rateMessage";
 import {
@@ -28,7 +28,7 @@ export interface ConversationsRouterParams<T, U> {
   embed: EmbedFunc;
   dataStreamer: DataStreamer;
   store: EmbeddedContentStore;
-  conversations: ConversationsServiceInterface;
+  conversations: ConversationsService;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
   searchBoosters?: SearchBooster[];
   userQueryPreprocessor?: QueryPreprocessorFunc;

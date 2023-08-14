@@ -20,7 +20,7 @@ console.log("Creating a TTL index with the following parameters:", {
   EMBEDDED_CONTENT_COLL_NAME,
 });
 
-(async function createTTLIndex() {
+(async function createContentIndexes() {
   const client = new MongoClient(MONGODB_CONNECTION_URI);
 
   try {

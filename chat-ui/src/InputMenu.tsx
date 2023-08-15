@@ -1,6 +1,5 @@
 import Badge from "@leafygreen-ui/badge";
 import Card from "@leafygreen-ui/card";
-import { MenuItem, MenuItemProps } from "@leafygreen-ui/menu";
 import { Overline } from "@leafygreen-ui/typography";
 import { css } from "@emotion/css";
 
@@ -31,29 +30,39 @@ const styles = {
   `,
 };
 
-export type SuggestedPrompt = {
+export type MenuPrompt = {
   key: string;
   text: string;
 };
 
-type SuggestedPromptsProps = {
-  prompts: SuggestedPrompt[];
-  onPromptSelected: (text: string) => void;
-  suggestedPromptProps?: MenuItemProps;
+type InputMenuProps = {
+  heading?: string;
+  headingBadgeText?: string;
+  prompts: MenuPrompt[];
+  onPromptFocused?: (promptIndex: number) => void;
+  onPromptBlur?: (promptIndex: number) => void;
+  onPromptSelected: (prompt: MenuPrompt) => void;
+  // menuItemProps?: MenuItemProps;
 };
 
-export function SuggestedPrompts(props: SuggestedPromptsProps) {
+export function InputMenu(props: InputMenuProps) {
   return (
     <Card>
       <div className={styles.prompts_container}>
-        <div className={styles.prompts_container_header}>
-          <Overline>SUGGESTED AI PROMPTS</Overline>
-          <Badge variant="blue">Experimental</Badge>
-        </div>
-        {props.prompts.map((prompt) => (
-          <MenuItem
+        {props.heading ? (
+          <div className={styles.prompts_container_header}>
+            <Overline>{props.heading}</Overline>
+            {props.headingBadgeText ? (
+              <Badge variant="blue">{props.headingBadgeText}</Badge>
+            ) : null}
+          </div>
+        ) : null}
+        {props.prompts.map((prompt, i) => (
+          <div
             key={prompt.key}
+            role="button"
             className={styles.prompt}
+            tabIndex={0}
             onMouseDown={(e) => {
               // By default, onMouseDown fires a blur event, which
               // causes the chat input to blur & unmount this component
@@ -62,12 +71,17 @@ export function SuggestedPrompts(props: SuggestedPromptsProps) {
               e.preventDefault();
             }}
             onClick={() => {
-              props.onPromptSelected(prompt.text);
+              props.onPromptSelected(prompt);
             }}
-            {...props.suggestedPromptProps}
+            onFocusCapture={() => {
+              props.onPromptFocused?.(i);
+            }}
+            onBlur={() => {
+              props.onPromptBlur?.(i);
+            }}
           >
             {prompt.text}
-          </MenuItem>
+          </div>
         ))}
       </div>
     </Card>

@@ -1,5 +1,5 @@
 export { Chatbot } from "./Chatbot";
-export { SuggestedPrompts, type SuggestedPrompt } from "./SuggestedPrompts.tsx";
+export { SuggestedPrompts, type SuggestedPrompt } from "./InputMenu.tsx";
 export {
   // eslint-disable-next-line react-refresh/only-export-components
   useConversation,

@@ -1,11 +1,15 @@
-import { useState, useRef } from "react";
-import { SuggestedPrompts, SuggestedPrompt } from "./SuggestedPrompts";
+import { useState, useRef, useEffect } from "react";
+import { InputMenu } from "./InputMenu";
 import { useConversation, Conversation } from "./useConversation";
-import Badge from "@leafygreen-ui/badge";
 import Banner from "@leafygreen-ui/banner";
 import Modal, { ModalProps } from "@leafygreen-ui/modal";
 import { ParagraphSkeleton } from "@leafygreen-ui/skeleton-loader";
-import { Body, Link, Error as ErrorText, InlineCode } from "@leafygreen-ui/typography";
+import {
+  Body,
+  Link,
+  Error as ErrorText,
+  InlineCode,
+} from "@leafygreen-ui/typography";
 import { Avatar } from "@lg-chat/avatar";
 import { InputBar } from "@lg-chat/input-bar";
 import { Message } from "@lg-chat/message";
@@ -17,7 +21,7 @@ import { palette } from "@leafygreen-ui/palette";
 import { css } from "@emotion/css";
 
 const styles = {
-  "disclosure": css`
+  disclosure: css`
     display: flex;
     flex-direction: row;
     gap: 8px;
@@ -26,7 +30,7 @@ const styles = {
       color: white;
     }
   }`,
-  "chatbot_container": css`
+  chatbot_container: css`
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -35,19 +39,19 @@ const styles = {
       box-sizing: border-box;
     }
   }`,
-  "chatbot_input": css`
+  chatbot_input: css`
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
     margin-top: 1rem;
   `,
-  "conversation_id_info": css`
+  conversation_id_info: css`
     display: flex;
     flex-direction: row;
     justify-content: center;
   `,
-  "title_bar": css`
+  title_bar: css`
     box-sizing: border-box;
     margin-bottom: -1rem; /* This is to offset the .card gap */
 
@@ -56,20 +60,20 @@ const styles = {
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
   `,
-  "modal_container": css`
+  modal_container: css`
     z-index: 2;
 
     & * {
       box-sizing: border-box;
     }
 
-    & div[role=dialog] {
+    & div[role="dialog"] {
       padding-top: 8px;
       background: ${palette.gray.light3};
     }
 
     @media screen and (max-width: 1024px) {
-      & div[role=dialog] {
+      & div[role="dialog"] {
         width: 100%;
       }
 
@@ -78,7 +82,7 @@ const styles = {
       }
     }
   `,
-  "message_feed": css`
+  message_feed: css`
     width: calc(100% + 64px);
     margin-left: -32px;
     margin-bottom: -1rem; /* This is to offset the .chat_input margin-top */
@@ -101,17 +105,17 @@ const styles = {
     }
   `,
   // This is a hacky fix for weird white-space issues in LG Chat.
-  "markdown_container": css`
+  markdown_container: css`
     white-space: normal;
   `,
   // End hacky fix
-  "message_rating": css`
+  message_rating: css`
     margin-top: 1rem;
   `,
-  "loading_skeleton": css`
+  loading_skeleton: css`
     margin-bottom: 16px;
   `,
-  "card": css`
+  card: css`
     display: flex;
     flex-direction: column;
     align-items: start;
@@ -126,7 +130,7 @@ const styles = {
     background: transparent;
     box-sizing: border-box;
   `,
-}
+};
 
 const MAX_INPUT_CHARACTERS = 300;
 
@@ -138,7 +142,7 @@ const suggestedPrompts = [
   },
   { key: "get-started", text: "Get started with MongoDB" },
   { key: "why-search", text: "Why should I use Atlas Search?" },
-] satisfies SuggestedPrompt[];
+] satisfies MenuItem[];
 
 function isSender(role: Role) {
   return role === "user";
@@ -211,21 +215,30 @@ export function Chatbot() {
       openModal();
       await conversation.addMessage("user", text);
     } catch (e) {
-      console.error(e)
+      console.error(e);
     } finally {
       setAwaitingReply(false);
     }
   };
 
-  const showDisclosure =
-    !initialInputFocused ||
-    (initialInputFocused && conversation.messages.length > 0);
-
   const showSuggestedPrompts =
-    initialInputFocused &&
-    !awaitingReply &&
+    menuOpen &&
+    inputText.length === 0 &&
     conversation.messages.length === 0 &&
-    inputText.length === 0;
+    !awaitingReply;
+
+  // We have to use some hacky interval logic to get around some weird
+  // focus/blur event handling between the InputBar and menu items.
+  const [promptFocused, setPromptFocused] = useState<number | null>(null);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!initialInputFocused && promptFocused === null) {
+        setMenuOpen(false);
+        clearInterval(interval);
+      }
+    }, 100);
+    return () => clearInterval(interval);
+  }, [initialInputFocused, promptFocused]);
 
   return (
     <div className={styles.chatbot_container}>
@@ -264,19 +277,28 @@ export function Chatbot() {
           }}
           onBlur={() => {
             setInitialInputFocused(false);
-            setMenuOpen(false);
           }}
         />
-        {menuOpen ? (
-          <SuggestedPrompts
-            prompts={showSuggestedPrompts ? suggestedPrompts : []}
-            onPromptSelected={async (text) => {
-              await handleSubmit(text);
+        {showSuggestedPrompts ? (
+          <InputMenu
+            heading="SUGGESTED AI PROMPTS"
+            headingBadgeText="Experimental"
+            prompts={suggestedPrompts}
+            onPromptFocused={(i) => {
+              setPromptFocused(i);
+            }}
+            onPromptBlur={(i) => {
+              if (i === suggestedPrompts.length - 1) {
+                setPromptFocused(null);
+              }
+            }}
+            onPromptSelected={({ text }) => {
+              handleSubmit(text);
             }}
           />
-        ) : null}
-
-        {showDisclosure ? <Disclosure /> : null}
+        ) : (
+          <Disclosure />
+        )}
       </div>
       <ChatbotModal
         inputBarRef={inputBarRef}

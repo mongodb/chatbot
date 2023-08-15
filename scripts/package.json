@@ -4,12 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "createQualityTestsYaml": "npm run build && node ./build/createQualityTestsYaml.js",
+    "build": "npm run clean && tsc",
+    "clean": "rm -rf ./build"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "csv": "^6.3.1"
+    "csv": "^6.3.1",
+    "dotenv": "^16.3.1",
+    "mongodb": "^5.7.0",
+    "yaml": "^2.3.1"
   }
 }

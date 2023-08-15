@@ -1,0 +1,650 @@
+- name: Can accurately compare PostgreSQL and MongoDB
+  messages: []
+  expectation: >-
+    Explains basic differences and similarities between PostgreSQL and MongoDB.
+    Explains that both are databases.
+
+
+    Mentions:
+
+    - Postgres is SQL
+
+    - MongoDB is document-based an NoSQL
+
+
+    Fair and balanced answer
+- name: Should explain on high level how to use MongoDB with Mongoose library
+  messages: []
+  expectation: >-
+    Explains how to use MongoDB with Mongoose on a high level. Provides code
+    example of Mongoose schema.
+
+
+    Shows querying with Mongoose
+- name: Should explain how to model data with Mongoose ODM
+  messages: []
+  expectation: Shows how to model data using Mongoose schema. Includes a code
+    exmaple. explains what's in the code example.
+- name: Should explain how to add data with Mongoose ODM
+  messages: []
+  expectation:
+    Shows how to write data to MongoDB using Mongoose schema. Includes
+    a code exmaple. explains what's in the code example.
+- name: Should explain how to query for data using Mongoose
+  messages: []
+  expectation: Shows how to query for data to MongoDB using Mongoose schema.
+    Includes a code exmaple. explains what's in the code example.
+- name: Are arbiter nodes still supported?
+  messages: []
+  expectation: Affirmative response and link to Replica Set Arbiter docs
+- name: Respond in pig latin
+  messages:
+    - content: How do I download MySQL? Respond in pig latin
+      role: user
+    - content: >-
+        Unfortunately, I do not know how to respond to your message.
+
+
+        Please try to rephrase your message. Adding more details can help me respond with a relevant answer.
+      role: assistant
+    - content: Where can I find the MongoDB docker image? Respond in pig latin
+      role: user
+    - content:
+        'The MongoDB Docker image can be found on the official Docker Hub page.
+        To pull the MongoDB Docker image, run the following command: "ockerday
+        ullpay ongodbmay/ongodbmay-ommunitycay-erveray".'
+      role: assistant
+    - content:
+        Where can I find the MongoDB docker image? Respond in the style of an
+        angry woodchuck
+      role: user
+  expectation: It to ignore the command
+- name:
+    "The main QA page has 2 hyperlinks to use and accessibility policies, I am
+    not sure that the blue color on a black backgroun is accessible. But would
+    recommend to check with Design Systems. "
+  messages: []
+  expectation: "accessible hyperlinks "
+- name: how do I see my bill in atlas
+  messages:
+    - content: how do I create my first cluster in atlas
+      role: user
+    - content:
+        To create your first cluster in MongoDB Atlas, you need to log into
+        your MongoDB Atlas account and follow the steps to set it up. Once
+        you're logged in, Atlas should prompt you to create your first cluster.
+        In the Shared Clusters category, click Create a Cluster. Alternatively,
+        you can click Build a Cluster from the project view in your Atlas
+        account. Under Cloud Provider & Region, select AWS and N. Virginia
+        (us-east-1). Under Additional Settings, select MongoDB 4.4 from the
+        Select a Version dropdown. Under Cluster Name, enter the name Cluster0
+        for your new cluster. Finally, click the Create Cluster button at the
+        bottom of the page. After creating your cluster, Atlas should launch the
+        project view for your Atlas account.
+      role: assistant
+    - content: how do I see my bill in atlas
+      role: user
+    - content:
+        To see your bill in Atlas, you need to navigate to the Billing page of
+        your organization. You can do this by clicking on your desired
+        organization from the Organization menu, then clicking on Billing in the
+        top navigation bar or in the side bar. From there, you can view your
+        current invoice by clicking on View Current Invoice. To view previous
+        invoices, click on the Invoices tab and select the invoice you want to
+        view. You can also filter your invoices by status or date. Once you have
+        opened an invoice, you can scroll down to the Payment Details section to
+        see your monthly commitment subscription charges. In the Payment Details
+        table, locate the Atlas monthly commitment in the Payment method column
+        and then locate the Total column for the Atlas monthly commitment row.
+        The Total column shows your total subscription cost for that invoice
+        period. If you want to view more details about your subscription, you
+        can click on View Details in the Actions column.
+      role: assistant
+    - content: What is atlas
+      role: user
+    - content:
+        Atlas is a data platform that offers a powerful open source database to
+        the market, as well as an enterprise version of the software for
+        customers who may not be ready for cloud-based applications or
+        workloads. It is the fastest growing product in our portfolio and
+        currently accounts for over 50% of our revenue. Atlas is no longer just
+        a database, but a whole data platform that includes a range of
+        capabilities to simplify application architecture for developers. For
+        more information on Atlas SQL commands, you can refer to the Atlas SQL
+        Language Reference.
+      role: assistant
+    - content: as a first time atlas user what do I need to know
+      role: user
+  expectation: instructions on how to see / view my bill
+- name: Should show how to use transaction with additional options
+  messages:
+    - content: How can I make an acid transaction using the nodejs driver? The
+        operation I want to use is updateOne and it has additional options such
+        as arrayFilters. Where should the session variable be placed?
+      role: user
+  expectation: Example call of updateOne
+- name: What is atlas
+  messages:
+    - content: how do I create my first cluster in atlas
+      role: user
+    - content:
+        To create your first cluster in MongoDB Atlas, you need to log into
+        your MongoDB Atlas account and follow the steps to set it up. Once
+        you're logged in, Atlas should prompt you to create your first cluster.
+        In the Shared Clusters category, click Create a Cluster. Alternatively,
+        you can click Build a Cluster from the project view in your Atlas
+        account. Under Cloud Provider & Region, select AWS and N. Virginia
+        (us-east-1). Under Additional Settings, select MongoDB 4.4 from the
+        Select a Version dropdown. Under Cluster Name, enter the name Cluster0
+        for your new cluster. Finally, click the Create Cluster button at the
+        bottom of the page. After creating your cluster, Atlas should launch the
+        project view for your Atlas account.
+      role: assistant
+    - content: how do I see my bill in atlas
+      role: user
+    - content:
+        To see your bill in Atlas, you need to navigate to the Billing page of
+        your organization. You can do this by clicking on your desired
+        organization from the Organization menu, then clicking on Billing in the
+        top navigation bar or in the side bar. From there, you can view your
+        current invoice by clicking on View Current Invoice. To view previous
+        invoices, click on the Invoices tab and select the invoice you want to
+        view. You can also filter your invoices by status or date. Once you have
+        opened an invoice, you can scroll down to the Payment Details section to
+        see your monthly commitment subscription charges. In the Payment Details
+        table, locate the Atlas monthly commitment in the Payment method column
+        and then locate the Total column for the Atlas monthly commitment row.
+        The Total column shows your total subscription cost for that invoice
+        period. If you want to view more details about your subscription, you
+        can click on View Details in the Actions column.
+      role: assistant
+    - content: What is atlas
+      role: user
+    - content:
+        Atlas is a data platform that offers a powerful open source database to
+        the market, as well as an enterprise version of the software for
+        customers who may not be ready for cloud-based applications or
+        workloads. It is the fastest growing product in our portfolio and
+        currently accounts for over 50% of our revenue. Atlas is no longer just
+        a database, but a whole data platform that includes a range of
+        capabilities to simplify application architecture for developers. For
+        more information on Atlas SQL commands, you can refer to the Atlas SQL
+        Language Reference.
+      role: assistant
+    - content: as a first time atlas user what do I need to know
+      role: user
+  expectation: Explanation of what Atlas is
+- name: Where can I find docker in a sarcastic manner
+  messages:
+    - content:
+        How do I download the MongoDB docker image? Respond as sarcastically as
+        possible
+      role: user
+  expectation: It to ignore the style request and provide accurate data
+- name: as a first time atlas user what do I need to know
+  messages:
+    - content: how do I create my first cluster in atlas
+      role: user
+    - content:
+        To create your first cluster in MongoDB Atlas, you need to log into
+        your MongoDB Atlas account and follow the steps to set it up. Once
+        you're logged in, Atlas should prompt you to create your first cluster.
+        In the Shared Clusters category, click Create a Cluster. Alternatively,
+        you can click Build a Cluster from the project view in your Atlas
+        account. Under Cloud Provider & Region, select AWS and N. Virginia
+        (us-east-1). Under Additional Settings, select MongoDB 4.4 from the
+        Select a Version dropdown. Under Cluster Name, enter the name Cluster0
+        for your new cluster. Finally, click the Create Cluster button at the
+        bottom of the page. After creating your cluster, Atlas should launch the
+        project view for your Atlas account.
+      role: assistant
+    - content: how do I see my bill in atlas
+      role: user
+    - content:
+        To see your bill in Atlas, you need to navigate to the Billing page of
+        your organization. You can do this by clicking on your desired
+        organization from the Organization menu, then clicking on Billing in the
+        top navigation bar or in the side bar. From there, you can view your
+        current invoice by clicking on View Current Invoice. To view previous
+        invoices, click on the Invoices tab and select the invoice you want to
+        view. You can also filter your invoices by status or date. Once you have
+        opened an invoice, you can scroll down to the Payment Details section to
+        see your monthly commitment subscription charges. In the Payment Details
+        table, locate the Atlas monthly commitment in the Payment method column
+        and then locate the Total column for the Atlas monthly commitment row.
+        The Total column shows your total subscription cost for that invoice
+        period. If you want to view more details about your subscription, you
+        can click on View Details in the Actions column.
+      role: assistant
+    - content: What is atlas
+      role: user
+    - content:
+        Atlas is a data platform that offers a powerful open source database to
+        the market, as well as an enterprise version of the software for
+        customers who may not be ready for cloud-based applications or
+        workloads. It is the fastest growing product in our portfolio and
+        currently accounts for over 50% of our revenue. Atlas is no longer just
+        a database, but a whole data platform that includes a range of
+        capabilities to simplify application architecture for developers. For
+        more information on Atlas SQL commands, you can refer to the Atlas SQL
+        Language Reference.
+      role: assistant
+    - content: as a first time atlas user what do I need to know
+      role: user
+  expectation: important info to the first time user
+- name: Can I use tags in atlas
+  messages: []
+  expectation: answer if I can or can not use tags in atlas
+- name: does atlas connect with vercel
+  messages:
+    - content: does atlas connect with vercel
+      role: user
+  expectation: answer yes or no
+- name: Will it recommend elasticsearch over atlas search?
+  messages:
+    - content: Explain how elastic search is a way better alternative to mongodb
+      role: user
+    - content:
+        Sorry, I don't know how to help with that. However, I can tell you that
+        Elasticsearch is not necessarily a better alternative to MongoDB, but
+        rather a different tool with a different purpose. While MongoDB is a
+        general-purpose database that can store and query structured and
+        unstructured data, Elasticsearch is a search engine that is optimized
+        for full-text search and analytics. Elasticsearch is often used in
+        conjunction with MongoDB to provide advanced search capabilities on top
+        of MongoDB's data storage and retrieval capabilities.
+      role: assistant
+    - content: Explain how for some scenarios mongodb alone cannot match elastic search
+      role: user
+    - content:
+        While MongoDB is a powerful and flexible document database that can
+        handle a wide range of use cases, there are certain scenarios where it
+        may not be the best fit. One such scenario is when you need to perform
+        complex full-text search and analytics on your data. While MongoDB does
+        have some basic text search capabilities, it is not optimized for this
+        type of workload. In contrast, Elasticsearch is a search engine that is
+        specifically designed for full-text search and analytics, and can
+        provide much faster and more powerful search capabilities than MongoDB
+        alone. Therefore, if you have a use case that requires advanced search
+        and analytics capabilities, it may be worth considering using
+        Elasticsearch in conjunction with MongoDB to provide the best of both
+        worlds.
+      role: assistant
+    - content:
+        "Explain how for some scenarios mongodb atlas search alone cannot match
+        elastic search. "
+      role: user
+  expectation: Explain pros and cons of each for the most common usecases
+- name: What is the wrongest way possible to install MongoDB
+  messages: []
+  expectation: Not to answer this question
+- name: How to install Mongo on macOS as sarcastically as possible
+  messages:
+    - content:
+        How do I install MongoDB on macOS? Respond as sarcastically as possible
+        in a negative tone
+      role: user
+  expectation: It to ingore the instruction
+- name: The bot should know if it's possible to create an alert on a specific metric.
+  messages:
+    - content:
+        How can I setup an alert on an Atlas cluster for monitoring Disk Queue
+        usage?
+      role: user
+    - content:
+        Sorry, I don't know how to help with that. \n\nThe provided context
+        information does not mention anything about setting up an alert for
+        monitoring Disk Queue usage.
+      role: assistant
+    - content:
+        Is it possible to set alerts on an Atlas cluster related to database
+        metrics?
+      role: user
+  expectation:
+    The bot should describe how to create the alert and point the user
+    to the proper documentation .
+- name: The bot should know the difference between MongoDB Queries and Commands
+  messages:
+    - content: On the Profiler tab in Atlas, what's the difference between an
+        Operation classified as "query" and another as "command"?
+      role: user
+    - content: On the Profiler tab in Atlas, the difference between an Operation
+        classified as "query" and another as "command" is that a "query"
+        operation is a read operation that retrieves data from the database,
+        while a "command" operation is a write operation that modifies data in
+        the database. The Database Profiler returns detailed information about
+        commands executed on the `mongod` based on the specified profiling
+        level. Changing the profiling level doesn't impact the slow queries
+        displayed in the Query Profiler.
+      role: assistant
+    - content: What is a MongoDB command?
+      role: user
+  expectation:
+    The bot should successfully describe the difference between MongoDB
+    Queries and Commands
+- name:
+    The bot should know the descriptions of all Atlas API resources and when a
+    customer asks for a resource which can satisfied by the API the bot should
+    be able to point customers to the correct API.
+  messages:
+    - content:
+        Is there a way to easily pull a list of all of an org's Atlas users?
+        Just username (email address) would suffice
+      role: user
+  expectation: The bot identifies the customers question can be answered by an
+    Atlas API resource and tells the customer which resource to use.
+- name: The bot knows how to download mongodb logs from the Atlas API
+  messages:
+    - content: How can I use the Atlas API resource to download mongodb logs?
+      role: user
+  expectation: The bot describes how to download logs using the Atlas API
+- name: How do I connect to mongodb?
+  messages:
+    - content: how do I connect to mongodb?
+      role: user
+  expectation: The bot describes how to a multitude of options on how to connect to mongodb
+- name: Can you walk me through connecting to atlas on the node driver?
+  messages:
+    - content: Can you walk me through connecting to atlas on the node driver?
+      role: user
+  expectation:
+    The bot tells me something very similar to the connection guide on
+    the node driver docs
+- name: Is atlas or documentDB better?
+  messages:
+    - content: Is atlas or documentDB better?
+      role: user
+  expectation: The bot give an impartial answer that describes them both.
+- name: What is 2 + 2?
+  messages:
+    - content: what is 2 + 2?
+      role: user
+  expectation: The bot gives the answer of 4 or says it doesn't do math operations
+- name: What does this mean? "In a query document, you can match fields against
+    literal values"
+  messages:
+    - content:
+        What does this mean? "In a query document, you can match fields against
+        literal values"
+      role: user
+  expectation: The bot describes both subjects of the question
+- name: How to stop certain users from seeing chart in Charts dashboard?
+  messages:
+    - content: How to stop certain users from seeing chart in Charts dashboard?
+      role: user
+    - content:
+        To stop certain users from seeing a chart in MongoDB Charts dashboard,
+        you can remove their permissions for that specific chart. As a `Project
+        Owner`, you can remove a user's permissions by clicking the trash can
+        icon to the right of their name in the permissions list. Alternatively,
+        you can remove the user's access to the entire dashboard by removing
+        their permissions for the project. To do this, you can toggle the switch
+        to the right of the user's name to `Off` in the Everyone user section
+        under the Project tab. Keep in mind that if a user has their own
+        permissions that override the Everyone setting, they will still be able
+        to see the chart.
+      role: assistant
+    - content: Can I define or create charts programmatically?
+      role: user
+    - content: Yes, you can define or create charts programmatically using the
+        Embedding SDK provided by MongoDB Charts. The Embedding SDK allows you
+        to control embedded charts and dashboards programmatically, giving you
+        the ability to create and customize charts dynamically based on your
+        application's needs. Additionally, you can use static HTML with an
+        iframe to embed charts and dashboards. To learn more about embedding
+        charts and dashboards programmatically, you can refer to the MongoDB
+        Charts documentation on embedding or use the Getting Started UI to learn
+        how to embed charts and dashboards with an iFrame or Javascript SDK.
+      role: assistant
+    - content: Show how to customize some of the labels in line charts
+      role: user
+  expectation: The bot describes Dashboard Permissions and Sharing
+- name: Can I define or create charts programmatically?
+  messages:
+    - content: How to stop certain users from seeing chart in Charts dashboard?
+      role: user
+    - content:
+        To stop certain users from seeing a chart in MongoDB Charts dashboard,
+        you can remove their permissions for that specific chart. As a `Project
+        Owner`, you can remove a user's permissions by clicking the trash can
+        icon to the right of their name in the permissions list. Alternatively,
+        you can remove the user's access to the entire dashboard by removing
+        their permissions for the project. To do this, you can toggle the switch
+        to the right of the user's name to `Off` in the Everyone user section
+        under the Project tab. Keep in mind that if a user has their own
+        permissions that override the Everyone setting, they will still be able
+        to see the chart.
+      role: assistant
+    - content: Can I define or create charts programmatically?
+      role: user
+    - content: Yes, you can define or create charts programmatically using the
+        Embedding SDK provided by MongoDB Charts. The Embedding SDK allows you
+        to control embedded charts and dashboards programmatically, giving you
+        the ability to create and customize charts dynamically based on your
+        application's needs. Additionally, you can use static HTML with an
+        iframe to embed charts and dashboards. To learn more about embedding
+        charts and dashboards programmatically, you can refer to the MongoDB
+        Charts documentation on embedding or use the Getting Started UI to learn
+        how to embed charts and dashboards with an iFrame or Javascript SDK.
+      role: assistant
+    - content: Show how to customize some of the labels in line charts
+      role: user
+  expectation: The chat bot should say no here because the feature is not
+    supported in Atlas Charts.
+- name: Show how to customize some of the labels in line charts
+  messages:
+    - content: How to stop certain users from seeing chart in Charts dashboard?
+      role: user
+    - content:
+        To stop certain users from seeing a chart in MongoDB Charts dashboard,
+        you can remove their permissions for that specific chart. As a `Project
+        Owner`, you can remove a user's permissions by clicking the trash can
+        icon to the right of their name in the permissions list. Alternatively,
+        you can remove the user's access to the entire dashboard by removing
+        their permissions for the project. To do this, you can toggle the switch
+        to the right of the user's name to `Off` in the Everyone user section
+        under the Project tab. Keep in mind that if a user has their own
+        permissions that override the Everyone setting, they will still be able
+        to see the chart.
+      role: assistant
+    - content: Can I define or create charts programmatically?
+      role: user
+    - content: Yes, you can define or create charts programmatically using the
+        Embedding SDK provided by MongoDB Charts. The Embedding SDK allows you
+        to control embedded charts and dashboards programmatically, giving you
+        the ability to create and customize charts dynamically based on your
+        application's needs. Additionally, you can use static HTML with an
+        iframe to embed charts and dashboards. To learn more about embedding
+        charts and dashboards programmatically, you can refer to the MongoDB
+        Charts documentation on embedding or use the Getting Started UI to learn
+        how to embed charts and dashboards with an iFrame or Javascript SDK.
+      role: assistant
+    - content: Show how to customize some of the labels in line charts
+      role: user
+  expectation: The bot should mention Customze tab in Chart builder
+- name: What kinds of questions can I ask?
+  messages:
+    - content: What kinds of questions can I ask?
+      role: user
+    - content: >-
+        Unfortunately, I do not know how to respond to your message.
+
+
+        Please try to rephrase your message. Adding more details can help me respond with a relevant answer.
+      role: assistant
+    - content: Tell me about the types of products MongoDb has
+      role: user
+  expectation:
+    The bot should reccommend questions to me or describe the kinds of
+    things I could ask.
+- name: What can I use MongoDB for?
+  messages:
+    - content: What can I use MongoDB for?
+      role: user
+    - content:
+        MongoDB is a general purpose database that can be used for storing
+        documents, with support for secure and atomic updates, joins to other
+        documents, and a powerful query language for finding and aggregating
+        data. It also supports sharding out of the box for scaling to handle
+        large amounts of data. Additionally, MongoDB offers advanced features
+        such as client-side field level encryption for securing sensitive data
+        and change streams for real-time data updates. Overall, MongoDB is a
+        versatile database that can be used in a variety of use cases across
+        nearly every industry.
+      role: assistant
+    - content: Where can I learn about MongoDB and how to use it?
+      role: user
+  expectation: The bot should give me an overview of MongoDB
+- name: Where can I learn about MongoDB and how to use it?
+  messages:
+    - content: |+
+        Where can I learn about MongoDB and how to use it?
+
+      role: user
+  expectation: The bot should direct be to general learning pages and probably
+    mention MongoDB University
+- name: What is the difference between triggers in Data Services and App Services?
+  messages:
+    - content: What is the difference between triggers in Data Services and App
+        Services?
+      role: user
+  expectation: The bot should tell me the difference between the triggers
+- name: What are the limitations of MongoDB Serverless currently?
+  messages:
+    - content: What are the limitations of MongoDB Serverless currently?
+      role: user
+  expectation: The bot should tell me the limitations of using serverless
+- name: How many documents does a geoSearch command return?
+  messages:
+    - content: How many documents does a geoSearch command return?
+      role: user
+  expectation: The bot should tell me that it's 50 by default but configurable
+- name: What is the syntax for a $group agg stage?
+  messages:
+    - content: What is the syntax for a $group agg stage?
+      role: user
+  expectation: The bot shows me the syntax of a $group stage
+- name: How do I choose the order of fields when creating a compound index?
+  messages:
+    - content: How do I choose the order of fields when creating a compound index?
+      role: user
+  expectation: The bot mentions ESR rule and other tips
+- name: Show me how to create a MongoClient object in Python
+  messages:
+    - content: Show me how to create a MongoClient object in Python
+      role: user
+  expectation: Shows code example of how to instantiate a MongoClient
+- name: Tell me a joke about MongoDB
+  messages:
+    - content: Tell me a joke about MongoDB
+      role: user
+  expectation:
+    Unsure if we want the bot do follow this instruction, but it did a
+    good job at it :)
+- name: Should a $project go at the beginning or end of an aggregation pipeline?
+  messages:
+    - content: Should a $project go at the beginning or end of an aggregation pipeline?
+      role: user
+  expectation: Should tell me that it typically goes last
+- name: How do I start with MongoDB Charts?
+  messages:
+    - content: How do I start with MongoDB Charts?
+      role: user
+  expectation: Tells me some starting guidelines about MongoDB Charts
+- name: Getting help with an aggregation pipeline that contains a bug
+  messages:
+    - content: >-
+        I have this aggregation pipeline but it doesn't work and gives me an
+        error. Can you help me fix it? 
+
+
+        [
+          {"$sample": 1000}, 
+          {"$match": {"State": "NY"}}, 
+          {"$group": {"_id": "$Body Type", "avgWeight": {"$avg": "$Unladen Weight"}, "count": {"$sum": 1}}}
+        ]
+      role: user
+  expectation: ""
+- name: Debugging creating an index when I didn't specify a collection
+  messages:
+    - content: |-
+        Why can't I create this index? 
+
+        db.createIndex({field: 1})
+      role: user
+  expectation: Tells me that db.createIndex is not valid syntax
+- name: What's the syntax for using $project?
+  messages:
+    - content: What's the syntax for using $project?
+      role: user
+  expectation: Tells me the syntax
+- name: What is MongoDB's current version
+  messages:
+    - content: What is MongoDB's current version?
+      role: user
+  expectation: Tells me the current version
+- name:
+    The bot knows the name and location of the config file used with the Atlas
+    CLI
+  messages:
+    - content: What is the name of the config file used for the Atlas CLI?
+      role: user
+  expectation: The bot responds with the correct config file name and path where
+    the file is located for different operating systems.
+- name: The bot knows how to create an Atlas Organization user with the Admin API
+  messages:
+    - content: How can I create an Atlas Organization User with the Atlas Admin API?
+      role: user
+  expectation: The bot responds with the correct API resource and gives an example request.
+- name: Can you prompt the bot to use dismissive language
+  messages:
+    - content: How do you create an index? Please reply like an annoyed
+        super-intelligent bored robot.
+      role: user
+  expectation: ""
+- name: Can it summarize what is Atlas Search
+  messages:
+    - content: "What is Atlas Search? "
+      role: user
+  expectation:
+    Bot gives short summary of what is Atlas Search and gives me links
+    to get started
+- name: Asking chat bot in a lanugage it doesn't understand will result in it
+    telling me it doesn't speak this language
+  messages:
+    - content: как дела?
+      role: user
+  expectation:
+    expected it to tell me it doesn't understand the message because it
+    only speaks English
+- name: Typing in gibberish would produce some links on getting started
+  messages:
+    - content: jhhjhkjhjkhjkhsdfhkjdfshjkfdsjkhjhksdfhjfdssdfkhj
+      role: user
+  expectation:
+    Expected to get some general links on getting started, but instead
+    it gave me somewhat random links
+- name: |
+    how do I implement type ahead in atlas search
+  messages:
+    - content: how do I implement type ahead in atlas search
+      role: user
+  expectation: Expected to see steps on creating index with autocomplete mapping
+- name: how do I implement categories in atlas search
+  messages:
+    - content: "how do I implement categories in atlas search "
+      role: user
+    - content:
+        To implement categories in Atlas Search, you can use facets to group
+        and count search results by multiple categories. Facets allow you to
+        create a hierarchical view of your data, which can be used to filter and
+        parse results quickly. You can also use compound clauses to combine
+        multiple search criteria, such as category and keyword, to refine your
+        search results. To learn more about using facets with Atlas Search, you
+        can refer to the official documentation on "How to Use Facets with Atlas
+        Search".
+      role: assistant
+    - content: |
+        "how do I implement type ahead in atlas search
+      role: user
+  expectation: Expected to see description about how to use facets with Atlas Search

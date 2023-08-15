@@ -6,7 +6,8 @@
     "chat-server",
     "chat-ui",
     "ingest",
-    "seed-content"
+    "seed-content",
+    "scripts"
   ],
   "scripts": {
     "bootstrap": "lerna bootstrap",

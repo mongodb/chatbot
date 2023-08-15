@@ -14,6 +14,7 @@ import {
   References,
   Reference,
   WithScore,
+  removeFrontMatter,
 } from "chat-core";
 import {
   Conversation,
@@ -266,7 +267,7 @@ export function makeAddMessageToConversationRoute({
       const chunkTexts = includeChunksForMaxTokensPossible({
         maxTokens: maxChunkContextTokens,
         chunks,
-      }).map((chunk) => chunk.text);
+      }).map((chunk) => removeFrontMatter(chunk.text));
 
       const latestMessage = {
         content: preprocessedUserMessageContent || latestMessageText,

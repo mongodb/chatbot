@@ -34,6 +34,7 @@ export interface AppConfig {
   conversations: {
     searchBoosters?: SearchBooster[];
     userQueryPreprocessor?: QueryPreprocessorFunc;
+    maxChunkContextTokens?: number;
   };
   findNearestNeighborsOptions: FindNearestNeighborsOptionsConfig;
   embeddedContentStore: EmbeddedContentStoreConfig;

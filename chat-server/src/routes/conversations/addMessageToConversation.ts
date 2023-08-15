@@ -75,8 +75,8 @@ export interface AddMessageToConversationRouteParams {
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
   searchBoosters?: SearchBooster[];
   userQueryPreprocessor?: QueryPreprocessorFunc;
+  maxChunkContextTokens?: number;
 }
-
 export function makeAddMessageToConversationRoute({
   store,
   conversations,
@@ -86,6 +86,7 @@ export function makeAddMessageToConversationRoute({
   findNearestNeighborsOptions,
   searchBoosters,
   userQueryPreprocessor,
+  maxChunkContextTokens = 1500,
 }: AddMessageToConversationRouteParams) {
   return async (
     req: ExpressRequest,
@@ -262,8 +263,10 @@ export function makeAddMessageToConversationRoute({
       }
 
       const references = generateReferences({ chunks });
-
-      const chunkTexts = chunks.map((chunk) => chunk.text);
+      const chunkTexts = includeChunksForMaxTokensPossible({
+        maxTokens: maxChunkContextTokens,
+        chunks,
+      }).map((chunk) => chunk.text);
 
       const latestMessage = {
         content: preprocessedUserMessageContent || latestMessageText,
@@ -503,6 +506,22 @@ export function generateReferences({
   }
   const uniqueLinks = Array.from(new Set(chunks.map((chunk) => chunk.url)));
   return uniqueLinks.map((link) => createLinkReference(link));
+}
+
+export function includeChunksForMaxTokensPossible({
+  maxTokens,
+  chunks,
+}: {
+  maxTokens: number;
+  chunks: EmbeddedContent[];
+}): EmbeddedContent[] {
+  let totalTokens = 0;
+  let i = 0;
+  while (i < chunks.length && totalTokens + chunks[i].tokenCount <= maxTokens) {
+    totalTokens += chunks[i].tokenCount;
+    i++;
+  }
+  return chunks.slice(0, i);
 }
 
 export function validateApiConversationFormatting({

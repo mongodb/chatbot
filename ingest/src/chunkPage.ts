@@ -53,7 +53,7 @@ export type ChunkOptions = {
 };
 
 const defaultChunkOptions: ChunkOptions = {
-  chunkSize: 1000,
+  chunkSize: 600, // max chunk size of 600 tokens gets avg ~400 tokens/chunk
   chunkOverlap: 0,
   tokenizer: new GPT3Tokenizer({ type: "gpt3" }),
 };
@@ -71,6 +71,7 @@ export const chunkPage = async (
   const splitter = RecursiveCharacterTextSplitter.fromLanguage("markdown", {
     chunkOverlap,
     chunkSize,
+    lengthFunction: (text) => tokenizer.encode(text).bpe.length,
   });
 
   const chunks = await splitter.createDocuments([page.body]);

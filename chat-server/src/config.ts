@@ -105,6 +105,7 @@ export const config: AppConfig = {
   conversations: {
     searchBoosters: [boostManual],
     userQueryPreprocessor: mongoDbUserQueryPreprocessor,
+    maxChunkContextTokens: 1500,
   },
   findNearestNeighborsOptions: {
     k: 5,

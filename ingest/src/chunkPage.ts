@@ -141,6 +141,7 @@ export const standardMetadataGetter: ChunkMetadataGetter<{
   sourceName: string;
   hasCodeBlock: boolean;
   codeBlockLanguages?: string[];
+  tags?: string[];
 }> = async ({ page, text }) => {
   // Detect code blocks
   const mdCodeBlockToken = /```([A-z0-1-_]*)/;
@@ -170,6 +171,10 @@ export const standardMetadataGetter: ChunkMetadataGetter<{
 
   if (specifiedLanguages.length) {
     metadata["codeBlockLanguages"] = specifiedLanguages;
+  }
+
+  if (page.tags.length !== 0) {
+    metadata["tags"] = page.tags;
   }
 
   return metadata;

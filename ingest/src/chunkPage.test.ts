@@ -103,10 +103,13 @@ Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibend
 pageTitle: Test Page
 sourceName: test-source
 hasCodeBlock: false
+tags:
+  - a
+  - b
 ---
 
 This is some text`,
-        tokenCount: 28, // Calculated after transformation
+        tokenCount: 39, // Calculated after transformation
         url: "test",
       },
     ]);
@@ -132,6 +135,9 @@ sourceName: test-source
 hasCodeBlock: true
 codeBlockLanguages:
   - js
+tags:
+  - a
+  - b
 ---
 
 This text has a code example:
@@ -141,7 +147,7 @@ let foo = 1 + 1;
 \`\`\`
 
 Neat, huh?`,
-        tokenCount: 64,
+        tokenCount: 75,
         url: "test",
       },
     ]);
@@ -165,6 +171,9 @@ Neat, huh?`,
 pageTitle: Test Page
 sourceName: test-source
 hasCodeBlock: true
+tags:
+  - a
+  - b
 ---
 
 This text has an unspecified code example:
@@ -174,7 +183,7 @@ let foo = 1 + 1;
 \`\`\`
 
 Neat, huh?`,
-        tokenCount: 54,
+        tokenCount: 65,
         url: "test",
       },
     ]);
@@ -212,6 +221,9 @@ someArray:
 hasCodeBlock: false
 pageTitle: Test Page
 sourceName: test-source
+tags:
+  - a
+  - b
 ---
 
 This is some text`);

@@ -9,7 +9,10 @@ import { readFileSync } from "fs";
 import path from "path";
 import "../../global.d";
 
-const yamlFile = readFileSync(path.join(__dirname, "security.yaml"), "utf8");
+const yamlFile = readFileSync(
+  path.join(__dirname, "securityTests.yaml"),
+  "utf8"
+);
 const testCases = yaml.parse(yamlFile) as TestCase[];
 
 let mongodb: MongoDB;

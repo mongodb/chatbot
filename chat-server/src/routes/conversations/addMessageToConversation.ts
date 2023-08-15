@@ -509,6 +509,10 @@ export function generateReferences({
   return uniqueLinks.map((link) => createLinkReference(link));
 }
 
+/**
+  This function will return the chunks that can fit in the maxTokens.
+  It limits the number of tokens that are sent to the LLM.
+ */
 export function includeChunksForMaxTokensPossible({
   maxTokens,
   chunks,
@@ -516,13 +520,11 @@ export function includeChunksForMaxTokensPossible({
   maxTokens: number;
   chunks: EmbeddedContent[];
 }): EmbeddedContent[] {
-  let totalTokens = 0;
-  let i = 0;
-  while (i < chunks.length && totalTokens + chunks[i].tokenCount <= maxTokens) {
-    totalTokens += chunks[i].tokenCount;
-    i++;
-  }
-  return chunks.slice(0, i);
+  let total = 0;
+  const fitRangeEndIndex = chunks.findIndex(
+    ({ tokenCount }) => (total += tokenCount) > maxTokens
+  );
+  return fitRangeEndIndex === -1 ? chunks : chunks.slice(0, fitRangeEndIndex);
 }
 
 export function validateApiConversationFormatting({

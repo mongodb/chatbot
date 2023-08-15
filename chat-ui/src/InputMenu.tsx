@@ -1,9 +1,15 @@
+import { forwardRef } from "react";
 import Badge from "@leafygreen-ui/badge";
 import Card from "@leafygreen-ui/card";
-import { Overline } from "@leafygreen-ui/typography";
-import { css } from "@emotion/css";
+import { Overline, Body } from "@leafygreen-ui/typography";
+import { palette } from "@leafygreen-ui/palette";
+import { css, cx } from "@emotion/css";
 
 const styles = {
+  menu_card: css`
+    border-radius: 16px;
+    padding-bottom: 16px;
+  `,
   prompts_container: css`
     width: 100%;
     display: flex;
@@ -23,10 +29,16 @@ const styles = {
     background: #ffffff;
     color: #000000;
 
-    &:hover {
+    &:hover, &:focus {
       cursor: pointer;
       background: #e1f7ff;
     }
+  `,
+  powered_by_footer: css`
+    display: flex;
+    flex-direction: row;
+    color: ${palette.gray.dark2};
+    justify-content: flex-end;
   `,
 };
 
@@ -38,17 +50,19 @@ export type MenuPrompt = {
 type InputMenuProps = {
   heading?: string;
   headingBadgeText?: string;
+  poweredByText?: string;
   prompts: MenuPrompt[];
   onPromptFocused?: (promptIndex: number) => void;
   onPromptBlur?: (promptIndex: number) => void;
   onPromptSelected: (prompt: MenuPrompt) => void;
+  className: React.HTMLAttributes<HTMLDivElement>["className"];
   // menuItemProps?: MenuItemProps;
 };
 
-export function InputMenu(props: InputMenuProps) {
+export const InputMenu = forwardRef(function InputMenu(props: InputMenuProps, ref: React.ForwardedRef<HTMLDivElement>) {
   return (
-    <Card>
-      <div className={styles.prompts_container}>
+    <Card className={cx(styles.menu_card, props.className)}>
+      <div className={styles.prompts_container} ref={ref}>
         {props.heading ? (
           <div className={styles.prompts_container_header}>
             <Overline>{props.heading}</Overline>
@@ -73,6 +87,11 @@ export function InputMenu(props: InputMenuProps) {
             onClick={() => {
               props.onPromptSelected(prompt);
             }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                props.onPromptSelected(prompt);
+              }
+            }}
             onFocusCapture={() => {
               props.onPromptFocused?.(i);
             }}
@@ -83,7 +102,10 @@ export function InputMenu(props: InputMenuProps) {
             {prompt.text}
           </div>
         ))}
+        <div className={styles.powered_by_footer}>
+          <Body>{props.poweredByText}</Body>
+        </div>
       </div>
     </Card>
   );
-}
+})

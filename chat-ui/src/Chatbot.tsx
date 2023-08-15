@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { InputMenu } from "./InputMenu";
+import { InputMenu, MenuPrompt } from "./InputMenu";
 import { useConversation, Conversation } from "./useConversation";
 import Banner from "@leafygreen-ui/banner";
 import Modal, { ModalProps } from "@leafygreen-ui/modal";
@@ -19,12 +19,16 @@ import { TitleBar } from "@lg-chat/title-bar";
 import { Role } from "./services/conversations";
 import { palette } from "@leafygreen-ui/palette";
 import { css } from "@emotion/css";
+import { useClickAway } from "@uidotdev/usehooks";
 
 const styles = {
   disclosure: css`
+    position: absolute;
+    top: calc(36px + 0.5rem);
     display: flex;
     flex-direction: row;
     gap: 8px;
+    padding-left: 8px;
 
     & > p {
       color: white;
@@ -40,6 +44,7 @@ const styles = {
     }
   }`,
   chatbot_input: css`
+    position: relative;
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -130,6 +135,9 @@ const styles = {
     background: transparent;
     box-sizing: border-box;
   `,
+  chatbot_input_menu: css`
+    z-index: 1;
+  `,
 };
 
 const MAX_INPUT_CHARACTERS = 300;
@@ -142,7 +150,7 @@ const suggestedPrompts = [
   },
   { key: "get-started", text: "Get started with MongoDB" },
   { key: "why-search", text: "Why should I use Atlas Search?" },
-] satisfies MenuItem[];
+] satisfies MenuPrompt[];
 
 function isSender(role: Role) {
   return role === "user";
@@ -227,8 +235,12 @@ export function Chatbot() {
     conversation.messages.length === 0 &&
     !awaitingReply;
 
-  // We have to use some hacky interval logic to get around some weird
-  // focus/blur event handling between the InputBar and menu items.
+  const inputMenuRef = useClickAway(() => {
+    setMenuOpen(false);
+  });
+
+  // We have to use some hacky interval logic to get around the weird
+  // focus/blur event handling interactions between InputBar and InputMenu.
   const [promptFocused, setPromptFocused] = useState<number | null>(null);
   useEffect(() => {
     const interval = setInterval(() => {
@@ -281,8 +293,11 @@ export function Chatbot() {
         />
         {showSuggestedPrompts ? (
           <InputMenu
+            ref={inputMenuRef}
+            className={styles.chatbot_input_menu}
             heading="SUGGESTED AI PROMPTS"
             headingBadgeText="Experimental"
+            poweredByText="Powered by Atlas Vector Search"
             prompts={suggestedPrompts}
             onPromptFocused={(i) => {
               setPromptFocused(i);
@@ -296,9 +311,8 @@ export function Chatbot() {
               handleSubmit(text);
             }}
           />
-        ) : (
-          <Disclosure />
-        )}
+        ) : null}
+        <Disclosure hidden={showSuggestedPrompts} tabIndex={1} />
       </div>
       <ChatbotModal
         inputBarRef={inputBarRef}
@@ -524,7 +538,10 @@ function ChatbotModal({
   );
 }
 
-function Disclosure() {
+type DisclosureProps = React.HTMLAttributes<HTMLDivElement> & {
+  hidden: boolean;
+};
+function Disclosure({ hidden = false }: DisclosureProps) {
   const TermsOfUse = () => (
     <Link href={"https://www.mongodb.com/legal/terms-of-use"}>
       Terms of Use

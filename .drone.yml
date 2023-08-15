@@ -53,7 +53,7 @@ steps:
 # Chat Server pipelines
 # ---
 ---
-depends_on: ["test-all"]
+# depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes
 name: staging-build-chat-server
@@ -61,14 +61,15 @@ name: staging-build-chat-server
 trigger:
   branch:
     - main
+    - DOCSP-32194
   event:
     - push
 
-  paths:
-    include:
-      - chat-server/**/*
-      - chat-core/**/*
-      - chat-ui/**/*
+  # paths:
+  #   include:
+  #     - chat-server/**/*
+  #     - chat-core/**/*
+  #     - chat-ui/**/*
 
 steps:
   # Builds and publishes Docker image for staging
@@ -128,7 +129,7 @@ steps:
       chart_version: 4.12.3
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: docs
-      release: chat-server
+      release: chat-server-staging
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-server.docs.staging.corp.mongodb.com
       values_files: ["chat-server/environments/staging.yml"]
       api_server: https://api.staging.corp.mongodb.com
@@ -302,7 +303,7 @@ steps:
 # Ingest service
 # ---
 ---
-depends_on: ["test-all"]
+# depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes
 name: staging-build-ingest-service
@@ -310,12 +311,13 @@ name: staging-build-ingest-service
 trigger:
   branch:
     - main
+    - DOCSP-32194
   event:
     - push
-  paths:
-    include:
-      - ingest/**/*
-      - chat-core/**/*
+  # paths:
+  #   include:
+  #     - ingest/**/*
+  #     - chat-core/**/*
 
 steps:
   # Builds and publishes Docker image for staging

@@ -396,7 +396,7 @@ function ChatbotModal({
                   messageRatingProps={
                     message.role === "assistant"
                       ? {
-                          description: "Rate this response:",
+                          description: "Was this response helpful?",
                           onChange: (e) => {
                             const value = e.target
                               .value as MessageRatingProps["value"];

@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { createAzureOpenAILanguageModel, createJsonTranslator } from "typechat";
-import { CheckQualityCheckResult } from "./CheckQualityCheckResult";
+import { CheckQualityResult } from "./CheckQualityResult";
 import { stripIndents } from "common-tags";
 
 export interface AzureOpenAiServiceConfig {
@@ -14,12 +14,12 @@ export async function checkResponseQuality(
   received: string,
   expectedOutputDescription: string,
   azureOpenAiServiceConfig: AzureOpenAiServiceConfig
-): Promise<CheckQualityCheckResult> {
+): Promise<CheckQualityResult> {
   const schemaPath = fs.readFileSync(
-    path.join(__dirname, "CheckQualityCheckResult.ts"),
+    path.join(__dirname, "CheckQualityResult.ts"),
     "utf8"
   );
-  const schemaName = "CheckQualityCheckResult";
+  const schemaName = "CheckQualityResult";
   const { apiKey, baseUrl, deployment, version } = azureOpenAiServiceConfig;
 
   const model = createAzureOpenAILanguageModel(
@@ -28,13 +28,14 @@ export async function checkResponseQuality(
   );
 
   // LLM function
-  const translator = createJsonTranslator<CheckQualityCheckResult>(
+  const translator = createJsonTranslator<CheckQualityResult>(
     model,
     schemaPath,
     schemaName
   );
 
-  const promptWrapper = stripIndents`You are a quality assurance tester. You must evaluate if the following 'CONTENT' meets the expectation of the 'EXPECTED_OUTPUT_DESCRIPTION'.
+  const promptWrapper = stripIndents`You are a quality assurance tester.
+  You must evaluate if the final message from the ASSISTANT in the 'CONTENT' meets the expectation of the 'EXPECTED_OUTPUT_DESCRIPTION'.
   Provide a reason why the answer doesn't meet the expectation if it doesn't.
 
   <CONTENT>

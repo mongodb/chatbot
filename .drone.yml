@@ -135,9 +135,9 @@ steps:
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
-    when:
-      branch:
-        - main
+    # when:
+    #   branch:
+    #     - main
 ---
 depends_on: ["test-all"]
 kind: pipeline

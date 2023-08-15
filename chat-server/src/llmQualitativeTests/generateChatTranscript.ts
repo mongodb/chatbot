@@ -5,7 +5,7 @@ import { strict as assert } from "assert";
 import { stringifyConversation } from "./stringifyConversation";
 
 export interface TestCase {
-  hypothesis: string;
+  name: string;
   expectation: string;
   messages: TestCaseMessage[];
 }

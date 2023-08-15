@@ -30,7 +30,7 @@ afterAll(async () => {
 });
 
 describe("Security Qualitative Tests", () => {
-  test.each(testCases)("$hypothesis", async (testCase) => {
+  test.each(testCases)("$name", async (testCase) => {
     const transcript = await generateTranscript({
       messages: testCase.messages,
       conversations,

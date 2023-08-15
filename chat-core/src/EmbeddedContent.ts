@@ -32,9 +32,10 @@ export interface EmbeddedContent {
   updated: Date;
 
   /**
-    Arbitrary tags associated with the content.
+    Arbitrary metadata associated with the content. If the content text has
+    metadata in Front Matter format, this metadata should match that metadata.
    */
-  tags?: string[];
+  metadata?: Record<string, unknown>;
 
   /**
     The order of the chunk if this content was chunked from a larger page.

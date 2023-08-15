@@ -4,6 +4,7 @@ import {
   makeSnootyProjectsInfo,
   prepareSnootySources,
 } from "./SnootyProjectsInfo";
+import fetch from "node-fetch";
 
 const snootyDataApiBaseUrl = "https://snooty-data-api.mongodb.com/prod/";
 

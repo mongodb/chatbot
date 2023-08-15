@@ -3,7 +3,7 @@ import frontmatter from "front-matter";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import GPT3Tokenizer from "gpt3-tokenizer";
 import { EmbeddedContent, Page } from "chat-core";
-import { updateFrontMatter } from "chat-core";
+import { updateFrontMatter, extractFrontMatter } from "chat-core";
 
 export type ContentChunk = Omit<EmbeddedContent, "embedding" | "updated">;
 
@@ -83,15 +83,20 @@ export const chunkPage = async (
         sourceName: page.sourceName,
         url: page.url,
         text: pageContent,
-        tags: [...page.tags],
       };
       const transformedChunk = transform
         ? await transform(preTransformChunk, { page })
         : preTransformChunk;
-      return {
+
+      const chunk = {
         ...transformedChunk,
         tokenCount: tokenizer.encode(transformedChunk.text).bpe.length,
       };
+      const { metadata } = extractFrontMatter(transformedChunk.text);
+      if (metadata) {
+        chunk["metadata"] = metadata;
+      }
+      return chunk;
     })
   );
 };

@@ -14,6 +14,7 @@ import {
   References,
   Reference,
   WithScore,
+  removeFrontMatter,
 } from "chat-core";
 import {
   Conversation,
@@ -75,8 +76,8 @@ export interface AddMessageToConversationRouteParams {
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
   searchBoosters?: SearchBooster[];
   userQueryPreprocessor?: QueryPreprocessorFunc;
+  maxChunkContextTokens?: number;
 }
-
 export function makeAddMessageToConversationRoute({
   store,
   conversations,
@@ -86,6 +87,7 @@ export function makeAddMessageToConversationRoute({
   findNearestNeighborsOptions,
   searchBoosters,
   userQueryPreprocessor,
+  maxChunkContextTokens = 1500,
 }: AddMessageToConversationRouteParams) {
   return async (
     req: ExpressRequest,
@@ -262,8 +264,10 @@ export function makeAddMessageToConversationRoute({
       }
 
       const references = generateReferences({ chunks });
-
-      const chunkTexts = chunks.map((chunk) => chunk.text);
+      const chunkTexts = includeChunksForMaxTokensPossible({
+        maxTokens: maxChunkContextTokens,
+        chunks,
+      }).map((chunk) => removeFrontMatter(chunk.text));
 
       const latestMessage = {
         content: preprocessedUserMessageContent || latestMessageText,
@@ -503,6 +507,24 @@ export function generateReferences({
   }
   const uniqueLinks = Array.from(new Set(chunks.map((chunk) => chunk.url)));
   return uniqueLinks.map((link) => createLinkReference(link));
+}
+
+/**
+  This function will return the chunks that can fit in the maxTokens.
+  It limits the number of tokens that are sent to the LLM.
+ */
+export function includeChunksForMaxTokensPossible({
+  maxTokens,
+  chunks,
+}: {
+  maxTokens: number;
+  chunks: EmbeddedContent[];
+}): EmbeddedContent[] {
+  let total = 0;
+  const fitRangeEndIndex = chunks.findIndex(
+    ({ tokenCount }) => (total += tokenCount) > maxTokens
+  );
+  return fitRangeEndIndex === -1 ? chunks : chunks.slice(0, fitRangeEndIndex);
 }
 
 export function validateApiConversationFormatting({

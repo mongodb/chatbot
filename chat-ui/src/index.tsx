@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components: 0 */
+/* eslint-disable react-refresh/only-export-components */
 
 export { Chatbot } from "./Chatbot";
 export { InputMenu, type MenuPrompt } from "./InputMenu.tsx";

@@ -235,10 +235,6 @@ export function Chatbot() {
     conversation.messages.length === 0 &&
     !awaitingReply;
 
-  const inputMenuRef = useClickAway(() => {
-    setMenuOpen(false);
-  });
-
   // We have to use some hacky interval logic to get around the weird
   // focus/blur event handling interactions between InputBar and InputMenu.
   const [promptFocused, setPromptFocused] = useState<number | null>(null);
@@ -293,7 +289,6 @@ export function Chatbot() {
         />
         {showSuggestedPrompts ? (
           <InputMenu
-            ref={inputMenuRef}
             className={styles.chatbot_input_menu}
             heading="SUGGESTED AI PROMPTS"
             headingBadgeText="Experimental"
@@ -396,7 +391,7 @@ function ChatbotModal({
           title="MongoDB AI"
         />
 
-        {active && !isEmptyConversation ? (
+        {!isEmptyConversation ? (
           <MessageFeed className={styles.message_feed}>
             {conversation.messages.map((message) => {
               const showLoadingSkeleton = conversation.isStreamingMessage

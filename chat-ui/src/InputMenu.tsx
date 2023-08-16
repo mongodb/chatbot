@@ -29,7 +29,8 @@ const styles = {
     background: #ffffff;
     color: #000000;
 
-    &:hover, &:focus {
+    &:hover,
+    &:focus {
       cursor: pointer;
       background: #e1f7ff;
     }
@@ -56,12 +57,17 @@ type InputMenuProps = {
   onPromptBlur?: (promptIndex: number) => void;
   onPromptSelected: (prompt: MenuPrompt) => void;
   className: React.HTMLAttributes<HTMLDivElement>["className"];
-  // menuItemProps?: MenuItemProps;
 };
 
-export const InputMenu = forwardRef(function InputMenu(props: InputMenuProps, ref: React.ForwardedRef<HTMLDivElement>) {
+export const InputMenu = forwardRef(function InputMenu(
+  props: InputMenuProps,
+  ref: React.ForwardedRef<HTMLDivElement>
+) {
   return (
-    <Card className={cx(styles.menu_card, props.className)}>
+    <Card
+      className={cx(styles.menu_card, props.className)}
+      id="input-menu-card"
+    >
       <div className={styles.prompts_container} ref={ref}>
         {props.heading ? (
           <div className={styles.prompts_container_header}>
@@ -108,4 +114,4 @@ export const InputMenu = forwardRef(function InputMenu(props: InputMenuProps, re
       </div>
     </Card>
   );
-})
+});

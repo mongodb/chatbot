@@ -532,10 +532,7 @@ function ChatbotModal({
   );
 }
 
-type DisclosureProps = React.HTMLAttributes<HTMLDivElement> & {
-  hidden: boolean;
-};
-function Disclosure({ hidden = false }: DisclosureProps) {
+function Disclosure(props: React.HTMLAttributes<HTMLDivElement>) {
   const TermsOfUse = () => (
     <Link href={"https://www.mongodb.com/legal/terms-of-use"}>
       Terms of Use

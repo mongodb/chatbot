@@ -233,4 +233,40 @@ tags:
 
 This is some text`);
   });
+  it("can add arbitrary page metadata", async () => {
+    const pageWithMetadata: Page = {
+      ...page,
+      body: "FOO",
+      metadata: {
+        ...page.metadata,
+        arbitrary: "metadata",
+      },
+    };
+    const chunks = await chunkPage(pageWithMetadata, {
+      transform: standardChunkFrontMatterUpdater,
+    });
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0]).toStrictEqual({
+      chunkIndex: 0,
+      sourceName: "test-source",
+      metadata: {
+        pageTitle: "Test Page",
+        hasCodeBlock: false,
+        tags: ["a", "b"],
+        arbitrary: "metadata",
+      },
+      text: `---
+pageTitle: Test Page
+hasCodeBlock: false
+tags:
+  - a
+  - b
+arbitrary: metadata
+---
+
+FOO`,
+      tokenCount: 36,
+      url: "test",
+    });
+  });
 });

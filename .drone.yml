@@ -53,7 +53,7 @@ steps:
 # Chat Server pipelines
 # ---
 ---
-# depends_on: ["test-all"]
+depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes
 name: staging-build-chat-server
@@ -61,15 +61,14 @@ name: staging-build-chat-server
 trigger:
   branch:
     - main
-    - DOCSP-32194
   event:
     - push
 
-  # paths:
-  #   include:
-  #     - chat-server/**/*
-  #     - chat-core/**/*
-  #     - chat-ui/**/*
+  paths:
+    include:
+      - chat-server/**/*
+      - chat-core/**/*
+      - chat-ui/**/*
 
 steps:
   # Builds and publishes Docker image for staging
@@ -135,9 +134,9 @@ steps:
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
-    # when:
-    #   branch:
-    #     - main
+    when:
+      branch:
+        - main
 ---
 depends_on: ["test-all"]
 kind: pipeline
@@ -303,7 +302,7 @@ steps:
 # Ingest service
 # ---
 ---
-# depends_on: ["test-all"]
+depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes
 name: staging-build-ingest-service
@@ -311,13 +310,12 @@ name: staging-build-ingest-service
 trigger:
   branch:
     - main
-    - DOCSP-32194
   event:
     - push
-  # paths:
-  #   include:
-  #     - ingest/**/*
-  #     - chat-core/**/*
+  paths:
+    include:
+      - ingest/**/*
+      - chat-core/**/*
 
 steps:
   # Builds and publishes Docker image for staging

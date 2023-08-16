@@ -34,7 +34,7 @@ export function makePreprocessMongoDbUserQuery({
   retryDelayMs?: number;
 }): QueryPreprocessorFunc<MongoDbUserQueryPreprocessorResponse> {
   const schemaPath = fs.readFileSync(
-    path.join(__dirname, "MongoDbUserQueryPreprocessorResponse.ts"),
+    path.join(__dirname, "MongoDbUserQueryPreprocessorResponse.d.ts"),
     "utf8"
   );
   const schemaName = "MongoDbUserQueryPreprocessorResponse";

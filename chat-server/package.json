@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "rm -rf ./dist/ && tsc",
+    "postbuild": "cp ./src/processors/MongoDbUserQueryPreprocessorResponse.d.ts ./dist/processors/",
     "dev": "nodemon src/index.ts",
     "format": "prettier ./src --write",
     "format:check": "prettier ./src --check",

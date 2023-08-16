@@ -19,7 +19,6 @@ import { TitleBar } from "@lg-chat/title-bar";
 import { Role } from "./services/conversations";
 import { palette } from "@leafygreen-ui/palette";
 import { css } from "@emotion/css";
-import { useClickAway } from "@uidotdev/usehooks";
 
 const styles = {
   disclosure: css`
@@ -307,7 +306,7 @@ export function Chatbot() {
             }}
           />
         ) : null}
-        <Disclosure hidden={showSuggestedPrompts} tabIndex={1} />
+        <Disclosure tabIndex={0} />
       </div>
       <ChatbotModal
         inputBarRef={inputBarRef}

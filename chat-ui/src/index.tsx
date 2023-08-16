@@ -1,12 +1,10 @@
+/* eslint-disable react-refresh/only-export-components: 0 */
+
 export { Chatbot } from "./Chatbot";
-export { SuggestedPrompts, type SuggestedPrompt } from "./InputMenu.tsx";
+export { InputMenu, type MenuPrompt } from "./InputMenu.tsx";
 export {
-  // eslint-disable-next-line react-refresh/only-export-components
   useConversation,
   type ConversationState,
   type Conversation,
 } from "./useConversation.tsx";
-export {
-  type Role,
-  type MessageData,
-} from "./services/conversations.ts";
+export { type Role, type MessageData } from "./services/conversations.ts";

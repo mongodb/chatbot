@@ -72,7 +72,6 @@
     "@lg-chat/message-rating": "^1.0.0",
     "@lg-chat/title-bar": "^1.0.0",
     "@microsoft/fetch-event-source": "^2.0.1",
-    "@uidotdev/usehooks": "^2.1.0",
     "buffer": "^6.0.3",
     "chat-core": "file:../chat-core",
     "esbuild": "^0.17.19",

@@ -545,7 +545,7 @@ function Disclosure(props: React.HTMLAttributes<HTMLDivElement>) {
   );
 
   return (
-    <div className={styles.disclosure}>
+    <div className={styles.disclosure} {...props}>
       <Body color={"#FFFFFF"}>
         This is a generative AI chatbot. By interacting with it, you agree to
         MongoDB's <TermsOfUse /> and <AcceptableUsePolicy />.

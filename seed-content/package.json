@@ -2,6 +2,13 @@
   "name": "seed-content",
   "version": "1.0.0",
   "description": "Tool that seeds content in the database for dev, test, and staging.",
+  "author": "",
+  "license": "ISC",
+  "keywords": [],
+  "engines": {
+    "node": ">=18",
+    "npm": ">=8"
+  },
   "main": "build/index.js",
   "scripts": {
     "build": "rm -rf ./build/ && tsc",
@@ -10,13 +17,6 @@
     "seed-content:staging": "npm run build && node ./build/index.js .env.staging",
     "seed-content:qa": "npm run build && node ./build/index.js .env.qa"
   },
-  "engines": {
-    "node": "^18",
-    "npm": "8.*"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "chat-core": "file:../chat-core",
     "common-tags": "^1.8.2",

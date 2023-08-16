@@ -2,6 +2,13 @@
   "name": "chat-server",
   "version": "1.0.2",
   "description": "Q&A server for the MongoDB Docs AI chatbot.",
+  "author": "MongoDB, Inc.",
+  "license": "ISC",
+  "keywords": [],
+  "engines": {
+    "node": ">=18",
+    "npm": ">=8"
+  },
   "main": "index.js",
   "scripts": {
     "build": "rm -rf ./dist/ && tsc",
@@ -14,13 +21,6 @@
     "test:llmQualitative": "jest --config jest.config.llmQualitative.js --forceExit",
     "release": "release-it"
   },
-  "engines": {
-    "node": "^18",
-    "npm": "8.*"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.3",
     "chat-core": "file:../chat-core",

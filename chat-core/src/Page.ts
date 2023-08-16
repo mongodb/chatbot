@@ -22,9 +22,14 @@ export type Page = {
   sourceName: string;
 
   /**
-    Arbitrary tags.
+     Arbitrary metadata for page.
    */
-  tags: string[];
+  metadata?: {
+    /**
+      Arbitrary tags.
+     */
+    tags?: string[];
+  } & Record<string, unknown>;
 };
 
 export type PageAction = "created" | "updated" | "deleted";

@@ -73,7 +73,6 @@ Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibend
       {
         chunkIndex: 2,
         sourceName: "test-source",
-        tags: ["a", "b"],
         text: "Transformed!",
         tokenCount: 3,
         url: "test",

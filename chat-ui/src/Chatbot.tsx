@@ -22,8 +22,6 @@ import { css } from "@emotion/css";
 
 const styles = {
   disclosure: css`
-    position: absolute;
-    top: calc(36px + 0.5rem);
     display: flex;
     flex-direction: row;
     gap: 8px;

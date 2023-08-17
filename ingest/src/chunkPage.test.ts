@@ -1,5 +1,12 @@
 import { Page } from "chat-core";
-import { chunkPage, standardChunkFrontMatterUpdater } from "./chunkPage";
+import {
+  chunkPage,
+  chunkRedocOpenApiSpecYaml,
+  standardChunkFrontMatterUpdater,
+} from "./chunkPage";
+import { readFileSync } from "fs";
+import Path from "path";
+import { handlePage } from "./SnootyDataSource";
 
 describe("chunkPage", () => {
   const page: Page = {
@@ -237,5 +244,24 @@ tags:
 ---
 
 This is some text`);
+  });
+});
+
+describe("chunkRedocOpenApiSpecYaml()", () => {
+  it("chunks a Redoc OpenAPI spec", async () => {
+    const apiSpecPage = JSON.parse(
+      readFileSync(
+        Path.resolve(__dirname, "./test_data/localOpenApiSpecPage.json"),
+        "utf-8"
+      )
+    );
+    const result = await handlePage(apiSpecPage.data, {
+      sourceName: "sample-source",
+      baseUrl: "https://example.com",
+      tags: ["a"],
+    });
+    console.log(result.body);
+    console.log("FOOOOO::");
+    const res = await chunkRedocOpenApiSpecYaml(result);
   });
 });

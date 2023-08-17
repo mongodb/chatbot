@@ -1,10 +1,12 @@
 import nock from "nock";
-import fs from "fs";
+import fs, { readFileSync } from "fs";
 import Path from "path";
 import JSONL from "jsonl-parse-stringify";
 import {
   SnootyNode,
+  SnootyPageData,
   SnootyProjectConfig,
+  handlePage,
   makeSnootyDataSource,
 } from "./SnootyDataSource";
 import { sampleSnootyMetadata } from "./test_data/snooty_sample_metadata";
@@ -103,5 +105,44 @@ describe("SnootyDataSource", () => {
         url: "https://mongodb.com/docs/v6.0/administration/change-streams-production-recommendations/how-to-index/",
       });
     });
+  });
+});
+describe("handlePage()", () => {
+  it("should correctly parse openapi spec page", async () => {
+    const apiSpecPage = JSON.parse(
+      readFileSync(
+        Path.resolve(__dirname, "./test_data/localOpenApiSpecPage.json"),
+        "utf-8"
+      )
+    );
+    const result = await handlePage(apiSpecPage.data, {
+      sourceName: "sample-source",
+      baseUrl: "https://example.com",
+      tags: ["a"],
+    });
+    expect(result).toMatchObject({
+      format: "redoc-openapi-yaml",
+      title: "Atlas App Services Data API",
+      tags: ["a", "openapi"],
+    });
+  });
+  it("should correctly parse standard page", async () => {
+    const nonApiSpecPage = JSON.parse(
+      readFileSync(
+        Path.resolve(__dirname, "./test_data/samplePage.json"),
+        "utf-8"
+      )
+    );
+    const result = await handlePage(nonApiSpecPage.data, {
+      sourceName: "sample-source",
+      baseUrl: "https://example.com",
+      tags: ["a"],
+    });
+    expect(result).toMatchObject({
+      format: "md",
+      title: "$merge (aggregation)",
+      tags: ["a"],
+    });
+    expect(result.body).toContain("# $merge (aggregation)");
   });
 });

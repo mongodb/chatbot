@@ -14,7 +14,7 @@ export type Page = {
    */
   body: string;
 
-  format: "md" | "txt";
+  format: PageFormat;
 
   /**
     Data source name.
@@ -26,6 +26,8 @@ export type Page = {
    */
   tags: string[];
 };
+
+export type PageFormat = "md" | "txt" | "redoc-openapi-yaml";
 
 export type PageAction = "created" | "updated" | "deleted";
 

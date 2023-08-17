@@ -1,9 +1,13 @@
 import { createInterface } from "readline";
-import { Page } from "chat-core";
+import { Page, PageFormat } from "chat-core";
 import fetch from "node-fetch";
 import { DataSource } from "./DataSource";
 import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
 import { ProjectBase } from "./ProjectBase";
+import {
+  getTitleFromSnootyOpenApiSpecAst,
+  snootyAstToOpenApiSpec,
+} from "./snootyAstToOpenApiSpec";
 
 // These types are what's in the snooty manifest jsonl file.
 export type SnootyManifestEntry = {
@@ -25,6 +29,7 @@ export type SnootyPageEntry = SnootyManifestEntry & {
 export type SnootyNode = {
   type: string;
   children?: (SnootyNode | SnootyTextNode)[];
+  options?: Record<string, unknown>;
   [key: string]: unknown;
 };
 
@@ -208,7 +213,7 @@ export interface SnootyProject {
   branches: Branch[];
 }
 
-const handlePage = async (
+export const handlePage = async (
   page: SnootyPageData,
   {
     sourceName,
@@ -233,15 +238,28 @@ const handlePage = async (
     })
     .join("/");
 
+  let body = "";
+  let title: string | undefined;
+  let format: PageFormat = "md";
+  if (page.ast.options?.template === "openapi") {
+    format = "redoc-openapi-yaml";
+    body = snootyAstToOpenApiSpec(page.ast);
+    title = getTitleFromSnootyOpenApiSpecAst(page.ast);
+    tags.push("openapi");
+  } else {
+    body = snootyAstToMd(page.ast, { baseUrl });
+    title = getTitleFromSnootyAst(page.ast);
+  }
+
   return {
     url: new URL(pagePath, baseUrl.replace(/\/?$/, "/")).href.replace(
       /\/?$/, // Add trailing slash
       "/"
     ),
     sourceName,
-    title: getTitleFromSnootyAst(page.ast),
-    body: snootyAstToMd(page.ast, { baseUrl }),
-    format: "md",
+    title,
+    body,
+    format,
     tags,
   };
 };

@@ -1,7 +1,9 @@
 import { strict as assert } from "assert";
 import frontmatter from "front-matter";
+import SwaggerParser from "@apidevtools/swagger-parser";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import GPT3Tokenizer from "gpt3-tokenizer";
+import yaml from "yaml";
 import { EmbeddedContent, Page } from "chat-core";
 import { updateFrontMatter, extractFrontMatter } from "chat-core";
 
@@ -68,6 +70,11 @@ export const chunkPage = async (
   const options = { ...defaultChunkOptions, ...optionsIn };
   const { tokenizer, chunkSize, chunkOverlap, transform } = options;
 
+  if (page.format === "redoc-openapi-yaml") {
+    const chunks = chunkRedocOpenApiSpecYaml(page);
+    return new Promise(() => []);
+  }
+
   const splitter = RecursiveCharacterTextSplitter.fromLanguage("markdown", {
     chunkOverlap,
     chunkSize,
@@ -100,6 +107,17 @@ export const chunkPage = async (
     })
   );
 };
+
+export async function chunkRedocOpenApiSpecYaml(
+  page: Page
+): Promise<ContentChunk[]> {
+  const dereferencedSpec = await SwaggerParser.dereference(
+    yaml.parse(page.body)
+  );
+  // console.log(JSON.stringify(dereferencedSpec, null, 2));
+
+  return [];
+}
 
 /**
   Create a function that adds or updates front matter metadata to the chunk

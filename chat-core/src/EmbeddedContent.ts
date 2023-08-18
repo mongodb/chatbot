@@ -12,7 +12,7 @@ export interface EmbeddedContent {
   sourceName: string;
 
   /**
-    The text associated with the vector embedding.
+    The text represented by the vector embedding.
    */
   text: string;
 

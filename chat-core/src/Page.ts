@@ -29,7 +29,8 @@ export type Page = {
       Arbitrary tags.
      */
     tags?: string[];
-  } & Record<string, unknown>;
+    [k: string]: unknown;
+  };
 };
 
 export type PageAction = "created" | "updated" | "deleted";

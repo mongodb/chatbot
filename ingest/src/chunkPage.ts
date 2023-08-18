@@ -144,11 +144,10 @@ export const makeChunkFrontMatterUpdater = <
  */
 export const standardMetadataGetter: ChunkMetadataGetter<{
   pageTitle?: string;
-  productName?: string;
   hasCodeBlock: boolean;
   codeBlockLanguages?: string[];
   tags?: string[];
-  [string: string]: unknown;
+  [k: string]: unknown;
 }> = async ({ page, text }) => {
   // Detect code blocks
   const mdCodeBlockToken = /```([A-z0-1-_]*)/;
@@ -179,13 +178,7 @@ export const standardMetadataGetter: ChunkMetadataGetter<{
     metadata["codeBlockLanguages"] = specifiedLanguages;
   }
 
-  if (page.metadata) {
-    for (const key in page.metadata) {
-      metadata[key] = page.metadata[key];
-    }
-  }
-
-  return metadata;
+  return { ...(page.metadata ?? {}), ...metadata };
 };
 
 export const standardChunkFrontMatterUpdater = makeChunkFrontMatterUpdater(

@@ -6,7 +6,6 @@ import GPT3Tokenizer from "gpt3-tokenizer";
 import yaml from "yaml";
 import { EmbeddedContent, Page } from "chat-core";
 import { updateFrontMatter, extractFrontMatter } from "chat-core";
-import { writeFileSync } from "fs";
 
 export type ContentChunk = Omit<EmbeddedContent, "embedding" | "updated">;
 

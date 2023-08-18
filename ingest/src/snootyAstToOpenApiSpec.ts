@@ -12,6 +12,8 @@ export const snootyAstToOpenApiSpec = (node: SnootyNode): string => {
       const text = yaml.stringify(JSON.parse(jsonSpecString));
       return cleanSpec(text);
       // TODO: figure out how to get specs when they're remotely hosted (like Atlas Admin API)
+    } else if (true) {
+      // TODO: handle atlas openapi spec
     } else {
       return "";
     }

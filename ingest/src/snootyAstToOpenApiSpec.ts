@@ -11,16 +11,26 @@ export const snootyAstToOpenApiSpec = (node: SnootyNode): string => {
       const jsonSpecString = node.children[0].value as string;
       const text = yaml.stringify(JSON.parse(jsonSpecString));
       return cleanSpec(text);
-      // TODO: figure out how to get specs when they're remotely hosted (like Atlas Admin API)
-    } else if (true) {
-      // TODO: handle atlas openapi spec
+      // Have to hard code how the Atlas OpenAPI spec is loaded for now
+    } else if (node?.options?.source_type === "atlas") {
+      console.log("Fetching Atlas OpenAPI spec");
+      const version = node?.options?.["api-version"] || "2.0";
+      // TODO: refactor to make behave sync or refactor whole recursive func to be async
+      return fetch("https://cloud.mongodb.com/api/openapi/spec/" + version)
+        .then((res) => res.json())
+        .then((json) => {
+          const text = yaml.stringify(json.data);
+          const cleanedSpec = cleanSpec(text);
+          console.log(cleanedSpec);
+          return cleanedSpec;
+        });
     } else {
       return "";
     }
   }
   return (
     node.children
-      ?.map((childNode) => snootyAstToOpenApiSpec(childNode))
+      ?.map(async (childNode) => snootyAstToOpenApiSpec(childNode))
       .join("") || ""
   );
 };

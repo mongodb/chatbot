@@ -13,6 +13,14 @@ const textSpecPage: SnootyPageEntry = JSON.parse(
     }
   )
 );
+const remoteSpecPage: SnootyPageEntry = JSON.parse(
+  readFileSync(
+    Path.resolve(__dirname, "./test_data/remoteOpenApiSpecPage.json"),
+    {
+      encoding: "utf-8",
+    }
+  )
+);
 
 describe("snootyAstToOpenApiSpec()", () => {
   it("should return empty string for non-openapi node", () => {
@@ -60,8 +68,9 @@ info:
 servers:`;
     expect(yamlString).toContain(expected);
   });
-  it.skip("should return YAML string for openapi remote node", () => {
-    // TODO: figure out how to get specs when they're remotely hosted (like Atlas Admin API)
+  it("should return YAML string for openapi remote node", () => {
+    const yamlString = snootyAstToOpenApiSpec(remoteSpecPage.data.ast);
+    console.log(yamlString);
   });
 });
 

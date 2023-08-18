@@ -121,7 +121,7 @@ describe("handlePage()", () => {
       tags: ["a"],
     });
     expect(result).toMatchObject({
-      format: "redoc-openapi-yaml",
+      format: "openapi-yaml",
       title: "Atlas App Services Data API",
       tags: ["a", "openapi"],
     });

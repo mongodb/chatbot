@@ -6,6 +6,7 @@ import GPT3Tokenizer from "gpt3-tokenizer";
 import yaml from "yaml";
 import { EmbeddedContent, Page } from "chat-core";
 import { updateFrontMatter, extractFrontMatter } from "chat-core";
+import { writeFileSync } from "fs";
 
 export type ContentChunk = Omit<EmbeddedContent, "embedding" | "updated">;
 
@@ -15,6 +16,11 @@ export type SomeTokenizer = {
     text: string[];
   };
 };
+
+export type ChunkFunc = (
+  page: Page,
+  options?: Partial<ChunkOptions>
+) => Promise<ContentChunk[]>;
 
 export type ChunkTransformer = (
   chunk: Omit<ContentChunk, "tokenCount">,
@@ -54,27 +60,46 @@ export type ChunkOptions = {
   transform?: ChunkTransformer;
 };
 
-const defaultChunkOptions: ChunkOptions = {
+const defaultMdChunkOptions: ChunkOptions = {
   chunkSize: 600, // max chunk size of 600 tokens gets avg ~400 tokens/chunk
   chunkOverlap: 0,
   tokenizer: new GPT3Tokenizer({ type: "gpt3" }),
 };
-
+const defaultOpenApiSpecYamlChunkOptions: ChunkOptions = {
+  chunkSize: 1250, // max chunk size of 600 tokens gets avg ~400 tokens/chunk
+  chunkOverlap: 0,
+  tokenizer: new GPT3Tokenizer({ type: "gpt3" }),
+};
 /**
   Returns chunked of a content page.
  */
-export const chunkPage = async (
+export const chunkPage: ChunkFunc = async (
+  page: Page,
+  chunkOptions?: Partial<ChunkOptions> & { yamlChunkSize?: number }
+): Promise<ContentChunk[]> => {
+  if (page.format === "openapi-yaml") {
+    const chunks = await chunkOpenApiSpecYaml(page, {
+      ...defaultOpenApiSpecYamlChunkOptions,
+      ...chunkOptions,
+      chunkSize:
+        chunkOptions?.yamlChunkSize ||
+        defaultOpenApiSpecYamlChunkOptions.chunkSize,
+    });
+    return chunks;
+  }
+  const chunks = await chunkMd(page, {
+    ...defaultMdChunkOptions,
+    ...chunkOptions,
+  });
+  return chunks;
+};
+
+export const chunkMd: ChunkFunc = async function (
   page: Page,
   optionsIn?: Partial<ChunkOptions>
-): Promise<ContentChunk[]> => {
-  const options = { ...defaultChunkOptions, ...optionsIn };
+) {
+  const options = { ...defaultOpenApiSpecYamlChunkOptions, ...optionsIn };
   const { tokenizer, chunkSize, chunkOverlap, transform } = options;
-
-  if (page.format === "redoc-openapi-yaml") {
-    const chunks = chunkRedocOpenApiSpecYaml(page);
-    return new Promise(() => []);
-  }
-
   const splitter = RecursiveCharacterTextSplitter.fromLanguage("markdown", {
     chunkOverlap,
     chunkSize,
@@ -107,17 +132,6 @@ export const chunkPage = async (
     })
   );
 };
-
-export async function chunkRedocOpenApiSpecYaml(
-  page: Page
-): Promise<ContentChunk[]> {
-  const dereferencedSpec = await SwaggerParser.dereference(
-    yaml.parse(page.body)
-  );
-  // console.log(JSON.stringify(dereferencedSpec, null, 2));
-
-  return [];
-}
 
 /**
   Create a function that adds or updates front matter metadata to the chunk
@@ -206,3 +220,169 @@ export const standardMetadataGetter: ChunkMetadataGetter<{
 export const standardChunkFrontMatterUpdater = makeChunkFrontMatterUpdater(
   standardMetadataGetter
 );
+export const chunkOpenApiSpecYaml: ChunkFunc = async function (
+  page: Page,
+  optionsIn?: Partial<ChunkOptions>
+): Promise<ContentChunk[]> {
+  const options = { ...defaultOpenApiSpecYamlChunkOptions, ...optionsIn };
+  const { tokenizer, chunkSize, chunkOverlap } = options;
+  const splitter = makeOpenApiSpecYamlTextSplitter({
+    chunkOverlap,
+    chunkSize,
+    tokenizer,
+  });
+  const dereferencedSpec: Awaited<
+    ReturnType<typeof SwaggerParser.dereference>
+  > & { servers?: { url?: string }[] } = await SwaggerParser.dereference(
+    yaml.parse(page.body)
+  );
+  const apiName = dereferencedSpec?.info?.title || page.title || "";
+  const baseUrls = dereferencedSpec?.servers?.map((server) => server.url);
+  const chunks: ContentChunk[] = [];
+  let chunkIndex = 0;
+  // Deal with paths
+  const { paths } = dereferencedSpec;
+  if (paths !== undefined) {
+    for (const path of Object.keys(paths)) {
+      const actions = paths[path] as { [key: string]: any };
+      if (actions !== undefined) {
+        for (const action of Object.keys(actions)) {
+          const methodBody = actions[action];
+          const method = {
+            [`${path}`]: {
+              [`${action}`]: methodBody,
+            },
+          };
+          const stringChunks = await splitter.splitText(yaml.stringify(method));
+
+          chunks.push(
+            ...stringChunks.map((stringChunk) => {
+              const metadata = {
+                resourceName: `${action.trim().toUpperCase()} ${path.trim()}`,
+                openApiSpec: true,
+                apiName: apiName.trim(),
+                baseUrls,
+                specTags: methodBody.tags,
+              };
+              const text = updateFrontMatter(stringChunk.trim(), metadata);
+              const tokenCount = tokenizer.encode(text).bpe.length;
+              const chunk: ContentChunk = {
+                url: page.url,
+                sourceName: page.sourceName,
+                text,
+                tokenCount,
+                metadata,
+                chunkIndex,
+              };
+              chunkIndex++;
+              return chunk;
+            })
+          );
+        }
+      }
+    }
+  }
+  // deal with other parts of the spec to index besides paths
+  const otherSpecInfoToKeep = {
+    info: dereferencedSpec.info,
+    security: dereferencedSpec.security,
+    servers: dereferencedSpec.servers,
+    tags: dereferencedSpec.tags,
+  };
+  const stringChunks = await splitter.splitText(
+    yaml.stringify(otherSpecInfoToKeep)
+  );
+  chunks.push(
+    ...stringChunks.map((stringChunk) => {
+      const metadata = {
+        openApiSpec: true,
+        apiName: apiName,
+        baseUrls,
+      };
+      const text = updateFrontMatter(stringChunk, metadata);
+      const tokenCount = tokenizer.encode(text).bpe.length;
+      const chunk: ContentChunk = {
+        url: page.url,
+        sourceName: page.sourceName,
+        text,
+        tokenCount,
+        metadata,
+        chunkIndex,
+      };
+      chunkIndex++;
+      return chunk;
+    })
+  );
+
+  return chunks;
+};
+
+interface OpenApiSpecTextSplitterParams {
+  chunkOverlap: number;
+  chunkSize: number;
+  tokenizer: SomeTokenizer;
+}
+function makeOpenApiSpecYamlTextSplitter({
+  chunkOverlap,
+  chunkSize,
+  tokenizer,
+}: OpenApiSpecTextSplitterParams) {
+  const separators = [
+    "\npaths:\n",
+    "\nget:\n",
+    "\npost:\n",
+    "\nput:\n",
+    "\ndelete:\n",
+    "\npatch:\n",
+    "\nhead:\n",
+    "\noptions:\n",
+    "\nconnect:\n",
+    "\ntrace:\n",
+    "\nrequestBody:\n",
+    "\nresponses:\n",
+    "\n100:\n",
+    "\n101:\n",
+    "\n102:\n",
+    "\n200:\n",
+    "\n201:\n",
+    "\n202:\n",
+    "\n204:\n",
+    "\n206:\n",
+    "\n300:\n",
+    "\n301:\n",
+    "\n302:\n",
+    "\n303:\n",
+    "\n304:\n",
+    "\n307:\n",
+    "\n308:\n",
+    "\n400:\n",
+    "\n401:\n",
+    "\n403:\n",
+    "\n404:\n",
+    "\n405:\n",
+    "\n406:\n",
+    "\n409:\n",
+    "\n410:\n",
+    "\n413:\n",
+    "\n415:\n",
+    "\n429:\n",
+    "\n500:\n",
+    "\n501:\n",
+    "\n502:\n",
+    "\n503:\n",
+    "\n504:\n",
+    "\n505:\n",
+    "\ncontent\n",
+    "\nschema:\n",
+    "\n\n",
+    "\n",
+    " ",
+    "",
+  ];
+  return new RecursiveCharacterTextSplitter({
+    chunkOverlap,
+    chunkSize,
+    separators,
+    lengthFunction: (text) => tokenizer.encode(text).bpe.length,
+  });
+}

@@ -27,7 +27,7 @@ export type Page = {
   tags: string[];
 };
 
-export type PageFormat = "md" | "txt" | "redoc-openapi-yaml";
+export type PageFormat = "md" | "txt" | "openapi-yaml";
 
 export type PageAction = "created" | "updated" | "deleted";
 

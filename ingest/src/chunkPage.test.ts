@@ -1,12 +1,14 @@
 import { Page } from "chat-core";
 import {
   chunkPage,
-  chunkRedocOpenApiSpecYaml,
+  chunkOpenApiSpecYaml,
   standardChunkFrontMatterUpdater,
 } from "./chunkPage";
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import Path from "path";
 import { handlePage } from "./SnootyDataSource";
+import GPT3Tokenizer from "gpt3-tokenizer";
+import yaml from "yaml";
 
 describe("chunkPage", () => {
   const page: Page = {
@@ -260,8 +262,11 @@ describe("chunkRedocOpenApiSpecYaml()", () => {
       baseUrl: "https://example.com",
       tags: ["a"],
     });
-    console.log(result.body);
-    console.log("FOOOOO::");
-    const res = await chunkRedocOpenApiSpecYaml(result);
+    const res = await chunkOpenApiSpecYaml(result, {
+      chunkSize: 1250, // max chunk size of 600 tokens gets avg ~400 tokens/chunk
+      chunkOverlap: 0,
+      tokenizer: new GPT3Tokenizer({ type: "gpt3" }),
+    });
+    // TODO: test
   });
 });

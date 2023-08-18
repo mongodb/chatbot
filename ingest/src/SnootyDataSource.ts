@@ -242,7 +242,7 @@ export const handlePage = async (
   let title: string | undefined;
   let format: PageFormat = "md";
   if (page.ast.options?.template === "openapi") {
-    format = "redoc-openapi-yaml";
+    format = "openapi-yaml";
     body = snootyAstToOpenApiSpec(page.ast);
     title = getTitleFromSnootyOpenApiSpecAst(page.ast);
     tags.push("openapi");

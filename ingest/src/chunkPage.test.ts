@@ -83,7 +83,7 @@ Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibend
   });
 
   it("can add frontmatter", async () => {
-    let chunks = await chunkPage(
+    const chunks = await chunkPage(
       { ...page, body: "This is some text\n" },
       {
         transform: standardChunkFrontMatterUpdater,

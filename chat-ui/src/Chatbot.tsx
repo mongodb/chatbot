@@ -293,6 +293,8 @@ export function Chatbot() {
             heading="SUGGESTED AI PROMPTS"
             headingBadgeText="Experimental"
             poweredByText="Powered by Atlas Vector Search"
+            poweredByCTA="Learn More"
+            poweredByLink="https://www.mongodb.com/products/platform/atlas-vector-search"
             prompts={suggestedPrompts}
             onPromptFocused={(i) => {
               setPromptFocused(i);

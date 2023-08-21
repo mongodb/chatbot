@@ -1,9 +1,10 @@
 import { forwardRef } from "react";
 import Badge from "@leafygreen-ui/badge";
 import Card from "@leafygreen-ui/card";
-import { Overline, Body } from "@leafygreen-ui/typography";
+import { Overline, Body, Link } from "@leafygreen-ui/typography";
 import { palette } from "@leafygreen-ui/palette";
 import { css, cx } from "@emotion/css";
+import { addPeriodIfMissing } from "./utils";
 
 const styles = {
   menu_card: css`
@@ -51,7 +52,9 @@ export type MenuPrompt = {
 type InputMenuProps = {
   heading?: string;
   headingBadgeText?: string;
-  poweredByText?: string;
+  poweredByText: string;
+  poweredByCTA: string;
+  poweredByLink: string;
   prompts: MenuPrompt[];
   onPromptFocused?: (promptIndex: number) => void;
   onPromptBlur?: (promptIndex: number) => void;
@@ -109,7 +112,12 @@ export const InputMenu = forwardRef(function InputMenu(
           </div>
         ))}
         <div className={styles.powered_by_footer}>
-          <Body>{props.poweredByText}</Body>
+          <Body>
+            {addPeriodIfMissing(props.poweredByText)}{" "}
+            <Link href={props.poweredByLink}>
+              {addPeriodIfMissing(props.poweredByCTA)}
+            </Link>
+          </Body>
         </div>
       </div>
     </Card>

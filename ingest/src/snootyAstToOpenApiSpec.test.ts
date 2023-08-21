@@ -25,16 +25,16 @@ const remoteSpecPage: SnootyPageEntry = JSON.parse(
 );
 
 describe("snootyAstToOpenApiSpec()", () => {
-  it("should return empty string for non-openapi node", () => {
+  it("should return empty string for non-openapi node", async () => {
     const node = {
       type: "directive",
       name: "foo",
       children: [],
     };
-    expect(snootyAstToOpenApiSpec(node)).toBe("");
+    expect(await snootyAstToOpenApiSpec(node)).toBe("");
   });
-  it("should return YAML string for openapi text node", () => {
-    const yamlString = snootyAstToOpenApiSpec(textSpecPage.data.ast);
+  it("should return YAML string for openapi text node", async () => {
+    const yamlString = await snootyAstToOpenApiSpec(textSpecPage.data.ast);
     const expected = `openapi: 3.1.0
 info:
   version: v1
@@ -73,7 +73,6 @@ servers:`;
   it("should return YAML string for openapi remote node", async () => {
     const yamlString = await snootyAstToOpenApiSpec(remoteSpecPage.data.ast);
     const parsed = yaml.parse(yamlString);
-    console.log(parsed);
     const expectedSample = {
       openapi: "3.0.1",
       servers: [{ url: "https://cloud.mongodb.com" }],

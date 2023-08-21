@@ -16,7 +16,6 @@ export const snootyAstToOpenApiSpec = async (
       // Have to hard code how the Atlas OpenAPI spec is loaded for now.
       // There is no programmatic way to get the spec resource from the Snooty AST.
     } else if (node?.options?.source_type === "atlas") {
-      console.log("Fetching Atlas OpenAPI spec");
       const version = node?.options?.["api-version"] || "2.0";
       const data = await fetch(
         "https://cloud.mongodb.com/api/openapi/spec/" + version

@@ -4,7 +4,6 @@ import Path from "path";
 import JSONL from "jsonl-parse-stringify";
 import {
   SnootyNode,
-  SnootyPageData,
   SnootyProjectConfig,
   handlePage,
   makeSnootyDataSource,

@@ -9,6 +9,7 @@
     "chat-ui",
     "ingest",
     "mongodb-atlas",
-    "seed-content"
+    "seed-content",
+    "scripts"
   ]
 }

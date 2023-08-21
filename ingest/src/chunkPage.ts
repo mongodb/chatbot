@@ -3,7 +3,8 @@ import frontmatter from "front-matter";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import GPT3Tokenizer from "gpt3-tokenizer";
 import { EmbeddedContent, Page } from "chat-core";
-import { updateFrontMatter } from "chat-core";
+import { updateFrontMatter, extractFrontMatter } from "chat-core";
+import { string } from "yargs";
 
 export type ContentChunk = Omit<EmbeddedContent, "embedding" | "updated">;
 
@@ -53,7 +54,7 @@ export type ChunkOptions = {
 };
 
 const defaultChunkOptions: ChunkOptions = {
-  chunkSize: 1000,
+  chunkSize: 600, // max chunk size of 600 tokens gets avg ~400 tokens/chunk
   chunkOverlap: 0,
   tokenizer: new GPT3Tokenizer({ type: "gpt3" }),
 };
@@ -71,6 +72,7 @@ export const chunkPage = async (
   const splitter = RecursiveCharacterTextSplitter.fromLanguage("markdown", {
     chunkOverlap,
     chunkSize,
+    lengthFunction: (text) => tokenizer.encode(text).bpe.length,
   });
 
   const chunks = await splitter.createDocuments([page.body]);
@@ -82,15 +84,20 @@ export const chunkPage = async (
         sourceName: page.sourceName,
         url: page.url,
         text: pageContent,
-        tags: [...page.tags],
       };
       const transformedChunk = transform
         ? await transform(preTransformChunk, { page })
         : preTransformChunk;
-      return {
+
+      const chunk = {
         ...transformedChunk,
         tokenCount: tokenizer.encode(transformedChunk.text).bpe.length,
       };
+      const { metadata } = extractFrontMatter(transformedChunk.text);
+      if (metadata) {
+        chunk["metadata"] = metadata;
+      }
+      return chunk;
     })
   );
 };
@@ -137,9 +144,10 @@ export const makeChunkFrontMatterUpdater = <
  */
 export const standardMetadataGetter: ChunkMetadataGetter<{
   pageTitle?: string;
-  sourceName: string;
   hasCodeBlock: boolean;
   codeBlockLanguages?: string[];
+  tags?: string[];
+  [k: string]: unknown;
 }> = async ({ page, text }) => {
   // Detect code blocks
   const mdCodeBlockToken = /```([A-z0-1-_]*)/;
@@ -158,7 +166,6 @@ export const standardMetadataGetter: ChunkMetadataGetter<{
 
   const metadata: Awaited<ReturnType<typeof standardMetadataGetter>> = {
     pageTitle: page.title,
-    sourceName: page.sourceName,
     hasCodeBlock: codeBlockLanguages.length !== 0,
   };
 
@@ -171,7 +178,7 @@ export const standardMetadataGetter: ChunkMetadataGetter<{
     metadata["codeBlockLanguages"] = specifiedLanguages;
   }
 
-  return metadata;
+  return { ...(page.metadata ?? {}), ...metadata };
 };
 
 export const standardChunkFrontMatterUpdater = makeChunkFrontMatterUpdater(

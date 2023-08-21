@@ -284,6 +284,9 @@ export function Chatbot() {
             setInitialInputFocused(false);
           }}
         />
+
+        {inputTextError ? <ErrorText>{inputTextError}</ErrorText> : null}
+
         {showSuggestedPrompts ? (
           <InputMenu
             className={styles.chatbot_input_menu}
@@ -304,7 +307,9 @@ export function Chatbot() {
             }}
           />
         ) : null}
+
         <Disclosure tabIndex={0} />
+
       </div>
       <ChatbotModal
         inputBarRef={inputBarRef}

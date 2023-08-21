@@ -32,6 +32,7 @@ export interface ConversationsRouterParams<T, U> {
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
   searchBoosters?: SearchBooster[];
   userQueryPreprocessor?: QueryPreprocessorFunc;
+  maxChunkContextTokens?: number;
 }
 
 export function makeConversationsRouter({
@@ -43,6 +44,7 @@ export function makeConversationsRouter({
   findNearestNeighborsOptions,
   searchBoosters,
   userQueryPreprocessor,
+  maxChunkContextTokens,
 }: ConversationsRouterParams<OpenAiStreamingResponse, OpenAiAwaitedResponse>) {
   const conversationsRouter = Router();
 
@@ -70,6 +72,7 @@ export function makeConversationsRouter({
       findNearestNeighborsOptions,
       searchBoosters,
       userQueryPreprocessor,
+      maxChunkContextTokens,
     })
   );
 

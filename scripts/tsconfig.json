@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "outDir": "./build",
+    "allowJs": false,
+    "target": "es2016",
+    "module": "CommonJS",
+    "esModuleInterop": true,
+    "downlevelIteration": true,
+    "strictNullChecks": true,
+    "strict": true,
+    "declaration": true,
+    "declarationMap": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": "./src",
+    "rootDir": "./src"
+  },
+  "sourceMap": true,
+  "include": ["./src/**/*.ts", "src/index.ts"],
+  "exclude": ["**/*.test.ts"]
+}

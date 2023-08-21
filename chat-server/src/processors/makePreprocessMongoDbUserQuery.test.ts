@@ -60,7 +60,7 @@ describe("makePreprocessMongoDbUserQuery()", () => {
     } = response;
     expect(outputQuery).toContain("MongoDB");
     expect(outputQuery).toContain("code example");
-    expect(outputQuery).toContain("aggregation");
+    expect(outputQuery.toLowerCase()).toContain("aggregation");
     expect(outputQuery).toContain("?");
     expect(programmingLanguages).toStrictEqual(["shell"]);
     expect(mongoDbProducts[0]).toBeDefined();
@@ -83,7 +83,7 @@ describe("makePreprocessMongoDbUserQuery()", () => {
       messages,
     });
     const { mongoDbProducts } = response;
-    expect(mongoDbProducts[0]).toBe("charts");
+    expect(mongoDbProducts[0]).toBe("Atlas Charts");
   });
   test("should be aware of MongoDB", async () => {
     const query = "ruby lookup example";

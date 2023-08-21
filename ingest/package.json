@@ -2,6 +2,13 @@
   "name": "ingest",
   "version": "0.0.6-0",
   "description": "Ingests data sources and stores embeddings.",
+  "author": "",
+  "license": "ISC",
+  "keywords": [],
+  "engines": {
+    "node": ">=18",
+    "npm": ">=8"
+  },
   "main": "./build/main.js",
   "bin": {
     "ingest": "./build/main.js"
@@ -15,8 +22,6 @@
     "docs": "npx typedoc --excludePrivate --exclude '**/*.test.ts' --out docs src",
     "release": "release-it"
   },
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "@babel/preset-typescript": "^7",
     "@babel/types": "^7.22.5",
@@ -48,7 +53,7 @@
     "exponential-backoff": "^3.1.1",
     "front-matter": "^4.0.2",
     "gpt3-tokenizer": "^1.1.5",
-    "langchain": "^0.0.102",
+    "langchain": "^0.0.128",
     "mongodb": "^5",
     "node-fetch": "^2",
     "yaml": "^2.3.1",

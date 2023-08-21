@@ -14,6 +14,7 @@ import {
   References,
   Reference,
   WithScore,
+  removeFrontMatter,
 } from "chat-core";
 import {
   Conversation,
@@ -39,7 +40,7 @@ import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import { SearchBooster } from "../../processors/SearchBooster";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
-import { stripIndent } from "common-tags";
+import { stripIndents } from "common-tags";
 
 export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 export const MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
@@ -75,8 +76,8 @@ export interface AddMessageToConversationRouteParams {
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
   searchBoosters?: SearchBooster[];
   userQueryPreprocessor?: QueryPreprocessorFunc;
+  maxChunkContextTokens?: number;
 }
-
 export function makeAddMessageToConversationRoute({
   store,
   conversations,
@@ -86,6 +87,7 @@ export function makeAddMessageToConversationRoute({
   findNearestNeighborsOptions,
   searchBoosters,
   userQueryPreprocessor,
+  maxChunkContextTokens = 1500,
 }: AddMessageToConversationRouteParams) {
   return async (
     req: ExpressRequest,
@@ -100,6 +102,14 @@ export function makeAddMessageToConversationRoute({
         query: { stream },
         ip,
       } = req;
+      logRequest({
+        reqId,
+        message: stripIndents`Request info:
+        User message: ${message}
+        Stream: ${stream}
+        IP: ${ip}
+        ConversationId: ${conversationIdString}`,
+      });
 
       let conversationId: ObjectId;
       try {
@@ -189,7 +199,7 @@ export function makeAddMessageToConversationRoute({
           preprocessedUserMessageContent = query;
           logRequest({
             reqId,
-            message: stripIndent`Successfully preprocessed user query.
+            message: stripIndents`Successfully preprocessed user query.
               Original query: ${latestMessageText}
               Preprocessed query: ${preprocessedUserMessageContent}`,
           });
@@ -236,6 +246,32 @@ export function makeAddMessageToConversationRoute({
             }
           }
         }
+        logRequest({
+          reqId,
+          message: stripIndents`Chunks found: ${JSON.stringify(
+            chunks.map(
+              ({
+                sourceName,
+                url,
+                score,
+                text,
+                tokenCount,
+                updated,
+                metadata,
+                chunkIndex,
+              }) => ({
+                sourceName,
+                url,
+                score,
+                text,
+                tokenCount,
+                updated,
+                metadata,
+                chunkIndex,
+              })
+            )
+          )}`,
+        });
       } catch (err) {
         return sendErrorResponse({
           reqId,
@@ -262,13 +298,19 @@ export function makeAddMessageToConversationRoute({
       }
 
       const references = generateReferences({ chunks });
-
-      const chunkTexts = chunks.map((chunk) => chunk.text);
+      const chunkTexts = includeChunksForMaxTokensPossible({
+        maxTokens: maxChunkContextTokens,
+        chunks,
+      }).map((chunk) => removeFrontMatter(chunk.text));
 
       const latestMessage = {
         content: preprocessedUserMessageContent || latestMessageText,
         role: "user",
       } satisfies OpenAiChatMessage;
+      logRequest({
+        reqId,
+        message: `Latest message sent to LLM: ${JSON.stringify(latestMessage)}`,
+      });
 
       const messages = [
         ...conversationInDb.messages.map(convertDbMessageToOpenAiMessage),
@@ -503,6 +545,24 @@ export function generateReferences({
   }
   const uniqueLinks = Array.from(new Set(chunks.map((chunk) => chunk.url)));
   return uniqueLinks.map((link) => createLinkReference(link));
+}
+
+/**
+  This function will return the chunks that can fit in the maxTokens.
+  It limits the number of tokens that are sent to the LLM.
+ */
+export function includeChunksForMaxTokensPossible({
+  maxTokens,
+  chunks,
+}: {
+  maxTokens: number;
+  chunks: EmbeddedContent[];
+}): EmbeddedContent[] {
+  let total = 0;
+  const fitRangeEndIndex = chunks.findIndex(
+    ({ tokenCount }) => (total += tokenCount) > maxTokens
+  );
+  return fitRangeEndIndex === -1 ? chunks : chunks.slice(0, fitRangeEndIndex);
 }
 
 export function validateApiConversationFormatting({

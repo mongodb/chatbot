@@ -52,7 +52,9 @@ export const makeDevCenterDataSource = async ({
             }),
             format: "md",
             sourceName: name,
-            tags: [], // TODO
+            metadata: {
+              tags: [], // TODO
+            },
             url: /^https?:\/\//.test(document.calculated_slug)
               ? document.calculated_slug
               : new URL(

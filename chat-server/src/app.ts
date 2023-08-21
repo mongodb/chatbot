@@ -84,6 +84,7 @@ export const makeApp = async ({
   conversations,
   llm,
   maxRequestTimeoutMs = DEFAULT_MAX_REQUEST_TIMEOUT_MS,
+  maxChunkContextTokens,
   findNearestNeighborsOptions,
   searchBoosters,
   userQueryPreprocessor,
@@ -94,6 +95,7 @@ export const makeApp = async ({
   conversations: ConversationsService;
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   maxRequestTimeoutMs?: number;
+  maxChunkContextTokens?: number;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
   searchBoosters?: SearchBooster[];
   userQueryPreprocessor?: QueryPreprocessorFunc;
@@ -117,6 +119,7 @@ export const makeApp = async ({
       findNearestNeighborsOptions,
       searchBoosters,
       userQueryPreprocessor,
+      maxChunkContextTokens,
     })
   );
   app.all("*", (req, res, _next) => {

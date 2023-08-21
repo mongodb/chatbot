@@ -57,7 +57,9 @@ async function main() {
         tokenCount: numTokens,
         updated: lastUpdated,
         url,
-        tags,
+        metadata: {
+          tags,
+        },
       };
     }
   );

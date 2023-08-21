@@ -2,6 +2,13 @@
   "name": "chat-core",
   "version": "0.0.1",
   "description": "Common elements used by the chatbot components.",
+  "author": "MongoDB, Inc.",
+  "license": "MIT",
+  "keywords": [],
+  "engines": {
+    "node": ">=18",
+    "npm": ">=8"
+  },
   "main": "./build/index.js",
   "scripts": {
     "clean": "rm -rf build",
@@ -10,8 +17,6 @@
     "test": "jest",
     "docs": "npx typedoc --excludePrivate --exclude '**/*.test.ts' --out docs src"
   },
-  "author": "MongoDB, Inc.",
-  "license": "MIT",
   "devDependencies": {
     "@babel/preset-typescript": "^7",
     "@babel/types": "^7",

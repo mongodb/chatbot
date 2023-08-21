@@ -49,6 +49,9 @@ export const snootyAstToMd = (
 
   // parent nodes
   switch (node.type) {
+    case "comment":
+      // Do not render comments
+      break;
     case "section":
       if (node.children[0].type === "heading") {
         parentHeadingLevel++;

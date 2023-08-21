@@ -90,7 +90,9 @@ Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibend
       }
     );
     expect(chunks).toHaveLength(1);
-    expect(chunks).toStrictEqual([
+    console.log("Results", chunks);
+
+    const expected = [
       {
         chunkIndex: 0,
         sourceName: "test-source",
@@ -100,20 +102,21 @@ Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibend
           tags: ["a", "b"],
         },
         text: `---
-pageTitle: Test Page
-hasCodeBlock: false
 tags:
   - a
   - b
+pageTitle: Test Page
+hasCodeBlock: false
 ---
 
 This is some text`,
         tokenCount: 32, // Calculated after transformation
         url: "test",
       },
-    ]);
+    ];
+    expect(chunks).toStrictEqual(expected);
 
-    chunks = await chunkPage(
+    const codeBlockChunks = await chunkPage(
       {
         ...page,
         body: "This text has a code example:\n\n```js\nlet foo = 1 + 1;\n```\n\nNeat, huh?",
@@ -122,8 +125,8 @@ This is some text`,
         transform: standardChunkFrontMatterUpdater,
       }
     );
-    expect(chunks).toHaveLength(1);
-    expect(chunks).toStrictEqual([
+    expect(codeBlockChunks).toHaveLength(1);
+    expect(codeBlockChunks).toStrictEqual([
       {
         chunkIndex: 0,
         sourceName: "test-source",
@@ -134,13 +137,13 @@ This is some text`,
           tags: ["a", "b"],
         },
         text: `---
+tags:
+  - a
+  - b
 pageTitle: Test Page
 hasCodeBlock: true
 codeBlockLanguages:
   - js
-tags:
-  - a
-  - b
 ---
 
 This text has a code example:
@@ -155,7 +158,7 @@ Neat, huh?`,
       },
     ]);
 
-    chunks = await chunkPage(
+    const unspecifiedCodeBlockChunks = await chunkPage(
       {
         ...page,
         body: "This text has an unspecified code example:\n\n```\nlet foo = 1 + 1;\n```\n\nNeat, huh?",
@@ -164,8 +167,8 @@ Neat, huh?`,
         transform: standardChunkFrontMatterUpdater,
       }
     );
-    expect(chunks).toHaveLength(1);
-    expect(chunks).toStrictEqual([
+    expect(unspecifiedCodeBlockChunks).toHaveLength(1);
+    expect(unspecifiedCodeBlockChunks).toStrictEqual([
       {
         chunkIndex: 0,
         sourceName: "test-source",
@@ -175,11 +178,11 @@ Neat, huh?`,
           tags: ["a", "b"],
         },
         text: `---
-pageTitle: Test Page
-hasCodeBlock: true
 tags:
   - a
   - b
+pageTitle: Test Page
+hasCodeBlock: true
 ---
 
 This text has an unspecified code example:
@@ -225,10 +228,10 @@ someArray:
   - 2
   - foo
 hasCodeBlock: false
-pageTitle: Test Page
 tags:
   - a
   - b
+pageTitle: Test Page
 ---
 
 This is some text`);
@@ -256,12 +259,12 @@ This is some text`);
         arbitrary: "metadata",
       },
       text: `---
-pageTitle: Test Page
-hasCodeBlock: false
 tags:
   - a
   - b
 arbitrary: metadata
+pageTitle: Test Page
+hasCodeBlock: false
 ---
 
 FOO`,

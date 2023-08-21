@@ -51,7 +51,9 @@ describe("DatabaseConnection", () => {
       body: "foo",
       format: "md",
       sourceName: "source1",
-      tags: [],
+      metadata: {
+        tags: [],
+      },
       updated: new Date(),
       url: "/x/y/z",
     };
@@ -113,7 +115,9 @@ describe("DatabaseConnection", () => {
       body: "foo",
       format: "md",
       sourceName: "source1",
-      tags: [],
+      metadata: {
+        tags: [],
+      },
       updated: new Date(),
       url: "/x/y/z",
     };
@@ -153,7 +157,9 @@ describe("DatabaseConnection", () => {
         body: "The Matrix (1999) comes out",
         format: "md",
         sourceName: "",
-        tags: [],
+        metadata: {
+          tags: [],
+        },
         updated: new Date("1999-03-31"),
         url: "matrix1",
       },
@@ -162,7 +168,9 @@ describe("DatabaseConnection", () => {
         body: "The Matrix: Reloaded (2003) comes out",
         format: "md",
         sourceName: "",
-        tags: [],
+        metadata: {
+          tags: [],
+        },
         updated: new Date("2003-05-15"),
         url: "matrix2",
       },

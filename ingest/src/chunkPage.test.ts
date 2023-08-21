@@ -16,7 +16,9 @@ Praesent a neque diam. Sed ultricies nunc quam, sed maximus risus dignissim sit 
 Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibendum in vel diam. Pellentesque varius dapibus molestie. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Mauris blandit metus sit amet libero pretium, sit amet cursus sem tempor. Proin euismod ut mi vitae luctus. Etiam pulvinar lacus nulla, vel placerat lacus pharetra auctor.`,
     format: "md",
     sourceName: "test-source",
-    tags: ["a", "b"],
+    metadata: {
+      tags: ["a", "b"],
+    },
   };
   it("chunks pages", async () => {
     const chunks = await chunkPage(page, { chunkSize: 500, chunkOverlap: 0 });
@@ -81,39 +83,40 @@ Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibend
   });
 
   it("can add frontmatter", async () => {
-    let chunks = await chunkPage(
+    const chunks = await chunkPage(
       { ...page, body: "This is some text\n" },
       {
         transform: standardChunkFrontMatterUpdater,
       }
     );
     expect(chunks).toHaveLength(1);
-    expect(chunks).toStrictEqual([
+    console.log("Results", chunks);
+
+    const expected = [
       {
         chunkIndex: 0,
         sourceName: "test-source",
         metadata: {
           hasCodeBlock: false,
           pageTitle: "Test Page",
-          sourceName: "test-source",
           tags: ["a", "b"],
         },
         text: `---
-pageTitle: Test Page
-sourceName: test-source
-hasCodeBlock: false
 tags:
   - a
   - b
+pageTitle: Test Page
+hasCodeBlock: false
 ---
 
 This is some text`,
-        tokenCount: 39, // Calculated after transformation
+        tokenCount: 32, // Calculated after transformation
         url: "test",
       },
-    ]);
+    ];
+    expect(chunks).toStrictEqual(expected);
 
-    chunks = await chunkPage(
+    const codeBlockChunks = await chunkPage(
       {
         ...page,
         body: "This text has a code example:\n\n```js\nlet foo = 1 + 1;\n```\n\nNeat, huh?",
@@ -122,27 +125,25 @@ This is some text`,
         transform: standardChunkFrontMatterUpdater,
       }
     );
-    expect(chunks).toHaveLength(1);
-    expect(chunks).toStrictEqual([
+    expect(codeBlockChunks).toHaveLength(1);
+    expect(codeBlockChunks).toStrictEqual([
       {
         chunkIndex: 0,
         sourceName: "test-source",
         metadata: {
           hasCodeBlock: true,
           pageTitle: "Test Page",
-          sourceName: "test-source",
           codeBlockLanguages: ["js"],
           tags: ["a", "b"],
         },
         text: `---
-pageTitle: Test Page
-sourceName: test-source
-hasCodeBlock: true
-codeBlockLanguages:
-  - js
 tags:
   - a
   - b
+pageTitle: Test Page
+hasCodeBlock: true
+codeBlockLanguages:
+  - js
 ---
 
 This text has a code example:
@@ -152,12 +153,12 @@ let foo = 1 + 1;
 \`\`\`
 
 Neat, huh?`,
-        tokenCount: 75,
+        tokenCount: 68,
         url: "test",
       },
     ]);
 
-    chunks = await chunkPage(
+    const unspecifiedCodeBlockChunks = await chunkPage(
       {
         ...page,
         body: "This text has an unspecified code example:\n\n```\nlet foo = 1 + 1;\n```\n\nNeat, huh?",
@@ -166,24 +167,22 @@ Neat, huh?`,
         transform: standardChunkFrontMatterUpdater,
       }
     );
-    expect(chunks).toHaveLength(1);
-    expect(chunks).toStrictEqual([
+    expect(unspecifiedCodeBlockChunks).toHaveLength(1);
+    expect(unspecifiedCodeBlockChunks).toStrictEqual([
       {
         chunkIndex: 0,
         sourceName: "test-source",
         metadata: {
           hasCodeBlock: true,
           pageTitle: "Test Page",
-          sourceName: "test-source",
           tags: ["a", "b"],
         },
         text: `---
-pageTitle: Test Page
-sourceName: test-source
-hasCodeBlock: true
 tags:
   - a
   - b
+pageTitle: Test Page
+hasCodeBlock: true
 ---
 
 This text has an unspecified code example:
@@ -193,7 +192,7 @@ let foo = 1 + 1;
 \`\`\`
 
 Neat, huh?`,
-        tokenCount: 65,
+        tokenCount: 58,
         url: "test",
       },
     ]);
@@ -229,13 +228,48 @@ someArray:
   - 2
   - foo
 hasCodeBlock: false
-pageTitle: Test Page
-sourceName: test-source
 tags:
   - a
   - b
+pageTitle: Test Page
 ---
 
 This is some text`);
+  });
+  it("can add arbitrary page metadata", async () => {
+    const pageWithMetadata: Page = {
+      ...page,
+      body: "FOO",
+      metadata: {
+        ...page.metadata,
+        arbitrary: "metadata",
+      },
+    };
+    const chunks = await chunkPage(pageWithMetadata, {
+      transform: standardChunkFrontMatterUpdater,
+    });
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0]).toStrictEqual({
+      chunkIndex: 0,
+      sourceName: "test-source",
+      metadata: {
+        pageTitle: "Test Page",
+        hasCodeBlock: false,
+        tags: ["a", "b"],
+        arbitrary: "metadata",
+      },
+      text: `---
+tags:
+  - a
+  - b
+arbitrary: metadata
+pageTitle: Test Page
+hasCodeBlock: false
+---
+
+FOO`,
+      tokenCount: 36,
+      url: "test",
+    });
   });
 });

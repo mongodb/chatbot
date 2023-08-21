@@ -1,9 +1,11 @@
 import { readFileSync } from "fs";
+import Path from "path";
+import yaml from "yaml";
 import {
   getTitleFromSnootyOpenApiSpecAst,
   snootyAstToOpenApiSpec,
 } from "./snootyAstToOpenApiSpec";
-import Path from "path";
+
 import { SnootyPageEntry } from "./SnootyDataSource";
 const textSpecPage: SnootyPageEntry = JSON.parse(
   readFileSync(
@@ -68,9 +70,15 @@ info:
 servers:`;
     expect(yamlString).toContain(expected);
   });
-  it("should return YAML string for openapi remote node", () => {
-    const yamlString = snootyAstToOpenApiSpec(remoteSpecPage.data.ast);
-    console.log(yamlString);
+  it("should return YAML string for openapi remote node", async () => {
+    const yamlString = await snootyAstToOpenApiSpec(remoteSpecPage.data.ast);
+    const parsed = yaml.parse(yamlString);
+    console.log(parsed);
+    const expectedSample = {
+      openapi: "3.0.1",
+      servers: [{ url: "https://cloud.mongodb.com" }],
+    };
+    expect(parsed).toMatchObject(expectedSample);
   });
 });
 

@@ -12,3 +12,10 @@ body {
   padding: 20px;
   height: 100vh;
 }
+
+.main_content {
+  max-width: 750px;
+  min-width: 315px;
+  width: 100%;
+  flex-grow: 1;
+}

@@ -240,13 +240,14 @@ export const handlePage = async (
 
   let body = "";
   let title: string | undefined;
-  let format: PageFormat = "md";
+  let format: PageFormat;
   if (page.ast.options?.template === "openapi") {
     format = "openapi-yaml";
-    body = snootyAstToOpenApiSpec(page.ast);
+    body = await snootyAstToOpenApiSpec(page.ast);
     title = getTitleFromSnootyOpenApiSpecAst(page.ast);
     tags.push("openapi");
   } else {
+    format = "md";
     body = snootyAstToMd(page.ast, { baseUrl });
     title = getTitleFromSnootyAst(page.ast);
   }

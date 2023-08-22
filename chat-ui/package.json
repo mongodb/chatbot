@@ -25,12 +25,12 @@
     }
   },
   "scripts": {
-    "dev": "VITE_GIT_COMMIT=$(git rev-parse --short HEAD) vite --config vite.config.component.js --mode development",
+    "dev": "export VITE_GIT_COMMIT=$(git rev-parse --short HEAD); vite --config vite.config.component.js --mode development",
     "build:dts": "tsc --project tsconfig.declarations.json",
     "build:component": "tsc && vite build --config vite.config.component.js && npm run build:dts",
-    "build:static-site:dev": "tsc && VITE_GIT_COMMIT=$(git rev-parse --short HEAD) vite build --config vite.config.static-site.js --mode development",
-    "build:static-site:staging": "tsc && VITE_GIT_COMMIT=$(git rev-parse --short HEAD) vite build --config vite.config.static-site.js --mode staging",
-    "build:static-site:qa": "tsc && VITE_GIT_COMMIT=$(git rev-parse --short HEAD) vite build --config vite.config.static-site.js --mode qa",
+    "build:static-site:dev": "export VITE_GIT_COMMIT=$(git rev-parse --short HEAD); tsc && vite build --config vite.config.static-site.js --mode development",
+    "build:static-site:staging": "export VITE_GIT_COMMIT=$(git rev-parse --short HEAD); tsc && vite build --config vite.config.static-site.js --mode staging",
+    "build:static-site:qa": "export VITE_GIT_COMMIT=$(git rev-parse --short HEAD); tsc && vite build --config vite.config.static-site.js --mode qa",
     "preview:static-site:dev": "npm run build:static-site:dev && vite preview --base ./ --config vite.config.static-site.js",
     "preview:static-site:staging": "npm run build:static-site:staging && vite preview --base ./ --config vite.config.static-site.js",
     "preview:static-site:qa": "npm run build:static-site:qa && vite preview --base ./ --config vite.config.static-site.js",

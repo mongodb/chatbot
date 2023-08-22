@@ -21,8 +21,8 @@ const styles = {
   prompts_container_header: css`
     display: flex;
     flex-direction: row;
-    gap: 0.5rem;
     align-items: left;
+    margin-bottom: 0.5rem;
   `,
   prompt: css`
     padding: 0.25rem 0.5rem;
@@ -70,20 +70,23 @@ export const InputMenu = forwardRef(function InputMenu(
     <Card
       className={cx(styles.menu_card, props.className)}
       id="input-menu-card"
-      role="menu"
-      aria-label="MongoDB Chatbot Suggested Inputs"
     >
-      <div className={styles.prompts_container} ref={ref}>
-        {props.heading ? (
-          <div className={styles.prompts_container_header}>
-            <Overline role="heading" aria-level="2">
-              {props.heading}
-            </Overline>
-            {props.headingBadgeText ? (
-              <Badge variant="blue">{props.headingBadgeText}</Badge>
-            ) : null}
-          </div>
-        ) : null}
+      {props.heading ? (
+        <div className={styles.prompts_container_header}>
+          <Overline role="heading" aria-level="2">
+            {props.heading}
+          </Overline>
+          {props.headingBadgeText ? (
+            <Badge variant="blue">{props.headingBadgeText}</Badge>
+          ) : null}
+        </div>
+      ) : null}
+      <div
+        className={styles.prompts_container}
+        ref={ref}
+        role="menu"
+        aria-label="MongoDB Chatbot Suggested Inputs"
+      >
         {props.prompts.map((prompt, i) => (
           <div
             key={prompt.key}
@@ -116,22 +119,22 @@ export const InputMenu = forwardRef(function InputMenu(
             {prompt.text}
           </div>
         ))}
-        <div className={styles.powered_by_footer}>
-          <Body>
-            {addPeriodIfMissing(props.poweredByText)}{" "}
-            <Link
-              href={props.poweredByLink}
-              onFocusCapture={() => {
-                props.onFocused?.(props.prompts.length);
-              }}
-              onBlur={() => {
-                props.onBlurred?.(props.prompts.length);
-              }}
-            >
-              {addPeriodIfMissing(props.poweredByCTA)}
-            </Link>
-          </Body>
-        </div>
+      </div>
+      <div className={styles.powered_by_footer}>
+        <Body>
+          {addPeriodIfMissing(props.poweredByText)}{" "}
+          <Link
+            href={props.poweredByLink}
+            onFocusCapture={() => {
+              props.onFocused?.(props.prompts.length);
+            }}
+            onBlur={() => {
+              props.onBlurred?.(props.prompts.length);
+            }}
+          >
+            {addPeriodIfMissing(props.poweredByCTA)}
+          </Link>
+        </Body>
       </div>
     </Card>
   );

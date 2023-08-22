@@ -98,16 +98,40 @@ export const chunkPage: ChunkFunc = async (
   }
 };
 
+// separators modified from https://github.com/hwchase17/langchainjs/blob/d017e0dac9d84c9d58fd816698125ab0ae1c0826/langchain/src/text_splitter.ts#L566C5-L566C5
+const separators = [
+  // First, try to split along Markdown headings (starting with level 2)
+  "\n## ",
+  "\n### ",
+  "\n#### ",
+  "\n##### ",
+  "\n###### ",
+  '\n\n<Tab name="',
+  "\n\n<Tabs>\n\n",
+  "<table>\n",
+  "<tr>\n",
+  "<th>\n",
+  "<td>\n",
+  "```\n\n",
+  "\n\n***\n\n",
+  "\n\n---\n\n",
+  "\n\n___\n\n",
+  "\n\n",
+  "\n",
+  " ",
+  "",
+];
 export const chunkMd: ChunkFunc = async function (
   page: Page,
   optionsIn?: Partial<ChunkOptions>
 ) {
   const options = { ...defaultOpenApiSpecYamlChunkOptions, ...optionsIn };
   const { tokenizer, chunkSize, chunkOverlap, transform } = options;
-  const splitter = RecursiveCharacterTextSplitter.fromLanguage("markdown", {
+  const splitter = new RecursiveCharacterTextSplitter({
     chunkOverlap,
     chunkSize,
     lengthFunction: (text) => tokenizer.encode(text).bpe.length,
+    separators,
   });
 
   const chunks = await splitter.createDocuments([page.body]);

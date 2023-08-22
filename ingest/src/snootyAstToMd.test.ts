@@ -1,5 +1,5 @@
 import Path from "path";
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
 import { SnootyNode } from "./SnootyDataSource";
 
@@ -282,12 +282,43 @@ Describes one method for supporting keyword search by storing keywords in an arr
 `;
     expect(result).toBe(expected);
   });
-
-  describe("getTitleFromSnootyAst", () => {
-    it("extracts a title", () => {
-      expect(getTitleFromSnootyAst(samplePage.data.ast)).toBe(
-        "$merge (aggregation)"
-      );
+  it("renders tab sets", () => {
+    const samplePageWithTabs = JSON.parse(
+      readFileSync(Path.resolve(__dirname, "./test_data/sampleTabsPage.json"), {
+        encoding: "utf-8",
+      })
+    );
+    const result = snootyAstToMd(samplePageWithTabs.data.ast, {
+      baseUrl: "/",
     });
+    writeFileSync("tab-output.md", result, {
+      encoding: "utf-8",
+    });
+    const expectedToContainTabsStart = "\n\n<Tabs>\n\n";
+    const expectedToContainTabsEnd = "\n\n</Tabs>\n\n";
+    const expectedToContainTabStart = '\n\n<Tab name="App Services UI">\n\n';
+    const expectedToContainTabEnd = "\n\n</Tab>\n\n";
+    expect(result).toContain(expectedToContainTabsStart);
+    expect(result).toContain(expectedToContainTabsEnd);
+    expect(result).toContain(expectedToContainTabStart);
+    expect(result).toContain(expectedToContainTabEnd);
+    const numberTabsStart = [...result.matchAll(/<Tabs>/g)].length;
+    const numberTabsEnd = [...result.matchAll(/<\/Tabs>/g)].length;
+    expect(numberTabsStart).toBe(numberTabsEnd);
+    const numberTabStart = [...result.matchAll(/<Tab name=/g)].length;
+    const numberTabEnd = [...result.matchAll(/<\/Tab>/g)].length;
+    expect(numberTabStart).toBe(numberTabEnd);
+  });
+});
+describe("getTitleFromSnootyAst", () => {
+  const samplePage = JSON.parse(
+    readFileSync(Path.resolve(__dirname, "./test_data/samplePage.json"), {
+      encoding: "utf-8",
+    })
+  );
+  it("extracts a title", () => {
+    expect(getTitleFromSnootyAst(samplePage.data.ast)).toBe(
+      "$merge (aggregation)"
+    );
   });
 });

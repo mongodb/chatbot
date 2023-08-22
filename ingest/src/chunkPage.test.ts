@@ -1,5 +1,9 @@
+import fs from "fs";
+import Path from "path";
 import { Page } from "chat-core";
 import { chunkPage, standardChunkFrontMatterUpdater } from "./chunkPage";
+import { snootyAstToMd } from "./snootyAstToMd";
+import yaml from "yaml";
 
 describe("chunkPage", () => {
   const page: Page = {
@@ -271,5 +275,36 @@ FOO`,
       tokenCount: 36,
       url: "test",
     });
+  });
+  it("chunks page with tabs", async () => {
+    const samplePageWithTabs = fs.readFileSync(
+      Path.resolve(__dirname, "./test_data/sampleTabsPage.md"),
+      {
+        encoding: "utf-8",
+      }
+    );
+
+    const pageWithTabs: Page = {
+      url: "test",
+      title: "Test Page",
+      body: samplePageWithTabs,
+      format: "md",
+      sourceName: "test-source",
+      metadata: {
+        tags: ["a", "b"],
+      },
+    };
+
+    const chunks = await chunkPage(pageWithTabs, {
+      chunkSize: 300,
+      chunkOverlap: 0,
+    });
+    expect(chunks).toHaveLength(3);
+    expect(chunks[1].text.startsWith('<Tab name="App Services UI">')).toBe(
+      true
+    );
+    expect(chunks[2].text.startsWith('<Tab name="App Services CLI">')).toBe(
+      true
+    );
   });
 });

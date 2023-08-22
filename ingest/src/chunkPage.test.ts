@@ -2,8 +2,6 @@ import fs from "fs";
 import Path from "path";
 import { Page } from "chat-core";
 import { chunkPage, standardChunkFrontMatterUpdater } from "./chunkPage";
-import { snootyAstToMd } from "./snootyAstToMd";
-import yaml from "yaml";
 
 describe("chunkPage", () => {
   const page: Page = {
@@ -94,7 +92,6 @@ Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibend
       }
     );
     expect(chunks).toHaveLength(1);
-    console.log("Results", chunks);
 
     const expected = [
       {
@@ -278,7 +275,7 @@ FOO`,
   });
   it("chunks page with tabs", async () => {
     const samplePageWithTabs = fs.readFileSync(
-      Path.resolve(__dirname, "./test_data/sampleTabsPage.md"),
+      Path.resolve(__dirname, "./test_data/samplePageWithTabs.md"),
       {
         encoding: "utf-8",
       }

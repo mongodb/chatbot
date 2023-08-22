@@ -1,5 +1,5 @@
 import Path from "path";
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync } from "fs";
 import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
 import { SnootyNode } from "./SnootyDataSource";
 
@@ -284,15 +284,15 @@ Describes one method for supporting keyword search by storing keywords in an arr
   });
   it("renders tab sets", () => {
     const samplePageWithTabs = JSON.parse(
-      readFileSync(Path.resolve(__dirname, "./test_data/sampleTabsPage.json"), {
-        encoding: "utf-8",
-      })
+      readFileSync(
+        Path.resolve(__dirname, "./test_data/samplePageWithTabs.json"),
+        {
+          encoding: "utf-8",
+        }
+      )
     );
     const result = snootyAstToMd(samplePageWithTabs.data.ast, {
       baseUrl: "/",
-    });
-    writeFileSync("tab-output.md", result, {
-      encoding: "utf-8",
     });
     const expectedToContainTabsStart = "\n\n<Tabs>\n\n";
     const expectedToContainTabsEnd = "\n\n</Tabs>\n\n";

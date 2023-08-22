@@ -108,9 +108,16 @@ const styles = {
   `,
   // This is a hacky fix for weird white-space issues in LG Chat.
   markdown_container: css`
+    display: flex;
+    flex-direction: column;
+
+    & * {
+      line-height: 28px;
+    }
+
     & li {
       white-space: normal;
-      margin-top: -1rem;
+      margin-top: -1.5rem;
     }
   `,
   // End hacky fix

@@ -1,11 +1,21 @@
 import { strict as assert } from "assert";
+import fs from "fs";
+import Path from "path";
 import {
   makeDevCenterPageBody,
   makeDevCenterDataSource,
+  makeDevCenterPage,
 } from "./DevCenterDataSource";
-import { devCenterDoc } from "./test_data/sampleDevCenterDoc";
 import "dotenv/config";
 
+const devCenterDoc = JSON.parse(
+  fs.readFileSync(
+    Path.resolve(__dirname, "./test_data/sampleDevCenterPage.json"),
+    {
+      encoding: "utf-8",
+    }
+  )
+);
 describe("DevCenterDataSource", () => {
   jest.setTimeout(20000);
   it("loads pages from dev center", async () => {
@@ -27,6 +37,31 @@ describe("DevCenterDataSource", () => {
     expect(pages.length).toBeGreaterThan(300);
     pages.slice(0, 100).forEach(({ url }) => {
       expect(url).toMatch(/^https:\/\/example.com\/developer\/[A-z0-9/-]+$/);
+    });
+  });
+});
+
+describe("makeDevCenterPage()", () => {
+  it("makes a page", () => {
+    const page = makeDevCenterPage(
+      devCenterDoc,
+      "devcenter",
+      "https://example.com/developer"
+    );
+    expect(page).toEqual({
+      title: devCenterDoc.name,
+      body: makeDevCenterPageBody({
+        title: devCenterDoc.name,
+        content: devCenterDoc.content,
+      }),
+      format: "md",
+      sourceName: "devcenter",
+      metadata: {
+        tags: ["Realm", "GitHub Actions", "JavaScript"],
+        pageDescription: devCenterDoc.description,
+        contentType: devCenterDoc.type,
+      },
+      url: "https://example.com/developer/products/realm/build-ci-cd-pipelines-realm-apps-github-actions",
     });
   });
 });

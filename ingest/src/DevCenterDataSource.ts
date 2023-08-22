@@ -3,6 +3,7 @@ import { Page, assertEnvVars, logger } from "chat-core";
 import { DataSource } from "./DataSource";
 import { ProjectBase } from "./ProjectBase";
 import { INGEST_ENV_VARS } from "./IngestEnvVars";
+import { strict as assert } from "assert";
 
 export type DevCenterProjectConfig = ProjectBase & {
   type: "devcenter";
@@ -17,7 +18,14 @@ export type DevCenterEntry = {
   description: string;
   content: string | null;
   calculated_slug: string;
+  tags: DevCenterEntryTag[];
+  type: string;
 };
+
+export interface DevCenterEntryTag {
+  name: string;
+  type: string;
+}
 
 export const makeDevCenterDataSource = async ({
   name,
@@ -44,24 +52,7 @@ export const makeDevCenterDataSource = async ({
             );
             continue;
           }
-          pages.push({
-            title: document.name,
-            body: makeDevCenterPageBody({
-              title: document.name,
-              content: document.content,
-            }),
-            format: "md",
-            sourceName: name,
-            metadata: {
-              tags: [], // TODO
-            },
-            url: /^https?:\/\//.test(document.calculated_slug)
-              ? document.calculated_slug
-              : new URL(
-                  document.calculated_slug.replace(/^\/?/, ""), // Strip leading slash (if present) to not clobber baseUrl path
-                  baseUrl.replace(/\/?$/, "/") // Add trailing slash to not lose last segment of baseUrl
-                ).toString(),
-          });
+          pages.push(makeDevCenterPage(document, name, baseUrl));
         }
         return pages;
       } finally {
@@ -70,6 +61,48 @@ export const makeDevCenterDataSource = async ({
     },
   };
 };
+
+export function makeDevCenterPage(
+  document: DevCenterEntry,
+  name: string,
+  baseUrl: string
+): Page {
+  assert(document.content, "document.content must be defined");
+  return {
+    title: document.name,
+    body: makeDevCenterPageBody({
+      title: document.name,
+      content: document.content,
+    }),
+    format: "md",
+    sourceName: name,
+    metadata: {
+      tags: extractTags(document.tags),
+      pageDescription: document.description,
+      contentType: document.type,
+    },
+    url: /^https?:\/\//.test(document.calculated_slug)
+      ? document.calculated_slug
+      : new URL(
+          document.calculated_slug.replace(/^\/?/, ""), // Strip leading slash (if present) to not clobber baseUrl path
+          baseUrl.replace(/\/?$/, "/") // Add trailing slash to not lose last segment of baseUrl
+        ).toString(),
+  };
+}
+
+/**
+  Extract relevant tags from dev center entry tags
+ */
+export function extractTags(tags: DevCenterEntryTag[]) {
+  return tags
+    .filter(
+      (tag) =>
+        tag.type === "L1Product" ||
+        tag.type === "Technology" ||
+        tag.type === "ProgrammingLanguage"
+    )
+    .map((tag) => tag.name);
+}
 
 export function makeDevCenterPageBody({
   title,

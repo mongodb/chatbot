@@ -108,7 +108,10 @@ const styles = {
   `,
   // This is a hacky fix for weird white-space issues in LG Chat.
   markdown_container: css`
-    white-space: normal;
+    & li {
+      white-space: normal;
+      margin-top: -1rem;
+    }
   `,
   // End hacky fix
   message_rating: css`

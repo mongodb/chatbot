@@ -1,13 +1,14 @@
 import LeafyGreenProvider from "@leafygreen-ui/leafygreen-provider";
 import { Chatbot } from "./Chatbot";
 import styles from "./App.module.css"
+import "./fonts.module.css";
 
 function App() {
   return (
     <div className={styles.app_background}>
       <div
         style={{
-          maxWidth: "750px",
+          maxWidth: "775px",
           minWidth: "315px",
           width: "100%",
         }}

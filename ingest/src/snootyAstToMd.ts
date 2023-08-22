@@ -172,6 +172,19 @@ export const snootyAstToMd = (
             .join(""),
           "</table>",
         ].join("\n");
+      } else if (node.name === "tab") {
+        const tabName = (
+          node.argument && Array.isArray(node.argument) && node.argument.length
+            ? node.argument.find((arg) => arg.type === "text")?.value ?? ""
+            : ""
+        ).trim();
+        text += `\n\n<Tab ${`name="${tabName ?? ""}"`}>\n\n${node.children
+          .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
+          .join("")}\n\n</Tab>\n\n`;
+      } else if (node.name === "tabs") {
+        text += `\n\n<Tabs>\n\n${node.children
+          .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
+          .join("")}\n\n</Tabs>\n\n`;
       } else {
         // other "directive" nodes not parsed in particular way
         text += node.children

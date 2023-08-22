@@ -4,7 +4,10 @@ import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import GPT3Tokenizer from "gpt3-tokenizer";
 import { EmbeddedContent, Page } from "chat-core";
 import { updateFrontMatter, extractFrontMatter } from "chat-core";
-import { string } from "yargs";
+import {
+  chunkOpenApiSpecYaml,
+  defaultOpenApiSpecYamlChunkOptions,
+} from "./chunkOpenApiSpecYaml";
 
 export type ContentChunk = Omit<EmbeddedContent, "embedding" | "updated">;
 
@@ -14,6 +17,11 @@ export type SomeTokenizer = {
     text: string[];
   };
 };
+
+export type ChunkFunc = (
+  page: Page,
+  options?: Partial<ChunkOptions>
+) => Promise<ContentChunk[]>;
 
 export type ChunkTransformer = (
   chunk: Omit<ContentChunk, "tokenCount">,
@@ -45,6 +53,7 @@ export type ChunkOptions = {
   chunkSize: number;
   chunkOverlap: number;
   tokenizer: SomeTokenizer;
+  yamlChunkSize?: number;
 
   /**
     Transform to be applied to each chunk as it is produced.
@@ -53,7 +62,7 @@ export type ChunkOptions = {
   transform?: ChunkTransformer;
 };
 
-const defaultChunkOptions: ChunkOptions = {
+const defaultMdChunkOptions: ChunkOptions = {
   chunkSize: 600, // max chunk size of 600 tokens gets avg ~400 tokens/chunk
   chunkOverlap: 0,
   tokenizer: new GPT3Tokenizer({ type: "gpt3" }),
@@ -62,17 +71,67 @@ const defaultChunkOptions: ChunkOptions = {
 /**
   Returns chunked of a content page.
  */
-export const chunkPage = async (
+export const chunkPage: ChunkFunc = async (
+  page: Page,
+  chunkOptions?: Partial<ChunkOptions>
+): Promise<ContentChunk[]> => {
+  switch (page.format) {
+    case "openapi-yaml": {
+      const chunks = await chunkOpenApiSpecYaml(page, {
+        ...defaultOpenApiSpecYamlChunkOptions,
+        ...chunkOptions,
+        chunkSize:
+          chunkOptions?.yamlChunkSize ??
+          defaultOpenApiSpecYamlChunkOptions.chunkSize,
+      });
+      return chunks;
+    }
+    case "md": // fallthrough
+    case "txt": // fallthrough
+    default: {
+      const chunks = await chunkMd(page, {
+        ...defaultMdChunkOptions,
+        ...chunkOptions,
+      });
+      return chunks;
+    }
+  }
+};
+
+// separators modified from https://github.com/hwchase17/langchainjs/blob/d017e0dac9d84c9d58fd816698125ab0ae1c0826/langchain/src/text_splitter.ts#L566C5-L566C5
+const separators = [
+  // First, try to split along Markdown headings (starting with level 2)
+  "\n## ",
+  "\n### ",
+  "\n#### ",
+  "\n##### ",
+  "\n###### ",
+  '\n\n<Tab name="',
+  "\n\n<Tabs>\n\n",
+  "<table>\n",
+  "<tr>\n",
+  "<th>\n",
+  "<td>\n",
+  "```\n\n",
+  "\n\n***\n\n",
+  "\n\n---\n\n",
+  "\n\n___\n\n",
+  "\n\n",
+  "\n",
+  " ",
+  "",
+];
+export const chunkMd: ChunkFunc = async function (
   page: Page,
   optionsIn?: Partial<ChunkOptions>
-): Promise<ContentChunk[]> => {
-  const options = { ...defaultChunkOptions, ...optionsIn };
+) {
+  const options = { ...defaultOpenApiSpecYamlChunkOptions, ...optionsIn };
   const { tokenizer, chunkSize, chunkOverlap, transform } = options;
-
-  const splitter = RecursiveCharacterTextSplitter.fromLanguage("markdown", {
+  const splitter = new RecursiveCharacterTextSplitter({
     chunkOverlap,
     chunkSize,
     lengthFunction: (text) => tokenizer.encode(text).bpe.length,
+    separators,
   });
 
   const chunks = await splitter.createDocuments([page.body]);

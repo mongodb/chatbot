@@ -47,6 +47,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@apidevtools/swagger-parser": "^10.1.0",
     "chat-core": "file:../chat-core",
     "deep-equal": "^2.2.1",
     "dotenv": "^16",

@@ -10,8 +10,8 @@ export interface MongoDbUserQueryPreprocessorResponse {
   programmingLanguages: string[];
   /** One or more MongoDB products present in the content.
     Which MongoDB products is the user interested in? Ordered by relevancy.
-    Include driver if the user is asking about a programming language with a MongoDB driver.
-    @example ["atlas", "charts", "server", "compass", "bi-connector", "realm", "driver", ...other MongoDB products]
+    Include "Driver" if the user is asking about a programming language with a MongoDB driver.
+    @example ["MongoDB Atlas", "Atlas Charts", "Atlas Search", "Aggregation Framework", "MongoDB Server", "Compass", "MongoDB Connector for BI", "Realm SDK", "Driver", "Atlas App Services", ...other MongoDB products]
    */
   mongoDbProducts: string[];
   /** Using your knowledge of MongoDB and the conversational context,

@@ -17,4 +17,10 @@ export interface ProjectBase {
     @example ["kotlin", "docs", "driver"]
    */
   tags?: string[];
+
+  /**
+    Name of the product.
+    @example "MongoDB Atlas"
+  */
+  productName?: string;
 }

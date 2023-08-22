@@ -22,9 +22,15 @@ export type Page = {
   sourceName: string;
 
   /**
-    Arbitrary tags.
+     Arbitrary metadata for page.
    */
-  tags: string[];
+  metadata?: {
+    /**
+      Arbitrary tags.
+     */
+    tags?: string[];
+    [k: string]: unknown;
+  };
 };
 
 export type PageFormat = "md" | "txt" | "openapi-yaml";

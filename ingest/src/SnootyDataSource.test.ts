@@ -58,7 +58,9 @@ describe("SnootyDataSource", () => {
       expect(pages[1]).toMatchObject({
         format: "md",
         sourceName: "snooty-test",
-        tags: ["docs", "manual"],
+        metadata: {
+          tags: ["docs", "manual"],
+        },
         url: "https://mongodb.com/docs/v6.0/administration/",
         body: firstPageText,
       });
@@ -74,7 +76,9 @@ describe("SnootyDataSource", () => {
       expect(pages[0]).toMatchObject({
         format: "md",
         sourceName: "snooty-docs",
-        tags: ["docs", "manual"],
+        metadata: {
+          tags: ["docs", "manual"],
+        },
         url: "https://mongodb.com/docs/v6.0/",
       });
 
@@ -84,7 +88,9 @@ describe("SnootyDataSource", () => {
       expect(pages[2]).toMatchObject({
         format: "md",
         sourceName: "snooty-docs",
-        tags: ["docs", "manual"],
+        metadata: {
+          tags: ["docs", "manual"],
+        },
         url: "https://mongodb.com/docs/v6.0/administration/analyzing-mongodb-performance/index/",
       });
 
@@ -92,7 +98,9 @@ describe("SnootyDataSource", () => {
       expect(pages[3]).toMatchObject({
         format: "md",
         sourceName: "snooty-docs",
-        tags: ["docs", "manual"],
+        metadata: {
+          tags: ["docs", "manual"],
+        },
         url: "https://mongodb.com/docs/v6.0/administration/index/backup-sharded-clusters/",
       });
 
@@ -100,7 +108,9 @@ describe("SnootyDataSource", () => {
       expect(pages[4]).toMatchObject({
         format: "md",
         sourceName: "snooty-docs",
-        tags: ["docs", "manual"],
+        metadata: {
+          tags: ["docs", "manual"],
+        },
         url: "https://mongodb.com/docs/v6.0/administration/change-streams-production-recommendations/how-to-index/",
       });
     });

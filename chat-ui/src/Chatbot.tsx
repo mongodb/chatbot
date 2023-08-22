@@ -266,6 +266,9 @@ export function Chatbot() {
             setMenuOpen(false);
           }}
         />
+
+        {inputTextError ? <ErrorText>{inputTextError}</ErrorText> : null}
+
         {menuOpen ? (
           <SuggestedPrompts
             prompts={showSuggestedPrompts ? suggestedPrompts : []}

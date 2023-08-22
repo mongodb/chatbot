@@ -194,140 +194,15 @@ Stop and fail the aggregation operation. Any changes to the output collection fr
   });
 
   it("renders HTML tables with multiple header rows", () => {
-    const ast: SnootyNode = {
-      type: "root",
-      position: { start: { line: 0 } },
-      children: [
-        {
-          type: "directive",
-          children: [
-            {
-              type: "list",
-              children: [
-                {
-                  type: "listItem",
-                  children: [
-                    {
-                      type: "list",
-                      children: [
-                        {
-                          type: "listItem",
-                          children: [
-                            {
-                              type: "paragraph",
-                              children: [
-                                {
-                                  type: "text",
-                                  value: "h1",
-                                },
-                              ],
-                            },
-                          ],
-                        },
-                        {
-                          type: "listItem",
-                          children: [
-                            {
-                              type: "paragraph",
-                              children: [
-                                {
-                                  type: "text",
-                                  value: "h2",
-                                },
-                              ],
-                            },
-                          ],
-                        },
-                      ],
-                    },
-                  ],
-                },
-                {
-                  type: "listItem",
-                  children: [
-                    {
-                      type: "list",
-                      children: [
-                        {
-                          type: "listItem",
-                          children: [
-                            {
-                              type: "paragraph",
-                              children: [
-                                {
-                                  type: "text",
-                                  value: "h3",
-                                },
-                              ],
-                            },
-                          ],
-                        },
-                        {
-                          type: "listItem",
-                          children: [
-                            {
-                              type: "paragraph",
-                              children: [
-                                {
-                                  type: "text",
-                                  value: "h4",
-                                },
-                              ],
-                            },
-                          ],
-                        },
-                      ],
-                    },
-                  ],
-                },
-                {
-                  type: "listItem",
-                  children: [
-                    {
-                      type: "list",
-                      children: [
-                        {
-                          type: "listItem",
-                          children: [
-                            {
-                              type: "paragraph",
-                              children: [
-                                {
-                                  type: "text",
-                                  value: "d1",
-                                },
-                              ],
-                            },
-                          ],
-                        },
-                        {
-                          type: "listItem",
-                          children: [
-                            {
-                              type: "paragraph",
-                              children: [
-                                {
-                                  type: "text",
-                                  value: "d2",
-                                },
-                              ],
-                            },
-                          ],
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-          name: "list-table",
-          options: {
-            "header-rows": 2,
-          },
-        },
-      ],
-    };
+    const ast: SnootyNode = JSON.parse(
+      readFileSync(
+        Path.resolve(
+          __dirname,
+          "./test_data/samplePageWithMultiHeaderTableAst.json"
+        ),
+        "utf-8"
+      )
+    );
     const result = snootyAstToMd(ast, {
       baseUrl: "/",
     });
@@ -363,6 +238,48 @@ d2
 </td>
 </tr>
 </table>`;
+    expect(result).toBe(expected);
+  });
+
+  it("strips comments", () => {
+    const ast: SnootyNode = JSON.parse(
+      readFileSync(
+        Path.resolve(__dirname, "./test_data/samplePageWithCommentAst.json"),
+        "utf-8"
+      )
+    );
+    const result = snootyAstToMd(ast, {
+      baseUrl: "/",
+    });
+    const expected = `# Data Model Examples and Patterns
+
+For additional patterns and use cases, see also: Building with Patterns
+
+The following documents provide overviews of various data modeling patterns and common schema design considerations:
+
+Examples for modeling relationships between documents.
+
+Presents a data model that uses embedded documents to describe one-to-one relationships between connected data.
+
+Presents a data model that uses embedded documents to describe one-to-many relationships between connected data.
+
+Presents a data model that uses references to describe one-to-many relationships between documents.
+
+Examples for modeling tree structures.
+
+Presents a data model that organizes documents in a tree-like structure by storing references to "parent" nodes in "child" nodes.
+
+Presents a data model that organizes documents in a tree-like structure by storing references to "child" nodes in "parent" nodes.
+
+See Model Tree Structures for additional examples of data models for tree structures.
+
+Examples for models for specific application contexts.
+
+Illustrates how embedding fields related to an atomic update within the same document ensures that the fields are in sync.
+
+Describes one method for supporting keyword search by storing keywords in an array in the same document as the text field. Combined with a multi-key index, this pattern can support application's keyword search operations.
+
+`;
     expect(result).toBe(expected);
   });
 

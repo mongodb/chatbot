@@ -6,6 +6,7 @@ import GPT3Tokenizer from "gpt3-tokenizer";
 import yaml from "yaml";
 import { EmbeddedContent, Page } from "chat-core";
 import { updateFrontMatter, extractFrontMatter } from "chat-core";
+import { string } from "yargs";
 
 export type ContentChunk = Omit<EmbeddedContent, "embedding" | "updated">;
 
@@ -174,10 +175,10 @@ export const makeChunkFrontMatterUpdater = <
  */
 export const standardMetadataGetter: ChunkMetadataGetter<{
   pageTitle?: string;
-  sourceName: string;
   hasCodeBlock: boolean;
   codeBlockLanguages?: string[];
   tags?: string[];
+  [k: string]: unknown;
 }> = async ({ page, text }) => {
   // Detect code blocks
   const mdCodeBlockToken = /```([A-z0-1-_]*)/;
@@ -196,7 +197,6 @@ export const standardMetadataGetter: ChunkMetadataGetter<{
 
   const metadata: Awaited<ReturnType<typeof standardMetadataGetter>> = {
     pageTitle: page.title,
-    sourceName: page.sourceName,
     hasCodeBlock: codeBlockLanguages.length !== 0,
   };
 
@@ -209,11 +209,7 @@ export const standardMetadataGetter: ChunkMetadataGetter<{
     metadata["codeBlockLanguages"] = specifiedLanguages;
   }
 
-  if (page.tags.length !== 0) {
-    metadata["tags"] = page.tags;
-  }
-
-  return metadata;
+  return { ...(page.metadata ?? {}), ...metadata };
 };
 
 export const standardChunkFrontMatterUpdater = makeChunkFrontMatterUpdater(

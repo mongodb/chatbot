@@ -102,7 +102,13 @@ export const makeSnootyDataSource = async ({
     _snootyProjectName: string;
   }
 > => {
-  const { baseUrl, currentBranch, name: snootyProjectName, tags } = project;
+  const {
+    baseUrl,
+    currentBranch,
+    name: snootyProjectName,
+    tags,
+    productName,
+  } = project;
   return {
     // Additional members for testing purposes
     _baseUrl: baseUrl,
@@ -133,7 +139,7 @@ export const makeSnootyDataSource = async ({
                 (async () => {
                   const page = await handlePage(
                     (entry as SnootyPageEntry).data,
-                    { sourceName, baseUrl, tags: tags ?? [] }
+                    { sourceName, baseUrl, tags: tags ?? [], productName }
                   );
                   pages.push(page);
                 })()
@@ -219,10 +225,12 @@ export const handlePage = async (
     sourceName,
     baseUrl,
     tags = [],
+    productName,
   }: {
     sourceName: string;
     baseUrl: string;
     tags: string[];
+    productName?: string;
   }
 ): Promise<Page> => {
   // Strip first three path segments - according to Snooty team, they'll always
@@ -258,9 +266,12 @@ export const handlePage = async (
       "/"
     ),
     sourceName,
-    title,
-    body,
-    format,
-    tags,
+    title: getTitleFromSnootyAst(page.ast),
+    body: snootyAstToMd(page.ast, { baseUrl }),
+    format: "md",
+    metadata: {
+      tags,
+      productName,
+    },
   };
 };

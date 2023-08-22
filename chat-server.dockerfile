@@ -9,6 +9,9 @@ ARG LG_ARTIFACTORY_USERNAME
 ENV LG_ARTIFACTORY_USERNAME=${LG_ARTIFACTORY_USERNAME}
 ARG LG_ARTIFACTORY_EMAIL
 ENV LG_ARTIFACTORY_EMAIL=${LG_ARTIFACTORY_EMAIL}
+
+RUN apt-get update && apt-get install -y git
+
 # Install all dependencies && set up project
 WORKDIR /app
 COPY . ./

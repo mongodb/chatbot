@@ -61,6 +61,7 @@ name: staging-build-chat-server
 trigger:
   branch:
     - main
+    - build-fix # TODO: Remove before merge
   event:
     - push
 

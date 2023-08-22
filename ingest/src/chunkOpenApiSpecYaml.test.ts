@@ -15,7 +15,7 @@ describe("chunkRedocOpenApiSpecYaml()", () => {
     const result = await handlePage(apiSpecPage.data, {
       sourceName: "sample-source",
       baseUrl: "https://example.com",
-      tagsIn: ["a"],
+      tags: ["a"],
     });
     const chunks = await chunkOpenApiSpecYaml(result, {
       chunkSize: 1250,

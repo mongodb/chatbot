@@ -127,7 +127,7 @@ describe("handlePage()", () => {
     const result = await handlePage(apiSpecPage.data, {
       sourceName: "sample-source",
       baseUrl: "https://example.com",
-      tagsIn: ["a"],
+      tags: ["a"],
     });
     expect(result).toMatchObject({
       format: "openapi-yaml",
@@ -147,7 +147,7 @@ describe("handlePage()", () => {
     const result = await handlePage(nonApiSpecPage.data, {
       sourceName: "sample-source",
       baseUrl: "https://example.com",
-      tagsIn: ["a"],
+      tags: ["a"],
     });
     expect(result).toMatchObject({
       format: "md",

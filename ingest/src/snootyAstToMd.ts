@@ -188,59 +188,57 @@ const handleDirective = (
   options: SnootyAstToMdOptions,
   parentHeadingLevel: number
 ) => {
-  let text = "";
   if (node.children === undefined) {
-    text += snootyAstToMd(node, options, parentHeadingLevel);
-    return text;
+    return snootyAstToMd(node, options, parentHeadingLevel);
   }
-
-  if (node.name === "list-table") {
-    const directiveOptions = (node as { options?: Record<string, unknown> })
-      .options;
-    const headerRows =
-      directiveOptions && typeof directiveOptions["header-rows"] === "number"
-        ? directiveOptions["header-rows"]
-        : 0;
-    text += [
-      "\n\n<table>",
-      node.children
-        .map((child) =>
-          snootyAstToMd(
-            child,
-            {
-              ...options,
-              table: {
-                mode: TableMode.IN_TABLE,
-                headerRows,
+  switch (node.name) {
+    case "list-table":
+      // eslint-disable-next-line no-case-declarations
+      const directiveOptions = (node as { options?: Record<string, unknown> })
+        .options;
+      // eslint-disable-next-line no-case-declarations
+      const headerRows =
+        directiveOptions && typeof directiveOptions["header-rows"] === "number"
+          ? directiveOptions["header-rows"]
+          : 0;
+      return [
+        "\n\n<table>",
+        node.children
+          .map((child) =>
+            snootyAstToMd(
+              child,
+              {
+                ...options,
+                table: {
+                  mode: TableMode.IN_TABLE,
+                  headerRows,
+                },
               },
-            },
-            parentHeadingLevel
+              parentHeadingLevel
+            )
           )
-        )
-        .join(""),
-      "</table>\n\n",
-    ].join("\n");
-  } else if (node.name === "tab") {
-    const tabName = (
-      node.argument && Array.isArray(node.argument) && node.argument.length
-        ? node.argument.find((arg) => arg.type === "text")?.value ?? ""
-        : ""
-    ).trim();
-    text += `\n\n<Tab ${`name="${tabName ?? ""}"`}>\n\n${node.children
-      .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
-      .join("")}\n\n</Tab>\n\n`;
-  } else if (node.name === "tabs" || node.name === "tabs-drivers") {
-    text += `\n\n<Tabs>\n\n${node.children
-      .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
-      .join("")}\n\n</Tabs>\n\n`;
-  } else {
-    // other "directive" nodes not parsed in particular way
-    text += node.children
-      .map((subnode) => snootyAstToMd(subnode, options, parentHeadingLevel))
-      .join("");
+          .join(""),
+        "</table>\n\n",
+      ].join("\n");
+    case "tab":
+      // eslint-disable-next-line no-case-declarations
+      const tabName = (
+        node.argument && Array.isArray(node.argument) && node.argument.length
+          ? node.argument.find((arg) => arg.type === "text")?.value ?? ""
+          : ""
+      ).trim();
+      return `\n\n<Tab ${`name="${tabName ?? ""}"`}>\n\n${node.children
+        .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
+        .join("")}\n\n</Tab>\n\n`;
+    case "tabs" || "tabs-drivers":
+      return `\n\n<Tabs>\n\n${node.children
+        .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
+        .join("")}\n\n</Tabs>\n\n`;
+    default:
+      return node.children
+        .map((subnode) => snootyAstToMd(subnode, options, parentHeadingLevel))
+        .join("");
   }
-
-  return text;
 };
 
 const findNode = (

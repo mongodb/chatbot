@@ -1,5 +1,5 @@
 import nock from "nock";
-import fs, { readFileSync } from "fs";
+import fs from "fs";
 import Path from "path";
 import JSONL from "jsonl-parse-stringify";
 import {
@@ -119,7 +119,7 @@ describe("SnootyDataSource", () => {
 describe("handlePage()", () => {
   it("should correctly parse openapi spec page", async () => {
     const apiSpecPage = JSON.parse(
-      readFileSync(
+      fs.readFileSync(
         Path.resolve(__dirname, "./test_data/localOpenApiSpecPage.json"),
         "utf-8"
       )
@@ -127,17 +127,19 @@ describe("handlePage()", () => {
     const result = await handlePage(apiSpecPage.data, {
       sourceName: "sample-source",
       baseUrl: "https://example.com",
-      tags: ["a"],
+      tagsIn: ["a"],
     });
     expect(result).toMatchObject({
       format: "openapi-yaml",
       title: "Atlas App Services Data API",
-      tags: ["a", "openapi"],
+      metadata: {
+        tags: ["a", "openapi"],
+      },
     });
   });
   it("should correctly parse standard page", async () => {
     const nonApiSpecPage = JSON.parse(
-      readFileSync(
+      fs.readFileSync(
         Path.resolve(__dirname, "./test_data/samplePage.json"),
         "utf-8"
       )
@@ -145,12 +147,14 @@ describe("handlePage()", () => {
     const result = await handlePage(nonApiSpecPage.data, {
       sourceName: "sample-source",
       baseUrl: "https://example.com",
-      tags: ["a"],
+      tagsIn: ["a"],
     });
     expect(result).toMatchObject({
       format: "md",
       title: "$merge (aggregation)",
-      tags: ["a"],
+      metadata: {
+        tags: ["a"],
+      },
     });
     expect(result.body).toContain("# $merge (aggregation)");
   });

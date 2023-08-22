@@ -139,7 +139,7 @@ export const makeSnootyDataSource = async ({
                 (async () => {
                   const page = await handlePage(
                     (entry as SnootyPageEntry).data,
-                    { sourceName, baseUrl, tags: tags ?? [], productName }
+                    { sourceName, baseUrl, tagsIn: tags ?? [], productName }
                   );
                   pages.push(page);
                 })()
@@ -224,12 +224,12 @@ export const handlePage = async (
   {
     sourceName,
     baseUrl,
-    tags = [],
+    tagsIn = [],
     productName,
   }: {
     sourceName: string;
     baseUrl: string;
-    tags: string[];
+    tagsIn: string[];
     productName?: string;
   }
 ): Promise<Page> => {
@@ -246,6 +246,7 @@ export const handlePage = async (
     })
     .join("/");
 
+  const tags: string[] = [...tagsIn];
   let body = "";
   let title: string | undefined;
   let format: PageFormat;
@@ -266,9 +267,9 @@ export const handlePage = async (
       "/"
     ),
     sourceName,
-    title: getTitleFromSnootyAst(page.ast),
-    body: snootyAstToMd(page.ast, { baseUrl }),
-    format: "md",
+    title,
+    body,
+    format,
     metadata: {
       tags,
       productName,

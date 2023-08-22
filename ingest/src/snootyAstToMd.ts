@@ -226,7 +226,6 @@ const handleDirective = (
         ? node.argument.find((arg) => arg.type === "text")?.value ?? ""
         : ""
     ).trim();
-    // const tabId = node.
     text += `\n\n<Tab ${`name="${tabName ?? ""}"`}>\n\n${node.children
       .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
       .join("")}\n\n</Tab>\n\n`;

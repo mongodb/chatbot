@@ -145,52 +145,7 @@ export const snootyAstToMd = (
         .join("")}\``;
       break;
     case "directive":
-      if (node.name === "list-table") {
-        const directiveOptions = (node as { options?: Record<string, unknown> })
-          .options;
-        const headerRows =
-          directiveOptions &&
-          typeof directiveOptions["header-rows"] === "number"
-            ? directiveOptions["header-rows"]
-            : 0;
-        text += [
-          "<table>",
-          node.children
-            .map((child) =>
-              snootyAstToMd(
-                child,
-                {
-                  ...options,
-                  table: {
-                    mode: TableMode.IN_TABLE,
-                    headerRows,
-                  },
-                },
-                parentHeadingLevel
-              )
-            )
-            .join(""),
-          "</table>",
-        ].join("\n");
-      } else if (node.name === "tab") {
-        const tabName = (
-          node.argument && Array.isArray(node.argument) && node.argument.length
-            ? node.argument.find((arg) => arg.type === "text")?.value ?? ""
-            : ""
-        ).trim();
-        text += `\n\n<Tab ${`name="${tabName ?? ""}"`}>\n\n${node.children
-          .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
-          .join("")}\n\n</Tab>\n\n`;
-      } else if (node.name === "tabs") {
-        text += `\n\n<Tabs>\n\n${node.children
-          .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
-          .join("")}\n\n</Tabs>\n\n`;
-      } else {
-        // other "directive" nodes not parsed in particular way
-        text += node.children
-          .map((subnode) => snootyAstToMd(subnode, options, parentHeadingLevel))
-          .join("");
-      }
+      text += handleDirective(node, options, parentHeadingLevel);
       break;
     // No longer including links
     // case "ref_role": {
@@ -226,6 +181,67 @@ export const snootyAstToMd = (
   }
 
   return text.replaceAll(/\n{3,}/g, "\n\n").trimStart(); // remove extra newlines with just 2
+};
+
+const handleDirective = (
+  node: SnootyNode,
+  options: SnootyAstToMdOptions,
+  parentHeadingLevel: number
+) => {
+  let text = "";
+  if (node.children === undefined) {
+    text += snootyAstToMd(node, options, parentHeadingLevel);
+    return text;
+  }
+
+  if (node.name === "list-table") {
+    const directiveOptions = (node as { options?: Record<string, unknown> })
+      .options;
+    const headerRows =
+      directiveOptions && typeof directiveOptions["header-rows"] === "number"
+        ? directiveOptions["header-rows"]
+        : 0;
+    text += [
+      "<table>",
+      node.children
+        .map((child) =>
+          snootyAstToMd(
+            child,
+            {
+              ...options,
+              table: {
+                mode: TableMode.IN_TABLE,
+                headerRows,
+              },
+            },
+            parentHeadingLevel
+          )
+        )
+        .join(""),
+      "</table>",
+    ].join("\n");
+  } else if (node.name === "tab") {
+    const tabName = (
+      node.argument && Array.isArray(node.argument) && node.argument.length
+        ? node.argument.find((arg) => arg.type === "text")?.value ?? ""
+        : ""
+    ).trim();
+    // const tabId = node.
+    text += `\n\n<Tab ${`name="${tabName ?? ""}"`}>\n\n${node.children
+      .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
+      .join("")}\n\n</Tab>\n\n`;
+  } else if (node.name === "tabs" || node.name === "tabs-drivers") {
+    text += `\n\n<Tabs>\n\n${node.children
+      .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
+      .join("")}\n\n</Tabs>\n\n`;
+  } else {
+    // other "directive" nodes not parsed in particular way
+    text += node.children
+      .map((subnode) => snootyAstToMd(subnode, options, parentHeadingLevel))
+      .join("");
+  }
+
+  return text;
 };
 
 const findNode = (

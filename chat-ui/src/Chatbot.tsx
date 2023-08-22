@@ -14,7 +14,7 @@ import { Avatar } from "@lg-chat/avatar";
 import { InputBar } from "@lg-chat/input-bar";
 import { Message } from "@lg-chat/message";
 import { MessageFeed } from "@lg-chat/message-feed";
-import { MessageRating, MessageRatingProps } from "@lg-chat/message-rating";
+import { MessageRatingProps } from "@lg-chat/message-rating";
 import { TitleBar } from "@lg-chat/title-bar";
 import { Role } from "./services/conversations";
 import { palette } from "@leafygreen-ui/palette";
@@ -121,9 +121,6 @@ const styles = {
     }
   `,
   // End hacky fix
-  message_rating: css`
-    margin-top: 1rem;
-  `,
   loading_skeleton: css`
     margin-bottom: 16px;
   `,
@@ -321,7 +318,6 @@ export function Chatbot() {
         ) : null}
 
         <Disclosure tabIndex={0} />
-
       </div>
       <ChatbotModal
         inputBarRef={inputBarRef}
@@ -341,6 +337,10 @@ export function Chatbot() {
       />
     </div>
   );
+}
+
+function LoadingSkeleton() {
+  return <ParagraphSkeleton className={styles.loading_skeleton} />;
 }
 
 type ChatbotModalProps = {
@@ -444,23 +444,11 @@ function ChatbotModal({
                     <Avatar variant={getAvatarVariantForRole(message.role)} />
                   }
                   sourceType={showLoadingSkeleton ? undefined : "markdown"}
-                  componentOverrides={{
-                    MessageRating: (props: MessageRatingProps) => (
-                      <MessageRating
-                        {...props}
-                        className={styles.message_rating}
-                      />
-                    ),
-                    ...(showLoadingSkeleton
-                      ? {
-                          MessageContent: () => (
-                            <ParagraphSkeleton
-                              className={styles.loading_skeleton}
-                            />
-                          ),
-                        }
-                      : {}),
-                  }}
+                  componentOverrides={
+                    showLoadingSkeleton
+                      ? { MessageContent: LoadingSkeleton }
+                      : {}
+                  }
                   markdownProps={{
                     className: styles.markdown_container,
                     children: showLoadingSkeleton ? "" : message.content, // TODO - remove when lg-chat omits this prop from the TS type

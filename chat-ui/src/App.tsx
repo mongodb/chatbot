@@ -4,7 +4,7 @@ import styles from "./App.module.css";
 import { Overline, Link } from "@leafygreen-ui/typography";
 
 function GitCommitLink() {
-  const VITE_GIT_COMMIT = import.meta.env.VITE_GIT_COMMIT as string | undefined;
+  const VITE_GIT_COMMIT = import.meta.env.VITE_GIT_COMMIT;
   if (!VITE_GIT_COMMIT) {
     console.warn("VITE_GIT_COMMIT is not defined. Did you forget to define it in a build script?");
     return null;

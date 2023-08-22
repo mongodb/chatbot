@@ -4,7 +4,10 @@ import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import GPT3Tokenizer from "gpt3-tokenizer";
 import { EmbeddedContent, Page } from "chat-core";
 import { updateFrontMatter, extractFrontMatter } from "chat-core";
-import { string } from "yargs";
+import {
+  chunkOpenApiSpecYaml,
+  defaultOpenApiSpecYamlChunkOptions,
+} from "./chunkOpenApiSpecYaml";
 
 export type ContentChunk = Omit<EmbeddedContent, "embedding" | "updated">;
 
@@ -14,6 +17,11 @@ export type SomeTokenizer = {
     text: string[];
   };
 };
+
+export type ChunkFunc = (
+  page: Page,
+  options?: Partial<ChunkOptions>
+) => Promise<ContentChunk[]>;
 
 export type ChunkTransformer = (
   chunk: Omit<ContentChunk, "tokenCount">,
@@ -45,6 +53,7 @@ export type ChunkOptions = {
   chunkSize: number;
   chunkOverlap: number;
   tokenizer: SomeTokenizer;
+  yamlChunkSize?: number;
 
   /**
     Transform to be applied to each chunk as it is produced.
@@ -53,7 +62,7 @@ export type ChunkOptions = {
   transform?: ChunkTransformer;
 };
 
-const defaultChunkOptions: ChunkOptions = {
+const defaultMdChunkOptions: ChunkOptions = {
   chunkSize: 600, // max chunk size of 600 tokens gets avg ~400 tokens/chunk
   chunkOverlap: 0,
   tokenizer: new GPT3Tokenizer({ type: "gpt3" }),
@@ -62,13 +71,39 @@ const defaultChunkOptions: ChunkOptions = {
 /**
   Returns chunked of a content page.
  */
-export const chunkPage = async (
+export const chunkPage: ChunkFunc = async (
+  page: Page,
+  chunkOptions?: Partial<ChunkOptions>
+): Promise<ContentChunk[]> => {
+  switch (page.format) {
+    case "openapi-yaml": {
+      const chunks = await chunkOpenApiSpecYaml(page, {
+        ...defaultOpenApiSpecYamlChunkOptions,
+        ...chunkOptions,
+        chunkSize:
+          chunkOptions?.yamlChunkSize ??
+          defaultOpenApiSpecYamlChunkOptions.chunkSize,
+      });
+      return chunks;
+    }
+    case "md": // fallthrough
+    case "txt": // fallthrough
+    default: {
+      const chunks = await chunkMd(page, {
+        ...defaultMdChunkOptions,
+        ...chunkOptions,
+      });
+      return chunks;
+    }
+  }
+};
+
+export const chunkMd: ChunkFunc = async function (
   page: Page,
   optionsIn?: Partial<ChunkOptions>
-): Promise<ContentChunk[]> => {
-  const options = { ...defaultChunkOptions, ...optionsIn };
+) {
+  const options = { ...defaultOpenApiSpecYamlChunkOptions, ...optionsIn };
   const { tokenizer, chunkSize, chunkOverlap, transform } = options;
-
   const splitter = RecursiveCharacterTextSplitter.fromLanguage("markdown", {
     chunkOverlap,
     chunkSize,

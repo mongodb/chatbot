@@ -1,9 +1,13 @@
 import { createInterface } from "readline";
-import { Page } from "chat-core";
+import { Page, PageFormat } from "chat-core";
 import fetch from "node-fetch";
 import { DataSource } from "./DataSource";
 import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
 import { ProjectBase } from "./ProjectBase";
+import {
+  getTitleFromSnootyOpenApiSpecAst,
+  snootyAstToOpenApiSpec,
+} from "./snootyAstToOpenApiSpec";
 
 // These types are what's in the snooty manifest jsonl file.
 export type SnootyManifestEntry = {
@@ -25,6 +29,7 @@ export type SnootyPageEntry = SnootyManifestEntry & {
 export type SnootyNode = {
   type: string;
   children?: (SnootyNode | SnootyTextNode)[];
+  options?: Record<string, unknown>;
   [key: string]: unknown;
 };
 
@@ -134,7 +139,7 @@ export const makeSnootyDataSource = async ({
                 (async () => {
                   const page = await handlePage(
                     (entry as SnootyPageEntry).data,
-                    { sourceName, baseUrl, tags: tags ?? [], productName }
+                    { sourceName, baseUrl, tagsIn: tags ?? [], productName }
                   );
                   pages.push(page);
                 })()
@@ -214,17 +219,17 @@ export interface SnootyProject {
   branches: Branch[];
 }
 
-const handlePage = async (
+export const handlePage = async (
   page: SnootyPageData,
   {
     sourceName,
     baseUrl,
-    tags = [],
+    tagsIn = [],
     productName,
   }: {
     sourceName: string;
     baseUrl: string;
-    tags: string[];
+    tagsIn: string[];
     productName?: string;
   }
 ): Promise<Page> => {
@@ -241,15 +246,30 @@ const handlePage = async (
     })
     .join("/");
 
+  const tags: string[] = [...tagsIn];
+  let body = "";
+  let title: string | undefined;
+  let format: PageFormat;
+  if (page.ast.options?.template === "openapi") {
+    format = "openapi-yaml";
+    body = await snootyAstToOpenApiSpec(page.ast);
+    title = getTitleFromSnootyOpenApiSpecAst(page.ast);
+    tags.push("openapi");
+  } else {
+    format = "md";
+    body = snootyAstToMd(page.ast, { baseUrl });
+    title = getTitleFromSnootyAst(page.ast);
+  }
+
   return {
     url: new URL(pagePath, baseUrl.replace(/\/?$/, "/")).href.replace(
       /\/?$/, // Add trailing slash
       "/"
     ),
     sourceName,
-    title: getTitleFromSnootyAst(page.ast),
-    body: snootyAstToMd(page.ast, { baseUrl }),
-    format: "md",
+    title,
+    body,
+    format,
     metadata: {
       tags,
       productName,

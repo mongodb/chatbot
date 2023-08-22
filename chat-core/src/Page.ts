@@ -14,7 +14,7 @@ export type Page = {
    */
   body: string;
 
-  format: "md" | "txt";
+  format: PageFormat;
 
   /**
     Data source name.
@@ -32,6 +32,8 @@ export type Page = {
     [k: string]: unknown;
   };
 };
+
+export type PageFormat = "md" | "txt" | "openapi-yaml";
 
 export type PageAction = "created" | "updated" | "deleted";
 

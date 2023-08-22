@@ -8,6 +8,15 @@
       "position": { "start": { "line": 0 } },
       "children": [
         {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "before text"
+            }
+          ]
+        },
+        {
           "type": "directive",
           "position": {
             "start": { "line": 243 }
@@ -1353,6 +1362,15 @@
             "header-rows": 1,
             "widths": "20 80"
           }
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "after text"
+            }
+          ]
         }
       ]
     }

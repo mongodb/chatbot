@@ -202,7 +202,7 @@ const handleDirective = (
         ? directiveOptions["header-rows"]
         : 0;
     text += [
-      "<table>",
+      "\n\n<table>",
       node.children
         .map((child) =>
           snootyAstToMd(
@@ -218,7 +218,7 @@ const handleDirective = (
           )
         )
         .join(""),
-      "</table>",
+      "</table>\n\n",
     ].join("\n");
   } else if (node.name === "tab") {
     const tabName = (

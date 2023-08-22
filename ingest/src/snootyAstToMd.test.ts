@@ -101,7 +101,7 @@ describe("snootyAstToMd", () => {
   it("renders HTML tables", () => {
     const samplePage = JSON.parse(
       fs.readFileSync(
-        Path.resolve(__dirname, "./test_data/sampleListTable.json"),
+        Path.resolve(__dirname, "./test_data/samplePageWithListTable.json"),
         {
           encoding: "utf-8",
         }
@@ -110,7 +110,9 @@ describe("snootyAstToMd", () => {
     const result = snootyAstToMd(samplePage.data.ast, {
       baseUrl: "/",
     });
-    const expected = `<table>
+    const expected = `before text
+
+<table>
 <tr>
 <th>
 Action
@@ -185,7 +187,11 @@ Stop and fail the aggregation operation. Any changes to the output collection fr
 
 </td>
 </tr>
-</table>`;
+</table>
+
+after text
+
+`;
     expect(result).toBe(expected);
     const openingTagCount = result.split("<td>").length - 1;
     const closingTagCount = result.split("</td>").length - 1;
@@ -206,7 +212,9 @@ Stop and fail the aggregation operation. Any changes to the output collection fr
     const result = snootyAstToMd(ast, {
       baseUrl: "/",
     });
-    const expected = `<table>
+    const expected = `before text
+
+<table>
 <tr>
 <th>
 h1
@@ -237,7 +245,11 @@ d2
 
 </td>
 </tr>
-</table>`;
+</table>
+
+after text
+
+`;
     expect(result).toBe(expected);
   });
 

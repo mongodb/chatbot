@@ -139,7 +139,7 @@ export const makeSnootyDataSource = async ({
                 (async () => {
                   const page = await handlePage(
                     (entry as SnootyPageEntry).data,
-                    { sourceName, baseUrl, tagsIn: tags ?? [], productName }
+                    { sourceName, baseUrl, tags: tags ?? [], productName }
                   );
                   pages.push(page);
                 })()
@@ -224,12 +224,12 @@ export const handlePage = async (
   {
     sourceName,
     baseUrl,
-    tagsIn = [],
+    tags: tagsIn = [],
     productName,
   }: {
     sourceName: string;
     baseUrl: string;
-    tagsIn: string[];
+    tags: string[];
     productName?: string;
   }
 ): Promise<Page> => {

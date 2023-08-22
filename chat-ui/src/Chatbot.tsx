@@ -301,16 +301,16 @@ export function Chatbot() {
           <InputMenu
             className={styles.chatbot_input_menu}
             heading="SUGGESTED AI PROMPTS"
-            headingBadgeText="Experimental"
+            headingBadgeText=""
             poweredByText="Powered by Atlas Vector Search"
             poweredByCTA="Learn More"
             poweredByLink="https://www.mongodb.com/products/platform/atlas-vector-search"
             prompts={suggestedPrompts}
-            onPromptFocused={(i) => {
+            onFocused={(i) => {
               setPromptFocused(i);
             }}
-            onPromptBlur={(i) => {
-              if (i === suggestedPrompts.length - 1) {
+            onBlurred={(i) => {
+              if (i === 0 || i === suggestedPrompts.length) {
                 setPromptFocused(null);
               }
             }}

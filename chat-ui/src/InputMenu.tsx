@@ -56,8 +56,8 @@ type InputMenuProps = {
   poweredByCTA: string;
   poweredByLink: string;
   prompts: MenuPrompt[];
-  onPromptFocused?: (promptIndex: number) => void;
-  onPromptBlur?: (promptIndex: number) => void;
+  onFocused?: (i: number) => void;
+  onBlurred?: (i: number) => void;
   onPromptSelected: (prompt: MenuPrompt) => void;
   className: React.HTMLAttributes<HTMLDivElement>["className"];
 };
@@ -70,11 +70,15 @@ export const InputMenu = forwardRef(function InputMenu(
     <Card
       className={cx(styles.menu_card, props.className)}
       id="input-menu-card"
+      role="menu"
+      aria-label="MongoDB Chatbot Suggested Inputs"
     >
       <div className={styles.prompts_container} ref={ref}>
         {props.heading ? (
           <div className={styles.prompts_container_header}>
-            <Overline>{props.heading}</Overline>
+            <Overline role="heading" aria-level="2">
+              {props.heading}
+            </Overline>
             {props.headingBadgeText ? (
               <Badge variant="blue">{props.headingBadgeText}</Badge>
             ) : null}
@@ -83,7 +87,8 @@ export const InputMenu = forwardRef(function InputMenu(
         {props.prompts.map((prompt, i) => (
           <div
             key={prompt.key}
-            role="button"
+            role="menuitem"
+            aria-label={prompt.text}
             className={styles.prompt}
             tabIndex={0}
             onMouseDown={(e) => {
@@ -102,10 +107,10 @@ export const InputMenu = forwardRef(function InputMenu(
               }
             }}
             onFocusCapture={() => {
-              props.onPromptFocused?.(i);
+              props.onFocused?.(i);
             }}
             onBlur={() => {
-              props.onPromptBlur?.(i);
+              props.onBlurred?.(i);
             }}
           >
             {prompt.text}
@@ -114,7 +119,15 @@ export const InputMenu = forwardRef(function InputMenu(
         <div className={styles.powered_by_footer}>
           <Body>
             {addPeriodIfMissing(props.poweredByText)}{" "}
-            <Link href={props.poweredByLink}>
+            <Link
+              href={props.poweredByLink}
+              onFocusCapture={() => {
+                props.onFocused?.(props.prompts.length);
+              }}
+              onBlur={() => {
+                props.onBlurred?.(props.prompts.length);
+              }}
+            >
               {addPeriodIfMissing(props.poweredByCTA)}
             </Link>
           </Body>

@@ -53,7 +53,7 @@ steps:
 # Chat Server pipelines
 # ---
 ---
-depends_on: ["test-all"]
+# depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes
 name: staging-build-chat-server

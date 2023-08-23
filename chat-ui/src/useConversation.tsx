@@ -276,7 +276,9 @@ export function useConversation() {
     defaultConversationState
   );
   const dispatch = (...args: Parameters<typeof _dispatch>) => {
-    console.log(`dispatch`, ...args);
+    if(import.meta.env.MODE !== 'production') {
+      console.log(`dispatch`, ...args);
+    }
     _dispatch(...args);
   };
 

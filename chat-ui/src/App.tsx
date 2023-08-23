@@ -1,6 +1,7 @@
+import "./fonts.module.css";
+import styles from "./App.module.css"
 import LeafyGreenProvider from "@leafygreen-ui/leafygreen-provider";
 import { Chatbot } from "./Chatbot";
-import styles from "./App.module.css";
 import { Overline, Link } from "@leafygreen-ui/typography";
 
 function GitCommitLink() {

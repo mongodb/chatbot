@@ -18,11 +18,10 @@ steps:
   - name: test
     image: node:18
     commands:
-      # - npm ci
-      # - npm run build
-      # - npm run lint
-      # - npm run test
-      - echo "skipping for now"
+      - npm ci
+      - npm run build
+      - npm run lint
+      - npm run test
 
     environment:
       PORT: 3000
@@ -62,7 +61,6 @@ name: staging-build-chat-server
 trigger:
   branch:
     - main
-    - drone_fix
   event:
     - push
 
@@ -127,7 +125,6 @@ trigger:
       - chat-ui/**/*
   branch:
     - main
-    - drone_fix
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion
@@ -316,7 +313,6 @@ name: staging-build-ingest-service
 trigger:
   branch:
     - main
-    - drone_fix
   event:
     - push
   paths:
@@ -378,7 +374,6 @@ trigger:
       - chat-core/**/*
   branch:
     - main
-    - drone_fix
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion

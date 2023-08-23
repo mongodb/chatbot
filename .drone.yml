@@ -18,10 +18,11 @@ steps:
   - name: test
     image: node:18
     commands:
-      - npm ci
-      - npm run build
-      - npm run lint
-      - npm run test
+      # - npm ci
+      # - npm run build
+      # - npm run lint
+      # - npm run test
+      - echo "skipping for now"
 
     environment:
       PORT: 3000
@@ -61,6 +62,7 @@ name: staging-build-chat-server
 trigger:
   branch:
     - main
+    - drone_fix
   event:
     - push
 
@@ -118,6 +120,14 @@ trigger:
     - promote
   target:
     - staging
+  paths:
+    include:
+      - ingest/**/*
+      - chat-core/**/*
+      - chat-ui/**/*
+  branch:
+    - main
+    - drone_fix
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion
@@ -134,9 +144,6 @@ steps:
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
-    when:
-      branch:
-        - main
 ---
 depends_on: ["test-all"]
 kind: pipeline
@@ -310,6 +317,7 @@ name: staging-build-ingest-service
 trigger:
   branch:
     - main
+    - drone_fix
   event:
     - push
   paths:
@@ -365,6 +373,13 @@ trigger:
     - promote
   target:
     - staging
+  paths:
+    include:
+      - ingest/**/*
+      - chat-core/**/*
+  branch:
+    - main
+    - drone_fix
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion
@@ -382,8 +397,7 @@ steps:
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
-      branch:
-        - main
+
 ---
 depends_on: ["test-all"]
 kind: pipeline

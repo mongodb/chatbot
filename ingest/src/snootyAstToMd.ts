@@ -1,4 +1,5 @@
 import { SnootyNode } from "./SnootyDataSource";
+import { strict as assert } from "assert";
 
 enum TableMode {
   IN_TABLE = 0,
@@ -145,39 +146,7 @@ export const snootyAstToMd = (
         .join("")}\``;
       break;
     case "directive":
-      if (node.name === "list-table") {
-        const directiveOptions = (node as { options?: Record<string, unknown> })
-          .options;
-        const headerRows =
-          directiveOptions &&
-          typeof directiveOptions["header-rows"] === "number"
-            ? directiveOptions["header-rows"]
-            : 0;
-        text += [
-          "<table>",
-          node.children
-            .map((child) =>
-              snootyAstToMd(
-                child,
-                {
-                  ...options,
-                  table: {
-                    mode: TableMode.IN_TABLE,
-                    headerRows,
-                  },
-                },
-                parentHeadingLevel
-              )
-            )
-            .join(""),
-          "</table>",
-        ].join("\n");
-      } else {
-        // other "directive" nodes not parsed in particular way
-        text += node.children
-          .map((subnode) => snootyAstToMd(subnode, options, parentHeadingLevel))
-          .join("");
-      }
+      text += handleDirective(node, options, parentHeadingLevel);
       break;
     // No longer including links
     // case "ref_role": {
@@ -213,6 +182,69 @@ export const snootyAstToMd = (
   }
 
   return text.replaceAll(/\n{3,}/g, "\n\n").trimStart(); // remove extra newlines with just 2
+};
+
+/**
+  Helper function to handle directives. Directives are special nodes that
+  contain a variety of different content types.
+ */
+const handleDirective = (
+  node: SnootyNode,
+  options: SnootyAstToMdOptions,
+  parentHeadingLevel: number
+) => {
+  assert(
+    node.children,
+    "This function should only be called if node has children"
+  );
+  switch (node.name) {
+    case "list-table":
+      // eslint-disable-next-line no-case-declarations
+      const directiveOptions = (node as { options?: Record<string, unknown> })
+        .options;
+      // eslint-disable-next-line no-case-declarations
+      const headerRows =
+        directiveOptions && typeof directiveOptions["header-rows"] === "number"
+          ? directiveOptions["header-rows"]
+          : 0;
+      return [
+        "\n\n<table>",
+        node.children
+          .map((child) =>
+            snootyAstToMd(
+              child,
+              {
+                ...options,
+                table: {
+                  mode: TableMode.IN_TABLE,
+                  headerRows,
+                },
+              },
+              parentHeadingLevel
+            )
+          )
+          .join(""),
+        "</table>\n\n",
+      ].join("\n");
+    case "tab":
+      // eslint-disable-next-line no-case-declarations
+      const tabName = (
+        node.argument && Array.isArray(node.argument) && node.argument.length
+          ? node.argument.find((arg) => arg.type === "text")?.value ?? ""
+          : ""
+      ).trim();
+      return `\n\n<Tab ${`name="${tabName ?? ""}"`}>\n\n${node.children
+        .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
+        .join("")}\n\n</Tab>\n\n`;
+    case "tabs" || "tabs-drivers":
+      return `\n\n<Tabs>\n\n${node.children
+        .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
+        .join("")}\n\n</Tabs>\n\n`;
+    default:
+      return node.children
+        .map((subnode) => snootyAstToMd(subnode, options, parentHeadingLevel))
+        .join("");
+  }
 };
 
 const findNode = (

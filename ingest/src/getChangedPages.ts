@@ -91,11 +91,11 @@ const comparablePartialPage = ({
   sourceName,
   body,
   format,
-  tags,
+  metadata,
 }: Page): Partial<Page> => ({
   url,
   sourceName,
   body,
   format,
-  tags,
+  metadata,
 });

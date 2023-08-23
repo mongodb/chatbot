@@ -1,11 +1,11 @@
 import Path from "path";
-import { readFileSync } from "fs";
+import fs from "fs";
 import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
 import { SnootyNode } from "./SnootyDataSource";
 
 describe("snootyAstToMd", () => {
   const samplePage = JSON.parse(
-    readFileSync(Path.resolve(__dirname, "./test_data/samplePage.json"), {
+    fs.readFileSync(Path.resolve(__dirname, "./test_data/samplePage.json"), {
       encoding: "utf-8",
     })
   );
@@ -79,7 +79,7 @@ describe("snootyAstToMd", () => {
   });
   describe("Renders code blocks", () => {
     const samplePage = JSON.parse(
-      readFileSync(
+      fs.readFileSync(
         Path.resolve(__dirname, "./test_data/samplePageWithCodeExamples.json"),
         {
           encoding: "utf-8",
@@ -100,8 +100,8 @@ describe("snootyAstToMd", () => {
 
   it("renders HTML tables", () => {
     const samplePage = JSON.parse(
-      readFileSync(
-        Path.resolve(__dirname, "./test_data/sampleListTable.json"),
+      fs.readFileSync(
+        Path.resolve(__dirname, "./test_data/samplePageWithListTable.json"),
         {
           encoding: "utf-8",
         }
@@ -110,7 +110,9 @@ describe("snootyAstToMd", () => {
     const result = snootyAstToMd(samplePage.data.ast, {
       baseUrl: "/",
     });
-    const expected = `<table>
+    const expected = `before text
+
+<table>
 <tr>
 <th>
 Action
@@ -185,7 +187,11 @@ Stop and fail the aggregation operation. Any changes to the output collection fr
 
 </td>
 </tr>
-</table>`;
+</table>
+
+after text
+
+`;
     expect(result).toBe(expected);
     const openingTagCount = result.split("<td>").length - 1;
     const closingTagCount = result.split("</td>").length - 1;
@@ -195,7 +201,7 @@ Stop and fail the aggregation operation. Any changes to the output collection fr
 
   it("renders HTML tables with multiple header rows", () => {
     const ast: SnootyNode = JSON.parse(
-      readFileSync(
+      fs.readFileSync(
         Path.resolve(
           __dirname,
           "./test_data/samplePageWithMultiHeaderTableAst.json"
@@ -206,7 +212,9 @@ Stop and fail the aggregation operation. Any changes to the output collection fr
     const result = snootyAstToMd(ast, {
       baseUrl: "/",
     });
-    const expected = `<table>
+    const expected = `before text
+
+<table>
 <tr>
 <th>
 h1
@@ -237,13 +245,17 @@ d2
 
 </td>
 </tr>
-</table>`;
+</table>
+
+after text
+
+`;
     expect(result).toBe(expected);
   });
 
   it("strips comments", () => {
     const ast: SnootyNode = JSON.parse(
-      readFileSync(
+      fs.readFileSync(
         Path.resolve(__dirname, "./test_data/samplePageWithCommentAst.json"),
         "utf-8"
       )
@@ -282,12 +294,70 @@ Describes one method for supporting keyword search by storing keywords in an arr
 `;
     expect(result).toBe(expected);
   });
-
-  describe("getTitleFromSnootyAst", () => {
-    it("extracts a title", () => {
-      expect(getTitleFromSnootyAst(samplePage.data.ast)).toBe(
-        "$merge (aggregation)"
-      );
+  it("renders tab sets", () => {
+    const samplePageWithTabs = JSON.parse(
+      fs.readFileSync(
+        Path.resolve(__dirname, "./test_data/samplePageWithTabs.json"),
+        {
+          encoding: "utf-8",
+        }
+      )
+    );
+    const result = snootyAstToMd(samplePageWithTabs.data.ast, {
+      baseUrl: "/",
     });
+    const expectedToContainTabsStart = "\n\n<Tabs>\n\n";
+    const expectedToContainTabsEnd = "\n\n</Tabs>\n\n";
+    const expectedToContainTabStart = '\n\n<Tab name="App Services UI">\n\n';
+    const expectedToContainTabEnd = "\n\n</Tab>\n\n";
+    expect(result).toContain(expectedToContainTabsStart);
+    expect(result).toContain(expectedToContainTabsEnd);
+    expect(result).toContain(expectedToContainTabStart);
+    expect(result).toContain(expectedToContainTabEnd);
+    const numberTabsStart = [...result.matchAll(/<Tabs>/g)].length;
+    const numberTabsEnd = [...result.matchAll(/<\/Tabs>/g)].length;
+    expect(numberTabsStart).toBe(numberTabsEnd);
+    const numberTabStart = [...result.matchAll(/<Tab name=/g)].length;
+    const numberTabEnd = [...result.matchAll(/<\/Tab>/g)].length;
+    expect(numberTabStart).toBe(numberTabEnd);
+  });
+  it("renders driver tab sets", () => {
+    const samplePageWithTabs = JSON.parse(
+      fs.readFileSync(
+        Path.resolve(__dirname, "./test_data/samplePageWithTabsDrivers.json"),
+        {
+          encoding: "utf-8",
+        }
+      )
+    );
+    const result = snootyAstToMd(samplePageWithTabs.data.ast, {
+      baseUrl: "/",
+    });
+    const expectedToContainTabsStart = "\n\n<Tabs>\n\n";
+    const expectedToContainTabsEnd = "\n\n</Tabs>\n\n";
+    const expectedToContainTabStart = '\n\n<Tab name="Java (Sync)">\n\n';
+    const expectedToContainTabEnd = "\n\n</Tab>\n\n";
+    expect(result).toContain(expectedToContainTabsStart);
+    expect(result).toContain(expectedToContainTabsEnd);
+    expect(result).toContain(expectedToContainTabStart);
+    expect(result).toContain(expectedToContainTabEnd);
+    const numberTabsStart = [...result.matchAll(/<Tabs>/g)].length;
+    const numberTabsEnd = [...result.matchAll(/<\/Tabs>/g)].length;
+    expect(numberTabsStart).toBe(numberTabsEnd);
+    const numberTabStart = [...result.matchAll(/<Tab name=/g)].length;
+    const numberTabEnd = [...result.matchAll(/<\/Tab>/g)].length;
+    expect(numberTabStart).toBe(numberTabEnd);
+  });
+});
+describe("getTitleFromSnootyAst", () => {
+  const samplePage = JSON.parse(
+    fs.readFileSync(Path.resolve(__dirname, "./test_data/samplePage.json"), {
+      encoding: "utf-8",
+    })
+  );
+  it("extracts a title", () => {
+    expect(getTitleFromSnootyAst(samplePage.data.ast)).toBe(
+      "$merge (aggregation)"
+    );
   });
 });

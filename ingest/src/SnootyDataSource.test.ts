@@ -5,6 +5,7 @@ import JSONL from "jsonl-parse-stringify";
 import {
   SnootyNode,
   SnootyProjectConfig,
+  handlePage,
   makeSnootyDataSource,
 } from "./SnootyDataSource";
 import { sampleSnootyMetadata } from "./test_data/snooty_sample_metadata";
@@ -57,7 +58,9 @@ describe("SnootyDataSource", () => {
       expect(pages[1]).toMatchObject({
         format: "md",
         sourceName: "snooty-test",
-        tags: ["docs", "manual"],
+        metadata: {
+          tags: ["docs", "manual"],
+        },
         url: "https://mongodb.com/docs/v6.0/administration/",
         body: firstPageText,
       });
@@ -73,7 +76,9 @@ describe("SnootyDataSource", () => {
       expect(pages[0]).toMatchObject({
         format: "md",
         sourceName: "snooty-docs",
-        tags: ["docs", "manual"],
+        metadata: {
+          tags: ["docs", "manual"],
+        },
         url: "https://mongodb.com/docs/v6.0/",
       });
 
@@ -83,7 +88,9 @@ describe("SnootyDataSource", () => {
       expect(pages[2]).toMatchObject({
         format: "md",
         sourceName: "snooty-docs",
-        tags: ["docs", "manual"],
+        metadata: {
+          tags: ["docs", "manual"],
+        },
         url: "https://mongodb.com/docs/v6.0/administration/analyzing-mongodb-performance/index/",
       });
 
@@ -91,7 +98,9 @@ describe("SnootyDataSource", () => {
       expect(pages[3]).toMatchObject({
         format: "md",
         sourceName: "snooty-docs",
-        tags: ["docs", "manual"],
+        metadata: {
+          tags: ["docs", "manual"],
+        },
         url: "https://mongodb.com/docs/v6.0/administration/index/backup-sharded-clusters/",
       });
 
@@ -99,9 +108,54 @@ describe("SnootyDataSource", () => {
       expect(pages[4]).toMatchObject({
         format: "md",
         sourceName: "snooty-docs",
-        tags: ["docs", "manual"],
+        metadata: {
+          tags: ["docs", "manual"],
+        },
         url: "https://mongodb.com/docs/v6.0/administration/change-streams-production-recommendations/how-to-index/",
       });
     });
+  });
+});
+describe("handlePage()", () => {
+  it("should correctly parse openapi spec page", async () => {
+    const apiSpecPage = JSON.parse(
+      fs.readFileSync(
+        Path.resolve(__dirname, "./test_data/localOpenApiSpecPage.json"),
+        "utf-8"
+      )
+    );
+    const result = await handlePage(apiSpecPage.data, {
+      sourceName: "sample-source",
+      baseUrl: "https://example.com",
+      tags: ["a"],
+    });
+    expect(result).toMatchObject({
+      format: "openapi-yaml",
+      title: "Atlas App Services Data API",
+      metadata: {
+        tags: ["a", "openapi"],
+      },
+    });
+  });
+  it("should correctly parse standard page", async () => {
+    const nonApiSpecPage = JSON.parse(
+      fs.readFileSync(
+        Path.resolve(__dirname, "./test_data/samplePage.json"),
+        "utf-8"
+      )
+    );
+    const result = await handlePage(nonApiSpecPage.data, {
+      sourceName: "sample-source",
+      baseUrl: "https://example.com",
+      tags: ["a"],
+    });
+    expect(result).toMatchObject({
+      format: "md",
+      title: "$merge (aggregation)",
+      metadata: {
+        tags: ["a"],
+      },
+    });
+    expect(result.body).toContain("# $merge (aggregation)");
   });
 });

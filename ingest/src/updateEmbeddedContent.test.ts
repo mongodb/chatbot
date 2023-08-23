@@ -26,7 +26,9 @@ const examplePage: Page = {
   body: "this is a test page",
   format: "md",
   sourceName: "test",
-  tags: [],
+  metadata: {
+    tags: [],
+  },
   url: "https://example.com/test",
 };
 

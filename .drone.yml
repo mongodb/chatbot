@@ -118,6 +118,13 @@ trigger:
     - promote
   target:
     - staging
+  paths:
+    include:
+      - chat-server/**/*
+      - chat-core/**/*
+      - chat-ui/**/*
+  branch:
+    - main
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion
@@ -134,9 +141,6 @@ steps:
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
-    when:
-      branch:
-        - main
 ---
 depends_on: ["test-all"]
 kind: pipeline
@@ -200,6 +204,8 @@ trigger:
     - promote
   target:
     - staging
+  ref:
+    - refs/tags/chat-server-qa-*
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion
@@ -216,9 +222,6 @@ steps:
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
-    when:
-      ref:
-        - refs/tags/chat-server-qa-*
 
 ---
 depends_on: ["test-all"]
@@ -365,6 +368,12 @@ trigger:
     - promote
   target:
     - staging
+  paths:
+    include:
+      - ingest/**/*
+      - chat-core/**/*
+  branch:
+    - main
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion
@@ -382,8 +391,7 @@ steps:
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
-      branch:
-        - main
+
 ---
 depends_on: ["test-all"]
 kind: pipeline

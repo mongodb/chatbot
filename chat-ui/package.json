@@ -28,11 +28,18 @@
     "build": "if [[ \"$ENVIRONMENT\" == \"qa\" ]]; then npm run build:static-site:qa && echo \"qa\"; else npm run build:static-site:staging; fi",
     "build:dts": "tsc --project tsconfig.declarations.json",
     "build:component": "tsc && vite build --config vite.config.component.js && npm run build:dts",
-    "build:static-site:dev": "export VITE_GIT_COMMIT=$(npm run --silent env:get-git-commit); echo \"VITE_GIT_COMMIT :: $VITE_GIT_COMMIT\" && tsc && vite build --config vite.config.static-site.js --mode development",
-    "build:static-site:staging": "export VITE_GIT_COMMIT=$(npm run --silent env:get-git-commit); echo \"VITE_GIT_COMMIT :: $VITE_GIT_COMMIT\" && tsc && vite build --config vite.config.static-site.js --mode staging",
-    "build:static-site:qa": "export VITE_GIT_COMMIT=$(npm run --silent env:get-git-commit); echo \"VITE_GIT_COMMIT :: $VITE_GIT_COMMIT\" && tsc && vite build --config vite.config.static-site.js --mode qa",
-    "dev": "export VITE_GIT_COMMIT=$(npm run --silent env:get-git-commit); vite --config vite.config.component.js --mode development",
+    "build:static-site:dev": "tsc && VITE_GIT_COMMIT=$(npm run --silent env:get-git-commit) vite build --config vite.config.static-site.js --mode development",
+    "build:static-site:staging": "tsc && VITE_GIT_COMMIT=$(npm run --silent env:get-git-commit) vite build --config vite.config.static-site.js --mode staging",
+    "build:static-site:qa": "tsc && VITE_GIT_COMMIT=$(npm run --silent env:get-git-commit) vite build --config vite.config.static-site.js --mode qa",
+
+
+    "dev": "VITE_GIT_COMMIT=$(npm run --silent env:get-git-commit) vite --config vite.config.component.js --mode development",
+
+
+
+
     "env:get-git-commit": "if [ -z \"$VITE_GIT_COMMIT\" ]; then echo \"$(git rev-parse --short HEAD)\"; else echo \"$VITE_GIT_COMMIT\"; fi",
+
     "format": "prettier ./src --write",
     "format:check": "prettier ./src --check",
     "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives --max-warnings 0",

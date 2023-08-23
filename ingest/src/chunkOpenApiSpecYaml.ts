@@ -31,7 +31,9 @@ export const chunkOpenApiSpecYaml: ChunkFunc = async function (
     ReturnType<typeof SwaggerParser.dereference>
   > & { servers?: { url?: string }[] } = await SwaggerParser.dereference(
     yaml.parse(page.body)
-  );
+  )
+    // return the original spec if dereferencing fails
+    .catch((_) => SwaggerParser.parse(yaml.parse(page.body)));
   const apiName = dereferencedSpec?.info?.title ?? page.title ?? "";
   const baseUrls = dereferencedSpec?.servers?.map((server) => server.url);
   const chunks: ContentChunk[] = [];

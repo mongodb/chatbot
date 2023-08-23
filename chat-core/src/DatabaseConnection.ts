@@ -32,7 +32,9 @@ export const makeDatabaseConnection = async ({
 }: MakeDatabaseConnectionParams): Promise<
   DatabaseConnection & PageStore & EmbeddedContentStore
 > => {
-  const client = await new MongoClient(connectionUri).connect();
+  const client = await new MongoClient(connectionUri, {
+    serverSelectionTimeoutMS: 30000,
+  }).connect();
   const db = client.db(databaseName);
   const embeddedContentCollection =
     db.collection<EmbeddedContent>("embedded_content");

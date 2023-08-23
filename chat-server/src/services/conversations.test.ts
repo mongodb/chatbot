@@ -60,6 +60,34 @@ describe("Conversations Service", () => {
     expect(conversationInDb?.messages).toHaveLength(2);
     expect(conversationInDb?.messages[1].content).toStrictEqual(content);
   });
+  test("Should add a message to a conversation with optional fields", async () => {
+    const ipAddress = new BSON.UUID().toString();
+    const conversation = await conversationsService.create({
+      ipAddress,
+    });
+    const content = "Tell me about MongoDB";
+    const preprocessedContent = "<preprocessed> Tell me about MongoDB";
+    const references = [{ title: "ref", url: "ref.com" }];
+    const newMessage = await conversationsService.addConversationMessage({
+      conversationId: conversation._id,
+      role: "user",
+      content,
+      preprocessedContent,
+      references,
+    });
+    expect(newMessage.content).toBe(content);
+
+    const conversationInDb = await mongodb.db
+      .collection<Conversation>("conversations")
+      .findOne({ _id: conversation._id });
+    expect(conversationInDb).toHaveProperty("messages");
+    expect(conversationInDb?.messages).toHaveLength(2);
+    expect(conversationInDb?.messages[1].content).toStrictEqual(content);
+    expect(conversationInDb?.messages[1]?.preprocessedContent).toStrictEqual(
+      preprocessedContent
+    );
+    expect(conversationInDb?.messages[1]?.references).toStrictEqual(references);
+  });
   test("Should find a conversation by id", async () => {
     const ipAddress = new BSON.UUID().toString();
     const conversation = await conversationsService.create({

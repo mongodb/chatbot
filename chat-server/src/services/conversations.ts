@@ -10,7 +10,7 @@ export interface Message {
   /** Message that occurs in the conversation. */
   content: string;
   /** Only used when role is "user". The preprocessed content of the message that is sent to vector search. */
-  preProcessedContent?: string;
+  preprocessedContent?: string;
   /** Set to `true` if the user liked the response, `false` if the user didn't like the response. No value if user didn't rate the response. Note that only messages with `role: "assistant"` can be rated. */
   rating?: boolean;
   /** The date the message was created. */
@@ -104,12 +104,18 @@ export function makeConversationsService(
       conversationId,
       content,
       role,
+      preprocessedContent,
       references,
     }: AddConversationMessageParams) {
-      const newMessage = createMessageFromOpenAIChatMessage({ role, content });
-      if (references) {
-        newMessage.references = references;
-      }
+      const newMessage = createMessageFromOpenAIChatMessage({
+        role,
+        content,
+      });
+      Object.assign(
+        newMessage,
+        preprocessedContent && { preprocessedContent: preprocessedContent },
+        references && { references: references }
+      );
 
       const updateResult = await conversationsCollection.updateOne(
         {

@@ -8,7 +8,8 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 20px;
-  background: #001e2b;
+  /* background: #001e2b; */
+  background: #2a003c;
   padding: 20px;
   height: 100vh;
 }

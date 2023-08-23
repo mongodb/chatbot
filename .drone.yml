@@ -4,7 +4,7 @@ name: test-all
 
 trigger:
   event:
-    - push
+    # - push # TODO: uncomment before merge
     - tag
     - pull_request
   paths:

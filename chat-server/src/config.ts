@@ -15,6 +15,8 @@ const {
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
 } = assertEnvVars(CORE_ENV_VARS);
 
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
+
 /**
   Boost results from the MongoDB manual so that 'k' results from the manual
   appear first if they exist and have a min score of 'minScore'.
@@ -133,4 +135,7 @@ export const config: AppConfig = {
     vectorSearchIndexName: VECTOR_SEARCH_INDEX_NAME,
   },
   maxRequestTimeoutMs: 30000,
+  corsOptions: {
+    origin: allowedOrigins,
+  },
 };

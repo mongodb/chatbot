@@ -9,6 +9,8 @@ env:
   VECTOR_SEARCH_INDEX_NAME: default
   OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
   ALLOWED_ORIGINS: https://mongodb.com,https://www.mongodb.com
+  NODE_ENV: production
+
 
 envSecrets:
   MONGODB_CONNECTION_URI: docs-chatbot-prod

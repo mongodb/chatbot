@@ -9,6 +9,7 @@ env:
   VECTOR_SEARCH_INDEX_NAME: default
   OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
   ENVIRONMENT: qa
+  NODE_ENV: qa
 
 envSecrets:
   MONGODB_CONNECTION_URI: docs-chatbot-staging

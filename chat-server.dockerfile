@@ -16,7 +16,6 @@ RUN npm install lerna && npm run bootstrap && npm run build
 
 # Main image
 FROM node:18-alpine as main
-ENV NODE_ENV=production
 WORKDIR /app
 
 COPY --from=builder /app/chat-core ./chat-core/

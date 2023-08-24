@@ -108,8 +108,14 @@ export const makeApp = async ({
   app.use(cors(corsOptions));
   app.use(express.json());
   app.use(reqHandler);
-  // TODO: consider only serving this from the staging env
-  app.use(express.static("static"));
+  const { NODE_ENV } = process.env;
+  if (
+    NODE_ENV === "development" ||
+    NODE_ENV === "staging" ||
+    NODE_ENV === "qa"
+  ) {
+    app.use(express.static("static"));
+  }
   app.use(
     CONVERSATIONS_API_V1_PREFIX,
     makeConversationsRouter({

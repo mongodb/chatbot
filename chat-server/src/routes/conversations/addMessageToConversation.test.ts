@@ -14,7 +14,7 @@ import {
   Conversation,
   ConversationsService,
   Message,
-  ConversationsServiceInterface,
+  makeConversationsService,
 } from "../../services/conversations";
 import express, { Express } from "express";
 import {
@@ -29,6 +29,7 @@ import {
   AddMessageToConversationRouteParams,
   MAX_MESSAGES_IN_CONVERSATION,
   createLinkReference,
+  includeChunksForMaxTokensPossible,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
 import { makeOpenAiLlm } from "../../services/llm";
@@ -38,6 +39,7 @@ import { ObjectId } from "mongodb";
 import { makeApp, CONVERSATIONS_API_V1_PREFIX } from "../../app";
 import { makeConversationsRoutesDefaults } from "../../testHelpers";
 import { config } from "../../config";
+import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
 
 jest.setTimeout(100000);
 
@@ -49,7 +51,7 @@ describe("POST /conversations/:conversationId/messages", () => {
   let dataStreamer: ReturnType<typeof makeDataStreamer>;
   let findNearestNeighborsOptions: Partial<FindNearestNeighborsOptions>;
   let store: EmbeddedContentStore;
-  let conversations: ConversationsServiceInterface;
+  let conversations: ConversationsService;
   let app: Express;
 
   beforeAll(async () => {
@@ -234,7 +236,7 @@ describe("POST /conversations/:conversationId/messages", () => {
     });
 
     test("Should respond 500 if error with conversation service", async () => {
-      const mockBrokenConversationsService: ConversationsServiceInterface = {
+      const mockBrokenConversationsService: ConversationsService = {
         async create() {
           throw new Error("mock error");
         },
@@ -289,25 +291,35 @@ describe("POST /conversations/:conversationId/messages", () => {
   });
 
   describe("Edge cases", () => {
-    describe("No vector search content for user message", () => {
-      test("Should respond with 200 and static response", async () => {
-        const nonsenseMessage =
-          "asdlfkjasdlfk jasdlfkjasdlfk jasdlfkjasdlfjdfhstgra gtyjuikolsdfghjsdghj;sgf;dlfjda; kssdghj;f'afskj ;glskjsfd'aks dsaglfslj; gaflad four score and seven years ago fsdglfsgdj fjlgdfsghjldf lfsgajlhgf";
-        const calledEndpoint = endpointUrl.replace(
-          ":conversationId",
-          conversationId
-        );
-        const response = await request(app)
-          .post(calledEndpoint)
-          .set("X-FORWARDED-FOR", ipAddress)
-          .send({ message: nonsenseMessage });
-        expect(response.statusCode).toBe(200);
-
-        expect(response.body.content).toEqual(
-          conversationConstants.NO_RELEVANT_CONTENT
-        );
-      });
+    test("Should respond with 200 and static response if query is negative toward MongoDB", async () => {
+      const query = "why is MongoDB a terrible database";
+      const res = await request(app)
+        .post(endpointUrl.replace(":conversationId", conversationId))
+        .set("X-FORWARDED-FOR", ipAddress)
+        .send({ message: query });
+      expect(res.statusCode).toEqual(200);
+      expect(res.body.content).toEqual(
+        conversationConstants.NO_RELEVANT_CONTENT
+      );
     });
+    test("Should respond with 200 and static response if no vector search content for user message", async () => {
+      const nonsenseMessage =
+        "asdlfkjasdlfk jasdlfkjasdlfk jasdlfkjasdlfjdfhstgra gtyjuikolsdfghjsdghj;sgf;dlfjda; kssdghj;f'afskj ;glskjsfd'aks dsaglfslj; gaflad four score and seven years ago fsdglfsgdj fjlgdfsghjldf lfsgajlhgf";
+      const calledEndpoint = endpointUrl.replace(
+        ":conversationId",
+        conversationId
+      );
+      const response = await request(app)
+        .post(calledEndpoint)
+        .set("X-FORWARDED-FOR", ipAddress)
+        .send({ message: nonsenseMessage });
+      expect(response.statusCode).toBe(200);
+
+      expect(response.body.content).toEqual(
+        conversationConstants.NO_RELEVANT_CONTENT
+      );
+    });
+
     describe("LLM not available but vector search is", () => {
       const {
         MONGODB_CONNECTION_URI,
@@ -322,13 +334,13 @@ describe("POST /conversations/:conversationId/messages", () => {
       });
 
       let conversationId: ObjectId,
-        conversations: ConversationsServiceInterface,
+        conversations: ConversationsService,
         app: Express;
       let testMongo: MongoDB;
       beforeEach(async () => {
         const dbName = `test-${Date.now()}`;
         testMongo = new MongoDB(MONGODB_CONNECTION_URI, dbName);
-        conversations = new ConversationsService(
+        conversations = makeConversationsService(
           testMongo.db,
           config.llm.systemPrompt
         );
@@ -386,7 +398,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         const assistantMessageContent = "hi";
         const { userMessage, assistantMessage } = await addMessagesToDatabase({
           conversationId,
-          userMessageContent,
+          originalUserMessageContent: userMessageContent,
           assistantMessageContent,
           assistantMessageReferences: [
             { url: "https://www.example.com/", title: "Example Reference" },
@@ -588,6 +600,56 @@ describe("POST /conversations/:conversationId/messages", () => {
         expect(multipleSourcesWithSomePageOverlap).toEqual(
           expectedMultipleSourcesWithSomePageOverlap
         );
+      });
+    });
+    describe("includeChunksForMaxTokensPossible()", () => {
+      const chunks: EmbeddedContent[] = [
+        {
+          url: "https://mongodb.com/docs/realm/sdk/node/",
+          text: "foo foo foo",
+          tokenCount: 100,
+          embedding: [0.1, 0.2, 0.3],
+          sourceName: "realm",
+          updated: new Date(),
+        },
+        {
+          url: "https://mongodb.com/docs/realm/sdk/node/",
+          text: "bar bar bar",
+          tokenCount: 100,
+          embedding: [0.1, 0.2, 0.3],
+          sourceName: "realm",
+          updated: new Date(),
+        },
+        {
+          url: "https://mongodb.com/docs/realm/sdk/node/",
+          text: "baz baz baz",
+          tokenCount: 100,
+          embedding: [0.1, 0.2, 0.3],
+          sourceName: "realm",
+          updated: new Date(),
+        },
+      ];
+      test("Should include all chunks if less that max tokens", () => {
+        const maxTokens = 1000;
+        const includedChunks = includeChunksForMaxTokensPossible({
+          chunks,
+          maxTokens,
+        });
+        expect(includedChunks).toStrictEqual(chunks);
+      });
+      test("should only include subset of chunks that fit within max tokens, inclusive", () => {
+        const maxTokens = 200;
+        const includedChunks = includeChunksForMaxTokensPossible({
+          chunks,
+          maxTokens,
+        });
+        expect(includedChunks).toStrictEqual(chunks.slice(0, 2));
+        const maxTokens2 = maxTokens + 1;
+        const includedChunks2 = includeChunksForMaxTokensPossible({
+          chunks,
+          maxTokens: maxTokens2,
+        });
+        expect(includedChunks2).toStrictEqual(chunks.slice(0, 2));
       });
     });
     describe("validateApiConversationFormatting()", () => {

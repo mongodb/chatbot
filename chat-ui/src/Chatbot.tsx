@@ -1,19 +1,148 @@
-import styles from "./Chatbot.module.css";
-import { useState, useRef } from "react";
-import SuggestedPrompts, { SuggestedPrompt } from "./SuggestedPrompts";
-import useConversation, { Conversation } from "./useConversation";
-import Badge from "@leafygreen-ui/badge";
+import { useState, useRef, useEffect } from "react";
+import { InputMenu, MenuPrompt } from "./InputMenu";
+import { useConversation, Conversation } from "./useConversation";
 import Banner from "@leafygreen-ui/banner";
 import Modal, { ModalProps } from "@leafygreen-ui/modal";
 import { ParagraphSkeleton } from "@leafygreen-ui/skeleton-loader";
-import { Body, Link, Error as ErrorText, InlineCode } from "@leafygreen-ui/typography";
+import {
+  Body,
+  Link,
+  Error as ErrorText,
+  InlineCode,
+} from "@leafygreen-ui/typography";
 import { Avatar } from "@lg-chat/avatar";
 import { InputBar } from "@lg-chat/input-bar";
 import { Message } from "@lg-chat/message";
 import { MessageFeed } from "@lg-chat/message-feed";
-import { MessageRating, MessageRatingProps } from "@lg-chat/message-rating";
+import { MessageRatingProps } from "@lg-chat/message-rating";
 import { TitleBar } from "@lg-chat/title-bar";
 import { Role } from "./services/conversations";
+import { palette } from "@leafygreen-ui/palette";
+import { css } from "@emotion/css";
+
+const styles = {
+  disclosure: css`
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    padding-left: 8px;
+
+    & > p {
+      color: white;
+    }
+  }`,
+  chatbot_container: css`
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    & * {
+      box-sizing: border-box;
+    }
+  }`,
+  chatbot_input: css`
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  `,
+  conversation_id_info: css`
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  `,
+  title_bar: css`
+    box-sizing: border-box;
+    margin-bottom: -1rem; /* This is to offset the .card gap */
+
+    width: calc(100% + 64px);
+    margin-left: -32px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  `,
+  modal_container: css`
+    z-index: 2;
+
+    & * {
+      box-sizing: border-box;
+    }
+
+    & div[role="dialog"] {
+      padding-top: 8px;
+      background: ${palette.gray.light3};
+    }
+
+    @media screen and (max-width: 1024px) {
+      & div[role="dialog"] {
+        width: 100%;
+      }
+
+      & > div {
+        padding: 32px 18px;
+      }
+    }
+  `,
+  message_feed: css`
+    width: calc(100% + 64px);
+    margin-left: -32px;
+    margin-bottom: -1rem; /* This is to offset the .chat_input margin-top */
+
+    & > div {
+      box-sizing: border-box;
+      min-height: 20rem;
+      max-height: 60vh;
+    }
+
+    @media screen and (max-width: 1024px) {
+      & > div {
+        max-height: 70vh;
+      }
+    }
+    @media screen and (max-width: 767px) {
+      & > div {
+        height: 65vh;
+      }
+    }
+  `,
+  // This is a hacky fix for weird white-space issues in LG Chat.
+  markdown_container: css`
+    display: flex;
+    flex-direction: column;
+
+    & * {
+      line-height: 28px;
+    }
+
+    & li {
+      white-space: normal;
+      margin-top: -1.5rem;
+    }
+  `,
+  // End hacky fix
+  loading_skeleton: css`
+    margin-bottom: 16px;
+  `,
+  card: css`
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    width: 100%;
+    gap: 1rem;
+    padding-top: 1rem;
+    transition: all 0.25s ease;
+    position: relative;
+    padding: 0;
+    border-top-left-radius: 6px;
+    box-shadow: none;
+    background: transparent;
+    box-sizing: border-box;
+  `,
+  chatbot_input_menu: css`
+    z-index: 1;
+  `,
+};
 
 const MAX_INPUT_CHARACTERS = 300;
 
@@ -25,7 +154,7 @@ const suggestedPrompts = [
   },
   { key: "get-started", text: "Get started with MongoDB" },
   { key: "why-search", text: "Why should I use Atlas Search?" },
-] satisfies SuggestedPrompt[];
+] satisfies MenuPrompt[];
 
 function isSender(role: Role) {
   return role === "user";
@@ -41,7 +170,7 @@ function getAvatarVariantForRole(role: Role) {
   return avatarVariant;
 }
 
-export default function Chatbot() {
+export function Chatbot() {
   const conversation = useConversation();
   const [initialInputFocused, setInitialInputFocused] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -98,27 +227,37 @@ export default function Chatbot() {
       openModal();
       await conversation.addMessage("user", text);
     } catch (e) {
-      console.error(e)
+      console.error(e);
     } finally {
       setAwaitingReply(false);
     }
   };
 
-  const showDisclosure =
-    !initialInputFocused ||
-    (initialInputFocused && conversation.messages.length > 0);
-
   const showSuggestedPrompts =
-    initialInputFocused &&
-    !awaitingReply &&
+    menuOpen &&
+    inputText.length === 0 &&
     conversation.messages.length === 0 &&
-    inputText.length === 0;
+    !awaitingReply;
+
+  // We have to use some hacky interval logic to get around the weird
+  // focus/blur event handling interactions between InputBar and InputMenu.
+  const [promptFocused, setPromptFocused] = useState<number | null>(null);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!initialInputFocused && promptFocused === null) {
+        setMenuOpen(false);
+        clearInterval(interval);
+      }
+    }, 100);
+    return () => clearInterval(interval);
+  }, [initialInputFocused, promptFocused]);
 
   return (
     <div className={styles.chatbot_container}>
       <div className={styles.chatbot_input}>
         <InputBar
           key={"initialInput"}
+          badgeText="Experimental"
           textareaProps={{
             value: !modalOpen ? inputText : "",
             onChange: (e) => {
@@ -150,19 +289,35 @@ export default function Chatbot() {
           }}
           onBlur={() => {
             setInitialInputFocused(false);
-            setMenuOpen(false);
           }}
         />
-        {menuOpen ? (
-          <SuggestedPrompts
-            prompts={showSuggestedPrompts ? suggestedPrompts : []}
-            onPromptSelected={async (text) => {
-              await handleSubmit(text);
+
+        {inputTextError ? <ErrorText>{inputTextError}</ErrorText> : null}
+
+        {showSuggestedPrompts ? (
+          <InputMenu
+            className={styles.chatbot_input_menu}
+            heading="SUGGESTED AI PROMPTS"
+            headingBadgeText=""
+            poweredByText="Powered by Atlas Vector Search"
+            poweredByCTA="Learn More"
+            poweredByLink="https://www.mongodb.com/products/platform/atlas-vector-search"
+            prompts={suggestedPrompts}
+            onFocused={(i) => {
+              setPromptFocused(i);
+            }}
+            onBlurred={(i) => {
+              if (i === 0 || i === suggestedPrompts.length) {
+                setPromptFocused(null);
+              }
+            }}
+            onPromptSelected={({ text }) => {
+              handleSubmit(text);
             }}
           />
         ) : null}
 
-        {showDisclosure ? <Disclosure /> : null}
+        <Disclosure tabIndex={0} />
       </div>
       <ChatbotModal
         inputBarRef={inputBarRef}
@@ -182,6 +337,10 @@ export default function Chatbot() {
       />
     </div>
   );
+}
+
+function LoadingSkeleton() {
+  return <ParagraphSkeleton className={styles.loading_skeleton} />;
 }
 
 type ChatbotModalProps = {
@@ -246,7 +405,7 @@ function ChatbotModal({
           title="MongoDB AI"
         />
 
-        {active && !isEmptyConversation ? (
+        {!isEmptyConversation ? (
           <MessageFeed className={styles.message_feed}>
             {conversation.messages.map((message) => {
               const showLoadingSkeleton = conversation.isStreamingMessage
@@ -256,12 +415,11 @@ function ChatbotModal({
               return (
                 <Message
                   key={message.id}
-                  className={styles.message}
                   isSender={isSender(message.role)}
                   messageRatingProps={
                     message.role === "assistant"
                       ? {
-                          description: "Rate this response:",
+                          description: "Was this response helpful?",
                           onChange: (e) => {
                             const value = e.target
                               .value as MessageRatingProps["value"];
@@ -286,23 +444,11 @@ function ChatbotModal({
                     <Avatar variant={getAvatarVariantForRole(message.role)} />
                   }
                   sourceType={showLoadingSkeleton ? undefined : "markdown"}
-                  componentOverrides={{
-                    MessageRating: (props: MessageRatingProps) => (
-                      <MessageRating
-                        {...props}
-                        className={styles.message_rating}
-                      />
-                    ),
-                    ...(showLoadingSkeleton
-                      ? {
-                          MessageContent: () => (
-                            <ParagraphSkeleton
-                              className={styles.loading_skeleton}
-                            />
-                          ),
-                        }
-                      : {}),
-                  }}
+                  componentOverrides={
+                    showLoadingSkeleton
+                      ? { MessageContent: LoadingSkeleton }
+                      : {}
+                  }
                   markdownProps={{
                     className: styles.markdown_container,
                     children: showLoadingSkeleton ? "" : message.content, // TODO - remove when lg-chat omits this prop from the TS type
@@ -389,7 +535,7 @@ function ChatbotModal({
   );
 }
 
-function Disclosure() {
+function Disclosure(props: React.HTMLAttributes<HTMLDivElement>) {
   const TermsOfUse = () => (
     <Link href={"https://www.mongodb.com/legal/terms-of-use"}>
       Terms of Use
@@ -402,8 +548,7 @@ function Disclosure() {
   );
 
   return (
-    <div className={styles.disclosure}>
-      <Badge variant="blue">Experimental</Badge>
+    <div className={styles.disclosure} {...props}>
       <Body color={"#FFFFFF"}>
         This is a generative AI chatbot. By interacting with it, you agree to
         MongoDB's <TermsOfUse /> and <AcceptableUsePolicy />.

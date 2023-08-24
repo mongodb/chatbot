@@ -6,6 +6,8 @@ import {
   MakeOpenAiEmbedFuncArgs,
   FindNearestNeighborsOptions,
 } from "chat-core";
+import { QueryPreprocessorFunc } from "./processors/QueryPreprocessorFunc";
+import { CorsOptions } from "cors";
 
 export type EmbedConfig = MakeOpenAiEmbedFuncArgs;
 
@@ -32,9 +34,13 @@ export interface AppConfig {
   llm: LlmConfig;
   conversations: {
     searchBoosters?: SearchBooster[];
+    userQueryPreprocessor?: QueryPreprocessorFunc;
+    maxChunkContextTokens?: number;
   };
   findNearestNeighborsOptions: FindNearestNeighborsOptionsConfig;
   embeddedContentStore: EmbeddedContentStoreConfig;
   mongodb: MongoDbConfig;
   embed: EmbedConfig;
+  maxRequestTimeoutMs?: number;
+  corsOptions?: CorsOptions;
 }

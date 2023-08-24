@@ -2,6 +2,7 @@ import { stripIndent } from "common-tags";
 import { AppConfig } from "./AppConfig";
 import { makeBoostOnAtlasSearchFilter } from "./processors/makeBoostOnAtlasSearchFilter";
 import { CORE_ENV_VARS, assertEnvVars } from "chat-core";
+import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
 const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -10,8 +11,11 @@ const {
   OPENAI_API_KEY,
   OPENAI_EMBEDDING_DEPLOYMENT,
   OPENAI_EMBEDDING_MODEL_VERSION,
+  OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
 } = assertEnvVars(CORE_ENV_VARS);
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
 /**
   Boost results from the MongoDB manual so that 'k' results from the manual
@@ -35,6 +39,17 @@ export const boostManual = makeBoostOnAtlasSearchFilter({
     minScore: 0.88,
   },
   totalMaxK: 5,
+});
+
+const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({
+  azureOpenAiServiceConfig: {
+    apiKey: OPENAI_API_KEY,
+    baseUrl: OPENAI_ENDPOINT,
+    deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    version: OPENAI_CHAT_COMPLETION_MODEL_VERSION,
+  },
+  numRetries: 0,
+  retryDelayMs: 5000,
 });
 
 // TODO: expand this to remove all conf from index.ts
@@ -91,6 +106,8 @@ export const config: AppConfig = {
   },
   conversations: {
     searchBoosters: [boostManual],
+    userQueryPreprocessor: mongoDbUserQueryPreprocessor,
+    maxChunkContextTokens: 1500,
   },
   findNearestNeighborsOptions: {
     k: 5,
@@ -103,6 +120,10 @@ export const config: AppConfig = {
     apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
     baseUrl: OPENAI_ENDPOINT,
     deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+    backoffOptions: {
+      numOfAttempts: 3,
+      maxDelay: 5000,
+    },
   },
   embeddedContentStore: {
     connectionUri: MONGODB_CONNECTION_URI,
@@ -112,5 +133,9 @@ export const config: AppConfig = {
     connectionUri: MONGODB_CONNECTION_URI,
     databaseName: MONGODB_DATABASE_NAME,
     vectorSearchIndexName: VECTOR_SEARCH_INDEX_NAME,
+  },
+  maxRequestTimeoutMs: 30000,
+  corsOptions: {
+    origin: allowedOrigins,
   },
 };

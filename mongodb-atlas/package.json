@@ -5,7 +5,13 @@
   "scripts": {
     "add-search-index:dev": "ts-node add-search-index.ts .env.dev",
     "add-search-index:test": "ts-node add-search-index.ts .env.test",
-    "add-search-index:staging": "ts-node add-search-index.ts .env.staging"
+    "add-search-index:staging": "ts-node add-search-index.ts .env.staging",
+    "add-conversations-ttl-index:dev": "ts-node add-conversations-ttl-index.ts .env.dev",
+    "add-conversations-ttl-index:test": "ts-node add-conversations-ttl-index.ts .env.test",
+    "add-conversations-ttl-index:staging": "ts-node add-conversations-ttl-index.ts .env.staging",
+    "add-content-indexes:dev": "ts-node add-content-indexes.ts .env.dev",
+    "add-content-indexes:test": "ts-node add-content-indexes.ts .env.test",
+    "add-content-indexes:staging": "ts-node add-content-indexes.ts .env.staging"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +22,7 @@
   },
   "dependencies": {
     "dotenv": "^16.2.0",
+    "mongodb": "^5.7.0",
     "urllib": "^3.17.1"
   }
 }

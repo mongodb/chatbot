@@ -14,10 +14,13 @@ export const makeMockPageStore = (): PageStore => {
 };
 
 const examplePage: Page = {
+  title: "Example",
   body: "",
   format: "md",
   sourceName: "test",
-  tags: [],
+  metadata: {
+    tags: [],
+  },
   url: "https://example.com/test",
 };
 

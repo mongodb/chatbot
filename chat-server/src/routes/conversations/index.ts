@@ -7,7 +7,7 @@ import {
   OpenAiStreamingResponse,
 } from "../../services/llm";
 import { DataStreamer } from "../../services/dataStreamer";
-import { ConversationsServiceInterface } from "../../services/conversations";
+import { ConversationsService } from "../../services/conversations";
 import { EmbeddedContentStore } from "chat-core";
 import { RateMessageRequest, makeRateMessageRoute } from "./rateMessage";
 import {
@@ -19,6 +19,7 @@ import {
   makeAddMessageToConversationRoute,
 } from "./addMessageToConversation";
 import { SearchBooster } from "../../processors/SearchBooster";
+import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
 
 // TODO: for all non-2XX or 3XX responses, see how/if can better implement
 // error handling. can/should we pass stuff to next() and process elsewhere?
@@ -27,9 +28,11 @@ export interface ConversationsRouterParams<T, U> {
   embed: EmbedFunc;
   dataStreamer: DataStreamer;
   store: EmbeddedContentStore;
-  conversations: ConversationsServiceInterface;
+  conversations: ConversationsService;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
   searchBoosters?: SearchBooster[];
+  userQueryPreprocessor?: QueryPreprocessorFunc;
+  maxChunkContextTokens?: number;
 }
 
 export function makeConversationsRouter({
@@ -40,6 +43,8 @@ export function makeConversationsRouter({
   conversations,
   findNearestNeighborsOptions,
   searchBoosters,
+  userQueryPreprocessor,
+  maxChunkContextTokens,
 }: ConversationsRouterParams<OpenAiStreamingResponse, OpenAiAwaitedResponse>) {
   const conversationsRouter = Router();
 
@@ -66,6 +71,8 @@ export function makeConversationsRouter({
       embed,
       findNearestNeighborsOptions,
       searchBoosters,
+      userQueryPreprocessor,
+      maxChunkContextTokens,
     })
   );
 

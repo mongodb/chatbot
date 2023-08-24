@@ -4,10 +4,13 @@ import { getChangedPages } from "./getChangedPages";
 describe("getChangedPages", () => {
   it("gets changed pages", async () => {
     const pageTemplate: Omit<Page, "url"> = {
+      title: "page",
       body: "abc",
       format: "md",
       sourceName: "test",
-      tags: [],
+      metadata: {
+        tags: [],
+      },
     };
     const [page0, page1, page2, page3] = Array(4)
       .fill(0)
@@ -48,22 +51,32 @@ describe("getChangedPages", () => {
   });
   it("detects changed tags", async () => {
     const page: Page = {
+      title: "page",
       body: "abc",
       format: "md",
       sourceName: "test",
       url: "test",
-      tags: ["test1", "test2"],
+      metadata: {
+        tags: ["test1", "test2"],
+      },
     };
 
     const { created, updated, deleted } = await getChangedPages({
       oldPages: [{ ...page, action: "updated" }],
-      newPages: [{ ...page, tags: ["newTag", ...page.tags] }],
+      newPages: [
+        {
+          ...page,
+          metadata: { tags: ["newTag", ...(page?.metadata?.tags || [])] },
+        },
+      ],
     });
     const changedPages = [...deleted, ...created, ...updated];
     expect(changedPages.length).toBe(1);
     expect(changedPages[0]).toMatchObject({
       action: "updated",
-      tags: ["newTag", ...page.tags],
+      metadata: {
+        tags: ["newTag", ...(page?.metadata?.tags || [])],
+      },
     });
   });
 });

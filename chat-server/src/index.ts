@@ -6,7 +6,7 @@ import {
   makeDatabaseConnection,
   makeOpenAiEmbedFunc,
 } from "chat-core";
-import { ConversationsService } from "./services/conversations";
+import { makeConversationsService } from "./services/conversations";
 import { makeDataStreamer } from "./services/dataStreamer";
 import { makeOpenAiLlm } from "./services/llm";
 import { config } from "./config";
@@ -21,7 +21,7 @@ const startServer = async () => {
     config.mongodb.vectorSearchIndexName
   );
 
-  const conversations = new ConversationsService(
+  const conversations = makeConversationsService(
     mongodb.db,
     config.llm.systemPrompt
   );
@@ -42,6 +42,9 @@ const startServer = async () => {
     llm,
     findNearestNeighborsOptions: config.findNearestNeighborsOptions,
     searchBoosters: config.conversations?.searchBoosters,
+    userQueryPreprocessor: config.conversations?.userQueryPreprocessor,
+    maxRequestTimeoutMs: config.maxRequestTimeoutMs,
+    corsOptions: config.corsOptions,
   });
 
   const server = app.listen(PORT, () => {

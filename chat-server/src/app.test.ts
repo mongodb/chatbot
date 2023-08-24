@@ -7,10 +7,12 @@ import {
   makeOpenAiEmbedFunc,
 } from "chat-core";
 import { errorHandler, makeApp, makeHandleTimeoutMiddleware } from "./app";
-import { ConversationsService } from "./services/conversations";
+import { makeConversationsService } from "./services/conversations";
 import { makeDataStreamer } from "./services/dataStreamer";
 import { makeOpenAiLlm } from "./services/llm";
 import { config } from "./config";
+
+const ipAddress = "127.0.0.1";
 
 describe("App", () => {
   // Create instances of services
@@ -20,7 +22,7 @@ describe("App", () => {
     config.mongodb.vectorSearchIndexName
   );
 
-  const conversations = new ConversationsService(
+  const conversations = makeConversationsService(
     mongodb.db,
     config.llm.systemPrompt
   );
@@ -45,6 +47,9 @@ describe("App", () => {
         path: "embedding",
         k: 3,
         minScore: 0.9,
+      },
+      corsOptions: {
+        origin: ["http://localhost:3000", "http://example.com"],
       },
     });
   });
@@ -83,7 +88,9 @@ describe("App", () => {
       timeoutApp.use(makeHandleTimeoutMiddleware(shortTimeOut / 10));
       timeoutApp.get("/response-timeout-test", (_req, res, _next) => {
         setTimeout(() => {
-          return res.send("ok");
+          if (!res.headersSent) {
+            return res.send("ok");
+          }
         }, shortTimeOut);
       });
 
@@ -92,6 +99,31 @@ describe("App", () => {
       expect(response.body).toStrictEqual({
         error: "Response timeout",
       });
+    });
+  });
+  describe("CORS handling", () => {
+    const ipAddress = "";
+    test("should include the correct CORS headers", async () => {
+      const res = await request(app)
+        .post("/api/v1/conversations/")
+        .set("Origin", "http://example.com")
+        .set("X-FORWARDED-FOR", ipAddress);
+
+      expect(res.header["access-control-allow-origin"]).toBe(
+        "http://example.com"
+      );
+      expect(res.status).toBe(200);
+    });
+
+    test("should not allow unauthorized origin", async () => {
+      const res = await request(app)
+        .post("/api/v1/conversations")
+        .set("Origin", "http://unauthorized.com")
+        .set("X-FORWARDED-FOR", ipAddress)
+        .send();
+
+      expect(res.header["Access-Control-Allow-Origin"]).toBeUndefined();
+      expect(res.status).toBe(200);
     });
   });
 });

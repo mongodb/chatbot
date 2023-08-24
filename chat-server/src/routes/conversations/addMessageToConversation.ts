@@ -14,15 +14,15 @@ import {
   References,
   Reference,
   WithScore,
+  removeFrontMatter,
 } from "chat-core";
 import {
   Conversation,
-  ConversationsServiceInterface,
+  ConversationsService,
   Message,
   conversationConstants,
 } from "../../services/conversations";
 import { DataStreamer } from "../../services/dataStreamer";
-
 import {
   Llm,
   OpenAiAwaitedResponse,
@@ -39,6 +39,8 @@ import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import { SearchBooster } from "../../processors/SearchBooster";
+import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
+import { stripIndents } from "common-tags";
 
 export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 export const MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
@@ -67,14 +69,15 @@ export const AddMessageRequest = SomeExpressRequest.merge(
 
 export interface AddMessageToConversationRouteParams {
   store: EmbeddedContentStore;
-  conversations: ConversationsServiceInterface;
+  conversations: ConversationsService;
   embed: EmbedFunc;
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
   dataStreamer: DataStreamer;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
   searchBoosters?: SearchBooster[];
+  userQueryPreprocessor?: QueryPreprocessorFunc;
+  maxChunkContextTokens?: number;
 }
-
 export function makeAddMessageToConversationRoute({
   store,
   conversations,
@@ -83,6 +86,8 @@ export function makeAddMessageToConversationRoute({
   embed,
   findNearestNeighborsOptions,
   searchBoosters,
+  userQueryPreprocessor,
+  maxChunkContextTokens = 1500,
 }: AddMessageToConversationRouteParams) {
   return async (
     req: ExpressRequest,
@@ -97,6 +102,14 @@ export function makeAddMessageToConversationRoute({
         query: { stream },
         ip,
       } = req;
+      logRequest({
+        reqId,
+        message: stripIndents`Request info:
+        User message: ${message}
+        Stream: ${stream}
+        IP: ${ip}
+        ConversationId: ${conversationIdString}`,
+      });
 
       let conversationId: ObjectId;
       try {
@@ -174,17 +187,50 @@ export function makeAddMessageToConversationRoute({
 
       let answer: OpenAiChatMessage;
 
+      let preprocessedUserMessageContent: string | undefined;
+      // Try to preprocess the user's message. If the user's message cannot be preprocessed
+      // (likely due to LLM timeout), then we will just use the original message.
+      if (userQueryPreprocessor) {
+        try {
+          const { query, doNotAnswer } = await userQueryPreprocessor({
+            query: latestMessageText,
+            messages: conversationInDb.messages,
+          });
+          preprocessedUserMessageContent = query;
+          logRequest({
+            reqId,
+            message: stripIndents`Successfully preprocessed user query.
+              Original query: ${latestMessageText}
+              Preprocessed query: ${preprocessedUserMessageContent}`,
+          });
+          if (doNotAnswer) {
+            return await sendStaticNonResponse({
+              conversations,
+              conversationId,
+              preprocessedUserMessageContent,
+              latestMessageText,
+              shouldStream,
+              dataStreamer,
+              res,
+            });
+          }
+        } catch (err: unknown) {
+          logRequest({
+            reqId,
+            type: "error",
+            message: `Error preprocessing query: ${JSON.stringify(
+              err
+            )}. Using original query: ${latestMessageText}`,
+          });
+        }
+      }
       // Find content matches for latest message
-      // TODO: consider refactoring this to feed in all messages to the embed function
-      // And then as a future step, we can use LLM pre-processing to create a better input
-      // to the embedding service.
-
       let chunks: WithScore<EmbeddedContent>[];
       try {
         const { embedding, results } = await getContentForText({
           embed,
           ipAddress: ip,
-          text: latestMessageText,
+          text: preprocessedUserMessageContent || latestMessageText,
           store,
           findNearestNeighborsOptions,
         });
@@ -200,6 +246,32 @@ export function makeAddMessageToConversationRoute({
             }
           }
         }
+        logRequest({
+          reqId,
+          message: stripIndents`Chunks found: ${JSON.stringify(
+            chunks.map(
+              ({
+                sourceName,
+                url,
+                score,
+                text,
+                tokenCount,
+                updated,
+                metadata,
+                chunkIndex,
+              }) => ({
+                sourceName,
+                url,
+                score,
+                text,
+                tokenCount,
+                updated,
+                metadata,
+                chunkIndex,
+              })
+            )
+          )}`,
+        });
       } catch (err) {
         return sendErrorResponse({
           reqId,
@@ -214,39 +286,31 @@ export function makeAddMessageToConversationRoute({
           reqId,
           message: "No matching content found",
         });
-        const { assistantMessage } = await addMessagesToDatabase({
+        return await sendStaticNonResponse({
           conversations,
           conversationId,
-          userMessageContent: latestMessageText,
-          assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,
-          assistantMessageReferences: [],
+          preprocessedUserMessageContent,
+          latestMessageText,
+          shouldStream,
+          dataStreamer,
+          res,
         });
-        const apiRes = convertMessageFromDbToApi(assistantMessage);
-        if (shouldStream) {
-          dataStreamer.connect(res);
-          dataStreamer.streamData({
-            type: "delta",
-            data: apiRes.content,
-          });
-          dataStreamer.streamData({
-            type: "finished",
-            data: apiRes.id,
-          });
-          dataStreamer.disconnect();
-          return;
-        } else {
-          return res.status(200).json(apiRes);
-        }
       }
 
       const references = generateReferences({ chunks });
-
-      const chunkTexts = chunks.map((chunk) => chunk.text);
+      const chunkTexts = includeChunksForMaxTokensPossible({
+        maxTokens: maxChunkContextTokens,
+        chunks,
+      }).map((chunk) => removeFrontMatter(chunk.text));
 
       const latestMessage = {
-        content: latestMessageText,
+        content: preprocessedUserMessageContent || latestMessageText,
         role: "user",
       } satisfies OpenAiChatMessage;
+      logRequest({
+        reqId,
+        message: `Latest message sent to LLM: ${JSON.stringify(latestMessage)}`,
+      });
 
       const messages = [
         ...conversationInDb.messages.map(convertDbMessageToOpenAiMessage),
@@ -317,7 +381,8 @@ export function makeAddMessageToConversationRoute({
       const { assistantMessage } = await addMessagesToDatabase({
         conversations,
         conversationId,
-        userMessageContent: latestMessageText,
+        originalUserMessageContent: message,
+        preprocessedUserMessageContent,
         assistantMessageContent: answerContent,
         assistantMessageReferences: references,
       });
@@ -355,6 +420,49 @@ export interface GetContentForTextParams {
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
 }
 
+export async function sendStaticNonResponse({
+  conversations,
+  conversationId,
+  preprocessedUserMessageContent,
+  latestMessageText,
+  shouldStream,
+  dataStreamer,
+  res,
+}: {
+  conversations: ConversationsService;
+  conversationId: ObjectId;
+  preprocessedUserMessageContent?: string;
+  latestMessageText: string;
+  shouldStream: boolean;
+  dataStreamer: DataStreamer;
+  res: ExpressResponse<ApiMessage>;
+}) {
+  const { assistantMessage } = await addMessagesToDatabase({
+    conversations,
+    conversationId,
+    preprocessedUserMessageContent: preprocessedUserMessageContent,
+    originalUserMessageContent: latestMessageText,
+    assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,
+    assistantMessageReferences: [],
+  });
+  const apiRes = convertMessageFromDbToApi(assistantMessage);
+  if (shouldStream) {
+    dataStreamer.connect(res);
+    dataStreamer.streamData({
+      type: "delta",
+      data: apiRes.content,
+    });
+    dataStreamer.streamData({
+      type: "finished",
+      data: apiRes.id,
+    });
+    dataStreamer.disconnect();
+    return;
+  } else {
+    return res.status(200).json(apiRes);
+  }
+}
+
 export function convertDbMessageToOpenAiMessage(
   message: Message
 ): OpenAiChatMessage {
@@ -385,14 +493,16 @@ export async function getContentForText({
 
 interface AddMessagesToDatabaseParams {
   conversationId: ObjectId;
-  userMessageContent: string;
+  originalUserMessageContent: string;
+  preprocessedUserMessageContent?: string;
   assistantMessageContent: string;
   assistantMessageReferences: References;
-  conversations: ConversationsServiceInterface;
+  conversations: ConversationsService;
 }
 export async function addMessagesToDatabase({
   conversationId,
-  userMessageContent,
+  originalUserMessageContent,
+  preprocessedUserMessageContent,
   assistantMessageContent,
   assistantMessageReferences,
   conversations,
@@ -401,7 +511,8 @@ export async function addMessagesToDatabase({
   // Would limit database calls.
   const userMessage = await conversations.addConversationMessage({
     conversationId,
-    content: userMessageContent,
+    content: originalUserMessageContent,
+    preprocessedContent: preprocessedUserMessageContent,
     role: "user",
   });
   const assistantMessage = await conversations.addConversationMessage({
@@ -434,6 +545,24 @@ export function generateReferences({
   }
   const uniqueLinks = Array.from(new Set(chunks.map((chunk) => chunk.url)));
   return uniqueLinks.map((link) => createLinkReference(link));
+}
+
+/**
+  This function will return the chunks that can fit in the maxTokens.
+  It limits the number of tokens that are sent to the LLM.
+ */
+export function includeChunksForMaxTokensPossible({
+  maxTokens,
+  chunks,
+}: {
+  maxTokens: number;
+  chunks: EmbeddedContent[];
+}): EmbeddedContent[] {
+  let total = 0;
+  const fitRangeEndIndex = chunks.findIndex(
+    ({ tokenCount }) => (total += tokenCount) > maxTokens
+  );
+  return fitRangeEndIndex === -1 ? chunks : chunks.slice(0, fitRangeEndIndex);
 }
 
 export function validateApiConversationFormatting({

@@ -16,7 +16,7 @@ import {
 } from "chat-core";
 import { DataStreamer } from "./services/dataStreamer";
 import { ObjectId } from "mongodb";
-import { ConversationsServiceInterface } from "./services/conversations";
+import { ConversationsService } from "./services/conversations";
 import { getRequestId, logRequest, sendErrorResponse } from "./utils";
 import {
   Llm,
@@ -24,6 +24,7 @@ import {
   OpenAiStreamingResponse,
 } from "./services/llm";
 import { SearchBooster } from "./processors/SearchBooster";
+import { QueryPreprocessorFunc } from "./processors/QueryPreprocessorFunc";
 
 // General error handler; called at usage of next() in routes
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
@@ -75,34 +76,46 @@ export const makeHandleTimeoutMiddleware = (apiTimeout: number) => {
 export const API_V1_PREFIX = "/api/v1";
 export const CONVERSATIONS_API_V1_PREFIX = `${API_V1_PREFIX}/conversations`;
 
-export const REQUEST_TIMEOUT = 60000; // 60 seconds
+export const DEFAULT_MAX_REQUEST_TIMEOUT_MS = 60000;
 export const makeApp = async ({
   embed,
   dataStreamer,
   store,
   conversations,
   llm,
-  requestTimeout = REQUEST_TIMEOUT,
+  maxRequestTimeoutMs = DEFAULT_MAX_REQUEST_TIMEOUT_MS,
+  maxChunkContextTokens,
   findNearestNeighborsOptions,
   searchBoosters,
+  userQueryPreprocessor,
+  corsOptions,
 }: {
   embed: EmbedFunc;
   store: EmbeddedContentStore;
   dataStreamer: DataStreamer;
-  conversations: ConversationsServiceInterface;
+  conversations: ConversationsService;
   llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
-  requestTimeout?: number;
+  maxRequestTimeoutMs?: number;
+  maxChunkContextTokens?: number;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
   searchBoosters?: SearchBooster[];
+  userQueryPreprocessor?: QueryPreprocessorFunc;
+  corsOptions?: cors.CorsOptions;
 }): Promise<Express> => {
   const app = express();
-  app.use(makeHandleTimeoutMiddleware(requestTimeout));
+  app.use(makeHandleTimeoutMiddleware(maxRequestTimeoutMs));
   app.set("trust proxy", true);
-  app.use(cors()); // TODO: add specific options to only allow certain origins
+  app.use(cors(corsOptions));
   app.use(express.json());
   app.use(reqHandler);
-  // TODO: consider only serving this from the staging env
-  app.use(express.static("static"));
+  const { NODE_ENV } = process.env;
+  if (
+    NODE_ENV === "development" ||
+    NODE_ENV === "staging" ||
+    NODE_ENV === "qa"
+  ) {
+    app.use(express.static("static"));
+  }
   app.use(
     CONVERSATIONS_API_V1_PREFIX,
     makeConversationsRouter({
@@ -113,6 +126,8 @@ export const makeApp = async ({
       conversations,
       findNearestNeighborsOptions,
       searchBoosters,
+      userQueryPreprocessor,
+      maxChunkContextTokens,
     })
   );
   app.all("*", (req, res, _next) => {

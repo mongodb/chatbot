@@ -12,6 +12,8 @@ import { makeDataStreamer } from "./services/dataStreamer";
 import { makeOpenAiLlm } from "./services/llm";
 import { config } from "./config";
 
+const ipAddress = "127.0.0.1";
+
 describe("App", () => {
   // Create instances of services
   const mongodb = new MongoDB(
@@ -45,6 +47,9 @@ describe("App", () => {
         path: "embedding",
         k: 3,
         minScore: 0.9,
+      },
+      corsOptions: {
+        origin: ["http://localhost:3000", "http://example.com"],
       },
     });
   });
@@ -94,6 +99,31 @@ describe("App", () => {
       expect(response.body).toStrictEqual({
         error: "Response timeout",
       });
+    });
+  });
+  describe("CORS handling", () => {
+    const ipAddress = "";
+    test("should include the correct CORS headers", async () => {
+      const res = await request(app)
+        .post("/api/v1/conversations/")
+        .set("Origin", "http://example.com")
+        .set("X-FORWARDED-FOR", ipAddress);
+
+      expect(res.header["access-control-allow-origin"]).toBe(
+        "http://example.com"
+      );
+      expect(res.status).toBe(200);
+    });
+
+    test("should not allow unauthorized origin", async () => {
+      const res = await request(app)
+        .post("/api/v1/conversations")
+        .set("Origin", "http://unauthorized.com")
+        .set("X-FORWARDED-FOR", ipAddress)
+        .send();
+
+      expect(res.header["Access-Control-Allow-Origin"]).toBeUndefined();
+      expect(res.status).toBe(200);
     });
   });
 });

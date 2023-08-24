@@ -105,7 +105,7 @@ export const makeApp = async ({
   const app = express();
   app.use(makeHandleTimeoutMiddleware(maxRequestTimeoutMs));
   app.set("trust proxy", true);
-  app.use(cors(corsOptions)); // TODO: add specific options to only allow certain origins
+  app.use(cors(corsOptions));
   app.use(express.json());
   app.use(reqHandler);
   // TODO: consider only serving this from the staging env

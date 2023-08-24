@@ -8,6 +8,7 @@ env:
   MONGODB_DATABASE_NAME: docs-chatbot-prod
   VECTOR_SEARCH_INDEX_NAME: default
   OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
+  NODE_ENV: production
 
 envSecrets:
   MONGODB_CONNECTION_URI: docs-chatbot-prod

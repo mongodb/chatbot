@@ -6,7 +6,7 @@ import { Overline, Link } from "@leafygreen-ui/typography";
 function GitCommitLink() {
   const VITE_GIT_COMMIT = import.meta.env.VITE_GIT_COMMIT;
   console.log(
-    "import.meta.env.VITE_GIT_COMMIT",
+    "env VITE_GIT_COMMIT",
     import.meta.env.VITE_GIT_COMMIT
   );
   if (!VITE_GIT_COMMIT) {

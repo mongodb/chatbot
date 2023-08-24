@@ -44,6 +44,7 @@ const startServer = async () => {
     searchBoosters: config.conversations?.searchBoosters,
     userQueryPreprocessor: config.conversations?.userQueryPreprocessor,
     maxRequestTimeoutMs: config.maxRequestTimeoutMs,
+    corsOptions: config.corsOptions,
   });
 
   const server = app.listen(PORT, () => {

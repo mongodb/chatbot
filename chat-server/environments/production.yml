@@ -26,11 +26,12 @@ ingress:
 resources:
   limits:
     memory: 2Gi
-    cpu: 500m
-  requests: # TODO: explain what this is
-    memory: 1100Mi
+    cpu: 1
+  requests:
+    memory: 500Mi
     cpu: 500m
 autoscaling:
+  apiVersion: autoscaling/v2
   minReplicas: 1
   maxReplicas: 5
   metrics:
@@ -38,3 +39,18 @@ autoscaling:
       resource:
         name: cpu
         targetAverageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0 # scaleUp immediately if conditions met
+      policies:
+        # 100% of the currently running replicas may at most be added every 60s
+        - type: Percent
+          value: 100
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 60 # to prevent flapping, scale down after 60s
+      policies:
+        # At most 1 pod can be removed every 60s
+        - type: Pods
+          value: 1
+          periodSeconds: 60

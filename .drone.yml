@@ -284,6 +284,9 @@ trigger:
     - promote
   target:
     - production
+  ref:
+    include:
+      - refs/tags/chat-server-v*
 
 steps:
   # Deploys Docker image associated with production build that triggered promotion
@@ -453,10 +456,11 @@ trigger:
     - promote
   target:
     - production
+  ref:
+    include:
+      - refs/tags/ingest-v*
 
 steps:
-  # Deploys Docker image associated with production build that triggered promotion
-  # TODO: update to use cron chart
   - name: deploy-production-ingest-service
     image: quay.io/mongodb/drone-helm:v3
     settings:

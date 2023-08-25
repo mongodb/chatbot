@@ -3,6 +3,15 @@
   "position": { "start": { "line": 0 } },
   "children": [
     {
+      "type": "paragraph",
+      "children": [
+        {
+          "type": "text",
+          "value": "before text"
+        }
+      ]
+    },
+    {
       "type": "directive",
       "children": [
         {
@@ -129,6 +138,15 @@
       "options": {
         "header-rows": 2
       }
+    },
+    {
+      "type": "paragraph",
+      "children": [
+        {
+          "type": "text",
+          "value": "after text"
+        }
+      ]
     }
   ]
 }

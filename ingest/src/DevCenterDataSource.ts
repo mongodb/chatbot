@@ -1,4 +1,5 @@
 import { MongoClient } from "mongodb";
+import { convert } from "html-to-text";
 import { Page, assertEnvVars, logger } from "chat-core";
 import { DataSource } from "./DataSource";
 import { ProjectBase } from "./ProjectBase";
@@ -113,17 +114,26 @@ export function makeDevCenterPageBody({
 }) {
   const mdTitle = title ? `# ${title}\n\n` : "";
   content = mdTitle + content;
+  // Remove HTML <div> and <img> tags
+  // Replace all spaces with uncommon character 🎃 b/c html-to-text convert() removes new characters
+  // at the beginning of lines. Then re-replace 🎃 with spaces after convert().
+  content = convert(content.replaceAll(" ", "🎃"), {
+    preserveNewlines: true,
+    selectors: [{ selector: "img", format: "skip" }],
+  }).replaceAll("🎃", " ");
+
+  // remove markdown images and links
   const mdLink = /!?\[(.*?)\]\(.*?\)/g;
-  return (
-    content
-      // remove images and links
-      .replaceAll(mdLink, (match, text) => {
-        // remove images
-        if (match.startsWith("!")) {
-          return "";
-        } else return text;
-      })
-      // remove unnecessary newlines
-      .replaceAll(/\n{3,}/g, "\n\n")
-  );
+  content = content.replaceAll(mdLink, (match, text) => {
+    // remove images
+    if (match.startsWith("!")) {
+      return "";
+    } else return text;
+  });
+  // remove YouTube markdown directives (e.g. `:youtube[]{some content}`)
+  content = content.replaceAll(/:youtube\[\]\{(.*)\}/g, "");
+  // remove unnecessary newlines
+  content = content.replaceAll(/\n{3,}/g, "\n\n");
+
+  return content;
 }

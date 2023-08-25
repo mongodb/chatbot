@@ -1,6 +1,6 @@
 import { strict as assert } from "assert";
-import fs from "fs";
 import Path from "path";
+import fs from "fs";
 import {
   makeDevCenterPageBody,
   makeDevCenterDataSource,
@@ -18,8 +18,8 @@ const devCenterDoc = JSON.parse(
 );
 describe("DevCenterDataSource", () => {
   jest.setTimeout(20000);
+  const { DEVCENTER_CONNECTION_URI } = process.env;
   it("loads pages from dev center", async () => {
-    const { DEVCENTER_CONNECTION_URI } = process.env;
     assert(
       DEVCENTER_CONNECTION_URI !== undefined,
       "env var DEVCENTER_CONNECTION_URI not defined. Did you copy .env.example to .env and fill it in?"
@@ -86,5 +86,29 @@ describe("makeDevCenterPageBody()", () => {
       content: devCenterDoc.content,
     });
     expect(pageBody).not.toMatch(/^# .*\n\n/);
+  });
+
+  it("removes HTML <div> and <img> tags", () => {
+    const content = fs.readFileSync(
+      Path.resolve(
+        __dirname,
+        "./test_data/sampleDevCenterPageWithDivAndImg.md"
+      ),
+      "utf-8"
+    );
+    const title = "Sample Page";
+    const pageBody = makeDevCenterPageBody({ title, content });
+    expect(pageBody).not.toMatch(/<div.*>/);
+    expect(pageBody).not.toMatch(/<img.*>/);
+  });
+  it("removes YouTube markdown directives", async () => {
+    const content = fs.readFileSync(
+      Path.resolve(__dirname, "./test_data/sampleDevCenterPageWithYouTube.md"),
+      "utf-8"
+    );
+    const title = "Sample Page";
+    const pageBody = makeDevCenterPageBody({ title, content });
+    const notExpected = ":youtube[]{vid=-JcEa1snwVQ}";
+    expect(pageBody).not.toContain(notExpected);
   });
 });

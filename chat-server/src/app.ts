@@ -88,6 +88,7 @@ export const makeApp = async ({
   findNearestNeighborsOptions,
   searchBoosters,
   userQueryPreprocessor,
+  corsOptions,
 }: {
   embed: EmbedFunc;
   store: EmbeddedContentStore;
@@ -99,15 +100,22 @@ export const makeApp = async ({
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
   searchBoosters?: SearchBooster[];
   userQueryPreprocessor?: QueryPreprocessorFunc;
+  corsOptions?: cors.CorsOptions;
 }): Promise<Express> => {
   const app = express();
   app.use(makeHandleTimeoutMiddleware(maxRequestTimeoutMs));
   app.set("trust proxy", true);
-  app.use(cors()); // TODO: add specific options to only allow certain origins
+  app.use(cors(corsOptions));
   app.use(express.json());
   app.use(reqHandler);
-  // TODO: consider only serving this from the staging env
-  app.use(express.static("static"));
+  const { NODE_ENV } = process.env;
+  if (
+    NODE_ENV === "development" ||
+    NODE_ENV === "staging" ||
+    NODE_ENV === "qa"
+  ) {
+    app.use(express.static("static"));
+  }
   app.use(
     CONVERSATIONS_API_V1_PREFIX,
     makeConversationsRouter({

@@ -30,7 +30,7 @@ export const snootyAstToOpenApiSpec = async (
   }
   const promises = node.children?.map(async (childNode) =>
     snootyAstToOpenApiSpec(childNode)
-  ) || [new Promise(() => "")];
+  ) || [new Promise((resolve) => resolve(""))];
   return (await Promise.all(promises)).join("") || "";
 };
 

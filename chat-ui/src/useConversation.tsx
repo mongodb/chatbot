@@ -1,9 +1,9 @@
-import { useReducer } from "react";
+import { useMemo, useReducer } from "react";
 import { References } from "chat-core";
 import {
   MessageData,
   Role,
-  conversationService,
+  ConversationService,
   formatReferences,
 } from "./services/conversations";
 import createMessage, { createMessageId } from "./createMessage";
@@ -274,7 +274,17 @@ function conversationReducer(
   }
 }
 
-export function useConversation() {
+type UseConversationParams = {
+  serverBaseUrl?: string;
+};
+
+export function useConversation(params: UseConversationParams = {}) {
+  const conversationService = useMemo(() => {
+    return new ConversationService({
+      serverUrl: params.serverBaseUrl ?? import.meta.env.VITE_SERVER_BASE_URL,
+    });
+  }, [params.serverBaseUrl]);
+
   const [state, _dispatch] = useReducer(
     conversationReducer,
     defaultConversationState

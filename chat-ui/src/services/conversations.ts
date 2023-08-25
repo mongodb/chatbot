@@ -59,7 +59,7 @@ export class TimeoutError<Data extends object = object> extends Error {
   }
 }
 
-export default class ConversationService {
+export class ConversationService {
   private serverUrl: string;
 
   constructor(config: ConversationServiceConfig) {
@@ -302,6 +302,3 @@ export default class ConversationService {
     });
   }
 }
-export const conversationService = new ConversationService({
-  serverUrl: import.meta.env.VITE_SERVER_BASE_URL,
-});

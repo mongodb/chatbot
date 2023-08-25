@@ -9,13 +9,13 @@ npm install mongodb-chatbot-ui
 ## Use the Component
 
 ```ts
-import { Chatbot } from "mongodb-chatbot-ui"
+import Chatbot from "mongodb-chatbot-ui"
 
 function MyComponent() {
   return (
     <div>
       <Chatbot />
-    <div>
+    </div>
   )
 }
 ```

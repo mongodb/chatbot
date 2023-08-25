@@ -494,7 +494,7 @@ steps:
     image: plugins/npm
     settings:
       folder: chat-ui
-      registry: https://registry.npmjs.org
+      registry: https://registry.npmjs.org/
       username:
         from_secret: mongodb_chatbot_ui_npm_username
       email:

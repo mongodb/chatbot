@@ -290,6 +290,9 @@ export function useConversation(params: UseConversationParams = {}) {
     defaultConversationState
   );
   const dispatch = (...args: Parameters<typeof _dispatch>) => {
+    if (import.meta.env.MODE !== "production") {
+      console.log(`dispatch`, ...args);
+    }
     _dispatch(...args);
   };
 

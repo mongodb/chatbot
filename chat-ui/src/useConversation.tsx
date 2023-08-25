@@ -36,7 +36,7 @@ type ConversationAction =
   | { type: "createStreamingResponse"; data: string }
   | { type: "appendStreamingResponse"; data: string }
   | { type: "finishStreamingResponse"; messageId: MessageData["id"] }
-  | { type: "cancelStreamingResponse"; };
+  | { type: "cancelStreamingResponse" };
 
 type ConversationActor = {
   createConversation: () => void;
@@ -280,9 +280,6 @@ export function useConversation() {
     defaultConversationState
   );
   const dispatch = (...args: Parameters<typeof _dispatch>) => {
-    if(import.meta.env.MODE !== 'production') {
-      console.log(`dispatch`, ...args);
-    }
     _dispatch(...args);
   };
 
@@ -350,8 +347,11 @@ export function useConversation() {
         // Count the number of markdown code fences in the response. If
         // it's odd, the streaming message stopped in the middle of a
         // code block and we need to escape from it.
-        const numCodeFences = countRegexMatches(/```/g, streamedTokens.join(""));
-        if(numCodeFences % 2 !== 0) {
+        const numCodeFences = countRegexMatches(
+          /```/g,
+          streamedTokens.join("")
+        );
+        if (numCodeFences % 2 !== 0) {
           dispatch({
             type: "appendStreamingResponse",
             data: "\n```\n\n",

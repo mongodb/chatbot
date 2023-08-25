@@ -63,7 +63,12 @@ export default class ConversationService {
   private serverUrl: string;
 
   constructor(config: ConversationServiceConfig) {
-    this.serverUrl = config.serverUrl;
+    this.serverUrl = config.serverUrl.startsWith("/")
+      ? new URL(
+          config.serverUrl,
+          window.location.protocol + "//" + window.location.host
+        ).href
+      : config.serverUrl;
   }
 
   private getUrl(path: string, queryParams: Record<string, string> = {}) {

@@ -24,6 +24,15 @@
       "types": "./dist/types/index.d.ts"
     }
   },
+  "release-it": {
+    "git": {
+      "commitMessage": "Release chat-ui-v${version}"
+    },
+    "github": {
+      "releaseName": "chat-ui-v${version}",
+      "draft": true
+    }
+  },
   "scripts": {
     "dev": "VITE_GIT_COMMIT=$(git rev-parse --short HEAD) vite --config vite.config.component.js --mode development",
     "build:dts": "tsc --project tsconfig.declarations.json",

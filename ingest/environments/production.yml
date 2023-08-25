@@ -8,7 +8,7 @@ cronJobs:
     command: ["node", ".", "all"]
     env:
       OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
-      OPENAI_EMBEDDING_MODEL_VERSION: 2023-03-15-preview
+      OPENAI_EMBEDDING_MODEL_VERSION: 2023-06-01-preview
       MONGODB_DATABASE_NAME: docs-chatbot-prod
       VECTOR_SEARCH_INDEX_NAME: default
       OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview

@@ -11,7 +11,6 @@ env:
   ALLOWED_ORIGINS: https://mongodb.com,https://www.mongodb.com
   NODE_ENV: production
 
-
 envSecrets:
   MONGODB_CONNECTION_URI: docs-chatbot-prod
   OPENAI_ENDPOINT: docs-chatbot-prod
@@ -26,16 +25,16 @@ ingress:
 
 resources:
   limits:
-    memory: 1300Mi
-  requests:
+    memory: 2Gi
+    cpu: 500m
+  requests: # TODO: explain what this is
     memory: 1100Mi
-# TODO: update this to do the elastic-beanstalky stuff
-# need to define resource requests. see kanopy docs and https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details
-# autoscaling:
-#   minReplicas: 2
-#   maxReplicas: 5
-#   metrics:
-#     - type: Resource
-#       resource:
-#         name: cpu
-#         targetAverageUtilization: 80
+    cpu: 500m
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: 80

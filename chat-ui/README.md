@@ -24,6 +24,6 @@ function MyComponent() {
 
 The `<Chatbot />` component accepts the following props:
 
-| Prop            | Type      | Description                                     | Default                                              |
-|-----------------|-----------|-------------------------------------------------|------------------------------------------------------|
-| `serverBaseUrl` | `string?` | The base URL for the Chatbot Conversations API. | `https://knowledge.mongodb.com/api/v1/conversations` |
+| Prop            | Type      | Description                       | Default                                |
+|-----------------|-----------|-----------------------------------|----------------------------------------|
+| `serverBaseUrl` | `string?` | The base URL for the Chatbot API. | `https://knowledge.mongodb.com/api/v1` |

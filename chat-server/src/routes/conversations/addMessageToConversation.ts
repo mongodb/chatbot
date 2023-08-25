@@ -165,14 +165,6 @@ export function makeAddMessageToConversationRoute({
           errorMessage: "Conversation not found",
         });
       }
-      // if (!areEquivalentIpAddresses(conversationInDb.ipAddress, ip)) {
-      //   return sendErrorResponse({
-      //     reqId,
-      //     res,
-      //     httpStatus: 403,
-      //     errorMessage: "IP address does not match",
-      //   });
-      // }
 
       if (conversationInDb.messages.length >= MAX_MESSAGES_IN_CONVERSATION) {
         // The end user doesn't see the system prompt, so we subtract 1 to account for that.

@@ -284,6 +284,9 @@ trigger:
     - promote
   target:
     - production
+  ref:
+    include:
+      - refs/tags/chat-server-v*
 
 steps:
   # Deploys Docker image associated with production build that triggered promotion
@@ -453,6 +456,9 @@ trigger:
     - promote
   target:
     - production
+  ref:
+    include:
+      - refs/tags/ingest-v*
 
 steps:
   # Deploys Docker image associated with production build that triggered promotion

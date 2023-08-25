@@ -170,8 +170,14 @@ function getAvatarVariantForRole(role: Role) {
   return avatarVariant;
 }
 
-export function Chatbot() {
-  const conversation = useConversation();
+export type ChatbotProps = {
+  serverBaseUrl?: string;
+};
+
+export function Chatbot(props: ChatbotProps) {
+  const conversation = useConversation({
+    serverBaseUrl: props.serverBaseUrl,
+  });
   const [initialInputFocused, setInitialInputFocused] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);

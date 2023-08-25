@@ -1,9 +1,9 @@
-import { useReducer } from "react";
+import { useMemo, useReducer } from "react";
 import { References } from "chat-core";
 import {
   MessageData,
   Role,
-  conversationService,
+  ConversationService,
   formatReferences,
 } from "./services/conversations";
 import createMessage, { createMessageId } from "./createMessage";
@@ -36,7 +36,7 @@ type ConversationAction =
   | { type: "createStreamingResponse"; data: string }
   | { type: "appendStreamingResponse"; data: string }
   | { type: "finishStreamingResponse"; messageId: MessageData["id"] }
-  | { type: "cancelStreamingResponse"; };
+  | { type: "cancelStreamingResponse" };
 
 type ConversationActor = {
   createConversation: () => void;
@@ -274,13 +274,23 @@ function conversationReducer(
   }
 }
 
-export function useConversation() {
+type UseConversationParams = {
+  serverBaseUrl?: string;
+};
+
+export function useConversation(params: UseConversationParams = {}) {
+  const conversationService = useMemo(() => {
+    return new ConversationService({
+      serverUrl: params.serverBaseUrl ?? import.meta.env.VITE_SERVER_BASE_URL,
+    });
+  }, [params.serverBaseUrl]);
+
   const [state, _dispatch] = useReducer(
     conversationReducer,
     defaultConversationState
   );
   const dispatch = (...args: Parameters<typeof _dispatch>) => {
-    if(import.meta.env.MODE !== 'production') {
+    if (import.meta.env.MODE !== "production") {
       console.log(`dispatch`, ...args);
     }
     _dispatch(...args);
@@ -350,8 +360,11 @@ export function useConversation() {
         // Count the number of markdown code fences in the response. If
         // it's odd, the streaming message stopped in the middle of a
         // code block and we need to escape from it.
-        const numCodeFences = countRegexMatches(/```/g, streamedTokens.join(""));
-        if(numCodeFences % 2 !== 0) {
+        const numCodeFences = countRegexMatches(
+          /```/g,
+          streamedTokens.join("")
+        );
+        if (numCodeFences % 2 !== 0) {
           dispatch({
             type: "appendStreamingResponse",
             data: "\n```\n\n",

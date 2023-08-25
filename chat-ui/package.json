@@ -1,6 +1,6 @@
 {
   "name": "mongodb-chatbot-ui",
-  "version": "0.0.0",
+  "version": "0.0.2",
   "description": "UI for the MongoDB AI Chatbot",
   "author": "MongoDB, Inc.",
   "license": "Apache-2.0",

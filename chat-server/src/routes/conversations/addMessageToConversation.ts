@@ -31,7 +31,6 @@ import {
 import {
   ApiConversation,
   ApiMessage,
-  areEquivalentIpAddresses,
   convertMessageFromDbToApi,
   isValidIp,
 } from "./utils";

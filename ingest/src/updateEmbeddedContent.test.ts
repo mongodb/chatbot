@@ -85,4 +85,49 @@ describe("updateEmbeddedContent", () => {
     // Embedded content for page was deleted
     expect(embeddedContent).toHaveLength(0);
   });
+  it("updates page if version change", async () => {
+    const pageStore = makeMockPageStore();
+
+    await persistPages({
+      pages: [{ ...examplePage }],
+      store: pageStore,
+      sourceName: "test",
+    });
+    const pages = await pageStore.loadPages();
+    expect(pages).toHaveLength(1);
+
+    const embeddedContentStore = makeMockEmbeddedContentStore();
+
+    const since = new Date("2000-01-01");
+
+    await updateEmbeddedContent({
+      embed,
+      embeddedContentStore,
+      pageStore,
+      since,
+      chunkOptions: {
+        chunkingVersion: 1,
+      },
+    });
+
+    const embeddedContent = await embeddedContentStore.loadEmbeddedContent({
+      page: examplePage,
+    });
+    expect(embeddedContent).toHaveLength(1);
+    expect(embeddedContent[0].chunkingVersion).toBe(1);
+    await updateEmbeddedContent({
+      embed,
+      embeddedContentStore,
+      pageStore,
+      since,
+      chunkOptions: {
+        chunkingVersion: 2,
+      },
+    });
+    const embeddedContent2 = await embeddedContentStore.loadEmbeddedContent({
+      page: examplePage,
+    });
+    expect(embeddedContent2).toHaveLength(1);
+    expect(embeddedContent2[0].chunkingVersion).toBe(2);
+  });
 });

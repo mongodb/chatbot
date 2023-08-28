@@ -15,6 +15,8 @@ type EmbeddedContentCommandArgs = {
   source?: string | string[];
 };
 
+export const CURRENT_CHUNKING_VERSION = 2;
+
 const commandModule: CommandModule<unknown, EmbeddedContentCommandArgs> = {
   command: "embed",
   builder(args) {
@@ -101,6 +103,7 @@ export const doEmbedCommand = async ({
     embed,
     chunkOptions: {
       transform: standardChunkFrontMatterUpdater,
+      chunkingVersion: CURRENT_CHUNKING_VERSION,
     },
   });
 };

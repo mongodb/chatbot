@@ -92,7 +92,8 @@ export const updateEmbeddedContentForPage = async ({
   if (
     existingContent.length &&
     existingContent[0].updated > page.updated &&
-    contentChunks.length === existingContent.length
+    contentChunks.length === existingContent.length &&
+    existingContent[0].chunkingVersion === chunkOptions?.chunkingVersion
   ) {
     logger.info(
       `Embedded content for ${page.sourceName}:${page.url} already updated (${existingContent[0].updated}) since page update date (${page.updated}). Skipping embedding.`
@@ -125,6 +126,7 @@ export const updateEmbeddedContentForPage = async ({
       ...chunk,
       embedding,
       updated: new Date(),
+      chunkingVersion: chunkOptions?.chunkingVersion,
     });
   }
 

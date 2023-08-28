@@ -54,6 +54,7 @@ export type ChunkOptions = {
   chunkOverlap: number;
   tokenizer: SomeTokenizer;
   yamlChunkSize?: number;
+  chunkingVersion?: number;
 
   /**
     Transform to be applied to each chunk as it is produced.

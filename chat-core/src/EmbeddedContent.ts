@@ -41,6 +41,12 @@ export interface EmbeddedContent {
     The order of the chunk if this content was chunked from a larger page.
    */
   chunkIndex?: number;
+
+  /**
+    Version of the chunking algorithm used to produce this chunk.
+    When version in the CLI is different from version in chunk, the chunk is updated.
+   */
+  chunkingVersion?: number;
 }
 
 export type EmbeddedContentStore = {

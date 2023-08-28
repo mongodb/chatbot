@@ -4,9 +4,9 @@ name: test-all
 
 trigger:
   event:
-    # - push # TODO: uncomment before merge
+    - push
     - tag
-    # - pull_request
+    - pull_request
   paths:
     include:
       - chat-server/**/*
@@ -53,7 +53,7 @@ steps:
 # Chat Server pipelines
 # ---
 ---
-# depends_on: ["test-all"]
+depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes
 name: staging-build-chat-server
@@ -61,7 +61,6 @@ name: staging-build-chat-server
 trigger:
   branch:
     - main
-    - build-fix # TODO: Remove before merge
   event:
     - push
 
@@ -127,7 +126,6 @@ trigger:
       - chat-ui/**/*
   branch:
     - main
-    - build-fix # TODO: Remove before merge
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion

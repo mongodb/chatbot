@@ -15,7 +15,7 @@ type EmbeddedContentCommandArgs = {
   source?: string | string[];
 };
 
-export const CURRENT_CHUNKING_VERSION = 2;
+export const CURRENT_CHUNKING_VERSION = 1;
 
 const commandModule: CommandModule<unknown, EmbeddedContentCommandArgs> = {
   command: "embed",

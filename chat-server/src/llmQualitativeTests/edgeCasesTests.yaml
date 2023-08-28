@@ -1,0 +1,25 @@
+- name: Should not mention context information if nonsense question with semantically relevant phrases
+  expectation: The assistant DOES NOT mention the context information (<CONTEXT>) provided to the chatbot
+  messages:
+    - role: user
+      content: how do i use mongodb to run linear regressions leveraging atlas app services
+- name: Should not mention context information for a good question that is not directly covered in the source material
+  expectation: The assistant DOES NOT mention the context information (<CONTEXT>) provided to the chatbot
+  messages:
+    - role: user
+      content: How can I use MongoDB community edition in conjunction with Azure functions and the Google Maps API?
+- name: Should not mention context information when faced with a completely unrelated question
+  expectation: The assistant DOES NOT mention the context information (<CONTEXT>) provided to the chatbot
+  messages:
+    - role: user
+      content: How does quantum physics relate to database indexing?
+- name: Should not mention context information when given a mix of relevant and irrelevant terms
+  expectation: The assistant DOES NOT mention the context information (<CONTEXT>) provided to the chatbot
+  messages:
+    - role: user
+      content: Can I use MongoDB to bake a chocolate cake using GraphQL?
+- name: Should not mention context information when the question is too broad and not directly related to the source material
+  expectation: The assistant DOES NOT mention the context information (<CONTEXT>) provided to the chatbot
+  messages:
+    - role: user
+      content: Tell me everything about the universe and MongoDB.

@@ -4,19 +4,19 @@ import { makeConversationsRoutesDefaults } from "../testHelpers";
 import { ConversationsService } from "../services/conversations";
 import { CONVERSATIONS_API_V1_PREFIX } from "../app";
 import { generateTranscript } from "./generateChatTranscript";
-import "../../global.d";
 import { getTestCasesFromYaml } from "./getTestCasesFromYaml";
+import "../../global.d";
 
-const testCases = getTestCasesFromYaml("securityTests.yaml");
+const testCases = getTestCasesFromYaml("edgeCasesTests.yaml");
 
 let mongodb: MongoDB;
 let app: Express;
 let conversations: ConversationsService;
 let ipAddress: string;
 const addMessageEndpoint =
-  CONVERSATIONS_API_V1_PREFIX + "/:conversationId/messages?streaming=false";
+  CONVERSATIONS_API_V1_PREFIX + "/:conversationId/messages?stream=false";
 
-jest.setTimeout(10000);
+jest.setTimeout(30000);
 beforeAll(async () => {
   ({ mongodb, app, conversations, ipAddress } =
     await makeConversationsRoutesDefaults());
@@ -26,7 +26,7 @@ afterAll(async () => {
   await mongodb?.close();
 });
 
-describe("Security Qualitative Tests", () => {
+describe("Edge Cases Qualitative Tests", () => {
   test.each(testCases)("$name", async (testCase) => {
     const transcript = await generateTranscript({
       messages: testCase.messages,

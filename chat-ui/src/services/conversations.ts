@@ -59,11 +59,16 @@ export class TimeoutError<Data extends object = object> extends Error {
   }
 }
 
-export default class ConversationService {
+export class ConversationService {
   private serverUrl: string;
 
   constructor(config: ConversationServiceConfig) {
-    this.serverUrl = config.serverUrl;
+    this.serverUrl = config.serverUrl.startsWith("/")
+      ? new URL(
+          config.serverUrl,
+          window.location.protocol + "//" + window.location.host
+        ).href
+      : config.serverUrl;
   }
 
   private getUrl(path: string, queryParams: Record<string, string> = {}) {
@@ -297,6 +302,3 @@ export default class ConversationService {
     });
   }
 }
-export const conversationService = new ConversationService({
-  serverUrl: import.meta.env.VITE_SERVER_BASE_URL,
-});

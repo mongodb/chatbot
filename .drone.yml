@@ -6,7 +6,7 @@ trigger:
   event:
     # - push # TODO: uncomment before merge
     - tag
-    - pull_request
+    # - pull_request
   paths:
     include:
       - chat-server/**/*
@@ -120,6 +120,14 @@ trigger:
     - promote
   target:
     - staging
+  paths:
+    include:
+      - chat-server/**/*
+      - chat-core/**/*
+      - chat-ui/**/*
+  branch:
+    - main
+    - build-fix # TODO: Remove before merge
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion
@@ -136,9 +144,6 @@ steps:
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
-    when:
-      branch:
-        - main
 ---
 depends_on: ["test-all"]
 kind: pipeline
@@ -202,6 +207,8 @@ trigger:
     - promote
   target:
     - staging
+  ref:
+    - refs/tags/chat-server-qa-*
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion
@@ -218,9 +225,6 @@ steps:
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
-    when:
-      ref:
-        - refs/tags/chat-server-qa-*
 
 ---
 depends_on: ["test-all"]
@@ -283,6 +287,9 @@ trigger:
     - promote
   target:
     - production
+  ref:
+    include:
+      - refs/tags/chat-server-v*
 
 steps:
   # Deploys Docker image associated with production build that triggered promotion
@@ -367,6 +374,12 @@ trigger:
     - promote
   target:
     - staging
+  paths:
+    include:
+      - ingest/**/*
+      - chat-core/**/*
+  branch:
+    - main
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion
@@ -384,8 +397,7 @@ steps:
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
-      branch:
-        - main
+
 ---
 depends_on: ["test-all"]
 kind: pipeline
@@ -447,10 +459,11 @@ trigger:
     - promote
   target:
     - production
+  ref:
+    include:
+      - refs/tags/ingest-v*
 
 steps:
-  # Deploys Docker image associated with production build that triggered promotion
-  # TODO: update to use cron chart
   - name: deploy-production-ingest-service
     image: quay.io/mongodb/drone-helm:v3
     settings:
@@ -484,6 +497,7 @@ steps:
     image: plugins/npm
     settings:
       folder: chat-ui
+      registry: https://registry.npmjs.org/
       username:
         from_secret: mongodb_chatbot_ui_npm_username
       email:

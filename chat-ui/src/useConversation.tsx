@@ -1,13 +1,17 @@
-import { useReducer } from "react";
+import { useMemo, useReducer } from "react";
 import { References } from "chat-core";
 import {
   MessageData,
   Role,
-  conversationService,
+  ConversationService,
   formatReferences,
 } from "./services/conversations";
 import createMessage, { createMessageId } from "./createMessage";
-import { removeArrayElementAt, updateArrayElementAt } from "./utils";
+import {
+  countRegexMatches,
+  removeArrayElementAt,
+  updateArrayElementAt,
+} from "./utils";
 
 // If SSE is supported, use it to stream responses from the server as
 // they're created instead of awaiting the entire response
@@ -32,7 +36,7 @@ type ConversationAction =
   | { type: "createStreamingResponse"; data: string }
   | { type: "appendStreamingResponse"; data: string }
   | { type: "finishStreamingResponse"; messageId: MessageData["id"] }
-  | { type: "cancelStreamingResponse"; };
+  | { type: "cancelStreamingResponse" };
 
 type ConversationActor = {
   createConversation: () => void;
@@ -270,13 +274,25 @@ function conversationReducer(
   }
 }
 
-export function useConversation() {
+type UseConversationParams = {
+  serverBaseUrl?: string;
+};
+
+export function useConversation(params: UseConversationParams = {}) {
+  const conversationService = useMemo(() => {
+    return new ConversationService({
+      serverUrl: params.serverBaseUrl ?? import.meta.env.VITE_SERVER_BASE_URL,
+    });
+  }, [params.serverBaseUrl]);
+
   const [state, _dispatch] = useReducer(
     conversationReducer,
     defaultConversationState
   );
   const dispatch = (...args: Parameters<typeof _dispatch>) => {
-    console.log(`dispatch`, ...args);
+    if (import.meta.env.MODE !== "production") {
+      console.log(`dispatch`, ...args);
+    }
     _dispatch(...args);
   };
 
@@ -326,6 +342,7 @@ export function useConversation() {
     let streamedMessageId: string | null = null;
     let references: References | null = null;
     let bufferedTokens: string[] = [];
+    let streamedTokens: string[] = [];
     const streamingIntervalMs = 50;
     const streamingInterval = setInterval(() => {
       const [nextToken, ...remainingTokens] = bufferedTokens;
@@ -340,6 +357,20 @@ export function useConversation() {
         finishedStreaming && bufferedTokens.length === 0;
 
       if (references && allBufferedTokensDispatched) {
+        // Count the number of markdown code fences in the response. If
+        // it's odd, the streaming message stopped in the middle of a
+        // code block and we need to escape from it.
+        const numCodeFences = countRegexMatches(
+          /```/g,
+          streamedTokens.join("")
+        );
+        if (numCodeFences % 2 !== 0) {
+          dispatch({
+            type: "appendStreamingResponse",
+            data: "\n```\n\n",
+          });
+        }
+
         dispatch({
           type: "appendStreamingResponse",
           data: formatReferences(references),
@@ -368,6 +399,7 @@ export function useConversation() {
           maxRetries: 0,
           onResponseDelta: async (data: string) => {
             bufferedTokens = [...bufferedTokens, data];
+            streamedTokens = [...streamedTokens, data];
           },
           onReferences: async (data: References) => {
             references = data;

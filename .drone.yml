@@ -90,6 +90,7 @@ steps:
         - LG_ARTIFACTORY_PASSWORD
         - LG_ARTIFACTORY_USERNAME
         - LG_ARTIFACTORY_EMAIL
+        - GIT_COMMIT=${DRONE_COMMIT_SHA:0:7}
       tags:
         - git-${DRONE_COMMIT_SHA:0:7}-staging
         - latest-staging

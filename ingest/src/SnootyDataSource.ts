@@ -89,6 +89,8 @@ export type MakeSnootyDataSourceArgs = {
     The base URL for Snooty Data API requests.
    */
   snootyDataApiBaseUrl: string;
+
+  version?: string;
 };
 
 export const makeSnootyDataSource = async ({
@@ -100,6 +102,7 @@ export const makeSnootyDataSource = async ({
     _baseUrl: string;
     _currentBranch: string;
     _snootyProjectName: string;
+    _version?: string;
   }
 > => {
   const {
@@ -108,12 +111,14 @@ export const makeSnootyDataSource = async ({
     name: snootyProjectName,
     tags,
     productName,
+    version,
   } = project;
   return {
     // Additional members for testing purposes
     _baseUrl: baseUrl,
     _currentBranch: currentBranch,
     _snootyProjectName: snootyProjectName,
+    _version: version,
     name: sourceName,
     async fetchPages() {
       // TODO: The manifest can be quite large (>100MB) so this could stand to
@@ -139,7 +144,13 @@ export const makeSnootyDataSource = async ({
                 (async () => {
                   const page = await handlePage(
                     (entry as SnootyPageEntry).data,
-                    { sourceName, baseUrl, tags: tags ?? [], productName }
+                    {
+                      sourceName,
+                      baseUrl,
+                      tags: tags ?? [],
+                      productName,
+                      version,
+                    }
                   );
                   pages.push(page);
                 })()
@@ -226,11 +237,13 @@ export const handlePage = async (
     baseUrl,
     tags: tagsIn = [],
     productName,
+    version,
   }: {
     sourceName: string;
     baseUrl: string;
     tags: string[];
     productName?: string;
+    version?: string;
   }
 ): Promise<Page> => {
   // Strip first three path segments - according to Snooty team, they'll always
@@ -273,6 +286,7 @@ export const handlePage = async (
     metadata: {
       tags,
       productName,
+      version,
     },
   };
 };

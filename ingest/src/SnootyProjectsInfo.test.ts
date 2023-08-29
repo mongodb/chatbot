@@ -154,5 +154,34 @@ describe("SnootyProjectsInfo", () => {
       );
       expect(sources[1]._currentBranch).toBe(someOtherBranch.gitBranchName);
     });
+    it("allows override version with versionNameOverride", async () => {
+      const sources = await prepareSnootySources({
+        projects: [
+          {
+            type: "snooty",
+            name: "cloud-docs",
+            currentBranch: "master",
+            tags: ["atlas", "docs"],
+            // No override
+          },
+          {
+            type: "snooty",
+            name: "docs",
+            currentBranch: "v6.0",
+            tags: ["manual", "docs"],
+            versionNameOverride: "override",
+          },
+          {
+            type: "snooty",
+            name: "node",
+            tags: ["driver", "docs"],
+          },
+        ],
+        snootyDataApiBaseUrl,
+      });
+      expect(sources[0]._version).toBeUndefined();
+      expect(sources[1]._version).toBe("override (current)");
+      expect(sources[2]._version).toContain(" (current)");
+    });
   });
 });

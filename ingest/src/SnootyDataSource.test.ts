@@ -20,6 +20,7 @@ describe("SnootyDataSource", () => {
     currentBranch: "v6.0",
     tags: ["docs", "manual"],
     baseUrl: "https://mongodb.com/docs/v6.0/",
+    version: "version_name",
   };
   const snootyDataApiBaseUrl = "https://snooty-data-api.mongodb.com/prod/";
   describe("makeSnootyDataSource()", () => {
@@ -90,6 +91,7 @@ describe("SnootyDataSource", () => {
         sourceName: "snooty-docs",
         metadata: {
           tags: ["docs", "manual"],
+          version: "version_name",
         },
         url: "https://mongodb.com/docs/v6.0/administration/analyzing-mongodb-performance/index/",
       });
@@ -100,6 +102,7 @@ describe("SnootyDataSource", () => {
         sourceName: "snooty-docs",
         metadata: {
           tags: ["docs", "manual"],
+          version: "version_name",
         },
         url: "https://mongodb.com/docs/v6.0/administration/index/backup-sharded-clusters/",
       });
@@ -110,6 +113,7 @@ describe("SnootyDataSource", () => {
         sourceName: "snooty-docs",
         metadata: {
           tags: ["docs", "manual"],
+          version: "version_name",
         },
         url: "https://mongodb.com/docs/v6.0/administration/change-streams-production-recommendations/how-to-index/",
       });
@@ -128,12 +132,14 @@ describe("handlePage()", () => {
       sourceName: "sample-source",
       baseUrl: "https://example.com",
       tags: ["a"],
+      version: "1.0",
     });
     expect(result).toMatchObject({
       format: "openapi-yaml",
       title: "Atlas App Services Data API",
       metadata: {
         tags: ["a", "openapi"],
+        version: "1.0",
       },
     });
   });
@@ -148,12 +154,14 @@ describe("handlePage()", () => {
       sourceName: "sample-source",
       baseUrl: "https://example.com",
       tags: ["a"],
+      version: "1.0",
     });
     expect(result).toMatchObject({
       format: "md",
       title: "$merge (aggregation)",
       metadata: {
         tags: ["a"],
+        version: "1.0",
       },
     });
     expect(result.body).toContain("# $merge (aggregation)");

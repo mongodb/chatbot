@@ -83,9 +83,9 @@ export const updateEmbeddedContentForPage = async ({
   // In order to resume where we left off (in case of script restart), compare
   // the date of any existing chunks with the page updated date. If the chunks
   // have been updated since the page was updated (and we have the expected
-  // number of chunks), assume the embedded content for that page is complete
-  // and up-to-date. To force an update, you can delete the chunks from the
-  // collection.
+  // number of chunks) and chunkingVersion has not changed from what's in the database,
+  // assume the embedded content for that page is complete and up-to-date.
+  // To force an update, you can delete the chunks from the collection.
   const existingContent = await store.loadEmbeddedContent({
     page,
   });

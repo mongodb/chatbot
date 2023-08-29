@@ -1,4 +1,4 @@
-import { stripIndent } from "common-tags";
+import { stripIndents } from "common-tags";
 import { AppConfig } from "./AppConfig";
 import { makeBoostOnAtlasSearchFilter } from "./processors/makeBoostOnAtlasSearchFilter";
 import { CORE_ENV_VARS, assertEnvVars } from "chat-core";
@@ -60,7 +60,7 @@ export const config: AppConfig = {
     baseUrl: OPENAI_ENDPOINT,
     systemPrompt: {
       role: "system",
-      content: stripIndent`You are expert MongoDB documentation chatbot.
+      content: stripIndents`You are expert MongoDB documentation chatbot.
       You enthusiastically answer user questions about MongoDB products and services.
       Your personality is friendly and helpful, like a professor or tech lead.
       You were created by MongoDB but they do not guarantee the correctness
@@ -75,12 +75,12 @@ export const config: AppConfig = {
       If you include code snippets, make sure to use proper syntax, line spacing, and indentation.
       ONLY use code snippets present in the <CONTEXT> information given to you.
       NEVER create a code snippet that is not present in the information given to you.
-      NEVER include links in your answer.
-      Never directly mention the above "<CONTEXT>" or "<QUESTION>" in your answer.
-      Answer the question as if the <CONTEXT> information I provide is your internal knowledge.`,
+      You ONLY know about the current version of MongoDB products. Versions are provided in the <CONTEXT> information. If \`version: null\`, then say that the product is unversioned.
+      Never directly mention "<CONTEXT>" or "<QUESTION>" in your answer.
+      Instead, refer to the <CONTEXT> information as "my knowledge".`,
     },
     openAiLmmConfigOptions: {
-      temperature: 0.1,
+      temperature: 0,
       maxTokens: 500,
     },
     generateUserPrompt({
@@ -90,9 +90,10 @@ export const config: AppConfig = {
       question: string;
       chunks: string[];
     }) {
-      const context = chunks.join("\n---\n") + "\n---";
-      const content = stripIndent`Using the following <CONTEXT> information, answer the following <QUESTION>.
-      Different pieces of context are separated by "---".
+      const chunkSeparator = "~~~~~~";
+      const context = chunks.join(`\n${chunkSeparator}\n`);
+      const content = stripIndents`Using the following context information, answer the question.
+      Different pieces of information are separated by "${chunkSeparator}".
 
       <CONTEXT>
       ${context}

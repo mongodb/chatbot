@@ -6,7 +6,8 @@ import {
   PageStore,
   logger,
 } from "chat-core";
-import { chunkPage, ChunkOptions } from "./chunkPage";
+import { createHash } from "crypto";
+import { chunkPage, ChunkFunc, ChunkOptions } from "./chunkPage";
 
 /**
   (Re-)embeddedContent the pages in the page store that have changed since the given date
@@ -58,6 +59,21 @@ export const updateEmbeddedContent = async ({
   }
 };
 
+const chunkAlgoHashes = new Map<string, string>();
+
+const getHashForFunc = (f: ChunkFunc, o?: Partial<ChunkOptions>): string => {
+  const data = JSON.stringify(o ?? {}) + f.toString();
+  const existingHash = chunkAlgoHashes.get(data);
+  if (existingHash) {
+    return existingHash;
+  }
+  const hash = createHash("sha256");
+  hash.update(data);
+  const digest = hash.digest("hex");
+  chunkAlgoHashes.set(data, digest);
+  return digest;
+};
+
 export const updateEmbeddedContentForPage = async ({
   page,
   store,
@@ -83,17 +99,19 @@ export const updateEmbeddedContentForPage = async ({
   // In order to resume where we left off (in case of script restart), compare
   // the date of any existing chunks with the page updated date. If the chunks
   // have been updated since the page was updated (and we have the expected
-  // number of chunks) and chunkingVersion has not changed from what's in the database,
-  // assume the embedded content for that page is complete and up-to-date.
-  // To force an update, you can delete the chunks from the collection.
+  // number of chunks) and chunkAlgoHash has not changed from what's in the
+  // database, assume the embedded content for that page is complete and
+  // up-to-date. To force an update, you can delete the chunks from the
+  // collection.
   const existingContent = await store.loadEmbeddedContent({
     page,
   });
+  const chunkAlgoHash = getHashForFunc(chunkPage, chunkOptions);
   if (
     existingContent.length &&
     existingContent[0].updated > page.updated &&
     contentChunks.length === existingContent.length &&
-    existingContent[0].chunkingVersion === chunkOptions?.chunkingVersion
+    existingContent[0].chunkAlgoHash === chunkAlgoHash
   ) {
     logger.info(
       `Embedded content for ${page.sourceName}:${page.url} already updated (${existingContent[0].updated}) since page update date (${page.updated}). Skipping embedding.`
@@ -126,7 +144,7 @@ export const updateEmbeddedContentForPage = async ({
       ...chunk,
       embedding,
       updated: new Date(),
-      chunkingVersion: chunkOptions?.chunkingVersion,
+      chunkAlgoHash,
     });
   }
 

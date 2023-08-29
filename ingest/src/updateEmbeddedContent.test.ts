@@ -85,7 +85,7 @@ describe("updateEmbeddedContent", () => {
     // Embedded content for page was deleted
     expect(embeddedContent).toHaveLength(0);
   });
-  it("updates page if version change", async () => {
+  it("updates page if chunk algorithm changes", async () => {
     const pageStore = makeMockPageStore();
 
     await persistPages({
@@ -105,29 +105,35 @@ describe("updateEmbeddedContent", () => {
       embeddedContentStore,
       pageStore,
       since,
-      chunkOptions: {
-        chunkingVersion: 1,
-      },
     });
 
     const embeddedContent = await embeddedContentStore.loadEmbeddedContent({
       page: examplePage,
     });
     expect(embeddedContent).toHaveLength(1);
-    expect(embeddedContent[0].chunkingVersion).toBe(1);
+    expect(embeddedContent[0].chunkAlgoHash).toBe(
+      // You might need to update this expectation when the standard chunkPage
+      // function changes
+      "677e6ae06deadac2df75f74a131227a93e03f95b833edcd57f41e70d7e5589ed"
+    );
     await updateEmbeddedContent({
       embed,
       embeddedContentStore,
       pageStore,
       since,
       chunkOptions: {
-        chunkingVersion: 2,
+        // Changing options impacts the chunkAlgoHash
+        chunkOverlap: 2,
       },
     });
     const embeddedContent2 = await embeddedContentStore.loadEmbeddedContent({
       page: examplePage,
     });
     expect(embeddedContent2).toHaveLength(1);
-    expect(embeddedContent2[0].chunkingVersion).toBe(2);
+    expect(embeddedContent2[0].chunkAlgoHash).toBe(
+      // You might need to update this expectation when the standard chunkPage
+      // function changes
+      "826958f2461ad5c12822dda95731981d293fb677407bd3ae568d29691a38eb3f"
+    );
   });
 });

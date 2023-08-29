@@ -103,7 +103,6 @@ export const doEmbedCommand = async ({
     embed,
     chunkOptions: {
       transform: standardChunkFrontMatterUpdater,
-      chunkingVersion: CURRENT_CHUNKING_VERSION,
     },
   });
 };

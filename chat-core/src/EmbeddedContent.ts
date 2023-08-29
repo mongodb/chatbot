@@ -43,10 +43,11 @@ export interface EmbeddedContent {
   chunkIndex?: number;
 
   /**
-    Version of the chunking algorithm used to produce this chunk.
-    When version in the CLI is different from version in chunk, the chunk is updated.
+    Non-cryptographic hash of the actual chunking function (and its options)
+    used to produce this chunk. Used to detect whether the chunk should be
+    updated because the function or options have changed.
    */
-  chunkingVersion?: number;
+  chunkAlgoHash?: string;
 }
 
 export type EmbeddedContentStore = {

@@ -33,7 +33,7 @@ export type Page = {
   };
 };
 
-export type PageFormat = "md" | "txt" | "openapi-yaml";
+export type PageFormat = "md" | "txt" | "openapi-yaml" | "rst";
 
 export type PageAction = "created" | "updated" | "deleted";
 

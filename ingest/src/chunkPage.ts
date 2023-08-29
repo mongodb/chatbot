@@ -88,6 +88,7 @@ export const chunkPage: ChunkFunc = async (
     }
     case "md": // fallthrough
     case "txt": // fallthrough
+    case "rst": // fallthrough
     default: {
       const chunks = await chunkMd(page, {
         ...defaultMdChunkOptions,

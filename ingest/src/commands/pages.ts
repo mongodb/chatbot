@@ -14,6 +14,7 @@ import {
 import { projectSourcesConfig, snootyProjectConfig } from "../projectSources";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
 import { prepareSnootySources } from "../SnootyProjectsInfo";
+import { makeRstOnGitHubDataSource } from "../GitHubDataSource";
 
 type PagesCommandArgs = {
   source?: string | string[];
@@ -69,7 +70,21 @@ export const doPagesCommand = async ({
   assert(devCenterConfig !== undefined);
   const devCenterSource = await makeDevCenterDataSource(devCenterConfig);
 
-  const availableSources = [...snootySources, devCenterSource];
+  const pyMongoSource = await makeRstOnGitHubDataSource({
+    name: "pymongo",
+    repoUrl: "https://github.com/mongodb/mongo-python-driver",
+    repoLoaderOptions: {
+      branch: "master",
+      ignoreFiles: [/^(?!^doc\/).*/], // Everything BUT doc/
+    },
+    pathToPageUrl(path) {
+      return path
+        .replace(/^doc\//, "https://pymongo.readthedocs.io/en/stable/")
+        .replace(/\.rst$/, ".html");
+    },
+  });
+
+  const availableSources = [...snootySources, devCenterSource, pyMongoSource];
 
   const sources =
     source === undefined

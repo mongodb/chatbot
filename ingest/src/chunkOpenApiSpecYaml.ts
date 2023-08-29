@@ -27,19 +27,16 @@ export const chunkOpenApiSpecYaml: ChunkFunc = async function (
     chunkSize,
     tokenizer,
   });
-  const dereferencedSpec: Awaited<
-    ReturnType<typeof SwaggerParser.dereference>
-  > & { servers?: { url?: string }[] } = await SwaggerParser.dereference(
-    yaml.parse(page.body)
-  )
-    // return the original spec if dereferencing fails
-    .catch((_) => SwaggerParser.parse(yaml.parse(page.body)));
-  const apiName = dereferencedSpec?.info?.title ?? page.title ?? "";
-  const baseUrls = dereferencedSpec?.servers?.map((server) => server.url);
+  const spec: Awaited<ReturnType<typeof SwaggerParser.parse>> & {
+    servers?: { url?: string }[];
+    components?: object;
+  } = await SwaggerParser.parse(yaml.parse(page.body));
+  const apiName = spec?.info?.title ?? page.title ?? "";
+  const baseUrls = spec?.servers?.map((server) => server.url);
   const chunks: ContentChunk[] = [];
   let chunkIndex = 0;
   // Deal with paths
-  const { paths } = dereferencedSpec;
+  const { paths } = spec;
   if (paths !== undefined) {
     for (const path of Object.keys(paths)) {
       const actions = paths[path] as { [key: string]: any };
@@ -80,10 +77,11 @@ export const chunkOpenApiSpecYaml: ChunkFunc = async function (
   }
   // deal with other parts of the spec to index besides paths
   const otherSpecInfoToKeep = {
-    info: dereferencedSpec.info,
-    security: dereferencedSpec.security,
-    servers: dereferencedSpec.servers,
-    tags: dereferencedSpec.tags,
+    info: spec.info,
+    security: spec.security,
+    servers: spec.servers,
+    tags: spec.tags,
+    components: spec.components,
   };
   const stringChunks = await splitter.splitText(
     yaml.stringify(otherSpecInfoToKeep)

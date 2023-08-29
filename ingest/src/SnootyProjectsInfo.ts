@@ -5,6 +5,7 @@ import {
   Branch,
 } from "./SnootyDataSource";
 import { LocallySpecifiedSnootyProjectConfig } from "./projectSources";
+import { DataSource } from "./DataSource";
 
 /** Schema for API response from https://snooty-data-api.mongodb.com/prod/projects */
 export type GetSnootyProjectsResponse = {
@@ -107,37 +108,50 @@ export const prepareSnootySources = async ({
   const snootyProjectsInfo = await makeSnootyProjectsInfo({
     snootyDataApiBaseUrl,
   });
-  return await Promise.all(
-    projects.map(async (project) => {
-      const { name: projectName } = project;
-      const currentBranch =
-        project.currentBranch ??
-        (
-          await snootyProjectsInfo.getCurrentBranch({
-            projectName,
-          })
-        ).gitBranchName;
-      let version =
-        project.versionNameOverride ??
-        (await snootyProjectsInfo.getCurrentVersionName({
-          projectName,
-        }));
-      version = version ? version + " (current)" : undefined;
-      return await makeSnootyDataSource({
-        name: `snooty-${project.name}`,
-        project: {
-          ...project,
-          currentBranch,
-          version,
-          baseUrl:
-            project.baseUrl?.replace(/\/?$/, "/") ??
-            (await snootyProjectsInfo.getBaseUrl({
+  return (
+    (
+      await Promise.allSettled(
+        projects.map(async (project) => {
+          const { name: projectName } = project;
+          const currentBranch =
+            project.currentBranch ??
+            (
+              await snootyProjectsInfo.getCurrentBranch({
+                projectName,
+              })
+            ).gitBranchName;
+          let version =
+            project.versionNameOverride ??
+            (await snootyProjectsInfo.getCurrentVersionName({
               projectName,
-              branchName: currentBranch,
-            })),
-        },
-        snootyDataApiBaseUrl,
-      });
-    })
-  );
+            }));
+          version = version ? version + " (current)" : undefined;
+          return await makeSnootyDataSource({
+            name: `snooty-${project.name}`,
+            project: {
+              ...project,
+              currentBranch,
+              version,
+              baseUrl:
+                project.baseUrl?.replace(/\/?$/, "/") ??
+                (await snootyProjectsInfo.getBaseUrl({
+                  projectName,
+                  branchName: currentBranch,
+                })),
+            },
+            snootyDataApiBaseUrl,
+          });
+        })
+      )
+    ).filter(
+      (result) => result.status === "fulfilled"
+    ) as PromiseFulfilledResult<
+      DataSource & {
+        _baseUrl: string;
+        _currentBranch: string;
+        _snootyProjectName: string;
+        _version?: string | undefined;
+      }
+    >[]
+  ).map((result) => result.value);
 };

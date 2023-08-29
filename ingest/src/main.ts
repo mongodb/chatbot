@@ -7,10 +7,9 @@ function commandDir<T>(
   directory: string,
   options?: yargs.RequireDirectoryOptions
 ): yargs.Argv<T> {
-  // Centralize the workaround for commandDir with TS
   return argv.commandDir(directory, {
-    extensions: process.env.NODE_ENV === "development" ? ["js", "ts"] : ["js"],
-    exclude: /^(?:index|.*\.test)\.[jt]s$/,
+    extensions: ["js"],
+    exclude: /^(?:index|.*\.test)\.js$/, // .map, .d.ts excluded by 'extensions' property
     visit(commandModule) {
       return commandModule.default;
     },

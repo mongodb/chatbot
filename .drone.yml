@@ -18,11 +18,10 @@ steps:
   - name: test
     image: node:18
     commands:
-      # - npm ci
-      # - npm run build
-      # - npm run lint
-      # - npm run test
-      - echo "Skipping testing!"
+      - npm ci
+      - npm run build
+      - npm run lint
+      - npm run test
 
     environment:
       PORT: 3000
@@ -54,7 +53,7 @@ steps:
 # Chat Server pipelines
 # ---
 ---
-# depends_on: ["test-all"]
+depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes
 name: staging-build-chat-server
@@ -62,7 +61,6 @@ name: staging-build-chat-server
 trigger:
   branch:
     - main
-    - autoscaling_fix
   event:
     - push
 
@@ -128,7 +126,6 @@ trigger:
       - chat-ui/**/*
   branch:
     - main
-    - autoscaling_fix
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion

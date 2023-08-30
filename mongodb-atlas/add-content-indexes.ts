@@ -14,7 +14,7 @@ const DB_NAME = getEnvironmentValue("DB_NAME");
 const CONTENT_METADATA_COLL_NAME = getEnvironmentValue("CONTENT_METADATA_COLL_NAME");
 const EMBEDDED_CONTENT_COLL_NAME = getEnvironmentValue("EMBEDDED_CONTENT_COLL_NAME");
 
-console.log("Creating a TTL index with the following parameters:", {
+console.log("Creating a content index with the following parameters:", {
   DB_NAME,
   CONTENT_METADATA_COLL_NAME,
   EMBEDDED_CONTENT_COLL_NAME,

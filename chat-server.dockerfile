@@ -16,7 +16,7 @@ ENV VITE_GIT_COMMIT=${GIT_COMMIT}
 WORKDIR /app
 COPY . ./
 RUN npm install lerna && npm run bootstrap && npm run build
-RUN npm install pm2 -g
+
 
 # Main image
 FROM node:18-alpine as main
@@ -32,4 +32,4 @@ COPY --from=builder /app/chat-server/node_modules ./chat-server/node_modules
 
 EXPOSE 3000
 WORKDIR /app/chat-server
-CMD ["pm2-runtime", "dist/index.js"]
+CMD ["npm", "start"]

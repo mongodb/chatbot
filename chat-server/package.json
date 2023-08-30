@@ -17,7 +17,7 @@
     "format": "prettier ./src --write",
     "format:check": "prettier ./src --check",
     "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
-    "start": "node ./dist/index.js",
+    "start": "pm2-runtime ./dist/index.js",
     "test": "jest --forceExit",
     "test:llmQualitative": "jest --config jest.config.llmQualitative.js --forceExit",
     "release": "release-it"
@@ -34,6 +34,7 @@
     "langchain": "^0.0.95",
     "mongodb": "^5.7.0",
     "openai": "^3.2.1",
+    "pm2": "^5.3.0",
     "stream-json": "^1.8.0",
     "typechat": "^0.0.10",
     "winston": "^3.9.0",

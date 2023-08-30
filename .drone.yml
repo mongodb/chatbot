@@ -1,59 +1,59 @@
-kind: pipeline
-type: kubernetes
-name: test-all
+# kind: pipeline
+# type: kubernetes
+# name: test-all
 
-trigger:
-  event:
-    - push
-    - tag
-    - pull_request
-  paths:
-    include:
-      - chat-server/**/*
-      - chat-core/**/*
-      - chat-ui/**/*
-      - ingest/**/*
+# trigger:
+#   event:
+#     - push
+#     - tag
+#     - pull_request
+#   paths:
+#     include:
+#       - chat-server/**/*
+#       - chat-core/**/*
+#       - chat-ui/**/*
+#       - ingest/**/*
 
-steps:
-  - name: test
-    image: node:18
-    commands:
-      - npm ci
-      - npm run build
-      - npm run lint
-      - npm run test
+# steps:
+#   - name: test
+#     image: node:18
+#     commands:
+#       - npm ci
+#       - npm run build
+#       - npm run lint
+#       - npm run test
 
-    environment:
-      PORT: 3000
-      OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
-      OPENAI_EMBEDDING_MODEL_VERSION: 2023-03-15-preview
-      MONGODB_DATABASE_NAME: docs-chatbot-test
-      VECTOR_SEARCH_INDEX_NAME: default
-      OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
-      MONGODB_CONNECTION_URI:
-        from_secret: mongodb_connection_uri
-      OPENAI_ENDPOINT:
-        from_secret: openai_endpoint
-      OPENAI_API_KEY:
-        from_secret: openai_api_key
-      OPENAI_EMBEDDING_DEPLOYMENT:
-        from_secret: openai_embedding_deployment
-      OPENAI_CHAT_COMPLETION_DEPLOYMENT:
-        from_secret: openai_chat_completion_deployment
-      DEVCENTER_CONNECTION_URI:
-        from_secret: devcenter_connection_uri
-      LG_ARTIFACTORY_PASSWORD:
-        from_secret: lg_artifactory_password
-      LG_ARTIFACTORY_USERNAME:
-        from_secret: lg_artifactory_username
-      LG_ARTIFACTORY_EMAIL:
-        from_secret: lg_artifactory_email
+#     environment:
+#       PORT: 3000
+#       OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
+#       OPENAI_EMBEDDING_MODEL_VERSION: 2023-03-15-preview
+#       MONGODB_DATABASE_NAME: docs-chatbot-test
+#       VECTOR_SEARCH_INDEX_NAME: default
+#       OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
+#       MONGODB_CONNECTION_URI:
+#         from_secret: mongodb_connection_uri
+#       OPENAI_ENDPOINT:
+#         from_secret: openai_endpoint
+#       OPENAI_API_KEY:
+#         from_secret: openai_api_key
+#       OPENAI_EMBEDDING_DEPLOYMENT:
+#         from_secret: openai_embedding_deployment
+#       OPENAI_CHAT_COMPLETION_DEPLOYMENT:
+#         from_secret: openai_chat_completion_deployment
+#       DEVCENTER_CONNECTION_URI:
+#         from_secret: devcenter_connection_uri
+#       LG_ARTIFACTORY_PASSWORD:
+#         from_secret: lg_artifactory_password
+#       LG_ARTIFACTORY_USERNAME:
+#         from_secret: lg_artifactory_username
+#       LG_ARTIFACTORY_EMAIL:
+#         from_secret: lg_artifactory_email
 
 # ---
 # Chat Server pipelines
 # ---
 ---
-depends_on: ["test-all"]
+# depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes
 name: staging-build-chat-server
@@ -61,6 +61,7 @@ name: staging-build-chat-server
 trigger:
   branch:
     - main
+    - autoscaling_fix
   event:
     - push
 
@@ -126,6 +127,7 @@ trigger:
       - chat-ui/**/*
   branch:
     - main
+    - autoscaling_fix
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion

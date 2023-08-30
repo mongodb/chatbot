@@ -276,7 +276,7 @@ export const handlePage = async (
     tags.push("openapi");
   } else {
     format = "md";
-    body = snootyAstToMd(page.ast, { baseUrl });
+    body = snootyAstToMd(page.ast);
     title = getTitleFromSnootyAst(page.ast);
   }
 

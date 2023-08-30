@@ -1,2 +1,7 @@
 import { SnootyNode } from "./SnootyDataSource";
-export const rstToSnootyAst = (rst: string): SnootyNode => {};
+import { parse } from "docdoctor";
+
+export const rstToSnootyAst = (rst: string): SnootyNode => {
+  const node = parse(rst);
+  return node;
+};

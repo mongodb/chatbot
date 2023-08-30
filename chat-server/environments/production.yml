@@ -38,7 +38,9 @@ autoscaling:
     - type: Resource
       resource:
         name: cpu
-        targetAverageUtilization: 80
+        target:
+          type: Utilization
+          averageUtilization: 80
   behavior:
     scaleUp:
       stabilizationWindowSeconds: 0 # scaleUp immediately if conditions met

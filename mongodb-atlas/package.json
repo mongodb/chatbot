@@ -9,9 +9,11 @@
     "add-conversations-ttl-index:dev": "ts-node add-conversations-ttl-index.ts .env.dev",
     "add-conversations-ttl-index:test": "ts-node add-conversations-ttl-index.ts .env.test",
     "add-conversations-ttl-index:staging": "ts-node add-conversations-ttl-index.ts .env.staging",
+    "add-conversations-ttl-index:prod": "ts-node add-conversations-ttl-index.ts .env.prod",
     "add-content-indexes:dev": "ts-node add-content-indexes.ts .env.dev",
     "add-content-indexes:test": "ts-node add-content-indexes.ts .env.test",
-    "add-content-indexes:staging": "ts-node add-content-indexes.ts .env.staging"
+    "add-content-indexes:staging": "ts-node add-content-indexes.ts .env.staging",
+    "add-content-indexes:prod": "ts-node add-content-indexes.ts .env.prod"
   },
   "keywords": [],
   "author": "",

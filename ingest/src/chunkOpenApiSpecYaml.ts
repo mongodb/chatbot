@@ -20,7 +20,12 @@ export const chunkOpenApiSpecYaml: ChunkFunc = async function (
   page: Page,
   optionsIn?: Partial<ChunkOptions>
 ): Promise<ContentChunk[]> {
-  const options = { ...defaultOpenApiSpecYamlChunkOptions, ...optionsIn };
+  const options = {
+    ...defaultOpenApiSpecYamlChunkOptions,
+    ...optionsIn,
+    chunkSize:
+      optionsIn?.yamlChunkSize ?? defaultOpenApiSpecYamlChunkOptions.chunkSize,
+  };
   const { tokenizer, chunkSize, chunkOverlap } = options;
   const splitter = makeOpenApiSpecYamlTextSplitter({
     chunkOverlap,

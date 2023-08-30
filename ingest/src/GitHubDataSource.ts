@@ -5,6 +5,8 @@ import {
   GithubRepoLoader,
   GithubRepoLoaderParams,
 } from "langchain/document_loaders/web/github";
+import { snootyAstToMd } from "./snootyAstToMd";
+import { rstToSnootyAst } from "./rstToSnootyAst";
 
 export type MakeGitHubDataSourceArgs = {
   /**
@@ -89,8 +91,8 @@ export const makeRstOnGitHubDataSource = async ({
       const { source } = document.metadata;
       const url = pathToPageUrl(source);
       return {
-        body: document.pageContent,
-        format: "rst",
+        body: snootyAstToMd(rstToSnootyAst(document.pageContent)),
+        format: "md",
         sourceName: name,
         url,
       };

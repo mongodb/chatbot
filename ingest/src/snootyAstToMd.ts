@@ -8,7 +8,6 @@ enum TableMode {
 }
 
 export type SnootyAstToMdOptions = {
-  baseUrl: string;
   table?: {
     mode: TableMode;
     headerRows: number;
@@ -17,11 +16,11 @@ export type SnootyAstToMdOptions = {
 
 export const snootyAstToMd = (
   node: SnootyNode,
-  options: SnootyAstToMdOptions,
+  options?: Partial<SnootyAstToMdOptions>,
   parentHeadingLevel = 0,
   text = ""
 ): string => {
-  const { table } = options;
+  const { table } = options ?? {};
   // Base cases (terminal nodes)
   if (node.children === undefined) {
     // value nodes
@@ -123,7 +122,7 @@ export const snootyAstToMd = (
       }
       break;
     case "listItem":
-      if (options.table) {
+      if (options?.table) {
         // Table information in snooty AST is expressed in terms of lists and
         // listItems under a list-table directive. We don't want to render the
         // list bullets in the table, so we handle tables differently.
@@ -190,7 +189,7 @@ export const snootyAstToMd = (
  */
 const handleDirective = (
   node: SnootyNode,
-  options: SnootyAstToMdOptions,
+  options: SnootyAstToMdOptions | undefined,
   parentHeadingLevel: number
 ) => {
   assert(

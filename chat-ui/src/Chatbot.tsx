@@ -142,6 +142,9 @@ const styles = {
   chatbot_input_menu: css`
     z-index: 1;
   `,
+  verify_information: css`
+    text-align: center;
+  `,
 };
 
 const MAX_INPUT_CHARACTERS = 300;
@@ -504,8 +507,6 @@ function ChatbotModal({
             <ErrorBanner message={conversation.error} />
           ) : null}
 
-          <VerifyInformationBanner />
-
           {!conversation.error ? (
             <InputBar
               ref={inputBarRef}
@@ -533,6 +534,11 @@ function ChatbotModal({
           ) : null}
 
           {inputTextError ? <ErrorText>{inputTextError}</ErrorText> : null}
+
+          <Body className={styles.verify_information}>
+            This is an experimental generative AI chatbot. All information
+            should be verified prior to use.
+          </Body>
 
           <ConversationIdInfo conversation={conversation} />
         </div>
@@ -573,15 +579,6 @@ function ErrorBanner({
       {message}
       <br />
       Reload the page to start a new conversation.
-    </Banner>
-  );
-}
-
-function VerifyInformationBanner() {
-  return (
-    <Banner variant="warning">
-      This is an experimental generative AI chatbot. All information should be
-      verified prior to use.
     </Banner>
   );
 }

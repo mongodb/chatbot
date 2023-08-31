@@ -197,11 +197,9 @@ const handleDirective = (
     "This function should only be called if node has children"
   );
   switch (node.name) {
-    case "list-table":
-      // eslint-disable-next-line no-case-declarations
+    case "list-table": {
       const directiveOptions = (node as { options?: Record<string, unknown> })
         .options;
-      // eslint-disable-next-line no-case-declarations
       const headerRows =
         directiveOptions && typeof directiveOptions["header-rows"] === "number"
           ? directiveOptions["header-rows"]
@@ -225,8 +223,8 @@ const handleDirective = (
           .join(""),
         "</table>\n\n",
       ].join("\n");
-    case "tab":
-      // eslint-disable-next-line no-case-declarations
+    }
+    case "tab": {
       const tabName = (
         node.argument && Array.isArray(node.argument) && node.argument.length
           ? node.argument.find((arg) => arg.type === "text")?.value ?? ""
@@ -235,6 +233,7 @@ const handleDirective = (
       return `\n\n<Tab ${`name="${tabName ?? ""}"`}>\n\n${node.children
         .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
         .join("")}\n\n</Tab>\n\n`;
+    }
     case "tabs" || "tabs-drivers":
       return `\n\n<Tabs>\n\n${node.children
         .map((child) => snootyAstToMd(child, options, parentHeadingLevel))

@@ -23,15 +23,11 @@ describe("rstToSnootyAst", () => {
     const mdFromHack = snootyAstToMd(testAst);
     const mdFromReal = snootyAstToMd(sampleRealSnootyAst);
 
-    // Minor parsing to AST differences make the for insignificant white space
     const stripSlightlyDifferentWhitespace = (s: string) => {
       return s
         .split("\n")
         .map((s) => {
-          return s
-            .replaceAll(/  +/g, " ") // Double spaces
-            .replaceAll(/^ */g, "") // From start of line
-            .replaceAll(/ *$/g, ""); // From end of line
+          return s.replaceAll(/ *$/g, ""); // From end of line
         })
         .filter((s) => s !== "")
         .join("\n");

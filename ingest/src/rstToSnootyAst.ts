@@ -1,3 +1,4 @@
+import { stripIndent } from "common-tags";
 import { SnootyNode } from "./SnootyDataSource";
 import { parse, visit, findAll, AnyNode } from "docdoctor";
 
@@ -79,7 +80,9 @@ const restructuredToSnootyTypes: {
       return {
         type: "code",
         lang: node.args,
-        value: textNodes.map(({ value }: AnyNode) => value).join("\n"),
+        value: stripIndent(
+          textNodes.map(({ value }: AnyNode) => value).join("\n")
+        ),
         directive: undefined,
         children: undefined,
       };

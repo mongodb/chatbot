@@ -292,7 +292,7 @@ export function makeAddMessageToConversationRoute({
       const chunkTexts = includeChunksForMaxTokensPossible({
         maxTokens: maxChunkContextTokens,
         chunks,
-      }).map((chunk) => removeFrontMatter(chunk.text));
+      }).map((chunk) => chunk.text);
 
       const latestMessage = {
         content: preprocessedUserMessageContent || latestMessageText,

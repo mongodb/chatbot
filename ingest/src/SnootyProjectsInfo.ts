@@ -5,6 +5,7 @@ import {
   Branch,
 } from "./SnootyDataSource";
 import { LocallySpecifiedSnootyProjectConfig } from "./projectSources";
+import { DataSource } from "./DataSource";
 
 /** Schema for API response from https://snooty-data-api.mongodb.com/prod/projects */
 export type GetSnootyProjectsResponse = {
@@ -18,6 +19,10 @@ export type SnootyProjectsInfo = {
   }): Promise<string>;
 
   getCurrentBranch(args: { projectName: string }): Promise<Branch>;
+
+  getCurrentVersionName(args: {
+    projectName: string;
+  }): Promise<string | undefined>;
 };
 
 /**
@@ -63,20 +68,32 @@ export const makeSnootyProjectsInfo = async ({
     },
 
     async getCurrentBranch({ projectName }) {
-      const metadata = data.find(({ project }) => project === projectName);
-      const currentBranch = metadata?.branches.find(
-        ({ active, isStableBranch }) => active && isStableBranch
-      );
-      if (currentBranch === undefined) {
-        throw new Error(
-          `For project '${projectName}', no active branch found with isStableBranch == true.`
-        );
-      }
-      return currentBranch;
+      return await getCurrentBranch(data, projectName);
+    },
+    async getCurrentVersionName({ projectName }) {
+      const currentBranch = await getCurrentBranch(data, projectName);
+      if (currentBranch.gitBranchName !== "master") {
+        return currentBranch.gitBranchName;
+      } else return;
     },
   };
 };
 
+/**
+  Helper function used in methods of makeSnootyProjectsInfo()
+ */
+async function getCurrentBranch(data: SnootyProject[], projectName: string) {
+  const metadata = data.find(({ project }) => project === projectName);
+  const currentBranch = metadata?.branches.find(
+    ({ active, isStableBranch }) => active && isStableBranch
+  );
+  if (currentBranch === undefined) {
+    throw new Error(
+      `For project '${projectName}', no active branch found with isStableBranch == true.`
+    );
+  }
+  return currentBranch;
+}
 /**
   Fill the details of the defined Snooty data sources with the info in the
   Snooty Data API projects endpoint.
@@ -91,30 +108,50 @@ export const prepareSnootySources = async ({
   const snootyProjectsInfo = await makeSnootyProjectsInfo({
     snootyDataApiBaseUrl,
   });
-  return await Promise.all(
-    projects.map(async (project) => {
-      const { name: projectName } = project;
-      const currentBranch =
-        project.currentBranch ??
-        (
-          await snootyProjectsInfo.getCurrentBranch({
-            projectName,
-          })
-        ).gitBranchName;
-      return await makeSnootyDataSource({
-        name: `snooty-${project.name}`,
-        project: {
-          ...project,
-          currentBranch,
-          baseUrl:
-            project.baseUrl?.replace(/\/?$/, "/") ??
-            (await snootyProjectsInfo.getBaseUrl({
+  return (
+    (
+      await Promise.allSettled(
+        projects.map(async (project) => {
+          const { name: projectName } = project;
+          const currentBranch =
+            project.currentBranch ??
+            (
+              await snootyProjectsInfo.getCurrentBranch({
+                projectName,
+              })
+            ).gitBranchName;
+          let version =
+            project.versionNameOverride ??
+            (await snootyProjectsInfo.getCurrentVersionName({
               projectName,
-              branchName: currentBranch,
-            })),
-        },
-        snootyDataApiBaseUrl,
-      });
-    })
-  );
+            }));
+          version = version ? version + " (current)" : undefined;
+          return await makeSnootyDataSource({
+            name: `snooty-${project.name}`,
+            project: {
+              ...project,
+              currentBranch,
+              version,
+              baseUrl:
+                project.baseUrl?.replace(/\/?$/, "/") ??
+                (await snootyProjectsInfo.getBaseUrl({
+                  projectName,
+                  branchName: currentBranch,
+                })),
+            },
+            snootyDataApiBaseUrl,
+          });
+        })
+      )
+    ).filter(
+      (result) => result.status === "fulfilled"
+    ) as PromiseFulfilledResult<
+      DataSource & {
+        _baseUrl: string;
+        _currentBranch: string;
+        _snootyProjectName: string;
+        _version?: string;
+      }
+    >[]
+  ).map((result) => result.value);
 };

@@ -23,4 +23,10 @@ export interface ProjectBase {
     @example "MongoDB Atlas"
   */
   productName?: string;
+
+  /**
+    The version of the project.
+    @example "v4.4"
+   */
+  version?: string;
 }

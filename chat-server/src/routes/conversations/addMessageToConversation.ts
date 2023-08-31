@@ -175,13 +175,13 @@ export function makeAddMessageToConversationRoute({
       }
 
       if (conversationInDb.messages.length >= MAX_MESSAGES_IN_CONVERSATION) {
-        // The end user doesn't see the system prompt, so we subtract 1 to account for that.
-        const numMessagesVisibleToUser = MAX_MESSAGES_IN_CONVERSATION - 1;
+        // Omit the system prompt and assume the user always received one response per message
+        const maxUserMessages = (MAX_MESSAGES_IN_CONVERSATION - 1) / 2;
         return sendErrorResponse({
           reqId,
           res,
           httpStatus: 400,
-          errorMessage: `Max messages (${numMessagesVisibleToUser}) exceeded. You cannot send more messages in this conversation.`,
+          errorMessage: `Too many messages. You cannot send more than ${maxUserMessages} messages in this conversation.`,
         });
       }
 

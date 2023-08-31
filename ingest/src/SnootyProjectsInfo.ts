@@ -150,7 +150,7 @@ export const prepareSnootySources = async ({
         _baseUrl: string;
         _currentBranch: string;
         _snootyProjectName: string;
-        _version?: string | undefined;
+        _version?: string;
       }
     >[]
   ).map((result) => result.value);

@@ -214,7 +214,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       expect(res.statusCode).toEqual(400);
       expect(res.body).toStrictEqual({
         error:
-          "Max messages (12) exceeded. You cannot send more messages in this conversation.",
+          "Too many messages. You cannot send more than 6 messages in this conversation.",
       });
     });
 

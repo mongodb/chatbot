@@ -24,6 +24,7 @@ function MyComponent() {
 
 The `<Chatbot />` component accepts the following props:
 
-| Prop            | Type      | Description                       | Default                                |
-|-----------------|-----------|-----------------------------------|----------------------------------------|
-| `serverBaseUrl` | `string?` | The base URL for the Chatbot API. | `https://knowledge.mongodb.com/api/v1` |
+| Prop            | Type       | Description                                                                         | Default                                            |
+|-----------------|------------|-------------------------------------------------------------------------------------|----------------------------------------------------|
+| `serverBaseUrl` | `string?`  | The base URL for the Chatbot API.                                                   | `https://knowledge.mongodb.com/api/v1`             |
+| `shouldStream`  | `boolean?` | If `true`, responses are stream with SSE. Otherwise the entire response is awaited. | If the browser supports SSE, `true`, else `false`. |

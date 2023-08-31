@@ -21,7 +21,7 @@ import { palette } from "@leafygreen-ui/palette";
 import { css } from "@emotion/css";
 
 const styles = {
-  disclosure: css`
+  disclosure_darkMode: css`
     display: flex;
     flex-direction: row;
     gap: 8px;
@@ -29,6 +29,16 @@ const styles = {
 
     & > p {
       color: white;
+    }
+  }`,
+  disclosure_lightMode: css`
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    padding-left: 8px;
+
+    & > p {
+      color: black;
     }
   }`,
   chatbot_container: css`
@@ -62,7 +72,7 @@ const styles = {
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
   `,
-  modal_container: css`
+  modal_container_light: css`
     z-index: 2;
 
     & * {
@@ -72,6 +82,28 @@ const styles = {
     & div[role="dialog"] {
       padding-top: 8px;
       background: ${palette.gray.light3};
+    }
+
+    @media screen and (max-width: 1024px) {
+      & div[role="dialog"] {
+        width: 100%;
+      }
+
+      & > div {
+        padding: 32px 18px;
+      }
+    }
+  `,
+  modal_container_dark: css`
+    z-index: 2;
+
+    & * {
+      box-sizing: border-box;
+    }
+
+    & div[role="dialog"] {
+      padding-top: 8px;
+      background: #001e2b;
     }
 
     @media screen and (max-width: 1024px) {
@@ -175,12 +207,11 @@ function getAvatarVariantForRole(role: Role) {
 
 export type ChatbotProps = {
   serverBaseUrl?: string;
+  darkMode?: boolean;
 };
 
-export function Chatbot(props: ChatbotProps) {
-  const conversation = useConversation({
-    serverBaseUrl: props.serverBaseUrl,
-  });
+export function Chatbot({ serverBaseUrl, darkMode = false }: ChatbotProps) {
+  const conversation = useConversation({ serverBaseUrl });
   const [initialInputFocused, setInitialInputFocused] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -326,7 +357,7 @@ export function Chatbot(props: ChatbotProps) {
           />
         ) : null}
 
-        <Disclosure tabIndex={0} />
+        <Disclosure tabIndex={0} darkMode={darkMode} />
       </div>
       <ChatbotModal
         inputBarRef={inputBarRef}
@@ -343,6 +374,7 @@ export function Chatbot(props: ChatbotProps) {
           closeModal();
           return true;
         }}
+        darkMode={darkMode}
       />
     </div>
   );
@@ -363,6 +395,7 @@ type ChatbotModalProps = {
   awaitingReply: boolean;
   open: boolean;
   shouldClose: ModalProps["shouldClose"];
+  darkMode: boolean;
 };
 
 function ChatbotModal({
@@ -376,6 +409,7 @@ function ChatbotModal({
   inputTextError,
   handleSubmit,
   awaitingReply,
+  darkMode,
 }: ChatbotModalProps) {
   const isEmptyConversation = conversation.messages.length === 0;
 
@@ -401,7 +435,9 @@ function ChatbotModal({
 
   return (
     <Modal
-      className={styles.modal_container}
+      className={
+        darkMode ? styles.modal_container_dark : styles.modal_container_light
+      }
       open={open}
       size="large"
       initialFocus={`#${ActiveInputBarId}`}
@@ -547,7 +583,11 @@ function ChatbotModal({
   );
 }
 
-function Disclosure(props: React.HTMLAttributes<HTMLDivElement>) {
+interface DisclosureProps extends React.HTMLAttributes<HTMLDivElement> {
+  darkMode?: boolean;
+}
+
+function Disclosure(props: DisclosureProps) {
   const TermsOfUse = () => (
     <Link href={"https://www.mongodb.com/legal/terms-of-use"}>
       Terms of Use
@@ -560,7 +600,14 @@ function Disclosure(props: React.HTMLAttributes<HTMLDivElement>) {
   );
 
   return (
-    <div className={styles.disclosure} {...props}>
+    <div
+      className={
+        props.darkMode
+          ? styles.disclosure_darkMode
+          : styles.disclosure_lightMode
+      }
+      {...props}
+    >
       <Body color={"#FFFFFF"}>
         This is a generative AI chatbot. By interacting with it, you agree to
         MongoDB's <TermsOfUse /> and <AcceptableUsePolicy />.

@@ -26,7 +26,7 @@ describe("makeRstOnGitHubDataSource", () => {
     expect(pages[0].url).toBe(
       "https://pymongo.readthedocs.io/en/4.5.0/atlas.html"
     );
-    expect(pages[0].format).toBe("rst");
+    expect(pages[0].format).toBe("md");
     expect(pages[0].sourceName).toBe("python-TEST");
     expect(pages[0].body).toContain("Using PyMongo with MongoDB Atlas");
   });

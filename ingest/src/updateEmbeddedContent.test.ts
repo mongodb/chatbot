@@ -114,7 +114,7 @@ describe("updateEmbeddedContent", () => {
     expect(embeddedContent[0].chunkAlgoHash).toBe(
       // You might need to update this expectation when the standard chunkPage
       // function changes
-      "677e6ae06deadac2df75f74a131227a93e03f95b833edcd57f41e70d7e5589ed"
+      "d8853850d5c4d680f853d9f5a0c1aecdad7fe9e3e4ad15482930d4774d504c55"
     );
     await updateEmbeddedContent({
       embed,
@@ -133,7 +133,7 @@ describe("updateEmbeddedContent", () => {
     expect(embeddedContent2[0].chunkAlgoHash).toBe(
       // You might need to update this expectation when the standard chunkPage
       // function changes
-      "826958f2461ad5c12822dda95731981d293fb677407bd3ae568d29691a38eb3f"
+      "bea9ca9cf4ed5a76cb8a6921aa1abea1e1de7ec1b202989761847ca8713a5d53"
     );
   });
 });

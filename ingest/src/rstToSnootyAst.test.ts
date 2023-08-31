@@ -23,9 +23,7 @@ describe("rstToSnootyAst", () => {
     const mdFromHack = snootyAstToMd(testAst);
     const mdFromReal = snootyAstToMd(sampleRealSnootyAst);
 
-    fs.writeFileSync("./test.md", printTree(testAst));
-    fs.writeFileSync("./test-real.md", printTree(sampleRealSnootyAst));
-
+    // Minor parsing to AST differences make the for insignificant white space
     const stripSlightlyDifferentWhitespace = (s: string) => {
       return s
         .split("\n")

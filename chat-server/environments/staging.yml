@@ -70,12 +70,12 @@ probes:
     timeoutSeconds: 2
     successThreshold: 1
     failureThreshold: 3
-    readiness:
-      initialDelaySeconds: 30
-      periodSeconds: 15
-      timeoutSeconds: 2
-      successThreshold: 1
-      failureThreshold: 3
+  readiness:
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 2
+    successThreshold: 1
+    failureThreshold: 3
 
 # Alerts
 defaultAlerts:

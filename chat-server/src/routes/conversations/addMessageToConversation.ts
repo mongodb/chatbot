@@ -31,7 +31,6 @@ import {
 import {
   ApiConversation,
   ApiMessage,
-  areEquivalentIpAddresses,
   convertMessageFromDbToApi,
   isValidIp,
 } from "./utils";
@@ -163,14 +162,6 @@ export function makeAddMessageToConversationRoute({
           res,
           httpStatus: 404,
           errorMessage: "Conversation not found",
-        });
-      }
-      if (!areEquivalentIpAddresses(conversationInDb.ipAddress, ip)) {
-        return sendErrorResponse({
-          reqId,
-          res,
-          httpStatus: 403,
-          errorMessage: "IP address does not match",
         });
       }
 

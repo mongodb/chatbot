@@ -23,6 +23,8 @@ ingress:
   hosts:
     - chat-server.docs.prod.corp.mongodb.com
 
+# Pod resources
+replicaCount: 2
 resources:
   limits:
     memory: 1Gi
@@ -56,3 +58,26 @@ autoscaling:
         - type: Pods
           value: 1
           periodSeconds: 60
+
+# Health checks
+probes:
+  enabled: true
+  path: /health
+  headers: {}
+  liveness:
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 2
+    successThreshold: 1
+    failureThreshold: 3
+    readiness:
+      initialDelaySeconds: 30
+      periodSeconds: 15
+      timeoutSeconds: 2
+      successThreshold: 1
+      failureThreshold: 3
+
+# Alerts
+defaultAlerts:
+  enabled: true
+  email: "chatbot@mongodb.com"

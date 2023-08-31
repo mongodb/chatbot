@@ -130,6 +130,15 @@ export const makeApp = async ({
       maxChunkContextTokens,
     })
   );
+  app.get("/health", (_req, res) => {
+    const data = {
+      uptime: process.uptime(),
+      message: "Ok",
+      date: new Date(),
+    };
+
+    res.status(200).send(data);
+  });
   app.all("*", (req, res, _next) => {
     return sendErrorResponse({
       reqId: getRequestId(req),

@@ -11,7 +11,7 @@ describe("makeBoostOnAtlasSearchFilter()", () => {
       return text.split(" ").filter((s) => s !== " ").length <= 3;
     },
     findNearestNeighborsOptions: {
-      k: 3,
+      k: 2,
       filter: {
         text: {
           path: "sourceName",
@@ -97,16 +97,6 @@ describe("makeBoostOnAtlasSearchFilter()", () => {
         sourceName: "not-snooty-docs", // only important value
         score: 0.95,
       },
-      {
-        _id: new ObjectId(),
-        url: "https://mongodb.com/docs/",
-        text: "everything you own in a box to the left",
-        tokenCount: 100,
-        embedding: [0.1, 0.2, 0.3],
-        updated: new Date(),
-        sourceName: "not-snooty-docs", // only important value
-        score: 0.95,
-      },
     ];
     const embedding = [0.1, 0.2, 0.3];
     test("Boosts manual results", async () => {
@@ -115,11 +105,12 @@ describe("makeBoostOnAtlasSearchFilter()", () => {
         existingResults,
         store: mockStore,
       });
-      // expect(results).toHaveLength(5);
-      expect(results[0]).toStrictEqual(sharedResult);
-      expect(results[1]).toStrictEqual(mockBoostedResults[1]);
-      expect(results[2]).toStrictEqual(existingResults[0]);
       expect(results).toHaveLength(5);
+      expect(results[0]).toStrictEqual(existingResults[0]);
+      expect(results[1]).toStrictEqual(sharedResult);
+      expect(results[2]).toStrictEqual(existingResults[2]);
+      expect(results[3]).toStrictEqual(existingResults[3]);
+      expect(results[4]).toStrictEqual(mockBoostedResults[1]);
     });
   });
 });

@@ -296,6 +296,7 @@ export function Chatbot({ serverBaseUrl, darkMode = false }: ChatbotProps) {
     <div className={styles.chatbot_container}>
       <div className={styles.chatbot_input}>
         <InputBar
+          darkMode={darkMode}
           key={"initialInput"}
           badgeText="Experimental"
           textareaProps={{
@@ -445,13 +446,14 @@ function ChatbotModal({
     >
       <div className={styles.card}>
         <TitleBar
+          darkMode={darkMode}
           className={styles.title_bar}
           badgeText="Experimental"
           title="MongoDB AI"
         />
 
         {!isEmptyConversation ? (
-          <MessageFeed className={styles.message_feed}>
+          <MessageFeed darkMode={darkMode} className={styles.message_feed}>
             {conversation.messages.map((message) => {
               const showLoadingSkeleton = conversation.isStreamingMessage
                 ? message.id === conversation.streamingMessage?.id &&
@@ -459,6 +461,7 @@ function ChatbotModal({
                 : false;
               return (
                 <Message
+                  darkMode={darkMode}
                   key={message.id}
                   isSender={isSender(message.role)}
                   messageRatingProps={
@@ -486,7 +489,10 @@ function ChatbotModal({
                       : undefined
                   }
                   avatar={
-                    <Avatar variant={getAvatarVariantForRole(message.role)} />
+                    <Avatar
+                      darkMode={darkMode}
+                      variant={getAvatarVariantForRole(message.role)}
+                    />
                   }
                   sourceType={showLoadingSkeleton ? undefined : "markdown"}
                   componentOverrides={
@@ -540,11 +546,12 @@ function ChatbotModal({
         ) : null}
         <div className={styles.chatbot_input}>
           {conversation.error ? (
-            <ErrorBanner message={conversation.error} />
+            <ErrorBanner darkMode={darkMode} message={conversation.error} />
           ) : null}
 
           {!conversation.error ? (
             <InputBar
+              darkMode={darkMode}
               ref={inputBarRef}
               disabled={active && Boolean(conversation.error?.length)}
               onMessageSend={(messageContent) => {
@@ -616,13 +623,17 @@ function Disclosure(props: DisclosureProps) {
   );
 }
 
+type ErrorBannerProps = {
+  message?: string;
+  darkMode?: boolean;
+};
+
 function ErrorBanner({
   message = "Something went wrong.",
-}: {
-  message?: string;
-}) {
+  darkMode = false,
+}: ErrorBannerProps) {
   return (
-    <Banner variant="danger">
+    <Banner darkMode={darkMode} variant="danger">
       {message}
       <br />
       Reload the page to start a new conversation.

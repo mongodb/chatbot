@@ -49,7 +49,9 @@ export function makeBoostOnAtlasSearchFilter({
           (manualResult) => manualResult.text !== result.text
         )
       );
-      return [...boostedResults, ...newResults].slice(0, totalMaxK);
+      return [...boostedResults, ...newResults]
+        .slice(0, totalMaxK)
+        .sort((a, b) => b.score - a.score);
     },
   };
 }

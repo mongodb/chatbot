@@ -14,7 +14,7 @@ import {
 import { projectSourcesConfig, snootyProjectConfig } from "../projectSources";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
 import { prepareSnootySources } from "../SnootyProjectsInfo";
-import { makeRstOnGitHubDataSource } from "../GitHubDataSource";
+import { makeRstOnGitHubDataSource } from "../RstOnGitHubDataSource";
 
 type PagesCommandArgs = {
   source?: string | string[];

@@ -5,8 +5,6 @@ import {
   GithubRepoLoader,
   GithubRepoLoaderParams,
 } from "langchain/document_loaders/web/github";
-import { snootyAstToMd } from "./snootyAstToMd";
-import { rstToSnootyAst } from "./rstToSnootyAst";
 
 export type MakeGitHubDataSourceArgs = {
   /**
@@ -25,12 +23,19 @@ export type MakeGitHubDataSourceArgs = {
   repoLoaderOptions?: Partial<GithubRepoLoaderParams>;
 
   /**
-    Handle a given file in the repo. Any number of Pages can be returned for a
-    given file. The exact details depend on the given repo.
+    Handle a given file in the repo.
+
+    Any number of Pages can be returned for a given file. The exact details
+    depend on the given repo.
+
+    Return undefined to skip this document.
+
+    Page sourceName will be overridden by the name passed to
+    makeGitHubDataSource.
    */
   handleDocumentInRepo(
     document: Document<{ source: string }>
-  ): Promise<void | Page | Page[]>;
+  ): Promise<undefined | Omit<Page, "sourceName"> | Omit<Page, "sourceName">[]>;
 };
 
 /**
@@ -49,14 +54,26 @@ export const makeGitHubDataSource = async ({
       const documents = (await loader.load()) as Document<{ source: string }>[];
       return (
         await Promise.all(
-          documents.map(async (document) => {
+          documents.map(async (document): Promise<Page[] | undefined> => {
             // GitHub loader should put source (filepath) in the metadata
             if (document.metadata.source === undefined) {
               throw new Error(
                 "missing 'source' property in GithubRepoLoader document metadata"
               );
             }
-            return await handleDocumentInRepo(document);
+            const pageOrPages = await handleDocumentInRepo(document);
+            if (pageOrPages === undefined) {
+              return undefined;
+            }
+            const pages = Array.isArray(pageOrPages)
+              ? pageOrPages
+              : [pageOrPages];
+            return pages.map(
+              (page): Page => ({
+                ...page,
+                sourceName: name,
+              })
+            );
           })
         )
       )
@@ -64,38 +81,4 @@ export const makeGitHubDataSource = async ({
         .filter((v) => v !== undefined) as Page[];
     },
   };
-};
-
-export const makeRstOnGitHubDataSource = async ({
-  name,
-  repoUrl,
-  repoLoaderOptions,
-  pathToPageUrl,
-}: Omit<MakeGitHubDataSourceArgs, "handleDocumentInRepo"> & {
-  /**
-    Transform a filepath in the repo to a full URL for the corresponding Page object.
-   */
-  pathToPageUrl: (pathInRepo: string) => string;
-}) => {
-  return makeGitHubDataSource({
-    name,
-    repoUrl,
-    repoLoaderOptions: {
-      ...(repoLoaderOptions ?? {}),
-      ignoreFiles: [
-        /^(?!.*\.rst$).*/i, // Anything BUT .rst extension
-        ...(repoLoaderOptions?.ignoreFiles ?? []),
-      ],
-    },
-    async handleDocumentInRepo(document) {
-      const { source } = document.metadata;
-      const url = pathToPageUrl(source);
-      return {
-        body: snootyAstToMd(rstToSnootyAst(document.pageContent)),
-        format: "md",
-        sourceName: name,
-        url,
-      };
-    },
-  });
 };

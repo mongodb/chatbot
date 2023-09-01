@@ -3,7 +3,7 @@ import styles from "./App.module.css"
 import { useState } from "react";
 import LeafyGreenProvider from "@leafygreen-ui/leafygreen-provider";
 import { Chatbot } from "./Chatbot";
-import { canUseServerSentEvents } from "./useConversation";
+import { canUseServerSentEvents } from "./utils";
 import { Overline, Link } from "@leafygreen-ui/typography";
 import Toggle from "@leafygreen-ui/toggle";
 

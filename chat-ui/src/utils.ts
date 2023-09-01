@@ -53,3 +53,11 @@ export function countRegexMatches(regex: RegExp, str: string) {
 export function addPeriodIfMissing(str: string) {
   return str.endsWith(".") ? str : str + ".";
 }
+
+/**
+ * Checks if the browser supports Server-Sent Events.
+ * @returns true if the browser supports Server-Sent Events, false otherwise
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events
+ * @see https://caniuse.com/eventsource
+ */
+export const canUseServerSentEvents = () => typeof EventSource !== "undefined";

@@ -11,11 +11,9 @@ import {
   countRegexMatches,
   removeArrayElementAt,
   updateArrayElementAt,
+  canUseServerSentEvents,
 } from "./utils";
 
-// If SSE is supported, use it to stream responses from the server as
-// they're created instead of awaiting the entire response
-export const canUseServerSentEvents = () => typeof EventSource !== "undefined";
 const STREAMING_MESSAGE_ID = "streaming-response";
 
 export type ConversationState = {

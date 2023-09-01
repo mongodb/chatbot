@@ -79,6 +79,7 @@
     "@leafygreen-ui/palette": "^4.0.7",
     "@leafygreen-ui/skeleton-loader": "^1.0.5",
     "@leafygreen-ui/text-input": "^12.1.18",
+    "@leafygreen-ui/toggle": "^10.0.15",
     "@leafygreen-ui/typography": "^16.5.4",
     "@lg-chat/avatar": "^1.0.0",
     "@lg-chat/input-bar": "^1.0.0",

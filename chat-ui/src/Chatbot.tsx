@@ -175,11 +175,13 @@ function getAvatarVariantForRole(role: Role) {
 
 export type ChatbotProps = {
   serverBaseUrl?: string;
+  shouldStream?: boolean;
 };
 
 export function Chatbot(props: ChatbotProps) {
   const conversation = useConversation({
     serverBaseUrl: props.serverBaseUrl,
+    shouldStream: props.shouldStream,
   });
   const [initialInputFocused, setInitialInputFocused] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);

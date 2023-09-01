@@ -11,11 +11,9 @@ import {
   countRegexMatches,
   removeArrayElementAt,
   updateArrayElementAt,
+  canUseServerSentEvents,
 } from "./utils";
 
-// If SSE is supported, use it to stream responses from the server as
-// they're created instead of awaiting the entire response
-const SHOULD_STREAM = Boolean(EventSource);
 const STREAMING_MESSAGE_ID = "streaming-response";
 
 export type ConversationState = {
@@ -276,6 +274,7 @@ function conversationReducer(
 
 type UseConversationParams = {
   serverBaseUrl?: string;
+  shouldStream?: boolean;
 };
 
 export function useConversation(params: UseConversationParams = {}) {
@@ -335,10 +334,12 @@ export function useConversation(params: UseConversationParams = {}) {
       return;
     }
 
+    const shouldStream = canUseServerSentEvents() && params.shouldStream;
+
     // Stream control
     const abortController = new AbortController();
     let finishedStreaming = false;
-    let finishedBuffering = !SHOULD_STREAM;
+    let finishedBuffering = !shouldStream;
     let streamedMessageId: string | null = null;
     let references: References | null = null;
     let bufferedTokens: string[] = [];
@@ -391,7 +392,7 @@ export function useConversation(params: UseConversationParams = {}) {
 
     try {
       dispatch({ type: "addMessage", role, content });
-      if (SHOULD_STREAM) {
+      if (shouldStream) {
         dispatch({ type: "createStreamingResponse", data: "" });
         await conversationService.addMessageStreaming({
           conversationId: state.conversationId,

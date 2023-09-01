@@ -32,6 +32,8 @@ describe("makeGitHubDataSource", () => {
       },
     });
     const pages = await source.fetchPages();
+
+    // Original repo has 91 matched files, and we're returning 2 pages per file
     expect(pages.length).toBe(91 * 2);
     expect(pages[0].url).toBe("doc/Makefile");
     expect(pages[1].url).toBe("doc/Makefile-CLONE");

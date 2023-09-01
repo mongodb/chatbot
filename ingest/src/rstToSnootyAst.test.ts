@@ -23,6 +23,9 @@ describe("rstToSnootyAst", () => {
     const mdFromHack = snootyAstToMd(testAst);
     const mdFromReal = snootyAstToMd(sampleRealSnootyAst);
 
+    // Subtle differences in the parsing make for some superficial differences
+    // in spaces between the 'real' Snooty API. Strictly for the purposes of
+    // comparing two strings
     const stripSlightlyDifferentWhitespace = (s: string) => {
       return s
         .split("\n")
@@ -38,19 +41,3 @@ describe("rstToSnootyAst", () => {
     );
   });
 });
-
-const printTree = (node: SnootyNode, level = 0): string => {
-  const indent = Array(level * 2)
-    .fill(0)
-    .map(() => " ")
-    .join("");
-  if (node.children === undefined) {
-    return `${indent}- ${node.type} (${JSON.stringify(node)})`;
-  }
-  return `${indent}- ${node.type} (${JSON.stringify({
-    ...node,
-    children: undefined,
-  })})\n${node.children
-    .map((child) => printTree(child, level + 1))
-    .join("\n")}`;
-};

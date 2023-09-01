@@ -53,7 +53,7 @@ export const makeGitHubDataSource = async ({
     async fetchPages() {
       const documents = (await loader.load()) as Document<{ source: string }>[];
       return (
-        await Promise.all(
+        await Promise.allSettled(
           documents.map(async (document): Promise<Page[] | undefined> => {
             // GitHub loader should put source (filepath) in the metadata
             if (document.metadata.source === undefined) {
@@ -77,6 +77,11 @@ export const makeGitHubDataSource = async ({
           })
         )
       )
+        .filter((promiseResult) => promiseResult.status === "fulfilled")
+        .map(
+          (result) =>
+            (result as PromiseFulfilledResult<Page[] | undefined>).value
+        )
         .flat(1)
         .filter((v) => v !== undefined) as Page[];
     },

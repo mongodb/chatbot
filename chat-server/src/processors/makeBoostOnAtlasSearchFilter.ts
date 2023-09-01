@@ -50,8 +50,8 @@ export function makeBoostOnAtlasSearchFilter({
         )
       );
       return [...boostedResults, ...newResults]
-        .slice(0, totalMaxK)
-        .sort((a, b) => b.score - a.score);
+        .sort((a, b) => b.score - a.score)
+        .slice(0, totalMaxK);
     },
   };
 }

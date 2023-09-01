@@ -97,16 +97,6 @@ describe("makeBoostOnAtlasSearchFilter()", () => {
         sourceName: "not-snooty-docs", // only important value
         score: 0.95,
       },
-      {
-        _id: new ObjectId(),
-        url: "https://mongodb.com/docs/",
-        text: "everything you own in a box to the left",
-        tokenCount: 100,
-        embedding: [0.1, 0.2, 0.3],
-        updated: new Date(),
-        sourceName: "not-snooty-docs", // only important value
-        score: 0.95,
-      },
     ];
     const embedding = [0.1, 0.2, 0.3];
     test("Boosts manual results", async () => {

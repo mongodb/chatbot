@@ -28,3 +28,8 @@ cronJobs:
       limits:
         cpu: 500m
         memory: 5Gi
+
+# Alerts
+defaultAlerts:
+  enabled: true
+  email: "chatbot@mongodb.com"

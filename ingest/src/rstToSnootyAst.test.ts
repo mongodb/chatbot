@@ -2,7 +2,6 @@ import fs from "fs";
 import * as Path from "path";
 import { rstToSnootyAst } from "./rstToSnootyAst";
 import { snootyAstToMd } from "./snootyAstToMd";
-import { SnootyNode } from "./SnootyDataSource";
 
 describe("rstToSnootyAst", () => {
   it("matches real Snooty AST", () => {

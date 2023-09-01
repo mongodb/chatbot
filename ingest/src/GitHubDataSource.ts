@@ -52,36 +52,35 @@ export const makeGitHubDataSource = async ({
     name,
     async fetchPages() {
       const documents = (await loader.load()) as Document<{ source: string }>[];
-      return (
-        await Promise.allSettled(
-          documents.map(async (document): Promise<Page[] | undefined> => {
-            // GitHub loader should put source (filepath) in the metadata
-            if (document.metadata.source === undefined) {
-              throw new Error(
-                "missing 'source' property in GithubRepoLoader document metadata"
-              );
-            }
-            const pageOrPages = await handleDocumentInRepo(document);
-            if (pageOrPages === undefined) {
-              return undefined;
-            }
-            const pages = Array.isArray(pageOrPages)
-              ? pageOrPages
-              : [pageOrPages];
-            return pages.map(
-              (page): Page => ({
-                ...page,
-                sourceName: name,
-              })
+      const promises = documents.map(
+        async (document): Promise<Page[] | undefined> => {
+          // GitHub loader should put source (filepath) in the metadata
+          if (document.metadata.source === undefined) {
+            throw new Error(
+              "missing 'source' property in GithubRepoLoader document metadata"
             );
-          })
-        )
+          }
+          const pageOrPages = await handleDocumentInRepo(document);
+          if (pageOrPages === undefined) {
+            return undefined;
+          }
+          const pages = Array.isArray(pageOrPages)
+            ? pageOrPages
+            : [pageOrPages];
+          return pages.map(
+            (page): Page => ({
+              ...page,
+              sourceName: name,
+            })
+          );
+        }
+      );
+      return (
+        (await Promise.allSettled(promises)).filter(
+          (promiseResult) => promiseResult.status === "fulfilled"
+        ) as PromiseFulfilledResult<Page[] | undefined>[]
       )
-        .filter((promiseResult) => promiseResult.status === "fulfilled")
-        .map(
-          (result) =>
-            (result as PromiseFulfilledResult<Page[] | undefined>).value
-        )
+        .map(({ value }) => value)
         .flat(1)
         .filter((v) => v !== undefined) as Page[];
     },

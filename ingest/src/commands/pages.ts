@@ -8,6 +8,7 @@ import {
 import { updatePages } from "../updatePages";
 import { sourceConstructors } from "../projectSources";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
+import { DataSource } from "../DataSource";
 
 type PagesCommandArgs = {
   source?: string | string[];
@@ -52,9 +53,26 @@ export const doPagesCommand = async ({
 }) => {
   const requestedSources = new Set(Array.isArray(source) ? source : [source]);
 
+  const sourcePromises = await Promise.allSettled(
+    sourceConstructors.map((constructor) => constructor())
+  );
+
+  // Log any errors in source construction
+  (
+    sourcePromises.filter(
+      (result) => result.status === "rejected"
+    ) as PromiseRejectedResult[]
+  ).forEach((result) => {
+    logger.error(`Source constructor failed: ${result.reason}`);
+  });
+
   const availableSources = (
-    await Promise.all(sourceConstructors.map((ctor) => ctor()))
-  ).flat(1);
+    sourcePromises.filter(
+      (result) => result.status === "fulfilled"
+    ) as PromiseFulfilledResult<DataSource | DataSource[]>[]
+  )
+    .map(({ value }) => value)
+    .flat(1);
 
   const sources =
     source === undefined

@@ -13,12 +13,12 @@ body {
   height: 100vh;
 }
 
-.app_background_light {
+.background_light {
   /* palette.gray.light3 */
   background: #f9fbfa;
 }
 
-.app_background_dark {
+.background_dark {
   background: #001e2b;
 }
 

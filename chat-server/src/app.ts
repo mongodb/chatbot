@@ -8,7 +8,7 @@ import express, {
 } from "express";
 import cors from "cors";
 import "dotenv/config";
-import { makeConversationsRouter } from "./routes/conversations";
+import { makeConversationsRouter } from "./routes/conversations/conversationsRouter";
 import {
   EmbeddedContentStore,
   EmbedFunc,
@@ -47,7 +47,7 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
     });
   }
 };
-// TODO:(DOCSP-31121) Apply to all logs in the app
+
 const reqHandler: RequestHandler = (req, _res, next) => {
   const reqId = new ObjectId().toString();
   // Custom header specifically for a request ID. This ID will be used to track
@@ -128,6 +128,7 @@ export const makeApp = async ({
       searchBoosters,
       userQueryPreprocessor,
       maxChunkContextTokens,
+      // TODO: add rate limits config
     })
   );
   app.get("/health", (_req, res) => {

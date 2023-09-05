@@ -1,5 +1,12 @@
 import { Router } from "express";
 import { EmbedFunc, FindNearestNeighborsOptions } from "chat-core";
+import {
+  rateLimit,
+  Options as RateLimitOptions,
+  Store as RateLimitStore,
+  MemoryStore,
+} from "express-rate-limit";
+
 import validateRequestSchema from "../../middleware/validateRequestSchema";
 import {
   Llm,
@@ -23,6 +30,12 @@ import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
 
 // TODO: for all non-2XX or 3XX responses, see how/if can better implement
 // error handling. can/should we pass stuff to next() and process elsewhere?
+export interface ConversationsRateLimitConfig {
+  globalRateLimitConfig?: Partial<RateLimitOptions>;
+  addMessageRateLimitConfig?: Partial<RateLimitOptions>;
+  store?: RateLimitStore;
+}
+
 export interface ConversationsRouterParams<T, U> {
   llm: Llm<T, U>;
   embed: EmbedFunc;
@@ -33,6 +46,7 @@ export interface ConversationsRouterParams<T, U> {
   searchBoosters?: SearchBooster[];
   userQueryPreprocessor?: QueryPreprocessorFunc;
   maxChunkContextTokens?: number;
+  rateLimitConfig?: ConversationsRateLimitConfig;
 }
 
 export function makeConversationsRouter({
@@ -45,9 +59,32 @@ export function makeConversationsRouter({
   searchBoosters,
   userQueryPreprocessor,
   maxChunkContextTokens,
+  rateLimitConfig = {
+    globalRateLimitConfig: {},
+    addMessageRateLimitConfig: {},
+  },
 }: ConversationsRouterParams<OpenAiStreamingResponse, OpenAiAwaitedResponse>) {
   const conversationsRouter = Router();
 
+  const globalRateLimit = rateLimit({
+    ...rateLimitConfig?.globalRateLimitConfig,
+    windowMs: rateLimitConfig?.globalRateLimitConfig?.windowMs ?? 60 * 1000, // Default: 1 minutes
+    max: rateLimitConfig?.globalRateLimitConfig?.max ?? 100, // Default: Limit each IP to 100 requests per `window`
+    standardHeaders: "draft-7", // draft-6: RateLimit-* headers; draft-7: combined RateLimit header
+    legacyHeaders: true, // X-RateLimit-* headers
+    store: rateLimitConfig.store ?? new MemoryStore(),
+  });
+
+  const addMessageRateLimit = rateLimit({
+    ...rateLimitConfig?.globalRateLimitConfig,
+    windowMs: rateLimitConfig?.globalRateLimitConfig?.windowMs ?? 60 * 1000, // Default: 1 minutes
+    max: rateLimitConfig?.globalRateLimitConfig?.max ?? 30, // Default: Limit each IP to 100 requests per `window`
+    standardHeaders: "draft-7", // draft-6: RateLimit-* headers; draft-7: combined RateLimit header
+    legacyHeaders: true, // X-RateLimit-* headers
+    store: rateLimitConfig.store ?? new MemoryStore(),
+  });
+
+  conversationsRouter.use(globalRateLimit);
   /**
    * Create new conversation.
    */
@@ -62,6 +99,7 @@ export function makeConversationsRouter({
    */
   conversationsRouter.post(
     "/:conversationId/messages",
+    addMessageRateLimit,
     validateRequestSchema(AddMessageRequest),
     makeAddMessageToConversationRoute({
       store,

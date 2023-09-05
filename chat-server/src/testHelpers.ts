@@ -32,6 +32,8 @@ export async function makeConversationsRoutesDefaults() {
   const searchBoosters = conf.conversations!.searchBoosters;
   const userQueryPreprocessor = conf.conversations!.userQueryPreprocessor;
 
+  // TODO: add rate limits config
+
   const conversations = makeConversationsService(
     mongodb.db,
     conf.llm.systemPrompt

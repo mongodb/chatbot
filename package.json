@@ -19,5 +19,9 @@
   },
   "devDependencies": {
     "lerna": "^5.6.2"
+  },
+  "dependencies": {
+    "express-rate-limit": "^6.10.0",
+    "rate-limit-mongo": "^2.3.2"
   }
 }

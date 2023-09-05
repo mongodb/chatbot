@@ -36,6 +36,7 @@ export interface AppConfig {
     searchBoosters?: SearchBooster[];
     userQueryPreprocessor?: QueryPreprocessorFunc;
     maxChunkContextTokens?: number;
+    // TODO: add rate limits config
   };
   findNearestNeighborsOptions: FindNearestNeighborsOptionsConfig;
   embeddedContentStore: EmbeddedContentStoreConfig;

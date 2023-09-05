@@ -20,15 +20,19 @@ import { Role } from "./services/conversations";
 import { palette } from "@leafygreen-ui/palette";
 import { css } from "@emotion/css";
 
+interface StylesProps {
+  darkMode?: boolean;
+}
+
 const styles = {
-  disclosure: css`
+  disclosure: ({ darkMode }: StylesProps) => css`
     display: flex;
     flex-direction: row;
     gap: 8px;
     padding-left: 8px;
 
     & > p {
-      color: white;
+      color: ${darkMode ? palette.white : palette.black};
     }
   }`,
   chatbot_container: css`
@@ -62,7 +66,7 @@ const styles = {
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
   `,
-  modal_container: css`
+  modal_container: ({ darkMode }: StylesProps) => css`
     z-index: 2;
 
     & * {
@@ -71,7 +75,7 @@ const styles = {
 
     & div[role="dialog"] {
       padding-top: 8px;
-      background: ${palette.gray.light3};
+      background: ${darkMode ? "#001e2b" : palette.gray.light3};
     }
 
     @media screen and (max-width: 1024px) {
@@ -176,6 +180,7 @@ function getAvatarVariantForRole(role: Role) {
 export type ChatbotProps = {
   serverBaseUrl?: string;
   shouldStream?: boolean;
+  darkMode?: boolean;
 };
 
 export function Chatbot(props: ChatbotProps) {
@@ -183,6 +188,7 @@ export function Chatbot(props: ChatbotProps) {
     serverBaseUrl: props.serverBaseUrl,
     shouldStream: props.shouldStream,
   });
+  const darkMode = props.darkMode;
   const [initialInputFocused, setInitialInputFocused] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -328,7 +334,7 @@ export function Chatbot(props: ChatbotProps) {
           />
         ) : null}
 
-        <Disclosure tabIndex={0} />
+        <Disclosure tabIndex={0} darkMode={darkMode} />
       </div>
       <ChatbotModal
         inputBarRef={inputBarRef}
@@ -345,6 +351,7 @@ export function Chatbot(props: ChatbotProps) {
           closeModal();
           return true;
         }}
+        darkMode={darkMode}
       />
     </div>
   );
@@ -365,6 +372,7 @@ type ChatbotModalProps = {
   awaitingReply: boolean;
   open: boolean;
   shouldClose: ModalProps["shouldClose"];
+  darkMode?: boolean;
 };
 
 function ChatbotModal({
@@ -378,6 +386,7 @@ function ChatbotModal({
   inputTextError,
   handleSubmit,
   awaitingReply,
+  darkMode,
 }: ChatbotModalProps) {
   const isEmptyConversation = conversation.messages.length === 0;
 
@@ -403,7 +412,7 @@ function ChatbotModal({
 
   return (
     <Modal
-      className={styles.modal_container}
+      className={styles.modal_container({ darkMode })}
       open={open}
       size="large"
       initialFocus={`#${ActiveInputBarId}`}
@@ -411,13 +420,14 @@ function ChatbotModal({
     >
       <div className={styles.card}>
         <TitleBar
+          darkMode={darkMode}
           className={styles.title_bar}
           badgeText="Experimental"
           title="MongoDB AI"
         />
 
         {!isEmptyConversation ? (
-          <MessageFeed className={styles.message_feed}>
+          <MessageFeed darkMode={darkMode} className={styles.message_feed}>
             {conversation.messages.map((message) => {
               const showLoadingSkeleton = conversation.isStreamingMessage
                 ? message.id === conversation.streamingMessage?.id &&
@@ -425,6 +435,7 @@ function ChatbotModal({
                 : false;
               return (
                 <Message
+                  darkMode={darkMode}
                   key={message.id}
                   isSender={isSender(message.role)}
                   messageRatingProps={
@@ -452,7 +463,10 @@ function ChatbotModal({
                       : undefined
                   }
                   avatar={
-                    <Avatar variant={getAvatarVariantForRole(message.role)} />
+                    <Avatar
+                      darkMode={darkMode}
+                      variant={getAvatarVariantForRole(message.role)}
+                    />
                   }
                   sourceType={showLoadingSkeleton ? undefined : "markdown"}
                   componentOverrides={
@@ -506,11 +520,12 @@ function ChatbotModal({
         ) : null}
         <div className={styles.chatbot_input}>
           {conversation.error ? (
-            <ErrorBanner message={conversation.error} />
+            <ErrorBanner darkMode={darkMode} message={conversation.error} />
           ) : null}
 
           {!conversation.error ? (
             <InputBar
+              darkMode={darkMode}
               ref={inputBarRef}
               disabled={active && Boolean(conversation.error?.length)}
               onMessageSend={(messageContent) => {
@@ -549,7 +564,11 @@ function ChatbotModal({
   );
 }
 
-function Disclosure(props: React.HTMLAttributes<HTMLDivElement>) {
+interface DisclosureProps extends React.HTMLAttributes<HTMLDivElement> {
+  darkMode?: boolean;
+}
+
+function Disclosure({ darkMode, ...props }: DisclosureProps) {
   const TermsOfUse = () => (
     <Link href={"https://www.mongodb.com/legal/terms-of-use"}>
       Terms of Use
@@ -562,7 +581,7 @@ function Disclosure(props: React.HTMLAttributes<HTMLDivElement>) {
   );
 
   return (
-    <div className={styles.disclosure} {...props}>
+    <div className={styles.disclosure({ darkMode })} {...props}>
       <Body color={"#FFFFFF"}>
         This is a generative AI chatbot. By interacting with it, you agree to
         MongoDB's <TermsOfUse /> and <AcceptableUsePolicy />.
@@ -571,13 +590,17 @@ function Disclosure(props: React.HTMLAttributes<HTMLDivElement>) {
   );
 }
 
+type ErrorBannerProps = {
+  message?: string;
+  darkMode?: boolean;
+};
+
 function ErrorBanner({
   message = "Something went wrong.",
-}: {
-  message?: string;
-}) {
+  darkMode = false,
+}: ErrorBannerProps) {
   return (
-    <Banner variant="danger">
+    <Banner darkMode={darkMode} variant="danger">
       {message}
       <br />
       Reload the page to start a new conversation.

@@ -13,6 +13,15 @@ body {
   height: 100vh;
 }
 
+.background_light {
+  /* palette.gray.light3 */
+  background: #f9fbfa;
+}
+
+.background_dark {
+  background: #001e2b;
+}
+
 .main_content {
   max-width: 775px;
   min-width: 315px;

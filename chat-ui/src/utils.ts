@@ -61,3 +61,11 @@ export function addPeriodIfMissing(str: string) {
  * @see https://caniuse.com/eventsource
  */
 export const canUseServerSentEvents = () => typeof EventSource !== "undefined";
+
+/**
+ * A shared interface for Emotion CSS tag constructors.
+ * @see https://emotion.sh/docs/typescript#css-tag
+ */
+export interface StylesProps {
+  darkMode?: boolean;
+}

@@ -5,6 +5,7 @@ import { Overline, Body, Link } from "@leafygreen-ui/typography";
 import { palette } from "@leafygreen-ui/palette";
 import { css, cx } from "@emotion/css";
 import { addPeriodIfMissing } from "./utils";
+import { type StylesProps } from "./utils";
 
 const styles = {
   menu_card: css`
@@ -24,16 +25,16 @@ const styles = {
     align-items: left;
     margin-bottom: 0.5rem;
   `,
-  prompt: css`
+  prompt: ({ darkMode }: StylesProps = {}) => css`
     padding: 0.25rem 0.5rem;
     border-radius: 6px;
-    background: #ffffff;
-    color: #000000;
+    background: ${darkMode ? palette.black : palette.white};
+    color: ${darkMode ? palette.white : palette.black};
 
     &:hover,
     &:focus {
       cursor: pointer;
-      background: #e1f7ff;
+      background: ${darkMode ? palette.green.dark3 : palette.blue.light3};
     }
   `,
   powered_by_footer: css`
@@ -50,6 +51,7 @@ export type MenuPrompt = {
 };
 
 type InputMenuProps = {
+  darkMode?: boolean;
   heading?: string;
   headingBadgeText?: string;
   poweredByText: string;
@@ -92,7 +94,7 @@ export const InputMenu = forwardRef(function InputMenu(
             key={prompt.key}
             role="menuitem"
             aria-label={prompt.text}
-            className={styles.prompt}
+            className={styles.prompt({ darkMode: props.darkMode })}
             tabIndex={0}
             onMouseDown={(e) => {
               // By default, onMouseDown fires a blur event, which

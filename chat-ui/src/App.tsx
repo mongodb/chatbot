@@ -24,27 +24,50 @@ function App() {
       <div className={styles.main_content}>
         <Chatbot shouldStream={shouldStream} darkMode={darkMode} />
       </div>
-      <StreamingToggle
-        checked={shouldStream}
-        toggle={() => setShouldStream((s) => !s)}
-      />
-      <DarkModeToggle
-        darkMode={darkMode}
-        toggle={() => setDarkMode(!darkMode)}
-      />
-      <GitCommitLink />
+      <Controls>
+        <ToggleControl
+          checked={shouldStream}
+          labelId="streaming"
+          text="Stream Responses"
+          toggle={() => setShouldStream((s) => !s)}
+        />
+        <ToggleControl
+          checked={darkMode}
+          labelId="darkMode"
+          text="Dark Mode"
+          toggle={() => setDarkMode(!darkMode)}
+        />
+        <GitCommitLink />
+      </Controls>
     </div>
   );
 }
 
-function StreamingToggle(props: { checked: boolean; toggle: () => void }) {
-  const { contextDarkMode: darkMode = false } = useDarkModeContext();
+function Controls(props: { children: React.ReactNode }) {
+  return (
+    <div className={styles.controls_container}>
+      {props.children}
+    </div>
+  )
+}
+
+type ToggleControlProps = {
+  checked: boolean;
+  labelId: string;
+  text: string;
+  toggle: () => void;
+  darkMode?: boolean;
+};
+
+function ToggleControl(props: ToggleControlProps) {
+  const { contextDarkMode: darkMode = props.darkMode ?? false } = useDarkModeContext();
+  const label = `${props.labelId}-toggle-control-label`;
   return (
     <div className={styles.streaming_toggle}>
       <Toggle
         darkMode={darkMode}
         size="default"
-        aria-labelledby="streaming-toggle-label"
+        aria-labelledby={label}
         checked={props.checked}
         onChange={() => {
           props.toggle();
@@ -52,37 +75,12 @@ function StreamingToggle(props: { checked: boolean; toggle: () => void }) {
       />
       <Overline
         role="label"
-        id="streaming-toggle-label"
+        id={label}
         style={{
           color: darkMode ? "white" : "black",
         }}
       >
-        Stream Responses
-      </Overline>
-    </div>
-  );
-}
-
-function DarkModeToggle(props: { darkMode: boolean; toggle: () => void }) {
-  return (
-    <div className={styles.streaming_toggle}>
-      <Toggle
-        darkMode={props.darkMode}
-        size="default"
-        aria-labelledby="darkMode-toggle-label"
-        checked={props.darkMode}
-        onChange={() => {
-          props.toggle();
-        }}
-      />
-      <Overline
-        role="label"
-        id="streaming-toggle-label"
-        style={{
-          color: props.darkMode ? "white" : "black",
-        }}
-      >
-        Dark Mode
+        {props.text}
       </Overline>
     </div>
   );

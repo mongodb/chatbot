@@ -19,10 +19,10 @@ import { TitleBar } from "@lg-chat/title-bar";
 import { Role } from "./services/conversations";
 import { palette } from "@leafygreen-ui/palette";
 import { css } from "@emotion/css";
-
-interface StylesProps {
-  darkMode?: boolean;
-}
+import { type StylesProps } from "./utils";
+import LeafyGreenProvider, {
+  useDarkModeContext,
+} from "@leafygreen-ui/leafygreen-provider";
 
 const styles = {
   disclosure: ({ darkMode }: StylesProps) => css`
@@ -75,7 +75,7 @@ const styles = {
 
     & div[role="dialog"] {
       padding-top: 8px;
-      background: ${darkMode ? "#001e2b" : palette.gray.light3};
+      background: ${darkMode ? palette.black : palette.gray.light3};
     }
 
     @media screen and (max-width: 1024px) {
@@ -188,7 +188,8 @@ export function Chatbot(props: ChatbotProps) {
     serverBaseUrl: props.serverBaseUrl,
     shouldStream: props.shouldStream,
   });
-  const darkMode = props.darkMode;
+  const { contextDarkMode = false } = useDarkModeContext();
+  const darkMode = props.darkMode ?? contextDarkMode;
   const [initialInputFocused, setInitialInputFocused] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -270,90 +271,93 @@ export function Chatbot(props: ChatbotProps) {
   }, [initialInputFocused, promptFocused]);
 
   return (
-    <div className={styles.chatbot_container}>
-      <div className={styles.chatbot_input}>
-        <InputBar
-          key={"initialInput"}
-          badgeText="Experimental"
-          textareaProps={{
-            value: !modalOpen ? inputText : "",
-            onChange: (e) => {
-              if (!modalOpen) setInputText(e.target.value);
-            },
-            placeholder: conversation.error
-              ? "Something went wrong. Try reloading the page and starting a new conversation."
-              : awaitingReply
-              ? "MongoDB AI is answering..."
-              : "Ask MongoDB AI a Question",
-          }}
-          onMessageSend={async (messageContent) => {
-            const canSubmit =
-              inputTextError.length === 0 && !conversation.error;
-            if (canSubmit) {
-              await handleSubmit(messageContent);
-            }
-          }}
-          onFocus={async () => {
-            setInitialInputFocused(true);
-            if (conversation.messages.length > 0) {
-              openModal();
-            } else {
-              setMenuOpen(true);
-            }
-            if (!conversation.conversationId) {
-              await conversation.createConversation();
-            }
-          }}
-          onBlur={() => {
-            setInitialInputFocused(false);
-          }}
-        />
-
-        {inputTextError ? <ErrorText>{inputTextError}</ErrorText> : null}
-
-        {showSuggestedPrompts ? (
-          <InputMenu
-            className={styles.chatbot_input_menu}
-            heading="SUGGESTED AI PROMPTS"
-            headingBadgeText=""
-            poweredByText="Powered by Atlas Vector Search"
-            poweredByCTA="Learn More"
-            poweredByLink="https://www.mongodb.com/products/platform/atlas-vector-search"
-            prompts={suggestedPrompts}
-            onFocused={(i) => {
-              setPromptFocused(i);
+    <LeafyGreenProvider darkMode={darkMode}>
+      <div className={styles.chatbot_container}>
+        <div className={styles.chatbot_input}>
+          <InputBar
+            key={"initialInput"}
+            badgeText="Experimental"
+            textareaProps={{
+              value: !modalOpen ? inputText : "",
+              onChange: (e) => {
+                if (!modalOpen) setInputText(e.target.value);
+              },
+              placeholder: conversation.error
+                ? "Something went wrong. Try reloading the page and starting a new conversation."
+                : awaitingReply
+                ? "MongoDB AI is answering..."
+                : "Ask MongoDB AI a Question",
             }}
-            onBlurred={(i) => {
-              if (i === 0 || i === suggestedPrompts.length) {
-                setPromptFocused(null);
+            onMessageSend={async (messageContent) => {
+              const canSubmit =
+                inputTextError.length === 0 && !conversation.error;
+              if (canSubmit) {
+                await handleSubmit(messageContent);
               }
             }}
-            onPromptSelected={({ text }) => {
-              handleSubmit(text);
+            onFocus={async () => {
+              setInitialInputFocused(true);
+              if (conversation.messages.length > 0) {
+                openModal();
+              } else {
+                setMenuOpen(true);
+              }
+              if (!conversation.conversationId) {
+                await conversation.createConversation();
+              }
+            }}
+            onBlur={() => {
+              setInitialInputFocused(false);
             }}
           />
-        ) : null}
 
-        <Disclosure tabIndex={0} darkMode={darkMode} />
+          {inputTextError ? <ErrorText>{inputTextError}</ErrorText> : null}
+
+          {showSuggestedPrompts ? (
+            <InputMenu
+              className={styles.chatbot_input_menu}
+              darkMode={darkMode}
+              heading="SUGGESTED AI PROMPTS"
+              headingBadgeText=""
+              poweredByText="Powered by Atlas Vector Search"
+              poweredByCTA="Learn More"
+              poweredByLink="https://www.mongodb.com/products/platform/atlas-vector-search"
+              prompts={suggestedPrompts}
+              onFocused={(i) => {
+                setPromptFocused(i);
+              }}
+              onBlurred={(i) => {
+                if (i === 0 || i === suggestedPrompts.length) {
+                  setPromptFocused(null);
+                }
+              }}
+              onPromptSelected={({ text }) => {
+                handleSubmit(text);
+              }}
+            />
+          ) : null}
+
+          <Disclosure tabIndex={0} darkMode={darkMode} />
+        </div>
+        <ChatbotModal
+          inputBarRef={inputBarRef}
+          active={modalOpen}
+          conversation={conversation}
+          inputText={inputText}
+          setInputText={setInputText}
+          inputTextError={inputTextError}
+          handleSubmit={handleSubmit}
+          awaitingReply={awaitingReply}
+          open={modalOpen}
+          shouldClose={() => {
+            setMenuOpen(false);
+            closeModal();
+            return true;
+          }}
+          darkMode={darkMode}
+        />
       </div>
-      <ChatbotModal
-        inputBarRef={inputBarRef}
-        active={modalOpen}
-        conversation={conversation}
-        inputText={inputText}
-        setInputText={setInputText}
-        inputTextError={inputTextError}
-        handleSubmit={handleSubmit}
-        awaitingReply={awaitingReply}
-        open={modalOpen}
-        shouldClose={() => {
-          setMenuOpen(false);
-          closeModal();
-          return true;
-        }}
-        darkMode={darkMode}
-      />
-    </div>
+    </LeafyGreenProvider>
   );
 }
 

@@ -580,7 +580,6 @@ function Disclosure({ darkMode, ...props }: DisclosureProps) {
     </Link>
   );
 
-  console.log(`[JW DEBUG] darkMode: ${darkMode}`);
   return (
     <div className={styles.disclosure({ darkMode })} {...props}>
       <Body color={"#FFFFFF"}>

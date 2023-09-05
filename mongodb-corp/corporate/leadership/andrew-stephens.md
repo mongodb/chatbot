@@ -1,6 +1,6 @@
 ---
 title: Andrew Stephens
-url: https://www.mongodb.com/leadership
+url: https://www.mongodb.com/leadership#andrew-stephens-general-counsel
 metadata:
   role: General Counsel
   social:

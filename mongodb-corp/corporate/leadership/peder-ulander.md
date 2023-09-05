@@ -1,6 +1,6 @@
 ---
 title: Peder Ulander
-url: https://www.mongodb.com/leadership
+url: https://www.mongodb.com/leadership#peder-ulander-chief-marketing--strategy-officer
 metadata:
   role: Chief Marketing & Strategy Officer
   social:

@@ -1,6 +1,6 @@
 ---
 title: Lena Smart
-url: https://www.mongodb.com/leadership
+url: https://www.mongodb.com/leadership#lena-smart-chief-information-security-officer
 metadata:
   role: Chief Information Security Officer
   social:

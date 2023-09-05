@@ -1,6 +1,6 @@
 ---
 title: Dev Ittycheria
-url: https://www.mongodb.com/leadership
+url: https://www.mongodb.com/leadership#dev-ittycheria-president--ceo
 metadata:
   role: President & CEO
   social:

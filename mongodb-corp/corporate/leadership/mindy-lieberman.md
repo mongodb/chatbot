@@ -1,6 +1,6 @@
 ---
 title: Mindy Lieberman
-url: https://www.mongodb.com/leadership
+url: https://www.mongodb.com/leadership#mindy-lieberman-chief-information-officer
 metadata:
   role: Chief Information Officer
   social:

@@ -1,6 +1,6 @@
 ---
 title: Cedric Pech
-url: https://www.mongodb.com/leadership
+url: https://www.mongodb.com/leadership#cedric-pech-cro
 metadata:
   role: CRO
   social:

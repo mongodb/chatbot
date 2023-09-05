@@ -1,6 +1,6 @@
 ---
 title: Michael Gordon
-url: https://www.mongodb.com/leadership
+url: https://www.mongodb.com/leadership#michael-gordon-coo--cfo
 metadata:
   role: COO & CFO
   social:

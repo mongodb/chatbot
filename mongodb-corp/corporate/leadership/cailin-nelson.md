@@ -1,6 +1,6 @@
 ---
 title: Cailin Nelson
-url: https://www.mongodb.com/leadership
+url: https://www.mongodb.com/leadership#cailin-nelson-evp-engineering-cloud
 metadata:
   role: EVP, Engineering, Cloud
   social:

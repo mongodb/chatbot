@@ -1,6 +1,6 @@
 ---
 title: Sahir Azam
-url: https://mongodb.com/leadership
+url: https://www.mongodb.com/leadership#sahir-azam-chief-product-officer
 metadata:
   role: Chief Product Officer
   social:

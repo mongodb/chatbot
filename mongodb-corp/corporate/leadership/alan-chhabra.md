@@ -1,6 +1,6 @@
 ---
 title: Alan Chhabra
-url: https://www.mongodb.com/leadership
+url: https://www.mongodb.com/leadership#alan-chhabra-evp-ww-partners-and-asia-
 metadata:
   role: EVP, WW Partners and Asia
   social:

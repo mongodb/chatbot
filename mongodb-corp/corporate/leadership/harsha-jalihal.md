@@ -1,6 +1,6 @@
 ---
 title: Harsha Jalihal
-url: https://www.mongodb.com/leadership
+url: https://www.mongodb.com/leadership#harsha-jalihal-chief-people-officer
 metadata:
   role: Chief People Officer
   social:

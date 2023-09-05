@@ -1,6 +1,6 @@
 ---
 title: Ronnen Miller
-url: https://www.mongodb.com/leadership
+url: https://www.mongodb.com/leadership#ronnen-miller-evp-global-technical-services
 metadata:
   role: EVP, Global Technical Services
   social:

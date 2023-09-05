@@ -14,7 +14,6 @@ metadata:
 
 To get the fastest response, please use our in-app chat to connect with a MongoDB Support representative.
 
-
 - Visit our Support Portal to take advantage of our free resources, online courses, and community forums.
 
 - MongoDB's product specialists can give you more information about features, sizing, support plans, and consulting.

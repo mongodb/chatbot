@@ -48,6 +48,8 @@ steps:
         from_secret: lg_artifactory_username
       LG_ARTIFACTORY_EMAIL:
         from_secret: lg_artifactory_email
+      GITHUB_ACCESS_TOKEN:
+        from_secret: github_access_token
 
 # ---
 # Chat Server pipelines

@@ -1,7 +1,8 @@
 import fs from "fs";
 import Path from "path";
 import { Page } from "chat-core";
-import { chunkPage, standardChunkFrontMatterUpdater } from "./chunkPage";
+import { chunkPage } from "./chunkPage";
+import { standardChunkFrontMatterUpdater } from "./ChunkTransformer";
 
 describe("chunkPage", () => {
   const page: Page = {

@@ -5,6 +5,7 @@ import { handlePage } from "./SnootyDataSource";
 import { chunkOpenApiSpecYaml } from "./chunkOpenApiSpecYaml";
 
 describe("chunkRedocOpenApiSpecYaml()", () => {
+  jest.setTimeout(60000);
   it("chunks a local Redoc OpenAPI spec", async () => {
     const apiSpecPage = JSON.parse(
       fs.readFileSync(

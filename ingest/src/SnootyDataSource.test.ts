@@ -57,7 +57,7 @@ describe("SnootyDataSource", () => {
         (entry: { type: string }) => entry.type === "page"
       )[1]?.data.ast;
       expect(pageAst).toBeDefined();
-      const firstPageText = snootyAstToMd(pageAst!, { baseUrl });
+      const firstPageText = snootyAstToMd(pageAst);
       expect(pages[1]).toMatchObject({
         format: "md",
         sourceName: "snooty-test",

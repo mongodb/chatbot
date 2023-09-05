@@ -1,5 +1,4 @@
 import { CommandModule } from "yargs";
-import { strict as assert } from "assert";
 import {
   assertEnvVars,
   logger,
@@ -7,13 +6,9 @@ import {
   PageStore,
 } from "chat-core";
 import { updatePages } from "../updatePages";
-import {
-  DevCenterProjectConfig,
-  makeDevCenterDataSource,
-} from "../DevCenterDataSource";
-import { projectSourcesConfig, snootyProjectConfig } from "../projectSources";
+import { sourceConstructors } from "../projectSources";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
-import { prepareSnootySources } from "../SnootyProjectsInfo";
+import { DataSource } from "../DataSource";
 
 type PagesCommandArgs = {
   source?: string | string[];
@@ -58,18 +53,26 @@ export const doPagesCommand = async ({
 }) => {
   const requestedSources = new Set(Array.isArray(source) ? source : [source]);
 
-  const snootySources = await prepareSnootySources({
-    projects: snootyProjectConfig,
-    snootyDataApiBaseUrl: "https://snooty-data-api.mongodb.com/prod/",
+  const sourcePromises = await Promise.allSettled(
+    sourceConstructors.map((constructor) => constructor())
+  );
+
+  // Log any errors in source construction
+  (
+    sourcePromises.filter(
+      (result) => result.status === "rejected"
+    ) as PromiseRejectedResult[]
+  ).forEach((result) => {
+    logger.error(`Source constructor failed: ${result.reason}`);
   });
 
-  const devCenterConfig = projectSourcesConfig.find(
-    (project) => project.type === "devcenter"
-  ) as DevCenterProjectConfig | undefined;
-  assert(devCenterConfig !== undefined);
-  const devCenterSource = await makeDevCenterDataSource(devCenterConfig);
-
-  const availableSources = [...snootySources, devCenterSource];
+  const availableSources = (
+    sourcePromises.filter(
+      (result) => result.status === "fulfilled"
+    ) as PromiseFulfilledResult<DataSource | DataSource[]>[]
+  )
+    .map(({ value }) => value)
+    .flat(1);
 
   const sources =
     source === undefined

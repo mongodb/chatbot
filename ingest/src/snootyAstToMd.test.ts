@@ -55,24 +55,17 @@ describe("snootyAstToMd", () => {
         },
       ],
     };
-    const result = snootyAstToMd(ast, {
-      baseUrl: "/",
-    });
+    const result = snootyAstToMd(ast);
     expect(result.split("\n")[0]).toBe("# FAQ");
   });
   it("does not render links", () => {
-    const baseUrl = "https://some-base-url.com/";
-    const result = snootyAstToMd(samplePage.data.ast, {
-      baseUrl,
-    });
+    const result = snootyAstToMd(samplePage.data.ast);
     // expect result to not include something like [link text](https://some-base-url.com/faq)
-    const expectedNotIncludes = `](${baseUrl})`;
+    const expectedNotIncludes = `](`;
     expect(result).not.toContain(expectedNotIncludes);
   });
   it("renders definition lists", () => {
-    const result = snootyAstToMd(samplePage.data.ast, {
-      baseUrl: "/",
-    });
+    const result = snootyAstToMd(samplePage.data.ast);
     expect(result.startsWith("# $merge (aggregation)")).toBe(true);
     const expectedToInclude = `Writes the results of the aggregation pipeline to a specified collection. The \`$merge\` operator must be the **last** stage in the pipeline.`;
     expect(result).toContain(expectedToInclude);
@@ -86,9 +79,7 @@ describe("snootyAstToMd", () => {
         }
       )
     );
-    const result = snootyAstToMd(samplePage.data.ast, {
-      baseUrl: "/",
-    });
+    const result = snootyAstToMd(samplePage.data.ast);
     it("Renders code examples with language", () => {
       expect(result).toContain("```json\n");
     });
@@ -107,9 +98,7 @@ describe("snootyAstToMd", () => {
         }
       )
     );
-    const result = snootyAstToMd(samplePage.data.ast, {
-      baseUrl: "/",
-    });
+    const result = snootyAstToMd(samplePage.data.ast);
     const expected = `before text
 
 <table>
@@ -209,9 +198,7 @@ after text
         "utf-8"
       )
     );
-    const result = snootyAstToMd(ast, {
-      baseUrl: "/",
-    });
+    const result = snootyAstToMd(ast);
     const expected = `before text
 
 <table>
@@ -260,9 +247,7 @@ after text
         "utf-8"
       )
     );
-    const result = snootyAstToMd(ast, {
-      baseUrl: "/",
-    });
+    const result = snootyAstToMd(ast);
     const expected = `# Data Model Examples and Patterns
 
 For additional patterns and use cases, see also: Building with Patterns
@@ -303,9 +288,7 @@ Describes one method for supporting keyword search by storing keywords in an arr
         }
       )
     );
-    const result = snootyAstToMd(samplePageWithTabs.data.ast, {
-      baseUrl: "/",
-    });
+    const result = snootyAstToMd(samplePageWithTabs.data.ast);
     const expectedToContainTabsStart = "\n\n<Tabs>\n\n";
     const expectedToContainTabsEnd = "\n\n</Tabs>\n\n";
     const expectedToContainTabStart = '\n\n<Tab name="App Services UI">\n\n';
@@ -330,9 +313,7 @@ Describes one method for supporting keyword search by storing keywords in an arr
         }
       )
     );
-    const result = snootyAstToMd(samplePageWithTabs.data.ast, {
-      baseUrl: "/",
-    });
+    const result = snootyAstToMd(samplePageWithTabs.data.ast);
     const expectedToContainTabsStart = "\n\n<Tabs>\n\n";
     const expectedToContainTabsEnd = "\n\n</Tabs>\n\n";
     const expectedToContainTabStart = '\n\n<Tab name="Java (Sync)">\n\n';

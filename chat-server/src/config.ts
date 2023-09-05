@@ -92,16 +92,16 @@ export const config: AppConfig = {
     }) {
       const chunkSeparator = "~~~~~~";
       const context = chunks.join(`\n${chunkSeparator}\n`);
-      const content = stripIndents`Using the following information, answer the question.
-      Different pieces of information are separated by "${chunkSeparator}".
+      const content = `Using the following information, answer the question.
+Different pieces of information are separated by "${chunkSeparator}".
 
-      <Information>
-      ${context}
-      <End information>
+<Information>
+${context}
+<End information>
 
-      <Question>
-      ${question}
-      <End Question>`;
+<Question>
+${question}
+<End Question>`;
       return { role: "user", content };
     },
   },

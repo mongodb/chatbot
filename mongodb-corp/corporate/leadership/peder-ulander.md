@@ -1,10 +1,14 @@
 ---
-name: Peder Ulander
-role: Chief Marketing & Strategy Officer
+title: Peder Ulander
 url: https://www.mongodb.com/leadership
-social:
-  linkedin: https://www.linkedin.com/in/ulander/
-  twitter: https://twitter.com/ulander
+metadata:
+  role: Chief Marketing & Strategy Officer
+  social:
+    linkedin: https://www.linkedin.com/in/ulander/
+    twitter: https://twitter.com/ulander
+  tags:
+    - executive
+    - c-suite
 ---
 
 # Peder Ulander, Chief Marketing & Strategy Officer

@@ -3,8 +3,6 @@ title: Our story
 url: https://www.mongodb.com/company
 metadata:
   description: The history of MongoDB and an overview of its usage and the community resources we provide.
-  products:
-    - Docs AI Chatbot
   tags:
     - Dwight Merriman
     - Eliot Horowitz
@@ -23,23 +21,14 @@ At the Internet advertising company DoubleClick (now owned by Google), the team 
 
 This was when MongoDB was born.
 
-## What we do
+## What We Do
 
 MongoDB has tens of thousands of customers in more than 100 countries. The MongoDB database platform has been downloaded hundreds of millions of times since 2007, and there have been millions of builders trained through MongoDB University courses.
 
-### DOWNLOADS
+- MongoDB has been downloaded over 365 million times
+- We have 4,600+ employees in over 27 countries and growing.
 
-MongoDB has been downloaded over 365 million times
-
-### COUNTRIES
-
-We have employees in over 27 countries and growing.
-
-### EMPLOYEES
-
-We have 4,600+ people contributing to our success.
-
-## How we support our communities
+## How We Support Our Communities
 
 At MongoDB, we believe that it is our responsibility to positively impact the communities in which we operate and hope that MongoDB will be an inflection point in the careers of our employees.
 

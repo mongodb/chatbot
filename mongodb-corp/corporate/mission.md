@@ -1,6 +1,10 @@
 ---
 title: MongoDB Mission Statement
 url: https://www.mongodb.com/company
+metadata:
+  description: The MongoDB mission statement describes the motivation behind the work of MongoDB, Inc.
+  tags:
+    - Mission Statement
 ---
 
 # Our Mission

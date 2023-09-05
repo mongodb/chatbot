@@ -1,5 +1,11 @@
 ---
 url: https://learn.mongodb.com
+metadata:
+  tags:
+    - courses
+    - learn
+    - video
+    - instructor
 ---
 
 # MongoDB University

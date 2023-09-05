@@ -3,13 +3,11 @@ title: MongoDB Core Values
 url: https://www.mongodb.com/company
 metadata:
   description: MongoDB uses our core values every day to guide how we collaborate with each other and operate as a whole, and look for them in prospective candidates.
-  products:
-    - Docs AI Chatbot
   tags:
     - Think Big, Go Far
     - Build Together
     - Embrace the Power of Differences
-    - Make it Matter
+    - Make It Matter
     - Be Intellectually Honest
     - Own What You Do
 ---
@@ -68,7 +66,7 @@ We commit to creating a culture of belonging, where people of different origins,
 - Seeking to understand a person’s intent before passing judgment on their behavior, recognizing that intent and impact aren’t always the same
 - Holding ourselves accountable to recognize and address our biases, even when uncomfortable
 
-## Make it Matter
+## Make It Matter
 
 We are relentless in our pursuit of meaningful impact. We think strategically and are clear on what we are and are not trying to do. We accomplish an amazing amount of important work, and we are obsessed with delivering on our commitments.
 

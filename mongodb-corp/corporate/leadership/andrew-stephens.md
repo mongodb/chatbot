@@ -1,9 +1,12 @@
 ---
-name: Andrew Stephens
-role: General Counsel
+title: Andrew Stephens
 url: https://www.mongodb.com/leadership
-social:
-  linkedin: https://www.linkedin.com/in/andrewstephens
+metadata:
+  role: General Counsel
+  social:
+    linkedin: https://www.linkedin.com/in/andrewstephens
+  tags:
+    - executive
 ---
 
 # Andrew Stephens, General Counsel

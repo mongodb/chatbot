@@ -1,10 +1,13 @@
 ---
-name: Alan Chhabra
-role: EVP, WW Partners and Asia
+title: Alan Chhabra
 url: https://www.mongodb.com/leadership
-social:
-  linkedin: https://www.linkedin.com/in/alanchhabra
-  twitter: https://twitter.com/cloudchhabra
+metadata:
+  role: EVP, WW Partners and Asia
+  social:
+    linkedin: https://www.linkedin.com/in/alanchhabra
+    twitter: https://twitter.com/cloudchhabra
+  tags:
+    - executive
 ---
 
 # Alan Chhabra, EVP, WW Partners and Asia

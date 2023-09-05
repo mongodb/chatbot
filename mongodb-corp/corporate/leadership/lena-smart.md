@@ -1,9 +1,13 @@
 ---
-name: Lena Smart
-role: Chief Information Security Officer
+title: Lena Smart
 url: https://www.mongodb.com/leadership
-social:
-  linkedin: https://www.linkedin.com/in/lena-smart-04709b143/
+metadata:
+  role: Chief Information Security Officer
+  social:
+    linkedin: https://www.linkedin.com/in/lena-smart-04709b143/
+  tags:
+    - executive
+    - c-suite
 ---
 
 # Lena Smart, Chief Information Security Officer

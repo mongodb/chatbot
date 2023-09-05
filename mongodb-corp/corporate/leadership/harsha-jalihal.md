@@ -1,9 +1,13 @@
 ---
-name: Harsha Jalihal
-role: Chief People Officer
+title: Harsha Jalihal
 url: https://www.mongodb.com/leadership
-social:
-  linkedin: https://www.linkedin.com/in/harshajalihal/
+metadata:
+  role: Chief People Officer
+  social:
+    linkedin: https://www.linkedin.com/in/harshajalihal/
+  tags:
+    - executive
+    - c-suite
 ---
 
 # Harsha Jalihal, Chief People Officer

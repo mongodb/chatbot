@@ -1,9 +1,13 @@
 ---
-name: Mindy Lieberman
-role: Chief Information Officer
+title: Mindy Lieberman
 url: https://www.mongodb.com/leadership
-social:
-  linkedin: https://www.linkedin.com/in/mindy-lieberman-328391/
+metadata:
+  role: Chief Information Officer
+  social:
+    linkedin: https://www.linkedin.com/in/mindy-lieberman-328391/
+  tags:
+    - executive
+    - c-suite
 ---
 
 # Mindy Lieberman, Chief Information Officer

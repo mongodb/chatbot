@@ -1,9 +1,13 @@
 ---
-name: Cedric Pech
-role: CRO
+title: Cedric Pech
 url: https://www.mongodb.com/leadership
-social:
-  linkedin: https://www.linkedin.com/in/cedricpech/
+metadata:
+  role: CRO
+  social:
+    linkedin: https://www.linkedin.com/in/cedricpech/
+  tags:
+    - executive
+    - c-suite
 ---
 
 # Cedric Pech, CRO

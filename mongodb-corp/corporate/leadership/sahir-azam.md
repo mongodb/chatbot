@@ -1,10 +1,14 @@
 ---
-name: Sahir Azam
-role: Chief Product Officer
+title: Sahir Azam
 url: https://mongodb.com/leadership
-social:
-  linkedin: https://www.linkedin.com/in/sahirazam
-  twitter: https://twitter.com/sahirazam
+metadata:
+  role: Chief Product Officer
+  social:
+    linkedin: https://www.linkedin.com/in/sahirazam
+    twitter: https://twitter.com/sahirazam
+  tags:
+    - executive
+    - c-suite
 ---
 
 # Sahir Azam, Chief Product Officer

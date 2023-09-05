@@ -1,36 +1,27 @@
 ---
-url: https://www.mongodb.com/contact
+url: https://support.mongodb.com/
+metadata:
+  description: Get support from in-app chat, our free community resources, or a paid support specialist.
+  tags:
+    - Bug
+    - Issue
+    - Help
+    - Support
+    - MongoDB Support
 ---
 
-# Contact Us
-
-## Looking for product support?
+# Help & Support
 
 To get the fastest response, please use our in-app chat to connect with a MongoDB Support representative.
 
-### Help & Support
 
-Visit our Support Portal to take advantage of our free resources, online courses, and community forums.
+- Visit our Support Portal to take advantage of our free resources, online courses, and community forums.
 
-[Learn more](https://support.mongodb.com/)
+- MongoDB's product specialists can give you more information about features, sizing, support plans, and consulting.
 
-### Pricing
+- MongoDB's Customer Success team is dedicated to helping you navigate your MongoDB journey so we can build better, faster — together.
 
-Chat with our product specialists for more information about features, sizing, support plans, and consulting.
-
-[Chat now](https://www.mongodb.com/contact#:~:text=plans%2C%20and%20consulting.-,Chat,-now)
-
-### Customer Success
-
-We are dedicated to helping you navigate your MongoDB journey so we can build better, faster — together.
-
-[Get more information](https://www.mongodb.com/customer-success)
-
-### Partnerships
-
-MongoDB partners with organizations that offer complementary technology solutions and services.
-
-[Learn more](https://www.mongodb.com/partners/partner-program)
+- MongoDB partners with organizations that offer complementary technology solutions and services.
 
 ## Frequently asked questions
 
@@ -67,26 +58,3 @@ The Developer Support plan starts at $49/month and includes a 30-day free trial.
 Signup by clicking on the "Get Help" tab on the top right hand corner of the Atlas UI and selecting "Support" from the drop-down menu.
 
 If you’d like to know more about annual pricing plans, paying via invoice, or our other support plans available for MongoDB Atlas, please contact us via the contact form above.
-
-## More MongoDB resources
-
-Learn more about MongoDB, the company that empowers innovators to create, transform, and disrupt industries.
-
-
-### Press Room
-
-Contact the press team and access media resources
-
-[Learn more](https://www.mongodb.com/pressroom)
-
-### Office Locations
-
-MongoDB is a global company with US headquarters in New York City and International headquarters in Dublin.
-
-[Learn more](https://www.mongodb.com/office-locations)
-
-### Careers
-
-MongoDB is at the forefront of that innovation with thousands of customers across the globe. Together, there’s nothing we can’t build.
-
-[Learn more](https://www.mongodb.com/careers)

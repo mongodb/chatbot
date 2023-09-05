@@ -1,10 +1,14 @@
 ---
-name: Dev Ittycheria
-role: President & CEO
+title: Dev Ittycheria
 url: https://www.mongodb.com/leadership
-social:
-  linkedin: https://www.linkedin.com/in/dittycheria
-  twitter: https://twitter.com/dittycheria
+metadata:
+  role: President & CEO
+  social:
+    linkedin: https://www.linkedin.com/in/dittycheria
+    twitter: https://twitter.com/dittycheria
+  tags:
+    - executive
+    - c-suite
 ---
 
 # Dev Ittycheria, President & CEO

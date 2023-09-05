@@ -36,15 +36,11 @@ At MongoDB, we believe that it is our responsibility to positively impact the co
 
 Over the last decade, MongoDB University has offered free courses for beginners through to advanced MongoDB users to help close the growing tech skills gap.
 
-[Learn more](https://learn.mongodb.com/)
-
 ### Employee Engagement, Diversity and Inclusion
 
 We are dedicated to creating an environment where all employees feel like they belong and can advance and thrive.
 
-We're committed to building a culture of inclusion that embraces the power of differences. This philosophy extends to our employees, users, customers and communities. We work to ensure that MongoDB is a place where people of all backgrounds can build their career.
-
-[Learn more](https://www.mongodb.com/careers/diversity-and-inclusion)
+We're committed to building a culture of inclusion that embraces the power of differences. This philosophy extends to our employees, users, customerags and communities. We work to ensure that MongoDB is a place where people of all backgrounds can build their career.
 
 ### Sustainability
 
@@ -55,5 +51,3 @@ We are committed to doing our part towards the global efforts to limit climate c
 - 100% powered by renewables in 2026
 
 - 0 net carbon emissions by 2030
-
-[Learn more](https://www.mongodb.com/company/sustainability)

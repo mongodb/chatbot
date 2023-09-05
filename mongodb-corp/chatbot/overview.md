@@ -62,11 +62,11 @@ The MongoDB AI chatbot knows about all of MongoDB's products and services and ca
 
 ### How does the Docs AI chatbot work?
 
-The chatbot combines state of the art LLM models with a rich backing store of k nowledge and examples from official MongoDB sources. This includes guides andreference pages from the Documentation, tutorials and blogs from the DeveloperCenter, and more. When you send the chatbot a message, it determines what you're asking for and searches the backing store for the most relevant information. Then, it uses an LLM model to transform your message and the raw results into a formatted response.
+The chatbot combines state of the art LLM models with a rich backing store of knowledge and examples from official MongoDB sources. This includes guides and reference pages from the Documentation, tutorials and blogs from the Developer Center, and more. When you send the chatbot a message, it determines what you're asking for and searches the backing store for the most relevant information. Then, it uses an LLM model to transform your message and the raw results into a formatted response.
 
 ### How does the chatbot use AI?
 
-The chatbot uses state of the art vector embeddings and LLM models to respond to messages with accurate information in a fluent, natural style.
+The chatbot uses state of the art vector embeddings and LLM models to respond to messages with accurate information.
 
 ### How does the chatbot use MongoDB?
 

@@ -14,8 +14,6 @@ metadata:
 
 You can learn more about why to use MongoDB in this article or try it right away with MongoDB Atlas, the database-as-a-service offering by MongoDB.
 
-[Sign up now to start free](https://www.mongodb.com/cloud/atlas/register)
-
 MongoDB is a document database used to build highly available and scalable internet applications. With its flexible schema approach, it’s popular with development teams using agile methodologies. Offering drivers for all major programming languages, MongoDB allows you to immediately start building your application without spending time configuring a database.
 
 ## What is MongoDB?

@@ -5,11 +5,15 @@ export const options = {
   vus: 50, // Number of virtual users
   duration: "60s", // Duration of the test
 };
-
-const baseUrl = "http://localhost:3000/api/v1";
+const baseUrl = __ENV.BASE_URL;
+if (baseUrl === undefined) {
+  throw new Error(
+    "BASE_URL is undefined. You must define BASE_URL in your environment."
+  );
+}
 export default async function () {
   // First request to /user
-  const conversationResponse = http.post(baseUrl + "/conversations");
+  const conversationResponse = http.post(baseUrl + "/api/v1/conversations");
 
   // Check the status code for the first request
   check(conversationResponse, {
@@ -17,7 +21,7 @@ export default async function () {
   });
 
   // Parse the conversationResponse JSON
-  const { _id } = JSON.parse(conversationResponse.body as string); //  tsc ERROR: Argument of type 'string | bytes | null' is not assignable to parameter of type 'string'. Type 'null' is not assignable to type 'string'.
+  const { _id } = JSON.parse(conversationResponse.body as string);
 
   // create a message in the conversation
   const message = JSON.stringify({
@@ -30,12 +34,26 @@ export default async function () {
   };
 
   const messageResponse = http.post(
-    baseUrl + "/conversations/" + _id + "/messages",
+    baseUrl + "/api/v1/conversations/" + _id + "/messages",
     message,
     params
   );
   // // Check the status code for the second request
   check(messageResponse, {
+    "status is 200 (responds with message)": (r) => r.status === 200,
+    "contains message": (r) => JSON.parse(r.body as string).content,
+  });
+
+  const message2 = JSON.stringify({
+    message: "Why use MongoDB?",
+  });
+  const messageResponse2 = http.post(
+    baseUrl + "/api/v1/conversations/" + _id + "/messages",
+    message2,
+    params
+  );
+  // // Check the status code for the second request
+  check(messageResponse2, {
     "status is 200 (responds with message)": (r) => r.status === 200,
     "contains message": (r) => JSON.parse(r.body as string).content,
   });

@@ -6,7 +6,8 @@
   "scripts": {
     "clean": "rm -rf build",
     "build": "npm run clean && tsc",
-    "test:serverLoad": "npm run build && k6 run build/serverLoad.js"
+    "test:serverLoad:dev": "npm run build && BASE_URL=http://localhost:3000 k6 run build/serverLoad.js",
+    "test:serverLoad:staging": "npm run build && BASE_URL=https://knowledge.staging.corp.mongodb.com k6 run build/serverLoad.js"
   },
   "keywords": [],
   "author": "",

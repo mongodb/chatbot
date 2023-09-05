@@ -1,6 +1,18 @@
 ---
 title: MongoDB AI Chatbot Overview
 url: https://mongodb.com/docs/
+metadata:
+  description: Overview of Docs AI Chatbot, including it's capabilities and how it's built
+  products:
+    - Docs AI Chatbot
+  tags:
+    - AI
+    - Generative AI
+    - Chatbot
+    - Atlas Vector Search
+    - LLM
+    - OpenAI
+    - ChatGPT
 ---
 
 # MongoDB AI Chatbot Overview
@@ -9,7 +21,7 @@ The MongoDB AI is an advanced LLM-based chatbot designed to operate as a
 database expert. Its primary role is to assist users, whether they're database
 novices or seasoned administrators, with a vast array of database-related tasks.
 
-The chatbot can access the MongoDB documentation, developer center, and more
+The chatbot can access the MongoDB documentation, Developer Center, and more
 helpful sources. When you ask a question, it finds the most relevant information
 and provides a succinct summary of the information and/or a helpful example.
 

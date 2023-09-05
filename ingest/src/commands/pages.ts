@@ -1,5 +1,4 @@
 import { CommandModule } from "yargs";
-import { strict as assert } from "assert";
 import {
   assertEnvVars,
   logger,
@@ -7,14 +6,8 @@ import {
   PageStore,
 } from "chat-core";
 import { updatePages } from "../updatePages";
-import {
-  DevCenterProjectConfig,
-  makeDevCenterDataSource,
-} from "../DevCenterDataSource";
-import { projectSourcesConfig, snootyProjectConfig } from "../projectSources";
+import { sourceConstructors } from "../projectSources";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
-import { prepareSnootySources } from "../SnootyProjectsInfo";
-import { makeRstOnGitHubDataSource } from "../RstOnGitHubDataSource";
 
 type PagesCommandArgs = {
   source?: string | string[];
@@ -59,32 +52,9 @@ export const doPagesCommand = async ({
 }) => {
   const requestedSources = new Set(Array.isArray(source) ? source : [source]);
 
-  const snootySources = await prepareSnootySources({
-    projects: snootyProjectConfig,
-    snootyDataApiBaseUrl: "https://snooty-data-api.mongodb.com/prod/",
-  });
-
-  const devCenterConfig = projectSourcesConfig.find(
-    (project) => project.type === "devcenter"
-  ) as DevCenterProjectConfig | undefined;
-  assert(devCenterConfig !== undefined);
-  const devCenterSource = await makeDevCenterDataSource(devCenterConfig);
-
-  const pyMongoSource = await makeRstOnGitHubDataSource({
-    name: "pymongo",
-    repoUrl: "https://github.com/mongodb/mongo-python-driver",
-    repoLoaderOptions: {
-      branch: "master",
-      ignoreFiles: [/^(?!^doc\/).*/], // Everything BUT doc/
-    },
-    pathToPageUrl(path) {
-      return path
-        .replace(/^doc\//, "https://pymongo.readthedocs.io/en/stable/")
-        .replace(/\.rst$/, ".html");
-    },
-  });
-
-  const availableSources = [...snootySources, devCenterSource, pyMongoSource];
+  const availableSources = (
+    await Promise.all(sourceConstructors.map((ctor) => ctor()))
+  ).flat(1);
 
   const sources =
     source === undefined

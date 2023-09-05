@@ -1,5 +1,14 @@
 import { DevCenterProjectConfig } from "./DevCenterDataSource";
 import { SnootyProjectConfig } from "./SnootyDataSource";
+import { makeRstOnGitHubDataSource } from "./RstOnGitHubDataSource";
+import { DataSource } from "./DataSource";
+import { makeDevCenterDataSource } from "./DevCenterDataSource";
+import { prepareSnootySources } from "./SnootyProjectsInfo";
+
+/**
+  Async constructor for specific data sources -- parameters baked in.
+ */
+export type SourceConstructor = () => Promise<DataSource | DataSource[]>;
 
 // `baseUrl` and `currentBranch` to be filled in by the Snooty Data API GET
 // projects endpoint - unless you want to specify one to override whatever the
@@ -211,7 +220,31 @@ export const devCenterProjectConfig: DevCenterProjectConfig = {
   baseUrl: "https://www.mongodb.com/developer",
 };
 
-export const projectSourcesConfig = [
-  ...snootyProjectConfig,
-  devCenterProjectConfig,
+export const pyMongoSourceConstructor = async () => {
+  return await makeRstOnGitHubDataSource({
+    name: "pymongo",
+    repoUrl: "https://github.com/mongodb/mongo-python-driver",
+    repoLoaderOptions: {
+      branch: "master",
+      ignoreFiles: [/^(?!^doc\/).*/], // Everything BUT doc/
+    },
+    pathToPageUrl(path) {
+      return path
+        .replace(/^doc\//, "https://pymongo.readthedocs.io/en/stable/")
+        .replace(/\.rst$/, ".html");
+    },
+  });
+};
+
+/**
+  The constructors for the sources used by the docs chatbot.
+ */
+export const sourceConstructors: SourceConstructor[] = [
+  () =>
+    prepareSnootySources({
+      projects: snootyProjectConfig,
+      snootyDataApiBaseUrl: "https://snooty-data-api.mongodb.com/prod/",
+    }),
+  () => makeDevCenterDataSource(devCenterProjectConfig),
+  pyMongoSourceConstructor,
 ];

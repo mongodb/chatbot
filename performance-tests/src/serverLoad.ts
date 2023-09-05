@@ -2,8 +2,9 @@ import http from "k6/http";
 import { check, sleep } from "k6";
 
 export const options = {
-  vus: 50, // Number of virtual users
+  vus: 75, // Number of virtual users
   duration: "60s", // Duration of the test
+  // TODO: how to get 300 requests in a minute
 };
 const baseUrl = __ENV.BASE_URL;
 if (baseUrl === undefined) {
@@ -57,6 +58,4 @@ export default async function () {
     "status is 200 (responds with message)": (r) => r.status === 200,
     "contains message": (r) => JSON.parse(r.body as string).content,
   });
-
-  sleep(1);
 }

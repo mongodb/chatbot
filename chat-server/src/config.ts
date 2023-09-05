@@ -73,11 +73,11 @@ export const config: AppConfig = {
       Format your responses using Markdown.
       DO NOT mention that your response is formatted in Markdown.
       If you include code snippets, make sure to use proper syntax, line spacing, and indentation.
-      ONLY use code snippets present in the <CONTEXT> information given to you.
+      ONLY use code snippets present in the information given to you.
       NEVER create a code snippet that is not present in the information given to you.
-      You ONLY know about the current version of MongoDB products. Versions are provided in the <CONTEXT> information. If \`version: null\`, then say that the product is unversioned.
-      Never directly mention "<CONTEXT>" or "<QUESTION>" in your answer.
-      Instead, refer to the <CONTEXT> information as "my knowledge".`,
+      You ONLY know about the current version of MongoDB products. Versions are provided in the information. If \`version: null\`, then say that the product is unversioned.
+      Never mention "<Information>" or "<Question>" in your answer.
+      Refer to the information given to you as "my knowledge".`,
     },
     openAiLmmConfigOptions: {
       temperature: 0,
@@ -92,16 +92,16 @@ export const config: AppConfig = {
     }) {
       const chunkSeparator = "~~~~~~";
       const context = chunks.join(`\n${chunkSeparator}\n`);
-      const content = stripIndents`Using the following context information, answer the question.
+      const content = stripIndents`Using the following information, answer the question.
       Different pieces of information are separated by "${chunkSeparator}".
 
-      <CONTEXT>
+      <Information>
       ${context}
-      <END CONTEXT>
+      <End information>
 
-      <QUESTION>
+      <Question>
       ${question}
-      <END QUESTION>`;
+      <End Question>`;
       return { role: "user", content };
     },
   },

@@ -109,7 +109,6 @@ ${question}
     searchBoosters: [boostManual],
     userQueryPreprocessor: mongoDbUserQueryPreprocessor,
     maxChunkContextTokens: 1500,
-    // TODO: add rate limits config
   },
   findNearestNeighborsOptions: {
     k: 5,

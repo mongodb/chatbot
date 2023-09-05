@@ -8,7 +8,10 @@ import express, {
 } from "express";
 import cors from "cors";
 import "dotenv/config";
-import { makeConversationsRouter } from "./routes/conversations/conversationsRouter";
+import {
+  ConversationsRateLimitConfig,
+  makeConversationsRouter,
+} from "./routes/conversations/conversationsRouter";
 import {
   EmbeddedContentStore,
   EmbedFunc,
@@ -89,6 +92,7 @@ export const makeApp = async ({
   searchBoosters,
   userQueryPreprocessor,
   corsOptions,
+  rateLimitConfig,
 }: {
   embed: EmbedFunc;
   store: EmbeddedContentStore;
@@ -101,6 +105,7 @@ export const makeApp = async ({
   searchBoosters?: SearchBooster[];
   userQueryPreprocessor?: QueryPreprocessorFunc;
   corsOptions?: cors.CorsOptions;
+  rateLimitConfig?: ConversationsRateLimitConfig;
 }): Promise<Express> => {
   const app = express();
   app.use(makeHandleTimeoutMiddleware(maxRequestTimeoutMs));
@@ -128,7 +133,7 @@ export const makeApp = async ({
       searchBoosters,
       userQueryPreprocessor,
       maxChunkContextTokens,
-      // TODO: add rate limits config
+      rateLimitConfig,
     })
   );
   app.get("/health", (_req, res) => {

@@ -19,4 +19,4 @@ This website and our Products are not intended for children and we do not knowin
 
 It is important that you read this Privacy Policy together with any other privacy notice or fair processing notice we may provide on specific occasions when we are collecting or processing Personal Data about you so that you are fully aware of how and why we are using your data. This Privacy Policy supplements the other notices and is not intended to override them.
 
-... full policy available on the MongoDB website ...
+You can read the full policy on the MongoDB website.

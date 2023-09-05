@@ -11,4 +11,4 @@ metadata:
 
 By using the products and services (“Services”) offered by MongoDB, Inc. and its affiliates (“MongoDB”) or accessing our website(s), including https://www.mongodb.com/ and subdomains (“MongoDB Site”), you agree to this Acceptable Use Policy (“Policy”). MongoDB may modify this Policy at any time.
 
-... full policy available on the MongoDB website ...
+You can read the full policy on the MongoDB website.

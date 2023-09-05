@@ -49,6 +49,7 @@ export type SnootyPageData = {
   page_id: string;
   ast: SnootyNode;
   tags?: string[];
+  deleted: boolean;
 };
 
 export type SnootyProjectConfig = ProjectBase & {
@@ -139,22 +140,27 @@ export const makeSnootyDataSource = async ({
         stream.on("line", async (line) => {
           const entry = JSON.parse(line) as SnootyManifestEntry;
           switch (entry.type) {
-            case "page":
+            case "page": {
+              const { data } = entry as SnootyPageEntry;
+              if (data.deleted) {
+                // Page marked deleted by Snooty API. Treat it as if it were not
+                // in the result set at all. The ingest system treats missing
+                // pages as if they have been deleted.
+                return;
+              }
               return linePromises.push(
                 (async () => {
-                  const page = await handlePage(
-                    (entry as SnootyPageEntry).data,
-                    {
-                      sourceName,
-                      baseUrl,
-                      tags: tags ?? [],
-                      productName,
-                      version,
-                    }
-                  );
+                  const page = await handlePage(data, {
+                    sourceName,
+                    baseUrl,
+                    tags: tags ?? [],
+                    productName,
+                    version,
+                  });
                   pages.push(page);
                 })()
               );
+            }
             case "asset":
               // Nothing to do with assets (images...) for now
               return;

@@ -35,7 +35,7 @@ export const boostManual = makeBoostOnAtlasSearchFilter({
         query: "snooty-docs",
       },
     },
-    k: 3,
+    k: 2,
     minScore: 0.88,
   },
   totalMaxK: 5,

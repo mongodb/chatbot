@@ -40,7 +40,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@azure/openai": "^1.0.0-beta.3",
+    "@azure/openai": "^1.0.0-beta.5",
     "common-tags": "^1",
     "dotenv": "^16.3.1",
     "exponential-backoff": "^3.1.1",

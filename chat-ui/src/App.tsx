@@ -1,10 +1,51 @@
 import "./fonts.module.css";
 import styles from "./App.module.css";
-import LeafyGreenProvider, {
-  useDarkModeContext,
-} from "@leafygreen-ui/leafygreen-provider";
+import { useState } from "react";
+import LeafyGreenProvider from "@leafygreen-ui/leafygreen-provider";
 import { Chatbot } from "./Chatbot";
+import { canUseServerSentEvents } from "./utils";
 import { Overline, Link } from "@leafygreen-ui/typography";
+import Toggle from "@leafygreen-ui/toggle";
+
+function App() {
+  const [shouldStream, setShouldStream] = useState(canUseServerSentEvents());
+  return (
+    <div className={styles.app_background}>
+      <div className={styles.main_content}>
+        <Chatbot shouldStream={shouldStream} />
+      </div>
+      <StreamingToggle
+        checked={shouldStream}
+        toggle={() => setShouldStream((s) => !s)}
+      />
+      <GitCommitLink />
+    </div>
+  );
+}
+
+function StreamingToggle(props: { checked: boolean; toggle: () => void }) {
+  return (
+    <div className={styles.streaming_toggle}>
+      <Toggle
+        size="default"
+        aria-labelledby="streaming-toggle-label"
+        checked={props.checked}
+        onChange={() => {
+          props.toggle();
+        }}
+      />
+      <Overline
+        role="label"
+        id="streaming-toggle-label"
+        style={{
+          color: "white",
+        }}
+      >
+        Stream Responses
+      </Overline>
+    </div>
+  );
+}
 
 function GitCommitLink() {
   const VITE_GIT_COMMIT = import.meta.env.VITE_GIT_COMMIT;
@@ -27,22 +68,6 @@ function GitCommitLink() {
         <Overline style={{ color }}>{VITE_GIT_COMMIT}</Overline>
       </Link>
     </Overline>
-  );
-}
-
-function App() {
-  const { contextDarkMode } = useDarkModeContext();
-  const backgroundColor = contextDarkMode
-    ? styles.app_background_dark
-    : styles.app_background_light;
-
-  return (
-    <div className={`${styles.app_background} ${backgroundColor}`}>
-      <div className={styles.main_content}>
-        <Chatbot darkMode={contextDarkMode} />
-      </div>
-      <GitCommitLink />
-    </div>
   );
 }
 

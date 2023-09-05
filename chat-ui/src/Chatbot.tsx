@@ -207,11 +207,14 @@ function getAvatarVariantForRole(role: Role) {
 
 export type ChatbotProps = {
   serverBaseUrl?: string;
-  darkMode?: boolean;
+  shouldStream?: boolean;
 };
 
-export function Chatbot({ serverBaseUrl, darkMode = false }: ChatbotProps) {
-  const conversation = useConversation({ serverBaseUrl });
+export function Chatbot(props: ChatbotProps) {
+  const conversation = useConversation({
+    serverBaseUrl: props.serverBaseUrl,
+    shouldStream: props.shouldStream,
+  });
   const [initialInputFocused, setInitialInputFocused] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);

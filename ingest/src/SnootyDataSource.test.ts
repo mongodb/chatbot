@@ -26,13 +26,15 @@ describe("SnootyDataSource", () => {
   describe("makeSnootyDataSource()", () => {
     const sampleDataPath = Path.resolve(
       __dirname,
-      "./test_data/snooty_sample_data.txt"
+      "./test_data/snootySampleData.jsonl"
     );
     const baseMock = nock(snootyDataApiBaseUrl);
     beforeEach(() => {
       baseMock
         .get(`/projects/${project.name}/${project.currentBranch}/documents`)
-        .reply(200, () => fs.createReadStream(sampleDataPath));
+        .reply(200, () => {
+          return fs.createReadStream(sampleDataPath);
+        });
       baseMock.get("/projects").reply(200, sampleSnootyMetadata);
     });
     afterEach(() => {
@@ -117,6 +119,41 @@ describe("SnootyDataSource", () => {
         },
         url: "https://mongodb.com/docs/v6.0/administration/change-streams-production-recommendations/how-to-index/",
       });
+    });
+
+    it("handles pages marked 'deleted'", async () => {
+      // Use normal sample data (no deletes)
+      const source = await makeSnootyDataSource({
+        name: `snooty-test`,
+        project,
+        snootyDataApiBaseUrl,
+      });
+      let pages = await source.fetchPages();
+      expect(
+        pages.find((page) =>
+          page.url.includes("administration/install-enterprise")
+        )
+      ).toBeDefined();
+
+      // Hot swap the mocked backend's data source. The sample data now has one marked deleted.
+      nock.cleanAll();
+      baseMock
+        .get(`/projects/${project.name}/${project.currentBranch}/documents`)
+        .reply(200, () => {
+          return fs.createReadStream(
+            Path.resolve(
+              __dirname,
+              "./test_data/snootySampleDataWithDeleted.jsonl"
+            )
+          );
+        });
+
+      pages = await source.fetchPages();
+      expect(
+        pages.find((page) =>
+          page.url.includes("administration/install-enterprise")
+        )
+      ).toBeUndefined();
     });
   });
 });

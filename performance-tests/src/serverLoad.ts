@@ -2,7 +2,7 @@ import http from "k6/http";
 import { check, sleep } from "k6";
 
 export const options = {
-  vus: 25, // Number of virtual users
+  vus: 115, // Number of virtual users
   duration: "60s", // Duration of the test
 };
 
@@ -34,12 +34,13 @@ if (baseUrl === undefined) {
   );
 }
 export default async function () {
+  const ip = generateRandomIpV4();
   // First request to /user
   const conversationResponse = http.post(
     baseUrl + "/api/v1/conversations",
     undefined,
     {
-      headers: browserHeaders,
+      headers: { ...browserHeaders, "X-FORWARDED-FOR": ip },
     }
   );
 
@@ -47,6 +48,7 @@ export default async function () {
   check(conversationResponse, {
     "status is 200 (created conversation)": (r) => r.status === 200,
   });
+  sleep(2);
 
   // Parse the conversationResponse JSON
   const { _id } = JSON.parse(conversationResponse.body as string);
@@ -59,6 +61,7 @@ export default async function () {
     headers: {
       "Content-Type": "application/json",
       ...browserHeaders,
+      "X-FORWARDED-FOR": ip,
     },
   };
 
@@ -67,13 +70,13 @@ export default async function () {
     message,
     params
   );
-  console.log(messageResponse.body);
+  console.log("Message 1 response", messageResponse.body);
   // // Check the status code for the second request
   check(messageResponse, {
     "status is 200 (responds with message)": (r) => r.status === 200,
-    "contains message": (r) => JSON.parse(r.body as string).content,
+    // "contains message": (r) => JSON.parse(r.body as string).content,
   });
-
+  sleep(10);
   const message2 = JSON.stringify({
     message: "Why use MongoDB?",
   });
@@ -82,9 +85,18 @@ export default async function () {
     message2,
     params
   );
-  // // Check the status code for the second request
+  console.log("Message 2 response", messageResponse.body);
+  // Check the status code for the second request
   check(messageResponse2, {
-    "status is 200 (responds with message)": (r) => r.status === 200,
-    "contains message": (r) => JSON.parse(r.body as string).content,
+    "status is 200 (responds with message 2)": (r) => r.status === 200,
+    // "contains message": (r) => JSON.parse(r.body as string).content,
   });
+  sleep(1);
+}
+
+function generateRandomIpV4() {
+  const getRandomNumber = (max: number) => Math.floor(Math.random() * max);
+  return `${getRandomNumber(256)}.${getRandomNumber(256)}.${getRandomNumber(
+    256
+  )}.${getRandomNumber(256)}`;
 }

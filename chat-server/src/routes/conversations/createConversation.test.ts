@@ -5,14 +5,14 @@ import { Conversation } from "../../services/conversations";
 import { Express } from "express";
 import { ApiConversation } from "./utils";
 import { CONVERSATIONS_API_V1_PREFIX } from "../../app";
-import { makeConversationsRoutesDefaults } from "../../testHelpers";
+import { makeTestApp } from "../../testHelpers";
 
 describe("POST /conversations", () => {
   let mongodb: MongoDB;
   let app: Express;
 
   beforeAll(async () => {
-    ({ mongodb, app } = await makeConversationsRoutesDefaults());
+    ({ mongodb, app } = await makeTestApp());
   });
   afterAll(async () => {
     await mongodb?.db.dropDatabase();

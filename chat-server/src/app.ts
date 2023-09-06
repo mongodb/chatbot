@@ -80,6 +80,20 @@ export const API_V1_PREFIX = "/api/v1";
 export const CONVERSATIONS_API_V1_PREFIX = `${API_V1_PREFIX}/conversations`;
 
 export const DEFAULT_MAX_REQUEST_TIMEOUT_MS = 60000;
+export interface MakeAppParams {
+  embed: EmbedFunc;
+  store: EmbeddedContentStore;
+  dataStreamer: DataStreamer;
+  conversations: ConversationsService;
+  llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
+  maxRequestTimeoutMs?: number;
+  maxChunkContextTokens?: number;
+  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
+  searchBoosters?: SearchBooster[];
+  userQueryPreprocessor?: QueryPreprocessorFunc;
+  corsOptions?: cors.CorsOptions;
+  rateLimitConfig?: ConversationsRateLimitConfig;
+}
 export const makeApp = async ({
   embed,
   dataStreamer,
@@ -93,20 +107,7 @@ export const makeApp = async ({
   userQueryPreprocessor,
   corsOptions,
   rateLimitConfig,
-}: {
-  embed: EmbedFunc;
-  store: EmbeddedContentStore;
-  dataStreamer: DataStreamer;
-  conversations: ConversationsService;
-  llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
-  maxRequestTimeoutMs?: number;
-  maxChunkContextTokens?: number;
-  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
-  searchBoosters?: SearchBooster[];
-  userQueryPreprocessor?: QueryPreprocessorFunc;
-  corsOptions?: cors.CorsOptions;
-  rateLimitConfig?: ConversationsRateLimitConfig;
-}): Promise<Express> => {
+}: MakeAppParams): Promise<Express> => {
   const app = express();
   app.use(makeHandleTimeoutMiddleware(maxRequestTimeoutMs));
   app.set("trust proxy", true);

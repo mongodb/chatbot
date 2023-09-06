@@ -1,12 +1,7 @@
-import { Router } from "express";
+import { Request, Router } from "express";
 import { EmbedFunc, FindNearestNeighborsOptions } from "chat-core";
-import {
-  rateLimit,
-  Options as RateLimitOptions,
-  Store as RateLimitStore,
-  MemoryStore,
-} from "express-rate-limit";
-
+import { rateLimit, Options as RateLimitOptions } from "express-rate-limit";
+import slowDown, { Options as SlowDownOptions } from "express-slow-down";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
 import {
   Llm,
@@ -28,12 +23,11 @@ import {
 import { SearchBooster } from "../../processors/SearchBooster";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
 
-// TODO: for all non-2XX or 3XX responses, see how/if can better implement
-// error handling. can/should we pass stuff to next() and process elsewhere?
 export interface ConversationsRateLimitConfig {
-  globalRateLimitConfig?: Partial<RateLimitOptions>;
+  routerRateLimitConfig?: Partial<RateLimitOptions>;
   addMessageRateLimitConfig?: Partial<RateLimitOptions>;
-  store?: RateLimitStore;
+  routerSlowDownConfig?: Partial<SlowDownOptions>;
+  addMessageSlowDownConfig?: Partial<SlowDownOptions>;
 }
 
 export interface ConversationsRouterParams<T, U> {
@@ -49,6 +43,17 @@ export interface ConversationsRouterParams<T, U> {
   rateLimitConfig?: ConversationsRateLimitConfig;
 }
 
+export const rateLimitResponse = {
+  error: "Too many requests, please try again later.",
+};
+
+function keyGenerator(request: Request) {
+  if (!request.ip) {
+    throw new Error("Request IP is not defined");
+  }
+
+  return request.ip;
+}
 export function makeConversationsRouter({
   llm,
   embed,
@@ -59,32 +64,36 @@ export function makeConversationsRouter({
   searchBoosters,
   userQueryPreprocessor,
   maxChunkContextTokens,
-  rateLimitConfig = {
-    globalRateLimitConfig: {},
-    addMessageRateLimitConfig: {},
-  },
+  rateLimitConfig,
 }: ConversationsRouterParams<OpenAiStreamingResponse, OpenAiAwaitedResponse>) {
   const conversationsRouter = Router();
 
+  /**
+    Global rate limit the requests to the conversationsRouter.
+   */
   const globalRateLimit = rateLimit({
-    ...rateLimitConfig?.globalRateLimitConfig,
-    windowMs: rateLimitConfig?.globalRateLimitConfig?.windowMs ?? 60 * 1000, // Default: 1 minutes
-    max: rateLimitConfig?.globalRateLimitConfig?.max ?? 100, // Default: Limit each IP to 100 requests per `window`
+    windowMs: 60 * 1000,
+    max: 100,
     standardHeaders: "draft-7", // draft-6: RateLimit-* headers; draft-7: combined RateLimit header
     legacyHeaders: true, // X-RateLimit-* headers
-    store: rateLimitConfig.store ?? new MemoryStore(),
+    message: rateLimitResponse,
+    keyGenerator,
+    ...(rateLimitConfig?.routerRateLimitConfig ?? {}),
   });
-
-  const addMessageRateLimit = rateLimit({
-    ...rateLimitConfig?.globalRateLimitConfig,
-    windowMs: rateLimitConfig?.globalRateLimitConfig?.windowMs ?? 60 * 1000, // Default: 1 minutes
-    max: rateLimitConfig?.globalRateLimitConfig?.max ?? 30, // Default: Limit each IP to 100 requests per `window`
-    standardHeaders: "draft-7", // draft-6: RateLimit-* headers; draft-7: combined RateLimit header
-    legacyHeaders: true, // X-RateLimit-* headers
-    store: rateLimitConfig.store ?? new MemoryStore(),
-  });
-
   conversationsRouter.use(globalRateLimit);
+  /**
+    Slow down the response to the conversationsRouter after certain number
+    of requests in the time window.
+   */
+  const globalSlowDown = slowDown({
+    windowMs: 60 * 1000,
+    delayAfter: 20,
+    delayMs: 500,
+    keyGenerator,
+    ...(rateLimitConfig?.routerSlowDownConfig ?? {}),
+  });
+  conversationsRouter.use(globalSlowDown);
+
   /**
    * Create new conversation.
    */
@@ -95,11 +104,37 @@ export function makeConversationsRouter({
   );
 
   /**
+    Rate limit the requests to the addMessageToConversationRoute.
+    Rate limit should be more restrictive than global rate limiter to limit expensive requests to the LLM.
+   */
+  const addMessageRateLimit = rateLimit({
+    windowMs: 60 * 1000,
+    max: 30,
+    standardHeaders: "draft-7", // draft-6: RateLimit-* headers; draft-7: combined RateLimit header
+    legacyHeaders: true, // X-RateLimit-* headers
+    message: rateLimitResponse,
+    keyGenerator,
+    ...(rateLimitConfig?.addMessageRateLimitConfig ?? {}),
+  });
+  /**
+    Slow down the response to the addMessageToConversationRoute after certain number
+    of requests in the time window. Rate limit should be more restrictive than global slow down
+    to limit expensive requests to the LLM.
+   */
+  const addMessageSlowDown = slowDown({
+    windowMs: 60 * 1000,
+    delayAfter: 10,
+    delayMs: 1500,
+    keyGenerator,
+    ...(rateLimitConfig?.addMessageSlowDownConfig ?? {}),
+  });
+  /**
    * Create a new message from the user and get response from the LLM.
    */
   conversationsRouter.post(
     "/:conversationId/messages",
     addMessageRateLimit,
+    addMessageSlowDown,
     validateRequestSchema(AddMessageRequest),
     makeAddMessageToConversationRoute({
       store,

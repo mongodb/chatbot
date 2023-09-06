@@ -37,7 +37,7 @@ import { makeDataStreamer } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
 import { makeApp, CONVERSATIONS_API_V1_PREFIX } from "../../app";
-import { makeConversationsRoutesDefaults } from "../../testHelpers";
+import { makeTestApp } from "../../testHelpers";
 import { config } from "../../config";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
 
@@ -65,7 +65,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       conversations,
       app,
       appConfig: defaultRouteConfig,
-    } = await makeConversationsRoutesDefaults());
+    } = await makeTestApp());
   });
 
   afterAll(async () => {

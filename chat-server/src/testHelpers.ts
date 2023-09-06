@@ -8,10 +8,16 @@ import {
 import { makeOpenAiLlm } from "./services/llm";
 import { makeDataStreamer } from "./services/dataStreamer";
 import { makeConversationsService } from "./services/conversations";
-import { makeApp } from "./app";
+import { MakeAppParams, makeApp } from "./app";
 import { config as conf } from "./config";
 
-export async function makeConversationsRoutesDefaults() {
+/**
+  Helper function to quickly make an app for testing purposes.
+  @param defaultConfigOverrides - optional overrides for default app config
+ */
+export async function makeTestApp(
+  defaultConfigOverrides?: Partial<MakeAppParams>
+) {
   // ip address for local host
   const ipAddress = "127.0.0.1";
 
@@ -32,13 +38,11 @@ export async function makeConversationsRoutesDefaults() {
   const searchBoosters = conf.conversations!.searchBoosters;
   const userQueryPreprocessor = conf.conversations!.userQueryPreprocessor;
 
-  // TODO: add rate limits config
-
   const conversations = makeConversationsService(
     mongodb.db,
     conf.llm.systemPrompt
   );
-  const appConfig = {
+  const defaultAppConfig = {
     conversations,
     dataStreamer,
     embed,
@@ -47,6 +51,10 @@ export async function makeConversationsRoutesDefaults() {
     store,
     searchBoosters,
     userQueryPreprocessor,
+  };
+  const appConfig = {
+    ...defaultAppConfig,
+    ...(defaultConfigOverrides ?? {}),
   };
   const app = await makeApp(appConfig);
 

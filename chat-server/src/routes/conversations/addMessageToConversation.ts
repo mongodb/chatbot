@@ -14,7 +14,6 @@ import {
   References,
   Reference,
   WithScore,
-  removeFrontMatter,
 } from "chat-core";
 import {
   Conversation,

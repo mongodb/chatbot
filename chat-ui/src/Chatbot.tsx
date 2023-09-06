@@ -208,7 +208,6 @@ export function Chatbot(props: ChatbotProps) {
 
   function closeModal() {
     setModalOpen(false);
-    inputBarRef.current?.blur();
   }
 
   const [inputData, setInputData] = useState({
@@ -267,6 +266,13 @@ export function Chatbot(props: ChatbotProps) {
         setMenuOpen(false);
         clearInterval(interval);
       }
+      if (initialInputFocused && conversation.messages.length === 0) {
+        setMenuOpen(true);
+      }
+
+      if (!conversation.conversationId) {
+        conversation.createConversation();
+      }
     }, 100);
     return () => clearInterval(interval);
   }, [initialInputFocused, promptFocused]);
@@ -289,14 +295,23 @@ export function Chatbot(props: ChatbotProps) {
                 ? "MongoDB AI is answering..."
                 : "Ask MongoDB AI a Question",
             }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && inputText.length === 0) {
+                openModal();
+              }
+            }}
             onMessageSend={async (messageContent) => {
+              if (!modalOpen && conversation.messages.length > 0) {
+                openModal();
+                return;
+              }
               const canSubmit =
                 inputTextError.length === 0 && !conversation.error;
               if (canSubmit) {
                 await handleSubmit(messageContent);
               }
             }}
-            onFocus={async () => {
+            onClick={async () => {
               setInitialInputFocused(true);
               if (conversation.messages.length > 0) {
                 openModal();
@@ -306,6 +321,9 @@ export function Chatbot(props: ChatbotProps) {
               if (!conversation.conversationId) {
                 await conversation.createConversation();
               }
+            }}
+            onFocus={async () => {
+              setInitialInputFocused(true);
             }}
             onBlur={() => {
               setInitialInputFocused(false);

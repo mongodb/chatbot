@@ -8,6 +8,7 @@ import {
 } from "chat-core";
 import { QueryPreprocessorFunc } from "./processors/QueryPreprocessorFunc";
 import { CorsOptions } from "cors";
+import { ConversationsRateLimitConfig } from "./routes/conversations/conversationsRouter";
 
 export type EmbedConfig = MakeOpenAiEmbedFuncArgs;
 
@@ -36,6 +37,7 @@ export interface AppConfig {
     searchBoosters?: SearchBooster[];
     userQueryPreprocessor?: QueryPreprocessorFunc;
     maxChunkContextTokens?: number;
+    rateLimitConfig?: ConversationsRateLimitConfig;
   };
   findNearestNeighborsOptions: FindNearestNeighborsOptionsConfig;
   embeddedContentStore: EmbeddedContentStoreConfig;

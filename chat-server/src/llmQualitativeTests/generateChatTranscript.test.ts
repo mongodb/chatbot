@@ -2,7 +2,7 @@ import { MongoDB } from "chat-core";
 import { Express } from "express";
 import { CONVERSATIONS_API_V1_PREFIX } from "../app";
 import { ConversationsService } from "../services/conversations";
-import { makeConversationsRoutesDefaults } from "../testHelpers";
+import { makeTestApp } from "../testHelpers";
 import { generateTranscript } from "./generateChatTranscript";
 import { stripIndents } from "common-tags";
 
@@ -15,8 +15,7 @@ const addMessageEndpoint =
 
 jest.setTimeout(20000);
 beforeAll(async () => {
-  ({ mongodb, app, conversations, ipAddress } =
-    await makeConversationsRoutesDefaults());
+  ({ mongodb, app, conversations, ipAddress } = await makeTestApp());
 });
 afterAll(async () => {
   await mongodb?.db.dropDatabase();

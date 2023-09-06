@@ -43,6 +43,7 @@ const startServer = async () => {
     findNearestNeighborsOptions: config.findNearestNeighborsOptions,
     searchBoosters: config.conversations?.searchBoosters,
     userQueryPreprocessor: config.conversations?.userQueryPreprocessor,
+    rateLimitConfig: config.conversations?.rateLimitConfig,
     maxRequestTimeoutMs: config.maxRequestTimeoutMs,
     corsOptions: config.corsOptions,
   });

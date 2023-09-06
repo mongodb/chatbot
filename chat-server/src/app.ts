@@ -8,7 +8,10 @@ import express, {
 } from "express";
 import cors from "cors";
 import "dotenv/config";
-import { makeConversationsRouter } from "./routes/conversations";
+import {
+  ConversationsRateLimitConfig,
+  makeConversationsRouter,
+} from "./routes/conversations/conversationsRouter";
 import {
   EmbeddedContentStore,
   EmbedFunc,
@@ -47,7 +50,7 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
     });
   }
 };
-// TODO:(DOCSP-31121) Apply to all logs in the app
+
 const reqHandler: RequestHandler = (req, _res, next) => {
   const reqId = new ObjectId().toString();
   // Custom header specifically for a request ID. This ID will be used to track
@@ -77,6 +80,20 @@ export const API_V1_PREFIX = "/api/v1";
 export const CONVERSATIONS_API_V1_PREFIX = `${API_V1_PREFIX}/conversations`;
 
 export const DEFAULT_MAX_REQUEST_TIMEOUT_MS = 60000;
+export interface MakeAppParams {
+  embed: EmbedFunc;
+  store: EmbeddedContentStore;
+  dataStreamer: DataStreamer;
+  conversations: ConversationsService;
+  llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
+  maxRequestTimeoutMs?: number;
+  maxChunkContextTokens?: number;
+  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
+  searchBoosters?: SearchBooster[];
+  userQueryPreprocessor?: QueryPreprocessorFunc;
+  corsOptions?: cors.CorsOptions;
+  rateLimitConfig?: ConversationsRateLimitConfig;
+}
 export const makeApp = async ({
   embed,
   dataStreamer,
@@ -89,19 +106,8 @@ export const makeApp = async ({
   searchBoosters,
   userQueryPreprocessor,
   corsOptions,
-}: {
-  embed: EmbedFunc;
-  store: EmbeddedContentStore;
-  dataStreamer: DataStreamer;
-  conversations: ConversationsService;
-  llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
-  maxRequestTimeoutMs?: number;
-  maxChunkContextTokens?: number;
-  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
-  searchBoosters?: SearchBooster[];
-  userQueryPreprocessor?: QueryPreprocessorFunc;
-  corsOptions?: cors.CorsOptions;
-}): Promise<Express> => {
+  rateLimitConfig,
+}: MakeAppParams): Promise<Express> => {
   const app = express();
   app.use(makeHandleTimeoutMiddleware(maxRequestTimeoutMs));
   app.set("trust proxy", true);
@@ -128,6 +134,7 @@ export const makeApp = async ({
       searchBoosters,
       userQueryPreprocessor,
       maxChunkContextTokens,
+      rateLimitConfig,
     })
   );
   app.get("/health", (_req, res) => {

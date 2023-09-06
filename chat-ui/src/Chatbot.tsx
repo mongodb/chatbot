@@ -275,7 +275,7 @@ export function Chatbot(props: ChatbotProps) {
       }
     }, 100);
     return () => clearInterval(interval);
-  }, [initialInputFocused, promptFocused]);
+  }, [initialInputFocused, promptFocused, conversation]);
 
   return (
     <LeafyGreenProvider darkMode={darkMode}>

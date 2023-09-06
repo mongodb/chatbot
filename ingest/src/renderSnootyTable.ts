@@ -1,4 +1,5 @@
 import { strict as assert } from "assert";
+import { encode } from "html-entities";
 import { findAll } from "docdoctor";
 import { SnootyNode } from "./SnootyDataSource";
 import { snootyAstToMd } from "./snootyAstToMd";
@@ -51,7 +52,9 @@ export const renderCells = (
       const tag = options.isHeader ? "th" : "td";
       return [
         `<${tag}${
-          cell.columnName !== undefined ? ` heading="${cell.columnName}"` : ""
+          cell.columnName !== undefined
+            ? ` heading="${encode(cell.columnName)}"`
+            : ""
         }>`,
         snootyAstToMd(cell.content, options.parentHeadingLevel),
         `</${tag}>`,

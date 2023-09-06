@@ -208,6 +208,7 @@ export function Chatbot(props: ChatbotProps) {
 
   function closeModal() {
     setModalOpen(false);
+    inputBarRef.current?.blur();
   }
 
   const [inputData, setInputData] = useState({

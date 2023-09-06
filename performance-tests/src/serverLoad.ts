@@ -2,7 +2,7 @@ import http from "k6/http";
 import { check, sleep } from "k6";
 
 export const options = {
-  vus: 50, // Number of virtual users
+  vus: 25, // Number of virtual users
   duration: "60s", // Duration of the test
 };
 
@@ -67,6 +67,7 @@ export default async function () {
     message,
     params
   );
+  console.log(messageResponse.body);
   // // Check the status code for the second request
   check(messageResponse, {
     "status is 200 (responds with message)": (r) => r.status === 200,

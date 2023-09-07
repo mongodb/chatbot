@@ -299,7 +299,7 @@ export function Chatbot(props: ChatbotProps) {
               if (
                 e.key === "Enter" &&
                 inputText.length === 0 &&
-                conversation.message.length > 0
+                conversation.messages.length > 0
               ) {
                 openModal();
               }

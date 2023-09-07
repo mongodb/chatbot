@@ -1,5 +1,5 @@
 import { createInterface } from "readline";
-import { Page, PageFormat } from "chat-core";
+import { Page, PageFormat, logger } from "chat-core";
 import fetch from "node-fetch";
 import { DataSource } from "./DataSource";
 import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
@@ -150,14 +150,20 @@ export const makeSnootyDataSource = async ({
               }
               return linePromises.push(
                 (async () => {
-                  const page = await handlePage(data, {
-                    sourceName,
-                    baseUrl,
-                    tags: tags ?? [],
-                    productName,
-                    version,
-                  });
-                  pages.push(page);
+                  try {
+                    const page = await handlePage(data, {
+                      sourceName,
+                      baseUrl,
+                      tags: tags ?? [],
+                      productName,
+                      version,
+                    });
+                    pages.push(page);
+                  } catch (error) {
+                    // Log the error and discard this document, but don't break the
+                    // overall fetchPages() call.
+                    logger.error(error);
+                  }
                 })()
               );
             }

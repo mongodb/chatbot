@@ -1,59 +1,38 @@
-import {
-  MongoDB,
-  makeOpenAiEmbedFunc,
-  FindNearestNeighborsOptions,
-  makeDatabaseConnection,
-} from "chat-core";
-
-import { makeOpenAiLlm } from "./services/llm";
+import { MongoDB } from "chat-core";
 import { makeDataStreamer } from "./services/dataStreamer";
-import { makeConversationsService } from "./services/conversations";
-import { MakeAppParams, makeApp } from "./app";
-import { config as conf } from "./config";
+import { AppConfig, makeApp } from "./app";
+import { MONGODB_CONNECTION_URI, config } from "./index";
 
 /**
   Helper function to quickly make an app for testing purposes.
   @param defaultConfigOverrides - optional overrides for default app config
  */
-export async function makeTestApp(
-  defaultConfigOverrides?: Partial<MakeAppParams>
-) {
+export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
   // ip address for local host
   const ipAddress = "127.0.0.1";
 
   // set up embeddings service
-  const embed = makeOpenAiEmbedFunc(conf.embed);
+  const embed = config.conversationsRouterConfig.embed;
 
   // set up llm service
-  const llm = makeOpenAiLlm(conf.llm);
+  const llm = config.conversationsRouterConfig.llm;
   const dataStreamer = makeDataStreamer();
 
-  const store = await makeDatabaseConnection(conf.embeddedContentStore);
+  const store = config.conversationsRouterConfig.store;
 
-  const findNearestNeighborsOptions: Partial<FindNearestNeighborsOptions> =
-    conf.findNearestNeighborsOptions;
+  const findNearestNeighborsOptions =
+    config.conversationsRouterConfig.findNearestNeighborsOptions;
 
   const testDbName = `conversations-test-${Date.now()}`;
-  const mongodb = new MongoDB(conf.mongodb.connectionUri, testDbName);
-  const searchBoosters = conf.conversations!.searchBoosters;
-  const userQueryPreprocessor = conf.conversations!.userQueryPreprocessor;
+  const mongodb = new MongoDB(MONGODB_CONNECTION_URI, testDbName);
+  const searchBoosters = config.conversationsRouterConfig.searchBoosters;
+  const userQueryPreprocessor =
+    config.conversationsRouterConfig.userQueryPreprocessor;
 
-  const conversations = makeConversationsService(
-    mongodb.db,
-    conf.llm.systemPrompt
-  );
-  const defaultAppConfig = {
-    conversations,
-    dataStreamer,
-    embed,
-    findNearestNeighborsOptions,
-    llm,
-    store,
-    searchBoosters,
-    userQueryPreprocessor,
-  };
+  const conversations = config.conversationsRouterConfig.conversations;
+
   const appConfig = {
-    ...defaultAppConfig,
+    ...config,
     ...(defaultConfigOverrides ?? {}),
   };
   const app = await makeApp(appConfig);

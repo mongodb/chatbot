@@ -5,7 +5,7 @@ import { MongoDB } from "chat-core";
 import { CONVERSATIONS_API_V1_PREFIX } from "../../app";
 import { makeConversationsService } from "../../services/conversations";
 import { makeTestApp } from "../../testHelpers";
-import { config, MONGODB_CONNECTION_URI } from "../../config";
+import { config, MONGODB_CONNECTION_URI, systemPrompt } from "../../index";
 
 jest.setTimeout(60000);
 describe("Conversations Router", () => {
@@ -14,10 +14,7 @@ describe("Conversations Router", () => {
     CONVERSATIONS_API_V1_PREFIX + "/:conversationId/messages";
   const testDbName = `conversations-test-${Date.now()}`;
   const mongoDb = new MongoDB(MONGODB_CONNECTION_URI, testDbName);
-  const conversations = makeConversationsService(
-    mongoDb.db,
-    config.llm.systemPrompt
-  );
+  const conversations = makeConversationsService(mongoDb.db, systemPrompt);
   afterAll(async () => {
     // clean up
     await mongoDb?.db.dropDatabase();

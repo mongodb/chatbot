@@ -1,4 +1,5 @@
-import { ObjectId, Db, OpenAiChatMessage, OpenAiMessageRole } from "chat-core";
+import { OpenAiChatMessage, OpenAiMessageRole } from "./ChatLlm";
+import { ObjectId, Db } from "mongodb";
 import { References } from "chat-core";
 import { LlmConfig } from "../AppConfig";
 

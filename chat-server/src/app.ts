@@ -14,8 +14,6 @@ import {
 } from "./routes/conversations/conversationsRouter";
 import { ObjectId } from "mongodb";
 import { getRequestId, logRequest, sendErrorResponse } from "./utils";
-import { MakeOpenAiChatLlmParams } from "./services/openAiChatLlm";
-export type LlmConfig = MakeOpenAiChatLlmParams;
 import { CorsOptions } from "cors";
 
 export interface AppConfig {

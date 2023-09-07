@@ -4,9 +4,7 @@ import {
   NextFunction,
 } from "express";
 import {
-  OpenAiChatMessage,
   ObjectId,
-  OpenAiMessageRole,
   EmbedFunc,
   EmbeddedContent,
   EmbeddedContentStore,

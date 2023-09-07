@@ -61,7 +61,7 @@ export function makeConversationsRouter({
   userQueryPreprocessor,
   maxChunkContextTokens,
   rateLimitConfig,
-}: ConversationsRouterParams<OpenAiStreamingResponse, OpenAiAwaitedResponse>) {
+}: ConversationsRouterParams) {
   const conversationsRouter = Router();
 
   /**

@@ -1,38 +1,12 @@
-// TODO: add better error handling logic like the embeddings service
-import { ChatCompletions, GetChatCompletionsOptions } from "@azure/openai";
+import { GetChatCompletionsOptions } from "@azure/openai";
 import "dotenv/config";
-import { OpenAiChatClient, OpenAiChatMessage } from "chat-core";
 import { LlmConfig } from "../AppConfig";
+import { OpenAIClient } from "@azure/openai";
+import { Llm, LlmAnswerQuestionParams, OpenAiChatMessage } from "./ChatLlm";
 
-export interface LlmAnswerQuestionParams {
-  messages: OpenAiChatMessage[];
-  chunks: string[];
-}
-
-// Abstract interface for embedding provider to make it easier to swap out
-// different providers in the future.
-export interface Llm<T, U> {
-  answerQuestionStream({
-    messages,
-    chunks,
-  }: LlmAnswerQuestionParams): Promise<T>;
-  answerQuestionAwaited({
-    messages,
-    chunks,
-  }: LlmAnswerQuestionParams): Promise<U>;
-}
-
-export type OpenAIChatCompletionWithoutUsage = Omit<ChatCompletions, "usage">;
-
-export type OpenAiStreamingResponse =
-  AsyncIterable<OpenAIChatCompletionWithoutUsage>;
-export type OpenAiAwaitedResponse = OpenAiChatMessage;
-
-export interface MakeOpenAiLlmParams {
-  apiKey: string;
+export interface makeOpenAiChatLlmParams {
   deployment: string;
-  baseUrl: string;
-  systemPrompt: OpenAiChatMessage & { role: "system" };
+  openAiClient: OpenAIClient;
   openAiLmmConfigOptions: GetChatCompletionsOptions;
   generateUserPrompt: ({
     question,
@@ -41,39 +15,36 @@ export interface MakeOpenAiLlmParams {
     question: string;
     chunks: string[];
   }) => OpenAiChatMessage & { role: "user" };
+  systemPrompt: OpenAiChatMessage & { role: "system" };
 }
 
-export function makeOpenAiLlm({
-  apiKey,
+export function makeOpenAiChatLlm({
   deployment,
-  baseUrl,
+  openAiClient,
   openAiLmmConfigOptions,
   generateUserPrompt,
   systemPrompt,
-}: MakeOpenAiLlmParams): Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse> {
-  const openAiChatClient = new OpenAiChatClient(baseUrl, deployment, apiKey);
+}: makeOpenAiChatLlmParams): Llm {
   return {
     // NOTE: for example streaming data, see https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
-    async answerQuestionStream({
-      messages,
-      chunks,
-    }: LlmAnswerQuestionParams): Promise<OpenAiStreamingResponse> {
+    async answerQuestionStream({ messages, chunks }: LlmAnswerQuestionParams) {
       const messagesForLlm = prepConversationForOpenAiLlm({
         messages,
         chunks,
         generateUserPrompt,
         systemPrompt,
       });
-      const completionStream = await openAiChatClient.chatStream({
-        messages: messagesForLlm,
-        options: { ...openAiLmmConfigOptions, stream: true },
-      });
+      const completionStream = await openAiClient.listChatCompletions(
+        deployment,
+        messagesForLlm,
+        {
+          ...openAiLmmConfigOptions,
+          stream: true,
+        }
+      );
       return completionStream;
     },
-    async answerQuestionAwaited({
-      messages,
-      chunks,
-    }: LlmAnswerQuestionParams): Promise<OpenAiChatMessage> {
+    async answerQuestionAwaited({ messages, chunks }: LlmAnswerQuestionParams) {
       const messagesForLlm = prepConversationForOpenAiLlm({
         messages,
         chunks,
@@ -82,10 +53,11 @@ export function makeOpenAiLlm({
       });
       const {
         choices: [choice],
-      } = await openAiChatClient.chatAwaited({
-        messages: messagesForLlm,
-        options: openAiLmmConfigOptions,
-      });
+      } = await openAiClient.getChatCompletions(
+        deployment,
+        messagesForLlm,
+        openAiLmmConfigOptions
+      );
       const { message } = choice;
       if (!message) {
         throw new Error("No message returned from OpenAI");
@@ -112,9 +84,7 @@ function prepConversationForOpenAiLlm({
   });
   return [...messages.slice(0, -1), newestMessageForLlm];
 }
-// TODO: consider adding additional validation that messages follow the pattern
-// system, assistant, user, assistant, user, etc.
-// Are there any other things which we should validate here?
+
 function validateOpenAiConversation(
   messages: OpenAiChatMessage[],
   systemPrompt: LlmConfig["systemPrompt"]

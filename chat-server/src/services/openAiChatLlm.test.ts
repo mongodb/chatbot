@@ -2,7 +2,7 @@ import "dotenv/config";
 
 import { stripIndent } from "common-tags";
 import { OpenAiChatMessage } from "chat-core";
-import { makeOpenAiLlm } from "./llm";
+import { makeOpenAiChatLlm } from "./openAiChatLlm";
 import { config } from "../config";
 
 jest.setTimeout(30000);
@@ -28,7 +28,7 @@ const conversation = [
 
 describe("LLM", () => {
   describe("OpenAI Llm", () => {
-    const openAiLlmService = makeOpenAiLlm(config.llm);
+    const openAiLlmService = makeOpenAiChatLlm(config.llm);
     test("should answer question in conversation - awaited", async () => {
       const response = await openAiLlmService.answerQuestionAwaited({
         messages: conversation,

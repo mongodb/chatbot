@@ -26,7 +26,7 @@ import {
   Llm,
   OpenAiAwaitedResponse,
   OpenAiStreamingResponse,
-} from "../../services/llm";
+} from "../../services/ChatLlm";
 import {
   ApiConversation,
   ApiMessage,
@@ -69,7 +69,7 @@ export interface AddMessageToConversationRouteParams {
   store: EmbeddedContentStore;
   conversations: ConversationsService;
   embed: EmbedFunc;
-  llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
+  llm: Llm;
   dataStreamer: DataStreamer;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
   searchBoosters?: SearchBooster[];

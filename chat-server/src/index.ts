@@ -8,7 +8,7 @@ import {
 } from "chat-core";
 import { makeConversationsService } from "./services/conversations";
 import { makeDataStreamer } from "./services/dataStreamer";
-import { makeOpenAiLlm } from "./services/llm";
+import { makeOpenAiChatLlm } from "./services/openAiChatLlm";
 import { config } from "./config";
 
 const PORT = process.env.PORT || 3000;
@@ -32,7 +32,7 @@ const startServer = async () => {
 
   const embed = makeOpenAiEmbedFunc(config.embed);
 
-  const llm = makeOpenAiLlm(config.llm);
+  const llm = makeOpenAiChatLlm(config.llm);
 
   const app = await makeApp({
     embed,

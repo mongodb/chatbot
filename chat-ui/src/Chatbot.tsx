@@ -296,7 +296,11 @@ export function Chatbot(props: ChatbotProps) {
                 : "Ask MongoDB AI a Question",
             }}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && inputText.length === 0) {
+              if (
+                e.key === "Enter" &&
+                inputText.length === 0 &&
+                conversation.message.length > 0
+              ) {
                 openModal();
               }
             }}

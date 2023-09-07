@@ -1,7 +1,22 @@
 import { MongoDB } from "chat-core";
-import { makeDataStreamer } from "./services/dataStreamer";
 import { AppConfig, makeApp } from "./app";
-import { MONGODB_CONNECTION_URI, config } from "./index";
+import { MONGODB_CONNECTION_URI, config, systemPrompt } from "./index";
+import { makeConversationsService } from "./services/conversations";
+
+export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
+  const testDbName = `conversations-test-${Date.now()}`;
+  const mongodb = new MongoDB(MONGODB_CONNECTION_URI, testDbName);
+  const conversations = makeConversationsService(mongodb.db, systemPrompt);
+  const appConfig: AppConfig = {
+    ...config,
+    conversationsRouterConfig: {
+      ...config.conversationsRouterConfig,
+      conversations,
+    },
+    ...(defaultConfigOverrides ?? {}),
+  };
+  return { appConfig, mongodb, systemPrompt };
+}
 
 /**
   Helper function to quickly make an app for testing purposes.
@@ -11,44 +26,18 @@ export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
   // ip address for local host
   const ipAddress = "127.0.0.1";
 
-  // set up embeddings service
-  const embed = config.conversationsRouterConfig.embed;
-
-  // set up llm service
-  const llm = config.conversationsRouterConfig.llm;
-  const dataStreamer = makeDataStreamer();
-
-  const store = config.conversationsRouterConfig.store;
-
-  const findNearestNeighborsOptions =
-    config.conversationsRouterConfig.findNearestNeighborsOptions;
-
-  const testDbName = `conversations-test-${Date.now()}`;
-  const mongodb = new MongoDB(MONGODB_CONNECTION_URI, testDbName);
-  const searchBoosters = config.conversationsRouterConfig.searchBoosters;
-  const userQueryPreprocessor =
-    config.conversationsRouterConfig.userQueryPreprocessor;
-
-  const conversations = config.conversationsRouterConfig.conversations;
-
-  const appConfig = {
-    ...config,
-    ...(defaultConfigOverrides ?? {}),
-  };
+  const { appConfig, systemPrompt, mongodb } = await makeTestAppConfig(
+    defaultConfigOverrides
+  );
   const app = await makeApp(appConfig);
 
   return {
     ipAddress,
-    embed,
-    llm,
-    dataStreamer,
-    findNearestNeighborsOptions,
-    mongodb,
-    store,
-    conversations,
     appConfig,
     app,
-    searchBoosters,
-    userQueryPreprocessor,
+    mongodb,
+    systemPrompt,
   };
 }
+
+export { systemPrompt, generateUserPrompt } from "./index";

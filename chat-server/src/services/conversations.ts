@@ -1,7 +1,6 @@
-import { OpenAiChatMessage, OpenAiMessageRole } from "./ChatLlm";
+import { OpenAiChatMessage, OpenAiMessageRole, SystemPrompt } from "./ChatLlm";
 import { ObjectId, Db } from "mongodb";
 import { References } from "chat-core";
-import { LlmConfig } from "../AppConfig";
 
 export interface Message {
   /** Unique identifier for the message. */
@@ -76,7 +75,7 @@ However, here are some links that might provide some helpful information for you
 
 export function makeConversationsService(
   database: Db,
-  systemPrompt: LlmConfig["systemPrompt"]
+  systemPrompt: SystemPrompt
 ): ConversationsService {
   const conversationsCollection =
     database.collection<Conversation>("conversations");

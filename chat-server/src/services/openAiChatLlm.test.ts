@@ -2,7 +2,7 @@ import "dotenv/config";
 
 import { stripIndent } from "common-tags";
 import { OpenAiChatMessage } from "./ChatLlm";
-import { config, systemPrompt } from "../index";
+import { makeTestAppConfig, systemPrompt } from "../testHelpers";
 
 jest.setTimeout(30000);
 
@@ -24,6 +24,8 @@ const conversation = [
     content: "How do I connect to my cluster?",
   },
 ] as OpenAiChatMessage[];
+
+const { appConfig: config } = makeTestAppConfig();
 
 describe("LLM", () => {
   describe("OpenAI Llm", () => {

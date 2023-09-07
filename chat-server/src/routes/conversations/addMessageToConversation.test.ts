@@ -32,40 +32,42 @@ import {
   includeChunksForMaxTokensPossible,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
-import { makeOpenAiLlm } from "../../services/llm";
+import { makeOpenAiChatLlm } from "../../services/openAiChatLlm";
 import { makeDataStreamer } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
 import { makeApp, CONVERSATIONS_API_V1_PREFIX } from "../../app";
 import { makeTestApp } from "../../testHelpers";
-import { config } from "../../config";
+import { makeTestAppConfig } from "../../testHelpers";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
+import { AppConfig } from "../../app";
+import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
+import {
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_ENDPOINT,
+  generateUserPrompt,
+  systemPrompt,
+} from "../..";
 
 jest.setTimeout(100000);
-
 describe("POST /conversations/:conversationId/messages", () => {
-  let defaultRouteConfig: AddMessageToConversationRouteParams;
   let mongodb: MongoDB;
   let ipAddress: string;
   let embed: EmbedFunc;
   let dataStreamer: ReturnType<typeof makeDataStreamer>;
-  let findNearestNeighborsOptions: Partial<FindNearestNeighborsOptions>;
+  let findNearestNeighborsOptions:
+    | Partial<FindNearestNeighborsOptions>
+    | undefined;
   let store: EmbeddedContentStore;
   let conversations: ConversationsService;
   let app: Express;
+  let appConfig: AppConfig;
 
   beforeAll(async () => {
+    ({ ipAddress, mongodb, app, appConfig } = await makeTestApp());
     ({
-      ipAddress,
-      embed,
-      dataStreamer,
-      findNearestNeighborsOptions,
-      mongodb,
-      store,
-      conversations,
-      app,
-      appConfig: defaultRouteConfig,
-    } = await makeTestApp());
+      conversationsRouterConfig: { embed, dataStreamer, store, conversations },
+    } = appConfig);
   });
 
   afterAll(async () => {
@@ -221,8 +223,11 @@ describe("POST /conversations/:conversationId/messages", () => {
     test("should respond 500 if error with embed service", async () => {
       const mockBrokenEmbedFunc: EmbedFunc = jest.fn();
       const app = await makeApp({
-        ...defaultRouteConfig,
-        embed: mockBrokenEmbedFunc,
+        ...appConfig,
+        conversationsRouterConfig: {
+          ...appConfig.conversationsRouterConfig,
+          embed: mockBrokenEmbedFunc,
+        },
       });
 
       const res = await request(app)
@@ -251,8 +256,11 @@ describe("POST /conversations/:conversationId/messages", () => {
         },
       };
       const app = await makeApp({
-        ...defaultRouteConfig,
-        conversations: mockBrokenConversationsService,
+        ...appConfig,
+        conversationsRouterConfig: {
+          ...appConfig.conversationsRouterConfig,
+          conversations: mockBrokenConversationsService,
+        },
       });
 
       const res = await request(app)
@@ -275,8 +283,11 @@ describe("POST /conversations/:conversationId/messages", () => {
         },
       };
       const app = await makeApp({
-        ...defaultRouteConfig,
-        store: brokenStore,
+        ...appConfig,
+        conversationsRouterConfig: {
+          ...appConfig.conversationsRouterConfig,
+          store: brokenStore,
+        },
       });
 
       const res = await request(app)
@@ -321,16 +332,21 @@ describe("POST /conversations/:conversationId/messages", () => {
     });
 
     describe("LLM not available but vector search is", () => {
-      const {
-        MONGODB_CONNECTION_URI,
+      const { appConfig } = makeTestAppConfig();
+
+      const openAiClient = new OpenAIClient(
         OPENAI_ENDPOINT,
-        OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-      } = assertEnvVars(CORE_ENV_VARS);
-      const brokenLLmService = makeOpenAiLlm({
-        ...config.llm,
-        baseUrl: OPENAI_ENDPOINT,
+        new AzureKeyCredential("definitelyNotARealApiKey")
+      );
+      const brokenLlmService = makeOpenAiChatLlm({
+        openAiClient,
         deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-        apiKey: "definitelyNotARealApiKey",
+        systemPrompt,
+        openAiLmmConfigOptions: {
+          temperature: 0,
+          maxTokens: 500,
+        },
+        generateUserPrompt,
       });
 
       let conversationId: ObjectId,
@@ -338,12 +354,9 @@ describe("POST /conversations/:conversationId/messages", () => {
         app: Express;
       let testMongo: MongoDB;
       beforeEach(async () => {
-        const dbName = `test-${Date.now()}`;
-        testMongo = new MongoDB(MONGODB_CONNECTION_URI, dbName);
-        conversations = makeConversationsService(
-          testMongo.db,
-          config.llm.systemPrompt
-        );
+        const { mongodb: testMongo } = makeTestAppConfig();
+
+        conversations = makeConversationsService(testMongo.db, systemPrompt);
         const { _id } = await conversations.create({
           ipAddress,
         });
@@ -356,7 +369,7 @@ describe("POST /conversations/:conversationId/messages", () => {
             conversations,
             store,
             embed,
-            llm: brokenLLmService,
+            llm: brokenLlmService,
             dataStreamer,
             findNearestNeighborsOptions,
           })

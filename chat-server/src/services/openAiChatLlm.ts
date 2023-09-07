@@ -1,6 +1,5 @@
 import { GetChatCompletionsOptions } from "@azure/openai";
 import "dotenv/config";
-import { LlmConfig } from "../AppConfig";
 import { OpenAIClient } from "@azure/openai";
 import {
   ChatLlm,
@@ -9,17 +8,18 @@ import {
   SystemPrompt,
 } from "./ChatLlm";
 
+export type GenerateUserPrompt = ({
+  question,
+  chunks,
+}: {
+  question: string;
+  chunks: string[];
+}) => OpenAiChatMessage & { role: "user" };
 export interface MakeOpenAiChatLlmParams {
   deployment: string;
   openAiClient: OpenAIClient;
   openAiLmmConfigOptions: GetChatCompletionsOptions;
-  generateUserPrompt: ({
-    question,
-    chunks,
-  }: {
-    question: string;
-    chunks: string[];
-  }) => OpenAiChatMessage & { role: "user" };
+  generateUserPrompt: GenerateUserPrompt;
   systemPrompt: SystemPrompt;
 }
 
@@ -39,6 +39,7 @@ export function makeOpenAiChatLlm({
         generateUserPrompt,
         systemPrompt,
       });
+
       const completionStream = await openAiClient.listChatCompletions(
         deployment,
         messagesForLlm,
@@ -78,7 +79,7 @@ function prepConversationForOpenAiLlm({
   generateUserPrompt,
   systemPrompt,
 }: LlmAnswerQuestionParams & {
-  generateUserPrompt: LlmConfig["generateUserPrompt"];
+  generateUserPrompt: GenerateUserPrompt;
   systemPrompt: SystemPrompt;
 }): OpenAiChatMessage[] {
   validateOpenAiConversation(messages, systemPrompt);

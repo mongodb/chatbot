@@ -2,17 +2,18 @@ import express, { Express } from "express";
 import request from "supertest";
 import { errorHandler, makeApp, makeHandleTimeoutMiddleware } from "./app";
 
-import { config } from "./index";
+import { makeTestAppConfig } from "./testHelpers";
 
 const ipAddress = "127.0.0.1";
 
 describe("App", () => {
   let app: Express;
   beforeAll(async () => {
+    const { appConfig } = makeTestAppConfig();
     app = await makeApp({
-      ...config,
+      ...appConfig,
       conversationsRouterConfig: {
-        ...config.conversationsRouterConfig,
+        ...appConfig.conversationsRouterConfig,
         findNearestNeighborsOptions: {
           indexName: "default",
           path: "embedding",

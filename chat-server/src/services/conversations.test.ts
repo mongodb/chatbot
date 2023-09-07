@@ -2,7 +2,7 @@ import "dotenv/config";
 import { MongoDB } from "chat-core";
 import { Conversation, makeConversationsService } from "./conversations";
 import { BSON } from "mongodb";
-import { systemPrompt } from "../index";
+import { systemPrompt } from "../testHelpers";
 
 jest.setTimeout(100000);
 

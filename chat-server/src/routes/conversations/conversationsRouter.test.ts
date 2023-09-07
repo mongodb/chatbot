@@ -1,33 +1,31 @@
 import request from "supertest";
 import { Express } from "express";
 import { rateLimitResponse } from "./conversationsRouter";
-import { MongoDB } from "chat-core";
 import { CONVERSATIONS_API_V1_PREFIX } from "../../app";
-import { makeConversationsService } from "../../services/conversations";
 import { makeTestApp } from "../../testHelpers";
-import { config, MONGODB_CONNECTION_URI, systemPrompt } from "../../index";
+import { makeTestAppConfig } from "../../testHelpers";
 
 jest.setTimeout(60000);
 describe("Conversations Router", () => {
   const ipAddress = "127.0.0.1";
   const addMessageEndpointUrl =
     CONVERSATIONS_API_V1_PREFIX + "/:conversationId/messages";
-  const testDbName = `conversations-test-${Date.now()}`;
-  const mongoDb = new MongoDB(MONGODB_CONNECTION_URI, testDbName);
-  const conversations = makeConversationsService(mongoDb.db, systemPrompt);
+  const { mongodb, appConfig } = makeTestAppConfig();
   afterAll(async () => {
     // clean up
-    await mongoDb?.db.dropDatabase();
-    await mongoDb?.close();
+    await mongodb?.db.dropDatabase();
+    await mongodb?.close();
   });
 
   test("Should apply conversation router rate limit", async () => {
     const { app } = await makeTestApp({
-      conversations,
-      rateLimitConfig: {
-        routerRateLimitConfig: {
-          windowMs: 5000, // Big window to cover test duration
-          max: 1,
+      conversationsRouterConfig: {
+        ...appConfig.conversationsRouterConfig,
+        rateLimitConfig: {
+          routerRateLimitConfig: {
+            windowMs: 5000, // Big window to cover test duration
+            max: 1,
+          },
         },
       },
     });
@@ -41,11 +39,13 @@ describe("Conversations Router", () => {
   });
   test("Should apply add message endpoint rate limit", async () => {
     const { app } = await makeTestApp({
-      conversations,
-      rateLimitConfig: {
-        addMessageRateLimitConfig: {
-          windowMs: 20000, // Big window to cover test duration
-          max: 1,
+      conversationsRouterConfig: {
+        ...appConfig.conversationsRouterConfig,
+        rateLimitConfig: {
+          addMessageRateLimitConfig: {
+            windowMs: 20000, // Big window to cover test duration
+            max: 1,
+          },
         },
       },
     });
@@ -68,14 +68,16 @@ describe("Conversations Router", () => {
   test("Should apply global slow down", async () => {
     let limitReached = false;
     const { app } = await makeTestApp({
-      conversations,
-      rateLimitConfig: {
-        routerSlowDownConfig: {
-          windowMs: 10000,
-          delayAfter: 1,
-          delayMs: 1,
-          onLimitReached: () => {
-            limitReached = true;
+      conversationsRouterConfig: {
+        ...appConfig.conversationsRouterConfig,
+        rateLimitConfig: {
+          routerSlowDownConfig: {
+            windowMs: 10000,
+            delayAfter: 1,
+            delayMs: 1,
+            onLimitReached: () => {
+              limitReached = true;
+            },
           },
         },
       },
@@ -89,14 +91,16 @@ describe("Conversations Router", () => {
   test("Should apply add message endpoint slow down", async () => {
     let limitReached = false;
     const { app } = await makeTestApp({
-      conversations,
-      rateLimitConfig: {
-        addMessageSlowDownConfig: {
-          windowMs: 30000, // big window to cover test duration
-          delayAfter: 1,
-          delayMs: 1,
-          onLimitReached: () => {
-            limitReached = true;
+      conversationsRouterConfig: {
+        ...appConfig.conversationsRouterConfig,
+        rateLimitConfig: {
+          addMessageSlowDownConfig: {
+            windowMs: 30000, // big window to cover test duration
+            delayAfter: 1,
+            delayMs: 1,
+            onLimitReached: () => {
+              limitReached = true;
+            },
           },
         },
       },

@@ -15,7 +15,7 @@ import { makeBoostOnAtlasSearchFilter } from "./processors/makeBoostOnAtlasSearc
 import { CORE_ENV_VARS, assertEnvVars } from "chat-core";
 import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
-import { SystemPrompt } from "./services/ChatLlm";
+import { OpenAiChatMessage, SystemPrompt } from "./services/ChatLlm";
 import { log } from "winston";
 export const {
   MONGODB_CONNECTION_URI,
@@ -82,24 +82,17 @@ You ONLY know about the current version of MongoDB products. Versions are provid
 Never mention "<Information>" or "<Question>" in your answer.
 Refer to the information given to you as "my knowledge".`,
 };
-export const llm = makeOpenAiChatLlm({
-  openAiClient,
-  deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  systemPrompt,
-  openAiLmmConfigOptions: {
-    temperature: 0,
-    maxTokens: 500,
-  },
-  generateUserPrompt({
-    question,
-    chunks,
-  }: {
-    question: string;
-    chunks: string[];
-  }) {
-    const chunkSeparator = "~~~~~~";
-    const context = chunks.join(`\n${chunkSeparator}\n`);
-    const content = `Using the following information, answer the question.
+
+export function generateUserPrompt({
+  question,
+  chunks,
+}: {
+  question: string;
+  chunks: string[];
+}): OpenAiChatMessage & { role: "user" } {
+  const chunkSeparator = "~~~~~~";
+  const context = chunks.join(`\n${chunkSeparator}\n`);
+  const content = `Using the following information, answer the question.
 Different pieces of information are separated by "${chunkSeparator}".
 
 <Information>
@@ -109,8 +102,18 @@ ${context}
 <Question>
 ${question}
 <End Question>`;
-    return { role: "user", content };
+  return { role: "user", content };
+}
+
+export const llm = makeOpenAiChatLlm({
+  openAiClient,
+  deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  systemPrompt,
+  openAiLmmConfigOptions: {
+    temperature: 0,
+    maxTokens: 500,
   },
+  generateUserPrompt,
 });
 
 const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({

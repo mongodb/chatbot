@@ -55,7 +55,7 @@ export const renderCells = (
       const tag = options.isHeader ? "th" : "td";
       return [
         `<${tag}${
-          cell.columnName !== undefined
+          tag === "td" && cell.columnName !== undefined
             ? ` heading="${encode(cell.columnName)}"`
             : ""
         }>`,
@@ -82,7 +82,14 @@ export type Table = {
 };
 
 /**
-  Turns a Snooty AST table in a usable form.
+  Turns a Snooty AST table into a Table data structure.
+
+  Tables in Snooty are represented as lists of lists under a list-table
+  directive. There is no first-class concept for "rows" or "cells" in the AST,
+  which adds friction when working with the Snooty AST directly -- especially
+  considering that 'lists' already have rendering logic that differs from
+  tables. Having an intermediate data structure `Table` with `Row`s and `Cell`s
+  makes it easier to work with and render.
  */
 export const parseSnootyTable = (node: SnootyNode): Table => {
   assert(node.name === "list-table");

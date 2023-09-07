@@ -15,11 +15,11 @@ describe("renderSnootyTable", () => {
     const result = renderSnootyTable(sampleTableAst, 0);
     const expected = `<table>
 <tr>
-<th heading="Action">
+<th>
 Action
 
 </th>
-<th heading="Description">
+<th>
 Description
 
 </th>
@@ -109,21 +109,21 @@ Stop and fail the aggregation operation. Any changes to the output collection fr
     const result = renderSnootyTable(ast, 0);
     const expected = `<table>
 <tr>
-<th heading="h1">
+<th>
 h1
 
 </th>
-<th heading="h2">
+<th>
 h2
 
 </th>
 </tr>
 <tr>
-<th heading="h3">
+<th>
 h3
 
 </th>
-<th heading="h4">
+<th>
 h4
 
 </th>

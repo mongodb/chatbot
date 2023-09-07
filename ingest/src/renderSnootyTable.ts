@@ -26,7 +26,10 @@ export const renderSnootyTable = (
       parentHeadingLevel,
     }),
     "</table>\n\n",
-  ].join("\n");
+  ]
+    .join("\n")
+    .replaceAll(/\n{3,}/g, "\n\n") // remove extra newlines with just 2
+    .trim();
 };
 
 type RenderTableElementOptions = {

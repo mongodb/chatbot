@@ -3,6 +3,7 @@ import { AppConfig } from "./AppConfig";
 import { makeBoostOnAtlasSearchFilter } from "./processors/makeBoostOnAtlasSearchFilter";
 import { CORE_ENV_VARS, assertEnvVars } from "chat-core";
 import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
+import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -52,12 +53,16 @@ const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({
   retryDelayMs: 5000,
 });
 
+const openAiClient = new OpenAIClient(
+  OPENAI_ENDPOINT,
+  new AzureKeyCredential(OPENAI_API_KEY)
+);
+
 // TODO: expand this to remove all conf from index.ts
 export const config: AppConfig = {
   llm: {
-    apiKey: OPENAI_API_KEY,
+    openAiClient,
     deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-    baseUrl: OPENAI_ENDPOINT,
     systemPrompt: {
       role: "system",
       content: stripIndents`You are expert MongoDB documentation chatbot.

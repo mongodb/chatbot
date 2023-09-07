@@ -3,11 +3,7 @@ import { EmbedFunc, FindNearestNeighborsOptions } from "chat-core";
 import { rateLimit, Options as RateLimitOptions } from "express-rate-limit";
 import slowDown, { Options as SlowDownOptions } from "express-slow-down";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
-import {
-  Llm,
-  OpenAiAwaitedResponse,
-  OpenAiStreamingResponse,
-} from "../../services/llm";
+import { Llm } from "../../services/ChatLlm";
 import { DataStreamer } from "../../services/dataStreamer";
 import { ConversationsService } from "../../services/conversations";
 import { EmbeddedContentStore } from "chat-core";
@@ -30,8 +26,8 @@ export interface ConversationsRateLimitConfig {
   addMessageSlowDownConfig?: Partial<SlowDownOptions>;
 }
 
-export interface ConversationsRouterParams<T, U> {
-  llm: Llm<T, U>;
+export interface ConversationsRouterParams {
+  llm: Llm;
   embed: EmbedFunc;
   dataStreamer: DataStreamer;
   store: EmbeddedContentStore;
@@ -65,7 +61,7 @@ export function makeConversationsRouter({
   userQueryPreprocessor,
   maxChunkContextTokens,
   rateLimitConfig,
-}: ConversationsRouterParams<OpenAiStreamingResponse, OpenAiAwaitedResponse>) {
+}: ConversationsRouterParams) {
   const conversationsRouter = Router();
 
   /**

@@ -250,7 +250,6 @@ describe("nearest neighbor search", () => {
       ...findNearestNeighborOptions,
       filter,
     });
-    console.log(matches);
     expect(
       matches.filter((match) => match.sourceName !== "snooty-docs")
     ).toHaveLength(0);

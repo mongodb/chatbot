@@ -32,7 +32,7 @@ import {
   includeChunksForMaxTokensPossible,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
-import { makeOpenAiLlm } from "../../services/llm";
+import { makeOpenAiChatLlm } from "../../services/openAiChatLlm";
 import { makeDataStreamer } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
@@ -40,6 +40,7 @@ import { makeApp, CONVERSATIONS_API_V1_PREFIX } from "../../app";
 import { makeTestApp } from "../../testHelpers";
 import { config } from "../../config";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
+import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 
 jest.setTimeout(100000);
 
@@ -326,11 +327,14 @@ describe("POST /conversations/:conversationId/messages", () => {
         OPENAI_ENDPOINT,
         OPENAI_CHAT_COMPLETION_DEPLOYMENT,
       } = assertEnvVars(CORE_ENV_VARS);
-      const brokenLLmService = makeOpenAiLlm({
+      const openAiClient = new OpenAIClient(
+        OPENAI_ENDPOINT,
+        new AzureKeyCredential("definitelyNotARealApiKey")
+      );
+      const brokenLLmService = makeOpenAiChatLlm({
         ...config.llm,
-        baseUrl: OPENAI_ENDPOINT,
+        openAiClient: openAiClient,
         deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-        apiKey: "definitelyNotARealApiKey",
       });
 
       let conversationId: ObjectId,

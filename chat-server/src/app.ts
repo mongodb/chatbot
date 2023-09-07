@@ -21,11 +21,7 @@ import { DataStreamer } from "./services/dataStreamer";
 import { ObjectId } from "mongodb";
 import { ConversationsService } from "./services/conversations";
 import { getRequestId, logRequest, sendErrorResponse } from "./utils";
-import {
-  Llm,
-  OpenAiAwaitedResponse,
-  OpenAiStreamingResponse,
-} from "./services/llm";
+import { Llm } from "./services/ChatLlm";
 import { SearchBooster } from "./processors/SearchBooster";
 import { QueryPreprocessorFunc } from "./processors/QueryPreprocessorFunc";
 
@@ -85,7 +81,7 @@ export interface MakeAppParams {
   store: EmbeddedContentStore;
   dataStreamer: DataStreamer;
   conversations: ConversationsService;
-  llm: Llm<OpenAiStreamingResponse, OpenAiAwaitedResponse>;
+  llm: Llm;
   maxRequestTimeoutMs?: number;
   maxChunkContextTokens?: number;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;

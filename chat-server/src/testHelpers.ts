@@ -5,7 +5,7 @@ import {
   makeDatabaseConnection,
 } from "chat-core";
 
-import { makeOpenAiLlm } from "./services/llm";
+import { makeOpenAiChatLlm } from "./services/openAiChatLlm";
 import { makeDataStreamer } from "./services/dataStreamer";
 import { makeConversationsService } from "./services/conversations";
 import { MakeAppParams, makeApp } from "./app";
@@ -25,7 +25,7 @@ export async function makeTestApp(
   const embed = makeOpenAiEmbedFunc(conf.embed);
 
   // set up llm service
-  const llm = makeOpenAiLlm(conf.llm);
+  const llm = makeOpenAiChatLlm(conf.llm);
   const dataStreamer = makeDataStreamer();
 
   const store = await makeDatabaseConnection(conf.embeddedContentStore);

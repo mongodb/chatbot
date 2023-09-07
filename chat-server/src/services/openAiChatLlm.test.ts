@@ -1,7 +1,7 @@
 import "dotenv/config";
 
 import { stripIndent } from "common-tags";
-import { OpenAiChatMessage } from "chat-core";
+import { OpenAiChatMessage } from "./ChatLlm";
 import { makeOpenAiChatLlm } from "./openAiChatLlm";
 import { config } from "../config";
 

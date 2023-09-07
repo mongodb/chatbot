@@ -9,7 +9,7 @@ import {
 import { errorHandler, makeApp, makeHandleTimeoutMiddleware } from "./app";
 import { makeConversationsService } from "./services/conversations";
 import { makeDataStreamer } from "./services/dataStreamer";
-import { makeOpenAiChatLlm } from "./services/llm";
+import { makeOpenAiChatLlm } from "./services/openAiChatLlm";
 import { config } from "./config";
 
 const ipAddress = "127.0.0.1";

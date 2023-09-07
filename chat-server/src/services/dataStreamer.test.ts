@@ -1,5 +1,8 @@
 import { makeDataStreamer } from "./dataStreamer";
-import type { OpenAIChatCompletionWithoutUsage, OpenAiStreamingResponse } from "./llm";
+import type {
+  OpenAIChatCompletionWithoutUsage,
+  OpenAiStreamingResponse,
+} from "./ChatLlm";
 import { createResponse } from "node-mocks-http";
 import { EventEmitter } from "events";
 
@@ -14,7 +17,7 @@ describe("Data Streaming", () => {
   });
 
   afterEach(() => {
-    if(dataStreamer.connected) {
+    if (dataStreamer.connected) {
       dataStreamer?.disconnect();
     }
   });
@@ -78,7 +81,9 @@ describe("Data Streaming", () => {
     const streamedText = await dataStreamer.stream({ stream });
     expect(streamedText).toBe("Once upon a time there was a very long string.");
     const data = res._getData();
-    expect(data).toBe(`data: {"type":"delta","data":"Once upon"}\n\ndata: {"type":"delta","data":" a time there was a"}\n\ndata: {"type":"delta","data":" very long string."}\n\n`);
+    expect(data).toBe(
+      `data: {"type":"delta","data":"Once upon"}\n\ndata: {"type":"delta","data":" a time there was a"}\n\ndata: {"type":"delta","data":" very long string."}\n\n`
+    );
   });
 
   it("Bails out when a client closes a connection", async () => {

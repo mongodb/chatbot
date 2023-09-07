@@ -1,7 +1,7 @@
-import { makeOpenAiChatLlmParams } from "./services/openAiChatLlm";
+import { MakeOpenAiChatLlmParams } from "./services/openAiChatLlm";
 import { SearchBooster } from "./processors/SearchBooster";
 import { MakeDatabaseConnectionParams } from "chat-core";
-export type LlmConfig = makeOpenAiChatLlmParams;
+export type LlmConfig = MakeOpenAiChatLlmParams;
 import {
   MakeOpenAiEmbedFuncArgs,
   FindNearestNeighborsOptions,

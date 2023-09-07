@@ -14,6 +14,8 @@ export interface OpenAiChatMessage extends ChatMessage {
   content: string;
 }
 
+export type SystemPrompt = OpenAiChatMessage & { role: "system" };
+
 export interface LlmAnswerQuestionParams {
   messages: OpenAiChatMessage[];
   chunks: string[];

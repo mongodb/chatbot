@@ -2,9 +2,14 @@ import { GetChatCompletionsOptions } from "@azure/openai";
 import "dotenv/config";
 import { LlmConfig } from "../AppConfig";
 import { OpenAIClient } from "@azure/openai";
-import { Llm, LlmAnswerQuestionParams, OpenAiChatMessage } from "./ChatLlm";
+import {
+  Llm,
+  LlmAnswerQuestionParams,
+  OpenAiChatMessage,
+  SystemPrompt,
+} from "./ChatLlm";
 
-export interface makeOpenAiChatLlmParams {
+export interface MakeOpenAiChatLlmParams {
   deployment: string;
   openAiClient: OpenAIClient;
   openAiLmmConfigOptions: GetChatCompletionsOptions;
@@ -15,7 +20,7 @@ export interface makeOpenAiChatLlmParams {
     question: string;
     chunks: string[];
   }) => OpenAiChatMessage & { role: "user" };
-  systemPrompt: OpenAiChatMessage & { role: "system" };
+  systemPrompt: SystemPrompt;
 }
 
 export function makeOpenAiChatLlm({
@@ -24,7 +29,7 @@ export function makeOpenAiChatLlm({
   openAiLmmConfigOptions,
   generateUserPrompt,
   systemPrompt,
-}: makeOpenAiChatLlmParams): Llm {
+}: MakeOpenAiChatLlmParams): Llm {
   return {
     // NOTE: for example streaming data, see https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
     async answerQuestionStream({ messages, chunks }: LlmAnswerQuestionParams) {
@@ -74,7 +79,7 @@ function prepConversationForOpenAiLlm({
   systemPrompt,
 }: LlmAnswerQuestionParams & {
   generateUserPrompt: LlmConfig["generateUserPrompt"];
-  systemPrompt: LlmConfig["systemPrompt"];
+  systemPrompt: SystemPrompt;
 }): OpenAiChatMessage[] {
   validateOpenAiConversation(messages, systemPrompt);
   const lastMessage = messages[messages.length - 1];
@@ -87,7 +92,7 @@ function prepConversationForOpenAiLlm({
 
 function validateOpenAiConversation(
   messages: OpenAiChatMessage[],
-  systemPrompt: LlmConfig["systemPrompt"]
+  systemPrompt: SystemPrompt
 ) {
   if (messages.length === 0) {
     throw new Error("No messages provided");

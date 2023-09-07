@@ -4,9 +4,7 @@ import {
   NextFunction,
 } from "express";
 import {
-  OpenAiChatMessage,
   ObjectId,
-  OpenAiMessageRole,
   EmbedFunc,
   EmbeddedContent,
   EmbeddedContentStore,
@@ -24,8 +22,8 @@ import {
 import { DataStreamer } from "../../services/dataStreamer";
 import {
   Llm,
-  OpenAiAwaitedResponse,
-  OpenAiStreamingResponse,
+  OpenAiChatMessage,
+  OpenAiMessageRole,
 } from "../../services/ChatLlm";
 import {
   ApiConversation,

@@ -26,7 +26,6 @@ import {
   validateApiConversationFormatting,
   getContentForText,
   MAX_INPUT_LENGTH,
-  AddMessageToConversationRouteParams,
   MAX_MESSAGES_IN_CONVERSATION,
   createLinkReference,
   includeChunksForMaxTokensPossible,
@@ -38,17 +37,16 @@ import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
 import { makeApp, CONVERSATIONS_API_V1_PREFIX } from "../../app";
 import { makeTestApp } from "../../testHelpers";
-import { makeTestAppConfig } from "../../testHelpers";
-import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
-import { AppConfig } from "../../app";
-import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import {
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  OPENAI_ENDPOINT,
+  makeTestAppConfig,
   generateUserPrompt,
   systemPrompt,
-} from "../..";
+} from "../../testHelpers";
+import { AppConfig } from "../../app";
+import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 
+const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
+  assertEnvVars(CORE_ENV_VARS);
 jest.setTimeout(100000);
 describe("POST /conversations/:conversationId/messages", () => {
   let mongodb: MongoDB;

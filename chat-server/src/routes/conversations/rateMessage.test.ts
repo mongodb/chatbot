@@ -30,7 +30,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
 
   beforeAll(async () => {
     ({ mongodb, app, ipAddress, appConfig } = await makeTestApp());
-    const { conversations } = appConfig.conversationsRouterConfig;
+    conversations = appConfig.conversationsRouterConfig.conversations;
 
     app
       .post(endpointUrl, makeRateMessageRoute({ conversations }))

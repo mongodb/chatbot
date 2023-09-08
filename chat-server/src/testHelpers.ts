@@ -1,6 +1,6 @@
 import { MongoDB } from "chat-core";
 import { AppConfig, makeApp } from "./app";
-import { MONGODB_CONNECTION_URI, config, systemPrompt } from "./index";
+import { MONGODB_CONNECTION_URI, config, systemPrompt } from "./config";
 import { makeConversationsService } from "./services/conversations";
 
 export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
@@ -26,7 +26,7 @@ export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
   // ip address for local host
   const ipAddress = "127.0.0.1";
 
-  const { appConfig, systemPrompt, mongodb } = await makeTestAppConfig(
+  const { appConfig, systemPrompt, mongodb } = makeTestAppConfig(
     defaultConfigOverrides
   );
   const app = await makeApp(appConfig);
@@ -40,4 +40,4 @@ export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
   };
 }
 
-export { systemPrompt, generateUserPrompt } from "./index";
+export { systemPrompt, generateUserPrompt } from "./config";

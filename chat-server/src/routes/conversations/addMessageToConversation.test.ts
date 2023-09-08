@@ -330,8 +330,6 @@ describe("POST /conversations/:conversationId/messages", () => {
     });
 
     describe("LLM not available but vector search is", () => {
-      const { appConfig } = makeTestAppConfig();
-
       const openAiClient = new OpenAIClient(
         OPENAI_ENDPOINT,
         new AzureKeyCredential("definitelyNotARealApiKey")
@@ -352,7 +350,8 @@ describe("POST /conversations/:conversationId/messages", () => {
         app: Express;
       let testMongo: MongoDB;
       beforeEach(async () => {
-        const { mongodb: testMongo } = makeTestAppConfig();
+        const { mongodb } = makeTestAppConfig();
+        testMongo = mongodb;
 
         conversations = makeConversationsService(testMongo.db, systemPrompt);
         const { _id } = await conversations.create({

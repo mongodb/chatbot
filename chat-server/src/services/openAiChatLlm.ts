@@ -39,7 +39,6 @@ export function makeOpenAiChatLlm({
         generateUserPrompt,
         systemPrompt,
       });
-
       const completionStream = await openAiClient.listChatCompletions(
         deployment,
         messagesForLlm,

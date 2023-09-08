@@ -68,8 +68,8 @@ export function makeConversationsRouter({
     Global rate limit the requests to the conversationsRouter.
    */
   const globalRateLimit = rateLimit({
-    windowMs: 60 * 1000,
-    max: 100,
+    windowMs: 5 * 60 * 1000,
+    max: 5000,
     standardHeaders: "draft-7", // draft-6: RateLimit-* headers; draft-7: combined RateLimit header
     legacyHeaders: true, // X-RateLimit-* headers
     message: rateLimitResponse,
@@ -104,8 +104,8 @@ export function makeConversationsRouter({
     Rate limit should be more restrictive than global rate limiter to limit expensive requests to the LLM.
    */
   const addMessageRateLimit = rateLimit({
-    windowMs: 60 * 1000,
-    max: 30,
+    windowMs: 5 * 60 * 1000,
+    max: 2500,
     standardHeaders: "draft-7", // draft-6: RateLimit-* headers; draft-7: combined RateLimit header
     legacyHeaders: true, // X-RateLimit-* headers
     message: rateLimitResponse,

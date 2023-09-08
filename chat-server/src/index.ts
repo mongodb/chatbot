@@ -201,3 +201,8 @@ try {
   logger.error(`Fatal error: ${e}`);
   process.exit(1);
 }
+
+export * from "./app";
+export * from "./routes/conversations";
+export * from "./services";
+export * from "./processors";

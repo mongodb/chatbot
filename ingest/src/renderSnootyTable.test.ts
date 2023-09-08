@@ -15,21 +15,21 @@ describe("renderSnootyTable", () => {
     const result = renderSnootyTable(sampleTableAst, 0);
     const expected = `<table>
 <tr>
-<th>
-Action
+<th id="Action%20Test">
+Action Test
 
 </th>
-<th>
+<th id="Description">
 Description
 
 </th>
 </tr>
 <tr>
-<td heading="Action">
+<td headers="Action%20Test">
 "replace"
 
 </td>
-<td heading="Description">
+<td headers="Description">
 Replace the existing document in the output collection with the matching results document.
 
 When performing a replace, the replacement document cannot result in a modification of the \`_id\` value or, if the output collection is sharded, the shard key value. Otherwise, the operation generates an error.
@@ -39,21 +39,21 @@ To avoid this error, if the on field does not include the \`_id\` field, remove 
 </td>
 </tr>
 <tr>
-<td heading="Action">
+<td headers="Action%20Test">
 "keepExisting"
 
 </td>
-<td heading="Description">
+<td headers="Description">
 Keep the existing document in the output collection.
 
 </td>
 </tr>
 <tr>
-<td heading="Action">
+<td headers="Action%20Test">
 "merge" (Default)
 
 </td>
-<td heading="Description">
+<td headers="Description">
 Merge the matching documents (similar to the \`$mergeObjects\` operator).
 
 - If the results document contains fields not in the existing document, add these new fields to the existing document.
@@ -79,11 +79,11 @@ To avoid this error, if the on field does not include the \`_id\` field, remove 
 </td>
 </tr>
 <tr>
-<td heading="Action">
+<td headers="Action%20Test">
 "fail"
 
 </td>
-<td heading="Description">
+<td headers="Description">
 Stop and fail the aggregation operation. Any changes to the output collection from previous documents are not reverted.
 
 </td>
@@ -109,31 +109,31 @@ Stop and fail the aggregation operation. Any changes to the output collection fr
     const result = renderSnootyTable(ast, 0);
     const expected = `<table>
 <tr>
-<th>
+<th id="h1">
 h1
 
 </th>
-<th>
+<th id="h2">
 h2
 
 </th>
 </tr>
 <tr>
-<th>
+<th id="h3">
 h3
 
 </th>
-<th>
+<th id="h4">
 h4
 
 </th>
 </tr>
 <tr>
-<td heading="h1">
+<td headers="h1">
 d1
 
 </td>
-<td heading="h2">
+<td headers="h2">
 d2
 
 </td>

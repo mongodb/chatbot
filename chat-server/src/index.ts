@@ -16,7 +16,6 @@ import { CORE_ENV_VARS, assertEnvVars } from "chat-core";
 import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { OpenAiChatMessage, SystemPrompt } from "./services/ChatLlm";
-import { log } from "winston";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -178,10 +177,7 @@ export const config: AppConfig = {
 
 const startServer = async () => {
   logger.info("Starting server...");
-  logger.info("Server has the following configuration:");
-  logger.info(config);
   const app = await makeApp(config);
-
   const server = app.listen(PORT, () => {
     logger.info(`Server listening on port: ${PORT}`);
   });

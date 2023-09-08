@@ -15,6 +15,8 @@ import {
 import { ObjectId } from "mongodb";
 import { getRequestId, logRequest, sendErrorResponse } from "./utils";
 import { CorsOptions } from "cors";
+import { logger } from "chat-core";
+import cloneDeep from "lodash.clonedeep";
 
 export interface AppConfig {
   conversationsRouterConfig: ConversationsRouterParams;
@@ -73,11 +75,16 @@ export const API_V1_PREFIX = "/api/v1";
 export const CONVERSATIONS_API_V1_PREFIX = `${API_V1_PREFIX}/conversations`;
 
 export const DEFAULT_MAX_REQUEST_TIMEOUT_MS = 60000;
-export const makeApp = async ({
-  maxRequestTimeoutMs = DEFAULT_MAX_REQUEST_TIMEOUT_MS,
-  conversationsRouterConfig,
-  corsOptions,
-}: AppConfig): Promise<Express> => {
+export const makeApp = async (config: AppConfig): Promise<Express> => {
+  const {
+    maxRequestTimeoutMs = DEFAULT_MAX_REQUEST_TIMEOUT_MS, // GPT explain: what does this do
+    conversationsRouterConfig,
+    corsOptions,
+  } = config;
+  logger.info("Server has the following configuration:");
+  logger.info(
+    stringifyFunctions(cloneDeep(config) as unknown as Record<string, unknown>)
+  );
   const app = express();
   app.use(makeHandleTimeoutMiddleware(maxRequestTimeoutMs));
   app.set("trust proxy", true);
@@ -117,3 +124,24 @@ export const makeApp = async ({
 
   return app;
 };
+
+/**
+  Helper function to stringify functions when logging the config object.
+ */
+function stringifyFunctions(obj: Record<string, unknown>) {
+  if (typeof obj === "function") {
+    return (obj as (...args: any[]) => any)
+      .toString()
+      .split("\n")
+      .map((line) => line.trim())
+      .join("\n");
+  }
+  if (typeof obj === "object" && obj !== null) {
+    const newObj: Record<string, unknown> = {};
+    for (const key in obj) {
+      newObj[key] = stringifyFunctions(obj[key] as Record<string, unknown>);
+    }
+    return newObj;
+  }
+  return obj;
+}

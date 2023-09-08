@@ -4,8 +4,6 @@ import { errorHandler, makeApp, makeHandleTimeoutMiddleware } from "./app";
 
 import { makeTestAppConfig } from "./testHelpers";
 
-const ipAddress = "127.0.0.1";
-
 describe("App", () => {
   let app: Express;
   beforeAll(async () => {

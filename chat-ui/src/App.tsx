@@ -9,6 +9,8 @@ import { canUseServerSentEvents } from "./utils";
 import { Overline, Link } from "@leafygreen-ui/typography";
 import Toggle from "@leafygreen-ui/toggle";
 
+const prefersDarkMode = () => window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+
 function App() {
   const [shouldStream, setShouldStream] = useState(canUseServerSentEvents());
   const { contextDarkMode: darkMode = false, setDarkMode } =
@@ -112,7 +114,7 @@ function GitCommitLink() {
 
 export default function LGApp() {
   return (
-    <LeafyGreenProvider darkMode={false}>
+    <LeafyGreenProvider darkMode={prefersDarkMode()}>
       <App />
     </LeafyGreenProvider>
   );

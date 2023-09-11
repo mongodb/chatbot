@@ -60,7 +60,7 @@
     "gpt3-tokenizer": "^1.1.5",
     "html-to-text": "^9.0.5",
     "ignore": "^5.2.4",
-    "langchain": "^0.0.128",
+    "langchain": "^0.0.146",
     "mongodb": "^5",
     "node-fetch": "^2",
     "yaml": "^2.3.1",

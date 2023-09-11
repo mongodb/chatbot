@@ -4,7 +4,7 @@ import {
   makeAcquitRequireMdOnGithubDataSource,
 } from "./AcquitRequireMdOnGithubDataSource";
 import "dotenv/config";
-import { writeFileSync } from "fs";
+import { strict as assert } from "assert";
 
 jest.setTimeout(90000);
 const repoUrl = "https://github.com/Automattic/mongoose";
@@ -40,11 +40,16 @@ describe("AcquitRequireOnGithubDataSource", () => {
       });
     const mdPages = await acquitMdToStandardMdDataSource.fetchPages();
     expect(mdPages.length).toBeGreaterThan(0);
-    const page = mdPages[0];
-    writeFileSync("test.md", page.body);
-    expect(page?.metadata?.arbitrary).toBe("data");
-    expect(page.url.endsWith(".html")).toBe(true);
-    expect(page.title).toBeTruthy();
+
+    const convertedPage = mdPages.find((page) =>
+      page.body.includes("```javascript\n")
+    );
+    assert(convertedPage);
+    expect(convertedPage?.metadata?.arbitrary).toBe("data");
+    expect(convertedPage.url.endsWith(".html")).toBe(true);
+    expect(convertedPage.title).toBeTruthy();
+    expect(convertedPage.body).not.toContain("```acquit\n");
+    expect(convertedPage.body).not.toMatch(/\[require:(.+?)\]/);
   });
 });
 

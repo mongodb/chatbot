@@ -278,4 +278,5 @@ export const sourceConstructors: SourceConstructor[] = [
     }),
   () => makeDevCenterDataSource(devCenterProjectConfig),
   pyMongoSourceConstructor,
+  mongooseSourceConstructor,
 ];

@@ -1,5 +1,4 @@
-import { useState, useRef, useEffect } from "react";
-import { InputMenu, MenuPrompt } from "./InputMenu";
+import { useState, useRef } from "react";
 import { useConversation, Conversation } from "./useConversation";
 import Banner from "@leafygreen-ui/banner";
 import Modal, { ModalProps } from "@leafygreen-ui/modal";
@@ -13,7 +12,11 @@ import {
 import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
 import { ChatWindow } from "@lg-chat/chat-window";
 import { Avatar } from "@lg-chat/avatar";
-import { InputBar } from "@lg-chat/input-bar";
+import {
+  InputBar,
+  SuggestedPrompt,
+  SuggestedPrompts,
+} from "@lg-chat/input-bar";
 import {
   Message,
   MessageContent as LGChatMessageContent,
@@ -137,6 +140,11 @@ const styles = {
 
 const MAX_INPUT_CHARACTERS = 300;
 
+type SuggestedPromptItem = {
+  key: string;
+  text: string;
+};
+
 const suggestedPrompts = [
   { key: "deploy", text: "How do you deploy a free cluster in Atlas?" },
   {
@@ -145,7 +153,7 @@ const suggestedPrompts = [
   },
   { key: "get-started", text: "Get started with MongoDB" },
   { key: "why-search", text: "Why should I use Atlas Search?" },
-] satisfies MenuPrompt[];
+] satisfies SuggestedPromptItem[];
 
 function isSender(role: Role) {
   return role === "user";
@@ -178,9 +186,7 @@ export function Chatbot(props: ChatbotProps) {
   });
   const { contextDarkMode = false } = useDarkModeContext();
   const darkMode = props.darkMode ?? contextDarkMode;
-  const [initialInputFocused, setInitialInputFocused] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [awaitingReply, setAwaitingReply] = useState(false);
   const inputBarRef = useRef<HTMLFormElement>(null);
 
@@ -240,30 +246,9 @@ export function Chatbot(props: ChatbotProps) {
   };
 
   const showSuggestedPrompts =
-    menuOpen &&
     inputText.length === 0 &&
     conversation.messages.length === 0 &&
     !awaitingReply;
-
-  // We have to use some hacky interval logic to get around the weird
-  // focus/blur event handling interactions between InputBar and InputMenu.
-  const [promptFocused, setPromptFocused] = useState<number | null>(null);
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!initialInputFocused && promptFocused === null) {
-        setMenuOpen(false);
-        clearInterval(interval);
-      }
-      if (initialInputFocused && conversation.messages.length === 0) {
-        setMenuOpen(true);
-      }
-
-      if (!conversation.conversationId) {
-        conversation.createConversation();
-      }
-    }, 100);
-    return () => clearInterval(interval);
-  }, [initialInputFocused, promptFocused, conversation]);
 
   return (
     <LeafyGreenProvider darkMode={darkMode}>
@@ -304,49 +289,31 @@ export function Chatbot(props: ChatbotProps) {
               }
             }}
             onClick={async () => {
-              setInitialInputFocused(true);
               if (conversation.messages.length > 0) {
                 openModal();
-              } else {
-                setMenuOpen(true);
               }
               if (!conversation.conversationId) {
                 await conversation.createConversation();
               }
             }}
-            onFocus={async () => {
-              setInitialInputFocused(true);
-            }}
-            onBlur={() => {
-              setInitialInputFocused(false);
-            }}
-          />
+          >
+            {showSuggestedPrompts ? (
+              <SuggestedPrompts label="SUGGESTED AI PROMPTS">
+                {suggestedPrompts.map(suggestedPrompt => (
+                  <SuggestedPrompt
+                    key={suggestedPrompt.key}
+                    onClick={async () => {
+                      await handleSubmit(suggestedPrompt.text);
+                    }}
+                  >
+                    {suggestedPrompt.text}
+                  </SuggestedPrompt>
+                ))}
+              </SuggestedPrompts>
+            ) : undefined}
+          </InputBar>
 
           {inputTextError ? <ErrorText>{inputTextError}</ErrorText> : null}
-
-          {showSuggestedPrompts ? (
-            <InputMenu
-              className={styles.chatbot_input_menu}
-              darkMode={darkMode}
-              heading="SUGGESTED AI PROMPTS"
-              headingBadgeText=""
-              poweredByText="Powered by Atlas Vector Search"
-              poweredByCTA="Learn More"
-              poweredByLink="https://www.mongodb.com/products/platform/atlas-vector-search"
-              prompts={suggestedPrompts}
-              onFocused={(i) => {
-                setPromptFocused(i);
-              }}
-              onBlurred={(i) => {
-                if (i === 0 || i === suggestedPrompts.length) {
-                  setPromptFocused(null);
-                }
-              }}
-              onPromptSelected={({ text }) => {
-                handleSubmit(text);
-              }}
-            />
-          ) : null}
 
           <Disclosure tabIndex={0} darkMode={darkMode} />
         </div>
@@ -361,7 +328,6 @@ export function Chatbot(props: ChatbotProps) {
           awaitingReply={awaitingReply}
           open={modalOpen}
           shouldClose={() => {
-            setMenuOpen(false);
             closeModal();
             return true;
           }}

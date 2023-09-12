@@ -5,6 +5,7 @@ import { DataSource } from "./DataSource";
 import { makeDevCenterDataSource } from "./DevCenterDataSource";
 import { prepareSnootySources } from "./SnootyProjectsInfo";
 import { makeAcquitRequireMdOnGithubDataSource } from "./AcquitRequireMdOnGithubDataSource";
+import { makeMdOnGithubDataSource } from "./MdOnGithbDataSource";
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -267,6 +268,35 @@ const mongooseSourceConstructor = async () => {
     },
   });
 };
+export function mongoDbCppDriverPathToPageUrlConverter(pathInRepo: string) {
+  if (pathInRepo.endsWith("_index.md")) {
+    pathInRepo = pathInRepo.replace("_index.md", "index.md");
+  }
+  return pathInRepo
+    .replace(
+      /^docs\/content\/mongocxx-v3/,
+      "https://mongocxx.org/api/mongocxx-v3/"
+    )
+    .replace(/\.md$/, "/index.html");
+}
+
+const cppSourceConstructor = async () => {
+  return await makeMdOnGithubDataSource({
+    name: "cxx-driver",
+    repoUrl: "https://github.com/mongodb/mongo-cxx-driver/",
+    repoLoaderOptions: {
+      branch: "master",
+      ignoreFiles: [/^(?!^docs\/mongocxx-v3\/).*/], // TODO: validate this path correctEverything BUT docs/mongocxx-v3/
+    },
+    pathToPageUrl: mongoDbCppDriverPathToPageUrlConverter,
+    metadata: {
+      productName: "C++ Driver (mongocxx)",
+      tags: ["docs", "driver", "c++", "cpp", "cxx", "mongocxx"],
+      version: "v3.x (current)",
+    },
+  });
+};
+
 /**
   The constructors for the sources used by the docs chatbot.
  */
@@ -279,4 +309,5 @@ export const sourceConstructors: SourceConstructor[] = [
   () => makeDevCenterDataSource(devCenterProjectConfig),
   pyMongoSourceConstructor,
   mongooseSourceConstructor,
+  cppSourceConstructor,
 ];

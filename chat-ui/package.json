@@ -1,6 +1,6 @@
 {
   "name": "mongodb-chatbot-ui",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "UI for the MongoDB AI Chatbot",
   "author": "MongoDB, Inc.",
   "license": "Apache-2.0",
@@ -26,7 +26,9 @@
   },
   "release-it": {
     "git": {
-      "commitMessage": "Release chat-ui-v${version}"
+      "commit": true,
+      "commitMessage": "Release chat-ui-v${version}",
+      "tagName": "chat-ui-v${version}"
     },
     "github": {
       "releaseName": "chat-ui-v${version}",

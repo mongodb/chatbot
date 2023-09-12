@@ -1,5 +1,4 @@
-import { useState, useRef, useEffect } from "react";
-import { InputMenu, MenuPrompt } from "./InputMenu";
+import { useState, useRef } from "react";
 import { useConversation, Conversation } from "./useConversation";
 import Banner from "@leafygreen-ui/banner";
 import Modal, { ModalProps } from "@leafygreen-ui/modal";
@@ -10,12 +9,22 @@ import {
   Error as ErrorText,
   InlineCode,
 } from "@leafygreen-ui/typography";
+import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
+import { ChatWindow } from "@lg-chat/chat-window";
 import { Avatar } from "@lg-chat/avatar";
-import { InputBar } from "@lg-chat/input-bar";
-import { Message } from "@lg-chat/message";
+import {
+  InputBar,
+  SuggestedPrompt,
+  SuggestedPrompts,
+} from "@lg-chat/input-bar";
+import {
+  Message,
+  MessageContent as LGChatMessageContent,
+  MessageContentProps,
+
+} from "@lg-chat/message";
 import { MessageFeed } from "@lg-chat/message-feed";
 import { MessageRatingProps } from "@lg-chat/message-rating";
-import { TitleBar } from "@lg-chat/title-bar";
 import { Role } from "./services/conversations";
 import { palette } from "@leafygreen-ui/palette";
 import { css } from "@emotion/css";
@@ -51,20 +60,15 @@ const styles = {
     flex-direction: column;
     gap: 0.5rem;
     margin-top: 1rem;
+    padding-left: 32px;
+    padding-right: 32px;
+    padding-top: 0.5rem;
+    padding-bottom: 1rem;
   `,
   conversation_id_info: css`
     display: flex;
     flex-direction: row;
     justify-content: center;
-  `,
-  title_bar: css`
-    box-sizing: border-box;
-    margin-bottom: -1rem; /* This is to offset the .card gap */
-
-    width: calc(100% + 64px);
-    margin-left: -32px;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
   `,
   modal_container: ({ darkMode }: StylesProps) => css`
     z-index: 2;
@@ -74,7 +78,7 @@ const styles = {
     }
 
     & div[role="dialog"] {
-      padding-top: 8px;
+      padding: 0;
       background: ${darkMode ? palette.black : palette.gray.light3};
     }
 
@@ -88,27 +92,17 @@ const styles = {
       }
     }
   `,
+  chat_window: css`
+    border-radius: 24px;
+  `,
   message_feed: css`
-    width: calc(100% + 64px);
-    margin-left: -32px;
-    margin-bottom: -1rem; /* This is to offset the .chat_input margin-top */
-
     & > div {
       box-sizing: border-box;
-      min-height: 20rem;
-      max-height: 60vh;
     }
-
-    @media screen and (max-width: 1024px) {
-      & > div {
-        max-height: 70vh;
-      }
-    }
-    @media screen and (max-width: 767px) {
-      & > div {
-        height: 65vh;
-      }
-    }
+  `,
+  message_content: css`
+    width: 100%;
+    background: red;
   `,
   // This is a hacky fix for weird white-space issues in LG Chat.
   markdown_container: css`
@@ -125,23 +119,16 @@ const styles = {
     }
   `,
   // End hacky fix
+  markdown_ul: css`
+    overflow-wrap: anywhere;
+  `,
   loading_skeleton: css`
     margin-bottom: 16px;
-  `,
-  card: css`
-    display: flex;
-    flex-direction: column;
-    align-items: start;
     width: 100%;
-    gap: 1rem;
-    padding-top: 1rem;
-    transition: all 0.25s ease;
-    position: relative;
-    padding: 0;
-    border-top-left-radius: 6px;
-    box-shadow: none;
-    background: transparent;
-    box-sizing: border-box;
+
+    & > div {
+      width: 100%;
+    }
   `,
   chatbot_input_menu: css`
     z-index: 1;
@@ -152,16 +139,6 @@ const styles = {
 };
 
 const MAX_INPUT_CHARACTERS = 300;
-
-const suggestedPrompts = [
-  { key: "deploy", text: "How do you deploy a free cluster in Atlas?" },
-  {
-    key: "import",
-    text: "How do you import or migrate data into MongoDB Atlas?",
-  },
-  { key: "get-started", text: "Get started with MongoDB" },
-  { key: "why-search", text: "Why should I use Atlas Search?" },
-] satisfies MenuPrompt[];
 
 function isSender(role: Role) {
   return role === "user";
@@ -177,10 +154,15 @@ function getAvatarVariantForRole(role: Role) {
   return avatarVariant;
 }
 
+const MessageContent = (props: MessageContentProps) => (
+  <LGChatMessageContent className={styles.message_content} {...props} />
+);
+
 export type ChatbotProps = {
   serverBaseUrl?: string;
   shouldStream?: boolean;
   darkMode?: boolean;
+  suggestedPrompts?: string[];
 };
 
 export function Chatbot(props: ChatbotProps) {
@@ -190,9 +172,7 @@ export function Chatbot(props: ChatbotProps) {
   });
   const { contextDarkMode = false } = useDarkModeContext();
   const darkMode = props.darkMode ?? contextDarkMode;
-  const [initialInputFocused, setInitialInputFocused] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [awaitingReply, setAwaitingReply] = useState(false);
   const inputBarRef = useRef<HTMLFormElement>(null);
 
@@ -252,30 +232,10 @@ export function Chatbot(props: ChatbotProps) {
   };
 
   const showSuggestedPrompts =
-    menuOpen &&
+    (props.suggestedPrompts ?? []).length > 0 &&
     inputText.length === 0 &&
     conversation.messages.length === 0 &&
     !awaitingReply;
-
-  // We have to use some hacky interval logic to get around the weird
-  // focus/blur event handling interactions between InputBar and InputMenu.
-  const [promptFocused, setPromptFocused] = useState<number | null>(null);
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!initialInputFocused && promptFocused === null) {
-        setMenuOpen(false);
-        clearInterval(interval);
-      }
-      if (initialInputFocused && conversation.messages.length === 0) {
-        setMenuOpen(true);
-      }
-
-      if (!conversation.conversationId) {
-        conversation.createConversation();
-      }
-    }, 100);
-    return () => clearInterval(interval);
-  }, [initialInputFocused, promptFocused, conversation]);
 
   return (
     <LeafyGreenProvider darkMode={darkMode}>
@@ -316,49 +276,31 @@ export function Chatbot(props: ChatbotProps) {
               }
             }}
             onClick={async () => {
-              setInitialInputFocused(true);
               if (conversation.messages.length > 0) {
                 openModal();
-              } else {
-                setMenuOpen(true);
               }
               if (!conversation.conversationId) {
                 await conversation.createConversation();
               }
             }}
-            onFocus={async () => {
-              setInitialInputFocused(true);
-            }}
-            onBlur={() => {
-              setInitialInputFocused(false);
-            }}
-          />
+          >
+            {showSuggestedPrompts ? (
+              <SuggestedPrompts label="SUGGESTED AI PROMPTS">
+                {props.suggestedPrompts?.map(suggestedPrompt => (
+                  <SuggestedPrompt
+                    key={suggestedPrompt}
+                    onClick={async () => {
+                      await handleSubmit(suggestedPrompt);
+                    }}
+                  >
+                    {suggestedPrompt}
+                  </SuggestedPrompt>
+                )) ?? null}
+              </SuggestedPrompts>
+            ) : undefined}
+          </InputBar>
 
           {inputTextError ? <ErrorText>{inputTextError}</ErrorText> : null}
-
-          {showSuggestedPrompts ? (
-            <InputMenu
-              className={styles.chatbot_input_menu}
-              darkMode={darkMode}
-              heading="SUGGESTED AI PROMPTS"
-              headingBadgeText=""
-              poweredByText="Powered by Atlas Vector Search"
-              poweredByCTA="Learn More"
-              poweredByLink="https://www.mongodb.com/products/platform/atlas-vector-search"
-              prompts={suggestedPrompts}
-              onFocused={(i) => {
-                setPromptFocused(i);
-              }}
-              onBlurred={(i) => {
-                if (i === 0 || i === suggestedPrompts.length) {
-                  setPromptFocused(null);
-                }
-              }}
-              onPromptSelected={({ text }) => {
-                handleSubmit(text);
-              }}
-            />
-          ) : null}
 
           <Disclosure tabIndex={0} darkMode={darkMode} />
         </div>
@@ -373,7 +315,6 @@ export function Chatbot(props: ChatbotProps) {
           awaitingReply={awaitingReply}
           open={modalOpen}
           shouldClose={() => {
-            setMenuOpen(false);
             closeModal();
             return true;
           }}
@@ -445,148 +386,154 @@ function ChatbotModal({
       initialFocus={`#${ActiveInputBarId}`}
       shouldClose={shouldClose}
     >
-      <div className={styles.card}>
-        <TitleBar
-          darkMode={darkMode}
-          className={styles.title_bar}
+      <LeafyGreenChatProvider>
+        <ChatWindow
+          className={styles.chat_window}
           badgeText="Experimental"
           title="MongoDB AI"
-        />
+          darkMode={darkMode}
+        >
+          {!isEmptyConversation ? (
+            <MessageFeed darkMode={darkMode} className={styles.message_feed}>
+              {conversation.messages.map((message) => {
+                const showLoadingSkeleton = conversation.isStreamingMessage
+                  ? message.id === conversation.streamingMessage?.id &&
+                    conversation.streamingMessage?.content === ""
+                  : false;
+                return (
+                  <Message
+                    darkMode={darkMode}
+                    baseFontSize={13}
+                    key={message.id}
+                    isSender={isSender(message.role)}
+                    componentOverrides={{ MessageContent }}
+                    messageRatingProps={
+                      message.role === "assistant"
+                        ? {
+                            description: "Was this response helpful?",
+                            onChange: (e) => {
+                              const value = e.target
+                                .value as MessageRatingProps["value"];
+                              if (!value) {
+                                return;
+                              }
+                              conversation.rateMessage(
+                                message.id,
+                                value === "liked" ? true : false
+                              );
+                            },
+                            value:
+                              message.rating === undefined
+                                ? undefined
+                                : message.rating
+                                ? "liked"
+                                : "disliked",
+                          }
+                        : undefined
+                    }
+                    avatar={
+                      <Avatar
+                        darkMode={darkMode}
+                        variant={getAvatarVariantForRole(message.role)}
+                      />
+                    }
+                    sourceType={showLoadingSkeleton ? undefined : "markdown"}
+                    markdownProps={{
+                      className: styles.markdown_container,
+                      components: {
+                        a: ({ children, href }) => {
+                          return (
+                            <Link hideExternalIcon href={href}>
+                              {children}
+                            </Link>
+                          );
+                        },
+                        p: ({ children, ...props }) => {
+                          return <Body {...props}>{children}</Body>;
+                        },
+                        ol: ({ children, ordered, ...props }) => {
+                          return (
+                            <Body as="ol" {...props}>
+                              {children}
+                            </Body>
+                          );
+                        },
+                        ul: ({ children, ordered, ...props }) => {
+                          return (
+                            <Body
+                              className={styles.markdown_ul}
+                              as="ul"
+                              {...props}
+                            >
+                              {children}
+                            </Body>
+                          );
+                        },
+                        li: ({ children, ordered, node, ...props }) => {
+                          return (
+                            <Body as="li" {...props}>
+                              {children}
+                            </Body>
+                          );
+                        },
+                      },
+                    }}
+                  >
+                    {showLoadingSkeleton && message.role === "assistant"
+                      ? ((<LoadingSkeleton />) as unknown as string)
+                      : message.content}
+                  </Message>
+                );
+              })}
+            </MessageFeed>
+          ) : null}
+          <div className={styles.chatbot_input}>
+            {conversation.error ? (
+              <ErrorBanner darkMode={darkMode} message={conversation.error} />
+            ) : null}
 
-        {!isEmptyConversation ? (
-          <MessageFeed darkMode={darkMode} className={styles.message_feed}>
-            {conversation.messages.map((message) => {
-              const showLoadingSkeleton = conversation.isStreamingMessage
-                ? message.id === conversation.streamingMessage?.id &&
-                  conversation.streamingMessage?.content === ""
-                : false;
-              return (
-                <Message
+            {!conversation.error ? (
+              <>
+                <InputBar
                   darkMode={darkMode}
-                  key={message.id}
-                  isSender={isSender(message.role)}
-                  messageRatingProps={
-                    message.role === "assistant"
-                      ? {
-                          description: "Was this response helpful?",
-                          onChange: (e) => {
-                            const value = e.target
-                              .value as MessageRatingProps["value"];
-                            if (!value) {
-                              return;
-                            }
-                            conversation.rateMessage(
-                              message.id,
-                              value === "liked" ? true : false
-                            );
-                          },
-                          value:
-                            message.rating === undefined
-                              ? undefined
-                              : message.rating
-                              ? "liked"
-                              : "disliked",
-                        }
-                      : undefined
-                  }
-                  avatar={
-                    <Avatar
-                      darkMode={darkMode}
-                      variant={getAvatarVariantForRole(message.role)}
-                    />
-                  }
-                  sourceType={showLoadingSkeleton ? undefined : "markdown"}
-                  componentOverrides={
-                    showLoadingSkeleton
-                      ? { MessageContent: LoadingSkeleton }
-                      : {}
-                  }
-                  markdownProps={{
-                    className: styles.markdown_container,
-                    children: showLoadingSkeleton ? "" : message.content, // TODO - remove when lg-chat omits this prop from the TS type
-                    components: {
-                      a: ({ children, href }) => {
-                        return (
-                          <Link hideExternalIcon href={href}>
-                            {children}
-                          </Link>
-                        );
-                      },
-                      p: ({ children, ...props }) => {
-                        return <Body {...props}>{children}</Body>;
-                      },
-                      ol: ({ children, ordered, ...props }) => {
-                        return (
-                          <Body as="ol" {...props}>
-                            {children}
-                          </Body>
-                        );
-                      },
-                      ul: ({ children, ordered, ...props }) => {
-                        return (
-                          <Body as="ul" {...props}>
-                            {children}
-                          </Body>
-                        );
-                      },
-                      li: ({ children, ordered, node, ...props }) => {
-                        return (
-                          <Body as="li" {...props}>
-                            {children}
-                          </Body>
-                        );
-                      },
-                    },
+                  ref={inputBarRef}
+                  disabled={active && Boolean(conversation.error?.length)}
+                  disableSend={awaitingReply}
+                  onMessageSend={(messageContent) => {
+                    const canSubmit =
+                      inputTextError.length === 0 && !conversation.error;
+                    if (canSubmit) {
+                      handleSubmit(messageContent);
+                    }
                   }}
-                >
-                  {showLoadingSkeleton ? "" : message.content}
-                </Message>
-              );
-            })}
-          </MessageFeed>
-        ) : null}
-        <div className={styles.chatbot_input}>
-          {conversation.error ? (
-            <ErrorBanner darkMode={darkMode} message={conversation.error} />
-          ) : null}
+                  textareaProps={{
+                    id: ActiveInputBarId,
+                    value: inputText,
+                    onChange: (e) => {
+                      setInputText(e.target.value);
+                    },
+                    placeholder: conversation.error
+                      ? "Something went wrong. Try reloading the page and starting a new conversation."
+                      : awaitingReply
+                      ? "MongoDB AI is answering..."
+                      : "Ask MongoDB AI a Question",
+                  }}
+                />
+                {inputTextError ? (
+                  <ErrorText>{inputTextError}</ErrorText>
+                ) : null}
+              </>
+            ) : null}
 
-          {!conversation.error ? (
-            <InputBar
-              darkMode={darkMode}
-              ref={inputBarRef}
-              disabled={active && Boolean(conversation.error?.length)}
-              onMessageSend={(messageContent) => {
-                const canSubmit =
-                  inputTextError.length === 0 && !conversation.error;
-                if (canSubmit) {
-                  handleSubmit(messageContent);
-                }
-              }}
-              textareaProps={{
-                id: ActiveInputBarId,
-                value: inputText,
-                onChange: (e) => {
-                  setInputText(e.target.value);
-                },
-                placeholder: conversation.error
-                  ? "Something went wrong. Try reloading the page and starting a new conversation."
-                  : awaitingReply
-                  ? "MongoDB AI is answering..."
-                  : "Ask MongoDB AI a Question",
-              }}
-            />
-          ) : null}
+            <Body className={styles.verify_information}>
+              This is an experimental generative AI chatbot. All information
+              should be verified prior to use.
+            </Body>
 
-          {inputTextError ? <ErrorText>{inputTextError}</ErrorText> : null}
-
-          <Body className={styles.verify_information}>
-            This is an experimental generative AI chatbot. All information
-            should be verified prior to use.
-          </Body>
-
-          <ConversationIdInfo conversation={conversation} />
-        </div>
-      </div>
+            <ConversationIdInfo conversation={conversation} />
+          </div>
+        </ChatWindow>
+      </LeafyGreenChatProvider>
     </Modal>
   );
 }

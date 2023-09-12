@@ -1,6 +1,6 @@
 {
   "name": "mongodb-chatbot-ui",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "UI for the MongoDB AI Chatbot",
   "author": "MongoDB, Inc.",
   "license": "Apache-2.0",
@@ -26,11 +26,18 @@
   },
   "release-it": {
     "git": {
-      "commitMessage": "Release chat-ui-v${version}"
+      "commit": true,
+      "commitMessage": "Release chat-ui-v${version}",
+      "tagName": "chat-ui-v${version}",
+      "push": false
     },
     "github": {
       "releaseName": "chat-ui-v${version}",
-      "draft": true
+      "draft": true,
+      "autoGenerate": true
+    },
+    "npm": {
+      "publish": false
     }
   },
   "scripts": {
@@ -51,7 +58,8 @@
     "preview:static-site:qa": "npm run build:static-site:qa && vite preview --base ./ --config vite.config.static-site.js",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "release": "release-it"
+    "release:interactive": "release-it",
+    "release": "release-it --ci"
   },
   "bundleDependencies": [
     "chat-core",

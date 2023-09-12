@@ -77,7 +77,7 @@ export const CONVERSATIONS_API_V1_PREFIX = `${API_V1_PREFIX}/conversations`;
 export const DEFAULT_MAX_REQUEST_TIMEOUT_MS = 60000;
 export const makeApp = async (config: AppConfig): Promise<Express> => {
   const {
-    maxRequestTimeoutMs = DEFAULT_MAX_REQUEST_TIMEOUT_MS, // GPT explain: what does this do
+    maxRequestTimeoutMs = DEFAULT_MAX_REQUEST_TIMEOUT_MS,
     conversationsRouterConfig,
     corsOptions,
   } = config;

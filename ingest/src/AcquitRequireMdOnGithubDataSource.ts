@@ -10,6 +10,7 @@ import acquitTransform from "acquit-require";
 import acquit from "acquit";
 import { Page, PageMetadata, logger } from "chat-core";
 import { removeMarkdownImagesAndLinks } from "./removeMarkdownImagesAndLinks";
+import { extractMarkdownH1 } from "./extractMarkdownH1";
 
 /**
   Loads an MD/Acquit docs site from a GitHub repo.
@@ -75,15 +76,12 @@ export const makeAcquitRequireMdOnGithubDataSource = async ({
         body: body,
         format: "md",
         url,
-        title: document.pageContent,
         metadata,
         sourceName: name,
       };
-      const h1Regex = /^#\s(.+)$/gm;
-      const matches = body.match(h1Regex);
-      if (matches && matches.length > 0) {
-        const title = matches[0].replace("# ", "");
-        page.title = title;
+      const h1 = extractMarkdownH1(page.body);
+      if (h1) {
+        page.title = h1;
       }
       return page;
     },

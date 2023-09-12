@@ -5,7 +5,10 @@ import { DataSource } from "./DataSource";
 import { makeDevCenterDataSource } from "./DevCenterDataSource";
 import { prepareSnootySources } from "./SnootyProjectsInfo";
 import { makeAcquitRequireMdOnGithubDataSource } from "./AcquitRequireMdOnGithubDataSource";
-import { makeMdOnGithubDataSource } from "./MdOnGithbDataSource";
+import {
+  MakeMdOnGithubDataSourceParams,
+  makeMdOnGithubDataSource,
+} from "./MdOnGithbDataSource";
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -273,28 +276,31 @@ export function mongoDbCppDriverPathToPageUrlConverter(pathInRepo: string) {
     pathInRepo = pathInRepo.replace("_index.md", "index.md");
   }
   return pathInRepo
-    .replace(
-      /^docs\/content\/mongocxx-v3/,
-      "https://mongocxx.org/api/mongocxx-v3/"
-    )
-    .replace(/\.md$/, "/index.html");
+    .replace(/^docs\/content\/mongocxx-v3/, "https://mongocxx.org/mongocxx-v3")
+    .replace(/\.md$/, "/");
 }
-
+export const mongoDbCppDriverConfig: MakeMdOnGithubDataSourceParams = {
+  name: "cxx-driver",
+  repoUrl: "https://github.com/mongodb/mongo-cxx-driver/",
+  repoLoaderOptions: {
+    branch: "master",
+    ignoreFiles: [/^(?!^docs\/content\/mongocxx-v3\/).*/],
+  },
+  pathToPageUrl: mongoDbCppDriverPathToPageUrlConverter,
+  metadata: {
+    productName: "C++ Driver (mongocxx)",
+    tags: ["docs", "driver", "c++", "cpp", "cxx", "mongocxx"],
+    version: "v3.x (current)",
+  },
+  frontMatter: {
+    process: true,
+    separator: "+++",
+    format: "toml",
+  },
+  extractTitle: (_, frontmatter) => (frontmatter?.title as string) ?? null,
+};
 const cppSourceConstructor = async () => {
-  return await makeMdOnGithubDataSource({
-    name: "cxx-driver",
-    repoUrl: "https://github.com/mongodb/mongo-cxx-driver/",
-    repoLoaderOptions: {
-      branch: "master",
-      ignoreFiles: [/^(?!^docs\/mongocxx-v3\/).*/], // TODO: validate this path correctEverything BUT docs/mongocxx-v3/
-    },
-    pathToPageUrl: mongoDbCppDriverPathToPageUrlConverter,
-    metadata: {
-      productName: "C++ Driver (mongocxx)",
-      tags: ["docs", "driver", "c++", "cpp", "cxx", "mongocxx"],
-      version: "v3.x (current)",
-    },
-  });
+  return await makeMdOnGithubDataSource(mongoDbCppDriverConfig);
 };
 
 /**

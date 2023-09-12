@@ -1,10 +1,10 @@
-import { Page } from "chat-core";
-import { DataSource } from "./DataSource";
 import { Document } from "langchain/document";
 import {
   GithubRepoLoader,
   GithubRepoLoaderParams,
 } from "langchain/document_loaders/web/github";
+import { Page, logger } from "chat-core";
+import { DataSource } from "./DataSource";
 
 export type MakeGitHubDataSourceArgs = {
   /**
@@ -54,25 +54,32 @@ export const makeGitHubDataSource = async ({
       const documents = (await loader.load()) as Document<{ source: string }>[];
       const promises = documents.map(
         async (document): Promise<Page[] | undefined> => {
-          // GitHub loader should put source (filepath) in the metadata
-          if (document.metadata.source === undefined) {
-            throw new Error(
-              "missing 'source' property in GithubRepoLoader document metadata"
+          try {
+            // GitHub loader should put source (filepath) in the metadata
+            if (document.metadata.source === undefined) {
+              throw new Error(
+                "missing 'source' property in GithubRepoLoader document metadata"
+              );
+            }
+            const pageOrPages = await handleDocumentInRepo(document);
+            if (pageOrPages === undefined) {
+              return undefined;
+            }
+            const pages = Array.isArray(pageOrPages)
+              ? pageOrPages
+              : [pageOrPages];
+            return pages.map(
+              (page): Page => ({
+                ...page,
+                sourceName: name,
+              })
             );
-          }
-          const pageOrPages = await handleDocumentInRepo(document);
-          if (pageOrPages === undefined) {
+          } catch (error) {
+            // Log the error and discard this document, but don't break the
+            // overall fetchPages() call.
+            logger.error(error);
             return undefined;
           }
-          const pages = Array.isArray(pageOrPages)
-            ? pageOrPages
-            : [pageOrPages];
-          return pages.map(
-            (page): Page => ({
-              ...page,
-              sourceName: name,
-            })
-          );
         }
       );
       return (

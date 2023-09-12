@@ -13,8 +13,11 @@ export type MakeMdOnGithubDataSourceParams = Omit<
   /**
     Transform a filepath in the repo to a full URL for the corresponding Page object.
    */
-  pathToPageUrl: (pathInRepo: string) => string;
-  metadata: PageMetadata;
+  pathToPageUrl: (
+    pathInRepo: string,
+    frontMatter?: Record<string, unknown>
+  ) => string;
+  metadata?: PageMetadata;
   frontMatter?: {
     /**
       Whether to process front matter. Defaults to `true`.
@@ -33,7 +36,7 @@ export type MakeMdOnGithubDataSourceParams = Omit<
     pageContent: string,
     frontMatter?: Record<string, unknown>
   ) => PageMetadata;
-  extractTitle: (
+  extractTitle?: (
     pageContent: string,
     frontMatter?: Record<string, unknown>
   ) => string | null;
@@ -62,9 +65,6 @@ export const makeMdOnGithubDataSource = async ({
       ],
     },
     async handleDocumentInRepo(document) {
-      const { source } = document.metadata;
-      const url = pathToPageUrl(source);
-
       // Process front matter from markdown file into a Record<string, unknown>.
       // Remove front matter from body.
       let frontMatterMetadata: Record<string, unknown> | undefined;
@@ -83,7 +83,8 @@ export const makeMdOnGithubDataSource = async ({
       const extractedMetadata = extractMetadata
         ? extractMetadata(body, frontMatterMetadata)
         : {};
-
+      const { source } = document.metadata;
+      const url = pathToPageUrl(source, frontMatterMetadata);
       const page: Page = {
         body: removeMarkdownImagesAndLinks(body),
         format: "md",

@@ -1,7 +1,7 @@
 import { makeMdOnGithubDataSource } from "./MdOnGithbDataSource";
 import { mongoDbCppDriverConfig } from "./projectSources";
 import "dotenv/config";
-import fs from "fs";
+import { strict as assert } from "assert";
 
 jest.setTimeout(60000);
 describe("MdOnGithubDataSource", () => {
@@ -9,6 +9,10 @@ describe("MdOnGithubDataSource", () => {
     const dataSource = await makeMdOnGithubDataSource(mongoDbCppDriverConfig);
     const pages = await dataSource.fetchPages();
 
-    console.log(pages);
+    const samplePage = pages.find((page) =>
+      page.title?.includes("Installing the mongocxx driver")
+    );
+    assert(samplePage);
+    expect(samplePage?.body).toContain("install");
   });
 });

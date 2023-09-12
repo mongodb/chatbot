@@ -9,6 +9,7 @@ import {
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
 } from "./MdOnGithbDataSource";
+import { strict as assert } from "assert";
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -271,6 +272,7 @@ const mongooseSourceConstructor = async () => {
     },
   });
 };
+
 export function mongoDbCppDriverPathToPageUrlConverter(pathInRepo: string) {
   if (pathInRepo.endsWith("_index.md")) {
     pathInRepo = pathInRepo.replace("_index.md", "index.md");
@@ -303,6 +305,51 @@ const cppSourceConstructor = async () => {
   return await makeMdOnGithubDataSource(mongoDbCppDriverConfig);
 };
 
+export const mongoDbCorpDataSourceConfig: MakeMdOnGithubDataSourceParams = {
+  name: "mongodb-corp",
+  repoUrl: "https://github.com/mongodb/docs-chatbot/",
+  repoLoaderOptions: {
+    branch: "main",
+    ignoreFiles: [/^(?!^mongodb-corp\/).*/, /^(mongodb-corp\/README\.md)$/],
+  },
+  pathToPageUrl(_, frontMatter) {
+    assert(frontMatter?.url, "frontMatter.url must be specified");
+    return frontMatter?.url as string;
+  },
+  extractMetadata(_, frontMatter) {
+    assert(frontMatter, "frontMatter must be specified");
+    const frontMatterCopy = { ...frontMatter };
+    delete frontMatterCopy.url;
+    return frontMatterCopy;
+  },
+  extractTitle: (_, frontmatter) => (frontmatter?.title as string) ?? null,
+};
+const mongoDbCorpDataSource = async () => {
+  return await makeMdOnGithubDataSource(mongoDbCorpDataSourceConfig);
+};
+
+export const practicalAggregationsConfig: MakeMdOnGithubDataSourceParams = {
+  name: "practical-aggregations-book",
+  repoUrl: "https://github.com/pkdone/practical-mongodb-aggregations-book",
+  repoLoaderOptions: {
+    branch: "main",
+    ignoreFiles: [/^(?!^src\/).*/, /^(src\/SUMMARY\.md)$/],
+  },
+  pathToPageUrl(pathInRepo) {
+    return (
+      "https://www.practical-mongodb-aggregations.com" +
+      pathInRepo.replace(/^src\//, "/").replace(/\.md$/, "")
+    );
+  },
+  metadata: {
+    bookName: "Practical MongoDB Aggregations",
+    tags: ["docs", "aggregations", "book"],
+  },
+};
+const practicalAggregationsDataSource = async () => {
+  return await makeMdOnGithubDataSource(practicalAggregationsConfig);
+};
+
 /**
   The constructors for the sources used by the docs chatbot.
  */
@@ -316,4 +363,6 @@ export const sourceConstructors: SourceConstructor[] = [
   pyMongoSourceConstructor,
   mongooseSourceConstructor,
   cppSourceConstructor,
+  mongoDbCorpDataSource,
+  practicalAggregationsDataSource,
 ];

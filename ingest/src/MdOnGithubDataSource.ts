@@ -17,7 +17,15 @@ export type MakeMdOnGithubDataSourceParams = Omit<
     pathInRepo: string,
     frontMatter?: Record<string, unknown>
   ) => string;
+  /**
+  Metadata to include with all Pages in DB.
+   */
   metadata?: PageMetadata;
+  /**
+    Front matter configuration. Looks for metadata by default.
+    @default
+    { process: true, separator: "---", format: "yaml" }
+   */
   frontMatter?: {
     /**
       Whether to process front matter. Defaults to `true`.
@@ -32,10 +40,19 @@ export type MakeMdOnGithubDataSourceParams = Omit<
      */
     format?: string;
   };
+  /**
+    Extract metadata from page content and front matter (if it exists). Added to the `Page.metadata` field.
+    If a in the result of `extractMetadata()` is the same as a key in `metadata`,
+    the `extractMetadata()` key will override it.
+   */
   extractMetadata?: (
     pageContent: string,
     frontMatter?: Record<string, unknown>
   ) => PageMetadata;
+  /**
+    Extract title from page content and front matter (if it exists). Added to the `Page.title` field.
+    If not specified, the first Markdown H1 (e.g. "# Some Title") in the page content will be used.
+   */
   extractTitle?: (
     pageContent: string,
     frontMatter?: Record<string, unknown>

@@ -8,7 +8,7 @@ import { makeAcquitRequireMdOnGithubDataSource } from "./AcquitRequireMdOnGithub
 import {
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
-} from "./MdOnGithbDataSource";
+} from "./MdOnGithubDataSource";
 import { strict as assert } from "assert";
 
 /**

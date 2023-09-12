@@ -140,21 +140,6 @@ const styles = {
 
 const MAX_INPUT_CHARACTERS = 300;
 
-type SuggestedPromptItem = {
-  key: string;
-  text: string;
-};
-
-const suggestedPrompts = [
-  { key: "deploy", text: "How do you deploy a free cluster in Atlas?" },
-  {
-    key: "import",
-    text: "How do you import or migrate data into MongoDB Atlas?",
-  },
-  { key: "get-started", text: "Get started with MongoDB" },
-  { key: "why-search", text: "Why should I use Atlas Search?" },
-] satisfies SuggestedPromptItem[];
-
 function isSender(role: Role) {
   return role === "user";
 }
@@ -177,6 +162,7 @@ export type ChatbotProps = {
   serverBaseUrl?: string;
   shouldStream?: boolean;
   darkMode?: boolean;
+  suggestedPrompts?: string[];
 };
 
 export function Chatbot(props: ChatbotProps) {
@@ -246,6 +232,7 @@ export function Chatbot(props: ChatbotProps) {
   };
 
   const showSuggestedPrompts =
+    (props.suggestedPrompts ?? []).length > 0 &&
     inputText.length === 0 &&
     conversation.messages.length === 0 &&
     !awaitingReply;
@@ -299,16 +286,16 @@ export function Chatbot(props: ChatbotProps) {
           >
             {showSuggestedPrompts ? (
               <SuggestedPrompts label="SUGGESTED AI PROMPTS">
-                {suggestedPrompts.map(suggestedPrompt => (
+                {props.suggestedPrompts?.map(suggestedPrompt => (
                   <SuggestedPrompt
-                    key={suggestedPrompt.key}
+                    key={suggestedPrompt}
                     onClick={async () => {
-                      await handleSubmit(suggestedPrompt.text);
+                      await handleSubmit(suggestedPrompt);
                     }}
                   >
-                    {suggestedPrompt.text}
+                    {suggestedPrompt}
                   </SuggestedPrompt>
-                ))}
+                )) ?? null}
               </SuggestedPrompts>
             ) : undefined}
           </InputBar>

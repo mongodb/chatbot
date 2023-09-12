@@ -24,7 +24,16 @@ function App() {
   return (
     <div className={app_background(darkMode)}>
       <div className={styles.main_content}>
-        <Chatbot shouldStream={shouldStream} darkMode={darkMode} />
+        <Chatbot
+          shouldStream={shouldStream}
+          darkMode={darkMode}
+          suggestedPrompts={[
+            "How do you deploy a free cluster in Atlas?",
+            "How do you import or migrate data into MongoDB Atlas?",
+            "Get started with MongoDB",
+            "Why should I use Atlas Search?",
+          ]}
+        />
       </div>
       <Controls>
         <ToggleControl

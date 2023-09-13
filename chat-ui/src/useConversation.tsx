@@ -334,7 +334,7 @@ export function useConversation(params: UseConversationParams = {}) {
       return;
     }
 
-    const shouldStream = canUseServerSentEvents() && params.shouldStream;
+    const shouldStream = canUseServerSentEvents() && (params.shouldStream ?? true);
 
     // Stream control
     const abortController = new AbortController();

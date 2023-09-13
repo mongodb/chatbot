@@ -28,6 +28,7 @@
     "@types/deep-equal": "^1.0.1",
     "@types/html-to-text": "^9.0.1",
     "@types/jest": "^29.5.2",
+    "@types/jsdom": "^21.1.2",
     "@types/node": "^12",
     "@types/node-fetch": "^2.6.4",
     "@types/turndown": "^5.0.2",
@@ -62,6 +63,7 @@
     "mongodb": "^5",
     "node-fetch": "^2",
     "turndown": "^7.1.2",
+    "turndown-plugin-gfm": "^1.0.2",
     "yaml": "^2.3.1",
     "yargs": "^17"
   }

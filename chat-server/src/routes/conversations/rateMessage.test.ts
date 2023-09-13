@@ -12,6 +12,7 @@ import { ObjectId } from "mongodb";
 import { makeRateMessageRoute } from "./rateMessage";
 import { CONVERSATIONS_API_V1_PREFIX } from "../../app";
 import { makeTestApp } from "../../testHelpers";
+import { AppConfig } from "../../app";
 
 jest.setTimeout(100000);
 
@@ -25,9 +26,12 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
   let testEndpointUrl: string;
   let mongodb: MongoDB;
   let ipAddress: string;
+  let appConfig: AppConfig;
 
   beforeAll(async () => {
-    ({ mongodb, app, conversations, ipAddress } = await makeTestApp());
+    ({ mongodb, app, ipAddress, appConfig } = await makeTestApp());
+    conversations = appConfig.conversationsRouterConfig.conversations;
+
     app
       .post(endpointUrl, makeRateMessageRoute({ conversations }))
       .set("X-FORWARDED-FOR", ipAddress);

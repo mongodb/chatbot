@@ -2,8 +2,7 @@ import "dotenv/config";
 
 import { stripIndent } from "common-tags";
 import { OpenAiChatMessage } from "./ChatLlm";
-import { makeOpenAiChatLlm } from "./openAiChatLlm";
-import { config } from "../config";
+import { makeTestAppConfig, systemPrompt } from "../testHelpers";
 
 jest.setTimeout(30000);
 
@@ -19,16 +18,18 @@ const chunks = [
   Serverless instances don't support connecting via certain drivers or driver versions at this time. To learn more, see Serverless Instance Limitations.`,
 ];
 const conversation = [
-  config.llm.systemPrompt,
+  systemPrompt,
   {
     role: "user",
     content: "How do I connect to my cluster?",
   },
 ] as OpenAiChatMessage[];
 
+const { appConfig: config } = makeTestAppConfig();
+
 describe("LLM", () => {
   describe("OpenAI Llm", () => {
-    const openAiLlmService = makeOpenAiChatLlm(config.llm);
+    const openAiLlmService = config.conversationsRouterConfig.llm;
     test("should answer question in conversation - awaited", async () => {
       const response = await openAiLlmService.answerQuestionAwaited({
         messages: conversation,
@@ -78,16 +79,14 @@ describe("LLM", () => {
           chunks,
         });
       await expect(response).rejects.toThrow(
-        `First message must be system prompt: ${JSON.stringify(
-          config.llm.systemPrompt
-        )}`
+        `First message must be system prompt: ${JSON.stringify(systemPrompt)}`
       );
     });
     test("should not answer if the second to last message is not assistant", async () => {
       const response = async () =>
         await openAiLlmService.answerQuestionAwaited({
           messages: [
-            config.llm.systemPrompt,
+            systemPrompt,
             {
               role: "user",
               content: "How do I connect to my cluster?",
@@ -105,7 +104,7 @@ describe("LLM", () => {
       const test = async () =>
         await openAiLlmService.answerQuestionAwaited({
           messages: [
-            config.llm.systemPrompt,
+            systemPrompt,
             {
               role: "user",
               content: "What's the capital of the United States of America?",

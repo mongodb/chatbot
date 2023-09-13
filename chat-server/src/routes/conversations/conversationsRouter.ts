@@ -3,7 +3,7 @@ import { EmbedFunc, FindNearestNeighborsOptions } from "chat-core";
 import { rateLimit, Options as RateLimitOptions } from "express-rate-limit";
 import slowDown, { Options as SlowDownOptions } from "express-slow-down";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
-import { Llm } from "../../services/ChatLlm";
+import { ChatLlm } from "../../services/ChatLlm";
 import { DataStreamer } from "../../services/dataStreamer";
 import { ConversationsService } from "../../services/conversations";
 import { EmbeddedContentStore } from "chat-core";
@@ -27,7 +27,7 @@ export interface ConversationsRateLimitConfig {
 }
 
 export interface ConversationsRouterParams {
-  llm: Llm;
+  llm: ChatLlm;
   embed: EmbedFunc;
   dataStreamer: DataStreamer;
   store: EmbeddedContentStore;

@@ -136,6 +136,7 @@ function stringifyFunctions(obj: Record<string, unknown>) {
       .map((line) => line.trim())
       .join("\n");
   }
+  // Accept objects and arrays
   if (typeof obj === "object" && obj !== null) {
     const newObj: Record<string, unknown> = {};
     for (const key in obj) {

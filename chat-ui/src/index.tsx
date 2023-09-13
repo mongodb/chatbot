@@ -2,7 +2,6 @@
 
 export { Chatbot as default } from "./Chatbot";
 export { Chatbot as DevCenterChatbot } from "./DevCenterChatbot";
-export { InputMenu, type MenuPrompt } from "./InputMenu.tsx";
 export {
   useConversation,
   type ConversationState,

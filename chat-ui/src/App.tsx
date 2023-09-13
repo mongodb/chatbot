@@ -10,6 +10,8 @@ import { Overline, Link } from "@leafygreen-ui/typography";
 import Toggle from "@leafygreen-ui/toggle";
 import { Chatbot as DevCenterChatbot } from "./DevCenterChatbot";
 
+const prefersDarkMode = () => window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+
 function App() {
   const [shouldStream, setShouldStream] = useState(canUseServerSentEvents());
   const { contextDarkMode: darkMode = false, setDarkMode } =
@@ -23,7 +25,16 @@ function App() {
   return (
     <div className={app_background(darkMode)}>
       <div className={styles.main_content}>
-        <Chatbot shouldStream={shouldStream} darkMode={darkMode} />
+        <Chatbot
+          shouldStream={shouldStream}
+          darkMode={darkMode}
+          suggestedPrompts={[
+            "How do you deploy a free cluster in Atlas?",
+            "How do you import or migrate data into MongoDB Atlas?",
+            "Get started with MongoDB",
+            "Why should I use Atlas Search?",
+          ]}
+        />
       </div>
       <DevCenterChatbot />
       <Controls>
@@ -111,7 +122,7 @@ function GitCommitLink() {
 
 export default function LGApp() {
   return (
-    <LeafyGreenProvider darkMode={false}>
+    <LeafyGreenProvider darkMode={prefersDarkMode()}>
       <App />
     </LeafyGreenProvider>
   );

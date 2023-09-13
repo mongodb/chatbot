@@ -1,6 +1,6 @@
 import { MongoDB } from "chat-core";
 import { Express } from "express";
-import { CONVERSATIONS_API_V1_PREFIX } from "../app";
+import { AppConfig, CONVERSATIONS_API_V1_PREFIX } from "../app";
 import { ConversationsService } from "../services/conversations";
 import { makeTestApp } from "../testHelpers";
 import { generateTranscript } from "./generateChatTranscript";
@@ -10,12 +10,14 @@ let mongodb: MongoDB;
 let app: Express;
 let conversations: ConversationsService;
 let ipAddress: string;
+let appConfig: AppConfig;
 const addMessageEndpoint =
   CONVERSATIONS_API_V1_PREFIX + "/:conversationId/messages?streaming=false";
 
 jest.setTimeout(20000);
 beforeAll(async () => {
-  ({ mongodb, app, conversations, ipAddress } = await makeTestApp());
+  ({ mongodb, app, appConfig, ipAddress } = await makeTestApp());
+  conversations = appConfig.conversationsRouterConfig.conversations;
 });
 afterAll(async () => {
   await mongodb?.db.dropDatabase();

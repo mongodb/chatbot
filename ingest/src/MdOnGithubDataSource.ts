@@ -18,7 +18,7 @@ export type MakeMdOnGithubDataSourceParams = Omit<
     frontMatter?: Record<string, unknown>
   ) => string;
   /**
-  Metadata to include with all Pages in DB.
+    Metadata to include with all Pages in DB.
    */
   metadata?: PageMetadata;
   /**
@@ -42,7 +42,7 @@ export type MakeMdOnGithubDataSourceParams = Omit<
   };
   /**
     Extract metadata from page content and front matter (if it exists). Added to the `Page.metadata` field.
-    If a in the result of `extractMetadata()` is the same as a key in `metadata`,
+    If a key in the returned object from `extractMetadata()` is the same as a key in `metadata`,
     the `extractMetadata()` key will override it.
    */
   extractMetadata?: (
@@ -97,7 +97,7 @@ export const makeMdOnGithubDataSource = async ({
       }
 
       // Extract metadata to use in page from page content and frontmatter (if it exists)
-      const extractedMetadata = extractMetadata
+      const extractedMetadata = extractMetadata && extractMetadata(body, frontMatterMetadata);
         ? extractMetadata(body, frontMatterMetadata)
         : {};
       const { source } = document.metadata;

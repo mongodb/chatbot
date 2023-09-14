@@ -9,21 +9,20 @@ import express, {
 import cors from "cors";
 import "dotenv/config";
 import {
-  ConversationsRateLimitConfig,
+  ConversationsRouterParams,
   makeConversationsRouter,
 } from "./routes/conversations/conversationsRouter";
-import {
-  EmbeddedContentStore,
-  EmbedFunc,
-  FindNearestNeighborsOptions,
-} from "chat-core";
-import { DataStreamer } from "./services/dataStreamer";
 import { ObjectId } from "mongodb";
-import { ConversationsService } from "./services/conversations";
 import { getRequestId, logRequest, sendErrorResponse } from "./utils";
-import { Llm } from "./services/ChatLlm";
-import { SearchBooster } from "./processors/SearchBooster";
-import { QueryPreprocessorFunc } from "./processors/QueryPreprocessorFunc";
+import { CorsOptions } from "cors";
+import { logger } from "chat-core";
+import cloneDeep from "lodash.clonedeep";
+
+export interface AppConfig {
+  conversationsRouterConfig: ConversationsRouterParams;
+  maxRequestTimeoutMs?: number;
+  corsOptions?: CorsOptions;
+}
 
 // General error handler; called at usage of next() in routes
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
@@ -76,34 +75,16 @@ export const API_V1_PREFIX = "/api/v1";
 export const CONVERSATIONS_API_V1_PREFIX = `${API_V1_PREFIX}/conversations`;
 
 export const DEFAULT_MAX_REQUEST_TIMEOUT_MS = 60000;
-export interface MakeAppParams {
-  embed: EmbedFunc;
-  store: EmbeddedContentStore;
-  dataStreamer: DataStreamer;
-  conversations: ConversationsService;
-  llm: Llm;
-  maxRequestTimeoutMs?: number;
-  maxChunkContextTokens?: number;
-  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
-  searchBoosters?: SearchBooster[];
-  userQueryPreprocessor?: QueryPreprocessorFunc;
-  corsOptions?: cors.CorsOptions;
-  rateLimitConfig?: ConversationsRateLimitConfig;
-}
-export const makeApp = async ({
-  embed,
-  dataStreamer,
-  store,
-  conversations,
-  llm,
-  maxRequestTimeoutMs = DEFAULT_MAX_REQUEST_TIMEOUT_MS,
-  maxChunkContextTokens,
-  findNearestNeighborsOptions,
-  searchBoosters,
-  userQueryPreprocessor,
-  corsOptions,
-  rateLimitConfig,
-}: MakeAppParams): Promise<Express> => {
+export const makeApp = async (config: AppConfig): Promise<Express> => {
+  const {
+    maxRequestTimeoutMs = DEFAULT_MAX_REQUEST_TIMEOUT_MS,
+    conversationsRouterConfig,
+    corsOptions,
+  } = config;
+  logger.info("Server has the following configuration:");
+  logger.info(
+    stringifyFunctions(cloneDeep(config) as unknown as Record<string, unknown>)
+  );
   const app = express();
   app.use(makeHandleTimeoutMiddleware(maxRequestTimeoutMs));
   app.set("trust proxy", true);
@@ -120,18 +101,7 @@ export const makeApp = async ({
   }
   app.use(
     CONVERSATIONS_API_V1_PREFIX,
-    makeConversationsRouter({
-      llm,
-      embed,
-      dataStreamer,
-      store,
-      conversations,
-      findNearestNeighborsOptions,
-      searchBoosters,
-      userQueryPreprocessor,
-      maxChunkContextTokens,
-      rateLimitConfig,
-    })
+    makeConversationsRouter(conversationsRouterConfig)
   );
   app.get("/health", (_req, res) => {
     const data = {
@@ -154,3 +124,25 @@ export const makeApp = async ({
 
   return app;
 };
+
+/**
+  Helper function to stringify functions when logging the config object.
+ */
+function stringifyFunctions(obj: Record<string, unknown>) {
+  if (typeof obj === "function") {
+    return (obj as (...args: any[]) => any)
+      .toString()
+      .split("\n")
+      .map((line) => line.trim())
+      .join("\n");
+  }
+  // Accept objects and arrays
+  if (typeof obj === "object" && obj !== null) {
+    const newObj: Record<string, unknown> = {};
+    for (const key in obj) {
+      newObj[key] = stringifyFunctions(obj[key] as Record<string, unknown>);
+    }
+    return newObj;
+  }
+  return obj;
+}

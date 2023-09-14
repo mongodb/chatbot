@@ -130,9 +130,6 @@ const styles = {
       width: 100%;
     }
   `,
-  chatbot_input_menu: css`
-    z-index: 1;
-  `,
   verify_information: css`
     text-align: center;
   `,

@@ -46,15 +46,6 @@ export function countRegexMatches(regex: RegExp, str: string) {
 }
 
 /**
- * Adds a period to the end of a string if it doesn't already have one.
- * @param str - the string that should end with a period
- * @returns - the string with a period at the end if it didn't already have one
- */
-export function addPeriodIfMissing(str: string) {
-  return str.endsWith(".") ? str : str + ".";
-}
-
-/**
  * Checks if the browser supports Server-Sent Events.
  * @returns true if the browser supports Server-Sent Events, false otherwise
  * @see https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events

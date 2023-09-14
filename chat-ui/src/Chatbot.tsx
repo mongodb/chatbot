@@ -133,6 +133,12 @@ const styles = {
   verify_information: css`
     text-align: center;
   `,
+  powered_by_footer: css`
+    display: flex;
+    flex-direction: row;
+    color: ${palette.gray.dark2};
+    justify-content: flex-end;
+  `,
 };
 
 const MAX_INPUT_CHARACTERS = 300;
@@ -241,6 +247,16 @@ export function Chatbot(props: ChatbotProps) {
           <InputBar
             key={"initialInput"}
             badgeText="Experimental"
+            dropdownFooterSlot={
+              <div className={styles.powered_by_footer}>
+                <Body>
+                  Powered by Atlas Vector Search{" "}
+                  <Link href="https://www.mongodb.com/products/platform/atlas-vector-search">
+                    Learn More.
+                  </Link>
+                </Body>
+              </div>
+            }
             textareaProps={{
               value: !modalOpen ? inputText : "",
               onChange: (e) => {

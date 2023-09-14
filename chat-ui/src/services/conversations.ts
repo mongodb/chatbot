@@ -192,6 +192,7 @@ export class ConversationService {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ message }),
+      openWhenHidden: true,
 
       onmessage(ev) {
         const event = JSON.parse(ev.data);

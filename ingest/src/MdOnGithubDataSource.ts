@@ -17,10 +17,12 @@ export type MakeMdOnGithubDataSourceParams = Omit<
     pathInRepo: string,
     frontMatter?: Record<string, unknown>
   ) => string;
+
   /**
     Metadata to include with all Pages in DB.
    */
   metadata?: PageMetadata;
+
   /**
     Front matter configuration. Looks for metadata by default.
     @default
@@ -31,15 +33,18 @@ export type MakeMdOnGithubDataSourceParams = Omit<
       Whether to process front matter. Defaults to `true`.
      */
     process: boolean;
+
     /**
       Separator character used by front matter. Usually "---" or "+++". Default is "---".
      */
     separator?: string;
+
     /**
       Front matter format. Usually "yaml" or "toml". Default is "yaml".
      */
     format?: string;
   };
+
   /**
     Extract metadata from page content and front matter (if it exists). Added to the `Page.metadata` field.
     If a key in the returned object from `extractMetadata()` is the same as a key in `metadata`,
@@ -49,6 +54,7 @@ export type MakeMdOnGithubDataSourceParams = Omit<
     pageContent: string,
     frontMatter?: Record<string, unknown>
   ) => PageMetadata;
+
   /**
     Extract title from page content and front matter (if it exists). Added to the `Page.title` field.
     If not specified, the first Markdown H1 (e.g. "# Some Title") in the page content will be used.
@@ -96,11 +102,20 @@ export const makeMdOnGithubDataSource = async ({
         body = extracted.body;
       }
 
-      // Extract metadata to use in page from page content and frontmatter (if it exists)
-      const extractedMetadata =
-        extractMetadata && extractMetadata(body, frontMatterMetadata);
-
       const { source } = document.metadata;
+      // Extract metadata to use in page from page content and frontmatter (if it exists)
+      let extractedMetadata: PageMetadata | undefined;
+      try {
+        extractedMetadata =
+          extractMetadata && extractMetadata(body, frontMatterMetadata);
+      } catch (err) {
+        console.error(
+          `The following error occurred when extracting  metadata from the page '${source}: ${JSON.stringify(
+            err
+          )}'`
+        );
+      }
+
       const url = pathToPageUrl(source, frontMatterMetadata);
       const page: Page = {
         body: removeMarkdownImagesAndLinks(body),

@@ -9,7 +9,6 @@ import {
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
 } from "./MdOnGithubDataSource";
-import { strict as assert } from "assert";
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -313,11 +312,15 @@ export const mongoDbCorpDataSourceConfig: MakeMdOnGithubDataSourceParams = {
     ignoreFiles: [/^(?!^mongodb-corp\/).*/, /^(mongodb-corp\/README\.md)$/],
   },
   pathToPageUrl(_, frontMatter) {
-    assert(frontMatter?.url, "frontMatter.url must be specified");
+    if (!frontMatter?.url) {
+      throw new Error("frontMatter.url must be specified");
+    }
     return frontMatter?.url as string;
   },
   extractMetadata(_, frontMatter) {
-    assert(frontMatter, "frontMatter must be specified");
+    if (!frontMatter) {
+      throw new Error("frontMatter must be specified");
+    }
     const frontMatterCopy = { ...frontMatter };
     delete frontMatterCopy.url;
     return frontMatterCopy;

@@ -48,15 +48,16 @@ export const makeAcquitRequireMdOnGithubDataSource = async ({
    */
   acquitCodeBlockLanguageReplacement?: string;
 }) => {
-  let testsPromise: Promise<string[]> | null = null;
+  let testsPromise: Promise<string[]> | undefined;
   const getLazyLoadedTests = async () => {
     if (!testsPromise) {
+      logger.info("Loading acquit tests from GitHub repo");
       testsPromise = getAcquitTestsFromGithubRepo(
         repoUrl,
         testFileLoaderOptions
       );
     }
-    return await testsPromise;
+    return testsPromise;
   };
 
   return makeGitHubDataSource({

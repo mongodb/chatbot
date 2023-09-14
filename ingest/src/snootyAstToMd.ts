@@ -66,10 +66,17 @@ const renderAst = (node: SnootyNode, state: RenderState): string => {
         .map((child) => renderAst(child, { parentHeadingLevel }))
         .join("")}\n\n`;
 
-    case "list":
+    case "list": {
+      const isOrderedList = node.enumtype === "arabic";
       return node.children
-        .map((listItem) => renderAst(listItem, { parentHeadingLevel }))
+        .map((listItem, index) =>
+          renderAst(listItem, {
+            parentHeadingLevel,
+            listBullet: isOrderedList ? `${index + 1}.` : "-",
+          })
+        )
         .join("\n");
+    }
 
     case "listItem":
       return `${listBullet} ${node.children

@@ -1,4 +1,4 @@
-import { Page } from "chat-core";
+import { Page, logger } from "chat-core";
 import TurndownService from "turndown";
 import * as turndownPluginGfm from "turndown-plugin-gfm";
 import { JSDOM } from "jsdom";
@@ -23,9 +23,12 @@ export type HandleHtmlPageFuncOptions = HandlePageFuncOptions & {
 
   /** Extract `Page.title` from page content and path. */
   extractTitle?: (domDoc: Document) => string | undefined;
+
+  /** Transform Markdown once it's been generated */
+  postProcessMarkdown?: (markdown: string) => Promise<string>;
 };
 
-export function handleHtmlDocument(
+export async function handleHtmlDocument(
   path: string,
   content: string,
   options: HandleHtmlPageFuncOptions
@@ -37,6 +40,7 @@ export function handleHtmlDocument(
     metadata,
     pathToPageUrl,
     sourceName,
+    postProcessMarkdown,
   } = options;
   const turndownService = new TurndownService({
     codeBlockStyle: "fenced",
@@ -45,7 +49,7 @@ export function handleHtmlDocument(
   });
   turndownService.use(turndownPluginGfm.gfm);
 
-  console.log(`Processing ${path}`);
+  logger.info(`Processing ${path}`);
   const dom = new JSDOM(content);
   const { document: domDocument } = dom.window;
 
@@ -59,9 +63,10 @@ export function handleHtmlDocument(
   elementsToRemove.forEach((el) => el.parentNode?.removeChild(el));
 
   // TODO: wrap with link/image stripper...have to do on top of other PR
-  const body = removeMarkdownImagesAndLinks(
+  let body = removeMarkdownImagesAndLinks(
     turndownService.turndown(domDocument.body)
   );
+  body = postProcessMarkdown ? await postProcessMarkdown(body) : body;
   const page: Page = {
     sourceName,
     format: "md",

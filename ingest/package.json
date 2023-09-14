@@ -60,6 +60,7 @@
     "exponential-backoff": "^3.1.1",
     "front-matter": "^4.0.2",
     "gpt3-tokenizer": "^1.1.5",
+    "html-to-text": "^9.0.5",
     "ignore": "^5.2.4",
     "jsdom": "^22.1.0",
     "langchain": "^0.0.148",

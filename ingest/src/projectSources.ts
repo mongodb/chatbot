@@ -346,13 +346,14 @@ const libmongocHtmlParserOptions: Omit<
     ...domDoc.querySelectorAll('[role="search"]'),
     ...domDoc.querySelectorAll(".sphinxsidebar"),
   ],
+  postProcessMarkdown: async (markdown: string) => markdown.replaceAll("¶", ""),
 };
 
 const libmongocVersion = "1.24.4";
 export const libmongocSourceConstructor = async () => {
   return await makeGitDataSource({
-    name: "scala",
-    repoUri: "https://github.com/mongodb/mongo-java-driver.git",
+    name: "c",
+    repoUri: "https://github.com/mongodb/mongo-c-driver.git",
     repoOptions: {
       "--depth": 1,
       "--branch": "gh-pages",
@@ -363,9 +364,10 @@ export const libmongocSourceConstructor = async () => {
       tags: ["docs", "driver", "c", "clang", "libmongoc"],
     },
     filter: (path: string) =>
-      path.includes(`mongo-c-driver/libmongoc/${libmongocVersion}/`) &&
+      path.includes(`libmongoc/${libmongocVersion}/`) &&
       path.endsWith(".html") &&
-      !path.includes("mongoc_"), // do not include the generated reference docs
+      !path.includes("mongoc_") && // do not include the generated reference docs
+      !path.includes("search.html"), // do not include the search page
     handlePage: async (path, content, options) =>
       await handleHtmlDocument(path, content, {
         ...options,

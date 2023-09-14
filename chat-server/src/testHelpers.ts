@@ -1,75 +1,43 @@
-import {
-  MongoDB,
-  makeOpenAiEmbedFunc,
-  FindNearestNeighborsOptions,
-  makeDatabaseConnection,
-} from "chat-core";
-
-import { makeOpenAiChatLlm } from "./services/openAiChatLlm";
-import { makeDataStreamer } from "./services/dataStreamer";
+import { MongoDB } from "chat-core";
+import { AppConfig, makeApp } from "./app";
+import { MONGODB_CONNECTION_URI, config, systemPrompt } from "./config";
 import { makeConversationsService } from "./services/conversations";
-import { MakeAppParams, makeApp } from "./app";
-import { config as conf } from "./config";
+
+export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
+  const testDbName = `conversations-test-${Date.now()}`;
+  const mongodb = new MongoDB(MONGODB_CONNECTION_URI, testDbName);
+  const conversations = makeConversationsService(mongodb.db, systemPrompt);
+  const appConfig: AppConfig = {
+    ...config,
+    conversationsRouterConfig: {
+      ...config.conversationsRouterConfig,
+      conversations,
+    },
+    ...(defaultConfigOverrides ?? {}),
+  };
+  return { appConfig, mongodb, systemPrompt };
+}
 
 /**
   Helper function to quickly make an app for testing purposes.
   @param defaultConfigOverrides - optional overrides for default app config
  */
-export async function makeTestApp(
-  defaultConfigOverrides?: Partial<MakeAppParams>
-) {
+export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
   // ip address for local host
   const ipAddress = "127.0.0.1";
 
-  // set up embeddings service
-  const embed = makeOpenAiEmbedFunc(conf.embed);
-
-  // set up llm service
-  const llm = makeOpenAiChatLlm(conf.llm);
-  const dataStreamer = makeDataStreamer();
-
-  const store = await makeDatabaseConnection(conf.embeddedContentStore);
-
-  const findNearestNeighborsOptions: Partial<FindNearestNeighborsOptions> =
-    conf.findNearestNeighborsOptions;
-
-  const testDbName = `conversations-test-${Date.now()}`;
-  const mongodb = new MongoDB(conf.mongodb.connectionUri, testDbName);
-  const searchBoosters = conf.conversations!.searchBoosters;
-  const userQueryPreprocessor = conf.conversations!.userQueryPreprocessor;
-
-  const conversations = makeConversationsService(
-    mongodb.db,
-    conf.llm.systemPrompt
+  const { appConfig, systemPrompt, mongodb } = makeTestAppConfig(
+    defaultConfigOverrides
   );
-  const defaultAppConfig = {
-    conversations,
-    dataStreamer,
-    embed,
-    findNearestNeighborsOptions,
-    llm,
-    store,
-    searchBoosters,
-    userQueryPreprocessor,
-  };
-  const appConfig = {
-    ...defaultAppConfig,
-    ...(defaultConfigOverrides ?? {}),
-  };
   const app = await makeApp(appConfig);
 
   return {
     ipAddress,
-    embed,
-    llm,
-    dataStreamer,
-    findNearestNeighborsOptions,
-    mongodb,
-    store,
-    conversations,
     appConfig,
     app,
-    searchBoosters,
-    userQueryPreprocessor,
+    mongodb,
+    systemPrompt,
   };
 }
+
+export { systemPrompt, generateUserPrompt } from "./config";

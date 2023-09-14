@@ -21,7 +21,7 @@ import {
 } from "../../services/conversations";
 import { DataStreamer } from "../../services/dataStreamer";
 import {
-  Llm,
+  ChatLlm,
   OpenAiChatMessage,
   OpenAiMessageRole,
 } from "../../services/ChatLlm";
@@ -67,7 +67,7 @@ export interface AddMessageToConversationRouteParams {
   store: EmbeddedContentStore;
   conversations: ConversationsService;
   embed: EmbedFunc;
-  llm: Llm;
+  llm: ChatLlm;
   dataStreamer: DataStreamer;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
   searchBoosters?: SearchBooster[];

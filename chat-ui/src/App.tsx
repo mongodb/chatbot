@@ -31,7 +31,7 @@ function App() {
           suggestedPrompts={[
             "How do you deploy a free cluster in Atlas?",
             "How do you import or migrate data into MongoDB Atlas?",
-            "Get started with MongoDB",
+            "How do I get started with MongoDB?",
             "Why should I use Atlas Search?",
           ]}
         />

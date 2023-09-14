@@ -1,52 +1,23 @@
 import express, { Express } from "express";
 import request from "supertest";
-import {
-  EmbeddedContentStore,
-  MongoDB,
-  makeDatabaseConnection,
-  makeOpenAiEmbedFunc,
-} from "chat-core";
 import { errorHandler, makeApp, makeHandleTimeoutMiddleware } from "./app";
-import { makeConversationsService } from "./services/conversations";
-import { makeDataStreamer } from "./services/dataStreamer";
-import { makeOpenAiChatLlm } from "./services/openAiChatLlm";
-import { config } from "./config";
 
-const ipAddress = "127.0.0.1";
+import { makeTestAppConfig } from "./testHelpers";
 
 describe("App", () => {
-  // Create instances of services
-  const mongodb = new MongoDB(
-    config.mongodb.connectionUri,
-    config.mongodb.databaseName,
-    config.mongodb.vectorSearchIndexName
-  );
-
-  const conversations = makeConversationsService(
-    mongodb.db,
-    config.llm.systemPrompt
-  );
-  const dataStreamer = makeDataStreamer();
-
-  const embed = makeOpenAiEmbedFunc(config.embed);
-
-  const llm = makeOpenAiChatLlm(config.llm);
-
-  let store: EmbeddedContentStore;
   let app: Express;
   beforeAll(async () => {
-    store = await makeDatabaseConnection(config.embeddedContentStore);
+    const { appConfig } = makeTestAppConfig();
     app = await makeApp({
-      embed,
-      store,
-      conversations,
-      dataStreamer,
-      llm,
-      findNearestNeighborsOptions: {
-        indexName: "default",
-        path: "embedding",
-        k: 3,
-        minScore: 0.9,
+      ...appConfig,
+      conversationsRouterConfig: {
+        ...appConfig.conversationsRouterConfig,
+        findNearestNeighborsOptions: {
+          indexName: "default",
+          path: "embedding",
+          k: 3,
+          minScore: 0.9,
+        },
       },
       corsOptions: {
         origin: ["http://localhost:3000", "http://example.com"],

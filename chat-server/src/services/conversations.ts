@@ -1,5 +1,7 @@
-import { ObjectId, Db, References } from "chat-core";
 import { OpenAiChatMessage, OpenAiMessageRole, SystemPrompt } from "./ChatLlm";
+import { ObjectId, Db } from "mongodb";
+import { References } from "chat-core";
+
 export interface Message {
   /** Unique identifier for the message. */
   id: ObjectId;

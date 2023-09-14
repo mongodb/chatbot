@@ -86,7 +86,7 @@ describe("makePreprocessMongoDbUserQuery()", () => {
     expect(mongoDbProducts[0]).toBe("Atlas Charts");
   });
   test("should be aware of MongoDB", async () => {
-    const query = "ruby lookup example";
+    const query = "node.js lookup example";
     const messages: QueryPreprocessorMessage[] = [];
     const response = await preprocessMongoDbUserQuery({
       query,
@@ -95,8 +95,8 @@ describe("makePreprocessMongoDbUserQuery()", () => {
     expect(response.query).toContain("MongoDB");
     expect(response.query).toContain("look");
     expect(response.query).toContain("up");
-    expect(response.query).toContain("Ruby");
-    expect(response.programmingLanguages[0]).toBe("ruby");
+    expect(response.query).toContain("Node");
+    expect(response.programmingLanguages[0]).toBe("javascript");
   });
   test("should respond 'DO_NOT_ANSWER' if the query is gibberish", async () => {
     const query = "asdf dasgsd";

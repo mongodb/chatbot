@@ -1,53 +1,28 @@
+/**
+  @fileoverview This file contains the implementation of the MongoDB Docs AI chat server.
+ */
 import "dotenv/config";
 import { makeApp } from "./app";
-import {
-  logger,
-  MongoDB,
-  makeDatabaseConnection,
-  makeOpenAiEmbedFunc,
-} from "chat-core";
-import { makeConversationsService } from "./services/conversations";
-import { makeDataStreamer } from "./services/dataStreamer";
-import { makeOpenAiChatLlm } from "./services/openAiChatLlm";
-import { config } from "./config";
+import { logger } from "chat-core";
+import { CORE_ENV_VARS, assertEnvVars } from "chat-core";
+export const {
+  MONGODB_CONNECTION_URI,
+  MONGODB_DATABASE_NAME,
+  VECTOR_SEARCH_INDEX_NAME,
+  OPENAI_ENDPOINT,
+  OPENAI_API_KEY,
+  OPENAI_EMBEDDING_DEPLOYMENT,
+  OPENAI_EMBEDDING_MODEL_VERSION,
+  OPENAI_CHAT_COMPLETION_MODEL_VERSION,
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+} = assertEnvVars(CORE_ENV_VARS);
+import { config, mongodb, embeddedContentStore } from "./config";
 
 const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {
-  // Create instances of services
-  const mongodb = new MongoDB(
-    config.mongodb.connectionUri,
-    config.mongodb.databaseName,
-    config.mongodb.vectorSearchIndexName
-  );
-
-  const conversations = makeConversationsService(
-    mongodb.db,
-    config.llm.systemPrompt
-  );
-
-  const dataStreamer = makeDataStreamer();
-
-  const store = await makeDatabaseConnection(config.embeddedContentStore);
-
-  const embed = makeOpenAiEmbedFunc(config.embed);
-
-  const llm = makeOpenAiChatLlm(config.llm);
-
-  const app = await makeApp({
-    embed,
-    store,
-    conversations,
-    dataStreamer,
-    llm,
-    findNearestNeighborsOptions: config.findNearestNeighborsOptions,
-    searchBoosters: config.conversations?.searchBoosters,
-    userQueryPreprocessor: config.conversations?.userQueryPreprocessor,
-    rateLimitConfig: config.conversations?.rateLimitConfig,
-    maxRequestTimeoutMs: config.maxRequestTimeoutMs,
-    corsOptions: config.corsOptions,
-  });
-
+  logger.info("Starting server...");
+  const app = await makeApp(config);
   const server = app.listen(PORT, () => {
     logger.info(`Server listening on port: ${PORT}`);
   });
@@ -55,7 +30,7 @@ const startServer = async () => {
   process.on("SIGINT", async () => {
     logger.info("SIGINT signal received");
     await mongodb.close();
-    await store.close();
+    await embeddedContentStore.close();
     await new Promise<void>((resolve, reject) => {
       server.close((error) => {
         error ? reject(error) : resolve();

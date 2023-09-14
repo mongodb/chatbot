@@ -336,10 +336,7 @@ const libmongocHtmlParserOptions: Omit<
   "sourceName"
 > = {
   pathToPageUrl: (pathInRepo: string) =>
-    `https://mongoc.org/libmongoc/1.24.4${pathInRepo}`.replace(
-      /index\.html$/,
-      ""
-    ),
+    `https://mongoc.org${pathInRepo}`.replace(/index\.html$/, ""),
   removeElements: (domDoc: Document) => [
     ...domDoc.querySelectorAll("head"),
     ...domDoc.querySelectorAll('[role="navigation"]'),

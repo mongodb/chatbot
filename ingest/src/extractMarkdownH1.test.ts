@@ -15,7 +15,7 @@ Some content
 
 Some content`;
     const h1 = extractMarkdownH1(page);
-    expect(h1).toEqual(null);
+    expect(h1).toBeUndefined();
   });
   it("finds H1 not at top of page", () => {
     const page = `## H2

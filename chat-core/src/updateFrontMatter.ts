@@ -1,4 +1,4 @@
-import frontmatter from "front-matter";
+import { extractFrontMatter } from "./extractFrontMatter";
 import yaml from "yaml";
 
 export function updateFrontMatter(
@@ -11,17 +11,4 @@ export function updateFrontMatter(
     ...metadataIn,
   };
   return ["---", yaml.stringify(metadata).trim(), "---", "", body].join("\n");
-}
-
-export function extractFrontMatter(text: string): {
-  metadata?: Record<string, unknown>;
-  body: string;
-} {
-  const frontmatterResult = frontmatter.test(text)
-    ? frontmatter(text)
-    : undefined;
-  return {
-    metadata: frontmatterResult?.attributes as Record<string, unknown>,
-    body: frontmatterResult?.body ?? text,
-  };
 }

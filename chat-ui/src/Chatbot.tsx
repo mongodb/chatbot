@@ -21,7 +21,6 @@ import {
   Message,
   MessageContent as LGChatMessageContent,
   MessageContentProps,
-
 } from "@lg-chat/message";
 import { MessageFeed } from "@lg-chat/message-feed";
 import { MessageRatingProps } from "@lg-chat/message-rating";
@@ -234,13 +233,15 @@ export function Chatbot(props: ChatbotProps) {
     conversation.messages.length === 0 &&
     !awaitingReply;
 
+  const [initialInputFocused, setInitialInputFocused] = useState(false);
+
   return (
     <LeafyGreenProvider darkMode={darkMode}>
       <div className={styles.chatbot_container}>
         <div className={styles.chatbot_input}>
           <InputBar
             key={"initialInput"}
-            badgeText="Experimental"
+            badgeText={(initialInputFocused || inputText.length > 0) ? undefined : "Experimental"}
             textareaProps={{
               value: !modalOpen ? inputText : "",
               onChange: (e) => {
@@ -280,10 +281,16 @@ export function Chatbot(props: ChatbotProps) {
                 await conversation.createConversation();
               }
             }}
+            onFocus={() => {
+              setInitialInputFocused(true);
+            }}
+            onBlur={() => {
+              setInitialInputFocused(false);
+            }}
           >
             {showSuggestedPrompts ? (
               <SuggestedPrompts label="SUGGESTED AI PROMPTS">
-                {props.suggestedPrompts?.map(suggestedPrompt => (
+                {props.suggestedPrompts?.map((suggestedPrompt) => (
                   <SuggestedPrompt
                     key={suggestedPrompt}
                     onClick={async () => {

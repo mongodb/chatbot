@@ -21,5 +21,4 @@ export function extractMarkdownH1(mdContent: string) {
     const title = matches[0].replace("# ", "");
     return title;
   }
-  return null;
 }

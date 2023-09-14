@@ -48,10 +48,16 @@ export const makeAcquitRequireMdOnGithubDataSource = async ({
    */
   acquitCodeBlockLanguageReplacement?: string;
 }) => {
-  const tests = await getAcquitTestsFromGithubRepo(
-    repoUrl,
-    testFileLoaderOptions
-  );
+  let testsPromise: Promise<string[]> | null = null;
+  const getLazyLoadedTests = async () => {
+    if (!testsPromise) {
+      testsPromise = getAcquitTestsFromGithubRepo(
+        repoUrl,
+        testFileLoaderOptions
+      );
+    }
+    return await testsPromise;
+  };
 
   return makeGitHubDataSource({
     name,
@@ -64,6 +70,7 @@ export const makeAcquitRequireMdOnGithubDataSource = async ({
       ],
     },
     async handleDocumentInRepo(document) {
+      const tests = await getLazyLoadedTests();
       const { source } = document.metadata;
       const url = pathToPageUrl(source);
       const body = removeMarkdownImagesAndLinks(
@@ -97,7 +104,7 @@ export async function getAcquitTestsFromGithubRepo(
   const tests = testFiles
     .map((test) => {
       try {
-        return acquit.parse(test.pageContent);
+        return acquit.parse(test.pageContent) as string;
       } catch (_err) {
         logger.error("Error parsing acquit tests for file", test.metadata);
         return [];

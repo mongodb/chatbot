@@ -56,7 +56,7 @@ export type MakeMdOnGithubDataSourceParams = Omit<
   extractTitle?: (
     pageContent: string,
     frontMatter?: Record<string, unknown>
-  ) => string | null;
+  ) => string | undefined;
 };
 /**
   Loads an .md docs site from a GitHub repo.
@@ -97,9 +97,9 @@ export const makeMdOnGithubDataSource = async ({
       }
 
       // Extract metadata to use in page from page content and frontmatter (if it exists)
-      const extractedMetadata = extractMetadata && extractMetadata(body, frontMatterMetadata);
-        ? extractMetadata(body, frontMatterMetadata)
-        : {};
+      const extractedMetadata =
+        extractMetadata && extractMetadata(body, frontMatterMetadata);
+
       const { source } = document.metadata;
       const url = pathToPageUrl(source, frontMatterMetadata);
       const page: Page = {

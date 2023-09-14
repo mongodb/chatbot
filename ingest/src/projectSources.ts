@@ -299,7 +299,7 @@ export const mongoDbCppDriverConfig: MakeMdOnGithubDataSourceParams = {
     separator: "+++",
     format: "toml",
   },
-  extractTitle: (_, frontmatter) => frontmatter?.title,
+  extractTitle: (_, frontmatter) => frontmatter?.title as string,
 };
 const cppSourceConstructor = async () => {
   return await makeMdOnGithubDataSource(mongoDbCppDriverConfig);

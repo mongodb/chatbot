@@ -330,6 +330,49 @@ export const scalaSourceConstructor = async () => {
       }),
   });
 };
+
+const libmongocHtmlParserOptions: Omit<
+  HandleHtmlPageFuncOptions,
+  "sourceName"
+> = {
+  pathToPageUrl: (pathInRepo: string) =>
+    `https://mongoc.org/libmongoc/1.24.4${pathInRepo}`.replace(
+      /index\.html$/,
+      ""
+    ),
+  removeElements: (domDoc: Document) => [
+    ...domDoc.querySelectorAll("head"),
+    ...domDoc.querySelectorAll('[role="navigation"]'),
+    ...domDoc.querySelectorAll('[role="search"]'),
+    ...domDoc.querySelectorAll(".sphinxsidebar"),
+  ],
+};
+
+const libmongocVersion = "1.24.4";
+export const libmongocSourceConstructor = async () => {
+  return await makeGitDataSource({
+    name: "scala",
+    repoUri: "https://github.com/mongodb/mongo-java-driver.git",
+    repoOptions: {
+      "--depth": 1,
+      "--branch": "gh-pages",
+    },
+    metadata: {
+      productName: "C Driver (libmongoc)",
+      version: `${libmongocVersion} (current)`,
+      tags: ["docs", "driver", "c", "clang", "libmongoc"],
+    },
+    filter: (path: string) =>
+      path.includes(`mongo-c-driver/libmongoc/${libmongocVersion}/`) &&
+      path.endsWith(".html") &&
+      !path.includes("mongoc_"), // do not include the generated reference docs
+    handlePage: async (path, content, options) =>
+      await handleHtmlDocument(path, content, {
+        ...options,
+        ...libmongocHtmlParserOptions,
+      }),
+  });
+};
 /**
   The constructors for the sources used by the docs chatbot.
  */
@@ -343,4 +386,5 @@ export const sourceConstructors: SourceConstructor[] = [
   pyMongoSourceConstructor,
   javaReactiveStreamsSourceConstructor,
   scalaSourceConstructor,
+  libmongocSourceConstructor,
 ];

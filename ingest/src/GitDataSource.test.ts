@@ -1,4 +1,4 @@
-import { makeGitDataSource, HandlePageParams } from "./GitDataSource";
+import { makeGitDataSource } from "./GitDataSource";
 jest.setTimeout(60000);
 describe("GitDataSource", () => {
   it("should load and process a real repo", async () => {
@@ -13,14 +13,16 @@ describe("GitDataSource", () => {
         path.endsWith(".html") &&
         path.includes("4.10") &&
         path.includes("driver-reactive"),
-      handlePageOptions: {},
-      handlePage: async (params: HandlePageParams) => [
+      metadata: {
+        foo: "bar",
+      },
+      handlePage: async (path, content, options) => [
         {
-          sourceName: "sample",
-          url: params.path,
+          sourceName: options.sourceName,
+          url: "https://example.com/" + path,
           title: "sample",
           body: "sample",
-          metadata: {},
+          metadata: options.metadata,
           format: "md",
         },
       ],

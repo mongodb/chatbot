@@ -4,6 +4,11 @@ import { makeRstOnGitHubDataSource } from "./RstOnGitHubDataSource";
 import { DataSource } from "./DataSource";
 import { makeDevCenterDataSource } from "./DevCenterDataSource";
 import { prepareSnootySources } from "./SnootyProjectsInfo";
+import { makeGitDataSource } from "./GitDataSource";
+import {
+  HandleHtmlPageFuncOptions,
+  handleHtmlDocument,
+} from "./handleHtmlDocument";
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -236,6 +241,95 @@ export const pyMongoSourceConstructor = async () => {
   });
 };
 
+const jvmDriversVersion = "4.10";
+const jvmDriversHtmlToRemove = (domDoc: Document) => [
+  ...domDoc.querySelectorAll("head"),
+  ...domDoc.querySelectorAll("script"),
+  ...domDoc.querySelectorAll("noscript"),
+  ...domDoc.querySelectorAll(".sidebar"),
+  ...domDoc.querySelectorAll(".edit-link"),
+  ...domDoc.querySelectorAll(".toc"),
+  ...domDoc.querySelectorAll(".nav-items"),
+  ...domDoc.querySelectorAll(".bc"),
+];
+const jvmDriversExtractTitle = (domDoc: Document) => {
+  const title = domDoc.querySelector("title");
+  return title?.textContent ?? undefined;
+};
+const javaReactiveStreamsHtmlParserOptions: Omit<
+  HandleHtmlPageFuncOptions,
+  "sourceName"
+> = {
+  pathToPageUrl: (pathInRepo: string) =>
+    `https://mongodb.github.io/mongo-java-driver${pathInRepo}`.replace(
+      /index\.html$/,
+      ""
+    ),
+  removeElements: jvmDriversHtmlToRemove,
+  extractTitle: jvmDriversExtractTitle,
+};
+
+export const javaReactiveStreamsSourceConstructor = async () => {
+  return await makeGitDataSource({
+    name: "java-reactive-streams",
+    repoUri: "https://github.com/mongodb/mongo-java-driver.git",
+    repoOptions: {
+      "--depth": 1,
+      "--branch": "gh-pages",
+    },
+    metadata: {
+      productName: "Java Reactive Streams Driver",
+      version: jvmDriversVersion + " (current)",
+      tags: ["docs", "driver", "java", "java-reactive-streams"],
+    },
+    filter: (path: string) =>
+      path.endsWith(".html") &&
+      path.includes(jvmDriversVersion) &&
+      path.includes("driver-reactive") &&
+      !path.includes("apidocs"),
+    handlePage: async (path, content, options) =>
+      await handleHtmlDocument(path, content, {
+        ...options,
+        ...javaReactiveStreamsHtmlParserOptions,
+      }),
+  });
+};
+
+const scalaHtmlParserOptions: Omit<HandleHtmlPageFuncOptions, "sourceName"> = {
+  pathToPageUrl: (pathInRepo: string) =>
+    `https://mongodb.github.io/mongo-java-driver${pathInRepo}`.replace(
+      /index\.html$/,
+      ""
+    ),
+  removeElements: jvmDriversHtmlToRemove,
+  extractTitle: jvmDriversExtractTitle,
+};
+
+export const scalaSourceConstructor = async () => {
+  return await makeGitDataSource({
+    name: "scala",
+    repoUri: "https://github.com/mongodb/mongo-java-driver.git",
+    repoOptions: {
+      "--depth": 1,
+      "--branch": "gh-pages",
+    },
+    metadata: {
+      productName: "Scala Driver",
+      version: jvmDriversVersion + " (current)",
+      tags: ["docs", "driver", "scala"],
+    },
+    filter: (path: string) =>
+      path.endsWith(".html") &&
+      path.includes(jvmDriversVersion) &&
+      path.includes("driver-scala") &&
+      !path.includes("apidocs"),
+    handlePage: async (path, content, options) =>
+      await handleHtmlDocument(path, content, {
+        ...options,
+        ...scalaHtmlParserOptions,
+      }),
+  });
+};
 /**
   The constructors for the sources used by the docs chatbot.
  */
@@ -247,4 +341,6 @@ export const sourceConstructors: SourceConstructor[] = [
     }),
   () => makeDevCenterDataSource(devCenterProjectConfig),
   pyMongoSourceConstructor,
+  javaReactiveStreamsSourceConstructor,
+  scalaSourceConstructor,
 ];

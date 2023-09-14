@@ -2,7 +2,7 @@ import simpleGit, { TaskOptions } from "simple-git";
 import fs from "fs";
 import path from "path";
 import os from "os";
-import rimraf from "rimraf";
+import { rimrafSync } from "rimraf";
 import { Page, logger } from "chat-core";
 import { DataSource } from "./DataSource";
 
@@ -52,10 +52,9 @@ export interface MakeGitDataSourceParams {
   filter: FilterFunc;
 
   /**
-    Options for `handlePage` function. You do not need to pass `sourceName` here
-    because it's passed automatically from the `name` property.
-  */
-  handlePageOptions: Omit<HandlePageFuncOptions, "sourceName">;
+    Metadata to be included in all pages.
+   */
+  metadata?: Record<string, unknown>; // TODO: replace with PageMetadata when other PR is merged
 
   handlePage: HandlePageFunc;
 }
@@ -67,9 +66,9 @@ export function makeGitDataSource({
   name,
   handlePage,
   filter,
+  metadata,
   repoUri,
   repoOptions,
-  handlePageOptions,
 }: MakeGitDataSourceParams): DataSource {
   return {
     name,
@@ -89,7 +88,10 @@ export function makeGitDataSource({
       });
       const pagesPromises = Object.entries(pathsAndContents).map(
         ([path, content]) =>
-          handlePage(path, content, { ...handlePageOptions, sourceName: name })
+          handlePage(path, content, {
+            metadata,
+            sourceName: name,
+          })
       );
       const fulfilledPromises = (
         await Promise.allSettled(pagesPromises)
@@ -98,7 +100,7 @@ export function makeGitDataSource({
       ) as PromiseFulfilledResult<Page | Page[]>[];
       const pages = fulfilledPromises.map(({ value }) => value).flat(1);
 
-      rimraf.sync(randomTmpDir);
+      rimrafSync(randomTmpDir);
       logger.info(`Deleted ${randomTmpDir}`);
       return pages;
     },
@@ -131,11 +133,15 @@ export async function getRepoLocally({
 }) {
   const git = simpleGit();
   logger.info(
-    `Started cloning ${repoPath} to ${localPath} with options ${options}`
+    `Started cloning ${repoPath} to ${localPath} with options ${JSON.stringify(
+      options
+    )}`
   );
   await git.clone(repoPath, localPath, options);
   logger.info(
-    `Successfully cloned ${repoPath} to ${localPath} with options ${options}`
+    `Successfully cloned ${repoPath} to ${localPath} with options ${JSON.stringify(
+      options
+    )}`
   );
 }
 
@@ -173,7 +179,7 @@ export async function getRelevantFilesAsStrings({
   const pathsAndContents: Record<string, string> = {};
   paths.forEach((path) => {
     const content = fs.readFileSync(path, "utf8");
-    pathsAndContents[path] = content;
+    pathsAndContents[path.replace(directoryPath, "")] = content;
   });
   return pathsAndContents;
 }

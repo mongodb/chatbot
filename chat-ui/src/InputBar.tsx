@@ -7,6 +7,7 @@ import {
 } from "@lg-chat/input-bar";
 import { forwardRef } from "react";
 export { SuggestedPrompts, SuggestedPrompt } from "@lg-chat/input-bar";
+import { type StylesProps } from "./utils";
 
 const styles = {
   chatbot_input_error_border: css`

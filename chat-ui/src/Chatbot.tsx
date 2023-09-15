@@ -84,6 +84,10 @@ const styles = {
     & div[role="dialog"] {
       padding: 0;
       background: ${darkMode ? palette.black : palette.gray.light3};
+
+      > button {
+        top: 14px;
+      }
     }
 
     @media screen and (max-width: 1024px) {
@@ -403,6 +407,7 @@ function ChatbotModal({
       size="large"
       initialFocus={`#${ActiveInputBarId}`}
       shouldClose={shouldClose}
+
     >
       <LeafyGreenChatProvider>
         <ChatWindow

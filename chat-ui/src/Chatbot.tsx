@@ -118,6 +118,7 @@ const styles = {
   // This is a hacky fix for weird white-space issues in LG Chat.
   markdown_container: css`
     display: flex;
+    overflow-wrap: anywhere;
     flex-direction: column;
 
     & * {
@@ -150,6 +151,7 @@ const styles = {
     flex-direction: row;
     color: ${palette.gray.dark2};
     justify-content: flex-end;
+    padding-right: 24px;
   `,
 };
 
@@ -265,8 +267,11 @@ export function Chatbot(props: ChatbotProps) {
             dropdownFooterSlot={
               <div className={styles.powered_by_footer}>
                 <Body>
-                  Powered by Atlas Vector Search{" "}
-                  <Link href="https://www.mongodb.com/products/platform/atlas-vector-search">
+                  Powered by Atlas Vector Search.{" "}
+                  <Link
+                    href="https://www.mongodb.com/products/platform/atlas-vector-search"
+                    hideExternalIcon
+                  >
                     Learn More.
                   </Link>
                 </Body>
@@ -575,12 +580,12 @@ function ChatbotModal({
 
 function LegalDisclosure() {
   const TermsOfUse = () => (
-    <Link href={"https://www.mongodb.com/legal/terms-of-use"}>
+    <Link hideExternalIcon href={"https://www.mongodb.com/legal/terms-of-use"}>
       Terms of Use
     </Link>
   );
   const AcceptableUsePolicy = () => (
-    <Link href={"https://www.mongodb.com/legal/acceptable-use-policy"}>
+    <Link hideExternalIcon href={"https://www.mongodb.com/legal/acceptable-use-policy"}>
       Acceptable Use Policy
     </Link>
   );

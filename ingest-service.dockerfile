@@ -8,6 +8,9 @@ ENV LG_ARTIFACTORY_USERNAME=${LG_ARTIFACTORY_USERNAME}
 ARG LG_ARTIFACTORY_EMAIL
 ENV LG_ARTIFACTORY_EMAIL=${LG_ARTIFACTORY_EMAIL}
 
+# Add git for GitDataSource
+RUN apk add --no-cache git 
+
 WORKDIR /app
 COPY . ./
 RUN npm install lerna && npm run bootstrap && npm run build -- --scope='{chat-core,ingest}'

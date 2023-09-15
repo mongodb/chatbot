@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "dotenv": "^16.2.0",
-    "mongodb": "^5.8.0",
+    "mongodb": "^5.8.1",
     "urllib": "^3.18.0"
   }
 }

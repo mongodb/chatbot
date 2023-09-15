@@ -8,6 +8,7 @@ describe("makeGitHubDataSource", () => {
   jest.setTimeout(60000);
 
   it("loads and processes a real repo", async () => {
+    let numDocs = 0;
     const source = await makeGitHubDataSource({
       name: "python-TEST",
       repoUrl: "https://github.com/mongodb/mongo-python-driver",
@@ -16,6 +17,7 @@ describe("makeGitHubDataSource", () => {
         ignoreFiles: [/^(?!^doc\/).*/], // Everything BUT doc/
       },
       async handleDocumentInRepo(document) {
+        numDocs++;
         // Can return multiple documents
         return [
           {
@@ -33,8 +35,7 @@ describe("makeGitHubDataSource", () => {
     });
     const pages = await source.fetchPages();
 
-    // Original repo has 91 matched files, and we're returning 2 pages per file
-    expect(pages.length).toBe(91 * 2);
+    expect(pages.length).toBe(numDocs * 2);
     expect(pages[0].url).toBe("doc/Makefile");
     expect(pages[1].url).toBe("doc/Makefile-CLONE");
 

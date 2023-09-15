@@ -1,4 +1,5 @@
 ---
+title: MongoDB University
 url: https://learn.mongodb.com
 metadata:
   tags:

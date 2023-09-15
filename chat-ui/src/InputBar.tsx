@@ -63,7 +63,6 @@ export function CharacterCount({
 }: CharacterCountProps) {
   return (
     <Body
-      baseFontSize={16}
       className={styles.character_count({
         darkMode,
         isError: current > max,

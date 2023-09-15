@@ -1,8 +1,9 @@
-import { Page, logger } from "chat-core";
+import { Page, PageMetadata, logger } from "chat-core";
 import TurndownService from "turndown";
 import * as turndownPluginGfm from "turndown-plugin-gfm";
 import { JSDOM } from "jsdom";
 import { HandlePageFuncOptions } from "./GitDataSource";
+import { removeMarkdownImagesAndLinks } from "./removeMarkdownImagesAndLinks";
 
 export type HandleHtmlPageFuncOptions = HandlePageFuncOptions & {
   /** Returns an array of DOM elements to be removed from the parsed document. */
@@ -12,7 +13,7 @@ export type HandleHtmlPageFuncOptions = HandlePageFuncOptions & {
   pathToPageUrl: (path: string) => string;
 
   /** `Page.metadata` passed from config. Included in all documents  */
-  metadata?: Record<string, unknown>; // TODO: replace with PageMetadata when other PR is merged
+  metadata?: PageMetadata;
 
   /**
     Extract metadata from page DOM. Added to the `Page.metadata` field.
@@ -62,7 +63,6 @@ export async function handleHtmlDocument(
   const elementsToRemove = removeElements(domDocument);
   elementsToRemove.forEach((el) => el.parentNode?.removeChild(el));
 
-  // TODO: wrap with link/image stripper...have to do on top of other PR
   let body = removeMarkdownImagesAndLinks(
     turndownService.turndown(domDocument.body)
   );
@@ -79,21 +79,6 @@ export async function handleHtmlDocument(
     },
   };
   return page;
-}
-
-// TODO: use from the separate file when that PR is merged
-export function removeMarkdownImagesAndLinks(content: string) {
-  const mdLink = /!?\[(.*?)\]\(.*?\)/g;
-  let cleanedContent = content.replaceAll(mdLink, (match, text) => {
-    // remove images
-    if (match.startsWith("!")) {
-      return "";
-    } else return text;
-  });
-  // remove unnecessary new lines
-  cleanedContent = cleanedContent.replaceAll(/\n{3,}/g, "\n\n");
-
-  return cleanedContent;
 }
 
 export function extractHtmlH1(domDoc: Document) {

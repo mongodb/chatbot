@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import { rimrafSync } from "rimraf";
-import { Page, logger } from "chat-core";
+import { Page, PageMetadata, logger } from "chat-core";
 import { DataSource } from "./DataSource";
 
 export interface HandlePageFuncOptions {
@@ -11,7 +11,7 @@ export interface HandlePageFuncOptions {
   sourceName: string;
 
   /** `Page.metadata` passed from config. Included in all documents  */
-  metadata?: Record<string, unknown>; // TODO: replace with PageMetadata when other PR is merged
+  metadata?: PageMetadata;
 }
 
 /**
@@ -54,7 +54,7 @@ export interface MakeGitDataSourceParams {
   /**
     Metadata to be included in all pages.
    */
-  metadata?: Record<string, unknown>; // TODO: replace with PageMetadata when other PR is merged
+  metadata?: PageMetadata;
 
   handlePage: HandlePageFunc;
 }

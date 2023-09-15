@@ -3,7 +3,7 @@
 import { css } from "@emotion/css";
 import LeafyGreenProvider from "@leafygreen-ui/leafygreen-provider";
 import Modal from "@leafygreen-ui/modal";
-import { Body } from "@leafygreen-ui/typography";
+// import { Body } from "@leafygreen-ui/typography";
 import { Avatar } from "@lg-chat/avatar";
 import { ChatWindow } from "@lg-chat/chat-window";
 import { ChatTrigger } from "@lg-chat/fixed-chat-window";
@@ -13,7 +13,7 @@ import { MessageFeed } from "@lg-chat/message-feed";
 import { MessagePrompt, MessagePrompts } from "@lg-chat/message-prompts";
 import { useState } from "react";
 import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
-import { DisclaimerText } from "@lg-chat/chat-disclaimer";
+// import { DisclaimerText } from "@lg-chat/chat-disclaimer";
 
 const styles = {
   chat_trigger: css`

@@ -146,7 +146,7 @@ export const parseSnootyTable = (node: SnootyNode): Table => {
               },
             };
           })
-          .filter((content) => content !== undefined) as Cell[],
+          .filter((cell) => cell?.content !== undefined) as Cell[],
       };
     })
     .filter((row) => row !== undefined) as Row[];

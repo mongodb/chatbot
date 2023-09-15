@@ -24,15 +24,16 @@ export type Page = {
   /**
      Arbitrary metadata for page.
    */
-  metadata?: {
-    /**
-      Arbitrary tags.
-     */
-    tags?: string[];
-    [k: string]: unknown;
-  };
+  metadata?: PageMetadata;
 };
 
+export type PageMetadata = {
+  /**
+    Arbitrary tags.
+   */
+  tags?: string[];
+  [k: string]: unknown;
+};
 export type PageFormat = "md" | "txt" | "openapi-yaml";
 
 export type PageAction = "created" | "updated" | "deleted";

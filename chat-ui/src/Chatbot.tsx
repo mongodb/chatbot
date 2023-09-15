@@ -254,6 +254,7 @@ export function Chatbot(props: ChatbotProps) {
     conversation.messages.length === 0 &&
     !awaitingReply;
 
+  const [initialInputFocused, setInitialInputFocused] = useState(false);
   const showInitialInputErrorState = inputTextError !== "" && !modalOpen;
 
   return (
@@ -263,7 +264,7 @@ export function Chatbot(props: ChatbotProps) {
           <InputBar
             key={"initialInput"}
             hasError={showInitialInputErrorState}
-            badgeText="Experimental"
+            badgeText={(initialInputFocused || inputText.length > 0) ? undefined : "Experimental"}
             dropdownFooterSlot={
               <div className={styles.powered_by_footer}>
                 <Body>
@@ -306,6 +307,12 @@ export function Chatbot(props: ChatbotProps) {
               if (!conversation.conversationId) {
                 await conversation.createConversation();
               }
+            }}
+            onFocus={() => {
+              setInitialInputFocused(true);
+            }}
+            onBlur={() => {
+              setInitialInputFocused(false);
             }}
           >
             {showSuggestedPrompts ? (

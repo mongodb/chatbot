@@ -5,7 +5,8 @@
   while also diluting the semantic meaning of the content.
  */
 export function removeMarkdownImagesAndLinks(content: string) {
-  const mdLink = /!?\[(.*?)\]\(.*?\)/g;
+  const mdLink = /!?\[([\s\S]*?)\]\([\s\S]*?\)/g;
+
   let cleanedContent = content.replaceAll(mdLink, (match, text) => {
     // remove images
     if (match.startsWith("!")) {

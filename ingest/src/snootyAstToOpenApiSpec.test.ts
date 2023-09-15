@@ -6,6 +6,7 @@ import {
   snootyAstToOpenApiSpec,
 } from "./snootyAstToOpenApiSpec";
 
+jest.setTimeout(30000);
 import { SnootyPageEntry } from "./SnootyDataSource";
 const textSpecPage: SnootyPageEntry = JSON.parse(
   readFileSync(

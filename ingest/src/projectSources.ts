@@ -4,6 +4,11 @@ import { makeRstOnGitHubDataSource } from "./RstOnGitHubDataSource";
 import { DataSource } from "./DataSource";
 import { makeDevCenterDataSource } from "./DevCenterDataSource";
 import { prepareSnootySources } from "./SnootyProjectsInfo";
+import { makeGitDataSource } from "./GitDataSource";
+import {
+  HandleHtmlPageFuncOptions,
+  handleHtmlDocument,
+} from "./handleHtmlDocument";
 import { makeAcquitRequireMdOnGithubDataSource } from "./AcquitRequireMdOnGithubDataSource";
 import {
   MakeMdOnGithubDataSourceParams,
@@ -241,6 +246,137 @@ export const pyMongoSourceConstructor = async () => {
   });
 };
 
+const jvmDriversVersion = "4.10";
+const jvmDriversHtmlToRemove = (domDoc: Document) => [
+  ...Array.from(domDoc.querySelectorAll("head")),
+  ...Array.from(domDoc.querySelectorAll("script")),
+  ...Array.from(domDoc.querySelectorAll("noscript")),
+  ...Array.from(domDoc.querySelectorAll(".sidebar")),
+  ...Array.from(domDoc.querySelectorAll(".edit-link")),
+  ...Array.from(domDoc.querySelectorAll(".toc")),
+  ...Array.from(domDoc.querySelectorAll(".nav-items")),
+  ...Array.from(domDoc.querySelectorAll(".bc")),
+];
+const jvmDriversExtractTitle = (domDoc: Document) => {
+  const title = domDoc.querySelector("title");
+  return title?.textContent ?? undefined;
+};
+const javaReactiveStreamsHtmlParserOptions: Omit<
+  HandleHtmlPageFuncOptions,
+  "sourceName"
+> = {
+  pathToPageUrl: (pathInRepo: string) =>
+    `https://mongodb.github.io/mongo-java-driver${pathInRepo}`.replace(
+      /index\.html$/,
+      ""
+    ),
+  removeElements: jvmDriversHtmlToRemove,
+  extractTitle: jvmDriversExtractTitle,
+};
+
+export const javaReactiveStreamsSourceConstructor = async () => {
+  return await makeGitDataSource({
+    name: "java-reactive-streams",
+    repoUri: "https://github.com/mongodb/mongo-java-driver.git",
+    repoOptions: {
+      "--depth": 1,
+      "--branch": "gh-pages",
+    },
+    metadata: {
+      productName: "Java Reactive Streams Driver",
+      version: jvmDriversVersion + " (current)",
+      tags: ["docs", "driver", "java", "java-reactive-streams"],
+    },
+    filter: (path: string) =>
+      path.endsWith(".html") &&
+      path.includes(jvmDriversVersion) &&
+      path.includes("driver-reactive") &&
+      !path.includes("apidocs"),
+    handlePage: async (path, content, options) =>
+      await handleHtmlDocument(path, content, {
+        ...options,
+        ...javaReactiveStreamsHtmlParserOptions,
+      }),
+  });
+};
+
+const scalaHtmlParserOptions: Omit<HandleHtmlPageFuncOptions, "sourceName"> = {
+  pathToPageUrl: (pathInRepo: string) =>
+    `https://mongodb.github.io/mongo-java-driver${pathInRepo}`.replace(
+      /index\.html$/,
+      ""
+    ),
+  removeElements: jvmDriversHtmlToRemove,
+  extractTitle: jvmDriversExtractTitle,
+};
+
+export const scalaSourceConstructor = async () => {
+  return await makeGitDataSource({
+    name: "scala",
+    repoUri: "https://github.com/mongodb/mongo-java-driver.git",
+    repoOptions: {
+      "--depth": 1,
+      "--branch": "gh-pages",
+    },
+    metadata: {
+      productName: "Scala Driver",
+      version: jvmDriversVersion + " (current)",
+      tags: ["docs", "driver", "scala"],
+    },
+    filter: (path: string) =>
+      path.endsWith(".html") &&
+      path.includes(jvmDriversVersion) &&
+      path.includes("driver-scala") &&
+      !path.includes("apidocs"),
+    handlePage: async (path, content, options) =>
+      await handleHtmlDocument(path, content, {
+        ...options,
+        ...scalaHtmlParserOptions,
+      }),
+  });
+};
+
+const libmongocHtmlParserOptions: Omit<
+  HandleHtmlPageFuncOptions,
+  "sourceName"
+> = {
+  pathToPageUrl: (pathInRepo: string) =>
+    `https://mongoc.org${pathInRepo}`.replace(/index\.html$/, ""),
+  removeElements: (domDoc: Document) => [
+    ...Array.from(domDoc.querySelectorAll("head")),
+    ...Array.from(domDoc.querySelectorAll('[role="navigation"]')),
+    ...Array.from(domDoc.querySelectorAll('[role="search"]')),
+    ...Array.from(domDoc.querySelectorAll(".sphinxsidebar")),
+  ],
+  postProcessMarkdown: async (markdown: string) => markdown.replaceAll("¶", ""),
+};
+
+const libmongocVersion = "1.24.4";
+export const libmongocSourceConstructor = async () => {
+  return await makeGitDataSource({
+    name: "c",
+    repoUri: "https://github.com/mongodb/mongo-c-driver.git",
+    repoOptions: {
+      "--depth": 1,
+      "--branch": "gh-pages",
+    },
+    metadata: {
+      productName: "C Driver (libmongoc)",
+      version: `${libmongocVersion} (current)`,
+      tags: ["docs", "driver", "c", "clang", "libmongoc"],
+    },
+    filter: (path: string) =>
+      path.includes(`libmongoc/${libmongocVersion}/`) &&
+      path.endsWith(".html") &&
+      !path.includes("mongoc_") && // do not include the generated reference docs
+      !path.includes("search.html"), // do not include the search page
+    handlePage: async (path, content, options) =>
+      await handleHtmlDocument(path, content, {
+        ...options,
+        ...libmongocHtmlParserOptions,
+      }),
+  });
+};
 const mongooseSourceConstructor = async () => {
   const repoUrl = "https://github.com/Automattic/mongoose";
   const testFileLoaderOptions = {
@@ -368,4 +504,7 @@ export const sourceConstructors: SourceConstructor[] = [
   cppSourceConstructor,
   mongoDbCorpDataSource,
   practicalAggregationsDataSource,
+  javaReactiveStreamsSourceConstructor,
+  scalaSourceConstructor,
+  libmongocSourceConstructor,
 ];

@@ -29,4 +29,19 @@ Some text. some link
 `;
     expect(cleanedContent).toBe(expected);
   });
+  it("should remove same-source images and links", () => {
+    const content = `[\`BsonValue\`](/mongo-java-driver/4.10/apidocs/mongo-scala-driver/org/mongodb/scala/bson/index.html)`;
+    const cleanedContent = removeMarkdownImagesAndLinks(content);
+    expect(cleanedContent).toBe("`BsonValue`");
+  });
+
+  it("should remove links across multiple lines", () => {
+    const content = `[link text](https://example.com
+)
+
+![image 
+metadata](foo.png)`;
+    const cleanedContent = removeMarkdownImagesAndLinks(content);
+    expect(cleanedContent).toBe("link text\n\n");
+  });
 });

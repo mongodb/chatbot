@@ -18,7 +18,7 @@ ENV NODE_ENV=production
 WORKDIR /bin
 
 # Add git for GitDataSource
-RUN apk add --no-cache git 
+RUN apk add --no-cache git
 
 COPY --from=builder app/chat-core ./chat-core/
 COPY --from=builder /app/package*.json ./

@@ -47,6 +47,15 @@ the command regenerates the corresponding embeddings for that page.
 
 ### Build & Run
 
+Set up the project monorepo. From the root of the repo:
+
+```
+npm install lerna
+npm run bootstrap
+```
+
+Then in the `ingest` directory:
+
 ```sh
 npm i
 npm run build

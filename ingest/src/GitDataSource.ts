@@ -75,6 +75,7 @@ export function makeGitDataSource({
     fetchPages: async () => {
       const randomTmpDir = makeRandomTmp(name);
       logger.info(`Created ${randomTmpDir} for ${repoUri}`);
+
       await getRepoLocally({
         repoPath: repoUri,
         localPath: randomTmpDir,
@@ -82,26 +83,31 @@ export function makeGitDataSource({
       });
       logger.info(`Cloned ${repoUri} to ${randomTmpDir}`);
 
-      const pathsAndContents = await getRelevantFilesAsStrings({
-        directoryPath: randomTmpDir,
-        filter,
-      });
-      const pagesPromises = Object.entries(pathsAndContents).map(
-        ([path, content]) =>
-          handlePage(path, content, {
-            metadata,
-            sourceName: name,
-          })
-      );
-      const fulfilledPromises = (
-        await Promise.allSettled(pagesPromises)
-      ).filter(
-        (promiseResult) => promiseResult.status === "fulfilled"
-      ) as PromiseFulfilledResult<Page | Page[]>[];
-      const pages = fulfilledPromises.map(({ value }) => value).flat(1);
+      let pages: Page[] | undefined;
+      try {
+        const pathsAndContents = await getRelevantFilesAsStrings({
+          directoryPath: randomTmpDir,
+          filter,
+        });
 
-      rimrafSync(randomTmpDir);
-      logger.info(`Deleted ${randomTmpDir}`);
+        const pagesPromises = Object.entries(pathsAndContents).map(
+          ([path, content]) =>
+            handlePage(path, content, {
+              metadata,
+              sourceName: name,
+            })
+        );
+
+        const fulfilledPromises = (
+          await Promise.allSettled(pagesPromises)
+        ).filter(
+          (promiseResult) => promiseResult.status === "fulfilled"
+        ) as PromiseFulfilledResult<Page | Page[]>[];
+        pages = fulfilledPromises.map(({ value }) => value).flat(1);
+      } finally {
+        rimrafSync(randomTmpDir);
+        logger.info(`Deleted ${randomTmpDir}`);
+      }
       return pages;
     },
   };

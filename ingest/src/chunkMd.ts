@@ -45,7 +45,9 @@ export const chunkMd: ChunkFunc = async function (
     separators,
   });
 
-  const chunks = await splitter.createDocuments([page.body]);
+  const chunks = (await splitter.createDocuments([page.body]))
+    // filter out chunks that are too short to be semantically useful
+    .filter((chunk) => tokenizer.encode(chunk.pageContent).bpe.length > 15);
 
   return await Promise.all(
     chunks.map(async ({ pageContent }, chunkIndex): Promise<ContentChunk> => {

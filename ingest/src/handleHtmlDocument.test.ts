@@ -55,6 +55,12 @@ describe("handleHtmlDocument()", () => {
   it("should remove arbitrary nodes from DOM", () => {
     expect(page.body).not.toContain("MongoDB University");
   });
+  it("should remove images", () => {
+    expect(page.body).not.toContain("images/mongodb-logo.svg");
+  });
+  it("should remove links", () => {
+    expect(page.body).not.toContain("/mongo-java-driver/4.10/driver-scala");
+  });
   it("should extract metadata from DOM", () => {
     expect(page.metadata).toMatchObject({
       foo: "bar",

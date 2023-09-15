@@ -4,6 +4,7 @@ import * as turndownPluginGfm from "turndown-plugin-gfm";
 import { JSDOM } from "jsdom";
 import { HandlePageFuncOptions } from "./GitDataSource";
 import { removeMarkdownImagesAndLinks } from "./removeMarkdownImagesAndLinks";
+import fs from "fs";
 
 export type HandleHtmlPageFuncOptions = HandlePageFuncOptions & {
   /** Returns an array of DOM elements to be removed from the parsed document. */
@@ -43,12 +44,29 @@ export async function handleHtmlDocument(
     sourceName,
     postProcessMarkdown,
   } = options;
+
   const turndownService = new TurndownService({
     codeBlockStyle: "fenced",
     headingStyle: "atx",
     bulletListMarker: "-",
   });
   turndownService.use(turndownPluginGfm.gfm);
+
+  // Remove links from Markdown
+  turndownService.addRule("keepLinkText", {
+    filter: ["a"],
+    replacement: (content) => {
+      return content; // Return the inner text of the link
+    },
+  });
+
+  // Remove images from Markdown
+  turndownService.addRule("removeImages", {
+    filter: ["img"],
+    replacement: () => {
+      return ""; // Return an empty string to remove the image
+    },
+  });
 
   logger.info(`Processing ${path}`);
   const dom = new JSDOM(content);
@@ -63,9 +81,7 @@ export async function handleHtmlDocument(
   const elementsToRemove = removeElements(domDocument);
   elementsToRemove.forEach((el) => el.parentNode?.removeChild(el));
 
-  let body = removeMarkdownImagesAndLinks(
-    turndownService.turndown(domDocument.body)
-  );
+  let body = turndownService.turndown(domDocument.body);
   body = postProcessMarkdown ? await postProcessMarkdown(body) : body;
   const page: Page = {
     sourceName,

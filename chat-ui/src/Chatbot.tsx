@@ -16,12 +16,12 @@ import {
   InputBar,
   SuggestedPrompt,
   SuggestedPrompts,
-} from "@lg-chat/input-bar";
+  CharacterCount,
+} from "./InputBar";
 import {
   Message,
   MessageContent as LGChatMessageContent,
   MessageContentProps,
-
 } from "@lg-chat/message";
 import { MessageFeed } from "@lg-chat/message-feed";
 import { MessageRatingProps } from "@lg-chat/message-rating";
@@ -147,9 +147,6 @@ const styles = {
     color: ${palette.gray.dark2};
     justify-content: flex-end;
   `,
-  character_count: ({ darkMode, isError }: StylesProps & { isError: boolean }) => css`
-    color: ${isError ? palette.red.base : (darkMode ? palette.gray.light2 : palette.gray.dark2)};
-  `,
 };
 
 const MAX_INPUT_CHARACTERS = 300;
@@ -251,20 +248,15 @@ export function Chatbot(props: ChatbotProps) {
     conversation.messages.length === 0 &&
     !awaitingReply;
 
-  const showInitialInputErrorState = inputTextError && !modalOpen;
+  const showInitialInputErrorState = inputTextError !== "" && !modalOpen;
 
   return (
     <LeafyGreenProvider darkMode={darkMode}>
       <div className={styles.chatbot_container}>
         <div className={styles.chatbot_input_area}>
           <InputBar
-            className={
-              showInitialInputErrorState
-                ? styles.chatbot_input_error_border
-                : undefined
-            }
-            shouldRenderGradient={!showInitialInputErrorState}
             key={"initialInput"}
+            hasError={showInitialInputErrorState}
             badgeText="Experimental"
             dropdownFooterSlot={
               <div className={styles.powered_by_footer}>
@@ -286,15 +278,6 @@ export function Chatbot(props: ChatbotProps) {
                 : awaitingReply
                 ? "MongoDB AI is answering..."
                 : "Ask MongoDB AI a Question",
-            }}
-            onKeyDown={(e) => {
-              if (
-                e.key === "Enter" &&
-                inputText.length === 0 &&
-                conversation.messages.length > 0
-              ) {
-                openModal();
-              }
             }}
             onMessageSend={async (messageContent) => {
               if (!modalOpen && conversation.messages.length > 0) {
@@ -531,11 +514,7 @@ function ChatbotModal({
             {!conversation.error ? (
               <>
                 <InputBar
-                  className={
-                    inputTextError
-                      ? styles.chatbot_input_error_border
-                      : undefined
-                  }
+                  hasError={inputTextError !== ""}
                   shouldRenderGradient={!inputTextError}
                   darkMode={darkMode}
                   ref={inputBarRef}
@@ -572,15 +551,11 @@ function ChatbotModal({
                     This is an experimental generative AI chatbot. All
                     information should be verified prior to use.
                   </Body>
-                  <Body
-                    baseFontSize={16}
-                    className={styles.character_count({
-                      darkMode,
-                      isError: inputText.length > MAX_INPUT_CHARACTERS,
-                    })}
-                  >
-                    {`${inputText.length} / ${MAX_INPUT_CHARACTERS}`}
-                  </Body>
+                  <CharacterCount
+                    darkMode={darkMode}
+                    current={inputText.length}
+                    max={MAX_INPUT_CHARACTERS}
+                  />
                 </div>
               </>
             ) : null}

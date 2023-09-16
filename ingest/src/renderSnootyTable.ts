@@ -138,15 +138,16 @@ export const parseSnootyTable = (node: SnootyNode): Table => {
             if (headerRowCount > 0 && thisRowIndex === 0) {
               columnNames.push(columnName);
             }
-            return {
+            const cell: Cell = {
               columnName,
               content: {
                 ...content,
                 type: "section", // Override "listItem" type so it is not rendered as a list
               },
             };
+            return cell;
           })
-          .filter((cell) => cell?.content !== undefined) as Cell[],
+          .filter((cell) => cell !== undefined) as Cell[],
       };
     })
     .filter((row) => row !== undefined) as Row[];

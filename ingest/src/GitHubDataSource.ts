@@ -77,7 +77,11 @@ export const makeGitHubDataSource = async ({
           } catch (error) {
             // Log the error and discard this document, but don't break the
             // overall fetchPages() call.
-            logger.error(error);
+            logger.error(
+              `GitHubDataSource handlePage failed with error: ${
+                (error as Error)?.message
+              }`
+            );
             return undefined;
           }
         }

@@ -1,5 +1,5 @@
 import deepEqual from "deep-equal";
-import { Page, PersistedPage } from "chat-core";
+import { Page, PersistedPage, logger } from "chat-core";
 
 /**
   Given sets of old and new pages, returns the pages that need to be created,
@@ -20,6 +20,10 @@ export const getChangedPages = async ({
 }> => {
   const oldPages = new Map(oldPagesIn.map((page) => [page.url, page]));
   const newPages = new Map(newPagesIn.map((page) => [page.url, page]));
+
+  logger.info(
+    `After de-duplication based on page URL, have ${oldPages.size} unique old / ${newPages.size} unique new pages`
+  );
 
   // Perform set difference to find deleted, created, and changed pages.
 

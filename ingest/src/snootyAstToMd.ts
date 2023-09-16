@@ -2,129 +2,135 @@ import { SnootyNode } from "./SnootyDataSource";
 import { strict as assert } from "assert";
 import { renderSnootyTable } from "./renderSnootyTable";
 
-export const snootyAstToMd = (
-  node: SnootyNode,
-  parentHeadingLevel = 0,
-  text = ""
-): string => {
+/**
+  Renders a snooty AST node as markdown.
+ */
+export const snootyAstToMd = (node: SnootyNode): string => {
+  return renderAst(node, { parentHeadingLevel: 0 })
+    .replaceAll(/\n{3,}/g, "\n\n") // remove extra newlines with just 2
+    .trimStart();
+};
+
+type RenderState = {
+  parentHeadingLevel: number;
+  listBullet?: string;
+};
+
+// Private implementation. Use snootyAstToMd.
+const renderAst = (node: SnootyNode, state: RenderState): string => {
+  const { parentHeadingLevel, listBullet } = state;
   // Base cases (terminal nodes)
   if (node.children === undefined) {
     // value nodes
     switch (node.type) {
       case "text":
-        text +=
-          typeof node.value === "string"
-            ? node.value
-                .replaceAll(/(\S)\n/g, "$1 ")
-                .replaceAll(/\n(\S)/g, " $1")
-            : node.value;
-        break;
+        return typeof node.value === "string"
+          ? node.value.replaceAll(/(\S)\n/g, "$1 ").replaceAll(/\n(\S)/g, " $1")
+          : (node.value as string);
       case "code":
-        text += `\`\`\`${node.lang || ""}\n${node.value}\n\`\`\`\n\n`;
-        break;
+        return `\`\`\`${node.lang || ""}\n${node.value}\n\`\`\`\n\n`;
 
       default:
-        break;
+        return "";
     }
-    return text;
-  }
-  // Just render line break for target_identifier
-  if (node.type === "target_identifier") {
-    return text + `\n`;
   }
 
   // parent nodes
   switch (node.type) {
     case "comment":
       // Do not render comments
-      break;
-    case "section":
-      if (node.children[0].type === "heading") {
-        parentHeadingLevel++;
-      }
-      text += `${node.children
-        .map((subnode) => snootyAstToMd(subnode, parentHeadingLevel))
+      return "";
+
+    case "target_identifier":
+      // Just render line break for target_identifier
+      return "\n";
+
+    case "section": {
+      const isHeading = node.children[0]?.type === "heading";
+      return `${node.children
+        .map((subnode) =>
+          renderAst(subnode, {
+            parentHeadingLevel: parentHeadingLevel + (isHeading ? 1 : 0),
+          })
+        )
         .join("")}\n\n`;
-      break;
+    }
+
     case "heading":
-      text += `${"#".repeat(parentHeadingLevel)} ${node.children
-        .map((child) => snootyAstToMd(child, parentHeadingLevel))
+      return `${"#".repeat(parentHeadingLevel)} ${node.children
+        .map((child) => renderAst(child, { parentHeadingLevel }))
         .join("")}\n\n`;
-      break;
+
     case "paragraph":
-      text += `${node.children
-        .map((child) => snootyAstToMd(child, parentHeadingLevel))
+      return `${node.children
+        .map((child) => renderAst(child, { parentHeadingLevel }))
         .join("")}\n\n`;
-      break;
-    case "list":
-      text += node.children
-        .map((listItem) => snootyAstToMd(listItem, parentHeadingLevel))
+
+    case "list": {
+      const isOrderedList = node.enumtype === "arabic";
+      return node.children
+        .map((listItem, index) =>
+          renderAst(listItem, {
+            parentHeadingLevel,
+            listBullet: isOrderedList ? `${index + 1}.` : "-",
+          })
+        )
         .join("\n");
-      break;
+    }
+
     case "listItem":
-      text += `- ${node.children
-        .map((child) => snootyAstToMd(child, parentHeadingLevel))
+      return `${listBullet} ${node.children
+        .map((child) => renderAst(child, { parentHeadingLevel }))
         .join("")}`;
-      break;
-    // TODO: figure out ordered lists
 
     // recursive inline cases
     case "literal":
-      text += `\`${node.children
-        .map((child) => snootyAstToMd(child, parentHeadingLevel))
+      return `\`${node.children
+        .map((child) => renderAst(child, { parentHeadingLevel }))
         .join("")}\``;
-      break;
+
     case "directive":
-      text += handleDirective(node, parentHeadingLevel);
-      break;
-    // No longer including links
-    // case "ref_role": {
-    //   let url = "#"; // default if ref_role is something unexpected
-    //   if (node.fileid !== undefined && Array.isArray(node.fileid)) {
-    //     const [path, anchor] = node.fileid;
-    //     url = `${options.baseUrl}${path}/#${anchor}`;
-    //   } else if (node.url && typeof node.url === "string") {
-    //     url = node.url;
-    //   }
-    //   text += `[${node.children
-    //     .map((child) => snootyAstToMd(child, options, parentHeadingLevel))
-    //     .join("")}](${url})`;
-    //   break;
-    // }
+      return renderDirective(node, parentHeadingLevel);
+
     case "emphasis":
-      text += `*${node.children
-        .map((child) => snootyAstToMd(child, parentHeadingLevel))
+      return `*${node.children
+        .map((child) => renderAst(child, { parentHeadingLevel }))
         .join("")}*`;
-      break;
 
     case "strong":
-      text += `**${node.children
-        .map((child) => snootyAstToMd(child, parentHeadingLevel))
+      return `**${node.children
+        .map((child) => renderAst(child, { parentHeadingLevel }))
         .join("")}**`;
-      break;
+
+    case "refrole":
+      // Just include link text -- don't include URLs because they negatively
+      // impact vector searchability
+      return node.children
+        .map((subnode) => renderAst(subnode, { parentHeadingLevel }))
+        .join("");
 
     default:
-      text += node.children
-        .map((subnode) => snootyAstToMd(subnode, parentHeadingLevel))
+      return node.children
+        .map((subnode) => renderAst(subnode, { parentHeadingLevel }))
         .join("");
-      break;
   }
-
-  return text.replaceAll(/\n{3,}/g, "\n\n").trimStart(); // remove extra newlines with just 2
 };
 
 /**
   Helper function to handle directives. Directives are special nodes that
   contain a variety of different content types.
  */
-const handleDirective = (node: SnootyNode, parentHeadingLevel: number) => {
+const renderDirective = (
+  node: SnootyNode,
+  parentHeadingLevel: number
+): string => {
   assert(
     node.children,
     "This function should only be called if node has children"
   );
   switch (node.name) {
     case "list-table":
-      return renderSnootyTable(node, parentHeadingLevel);
+      return renderSnootyTable(node);
     case "tab": {
       const tabName = (
         node.argument && Array.isArray(node.argument) && node.argument.length
@@ -132,16 +138,16 @@ const handleDirective = (node: SnootyNode, parentHeadingLevel: number) => {
           : ""
       ).trim();
       return `\n\n<Tab ${`name="${tabName ?? ""}"`}>\n\n${node.children
-        .map((child) => snootyAstToMd(child, parentHeadingLevel))
+        .map((child) => renderAst(child, { parentHeadingLevel }))
         .join("")}\n\n</Tab>\n\n`;
     }
     case "tabs" || "tabs-drivers":
       return `\n\n<Tabs>\n\n${node.children
-        .map((child) => snootyAstToMd(child, parentHeadingLevel))
+        .map((child) => renderAst(child, { parentHeadingLevel }))
         .join("")}\n\n</Tabs>\n\n`;
     default:
       return node.children
-        .map((subnode) => snootyAstToMd(subnode, parentHeadingLevel))
+        .map((subnode) => renderAst(subnode, { parentHeadingLevel }))
         .join("");
   }
 };

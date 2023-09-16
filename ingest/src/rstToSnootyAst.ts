@@ -99,10 +99,22 @@ const restructuredToSnootyTypes: {
   },
   title: "heading",
   interpreted_text: [stripTargets, "ref_role"],
-  bullet_list: "list",
+  bullet_list(node) {
+    return {
+      ...node,
+      type: "list",
+      enumtype: "unordered",
+    };
+  },
   list_item: "listItem",
   reference: stripTargets,
-  enumerated_list: "list",
+  enumerated_list(node) {
+    return {
+      ...node,
+      type: "list",
+      enumtype: "arabic",
+    };
+  },
   text(node) {
     return { ...node, value: node.value.replace(/\n$/, " ") };
   },

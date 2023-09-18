@@ -8,6 +8,9 @@ import { Chatbot } from "./Chatbot";
 import { canUseServerSentEvents } from "./utils";
 import { Overline, Link } from "@leafygreen-ui/typography";
 import Toggle from "@leafygreen-ui/toggle";
+import { Chatbot as DevCenterChatbot } from "./DevCenterChatbot";
+
+const prefersDarkMode = () => window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
 
 function App() {
   const [shouldStream, setShouldStream] = useState(canUseServerSentEvents());
@@ -22,8 +25,18 @@ function App() {
   return (
     <div className={app_background(darkMode)}>
       <div className={styles.main_content}>
-        <Chatbot shouldStream={shouldStream} darkMode={darkMode} />
+        <Chatbot
+          shouldStream={shouldStream}
+          darkMode={darkMode}
+          suggestedPrompts={[
+            "How do you deploy a free cluster in Atlas?",
+            "How do you import or migrate data into MongoDB Atlas?",
+            "How do I get started with MongoDB?",
+            "Why should I use Atlas Search?",
+          ]}
+        />
       </div>
+      <DevCenterChatbot />
       <Controls>
         <ToggleControl
           checked={shouldStream}
@@ -44,11 +57,7 @@ function App() {
 }
 
 function Controls(props: { children: React.ReactNode }) {
-  return (
-    <div className={styles.controls_container}>
-      {props.children}
-    </div>
-  )
+  return <div className={styles.controls_container}>{props.children}</div>;
 }
 
 type ToggleControlProps = {
@@ -60,7 +69,8 @@ type ToggleControlProps = {
 };
 
 function ToggleControl(props: ToggleControlProps) {
-  const { contextDarkMode: darkMode = props.darkMode ?? false } = useDarkModeContext();
+  const { contextDarkMode: darkMode = props.darkMode ?? false } =
+    useDarkModeContext();
   const label = `${props.labelId}-toggle-control-label`;
   return (
     <div className={styles.streaming_toggle}>
@@ -112,7 +122,7 @@ function GitCommitLink() {
 
 export default function LGApp() {
   return (
-    <LeafyGreenProvider darkMode={false}>
+    <LeafyGreenProvider darkMode={prefersDarkMode()}>
       <App />
     </LeafyGreenProvider>
   );

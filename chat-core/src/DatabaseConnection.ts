@@ -26,15 +26,15 @@ export interface MakeDatabaseConnectionParams {
 /**
   Create a connection to the database.
  */
-export const makeDatabaseConnection = async ({
+export const makeDatabaseConnection = ({
   connectionUri,
   databaseName,
-}: MakeDatabaseConnectionParams): Promise<
-  DatabaseConnection & PageStore & EmbeddedContentStore
-> => {
-  const client = await new MongoClient(connectionUri, {
+}: MakeDatabaseConnectionParams): DatabaseConnection &
+  PageStore &
+  EmbeddedContentStore => {
+  const client = new MongoClient(connectionUri, {
     serverSelectionTimeoutMS: 30000,
-  }).connect();
+  });
   const db = client.db(databaseName);
   const embeddedContentCollection =
     db.collection<EmbeddedContent>("embedded_content");

@@ -1,25 +1,25 @@
 import { GetChatCompletionsOptions } from "@azure/openai";
 import "dotenv/config";
-import { LlmConfig } from "../AppConfig";
 import { OpenAIClient } from "@azure/openai";
 import {
-  Llm,
+  ChatLlm,
   LlmAnswerQuestionParams,
   OpenAiChatMessage,
   SystemPrompt,
 } from "./ChatLlm";
 
+export type GenerateUserPrompt = ({
+  question,
+  chunks,
+}: {
+  question: string;
+  chunks: string[];
+}) => OpenAiChatMessage & { role: "user" };
 export interface MakeOpenAiChatLlmParams {
   deployment: string;
   openAiClient: OpenAIClient;
   openAiLmmConfigOptions: GetChatCompletionsOptions;
-  generateUserPrompt: ({
-    question,
-    chunks,
-  }: {
-    question: string;
-    chunks: string[];
-  }) => OpenAiChatMessage & { role: "user" };
+  generateUserPrompt: GenerateUserPrompt;
   systemPrompt: SystemPrompt;
 }
 
@@ -29,7 +29,7 @@ export function makeOpenAiChatLlm({
   openAiLmmConfigOptions,
   generateUserPrompt,
   systemPrompt,
-}: MakeOpenAiChatLlmParams): Llm {
+}: MakeOpenAiChatLlmParams): ChatLlm {
   return {
     // NOTE: for example streaming data, see https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
     async answerQuestionStream({ messages, chunks }: LlmAnswerQuestionParams) {
@@ -78,7 +78,7 @@ function prepConversationForOpenAiLlm({
   generateUserPrompt,
   systemPrompt,
 }: LlmAnswerQuestionParams & {
-  generateUserPrompt: LlmConfig["generateUserPrompt"];
+  generateUserPrompt: GenerateUserPrompt;
   systemPrompt: SystemPrompt;
 }): OpenAiChatMessage[] {
   validateOpenAiConversation(messages, systemPrompt);

@@ -136,7 +136,7 @@ production.
 To publish to QA:
 
 1. Check out the `qa` branch and pull any upstream changes. Here, `upstream` is
-   the name of the `mongodb/docs-chatbot` remote repo.
+   the name of the `mongodb/chatbot` remote repo.
 
    ```sh
    git fetch upstream
@@ -195,7 +195,7 @@ To create a new production release:
 
 4. Once the PR is approved and merged, publish the draft release. You can find
    the release draft in the draft tag:
-   <https://github.com/mongodb/docs-chatbot/releases>.
+   <https://github.com/mongodb/chatbot/releases>.
 
 When the release is published, the Drone CI picks up the corresponding git tag
 and then automatically builds and deploys the branch to production.

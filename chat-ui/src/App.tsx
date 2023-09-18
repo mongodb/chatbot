@@ -9,7 +9,8 @@ import { canUseServerSentEvents } from "./utils";
 import { Overline, Link } from "@leafygreen-ui/typography";
 import Toggle from "@leafygreen-ui/toggle";
 
-const prefersDarkMode = () => window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+const prefersDarkMode = () =>
+  window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
 
 function App() {
   const [shouldStream, setShouldStream] = useState(canUseServerSentEvents());
@@ -55,11 +56,7 @@ function App() {
 }
 
 function Controls(props: { children: React.ReactNode }) {
-  return (
-    <div className={styles.controls_container}>
-      {props.children}
-    </div>
-  )
+  return <div className={styles.controls_container}>{props.children}</div>;
 }
 
 type ToggleControlProps = {
@@ -71,7 +68,8 @@ type ToggleControlProps = {
 };
 
 function ToggleControl(props: ToggleControlProps) {
-  const { contextDarkMode: darkMode = props.darkMode ?? false } = useDarkModeContext();
+  const { contextDarkMode: darkMode = props.darkMode ?? false } =
+    useDarkModeContext();
   const label = `${props.labelId}-toggle-control-label`;
   return (
     <div className={styles.streaming_toggle}>
@@ -113,7 +111,7 @@ function GitCommitLink() {
       Git commit:{" "}
       <Link
         hideExternalIcon
-        href={`https://github.com/mongodb/docs-chatbot/commit/${VITE_GIT_COMMIT}`}
+        href={`https://github.com/mongodb/chatbot/commit/${VITE_GIT_COMMIT}`}
       >
         <Overline style={{ color }}>{VITE_GIT_COMMIT}</Overline>
       </Link>

@@ -105,7 +105,7 @@ steps:
   - name: promote-staging-chat-server
     image: drone/cli:1.4.0-alpine
     commands:
-      - drone build promote mongodb/docs-chatbot ${DRONE_BUILD_NUMBER} staging
+      - drone build promote mongodb/chatbot ${DRONE_BUILD_NUMBER} staging
     environment:
       DRONE_SERVER: ${DRONE_SYSTEM_PROTO}://${DRONE_SYSTEM_HOST}
       DRONE_TOKEN:
@@ -191,7 +191,7 @@ steps:
   - name: promote-qa-chat-server
     image: drone/cli:1.4.0-alpine
     commands:
-      - drone build promote mongodb/docs-chatbot ${DRONE_BUILD_NUMBER} staging
+      - drone build promote mongodb/chatbot ${DRONE_BUILD_NUMBER} staging
     environment:
       DRONE_SERVER: ${DRONE_SYSTEM_PROTO}://${DRONE_SYSTEM_HOST}
       DRONE_TOKEN:
@@ -271,7 +271,7 @@ steps:
   - name: promote-production-chat-server
     image: drone/cli:1.4.0-alpine
     commands:
-      - drone build promote mongodb/docs-chatbot ${DRONE_BUILD_NUMBER} production
+      - drone build promote mongodb/chatbot ${DRONE_BUILD_NUMBER} production
     environment:
       DRONE_SERVER: ${DRONE_SYSTEM_PROTO}://${DRONE_SYSTEM_HOST}
       DRONE_TOKEN:
@@ -358,7 +358,7 @@ steps:
   - name: promote-staging-ingest-service
     image: drone/cli:1.4.0-alpine
     commands:
-      - drone build promote mongodb/docs-chatbot ${DRONE_BUILD_NUMBER} staging
+      - drone build promote mongodb/chatbot ${DRONE_BUILD_NUMBER} staging
     environment:
       DRONE_SERVER: ${DRONE_SYSTEM_PROTO}://${DRONE_SYSTEM_HOST}
       DRONE_TOKEN:
@@ -443,7 +443,7 @@ steps:
   - name: promote-production-ingest-service
     image: drone/cli:1.4.0-alpine
     commands:
-      - drone build promote mongodb/docs-chatbot ${DRONE_BUILD_NUMBER} production
+      - drone build promote mongodb/chatbot ${DRONE_BUILD_NUMBER} production
     environment:
       DRONE_SERVER: ${DRONE_SYSTEM_PROTO}://${DRONE_SYSTEM_HOST}
       DRONE_TOKEN:

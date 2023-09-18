@@ -442,7 +442,7 @@ const cppSourceConstructor = async () => {
 
 export const mongoDbCorpDataSourceConfig: MakeMdOnGithubDataSourceParams = {
   name: "mongodb-corp",
-  repoUrl: "https://github.com/mongodb/docs-chatbot/",
+  repoUrl: "https://github.com/mongodb/chatbot/",
   repoLoaderOptions: {
     branch: "main",
     ignoreFiles: [/^(?!^mongodb-corp\/).*/, /^(mongodb-corp\/README\.md)$/],

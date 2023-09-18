@@ -111,8 +111,9 @@ pageTitle: Test Page
 hasCodeBlock: false
 ---
 
-This is some text`,
-        tokenCount: 32, // Calculated after transformation
+This is some text.
+Lorem ipsum blah, blah, blah!!!`,
+        tokenCount: 45, // Calculated after transformation
         url: "test",
       },
     ];
@@ -239,9 +240,11 @@ pageTitle: Test Page
 This is some text`);
   });
   it("can add arbitrary page metadata", async () => {
+    const body =
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
     const pageWithMetadata: Page = {
       ...page,
-      body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      body,
       metadata: {
         ...page.metadata,
         arbitrary: "metadata",
@@ -269,8 +272,8 @@ pageTitle: Test Page
 hasCodeBlock: false
 ---
 
-FOO`,
-      tokenCount: 36,
+${body}`,
+      tokenCount: 78,
       url: "test",
     });
   });

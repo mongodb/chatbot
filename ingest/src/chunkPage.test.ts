@@ -87,7 +87,7 @@ Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibend
 
   it("can add frontmatter", async () => {
     const chunks = await chunkPage(
-      { ...page, body: "This is some text\n" },
+      { ...page, body: "This is some text.\nLorem ipsum blah, blah, blah!!!" },
       {
         transform: standardChunkFrontMatterUpdater,
       }
@@ -241,7 +241,7 @@ This is some text`);
   it("can add arbitrary page metadata", async () => {
     const pageWithMetadata: Page = {
       ...page,
-      body: "FOO",
+      body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       metadata: {
         ...page.metadata,
         arbitrary: "metadata",

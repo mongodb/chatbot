@@ -2,33 +2,95 @@
 
 Information for contributors to the Docs AI Chatbot project.
 
+> **Note** This guide is for MongoDB employees
+>
+> Currently, we have written the contributor guide and designed the project only
+> for MongoDB employees to contribute to it. The project is dependent
+> on some MongoDB infrastructure and credentials.
+>
+> In the future, we will explore accepting eternal contributions,
+> and setting up the project accordingly.
+
 ## Project Structure
 
-The project is structured as a monorepo, with all sub-projects using TypeScript.
+The project is structured as a monorepo, with all projects using TypeScript.
 We use [Lerna](https://lerna.js.org/) to manage our monorepo.
 
-The project has the following main sub-projects, each of which correspond to a JavaScript module:
+The monorepo has the following main projects, each of which correspond to a JavaScript module:
 
 - `chat-server`: Express.js server that performs chat functionality. RESTful API.
 - `ingest`: CLI application that takes data from data sources and converts it to `embedded_content`
   used by Atlas Vector Search.
 - `chat-ui`: React component for interfacing with the `chat-server`.
-- `chat-core`: Common resources shared across other sub-projects.
+  Built with Leafygreen and vite.
+- `chat-core`: Common resources shared across other projects.
+  - You need to recompile `chat-core` by running `npm run build`
+    every time you update it for the changes to be accessible in the other projects
+    that dependend on it.
 - `mongodb-atlas`: Collection of scripts related to managing the MongoDB Atlas deployment used by the project.
+- `performance-tests`: Performance tests for the project using the
+  k6 performance testing framework.
 - `scripts`: Miscellaneous scripts to help with the project.
+
+## Network Access
+
+You must be on a MongoDB corporate network (both office and VPNs) to access
+many of the dependent services. If you are not in a MongoDB office, you should
+go on the VPN before starting the bootstrap.
+
+You should also be on a MongoDB corporate network to run the project locally.
 
 ## Bootstrapping
 
-To install all dependencies and build all sub-projects, run the following in the root of your project:
+### 1. Get credentials and environment variables
+
+Before you begin setting up the project, ask a current project contributor for the following:
+
+1. Artifactory credentials
+2. `.env` file variables for whichever projects you're working on.
+   At a minimum, you'll need the `chat-core` environment variables, as the other
+   projects depend on `chat-core`. If you're unsure which projects you need
+   to work with, ask a current contributor.
+
+### 2. Add Artifactory credentials
+
+To install all dependencies and build all projects, you must set up your npm config
+to use Artifactory with a specific set of credentials. You should have gotten the credentials
+in the previous step.
+
+In your shell environment configuration (e.g. `.zshrc`, `.bashprofile`, etc),
+add the credentials:
+
+```shell
+# .zshrc
+export LG_ARTIFACTORY_PASSWORD=<password>
+export LG_ARTIFACTORY_USERNAME=<username>
+export LG_ARTIFACTORY_EMAIL=<email>
+```
+
+### 3. Install dependencies and build projects
+
+Run the following in the root of your project:
 
 ```sh
 npm install
 npm run bootstrap
 ```
 
-To get the relevant environment variables for the `.env` files, ask a current project contributor.
+### 4. Add Environment Variables
 
-You can run both the chat server and UI by running the following from the root of the project:
+In step 1, you should have gotten the environment variables you need.
+
+Add environment variables to whichever projects you're working on.
+Every project has an `.env.example` file showing you which environment variables
+you need.
+
+### 4. Run Project(s)
+
+Refer to the each project;s `README` files for information about running that project.
+
+You can also run a development build of both the `chat-server` and `chat-ui`
+with hot reload by running the following command from the root of the monorepo:
 
 ```sh
 npm run dev
@@ -36,7 +98,7 @@ npm run dev
 
 ## Infrastructure
 
-The project uses Drone for its CI/CD pipeline. All drone config is located in `.drone.yml`.
+The projects uses Drone for its CI/CD pipeline. All drone config is located in `.drone.yml`.
 
 Applications are deployed on Kubernetes using the Kanopy developer platform.
 Kubernetes/Kanopy configuration are found in the `<deployed project>/environments`
@@ -50,9 +112,9 @@ with the `*.dockerfile` extension.
 
 ### Staging
 
-We run a staging server that uses the latest commit on the `main` branch. When
-you merge new commits into `main`, a CI/CD pipeline automatically builds and
-publishes the updated staging server and demo site.
+We run a staging version of the `chat-server` and `ingest` that uses
+the latest commit on the `main`branch. When you merge new commits into`main`,
+a CI/CD pipeline automatically builds and publishes the updated staging server and demo site.
 
 ### QA Server & Demo Site
 
@@ -74,7 +136,8 @@ To publish to QA:
    build from the same commits as `main`. However, you might want to QA only a
    subset of commits from `main`.
 
-3. Add a tag to the latest commit on the `qa` branch using the following naming scheme: `chat-server-qa-<Build ID>`
+3. Add a tag to the latest commit on the `qa` branch using the following naming scheme:
+   `chat-server-qa-<Build ID>`
 
    ```
    git tag chat-server-qa-0.0.42 -a

@@ -1,6 +1,6 @@
 {
   "name": "chat-server",
-  "version": "1.0.2",
+  "version": "0.0.10-1",
   "description": "Q&A server for the MongoDB Docs AI chatbot.",
   "author": "MongoDB, Inc.",
   "license": "ISC",

@@ -32,6 +32,18 @@ The monorepo has the following main projects, each of which correspond to a Java
   k6 performance testing framework.
 - `scripts`: Miscellaneous scripts to help with the project.
 
+## Git Workflow
+
+To contribute to the project, you should follow the standard GitHub workflow:
+
+1. Create a fork of the repo.
+2. Create a branch for your changes on your fork.
+   - If there's a Jira ticket for your changes, name the branch after the ticket (e.g. `DOCSP-1234`).
+   - If there's no Jira ticket, name the branch after the changes you're making (e.g. `fix_typos`).
+3. Make your changes. Commit them to your branch and push to your fork.
+4. Create a pull request to merge the changes from `<your fork/branch>` into
+   the `docs-chatbot/main` branch.
+
 ## Network Access
 
 You must be on a MongoDB corporate network (both office and VPNs) to access

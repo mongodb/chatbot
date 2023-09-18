@@ -5,7 +5,7 @@ import { ChunkOptions, ContentChunk, ChunkFunc } from "./chunkPage";
 
 const defaultMdChunkOptions: ChunkOptions = {
   maxChunkSize: 600, // max chunk size of 600 tokens gets avg ~400 tokens/chunk
-  minChunkSize: 15,
+  minChunkSize: 15, // chunks below this size are discarded, which improves search quality
   chunkOverlap: 0,
   tokenizer: new GPT3Tokenizer({ type: "gpt3" }),
 };

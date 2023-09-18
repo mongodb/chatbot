@@ -4,7 +4,8 @@ import { extractFrontMatter, Page } from "chat-core";
 import { ChunkOptions, ContentChunk, ChunkFunc } from "./chunkPage";
 
 const defaultMdChunkOptions: ChunkOptions = {
-  chunkSize: 600, // max chunk size of 600 tokens gets avg ~400 tokens/chunk
+  maxChunkSize: 600, // max chunk size of 600 tokens gets avg ~400 tokens/chunk
+  minChunkSize: 15,
   chunkOverlap: 0,
   tokenizer: new GPT3Tokenizer({ type: "gpt3" }),
 };
@@ -37,18 +38,21 @@ export const chunkMd: ChunkFunc = async function (
   optionsIn?: Partial<ChunkOptions>
 ) {
   const options = { ...defaultMdChunkOptions, ...optionsIn };
-  const { tokenizer, chunkSize, chunkOverlap, transform } = options;
+  const { tokenizer, maxChunkSize, minChunkSize, chunkOverlap, transform } =
+    options;
   const splitter = new RecursiveCharacterTextSplitter({
     chunkOverlap,
-    chunkSize,
+    chunkSize: maxChunkSize,
     lengthFunction: (text) => tokenizer.encode(text).bpe.length,
     separators,
   });
 
-  const chunks = (await splitter.createDocuments([page.body]))
-    // filter out chunks that are too short to be semantically useful
-    .filter((chunk) => tokenizer.encode(chunk.pageContent).bpe.length > 15);
-
+  let chunks = await splitter.createDocuments([page.body]);
+  if (minChunkSize) {
+    chunks = chunks.filter(
+      (chunk) => tokenizer.encode(chunk.pageContent).bpe.length > minChunkSize
+    );
+  }
   return await Promise.all(
     chunks.map(async ({ pageContent }, chunkIndex): Promise<ContentChunk> => {
       const preTransformChunk: Omit<ContentChunk, "tokenCount"> = {

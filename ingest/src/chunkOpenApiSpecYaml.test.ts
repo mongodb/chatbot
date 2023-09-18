@@ -19,7 +19,7 @@ describe("chunkRedocOpenApiSpecYaml()", () => {
       tags: ["a"],
     });
     const chunks = await chunkOpenApiSpecYaml(result, {
-      chunkSize: 1250,
+      maxChunkSize: 1250,
       chunkOverlap: 0,
       tokenizer: new GPT3Tokenizer({ type: "gpt3" }),
     });
@@ -53,7 +53,7 @@ baseUrls:
       tags: ["a"],
     });
     const chunks = await chunkOpenApiSpecYaml(result, {
-      chunkSize: 1250,
+      maxChunkSize: 1250,
       chunkOverlap: 0,
       tokenizer: new GPT3Tokenizer({ type: "gpt3" }),
     });

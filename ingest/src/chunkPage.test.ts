@@ -24,7 +24,10 @@ Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibend
     },
   };
   it("chunks pages", async () => {
-    const chunks = await chunkPage(page, { chunkSize: 500, chunkOverlap: 0 });
+    const chunks = await chunkPage(page, {
+      maxChunkSize: 500,
+      chunkOverlap: 0,
+    });
     expect(chunks).toHaveLength(3);
     expect(chunks).toStrictEqual([
       {
@@ -53,7 +56,7 @@ Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibend
 
   it("allows transformation", async () => {
     const chunks = await chunkPage(page, {
-      chunkSize: 500,
+      maxChunkSize: 500,
       chunkOverlap: 0,
       async transform(chunk) {
         return { ...chunk, text: "Transformed!" };
@@ -297,7 +300,7 @@ ${body}`,
     };
 
     const chunks = await chunkPage(pageWithTabs, {
-      chunkSize: 300,
+      maxChunkSize: 300,
       chunkOverlap: 0,
     });
     expect(chunks).toHaveLength(3);
@@ -307,5 +310,18 @@ ${body}`,
     expect(chunks[2].text.startsWith('<Tab name="App Services CLI">')).toBe(
       true
     );
+  });
+  it("excludes chunks with fewer than minChunkSize tokens", async () => {
+    const chunks = await chunkPage(
+      {
+        ...page,
+        body: `less than 25 tokens`,
+      },
+      {
+        transform: standardChunkFrontMatterUpdater,
+        minChunkSize: 25,
+      }
+    );
+    expect(chunks).toHaveLength(0);
   });
 });

@@ -75,7 +75,7 @@ const styles = {
     justify-content: center;
   `,
   modal_container: ({ darkMode }: StylesProps) => css`
-    z-index: 10; /* Highest z-index on the docs homepage is 9 for the feedback widget tab */
+    z-index: 100;
 
     & * {
       box-sizing: border-box;

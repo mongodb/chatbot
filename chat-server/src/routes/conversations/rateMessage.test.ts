@@ -135,16 +135,4 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
       error: "Message not found",
     });
   });
-  describe("IP address validation", () => {
-    beforeEach(async () => {
-      assert(conversations);
-
-      conversation = await conversations.create({ ipAddress });
-      testMsg = await conversations.addConversationMessage({
-        conversationId: conversation._id,
-        content: "hello",
-        role: "assistant",
-      });
-    });
-  });
 });

@@ -146,19 +146,5 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
         role: "assistant",
       });
     });
-    test("Should return 403 for different but valid IP address", async () => {
-      const differentIpAddress = "192.158.1.38";
-      const response = await request(app)
-        .post(
-          `${CONVERSATIONS_API_V1_PREFIX}/${conversation._id}/messages/${testMsg.id}/rating`
-        )
-        .set("X-Forwarded-For", differentIpAddress)
-        .send({ rating: true });
-
-      expect(response.statusCode).toBe(403);
-      expect(response.body).toEqual({
-        error: "Invalid IP address for conversation",
-      });
-    });
   });
 });

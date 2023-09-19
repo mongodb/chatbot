@@ -37,6 +37,9 @@ const styles = {
       margin-left: 50px;
     }
   `,
+  message_rating: css`
+    margin-top: 1rem;
+  `,
   chat_window: css`
     border-radius: 24px;
   `,
@@ -358,6 +361,7 @@ const Message = ({
         messageRatingProps={
           messageData.role === "assistant"
             ? {
+                className: styles.message_rating,
                 description: "How was the response?",
                 onChange: (e) => console.log(e),
               }

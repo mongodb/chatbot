@@ -1,4 +1,20 @@
-export const snootyProjects = [
+import { SnootyProjectConfig } from "./SnootyDataSource";
+import { DevCenterProjectConfig } from "./DevCenterDataSource";
+
+// `baseUrl` and `currentBranch` to be filled in by the Snooty Data API GET
+// projects endpoint - unless you want to specify one to override whatever the
+// Data API says. `currentBranch` will be the name of the first branch entry has
+// `isStableBranch` set to true in the Data API response.
+export type LocallySpecifiedSnootyProjectConfig = Omit<
+  SnootyProjectConfig,
+  "baseUrl" | "currentBranch" | "version"
+> & {
+  baseUrl?: string;
+  currentBranch?: string;
+  versionNameOverride?: string;
+};
+
+export const snootyProjects: LocallySpecifiedSnootyProjectConfig[] = [
     {
         type: "snooty",
         name: "cloud-docs",
@@ -187,7 +203,7 @@ export const snootyProjects = [
     },
 ];
 
-export const devCenterProject = {
+export const devCenterProject: DevCenterProjectConfig = {
     type: "devcenter",
     name: "devcenter",
     collectionName: "search_content_prod",

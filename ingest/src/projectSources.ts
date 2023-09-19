@@ -1,27 +1,18 @@
 import { DevCenterProjectConfig } from "./DevCenterDataSource";
-import { SnootyProjectConfig } from "./SnootyDataSource";
 import { makeRstOnGitHubDataSource } from "./RstOnGitHubDataSource";
 import { DataSource } from "./DataSource";
 import { makeDevCenterDataSource } from "./DevCenterDataSource";
 import { prepareSnootySources } from "./SnootyProjectsInfo";
-import { snootyProjects, devCenterProject } from "./ingest.config";
+import { 
+    snootyProjects, 
+    devCenterProject, 
+    LocallySpecifiedSnootyProjectConfig 
+} from "./ingest.config";
+
 /**
   Async constructor for specific data sources -- parameters baked in.
  */
 export type SourceConstructor = () => Promise<DataSource | DataSource[]>;
-
-// `baseUrl` and `currentBranch` to be filled in by the Snooty Data API GET
-// projects endpoint - unless you want to specify one to override whatever the
-// Data API says. `currentBranch` will be the name of the first branch entry has
-// `isStableBranch` set to true in the Data API response.
-export type LocallySpecifiedSnootyProjectConfig = Omit<
-  SnootyProjectConfig,
-  "baseUrl" | "currentBranch" | "version"
-> & {
-  baseUrl?: string;
-  currentBranch?: string;
-  versionNameOverride?: string;
-};
 
 export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = snootyProjects;
 

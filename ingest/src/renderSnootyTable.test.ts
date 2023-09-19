@@ -12,7 +12,7 @@ describe("renderSnootyTable", () => {
         }
       )
     );
-    const result = renderSnootyTable(sampleTableAst, 0);
+    const result = renderSnootyTable(sampleTableAst);
     const expected = `<table>
 <tr>
 <th id="Action%20Test">
@@ -106,7 +106,7 @@ Stop and fail the aggregation operation. Any changes to the output collection fr
         "utf-8"
       )
     );
-    const result = renderSnootyTable(ast, 0);
+    const result = renderSnootyTable(ast);
     const expected = `<table>
 <tr>
 <th id="h1">

@@ -12,6 +12,9 @@ import { Chatbot as DevCenterChatbot } from "./DevCenterChatbot";
 
 const prefersDarkMode = () => window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
 
+const prefersDarkMode = () =>
+  window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+
 function App() {
   const [shouldStream, setShouldStream] = useState(canUseServerSentEvents());
   const { contextDarkMode: darkMode = false, setDarkMode } =
@@ -112,7 +115,7 @@ function GitCommitLink() {
       Git commit:{" "}
       <Link
         hideExternalIcon
-        href={`https://github.com/mongodb/docs-chatbot/commit/${VITE_GIT_COMMIT}`}
+        href={`https://github.com/mongodb/chatbot/commit/${VITE_GIT_COMMIT}`}
       >
         <Overline style={{ color }}>{VITE_GIT_COMMIT}</Overline>
       </Link>

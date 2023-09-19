@@ -112,14 +112,6 @@ export function makeRateMessageRoute({
         });
       }
 
-      if (!areEquivalentIpAddresses(conversationInDb.ipAddress, ip)) {
-        return sendErrorResponse({
-          reqId,
-          res,
-          httpStatus: 403,
-          errorMessage: "Invalid IP address for conversation",
-        });
-      }
       const successfulOperation = await conversations.rateMessage({
         conversationId: conversationId,
         messageId: messageId,

@@ -24,7 +24,10 @@ Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibend
     },
   };
   it("chunks pages", async () => {
-    const chunks = await chunkPage(page, { chunkSize: 500, chunkOverlap: 0 });
+    const chunks = await chunkPage(page, {
+      maxChunkSize: 500,
+      chunkOverlap: 0,
+    });
     expect(chunks).toHaveLength(3);
     expect(chunks).toStrictEqual([
       {
@@ -53,7 +56,7 @@ Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibend
 
   it("allows transformation", async () => {
     const chunks = await chunkPage(page, {
-      chunkSize: 500,
+      maxChunkSize: 500,
       chunkOverlap: 0,
       async transform(chunk) {
         return { ...chunk, text: "Transformed!" };
@@ -87,7 +90,7 @@ Vestibulum tempus aliquet convallis. Aenean ac dolor sed tortor malesuada bibend
 
   it("can add frontmatter", async () => {
     const chunks = await chunkPage(
-      { ...page, body: "This is some text\n" },
+      { ...page, body: "This is some text.\nLorem ipsum blah, blah, blah!!!" },
       {
         transform: standardChunkFrontMatterUpdater,
       }
@@ -111,8 +114,9 @@ pageTitle: Test Page
 hasCodeBlock: false
 ---
 
-This is some text`,
-        tokenCount: 32, // Calculated after transformation
+This is some text.
+Lorem ipsum blah, blah, blah!!!`,
+        tokenCount: 45, // Calculated after transformation
         url: "test",
       },
     ];
@@ -239,9 +243,11 @@ pageTitle: Test Page
 This is some text`);
   });
   it("can add arbitrary page metadata", async () => {
+    const body =
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
     const pageWithMetadata: Page = {
       ...page,
-      body: "FOO",
+      body,
       metadata: {
         ...page.metadata,
         arbitrary: "metadata",
@@ -269,8 +275,8 @@ pageTitle: Test Page
 hasCodeBlock: false
 ---
 
-FOO`,
-      tokenCount: 36,
+${body}`,
+      tokenCount: 78,
       url: "test",
     });
   });
@@ -294,7 +300,7 @@ FOO`,
     };
 
     const chunks = await chunkPage(pageWithTabs, {
-      chunkSize: 300,
+      maxChunkSize: 300,
       chunkOverlap: 0,
     });
     expect(chunks).toHaveLength(3);
@@ -304,5 +310,18 @@ FOO`,
     expect(chunks[2].text.startsWith('<Tab name="App Services CLI">')).toBe(
       true
     );
+  });
+  it("excludes chunks with fewer than minChunkSize tokens", async () => {
+    const chunks = await chunkPage(
+      {
+        ...page,
+        body: `less than 25 tokens`,
+      },
+      {
+        transform: standardChunkFrontMatterUpdater,
+        minChunkSize: 25,
+      }
+    );
+    expect(chunks).toHaveLength(0);
   });
 });

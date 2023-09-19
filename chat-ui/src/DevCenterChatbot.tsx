@@ -31,6 +31,12 @@ const styles = {
       right: 49px;
     }
   `,
+  message_prompts: css`
+    margin-left: 70px;
+    @media screen and (max-width: 804px) {
+      margin-left: 50px;
+    }
+  `,
   chat_window: css`
     border-radius: 24px;
   `,
@@ -90,6 +96,10 @@ const styles = {
     & > div {
       width: 100%;
     }
+  `,
+  fade_out: css`
+    transition: 'opacity 300ms ease-in',
+    opacity: 1,  
   `,
 };
 
@@ -399,22 +409,24 @@ const Message = ({
           : messageData.content}
       </LGMessage>
       {displaySuggestedPrompts && (
-        <MessagePrompts label="Suggested Prompts">
-          {suggestedPrompts.map((sp, idx) => (
-            <MessagePrompt
-              key={idx}
-              onClick={() => {
-                setSuggestedPromptIdx(idx);
-                setTimeout(() => {
-                  suggestedPromptOnClick(suggestedPrompts[idx]);
-                }, 500);
-              }}
-              selected={idx === suggestedPromptIdx}
-            >
-              {sp}
-            </MessagePrompt>
-          ))}
-        </MessagePrompts>
+        <div className={styles.message_prompts}>
+          <MessagePrompts label="Suggested Prompts">
+            {suggestedPrompts.map((sp, idx) => (
+              <MessagePrompt
+                key={idx}
+                onClick={() => {
+                  setSuggestedPromptIdx(idx);
+                  setTimeout(() => {
+                    suggestedPromptOnClick(suggestedPrompts[idx]);
+                  }, 300);
+                }}
+                selected={idx === suggestedPromptIdx}
+              >
+                {sp}
+              </MessagePrompt>
+            ))}
+          </MessagePrompts>
+        </div>
       )}
     </Fragment>
   );

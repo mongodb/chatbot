@@ -149,7 +149,7 @@ export function InnerChatbot({
     } satisfies MessageData;
 
     setWelcomeMessageData(newWelcomeMessageData);
-  }, [conversation.conversationId, welcomeMessageData]);
+  }, [conversation.conversationId, welcomeMessageData, welcomeMessage]);
 
   const openModal = async () => {
     if (modalOpen) return;

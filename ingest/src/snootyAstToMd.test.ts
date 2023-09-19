@@ -178,6 +178,35 @@ Describes one method for supporting keyword search by storing keywords in an arr
     const numberTabEnd = [...result.matchAll(/<\/Tab>/g)].length;
     expect(numberTabStart).toBe(numberTabEnd);
   });
+
+  it("renders tab sets", () => {
+    const samplePage = JSON.parse(
+      fs.readFileSync(
+        Path.resolve(__dirname, "./test_data/samplePageWithOrderedList.json"),
+        {
+          encoding: "utf-8",
+        }
+      )
+    );
+    const result = snootyAstToMd(samplePage.data.ast);
+    expect(result).toBe(`# Connect to App Services - C++ SDK Preview
+
+The App client is the Atlas App Services backend interface. It provides access to authentication and Atlas Functions.
+
+Some of your App Services App's features are associated with user accounts. For example, you need to authenticate a user before you can access your App's functions.
+
+## Prerequisites
+
+1. Create an App Services app
+
+## Access the App Client
+
+1. Find the App ID in the Realm UI.
+
+2. Create an App object with your App's ID as the argument. You use this \`App\` instance to access App Services features throughout your client application.
+
+`);
+  });
 });
 describe("getTitleFromSnootyAst", () => {
   const samplePage = JSON.parse(

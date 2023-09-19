@@ -3,7 +3,7 @@
 The ingest tool fetches pages from sources and stores the embeddings in the
 database.
 
-Based on https://github.com/cbush/typescript-cli-template
+Based on <https://github.com/cbush/typescript-cli-template>.
 
 ## System Overview
 
@@ -47,11 +47,41 @@ the command regenerates the corresponding embeddings for that page.
 
 ### Build & Run
 
-```sh
-npm i
-npm run build
+Set up the project monorepo. Refer to the [Contributor Guide](../CONTRIBUTING.md)
+for more info on monorepo setup.
+
+Make sure you set up the `.env` files in both the `ingest` and `chat-core` projects.
+
+To use the ingest CLI locally, run:
+
+```shell
+# See all available commands
 node .
+
+# Run specific command
+node . <command> <options>
 ```
+
+A few things to keep in mind when developing in the `ingest` project:
+
+1. You **must** recompile the `ingest` project with `npm run build` before running it
+   from the CLI for changes to take effect. Therefore, when testing CLI commands locally,
+   it can be convenient to run compilation and the command as a one-liner:
+
+   ```shell
+    npm run build && node . <command> <options>
+   ```
+
+2. You must also recompile `chat-core` with `npm run build` every time you make
+   changes to it for the changes to be accessible to `ingest` or any other projects that
+   depend on it.
+
+   ```shell
+   cd ../chat-core
+   npm run build
+   cd ../ingest
+   # do stuff
+   ```
 
 ### Add Commands
 

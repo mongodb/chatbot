@@ -1,4 +1,5 @@
 ---
+title: Help & Support
 url: https://support.mongodb.com/
 metadata:
   description: Get support from in-app chat, our free community resources, or a paid support specialist.

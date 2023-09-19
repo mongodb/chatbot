@@ -5,6 +5,7 @@ import { DataSource } from "./DataSource";
 import { ProjectBase } from "./ProjectBase";
 import { INGEST_ENV_VARS } from "./IngestEnvVars";
 import { strict as assert } from "assert";
+import { removeMarkdownImagesAndLinks } from "./removeMarkdownImagesAndLinks";
 
 export type DevCenterProjectConfig = ProjectBase & {
   type: "devcenter";
@@ -122,14 +123,8 @@ export function makeDevCenterPageBody({
     selectors: [{ selector: "img", format: "skip" }],
   }).replaceAll("🎃", " ");
 
-  // remove markdown images and links
-  const mdLink = /!?\[(.*?)\]\(.*?\)/g;
-  content = content.replaceAll(mdLink, (match, text) => {
-    // remove images
-    if (match.startsWith("!")) {
-      return "";
-    } else return text;
-  });
+  content = removeMarkdownImagesAndLinks(content);
+
   // remove YouTube markdown directives (e.g. `:youtube[]{some content}`)
   content = content.replaceAll(/:youtube\[\]\{(.*)\}/g, "");
   // remove unnecessary newlines

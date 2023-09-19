@@ -1,18 +1,19 @@
-// import { useConversation, Conversation } from "./useConversation";
-
 import { css } from "@emotion/css";
 import LeafyGreenProvider from "@leafygreen-ui/leafygreen-provider";
 import Modal from "@leafygreen-ui/modal";
-// import { Body } from "@leafygreen-ui/typography";
+import { ParagraphSkeleton } from "@leafygreen-ui/skeleton-loader";
+import { Body, Link } from "@leafygreen-ui/typography";
 import { Avatar } from "@lg-chat/avatar";
 import { ChatWindow } from "@lg-chat/chat-window";
 import { ChatTrigger } from "@lg-chat/fixed-chat-window";
 import { InputBar } from "@lg-chat/input-bar";
-import { Message, MessageSourceType } from "@lg-chat/message";
+import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
+import { Message as LGMessage, MessageSourceType } from "@lg-chat/message";
 import { MessageFeed } from "@lg-chat/message-feed";
 import { MessagePrompt, MessagePrompts } from "@lg-chat/message-prompts";
-import { useState } from "react";
-import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
+import { Fragment, useEffect, useState } from "react";
+import { MessageData } from "./services/conversations";
+import { Conversation, useConversation } from "./useConversation";
 // import { DisclaimerText } from "@lg-chat/chat-disclaimer";
 
 const styles = {
@@ -29,6 +30,15 @@ const styles = {
       bottom: 32px;
       right: 49px;
     }
+  `,
+  message_prompts: css`
+    margin-left: 70px;
+    @media screen and (max-width: 804px) {
+      margin-left: 50px;
+    }
+  `,
+  message_rating: css`
+    margin-top: 1rem;
   `,
   chat_window: css`
     border-radius: 24px;
@@ -64,12 +74,134 @@ const styles = {
       text-align: left;
     }
   `,
+  // This is a hacky fix for weird white-space issues in LG Chat.
+  markdown_container: css`
+    display: flex;
+    flex-direction: column;
+
+    & * {
+      line-height: 28px;
+    }
+
+    & li {
+      white-space: normal;
+      margin-top: -1.5rem;
+    }
+  `,
+  // End hacky fix
+  markdown_ul: css`
+    overflow-wrap: anywhere;
+  `,
+  loading_skeleton: css`
+    margin-bottom: 16px;
+    width: 100%;
+
+    & > div {
+      width: 100%;
+    }
+  `,
+  fade_out: css`
+    transition: 'opacity 300ms ease-in',
+    opacity: 1,  
+  `,
 };
 
-type ChatbotModalProps = {
-  open: boolean;
-  shouldClose: () => boolean;
+export type ChatbotProps = {
+  darkMode?: boolean;
+  serverBaseUrl?: string;
+  shouldStream?: boolean;
+  suggestedPrompts?: string[];
+  startingMessage?: string;
 };
+
+export function Chatbot(props: ChatbotProps) {
+  const { darkMode, ...InnerChatbotProps } = props;
+  // TODO: Use ConversationProvider
+  return (
+    <LeafyGreenProvider darkMode={props.darkMode}>
+      <InnerChatbot {...InnerChatbotProps} />
+    </LeafyGreenProvider>
+  );
+}
+
+type InnerChatbotProps = {
+  serverBaseUrl?: string;
+  shouldStream?: boolean;
+  suggestedPrompts?: string[];
+  welcomeMessage?: string;
+};
+
+const WELCOME_MESSAGE =
+  "Welcome to MongoDB AI Assistant. What can I help you with?";
+
+export function InnerChatbot({
+  serverBaseUrl,
+  shouldStream,
+  suggestedPrompts,
+  welcomeMessage = WELCOME_MESSAGE,
+}: InnerChatbotProps) {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [welcomeMessageData, setWelcomeMessageData] =
+    useState<MessageData | null>(null);
+  const [inputBarValue, setInputBarValue] = useState("");
+
+  const conversation = useConversation({
+    serverBaseUrl: serverBaseUrl,
+    shouldStream: shouldStream,
+  });
+
+  useEffect(() => {
+    if (!conversation.conversationId || welcomeMessageData) return;
+
+    // TODO: Update the backend to accept a welcome message
+    const newWelcomeMessageData = {
+      id: crypto.randomUUID(),
+      role: "assistant",
+      content: welcomeMessage,
+      createdAt: new Date().toLocaleTimeString(),
+    } satisfies MessageData;
+
+    setWelcomeMessageData(newWelcomeMessageData);
+  }, [conversation.conversationId, welcomeMessageData, welcomeMessage]);
+
+  const openModal = async () => {
+    if (modalOpen) return;
+
+    if (!conversation.conversationId) {
+      // TODO: Update the backend to accept a welcome message
+      await conversation.createConversation();
+    }
+
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+  };
+
+  return (
+    <>
+      <ChatTrigger
+        className={styles.chat_trigger}
+        onClick={async () => await openModal()}
+      >
+        MongoDB AI
+      </ChatTrigger>
+      <ChatbotModal
+        open={modalOpen}
+        shouldClose={() => {
+          closeModal();
+          return true;
+        }}
+        suggestedPrompts={suggestedPrompts}
+        welcomeMessageData={welcomeMessageData}
+        conversation={conversation}
+        inputBarValue={inputBarValue}
+        setInputBarValue={setInputBarValue}
+      />
+    </>
+  );
+}
 
 // const DisclaimerTextDescription = () => {
 //   return (
@@ -82,44 +214,76 @@ type ChatbotModalProps = {
 //   );
 // };
 
-const SampleMarkDown = `
-# Heading 1
+const SUGGESTED_PROMPTS = [
+  "How do you deploy a free cluster in Atlas?",
+  "How do you import or migrate data into MongoDB Atlas?",
+  "How do I get started with MongoDB?",
+  "Why should I use Atlas Search?",
+];
 
-## Heading 2
+type ChatbotModalProps = {
+  open: boolean;
+  shouldClose: () => boolean;
+  suggestedPrompts?: string[];
+  welcomeMessageData: MessageData | null;
+  conversation: Conversation;
+  inputBarValue: string;
+  setInputBarValue: React.Dispatch<React.SetStateAction<string>>;
+};
 
-### Heading 3
+function ChatbotModal({
+  open,
+  shouldClose,
+  suggestedPrompts = SUGGESTED_PROMPTS,
+  welcomeMessageData,
+  conversation,
+  inputBarValue,
+  setInputBarValue,
+}: ChatbotModalProps) {
+  const messages = welcomeMessageData
+    ? [welcomeMessageData, ...conversation.messages]
+    : conversation.messages;
+  const [awaitingReply, setAwaitingReply] = useState(false);
 
-This is a paragraph.
+  const displaySuggestedPrompts = () => {
+    return conversation.messages.length === 0;
+  };
 
-Each paragraph can span multiple lines. And have multiple sentences!
+  const handleSubmit = async (prompt: string) => {
+    if (!conversation.conversationId) {
+      console.error(`Cannot addMessage without a conversationId`);
+      return;
+    }
 
-A paragraph can also contain formatted text, like *italics* or **bold** words.
+    if (awaitingReply) return;
 
-You can link to a URL using markdown link notation, e.g. [LeafyGreen UI](mongodb.design)
+    // Don't let users submit a message that is empty or only whitespace
+    if (prompt.replace(/\s/g, "").length === 0) return;
 
-If you want to talk about code in a paragraph, you can use \`inline code\`. Wow!
+    try {
+      setInputBarValue("");
+      setAwaitingReply(true);
+      await conversation.addMessage("user", prompt);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setAwaitingReply(false);
+    }
+  };
 
-Or you can use a markdown code block like this:
+  const isLoading = (messageId: string) => {
+    return (
+      conversation.isStreamingMessage &&
+      messageId === conversation.streamingMessage?.id &&
+      conversation.streamingMessage?.content === ""
+    );
+  };
 
-\`\`\`typescript
-type HelloWorld = "Hello, world!"
-
-function helloWorld() {
-  return "Hello, world!" satisfies HelloWorld;
-}
-\`\`\`
-
-- [https://mongodb.github.io/leafygreen-ui/?path=/docs/overview-introduction--docs](https://mongodb.github.io/leafygreen-ui/?path=/docs/overview-introduction--docs)
-- [https://mongodb.github.io/leafygreen-ui/?path=/docs/overview-introduction--docs](https://mongodb.github.io/leafygreen-ui/?path=/docs/overview-introduction--docs)
-- [https://mongodb.github.io/leafygreen-ui/?path=/docs/overview-introduction--docs](https://mongodb.github.io/leafygreen-ui/?path=/docs/overview-introduction--docs)
-`;
-
-function ChatbotModal(props: ChatbotModalProps) {
   return (
     <Modal
-      open={props.open}
+      open={open}
       size="large"
-      shouldClose={props.shouldClose}
+      shouldClose={shouldClose}
       className={styles.chatbot_modal}
     >
       <LeafyGreenChatProvider>
@@ -130,57 +294,40 @@ function ChatbotModal(props: ChatbotModalProps) {
         >
           <MessageFeed>
             {/* <DisclaimerText
-            className={styles.disclaimer_text_container}
-            title="Terms of Use"
-            description={DisclaimerTextDescription()}
-          /> */}
-            <Message
-              baseFontSize={13}
-              isSender={false}
-              messageRatingProps={{
-                description: "How was the response?",
-                onChange: (e) => console.log(e),
-              }}
-              avatar={<Avatar variant="mongo" />}
-              sourceType={MessageSourceType.Text}
+              className={styles.disclaimer_text_container}
+              title="Terms of Use"
             >
-              Welcome to MongoDB AI Assistant. What can I help you with?
-            </Message>
-            <MessagePrompts label="Suggested Prompts">
-              <MessagePrompt>
-                How do you deploy a free cluster in Atlas?
-              </MessagePrompt>
-              <MessagePrompt>
-                How do you deploy a free cluster in Atlas?
-              </MessagePrompt>
-              <MessagePrompt>
-                How do you deploy a free cluster in Atlas?
-              </MessagePrompt>
-            </MessagePrompts>
-            <Message
-              isSender={true}
-              avatar={<Avatar variant="user" name="S C" />}
-              baseFontSize={13}
-              sourceType={MessageSourceType.Text}
-            >
-              How do you deploy a free cluster in Atlas?
-            </Message>
-            <Message
-              baseFontSize={13}
-              isSender={false}
-              messageRatingProps={{
-                description: "How was the response?",
-                onChange: (e) => console.log(e),
-              }}
-              avatar={<Avatar variant="mongo" />}
-              sourceType={MessageSourceType.Markdown}
-            >
-              {SampleMarkDown}
-            </Message>
+              {DisclaimerTextDescription()}
+            </DisclaimerText> */}
+            {messages.map((messageData, idx) => {
+              return (
+                <Message
+                  key={messageData.id}
+                  messageData={messageData}
+                  suggestedPrompts={suggestedPrompts}
+                  displaySuggestedPrompts={
+                    idx === 0 && displaySuggestedPrompts()
+                  }
+                  suggestedPromptOnClick={handleSubmit}
+                  isLoading={isLoading(messageData.id)}
+                />
+              );
+            })}
           </MessageFeed>
           <InputBar
+            onSubmit={() => handleSubmit(inputBarValue)}
+            disabled={!!conversation.error}
+            disableSend={awaitingReply}
             textareaProps={{
-              placeholder: "Ask MongoDB AI assistant a question",
+              value: inputBarValue,
+              onChange: (e) => {
+                setInputBarValue(e.target.value);
+              },
+              placeholder: conversation.error
+                ? "Something went wrong. Try reloading the page and starting a new conversation."
+                : awaitingReply
+                ? "MongoDB AI Assistant is answering..."
+                : "Ask MongoDB AI Assistant a Question",
             }}
           />
         </ChatWindow>
@@ -189,40 +336,106 @@ function ChatbotModal(props: ChatbotModalProps) {
   );
 }
 
-export type ChatbotProps = {
-  serverBaseUrl?: string;
-  shouldStream?: boolean;
-  darkMode?: boolean;
+type MessageProp = {
+  messageData: MessageData;
   suggestedPrompts?: string[];
+  displaySuggestedPrompts: boolean;
+  suggestedPromptOnClick: (prompt: string) => void;
+  isLoading: boolean;
 };
 
-export function Chatbot(props: ChatbotProps) {
-  const [modalOpen, setModalOpen] = useState(false);
-
-  const openModal = () => {
-    setModalOpen(true);
-  };
-  const closeModal = () => {
-    setModalOpen(false);
-  };
+const Message = ({
+  messageData,
+  suggestedPrompts = [],
+  displaySuggestedPrompts,
+  suggestedPromptOnClick,
+  isLoading,
+}: MessageProp) => {
+  const [suggestedPromptIdx, setSuggestedPromptIdx] = useState(-1);
 
   return (
-    <LeafyGreenProvider darkMode={props.darkMode}>
-      <ChatTrigger
-        className={styles.chat_trigger}
-        onClick={() => {
-          openModal();
+    <Fragment key={messageData.id}>
+      <LGMessage
+        baseFontSize={13}
+        isSender={messageData.role === "user"}
+        messageRatingProps={
+          messageData.role === "assistant"
+            ? {
+                className: styles.message_rating,
+                description: "How was the response?",
+                onChange: (e) => console.log(e),
+              }
+            : undefined
+        }
+        avatar={
+          <Avatar variant={messageData.role === "user" ? "user" : "mongo"} />
+        }
+        sourceType={isLoading ? undefined : MessageSourceType.Markdown}
+        markdownProps={{
+          className: styles.markdown_container,
+          components: {
+            a: ({ children, href }) => {
+              return (
+                <Link hideExternalIcon href={href}>
+                  {children}
+                </Link>
+              );
+            },
+            p: ({ children, ...props }) => {
+              return <Body {...props}>{children}</Body>;
+            },
+            ol: ({ children, ordered, ...props }) => {
+              return (
+                <Body as="ol" {...props}>
+                  {children}
+                </Body>
+              );
+            },
+            ul: ({ children, ordered, ...props }) => {
+              return (
+                <Body className={styles.markdown_ul} as="ul" {...props}>
+                  {children}
+                </Body>
+              );
+            },
+            li: ({ children, ordered, node, ...props }) => {
+              return (
+                <Body as="li" {...props}>
+                  {children}
+                </Body>
+              );
+            },
+          },
         }}
       >
-        MongoDB AI
-      </ChatTrigger>
-      <ChatbotModal
-        open={modalOpen}
-        shouldClose={() => {
-          closeModal();
-          return true;
-        }}
-      />
-    </LeafyGreenProvider>
+        {isLoading
+          ? ((<LoadingSkeleton />) as unknown as string)
+          : messageData.content}
+      </LGMessage>
+      {displaySuggestedPrompts && (
+        <div className={styles.message_prompts}>
+          <MessagePrompts label="Suggested Prompts">
+            {suggestedPrompts.map((sp, idx) => (
+              <MessagePrompt
+                key={idx}
+                onClick={() => {
+                  setSuggestedPromptIdx(idx);
+                  setTimeout(() => {
+                    suggestedPromptOnClick(suggestedPrompts[idx]);
+                  }, 300);
+                }}
+                selected={idx === suggestedPromptIdx}
+              >
+                {sp}
+              </MessagePrompt>
+            ))}
+          </MessagePrompts>
+        </div>
+      )}
+    </Fragment>
   );
-}
+};
+
+const LoadingSkeleton = () => {
+  return <ParagraphSkeleton className={styles.loading_skeleton} />;
+};

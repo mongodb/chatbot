@@ -16,12 +16,12 @@ import {
   InputBar,
   SuggestedPrompt,
   SuggestedPrompts,
-} from "@lg-chat/input-bar";
+  CharacterCount,
+} from "./InputBar";
 import {
   Message,
   MessageContent as LGChatMessageContent,
   MessageContentProps,
-
 } from "@lg-chat/message";
 import { MessageFeed } from "@lg-chat/message-feed";
 import { MessageRatingProps } from "@lg-chat/message-rating";
@@ -34,16 +34,12 @@ import LeafyGreenProvider, {
 } from "@leafygreen-ui/leafygreen-provider";
 
 const styles = {
-  disclosure: ({ darkMode }: StylesProps) => css`
+  info_box: css`
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     gap: 8px;
     padding-left: 8px;
-
-    & > p {
-      color: ${darkMode ? palette.white : palette.black};
-    }
-  }`,
+  `,
   chatbot_container: css`
     display: flex;
     flex-direction: column;
@@ -53,7 +49,7 @@ const styles = {
       box-sizing: border-box;
     }
   }`,
-  chatbot_input: css`
+  chatbot_input_area: css`
     position: relative;
     width: 100%;
     display: flex;
@@ -65,13 +61,21 @@ const styles = {
     padding-top: 0.5rem;
     padding-bottom: 1rem;
   `,
+  chatbot_input_error_border: css`
+    > div {
+      > div {
+        border-color: ${palette.red.base} !important;
+        border-width: 2px !important;
+      }
+    }
+  `,
   conversation_id_info: css`
     display: flex;
     flex-direction: row;
     justify-content: center;
   `,
   modal_container: ({ darkMode }: StylesProps) => css`
-    z-index: 2;
+    z-index: 100;
 
     & * {
       box-sizing: border-box;
@@ -80,6 +84,10 @@ const styles = {
     & div[role="dialog"] {
       padding: 0;
       background: ${darkMode ? palette.black : palette.gray.light3};
+
+      > button {
+        top: 14px;
+      }
     }
 
     @media screen and (max-width: 1024px) {
@@ -104,9 +112,13 @@ const styles = {
     width: 100%;
     background: red;
   `,
+  message_rating: css`
+    margin-top: 1rem;
+  `,
   // This is a hacky fix for weird white-space issues in LG Chat.
   markdown_container: css`
     display: flex;
+    overflow-wrap: anywhere;
     flex-direction: column;
 
     & * {
@@ -121,6 +133,7 @@ const styles = {
   // End hacky fix
   markdown_ul: css`
     overflow-wrap: anywhere;
+    margin-bottom: -1.5rem; /* For some reason uls all have extra space at the end - really not sure why...*/
   `,
   loading_skeleton: css`
     margin-bottom: 16px;
@@ -132,6 +145,13 @@ const styles = {
   `,
   verify_information: css`
     text-align: center;
+  `,
+  powered_by_footer: css`
+    display: flex;
+    flex-direction: row;
+    color: ${palette.gray.dark2};
+    justify-content: flex-end;
+    padding-right: 24px;
   `,
 };
 
@@ -234,13 +254,30 @@ export function Chatbot(props: ChatbotProps) {
     conversation.messages.length === 0 &&
     !awaitingReply;
 
+  const [initialInputFocused, setInitialInputFocused] = useState(false);
+  const showInitialInputErrorState = inputTextError !== "" && !modalOpen;
+
   return (
     <LeafyGreenProvider darkMode={darkMode}>
       <div className={styles.chatbot_container}>
-        <div className={styles.chatbot_input}>
+        <div className={styles.chatbot_input_area}>
           <InputBar
             key={"initialInput"}
-            badgeText="Experimental"
+            hasError={showInitialInputErrorState}
+            badgeText={(initialInputFocused || inputText.length > 0) ? undefined : "Experimental"}
+            dropdownFooterSlot={
+              <div className={styles.powered_by_footer}>
+                <Body>
+                  Powered by Atlas Vector Search.{" "}
+                  <Link
+                    href="https://www.mongodb.com/products/platform/atlas-vector-search"
+                    hideExternalIcon
+                  >
+                    Learn More.
+                  </Link>
+                </Body>
+              </div>
+            }
             textareaProps={{
               value: !modalOpen ? inputText : "",
               onChange: (e) => {
@@ -251,15 +288,6 @@ export function Chatbot(props: ChatbotProps) {
                 : awaitingReply
                 ? "MongoDB AI is answering..."
                 : "Ask MongoDB AI a Question",
-            }}
-            onKeyDown={(e) => {
-              if (
-                e.key === "Enter" &&
-                inputText.length === 0 &&
-                conversation.messages.length > 0
-              ) {
-                openModal();
-              }
             }}
             onMessageSend={async (messageContent) => {
               if (!modalOpen && conversation.messages.length > 0) {
@@ -280,10 +308,16 @@ export function Chatbot(props: ChatbotProps) {
                 await conversation.createConversation();
               }
             }}
+            onFocus={() => {
+              setInitialInputFocused(true);
+            }}
+            onBlur={() => {
+              setInitialInputFocused(false);
+            }}
           >
             {showSuggestedPrompts ? (
               <SuggestedPrompts label="SUGGESTED AI PROMPTS">
-                {props.suggestedPrompts?.map(suggestedPrompt => (
+                {props.suggestedPrompts?.map((suggestedPrompt) => (
                   <SuggestedPrompt
                     key={suggestedPrompt}
                     onClick={async () => {
@@ -297,9 +331,12 @@ export function Chatbot(props: ChatbotProps) {
             ) : undefined}
           </InputBar>
 
-          {inputTextError ? <ErrorText>{inputTextError}</ErrorText> : null}
-
-          <Disclosure tabIndex={0} darkMode={darkMode} />
+          <div className={styles.info_box}>
+            {showInitialInputErrorState ? (
+              <ErrorText>{inputTextError}</ErrorText>
+            ) : null}
+            <LegalDisclosure />
+          </div>
         </div>
         <ChatbotModal
           inputBarRef={inputBarRef}
@@ -407,6 +444,7 @@ function ChatbotModal({
                     messageRatingProps={
                       message.role === "assistant"
                         ? {
+                            className: styles.message_rating,
                             description: "Was this response helpful?",
                             onChange: (e) => {
                               const value = e.target
@@ -484,7 +522,7 @@ function ChatbotModal({
               })}
             </MessageFeed>
           ) : null}
-          <div className={styles.chatbot_input}>
+          <div className={styles.chatbot_input_area}>
             {conversation.error ? (
               <ErrorBanner darkMode={darkMode} message={conversation.error} />
             ) : null}
@@ -492,6 +530,8 @@ function ChatbotModal({
             {!conversation.error ? (
               <>
                 <InputBar
+                  hasError={inputTextError !== ""}
+                  shouldRenderGradient={!inputTextError}
                   darkMode={darkMode}
                   ref={inputBarRef}
                   disabled={active && Boolean(conversation.error?.length)}
@@ -516,16 +556,25 @@ function ChatbotModal({
                       : "Ask MongoDB AI a Question",
                   }}
                 />
-                {inputTextError ? (
-                  <ErrorText>{inputTextError}</ErrorText>
-                ) : null}
+
+                <div
+                  className={css`
+                    display: flex;
+                    justify-content: space-between;
+                  `}
+                >
+                  <Body baseFontSize={13} className={styles.verify_information}>
+                    This is an experimental generative AI chatbot. All
+                    information should be verified prior to use.
+                  </Body>
+                  <CharacterCount
+                    darkMode={darkMode}
+                    current={inputText.length}
+                    max={MAX_INPUT_CHARACTERS}
+                  />
+                </div>
               </>
             ) : null}
-
-            <Body className={styles.verify_information}>
-              This is an experimental generative AI chatbot. All information
-              should be verified prior to use.
-            </Body>
 
             <ConversationIdInfo conversation={conversation} />
           </div>
@@ -535,29 +584,23 @@ function ChatbotModal({
   );
 }
 
-interface DisclosureProps extends React.HTMLAttributes<HTMLDivElement> {
-  darkMode?: boolean;
-}
-
-function Disclosure({ darkMode, ...props }: DisclosureProps) {
+function LegalDisclosure() {
   const TermsOfUse = () => (
-    <Link href={"https://www.mongodb.com/legal/terms-of-use"}>
+    <Link hideExternalIcon href={"https://www.mongodb.com/legal/terms-of-use"}>
       Terms of Use
     </Link>
   );
   const AcceptableUsePolicy = () => (
-    <Link href={"https://www.mongodb.com/legal/acceptable-use-policy"}>
+    <Link hideExternalIcon href={"https://www.mongodb.com/legal/acceptable-use-policy"}>
       Acceptable Use Policy
     </Link>
   );
 
   return (
-    <div className={styles.disclosure({ darkMode })} {...props}>
-      <Body color={"#FFFFFF"}>
-        This is a generative AI chatbot. By interacting with it, you agree to
-        MongoDB's <TermsOfUse /> and <AcceptableUsePolicy />.
-      </Body>
-    </div>
+    <Body>
+      This is a generative AI chatbot. By interacting with it, you agree to
+      MongoDB's <TermsOfUse /> and <AcceptableUsePolicy />.
+    </Body>
   );
 }
 

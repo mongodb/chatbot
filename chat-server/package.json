@@ -1,6 +1,6 @@
 {
   "name": "chat-server",
-  "version": "1.0.2",
+  "version": "0.0.10-1",
   "description": "Q&A server for the MongoDB Docs AI chatbot.",
   "author": "MongoDB, Inc.",
   "license": "ISC",
@@ -32,7 +32,7 @@
     "express-rate-limit": "^6.10.0",
     "gpt3-tokenizer": "^1.1.5",
     "ip-address": "^8.1.0",
-    "langchain": "^0.0.95",
+    "langchain": "^0.0.148",
     "lodash.clonedeep": "^4.5.0",
     "mongodb": "^5.7.0",
     "openai": "^3.2.1",

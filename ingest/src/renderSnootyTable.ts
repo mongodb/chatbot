@@ -7,10 +7,7 @@ import { snootyAstToMd } from "./snootyAstToMd";
 /**
   Return a string of MD from a Snooty AST node.
  */
-export const renderSnootyTable = (
-  node: SnootyNode,
-  parentHeadingLevel: number
-) => {
+export const renderSnootyTable = (node: SnootyNode) => {
   // Table information in snooty AST is expressed in terms of lists and
   // listItems under a list-table directive. We don't want to render the
   // list bullets in the table, so we handle tables differently.
@@ -19,11 +16,9 @@ export const renderSnootyTable = (
     "\n\n<table>",
     renderRows(table.headerRows, {
       isHeader: true,
-      parentHeadingLevel,
     }),
     renderRows(table.dataRows, {
       isHeader: false,
-      parentHeadingLevel,
     }),
     "</table>\n\n",
   ]
@@ -34,7 +29,6 @@ export const renderSnootyTable = (
 
 type RenderTableElementOptions = {
   isHeader: boolean;
-  parentHeadingLevel: number;
 };
 
 export const renderRows = (rows: Row[], options: RenderTableElementOptions) => {
@@ -61,7 +55,7 @@ export const renderCells = (
               )}"`
             : ""
         }>`,
-        snootyAstToMd(cell.content, options.parentHeadingLevel),
+        snootyAstToMd(cell.content),
         `</${tag}>`,
       ];
     })
@@ -144,15 +138,16 @@ export const parseSnootyTable = (node: SnootyNode): Table => {
             if (headerRowCount > 0 && thisRowIndex === 0) {
               columnNames.push(columnName);
             }
-            return {
+            const cell: Cell = {
               columnName,
               content: {
                 ...content,
                 type: "section", // Override "listItem" type so it is not rendered as a list
               },
             };
+            return cell;
           })
-          .filter((content) => content !== undefined) as Cell[],
+          .filter((cell) => cell !== undefined) as Cell[],
       };
     })
     .filter((row) => row !== undefined) as Row[];

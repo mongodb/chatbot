@@ -11,8 +11,9 @@ import {
 } from "./chunkPage";
 
 export const defaultOpenApiSpecYamlChunkOptions: ChunkOptions = {
-  chunkSize: 1250, // max chunk size of 600 tokens gets avg ~400 tokens/chunk
+  maxChunkSize: 1250,
   chunkOverlap: 0,
+  minChunkSize: 15,
   tokenizer: new GPT3Tokenizer({ type: "gpt3" }),
 };
 
@@ -23,13 +24,14 @@ export const chunkOpenApiSpecYaml: ChunkFunc = async function (
   const options = {
     ...defaultOpenApiSpecYamlChunkOptions,
     ...optionsIn,
-    chunkSize:
-      optionsIn?.yamlChunkSize ?? defaultOpenApiSpecYamlChunkOptions.chunkSize,
+    maxChunkSize:
+      optionsIn?.yamlChunkSize ??
+      defaultOpenApiSpecYamlChunkOptions.maxChunkSize,
   };
-  const { tokenizer, chunkSize, chunkOverlap } = options;
+  const { tokenizer, maxChunkSize, chunkOverlap } = options;
   const splitter = makeOpenApiSpecYamlTextSplitter({
     chunkOverlap,
-    chunkSize,
+    maxChunkSize,
     tokenizer,
   });
   const spec: Awaited<ReturnType<typeof SwaggerParser.parse>> & {
@@ -88,9 +90,14 @@ export const chunkOpenApiSpecYaml: ChunkFunc = async function (
     tags: spec.tags,
     components: spec.components,
   };
-  const stringChunks = await splitter.splitText(
+  let stringChunks = await splitter.splitText(
     yaml.stringify(otherSpecInfoToKeep)
   );
+  if (options.minChunkSize !== undefined) {
+    stringChunks = stringChunks.filter(
+      (chunk) => tokenizer.encode(chunk).bpe.length > options.minChunkSize!
+    );
+  }
   chunks.push(
     ...stringChunks.map((stringChunk) => {
       const metadata = {
@@ -117,12 +124,12 @@ export const chunkOpenApiSpecYaml: ChunkFunc = async function (
 
 interface OpenApiSpecTextSplitterParams {
   chunkOverlap: number;
-  chunkSize: number;
+  maxChunkSize: number;
   tokenizer: SomeTokenizer;
 }
 function makeOpenApiSpecYamlTextSplitter({
   chunkOverlap,
-  chunkSize,
+  maxChunkSize,
   tokenizer,
 }: OpenApiSpecTextSplitterParams) {
   const separators = [
@@ -179,7 +186,7 @@ function makeOpenApiSpecYamlTextSplitter({
   ];
   return new RecursiveCharacterTextSplitter({
     chunkOverlap,
-    chunkSize,
+    chunkSize: maxChunkSize,
     separators,
     lengthFunction: (text) => tokenizer.encode(text).bpe.length,
   });

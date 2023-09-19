@@ -419,7 +419,6 @@ function ChatbotModal({
       size="large"
       initialFocus={`#${ActiveInputBarId}`}
       shouldClose={shouldClose}
-
     >
       <LeafyGreenChatProvider>
         <ChatWindow

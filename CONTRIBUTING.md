@@ -80,7 +80,17 @@ export LG_ARTIFACTORY_USERNAME=<username>
 export LG_ARTIFACTORY_EMAIL=<email>
 ```
 
-### 3. Install dependencies and build projects
+### 3. Add Environment Variables
+
+In steps 1 and 2, you should have gotten the environment variables you need.
+
+Add environment variables to whichever projects you're working on.
+Every project has an `.env.example` file showing you which environment variables
+you need. Keep in mind that adding the environment variables to the project does not mean
+the environment variables have been instantiated and you will not be able to install
+dependences and build the project until the variables can be accessed locally.
+
+### 4. Install dependencies and build projects
 
 Run the following in the root of your project:
 
@@ -88,14 +98,6 @@ Run the following in the root of your project:
 npm install
 npm run bootstrap
 ```
-
-### 4. Add Environment Variables
-
-In step 1, you should have gotten the environment variables you need.
-
-Add environment variables to whichever projects you're working on.
-Every project has an `.env.example` file showing you which environment variables
-you need.
 
 ### 4. Run Project(s)
 

@@ -87,7 +87,7 @@ In steps 1 and 2, you should have gotten the environment variables you need.
 Add environment variables to whichever projects you're working on.
 Every project has an `.env.example` file showing you which environment variables
 you need. Keep in mind that adding the environment variables to the project does not mean
-the environment variables have been instantiated and you will not be able to install
+the environment variables have been set and you will not be able to install
 dependences and build the project until the variables can be accessed locally.
 
 ### 4. Install dependencies and build projects

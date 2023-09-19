@@ -25,45 +25,8 @@ paths:
                 $ref: "#/components/schemas/Conversation"
         400:
           $ref: "#/components/responses/BadRequest"
-        404:
-          $ref: "#/components/responses/NotFound"
         500:
           $ref: "#/components/responses/InternalServerError"
-
-  # ~~~ OUT OF SCOPE FOR MVP ~~~
-  # /conversations/{conversationId}:
-  #   get:
-  #     operationId: getConversation
-  #     summary: Get a conversation
-  #     parameters:
-  #       - $ref: "#/components/parameters/conversationId"
-  #     responses:
-  #       200:
-  #         description: OK
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/Conversation'
-  #       400:
-  #         $ref: '#/components/responses/BadRequest'
-  #       404:
-  #         $ref: '#/components/responses/NotFound'
-  #       500:
-  #         $ref: '#/components/responses/InternalServerError'
-  #   delete:
-  #     operationId: deleteConversation
-  #     summary: Delete a conversation
-  #     parameters:
-  #       - $ref: "#/components/parameters/conversationId"
-  #     responses:
-  #       204:
-  #         description: Deleted
-  #       400:
-  #         $ref: '#/components/responses/BadRequest'
-  #       404:
-  #         $ref: '#/components/responses/NotFound'
-  #       500:
-  #         $ref: '#/components/responses/InternalServerError'
 
   /conversations/{conversationId}/messages:
     post:
@@ -103,28 +66,6 @@ paths:
           $ref: "#/components/responses/NotFound"
         500:
           $ref: "#/components/responses/InternalServerError"
-
-  # ~~~ OUT OF SCOPE FOR MVP ~~~
-  # /conversations/{conversationId}/messages/{messageId}:
-  #   get:
-  #     operationId: getMessage
-  #     summary: Get a message
-  #     parameters:
-  #       - $ref: "#/components/parameters/conversationId"
-  #       - $ref: "#/components/parameters/messageId"
-  #     responses:
-  #       200:
-  #         description: Ok
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/Message'
-  #       400:
-  #         $ref: '#/components/responses/BadRequest'
-  #       404:
-  #         $ref: '#/components/responses/NotFound'
-  #       500:
-  #         $ref: '#/components/responses/InternalServerError'
 
   /conversations/{conversationId}/messages/{messageId}/rating:
     post:

@@ -12,7 +12,7 @@ import { Message as LGMessage, MessageSourceType } from "@lg-chat/message";
 import { MessageFeed } from "@lg-chat/message-feed";
 import { MessagePrompt, MessagePrompts } from "@lg-chat/message-prompts";
 import { Fragment, useEffect, useState } from "react";
-import { MessageData } from ".";
+import { MessageData } from "./services/conversations";
 import { Conversation, useConversation } from "./useConversation";
 // import { DisclaimerText } from "@lg-chat/chat-disclaimer";
 
@@ -149,7 +149,7 @@ export function InnerChatbot({
     } satisfies MessageData;
 
     setWelcomeMessageData(newWelcomeMessageData);
-  }, [conversation.conversationId]);
+  }, [conversation.conversationId, welcomeMessageData]);
 
   const openModal = async () => {
     if (modalOpen) return;

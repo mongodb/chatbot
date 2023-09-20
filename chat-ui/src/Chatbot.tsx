@@ -27,7 +27,7 @@ import { MessageFeed } from "@lg-chat/message-feed";
 import { MessageRatingProps } from "@lg-chat/message-rating";
 import { Role } from "./services/conversations";
 import { palette } from "@leafygreen-ui/palette";
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import { type StylesProps } from "./utils";
 import LeafyGreenProvider, {
   useDarkModeContext,
@@ -49,25 +49,19 @@ const styles = {
       box-sizing: border-box;
     }
   }`,
-  chatbot_input_area: css`
+  chatbot_input: css`
     position: relative;
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
     margin-top: 1rem;
+  `,
+  chatbot_input_area: css`
     padding-left: 32px;
     padding-right: 32px;
     padding-top: 0.5rem;
     padding-bottom: 1rem;
-  `,
-  chatbot_input_error_border: css`
-    > div {
-      > div {
-        border-color: ${palette.red.base} !important;
-        border-width: 2px !important;
-      }
-    }
   `,
   conversation_id_info: css`
     display: flex;
@@ -260,7 +254,7 @@ export function Chatbot(props: ChatbotProps) {
   return (
     <LeafyGreenProvider darkMode={darkMode}>
       <div className={styles.chatbot_container}>
-        <div className={styles.chatbot_input_area}>
+        <div className={styles.chatbot_input}>
           <InputBar
             key={"initialInput"}
             hasError={showInitialInputErrorState}
@@ -529,7 +523,10 @@ function ChatbotModal({
               })}
             </MessageFeed>
           ) : null}
-          <div className={styles.chatbot_input_area}>
+          <div className={cx(
+            styles.chatbot_input,
+            styles.chatbot_input_area
+          )}>
             {conversation.error ? (
               <ErrorBanner darkMode={darkMode} message={conversation.error} />
             ) : null}

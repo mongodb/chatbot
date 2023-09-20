@@ -17,6 +17,8 @@ export interface Message {
   createdAt: Date;
   /** Further reading links for the message. */
   references?: References;
+  /** The vector representation of the message content. */
+  embedding?: number[];
 }
 
 export interface Conversation {
@@ -37,6 +39,11 @@ export interface AddConversationMessageParams {
   preprocessedContent?: string;
   role: OpenAiMessageRole;
   references?: References;
+
+  /**
+    The vector representation of the message content.
+   */
+  embedding?: number[];
 }
 export interface FindByIdParams {
   _id: ObjectId;
@@ -48,13 +55,9 @@ export interface RateMessageParams {
 }
 export interface ConversationsService {
   create: ({ ipAddress }: CreateConversationParams) => Promise<Conversation>;
-  addConversationMessage: ({
-    conversationId,
-    content,
-    preprocessedContent,
-    role,
-    references,
-  }: AddConversationMessageParams) => Promise<Message>;
+  addConversationMessage: (
+    params: AddConversationMessageParams
+  ) => Promise<Message>;
   findById: ({ _id }: FindByIdParams) => Promise<Conversation | null>;
   rateMessage: ({
     conversationId,
@@ -106,10 +109,12 @@ export function makeConversationsService(
       role,
       preprocessedContent,
       references,
+      embedding,
     }: AddConversationMessageParams) {
       const newMessage = createMessageFromOpenAIChatMessage({
         role,
         content,
+        embedding,
       });
       Object.assign(
         newMessage,
@@ -166,13 +171,20 @@ export function makeConversationsService(
   };
 }
 
-export function createMessageFromOpenAIChatMessage(
-  chatMessage: OpenAiChatMessage
-): Message {
-  return {
+export function createMessageFromOpenAIChatMessage({
+  role,
+  content,
+  embedding,
+}: OpenAiChatMessage): Message {
+  const message: Message = {
     id: new ObjectId(),
-    role: chatMessage.role,
-    content: chatMessage.content,
+    role,
+    content,
     createdAt: new Date(),
   };
+  // Avoid MongoDB inserting null for undefineds
+  if (embedding !== undefined) {
+    message.embedding = embedding;
+  }
+  return message;
 }

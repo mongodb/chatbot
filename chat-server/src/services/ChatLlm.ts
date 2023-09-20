@@ -12,6 +12,11 @@ export interface OpenAiChatMessage extends ChatMessage {
   role: OpenAiMessageRole;
   /** Response to user's chat message in the context of the conversation. */
   content: string;
+
+  /**
+    The vector representation of the content.
+   */
+  embedding?: number[];
 }
 
 export type SystemPrompt = OpenAiChatMessage & { role: "system" };

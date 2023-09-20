@@ -1,5 +1,5 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import type { References } from "chat-core";
+import { type References } from "chat-core";
 import { ConversationState } from "../useConversation";
 
 export type Role = "user" | "assistant";
@@ -13,23 +13,15 @@ export type MessageData = {
   references?: References;
 };
 
-type ConversationServiceConfig = {
-  serverUrl: string;
-};
-
-export function formatReferencesTokens(references: References): string[] {
+export function formatReferences(references: References): string {
   if (references.length === 0) {
-    return [];
+    return "";
   }
-  const heading = "\n\n**Further reading:**\n\n";
+  const heading = "\n\n**Further reading:**";
   const listOfLinks = references.map(
     (entry) => `- [${entry.title}](${entry.url})`
   );
-  return [heading, ...listOfLinks];
-}
-
-export function formatReferences(references: References): string {
-  return formatReferencesTokens(references).join("\n\n");
+  return [heading, ...listOfLinks].join("\n\n");
 }
 
 class RetriableError<Data extends object = object> extends Error {
@@ -59,10 +51,17 @@ export class TimeoutError<Data extends object = object> extends Error {
   }
 }
 
+type ConversationServiceConfig = {
+  serverUrl: string;
+};
+
 export class ConversationService {
   private serverUrl: string;
 
   constructor(config: ConversationServiceConfig) {
+    if(!config.serverUrl) {
+      throw new Error("You must define a serverUrl for the ConversationService");
+    }
     this.serverUrl = config.serverUrl.startsWith("/")
       ? new URL(
           config.serverUrl,
@@ -158,7 +157,7 @@ export class ConversationService {
   }: {
     conversationId: string;
     message: string;
-    maxRetries: number;
+    maxRetries?: number;
     onResponseDelta: (delta: string) => void;
     onReferences: (references: References) => void;
     onResponseFinished: (messageId: string) => void;
@@ -292,14 +291,23 @@ export class ConversationService {
     conversationId: string;
     messageId: string;
     rating: boolean;
-  }): Promise<void> {
+  }): Promise<boolean> {
     const path = `/conversations/${conversationId}/messages/${messageId}/rating`;
-    await fetch(this.getUrl(path), {
+    const res = await fetch(this.getUrl(path), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ rating }),
     });
+
+    if(res.status === 204) {
+      return rating;
+    }
+    if (res.status >= 400) {
+      const data = await res.json();
+      throw new Error(data.error);
+    }
+    throw new Error(`Server error: ${res.statusText ?? res.status}`);
   }
 }

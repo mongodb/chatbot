@@ -59,7 +59,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "release:interactive": "release-it",
-    "release": "release-it --ci"
+    "release": "release-it --ci",
+    "test": "vitest"
   },
   "bundleDependencies": [
     "chat-core",
@@ -123,6 +124,8 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.3.4",
     "eslint-plugin-storybook": "^0.6.12",
+    "jsdom": "^22.1.0",
+    "mocksse": "^1.0.4",
     "node-stdlib-browser": "^1.2.0",
     "postcss": "^8.4.27",
     "prop-types": "^15.8.1",
@@ -135,6 +138,7 @@
     "typescript": "^5.1.6",
     "vite": "^4.4.7",
     "vite-plugin-libcss": "^1.1.0",
-    "vite-plugin-node-polyfills": "^0.9.0"
+    "vite-plugin-node-polyfills": "^0.9.0",
+    "vitest": "^0.34.4"
   }
 }

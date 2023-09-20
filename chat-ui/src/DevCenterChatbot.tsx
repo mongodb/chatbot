@@ -11,10 +11,11 @@ import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
 import { Message as LGMessage, MessageSourceType } from "@lg-chat/message";
 import { MessageFeed } from "@lg-chat/message-feed";
 import { MessagePrompt, MessagePrompts } from "@lg-chat/message-prompts";
+import { MessageRatingProps } from "@lg-chat/message-rating";
 import { Fragment, useEffect, useState } from "react";
 import { MessageData } from "./services/conversations";
 import { Conversation, useConversation } from "./useConversation";
-// import { DisclaimerText } from "@lg-chat/chat-disclaimer";
+import { DisclaimerText as LGDisclaimerText } from "@lg-chat/chat-disclaimer";
 
 const styles = {
   chat_trigger: css`
@@ -60,13 +61,10 @@ const styles = {
       }
     }
   `,
-  disclaimer_text_container: css`
-    display: flex;
-  `,
   disclaimer_text: css`
-    & p {
-      text-align: center;
-    }
+    text-align: center;
+    margin-top: 24px;
+    margin-bottom: 32px;
   `,
   chatbot_input: css`
     padding-bottom: 1rem;
@@ -203,17 +201,6 @@ export function InnerChatbot({
   );
 }
 
-// const DisclaimerTextDescription = () => {
-//   return (
-//     <div className={styles.disclaimer_text}>
-//       This is a
-//       <Link href={"https://www.mongodb.com/legal/terms-of-use"}>
-//         Terms of Use
-//       </Link>
-//     </div>
-//   );
-// };
-
 const SUGGESTED_PROMPTS = [
   "How do you deploy a free cluster in Atlas?",
   "How do you import or migrate data into MongoDB Atlas?",
@@ -293,12 +280,7 @@ function ChatbotModal({
           className={styles.chat_window}
         >
           <MessageFeed>
-            {/* <DisclaimerText
-              className={styles.disclaimer_text_container}
-              title="Terms of Use"
-            >
-              {DisclaimerTextDescription()}
-            </DisclaimerText> */}
+            <DisclaimerText />
             {messages.map((messageData, idx) => {
               return (
                 <Message
@@ -310,6 +292,8 @@ function ChatbotModal({
                   }
                   suggestedPromptOnClick={handleSubmit}
                   isLoading={isLoading(messageData.id)}
+                  renderRating={messageData.role === "assistant" && idx !== 0}
+                  conversation={conversation}
                 />
               );
             })}
@@ -336,12 +320,39 @@ function ChatbotModal({
   );
 }
 
+const DisclaimerText = () => {
+  return (
+    <LGDisclaimerText
+      title="Terms and Policy"
+      className={styles.disclaimer_text}
+    >
+      This is a generative AI Chatbot. By interacting with it, you agree to
+      MongoDB's{" "}
+      <Link
+        hideExternalIcon
+        href={"https://www.mongodb.com/legal/terms-of-use"}
+      >
+        Terms of Use
+      </Link>{" "}
+      and{" "}
+      <Link
+        hideExternalIcon
+        href={"https://www.mongodb.com/legal/acceptable-use-policy"}
+      >
+        Acceptable Use Policy.
+      </Link>
+    </LGDisclaimerText>
+  );
+};
+
 type MessageProp = {
   messageData: MessageData;
   suggestedPrompts?: string[];
   displaySuggestedPrompts: boolean;
   suggestedPromptOnClick: (prompt: string) => void;
   isLoading: boolean;
+  renderRating: boolean;
+  conversation: Conversation;
 };
 
 const Message = ({
@@ -350,6 +361,8 @@ const Message = ({
   displaySuggestedPrompts,
   suggestedPromptOnClick,
   isLoading,
+  renderRating,
+  conversation,
 }: MessageProp) => {
   const [suggestedPromptIdx, setSuggestedPromptIdx] = useState(-1);
 
@@ -359,11 +372,26 @@ const Message = ({
         baseFontSize={13}
         isSender={messageData.role === "user"}
         messageRatingProps={
-          messageData.role === "assistant"
+          renderRating
             ? {
                 className: styles.message_rating,
                 description: "How was the response?",
-                onChange: (e) => console.log(e),
+                onChange: (e) => {
+                  const value = e.target.value as MessageRatingProps["value"];
+                  if (!value) {
+                    return;
+                  }
+                  conversation.rateMessage(
+                    messageData.id,
+                    value === "liked" ? true : false
+                  );
+                },
+                value:
+                  messageData.rating === undefined
+                    ? undefined
+                    : messageData.rating
+                    ? "liked"
+                    : "disliked",
               }
             : undefined
         }

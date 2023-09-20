@@ -1,5 +1,8 @@
 import { Page } from "./Page";
 
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 export interface EmbeddedContent {
   /**
     The URL of the page with the content.
@@ -50,6 +53,9 @@ export interface EmbeddedContent {
   chunkAlgoHash?: string;
 }
 
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 export type EmbeddedContentStore = {
   /**
     Load the embedded content for the given page.
@@ -80,6 +86,9 @@ export type EmbeddedContentStore = {
 
 export type WithScore<T> = T & { score: number };
 
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 export type FindNearestNeighborsOptions = {
   /**
     The name of the index to use.

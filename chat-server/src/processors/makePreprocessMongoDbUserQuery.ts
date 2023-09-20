@@ -9,12 +9,19 @@ import {
 import { retryAsyncOperation } from "../utils";
 import { updateFrontMatter } from "chat-core";
 
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 export interface AzureOpenAiServiceConfig {
   apiKey: string;
   baseUrl: string;
   deployment: string;
   version: string;
 }
+
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 export function makePreprocessMongoDbUserQuery({
   azureOpenAiServiceConfig,
   numRetries = 0,

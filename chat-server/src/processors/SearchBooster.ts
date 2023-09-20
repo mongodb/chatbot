@@ -1,5 +1,8 @@
 import { WithScore, EmbeddedContent, EmbeddedContentStore } from "chat-core";
 
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 export interface SearchBooster {
   shouldBoost: ({ text }: { text: string }) => boolean;
   boost: ({

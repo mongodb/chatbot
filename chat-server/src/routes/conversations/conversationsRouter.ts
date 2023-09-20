@@ -19,6 +19,9 @@ import {
 import { SearchBooster } from "../../processors/SearchBooster";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
 
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 export interface ConversationsRateLimitConfig {
   routerRateLimitConfig?: Partial<RateLimitOptions>;
   addMessageRateLimitConfig?: Partial<RateLimitOptions>;
@@ -26,6 +29,9 @@ export interface ConversationsRateLimitConfig {
   addMessageSlowDownConfig?: Partial<SlowDownOptions>;
 }
 
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 export interface ConversationsRouterParams {
   llm: ChatLlm;
   embed: EmbedFunc;
@@ -50,6 +56,9 @@ function keyGenerator(request: Request) {
 
   return request.ip;
 }
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 export function makeConversationsRouter({
   llm,
   embed,

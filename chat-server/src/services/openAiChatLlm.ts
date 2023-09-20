@@ -8,6 +8,9 @@ import {
   SystemPrompt,
 } from "./ChatLlm";
 
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 export type GenerateUserPrompt = ({
   question,
   chunks,
@@ -15,6 +18,10 @@ export type GenerateUserPrompt = ({
   question: string;
   chunks: string[];
 }) => OpenAiChatMessage & { role: "user" };
+
+/**
+ OSS_TODO: add tsdoc description of this, including the properties
+ */
 export interface MakeOpenAiChatLlmParams {
   deployment: string;
   openAiClient: OpenAIClient;
@@ -23,6 +30,9 @@ export interface MakeOpenAiChatLlmParams {
   systemPrompt: SystemPrompt;
 }
 
+/**
+ OSS_TODO: add tsdoc description of this. include description of methods
+ */
 export function makeOpenAiChatLlm({
   deployment,
   openAiClient,

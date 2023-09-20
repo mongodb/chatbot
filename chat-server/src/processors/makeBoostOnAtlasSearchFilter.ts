@@ -14,6 +14,9 @@ type FindNearestNeighborOptionsWithFilterAndK = WithFilterAndK<
   Partial<FindNearestNeighborsOptions>
 >;
 
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 export function makeBoostOnAtlasSearchFilter({
   findNearestNeighborsOptions,
   totalMaxK,

@@ -512,6 +512,14 @@ export async function addMessagesToDatabase({
   return { userMessage, assistantMessage };
 }
 
+/*OSS_TODO: This should be refactored and made  configurable. We cannot assume that the user will always want to
+use the same reference format.
+We can add a default reference format that returns:
+{
+  title: chunk.title ?? chunk.url, // if title doesn't exist, just put url
+  url: chunk.url // this always exists
+}
+*/
 export const createLinkReference = (link: string): Reference => {
   const url = new URL(link);
   url.searchParams.append("tck", "docs_chatbot");

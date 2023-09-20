@@ -18,6 +18,9 @@ import { CorsOptions } from "cors";
 import { logger } from "chat-core";
 import cloneDeep from "lodash.clonedeep";
 
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 export interface AppConfig {
   conversationsRouterConfig: ConversationsRouterParams;
   maxRequestTimeoutMs?: number;
@@ -71,6 +74,9 @@ export const makeHandleTimeoutMiddleware = (apiTimeout: number) => {
   };
 };
 
+/**
+ OSS_TODO: these should probably be configurable, with these being the defaults
+ */
 export const API_V1_PREFIX = "/api/v1";
 export const CONVERSATIONS_API_V1_PREFIX = `${API_V1_PREFIX}/conversations`;
 

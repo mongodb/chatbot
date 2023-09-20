@@ -27,6 +27,9 @@ export type OpenAiStreamingResponse =
   AsyncIterable<OpenAIChatCompletionWithoutUsage>;
 export type OpenAiAwaitedResponse = OpenAiChatMessage;
 
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 export interface ChatLlm {
   answerQuestionStream({
     messages,

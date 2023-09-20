@@ -34,6 +34,10 @@ export type MakeOpenAiEmbedFuncArgs = {
 };
 
 /**
+ OSS_TODO: refactor this to use the Azure OpenAI SDK instead of direct API call.
+ Pass in an instance of the AzureOpenAiClient, like we do for the makeOpenAiChatLlm() func
+ */
+/**
   Creates an OpenAI implementation of the embedding function.
  */
 export const makeOpenAiEmbedFunc = ({

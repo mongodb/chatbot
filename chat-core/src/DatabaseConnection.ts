@@ -24,6 +24,15 @@ export interface MakeDatabaseConnectionParams {
 }
 
 /**
+  OSS_TODO: in my opinion, we should do some slight refactors here.
+  i find it confusing that we are calling this makeDatabaseConnection,
+  when its core purpose is working with the PageStore and the EmbeddedContentStore.
+  My intuition is to split up `PageStore` and `EmbeddedContentStore` into separate
+  constructor funcs (i.e. have separate `makePageStore()` and `makeEmbeddedContentStore()`).
+  Then we can also remove the concept of a `DatabaseConnection`, which i don't think
+  is a particularly relevant abstraction for our project.
+ */
+/**
   Create a connection to the database.
  */
 export const makeDatabaseConnection = ({

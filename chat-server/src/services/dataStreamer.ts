@@ -47,11 +47,17 @@ interface StreamParams {
   references?: string;
 }
 
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 type ChatbotStreamEvent =
   | { type: "delta"; data: string }
   | { type: "references"; data: References }
   | { type: "finished"; data: string };
 
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 export interface DataStreamer {
   connected: boolean;
   connect(res: Response): void;
@@ -60,6 +66,9 @@ export interface DataStreamer {
   stream(params: StreamParams): Promise<string>;
 }
 
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 export function makeDataStreamer(): DataStreamer {
   let connected = false;
   let sse: ServerSentEventDispatcher<ChatbotStreamEvent> | undefined;

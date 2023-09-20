@@ -2,6 +2,9 @@ import { OpenAiChatMessage, OpenAiMessageRole, SystemPrompt } from "./ChatLlm";
 import { ObjectId, Db } from "mongodb";
 import { References } from "chat-core";
 
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 export interface Message {
   /** Unique identifier for the message. */
   id: ObjectId;
@@ -19,6 +22,9 @@ export interface Message {
   references?: References;
 }
 
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 export interface Conversation {
   _id: ObjectId;
   /** Messages in the conversation. */
@@ -46,6 +52,9 @@ export interface RateMessageParams {
   messageId: ObjectId;
   rating: boolean;
 }
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 export interface ConversationsService {
   create: ({ ipAddress }: CreateConversationParams) => Promise<Conversation>;
   addConversationMessage: ({
@@ -63,6 +72,9 @@ export interface ConversationsService {
   }: RateMessageParams) => Promise<boolean>;
 }
 
+/**
+ OSS_TODO: make these configurable from the entry point. though i think these messages are reasonable defaults
+ */
 export const conversationConstants = {
   NO_RELEVANT_CONTENT: `Unfortunately, I do not know how to respond to your message.
 
@@ -73,6 +85,9 @@ so I cannot respond to your message. Please try again later.
 However, here are some links that might provide some helpful information for your message:`,
 };
 
+/**
+ OSS_TODO: add tsdoc description of this. include tsdoc description on each method
+ */
 export function makeConversationsService(
   database: Db,
   systemPrompt: SystemPrompt
@@ -166,6 +181,9 @@ export function makeConversationsService(
   };
 }
 
+/**
+ OSS_TODO: add tsdoc description of this
+ */
 export function createMessageFromOpenAIChatMessage(
   chatMessage: OpenAiChatMessage
 ): Message {

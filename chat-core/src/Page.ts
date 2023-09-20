@@ -53,6 +53,9 @@ export type PersistedPage = Page & {
   action: PageAction;
 };
 
+/**
+  OSS_TODO: tsdoc description of type and methods
+ */
 export type PageStore = {
   loadPages(args?: {
     /**
@@ -73,3 +76,8 @@ export type PageStore = {
    */
   updatePages(pages: PersistedPage[]): Promise<void>;
 };
+
+/**
+  OSS_TODO: per comment on DatabaseConnection.ts, i think we should make a separate
+  makePageStore() func here.
+ */

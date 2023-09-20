@@ -21,9 +21,10 @@ import { MessagePrompt, MessagePrompts } from "@lg-chat/message-prompts";
 import { MessageRatingProps } from "@lg-chat/message-rating";
 import { Fragment, useEffect, useState } from "react";
 import { CharacterCount } from "./InputBar";
+import { UserProvider, useUser } from "./UserContext";
 import { MessageData } from "./services/conversations";
+import { User } from "./types";
 import { Conversation, useConversation } from "./useConversation";
-import { UserProvider, User, useUser } from "./UserContext";
 
 const styles = {
   chat_trigger: css`

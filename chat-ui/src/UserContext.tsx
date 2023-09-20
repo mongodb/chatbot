@@ -1,8 +1,5 @@
 import { useContext, createContext, ReactNode } from "react";
-
-export type User = {
-  name: string;
-};
+import { User } from "./types";
 
 const UserContext = createContext<User | undefined>(undefined);
 

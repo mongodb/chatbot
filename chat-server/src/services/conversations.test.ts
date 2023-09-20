@@ -68,12 +68,14 @@ describe("Conversations Service", () => {
     const content = "Tell me about MongoDB";
     const preprocessedContent = "<preprocessed> Tell me about MongoDB";
     const references = [{ title: "ref", url: "ref.com" }];
+    const embedding = [1, 2, 3];
     const newMessage = await conversationsService.addConversationMessage({
       conversationId: conversation._id,
       role: "user",
       content,
       preprocessedContent,
       references,
+      embedding,
     });
     expect(newMessage.content).toBe(content);
 
@@ -87,6 +89,7 @@ describe("Conversations Service", () => {
       preprocessedContent
     );
     expect(conversationInDb?.messages[1]?.references).toStrictEqual(references);
+    expect(conversationInDb?.messages[1]?.embedding).toStrictEqual(embedding);
   });
   test("Should find a conversation by id", async () => {
     const ipAddress = new BSON.UUID().toString();

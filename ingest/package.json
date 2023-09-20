@@ -1,6 +1,6 @@
 {
   "name": "ingest",
-  "version": "0.0.6-1",
+  "version": "0.1.0",
   "description": "Ingests data sources and stores embeddings.",
   "author": "",
   "license": "ISC",

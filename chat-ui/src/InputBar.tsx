@@ -1,4 +1,4 @@
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import { palette } from "@leafygreen-ui/palette";
 import { Body } from "@leafygreen-ui/typography";
 import {
@@ -18,10 +18,16 @@ const styles = {
       }
     }
   `,
+  suggested_prompts_menu: css`
+    [data-testid="lg-search-input-popover"] {
+      z-index: 1;
+    }
+  `,
   character_count: ({
     darkMode,
     isError,
   }: StylesProps & { isError: boolean }) => css`
+    white-space: nowrap;
     color: ${isError
       ? palette.red.base
       : darkMode
@@ -39,9 +45,10 @@ export const InputBar = forwardRef<HTMLFormElement, InputBarProps>(
     return (
       <LGInputBar
         ref={ref}
-        className={
+        className={cx(
+          styles.suggested_prompts_menu,
           hasError ?? false ? styles.chatbot_input_error_border : undefined
-        }
+        )}
         shouldRenderGradient={!hasError}
         {...props}
       >

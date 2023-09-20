@@ -1,21 +1,28 @@
 import { css } from "@emotion/css";
-import LeafyGreenProvider from "@leafygreen-ui/leafygreen-provider";
+import LeafyGreenProvider, {
+  useDarkMode,
+} from "@leafygreen-ui/leafygreen-provider";
 import Modal from "@leafygreen-ui/modal";
+import { palette } from "@leafygreen-ui/palette";
 import { ParagraphSkeleton } from "@leafygreen-ui/skeleton-loader";
 import { Body, Link } from "@leafygreen-ui/typography";
 import { Avatar } from "@lg-chat/avatar";
+import { DisclaimerText as LGDisclaimerText } from "@lg-chat/chat-disclaimer";
 import { ChatWindow } from "@lg-chat/chat-window";
 import { ChatTrigger } from "@lg-chat/fixed-chat-window";
-import { InputBar } from "@lg-chat/input-bar";
+import {
+  InputBar as LGInputBar,
+  InputBarProps as LGInputBarProps,
+} from "@lg-chat/input-bar";
 import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
 import { Message as LGMessage, MessageSourceType } from "@lg-chat/message";
 import { MessageFeed } from "@lg-chat/message-feed";
 import { MessagePrompt, MessagePrompts } from "@lg-chat/message-prompts";
 import { MessageRatingProps } from "@lg-chat/message-rating";
 import { Fragment, useEffect, useState } from "react";
+import { CharacterCount } from "./InputBar";
 import { MessageData } from "./services/conversations";
 import { Conversation, useConversation } from "./useConversation";
-import { DisclaimerText as LGDisclaimerText } from "@lg-chat/chat-disclaimer";
 
 const styles = {
   chat_trigger: css`
@@ -63,7 +70,7 @@ const styles = {
   `,
   disclaimer_text: css`
     text-align: center;
-    margin-top: 24px;
+    margin-top: 16px;
     margin-bottom: 32px;
   `,
   chatbot_input: css`
@@ -101,6 +108,26 @@ const styles = {
   fade_out: css`
     transition: 'opacity 300ms ease-in',
     opacity: 1,  
+  `,
+  chatbot_input_area: css`
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-left: 32px;
+    padding-right: 32px;
+    padding-top: 0.5rem;
+    padding-bottom: 1rem;
+  `,
+  chatbot_input_error_border: css`
+    > div {
+      > div {
+        border-color: ${palette.red.base} !important;
+        border-width: 2px !important;
+      }
+    }
   `,
 };
 
@@ -266,6 +293,10 @@ function ChatbotModal({
     );
   };
 
+  const promptIsTooLong = () => {
+    return inputBarValue.length > MAX_INPUT_CHARACTERS;
+  };
+
   return (
     <Modal
       open={open}
@@ -299,9 +330,11 @@ function ChatbotModal({
             })}
           </MessageFeed>
           <InputBar
+            inputBarValue={inputBarValue}
             onSubmit={() => handleSubmit(inputBarValue)}
+            hasError={promptIsTooLong()}
             disabled={!!conversation.error}
-            disableSend={awaitingReply}
+            disableSend={awaitingReply || promptIsTooLong()}
             textareaProps={{
               value: inputBarValue,
               onChange: (e) => {
@@ -320,27 +353,68 @@ function ChatbotModal({
   );
 }
 
+const MAX_INPUT_CHARACTERS = 300;
+interface InputBarProps extends LGInputBarProps {
+  inputBarValue: string;
+  hasError: boolean;
+}
+
+const InputBar = (props: InputBarProps) => {
+  const { inputBarValue, hasError, ...LGInputBarProps } = props;
+  const { darkMode } = useDarkMode();
+
+  return (
+    <div className={styles.chatbot_input_area}>
+      <LGInputBar
+        className={
+          hasError ?? false ? styles.chatbot_input_error_border : undefined
+        }
+        shouldRenderGradient={!hasError}
+        {...LGInputBarProps}
+      />
+      <div
+        className={css`
+          display: flex;
+          justify-content: space-between;
+        `}
+      >
+        <Body baseFontSize={13}>
+          This is an experimental generative AI chatbot. All information should
+          be verified prior to use.
+        </Body>
+        <CharacterCount
+          darkMode={darkMode}
+          current={inputBarValue.length}
+          max={MAX_INPUT_CHARACTERS}
+        />
+      </div>
+    </div>
+  );
+};
+
 const DisclaimerText = () => {
   return (
     <LGDisclaimerText
       title="Terms and Policy"
       className={styles.disclaimer_text}
     >
-      This is a generative AI Chatbot. By interacting with it, you agree to
-      MongoDB's{" "}
-      <Link
-        hideExternalIcon
-        href={"https://www.mongodb.com/legal/terms-of-use"}
-      >
-        Terms of Use
-      </Link>{" "}
-      and{" "}
-      <Link
-        hideExternalIcon
-        href={"https://www.mongodb.com/legal/acceptable-use-policy"}
-      >
-        Acceptable Use Policy.
-      </Link>
+      <Body>
+        This is a generative AI Chatbot. By interacting with it, you agree to
+        MongoDB's{" "}
+        <Link
+          hideExternalIcon
+          href={"https://www.mongodb.com/legal/terms-of-use"}
+        >
+          Terms of Use
+        </Link>{" "}
+        and{" "}
+        <Link
+          hideExternalIcon
+          href={"https://www.mongodb.com/legal/acceptable-use-policy"}
+        >
+          Acceptable Use Policy.
+        </Link>
+      </Body>
     </LGDisclaimerText>
   );
 };

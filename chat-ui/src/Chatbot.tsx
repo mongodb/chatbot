@@ -264,7 +264,14 @@ export function Chatbot(props: ChatbotProps) {
           <InputBar
             key={"initialInput"}
             hasError={showInitialInputErrorState}
-            badgeText={(initialInputFocused || inputText.length > 0) ? undefined : "Experimental"}
+            badgeText={
+              initialInputFocused || inputText.length > 0
+                ? undefined
+                : "Experimental"
+            }
+            dropdownProps={{
+              usePortal: false,
+            }}
             dropdownFooterSlot={
               <div className={styles.powered_by_footer}>
                 <Body>
@@ -591,7 +598,10 @@ function LegalDisclosure() {
     </Link>
   );
   const AcceptableUsePolicy = () => (
-    <Link hideExternalIcon href={"https://www.mongodb.com/legal/acceptable-use-policy"}>
+    <Link
+      hideExternalIcon
+      href={"https://www.mongodb.com/legal/acceptable-use-policy"}
+    >
       Acceptable Use Policy
     </Link>
   );

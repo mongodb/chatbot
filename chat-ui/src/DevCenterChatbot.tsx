@@ -23,6 +23,7 @@ import { Fragment, useEffect, useState } from "react";
 import { CharacterCount } from "./InputBar";
 import { MessageData } from "./services/conversations";
 import { Conversation, useConversation } from "./useConversation";
+import { UserProvider, User, useUser } from "./UserContext";
 
 const styles = {
   chat_trigger: css`
@@ -137,14 +138,18 @@ export type ChatbotProps = {
   shouldStream?: boolean;
   suggestedPrompts?: string[];
   startingMessage?: string;
+  user?: User;
 };
 
 export function Chatbot(props: ChatbotProps) {
-  const { darkMode, ...InnerChatbotProps } = props;
+  const { darkMode, user, ...InnerChatbotProps } = props;
   // TODO: Use ConversationProvider
+  // TODO: Add UserProvider when we have more substantial data in future
   return (
     <LeafyGreenProvider darkMode={props.darkMode}>
-      <InnerChatbot {...InnerChatbotProps} />
+      <UserProvider user={user}>
+        <InnerChatbot {...InnerChatbotProps} />
+      </UserProvider>
     </LeafyGreenProvider>
   );
 }
@@ -439,6 +444,7 @@ const Message = ({
   conversation,
 }: MessageProp) => {
   const [suggestedPromptIdx, setSuggestedPromptIdx] = useState(-1);
+  const user = useUser();
 
   return (
     <Fragment key={messageData.id}>
@@ -470,7 +476,12 @@ const Message = ({
             : undefined
         }
         avatar={
-          <Avatar variant={messageData.role === "user" ? "user" : "mongo"} />
+          <Avatar
+            variant={messageData.role === "user" ? "user" : "mongo"}
+            name={
+              messageData.role === "user" && user?.name ? user?.name : undefined
+            }
+          />
         }
         sourceType={isLoading ? undefined : MessageSourceType.Markdown}
         markdownProps={{

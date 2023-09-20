@@ -213,16 +213,18 @@ export function makeAddMessageToConversationRoute({
         }
       }
       // Find content matches for latest message
-      let chunks: WithScore<EmbeddedContent>[];
+      let chunks: WithScore<EmbeddedContent>[] = [];
+      let embedding: number[] | undefined;
       try {
-        const { embedding, results } = await getContentForText({
+        const contentForText = await getContentForText({
           embed,
           ipAddress: ip,
           text: preprocessedUserMessageContent || latestMessageText,
           store,
           findNearestNeighborsOptions,
         });
-        chunks = results;
+        embedding = contentForText.embedding;
+        chunks = contentForText.results;
         if (searchBoosters?.length) {
           for (const booster of searchBoosters) {
             if (booster.shouldBoost({ text: latestMessageText })) {
@@ -269,7 +271,7 @@ export function makeAddMessageToConversationRoute({
           errorDetails: JSON.stringify(err),
         });
       }
-      if (!chunks || chunks.length === 0) {
+      if (chunks.length === 0) {
         logRequest({
           reqId,
           message: "No matching content found",
@@ -373,6 +375,7 @@ export function makeAddMessageToConversationRoute({
         preprocessedUserMessageContent,
         assistantMessageContent: answerContent,
         assistantMessageReferences: references,
+        userMessageEmbedding: embedding,
       });
 
       const apiRes = convertMessageFromDbToApi(assistantMessage);
@@ -486,6 +489,7 @@ interface AddMessagesToDatabaseParams {
   assistantMessageContent: string;
   assistantMessageReferences: References;
   conversations: ConversationsService;
+  userMessageEmbedding?: number[];
 }
 export async function addMessagesToDatabase({
   conversationId,
@@ -494,6 +498,7 @@ export async function addMessagesToDatabase({
   assistantMessageContent,
   assistantMessageReferences,
   conversations,
+  userMessageEmbedding,
 }: AddMessagesToDatabaseParams) {
   // TODO: consider refactoring addConversationMessage to take in an array of messages.
   // Would limit database calls.
@@ -502,6 +507,7 @@ export async function addMessagesToDatabase({
     content: originalUserMessageContent,
     preprocessedContent: preprocessedUserMessageContent,
     role: "user",
+    embedding: userMessageEmbedding,
   });
   const assistantMessage = await conversations.addConversationMessage({
     conversationId,

@@ -144,7 +144,6 @@ export type ChatbotProps = {
 export function Chatbot(props: ChatbotProps) {
   const { darkMode, user, ...InnerChatbotProps } = props;
   // TODO: Use ConversationProvider
-  // TODO: Add UserProvider when we have more substantial data in future
   return (
     <LeafyGreenProvider darkMode={props.darkMode}>
       <UserProvider user={user}>

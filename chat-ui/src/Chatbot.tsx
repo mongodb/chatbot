@@ -27,7 +27,7 @@ import { MessageFeed } from "@lg-chat/message-feed";
 import { MessageRatingProps } from "@lg-chat/message-rating";
 import { Role } from "./services/conversations";
 import { palette } from "@leafygreen-ui/palette";
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import { type StylesProps } from "./utils";
 import LeafyGreenProvider, {
   useDarkModeContext,
@@ -68,6 +68,12 @@ const styles = {
         border-width: 2px !important;
       }
     }
+  `,
+  chatbot_input_area: css`
+    padding-left: 32px;
+    padding-right: 32px;
+    padding-top: 0.5rem;
+    padding-bottom: 1rem;
   `,
   conversation_id_info: css`
     display: flex;
@@ -264,7 +270,14 @@ export function Chatbot(props: ChatbotProps) {
           <InputBar
             key={"initialInput"}
             hasError={showInitialInputErrorState}
-            badgeText={(initialInputFocused || inputText.length > 0) ? undefined : "Experimental"}
+            badgeText={
+              initialInputFocused || inputText.length > 0
+                ? undefined
+                : "Experimental"
+            }
+            dropdownProps={{
+              usePortal: false,
+            }}
             dropdownFooterSlot={
               <div className={styles.powered_by_footer}>
                 <Body>
@@ -522,7 +535,10 @@ function ChatbotModal({
               })}
             </MessageFeed>
           ) : null}
-          <div className={styles.chatbot_input_area}>
+          <div className={cx(
+            styles.chatbot_input,
+            styles.chatbot_input_area
+          )}>
             {conversation.error ? (
               <ErrorBanner darkMode={darkMode} message={conversation.error} />
             ) : null}
@@ -591,7 +607,10 @@ function LegalDisclosure() {
     </Link>
   );
   const AcceptableUsePolicy = () => (
-    <Link hideExternalIcon href={"https://www.mongodb.com/legal/acceptable-use-policy"}>
+    <Link
+      hideExternalIcon
+      href={"https://www.mongodb.com/legal/acceptable-use-policy"}
+    >
       Acceptable Use Policy
     </Link>
   );

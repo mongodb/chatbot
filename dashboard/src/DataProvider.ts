@@ -1,7 +1,6 @@
 import {
   DataProvider as RaDataProvider,
   GetListParams,
-  GetListResult,
   GetOneParams,
   GetOneResult,
   GetManyParams,
@@ -20,6 +19,18 @@ import {
   DeleteManyResult,
   Identifier,
 } from "react-admin";
+
+export type GetListResult<RecordType extends { id: Identifier }> = {
+  data: RecordType[];
+} & (
+  | { total: number }
+  | {
+      pageInfo: {
+        hasNextPage: boolean;
+        hasPreviousPage: boolean;
+      };
+    }
+);
 
 export type DataProvider<
   RecordType extends { id: Identifier },
@@ -82,7 +93,7 @@ export const makeDataProvider = <
 ): RaDataProvider<ResourceType> => provider as RaDataProvider<ResourceType>;
 
 // Example -- deduces record type, no explicit type annotations
-const Provider = makeDataProvider({
+export const ExampleProvider = makeDataProvider({
   async create(resource, params) {
     return { data: { id: "", foo: "string" } };
   },
@@ -93,7 +104,7 @@ const Provider = makeDataProvider({
     return { data: [] };
   },
   async getList(resource, params) {
-    return { data: [] };
+    return { data: [{ id: "", foo: "string" }], total: 1 };
   },
   async getMany(resource, params) {
     return { data: [] };

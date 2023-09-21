@@ -49,17 +49,13 @@ const styles = {
       box-sizing: border-box;
     }
   }`,
-  chatbot_input_area: css`
+  chatbot_input: css`
     position: relative;
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
     margin-top: 1rem;
-    padding-left: 32px;
-    padding-right: 32px;
-    padding-top: 0.5rem;
-    padding-bottom: 1rem;
   `,
   chatbot_input_error_border: css`
     > div {
@@ -535,10 +531,7 @@ function ChatbotModal({
               })}
             </MessageFeed>
           ) : null}
-          <div className={cx(
-            styles.chatbot_input,
-            styles.chatbot_input_area
-          )}>
+          <div className={cx(styles.chatbot_input, styles.chatbot_input_area)}>
             {conversation.error ? (
               <ErrorBanner darkMode={darkMode} message={conversation.error} />
             ) : null}

@@ -1,4 +1,4 @@
-import { MongoClient, Db, Collection, ObjectId } from "mongodb";
+import { MongoClient, Db, Collection, ObjectId, Document } from "mongodb";
 import { Conversation, Message } from "chat-server";
 
 import "dotenv/config";
@@ -53,58 +53,56 @@ const scrubMessages = async ({ db }: { db: Db }) => {
       : "No scrubbed messages found. Scrubbing from the dawn of time."
   );
 
-  // Find conversations since last scrub date
-  console.log("Loading conversations...");
-  const conversations = await findConversations({ since, db });
+  // Construct aggregation pipeline
+  const pipeline: Document[] = [];
 
-  console.log(
-    `Found ${conversations.length} conversations since ${
-      since ? "last scrub date" : "dawn of time"
-    }`
-  );
-
-  if (conversations.length === 0) {
-    console.log("Nothing to scrub.");
-    return;
+  if (since !== undefined) {
+    pipeline.push({
+      $match: {
+        "messages.createdAt": { $gte: since },
+      },
+    });
   }
 
-  // Extract and scrub all messages of their real content so that information
-  // about the messages may be kept permanently regardless of whether the
-  // content had PII.
-  console.log("Scrubbing messages...");
-  const messages = conversations
-    .map(({ _id: conversationId, ipAddress, messages }) =>
-      messages.map(
-        (
-          { id: _id, createdAt, role, embedding, rating, references },
-          index
-        ): ScrubbedMessage => ({
-          _id,
-          conversationId,
-          ipAddress,
-          index,
-          createdAt,
-          role,
-          embedding,
-          rating,
-          references,
-        })
-      )
-    )
-    .flat(1);
-  console.log(`Scrubbed ${messages.length} messages`);
-
-  // Save scrubbed messages
-  console.log(`Inserting scrubbed messages...`);
+  pipeline.push(
+    {
+      $unwind: {
+        path: "$messages",
+        includeArrayIndex: "index",
+      },
+    },
+    {
+      $project: {
+        _id: "$messages.id",
+        conversationId: "$_id",
+        ipAddress: 1,
+        index: 1,
+        createdAt: "$messages.createdAt",
+        role: "$messages.role",
+        embedding: "$messages.embedding",
+        rating: "$messages.rating",
+        references: "$messages.references",
+      },
+    },
+    {
+      $merge: {
+        into: "scrubbed_messages",
+        whenMatched: "merge",
+        whenNotMatched: "insert",
+      },
+    }
+  );
   try {
-    const result = await scrubbedCollection.insertMany(messages, {
-      ignoreUndefined: true,
-      ordered: false,
-    });
-    console.log(`Insert acknowledged: ${result.acknowledged}`);
-    console.log(`Inserted ${result.insertedCount} scrubbed messages`);
+    console.log("Running aggregation pipeline...");
+    await db
+      .collection<Conversation>("conversations")
+      .aggregate(pipeline)
+      .toArray();
+    console.log("Aggregation complete.");
   } catch (error) {
-    console.error(`Insert failed with message: ${(error as Error).message}`);
+    console.error(
+      `Aggregation failed with message: ${(error as Error)?.message}`
+    );
   }
 };
 
@@ -116,17 +114,4 @@ const findLatestScrubDate = async ({
   return (
     await scrubbedCollection.find().sort({ createdAt: -1 }).limit(1).toArray()
   )[0]?.createdAt;
-};
-
-const findConversations = async ({
-  db,
-  since,
-}: {
-  db: Db;
-  since?: Date;
-}): Promise<Conversation[]> => {
-  const conversationCollection = db.collection<Conversation>("conversations");
-  return await conversationCollection
-    .find(since !== undefined ? { "messages.createdAt": { $gt: since } } : {})
-    .toArray();
 };

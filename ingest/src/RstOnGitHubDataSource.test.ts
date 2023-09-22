@@ -20,6 +20,9 @@ describe("makeRstOnGitHubDataSource", () => {
           .replace(/^doc\//, "https://pymongo.readthedocs.io/en/4.5.0/")
           .replace(/\.rst$/, ".html");
       },
+      getMetadata({ url }) {
+        return { test: "It works!", url };
+      },
     });
     const pages = await source.fetchPages();
     expect(pages.length).toBe(82);
@@ -29,5 +32,14 @@ describe("makeRstOnGitHubDataSource", () => {
     expect(pages[0].format).toBe("md");
     expect(pages[0].sourceName).toBe("python-TEST");
     expect(pages[0].body).toContain("Using PyMongo with MongoDB Atlas");
+
+    // Fetches title
+    expect(pages[0].title).toBe("Using PyMongo with MongoDB Atlas");
+
+    // Adds metadata
+    expect(pages[0].metadata).toStrictEqual({
+      test: "It works!",
+      url: "https://pymongo.readthedocs.io/en/4.5.0/atlas.html",
+    });
   });
 });

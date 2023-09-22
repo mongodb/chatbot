@@ -243,6 +243,14 @@ export const pyMongoSourceConstructor = async () => {
         .replace(/^doc\//, "https://pymongo.readthedocs.io/en/stable/")
         .replace(/\.rst$/, ".html");
     },
+    getMetadata({ title }) {
+      return {
+        tags: ["docs", "python"],
+        productName: "PyMongo",
+        version: "4.5.0 (current)",
+        pageTitle: title,
+      };
+    },
   });
 };
 

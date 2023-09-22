@@ -129,7 +129,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-refresh": "^0.14.0",
-    "release-it": "^15.11.0",
+    "release-it": "^16.1.5",
     "rollup": "^3.26.3",
     "storybook": "^7.0.20",
     "typescript": "^5.1.6",

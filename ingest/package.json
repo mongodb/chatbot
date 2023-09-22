@@ -45,7 +45,7 @@
     "mongodb-memory-server": "^8.13.0",
     "nock": "^13.3.2",
     "prettier": "^2",
-    "release-it": "^15",
+    "release-it": "^16.1.5",
     "ts-jest": "^29.1.0",
     "typedoc": "^0",
     "typescript": "^5"

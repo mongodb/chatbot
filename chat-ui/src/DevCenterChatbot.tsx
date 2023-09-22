@@ -1,20 +1,30 @@
 import { css } from "@emotion/css";
-import LeafyGreenProvider from "@leafygreen-ui/leafygreen-provider";
+import LeafyGreenProvider, {
+  useDarkMode,
+} from "@leafygreen-ui/leafygreen-provider";
 import Modal from "@leafygreen-ui/modal";
+import { palette } from "@leafygreen-ui/palette";
 import { ParagraphSkeleton } from "@leafygreen-ui/skeleton-loader";
 import { Body, Link } from "@leafygreen-ui/typography";
 import { Avatar } from "@lg-chat/avatar";
+import { DisclaimerText as LGDisclaimerText } from "@lg-chat/chat-disclaimer";
 import { ChatWindow } from "@lg-chat/chat-window";
 import { ChatTrigger } from "@lg-chat/fixed-chat-window";
-import { InputBar } from "@lg-chat/input-bar";
+import {
+  InputBar as LGInputBar,
+  InputBarProps as LGInputBarProps,
+} from "@lg-chat/input-bar";
 import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
 import { Message as LGMessage, MessageSourceType } from "@lg-chat/message";
 import { MessageFeed } from "@lg-chat/message-feed";
 import { MessagePrompt, MessagePrompts } from "@lg-chat/message-prompts";
+import { MessageRatingProps } from "@lg-chat/message-rating";
 import { Fragment, useEffect, useState } from "react";
+import { CharacterCount } from "./InputBar";
+import { UserProvider } from "./UserProvider";
 import { MessageData } from "./services/conversations";
 import { Conversation, useConversation } from "./useConversation";
-// import { DisclaimerText } from "@lg-chat/chat-disclaimer";
+import { User, useUser } from "./useUser";
 
 const styles = {
   chat_trigger: css`
@@ -60,13 +70,10 @@ const styles = {
       }
     }
   `,
-  disclaimer_text_container: css`
-    display: flex;
-  `,
   disclaimer_text: css`
-    & p {
-      text-align: center;
-    }
+    text-align: center;
+    margin-top: 16px;
+    margin-bottom: 32px;
   `,
   chatbot_input: css`
     padding-bottom: 1rem;
@@ -104,6 +111,26 @@ const styles = {
     transition: 'opacity 300ms ease-in',
     opacity: 1,  
   `,
+  chatbot_input_area: css`
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-left: 32px;
+    padding-right: 32px;
+    padding-top: 0.5rem;
+    padding-bottom: 1rem;
+  `,
+  chatbot_input_error_border: css`
+    > div {
+      > div {
+        border-color: ${palette.red.base} !important;
+        border-width: 2px !important;
+      }
+    }
+  `,
 };
 
 export type ChatbotProps = {
@@ -112,14 +139,17 @@ export type ChatbotProps = {
   shouldStream?: boolean;
   suggestedPrompts?: string[];
   startingMessage?: string;
+  user?: User;
 };
 
 export function Chatbot(props: ChatbotProps) {
-  const { darkMode, ...InnerChatbotProps } = props;
+  const { darkMode, user, ...InnerChatbotProps } = props;
   // TODO: Use ConversationProvider
   return (
     <LeafyGreenProvider darkMode={props.darkMode}>
-      <InnerChatbot {...InnerChatbotProps} />
+      <UserProvider user={user}>
+        <InnerChatbot {...InnerChatbotProps} />
+      </UserProvider>
     </LeafyGreenProvider>
   );
 }
@@ -203,17 +233,6 @@ export function InnerChatbot({
   );
 }
 
-// const DisclaimerTextDescription = () => {
-//   return (
-//     <div className={styles.disclaimer_text}>
-//       This is a
-//       <Link href={"https://www.mongodb.com/legal/terms-of-use"}>
-//         Terms of Use
-//       </Link>
-//     </div>
-//   );
-// };
-
 const SUGGESTED_PROMPTS = [
   "How do you deploy a free cluster in Atlas?",
   "How do you import or migrate data into MongoDB Atlas?",
@@ -279,6 +298,10 @@ function ChatbotModal({
     );
   };
 
+  const promptIsTooLong = () => {
+    return inputBarValue.length > MAX_INPUT_CHARACTERS;
+  };
+
   return (
     <Modal
       open={open}
@@ -293,12 +316,7 @@ function ChatbotModal({
           className={styles.chat_window}
         >
           <MessageFeed>
-            {/* <DisclaimerText
-              className={styles.disclaimer_text_container}
-              title="Terms of Use"
-            >
-              {DisclaimerTextDescription()}
-            </DisclaimerText> */}
+            <DisclaimerText />
             {messages.map((messageData, idx) => {
               return (
                 <Message
@@ -310,14 +328,18 @@ function ChatbotModal({
                   }
                   suggestedPromptOnClick={handleSubmit}
                   isLoading={isLoading(messageData.id)}
+                  renderRating={messageData.role === "assistant" && idx !== 0}
+                  conversation={conversation}
                 />
               );
             })}
           </MessageFeed>
           <InputBar
+            inputBarValue={inputBarValue}
             onSubmit={() => handleSubmit(inputBarValue)}
+            hasError={promptIsTooLong()}
             disabled={!!conversation.error}
-            disableSend={awaitingReply}
+            disableSend={awaitingReply || promptIsTooLong()}
             textareaProps={{
               value: inputBarValue,
               onChange: (e) => {
@@ -336,12 +358,80 @@ function ChatbotModal({
   );
 }
 
+const MAX_INPUT_CHARACTERS = 300;
+interface InputBarProps extends LGInputBarProps {
+  inputBarValue: string;
+  hasError: boolean;
+}
+
+const InputBar = (props: InputBarProps) => {
+  const { inputBarValue, hasError, ...LGInputBarProps } = props;
+  const { darkMode } = useDarkMode();
+
+  return (
+    <div className={styles.chatbot_input_area}>
+      <LGInputBar
+        className={
+          hasError ?? false ? styles.chatbot_input_error_border : undefined
+        }
+        shouldRenderGradient={!hasError}
+        {...LGInputBarProps}
+      />
+      <div
+        className={css`
+          display: flex;
+          justify-content: space-between;
+        `}
+      >
+        <Body baseFontSize={13}>
+          This is an experimental generative AI chatbot. All information should
+          be verified prior to use.
+        </Body>
+        <CharacterCount
+          darkMode={darkMode}
+          current={inputBarValue.length}
+          max={MAX_INPUT_CHARACTERS}
+        />
+      </div>
+    </div>
+  );
+};
+
+const DisclaimerText = () => {
+  return (
+    <LGDisclaimerText
+      title="Terms and Policy"
+      className={styles.disclaimer_text}
+    >
+      <Body>
+        This is a generative AI Chatbot. By interacting with it, you agree to
+        MongoDB's{" "}
+        <Link
+          hideExternalIcon
+          href={"https://www.mongodb.com/legal/terms-of-use"}
+        >
+          Terms of Use
+        </Link>{" "}
+        and{" "}
+        <Link
+          hideExternalIcon
+          href={"https://www.mongodb.com/legal/acceptable-use-policy"}
+        >
+          Acceptable Use Policy.
+        </Link>
+      </Body>
+    </LGDisclaimerText>
+  );
+};
+
 type MessageProp = {
   messageData: MessageData;
   suggestedPrompts?: string[];
   displaySuggestedPrompts: boolean;
   suggestedPromptOnClick: (prompt: string) => void;
   isLoading: boolean;
+  renderRating: boolean;
+  conversation: Conversation;
 };
 
 const Message = ({
@@ -350,8 +440,11 @@ const Message = ({
   displaySuggestedPrompts,
   suggestedPromptOnClick,
   isLoading,
+  renderRating,
+  conversation,
 }: MessageProp) => {
   const [suggestedPromptIdx, setSuggestedPromptIdx] = useState(-1);
+  const user = useUser();
 
   return (
     <Fragment key={messageData.id}>
@@ -359,16 +452,36 @@ const Message = ({
         baseFontSize={13}
         isSender={messageData.role === "user"}
         messageRatingProps={
-          messageData.role === "assistant"
+          renderRating
             ? {
                 className: styles.message_rating,
                 description: "How was the response?",
-                onChange: (e) => console.log(e),
+                onChange: (e) => {
+                  const value = e.target.value as MessageRatingProps["value"];
+                  if (!value) {
+                    return;
+                  }
+                  conversation.rateMessage(
+                    messageData.id,
+                    value === "liked" ? true : false
+                  );
+                },
+                value:
+                  messageData.rating === undefined
+                    ? undefined
+                    : messageData.rating
+                    ? "liked"
+                    : "disliked",
               }
             : undefined
         }
         avatar={
-          <Avatar variant={messageData.role === "user" ? "user" : "mongo"} />
+          <Avatar
+            variant={messageData.role === "user" ? "user" : "mongo"}
+            name={
+              messageData.role === "user" && user?.name ? user?.name : undefined
+            }
+          />
         }
         sourceType={isLoading ? undefined : MessageSourceType.Markdown}
         markdownProps={{

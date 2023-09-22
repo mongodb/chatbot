@@ -13,9 +13,6 @@ import { Chatbot as DevCenterChatbot } from "./DevCenterChatbot";
 const prefersDarkMode = () =>
   window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
 
-const prefersDarkMode = () =>
-  window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
-
 function App() {
   const [shouldStream, setShouldStream] = useState(canUseServerSentEvents());
   const { contextDarkMode: darkMode = false, setDarkMode } =

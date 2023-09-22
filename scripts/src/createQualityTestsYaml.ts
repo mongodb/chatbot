@@ -117,11 +117,11 @@ async function convertCsvToYamlAndWriteToFile(csvFilePath: string, db: Db) {
 
 async function main() {
   const mongoDb = await MongoClient.connect(
-    process.env.MONGODB_QA_CONNECTION_URI as string
+    process.env.MONGODB_CONNECTION_URI as string
   );
-  const qaDb = mongoDb.db(process.env.MONGODB_QA_DATABASE_NAME as string);
+  const db = mongoDb.db(process.env.MONGODB_DATABASE_NAME as string);
   for (const csvFilePath of csvFilePaths) {
-    await convertCsvToYamlAndWriteToFile(csvFilePath, qaDb);
+    await convertCsvToYamlAndWriteToFile(csvFilePath, db);
     console.log("successfully converted", csvFilePath, "to yaml");
   }
   console.log("done! find the yaml files in the directory", basePath);

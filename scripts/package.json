@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "createQualityTestsYaml": "npm run build && node ./build/createQualityTestsYaml.js",
+    "scrubMessages": "npm run build && node ./build/scrubMessages.js",
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./build"
   },
@@ -12,9 +13,24 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "chat-core": "file:../chat-core",
+    "chat-server": "file:../chat-server",
     "csv": "^6.3.1",
     "dotenv": "^16.3.1",
     "mongodb": "^5.7.0",
     "yaml": "^2.3.1"
+  },
+  "devDependencies": {
+    "@babel/preset-typescript": "^7",
+    "@babel/types": "^7.22.5",
+    "@typescript-eslint/eslint-plugin": "^5",
+    "@typescript-eslint/parser": "^5",
+    "eslint": "^8",
+    "eslint-config-prettier": "^8",
+    "eslint-plugin-jsdoc": "^46.4.5",
+    "eslint-plugin-prettier": "^4",
+    "eslint-plugin-tsdoc": "^0.2.14",
+    "prettier": "^2",
+    "typescript": "^5"
   }
 }

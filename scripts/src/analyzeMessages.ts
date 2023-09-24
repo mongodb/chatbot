@@ -44,7 +44,7 @@ const analyzeMessages = async ({ db }: { db: Db }) => {
         "messages.createdAt": {
           // Originals for older conversations are likely to have been deleted,
           // so we can't use it to get the topic
-          $gte: daysBeforeDate(5),
+          $gte: daysBeforeDate(8),
         },
       },
     },
@@ -91,13 +91,14 @@ const analyzeMessages = async ({ db }: { db: Db }) => {
       console.log(`Analyzing ${message.id}...`);
       const analysis = await analyze(message.content);
       console.log(`Analysis complete: ${JSON.stringify(analysis)}`);
-      /*
       console.log("Saving analysis...");
-      await scrubbedCollection.updateOne(
+      const result = await scrubbedCollection.updateOne(
         { _id: message.id },
         { $set: { analysis } }
       );
-      */
+      console.log(
+        `Result acknowledged: ${result.acknowledged}; modified count: ${result.modifiedCount}`
+      );
     } catch (error) {
       console.error(
         `Analyze & save failed for ${message.id}: ${(error as Error).message}`

@@ -6,6 +6,7 @@
   "scripts": {
     "createQualityTestsYaml": "npm run build && node ./build/createQualityTestsYaml.js",
     "scrubMessages": "npm run build && node ./build/scrubMessages.js",
+    "addTopics": "npm run build && node ./build/addTopics.js",
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./build"
   },

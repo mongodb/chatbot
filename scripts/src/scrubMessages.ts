@@ -1,5 +1,6 @@
-import { MongoClient, Db, Collection, ObjectId, Document } from "mongodb";
-import { Conversation, Message } from "chat-server";
+import { MongoClient, Db, Collection, Document } from "mongodb";
+import { Conversation } from "chat-server";
+import { ScrubbedMessage } from "./ScrubbedMessage";
 
 import "dotenv/config";
 
@@ -16,28 +17,6 @@ async function main() {
 }
 
 main();
-
-export type ScrubbedMessage = Omit<
-  Message,
-  "content" | "preprocessedContent" | "id"
-> & {
-  _id: ObjectId;
-
-  /**
-    The ID of the original conversation.
-   */
-  conversationId: ObjectId;
-
-  /**
-    The IP address of the user in the conversation.
-   */
-  ipAddress: string;
-
-  /**
-    The ordinal number of this message in relation to other messages in the original conversation.
-   */
-  index: number;
-};
 
 const scrubMessages = async ({ db }: { db: Db }) => {
   const scrubbedCollection =
@@ -73,7 +52,7 @@ const scrubMessages = async ({ db }: { db: Db }) => {
     },
     {
       $project: {
-        _id: "$messages.id",
+        _id: "$messages.id", // FIXME: why inconsistent usage of _id vs. id?
         conversationId: "$_id",
         ipAddress: 1,
         index: 1,
@@ -82,7 +61,7 @@ const scrubMessages = async ({ db }: { db: Db }) => {
         embedding: "$messages.embedding",
         rating: "$messages.rating",
         references: "$messages.references",
-      },
+      } satisfies Partial<Record<keyof ScrubbedMessage, string | number>>,
     },
     {
       $merge: {

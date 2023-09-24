@@ -47,7 +47,7 @@ export function makePreprocessMongoDbUserQuery({
 
   return async ({ query, messages }) => {
     const prompt = generateMongoDbQueryPreProcessorPrompt({ query, messages });
-    const { data } = await translate(prompt);
+    const data = await translate(prompt);
     return {
       ...appendMetadataToPreprocessorResponse(data),
       doNotAnswer: data.query.includes("DO_NOT_ANSWER"),

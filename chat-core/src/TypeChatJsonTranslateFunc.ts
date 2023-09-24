@@ -45,9 +45,7 @@ export function makeTypeChatJsonTranslateFunc<SchemaType extends object>({
   schemaName,
   numRetries = 1,
   retryDelayMs = 1000,
-}: MakeTypeChatJsonTranslateFuncArgs): (
-  prompt: string
-) => Promise<Success<SchemaType>> {
+}: MakeTypeChatJsonTranslateFuncArgs): (prompt: string) => Promise<SchemaType> {
   const { apiKey, baseUrl, deployment, version } = azureOpenAiServiceConfig;
 
   const model = createAzureOpenAILanguageModel(
@@ -72,6 +70,6 @@ export function makeTypeChatJsonTranslateFunc<SchemaType extends object>({
       throw response; // Response is `Error`
     }
 
-    return response; // Success
+    return response.data; // Success
   };
 }

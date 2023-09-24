@@ -6,8 +6,9 @@
   "scripts": {
     "createQualityTestsYaml": "npm run build && node ./build/createQualityTestsYaml.js",
     "scrubMessages": "npm run build && node ./build/scrubMessages.js",
-    "addTopics": "npm run build && node ./build/addTopics.js",
+    "analyzeMessages": "npm run build && node ./build/analyzeMessages.js",
     "build": "npm run clean && tsc",
+    "postbuild": "cp ./src/MessageAnalysis.d.ts ./build/",
     "clean": "rm -rf ./build",
     "release": "release-it"
   },

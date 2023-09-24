@@ -1,5 +1,6 @@
 import { ObjectId } from "mongodb";
 import { Message } from "chat-server";
+import { MessageAnalysis } from "MessageAnalysis";
 
 export type ScrubbedMessage = Omit<
   Message,
@@ -27,7 +28,8 @@ export type ScrubbedMessage = Omit<
   index: number;
 
   /**
-    A list of topics possibly covered by the original message.
+    An LLM-populated analysis of the original message that should be devoid of
+    any possible PII.
    */
-  topics?: string[];
+  analysis?: MessageAnalysis;
 };

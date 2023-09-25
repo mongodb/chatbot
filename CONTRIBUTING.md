@@ -125,7 +125,7 @@ with the `*.dockerfile` extension.
 ### Staging
 
 We run a staging version of the `chat-server` and `ingest` that uses
-the latest commit on the `main`branch. When you merge new commits into`main`,
+the latest commit on the `main` branch. When you merge new commits into `main`,
 a CI/CD pipeline automatically builds and publishes the updated staging server and demo site.
 
 ### QA Server & Demo Site

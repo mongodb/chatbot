@@ -13,6 +13,7 @@ trigger:
       - chat-core/**/*
       - chat-ui/**/*
       - ingest/**/*
+      - scripts/**/*
 
 steps:
   - name: test
@@ -547,6 +548,10 @@ steps:
       create_repository: true
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
       repo: docs/${DRONE_REPO_NAME}-scripts-service
+      build_args:
+        - LG_ARTIFACTORY_PASSWORD
+        - LG_ARTIFACTORY_USERNAME
+        - LG_ARTIFACTORY_EMAIL
       tags:
         - git-${DRONE_COMMIT_SHA:0:7}-staging
         - latest-staging
@@ -579,7 +584,7 @@ trigger:
     include:
       - scripts/**/*
       - chat-core/**/*
-      - chat-staging/**/*
+      - chat-server/**/*
   branch:
     - main
 
@@ -629,6 +634,10 @@ steps:
       create_repository: true
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
       repo: docs/${DRONE_REPO_NAME}-scripts-service
+      build_args:
+        - LG_ARTIFACTORY_PASSWORD
+        - LG_ARTIFACTORY_USERNAME
+        - LG_ARTIFACTORY_EMAIL
       tags:
         - git-${DRONE_COMMIT_SHA:0:7}-production
         - latest-production

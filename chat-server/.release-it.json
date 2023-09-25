@@ -2,6 +2,7 @@
   "git": {
     "tag": false,
     "push": true,
+    "pushRepo": "upstream",
     "tagName": "chat-server-v${version}"
   },
   "npm": {
@@ -13,6 +14,11 @@
     "release": true
   },
   "hooks": {
-    "before:init": ["git pull", "npm run build", "npm run lint", "npm run test"]
+    "before:init": [
+      "pushd ../chat-core && npm i && npm run build && popd",
+      "npm run build",
+      "npm run lint",
+      "npm run test"
+    ]
   }
 }

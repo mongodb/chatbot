@@ -17,14 +17,18 @@ import {
 import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
 import { Message as LGMessage, MessageSourceType } from "@lg-chat/message";
 import { MessageFeed } from "@lg-chat/message-feed";
-import { MessagePrompt, MessagePrompts } from "@lg-chat/message-prompts";
+import {
+  MessagePrompt,
+  MessagePrompts as LGMessagePrompts,
+} from "@lg-chat/message-prompts";
 import { MessageRatingProps } from "@lg-chat/message-rating";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useState, useRef } from "react";
 import { CharacterCount } from "./InputBar";
 import { UserProvider } from "./UserProvider";
 import { MessageData } from "./services/conversations";
 import { Conversation, useConversation } from "./useConversation";
 import { User, useUser } from "./useUser";
+import { Transition } from "react-transition-group";
 
 const styles = {
   chat_trigger: css`
@@ -445,6 +449,8 @@ const Message = ({
 }: MessageProp) => {
   const [suggestedPromptIdx, setSuggestedPromptIdx] = useState(-1);
   const user = useUser();
+  const nodeRef = useRef(null);
+  const [inProp, setInProp] = useState(true);
 
   return (
     <Fragment key={messageData.id}>
@@ -526,26 +532,70 @@ const Message = ({
           : messageData.content}
       </LGMessage>
       {displaySuggestedPrompts && (
-        <div className={styles.message_prompts}>
-          <MessagePrompts label="Suggested Prompts">
-            {suggestedPrompts.map((sp, idx) => (
+        <MessagePrompts
+          messagePrompts={suggestedPrompts}
+          messagePromptsOnClick={suggestedPromptOnClick}
+        />
+      )}
+    </Fragment>
+  );
+};
+
+type MessagePromptsProps = {
+  messagePrompts: string[];
+  messagePromptsOnClick: (prompt: string) => void;
+};
+
+const MessagePrompts = ({
+  messagePrompts,
+  messagePromptsOnClick,
+}: MessagePromptsProps) => {
+  const [inProp, setInProp] = useState(true);
+  const [suggestedPromptIdx, setSuggestedPromptIdx] = useState(-1);
+  const nodeRef = useRef(null);
+
+  const duration = 300;
+
+  const defaultStyle = {
+    transition: `opacity ${duration}ms ease-in`,
+    opacity: 0,
+  };
+
+  const transitionStyles = {
+    entering: { opacity: 1 },
+    entered: { opacity: 1 },
+    exiting: { opacity: 0 },
+    exited: { opacity: 0 },
+    unmounted: { opacity: 0 },
+  };
+
+  return (
+    <Transition in={inProp} timeout={duration} nodeRef={nodeRef}>
+      {(state) => (
+        <div
+          className={styles.message_prompts}
+          style={{ ...defaultStyle, ...transitionStyles[state] }}
+        >
+          <LGMessagePrompts label="Suggested Prompts">
+            {messagePrompts.map((sp, idx) => (
               <MessagePrompt
                 key={idx}
                 onClick={() => {
                   setSuggestedPromptIdx(idx);
+                  setInProp(false);
                   setTimeout(() => {
-                    suggestedPromptOnClick(suggestedPrompts[idx]);
-                  }, 300);
+                    messagePromptsOnClick(messagePrompts[idx]);
+                  }, duration);
                 }}
                 selected={idx === suggestedPromptIdx}
               >
                 {sp}
               </MessagePrompt>
             ))}
-          </MessagePrompts>
+          </LGMessagePrompts>
         </div>
       )}
-    </Fragment>
+    </Transition>
   );
 };
 

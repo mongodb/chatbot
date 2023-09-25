@@ -1,0 +1,26 @@
+image:
+  repository: node
+  tag: 18
+
+cronJobs:
+  - name: scrub
+    schedule: "0 7 * * *" # every day at 7am UTC
+    command: ["node", "./build/scrubMessages.js"]
+    env:
+      MONGODB_DATABASE_NAME: docs-chatbot-staging
+    envSecrets:
+      MONGODB_CONNECTION_URI: docs-chatbot-staging
+    resources:
+      # guaranteed amount of resources
+      requests:
+        cpu: 100m
+        memory: 2Gi
+      # maximum allowed resources
+      limits:
+        cpu: 500m
+        memory: 5Gi
+
+# Alerts
+defaultAlerts:
+  enabled: true
+  email: "chatbot-alerts@mongodb.com"

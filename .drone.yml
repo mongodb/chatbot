@@ -495,6 +495,13 @@ trigger:
 steps:
   - name: npm
     image: plugins/npm
+    environment:
+      LG_ARTIFACTORY_PASSWORD:
+        from_secret: lg_artifactory_password
+      LG_ARTIFACTORY_USERNAME:
+        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_EMAIL:
+        from_secret: lg_artifactory_email
     settings:
       folder: chat-ui
       registry: https://registry.npmjs.org/
@@ -505,13 +512,13 @@ steps:
       password:
         from_secret: mongodb_chatbot_ui_npm_token
 # ---
-# Scrubbing service
+# Scripts service
 # ---
 ---
 depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes
-name: staging-build-scrubbing-service
+name: staging-build-scripts-service
 
 trigger:
   branch:
@@ -526,13 +533,20 @@ trigger:
 
 steps:
   # Builds and publishes Docker image for staging
-  - name: publish-staging-scrubbing-service
+  - name: publish-staging-scripts-service
     image: plugins/kaniko-ecr
+    environment:
+      LG_ARTIFACTORY_PASSWORD:
+        from_secret: lg_artifactory_password
+      LG_ARTIFACTORY_USERNAME:
+        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_EMAIL:
+        from_secret: lg_artifactory_email
     settings:
-      dockerfile: scrubbing-service.dockerfile
+      dockerfile: scripts-service.dockerfile
       create_repository: true
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
-      repo: docs/${DRONE_REPO_NAME}-scrubbing-service
+      repo: docs/${DRONE_REPO_NAME}-scripts-service
       tags:
         - git-${DRONE_COMMIT_SHA:0:7}-staging
         - latest-staging
@@ -542,7 +556,7 @@ steps:
         from_secret: ecr_secret_key
 
   # Promotes current drone build to staging environment
-  - name: promote-staging-scrubbing-service
+  - name: promote-staging-scripts-service
     image: drone/cli:1.4.0-alpine
     commands:
       - drone build promote mongodb/chatbot ${DRONE_BUILD_NUMBER} staging
@@ -554,7 +568,7 @@ steps:
 ---
 kind: pipeline
 type: kubernetes
-name: staging-deploy-scrubbing-service
+name: staging-deploy-scripts-service
 
 trigger:
   event:
@@ -571,15 +585,15 @@ trigger:
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion
-  - name: deploy-staging-scrubbing-service
+  - name: deploy-staging-scripts-service
     image: quay.io/mongodb/drone-helm:v3
     settings:
       chart: mongodb/cronjobs
       chart_version: 1.7.1
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: docs
-      release: scrubbing-service
-      values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-scrubbing-service
+      release: scripts-service
+      values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-scripts-service
       values_files:
         - scripts/environments/staging.yml
       api_server: https://api.staging.corp.mongodb.com
@@ -590,7 +604,7 @@ steps:
 depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes
-name: production-build-scrubbing-service
+name: production-build-scripts-service
 
 trigger:
   event:
@@ -601,13 +615,20 @@ trigger:
 
 steps:
   # Builds and publishes Docker image for production
-  - name: publish-production-scrubbing-service
+  - name: publish-production-scripts-service
     image: plugins/kaniko-ecr
+    environment:
+      LG_ARTIFACTORY_PASSWORD:
+        from_secret: lg_artifactory_password
+      LG_ARTIFACTORY_USERNAME:
+        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_EMAIL:
+        from_secret: lg_artifactory_email
     settings:
-      dockerfile: scrubbing-service.dockerfile
+      dockerfile: scripts-service.dockerfile
       create_repository: true
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
-      repo: docs/${DRONE_REPO_NAME}-scrubbing-service
+      repo: docs/${DRONE_REPO_NAME}-scripts-service
       tags:
         - git-${DRONE_COMMIT_SHA:0:7}-production
         - latest-production
@@ -617,7 +638,7 @@ steps:
         from_secret: ecr_secret_key
 
   # Promotes current drone build to production environment
-  - name: promote-production-scrubbing-service
+  - name: promote-production-scripts-service
     image: drone/cli:1.4.0-alpine
     commands:
       - drone build promote mongodb/chatbot ${DRONE_BUILD_NUMBER} production
@@ -629,7 +650,7 @@ steps:
 ---
 kind: pipeline
 type: kubernetes
-name: production-deploy-scrubbing-service
+name: production-deploy-scripts-service
 
 trigger:
   event:
@@ -641,15 +662,15 @@ trigger:
       - refs/tags/ingest-v*
 
 steps:
-  - name: deploy-production-scrubbing-service
+  - name: deploy-production-scripts-service
     image: quay.io/mongodb/drone-helm:v3
     settings:
       chart: mongodb/cronjobs
       chart_version: 1.7.1
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: docs
-      release: scrubbing-service
-      values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-production,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-scrubbing-service
+      release: scripts-service
+      values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-production,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-scripts-service
       values_files:
         - scripts/environments/production.yml
       api_server: https://api.prod.corp.mongodb.com

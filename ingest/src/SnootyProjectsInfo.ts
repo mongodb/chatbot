@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import { logger } from "chat-core";
 import {
   SnootyProject,
   makeSnootyDataSource,
@@ -126,26 +127,34 @@ export const prepareSnootySources = async ({
               projectName,
             }));
           version = version ? version + " (current)" : undefined;
-          return await makeSnootyDataSource({
-            name: `snooty-${project.name}`,
-            project: {
-              ...project,
-              currentBranch,
-              version,
-              baseUrl:
-                project.baseUrl?.replace(/\/?$/, "/") ??
-                (await snootyProjectsInfo.getBaseUrl({
-                  projectName,
-                  branchName: currentBranch,
-                })),
-            },
-            snootyDataApiBaseUrl,
-          });
+
+          try {
+            return await makeSnootyDataSource({
+              name: `snooty-${project.name}`,
+              project: {
+                ...project,
+                currentBranch,
+                version,
+                baseUrl:
+                  project.baseUrl?.replace(/\/?$/, "/") ??
+                  (await snootyProjectsInfo.getBaseUrl({
+                    projectName,
+                    branchName: currentBranch,
+                  })),
+              },
+              snootyDataApiBaseUrl,
+            });
+          } catch (error) {
+            logger.error(
+              `Failed to prepare snooty data source '${project.name}': ${
+                (error as Error).message
+              }`
+            );
+            throw error;
+          }
         })
       )
-    ).filter(
-      (result) => result.status === "fulfilled"
-    ) as PromiseFulfilledResult<
+    ).filter(({ status }) => status === "fulfilled") as PromiseFulfilledResult<
       DataSource & {
         _baseUrl: string;
         _currentBranch: string;

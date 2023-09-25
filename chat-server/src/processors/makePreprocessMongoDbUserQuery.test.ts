@@ -1,7 +1,10 @@
 import "dotenv/config";
-import { CORE_ENV_VARS, assertEnvVars } from "chat-core";
 import {
+  CORE_ENV_VARS,
+  assertEnvVars,
   AzureOpenAiServiceConfig,
+} from "chat-core";
+import {
   appendMetadataToPreprocessorResponse,
   generateMongoDbQueryPreProcessorPrompt,
   makePreprocessMongoDbUserQuery,

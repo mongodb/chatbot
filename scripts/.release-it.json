@@ -1,0 +1,24 @@
+{
+  "git": {
+    "add": "../",
+    "tag": false,
+    "push": true,
+    "pushRepo": "upstream",
+    "tagName": "scripts-v${version}"
+  },
+  "npm": {
+    "publish": false
+  },
+  "github": {
+    "releaseName": "scripts-v${version}",
+    "draft": true,
+    "release": true
+  },
+  "hooks": {
+    "before:init": [
+      "pushd ../chat-core && npm i && npm run build && popd",
+      "pushd ../chat-server && npm i && npm run build && popd",
+      "npm run build"
+    ]
+  }
+}

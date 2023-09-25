@@ -1,13 +1,14 @@
 {
   "name": "scripts",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
     "createQualityTestsYaml": "npm run build && node ./build/createQualityTestsYaml.js",
     "scrubMessages": "npm run build && node ./build/scrubMessages.js",
     "build": "npm run clean && tsc",
-    "clean": "rm -rf ./build"
+    "clean": "rm -rf ./build",
+    "release": "release-it"
   },
   "keywords": [],
   "author": "",
@@ -31,6 +32,7 @@
     "eslint-plugin-prettier": "^4",
     "eslint-plugin-tsdoc": "^0.2.14",
     "prettier": "^2",
+    "release-it": "^16",
     "typescript": "^5"
   }
 }

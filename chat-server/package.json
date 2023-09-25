@@ -1,9 +1,9 @@
 {
   "name": "chat-server",
   "version": "0.1.1",
+  "license": "Apache-2.0",
   "description": "Q&A server for the MongoDB Docs AI chatbot.",
   "author": "MongoDB, Inc.",
-  "license": "ISC",
   "keywords": [],
   "engines": {
     "node": ">=18",

@@ -1,5 +1,6 @@
 {
   "git": {
+    "add": "../",
     "tag": false,
     "push": true,
     "pushRepo": "upstream",

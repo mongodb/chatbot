@@ -668,7 +668,7 @@ trigger:
     - production
   ref:
     include:
-      - refs/tags/ingest-v*
+      - refs/tags/scripts-v*
 
 steps:
   - name: deploy-production-scripts-service

@@ -1,4 +1,5 @@
 import { css } from "@emotion/css";
+import Banner from "@leafygreen-ui/banner";
 import LeafyGreenProvider, {
   useDarkMode,
 } from "@leafygreen-ui/leafygreen-provider";
@@ -18,17 +19,17 @@ import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
 import { Message as LGMessage, MessageSourceType } from "@lg-chat/message";
 import { MessageFeed } from "@lg-chat/message-feed";
 import {
-  MessagePrompt,
   MessagePrompts as LGMessagePrompts,
+  MessagePrompt,
 } from "@lg-chat/message-prompts";
 import { MessageRatingProps } from "@lg-chat/message-rating";
-import { Fragment, useEffect, useState, useRef } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
+import { Transition } from "react-transition-group";
 import { CharacterCount } from "./InputBar";
 import { UserProvider } from "./UserProvider";
 import { MessageData } from "./services/conversations";
 import { Conversation, useConversation } from "./useConversation";
 import { User, useUser } from "./useUser";
-import { Transition } from "react-transition-group";
 
 const styles = {
   chat_trigger: css`
@@ -341,7 +342,8 @@ function ChatbotModal({
           <InputBar
             inputBarValue={inputBarValue}
             onSubmit={() => handleSubmit(inputBarValue)}
-            hasError={promptIsTooLong()}
+            inputBarHasError={promptIsTooLong()}
+            conversationError={conversation.error}
             disabled={!!conversation.error}
             disableSend={awaitingReply || promptIsTooLong()}
             textareaProps={{
@@ -365,20 +367,35 @@ function ChatbotModal({
 const MAX_INPUT_CHARACTERS = 300;
 interface InputBarProps extends LGInputBarProps {
   inputBarValue: string;
-  hasError: boolean;
+  inputBarHasError: boolean;
+  conversationError: string | undefined;
 }
 
 const InputBar = (props: InputBarProps) => {
-  const { inputBarValue, hasError, ...LGInputBarProps } = props;
+  const {
+    inputBarValue,
+    inputBarHasError,
+    conversationError,
+    ...LGInputBarProps
+  } = props;
   const { darkMode } = useDarkMode();
+
+  if (conversationError)
+    return (
+      <div className={styles.chatbot_input_area}>
+        <ErrorBanner darkMode={darkMode} message={conversationError} />
+      </div>
+    );
 
   return (
     <div className={styles.chatbot_input_area}>
       <LGInputBar
         className={
-          hasError ?? false ? styles.chatbot_input_error_border : undefined
+          inputBarHasError ?? false
+            ? styles.chatbot_input_error_border
+            : undefined
         }
-        shouldRenderGradient={!hasError}
+        shouldRenderGradient={!inputBarHasError}
         {...LGInputBarProps}
       />
       <div
@@ -400,6 +417,24 @@ const InputBar = (props: InputBarProps) => {
     </div>
   );
 };
+
+type ErrorBannerProps = {
+  message?: string;
+  darkMode?: boolean;
+};
+
+function ErrorBanner({
+  message = "Something went wrong.",
+  darkMode = false,
+}: ErrorBannerProps) {
+  return (
+    <Banner darkMode={darkMode} variant="danger">
+      {message}
+      <br />
+      Reload the page to start a new conversation.
+    </Banner>
+  );
+}
 
 const DisclaimerText = () => {
   return (
@@ -447,10 +482,7 @@ const Message = ({
   renderRating,
   conversation,
 }: MessageProp) => {
-  const [suggestedPromptIdx, setSuggestedPromptIdx] = useState(-1);
   const user = useUser();
-  const nodeRef = useRef(null);
-  const [inProp, setInProp] = useState(true);
 
   return (
     <Fragment key={messageData.id}>

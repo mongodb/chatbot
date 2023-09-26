@@ -85,7 +85,7 @@ describe("SnootyProjectsInfo", () => {
     ).toBeUndefined();
 
     if (findBadBoolBranches(data) !== undefined) {
-      logger.info("Found bad bools in Snooty Data API response.");
+      console.log("Found bad bools in Snooty Data API response.");
     }
     expect(findBadBoolBranches(projectsInfo?._data)).toBeUndefined();
   });

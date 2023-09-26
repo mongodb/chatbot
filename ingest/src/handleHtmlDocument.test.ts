@@ -13,7 +13,6 @@ jest.setTimeout(600000);
 
 const javaVersion = "4.10";
 const options: HandleHtmlPageFuncOptions = {
-  sourceName: "sample",
   pathToPageUrl: (pathInRepo: string) =>
     `https://example.com/${pathInRepo}`.replace(/index\.html$/, "testing.html"),
   metadata: {
@@ -42,7 +41,7 @@ const options: HandleHtmlPageFuncOptions = {
 };
 
 describe("handleHtmlDocument()", () => {
-  let page: Page;
+  let page: Omit<Page, "sourceName">;
   beforeAll(async () => {
     const html = fs.readFileSync(
       Path.resolve(__dirname, "./test_data/sampleJava.html"),

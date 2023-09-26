@@ -1,10 +1,10 @@
 # MongoDB AI Chatbot
 
-Repo holding resources related to the MongoDB AI Chatbot. The AI Chatbot is a full-stack retrieval augmented generation (RAG) application.
+The AI Chatbot is a full-stack retrieval augmented generation (RAG) application.
 
-The Chatbot uses the MongoDB [documentation](https://www.mongodb.com/docs/) and [Developer Center](https://www.mongodb.com/developer/) as its sources of truth.
+The chatbot uses the MongoDB [documentation](https://www.mongodb.com/docs/) and [Developer Center](https://www.mongodb.com/developer/) as its sources of truth.
 
-The chatbot is build on top of the following technologies:
+The chatbot builds on the following technologies:
 
 - Atlas Vector Search: Indexes and queries content for use in project.
 - MongoDB Atlas: Persists conversations and content.

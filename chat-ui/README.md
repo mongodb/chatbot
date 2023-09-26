@@ -30,3 +30,4 @@ The `<Chatbot />` component accepts the following props:
 | `serverBaseUrl`     | `string?`   | The base URL for the Chatbot API.                                                     | `https://knowledge.mongodb.com/api/v1`                  |
 | `shouldStream`      | `boolean?`  | If `true`, responses are streamed with SSE. Otherwise the entire response is awaited. | If the browser supports SSE, `true`, else `false`.      |
 | `suggestedPrompts`  | `string[]?` | A list of suggested prompts that appear in the input bar dropdown menu.               | If no prompts are specified, the dropdown is not shown. |
+| `tck`               | `string?`   | An analytics identifier to add to the end of all hyperlinks.                          | `"docs_chatbot"`                                        |

@@ -252,7 +252,7 @@ export function Chatbot(props: ChatbotProps) {
   const [initialInputFocused, setInitialInputFocused] = useState(false);
   const showInitialInputErrorState = inputTextError !== "" && !modalOpen;
 
-  const linkTck = props.tck ?? "docs_chatbot";
+  const tck = props.tck ?? "docs_chatbot";
 
   return (
     <LeafyGreenProvider darkMode={darkMode}>
@@ -271,7 +271,7 @@ export function Chatbot(props: ChatbotProps) {
             }}
             dropdownFooterSlot={
               <div className={styles.powered_by_footer}>
-                <PoweredByAtlasVectorSearch tck={linkTck} />
+                <PoweredByAtlasVectorSearch tck={tck} />
               </div>
             }
             textareaProps={{
@@ -331,7 +331,7 @@ export function Chatbot(props: ChatbotProps) {
             {showInitialInputErrorState ? (
               <ErrorText>{inputTextError}</ErrorText>
             ) : null}
-            <LegalDisclosure tck={linkTck} />
+            <LegalDisclosure tck={tck} />
           </div>
         </div>
         <ChatbotModal
@@ -386,7 +386,7 @@ function ChatbotModal({
   handleSubmit,
   awaitingReply,
   darkMode,
-  tck="docs_chatbot",
+  tck = "docs_chatbot",
 }: ChatbotModalProps) {
   const isEmptyConversation = conversation.messages.length === 0;
 
@@ -460,7 +460,9 @@ function ChatbotModal({
                           return (
                             <Link
                               hideExternalIcon
-                              href={href ? addQueryParams(href, { tck: tck }) : undefined}
+                              href={
+                                href ? addQueryParams(href, { tck }) : undefined
+                              }
                             >
                               {children}
                             </Link>
@@ -572,7 +574,7 @@ function LegalDisclosure({ tck = "docs_chatbot" }: LinkProps = {}) {
     <Link
       hideExternalIcon
       href={addQueryParams("https://www.mongodb.com/legal/terms-of-use", {
-        tck: tck,
+        tck,
       })}
     >
       Terms of Use
@@ -583,9 +585,7 @@ function LegalDisclosure({ tck = "docs_chatbot" }: LinkProps = {}) {
       hideExternalIcon
       href={addQueryParams(
         "https://www.mongodb.com/legal/acceptable-use-policy",
-        {
-          tck: tck,
-        }
+        { tck }
       )}
     >
       Acceptable Use Policy
@@ -609,7 +609,7 @@ function PoweredByAtlasVectorSearch({ tck = "docs_chatbot" }: LinkProps = {}) {
   return (
     <Body>
       Powered by Atlas Vector Search.{" "}
-      <Link href={addQueryParams(url, { tck: tck })} hideExternalIcon>
+      <Link href={addQueryParams(url, { tck })} hideExternalIcon>
         Learn More.
       </Link>
     </Body>

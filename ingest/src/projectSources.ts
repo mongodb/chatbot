@@ -390,7 +390,7 @@ const mongooseSourceConstructor = async () => {
   const testFileLoaderOptions = {
     branch: "master",
     recursive: true,
-    ignoreFiles: [/^(?!test\/).+$/],
+    ignoreFiles: [/^(?!\/test\/).+$/],
   };
   const repoLoaderOptions = {
     branch: "master",

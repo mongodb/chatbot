@@ -2,7 +2,7 @@ import { makeGitDataSource } from "./GitDataSource";
 jest.setTimeout(60000);
 describe("GitDataSource", () => {
   it("should load and process a real repo", async () => {
-    const dataSource = await makeGitDataSource({
+    const dataSource = makeGitDataSource({
       name: "sample",
       repoUri: "https://github.com/mongodb/mongo-java-driver.git",
       repoOptions: {
@@ -16,13 +16,11 @@ describe("GitDataSource", () => {
       metadata: {
         foo: "bar",
       },
-      handlePage: async (path, content, options) => [
+      handlePage: async (path) => [
         {
-          sourceName: options.sourceName,
           url: "https://example.com/" + path,
           title: "sample",
           body: "sample",
-          metadata: options.metadata,
           format: "md",
         },
       ],

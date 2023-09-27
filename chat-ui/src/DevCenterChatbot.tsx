@@ -24,7 +24,7 @@ import {
 } from "@lg-chat/message-prompts";
 import { MessageRatingProps } from "@lg-chat/message-rating";
 import { Fragment, useEffect, useRef, useState } from "react";
-import { Transition } from "react-transition-group";
+import { CSSTransition } from "react-transition-group";
 import { CharacterCount } from "./InputBar";
 import { UserProvider } from "./UserProvider";
 import { MessageData } from "./services/conversations";
@@ -46,10 +46,25 @@ const styles = {
       right: 49px;
     }
   `,
-  message_prompts: css`
+  message_prompts: (duration: number) => css`
     margin-left: 70px;
     @media screen and (max-width: 804px) {
       margin-left: 50px;
+    }
+
+    transition: opacity ${duration}ms ease-in;
+
+    &-enter {
+      opacity: 0;
+    }
+    &-enter-active {
+      opacity: 1;
+    }
+    &-exit {
+      opacity: 1;
+    }
+    &-exit-active {
+      opacity: 0;
     }
   `,
   message_rating: css`
@@ -111,10 +126,6 @@ const styles = {
     & > div {
       width: 100%;
     }
-  `,
-  fade_out: css`
-    transition: 'opacity 300ms ease-in',
-    opacity: 1,  
   `,
   chatbot_input_area: css`
     position: relative;
@@ -578,49 +589,35 @@ const MessagePrompts = ({
   const [inProp, setInProp] = useState(true);
   const [suggestedPromptIdx, setSuggestedPromptIdx] = useState(-1);
   const nodeRef = useRef(null);
-
   const duration = 300;
 
-  const defaultStyle = {
-    transition: `opacity ${duration}ms ease-in`,
-    opacity: 0,
-  };
-
-  const transitionStyles = {
-    entering: { opacity: 1 },
-    entered: { opacity: 1 },
-    exiting: { opacity: 0 },
-    exited: { opacity: 0 },
-    unmounted: { opacity: 0 },
-  };
-
   return (
-    <Transition in={inProp} timeout={duration} nodeRef={nodeRef}>
-      {(state) => (
-        <div
-          className={styles.message_prompts}
-          style={{ ...defaultStyle, ...transitionStyles[state] }}
-        >
-          <LGMessagePrompts label="Suggested Prompts">
-            {messagePrompts.map((sp, idx) => (
-              <MessagePrompt
-                key={idx}
-                onClick={() => {
-                  setSuggestedPromptIdx(idx);
-                  setInProp(false);
-                  setTimeout(() => {
-                    messagePromptsOnClick(messagePrompts[idx]);
-                  }, duration);
-                }}
-                selected={idx === suggestedPromptIdx}
-              >
-                {sp}
-              </MessagePrompt>
-            ))}
-          </LGMessagePrompts>
-        </div>
-      )}
-    </Transition>
+    <CSSTransition
+      in={inProp}
+      timeout={duration}
+      nodeRef={nodeRef}
+      classNames={styles.message_prompts(duration)}
+    >
+      <div className={styles.message_prompts(duration)} ref={nodeRef}>
+        <LGMessagePrompts label="Suggested Prompts">
+          {messagePrompts.map((sp, idx) => (
+            <MessagePrompt
+              key={idx}
+              onClick={() => {
+                setSuggestedPromptIdx(idx);
+                setInProp(false);
+                setTimeout(() => {
+                  messagePromptsOnClick(messagePrompts[idx]);
+                }, duration);
+              }}
+              selected={idx === suggestedPromptIdx}
+            >
+              {sp}
+            </MessagePrompt>
+          ))}
+        </LGMessagePrompts>
+      </div>
+    </CSSTransition>
   );
 };
 

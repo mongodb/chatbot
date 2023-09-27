@@ -180,10 +180,17 @@ type InnerChatbotProps = {
 const WELCOME_MESSAGE =
   "Welcome to MongoDB AI Assistant. What can I help you with?";
 
-export function InnerChatbot({
+const SUGGESTED_PROMPTS = [
+  "How do you deploy a free cluster in Atlas?",
+  "How do you import or migrate data into MongoDB Atlas?",
+  "How do I get started with MongoDB?",
+  "Why should I use Atlas Search?",
+];
+
+function InnerChatbot({
   serverBaseUrl,
   shouldStream,
-  suggestedPrompts,
+  suggestedPrompts = SUGGESTED_PROMPTS,
   welcomeMessage = WELCOME_MESSAGE,
 }: InnerChatbotProps) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -199,7 +206,6 @@ export function InnerChatbot({
   useEffect(() => {
     if (!conversation.conversationId || welcomeMessageData) return;
 
-    // TODO: Update the backend to accept a welcome message
     const newWelcomeMessageData = {
       id: crypto.randomUUID(),
       role: "assistant",
@@ -214,7 +220,6 @@ export function InnerChatbot({
     if (modalOpen) return;
 
     if (!conversation.conversationId) {
-      // TODO: Update the backend to accept a welcome message
       await conversation.createConversation();
     }
 
@@ -249,13 +254,6 @@ export function InnerChatbot({
   );
 }
 
-const SUGGESTED_PROMPTS = [
-  "How do you deploy a free cluster in Atlas?",
-  "How do you import or migrate data into MongoDB Atlas?",
-  "How do I get started with MongoDB?",
-  "Why should I use Atlas Search?",
-];
-
 type ChatbotModalProps = {
   open: boolean;
   shouldClose: () => boolean;
@@ -269,7 +267,7 @@ type ChatbotModalProps = {
 function ChatbotModal({
   open,
   shouldClose,
-  suggestedPrompts = SUGGESTED_PROMPTS,
+  suggestedPrompts,
   welcomeMessageData,
   conversation,
   inputBarValue,

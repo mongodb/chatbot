@@ -32,4 +32,12 @@ export type ScrubbedMessage = Omit<
     any possible PII.
    */
   analysis?: MessageAnalysis;
+
+  /**
+    For messages with the "user" role, the rating field of the subsequent
+    "assistant" response in the original conversation.
+
+    This can be convenient when comparing questions with their answer quality.
+   */
+  responseRating?: boolean;
 };

@@ -1,6 +1,7 @@
 import Path from "path";
+import { strict as assert } from "assert";
 import { promises as fs } from "fs";
-import { MongoClient, Db } from "mongodb";
+import { MongoClient, Db, ObjectId } from "mongodb";
 import { Conversation, Message } from "chat-server";
 import { makeTypeChatJsonTranslateFunc, assertEnvVars } from "chat-core";
 import { MessageAnalysis } from "./MessageAnalysis";
@@ -37,7 +38,9 @@ main();
 
 const analyzeMessages = async ({ db }: { db: Db }) => {
   const conversationsCollection = db.collection<Conversation>("conversations");
-  const originalMessages = conversationsCollection.aggregate<Message>([
+  const originalMessages = conversationsCollection.aggregate<
+    Message & { indexInConvo: number; convoId: ObjectId }
+  >([
     {
       // Find messages in a recent timeframe
       $match: {
@@ -46,24 +49,26 @@ const analyzeMessages = async ({ db }: { db: Db }) => {
           // so we can't use it to get the topic
           $gte: daysBeforeDate(8),
         },
-        "messages": {
-          "$elemMatch": { role: "user" }
-        }
+        // Include only conversations that actually had user input
+        "messages.role": "user",
       },
     },
     {
       // With replaceRoot below, pass each message from conversation to next
       // stage in pipeline
-      $unwind: "$messages",
+      $unwind: {
+        path: "$messages",
+        includeArrayIndex: "indexInConvo",
+      },
+    },
+    {
+      $addFields: {
+        "messages.indexInConvo": "$indexInConvo",
+        "messages.convoId": "$_id",
+      },
     },
     {
       $replaceRoot: { newRoot: "$messages" },
-    },
-    {
-      // Filter out non-user messages
-      $match: {
-        role: "user",
-      },
     },
     {
       // Join with the scrubbed collection in order to find those that need
@@ -77,19 +82,64 @@ const analyzeMessages = async ({ db }: { db: Db }) => {
     },
     {
       // Filter out messages that haven't been scrubbed yet or that already have
-      // analysis set
+      // analysis set. (Run scrubMessages first to populate scrubbed messages.)
       $match: {
-        "scrubbed.0": { $exists: true },
+        scrubbed: { $ne: [] },
         "scrubbed.analysis": { $exists: false },
       },
     },
-    { $project: { scrubbed: 0, embedding: 0 } },
+    {
+      $project: {
+        scrubbed: 0,
+        embedding: 0,
+      },
+    },
+    { $sort: { conversationId: 1, createdAt: 1 } },
   ]);
 
   const analyze = await makeAnalyzer();
   const scrubbedCollection = db.collection<Conversation>("scrubbed_messages");
 
+  let lastUserMessage:
+    | { convoId: ObjectId; indexInConvo: number; id: ObjectId }
+    | undefined = undefined;
+
   for await (const message of originalMessages) {
+    if (message.role === "system") {
+      // Do not analyze system messages (for now?)
+      continue;
+    }
+    if (message.role === "assistant") {
+      // If this is a response to the previous message and it has a rating, copy
+      // the rating to the responseRating field of the previous message
+      if (
+        lastUserMessage?.convoId.toString() === message.convoId.toString() &&
+        lastUserMessage?.indexInConvo === message.indexInConvo - 1 &&
+        message.rating !== undefined
+      ) {
+        console.log(
+          `Copying rating (${message.rating}) to conversation ${lastUserMessage.convoId} message #${lastUserMessage.indexInConvo} from message #${message.indexInConvo}...`
+        );
+        const result = await scrubbedCollection.updateOne(
+          { _id: lastUserMessage.id },
+          { $set: { responseRating: message.rating } }
+        );
+        console.log(
+          `Result acknowledged: ${result.acknowledged}; modified count: ${result.modifiedCount}`
+        );
+      }
+      lastUserMessage = undefined;
+      continue;
+    }
+
+    assert(
+      message.role === "user",
+      `Unexpected non-user role message: ${JSON.stringify(message)}`
+    );
+    lastUserMessage = {
+      ...message,
+    };
+
     try {
       console.log(`Analyzing ${message.id}...`);
       const analysis = await analyze(message.content);

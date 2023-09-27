@@ -268,6 +268,7 @@ function ChatbotModal({
     ? [welcomeMessageData, ...conversation.messages]
     : conversation.messages;
   const [awaitingReply, setAwaitingReply] = useState(false);
+  const { darkMode } = useDarkMode();
 
   const displaySuggestedPrompts = () => {
     return conversation.messages.length === 0;
@@ -339,25 +340,30 @@ function ChatbotModal({
               );
             })}
           </MessageFeed>
-          <InputBar
-            inputBarValue={inputBarValue}
-            onSubmit={() => handleSubmit(inputBarValue)}
-            inputBarHasError={promptIsTooLong()}
-            conversationError={conversation.error}
-            disabled={!!conversation.error}
-            disableSend={awaitingReply || promptIsTooLong()}
-            textareaProps={{
-              value: inputBarValue,
-              onChange: (e) => {
-                setInputBarValue(e.target.value);
-              },
-              placeholder: conversation.error
-                ? "Something went wrong. Try reloading the page and starting a new conversation."
-                : awaitingReply
-                ? "MongoDB AI Assistant is answering..."
-                : "Ask MongoDB AI Assistant a Question",
-            }}
-          />
+          <div className={styles.chatbot_input_area}>
+            {conversation.error ? (
+              <ErrorBanner darkMode={darkMode} message={conversation.error} />
+            ) : (
+              <InputBar
+                inputBarValue={inputBarValue}
+                onSubmit={() => handleSubmit(inputBarValue)}
+                inputBarHasError={promptIsTooLong()}
+                disabled={!!conversation.error}
+                disableSend={awaitingReply || promptIsTooLong()}
+                textareaProps={{
+                  value: inputBarValue,
+                  onChange: (e) => {
+                    setInputBarValue(e.target.value);
+                  },
+                  placeholder: conversation.error
+                    ? "Something went wrong. Try reloading the page and starting a new conversation."
+                    : awaitingReply
+                    ? "MongoDB AI Assistant is answering..."
+                    : "Ask MongoDB AI Assistant a Question",
+                }}
+              />
+            )}
+          </div>
         </ChatWindow>
       </LeafyGreenChatProvider>
     </Modal>
@@ -368,27 +374,14 @@ const MAX_INPUT_CHARACTERS = 300;
 interface InputBarProps extends LGInputBarProps {
   inputBarValue: string;
   inputBarHasError: boolean;
-  conversationError: string | undefined;
 }
 
 const InputBar = (props: InputBarProps) => {
-  const {
-    inputBarValue,
-    inputBarHasError,
-    conversationError,
-    ...LGInputBarProps
-  } = props;
+  const { inputBarValue, inputBarHasError, ...LGInputBarProps } = props;
   const { darkMode } = useDarkMode();
 
-  if (conversationError)
-    return (
-      <div className={styles.chatbot_input_area}>
-        <ErrorBanner darkMode={darkMode} message={conversationError} />
-      </div>
-    );
-
   return (
-    <div className={styles.chatbot_input_area}>
+    <>
       <LGInputBar
         className={
           inputBarHasError ?? false
@@ -414,7 +407,7 @@ const InputBar = (props: InputBarProps) => {
           max={MAX_INPUT_CHARACTERS}
         />
       </div>
-    </div>
+    </>
   );
 };
 

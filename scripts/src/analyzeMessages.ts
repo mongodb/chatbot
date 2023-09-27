@@ -46,6 +46,9 @@ const analyzeMessages = async ({ db }: { db: Db }) => {
           // so we can't use it to get the topic
           $gte: daysBeforeDate(8),
         },
+        "messages": {
+          "$elemMatch": { role: "user" }
+        }
       },
     },
     {

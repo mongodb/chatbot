@@ -25,8 +25,13 @@ cronJobs:
     command: ["node", "./build/analyzeMessages.js"]
     env:
       MONGODB_DATABASE_NAME: docs-chatbot-staging
+      OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
     envSecrets:
       MONGODB_CONNECTION_URI: docs-chatbot-staging
+      OPENAI_ENDPOINT: docs-chatbot-staging
+      OPENAI_API_KEY: docs-chatbot-staging
+      OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-staging
+      OPENAI_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-staging
     resources:
       # guaranteed amount of resources
       requests:

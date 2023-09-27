@@ -79,7 +79,7 @@ const analyzeMessages = async ({ db }: { db: Db }) => {
       // Filter out messages that haven't been scrubbed yet or that already have
       // analysis set
       $match: {
-        scrubbed: { $ne: [] },
+        "scrubbed.0": { $exists: true },
         "scrubbed.analysis": { $exists: false },
       },
     },

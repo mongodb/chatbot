@@ -31,6 +31,8 @@ import { MessageData } from "./services/conversations";
 import { Conversation, useConversation } from "./useConversation";
 import { User, useUser } from "./useUser";
 
+const TRANSITION_DURATION = 300;
+
 const styles = {
   chat_trigger: css`
     position: fixed;
@@ -46,13 +48,13 @@ const styles = {
       right: 49px;
     }
   `,
-  message_prompts: (duration: number) => css`
+  message_prompts: css`
     margin-left: 70px;
     @media screen and (max-width: 804px) {
       margin-left: 50px;
     }
 
-    transition: opacity ${duration}ms ease-in;
+    transition: opacity ${TRANSITION_DURATION}ms ease-in;
 
     &-enter {
       opacity: 0;
@@ -594,13 +596,13 @@ const MessagePrompts = ({
       in={inProp}
       timeout={duration}
       nodeRef={nodeRef}
-      classNames={styles.message_prompts(duration)}
+      classNames={styles.message_prompts}
     >
-      <div className={styles.message_prompts(duration)} ref={nodeRef}>
+      <div className={styles.message_prompts} ref={nodeRef}>
         <LGMessagePrompts label="Suggested Prompts">
           {messagePrompts.map((sp, idx) => (
             <MessagePrompt
-              key={idx}
+              key={sp}
               onClick={() => {
                 setSuggestedPromptIdx(idx);
                 setInProp(false);

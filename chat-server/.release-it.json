@@ -1,6 +1,7 @@
 {
   "git": {
-    "add": "../",
+    "commitArgs": ["-a"],
+    "commitMessage": "Release chat-server v${version}",
     "tag": false,
     "push": true,
     "pushRepo": "upstream",

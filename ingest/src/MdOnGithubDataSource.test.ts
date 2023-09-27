@@ -2,10 +2,8 @@ import {
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
 } from "./MdOnGithubDataSource";
-import { mongoDbCppDriverConfig } from "./projectSources";
 import "dotenv/config";
 import { strict as assert } from "assert";
-import { DataSource } from "./DataSource";
 import { Page } from "chat-core";
 
 jest.setTimeout(60000);
@@ -23,7 +21,7 @@ const sampleConf: MakeMdOnGithubDataSourceParams = {
   repoUrl: "https://github.com/mongodb/mongo-cxx-driver/",
   repoLoaderOptions: {
     branch: "master",
-    ignoreFiles: [/^(?!^docs\/content\/mongocxx-v3\/).*/],
+    ignoreFiles: [/^(?!^\/docs\/content\/mongocxx-v3\/).*/],
   },
   pathToPageUrl: samplePathToPage,
   metadata: {

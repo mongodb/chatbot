@@ -5,6 +5,7 @@ import {
 } from "langchain/document_loaders/web/github";
 import { Page, logger } from "chat-core";
 import { DataSource } from "./DataSource";
+import { makeGitDataSource } from "./GitDataSource";
 
 export type MakeGitHubDataSourceArgs = {
   /**
@@ -47,53 +48,44 @@ export const makeGitHubDataSource = async ({
   repoLoaderOptions,
   handleDocumentInRepo,
 }: MakeGitHubDataSourceArgs): Promise<DataSource> => {
-  const loader = new GithubRepoLoader(repoUrl, repoLoaderOptions);
-  return {
+  const repoOptions: Record<string, string | number> = {};
+  const { branch, recursive } = repoLoaderOptions ?? {};
+  if (branch) {
+    repoOptions["--branch"] = branch;
+  }
+  if (recursive) {
+    repoOptions["--recursive"] = `${recursive}`;
+  }
+
+  // Langchain GitHubRepoLoader consumes a lot of API requests and quickly hits
+  // the limit. This is now using makeGitDataSource as a drop-in replacement.
+  return makeGitDataSource({
     name,
-    async fetchPages() {
-      const documents = (await loader.load()) as Document<{ source: string }>[];
-      const promises = documents.map(
-        async (document): Promise<Page[] | undefined> => {
-          try {
-            // GitHub loader should put source (filepath) in the metadata
-            if (document.metadata.source === undefined) {
-              throw new Error(
-                "missing 'source' property in GithubRepoLoader document metadata"
-              );
-            }
-            const pageOrPages = await handleDocumentInRepo(document);
-            if (pageOrPages === undefined) {
-              return undefined;
-            }
-            const pages = Array.isArray(pageOrPages)
-              ? pageOrPages
-              : [pageOrPages];
-            return pages.map(
-              (page): Page => ({
-                ...page,
-                sourceName: name,
-              })
-            );
-          } catch (error) {
-            // Log the error and discard this document, but don't break the
-            // overall fetchPages() call.
-            logger.error(
-              `GitHubDataSource handlePage failed with error: ${
-                (error as Error)?.message
-              }`
-            );
-            return undefined;
-          }
-        }
-      );
-      return (
-        (await Promise.allSettled(promises)).filter(
-          (promiseResult) => promiseResult.status === "fulfilled"
-        ) as PromiseFulfilledResult<Page[] | undefined>[]
-      )
-        .map(({ value }) => value)
-        .flat(1)
-        .filter((v) => v !== undefined) as Page[];
+    repoUri: repoUrl,
+    repoOptions,
+    async handlePage(path, pageContent) {
+      return handleDocumentInRepo({ pageContent, metadata: { source: path } });
     },
-  };
+    filter(path) {
+      if (repoLoaderOptions === undefined) {
+        return true;
+      }
+      const { ignorePaths, ignoreFiles } = repoLoaderOptions;
+      for (const ignorePath of ignorePaths ?? []) {
+        if (path === ignorePath) {
+          return false;
+        }
+      }
+      for (const ignoreFile of ignoreFiles ?? []) {
+        if (typeof ignoreFile === "string") {
+          if (path === ignoreFile) {
+            return false;
+          }
+        } else if (ignoreFile.test(path)) {
+          return false;
+        }
+      }
+      return true;
+    },
+  });
 };

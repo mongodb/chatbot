@@ -1,4 +1,5 @@
 import { css } from "@emotion/css";
+import Banner from "@leafygreen-ui/banner";
 import LeafyGreenProvider, {
   useDarkMode,
 } from "@leafygreen-ui/leafygreen-provider";
@@ -17,14 +18,20 @@ import {
 import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
 import { Message as LGMessage, MessageSourceType } from "@lg-chat/message";
 import { MessageFeed } from "@lg-chat/message-feed";
-import { MessagePrompt, MessagePrompts } from "@lg-chat/message-prompts";
+import {
+  MessagePrompts as LGMessagePrompts,
+  MessagePrompt,
+} from "@lg-chat/message-prompts";
 import { MessageRatingProps } from "@lg-chat/message-rating";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
+import { CSSTransition } from "react-transition-group";
 import { CharacterCount } from "./InputBar";
 import { UserProvider } from "./UserProvider";
 import { MessageData } from "./services/conversations";
 import { Conversation, useConversation } from "./useConversation";
 import { User, useUser } from "./useUser";
+
+const TRANSITION_DURATION = 300;
 
 const styles = {
   chat_trigger: css`
@@ -45,6 +52,21 @@ const styles = {
     margin-left: 70px;
     @media screen and (max-width: 804px) {
       margin-left: 50px;
+    }
+
+    transition: opacity ${TRANSITION_DURATION}ms ease-in;
+
+    &-enter {
+      opacity: 0;
+    }
+    &-enter-active {
+      opacity: 1;
+    }
+    &-exit {
+      opacity: 1;
+    }
+    &-exit-active {
+      opacity: 0;
     }
   `,
   message_rating: css`
@@ -107,10 +129,6 @@ const styles = {
       width: 100%;
     }
   `,
-  fade_out: css`
-    transition: 'opacity 300ms ease-in',
-    opacity: 1,  
-  `,
   chatbot_input_area: css`
     position: relative;
     width: 100%;
@@ -164,10 +182,17 @@ type InnerChatbotProps = {
 const WELCOME_MESSAGE =
   "Welcome to MongoDB AI Assistant. What can I help you with?";
 
-export function InnerChatbot({
+const SUGGESTED_PROMPTS = [
+  "How do you deploy a free cluster in Atlas?",
+  "How do you import or migrate data into MongoDB Atlas?",
+  "How do I get started with MongoDB?",
+  "Why should I use Atlas Search?",
+];
+
+function InnerChatbot({
   serverBaseUrl,
   shouldStream,
-  suggestedPrompts,
+  suggestedPrompts = SUGGESTED_PROMPTS,
   welcomeMessage = WELCOME_MESSAGE,
 }: InnerChatbotProps) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -183,7 +208,6 @@ export function InnerChatbot({
   useEffect(() => {
     if (!conversation.conversationId || welcomeMessageData) return;
 
-    // TODO: Update the backend to accept a welcome message
     const newWelcomeMessageData = {
       id: crypto.randomUUID(),
       role: "assistant",
@@ -198,7 +222,6 @@ export function InnerChatbot({
     if (modalOpen) return;
 
     if (!conversation.conversationId) {
-      // TODO: Update the backend to accept a welcome message
       await conversation.createConversation();
     }
 
@@ -233,13 +256,6 @@ export function InnerChatbot({
   );
 }
 
-const SUGGESTED_PROMPTS = [
-  "How do you deploy a free cluster in Atlas?",
-  "How do you import or migrate data into MongoDB Atlas?",
-  "How do I get started with MongoDB?",
-  "Why should I use Atlas Search?",
-];
-
 type ChatbotModalProps = {
   open: boolean;
   shouldClose: () => boolean;
@@ -253,7 +269,7 @@ type ChatbotModalProps = {
 function ChatbotModal({
   open,
   shouldClose,
-  suggestedPrompts = SUGGESTED_PROMPTS,
+  suggestedPrompts,
   welcomeMessageData,
   conversation,
   inputBarValue,
@@ -263,6 +279,7 @@ function ChatbotModal({
     ? [welcomeMessageData, ...conversation.messages]
     : conversation.messages;
   const [awaitingReply, setAwaitingReply] = useState(false);
+  const { darkMode } = useDarkMode();
 
   const displaySuggestedPrompts = () => {
     return conversation.messages.length === 0;
@@ -334,24 +351,30 @@ function ChatbotModal({
               );
             })}
           </MessageFeed>
-          <InputBar
-            inputBarValue={inputBarValue}
-            onSubmit={() => handleSubmit(inputBarValue)}
-            hasError={promptIsTooLong()}
-            disabled={!!conversation.error}
-            disableSend={awaitingReply || promptIsTooLong()}
-            textareaProps={{
-              value: inputBarValue,
-              onChange: (e) => {
-                setInputBarValue(e.target.value);
-              },
-              placeholder: conversation.error
-                ? "Something went wrong. Try reloading the page and starting a new conversation."
-                : awaitingReply
-                ? "MongoDB AI Assistant is answering..."
-                : "Ask MongoDB AI Assistant a Question",
-            }}
-          />
+          <div className={styles.chatbot_input_area}>
+            {conversation.error ? (
+              <ErrorBanner darkMode={darkMode} message={conversation.error} />
+            ) : (
+              <InputBar
+                inputBarValue={inputBarValue}
+                onSubmit={() => handleSubmit(inputBarValue)}
+                inputBarHasError={promptIsTooLong()}
+                disabled={!!conversation.error}
+                disableSend={awaitingReply || promptIsTooLong()}
+                textareaProps={{
+                  value: inputBarValue,
+                  onChange: (e) => {
+                    setInputBarValue(e.target.value);
+                  },
+                  placeholder: conversation.error
+                    ? "Something went wrong. Try reloading the page and starting a new conversation."
+                    : awaitingReply
+                    ? "MongoDB AI Assistant is answering..."
+                    : "Ask MongoDB AI Assistant a Question",
+                }}
+              />
+            )}
+          </div>
         </ChatWindow>
       </LeafyGreenChatProvider>
     </Modal>
@@ -361,20 +384,22 @@ function ChatbotModal({
 const MAX_INPUT_CHARACTERS = 300;
 interface InputBarProps extends LGInputBarProps {
   inputBarValue: string;
-  hasError: boolean;
+  inputBarHasError: boolean;
 }
 
 const InputBar = (props: InputBarProps) => {
-  const { inputBarValue, hasError, ...LGInputBarProps } = props;
+  const { inputBarValue, inputBarHasError, ...LGInputBarProps } = props;
   const { darkMode } = useDarkMode();
 
   return (
-    <div className={styles.chatbot_input_area}>
+    <>
       <LGInputBar
         className={
-          hasError ?? false ? styles.chatbot_input_error_border : undefined
+          inputBarHasError ?? false
+            ? styles.chatbot_input_error_border
+            : undefined
         }
-        shouldRenderGradient={!hasError}
+        shouldRenderGradient={!inputBarHasError}
         {...LGInputBarProps}
       />
       <div
@@ -393,9 +418,27 @@ const InputBar = (props: InputBarProps) => {
           max={MAX_INPUT_CHARACTERS}
         />
       </div>
-    </div>
+    </>
   );
 };
+
+type ErrorBannerProps = {
+  message?: string;
+  darkMode?: boolean;
+};
+
+function ErrorBanner({
+  message = "Something went wrong.",
+  darkMode = false,
+}: ErrorBannerProps) {
+  return (
+    <Banner darkMode={darkMode} variant="danger">
+      {message}
+      <br />
+      Reload the page to start a new conversation.
+    </Banner>
+  );
+}
 
 const DisclaimerText = () => {
   return (
@@ -443,7 +486,6 @@ const Message = ({
   renderRating,
   conversation,
 }: MessageProp) => {
-  const [suggestedPromptIdx, setSuggestedPromptIdx] = useState(-1);
   const user = useUser();
 
   return (
@@ -526,26 +568,56 @@ const Message = ({
           : messageData.content}
       </LGMessage>
       {displaySuggestedPrompts && (
-        <div className={styles.message_prompts}>
-          <MessagePrompts label="Suggested Prompts">
-            {suggestedPrompts.map((sp, idx) => (
-              <MessagePrompt
-                key={idx}
-                onClick={() => {
-                  setSuggestedPromptIdx(idx);
-                  setTimeout(() => {
-                    suggestedPromptOnClick(suggestedPrompts[idx]);
-                  }, 300);
-                }}
-                selected={idx === suggestedPromptIdx}
-              >
-                {sp}
-              </MessagePrompt>
-            ))}
-          </MessagePrompts>
-        </div>
+        <MessagePrompts
+          messagePrompts={suggestedPrompts}
+          messagePromptsOnClick={suggestedPromptOnClick}
+        />
       )}
     </Fragment>
+  );
+};
+
+type MessagePromptsProps = {
+  messagePrompts: string[];
+  messagePromptsOnClick: (prompt: string) => void;
+};
+
+const MessagePrompts = ({
+  messagePrompts,
+  messagePromptsOnClick,
+}: MessagePromptsProps) => {
+  const [inProp, setInProp] = useState(true);
+  const [suggestedPromptIdx, setSuggestedPromptIdx] = useState(-1);
+  const nodeRef = useRef(null);
+  const duration = 300;
+
+  return (
+    <CSSTransition
+      in={inProp}
+      timeout={duration}
+      nodeRef={nodeRef}
+      classNames={styles.message_prompts}
+    >
+      <div className={styles.message_prompts} ref={nodeRef}>
+        <LGMessagePrompts label="Suggested Prompts">
+          {messagePrompts.map((sp, idx) => (
+            <MessagePrompt
+              key={sp}
+              onClick={() => {
+                setSuggestedPromptIdx(idx);
+                setInProp(false);
+                setTimeout(() => {
+                  messagePromptsOnClick(messagePrompts[idx]);
+                }, duration);
+              }}
+              selected={idx === suggestedPromptIdx}
+            >
+              {sp}
+            </MessagePrompt>
+          ))}
+        </LGMessagePrompts>
+      </div>
+    </CSSTransition>
   );
 };
 

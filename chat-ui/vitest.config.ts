@@ -5,12 +5,6 @@ const testConfig = defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
-    // alias: [
-    //   {
-    //     find: new RegExp("^@lg-chat/message$", "g"),
-    //     replacement: "@lg-chat/message/dist/index.js",
-    //   },
-    // ],
     deps: {
       web: {
         transformGlobPattern: [

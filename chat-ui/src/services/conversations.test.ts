@@ -1,14 +1,9 @@
 import { vi } from "vitest";
 import { ConversationService, formatReferences } from "./conversations";
 import { References } from "chat-core";
-// import { MockEvent, EventSource } from "mocksse";
 import * as FetchEventSource from "@microsoft/fetch-event-source";
 
-/**
- * Mocks
- */
-
-/* Mock fetch for regular awaited HTTP requests */
+// Mock fetch for regular awaited HTTP requests
 global.fetch = vi.fn();
 function mockFetchResponse<T = unknown>({
   status = 200,
@@ -23,7 +18,7 @@ function mockFetchResponse<T = unknown>({
   });
 }
 
-/* Mock @microsoft/fetch-event-source for SSE streaming requests */
+// Mock @microsoft/fetch-event-source for SSE streaming requests
 vi.mock("@microsoft/fetch-event-source");
 declare module "@microsoft/fetch-event-source" {
   export type MockEvent = {
@@ -35,11 +30,8 @@ declare module "@microsoft/fetch-event-source" {
   export function __clearMockEvents(): void;
 }
 
-/**
- * Tests
- */
+//Tests
 const serverUrl = "https://example.com/api/v1";
-// const serverUrl = "https://knowledge.staging.corp.mongodb.com/api/v1";
 
 describe("ConversationService", () => {
   let conversationService: ConversationService;

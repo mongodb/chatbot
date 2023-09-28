@@ -1,6 +1,7 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { type References } from "chat-core";
 import { ConversationState } from "../useConversation";
+import { strict as assert } from "node:assert";
 
 export type Role = "user" | "assistant";
 
@@ -51,7 +52,7 @@ export class TimeoutError<Data extends object = object> extends Error {
   }
 }
 
-type ConversationServiceConfig = {
+export type ConversationServiceConfig = {
   serverUrl: string;
 };
 
@@ -59,9 +60,7 @@ export class ConversationService {
   private serverUrl: string;
 
   constructor(config: ConversationServiceConfig) {
-    if(!config.serverUrl) {
-      throw new Error("You must define a serverUrl for the ConversationService");
-    }
+    assert(config.serverUrl, "You must define a serverUrl for the ConversationService");
     this.serverUrl = config.serverUrl.startsWith("/")
       ? new URL(
           config.serverUrl,
@@ -301,13 +300,15 @@ export class ConversationService {
       body: JSON.stringify({ rating }),
     });
 
-    if(res.status === 204) {
+    if (res.status === 204) {
       return rating;
     }
     if (res.status >= 400) {
       const data = await res.json();
       throw new Error(data.error);
     }
-    throw new Error(`Server error: ${res.statusText ?? res.status}`);
+    throw new Error(
+      `Server encountered an unexpected status: ${res.status} (message: ${res.statusText})`
+    );
   }
 }

@@ -1,7 +1,4 @@
-import {
-  GithubRepoLoader,
-  GithubRepoLoaderParams,
-} from "langchain/document_loaders/web/github";
+import { GithubRepoLoaderParams } from "langchain/document_loaders/web/github";
 import {
   MakeGitHubDataSourceArgs,
   makeGitHubDataSource,
@@ -98,16 +95,30 @@ export const makeAcquitRequireMdOnGithubDataSource = async ({
 
 export async function getAcquitTestsFromGithubRepo(
   repoUrl: string,
-  testFileLoaderOptions: Partial<GithubRepoLoaderParams>
+  repoLoaderOptions: Partial<GithubRepoLoaderParams>
 ) {
-  const testFileLoader = new GithubRepoLoader(repoUrl, testFileLoaderOptions);
-  const testFiles = await testFileLoader.load();
-  const tests = testFiles
-    .map((test) => {
+  const testFileSource = await makeGitHubDataSource({
+    name: "acquit-tests",
+    repoUrl,
+    repoLoaderOptions,
+    async handleDocumentInRepo(document) {
+      return {
+        body: document.pageContent,
+        url: document.metadata.source,
+      } as Page;
+    },
+  });
+  const pages = await testFileSource.fetchPages();
+  const tests = pages
+    .map(({ body, url }) => {
       try {
-        return acquit.parse(test.pageContent) as string;
-      } catch (_err) {
-        logger.error("Error parsing acquit tests for file", test.metadata);
+        return acquit.parse(body) as string;
+      } catch (error) {
+        logger.warn(
+          `Error parsing acquit tests for file ${url}: ${
+            (error as Error).message
+          }`
+        );
         return [];
       }
     })

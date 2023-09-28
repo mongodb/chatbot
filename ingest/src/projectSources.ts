@@ -300,11 +300,12 @@ export const javaReactiveStreamsSourceConstructor = async () => {
       path.includes(jvmDriversVersion) &&
       path.includes("driver-reactive") &&
       !path.includes("apidocs"),
-    handlePage: async (path, content, options) =>
-      await handleHtmlDocument(path, content, {
-        ...options,
-        ...javaReactiveStreamsHtmlParserOptions,
-      }),
+    handlePage: async (path, content) =>
+      await handleHtmlDocument(
+        path,
+        content,
+        javaReactiveStreamsHtmlParserOptions
+      ),
   });
 };
 
@@ -336,11 +337,8 @@ export const scalaSourceConstructor = async () => {
       path.includes(jvmDriversVersion) &&
       path.includes("driver-scala") &&
       !path.includes("apidocs"),
-    handlePage: async (path, content, options) =>
-      await handleHtmlDocument(path, content, {
-        ...options,
-        ...scalaHtmlParserOptions,
-      }),
+    handlePage: async (path, content) =>
+      await handleHtmlDocument(path, content, scalaHtmlParserOptions),
   });
 };
 
@@ -378,11 +376,8 @@ export const libmongocSourceConstructor = async () => {
       path.endsWith(".html") &&
       !path.includes("mongoc_") && // do not include the generated reference docs
       !path.includes("search.html"), // do not include the search page
-    handlePage: async (path, content, options) =>
-      await handleHtmlDocument(path, content, {
-        ...options,
-        ...libmongocHtmlParserOptions,
-      }),
+    handlePage: async (path, content) =>
+      await handleHtmlDocument(path, content, libmongocHtmlParserOptions),
   });
 };
 const mongooseSourceConstructor = async () => {
@@ -390,7 +385,7 @@ const mongooseSourceConstructor = async () => {
   const testFileLoaderOptions = {
     branch: "master",
     recursive: true,
-    ignoreFiles: [/^(?!test\/).+$/],
+    ignoreFiles: [/^(?!\/test\/).+$/],
   };
   const repoLoaderOptions = {
     branch: "master",

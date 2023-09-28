@@ -14,7 +14,7 @@ describe("makeGitHubDataSource", () => {
       repoUrl: "https://github.com/mongodb/mongo-python-driver",
       repoLoaderOptions: {
         branch: "4.5.0",
-        ignoreFiles: [/^(?!^doc\/).*/], // Everything BUT doc/
+        ignoreFiles: [/^(?!\/doc\/).*/], // Everything BUT /doc/
       },
       async handleDocumentInRepo(document) {
         numDocs++;
@@ -36,8 +36,8 @@ describe("makeGitHubDataSource", () => {
     const pages = await source.fetchPages();
 
     expect(pages.length).toBe(numDocs * 2);
-    expect(pages[0].url).toBe("doc/Makefile");
-    expect(pages[1].url).toBe("doc/Makefile-CLONE");
+    expect(pages[0].url).toBe("/doc/Makefile");
+    expect(pages[1].url).toBe("/doc/Makefile-CLONE");
 
     expect(pages[0].format).toBe("txt");
     expect(pages[0].sourceName).toBe("python-TEST");

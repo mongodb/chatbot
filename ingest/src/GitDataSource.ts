@@ -1,18 +1,10 @@
 import simpleGit, { TaskOptions } from "simple-git";
 import fs from "fs";
-import path from "path";
+import Path from "path";
 import os from "os";
 import { rimrafSync } from "rimraf";
 import { Page, PageMetadata, logger } from "chat-core";
 import { DataSource } from "./DataSource";
-
-export interface HandlePageFuncOptions {
-  /** Name of data source */
-  sourceName: string;
-
-  /** `Page.metadata` passed from config. Included in all documents  */
-  metadata?: PageMetadata;
-}
 
 /**
   Function to convert a file in the repo into a `Page` or `Page[]`.
@@ -22,9 +14,8 @@ export interface HandlePageFuncOptions {
   */
 export type HandlePageFunc = (
   path: string,
-  content: string,
-  options: HandlePageFuncOptions
-) => Promise<Page | Page[]>;
+  content: string
+) => Promise<undefined | Omit<Page, "sourceName"> | Omit<Page, "sourceName">[]>;
 
 export interface MakeGitDataSourceParams {
   /** Name of project */
@@ -74,41 +65,54 @@ export function makeGitDataSource({
     name,
     fetchPages: async () => {
       const randomTmpDir = makeRandomTmp(name);
-      logger.info(`Created ${randomTmpDir} for ${repoUri}`);
-
-      await getRepoLocally({
-        repoPath: repoUri,
-        localPath: randomTmpDir,
-        options: { "--depth": 1, ...(repoOptions ?? {}) },
-      });
-      logger.info(`Cloned ${repoUri} to ${randomTmpDir}`);
-
-      let pages: Page[] | undefined;
       try {
+        logger.info(`Created ${randomTmpDir} for ${repoUri}`);
+
+        await getRepoLocally({
+          repoPath: repoUri,
+          localPath: randomTmpDir,
+          options: { "--depth": 1, ...(repoOptions ?? {}) },
+        });
+        logger.info(`Cloned ${repoUri} to ${randomTmpDir}`);
+
         const pathsAndContents = await getRelevantFilesAsStrings({
           directoryPath: randomTmpDir,
-          filter,
+          filter(path) {
+            // pathInRepo is leading slash + path within the repo
+            const pathInRepo = path.replace(randomTmpDir, "");
+            return filter(pathInRepo);
+          },
         });
 
         const pagesPromises = Object.entries(pathsAndContents).map(
-          ([path, content]) =>
-            handlePage(path, content, {
-              metadata,
-              sourceName: name,
-            })
+          async ([path, content]) => handlePage(path, content)
         );
 
-        const fulfilledPromises = (
-          await Promise.allSettled(pagesPromises)
-        ).filter(
-          (promiseResult) => promiseResult.status === "fulfilled"
-        ) as PromiseFulfilledResult<Page | Page[]>[];
-        pages = fulfilledPromises.map(({ value }) => value).flat(1);
+        return (
+          (await Promise.allSettled(pagesPromises)).filter(
+            (promiseResult) =>
+              promiseResult.status === "fulfilled" &&
+              promiseResult.value !== undefined
+          ) as PromiseFulfilledResult<
+            Exclude<Awaited<ReturnType<HandlePageFunc>>, undefined>
+          >[]
+        )
+          .map(({ value }) => value)
+          .flat(1)
+          .map(
+            (page): Page => ({
+              ...page,
+              sourceName: name,
+              metadata:
+                metadata || page.metadata
+                  ? { ...(metadata ?? {}), ...(page.metadata ?? {}) }
+                  : undefined,
+            })
+          );
       } finally {
         rimrafSync(randomTmpDir);
         logger.info(`Deleted ${randomTmpDir}`);
       }
-      return pages;
     },
   };
 }
@@ -125,9 +129,10 @@ export function makeRandomTmp(prefix: string) {
   const tmpDir = os.tmpdir();
 
   // Create a unique temporary directory and get its path
-  const randomTmpDir = fs.mkdtempSync(path.join(tmpDir, prefix));
+  const randomTmpDir = fs.mkdtempSync(Path.join(tmpDir, prefix));
   return randomTmpDir;
 }
+
 export async function getRepoLocally({
   repoPath,
   localPath,
@@ -161,7 +166,7 @@ export function getRelevantFilePathsInDir(
   const items = fs.readdirSync(directoryPath);
 
   items.forEach((item) => {
-    const itemPath = path.join(directoryPath, item);
+    const itemPath = Path.join(directoryPath, item);
     const itemStat = fs.statSync(itemPath);
 
     if (itemStat.isDirectory()) {

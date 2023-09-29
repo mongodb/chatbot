@@ -19,7 +19,8 @@
     "before:init": [
       "pushd ../chat-core && npm i && npm run build && popd",
       "npm run build",
-      "npm run lint"
+      "npm run lint",
+      "npm run test"
     ]
   }
 }

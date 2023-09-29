@@ -2,7 +2,7 @@ import Path from "path";
 import { strict as assert } from "assert";
 import { promises as fs } from "fs";
 import { MongoClient, Db, ObjectId } from "mongodb";
-import { Conversation, Message } from "chat-server";
+import { Conversation, SomeMessage, AssistantMessage } from "chat-server";
 import { makeTypeChatJsonTranslateFunc, assertEnvVars } from "chat-core";
 import { MessageAnalysis } from "./MessageAnalysis";
 
@@ -39,7 +39,7 @@ main();
 const analyzeMessages = async ({ db }: { db: Db }) => {
   const conversationsCollection = db.collection<Conversation>("conversations");
   const originalMessages = conversationsCollection.aggregate<
-    Message & { indexInConvo: number; convoId: ObjectId }
+    SomeMessage & { indexInConvo: number; convoId: ObjectId }
   >([
     {
       // Find messages in a recent timeframe
@@ -110,12 +110,13 @@ const analyzeMessages = async ({ db }: { db: Db }) => {
       continue;
     }
     if (message.role === "assistant") {
+      const assistantMessage = message as AssistantMessage;
       // If this is a response to the previous message and it has a rating, copy
       // the rating to the responseRating field of the previous message
       if (
         lastUserMessage?.convoId.toString() === message.convoId.toString() &&
         lastUserMessage?.indexInConvo === message.indexInConvo - 1 &&
-        message.rating !== undefined
+        assistantMessage.rating !== undefined
       ) {
         console.log(
           `Copying rating (${message.rating}) to conversation ${lastUserMessage.convoId} message #${lastUserMessage.indexInConvo} from message #${message.indexInConvo}...`

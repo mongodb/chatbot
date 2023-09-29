@@ -60,7 +60,7 @@ export type UserMessage = Message & {
   /**
     The vector representation of the message content.
    */
-  embedding?: number[];
+  embedding: number[];
 };
 
 export type SomeMessage = UserMessage | AssistantMessage | SystemMessage;

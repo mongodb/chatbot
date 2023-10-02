@@ -13,7 +13,7 @@ import {
   conversationConstants,
   Conversation,
   ConversationsService,
-  Message,
+  AssistantMessage,
   makeConversationsService,
 } from "../../services/conversations";
 import express, { Express } from "express";
@@ -445,12 +445,13 @@ describe("POST /conversations/:conversationId/messages", () => {
       });
     });
     test("convertDbMessageToOpenAiMessage()", () => {
-      const sampleDbMessage: Message = {
+      const sampleDbMessage: AssistantMessage = {
         id: new ObjectId(),
         content: "hello",
-        role: "user",
+        role: "assistant",
         createdAt: new Date(),
         rating: true,
+        references: [],
       };
 
       const sampleApiMessage = convertDbMessageToOpenAiMessage(sampleDbMessage);

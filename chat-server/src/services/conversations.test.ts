@@ -1,6 +1,11 @@
 import "dotenv/config";
 import { MongoDB } from "chat-core";
-import { Conversation, makeConversationsService } from "./conversations";
+import {
+  Conversation,
+  UserMessage,
+  AssistantMessage,
+  makeConversationsService,
+} from "./conversations";
 import { BSON } from "mongodb";
 import { systemPrompt } from "../testHelpers";
 
@@ -85,11 +90,15 @@ describe("Conversations Service", () => {
     expect(conversationInDb).toHaveProperty("messages");
     expect(conversationInDb?.messages).toHaveLength(2);
     expect(conversationInDb?.messages[1].content).toStrictEqual(content);
-    expect(conversationInDb?.messages[1]?.preprocessedContent).toStrictEqual(
-      preprocessedContent
-    );
-    expect(conversationInDb?.messages[1]?.references).toStrictEqual(references);
-    expect(conversationInDb?.messages[1]?.embedding).toStrictEqual(embedding);
+    expect(
+      (conversationInDb?.messages[1] as UserMessage)?.preprocessedContent
+    ).toStrictEqual(preprocessedContent);
+    expect(
+      (conversationInDb?.messages[1] as AssistantMessage)?.references
+    ).toStrictEqual(references);
+    expect(
+      (conversationInDb?.messages[1] as UserMessage)?.embedding
+    ).toStrictEqual(embedding);
   });
   test("Should find a conversation by id", async () => {
     const ipAddress = new BSON.UUID().toString();
@@ -136,6 +145,8 @@ describe("Conversations Service", () => {
       .findOne({ _id: conversationId });
 
     expect(result).toBe(true);
-    expect(conversationInDb?.messages[2].rating).toBe(true);
+    expect((conversationInDb?.messages[2] as AssistantMessage)?.rating).toBe(
+      true
+    );
   });
 });

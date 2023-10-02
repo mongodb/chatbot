@@ -5,6 +5,7 @@ import { MongoDB } from "chat-core";
 import {
   Conversation,
   Message,
+  AssistantMessage,
   ConversationsService,
 } from "../../services/conversations";
 import { Express } from "express";
@@ -65,8 +66,11 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
     });
     assert(updatedConversation);
     expect(
-      updatedConversation.messages[updatedConversation.messages.length - 1]
-        .rating
+      (
+        updatedConversation.messages[
+          updatedConversation.messages.length - 1
+        ] as AssistantMessage
+      ).rating
     ).toBe(true);
   });
 

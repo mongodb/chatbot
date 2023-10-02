@@ -2,24 +2,68 @@ import { OpenAiChatMessage, OpenAiMessageRole, SystemPrompt } from "./ChatLlm";
 import { ObjectId, Db } from "mongodb";
 import { References } from "chat-core";
 
-export interface Message {
-  /** Unique identifier for the message. */
+export type Message = {
+  /**
+    Unique identifier for the message.
+   */
   id: ObjectId;
-  /** The role of the message in the context of the conversation. */
-  role: "system" | "assistant" | "user";
-  /** Message that occurs in the conversation. */
+
+  /**
+    The role of the message in the conversation.
+   */
+  role: OpenAiMessageRole;
+
+  /**
+    Message that occurs in the conversation.
+   */
   content: string;
-  /** Only used when role is "user". The preprocessed content of the message that is sent to vector search. */
-  preprocessedContent?: string;
-  /** Set to `true` if the user liked the response, `false` if the user didn't like the response. No value if user didn't rate the response. Note that only messages with `role: "assistant"` can be rated. */
-  rating?: boolean;
-  /** The date the message was created. */
+
+  /**
+    The date the message was created.
+   */
   createdAt: Date;
-  /** Further reading links for the message. */
-  references?: References;
-  /** The vector representation of the message content. */
-  embedding?: number[];
-}
+};
+
+export type SystemMessage = Message & {
+  role: "system";
+};
+
+export type AssistantMessage = Message & {
+  role: "assistant";
+
+  /**
+    Set to `true` if the user liked the response, `false` if the user didn't
+    like the response. No value if user didn't rate the response. Note that only
+    messages with `role: "assistant"` can be rated.
+   */
+  rating?: boolean;
+
+  /**
+    Further reading links for the message.
+   */
+  references: References;
+};
+
+export type UserMessage = Message & {
+  role: "user";
+
+  /**
+    The preprocessed content of the message that is sent to vector search.
+   */
+  preprocessedContent?: string;
+
+  /**
+    Whether preprocessor suggested DO_NOT_ANSWER based on the input.
+   */
+  doNotAnswer?: boolean;
+
+  /**
+    The vector representation of the message content.
+   */
+  embedding: number[];
+};
+
+export type SomeMessage = UserMessage | AssistantMessage | SystemMessage;
 
 export interface Conversation {
   _id: ObjectId;
@@ -33,6 +77,7 @@ export interface Conversation {
 export interface CreateConversationParams {
   ipAddress: string;
 }
+
 export interface AddConversationMessageParams {
   conversationId: ObjectId;
   content: string;
@@ -44,6 +89,8 @@ export interface AddConversationMessageParams {
     The vector representation of the message content.
    */
   embedding?: number[];
+
+  doNotAnswer?: boolean;
 }
 export interface FindByIdParams {
   _id: ObjectId;
@@ -110,6 +157,7 @@ export function makeConversationsService(
       preprocessedContent,
       references,
       embedding,
+      doNotAnswer,
     }: AddConversationMessageParams) {
       const newMessage = createMessageFromOpenAIChatMessage({
         role,
@@ -118,8 +166,9 @@ export function makeConversationsService(
       });
       Object.assign(
         newMessage,
-        preprocessedContent && { preprocessedContent: preprocessedContent },
-        references && { references: references }
+        preprocessedContent && { preprocessedContent },
+        references && { references },
+        doNotAnswer && { doNotAnswer }
       );
 
       const updateResult = await conversationsCollection.updateOne(
@@ -175,7 +224,7 @@ export function createMessageFromOpenAIChatMessage({
   role,
   content,
   embedding,
-}: OpenAiChatMessage): Message {
+}: OpenAiChatMessage): SomeMessage {
   const message: Message = {
     id: new ObjectId(),
     role,
@@ -183,8 +232,8 @@ export function createMessageFromOpenAIChatMessage({
     createdAt: new Date(),
   };
   // Avoid MongoDB inserting null for undefineds
-  if (embedding !== undefined) {
-    message.embedding = embedding;
+  if (role === "user" && embedding !== undefined) {
+    (message as UserMessage).embedding = embedding;
   }
-  return message;
+  return message as SomeMessage;
 }

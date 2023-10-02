@@ -1,9 +1,9 @@
 import { ObjectId } from "mongodb";
-import { Message } from "chat-server";
+import { SomeMessage } from "chat-server";
 import { MessageAnalysis } from "MessageAnalysis";
 
 export type ScrubbedMessage = Omit<
-  Message,
+  SomeMessage,
   "content" | "preprocessedContent" | "id"
 > & {
   /**

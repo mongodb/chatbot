@@ -57,14 +57,6 @@ const styles = {
     gap: 0.5rem;
     margin-top: 1rem;
   `,
-  chatbot_input_error_border: css`
-    > div {
-      > div {
-        border-color: ${palette.red.base} !important;
-        border-width: 2px !important;
-      }
-    }
-  `,
   chatbot_input_area: css`
     padding-left: 32px;
     padding-right: 32px;

@@ -7,6 +7,8 @@
     "createQualityTestsYaml": "npm run build && node ./build/createQualityTestsYaml.js",
     "scrubMessages": "npm run build && node ./build/scrubMessages.js",
     "analyzeMessages": "npm run build && node ./build/analyzeMessages.js",
+    "createView/messages_by_rating": "npm run build && node ./build/createView/messages_by_rating.js",
+    "createView/top_250_references": "npm run build && node ./build/createView/top_250_references.js",
     "build": "npm run clean && tsc",
     "postbuild": "cp ./src/MessageAnalysis.d.ts ./build/",
     "clean": "rm -rf ./build",

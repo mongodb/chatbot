@@ -3,14 +3,28 @@ image:
   tag: 18
 
 cronJobs:
-  - name: ingest-all-content
-    schedule: "0 6 * * *" # every day at 6am UTC (1AM EST)
-    command: ["node", ".", "all"]
+  - name: scrub
+    schedule: "0 6 * * *" # every day at 6am UTC
+    command: ["node", "./build/scrubMessages.js"]
     env:
-      OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
-      OPENAI_EMBEDDING_MODEL_VERSION: 2023-06-01-preview
       MONGODB_DATABASE_NAME: docs-chatbot-prod
-      VECTOR_SEARCH_INDEX_NAME: default
+    envSecrets:
+      MONGODB_CONNECTION_URI: docs-chatbot-prod
+    resources:
+      # guaranteed amount of resources
+      requests:
+        cpu: 100m
+        memory: 2Gi
+      # maximum allowed resources
+      limits:
+        cpu: 500m
+        memory: 5Gi
+
+  - name: analyze
+    schedule: "0 7 * * *" # every day at 7am UTC
+    command: ["node", "./build/analyzeMessages.js"]
+    env:
+      MONGODB_DATABASE_NAME: docs-chatbot-prod
       OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
     envSecrets:
       MONGODB_CONNECTION_URI: docs-chatbot-prod
@@ -18,8 +32,6 @@ cronJobs:
       OPENAI_API_KEY: docs-chatbot-prod
       OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-prod
       OPENAI_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-prod
-      DEVCENTER_CONNECTION_URI: docs-chatbot-prod
-      GITHUB_ACCESS_TOKEN: docs-chatbot-prod
     resources:
       # guaranteed amount of resources
       requests:

@@ -4,6 +4,7 @@
     "allowJs": false,
     "target": "es2016",
     "module": "CommonJS",
+    "lib": ["ES2021"],
     "esModuleInterop": true,
     "downlevelIteration": true,
     "strictNullChecks": true,

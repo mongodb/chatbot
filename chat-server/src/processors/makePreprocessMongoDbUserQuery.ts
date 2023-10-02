@@ -1,20 +1,17 @@
 import fs from "fs";
 import path from "path";
-import { createAzureOpenAILanguageModel, createJsonTranslator } from "typechat";
 import { MongoDbUserQueryPreprocessorResponse } from "./MongoDbUserQueryPreprocessorResponse";
 import {
   QueryPreprocessorFunc,
   QueryPreprocessorMessage,
 } from "./QueryPreprocessorFunc";
-import { retryAsyncOperation } from "../utils";
-import { updateFrontMatter } from "chat-core";
 
-export interface AzureOpenAiServiceConfig {
-  apiKey: string;
-  baseUrl: string;
-  deployment: string;
-  version: string;
-}
+import {
+  updateFrontMatter,
+  makeTypeChatJsonTranslateFunc,
+  AzureOpenAiServiceConfig,
+} from "chat-core";
+
 export function makePreprocessMongoDbUserQuery({
   azureOpenAiServiceConfig,
   numRetries = 0,
@@ -33,40 +30,27 @@ export function makePreprocessMongoDbUserQuery({
    */
   retryDelayMs?: number;
 }): QueryPreprocessorFunc<MongoDbUserQueryPreprocessorResponse> {
-  const schemaPath = fs.readFileSync(
-    path.join(__dirname, "MongoDbUserQueryPreprocessorResponse.d.ts"),
+  const schemaName = "MongoDbUserQueryPreprocessorResponse";
+  const schema = fs.readFileSync(
+    path.join(__dirname, `${schemaName}.d.ts`),
     "utf8"
   );
-  const schemaName = "MongoDbUserQueryPreprocessorResponse";
-  const { apiKey, baseUrl, deployment, version } = azureOpenAiServiceConfig;
 
-  const model = createAzureOpenAILanguageModel(
-    apiKey,
-    `${baseUrl}openai/deployments/${deployment}/chat/completions?api-version=${version}`
-  );
-
-  // LLM function
-  const translator = createJsonTranslator<MongoDbUserQueryPreprocessorResponse>(
-    model,
-    schemaPath,
-    schemaName
-  );
+  const translate =
+    makeTypeChatJsonTranslateFunc<MongoDbUserQueryPreprocessorResponse>({
+      azureOpenAiServiceConfig,
+      numRetries,
+      retryDelayMs,
+      schema,
+      schemaName,
+    });
 
   return async ({ query, messages }) => {
     const prompt = generateMongoDbQueryPreProcessorPrompt({ query, messages });
-
-    const response = await retryAsyncOperation(
-      translator.translate(prompt),
-      numRetries,
-      retryDelayMs
-    );
-
-    if (!response.success) {
-      throw new Error(response.message);
-    }
+    const data = await translate(prompt);
     return {
-      ...appendMetadataToPreprocessorResponse(response.data),
-      doNotAnswer: response.data.query.includes("DO_NOT_ANSWER"),
+      ...appendMetadataToPreprocessorResponse(data),
+      doNotAnswer: data.query.includes("DO_NOT_ANSWER"),
     };
   };
 }

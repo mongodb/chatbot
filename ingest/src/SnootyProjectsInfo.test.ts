@@ -119,7 +119,12 @@ describe("SnootyProjectsInfo", () => {
       // Find some real branch names to test with in the data so that
       // prepareSnootySources() doesn't throw exceptions about unknown branches.
       const testProject = projectsInfo?._data.find(
-        ({ branches }) => branches.length > 1
+        ({ branches }) =>
+          branches.length > 1 &&
+          branches.find(({ isStableBranch }) => isStableBranch) &&
+          branches.find(
+            ({ isStableBranch, active }) => !isStableBranch && active
+          )
       );
       expect(testProject).toBeDefined();
       assert(testProject !== undefined);
@@ -128,8 +133,9 @@ describe("SnootyProjectsInfo", () => {
       );
       expect(actualCurrentBranch).toBeDefined();
       const someOtherBranch = testProject?.branches.find(
-        ({ isStableBranch }) => !isStableBranch
+        ({ isStableBranch, active }) => !isStableBranch && active
       );
+      expect(someOtherBranch).toBeDefined();
       assert(someOtherBranch !== undefined);
       const sources = await prepareSnootySources({
         projects: [
@@ -149,6 +155,7 @@ describe("SnootyProjectsInfo", () => {
         ],
         snootyDataApiBaseUrl,
       });
+      expect(sources).toHaveLength(2);
       expect(sources[0]._currentBranch).toBe(
         actualCurrentBranch?.gitBranchName
       );

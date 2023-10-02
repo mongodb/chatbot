@@ -1,26 +1,25 @@
 {
   "git": {
     "commitArgs": ["-a"],
-    "commitMessage": "Release chat-server v${version}",
+    "commitMessage": "Release scripts v${version}",
     "tag": false,
     "push": true,
     "pushRepo": "upstream",
-    "tagName": "chat-server-v${version}"
+    "tagName": "scripts-v${version}"
   },
   "npm": {
     "publish": false
   },
   "github": {
-    "releaseName": "chat-server-v${version}",
+    "releaseName": "scripts-v${version}",
     "draft": true,
     "release": true
   },
   "hooks": {
     "before:init": [
       "pushd ../chat-core && npm i && npm run build && popd",
-      "npm run build",
-      "npm run lint",
-      "npm run test"
+      "pushd ../chat-server && npm i && npm run build && popd",
+      "npm run build"
     ]
   }
 }

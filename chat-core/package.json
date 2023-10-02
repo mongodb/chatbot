@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Common elements used by the chatbot components.",
   "author": "MongoDB, Inc.",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "keywords": [],
   "engines": {
     "node": ">=18",

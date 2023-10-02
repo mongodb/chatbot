@@ -1,9 +1,9 @@
 {
   "name": "ingest",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Ingests data sources and stores embeddings.",
   "author": "",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "keywords": [],
   "engines": {
     "node": ">=18",
@@ -45,7 +45,7 @@
     "mongodb-memory-server": "^8.13.0",
     "nock": "^13.3.2",
     "prettier": "^2",
-    "release-it": "^15",
+    "release-it": "^16.1.5",
     "ts-jest": "^29.1.0",
     "typedoc": "^0",
     "typescript": "^5"

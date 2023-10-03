@@ -11,7 +11,7 @@ const { MONGODB_DATABASE_NAME, MONGODB_CONNECTION_URI } = assertEnvVars({
 
 const NUM_REFERENCES = 250;
 
-export type TopReference = {
+export type ScrubbedTopReference = {
   _id: string;
   count: number;
   conversationIds: ObjectId[];
@@ -24,7 +24,7 @@ export type TopReference = {
   const client = await MongoClient.connect(MONGODB_CONNECTION_URI);
   try {
     const db = client.db(MONGODB_DATABASE_NAME);
-    await db.createCollection<TopReference>(
+    await db.createCollection<ScrubbedTopReference>(
       `scrubbed_top_${NUM_REFERENCES}_references`,
       {
         viewOn: "scrubbed_messages",

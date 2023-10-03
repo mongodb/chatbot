@@ -11,6 +11,7 @@
     "createView/top_250_references": "npm run build && node ./build/createView/top_250_references.js",
     "createView/scrubbed_messages_by_rating": "npm run build && node ./build/createView/scrubbed_messages_by_rating.js",
     "createView/scrubbed_top_250_references": "npm run build && node ./build/createView/scrubbed_top_250_references.js",
+    "createView/scrubbed_topics": "npm run build && node ./build/createView/scrubbed_topics.js",
     "build": "npm run clean && tsc",
     "postbuild": "cp ./src/MessageAnalysis.d.ts ./build/",
     "clean": "rm -rf ./build",

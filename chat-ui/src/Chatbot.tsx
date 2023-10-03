@@ -257,7 +257,7 @@ export function Chatbot(props: ChatbotProps) {
   return (
     <LeafyGreenProvider darkMode={darkMode}>
       <div className={styles.chatbot_container}>
-        <div className={styles.chatbot_input}>
+        <div className={styles.chatbot_input_area}>
           <InputBar
             key={"initialInput"}
             hasError={showInitialInputErrorState}

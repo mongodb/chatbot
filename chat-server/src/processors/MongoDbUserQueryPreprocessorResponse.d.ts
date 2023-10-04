@@ -17,8 +17,8 @@ export interface MongoDbUserQueryPreprocessorResponse {
   /** Using your knowledge of MongoDB and the conversational context,
     rephrase the latest user query to make it more meaningful.
     Rephrase the query into a question if it's not already one.
-    The the query generated here is passed to semantic search.
-    If you do not know how to rephrase the query, respond "DO_NOT_ANSWER".
+    The query generated here is passed to semantic search.
+    If you do not know how to rephrase the query, paste the original query verbatim.
     If the query is negative toward MongoDB, respond "DO_NOT_ANSWER".
   */
   query: string;

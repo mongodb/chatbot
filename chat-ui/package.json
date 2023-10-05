@@ -24,22 +24,6 @@
       "types": "./dist/types/index.d.ts"
     }
   },
-  "release-it": {
-    "git": {
-      "commit": true,
-      "commitMessage": "Release chat-ui-v${version}",
-      "tagName": "chat-ui-v${version}",
-      "push": false
-    },
-    "github": {
-      "releaseName": "chat-ui-v${version}",
-      "draft": true,
-      "autoGenerate": true
-    },
-    "npm": {
-      "publish": false
-    }
-  },
   "scripts": {
     "build": "if [[ \"$ENVIRONMENT\" == \"qa\" ]]; then npm run build:static-site:qa && echo \"qa\"; else npm run build:static-site:staging; fi",
     "build:dts": "tsc --project tsconfig.declarations.json",

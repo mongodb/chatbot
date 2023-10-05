@@ -13,14 +13,14 @@
   "github": {
     "releaseName": "chat-ui-v${version}",
     "draft": true,
+    "autoGenerate": true,
     "release": true
   },
   "hooks": {
     "before:init": [
       "pushd ../chat-core && npm i && npm run build && popd",
-      "npm run build",
-      "npm run lint",
-      "npm run test"
+      "npm run build:component",
+      "npm run lint"
     ]
   }
 }

@@ -168,7 +168,7 @@ export function makeConversationsService(
         newMessage,
         preprocessedContent && { preprocessedContent },
         references && { references },
-        rejectQuery && { rejectQuery }
+        rejectQuery !== undefined ? { rejectQuery } : undefined
       );
 
       const updateResult = await conversationsCollection.updateOne(

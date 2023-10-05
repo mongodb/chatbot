@@ -180,7 +180,7 @@ export function makeAddMessageToConversationRoute({
       // (likely due to LLM timeout), then we will just use the original message.
       if (userQueryPreprocessor) {
         try {
-          const { query, doNotAnswer } = await userQueryPreprocessor({
+          const { query, rejectQuery } = await userQueryPreprocessor({
             query: latestMessageText,
             messages: conversationInDb.messages,
           });
@@ -191,7 +191,7 @@ export function makeAddMessageToConversationRoute({
               Original query: ${latestMessageText}
               Preprocessed query: ${preprocessedUserMessageContent}`,
           });
-          if (doNotAnswer) {
+          if (rejectQuery) {
             return await sendStaticNonResponse({
               conversations,
               conversationId,
@@ -490,6 +490,7 @@ interface AddMessagesToDatabaseParams {
   assistantMessageReferences: References;
   conversations: ConversationsService;
   userMessageEmbedding?: number[];
+  rejectQuery?: boolean;
 }
 export async function addMessagesToDatabase({
   conversationId,
@@ -499,6 +500,7 @@ export async function addMessagesToDatabase({
   assistantMessageReferences,
   conversations,
   userMessageEmbedding,
+  rejectQuery,
 }: AddMessagesToDatabaseParams) {
   // TODO: consider refactoring addConversationMessage to take in an array of messages.
   // Would limit database calls.
@@ -508,6 +510,7 @@ export async function addMessagesToDatabase({
     preprocessedContent: preprocessedUserMessageContent,
     role: "user",
     embedding: userMessageEmbedding,
+    rejectQuery,
   });
   const assistantMessage = await conversations.addConversationMessage({
     conversationId,

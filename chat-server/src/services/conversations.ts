@@ -53,7 +53,7 @@ export type UserMessage = Message & {
   preprocessedContent?: string;
 
   /**
-    Whether preprocessor suggested DO_NOT_ANSWER based on the input.
+    Whether preprocessor suggested not to answer based on the input.
    */
   rejectQuery?: boolean;
 
@@ -168,7 +168,7 @@ export function makeConversationsService(
         newMessage,
         preprocessedContent && { preprocessedContent },
         references && { references },
-        rejectQuery && { rejectQuery }
+        rejectQuery !== undefined ? { rejectQuery } : undefined
       );
 
       const updateResult = await conversationsCollection.updateOne(

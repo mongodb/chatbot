@@ -195,6 +195,7 @@ export function makeAddMessageToConversationRoute({
             return await sendStaticNonResponse({
               conversations,
               conversationId,
+              rejectQuery,
               preprocessedUserMessageContent,
               latestMessageText,
               shouldStream,
@@ -419,9 +420,11 @@ export async function sendStaticNonResponse({
   shouldStream,
   dataStreamer,
   res,
+  rejectQuery,
 }: {
   conversations: ConversationsService;
   conversationId: ObjectId;
+  rejectQuery?: boolean;
   preprocessedUserMessageContent?: string;
   latestMessageText: string;
   shouldStream: boolean;
@@ -431,6 +434,7 @@ export async function sendStaticNonResponse({
   const { assistantMessage } = await addMessagesToDatabase({
     conversations,
     conversationId,
+    rejectQuery,
     preprocessedUserMessageContent: preprocessedUserMessageContent,
     originalUserMessageContent: latestMessageText,
     assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,

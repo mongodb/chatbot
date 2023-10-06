@@ -153,7 +153,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         });
       expect(res.statusCode).toEqual(400);
       expect(res.body).toStrictEqual({
-        error: "Invalid conversation ID",
+        error: `Invalid ObjectId string: ${notAValidId}`,
       });
     });
 
@@ -186,9 +186,7 @@ describe("POST /conversations/:conversationId/messages", () => {
           message: "hello",
         });
       expect(res.statusCode).toEqual(404);
-      expect(res.body).toStrictEqual({
-        error: "Conversation not found",
-      });
+      expect(res.body?.error).toMatch(/^Conversation [a-f0-9]{24} not found$/);
     });
     test("Should return 400 if number of messages in conversation exceeds limit", async () => {
       const { _id } = await conversations.create({
@@ -247,7 +245,7 @@ describe("POST /conversations/:conversationId/messages", () => {
           throw new Error("mock error");
         },
         async findById() {
-          throw new Error("mock error");
+          throw new Error("Error finding conversation");
         },
         async rateMessage() {
           throw new Error("mock error");

@@ -526,7 +526,7 @@ const loadConversation = async ({
   conversationIdString: string;
   conversations: ConversationsService;
 }) => {
-  const conversationId = new ObjectId(conversationIdString);
+  const conversationId = toObjectId(conversationIdString);
   const conversation = await conversations.findById({
     _id: conversationId,
   });
@@ -537,4 +537,15 @@ const loadConversation = async ({
     });
   }
   return conversation;
+};
+
+const toObjectId = (id: string) => {
+  try {
+    return new ObjectId(id);
+  } catch (error) {
+    throw makeRequestError({
+      httpStatus: 400,
+      message: `Invalid ObjectId string: ${id}`,
+    });
+  }
 };

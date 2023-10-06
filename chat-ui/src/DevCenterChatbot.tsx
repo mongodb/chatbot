@@ -5,9 +5,7 @@ import LeafyGreenProvider, {
 } from "@leafygreen-ui/leafygreen-provider";
 import Modal from "@leafygreen-ui/modal";
 import { palette } from "@leafygreen-ui/palette";
-import { ParagraphSkeleton } from "@leafygreen-ui/skeleton-loader";
 import { Body, Link } from "@leafygreen-ui/typography";
-import { Avatar } from "@lg-chat/avatar";
 import { DisclaimerText as LGDisclaimerText } from "@lg-chat/chat-disclaimer";
 import { ChatWindow } from "@lg-chat/chat-window";
 import { ChatTrigger } from "@lg-chat/fixed-chat-window";
@@ -16,22 +14,14 @@ import {
   InputBarProps as LGInputBarProps,
 } from "@lg-chat/input-bar";
 import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
-import { Message as LGMessage, MessageSourceType } from "@lg-chat/message";
+import { Message } from "./Message";
 import { MessageFeed } from "@lg-chat/message-feed";
-import {
-  MessagePrompts as LGMessagePrompts,
-  MessagePrompt,
-} from "@lg-chat/message-prompts";
-import { MessageRatingProps } from "@lg-chat/message-rating";
-import { Fragment, useEffect, useRef, useState } from "react";
-import { CSSTransition } from "react-transition-group";
+import { useEffect, useState } from "react";
 import { CharacterCount } from "./InputBar";
 import { UserProvider } from "./UserProvider";
 import { MessageData } from "./services/conversations";
 import { Conversation, useConversation } from "./useConversation";
-import { User, useUser } from "./useUser";
-
-const TRANSITION_DURATION = 300;
+import { User } from "./useUser";
 
 const styles = {
   chat_trigger: css`
@@ -47,30 +37,6 @@ const styles = {
       bottom: 32px;
       right: 49px;
     }
-  `,
-  message_prompts: css`
-    margin-left: 70px;
-    @media screen and (max-width: 804px) {
-      margin-left: 50px;
-    }
-
-    transition: opacity ${TRANSITION_DURATION}ms ease-in;
-
-    &-enter {
-      opacity: 0;
-    }
-    &-enter-active {
-      opacity: 1;
-    }
-    &-exit {
-      opacity: 1;
-    }
-    &-exit-active {
-      opacity: 0;
-    }
-  `,
-  message_rating: css`
-    margin-top: 1rem;
   `,
   chat_window: css`
     border-radius: 24px;
@@ -101,32 +67,6 @@ const styles = {
     padding-bottom: 1rem;
     & > p {
       text-align: left;
-    }
-  `,
-  // This is a hacky fix for weird white-space issues in LG Chat.
-  markdown_container: css`
-    display: flex;
-    flex-direction: column;
-
-    & * {
-      line-height: 28px;
-    }
-
-    & li {
-      white-space: normal;
-      margin-top: -1.5rem;
-    }
-  `,
-  // End hacky fix
-  markdown_ul: css`
-    overflow-wrap: anywhere;
-  `,
-  loading_skeleton: css`
-    margin-bottom: 16px;
-    width: 100%;
-
-    & > div {
-      width: 100%;
     }
   `,
   chatbot_input_area: css`
@@ -281,10 +221,6 @@ function ChatbotModal({
   const [awaitingReply, setAwaitingReply] = useState(false);
   const { darkMode } = useDarkMode();
 
-  const displaySuggestedPrompts = () => {
-    return conversation.messages.length === 0;
-  };
-
   const handleSubmit = async (prompt: string) => {
     if (!conversation.conversationId) {
       console.error(`Cannot addMessage without a conversationId`);
@@ -334,19 +270,17 @@ function ChatbotModal({
         >
           <MessageFeed>
             <DisclaimerText />
-            {messages.map((messageData, idx) => {
+            {messages.map((message, idx) => {
               return (
                 <Message
-                  key={messageData.id}
-                  messageData={messageData}
-                  suggestedPrompts={suggestedPrompts}
-                  displaySuggestedPrompts={
-                    idx === 0 && displaySuggestedPrompts()
-                  }
-                  suggestedPromptOnClick={handleSubmit}
-                  isLoading={isLoading(messageData.id)}
-                  renderRating={messageData.role === "assistant" && idx !== 0}
+                  key={message.id}
+                  isLoading={isLoading(message.id)}
                   conversation={conversation}
+                  messageData={message}
+                  showRating={message.role === "assistant" && idx !== 0}
+                  suggestedPrompts={suggestedPrompts}
+                  showSuggestedPrompts={idx === 0 && conversation.messages.length === 0}
+                  onSuggestedPromptClick={handleSubmit}
                 />
               );
             })}
@@ -465,162 +399,4 @@ const DisclaimerText = () => {
       </Body>
     </LGDisclaimerText>
   );
-};
-
-type MessageProp = {
-  messageData: MessageData;
-  suggestedPrompts?: string[];
-  displaySuggestedPrompts: boolean;
-  suggestedPromptOnClick: (prompt: string) => void;
-  isLoading: boolean;
-  renderRating: boolean;
-  conversation: Conversation;
-};
-
-const Message = ({
-  messageData,
-  suggestedPrompts = [],
-  displaySuggestedPrompts,
-  suggestedPromptOnClick,
-  isLoading,
-  renderRating,
-  conversation,
-}: MessageProp) => {
-  const user = useUser();
-
-  return (
-    <Fragment key={messageData.id}>
-      <LGMessage
-        baseFontSize={13}
-        isSender={messageData.role === "user"}
-        messageRatingProps={
-          renderRating
-            ? {
-                className: styles.message_rating,
-                description: "How was the response?",
-                onChange: (e) => {
-                  const value = e.target.value as MessageRatingProps["value"];
-                  if (!value) {
-                    return;
-                  }
-                  conversation.rateMessage(
-                    messageData.id,
-                    value === "liked" ? true : false
-                  );
-                },
-                value:
-                  messageData.rating === undefined
-                    ? undefined
-                    : messageData.rating
-                    ? "liked"
-                    : "disliked",
-              }
-            : undefined
-        }
-        avatar={
-          <Avatar
-            variant={messageData.role === "user" ? "user" : "mongo"}
-            name={
-              messageData.role === "user" && user?.name ? user?.name : undefined
-            }
-          />
-        }
-        sourceType={isLoading ? undefined : MessageSourceType.Markdown}
-        markdownProps={{
-          className: styles.markdown_container,
-          components: {
-            a: ({ children, href }) => {
-              return (
-                <Link hideExternalIcon href={href}>
-                  {children}
-                </Link>
-              );
-            },
-            p: ({ children, ...props }) => {
-              return <Body {...props}>{children}</Body>;
-            },
-            ol: ({ children, ordered, ...props }) => {
-              return (
-                <Body as="ol" {...props}>
-                  {children}
-                </Body>
-              );
-            },
-            ul: ({ children, ordered, ...props }) => {
-              return (
-                <Body className={styles.markdown_ul} as="ul" {...props}>
-                  {children}
-                </Body>
-              );
-            },
-            li: ({ children, ordered, node, ...props }) => {
-              return (
-                <Body as="li" {...props}>
-                  {children}
-                </Body>
-              );
-            },
-          },
-        }}
-      >
-        {isLoading
-          ? ((<LoadingSkeleton />) as unknown as string)
-          : messageData.content}
-      </LGMessage>
-      {displaySuggestedPrompts && (
-        <MessagePrompts
-          messagePrompts={suggestedPrompts}
-          messagePromptsOnClick={suggestedPromptOnClick}
-        />
-      )}
-    </Fragment>
-  );
-};
-
-type MessagePromptsProps = {
-  messagePrompts: string[];
-  messagePromptsOnClick: (prompt: string) => void;
-};
-
-const MessagePrompts = ({
-  messagePrompts,
-  messagePromptsOnClick,
-}: MessagePromptsProps) => {
-  const [inProp, setInProp] = useState(true);
-  const [suggestedPromptIdx, setSuggestedPromptIdx] = useState(-1);
-  const nodeRef = useRef(null);
-  const duration = 300;
-
-  return (
-    <CSSTransition
-      in={inProp}
-      timeout={duration}
-      nodeRef={nodeRef}
-      classNames={styles.message_prompts}
-    >
-      <div className={styles.message_prompts} ref={nodeRef}>
-        <LGMessagePrompts label="Suggested Prompts">
-          {messagePrompts.map((sp, idx) => (
-            <MessagePrompt
-              key={sp}
-              onClick={() => {
-                setSuggestedPromptIdx(idx);
-                setInProp(false);
-                setTimeout(() => {
-                  messagePromptsOnClick(messagePrompts[idx]);
-                }, duration);
-              }}
-              selected={idx === suggestedPromptIdx}
-            >
-              {sp}
-            </MessagePrompt>
-          ))}
-        </LGMessagePrompts>
-      </div>
-    </CSSTransition>
-  );
-};
-
-const LoadingSkeleton = () => {
-  return <ParagraphSkeleton className={styles.loading_skeleton} />;
 };

@@ -2,7 +2,6 @@ import { useState, useRef } from "react";
 import { useConversation, Conversation } from "./useConversation";
 import Banner from "@leafygreen-ui/banner";
 import Modal, { ModalProps } from "@leafygreen-ui/modal";
-import { ParagraphSkeleton } from "@leafygreen-ui/skeleton-loader";
 import {
   Body,
   Link,
@@ -11,26 +10,19 @@ import {
 } from "@leafygreen-ui/typography";
 import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
 import { ChatWindow } from "@lg-chat/chat-window";
-import { Avatar } from "@lg-chat/avatar";
 import {
   InputBar,
   SuggestedPrompt,
   SuggestedPrompts,
   CharacterCount,
 } from "./InputBar";
-import {
-  Message,
-  MessageContent as LGChatMessageContent,
-  MessageContentProps,
-} from "@lg-chat/message";
+import { Message } from "./Message";
 import { MessageFeed } from "@lg-chat/message-feed";
-import { MessageRatingProps } from "@lg-chat/message-rating";
-import { Role } from "./services/conversations";
 import { palette } from "@leafygreen-ui/palette";
 import { css, cx } from "@emotion/css";
 import { addQueryParams, type StylesProps } from "./utils";
 import LeafyGreenProvider, {
-  useDarkModeContext,
+  useDarkMode,
 } from "@leafygreen-ui/leafygreen-provider";
 
 const styles = {
@@ -102,10 +94,6 @@ const styles = {
       box-sizing: border-box;
     }
   `,
-  message_content: css`
-    width: 100%;
-    background: red;
-  `,
   message_rating: css`
     margin-top: 1rem;
   `,
@@ -151,24 +139,6 @@ const styles = {
 
 const MAX_INPUT_CHARACTERS = 300;
 
-function isSender(role: Role) {
-  return role === "user";
-}
-
-function getAvatarVariantForRole(role: Role) {
-  const avatarVariant = (
-    {
-      user: "user",
-      assistant: "mongo",
-    } as const
-  )[role];
-  return avatarVariant;
-}
-
-const MessageContent = (props: MessageContentProps) => (
-  <LGChatMessageContent className={styles.message_content} {...props} />
-);
-
 export type ChatbotProps = {
   serverBaseUrl?: string;
   shouldStream?: boolean;
@@ -182,8 +152,7 @@ export function Chatbot(props: ChatbotProps) {
     serverBaseUrl: props.serverBaseUrl,
     shouldStream: props.shouldStream,
   });
-  const { contextDarkMode = false } = useDarkModeContext();
-  const darkMode = props.darkMode ?? contextDarkMode;
+  const { darkMode } = useDarkMode(props.darkMode);
   const [modalOpen, setModalOpen] = useState(false);
   const [awaitingReply, setAwaitingReply] = useState(false);
   const inputBarRef = useRef<HTMLFormElement>(null);
@@ -355,10 +324,6 @@ export function Chatbot(props: ChatbotProps) {
   );
 }
 
-function LoadingSkeleton() {
-  return <ParagraphSkeleton className={styles.loading_skeleton} />;
-}
-
 type ChatbotModalProps = {
   inputBarRef: React.RefObject<HTMLFormElement>;
   active: boolean;
@@ -371,7 +336,6 @@ type ChatbotModalProps = {
   open: boolean;
   shouldClose: ModalProps["shouldClose"];
   darkMode?: boolean;
-  tck?: string;
 };
 
 function ChatbotModal({
@@ -386,7 +350,6 @@ function ChatbotModal({
   handleSubmit,
   awaitingReply,
   darkMode,
-  tck = "docs_chatbot",
 }: ChatbotModalProps) {
   const isEmptyConversation = conversation.messages.length === 0;
 
@@ -410,99 +373,19 @@ function ChatbotModal({
           {!isEmptyConversation ? (
             <MessageFeed darkMode={darkMode} className={styles.message_feed}>
               {conversation.messages.map((message) => {
-                const showLoadingSkeleton = conversation.isStreamingMessage
+                const isLoading = conversation.isStreamingMessage
                   ? message.id === conversation.streamingMessage?.id &&
                     conversation.streamingMessage?.content === ""
                   : false;
                 return (
                   <Message
-                    darkMode={darkMode}
-                    baseFontSize={13}
                     key={message.id}
-                    isSender={isSender(message.role)}
-                    componentOverrides={{ MessageContent }}
-                    messageRatingProps={
-                      message.role === "assistant"
-                        ? {
-                            className: styles.message_rating,
-                            description: "Was this response helpful?",
-                            onChange: (e) => {
-                              const value = e.target
-                                .value as MessageRatingProps["value"];
-                              if (!value) {
-                                return;
-                              }
-                              conversation.rateMessage(
-                                message.id,
-                                value === "liked" ? true : false
-                              );
-                            },
-                            value:
-                              message.rating === undefined
-                                ? undefined
-                                : message.rating
-                                ? "liked"
-                                : "disliked",
-                          }
-                        : undefined
-                    }
-                    avatar={
-                      <Avatar
-                        darkMode={darkMode}
-                        variant={getAvatarVariantForRole(message.role)}
-                      />
-                    }
-                    sourceType={showLoadingSkeleton ? undefined : "markdown"}
-                    markdownProps={{
-                      className: styles.markdown_container,
-                      components: {
-                        a: ({ children, href }) => {
-                          return (
-                            <Link
-                              hideExternalIcon
-                              href={
-                                href ? addQueryParams(href, { tck }) : undefined
-                              }
-                            >
-                              {children}
-                            </Link>
-                          );
-                        },
-                        p: ({ children, ...props }) => {
-                          return <Body {...props}>{children}</Body>;
-                        },
-                        ol: ({ children, ordered, ...props }) => {
-                          return (
-                            <Body as="ol" {...props}>
-                              {children}
-                            </Body>
-                          );
-                        },
-                        ul: ({ children, ordered, ...props }) => {
-                          return (
-                            <Body
-                              className={styles.markdown_ul}
-                              as="ul"
-                              {...props}
-                            >
-                              {children}
-                            </Body>
-                          );
-                        },
-                        li: ({ children, ordered, node, ...props }) => {
-                          return (
-                            <Body as="li" {...props}>
-                              {children}
-                            </Body>
-                          );
-                        },
-                      },
-                    }}
-                  >
-                    {showLoadingSkeleton && message.role === "assistant"
-                      ? ((<LoadingSkeleton />) as unknown as string)
-                      : message.content}
-                  </Message>
+                    messageData={message}
+                    showSuggestedPrompts={false}
+                    isLoading={isLoading}
+                    showRating={message.role === "assistant" && !isLoading}
+                    conversation={conversation}
+                  />
                 );
               })}
             </MessageFeed>

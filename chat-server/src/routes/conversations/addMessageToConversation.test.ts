@@ -323,10 +323,10 @@ describe("POST /conversations/:conversationId/messages", () => {
         .set("X-FORWARDED-FOR", ipAddress)
         .send({ message: nonsenseMessage });
       expect(response.statusCode).toBe(200);
-
       expect(response.body.content).toEqual(
         conversationConstants.NO_RELEVANT_CONTENT
       );
+      expect(response.body.references).toStrictEqual([]);
     });
 
     describe("LLM not available but vector search is", () => {

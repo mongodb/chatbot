@@ -4,6 +4,7 @@ import { MongoDbUserQueryPreprocessorResponse } from "./MongoDbUserQueryPreproce
 import {
   QueryPreprocessorFunc,
   QueryPreprocessorMessage,
+  QueryPreprocessorResult,
 } from "./QueryPreprocessorFunc";
 
 import {
@@ -29,7 +30,9 @@ export function makePreprocessMongoDbUserQuery({
     Again this should be a low number to not delay the chatbot if the LLM is down.
    */
   retryDelayMs?: number;
-}): QueryPreprocessorFunc<MongoDbUserQueryPreprocessorResponse> {
+}): QueryPreprocessorFunc<
+  QueryPreprocessorResult & Partial<MongoDbUserQueryPreprocessorResponse>
+> {
   const schemaName = "MongoDbUserQueryPreprocessorResponse";
   const schema = fs.readFileSync(
     path.join(__dirname, `${schemaName}.d.ts`),
@@ -46,11 +49,14 @@ export function makePreprocessMongoDbUserQuery({
     });
 
   return async ({ query, messages }) => {
+    if (query === undefined) {
+      return { query, rejectQuery: false };
+    }
     const prompt = generateMongoDbQueryPreProcessorPrompt({ query, messages });
     const data = await translate(prompt);
     return {
-      ...appendMetadataToPreprocessorResponse(data),
-      doNotAnswer: data.query.includes("DO_NOT_ANSWER"),
+      ...data,
+      query: addMetadataToQuery(data),
     };
   };
 }
@@ -97,12 +103,16 @@ ${query}
   return prompt;
 }
 
-export function appendMetadataToPreprocessorResponse(
-  response: MongoDbUserQueryPreprocessorResponse
-): MongoDbUserQueryPreprocessorResponse {
-  response.query = updateFrontMatter(response.query, {
-    programmingLanguages: response.programmingLanguages,
-    mongoDbProducts: response.mongoDbProducts,
-  });
-  return response;
+export function addMetadataToQuery({
+  query,
+  programmingLanguages,
+  mongoDbProducts,
+}: MongoDbUserQueryPreprocessorResponse): string | undefined {
+  return (
+    query &&
+    updateFrontMatter(query, {
+      programmingLanguages,
+      mongoDbProducts,
+    })
+  );
 }

@@ -53,9 +53,9 @@ export type UserMessage = Message & {
   preprocessedContent?: string;
 
   /**
-    Whether preprocessor suggested DO_NOT_ANSWER based on the input.
+    Whether preprocessor suggested not to answer based on the input.
    */
-  doNotAnswer?: boolean;
+  rejectQuery?: boolean;
 
   /**
     The vector representation of the message content.
@@ -90,7 +90,7 @@ export interface AddConversationMessageParams {
    */
   embedding?: number[];
 
-  doNotAnswer?: boolean;
+  rejectQuery?: boolean;
 }
 export interface FindByIdParams {
   _id: ObjectId;
@@ -157,7 +157,7 @@ export function makeConversationsService(
       preprocessedContent,
       references,
       embedding,
-      doNotAnswer,
+      rejectQuery,
     }: AddConversationMessageParams) {
       const newMessage = createMessageFromOpenAIChatMessage({
         role,
@@ -168,7 +168,7 @@ export function makeConversationsService(
         newMessage,
         preprocessedContent && { preprocessedContent },
         references && { references },
-        doNotAnswer && { doNotAnswer }
+        rejectQuery !== undefined ? { rejectQuery } : undefined
       );
 
       const updateResult = await conversationsCollection.updateOne(

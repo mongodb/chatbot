@@ -180,7 +180,7 @@ export function makeAddMessageToConversationRoute({
       // (likely due to LLM timeout), then we will just use the original message.
       if (userQueryPreprocessor) {
         try {
-          const { query, doNotAnswer } = await userQueryPreprocessor({
+          const { query, rejectQuery } = await userQueryPreprocessor({
             query: latestMessageText,
             messages: conversationInDb.messages,
           });
@@ -191,10 +191,11 @@ export function makeAddMessageToConversationRoute({
               Original query: ${latestMessageText}
               Preprocessed query: ${preprocessedUserMessageContent}`,
           });
-          if (doNotAnswer) {
+          if (rejectQuery) {
             return await sendStaticNonResponse({
               conversations,
               conversationId,
+              rejectQuery,
               preprocessedUserMessageContent,
               latestMessageText,
               shouldStream,
@@ -419,9 +420,11 @@ export async function sendStaticNonResponse({
   shouldStream,
   dataStreamer,
   res,
+  rejectQuery,
 }: {
   conversations: ConversationsService;
   conversationId: ObjectId;
+  rejectQuery?: boolean;
   preprocessedUserMessageContent?: string;
   latestMessageText: string;
   shouldStream: boolean;
@@ -431,6 +434,7 @@ export async function sendStaticNonResponse({
   const { assistantMessage } = await addMessagesToDatabase({
     conversations,
     conversationId,
+    rejectQuery,
     preprocessedUserMessageContent: preprocessedUserMessageContent,
     originalUserMessageContent: latestMessageText,
     assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,
@@ -490,6 +494,7 @@ interface AddMessagesToDatabaseParams {
   assistantMessageReferences: References;
   conversations: ConversationsService;
   userMessageEmbedding?: number[];
+  rejectQuery?: boolean;
 }
 export async function addMessagesToDatabase({
   conversationId,
@@ -499,6 +504,7 @@ export async function addMessagesToDatabase({
   assistantMessageReferences,
   conversations,
   userMessageEmbedding,
+  rejectQuery,
 }: AddMessagesToDatabaseParams) {
   // TODO: consider refactoring addConversationMessage to take in an array of messages.
   // Would limit database calls.
@@ -508,6 +514,7 @@ export async function addMessagesToDatabase({
     preprocessedContent: preprocessedUserMessageContent,
     role: "user",
     embedding: userMessageEmbedding,
+    rejectQuery,
   });
   const assistantMessage = await conversations.addConversationMessage({
     conversationId,

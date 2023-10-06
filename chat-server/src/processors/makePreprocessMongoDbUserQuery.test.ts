@@ -5,7 +5,7 @@ import {
   AzureOpenAiServiceConfig,
 } from "chat-core";
 import {
-  appendMetadataToPreprocessorResponse,
+  addMetadataToQuery,
   generateMongoDbQueryPreProcessorPrompt,
   makePreprocessMongoDbUserQuery,
 } from "./makePreprocessMongoDbUserQuery";
@@ -63,10 +63,10 @@ describe("makePreprocessMongoDbUserQuery()", () => {
     } = response;
     expect(outputQuery).toContain("MongoDB");
     expect(outputQuery).toContain("code example");
-    expect(outputQuery.toLowerCase()).toContain("aggregation");
+    expect(outputQuery?.toLowerCase()).toContain("aggregation");
     expect(outputQuery).toContain("?");
     expect(programmingLanguages).toStrictEqual(["shell"]);
-    expect(mongoDbProducts[0]).toBeDefined();
+    expect(mongoDbProducts && mongoDbProducts[0]).toBeDefined();
   });
   test("should ID programming languages", async () => {
     const query = "python aggregation";
@@ -76,7 +76,7 @@ describe("makePreprocessMongoDbUserQuery()", () => {
       messages,
     });
     const { programmingLanguages } = response;
-    expect(programmingLanguages[0]).toBe("python");
+    expect(programmingLanguages && programmingLanguages[0]).toBe("python");
   });
   test("should ID products", async () => {
     const query = "create a chart";
@@ -86,7 +86,7 @@ describe("makePreprocessMongoDbUserQuery()", () => {
       messages,
     });
     const { mongoDbProducts } = response;
-    expect(mongoDbProducts[0]).toBe("Atlas Charts");
+    expect(mongoDbProducts && mongoDbProducts[0]).toBe("Atlas Charts");
   });
   test("should be aware of MongoDB", async () => {
     const query = "node.js lookup example";
@@ -99,25 +99,29 @@ describe("makePreprocessMongoDbUserQuery()", () => {
     expect(response.query).toContain("look");
     expect(response.query).toContain("up");
     expect(response.query).toContain("Node");
-    expect(response.programmingLanguages[0]).toBe("javascript");
+    expect(
+      response.programmingLanguages && response.programmingLanguages[0]
+    ).toBe("javascript");
+    expect(response.rejectQuery).toBe(false);
   });
-  test("should respond 'DO_NOT_ANSWER' if the query is gibberish", async () => {
+  test("should leave query undefined if the input query is gibberish", async () => {
     const query = "asdf dasgsd";
     const messages: QueryPreprocessorMessage[] = [];
     const response = await preprocessMongoDbUserQuery({
       query,
       messages,
     });
-    expect(response.query).toContain("DO_NOT_ANSWER");
+    expect(response.query).toBeUndefined();
+    expect(response.rejectQuery).toBe(false);
   });
-  test("should respond 'DO_NOT_ANSWER' if the query is negative toward MongoDB", async () => {
+  test("should set rejectQuery to true if the query is negative toward MongoDB", async () => {
     const query = "why is MongoDB the worst database";
     const messages: QueryPreprocessorMessage[] = [];
     const response = await preprocessMongoDbUserQuery({
       query,
       messages,
     });
-    expect(response.query).toContain("DO_NOT_ANSWER");
+    expect(response.rejectQuery).toBe(true);
   });
 });
 
@@ -181,15 +185,15 @@ code example
     ).not.toContain("mongoDb for MongoDB");
   });
 });
-describe("appendMetadataToPreprocessorResponse()", () => {
+describe("addMetadataToQuery()", () => {
   test("should append metadata to the query", () => {
     const response = {
       query: "foo",
       programmingLanguages: ["javascript"],
       mongoDbProducts: ["charts"],
-      abort: false,
+      rejectQuery: false,
     };
-    const output = appendMetadataToPreprocessorResponse(response);
+    const output = addMetadataToQuery(response);
     const expected = `---
 programmingLanguages:
   - javascript
@@ -198,6 +202,6 @@ mongoDbProducts:
 ---
 
 foo`;
-    expect(output.query).toBe(expected);
+    expect(output).toBe(expected);
   });
 });

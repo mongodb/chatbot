@@ -18,6 +18,8 @@ import { CORE_ENV_VARS, assertEnvVars } from "chat-core";
 import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { OpenAiChatMessage, SystemPrompt } from "./services/ChatLlm";
+import { makeDefaultFindContentFunc } from "./routes/conversations/FindContentFunc";
+
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -144,6 +146,18 @@ export const embed = makeOpenAiEmbedFunc({
   },
 });
 
+export const findContent = makeDefaultFindContentFunc({
+  embed,
+  store: embeddedContentStore,
+  findNearestNeighborsOptions: {
+    k: 5,
+    path: "embedding",
+    indexName: VECTOR_SEARCH_INDEX_NAME,
+    minScore: 0.9,
+  },
+  searchBoosters: [boostManual],
+});
+
 export const mongodb = new MongoDB(
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -156,17 +170,9 @@ export const config: AppConfig = {
   conversationsRouterConfig: {
     dataStreamer,
     llm,
-    searchBoosters: [boostManual],
+    findContent,
     userQueryPreprocessor: mongoDbUserQueryPreprocessor,
     maxChunkContextTokens: 1500,
-    findNearestNeighborsOptions: {
-      k: 5,
-      path: "embedding",
-      indexName: VECTOR_SEARCH_INDEX_NAME,
-      minScore: 0.9,
-    },
-    embed,
-    store: embeddedContentStore,
     conversations,
   },
   maxRequestTimeoutMs: 30000,

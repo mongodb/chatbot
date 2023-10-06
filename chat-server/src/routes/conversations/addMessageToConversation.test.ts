@@ -24,7 +24,6 @@ import {
   convertDbMessageToOpenAiMessage,
   generateReferences,
   validateApiConversationFormatting,
-  getContentForText,
   MAX_INPUT_LENGTH,
   MAX_MESSAGES_IN_CONVERSATION,
   createLinkReference,
@@ -44,6 +43,8 @@ import {
 } from "../../testHelpers";
 import { AppConfig } from "../../app";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
+import { makeDefaultFindContentFunc } from "./FindContentFunc";
+import { embed, embeddedContentStore as store } from "../../config";
 
 const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
   assertEnvVars(CORE_ENV_VARS);
@@ -51,12 +52,10 @@ jest.setTimeout(100000);
 describe("POST /conversations/:conversationId/messages", () => {
   let mongodb: MongoDB;
   let ipAddress: string;
-  let embed: EmbedFunc;
   let dataStreamer: ReturnType<typeof makeDataStreamer>;
   let findNearestNeighborsOptions:
     | Partial<FindNearestNeighborsOptions>
     | undefined;
-  let store: EmbeddedContentStore;
   let conversations: ConversationsService;
   let app: Express;
   let appConfig: AppConfig;
@@ -64,7 +63,7 @@ describe("POST /conversations/:conversationId/messages", () => {
   beforeAll(async () => {
     ({ ipAddress, mongodb, app, appConfig } = await makeTestApp());
     ({
-      conversationsRouterConfig: { embed, dataStreamer, store, conversations },
+      conversationsRouterConfig: { dataStreamer, conversations },
     } = appConfig);
   });
 
@@ -218,13 +217,14 @@ describe("POST /conversations/:conversationId/messages", () => {
       });
     });
 
-    test("should respond 500 if error with embed service", async () => {
-      const mockBrokenEmbedFunc: EmbedFunc = jest.fn();
+    test("should respond 500 if error with findContent func", async () => {
       const app = await makeApp({
         ...appConfig,
         conversationsRouterConfig: {
           ...appConfig.conversationsRouterConfig,
-          embed: mockBrokenEmbedFunc,
+          findContent() {
+            throw new Error("Broken!");
+          },
         },
       });
 
@@ -234,7 +234,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         .send({ message: "hello" });
       expect(res.statusCode).toEqual(500);
       expect(res.body).toStrictEqual({
-        error: "Error getting content for text",
+        error: "Broken!",
       });
     });
 
@@ -268,33 +268,6 @@ describe("POST /conversations/:conversationId/messages", () => {
       expect(res.statusCode).toEqual(500);
       expect(res.body).toStrictEqual({
         error: "Error finding conversation",
-      });
-    });
-
-    test("should respond 500 if error with content service", async () => {
-      const brokenStore: EmbeddedContentStore = {
-        loadEmbeddedContent: jest.fn().mockResolvedValue(undefined),
-        deleteEmbeddedContent: jest.fn().mockResolvedValue(undefined),
-        updateEmbeddedContent: jest.fn().mockResolvedValue(undefined),
-        findNearestNeighbors: () => {
-          throw new Error("mock error");
-        },
-      };
-      const app = await makeApp({
-        ...appConfig,
-        conversationsRouterConfig: {
-          ...appConfig.conversationsRouterConfig,
-          store: brokenStore,
-        },
-      });
-
-      const res = await request(app)
-        .post(endpointUrl.replace(":conversationId", conversationId))
-        .set("X-FORWARDED-FOR", ipAddress)
-        .send({ message: "hello" });
-      expect(res.statusCode).toEqual(500);
-      expect(res.body).toStrictEqual({
-        error: "Error getting content for text",
       });
     });
   });
@@ -358,17 +331,20 @@ describe("POST /conversations/:conversationId/messages", () => {
           ipAddress,
         });
         conversationId = _id;
+
+        const findContent = makeDefaultFindContentFunc({
+          embed,
+          store,
+        });
         app = express();
         app.use(express.json());
         app.post(
           endpointUrl,
           makeAddMessageToConversationRoute({
             conversations,
-            store,
-            embed,
             llm: brokenLlmService,
             dataStreamer,
-            findNearestNeighborsOptions,
+            findContent,
           })
         );
       });
@@ -407,7 +383,12 @@ describe("POST /conversations/:conversationId/messages", () => {
         const userMessageContent = "hello";
         const assistantMessageContent = "hi";
         const { userMessage, assistantMessage } = await addMessagesToDatabase({
-          conversationId,
+          conversation: {
+            _id: conversationId,
+            ipAddress,
+            createdAt: new Date(),
+            messages: [],
+          },
           originalUserMessageContent: userMessageContent,
           assistantMessageContent,
           assistantMessageReferences: [
@@ -482,35 +463,30 @@ describe("POST /conversations/:conversationId/messages", () => {
         },
       ]);
     });
-    describe("getContentForText()", () => {
+    describe("default find content", () => {
+      const findContent = makeDefaultFindContentFunc({
+        embed,
+        store,
+        findNearestNeighborsOptions,
+      });
       test("Should return content for relevant text", async () => {
-        const text = "MongoDB Atlas";
-
-        const { results } = await getContentForText({
-          embed,
-          text,
-          store,
+        const query = "MongoDB Atlas";
+        const { content } = await findContent({
+          query,
           ipAddress,
-          findNearestNeighborsOptions,
         });
-        expect(results).toBeDefined();
-        expect(results.length).toBeGreaterThan(0);
+        expect(content).toBeDefined();
+        expect(content.length).toBeGreaterThan(0);
       });
       test("Should not return content for irrelevant text", async () => {
-        const text =
+        const query =
           "asdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjafdshgjfkhfdugytfasfghjkujufgjdfhstgragtyjuikolaf;ldkgsdjfnh;ks'l;addfsghjklafjklsgfjgreaj;agre;jlg;ljewrqjknerqnkjkgn;jwr;lwreg";
-        const { results } = await getContentForText({
-          embed,
-          text,
-          store,
+        const { content } = await findContent({
+          query,
           ipAddress,
-          findNearestNeighborsOptions: {
-            ...findNearestNeighborsOptions,
-            minScore: 99,
-          },
         });
-        expect(results).toBeDefined();
-        expect(results.length).toBe(0);
+        expect(content).toBeDefined();
+        expect(content.length).toBe(0);
       });
     });
     describe("generateReferences()", () => {
@@ -545,14 +521,14 @@ describe("POST /conversations/:conversationId/messages", () => {
       test("No sources should return empty string", () => {
         const noChunks: EmbeddedContent[] = [];
         const noReferences = generateReferences({
-          chunks: noChunks,
+          content: noChunks,
         });
         expect(noReferences).toEqual([]);
       });
       test("One source should return one link", () => {
         const oneChunk: EmbeddedContent[] = [chunk1];
         const oneReference = generateReferences({
-          chunks: oneChunk,
+          content: oneChunk,
         });
         const expectedOneReference = [
           {
@@ -565,7 +541,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       test("Multiple sources from same page should return one link", () => {
         const twoChunksSamePage: EmbeddedContent[] = [chunk1, chunk2];
         const oneReferenceSamePage = generateReferences({
-          chunks: twoChunksSamePage,
+          content: twoChunksSamePage,
         });
         const expectedOneReferenceSamePage = [
           {
@@ -578,7 +554,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       test("Multiple sources from different pages should return 1 link per page", () => {
         const twoChunksDifferentPage: EmbeddedContent[] = [chunk1, chunk3];
         const multipleReferencesDifferentPage = generateReferences({
-          chunks: twoChunksDifferentPage,
+          content: twoChunksDifferentPage,
         });
         const expectedMultipleReferencesDifferentPage = [
           {
@@ -596,7 +572,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         // All three sources. Two from the same page. One from a different page.
         const threeChunks: EmbeddedContent[] = [chunk1, chunk2, chunk3];
         const multipleSourcesWithSomePageOverlap = generateReferences({
-          chunks: threeChunks,
+          content: threeChunks,
         });
         const expectedMultipleSourcesWithSomePageOverlap = [
           {
@@ -614,7 +590,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       });
     });
     describe("includeChunksForMaxTokensPossible()", () => {
-      const chunks: EmbeddedContent[] = [
+      const content: EmbeddedContent[] = [
         {
           url: "https://mongodb.com/docs/realm/sdk/node/",
           text: "foo foo foo",
@@ -643,24 +619,24 @@ describe("POST /conversations/:conversationId/messages", () => {
       test("Should include all chunks if less that max tokens", () => {
         const maxTokens = 1000;
         const includedChunks = includeChunksForMaxTokensPossible({
-          chunks,
+          content,
           maxTokens,
         });
-        expect(includedChunks).toStrictEqual(chunks);
+        expect(includedChunks).toStrictEqual(content);
       });
       test("should only include subset of chunks that fit within max tokens, inclusive", () => {
         const maxTokens = 200;
         const includedChunks = includeChunksForMaxTokensPossible({
-          chunks,
+          content,
           maxTokens,
         });
-        expect(includedChunks).toStrictEqual(chunks.slice(0, 2));
+        expect(includedChunks).toStrictEqual(content.slice(0, 2));
         const maxTokens2 = maxTokens + 1;
         const includedChunks2 = includeChunksForMaxTokensPossible({
-          chunks,
+          content,
           maxTokens: maxTokens2,
         });
-        expect(includedChunks2).toStrictEqual(chunks.slice(0, 2));
+        expect(includedChunks2).toStrictEqual(content.slice(0, 2));
       });
     });
     describe("validateApiConversationFormatting()", () => {

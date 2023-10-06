@@ -1,20 +1,14 @@
+import { stripIndents } from "common-tags";
 import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import {
-  ObjectId,
-  EmbedFunc,
-  EmbeddedContent,
-  EmbeddedContentStore,
-  FindNearestNeighborsOptions,
-  References,
-  Reference,
-} from "chat-core";
+import { ObjectId, EmbeddedContent, References, Reference } from "chat-core";
 import {
   ConversationsService,
   Message,
   conversationConstants,
+  Conversation,
 } from "../../services/conversations";
 import { DataStreamer } from "../../services/dataStreamer";
 import {
@@ -31,9 +25,8 @@ import {
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
-import { SearchBooster } from "../../processors/SearchBooster";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
-import { stripIndents } from "common-tags";
+import { FindContentFunc } from "./FindContentFunc";
 
 export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 export const MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
@@ -61,33 +54,38 @@ export const AddMessageRequest = SomeExpressRequest.merge(
 );
 
 export interface AddMessageToConversationRouteParams {
-  store: EmbeddedContentStore;
   conversations: ConversationsService;
-  embed: EmbedFunc;
   llm: ChatLlm;
   dataStreamer: DataStreamer;
-  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
-  searchBoosters?: SearchBooster[];
   userQueryPreprocessor?: QueryPreprocessorFunc;
   maxChunkContextTokens?: number;
+  findContent: FindContentFunc;
 }
 
 export type RequestError = Error & {
+  name: "RequestError";
   httpStatus: number;
 };
 
-export const makeRequestError = (
-  args: Omit<RequestError, "name">
-): RequestError => ({ ...args, name: "RequestError" });
+export const makeRequestError = ({
+  message,
+  httpStatus,
+  stack: stackIn,
+}: Omit<RequestError, "name">): RequestError => {
+  const stack = stackIn ?? new Error(message).stack;
+  return {
+    stack,
+    message,
+    httpStatus,
+    name: "RequestError",
+  };
+};
 
 export function makeAddMessageToConversationRoute({
-  store,
   conversations,
   llm,
   dataStreamer,
-  embed,
-  findNearestNeighborsOptions,
-  searchBoosters,
+  findContent,
   userQueryPreprocessor,
   maxChunkContextTokens = 1500,
 }: AddMessageToConversationRouteParams) {
@@ -116,7 +114,8 @@ export function makeAddMessageToConversationRoute({
         });
       }
 
-      const latestMessageText = message;
+      const latestMessageText = message as string;
+
       if (latestMessageText.length > MAX_INPUT_LENGTH) {
         throw makeRequestError({
           httpStatus: 400,
@@ -125,19 +124,13 @@ export function makeAddMessageToConversationRoute({
       }
 
       // --- LOAD CONVERSATION ---
-      const conversationId = new ObjectId(conversationIdString);
-      const conversationInDb = await conversations.findById({
-        _id: conversationId,
+      const conversation = await loadConversation({
+        conversationIdString,
+        conversations,
       });
-      if (!conversationInDb) {
-        throw makeRequestError({
-          httpStatus: 404,
-          message: `Conversation ${conversationId} not found`,
-        });
-      }
 
       // --- MAX CONVERSATION LENGTH CHECK ---
-      if (conversationInDb.messages.length >= MAX_MESSAGES_IN_CONVERSATION) {
+      if (conversation.messages.length >= MAX_MESSAGES_IN_CONVERSATION) {
         // Omit the system prompt and assume the user always received one response per message
         const maxUserMessages = (MAX_MESSAGES_IN_CONVERSATION - 1) / 2;
         throw makeRequestError({
@@ -158,7 +151,7 @@ export function makeAddMessageToConversationRoute({
         try {
           const { query, rejectQuery } = await userQueryPreprocessor({
             query: latestMessageText,
-            messages: conversationInDb.messages,
+            messages: conversation.messages,
           });
           logRequest({
             reqId,
@@ -183,7 +176,7 @@ export function makeAddMessageToConversationRoute({
       if (rejectQuery) {
         return await sendStaticNonResponse({
           conversations,
-          conversationId,
+          conversation,
           rejectQuery,
           preprocessedUserMessageContent,
           latestMessageText,
@@ -195,61 +188,19 @@ export function makeAddMessageToConversationRoute({
       const query = preprocessedUserMessageContent ?? latestMessageText;
 
       // --- VECTOR SEARCH / RETRIEVAL ---
-      const contentForText = await getContentForText({
-        embed,
+      const { content, queryEmbedding } = await findContent({
+        query,
         ipAddress: ip,
-        text: query,
-        store,
-        findNearestNeighborsOptions,
-      });
-      const embedding = contentForText.embedding;
-      let chunks = contentForText.results;
-      if (searchBoosters?.length) {
-        for (const booster of searchBoosters) {
-          if (booster.shouldBoost({ text: latestMessageText })) {
-            chunks = await booster.boost({
-              existingResults: chunks,
-              embedding,
-              store,
-            });
-          }
-        }
-      }
-      logRequest({
-        reqId,
-        message: stripIndents`Chunks found: ${JSON.stringify(
-          chunks.map(
-            ({
-              sourceName,
-              url,
-              score,
-              text,
-              tokenCount,
-              updated,
-              metadata,
-              chunkIndex,
-            }) => ({
-              sourceName,
-              url,
-              score,
-              text,
-              tokenCount,
-              updated,
-              metadata,
-              chunkIndex,
-            })
-          )
-        )}`,
       });
 
-      if (chunks.length === 0) {
+      if (content.length === 0) {
         logRequest({
           reqId,
           message: "No matching content found",
         });
         return await sendStaticNonResponse({
           conversations,
-          conversationId,
+          conversation,
           preprocessedUserMessageContent,
           latestMessageText,
           shouldStream,
@@ -258,11 +209,21 @@ export function makeAddMessageToConversationRoute({
         });
       }
 
-      const references = generateReferences({ chunks });
+      logRequest({
+        reqId,
+        message: stripIndents`Chunks found: ${JSON.stringify(
+          content.map(
+            ({ embedding, chunkAlgoHash, ...wantedProperties }) =>
+              wantedProperties
+          )
+        )}`,
+      });
+
+      const references = generateReferences({ content });
       const chunkTexts = includeChunksForMaxTokensPossible({
         maxTokens: maxChunkContextTokens,
-        chunks,
-      }).map((chunk) => chunk.text);
+        content,
+      }).map(({ text }) => text);
 
       const latestMessage = {
         content: query,
@@ -274,34 +235,35 @@ export function makeAddMessageToConversationRoute({
       });
 
       const messages = [
-        ...conversationInDb.messages.map(convertDbMessageToOpenAiMessage),
+        ...conversation.messages.map(convertDbMessageToOpenAiMessage),
         latestMessage,
       ] satisfies OpenAiChatMessage[];
 
-      // --- TO STREAM OR NOT TO STREAM ---
-      let answerContent;
-      if (shouldStream) {
-        // --- GENERATE RESPONSE ---
-        const answerStream = await llm.answerQuestionStream({
-          messages,
-          chunks: chunkTexts,
-        });
-        dataStreamer.connect(res);
-        answerContent = await dataStreamer.stream({
-          stream: answerStream,
-        });
-        logRequest({
-          reqId,
-          message: `LLM response: ${JSON.stringify(answerContent)}`,
-        });
-        dataStreamer.streamData({
-          type: "references",
-          data: references,
-        });
-      } else {
+      // --- GENERATE RESPONSE ---
+      const answerContent = await (async () => {
+        if (shouldStream) {
+          const answerStream = await llm.answerQuestionStream({
+            messages,
+            chunks: chunkTexts,
+          });
+          dataStreamer.connect(res);
+          const answerContent = await dataStreamer.stream({
+            stream: answerStream,
+          });
+          logRequest({
+            reqId,
+            message: `LLM response: ${JSON.stringify(answerContent)}`,
+          });
+          dataStreamer.streamData({
+            type: "references",
+            data: references,
+          });
+          return answerContent;
+        }
+
         try {
           const messages = [
-            ...conversationInDb.messages.map(convertDbMessageToOpenAiMessage),
+            ...conversation.messages.map(convertDbMessageToOpenAiMessage),
             latestMessage,
           ];
           logRequest({
@@ -317,7 +279,7 @@ export function makeAddMessageToConversationRoute({
             reqId,
             message: `LLM response: ${JSON.stringify(answer)}`,
           });
-          answerContent = answer.content;
+          return answer.content;
         } catch (err) {
           const errorMessage =
             err instanceof Error ? err.message : JSON.stringify(err);
@@ -334,47 +296,54 @@ export function makeAddMessageToConversationRoute({
             role: "assistant",
             content: conversationConstants.LLM_NOT_WORKING,
           } satisfies OpenAiChatMessage;
-          answerContent = answer.content;
+          return answer.content;
         }
-      }
+      })();
 
       if (!answerContent) {
-        throw new Error("No answer content");
+        throw makeRequestError({
+          httpStatus: 500,
+          message: "No answer content",
+        });
       }
 
       // --- SAVE QUESTION & RESPONSE ---
       const { assistantMessage } = await addMessagesToDatabase({
         conversations,
-        conversationId,
+        conversation,
         originalUserMessageContent: message,
         preprocessedUserMessageContent,
         assistantMessageContent: answerContent,
         assistantMessageReferences: references,
-        userMessageEmbedding: embedding,
+        userMessageEmbedding: queryEmbedding,
       });
 
       const apiRes = convertMessageFromDbToApi(assistantMessage);
-      if (shouldStream) {
-        dataStreamer.streamData({
-          type: "finished",
-          data: apiRes.id,
-        });
-        dataStreamer.disconnect();
-        return;
-      } else {
-        res.status(200).json(apiRes);
+
+      if (!shouldStream) {
+        return res.status(200).json(apiRes);
       }
+
+      dataStreamer.streamData({
+        type: "finished",
+        data: apiRes.id,
+      });
+
+      dataStreamer.disconnect();
     } catch (error) {
       const { httpStatus, message } =
         (error as Error).name === "RequestError"
           ? (error as RequestError)
-          : ({ ...(error as Error), httpStatus: 500 } satisfies RequestError);
+          : makeRequestError({
+              message: (error as Error).message,
+              stack: (error as Error).stack,
+              httpStatus: 500,
+            });
 
       if (dataStreamer.connected) {
         dataStreamer.disconnect();
       }
-
-      return sendErrorResponse({
+      sendErrorResponse({
         res,
         reqId,
         httpStatus,
@@ -384,17 +353,9 @@ export function makeAddMessageToConversationRoute({
   };
 }
 
-export interface GetContentForTextParams {
-  embed: EmbedFunc;
-  ipAddress: string;
-  text: string;
-  store: EmbeddedContentStore;
-  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
-}
-
 export async function sendStaticNonResponse({
   conversations,
-  conversationId,
+  conversation,
   preprocessedUserMessageContent,
   latestMessageText,
   shouldStream,
@@ -403,7 +364,7 @@ export async function sendStaticNonResponse({
   rejectQuery,
 }: {
   conversations: ConversationsService;
-  conversationId: ObjectId;
+  conversation: Conversation;
   rejectQuery?: boolean;
   preprocessedUserMessageContent?: string;
   latestMessageText: string;
@@ -413,7 +374,7 @@ export async function sendStaticNonResponse({
 }) {
   const { assistantMessage } = await addMessagesToDatabase({
     conversations,
-    conversationId,
+    conversation,
     rejectQuery,
     preprocessedUserMessageContent: preprocessedUserMessageContent,
     originalUserMessageContent: latestMessageText,
@@ -447,27 +408,8 @@ export function convertDbMessageToOpenAiMessage(
   };
 }
 
-export async function getContentForText({
-  embed,
-  store,
-  text,
-  ipAddress,
-  findNearestNeighborsOptions,
-}: GetContentForTextParams) {
-  const { embedding } = await embed({
-    text,
-    userIp: ipAddress,
-  });
-
-  const results = await store.findNearestNeighbors(
-    embedding,
-    findNearestNeighborsOptions
-  );
-  return { embedding, results };
-}
-
 interface AddMessagesToDatabaseParams {
-  conversationId: ObjectId;
+  conversation: Conversation;
   originalUserMessageContent: string;
   preprocessedUserMessageContent?: string;
   assistantMessageContent: string;
@@ -476,8 +418,9 @@ interface AddMessagesToDatabaseParams {
   userMessageEmbedding?: number[];
   rejectQuery?: boolean;
 }
+
 export async function addMessagesToDatabase({
-  conversationId,
+  conversation,
   originalUserMessageContent,
   preprocessedUserMessageContent,
   assistantMessageContent,
@@ -488,6 +431,7 @@ export async function addMessagesToDatabase({
 }: AddMessagesToDatabaseParams) {
   // TODO: consider refactoring addConversationMessage to take in an array of messages.
   // Would limit database calls.
+  const conversationId = conversation._id;
   const userMessage = await conversations.addConversationMessage({
     conversationId,
     content: originalUserMessageContent,
@@ -515,16 +459,18 @@ export const createLinkReference = (link: string): Reference => {
 };
 
 export interface GenerateReferencesParams {
-  chunks: EmbeddedContent[];
+  content: EmbeddedContent[];
 }
 
 export function generateReferences({
-  chunks,
+  content,
 }: GenerateReferencesParams): References {
-  if (chunks.length === 0) {
+  if (content.length === 0) {
     return [];
   }
-  const uniqueLinks = Array.from(new Set(chunks.map((chunk) => chunk.url)));
+  const uniqueLinks = Array.from(
+    new Set(content.map((content) => content.url))
+  );
   return uniqueLinks.map((link) => createLinkReference(link));
 }
 
@@ -534,16 +480,16 @@ export function generateReferences({
  */
 export function includeChunksForMaxTokensPossible({
   maxTokens,
-  chunks,
+  content,
 }: {
   maxTokens: number;
-  chunks: EmbeddedContent[];
+  content: EmbeddedContent[];
 }): EmbeddedContent[] {
   let total = 0;
-  const fitRangeEndIndex = chunks.findIndex(
+  const fitRangeEndIndex = content.findIndex(
     ({ tokenCount }) => (total += tokenCount) > maxTokens
   );
-  return fitRangeEndIndex === -1 ? chunks : chunks.slice(0, fitRangeEndIndex);
+  return fitRangeEndIndex === -1 ? content : content.slice(0, fitRangeEndIndex);
 }
 
 export function validateApiConversationFormatting({
@@ -572,3 +518,23 @@ export function validateApiConversationFormatting({
 
   return true;
 }
+
+const loadConversation = async ({
+  conversationIdString,
+  conversations,
+}: {
+  conversationIdString: string;
+  conversations: ConversationsService;
+}) => {
+  const conversationId = new ObjectId(conversationIdString);
+  const conversation = await conversations.findById({
+    _id: conversationId,
+  });
+  if (!conversation) {
+    throw makeRequestError({
+      httpStatus: 404,
+      message: `Conversation ${conversationId} not found`,
+    });
+  }
+  return conversation;
+};

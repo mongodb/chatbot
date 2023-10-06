@@ -36,7 +36,6 @@ export const AddMessageRequestBody = z.object({
   message: z.string(),
 });
 
-export type AddMessageRequest = z.infer<typeof AddMessageRequest>;
 export const AddMessageRequest = SomeExpressRequest.merge(
   z.object({
     headers: z.object({
@@ -52,6 +51,8 @@ export const AddMessageRequest = SomeExpressRequest.merge(
     ip: z.string(),
   })
 );
+
+export type AddMessageRequest = z.infer<typeof AddMessageRequest>;
 
 export interface AddMessageToConversationRouteParams {
   conversations: ConversationsService;
@@ -89,7 +90,10 @@ export function makeAddMessageToConversationRoute({
   userQueryPreprocessor,
   maxChunkContextTokens = 1500,
 }: AddMessageToConversationRouteParams) {
-  return async (req: ExpressRequest, res: ExpressResponse<ApiMessage>) => {
+  return async (
+    req: ExpressRequest<AddMessageRequest["params"]>,
+    res: ExpressResponse<ApiMessage>
+  ) => {
     const reqId = getRequestId(req);
     try {
       const {
@@ -114,7 +118,7 @@ export function makeAddMessageToConversationRoute({
         });
       }
 
-      const latestMessageText = message as string;
+      const latestMessageText = message;
 
       if (latestMessageText.length > MAX_INPUT_LENGTH) {
         throw makeRequestError({

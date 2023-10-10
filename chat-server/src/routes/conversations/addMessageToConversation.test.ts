@@ -4,7 +4,10 @@ import {
   MongoDB,
   assertEnvVars,
   CORE_ENV_VARS,
+  EmbeddedContentStore,
   EmbeddedContent,
+  EmbedFunc,
+  FindNearestNeighborsOptions,
 } from "chat-core";
 import {
   conversationConstants,
@@ -50,6 +53,9 @@ describe("POST /conversations/:conversationId/messages", () => {
   let mongodb: MongoDB;
   let ipAddress: string;
   let dataStreamer: ReturnType<typeof makeDataStreamer>;
+  let findNearestNeighborsOptions:
+    | Partial<FindNearestNeighborsOptions>
+    | undefined;
   let conversations: ConversationsService;
   let app: Express;
   let appConfig: AppConfig;
@@ -459,6 +465,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       const findContent = makeDefaultFindContentFunc({
         embed,
         store,
+        findNearestNeighborsOptions,
       });
       test("Should return content for relevant text", async () => {
         const query = "MongoDB Atlas";

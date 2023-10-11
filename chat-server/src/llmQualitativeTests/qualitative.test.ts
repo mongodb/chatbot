@@ -6,9 +6,10 @@ import { AppConfig, CONVERSATIONS_API_V1_PREFIX } from "../app";
 import { generateTranscript } from "./generateChatTranscript";
 import { getTestCasesFromYaml } from "./getTestCasesFromYaml";
 import "../../global.d";
-import { TestCase } from "./TestCase";
 
-const testCases = getTestCasesFromYaml("testCases.yaml") as TestCase[];
+const testCases = getTestCasesFromYaml("testCases.yaml").filter(
+  (testCase) => !testCase.skip
+);
 
 let mongodb: MongoDB;
 let app: Express;

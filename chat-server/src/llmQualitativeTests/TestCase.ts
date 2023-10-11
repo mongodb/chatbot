@@ -3,6 +3,7 @@ export interface TestCase {
   expectation: string;
   messages: TestCaseMessage[];
   tags?: string[];
+  skip?: boolean;
 }
 
 export interface TestCaseMessage {

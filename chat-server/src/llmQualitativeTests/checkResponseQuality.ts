@@ -44,7 +44,7 @@ export async function checkResponseQuality(
 
   <End of content>
 
-  Does the Content meet the  final message from the ASSISTANT in the 'CONTENT' meets the following expectation?
+  Evaluate if the final message from the ASSISTANT in the content meets this expectation:
   ${expectedOutputDescription}
   `;
 

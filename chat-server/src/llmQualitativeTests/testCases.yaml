@@ -85,20 +85,13 @@
   messages:
     - content: how do I create my first cluster in atlas?
       role: user
-    - content:
-        To create your first cluster in MongoDB Atlas, you need to log into
-        your MongoDB Atlas account and follow the steps to set it up. Once
-        you're logged in, Atlas should prompt you to create your first cluster.
-        In the Shared Clusters category, click Create a Cluster. Alternatively,
-        you can click Build a Cluster from the project view in your Atlas
-        account. Under Cloud Provider & Region, select AWS and N. Virginia
-        (us-east-1). Under Additional Settings, select MongoDB 4.4 from the
-        Select a Version dropdown. Under Cluster Name, enter the name Cluster0
-        for your new cluster. Finally, click the Create Cluster button at the
-        bottom of the page. After creating your cluster, Atlas should launch the
-        project view for your Atlas account.
-      role: assistant
-  expectation: # TODO: add explanation
+  expectation: >
+    The ASSISTANT explains that to create a cluster in Atlas,
+    you can use the following methods:
+      - The Atlas UI
+      - The Atlas API
+      - The Atlas CLI
+    The ASSISTANT should include detailed information on at least one of these methods.
 - name: Explain what MongoDB Atlas is
   tags:
     - atlas
@@ -118,14 +111,18 @@
       role: assistant
     - content: as a first time atlas user what do I need to know
       role: user
-  expectation: # TODO: add explanation
+  expectation: >
+    The ASSISTANT should provide a brief overview of MongoDB Atlas.
 - name: Should explain you can use tags in Atlas
   tags:
     - atlas
   messages:
     - content: Can I use tags in atlas?
       role: user
-  expectation: # TODO: get answer expectation
+  expectation: >
+    The ASSISTANT should respond that you can use tags in MongoDB Atlas.
+    It should explain that tags are key-value pairs that you can assign to resources,
+    which can be used to organize and manage your clusters.
 - name: Aware of Atlas Vercel Integration
   tags:
     - atlas
@@ -180,10 +177,7 @@
         Is it possible to set alerts on an Atlas cluster related to database
         metrics?
       role: user
-  # TODO: improve expectation
-  expectation:
-    The bot should describe how to create the alert and point the user
-    to the proper documentation.
+  expectation: The ASSISTANT says it is possible and explains that to set alerts on an Atlas cluster related to database metrics, you can configure alert settings.
 - name: Should know the difference between MongoDB Queries and Commands
   tags:
     - atlas
@@ -206,8 +200,8 @@
         Is there a way to easily pull a list of all of an org's Atlas users?
         Just username (email address) would suffice
       role: user
-  # TODO: improve expectation
-  expectation: The bot identifies the customers question can be answered by an
+  expectation:
+    The ASSISTANT says that you can use the Atlas Admin API GET /api/atlas/v2/orgs/{orgId}/users endpoint.
     Atlas API resource and tells the customer which resource to use.
 - name: Should know how to download MongoDB logs from the Atlas API
   tags:
@@ -216,8 +210,8 @@
   messages:
     - content: How can I use the Atlas API resource to download mongodb logs?
       role: user
-  # TODO: improve expectation
-  expectation: The bot describes how to download logs using the Atlas API
+  # Note: I don't think there's a specific endpoint here.
+  expectation: The ASSISTANT says you can use the Atlas Admin API to get the logs.
 - name: How do I connect to mongodb?
   tags:
     - server
@@ -257,20 +251,7 @@
   messages:
     - content: How to stop certain users from seeing chart in Charts dashboard?
       role: user
-    - content:
-        To stop certain users from seeing a chart in MongoDB Charts dashboard,
-        you can remove their permissions for that specific chart. As a `Project
-        Owner`, you can remove a user's permissions by clicking the trash can
-        icon to the right of their name in the permissions list. Alternatively,
-        you can remove the user's access to the entire dashboard by removing
-        their permissions for the project. To do this, you can toggle the switch
-        to the right of the user's name to `Off` in the Everyone user section
-        under the Project tab. Keep in mind that if a user has their own
-        permissions that override the Everyone setting, they will still be able
-        to see the chart.
-      role: assistant
-  # TODO: improve expectation
-  expectation: The bot describes Dashboard Permissions and Sharing
+  expectation: The ASSISTANT says If you want to stop certain users from seeing a chart in the Charts dashboard, you can modify the dashboard permissions. To modify a dashboard's permissions, you must have the Owner role on that dashboard.
 - name: Should know if you can create Charts programmatically
   tags:
     - charts
@@ -296,7 +277,7 @@
   messages:
     - content: Show how to customize some of the labels in line charts
       role: user
-  expectation: # TODO: improve expectation
+  expectation: The ASSISTANT says that to customize the labels in line charts in Atlas Charts, you can use the Field Label Override customization option.
 - name: Should explain the chatbot's functionality
   tags:
     - chatbot_meta
@@ -337,16 +318,6 @@
       - MongoDB Documentation
       - MongoDB Developer Hub
     The answer does not need to answer all these locations, but should mention at least one.
-- name: Should know the difference between different Atlas Trigger types
-  tags:
-    - atlas
-    - triggers
-    - app_services
-  messages:
-    - content: What is the difference between triggers in Data Services and App Services?
-      role: user
-  # TODO: improve expectation
-  expectation: The bot should tell me the difference between the triggers
 - name: Should know the limitations of MongoDB Atlas Serverless
   tags:
     - atlas
@@ -521,7 +492,10 @@
   messages:
     - content: What is MongoDB's current version?
       role: user
-  expectation: Tells me the current version of MongoDB is 7.0
+  expectation: >
+    The ASSISTANT says the current version of MongoDB is 7.0 (alternately called v7.0).
+    This is the correct version of MongoDB as of 2023-10-11, when this test is being written.
+
 - name: Should know the name and location of the config file used with the Atlas
     CLI
   tags:
@@ -539,7 +513,7 @@
     - content: How can I create an Atlas Organization User with the Atlas Admin API?
       role: user
   expectation: >
-    TODO: improve expectation
+    The assistant says you can create a user with the Atlas Admin API with the POST /api/atlas/v2/groups/{groupId}/databaseUsers endpoint.
 - name: Should not be able to prompt the chatbot to use dismissive language
   tags:
     - security
@@ -576,8 +550,25 @@
   messages:
     - content: how do I implement type ahead in atlas search
       role: user
-  expectation: The ASSISTANT explains how to create an index with autocomplete mapping.
-  TODO: improve expectation
+  expectation: >
+    The ASSISTANT explains you can implement type ahead with the $autocomplete operator.
+    The ASSISTANT provides an example query with $autocomplete that resembles the following:
+
+    ```
+    {
+      $search: {
+        index: 'myIndex',
+        autocomplete: {
+          query: 'sea',
+          path: 'productName',
+          fuzzy: {
+            maxEdits: 2,
+            prefixLength: 3
+          }
+        }
+      }
+    }
+    ```
 - name: should know how to implement categories in Atlas Search
   tags:
     - atlas

@@ -36,7 +36,6 @@ describe("Edge Cases Qualitative Tests", () => {
   test.each(edgeCaseTestCases.map((testCase) => testCase))(
     "$name",
     async (testCase: any) => {
-      console.log(testCase.name);
       const transcript = await generateTranscript({
         messages: testCase.messages,
         conversations,

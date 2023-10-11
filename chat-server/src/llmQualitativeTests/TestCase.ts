@@ -2,7 +2,7 @@ export interface TestCase {
   name: string;
   expectation: string;
   messages: TestCaseMessage[];
-  tags: string[];
+  tags?: string[];
 }
 
 export interface TestCaseMessage {

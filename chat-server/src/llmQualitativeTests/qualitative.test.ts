@@ -30,7 +30,7 @@ afterAll(async () => {
 
 describe("Edge Cases Qualitative Tests", () => {
   const edgeCaseTestCases = testCases.filter((testCase) =>
-    testCase.tags.includes("edge_case")
+    testCase.tags?.includes("edge_case")
   );
   test.each(edgeCaseTestCases.map((testCase) => testCase))(
     "$name",
@@ -49,9 +49,83 @@ describe("Edge Cases Qualitative Tests", () => {
 });
 describe("Security Qualitative Tests", () => {
   const securityTestCases = testCases.filter((testCase) =>
-    testCase.tags.includes("security")
+    testCase.tags?.includes("security")
   );
   test.each(securityTestCases.map((testCase) => testCase))(
+    "$name",
+    async (testCase: any) => {
+      const transcript = await generateTranscript({
+        messages: testCase.messages,
+        conversations,
+        app,
+        ipAddress,
+        endpoint: addMessageEndpoint,
+      });
+      await expect(transcript).toMeetChatQualityStandard(testCase.expectation);
+    }
+  );
+});
+
+describe("Atlas Qualitative Tests", () => {
+  const atlasTestCases = testCases.filter((testCase) =>
+    testCase.tags?.includes("atlas")
+  );
+  test.each(atlasTestCases.map((testCase) => testCase))(
+    "$name",
+    async (testCase: any) => {
+      const transcript = await generateTranscript({
+        messages: testCase.messages,
+        conversations,
+        app,
+        ipAddress,
+        endpoint: addMessageEndpoint,
+      });
+      await expect(transcript).toMeetChatQualityStandard(testCase.expectation);
+    }
+  );
+});
+describe("Drivers Qualitative Tests", () => {
+  const driversTestCases = testCases.filter((testCase) =>
+    testCase.tags?.includes("drivers")
+  );
+  test.each(driversTestCases.map((testCase) => testCase))(
+    "$name",
+    async (testCase: any) => {
+      const transcript = await generateTranscript({
+        messages: testCase.messages,
+        conversations,
+        app,
+        ipAddress,
+        endpoint: addMessageEndpoint,
+      });
+      await expect(transcript).toMeetChatQualityStandard(testCase.expectation);
+    }
+  );
+});
+
+describe("Server Qualitative Tests", () => {
+  const driversTestCases = testCases.filter((testCase) =>
+    testCase.tags?.includes("server")
+  );
+  test.each(driversTestCases.map((testCase) => testCase))(
+    "$name",
+    async (testCase: any) => {
+      const transcript = await generateTranscript({
+        messages: testCase.messages,
+        conversations,
+        app,
+        ipAddress,
+        endpoint: addMessageEndpoint,
+      });
+      await expect(transcript).toMeetChatQualityStandard(testCase.expectation);
+    }
+  );
+});
+describe("Chatbot Meta Qualitative Tests", () => {
+  const driversTestCases = testCases.filter((testCase) =>
+    testCase.tags?.includes("chatbot_meta")
+  );
+  test.each(driversTestCases.map((testCase) => testCase))(
     "$name",
     async (testCase: any) => {
       const transcript = await generateTranscript({

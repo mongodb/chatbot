@@ -1,15 +1,14 @@
 import { css } from "@emotion/css";
-
 import LeafyGreenProvider, {
   useDarkMode,
 } from "@leafygreen-ui/leafygreen-provider";
 import { ChatTrigger } from "@lg-chat/fixed-chat-window";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ChatbotModal } from "./ChatbotModal";
 import { UserProvider } from "./UserProvider";
 import { MessageData } from "./services/conversations";
 import { useConversation } from "./useConversation";
 import { User } from "./useUser";
-import { ChatbotModal } from "./ChatbotModal";
 
 const styles = {
   chat_trigger: css`
@@ -55,12 +54,13 @@ type InnerChatbotProps = {
   serverBaseUrl?: string;
   shouldStream?: boolean;
   suggestedPrompts?: string[];
-  welcomeMessage?: string;
+  initialMessageText?: string;
 };
 
 const WELCOME_MESSAGE =
   "Welcome to MongoDB AI Assistant. What can I help you with?";
 
+// TODO - get these from props
 const SUGGESTED_PROMPTS = [
   "How do you deploy a free cluster in Atlas?",
   "How do you import or migrate data into MongoDB Atlas?",
@@ -72,11 +72,9 @@ function InnerChatbot({
   serverBaseUrl,
   shouldStream,
   suggestedPrompts = SUGGESTED_PROMPTS,
-  welcomeMessage = WELCOME_MESSAGE,
+  initialMessageText = WELCOME_MESSAGE,
 }: InnerChatbotProps) {
   const [modalOpen, setModalOpen] = useState(false);
-  const [welcomeMessageData, setWelcomeMessageData] =
-    useState<MessageData | undefined>();
   const [inputBarValue, setInputBarValue] = useState("");
 
   const conversation = useConversation({
@@ -84,18 +82,15 @@ function InnerChatbot({
     shouldStream: shouldStream,
   });
 
-  useEffect(() => {
-    if (!conversation.conversationId || welcomeMessageData) return;
-
-    const newWelcomeMessageData = {
+  const initialMessage = useMemo(() => {
+    const data: MessageData = {
       id: crypto.randomUUID(),
       role: "assistant",
-      content: welcomeMessage,
+      content: initialMessageText,
       createdAt: new Date().toLocaleTimeString(),
-    } satisfies MessageData;
-
-    setWelcomeMessageData(newWelcomeMessageData);
-  }, [conversation.conversationId, welcomeMessageData, welcomeMessage]);
+    };
+    return data
+  }, [initialMessageText])
 
   const openModal = async () => {
     if (modalOpen) return;
@@ -129,7 +124,7 @@ function InnerChatbot({
         }}
         inputBarRef={inputBarRef}
         suggestedPrompts={suggestedPrompts}
-        initialMessage={welcomeMessageData}
+        initialMessage={initialMessage}
         conversation={conversation}
         inputText={inputBarValue}
         setInputText={setInputBarValue}

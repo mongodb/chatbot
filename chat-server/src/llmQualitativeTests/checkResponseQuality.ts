@@ -34,23 +34,19 @@ export async function checkResponseQuality(
     schemaName
   );
 
-  const promptWrapper = stripIndents`You are a quality assurance tester.
-  You must evaluate if the final message from the ASSISTANT in the 'CONTENT' meets the expectation of the 'EXPECTED_OUTPUT_DESCRIPTION'.
+  const promptWrapper = stripIndents`You are an expert quality assurance tester.
+  You must evaluate if the final message from the ASSISTANT in the 'CONTENT' meets the expectation of the <Expected Output>.
   Provide a reason why the answer doesn't meet the expectation if it doesn't.
 
-  <CONTENT>
+  <Content>
 
   ${received}
 
-  </END OF CONTENT>
+  <End of content>
 
-  <EXPECTED_OUTPUT_DESCRIPTION>
-
+  Does the Content meet the  final message from the ASSISTANT in the 'CONTENT' meets the following expectation?
   ${expectedOutputDescription}
-
-  </END OF EXPECTED_OUTPUT_DESCRIPTION>
-
-  Does the content meet the expectation?`;
+  `;
 
   const response = await translator.translate(promptWrapper);
   if (!response.success) {

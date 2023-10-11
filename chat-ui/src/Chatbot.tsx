@@ -216,7 +216,6 @@ export function Chatbot(props: ChatbotProps) {
         </div>
         <ChatbotModal
           inputBarRef={inputBarRef}
-          active={modalOpen}
           conversation={conversation}
           inputText={inputText}
           setInputText={setInputText}

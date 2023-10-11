@@ -1,7 +1,7 @@
 import { css, cx } from "@emotion/css";
 import Modal, { ModalProps } from "@leafygreen-ui/modal";
 import { palette } from "@leafygreen-ui/palette";
-import { Body, InlineCode } from "@leafygreen-ui/typography";
+import { Body, InlineCode, Link } from "@leafygreen-ui/typography";
 import { ChatWindow } from "@lg-chat/chat-window";
 import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
 import { MessageFeed } from "@lg-chat/message-feed";
@@ -11,6 +11,9 @@ import { Conversation } from "./useConversation";
 import { type StylesProps } from "./utils";
 import { MAX_INPUT_CHARACTERS } from "./constants";
 import { ErrorBanner } from "./Banner";
+import { MessageData } from "./services/conversations";
+import { DisclaimerText } from "@lg-chat/chat-disclaimer";
+import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 
 const styles = {
   chatbot_input: css`
@@ -31,6 +34,11 @@ const styles = {
     display: flex;
     flex-direction: row;
     justify-content: center;
+  `,
+  disclaimer_text: css`
+    text-align: center;
+    margin-top: 16px;
+    margin-bottom: 32px;
   `,
   modal_container: ({ darkMode }: StylesProps) => css`
     z-index: 100;
@@ -72,35 +80,46 @@ const styles = {
 };
 
 export type ChatbotModalProps = {
-  inputBarRef: React.RefObject<HTMLFormElement>;
-  active: boolean;
-  conversation: Conversation;
-  inputText: string;
-  setInputText: (text: string) => void;
-  inputTextError: string;
-  handleSubmit: (text: string) => Promise<void>;
   awaitingReply: boolean;
-  open: boolean;
-  shouldClose: ModalProps["shouldClose"];
+  conversation: Conversation;
   darkMode?: boolean;
+  handleSubmit: (text: string) => Promise<void>;
+  inputBarRef: React.RefObject<HTMLFormElement>;
+  inputText: string;
+  inputTextError: string;
+  open: boolean;
+  setInputText: (text: string) => void;
+  shouldClose: ModalProps["shouldClose"];
+  showDisclaimer?: boolean;
+  suggestedPrompts?: string[];
+  initialMessage?: MessageData;
 };
 
 export function ChatbotModal({
-  open,
-  shouldClose,
-  inputBarRef,
-  active,
-  conversation,
-  inputText,
-  setInputText,
-  inputTextError,
-  handleSubmit,
   awaitingReply,
-  darkMode,
+  conversation,
+  darkMode: propsDarkMode,
+  handleSubmit,
+  initialMessage,
+  inputBarRef,
+  inputText,
+  inputTextError,
+  open,
+  setInputText,
+  shouldClose,
+  showDisclaimer = false,
 }: ChatbotModalProps) {
+  const { darkMode } = useDarkMode(propsDarkMode);
   const isEmptyConversation = conversation.messages.length === 0;
 
+  const messages = initialMessage
+    ? [initialMessage, ...conversation.messages]
+    : conversation.messages;
+
   const ActiveInputBarId = "active-input-bar";
+
+  // TODO
+  // const promptIsTooLong = inputText.length > MAX_INPUT_CHARACTERS;
 
   return (
     <Modal
@@ -119,7 +138,8 @@ export function ChatbotModal({
         >
           {!isEmptyConversation ? (
             <MessageFeed darkMode={darkMode} className={styles.message_feed}>
-              {conversation.messages.map((message) => {
+              {showDisclaimer ? <ChatDisclaimer /> : null}
+              {messages.map((message) => {
                 const isLoading = conversation.isStreamingMessage
                   ? message.id === conversation.streamingMessage?.id &&
                     conversation.streamingMessage?.content === ""
@@ -132,6 +152,12 @@ export function ChatbotModal({
                     isLoading={isLoading}
                     showRating={message.role === "assistant" && !isLoading}
                     conversation={conversation}
+                    // TODO
+                    // suggestedPrompts={suggestedPrompts}
+                    // showSuggestedPrompts={
+                    //   idx === 0 && conversation.messages.length === 0
+                    // }
+                    // onSuggestedPromptClick={handleSubmit}
                   />
                 );
               })}
@@ -145,11 +171,14 @@ export function ChatbotModal({
             {!conversation.error ? (
               <>
                 <InputBar
+                  // TODO
+                  // inputBarHasError={promptIsTooLong()}
+                  // disableSend={awaitingReply || promptIsTooLong()}
                   hasError={inputTextError !== ""}
                   shouldRenderGradient={!inputTextError}
                   darkMode={darkMode}
                   ref={inputBarRef}
-                  disabled={active && Boolean(conversation.error?.length)}
+                  disabled={Boolean(conversation.error?.length)}
                   disableSend={awaitingReply}
                   onMessageSend={(messageContent) => {
                     const canSubmit =
@@ -208,3 +237,31 @@ function ConversationId({ conversation }: { conversation: Conversation }) {
     </div>
   ) : null;
 }
+
+function ChatDisclaimer() {
+  // TODO - Get Link tck
+  return (
+    <DisclaimerText
+      title="Terms and Policy"
+      className={styles.disclaimer_text}
+    >
+      <Body>
+        This is a generative AI Chatbot. By interacting with it, you agree to
+        MongoDB's{" "}
+        <Link
+          hideExternalIcon
+          href={"https://www.mongodb.com/legal/terms-of-use"}
+        >
+          Terms of Use
+        </Link>{" "}
+        and{" "}
+        <Link
+          hideExternalIcon
+          href={"https://www.mongodb.com/legal/acceptable-use-policy"}
+        >
+          Acceptable Use Policy.
+        </Link>
+      </Body>
+    </DisclaimerText>
+  );
+};

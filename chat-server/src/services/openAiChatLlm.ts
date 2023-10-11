@@ -128,6 +128,14 @@ function validateOpenAiConversation(
   }
 }
 
+// API CHAT
+export interface LlmFunction {
+  definition: FunctionDefinition;
+  function: (params: unknown) => unknown;
+  dynamic?: boolean;
+  name: string;
+}
+
 function makeApiChat(
   openAiClient: OpenAIClient,
   deploymentName: string,
@@ -181,7 +189,13 @@ Do this when a user wants to perform a new action from the action
       query: string,
       messages: OpenAiChatMessage[],
       availableFunctions: LlmFunction[],
-      options: GetChatCompletionsOptions
+      options: GetChatCompletionsOptions,
+      requestApiFunc: (
+        pathParams: Record<string, unknown>,
+        queryParams: Record<string, unknown>,
+        body: Record<string, unknown>,
+        action: string
+      ) => unknown
     ) {
       const functions = availableFunctions.map((f) => f.definition);
       const newMessages = [
@@ -228,6 +242,7 @@ Do this when a user wants to perform a new action from the action
           functionToCall &&
           functionToCall.name === "find_api_spec_action"
         ) {
+          // TODO: refactor this to have a function makeLlmFunction() that creates the LlmFunction based on the arguments
           const apiSpecAction = functionToCall.function(
             choice.message.functionCall.arguments
           );
@@ -248,6 +263,9 @@ Do this when a user wants to perform a new action from the action
   };
 }
 
+// TODO
+function makeLlmFunction() {}
+
 function makeSystemPrompt(
   baseSystemPrompt: string,
   currentFunctions: LlmFunction[]
@@ -265,9 +283,46 @@ function makeSystemPrompt(
   } else return baseSystemPrompt;
 }
 
-export interface LlmFunction {
-  definition: FunctionDefinition;
-  function: (params: unknown) => unknown;
-  dynamic?: boolean;
+// Data Models
+
+export interface ApiPage {
+  /**
+    API spec
+   */
+  spec: Record<string, unknown>;
   name: string;
+  url: string;
+}
+
+/**
+  Type for what we store in the DB
+ */
+export interface ApiEmbeddedContent {
+  /**
+    definition of the endpoint from the API spec
+   */
+  definition: OpenApiEndpointDefinition;
+  /**
+    Function description from the API spec + metadata as frontmatter
+   */
+  embedding_text: string;
+  /**
+    Vector representation of the embedding_text.
+   */
+  embedding: number[];
+  /**
+    The API spec action name
+   */
+  action_name: string;
+  /**
+    Metadata. Used in the embedding text and also could be used for search.
+   */
+  metadata: Record<string, unknown>;
+}
+
+/**
+  Helper type for the OpenAPI endpoint definition...can probably find a type definition from a package for this.
+ */
+interface OpenApiEndpointDefinition {
+  // TODO
 }

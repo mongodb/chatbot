@@ -1,7 +1,7 @@
 import { css, cx } from "@emotion/css";
 import Modal, { ModalProps } from "@leafygreen-ui/modal";
 import { palette } from "@leafygreen-ui/palette";
-import { Body, InlineCode, Link } from "@leafygreen-ui/typography";
+import { Body, InlineCode } from "@leafygreen-ui/typography";
 import { ChatWindow } from "@lg-chat/chat-window";
 import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
 import { MessageFeed } from "@lg-chat/message-feed";

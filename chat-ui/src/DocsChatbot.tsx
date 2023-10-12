@@ -32,13 +32,6 @@ const styles = {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    margin-top: 1rem;
-  `,
-  chatbot_input_area: css`
-    padding-left: 32px;
-    padding-right: 32px;
-    padding-top: 0.5rem;
-    padding-bottom: 1rem;
   `,
   powered_by_footer: css`
     display: flex;
@@ -77,7 +70,7 @@ export function DocsChatbot(props: InnerChatbotProps) {
 
   return (
     <div className={styles.chatbot_container}>
-      <div className={styles.chatbot_input_area}>
+      <div className={styles.chatbot_input}>
         <InputBar
           key={"initialInput"}
           hasError={showInitialInputErrorState}
@@ -132,7 +125,7 @@ export function DocsChatbot(props: InnerChatbotProps) {
           }}
         >
           {showSuggestedPrompts ? (
-            <SuggestedPrompts>
+            <SuggestedPrompts label="SUGGESTED AI PROMPTS">
               {suggestedPrompts?.map((suggestedPrompt) => (
                 <SuggestedPrompt
                   key={suggestedPrompt}

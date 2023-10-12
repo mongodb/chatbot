@@ -1,7 +1,6 @@
 import LeafyGreenProvider, {
   useDarkMode,
 } from "@leafygreen-ui/leafygreen-provider";
-import { DocsChatbot } from "./DocsChatbot";
 import { UserProvider } from "./UserProvider";
 import { ChatbotData, useChatbot } from "./useChatbot";
 import { LinkDataProvider } from "./useLinkData";

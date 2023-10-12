@@ -5,7 +5,7 @@ import { ConversationsService } from "../services/conversations";
 import { AppConfig, CONVERSATIONS_API_V1_PREFIX } from "../app";
 import { generateTranscript } from "./generateChatTranscript";
 import { getTestCasesFromYaml } from "./getTestCasesFromYaml";
-import "../../global.d";
+import "../../global.d.ts";
 
 const testCases = getTestCasesFromYaml("testCases.yaml").filter(
   (testCase) => !testCase.skip
@@ -121,9 +121,69 @@ describe("Server Qualitative Tests", () => {
     }
   );
 });
+describe("Compass Qualitative Tests", () => {
+  const driversTestCases = testCases.filter((testCase) =>
+    testCase.tags?.includes("compass")
+  );
+  test.each(driversTestCases.map((testCase) => testCase))(
+    "$name",
+    async (testCase: any) => {
+      const transcript = await generateTranscript({
+        messages: testCase.messages,
+        conversations,
+        app,
+        ipAddress,
+        endpoint: addMessageEndpoint,
+      });
+      await expect(transcript).toMeetChatQualityStandard(testCase.expectation);
+    }
+  );
+});
 describe("Chatbot Meta Qualitative Tests", () => {
   const driversTestCases = testCases.filter((testCase) =>
-    testCase.tags?.includes("chatbot_meta")
+    testCase.tags?.includes("meta")
+  );
+  test.each(driversTestCases.map((testCase) => testCase))(
+    "$name",
+    async (testCase: any) => {
+      const transcript = await generateTranscript({
+        messages: testCase.messages,
+        conversations,
+        app,
+        ipAddress,
+        endpoint: addMessageEndpoint,
+      });
+      await expect(transcript).toMeetChatQualityStandard(testCase.expectation);
+    }
+  );
+});
+
+describe("MongoDB Company Qualitative Tests", () => {
+  const driversTestCases = testCases.filter((testCase) =>
+    testCase.tags?.includes("company")
+  );
+  test.each(driversTestCases.map((testCase) => testCase))(
+    "$name",
+    async (testCase: any) => {
+      const transcript = await generateTranscript({
+        messages: testCase.messages,
+        conversations,
+        app,
+        ipAddress,
+        endpoint: addMessageEndpoint,
+      });
+      await expect(transcript).toMeetChatQualityStandard(testCase.expectation);
+    }
+  );
+});
+
+// This only runs the top search queries when the env var RUN_TOP is set.
+// We do not want to run these tests every time because they overlap other tests.
+// (i.e a top search query is also a atlas, server, etc. question)
+const _runTop = process.env.RUN_TOP ? describe.only : describe.skip;
+_runTop("Top Search Results Qualitative Tests", () => {
+  const driversTestCases = testCases.filter((testCase) =>
+    testCase.tags?.includes("top_query")
   );
   test.each(driversTestCases.map((testCase) => testCase))(
     "$name",

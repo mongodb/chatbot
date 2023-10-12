@@ -1,7 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
 
 export { Chatbot as default } from "./Chatbot";
-export { Chatbot as DevCenterChatbot } from "./DevCenterChatbot";
+export { DocsChatbot } from "./DocsChatbot";
+export { DevCenterChatbot } from "./DevCenterChatbot";
 export {
   useConversation,
   type ConversationState,

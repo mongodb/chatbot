@@ -68,10 +68,13 @@ export interface StylesProps {
  * @param params - An object of params to add that maps param keys to values.
  * @returns - The url with the query params added
  */
-export function addQueryParams(url: string, params: Record<string, string | undefined>) {
+export function addQueryParams(
+  url: string,
+  params: Record<string, string | undefined>
+) {
   const urlObj = new URL(url);
   for (const [key, value] of Object.entries(params)) {
-    if(value) {
+    if (value) {
       urlObj.searchParams.append(key, value);
     }
   }

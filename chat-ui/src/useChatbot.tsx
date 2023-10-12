@@ -1,16 +1,6 @@
-import { css } from "@emotion/css";
-import LeafyGreenProvider, {
-  useDarkMode,
-} from "@leafygreen-ui/leafygreen-provider";
-import { palette } from "@leafygreen-ui/palette";
-import { Body, Error as ErrorText, Link } from "@leafygreen-ui/typography";
 import { useRef, useState } from "react";
-import { InputBar, SuggestedPrompt, SuggestedPrompts } from "./InputBar";
 import { MAX_INPUT_CHARACTERS } from "./constants";
 import { useConversation } from "./useConversation";
-import { addQueryParams } from "./utils";
-import { ChatbotModal } from "./ChatbotModal";
-import { LinkDataProvider, useLinkData } from "./useLinkData";
 
 export type UseChatbotProps = {
   serverBaseUrl?: string;
@@ -18,7 +8,20 @@ export type UseChatbotProps = {
   suggestedPrompts?: string[];
 };
 
-export function useChatbot(props: UseChatbotProps) {
+export type ChatbotData = {
+  awaitingReply: boolean;
+  closeChat: () => boolean;
+  conversation: ReturnType<typeof useConversation>;
+  handleSubmit: (text: string) => void | Promise<void>;
+  inputBarRef: React.RefObject<HTMLFormElement>;
+  inputText: string;
+  inputTextError: string;
+  open: boolean;
+  openChat: () => void;
+  setInputText: (text: string) => void;
+};
+
+export function useChatbot(props: UseChatbotProps): ChatbotData {
   const conversation = useConversation({
     serverBaseUrl: props.serverBaseUrl,
     shouldStream: props.shouldStream,
@@ -39,6 +42,7 @@ export function useChatbot(props: UseChatbotProps) {
 
   function closeChat() {
     setOpen(false);
+    return true;
   }
 
   const [inputData, setInputData] = useState({
@@ -80,7 +84,7 @@ export function useChatbot(props: UseChatbotProps) {
     } finally {
       setAwaitingReply(false);
     }
-  };
+  }
 
   return {
     awaitingReply,

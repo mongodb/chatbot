@@ -118,9 +118,6 @@ export function ChatbotModal({
 
   const ActiveInputBarId = "active-input-bar";
 
-  // TODO
-  // const promptIsTooLong = inputText.length > MAX_INPUT_CHARACTERS;
-
   return (
     <Modal
       className={styles.modal_container({ darkMode })}

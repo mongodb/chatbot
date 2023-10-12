@@ -9,6 +9,8 @@ import { UserProvider } from "./UserProvider";
 import { MessageData } from "./services/conversations";
 import { useConversation } from "./useConversation";
 import { User } from "./useUser";
+import { MAX_INPUT_CHARACTERS } from "./constants";
+import { LinkDataProvider } from "./useLinkData";
 
 const styles = {
   chat_trigger: css`
@@ -29,23 +31,27 @@ const styles = {
 
 export type ChatbotProps = {
   darkMode?: boolean;
+  initialMessageText?: string;
   serverBaseUrl?: string;
   shouldStream?: boolean;
   suggestedPrompts?: string[];
-  startingMessage?: string;
   user?: User;
+  tck?: string;
 };
 
 export function Chatbot(props: ChatbotProps) {
   const { user, darkMode: propsDarkMode, ...innerChatbotProps } = props;
   const { darkMode } = useDarkMode(propsDarkMode);
 
-  // TODO: Use ConversationProvider
+  const tck = props.tck ?? "devcenter_chatbot";
+
   return (
     <LeafyGreenProvider darkMode={darkMode}>
-      <UserProvider user={user}>
-        <InnerChatbot {...innerChatbotProps} />
-      </UserProvider>
+      <LinkDataProvider tck={tck}>
+        <UserProvider user={user}>
+          <InnerChatbot {...innerChatbotProps} />
+        </UserProvider>
+      </LinkDataProvider>
     </LeafyGreenProvider>
   );
 }
@@ -106,6 +112,22 @@ function InnerChatbot({
     setModalOpen(false);
   };
 
+  const [inputData, setInputData] = useState({
+    text: "",
+    error: "",
+  });
+  const inputText = inputData.text;
+  const inputTextError = inputData.error;
+  function setInputText(text: string) {
+    const isValid = text.length <= MAX_INPUT_CHARACTERS;
+    setInputData({
+      text,
+      error: isValid
+        ? ""
+        : `Input must be less than ${MAX_INPUT_CHARACTERS} characters`,
+    });
+  }
+
   const inputBarRef = useRef<HTMLFormElement>(null);
 
   return (
@@ -126,9 +148,9 @@ function InnerChatbot({
         suggestedPrompts={suggestedPrompts}
         initialMessage={initialMessage}
         conversation={conversation}
-        inputText={inputBarValue}
-        setInputText={setInputBarValue}
-        inputTextError={""}
+        inputText={inputText}
+        setInputText={setInputText}
+        inputTextError={inputTextError}
         handleSubmit={async () => {
           return;
         }}

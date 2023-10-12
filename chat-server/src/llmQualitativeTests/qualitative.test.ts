@@ -6,6 +6,7 @@ import { AppConfig, CONVERSATIONS_API_V1_PREFIX } from "../app";
 import { generateTranscript } from "./generateChatTranscript";
 import { getTestCasesFromYaml } from "./getTestCasesFromYaml";
 import "../../global.d.ts";
+import { TestCase } from "./TestCase";
 
 const testCases = getTestCasesFromYaml("testCases.yaml").filter(
   (testCase) => !testCase.skip
@@ -35,7 +36,7 @@ describe("Edge Cases Qualitative Tests", () => {
   );
   test.each(edgeCaseTestCases.map((testCase) => testCase))(
     "$name",
-    async (testCase: any) => {
+    async (testCase: TestCase) => {
       const transcript = await generateTranscript({
         messages: testCase.messages,
         conversations,
@@ -53,7 +54,7 @@ describe("Security Qualitative Tests", () => {
   );
   test.each(securityTestCases.map((testCase) => testCase))(
     "$name",
-    async (testCase: any) => {
+    async (testCase: TestCase) => {
       const transcript = await generateTranscript({
         messages: testCase.messages,
         conversations,
@@ -72,7 +73,7 @@ describe("Atlas Qualitative Tests", () => {
   );
   test.each(atlasTestCases.map((testCase) => testCase))(
     "$name",
-    async (testCase: any) => {
+    async (testCase: TestCase) => {
       const transcript = await generateTranscript({
         messages: testCase.messages,
         conversations,
@@ -90,7 +91,7 @@ describe("Drivers Qualitative Tests", () => {
   );
   test.each(driversTestCases.map((testCase) => testCase))(
     "$name",
-    async (testCase: any) => {
+    async (testCase: TestCase) => {
       const transcript = await generateTranscript({
         messages: testCase.messages,
         conversations,
@@ -127,7 +128,7 @@ describe("Compass Qualitative Tests", () => {
   );
   test.each(driversTestCases.map((testCase) => testCase))(
     "$name",
-    async (testCase: any) => {
+    async (testCase: TestCase) => {
       const transcript = await generateTranscript({
         messages: testCase.messages,
         conversations,
@@ -145,7 +146,7 @@ describe("Chatbot Meta Qualitative Tests", () => {
   );
   test.each(driversTestCases.map((testCase) => testCase))(
     "$name",
-    async (testCase: any) => {
+    async (testCase: TestCase) => {
       const transcript = await generateTranscript({
         messages: testCase.messages,
         conversations,
@@ -164,7 +165,7 @@ describe("MongoDB Company Qualitative Tests", () => {
   );
   test.each(driversTestCases.map((testCase) => testCase))(
     "$name",
-    async (testCase: any) => {
+    async (testCase: TestCase) => {
       const transcript = await generateTranscript({
         messages: testCase.messages,
         conversations,
@@ -187,7 +188,7 @@ _runTop("Top Search Results Qualitative Tests", () => {
   );
   test.each(driversTestCases.map((testCase) => testCase))(
     "$name",
-    async (testCase: any) => {
+    async (testCase: TestCase) => {
       const transcript = await generateTranscript({
         messages: testCase.messages,
         conversations,

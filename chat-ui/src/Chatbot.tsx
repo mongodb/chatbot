@@ -3,7 +3,7 @@ import LeafyGreenProvider, {
 } from "@leafygreen-ui/leafygreen-provider";
 import { UserProvider } from "./UserProvider";
 import { ChatbotData, useChatbot } from "./useChatbot";
-import { LinkDataProvider } from "./useLinkData";
+import { LinkDataProvider } from "./LinkDataProvider";
 import { type User } from "./useUser";
 import { cloneElement, isValidElement } from "react";
 
@@ -47,6 +47,8 @@ export function Chatbot({
   } satisfies InnerChatbotProps;
 
   // Clone the child element with the correct props
+  // TODO - maybe we can use context to pass these props instead of cloning?
+  // e.g. <InnerChatbotProvider value={innerChatbotProps}>{children}</InnerChatbotProvider>
   if (!isValidElement(children)) {
     throw new Error("Expected 'children' to be a single React element.");
   }

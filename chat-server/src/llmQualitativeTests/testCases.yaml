@@ -68,7 +68,7 @@
       - You can do this by clicking on your desired organization from the Organization menu, then clicking on Billing in the top navigation bar or in the side bar.
 - name: Should show how to use Node.js driver transaction with additional options
   tags:
-    - drivers
+    - driver
     - javascript
   messages:
     - content: How can I make an acid transaction using the nodejs driver? The
@@ -223,7 +223,7 @@
     the mongo shell, MongoDB Compass, and the MongoDB drivers.
 - name: Should explain how to connect to MongoDB Atlas from the Node.js driver
   tags:
-    - drivers
+    - driver
     - javascript
   messages:
     - content: Can you walk me through connecting to atlas on the node driver?
@@ -381,7 +381,7 @@
     ```
 - name: Should know how to create a MongoClient with Pymongo
   tags:
-    - drivers
+    - driver
     - python
   messages:
     - content: Show me how to create a MongoClient object in Python
@@ -895,7 +895,7 @@
     ```
   tags:
     - top_query
-    - drivers
+    - driver
     - javascript
 - name: Should know that you can use a collation to sort Cyrillic characters
   messages:
@@ -1077,7 +1077,7 @@
     - atlas
     - atlas_search
     - csharp
-    - drivers
+    - driver
 - name: Should formulate a typseafe update pipeline against a poco in C# driver syntax for a high context prompt
   messages:
     - content: How do I update a document in C# using POCOs?
@@ -1085,100 +1085,109 @@
   expectation: The ASSISTANT says you can use the UpdateOneASync or UpdateOne methods of the IMongoCollection interface to update a document in C# using POCOs.
   tags:
     - csharp
-    - drivers
-# TODO: resume here
-- name: how can I connect mongodb with apache spark
+    - driver
+- name: Should know how to connect to MongoDB with Apache Spark
   messages:
     - content: how can I connect mongodb with apache spark
       role: user
-  expectation: Sample code showing how to use apache spark with MongoDB
+  expectation: >
+    The ASSISTANT says you can connect with the MongoDB Connector for Apache Spark.
+    The ASSISTANT provides a code example for connecting to MongoDB with Apache Spark.
   tags:
     - apache_spark
     - spark_connector
-- name: "The chatbot should be able to answer a specific serialization question in the C# driver formulated in high context question "
+- name: "Should be able to answer a specific serialization question in the C# driver formulated in high context question "
   messages:
     - content: How do I serialize a GUID with C#
       role: user
-  expectation: "Configure:\r
+  expectation: >
+    The Assistant should have a code example that resembles the following:
 
-    \r
+    BsonDefaults.GuidRepresentationMode = GuidRepresentationMode.V3;
 
-    BsonDefaults.GuidRepresentationMode = GuidRepresentationMode.V3; \r
+    If most of your GUIDs use the same representation, you can register a GuidSerializer globally. To create and register a GuidSerializer, run the following code early in your application, such as during the bootstrapping phase:
 
-    \r
-
-    If most of your GUIDs use the same representation, you can register a GuidSerializer globally. To create and register a GuidSerializer, run the following code early in your application, such as during the bootstrapping phase:\r
-
-    \r
-
-    BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));\r\n"
+    BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
   tags:
     - csharp
-    - drivers
+    - driver
 - name: publish.full.document.only
   messages:
     - content: publish.full.document.only
       role: user
-  expectation: An explanation on how to use publish.full.document.only, and what it accomplishes
+  expectation: >
+    The ASSISTANT says that the publish.full.document.only option is a boolean that specifies whether the change stream should include both a delta describing the changes to the document and the entire contents of the document that was changed when using the MongoDB Kafka connector.
   tags:
-    - server
-- name: "Intro Concepts: How do I keep my data synched between cloud and mobile"
+    - kafka_connector
+- name: "Should direct reads to Device Sync to keep data synched between cloud and mobile"
   messages:
     - content: How do I keep my data synched between cloud and mobile
       role: user
-  expectation: Outline Atlas sync capabilities
+  expectation: The ASSISTANT says you can use Atlas Device Sync to snc data between clients and MongoDB Atlas.
   tags:
     - device_sync
     - app_services
     - atlas
-- name: "Intro Concepts: How do I insert documents into a collection"
+- name: Should know how to insert documents into a collection
   messages:
     - content: How do I insert documents into a collection
       role: user
-  expectation: "showcase methods in compass and the shell "
+  expectation: The ASSISTANT says you can use the insertOne() or insertMany() methods to insert documents into a collection.
   tags:
     - server
 - name: "Should return relevant and accurate results for the query: create collection"
-  messages: []
-  expectation: "The description was good, but it didn't have any steps. "
+  messages:
+    - content: create collection
+      role: user
+  expectation: The ASSISTANT says you can use the db.createCollection() method to create a collection in MongoDB.
   tags:
     - top_query
     - server
-- name: "Should return relevant and accurate results for the query: where"
-  messages: []
-  expectation: It didn't recognize that I might be asking about WHERE, which is an SQL and other languages query type. All the links were the same as for my other queries for this test run and all were irrelevant.
-  tags:
-    - top_query
-    - server
-- name: how does atlas search do tiebreakers?
-  messages: []
-  expectation: explain how tiebreaks work in atlas search and where i can configure them
+- name: Should know how Atlas Search does tiebreakers
+  messages:
+    - content: how does atlas search do tiebreakers?
+      role: user
+  expectation: The ASSISTANT says that you can use the $sort stage to sort documents that have the same score.
   tags:
     - atlas
     - atlas_search
-- name: "What's the difference between MongoDB Atlas and MongoDB Ops Manager and MongoDB Cloud Manager? "
-  messages: []
-  expectation: To break down the core differences between the platform
+- name: Should know the difference between MongoDB Atlas and MongoDB Ops Manager and MongoDB Cloud Manager
+  messages:
+    - content: What is the difference between MongoDB Atlas and MongoDB Ops Manager and MongoDB Cloud Manager?
+      role: user
+  expectation: >
+    The ASSISTANT should explain the core differences between MongoDB Atlas and MongoDB Ops Manager and MongoDB Cloud Manager.
+
+    The response should mention:
+      - MongoDB Atlas: managed cloud database
+      - MongoDB Cloud Manager: semi-managed cloud database with manual set up
+      - MongoDB Ops Manager: on-premises database management
   tags:
     - atlas
-- name: How can I migrate my MongoDB Enterprise to MongoDB Atlas?
-  messages: []
-  expectation: Expected to talk about Live Migrate
+- name: Should know to use Live Migrate to migrate MongoDB Enterprise to MongoDB Atlas
+  messages:
+    - content: How do I migrate MongoDB Enterprise to MongoDB Atlas?
+      role: user
+  expectation: The ASSISTANT says you can use Live Migrate to migrate MongoDB Enterprise to MongoDB Atlas.
   tags:
     - atlas
-- name: which MongoDB versions are supported on Atlas?
-  messages: []
-  expectation: Expected to list different versions
+    - live_migrate
+- name: Should know which MongoDB versions are supported on Atlas
+  messages:
+    - content: What versions of MongoDB are supported on Atlas?
+      role: user
+  expectation: The ASSISTANT says that MongoDB 4.4, 5.0, 6.0, 7.0, and latest version are supported on Atlas.
   tags:
     - atlas
     - versions
-- name: how to create a 3.6 cluster on Atlas?
-  messages: []
-  expectation: Saying that I can't and listing supported versions
+- name: Should know you cannot create a MongoDB Atlas cluster with a version that is not supported
+  messages:
+    - content: can i create a 3.6 cluster on atlas?
+      role: user
+  expectation: The ASSISTANT says that you cannot create a MongoDB Atlas cluster with a version 3.6.
   tags:
     - atlas
     - versions
-# TODO: END_HERE
 - name: Should know that you can pay with PayPal
   messages:
     - content: Can I pay for atlas with paypal?

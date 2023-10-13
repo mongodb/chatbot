@@ -87,7 +87,7 @@ describe("Atlas Qualitative Tests", () => {
 });
 describe("Drivers Qualitative Tests", () => {
   const driversTestCases = testCases.filter((testCase) =>
-    testCase.tags?.includes("drivers")
+    testCase.tags?.includes("driver")
   );
   test.each(driversTestCases.map((testCase) => testCase))(
     "$name",

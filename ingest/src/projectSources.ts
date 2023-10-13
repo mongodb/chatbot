@@ -104,6 +104,12 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
   },
   {
     type: "snooty",
+    name: "entity-framework",
+    tags: ["docs", "driver", "csharp", "entity-framework"],
+    productName: "MongoDB Entity Framework Provider",
+  },
+  {
+    type: "snooty",
     name: "datalake",
     tags: ["datalake", "docs", "atlas"],
     productName: "Atlas Data Lake",
@@ -219,6 +225,12 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
     name: "visual-studio-extension",
     tags: ["docs", "visual-studio-extension", "visual-studio", "gui"],
     productName: "MongoDB Visual Studio Extension",
+  },
+  {
+    type: "snooty",
+    name: "rust",
+    tags: ["docs", "driver", "rust"],
+    productName: "Rust Driver",
   },
 ];
 

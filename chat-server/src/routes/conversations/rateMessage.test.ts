@@ -1,7 +1,6 @@
 import { strict as assert } from "assert";
 import request from "supertest";
 import "dotenv/config";
-import { MongoDB } from "chat-core";
 import {
   Conversation,
   Message,
@@ -9,7 +8,7 @@ import {
   ConversationsService,
 } from "../../services/conversations";
 import { Express } from "express";
-import { ObjectId } from "mongodb";
+import { Db, MongoClient, ObjectId } from "mongodb";
 import { makeRateMessageRoute } from "./rateMessage";
 import { CONVERSATIONS_API_V1_PREFIX } from "../../app";
 import { makeTestApp } from "../../testHelpers";
@@ -25,12 +24,13 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
   let conversation: Conversation;
   let testMsg: Message;
   let testEndpointUrl: string;
-  let mongodb: MongoDB;
+  let mongodb: Db;
+  let mongoClient: MongoClient;
   let ipAddress: string;
   let appConfig: AppConfig;
 
   beforeAll(async () => {
-    ({ mongodb, app, ipAddress, appConfig } = await makeTestApp());
+    ({ mongodb, mongoClient, app, ipAddress, appConfig } = await makeTestApp());
     conversations = appConfig.conversationsRouterConfig.conversations;
 
     app
@@ -48,8 +48,8 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
   });
 
   afterAll(async () => {
-    await mongodb?.db.dropDatabase();
-    await mongodb?.close();
+    await mongodb.dropDatabase();
+    await mongoClient.close();
   });
 
   test("Should return 204 for valid rating", async () => {

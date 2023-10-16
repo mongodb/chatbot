@@ -1,4 +1,4 @@
-import { MongoDB } from "chat-core";
+import { Db, MongoClient } from "mongodb";
 import { Express } from "express";
 import { makeTestApp } from "../testHelpers";
 import { ConversationsService } from "../services/conversations";
@@ -9,7 +9,8 @@ import "../../global.d";
 
 const testCases = getTestCasesFromYaml("edgeCasesTests.yaml");
 
-let mongodb: MongoDB;
+let mongodb: Db;
+let mongoClient: MongoClient;
 let app: Express;
 let appConfig: AppConfig;
 let conversations: ConversationsService;
@@ -19,12 +20,12 @@ const addMessageEndpoint =
 
 jest.setTimeout(30000);
 beforeAll(async () => {
-  ({ mongodb, app, appConfig, ipAddress } = await makeTestApp());
+  ({ mongodb, mongoClient, app, appConfig, ipAddress } = await makeTestApp());
   conversations = appConfig.conversationsRouterConfig.conversations;
 });
 afterAll(async () => {
-  await mongodb?.db.dropDatabase();
-  await mongodb?.close();
+  await mongodb.dropDatabase();
+  await mongoClient.close();
 });
 
 describe("Edge Cases Qualitative Tests", () => {

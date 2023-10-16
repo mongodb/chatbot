@@ -1,7 +1,6 @@
 import request from "supertest";
 import "dotenv/config";
 import {
-  MongoDB,
   assertEnvVars,
   CORE_ENV_VARS,
   EmbeddedContentStore,
@@ -9,11 +8,11 @@ import {
   EmbedFunc,
   FindNearestNeighborsOptions,
 } from "chat-core";
+import { MongoClient, Db } from "mongodb";
 import {
   conversationConstants,
   Conversation,
   ConversationsService,
-  Message,
   makeMongoDbConversationsService,
   AssistantMessage,
 } from "../../services/conversations";
@@ -50,7 +49,8 @@ const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
   assertEnvVars(CORE_ENV_VARS);
 jest.setTimeout(100000);
 describe("POST /conversations/:conversationId/messages", () => {
-  let mongodb: MongoDB;
+  let mongodb: Db;
+  let mongoClient: MongoClient;
   let ipAddress: string;
   let embed: EmbedFunc;
   let dataStreamer: ReturnType<typeof makeDataStreamer>;
@@ -63,15 +63,15 @@ describe("POST /conversations/:conversationId/messages", () => {
   let appConfig: AppConfig;
 
   beforeAll(async () => {
-    ({ ipAddress, mongodb, app, appConfig } = await makeTestApp());
+    ({ ipAddress, mongodb, mongoClient, app, appConfig } = await makeTestApp());
     ({
       conversationsRouterConfig: { embed, dataStreamer, store, conversations },
     } = appConfig);
   });
 
   afterAll(async () => {
-    await mongodb?.db.dropDatabase();
-    await mongodb?.close();
+    await mongodb.dropDatabase();
+    await mongoClient.close();
   });
 
   let conversationId: string;
@@ -115,7 +115,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       expect(res2.statusCode).toEqual(200);
       expect(message2.role).toBe("assistant");
       expect(message2.content).toContain("Realm");
-      const conversationInDb = await mongodb?.db
+      const conversationInDb = await mongodb
         .collection<Conversation>("conversations")
         .findOne({
           _id: new ObjectId(conversationId),
@@ -349,13 +349,15 @@ describe("POST /conversations/:conversationId/messages", () => {
       let conversationId: ObjectId,
         conversations: ConversationsService,
         app: Express;
-      let testMongo: MongoDB;
+      let testMongo: Db;
+      let testMongoClient: MongoClient;
       beforeEach(async () => {
-        const { mongodb } = makeTestAppConfig();
+        const { mongodb, mongoClient } = makeTestAppConfig();
         testMongo = mongodb;
+        testMongoClient = mongoClient;
 
         conversations = makeMongoDbConversationsService(
-          testMongo.db,
+          testMongo,
           systemPrompt
         );
         const { _id } = await conversations.create({
@@ -377,8 +379,8 @@ describe("POST /conversations/:conversationId/messages", () => {
         );
       });
       afterEach(async () => {
-        await testMongo.db.dropDatabase();
-        await testMongo.close();
+        await testMongo.dropDatabase();
+        await testMongoClient.close();
       });
       test("should respond with 200, static message, and vector search results", async () => {
         const messageThatHasSearchResults = "Why use MongoDB?";

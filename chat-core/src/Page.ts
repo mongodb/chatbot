@@ -40,7 +40,7 @@ export type PageFormat = "md" | "txt" | "openapi-yaml";
 export type PageAction = "created" | "updated" | "deleted";
 
 /**
-  Represents a page stored in the database.
+  Represents a {@link Page} stored in the database.
  */
 export type PersistedPage = Page & {
   /**
@@ -55,7 +55,7 @@ export type PersistedPage = Page & {
 };
 
 /**
-  Data store for Page objects.
+  Data store for {@link Page} objects.
  */
 export type PageStore = {
   /**

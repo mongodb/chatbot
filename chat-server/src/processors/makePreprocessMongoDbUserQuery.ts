@@ -8,7 +8,7 @@ import { updateFrontMatter } from "chat-core";
 import { Message } from "../services";
 
 /**
- OSS_TODO: add tsdoc description of this
+ Configuration for the Azure OpenAI service.
  */
 export interface AzureOpenAiServiceConfig {
   apiKey: string;
@@ -18,7 +18,15 @@ export interface AzureOpenAiServiceConfig {
 }
 
 /**
- OSS_TODO: add tsdoc description of this
+  Query preprocessor that uses the Azure OpenAI service to preprocess
+  the user query via [TypeChat](https://microsoft.github.io/TypeChat/docs/introduction/).
+
+  The query preprocessor performs the following:
+
+  - Adds metadata to the query to yield better vector search results.
+  - Transforms the query in the context of the conversation to yield better vector search results.
+  - Advises the server to not respond if the query is inappropriate.
+
  */
 export function makePreprocessMongoDbUserQuery({
   azureOpenAiServiceConfig,

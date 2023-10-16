@@ -19,20 +19,29 @@ import { logger } from "chat-core";
 import cloneDeep from "lodash.clonedeep";
 
 /**
-  Configuration for the server Express app.
-  @property conversationsRouterConfig - Configuration for the conversations router.
-  @property maxRequestTimeoutMs - Maximum time in milliseconds for a request to
-  complete before timing out. Defaults to 60000 (1 minute).
-  @property corsOptions - Configuration for CORS middleware. Defaults to allowing
-  all origins.
+  Configuration for the server Express.js app.
  */
 export interface AppConfig {
+  /**
+    Configuration for the conversations router.
+   */
   conversationsRouterConfig: ConversationsRouterParams;
+
+  /**
+    Maximum time in milliseconds for a request to complete before timing out.
+    Defaults to 60000 (1 minute).
+   */
   maxRequestTimeoutMs?: number;
+
+  /**
+    Configuration for CORS middleware. Defaults to allowing all origins.
+   */
   corsOptions?: CorsOptions;
 }
 
-// General error handler; called at usage of next() in routes
+/**
+  General error handler. Called at usage of `next()` in routes.
+*/
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   const reqId = getRequestId(req);
   const httpStatus = err.status || 500;

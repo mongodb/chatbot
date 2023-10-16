@@ -1,9 +1,10 @@
 import { OpenAiChatMessage, OpenAiMessageRole, SystemPrompt } from "./ChatLlm";
+import { QueryPreprocessorFunc } from "../processors";
 import { ObjectId, Db } from "mongodb";
 import { References } from "chat-core";
 
 /**
-  Message in the conversation as stored in the database.
+  Message in the {@link Conversation} as stored in the database.
  */
 export interface Message {
   /**
@@ -22,7 +23,7 @@ export interface Message {
   content: string;
 
   /**
-    Only used when role is "user". The preprocessed content of the message that is sent to vector search.
+    Only used when role is "user". The preprocessed content (see {@link QueryPreprocessorFunc}) of the message that is sent to vector search.
   */
   preprocessedContent?: string;
 
@@ -73,7 +74,7 @@ export interface RateMessageParams {
   rating: boolean;
 }
 /**
-  Service for managing conversations.
+  Service for managing {@link Conversation}s.
  */
 export interface ConversationsService {
   create: ({ ipAddress }: CreateConversationParams) => Promise<Conversation>;
@@ -106,7 +107,7 @@ However, here are some links that might provide some helpful information for you
 };
 
 /**
-  Create conversation service that uses MongoDB as a data store.
+  Create {@link ConversationsService} that uses MongoDB as a data store.
  */
 export function makeMongoDBConversationsService(
   database: Db,
@@ -202,7 +203,7 @@ export function makeMongoDBConversationsService(
 }
 
 /**
-  Create a `Message` object from the `OpenAiChatMessage` object.
+  Create a {@link Message} object from the {@link OpenAiChatMessage} object.
  */
 export function createMessageFromOpenAIChatMessage(
   chatMessage: OpenAiChatMessage

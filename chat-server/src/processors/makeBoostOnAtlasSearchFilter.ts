@@ -28,7 +28,7 @@ interface MakeBoostOnAtlasSearchFilterArgs {
   /**
     Determines if the booster should be used, based on the user's input.
    */
-  shouldBoostFunc: ({ text }: { text: string }) => boolean;
+  shouldBoostFunc: ({ text }: { text: string }) => Promise<boolean>;
 }
 
 /**

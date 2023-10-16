@@ -4,19 +4,18 @@ import { assertEnvVars } from "./assertEnvVars";
 import { makeOpenAiEmbedFunc } from "./OpenAiEmbedFunc";
 import { CORE_ENV_VARS } from "./CoreEnvVars";
 import express from "express";
+import { OpenAIClient, AzureKeyCredential } from "@azure/openai";
 
 describe("OpenAiEmbedFunc", () => {
-  const {
+  const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_EMBEDDING_DEPLOYMENT } =
+    assertEnvVars(CORE_ENV_VARS);
+  const openAiClient = new OpenAIClient(
     OPENAI_ENDPOINT,
-    OPENAI_API_KEY,
-    OPENAI_EMBEDDING_DEPLOYMENT,
-    OPENAI_EMBEDDING_MODEL_VERSION,
-  } = assertEnvVars(CORE_ENV_VARS);
+    new AzureKeyCredential(OPENAI_API_KEY)
+  );
   const embed = makeOpenAiEmbedFunc({
-    baseUrl: OPENAI_ENDPOINT,
-    apiKey: OPENAI_API_KEY,
-    apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
     deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+    openAiClient,
   });
   const userIp = "abc123";
 
@@ -31,9 +30,10 @@ describe("OpenAiEmbedFunc", () => {
   test("Should return an error if the input too large", async () => {
     const input = "Hello world! ".repeat(8192);
     const embed = makeOpenAiEmbedFunc({
-      baseUrl: OPENAI_ENDPOINT,
-      apiKey: OPENAI_API_KEY,
-      apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
+      openAiClient: new OpenAIClient(
+        OPENAI_ENDPOINT,
+        new AzureKeyCredential(OPENAI_API_KEY)
+      ),
       deployment: OPENAI_EMBEDDING_DEPLOYMENT,
       backoffOptions: {
         numOfAttempts: 1,
@@ -48,6 +48,7 @@ describe("OpenAiEmbedFunc", () => {
   });
 
   jest.setTimeout(20000);
+  // TODO: figure this one out better
   it("should automatically retry on failure", async () => {
     // Mock out the OpenAI endpoint to validate retry behavior
     const app = express();
@@ -61,9 +62,10 @@ describe("OpenAiEmbedFunc", () => {
     const server = app.listen(10191);
     try {
       const embed = makeOpenAiEmbedFunc({
-        baseUrl: `http://127.0.0.1:10191`,
-        apiKey: "",
-        apiVersion: "",
+        openAiClient: new OpenAIClient(
+          path,
+          new AzureKeyCredential(OPENAI_API_KEY)
+        ),
         deployment: "test",
         backoffOptions: {
           numOfAttempts: 3,

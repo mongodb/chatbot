@@ -5,12 +5,13 @@ import { logger } from "./services/logger";
 import { stripIndent } from "common-tags";
 import { CreateEmbeddingResponse } from "openai";
 import { backOff, BackoffOptions } from "exponential-backoff";
+import { OpenAIClient } from "@azure/openai";
 
 export type MakeOpenAiEmbedFuncArgs = {
   /**
-    The OpenAI API endpoint.
+    Options used for automatic retry (usually due to rate limiting).
    */
-  baseUrl: string;
+  backoffOptions?: BackoffOptions;
 
   /**
     The deployment key.
@@ -18,19 +19,9 @@ export type MakeOpenAiEmbedFuncArgs = {
   deployment: string;
 
   /**
-    The OpenAI API key.
+    The OpenAI API endpoint.
    */
-  apiKey: string;
-
-  /**
-    The OpenAI API version to use.
-   */
-  apiVersion: string;
-
-  /**
-    Options used for automatic retry (usually due to rate limiting).
-   */
-  backoffOptions?: BackoffOptions;
+  openAiClient: OpenAIClient;
 };
 
 /**
@@ -41,44 +32,21 @@ export type MakeOpenAiEmbedFuncArgs = {
   Creates an OpenAI implementation of the embedding function.
  */
 export const makeOpenAiEmbedFunc = ({
-  baseUrl,
-  deployment,
-  apiKey,
-  apiVersion,
   backoffOptions: backoffOptionsIn,
+  deployment,
+  openAiClient,
 }: MakeOpenAiEmbedFuncArgs): EmbedFunc => {
   const backoffOptions: BackoffOptions = backoffOptionsIn ?? {
     jitter: "full",
     maxDelay: 10000,
   };
 
-  const url = new URL(baseUrl);
-  url.pathname = posix.join(
-    url.pathname,
-    "openai",
-    "deployments",
-    deployment,
-    "embeddings"
-  );
-  url.searchParams.append("api-version", apiVersion);
   const DEFAULT_WAIT_SECONDS = 5;
   return async ({ text, userIp }) => {
     return backOff(
       async () => {
-        const { data } = await axios.post<CreateEmbeddingResponse>(
-          url.toString(),
-          {
-            input: text,
-            user: userIp,
-          },
-          {
-            headers: {
-              "api-key": apiKey,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        return { embedding: data.data[0].embedding };
+        const response = await openAiClient.getEmbeddings(deployment, [text]);
+        return { embedding: response.data[0].embedding };
       },
       {
         ...backoffOptions,

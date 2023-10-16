@@ -13,7 +13,7 @@ describe("POST /conversations", () => {
   let app: Express;
 
   beforeAll(async () => {
-    ({ mongodb, app } = await makeTestApp());
+    ({ mongodb, app, mongoClient } = await makeTestApp());
   });
   afterAll(async () => {
     await mongodb.dropDatabase();

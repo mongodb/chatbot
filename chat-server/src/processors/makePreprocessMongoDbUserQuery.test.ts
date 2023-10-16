@@ -3,6 +3,7 @@ import {
   CORE_ENV_VARS,
   assertEnvVars,
   AzureOpenAiServiceConfig,
+  ObjectId,
 } from "chat-core";
 import {
   addMetadataToQuery,
@@ -10,7 +11,7 @@ import {
   makePreprocessMongoDbUserQuery,
 } from "./makePreprocessMongoDbUserQuery";
 import { stripIndent } from "common-tags";
-import { QueryPreprocessorMessage } from "./QueryPreprocessorFunc";
+import { Message } from "../services";
 
 const {
   OPENAI_ENDPOINT,
@@ -26,19 +27,25 @@ const azureOpenAiServiceConfig: AzureOpenAiServiceConfig = {
   version: OPENAI_CHAT_COMPLETION_MODEL_VERSION,
 };
 
-const messages = [
+const messages: Message[] = [
   {
+    id: new ObjectId(),
     content: "system_prompt",
     role: "system",
+    createdAt: new Date(),
   },
   {
+    id: new ObjectId(),
     content: "aggregation",
     role: "user",
+    createdAt: new Date(),
   },
   {
+    id: new ObjectId(),
     content:
       "The MongoDB aggregation framework is a powerful set of tools that allows for analytics to be done on a cluster of servers without having to move the data to another platform. Aggregation operations process data in MongoDB collections based on specifications in the aggregation pipeline. The pipeline consists of one or more stages, each performing an operation based on its expression operators. After the driver executes the aggregation pipeline, it returns an aggregated result. The aggregation pipeline is a framework for data aggregation modeled on the concept of data processing pipelines. Documents enter a multi-stage pipeline that transforms the documents into aggregated results. The aggregation framework has grown since its introduction in MongoDB version 2.2 to cover over 35 different stages and over 130 different operators.",
     role: "assistant",
+    createdAt: new Date(),
   },
 ];
 const query = "code example";
@@ -70,7 +77,7 @@ describe("makePreprocessMongoDbUserQuery()", () => {
   });
   test("should ID programming languages", async () => {
     const query = "python aggregation";
-    const messages: QueryPreprocessorMessage[] = [];
+    const messages: Message[] = [];
     const response = await preprocessMongoDbUserQuery({
       query,
       messages,
@@ -80,7 +87,7 @@ describe("makePreprocessMongoDbUserQuery()", () => {
   });
   test("should ID products", async () => {
     const query = "create a chart";
-    const messages: QueryPreprocessorMessage[] = [];
+    const messages: Message[] = [];
     const response = await preprocessMongoDbUserQuery({
       query,
       messages,
@@ -90,7 +97,7 @@ describe("makePreprocessMongoDbUserQuery()", () => {
   });
   test("should be aware of MongoDB", async () => {
     const query = "node.js lookup example";
-    const messages: QueryPreprocessorMessage[] = [];
+    const messages: Message[] = [];
     const response = await preprocessMongoDbUserQuery({
       query,
       messages,
@@ -106,7 +113,7 @@ describe("makePreprocessMongoDbUserQuery()", () => {
   });
   test("should leave query undefined if the input query is gibberish", async () => {
     const query = "asdf dasgsd";
-    const messages: QueryPreprocessorMessage[] = [];
+    const messages: Message[] = [];
     const response = await preprocessMongoDbUserQuery({
       query,
       messages,
@@ -116,7 +123,7 @@ describe("makePreprocessMongoDbUserQuery()", () => {
   });
   test("should set rejectQuery to true if the query is negative toward MongoDB", async () => {
     const query = "why is MongoDB the worst database";
-    const messages: QueryPreprocessorMessage[] = [];
+    const messages: Message[] = [];
     const response = await preprocessMongoDbUserQuery({
       query,
       messages,
@@ -153,18 +160,18 @@ code example
   });
   test("should expand one word queries", () => {
     const query = "oneWord";
-    const messages: QueryPreprocessorMessage[] = [];
+    const messages: Message[] = [];
     const prompt = generateMongoDbQueryPreProcessorPrompt({ query, messages });
     expect(prompt).toContain("oneWord for MongoDB");
   });
   test("should not expand queries with multiple words", () => {
     const query = "multiple words";
-    const messages: QueryPreprocessorMessage[] = [];
+    const messages: Message[] = [];
     const prompt = generateMongoDbQueryPreProcessorPrompt({ query, messages });
     expect(prompt).not.toContain("multiple words for MongoDB");
   });
   test("should not expand queries word 'mongodb'", () => {
-    const messages: QueryPreprocessorMessage[] = [];
+    const messages: Message[] = [];
     expect(
       generateMongoDbQueryPreProcessorPrompt({
         query: "MongoDB",

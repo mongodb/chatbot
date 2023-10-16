@@ -10,11 +10,11 @@ describe("Conversations Router", () => {
   const ipAddress = "127.0.0.1";
   const addMessageEndpointUrl =
     CONVERSATIONS_API_V1_PREFIX + "/:conversationId/messages";
-  const { mongodb, appConfig } = makeTestAppConfig();
+  const { mongodb, appConfig, mongoClient } = makeTestAppConfig();
   afterAll(async () => {
     // clean up
-    await mongodb?.db.dropDatabase();
-    await mongodb?.close();
+    await mongodb.dropDatabase();
+    await mongoClient.close();
   });
 
   test("Should apply conversation router rate limit", async () => {

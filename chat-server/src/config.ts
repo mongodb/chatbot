@@ -4,7 +4,7 @@
  */
 import "dotenv/config";
 import {
-  MongoDB,
+  MongoClient,
   makeDatabaseConnection,
   makeOpenAiEmbedFunc,
 } from "chat-core";
@@ -144,14 +144,10 @@ export const embed = makeOpenAiEmbedFunc({
   },
 });
 
-export const mongodb = new MongoDB(
-  MONGODB_CONNECTION_URI,
-  MONGODB_DATABASE_NAME,
-  VECTOR_SEARCH_INDEX_NAME
-);
+export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 
 export const conversations = makeMongoDbConversationsService(
-  mongodb.db,
+  mongodb.db(MONGODB_DATABASE_NAME),
   systemPrompt
 );
 

@@ -1,4 +1,4 @@
-import { Db, MongoClient } from "mongodb";
+import { Db, MongoClient } from "chat-core";
 import { Express } from "express";
 import { makeTestApp } from "../testHelpers";
 import { ConversationsService } from "../services/conversations";

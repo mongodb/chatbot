@@ -12,7 +12,7 @@ import {
   ConversationsRouterParams,
   makeConversationsRouter,
 } from "./routes/conversations/conversationsRouter";
-import { ObjectId } from "mongodb";
+import { ObjectId } from "chat-core";
 import { getRequestId, logRequest, sendErrorResponse } from "./utils";
 import { CorsOptions } from "cors";
 import { logger } from "chat-core";

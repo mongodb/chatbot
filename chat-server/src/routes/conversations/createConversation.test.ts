@@ -1,6 +1,6 @@
 import request from "supertest";
 import "dotenv/config";
-import { Db, MongoClient } from "mongodb";
+import { Db, MongoClient } from "chat-core";
 import { Conversation } from "../../services/conversations";
 import { Express } from "express";
 import { ApiConversation } from "./utils";

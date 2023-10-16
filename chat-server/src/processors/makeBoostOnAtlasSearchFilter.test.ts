@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb";
+import { ObjectId } from "chat-core";
 import { EmbeddedContentStore } from "chat-core";
 import { makeBoostOnAtlasSearchFilter } from "./makeBoostOnAtlasSearchFilter";
 

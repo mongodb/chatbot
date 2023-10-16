@@ -1,4 +1,4 @@
-import { MongoClient } from "mongodb";
+import { MongoClient } from "chat-core";
 import { AppConfig, makeApp } from "./app";
 import { MONGODB_CONNECTION_URI, config, systemPrompt } from "./config";
 import { makeMongoDbConversationsService } from "./services/conversations";

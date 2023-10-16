@@ -8,7 +8,7 @@ import {
   ConversationsService,
 } from "../../services/conversations";
 import { Express } from "express";
-import { Db, MongoClient, ObjectId } from "mongodb";
+import { Db, MongoClient, ObjectId } from "chat-core";
 import { makeRateMessageRoute } from "./rateMessage";
 import { CONVERSATIONS_API_V1_PREFIX } from "../../app";
 import { makeTestApp } from "../../testHelpers";

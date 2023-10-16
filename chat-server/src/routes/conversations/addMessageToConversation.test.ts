@@ -8,7 +8,7 @@ import {
   EmbedFunc,
   FindNearestNeighborsOptions,
 } from "chat-core";
-import { MongoClient, Db } from "mongodb";
+import { MongoClient, Db } from "chat-core";
 import {
   conversationConstants,
   Conversation,
@@ -34,7 +34,7 @@ import { ApiConversation, ApiMessage } from "./utils";
 import { makeOpenAiChatLlm } from "../../services/openAiChatLlm";
 import { makeDataStreamer } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
-import { ObjectId } from "mongodb";
+import { ObjectId } from "chat-core";
 import { makeApp, CONVERSATIONS_API_V1_PREFIX } from "../../app";
 import { makeTestApp } from "../../testHelpers";
 import {

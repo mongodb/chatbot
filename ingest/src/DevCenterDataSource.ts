@@ -1,4 +1,4 @@
-import { MongoClient } from "mongodb";
+import { MongoClient } from "chat-core";
 import { convert } from "html-to-text";
 import { Page, assertEnvVars, logger } from "chat-core";
 import { DataSource } from "./DataSource";

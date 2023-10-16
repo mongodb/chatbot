@@ -1,6 +1,6 @@
 import { OpenAiChatMessage, OpenAiMessageRole, SystemPrompt } from "./ChatLlm";
 import { QueryPreprocessorFunc } from "../processors";
-import { ObjectId, Db } from "mongodb";
+import { ObjectId, Db } from "chat-core";
 import { References } from "chat-core";
 
 export type Message = {

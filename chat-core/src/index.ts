@@ -5,7 +5,6 @@ export * from "./EmbeddedContent";
 export * from "./OpenAiEmbedFunc";
 export * from "./Page";
 export * from "./assertEnvVars";
-export * from "./integrations/mongodb";
 export * from "./services/logger";
 export * from "./services/conversations";
 export * from "./updateFrontMatter";

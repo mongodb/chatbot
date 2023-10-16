@@ -1,4 +1,4 @@
-import { Db, MongoClient } from "mongodb";
+import { Db, MongoClient } from "chat-core";
 import { Express } from "express";
 import { AppConfig, CONVERSATIONS_API_V1_PREFIX } from "../app";
 import { ConversationsService } from "../services/conversations";

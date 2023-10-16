@@ -10,7 +10,6 @@ import { DataSource } from "./DataSource";
   Function to convert a file in the repo into a `Page` or `Page[]`.
   @param path - Path to file in repo
   @param content - Contents of file in repo
-  @param options - Options for `handlePage` function
   */
 export type HandlePageFunc = (
   path: string,

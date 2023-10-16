@@ -14,6 +14,8 @@ import {
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
 } from "./MdOnGithubDataSource";
+import { Page, extractFrontMatter } from "chat-core";
+import { removeMarkdownImagesAndLinks } from "./removeMarkdownImagesAndLinks";
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -504,6 +506,42 @@ const practicalAggregationsDataSource = async () => {
   return await makeMdOnGithubDataSource(practicalAggregationsConfig);
 };
 
+export const terraformProviderSourceConstructor = async () => {
+  const siteBaseUrl =
+    "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs";
+  return await makeGitDataSource({
+    name: "atlas-terraform-provider",
+    repoUri: "https://github.com/mongodb/terraform-provider-mongodbatlas.git",
+    repoOptions: {
+      "--depth": 1,
+      "--branch": "master",
+    },
+    metadata: {
+      productName: "mongodbatlas Terraform Provider",
+      tags: ["docs", "terraform", "atlas", "hcl"],
+    },
+    filter: (path: string) =>
+      path.includes("website/docs") &&
+      path.endsWith(".markdown") &&
+      !path.includes("website/docs/r") && // do not include the generated reference docs
+      !path.includes("website/docs/d"), // do not include the generated reference docs
+    handlePage: async function (path, content) {
+      const { metadata, body } = extractFrontMatter<{ page_title: string }>(
+        content
+      );
+      const url =
+        siteBaseUrl +
+        path.replace("website/docs/", "").replace(".markdown", "");
+      const page: Omit<Page, "sourceName"> = {
+        body: removeMarkdownImagesAndLinks(body),
+        format: "md",
+        url: url,
+        title: metadata?.page_title,
+      };
+      return page;
+    },
+  });
+};
 /**
   The constructors for the sources used by the docs chatbot.
  */
@@ -522,4 +560,5 @@ export const sourceConstructors: SourceConstructor[] = [
   javaReactiveStreamsSourceConstructor,
   scalaSourceConstructor,
   libmongocSourceConstructor,
+  terraformProviderSourceConstructor,
 ];

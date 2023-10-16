@@ -1,10 +1,17 @@
 import fs from "fs";
 import path from "path";
-import { createAzureOpenAILanguageModel, createJsonTranslator } from "typechat";
 import { MongoDbUserQueryPreprocessorResponse } from "./MongoDbUserQueryPreprocessorResponse";
-import { QueryPreprocessorFunc } from "./QueryPreprocessorFunc";
+import {
+  QueryPreprocessorFunc,
+  QueryPreprocessorMessage,
+  QueryPreprocessorResult,
+} from "./QueryPreprocessorFunc";
 import { retryAsyncOperation } from "../utils";
-import { updateFrontMatter } from "chat-core";
+import {
+  updateFrontMatter,
+  makeTypeChatJsonTranslateFunc,
+  AzureOpenAiServiceConfig,
+} from "chat-core";
 import { Message } from "../services";
 
 /**
@@ -28,6 +35,7 @@ export interface AzureOpenAiServiceConfig {
   - Advises the server to not respond if the query is inappropriate.
 
  */
+
 export function makePreprocessMongoDbUserQuery({
   azureOpenAiServiceConfig,
   numRetries = 0,
@@ -45,41 +53,33 @@ export function makePreprocessMongoDbUserQuery({
     Again this should be a low number to not delay the chatbot if the LLM is down.
    */
   retryDelayMs?: number;
-}): QueryPreprocessorFunc<MongoDbUserQueryPreprocessorResponse> {
-  const schemaPath = fs.readFileSync(
-    path.join(__dirname, "MongoDbUserQueryPreprocessorResponse.d.ts"),
+}): QueryPreprocessorFunc<
+  QueryPreprocessorResult & Partial<MongoDbUserQueryPreprocessorResponse>
+> {
+  const schemaName = "MongoDbUserQueryPreprocessorResponse";
+  const schema = fs.readFileSync(
+    path.join(__dirname, `${schemaName}.d.ts`),
     "utf8"
   );
-  const schemaName = "MongoDbUserQueryPreprocessorResponse";
-  const { apiKey, baseUrl, deployment, version } = azureOpenAiServiceConfig;
 
-  const model = createAzureOpenAILanguageModel(
-    apiKey,
-    `${baseUrl}openai/deployments/${deployment}/chat/completions?api-version=${version}`
-  );
-
-  // LLM function
-  const translator = createJsonTranslator<MongoDbUserQueryPreprocessorResponse>(
-    model,
-    schemaPath,
-    schemaName
-  );
+  const translate =
+    makeTypeChatJsonTranslateFunc<MongoDbUserQueryPreprocessorResponse>({
+      azureOpenAiServiceConfig,
+      numRetries,
+      retryDelayMs,
+      schema,
+      schemaName,
+    });
 
   return async ({ query, messages }) => {
-    const prompt = generateMongoDbQueryPreProcessorPrompt({ query, messages });
-
-    const response = await retryAsyncOperation(
-      translator.translate(prompt),
-      numRetries,
-      retryDelayMs
-    );
-
-    if (!response.success) {
-      throw new Error(response.message);
+    if (query === undefined) {
+      return { query, rejectQuery: false };
     }
+    const prompt = generateMongoDbQueryPreProcessorPrompt({ query, messages });
+    const data = await translate(prompt);
     return {
-      ...appendMetadataToPreprocessorResponse(response.data),
-      doNotAnswer: response.data.query.includes("DO_NOT_ANSWER"),
+      ...data,
+      query: addMetadataToQuery(data),
     };
   };
 }
@@ -126,12 +126,16 @@ ${query}
   return prompt;
 }
 
-export function appendMetadataToPreprocessorResponse(
-  response: MongoDbUserQueryPreprocessorResponse
-): MongoDbUserQueryPreprocessorResponse {
-  response.query = updateFrontMatter(response.query, {
-    programmingLanguages: response.programmingLanguages,
-    mongoDbProducts: response.mongoDbProducts,
-  });
-  return response;
+export function addMetadataToQuery({
+  query,
+  programmingLanguages,
+  mongoDbProducts,
+}: MongoDbUserQueryPreprocessorResponse): string | undefined {
+  return (
+    query &&
+    updateFrontMatter(query, {
+      programmingLanguages,
+      mongoDbProducts,
+    })
+  );
 }

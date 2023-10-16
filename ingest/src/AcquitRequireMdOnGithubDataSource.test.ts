@@ -12,13 +12,13 @@ const testFileLoaderOptions: Partial<GithubRepoLoaderParams> = {
   branch: "master",
   unknown: "warn",
   recursive: true,
-  ignoreFiles: [/^(?!test\/).+$/],
+  ignoreFiles: [/^(?!\/test\/).+$/, /^(?!.*\.js$).+$/],
 };
 const repoLoaderOptions: Partial<GithubRepoLoaderParams> = {
   branch: "master",
   unknown: "warn",
   recursive: true,
-  ignoreFiles: [/^(?!.*\.md$).*/i, /^(?!docs\/).+$/], // only load .md files in the /docs directory
+  ignoreFiles: [/^(?!.*\.md$).*/i, /^(?!\/docs\/).+$/], // only load .md files in the /docs directory
 };
 describe("AcquitRequireOnGithubDataSource", () => {
   it("should render a markdown file with code blocks from Acquit code blocks and markdown source", async () => {
@@ -45,6 +45,7 @@ describe("AcquitRequireOnGithubDataSource", () => {
       page.body.includes("```javascript\n")
     );
     assert(convertedPage);
+    expect(convertedPage?.metadata).toBeDefined();
     expect(convertedPage?.metadata?.arbitrary).toBe("data");
     expect(convertedPage.url.endsWith(".html")).toBe(true);
     expect(convertedPage.title).toBeTruthy();

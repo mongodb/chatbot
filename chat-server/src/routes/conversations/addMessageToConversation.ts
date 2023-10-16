@@ -180,7 +180,7 @@ export function makeAddMessageToConversationRoute({
       // (likely due to LLM timeout), then we will just use the original message.
       if (userQueryPreprocessor) {
         try {
-          const { query, doNotAnswer } = await userQueryPreprocessor({
+          const { query, rejectQuery } = await userQueryPreprocessor({
             query: latestMessageText,
             messages: conversationInDb.messages,
           });
@@ -191,10 +191,11 @@ export function makeAddMessageToConversationRoute({
               Original query: ${latestMessageText}
               Preprocessed query: ${preprocessedUserMessageContent}`,
           });
-          if (doNotAnswer) {
+          if (rejectQuery) {
             return await sendStaticNonResponse({
               conversations,
               conversationId,
+              rejectQuery,
               preprocessedUserMessageContent,
               latestMessageText,
               shouldStream,
@@ -213,16 +214,18 @@ export function makeAddMessageToConversationRoute({
         }
       }
       // Find content matches for latest message
-      let chunks: WithScore<EmbeddedContent>[];
+      let chunks: WithScore<EmbeddedContent>[] = [];
+      let embedding: number[] | undefined;
       try {
-        const { embedding, results } = await getContentForText({
+        const contentForText = await getContentForText({
           embed,
           ipAddress: ip,
           text: preprocessedUserMessageContent || latestMessageText,
           store,
           findNearestNeighborsOptions,
         });
-        chunks = results;
+        embedding = contentForText.embedding;
+        chunks = contentForText.results;
         if (searchBoosters?.length) {
           for (const booster of searchBoosters) {
             if (booster.shouldBoost({ text: latestMessageText })) {
@@ -269,7 +272,7 @@ export function makeAddMessageToConversationRoute({
           errorDetails: JSON.stringify(err),
         });
       }
-      if (!chunks || chunks.length === 0) {
+      if (chunks.length === 0) {
         logRequest({
           reqId,
           message: "No matching content found",
@@ -373,6 +376,7 @@ export function makeAddMessageToConversationRoute({
         preprocessedUserMessageContent,
         assistantMessageContent: answerContent,
         assistantMessageReferences: references,
+        userMessageEmbedding: embedding,
       });
 
       const apiRes = convertMessageFromDbToApi(assistantMessage);
@@ -416,9 +420,11 @@ export async function sendStaticNonResponse({
   shouldStream,
   dataStreamer,
   res,
+  rejectQuery,
 }: {
   conversations: ConversationsService;
   conversationId: ObjectId;
+  rejectQuery?: boolean;
   preprocessedUserMessageContent?: string;
   latestMessageText: string;
   shouldStream: boolean;
@@ -428,6 +434,7 @@ export async function sendStaticNonResponse({
   const { assistantMessage } = await addMessagesToDatabase({
     conversations,
     conversationId,
+    rejectQuery,
     preprocessedUserMessageContent: preprocessedUserMessageContent,
     originalUserMessageContent: latestMessageText,
     assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,
@@ -486,6 +493,8 @@ interface AddMessagesToDatabaseParams {
   assistantMessageContent: string;
   assistantMessageReferences: References;
   conversations: ConversationsService;
+  userMessageEmbedding?: number[];
+  rejectQuery?: boolean;
 }
 export async function addMessagesToDatabase({
   conversationId,
@@ -494,6 +503,8 @@ export async function addMessagesToDatabase({
   assistantMessageContent,
   assistantMessageReferences,
   conversations,
+  userMessageEmbedding,
+  rejectQuery,
 }: AddMessagesToDatabaseParams) {
   // TODO: consider refactoring addConversationMessage to take in an array of messages.
   // Would limit database calls.
@@ -502,6 +513,8 @@ export async function addMessagesToDatabase({
     content: originalUserMessageContent,
     preprocessedContent: preprocessedUserMessageContent,
     role: "user",
+    embedding: userMessageEmbedding,
+    rejectQuery,
   });
   const assistantMessage = await conversations.addConversationMessage({
     conversationId,

@@ -1,12 +1,12 @@
 {
   "name": "root",
+  "license": "Apache-2.0",
   "private": true,
   "workspaces": [
     "chat-core",
     "chat-server",
     "chat-ui",
     "ingest",
-    "seed-content",
     "scripts",
     "performance-tests"
   ],

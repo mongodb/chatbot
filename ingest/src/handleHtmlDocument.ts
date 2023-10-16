@@ -2,11 +2,10 @@ import { Page, PageMetadata, logger } from "chat-core";
 import TurndownService from "turndown";
 import * as turndownPluginGfm from "turndown-plugin-gfm";
 import { JSDOM } from "jsdom";
-import { HandlePageFuncOptions } from "./GitDataSource";
 import { removeMarkdownImagesAndLinks } from "./removeMarkdownImagesAndLinks";
 import fs from "fs";
 
-export type HandleHtmlPageFuncOptions = HandlePageFuncOptions & {
+export type HandleHtmlPageFuncOptions = {
   /** Returns an array of DOM elements to be removed from the parsed document. */
   removeElements: (domDoc: Document) => Element[];
 
@@ -41,7 +40,6 @@ export async function handleHtmlDocument(
     removeElements,
     metadata,
     pathToPageUrl,
-    sourceName,
     postProcessMarkdown,
   } = options;
 
@@ -83,8 +81,7 @@ export async function handleHtmlDocument(
 
   let body = turndownService.turndown(domDocument.body);
   body = postProcessMarkdown ? await postProcessMarkdown(body) : body;
-  const page: Page = {
-    sourceName,
+  const page: Omit<Page, "sourceName"> = {
     format: "md",
     title,
     body,

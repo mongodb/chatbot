@@ -8,6 +8,7 @@ import { Chatbot } from "./Chatbot";
 import { canUseServerSentEvents } from "./utils";
 import { Overline, Link } from "@leafygreen-ui/typography";
 import Toggle from "@leafygreen-ui/toggle";
+import { Chatbot as DevCenterChatbot } from "./DevCenterChatbot";
 
 const prefersDarkMode = () =>
   window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
@@ -36,6 +37,7 @@ function App() {
           ]}
         />
       </div>
+      <DevCenterChatbot />
       <Controls>
         <ToggleControl
           checked={shouldStream}

@@ -27,8 +27,8 @@ import { MessageFeed } from "@lg-chat/message-feed";
 import { MessageRatingProps } from "@lg-chat/message-rating";
 import { Role } from "./services/conversations";
 import { palette } from "@leafygreen-ui/palette";
-import { css } from "@emotion/css";
-import { type StylesProps } from "./utils";
+import { css, cx } from "@emotion/css";
+import { addQueryParams, type StylesProps } from "./utils";
 import LeafyGreenProvider, {
   useDarkModeContext,
 } from "@leafygreen-ui/leafygreen-provider";
@@ -49,25 +49,19 @@ const styles = {
       box-sizing: border-box;
     }
   }`,
-  chatbot_input_area: css`
+  chatbot_input: css`
     position: relative;
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
     margin-top: 1rem;
+  `,
+  chatbot_input_area: css`
     padding-left: 32px;
     padding-right: 32px;
     padding-top: 0.5rem;
     padding-bottom: 1rem;
-  `,
-  chatbot_input_error_border: css`
-    > div {
-      > div {
-        border-color: ${palette.red.base} !important;
-        border-width: 2px !important;
-      }
-    }
   `,
   conversation_id_info: css`
     display: flex;
@@ -180,6 +174,7 @@ export type ChatbotProps = {
   shouldStream?: boolean;
   darkMode?: boolean;
   suggestedPrompts?: string[];
+  tck?: string;
 };
 
 export function Chatbot(props: ChatbotProps) {
@@ -257,6 +252,8 @@ export function Chatbot(props: ChatbotProps) {
   const [initialInputFocused, setInitialInputFocused] = useState(false);
   const showInitialInputErrorState = inputTextError !== "" && !modalOpen;
 
+  const tck = props.tck ?? "docs_chatbot";
+
   return (
     <LeafyGreenProvider darkMode={darkMode}>
       <div className={styles.chatbot_container}>
@@ -264,18 +261,17 @@ export function Chatbot(props: ChatbotProps) {
           <InputBar
             key={"initialInput"}
             hasError={showInitialInputErrorState}
-            badgeText={(initialInputFocused || inputText.length > 0) ? undefined : "Experimental"}
+            badgeText={
+              initialInputFocused || inputText.length > 0
+                ? undefined
+                : "Experimental"
+            }
+            dropdownProps={{
+              usePortal: false,
+            }}
             dropdownFooterSlot={
               <div className={styles.powered_by_footer}>
-                <Body>
-                  Powered by Atlas Vector Search.{" "}
-                  <Link
-                    href="https://www.mongodb.com/products/platform/atlas-vector-search"
-                    hideExternalIcon
-                  >
-                    Learn More.
-                  </Link>
-                </Body>
+                <PoweredByAtlasVectorSearch tck={tck} />
               </div>
             }
             textareaProps={{
@@ -335,7 +331,7 @@ export function Chatbot(props: ChatbotProps) {
             {showInitialInputErrorState ? (
               <ErrorText>{inputTextError}</ErrorText>
             ) : null}
-            <LegalDisclosure />
+            <LegalDisclosure tck={tck} />
           </div>
         </div>
         <ChatbotModal
@@ -375,6 +371,7 @@ type ChatbotModalProps = {
   open: boolean;
   shouldClose: ModalProps["shouldClose"];
   darkMode?: boolean;
+  tck?: string;
 };
 
 function ChatbotModal({
@@ -389,26 +386,9 @@ function ChatbotModal({
   handleSubmit,
   awaitingReply,
   darkMode,
+  tck = "docs_chatbot",
 }: ChatbotModalProps) {
   const isEmptyConversation = conversation.messages.length === 0;
-
-  // TODO - Work with LG Chat to make InputBar focusable.
-  //
-  // Focus the input bar when the modal opens. This lets the user start
-  // typing another message while the previous message is still being
-  // processed.
-  // const focusInputBar = useCallback(() => {
-  //   const textarea = inputBarRef.current?.getElementsByTagName("textarea")[0];
-  //   if (textarea) {
-  //     textarea.focus();
-  //   }
-  // }, [inputBarRef]);
-
-  // useEffect(() => {
-  //   if (open) {
-  //     focusInputBar();
-  //   }
-  // }, [open, focusInputBar]);
 
   const ActiveInputBarId = "active-input-bar";
 
@@ -478,7 +458,12 @@ function ChatbotModal({
                       components: {
                         a: ({ children, href }) => {
                           return (
-                            <Link hideExternalIcon href={href}>
+                            <Link
+                              hideExternalIcon
+                              href={
+                                href ? addQueryParams(href, { tck }) : undefined
+                              }
+                            >
                               {children}
                             </Link>
                           );
@@ -522,7 +507,7 @@ function ChatbotModal({
               })}
             </MessageFeed>
           ) : null}
-          <div className={styles.chatbot_input_area}>
+          <div className={cx(styles.chatbot_input, styles.chatbot_input_area)}>
             {conversation.error ? (
               <ErrorBanner darkMode={darkMode} message={conversation.error} />
             ) : null}
@@ -584,14 +569,25 @@ function ChatbotModal({
   );
 }
 
-function LegalDisclosure() {
+function LegalDisclosure({ tck = "docs_chatbot" }: LinkProps = {}) {
   const TermsOfUse = () => (
-    <Link hideExternalIcon href={"https://www.mongodb.com/legal/terms-of-use"}>
+    <Link
+      hideExternalIcon
+      href={addQueryParams("https://www.mongodb.com/legal/terms-of-use", {
+        tck,
+      })}
+    >
       Terms of Use
     </Link>
   );
   const AcceptableUsePolicy = () => (
-    <Link hideExternalIcon href={"https://www.mongodb.com/legal/acceptable-use-policy"}>
+    <Link
+      hideExternalIcon
+      href={addQueryParams(
+        "https://www.mongodb.com/legal/acceptable-use-policy",
+        { tck }
+      )}
+    >
       Acceptable Use Policy
     </Link>
   );
@@ -600,6 +596,22 @@ function LegalDisclosure() {
     <Body>
       This is a generative AI chatbot. By interacting with it, you agree to
       MongoDB's <TermsOfUse /> and <AcceptableUsePolicy />.
+    </Body>
+  );
+}
+
+type LinkProps = {
+  tck?: string;
+};
+
+function PoweredByAtlasVectorSearch({ tck = "docs_chatbot" }: LinkProps = {}) {
+  const url = "https://www.mongodb.com/products/platform/atlas-vector-search";
+  return (
+    <Body>
+      Powered by Atlas Vector Search.{" "}
+      <Link href={addQueryParams(url, { tck })} hideExternalIcon>
+        Learn More.
+      </Link>
     </Body>
   );
 }

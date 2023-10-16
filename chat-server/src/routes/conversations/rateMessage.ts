@@ -9,7 +9,7 @@ import {
   NextFunction,
 } from "express";
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
-import { areEquivalentIpAddresses, isValidIp } from "./utils";
+import { isValidIp } from "./utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 

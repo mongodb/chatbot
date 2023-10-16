@@ -60,3 +60,18 @@ export const canUseServerSentEvents = () => typeof EventSource !== "undefined";
 export interface StylesProps {
   darkMode?: boolean;
 }
+
+/**
+ * Adds additional query params to a url while preserving any existing params.
+ *
+ * @param url - The url to add the query params to
+ * @param params - An object of params to add that maps param keys to values.
+ * @returns - The url with the query params added
+ */
+export function addQueryParams(url: string, params: Record<string, string>) {
+  const urlObj = new URL(url);
+  for (const [key, value] of Object.entries(params)) {
+    urlObj.searchParams.append(key, value);
+  }
+  return urlObj.toString();
+}

@@ -1,6 +1,10 @@
 import { isIP } from "net";
 import { Address6 } from "ip-address";
-import { Conversation, Message } from "../../services/conversations";
+import {
+  Conversation,
+  Message,
+  AssistantMessage,
+} from "../../services/conversations";
 import { References } from "chat-core";
 import { z } from "zod";
 
@@ -22,13 +26,15 @@ export const ApiConversation = z.object({
 });
 
 export function convertMessageFromDbToApi(message: Message): ApiMessage {
+  const { id, createdAt, role, content } = message;
+  const { rating, references } = message as Partial<AssistantMessage>;
   return {
-    id: message.id.toString(),
-    role: message.role,
-    content: message.content,
-    rating: message.rating,
-    createdAt: message.createdAt.getTime(),
-    references: message.references,
+    id: id.toString(),
+    role,
+    content,
+    createdAt: createdAt.getTime(),
+    rating,
+    references,
   };
 }
 export function convertConversationFromDbToApi(

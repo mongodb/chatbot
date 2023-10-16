@@ -1,7 +1,10 @@
 {
   "git": {
+    "commitArgs": ["-a"],
+    "commitMessage": "Release chat-ui v${version}",
     "tag": false,
     "push": true,
+    "pushRepo": "upstream",
     "tagName": "chat-ui-v${version}"
   },
   "npm": {
@@ -10,9 +13,15 @@
   "github": {
     "releaseName": "chat-ui-v${version}",
     "draft": true,
-    "release": true
+    "autoGenerate": true,
+    "release": true,
+    "tokenRef": "MONGODB_CHATBOT_GITHUB_TOKEN"
   },
   "hooks": {
-    "before:init": ["git pull", "npm run build", "npm run lint"]
+    "before:init": [
+      "pushd ../chat-core && npm i && npm run build && popd",
+      "npm run build:component",
+      "npm run lint"
+    ]
   }
 }

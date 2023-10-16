@@ -3,45 +3,72 @@ import { QueryPreprocessorFunc } from "../processors";
 import { ObjectId, Db } from "mongodb";
 import { References } from "chat-core";
 
-/**
-  Message in the {@link Conversation} as stored in the database.
- */
-export interface Message {
+
+export type Message = {
   /**
     Unique identifier for the message.
-  */
+   */
   id: ObjectId;
 
   /**
-    The role of the message in the context of the conversation.
-  */
-  role: "system" | "assistant" | "user";
+    The role of the message in the conversation.
+   */
+  role: OpenAiMessageRole;
 
   /**
     Message that occurs in the conversation.
-  */
+   */
   content: string;
 
   /**
-    Only used when role is "user". The preprocessed content (see {@link QueryPreprocessorFunc}) of the message that is sent to vector search.
-  */
-  preprocessedContent?: string;
+    The date the message was created.
+   */
+  createdAt: Date;
+};
+
+export type SystemMessage = Message & {
+  role: "system";
+};
+
+export type AssistantMessage = Message & {
+  role: "assistant";
 
   /**
-    Set to `true` if the user liked the response, `false` if the user didn't like the response. No value if user didn't rate the response. Note that only messages with `role: "assistant"` can be rated.
-  */
+    Set to `true` if the user liked the response, `false` if the user didn't
+    like the response. No value if user didn't rate the response. Note that only
+    messages with `role: "assistant"` can be rated.
+   */
   rating?: boolean;
 
   /**
-    The date the message was created.
-  */
-  createdAt: Date;
+    Further reading links for the message.
+   */
+  references: References;
+};
+
+export type UserMessage = Message & {
+  role: "user";
 
   /**
-    Further reading links for the message.
-  */
-  references?: References;
-}
+    The preprocessed content of the message that is sent to vector search.
+   */
+  preprocessedContent?: string;
+
+  /**
+    Whether preprocessor suggested not to answer based on the input.
+   */
+  rejectQuery?: boolean;
+
+  /**
+    The vector representation of the message content.
+   */
+  embedding: number[];
+};
+
+/**
+  Message in the {@link Conversation} as stored in the database.
+ */
+export type SomeMessage = UserMessage | AssistantMessage | SystemMessage;
 
 /**
   Conversation between the user and the chatbot as stored in the database.
@@ -58,12 +85,20 @@ export interface Conversation {
 export interface CreateConversationParams {
   ipAddress: string;
 }
+
 export interface AddConversationMessageParams {
   conversationId: ObjectId;
   content: string;
   preprocessedContent?: string;
   role: OpenAiMessageRole;
   references?: References;
+
+  /**
+    The vector representation of the message content.
+   */
+  embedding?: number[];
+
+  rejectQuery?: boolean;
 }
 export interface FindByIdParams {
   _id: ObjectId;
@@ -78,13 +113,9 @@ export interface RateMessageParams {
  */
 export interface ConversationsService {
   create: ({ ipAddress }: CreateConversationParams) => Promise<Conversation>;
-  addConversationMessage: ({
-    conversationId,
-    content,
-    preprocessedContent,
-    role,
-    references,
-  }: AddConversationMessageParams) => Promise<Message>;
+  addConversationMessage: (
+    params: AddConversationMessageParams
+  ) => Promise<Message>;
   findById: ({ _id }: FindByIdParams) => Promise<Conversation | null>;
   rateMessage: ({
     conversationId,
@@ -142,15 +173,19 @@ export function makeMongoDBConversationsService(
       role,
       preprocessedContent,
       references,
+      embedding,
+      rejectQuery,
     }: AddConversationMessageParams) {
       const newMessage = createMessageFromOpenAIChatMessage({
         role,
         content,
+        embedding,
       });
       Object.assign(
         newMessage,
-        preprocessedContent && { preprocessedContent: preprocessedContent },
-        references && { references: references }
+        preprocessedContent && { preprocessedContent },
+        references && { references },
+        rejectQuery !== undefined ? { rejectQuery } : undefined
       );
 
       const updateResult = await conversationsCollection.updateOne(
@@ -205,13 +240,20 @@ export function makeMongoDBConversationsService(
 /**
   Create a {@link Message} object from the {@link OpenAiChatMessage} object.
  */
-export function createMessageFromOpenAIChatMessage(
-  chatMessage: OpenAiChatMessage
-): Message {
-  return {
+export function createMessageFromOpenAIChatMessage({
+  role,
+  content,
+  embedding,
+}: OpenAiChatMessage): SomeMessage {
+  const message: Message = {
     id: new ObjectId(),
-    role: chatMessage.role,
-    content: chatMessage.content,
+    role,
+    content,
     createdAt: new Date(),
   };
+  // Avoid MongoDB inserting null for undefineds
+  if (role === "user" && embedding !== undefined) {
+    (message as UserMessage).embedding = embedding;
+  }
+  return message as SomeMessage;
 }

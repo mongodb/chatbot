@@ -80,4 +80,4 @@ probes:
 # Alerts
 defaultAlerts:
   enabled: true
-  email: "chatbot@mongodb.com"
+  email: "chatbot-alerts@mongodb.com"

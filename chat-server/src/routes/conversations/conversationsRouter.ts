@@ -1,12 +1,10 @@
 import { Request, Router } from "express";
-import { EmbedFunc, FindNearestNeighborsOptions } from "chat-core";
 import { rateLimit, Options as RateLimitOptions } from "express-rate-limit";
 import slowDown, { Options as SlowDownOptions } from "express-slow-down";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
 import { ChatLlm } from "../../services/ChatLlm";
 import { DataStreamer } from "../../services/dataStreamer";
 import { ConversationsService } from "../../services/conversations";
-import { EmbeddedContentStore } from "chat-core";
 import { RateMessageRequest, makeRateMessageRoute } from "./rateMessage";
 import {
   CreateConversationRequest,
@@ -16,8 +14,8 @@ import {
   AddMessageRequest,
   makeAddMessageToConversationRoute,
 } from "./addMessageToConversation";
-import { SearchBooster } from "../../processors/SearchBooster";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
+import { FindContentFunc } from "./FindContentFunc";
 
 export interface ConversationsRateLimitConfig {
   routerRateLimitConfig?: Partial<RateLimitOptions>;
@@ -28,15 +26,12 @@ export interface ConversationsRateLimitConfig {
 
 export interface ConversationsRouterParams {
   llm: ChatLlm;
-  embed: EmbedFunc;
   dataStreamer: DataStreamer;
-  store: EmbeddedContentStore;
   conversations: ConversationsService;
-  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
-  searchBoosters?: SearchBooster[];
   userQueryPreprocessor?: QueryPreprocessorFunc;
   maxChunkContextTokens?: number;
   rateLimitConfig?: ConversationsRateLimitConfig;
+  findContent: FindContentFunc;
 }
 
 export const rateLimitResponse = {
@@ -52,15 +47,12 @@ function keyGenerator(request: Request) {
 }
 export function makeConversationsRouter({
   llm,
-  embed,
   dataStreamer,
-  store,
   conversations,
-  findNearestNeighborsOptions,
-  searchBoosters,
   userQueryPreprocessor,
   maxChunkContextTokens,
   rateLimitConfig,
+  findContent,
 }: ConversationsRouterParams) {
   const conversationsRouter = Router();
 
@@ -124,25 +116,24 @@ export function makeConversationsRouter({
     keyGenerator,
     ...(rateLimitConfig?.addMessageSlowDownConfig ?? {}),
   });
+
   /**
-   * Create a new message from the user and get response from the LLM.
+    Create a new message from the user and get response from the LLM.
    */
+  const addMessageToConversationRoute = makeAddMessageToConversationRoute({
+    conversations,
+    llm,
+    dataStreamer,
+    userQueryPreprocessor,
+    maxChunkContextTokens,
+    findContent,
+  });
   conversationsRouter.post(
     "/:conversationId/messages",
     addMessageRateLimit,
     addMessageSlowDown,
     validateRequestSchema(AddMessageRequest),
-    makeAddMessageToConversationRoute({
-      store,
-      conversations,
-      llm,
-      dataStreamer,
-      embed,
-      findNearestNeighborsOptions,
-      searchBoosters,
-      userQueryPreprocessor,
-      maxChunkContextTokens,
-    })
+    addMessageToConversationRoute
   );
 
   /**

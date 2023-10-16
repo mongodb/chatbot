@@ -521,17 +521,28 @@ export const terraformProviderSourceConstructor = async () => {
       tags: ["docs", "terraform", "atlas", "hcl"],
     },
     filter: (path: string) =>
-      path.includes("website/docs") &&
-      path.endsWith(".markdown") &&
-      !path.includes("website/docs/r") && // do not include the generated reference docs
-      !path.includes("website/docs/d"), // do not include the generated reference docs
+      path.includes("website/docs") && path.endsWith(".markdown"),
     handlePage: async function (path, content) {
       const { metadata, body } = extractFrontMatter<{ page_title: string }>(
         content
       );
-      const url =
-        siteBaseUrl +
-        path.replace("website/docs/", "").replace(".markdown", "");
+      let url: string;
+      if (path.includes("website/docs/d/")) {
+        url =
+          siteBaseUrl +
+          path
+            .replace("website/docs/d", "data-sources")
+            .replace(".markdown", "");
+      } else if (path.includes("website/docs/r/")) {
+        url =
+          siteBaseUrl +
+          path.replace("website/docs/r", "resources").replace(".markdown", "");
+      } else {
+        url =
+          siteBaseUrl +
+          path.replace("website/docs/", "").replace(".markdown", "");
+      }
+
       const page: Omit<Page, "sourceName"> = {
         body: removeMarkdownImagesAndLinks(body),
         format: "md",

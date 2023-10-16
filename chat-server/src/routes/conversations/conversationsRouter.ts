@@ -20,17 +20,36 @@ import { SearchBooster } from "../../processors/SearchBooster";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
 
 /**
- OSS_TODO: add tsdoc description of this
+  Configuration for rate limiting on the /conversations/* routes.
  */
 export interface ConversationsRateLimitConfig {
+  /**
+    Configuration for rate limiting on ALL /conversations/* routes.
+   */
   routerRateLimitConfig?: Partial<RateLimitOptions>;
+
+  /**
+    Configuration for rate limiting on the POST /conversations/:conversationId/messages route.
+    Since this is the most "expensive" route as it calls the LLM,
+    it could be more restrictive than the global rate limit.
+   */
   addMessageRateLimitConfig?: Partial<RateLimitOptions>;
+
+  /**
+    Configuration for slow down on ALL /conversations/* routes.
+   */
   routerSlowDownConfig?: Partial<SlowDownOptions>;
+
+  /**
+    Configuration for slow down on the POST /conversations/:conversationId/messages route.
+    Since this is the most "expensive" route as it calls the LLM,
+    it could be more restrictive than the global slow down.
+   */
   addMessageSlowDownConfig?: Partial<SlowDownOptions>;
 }
 
 /**
- OSS_TODO: add tsdoc description of this
+  Configuration for the /conversations/* routes.
  */
 export interface ConversationsRouterParams {
   llm: ChatLlm;
@@ -57,7 +76,7 @@ function keyGenerator(request: Request) {
   return request.ip;
 }
 /**
- OSS_TODO: add tsdoc description of this
+  Constructor function to make the /conversations/* Express.js router.
  */
 export function makeConversationsRouter({
   llm,
@@ -73,7 +92,7 @@ export function makeConversationsRouter({
 }: ConversationsRouterParams) {
   const conversationsRouter = Router();
 
-  /**
+  /*
     Global rate limit the requests to the conversationsRouter.
    */
   const globalRateLimit = rateLimit({
@@ -86,7 +105,7 @@ export function makeConversationsRouter({
     ...(rateLimitConfig?.routerRateLimitConfig ?? {}),
   });
   conversationsRouter.use(globalRateLimit);
-  /**
+  /*
     Slow down the response to the conversationsRouter after certain number
     of requests in the time window.
    */
@@ -99,16 +118,14 @@ export function makeConversationsRouter({
   });
   conversationsRouter.use(globalSlowDown);
 
-  /**
-   * Create new conversation.
-   */
+  // Create new conversation.
   conversationsRouter.post(
     "/",
     validateRequestSchema(CreateConversationRequest),
     makeCreateConversationRoute({ conversations })
   );
 
-  /**
+  /*
     Rate limit the requests to the addMessageToConversationRoute.
     Rate limit should be more restrictive than global rate limiter to limit expensive requests to the LLM.
    */
@@ -121,7 +138,7 @@ export function makeConversationsRouter({
     keyGenerator,
     ...(rateLimitConfig?.addMessageRateLimitConfig ?? {}),
   });
-  /**
+  /*
     Slow down the response to the addMessageToConversationRoute after certain number
     of requests in the time window. Rate limit should be more restrictive than global slow down
     to limit expensive requests to the LLM.
@@ -133,9 +150,8 @@ export function makeConversationsRouter({
     keyGenerator,
     ...(rateLimitConfig?.addMessageSlowDownConfig ?? {}),
   });
-  /**
-   * Create a new message from the user and get response from the LLM.
-   */
+
+  // Create a new message from the user and get response from the LLM.
   conversationsRouter.post(
     "/:conversationId/messages",
     addMessageRateLimit,
@@ -154,9 +170,7 @@ export function makeConversationsRouter({
     })
   );
 
-  /**
-   * Rate a message.
-   */
+  // Rate a message.
   conversationsRouter.post(
     "/:conversationId/messages/:messageId/rating",
     validateRequestSchema(RateMessageRequest),

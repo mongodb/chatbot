@@ -34,6 +34,7 @@ export type PageMetadata = {
   tags?: string[];
   [k: string]: unknown;
 };
+
 export type PageFormat = "md" | "txt" | "openapi-yaml";
 
 export type PageAction = "created" | "updated" | "deleted";
@@ -54,9 +55,12 @@ export type PersistedPage = Page & {
 };
 
 /**
-  OSS_TODO: tsdoc description of type and methods
+  Data store for Page objects.
  */
 export type PageStore = {
+  /**
+    Loads pages from the Page store.
+   */
   loadPages(args?: {
     /**
       If specified, refines the query to load pages with an updated date later

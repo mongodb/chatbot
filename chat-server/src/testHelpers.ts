@@ -1,12 +1,15 @@
 import { MongoDB } from "chat-core";
 import { AppConfig, makeApp } from "./app";
 import { MONGODB_CONNECTION_URI, config, systemPrompt } from "./config";
-import { makeConversationsService } from "./services/conversations";
+import { makeMongoDbConversationsService } from "./services/conversations";
 
 export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
   const testDbName = `conversations-test-${Date.now()}`;
   const mongodb = new MongoDB(MONGODB_CONNECTION_URI, testDbName);
-  const conversations = makeConversationsService(mongodb.db, systemPrompt);
+  const conversations = makeMongoDbConversationsService(
+    mongodb.db,
+    systemPrompt
+  );
   const appConfig: AppConfig = {
     ...config,
     conversationsRouterConfig: {

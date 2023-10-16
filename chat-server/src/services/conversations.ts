@@ -3,27 +3,47 @@ import { ObjectId, Db } from "mongodb";
 import { References } from "chat-core";
 
 /**
- OSS_TODO: add tsdoc description of this
+  Message in the conversation as stored in the database.
  */
 export interface Message {
-  /** Unique identifier for the message. */
+  /**
+    Unique identifier for the message.
+  */
   id: ObjectId;
-  /** The role of the message in the context of the conversation. */
+
+  /**
+    The role of the message in the context of the conversation.
+  */
   role: "system" | "assistant" | "user";
-  /** Message that occurs in the conversation. */
+
+  /**
+    Message that occurs in the conversation.
+  */
   content: string;
-  /** Only used when role is "user". The preprocessed content of the message that is sent to vector search. */
+
+  /**
+    Only used when role is "user". The preprocessed content of the message that is sent to vector search.
+  */
   preprocessedContent?: string;
-  /** Set to `true` if the user liked the response, `false` if the user didn't like the response. No value if user didn't rate the response. Note that only messages with `role: "assistant"` can be rated. */
+
+  /**
+    Set to `true` if the user liked the response, `false` if the user didn't like the response. No value if user didn't rate the response. Note that only messages with `role: "assistant"` can be rated.
+  */
   rating?: boolean;
-  /** The date the message was created. */
+
+  /**
+    The date the message was created.
+  */
   createdAt: Date;
-  /** Further reading links for the message. */
+
+  /**
+    Further reading links for the message.
+  */
   references?: References;
 }
 
 /**
- OSS_TODO: add tsdoc description of this
+  Conversation between the user and the chatbot as stored in the database.
  */
 export interface Conversation {
   _id: ObjectId;
@@ -53,7 +73,7 @@ export interface RateMessageParams {
   rating: boolean;
 }
 /**
- OSS_TODO: add tsdoc description of this
+  Service for managing conversations.
  */
 export interface ConversationsService {
   create: ({ ipAddress }: CreateConversationParams) => Promise<Conversation>;
@@ -86,9 +106,9 @@ However, here are some links that might provide some helpful information for you
 };
 
 /**
- OSS_TODO: add tsdoc description of this. include tsdoc description on each method
+  Create conversation service that uses MongoDB as a data store.
  */
-export function makeConversationsService(
+export function makeMongoDBConversationsService(
   database: Db,
   systemPrompt: SystemPrompt
 ): ConversationsService {
@@ -182,7 +202,7 @@ export function makeConversationsService(
 }
 
 /**
- OSS_TODO: add tsdoc description of this
+  Create a `Message` object from the `OpenAiChatMessage` object.
  */
 export function createMessageFromOpenAIChatMessage(
   chatMessage: OpenAiChatMessage

@@ -19,7 +19,12 @@ import { logger } from "chat-core";
 import cloneDeep from "lodash.clonedeep";
 
 /**
- OSS_TODO: add tsdoc description of this
+  Configuration for the server Express app.
+  @property conversationsRouterConfig - Configuration for the conversations router.
+  @property maxRequestTimeoutMs - Maximum time in milliseconds for a request to
+  complete before timing out. Defaults to 60000 (1 minute).
+  @property corsOptions - Configuration for CORS middleware. Defaults to allowing
+  all origins.
  */
 export interface AppConfig {
   conversationsRouterConfig: ConversationsRouterParams;

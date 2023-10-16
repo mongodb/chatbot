@@ -2,12 +2,10 @@ import fs from "fs";
 import path from "path";
 import { createAzureOpenAILanguageModel, createJsonTranslator } from "typechat";
 import { MongoDbUserQueryPreprocessorResponse } from "./MongoDbUserQueryPreprocessorResponse";
-import {
-  QueryPreprocessorFunc,
-  QueryPreprocessorMessage,
-} from "./QueryPreprocessorFunc";
+import { QueryPreprocessorFunc } from "./QueryPreprocessorFunc";
 import { retryAsyncOperation } from "../utils";
 import { updateFrontMatter } from "chat-core";
+import { Message } from "../services";
 
 /**
  OSS_TODO: add tsdoc description of this
@@ -84,7 +82,7 @@ export function generateMongoDbQueryPreProcessorPrompt({
   numMessagesToInclude = 4,
 }: {
   query: string;
-  messages: QueryPreprocessorMessage[];
+  messages: Message[];
   numMessagesToInclude?: number;
 }) {
   query = query.trim();

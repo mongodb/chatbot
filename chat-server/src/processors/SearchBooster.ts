@@ -1,10 +1,11 @@
 import { WithScore, EmbeddedContent, EmbeddedContentStore } from "chat-core";
 
 /**
- OSS_TODO: add tsdoc description of this
+  Modify the vector search results to add, elevate, or mutate search results
+  after the search has been performed.
  */
 export interface SearchBooster {
-  shouldBoost: ({ text }: { text: string }) => boolean;
+  shouldBoost: ({ text }: { text: string }) => Promise<boolean>;
   boost: ({
     existingResults,
     embedding,

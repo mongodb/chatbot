@@ -14,7 +14,7 @@ import {
   Conversation,
   ConversationsService,
   Message,
-  makeConversationsService,
+  makeMongoDbConversationsService,
 } from "../../services/conversations";
 import express, { Express } from "express";
 import {
@@ -353,7 +353,10 @@ describe("POST /conversations/:conversationId/messages", () => {
         const { mongodb } = makeTestAppConfig();
         testMongo = mongodb;
 
-        conversations = makeConversationsService(testMongo.db, systemPrompt);
+        conversations = makeMongoDbConversationsService(
+          testMongo.db,
+          systemPrompt
+        );
         const { _id } = await conversations.create({
           ipAddress,
         });

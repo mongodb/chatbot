@@ -1,13 +1,24 @@
 export type EmbedArgs = {
+  /**
+    The text to embed.
+   */
   text: string;
+
+  /**
+    The user's IP address. Used to prevent abuse.
+   */
   userIp: string;
 };
 
 export type EmbedResult = {
+  /**
+    Vector embedding of the text.
+   */
   embedding: number[];
 };
 
 /**
- OSS_TODO: add tsdoc description of this
+  Takes a string of text and returns an array of numbers representing the
+  vector embedding of the text.
  */
 export type EmbedFunc = (args: EmbedArgs) => Promise<EmbedResult>;

@@ -8,7 +8,7 @@ import {
   makeDatabaseConnection,
   makeOpenAiEmbedFunc,
 } from "chat-core";
-import { makeConversationsService } from "./services/conversations";
+import { makeMongoDbConversationsService } from "./services/conversations";
 import { makeDataStreamer } from "./services/dataStreamer";
 import { makeOpenAiChatLlm } from "./services/openAiChatLlm";
 import { stripIndents } from "common-tags";
@@ -150,7 +150,10 @@ export const mongodb = new MongoDB(
   VECTOR_SEARCH_INDEX_NAME
 );
 
-export const conversations = makeConversationsService(mongodb.db, systemPrompt);
+export const conversations = makeMongoDbConversationsService(
+  mongodb.db,
+  systemPrompt
+);
 
 export const config: AppConfig = {
   conversationsRouterConfig: {

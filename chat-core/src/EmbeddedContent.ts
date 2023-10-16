@@ -1,7 +1,7 @@
 import { Page } from "./Page";
 
 /**
- OSS_TODO: add tsdoc description of this
+  The embedded content of a chunk of text stored in the database.
  */
 export interface EmbeddedContent {
   /**
@@ -54,7 +54,7 @@ export interface EmbeddedContent {
 }
 
 /**
- OSS_TODO: add tsdoc description of this
+  Data store of the embedded content.
  */
 export type EmbeddedContentStore = {
   /**
@@ -87,7 +87,7 @@ export type EmbeddedContentStore = {
 export type WithScore<T> = T & { score: number };
 
 /**
- OSS_TODO: add tsdoc description of this
+  Options for performing a nearest-neighbor search.
  */
 export type FindNearestNeighborsOptions = {
   /**
@@ -111,7 +111,7 @@ export type FindNearestNeighborsOptions = {
   minScore: number;
 
   /**
-    Atlas Search filter expression.
+    Search filter expression.
    */
   filter: Record<string, unknown>;
 };

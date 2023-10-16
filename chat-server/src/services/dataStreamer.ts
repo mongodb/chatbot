@@ -47,16 +47,39 @@ interface StreamParams {
   references?: string;
 }
 
-/**
- OSS_TODO: add tsdoc description of this
- */
-type ChatbotStreamEvent =
-  | { type: "delta"; data: string }
-  | { type: "references"; data: References }
-  | { type: "finished"; data: string };
+type SomeStreamEvent = { type: string; data: unknown };
 
 /**
- OSS_TODO: add tsdoc description of this
+  Event when server streams additional message response to the client.
+ */
+type DeltaStreamEvent = SomeStreamEvent & { type: "delta"; data: string };
+
+/**
+  Event when server streams single {@link References} object to the client.
+ */
+type ReferencesStreamEvent = SomeStreamEvent & {
+  type: "references";
+  data: References;
+};
+
+/**
+  Event denoting the end of streaming.
+ */
+type FinishedStreamEvent = SomeStreamEvent & {
+  type: "finished";
+  data: string;
+};
+
+/**
+  The event types streamed from the chat server to the client.
+ */
+type ChatbotStreamEvent =
+  | DeltaStreamEvent
+  | ReferencesStreamEvent
+  | FinishedStreamEvent;
+
+/**
+  Service that streams data to the client.
  */
 export interface DataStreamer {
   connected: boolean;
@@ -67,7 +90,7 @@ export interface DataStreamer {
 }
 
 /**
- OSS_TODO: add tsdoc description of this
+  Create a {@link DataStreamer} that streams data to the client.
  */
 export function makeDataStreamer(): DataStreamer {
   let connected = false;

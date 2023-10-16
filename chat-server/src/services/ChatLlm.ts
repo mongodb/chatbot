@@ -28,7 +28,7 @@ export type OpenAiStreamingResponse =
 export type OpenAiAwaitedResponse = OpenAiChatMessage;
 
 /**
- OSS_TODO: add tsdoc description of this
+  LLM that responds to user queries. Provides both streaming and awaited options.
  */
 export interface ChatLlm {
   answerQuestionStream({

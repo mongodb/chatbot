@@ -3,15 +3,9 @@ import path from "path";
 import { MongoDbUserQueryPreprocessorResponse } from "./MongoDbUserQueryPreprocessorResponse";
 import {
   QueryPreprocessorFunc,
-  QueryPreprocessorMessage,
   QueryPreprocessorResult,
 } from "./QueryPreprocessorFunc";
-import { retryAsyncOperation } from "../utils";
-import {
-  updateFrontMatter,
-  makeTypeChatJsonTranslateFunc,
-  AzureOpenAiServiceConfig,
-} from "chat-core";
+import { updateFrontMatter, makeTypeChatJsonTranslateFunc } from "chat-core";
 import { Message } from "../services";
 
 /**

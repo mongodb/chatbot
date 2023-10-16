@@ -228,7 +228,7 @@ export function makeAddMessageToConversationRoute({
         chunks = contentForText.results;
         if (searchBoosters?.length) {
           for (const booster of searchBoosters) {
-            if (booster.shouldBoost({ text: latestMessageText })) {
+            if (await booster.shouldBoost({ text: latestMessageText })) {
               chunks = await booster.boost({
                 existingResults: chunks,
                 embedding,

@@ -3,7 +3,6 @@ import { QueryPreprocessorFunc } from "../processors";
 import { ObjectId, Db } from "mongodb";
 import { References } from "chat-core";
 
-
 export type Message = {
   /**
     Unique identifier for the message.
@@ -140,7 +139,7 @@ However, here are some links that might provide some helpful information for you
 /**
   Create {@link ConversationsService} that uses MongoDB as a data store.
  */
-export function makeMongoDBConversationsService(
+export function makeMongoDbConversationsService(
   database: Db,
   systemPrompt: SystemPrompt
 ): ConversationsService {

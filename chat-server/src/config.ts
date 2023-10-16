@@ -40,7 +40,7 @@ export const boostManual = makeBoostOnAtlasSearchFilter({
   /**
     Boosts results that have 3 words or less
    */
-  shouldBoostFunc({ text }: { text: string }) {
+  async shouldBoostFunc({ text }: { text: string }) {
     return text.split(" ").filter((s) => s !== " ").length <= 3;
   },
   findNearestNeighborsOptions: {
@@ -82,13 +82,13 @@ Never mention "<Information>" or "<Question>" in your answer.
 Refer to the information given to you as "my knowledge".`,
 };
 
-export function generateUserPrompt({
+export async function generateUserPrompt({
   question,
   chunks,
 }: {
   question: string;
   chunks: string[];
-}): OpenAiChatMessage & { role: "user" } {
+}): Promise<OpenAiChatMessage & { role: "user" }> {
   const chunkSeparator = "~~~~~~";
   const context = chunks.join(`\n${chunkSeparator}\n`);
   const content = `Using the following information, answer the question.

@@ -16,7 +16,7 @@ export type QueryPreprocessorFunc<
   messages,
 }: {
   query?: string;
-  messages: QueryPreprocessorMessage[];
+  messages: Message[];
 }) => Promise<ReturnType>;
 
 export type QueryPreprocessorResult = {

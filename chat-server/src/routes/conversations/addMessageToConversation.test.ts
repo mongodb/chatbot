@@ -1,10 +1,6 @@
 import request from "supertest";
 import "dotenv/config";
-import {
-  assertEnvVars,
-  CORE_ENV_VARS,
-  EmbeddedContent,
-} from "chat-core";
+import { assertEnvVars, CORE_ENV_VARS, EmbeddedContent } from "chat-core";
 import { MongoClient, Db } from "chat-core";
 import {
   conversationConstants,
@@ -25,6 +21,7 @@ import {
   MAX_MESSAGES_IN_CONVERSATION,
   createLinkReference,
   includeChunksForMaxTokensPossible,
+  makeDefaultReferenceLinks,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
 import { makeOpenAiChatLlm } from "../../services/openAiChatLlm";
@@ -515,52 +512,68 @@ describe("POST /conversations/:conversationId/messages", () => {
         updated: new Date(),
         sourceName: "realm",
       };
+      const chunkWithTitle = {
+        _id: new ObjectId(),
+        url: "https://mongodb.com/docs/realm/sdk/node/xyz",
+        text: "blah blah blah",
+        title: "title",
+        tokenCount: 100,
+        embedding: [0.1, 0.2, 0.3],
+        updated: new Date(),
+        sourceName: "realm",
+      };
       test("No sources should return empty string", () => {
         const noChunks: EmbeddedContent[] = [];
-        const noReferences = generateReferences({
-          content: noChunks,
-        });
+        const noReferences = makeDefaultReferenceLinks(noChunks);
         expect(noReferences).toEqual([]);
       });
       test("One source should return one link", () => {
         const oneChunk: EmbeddedContent[] = [chunk1];
-        const oneReference = generateReferences({
-          content: oneChunk,
-        });
+        const oneReference = makeDefaultReferenceLinks(oneChunk);
         const expectedOneReference = [
           {
             title: "https://mongodb.com/docs/realm/sdk/node/",
-            url: "https://mongodb.com/docs/realm/sdk/node/?tck=docs_chatbot",
+            url: "https://mongodb.com/docs/realm/sdk/node/",
+          },
+        ];
+        expect(oneReference).toEqual(expectedOneReference);
+      });
+      test("Chunk with title should return title in reference", () => {
+        const oneChunk: EmbeddedContent[] = [chunk1];
+        const oneReference = makeDefaultReferenceLinks(oneChunk);
+        const expectedOneReference = [
+          {
+            title: "title",
+            url: "https://mongodb.com/docs/realm/sdk/node/xyz",
           },
         ];
         expect(oneReference).toEqual(expectedOneReference);
       });
       test("Multiple sources from same page should return one link", () => {
         const twoChunksSamePage: EmbeddedContent[] = [chunk1, chunk2];
-        const oneReferenceSamePage = generateReferences({
-          content: twoChunksSamePage,
-        });
+        const oneReferenceSamePage =
+          makeDefaultReferenceLinks(twoChunksSamePage);
         const expectedOneReferenceSamePage = [
           {
             title: "https://mongodb.com/docs/realm/sdk/node/",
-            url: "https://mongodb.com/docs/realm/sdk/node/?tck=docs_chatbot",
+            url: "https://mongodb.com/docs/realm/sdk/node/",
           },
         ];
         expect(oneReferenceSamePage).toEqual(expectedOneReferenceSamePage);
       });
       test("Multiple sources from different pages should return 1 link per page", () => {
         const twoChunksDifferentPage: EmbeddedContent[] = [chunk1, chunk3];
-        const multipleReferencesDifferentPage = generateReferences({
-          content: twoChunksDifferentPage,
-        });
+        const multipleReferencesDifferentPage = makeDefaultReferenceLinks(
+          twoChunksDifferentPage
+        );
         const expectedMultipleReferencesDifferentPage = [
           {
             title: "https://mongodb.com/docs/realm/sdk/node/",
-            url: "https://mongodb.com/docs/realm/sdk/node/?tck=docs_chatbot",
+            url: "https://mongodb.com/docs/realm/sdk/node/",
           },
           {
             title: "https://mongodb.com/docs/realm/sdk/node/xyz",
-            url: "https://mongodb.com/docs/realm/sdk/node/xyz?tck=docs_chatbot",
+            url: "https://mongodb.com/docs/realm/sdk/node/xyz",
           },
         ];
         expect(multipleReferencesDifferentPage).toEqual(
@@ -568,9 +581,8 @@ describe("POST /conversations/:conversationId/messages", () => {
         );
         // All three sources. Two from the same page. One from a different page.
         const threeChunks: EmbeddedContent[] = [chunk1, chunk2, chunk3];
-        const multipleSourcesWithSomePageOverlap = generateReferences({
-          content: threeChunks,
-        });
+        const multipleSourcesWithSomePageOverlap =
+          makeDefaultReferenceLinks(threeChunks);
         const expectedMultipleSourcesWithSomePageOverlap = [
           {
             title: "https://mongodb.com/docs/realm/sdk/node/",

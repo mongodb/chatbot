@@ -4,7 +4,9 @@
  */
 import "dotenv/config";
 import {
+  EmbeddedContent,
   MongoClient,
+  Reference,
   makeMongoDbEmbeddedContentStore,
   makeOpenAiEmbedFunc,
 } from "chat-core";
@@ -19,6 +21,7 @@ import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongo
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { OpenAiChatMessage, SystemPrompt } from "./services/ChatLlm";
 import { makeDefaultFindContentFunc } from "./routes/conversations/FindContentFunc";
+import { makeDefaultReferenceLinks } from "./routes/conversations/addMessageToConversation";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -163,6 +166,29 @@ export const conversations = makeMongoDbConversationsService(
   systemPrompt
 );
 
+/**
+  MongoDB Chatbot implementation of {@link MakeReferenceLinksFunc}.
+  Returns references that look like:
+
+  ```js
+  {
+    url: "https://mongodb.com/docs/manual/reference/operator/query/eq/?tck=docs-chatbot",
+    title: "https://docs.mongodb.com/manual/reference/operator/query/eq/"
+  }
+  ```
+ */
+export function makeMongoDbReferences(chunks: EmbeddedContent[]) {
+  const baseReferences = makeDefaultReferenceLinks(chunks);
+  return baseReferences.map((ref) => {
+    const url = new URL(ref.url);
+    url.searchParams.append("tck", "docs_chatbot");
+    return {
+      url: url.href,
+      title: url.origin + url.pathname,
+    };
+  });
+}
+
 export const config: AppConfig = {
   conversationsRouterConfig: {
     dataStreamer,
@@ -171,6 +197,7 @@ export const config: AppConfig = {
     userQueryPreprocessor: mongoDbUserQueryPreprocessor,
     maxChunkContextTokens: 1500,
     conversations,
+    makeReferenceLinks: makeMongoDbReferences,
   },
   maxRequestTimeoutMs: 30000,
   corsOptions: {

@@ -61,6 +61,7 @@ export interface AddMessageToConversationRouteParams {
   userQueryPreprocessor?: QueryPreprocessorFunc;
   maxChunkContextTokens?: number;
   findContent: FindContentFunc;
+  makeReferenceLinks?: MakeReferenceLinksFunc;
 }
 
 export type RequestError = Error & {
@@ -89,6 +90,7 @@ export function makeAddMessageToConversationRoute({
   findContent,
   userQueryPreprocessor,
   maxChunkContextTokens = 1500,
+  makeReferenceLinks = makeDefaultReferenceLinks,
 }: AddMessageToConversationRouteParams) {
   return async (
     req: ExpressRequest<AddMessageRequest["params"]>,
@@ -223,7 +225,7 @@ export function makeAddMessageToConversationRoute({
         )}`,
       });
 
-      const references = generateReferences({ content });
+      const references = makeReferenceLinks(content);
       const chunkTexts = includeChunksForMaxTokensPossible({
         maxTokens: maxChunkContextTokens,
         content,
@@ -453,38 +455,39 @@ export async function addMessagesToDatabase({
   return { userMessage, assistantMessage };
 }
 
-/*OSS_TODO: This should be refactored and made  configurable. We cannot assume that the user will always want to
-use the same reference format.
-We can add a default reference format that returns:
-{
-  title: chunk.title ?? chunk.url, // if title doesn't exist, just put url
-  url: chunk.url // this always exists
-}
-*/
-export const createLinkReference = (link: string): Reference => {
-  const url = new URL(link);
-  url.searchParams.append("tck", "docs_chatbot");
-  return {
-    url: url.href,
-    title: url.origin + url.pathname,
-  };
-};
+/**
+  Function that generates the references in the response to user.
+ */
+export type MakeReferenceLinksFunc = (chunks: EmbeddedContent[]) => References;
 
-export interface GenerateReferencesParams {
-  content: EmbeddedContent[];
-}
+/**
+  The default reference format returns the following for chunks from _unique_ pages:
 
-export function generateReferences({
-  content,
-}: GenerateReferencesParams): References {
-  if (content.length === 0) {
-    return [];
+  ```js
+  {
+    title: chunk.title ?? chunk.url, // if title doesn't exist, just put url
+    url: chunk.url // this always exists
   }
-  const uniqueLinks = Array.from(
-    new Set(content.map((content) => content.url))
-  );
-  return uniqueLinks.map((link) => createLinkReference(link));
-}
+  ```
+ */
+export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
+  // Filter chunks with unique URLs
+  const uniqueUrls = new Set();
+  const uniqueChunks = chunks.filter((chunk) => {
+    if (!uniqueUrls.has(chunk.url)) {
+      uniqueUrls.add(chunk.url);
+      return true; // Keep the chunk as it has a unique URL
+    }
+    return false; // Discard the chunk as its URL is not unique
+  });
+
+  return uniqueChunks.map((chunk) => {
+    return {
+      title: (chunk.metadata?.pageTitle as string) ?? chunk.url,
+      url: chunk.url,
+    };
+  });
+};
 
 /**
   This function will return the chunks that can fit in the maxTokens.

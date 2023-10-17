@@ -12,6 +12,7 @@ import {
 } from "./createConversation";
 import {
   AddMessageRequest,
+  MakeReferenceLinksFunc,
   makeAddMessageToConversationRoute,
 } from "./addMessageToConversation";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
@@ -57,6 +58,7 @@ export interface ConversationsRouterParams {
   maxChunkContextTokens?: number;
   rateLimitConfig?: ConversationsRateLimitConfig;
   findContent: FindContentFunc;
+  makeReferenceLinks?: MakeReferenceLinksFunc;
 }
 
 export const rateLimitResponse = {
@@ -81,6 +83,7 @@ export function makeConversationsRouter({
   maxChunkContextTokens,
   rateLimitConfig,
   findContent,
+  makeReferenceLinks,
 }: ConversationsRouterParams) {
   const conversationsRouter = Router();
 
@@ -153,6 +156,7 @@ export function makeConversationsRouter({
     userQueryPreprocessor,
     maxChunkContextTokens,
     findContent,
+    makeReferenceLinks,
   });
   conversationsRouter.post(
     "/:conversationId/messages",

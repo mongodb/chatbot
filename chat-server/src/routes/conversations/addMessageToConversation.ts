@@ -28,8 +28,9 @@ import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
 import { FindContentFunc } from "./FindContentFunc";
 
-export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
-export const MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
+export const DEFAULT_MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
+export const DEFAULT_MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
+export const DEFAULT_MAX_CONTEXT_TOKENS = 1500; // magic number for max context tokens for LLM
 
 export type AddMessageRequestBody = z.infer<typeof AddMessageRequestBody>;
 export const AddMessageRequestBody = z.object({
@@ -60,6 +61,8 @@ export interface AddMessageToConversationRouteParams {
   dataStreamer: DataStreamer;
   userQueryPreprocessor?: QueryPreprocessorFunc;
   maxChunkContextTokens?: number;
+  maxInputLengthCharacters?: number;
+  maxMessagesInConversation?: number;
   findContent: FindContentFunc;
   makeReferenceLinks?: MakeReferenceLinksFunc;
 }
@@ -89,7 +92,9 @@ export function makeAddMessageToConversationRoute({
   dataStreamer,
   findContent,
   userQueryPreprocessor,
-  maxChunkContextTokens = 1500,
+  maxChunkContextTokens = DEFAULT_MAX_CONTEXT_TOKENS,
+  maxInputLengthCharacters = DEFAULT_MAX_INPUT_LENGTH,
+  maxMessagesInConversation = DEFAULT_MAX_MESSAGES_IN_CONVERSATION,
   makeReferenceLinks = makeDefaultReferenceLinks,
 }: AddMessageToConversationRouteParams) {
   return async (
@@ -122,7 +127,7 @@ export function makeAddMessageToConversationRoute({
 
       const latestMessageText = message;
 
-      if (latestMessageText.length > MAX_INPUT_LENGTH) {
+      if (latestMessageText.length > maxInputLengthCharacters) {
         throw makeRequestError({
           httpStatus: 400,
           message: "Message too long",
@@ -136,9 +141,9 @@ export function makeAddMessageToConversationRoute({
       });
 
       // --- MAX CONVERSATION LENGTH CHECK ---
-      if (conversation.messages.length >= MAX_MESSAGES_IN_CONVERSATION) {
+      if (conversation.messages.length >= maxMessagesInConversation) {
         // Omit the system prompt and assume the user always received one response per message
-        const maxUserMessages = (MAX_MESSAGES_IN_CONVERSATION - 1) / 2;
+        const maxUserMessages = (maxMessagesInConversation - 1) / 2;
         throw makeRequestError({
           httpStatus: 400,
           message: `Too many messages. You cannot send more than ${maxUserMessages} messages in this conversation.`,

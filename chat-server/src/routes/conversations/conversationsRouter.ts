@@ -55,7 +55,24 @@ export interface ConversationsRouterParams {
   dataStreamer: DataStreamer;
   conversations: ConversationsService;
   userQueryPreprocessor?: QueryPreprocessorFunc;
+  /**
+    Maximum number of tokens of context to send to the LLM in retrieval augmented generation
+    in addition to system prompt, other user messages, etc.
+   */
   maxChunkContextTokens?: number;
+
+  /**
+    Maximum number of characters in user input.
+    Server returns 400 error if user input is longer than this.
+   */
+  maxInputLengthCharacters?: number;
+
+  /**
+    Maximum number of messages in a conversation.
+    Server returns 400 error if user tries to add a message to a conversation
+    that has this many messages.
+   */
+  maxMessagesInConversation?: number;
   rateLimitConfig?: ConversationsRateLimitConfig;
   findContent: FindContentFunc;
   makeReferenceLinks?: MakeReferenceLinksFunc;
@@ -81,6 +98,8 @@ export function makeConversationsRouter({
   conversations,
   userQueryPreprocessor,
   maxChunkContextTokens,
+  maxInputLengthCharacters,
+  maxMessagesInConversation,
   rateLimitConfig,
   findContent,
   makeReferenceLinks,
@@ -155,6 +174,8 @@ export function makeConversationsRouter({
     dataStreamer,
     userQueryPreprocessor,
     maxChunkContextTokens,
+    maxInputLengthCharacters,
+    maxMessagesInConversation,
     findContent,
     makeReferenceLinks,
   });

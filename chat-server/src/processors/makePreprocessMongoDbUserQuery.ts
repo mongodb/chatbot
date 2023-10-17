@@ -5,18 +5,12 @@ import {
   QueryPreprocessorFunc,
   QueryPreprocessorResult,
 } from "./QueryPreprocessorFunc";
-import { updateFrontMatter, makeTypeChatJsonTranslateFunc } from "chat-core";
+import {
+  updateFrontMatter,
+  makeTypeChatJsonTranslateFunc,
+  AzureOpenAiServiceConfig,
+} from "chat-core";
 import { Message } from "../services";
-
-/**
- Configuration for the Azure OpenAI service.
- */
-export interface AzureOpenAiServiceConfig {
-  apiKey: string;
-  baseUrl: string;
-  deployment: string;
-  version: string;
-}
 
 /**
   Query preprocessor that uses the Azure OpenAI service to preprocess
@@ -52,7 +46,7 @@ export function makePreprocessMongoDbUserQuery({
 > {
   const schemaName = "MongoDbUserQueryPreprocessorResponse";
   const schema = fs.readFileSync(
-    path.join(__dirname, `${schemaName}.d.ts`),
+    path.join(__dirname, `${schemaName}.ts`),
     "utf8"
   );
 

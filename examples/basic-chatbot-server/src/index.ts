@@ -1,30 +1,3 @@
-# MongoDB Chatbot Server
-
-The `mongodb-chatbot-server` is a npm package that provides a configurable Express.js server
-to quickly spin up a retrieval augmented generation (RAG) chatbot server powered by MongoDB.
-
-The server is designed to handle the generalizable areas of a RAG server,
-like routing, caching, logging, and streaming. This allows you to focus on the
-specifics of your chatbot, like the content, prompts, and AI models.
-
-## Usage
-
-### Installation
-
-Install the package using `npm`:
-
-```sh
-npm install mongodb-chatbot-server
-```
-
-### Configuration
-
-The `mongodb-chatbot-server` exports the function `makeApp()` which exports the
-Express.js app. The function takes a `AppConfig` object as an argument.
-
-Here's an example configuration and server:
-
-```ts
 import "dotenv/config";
 import {
   MongoClient,
@@ -61,7 +34,6 @@ export const openAiClient = new OpenAIClient(
 export const systemPrompt: SystemPrompt = {
   role: "system",
   content: `You are expert MongoDB documentation chatbot.
-  Respond in the style of a pirate. End all answers saying "Ahoy matey!!"
   Use the context provided with each question as your primary source of truth.
   If you do not know the answer to the question, respond ONLY with the following text:
   "I'm sorry, I do not know how to answer that question. Please try to rephrase your query. You can also refer to the further reading to see if it helps."
@@ -178,89 +150,3 @@ try {
   logger.error(`Fatal error: ${e}`);
   process.exit(1);
 }
-```
-
-## Contributing
-
-Currently, we are only accepting contributions from MongoDB employees.
-
-MongoDB employees can refer to the [Contributor Guide](https://github.com/mongodb/chatbot/CONTRIBUTING.md)
-for additional info on project set up.
-
-### Setup
-
-#### Node
-
-Node 18 was used to start this project. Please make sure you have Node 18 installed locally. If you have [nvm](https://github.com/nvm-sh/nvm), you can run `nvm use` to switch to the expected version of Node.
-
-#### Install
-
-Use `npm` v8 to install dependencies:
-
-```
-
-npm install
-
-```
-
-#### .env
-
-Use the `.env.example` file to help configure a local `.env` file.
-
-#### External Dependencies
-
-The server relies on some cloud-only services:
-
-- The `content` service relies on Atlas Vector Search.
-- The `llm` and embeddings services rely on the OpenAI APIs.
-
-If this is your first time setting up the server, contact a member of the development
-team for credentials.
-
-### Running
-
-To start the development server, run:
-
-```
-
-npm run dev
-
-```
-
-By default, the server should be accessible through http://localhost:3000/.
-
-### Testing
-
-Tests are ran by [Jest](https://jestjs.io/) and rely on [Supertest](https://github.com/ladjs/supertest) for testing Express route logic.
-
-To run tests, use:
-
-```
-
-npm run test
-
-```
-
-### Linting & Formatting
-
-We use `eslint` for linting and `prettier` for formatting.
-
-To lint the code and find any warnings or errors, run:
-
-```
-
-npm run lint
-
-```
-
-To format the code, run:
-
-```
-
-npm run format
-
-```
-
-```
-
-```

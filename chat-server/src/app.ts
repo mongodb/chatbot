@@ -93,12 +93,13 @@ export const makeHandleTimeoutMiddleware = (apiTimeout: number) => {
   };
 };
 
-/**
- OSS_TODO: these should probably be configurable, with these being the defaults
- */
 export const DEFAULT_API_PREFIX = "/api/v1";
 
 export const DEFAULT_MAX_REQUEST_TIMEOUT_MS = 60000;
+
+/**
+  Constructor function to make the Express.js app.
+ */
 export const makeApp = async (config: AppConfig): Promise<Express> => {
   const {
     maxRequestTimeoutMs = DEFAULT_MAX_REQUEST_TIMEOUT_MS,

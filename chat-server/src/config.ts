@@ -6,7 +6,6 @@ import "dotenv/config";
 import {
   EmbeddedContent,
   MongoClient,
-  Reference,
   makeMongoDbEmbeddedContentStore,
   makeOpenAiEmbedFunc,
 } from "chat-core";

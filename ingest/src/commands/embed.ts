@@ -1,6 +1,7 @@
 import { CommandModule } from "yargs";
 import {
-  makeDatabaseConnection,
+  makeMongoDbEmbeddedContentStore,
+  makeMongoDbPageStore,
   assertEnvVars,
   makeOpenAiEmbedFunc,
   EmbeddedContentStore,
@@ -9,6 +10,7 @@ import {
 import { updateEmbeddedContent } from "../updateEmbeddedContent";
 import { standardChunkFrontMatterUpdater } from "../ChunkTransformer";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
+import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 
 type EmbeddedContentCommandArgs = {
   since: string;
@@ -36,20 +38,25 @@ const commandModule: CommandModule<unknown, EmbeddedContentCommandArgs> = {
     const { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } =
       assertEnvVars(INGEST_ENV_VARS);
 
-    const store = await makeDatabaseConnection({
+    const embeddedContentStore = makeMongoDbEmbeddedContentStore({
+      connectionUri: MONGODB_CONNECTION_URI,
+      databaseName: MONGODB_DATABASE_NAME,
+    });
+    const pagesStore = makeMongoDbPageStore({
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
     });
 
     try {
       await doEmbedCommand({
-        pageStore: store,
-        embeddedContentStore: store,
+        pageStore: pagesStore,
+        embeddedContentStore: embeddedContentStore,
         since: new Date(since),
         source,
       });
     } finally {
-      await store.close();
+      await pagesStore.close();
+      await embeddedContentStore.close();
     }
   },
   describe: "Update embedded content data from pages",
@@ -75,10 +82,13 @@ export const doEmbedCommand = async ({
     OPENAI_EMBEDDING_DEPLOYMENT,
   } = assertEnvVars(INGEST_ENV_VARS);
 
+  const openAiClient = new OpenAIClient(
+    OPENAI_ENDPOINT,
+    new AzureKeyCredential(OPENAI_API_KEY)
+  );
+
   const embed = makeOpenAiEmbedFunc({
-    baseUrl: OPENAI_ENDPOINT,
-    apiKey: OPENAI_API_KEY,
-    apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
+    openAiClient,
     deployment: OPENAI_EMBEDDING_DEPLOYMENT,
     backoffOptions: {
       numOfAttempts: 25,

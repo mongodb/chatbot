@@ -181,7 +181,6 @@ export function makeMongoDbReferences(chunks: EmbeddedContent[]) {
   const baseReferences = makeDefaultReferenceLinks(chunks);
   return baseReferences.map((ref) => {
     const url = new URL(ref.url);
-    url.searchParams.append("tck", "docs_chatbot");
     return {
       url: url.href,
       title: url.origin + url.pathname,

@@ -37,6 +37,11 @@ export interface AppConfig {
     Configuration for CORS middleware. Defaults to allowing all origins.
    */
   corsOptions?: CorsOptions;
+
+  /**
+    Prefix for all API routes. Defaults to `/api/v1`.
+   */
+  apiPrefix?: string;
 }
 
 /**
@@ -91,8 +96,7 @@ export const makeHandleTimeoutMiddleware = (apiTimeout: number) => {
 /**
  OSS_TODO: these should probably be configurable, with these being the defaults
  */
-export const API_V1_PREFIX = "/api/v1";
-export const CONVERSATIONS_API_V1_PREFIX = `${API_V1_PREFIX}/conversations`;
+export const DEFAULT_API_PREFIX = "/api/v1";
 
 export const DEFAULT_MAX_REQUEST_TIMEOUT_MS = 60000;
 export const makeApp = async (config: AppConfig): Promise<Express> => {
@@ -100,6 +104,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
     maxRequestTimeoutMs = DEFAULT_MAX_REQUEST_TIMEOUT_MS,
     conversationsRouterConfig,
     corsOptions,
+    apiPrefix = DEFAULT_API_PREFIX,
   } = config;
   logger.info("Server has the following configuration:");
   logger.info(
@@ -120,7 +125,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
     app.use(express.static("static"));
   }
   app.use(
-    CONVERSATIONS_API_V1_PREFIX,
+    `${apiPrefix}/conversations`,
     makeConversationsRouter(conversationsRouterConfig)
   );
   app.get("/health", (_req, res) => {

@@ -15,11 +15,9 @@ import {
   addMessagesToDatabase,
   makeAddMessageToConversationRoute,
   convertDbMessageToOpenAiMessage,
-  generateReferences,
   validateApiConversationFormatting,
-  MAX_INPUT_LENGTH,
-  MAX_MESSAGES_IN_CONVERSATION,
-  createLinkReference,
+  DEFAULT_MAX_INPUT_LENGTH,
+  DEFAULT_MAX_MESSAGES_IN_CONVERSATION,
   includeChunksForMaxTokensPossible,
   makeDefaultReferenceLinks,
 } from "./addMessageToConversation";
@@ -28,7 +26,7 @@ import { makeOpenAiChatLlm } from "../../services/openAiChatLlm";
 import { makeDataStreamer } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
 import { ObjectId } from "chat-core";
-import { makeApp, CONVERSATIONS_API_V1_PREFIX } from "../../app";
+import { makeApp, DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../testHelpers";
 import {
   makeTestAppConfig,
@@ -66,11 +64,12 @@ describe("POST /conversations/:conversationId/messages", () => {
 
   let conversationId: string;
   let testEndpointUrl: string;
-  const endpointUrl = CONVERSATIONS_API_V1_PREFIX + "/:conversationId/messages";
+  const endpointUrl =
+    DEFAULT_API_PREFIX + "/conversations/:conversationId/messages";
 
   beforeEach(async () => {
     const createConversationRes = await request(app)
-      .post(CONVERSATIONS_API_V1_PREFIX)
+      .post(DEFAULT_API_PREFIX + "/conversations")
       .set("X-FORWARDED-FOR", ipAddress)
       .send();
     const res: ApiConversation = createConversationRes.body;
@@ -157,7 +156,7 @@ describe("POST /conversations/:conversationId/messages", () => {
     });
 
     test("should respond 400 if input is too long", async () => {
-      const tooLongMessage = "a".repeat(MAX_INPUT_LENGTH + 1);
+      const tooLongMessage = "a".repeat(DEFAULT_MAX_INPUT_LENGTH + 1);
       const res = await request(app)
         .post(endpointUrl.replace(":conversationId", conversationId))
         .set("X-FORWARDED-FOR", ipAddress)
@@ -185,7 +184,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         ipAddress,
       });
       // Init conversation with max length
-      for await (const i of Array(MAX_MESSAGES_IN_CONVERSATION - 1)) {
+      for await (const i of Array(DEFAULT_MAX_MESSAGES_IN_CONVERSATION - 1)) {
         const role = i % 2 === 0 ? "user" : "assistant";
         await conversations.addConversationMessage({
           conversationId: _id,
@@ -436,28 +435,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         role: sampleDbMessage.role,
       });
     });
-    test("createLinkReference", () => {
-      const links = [
-        "https://www.example.com/",
-        "https://www.example.com/2",
-        "https://www.subdomin.example.com/baz",
-      ];
-      const linkReferences = links.map((link) => createLinkReference(link));
-      expect(linkReferences).toStrictEqual([
-        {
-          title: "https://www.example.com/",
-          url: "https://www.example.com/?tck=docs_chatbot",
-        },
-        {
-          title: "https://www.example.com/2",
-          url: "https://www.example.com/2?tck=docs_chatbot",
-        },
-        {
-          title: "https://www.subdomin.example.com/baz",
-          url: "https://www.subdomin.example.com/baz?tck=docs_chatbot",
-        },
-      ]);
-    });
+
     describe("default find content", () => {
       const findContent = makeDefaultFindContentFunc({
         embed,
@@ -516,7 +494,9 @@ describe("POST /conversations/:conversationId/messages", () => {
         _id: new ObjectId(),
         url: "https://mongodb.com/docs/realm/sdk/node/xyz",
         text: "blah blah blah",
-        title: "title",
+        metadata: {
+          pageTitle: "title",
+        },
         tokenCount: 100,
         embedding: [0.1, 0.2, 0.3],
         updated: new Date(),
@@ -539,7 +519,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         expect(oneReference).toEqual(expectedOneReference);
       });
       test("Chunk with title should return title in reference", () => {
-        const oneChunk: EmbeddedContent[] = [chunk1];
+        const oneChunk: EmbeddedContent[] = [chunkWithTitle];
         const oneReference = makeDefaultReferenceLinks(oneChunk);
         const expectedOneReference = [
           {
@@ -586,11 +566,11 @@ describe("POST /conversations/:conversationId/messages", () => {
         const expectedMultipleSourcesWithSomePageOverlap = [
           {
             title: "https://mongodb.com/docs/realm/sdk/node/",
-            url: "https://mongodb.com/docs/realm/sdk/node/?tck=docs_chatbot",
+            url: "https://mongodb.com/docs/realm/sdk/node/",
           },
           {
             title: "https://mongodb.com/docs/realm/sdk/node/xyz",
-            url: "https://mongodb.com/docs/realm/sdk/node/xyz?tck=docs_chatbot",
+            url: "https://mongodb.com/docs/realm/sdk/node/xyz",
           },
         ];
         expect(multipleSourcesWithSomePageOverlap).toEqual(

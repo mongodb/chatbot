@@ -1,7 +1,7 @@
 import request from "supertest";
 import { Express } from "express";
 import { rateLimitResponse } from "./conversationsRouter";
-import { CONVERSATIONS_API_V1_PREFIX } from "../../app";
+import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../testHelpers";
 import { makeTestAppConfig } from "../../testHelpers";
 
@@ -9,7 +9,7 @@ jest.setTimeout(60000);
 describe("Conversations Router", () => {
   const ipAddress = "127.0.0.1";
   const addMessageEndpointUrl =
-    CONVERSATIONS_API_V1_PREFIX + "/:conversationId/messages";
+    DEFAULT_API_PREFIX + "/conversations/:conversationId/messages";
   const { mongodb, appConfig, mongoClient } = makeTestAppConfig();
   afterAll(async () => {
     // clean up
@@ -130,7 +130,7 @@ describe("Conversations Router", () => {
    */
   async function createConversationReq(app: Express) {
     const createConversationRes = await request(app)
-      .post(CONVERSATIONS_API_V1_PREFIX)
+      .post(DEFAULT_API_PREFIX + "/conversations")
       .set("X-FORWARDED-FOR", ipAddress)
       .send();
     return createConversationRes;

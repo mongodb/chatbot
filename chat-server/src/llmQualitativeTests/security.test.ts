@@ -2,7 +2,7 @@ import { Db, MongoClient } from "chat-core";
 import { Express } from "express";
 import { makeTestApp } from "../testHelpers";
 import { ConversationsService } from "../services/conversations";
-import { CONVERSATIONS_API_V1_PREFIX } from "../app";
+import { DEFAULT_API_PREFIX } from "../app";
 import { generateTranscript } from "./generateChatTranscript";
 import "../../global.d";
 import { getTestCasesFromYaml } from "./getTestCasesFromYaml";
@@ -15,7 +15,8 @@ let app: Express;
 let conversations: ConversationsService;
 let ipAddress: string;
 const addMessageEndpoint =
-  CONVERSATIONS_API_V1_PREFIX + "/:conversationId/messages?streaming=false";
+  DEFAULT_API_PREFIX +
+  "/conversations/:conversationId/messages?streaming=false";
 
 jest.setTimeout(10000);
 beforeAll(async () => {

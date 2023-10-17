@@ -3,7 +3,8 @@ import Path from "path";
 import { Page } from "chat-core";
 import { chunkPage } from "./chunkPage";
 import { standardChunkFrontMatterUpdater } from "./ChunkTransformer";
-import { SRC_ROOT } from "..";
+
+const SRC_ROOT = Path.resolve(__dirname, "..");
 
 describe("chunkPage", () => {
   const page: Page = {

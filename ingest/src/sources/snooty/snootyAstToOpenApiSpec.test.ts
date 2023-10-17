@@ -5,7 +5,8 @@ import {
   getTitleFromSnootyOpenApiSpecAst,
   snootyAstToOpenApiSpec,
 } from "./snootyAstToOpenApiSpec";
-import { SRC_ROOT } from "../..";
+
+const SRC_ROOT = Path.resolve(__dirname, "../../");
 
 jest.setTimeout(30000);
 import { SnootyPageEntry } from "./SnootyDataSource";

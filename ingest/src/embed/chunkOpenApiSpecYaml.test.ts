@@ -1,7 +1,10 @@
 import fs from "fs";
 import Path from "path";
 import GPT3Tokenizer from "gpt3-tokenizer";
-import { handlePage, chunkOpenApiSpecYaml, SRC_ROOT } from "..";
+import { handlePage } from "../sources/snooty/SnootyDataSource";
+import { chunkOpenApiSpecYaml } from "./chunkOpenApiSpecYaml";
+
+const SRC_ROOT = Path.resolve(__dirname, "..");
 
 describe("chunkRedocOpenApiSpecYaml()", () => {
   jest.setTimeout(60000);

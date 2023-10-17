@@ -5,12 +5,10 @@ import {
   makeDatabaseConnection,
   PageStore,
 } from "chat-core";
-import {
-  updatePages,
-  sourceConstructors,
-  INGEST_ENV_VARS,
-  DataSource,
-} from "..";
+import { INGEST_ENV_VARS } from "../IngestEnvVars";
+import { sourceConstructors } from "../sources/projectSources";
+import { DataSource } from "../sources/DataSource";
+import { updatePages } from "../pages/updatePages";
 
 type PagesCommandArgs = {
   source?: string | string[];

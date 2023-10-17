@@ -2,7 +2,8 @@ import fs from "fs";
 import * as Path from "path";
 import { rstToSnootyAst } from "./rstToSnootyAst";
 import { snootyAstToMd } from "./snootyAstToMd";
-import { SRC_ROOT } from "../..";
+
+const SRC_ROOT = Path.resolve(__dirname, "../../");
 
 describe("rstToSnootyAst", () => {
   it("matches real Snooty AST", () => {

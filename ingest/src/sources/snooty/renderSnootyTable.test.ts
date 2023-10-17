@@ -1,7 +1,8 @@
 import Path from "path";
 import fs from "fs";
 import { renderSnootyTable } from "./renderSnootyTable";
-import { SRC_ROOT } from "../..";
+
+const SRC_ROOT = Path.resolve(__dirname, "../../");
 
 describe("renderSnootyTable", () => {
   it("renders HTML tables", () => {

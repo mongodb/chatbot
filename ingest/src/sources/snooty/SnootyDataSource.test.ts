@@ -9,7 +9,8 @@ import {
   makeSnootyDataSource,
 } from "./SnootyDataSource";
 import { snootyAstToMd } from "./snootyAstToMd";
-import { SRC_ROOT } from "../..";
+
+const SRC_ROOT = Path.resolve(__dirname, "../../");
 
 jest.setTimeout(15000);
 

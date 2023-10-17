@@ -6,9 +6,10 @@ import {
   makeDevCenterDataSource,
   makeDevCenterPage,
 } from "./DevCenterDataSource";
-import { SRC_ROOT } from "..";
 
 import "dotenv/config";
+
+const SRC_ROOT = Path.resolve(__dirname, "../");
 
 const devCenterDoc = JSON.parse(
   fs.readFileSync(

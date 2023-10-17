@@ -2,7 +2,8 @@ import Path from "path";
 import fs from "fs";
 import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
 import { SnootyNode } from "./SnootyDataSource";
-import { SRC_ROOT } from "../..";
+
+const SRC_ROOT = Path.resolve(__dirname, "../../");
 
 describe("snootyAstToMd", () => {
   const samplePage = JSON.parse(

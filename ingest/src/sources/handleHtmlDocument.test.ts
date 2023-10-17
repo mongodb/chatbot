@@ -2,7 +2,6 @@ import { JSDOM } from "jsdom";
 import fs from "fs";
 import Path from "path";
 import { Page } from "chat-core";
-import { SRC_ROOT } from "..";
 import {
   HandleHtmlPageFuncOptions,
   extractHtmlH1,
@@ -10,6 +9,8 @@ import {
 } from "./handleHtmlDocument";
 
 import "dotenv/config";
+
+const SRC_ROOT = Path.resolve(__dirname, "..");
 
 jest.setTimeout(600000);
 

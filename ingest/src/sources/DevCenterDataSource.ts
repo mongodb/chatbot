@@ -2,12 +2,10 @@ import { strict as assert } from "assert";
 import { MongoClient } from "mongodb";
 import { convert } from "html-to-text";
 import { Page, assertEnvVars, logger } from "chat-core";
-import {
-  removeMarkdownImagesAndLinks,
-  DataSource,
-  ProjectBase,
-  INGEST_ENV_VARS,
-} from "..";
+import { INGEST_ENV_VARS } from "../IngestEnvVars";
+import { removeMarkdownImagesAndLinks } from "./removeMarkdownImagesAndLinks";
+import { DataSource } from "./DataSource";
+import { ProjectBase } from "./ProjectBase";
 
 export type DevCenterProjectConfig = ProjectBase & {
   type: "devcenter";

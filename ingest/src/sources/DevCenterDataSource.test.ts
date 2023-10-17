@@ -6,11 +6,13 @@ import {
   makeDevCenterDataSource,
   makeDevCenterPage,
 } from "./DevCenterDataSource";
+import { SRC_ROOT } from "..";
+
 import "dotenv/config";
 
 const devCenterDoc = JSON.parse(
   fs.readFileSync(
-    Path.resolve(__dirname, "./test_data/sampleDevCenterPage.json"),
+    Path.resolve(SRC_ROOT, "../testData/sampleDevCenterPage.json"),
     {
       encoding: "utf-8",
     }
@@ -90,10 +92,7 @@ describe("makeDevCenterPageBody()", () => {
 
   it("removes HTML <div> and <img> tags", () => {
     const content = fs.readFileSync(
-      Path.resolve(
-        __dirname,
-        "./test_data/sampleDevCenterPageWithDivAndImg.md"
-      ),
+      Path.resolve(SRC_ROOT, "../testData/sampleDevCenterPageWithDivAndImg.md"),
       "utf-8"
     );
     const title = "Sample Page";
@@ -103,7 +102,7 @@ describe("makeDevCenterPageBody()", () => {
   });
   it("removes YouTube markdown directives", async () => {
     const content = fs.readFileSync(
-      Path.resolve(__dirname, "./test_data/sampleDevCenterPageWithYouTube.md"),
+      Path.resolve(SRC_ROOT, "../testData/sampleDevCenterPageWithYouTube.md"),
       "utf-8"
     );
     const title = "Sample Page";

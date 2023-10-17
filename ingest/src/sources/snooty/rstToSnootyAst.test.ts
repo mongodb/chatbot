@@ -2,18 +2,19 @@ import fs from "fs";
 import * as Path from "path";
 import { rstToSnootyAst } from "./rstToSnootyAst";
 import { snootyAstToMd } from "./snootyAstToMd";
+import { SRC_ROOT } from "../..";
 
 describe("rstToSnootyAst", () => {
   it("matches real Snooty AST", () => {
     const sampleRealSnootyAst = JSON.parse(
       fs.readFileSync(
-        Path.resolve(__dirname, "./test_data/samplePageWithCodeExamples.json"),
+        Path.resolve(SRC_ROOT, "../testData/samplePageWithCodeExamples.json"),
         "utf-8"
       )
     ).data.ast;
 
     const sampleRst = fs.readFileSync(
-      Path.resolve(__dirname, "./test_data/samplePageWithCodeExamples.rst"),
+      Path.resolve(SRC_ROOT, "../testData/samplePageWithCodeExamples.rst"),
       "utf-8"
     );
 

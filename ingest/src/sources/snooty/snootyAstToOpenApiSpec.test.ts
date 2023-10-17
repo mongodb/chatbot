@@ -5,12 +5,13 @@ import {
   getTitleFromSnootyOpenApiSpecAst,
   snootyAstToOpenApiSpec,
 } from "./snootyAstToOpenApiSpec";
+import { SRC_ROOT } from "../..";
 
 jest.setTimeout(30000);
 import { SnootyPageEntry } from "./SnootyDataSource";
 const textSpecPage: SnootyPageEntry = JSON.parse(
   readFileSync(
-    Path.resolve(__dirname, "./test_data/localOpenApiSpecPage.json"),
+    Path.resolve(SRC_ROOT, "../testData/localOpenApiSpecPage.json"),
     {
       encoding: "utf-8",
     }
@@ -18,7 +19,7 @@ const textSpecPage: SnootyPageEntry = JSON.parse(
 );
 const remoteSpecPage: SnootyPageEntry = JSON.parse(
   readFileSync(
-    Path.resolve(__dirname, "./test_data/remoteOpenApiSpecPage.json"),
+    Path.resolve(SRC_ROOT, "../testData/remoteOpenApiSpecPage.json"),
     {
       encoding: "utf-8",
     }

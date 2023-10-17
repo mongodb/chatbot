@@ -2,10 +2,11 @@ import Path from "path";
 import fs from "fs";
 import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
 import { SnootyNode } from "./SnootyDataSource";
+import { SRC_ROOT } from "../..";
 
 describe("snootyAstToMd", () => {
   const samplePage = JSON.parse(
-    fs.readFileSync(Path.resolve(__dirname, "./test_data/samplePage.json"), {
+    fs.readFileSync(Path.resolve(SRC_ROOT, "../testData/samplePage.json"), {
       encoding: "utf-8",
     })
   );
@@ -73,7 +74,7 @@ describe("snootyAstToMd", () => {
   describe("Renders code blocks", () => {
     const samplePage = JSON.parse(
       fs.readFileSync(
-        Path.resolve(__dirname, "./test_data/samplePageWithCodeExamples.json"),
+        Path.resolve(SRC_ROOT, "../testData/samplePageWithCodeExamples.json"),
         {
           encoding: "utf-8",
         }
@@ -92,7 +93,7 @@ describe("snootyAstToMd", () => {
   it("strips comments", () => {
     const ast: SnootyNode = JSON.parse(
       fs.readFileSync(
-        Path.resolve(__dirname, "./test_data/samplePageWithCommentAst.json"),
+        Path.resolve(SRC_ROOT, "../testData/samplePageWithCommentAst.json"),
         "utf-8"
       )
     );
@@ -131,7 +132,7 @@ Describes one method for supporting keyword search by storing keywords in an arr
   it("renders tab sets", () => {
     const samplePageWithTabs = JSON.parse(
       fs.readFileSync(
-        Path.resolve(__dirname, "./test_data/samplePageWithTabs.json"),
+        Path.resolve(SRC_ROOT, "../testData/samplePageWithTabs.json"),
         {
           encoding: "utf-8",
         }
@@ -156,7 +157,7 @@ Describes one method for supporting keyword search by storing keywords in an arr
   it("renders driver tab sets", () => {
     const samplePageWithTabs = JSON.parse(
       fs.readFileSync(
-        Path.resolve(__dirname, "./test_data/samplePageWithTabsDrivers.json"),
+        Path.resolve(SRC_ROOT, "../testData/samplePageWithTabsDrivers.json"),
         {
           encoding: "utf-8",
         }
@@ -182,7 +183,7 @@ Describes one method for supporting keyword search by storing keywords in an arr
   it("renders tab sets", () => {
     const samplePage = JSON.parse(
       fs.readFileSync(
-        Path.resolve(__dirname, "./test_data/samplePageWithOrderedList.json"),
+        Path.resolve(SRC_ROOT, "../testData/samplePageWithOrderedList.json"),
         {
           encoding: "utf-8",
         }
@@ -210,7 +211,7 @@ Some of your App Services App's features are associated with user accounts. For 
 });
 describe("getTitleFromSnootyAst", () => {
   const samplePage = JSON.parse(
-    fs.readFileSync(Path.resolve(__dirname, "./test_data/samplePage.json"), {
+    fs.readFileSync(Path.resolve(SRC_ROOT, "../testData/samplePage.json"), {
       encoding: "utf-8",
     })
   );

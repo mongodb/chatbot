@@ -3,6 +3,7 @@ import Path from "path";
 import { Page } from "chat-core";
 import { chunkPage } from "./chunkPage";
 import { standardChunkFrontMatterUpdater } from "./ChunkTransformer";
+import { SRC_ROOT } from "..";
 
 describe("chunkPage", () => {
   const page: Page = {
@@ -282,7 +283,7 @@ ${body}`,
   });
   it("chunks page with tabs", async () => {
     const samplePageWithTabs = fs.readFileSync(
-      Path.resolve(__dirname, "./test_data/samplePageWithTabs.md"),
+      Path.resolve(SRC_ROOT, "../testData/samplePageWithTabs.md"),
       {
         encoding: "utf-8",
       }

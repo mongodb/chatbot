@@ -1,13 +1,15 @@
 import { JSDOM } from "jsdom";
+import fs from "fs";
+import Path from "path";
+import { Page } from "chat-core";
+import { SRC_ROOT } from "..";
 import {
   HandleHtmlPageFuncOptions,
   extractHtmlH1,
   handleHtmlDocument,
 } from "./handleHtmlDocument";
+
 import "dotenv/config";
-import fs from "fs";
-import Path from "path";
-import { Page } from "chat-core";
 
 jest.setTimeout(600000);
 
@@ -44,7 +46,7 @@ describe("handleHtmlDocument()", () => {
   let page: Omit<Page, "sourceName">;
   beforeAll(async () => {
     const html = fs.readFileSync(
-      Path.resolve(__dirname, "./test_data/sampleJava.html"),
+      Path.resolve(SRC_ROOT, "../testData/sampleJava.html"),
       {
         encoding: "utf-8",
       }

@@ -5,7 +5,7 @@
 import "dotenv/config";
 import {
   MongoClient,
-  makeDatabaseConnection,
+  makeMongoDbEmbeddedContentStore,
   makeOpenAiEmbedFunc,
 } from "chat-core";
 import { makeMongoDbConversationsService } from "./services/conversations";
@@ -128,15 +128,13 @@ const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({
 
 export const dataStreamer = makeDataStreamer();
 
-export const embeddedContentStore = makeDatabaseConnection({
+export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
 });
 
 export const embed = makeOpenAiEmbedFunc({
-  apiKey: OPENAI_API_KEY,
-  apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
-  baseUrl: OPENAI_ENDPOINT,
+  openAiClient,
   deployment: OPENAI_EMBEDDING_DEPLOYMENT,
   backoffOptions: {
     numOfAttempts: 3,

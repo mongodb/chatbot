@@ -11,6 +11,8 @@ export * from "./updateFrontMatter";
 export * from "./removeFrontMatter";
 export * from "./extractFrontMatter";
 export * from "./TypeChatJsonTranslateFunc";
+export * from "./MongoDbEmbeddedContentStore";
+export * from "./MongoDbPageStore";
 
 // Everyone share the same mongodb driver version
 export * from "mongodb";

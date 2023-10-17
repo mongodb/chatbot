@@ -1,9 +1,6 @@
-import { posix } from "path";
-import axios from "axios";
 import { EmbedFunc } from "./EmbedFunc";
 import { logger } from "./services/logger";
 import { stripIndent } from "common-tags";
-import { CreateEmbeddingResponse } from "openai";
 import { backOff, BackoffOptions } from "exponential-backoff";
 import { OpenAIClient } from "@azure/openai";
 
@@ -25,11 +22,7 @@ export type MakeOpenAiEmbedFuncArgs = {
 };
 
 /**
- OSS_TODO: refactor this to use the Azure OpenAI SDK instead of direct API call.
- Pass in an instance of the AzureOpenAiClient, like we do for the makeOpenAiChatLlm() func
- */
-/**
-  Creates an OpenAI implementation of the embedding function.
+  Constructor for implementation of the {@link EmbedFunc} using [OpenAI Embeddings API](https://platform.openai.com/docs/guides/embeddings).
  */
 export const makeOpenAiEmbedFunc = ({
   backoffOptions: backoffOptionsIn,

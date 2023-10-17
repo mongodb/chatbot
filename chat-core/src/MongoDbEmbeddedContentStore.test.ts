@@ -1,18 +1,17 @@
 import { stripIndent } from "common-tags";
 import { strict as assert } from "assert";
-import {
-  makeDatabaseConnection,
-  DatabaseConnection,
-} from "./DatabaseConnection";
-import { Page, PageStore, PersistedPage } from "./Page";
+import { DatabaseConnection } from "./DatabaseConnection";
 import {
   EmbeddedContentStore,
   FindNearestNeighborsOptions,
 } from "./EmbeddedContent";
+import { makeMongoDbEmbeddedContentStore } from "./MongoDbEmbeddedContentStore";
 import { assertEnvVars } from "./assertEnvVars";
 import { CORE_ENV_VARS } from "./CoreEnvVars";
 import { makeOpenAiEmbedFunc } from "./OpenAiEmbedFunc";
 import "dotenv/config";
+import { PersistedPage } from "./Page";
+import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 
 const {
   MONGODB_CONNECTION_URI,
@@ -20,18 +19,15 @@ const {
   OPENAI_ENDPOINT,
   OPENAI_API_KEY,
   OPENAI_EMBEDDING_DEPLOYMENT,
-  OPENAI_EMBEDDING_MODEL_VERSION,
   VECTOR_SEARCH_INDEX_NAME,
 } = assertEnvVars(CORE_ENV_VARS);
 
-describe("DatabaseConnection", () => {
-  let store:
-    | (DatabaseConnection & PageStore & EmbeddedContentStore)
-    | undefined;
+describe("MongoDbEmbeddedContentStore", () => {
+  let store: (DatabaseConnection & EmbeddedContentStore) | undefined;
   beforeEach(async () => {
     // Need to use real Atlas connection in order to run vector searches
     const databaseName = `test-database-${Date.now()}`;
-    store = await makeDatabaseConnection({
+    store = await makeMongoDbEmbeddedContentStore({
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName,
     });
@@ -106,90 +102,14 @@ describe("DatabaseConnection", () => {
     await store.deleteEmbeddedContent({ page });
     expect(await store.loadEmbeddedContent({ page })).toStrictEqual([]);
   });
-
-  it("handles pages", async () => {
-    assert(store);
-
-    const page: PersistedPage = {
-      action: "created",
-      body: "foo",
-      format: "md",
-      sourceName: "source1",
-      metadata: {
-        tags: [],
-      },
-      updated: new Date(),
-      url: "/x/y/z",
-    };
-
-    let pages = await store.loadPages({ sources: ["source1"] });
-    expect(pages).toStrictEqual([]);
-
-    await store.updatePages([
-      { ...page, url: "1" },
-      { ...page, url: "2" },
-      { ...page, url: "3" },
-    ]);
-
-    pages = await store.loadPages({ sources: ["source1"] });
-    expect(pages.length).toBe(3);
-    expect(pages.find(({ url }) => url === "2")).toMatchObject({
-      url: "2",
-      action: "created",
-    });
-
-    await store.updatePages([{ ...page, url: "2", action: "deleted" }]);
-
-    pages = await store.loadPages({ sources: ["source1"] });
-    expect(pages.length).toBe(3);
-    expect(pages.find(({ url }) => url === "2")).toMatchObject({
-      url: "2",
-      action: "deleted",
-    });
-  });
-
-  it("loads pages that have changed since the given date", async () => {
-    assert(store);
-
-    await store.updatePages([
-      {
-        action: "created",
-        body: "The Matrix (1999) comes out",
-        format: "md",
-        sourceName: "",
-        metadata: {
-          tags: [],
-        },
-        updated: new Date("1999-03-31"),
-        url: "matrix1",
-      },
-      {
-        action: "created",
-        body: "The Matrix: Reloaded (2003) comes out",
-        format: "md",
-        sourceName: "",
-        metadata: {
-          tags: [],
-        },
-        updated: new Date("2003-05-15"),
-        url: "matrix2",
-      },
-    ]);
-
-    const changedPages = await store.loadPages({
-      updated: new Date("2000-01-01"),
-    });
-
-    expect(changedPages.length).toBe(1);
-    expect(changedPages[0].url).toBe("matrix2");
-  });
 });
 
 describe("nearest neighbor search", () => {
   const embed = makeOpenAiEmbedFunc({
-    baseUrl: OPENAI_ENDPOINT,
-    apiKey: OPENAI_API_KEY,
-    apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
+    openAiClient: new OpenAIClient(
+      OPENAI_ENDPOINT,
+      new AzureKeyCredential(OPENAI_API_KEY)
+    ),
     deployment: OPENAI_EMBEDDING_DEPLOYMENT,
   });
 
@@ -200,13 +120,11 @@ describe("nearest neighbor search", () => {
     minScore: 0.9,
   };
 
-  let store:
-    | (DatabaseConnection & PageStore & EmbeddedContentStore)
-    | undefined;
+  let store: (DatabaseConnection & EmbeddedContentStore) | undefined;
   beforeEach(async () => {
     // Need to use real Atlas connection in order to run vector searches
     const databaseName = MONGODB_DATABASE_NAME;
-    store = await makeDatabaseConnection({
+    store = makeMongoDbEmbeddedContentStore({
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName,
     });

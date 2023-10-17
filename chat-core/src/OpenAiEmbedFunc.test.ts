@@ -1,9 +1,7 @@
 import "dotenv/config";
-
 import { assertEnvVars } from "./assertEnvVars";
 import { makeOpenAiEmbedFunc } from "./OpenAiEmbedFunc";
 import { CORE_ENV_VARS } from "./CoreEnvVars";
-import express from "express";
 import { OpenAIClient, AzureKeyCredential } from "@azure/openai";
 
 describe("OpenAiEmbedFunc", () => {
@@ -39,51 +37,48 @@ describe("OpenAiEmbedFunc", () => {
         numOfAttempts: 1,
       },
     });
-    await expect(
-      embed({
-        text: input,
-        userIp,
-      })
-    ).rejects.toThrow("Request failed with status code 400");
+    await expect(async () => {
+      await embed({ text: input, userIp: "" });
+    }).rejects.toHaveProperty("type", "invalid_request_error");
   });
-
   jest.setTimeout(20000);
-  // TODO: figure this one out better
   it("should automatically retry on failure", async () => {
-    // Mock out the OpenAI endpoint to validate retry behavior
-    const app = express();
-    const path = "/openai/deployments/test/embeddings";
     let serverHitCount = 0;
-    app.post(path, (_req, res) => {
-      ++serverHitCount;
-      res.statusCode = 429;
-      res.send();
-    });
-    const server = app.listen(10191);
-    try {
-      const embed = makeOpenAiEmbedFunc({
-        openAiClient: new OpenAIClient(
-          path,
-          new AzureKeyCredential(OPENAI_API_KEY)
-        ),
-        deployment: "test",
-        backoffOptions: {
-          numOfAttempts: 3,
+    const fakeDeployment = "test";
+
+    const fakeClient = new OpenAIClient(
+      OPENAI_ENDPOINT,
+      new AzureKeyCredential("not-a-real-key")
+    );
+    // Mock the getEmbeddings function to throw an error that resembles an axios error
+    // to be caught by the retry logic.
+    const mockGetEmbeddings = jest.fn().mockImplementation(async () => {
+      serverHitCount++;
+      throw {
+        response: {
+          status: 429,
+          data: {
+            error: "error!",
+          },
         },
-      });
-      try {
-        await embed({ text: "", userIp: "" });
-      } catch (e: any) {
-        // Expected to fail - server returns 429
-        expect(e.message).toContain("Request failed with status code 429");
-      }
-      expect(serverHitCount).toBe(3);
-    } finally {
-      await new Promise<void>((resolve, reject) => {
-        server.close((error) => {
-          error ? reject(error) : resolve();
-        });
-      });
+        message: "Fake error",
+      };
+    });
+    fakeClient.getEmbeddings = mockGetEmbeddings;
+    const embed = makeOpenAiEmbedFunc({
+      openAiClient: fakeClient,
+      deployment: fakeDeployment,
+      backoffOptions: {
+        numOfAttempts: 3,
+      },
+    });
+
+    try {
+      await embed({ text: "", userIp: "" });
+    } catch (e: any) {
+      // Expected to fail - server returns 429
+      expect(e.message).toContain("Fake error");
     }
+    expect(serverHitCount).toBe(3);
   });
 });

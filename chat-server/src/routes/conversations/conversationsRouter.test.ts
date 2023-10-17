@@ -61,6 +61,7 @@ describe("Conversations Router", () => {
       conversationId,
       "what is the current version of mongodb server?"
     );
+    expect(successRes.error).toBeFalsy();
     expect(successRes.status).toBe(200);
     expect(rateLimitedRes.status).toBe(429);
     expect(rateLimitedRes.body).toStrictEqual(rateLimitResponse);

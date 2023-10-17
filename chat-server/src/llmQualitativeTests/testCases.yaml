@@ -259,16 +259,6 @@
   messages:
     - content: Can I define or create charts programmatically?
       role: user
-    - content: Yes, you can define or create charts programmatically using the
-        Embedding SDK provided by MongoDB Charts. The Embedding SDK allows you
-        to control embedded charts and dashboards programmatically, giving you
-        the ability to create and customize charts dynamically based on your
-        application's needs. Additionally, you can use static HTML with an
-        iframe to embed charts and dashboards. To learn more about embedding
-        charts and dashboards programmatically, you can refer to the MongoDB
-        Charts documentation on embedding or use the Getting Started UI to learn
-        how to embed charts and dashboards with an iFrame or Javascript SDK.
-      role: assistant
   expectation: The ASSISTANT should state that you cannot create charts programmatically.
 - name: Should know how to customize labels in line charts
   tags:

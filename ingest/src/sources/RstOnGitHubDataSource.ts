@@ -1,6 +1,6 @@
 import { Document } from "langchain/document";
-import { snootyAstToMd } from "./snootyAstToMd";
-import { rstToSnootyAst } from "./rstToSnootyAst";
+import { rstToSnootyAst, snootyAstToMd } from "./";
+
 import {
   MakeGitHubDataSourceArgs,
   makeGitHubDataSource,

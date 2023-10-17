@@ -5,10 +5,12 @@ import {
   makeDatabaseConnection,
   PageStore,
 } from "chat-core";
-import { updatePages } from "../updatePages";
-import { sourceConstructors } from "../projectSources";
-import { INGEST_ENV_VARS } from "../IngestEnvVars";
-import { DataSource } from "../DataSource";
+import {
+  updatePages,
+  sourceConstructors,
+  INGEST_ENV_VARS,
+  DataSource,
+} from "..";
 
 type PagesCommandArgs = {
   source?: string | string[];
@@ -29,7 +31,7 @@ const commandModule: CommandModule<
     const { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } =
       assertEnvVars(INGEST_ENV_VARS);
 
-    const store = await makeDatabaseConnection({
+    const store = makeDatabaseConnection({
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
     });

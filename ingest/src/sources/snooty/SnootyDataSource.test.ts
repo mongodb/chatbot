@@ -8,7 +8,7 @@ import {
   handlePage,
   makeSnootyDataSource,
 } from "./SnootyDataSource";
-import { sampleSnootyMetadata } from "./test_data/snooty_sample_metadata";
+import { sampleSnootyMetadata } from "../../test_data/snooty_sample_metadata";
 import { snootyAstToMd } from "./snootyAstToMd";
 
 jest.setTimeout(15000);

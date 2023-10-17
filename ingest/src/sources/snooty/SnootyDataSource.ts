@@ -1,9 +1,9 @@
 import { createInterface } from "readline";
 import { Page, PageFormat, logger } from "chat-core";
 import fetch from "node-fetch";
-import { DataSource } from "./DataSource";
+import { DataSource } from "../DataSource";
 import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
-import { ProjectBase } from "./ProjectBase";
+import { ProjectBase } from "../ProjectBase";
 import {
   getTitleFromSnootyOpenApiSpecAst,
   snootyAstToOpenApiSpec,

@@ -1,6 +1,6 @@
 import { logger, Page, PageStore } from "chat-core";
 import { getChangedPages } from "./getChangedPages";
-import { DataSource } from "./DataSource";
+import { DataSource } from "..";
 
 /**
   Fetches pages from data sources and stores those that have changed in the data

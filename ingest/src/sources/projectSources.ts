@@ -1,19 +1,17 @@
-import { DevCenterProjectConfig } from "./DevCenterDataSource";
-import { SnootyProjectConfig } from "./SnootyDataSource";
-import { makeRstOnGitHubDataSource } from "./RstOnGitHubDataSource";
-import { DataSource } from "./DataSource";
-import { makeDevCenterDataSource } from "./DevCenterDataSource";
-import { prepareSnootySources } from "./SnootyProjectsInfo";
-import { makeGitDataSource } from "./GitDataSource";
 import {
+  prepareSnootySources,
+  DevCenterProjectConfig,
+  makeRstOnGitHubDataSource,
+  makeDevCenterDataSource,
+  DataSource,
+  SnootyProjectConfig,
+  makeGitDataSource,
   HandleHtmlPageFuncOptions,
   handleHtmlDocument,
-} from "./handleHtmlDocument";
-import { makeAcquitRequireMdOnGithubDataSource } from "./AcquitRequireMdOnGithubDataSource";
-import {
+  makeAcquitRequireMdOnGithubDataSource,
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
-} from "./MdOnGithubDataSource";
+} from "./";
 
 /**
   Async constructor for specific data sources -- parameters baked in.

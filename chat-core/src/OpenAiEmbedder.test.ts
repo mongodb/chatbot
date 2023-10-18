@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { assertEnvVars } from "./assertEnvVars";
-import { makeOpenAiEmbedFunc } from "./OpenAiEmbedFunc";
+import { makeOpenAiEmbedder } from "./OpenAiEmbedder";
 import { CORE_ENV_VARS } from "./CoreEnvVars";
 import { OpenAIClient, AzureKeyCredential } from "@azure/openai";
 
@@ -11,14 +11,14 @@ describe("OpenAiEmbedFunc", () => {
     OPENAI_ENDPOINT,
     new AzureKeyCredential(OPENAI_API_KEY)
   );
-  const embed = makeOpenAiEmbedFunc({
+  const embedder = makeOpenAiEmbedder({
     deployment: OPENAI_EMBEDDING_DEPLOYMENT,
     openAiClient,
   });
   const userIp = "abc123";
 
   test("Should return an array of numbers of length 1536", async () => {
-    const { embedding } = await embed({
+    const { embedding } = await embedder.embed({
       text: "Hello world",
       userIp,
     });
@@ -27,7 +27,7 @@ describe("OpenAiEmbedFunc", () => {
 
   test("Should return an error if the input too large", async () => {
     const input = "Hello world! ".repeat(8192);
-    const embed = makeOpenAiEmbedFunc({
+    const embedder = makeOpenAiEmbedder({
       openAiClient: new OpenAIClient(
         OPENAI_ENDPOINT,
         new AzureKeyCredential(OPENAI_API_KEY)
@@ -38,7 +38,7 @@ describe("OpenAiEmbedFunc", () => {
       },
     });
     await expect(async () => {
-      await embed({ text: input, userIp: "" });
+      await embedder.embed({ text: input, userIp: "" });
     }).rejects.toHaveProperty("type", "invalid_request_error");
   });
   jest.setTimeout(20000);
@@ -65,7 +65,7 @@ describe("OpenAiEmbedFunc", () => {
       };
     });
     fakeClient.getEmbeddings = mockGetEmbeddings;
-    const embed = makeOpenAiEmbedFunc({
+    const embedder = makeOpenAiEmbedder({
       openAiClient: fakeClient,
       deployment: fakeDeployment,
       backoffOptions: {
@@ -74,7 +74,7 @@ describe("OpenAiEmbedFunc", () => {
     });
 
     try {
-      await embed({ text: "", userIp: "" });
+      await embedder.embed({ text: "", userIp: "" });
     } catch (e: any) {
       // Expected to fail - server returns 429
       expect(e.message).toContain("Fake error");

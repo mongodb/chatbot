@@ -39,12 +39,12 @@ export type MakeGitHubDataSourceArgs = {
 /**
   Loads an arbitrary GitHub repo and converts its contents into pages.
  */
-export const makeGitHubDataSource = async ({
+export const makeGitHubDataSource = ({
   name,
   repoUrl,
   repoLoaderOptions,
   handleDocumentInRepo,
-}: MakeGitHubDataSourceArgs): Promise<DataSource> => {
+}: MakeGitHubDataSourceArgs): DataSource => {
   const repoOptions: Record<string, string | number> = {};
   const { branch, recursive } = repoLoaderOptions ?? {};
   if (branch) {

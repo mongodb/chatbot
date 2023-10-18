@@ -8,7 +8,7 @@ import {
 import { makeMongoDbEmbeddedContentStore } from "./MongoDbEmbeddedContentStore";
 import { assertEnvVars } from "./assertEnvVars";
 import { CORE_ENV_VARS } from "./CoreEnvVars";
-import { makeOpenAiEmbedFunc } from "./OpenAiEmbedFunc";
+import { makeOpenAiEmbedder } from "./OpenAiEmbedder";
 import "dotenv/config";
 import { PersistedPage } from "./Page";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
@@ -105,7 +105,7 @@ describe("MongoDbEmbeddedContentStore", () => {
 });
 
 describe("nearest neighbor search", () => {
-  const embed = makeOpenAiEmbedFunc({
+  const embed = makeOpenAiEmbedder({
     openAiClient: new OpenAIClient(
       OPENAI_ENDPOINT,
       new AzureKeyCredential(OPENAI_API_KEY)
@@ -139,7 +139,7 @@ describe("nearest neighbor search", () => {
     assert(store);
 
     const query = "Connect to MongoDB with Node.js";
-    const { embedding } = await embed({
+    const { embedding } = await embedder.embed({
       text: query,
       userIp: "XYZ",
     });
@@ -159,7 +159,7 @@ describe("nearest neighbor search", () => {
         query: "snooty-docs",
       },
     };
-    const { embedding } = await embed({
+    const { embedding } = await embedder.embed({
       text: query,
       userIp: "XYZ",
     });
@@ -181,7 +181,7 @@ describe("nearest neighbor search", () => {
         query: "not-a-source-name",
       },
     };
-    const { embedding } = await embed({
+    const { embedding } = await embedder.embed({
       text: query,
       userIp: "XYZ",
     });
@@ -207,7 +207,7 @@ describe("nearest neighbor search", () => {
     Bird and reptile eggs consist of a protective eggshell, albumen (egg white), and vitellus (egg yolk), contained within various thin membranes. Egg yolks and whole eggs store significant amounts of protein and choline,[3][4] and are widely used in cookery. Due to their protein content, the United States Department of Agriculture formerly categorized eggs as Meat within the Food Guide Pyramid (now MyPlate).[3] Despite the nutritional value of eggs, there are some potential health issues arising from cholesterol content, salmonella contamination, and allergy to egg proteins.
 
     Chickens and other egg-laying creatures are kept widely throughout the world and mass production of chicken eggs is a global industry. In 2009, an estimated 62.1 million metric tons of eggs were produced worldwide from a total laying flock of approximately 6.4 billion hens.[5] There are issues of regional variation in demand and expectation, as well as current debates concerning methods of mass production. In 2012, the European Union banned battery husbandry of chickens.`;
-    const { embedding } = await embed({
+    const { embedding } = await embedder.embed({
       text: query,
       userIp: "XYZ",
     });

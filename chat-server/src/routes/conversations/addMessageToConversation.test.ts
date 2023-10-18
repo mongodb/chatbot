@@ -36,7 +36,7 @@ import {
 import { AppConfig } from "../../app";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { makeDefaultFindContentFunc } from "./FindContentFunc";
-import { embed, embeddedContentStore as store } from "../../config";
+import { embedder, embeddedContentStore as store } from "../../config";
 
 const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
   assertEnvVars(CORE_ENV_VARS);
@@ -327,7 +327,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         conversationId = _id;
 
         const findContent = makeDefaultFindContentFunc({
-          embed,
+          embedder,
           store,
         });
         app = express();
@@ -438,7 +438,7 @@ describe("POST /conversations/:conversationId/messages", () => {
 
     describe("default find content", () => {
       const findContent = makeDefaultFindContentFunc({
-        embed,
+        embedder,
         store,
       });
       test("Should return content for relevant text", async () => {

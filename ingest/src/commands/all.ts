@@ -1,97 +1,52 @@
 import { CommandModule } from "yargs";
-import { doPagesCommand as officialDoPages } from "./pages";
+import { logger } from "chat-core";
+import { doPagesCommand as standardDoPagesCommand } from "./pages";
 import { doEmbedCommand } from "./embed";
 import {
-  makeMongoDbEmbeddedContentStore,
-  makeMongoDbPageStore,
-  assertEnvVars,
-  EmbeddedContentStore,
-  PageStore,
-  logger,
-} from "chat-core";
-import { INGEST_ENV_VARS } from "../IngestEnvVars";
-import { makeIngestMetaStore } from "../IngestMetaStore";
+  ResolvedConfig,
+  LoadConfigArgs,
+  withConfig,
+  withConfigOptions,
+} from "../withConfig";
 
-import "dotenv/config";
-
-const commandModule: CommandModule<unknown, unknown> = {
+const commandModule: CommandModule<unknown, LoadConfigArgs> = {
   command: "all",
+  builder(args) {
+    return withConfigOptions(args);
+  },
   async handler() {
-    const { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } =
-      assertEnvVars(INGEST_ENV_VARS);
-
-    const embeddedContentStore = makeMongoDbEmbeddedContentStore({
-      connectionUri: MONGODB_CONNECTION_URI,
-      databaseName: MONGODB_DATABASE_NAME,
+    return withConfig(doAllCommand, {
+      doPagesCommand: standardDoPagesCommand,
     });
-    const pageStore = makeMongoDbPageStore({
-      connectionUri: MONGODB_CONNECTION_URI,
-      databaseName: MONGODB_DATABASE_NAME,
-    });
-
-    try {
-      await doAllCommand({
-        pageStore,
-        embeddedContentStore,
-        connectionUri: MONGODB_CONNECTION_URI,
-        databaseName: MONGODB_DATABASE_NAME,
-      });
-    } finally {
-      // wrap in try/finally to ensure that we try to close 2nd store even if
-      // first one fails
-      try {
-        await pageStore.close();
-      } finally {
-        await embeddedContentStore.close();
-      }
-    }
   },
   describe: "Run 'pages' and 'embed' since last successful run",
 };
 
 export default commandModule;
 
-export const doAllCommand = async ({
-  pageStore,
-  embeddedContentStore,
-  connectionUri,
-  databaseName,
-  doPagesCommand = officialDoPages,
-}: {
-  pageStore: PageStore;
-  embeddedContentStore: EmbeddedContentStore;
-  connectionUri: string;
-  databaseName: string;
+export const doAllCommand = async (
+  config: ResolvedConfig,
+  {
+    doPagesCommand,
+  }: {
+    // Mockable for unit test - otherwise will actually load pages from all
+    // sources, waste time
+    doPagesCommand: typeof standardDoPagesCommand;
+  }
+) => {
+  const { ingestMetaStore } = config;
 
-  // Mockable for unit test - otherwise will actually load pages from all
-  // sources, waste time
-  doPagesCommand?: typeof officialDoPages;
-}) => {
-  const ingestMetaStore = await makeIngestMetaStore({
-    connectionUri,
-    databaseName,
-    entryId: "all",
+  const lastSuccessfulRunDate =
+    await ingestMetaStore.loadLastSuccessfulRunDate();
+
+  logger.info(`Last successful run date: ${lastSuccessfulRunDate}`);
+
+  await doPagesCommand(config, {});
+
+  await doEmbedCommand(config, {
+    since: lastSuccessfulRunDate ?? new Date("2023-01-01"),
   });
 
-  try {
-    const lastSuccessfulRunDate =
-      await ingestMetaStore.loadLastSuccessfulRunDate();
-
-    logger.info(`Last successful run date: ${lastSuccessfulRunDate}`);
-
-    await doPagesCommand({
-      store: pageStore,
-    });
-
-    await doEmbedCommand({
-      since: lastSuccessfulRunDate ?? new Date("2023-01-01"),
-      pageStore,
-      embeddedContentStore,
-    });
-
-    logger.info(`Updating last successful run date`);
-    await ingestMetaStore.updateLastSuccessfulRunDate();
-  } finally {
-    await ingestMetaStore.close();
-  }
+  logger.info(`Updating last successful run date`);
+  await ingestMetaStore.updateLastSuccessfulRunDate();
 };

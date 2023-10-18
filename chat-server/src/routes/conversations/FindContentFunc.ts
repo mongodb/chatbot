@@ -2,7 +2,7 @@ import { strict as assert } from "assert";
 import {
   WithScore,
   EmbeddedContent,
-  EmbedFunc,
+  Embedder,
   EmbeddedContentStore,
   FindNearestNeighborsOptions,
 } from "chat-core";
@@ -22,7 +22,7 @@ export type FindContentResult = {
 };
 
 export type MakeDefaultFindContentFuncArgs = {
-  embed: EmbedFunc;
+  embedder: Embedder;
   store: EmbeddedContentStore;
   findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
   searchBoosters?: SearchBooster[];
@@ -32,13 +32,13 @@ export type MakeDefaultFindContentFuncArgs = {
   Basic implementation of FindContentFunc with search boosters.
  */
 export const makeDefaultFindContentFunc = ({
-  embed,
+  embedder,
   store,
   findNearestNeighborsOptions,
   searchBoosters,
 }: MakeDefaultFindContentFuncArgs): FindContentFunc => {
   return async ({ query, ipAddress }) => {
-    const { embedding } = await embed({
+    const { embedding } = await embedder.embed({
       text: query,
       userIp: ipAddress,
     });

@@ -75,6 +75,19 @@ export type SnootyProjectConfig = ProjectBase & {
   baseUrl: string;
 };
 
+// `baseUrl` and `currentBranch` to be filled in by the Snooty Data API GET
+// projects endpoint - unless you want to specify one to override whatever the
+// Data API says. `currentBranch` will be the name of the first branch entry has
+// `isStableBranch` set to true in the Data API response.
+export type LocallySpecifiedSnootyProjectConfig = Omit<
+  SnootyProjectConfig,
+  "baseUrl" | "currentBranch" | "version"
+> & {
+  baseUrl?: string;
+  currentBranch?: string;
+  versionNameOverride?: string;
+};
+
 export type MakeSnootyDataSourceArgs = {
   /**
     The data source name.
@@ -94,18 +107,16 @@ export type MakeSnootyDataSourceArgs = {
   version?: string;
 };
 
-export const makeSnootyDataSource = async ({
+export const makeSnootyDataSource = ({
   name: sourceName,
   project,
   snootyDataApiBaseUrl,
-}: MakeSnootyDataSourceArgs): Promise<
-  DataSource & {
-    _baseUrl: string;
-    _currentBranch: string;
-    _snootyProjectName: string;
-    _version?: string;
-  }
-> => {
+}: MakeSnootyDataSourceArgs): DataSource & {
+  _baseUrl: string;
+  _currentBranch: string;
+  _snootyProjectName: string;
+  _version?: string;
+} => {
   const {
     baseUrl,
     currentBranch,

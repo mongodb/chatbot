@@ -10,7 +10,7 @@ import { extractMarkdownH1 } from "./extractMarkdownH1";
 /**
   Loads an rST docs site from a GitHub repo.
  */
-export const makeRstOnGitHubDataSource = async <
+export const makeRstOnGitHubDataSource = <
   MetadataType extends Record<string, unknown>
 >({
   name,

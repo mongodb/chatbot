@@ -8,7 +8,7 @@ describe("makeRstOnGitHubDataSource", () => {
   jest.setTimeout(60000);
 
   it("loads and processes a real repo", async () => {
-    const source = await makeRstOnGitHubDataSource({
+    const source = makeRstOnGitHubDataSource({
       name: "python-TEST",
       repoUrl: "https://github.com/mongodb/mongo-python-driver",
       repoLoaderOptions: {

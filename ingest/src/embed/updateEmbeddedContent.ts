@@ -1,5 +1,5 @@
 import {
-  EmbedFunc,
+  Embedder,
   EmbeddedContent,
   EmbeddedContentStore,
   PersistedPage,
@@ -18,13 +18,13 @@ export const updateEmbeddedContent = async ({
   embeddedContentStore,
   pageStore,
   sourceNames,
-  embed,
+  embedder,
   chunkOptions,
 }: {
   since: Date;
   embeddedContentStore: EmbeddedContentStore;
   pageStore: PageStore;
-  embed: EmbedFunc;
+  embedder: Embedder;
   chunkOptions?: Partial<ChunkOptions>;
   sourceNames?: string[];
 }): Promise<void> => {
@@ -53,7 +53,7 @@ export const updateEmbeddedContent = async ({
           store: embeddedContentStore,
           page,
           chunkOptions,
-          embed,
+          embedder,
         });
     }
   }
@@ -77,12 +77,12 @@ const getHashForFunc = (f: ChunkFunc, o?: Partial<ChunkOptions>): string => {
 export const updateEmbeddedContentForPage = async ({
   page,
   store,
-  embed,
+  embedder,
   chunkOptions,
 }: {
   page: PersistedPage;
   store: EmbeddedContentStore;
-  embed: EmbedFunc;
+  embedder: Embedder;
   chunkOptions?: Partial<ChunkOptions>;
 }): Promise<void> => {
   const contentChunks = await chunkPage(page, chunkOptions);
@@ -136,7 +136,7 @@ export const updateEmbeddedContentForPage = async ({
         page.sourceName
       }: ${page.url}`
     );
-    const { embedding } = await embed({
+    const { embedding } = await embedder.embed({
       text: chunk.text,
       userIp: "127.0.0.1",
     });

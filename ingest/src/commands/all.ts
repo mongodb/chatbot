@@ -9,9 +9,10 @@ import {
   PageStore,
   logger,
 } from "chat-core";
-import "dotenv/config";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
 import { makeIngestMetaStore } from "../IngestMetaStore";
+
+import "dotenv/config";
 
 const commandModule: CommandModule<unknown, unknown> = {
   command: "all",

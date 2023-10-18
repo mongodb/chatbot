@@ -1,17 +1,6 @@
-import { Page, PageStore, PersistedPage } from "chat-core";
+import { Page, PersistedPage } from "chat-core";
 import { persistPages } from "./updatePages";
-
-export const makeMockPageStore = (): PageStore => {
-  let pages: PersistedPage[] = [];
-  return {
-    async loadPages() {
-      return pages;
-    },
-    async updatePages(args: PersistedPage[]) {
-      pages = [...args];
-    },
-  };
-};
+import { makeMockPageStore } from "../test/MockPageStore";
 
 const examplePage: Page = {
   title: "Example",

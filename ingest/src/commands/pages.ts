@@ -5,10 +5,10 @@ import {
   makeMongoDbPageStore,
   PageStore,
 } from "chat-core";
-import { updatePages } from "../updatePages";
-import { sourceConstructors } from "../projectSources";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
-import { DataSource } from "../DataSource";
+import { sourceConstructors } from "../sources/projectSources";
+import { DataSource } from "../sources/DataSource";
+import { updatePages } from "../pages/updatePages";
 
 type PagesCommandArgs = {
   source?: string | string[];

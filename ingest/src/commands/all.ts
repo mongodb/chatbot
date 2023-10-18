@@ -8,7 +8,8 @@ import {
   PageStore,
   logger,
 } from "chat-core";
-import { INGEST_ENV_VARS, makeIngestMetaStore } from "..";
+import { INGEST_ENV_VARS } from "../IngestEnvVars";
+import { makeIngestMetaStore } from "../IngestMetaStore";
 
 import "dotenv/config";
 

@@ -5,7 +5,8 @@ import {
   makeSnootyDataSource,
   Branch,
 } from "./SnootyDataSource";
-import { DataSource, LocallySpecifiedSnootyProjectConfig } from "..";
+import { DataSource } from "../DataSource";
+import { LocallySpecifiedSnootyProjectConfig } from "../projectSources";
 
 /** Schema for API response from https://snooty-data-api.mongodb.com/prod/projects */
 export type GetSnootyProjectsResponse = {

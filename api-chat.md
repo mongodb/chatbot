@@ -22,6 +22,8 @@ Stuff to do in project. As week goes on, we'll probably want to break this stuff
   - either respond with clarification questions for user or answer based on API call response.
   - will be similar logic to current `addMessageToConversation` route,
     but with added logic around API calls and using ChatGPT functions.
+- [ ] [INFRA] set up infrastructure to get the server/ingest going to separate deployments
+      in staging env.
 
 ## Design
 

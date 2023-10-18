@@ -55,8 +55,13 @@ const commandModule: CommandModule<unknown, EmbeddedContentCommandArgs> = {
         source,
       });
     } finally {
-      await pagesStore.close();
-      await embeddedContentStore.close();
+      // wrap in try/finally to ensure that we try to close 2nd store even if
+      // first one fails
+      try {
+        await pagesStore.close();
+      } finally {
+        await embeddedContentStore.close();
+      }
     }
   },
   describe: "Update embedded content data from pages",
@@ -75,12 +80,8 @@ export const doEmbedCommand = async ({
   embeddedContentStore: EmbeddedContentStore;
   source?: string | string[];
 }) => {
-  const {
-    OPENAI_ENDPOINT,
-    OPENAI_API_KEY,
-    OPENAI_EMBEDDING_MODEL_VERSION,
-    OPENAI_EMBEDDING_DEPLOYMENT,
-  } = assertEnvVars(INGEST_ENV_VARS);
+  const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_EMBEDDING_DEPLOYMENT } =
+    assertEnvVars(INGEST_ENV_VARS);
 
   const openAiClient = new OpenAIClient(
     OPENAI_ENDPOINT,

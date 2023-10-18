@@ -36,8 +36,13 @@ const commandModule: CommandModule<unknown, unknown> = {
         databaseName: MONGODB_DATABASE_NAME,
       });
     } finally {
-      await pageStore.close();
-      await embeddedContentStore.close();
+      // wrap in try/finally to ensure that we try to close 2nd store even if
+      // first one fails
+      try {
+        await pageStore.close();
+      } finally {
+        await embeddedContentStore.close();
+      }
     }
   },
   describe: "Run 'pages' and 'embed' since last successful run",

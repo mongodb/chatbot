@@ -1,7 +1,7 @@
 import { EmbeddedContentStore, EmbeddedContent, Page } from "chat-core";
 import { updateEmbeddedContent } from "./updateEmbeddedContent";
-import { makeMockPageStore } from "../pages/updatePages.test";
 import { persistPages } from "../pages";
+import { makeMockPageStore } from "../test/MockPageStore";
 
 export const makeMockEmbeddedContentStore = (): EmbeddedContentStore => {
   const content: Map<string /* page url */, EmbeddedContent[]> = new Map();

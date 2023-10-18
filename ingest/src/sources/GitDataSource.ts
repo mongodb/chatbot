@@ -129,7 +129,7 @@ export function makeRandomTmp(prefix: string) {
   const tmpDir = os.tmpdir();
 
   // Create a unique temporary directory and get its path
-  const randomTmpDir = fs.mkdtempSync(Path.join(tmpDir, prefix));
+  const randomTmpDir = fs.mkdtempSync(Path.resolve(tmpDir, prefix));
   return randomTmpDir;
 }
 
@@ -166,7 +166,7 @@ export function getRelevantFilePathsInDir(
   const items = fs.readdirSync(directoryPath);
 
   items.forEach((item) => {
-    const itemPath = Path.join(directoryPath, item);
+    const itemPath = Path.resolve(directoryPath, item);
     const itemStat = fs.statSync(itemPath);
 
     if (itemStat.isDirectory()) {

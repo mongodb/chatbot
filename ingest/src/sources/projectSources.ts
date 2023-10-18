@@ -1,9 +1,9 @@
 import { DevCenterProjectConfig } from "./DevCenterDataSource";
-import { SnootyProjectConfig } from "./SnootyDataSource";
+import { SnootyProjectConfig } from "./snooty/SnootyDataSource";
 import { makeRstOnGitHubDataSource } from "./RstOnGitHubDataSource";
 import { DataSource } from "./DataSource";
 import { makeDevCenterDataSource } from "./DevCenterDataSource";
-import { prepareSnootySources } from "./SnootyProjectsInfo";
+import { prepareSnootySources } from "./snooty/SnootyProjectsInfo";
 import { makeGitDataSource } from "./GitDataSource";
 import {
   HandleHtmlPageFuncOptions,

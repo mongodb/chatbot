@@ -6,9 +6,9 @@ import {
   EmbeddedContentStore,
   PageStore,
 } from "chat-core";
-import { updateEmbeddedContent } from "../updateEmbeddedContent";
-import { standardChunkFrontMatterUpdater } from "../ChunkTransformer";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
+import { updateEmbeddedContent } from "../embed/updateEmbeddedContent";
+import { standardChunkFrontMatterUpdater } from "../embed/ChunkTransformer";
 
 type EmbeddedContentCommandArgs = {
   since: string;

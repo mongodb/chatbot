@@ -1,15 +1,17 @@
 import fs from "fs";
 import Path from "path";
 import GPT3Tokenizer from "gpt3-tokenizer";
-import { handlePage } from "./SnootyDataSource";
+import { handlePage } from "../sources/snooty/SnootyDataSource";
 import { chunkOpenApiSpecYaml } from "./chunkOpenApiSpecYaml";
+
+const SRC_ROOT = Path.resolve(__dirname, "..");
 
 describe("chunkRedocOpenApiSpecYaml()", () => {
   jest.setTimeout(60000);
   it("chunks a local Redoc OpenAPI spec", async () => {
     const apiSpecPage = JSON.parse(
       fs.readFileSync(
-        Path.resolve(__dirname, "./test_data/localOpenApiSpecPage.json"),
+        Path.resolve(SRC_ROOT, "../testData/localOpenApiSpecPage.json"),
         "utf-8"
       )
     );
@@ -43,7 +45,7 @@ baseUrls:
   test("chunks a remote Redoc OpenAPI spec", async () => {
     const apiSpecPage = JSON.parse(
       fs.readFileSync(
-        Path.resolve(__dirname, "./test_data/remoteOpenApiSpecPage.json"),
+        Path.resolve(SRC_ROOT, "../testData/remoteOpenApiSpecPage.json"),
         "utf-8"
       )
     );

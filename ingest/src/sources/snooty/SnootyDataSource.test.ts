@@ -8,8 +8,9 @@ import {
   handlePage,
   makeSnootyDataSource,
 } from "./SnootyDataSource";
-import { sampleSnootyMetadata } from "./test_data/snooty_sample_metadata";
 import { snootyAstToMd } from "./snootyAstToMd";
+
+const SRC_ROOT = Path.resolve(__dirname, "../../");
 
 jest.setTimeout(15000);
 
@@ -25,8 +26,15 @@ describe("SnootyDataSource", () => {
   const snootyDataApiBaseUrl = "https://snooty-data-api.mongodb.com/prod/";
   describe("makeSnootyDataSource()", () => {
     const sampleDataPath = Path.resolve(
-      __dirname,
-      "./test_data/snootySampleData.jsonl"
+      SRC_ROOT,
+      "../testData/snootySampleData.jsonl"
+    );
+    const sampleMetadataPath = Path.resolve(
+      SRC_ROOT,
+      "../testData/snootySampleMetadata.json"
+    );
+    const sampleSnootyMetadata = JSON.parse(
+      fs.readFileSync(sampleMetadataPath, "utf-8")
     );
     const baseMock = nock(snootyDataApiBaseUrl);
     beforeEach(() => {
@@ -142,8 +150,8 @@ describe("SnootyDataSource", () => {
         .reply(200, () => {
           return fs.createReadStream(
             Path.resolve(
-              __dirname,
-              "./test_data/snootySampleDataWithDeleted.jsonl"
+              SRC_ROOT,
+              "../testData/snootySampleDataWithDeleted.jsonl"
             )
           );
         });
@@ -161,7 +169,7 @@ describe("handlePage()", () => {
   it("should correctly parse openapi spec page", async () => {
     const apiSpecPage = JSON.parse(
       fs.readFileSync(
-        Path.resolve(__dirname, "./test_data/localOpenApiSpecPage.json"),
+        Path.resolve(SRC_ROOT, "../testData/localOpenApiSpecPage.json"),
         "utf-8"
       )
     );
@@ -183,7 +191,7 @@ describe("handlePage()", () => {
   it("should correctly parse standard page", async () => {
     const nonApiSpecPage = JSON.parse(
       fs.readFileSync(
-        Path.resolve(__dirname, "./test_data/samplePage.json"),
+        Path.resolve(SRC_ROOT, "../testData/samplePage.json"),
         "utf-8"
       )
     );

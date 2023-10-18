@@ -2,8 +2,6 @@ import { Page, PageMetadata, logger } from "chat-core";
 import TurndownService from "turndown";
 import * as turndownPluginGfm from "turndown-plugin-gfm";
 import { JSDOM } from "jsdom";
-import { removeMarkdownImagesAndLinks } from "./removeMarkdownImagesAndLinks";
-import fs from "fs";
 
 export type HandleHtmlPageFuncOptions = {
   /** Returns an array of DOM elements to be removed from the parsed document. */

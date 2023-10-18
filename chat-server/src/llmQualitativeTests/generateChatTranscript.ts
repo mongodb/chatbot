@@ -3,17 +3,7 @@ import { Express } from "express";
 import request from "supertest";
 import { strict as assert } from "assert";
 import { stringifyConversation } from "./stringifyConversation";
-
-export interface TestCase {
-  name: string;
-  expectation: string;
-  messages: TestCaseMessage[];
-}
-
-export interface TestCaseMessage {
-  role: "user" | "assistant";
-  content: string;
-}
+import { TestCaseMessage } from "./TestCase";
 
 export async function generateTranscript({
   app,

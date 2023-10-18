@@ -4,8 +4,12 @@
  * from that. This interface could still work with non OpenAI providers if they
  * implement the same interface.
  */
-import { ChatMessage, ChatCompletions } from "@azure/openai";
-export type OpenAiMessageRole = "system" | "assistant" | "user";
+import {
+  ChatMessage,
+  ChatCompletions,
+  FunctionDefinition,
+} from "@azure/openai";
+export type OpenAiMessageRole = "system" | "assistant" | "user" | "function";
 
 export interface OpenAiChatMessage extends ChatMessage {
   /** The role of the message in the context of the conversation. */
@@ -17,6 +21,11 @@ export interface OpenAiChatMessage extends ChatMessage {
     The vector representation of the content.
    */
   embedding?: number[];
+
+  /**
+    Available function definitions for the next chat message.
+   */
+  functions?: FunctionDefinition[];
 }
 
 export type SystemPrompt = OpenAiChatMessage & { role: "system" };

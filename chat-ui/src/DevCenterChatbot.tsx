@@ -3,9 +3,9 @@ import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { ChatTrigger } from "@lg-chat/fixed-chat-window";
 import { useMemo } from "react";
 import { ChatbotModal } from "./ChatbotModal";
-import { MessageData } from "./services/conversations";
 import { SUGGESTED_PROMPTS, WELCOME_MESSAGE } from "./constants";
-import { InnerChatbotProps } from "./Chatbot";
+import { MessageData } from "./services/conversations";
+import { usePolymorphicChatbotData } from "./usePolymorphicChatbot";
 
 const styles = {
   chat_trigger: css`
@@ -24,7 +24,8 @@ const styles = {
   `,
 };
 
-export function DevCenterChatbot(props: InnerChatbotProps) {
+export function DevCenterChatbot() {
+  const props = usePolymorphicChatbotData();
   const { darkMode } = useDarkMode(props.darkMode);
 
   const {

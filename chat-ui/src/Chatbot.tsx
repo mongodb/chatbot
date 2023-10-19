@@ -2,10 +2,13 @@ import LeafyGreenProvider, {
   useDarkMode,
 } from "@leafygreen-ui/leafygreen-provider";
 import { UserProvider } from "./UserProvider";
-import { ChatbotData, useChatbot } from "./useChatbot";
+import { useChatbot } from "./useChatbot";
 import { LinkDataProvider } from "./LinkDataProvider";
 import { type User } from "./useUser";
-import { cloneElement, isValidElement } from "react";
+import {
+  PolymorphicChatbotData,
+  PolymorphicChatbotProvider,
+} from "./PolymorphicChatbotProvider";
 
 export type ChatbotProps = {
   darkMode?: boolean;
@@ -15,14 +18,10 @@ export type ChatbotProps = {
   suggestedPrompts?: string[];
   tck?: string;
   user?: User;
-  children: React.ReactElement<InnerChatbotProps>;
+  children: React.ReactElement;
 };
 
-export type InnerChatbotProps = Omit<
-  ChatbotProps,
-  "children" | "serverBaseUrl" | "shouldStream" | "user"
-> &
-  ChatbotData;
+
 
 export function Chatbot({
   children,
@@ -40,24 +39,20 @@ export function Chatbot({
 
   const tck = props.tck ?? "mongodb_ai_chatbot";
 
-  const innerChatbotProps = {
+  const polymorphicChatbotData = {
     ...props,
     darkMode,
     ...chatbotData,
-  } satisfies InnerChatbotProps;
-
-  // Clone the child element with the correct props
-  // TODO - maybe we can use context to pass these props instead of cloning?
-  // e.g. <InnerChatbotProvider value={innerChatbotProps}>{children}</InnerChatbotProvider>
-  if (!isValidElement(children)) {
-    throw new Error("Expected 'children' to be a single React element.");
-  }
-  const view = cloneElement(children, innerChatbotProps);
+  } satisfies PolymorphicChatbotData;
 
   return (
     <LeafyGreenProvider darkMode={darkMode}>
       <LinkDataProvider tck={tck}>
-        <UserProvider user={user}>{view}</UserProvider>
+        <UserProvider user={user}>
+          <PolymorphicChatbotProvider {...polymorphicChatbotData}>
+            {children}
+          </PolymorphicChatbotProvider>
+        </UserProvider>
       </LinkDataProvider>
     </LeafyGreenProvider>
   );

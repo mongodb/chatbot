@@ -7,8 +7,8 @@ import { InputBar, SuggestedPrompt, SuggestedPrompts } from "./InputBar";
 import { addQueryParams } from "./utils";
 import { ChatbotModal } from "./ChatbotModal";
 import { useLinkData } from "./useLinkData";
-import { InnerChatbotProps } from "./Chatbot";
 import { LegalDisclosure } from "./LegalDisclosure";
+import { usePolymorphicChatbotData } from "./usePolymorphicChatbot";
 
 const styles = {
   info_box: css`
@@ -42,7 +42,8 @@ const styles = {
   `,
 };
 
-export function DocsChatbot(props: InnerChatbotProps) {
+export function DocsChatbot() {
+  const props = usePolymorphicChatbotData();
   const { darkMode } = useDarkMode(props.darkMode);
 
   const {

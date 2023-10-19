@@ -82,6 +82,11 @@ export type EmbeddedContentStore = {
     vector: number[],
     options?: Partial<FindNearestNeighborsOptions>
   ): Promise<WithScore<EmbeddedContent>[]>;
+
+  /**
+    Close connection to data store.
+   */
+  close?: () => Promise<void>;
 };
 
 export type WithScore<T> = T & { score: number };

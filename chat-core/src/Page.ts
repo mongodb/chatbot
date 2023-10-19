@@ -22,7 +22,7 @@ export type Page = {
   sourceName: string;
 
   /**
-     Arbitrary metadata for page.
+    Arbitrary metadata for page.
    */
   metadata?: PageMetadata;
 };
@@ -79,9 +79,9 @@ export type PageStore = {
     Updates or adds the given pages in the store.
    */
   updatePages(pages: PersistedPage[]): Promise<void>;
-};
 
-/**
-  OSS_TODO: per comment on DatabaseConnection.ts, i think we should make a separate
-  makePageStore() func here.
- */
+  /**
+    Close connection to data store.
+   */
+  close?: () => Promise<void>;
+};

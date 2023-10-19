@@ -1,5 +1,4 @@
 import { DatabaseConnection } from "./DatabaseConnection";
-import { Page } from "./Page";
 import { MongoClient, Db } from "mongodb";
 
 export interface MakeMongoDbDatabaseConnectionParams {
@@ -33,11 +32,3 @@ export function makeMongoDbDatabaseConnection({
     },
   };
 }
-
-/**
-  Returns a query filter that represents a unique page in the system.
- */
-export const pageIdentity = ({ url, sourceName }: Page) => ({
-  url,
-  sourceName,
-});

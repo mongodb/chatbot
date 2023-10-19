@@ -1,3 +1,4 @@
+import { pageIdentity } from "pageIdentity";
 import { DatabaseConnection } from "./DatabaseConnection";
 import {
   EmbeddedContent,
@@ -8,7 +9,6 @@ import {
 import {
   MakeMongoDbDatabaseConnectionParams,
   makeMongoDbDatabaseConnection,
-  pageIdentity,
 } from "./MongoDbDatabaseConnection";
 import { strict as assert } from "assert";
 

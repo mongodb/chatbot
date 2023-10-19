@@ -1,8 +1,8 @@
+import { pageIdentity } from "pageIdentity";
 import { DatabaseConnection } from "./DatabaseConnection";
 import {
   MakeMongoDbDatabaseConnectionParams,
   makeMongoDbDatabaseConnection,
-  pageIdentity,
 } from "./MongoDbDatabaseConnection";
 import { PageStore, PersistedPage } from "./Page";
 import { Filter } from "mongodb";

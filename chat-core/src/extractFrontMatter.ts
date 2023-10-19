@@ -1,7 +1,7 @@
 import * as matter from "gray-matter";
 import toml from "toml";
 
-export function extractFrontMatter<T = Record<string, unknown>>(
+export function extractFrontMatter<T extends Record<string, unknown>>(
   text: string,
   language?: string,
   delimiter?: string

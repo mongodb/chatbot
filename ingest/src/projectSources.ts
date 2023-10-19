@@ -526,22 +526,7 @@ export const terraformProviderSourceConstructor = async () => {
       const { metadata, body } = extractFrontMatter<{ page_title: string }>(
         content
       );
-      let url: string;
-      if (path.includes("website/docs/d/")) {
-        url =
-          siteBaseUrl +
-          path
-            .replace("website/docs/d", "data-sources")
-            .replace(".markdown", "");
-      } else if (path.includes("website/docs/r/")) {
-        url =
-          siteBaseUrl +
-          path.replace("website/docs/r", "resources").replace(".markdown", "");
-      } else {
-        url =
-          siteBaseUrl +
-          path.replace("website/docs/", "").replace(".markdown", "");
-      }
+      const url = getTerraformPageUrl(siteBaseUrl, path);
 
       const page: Omit<Page, "sourceName"> = {
         body: removeMarkdownImagesAndLinks(body),
@@ -553,6 +538,24 @@ export const terraformProviderSourceConstructor = async () => {
     },
   });
 };
+
+function getTerraformPageUrl(siteBaseUrl: string, path: string) {
+  if (path.includes("website/docs/d/")) {
+    return (
+      siteBaseUrl +
+      path.replace("website/docs/d", "data-sources").replace(".markdown", "")
+    );
+  } else if (path.includes("website/docs/r/")) {
+    return (
+      siteBaseUrl +
+      path.replace("website/docs/r", "resources").replace(".markdown", "")
+    );
+  } else {
+    return (
+      siteBaseUrl + path.replace("website/docs/", "").replace(".markdown", "")
+    );
+  }
+}
 /**
   The constructors for the sources used by the docs chatbot.
  */

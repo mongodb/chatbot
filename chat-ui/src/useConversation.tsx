@@ -1,5 +1,5 @@
 import { useMemo, useReducer } from "react";
-import { References } from "chat-core";
+import { type References } from "chat-core";
 import {
   MessageData,
   Role,

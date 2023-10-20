@@ -1,5 +1,6 @@
 import { OpenAiChatMessage, OpenAiMessageRole, SystemPrompt } from "./ChatLlm";
-import { ObjectId, Db } from "mongodb";
+import { QueryPreprocessorFunc } from "../processors";
+import { ObjectId, Db } from "chat-core";
 import { References } from "chat-core";
 
 export type Message = {
@@ -63,8 +64,14 @@ export type UserMessage = Message & {
   embedding: number[];
 };
 
+/**
+  Message in the {@link Conversation} as stored in the database.
+ */
 export type SomeMessage = UserMessage | AssistantMessage | SystemMessage;
 
+/**
+  Conversation between the user and the chatbot as stored in the database.
+ */
 export interface Conversation {
   _id: ObjectId;
   /** Messages in the conversation. */
@@ -100,6 +107,9 @@ export interface RateMessageParams {
   messageId: ObjectId;
   rating: boolean;
 }
+/**
+  Service for managing {@link Conversation}s.
+ */
 export interface ConversationsService {
   create: ({ ipAddress }: CreateConversationParams) => Promise<Conversation>;
   addConversationMessage: (
@@ -113,6 +123,9 @@ export interface ConversationsService {
   }: RateMessageParams) => Promise<boolean>;
 }
 
+/**
+ OSS_TODO: make these configurable from the entry point. though i think these messages are reasonable defaults
+ */
 export const conversationConstants = {
   NO_RELEVANT_CONTENT: `Unfortunately, I do not know how to respond to your message.
 
@@ -123,7 +136,10 @@ so I cannot respond to your message. Please try again later.
 However, here are some links that might provide some helpful information for your message:`,
 };
 
-export function makeConversationsService(
+/**
+  Create {@link ConversationsService} that uses MongoDB as a data store.
+ */
+export function makeMongoDbConversationsService(
   database: Db,
   systemPrompt: SystemPrompt
 ): ConversationsService {
@@ -220,6 +236,9 @@ export function makeConversationsService(
   };
 }
 
+/**
+  Create a {@link Message} object from the {@link OpenAiChatMessage} object.
+ */
 export function createMessageFromOpenAIChatMessage({
   role,
   content,

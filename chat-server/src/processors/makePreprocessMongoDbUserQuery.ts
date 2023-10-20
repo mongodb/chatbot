@@ -3,15 +3,26 @@ import path from "path";
 import { MongoDbUserQueryPreprocessorResponse } from "./MongoDbUserQueryPreprocessorResponse";
 import {
   QueryPreprocessorFunc,
-  QueryPreprocessorMessage,
   QueryPreprocessorResult,
 } from "./QueryPreprocessorFunc";
-
 import {
   updateFrontMatter,
   makeTypeChatJsonTranslateFunc,
   AzureOpenAiServiceConfig,
 } from "chat-core";
+import { Message } from "../services";
+
+/**
+  Query preprocessor that uses the Azure OpenAI service to preprocess
+  the user query via [TypeChat](https://microsoft.github.io/TypeChat/docs/introduction/).
+
+  The query preprocessor performs the following:
+
+  - Adds metadata to the query to yield better vector search results.
+  - Transforms the query in the context of the conversation to yield better vector search results.
+  - Advises the server to not respond if the query is inappropriate.
+
+ */
 
 export function makePreprocessMongoDbUserQuery({
   azureOpenAiServiceConfig,
@@ -35,7 +46,7 @@ export function makePreprocessMongoDbUserQuery({
 > {
   const schemaName = "MongoDbUserQueryPreprocessorResponse";
   const schema = fs.readFileSync(
-    path.join(__dirname, `${schemaName}.d.ts`),
+    path.join(__dirname, `${schemaName}.ts`),
     "utf8"
   );
 
@@ -67,7 +78,7 @@ export function generateMongoDbQueryPreProcessorPrompt({
   numMessagesToInclude = 4,
 }: {
   query: string;
-  messages: QueryPreprocessorMessage[];
+  messages: Message[];
   numMessagesToInclude?: number;
 }) {
   query = query.trim();

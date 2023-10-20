@@ -49,7 +49,7 @@ export const makeDefaultFindContentFunc = ({
     );
 
     for (const booster of searchBoosters ?? []) {
-      if (booster.shouldBoost({ text: query })) {
+      if (await booster.shouldBoost({ text: query })) {
         content = await booster.boost({
           existingResults: content,
           embedding,

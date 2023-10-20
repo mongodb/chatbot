@@ -1,5 +1,5 @@
+import { MongoClient } from "chat-core";
 import { strict as assert } from "assert";
-import { MongoClient } from "mongodb";
 import { convert } from "html-to-text";
 import { Page, assertEnvVars, logger } from "chat-core";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";

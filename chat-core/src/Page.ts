@@ -22,7 +22,7 @@ export type Page = {
   sourceName: string;
 
   /**
-     Arbitrary metadata for page.
+    Arbitrary metadata for page.
    */
   metadata?: PageMetadata;
 };
@@ -34,12 +34,13 @@ export type PageMetadata = {
   tags?: string[];
   [k: string]: unknown;
 };
+
 export type PageFormat = "md" | "txt" | "openapi-yaml";
 
 export type PageAction = "created" | "updated" | "deleted";
 
 /**
-  Represents a page stored in the database.
+  Represents a {@link Page} stored in the database.
  */
 export type PersistedPage = Page & {
   /**
@@ -53,7 +54,13 @@ export type PersistedPage = Page & {
   action: PageAction;
 };
 
+/**
+  Data store for {@link Page} objects.
+ */
 export type PageStore = {
+  /**
+    Loads pages from the Page store.
+   */
   loadPages(args?: {
     /**
       If specified, refines the query to load pages with an updated date later
@@ -72,4 +79,9 @@ export type PageStore = {
     Updates or adds the given pages in the store.
    */
   updatePages(pages: PersistedPage[]): Promise<void>;
+
+  /**
+    Close connection to data store.
+   */
+  close?: () => Promise<void>;
 };

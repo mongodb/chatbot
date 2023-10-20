@@ -2,7 +2,7 @@ import { CommandModule } from "yargs";
 import {
   assertEnvVars,
   logger,
-  makeDatabaseConnection,
+  makeMongoDbPageStore,
   PageStore,
 } from "chat-core";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
@@ -29,7 +29,7 @@ const commandModule: CommandModule<
     const { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } =
       assertEnvVars(INGEST_ENV_VARS);
 
-    const store = makeDatabaseConnection({
+    const store = makeMongoDbPageStore({
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
     });

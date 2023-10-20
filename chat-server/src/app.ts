@@ -12,19 +12,41 @@ import {
   ConversationsRouterParams,
   makeConversationsRouter,
 } from "./routes/conversations/conversationsRouter";
-import { ObjectId } from "mongodb";
+import { ObjectId } from "chat-core";
 import { getRequestId, logRequest, sendErrorResponse } from "./utils";
 import { CorsOptions } from "cors";
 import { logger } from "chat-core";
 import cloneDeep from "lodash.clonedeep";
 
+/**
+  Configuration for the server Express.js app.
+ */
 export interface AppConfig {
+  /**
+    Configuration for the conversations router.
+   */
   conversationsRouterConfig: ConversationsRouterParams;
+
+  /**
+    Maximum time in milliseconds for a request to complete before timing out.
+    Defaults to 60000 (1 minute).
+   */
   maxRequestTimeoutMs?: number;
+
+  /**
+    Configuration for CORS middleware. Defaults to allowing all origins.
+   */
   corsOptions?: CorsOptions;
+
+  /**
+    Prefix for all API routes. Defaults to `/api/v1`.
+   */
+  apiPrefix?: string;
 }
 
-// General error handler; called at usage of next() in routes
+/**
+  General error handler. Called at usage of `next()` in routes.
+*/
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   const reqId = getRequestId(req);
   const httpStatus = err.status || 500;
@@ -71,15 +93,19 @@ export const makeHandleTimeoutMiddleware = (apiTimeout: number) => {
   };
 };
 
-export const API_V1_PREFIX = "/api/v1";
-export const CONVERSATIONS_API_V1_PREFIX = `${API_V1_PREFIX}/conversations`;
+export const DEFAULT_API_PREFIX = "/api/v1";
 
 export const DEFAULT_MAX_REQUEST_TIMEOUT_MS = 60000;
+
+/**
+  Constructor function to make the Express.js app.
+ */
 export const makeApp = async (config: AppConfig): Promise<Express> => {
   const {
     maxRequestTimeoutMs = DEFAULT_MAX_REQUEST_TIMEOUT_MS,
     conversationsRouterConfig,
     corsOptions,
+    apiPrefix = DEFAULT_API_PREFIX,
   } = config;
   logger.info("Server has the following configuration:");
   logger.info(
@@ -100,7 +126,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
     app.use(express.static("static"));
   }
   app.use(
-    CONVERSATIONS_API_V1_PREFIX,
+    `${apiPrefix}/conversations`,
     makeConversationsRouter(conversationsRouterConfig)
   );
   app.get("/health", (_req, res) => {

@@ -1,27 +1,29 @@
-import { MongoDB } from "chat-core";
+import { Db, MongoClient } from "chat-core";
 import { Express } from "express";
-import { AppConfig, CONVERSATIONS_API_V1_PREFIX } from "../app";
+import { AppConfig, DEFAULT_API_PREFIX } from "../app";
 import { ConversationsService } from "../services/conversations";
 import { makeTestApp } from "../testHelpers";
 import { generateTranscript } from "./generateChatTranscript";
 import { stripIndents } from "common-tags";
 
-let mongodb: MongoDB;
+let mongodb: Db;
+let mongoClient: MongoClient;
 let app: Express;
 let conversations: ConversationsService;
 let ipAddress: string;
 let appConfig: AppConfig;
 const addMessageEndpoint =
-  CONVERSATIONS_API_V1_PREFIX + "/:conversationId/messages?streaming=false";
+  DEFAULT_API_PREFIX +
+  "/conversations/:conversationId/messages?streaming=false";
 
 jest.setTimeout(20000);
 beforeAll(async () => {
-  ({ mongodb, app, appConfig, ipAddress } = await makeTestApp());
+  ({ mongodb, mongoClient, app, appConfig, ipAddress } = await makeTestApp());
   conversations = appConfig.conversationsRouterConfig.conversations;
 });
 afterAll(async () => {
-  await mongodb?.db.dropDatabase();
-  await mongodb?.close();
+  await mongodb.dropDatabase();
+  await mongoClient?.close();
 });
 describe("generateChatTranscript()", () => {
   test("Should generate a transcript when 1 message", async () => {

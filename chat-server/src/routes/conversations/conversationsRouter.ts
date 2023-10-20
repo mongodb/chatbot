@@ -12,26 +12,70 @@ import {
 } from "./createConversation";
 import {
   AddMessageRequest,
+  MakeReferenceLinksFunc,
   makeAddMessageToConversationRoute,
 } from "./addMessageToConversation";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
 import { FindContentFunc } from "./FindContentFunc";
 
+/**
+  Configuration for rate limiting on the /conversations/* routes.
+ */
 export interface ConversationsRateLimitConfig {
+  /**
+    Configuration for rate limiting on ALL /conversations/* routes.
+   */
   routerRateLimitConfig?: Partial<RateLimitOptions>;
+
+  /**
+    Configuration for rate limiting on the POST /conversations/:conversationId/messages route.
+    Since this is the most "expensive" route as it calls the LLM,
+    it could be more restrictive than the global rate limit.
+   */
   addMessageRateLimitConfig?: Partial<RateLimitOptions>;
+
+  /**
+    Configuration for slow down on ALL /conversations/* routes.
+   */
   routerSlowDownConfig?: Partial<SlowDownOptions>;
+
+  /**
+    Configuration for slow down on the POST /conversations/:conversationId/messages route.
+    Since this is the most "expensive" route as it calls the LLM,
+    it could be more restrictive than the global slow down.
+   */
   addMessageSlowDownConfig?: Partial<SlowDownOptions>;
 }
 
+/**
+  Configuration for the /conversations/* routes.
+ */
 export interface ConversationsRouterParams {
   llm: ChatLlm;
   dataStreamer: DataStreamer;
   conversations: ConversationsService;
   userQueryPreprocessor?: QueryPreprocessorFunc;
+  /**
+    Maximum number of tokens of context to send to the LLM in retrieval augmented generation
+    in addition to system prompt, other user messages, etc.
+   */
   maxChunkContextTokens?: number;
+
+  /**
+    Maximum number of characters in user input.
+    Server returns 400 error if user input is longer than this.
+   */
+  maxInputLengthCharacters?: number;
+
+  /**
+    Maximum number of messages in a conversation.
+    Server returns 400 error if user tries to add a message to a conversation
+    that has this many messages.
+   */
+  maxMessagesInConversation?: number;
   rateLimitConfig?: ConversationsRateLimitConfig;
   findContent: FindContentFunc;
+  makeReferenceLinks?: MakeReferenceLinksFunc;
 }
 
 export const rateLimitResponse = {
@@ -45,18 +89,24 @@ function keyGenerator(request: Request) {
 
   return request.ip;
 }
+/**
+  Constructor function to make the /conversations/* Express.js router.
+ */
 export function makeConversationsRouter({
   llm,
   dataStreamer,
   conversations,
   userQueryPreprocessor,
   maxChunkContextTokens,
+  maxInputLengthCharacters,
+  maxMessagesInConversation,
   rateLimitConfig,
   findContent,
+  makeReferenceLinks,
 }: ConversationsRouterParams) {
   const conversationsRouter = Router();
 
-  /**
+  /*
     Global rate limit the requests to the conversationsRouter.
    */
   const globalRateLimit = rateLimit({
@@ -69,7 +119,7 @@ export function makeConversationsRouter({
     ...(rateLimitConfig?.routerRateLimitConfig ?? {}),
   });
   conversationsRouter.use(globalRateLimit);
-  /**
+  /*
     Slow down the response to the conversationsRouter after certain number
     of requests in the time window.
    */
@@ -82,16 +132,14 @@ export function makeConversationsRouter({
   });
   conversationsRouter.use(globalSlowDown);
 
-  /**
-   * Create new conversation.
-   */
+  // Create new conversation.
   conversationsRouter.post(
     "/",
     validateRequestSchema(CreateConversationRequest),
     makeCreateConversationRoute({ conversations })
   );
 
-  /**
+  /*
     Rate limit the requests to the addMessageToConversationRoute.
     Rate limit should be more restrictive than global rate limiter to limit expensive requests to the LLM.
    */
@@ -104,7 +152,7 @@ export function makeConversationsRouter({
     keyGenerator,
     ...(rateLimitConfig?.addMessageRateLimitConfig ?? {}),
   });
-  /**
+  /*
     Slow down the response to the addMessageToConversationRoute after certain number
     of requests in the time window. Rate limit should be more restrictive than global slow down
     to limit expensive requests to the LLM.
@@ -117,7 +165,7 @@ export function makeConversationsRouter({
     ...(rateLimitConfig?.addMessageSlowDownConfig ?? {}),
   });
 
-  /**
+  /*
     Create a new message from the user and get response from the LLM.
    */
   const addMessageToConversationRoute = makeAddMessageToConversationRoute({
@@ -126,7 +174,10 @@ export function makeConversationsRouter({
     dataStreamer,
     userQueryPreprocessor,
     maxChunkContextTokens,
+    maxInputLengthCharacters,
+    maxMessagesInConversation,
     findContent,
+    makeReferenceLinks,
   });
   conversationsRouter.post(
     "/:conversationId/messages",
@@ -136,9 +187,7 @@ export function makeConversationsRouter({
     addMessageToConversationRoute
   );
 
-  /**
-   * Rate a message.
-   */
+  // Rate a message.
   conversationsRouter.post(
     "/:conversationId/messages/:messageId/rating",
     validateRequestSchema(RateMessageRequest),

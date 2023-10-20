@@ -4,11 +4,12 @@
  */
 import "dotenv/config";
 import {
-  MongoDB,
-  makeDatabaseConnection,
+  EmbeddedContent,
+  MongoClient,
+  makeMongoDbEmbeddedContentStore,
   makeOpenAiEmbedFunc,
 } from "chat-core";
-import { makeConversationsService } from "./services/conversations";
+import { makeMongoDbConversationsService } from "./services/conversations";
 import { makeDataStreamer } from "./services/dataStreamer";
 import { makeOpenAiChatLlm } from "./services/openAiChatLlm";
 import { stripIndents } from "common-tags";
@@ -19,6 +20,7 @@ import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongo
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { OpenAiChatMessage, SystemPrompt } from "./services/ChatLlm";
 import { makeDefaultFindContentFunc } from "./routes/conversations/FindContentFunc";
+import { makeDefaultReferenceLinks } from "./routes/conversations/addMessageToConversation";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -42,7 +44,7 @@ export const boostManual = makeBoostOnAtlasSearchFilter({
   /**
     Boosts results that have 3 words or less
    */
-  shouldBoostFunc({ text }: { text: string }) {
+  async shouldBoostFunc({ text }: { text: string }) {
     return text.split(" ").filter((s) => s !== " ").length <= 3;
   },
   findNearestNeighborsOptions: {
@@ -84,13 +86,13 @@ Never mention "<Information>" or "<Question>" in your answer.
 Refer to the information given to you as "my knowledge".`,
 };
 
-export function generateUserPrompt({
+export async function generateUserPrompt({
   question,
   chunks,
 }: {
   question: string;
   chunks: string[];
-}): OpenAiChatMessage & { role: "user" } {
+}): Promise<OpenAiChatMessage & { role: "user" }> {
   const chunkSeparator = "~~~~~~";
   const context = chunks.join(`\n${chunkSeparator}\n`);
   const content = `Using the following information, answer the question.
@@ -130,21 +132,21 @@ const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({
 
 export const dataStreamer = makeDataStreamer();
 
-export const embeddedContentStore = makeDatabaseConnection({
+export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
 });
 
 export const embed = makeOpenAiEmbedFunc({
-  apiKey: OPENAI_API_KEY,
-  apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
-  baseUrl: OPENAI_ENDPOINT,
+  openAiClient,
   deployment: OPENAI_EMBEDDING_DEPLOYMENT,
   backoffOptions: {
     numOfAttempts: 3,
     maxDelay: 5000,
   },
 });
+
+export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 
 export const findContent = makeDefaultFindContentFunc({
   embed,
@@ -158,13 +160,32 @@ export const findContent = makeDefaultFindContentFunc({
   searchBoosters: [boostManual],
 });
 
-export const mongodb = new MongoDB(
-  MONGODB_CONNECTION_URI,
-  MONGODB_DATABASE_NAME,
-  VECTOR_SEARCH_INDEX_NAME
+export const conversations = makeMongoDbConversationsService(
+  mongodb.db(MONGODB_DATABASE_NAME),
+  systemPrompt
 );
 
-export const conversations = makeConversationsService(mongodb.db, systemPrompt);
+/**
+  MongoDB Chatbot implementation of {@link MakeReferenceLinksFunc}.
+  Returns references that look like:
+
+  ```js
+  {
+    url: "https://mongodb.com/docs/manual/reference/operator/query/eq/?tck=docs-chatbot",
+    title: "https://docs.mongodb.com/manual/reference/operator/query/eq/"
+  }
+  ```
+ */
+export function makeMongoDbReferences(chunks: EmbeddedContent[]) {
+  const baseReferences = makeDefaultReferenceLinks(chunks);
+  return baseReferences.map((ref) => {
+    const url = new URL(ref.url);
+    return {
+      url: url.href,
+      title: url.origin + url.pathname,
+    };
+  });
+}
 
 export const config: AppConfig = {
   conversationsRouterConfig: {
@@ -174,6 +195,7 @@ export const config: AppConfig = {
     userQueryPreprocessor: mongoDbUserQueryPreprocessor,
     maxChunkContextTokens: 1500,
     conversations,
+    makeReferenceLinks: makeMongoDbReferences,
   },
   maxRequestTimeoutMs: 30000,
   corsOptions: {

@@ -1,7 +1,6 @@
 import { strict as assert } from "assert";
 import request from "supertest";
 import "dotenv/config";
-import { MongoDB } from "chat-core";
 import {
   Conversation,
   Message,
@@ -9,9 +8,9 @@ import {
   ConversationsService,
 } from "../../services/conversations";
 import { Express } from "express";
-import { ObjectId } from "mongodb";
+import { Db, MongoClient, ObjectId } from "chat-core";
 import { makeRateMessageRoute } from "./rateMessage";
-import { CONVERSATIONS_API_V1_PREFIX } from "../../app";
+import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../testHelpers";
 import { AppConfig } from "../../app";
 
@@ -19,18 +18,20 @@ jest.setTimeout(100000);
 
 describe("POST /conversations/:conversationId/messages/:messageId/rating", () => {
   const endpointUrl =
-    CONVERSATIONS_API_V1_PREFIX + "/:conversationId/messages/:messageId/rating";
+    DEFAULT_API_PREFIX +
+    "/conversations/:conversationId/messages/:messageId/rating";
   let app: Express;
   let conversations: ConversationsService;
   let conversation: Conversation;
   let testMsg: Message;
   let testEndpointUrl: string;
-  let mongodb: MongoDB;
+  let mongodb: Db;
+  let mongoClient: MongoClient;
   let ipAddress: string;
   let appConfig: AppConfig;
 
   beforeAll(async () => {
-    ({ mongodb, app, ipAddress, appConfig } = await makeTestApp());
+    ({ mongodb, mongoClient, app, ipAddress, appConfig } = await makeTestApp());
     conversations = appConfig.conversationsRouterConfig.conversations;
 
     app
@@ -48,8 +49,8 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
   });
 
   afterAll(async () => {
-    await mongodb?.db.dropDatabase();
-    await mongodb?.close();
+    await mongodb.dropDatabase();
+    await mongoClient.close();
   });
 
   test("Should return 204 for valid rating", async () => {
@@ -88,7 +89,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
   test("Should return 400 for invalid conversation ID", async () => {
     const response = await request(app)
       .post(
-        `${CONVERSATIONS_API_V1_PREFIX}/123/messages/${conversation.messages[0].id}/rating`
+        `${DEFAULT_API_PREFIX}/conversations/123/messages/${conversation.messages[0].id}/rating`
       )
       .set("X-FORWARDED-FOR", ipAddress)
       .send({ rating: true });
@@ -100,7 +101,9 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
   });
   test("Should return 400 for invalid message ID", async () => {
     const response = await request(app)
-      .post(`${CONVERSATIONS_API_V1_PREFIX}/${testMsg.id}/messages/123/rating`)
+      .post(
+        `${DEFAULT_API_PREFIX}/conversations/${testMsg.id}/messages/123/rating`
+      )
       .set("X-FORWARDED-FOR", ipAddress)
       .send({ rating: true });
 
@@ -112,7 +115,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
   test("Should return 404 for conversation not in DB", async () => {
     const response = await request(app)
       .post(
-        `${CONVERSATIONS_API_V1_PREFIX}/${new ObjectId().toHexString()}/messages/${
+        `${DEFAULT_API_PREFIX}/conversations/${new ObjectId().toHexString()}/messages/${
           testMsg.id
         }/rating`
       )
@@ -127,7 +130,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
   test("Should return 404 for message not in conversation", async () => {
     const response = await request(app)
       .post(
-        `${CONVERSATIONS_API_V1_PREFIX}/${
+        `${DEFAULT_API_PREFIX}/conversations/${
           conversation._id
         }/messages/${new ObjectId().toHexString()}/rating`
       )

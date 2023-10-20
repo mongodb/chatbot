@@ -52,6 +52,7 @@
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.1.0",
+    "@azure/openai": "^1.0.0-beta.6",
     "acquit": "^1.3.0",
     "acquit-require": "^0.1.1",
     "chat-core": "file:../chat-core",

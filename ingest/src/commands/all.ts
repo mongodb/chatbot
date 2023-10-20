@@ -2,7 +2,8 @@ import { CommandModule } from "yargs";
 import { doPagesCommand as officialDoPages } from "./pages";
 import { doEmbedCommand } from "./embed";
 import {
-  makeDatabaseConnection,
+  makeMongoDbEmbeddedContentStore,
+  makeMongoDbPageStore,
   assertEnvVars,
   EmbeddedContentStore,
   PageStore,
@@ -19,20 +20,30 @@ const commandModule: CommandModule<unknown, unknown> = {
     const { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } =
       assertEnvVars(INGEST_ENV_VARS);
 
-    const store = await makeDatabaseConnection({
+    const embeddedContentStore = makeMongoDbEmbeddedContentStore({
+      connectionUri: MONGODB_CONNECTION_URI,
+      databaseName: MONGODB_DATABASE_NAME,
+    });
+    const pageStore = makeMongoDbPageStore({
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
     });
 
     try {
       await doAllCommand({
-        pageStore: store,
-        embeddedContentStore: store,
+        pageStore,
+        embeddedContentStore,
         connectionUri: MONGODB_CONNECTION_URI,
         databaseName: MONGODB_DATABASE_NAME,
       });
     } finally {
-      await store.close();
+      // wrap in try/finally to ensure that we try to close 2nd store even if
+      // first one fails
+      try {
+        await pageStore.close();
+      } finally {
+        await embeddedContentStore.close();
+      }
     }
   },
   describe: "Run 'pages' and 'embed' since last successful run",

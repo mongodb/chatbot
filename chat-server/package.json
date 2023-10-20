@@ -1,6 +1,6 @@
 {
-  "name": "chat-server",
-  "version": "0.1.3",
+  "name": "mongodb-chatbot-server",
+  "version": "0.1.7",
   "license": "Apache-2.0",
   "description": "Q&A server for the MongoDB Docs AI chatbot.",
   "author": "MongoDB, Inc.",
@@ -9,10 +9,10 @@
     "node": ">=18",
     "npm": ">=8"
   },
-  "main": "src/lib.ts",
+  "main": "dist/lib.js",
   "scripts": {
     "build": "rm -rf ./dist/ && tsc",
-    "postbuild": "cp ./src/processors/MongoDbUserQueryPreprocessorResponse.d.ts ./dist/processors/",
+    "postbuild": "cp ./src/processors/MongoDbUserQueryPreprocessorResponse.ts ./dist/processors/",
     "dev": "nodemon src/index.ts",
     "format": "prettier ./src --write",
     "format:check": "prettier ./src --check",
@@ -20,7 +20,8 @@
     "start": "pm2-runtime ./dist/index.js",
     "test": "jest --forceExit",
     "test:llmQualitative": "jest --config jest.config.llmQualitative.js --forceExit",
-    "release": "release-it"
+    "release": "release-it",
+    "publish:package": "npm run build && npm publish --access public"
   },
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.5",
@@ -43,6 +44,9 @@
     "winston": "^3.9.0",
     "zod-error": "^1.5.0"
   },
+  "bundleDependencies": [
+    "chat-core"
+  ],
   "devDependencies": {
     "@babel/core": "^7.22.5",
     "@babel/preset-env": "^7.22.5",

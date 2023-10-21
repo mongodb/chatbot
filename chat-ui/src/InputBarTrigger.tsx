@@ -7,6 +7,7 @@ import { useLinkData } from "./useLinkData";
 import { addQueryParams } from "./utils";
 import { type Conversation } from "./useConversation";
 import { type ChatbotTriggerProps } from "./ChatbotTrigger";
+import { useState } from "react";
 
 const styles = {
   info_box: css`
@@ -41,30 +42,39 @@ const styles = {
 };
 
 export type InputBarTriggerProps = ChatbotTriggerProps & {
-  canSubmit: boolean;
+  awaitingReply: boolean;
   handleSubmit: (text: string) => void | Promise<void>;
   conversation: Conversation;
-  focused: boolean;
-  setFocused: (focused: boolean) => void;
-  hasError?: boolean;
   inputText: string;
   setInputText: (text: string) => void;
   inputTextError: string;
-  inputPlaceholder: string;
-  showError?: boolean;
-  showSuggestedPrompts?: boolean;
   suggestedPrompts?: string[];
 };
 
 export function InputBarTrigger(props: InputBarTriggerProps) {
+  const [focused, setFocused] = useState(false); // TODO: Move this to InputBarTrigger
+  const canSubmit = props.inputTextError.length === 0 && !props.conversation.error;
+  const hasError = props.inputTextError !== "";
+  const showError = props.inputTextError !== "" && !open;
+  const showSuggestedPrompts =
+    (props.suggestedPrompts ?? []).length > 0 &&
+    props.inputText.length === 0 &&
+    props.conversation.messages.length === 0 &&
+    !props.awaitingReply;
+  const inputPlaceholder = props.conversation.error
+    ? "Something went wrong. Try reloading the page and starting a new conversation."
+    : props.awaitingReply
+    ? "MongoDB AI is answering..."
+    : "Ask MongoDB AI a Question";
+
   return (
     <div className={styles.chatbot_container}>
       <div className={styles.chatbot_input}>
         <InputBar
           key={"initialInput"}
-          hasError={props.hasError ?? false}
+          hasError={hasError ?? false}
           badgeText={
-            props.focused || props.inputText.length > 0
+            focused || props.inputText.length > 0
               ? undefined
               : "Experimental"
           }
@@ -82,14 +92,14 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
             onChange: (e) => {
               props.setInputText(e.target.value);
             },
-            placeholder: props.inputPlaceholder,
+            placeholder: inputPlaceholder,
           }}
           onMessageSend={async (messageContent) => {
             if (props.conversation.messages.length > 0) {
               props.openChat();
               return;
             }
-            if (props.canSubmit) {
+            if (canSubmit) {
               await props.handleSubmit(messageContent);
             }
           }}
@@ -102,13 +112,13 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
             }
           }}
           onFocus={() => {
-            props.setFocused(true);
+            setFocused(true);
           }}
           onBlur={() => {
-            props.setFocused(false);
+            setFocused(false);
           }}
         >
-          {props.showSuggestedPrompts ? (
+          {showSuggestedPrompts ? (
             <SuggestedPrompts label="SUGGESTED AI PROMPTS">
               {props.suggestedPrompts?.map((suggestedPrompt) => (
                 <SuggestedPrompt
@@ -125,7 +135,7 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
         </InputBar>
 
         <div className={styles.info_box}>
-          {props.showError ? (
+          {showError ? (
             <ErrorText>{props.inputTextError}</ErrorText>
           ) : null}
           <LegalDisclosure />

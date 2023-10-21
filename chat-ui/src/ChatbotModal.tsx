@@ -1,20 +1,21 @@
 import { css, cx } from "@emotion/css";
+import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import Modal, { ModalProps } from "@leafygreen-ui/modal";
 import { palette } from "@leafygreen-ui/palette";
 import { Body, InlineCode } from "@leafygreen-ui/typography";
+import { DisclaimerText } from "@lg-chat/chat-disclaimer";
 import { ChatWindow } from "@lg-chat/chat-window";
 import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
 import { MessageFeed } from "@lg-chat/message-feed";
-import { InputBar, CharacterCount } from "./InputBar";
+import { useMemo } from "react";
+import { ErrorBanner } from "./Banner";
+import { CharacterCount, InputBar } from "./InputBar";
+import { LegalDisclosure } from "./LegalDisclosure";
 import { Message } from "./Message";
+import { MAX_INPUT_CHARACTERS } from "./constants";
+import { MessageData } from "./services/conversations";
 import { Conversation } from "./useConversation";
 import { type StylesProps } from "./utils";
-import { MAX_INPUT_CHARACTERS } from "./constants";
-import { ErrorBanner } from "./Banner";
-import { MessageData } from "./services/conversations";
-import { DisclaimerText } from "@lg-chat/chat-disclaimer";
-import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
-import { LegalDisclosure } from "./LegalDisclosure";
 
 const styles = {
   chatbot_input: css`
@@ -92,7 +93,8 @@ export type ChatbotModalProps = {
   setInputText: (text: string) => void;
   shouldClose: ModalProps["shouldClose"];
   showDisclaimer?: boolean;
-  initialMessage?: MessageData;
+  initialMessageText?: string;
+  initialMessageSuggestedPrompts?: string[];
 };
 
 export function ChatbotModal({
@@ -100,7 +102,8 @@ export function ChatbotModal({
   conversation,
   darkMode: propsDarkMode,
   handleSubmit,
-  initialMessage,
+  initialMessageText,
+  initialMessageSuggestedPrompts,
   inputBarRef,
   inputText,
   inputTextError,
@@ -110,6 +113,20 @@ export function ChatbotModal({
   showDisclaimer = false,
 }: ChatbotModalProps) {
   const { darkMode } = useDarkMode(propsDarkMode);
+
+  const initialMessage: MessageData | null = useMemo(() => {
+    if(!initialMessageText) {
+      return null;
+    }
+    const data: MessageData = {
+      id: crypto.randomUUID(),
+      role: "assistant",
+      content: initialMessageText,
+      createdAt: new Date().toLocaleTimeString(),
+      suggestedPrompts: initialMessageSuggestedPrompts,
+    };
+    return data;
+  }, [initialMessageText, initialMessageSuggestedPrompts]);
 
   const messages = initialMessage
     ? [initialMessage, ...conversation.messages]

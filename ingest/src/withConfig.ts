@@ -1,6 +1,7 @@
 import yargs from "yargs";
 import Path from "path";
-import { Config, Constructor } from "./Config";
+import { logger } from "chat-core";
+import { Config } from "./Config";
 
 export type LoadConfigArgs = {
   config?: string;
@@ -75,15 +76,19 @@ export const withConfig = async <T>(
   args: LoadConfigArgs & T
 ) => {
   const config = await loadConfig(args);
-
-  const resolvedConfig = await resolveConfig(config);
+  const [resolvedConfig, cleanup] = await resolveConfig(config);
   try {
     return await action(resolvedConfig, args);
   } finally {
-    const { embeddedContentStore, pageStore, ingestMetaStore } = resolvedConfig;
-    embeddedContentStore.close && embeddedContentStore.close();
-    pageStore.close && pageStore.close();
-    ingestMetaStore.close && ingestMetaStore.close();
+    await Promise.all(
+      cleanup.map(async (close) => {
+        try {
+          await close();
+        } catch (error) {
+          logger.error(`Cleanup failed: ${(error as Error).message}`);
+        }
+      })
+    );
   }
 };
 
@@ -111,13 +116,37 @@ type Constructed<T> = Awaited<T extends () => infer R ? R : T>;
 /**
   Resolve any promises in the config object.
  */
-const resolveConfig = async (config: Config): Promise<ResolvedConfig> => {
-  return Object.fromEntries(
-    await Promise.all(
-      Object.entries(config).map(async ([k, v]) => [k, await resolve(v)])
-    )
-  );
+const resolveConfig = async (
+  config: Config
+): Promise<[ResolvedConfig, CleanupFunc[]]> => {
+  const cleanup: CleanupFunc[] = [];
+  try {
+    return [
+      Object.fromEntries(
+        await Promise.all(
+          Object.entries(config).map(async ([k, v]) => {
+            const resolved = await resolve(v);
+            const closeable = resolved as unknown as Closeable;
+            if (closeable?.close !== undefined) {
+              // Save cleanup so that any constructed instances can be cleaned up
+              // if subsequent construction fails
+              cleanup.push(async () => {
+                closeable.close && (await closeable.close());
+              });
+            }
+            return [k, resolved];
+          })
+        )
+      ),
+      cleanup,
+    ];
+  } catch (error) {
+    await Promise.all(cleanup.map((close) => close()));
+    throw error;
+  }
 };
+
+type CleanupFunc = () => Promise<void>;
 
 const resolve = async <T>(v: T): Promise<Constructed<T>> =>
   typeof v === "function" ? v() : v;
@@ -139,3 +168,7 @@ function checkRequiredProperty<T, K extends keyof T>(
   }
   return value as Exclude<T[K], undefined>;
 }
+
+export type Closeable = {
+  close?(): Promise<void>;
+};

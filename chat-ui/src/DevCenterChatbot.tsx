@@ -1,33 +1,31 @@
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
-import { ChatbotTriggerProps } from "./ChatbotTrigger";
-import { ChatbotViewProps } from "./ChatbotView";
+import { ChatbotViewProps, DarkModeProps } from "./ChatbotView";
 import { FloatingActionButtonTrigger } from "./FloatingActionButtonTrigger";
 import { ModalView } from "./ModalView";
 import { SUGGESTED_PROMPTS, WELCOME_MESSAGE } from "./constants";
 import { useChatbotContext } from "./useChatbotContext";
 
-export function DevCenterChatbot() {
+export type DevCenterChatbotProps = DarkModeProps & {
+  initialMessageText?: string;
+  initialMessageSuggestedPrompts?: string[];
+};
+
+export function DevCenterChatbot(props: DevCenterChatbotProps) {
   const chatbotData = useChatbotContext();
-  const { darkMode } = useDarkMode(chatbotData.darkMode);
-
-  const triggerProps = {
-    openChat: chatbotData.openChat,
-    closeChat: chatbotData.closeChat,
-  } satisfies ChatbotTriggerProps;
-
+  const { darkMode } = useDarkMode(props.darkMode);
 
   const viewProps = {
     ...chatbotData,
     darkMode,
-    initialMessageText: chatbotData.initialMessageText ?? WELCOME_MESSAGE,
-    initialMessageSuggestedPrompts: chatbotData.suggestedPrompts ?? SUGGESTED_PROMPTS,
+    initialMessageText: props.initialMessageText ?? WELCOME_MESSAGE,
+    initialMessageSuggestedPrompts: props.initialMessageSuggestedPrompts ?? SUGGESTED_PROMPTS,
     showDisclaimer: true,
     shouldClose: chatbotData.closeChat,
   } satisfies ChatbotViewProps;
 
   return (
     <>
-      <FloatingActionButtonTrigger {...triggerProps} />
+      <FloatingActionButtonTrigger />
       <ModalView {...viewProps} />
     </>
   );

@@ -5,9 +5,9 @@ import { Body, Error as ErrorText, Link } from "@leafygreen-ui/typography";
 import { InputBar, SuggestedPrompt, SuggestedPrompts } from "./InputBar";
 import { useLinkData } from "./useLinkData";
 import { addQueryParams } from "./utils";
-import { type Conversation } from "./useConversation";
-import { type ChatbotTriggerProps } from "./ChatbotTrigger";
 import { useState } from "react";
+import { useChatbotContext } from "./useChatbotContext";
+import { SUGGESTED_PROMPTS } from "./constants";
 
 const styles = {
   info_box: css`
@@ -41,29 +41,34 @@ const styles = {
   `,
 };
 
-export type InputBarTriggerProps = ChatbotTriggerProps & {
-  awaitingReply: boolean;
-  handleSubmit: (text: string) => void | Promise<void>;
-  conversation: Conversation;
-  inputText: string;
-  setInputText: (text: string) => void;
-  inputTextError: string;
+export type InputBarTriggerProps = {
   suggestedPrompts?: string[];
 };
 
 export function InputBarTrigger(props: InputBarTriggerProps) {
+  const { suggestedPrompts = SUGGESTED_PROMPTS } = props;
+  const {
+    openChat,
+    awaitingReply,
+    handleSubmit,
+    conversation,
+    inputText,
+    setInputText,
+    inputTextError,
+  } = useChatbotContext();
+
   const [focused, setFocused] = useState(false); // TODO: Move this to InputBarTrigger
-  const canSubmit = props.inputTextError.length === 0 && !props.conversation.error;
-  const hasError = props.inputTextError !== "";
-  const showError = props.inputTextError !== "" && !open;
+  const canSubmit = inputTextError.length === 0 && !conversation.error;
+  const hasError = inputTextError !== "";
+  const showError = inputTextError !== "" && !open;
   const showSuggestedPrompts =
-    (props.suggestedPrompts ?? []).length > 0 &&
-    props.inputText.length === 0 &&
-    props.conversation.messages.length === 0 &&
-    !props.awaitingReply;
-  const inputPlaceholder = props.conversation.error
+    (suggestedPrompts ?? []).length > 0 &&
+    inputText.length === 0 &&
+    conversation.messages.length === 0 &&
+    !awaitingReply;
+  const inputPlaceholder = conversation.error
     ? "Something went wrong. Try reloading the page and starting a new conversation."
-    : props.awaitingReply
+    : awaitingReply
     ? "MongoDB AI is answering..."
     : "Ask MongoDB AI a Question";
 
@@ -74,7 +79,7 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
           key={"initialInput"}
           hasError={hasError ?? false}
           badgeText={
-            focused || props.inputText.length > 0
+            focused || inputText.length > 0
               ? undefined
               : "Experimental"
           }
@@ -88,27 +93,27 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
           }
           textareaProps={{
             // value: !open ? propsinputText : "",
-            value: props.inputText,
+            value: inputText,
             onChange: (e) => {
-              props.setInputText(e.target.value);
+              setInputText(e.target.value);
             },
             placeholder: inputPlaceholder,
           }}
           onMessageSend={async (messageContent) => {
-            if (props.conversation.messages.length > 0) {
-              props.openChat();
+            if (conversation.messages.length > 0) {
+              openChat();
               return;
             }
             if (canSubmit) {
-              await props.handleSubmit(messageContent);
+              await handleSubmit(messageContent);
             }
           }}
           onClick={async () => {
-            if (props.conversation.messages.length > 0) {
-              props.openChat();
+            if (conversation.messages.length > 0) {
+              openChat();
             }
-            if (!props.conversation.conversationId) {
-              await props.conversation.createConversation();
+            if (!conversation.conversationId) {
+              await conversation.createConversation();
             }
           }}
           onFocus={() => {
@@ -120,11 +125,11 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
         >
           {showSuggestedPrompts ? (
             <SuggestedPrompts label="SUGGESTED AI PROMPTS">
-              {props.suggestedPrompts?.map((suggestedPrompt) => (
+              {suggestedPrompts?.map((suggestedPrompt) => (
                 <SuggestedPrompt
                   key={suggestedPrompt}
                   onClick={async () => {
-                    await props.handleSubmit(suggestedPrompt);
+                    await handleSubmit(suggestedPrompt);
                   }}
                 >
                   {suggestedPrompt}
@@ -136,7 +141,7 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
 
         <div className={styles.info_box}>
           {showError ? (
-            <ErrorText>{props.inputTextError}</ErrorText>
+            <ErrorText>{inputTextError}</ErrorText>
           ) : null}
           <LegalDisclosure />
         </div>

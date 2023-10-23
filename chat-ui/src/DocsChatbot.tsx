@@ -1,17 +1,20 @@
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { ModalView } from "./ModalView";
 import { useChatbotContext } from "./useChatbotContext";
-import { InputBarTrigger } from "./InputBarTrigger";
-import { ChatbotTriggerProps } from "./ChatbotTrigger";
-import { ChatbotViewProps } from "./ChatbotView";
+import { InputBarTrigger, InputBarTriggerProps } from "./InputBarTrigger";
+import { ChatbotViewProps, DarkModeProps } from "./ChatbotView";
 
-export function DocsChatbot() {
+export type DocsChatbotProps = DarkModeProps & {
+  suggestedPrompts?: string[];
+};
+
+export function DocsChatbot(props: DocsChatbotProps) {
   const chatbotData = useChatbotContext();
-  const { darkMode } = useDarkMode(chatbotData.darkMode);
+  const { darkMode } = useDarkMode(props.darkMode);
 
   const triggerProps = {
-    ...chatbotData,
-  } satisfies ChatbotTriggerProps;
+    suggestedPrompts: props.suggestedPrompts,
+  } satisfies InputBarTriggerProps
 
   const viewProps = {
     ...chatbotData,

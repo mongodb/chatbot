@@ -5,7 +5,7 @@ import { UserProvider } from "./UserProvider";
 import { useChatbot } from "./useChatbot";
 import { LinkDataProvider } from "./LinkDataProvider";
 import { type User } from "./useUser";
-import { ChatbotContextData, ChatbotProvider } from "./ChatbotProvider";
+import { ChatbotProvider } from "./ChatbotProvider";
 
 export type ChatbotProps = {
   darkMode?: boolean;
@@ -34,17 +34,11 @@ export function Chatbot({
 
   const tck = props.tck ?? "mongodb_ai_chatbot";
 
-  const chatbotContextData = {
-    ...props,
-    darkMode,
-    ...chatbotData,
-  } satisfies ChatbotContextData;
-
   return (
     <LeafyGreenProvider darkMode={darkMode}>
       <LinkDataProvider tck={tck}>
         <UserProvider user={user}>
-          <ChatbotProvider {...chatbotContextData}>{children}</ChatbotProvider>
+          <ChatbotProvider {...chatbotData}>{children}</ChatbotProvider>
         </UserProvider>
       </LinkDataProvider>
     </LeafyGreenProvider>

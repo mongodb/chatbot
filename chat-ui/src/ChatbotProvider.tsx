@@ -1,16 +1,9 @@
 import { createContext } from "react";
-import { ChatbotProps } from "./Chatbot";
 import { ChatbotData } from "./useChatbot";
 
-export type ChatbotContextData = Omit<
-  ChatbotProps,
-  "children" | "serverBaseUrl" | "shouldStream" | "user"
-> &
-  ChatbotData;
+export const ChatbotContext = createContext<ChatbotData | null>(null);
 
-export const ChatbotContext = createContext<ChatbotContextData | null>(null);
-
-export type ChatbotProviderProps = ChatbotContextData & {
+export type ChatbotProviderProps = ChatbotData & {
   children: React.ReactNode;
 };
 

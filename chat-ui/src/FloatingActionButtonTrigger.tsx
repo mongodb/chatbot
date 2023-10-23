@@ -1,6 +1,6 @@
 import { css } from "@emotion/css";
 import { ChatTrigger } from "@lg-chat/fixed-chat-window";
-import { type ChatbotTriggerProps } from "./ChatbotTrigger";
+import { useChatbotContext } from "./useChatbotContext";
 
 const styles = {
   chat_trigger: css`
@@ -19,16 +19,11 @@ const styles = {
   `,
 };
 
-export type FloatingActionButtonTriggerProps = ChatbotTriggerProps;
+export function FloatingActionButtonTrigger() {
+  const { openChat } = useChatbotContext();
 
-export function FloatingActionButtonTrigger(props: FloatingActionButtonTriggerProps) {
   return (
-    <ChatTrigger
-      className={styles.chat_trigger}
-      onClick={async () => {
-        await props.openChat();
-      }}
-    >
+    <ChatTrigger className={styles.chat_trigger} onClick={openChat}>
       MongoDB AI
     </ChatTrigger>
   );

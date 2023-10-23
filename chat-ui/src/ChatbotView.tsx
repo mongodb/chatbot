@@ -1,8 +1,11 @@
 import { ModalProps } from "@leafygreen-ui/modal";
 import { Conversation } from "./useConversation";
 
-export type ChatbotViewProps = {
+export type DarkModeProps = {
   darkMode?: boolean;
+};
+
+export type ChatbotViewProps = DarkModeProps & {
   awaitingReply: boolean;
   conversation: Conversation;
   handleSubmit: (text: string) => void | Promise<void>;

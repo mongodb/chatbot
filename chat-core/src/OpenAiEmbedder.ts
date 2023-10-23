@@ -1,8 +1,8 @@
+import { OpenAIClient } from "chat-core";
 import { Embedder } from "./Embedder";
 import { logger } from "./services/logger";
 import { stripIndent } from "common-tags";
 import { backOff, BackoffOptions } from "exponential-backoff";
-import { OpenAIClient } from "@azure/openai";
 
 export type MakeOpenAiEmbedFuncArgs = {
   /**

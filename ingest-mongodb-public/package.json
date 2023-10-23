@@ -13,7 +13,8 @@
     "clean": "rm -rf build",
     "build": "tsc -b",
     "watch": "tsc -b -w",
-    "release": "release-it"
+    "release": "release-it",
+    "ingest:all": "node ./node_modules/ingest/build/main.js all --config ./build/config.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",
@@ -34,7 +35,7 @@
   },
   "dependencies": {
     "chat-core": "file:../chat-core",
-    "ingest": "file:../ingest",
-    "dotenv": "^16"
+    "dotenv": "^16",
+    "ingest": "file:../ingest"
   }
 }

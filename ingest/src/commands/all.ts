@@ -14,8 +14,9 @@ const commandModule: CommandModule<unknown, LoadConfigArgs> = {
   builder(args) {
     return withConfigOptions(args);
   },
-  async handler() {
+  async handler(args) {
     return withConfig(doAllCommand, {
+      ...args,
       doPagesCommand: standardDoPagesCommand,
     });
   },

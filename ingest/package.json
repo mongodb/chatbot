@@ -1,5 +1,5 @@
 {
-  "name": "ingest",
+  "name": "mongodb-rag-ingest",
   "version": "0.1.2",
   "description": "Ingests data sources and stores embeddings.",
   "author": "",

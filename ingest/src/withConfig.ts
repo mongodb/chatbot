@@ -14,8 +14,8 @@ export const loadConfig = async ({
     configPathIn === undefined ? "ingest.config.cjs" : configPathIn
   );
 
-  const configArray = (await import(path)).default.default as Partial<Config>[];
-
+  const configArray = (await import(path)).default as Partial<Config>[];
+  console.log(JSON.stringify(configArray));
   // Validate config
   if (!Array.isArray(configArray)) {
     throw new Error(

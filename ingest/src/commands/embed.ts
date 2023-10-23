@@ -27,14 +27,14 @@ const commandModule: CommandModule<
       })
       .demandOption("since");
   },
-  async handler({ since: sinceString, source }) {
+  async handler({ since: sinceString, source, ...args }) {
     if (isNaN(Date.parse(sinceString))) {
       throw new Error(
         `The value for 'since' (${sinceString}) must be a valid JavaScript date string.`
       );
     }
     const since = new Date(sinceString);
-    return withConfig(doEmbedCommand, { since, source });
+    return withConfig(doEmbedCommand, { ...args, since, source });
   },
   describe: "Update embedded content data from pages",
 };

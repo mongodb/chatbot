@@ -1,4 +1,4 @@
-import { OpenAIClient } from "chat-core";
+import { OpenAIClient } from "@azure/openai";
 import { Embedder } from "./Embedder";
 import { logger } from "./services/logger";
 import { stripIndent } from "common-tags";

@@ -11,3 +11,5 @@ export const CORE_ENV_VARS = {
   VECTOR_SEARCH_INDEX_NAME: "",
   NODE_ENV: "",
 };
+
+export const URL_ENV_VARS = ["MONGODB_CONNECTION_URI", "OPENAI_ENDPOINT"]

@@ -44,13 +44,8 @@ the command regenerates the corresponding embeddings for that page.
 ## Configuration
 
 To configure the ingest tool, provide an `ingest.config.js` file. The default
-export of this file must be an array of `Partial<Config>` objects. See
-[Config.ts](./src/Config.ts) for details.
-
-For each element in the config array, the defined fields of that element
-overrides the corresponding fields of the previous element. This allows you to
-customize one or more existing configurations. This emulates [eslint's flat
-config](https://eslint.org/blog/2022/08/new-config-system-part-2/).
+export of this file must be a `Config` object. See [Config.ts](./src/Config.ts)
+for details.
 
 ## Development
 

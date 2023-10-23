@@ -14,27 +14,7 @@ export const loadConfig = async ({
     configPathIn === undefined ? "ingest.config.cjs" : configPathIn
   );
 
-  const configArray = (await import(path)).default as Partial<Config>[];
-  console.log(JSON.stringify(configArray));
-  // Validate config
-  if (!Array.isArray(configArray)) {
-    throw new Error(
-      `Invalid config at ${path}: expected default exported array of Config objects`
-    );
-  }
-
-  if (configArray.length === 0) {
-    throw new Error(
-      `Invalid config at ${path}: expected at least 1 Config object in array`
-    );
-  }
-
-  // Flatten config: the fields of earlier entries in the array can be
-  // overridden by the fields of subsequent entries in the array.
-  const partialConfig: Partial<Config> = configArray.reduce((acc, cur) => ({
-    ...acc,
-    ...cur,
-  }));
+  const partialConfig = (await import(path)).default as Partial<Config>;
 
   const missingProperties: string[] = [];
   const config: Config = {
@@ -68,7 +48,7 @@ export const loadConfig = async ({
 
   if (missingProperties.length !== 0) {
     throw new Error(
-      `Flattened config is missing the following properties: ${missingProperties.join(
+      `Config is missing the following properties: ${missingProperties.join(
         ", "
       )}`
     );

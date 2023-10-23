@@ -63,4 +63,4 @@ export const standardConfig = {
   },
 } satisfies Config;
 
-export default [standardConfig];
+export default standardConfig;

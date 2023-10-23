@@ -2,8 +2,12 @@ import Path from "path";
 import { strict as assert } from "assert";
 import { promises as fs } from "fs";
 import { MongoClient, Db, ObjectId } from "mongodb";
-import { Conversation, SomeMessage, AssistantMessage } from "chat-server";
 import { makeTypeChatJsonTranslateFunc, assertEnvVars } from "chat-core";
+import {
+  Conversation,
+  SomeMessage,
+  AssistantMessage,
+} from "mongodb-chatbot-server";
 import { MessageAnalysis } from "./MessageAnalysis";
 
 import "dotenv/config";

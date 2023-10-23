@@ -3,7 +3,7 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { ObjectId, EmbeddedContent, References, Reference } from "chat-core";
+import { ObjectId, EmbeddedContent, References } from "chat-core";
 import {
   ConversationsService,
   Message,
@@ -201,7 +201,7 @@ export function makeAddMessageToConversationRoute({
       // --- VECTOR SEARCH / RETRIEVAL ---
       const { content, queryEmbedding } = await findContent({
         query,
-        ipAddress: ip,
+        ipAddress: ip ?? "::1",
       });
 
       if (content.length === 0) {

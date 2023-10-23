@@ -9,7 +9,7 @@
     "node": ">=18",
     "npm": ">=8"
   },
-  "main": "dist/lib.js",
+  "main": "./dist/lib.js",
   "scripts": {
     "build": "rm -rf ./dist/ && tsc",
     "postbuild": "cp ./src/processors/MongoDbUserQueryPreprocessorResponse.ts ./dist/processors/",

@@ -5,6 +5,7 @@ import * as FetchEventSource from "@microsoft/fetch-event-source";
 
 // Mock fetch for regular awaited HTTP requests
 global.fetch = vi.fn();
+
 function mockFetchResponse<T = unknown>({
   status = 200,
   data,

@@ -28,7 +28,7 @@ export type Config = {
   pageStore: Constructor<PageStore>;
 
   /**
-    The store that holds the embedded content for later vector search.
+    The store that holds the embedded content and vector embeddings for later vector search.
    */
   embeddedContentStore: Constructor<EmbeddedContentStore>;
 

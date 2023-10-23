@@ -1,6 +1,6 @@
 import { css, cx } from "@emotion/css";
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
-import Modal, { ModalProps } from "@leafygreen-ui/modal";
+import Modal from "@leafygreen-ui/modal";
 import { palette } from "@leafygreen-ui/palette";
 import { Body, InlineCode } from "@leafygreen-ui/typography";
 import { DisclaimerText } from "@lg-chat/chat-disclaimer";
@@ -16,6 +16,7 @@ import { MAX_INPUT_CHARACTERS } from "./constants";
 import { MessageData } from "./services/conversations";
 import { Conversation } from "./useConversation";
 import { type StylesProps } from "./utils";
+import { type ChatbotViewProps } from "./ChatbotView";
 
 const styles = {
   chatbot_input: css`
@@ -81,41 +82,25 @@ const styles = {
   `,
 };
 
-export type ChatbotModalProps = {
-  awaitingReply: boolean;
-  conversation: Conversation;
-  darkMode?: boolean;
-  handleSubmit: (text: string) => void | Promise<void>;
-  inputBarRef: React.RefObject<HTMLFormElement>;
-  inputText: string;
-  inputTextError: string;
-  open: boolean;
-  setInputText: (text: string) => void;
-  shouldClose: ModalProps["shouldClose"];
-  showDisclaimer?: boolean;
-  initialMessageText?: string;
-  initialMessageSuggestedPrompts?: string[];
-};
-
-export function ChatbotModal({
-  awaitingReply,
-  conversation,
-  darkMode: propsDarkMode,
-  handleSubmit,
-  initialMessageText,
-  initialMessageSuggestedPrompts,
-  inputBarRef,
-  inputText,
-  inputTextError,
-  open,
-  setInputText,
-  shouldClose,
-  showDisclaimer = false,
-}: ChatbotModalProps) {
-  const { darkMode } = useDarkMode(propsDarkMode);
+export function ModalView(props: ChatbotViewProps) {
+  const { darkMode } = useDarkMode(props.darkMode);
+  const {
+    conversation,
+    shouldClose,
+    awaitingReply,
+    inputBarRef,
+    inputText,
+    setInputText,
+    inputTextError,
+    initialMessageText,
+    initialMessageSuggestedPrompts,
+    showDisclaimer,
+    handleSubmit,
+    open,
+  } = props;
 
   const initialMessage: MessageData | null = useMemo(() => {
-    if(!initialMessageText) {
+    if (!initialMessageText) {
       return null;
     }
     const data: MessageData = {

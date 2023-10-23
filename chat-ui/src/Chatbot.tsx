@@ -5,23 +5,18 @@ import { UserProvider } from "./UserProvider";
 import { useChatbot } from "./useChatbot";
 import { LinkDataProvider } from "./LinkDataProvider";
 import { type User } from "./useUser";
-import {
-  PolymorphicChatbotData,
-  PolymorphicChatbotProvider,
-} from "./PolymorphicChatbotProvider";
+import { ChatbotContextData, ChatbotProvider } from "./ChatbotProvider";
 
 export type ChatbotProps = {
   darkMode?: boolean;
   initialMessageText?: string;
-  serverBaseUrl?: string;
-  shouldStream?: boolean;
   suggestedPrompts?: string[];
   tck?: string;
+  serverBaseUrl?: string;
+  shouldStream?: boolean;
   user?: User;
   children: React.ReactElement;
 };
-
-
 
 export function Chatbot({
   children,
@@ -39,19 +34,17 @@ export function Chatbot({
 
   const tck = props.tck ?? "mongodb_ai_chatbot";
 
-  const polymorphicChatbotData = {
+  const chatbotContextData = {
     ...props,
     darkMode,
     ...chatbotData,
-  } satisfies PolymorphicChatbotData;
+  } satisfies ChatbotContextData;
 
   return (
     <LeafyGreenProvider darkMode={darkMode}>
       <LinkDataProvider tck={tck}>
         <UserProvider user={user}>
-          <PolymorphicChatbotProvider {...polymorphicChatbotData}>
-            {children}
-          </PolymorphicChatbotProvider>
+          <ChatbotProvider {...chatbotContextData}>{children}</ChatbotProvider>
         </UserProvider>
       </LinkDataProvider>
     </LeafyGreenProvider>

@@ -1,50 +1,34 @@
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
+import { ChatbotTriggerProps } from "./ChatbotTrigger";
+import { ChatbotViewProps } from "./ChatbotView";
 import { FloatingActionButtonTrigger } from "./FloatingActionButtonTrigger";
-import { useMemo } from "react";
-import { ChatbotModal } from "./ChatbotModal";
+import { ModalView } from "./ModalView";
 import { SUGGESTED_PROMPTS, WELCOME_MESSAGE } from "./constants";
-import { MessageData } from "./services/conversations";
-import { usePolymorphicChatbotData } from "./usePolymorphicChatbot";
+import { useChatbotContext } from "./useChatbotContext";
 
 export function DevCenterChatbot() {
-  const props = usePolymorphicChatbotData();
-  const { darkMode } = useDarkMode(props.darkMode);
+  const chatbotData = useChatbotContext();
+  const { darkMode } = useDarkMode(chatbotData.darkMode);
 
-  const {
-    conversation,
-    openChat,
-    closeChat,
-    awaitingReply,
-    inputBarRef,
-    inputText,
-    setInputText,
-    inputTextError,
-    initialMessageText = WELCOME_MESSAGE,
-    handleSubmit,
-    open,
-    suggestedPrompts = SUGGESTED_PROMPTS,
-  } = props;
+  const triggerProps = {
+    openChat: chatbotData.openChat,
+    closeChat: chatbotData.closeChat,
+  } satisfies ChatbotTriggerProps;
 
-  // TODO - can we only provide the // ! props and get the rest from context?
+
+  const viewProps = {
+    ...chatbotData,
+    darkMode,
+    initialMessageText: chatbotData.initialMessageText ?? WELCOME_MESSAGE,
+    initialMessageSuggestedPrompts: chatbotData.suggestedPrompts ?? SUGGESTED_PROMPTS,
+    showDisclaimer: true,
+    shouldClose: chatbotData.closeChat,
+  } satisfies ChatbotViewProps;
 
   return (
     <>
-      <FloatingActionButtonTrigger openChat={openChat} closeChat={closeChat} />
-      <ChatbotModal
-        awaitingReply={awaitingReply}
-        conversation={conversation}
-        darkMode={darkMode}
-        handleSubmit={handleSubmit}
-        initialMessageText={initialMessageText} // !
-        initialMessageSuggestedPrompts={suggestedPrompts} // !
-        inputBarRef={inputBarRef}
-        inputText={inputText}
-        inputTextError={inputTextError}
-        open={open}
-        setInputText={setInputText}
-        shouldClose={closeChat}
-        showDisclaimer // !
-      />
+      <FloatingActionButtonTrigger {...triggerProps} />
+      <ModalView {...viewProps} />
     </>
   );
 }

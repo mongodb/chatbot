@@ -8,9 +8,10 @@ import { IngestMetaStore } from "./IngestMetaStore";
 
   You can provide your own configuration to the ingest tool.
 
-  Every property is either an instance or a function that constructs an instance
-  (synchronously or asynchronously). This allows you to run logic for
-  construction or build async.
+  Every property is a function that constructs an instance (synchronously or
+  asynchronously). This allows you to run logic for construction or build async.
+  It also avoids unnecessary construction and cleanup if that field of the
+  config is overridden by a subsequent config.
  */
 export type Config = {
   /**
@@ -47,4 +48,4 @@ export type Config = {
   chunkOptions?: Constructor<Partial<ChunkOptions>>;
 };
 
-export type Constructor<T> = T | (() => T) | (() => Promise<T>);
+export type Constructor<T> = (() => T) | (() => Promise<T>);

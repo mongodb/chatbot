@@ -1,9 +1,11 @@
+import { OpenAIClient, AzureKeyCredential } from "@azure/openai";
 import { Config, INGEST_ENV_VARS, makeIngestMetaStore } from "ingest";
 import { standardChunkFrontMatterUpdater } from "ingest/embed";
 import {
   assertEnvVars,
   makeOpenAiEmbedder,
-  makeDatabaseConnection,
+  makeMongoDbEmbeddedContentStore,
+  makeMongoDbPageStore,
   filterFulfilled,
 } from "chat-core";
 import { sourceConstructors } from "./sources";
@@ -12,15 +14,15 @@ const {
   OPENAI_ENDPOINT,
   OPENAI_API_KEY,
   OPENAI_EMBEDDING_DEPLOYMENT,
-  OPENAI_EMBEDDING_MODEL_VERSION,
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
 } = assertEnvVars(INGEST_ENV_VARS);
 
 const embedder = makeOpenAiEmbedder({
-  baseUrl: OPENAI_ENDPOINT,
-  apiKey: OPENAI_API_KEY,
-  apiVersion: OPENAI_EMBEDDING_MODEL_VERSION,
+  openAiClient: new OpenAIClient(
+    OPENAI_ENDPOINT,
+    new AzureKeyCredential(OPENAI_API_KEY)
+  ),
   deployment: OPENAI_EMBEDDING_DEPLOYMENT,
   backoffOptions: {
     numOfAttempts: 25,
@@ -28,7 +30,7 @@ const embedder = makeOpenAiEmbedder({
   },
 });
 
-const embeddedContentStore = makeDatabaseConnection({
+const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
 });
@@ -39,7 +41,10 @@ const ingestMetaStore = makeIngestMetaStore({
   entryId: "all",
 });
 
-const pageStore = embeddedContentStore;
+const pageStore = makeMongoDbPageStore({
+  connectionUri: MONGODB_CONNECTION_URI,
+  databaseName: MONGODB_DATABASE_NAME,
+});
 
 export const standardConfig = {
   embedder,

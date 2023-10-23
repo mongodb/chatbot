@@ -21,25 +21,51 @@ export const loadConfig = async ({
       `Invalid config at ${path}: expected default exported array of Config objects`
     );
   }
-  // TODO: further validation
 
-  // Flatten config
+  // Flatten config: the fields of earlier entries in the array can be
+  // overridden by the fields of subsequent entries in the array.
   const partialConfig: Partial<Config> = configArray.reduce((acc, cur) => ({
     ...acc,
     ...cur,
   }));
 
+  const missingProperties: string[] = [];
   const config: Config = {
     ...partialConfig,
-    dataSources: checkRequiredProperty(partialConfig, "dataSources"),
+    dataSources: checkRequiredProperty(
+      partialConfig,
+      "dataSources",
+      missingProperties
+    ),
     embeddedContentStore: checkRequiredProperty(
       partialConfig,
-      "embeddedContentStore"
+      "embeddedContentStore",
+      missingProperties
     ),
-    embedder: checkRequiredProperty(partialConfig, "embedder"),
-    ingestMetaStore: checkRequiredProperty(partialConfig, "ingestMetaStore"),
-    pageStore: checkRequiredProperty(partialConfig, "pageStore"),
+    embedder: checkRequiredProperty(
+      partialConfig,
+      "embedder",
+      missingProperties
+    ),
+    ingestMetaStore: checkRequiredProperty(
+      partialConfig,
+      "ingestMetaStore",
+      missingProperties
+    ),
+    pageStore: checkRequiredProperty(
+      partialConfig,
+      "pageStore",
+      missingProperties
+    ),
   };
+
+  if (missingProperties.length !== 0) {
+    throw new Error(
+      `Flattened config is missing the following properties: ${missingProperties.join(
+        ", "
+      )}`
+    );
+  }
 
   return config;
 };
@@ -49,14 +75,15 @@ export const withConfig = async <T>(
   args: LoadConfigArgs & T
 ) => {
   const config = await loadConfig(args);
-  const resolvedConfig = await resolveConfig(config);
 
-  console.log(`resolved config: ${resolvedConfig.dataSources[0]}`);
+  const resolvedConfig = await resolveConfig(config);
   try {
     return await action(resolvedConfig, args);
   } finally {
-    // TODO
-    // config.embeddedContentStore.close();
+    const { embeddedContentStore, pageStore, ingestMetaStore } = resolvedConfig;
+    embeddedContentStore.close && embeddedContentStore.close();
+    pageStore.close && pageStore.close();
+    ingestMetaStore.close && ingestMetaStore.close();
   }
 };
 
@@ -92,12 +119,8 @@ const resolveConfig = async (config: Config): Promise<ResolvedConfig> => {
   );
 };
 
-const resolve = async <T>(v: Constructor<T>): Promise<T | Constructed<T>> => {
-  if (typeof v === "function") {
-    return (v as () => T)();
-  }
-  return v;
-};
+const resolve = async <T>(v: T): Promise<Constructed<T>> =>
+  typeof v === "function" ? v() : v;
 
 /**
   Asserts that the given property is defined in the given object and returns
@@ -105,11 +128,14 @@ const resolve = async <T>(v: Constructor<T>): Promise<T | Constructed<T>> => {
  */
 function checkRequiredProperty<T, K extends keyof T>(
   object: T,
-  k: K
+  k: K,
+  missingProperties: string[]
 ): Exclude<T[K], undefined> {
   const value = object[k];
   if (value === undefined) {
-    throw new Error(`Config is missing property: ${k.toString()}`);
+    missingProperties.push(k.toString());
+    // Hack: this is an invalid value. The caller MUST check the errors
+    return undefined as Exclude<T[K], undefined>;
   }
   return value as Exclude<T[K], undefined>;
 }

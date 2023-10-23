@@ -75,10 +75,14 @@ export type SnootyProjectConfig = ProjectBase & {
   baseUrl: string;
 };
 
-// `baseUrl` and `currentBranch` to be filled in by the Snooty Data API GET
-// projects endpoint - unless you want to specify one to override whatever the
-// Data API says. `currentBranch` will be the name of the first branch entry has
-// `isStableBranch` set to true in the Data API response.
+/**
+  Specifies a locally-overrideable Snooty project configuration.
+
+  `baseUrl` and `currentBranch`, if undefined, will be filled in by the Snooty
+  Data API GET projects endpoint. You can set them yourself to override the data
+  in the Snooty Data API. `currentBranch` will be the name of the first branch
+  entry with `isStableBranch` set to true in the Data API response.
+ */
 export type LocallySpecifiedSnootyProjectConfig = Omit<
   SnootyProjectConfig,
   "baseUrl" | "currentBranch" | "version"

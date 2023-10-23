@@ -14,12 +14,18 @@ export const loadConfig = async ({
     configPathIn === undefined ? "ingest.config.cjs" : configPathIn
   );
 
-  const configArray = (await import(path)).default as Partial<Config>[];
+  const configArray = (await import(path)).default.default as Partial<Config>[];
 
   // Validate config
   if (!Array.isArray(configArray)) {
     throw new Error(
       `Invalid config at ${path}: expected default exported array of Config objects`
+    );
+  }
+
+  if (configArray.length === 0) {
+    throw new Error(
+      `Invalid config at ${path}: expected at least 1 Config object in array`
     );
   }
 

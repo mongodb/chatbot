@@ -17,8 +17,7 @@ export type Config = {
   /**
     The store that contains the ingest meta document.
 
-    The ingest meta document is used by the `all` command to determine when the
-    last successful run was for that ingestion.
+    The ingest meta document stores the date of the last successful run.
    */
   ingestMetaStore: Constructor<IngestMetaStore>;
 

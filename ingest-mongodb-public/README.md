@@ -15,10 +15,9 @@ npm run build
 
 ## Using the Config
 
-Run `ingest`, passing the built js file to the `--config` flag.
-
 ```sh
-node ./node_modules/ingest/build/main.js \
-  <command> \
-  --config build/config.js
+npm run ingest:all
 ```
+
+This runs the ingest script with the `--config` flag passing the built config
+file (`build/config.js`) to the tool.

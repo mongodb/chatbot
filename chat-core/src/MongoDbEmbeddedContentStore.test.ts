@@ -105,7 +105,7 @@ describe("MongoDbEmbeddedContentStore", () => {
 });
 
 describe("nearest neighbor search", () => {
-  const embed = makeOpenAiEmbedder({
+  const embedder = makeOpenAiEmbedder({
     openAiClient: new OpenAIClient(
       OPENAI_ENDPOINT,
       new AzureKeyCredential(OPENAI_API_KEY)

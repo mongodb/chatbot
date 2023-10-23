@@ -1,4 +1,4 @@
-import { pageIdentity } from "pageIdentity";
+import { pageIdentity } from "./pageIdentity";
 import { DatabaseConnection } from "./DatabaseConnection";
 import {
   MakeMongoDbDatabaseConnectionParams,

@@ -1,6 +1,6 @@
 import { css, cx } from "@emotion/css";
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
-import Modal from "@leafygreen-ui/modal";
+import Modal, { ModalProps } from "@leafygreen-ui/modal";
 import { palette } from "@leafygreen-ui/palette";
 import { Body, InlineCode } from "@leafygreen-ui/typography";
 import { DisclaimerText } from "@lg-chat/chat-disclaimer";
@@ -17,6 +17,7 @@ import { MessageData } from "./services/conversations";
 import { Conversation } from "./useConversation";
 import { type StylesProps } from "./utils";
 import { type ChatbotViewProps } from "./ChatbotView";
+import { useChatbotContext } from "./useChatbotContext";
 
 const styles = {
   chatbot_input: css`
@@ -82,22 +83,28 @@ const styles = {
   `,
 };
 
-export function ModalView(props: ChatbotViewProps) {
+export type ModalViewProps = ChatbotViewProps & {
+  shouldClose: ModalProps["shouldClose"];
+};
+
+export function ModalView(props: ModalViewProps) {
   const { darkMode } = useDarkMode(props.darkMode);
   const {
-    conversation,
-    shouldClose,
-    awaitingReply,
-    inputBarRef,
-    inputText,
-    setInputText,
-    inputTextError,
     initialMessageText,
     initialMessageSuggestedPrompts,
+    shouldClose,
     showDisclaimer,
-    handleSubmit,
-    open,
   } = props;
+  const {
+    awaitingReply,
+    conversation,
+    handleSubmit,
+    inputBarRef,
+    inputText,
+    inputTextError,
+    open,
+    setInputText,
+  } = useChatbotContext();
 
   const initialMessage: MessageData | null = useMemo(() => {
     if (!initialMessageText) {

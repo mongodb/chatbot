@@ -1,7 +1,7 @@
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
-import { ChatbotViewProps, DarkModeProps } from "./ChatbotView";
+import { DarkModeProps } from "./ChatbotView";
 import { FloatingActionButtonTrigger } from "./FloatingActionButtonTrigger";
-import { ModalView } from "./ModalView";
+import { ModalView, ModalViewProps } from "./ModalView";
 import { SUGGESTED_PROMPTS, WELCOME_MESSAGE } from "./constants";
 import { useChatbotContext } from "./useChatbotContext";
 
@@ -15,13 +15,12 @@ export function DevCenterChatbot(props: DevCenterChatbotProps) {
   const { darkMode } = useDarkMode(props.darkMode);
 
   const viewProps = {
-    ...chatbotData,
     darkMode,
     initialMessageText: props.initialMessageText ?? WELCOME_MESSAGE,
     initialMessageSuggestedPrompts: props.initialMessageSuggestedPrompts ?? SUGGESTED_PROMPTS,
     showDisclaimer: true,
     shouldClose: chatbotData.closeChat,
-  } satisfies ChatbotViewProps;
+  } satisfies ModalViewProps;
 
   return (
     <>

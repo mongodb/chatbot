@@ -152,8 +152,6 @@ const resolveConfig = async (
   }
 };
 
-type CleanupFunc = () => Promise<void>;
-
 const resolve = async <T>(v: T): Promise<Constructed<T>> =>
   typeof v === "function" ? v() : v;
 
@@ -175,6 +173,8 @@ function checkRequiredProperty<T, K extends keyof T>(
   return value as Exclude<T[K], undefined>;
 }
 
-export type Closeable = {
+type Closeable = {
   close?(): Promise<void>;
 };
+
+type CleanupFunc = () => Promise<void>;

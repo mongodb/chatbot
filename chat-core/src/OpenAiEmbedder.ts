@@ -4,7 +4,7 @@ import { logger } from "./services/logger";
 import { stripIndent } from "common-tags";
 import { backOff, BackoffOptions } from "exponential-backoff";
 
-export type MakeOpenAiEmbedFuncArgs = {
+export type MakeOpenAiEmbedderArgs = {
   /**
     Options used for automatic retry (usually due to rate limiting).
    */
@@ -29,7 +29,7 @@ export const makeOpenAiEmbedder = ({
   backoffOptions: backoffOptionsIn,
   deployment,
   openAiClient,
-}: MakeOpenAiEmbedFuncArgs): Embedder => {
+}: MakeOpenAiEmbedderArgs): Embedder => {
   const backoffOptions: BackoffOptions = backoffOptionsIn ?? {
     jitter: "full",
     maxDelay: 10000,

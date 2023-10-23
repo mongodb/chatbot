@@ -5,14 +5,7 @@ image:
 cronJobs:
   - name: ingest-all-content
     schedule: "0 6 * * *" # every day at 6am UTC (1AM EST)
-    command:
-      [
-        "node",
-        "./node_modules/ingest/build/main.js",
-        "all",
-        "--config",
-        "./build/config.js",
-      ]
+    command: ["npm", "run", "ingest:all"]
     env:
       OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
       OPENAI_EMBEDDING_MODEL_VERSION: 2023-06-01-preview

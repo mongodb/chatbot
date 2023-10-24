@@ -10,7 +10,7 @@ ENV LG_ARTIFACTORY_EMAIL=${LG_ARTIFACTORY_EMAIL}
 
 WORKDIR /app
 COPY . ./
-RUN npm install lerna && npm run bootstrap && npm run build -- --scope='{chat-core,ingest}'
+RUN npm install lerna && npm run bootstrap && npm run build -- --scope='{chat-core,ingest,ingest-mongodb-public}'
 
 # Main image
 FROM node:18-alpine as main
@@ -26,5 +26,8 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder app/ingest/package*.json ./ingest/
 COPY --from=builder app/ingest/node_modules ./ingest/node_modules
 COPY --from=builder app/ingest/build ./ingest/build
+COPY --from=builder app/ingest-mongodb-public/package*.json ./ingest-mongodb-public/
+COPY --from=builder app/ingest-mongodb-public/node_modules ./ingest-mongodb-public/node_modules
+COPY --from=builder app/ingest-mongodb-public/build ./ingest-mongodb-public/build
 
-WORKDIR /bin/ingest
+WORKDIR /bin/ingest-mongodb-public

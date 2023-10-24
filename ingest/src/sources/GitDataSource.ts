@@ -3,7 +3,13 @@ import fs from "fs";
 import Path from "path";
 import os from "os";
 import { rimrafSync } from "rimraf";
-import { Page, PageMetadata, logger } from "chat-core";
+import {
+  Page,
+  PageMetadata,
+  logger,
+  filterFulfilled,
+  filterDefined,
+} from "chat-core";
 import { DataSource } from "./DataSource";
 
 /**
@@ -88,16 +94,11 @@ export function makeGitDataSource({
           async ([path, content]) => handlePage(path, content)
         );
 
-        return (
-          (await Promise.allSettled(pagesPromises)).filter(
-            (promiseResult) =>
-              promiseResult.status === "fulfilled" &&
-              promiseResult.value !== undefined
-          ) as PromiseFulfilledResult<
-            Exclude<Awaited<ReturnType<HandlePageFunc>>, undefined>
-          >[]
+        return filterDefined(
+          filterFulfilled(await Promise.allSettled(pagesPromises)).map(
+            ({ value }) => value
+          )
         )
-          .map(({ value }) => value)
           .flat(1)
           .map(
             (page): Page => ({

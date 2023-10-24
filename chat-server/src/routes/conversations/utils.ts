@@ -50,8 +50,8 @@ export function convertConversationFromDbToApi(
   };
 }
 
-export function isValidIp(ip: string) {
-  return isIP(ip) > 0;
+export function isValidIp(ip?: string) {
+  return ip !== undefined && isIP(ip) > 0;
 }
 
 export function areEquivalentIpAddresses(ip1: string, ip2: string) {

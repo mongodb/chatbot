@@ -7,7 +7,7 @@ import {
   EmbeddedContent,
   MongoClient,
   makeMongoDbEmbeddedContentStore,
-  makeOpenAiEmbedFunc,
+  makeOpenAiEmbedder,
 } from "chat-core";
 import { makeMongoDbConversationsService } from "./services/conversations";
 import { makeDataStreamer } from "./services/dataStreamer";
@@ -137,7 +137,7 @@ export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   databaseName: MONGODB_DATABASE_NAME,
 });
 
-export const embed = makeOpenAiEmbedFunc({
+export const embedder = makeOpenAiEmbedder({
   openAiClient,
   deployment: OPENAI_EMBEDDING_DEPLOYMENT,
   backoffOptions: {
@@ -149,7 +149,7 @@ export const embed = makeOpenAiEmbedFunc({
 export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 
 export const findContent = makeDefaultFindContentFunc({
-  embed,
+  embedder,
   store: embeddedContentStore,
   findNearestNeighborsOptions: {
     k: 5,

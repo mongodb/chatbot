@@ -7,6 +7,5 @@ export * from "./MdOnGithubDataSource";
 export * from "./ProjectBase";
 export * from "./RstOnGitHubDataSource";
 export * from "./handleHtmlDocument";
-export * from "./projectSources";
 export * from "./removeMarkdownImagesAndLinks";
 export * from "./snooty";

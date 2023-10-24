@@ -14,6 +14,7 @@ trigger:
       - chat-ui/**/*
       - ingest/**/*
       - scripts/**/*
+      - ingest-mongodb-public/**/*
 
 steps:
   - name: test
@@ -320,11 +321,13 @@ name: staging-build-ingest-service
 trigger:
   branch:
     - main
+    - ingest-plugins # REMOVE ME
   event:
     - push
   paths:
     include:
       - ingest/**/*
+      - ingest-mongodb-public/**/*
       - chat-core/**/*
 
 steps:

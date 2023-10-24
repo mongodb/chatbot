@@ -21,4 +21,6 @@ export type EmbedResult = {
   Takes a string of text and returns an array of numbers representing the
   vector embedding of the text.
  */
-export type EmbedFunc = (args: EmbedArgs) => Promise<EmbedResult>;
+export type Embedder = {
+  embed(args: EmbedArgs): Promise<EmbedResult>;
+};

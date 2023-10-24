@@ -45,7 +45,7 @@ export type IngestMetaEntry = {
 /**
   Creates a connection to ingest meta collection.
  */
-export const makeIngestMetaStore = async ({
+export const makeIngestMetaStore = ({
   connectionUri,
   databaseName,
   entryId,
@@ -53,8 +53,8 @@ export const makeIngestMetaStore = async ({
   connectionUri: string;
   databaseName: string;
   entryId: string;
-}): Promise<IngestMetaStore> => {
-  const client = await MongoClient.connect(connectionUri);
+}): IngestMetaStore => {
+  const client = new MongoClient(connectionUri);
   const collection = client
     .db(databaseName)
     .collection<IngestMetaEntry>("ingest_meta");

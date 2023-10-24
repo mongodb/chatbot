@@ -75,6 +75,23 @@ export type SnootyProjectConfig = ProjectBase & {
   baseUrl: string;
 };
 
+/**
+  Specifies a locally-overrideable Snooty project configuration.
+
+  `baseUrl` and `currentBranch`, if undefined, will be filled in by the Snooty
+  Data API GET projects endpoint. You can set them yourself to override the data
+  in the Snooty Data API. `currentBranch` will be the name of the first branch
+  entry with `isStableBranch` set to true in the Data API response.
+ */
+export type LocallySpecifiedSnootyProjectConfig = Omit<
+  SnootyProjectConfig,
+  "baseUrl" | "currentBranch" | "version"
+> & {
+  baseUrl?: string;
+  currentBranch?: string;
+  versionNameOverride?: string;
+};
+
 export type MakeSnootyDataSourceArgs = {
   /**
     The data source name.
@@ -94,18 +111,16 @@ export type MakeSnootyDataSourceArgs = {
   version?: string;
 };
 
-export const makeSnootyDataSource = async ({
+export const makeSnootyDataSource = ({
   name: sourceName,
   project,
   snootyDataApiBaseUrl,
-}: MakeSnootyDataSourceArgs): Promise<
-  DataSource & {
-    _baseUrl: string;
-    _currentBranch: string;
-    _snootyProjectName: string;
-    _version?: string;
-  }
-> => {
+}: MakeSnootyDataSourceArgs): DataSource & {
+  _baseUrl: string;
+  _currentBranch: string;
+  _snootyProjectName: string;
+  _version?: string;
+} => {
   const {
     baseUrl,
     currentBranch,

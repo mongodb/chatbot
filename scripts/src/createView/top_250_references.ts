@@ -1,6 +1,6 @@
 import { MongoClient, ObjectId } from "mongodb";
 import { assertEnvVars } from "chat-core";
-import { Message } from "chat-server";
+import { Message } from "mongodb-chatbot-server";
 
 import "dotenv/config";
 

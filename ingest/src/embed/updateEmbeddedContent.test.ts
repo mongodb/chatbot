@@ -32,8 +32,10 @@ const examplePage: Page = {
   url: "https://example.com/test",
 };
 
-const embed = async () => {
-  return { embedding: [1, 2, 3] };
+const embedder = {
+  async embed() {
+    return { embedding: [1, 2, 3] };
+  },
 };
 
 describe("updateEmbeddedContent", () => {
@@ -53,7 +55,7 @@ describe("updateEmbeddedContent", () => {
     const since = new Date("2000-01-01");
 
     await updateEmbeddedContent({
-      embed,
+      embedder,
       embeddedContentStore,
       pageStore,
       since,
@@ -74,7 +76,7 @@ describe("updateEmbeddedContent", () => {
     expect(pages[0].action).toBe("deleted");
 
     await updateEmbeddedContent({
-      embed,
+      embedder,
       embeddedContentStore,
       pageStore,
       since,
@@ -101,7 +103,7 @@ describe("updateEmbeddedContent", () => {
     const since = new Date("2000-01-01");
 
     await updateEmbeddedContent({
-      embed,
+      embedder,
       embeddedContentStore,
       pageStore,
       since,
@@ -117,7 +119,7 @@ describe("updateEmbeddedContent", () => {
       "d8853850d5c4d680f853d9f5a0c1aecdad7fe9e3e4ad15482930d4774d504c55"
     );
     await updateEmbeddedContent({
-      embed,
+      embedder,
       embeddedContentStore,
       pageStore,
       since,

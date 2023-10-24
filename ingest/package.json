@@ -1,5 +1,5 @@
 {
-  "name": "ingest",
+  "name": "mongodb-rag-ingest",
   "version": "0.1.2",
   "description": "Ingests data sources and stores embeddings.",
   "author": "",
@@ -9,13 +9,19 @@
     "node": ">=18",
     "npm": ">=8"
   },
-  "main": "./build/main.js",
+  "exports": {
+    ".": "./build/index.js",
+    "./embed": "./build/embed/index.js",
+    "./pages": "./build/pages/index.js",
+    "./sources": "./build/sources/index.js",
+    "./sources/snooty": "./build/sources/snooty/index.js"
+  },
   "bin": {
     "ingest": "./build/main.js"
   },
   "scripts": {
     "clean": "rm -rf build",
-    "build": "tsc -b",
+    "build": "tsc -b tsconfig.build.json",
     "watch": "tsc -b -w",
     "test": "jest --forceExit",
     "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",

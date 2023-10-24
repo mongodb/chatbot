@@ -1,26 +1,24 @@
 import { CommandModule } from "yargs";
-import {
-  makeMongoDbEmbeddedContentStore,
-  makeMongoDbPageStore,
-  assertEnvVars,
-  makeOpenAiEmbedFunc,
-  EmbeddedContentStore,
-  PageStore,
-} from "chat-core";
-import { INGEST_ENV_VARS } from "../IngestEnvVars";
-import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { updateEmbeddedContent } from "../embed/updateEmbeddedContent";
-import { standardChunkFrontMatterUpdater } from "../embed/ChunkTransformer";
+import {
+  ResolvedConfig,
+  LoadConfigArgs,
+  withConfig,
+  withConfigOptions,
+} from "../withConfig";
 
 type EmbeddedContentCommandArgs = {
   since: string;
   source?: string | string[];
 };
 
-const commandModule: CommandModule<unknown, EmbeddedContentCommandArgs> = {
+const commandModule: CommandModule<
+  unknown,
+  LoadConfigArgs & EmbeddedContentCommandArgs
+> = {
   command: "embed",
   builder(args) {
-    return args
+    return withConfigOptions(args)
       .string("since")
       .option("source", {
         string: true,
@@ -29,74 +27,30 @@ const commandModule: CommandModule<unknown, EmbeddedContentCommandArgs> = {
       })
       .demandOption("since");
   },
-  async handler({ since, source }) {
-    if (isNaN(Date.parse(since))) {
+  async handler({ since: sinceString, source, ...args }) {
+    if (isNaN(Date.parse(sinceString))) {
       throw new Error(
-        `The value for 'since' (${since}) must be a valid JavaScript date string.`
+        `The value for 'since' (${sinceString}) must be a valid JavaScript date string.`
       );
     }
-    const { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } =
-      assertEnvVars(INGEST_ENV_VARS);
-
-    const embeddedContentStore = makeMongoDbEmbeddedContentStore({
-      connectionUri: MONGODB_CONNECTION_URI,
-      databaseName: MONGODB_DATABASE_NAME,
-    });
-    const pagesStore = makeMongoDbPageStore({
-      connectionUri: MONGODB_CONNECTION_URI,
-      databaseName: MONGODB_DATABASE_NAME,
-    });
-
-    try {
-      await doEmbedCommand({
-        pageStore: pagesStore,
-        embeddedContentStore: embeddedContentStore,
-        since: new Date(since),
-        source,
-      });
-    } finally {
-      // wrap in try/finally to ensure that we try to close 2nd store even if
-      // first one fails
-      try {
-        await pagesStore.close();
-      } finally {
-        await embeddedContentStore.close();
-      }
-    }
+    const since = new Date(sinceString);
+    return withConfig(doEmbedCommand, { ...args, since, source });
   },
   describe: "Update embedded content data from pages",
 };
 
 export default commandModule;
 
-export const doEmbedCommand = async ({
-  pageStore,
-  embeddedContentStore,
-  since,
-  source,
-}: {
-  since: Date;
-  pageStore: PageStore;
-  embeddedContentStore: EmbeddedContentStore;
-  source?: string | string[];
-}) => {
-  const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_EMBEDDING_DEPLOYMENT } =
-    assertEnvVars(INGEST_ENV_VARS);
-
-  const openAiClient = new OpenAIClient(
-    OPENAI_ENDPOINT,
-    new AzureKeyCredential(OPENAI_API_KEY)
-  );
-
-  const embed = makeOpenAiEmbedFunc({
-    openAiClient,
-    deployment: OPENAI_EMBEDDING_DEPLOYMENT,
-    backoffOptions: {
-      numOfAttempts: 25,
-      startingDelay: 1000,
-    },
-  });
-
+export const doEmbedCommand = async (
+  { pageStore, embeddedContentStore, embedder, chunkOptions }: ResolvedConfig,
+  {
+    since,
+    source,
+  }: {
+    since: Date;
+    source?: string | string[];
+  }
+) => {
   const sourceNames =
     source === undefined
       ? undefined
@@ -109,9 +63,7 @@ export const doEmbedCommand = async ({
     sourceNames,
     pageStore,
     embeddedContentStore,
-    embed,
-    chunkOptions: {
-      transform: standardChunkFrontMatterUpdater,
-    },
+    embedder,
+    chunkOptions,
   });
 };

@@ -10,12 +10,17 @@ import Toggle from "@leafygreen-ui/toggle";
 import { Chatbot } from "./Chatbot";
 import { DocsChatbot } from "./DocsChatbot";
 import { DevCenterChatbot } from "./DevCenterChatbot";
+import TextInput from "@leafygreen-ui/text-input";
+import { useLocalStorage } from "./useLocalStorage";
 
 const prefersDarkMode = () =>
   window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
 
 function App() {
   const [shouldStream, setShouldStream] = useState(canUseServerSentEvents());
+  const [apiKey, setApiKey] = useLocalStorage("apiKey", "");
+  const [projectId, setProjectId] = useLocalStorage("projectId", "");
+  const [clusterId, setClusterId] = useLocalStorage("clusterId", "");
   const { contextDarkMode: darkMode = false, setDarkMode } =
     useDarkModeContext();
   const app_background = (darkMode: boolean) => {
@@ -27,20 +32,29 @@ function App() {
   return (
     <div className={app_background(darkMode)}>
       <div className={styles.main_content}>
-        <Chatbot
-          shouldStream={shouldStream}
-          darkMode={darkMode}
-        >
+        <Chatbot shouldStream={shouldStream} darkMode={darkMode}>
           <DocsChatbot />
         </Chatbot>
-        <Chatbot
-          shouldStream={shouldStream}
-          darkMode={darkMode}
-        >
+        <Chatbot shouldStream={shouldStream} darkMode={darkMode}>
           <DevCenterChatbot />
         </Chatbot>
       </div>
       <Controls>
+        <TextInput
+          label="API Key"
+          value={apiKey}
+          onChange={(e) => setApiKey(e.target.value)}
+        />
+        <TextInput
+          label="Project ID"
+          value={projectId}
+          onChange={(e) => setProjectId(e.target.value)}
+        />
+        <TextInput
+          label="Cluster ID"
+          value={clusterId}
+          onChange={(e) => setClusterId(e.target.value)}
+        />
         <ToggleControl
           checked={shouldStream}
           labelId="streaming"

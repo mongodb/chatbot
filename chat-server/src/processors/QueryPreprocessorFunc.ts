@@ -1,7 +1,4 @@
-export interface QueryPreprocessorMessage {
-  content: string;
-  role: string;
-}
+import { Message } from "../services";
 
 /**
   Query preprocessors transform an input query to a new query based on your
@@ -19,7 +16,7 @@ export type QueryPreprocessorFunc<
   messages,
 }: {
   query?: string;
-  messages: QueryPreprocessorMessage[];
+  messages: Message[];
 }) => Promise<ReturnType>;
 
 export type QueryPreprocessorResult = {

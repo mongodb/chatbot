@@ -1,12 +1,13 @@
-import { MongoDB } from "chat-core";
+import { MongoClient } from "chat-core";
 import { AppConfig, makeApp } from "./app";
 import { MONGODB_CONNECTION_URI, config, systemPrompt } from "./config";
-import { makeConversationsService } from "./services/conversations";
+import { makeMongoDbConversationsService } from "./services/conversations";
 
 export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
   const testDbName = `conversations-test-${Date.now()}`;
-  const mongodb = new MongoDB(MONGODB_CONNECTION_URI, testDbName);
-  const conversations = makeConversationsService(mongodb.db, systemPrompt);
+  const mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
+  const mongodb = mongoClient.db(testDbName);
+  const conversations = makeMongoDbConversationsService(mongodb, systemPrompt);
   const appConfig: AppConfig = {
     ...config,
     conversationsRouterConfig: {
@@ -15,7 +16,7 @@ export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
     },
     ...(defaultConfigOverrides ?? {}),
   };
-  return { appConfig, mongodb, systemPrompt };
+  return { appConfig, mongodb, conversations, systemPrompt, mongoClient };
 }
 
 /**
@@ -26,15 +27,16 @@ export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
   // ip address for local host
   const ipAddress = "127.0.0.1";
 
-  const { appConfig, systemPrompt, mongodb } = makeTestAppConfig(
-    defaultConfigOverrides
-  );
+  const { appConfig, systemPrompt, mongodb, mongoClient, conversations } =
+    makeTestAppConfig(defaultConfigOverrides);
   const app = await makeApp(appConfig);
 
   return {
-    ipAddress,
-    appConfig,
     app,
+    appConfig,
+    conversations,
+    ipAddress,
+    mongoClient,
     mongodb,
     systemPrompt,
   };

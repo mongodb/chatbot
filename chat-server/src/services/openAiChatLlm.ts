@@ -8,13 +8,21 @@ import {
   SystemPrompt,
 } from "./ChatLlm";
 
+/**
+  Generate the user prompt sent to the {@link ChatLlm}.
+  This should include the content from vector search.
+ */
 export type GenerateUserPrompt = ({
   question,
   chunks,
 }: {
   question: string;
   chunks: string[];
-}) => OpenAiChatMessage & { role: "user" };
+}) => Promise<OpenAiChatMessage & { role: "user" }>;
+
+/**
+  Configuration for the {@link makeOpenAiChatLlm} function.
+ */
 export interface MakeOpenAiChatLlmParams {
   deployment: string;
   openAiClient: OpenAIClient;
@@ -23,6 +31,10 @@ export interface MakeOpenAiChatLlmParams {
   systemPrompt: SystemPrompt;
 }
 
+/**
+  Construct the {@link ChatLlm} service using the [OpenAI ChatGPT API](https://learn.microsoft.com/en-us/azure/ai-services/openai/chatgpt-quickstart?tabs=command-line&pivots=programming-language-studio).
+  The `ChatLlm` wraps the [@azure/openai](https://www.npmjs.com/package/@azure/openai) package.
+ */
 export function makeOpenAiChatLlm({
   deployment,
   openAiClient,
@@ -31,9 +43,8 @@ export function makeOpenAiChatLlm({
   systemPrompt,
 }: MakeOpenAiChatLlmParams): ChatLlm {
   return {
-    // NOTE: for example streaming data, see https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
     async answerQuestionStream({ messages, chunks }: LlmAnswerQuestionParams) {
-      const messagesForLlm = prepConversationForOpenAiLlm({
+      const messagesForLlm = await prepConversationForOpenAiLlm({
         messages,
         chunks,
         generateUserPrompt,
@@ -50,7 +61,7 @@ export function makeOpenAiChatLlm({
       return completionStream;
     },
     async answerQuestionAwaited({ messages, chunks }: LlmAnswerQuestionParams) {
-      const messagesForLlm = prepConversationForOpenAiLlm({
+      const messagesForLlm = await prepConversationForOpenAiLlm({
         messages,
         chunks,
         generateUserPrompt,
@@ -72,7 +83,7 @@ export function makeOpenAiChatLlm({
   };
 }
 
-function prepConversationForOpenAiLlm({
+async function prepConversationForOpenAiLlm({
   messages,
   chunks,
   generateUserPrompt,
@@ -80,10 +91,10 @@ function prepConversationForOpenAiLlm({
 }: LlmAnswerQuestionParams & {
   generateUserPrompt: GenerateUserPrompt;
   systemPrompt: SystemPrompt;
-}): OpenAiChatMessage[] {
+}): Promise<OpenAiChatMessage[]> {
   validateOpenAiConversation(messages, systemPrompt);
   const lastMessage = messages[messages.length - 1];
-  const newestMessageForLlm = generateUserPrompt({
+  const newestMessageForLlm = await generateUserPrompt({
     question: lastMessage.content,
     chunks,
   });

@@ -55,7 +55,7 @@ export function makeCreateConversationRoute({
       });
 
       const conversationInDb = await conversations.create({
-        ipAddress: ip,
+        ipAddress: ip ?? "::1",
       });
 
       const responseConversation =

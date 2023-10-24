@@ -47,22 +47,54 @@ interface StreamParams {
   references?: string;
 }
 
-type ChatbotStreamEvent =
-  | { type: "delta"; data: string }
-  | { type: "references"; data: References }
-  | { type: "finished"; data: string };
+type StreamEvent = { type: string; data: unknown };
 
+/**
+  Event when server streams additional message response to the client.
+ */
+type DeltaStreamEvent = StreamEvent & { type: "delta"; data: string };
+
+/**
+  Event when server streams single {@link References} object to the client.
+ */
+type ReferencesStreamEvent = StreamEvent & {
+  type: "references";
+  data: References;
+};
+
+/**
+  Event denoting the end of streaming.
+ */
+type FinishedStreamEvent = StreamEvent & {
+  type: "finished";
+  data: string;
+};
+
+/**
+  The event types streamed from the chat server to the client.
+ */
+type SomeStreamEvent =
+  | DeltaStreamEvent
+  | ReferencesStreamEvent
+  | FinishedStreamEvent;
+
+/**
+  Service that streams data to the client.
+ */
 export interface DataStreamer {
   connected: boolean;
   connect(res: Response): void;
   disconnect(): void;
-  streamData(data: ChatbotStreamEvent): void;
+  streamData(data: SomeStreamEvent): void;
   stream(params: StreamParams): Promise<string>;
 }
 
+/**
+  Create a {@link DataStreamer} that streams data to the client.
+ */
 export function makeDataStreamer(): DataStreamer {
   let connected = false;
-  let sse: ServerSentEventDispatcher<ChatbotStreamEvent> | undefined;
+  let sse: ServerSentEventDispatcher<SomeStreamEvent> | undefined;
 
   return {
     get connected() {
@@ -72,7 +104,7 @@ export function makeDataStreamer(): DataStreamer {
       if (this.connected) {
         throw new Error("Tried to connect SSE, but it was already connected.");
       }
-      sse = makeServerSentEventDispatcher<ChatbotStreamEvent>(res);
+      sse = makeServerSentEventDispatcher<SomeStreamEvent>(res);
       // If the client closes the connection, stop sending events
       res.on("close", () => {
         if (this.connected) {
@@ -94,7 +126,7 @@ export function makeDataStreamer(): DataStreamer {
       connected = false;
     },
 
-    streamData(data: ChatbotStreamEvent) {
+    streamData(data: SomeStreamEvent) {
       if (!this.connected) {
         throw new Error(
           `Tried to stream data, but there's no SSE connection. Call DataStreamer.connect() first.`

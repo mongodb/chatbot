@@ -41,6 +41,9 @@ export type OpenAiStreamingResponse =
   AsyncIterable<OpenAIChatCompletionWithoutUsage>;
 export type OpenAiAwaitedResponse = OpenAiChatMessage;
 
+/**
+  LLM that responds to user queries. Provides both streaming and awaited options.
+ */
 export interface ChatLlm {
   answerQuestionStream({
     messages,

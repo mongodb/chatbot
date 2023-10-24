@@ -1,19 +1,22 @@
 export * from "./CoreEnvVars";
 export * from "./DatabaseConnection";
-export * from "./EmbedFunc";
+export * from "./Embedder";
 export * from "./EmbeddedContent";
-export * from "./OpenAiEmbedFunc";
+export * from "./OpenAiEmbedder";
 export * from "./Page";
+export * from "./arrayFilters";
 export * from "./assertEnvVars";
-export * from "./integrations/mongodb";
 export * from "./services/logger";
 export * from "./services/conversations";
 export * from "./updateFrontMatter";
 export * from "./removeFrontMatter";
 export * from "./extractFrontMatter";
 export * from "./TypeChatJsonTranslateFunc";
-export * from "./ApiPage";
-export * from "./ApiEmbeddedContent";
+export * from "./MongoDbEmbeddedContentStore";
+export * from "./MongoDbPageStore";
+export * from "./MongoDbEmbeddedContentStore";
+export * from "./MongoDbPageStore";
 
 // Everyone share the same mongodb driver version
 export * from "mongodb";
+export * from "@azure/openai";

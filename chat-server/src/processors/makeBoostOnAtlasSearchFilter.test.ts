@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb";
+import { ObjectId } from "chat-core";
 import { EmbeddedContentStore } from "chat-core";
 import { makeBoostOnAtlasSearchFilter } from "./makeBoostOnAtlasSearchFilter";
 
@@ -7,7 +7,7 @@ describe("makeBoostOnAtlasSearchFilter()", () => {
     /**
       Boosts results that have 3 words or less
      */
-    shouldBoostFunc({ text }: { text: string }) {
+    async shouldBoostFunc({ text }: { text: string }) {
       return text.split(" ").filter((s) => s !== " ").length <= 3;
     },
     findNearestNeighborsOptions: {
@@ -24,13 +24,13 @@ describe("makeBoostOnAtlasSearchFilter()", () => {
   });
 
   describe("SearchBooster.shouldBoost()", () => {
-    test("Should boost MongoDB manual", () => {
+    test("Should boost MongoDB manual", async () => {
       const text = "insert one";
-      expect(boostManual.shouldBoost({ text })).toBe(true);
+      expect(await boostManual.shouldBoost({ text })).toBe(true);
     });
-    test("Should not boost MongoDB manual", () => {
+    test("Should not boost MongoDB manual", async () => {
       const text = "blah blah blah length > 3";
-      expect(boostManual.shouldBoost({ text })).toBe(false);
+      expect(await boostManual.shouldBoost({ text })).toBe(false);
     });
   });
   describe("SearchBooster.boost()", () => {

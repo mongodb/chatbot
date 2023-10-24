@@ -1,6 +1,8 @@
 /** 
   Analyze the given user query into the following data type.
  */
+
+// foobar
 export interface MessageAnalysis {
   /**
     Extract the topic keywords of the user query. Keep topics as general as

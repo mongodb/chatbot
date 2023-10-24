@@ -1,33 +1,11 @@
-import {
-  FunctionDefinition,
-  OpenAIClient,
-  GetChatCompletionsOptions,
-} from "@azure/openai";
-import { OpenAiChatMessage } from "./ChatLlm";
-import { ApiEmbeddedContent, HttpVerb } from "chat-core";
-
 /**
-  Function called by the LLM with associated metadata.
+  @fileoverview This file contains the implementation of ApiChatLlm using the OpenAI ChatGPT API.
  */
-export interface LlmFunction {
-  /**
-      Function definition for LLM
-     */
-  definition: FunctionDefinition;
-  /**
-      Callable function that takes in the arguments from the LLM function call and returns the response.
-     */
-  function: (...args: any[]) => any;
-  /**
-      `true` if the function is loaded from the embedded content,
-      and can be removed from the context window by calling the `clear_api_spec_actions` function.
-     */
-  dynamic?: boolean;
-  /**
-      Name of function. Same as the `definition.name` field.
-     */
-  name: string;
-}
+import { OpenAIClient, GetChatCompletionsOptions } from "@azure/openai";
+import { OpenAiChatMessage } from "./ChatLlm";
+import { ApiEmbeddedContent } from "chat-core";
+import { LlmFunction } from "./LlmFunction";
+import { ApiChatLlm, ApiChatLlmAnswerAwaitedParams } from "./ApiChatLlm";
 
 interface OpenAiApiChatParams<T> {
   /**
@@ -63,7 +41,7 @@ export function makeOpenAiApiChat<T = Record<string, unknown>>({
   deploymentName,
   systemPromptPersonality,
   findApiSpecAction,
-}: OpenAiApiChatParams<T>) {
+}: OpenAiApiChatParams<T>): ApiChatLlm {
   const baseSystemPrompt = `${systemPromptPersonality}
   Use the find_api_spec_action function to find an action in the API spec when the user asks you to perform an action.
   If none of the available functions match the user's query, use this function.
@@ -71,6 +49,7 @@ export function makeOpenAiApiChat<T = Record<string, unknown>>({
   Do this when a user wants to perform a new action from the action
   `;
   const baseFunctions: LlmFunction[] = [
+    // SKUNK_TODO: do we want to bake in any additional functions?
     {
       name: "find_api_spec_action",
       definition: {
@@ -107,12 +86,14 @@ export function makeOpenAiApiChat<T = Record<string, unknown>>({
   ];
 
   return {
-    async answerAwaited(
-      query: string,
-      messages: OpenAiChatMessage[],
-      availableFunctions: LlmFunction[],
-      options: GetChatCompletionsOptions
-    ) {
+    // SKUNK_TODO: The logic here probably isn't completely correct, and should likely be abstracted into some helper methods
+    // this is just a sketch of ideas.
+    async answerAwaited({
+      query,
+      messages,
+      availableFunctions,
+      options,
+    }: ApiChatLlmAnswerAwaitedParams) {
       const newMessages = [
         {
           role: "system",
@@ -169,43 +150,16 @@ export function makeOpenAiApiChat<T = Record<string, unknown>>({
           messageOptions
         );
         newMessages.push(responseBasedOnFunction.choices[0].message);
-        const availableFunctionDefinitions = responseAvailableFunctions.map(
-          (f) => f.definition
-        );
-        return {
-          newMessages,
-          availableFunctionDefinitions,
-        };
       }
+      const availableFunctionDefinitions = responseAvailableFunctions.map(
+        (f) => f.definition
+      );
+      return {
+        newMessages,
+        availableFunctionDefinitions,
+      };
     },
   };
-}
-
-/**
-    Constructs {@link FunctionDefinition} for LLM to call based on an {@link ApiEmbeddedContent}.
-   */
-function makeLlmFunction(
-  apiEmbeddedContent: ApiEmbeddedContent
-): FunctionDefinition {
-  // SKUNK_TODO: make this
-}
-
-interface ExecuteApiRequestParams {
-  httpVerb: HttpVerb;
-  baseUrl: string;
-  endPoint: string;
-  headers: Record<string, string>;
-  body: unknown;
-  parameters: Record<string, unknown>;
-}
-/**
-    Execute request to an API endpoint.
-   */
-async function executeApiRequest(
-  params: ExecuteApiRequestParams
-): Promise<unknown> {
-  // SKUNK_TODO: make this..think can just wrap the axios client
-  return "TODO";
 }
 
 /**
@@ -214,7 +168,7 @@ async function executeApiRequest(
  * @param currentFunctions - Information about additional functions available for the LLM to call.
  * @returns string - the system prompt for the LLM
  */
-function makeSystemPrompt(
+export function makeSystemPrompt(
   baseSystemPrompt: string,
   currentFunctions: LlmFunction[]
 ) {

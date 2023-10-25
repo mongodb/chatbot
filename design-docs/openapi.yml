@@ -10,6 +10,101 @@ servers:
 security:
   - ApiKeyAuth: []
 paths:
+  /api-conversations:
+    post:
+      operationId: createApiConversation
+      summary: Start a new conversation
+      description: |
+        **NOTE:** Captures user IP address.
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiConversation"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /api-conversations/{conversationId}/messages:
+    post:
+      operationId: addApiConversationMessage
+      summary: Send a message to the conversation
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+        # TODO - Out of scope for skunkworks
+        # - name: stream
+        #   in: query
+        #   required: false
+        #   schema:
+        #     type: boolean
+        #   description: |
+        #     If `true`, the response will be streamed to the client. This is useful for long-running conversations.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message, apiCredentials]
+              properties:
+                message:
+                  type: string
+                  format: markdown
+                  description: |
+                    Markdown-formatted message from the user.
+                apiCredentials:
+                  type: object
+                  properties:
+                    atlas-admin-api:
+                      type: object
+                      description: A MongoDB Atlas programmatic API key pair
+                      properties:
+                        publicKey:
+                          type: string
+                          description: |
+                            The user's public API key.
+                        privateKey:
+                          type: string
+                          description: |
+                            The user's private API key.
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /api-conversations/{conversationId}/messages/{messageId}/rating:
+    post:
+      operationId: rateApiConversationMessage
+      summary: Rate a message
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+        - $ref: "#/components/parameters/messageId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageRating"
+      responses:
+        204:
+          description: Rating Saved
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
   /conversations:
     post:
       operationId: createConversation
@@ -115,6 +210,23 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
   schemas:
+    ApiConversation:
+      type: object
+      required:
+        - _id
+        - messages
+        - createdAt
+      properties:
+        _id:
+          type: string
+          description: The unique identifier for an API conversation.
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApiMessage"
+        createdAt:
+          type: integer
+          description: Unix timestamp for when the conversation was created.
     Conversation:
       type: object
       required:
@@ -132,6 +244,56 @@ components:
         createdAt:
           type: integer
           description: Unix timestamp for when the conversation was created.
+    ApiMessage:
+      type: object
+      required:
+        - id
+        - role
+        - content
+        - createdAt
+      properties:
+        id:
+          type: string
+          description: The unique identifier for a message.
+        role:
+          type: string
+          enum: [user, assistant, system]
+        content:
+          type: string
+          format: markdown
+          description: |
+            Markdown-formatted response to user's chat message in the context
+            of the conversation.
+        rating:
+          type: boolean
+          description: |
+            Set to `true` if the user liked the response, `false` if the user didn't like the response.
+            No value if user didn't rate the response.
+            Note that only messages with `role: "assistant"` can be rated.
+        createdAt:
+          type: integer
+          description: |
+            Unix timestamp for when the message was sent.
+        # TODO - Stretch goal for skunkworks, needs design thought
+        # references:
+        #   type: array
+        #   description: |
+        #     List of references to external resources that are relevant
+        #     to the message.
+        #   items:
+        #     type: object
+        #     required: [title, url]
+        #     properties:
+        #       title:
+        #         type: string
+        #         description: |
+        #           Title of the reference. This is what shows up in
+        #           rendered links.
+        #       url:
+        #         type: string
+        #         format: uri
+        #         description: |
+        #           URL to the reference. For example, "https://mongodb.com/docs/atlas/getting-started?tck=docs_chat".
     Message:
       type: object
       required:

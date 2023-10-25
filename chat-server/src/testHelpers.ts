@@ -14,6 +14,10 @@ export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
       ...config.conversationsRouterConfig,
       conversations,
     },
+    apiConversationsRouterConfig: {
+      ...config.apiConversationsRouterConfig,
+      // conversations,
+    },
     ...(defaultConfigOverrides ?? {}),
   };
   return { appConfig, mongodb, conversations, systemPrompt, mongoClient };

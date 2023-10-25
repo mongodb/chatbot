@@ -17,6 +17,10 @@ import { getRequestId, logRequest, sendErrorResponse } from "./utils";
 import { CorsOptions } from "cors";
 import { logger } from "chat-core";
 import cloneDeep from "lodash.clonedeep";
+import {
+  ApiConversationsRouterParams,
+  makeApiConversationsRouter,
+} from "./routes/api-conversations/apiConversationsRouter";
 
 /**
   Configuration for the server Express.js app.
@@ -26,6 +30,11 @@ export interface AppConfig {
     Configuration for the conversations router.
    */
   conversationsRouterConfig: ConversationsRouterParams;
+
+  /**
+    Configuration for the conversations router.
+   */
+  apiConversationsRouterConfig: ApiConversationsRouterParams;
 
   /**
     Maximum time in milliseconds for a request to complete before timing out.
@@ -104,6 +113,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
   const {
     maxRequestTimeoutMs = DEFAULT_MAX_REQUEST_TIMEOUT_MS,
     conversationsRouterConfig,
+    apiConversationsRouterConfig,
     corsOptions,
     apiPrefix = DEFAULT_API_PREFIX,
   } = config;
@@ -128,6 +138,10 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
   app.use(
     `${apiPrefix}/conversations`,
     makeConversationsRouter(conversationsRouterConfig)
+  );
+  app.use(
+    `${apiPrefix}/api-conversations`,
+    makeApiConversationsRouter(apiConversationsRouterConfig)
   );
   app.get("/health", (_req, res) => {
     const data = {

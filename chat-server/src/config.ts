@@ -197,6 +197,15 @@ export const config: AppConfig = {
     conversations,
     makeReferenceLinks: makeMongoDbReferences,
   },
+  apiConversationsRouterConfig: {
+    // dataStreamer,
+    // llm,
+    // findContent,
+    userQueryPreprocessor: mongoDbUserQueryPreprocessor,
+    maxChunkContextTokens: 1500,
+    // conversations,
+    // makeReferenceLinks: makeMongoDbReferences,
+  },
   maxRequestTimeoutMs: 30000,
   corsOptions: {
     origin: allowedOrigins,

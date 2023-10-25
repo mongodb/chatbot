@@ -1,7 +1,11 @@
 /**
   @fileoverview This file contains the implementation of ApiChatLlm using the OpenAI ChatGPT API.
  */
-import { OpenAIClient, GetChatCompletionsOptions } from "@azure/openai";
+import {
+  OpenAIClient,
+  GetChatCompletionsOptions,
+  FunctionDefinition,
+} from "@azure/openai";
 import { OpenAiChatMessage } from "./ChatLlm";
 import { ApiEmbeddedContent } from "chat-core";
 import { LlmFunction } from "./LlmFunction";
@@ -33,6 +37,31 @@ interface OpenAiApiChatParams<T> {
   findApiSpecAction: (params: T) => ApiEmbeddedContent;
 }
 
+export const baseOpenAiFunctionDefinitions: FunctionDefinition[] = [
+  {
+    name: "find_api_spec_action",
+    description: "Find an action in the API spec",
+    parameters: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "repeat the user's query" },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "clear_api_spec_actions",
+    description: "Clear the API spec actions for the set of available actions",
+    parameters: {
+      type: "object",
+      properties: {
+        clear: "boolean",
+      },
+      required: ["clear"],
+    },
+  },
+];
+
 /**
     Constructs a chatbot that can use an API spec to answer questions.
    */
@@ -49,36 +78,18 @@ export function makeOpenAiApiChat<T = Record<string, unknown>>({
   Do this when a user wants to perform a new action from the action
   `;
   const baseFunctions: LlmFunction[] = [
-    // SKUNK_TODO: do we want to bake in any additional functions?
     {
       name: "find_api_spec_action",
-      definition: {
-        name: "find_api_spec_action",
-        description: "Find an action in the API spec",
-        parameters: {
-          type: "object",
-          properties: {
-            query: { type: "string", description: "repeat the user's query" },
-          },
-          required: ["query"],
-        },
-      },
+      definition: baseOpenAiFunctionDefinitions.find(
+        (f) => f.name === "find_api_spec_action"
+      ) as FunctionDefinition,
       function: findApiSpecAction,
     },
     {
       name: "clear_api_spec_actions",
-      definition: {
-        name: "clear_api_spec_actions",
-        description:
-          "Clear the API spec actions for the set of available actions",
-        parameters: {
-          type: "object",
-          properties: {
-            clear: "boolean",
-          },
-          required: ["clear"],
-        },
-      },
+      definition: baseOpenAiFunctionDefinitions.find(
+        (f) => f.name === "clear_api_spec_actions"
+      ) as FunctionDefinition,
       function: () => {
         return baseFunctions;
       },
@@ -149,6 +160,8 @@ export function makeOpenAiApiChat<T = Record<string, unknown>>({
           newMessages,
           messageOptions
         );
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore - SKUNK_TODO: deal with this
         newMessages.push(responseBasedOnFunction.choices[0].message);
       }
       const availableFunctionDefinitions = responseAvailableFunctions.map(

@@ -2,6 +2,7 @@ import { OpenAiChatMessage, OpenAiMessageRole, SystemPrompt } from "./ChatLlm";
 import { QueryPreprocessorFunc } from "../processors";
 import { ObjectId, Db } from "chat-core";
 import { References } from "chat-core";
+import { FunctionCall } from "@azure/openai";
 
 export type Message = {
   /**
@@ -23,6 +24,13 @@ export type Message = {
     The date the message was created.
    */
   createdAt: Date;
+
+  /**
+    The system prompt used to generate the response.
+    This is useful to include for auditing purposes if the system prompt
+    changes throughout the conversation.
+   */
+  systemPrompt?: string;
 };
 
 export type SystemMessage = Message & {
@@ -42,7 +50,9 @@ export type AssistantMessage = Message & {
   /**
     Further reading links for the message.
    */
-  references: References;
+  references?: References;
+
+  functionCall?: FunctionCall;
 };
 
 export type UserMessage = Message & {
@@ -64,10 +74,17 @@ export type UserMessage = Message & {
   embedding: number[];
 };
 
-/**
-  Message in the {@link Conversation} as stored in the database.
- */
-export type SomeMessage = UserMessage | AssistantMessage | SystemMessage;
+export type FunctionMessage = Message & {
+  role: "function";
+  /** Name of function that was called */
+  name: string;
+};
+
+export type SomeMessage =
+  | UserMessage
+  | AssistantMessage
+  | SystemMessage
+  | FunctionMessage;
 
 /**
   Conversation between the user and the chatbot as stored in the database.

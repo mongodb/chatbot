@@ -12,8 +12,8 @@ export * from "./updateFrontMatter";
 export * from "./removeFrontMatter";
 export * from "./extractFrontMatter";
 export * from "./TypeChatJsonTranslateFunc";
-export * from "./MongoDbEmbeddedContentStore";
-export * from "./MongoDbPageStore";
+export * from "./ApiPage";
+export * from "./ApiEmbeddedContent";
 export * from "./MongoDbEmbeddedContentStore";
 export * from "./MongoDbPageStore";
 

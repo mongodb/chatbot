@@ -18,8 +18,8 @@ export const ApiMessage = z.object({
   references: References.optional(),
 });
 
-export type ApiConversation = z.infer<typeof ApiConversation>;
-export const ApiConversation = z.object({
+export type ConversationForApi = z.infer<typeof ConversationForApi>;
+export const ConversationForApi = z.object({
   _id: z.string(),
   messages: z.array(ApiMessage),
   createdAt: z.number(),
@@ -39,7 +39,7 @@ export function convertMessageFromDbToApi(message: Message): ApiMessage {
 }
 export function convertConversationFromDbToApi(
   conversation: Conversation
-): ApiConversation {
+): ConversationForApi {
   const nonSystemMessages = conversation.messages.filter(
     (msg) => msg.role !== "system"
   );

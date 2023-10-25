@@ -1,11 +1,16 @@
 import { Request, Router } from "express";
 import { rateLimit, Options as RateLimitOptions } from "express-rate-limit";
 import slowDown, { Options as SlowDownOptions } from "express-slow-down";
-// import validateRequestSchema from "../../middleware/validateRequestSchema";
+import validateRequestSchema from "../../middleware/validateRequestSchema";
 // import { ChatLlm } from "../../services/ChatLlm";
 // import { DataStreamer } from "../../services/dataStreamer";
 // import { ConversationsService } from "../../services/conversations";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
+import {
+  CreateApiConversationRequest,
+  makeCreateApiConversationRoute,
+} from "./createApiConversation";
+import { ApiConversationsService } from "../../services/ApiConversations";
 
 // TODO: Refactor this to reduce code duplication
 /**
@@ -46,7 +51,7 @@ export interface ApiConversationsRouterParams {
   //   TODO: Confirm if DataStreamer should be used for skunkwork
   //   dataStreamer: DataStreamer;
   //   TODO: Update this with new service when available
-  //   conversations: ConversationsService;
+  apiConversations: ApiConversationsService;
   userQueryPreprocessor?: QueryPreprocessorFunc;
   /**
     Maximum number of tokens of context to send to the LLM in retrieval augmented generation
@@ -90,7 +95,7 @@ function keyGenerator(request: Request) {
 export function makeApiConversationsRouter({
   //   llm,
   //   dataStreamer,
-  //   conversations,
+  apiConversations,
   //   userQueryPreprocessor,
   //   maxChunkContextTokens,
   //   maxInputLengthCharacters,
@@ -129,13 +134,12 @@ export function makeApiConversationsRouter({
   });
   apiConversationsRouter.use(globalSlowDown);
 
-  // TODO: Add a new apiConversation
-  //   // Create new conversation.
-  //   apiConversationsRouter.post(
-  //     "/",
-  //     validateRequestSchema(CreateConversationRequest),
-  //     makeCreateConversationRoute({ conversations })
-  //   );
+  // Create new conversation.
+  apiConversationsRouter.post(
+    "/",
+    validateRequestSchema(CreateApiConversationRequest),
+    makeCreateApiConversationRoute({ apiConversations })
+  );
 
   // TODO: Add a new message to an apiConversation
   //   /*

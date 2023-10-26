@@ -6,11 +6,18 @@ import validateRequestSchema from "../../middleware/validateRequestSchema";
 // import { DataStreamer } from "../../services/dataStreamer";
 // import { ConversationsService } from "../../services/conversations";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
+
+import { AddApiMessageRequest, makeAddApiMessageRoute } from "./addApiMessage";
+import { ApiConversationsService } from "../../services/ApiConversations";
+import { FindContentFunc } from "./FindContentFunc";
+import validateRequestSchema from "../../middleware/validateRequestSchema";
+import { ApiChatLlm } from "../../services/ApiChatLlm";
 import {
   CreateApiConversationRequest,
   makeCreateApiConversationRoute,
 } from "./createApiConversation";
 import { ApiConversationsService } from "../../services/ApiConversations";
+
 
 // TODO: Refactor this to reduce code duplication
 /**
@@ -46,12 +53,15 @@ export interface ApiConversationsRateLimitConfig {
   Configuration for the /api-conversations/* routes.
  */
 export interface ApiConversationsRouterParams {
+  llm: ApiChatLlm;
+  conversations: ApiConversationsService;
+
   //   TODO: Add back when used
   //   llm: ChatLlm;
   //   TODO: Confirm if DataStreamer should be used for skunkwork
   //   dataStreamer: DataStreamer;
   //   TODO: Update this with new service when available
-  apiConversations: ApiConversationsService;
+
   userQueryPreprocessor?: QueryPreprocessorFunc;
   /**
     Maximum number of tokens of context to send to the LLM in retrieval augmented generation
@@ -72,9 +82,7 @@ export interface ApiConversationsRouterParams {
    */
   maxMessagesInConversation?: number;
   rateLimitConfig?: ApiConversationsRateLimitConfig;
-  //   TODO: Add back when used
-  //   findContent: FindContentFunc;
-  //   makeReferenceLinks?: MakeReferenceLinksFunc;
+  findContent: FindContentFunc;
 }
 
 export const rateLimitResponse = {
@@ -93,9 +101,11 @@ function keyGenerator(request: Request) {
   Constructor function to make the /api-conversations/* Express.js router.
  */
 export function makeApiConversationsRouter({
+    llm,
+    conversations,
+    findContent,
   //   llm,
   //   dataStreamer,
-  apiConversations,
   //   userQueryPreprocessor,
   //   maxChunkContextTokens,
   //   maxInputLengthCharacters,
@@ -142,53 +152,47 @@ export function makeApiConversationsRouter({
   );
 
   // TODO: Add a new message to an apiConversation
-  //   /*
-  //     Rate limit the requests to the addMessageToConversationRoute.
-  //     Rate limit should be more restrictive than global rate limiter to limit expensive requests to the LLM.
-  //    */
-  //   const addMessageRateLimit = rateLimit({
-  //     windowMs: 5 * 60 * 1000,
-  //     max: 2500,
-  //     standardHeaders: "draft-7", // draft-6: RateLimit-* headers; draft-7: combined RateLimit header
-  //     legacyHeaders: true, // X-RateLimit-* headers
-  //     message: rateLimitResponse,
-  //     keyGenerator,
-  //     ...(rateLimitConfig?.addMessageRateLimitConfig ?? {}),
-  //   });
-  //   /*
-  //     Slow down the response to the addMessageToConversationRoute after certain number
-  //     of requests in the time window. Rate limit should be more restrictive than global slow down
-  //     to limit expensive requests to the LLM.
-  //    */
-  //   const addMessageSlowDown = slowDown({
-  //     windowMs: 60 * 1000,
-  //     delayAfter: 10,
-  //     delayMs: 1500,
-  //     keyGenerator,
-  //     ...(rateLimitConfig?.addMessageSlowDownConfig ?? {}),
-  //   });
+  /*
+    Rate limit the requests to the addMessageToConversationRoute.
+    Rate limit should be more restrictive than global rate limiter to limit expensive requests to the LLM.
+    */
+  const addMessageRateLimit = rateLimit({
+    windowMs: 5 * 60 * 1000,
+    max: 2500,
+    standardHeaders: "draft-7", // draft-6: RateLimit-* headers; draft-7: combined RateLimit header
+    legacyHeaders: true, // X-RateLimit-* headers
+    message: rateLimitResponse,
+    keyGenerator,
+    ...(rateLimitConfig?.addMessageRateLimitConfig ?? {}),
+  });
+  /*
+    Slow down the response to the addMessageToConversationRoute after certain number
+    of requests in the time window. Rate limit should be more restrictive than global slow down
+    to limit expensive requests to the LLM.
+    */
+  const addMessageSlowDown = slowDown({
+    windowMs: 60 * 1000,
+    delayAfter: 10,
+    delayMs: 1500,
+    keyGenerator,
+    ...(rateLimitConfig?.addMessageSlowDownConfig ?? {}),
+  });
 
-  //   /*
-  //     Create a new message from the user and get response from the LLM.
-  //    */
-  //   const addMessageToConversationRoute = makeAddMessageToConversationRoute({
-  //     conversations,
-  //     llm,
-  //     dataStreamer,
-  //     userQueryPreprocessor,
-  //     maxChunkContextTokens,
-  //     maxInputLengthCharacters,
-  //     maxMessagesInConversation,
-  //     findContent,
-  //     makeReferenceLinks,
-  //   });
-  //   apiConversationsRouter.post(
-  //     "/:conversationId/messages",
-  //     addMessageRateLimit,
-  //     addMessageSlowDown,
-  //     validateRequestSchema(AddMessageRequest),
-  //     addMessageToConversationRoute
-  //   );
+  /*
+    Create a new message from the user and get response from the LLM.
+    */
+  const addMessageToConversationRoute = makeAddApiMessageRoute({
+    conversations,
+    llm,
+    findContent,
+  });
+  apiConversationsRouter.post(
+    "/:conversationId/messages",
+    addMessageRateLimit,
+    addMessageSlowDown,
+    validateRequestSchema(AddApiMessageRequest),
+    addMessageToConversationRoute
+  );
 
   // TODO: Rate a message in a apiConversation
   //   // Rate a message.

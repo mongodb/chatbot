@@ -15,6 +15,10 @@ import {
   makeCreateApiConversationRoute,
 } from "./createApiConversation";
 import { ApiConversationsService } from "../../services/ApiConversations";
+import {
+  RateApiMessageRequest,
+  makeRateApiMessageRoute,
+} from "./rateApiMessage";
 
 // TODO: Refactor this to reduce code duplication
 /**
@@ -191,13 +195,12 @@ export function makeApiConversationsRouter({
     addMessageToConversationRoute
   );
 
-  // TODO: Rate a message in a apiConversation
-  //   // Rate a message.
-  //   apiConversationsRouter.post(
-  //     "/:conversationId/messages/:messageId/rating",
-  //     validateRequestSchema(RateMessageRequest),
-  //     makeRateMessageRoute({ conversations })
-  //   );
+  // Rate a message.
+  apiConversationsRouter.post(
+    "/:conversationId/messages/:messageId/rating",
+    validateRequestSchema(RateApiMessageRequest),
+    makeRateApiMessageRoute({ apiConversations: conversations })
+  );
 
   return apiConversationsRouter;
 }

@@ -23,8 +23,9 @@ import {
 import { ApiChatLlm } from "../../services/ApiChatLlm";
 
 export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
-export const MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
+export const MAX_MESSAGES_IN_CONVERSATION = 100; // magic number for max messages in a conversation
 
+// SKUNK_TODO: get project, org and cluster Ids from the user input
 /**
  * The API credentials are a map of API names to API keys and secrets.
  * e.g.
@@ -151,42 +152,6 @@ export function makeAddApiMessageRoute({
       // TODO - User query preprocessing is out of scope for skunkworks
       const query = latestMessageText;
 
-      // --- VECTOR SEARCH / RETRIEVAL ---
-      // This is where we look up relevant function reference docs chunks
-      const { content, queryEmbedding } = await findContent({
-        query,
-        ipAddress: ip as string,
-      });
-
-      if (content.length === 0) {
-        // The search didn't turn up any relevant API endpoints.
-        logRequest({
-          reqId,
-          message: "No matching content found",
-        });
-        return await sendStaticNonResponse({
-          conversations,
-          conversation,
-          latestMessageText,
-          res,
-        });
-      }
-
-      logRequest({
-        reqId,
-        message: stripIndents`Chunks found: ${JSON.stringify(
-          content.map(
-            ({ embedding, chunkAlgoHash, ...wantedProperties }) =>
-              wantedProperties
-          )
-        )}`,
-      });
-
-      const chunkTexts = includeChunksForMaxTokensPossible({
-        maxTokens: maxChunkContextTokens,
-        content,
-      }).map(({ text }) => text);
-
       const latestMessage = {
         content: query,
         role: "user",
@@ -202,7 +167,7 @@ export function makeAddApiMessageRoute({
         try {
           const messages = [
             ...conversation.messages.map(convertDbMessageToOpenAiMessage),
-            latestMessage,
+            // latestMessage,
           ] satisfies OpenAiChatMessage[];
           logRequest({
             reqId,
@@ -214,13 +179,24 @@ export function makeAddApiMessageRoute({
           const { newMessages } = await llm.answerAwaited({
             query,
             messages,
-            options: {},
           });
+          // TODO: (ben's not sure)
+          // ---
+          // user: make me a cluster
+          // assistant: find openapi spec action
+          // function: hey i found it it + actually adds the function (we make this message)
+          let lastMessage = newMessages[newMessages.length - 1];
+          while (lastMessage.role === "function") {
+            // keep executing llm.answerAwaited until we get a message that is not a function
+            //
+          }
+          // ---
           // logRequest({
           //   reqId,
           //   message: `LLM response: ${JSON.stringify(answer)}`,
           // });
           // TODO - save the newMessages & availableFunctionDefinitions to the database
+          // TODO: Add all the new messages to the DB
           const latestAssistantMessage = newMessages
             .slice()
             .reverse()
@@ -253,7 +229,7 @@ export function makeAddApiMessageRoute({
         });
       }
 
-      // --- SAVE QUESTION & RESPONSE ---
+      // --- SAVE QUESTION(s) & RESPONSE ---
       const { assistantMessage } = await addMessagesToDatabase({
         conversations,
         conversation,
@@ -346,51 +322,6 @@ export async function addMessagesToDatabase({
     newSystemPrompt: undefined,
   });
   return { userMessage, assistantMessage };
-}
-
-/**
-  This function will return the chunks that can fit in the maxTokens.
-  It limits the number of tokens that are sent to the LLM.
- */
-export function includeChunksForMaxTokensPossible({
-  maxTokens,
-  content,
-}: {
-  maxTokens: number;
-  content: EmbeddedContent[];
-}): EmbeddedContent[] {
-  let total = 0;
-  const fitRangeEndIndex = content.findIndex(
-    ({ tokenCount }) => (total += tokenCount) > maxTokens
-  );
-  return fitRangeEndIndex === -1 ? content : content.slice(0, fitRangeEndIndex);
-}
-
-export function validateConversationForApiFormatting({
-  conversation,
-}: {
-  conversation: ConversationForApi;
-}) {
-  const { messages } = conversation;
-  if (
-    messages?.length === 0 || // Must be messages in the conversation
-    messages.length % 2 !== 0 // Must be an even number of messages
-  ) {
-    return false;
-  }
-  // Must alternate between assistant and user
-  for (let i = 0; i < messages.length; i++) {
-    const message = messages[i];
-    const isAssistant = i % 2 === 0;
-    if (isAssistant && message.role !== "assistant") {
-      return false;
-    }
-    if (!isAssistant && message.role !== "user") {
-      return false;
-    }
-  }
-
-  return true;
 }
 
 const loadConversation = async ({

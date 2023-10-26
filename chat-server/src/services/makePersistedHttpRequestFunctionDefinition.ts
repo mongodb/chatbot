@@ -1,9 +1,10 @@
 import { FunctionDefinition } from "@azure/openai";
-import { EmbeddedContent, HttpVerb } from "chat-core";
+import { EmbeddedContent, HttpVerb, validateMetadata } from "chat-core";
 import { PersistedHttpRequestFunctionDefinition } from "./PersistedFunctionDefinition";
 import { HttpRequestArgsOpenAiFunctionDefinition } from "./HttpRequestArgs";
 import { OpenAPIV3 } from "openapi-types";
 import { JSONSchema4Object } from "json-schema";
+import { z } from "zod";
 
 export interface ApiEmbeddedContentMetadata {
   method: "get" | "post" | "put" | "delete" | "patch" | "head" | "options";
@@ -20,14 +21,38 @@ export interface ApiEmbeddedContentMetadata {
   Constructs a {@link FunctionDefinition} for LLM to call based on an {@link EmbeddedContent}.
  */
 export function makePersistedHttpRequestFunctionDefinition(
-  apiEmbeddedContent: EmbeddedContent
+  embeddedContent: EmbeddedContent
 ): PersistedHttpRequestFunctionDefinition {
-  if (apiEmbeddedContent.metadata === undefined) {
-    throw new Error("API method is undefined");
-  }
-  // SKUNK_HACK: casting as the type. we should make the Metadata a generic type
-  const metadata =
-    apiEmbeddedContent.metadata as unknown as ApiEmbeddedContentMetadata;
+  const apiEmbeddedContent = validateMetadata<ApiEmbeddedContentMetadata>(
+    embeddedContent,
+    {
+      method: z.enum([
+        "get",
+        "post",
+        "put",
+        "delete",
+        "patch",
+        "head",
+        "options",
+      ]),
+      baseUrl: z.string(),
+      operationId: z.string(),
+      path: z.string(),
+      description: z.string().optional(),
+      parameters: z
+        .array(z.object({ name: z.string(), in: z.string() }))
+        .optional(),
+      requestBody: z.object({
+        description: z.string().optional(),
+        content: z.record(z.string(), z.record(z.string(), z.unknown())),
+        required: z.boolean().optional(),
+      }),
+      summary: z.string().optional(),
+    }
+  );
+
+  const { metadata } = apiEmbeddedContent;
+
   return {
     // Function definition used by ChatGPT
     definition: {
@@ -106,6 +131,5 @@ function makeRequestBody(
   requestBody: OpenAPIV3.RequestBodyObject
 ): JSONSchema4Object {
   const content = requestBody.content;
-  const [key] = Object.keys(content);
-  return content[key].schema as JSONSchema4Object;
+  return Object.values(content)[0].schema as JSONSchema4Object;
 }

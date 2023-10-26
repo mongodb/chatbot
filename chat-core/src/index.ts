@@ -16,6 +16,7 @@ export * from "./ApiPage";
 export * from "./ApiEmbeddedContent";
 export * from "./MongoDbEmbeddedContentStore";
 export * from "./MongoDbPageStore";
+export * from "./validateMetadata";
 
 // Everyone share the same mongodb driver version
 export * from "mongodb";

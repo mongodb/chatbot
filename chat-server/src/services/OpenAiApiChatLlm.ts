@@ -464,7 +464,10 @@ async function handleOpenAiFunctionCall({
     newMessages.push(responseMessage as OpenAiChatMessage, {
       role: "function",
       name: functionToCall.name,
-      content: JSON.stringify(functionResponse),
+      content:
+        typeof functionResponse === "string"
+          ? functionResponse
+          : JSON.stringify(functionResponse),
       functions: availableLlmFunctions.map((f) => f.persistedFunction),
     });
   }

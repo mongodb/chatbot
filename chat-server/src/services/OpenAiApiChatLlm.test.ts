@@ -161,12 +161,11 @@ describe("makeOpenAiApiChatLlm()", () => {
     expect(conversation.newMessages).toHaveLength(6);
     const lastMessageInConversation =
       conversation.newMessages[conversation.newMessages.length - 1];
-    console.log(JSON.stringify(lastMessageInConversation, null, 2));
     expect(lastMessageInConversation.role).toBe("function");
     expect(lastMessageInConversation.name).toBe("getProjects");
     expect(lastMessageInConversation.functions).toHaveLength(2);
     expect(lastMessageInConversation.content).toContain(
-      '{"organization":"test org"}'
+      '{"status":200,"data":{"organization":"test org"}}'
     );
   });
   it("should respond to user after API action", async () => {
@@ -268,7 +267,6 @@ describe("makeOpenAiApiChatLlm()", () => {
         password: "test",
       },
     });
-    console.log(conversation.newMessages[0]);
     expect(previousConversation[0].content).not.toContain("getProjects");
     expect(conversation.newMessages[0].content).toContain("organizationId");
     expect(conversation.newMessages[0].content).toContain("TestOrgId");

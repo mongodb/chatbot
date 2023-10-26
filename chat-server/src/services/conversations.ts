@@ -3,6 +3,7 @@ import { QueryPreprocessorFunc } from "../processors";
 import { ObjectId, Db } from "chat-core";
 import { References } from "chat-core";
 import { FunctionCall } from "@azure/openai";
+import { PersistedFunctionDefinition } from "./PersistedFunctionDefinition";
 
 export type Message = {
   /**
@@ -31,6 +32,8 @@ export type Message = {
     changes throughout the conversation.
    */
   systemPrompt?: string;
+
+  availableFunctions?: PersistedFunctionDefinition[];
 };
 
 export type SystemMessage = Message & {

@@ -4,18 +4,18 @@
  * from that. This interface could still work with non OpenAI providers if they
  * implement the same interface.
  */
+import { ChatMessage, ChatCompletions } from "@azure/openai";
 import {
-  ChatMessage,
-  ChatCompletions,
-  FunctionDefinition,
-} from "@azure/openai";
+  PersistedFunctionDefinition,
+  PersistedHttpRequestFunctionDefinition,
+} from "./PersistedFunctionDefinition";
 export type OpenAiMessageRole = "system" | "assistant" | "user" | "function";
 
 export interface OpenAiChatMessage extends ChatMessage {
   /** The role of the message in the context of the conversation. */
   role: OpenAiMessageRole;
   /** Response to user's chat message in the context of the conversation. */
-  content: string;
+  content: string | null;
 
   /**
     The vector representation of the content.
@@ -25,7 +25,10 @@ export interface OpenAiChatMessage extends ChatMessage {
   /**
     Available function definitions for the next chat message.
    */
-  functions?: FunctionDefinition[];
+  functions?: (
+    | PersistedFunctionDefinition
+    | PersistedHttpRequestFunctionDefinition
+  )[];
 }
 
 export type SystemPrompt = OpenAiChatMessage & { role: "system" };

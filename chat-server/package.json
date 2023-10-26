@@ -26,7 +26,7 @@
     "publish:package": "npm run build && npm publish --access public"
   },
   "dependencies": {
-    "@azure/openai": "^1.0.0-beta.5",
+    "@azure/openai": "^1.0.0-beta.7",
     "chat-core": "file:../chat-core",
     "common-tags": "^1.8.2",
     "cors": "^2.8.5",

@@ -16,17 +16,13 @@ import {
   OpenAiChatMessage,
   OpenAiMessageRole,
 } from "../../services/ChatLlm";
-import {
-  ApiConversation,
-  ApiMessage,
-  convertMessageFromDbToApi,
-  isValidIp,
-} from "./utils";
+import { ApiMessage, convertMessageFromDbToApi, isValidIp } from "./utils";
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
 import { FindContentFunc } from "./FindContentFunc";
+import { ApiConversation } from "../../services/ApiConversations";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 export const DEFAULT_MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation

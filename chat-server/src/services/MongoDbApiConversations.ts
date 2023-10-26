@@ -22,8 +22,7 @@ import { FunctionDefinition } from "@azure/openai";
 export function makeMongoDbApiConversationsService(
   mongoClient: MongoClient,
   databaseName: string,
-  initialSystemPrompt: SystemPrompt,
-  initialFunctions: FunctionDefinition[]
+  initialSystemPrompt: string
 ): ApiConversationsService {
   const conversationsCollection = mongoClient
     .db(databaseName)
@@ -34,10 +33,10 @@ export function makeMongoDbApiConversationsService(
         _id: new ObjectId(),
         ipAddress,
         messages: [
-          createDatabaseMessageFromOpenAiChatMessage(
-            initialSystemPrompt,
-            initialFunctions
-          ),
+          createDatabaseMessageFromOpenAiChatMessage({
+            role: "system",
+            content: initialSystemPrompt,
+          }),
         ],
         createdAt: new Date(),
       };
@@ -58,12 +57,8 @@ export function makeMongoDbApiConversationsService(
       conversationId,
       message,
       newSystemPrompt,
-      availableFunctions,
     }: AddApiConversationMessageParams) {
-      let newMessage = createDatabaseMessageFromOpenAiChatMessage(
-        message,
-        availableFunctions
-      );
+      let newMessage = createDatabaseMessageFromOpenAiChatMessage(message);
       await mongoClient.withSession(async (session) => {
         await session.withTransaction(async () => {
           const currentSystemPrompt = await getSystemPrompt(
@@ -176,13 +171,11 @@ async function getSystemPrompt(
     Helper function. Create a {@link Message} object from the {@link BaseMessage} object.
    */
 function createDatabaseMessageFromOpenAiChatMessage(
-  message: BaseMessage,
-  availableFunctions: FunctionDefinition[]
+  message: BaseMessage
 ): SomeMessage {
   return {
     id: new ObjectId(),
     createdAt: new Date(),
-    availableFunctions,
     ...message,
   } as SomeMessage;
 }

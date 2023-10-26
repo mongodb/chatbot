@@ -1,14 +1,12 @@
 import { Request, Router } from "express";
 import { rateLimit, Options as RateLimitOptions } from "express-rate-limit";
 import slowDown, { Options as SlowDownOptions } from "express-slow-down";
-import validateRequestSchema from "../../middleware/validateRequestSchema";
 // import { ChatLlm } from "../../services/ChatLlm";
 // import { DataStreamer } from "../../services/dataStreamer";
 // import { ConversationsService } from "../../services/conversations";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
 
 import { AddApiMessageRequest, makeAddApiMessageRoute } from "./addApiMessage";
-import { ApiConversationsService } from "../../services/ApiConversations";
 import { FindContentFunc } from "./FindContentFunc";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
 import { ApiChatLlm } from "../../services/ApiChatLlm";
@@ -17,7 +15,6 @@ import {
   makeCreateApiConversationRoute,
 } from "./createApiConversation";
 import { ApiConversationsService } from "../../services/ApiConversations";
-
 
 // TODO: Refactor this to reduce code duplication
 /**
@@ -53,7 +50,7 @@ export interface ApiConversationsRateLimitConfig {
   Configuration for the /api-conversations/* routes.
  */
 export interface ApiConversationsRouterParams {
-  llm: ApiChatLlm;
+  apiChatLlm: ApiChatLlm;
   conversations: ApiConversationsService;
 
   //   TODO: Add back when used
@@ -101,9 +98,9 @@ function keyGenerator(request: Request) {
   Constructor function to make the /api-conversations/* Express.js router.
  */
 export function makeApiConversationsRouter({
-    llm,
-    conversations,
-    findContent,
+  apiChatLlm,
+  conversations,
+  findContent,
   //   llm,
   //   dataStreamer,
   //   userQueryPreprocessor,
@@ -148,7 +145,7 @@ export function makeApiConversationsRouter({
   apiConversationsRouter.post(
     "/",
     validateRequestSchema(CreateApiConversationRequest),
-    makeCreateApiConversationRoute({ apiConversations })
+    makeCreateApiConversationRoute({ apiConversations: conversations })
   );
 
   // TODO: Add a new message to an apiConversation
@@ -183,7 +180,7 @@ export function makeApiConversationsRouter({
     */
   const addMessageToConversationRoute = makeAddApiMessageRoute({
     conversations,
-    llm,
+    llm: apiChatLlm,
     findContent,
   });
   apiConversationsRouter.post(

@@ -5,10 +5,7 @@ import {
 } from "express";
 import { ObjectId, EmbeddedContent, FunctionDefinition } from "chat-core";
 import { Message, conversationConstants } from "../../services/conversations";
-import {
-  OpenAiChatMessage,
-  OpenAiMessageRole,
-} from "../../services/ChatLlm";
+import { OpenAiChatMessage, OpenAiMessageRole } from "../../services/ChatLlm";
 import {
   ConversationForApi,
   ApiMessage,
@@ -41,7 +38,7 @@ export const MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages
 export type ApiCredentials = z.infer<typeof ApiCredentials>;
 export const ApiCredentials = z.record(z.record(z.string()));
 
-export type AddApiMessageRequestBody = z.infer<typeof AddMessageRequestBody>;
+export type AddApiMessageRequestBody = z.infer<typeof AddApiMessageRequestBody>;
 export const AddApiMessageRequestBody = z.object({
   message: z.string(),
   apiCredentials: ApiCredentials,
@@ -98,7 +95,7 @@ export function makeAddApiMessageRoute({
   maxChunkContextTokens = 1500,
 }: AddApiMessageRouteParams) {
   return async (
-    req: ExpressRequest<AddMessageRequest["params"]>,
+    req: ExpressRequest<AddApiMessageRequest["params"]>,
     res: ExpressResponse<ApiMessage>
   ) => {
     const reqId = getRequestId(req);
@@ -158,7 +155,7 @@ export function makeAddApiMessageRoute({
       // This is where we look up relevant function reference docs chunks
       const { content, queryEmbedding } = await findContent({
         query,
-        ipAddress: ip,
+        ipAddress: ip as string,
       });
 
       if (content.length === 0) {
@@ -201,7 +198,6 @@ export function makeAddApiMessageRoute({
 
       // --- GENERATE RESPONSE ---
       // TODO - get the available functions from the database
-      const availableFunctions: FunctionDefinition[] = [];
       const answerContent = await (async () => {
         try {
           const messages = [
@@ -215,18 +211,20 @@ export function makeAddApiMessageRoute({
           // --- GENERATE RESPONSE ---
           // TODO - this is where the skunk magic happens
           //  - call the LLM
-          const { newMessages, availableFunctionDefinitions } = await llm.answerAwaited({
+          const { newMessages } = await llm.answerAwaited({
             query,
             messages,
-            availableFunctions,
-            options: {}
+            options: {},
           });
-          logRequest({
-            reqId,
-            message: `LLM response: ${JSON.stringify(answer)}`,
-          });
+          // logRequest({
+          //   reqId,
+          //   message: `LLM response: ${JSON.stringify(answer)}`,
+          // });
           // TODO - save the newMessages & availableFunctionDefinitions to the database
-          const latestAssistantMessage = newMessages.slice().reverse().find(m => m.role === "assistant");
+          const latestAssistantMessage = newMessages
+            .slice()
+            .reverse()
+            .find((m) => m.role === "assistant");
           return latestAssistantMessage?.content ?? "";
         } catch (err) {
           const errorMessage =
@@ -261,7 +259,6 @@ export function makeAddApiMessageRoute({
         conversation,
         originalUserMessageContent: message,
         assistantMessageContent: answerContent,
-        availableFunctions: availableFunctionDefinitions, // TODO
       });
 
       const apiRes = convertMessageFromDbToApi(assistantMessage);
@@ -301,7 +298,6 @@ export async function sendStaticNonResponse({
     conversation,
     originalUserMessageContent: latestMessageText,
     assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,
-    availableFunctions: [],
   });
   const apiRes = convertMessageFromDbToApi(assistantMessage);
   return res.status(200).json(apiRes);
@@ -321,7 +317,6 @@ interface AddMessagesToDatabaseParams {
   originalUserMessageContent: string;
   preprocessedUserMessageContent?: string;
   assistantMessageContent: string;
-  availableFunctions: FunctionDefinition[];
   conversations: ApiConversationsService;
 }
 
@@ -329,7 +324,6 @@ export async function addMessagesToDatabase({
   conversation,
   originalUserMessageContent,
   assistantMessageContent,
-  availableFunctions = [],
   conversations,
 }: AddMessagesToDatabaseParams) {
   // TODO: consider refactoring addConversationMessage to take in an array of messages.
@@ -342,7 +336,6 @@ export async function addMessagesToDatabase({
       role: "user",
     },
     newSystemPrompt: undefined,
-    availableFunctions,
   });
   const assistantMessage = await conversations.addApiConversationMessage({
     conversationId,
@@ -351,7 +344,6 @@ export async function addMessagesToDatabase({
       role: "assistant",
     },
     newSystemPrompt: undefined,
-    availableFunctions,
   });
   return { userMessage, assistantMessage };
 }

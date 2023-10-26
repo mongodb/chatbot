@@ -47,5 +47,5 @@ export interface HttpRequestArgs {
   pathParameters?: Record<string, unknown>;
   queryParameters?: Record<string, unknown>;
   body?: Record<string, unknown>;
-  headers?: Record<string, unknown>;
+  headers?: Record<string, string | number | boolean>;
 }

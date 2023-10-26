@@ -21,6 +21,8 @@ import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { OpenAiChatMessage, SystemPrompt } from "./services/ChatLlm";
 import { makeDefaultFindContentFunc } from "./routes/conversations/FindContentFunc";
 import { makeDefaultReferenceLinks } from "./routes/conversations/addMessageToConversation";
+import { makeOpenAiApiChatLlm } from "./services/OpenAiApiChatLlm";
+import { makeMongoDbApiConversationsService } from "./services/MongoDbApiConversations";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -60,9 +62,12 @@ export const boostManual = makeBoostOnAtlasSearchFilter({
   totalMaxK: 5,
 });
 
-export const openAiClient = new OpenAIClient(
+const openAiClient = new OpenAIClient(
   OPENAI_ENDPOINT,
-  new AzureKeyCredential(OPENAI_API_KEY)
+  new AzureKeyCredential(OPENAI_API_KEY),
+  {
+    apiVersion: "2023-07-01-preview",
+  }
 );
 export const systemPrompt: SystemPrompt = {
   role: "system",
@@ -187,6 +192,46 @@ export function makeMongoDbReferences(chunks: EmbeddedContent[]) {
   });
 }
 
+const apiChatLlm = makeOpenAiApiChatLlm({
+  openAiClient,
+  deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  systemPromptPersonality:
+    "You are a friendly chatbot that can answer questions about the MongoDB Atlas API spec.",
+  // SKUNK TODO: make this function do vector search and then return top result as a
+  findApiSpecFunctionDefinition: async ({ query }) => {
+    return [
+      {
+        httpVerb: "GET",
+        path: "http://localhost:3000/api/projects",
+        definition: {
+          name: "getProjects",
+          description: "Get all projects in the organization",
+          parameters: {
+            type: "object",
+            properties: {
+              body: {
+                type: "object",
+                properties: {
+                  organization: {
+                    type: "string",
+                    description: "organizationName",
+                  },
+                },
+                required: ["organization"],
+              },
+            },
+          },
+        },
+      },
+    ];
+  },
+});
+
+const apiConversations = makeMongoDbApiConversationsService(
+  mongodb,
+  MONGODB_DATABASE_NAME,
+  apiChatLlm.baseSystemPrompt
+);
 export const config: AppConfig = {
   conversationsRouterConfig: {
     dataStreamer,
@@ -198,12 +243,11 @@ export const config: AppConfig = {
     makeReferenceLinks: makeMongoDbReferences,
   },
   apiConversationsRouterConfig: {
-    // dataStreamer,
-    // llm,
-    // findContent,
+    apiChatLlm,
+    findContent,
     userQueryPreprocessor: mongoDbUserQueryPreprocessor,
     maxChunkContextTokens: 1500,
-    // conversations,
+    conversations: apiConversations,
     // makeReferenceLinks: makeMongoDbReferences,
   },
   maxRequestTimeoutMs: 30000,

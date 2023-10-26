@@ -1,5 +1,4 @@
 import { OpenAiChatMessage, OpenAiMessageRole, SystemPrompt } from "./ChatLlm";
-import { QueryPreprocessorFunc } from "../processors";
 import { ObjectId, Db } from "chat-core";
 import { References } from "chat-core";
 import { FunctionCall } from "@azure/openai";
@@ -267,7 +266,7 @@ export function createMessageFromOpenAIChatMessage({
   const message: Message = {
     id: new ObjectId(),
     role,
-    content,
+    content: content ?? "",
     createdAt: new Date(),
   };
   // Avoid MongoDB inserting null for undefineds

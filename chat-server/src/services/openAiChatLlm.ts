@@ -95,7 +95,7 @@ async function prepConversationForOpenAiLlm({
   validateOpenAiConversation(messages, systemPrompt);
   const lastMessage = messages[messages.length - 1];
   const newestMessageForLlm = await generateUserPrompt({
-    question: lastMessage.content,
+    question: lastMessage.content || "",
     chunks,
   });
   return [...messages.slice(0, -1), newestMessageForLlm];

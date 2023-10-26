@@ -5,11 +5,7 @@ import {
 } from "express";
 import { z } from "zod";
 import { ConversationsService } from "../../services/conversations";
-import {
-  ApiConversation,
-  convertConversationFromDbToApi,
-  isValidIp,
-} from "./utils";
+import { convertConversationFromDbToApi, isValidIp } from "./utils";
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 
@@ -34,7 +30,7 @@ export function makeCreateConversationRoute({
 }: CreateConversationRouteParams) {
   return async (
     req: ExpressRequest,
-    res: ExpressResponse<ApiConversation>,
+    res: ExpressResponse,
     next: NextFunction
   ) => {
     const reqId = getRequestId(req);

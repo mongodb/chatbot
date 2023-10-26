@@ -1,4 +1,3 @@
-
 import { isIP } from "net";
 import { Address6 } from "ip-address";
 import {
@@ -9,7 +8,6 @@ import {
 import { References } from "chat-core";
 import { z } from "zod";
 import { ApiConversation } from "../../services/ApiConversations";
-import { ConversationForApi, convertMessageFromDbToApi } from "../utils";
 
 export type ApiMessage = z.infer<typeof ApiMessage>;
 export const ApiMessage = z.object({
@@ -40,13 +38,9 @@ export function convertMessageFromDbToApi(message: Message): ApiMessage {
     references,
   };
 }
-export function convertConversationFromDbToApi(
-  conversation: Conversation
-
 
 export function convertApiConversationFromDbToApi(
   conversation: ApiConversation
-
 ): ConversationForApi {
   const nonSystemMessages = conversation.messages.filter(
     (msg) => msg.role !== "system"

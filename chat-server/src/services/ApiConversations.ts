@@ -5,7 +5,6 @@ import {
   RateMessageParams,
   SomeMessage,
 } from "./conversations";
-import { FunctionDefinition } from "@azure/openai";
 
 /**
   Conversation between the user and the API chatbot.
@@ -37,8 +36,6 @@ export interface AddApiConversationMessageParams {
     {@link SomeMessage.systemPrompt} field of the `message` property.
    */
   newSystemPrompt?: string;
-  /** Functions available for LLM to call */
-  availableFunctions: FunctionDefinition[];
 }
 
 export interface ApiConversationsService {

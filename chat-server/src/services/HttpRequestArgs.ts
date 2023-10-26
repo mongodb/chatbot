@@ -49,3 +49,13 @@ export interface HttpRequestArgs {
   body?: Record<string, unknown>;
   headers?: Record<string, string>;
 }
+
+/**
+  Credentials for API request.
+ */
+export interface HttpApiCredentials {
+  // POST_SKUNK_TODO: consider supporting other auth types
+  type: "digest" | "basic";
+  username: string;
+  password: string;
+}

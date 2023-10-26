@@ -12,12 +12,13 @@ import { strict as assert } from "assert";
 import { OpenAiChatMessage } from "./ChatLlm";
 import { ApiChatLlm, ApiChatLlmAnswerAwaitedParams } from "./ApiChatLlm";
 import { executeHttpApiRequest } from "./executeHttpApiRequest";
-import { HttpRequestArgs } from "./HttpRequestArgs";
+import { HttpApiCredentials, HttpRequestArgs } from "./HttpRequestArgs";
 import { HttpVerb } from "chat-core";
 import {
   PersistedFunctionDefinition,
   PersistedHttpRequestFunctionDefinition,
 } from "./PersistedFunctionDefinition";
+import yaml from "yaml";
 
 /**
   Function called by ChatGPT API with associated metadata.
@@ -93,8 +94,6 @@ export const baseOpenAiFunctionDefinitions: FunctionDefinition[] = [
   },
 ];
 
-fetch("https://api.openai.com/v1/engines/davinci-codex/completions");
-
 /**
     Constructs a LLM chatbot that can use an API spec to answer questions.
    */
@@ -139,6 +138,7 @@ export function makeOpenAiApiChatLlm({
       messages,
       options,
       staticHttpRequestArgs,
+      apiCredentials,
     }: ApiChatLlmAnswerAwaitedParams) {
       // Construct the ChatGptLlmFunctions to use in the request from the available FunctionDefinitions.
       const availableLlmFunctions =
@@ -146,7 +146,8 @@ export function makeOpenAiApiChatLlm({
           messages[messages.length - 1].functions ?? [],
           baseFunctions,
           staticHttpRequestArgs ?? {},
-          maxNumDynamicFunctions
+          maxNumDynamicFunctions,
+          apiCredentials
         );
 
       // Update the conversation with the new system prompt based on the current available functions
@@ -155,6 +156,7 @@ export function makeOpenAiApiChatLlm({
         availableLlmFunctions,
         messages,
         query,
+        staticHttpRequestArgs,
       });
 
       // Construct the LLM options, including the available functions
@@ -172,7 +174,12 @@ export function makeOpenAiApiChatLlm({
       // - A function call to make
       const response = await openAiClient.getChatCompletions(
         deploymentName,
-        newMessages.map(({ content, role, name }) => ({ content, role, name })),
+        newMessages.map(({ content, role, name, functionCall }) => ({
+          content,
+          role,
+          name,
+          functionCall,
+        })),
         messageOptions
       );
       const responseMessage = getChatMessageFromOpenAiResponse(response);
@@ -189,6 +196,12 @@ export function makeOpenAiApiChatLlm({
           newMessages,
         });
         newMessages = calledFunctionResponse.newMessages;
+      } else {
+        // If the LLM has not made a function call, we simply append the response message to the conversation.
+        newMessages.push({
+          ...(responseMessage as Omit<OpenAiChatMessage, "functions">),
+          functions: availableLlmFunctions.map((f) => f.persistedFunction),
+        });
       }
       return {
         newMessages,
@@ -204,7 +217,8 @@ function makeAvailableLlmFunctionsFromFunctionDefinitions(
   functionDefinitions: PersistedFunctionDefinition[],
   baseLlmFunctions: ChatGptLlmFunction[],
   staticHttpRequestArgs: HttpRequestArgs,
-  maxNumDynamicFunctions: number
+  maxNumDynamicFunctions: number,
+  apiCredentials: HttpApiCredentials
 ): ChatGptLlmFunction[] {
   const availableFunctionDefinitions = getMaxAvailableFunctionDefinitions(
     functionDefinitions,
@@ -222,7 +236,8 @@ function makeAvailableLlmFunctionsFromFunctionDefinitions(
       } else {
         return makeDynamicHttpLlmFunctionFromFunctionDefinition(
           functionDefinition as PersistedHttpRequestFunctionDefinition,
-          staticHttpRequestArgs
+          staticHttpRequestArgs,
+          apiCredentials
         );
       }
     }
@@ -242,8 +257,8 @@ function getMaxAvailableFunctionDefinitions(
 ) {
   const uniqueFunctionNames = new Set<string>();
   const availableFunctionsCopy = [
-    ...availableFunctionDefinitions,
     ...baseFunctionDefinitions,
+    ...availableFunctionDefinitions,
   ].filter((fxn) => {
     if (uniqueFunctionNames.has(fxn.definition.name)) {
       return false;
@@ -251,10 +266,7 @@ function getMaxAvailableFunctionDefinitions(
     uniqueFunctionNames.add(fxn.definition.name);
     return true;
   });
-  if (
-    availableFunctionDefinitions.length >
-    baseFunctionDefinitions.length + maxNumDynamicFunctions
-  ) {
+  if (availableFunctionDefinitions.length > maxNumDynamicFunctions) {
     let counter = 0;
     return availableFunctionsCopy
       .reverse()
@@ -281,7 +293,8 @@ function getMaxAvailableFunctionDefinitions(
  */
 function makeDynamicHttpLlmFunctionFromFunctionDefinition(
   persistedFunctionDefinition: PersistedHttpRequestFunctionDefinition,
-  staticHttpRequestArgs: HttpRequestArgs
+  staticHttpRequestArgs: HttpRequestArgs,
+  apiCredentials: HttpApiCredentials
 ): ChatGptLlmFunction {
   return {
     name: persistedFunctionDefinition.definition.name,
@@ -293,6 +306,7 @@ function makeDynamicHttpLlmFunctionFromFunctionDefinition(
         resourcePath,
         staticHttpRequestArgs: staticHttpRequestArgs,
         dynamicHttpRequestArgs,
+        apiCredentials,
       });
     },
     dynamic: true,
@@ -320,16 +334,22 @@ function updateConversationWithNewSystemPrompt({
   availableLlmFunctions,
   messages,
   query,
+  staticHttpRequestArgs,
 }: {
   baseSystemPrompt: string;
   availableLlmFunctions: ChatGptLlmFunction[];
   messages: OpenAiChatMessage[];
   query?: string;
+  staticHttpRequestArgs?: HttpRequestArgs;
 }) {
   const currentMessages = [
     {
       role: "system",
-      content: makeSystemPrompt(baseSystemPrompt, availableLlmFunctions),
+      content: makeSystemPrompt(
+        baseSystemPrompt,
+        availableLlmFunctions,
+        staticHttpRequestArgs
+      ),
     },
     ...messages.filter((message) => message.role !== "system"),
   ] satisfies OpenAiChatMessage[];
@@ -351,11 +371,13 @@ function updateConversationWithNewSystemPrompt({
  */
 export function makeSystemPrompt(
   baseSystemPrompt: string,
-  currentFunctions: ChatGptLlmFunction[]
+  currentFunctions: ChatGptLlmFunction[],
+  staticHttpRequestArgs?: HttpRequestArgs
 ) {
   const dynamicFuncs = currentFunctions.filter((f) => f.dynamic);
+  let systemPrompt = baseSystemPrompt;
   if (dynamicFuncs.length > 0) {
-    return (
+    systemPrompt =
       baseSystemPrompt +
       `Call the functions ${dynamicFuncs
         .map((func) => func.persistedFunction.definition.name)
@@ -363,9 +385,46 @@ export function makeSystemPrompt(
           ", "
         )} only when you have all necessary parameters to complete the action.
 If you don't yet have all the necessary information, continue asking the user for more information until you have it all.
-If you have the necessary information, call the function and then append the function's response to the conversation.`
-    );
-  } else return baseSystemPrompt;
+If you have the necessary information, call the function and then append the function's response to the conversation.`;
+  }
+  if (staticHttpRequestArgs) {
+    systemPrompt += "\n" + makeUserSystemPromptContext(staticHttpRequestArgs);
+  }
+  return systemPrompt;
+}
+
+/**
+  Add HTTP request specific information to the system prompt,
+  as provided by the user before the conversation started.
+  */
+function makeUserSystemPromptContext(
+  staticHttpRequestArgs: HttpRequestArgs
+): string {
+  return `The following information is available for you to use for calling functions:
+${
+  staticHttpRequestArgs.headers
+    ? "Headers:\n" + yaml.stringify(staticHttpRequestArgs.headers).trim() + "\n"
+    : ""
+}${
+    staticHttpRequestArgs.body
+      ? "Request body:\n" +
+        yaml.stringify(staticHttpRequestArgs.body).trim() +
+        "\n"
+      : ""
+  }${
+    staticHttpRequestArgs.pathParameters
+      ? "Path parameters:\n" +
+        yaml.stringify(staticHttpRequestArgs.pathParameters).trim() +
+        "\n"
+      : ""
+  }${
+    staticHttpRequestArgs.queryParameters
+      ? "Query parameters:\n" +
+        yaml.stringify(staticHttpRequestArgs.queryParameters).trim() +
+        "\n"
+      : ""
+  }
+  `.trimEnd();
 }
 
 /**

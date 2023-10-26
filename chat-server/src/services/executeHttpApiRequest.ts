@@ -3,17 +3,14 @@
   This is used to call the API based on the parameters returned by the LLM function.
  */
 import { HttpVerb, logger } from "chat-core";
-import { HttpRequestArgs } from "./HttpRequestArgs";
+import { HttpApiCredentials, HttpRequestArgs } from "./HttpRequestArgs";
 import DigestClient from "digest-fetch";
 export interface ExecuteHttpApiRequestParams {
   httpVerb: HttpVerb;
   resourcePath: string;
   staticHttpRequestArgs: HttpRequestArgs;
   dynamicHttpRequestArgs: HttpRequestArgs;
-  digestAuth?: {
-    username: string;
-    password: string;
-  };
+  apiCredentials: HttpApiCredentials;
 }
 
 /**
@@ -24,7 +21,7 @@ export async function executeHttpApiRequest({
   resourcePath,
   staticHttpRequestArgs,
   dynamicHttpRequestArgs,
-  digestAuth,
+  apiCredentials,
 }: ExecuteHttpApiRequestParams): Promise<unknown> {
   if (
     ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"].includes(
@@ -47,7 +44,7 @@ export async function executeHttpApiRequest({
       );
     }
 
-    const client = constructFetchClient(digestAuth);
+    const client = constructFetchClient(apiCredentials);
     try {
       const response = await client.fetch(resourcePath, {
         method: httpVerb,
@@ -55,28 +52,31 @@ export async function executeHttpApiRequest({
           ...(dynamicHttpRequestArgs.headers ?? {}),
           ...(staticHttpRequestArgs.headers ?? {}),
         },
-        body: JSON.stringify({
-          ...dynamicHttpRequestArgs.body,
-          ...staticHttpRequestArgs.body,
-        }),
+        body:
+          dynamicHttpRequestArgs.body && staticHttpRequestArgs.body
+            ? JSON.stringify({
+                ...dynamicHttpRequestArgs.body,
+                ...staticHttpRequestArgs.body,
+              })
+            : undefined,
       });
       const data = await response.json();
       logger.info(`Request Response: ${data}`);
-      return data;
+      return JSON.stringify({ status: response.status, data });
     } catch (err) {
+      console.log(err);
       logger.error(`Error: ${err}`);
+      return "An unexpected error occurred. Please to do something else";
     }
   } else {
     return "Invalid httpVerb";
   }
 }
 
-function constructFetchClient(
-  digestAuth: ExecuteHttpApiRequestParams["digestAuth"]
-) {
-  if (digestAuth) {
-    return new DigestClient(digestAuth.username, digestAuth.password);
+function constructFetchClient(creds: HttpApiCredentials) {
+  if (creds.type === "digest") {
+    return new DigestClient(creds.username, creds.password);
   } else {
-    return new DigestClient("username", "password", { basic: true });
+    return new DigestClient(creds.username, creds.password, { basic: true });
   }
 }

@@ -92,8 +92,6 @@ export const makeRequestError = ({
 export function makeAddApiMessageRoute({
   conversations,
   llm,
-  findContent,
-  maxChunkContextTokens = 1500,
 }: AddApiMessageRouteParams) {
   return async (
     req: ExpressRequest<AddApiMessageRequest["params"]>,
@@ -179,6 +177,18 @@ export function makeAddApiMessageRoute({
           const { newMessages } = await llm.answerAwaited({
             query,
             messages,
+            staticHttpRequestArgs: {
+              pathParameters: {
+                orgId: "hello",
+                projectId: "hi",
+                clusterId: "hey",
+              },
+            },
+            apiCredentials: {
+              type: "digest",
+              username: apiCredentials.username,
+              password: apiCredentials.password,
+            },
           });
           // TODO: (ben's not sure)
           // ---

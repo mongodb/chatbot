@@ -23,6 +23,7 @@ import { makeDefaultFindContentFunc } from "./routes/conversations/FindContentFu
 import { makeDefaultReferenceLinks } from "./routes/conversations/addMessageToConversation";
 import { makeOpenAiApiChatLlm } from "./services/OpenAiApiChatLlm";
 import { makeMongoDbApiConversationsService } from "./services/MongoDbApiConversations";
+import { makeFindApiSpecFunctionDefinition } from "./services/findPersistedFunctionDefinitionsInAtlas";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -197,34 +198,7 @@ const apiChatLlm = makeOpenAiApiChatLlm({
   deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   systemPromptPersonality:
     "You are a friendly chatbot that can answer questions about the MongoDB Atlas API spec.",
-  // SKUNK TODO: make this function do vector search and then return top result as a
-  findApiSpecFunctionDefinition: async ({ query }) => {
-    return [
-      {
-        httpVerb: "GET",
-        path: "http://localhost:3000/api/projects",
-        definition: {
-          name: "getProjects",
-          description: "Get all projects in the organization",
-          parameters: {
-            type: "object",
-            properties: {
-              body: {
-                type: "object",
-                properties: {
-                  organization: {
-                    type: "string",
-                    description: "organizationName",
-                  },
-                },
-                required: ["organization"],
-              },
-            },
-          },
-        },
-      },
-    ];
-  },
+  findApiSpecFunctionDefinition: makeFindApiSpecFunctionDefinition(findContent),
 });
 
 const apiConversations = makeMongoDbApiConversationsService(

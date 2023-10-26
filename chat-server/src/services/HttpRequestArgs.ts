@@ -13,13 +13,13 @@ export interface HttpRequestArgsOpenAiFunctionDefinition
       pathParameters?: {
         type: "object";
         description?: string;
-        properties: Record<string, unknown>;
+        properties: Record<string, string>;
         required?: string[];
       };
       queryParameters?: {
         type: "object";
         description?: string;
-        properties: Record<string, unknown>;
+        properties: Record<string, string>;
         required?: string[];
       };
       body?: {
@@ -47,5 +47,5 @@ export interface HttpRequestArgs {
   pathParameters?: Record<string, unknown>;
   queryParameters?: Record<string, unknown>;
   body?: Record<string, unknown>;
-  headers?: Record<string, string | number | boolean>;
+  headers?: Record<string, string>;
 }

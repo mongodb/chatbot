@@ -3,21 +3,41 @@ import { EmbeddedContent } from "chat-core";
 import { PersistedHttpRequestFunctionDefinition } from "./PersistedFunctionDefinition";
 
 /**
-    Constructs a {@link FunctionDefinition} for LLM to call based on an {@link EmbeddedContent}.
-   */
-// SKUNK_TODO: make this
+  Constructs a {@link FunctionDefinition} for LLM to call based on an {@link EmbeddedContent}.
+ */
 export function makePersistedHttpRequestFunctionDefinition(
-  apiEmbeddedContent: EmbeddedContent
+    apiEmbeddedContent: EmbeddedContent
 ): PersistedHttpRequestFunctionDefinition {
-  return {
-    // going to ChatGPT
-    definition: {
-      name: "TODO",
-      description: "TODO",
-      parameters: {},
-    },
-    // this stuff is used by the application
-    httpVerb: "GET",
-    path: "TODO",
-  };
+    return {
+        // Function definition used by ChatGPT
+        definition: {
+            name: "GetAtlasAdminApiInfo",
+            description: "Retrieve information from the Atlas Admin API",
+            parameters: {
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "API path",
+                    },
+                    "baseUrl": {
+                        "type": "string",
+                        "description": "Base URL of the API",
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Description of API",
+                    },
+                    "method": {
+                        "type": "string",
+                        "description": "HTTP verb associated with the API",
+                    },
+                },
+                "required": ["path", "description", "method"],
+            },
+        },
+        // Data used by the application
+        httpVerb: apiEmbeddedContent.metadata.method,
+        path: apiEmbeddedContent.metadata.path,
+    };
 }

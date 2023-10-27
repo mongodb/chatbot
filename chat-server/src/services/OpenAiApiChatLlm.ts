@@ -16,6 +16,7 @@ import yaml from "yaml";
 import { FindContentFunc } from "../lib";
 import { makeFunctionMetadataContent } from "./makePersistedHttpRequestFunctionDefinition";
 import { executeCurlRequest } from "./executeCurlRequest";
+import GPT3Tokenizer from "gpt3-tokenizer";
 
 interface OpenAiApiChatParams {
   /**
@@ -120,13 +121,9 @@ export function makeOpenAiApiChatLlm({
         functions: baseOpenAiFunctionDefinitions,
         functionCall: "auto",
       };
-      const messagesForOpenAi = newMessages.map(
-        ({ content, role, name, functionCall }) => ({
-          content,
-          role,
-          name,
-          functionCall,
-        })
+      const messagesForOpenAi = prepareConversationForChatGpt(
+        newMessages,
+        baseOpenAiFunctionDefinitions
       );
 
       // Get initial response from the LLM to the user's query.
@@ -225,6 +222,65 @@ export function makeSystemPrompt(
     systemPrompt += "\n" + makeUserSystemPromptContext(staticHttpRequestArgs);
   }
   return systemPrompt;
+}
+
+const tokenizer = new GPT3Tokenizer({ type: "gpt3" });
+
+/**
+  Helper method to prepare the conversation for the ChatGPT API.
+
+  Performs the following:
+
+  - Truncates the conversation to fit within the context window.
+  - Converts messages from format stored in DB to format expected by ChatGPT API.
+ */
+function prepareConversationForChatGpt(
+  messages: OpenAiChatMessage[],
+  functions: FunctionDefinition[],
+  maxChunkContextTokens = 7500
+) {
+  const messagesForGpt = truncateMessagesToFitContextWindow(
+    messages,
+    functions,
+    maxChunkContextTokens
+  );
+  return messagesForGpt.map(({ content, role, name, functionCall }) => ({
+    content: content ?? "",
+    role,
+    name,
+    functionCall,
+  }));
+}
+
+/**
+  Helper method to truncate middle messages in the conversation to fit within the context window.
+ */
+function truncateMessagesToFitContextWindow(
+  messages: OpenAiChatMessage[],
+  functions: FunctionDefinition[],
+  maxChunkContextTokens = 7500
+) {
+  const messagesForGpt = [...messages];
+  while (
+    getApproximateTokenCount(messagesForGpt, functions) >
+      maxChunkContextTokens &&
+    // must have at least 2 msgs: system prompt + something to respond to
+    messagesForGpt.length >= 2
+  ) {
+    messagesForGpt.splice(1, 1);
+  }
+  return messagesForGpt;
+}
+/**
+  Helper method to get the approximate token count of the conversation.
+  This is used to determine if the conversation is too long to fit in the context window.
+ */
+function getApproximateTokenCount(
+  messages: OpenAiChatMessage[],
+  functions: FunctionDefinition[]
+) {
+  return tokenizer.encode(JSON.stringify(messages) + JSON.stringify(functions))
+    .bpe.length;
 }
 
 /**

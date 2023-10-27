@@ -15,8 +15,8 @@ import { MessageRatingProps } from "@lg-chat/message-rating";
 import { Fragment, useRef, useState } from "react";
 import { CSSTransition } from "react-transition-group";
 import { useUser, User } from "./useUser";
-import { MessageData } from "./services/conversations";
-import { Conversation } from "./useConversation";
+import { ApiMessageData } from "./services/apiConversations";
+import { ApiConversation } from "./useApiConversation";
 
 const TRANSITION_DURATION = 300;
 
@@ -81,16 +81,16 @@ const LoadingSkeleton = () => {
 };
 
 export type MessageProp = {
-  messageData: MessageData;
+  messageData: ApiMessageData;
   suggestedPrompts?: string[];
   showSuggestedPrompts?: boolean;
   onSuggestedPromptClick?: (prompt: string) => void;
   isLoading: boolean;
   showRating: boolean;
-  conversation: Conversation;
+  conversation: ApiConversation;
 };
 
-function getMessageInfo(message: MessageData, user?: User) {
+function getMessageInfo(message: ApiMessageData, user?: User) {
   return {
     isSender: message.role === "user",
     senderName: message.role === "user" ? user?.name : "Mongo",

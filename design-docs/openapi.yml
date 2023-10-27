@@ -61,14 +61,26 @@ paths:
                       type: object
                       description: A MongoDB Atlas programmatic API key pair
                       properties:
-                        publicKey:
+                        publicApiKey:
                           type: string
                           description: |
                             The user's public API key.
-                        privateKey:
+                        privateApiKey:
                           type: string
                           description: |
                             The user's private API key.
+                        organizationId:
+                          type: string
+                          description: |
+                            The user's MongoDB Atlas Organization ID.
+                        projectId:
+                          type: string
+                          description: |
+                            The user's MongoDB Atlas Project/Group ID.
+                        clusterId:
+                          type: string
+                          description: |
+                            The user's MongoDB Atlas Cluster ID.
       responses:
         200:
           description: OK

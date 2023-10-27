@@ -135,7 +135,7 @@ export function makeOpenAiApiChatLlm({
   const baseSystemPrompt = `${systemPromptPersonality}
   Use the find_api_spec_action function to find an action in the API spec when the user asks you to perform an action.
   If none of the available functions match the user's query, use this function.
-  Before performing an action, ask the user for any missing required parameters.
+  Before performing an action, ask the user for any missing **required** parameters.
   Before performing a POST, DELETE, PUT, or PATCH function, ask the user to confirm that they want to perform the action.
   `;
   const baseFunctions: ChatGptLlmFunction[] = [
@@ -217,6 +217,7 @@ export function makeOpenAiApiChatLlm({
           functions: availableLlmFunctions.map((f) => f.persistedFunction),
         });
       }
+      console.log("newMessages in llm service::", newMessages);
       return {
         newMessages,
       };
@@ -399,6 +400,7 @@ export function makeSystemPrompt(
           ", "
         )} only when you have all necessary parameters to complete the action.
 If you don't yet have all the necessary information, continue asking the user for more information until you have it all.
+Only ask the user for required parameters. Do not ask for optional parameters.
 If you have the necessary information, call the function and then append the function's response to the conversation.`;
   }
   if (staticHttpRequestArgs) {
@@ -414,7 +416,8 @@ If you have the necessary information, call the function and then append the fun
 function makeUserSystemPromptContext(
   staticHttpRequestArgs: HttpRequestArgs
 ): string {
-  return `The following information is available for you to use for calling functions:
+  return `The following information is available for you to use for calling functions.
+Use this information before asking the user for more information.
 ${
   staticHttpRequestArgs.headers
     ? "Headers:\n" + yaml.stringify(staticHttpRequestArgs.headers).trim() + "\n"

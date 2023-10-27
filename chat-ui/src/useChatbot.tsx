@@ -1,17 +1,26 @@
 import { useRef, useState } from "react";
 import { MAX_INPUT_CHARACTERS } from "./constants";
-import { useConversation } from "./useConversation";
+import { useApiConversation } from "./useApiConversation";
 
 export type UseChatbotProps = {
   serverBaseUrl?: string;
   shouldStream?: boolean;
   suggestedPrompts?: string[];
+  apiCredentials: {
+    "atlas-admin-api": {
+      publicApiKey: string;
+      privateApiKey: string;
+      organizationId: string;
+      projectId: string;
+      clusterId: string;
+    };
+  };
 };
 
 export type ChatbotData = {
   awaitingReply: boolean;
   closeChat: () => boolean;
-  conversation: ReturnType<typeof useConversation>;
+  conversation: ReturnType<typeof useApiConversation>;
   handleSubmit: (text: string) => void | Promise<void>;
   inputBarRef: React.RefObject<HTMLFormElement>;
   inputText: string;
@@ -22,9 +31,10 @@ export type ChatbotData = {
 };
 
 export function useChatbot(props: UseChatbotProps): ChatbotData {
-  const conversation = useConversation({
+  const conversation = useApiConversation({
     serverBaseUrl: props.serverBaseUrl,
     shouldStream: props.shouldStream,
+    apiCredentials: props.apiCredentials,
   });
   const [open, setOpen] = useState(false);
   const [awaitingReply, setAwaitingReply] = useState(false);

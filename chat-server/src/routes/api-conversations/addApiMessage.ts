@@ -3,8 +3,17 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { ObjectId, EmbeddedContent, FunctionDefinition } from "chat-core";
-import { Message, conversationConstants } from "../../services/conversations";
+import {
+  ObjectId,
+  EmbeddedContent,
+  FunctionDefinition,
+  logger,
+} from "chat-core";
+import {
+  Message,
+  SomeMessage,
+  conversationConstants,
+} from "../../services/conversations";
 import { OpenAiChatMessage, OpenAiMessageRole } from "../../services/ChatLlm";
 import {
   ConversationForApi,
@@ -19,6 +28,7 @@ import { FindContentFunc } from "./FindContentFunc";
 import {
   ApiConversationsService,
   ApiConversation,
+  BaseMessage,
 } from "../../services/ApiConversations";
 import { ApiChatLlm } from "../../services/ApiChatLlm";
 
@@ -33,6 +43,9 @@ export const MAX_MESSAGES_IN_CONVERSATION = 100; // magic number for max message
  *   "atlas-admin-api": {
  *     publicKey: "<Public Key>",
  *     privateKey: "<Private Key>",
+ *     organizationId: "<Org ID>",
+ *     projectId: "<Project ID>",
+ *     clusterId: "<Project ID>",
  *   }
  * }
  */
@@ -102,14 +115,14 @@ export function makeAddApiMessageRoute({
       const {
         params: { conversationId: conversationIdString },
         body: { message, apiCredentials },
-        query: { stream },
+        // query,
         ip,
       } = req;
       logRequest({
         reqId,
         message: stripIndents`Request info:
-          User message: ${message}
-          Stream: ${stream}
+          message: ${message}
+          apiCredentials: ${apiCredentials}
           IP: ${ip}
           ConversationId: ${conversationIdString}`,
       });
@@ -153,6 +166,8 @@ export function makeAddApiMessageRoute({
       const latestMessage = {
         content: query,
         role: "user",
+        functions:
+          conversation.messages[conversation.messages.length - 1].functions,
       } satisfies OpenAiChatMessage;
       logRequest({
         reqId,
@@ -160,95 +175,78 @@ export function makeAddApiMessageRoute({
       });
 
       // --- GENERATE RESPONSE ---
-      // TODO - get the available functions from the database
-      const answerContent = await (async () => {
-        try {
-          const messages = [
-            ...conversation.messages.map(convertDbMessageToOpenAiMessage),
-            // latestMessage,
-          ] satisfies OpenAiChatMessage[];
-          logRequest({
-            reqId,
-            message: `LLM query: ${JSON.stringify(messages)}`,
-          });
-          // --- GENERATE RESPONSE ---
-          // TODO - this is where the skunk magic happens
-          //  - call the LLM
-          const { newMessages } = await llm.answerAwaited({
-            query,
-            messages,
-            staticHttpRequestArgs: {
-              pathParameters: {
-                orgId: "hello",
-                projectId: "hi",
-                clusterId: "hey",
-              },
-            },
-            apiCredentials: {
-              type: "digest",
-              username: apiCredentials.username,
-              password: apiCredentials.password,
-            },
-          });
-          // TODO: (ben's not sure)
-          // ---
-          // user: make me a cluster
-          // assistant: find openapi spec action
-          // function: hey i found it it + actually adds the function (we make this message)
-          let lastMessage = newMessages[newMessages.length - 1];
-          while (lastMessage.role === "function") {
-            // keep executing llm.answerAwaited until we get a message that is not a function
-            //
-          }
-          // ---
-          // logRequest({
-          //   reqId,
-          //   message: `LLM response: ${JSON.stringify(answer)}`,
-          // });
-          // TODO - save the newMessages & availableFunctionDefinitions to the database
-          // TODO: Add all the new messages to the DB
-          const latestAssistantMessage = newMessages
-            .slice()
-            .reverse()
-            .find((m) => m.role === "assistant");
-          return latestAssistantMessage?.content ?? "";
-        } catch (err) {
-          const errorMessage =
-            err instanceof Error ? err.message : JSON.stringify(err);
-          logRequest({
-            reqId: req.headers["req-id"] as string,
-            message: `LLM error: ${errorMessage}`,
-            type: "error",
-          });
-          logRequest({
-            reqId,
-            message: "Only sending vector search results to user",
-          });
-          const answer = {
-            role: "assistant",
-            content: conversationConstants.LLM_NOT_WORKING,
-          } satisfies OpenAiChatMessage;
-          return answer.content;
-        }
-      })();
 
-      if (!answerContent) {
-        throw makeRequestError({
-          httpStatus: 500,
-          message: "No answer content",
+      let newMessages = [...conversation.messages, latestMessage].map(
+        convertDbMessageToOpenAiMessage
+      ) as OpenAiChatMessage[];
+      try {
+        logRequest({
+          reqId,
+          message: `LLM query: ${JSON.stringify(newMessages)}`,
         });
+        // --- GENERATE RESPONSE ---
+        // TODO - this is where the skunk magic happens
+        //  - call the LLM
+
+        const atlasCredentials = apiCredentials["atlas-admin-api"];
+        console.log("new msgs::", newMessages);
+
+        newMessages = await runLlmQuery({
+          messages: newMessages,
+          llm,
+          atlasCredentials,
+        });
+
+        while (newMessages[newMessages.length - 1].role === "function") {
+          const lastMessage = newMessages[newMessages.length - 1];
+          // keep executing llm.answerAwaited until we get a message that is not a function
+          if (!lastMessage.content) {
+            console.log(
+              "\nUH OH WE GOTTA FIX THIS\n\nlastMessage.content is null but should be a string!\n",
+              lastMessage,
+              "\n\n"
+            );
+          }
+          newMessages = await runLlmQuery({
+            messages: newMessages,
+            llm,
+            atlasCredentials,
+          });
+        }
+        // messagesAfterResponseFinished = newMessages;
+        // --- SAVE QUESTION(s) & RESPONSE ---
+        console.log("messagesAfterResponseFinished", newMessages);
+        const savedMessages = await pushMessagesToDatabase({
+          conversations,
+          conversation,
+          messages: newMessages,
+        });
+        console.log("savedMessages", savedMessages);
+        const assistantMessage = savedMessages
+          .slice()
+          .reverse()
+          .find((m) => m.role === "assistant");
+        if (!assistantMessage) {
+          throw makeRequestError({
+            httpStatus: 500,
+            message: "No assistant message found when there should be one",
+          });
+        }
+        const apiRes = convertMessageFromDbToApi(assistantMessage);
+
+        return res.status(200).json(apiRes);
+      } catch (err) {
+        logger.error(`Error: ${err}`);
+        const errorMessage =
+          err instanceof Error ? err.message : JSON.stringify(err);
+        logRequest({
+          reqId: req.headers["req-id"] as string,
+          message: `LLM error: ${errorMessage}`,
+          type: "error",
+        });
+        // @ts-ignore
+        res.status(500).send({ error: errorMessage });
       }
-
-      // --- SAVE QUESTION(s) & RESPONSE ---
-      const { assistantMessage } = await addMessagesToDatabase({
-        conversations,
-        conversation,
-        originalUserMessageContent: message,
-        assistantMessageContent: answerContent,
-      });
-
-      const apiRes = convertMessageFromDbToApi(assistantMessage);
-      return res.status(200).json(apiRes);
     } catch (error) {
       const { httpStatus, message } =
         (error as Error).name === "RequestError"
@@ -268,70 +266,72 @@ export function makeAddApiMessageRoute({
   };
 }
 
-export async function sendStaticNonResponse({
-  conversations,
-  conversation,
-  latestMessageText,
-  res,
+async function runLlmQuery({
+  messages,
+  llm,
+  atlasCredentials,
 }: {
-  conversations: ApiConversationsService;
-  conversation: ApiConversation;
-  latestMessageText: string;
-  res: ExpressResponse<ApiMessage>;
+  atlasCredentials: Record<string, string>;
+  messages: OpenAiChatMessage[];
+  llm: ApiChatLlm;
 }) {
-  const { assistantMessage } = await addMessagesToDatabase({
-    conversations,
-    conversation,
-    originalUserMessageContent: latestMessageText,
-    assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,
+  const { newMessages } = await llm.answerAwaited({
+    messages,
+    staticHttpRequestArgs: {
+      pathParameters: {
+        orgId: atlasCredentials.organizationId,
+        groupId: atlasCredentials.projectId,
+        clusterName: atlasCredentials.clusterId,
+      },
+      headers: {
+        Accept: "application/vnd.atlas.2023-02-01+json",
+      },
+    },
+    apiCredentials: {
+      type: "digest",
+      username: atlasCredentials.publicApiKey,
+      password: atlasCredentials.privateApiKey,
+    },
   });
-  const apiRes = convertMessageFromDbToApi(assistantMessage);
-  return res.status(200).json(apiRes);
+  return newMessages;
 }
 
 export function convertDbMessageToOpenAiMessage(
-  message: Message
+  message: OpenAiChatMessage
 ): OpenAiChatMessage {
   return {
     content: message.content,
     role: message.role as OpenAiMessageRole,
+    name: message.name ?? undefined,
+    functionCall: message.functionCall ?? undefined,
+    functions: message.functions ?? undefined,
   };
 }
 
-interface AddMessagesToDatabaseParams {
-  conversation: ApiConversation;
-  originalUserMessageContent: string;
-  preprocessedUserMessageContent?: string;
-  assistantMessageContent: string;
+// TODO - This doesn't support pushing to db with functions, we gotta fix?
+interface PushMessagesToDatabaseParams {
   conversations: ApiConversationsService;
+  conversation: ApiConversation;
+  messages: OpenAiChatMessage[];
 }
 
-export async function addMessagesToDatabase({
-  conversation,
-  originalUserMessageContent,
-  assistantMessageContent,
+export async function pushMessagesToDatabase({
   conversations,
-}: AddMessagesToDatabaseParams) {
-  // TODO: consider refactoring addConversationMessage to take in an array of messages.
-  // Would limit database calls.
+  conversation,
+  messages,
+}: PushMessagesToDatabaseParams) {
   const conversationId = conversation._id;
-  const userMessage = await conversations.addApiConversationMessage({
+  const newMessages = await conversations.addApiConversationMessages({
     conversationId,
-    message: {
-      content: originalUserMessageContent,
-      role: "user",
-    },
-    newSystemPrompt: undefined,
+    messages: messages.map((message) => ({
+      content: message.content ?? "",
+      role: message.role,
+      functions: message.functions,
+      name: message.name,
+      functionCall: message.functionCall,
+    })),
   });
-  const assistantMessage = await conversations.addApiConversationMessage({
-    conversationId,
-    message: {
-      content: assistantMessageContent,
-      role: "assistant",
-    },
-    newSystemPrompt: undefined,
-  });
-  return { userMessage, assistantMessage };
+  return newMessages;
 }
 
 const loadConversation = async ({

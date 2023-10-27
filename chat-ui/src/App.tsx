@@ -1,10 +1,8 @@
 import "./fonts.module.css";
 import styles from "./App.module.css";
-import { useState } from "react";
 import LeafyGreenProvider, {
   useDarkModeContext,
 } from "@leafygreen-ui/leafygreen-provider";
-import { canUseServerSentEvents } from "./utils";
 import { Overline, Link } from "@leafygreen-ui/typography";
 import Toggle from "@leafygreen-ui/toggle";
 import { Chatbot } from "./Chatbot";
@@ -17,8 +15,11 @@ const prefersDarkMode = () =>
   window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
 
 function App() {
-  const [shouldStream, setShouldStream] = useState(canUseServerSentEvents());
-  const [apiKey, setApiKey] = useLocalStorage("apiKey", "");
+  // const [shouldStream, setShouldStream] = useState(canUseServerSentEvents());
+  const shouldStream = false;
+  const [publicApiKey, setPublicApiKey] = useLocalStorage("publicApiKey", "");
+  const [privateApiKey, setPrivateApiKey] = useLocalStorage("privateApiKey", "");
+  const [organizationId, setOrganizationId] = useLocalStorage("organizationId", "");
   const [projectId, setProjectId] = useLocalStorage("projectId", "");
   const [clusterId, setClusterId] = useLocalStorage("clusterId", "");
   const { contextDarkMode: darkMode = false, setDarkMode } =
@@ -29,37 +30,60 @@ function App() {
     }`;
   };
 
+
+  const apiCredentials = {
+    "atlas-admin-api": {
+      publicApiKey,
+      privateApiKey,
+      organizationId,
+      projectId,
+      clusterId,
+    },
+  };
+
   return (
     <div className={app_background(darkMode)}>
       <div className={styles.main_content}>
-        <Chatbot shouldStream={shouldStream} darkMode={darkMode}>
+        <Chatbot
+          shouldStream={shouldStream}
+          darkMode={darkMode}
+          apiCredentials={apiCredentials}
+        >
           <DocsChatbot />
         </Chatbot>
-        <Chatbot shouldStream={shouldStream} darkMode={darkMode}>
+        <Chatbot
+          shouldStream={shouldStream}
+          darkMode={darkMode}
+          apiCredentials={apiCredentials}
+        >
           <DevCenterChatbot />
         </Chatbot>
       </div>
       <Controls>
-        <TextInput
-          label="API Key"
-          value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
+        <TextInputControl
+          label="Atlas Public API Key"
+          value={publicApiKey}
+          onChange={(e) => setPublicApiKey(e.target.value)}
         />
-        <TextInput
-          label="Project ID"
+        <TextInputControl
+          label="Atlas Private API Key"
+          value={privateApiKey}
+          onChange={(e) => setPrivateApiKey(e.target.value)}
+        />
+        <TextInputControl
+          label="Atlas Organization ID"
+          value={organizationId}
+          onChange={(e) => setOrganizationId(e.target.value)}
+        />
+        <TextInputControl
+          label="Atlas Project ID"
           value={projectId}
           onChange={(e) => setProjectId(e.target.value)}
         />
-        <TextInput
-          label="Cluster ID"
+        <TextInputControl
+          label="Atlas Cluster ID"
           value={clusterId}
           onChange={(e) => setClusterId(e.target.value)}
-        />
-        <ToggleControl
-          checked={shouldStream}
-          labelId="streaming"
-          text="Stream Responses"
-          toggle={() => setShouldStream((s) => !s)}
         />
         <ToggleControl
           checked={darkMode}
@@ -77,6 +101,24 @@ function Controls(props: { children: React.ReactNode }) {
   return <div className={styles.controls_container}>{props.children}</div>;
 }
 
+type TextInputControlProps = {
+  label: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  darkMode?: boolean;
+}
+
+function TextInputControl (props: TextInputControlProps) {
+  return (
+    <TextInput
+      className={styles.text_input_control}
+      label={props.label}
+      value={props.value}
+      onChange={props.onChange}
+    />
+  );
+}
+
 type ToggleControlProps = {
   checked: boolean;
   labelId: string;
@@ -90,7 +132,7 @@ function ToggleControl(props: ToggleControlProps) {
     useDarkModeContext();
   const label = `${props.labelId}-toggle-control-label`;
   return (
-    <div className={styles.streaming_toggle}>
+    <div className={styles.toggle_control}>
       <Toggle
         darkMode={darkMode}
         size="default"

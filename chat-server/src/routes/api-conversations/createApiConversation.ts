@@ -9,14 +9,12 @@ import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import { ConversationForApi, isValidIp } from "../utils";
 import { ApiConversationsService } from "../../services/ApiConversations";
 import { convertApiConversationFromDbToApi } from "./utils";
+// import { ApiCredentials } from "./addApiMessage";
 
 export type CreateApiConversationRequestBody = z.infer<
   typeof CreateApiConversationRequestBody
 >;
-export const CreateApiConversationRequestBody = z.object({
-  projectId: z.string(),
-  groupId: z.string(),
-});
+export const CreateApiConversationRequestBody = z.object({});
 
 export type CreateApiConversationRequest = z.infer<
   typeof CreateApiConversationRequest

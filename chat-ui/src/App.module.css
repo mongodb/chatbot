@@ -28,7 +28,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  max-width: 450px;
+  max-width: 650px;
 }
 
 .main_content {
@@ -38,9 +38,13 @@ body {
   flex-grow: 1;
 }
 
-.streaming_toggle {
+.toggle_control {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   width: 100%;
+}
+
+.text_input_control {
+  width: 300px;
 }

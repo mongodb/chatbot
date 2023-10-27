@@ -2,7 +2,10 @@ import { OpenAiChatMessage, OpenAiMessageRole, SystemPrompt } from "./ChatLlm";
 import { ObjectId, Db } from "chat-core";
 import { References } from "chat-core";
 import { FunctionCall } from "@azure/openai";
-import { PersistedFunctionDefinition } from "./PersistedFunctionDefinition";
+import {
+  PersistedFunctionDefinition,
+  PersistedHttpRequestFunctionDefinition,
+} from "./PersistedFunctionDefinition";
 
 export type Message = {
   /**
@@ -33,6 +36,11 @@ export type Message = {
   systemPrompt?: string;
 
   availableFunctions?: PersistedFunctionDefinition[];
+
+  functions?: (
+    | PersistedFunctionDefinition
+    | PersistedHttpRequestFunctionDefinition
+  )[];
 };
 
 export type SystemMessage = Message & {

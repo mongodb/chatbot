@@ -13,8 +13,8 @@ import { CharacterCount, InputBar } from "./InputBar";
 import { LegalDisclosure } from "./LegalDisclosure";
 import { Message } from "./Message";
 import { MAX_INPUT_CHARACTERS } from "./constants";
-import { MessageData } from "./services/conversations";
-import { Conversation } from "./useConversation";
+import { ApiMessageData } from "./services/apiConversations";
+import { ApiConversation } from "./useApiConversation";
 import { type StylesProps } from "./utils";
 import { type ChatbotViewProps } from "./ChatbotView";
 import { useChatbotContext } from "./useChatbotContext";
@@ -106,11 +106,11 @@ export function ModalView(props: ModalViewProps) {
     setInputText,
   } = useChatbotContext();
 
-  const initialMessage: MessageData | null = useMemo(() => {
+  const initialMessage: ApiMessageData | null = useMemo(() => {
     if (!initialMessageText) {
       return null;
     }
-    const data: MessageData = {
+    const data: ApiMessageData = {
       id: crypto.randomUUID(),
       role: "assistant",
       content: initialMessageText,
@@ -156,9 +156,9 @@ export function ModalView(props: ModalViewProps) {
                 </DisclaimerText>
               ) : null}
               {messages.map((message, idx) => {
-                const isLoading = conversation.isStreamingMessage
-                  ? message.id === conversation.streamingMessage?.id &&
-                    conversation.streamingMessage?.content === ""
+                const isLoading = conversation.loading
+                  ? message.id === conversation.loadingMessage?.id &&
+                    conversation.loadingMessage?.content === ""
                   : false;
 
                 const isInitialMessage = idx === 0;
@@ -249,7 +249,7 @@ export function ModalView(props: ModalViewProps) {
   );
 }
 
-function ConversationId({ conversation }: { conversation: Conversation }) {
+function ConversationId({ conversation }: { conversation: ApiConversation }) {
   return import.meta.env.VITE_QA === "true" ? (
     <div className={styles.conversation_id}>
       <Body>

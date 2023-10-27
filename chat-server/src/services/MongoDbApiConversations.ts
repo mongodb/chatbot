@@ -110,6 +110,25 @@ export function makeMongoDbApiConversationsService(
       return newMessage;
     },
 
+    async addApiConversationMessages({ conversationId, messages }) {
+      const { ok, value } = await conversationsCollection.findOneAndUpdate(
+        { _id: conversationId },
+        {
+          $set: {
+            messages: messages.map(createDatabaseMessageFromOpenAiChatMessage),
+          },
+        },
+        { returnDocument: "after" }
+      );
+      if (!ok) {
+        throw new Error(`Failed to push messages - ${value}`);
+      }
+      if (value === null) {
+        throw new Error(`Failed to push messages - no conversation value`);
+      }
+      return value.messages;
+    },
+
     async findById({ _id }: FindByIdParams) {
       const conversation = await conversationsCollection.findOne({ _id });
       return conversation;

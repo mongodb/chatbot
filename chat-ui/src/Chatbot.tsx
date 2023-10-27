@@ -16,6 +16,15 @@ export type ChatbotProps = {
   shouldStream?: boolean;
   user?: User;
   children: React.ReactElement;
+  apiCredentials: {
+    "atlas-admin-api": {
+      publicApiKey: string;
+      privateApiKey: string;
+      organizationId: string;
+      projectId: string;
+      clusterId: string;
+    };
+  };
 };
 
 export function Chatbot({
@@ -23,6 +32,7 @@ export function Chatbot({
   serverBaseUrl,
   shouldStream,
   user,
+  apiCredentials,
   ...props
 }: ChatbotProps) {
   const { darkMode } = useDarkMode(props.darkMode);
@@ -30,6 +40,7 @@ export function Chatbot({
   const chatbotData = useChatbot({
     serverBaseUrl,
     shouldStream,
+    apiCredentials,
   });
 
   const tck = props.tck ?? "mongodb_ai_chatbot";

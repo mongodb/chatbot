@@ -121,16 +121,16 @@ export function makeApiConversationsRouter({
   /*
     Global rate limit the requests to the conversationsRouter.
    */
-  const globalRateLimit = rateLimit({
-    windowMs: 5 * 60 * 1000,
-    max: 5000,
-    standardHeaders: "draft-7", // draft-6: RateLimit-* headers; draft-7: combined RateLimit header
-    legacyHeaders: true, // X-RateLimit-* headers
-    message: rateLimitResponse,
-    keyGenerator,
-    ...(rateLimitConfig?.routerRateLimitConfig ?? {}),
-  });
-  apiConversationsRouter.use(globalRateLimit);
+  // const globalRateLimit = rateLimit({
+  //   windowMs: 5 * 60 * 1000,
+  //   max: 5000,
+  //   standardHeaders: "draft-7", // draft-6: RateLimit-* headers; draft-7: combined RateLimit header
+  //   legacyHeaders: true, // X-RateLimit-* headers
+  //   message: rateLimitResponse,
+  //   keyGenerator,
+  //   ...(rateLimitConfig?.routerRateLimitConfig ?? {}),
+  // });
+  // apiConversationsRouter.use(globalRateLimit);
 
   /*
     Slow down the response to the conversationsRouter after certain number
@@ -157,27 +157,27 @@ export function makeApiConversationsRouter({
     Rate limit the requests to the addMessageToConversationRoute.
     Rate limit should be more restrictive than global rate limiter to limit expensive requests to the LLM.
     */
-  const addMessageRateLimit = rateLimit({
-    windowMs: 5 * 60 * 1000,
-    max: 2500,
-    standardHeaders: "draft-7", // draft-6: RateLimit-* headers; draft-7: combined RateLimit header
-    legacyHeaders: true, // X-RateLimit-* headers
-    message: rateLimitResponse,
-    keyGenerator,
-    ...(rateLimitConfig?.addMessageRateLimitConfig ?? {}),
-  });
+  // const addMessageRateLimit = rateLimit({
+  //   windowMs: 5 * 60 * 1000,
+  //   max: 2500,
+  //   standardHeaders: "draft-7", // draft-6: RateLimit-* headers; draft-7: combined RateLimit header
+  //   legacyHeaders: true, // X-RateLimit-* headers
+  //   message: rateLimitResponse,
+  //   keyGenerator,
+  //   ...(rateLimitConfig?.addMessageRateLimitConfig ?? {}),
+  // });
   /*
     Slow down the response to the addMessageToConversationRoute after certain number
     of requests in the time window. Rate limit should be more restrictive than global slow down
     to limit expensive requests to the LLM.
     */
-  const addMessageSlowDown = slowDown({
-    windowMs: 60 * 1000,
-    delayAfter: 10,
-    delayMs: 1500,
-    keyGenerator,
-    ...(rateLimitConfig?.addMessageSlowDownConfig ?? {}),
-  });
+  // const addMessageSlowDown = slowDown({
+  //   windowMs: 60 * 1000,
+  //   delayAfter: 10,
+  //   delayMs: 1500,
+  //   keyGenerator,
+  //   ...(rateLimitConfig?.addMessageSlowDownConfig ?? {}),
+  // });
 
   /*
     Create a new message from the user and get response from the LLM.
@@ -189,8 +189,8 @@ export function makeApiConversationsRouter({
   });
   apiConversationsRouter.post(
     "/:conversationId/messages",
-    addMessageRateLimit,
-    addMessageSlowDown,
+    // addMessageRateLimit,
+    // addMessageSlowDown,
     validateRequestSchema(AddApiMessageRequest),
     addMessageToConversationRoute
   );

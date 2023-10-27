@@ -28,11 +28,19 @@ export async function executeHttpApiRequest({
       httpVerb
     )
   ) {
+    console.log("starting resource path::", resourcePath);
     // Replace path params
     for (const pathParametersKey in dynamicHttpRequestArgs.pathParameters) {
       resourcePath = resourcePath.replace(
         `{${pathParametersKey}}`,
         dynamicHttpRequestArgs.pathParameters[pathParametersKey] as string
+      );
+    }
+    for (const pathParametersKey in staticHttpRequestArgs.pathParameters) {
+      console.log("path param keys::", pathParametersKey);
+      resourcePath = resourcePath.replace(
+        `{${pathParametersKey}}`,
+        staticHttpRequestArgs.pathParameters[pathParametersKey] as string
       );
     }
     // add query params
@@ -43,8 +51,16 @@ export async function executeHttpApiRequest({
         dynamicHttpRequestArgs.queryParameters[queryParametersKey] as string
       );
     }
+    for (const queryParametersKey in staticHttpRequestArgs.queryParameters) {
+      const url = new URL(resourcePath);
+      url.searchParams.append(
+        queryParametersKey,
+        staticHttpRequestArgs.queryParameters[queryParametersKey] as string
+      );
+    }
 
     const client = constructFetchClient(apiCredentials);
+    console.log("ending resource path::", resourcePath);
     try {
       const response = await client.fetch(resourcePath, {
         method: httpVerb,

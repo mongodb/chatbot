@@ -3,8 +3,9 @@
  */
 import "dotenv/config";
 import { makeApp } from "./app";
-import { logger } from "chat-core";
-import { CORE_ENV_VARS, assertEnvVars } from "chat-core";
+import { logger, CORE_ENV_VARS, assertEnvVars } from "chat-core";
+import { config, mongodb, embeddedContentStore } from "./config";
+
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -16,7 +17,6 @@ export const {
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
 } = assertEnvVars(CORE_ENV_VARS);
-import { config, mongodb, embeddedContentStore } from "./config";
 
 const PORT = process.env.PORT || 3000;
 

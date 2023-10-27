@@ -38,11 +38,22 @@ export interface AddApiConversationMessageParams {
   newSystemPrompt?: string;
 }
 
+export interface AddApiConversationMessagesParams {
+  conversationId: ObjectId;
+  /**
+    Messages to append to the conversation.
+  */
+  messages: BaseMessage[];
+}
+
 export interface ApiConversationsService {
   create: ({ ipAddress }: CreateConversationParams) => Promise<ApiConversation>;
   addApiConversationMessage: (
     params: AddApiConversationMessageParams
   ) => Promise<SomeMessage>;
+  addApiConversationMessages: (
+    params: AddApiConversationMessagesParams
+  ) => Promise<SomeMessage[]>;
   findById: ({ _id }: FindByIdParams) => Promise<ApiConversation | null>;
   rateMessage: ({
     conversationId,

@@ -17,7 +17,11 @@ import { AppConfig } from "./app";
 import { makeBoostOnAtlasSearchFilter } from "./processors/makeBoostOnAtlasSearchFilter";
 import { CORE_ENV_VARS, assertEnvVars } from "chat-core";
 import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
-import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
+import {
+  AzureKeyCredential,
+  OpenAIClient,
+  OpenAIKeyCredential,
+} from "@azure/openai";
 import { OpenAiChatMessage, SystemPrompt } from "./services/ChatLlm";
 import { makeDefaultFindContentFunc } from "./routes/conversations/FindContentFunc";
 import { makeDefaultReferenceLinks } from "./routes/conversations/addMessageToConversation";
@@ -39,36 +43,13 @@ export const {
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
-/**
-  Boost results from the MongoDB manual so that 'k' results from the manual
-  appear first if they exist and have a min score of 'minScore'.
- */
-export const boostManual = makeBoostOnAtlasSearchFilter({
-  /**
-    Boosts results that have 3 words or less
-   */
-  async shouldBoostFunc({ text }: { text: string }) {
-    return text.split(" ").filter((s) => s !== " ").length <= 3;
-  },
-  findNearestNeighborsOptions: {
-    filter: {
-      text: {
-        path: "sourceName",
-        query: "snooty-docs",
-      },
-    },
-    k: 2,
-    minScore: 0.88,
-  },
-  totalMaxK: 5,
-});
-
 const openAiClient = new OpenAIClient(
-  OPENAI_ENDPOINT,
-  new AzureKeyCredential(OPENAI_API_KEY),
-  {
-    apiVersion: "2023-07-01-preview",
-  }
+  // OPENAI_ENDPOINT,
+  // new AzureKeyCredential(OPENAI_API_KEY),
+  new OpenAIKeyCredential(OPENAI_API_KEY)
+  // {
+  //   apiVersion: "2023-07-01-preview",
+  // }
 );
 export const systemPrompt: SystemPrompt = {
   role: "system",
@@ -161,9 +142,8 @@ export const findContent = makeDefaultFindContentFunc({
     k: 5,
     path: "embedding",
     indexName: VECTOR_SEARCH_INDEX_NAME,
-    minScore: 0.9,
+    minScore: 0.7,
   },
-  searchBoosters: [boostManual],
 });
 
 export const conversations = makeMongoDbConversationsService(
@@ -224,7 +204,7 @@ export const config: AppConfig = {
     conversations: apiConversations,
     // makeReferenceLinks: makeMongoDbReferences,
   },
-  maxRequestTimeoutMs: 30000,
+  maxRequestTimeoutMs: 90000,
   corsOptions: {
     origin: allowedOrigins,
   },

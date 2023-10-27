@@ -12,7 +12,6 @@ export async function executeCurlRequest(
   // Replace path params
 
   for (const pathParametersKey in staticHttpRequestArgs?.pathParameters) {
-    console.log("path param keys::", pathParametersKey);
     curlCommand = curlCommand.replace(
       `{${pathParametersKey}}`,
       staticHttpRequestArgs.pathParameters[pathParametersKey] as string
@@ -27,7 +26,6 @@ export async function executeCurlRequest(
     );
     curlCommand = url.toString();
   }
-  console.log("curlCommand::", curlCommand);
   return new Promise((resolve, _reject) => {
     exec(curlCommand, (error, stdout, stderr) => {
       console.log({ error, stdout, stderr });

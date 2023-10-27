@@ -42,11 +42,13 @@ export function makePersistedHttpRequestFunctionDefinition(
       parameters: z
         .array(z.object({ name: z.string(), in: z.string() }))
         .optional(),
-      requestBody: z.object({
-        description: z.string().optional(),
-        content: z.record(z.string(), z.record(z.string(), z.unknown())),
-        required: z.boolean().optional(),
-      }),
+      requestBody: z
+        .object({
+          description: z.string().optional(),
+          content: z.record(z.string(), z.record(z.string(), z.unknown())),
+          required: z.boolean().optional(),
+        })
+        .optional(),
       summary: z.string().optional(),
     }
   );

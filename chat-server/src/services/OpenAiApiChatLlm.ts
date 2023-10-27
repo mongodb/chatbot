@@ -49,6 +49,12 @@ export type HttpEndpointLlmFunction = FunctionDefinition & {
   action: HttpVerb;
 };
 
+export type FindApiSpecFunctionDefinition = ({
+  query,
+}: {
+  query: string;
+}) => Promise<PersistedFunctionDefinition[]>;
+
 interface OpenAiApiChatParams {
   /**
     OpenAI client
@@ -94,6 +100,27 @@ export const baseOpenAiFunctionDefinitions: FunctionDefinition[] = [
   },
 ];
 
+const makeFindApiSpecAction = (
+  findApiSpecFunctionDefinition: FindApiSpecFunctionDefinition
+) =>
+  ({
+    name: "find_api_spec_action",
+    persistedFunction: {
+      definition: {
+        name: "find_api_spec_action",
+        description: "Find an action in the API spec",
+        parameters: {
+          type: "object",
+          properties: {
+            query: { type: "string", description: "repeat the user's query" },
+          },
+          required: ["query"],
+        },
+      },
+    },
+    function: findApiSpecFunctionDefinition,
+  } satisfies ChatGptLlmFunction);
+
 /**
     Constructs a LLM chatbot that can use an API spec to answer questions.
    */
@@ -112,23 +139,7 @@ export function makeOpenAiApiChatLlm({
   Before performing a POST, DELETE, PUT, or PATCH function, ask the user to confirm that they want to perform the action.
   `;
   const baseFunctions: ChatGptLlmFunction[] = [
-    {
-      name: "find_api_spec_action",
-      persistedFunction: {
-        definition: {
-          name: "find_api_spec_action",
-          description: "Find an action in the API spec",
-          parameters: {
-            type: "object",
-            properties: {
-              query: { type: "string", description: "repeat the user's query" },
-            },
-            required: ["query"],
-          },
-        },
-      },
-      function: findApiSpecFunctionDefinition,
-    },
+    makeFindApiSpecAction(findApiSpecFunctionDefinition),
   ];
 
   return {
@@ -167,6 +178,14 @@ export function makeOpenAiApiChatLlm({
         ),
         functionCall: "auto",
       };
+      const messagesForOpenAi = newMessages.map(
+        ({ content, role, name, functionCall }) => ({
+          content,
+          role,
+          name,
+          functionCall,
+        })
+      );
 
       // Get initial response from the LLM to the user's query.
       // The response can be one of the following:
@@ -174,12 +193,7 @@ export function makeOpenAiApiChatLlm({
       // - A function call to make
       const response = await openAiClient.getChatCompletions(
         deploymentName,
-        newMessages.map(({ content, role, name, functionCall }) => ({
-          content,
-          role,
-          name,
-          functionCall,
-        })),
+        messagesForOpenAi,
         messageOptions
       );
       const responseMessage = getChatMessageFromOpenAiResponse(response);
@@ -477,17 +491,19 @@ async function handleOpenAiFunctionCall({
     // Call function to find relevant action(s) in the API spec
     // and add them to the set of available actions
     const apiSpecActions = (await functionToCall.function(
-      responseMessage.functionCall.arguments
+      JSON.parse(responseMessage.functionCall.arguments)
     )) as PersistedFunctionDefinition[];
     // const previousMessage = newMessages[newMessages.length - 1];
 
     newMessages.push(responseMessage as OpenAiChatMessage, {
       role: "function",
       name: functionToCall.name,
-      content: `Found the following function(s) to use:
+      content: apiSpecActions.length
+        ? `Found the following function(s) to use:
 - ${apiSpecActions.map((axn) => axn.definition.name).join("\n- ")}
 
-They have been added to your set of available functions. Execute the function if you have sufficient data. If you need more data, ask the user for it.`,
+They have been added to your set of available functions. Execute the function if you have sufficient data. If you need more data, ask the user for it.`
+        : `No function found in the API spec. Try asking the user for more information.`,
       functions: [
         ...availableLlmFunctions.map((fxn) => fxn.persistedFunction),
         ...apiSpecActions,

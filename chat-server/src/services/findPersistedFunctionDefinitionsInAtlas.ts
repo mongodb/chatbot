@@ -18,9 +18,9 @@ export const makeFindApiSpecFunctionDefinition = (
     });
     const action = content[0];
     if (!action) {
-      throw new Error("No action found");
+      return [];
     }
-    logger.log("found action:", action);
+    logger.info("Found action:", action);
     const functionDefinition =
       makePersistedHttpRequestFunctionDefinition(action);
     return [functionDefinition];

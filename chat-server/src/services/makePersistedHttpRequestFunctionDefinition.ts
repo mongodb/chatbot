@@ -5,6 +5,7 @@ import { HttpRequestArgsOpenAiFunctionDefinition } from "./HttpRequestArgs";
 import { OpenAPIV3 } from "openapi-types";
 import { JSONSchema4Object } from "json-schema";
 import { z } from "zod";
+import yaml from "yaml";
 
 export interface ApiEmbeddedContentMetadata {
   method: "get" | "post" | "put" | "delete" | "patch" | "head" | "options";
@@ -15,6 +16,46 @@ export interface ApiEmbeddedContentMetadata {
   description?: string;
   requestBody?: OpenAPIV3.RequestBodyObject;
   parameters?: OpenAPIV3.ParameterObject[];
+}
+
+const zodValidation = {
+  method: z.enum(["get", "post", "put", "delete", "patch", "head", "options"]),
+  baseUrl: z.string(),
+  operationId: z.string(),
+  path: z.string(),
+  description: z.string().optional(),
+  parameters: z
+    .array(z.object({ name: z.string(), in: z.string() }))
+    .optional(),
+  requestBody: z
+    .object({
+      description: z.string().optional(),
+      content: z.record(z.string(), z.record(z.string(), z.unknown())),
+      required: z.boolean().optional(),
+    })
+    .optional(),
+  summary: z.string().optional(),
+};
+
+export function makeFunctionMetadataContent(
+  embeddedContent: EmbeddedContent
+): string {
+  const apiEmbeddedContent = validateMetadata<ApiEmbeddedContentMetadata>(
+    embeddedContent,
+    zodValidation
+  );
+  const { metadata } = apiEmbeddedContent;
+  return `Call this API endpoint when you have the necessary required parameters.
+  Call the endpoint with the "make_curl_request" function.
+${metadata.method.toUpperCase()} ${metadata.baseUrl}${metadata.path}
+Parameters:
+${yaml.stringify(metadata.parameters)}
+${
+  metadata.requestBody
+    ? "Request Body:\n" + yaml.stringify(metadata.requestBody)
+    : ""
+}
+`;
 }
 
 /**

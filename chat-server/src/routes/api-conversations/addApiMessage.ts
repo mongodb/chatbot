@@ -189,7 +189,6 @@ export function makeAddApiMessageRoute({
         //  - call the LLM
 
         const atlasCredentials = apiCredentials["atlas-admin-api"];
-        console.log("new msgs::", newMessages);
 
         newMessages = await runLlmQuery({
           messages: newMessages,
@@ -221,7 +220,7 @@ export function makeAddApiMessageRoute({
           conversation,
           messages: newMessages,
         });
-        console.log("savedMessages", savedMessages);
+
         const assistantMessage = savedMessages
           .slice()
           .reverse()

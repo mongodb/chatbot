@@ -11,49 +11,11 @@ import {
 import { strict as assert } from "assert";
 import { OpenAiChatMessage } from "./ChatLlm";
 import { ApiChatLlm, ApiChatLlmAnswerAwaitedParams } from "./ApiChatLlm";
-import { executeHttpApiRequest } from "./executeHttpApiRequest";
 import { HttpApiCredentials, HttpRequestArgs } from "./HttpRequestArgs";
-import { HttpVerb } from "chat-core";
-import {
-  PersistedFunctionDefinition,
-  PersistedHttpRequestFunctionDefinition,
-} from "./PersistedFunctionDefinition";
 import yaml from "yaml";
-
-/**
-  Function called by ChatGPT API with associated metadata.
-  Wraps the {@link FunctionDefinition} object from the OpenAI API.
- */
-interface ChatGptLlmFunction {
-  /**
-        Function definition for LLM
-      */
-  persistedFunction: PersistedFunctionDefinition;
-  /**
-        Callable function that takes in the arguments from the LLM function call and returns the response.
-        */
-  function: (args: any) => Promise<unknown>;
-  /**
-        `true` if the function is loaded from the embedded content,
-        and can be removed from the context window by calling the `clear_api_spec_actions` function.
-        */
-  dynamic?: boolean;
-  /**
-        Name of function. Same as the `definition.name` field.
-        */
-  name: string;
-}
-
-export type HttpEndpointLlmFunction = FunctionDefinition & {
-  path: string;
-  action: HttpVerb;
-};
-
-export type FindApiSpecFunctionDefinition = ({
-  query,
-}: {
-  query: string;
-}) => Promise<PersistedFunctionDefinition[]>;
+import { FindContentFunc } from "../lib";
+import { makeFunctionMetadataContent } from "./makePersistedHttpRequestFunctionDefinition";
+import { executeCurlRequest } from "./executeCurlRequest";
 
 interface OpenAiApiChatParams {
   /**
@@ -71,19 +33,9 @@ interface OpenAiApiChatParams {
     */
   systemPromptPersonality: string;
   /**
-    Function to find {@link FunctionDefinition} based on the API spec when the user asks you to perform an action.
-    If none of the available functions match the user's query, use this function.
+    Function to find an action in the API spec
     */
-  findApiSpecFunctionDefinition: ({
-    query,
-  }: {
-    query: string;
-  }) => Promise<PersistedFunctionDefinition[]>;
-  /**
-    Maximum number of dynamic actions to keep in the functions at a given time.
-    @default 3
-   */
-  maxNumDynamicFunctions?: number;
+  findContent: FindContentFunc;
 }
 
 export const baseOpenAiFunctionDefinitions: FunctionDefinition[] = [
@@ -93,33 +45,40 @@ export const baseOpenAiFunctionDefinitions: FunctionDefinition[] = [
     parameters: {
       type: "object",
       properties: {
-        query: { type: "string", description: "repeat the user's query" },
+        query: {
+          type: "string",
+          description:
+            "Repeat the user's query to perform a search for the relevant action",
+        },
       },
       required: ["query"],
     },
   },
-];
+  {
+    name: "make_curl_request",
+    description: `Make a curl request to an endpoint based on the available relevant information in the conversation
+ALWAYS USE HTTP digest authentication.
+Check the system prompt for relevant additional information, like \`groupId\` and \`clusterName\`.
 
-const makeFindApiSpecAction = (
-  findApiSpecFunctionDefinition: FindApiSpecFunctionDefinition
-) =>
-  ({
-    name: "find_api_spec_action",
-    persistedFunction: {
-      definition: {
-        name: "find_api_spec_action",
-        description: "Find an action in the API spec",
-        parameters: {
-          type: "object",
-          properties: {
-            query: { type: "string", description: "repeat the user's query" },
-          },
-          required: ["query"],
+Keep the "--user {username}:{password}", the system will fill it in later.
+
+Example curl request:
+curl --user "{username}:{password}" \
+  --digest \
+  --header "Accept: application/vnd.atlas.2023-02-01+json" \
+  -X GET "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/dbAccessHistory/clusters/{clusterName}"`,
+    parameters: {
+      type: "object",
+      properties: {
+        curl_request: {
+          type: "string",
+          description: `The curl request to make to the API endpoint.`,
         },
       },
+      required: ["curl_request"],
     },
-    function: findApiSpecFunctionDefinition,
-  } satisfies ChatGptLlmFunction);
+  },
+];
 
 /**
     Constructs a LLM chatbot that can use an API spec to answer questions.
@@ -128,8 +87,7 @@ export function makeOpenAiApiChatLlm({
   openAiClient,
   deploymentName,
   systemPromptPersonality,
-  findApiSpecFunctionDefinition,
-  maxNumDynamicFunctions = 3,
+  findContent,
 }: OpenAiApiChatParams): ApiChatLlm {
   // // SKUNK_TODO: we'll probably want to modify the system prompt.
   const baseSystemPrompt = `${systemPromptPersonality}
@@ -138,9 +96,6 @@ export function makeOpenAiApiChatLlm({
   Before performing an action, ask the user for any missing **required** parameters.
   Before performing a POST, DELETE, PUT, or PATCH function, ask the user to confirm that they want to perform the action.
   `;
-  const baseFunctions: ChatGptLlmFunction[] = [
-    makeFindApiSpecAction(findApiSpecFunctionDefinition),
-  ];
 
   return {
     baseSystemPrompt,
@@ -151,20 +106,9 @@ export function makeOpenAiApiChatLlm({
       staticHttpRequestArgs,
       apiCredentials,
     }: ApiChatLlmAnswerAwaitedParams) {
-      // Construct the ChatGptLlmFunctions to use in the request from the available FunctionDefinitions.
-      const availableLlmFunctions =
-        makeAvailableLlmFunctionsFromFunctionDefinitions(
-          messages[messages.length - 1].functions ?? [],
-          baseFunctions,
-          staticHttpRequestArgs ?? {},
-          maxNumDynamicFunctions,
-          apiCredentials
-        );
-
       // Update the conversation with the new system prompt based on the current available functions
       let newMessages = updateConversationWithNewSystemPrompt({
         baseSystemPrompt,
-        availableLlmFunctions,
         messages,
         query,
         staticHttpRequestArgs,
@@ -173,9 +117,7 @@ export function makeOpenAiApiChatLlm({
       // Construct the LLM options, including the available functions
       const messageOptions: GetChatCompletionsOptions = {
         ...options,
-        functions: availableLlmFunctions.map(
-          (f) => f.persistedFunction.definition
-        ),
+        functions: baseOpenAiFunctionDefinitions,
         functionCall: "auto",
       };
       const messagesForOpenAi = newMessages.map(
@@ -204,127 +146,23 @@ export function makeOpenAiApiChatLlm({
       // 2. Append relevant message(s) to the conversation based on the function call
       // 3. Update the functions available to the conversation.
       if (responseMessage.functionCall !== undefined) {
-        const calledFunctionResponse = await handleOpenAiFunctionCall({
+        newMessages = await handleOpenAiFunctionCall({
           responseMessage,
-          availableLlmFunctions,
           newMessages,
+          findContent,
+          credentials: apiCredentials,
+          staticHttpRequestArgs,
         });
-        newMessages = calledFunctionResponse.newMessages;
       } else {
         // If the LLM has not made a function call, we simply append the response message to the conversation.
         newMessages.push({
           ...(responseMessage as Omit<OpenAiChatMessage, "functions">),
-          functions: availableLlmFunctions.map((f) => f.persistedFunction),
         });
       }
-      console.log("newMessages in llm service::", newMessages);
       return {
         newMessages,
       };
     },
-  };
-}
-
-/**
-  Helper function to make available {@link ChatGptLlmFunction} objects from {@link PersistedFunctionDefinition} objects.
- */
-function makeAvailableLlmFunctionsFromFunctionDefinitions(
-  functionDefinitions: PersistedFunctionDefinition[],
-  baseLlmFunctions: ChatGptLlmFunction[],
-  staticHttpRequestArgs: HttpRequestArgs,
-  maxNumDynamicFunctions: number,
-  apiCredentials: HttpApiCredentials
-): ChatGptLlmFunction[] {
-  const availableFunctionDefinitions = getMaxAvailableFunctionDefinitions(
-    functionDefinitions,
-    baseLlmFunctions.map((f) => f.persistedFunction),
-    maxNumDynamicFunctions
-  );
-  const availableChatGptFunctions = availableFunctionDefinitions.map(
-    (functionDefinition) => {
-      const baseLlmFunction = baseLlmFunctions.find(
-        (baseFunction) =>
-          baseFunction.name === functionDefinition.definition.name
-      );
-      if (baseLlmFunction) {
-        return baseLlmFunction;
-      } else {
-        return makeDynamicHttpLlmFunctionFromFunctionDefinition(
-          functionDefinition as PersistedHttpRequestFunctionDefinition,
-          staticHttpRequestArgs,
-          apiCredentials
-        );
-      }
-    }
-  );
-  return availableChatGptFunctions;
-}
-
-/**
-  Helper function to only get the max number of available dynamic {@link PersistedFunctionDefinition} objects.
-  Filters out the older dynamic {@link PersistedFunctionDefinition} objects.
-  Returns a new array, so we can mutate the array without side effect risk.
- */
-function getMaxAvailableFunctionDefinitions(
-  availableFunctionDefinitions: PersistedFunctionDefinition[],
-  baseFunctionDefinitions: PersistedFunctionDefinition[],
-  maxNumDynamicFunctions: number
-) {
-  const uniqueFunctionNames = new Set<string>();
-  const availableFunctionsCopy = [
-    ...baseFunctionDefinitions,
-    ...availableFunctionDefinitions,
-  ].filter((fxn) => {
-    if (uniqueFunctionNames.has(fxn.definition.name)) {
-      return false;
-    }
-    uniqueFunctionNames.add(fxn.definition.name);
-    return true;
-  });
-  if (availableFunctionDefinitions.length > maxNumDynamicFunctions) {
-    let counter = 0;
-    return availableFunctionsCopy
-      .reverse()
-      .filter((llmFunc) => {
-        let toInclude = false;
-        if (
-          counter <= maxNumDynamicFunctions ||
-          !baseFunctionDefinitions.find(
-            (baseFunc) => baseFunc.definition.name === llmFunc.definition.name
-          )
-        ) {
-          toInclude = true;
-        }
-        ++counter;
-        return toInclude;
-      })
-      .reverse();
-  }
-  return availableFunctionsCopy;
-}
-
-/**
-  Helper function to make a dynamic {@link ChatGptLlmFunction} from a {@link PersistedFunctionDefinition}
- */
-function makeDynamicHttpLlmFunctionFromFunctionDefinition(
-  persistedFunctionDefinition: PersistedHttpRequestFunctionDefinition,
-  staticHttpRequestArgs: HttpRequestArgs,
-  apiCredentials: HttpApiCredentials
-): ChatGptLlmFunction {
-  return {
-    name: persistedFunctionDefinition.definition.name,
-    persistedFunction: persistedFunctionDefinition,
-    function: async (dynamicHttpRequestArgs: HttpRequestArgs) => {
-      const { httpVerb, path: resourcePath } = persistedFunctionDefinition;
-      return await executeHttpApiRequest({
-        httpVerb,
-        resourcePath,
-        staticHttpRequestArgs: staticHttpRequestArgs,
-        dynamicHttpRequestArgs,
-        apiCredentials,
-      });
-    },
-    dynamic: true,
   };
 }
 
@@ -346,13 +184,11 @@ function getChatMessageFromOpenAiResponse(
  */
 function updateConversationWithNewSystemPrompt({
   baseSystemPrompt,
-  availableLlmFunctions,
   messages,
   query,
   staticHttpRequestArgs,
 }: {
   baseSystemPrompt: string;
-  availableLlmFunctions: ChatGptLlmFunction[];
   messages: OpenAiChatMessage[];
   query?: string;
   staticHttpRequestArgs?: HttpRequestArgs;
@@ -360,11 +196,7 @@ function updateConversationWithNewSystemPrompt({
   const currentMessages = [
     {
       role: "system",
-      content: makeSystemPrompt(
-        baseSystemPrompt,
-        availableLlmFunctions,
-        staticHttpRequestArgs
-      ),
+      content: makeSystemPrompt(baseSystemPrompt, staticHttpRequestArgs),
     },
     ...messages.filter((message) => message.role !== "system"),
   ] satisfies OpenAiChatMessage[];
@@ -386,23 +218,9 @@ function updateConversationWithNewSystemPrompt({
  */
 export function makeSystemPrompt(
   baseSystemPrompt: string,
-  currentFunctions: ChatGptLlmFunction[],
   staticHttpRequestArgs?: HttpRequestArgs
 ) {
-  const dynamicFuncs = currentFunctions.filter((f) => f.dynamic);
   let systemPrompt = baseSystemPrompt;
-  if (dynamicFuncs.length > 0) {
-    systemPrompt =
-      baseSystemPrompt +
-      `Call the functions ${dynamicFuncs
-        .map((func) => func.persistedFunction.definition.name)
-        .join(
-          ", "
-        )} only when you have all necessary parameters to complete the action.
-If you don't yet have all the necessary information, continue asking the user for more information until you have it all.
-Only ask the user for required parameters. Do not ask for optional parameters.
-If you have the necessary information, call the function and then append the function's response to the conversation.`;
-  }
   if (staticHttpRequestArgs) {
     systemPrompt += "\n" + makeUserSystemPromptContext(staticHttpRequestArgs);
   }
@@ -456,64 +274,51 @@ ${
  */
 async function handleOpenAiFunctionCall({
   responseMessage,
-  availableLlmFunctions,
   newMessages,
+  findContent,
+  credentials,
+  staticHttpRequestArgs,
 }: {
   responseMessage: ChatMessage;
-  availableLlmFunctions: ChatGptLlmFunction[];
   newMessages: OpenAiChatMessage[];
+  findContent: FindContentFunc;
+  credentials: HttpApiCredentials;
+  staticHttpRequestArgs?: HttpRequestArgs;
 }) {
   assert(
     responseMessage.functionCall,
     "No function call returned from OpenAI. This function should only be called if it's validated that the response message has the `functionCall` property."
   );
   const { name } = responseMessage.functionCall;
-  const functionToCall = availableLlmFunctions.find(
-    (f) => f.persistedFunction.definition.name === name
-  );
-  // The LLM has chosen one of the dynamic functions.
-  if (functionToCall && functionToCall.dynamic) {
-    // Call dynamic function (i.e make the API call)
-    const functionResponse = await functionToCall.function(
-      responseMessage.functionCall.arguments
-    );
 
-    newMessages.push(responseMessage as OpenAiChatMessage, {
-      role: "function",
-      name: functionToCall.name,
-      content:
-        typeof functionResponse === "string"
-          ? functionResponse
-          : JSON.stringify(functionResponse),
-      functions: availableLlmFunctions.map((f) => f.persistedFunction),
-    });
-  }
   // The LLM has chosen to find action(s) in the API spec.
   // We add the action(s) to the set of available functions.
-  else if (functionToCall && functionToCall.name === "find_api_spec_action") {
+  if (name === "find_api_spec_action") {
+    const { query } = JSON.parse(responseMessage.functionCall.arguments);
     // Call function to find relevant action(s) in the API spec
     // and add them to the set of available actions
-    const apiSpecActions = (await functionToCall.function(
-      JSON.parse(responseMessage.functionCall.arguments)
-    )) as PersistedFunctionDefinition[];
-    // const previousMessage = newMessages[newMessages.length - 1];
+    const { content: apiSpecActions } = await findContent({
+      query,
+      ipAddress: "FOO",
+    });
 
     newMessages.push(responseMessage as OpenAiChatMessage, {
       role: "function",
-      name: functionToCall.name,
-      content: apiSpecActions.length
-        ? `Found the following function(s) to use:
-- ${apiSpecActions.map((axn) => axn.definition.name).join("\n- ")}
-
-They have been added to your set of available functions. Execute the function if you have sufficient data. If you need more data, ask the user for it.`
-        : `No function found in the API spec. Try asking the user for more information.`,
-      functions: [
-        ...availableLlmFunctions.map((fxn) => fxn.persistedFunction),
-        ...apiSpecActions,
-      ],
+      name: "find_api_spec_action",
+      content: makeFunctionMetadataContent(apiSpecActions[0]),
+    });
+  } else if (name === "make_curl_request") {
+    const { curl_request } = JSON.parse(responseMessage.functionCall.arguments);
+    const response = await executeCurlRequest(
+      curl_request,
+      credentials,
+      staticHttpRequestArgs
+    );
+    newMessages.push(responseMessage as OpenAiChatMessage, {
+      role: "function",
+      name: "make_curl_request",
+      content: `The API responded with:\n\n` + response,
     });
   }
-  return {
-    newMessages,
-  };
+  return newMessages;
 }

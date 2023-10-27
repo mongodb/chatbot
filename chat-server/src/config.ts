@@ -178,7 +178,7 @@ const apiChatLlm = makeOpenAiApiChatLlm({
   deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   systemPromptPersonality:
     "You are a friendly chatbot that can answer questions about the MongoDB Atlas API spec.",
-  findApiSpecFunctionDefinition: makeFindApiSpecFunctionDefinition(findContent),
+  findContent,
 });
 
 const apiConversations = makeMongoDbApiConversationsService(
@@ -204,7 +204,7 @@ export const config: AppConfig = {
     conversations: apiConversations,
     // makeReferenceLinks: makeMongoDbReferences,
   },
-  maxRequestTimeoutMs: 90000,
+  maxRequestTimeoutMs: 120000,
   corsOptions: {
     origin: allowedOrigins,
   },

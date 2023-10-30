@@ -15,15 +15,14 @@
   ],
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "dev": "lerna run dev --scope='{mongodb-chatbot-server,mongodb-chatbot-ui}' --stream --parallel",
-    "dev:server": "lerna run dev --scope='mongodb-chatbot-server' --stream",
+    "dev": "lerna run dev --scope='{chatbot-server-mongodb-public,mongodb-chatbot-ui}' --stream --parallel",
+    "dev:server": "lerna run dev --scope='chatbot-server-mongodb-public' --stream",
     "dev:ui": "lerna run dev --scope='mongodb-chatbot-ui' --stream",
     "clean": "lerna clean",
     "build": "lerna run build",
     "test": "lerna run test",
     "lint": "lerna run lint",
-    "release:chat-ui": "lerna run release --scope mongodb-chatbot-ui && git add ./package-lock.json && git commit --amend --no-edit",
-    "version": "lerna version --no-private"
+    "release:chat-ui": "lerna run release --scope mongodb-chatbot-ui && git add ./package-lock.json && git commit --amend --no-edit"
   },
   "devDependencies": {
     "lerna": "^5.6.2"

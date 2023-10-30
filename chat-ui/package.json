@@ -47,7 +47,7 @@
     "test": "vitest"
   },
   "bundleDependencies": [
-    "chat-core",
+    "mongodb-rag-core",
     "@lg-chat/avatar",
     "@lg-chat/chat-window",
     "@lg-chat/chat-disclaimer",

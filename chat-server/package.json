@@ -39,9 +39,6 @@
     "winston": "^3.9.0",
     "zod-error": "^1.5.0"
   },
-  "bundledDependencies": [
-    "mongodb-rag-core"
-  ],
   "devDependencies": {
     "@babel/core": "^7.22.5",
     "@babel/preset-env": "^7.22.5",

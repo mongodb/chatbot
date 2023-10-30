@@ -9,7 +9,7 @@
     "tagName": "mongodb-rag-core-v${version}"
   },
   "npm": {
-    "publish": true
+    "publish": false
   },
   "github": {
     "releaseName": "mongodb-rag-core-v${version}",

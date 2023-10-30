@@ -482,6 +482,41 @@ steps:
       api_server: https://api.prod.corp.mongodb.com
       kubernetes_token:
         from_secret: prod_kubernetes_token
+
+# ---
+# mongodb-rag-core
+# ---
+---
+kind: pipeline
+name: publish-mongodb-rag-core
+
+trigger:
+  event:
+    - tag
+  ref:
+    include:
+      - refs/tags/mongodb-rag-core-v*
+
+steps:
+  - name: npm
+    image: plugins/npm
+    environment:
+      LG_ARTIFACTORY_PASSWORD:
+        from_secret: lg_artifactory_password
+      LG_ARTIFACTORY_USERNAME:
+        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_EMAIL:
+        from_secret: lg_artifactory_email
+    settings:
+      folder: chat-core
+      registry: https://registry.npmjs.org/
+      username:
+        from_secret: mongodb_chatbot_ui_npm_username
+      email:
+        from_secret: mongodb_chatbot_ui_npm_email
+      password:
+        from_secret: mongodb_chatbot_ui_npm_token
+
 # ---
 # Chat UI
 # ---

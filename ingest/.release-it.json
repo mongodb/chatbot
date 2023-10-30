@@ -20,13 +20,5 @@
       "pushd ../chat-core && npm i && npm run build && popd",
       "npm run build"
     ]
-  },
-  "plugins": {
-    "@release-it/bumper": {
-      "out": {
-        "file": "package.json",
-        "path": ["dependencies.mongodb-rag-core"]
-      }
-    }
   }
 }

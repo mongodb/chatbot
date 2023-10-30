@@ -18,10 +18,5 @@
   },
   "hooks": {
     "before:init": ["npm run build"]
-  },
-  "not-plugins": {
-    "@release-it/keep-a-changelog": {
-      "filename": "CHANGELOG.md"
-    }
   }
 }

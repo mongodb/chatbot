@@ -1,7 +1,8 @@
 {
   "git": {
     "commitArgs": ["-a"],
-    "commitMessage": "Release mongodb-rag-ingest v${version}",
+    "commitMessage": "Release mongodb-rag-ingest v${version}\n\n${changelog}",
+    "changelog": "git log --pretty=format:\"* %s (%h)\" ${from}..${to} -- .",
     "tag": true,
     "push": true,
     "pushRepo": "upstream",

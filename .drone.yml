@@ -15,6 +15,7 @@ trigger:
       - ingest/**/*
       - scripts/**/*
       - ingest-mongodb-public/**/*
+      - chatbot-server-mongodb-public/**/*
 
 steps:
   - name: test
@@ -71,12 +72,13 @@ trigger:
   paths:
     include:
       - chat-server/**/*
+      - chatbot-server-mongodb-public/**/*
       - chat-core/**/*
       - chat-ui/**/*
 
 steps:
   # Builds and publishes Docker image for staging
-  - name: publish-staging-chat-server
+  - name: publish-staging-chatbot-server-mongodb-public
     image: plugins/kaniko-ecr
     environment:
       LG_ARTIFACTORY_PASSWORD:
@@ -116,7 +118,7 @@ steps:
 ---
 kind: pipeline
 type: kubernetes
-name: staging-deploy-chat-server
+name: staging-deploy-chatbot-server-mongodb-public
 
 trigger:
   event:
@@ -126,6 +128,7 @@ trigger:
   paths:
     include:
       - chat-server/**/*
+      - chatbot-server-mongodb-public/**/*
       - chat-core/**/*
       - chat-ui/**/*
   branch:
@@ -142,7 +145,7 @@ steps:
       namespace: docs
       release: chat-server-staging
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-server.docs.staging.corp.mongodb.com
-      values_files: ["chat-server/environments/staging.yml"]
+      values_files: ["chatbot-server-mongodb-public/environments/staging.yml"]
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
@@ -150,18 +153,18 @@ steps:
 depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes
-name: qa-build-chat-server
+name: qa-build-chatbot-server-mongodb-public
 
 trigger:
   event:
     - tag
   ref:
     include:
-      - refs/tags/chat-server-qa-*
+      - refs/tags/chatbot-server-mongodb-public-qa-*
 
 steps:
   # Builds and publishes Docker image for qa
-  - name: publish-qa-chat-server
+  - name: publish-qa-chatbot-server-mongodb-public
     image: plugins/kaniko-ecr
     environment:
       ENVIRONMENT: qa
@@ -190,7 +193,7 @@ steps:
         from_secret: ecr_secret_key
 
   # Promotes current drone build to staging environment (QA server is in staging namespace)
-  - name: promote-qa-chat-server
+  - name: promote-qa-chatbot-server-mongodb-public
     image: drone/cli:1.4.0-alpine
     commands:
       - drone build promote mongodb/chatbot ${DRONE_BUILD_NUMBER} staging
@@ -202,7 +205,7 @@ steps:
 ---
 kind: pipeline
 type: kubernetes
-name: qa-deploy-chat-server
+name: qa-deploy-chatbot-server-mongodb-public
 
 trigger:
   event:
@@ -210,11 +213,11 @@ trigger:
   target:
     - staging
   ref:
-    - refs/tags/chat-server-qa-*
+    - refs/tags/chatbot-server-mongodb-public-qa-*
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion
-  - name: deploy-qa-chat-server
+  - name: deploy-qa-chatbot-server-mongodb-public
     image: quay.io/mongodb/drone-helm:v3
     settings:
       chart: mongodb/web-app
@@ -232,18 +235,18 @@ steps:
 depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes
-name: production-build-chat-server
+name: production-build-chatbot-server-mongodb-public
 
 trigger:
   event:
     - tag
   ref:
     include:
-      - refs/tags/chat-server-v*
+      - refs/tags/chatbot-server-mongodb-public-v*
 
 steps:
   # Builds and publishes Docker image for production
-  - name: publish-production-chat-server
+  - name: publish-production-chatbot-server-mongodb-public
     image: plugins/kaniko-ecr
     environment:
       LG_ARTIFACTORY_PASSWORD:
@@ -282,7 +285,7 @@ steps:
 ---
 kind: pipeline
 type: kubernetes
-name: production-deploy-chat-server
+name: production-deploy-chatbot-server-mongodb-public
 
 trigger:
   event:
@@ -295,7 +298,7 @@ trigger:
 
 steps:
   # Deploys Docker image associated with production build that triggered promotion
-  - name: deploy-production-chat-server
+  - name: deploy-production-chatbot-server-mongodb-public
     image: quay.io/mongodb/drone-helm:v3
     settings:
       chart: mongodb/web-app
@@ -304,7 +307,8 @@ steps:
       namespace: docs
       release: docs-chat
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-production,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-server.docs.prod.corp.mongodb.com
-      values_files: ["chat-server/environments/production.yml"]
+      values_files:
+        ["chatbot-server-mongodb-public/environments/production.yml"]
       api_server: https://api.prod.corp.mongodb.com
       kubernetes_token:
         from_secret: prod_kubernetes_token
@@ -316,12 +320,11 @@ steps:
 depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes
-name: staging-build-ingest-service
+name: staging-build-mongodb-rag-ingest
 
 trigger:
   branch:
     - main
-    - ingest-plugins # REMOVE ME
   event:
     - push
   paths:
@@ -332,7 +335,7 @@ trigger:
 
 steps:
   # Builds and publishes Docker image for staging
-  - name: publish-staging-ingest-service
+  - name: publish-staging-mongodb-rag-ingest
     image: plugins/kaniko-ecr
     environment:
       LG_ARTIFACTORY_PASSWORD:
@@ -359,7 +362,7 @@ steps:
         from_secret: ecr_secret_key
 
   # Promotes current drone build to staging environment
-  - name: promote-staging-ingest-service
+  - name: promote-staging-mongodb-rag-ingest
     image: drone/cli:1.4.0-alpine
     commands:
       - drone build promote mongodb/chatbot ${DRONE_BUILD_NUMBER} staging
@@ -371,7 +374,7 @@ steps:
 ---
 kind: pipeline
 type: kubernetes
-name: staging-deploy-ingest-service
+name: staging-deploy-mongodb-rag-ingest
 
 trigger:
   event:
@@ -381,6 +384,7 @@ trigger:
   paths:
     include:
       - ingest/**/*
+      - ingest-mongodb-public/**/*
       - chat-core/**/*
   branch:
     - main
@@ -406,7 +410,7 @@ steps:
 depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes
-name: production-build-ingest-service
+name: production-build-mongodb-rag-ingest
 
 trigger:
   event:
@@ -417,7 +421,7 @@ trigger:
 
 steps:
   # Builds and publishes Docker image for production
-  - name: publish-production-ingest-service
+  - name: publish-production-mongodb-rag-ingest
     image: plugins/kaniko-ecr
     environment:
       LG_ARTIFACTORY_PASSWORD:
@@ -444,7 +448,7 @@ steps:
         from_secret: ecr_secret_key
 
   # Promotes current drone build to production environment
-  - name: promote-production-ingest-service
+  - name: promote-production-mongodb-rag-ingest
     image: drone/cli:1.4.0-alpine
     commands:
       - drone build promote mongodb/chatbot ${DRONE_BUILD_NUMBER} production
@@ -456,7 +460,7 @@ steps:
 ---
 kind: pipeline
 type: kubernetes
-name: production-deploy-ingest-service
+name: production-deploy-mongodb-rag-ingest
 
 trigger:
   event:
@@ -465,7 +469,7 @@ trigger:
     - production
   ref:
     include:
-      - refs/tags/ingest-v*
+      - refs/tags/mongodb-rag-ingest-v*
 
 steps:
   - name: deploy-production-ingest-service

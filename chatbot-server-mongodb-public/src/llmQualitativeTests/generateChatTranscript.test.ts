@@ -1,7 +1,7 @@
 import { Db, MongoClient } from "mongodb-rag-core";
 import { Express } from "express";
-import { AppConfig, DEFAULT_API_PREFIX } from "../app";
-import { ConversationsService } from "../services/conversations";
+import { AppConfig, DEFAULT_API_PREFIX } from "mongodb-chatbot-server";
+import { ConversationsService } from "mongodb-chatbot-server";
 import { makeTestApp } from "../testHelpers";
 import { generateTranscript } from "./generateChatTranscript";
 import { stripIndents } from "common-tags";

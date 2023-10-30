@@ -1,8 +1,8 @@
-import { MongoDB } from "mongodb-rag-core";
+import { MongoClient } from "mongodb-rag-core";
 import { Express } from "express";
-import { makeTestApp } from "../testHelpers";
-import { ConversationsService } from "../services/conversations";
-import { AppConfig, CONVERSATIONS_API_V1_PREFIX } from "../app";
+import { makeTestApp } from "mongodb-chatbot-server";
+import { ConversationsService } from "mongodb-chatbot-server";
+import { AppConfig } from "mongodb-chatbot-server";
 import { generateTranscript } from "./generateChatTranscript";
 import { getTestCasesFromYaml } from "./getTestCasesFromYaml";
 import "../../global.d.ts";
@@ -12,13 +12,13 @@ const testCases = getTestCasesFromYaml("testCases.yaml").filter(
   (testCase) => !testCase.skip
 );
 
-let mongodb: MongoDB;
+let mongodb: MongoClient;
 let app: Express;
 let appConfig: AppConfig;
 let conversations: ConversationsService;
 let ipAddress: string;
 const addMessageEndpoint =
-  CONVERSATIONS_API_V1_PREFIX + "/:conversationId/messages?stream=false";
+  +"/conversations/:conversationId/messages?stream=false";
 
 jest.setTimeout(30000);
 beforeAll(async () => {

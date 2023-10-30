@@ -1,8 +1,8 @@
 {
-  "name": "mongodb-chatbot-server",
-  "version": "0.1.7",
+  "name": "chatbot-server-mongodb-public",
+  "version": "0.1.4",
   "license": "Apache-2.0",
-  "description": "A chatbot server for retrieval augmented generation (RAG).",
+  "description": "Chatbot server for the MongoDB Docs AI chatbot.",
   "author": "MongoDB, Inc.",
   "keywords": [],
   "engines": {
@@ -12,10 +12,16 @@
   "main": "./dist/index.js",
   "scripts": {
     "build": "rm -rf ./dist/ && tsc",
+    "postbuild": "cp ./src/processors/MongoDbUserQueryPreprocessorResponse.ts ./dist/processors/",
+    "dev": "nodemon src/index.ts",
     "format": "prettier ./src --write",
     "format:check": "prettier ./src --check",
     "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
+    "start": "pm2-runtime ./dist/index.js",
     "test": "jest --forceExit",
+    "test:llmQualitative": "jest --config jest.config.llmQualitative.js --forceExit src/llmQualitativeTests/qualitative.test.ts",
+    "test:llmQualitative:top": "RUN_TOP=true npm run test:llmQualitative",
+    "test:llmQualitative:utils": "RUN_TOP=true jest --config jest.config.llmQualitative.js --forceExit --testPathIgnorePatterns src/llmQualitativeTests/qualitative.test.ts",
     "release": "release-it"
   },
   "dependencies": {
@@ -37,11 +43,9 @@
     "stream-json": "^1.8.0",
     "typechat": "^0.0.10",
     "winston": "^3.9.0",
-    "zod-error": "^1.5.0"
+    "zod-error": "^1.5.0",
+    "mongodb-chatbot-server": "^0.1.7"
   },
-  "bundledDependencies": [
-    "mongodb-rag-core"
-  ],
   "devDependencies": {
     "@babel/core": "^7.22.5",
     "@babel/preset-env": "^7.22.5",

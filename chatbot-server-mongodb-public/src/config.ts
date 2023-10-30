@@ -9,17 +9,18 @@ import {
   makeMongoDbEmbeddedContentStore,
   makeOpenAiEmbedder,
 } from "mongodb-rag-core";
-import { makeMongoDbConversationsService } from "./services/conversations";
-import { makeDataStreamer } from "./services/dataStreamer";
-import { makeOpenAiChatLlm } from "./services/openAiChatLlm";
+import { makeMongoDbConversationsService } from "mongodb-chatbot-server";
+import { makeDataStreamer } from "mongodb-chatbot-server";
+import { makeOpenAiChatLlm } from "mongodb-chatbot-server";
 import { stripIndents } from "common-tags";
-import { AppConfig } from "./app";
-import { makeBoostOnAtlasSearchFilter } from "./processors/makeBoostOnAtlasSearchFilter";
+import { AppConfig } from "mongodb-chatbot-server";
+import { makeBoostOnAtlasSearchFilter } from "mongodb-chatbot-server";
 import { CORE_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
+import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
-import { OpenAiChatMessage, SystemPrompt } from "./services/ChatLlm";
-import { makeDefaultFindContentFunc } from "./routes/conversations/FindContentFunc";
-import { makeDefaultReferenceLinks } from "./routes/conversations/addMessageToConversation";
+import { OpenAiChatMessage, SystemPrompt } from "mongodb-chatbot-server";
+import { makeDefaultFindContentFunc } from "mongodb-chatbot-server";
+import { makeDefaultReferenceLinks } from "mongodb-chatbot-server";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -118,6 +119,17 @@ export const llm = makeOpenAiChatLlm({
   generateUserPrompt,
 });
 
+const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({
+  azureOpenAiServiceConfig: {
+    apiKey: OPENAI_API_KEY,
+    baseUrl: OPENAI_ENDPOINT,
+    deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    version: OPENAI_CHAT_COMPLETION_MODEL_VERSION,
+  },
+  numRetries: 0,
+  retryDelayMs: 5000,
+});
+
 export const dataStreamer = makeDataStreamer();
 
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
@@ -180,6 +192,7 @@ export const config: AppConfig = {
     dataStreamer,
     llm,
     findContent,
+    userQueryPreprocessor: mongoDbUserQueryPreprocessor,
     maxChunkContextTokens: 1500,
     conversations,
     makeReferenceLinks: makeMongoDbReferences,

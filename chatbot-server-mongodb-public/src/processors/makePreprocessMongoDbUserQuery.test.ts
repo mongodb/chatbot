@@ -11,7 +11,7 @@ import {
   makePreprocessMongoDbUserQuery,
 } from "./makePreprocessMongoDbUserQuery";
 import { stripIndent } from "common-tags";
-import { Message } from "../services";
+import { Message } from "mongodb-chatbot-server";
 
 const {
   OPENAI_ENDPOINT,

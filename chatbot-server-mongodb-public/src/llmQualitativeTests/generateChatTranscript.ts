@@ -1,4 +1,4 @@
-import { ConversationsService } from "../services/conversations";
+import { ConversationsService } from "mongodb-chatbot-server";
 import { Express } from "express";
 import request from "supertest";
 import { strict as assert } from "assert";

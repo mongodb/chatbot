@@ -19,9 +19,10 @@
     "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
     "start": "pm2-runtime ./dist/index.js",
     "test": "jest --forceExit",
-    "test:llmQualitative": "jest --config jest.config.llmQualitative.js --forceExit",
-    "release": "release-it",
-    "publish:package": "npm run build && npm publish --access public"
+    "test:llmQualitative": "jest --config jest.config.llmQualitative.js --forceExit src/llmQualitativeTests/qualitative.test.ts",
+    "test:llmQualitative:top": "RUN_TOP=true npm run test:llmQualitative",
+    "test:llmQualitative:utils": "RUN_TOP=true jest --config jest.config.llmQualitative.js --forceExit --testPathIgnorePatterns src/llmQualitativeTests/qualitative.test.ts",
+    "release": "release-it"
   },
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.5",

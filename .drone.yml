@@ -535,7 +535,7 @@ steps:
 kind: pipeline
 type: kubernetes
 name: publish-mongodb-rag-core
-depends_on: ["test-all"]
+# depends_on: ["test-all"] TODO: add back when done testing pipeline
 
 trigger:
   event:

@@ -2,7 +2,7 @@
   "git": {
     "commitArgs": ["-a"],
     "commitMessage": "Release mongodb-rag-core v${version}\n\n${changelog}",
-    "changelog": "git log --pretty=format:\"* %s (%h)\" ${from}...${to} -- .",
+    "changelog": "git log --pretty=format:\"* %s (%h)\" ${from}..${to} -- .",
     "tag": true,
     "push": true,
     "pushRepo": "upstream",
@@ -15,7 +15,7 @@
     "releaseName": "mongodb-rag-core-v${version}",
     "draft": true,
     "release": true,
-    "releaseNotes": "git log -- ."
+    "releaseNotes": "git log --pretty=format:\"* %s (%h)\" ${from}..${to} -- ."
   },
   "hooks": {
     "before:init": ["npm run build"]

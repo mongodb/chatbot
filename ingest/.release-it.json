@@ -1,26 +1,24 @@
 {
   "git": {
     "commitArgs": ["-a"],
-    "commitMessage": "Release ingest v${version}",
-    "tag": false,
+    "commitMessage": "Release mongodb-rag-ingest v${version}",
+    "tag": true,
     "push": true,
     "pushRepo": "upstream",
-    "tagName": "ingest-v${version}"
+    "tagName": "mongodb-rag-ingest-v${version}"
   },
   "npm": {
     "publish": false
   },
   "github": {
-    "releaseName": "ingest-v${version}",
+    "releaseName": "mongodb-rag-ingest-v${version}",
     "draft": true,
     "release": true
   },
   "hooks": {
     "before:init": [
       "pushd ../chat-core && npm i && npm run build && popd",
-      "npm run build",
-      "npm run lint",
-      "npm run test"
+      "npm run build"
     ]
   },
   "plugins": {

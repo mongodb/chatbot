@@ -9,7 +9,7 @@ import {
   updateFrontMatter,
   makeTypeChatJsonTranslateFunc,
   AzureOpenAiServiceConfig,
-} from "chat-core";
+} from "mongodb-rag-core";
 import { Message } from "../services";
 
 /**

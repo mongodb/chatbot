@@ -1,6 +1,6 @@
 import fs from "fs";
 import Path from "path";
-import { Page } from "chat-core";
+import { Page } from "mongodb-rag-core";
 import { chunkPage } from "./chunkPage";
 import { standardChunkFrontMatterUpdater } from "./ChunkTransformer";
 

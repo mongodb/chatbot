@@ -8,14 +8,14 @@ import {
   MongoClient,
   makeMongoDbEmbeddedContentStore,
   makeOpenAiEmbedder,
-} from "chat-core";
+} from "mongodb-rag-core";
 import { makeMongoDbConversationsService } from "./services/conversations";
 import { makeDataStreamer } from "./services/dataStreamer";
 import { makeOpenAiChatLlm } from "./services/openAiChatLlm";
 import { stripIndents } from "common-tags";
 import { AppConfig } from "./app";
 import { makeBoostOnAtlasSearchFilter } from "./processors/makeBoostOnAtlasSearchFilter";
-import { CORE_ENV_VARS, assertEnvVars } from "chat-core";
+import { CORE_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { OpenAiChatMessage, SystemPrompt } from "./services/ChatLlm";

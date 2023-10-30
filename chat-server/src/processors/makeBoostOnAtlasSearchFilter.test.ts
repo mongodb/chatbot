@@ -1,5 +1,5 @@
-import { ObjectId } from "chat-core";
-import { EmbeddedContentStore } from "chat-core";
+import { ObjectId } from "mongodb-rag-core";
+import { EmbeddedContentStore } from "mongodb-rag-core";
 import { makeBoostOnAtlasSearchFilter } from "./makeBoostOnAtlasSearchFilter";
 
 describe("makeBoostOnAtlasSearchFilter()", () => {

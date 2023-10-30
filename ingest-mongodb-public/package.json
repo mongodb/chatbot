@@ -34,8 +34,8 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "chat-core": "file:../chat-core",
+    "mongodb-rag-core": "^0.0.1",
     "dotenv": "^16",
-    "ingest": "file:../ingest"
+    "mongodb-rag-ingest": "^0.1.2"
   }
 }

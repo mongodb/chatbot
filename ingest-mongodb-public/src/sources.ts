@@ -1,4 +1,4 @@
-import { Page, extractFrontMatter } from "chat-core";
+import { Page, extractFrontMatter } from "mongodb-rag-core";
 import {
   DataSource,
   makeDevCenterDataSource,
@@ -11,11 +11,11 @@ import {
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
   removeMarkdownImagesAndLinks,
-} from "ingest/sources";
+} from "mongodb-rag-ingest/sources";
 import {
   prepareSnootySources,
   LocallySpecifiedSnootyProjectConfig,
-} from "ingest/sources/snooty";
+} from "mongodb-rag-ingest/sources/snooty";
 
 /**
   Async constructor for specific data sources -- parameters baked in.

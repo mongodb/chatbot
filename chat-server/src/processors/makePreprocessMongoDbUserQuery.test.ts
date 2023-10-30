@@ -4,7 +4,7 @@ import {
   assertEnvVars,
   AzureOpenAiServiceConfig,
   ObjectId,
-} from "chat-core";
+} from "mongodb-rag-core";
 import {
   addMetadataToQuery,
   generateMongoDbQueryPreProcessorPrompt,

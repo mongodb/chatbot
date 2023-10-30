@@ -1,4 +1,4 @@
-import { Embedder, PageStore, EmbeddedContentStore } from "chat-core";
+import { Embedder, PageStore, EmbeddedContentStore } from "mongodb-rag-core";
 import { DataSource } from "./sources/DataSource";
 import { ChunkOptions } from "./embed/chunkPage";
 import { IngestMetaStore } from "./IngestMetaStore";

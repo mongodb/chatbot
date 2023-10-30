@@ -1,4 +1,4 @@
-import { MongoClient } from "chat-core";
+import { MongoClient } from "mongodb-rag-core";
 
 /**
   The ingest meta has information about ingest runs so that the script can

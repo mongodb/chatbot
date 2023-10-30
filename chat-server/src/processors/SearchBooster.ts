@@ -1,4 +1,8 @@
-import { WithScore, EmbeddedContent, EmbeddedContentStore } from "chat-core";
+import {
+  WithScore,
+  EmbeddedContent,
+  EmbeddedContentStore,
+} from "mongodb-rag-core";
 
 /**
   Modify the vector search results to add, elevate, or mutate search results

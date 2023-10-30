@@ -1,4 +1,4 @@
-import { PageStore, PersistedPage } from "chat-core";
+import { PageStore, PersistedPage } from "mongodb-rag-core";
 
 export const makeMockPageStore = (): PageStore => {
   let pages: PersistedPage[] = [];

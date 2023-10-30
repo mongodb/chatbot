@@ -1,4 +1,4 @@
-import { Page } from "chat-core";
+import { Page } from "mongodb-rag-core";
 
 /**
   Represents a source of page data.

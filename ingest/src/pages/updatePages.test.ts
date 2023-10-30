@@ -1,4 +1,4 @@
-import { Page, PersistedPage } from "chat-core";
+import { Page, PersistedPage } from "mongodb-rag-core";
 import { persistPages } from "./updatePages";
 import { makeMockPageStore } from "../test/MockPageStore";
 

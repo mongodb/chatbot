@@ -2,7 +2,7 @@ import Path from "path";
 import { strict as assert } from "assert";
 import { promises as fs } from "fs";
 import { MongoClient, Db, ObjectId } from "mongodb";
-import { makeTypeChatJsonTranslateFunc, assertEnvVars } from "chat-core";
+import { makeTypeChatJsonTranslateFunc, assertEnvVars } from "mongodb-rag-core";
 import {
   Conversation,
   SomeMessage,

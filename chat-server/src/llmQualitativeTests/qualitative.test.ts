@@ -1,4 +1,4 @@
-import { MongoDB } from "chat-core";
+import { MongoDB } from "mongodb-rag-core";
 import { Express } from "express";
 import { makeTestApp } from "../testHelpers";
 import { ConversationsService } from "../services/conversations";

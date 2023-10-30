@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 import { ConversationService, formatReferences } from "./conversations";
-import { type References } from "chat-core";
+import { type References } from "mongodb-rag-core";
 import * as FetchEventSource from "@microsoft/fetch-event-source";
 
 // Mock fetch for regular awaited HTTP requests

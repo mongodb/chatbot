@@ -9,7 +9,7 @@ import {
   logger,
   filterFulfilled,
   filterDefined,
-} from "chat-core";
+} from "mongodb-rag-core";
 import { DataSource } from "./DataSource";
 
 /**

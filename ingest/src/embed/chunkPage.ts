@@ -1,4 +1,4 @@
-import { EmbeddedContent, Page } from "chat-core";
+import { EmbeddedContent, Page } from "mongodb-rag-core";
 import { chunkOpenApiSpecYaml } from "./chunkOpenApiSpecYaml";
 import { chunkMd } from "./chunkMd";
 import { ChunkTransformer } from "./ChunkTransformer";

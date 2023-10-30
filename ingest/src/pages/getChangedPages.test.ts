@@ -1,4 +1,4 @@
-import { Page, PageAction } from "chat-core";
+import { Page, PageAction } from "mongodb-rag-core";
 import { getChangedPages } from "./getChangedPages";
 
 describe("getChangedPages", () => {

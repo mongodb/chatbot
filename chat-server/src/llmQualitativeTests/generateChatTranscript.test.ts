@@ -1,4 +1,4 @@
-import { Db, MongoClient } from "chat-core";
+import { Db, MongoClient } from "mongodb-rag-core";
 import { Express } from "express";
 import { AppConfig, DEFAULT_API_PREFIX } from "../app";
 import { ConversationsService } from "../services/conversations";

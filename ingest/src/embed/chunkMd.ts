@@ -1,6 +1,6 @@
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import GPT3Tokenizer from "gpt3-tokenizer";
-import { extractFrontMatter, Page } from "chat-core";
+import { extractFrontMatter, Page } from "mongodb-rag-core";
 import { ChunkOptions, ContentChunk, ChunkFunc } from "./chunkPage";
 
 const defaultMdChunkOptions: ChunkOptions = {

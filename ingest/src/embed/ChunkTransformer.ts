@@ -1,6 +1,6 @@
 import { strict as assert } from "assert";
 import frontmatter from "front-matter";
-import { updateFrontMatter, Page } from "chat-core";
+import { updateFrontMatter, Page } from "mongodb-rag-core";
 import { ContentChunk } from "./chunkPage";
 
 export type ChunkTransformer = (

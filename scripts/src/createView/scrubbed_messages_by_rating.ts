@@ -1,5 +1,5 @@
 import { MongoClient, ObjectId } from "mongodb";
-import { assertEnvVars } from "chat-core";
+import { assertEnvVars } from "mongodb-rag-core";
 import { ScrubbedMessage } from "ScrubbedMessage";
 
 import "dotenv/config";

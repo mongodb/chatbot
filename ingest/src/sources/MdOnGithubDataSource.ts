@@ -1,4 +1,4 @@
-import { Page, PageMetadata, extractFrontMatter } from "chat-core";
+import { Page, PageMetadata, extractFrontMatter } from "mongodb-rag-core";
 import {
   MakeGitHubDataSourceArgs,
   makeGitHubDataSource,

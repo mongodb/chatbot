@@ -61,7 +61,7 @@
     "@azure/openai": "^1.0.0-beta.6",
     "acquit": "^1.3.0",
     "acquit-require": "^0.1.1",
-    "chat-core": "file:../chat-core",
+    "mongodb-rag-core": "^0.0.1",
     "deep-equal": "^2.2.1",
     "docdoctor": "^0.1.0",
     "dotenv": "^16",

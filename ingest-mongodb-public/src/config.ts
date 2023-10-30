@@ -1,5 +1,9 @@
-import { Config, INGEST_ENV_VARS, makeIngestMetaStore } from "ingest";
-import { standardChunkFrontMatterUpdater } from "ingest/embed";
+import {
+  Config,
+  INGEST_ENV_VARS,
+  makeIngestMetaStore,
+} from "mongodb-rag-ingest";
+import { standardChunkFrontMatterUpdater } from "mongodb-rag-ingest/embed";
 import {
   assertEnvVars,
   makeOpenAiEmbedder,
@@ -8,7 +12,7 @@ import {
   filterFulfilled,
   OpenAIClient,
   AzureKeyCredential,
-} from "chat-core";
+} from "mongodb-rag-core";
 import { sourceConstructors } from "./sources";
 
 const {

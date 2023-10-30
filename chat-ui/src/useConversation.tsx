@@ -1,5 +1,5 @@
 import { useMemo, useReducer } from "react";
-import { type References } from "chat-core";
+import { type References } from "mongodb-rag-core";
 import {
   MessageData,
   Role,

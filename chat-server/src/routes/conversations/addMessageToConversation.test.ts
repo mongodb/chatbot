@@ -1,7 +1,11 @@
 import request from "supertest";
 import "dotenv/config";
-import { assertEnvVars, CORE_ENV_VARS, EmbeddedContent } from "chat-core";
-import { MongoClient, Db } from "chat-core";
+import {
+  assertEnvVars,
+  CORE_ENV_VARS,
+  EmbeddedContent,
+} from "mongodb-rag-core";
+import { MongoClient, Db } from "mongodb-rag-core";
 import {
   conversationConstants,
   Conversation,
@@ -25,7 +29,7 @@ import { ApiConversation, ApiMessage } from "./utils";
 import { makeOpenAiChatLlm } from "../../services/openAiChatLlm";
 import { makeDataStreamer } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
-import { ObjectId } from "chat-core";
+import { ObjectId } from "mongodb-rag-core";
 import { makeApp, DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../testHelpers";
 import {

@@ -12,10 +12,10 @@ import {
   ConversationsRouterParams,
   makeConversationsRouter,
 } from "./routes/conversations/conversationsRouter";
-import { ObjectId } from "chat-core";
+import { ObjectId } from "mongodb-rag-core";
 import { getRequestId, logRequest, sendErrorResponse } from "./utils";
 import { CorsOptions } from "cors";
-import { logger } from "chat-core";
+import { logger } from "mongodb-rag-core";
 import cloneDeep from "lodash.clonedeep";
 
 /**

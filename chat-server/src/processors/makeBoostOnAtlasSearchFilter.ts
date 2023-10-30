@@ -3,7 +3,7 @@ import {
   EmbeddedContent,
   FindNearestNeighborsOptions,
   EmbeddedContentStore,
-} from "chat-core";
+} from "mongodb-rag-core";
 import { SearchBooster } from "./SearchBooster";
 
 export type WithFilterAndK<T> = T & {

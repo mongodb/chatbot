@@ -3,8 +3,8 @@
  */
 import "dotenv/config";
 import { makeApp } from "./app";
-import { logger } from "chat-core";
-import { CORE_ENV_VARS, assertEnvVars } from "chat-core";
+import { logger } from "mongodb-rag-core";
+import { CORE_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,

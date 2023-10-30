@@ -1,4 +1,4 @@
-import { EmbeddedContentStore, EmbeddedContent, Page } from "chat-core";
+import { EmbeddedContentStore, EmbeddedContent, Page } from "mongodb-rag-core";
 import { updateEmbeddedContent } from "./updateEmbeddedContent";
 import { persistPages } from "../pages";
 import { makeMockPageStore } from "../test/MockPageStore";

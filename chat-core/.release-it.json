@@ -13,9 +13,15 @@
   "github": {
     "releaseName": "mongodb-rag-core-v${version}",
     "draft": true,
-    "release": true
+    "release": true,
+    "releaseNotes": "git log -- chat-core"
   },
   "hooks": {
     "before:init": ["npm run build"]
+  },
+  "plugins": {
+    "@release-it/keep-a-changelog": {
+      "filename": "CHANGELOG.md"
+    }
   }
 }

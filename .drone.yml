@@ -320,7 +320,7 @@ steps:
 depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes
-name: staging-build-mongodb-rag-ingest
+name: staging-build-ingest-mongodb-public
 
 trigger:
   branch:
@@ -335,7 +335,7 @@ trigger:
 
 steps:
   # Builds and publishes Docker image for staging
-  - name: publish-staging-mongodb-rag-ingest
+  - name: publish-staging-ingest-mongodb-public
     image: plugins/kaniko-ecr
     environment:
       LG_ARTIFACTORY_PASSWORD:
@@ -362,7 +362,7 @@ steps:
         from_secret: ecr_secret_key
 
   # Promotes current drone build to staging environment
-  - name: promote-staging-mongodb-rag-ingest
+  - name: promote-staging-ingest-mongodb-public
     image: drone/cli:1.4.0-alpine
     commands:
       - drone build promote mongodb/chatbot ${DRONE_BUILD_NUMBER} staging
@@ -374,7 +374,7 @@ steps:
 ---
 kind: pipeline
 type: kubernetes
-name: staging-deploy-mongodb-rag-ingest
+name: staging-deploy-ingest-mongodb-public
 
 trigger:
   event:
@@ -391,7 +391,7 @@ trigger:
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion
-  - name: deploy-staging-ingest-service
+  - name: deploy-staging-ingest-mongodb-public
     image: quay.io/mongodb/drone-helm:v3
     settings:
       chart: mongodb/cronjobs
@@ -401,7 +401,7 @@ steps:
       release: ingest-service
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-ingest-service
       values_files:
-        - ingest/environments/staging.yml
+        - ingest-mongodb-public/environments/staging.yml
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
@@ -460,7 +460,7 @@ steps:
 ---
 kind: pipeline
 type: kubernetes
-name: production-deploy-mongodb-rag-ingest
+name: production-deploy-ingest-mongodb-public
 
 trigger:
   event:
@@ -469,7 +469,7 @@ trigger:
     - production
   ref:
     include:
-      - refs/tags/mongodb-rag-ingest-v*
+      - refs/tags/ingest-mongodb-public-v*
 
 steps:
   - name: deploy-production-ingest-service
@@ -482,7 +482,7 @@ steps:
       release: ingest-service
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-production,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-ingest-service
       values_files:
-        - ingest/environments/production.yml
+        - ingest-mongodb-public/environments/production.yml
       api_server: https://api.prod.corp.mongodb.com
       kubernetes_token:
         from_secret: prod_kubernetes_token

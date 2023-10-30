@@ -23,11 +23,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "mongodb-rag-core": "^0.0.1",
-    "mongodb-chatbot-server": "^0.1.0",
+    "@release-it/bumper": "^5.1.0",
     "csv": "^6.3.1",
     "dotenv": "^16.3.1",
     "mongodb": "^5.7.0",
+    "mongodb-chatbot-server": "^0.1.0",
+    "mongodb-rag-core": "^0.0.1",
     "yaml": "^2.3.1"
   },
   "devDependencies": {

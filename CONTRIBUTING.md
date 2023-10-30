@@ -123,18 +123,19 @@ with the `*.dockerfile` extension.
 
 ## Versioning
 
-We use Lerna to manage versioning packages. We use Lerna **independent mode**,
-which means that each package has its own version number (no co-versioning of packages).
-To learn more about how to use Lerna versioning,
-refer to the [Lerna Version and Publish documentation](https://lerna.js.org/docs/features/version-and-publish).
+We use [release-it](https://github.com/release-it/release-it) to manage versioning packages.
+
+All packages' versioning is managed independently, which means that each package has its own version number. We use Lerna **independent mode** to facilitate this.
 
 We use [semantic versioning](https://semver.org/) to version packages.
 
-To update the version of a package, run the following command from the root of the monorepo:
+Updating the version of a package is done as part of the release flow. Run the following command from a given package (e.g. `chat-server`):
 
 ```sh
-npm run version
+npm run release
 ```
+
+To learn more about our release set up, refer to the [release-it monorepo documentation](https://github.com/release-it/release-it/blob/main/docs/recipes/monorepo.md).
 
 ## Releases
 

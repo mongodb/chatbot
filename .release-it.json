@@ -1,0 +1,6 @@
+{
+  "git": {
+    "requireCleanWorkingDir": false
+  },
+  "publish": false
+}

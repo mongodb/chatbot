@@ -23,5 +23,13 @@
       "npm run build:component",
       "npm run lint"
     ]
+  },
+  "plugins": {
+    "@release-it/bumper": {
+      "out": {
+        "file": "package.json",
+        "path": ["dependencies.mongodb-rag-core"]
+      }
+    }
   }
 }

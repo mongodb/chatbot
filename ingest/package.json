@@ -59,9 +59,9 @@
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.1.0",
     "@azure/openai": "^1.0.0-beta.6",
+    "@release-it/bumper": "^5.1.0",
     "acquit": "^1.3.0",
     "acquit-require": "^0.1.1",
-    "mongodb-rag-core": "^0.0.1",
     "deep-equal": "^2.2.1",
     "docdoctor": "^0.1.0",
     "dotenv": "^16",
@@ -74,6 +74,7 @@
     "jsdom": "^22.1.0",
     "langchain": "^0.0.148",
     "mongodb": "^5",
+    "mongodb-rag-core": "^0.0.1",
     "node-fetch": "^2",
     "rimraf": "^5.0.1",
     "simple-git": "^3.19.1",

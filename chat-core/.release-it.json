@@ -1,7 +1,7 @@
 {
   "git": {
     "commitArgs": ["-a"],
-    "commitMessage": "Release mongodb-rag-core v${version}",
+    "commitMessage": "Release mongodb-rag-core v${version}\n\n${changelog}",
     "tag": true,
     "push": true,
     "pushRepo": "upstream",
@@ -19,9 +19,9 @@
   "hooks": {
     "before:init": ["npm run build"]
   },
-  "plugins": {
+  "not-plugins": {
     "@release-it/keep-a-changelog": {
-      "filename": "chat-core/CHANGELOG.md"
+      "filename": "CHANGELOG.md"
     }
   }
 }

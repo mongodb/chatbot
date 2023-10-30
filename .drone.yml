@@ -484,11 +484,54 @@ steps:
         from_secret: prod_kubernetes_token
 
 # ---
-# mongodb-rag-core
+# mongodb-rag-ingest package
 # ---
 ---
 kind: pipeline
+type: kubernetes
+name: publish-mongodb-rag-ingest
+depends_on: ["test-all"]
+
+trigger:
+  event:
+    - tag
+  ref:
+    include:
+      - refs/tags/mongodb-rag-ingest-v*
+
+steps:
+  - name: build package
+    image: node:18
+    commands:
+      - npm ci
+      - npm run build
+  - name: npm
+    image: plugins/npm
+    environment:
+      LG_ARTIFACTORY_PASSWORD:
+        from_secret: lg_artifactory_password
+      LG_ARTIFACTORY_USERNAME:
+        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_EMAIL:
+        from_secret: lg_artifactory_email
+    settings:
+      folder: chat-core
+      registry: https://registry.npmjs.org/
+      username:
+        from_secret: mongodb_chatbot_ui_npm_username
+      email:
+        from_secret: mongodb_chatbot_ui_npm_email
+      password:
+        from_secret: mongodb_chatbot_ui_npm_token
+
+# ---
+# mongodb-rag-core package
+# ---
+---
+kind: pipeline
+type: kubernetes
 name: publish-mongodb-rag-core
+depends_on: ["test-all"]
 
 trigger:
   event:
@@ -498,6 +541,52 @@ trigger:
       - refs/tags/mongodb-rag-core-v*
 
 steps:
+  - name: build package
+    image: node:18
+    commands:
+      - npm ci
+      - npm run build
+  - name: npm
+    image: plugins/npm
+    environment:
+      LG_ARTIFACTORY_PASSWORD:
+        from_secret: lg_artifactory_password
+      LG_ARTIFACTORY_USERNAME:
+        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_EMAIL:
+        from_secret: lg_artifactory_email
+    settings:
+      folder: chat-core
+      registry: https://registry.npmjs.org/
+      username:
+        from_secret: mongodb_chatbot_ui_npm_username
+      email:
+        from_secret: mongodb_chatbot_ui_npm_email
+      password:
+        from_secret: mongodb_chatbot_ui_npm_token
+
+# ---
+# mongodb-chatbot-server package
+# ---
+---
+kind: pipeline
+type: kubernetes
+name: publish-mongodb-chatbot-server
+depends_on: ["test-all"]
+
+trigger:
+  event:
+    - tag
+  ref:
+    include:
+      - refs/tags/mongodb-chatbot-server-v*
+
+steps:
+  - name: build package
+    image: node:18
+    commands:
+      - npm ci
+      - npm run build
   - name: npm
     image: plugins/npm
     environment:
@@ -522,6 +611,7 @@ steps:
 # ---
 ---
 kind: pipeline
+type: kubernetes
 name: publish-chat-ui
 
 trigger:

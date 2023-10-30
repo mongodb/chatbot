@@ -14,8 +14,7 @@
   "github": {
     "releaseName": "mongodb-rag-core-v${version}",
     "draft": true,
-    "release": true,
-    "releaseNotes": "git log --pretty=format:\"* %s (%h)\" ${from}..${to} -- ."
+    "release": true
   },
   "hooks": {
     "before:init": ["npm run build"]

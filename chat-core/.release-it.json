@@ -1,0 +1,21 @@
+{
+  "git": {
+    "commitArgs": ["-a"],
+    "commitMessage": "Release mongodb-rag-core v${version}",
+    "tag": true,
+    "push": true,
+    "pushRepo": "upstream",
+    "tagName": "mongodb-rag-core-v${version}"
+  },
+  "npm": {
+    "publish": true
+  },
+  "github": {
+    "releaseName": "mongodb-rag-core-v${version}",
+    "draft": true,
+    "release": true
+  },
+  "hooks": {
+    "before:init": ["npm run build"]
+  }
+}

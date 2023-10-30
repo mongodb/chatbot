@@ -522,11 +522,11 @@ steps:
       folder: chat-core
       registry: https://registry.npmjs.org/
       username:
-        from_secret: mongodb_chatbot_ui_npm_username
+        from_secret: mongodb_ai_npm_username
       email:
-        from_secret: mongodb_chatbot_ui_npm_email
+        from_secret: mongodb_ai_npm_email
       password:
-        from_secret: mongodb_chatbot_ui_npm_token
+        from_secret: mongodb_ai_npm_token
 
 # ---
 # mongodb-rag-core package
@@ -563,11 +563,11 @@ steps:
       folder: chat-core
       registry: https://registry.npmjs.org/
       username:
-        from_secret: mongodb_chatbot_ui_npm_username
+        from_secret: mongodb_ai_npm_username
       email:
-        from_secret: mongodb_chatbot_ui_npm_email
+        from_secret: mongodb_ai_npm_email
       password:
-        from_secret: mongodb_chatbot_ui_npm_token
+        from_secret: mongodb_ai_npm_token
 
 # ---
 # mongodb-chatbot-server package
@@ -604,11 +604,11 @@ steps:
       folder: chat-core
       registry: https://registry.npmjs.org/
       username:
-        from_secret: mongodb_chatbot_ui_npm_username
+        from_secret: mongodb_ai_npm_username
       email:
-        from_secret: mongodb_chatbot_ui_npm_email
+        from_secret: mongodb_ai_npm_email
       password:
-        from_secret: mongodb_chatbot_ui_npm_token
+        from_secret: mongodb_ai_npm_token
 
 # ---
 # Chat UI
@@ -639,11 +639,11 @@ steps:
       folder: chat-ui
       registry: https://registry.npmjs.org/
       username:
-        from_secret: mongodb_chatbot_ui_npm_username
+        from_secret: mongodb_ai_npm_username
       email:
-        from_secret: mongodb_chatbot_ui_npm_email
+        from_secret: mongodb_ai_npm_email
       password:
-        from_secret: mongodb_chatbot_ui_npm_token
+        from_secret: mongodb_ai_npm_token
 # ---
 # Scripts service
 # ---

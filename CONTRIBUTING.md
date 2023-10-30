@@ -86,6 +86,7 @@ Run the following in the root of your project:
 
 ```sh
 npm install
+npm run build
 npm run bootstrap
 ```
 
@@ -95,11 +96,11 @@ In step 1, you should have gotten the environment variables you need.
 
 Add environment variables to whichever projects you're working on.
 Every project has an `.env.example` file showing you which environment variables
-you need.
+you need. You need to add the `.env` file to every project that you're working on.
 
 ### 4. Run Project(s)
 
-Refer to the each project;s `README` files for information about running that project.
+Refer to the each project's `README` files for information about running that project.
 
 You can also run a development build of both the `chat-server` and `chat-ui`
 with hot reload by running the following command from the root of the monorepo:
@@ -119,6 +120,21 @@ on the Kanopy environment files.
 
 The applications are containerized using docker. Docker files are named
 with the `*.dockerfile` extension.
+
+## Versioning
+
+We use Lerna to manage versioning packages. We use Lerna **independent mode**,
+which means that each package has its own version number (no co-versioning of packages).
+To learn more about how to use Lerna versioning,
+refer to the [Lerna Version and Publish documentation](https://lerna.js.org/docs/features/version-and-publish).
+
+We use [semantic versioning](https://semver.org/) to version packages.
+
+To update the version of a package, run the following command from the root of the monorepo:
+
+```sh
+npm run version
+```
 
 ## Releases
 

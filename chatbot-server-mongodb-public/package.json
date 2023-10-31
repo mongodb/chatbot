@@ -11,7 +11,7 @@
   },
   "main": "./dist/index.js",
   "scripts": {
-    "build": "rm -rf ./dist/ && tsc",
+    "build": "rm -rf ./dist/ && tsc -b tsconfig.build.json",
     "postbuild": "cp ./src/processors/MongoDbUserQueryPreprocessorResponse.ts ./dist/processors/",
     "dev": "nodemon src/index.ts",
     "format": "prettier ./src --write",

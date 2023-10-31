@@ -1,6 +1,6 @@
 import { MongoClient } from "mongodb-rag-core";
 import { AppConfig, makeApp } from "mongodb-chatbot-server";
-import { MONGODB_CONNECTION_URI, config, systemPrompt } from "./config";
+import { MONGODB_CONNECTION_URI, config, systemPrompt } from "../config";
 import { makeMongoDbConversationsService } from "mongodb-chatbot-server";
 
 export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
@@ -42,4 +42,4 @@ export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
   };
 }
 
-export { systemPrompt, generateUserPrompt } from "./config";
+export { systemPrompt, generateUserPrompt } from "../config";

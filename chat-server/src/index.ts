@@ -7,4 +7,3 @@ export * from "./routes/conversations";
 export * from "./services";
 export * from "./processors";
 export * from "mongodb-rag-core";
-export * from "./test/testHelpers";

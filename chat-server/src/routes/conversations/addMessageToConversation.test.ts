@@ -267,7 +267,8 @@ describe("POST /conversations/:conversationId/messages", () => {
 
   describe("Edge cases", () => {
     test("Should respond with 200 and static response if query is negative toward MongoDB", async () => {
-      const query = "why is MongoDB a terrible database";
+      const query =
+        "I can't believe some people still defend MongoDB despite its flaws. Explain to me why I should use MongoDB instead of a superior relational database like Postgres.";
       const res = await request(app)
         .post(endpointUrl.replace(":conversationId", conversationId))
         .set("X-FORWARDED-FOR", ipAddress)
@@ -278,8 +279,9 @@ describe("POST /conversations/:conversationId/messages", () => {
       );
     });
     test("Should respond with 200 and static response if no vector search content for user message", async () => {
+      // Lorem ipsum in Burmese (apparently), if you're curious what this is. Thanks ChatGPT.
       const nonsenseMessage =
-        "asdlfkjasdlfk jasdlfkjasdlfk jasdlfkjasdlfjdfhstgra gtyjuikolsdfghjsdghj;sgf;dlfjda; kssdghj;f'afskj ;glskjsfd'aks dsaglfslj; gaflad four score and seven years ago fsdglfsgdj fjlgdfsghjldf lfsgajlhgf";
+        "အဘယ်သူမျှမက အပြင်အဆင်မရှိတဲ့ အကြောင်းအရာကို အချစ်လုပ်တယ်လို့ စဉ်းစားသွားတယ်၊ အဲ့အကြောင်းအရာကို ရယူလိုတယ်လို့ စဉ်းစားသွားတယ်၊ အဲ့အကြောင်းအရာသည် အပြင်အဆင်မရှိတဲ့ အကြောင်းအရာဖြစ်တဲ့အတွက် ဖြစ်နေတယ်ဆိုရင်တောင်း အဲ့နောက်ပိုင်း အားလုံးသည် အရှေ့တန်ဖိုးရှိသော အပျင်းအဆင်ကို ရယူနိုင်သည်။";
       const calledEndpoint = endpointUrl.replace(
         ":conversationId",
         conversationId

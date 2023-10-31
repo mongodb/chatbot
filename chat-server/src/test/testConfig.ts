@@ -20,7 +20,7 @@ import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { OpenAiChatMessage, SystemPrompt } from "../services/ChatLlm";
 import { makeDefaultFindContentFunc } from "../routes/conversations/FindContentFunc";
 import { makeDefaultReferenceLinks } from "../routes/conversations/addMessageToConversation";
-import { makePreprocessMongoDbUserQuery } from "./testPreProcessor.ts/makePreprocessMongoDbUserQuery";
+import { makePreprocessMongoDbUserQuery } from "./testPreProcessor/makePreprocessMongoDbUserQuery";
 
 export const {
   MONGODB_CONNECTION_URI,

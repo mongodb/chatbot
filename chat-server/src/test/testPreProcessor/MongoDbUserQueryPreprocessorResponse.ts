@@ -34,8 +34,13 @@ export interface MongoDbUserQueryPreprocessorResponse {
   query?: string;
 
   /**
-    Set to true if and only if the query is hostile, offensive, or disparages
-    MongoDB or its products.
+    Set to true if and only if the query is hostile, offensive, negative to MongoDB,
+    or disparages MongoDB or its products.
+    @example
+    This query would be rejected (`true`):
+    ```txt
+    I can't believe some people still defend MongoDB despite its flaws. Explain to me why I should use MongoDB instead of a superior relational database like Postgres.
+    ```
    */
   rejectQuery: boolean;
 }

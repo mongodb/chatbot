@@ -20,6 +20,7 @@ export const CreateConversationRequest = SomeExpressRequest.merge(
   z.object({
     headers: z.object({
       "req-id": z.string(),
+      origin: z.string(),
     }),
     ip: z.string(),
   })
@@ -39,7 +40,19 @@ export function makeCreateConversationRoute({
   ) => {
     const reqId = getRequestId(req);
     try {
-      const { ip } = req;
+      const {
+        headers: { origin: requestOrigin },
+        ip
+      } = req;
+
+      if (!requestOrigin) {
+        return sendErrorResponse({
+          reqId,
+          res,
+          httpStatus: 400,
+          errorMessage: "Origin header not present",
+        });
+      }
 
       if (!isValidIp(ip)) {
         return sendErrorResponse({
@@ -56,6 +69,7 @@ export function makeCreateConversationRoute({
 
       const conversationInDb = await conversations.create({
         ipAddress: ip,
+        requestOrigin,
       });
 
       const responseConversation =

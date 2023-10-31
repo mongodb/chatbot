@@ -19,8 +19,10 @@ import {
 import {
   ApiConversation,
   ApiMessage,
+  RequestError,
   convertMessageFromDbToApi,
   isValidIp,
+  makeRequestError,
 } from "./utils";
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
@@ -40,6 +42,7 @@ export const AddMessageRequest = SomeExpressRequest.merge(
   z.object({
     headers: z.object({
       "req-id": z.string(),
+      "origin": z.string(),
     }),
     params: z.object({
       conversationId: z.string(),
@@ -63,25 +66,6 @@ export interface AddMessageToConversationRouteParams {
   findContent: FindContentFunc;
 }
 
-export type RequestError = Error & {
-  name: "RequestError";
-  httpStatus: number;
-};
-
-export const makeRequestError = ({
-  message,
-  httpStatus,
-  stack: stackIn,
-}: Omit<RequestError, "name">): RequestError => {
-  const stack = stackIn ?? new Error(message).stack;
-  return {
-    stack,
-    message,
-    httpStatus,
-    name: "RequestError",
-  };
-};
-
 export function makeAddMessageToConversationRoute({
   conversations,
   llm,
@@ -95,11 +79,13 @@ export function makeAddMessageToConversationRoute({
     res: ExpressResponse<ApiMessage>
   ) => {
     const reqId = getRequestId(req);
+
     try {
       const {
         params: { conversationId: conversationIdString },
         body: { message },
         query: { stream },
+        headers: { origin: requestOrigin },
         ip,
       } = req;
       logRequest({
@@ -108,8 +94,16 @@ export function makeAddMessageToConversationRoute({
           User message: ${message}
           Stream: ${stream}
           IP: ${ip}
+          Origin: ${requestOrigin}
           ConversationId: ${conversationIdString}`,
       });
+
+      if (!requestOrigin) {
+        throw makeRequestError({
+          httpStatus: 400,
+          message: "Origin header not present",
+        });
+      }
 
       if (!isValidIp(ip)) {
         throw makeRequestError({
@@ -186,6 +180,7 @@ export function makeAddMessageToConversationRoute({
           latestMessageText,
           shouldStream,
           dataStreamer,
+          requestOrigin,
           res,
         });
       }
@@ -209,6 +204,7 @@ export function makeAddMessageToConversationRoute({
           latestMessageText,
           shouldStream,
           dataStreamer,
+          requestOrigin,
           res,
         });
       }
@@ -315,8 +311,9 @@ export function makeAddMessageToConversationRoute({
       const { assistantMessage } = await addMessagesToDatabase({
         conversations,
         conversation,
-        originalUserMessageContent: message,
+        requestOrigin,
         preprocessedUserMessageContent,
+        originalUserMessageContent: message,
         assistantMessageContent: answerContent,
         assistantMessageReferences: references,
         userMessageEmbedding: queryEmbedding,
@@ -366,6 +363,7 @@ export async function sendStaticNonResponse({
   dataStreamer,
   res,
   rejectQuery,
+  requestOrigin,
 }: {
   conversations: ConversationsService;
   conversation: Conversation;
@@ -375,11 +373,13 @@ export async function sendStaticNonResponse({
   shouldStream: boolean;
   dataStreamer: DataStreamer;
   res: ExpressResponse<ApiMessage>;
+  requestOrigin?: string;
 }) {
   const { assistantMessage } = await addMessagesToDatabase({
     conversations,
     conversation,
     rejectQuery,
+    requestOrigin,
     preprocessedUserMessageContent: preprocessedUserMessageContent,
     originalUserMessageContent: latestMessageText,
     assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,
@@ -421,6 +421,7 @@ interface AddMessagesToDatabaseParams {
   conversations: ConversationsService;
   userMessageEmbedding?: number[];
   rejectQuery?: boolean;
+  requestOrigin?: string;
 }
 
 export async function addMessagesToDatabase({
@@ -432,6 +433,7 @@ export async function addMessagesToDatabase({
   conversations,
   userMessageEmbedding,
   rejectQuery,
+  requestOrigin,
 }: AddMessagesToDatabaseParams) {
   // TODO: consider refactoring addConversationMessage to take in an array of messages.
   // Would limit database calls.
@@ -439,10 +441,11 @@ export async function addMessagesToDatabase({
   const userMessage = await conversations.addConversationMessage({
     conversationId,
     content: originalUserMessageContent,
-    preprocessedContent: preprocessedUserMessageContent,
     role: "user",
     embedding: userMessageEmbedding,
+    preprocessedContent: preprocessedUserMessageContent,
     rejectQuery,
+    requestOrigin,
   });
   const assistantMessage = await conversations.addConversationMessage({
     conversationId,

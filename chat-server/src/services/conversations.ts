@@ -73,9 +73,12 @@ export interface Conversation {
   ipAddress: string;
   /** The date the conversation was created. */
   createdAt: Date;
+  /** The hostname that the request originated from. */
+  requestOrigin?: string;
 }
 export interface CreateConversationParams {
   ipAddress: string;
+  requestOrigin?: string;
 }
 
 export interface AddConversationMessageParams {
@@ -84,6 +87,7 @@ export interface AddConversationMessageParams {
   preprocessedContent?: string;
   role: OpenAiMessageRole;
   references?: References;
+  requestOrigin?: string; // Only for role: "user" messages
 
   /**
     The vector representation of the message content.
@@ -101,7 +105,7 @@ export interface RateMessageParams {
   rating: boolean;
 }
 export interface ConversationsService {
-  create: ({ ipAddress }: CreateConversationParams) => Promise<Conversation>;
+  create: (params: CreateConversationParams) => Promise<Conversation>;
   addConversationMessage: (
     params: AddConversationMessageParams
   ) => Promise<Message>;
@@ -130,12 +134,13 @@ export function makeConversationsService(
   const conversationsCollection =
     database.collection<Conversation>("conversations");
   return {
-    async create({ ipAddress }: CreateConversationParams) {
+    async create({ ipAddress, requestOrigin }: CreateConversationParams) {
       const newConversation = {
         _id: new ObjectId(),
         ipAddress,
         messages: [createMessageFromOpenAIChatMessage(systemPrompt)],
         createdAt: new Date(),
+        requestOrigin,
       };
       const insertResult = await conversationsCollection.insertOne(
         newConversation
@@ -158,17 +163,24 @@ export function makeConversationsService(
       references,
       embedding,
       rejectQuery,
+      requestOrigin,
     }: AddConversationMessageParams) {
       const newMessage = createMessageFromOpenAIChatMessage({
         role,
         content,
         embedding,
       });
+      if (requestOrigin && role !== "user") {
+        console.warn(
+          `requestOrigin is only supported for role: "user" messages, but was passed for role: "${role}"`
+        );
+      }
       Object.assign(
         newMessage,
         preprocessedContent && { preprocessedContent },
         references && { references },
-        rejectQuery !== undefined ? { rejectQuery } : undefined
+        rejectQuery !== undefined ? { rejectQuery } : undefined,
+        requestOrigin && { requestOrigin }
       );
 
       const updateResult = await conversationsCollection.updateOne(

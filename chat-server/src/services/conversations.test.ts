@@ -6,7 +6,7 @@ import {
   makeMongoDbConversationsService,
 } from "./conversations";
 import { BSON, MongoClient } from "mongodb-rag-core";
-import { systemPrompt } from "../testHelpers";
+import { systemPrompt } from "../test/testHelpers";
 
 jest.setTimeout(100000);
 

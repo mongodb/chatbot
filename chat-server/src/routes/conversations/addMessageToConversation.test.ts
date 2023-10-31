@@ -31,16 +31,16 @@ import { makeDataStreamer } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb-rag-core";
 import { makeApp, DEFAULT_API_PREFIX } from "../../app";
-import { makeTestApp } from "../../testHelpers";
+import { makeTestApp } from "../../test/testHelpers";
 import {
   makeTestAppConfig,
   generateUserPrompt,
   systemPrompt,
-} from "../../testHelpers";
+} from "../../test/testHelpers";
 import { AppConfig } from "../../app";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { makeDefaultFindContentFunc } from "./FindContentFunc";
-import { embedder, embeddedContentStore as store } from "../../config";
+import { embedder, embeddedContentStore as store } from "../../test/testConfig";
 
 const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
   assertEnvVars(CORE_ENV_VARS);

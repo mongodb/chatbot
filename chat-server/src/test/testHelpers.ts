@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb-rag-core";
-import { AppConfig, makeApp } from "./app";
-import { MONGODB_CONNECTION_URI, config, systemPrompt } from "./config";
-import { makeMongoDbConversationsService } from "./services/conversations";
+import { AppConfig, makeApp } from "../app";
+import { MONGODB_CONNECTION_URI, config, systemPrompt } from "./testConfig";
+import { makeMongoDbConversationsService } from "../services/conversations";
 
 export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
   const testDbName = `conversations-test-${Date.now()}`;
@@ -42,4 +42,4 @@ export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
   };
 }
 
-export { systemPrompt, generateUserPrompt } from "./config";
+export { systemPrompt, generateUserPrompt } from "./testConfig";

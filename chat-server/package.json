@@ -11,7 +11,7 @@
   },
   "main": "./dist/index.js",
   "scripts": {
-    "build": "rm -rf ./dist/ && tsc",
+    "build": "rm -rf ./dist/ && tsc -b tsconfig.build.json",
     "format": "prettier ./src --write",
     "format:check": "prettier ./src --check",
     "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",

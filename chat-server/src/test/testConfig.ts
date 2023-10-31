@@ -9,17 +9,18 @@ import {
   makeMongoDbEmbeddedContentStore,
   makeOpenAiEmbedder,
 } from "mongodb-rag-core";
-import { makeMongoDbConversationsService } from "./services/conversations";
-import { makeDataStreamer } from "./services/dataStreamer";
-import { makeOpenAiChatLlm } from "./services/openAiChatLlm";
+import { makeMongoDbConversationsService } from "../services/conversations";
+import { makeDataStreamer } from "../services/dataStreamer";
+import { makeOpenAiChatLlm } from "../services/openAiChatLlm";
 import { stripIndents } from "common-tags";
-import { AppConfig } from "./app";
-import { makeBoostOnAtlasSearchFilter } from "./processors/makeBoostOnAtlasSearchFilter";
+import { AppConfig } from "../app";
+import { makeBoostOnAtlasSearchFilter } from "../processors/makeBoostOnAtlasSearchFilter";
 import { CORE_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
-import { OpenAiChatMessage, SystemPrompt } from "./services/ChatLlm";
-import { makeDefaultFindContentFunc } from "./routes/conversations/FindContentFunc";
-import { makeDefaultReferenceLinks } from "./routes/conversations/addMessageToConversation";
+import { OpenAiChatMessage, SystemPrompt } from "../services/ChatLlm";
+import { makeDefaultFindContentFunc } from "../routes/conversations/FindContentFunc";
+import { makeDefaultReferenceLinks } from "../routes/conversations/addMessageToConversation";
+import { makePreprocessMongoDbUserQuery } from "./testPreProcessor.ts/makePreprocessMongoDbUserQuery";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -63,6 +64,17 @@ export const openAiClient = new OpenAIClient(
   OPENAI_ENDPOINT,
   new AzureKeyCredential(OPENAI_API_KEY)
 );
+
+const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({
+  azureOpenAiServiceConfig: {
+    apiKey: OPENAI_API_KEY,
+    baseUrl: OPENAI_ENDPOINT,
+    deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    version: OPENAI_CHAT_COMPLETION_MODEL_VERSION,
+  },
+  numRetries: 0,
+  retryDelayMs: 5000,
+});
 export const systemPrompt: SystemPrompt = {
   role: "system",
   content: stripIndents`You are expert MongoDB documentation chatbot.
@@ -183,6 +195,7 @@ export const config: AppConfig = {
     maxChunkContextTokens: 1500,
     conversations,
     makeReferenceLinks: makeMongoDbReferences,
+    userQueryPreprocessor: mongoDbUserQueryPreprocessor,
   },
   maxRequestTimeoutMs: 30000,
   corsOptions: {

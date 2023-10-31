@@ -317,7 +317,7 @@ steps:
 # Ingest service
 # ---
 ---
-depends_on: ["test-all"]
+# depends_on: ["test-all"] # TODO: remove before merge
 kind: pipeline
 type: kubernetes
 name: staging-build-ingest-mongodb-public
@@ -325,6 +325,7 @@ name: staging-build-ingest-mongodb-public
 trigger:
   branch:
     - main
+    - oss-refactor-pt-2 # TODO: remove before merge
   event:
     - push
   paths:
@@ -388,6 +389,7 @@ trigger:
       - chat-core/**/*
   branch:
     - main
+    - oss-refactor-pt-2 # TODO: remove before merge
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion

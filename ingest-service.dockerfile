@@ -10,7 +10,7 @@ ENV LG_ARTIFACTORY_EMAIL=${LG_ARTIFACTORY_EMAIL}
 
 WORKDIR /app
 COPY . ./
-RUN npm install lerna && npm run bootstrap && npm run build -- --scope='{chat-core,ingest,ingest-mongodb-public}'
+RUN npm install lerna && npm run bootstrap && npm run build -- --scope='{mongodb-rag-core,mongodb-rag-ingest,ingest-mongodb-public}'
 
 # Main image
 FROM node:18-alpine as main

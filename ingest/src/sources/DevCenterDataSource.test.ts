@@ -20,7 +20,7 @@ const devCenterDoc = JSON.parse(
   )
 );
 describe("DevCenterDataSource", () => {
-  jest.setTimeout(20000);
+  jest.setTimeout(30000);
   const { DEVCENTER_CONNECTION_URI } = process.env;
   it("loads pages from dev center", async () => {
     assert(

@@ -37,6 +37,6 @@
     "@release-it/bumper": "^5.1.0",
     "dotenv": "^16",
     "mongodb-rag-core": "^0.0.4",
-    "mongodb-rag-ingest": "^0.1.3"
+    "mongodb-rag-ingest": "^0.1.5"
   }
 }

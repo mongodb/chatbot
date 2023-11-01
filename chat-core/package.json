@@ -1,6 +1,6 @@
 {
   "name": "mongodb-rag-core",
-  "version": "0.0.5-0",
+  "version": "0.0.5-1",
   "description": "Common elements used by the chatbot components.",
   "author": "MongoDB, Inc.",
   "license": "Apache-2.0",

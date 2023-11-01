@@ -9,6 +9,10 @@
     "node": ">=18",
     "npm": ">=8"
   },
+  "files": [
+    "build",
+    "README.md"
+  ],
   "exports": {
     ".": "./build/index.js",
     "./embed": "./build/embed/index.js",

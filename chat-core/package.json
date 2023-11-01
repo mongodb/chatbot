@@ -9,6 +9,10 @@
     "node": ">=18",
     "npm": ">=8"
   },
+  "files": [
+    "build",
+    "README.md"
+  ],
   "main": "./build/index.js",
   "scripts": {
     "clean": "rm -rf build",

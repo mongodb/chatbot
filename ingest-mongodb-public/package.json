@@ -14,7 +14,7 @@
     "build": "tsc -b",
     "watch": "tsc -b -w",
     "release": "release-it",
-    "ingest:all": "node ./node_modules/ingest/build/main.js all --config ./build/config.js"
+    "ingest:all": "ingest all --config ./build/config.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",

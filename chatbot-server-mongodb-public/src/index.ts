@@ -2,9 +2,13 @@
   @fileoverview This file contains the implementation of the MongoDB Docs AI chat server.
  */
 import "dotenv/config";
-import { makeApp } from "mongodb-chatbot-server";
-import { logger } from "mongodb-rag-core";
-import { CORE_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
+import {
+  makeApp,
+  logger,
+  CORE_ENV_VARS,
+  assertEnvVars,
+} from "mongodb-chatbot-server";
+
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,

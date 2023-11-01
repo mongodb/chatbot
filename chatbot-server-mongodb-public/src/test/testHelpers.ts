@@ -1,7 +1,10 @@
-import { MongoClient } from "mongodb-rag-core";
-import { AppConfig, makeApp } from "mongodb-chatbot-server";
+import {
+  MongoClient,
+  AppConfig,
+  makeApp,
+  makeMongoDbConversationsService,
+} from "mongodb-chatbot-server";
 import { MONGODB_CONNECTION_URI, config, systemPrompt } from "../config";
-import { makeMongoDbConversationsService } from "mongodb-chatbot-server";
 
 export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
   const testDbName = `conversations-test-${Date.now()}`;

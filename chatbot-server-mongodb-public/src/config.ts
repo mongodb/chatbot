@@ -8,19 +8,21 @@ import {
   MongoClient,
   makeMongoDbEmbeddedContentStore,
   makeOpenAiEmbedder,
-} from "mongodb-rag-core";
-import { makeMongoDbConversationsService } from "mongodb-chatbot-server";
-import { makeDataStreamer } from "mongodb-chatbot-server";
-import { makeOpenAiChatLlm } from "mongodb-chatbot-server";
+  makeMongoDbConversationsService,
+  makeDataStreamer,
+  makeOpenAiChatLlm,
+  AppConfig,
+  makeBoostOnAtlasSearchFilter,
+  CORE_ENV_VARS,
+  assertEnvVars,
+  makeDefaultFindContentFunc,
+  makeDefaultReferenceLinks,
+  OpenAiChatMessage,
+  SystemPrompt,
+} from "mongodb-chatbot-server";
 import { stripIndents } from "common-tags";
-import { AppConfig } from "mongodb-chatbot-server";
-import { makeBoostOnAtlasSearchFilter } from "mongodb-chatbot-server";
-import { CORE_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
-import { OpenAiChatMessage, SystemPrompt } from "mongodb-chatbot-server";
-import { makeDefaultFindContentFunc } from "mongodb-chatbot-server";
-import { makeDefaultReferenceLinks } from "mongodb-chatbot-server";
 
 export const {
   MONGODB_CONNECTION_URI,

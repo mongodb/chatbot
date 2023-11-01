@@ -2,7 +2,7 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { logger } from "mongodb-rag-core";
+import { logger } from "mongodb-chatbot-server";
 import { stripIndent } from "common-tags";
 
 /**

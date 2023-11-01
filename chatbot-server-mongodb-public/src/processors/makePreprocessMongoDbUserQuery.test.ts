@@ -4,14 +4,14 @@ import {
   assertEnvVars,
   AzureOpenAiServiceConfig,
   ObjectId,
-} from "mongodb-rag-core";
+  Message,
+} from "mongodb-chatbot-server";
 import {
   addMetadataToQuery,
   generateMongoDbQueryPreProcessorPrompt,
   makePreprocessMongoDbUserQuery,
 } from "./makePreprocessMongoDbUserQuery";
 import { stripIndent } from "common-tags";
-import { Message } from "mongodb-chatbot-server";
 
 const {
   OPENAI_ENDPOINT,

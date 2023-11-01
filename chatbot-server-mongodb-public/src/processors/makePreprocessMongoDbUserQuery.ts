@@ -4,13 +4,11 @@ import { MongoDbUserQueryPreprocessorResponse } from "./MongoDbUserQueryPreproce
 import {
   QueryPreprocessorFunc,
   QueryPreprocessorResult,
-} from "mongodb-chatbot-server";
-import {
   updateFrontMatter,
   makeTypeChatJsonTranslateFunc,
   AzureOpenAiServiceConfig,
-} from "mongodb-rag-core";
-import { Message } from "mongodb-chatbot-server";
+  Message,
+} from "mongodb-chatbot-server";
 
 /**
   Query preprocessor that uses the Azure OpenAI service to preprocess

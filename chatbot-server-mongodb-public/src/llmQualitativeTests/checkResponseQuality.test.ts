@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { stripIndents } from "common-tags";
 import { checkResponseQuality } from "./checkResponseQuality";
-import { CORE_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
+import { CORE_ENV_VARS, assertEnvVars } from "mongodb-chatbot-server";
 
 const {
   OPENAI_ENDPOINT,

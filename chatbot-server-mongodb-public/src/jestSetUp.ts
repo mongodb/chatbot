@@ -1,4 +1,4 @@
-import { logger } from "mongodb-rag-core";
+import { logger } from "mongodb-chatbot-server";
 import { meetsChatQualityStandards } from "./llmQualitativeTests/meetsChatQualityStandardsJestExtension";
 // silence logger for tests
 logger.transports.forEach((t) => (t.silent = true));

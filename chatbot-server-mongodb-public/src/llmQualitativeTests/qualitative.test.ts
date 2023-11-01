@@ -1,8 +1,10 @@
-import { MongoClient } from "mongodb-rag-core";
 import { Express } from "express";
-import { makeTestApp } from "mongodb-chatbot-server";
-import { ConversationsService } from "mongodb-chatbot-server";
-import { AppConfig } from "mongodb-chatbot-server";
+import { makeTestApp } from "../test/testHelpers";
+import {
+  AppConfig,
+  ConversationsService,
+  MongoClient,
+} from "mongodb-chatbot-server";
 import { generateTranscript } from "./generateChatTranscript";
 import { getTestCasesFromYaml } from "./getTestCasesFromYaml";
 import "../../global.d.ts";

@@ -68,7 +68,6 @@ name: staging-build-chat-server
 trigger:
   branch:
     - main
-    - oss-refactor-pt-2 # TODO: remove before merge
   event:
     - push
 
@@ -136,7 +135,6 @@ trigger:
       - chat-ui/**/*
   branch:
     - main
-    - oss-refactor-pt-2 # TODO: remove before merge
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion
@@ -329,7 +327,6 @@ name: staging-build-ingest-mongodb-public
 trigger:
   branch:
     - main
-    - oss-refactor-pt-2 # TODO: remove before merge
   event:
     - push
   paths:
@@ -393,7 +390,6 @@ trigger:
       - chat-core/**/*
   branch:
     - main
-    - oss-refactor-pt-2 # TODO: remove before merge
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion
@@ -494,6 +490,59 @@ steps:
         from_secret: prod_kubernetes_token
 
 # ---
+# mongodb-rag-core package
+# ---
+---
+kind: pipeline
+type: kubernetes
+name: publish-mongodb-rag-core
+depends_on: ["test-all"]
+
+trigger:
+  event:
+    - tag
+  ref:
+    include:
+      - refs/tags/mongodb-rag-core-v*
+
+steps:
+  - name: build package
+    image: node:18
+    commands:
+      - npm ci
+      - npm run build
+      - cd chat-core && npm publish
+    environment:
+      PORT: 3000
+      OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
+      OPENAI_EMBEDDING_MODEL_VERSION: 2023-03-15-preview
+      MONGODB_DATABASE_NAME: docs-chatbot-test
+      VECTOR_SEARCH_INDEX_NAME: default
+      OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
+      MONGODB_CONNECTION_URI:
+        from_secret: mongodb_connection_uri
+      OPENAI_ENDPOINT:
+        from_secret: openai_endpoint
+      OPENAI_API_KEY:
+        from_secret: openai_api_key
+      OPENAI_EMBEDDING_DEPLOYMENT:
+        from_secret: openai_embedding_deployment
+      OPENAI_CHAT_COMPLETION_DEPLOYMENT:
+        from_secret: openai_chat_completion_deployment
+      DEVCENTER_CONNECTION_URI:
+        from_secret: devcenter_connection_uri
+      LG_ARTIFACTORY_PASSWORD:
+        from_secret: lg_artifactory_password
+      LG_ARTIFACTORY_USERNAME:
+        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_EMAIL:
+        from_secret: lg_artifactory_email
+      GITHUB_ACCESS_TOKEN:
+        from_secret: github_access_token
+      NPM_TOKEN:
+        from_secret: mongodb_ai_npm_token
+
+# ---
 # mongodb-rag-ingest package
 # ---
 ---
@@ -560,75 +609,6 @@ steps:
         from_secret: mongodb_ai_npm_email
       password:
         from_secret: mongodb_ai_npm_token
-
-# ---
-# mongodb-rag-core package
-# ---
----
-kind: pipeline
-type: kubernetes
-name: publish-mongodb-rag-core
-depends_on: ["test-all"]
-
-trigger:
-  event:
-    - tag
-  ref:
-    include:
-      - refs/tags/mongodb-rag-core-v*
-
-steps:
-  - name: build package
-    image: node:18
-    commands:
-      - npm ci
-      - npm run build
-    environment:
-      PORT: 3000
-      OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
-      OPENAI_EMBEDDING_MODEL_VERSION: 2023-03-15-preview
-      MONGODB_DATABASE_NAME: docs-chatbot-test
-      VECTOR_SEARCH_INDEX_NAME: default
-      OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
-      MONGODB_CONNECTION_URI:
-        from_secret: mongodb_connection_uri
-      OPENAI_ENDPOINT:
-        from_secret: openai_endpoint
-      OPENAI_API_KEY:
-        from_secret: openai_api_key
-      OPENAI_EMBEDDING_DEPLOYMENT:
-        from_secret: openai_embedding_deployment
-      OPENAI_CHAT_COMPLETION_DEPLOYMENT:
-        from_secret: openai_chat_completion_deployment
-      DEVCENTER_CONNECTION_URI:
-        from_secret: devcenter_connection_uri
-      LG_ARTIFACTORY_PASSWORD:
-        from_secret: lg_artifactory_password
-      LG_ARTIFACTORY_USERNAME:
-        from_secret: lg_artifactory_username
-      LG_ARTIFACTORY_EMAIL:
-        from_secret: lg_artifactory_email
-      GITHUB_ACCESS_TOKEN:
-        from_secret: github_access_token
-  - name: npm
-    image: plugins/npm
-    environment:
-      LG_ARTIFACTORY_PASSWORD:
-        from_secret: lg_artifactory_password
-      LG_ARTIFACTORY_USERNAME:
-        from_secret: lg_artifactory_username
-      LG_ARTIFACTORY_EMAIL:
-        from_secret: lg_artifactory_email
-    settings:
-      folder: chat-core
-      registry: https://registry.npmjs.org/
-      username:
-        from_secret: mongodb_ai_npm_username
-      email:
-        from_secret: mongodb_ai_npm_email
-      password:
-        from_secret: mongodb_ai_npm_token
-
 # ---
 # mongodb-chatbot-server package
 # ---

@@ -15,22 +15,11 @@ ENV VITE_GIT_COMMIT=${GIT_COMMIT}
 # Install all dependencies && set up project
 WORKDIR /app
 COPY . ./
-RUN npm install lerna && npm run bootstrap && npm run build
+RUN npm install lerna
+RUN npm run bootstrap -- --scope='{mongodb-rag-core,mongodb-chatbot-server,chatbot-server-mongodb-public,mongodb-chatbot-ui}'
+RUN npm run build -- --scope='{mongodb-rag-core,mongodb-chatbot-server,chatbot-server-mongodb-public,mongodb-chatbot-ui}'
 
-# Main image
-FROM node:18-alpine as main
-WORKDIR /app
-
-# OSS_REFACTOR_TODO: this will probably need work
-# need to do something to ready up mongodb-chatbot-server
-COPY --from=builder /app/chat-core ./chat-core/
-COPY --from=builder /app/chat-server ./chat-server/
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/chatbot-server-mongodb-public/package*.json ./chatbot-server-mongodb-public/
-COPY --from=builder /app/chatbot-server-mongodb-public/static ./chatbot-server-mongodb-public/static
-COPY --from=builder /app/chatbot-server-mongodb-public/dist ./chatbot-server-mongodb-public/dist
-COPY --from=builder /app/chatbot-server-mongodb-public/node_modules ./chatbot-server-mongodb-public/node_modules
+ENV NODE_ENV=production
 
 EXPOSE 3000
 WORKDIR /app/chatbot-server-mongodb-public

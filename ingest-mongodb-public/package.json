@@ -14,7 +14,7 @@
     "build": "tsc -b",
     "watch": "tsc -b -w",
     "release": "release-it",
-    "ingest:all": "ingest all --config ./build/config.js"
+    "ingest:all": "../node_modules/mongodb-rag-ingest/build/main.js all --config ./build/config.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",

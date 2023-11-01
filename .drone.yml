@@ -319,7 +319,7 @@ steps:
 # Ingest service
 # ---
 ---
-depends_on: ["test-all"] # TODO: remove before merge
+depends_on: ["test-all"]
 kind: pipeline
 type: kubernetes
 name: staging-build-ingest-mongodb-public

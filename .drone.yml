@@ -544,8 +544,8 @@ steps:
     image: node:18
     commands:
       - npm install lerna
-      - npm run bootstrap -- --scope {mongodb-rag-core,mongodb-rag-ingest}
-      - npm run build -- --scope {mongodb-rag-core,mongodb-rag-ingest}
+      - npm run bootstrap -- --scope='{mongodb-rag-core,mongodb-rag-ingest}'
+      - npm run build -- --scope='{mongodb-rag-core,mongodb-rag-ingest}'
       - cd ingest && npm publish
     environment:
       LG_ARTIFACTORY_PASSWORD:

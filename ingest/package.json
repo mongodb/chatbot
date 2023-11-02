@@ -81,7 +81,7 @@
     "jsdom": "^22.1.0",
     "langchain": "^0.0.148",
     "mongodb": "^5",
-    "mongodb-rag-core": "^0.0.4",
+    "mongodb-rag-core": "^0.0.5",
     "node-fetch": "^2",
     "rimraf": "^5.0.1",
     "simple-git": "^3.19.1",

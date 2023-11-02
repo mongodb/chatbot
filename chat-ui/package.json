@@ -93,7 +93,7 @@
     "@release-it/bumper": "^5.1.0",
     "buffer": "^6.0.3",
     "esbuild": "^0.17.19",
-    "mongodb-rag-core": "^0.0.4",
+    "mongodb-rag-core": "^0.0.5",
     "prettier": "^2.8.8",
     "react-markdown": "^8.0.7",
     "react-transition-group": "^4.4.5",

@@ -2,7 +2,7 @@ import "dotenv/config";
 import {
   MongoClient,
   makeMongoDbEmbeddedContentStore,
-  makeOpenAiEmbedFunc,
+  makeOpenAiEmbedder,
   makeMongoDbConversationsService,
   makeDataStreamer,
   AppConfig,
@@ -84,7 +84,7 @@ export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   databaseName: MONGODB_DATABASE_NAME,
 });
 
-export const embed = makeOpenAiEmbedFunc({
+export const embedder = makeOpenAiEmbedder({
   openAiClient,
   deployment: OPENAI_EMBEDDING_DEPLOYMENT,
   backoffOptions: {
@@ -96,7 +96,7 @@ export const embed = makeOpenAiEmbedFunc({
 export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 
 export const findContent = makeDefaultFindContentFunc({
-  embed,
+  embedder,
   store: embeddedContentStore,
   findNearestNeighborsOptions: {
     k: 5,

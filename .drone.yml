@@ -577,8 +577,8 @@ steps:
     image: node:18
     commands:
       - npm install lerna
-      - npm run bootstrap -- --scope {mongodb-rag-core,mongodb-chatbot-server}
-      - npm run build -- --scope {mongodb-rag-core,mongodb-chatbot-server}
+      - npm run bootstrap -- --scope='{mongodb-rag-core,mongodb-chatbot-server}'
+      - npm run build -- --scope='{mongodb-rag-core,mongodb-chatbot-server}'
       - cd chat-server && npm publish
     environment:
       LG_ARTIFACTORY_PASSWORD:
@@ -610,9 +610,9 @@ steps:
     image: node:18
     commands:
       - npm install lerna
-      - npm run bootstrap -- --scope {mongodb-rag-core,mongodb-chatbot-ui}
-      - npm run build -- --scope {mongodb-rag-core,mongodb-chatbot-ui}
-      - cd ingest && npm publish
+      - npm run bootstrap -- --scope='{mongodb-rag-core,mongodb-chatbot-ui}'
+      - npm run build -- --scope='{mongodb-rag-core,mongodb-chatbot-ui}'
+      - cd chat-ui && npm publish
     environment:
       LG_ARTIFACTORY_PASSWORD:
         from_secret: lg_artifactory_password

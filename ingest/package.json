@@ -11,14 +11,16 @@
   },
   "files": [
     "build",
-    "README.md"
+    "README.md",
+    "node_modules/mongodb-rag-core"
   ],
   "exports": {
     ".": "./build/index.js",
     "./embed": "./build/embed/index.js",
     "./pages": "./build/pages/index.js",
     "./sources": "./build/sources/index.js",
-    "./sources/snooty": "./build/sources/snooty/index.js"
+    "./sources/snooty": "./build/sources/snooty/index.js",
+    "./core": "./build/core/index.js"
   },
   "bin": {
     "ingest": "./build/main.js"

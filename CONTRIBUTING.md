@@ -137,6 +137,9 @@ npm run release
 
 To learn more about our release set up, refer to the [release-it monorepo documentation](https://github.com/release-it/release-it/blob/main/docs/recipes/monorepo.md).
 
+When you create a tag for a release and push it to Github, it triggers a Drone pipeline
+that publishes the package to npm.
+
 ## Releases
 
 ### Staging

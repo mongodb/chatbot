@@ -33,6 +33,9 @@
     "docs": "npx typedoc --excludePrivate --exclude '**/*.test.ts' --out docs src",
     "release": "release-it"
   },
+  "bundledDependencies": [
+    "mongodb-rag-core"
+  ],
   "devDependencies": {
     "@babel/preset-typescript": "^7",
     "@babel/types": "^7.22.5",

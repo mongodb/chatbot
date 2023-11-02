@@ -509,8 +509,9 @@ steps:
   - name: build package
     image: node:18
     commands:
-      - npm ci
-      - npm run build
+      - npm install lerna
+      - npm run bootstrap -- --scope mongodb-rag-core
+      - npm run build -- --scope mongodb-rag-core
       - cd chat-core && npm publish
     environment:
       PORT: 3000

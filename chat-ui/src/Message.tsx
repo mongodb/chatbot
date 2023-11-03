@@ -44,6 +44,13 @@ const styles = {
   `,
   message_rating: css`
     margin-top: 1rem;
+
+    // Ensure that the rating icons are properly center aligned. The
+    // docs site has a global label style that adds a margin here
+    // without this style.
+    & label {
+      margin: 0;
+    }
   `,
   // This is a hacky fix for weird white-space issues in LG Chat.
   markdown_container: css`
@@ -52,6 +59,14 @@ const styles = {
 
     & * {
       line-height: 28px;
+    }
+
+    & p {
+      font-weight: 400;
+    }
+
+    & a {
+      font-weight: 400;
     }
 
     & li {
@@ -114,7 +129,7 @@ export const Message = ({
   return (
     <Fragment key={messageData.id}>
       <LGMessage
-        baseFontSize={13}
+        baseFontSize={16}
         isSender={info.isSender}
         messageRatingProps={
           showRating

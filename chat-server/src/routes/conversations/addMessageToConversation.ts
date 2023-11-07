@@ -182,6 +182,7 @@ export function makeAddMessageToConversationRoute({
           dataStreamer,
           requestOrigin,
           res,
+          originalMessageEmbedding: [],
         });
       }
       const query = preprocessedUserMessageContent ?? latestMessageText;
@@ -206,6 +207,7 @@ export function makeAddMessageToConversationRoute({
           dataStreamer,
           requestOrigin,
           res,
+          originalMessageEmbedding: queryEmbedding,
         });
       }
 
@@ -364,6 +366,7 @@ export async function sendStaticNonResponse({
   res,
   rejectQuery,
   requestOrigin,
+  originalMessageEmbedding,
 }: {
   conversations: ConversationsService;
   conversation: Conversation;
@@ -373,7 +376,8 @@ export async function sendStaticNonResponse({
   shouldStream: boolean;
   dataStreamer: DataStreamer;
   res: ExpressResponse<ApiMessage>;
-  requestOrigin?: string;
+  requestOrigin: string;
+  originalMessageEmbedding: number[];
 }) {
   const { assistantMessage } = await addMessagesToDatabase({
     conversations,
@@ -382,6 +386,7 @@ export async function sendStaticNonResponse({
     requestOrigin,
     preprocessedUserMessageContent: preprocessedUserMessageContent,
     originalUserMessageContent: latestMessageText,
+    userMessageEmbedding: originalMessageEmbedding,
     assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,
     assistantMessageReferences: [],
   });
@@ -419,9 +424,9 @@ interface AddMessagesToDatabaseParams {
   assistantMessageContent: string;
   assistantMessageReferences: References;
   conversations: ConversationsService;
-  userMessageEmbedding?: number[];
+  userMessageEmbedding: number[];
   rejectQuery?: boolean;
-  requestOrigin?: string;
+  requestOrigin: string;
 }
 
 export async function addMessagesToDatabase({

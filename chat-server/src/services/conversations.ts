@@ -81,21 +81,22 @@ export interface CreateConversationParams {
   requestOrigin?: string;
 }
 
-export interface AddConversationMessageParams {
+
+export type AddSystemMessageParams = Omit<SystemMessage, "id" | "createdAt"> & {
   conversationId: ObjectId;
-  content: string;
-  preprocessedContent?: string;
-  role: OpenAiMessageRole;
-  references?: References;
-  requestOrigin?: string; // Only for role: "user" messages
+};
 
-  /**
-    The vector representation of the message content.
-   */
-  embedding?: number[];
-
-  rejectQuery?: boolean;
+export type AddUserMessageParams = Omit<UserMessage, "id" | "createdAt"> & {
+  conversationId: ObjectId;
+  requestOrigin: string;
 }
+
+export type AddAssistantMessageParams = Omit<AssistantMessage, "id" | "createdAt"> & {
+  conversationId: ObjectId;
+};
+
+export type AddConversationMessageParams = AddSystemMessageParams | AddUserMessageParams | AddAssistantMessageParams;
+
 export interface FindByIdParams {
   _id: ObjectId;
 }
@@ -155,37 +156,11 @@ export function makeConversationsService(
       return newConversation;
     },
 
-    async addConversationMessage({
-      conversationId,
-      content,
-      role,
-      preprocessedContent,
-      references,
-      embedding,
-      rejectQuery,
-      requestOrigin,
-    }: AddConversationMessageParams) {
-      const newMessage = createMessageFromOpenAIChatMessage({
-        role,
-        content,
-        embedding,
-      });
-      if (requestOrigin && role !== "user") {
-        console.warn(
-          `requestOrigin is only supported for role: "user" messages, but was passed for role: "${role}"`
-        );
-      }
-      Object.assign(
-        newMessage,
-        preprocessedContent && { preprocessedContent },
-        references && { references },
-        rejectQuery !== undefined ? { rejectQuery } : undefined,
-        requestOrigin && { requestOrigin }
-      );
-
+    async addConversationMessage(params: AddConversationMessageParams) {
+      const newMessage = createMessage(params);
       const updateResult = await conversationsCollection.updateOne(
         {
-          _id: conversationId,
+          _id: params.conversationId,
         },
         {
           $push: {
@@ -230,6 +205,16 @@ export function makeConversationsService(
       return true;
     },
   };
+}
+
+export function createMessage(
+  messageParams: AddConversationMessageParams
+) {
+  return {
+    id: new ObjectId(),
+    createdAt: new Date(),
+    ...messageParams,
+  } satisfies SomeMessage;
 }
 
 export function createMessageFromOpenAIChatMessage({

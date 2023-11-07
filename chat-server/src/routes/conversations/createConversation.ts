@@ -16,15 +16,13 @@ import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 export type CreateConversationRequest = z.infer<
   typeof CreateConversationRequest
 >;
-export const CreateConversationRequest = SomeExpressRequest.merge(
-  z.object({
-    headers: z.object({
-      "req-id": z.string(),
-      origin: z.string(),
-    }),
-    ip: z.string(),
-  })
-);
+export const CreateConversationRequest = SomeExpressRequest.extend({
+  headers: z.object({
+    "req-id": z.string(),
+  }),
+  ip: z.string(),
+  origin: z.string(),
+});
 
 export interface CreateConversationRouteParams {
   conversations: ConversationsService;
@@ -41,18 +39,9 @@ export function makeCreateConversationRoute({
     const reqId = getRequestId(req);
     try {
       const {
-        headers: { origin: requestOrigin },
-        ip
+        ip,
+        origin: requestOrigin,
       } = req;
-
-      if (!requestOrigin) {
-        return sendErrorResponse({
-          reqId,
-          res,
-          httpStatus: 400,
-          errorMessage: "Origin header not present",
-        });
-      }
 
       if (!isValidIp(ip)) {
         return sendErrorResponse({

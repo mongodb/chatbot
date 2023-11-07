@@ -42,7 +42,6 @@ export const AddMessageRequest = SomeExpressRequest.merge(
   z.object({
     headers: z.object({
       "req-id": z.string(),
-      "origin": z.string(),
     }),
     params: z.object({
       conversationId: z.string(),
@@ -52,6 +51,7 @@ export const AddMessageRequest = SomeExpressRequest.merge(
     }),
     body: AddMessageRequestBody,
     ip: z.string(),
+    origin: z.string(),
   })
 );
 
@@ -79,14 +79,13 @@ export function makeAddMessageToConversationRoute({
     res: ExpressResponse<ApiMessage>
   ) => {
     const reqId = getRequestId(req);
-
     try {
       const {
         params: { conversationId: conversationIdString },
         body: { message },
         query: { stream },
-        headers: { origin: requestOrigin },
         ip,
+        origin: requestOrigin,
       } = req;
       logRequest({
         reqId,

@@ -25,13 +25,14 @@ import {
   MAX_MESSAGES_IN_CONVERSATION,
   createLinkReference,
   includeChunksForMaxTokensPossible,
+  AddMessageRequest,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
 import { makeOpenAiChatLlm } from "../../services/openAiChatLlm";
 import { makeDataStreamer } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
-import { makeApp, CONVERSATIONS_API_V1_PREFIX } from "../../app";
+import { makeApp, CONVERSATIONS_API_V1_PREFIX, reqHandler } from "../../app";
 import { makeTestApp } from "../../testHelpers";
 import {
   makeTestAppConfig,
@@ -42,6 +43,8 @@ import { AppConfig } from "../../app";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { makeDefaultFindContentFunc } from "./FindContentFunc";
 import { embed, embeddedContentStore as store } from "../../config";
+import { requireRequestOrigin } from "../../middleware/requestOrigin";
+import validateRequestSchema from "../../middleware/validateRequestSchema";
 
 const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
   assertEnvVars(CORE_ENV_VARS);
@@ -363,8 +366,11 @@ describe("POST /conversations/:conversationId/messages", () => {
         });
         app = express();
         app.use(express.json());
+        app.use(reqHandler);
         app.post(
           endpointUrl,
+          requireRequestOrigin(),
+          validateRequestSchema(AddMessageRequest),
           makeAddMessageToConversationRoute({
             conversations,
             llm: brokenLlmService,

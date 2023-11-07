@@ -22,14 +22,10 @@ export default function validateRequestSchema(schema: AnyZodObject) {
   schema = SomeExpressRequest.merge(schema);
   return async (req: Request, res: Response, next: NextFunction) => {
     const result = await schema.safeParseAsync(req);
-    const reqId = getRequestId(req);
-    logRequest({
-      reqId,
-      message: JSON.stringify(schema.shape),
-    });
     if (result.success) {
       return next();
     }
+    const reqId = getRequestId(req);
     const message = generateZodErrorMessage(result.error);
     logRequest({
       reqId,

@@ -10,7 +10,7 @@ const baseReq = {
 };
 
 describe("requireRequestOrigin", () => {
-  it(`blocks any request where neither the Origin nor the X-Origin-Request header is set`, async () => {
+  it(`blocks any request where neither the Origin nor the X-Request-Origin header is set`, async () => {
     const req = createRequest();
     const res = createResponse();
     const next = jest.fn();

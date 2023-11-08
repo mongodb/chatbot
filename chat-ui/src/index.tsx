@@ -1,8 +1,9 @@
 /* eslint-disable react-refresh/only-export-components */
-
 export { Chatbot as default, type ChatbotProps } from "./Chatbot";
+// Pre-defined Chatbot use cases
 export { DocsChatbot } from "./DocsChatbot";
 export { DevCenterChatbot } from "./DevCenterChatbot";
+// Building blocks for a custom Chatbot UI
 export {
   useConversation,
   type ConversationState,

@@ -1,5 +1,5 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import { type References } from "chat-core";
+import { type References } from "mongodb-rag-core";
 import { ConversationState } from "../useConversation";
 import { strict as assert } from "node:assert";
 

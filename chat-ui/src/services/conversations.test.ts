@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import { ConversationService, formatReferences } from "./conversations";
+import { ConversationService, formatReferences, getCustomRequestOrigin } from "./conversations";
 import { type References } from "mongodb-rag-core";
 import * as FetchEventSource from "@microsoft/fetch-event-source";
 
@@ -250,4 +250,25 @@ describe("formatReferences", () => {
         "- [Title 2](https://example.com/2)"
     );
   });
+});
+
+describe("getCustomRequestOrigin", () => {
+  it("returns the current window location if it exists", () => {
+    const mockWindowLocation = "https://example.com/foo/bar";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (global as any).window = {
+      ...global.window,
+      location: {
+        ...global.window.location,
+        href: mockWindowLocation,
+      },
+    };
+    expect(getCustomRequestOrigin()).toEqual(mockWindowLocation);
+  })
+
+  it("returns null if the current window location does not exist", () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (global as any).window = undefined;
+    expect(getCustomRequestOrigin()).toEqual(undefined);
+  })
 });

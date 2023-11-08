@@ -160,12 +160,14 @@ describe("POST /conversations/:conversationId/messages", () => {
       });
     });
 
-    it("should respond 400 if the Origin header is missing", async () => {
+    it("should respond 400 if neither Origin nor X-Request-Origin is present", async () => {
       const res: request.Response = await request(app)
         .post(endpointUrl.replace(":conversationId", conversationId))
         .send({ message: "howdy there" });
       expect(res.statusCode).toEqual(400);
-      expect(res.body).toEqual({ error: "No Origin header" });
+      expect(res.body).toEqual({
+        error: "You must specify either an Origin or X-Request-Origin header",
+      });
     });
 
     it("should respond 400 for invalid request bodies", async () => {

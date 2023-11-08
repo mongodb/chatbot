@@ -26,6 +26,15 @@ export function formatReferences(references: References): string {
   return [heading, ...listOfLinks].join("\n\n");
 }
 
+export const CUSTOM_REQUEST_ORIGIN_HEADER = "x-request-origin";
+
+export function getCustomRequestOrigin() {
+  if (typeof window !== "undefined") {
+    return window.location.href;
+  }
+  return undefined;
+}
+
 class RetriableError<Data extends object = object> extends Error {
   retryAfter: number;
   data?: Data;
@@ -96,6 +105,7 @@ export class ConversationService {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        [CUSTOM_REQUEST_ORIGIN_HEADER]: getCustomRequestOrigin() ?? "",
       },
     });
     const conversation = await resp.json();
@@ -127,6 +137,7 @@ export class ConversationService {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        [CUSTOM_REQUEST_ORIGIN_HEADER]: getCustomRequestOrigin() ?? "",
       },
       body: JSON.stringify({ message }),
     });
@@ -192,6 +203,7 @@ export class ConversationService {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        [CUSTOM_REQUEST_ORIGIN_HEADER]: getCustomRequestOrigin() ?? "",
       },
       body: JSON.stringify({ message }),
       openWhenHidden: true,

@@ -18,7 +18,7 @@ describe("Conversations Router", () => {
   });
 
   test("Should apply conversation router rate limit", async () => {
-    const { app } = await makeTestApp({
+    const { app, origin } = await makeTestApp({
       conversationsRouterConfig: {
         ...appConfig.conversationsRouterConfig,
         rateLimitConfig: {
@@ -30,15 +30,15 @@ describe("Conversations Router", () => {
       },
     });
 
-    const successRes = await createConversationReq(app);
-    const rateLimitedRes = await createConversationReq(app);
+    const successRes = await createConversationReq({ app, origin });
+    const rateLimitedRes = await createConversationReq({ app, origin });
 
     expect(successRes.status).toBe(200);
     expect(rateLimitedRes.status).toBe(429);
     expect(rateLimitedRes.body).toStrictEqual(rateLimitResponse);
   });
   test("Should apply add message endpoint rate limit", async () => {
-    const { app } = await makeTestApp({
+    const { app, origin } = await makeTestApp({
       conversationsRouterConfig: {
         ...appConfig.conversationsRouterConfig,
         rateLimitConfig: {
@@ -49,18 +49,20 @@ describe("Conversations Router", () => {
         },
       },
     });
-    const res = await createConversationReq(app);
+    const res = await createConversationReq({ app, origin });
     const conversationId = res.body._id;
-    const successRes = await createConversationMessageReq(
+    const successRes = await createConversationMessageReq({
       app,
       conversationId,
-      "what is the current version of mongodb server?"
-    );
-    const rateLimitedRes = await createConversationMessageReq(
+      origin,
+      message: "what is the current version of mongodb server?"
+    });
+    const rateLimitedRes = await createConversationMessageReq({
       app,
       conversationId,
-      "what is the current version of mongodb server?"
-    );
+      origin,
+      message: "what is the current version of mongodb server?"
+    });
     expect(successRes.error).toBeFalsy();
     expect(successRes.status).toBe(200);
     expect(rateLimitedRes.status).toBe(429);
@@ -68,7 +70,7 @@ describe("Conversations Router", () => {
   });
   test("Should apply global slow down", async () => {
     let limitReached = false;
-    const { app } = await makeTestApp({
+    const { app, origin } = await makeTestApp({
       conversationsRouterConfig: {
         ...appConfig.conversationsRouterConfig,
         rateLimitConfig: {
@@ -83,15 +85,15 @@ describe("Conversations Router", () => {
         },
       },
     });
-    const successRes = await createConversationReq(app);
-    const slowedRes = await createConversationReq(app);
+    const successRes = await createConversationReq({ app, origin });
+    const slowedRes = await createConversationReq({ app, origin });
     expect(successRes.status).toBe(200);
     expect(slowedRes.status).toBe(200);
     expect(limitReached).toBe(true);
   });
   test("Should apply add message endpoint slow down", async () => {
     let limitReached = false;
-    const { app } = await makeTestApp({
+    const { app, origin } = await makeTestApp({
       conversationsRouterConfig: {
         ...appConfig.conversationsRouterConfig,
         rateLimitConfig: {
@@ -106,18 +108,20 @@ describe("Conversations Router", () => {
         },
       },
     });
-    const conversationRes = await createConversationReq(app);
+    const conversationRes = await createConversationReq({ app, origin });
     const conversationId = conversationRes.body._id;
-    const successRes = await createConversationMessageReq(
+    const successRes = await createConversationMessageReq({
       app,
       conversationId,
-      "what is the current version of mongodb server?"
-    );
-    const slowedRes = await createConversationMessageReq(
+      origin,
+      message: "what is the current version of mongodb server?"
+    });
+    const slowedRes = await createConversationMessageReq({
       app,
       conversationId,
-      "what is the current version of mongodb server?"
-    );
+      origin,
+      message: "what is the current version of mongodb server?"
+    });
     expect(conversationRes.status).toBe(200);
     expect(successRes.status).toBe(200);
     expect(slowedRes.status).toBe(200);
@@ -128,24 +132,27 @@ describe("Conversations Router", () => {
   /**
     Helper function to create a new conversation
    */
-  async function createConversationReq(app: Express) {
+  async function createConversationReq({ app, origin }: {app: Express, origin: string}) {
     const createConversationRes = await request(app)
       .post(CONVERSATIONS_API_V1_PREFIX)
       .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
       .send();
     return createConversationRes;
   }
   /**
     Helper function to create a new message in a conversation
    */
-  async function createConversationMessageReq(
+  async function createConversationMessageReq({ app, conversationId, message, origin }: {
     app: Express,
     conversationId: string,
-    message: string
-  ) {
+    message: string,
+    origin: string
+  }) {
     const createConversationRes = await request(app)
       .post(addMessageEndpointUrl.replace(":conversationId", conversationId))
       .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
       .send({ message });
     return createConversationRes;
   }

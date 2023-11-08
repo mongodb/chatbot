@@ -46,7 +46,7 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   }
 };
 
-const reqHandler: RequestHandler = (req, _res, next) => {
+export const reqHandler: RequestHandler = (req, _res, next) => {
   const reqId = new ObjectId().toString();
   // Custom header specifically for a request ID. This ID will be used to track
   // logs related to the same request

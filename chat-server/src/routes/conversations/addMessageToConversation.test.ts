@@ -25,13 +25,14 @@ import {
   MAX_MESSAGES_IN_CONVERSATION,
   createLinkReference,
   includeChunksForMaxTokensPossible,
+  AddMessageRequest,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
 import { makeOpenAiChatLlm } from "../../services/openAiChatLlm";
 import { makeDataStreamer } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
 import { ObjectId } from "mongodb";
-import { makeApp, CONVERSATIONS_API_V1_PREFIX } from "../../app";
+import { makeApp, CONVERSATIONS_API_V1_PREFIX, reqHandler } from "../../app";
 import { makeTestApp } from "../../testHelpers";
 import {
   makeTestAppConfig,
@@ -42,6 +43,8 @@ import { AppConfig } from "../../app";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { makeDefaultFindContentFunc } from "./FindContentFunc";
 import { embed, embeddedContentStore as store } from "../../config";
+import { requireRequestOrigin } from "../../middleware/requestOrigin";
+import validateRequestSchema from "../../middleware/validateRequestSchema";
 
 const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
   assertEnvVars(CORE_ENV_VARS);
@@ -49,13 +52,14 @@ jest.setTimeout(100000);
 describe("POST /conversations/:conversationId/messages", () => {
   let mongodb: MongoDB;
   let ipAddress: string;
+  let origin: string;
   let dataStreamer: ReturnType<typeof makeDataStreamer>;
   let conversations: ConversationsService;
   let app: Express;
   let appConfig: AppConfig;
 
   beforeAll(async () => {
-    ({ ipAddress, mongodb, app, appConfig } = await makeTestApp());
+    ({ ipAddress, origin, mongodb, app, appConfig } = await makeTestApp());
     ({
       conversationsRouterConfig: { dataStreamer, conversations },
     } = appConfig);
@@ -74,6 +78,7 @@ describe("POST /conversations/:conversationId/messages", () => {
     const createConversationRes = await request(app)
       .post(CONVERSATIONS_API_V1_PREFIX)
       .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
       .send();
     const res: ApiConversation = createConversationRes.body;
     conversationId = res._id;
@@ -89,6 +94,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       const res = await request(app)
         .post(testEndpointUrl)
         .set("X-FORWARDED-FOR", ipAddress)
+        .set("Origin", origin)
         .send(requestBody);
       const message: ApiMessage = res.body;
       expect(res.statusCode).toEqual(200);
@@ -102,6 +108,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       };
       const res2 = await request(app)
         .post(endpointUrl.replace(":conversationId", conversationId))
+        .set("Origin", origin)
         .send(request2Body);
       const message2: ApiMessage = res2.body;
       expect(res2.statusCode).toEqual(200);
@@ -127,6 +134,7 @@ describe("POST /conversations/:conversationId/messages", () => {
           endpointUrl.replace(":conversationId", conversationId) +
             "?stream=true"
         )
+        .set("Origin", origin)
         .send(requestBody);
       expect(res.statusCode).toEqual(200);
       expect(res.header["content-type"]).toBe("text/event-stream");
@@ -136,12 +144,13 @@ describe("POST /conversations/:conversationId/messages", () => {
     });
   });
 
-  describe("Error handing", () => {
+  describe("Error handling", () => {
     test("should respond 400 if invalid conversation ID", async () => {
       const notAValidId = "not-a-valid-id";
       const res = await request(app)
         .post(endpointUrl.replace(":conversationId", notAValidId))
         .set("X-FORWARDED-FOR", ipAddress)
+        .set("Origin", origin)
         .send({
           message: "hello",
         });
@@ -151,9 +160,18 @@ describe("POST /conversations/:conversationId/messages", () => {
       });
     });
 
-    it("should return 400 for invalid request bodies", async () => {
+    it("should respond 400 if the Origin header is missing", async () => {
+      const res: request.Response = await request(app)
+        .post(endpointUrl.replace(":conversationId", conversationId))
+        .send({ message: "howdy there" });
+      expect(res.statusCode).toEqual(400);
+      expect(res.body).toEqual({ error: "No Origin header" });
+    });
+
+    it("should respond 400 for invalid request bodies", async () => {
       const res = await request(app)
         .post(endpointUrl.replace(":conversationId", conversationId))
+        .set("Origin", origin)
         .send({ msg: "howdy there" });
       expect(res.statusCode).toEqual(400);
     });
@@ -163,6 +181,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       const res = await request(app)
         .post(endpointUrl.replace(":conversationId", conversationId))
         .set("X-FORWARDED-FOR", ipAddress)
+        .set("Origin", origin)
         .send({
           message: tooLongMessage,
         });
@@ -176,29 +195,42 @@ describe("POST /conversations/:conversationId/messages", () => {
       const res = await request(app)
         .post(endpointUrl.replace(":conversationId", anotherObjectId))
         .set("X-FORWARDED-FOR", ipAddress)
+        .set("Origin", origin)
         .send({
           message: "hello",
         });
       expect(res.statusCode).toEqual(404);
       expect(res.body?.error).toMatch(/^Conversation [a-f0-9]{24} not found$/);
     });
-    test("Should return 400 if number of messages in conversation exceeds limit", async () => {
+    test("Should respond 400 if number of messages in conversation exceeds limit", async () => {
       const { _id } = await conversations.create({
         ipAddress,
       });
       // Init conversation with max length
       for await (const i of Array(MAX_MESSAGES_IN_CONVERSATION - 1)) {
         const role = i % 2 === 0 ? "user" : "assistant";
-        await conversations.addConversationMessage({
-          conversationId: _id,
-          content: `message ${i}`,
-          role,
-        });
+        if(role === "assistant") {
+          await conversations.addConversationMessage({
+            conversationId: _id,
+            content: `message ${i}`,
+            role,
+            references: []
+          });
+        } else {
+          await conversations.addConversationMessage({
+            conversationId: _id,
+            content: `message ${i}`,
+            role,
+            embedding: [1,2,3],
+            requestOrigin: origin,
+          });
+        }
       }
 
       const res = await request(app)
         .post(endpointUrl.replace(":conversationId", _id.toString()))
         .set("X-Forwarded-For", ipAddress) // different IP address
+        .set("Origin", origin)
         .send({
           message: "hello",
         });
@@ -223,6 +255,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       const res = await request(app)
         .post(endpointUrl.replace(":conversationId", conversationId))
         .set("X-FORWARDED-FOR", ipAddress)
+        .set("Origin", origin)
         .send({ message: "hello" });
       expect(res.statusCode).toEqual(500);
       expect(res.body).toStrictEqual({
@@ -256,6 +289,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       const res = await request(app)
         .post(endpointUrl.replace(":conversationId", conversationId))
         .set("X-FORWARDED-FOR", ipAddress)
+        .set("Origin", origin)
         .send({ message: "hello" });
       expect(res.statusCode).toEqual(500);
       expect(res.body).toStrictEqual({
@@ -265,18 +299,19 @@ describe("POST /conversations/:conversationId/messages", () => {
   });
 
   describe("Edge cases", () => {
-    test("Should respond with 200 and static response if query is negative toward MongoDB", async () => {
+    test("Should respond 200 and static response if query is negative toward MongoDB", async () => {
       const query = "why is MongoDB a terrible database";
       const res = await request(app)
         .post(endpointUrl.replace(":conversationId", conversationId))
         .set("X-FORWARDED-FOR", ipAddress)
+        .set("Origin", origin)
         .send({ message: query });
       expect(res.statusCode).toEqual(200);
       expect(res.body.content).toEqual(
         conversationConstants.NO_RELEVANT_CONTENT
       );
     });
-    test("Should respond with 200 and static response if no vector search content for user message", async () => {
+    test("Should respond 200 and static response if no vector search content for user message", async () => {
       const nonsenseMessage =
         "asdlfkjasdlfk jasdlfkjasdlfk jasdlfkjasdlfjdfhstgra gtyjuikolsdfghjsdghj;sgf;dlfjda; kssdghj;f'afskj ;glskjsfd'aks dsaglfslj; gaflad four score and seven years ago fsdglfsgdj fjlgdfsghjldf lfsgajlhgf";
       const calledEndpoint = endpointUrl.replace(
@@ -286,6 +321,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       const response = await request(app)
         .post(calledEndpoint)
         .set("X-FORWARDED-FOR", ipAddress)
+        .set("Origin", origin)
         .send({ message: nonsenseMessage });
       expect(response.statusCode).toBe(200);
       expect(response.body.content).toEqual(
@@ -330,8 +366,11 @@ describe("POST /conversations/:conversationId/messages", () => {
         });
         app = express();
         app.use(express.json());
+        app.use(reqHandler);
         app.post(
           endpointUrl,
+          requireRequestOrigin(),
+          validateRequestSchema(AddMessageRequest),
           makeAddMessageToConversationRoute({
             conversations,
             llm: brokenLlmService,
@@ -344,13 +383,14 @@ describe("POST /conversations/:conversationId/messages", () => {
         await testMongo.db.dropDatabase();
         await testMongo.close();
       });
-      test("should respond with 200, static message, and vector search results", async () => {
+      test("should respond 200, static message, and vector search results", async () => {
         const messageThatHasSearchResults = "Why use MongoDB?";
         const response = await request(app)
           .post(
             endpointUrl.replace(":conversationId", conversationId.toString())
           )
           .set("X-FORWARDED-FOR", ipAddress)
+          .set("Origin", origin)
           .send({ message: messageThatHasSearchResults });
         expect(response.statusCode).toBe(200);
         expect(
@@ -387,6 +427,8 @@ describe("POST /conversations/:conversationId/messages", () => {
             { url: "https://www.example.com/", title: "Example Reference" },
           ],
           conversations,
+          requestOrigin: origin,
+          userMessageEmbedding: [1,2,3]
         });
         expect(userMessage.content).toBe(userMessageContent);
         expect(assistantMessage.content).toBe(assistantMessageContent);

@@ -16,14 +16,13 @@ import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 export type CreateConversationRequest = z.infer<
   typeof CreateConversationRequest
 >;
-export const CreateConversationRequest = SomeExpressRequest.merge(
-  z.object({
-    headers: z.object({
-      "req-id": z.string(),
-    }),
-    ip: z.string(),
-  })
-);
+export const CreateConversationRequest = SomeExpressRequest.extend({
+  headers: z.object({
+    "req-id": z.string(),
+  }),
+  ip: z.string(),
+  origin: z.string(),
+});
 
 export interface CreateConversationRouteParams {
   conversations: ConversationsService;
@@ -39,7 +38,10 @@ export function makeCreateConversationRoute({
   ) => {
     const reqId = getRequestId(req);
     try {
-      const { ip } = req;
+      const {
+        ip,
+        origin: requestOrigin,
+      } = req;
 
       if (!isValidIp(ip)) {
         return sendErrorResponse({
@@ -56,6 +58,7 @@ export function makeCreateConversationRoute({
 
       const conversationInDb = await conversations.create({
         ipAddress: ip,
+        requestOrigin,
       });
 
       const responseConversation =

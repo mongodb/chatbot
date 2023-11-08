@@ -41,6 +41,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
       conversationId: conversation._id,
       content: "hello",
       role: "assistant",
+      references: []
     });
     testEndpointUrl = endpointUrl
       .replace(":conversationId", conversation._id.toHexString())

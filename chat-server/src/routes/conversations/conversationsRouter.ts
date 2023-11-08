@@ -16,6 +16,7 @@ import {
 } from "./addMessageToConversation";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
 import { FindContentFunc } from "./FindContentFunc";
+import { requireRequestOrigin } from "../../middleware/requestOrigin";
 
 export interface ConversationsRateLimitConfig {
   routerRateLimitConfig?: Partial<RateLimitOptions>;
@@ -87,6 +88,7 @@ export function makeConversationsRouter({
    */
   conversationsRouter.post(
     "/",
+    requireRequestOrigin(),
     validateRequestSchema(CreateConversationRequest),
     makeCreateConversationRoute({ conversations })
   );
@@ -132,6 +134,7 @@ export function makeConversationsRouter({
     "/:conversationId/messages",
     addMessageRateLimit,
     addMessageSlowDown,
+    requireRequestOrigin(),
     validateRequestSchema(AddMessageRequest),
     addMessageToConversationRoute
   );

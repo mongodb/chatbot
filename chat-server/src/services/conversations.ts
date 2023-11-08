@@ -73,25 +73,30 @@ export interface Conversation {
   ipAddress: string;
   /** The date the conversation was created. */
   createdAt: Date;
+  /** The hostname that the request originated from. */
+  requestOrigin?: string;
 }
 export interface CreateConversationParams {
   ipAddress: string;
+  requestOrigin?: string;
 }
 
-export interface AddConversationMessageParams {
+
+export type AddSystemMessageParams = Omit<SystemMessage, "id" | "createdAt"> & {
   conversationId: ObjectId;
-  content: string;
-  preprocessedContent?: string;
-  role: OpenAiMessageRole;
-  references?: References;
+};
 
-  /**
-    The vector representation of the message content.
-   */
-  embedding?: number[];
-
-  rejectQuery?: boolean;
+export type AddUserMessageParams = Omit<UserMessage, "id" | "createdAt"> & {
+  conversationId: ObjectId;
+  requestOrigin: string;
 }
+
+export type AddAssistantMessageParams = Omit<AssistantMessage, "id" | "createdAt"> & {
+  conversationId: ObjectId;
+};
+
+export type AddConversationMessageParams = AddSystemMessageParams | AddUserMessageParams | AddAssistantMessageParams;
+
 export interface FindByIdParams {
   _id: ObjectId;
 }
@@ -101,7 +106,7 @@ export interface RateMessageParams {
   rating: boolean;
 }
 export interface ConversationsService {
-  create: ({ ipAddress }: CreateConversationParams) => Promise<Conversation>;
+  create: (params: CreateConversationParams) => Promise<Conversation>;
   addConversationMessage: (
     params: AddConversationMessageParams
   ) => Promise<Message>;
@@ -130,12 +135,13 @@ export function makeConversationsService(
   const conversationsCollection =
     database.collection<Conversation>("conversations");
   return {
-    async create({ ipAddress }: CreateConversationParams) {
+    async create({ ipAddress, requestOrigin }: CreateConversationParams) {
       const newConversation = {
         _id: new ObjectId(),
         ipAddress,
         messages: [createMessageFromOpenAIChatMessage(systemPrompt)],
         createdAt: new Date(),
+        requestOrigin,
       };
       const insertResult = await conversationsCollection.insertOne(
         newConversation
@@ -150,30 +156,11 @@ export function makeConversationsService(
       return newConversation;
     },
 
-    async addConversationMessage({
-      conversationId,
-      content,
-      role,
-      preprocessedContent,
-      references,
-      embedding,
-      rejectQuery,
-    }: AddConversationMessageParams) {
-      const newMessage = createMessageFromOpenAIChatMessage({
-        role,
-        content,
-        embedding,
-      });
-      Object.assign(
-        newMessage,
-        preprocessedContent && { preprocessedContent },
-        references && { references },
-        rejectQuery !== undefined ? { rejectQuery } : undefined
-      );
-
+    async addConversationMessage(params: AddConversationMessageParams) {
+      const newMessage = createMessage(params);
       const updateResult = await conversationsCollection.updateOne(
         {
-          _id: conversationId,
+          _id: params.conversationId,
         },
         {
           $push: {
@@ -218,6 +205,16 @@ export function makeConversationsService(
       return true;
     },
   };
+}
+
+export function createMessage(
+  messageParams: AddConversationMessageParams
+) {
+  return {
+    id: new ObjectId(),
+    createdAt: new Date(),
+    ...messageParams,
+  } satisfies SomeMessage;
 }
 
 export function createMessageFromOpenAIChatMessage({

@@ -9,6 +9,15 @@ const baseReq = {
   ip: "127.0.0.1",
 };
 
+function caseInsensitiveHeaders(headers: Record<string, string>) {
+  // Express automatically converts all headers to lowercase but
+  // node-mocks-http does not. This function is a workaround for that.
+  return Object.entries(headers).reduce((acc, [key, value]) => {
+    acc[key.toLowerCase()] = value;
+    return acc;
+  }, {} as Record<string, string>);
+}
+
 describe("requireRequestOrigin", () => {
   it(`blocks any request where neither the Origin nor the X-Request-Origin header is set`, async () => {
     const req = createRequest();
@@ -39,10 +48,10 @@ describe("requireRequestOrigin", () => {
     req.body = baseReq.body;
     req.params = baseReq.params;
     req.query = baseReq.query;
-    req.headers = {
+    req.headers = caseInsensitiveHeaders({
       ...baseReq.headers,
       origin: "http://localhost:5173",
-    };
+    });
     req.ip = baseReq.ip;
 
     await middleware(req, res, next);
@@ -59,10 +68,10 @@ describe("requireRequestOrigin", () => {
     req.body = baseReq.body;
     req.params = baseReq.params;
     req.query = baseReq.query;
-    req.headers = {
+    req.headers = caseInsensitiveHeaders({
       ...baseReq.headers,
-      "x-request-origin": "http://localhost:5173/foo/bar",
-    };
+      "X-Request-Origin": "http://localhost:5173/foo/bar",
+    });
     req.ip = baseReq.ip;
 
     await middleware(req, res, next);
@@ -82,7 +91,7 @@ describe("requireRequestOrigin", () => {
     req.headers = {
       ...baseReq.headers,
       origin: "http://localhost:5173",
-      "X-Request-Origin": "http://localhost:5173/foo/bar",
+      "x-request-origin": "http://localhost:5173/foo/bar",
     };
     req.ip = baseReq.ip;
 

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { getRequestId, logRequest, sendErrorResponse } from "../utils";
 
-export const CUSTOM_REQUEST_ORIGIN_HEADER = "x-request-origin";
+export const CUSTOM_REQUEST_ORIGIN_HEADER = "X-Request-Origin";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -22,8 +22,7 @@ export function requireRequestOrigin() {
         reqId,
         res,
         httpStatus: 400,
-        errorMessage:
-          "You must specify either an Origin or X-Request-Origin header",
+        errorMessage: `You must specify either an Origin or ${CUSTOM_REQUEST_ORIGIN_HEADER} header`,
       });
     }
 

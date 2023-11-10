@@ -26,7 +26,7 @@ export function formatReferences(references: References): string {
   return [heading, ...listOfLinks].join("\n\n");
 }
 
-export const CUSTOM_REQUEST_ORIGIN_HEADER = "x-request-origin";
+export const CUSTOM_REQUEST_ORIGIN_HEADER = "X-Request-Origin";
 
 export function getCustomRequestOrigin() {
   if (typeof window !== "undefined") {

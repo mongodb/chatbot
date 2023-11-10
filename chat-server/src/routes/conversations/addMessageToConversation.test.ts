@@ -160,7 +160,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       });
     });
 
-    it("should respond 400 if neither Origin nor X-Request-Origin is present", async () => {
+    it("should respond 400 if neither the Origin nor X-Request-Origin header is present", async () => {
       const res: request.Response = await request(app)
         .post(endpointUrl.replace(":conversationId", conversationId))
         .send({ message: "howdy there" });

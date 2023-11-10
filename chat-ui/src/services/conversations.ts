@@ -1,5 +1,5 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import { type References } from "chat-core";
+import { type References } from "mongodb-rag-core";
 import { ConversationState } from "../useConversation";
 import { strict as assert } from "node:assert";
 
@@ -12,6 +12,7 @@ export type MessageData = {
   createdAt: string;
   rating?: boolean;
   references?: References;
+  suggestedPrompts?: string[];
 };
 
 export function formatReferences(references: References): string {
@@ -60,7 +61,10 @@ export class ConversationService {
   private serverUrl: string;
 
   constructor(config: ConversationServiceConfig) {
-    assert(config.serverUrl, "You must define a serverUrl for the ConversationService");
+    assert(
+      config.serverUrl,
+      "You must define a serverUrl for the ConversationService"
+    );
     this.serverUrl = config.serverUrl.startsWith("/")
       ? new URL(
           config.serverUrl,

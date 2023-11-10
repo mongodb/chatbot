@@ -1,5 +1,5 @@
 import { CommandModule } from "yargs";
-import { logger } from "chat-core";
+import { logger } from "mongodb-rag-core";
 import { doPagesCommand as standardDoPagesCommand } from "./pages";
 import { doEmbedCommand } from "./embed";
 import {

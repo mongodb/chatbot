@@ -14,7 +14,7 @@
     "build": "tsc -b",
     "watch": "tsc -b -w",
     "release": "release-it",
-    "ingest:all": "node ./node_modules/ingest/build/main.js all --config ./build/config.js"
+    "ingest:all": "../node_modules/mongodb-rag-ingest/build/main.js all --config ./build/config.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",
@@ -34,8 +34,9 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "chat-core": "file:../chat-core",
+    "@release-it/bumper": "^5.1.0",
     "dotenv": "^16",
-    "ingest": "file:../ingest"
+    "mongodb-rag-core": "^0.0.5",
+    "mongodb-rag-ingest": "^0.1.5"
   }
 }

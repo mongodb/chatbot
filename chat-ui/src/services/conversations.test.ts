@@ -1,9 +1,12 @@
 import { vi } from "vitest";
 import { ConversationService, formatReferences } from "./conversations";
-import { References } from "chat-core";
+import { type References } from "mongodb-rag-core";
 import * as FetchEventSource from "@microsoft/fetch-event-source";
 
 // Mock fetch for regular awaited HTTP requests
+// TODO: make TypeScript compiler ok with this, or skip putting this in the compiled code for staging
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 global.fetch = vi.fn();
 
 function mockFetchResponse<T = unknown>({

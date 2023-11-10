@@ -4,7 +4,7 @@ import {
 } from "./MdOnGithubDataSource";
 import "dotenv/config";
 import { strict as assert } from "assert";
-import { Page } from "chat-core";
+import { Page } from "mongodb-rag-core";
 
 jest.setTimeout(60000);
 

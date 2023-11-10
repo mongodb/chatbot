@@ -1,3 +1,4 @@
+import { Page, extractFrontMatter } from "mongodb-rag-core";
 import {
   DataSource,
   makeDevCenterDataSource,
@@ -9,11 +10,12 @@ import {
   makeAcquitRequireMdOnGithubDataSource,
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
-} from "ingest/sources";
+  removeMarkdownImagesAndLinks,
+} from "mongodb-rag-ingest/sources";
 import {
   prepareSnootySources,
   LocallySpecifiedSnootyProjectConfig,
-} from "ingest/sources/snooty";
+} from "mongodb-rag-ingest/sources/snooty";
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -491,6 +493,56 @@ const practicalAggregationsDataSource = async () => {
   return await makeMdOnGithubDataSource(practicalAggregationsConfig);
 };
 
+export const terraformProviderSourceConstructor = async () => {
+  const siteBaseUrl =
+    "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs";
+  return await makeGitDataSource({
+    name: "atlas-terraform-provider",
+    repoUri: "https://github.com/mongodb/terraform-provider-mongodbatlas.git",
+    repoOptions: {
+      "--depth": 1,
+      "--branch": "master",
+    },
+    metadata: {
+      productName: "mongodbatlas Terraform Provider",
+      tags: ["docs", "terraform", "atlas", "hcl"],
+    },
+    filter: (path: string) =>
+      path.includes("website/docs") && path.endsWith(".markdown"),
+    handlePage: async function (path, content) {
+      const { metadata, body } = extractFrontMatter<{ page_title: string }>(
+        content
+      );
+      const url = getTerraformPageUrl(siteBaseUrl, path);
+
+      const page: Omit<Page, "sourceName"> = {
+        body: removeMarkdownImagesAndLinks(body),
+        format: "md",
+        url: url,
+        title: metadata?.page_title,
+      };
+      return page;
+    },
+  });
+};
+
+function getTerraformPageUrl(siteBaseUrl: string, path: string) {
+  if (path.includes("website/docs/d/")) {
+    return (
+      siteBaseUrl +
+      path.replace("website/docs/d", "data-sources").replace(".markdown", "")
+    );
+  } else if (path.includes("website/docs/r/")) {
+    return (
+      siteBaseUrl +
+      path.replace("website/docs/r", "resources").replace(".markdown", "")
+    );
+  } else {
+    return (
+      siteBaseUrl + path.replace("website/docs/", "").replace(".markdown", "")
+    );
+  }
+}
 /**
   The constructors for the sources used by the docs chatbot.
  */
@@ -509,4 +561,5 @@ export const sourceConstructors: SourceConstructor[] = [
   javaReactiveStreamsSourceConstructor,
   scalaSourceConstructor,
   libmongocSourceConstructor,
+  terraformProviderSourceConstructor,
 ];

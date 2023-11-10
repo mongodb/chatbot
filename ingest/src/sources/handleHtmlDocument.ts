@@ -1,4 +1,4 @@
-import { Page, PageMetadata, logger } from "chat-core";
+import { Page, PageMetadata, logger } from "mongodb-rag-core";
 import TurndownService from "turndown";
 import * as turndownPluginGfm from "turndown-plugin-gfm";
 import { JSDOM } from "jsdom";

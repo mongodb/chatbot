@@ -1,6 +1,6 @@
 import { Document } from "langchain/document";
 import { GithubRepoLoaderParams } from "langchain/document_loaders/web/github";
-import { Page } from "chat-core";
+import { Page } from "mongodb-rag-core";
 import { DataSource } from "./DataSource";
 import { makeGitDataSource } from "./GitDataSource";
 

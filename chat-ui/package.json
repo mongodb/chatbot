@@ -44,10 +44,11 @@
     "build-storybook": "storybook build",
     "release:interactive": "release-it",
     "release": "release-it --ci",
-    "test": "vitest"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "bundleDependencies": [
-    "chat-core",
+    "mongodb-rag-core",
     "@lg-chat/avatar",
     "@lg-chat/chat-window",
     "@lg-chat/chat-disclaimer",
@@ -89,9 +90,10 @@
     "@lg-chat/message-prompts": "^1.0.2",
     "@lg-chat/message-rating": "^1.1.3",
     "@microsoft/fetch-event-source": "^2.0.1",
+    "@release-it/bumper": "^5.1.0",
     "buffer": "^6.0.3",
-    "chat-core": "file:../chat-core",
     "esbuild": "^0.17.19",
+    "mongodb-rag-core": "^0.0.5",
     "prettier": "^2.8.8",
     "react-markdown": "^8.0.7",
     "react-transition-group": "^4.4.5",

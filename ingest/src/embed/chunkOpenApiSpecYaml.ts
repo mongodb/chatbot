@@ -1,5 +1,5 @@
 import SwaggerParser from "@apidevtools/swagger-parser";
-import { Page, updateFrontMatter } from "chat-core";
+import { Page, updateFrontMatter } from "mongodb-rag-core";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import yaml from "yaml";
 import GPT3Tokenizer from "gpt3-tokenizer";

@@ -1,6 +1,6 @@
 import yargs from "yargs";
 import Path from "path";
-import { logger } from "chat-core";
+import { logger } from "mongodb-rag-core";
 import { Config } from "./Config";
 
 export type LoadConfigArgs = {

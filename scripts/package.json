@@ -3,8 +3,10 @@
   "version": "0.1.2",
   "description": "",
   "main": "index.js",
+  "private": true,
   "scripts": {
-    "createQualityTestsYaml": "npm run build && node ./build/createQualityTestsYaml.js",
+    "createQualityTestsYaml-aug-2023": "npm run build && node ./build/createAug2023QualityTestsYaml.js",
+    "createQualityTestsYaml-sept-2023": "npm run build && node ./build/createSept2023QualityTestsYaml.js",
     "scrubMessages": "npm run build && node ./build/scrubMessages.js",
     "analyzeMessages": "npm run build && node ./build/analyzeMessages.js",
     "createView/messages_by_rating": "npm run build && node ./build/createView/messages_by_rating.js",
@@ -21,11 +23,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "chat-core": "file:../chat-core",
-    "mongodb-chatbot-server": "file:../chat-server",
+    "@release-it/bumper": "^5.1.0",
     "csv": "^6.3.1",
     "dotenv": "^16.3.1",
     "mongodb": "^5.7.0",
+    "mongodb-chatbot-server": "^0.1.0",
+    "mongodb-rag-core": "^0.0.1",
     "yaml": "^2.3.1"
   },
   "devDependencies": {

@@ -3,7 +3,7 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { ObjectId, EmbeddedContent, References } from "chat-core";
+import { ObjectId, EmbeddedContent, References } from "mongodb-rag-core";
 import {
   ConversationsService,
   Message,

@@ -1,5 +1,5 @@
 import deepEqual from "deep-equal";
-import { Page, PersistedPage, logger } from "chat-core";
+import { Page, PersistedPage, logger } from "mongodb-rag-core";
 
 /**
   Given sets of old and new pages, returns the pages that need to be created,

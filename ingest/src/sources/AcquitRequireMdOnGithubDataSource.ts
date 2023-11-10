@@ -5,7 +5,7 @@ import {
 } from "./GitHubDataSource";
 import acquitTransform from "acquit-require";
 import acquit from "acquit";
-import { Page, PageMetadata, logger } from "chat-core";
+import { Page, PageMetadata, logger } from "mongodb-rag-core";
 import { removeMarkdownImagesAndLinks } from "./removeMarkdownImagesAndLinks";
 import { extractMarkdownH1 } from "./extractMarkdownH1";
 

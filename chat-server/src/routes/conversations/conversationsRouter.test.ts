@@ -2,8 +2,8 @@ import request from "supertest";
 import { Express } from "express";
 import { rateLimitResponse } from "./conversationsRouter";
 import { DEFAULT_API_PREFIX } from "../../app";
-import { makeTestApp } from "../../testHelpers";
-import { makeTestAppConfig } from "../../testHelpers";
+import { makeTestApp } from "../../test/testHelpers";
+import { makeTestAppConfig } from "../../test/testHelpers";
 
 jest.setTimeout(60000);
 describe("Conversations Router", () => {

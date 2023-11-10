@@ -1,12 +1,12 @@
 import fetch from "node-fetch";
-import { logger } from "chat-core";
+import { logger } from "mongodb-rag-core";
 import {
   SnootyProject,
   makeSnootyDataSource,
   Branch,
   LocallySpecifiedSnootyProjectConfig,
 } from "./SnootyDataSource";
-import { filterFulfilled } from "chat-core";
+import { filterFulfilled } from "mongodb-rag-core";
 
 /** Schema for API response from https://snooty-data-api.mongodb.com/prod/projects */
 export type GetSnootyProjectsResponse = {

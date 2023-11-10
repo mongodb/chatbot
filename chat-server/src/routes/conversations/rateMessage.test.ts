@@ -8,10 +8,10 @@ import {
   ConversationsService,
 } from "../../services/conversations";
 import { Express } from "express";
-import { Db, MongoClient, ObjectId } from "chat-core";
+import { Db, MongoClient, ObjectId } from "mongodb-rag-core";
 import { makeRateMessageRoute } from "./rateMessage";
 import { DEFAULT_API_PREFIX } from "../../app";
-import { makeTestApp } from "../../testHelpers";
+import { makeTestApp } from "../../test/testHelpers";
 import { AppConfig } from "../../app";
 
 jest.setTimeout(100000);

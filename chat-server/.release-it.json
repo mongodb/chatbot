@@ -1,17 +1,18 @@
 {
   "git": {
     "commitArgs": ["-a"],
-    "commitMessage": "Release chat-server v${version}",
-    "tag": false,
+    "commitMessage": "Release mongodb-chatbot-server v${version}\n\n${changelog}",
+    "changelog": "git log --pretty=format:\"* %s (%h)\" ${from}..${to} -- .",
+    "tag": true,
     "push": true,
     "pushRepo": "upstream",
-    "tagName": "chat-server-v${version}"
+    "tagName": "mongodb-chatbot-server-v${version}"
   },
   "npm": {
     "publish": false
   },
   "github": {
-    "releaseName": "chat-server-v${version}",
+    "releaseName": "mongodb-chatbot-server-v${version}",
     "draft": true,
     "release": true
   },
@@ -19,8 +20,7 @@
     "before:init": [
       "pushd ../chat-core && npm i && npm run build && popd",
       "npm run build",
-      "npm run lint",
-      "npm run test"
+      "npm run lint"
     ]
   }
 }

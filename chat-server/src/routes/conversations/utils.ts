@@ -5,7 +5,7 @@ import {
   Message,
   AssistantMessage,
 } from "../../services/conversations";
-import { References } from "chat-core";
+import { References } from "mongodb-rag-core";
 import { z } from "zod";
 
 export type ApiMessage = z.infer<typeof ApiMessage>;

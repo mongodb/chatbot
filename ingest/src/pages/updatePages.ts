@@ -1,4 +1,4 @@
-import { logger, Page, PageStore } from "chat-core";
+import { logger, Page, PageStore } from "mongodb-rag-core";
 import { getChangedPages } from "./getChangedPages";
 import { DataSource } from "../sources/DataSource";
 

@@ -5,7 +5,7 @@ import {
   PersistedPage,
   PageStore,
   logger,
-} from "chat-core";
+} from "mongodb-rag-core";
 import { createHash } from "crypto";
 import { chunkPage, ChunkFunc, ChunkOptions } from "./chunkPage";
 

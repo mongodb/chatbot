@@ -1,5 +1,5 @@
 import { CommandModule } from "yargs";
-import { logger } from "chat-core";
+import { logger } from "mongodb-rag-core";
 import { updatePages } from "../pages/updatePages";
 import { LoadConfigArgs } from "../withConfig";
 import { withConfig, withConfigOptions, ResolvedConfig } from "../withConfig";

@@ -1,7 +1,7 @@
-import { MongoClient } from "chat-core";
+import { MongoClient } from "mongodb-rag-core";
 import { strict as assert } from "assert";
 import { convert } from "html-to-text";
-import { Page, assertEnvVars, logger } from "chat-core";
+import { Page, assertEnvVars, logger } from "mongodb-rag-core";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
 import { removeMarkdownImagesAndLinks } from "./removeMarkdownImagesAndLinks";
 import { DataSource } from "./DataSource";

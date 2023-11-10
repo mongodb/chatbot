@@ -17,6 +17,7 @@ import {
 } from "./addMessageToConversation";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
 import { FindContentFunc } from "./FindContentFunc";
+import { requireRequestOrigin } from "../../middleware/requestOrigin";
 
 /**
   Configuration for rate limiting on the /conversations/* routes.
@@ -135,6 +136,7 @@ export function makeConversationsRouter({
   // Create new conversation.
   conversationsRouter.post(
     "/",
+    requireRequestOrigin(),
     validateRequestSchema(CreateConversationRequest),
     makeCreateConversationRoute({ conversations })
   );
@@ -183,6 +185,7 @@ export function makeConversationsRouter({
     "/:conversationId/messages",
     addMessageRateLimit,
     addMessageSlowDown,
+    requireRequestOrigin(),
     validateRequestSchema(AddMessageRequest),
     addMessageToConversationRoute
   );

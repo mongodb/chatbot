@@ -16,6 +16,12 @@ paths:
       summary: Start a new conversation
       description: |
         **NOTE:** Captures user IP address.
+      parameters:
+        - in: header
+          name: Origin
+          required: true
+          schema:
+            $ref: '#/components/schemas/OriginHeaderValue'
       responses:
         200:
           description: OK
@@ -41,6 +47,11 @@ paths:
             type: boolean
           description: |
             If `true`, the response will be streamed to the client. This is useful for long-running conversations.
+        - in: header
+          name: Origin
+          required: true
+          schema:
+            $ref: '#/components/schemas/OriginHeaderValue'
       requestBody:
         content:
           application/json:
@@ -192,6 +203,12 @@ components:
           type: boolean
     ErrorResponse:
       type: object
+    OriginHeaderValue:
+      type: string
+      format: uri
+      description: |
+        The hostname of the page that the user is on when they start a
+        conversation. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin.
   parameters:
     conversationId:
       name: conversationId

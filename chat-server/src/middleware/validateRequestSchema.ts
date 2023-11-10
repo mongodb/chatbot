@@ -4,12 +4,11 @@ import { generateErrorMessage } from "zod-error";
 import { getRequestId, logRequest, sendErrorResponse } from "../utils";
 
 export const SomeExpressRequest = z.object({
-  ip: z.string(),
   headers: z.object({}).optional(),
   params: z.object({}).optional(),
   query: z.object({}).optional(),
   body: z.object({}).optional(),
-}).strict();
+});
 
 function generateZodErrorMessage(error: ZodError) {
   return generateErrorMessage(error.issues, {

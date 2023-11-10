@@ -63,3 +63,22 @@ export function areEquivalentIpAddresses(ip1: string, ip2: string) {
   }
   return ip1 === ip2;
 }
+
+export type RequestError = Error & {
+  name: "RequestError";
+  httpStatus: number;
+};
+
+export const makeRequestError = ({
+  message,
+  httpStatus,
+  stack: stackIn,
+}: Omit<RequestError, "name">): RequestError => {
+  const stack = stackIn ?? new Error(message).stack;
+  return {
+    stack,
+    message,
+    httpStatus,
+    name: "RequestError",
+  };
+};

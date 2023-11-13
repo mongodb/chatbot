@@ -75,8 +75,7 @@ add the credentials:
 
 ```shell
 # .zshrc
-export LG_ARTIFACTORY_PASSWORD=<password>
-export LG_ARTIFACTORY_USERNAME=<username>
+export LG_ARTIFACTORY_TOKEN=<authToken>
 export LG_ARTIFACTORY_EMAIL=<email>
 ```
 

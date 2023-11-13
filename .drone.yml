@@ -6,7 +6,6 @@ trigger:
   event:
     - push
     - tag
-    - pull_request
   paths:
     include:
       - chat-server/**/*

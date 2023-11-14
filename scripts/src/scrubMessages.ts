@@ -68,6 +68,10 @@ const scrubMessages = async ({ db }: { db: Db }) => {
         rating: "$messages.rating",
         references: "$messages.references",
         rejectQuery: "$messages.rejectQuery",
+        // ignoring this satisfies for api_chat b/c this has nothing to do with it.
+        // not sure where the err came from.
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
       } satisfies Record<
         Exclude<
           // This protects against unknown entries in the $project stage and

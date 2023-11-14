@@ -1,16 +1,14 @@
 # Build stage
 FROM node:18-alpine as builder
 
-ARG LG_ARTIFACTORY_PASSWORD
-ENV LG_ARTIFACTORY_PASSWORD=${LG_ARTIFACTORY_PASSWORD}
-ARG LG_ARTIFACTORY_USERNAME
-ENV LG_ARTIFACTORY_USERNAME=${LG_ARTIFACTORY_USERNAME}
+ARG LG_ARTIFACTORY_TOKEN
+ENV LG_ARTIFACTORY_TOKEN=${LG_ARTIFACTORY_TOKEN}
 ARG LG_ARTIFACTORY_EMAIL
 ENV LG_ARTIFACTORY_EMAIL=${LG_ARTIFACTORY_EMAIL}
 
 WORKDIR /app
 COPY . ./
-RUN npm install lerna && npm run bootstrap && npm run build -- --scope='{chat-core,ingest,ingest-mongodb-public}'
+RUN npm install lerna && npm run bootstrap && npm run build -- --scope='{chat-core,ingest}'
 
 # Main image
 FROM node:18-alpine as main
@@ -26,8 +24,5 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder app/ingest/package*.json ./ingest/
 COPY --from=builder app/ingest/node_modules ./ingest/node_modules
 COPY --from=builder app/ingest/build ./ingest/build
-COPY --from=builder app/ingest-mongodb-public/package*.json ./ingest-mongodb-public/
-COPY --from=builder app/ingest-mongodb-public/node_modules ./ingest-mongodb-public/node_modules
-COPY --from=builder app/ingest-mongodb-public/build ./ingest-mongodb-public/build
 
-WORKDIR /bin/ingest-mongodb-public
+WORKDIR /bin/ingest

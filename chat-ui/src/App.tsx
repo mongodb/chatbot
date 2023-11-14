@@ -18,8 +18,14 @@ function App() {
   // const [shouldStream, setShouldStream] = useState(canUseServerSentEvents());
   const shouldStream = false;
   const [publicApiKey, setPublicApiKey] = useLocalStorage("publicApiKey", "");
-  const [privateApiKey, setPrivateApiKey] = useLocalStorage("privateApiKey", "");
-  const [organizationId, setOrganizationId] = useLocalStorage("organizationId", "");
+  const [privateApiKey, setPrivateApiKey] = useLocalStorage(
+    "privateApiKey",
+    ""
+  );
+  const [organizationId, setOrganizationId] = useLocalStorage(
+    "organizationId",
+    ""
+  );
   const [projectId, setProjectId] = useLocalStorage("projectId", "");
   const [clusterId, setClusterId] = useLocalStorage("clusterId", "");
   const { contextDarkMode: darkMode = false, setDarkMode } =
@@ -29,7 +35,6 @@ function App() {
       darkMode ? styles.background_dark : styles.background_light
     }`;
   };
-
 
   const apiCredentials = {
     "atlas-admin-api": {
@@ -68,6 +73,7 @@ function App() {
         <TextInputControl
           label="Atlas Private API Key"
           value={privateApiKey}
+          type="password"
           onChange={(e) => setPrivateApiKey(e.target.value)}
         />
         <TextInputControl
@@ -106,15 +112,17 @@ type TextInputControlProps = {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   darkMode?: boolean;
-}
+  type?: string;
+};
 
-function TextInputControl (props: TextInputControlProps) {
+function TextInputControl(props: TextInputControlProps) {
   return (
     <TextInput
       className={styles.text_input_control}
       label={props.label}
       value={props.value}
       onChange={props.onChange}
+      type={props.type ?? "text"}
     />
   );
 }

@@ -1,0 +1,29 @@
+service:
+  targetPort: 3000
+
+env:
+  PORT: 3000
+  OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
+  OPENAI_EMBEDDING_MODEL_VERSION: 2023-03-15-preview
+  MONGODB_DATABASE_NAME: api-chatbot-dev
+  VECTOR_SEARCH_INDEX_NAME: default
+  OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
+  NODE_ENV: staging
+
+envSecrets:
+  MONGODB_CONNECTION_URI: api-chat-demo
+  OPENAI_ENDPOINT: api-chat-demo
+  OPENAI_API_KEY: api-chat-demo
+  OPENAI_EMBEDDING_DEPLOYMENT: api-chat-demo
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT: api-chat-demo
+
+ingress:
+  enabled: true
+  hosts:
+    - api-chat.docs.staging.corp.mongodb.com
+
+resources:
+  limits:
+    memory: 1300Mi
+  requests:
+    memory: 1100Mi

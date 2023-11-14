@@ -1,0 +1,95 @@
+---
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: MongoDB Content Search
+  license:
+    name: MIT
+servers:
+  - url: https://TODO:.swagger.io/v1
+paths:
+  /pets:
+    get:
+      security: []
+      summary: Get content search results
+      operationId: getContent
+      parameters:
+        - name: q
+          in: query
+          description: The user's query
+          required: true
+          schema:
+            type: object
+
+            properties:
+              programmingLanguages:
+                type: array
+                description:
+                  One or more programming languages present in the content ordered
+                  by relevancy.
+                items:
+                  type: string
+                example:
+                  - - shell
+                    - javascript
+                    - typescript
+                    - python
+                    - java
+                    - csharp
+                    - cpp
+                    - ruby
+                    - kotlin
+                    - c
+                    - dart
+                    - php
+                    - rust
+                    - scala
+                    - swift
+              mongoDbProducts:
+                type: array
+                description: One or more MongoDB products present in the content, ordered by relevancy.
+                items:
+                  type: string
+                example:
+                  - - MongoDB Atlas
+                    - Atlas Charts
+                    - Atlas Search
+                    - Aggregation Framework
+                    - MongoDB Server
+                    - Compass
+                    - MongoDB Connector for BI
+                    - Realm SDK
+                    - Driver
+                    - Atlas App Services
+                    - Atlas Streams
+              query:
+                type: string
+                description:
+                  Rephrased user query to make it more meaningful, in the form of a
+                  question if applicable.
+            required:
+              - programmingLanguages
+              - mongoDbProducts
+              - query
+      responses:
+        200:
+          description: The content to use in the response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  description:
+                    type: string
+                    description: The description of how you should use the content in your response.
+                  content:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        url:
+                          type: string
+                          description: The URL of where the content came from.
+                        text:
+                          type: string
+                          description: The text of the content.

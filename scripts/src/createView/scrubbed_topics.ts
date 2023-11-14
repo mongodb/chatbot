@@ -1,5 +1,5 @@
 import { MongoClient } from "mongodb";
-import { assertEnvVars } from "chat-core";
+import { assertEnvVars } from "mongodb-rag-core";
 
 import "dotenv/config";
 

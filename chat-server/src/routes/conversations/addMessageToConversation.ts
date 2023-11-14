@@ -3,7 +3,7 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { ObjectId, EmbeddedContent, References, Reference } from "chat-core";
+import { ObjectId, EmbeddedContent, References } from "mongodb-rag-core";
 import {
   ConversationsService,
   Message,
@@ -30,8 +30,9 @@ import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
 import { FindContentFunc } from "./FindContentFunc";
 
-export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
-export const MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
+export const DEFAULT_MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
+export const DEFAULT_MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
+export const DEFAULT_MAX_CONTEXT_TOKENS = 1500; // magic number for max context tokens for LLM
 
 export type AddMessageRequestBody = z.infer<typeof AddMessageRequestBody>;
 export const AddMessageRequestBody = z.object({
@@ -63,7 +64,10 @@ export interface AddMessageToConversationRouteParams {
   dataStreamer: DataStreamer;
   userQueryPreprocessor?: QueryPreprocessorFunc;
   maxChunkContextTokens?: number;
+  maxInputLengthCharacters?: number;
+  maxMessagesInConversation?: number;
   findContent: FindContentFunc;
+  makeReferenceLinks?: MakeReferenceLinksFunc;
 }
 
 export function makeAddMessageToConversationRoute({
@@ -72,7 +76,10 @@ export function makeAddMessageToConversationRoute({
   dataStreamer,
   findContent,
   userQueryPreprocessor,
-  maxChunkContextTokens = 1500,
+  maxChunkContextTokens = DEFAULT_MAX_CONTEXT_TOKENS,
+  maxInputLengthCharacters = DEFAULT_MAX_INPUT_LENGTH,
+  maxMessagesInConversation = DEFAULT_MAX_MESSAGES_IN_CONVERSATION,
+  makeReferenceLinks = makeDefaultReferenceLinks,
 }: AddMessageToConversationRouteParams) {
   return async (
     req: ExpressRequest<AddMessageRequest["params"]>,
@@ -113,7 +120,7 @@ export function makeAddMessageToConversationRoute({
 
       const latestMessageText = message;
 
-      if (latestMessageText.length > MAX_INPUT_LENGTH) {
+      if (latestMessageText.length > maxInputLengthCharacters) {
         throw makeRequestError({
           httpStatus: 400,
           message: "Message too long",
@@ -127,9 +134,9 @@ export function makeAddMessageToConversationRoute({
       });
 
       // --- MAX CONVERSATION LENGTH CHECK ---
-      if (conversation.messages.length >= MAX_MESSAGES_IN_CONVERSATION) {
+      if (conversation.messages.length >= maxMessagesInConversation) {
         // Omit the system prompt and assume the user always received one response per message
-        const maxUserMessages = (MAX_MESSAGES_IN_CONVERSATION - 1) / 2;
+        const maxUserMessages = (maxMessagesInConversation - 1) / 2;
         throw makeRequestError({
           httpStatus: 400,
           message: `Too many messages. You cannot send more than ${maxUserMessages} messages in this conversation.`,
@@ -189,7 +196,7 @@ export function makeAddMessageToConversationRoute({
       // --- VECTOR SEARCH / RETRIEVAL ---
       const { content, queryEmbedding } = await findContent({
         query,
-        ipAddress: ip,
+        ipAddress: ip ?? "::1",
       });
 
       if (content.length === 0) {
@@ -220,7 +227,7 @@ export function makeAddMessageToConversationRoute({
         )}`,
       });
 
-      const references = generateReferences({ content });
+      const references = makeReferenceLinks(content);
       const chunkTexts = includeChunksForMaxTokensPossible({
         maxTokens: maxChunkContextTokens,
         content,
@@ -460,30 +467,39 @@ export async function addMessagesToDatabase({
   return { userMessage, assistantMessage };
 }
 
-export const createLinkReference = (link: string): Reference => {
-  const url = new URL(link);
-  url.searchParams.append("tck", "docs_chatbot");
-  return {
-    url: url.href,
-    title: url.origin + url.pathname,
-  };
-};
+/**
+  Function that generates the references in the response to user.
+ */
+export type MakeReferenceLinksFunc = (chunks: EmbeddedContent[]) => References;
 
-export interface GenerateReferencesParams {
-  content: EmbeddedContent[];
-}
+/**
+  The default reference format returns the following for chunks from _unique_ pages:
 
-export function generateReferences({
-  content,
-}: GenerateReferencesParams): References {
-  if (content.length === 0) {
-    return [];
+  ```js
+  {
+    title: chunk.title ?? chunk.url, // if title doesn't exist, just put url
+    url: chunk.url // this always exists
   }
-  const uniqueLinks = Array.from(
-    new Set(content.map((content) => content.url))
-  );
-  return uniqueLinks.map((link) => createLinkReference(link));
-}
+  ```
+ */
+export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
+  // Filter chunks with unique URLs
+  const uniqueUrls = new Set();
+  const uniqueChunks = chunks.filter((chunk) => {
+    if (!uniqueUrls.has(chunk.url)) {
+      uniqueUrls.add(chunk.url);
+      return true; // Keep the chunk as it has a unique URL
+    }
+    return false; // Discard the chunk as its URL is not unique
+  });
+
+  return uniqueChunks.map((chunk) => {
+    return {
+      title: (chunk.metadata?.pageTitle as string) ?? chunk.url,
+      url: chunk.url,
+    };
+  });
+};
 
 /**
   This function will return the chunks that can fit in the maxTokens.

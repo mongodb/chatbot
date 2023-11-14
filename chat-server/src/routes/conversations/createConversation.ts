@@ -38,10 +38,7 @@ export function makeCreateConversationRoute({
   ) => {
     const reqId = getRequestId(req);
     try {
-      const {
-        ip,
-        origin: requestOrigin,
-      } = req;
+      const { ip, origin: requestOrigin } = req;
 
       if (!isValidIp(ip)) {
         return sendErrorResponse({
@@ -57,7 +54,7 @@ export function makeCreateConversationRoute({
       });
 
       const conversationInDb = await conversations.create({
-        ipAddress: ip,
+        ipAddress: ip as string,
         requestOrigin,
       });
 

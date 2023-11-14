@@ -3,8 +3,6 @@
 The ingest tool fetches pages from sources and stores the embeddings in the
 database.
 
-Based on <https://github.com/cbush/typescript-cli-template>.
-
 ## System Overview
 
 ```mermaid
@@ -42,6 +40,12 @@ The `embed` command creates embeddings for pages that have been updated since a
 given date. For pages that have been deleted, the command deletes any
 corresponding embeddings in the database. If a page is new or has been updated,
 the command regenerates the corresponding embeddings for that page.
+
+## Configuration
+
+To configure the ingest tool, provide an `ingest.config.js` file. The default
+export of this file must be a `Config` object. See [Config.ts](./src/Config.ts)
+for details.
 
 ## Development
 

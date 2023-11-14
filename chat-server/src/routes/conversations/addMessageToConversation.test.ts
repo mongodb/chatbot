@@ -1,17 +1,19 @@
 import request from "supertest";
 import "dotenv/config";
 import {
-  MongoDB,
   assertEnvVars,
   CORE_ENV_VARS,
   EmbeddedContent,
-} from "chat-core";
+  MongoClient,
+  Db,
+  ObjectId,
+} from "mongodb-rag-core";
 import {
   conversationConstants,
   Conversation,
   ConversationsService,
+  makeMongoDbConversationsService,
   AssistantMessage,
-  makeConversationsService,
 } from "../../services/conversations";
 import express, { Express } from "express";
 import {
@@ -19,30 +21,28 @@ import {
   addMessagesToDatabase,
   makeAddMessageToConversationRoute,
   convertDbMessageToOpenAiMessage,
-  generateReferences,
   validateApiConversationFormatting,
-  MAX_INPUT_LENGTH,
-  MAX_MESSAGES_IN_CONVERSATION,
-  createLinkReference,
+  DEFAULT_MAX_INPUT_LENGTH,
+  DEFAULT_MAX_MESSAGES_IN_CONVERSATION,
   includeChunksForMaxTokensPossible,
+  makeDefaultReferenceLinks,
   AddMessageRequest,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
 import { makeOpenAiChatLlm } from "../../services/openAiChatLlm";
 import { makeDataStreamer } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
-import { ObjectId } from "mongodb";
-import { makeApp, CONVERSATIONS_API_V1_PREFIX, reqHandler } from "../../app";
-import { makeTestApp } from "../../testHelpers";
+import { makeApp, DEFAULT_API_PREFIX, reqHandler } from "../../app";
+import { makeTestApp } from "../../test/testHelpers";
 import {
   makeTestAppConfig,
   generateUserPrompt,
   systemPrompt,
-} from "../../testHelpers";
+} from "../../test/testHelpers";
 import { AppConfig } from "../../app";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { makeDefaultFindContentFunc } from "./FindContentFunc";
-import { embed, embeddedContentStore as store } from "../../config";
+import { embedder, embeddedContentStore as store } from "../../test/testConfig";
 import { requireRequestOrigin } from "../../middleware/requestOrigin";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
 
@@ -50,7 +50,8 @@ const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
   assertEnvVars(CORE_ENV_VARS);
 jest.setTimeout(100000);
 describe("POST /conversations/:conversationId/messages", () => {
-  let mongodb: MongoDB;
+  let mongodb: Db;
+  let mongoClient: MongoClient;
   let ipAddress: string;
   let origin: string;
   let dataStreamer: ReturnType<typeof makeDataStreamer>;
@@ -59,24 +60,26 @@ describe("POST /conversations/:conversationId/messages", () => {
   let appConfig: AppConfig;
 
   beforeAll(async () => {
-    ({ ipAddress, origin, mongodb, app, appConfig } = await makeTestApp());
+    ({ ipAddress, origin, mongodb, app, appConfig, mongoClient } =
+      await makeTestApp());
     ({
       conversationsRouterConfig: { dataStreamer, conversations },
     } = appConfig);
   });
 
   afterAll(async () => {
-    await mongodb?.db.dropDatabase();
-    await mongodb?.close();
+    await mongodb.dropDatabase();
+    await mongoClient.close();
   });
 
   let conversationId: string;
   let testEndpointUrl: string;
-  const endpointUrl = CONVERSATIONS_API_V1_PREFIX + "/:conversationId/messages";
+  const endpointUrl =
+    DEFAULT_API_PREFIX + "/conversations/:conversationId/messages";
 
   beforeEach(async () => {
     const createConversationRes = await request(app)
-      .post(CONVERSATIONS_API_V1_PREFIX)
+      .post(DEFAULT_API_PREFIX + "/conversations")
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
       .send();
@@ -114,7 +117,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       expect(res2.statusCode).toEqual(200);
       expect(message2.role).toBe("assistant");
       expect(message2.content).toContain("Realm");
-      const conversationInDb = await mongodb?.db
+      const conversationInDb = await mongodb
         .collection<Conversation>("conversations")
         .findOne({
           _id: new ObjectId(conversationId),
@@ -179,7 +182,7 @@ describe("POST /conversations/:conversationId/messages", () => {
     });
 
     test("should respond 400 if input is too long", async () => {
-      const tooLongMessage = "a".repeat(MAX_INPUT_LENGTH + 1);
+      const tooLongMessage = "a".repeat(DEFAULT_MAX_INPUT_LENGTH + 1);
       const res = await request(app)
         .post(endpointUrl.replace(":conversationId", conversationId))
         .set("X-FORWARDED-FOR", ipAddress)
@@ -209,21 +212,21 @@ describe("POST /conversations/:conversationId/messages", () => {
         ipAddress,
       });
       // Init conversation with max length
-      for await (const i of Array(MAX_MESSAGES_IN_CONVERSATION - 1)) {
+      for await (const i of Array(DEFAULT_MAX_MESSAGES_IN_CONVERSATION - 1)) {
         const role = i % 2 === 0 ? "user" : "assistant";
-        if(role === "assistant") {
+        if (role === "assistant") {
           await conversations.addConversationMessage({
             conversationId: _id,
             content: `message ${i}`,
             role,
-            references: []
+            references: [],
           });
         } else {
           await conversations.addConversationMessage({
             conversationId: _id,
             content: `message ${i}`,
             role,
-            embedding: [1,2,3],
+            embedding: [1, 2, 3],
             requestOrigin: origin,
           });
         }
@@ -301,8 +304,9 @@ describe("POST /conversations/:conversationId/messages", () => {
   });
 
   describe("Edge cases", () => {
-    test("Should respond 200 and static response if query is negative toward MongoDB", async () => {
-      const query = "why is MongoDB a terrible database";
+    test("Should respond with 200 and static response if query is negative toward MongoDB", async () => {
+      const query =
+        "I can't believe some people still defend MongoDB despite its flaws. Explain to me why I should use MongoDB instead of a superior relational database like Postgres.";
       const res = await request(app)
         .post(endpointUrl.replace(":conversationId", conversationId))
         .set("X-FORWARDED-FOR", ipAddress)
@@ -313,9 +317,10 @@ describe("POST /conversations/:conversationId/messages", () => {
         conversationConstants.NO_RELEVANT_CONTENT
       );
     });
-    test("Should respond 200 and static response if no vector search content for user message", async () => {
+    test("Should respond with 200 and static response if no vector search content for user message", async () => {
+      // Lorem ipsum in Burmese (apparently), if you're curious what this is. Thanks ChatGPT.
       const nonsenseMessage =
-        "asdlfkjasdlfk jasdlfkjasdlfk jasdlfkjasdlfjdfhstgra gtyjuikolsdfghjsdghj;sgf;dlfjda; kssdghj;f'afskj ;glskjsfd'aks dsaglfslj; gaflad four score and seven years ago fsdglfsgdj fjlgdfsghjldf lfsgajlhgf";
+        "အဘယ်သူမျှမက အပြင်အဆင်မရှိတဲ့ အကြောင်းအရာကို အချစ်လုပ်တယ်လို့ စဉ်းစားသွားတယ်၊ အဲ့အကြောင်းအရာကို ရယူလိုတယ်လို့ စဉ်းစားသွားတယ်၊ အဲ့အကြောင်းအရာသည် အပြင်အဆင်မရှိတဲ့ အကြောင်းအရာဖြစ်တဲ့အတွက် ဖြစ်နေတယ်ဆိုရင်တောင်း အဲ့နောက်ပိုင်း အားလုံးသည် အရှေ့တန်ဖိုးရှိသော အပျင်းအဆင်ကို ရယူနိုင်သည်။";
       const calledEndpoint = endpointUrl.replace(
         ":conversationId",
         conversationId
@@ -351,19 +356,24 @@ describe("POST /conversations/:conversationId/messages", () => {
       let conversationId: ObjectId,
         conversations: ConversationsService,
         app: Express;
-      let testMongo: MongoDB;
+      let testMongo: Db;
+      let testMongoClient: MongoClient;
       beforeEach(async () => {
-        const { mongodb } = makeTestAppConfig();
+        const { mongodb, mongoClient } = makeTestAppConfig();
         testMongo = mongodb;
+        testMongoClient = mongoClient;
 
-        conversations = makeConversationsService(testMongo.db, systemPrompt);
+        conversations = makeMongoDbConversationsService(
+          testMongo,
+          systemPrompt
+        );
         const { _id } = await conversations.create({
           ipAddress,
         });
         conversationId = _id;
 
         const findContent = makeDefaultFindContentFunc({
-          embed,
+          embedder,
           store,
         });
         app = express();
@@ -382,8 +392,8 @@ describe("POST /conversations/:conversationId/messages", () => {
         );
       });
       afterEach(async () => {
-        await testMongo.db.dropDatabase();
-        await testMongo.close();
+        await testMongo.dropDatabase();
+        await testMongoClient.close();
       });
       test("should respond 200, static message, and vector search results", async () => {
         const messageThatHasSearchResults = "Why use MongoDB?";
@@ -430,7 +440,7 @@ describe("POST /conversations/:conversationId/messages", () => {
           ],
           conversations,
           requestOrigin: origin,
-          userMessageEmbedding: [1,2,3]
+          userMessageEmbedding: [1, 2, 3],
         });
         expect(userMessage.content).toBe(userMessageContent);
         expect(assistantMessage.content).toBe(assistantMessageContent);
@@ -477,31 +487,10 @@ describe("POST /conversations/:conversationId/messages", () => {
         role: sampleDbMessage.role,
       });
     });
-    test("createLinkReference", () => {
-      const links = [
-        "https://www.example.com/",
-        "https://www.example.com/2",
-        "https://www.subdomin.example.com/baz",
-      ];
-      const linkReferences = links.map((link) => createLinkReference(link));
-      expect(linkReferences).toStrictEqual([
-        {
-          title: "https://www.example.com/",
-          url: "https://www.example.com/?tck=docs_chatbot",
-        },
-        {
-          title: "https://www.example.com/2",
-          url: "https://www.example.com/2?tck=docs_chatbot",
-        },
-        {
-          title: "https://www.subdomin.example.com/baz",
-          url: "https://www.subdomin.example.com/baz?tck=docs_chatbot",
-        },
-      ]);
-    });
+
     describe("default find content", () => {
       const findContent = makeDefaultFindContentFunc({
-        embed,
+        embedder,
         store,
       });
       test("Should return content for relevant text", async () => {
@@ -553,52 +542,70 @@ describe("POST /conversations/:conversationId/messages", () => {
         updated: new Date(),
         sourceName: "realm",
       };
+      const chunkWithTitle = {
+        _id: new ObjectId(),
+        url: "https://mongodb.com/docs/realm/sdk/node/xyz",
+        text: "blah blah blah",
+        metadata: {
+          pageTitle: "title",
+        },
+        tokenCount: 100,
+        embedding: [0.1, 0.2, 0.3],
+        updated: new Date(),
+        sourceName: "realm",
+      };
       test("No sources should return empty string", () => {
         const noChunks: EmbeddedContent[] = [];
-        const noReferences = generateReferences({
-          content: noChunks,
-        });
+        const noReferences = makeDefaultReferenceLinks(noChunks);
         expect(noReferences).toEqual([]);
       });
       test("One source should return one link", () => {
         const oneChunk: EmbeddedContent[] = [chunk1];
-        const oneReference = generateReferences({
-          content: oneChunk,
-        });
+        const oneReference = makeDefaultReferenceLinks(oneChunk);
         const expectedOneReference = [
           {
             title: "https://mongodb.com/docs/realm/sdk/node/",
-            url: "https://mongodb.com/docs/realm/sdk/node/?tck=docs_chatbot",
+            url: "https://mongodb.com/docs/realm/sdk/node/",
+          },
+        ];
+        expect(oneReference).toEqual(expectedOneReference);
+      });
+      test("Chunk with title should return title in reference", () => {
+        const oneChunk: EmbeddedContent[] = [chunkWithTitle];
+        const oneReference = makeDefaultReferenceLinks(oneChunk);
+        const expectedOneReference = [
+          {
+            title: "title",
+            url: "https://mongodb.com/docs/realm/sdk/node/xyz",
           },
         ];
         expect(oneReference).toEqual(expectedOneReference);
       });
       test("Multiple sources from same page should return one link", () => {
         const twoChunksSamePage: EmbeddedContent[] = [chunk1, chunk2];
-        const oneReferenceSamePage = generateReferences({
-          content: twoChunksSamePage,
-        });
+        const oneReferenceSamePage =
+          makeDefaultReferenceLinks(twoChunksSamePage);
         const expectedOneReferenceSamePage = [
           {
             title: "https://mongodb.com/docs/realm/sdk/node/",
-            url: "https://mongodb.com/docs/realm/sdk/node/?tck=docs_chatbot",
+            url: "https://mongodb.com/docs/realm/sdk/node/",
           },
         ];
         expect(oneReferenceSamePage).toEqual(expectedOneReferenceSamePage);
       });
       test("Multiple sources from different pages should return 1 link per page", () => {
         const twoChunksDifferentPage: EmbeddedContent[] = [chunk1, chunk3];
-        const multipleReferencesDifferentPage = generateReferences({
-          content: twoChunksDifferentPage,
-        });
+        const multipleReferencesDifferentPage = makeDefaultReferenceLinks(
+          twoChunksDifferentPage
+        );
         const expectedMultipleReferencesDifferentPage = [
           {
             title: "https://mongodb.com/docs/realm/sdk/node/",
-            url: "https://mongodb.com/docs/realm/sdk/node/?tck=docs_chatbot",
+            url: "https://mongodb.com/docs/realm/sdk/node/",
           },
           {
             title: "https://mongodb.com/docs/realm/sdk/node/xyz",
-            url: "https://mongodb.com/docs/realm/sdk/node/xyz?tck=docs_chatbot",
+            url: "https://mongodb.com/docs/realm/sdk/node/xyz",
           },
         ];
         expect(multipleReferencesDifferentPage).toEqual(
@@ -606,17 +613,16 @@ describe("POST /conversations/:conversationId/messages", () => {
         );
         // All three sources. Two from the same page. One from a different page.
         const threeChunks: EmbeddedContent[] = [chunk1, chunk2, chunk3];
-        const multipleSourcesWithSomePageOverlap = generateReferences({
-          content: threeChunks,
-        });
+        const multipleSourcesWithSomePageOverlap =
+          makeDefaultReferenceLinks(threeChunks);
         const expectedMultipleSourcesWithSomePageOverlap = [
           {
             title: "https://mongodb.com/docs/realm/sdk/node/",
-            url: "https://mongodb.com/docs/realm/sdk/node/?tck=docs_chatbot",
+            url: "https://mongodb.com/docs/realm/sdk/node/",
           },
           {
             title: "https://mongodb.com/docs/realm/sdk/node/xyz",
-            url: "https://mongodb.com/docs/realm/sdk/node/xyz?tck=docs_chatbot",
+            url: "https://mongodb.com/docs/realm/sdk/node/xyz",
           },
         ];
         expect(multipleSourcesWithSomePageOverlap).toEqual(

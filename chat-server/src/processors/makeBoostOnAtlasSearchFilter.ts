@@ -3,7 +3,7 @@ import {
   EmbeddedContent,
   FindNearestNeighborsOptions,
   EmbeddedContentStore,
-} from "chat-core";
+} from "mongodb-rag-core";
 import { SearchBooster } from "./SearchBooster";
 
 export type WithFilterAndK<T> = T & {
@@ -14,15 +14,31 @@ type FindNearestNeighborOptionsWithFilterAndK = WithFilterAndK<
   Partial<FindNearestNeighborsOptions>
 >;
 
+interface MakeBoostOnAtlasSearchFilterArgs {
+  /**
+    Options for performing a nearest-neighbor search for results to boost.
+  */
+  findNearestNeighborsOptions: FindNearestNeighborOptionsWithFilterAndK;
+
+  /**
+    Max number of results to boost.
+   */
+  totalMaxK: number;
+
+  /**
+    Determines if the booster should be used, based on the user's input.
+   */
+  shouldBoostFunc: ({ text }: { text: string }) => Promise<boolean>;
+}
+
+/**
+  Boost certain results in search results from Atlas Search.
+ */
 export function makeBoostOnAtlasSearchFilter({
   findNearestNeighborsOptions,
   totalMaxK,
   shouldBoostFunc,
-}: {
-  findNearestNeighborsOptions: FindNearestNeighborOptionsWithFilterAndK;
-  totalMaxK: number;
-  shouldBoostFunc: ({ text }: { text: string }) => boolean;
-}): SearchBooster {
+}: MakeBoostOnAtlasSearchFilterArgs): SearchBooster {
   if (findNearestNeighborsOptions.k > totalMaxK) {
     throw new Error(
       `findNearestNeighborsOptions.k (${findNearestNeighborsOptions.k}) must be less than or equal to totalMaxK (${totalMaxK})`

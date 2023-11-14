@@ -2,7 +2,7 @@ import "dotenv/config";
 
 import { stripIndent } from "common-tags";
 import { OpenAiChatMessage } from "./ChatLlm";
-import { makeTestAppConfig, systemPrompt } from "../testHelpers";
+import { makeTestAppConfig, systemPrompt } from "../test/testHelpers";
 
 jest.setTimeout(30000);
 

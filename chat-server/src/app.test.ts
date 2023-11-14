@@ -2,7 +2,7 @@ import express, { Express } from "express";
 import request from "supertest";
 import { errorHandler, makeApp, makeHandleTimeoutMiddleware } from "./app";
 
-import { makeTestAppConfig } from "./testHelpers";
+import { makeTestAppConfig } from "./test/testHelpers";
 
 describe("App", () => {
   let app: Express;

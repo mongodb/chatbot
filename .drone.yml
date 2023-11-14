@@ -6,7 +6,6 @@ trigger:
   event:
     - push
     - tag
-    - pull_request
   paths:
     include:
       - chat-server/**/*
@@ -45,10 +44,8 @@ steps:
         from_secret: openai_chat_completion_deployment
       DEVCENTER_CONNECTION_URI:
         from_secret: devcenter_connection_uri
-      LG_ARTIFACTORY_PASSWORD:
-        from_secret: lg_artifactory_password
-      LG_ARTIFACTORY_USERNAME:
-        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_TOKEN:
+        from_secret: lg_artifactory_token
       LG_ARTIFACTORY_EMAIL:
         from_secret: lg_artifactory_email
       GITHUB_ACCESS_TOKEN:
@@ -81,10 +78,8 @@ steps:
   - name: publish-staging-chatbot-server-mongodb-public
     image: plugins/kaniko-ecr
     environment:
-      LG_ARTIFACTORY_PASSWORD:
-        from_secret: lg_artifactory_password
-      LG_ARTIFACTORY_USERNAME:
-        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_TOKEN:
+        from_secret: lg_artifactory_token
       LG_ARTIFACTORY_EMAIL:
         from_secret: lg_artifactory_email
     settings:
@@ -93,8 +88,7 @@ steps:
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
       repo: docs/${DRONE_REPO_NAME}-chat-server
       build_args:
-        - LG_ARTIFACTORY_PASSWORD
-        - LG_ARTIFACTORY_USERNAME
+        - LG_ARTIFACTORY_TOKEN
         - LG_ARTIFACTORY_EMAIL
         - GIT_COMMIT=${DRONE_COMMIT_SHA:0:7}
       tags:
@@ -168,10 +162,8 @@ steps:
     image: plugins/kaniko-ecr
     environment:
       ENVIRONMENT: qa
-      LG_ARTIFACTORY_PASSWORD:
-        from_secret: lg_artifactory_password
-      LG_ARTIFACTORY_USERNAME:
-        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_TOKEN:
+        from_secret: lg_artifactory_token
       LG_ARTIFACTORY_EMAIL:
         from_secret: lg_artifactory_email
     settings:
@@ -181,8 +173,7 @@ steps:
       repo: docs/${DRONE_REPO_NAME}-chat-server
       build_args:
         - ENVIRONMENT
-        - LG_ARTIFACTORY_PASSWORD
-        - LG_ARTIFACTORY_USERNAME
+        - LG_ARTIFACTORY_TOKEN
         - LG_ARTIFACTORY_EMAIL
       tags:
         - git-${DRONE_COMMIT_SHA:0:7}-qa
@@ -249,10 +240,8 @@ steps:
   - name: publish-production-chatbot-server-mongodb-public
     image: plugins/kaniko-ecr
     environment:
-      LG_ARTIFACTORY_PASSWORD:
-        from_secret: lg_artifactory_password
-      LG_ARTIFACTORY_USERNAME:
-        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_TOKEN:
+        from_secret: lg_artifactory_token
       LG_ARTIFACTORY_EMAIL:
         from_secret: lg_artifactory_email
     settings:
@@ -261,8 +250,7 @@ steps:
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
       repo: docs/${DRONE_REPO_NAME}-chat-server
       build_args:
-        - LG_ARTIFACTORY_PASSWORD
-        - LG_ARTIFACTORY_USERNAME
+        - LG_ARTIFACTORY_TOKEN
         - LG_ARTIFACTORY_EMAIL
       tags:
         - git-${DRONE_COMMIT_SHA:0:7}-production
@@ -338,10 +326,8 @@ steps:
   - name: publish-staging-ingest-mongodb-public
     image: plugins/kaniko-ecr
     environment:
-      LG_ARTIFACTORY_PASSWORD:
-        from_secret: lg_artifactory_password
-      LG_ARTIFACTORY_USERNAME:
-        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_TOKEN:
+        from_secret: lg_artifactory_token
       LG_ARTIFACTORY_EMAIL:
         from_secret: lg_artifactory_email
     settings:
@@ -350,8 +336,7 @@ steps:
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
       repo: docs/${DRONE_REPO_NAME}-ingest-service
       build_args:
-        - LG_ARTIFACTORY_PASSWORD
-        - LG_ARTIFACTORY_USERNAME
+        - LG_ARTIFACTORY_TOKEN
         - LG_ARTIFACTORY_EMAIL
       tags:
         - git-${DRONE_COMMIT_SHA:0:7}-staging
@@ -424,10 +409,8 @@ steps:
   - name: publish-production-mongodb-rag-ingest
     image: plugins/kaniko-ecr
     environment:
-      LG_ARTIFACTORY_PASSWORD:
-        from_secret: lg_artifactory_password
-      LG_ARTIFACTORY_USERNAME:
-        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_TOKEN:
+        from_secret: lg_artifactory_token
       LG_ARTIFACTORY_EMAIL:
         from_secret: lg_artifactory_email
     settings:
@@ -436,8 +419,7 @@ steps:
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
       repo: docs/${DRONE_REPO_NAME}-ingest-service
       build_args:
-        - LG_ARTIFACTORY_PASSWORD
-        - LG_ARTIFACTORY_USERNAME
+        - LG_ARTIFACTORY_TOKEN
         - LG_ARTIFACTORY_EMAIL
       tags:
         - git-${DRONE_COMMIT_SHA:0:7}-production
@@ -612,10 +594,8 @@ steps:
       - npm run build -- --scope='{mongodb-rag-core,mongodb-chatbot-ui}'
       - cd chat-ui && npm publish
     environment:
-      LG_ARTIFACTORY_PASSWORD:
-        from_secret: lg_artifactory_password
-      LG_ARTIFACTORY_USERNAME:
-        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_TOKEN:
+        from_secret: lg_artifactory_token
       LG_ARTIFACTORY_EMAIL:
         from_secret: lg_artifactory_email
       NPM_TOKEN:
@@ -645,10 +625,8 @@ steps:
   - name: publish-staging-scripts-service
     image: plugins/kaniko-ecr
     environment:
-      LG_ARTIFACTORY_PASSWORD:
-        from_secret: lg_artifactory_password
-      LG_ARTIFACTORY_USERNAME:
-        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_TOKEN:
+        from_secret: lg_artifactory_token
       LG_ARTIFACTORY_EMAIL:
         from_secret: lg_artifactory_email
     settings:
@@ -657,8 +635,7 @@ steps:
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
       repo: docs/${DRONE_REPO_NAME}-scripts-service
       build_args:
-        - LG_ARTIFACTORY_PASSWORD
-        - LG_ARTIFACTORY_USERNAME
+        - LG_ARTIFACTORY_TOKEN
         - LG_ARTIFACTORY_EMAIL
       tags:
         - git-${DRONE_COMMIT_SHA:0:7}-staging
@@ -731,10 +708,8 @@ steps:
   - name: publish-production-scripts-service
     image: plugins/kaniko-ecr
     environment:
-      LG_ARTIFACTORY_PASSWORD:
-        from_secret: lg_artifactory_password
-      LG_ARTIFACTORY_USERNAME:
-        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_TOKEN:
+        from_secret: lg_artifactory_token
       LG_ARTIFACTORY_EMAIL:
         from_secret: lg_artifactory_email
     settings:
@@ -743,8 +718,7 @@ steps:
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
       repo: docs/${DRONE_REPO_NAME}-scripts-service
       build_args:
-        - LG_ARTIFACTORY_PASSWORD
-        - LG_ARTIFACTORY_USERNAME
+        - LG_ARTIFACTORY_TOKEN
         - LG_ARTIFACTORY_EMAIL
       tags:
         - git-${DRONE_COMMIT_SHA:0:7}-production

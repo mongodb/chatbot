@@ -38,8 +38,11 @@ describe("POST /conversations", () => {
     expect(count).toBe(1);
   });
 
-  it("should respond 400 if the Origin header is missing", async () => {
+  it("should respond 400 if neither the Origin nor X-Request-Origin header is present", async () => {
     const res = await request(app).post(CONVERSATIONS_API_V1_PREFIX).send();
     expect(res.statusCode).toEqual(400);
+    expect(res.body).toEqual({
+      error: "You must specify either an Origin or X-Request-Origin header",
+    });
   });
 });

@@ -124,17 +124,18 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
   const app = express();
   app.use(makeHandleTimeoutMiddleware(maxRequestTimeoutMs));
   app.set("trust proxy", true);
-  app.use(cors(corsOptions));
+  // app.use(cors(corsOptions));
   app.use(express.json());
   app.use(reqHandler);
-  const { NODE_ENV } = process.env;
-  if (
-    NODE_ENV === "development" ||
-    NODE_ENV === "staging" ||
-    NODE_ENV === "qa"
-  ) {
-    app.use(express.static("static"));
-  }
+  // const { NODE_ENV } = process.env;
+  // if (
+  //   NODE_ENV === "development" ||
+  //   NODE_ENV === "staging" ||
+  //   NODE_ENV === "qa"
+  // ) {
+  //   app.use(express.static("static"));
+  // }
+  app.use(express.static("static"));
   app.use(
     `${apiPrefix}/conversations`,
     makeConversationsRouter(conversationsRouterConfig)

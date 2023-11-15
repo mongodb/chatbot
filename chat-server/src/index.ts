@@ -3,20 +3,9 @@
  */
 import "dotenv/config";
 import { makeApp } from "./app";
-import { logger, CORE_ENV_VARS, assertEnvVars } from "chat-core";
+import { logger } from "chat-core";
 import { config, mongodb, embeddedContentStore } from "./config";
 
-export const {
-  MONGODB_CONNECTION_URI,
-  MONGODB_DATABASE_NAME,
-  VECTOR_SEARCH_INDEX_NAME,
-  OPENAI_ENDPOINT,
-  OPENAI_API_KEY,
-  OPENAI_EMBEDDING_DEPLOYMENT,
-  OPENAI_EMBEDDING_MODEL_VERSION,
-  OPENAI_CHAT_COMPLETION_MODEL_VERSION,
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-} = assertEnvVars(CORE_ENV_VARS);
 
 const PORT = process.env.PORT || 3000;
 

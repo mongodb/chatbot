@@ -275,7 +275,9 @@ name: api-chat-deploy-chat-server
 
 trigger:
   event:
-    - push
+    - promote
+  target:
+    - staging
   branch:
     - api_chat
 

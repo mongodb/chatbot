@@ -14,6 +14,7 @@ envSecrets:
   MONGODB_CONNECTION_URI: api-chat-demo
   OPENAI_API_KEY: api-chat-demo
   OPENAI_EMBEDDING_DEPLOYMENT: api-chat-demo
+  OPENAI_ENDPOINT: api-chat-demo
   OPENAI_CHAT_COMPLETION_DEPLOYMENT: api-chat-demo
 
 ingress:

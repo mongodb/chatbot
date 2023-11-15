@@ -33,10 +33,8 @@ export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
   VECTOR_SEARCH_INDEX_NAME,
-  OPENAI_ENDPOINT,
   OPENAI_API_KEY,
   OPENAI_EMBEDDING_DEPLOYMENT,
-  OPENAI_EMBEDDING_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
 } = assertEnvVars(CORE_ENV_VARS);
@@ -44,7 +42,6 @@ export const {
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
 const openAiClient = new OpenAIClient(
-  // OPENAI_ENDPOINT,
   // new AzureKeyCredential(OPENAI_API_KEY),
   new OpenAIKeyCredential(OPENAI_API_KEY)
   // {
@@ -106,16 +103,6 @@ export const llm = makeOpenAiChatLlm({
   generateUserPrompt,
 });
 
-const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({
-  azureOpenAiServiceConfig: {
-    apiKey: OPENAI_API_KEY,
-    baseUrl: OPENAI_ENDPOINT,
-    deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-    version: OPENAI_CHAT_COMPLETION_MODEL_VERSION,
-  },
-  numRetries: 0,
-  retryDelayMs: 5000,
-});
 
 export const dataStreamer = makeDataStreamer();
 
@@ -191,7 +178,6 @@ export const config: AppConfig = {
     dataStreamer,
     llm,
     findContent,
-    userQueryPreprocessor: mongoDbUserQueryPreprocessor,
     maxChunkContextTokens: 1500,
     conversations,
     makeReferenceLinks: makeMongoDbReferences,
@@ -199,7 +185,6 @@ export const config: AppConfig = {
   apiConversationsRouterConfig: {
     apiChatLlm,
     findContent,
-    userQueryPreprocessor: mongoDbUserQueryPreprocessor,
     maxChunkContextTokens: 1500,
     conversations: apiConversations,
     // makeReferenceLinks: makeMongoDbReferences,

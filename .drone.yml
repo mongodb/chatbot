@@ -283,7 +283,7 @@ trigger:
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion
-  - name: deploy-qa-chat-server
+  - name: deploy-api-chat-server
     image: quay.io/mongodb/drone-helm:v3
     settings:
       chart: mongodb/web-app

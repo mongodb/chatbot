@@ -6,6 +6,9 @@ trigger:
   event:
     - push
     - tag
+  branch:
+    exclude:
+      - api_chat
   paths:
     include:
       - chat-server/**/*
@@ -214,6 +217,80 @@ steps:
       release: chat-server-qa
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-qa,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-qa.docs.staging.corp.mongodb.com
       values_files: ["chat-server/environments/qa.yml"]
+      api_server: https://api.staging.corp.mongodb.com
+      kubernetes_token:
+        from_secret: staging_kubernetes_token
+---
+kind: pipeline
+type: kubernetes
+name: api-chat-build-chat-server
+
+trigger:
+  event:
+    - push
+  branch:
+    - api_chat
+
+steps:
+  # Builds and publishes Docker image for api chat server
+  - name: publish-api-chat-server
+    image: plugins/kaniko-ecr
+    environment:
+      ENVIRONMENT: staging
+      LG_ARTIFACTORY_TOKEN:
+        from_secret: lg_artifactory_token
+      LG_ARTIFACTORY_EMAIL:
+        from_secret: lg_artifactory_email
+    settings:
+      dockerfile: chat-server.dockerfile
+      create_repository: true
+      registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
+      repo: docs/${DRONE_REPO_NAME}-chat-server
+      build_args:
+        - ENVIRONMENT
+        - LG_ARTIFACTORY_TOKEN
+        - LG_ARTIFACTORY_EMAIL
+      tags:
+        - git-${DRONE_COMMIT_SHA:0:7}-api-chat
+        - latest-api-chat
+      access_key:
+        from_secret: ecr_access_key
+      secret_key:
+        from_secret: ecr_secret_key
+
+  # Promotes current drone build to staging environment (API chat server is in staging namespace)
+  - name: promote-api-chat-server
+    image: drone/cli:1.4.0-alpine
+    commands:
+      - drone build promote mongodb/chatbot ${DRONE_BUILD_NUMBER} staging
+    environment:
+      DRONE_SERVER: ${DRONE_SYSTEM_PROTO}://${DRONE_SYSTEM_HOST}
+      DRONE_TOKEN:
+        from_secret: drone_token
+
+---
+kind: pipeline
+type: kubernetes
+name: api-chat-deploy-chat-server
+
+trigger:
+  event:
+    - push
+  branch:
+    - api_chat
+
+steps:
+  # Deploys docker image associated with staging build that triggered promotion
+  - name: deploy-qa-chat-server
+    image: quay.io/mongodb/drone-helm:v3
+    settings:
+      chart: mongodb/web-app
+      chart_version: 4.12.3
+      add_repos: [mongodb=https://10gen.github.io/helm-charts]
+      namespace: docs
+      release: chat-server-qa
+      values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-api-chat,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=api-chat.docs.staging.corp.mongodb.com
+      values_files: ["chat-server/environments/api_chat.yml"]
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token

@@ -112,7 +112,7 @@ type TextInputControlProps = {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   darkMode?: boolean;
-  type?: string;
+  type?: "number" | "search" | "text" | "email" | "password" | "tel" | "url";
 };
 
 function TextInputControl(props: TextInputControlProps) {

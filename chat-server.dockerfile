@@ -19,6 +19,9 @@ RUN npm install lerna && npm run bootstrap && npm run build
 FROM node:18-alpine as main
 WORKDIR /app
 
+# Add curl for the function executor
+RUN apk --no-cache add curl
+
 COPY --from=builder /app/chat-core ./chat-core/
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules

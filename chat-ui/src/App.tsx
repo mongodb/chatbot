@@ -3,7 +3,7 @@ import styles from "./App.module.css";
 import LeafyGreenProvider, {
   useDarkModeContext,
 } from "@leafygreen-ui/leafygreen-provider";
-import { Overline, Link } from "@leafygreen-ui/typography";
+import { Overline, Link, Body } from "@leafygreen-ui/typography";
 import Toggle from "@leafygreen-ui/toggle";
 import { Chatbot } from "./Chatbot";
 import { DocsChatbot } from "./DocsChatbot";
@@ -65,6 +65,18 @@ function App() {
         </Chatbot>
       </div>
       <Controls>
+        <Body style={{ color: "white" }}>
+          <b>Note:</b> Your Atlas API key must include access for the{" "}
+          <Link
+            hideExternalIcon
+            href={
+              "https://kanopy.corp.mongodb.com/docs/production/cluster_whitelists/#staging-ips"
+            }
+          >
+            Kanopy Staging IP addresses
+          </Link>
+          .
+        </Body>
         <TextInputControl
           label="Atlas Public API Key"
           value={publicApiKey}

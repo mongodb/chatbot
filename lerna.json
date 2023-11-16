@@ -8,7 +8,10 @@
     "chat-server",
     "chat-ui",
     "ingest",
+    "chatbot-server-mongodb-public",
+    "ingest-mongodb-public",
     "mongodb-atlas",
+    "performance-tests",
     "scripts"
   ]
 }

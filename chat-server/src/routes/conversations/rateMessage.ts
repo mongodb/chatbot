@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb";
+import { ObjectId } from "mongodb-rag-core";
 import {
   Conversation,
   ConversationsService,

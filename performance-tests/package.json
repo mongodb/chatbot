@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Performance tests for the Docs AI Chatbot.",
   "main": "index.js",
+  "private": true,
   "scripts": {
     "clean": "rm -rf build",
     "build": "npm run clean && tsc",

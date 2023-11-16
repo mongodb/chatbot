@@ -1,23 +1,26 @@
 import request from "supertest";
 import "dotenv/config";
-import { MongoDB } from "chat-core";
+import { Db, MongoClient } from "mongodb-rag-core";
 import { Conversation } from "../../services/conversations";
 import { Express } from "express";
 import { ApiConversation } from "./utils";
-import { CONVERSATIONS_API_V1_PREFIX } from "../../app";
-import { makeTestApp } from "../../testHelpers";
+import { DEFAULT_API_PREFIX } from "../../app";
+import { makeTestApp } from "../../test/testHelpers";
+
+const CONVERSATIONS_API_V1_PREFIX = DEFAULT_API_PREFIX + "/conversations";
 
 describe("POST /conversations", () => {
-  let mongodb: MongoDB;
+  let mongodb: Db;
+  let mongoClient: MongoClient;
   let app: Express;
   let origin: string;
 
   beforeAll(async () => {
-    ({ mongodb, app, origin } = await makeTestApp());
+    ({ mongodb, app, mongoClient, origin } = await makeTestApp());
   });
   afterAll(async () => {
-    await mongodb?.db.dropDatabase();
-    await mongodb?.close();
+    await mongodb.dropDatabase();
+    await mongoClient.close();
   });
 
   it("should respond 200 and create a conversation", async () => {
@@ -29,7 +32,7 @@ describe("POST /conversations", () => {
     expect(res.statusCode).toEqual(200);
 
     expect(conversation.messages).toHaveLength(0);
-    const count = await mongodb?.db
+    const count = await mongodb
       .collection<Conversation>("conversations")
       .countDocuments();
     expect(count).toBe(1);

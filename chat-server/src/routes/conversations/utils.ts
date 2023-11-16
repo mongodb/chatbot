@@ -5,7 +5,7 @@ import {
   Message,
   AssistantMessage,
 } from "../../services/conversations";
-import { References } from "chat-core";
+import { References } from "mongodb-rag-core";
 import { z } from "zod";
 
 export type ApiMessage = z.infer<typeof ApiMessage>;
@@ -50,8 +50,8 @@ export function convertConversationFromDbToApi(
   };
 }
 
-export function isValidIp(ip: string) {
-  return isIP(ip) > 0;
+export function isValidIp(ip?: string) {
+  return ip !== undefined && isIP(ip) > 0;
 }
 
 export function areEquivalentIpAddresses(ip1: string, ip2: string) {

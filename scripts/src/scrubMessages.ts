@@ -5,7 +5,7 @@ import {
   UserMessage,
   AssistantMessage,
   SystemMessage,
-} from "chat-server";
+} from "mongodb-chatbot-server";
 import { ScrubbedMessage } from "./ScrubbedMessage";
 
 import "dotenv/config";

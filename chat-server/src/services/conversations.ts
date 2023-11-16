@@ -1,6 +1,6 @@
 import { OpenAiChatMessage, OpenAiMessageRole, SystemPrompt } from "./ChatLlm";
-import { ObjectId, Db } from "mongodb";
-import { References } from "chat-core";
+import { ObjectId, Db } from "mongodb-rag-core";
+import { References } from "mongodb-rag-core";
 
 export type Message = {
   /**
@@ -63,8 +63,14 @@ export type UserMessage = Message & {
   embedding: number[];
 };
 
+/**
+  Message in the {@link Conversation} as stored in the database.
+ */
 export type SomeMessage = UserMessage | AssistantMessage | SystemMessage;
 
+/**
+  Conversation between the user and the chatbot as stored in the database.
+ */
 export interface Conversation {
   _id: ObjectId;
   /** Messages in the conversation. */
@@ -81,7 +87,6 @@ export interface CreateConversationParams {
   requestOrigin?: string;
 }
 
-
 export type AddSystemMessageParams = Omit<SystemMessage, "id" | "createdAt"> & {
   conversationId: ObjectId;
 };
@@ -89,13 +94,19 @@ export type AddSystemMessageParams = Omit<SystemMessage, "id" | "createdAt"> & {
 export type AddUserMessageParams = Omit<UserMessage, "id" | "createdAt"> & {
   conversationId: ObjectId;
   requestOrigin: string;
-}
+};
 
-export type AddAssistantMessageParams = Omit<AssistantMessage, "id" | "createdAt"> & {
+export type AddAssistantMessageParams = Omit<
+  AssistantMessage,
+  "id" | "createdAt"
+> & {
   conversationId: ObjectId;
 };
 
-export type AddConversationMessageParams = AddSystemMessageParams | AddUserMessageParams | AddAssistantMessageParams;
+export type AddConversationMessageParams =
+  | AddSystemMessageParams
+  | AddUserMessageParams
+  | AddAssistantMessageParams;
 
 export interface FindByIdParams {
   _id: ObjectId;
@@ -105,6 +116,9 @@ export interface RateMessageParams {
   messageId: ObjectId;
   rating: boolean;
 }
+/**
+  Service for managing {@link Conversation}s.
+ */
 export interface ConversationsService {
   create: (params: CreateConversationParams) => Promise<Conversation>;
   addConversationMessage: (
@@ -118,6 +132,9 @@ export interface ConversationsService {
   }: RateMessageParams) => Promise<boolean>;
 }
 
+/**
+ OSS_TODO: make these configurable from the entry point. though i think these messages are reasonable defaults
+ */
 export const conversationConstants = {
   NO_RELEVANT_CONTENT: `Unfortunately, I do not know how to respond to your message.
 
@@ -128,7 +145,10 @@ so I cannot respond to your message. Please try again later.
 However, here are some links that might provide some helpful information for your message:`,
 };
 
-export function makeConversationsService(
+/**
+  Create {@link ConversationsService} that uses MongoDB as a data store.
+ */
+export function makeMongoDbConversationsService(
   database: Db,
   systemPrompt: SystemPrompt
 ): ConversationsService {
@@ -207,9 +227,7 @@ export function makeConversationsService(
   };
 }
 
-export function createMessage(
-  messageParams: AddConversationMessageParams
-) {
+export function createMessage(messageParams: AddConversationMessageParams) {
   return {
     id: new ObjectId(),
     createdAt: new Date(),
@@ -217,6 +235,9 @@ export function createMessage(
   } satisfies SomeMessage;
 }
 
+/**
+  Create a {@link Message} object from the {@link OpenAiChatMessage} object.
+ */
 export function createMessageFromOpenAIChatMessage({
   role,
   content,

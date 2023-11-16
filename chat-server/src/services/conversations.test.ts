@@ -1,13 +1,12 @@
 import "dotenv/config";
-import { MongoDB } from "chat-core";
 import {
   Conversation,
   UserMessage,
   AssistantMessage,
-  makeConversationsService,
+  makeMongoDbConversationsService,
 } from "./conversations";
-import { BSON } from "mongodb";
-import { systemPrompt } from "../testHelpers";
+import { BSON, MongoClient } from "mongodb-rag-core";
+import { systemPrompt } from "../test/testHelpers";
 
 const requestOrigin = "http://localhost:5173";
 
@@ -18,21 +17,20 @@ describe("Conversations Service", () => {
   if (!MONGODB_CONNECTION_URI) {
     throw new Error("Missing MONGODB_CONNECTION_URI");
   }
-  const mongodb = new MongoDB(
-    MONGODB_CONNECTION_URI,
-    `conversations-test-${new Date().getTime()}` // New DB for each test run
-  );
+  const mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
+
+  const mongodb = mongoClient.db(`conversations-test-${new Date().getTime()}`); // New DB for each test run
 
   afterEach(async () => {
-    await mongodb.db.collection("conversations").deleteMany({});
+    await mongodb.collection("conversations").deleteMany({});
   });
   afterAll(async () => {
-    await mongodb.db.dropDatabase();
-    await mongodb.close();
+    await mongodb.dropDatabase();
+    await mongoClient.close();
   });
 
-  const conversationsService = makeConversationsService(
-    mongodb.db,
+  const conversationsService = makeMongoDbConversationsService(
+    mongodb,
     systemPrompt
   );
   test("Should create a conversation", async () => {
@@ -43,7 +41,7 @@ describe("Conversations Service", () => {
     });
     expect(conversation).toHaveProperty("_id");
     expect(conversation).toHaveProperty("ipAddress", ipAddress);
-    const conversationInDb = await mongodb.db
+    const conversationInDb = await mongodb
       .collection("conversations")
       .findOne({ _id: conversation._id });
     expect(conversationInDb).toStrictEqual(conversation);
@@ -60,16 +58,47 @@ describe("Conversations Service", () => {
       role: "user",
       content,
       requestOrigin,
-      embedding: [1,2,3]
+      embedding: [1, 2, 3],
     });
     expect(newMessage.content).toBe(content);
 
-    const conversationInDb = await mongodb.db
+    const conversationInDb = await mongodb
       .collection<Conversation>("conversations")
       .findOne({ _id: conversation._id });
     expect(conversationInDb).toHaveProperty("messages");
     expect(conversationInDb?.messages).toHaveLength(2);
     expect(conversationInDb?.messages[1].content).toStrictEqual(content);
+  });
+  test("Should add a message to a conversation with optional fields", async () => {
+    const ipAddress = new BSON.UUID().toString();
+    const conversation = await conversationsService.create({
+      ipAddress,
+    });
+    const content = "Tell me about MongoDB";
+    const preprocessedContent = "<preprocessed> Tell me about MongoDB";
+    const embedding = [1, 2, 3];
+    const newMessage = await conversationsService.addConversationMessage({
+      conversationId: conversation._id,
+      role: "user",
+      content,
+      preprocessedContent,
+      embedding,
+      requestOrigin,
+    });
+    expect(newMessage.content).toBe(content);
+
+    const conversationInDb = await mongodb
+      .collection<Conversation>("conversations")
+      .findOne({ _id: conversation._id });
+    expect(conversationInDb).toHaveProperty("messages");
+    expect(conversationInDb?.messages).toHaveLength(2);
+    expect(conversationInDb?.messages[1].content).toStrictEqual(content);
+    expect(
+      (conversationInDb?.messages[1] as UserMessage)?.preprocessedContent
+    ).toStrictEqual(preprocessedContent);
+    expect(
+      (conversationInDb?.messages[1] as UserMessage)?.embedding
+    ).toStrictEqual(embedding);
   });
   test("Should find a conversation by id", async () => {
     const ipAddress = new BSON.UUID().toString();
@@ -98,7 +127,7 @@ describe("Conversations Service", () => {
       conversationId,
       role: "user",
       content: "What is the MongoDB Document Model?",
-      embedding: [1,2,3],
+      embedding: [1, 2, 3],
       requestOrigin,
     });
 
@@ -106,7 +135,7 @@ describe("Conversations Service", () => {
       conversationId,
       role: "assistant",
       content: "That's a good question! Let me explain...",
-      references: []
+      references: [],
     });
 
     const result = await conversationsService.rateMessage({
@@ -115,7 +144,7 @@ describe("Conversations Service", () => {
       rating: true,
     });
 
-    const conversationInDb = await mongodb.db
+    const conversationInDb = await mongodb
       .collection<Conversation>("conversations")
       .findOne({ _id: conversationId });
 

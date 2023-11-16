@@ -1,5 +1,8 @@
 import { Page } from "./Page";
 
+/**
+  The embedded content of a chunk of text stored in the database.
+ */
 export interface EmbeddedContent {
   /**
     The URL of the page with the content.
@@ -50,6 +53,9 @@ export interface EmbeddedContent {
   chunkAlgoHash?: string;
 }
 
+/**
+  Data store of the embedded content.
+ */
 export type EmbeddedContentStore = {
   /**
     Load the embedded content for the given page.
@@ -76,10 +82,18 @@ export type EmbeddedContentStore = {
     vector: number[],
     options?: Partial<FindNearestNeighborsOptions>
   ): Promise<WithScore<EmbeddedContent>[]>;
+
+  /**
+    Close connection to data store.
+   */
+  close?: () => Promise<void>;
 };
 
 export type WithScore<T> = T & { score: number };
 
+/**
+  Options for performing a nearest-neighbor search.
+ */
 export type FindNearestNeighborsOptions = {
   /**
     The name of the index to use.
@@ -102,7 +116,7 @@ export type FindNearestNeighborsOptions = {
   minScore: number;
 
   /**
-    Atlas Search filter expression.
+    Search filter expression.
    */
   filter: Record<string, unknown>;
 };

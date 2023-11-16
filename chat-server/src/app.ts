@@ -124,7 +124,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
   const app = express();
   app.use(makeHandleTimeoutMiddleware(maxRequestTimeoutMs));
   app.set("trust proxy", true);
-  // app.use(cors(corsOptions));
+  app.use(cors());
   app.use(express.json());
   app.use(reqHandler);
   // const { NODE_ENV } = process.env;

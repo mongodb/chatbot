@@ -37,16 +37,14 @@ export const {
   OPENAI_EMBEDDING_DEPLOYMENT,
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_ENDPOINT
 } = assertEnvVars(CORE_ENV_VARS);
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
-const openAiClient = new OpenAIClient(
-  // new AzureKeyCredential(OPENAI_API_KEY),
-  new OpenAIKeyCredential(OPENAI_API_KEY)
-  // {
-  //   apiVersion: "2023-07-01-preview",
-  // }
+export const openAiClient = new OpenAIClient(
+  OPENAI_ENDPOINT,
+  new AzureKeyCredential(OPENAI_API_KEY)
 );
 export const systemPrompt: SystemPrompt = {
   role: "system",

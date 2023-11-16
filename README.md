@@ -11,7 +11,7 @@ The chatbot builds on the following technologies:
 - ChatGPT API: LLM to pre-process user queries and summarize responses to user queries.
 - OpenAI Embeddings API: Create vector embeddings for user queries and content. Used by Atlas Vector Search.
 
-To learn more about how we built the chatbot, checkout the the MongoDB Developer Center blog post
+To learn more about how we built the chatbot, check out the MongoDB Developer Center blog post
 [Taking RAG to Production with the MongoDB Documentation AI Chatbot](https://www.mongodb.com/developer/products/atlas/taking-rag-to-production-documentation-ai-chatbot/).
 
 ## API Schema

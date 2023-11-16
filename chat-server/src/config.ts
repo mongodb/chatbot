@@ -162,7 +162,7 @@ const apiChatLlm = makeOpenAiApiChatLlm({
   openAiClient,
   deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   systemPromptPersonality:
-    "You are a friendly chatbot that can answer questions about the MongoDB Atlas API spec.",
+    "You are a friendly chatbot that can answer questions about the MongoDB Atlas API spec. Never use nested markdown lists in your answer.",
   findContent,
 });
 

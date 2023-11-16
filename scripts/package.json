@@ -24,10 +24,11 @@
   "dependencies": {
     "chat-core": "file:../chat-core",
     "chat-server": "file:../chat-server",
+    "common-tags": "^1.8.2",
     "csv": "^6.3.1",
     "dotenv": "^16.3.1",
     "mongodb": "^5.7.0",
-    "yaml": "^2.3.1"
+    "yaml": "^2.3.4"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",

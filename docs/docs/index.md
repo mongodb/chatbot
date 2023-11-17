@@ -11,8 +11,8 @@ The MongoDB RAG Framework has the following core components:
 
 - [MongoDB Atlas](./mongodb.md): Database for the application that stores content and conversation.
   Indexes content using Atlas Vector Search.
-- [Ingest CLI](./ingest.md): Configurable CLI application that you can use to ingest content into a MongoDB collection for use with Atlas Vector Search.
-- [Chat Server](./server.md): Express.js server routes that you can use to build a chatbot application.
+- [Ingest CLI](./ingest/configure.md): Configurable CLI application that you can use to ingest content into a MongoDB collection for use with Atlas Vector Search.
+- [Chat Server](./server/configure.md): Express.js server routes that you can use to build a chatbot application.
 - [Chat UI](./ui.md): React.js UI components that you can use to build a chatbot application.
 
 ## Quick Start

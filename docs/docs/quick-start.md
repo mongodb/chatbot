@@ -16,7 +16,7 @@ a RAG application with the MongoDB RAG Framework.
 ## Steps
 
 1. Set up the [RAG MongoDB Atlas database](./mongodb.md).
-2. Ingest content into the database using the [Ingest CLI](./ingest.md).
-3. Configure and run the [Chat Server](./server.md).
+2. Ingest content into the database using the [Ingest CLI](./ingest/configure.md).
+3. Configure and run the [Chat Server](./server/configure.md).
    - Note: You can query the server using curl or Postman if you want.
 4. Add the [Chat UI](./ui.md) to a React app. Query the server from your frontend.

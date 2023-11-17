@@ -260,7 +260,3 @@ To format the code, run:
 npm run format
 
 ```
-
-```
-
-```

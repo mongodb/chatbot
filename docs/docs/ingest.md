@@ -1,3 +1,0 @@
-# Data Ingest CLI
-
-TODO

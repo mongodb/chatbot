@@ -12,26 +12,23 @@ import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
  */
 const sidebars: SidebarsConfig = {
   // By default, Docusaurus generates a sidebar from the docs folder structure
-  main: ["index", "ingest",{
+  main: ["index", "quick-start", "mongodb",{
+    type: 'category',
+    label: 'Data Ingest CLI',
+    collapsible: false,
+    collapsed: false,
+    items: ["ingest/configure", "ingest/configuration-reference","ingest/command-reference", "ingest/data-sources", "ingest/fine-tune"]
+  }, {
     type: 'category',
     label: 'Chat Server',
     collapsible: false,
     collapsed: false,
-    items: ["server/configure", "server/openapi"]
+    items: ["server/configure", {
+      type: "link",
+      label: "OpenAPI Spec",
+      href: "/server/openapi",
+    }]
   }, "ui"],
-
-  // But you can create a sidebar manually
-  /*
-  tutorialSidebar: [
-    'intro',
-    'hello',
-    {
-      type: 'category',
-      label: 'Tutorial',
-      items: ['tutorial-basics/create-a-document'],
-    },
-  ],
-   */
 };
 
 export default sidebars;

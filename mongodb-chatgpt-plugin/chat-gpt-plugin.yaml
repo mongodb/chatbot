@@ -8,7 +8,7 @@ info:
 servers:
   - url: https://TODO:.swagger.io/v1
 paths:
-  /pets:
+  /content:
     get:
       security: []
       summary: Get content search results

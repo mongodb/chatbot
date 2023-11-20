@@ -14,8 +14,7 @@
     "releaseName": "chat-ui-v${version}",
     "draft": true,
     "autoGenerate": true,
-    "release": true,
-    "tokenRef": "MONGODB_CHATBOT_GITHUB_TOKEN"
+    "release": true
   },
   "hooks": {
     "before:init": [

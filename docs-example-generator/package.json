@@ -9,9 +9,20 @@
   "scripts": {
     "build": "tsc",
     "start": "node build/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "scratchpad:bluehawkify": "npm run build && node build/bluehawkify.js ./examples/inputs/insertOne.ts ../docs-example-generator/examples/outputs-insertOne.rs ./transformations/ts2ts_bluehawk.yaml"
   },
   "keywords": [],
   "author": "Nick Larew",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@azure/openai": "^1.0.0-beta.7",
+    "@types/node": "^20.9.1",
+    "common-tags": "^1.8.2",
+    "dotenv": "^16.3.1",
+    "mongodb": "^5.9.1",
+    "mongodb-chatbot-server": "^0.1.9",
+    "mongodb-rag-core": "^0.0.5",
+    "yaml": "^2.3.4"
+  }
 }

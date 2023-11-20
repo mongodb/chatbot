@@ -28,7 +28,7 @@
     "dotenv": "^16.3.1",
     "mongodb": "^5.7.0",
     "mongodb-chatbot-server": "^0.1.0",
-    "mongodb-rag-core": "^0.0.1",
+    "mongodb-rag-core": "^0.0.5",
     "yaml": "^2.3.4"
   },
   "devDependencies": {

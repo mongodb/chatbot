@@ -6,18 +6,11 @@ export interface Orchestrator {
 
 export interface MakeOrchestratorOptions {}
 
-export function makeGrader(options: MakeGraderOptions = {}): Grader {
+export function makeOrchestrator(options: MakeOrchestratorOptions = {}): Orchestrator {
   return {
-    grade(args) {
+    run(args) {
       // TODO: Actually grade the input
-      return {
-        grade: 0.67,
-        comments: [
-          "This is a comment.",
-          "This is another comment.",
-          "This is a third comment.",
-        ],
-      };
-    },
+      return "";
+    }
   };
 }

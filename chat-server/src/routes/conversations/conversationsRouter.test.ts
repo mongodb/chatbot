@@ -128,6 +128,24 @@ describe("Conversations Router", () => {
     expect(limitReached).toBe(true);
   });
 
+  test("Should use route level middleware", async () => {
+    const mockMiddleware = jest.fn();
+    const { app, origin } = await makeTestApp({
+      conversationsRouterConfig: {
+        ...appConfig.conversationsRouterConfig,
+        rateLimitConfig: {
+          routerRateLimitConfig: {
+            windowMs: 5000, // Big window to cover test duration
+            max: 1,
+          },
+        },
+        middleware: [mockMiddleware]
+      },
+    });
+    await createConversationReq({ app, origin });
+    expect(mockMiddleware).toHaveBeenCalled();
+  });
+
   // Helpers
   /**
     Helper function to create a new conversation

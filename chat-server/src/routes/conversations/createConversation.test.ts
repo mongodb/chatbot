@@ -1,29 +1,24 @@
 import request from "supertest";
 import "dotenv/config";
-import { Db, MongoClient } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core";
 import { Conversation } from "../../services/conversations";
-import { Express } from "express";
 import { ApiConversation } from "./utils";
 import { DEFAULT_API_PREFIX } from "../../app";
-import { makeTestApp } from "../../test/testHelpers";
+import { makeTestApp, makeTestAppConfig } from "../../test/testHelpers";
 
 const CONVERSATIONS_API_V1_PREFIX = DEFAULT_API_PREFIX + "/conversations";
 
 describe("POST /conversations", () => {
-  let mongodb: Db;
-  let mongoClient: MongoClient;
-  let app: Express;
-  let origin: string;
 
-  beforeAll(async () => {
-    ({ mongodb, app, mongoClient, origin } = await makeTestApp());
-  });
+  const { mongodb, appConfig, mongoClient } = makeTestAppConfig();
+
   afterAll(async () => {
     await mongodb.dropDatabase();
     await mongoClient.close();
   });
 
   it("should respond 200 and create a conversation", async () => {
+    const { app, origin } = await makeTestApp(appConfig);
     const res = await request(app)
       .post(CONVERSATIONS_API_V1_PREFIX)
       .set("Origin", origin)
@@ -37,9 +32,76 @@ describe("POST /conversations", () => {
       .countDocuments();
     expect(count).toBe(1);
   });
+  it("should add custom data to the conversation", async () => {
+    const customData = { test: "test" };
+    const { app, origin } = await makeTestApp({
+      ...appConfig,
+      conversationsRouterConfig: {
+        ...appConfig.conversationsRouterConfig,
+        addCustomData: async () => {
+          return customData;
+        },
+      },
+    });
+    const res = await request(app)
+      .post(CONVERSATIONS_API_V1_PREFIX)
+      .set("Origin", origin)
+      .send();
+    const conversation: ApiConversation = res.body;
+    expect(res.statusCode).toEqual(200);
+    const conversationInDb = await mongodb
+      .collection<Conversation>("conversations")
+      .findOne({ _id: ObjectId.createFromHexString(conversation._id) });
+    expect(conversationInDb?.customData).toEqual(customData);
+  });
+
+  it("should respond 500 if cannot parse the custom data", async () => {
+    const { app, origin } = await makeTestApp({
+      ...appConfig,
+      conversationsRouterConfig: {
+        ...appConfig.conversationsRouterConfig,
+        addCustomData: async () => {
+          throw new Error("Error parsing custom data");
+        },
+      },
+    });
+    const res = await request(app)
+      .post(CONVERSATIONS_API_V1_PREFIX)
+      .set("Origin", origin)
+      .send();
+    expect(res.statusCode).toEqual(500);
+    expect(res.body).toEqual({
+      error: "Error parsing custom data from the request",
+    });
+  })
+
+  it("should respond 500 if cannot create the conversation", async () => {
+    const mockConversations = {
+      ...appConfig.conversationsRouterConfig.conversations,
+      create: jest.fn().mockRejectedValue(new Error("Error creating conversation")),
+    };
+    const { app, origin } = await makeTestApp({
+      ...appConfig,
+      conversationsRouterConfig: {
+        ...appConfig.conversationsRouterConfig,
+        conversations: mockConversations,
+      },
+    });
+    const res = await request(app)
+      .post(CONVERSATIONS_API_V1_PREFIX)
+      .set("Origin", origin)
+      .send();
+    expect(res.statusCode).toEqual(500);
+    expect(res.body).toEqual({
+      error: "Error creating the conversation",
+    });
+  });
 
   it("should respond 400 if neither the Origin nor X-Request-Origin header is present", async () => {
-    const res = await request(app).post(CONVERSATIONS_API_V1_PREFIX).send();
+    const { app } = await makeTestApp(appConfig);
+    const res = await request(app)
+      .post(CONVERSATIONS_API_V1_PREFIX)
+      .send();
     expect(res.statusCode).toEqual(400);
     expect(res.body).toEqual({
       error: "You must specify either an Origin or X-Request-Origin header",

@@ -1,6 +1,7 @@
 import { OpenAiChatMessage, OpenAiMessageRole, SystemPrompt } from "./ChatLlm";
 import { ObjectId, Db } from "mongodb-rag-core";
 import { References } from "mongodb-rag-core";
+import { conversations } from "../test/testConfig";
 
 export type Message = {
   /**
@@ -68,11 +69,12 @@ export type UserMessage = Message & {
  */
 export type SomeMessage = UserMessage | AssistantMessage | SystemMessage;
 
+export type ConversationCustomData = Record<string, unknown> | undefined;
 
 /**
   Conversation between the user and the chatbot as stored in the database.
  */
-export interface Conversation<CustomData extends Record<string, unknown> | undefined = undefined> {
+export interface Conversation<CustomData extends ConversationCustomData = ConversationCustomData> {
   _id: ObjectId;
   /** Messages in the conversation. */
   messages: Message[];
@@ -83,11 +85,16 @@ export interface Conversation<CustomData extends Record<string, unknown> | undef
   /** The hostname that the request originated from. */
   requestOrigin?: string;
 
+  /**
+    Custom data to include in the Conversation persisted to the database.
+    You can pass this data to the `create` method of the {@link ConversationsService}.
+   */
   customData?: CustomData;
 }
 export interface CreateConversationParams {
   ipAddress: string;
   requestOrigin?: string;
+  customData?: ConversationCustomData;
 }
 
 export type AddSystemMessageParams = Omit<SystemMessage, "id" | "createdAt"> & {
@@ -151,9 +158,6 @@ export interface ConversationsService {
   }: RateMessageParams) => Promise<boolean>;
 }
 
-/**
- OSS_TODO: make these configurable from the entry point. though i think these messages are reasonable defaults
- */
 export const defaultConversationConstants = {
   NO_RELEVANT_CONTENT: `Unfortunately, I do not know how to respond to your message.
 
@@ -177,13 +181,14 @@ export function makeMongoDbConversationsService(
     database.collection<Conversation>("conversations");
   return {
     conversationConstants,
-    async create({ ipAddress, requestOrigin }: CreateConversationParams) {
+    async create({ ipAddress, requestOrigin, customData }: CreateConversationParams) {
       const newConversation = {
         _id: new ObjectId(),
         ipAddress,
         messages: [createMessageFromOpenAIChatMessage(systemPrompt)],
         createdAt: new Date(),
         requestOrigin,
+        customData
       };
       const insertResult = await conversationsCollection.insertOne(
         newConversation

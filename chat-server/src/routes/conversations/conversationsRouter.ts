@@ -1,10 +1,11 @@
-import { Request, Router } from "express";
+import { Request, Router, RequestHandler } from "express";
 import { rateLimit, Options as RateLimitOptions } from "express-rate-limit";
 import slowDown, { Options as SlowDownOptions } from "express-slow-down";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
 import { ChatLlm } from "../../services/ChatLlm";
+import { Conversation } from "../../services/conversations";
 import { DataStreamer } from "../../services/dataStreamer";
-import { ConversationsService } from "../../services/conversations";
+import { ConversationCustomData, ConversationsService } from "../../services/conversations";
 import { RateMessageRequest, makeRateMessageRoute } from "./rateMessage";
 import {
   CreateConversationRequest,
@@ -48,6 +49,8 @@ export interface ConversationsRateLimitConfig {
   addMessageSlowDownConfig?: Partial<SlowDownOptions>;
 }
 
+export type AddCustomDataFunc = (request: Request) => Promise<ConversationCustomData>;
+
 /**
   Configuration for the /conversations/* routes.
  */
@@ -77,7 +80,22 @@ export interface ConversationsRouterParams {
   rateLimitConfig?: ConversationsRateLimitConfig;
   findContent: FindContentFunc;
   makeReferenceLinks?: MakeReferenceLinksFunc;
+  /**
+    Middleware to put in front of all the routes in the conversationsRouter.
+    You can use this to do things like authentication, data validation, etc.
+   */
+  middleware?: RequestHandler[];
+  /**
+    Function that takes the request and returns any custom data you want to include
+    in the Conversation. For example, you might want to store the user's email address
+    with the conversation.
+    The custom data is persisted to the database with the Conversation in the
+    {@link Conversation.customData} field.
+
+   */
+  addCustomData?: AddCustomDataFunc;
 }
+
 
 export const rateLimitResponse = {
   error: "Too many requests, please try again later.",
@@ -104,8 +122,13 @@ export function makeConversationsRouter({
   rateLimitConfig,
   findContent,
   makeReferenceLinks,
+  middleware,
+  addCustomData,
 }: ConversationsRouterParams) {
   const conversationsRouter = Router();
+
+  // Add middleware to the conversationsRouter.
+  middleware?.forEach((middleware) => conversationsRouter.use(middleware));
 
   /*
     Global rate limit the requests to the conversationsRouter.
@@ -138,7 +161,7 @@ export function makeConversationsRouter({
     "/",
     requireRequestOrigin(),
     validateRequestSchema(CreateConversationRequest),
-    makeCreateConversationRoute({ conversations })
+    makeCreateConversationRoute({ conversations, addCustomData })
   );
 
   /*

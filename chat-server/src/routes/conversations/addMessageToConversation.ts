@@ -7,7 +7,6 @@ import { ObjectId, EmbeddedContent, References } from "mongodb-rag-core";
 import {
   ConversationsService,
   Message,
-  conversationConstants,
   Conversation,
 } from "../../services/conversations";
 import { DataStreamer } from "../../services/dataStreamer";
@@ -302,7 +301,7 @@ export function makeAddMessageToConversationRoute({
           });
           const answer = {
             role: "assistant",
-            content: conversationConstants.LLM_NOT_WORKING,
+            content: conversations.conversationConstants.LLM_NOT_WORKING,
           } satisfies OpenAiChatMessage;
           return answer.content;
         }
@@ -393,7 +392,7 @@ export async function sendStaticNonResponse({
     preprocessedUserMessageContent: preprocessedUserMessageContent,
     originalUserMessageContent: latestMessageText,
     userMessageEmbedding: originalMessageEmbedding,
-    assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,
+    assistantMessageContent: conversations.conversationConstants.NO_RELEVANT_CONTENT,
     assistantMessageReferences: [],
   });
   const apiRes = convertMessageFromDbToApi(assistantMessage);

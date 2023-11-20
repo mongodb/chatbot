@@ -9,11 +9,11 @@ import {
   ObjectId,
 } from "mongodb-rag-core";
 import {
-  conversationConstants,
   Conversation,
   ConversationsService,
   makeMongoDbConversationsService,
   AssistantMessage,
+  defaultConversationConstants,
 } from "../../services/conversations";
 import express, { Express } from "express";
 import {
@@ -282,6 +282,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         async rateMessage() {
           throw new Error("mock error");
         },
+        conversationConstants: defaultConversationConstants
       };
       const app = await makeApp({
         ...appConfig,
@@ -314,7 +315,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         .send({ message: query });
       expect(res.statusCode).toEqual(200);
       expect(res.body.content).toEqual(
-        conversationConstants.NO_RELEVANT_CONTENT
+        defaultConversationConstants.NO_RELEVANT_CONTENT
       );
     });
     test("Should respond with 200 and static response if no vector search content for user message", async () => {
@@ -332,7 +333,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         .send({ message: nonsenseMessage });
       expect(response.statusCode).toBe(200);
       expect(response.body.content).toEqual(
-        conversationConstants.NO_RELEVANT_CONTENT
+        defaultConversationConstants.NO_RELEVANT_CONTENT
       );
       expect(response.body.references).toStrictEqual([]);
     });
@@ -407,7 +408,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         expect(response.statusCode).toBe(200);
         expect(
           response.body.content.startsWith(
-            conversationConstants.LLM_NOT_WORKING
+            defaultConversationConstants.LLM_NOT_WORKING
           )
         ).toBe(true);
         expect(response.body.references.length).toBeGreaterThan(0);

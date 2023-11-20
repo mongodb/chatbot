@@ -68,10 +68,11 @@ export type UserMessage = Message & {
  */
 export type SomeMessage = UserMessage | AssistantMessage | SystemMessage;
 
+
 /**
   Conversation between the user and the chatbot as stored in the database.
  */
-export interface Conversation {
+export interface Conversation<CustomData extends Record<string, unknown> | undefined = undefined> {
   _id: ObjectId;
   /** Messages in the conversation. */
   messages: Message[];
@@ -81,6 +82,8 @@ export interface Conversation {
   createdAt: Date;
   /** The hostname that the request originated from. */
   requestOrigin?: string;
+
+  customData?: CustomData;
 }
 export interface CreateConversationParams {
   ipAddress: string;
@@ -116,10 +119,26 @@ export interface RateMessageParams {
   messageId: ObjectId;
   rating: boolean;
 }
+
+/**
+ Static responses to send in pre-defined edge case scenarios.
+ */
+ export interface ConversationConstants {
+  /**
+    Response message sent when the user sends a message that the chatbot
+    that doesn't match anything in the chatbot's knowledge base.
+   */
+  NO_RELEVANT_CONTENT: string;
+  /**
+    Response message sent when the chatbot's LLM is not working.
+   */
+  LLM_NOT_WORKING: string;
+}
 /**
   Service for managing {@link Conversation}s.
  */
 export interface ConversationsService {
+  conversationConstants: ConversationConstants;
   create: (params: CreateConversationParams) => Promise<Conversation>;
   addConversationMessage: (
     params: AddConversationMessageParams
@@ -135,7 +154,7 @@ export interface ConversationsService {
 /**
  OSS_TODO: make these configurable from the entry point. though i think these messages are reasonable defaults
  */
-export const conversationConstants = {
+export const defaultConversationConstants = {
   NO_RELEVANT_CONTENT: `Unfortunately, I do not know how to respond to your message.
 
 Please try to rephrase your message. Adding more details can help me respond with a relevant answer.`,
@@ -145,16 +164,19 @@ so I cannot respond to your message. Please try again later.
 However, here are some links that might provide some helpful information for your message:`,
 };
 
+
 /**
   Create {@link ConversationsService} that uses MongoDB as a data store.
  */
 export function makeMongoDbConversationsService(
   database: Db,
-  systemPrompt: SystemPrompt
+  systemPrompt: SystemPrompt,
+  conversationConstants: ConversationConstants = defaultConversationConstants
 ): ConversationsService {
   const conversationsCollection =
     database.collection<Conversation>("conversations");
   return {
+    conversationConstants,
     async create({ ipAddress, requestOrigin }: CreateConversationParams) {
       const newConversation = {
         _id: new ObjectId(),

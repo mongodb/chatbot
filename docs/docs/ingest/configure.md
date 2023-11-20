@@ -8,7 +8,7 @@ content into a MongoDB collection that you can use for RAG applications.
 To install the Ingest CLI in a project, run the following command:
 
 ```bash
-npm install mongodb-rag-ingest mongodb-rag-ingest
+npm install mongodb-rag-ingest mongodb-rag-core
 ```
 
 ## Create a Configuration File
@@ -56,11 +56,11 @@ ingest pages --config dist/ingest.config.js --sourceName my-data-source
 
 ## Example Configuration
 
-This section a simple example configuration file for the Ingest CLI.
+Here's a simple example configuration file for the Ingest CLI.
 You can use this configuration file as a starting point for your own configuration.
 
-For simple RAG apps, the main things you'll have to adjust is the `dataSources` property
-to add your own data.
+For simple RAG apps, the main thing you have to adjust is the `dataSources` property.
+Use `dataSources` to add your own data.
 For more information on configuring data sources, refer to the [Data Sources](./data-sources.md)
 documentation.
 

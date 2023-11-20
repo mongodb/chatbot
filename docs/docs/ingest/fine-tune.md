@@ -1,8 +1,8 @@
 # Fine Tune Ingestion
 
-You can fine tune your ingestion process to optimize it for your application.
+You can fine tune your data ingestion process to optimize it for your application.
 
-This page contains some information on how you can fine tune your ingestion practice
+This page contains some information on fine tuning ingestion
 based on our experience building RAG applications and emerging best practices.
 
 ## Standardize Data Formats
@@ -59,6 +59,9 @@ Some content that you may want to clean up includes:
 
 - Remove HTML tags.
 - Remove Markdown images and links.
+
+The `mongodb-rag-ingest` package comes with utilities for both of these.
+Learn more about them in the [Data Sources](./data-sources.md#data-source-helpers) documentation.
 
 ## Refine the Chunking Strategy
 

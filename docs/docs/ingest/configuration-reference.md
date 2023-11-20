@@ -2,7 +2,7 @@
 
 This page contains reference documentation for the configuration options for the MongoDB RAG Ingest CLI.
 
-A Ingest CLI confi files is a CommonJS file that exports a `Config` object as its default export.
+A Ingest CLI config files is a CommonJS file that exports a `Config` object as its default export.
 
 For more information on setting up a configuration file, refer to the [Configure](./configure.md) documentation.
 
@@ -322,7 +322,7 @@ both the Azure OpenAI Service and the Open API.
 
 The `makeOpenAiEmbedder()` function also supports configuring exponential backoff
 with the `backoffOptions` argument. This wraps the `exponential-backoff` package.
-This is included because when you are bulk uploading embeddings for content, you
+Exponential backoff behavior is included because when you are bulk uploading embeddings for content, you
 may hit the rate limit for the OpenAI Embeddings API. This allows you to
 automatically retry the embedding request after a delay.
 
@@ -471,3 +471,5 @@ const defaultMdChunkOptions: ChunkOptions = {
   tokenizer: new GPT3Tokenizer({ type: "gpt3" }),
 };
 ```
+
+For more information on fine tuning the `ChunkOptions`, refer to [Refine the Chunking Strategy](./fine-tune.md#refine-the-chunking-strategy) in the Fine Tuning documentation.

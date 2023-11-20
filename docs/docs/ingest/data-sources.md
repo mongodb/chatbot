@@ -1,12 +1,12 @@
 # Data Sources
 
 You must configure which data sources you want to ingest data from.
-We have created a flexible abstraction layer, the `DataSource` that allows you
+We have created a flexible abstraction, the `DataSource` that allows you
 to ingest text data from a variety of sources.
 
 ## The `DataSource` Abstraction
 
-Every data source must implement the below `DataSource` type.
+Every data source must implement the following `DataSource` type.
 
 ```ts
 /**
@@ -73,7 +73,7 @@ type PageAction = "created" | "updated" | "deleted";
 These data sources are then included in the `Config.dataSources` property.
 
 Note that the `Config.dataSources` property is a function that returns an array.
-This allows you to perform asynchronous operations to fetch `DataSource`s.
+This allows you to fetch `DataSource` instances dynamically.
 
 ```ts
 export default {
@@ -93,7 +93,7 @@ export default {
 ## Data Source Helpers
 
 While you have full flexibility to implement your own data sources,
-we have provided a few helpers to make it easier to ingest data from common sources.
+the RAG framework provides helpers to make it easier to ingest data from common sources.
 
 ### Ingest from a Git Repository
 
@@ -136,7 +136,7 @@ export const javaReactiveStreamsSourceConstructor = async () => {
 
 ### Ingest from MongoDB
 
-We do not currently have a helper for ingesting data from MongoDB.
+We do not currently have a helper for ingesting data from a MongoDB database.
 However, we do have a few implementations that you can use as a reference:
 
 - [DevCenterDataSource](https://github.com/mongodb/chatbot/blob/main/ingest/src/sources/DevCenterDataSource.ts)
@@ -144,7 +144,7 @@ However, we do have a few implementations that you can use as a reference:
 
 ## Helper Functions
 
-We have provided a few helper functions to make it easier to ingest data from common sources.
+We have provided a few utility functions to help with common data ingestion tasks.
 
 ### Remove Markdown Images and Links
 

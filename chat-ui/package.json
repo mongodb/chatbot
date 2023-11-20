@@ -90,7 +90,6 @@
     "@lg-chat/message-prompts": "^1.0.2",
     "@lg-chat/message-rating": "^1.1.3",
     "@microsoft/fetch-event-source": "^2.0.1",
-    "@release-it/bumper": "^5.1.0",
     "buffer": "^6.0.3",
     "esbuild": "^0.17.19",
     "mongodb-rag-core": "^0.0.5",

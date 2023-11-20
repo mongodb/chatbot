@@ -266,7 +266,7 @@ Add data sources for the Ingest CLI to pull content from.
 /**
   Represents a source of page data.
  */
-export type DataSource = {
+type DataSource = {
   /**
     The unique name among registered data sources.
    */

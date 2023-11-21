@@ -53,8 +53,6 @@ export const AddMessageRequest = SomeExpressRequest.merge(
       stream: z.string().optional(),
     }),
     body: AddMessageRequestBody,
-    ip: z.string(),
-    origin: z.string(),
   })
 );
 

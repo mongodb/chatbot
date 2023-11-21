@@ -22,7 +22,7 @@ import {
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
 import { FindContentFunc } from "./FindContentFunc";
 import { requireRequestOrigin } from "../../middleware/requireRequestOrigin";
-import { ParamsDictionary } from "express-serve-static-core";
+import { NextFunction, ParamsDictionary } from "express-serve-static-core";
 import { requireValidIpAddress } from "../../middleware";
 
 /**
@@ -194,9 +194,10 @@ export function makeConversationsRouter({
   const conversationsRouter = Router();
   // Set the customData and conversations on the response locals
   // for use in subsequent middleware.
-  conversationsRouter.use(((_, res: Response) => {
+  conversationsRouter.use(((_, res: Response, next: NextFunction) => {
     res.locals.conversations = conversations;
     res.locals.customData = {};
+    next();
   }) satisfies RequestHandler);
 
   // Add middleware to the conversationsRouter.

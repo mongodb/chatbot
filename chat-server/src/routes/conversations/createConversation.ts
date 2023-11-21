@@ -20,8 +20,6 @@ export const CreateConversationRequest = SomeExpressRequest.extend({
   headers: z.object({
     "req-id": z.string(),
   }),
-  ip: z.string(),
-  origin: z.string(),
 });
 
 export interface CreateConversationRouteParams {

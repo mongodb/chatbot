@@ -27,7 +27,6 @@ export const RateMessageRequest = SomeExpressRequest.merge(
     body: z.object({
       rating: z.boolean(),
     }),
-    ip: z.string(),
   })
 );
 

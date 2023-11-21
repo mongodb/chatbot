@@ -16,7 +16,7 @@ describe("Conversations Router", () => {
     DEFAULT_API_PREFIX + "/conversations/:conversationId/messages";
   const { mongodb, appConfig, mongoClient } = makeTestAppConfig();
   afterAll(async () => {
-    // clean up
+    // clean  up
     await mongodb.dropDatabase();
     await mongoClient.close();
   });
@@ -36,7 +36,6 @@ describe("Conversations Router", () => {
 
     const successRes = await createConversationReq({ app, origin });
     const rateLimitedRes = await createConversationReq({ app, origin });
-
     expect(successRes.status).toBe(200);
     expect(rateLimitedRes.status).toBe(429);
     expect(rateLimitedRes.body).toStrictEqual(rateLimitResponse);

@@ -15,7 +15,11 @@ export {
   InputBarTrigger,
   type InputBarTriggerProps,
 } from "./InputBarTrigger.tsx";
-export { FloatingActionButtonTrigger } from "./FloatingActionButtonTrigger.tsx";
+export {
+  FloatingActionButtonTrigger,
+  type FloatingActionButtonTriggerProps,
+} from "./FloatingActionButtonTrigger.tsx";
 export { ModalView, type ModalViewProps } from "./ModalView.tsx";
-export { type DarkModeProps, type ChatbotViewProps } from "./ChatbotView.tsx";
+export { type ChatbotViewProps } from "./ChatbotView.tsx";
+export { type DarkModeProps } from "./DarkMode.tsx";
 export { type Role, type MessageData } from "./services/conversations.ts";

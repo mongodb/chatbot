@@ -89,11 +89,8 @@ export type ModalViewProps = ChatbotViewProps & {
 
 export function ModalView(props: ModalViewProps) {
   const { darkMode } = useDarkMode(props.darkMode);
-  const {
-    initialMessageText,
-    initialMessageSuggestedPrompts,
-    showDisclaimer,
-  } = props;
+  const { initialMessageText, initialMessageSuggestedPrompts, showDisclaimer } =
+    props;
   const {
     awaitingReply,
     closeChat,
@@ -131,13 +128,13 @@ export function ModalView(props: ModalViewProps) {
   const hasError = inputTextError !== "";
 
   const shouldClose = () => {
-    if(props.shouldClose?.() ?? true) {
+    if (props.shouldClose?.() ?? true) {
       closeChat();
       return true;
     } else {
       return false;
     }
-  }
+  };
 
   return (
     <Modal

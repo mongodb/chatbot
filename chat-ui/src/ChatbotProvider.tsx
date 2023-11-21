@@ -7,7 +7,10 @@ export type ChatbotProviderProps = ChatbotData & {
   children: React.ReactNode;
 };
 
-export function ChatbotProvider({ children, ...linkData }: ChatbotProviderProps) {
+export function ChatbotProvider({
+  children,
+  ...linkData
+}: ChatbotProviderProps) {
   return (
     <ChatbotContext.Provider value={linkData}>
       {children}

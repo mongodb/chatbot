@@ -15,7 +15,8 @@ export function DevCenterChatbot(props: DevCenterChatbotProps) {
   const viewProps = {
     darkMode,
     initialMessageText: props.initialMessageText ?? WELCOME_MESSAGE,
-    initialMessageSuggestedPrompts: props.initialMessageSuggestedPrompts ?? SUGGESTED_PROMPTS,
+    initialMessageSuggestedPrompts:
+      props.initialMessageSuggestedPrompts ?? SUGGESTED_PROMPTS,
     showDisclaimer: true,
   } satisfies ModalViewProps;
 

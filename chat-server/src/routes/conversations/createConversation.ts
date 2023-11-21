@@ -5,14 +5,13 @@ import {
 } from "express";
 import { z } from "zod";
 import { ConversationsService } from "../../services/conversations";
-import {
-  ApiConversation,
-  convertConversationFromDbToApi,
-  isValidIp,
-} from "./utils";
+import { ApiConversation, convertConversationFromDbToApi } from "./utils";
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
-import { AddCustomDataFunc } from "./conversationsRouter";
+import {
+  AddCustomDataFunc,
+  ConversationsRouterLocals,
+} from "./conversationsRouter";
 
 export type CreateConversationRequest = z.infer<
   typeof CreateConversationRequest
@@ -27,51 +26,43 @@ export const CreateConversationRequest = SomeExpressRequest.extend({
 
 export interface CreateConversationRouteParams {
   conversations: ConversationsService;
-  addCustomData?: AddCustomDataFunc;
+  createConversationCustomData?: AddCustomDataFunc;
 }
 
 export function makeCreateConversationRoute({
   conversations,
-  addCustomData
+  createConversationCustomData,
 }: CreateConversationRouteParams) {
   return async (
     req: ExpressRequest,
-    res: ExpressResponse<ApiConversation>,
+    res: ExpressResponse<ApiConversation, ConversationsRouterLocals>,
     next: NextFunction
   ) => {
     const reqId = getRequestId(req);
     try {
-      const { ip, origin: requestOrigin } = req;
-
-      if (!isValidIp(ip)) {
-        return sendErrorResponse({
-          reqId,
-          res,
-          httpStatus: 400,
-          errorMessage: `Invalid IP address ${ip}`,
-        });
-      }
       logRequest({
         reqId,
-        message: `Creating conversation for IP address: ${ip}`,
+        message: `Creating conversation`,
       });
       try {
-        const customData = addCustomData ? await addCustomData(req) : undefined;
+        const customData = createConversationCustomData
+          ? await createConversationCustomData(req, res)
+          : undefined;
         try {
-          const conversationInDb = await conversations.create({
-            ipAddress: ip as string,
-            requestOrigin,
-            customData,
-          });
+          const conversationInDb = await conversations.create({ customData });
           const responseConversation =
-          convertConversationFromDbToApi(conversationInDb);
+            convertConversationFromDbToApi(conversationInDb);
           res.status(200).json(responseConversation);
           logRequest({
             reqId,
             message: `Responding with conversation ${conversationInDb._id.toString()}`,
           });
         } catch (err) {
-          logRequest({reqId, message: "Error creating the conversation", type: "error"})
+          logRequest({
+            reqId,
+            message: "Error creating the conversation",
+            type: "error",
+          });
           sendErrorResponse({
             reqId,
             res,
@@ -79,8 +70,12 @@ export function makeCreateConversationRoute({
             errorMessage: `Error creating the conversation`,
           });
         }
-      } catch(err) {
-        logRequest({reqId, message: `Error parsing custom data from the request: ${err}`, type: "error"})
+      } catch (err) {
+        logRequest({
+          reqId,
+          message: `Error parsing custom data from the request: ${err}`,
+          type: "error",
+        });
         sendErrorResponse({
           reqId,
           res,

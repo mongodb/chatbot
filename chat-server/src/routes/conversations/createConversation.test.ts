@@ -7,9 +7,7 @@ import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp, makeTestAppConfig } from "../../test/testHelpers";
 
 const CONVERSATIONS_API_V1_PREFIX = DEFAULT_API_PREFIX + "/conversations";
-
 describe("POST /conversations", () => {
-
   const { mongodb, appConfig, mongoClient } = makeTestAppConfig();
 
   afterAll(async () => {
@@ -19,10 +17,12 @@ describe("POST /conversations", () => {
 
   it("should respond 200 and create a conversation", async () => {
     const { app, origin } = await makeTestApp(appConfig);
+    console.log("Created app");
     const res = await request(app)
       .post(CONVERSATIONS_API_V1_PREFIX)
       .set("Origin", origin)
       .send();
+    console.log("Got response", res.body);
     const conversation: ApiConversation = res.body;
     expect(res.statusCode).toEqual(200);
 
@@ -38,7 +38,7 @@ describe("POST /conversations", () => {
       ...appConfig,
       conversationsRouterConfig: {
         ...appConfig.conversationsRouterConfig,
-        addCustomData: async () => {
+        createConversationCustomData: async () => {
           return customData;
         },
       },
@@ -60,7 +60,7 @@ describe("POST /conversations", () => {
       ...appConfig,
       conversationsRouterConfig: {
         ...appConfig.conversationsRouterConfig,
-        addCustomData: async () => {
+        createConversationCustomData: async () => {
           throw new Error("Error parsing custom data");
         },
       },
@@ -73,12 +73,14 @@ describe("POST /conversations", () => {
     expect(res.body).toEqual({
       error: "Error parsing custom data from the request",
     });
-  })
+  });
 
   it("should respond 500 if cannot create the conversation", async () => {
     const mockConversations = {
       ...appConfig.conversationsRouterConfig.conversations,
-      create: jest.fn().mockRejectedValue(new Error("Error creating conversation")),
+      create: jest
+        .fn()
+        .mockRejectedValue(new Error("Error creating conversation")),
     };
     const { app, origin } = await makeTestApp({
       ...appConfig,
@@ -99,9 +101,7 @@ describe("POST /conversations", () => {
 
   it("should respond 400 if neither the Origin nor X-Request-Origin header is present", async () => {
     const { app } = await makeTestApp(appConfig);
-    const res = await request(app)
-      .post(CONVERSATIONS_API_V1_PREFIX)
-      .send();
+    const res = await request(app).post(CONVERSATIONS_API_V1_PREFIX).send();
     expect(res.statusCode).toEqual(400);
     expect(res.body).toEqual({
       error: "You must specify either an Origin or X-Request-Origin header",

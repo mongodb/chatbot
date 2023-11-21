@@ -1,9 +1,13 @@
 import request from "supertest";
 import { Express } from "express";
-import { rateLimitResponse } from "./conversationsRouter";
+import {
+  ConversationsMiddleware,
+  rateLimitResponse,
+} from "./conversationsRouter";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { makeTestAppConfig } from "../../test/testHelpers";
+import { ObjectId } from "mongodb-rag-core";
 
 jest.setTimeout(60000);
 describe("Conversations Router", () => {
@@ -55,13 +59,13 @@ describe("Conversations Router", () => {
       app,
       conversationId,
       origin,
-      message: "what is the current version of mongodb server?"
+      message: "what is the current version of mongodb server?",
     });
     const rateLimitedRes = await createConversationMessageReq({
       app,
       conversationId,
       origin,
-      message: "what is the current version of mongodb server?"
+      message: "what is the current version of mongodb server?",
     });
     expect(successRes.error).toBeFalsy();
     expect(successRes.status).toBe(200);
@@ -114,13 +118,13 @@ describe("Conversations Router", () => {
       app,
       conversationId,
       origin,
-      message: "what is the current version of mongodb server?"
+      message: "what is the current version of mongodb server?",
     });
     const slowedRes = await createConversationMessageReq({
       app,
       conversationId,
       origin,
-      message: "what is the current version of mongodb server?"
+      message: "what is the current version of mongodb server?",
     });
     expect(conversationRes.status).toBe(200);
     expect(successRes.status).toBe(200);
@@ -139,18 +143,77 @@ describe("Conversations Router", () => {
             max: 1,
           },
         },
-        middleware: [mockMiddleware]
+        middleware: [mockMiddleware],
       },
     });
     await createConversationReq({ app, origin });
     expect(mockMiddleware).toHaveBeenCalled();
+  });
+  test("should use route level middleware conversations service", async () => {
+    let called = false;
+    const middlewareWithConversationsService: ConversationsMiddleware = async (
+      _,
+      res
+    ) => {
+      const noMatch = await res.locals.conversations.findById({
+        _id: new ObjectId(),
+      });
+      expect(noMatch).toBe(null);
+      called = true;
+    };
+    const { app, origin } = await makeTestApp({
+      conversationsRouterConfig: {
+        ...appConfig.conversationsRouterConfig,
+        rateLimitConfig: {
+          routerRateLimitConfig: {
+            windowMs: 5000, // Big window to cover test duration
+            max: 1,
+          },
+        },
+        middleware: [middlewareWithConversationsService],
+      },
+    });
+    await createConversationReq({ app, origin });
+    expect(called).toBe(true);
+  });
+  test("should use route middleware customData", async () => {
+    const middleware1: ConversationsMiddleware = (_, res, next) => {
+      res.locals.customData.middleware1 = true;
+      next();
+    };
+    let called = false;
+    const middleware2: ConversationsMiddleware = (_, res, next) => {
+      expect(res.locals.customData.middleware1).toBe(true);
+      called = true;
+      next();
+    };
+    const { app, origin } = await makeTestApp({
+      conversationsRouterConfig: {
+        ...appConfig.conversationsRouterConfig,
+        rateLimitConfig: {
+          routerRateLimitConfig: {
+            windowMs: 5000, // Big window to cover test duration
+            max: 1,
+          },
+        },
+        middleware: [middleware1, middleware2],
+      },
+    });
+    await createConversationReq({ app, origin });
+    expect(called).toBe(true);
   });
 
   // Helpers
   /**
     Helper function to create a new conversation
    */
-  async function createConversationReq({ app, origin }: {app: Express, origin: string}) {
+  async function createConversationReq({
+    app,
+    origin,
+  }: {
+    app: Express;
+    origin: string;
+  }) {
     const createConversationRes = await request(app)
       .post(DEFAULT_API_PREFIX + "/conversations")
       .set("X-FORWARDED-FOR", ipAddress)
@@ -161,11 +224,16 @@ describe("Conversations Router", () => {
   /**
     Helper function to create a new message in a conversation
    */
-  async function createConversationMessageReq({ app, conversationId, message, origin }: {
-    app: Express,
-    conversationId: string,
-    message: string,
-    origin: string
+  async function createConversationMessageReq({
+    app,
+    conversationId,
+    message,
+    origin,
+  }: {
+    app: Express;
+    conversationId: string;
+    message: string;
+    origin: string;
   }) {
     const createConversationRes = await request(app)
       .post(addMessageEndpointUrl.replace(":conversationId", conversationId))

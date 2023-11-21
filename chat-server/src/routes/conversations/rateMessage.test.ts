@@ -37,12 +37,12 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
     app
       .post(endpointUrl, makeRateMessageRoute({ conversations }))
       .set("X-FORWARDED-FOR", ipAddress);
-    conversation = await conversations.create({ ipAddress });
+    conversation = await conversations.create();
     testMsg = await conversations.addConversationMessage({
       conversationId: conversation._id,
       content: "hello",
       role: "assistant",
-      references: []
+      references: [],
     });
     testEndpointUrl = endpointUrl
       .replace(":conversationId", conversation._id.toHexString())

@@ -8,8 +8,6 @@ import {
 import { BSON, MongoClient } from "mongodb-rag-core";
 import { systemPrompt } from "../test/testHelpers";
 
-const requestOrigin = "http://localhost:5173";
-
 jest.setTimeout(100000);
 
 describe("Conversations Service", () => {
@@ -34,30 +32,31 @@ describe("Conversations Service", () => {
     systemPrompt
   );
   test("Should create a conversation", async () => {
-    const ipAddress = new BSON.UUID().toString();
-    const conversation = await conversationsService.create({
-      ipAddress,
-      requestOrigin,
-    });
+    const conversation = await conversationsService.create();
     expect(conversation).toHaveProperty("_id");
-    expect(conversation).toHaveProperty("ipAddress", ipAddress);
+    const conversationInDb = await mongodb
+      .collection("conversations")
+      .findOne({ _id: conversation._id });
+    expect(conversationInDb).toStrictEqual(conversation);
+  });
+  test("Should create a conversation with custom data", async () => {
+    const customData = {
+      foo: "bar",
+    };
+    const conversation = await conversationsService.create({ customData });
+    expect(conversation).toHaveProperty("customData", customData);
     const conversationInDb = await mongodb
       .collection("conversations")
       .findOne({ _id: conversation._id });
     expect(conversationInDb).toStrictEqual(conversation);
   });
   test("Should add a message to a conversation", async () => {
-    const ipAddress = new BSON.UUID().toString();
-    const conversation = await conversationsService.create({
-      ipAddress,
-      requestOrigin,
-    });
+    const conversation = await conversationsService.create();
     const content = "Tell me about MongoDB";
     const newMessage = await conversationsService.addConversationMessage({
       conversationId: conversation._id,
       role: "user",
       content,
-      requestOrigin,
       embedding: [1, 2, 3],
     });
     expect(newMessage.content).toBe(content);
@@ -70,10 +69,7 @@ describe("Conversations Service", () => {
     expect(conversationInDb?.messages[1].content).toStrictEqual(content);
   });
   test("Should add a message to a conversation with optional fields", async () => {
-    const ipAddress = new BSON.UUID().toString();
-    const conversation = await conversationsService.create({
-      ipAddress,
-    });
+    const conversation = await conversationsService.create();
     const content = "Tell me about MongoDB";
     const preprocessedContent = "<preprocessed> Tell me about MongoDB";
     const embedding = [1, 2, 3];
@@ -83,7 +79,6 @@ describe("Conversations Service", () => {
       content,
       preprocessedContent,
       embedding,
-      requestOrigin,
     });
     expect(newMessage.content).toBe(content);
 
@@ -101,15 +96,11 @@ describe("Conversations Service", () => {
     ).toStrictEqual(embedding);
   });
   test("Should find a conversation by id", async () => {
-    const ipAddress = new BSON.UUID().toString();
-    const conversation = await conversationsService.create({
-      ipAddress,
-      requestOrigin,
-    });
+    const conversation = await conversationsService.create();
     const conversationInDb = await conversationsService.findById({
       _id: conversation._id,
     });
-    expect(conversationInDb).toStrictEqual(conversation);
+    expect(conversationInDb).toEqual(conversation);
   });
   test("Should return null if cannot find a conversation by id", async () => {
     const conversationInDb = await conversationsService.findById({
@@ -119,16 +110,13 @@ describe("Conversations Service", () => {
   });
   test("Should rate a message", async () => {
     const ipAddress = new BSON.UUID().toString();
-    const { _id: conversationId } = await conversationsService.create({
-      ipAddress,
-    });
+    const { _id: conversationId } = await conversationsService.create();
 
     await conversationsService.addConversationMessage({
       conversationId,
       role: "user",
       content: "What is the MongoDB Document Model?",
       embedding: [1, 2, 3],
-      requestOrigin,
     });
 
     const assistantMessage = await conversationsService.addConversationMessage({

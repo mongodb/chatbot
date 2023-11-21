@@ -1,7 +1,6 @@
 import { OpenAiChatMessage, OpenAiMessageRole, SystemPrompt } from "./ChatLlm";
 import { ObjectId, Db } from "mongodb-rag-core";
 import { References } from "mongodb-rag-core";
-import { conversations } from "../test/testConfig";
 
 export type Message = {
   /**
@@ -23,6 +22,11 @@ export type Message = {
     The date the message was created.
    */
   createdAt: Date;
+
+  /**
+    Custom data to include in the Message persisted to the database.
+   */
+  customData?: Record<string, unknown>;
 };
 
 export type SystemMessage = Message & {
@@ -74,12 +78,12 @@ export type ConversationCustomData = Record<string, unknown> | undefined;
 /**
   Conversation between the user and the chatbot as stored in the database.
  */
-export interface Conversation<CustomData extends ConversationCustomData = ConversationCustomData> {
+export interface Conversation<
+  CustomData extends ConversationCustomData = ConversationCustomData
+> {
   _id: ObjectId;
   /** Messages in the conversation. */
   messages: Message[];
-  /** The IP address of the user performing the conversation. */
-  ipAddress: string;
   /** The date the conversation was created. */
   createdAt: Date;
   /** The hostname that the request originated from. */
@@ -91,11 +95,9 @@ export interface Conversation<CustomData extends ConversationCustomData = Conver
    */
   customData?: CustomData;
 }
-export interface CreateConversationParams {
-  ipAddress: string;
-  requestOrigin?: string;
+export type CreateConversationParams = {
   customData?: ConversationCustomData;
-}
+};
 
 export type AddSystemMessageParams = Omit<SystemMessage, "id" | "createdAt"> & {
   conversationId: ObjectId;
@@ -103,7 +105,7 @@ export type AddSystemMessageParams = Omit<SystemMessage, "id" | "createdAt"> & {
 
 export type AddUserMessageParams = Omit<UserMessage, "id" | "createdAt"> & {
   conversationId: ObjectId;
-  requestOrigin: string;
+  customData?: Record<string, unknown>;
 };
 
 export type AddAssistantMessageParams = Omit<
@@ -130,7 +132,7 @@ export interface RateMessageParams {
 /**
  Static responses to send in pre-defined edge case scenarios.
  */
- export interface ConversationConstants {
+export interface ConversationConstants {
   /**
     Response message sent when the user sends a message that the chatbot
     that doesn't match anything in the chatbot's knowledge base.
@@ -146,7 +148,7 @@ export interface RateMessageParams {
  */
 export interface ConversationsService {
   conversationConstants: ConversationConstants;
-  create: (params: CreateConversationParams) => Promise<Conversation>;
+  create: (params?: CreateConversationParams) => Promise<Conversation>;
   addConversationMessage: (
     params: AddConversationMessageParams
   ) => Promise<Message>;
@@ -168,7 +170,6 @@ so I cannot respond to your message. Please try again later.
 However, here are some links that might provide some helpful information for your message:`,
 };
 
-
 /**
   Create {@link ConversationsService} that uses MongoDB as a data store.
  */
@@ -181,14 +182,16 @@ export function makeMongoDbConversationsService(
     database.collection<Conversation>("conversations");
   return {
     conversationConstants,
-    async create({ ipAddress, requestOrigin, customData }: CreateConversationParams) {
+    async create(params?: CreateConversationParams) {
+      const customData = params?.customData;
       const newConversation = {
         _id: new ObjectId(),
-        ipAddress,
         messages: [createMessageFromOpenAIChatMessage(systemPrompt)],
         createdAt: new Date(),
-        requestOrigin,
-        customData
+        // Conditionally include `customData` only if it's not undefined
+        // Otherwise MongoDB adds it as `customData: null`,
+        // which we don't want.
+        ...(customData !== undefined && { customData }),
       };
       const insertResult = await conversationsCollection.insertOne(
         newConversation

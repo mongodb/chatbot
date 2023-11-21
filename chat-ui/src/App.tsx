@@ -27,16 +27,10 @@ function App() {
   return (
     <div className={app_background(darkMode)}>
       <div className={styles.main_content}>
-        <Chatbot
-          shouldStream={shouldStream}
-          darkMode={darkMode}
-        >
+        <Chatbot shouldStream={shouldStream} darkMode={darkMode}>
           <DocsChatbot />
         </Chatbot>
-        <Chatbot
-          shouldStream={shouldStream}
-          darkMode={darkMode}
-        >
+        <Chatbot shouldStream={shouldStream} darkMode={darkMode}>
           <DevCenterChatbot />
         </Chatbot>
       </div>

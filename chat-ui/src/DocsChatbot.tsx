@@ -1,5 +1,5 @@
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
-import { DarkModeProps } from "./ChatbotView";
+import { DarkModeProps } from "./DarkMode";
 import { InputBarTrigger, InputBarTriggerProps } from "./InputBarTrigger";
 import { ModalView, ModalViewProps } from "./ModalView";
 import { SUGGESTED_PROMPTS } from "./constants";

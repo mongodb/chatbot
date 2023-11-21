@@ -1,6 +1,4 @@
-export type DarkModeProps = {
-  darkMode?: boolean;
-};
+import { DarkModeProps } from "./DarkMode";
 
 export type ChatbotViewProps = DarkModeProps & {
   initialMessageSuggestedPrompts?: string[];

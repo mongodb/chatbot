@@ -1,23 +1,14 @@
+import { stripIndents } from "common-tags";
 import {
   Request as ExpressRequest,
   Response as ExpressResponse,
-  NextFunction,
 } from "express";
+import { ObjectId, EmbeddedContent, References } from "mongodb-rag-core";
 import {
-  ObjectId,
-  EmbedFunc,
-  EmbeddedContent,
-  EmbeddedContentStore,
-  FindNearestNeighborsOptions,
-  References,
-  Reference,
-  WithScore,
-} from "chat-core";
-import {
-  Conversation,
   ConversationsService,
   Message,
   conversationConstants,
+  Conversation,
 } from "../../services/conversations";
 import { DataStreamer } from "../../services/dataStreamer";
 import {
@@ -28,25 +19,26 @@ import {
 import {
   ApiConversation,
   ApiMessage,
+  RequestError,
   convertMessageFromDbToApi,
   isValidIp,
+  makeRequestError,
 } from "./utils";
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
-import { SearchBooster } from "../../processors/SearchBooster";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
-import { stripIndents } from "common-tags";
+import { FindContentFunc } from "./FindContentFunc";
 
-export const MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
-export const MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
+export const DEFAULT_MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
+export const DEFAULT_MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
+export const DEFAULT_MAX_CONTEXT_TOKENS = 1500; // magic number for max context tokens for LLM
 
 export type AddMessageRequestBody = z.infer<typeof AddMessageRequestBody>;
 export const AddMessageRequestBody = z.object({
   message: z.string(),
 });
 
-export type AddMessageRequest = z.infer<typeof AddMessageRequest>;
 export const AddMessageRequest = SomeExpressRequest.merge(
   z.object({
     headers: z.object({
@@ -60,35 +52,38 @@ export const AddMessageRequest = SomeExpressRequest.merge(
     }),
     body: AddMessageRequestBody,
     ip: z.string(),
+    origin: z.string(),
   })
 );
 
+export type AddMessageRequest = z.infer<typeof AddMessageRequest>;
+
 export interface AddMessageToConversationRouteParams {
-  store: EmbeddedContentStore;
   conversations: ConversationsService;
-  embed: EmbedFunc;
   llm: ChatLlm;
   dataStreamer: DataStreamer;
-  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
-  searchBoosters?: SearchBooster[];
   userQueryPreprocessor?: QueryPreprocessorFunc;
   maxChunkContextTokens?: number;
+  maxInputLengthCharacters?: number;
+  maxMessagesInConversation?: number;
+  findContent: FindContentFunc;
+  makeReferenceLinks?: MakeReferenceLinksFunc;
 }
+
 export function makeAddMessageToConversationRoute({
-  store,
   conversations,
   llm,
   dataStreamer,
-  embed,
-  findNearestNeighborsOptions,
-  searchBoosters,
+  findContent,
   userQueryPreprocessor,
-  maxChunkContextTokens = 1500,
+  maxChunkContextTokens = DEFAULT_MAX_CONTEXT_TOKENS,
+  maxInputLengthCharacters = DEFAULT_MAX_INPUT_LENGTH,
+  maxMessagesInConversation = DEFAULT_MAX_MESSAGES_IN_CONVERSATION,
+  makeReferenceLinks = makeDefaultReferenceLinks,
 }: AddMessageToConversationRouteParams) {
   return async (
-    req: ExpressRequest,
-    res: ExpressResponse<ApiMessage>,
-    next: NextFunction
+    req: ExpressRequest<AddMessageRequest["params"]>,
+    res: ExpressResponse<ApiMessage>
   ) => {
     const reqId = getRequestId(req);
     try {
@@ -97,111 +92,78 @@ export function makeAddMessageToConversationRoute({
         body: { message },
         query: { stream },
         ip,
+        origin: requestOrigin,
       } = req;
       logRequest({
         reqId,
         message: stripIndents`Request info:
-        User message: ${message}
-        Stream: ${stream}
-        IP: ${ip}
-        ConversationId: ${conversationIdString}`,
+          User message: ${message}
+          Stream: ${stream}
+          IP: ${ip}
+          Origin: ${requestOrigin}
+          ConversationId: ${conversationIdString}`,
       });
 
-      let conversationId: ObjectId;
-      try {
-        conversationId = new ObjectId(conversationIdString);
-      } catch (err) {
-        return sendErrorResponse({
-          reqId,
-          res,
+      if (!requestOrigin) {
+        throw makeRequestError({
           httpStatus: 400,
-          errorMessage: "Invalid conversation ID",
+          message: "Origin header not present",
         });
       }
 
       if (!isValidIp(ip)) {
-        return sendErrorResponse({
-          reqId,
-          res,
+        throw makeRequestError({
           httpStatus: 400,
-          errorMessage: `Invalid IP address ${ip}`,
+          message: `Invalid IP address ${ip}`,
         });
       }
 
-      const shouldStream = Boolean(stream);
       const latestMessageText = message;
-      if (latestMessageText.length > MAX_INPUT_LENGTH) {
-        return sendErrorResponse({
-          reqId,
-          res,
+
+      if (latestMessageText.length > maxInputLengthCharacters) {
+        throw makeRequestError({
           httpStatus: 400,
-          errorMessage: "Message too long",
+          message: "Message too long",
         });
       }
 
-      let conversationInDb: Conversation | null;
-      try {
-        conversationInDb = await conversations.findById({
-          _id: conversationId,
-        });
-      } catch (err) {
-        return sendErrorResponse({
-          reqId,
-          res,
-          httpStatus: 500,
-          errorMessage: "Error finding conversation",
-        });
-      }
+      // --- LOAD CONVERSATION ---
+      const conversation = await loadConversation({
+        conversationIdString,
+        conversations,
+      });
 
-      if (!conversationInDb) {
-        return sendErrorResponse({
-          reqId,
-          res,
-          httpStatus: 404,
-          errorMessage: "Conversation not found",
-        });
-      }
-
-      if (conversationInDb.messages.length >= MAX_MESSAGES_IN_CONVERSATION) {
+      // --- MAX CONVERSATION LENGTH CHECK ---
+      if (conversation.messages.length >= maxMessagesInConversation) {
         // Omit the system prompt and assume the user always received one response per message
-        const maxUserMessages = (MAX_MESSAGES_IN_CONVERSATION - 1) / 2;
-        return sendErrorResponse({
-          reqId,
-          res,
+        const maxUserMessages = (maxMessagesInConversation - 1) / 2;
+        throw makeRequestError({
           httpStatus: 400,
-          errorMessage: `Too many messages. You cannot send more than ${maxUserMessages} messages in this conversation.`,
+          message: `Too many messages. You cannot send more than ${maxUserMessages} messages in this conversation.`,
         });
       }
 
-      let answer: OpenAiChatMessage;
-
-      let preprocessedUserMessageContent: string | undefined;
-      // Try to preprocess the user's message. If the user's message cannot be preprocessed
-      // (likely due to LLM timeout), then we will just use the original message.
-      if (userQueryPreprocessor) {
+      // --- PREPROCESS ---
+      const preprocessResult = await (async (): Promise<
+        { query: string; rejectQuery: boolean } | undefined
+      > => {
+        // Try to preprocess the user's message. If the user's message cannot be preprocessed
+        // (likely due to LLM timeout), then we will just use the original message.
+        if (!userQueryPreprocessor) {
+          return undefined;
+        }
         try {
-          const { query, doNotAnswer } = await userQueryPreprocessor({
+          const { query, rejectQuery } = await userQueryPreprocessor({
             query: latestMessageText,
-            messages: conversationInDb.messages,
+            messages: conversation.messages,
           });
-          preprocessedUserMessageContent = query;
           logRequest({
             reqId,
             message: stripIndents`Successfully preprocessed user query.
               Original query: ${latestMessageText}
-              Preprocessed query: ${preprocessedUserMessageContent}`,
+              Preprocessed query: ${query}`,
           });
-          if (doNotAnswer) {
-            return await sendStaticNonResponse({
-              conversations,
-              conversationId,
-              preprocessedUserMessageContent,
-              latestMessageText,
-              shouldStream,
-              dataStreamer,
-              res,
-            });
-          }
+          return { query: query ?? latestMessageText, rejectQuery };
         } catch (err: unknown) {
           logRequest({
             reqId,
@@ -211,90 +173,68 @@ export function makeAddMessageToConversationRoute({
             )}. Using original query: ${latestMessageText}`,
           });
         }
-      }
-      // Find content matches for latest message
-      let chunks: WithScore<EmbeddedContent>[] = [];
-      let embedding: number[] | undefined;
-      try {
-        const contentForText = await getContentForText({
-          embed,
-          ipAddress: ip,
-          text: preprocessedUserMessageContent || latestMessageText,
-          store,
-          findNearestNeighborsOptions,
-        });
-        embedding = contentForText.embedding;
-        chunks = contentForText.results;
-        if (searchBoosters?.length) {
-          for (const booster of searchBoosters) {
-            if (booster.shouldBoost({ text: latestMessageText })) {
-              chunks = await booster.boost({
-                existingResults: chunks,
-                embedding,
-                store,
-              });
-            }
-          }
-        }
-        logRequest({
-          reqId,
-          message: stripIndents`Chunks found: ${JSON.stringify(
-            chunks.map(
-              ({
-                sourceName,
-                url,
-                score,
-                text,
-                tokenCount,
-                updated,
-                metadata,
-                chunkIndex,
-              }) => ({
-                sourceName,
-                url,
-                score,
-                text,
-                tokenCount,
-                updated,
-                metadata,
-                chunkIndex,
-              })
-            )
-          )}`,
-        });
-      } catch (err) {
-        return sendErrorResponse({
-          reqId,
+      })();
+      const shouldStream = Boolean(stream);
+      const { rejectQuery, query: preprocessedUserMessageContent } =
+        preprocessResult ?? {};
+      if (rejectQuery) {
+        return await sendStaticNonResponse({
+          conversations,
+          conversation,
+          rejectQuery,
+          preprocessedUserMessageContent,
+          latestMessageText,
+          shouldStream,
+          dataStreamer,
+          requestOrigin,
           res,
-          httpStatus: 500,
-          errorMessage: "Error getting content for text",
-          errorDetails: JSON.stringify(err),
+          originalMessageEmbedding: [],
         });
       }
-      if (chunks.length === 0) {
+      const query = preprocessedUserMessageContent ?? latestMessageText;
+
+      // --- VECTOR SEARCH / RETRIEVAL ---
+      const { content, queryEmbedding } = await findContent({
+        query,
+        ipAddress: ip ?? "::1",
+      });
+
+      if (content.length === 0) {
         logRequest({
           reqId,
           message: "No matching content found",
         });
         return await sendStaticNonResponse({
           conversations,
-          conversationId,
+          conversation,
           preprocessedUserMessageContent,
           latestMessageText,
           shouldStream,
           dataStreamer,
+          requestOrigin,
           res,
+          originalMessageEmbedding: queryEmbedding,
         });
       }
 
-      const references = generateReferences({ chunks });
+      logRequest({
+        reqId,
+        message: stripIndents`Chunks found: ${JSON.stringify(
+          content.map(
+            ({ embedding, chunkAlgoHash, ...wantedProperties }) =>
+              wantedProperties
+          )
+        )}`,
+      });
+
+      const references = makeReferenceLinks(content);
       const chunkTexts = includeChunksForMaxTokensPossible({
         maxTokens: maxChunkContextTokens,
-        chunks,
-      }).map((chunk) => chunk.text);
+        content,
+      }).map(({ text }) => text);
 
       const latestMessage = {
-        content: preprocessedUserMessageContent || latestMessageText,
+        content: query,
         role: "user",
       } satisfies OpenAiChatMessage;
       logRequest({
@@ -303,39 +243,43 @@ export function makeAddMessageToConversationRoute({
       });
 
       const messages = [
-        ...conversationInDb.messages.map(convertDbMessageToOpenAiMessage),
+        ...conversation.messages.map(convertDbMessageToOpenAiMessage),
         latestMessage,
       ] satisfies OpenAiChatMessage[];
 
-      let answerContent;
-      if (shouldStream) {
-        const answerStream = await llm.answerQuestionStream({
-          messages,
-          chunks: chunkTexts,
-        });
-        dataStreamer.connect(res);
-        answerContent = await dataStreamer.stream({
-          stream: answerStream,
-        });
-        logRequest({
-          reqId,
-          message: `LLM response: ${JSON.stringify(answerContent)}`,
-        });
-        await dataStreamer.streamData({
-          type: "references",
-          data: references,
-        });
-      } else {
+      // --- GENERATE RESPONSE ---
+      const answerContent = await (async () => {
+        if (shouldStream) {
+          const answerStream = await llm.answerQuestionStream({
+            messages,
+            chunks: chunkTexts,
+          });
+          dataStreamer.connect(res);
+          const answerContent = await dataStreamer.stream({
+            stream: answerStream,
+          });
+          logRequest({
+            reqId,
+            message: `LLM response: ${JSON.stringify(answerContent)}`,
+          });
+          dataStreamer.streamData({
+            type: "references",
+            data: references,
+          });
+          return answerContent;
+        }
+
         try {
           const messages = [
-            ...conversationInDb.messages.map(convertDbMessageToOpenAiMessage),
+            ...conversation.messages.map(convertDbMessageToOpenAiMessage),
             latestMessage,
           ];
           logRequest({
             reqId,
             message: `LLM query: ${JSON.stringify(messages)}`,
           });
-          answer = await llm.answerQuestionAwaited({
+          // --- GENERATE RESPONSE ---
+          const answer = await llm.answerQuestionAwaited({
             messages,
             chunks: chunkTexts,
           });
@@ -343,7 +287,7 @@ export function makeAddMessageToConversationRoute({
             reqId,
             message: `LLM response: ${JSON.stringify(answer)}`,
           });
-          answerContent = answer.content;
+          return answer.content;
         } catch (err) {
           const errorMessage =
             err instanceof Error ? err.message : JSON.stringify(err);
@@ -356,83 +300,99 @@ export function makeAddMessageToConversationRoute({
             reqId,
             message: "Only sending vector search results to user",
           });
-          answer = {
+          const answer = {
             role: "assistant",
             content: conversationConstants.LLM_NOT_WORKING,
           } satisfies OpenAiChatMessage;
-          answerContent = answer.content;
+          return answer.content;
         }
-      }
+      })();
 
       if (!answerContent) {
-        throw new Error("No answer content");
+        throw makeRequestError({
+          httpStatus: 500,
+          message: "No answer content",
+        });
       }
 
+      // --- SAVE QUESTION & RESPONSE ---
       const { assistantMessage } = await addMessagesToDatabase({
         conversations,
-        conversationId,
-        originalUserMessageContent: message,
+        conversation,
+        requestOrigin,
         preprocessedUserMessageContent,
+        originalUserMessageContent: message,
         assistantMessageContent: answerContent,
         assistantMessageReferences: references,
-        userMessageEmbedding: embedding,
+        userMessageEmbedding: queryEmbedding,
       });
 
       const apiRes = convertMessageFromDbToApi(assistantMessage);
-      if (shouldStream) {
-        dataStreamer.streamData({
-          type: "finished",
-          data: apiRes.id,
-        });
-        dataStreamer.disconnect();
-        return;
-      } else {
-        res.status(200).json(apiRes);
+
+      if (!shouldStream) {
+        return res.status(200).json(apiRes);
       }
-    } catch (err) {
-      logRequest({
-        reqId,
-        message: "An unexpected error occurred: " + JSON.stringify(err),
-        type: "error",
+
+      dataStreamer.streamData({
+        type: "finished",
+        data: apiRes.id,
       });
+
+      dataStreamer.disconnect();
+    } catch (error) {
+      const { httpStatus, message } =
+        (error as Error).name === "RequestError"
+          ? (error as RequestError)
+          : makeRequestError({
+              message: (error as Error).message,
+              stack: (error as Error).stack,
+              httpStatus: 500,
+            });
+
       if (dataStreamer.connected) {
         dataStreamer.disconnect();
       }
-      next(err);
+      sendErrorResponse({
+        res,
+        reqId,
+        httpStatus,
+        errorMessage: message,
+      });
     }
   };
 }
 
-export interface GetContentForTextParams {
-  embed: EmbedFunc;
-  ipAddress: string;
-  text: string;
-  store: EmbeddedContentStore;
-  findNearestNeighborsOptions?: Partial<FindNearestNeighborsOptions>;
-}
-
 export async function sendStaticNonResponse({
   conversations,
-  conversationId,
+  conversation,
   preprocessedUserMessageContent,
   latestMessageText,
   shouldStream,
   dataStreamer,
   res,
+  rejectQuery,
+  requestOrigin,
+  originalMessageEmbedding,
 }: {
   conversations: ConversationsService;
-  conversationId: ObjectId;
+  conversation: Conversation;
+  rejectQuery?: boolean;
   preprocessedUserMessageContent?: string;
   latestMessageText: string;
   shouldStream: boolean;
   dataStreamer: DataStreamer;
   res: ExpressResponse<ApiMessage>;
+  requestOrigin: string;
+  originalMessageEmbedding: number[];
 }) {
   const { assistantMessage } = await addMessagesToDatabase({
     conversations,
-    conversationId,
+    conversation,
+    rejectQuery,
+    requestOrigin,
     preprocessedUserMessageContent: preprocessedUserMessageContent,
     originalUserMessageContent: latestMessageText,
+    userMessageEmbedding: originalMessageEmbedding,
     assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,
     assistantMessageReferences: [],
   });
@@ -463,51 +423,40 @@ export function convertDbMessageToOpenAiMessage(
   };
 }
 
-export async function getContentForText({
-  embed,
-  store,
-  text,
-  ipAddress,
-  findNearestNeighborsOptions,
-}: GetContentForTextParams) {
-  const { embedding } = await embed({
-    text,
-    userIp: ipAddress,
-  });
-
-  const results = await store.findNearestNeighbors(
-    embedding,
-    findNearestNeighborsOptions
-  );
-  return { embedding, results };
-}
-
 interface AddMessagesToDatabaseParams {
-  conversationId: ObjectId;
+  conversation: Conversation;
   originalUserMessageContent: string;
   preprocessedUserMessageContent?: string;
   assistantMessageContent: string;
   assistantMessageReferences: References;
   conversations: ConversationsService;
-  userMessageEmbedding?: number[];
+  userMessageEmbedding: number[];
+  rejectQuery?: boolean;
+  requestOrigin: string;
 }
+
 export async function addMessagesToDatabase({
-  conversationId,
+  conversation,
   originalUserMessageContent,
   preprocessedUserMessageContent,
   assistantMessageContent,
   assistantMessageReferences,
   conversations,
   userMessageEmbedding,
+  rejectQuery,
+  requestOrigin,
 }: AddMessagesToDatabaseParams) {
   // TODO: consider refactoring addConversationMessage to take in an array of messages.
   // Would limit database calls.
+  const conversationId = conversation._id;
   const userMessage = await conversations.addConversationMessage({
     conversationId,
     content: originalUserMessageContent,
-    preprocessedContent: preprocessedUserMessageContent,
     role: "user",
     embedding: userMessageEmbedding,
+    preprocessedContent: preprocessedUserMessageContent,
+    rejectQuery,
+    requestOrigin,
   });
   const assistantMessage = await conversations.addConversationMessage({
     conversationId,
@@ -518,28 +467,39 @@ export async function addMessagesToDatabase({
   return { userMessage, assistantMessage };
 }
 
-export const createLinkReference = (link: string): Reference => {
-  const url = new URL(link);
-  url.searchParams.append("tck", "docs_chatbot");
-  return {
-    url: url.href,
-    title: url.origin + url.pathname,
-  };
-};
+/**
+  Function that generates the references in the response to user.
+ */
+export type MakeReferenceLinksFunc = (chunks: EmbeddedContent[]) => References;
 
-export interface GenerateReferencesParams {
-  chunks: EmbeddedContent[];
-}
+/**
+  The default reference format returns the following for chunks from _unique_ pages:
 
-export function generateReferences({
-  chunks,
-}: GenerateReferencesParams): References {
-  if (chunks.length === 0) {
-    return [];
+  ```js
+  {
+    title: chunk.title ?? chunk.url, // if title doesn't exist, just put url
+    url: chunk.url // this always exists
   }
-  const uniqueLinks = Array.from(new Set(chunks.map((chunk) => chunk.url)));
-  return uniqueLinks.map((link) => createLinkReference(link));
-}
+  ```
+ */
+export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
+  // Filter chunks with unique URLs
+  const uniqueUrls = new Set();
+  const uniqueChunks = chunks.filter((chunk) => {
+    if (!uniqueUrls.has(chunk.url)) {
+      uniqueUrls.add(chunk.url);
+      return true; // Keep the chunk as it has a unique URL
+    }
+    return false; // Discard the chunk as its URL is not unique
+  });
+
+  return uniqueChunks.map((chunk) => {
+    return {
+      title: (chunk.metadata?.pageTitle as string) ?? chunk.url,
+      url: chunk.url,
+    };
+  });
+};
 
 /**
   This function will return the chunks that can fit in the maxTokens.
@@ -547,16 +507,16 @@ export function generateReferences({
  */
 export function includeChunksForMaxTokensPossible({
   maxTokens,
-  chunks,
+  content,
 }: {
   maxTokens: number;
-  chunks: EmbeddedContent[];
+  content: EmbeddedContent[];
 }): EmbeddedContent[] {
   let total = 0;
-  const fitRangeEndIndex = chunks.findIndex(
+  const fitRangeEndIndex = content.findIndex(
     ({ tokenCount }) => (total += tokenCount) > maxTokens
   );
-  return fitRangeEndIndex === -1 ? chunks : chunks.slice(0, fitRangeEndIndex);
+  return fitRangeEndIndex === -1 ? content : content.slice(0, fitRangeEndIndex);
 }
 
 export function validateApiConversationFormatting({
@@ -585,3 +545,34 @@ export function validateApiConversationFormatting({
 
   return true;
 }
+
+const loadConversation = async ({
+  conversationIdString,
+  conversations,
+}: {
+  conversationIdString: string;
+  conversations: ConversationsService;
+}) => {
+  const conversationId = toObjectId(conversationIdString);
+  const conversation = await conversations.findById({
+    _id: conversationId,
+  });
+  if (!conversation) {
+    throw makeRequestError({
+      httpStatus: 404,
+      message: `Conversation ${conversationId} not found`,
+    });
+  }
+  return conversation;
+};
+
+const toObjectId = (id: string) => {
+  try {
+    return new ObjectId(id);
+  } catch (error) {
+    throw makeRequestError({
+      httpStatus: 400,
+      message: `Invalid ObjectId string: ${id}`,
+    });
+  }
+};

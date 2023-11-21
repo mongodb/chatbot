@@ -1,14 +1,25 @@
-export interface QueryPreprocessorMessage {
-  content: string;
-  role: string;
-}
-/** Query preprocessors run on the raw user input. They must return a new query.
-  They can also optionally return additional data.
+import { Message } from "../services";
+
+/**
+  Query preprocessors transform an input query to a new query based on your
+  business logic.
+
+  If the preprocessor can't transform the query, it may return undefined. The
+  preprocessor may also suggest not answering with the rejectQuery field in the
+  return value (for example, if the query disparages your company, you might
+  want to send a canned response).
 */
-export type QueryPreprocessorFunc<T = unknown> = ({
+export type QueryPreprocessorFunc<
+  ReturnType extends QueryPreprocessorResult = QueryPreprocessorResult
+> = ({
   query,
   messages,
 }: {
-  query: string;
-  messages: QueryPreprocessorMessage[];
-}) => Promise<T & { query: string; doNotAnswer?: boolean }>;
+  query?: string;
+  messages: Message[];
+}) => Promise<ReturnType>;
+
+export type QueryPreprocessorResult = {
+  query?: string;
+  rejectQuery: boolean;
+};

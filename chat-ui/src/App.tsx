@@ -4,11 +4,12 @@ import { useState } from "react";
 import LeafyGreenProvider, {
   useDarkModeContext,
 } from "@leafygreen-ui/leafygreen-provider";
-import { Chatbot } from "./Chatbot";
 import { canUseServerSentEvents } from "./utils";
 import { Overline, Link } from "@leafygreen-ui/typography";
 import Toggle from "@leafygreen-ui/toggle";
-import { Chatbot as DevCenterChatbot } from "./DevCenterChatbot";
+import { Chatbot } from "./Chatbot";
+import { DocsChatbot } from "./DocsChatbot";
+import { DevCenterChatbot } from "./DevCenterChatbot";
 
 const prefersDarkMode = () =>
   window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
@@ -29,15 +30,16 @@ function App() {
         <Chatbot
           shouldStream={shouldStream}
           darkMode={darkMode}
-          suggestedPrompts={[
-            "How do you deploy a free cluster in Atlas?",
-            "How do you import or migrate data into MongoDB Atlas?",
-            "How do I get started with MongoDB?",
-            "Why should I use Atlas Search?",
-          ]}
-        />
+        >
+          <DocsChatbot />
+        </Chatbot>
+        <Chatbot
+          shouldStream={shouldStream}
+          darkMode={darkMode}
+        >
+          <DevCenterChatbot />
+        </Chatbot>
       </div>
-      <DevCenterChatbot />
       <Controls>
         <ToggleControl
           checked={shouldStream}

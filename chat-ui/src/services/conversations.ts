@@ -1,5 +1,5 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import { type References } from "chat-core";
+import { type References } from "mongodb-rag-core";
 import { ConversationState } from "../useConversation";
 import { strict as assert } from "node:assert";
 
@@ -12,6 +12,7 @@ export type MessageData = {
   createdAt: string;
   rating?: boolean;
   references?: References;
+  suggestedPrompts?: string[];
 };
 
 export function formatReferences(references: References): string {
@@ -23,6 +24,15 @@ export function formatReferences(references: References): string {
     (entry) => `- [${entry.title}](${entry.url})`
   );
   return [heading, ...listOfLinks].join("\n\n");
+}
+
+export const CUSTOM_REQUEST_ORIGIN_HEADER = "X-Request-Origin";
+
+export function getCustomRequestOrigin() {
+  if (typeof window !== "undefined") {
+    return window.location.href;
+  }
+  return undefined;
 }
 
 class RetriableError<Data extends object = object> extends Error {
@@ -60,7 +70,10 @@ export class ConversationService {
   private serverUrl: string;
 
   constructor(config: ConversationServiceConfig) {
-    assert(config.serverUrl, "You must define a serverUrl for the ConversationService");
+    assert(
+      config.serverUrl,
+      "You must define a serverUrl for the ConversationService"
+    );
     this.serverUrl = config.serverUrl.startsWith("/")
       ? new URL(
           config.serverUrl,
@@ -92,6 +105,7 @@ export class ConversationService {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        [CUSTOM_REQUEST_ORIGIN_HEADER]: getCustomRequestOrigin() ?? "",
       },
     });
     const conversation = await resp.json();
@@ -123,6 +137,7 @@ export class ConversationService {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        [CUSTOM_REQUEST_ORIGIN_HEADER]: getCustomRequestOrigin() ?? "",
       },
       body: JSON.stringify({ message }),
     });
@@ -188,6 +203,7 @@ export class ConversationService {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        [CUSTOM_REQUEST_ORIGIN_HEADER]: getCustomRequestOrigin() ?? "",
       },
       body: JSON.stringify({ message }),
       openWhenHidden: true,

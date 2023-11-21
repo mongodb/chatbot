@@ -7,7 +7,7 @@ interface CreateMessageParams {
   requestId?: string;
   ipAddress?: string;
 }
-export const createMessage = ({
+export const createLoggerMessage = ({
   message,
   requestBody,
   requestId,

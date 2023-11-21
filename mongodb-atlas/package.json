@@ -2,7 +2,8 @@
   "name": "mongodb-atlas",
   "version": "1.0.0",
   "license": "Apache-2.0",
-  "description": "",
+  "description": "Utilities for managing MongoDB Atlas deployments used by the projects in this repo.",
+  "private": true,
   "scripts": {
     "add-search-index:dev": "ts-node add-search-index.ts .env.dev",
     "add-search-index:test": "ts-node add-search-index.ts .env.test",
@@ -24,7 +25,7 @@
   },
   "dependencies": {
     "dotenv": "^16.2.0",
-    "mongodb": "^5.8.1",
-    "urllib": "^3.18.1"
+    "mongodb": "^5.9.1",
+    "urllib": "^3.19.2"
   }
 }

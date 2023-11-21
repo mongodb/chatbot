@@ -1,6 +1,6 @@
 {
-  "name": "ingest",
-  "version": "0.1.1",
+  "name": "mongodb-rag-ingest",
+  "version": "0.1.6",
   "description": "Ingests data sources and stores embeddings.",
   "author": "",
   "license": "Apache-2.0",
@@ -9,13 +9,25 @@
     "node": ">=18",
     "npm": ">=8"
   },
-  "main": "./build/main.js",
+  "files": [
+    "build",
+    "README.md"
+  ],
+  "exports": {
+    ".": "./build/index.js",
+    "./embed": "./build/embed/index.js",
+    "./pages": "./build/pages/index.js",
+    "./sources": "./build/sources/index.js",
+    "./sources/snooty": "./build/sources/snooty/index.js",
+    "./core": "./build/core/index.js"
+  },
   "bin": {
     "ingest": "./build/main.js"
   },
   "scripts": {
     "clean": "rm -rf build",
-    "build": "tsc -b",
+    "build": "tsc -b tsconfig.build.json",
+    "postbuild": "chmod +x build/main.js",
     "watch": "tsc -b -w",
     "test": "jest --forceExit",
     "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
@@ -35,6 +47,7 @@
     "@types/turndown": "^5.0.2",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
+    "chmod": "^0.2.1",
     "eslint": "^8",
     "eslint-config-prettier": "^8",
     "eslint-plugin-jsdoc": "^46.4.5",
@@ -52,9 +65,10 @@
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.1.0",
+    "@azure/openai": "^1.0.0-beta.6",
+    "@release-it/bumper": "^5.1.0",
     "acquit": "^1.3.0",
     "acquit-require": "^0.1.1",
-    "chat-core": "file:../chat-core",
     "deep-equal": "^2.2.1",
     "docdoctor": "^0.1.0",
     "dotenv": "^16",
@@ -67,6 +81,7 @@
     "jsdom": "^22.1.0",
     "langchain": "^0.0.148",
     "mongodb": "^5",
+    "mongodb-rag-core": "^0.0.5",
     "node-fetch": "^2",
     "rimraf": "^5.0.1",
     "simple-git": "^3.19.1",

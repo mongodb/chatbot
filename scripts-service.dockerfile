@@ -1,16 +1,14 @@
 # Build stage
 FROM node:18-alpine as builder
 
-ARG LG_ARTIFACTORY_PASSWORD
-ENV LG_ARTIFACTORY_PASSWORD=${LG_ARTIFACTORY_PASSWORD}
-ARG LG_ARTIFACTORY_USERNAME
-ENV LG_ARTIFACTORY_USERNAME=${LG_ARTIFACTORY_USERNAME}
+ARG LG_ARTIFACTORY_TOKEN
+ENV LG_ARTIFACTORY_TOKEN=${LG_ARTIFACTORY_TOKEN}
 ARG LG_ARTIFACTORY_EMAIL
 ENV LG_ARTIFACTORY_EMAIL=${LG_ARTIFACTORY_EMAIL}
 
 WORKDIR /app
 COPY . ./
-RUN npm install lerna && npm run bootstrap && npm run build -- --scope='{chat-core,chat-server,scripts}'
+RUN npm install lerna && npm run bootstrap && npm run build -- --scope='{mongodb-rag-core,mongodb-chatbot-server,scripts}'
 
 # Main image
 FROM node:18-alpine as main

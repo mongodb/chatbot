@@ -1,5 +1,5 @@
 import { useMemo, useReducer } from "react";
-import { References } from "chat-core";
+import { type References } from "mongodb-rag-core";
 import {
   MessageData,
   Role,
@@ -334,7 +334,8 @@ export function useConversation(params: UseConversationParams = {}) {
       return;
     }
 
-    const shouldStream = canUseServerSentEvents() && (params.shouldStream ?? true);
+    const shouldStream =
+      canUseServerSentEvents() && (params.shouldStream ?? true);
 
     // Stream control
     const abortController = new AbortController();

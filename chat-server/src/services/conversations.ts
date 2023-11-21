@@ -1,6 +1,6 @@
 import { OpenAiChatMessage, OpenAiMessageRole, SystemPrompt } from "./ChatLlm";
-import { ObjectId, Db } from "mongodb";
-import { References } from "chat-core";
+import { ObjectId, Db } from "mongodb-rag-core";
+import { References } from "mongodb-rag-core";
 
 export type Message = {
   /**
@@ -53,9 +53,9 @@ export type UserMessage = Message & {
   preprocessedContent?: string;
 
   /**
-    Whether preprocessor suggested DO_NOT_ANSWER based on the input.
+    Whether preprocessor suggested not to answer based on the input.
    */
-  doNotAnswer?: boolean;
+  rejectQuery?: boolean;
 
   /**
     The vector representation of the message content.
@@ -63,8 +63,14 @@ export type UserMessage = Message & {
   embedding: number[];
 };
 
+/**
+  Message in the {@link Conversation} as stored in the database.
+ */
 export type SomeMessage = UserMessage | AssistantMessage | SystemMessage;
 
+/**
+  Conversation between the user and the chatbot as stored in the database.
+ */
 export interface Conversation {
   _id: ObjectId;
   /** Messages in the conversation. */
@@ -73,25 +79,35 @@ export interface Conversation {
   ipAddress: string;
   /** The date the conversation was created. */
   createdAt: Date;
+  /** The hostname that the request originated from. */
+  requestOrigin?: string;
 }
 export interface CreateConversationParams {
   ipAddress: string;
+  requestOrigin?: string;
 }
 
-export interface AddConversationMessageParams {
+export type AddSystemMessageParams = Omit<SystemMessage, "id" | "createdAt"> & {
   conversationId: ObjectId;
-  content: string;
-  preprocessedContent?: string;
-  role: OpenAiMessageRole;
-  references?: References;
+};
 
-  /**
-    The vector representation of the message content.
-   */
-  embedding?: number[];
+export type AddUserMessageParams = Omit<UserMessage, "id" | "createdAt"> & {
+  conversationId: ObjectId;
+  requestOrigin: string;
+};
 
-  doNotAnswer?: boolean;
-}
+export type AddAssistantMessageParams = Omit<
+  AssistantMessage,
+  "id" | "createdAt"
+> & {
+  conversationId: ObjectId;
+};
+
+export type AddConversationMessageParams =
+  | AddSystemMessageParams
+  | AddUserMessageParams
+  | AddAssistantMessageParams;
+
 export interface FindByIdParams {
   _id: ObjectId;
 }
@@ -100,8 +116,11 @@ export interface RateMessageParams {
   messageId: ObjectId;
   rating: boolean;
 }
+/**
+  Service for managing {@link Conversation}s.
+ */
 export interface ConversationsService {
-  create: ({ ipAddress }: CreateConversationParams) => Promise<Conversation>;
+  create: (params: CreateConversationParams) => Promise<Conversation>;
   addConversationMessage: (
     params: AddConversationMessageParams
   ) => Promise<Message>;
@@ -113,6 +132,9 @@ export interface ConversationsService {
   }: RateMessageParams) => Promise<boolean>;
 }
 
+/**
+ OSS_TODO: make these configurable from the entry point. though i think these messages are reasonable defaults
+ */
 export const conversationConstants = {
   NO_RELEVANT_CONTENT: `Unfortunately, I do not know how to respond to your message.
 
@@ -123,19 +145,23 @@ so I cannot respond to your message. Please try again later.
 However, here are some links that might provide some helpful information for your message:`,
 };
 
-export function makeConversationsService(
+/**
+  Create {@link ConversationsService} that uses MongoDB as a data store.
+ */
+export function makeMongoDbConversationsService(
   database: Db,
   systemPrompt: SystemPrompt
 ): ConversationsService {
   const conversationsCollection =
     database.collection<Conversation>("conversations");
   return {
-    async create({ ipAddress }: CreateConversationParams) {
+    async create({ ipAddress, requestOrigin }: CreateConversationParams) {
       const newConversation = {
         _id: new ObjectId(),
         ipAddress,
         messages: [createMessageFromOpenAIChatMessage(systemPrompt)],
         createdAt: new Date(),
+        requestOrigin,
       };
       const insertResult = await conversationsCollection.insertOne(
         newConversation
@@ -150,30 +176,11 @@ export function makeConversationsService(
       return newConversation;
     },
 
-    async addConversationMessage({
-      conversationId,
-      content,
-      role,
-      preprocessedContent,
-      references,
-      embedding,
-      doNotAnswer,
-    }: AddConversationMessageParams) {
-      const newMessage = createMessageFromOpenAIChatMessage({
-        role,
-        content,
-        embedding,
-      });
-      Object.assign(
-        newMessage,
-        preprocessedContent && { preprocessedContent },
-        references && { references },
-        doNotAnswer && { doNotAnswer }
-      );
-
+    async addConversationMessage(params: AddConversationMessageParams) {
+      const newMessage = createMessage(params);
       const updateResult = await conversationsCollection.updateOne(
         {
-          _id: conversationId,
+          _id: params.conversationId,
         },
         {
           $push: {
@@ -220,6 +227,17 @@ export function makeConversationsService(
   };
 }
 
+export function createMessage(messageParams: AddConversationMessageParams) {
+  return {
+    id: new ObjectId(),
+    createdAt: new Date(),
+    ...messageParams,
+  } satisfies SomeMessage;
+}
+
+/**
+  Create a {@link Message} object from the {@link OpenAiChatMessage} object.
+ */
 export function createMessageFromOpenAIChatMessage({
   role,
   content,

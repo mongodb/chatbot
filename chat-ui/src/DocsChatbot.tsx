@@ -3,14 +3,12 @@ import { DarkModeProps } from "./ChatbotView";
 import { InputBarTrigger, InputBarTriggerProps } from "./InputBarTrigger";
 import { ModalView, ModalViewProps } from "./ModalView";
 import { SUGGESTED_PROMPTS } from "./constants";
-import { useChatbotContext } from "./useChatbotContext";
 
 export type DocsChatbotProps = DarkModeProps & {
   suggestedPrompts?: string[];
 };
 
 export function DocsChatbot(props: DocsChatbotProps) {
-  const chatbotData = useChatbotContext();
   const { darkMode } = useDarkMode(props.darkMode);
 
   const triggerProps = {
@@ -19,7 +17,6 @@ export function DocsChatbot(props: DocsChatbotProps) {
 
   const viewProps = {
     darkMode,
-    shouldClose: chatbotData.closeChat,
   } satisfies ModalViewProps;
 
   return (

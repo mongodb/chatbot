@@ -16,7 +16,7 @@ describe("Conversations Router", () => {
     DEFAULT_API_PREFIX + "/conversations/:conversationId/messages";
   const { mongodb, appConfig, mongoClient } = makeTestAppConfig();
   afterAll(async () => {
-    // clean  up
+    // clean up
     await mongodb.dropDatabase();
     await mongoClient.close();
   });

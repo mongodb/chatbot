@@ -21,7 +21,6 @@ import { OpenAiChatMessage, SystemPrompt } from "../services/ChatLlm";
 import { makeDefaultFindContentFunc } from "../routes/conversations/FindContentFunc";
 import { makeDefaultReferenceLinks } from "../routes/conversations/addMessageToConversation";
 import { makePreprocessMongoDbUserQuery } from "./testPreProcessor/makePreprocessMongoDbUserQuery";
-import { requireRequestOrigin, requireValidIpAddress } from "../middleware";
 
 export const {
   MONGODB_CONNECTION_URI,

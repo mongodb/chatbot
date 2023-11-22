@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   license:
     name: TBD
-    url: TBD
+    url: Apache 2.0
 servers:
   - url: http://knowledge.mongodb.com/api/v1
 security:
@@ -21,7 +21,7 @@ paths:
           name: Origin
           required: true
           schema:
-            $ref: '#/components/schemas/OriginHeaderValue'
+            $ref: "#/components/schemas/OriginHeaderValue"
       responses:
         200:
           description: OK
@@ -51,7 +51,7 @@ paths:
           name: Origin
           required: true
           schema:
-            $ref: '#/components/schemas/OriginHeaderValue'
+            $ref: "#/components/schemas/OriginHeaderValue"
       requestBody:
         content:
           application/json:

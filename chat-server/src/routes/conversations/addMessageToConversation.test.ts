@@ -136,19 +136,16 @@ describe("POST /conversations/:conversationId/messages", () => {
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
       .send(requestBody);
+    expect(res.statusCode).toEqual(200);
     const conversation = await conversations.findById({
       _id: new ObjectId(conversationId),
     });
     assert(conversation);
-    const newMessage = conversation.messages.find(
-      (msg) => msg.id.toString() === res.body.id
-    );
-    expect(newMessage?.customData).toStrictEqual({
-      ip: ipAddress,
+    const userMessageWithCustomData =
+      conversation.messages[conversation.messages.length - 2];
+    expect(userMessageWithCustomData?.customData).toStrictEqual({
       origin,
     });
-
-    expect(res.statusCode).toEqual(200);
   });
 
   describe("Streamed response", () => {
@@ -372,35 +369,23 @@ describe("POST /conversations/:conversationId/messages", () => {
       let testMongo: Db;
       let testMongoClient: MongoClient;
       beforeEach(async () => {
-        const { mongodb, mongoClient } = makeTestAppConfig();
+        const { mongodb, mongoClient, appConfig } = makeTestAppConfig();
         testMongo = mongodb;
         testMongoClient = mongoClient;
+        ({ app } = await makeTestApp({
+          ...appConfig,
+          conversationsRouterConfig: {
+            ...appConfig.conversationsRouterConfig,
+            llm: brokenLlmService,
+          },
+        }));
 
         conversations = makeMongoDbConversationsService(
           testMongo,
           systemPrompt
         );
-        const { _id } = await conversations.create({});
+        const { _id } = await conversations.create();
         conversationId = _id;
-
-        const findContent = makeDefaultFindContentFunc({
-          embedder,
-          store,
-        });
-        app = express();
-        app.use(express.json());
-        app.use(reqHandler);
-        app.post(
-          endpointUrl,
-          requireRequestOrigin(),
-          validateRequestSchema(AddMessageRequest),
-          makeAddMessageToConversationRoute({
-            conversations,
-            llm: brokenLlmService,
-            dataStreamer,
-            findContent,
-          })
-        );
       });
       afterEach(async () => {
         await testMongo.dropDatabase();

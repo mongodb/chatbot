@@ -113,11 +113,22 @@ export function makeAddMessageToConversationRoute({
         });
       }
 
-      const customData = await getCustomData({
-        req,
-        res,
-        addMessageToConversationCustomData,
-      });
+      const customData =
+        (await getCustomData({
+          req,
+          res,
+          addMessageToConversationCustomData,
+        }).catch((err) => {
+          logRequest({
+            reqId,
+            type: "error",
+            message: `Error getting custom data: ${JSON.stringify(err)}`,
+          });
+          throw makeRequestError({
+            httpStatus: 500,
+            message: "Error getting custom data",
+          });
+        })) ?? undefined;
 
       // --- LOAD CONVERSATION ---
       const conversation = await loadConversation({
@@ -314,6 +325,7 @@ export function makeAddMessageToConversationRoute({
         assistantMessageContent: answerContent,
         assistantMessageReferences: references,
         userMessageEmbedding: queryEmbedding,
+        customData,
       });
 
       const apiRes = convertMessageFromDbToApi(assistantMessage);
@@ -440,6 +452,7 @@ interface AddMessagesToDatabaseParams {
   conversations: ConversationsService;
   userMessageEmbedding: number[];
   rejectQuery?: boolean;
+  customData?: Record<string, unknown>;
 }
 
 export async function addMessagesToDatabase({
@@ -451,6 +464,7 @@ export async function addMessagesToDatabase({
   conversations,
   userMessageEmbedding,
   rejectQuery,
+  customData,
 }: AddMessagesToDatabaseParams) {
   // TODO: consider refactoring addConversationMessage to take in an array of messages.
   // Would limit database calls.
@@ -462,6 +476,7 @@ export async function addMessagesToDatabase({
     embedding: userMessageEmbedding,
     preprocessedContent: preprocessedUserMessageContent,
     rejectQuery,
+    customData,
   });
   const assistantMessage = await conversations.addConversationMessage({
     conversationId,

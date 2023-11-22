@@ -29,14 +29,17 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
   let mongoClient: MongoClient;
   let ipAddress: string;
   let appConfig: AppConfig;
+  let origin: string;
 
   beforeAll(async () => {
-    ({ mongodb, mongoClient, app, ipAddress, appConfig } = await makeTestApp());
+    ({ mongodb, mongoClient, app, ipAddress, appConfig, origin } =
+      await makeTestApp());
     conversations = appConfig.conversationsRouterConfig.conversations;
 
     app
       .post(endpointUrl, makeRateMessageRoute({ conversations }))
-      .set("X-FORWARDED-FOR", ipAddress);
+      .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin);
     conversation = await conversations.create();
     testMsg = await conversations.addConversationMessage({
       conversationId: conversation._id,
@@ -58,6 +61,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
     const response = await request(app)
       .post(testEndpointUrl)
       .set("X-Forwarded-For", ipAddress)
+      .set("Origin", origin)
       .send({ rating: true });
 
     expect(response.statusCode).toBe(204);
@@ -93,6 +97,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
         `${DEFAULT_API_PREFIX}/conversations/123/messages/${conversation.messages[0].id}/rating`
       )
       .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
       .send({ rating: true });
 
     expect(response.statusCode).toBe(400);
@@ -106,6 +111,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
         `${DEFAULT_API_PREFIX}/conversations/${testMsg.id}/messages/123/rating`
       )
       .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
       .send({ rating: true });
 
     expect(response.statusCode).toBe(400);
@@ -121,6 +127,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
         }/rating`
       )
       .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
       .send({ rating: true });
 
     expect(response.statusCode).toBe(404);
@@ -136,6 +143,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
         }/messages/${new ObjectId().toHexString()}/rating`
       )
       .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
       .send({ rating: true });
 
     expect(response.statusCode).toBe(404);

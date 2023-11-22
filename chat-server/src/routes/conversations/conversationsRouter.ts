@@ -169,7 +169,7 @@ const addOriginAndIpToCustomData: AddCustomDataFunc = async (req, res) =>
   res.locals.customData.origin
     ? { origin: res.locals.customData.origin, ip: req.ip }
     : undefined;
-const addOriginToCustomData: AddCustomDataFunc = async (req, res) =>
+const addOriginToCustomData: AddCustomDataFunc = async (_, res) =>
   res.locals.customData.origin
     ? { origin: res.locals.customData.origin }
     : undefined;

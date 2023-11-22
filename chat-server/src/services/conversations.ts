@@ -258,11 +258,18 @@ export function makeMongoDbConversationsService(
 }
 
 export function createMessage(messageParams: AddConversationMessageParams) {
-  return {
+  const message = {
     id: new ObjectId(),
     createdAt: new Date(),
     ...messageParams,
   } satisfies SomeMessage;
+
+  // Remove undefined customData so that it's
+  // not persisted to the database as `customData: null`.
+  if (messageParams.customData === undefined) {
+    delete message.customData;
+  }
+  return message;
 }
 
 /**

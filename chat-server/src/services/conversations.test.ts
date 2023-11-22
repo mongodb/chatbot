@@ -95,6 +95,50 @@ describe("Conversations Service", () => {
       (conversationInDb?.messages[1] as UserMessage)?.embedding
     ).toStrictEqual(embedding);
   });
+  test("Should add a message to a conversation with custom data", async () => {
+    const conversation = await conversationsService.create();
+    const content = "Tell me about MongoDB";
+    const customData = {
+      foo: "bar",
+    };
+    const newMessage = await conversationsService.addConversationMessage({
+      conversationId: conversation._id,
+      role: "user",
+      content,
+      customData,
+      embedding: [1, 2, 3],
+    });
+    expect(newMessage.content).toBe(content);
+
+    const conversationInDb = await mongodb
+      .collection<Conversation>("conversations")
+      .findOne({ _id: conversation._id });
+    expect(conversationInDb).toHaveProperty("messages");
+    expect(conversationInDb?.messages).toHaveLength(2);
+    expect(conversationInDb?.messages[1].content).toStrictEqual(content);
+    expect(conversationInDb?.messages[1].customData).toStrictEqual(customData);
+  });
+  test("Should add a message to a conversation with undefined custom data", async () => {
+    const conversation = await conversationsService.create();
+    const content = "Tell me about MongoDB";
+    const customData = undefined;
+    const newMessage = await conversationsService.addConversationMessage({
+      conversationId: conversation._id,
+      role: "user",
+      content,
+      customData,
+      embedding: [1, 2, 3],
+    });
+    expect(newMessage.content).toBe(content);
+
+    const conversationInDb = await mongodb
+      .collection<Conversation>("conversations")
+      .findOne({ _id: conversation._id });
+    expect(conversationInDb).toHaveProperty("messages");
+    expect(conversationInDb?.messages).toHaveLength(2);
+    expect(conversationInDb?.messages[1].content).toStrictEqual(content);
+    expect(conversationInDb?.messages[1].customData).toStrictEqual(customData);
+  });
   test("Should find a conversation by id", async () => {
     const conversation = await conversationsService.create();
     const conversationInDb = await conversationsService.findById({

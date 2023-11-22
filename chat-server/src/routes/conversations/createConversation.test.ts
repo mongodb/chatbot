@@ -17,12 +17,10 @@ describe("POST /conversations", () => {
 
   it("should respond 200 and create a conversation", async () => {
     const { app, origin } = await makeTestApp(appConfig);
-    console.log("Created app");
     const res = await request(app)
       .post(CONVERSATIONS_API_V1_PREFIX)
       .set("Origin", origin)
       .send();
-    console.log("Got response", res.body);
     const conversation: ApiConversation = res.body;
     expect(res.statusCode).toEqual(200);
 

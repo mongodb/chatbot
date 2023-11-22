@@ -1,8 +1,8 @@
-import { Request, Response } from "express";
-import { ParamsDictionary } from "express-serve-static-core";
 import { requireRequestOrigin } from "./requireRequestOrigin";
-import { createRequest, createResponse } from "node-mocks-http";
-import { ConversationsRouterLocals } from "../routes/conversations/conversationsRouter";
+import {
+  createConversationsMiddlewareReq,
+  createConversationsMiddlewareRes,
+} from "../test/middlewareTestHelpers";
 
 const baseReq = {
   body: { message: "Hello, world!" },
@@ -21,18 +21,6 @@ function caseInsensitiveHeaders(headers: Record<string, string>) {
   }, {} as Record<string, string>);
 }
 
-const createConversationsMiddlewareReq = () =>
-  createRequest<
-    Request<ParamsDictionary, any, any, any, ConversationsRouterLocals>
-  >();
-const createConversationsMiddlewareRes = () => {
-  const res = createResponse<Response<any, ConversationsRouterLocals>>();
-  res.locals = {
-    conversations: {} as any,
-    customData: {},
-  };
-  return res;
-};
 describe("requireRequestOrigin", () => {
   it(`blocks any request where neither the Origin nor the X-Request-Origin header is set`, async () => {
     const req = createConversationsMiddlewareReq();

@@ -7,7 +7,7 @@
     "start": "docusaurus start",
     "build": "docusaurus build  --help",
     "swizzle": "docusaurus swizzle",
-    "deploy": "git checkout gh-pages && docusaurus build --out-dir ../docs-build && git add ../docs-build && git commit -m 'Update docs' && git push upstream gh-pages && git checkout main",
+    "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",

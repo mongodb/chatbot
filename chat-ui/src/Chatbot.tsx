@@ -9,8 +9,6 @@ import { ChatbotProvider } from "./ChatbotProvider";
 
 export type ChatbotProps = {
   darkMode?: boolean;
-  initialMessageText?: string;
-  suggestedPrompts?: string[];
   tck?: string;
   serverBaseUrl?: string;
   shouldStream?: boolean;

@@ -84,19 +84,16 @@ const styles = {
 };
 
 export type ModalViewProps = ChatbotViewProps & {
-  shouldClose: ModalProps["shouldClose"];
+  shouldClose?: ModalProps["shouldClose"];
 };
 
 export function ModalView(props: ModalViewProps) {
   const { darkMode } = useDarkMode(props.darkMode);
-  const {
-    initialMessageText,
-    initialMessageSuggestedPrompts,
-    shouldClose,
-    showDisclaimer,
-  } = props;
+  const { initialMessageText, initialMessageSuggestedPrompts, showDisclaimer } =
+    props;
   const {
     awaitingReply,
+    closeChat,
     conversation,
     handleSubmit,
     inputBarRef,
@@ -129,6 +126,15 @@ export function ModalView(props: ModalViewProps) {
   const ActiveInputBarId = "active-input-bar";
 
   const hasError = inputTextError !== "";
+
+  const shouldClose = () => {
+    if (props.shouldClose?.() ?? true) {
+      closeChat();
+      return true;
+    } else {
+      return false;
+    }
+  };
 
   return (
     <Modal

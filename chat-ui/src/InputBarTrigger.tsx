@@ -1,6 +1,7 @@
 import { css } from "@emotion/css";
-import { palette } from "@leafygreen-ui/palette";
 import { LegalDisclosure } from "./LegalDisclosure";
+import { DarkModeProps } from "./DarkMode";
+import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { Body, Error as ErrorText, Link } from "@leafygreen-ui/typography";
 import { InputBar, SuggestedPrompt, SuggestedPrompts } from "./InputBar";
 import { useLinkData } from "./useLinkData";
@@ -35,17 +36,17 @@ const styles = {
   powered_by_footer: css`
     display: flex;
     flex-direction: row;
-    color: ${palette.gray.dark2};
     justify-content: flex-end;
     padding-right: 24px;
   `,
 };
 
-export type InputBarTriggerProps = {
+export type InputBarTriggerProps = DarkModeProps & {
   suggestedPrompts?: string[];
 };
 
 export function InputBarTrigger(props: InputBarTriggerProps) {
+  const { darkMode } = useDarkMode(props.darkMode);
   const { suggestedPrompts = SUGGESTED_PROMPTS } = props;
   const {
     openChat,
@@ -57,7 +58,7 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
     inputTextError,
   } = useChatbotContext();
 
-  const [focused, setFocused] = useState(false); // TODO: Move this to InputBarTrigger
+  const [focused, setFocused] = useState(false);
   const canSubmit = inputTextError.length === 0 && !conversation.error;
   const hasError = inputTextError !== "";
   const showError = inputTextError !== "" && !open;
@@ -76,12 +77,11 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
     <div className={styles.chatbot_container}>
       <div className={styles.chatbot_input}>
         <InputBar
-          key={"initialInput"}
+          key={"inputBarTrigger"}
+          darkMode={darkMode}
           hasError={hasError ?? false}
           badgeText={
-            focused || inputText.length > 0
-              ? undefined
-              : "Experimental"
+            focused || inputText.length > 0 ? undefined : "Experimental"
           }
           dropdownProps={{
             usePortal: false,
@@ -92,7 +92,6 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
             </div>
           }
           textareaProps={{
-            // value: !open ? propsinputText : "",
             value: inputText,
             onChange: (e) => {
               setInputText(e.target.value);
@@ -140,9 +139,7 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
         </InputBar>
 
         <div className={styles.info_box}>
-          {showError ? (
-            <ErrorText>{inputTextError}</ErrorText>
-          ) : null}
+          {showError ? <ErrorText>{inputTextError}</ErrorText> : null}
           <LegalDisclosure />
         </div>
       </div>

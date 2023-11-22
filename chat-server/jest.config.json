@@ -1,6 +1,0 @@
-{
-  "preset": "ts-jest",
-  "setupFiles": ["<rootDir>/src/test/jestEnvSetUp.ts"],
-  "setupFilesAfterEnv": ["<rootDir>/src/test/jestSetUp.ts"],
-  "testPathIgnorePatterns": ["<rootDir>/dist"]
-}

@@ -1,12 +1,21 @@
 openapi: 3.1.0
 info:
-  title: Docs AI Chat API
+  title: MongoDB RAG Server API
   version: 1.0.0
   license:
-    name: TBD
-    url: Apache 2.0
+    name: Apache 2.0
+    url: https://github.com/mongodb/chatbot/blob/main/LICENSE
+  description: |
+    The MongoDB RAG Server API is a RESTful API that allows you to
+    create and manage conversations.
+    The API is designed to be used by the MongoDB RAG UI frontend,
+    but can also be used by other clients.
+
+    **NOTE:** The default configuration requires capturing user IP address
+    and a header `Origin: some_string`. You can override this.
+    Refer to the server configuration documentation for more information.
 servers:
-  - url: http://knowledge.mongodb.com/api/v1
+  - url: http://<Your Server Base URL>/api/v1
 security:
   - ApiKeyAuth: []
 paths:
@@ -14,14 +23,6 @@ paths:
     post:
       operationId: createConversation
       summary: Start a new conversation
-      description: |
-        **NOTE:** Captures user IP address.
-      parameters:
-        - in: header
-          name: Origin
-          required: true
-          schema:
-            $ref: "#/components/schemas/OriginHeaderValue"
       responses:
         200:
           description: OK
@@ -47,11 +48,6 @@ paths:
             type: boolean
           description: |
             If `true`, the response will be streamed to the client. This is useful for long-running conversations.
-        - in: header
-          name: Origin
-          required: true
-          schema:
-            $ref: "#/components/schemas/OriginHeaderValue"
       requestBody:
         content:
           application/json:
@@ -203,12 +199,6 @@ components:
           type: boolean
     ErrorResponse:
       type: object
-    OriginHeaderValue:
-      type: string
-      format: uri
-      description: |
-        The hostname of the page that the user is on when they start a
-        conversation. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin.
   parameters:
     conversationId:
       name: conversationId

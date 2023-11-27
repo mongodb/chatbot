@@ -1,6 +1,6 @@
 import { Page } from "mongodb-rag-core";
 import {
-  TiCatalogueItem,
+  TiCatalogItem,
   UniversityVideo,
   makeMongoDbUniversityDataApiClient,
 } from "./MongoDbUniversityDataApiClient";
@@ -13,7 +13,7 @@ import { MakeMongoDbUniversityDataSourceParams } from "./MongoDbUniversityDataSo
 export function makeFetchUniversityPagesFunc({
   baseUrl,
   apiKey,
-  tiCatalogueFilterFunc,
+  tiCatalogFilterFunc,
   metadata,
 }: MakeMongoDbUniversityDataSourceParams) {
   const uniDataApiClient = makeMongoDbUniversityDataApiClient({
@@ -21,11 +21,12 @@ export function makeFetchUniversityPagesFunc({
     apiKey,
   });
   return async () => {
-    const allTiCatalogueItems = await uniDataApiClient.getAllTiCatalogueItems();
-    const tiCatalogueItems = allTiCatalogueItems.filter(tiCatalogueFilterFunc);
-    const videos = await uniDataApiClient.getAllDataApiVideos();
+    const { data: allTiCatalogItems } =
+      await uniDataApiClient.getAllCatalogItems();
+    const tiCatalogItems = allTiCatalogItems.filter(tiCatalogFilterFunc);
+    const { data: videos } = await uniDataApiClient.getAllVideos();
     const universityPages = makeUniversityPages({
-      tiCatalogueItems,
+      tiCatalogItems,
       videos,
       metadata,
     });
@@ -38,11 +39,11 @@ export function makeFetchUniversityPagesFunc({
   for MongoDB University content.
  */
 export function makeUniversityPages({
-  tiCatalogueItems,
+  tiCatalogItems,
   videos,
   metadata,
 }: {
-  tiCatalogueItems: TiCatalogueItem[];
+  tiCatalogItems: TiCatalogItem[];
   videos: UniversityVideo[];
   metadata: Record<string, unknown>;
 }): Page[] {
@@ -54,7 +55,7 @@ export function makeUniversityPages({
   Helper function to convert MongoDB University video transcripts from
   [SRT format](https://mailchimp.com/resources/what-is-an-srt-file/) to plain text.
  */
-export function cleanVideoTranscript(transcript: string): string {
+export function convertVideoTranscriptFromSrtToTxt(transcript: string): string {
   const withoutTimestamps = transcript.replace(
     /^\d+\n\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}\n/gm,
     ""

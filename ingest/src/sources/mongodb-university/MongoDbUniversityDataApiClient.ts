@@ -1,16 +1,17 @@
+import fetch from "node-fetch";
 /**
-  Item in the Thought Industries catalogue as returned from the
+  Item in the Thought Industries catalog as returned from the
   MongoDB University Data API.
  */
-export interface TiCatalogueItem {
+export interface TiCatalogItem {
   id: string;
   ti_id: string;
   /**
-        IDs for videos associated with the catalogue item.
+        IDs for videos associated with the catalog item.
        */
   associated_videos: string[];
   /**
-        Learning format for the catalogue item.
+        Learning format for the catalog item.
         @example "Unit" || "Course" || "Lab" || "...etc"
        */
   learning_format: string;
@@ -20,36 +21,36 @@ export interface TiCatalogueItem {
   tags: string[];
   legacy: boolean;
   /**
-        Thought Industries microsites associated with the catalogue item.
+        Thought Industries microsites associated with the catalog item.
         @example ["University", "Technical Services"]
        */
   microsites: string[];
   /**
-        IDs of labs associated with the catalogue item.
+        IDs of labs associated with the catalog item.
        */
   associated_labs: string[];
   // TODO: is this always null?
   associated_content: null | any;
   /**
-        Whether or not the catalogue item is in development.
+        Whether or not the catalog item is in development.
         TODO: does this mean the item is not yet published?
        */
   in_development: boolean;
   created_at: string;
   /**
-        Sections in the catalogue item. This contains metadata
+        Sections in the catalog item. This contains metadata
         about the sections and lessons.
        */
-  sections: TiCatalogueSection[];
+  sections: TiCatalogSection[];
 }
 
-interface TiCatalogueSection {
+interface TiCatalogSection {
   slug: string;
   title: string;
-  lessons: TiCatalogueLesson[];
+  lessons: TiCatalogLesson[];
 }
 
-interface TiCatalogueLesson {
+interface TiCatalogLesson {
   slug: string;
   title: string;
   labs: string[]; // Assuming 'labs' is an array of strings, similar to 'videos'.
@@ -73,15 +74,15 @@ export interface UniversityVideo {
   caption: VideoCaption;
 }
 
-type VideoStatistics = {
+interface VideoStatistics {
   avg_rating: number;
   number_of_ratings: number;
   play_count: number;
   hours_watched: number;
   engagement: number;
-};
+}
 
-type VideoCaption = {
+interface VideoCaption {
   video_catalog_id: string;
   name: string;
   hashed_id: string;
@@ -92,18 +93,43 @@ type VideoCaption = {
   language: string;
   status: string;
   updated: string;
-};
+}
+
+interface ResponseMetadata {
+  count: number;
+  extra: null | any;
+  total_count: number;
+  has_more: boolean;
+  limit: number;
+  offset: number;
+  filter: null | any;
+}
+
+interface getAllCatalogItemsResponseData {
+  data: TiCatalogItem[];
+  metadata: ResponseMetadata;
+}
+
+interface GetAllVideosResponseData {
+  /**
+    All the videos from the MongoDB University Data API.
+    Note that the API requires pagination through the videos,
+    while this array contains all the videos.
+   */
+  data: UniversityVideo[];
+  metadata: ResponseMetadata;
+}
 
 export interface MongoDbUniversityDataApiClient {
   /**
-    Load all the catalogue items from the MongoDB University
+    Load all the catalog items from the MongoDB University
     Data API.
    */
-  getAllTiCatalogueItems(): Promise<TiCatalogueItem[]>;
+  getAllCatalogItems(): Promise<getAllCatalogItemsResponseData>;
   /**
-    Helper function to load all the videos from the MongoDB University Data API.
+    Load all the videos from the MongoDB University Data API.
    */
-  getAllDataApiVideos(): Promise<UniversityVideo[]>;
+  getAllVideos(): Promise<GetAllVideosResponseData>;
 }
 
 /**
@@ -117,13 +143,38 @@ export function makeMongoDbUniversityDataApiClient({
   apiKey: string;
 }) {
   return {
-    async getAllTiCatalogueItems() {
-      // TODO: add logic. straightforward fetch operation
-      return [];
+    async getAllCatalogItems() {
+      const response = await fetch(`${baseUrl}/ti`, {
+        headers: {
+          "X-API-KEY": apiKey,
+        },
+      });
+      const json = await response.json();
+      return json as getAllCatalogItemsResponseData;
     },
-    async getAllDataApiVideos() {
-      // TODO: add logic...will have pagination
-      return [];
+    async getAllVideos() {
+      let offset = 0;
+      const LIMIT = 300; // Maximum allowed by the MongoDB University Data API.
+      let hasMoreVideos = true;
+      const videos: UniversityVideo[] = [];
+      let metadata: ResponseMetadata | undefined = undefined;
+      while (hasMoreVideos === true) {
+        const response = await fetch(
+          `${baseUrl}/ti?limit=${LIMIT}&offset=${offset}`,
+          {
+            headers: {
+              "X-API-KEY": apiKey,
+            },
+          }
+        );
+        const { data, metadata: resMetadata } =
+          (await response.json()) as GetAllVideosResponseData;
+        hasMoreVideos = resMetadata.has_more;
+        offset += LIMIT;
+        videos.push(...(data as UniversityVideo[]));
+        metadata = resMetadata;
+      }
+      return { data: videos, metadata } as GetAllVideosResponseData;
     },
   };
 }

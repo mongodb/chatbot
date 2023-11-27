@@ -1,3 +1,6 @@
+const baseUrl = "https://api.learn.mongodb.com/rest/catalog";
 describe("makeMongoDBUniversityDataSource()", () => {
-  // TODO: Implement tests
+  it("should return a DataSource", () => {
+    // TODO
+  });
 });

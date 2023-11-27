@@ -1,6 +1,7 @@
 import { Page } from "mongodb-rag-core";
 import { DataSource } from "../DataSource";
 import { makeFetchUniversityPagesFunc } from "./FetchUniversityPagesFunc";
+import { TiCatalogItem } from "./MongoDbUniversityDataApiClient";
 
 /**
   Parameters for constructing a MongoDB University Data API source.
@@ -24,10 +25,10 @@ export interface MakeMongoDbUniversityDataSourceParams {
 
   /**
       Filter function for filtering out items from the MongoDB University
-      catalogue. For example, you may want to only ingest items that are
+      catalog. For example, you may want to only ingest items that are
       in public content.
      */
-  tiCatalogueFilterFunc: (ti: TiCatalogueItem) => boolean;
+  tiCatalogFilterFunc: (ti: TiCatalogItem) => boolean;
 
   /**
       Metadata for the MongoDB University Data API source.

@@ -1,7 +1,10 @@
 import { Page } from "mongodb-rag-core";
 import { DataSource } from "../DataSource";
-import { makeFetchUniversityPagesFunc } from "./FetchUniversityPagesFunc";
-import { TiCatalogItem } from "./MongoDbUniversityDataApiClient";
+import { makeUniversityPages } from "./makeUniversityPages";
+import {
+  TiCatalogItem,
+  makeMongoDbUniversityDataApiClient,
+} from "./MongoDbUniversityDataApiClient";
 
 /**
   Parameters for constructing a MongoDB University Data API source.
@@ -37,13 +40,33 @@ export interface MakeMongoDbUniversityDataSourceParams {
   metadata: Record<string, unknown>;
 }
 /**
-  Source constructor for ingesting data from the MongoDB University Data API.
+  Data source constructor function for ingesting data
+  from the MongoDB University Data API.
+  (This is an internal API.)
  */
 export function makeMongoDbUniversityDataSource(
   params: MakeMongoDbUniversityDataSourceParams
 ): DataSource {
   return {
     name: params.sourceName,
-    fetchPages: makeFetchUniversityPagesFunc(params),
+    async fetchPages() {
+      const uniDataApiClient = makeMongoDbUniversityDataApiClient({
+        baseUrl: params.baseUrl,
+        apiKey: params.apiKey,
+      });
+      const { data: allTiCatalogItems } =
+        await uniDataApiClient.getAllCatalogItems();
+      const tiCatalogItems = allTiCatalogItems.filter(
+        params.tiCatalogFilterFunc
+      );
+      const { data: videos } = await uniDataApiClient.getAllVideos();
+      const universityPages = makeUniversityPages({
+        sourceName: params.sourceName,
+        tiCatalogItems,
+        videos,
+        metadata: params.metadata,
+      });
+      return universityPages;
+    },
   };
 }

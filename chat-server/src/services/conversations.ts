@@ -91,7 +91,7 @@ export interface Conversation<
 
   /**
     Custom data to include in the Conversation persisted to the database.
-    You can pass this data to the `create` method of the {@link ConversationsService}.
+    You can pass this data to the {@link ConversationsService.create()} method.
    */
   customData?: CustomData;
 }

@@ -113,22 +113,11 @@ export function makeAddMessageToConversationRoute({
         });
       }
 
-      const customData =
-        (await getCustomData({
-          req,
-          res,
-          addMessageToConversationCustomData,
-        }).catch((err) => {
-          logRequest({
-            reqId,
-            type: "error",
-            message: `Error getting custom data: ${JSON.stringify(err)}`,
-          });
-          throw makeRequestError({
-            httpStatus: 500,
-            message: "Error getting custom data",
-          });
-        })) ?? undefined;
+      const customData = await getCustomData({
+        req,
+        res,
+        addMessageToConversationCustomData,
+      });
 
       // --- LOAD CONVERSATION ---
       const conversation = await loadConversation({

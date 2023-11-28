@@ -1,4 +1,4 @@
-import { Page } from "mongodb-rag-core";
+import { Page, PageMetadata } from "mongodb-rag-core";
 import { DataSource } from "../DataSource";
 import { makeUniversityPages } from "./makeUniversityPages";
 import {
@@ -41,7 +41,7 @@ export interface MakeMongoDbUniversityDataSourceParams {
       Metadata for the MongoDB University Data API source.
       Included in the {@link Page.metadata} for each page.
      */
-  metadata?: Record<string, unknown>;
+  metadata?: PageMetadata;
 }
 
 /**

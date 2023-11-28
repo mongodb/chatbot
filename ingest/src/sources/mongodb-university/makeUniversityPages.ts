@@ -1,4 +1,4 @@
-import { Page } from "mongodb-rag-core";
+import { Page, PageMetadata } from "mongodb-rag-core";
 import {
   TiCatalogItem,
   UniversityVideo,
@@ -17,7 +17,7 @@ export function makeUniversityPages({
   sourceName: string;
   tiCatalogItems: TiCatalogItem[];
   videos: UniversityVideo[];
-  metadata?: Record<string, unknown>;
+  metadata?: PageMetadata;
 }): Page[] {
   // Create a dictionary of videos keyed by their hashed ID.
   // This is used to efficiently look up the video for a lesson.
@@ -41,7 +41,7 @@ function makeCatalogItemPages({
   sourceName: string;
   tiCatalogItems: TiCatalogItem[];
   videoDict: VideosDict;
-  metadata?: Record<string, unknown>;
+  metadata?: PageMetadata;
 }): Page[] {
   const pages: Page[] = [];
   for (const catalogItem of tiCatalogItems) {
@@ -78,15 +78,7 @@ function makeCatalogItemPages({
           body,
           metadata: {
             ...(metadata ?? {}),
-            tags: [
-              // Doing the eslint and typescript ignore here because
-              // while this is valid code that works, the compiler in ts-jest
-              // throws an error.
-              // eslint-disable-next-line no-unsafe-optional-chaining, @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              ...(Array.isArray(metadata?.tags) ? metadata.tags : []),
-              ...catalogItem.tags,
-            ],
+            tags: [...(metadata?.tags ?? []), ...catalogItem.tags],
             courseTitle,
             sectionTitle,
             lessonTitle,

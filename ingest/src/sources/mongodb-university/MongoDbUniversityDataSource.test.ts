@@ -1,5 +1,8 @@
 import "dotenv/config";
-import { makeMongoDbUniversityDataSource } from "./MongoDbUniversityDataSource";
+import {
+  filterOnlyPublicActiveTiCatalogItems,
+  makeMongoDbUniversityDataSource,
+} from "./MongoDbUniversityDataSource";
 jest.setTimeout(100000);
 
 const baseUrl = "https://api.learn.mongodb.com/rest/catalog";
@@ -30,10 +33,7 @@ describe("makeMongoDBUniversityDataSource()", () => {
       sourceName: "testSource",
       baseUrl,
       apiKey,
-      tiCatalogFilterFunc: (item) =>
-        item.microsites.includes("University") &&
-        item.status === "published" &&
-        item.associated_videos.length > 0,
+      tiCatalogFilterFunc: filterOnlyPublicActiveTiCatalogItems,
     });
     const pages = await dataSource.fetchPages();
     expect(pages.length).toBeGreaterThan(0);
@@ -54,14 +54,14 @@ describe("makeMongoDBUniversityDataSource()", () => {
       sourceName: "testSource",
       baseUrl,
       apiKey,
-      tiCatalogFilterFunc: (item) => item.microsites.includes("University"),
+      tiCatalogFilterFunc: filterOnlyPublicActiveTiCatalogItems,
       metadata: {
         foo: "bar",
       },
     });
     const pages = await dataSource.fetchPages();
     const samplePage1 = pages[0];
-    console.log(samplePage1);
+    console.log("num pgs", pages.length);
     expect(samplePage1.metadata).toHaveProperty("foo", "bar");
     const samplePage2 = pages[1];
     expect(samplePage2.metadata).toHaveProperty("foo", "bar");

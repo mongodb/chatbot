@@ -1,3 +1,4 @@
+import { strict as assert } from "assert";
 import { Page, extractFrontMatter } from "mongodb-rag-core";
 import {
   DataSource,
@@ -11,6 +12,9 @@ import {
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
   removeMarkdownImagesAndLinks,
+  MakeMongoDbUniversityDataSourceParams,
+  makeMongoDbUniversityDataSource,
+  filterOnlyPublicActiveTiCatalogItems,
 } from "mongodb-rag-ingest/sources";
 import {
   prepareSnootySources,
@@ -229,6 +233,18 @@ export const devCenterProjectConfig: DevCenterProjectConfig = {
   collectionName: "search_content_prod",
   databaseName: "devcenter",
   baseUrl: "https://www.mongodb.com/developer",
+};
+
+const universityDataApiKey = process.env.UNIVERSITY_DATA_API_KEY;
+assert(!!universityDataApiKey, "UNIVERSITY_DATA_API_KEY required");
+export const universityConfig: MakeMongoDbUniversityDataSourceParams = {
+  sourceName: "mongodb-university",
+  baseUrl: "https://api.learn.mongodb.com/rest/catalog",
+  apiKey: universityDataApiKey,
+  tiCatalogFilterFunc: filterOnlyPublicActiveTiCatalogItems,
+  metadata: {
+    tags: ["transcript"],
+  },
 };
 
 export const pyMongoSourceConstructor = async () => {
@@ -553,6 +569,7 @@ export const sourceConstructors: SourceConstructor[] = [
       snootyDataApiBaseUrl: "https://snooty-data-api.mongodb.com/prod/",
     }),
   () => makeDevCenterDataSource(devCenterProjectConfig),
+  async () => makeMongoDbUniversityDataSource(universityConfig),
   pyMongoSourceConstructor,
   mongooseSourceConstructor,
   cppSourceConstructor,

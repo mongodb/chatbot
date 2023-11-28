@@ -30,6 +30,10 @@ export interface MakeMongoDbUniversityDataSourceParams {
       Filter function for filtering out items from the MongoDB University
       catalog. For example, you may want to only ingest items that are
       in public content.
+
+      To only ingest public, published, and non-legacy
+      MongoDB University content, use the
+      {@link filterOnlyPublicActiveTiCatalogItems} filter function.
      */
   tiCatalogFilterFunc: (item: TiCatalogItem) => boolean;
 
@@ -39,6 +43,23 @@ export interface MakeMongoDbUniversityDataSourceParams {
      */
   metadata?: Record<string, unknown>;
 }
+
+/**
+  Filter function to only include public, published,
+  and non-legacy MongoDB University content.
+
+  > ⚠️ **Important** ⚠️
+  >
+  > You should include *only* this content or a subset of it
+  > in externally facing applications.
+ */
+export const filterOnlyPublicActiveTiCatalogItems: MakeMongoDbUniversityDataSourceParams["tiCatalogFilterFunc"] =
+  (item: TiCatalogItem) =>
+    item.microsites.includes("University") &&
+    item.status === "published" &&
+    item.legacy === false &&
+    item.associated_videos.length > 0;
+
 /**
   Data source constructor function for ingesting data
   from the MongoDB University Data API.

@@ -57,6 +57,7 @@ export const filterOnlyPublicActiveTiCatalogItems: MakeMongoDbUniversityDataSour
   (item: TiCatalogItem) =>
     item.microsites.includes("University") &&
     item.status === "published" &&
+    item.in_development === false &&
     item.legacy === false &&
     item.associated_videos.length > 0;
 

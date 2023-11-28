@@ -33,7 +33,6 @@ export interface TiCatalogItem {
   associated_content: null | any;
   /**
         Whether or not the catalog item is in development.
-        TODO: does this mean the item is not yet published?
        */
   in_development: boolean;
   created_at: string;

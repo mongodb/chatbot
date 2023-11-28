@@ -71,7 +71,7 @@ export interface UniversityVideo {
   statistics: VideoStatistics;
   status: string;
   updated: string;
-  caption: VideoCaption;
+  caption: VideoCaption | null;
 }
 
 interface VideoStatistics {
@@ -160,7 +160,7 @@ export function makeMongoDbUniversityDataApiClient({
       let metadata: ResponseMetadata | undefined = undefined;
       while (hasMoreVideos === true) {
         const response = await fetch(
-          `${baseUrl}/ti?limit=${LIMIT}&offset=${offset}`,
+          `${baseUrl}/videos?limit=${LIMIT}&offset=${offset}`,
           {
             headers: {
               "X-API-KEY": apiKey,

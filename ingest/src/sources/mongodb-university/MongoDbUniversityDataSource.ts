@@ -31,13 +31,13 @@ export interface MakeMongoDbUniversityDataSourceParams {
       catalog. For example, you may want to only ingest items that are
       in public content.
      */
-  tiCatalogFilterFunc: (ti: TiCatalogItem) => boolean;
+  tiCatalogFilterFunc: (item: TiCatalogItem) => boolean;
 
   /**
       Metadata for the MongoDB University Data API source.
       Included in the {@link Page.metadata} for each page.
      */
-  metadata: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
 }
 /**
   Data source constructor function for ingesting data

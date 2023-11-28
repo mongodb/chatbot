@@ -45,8 +45,8 @@ function makeCatalogItemPages({
 }): Page[] {
   const pages: Page[] = [];
   for (const catalogItem of tiCatalogItems) {
-    for (const section of catalogItem.sections) {
-      for (const lesson of section.lessons) {
+    for (const section of catalogItem.sections ?? []) {
+      for (const lesson of section.lessons ?? []) {
         // Don't create a page for lessons without videos.
         if (lesson.videos.length === 0) {
           continue;
@@ -54,6 +54,14 @@ function makeCatalogItemPages({
         const courseTitle = catalogItem.name;
         const sectionTitle = section.title;
         const lessonTitle = lesson.title;
+        // If cannot find videos for page, skip adding it.
+        const body = makeUniversityPageBody({
+          videoIds: lesson.videos,
+          videoDict,
+        });
+        if (body.length === 0) {
+          continue;
+        }
         const page: Page = {
           sourceName,
           url: makeUniversityPageUrl({
@@ -67,14 +75,14 @@ function makeCatalogItemPages({
             lessonTitle,
           }),
           format: "txt",
-          body: makeUniversityPageBody({
-            videoIds: lesson.videos,
-            videoDict,
-          }),
+          body,
           metadata: {
             ...(metadata ?? {}),
             tags: [
-              // eslint-disable-next-line no-unsafe-optional-chaining
+              // Doing the eslint and typescript ignore here because
+              // while this is valid code that works, the compiler in ts-jest
+              // throws an error.
+              // eslint-disable-next-line no-unsafe-optional-chaining, @typescript-eslint/ban-ts-comment
               // @ts-ignore
               ...(Array.isArray(metadata?.tags) ? metadata.tags : []),
               ...catalogItem.tags,
@@ -106,13 +114,17 @@ function makeUniversityPageBody({
   const videoTranscripts = videoIds.map((videoId) => {
     const video = videoDict[videoId];
     // If video is not found, return an empty string.
-    if (video === undefined) {
+    if (
+      video === undefined ||
+      video.caption === undefined ||
+      video.caption === null
+    ) {
       return "";
     }
 
     return convertVideoTranscriptFromSrtToTxt(video.caption.text);
   });
-  return videoTranscripts.join("\n");
+  return videoTranscripts.join("\n").trim();
 }
 
 type VideosDict = Record<string, UniversityVideo>;

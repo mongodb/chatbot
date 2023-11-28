@@ -54,6 +54,11 @@ export interface ConversationsRateLimitConfig {
   addMessageSlowDownConfig?: Partial<SlowDownOptions>;
 }
 
+/**
+  Function to add custom data to the {@link Conversation} persisted to the database.
+  Has access to the Express.js request and response plus the {@link ConversationsRouterLocals}
+  from the {@link Response.locals} object.
+ */
 export type AddCustomDataFunc = (
   request: Request,
   response: Response<any, ConversationsRouterLocals>

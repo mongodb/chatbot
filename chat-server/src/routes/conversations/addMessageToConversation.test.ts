@@ -92,7 +92,7 @@ describe("POST /conversations/:conversationId/messages", () => {
     it("should respond with 200, add messages to the conversation, and respond", async () => {
       const requestBody: AddMessageRequestBody = {
         message:
-          "how can i use mongodb products to help me build my new mobile app?",
+          "how can i use mongodb realm to help me build my new mobile app?",
       };
       const res = await request(app)
         .post(testEndpointUrl)

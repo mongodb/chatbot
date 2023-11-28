@@ -160,7 +160,7 @@ export interface ConversationsService {
   }: RateMessageParams) => Promise<boolean>;
 }
 
-export const defaultConversationConstants = {
+export const defaultConversationConstants: ConversationConstants = {
   NO_RELEVANT_CONTENT: `Unfortunately, I do not know how to respond to your message.
 
 Please try to rephrase your message. Adding more details can help me respond with a relevant answer.`,

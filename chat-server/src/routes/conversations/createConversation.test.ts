@@ -93,7 +93,7 @@ describe("POST /conversations", () => {
       .send();
     expect(res.statusCode).toEqual(500);
     expect(res.body).toEqual({
-      error: "Error creating the conversation",
+      error: "Error creating conversation",
     });
   });
 

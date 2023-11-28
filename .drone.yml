@@ -50,6 +50,8 @@ steps:
         from_secret: lg_artifactory_email
       GITHUB_ACCESS_TOKEN:
         from_secret: github_access_token
+      UNIVERSITY_DATA_API_KEY:
+        from_secret: university_data_api_key
 
 # ---
 # Chat Server pipelines

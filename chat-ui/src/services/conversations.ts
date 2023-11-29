@@ -19,7 +19,7 @@ export function formatReferences(references: References): string {
   if (references.length === 0) {
     return "";
   }
-  const heading = "\n\n**Further reading:**";
+  const heading = "\n\n**Related resources:**";
   const listOfLinks = references.map(
     (entry) => `- [${entry.title}](${entry.url})`
   );

@@ -253,7 +253,7 @@ describe("formatReferences", () => {
       },
     ];
     expect(formatReferences(references)).toEqual(
-      "\n\n**Further reading:**\n\n" +
+      "\n\n**Related resources:**\n\n" +
         "- [Title 1](https://example.com/1)\n\n" +
         "- [Title 2](https://example.com/2)"
     );

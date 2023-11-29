@@ -17,7 +17,6 @@ import {
   LocallySpecifiedSnootyProjectConfig,
 } from "mongodb-rag-ingest/sources/snooty";
 import { prismaSourceConstructor } from "./prisma";
-// import { prismaSourceConstructor } from "./prisma";
 
 /**
   Async constructor for specific data sources -- parameters baked in.

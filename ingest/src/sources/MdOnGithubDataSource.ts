@@ -67,7 +67,7 @@ export type MakeMdOnGithubDataSourceParams = Omit<
   ) => string | undefined;
 };
 /**
-  Loads an .md docs site from a GitHub repo.
+  Loads an .md/.mdx docs site from a GitHub repo.
  */
 export const makeMdOnGithubDataSource = async ({
   name,

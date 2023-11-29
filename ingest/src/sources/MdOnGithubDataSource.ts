@@ -18,6 +18,8 @@ export type MakeMdOnGithubDataSourceParams = Omit<
     frontMatter?: Record<string, unknown>
   ) => string;
 
+  filter?: MakeGitHubDataSourceArgs["filter"];
+
   /**
     Metadata to include with all Pages in DB.
    */
@@ -72,6 +74,7 @@ export const makeMdOnGithubDataSource = async ({
   repoUrl,
   repoLoaderOptions,
   pathToPageUrl,
+  filter,
   metadata,
   frontMatter = { process: true, separator: "---", format: "yaml" },
   extractMetadata,
@@ -80,10 +83,11 @@ export const makeMdOnGithubDataSource = async ({
   return makeGitHubDataSource({
     name,
     repoUrl,
+    filter,
     repoLoaderOptions: {
       ...(repoLoaderOptions ?? {}),
       ignoreFiles: [
-        /^(?!.*\.md$).*/i, // Anything BUT .md extension
+        /^(?!.*\.(md|mdx)$).*/i, // Anything BUT .md OR .mdx extensions
         ...(repoLoaderOptions?.ignoreFiles ?? []),
       ],
     },

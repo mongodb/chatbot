@@ -22,6 +22,11 @@ export type Message = {
     The date the message was created.
    */
   createdAt: Date;
+
+  /**
+    Custom data to include in the Message persisted to the database.
+   */
+  customData?: Record<string, unknown>;
 };
 
 export type SystemMessage = Message & {
@@ -68,24 +73,31 @@ export type UserMessage = Message & {
  */
 export type SomeMessage = UserMessage | AssistantMessage | SystemMessage;
 
+export type ConversationCustomData = Record<string, unknown> | undefined;
+
 /**
   Conversation between the user and the chatbot as stored in the database.
  */
-export interface Conversation {
+export interface Conversation<
+  CustomData extends ConversationCustomData = ConversationCustomData
+> {
   _id: ObjectId;
   /** Messages in the conversation. */
   messages: Message[];
-  /** The IP address of the user performing the conversation. */
-  ipAddress: string;
   /** The date the conversation was created. */
   createdAt: Date;
   /** The hostname that the request originated from. */
   requestOrigin?: string;
+
+  /**
+    Custom data to include in the Conversation persisted to the database.
+    You can pass this data to the {@link ConversationsService.create()} method.
+   */
+  customData?: CustomData;
 }
-export interface CreateConversationParams {
-  ipAddress: string;
-  requestOrigin?: string;
-}
+export type CreateConversationParams = {
+  customData?: ConversationCustomData;
+};
 
 export type AddSystemMessageParams = Omit<SystemMessage, "id" | "createdAt"> & {
   conversationId: ObjectId;
@@ -93,7 +105,7 @@ export type AddSystemMessageParams = Omit<SystemMessage, "id" | "createdAt"> & {
 
 export type AddUserMessageParams = Omit<UserMessage, "id" | "createdAt"> & {
   conversationId: ObjectId;
-  requestOrigin: string;
+  customData?: Record<string, unknown>;
 };
 
 export type AddAssistantMessageParams = Omit<
@@ -116,11 +128,27 @@ export interface RateMessageParams {
   messageId: ObjectId;
   rating: boolean;
 }
+
+/**
+ Static responses to send in pre-defined edge case scenarios.
+ */
+export interface ConversationConstants {
+  /**
+    Response message sent when the user sends a message that the chatbot
+    that doesn't match anything in the chatbot's knowledge base.
+   */
+  NO_RELEVANT_CONTENT: string;
+  /**
+    Response message sent when the chatbot's LLM is not working.
+   */
+  LLM_NOT_WORKING: string;
+}
 /**
   Service for managing {@link Conversation}s.
  */
 export interface ConversationsService {
-  create: (params: CreateConversationParams) => Promise<Conversation>;
+  conversationConstants: ConversationConstants;
+  create: (params?: CreateConversationParams) => Promise<Conversation>;
   addConversationMessage: (
     params: AddConversationMessageParams
   ) => Promise<Message>;
@@ -132,10 +160,7 @@ export interface ConversationsService {
   }: RateMessageParams) => Promise<boolean>;
 }
 
-/**
- OSS_TODO: make these configurable from the entry point. though i think these messages are reasonable defaults
- */
-export const conversationConstants = {
+export const defaultConversationConstants: ConversationConstants = {
   NO_RELEVANT_CONTENT: `Unfortunately, I do not know how to respond to your message.
 
 Please try to rephrase your message. Adding more details can help me respond with a relevant answer.`,
@@ -150,18 +175,23 @@ However, here are some links that might provide some helpful information for you
  */
 export function makeMongoDbConversationsService(
   database: Db,
-  systemPrompt: SystemPrompt
+  systemPrompt: SystemPrompt,
+  conversationConstants: ConversationConstants = defaultConversationConstants
 ): ConversationsService {
   const conversationsCollection =
     database.collection<Conversation>("conversations");
   return {
-    async create({ ipAddress, requestOrigin }: CreateConversationParams) {
+    conversationConstants,
+    async create(params?: CreateConversationParams) {
+      const customData = params?.customData;
       const newConversation = {
         _id: new ObjectId(),
-        ipAddress,
         messages: [createMessageFromOpenAIChatMessage(systemPrompt)],
         createdAt: new Date(),
-        requestOrigin,
+        // Conditionally include `customData` only if it's not undefined
+        // Otherwise MongoDB adds it as `customData: null`,
+        // which we don't want.
+        ...(customData !== undefined && { customData }),
       };
       const insertResult = await conversationsCollection.insertOne(
         newConversation
@@ -228,11 +258,18 @@ export function makeMongoDbConversationsService(
 }
 
 export function createMessage(messageParams: AddConversationMessageParams) {
-  return {
+  const message = {
     id: new ObjectId(),
     createdAt: new Date(),
     ...messageParams,
   } satisfies SomeMessage;
+
+  // Remove undefined customData so that it's
+  // not persisted to the database as `customData: null`.
+  if (messageParams.customData === undefined) {
+    delete message.customData;
+  }
+  return message;
 }
 
 /**

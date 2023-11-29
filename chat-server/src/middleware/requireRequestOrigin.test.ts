@@ -1,5 +1,8 @@
-import { requireRequestOrigin } from "./requestOrigin";
-import { createRequest, createResponse } from "node-mocks-http";
+import { requireRequestOrigin } from "./requireRequestOrigin";
+import {
+  createConversationsMiddlewareReq,
+  createConversationsMiddlewareRes,
+} from "../test/middlewareTestHelpers";
 
 const baseReq = {
   body: { message: "Hello, world!" },
@@ -20,8 +23,8 @@ function caseInsensitiveHeaders(headers: Record<string, string>) {
 
 describe("requireRequestOrigin", () => {
   it(`blocks any request where neither the Origin nor the X-Request-Origin header is set`, async () => {
-    const req = createRequest();
-    const res = createResponse();
+    const req = createConversationsMiddlewareReq();
+    const res = createConversationsMiddlewareRes();
     const next = jest.fn();
 
     const middleware = requireRequestOrigin();
@@ -40,8 +43,8 @@ describe("requireRequestOrigin", () => {
     });
   });
   it(`allows any request where the Origin header is set`, async () => {
-    const req = createRequest();
-    const res = createResponse();
+    const req = createConversationsMiddlewareReq();
+    const res = createConversationsMiddlewareRes();
     const next = jest.fn();
 
     const middleware = requireRequestOrigin();
@@ -57,11 +60,11 @@ describe("requireRequestOrigin", () => {
     await middleware(req, res, next);
 
     expect(next).toHaveBeenCalledTimes(1);
-    expect(req.origin).toEqual("http://localhost:5173");
+    expect(res.locals.customData.origin).toEqual("http://localhost:5173");
   });
   it(`allows any request where the X-Request-Origin header is set`, async () => {
-    const req = createRequest();
-    const res = createResponse();
+    const req = createConversationsMiddlewareReq();
+    const res = createConversationsMiddlewareRes();
     const next = jest.fn();
 
     const middleware = requireRequestOrigin();
@@ -77,11 +80,13 @@ describe("requireRequestOrigin", () => {
     await middleware(req, res, next);
 
     expect(next).toHaveBeenCalledTimes(1);
-    expect(req.origin).toEqual("http://localhost:5173/foo/bar");
+    expect(res.locals.customData.origin).toEqual(
+      "http://localhost:5173/foo/bar"
+    );
   });
   it(`prefers X-Request-Origin over Origin when both are set`, async () => {
-    const req = createRequest();
-    const res = createResponse();
+    const req = createConversationsMiddlewareReq();
+    const res = createConversationsMiddlewareRes();
     const next = jest.fn();
 
     const middleware = requireRequestOrigin();
@@ -98,6 +103,8 @@ describe("requireRequestOrigin", () => {
     await middleware(req, res, next);
 
     expect(next).toHaveBeenCalledTimes(1);
-    expect(req.origin).toEqual("http://localhost:5173/foo/bar");
+    expect(res.locals.customData.origin).toEqual(
+      "http://localhost:5173/foo/bar"
+    );
   });
 });

@@ -22,7 +22,7 @@ export async function generateTranscript({
 }) {
   assert(messages.length > 0, "test case must have at least one message");
 
-  const conversation = await conversations.create({ ipAddress });
+  const conversation = await conversations.create();
   const [setUpMessages, testMessage] = [messages.slice(0, -1), messages.pop()];
   const conversationId = conversation._id;
   for (const message of setUpMessages) {
@@ -33,7 +33,6 @@ export async function generateTranscript({
           role: message.role,
           content: message.content,
           embedding: [],
-          requestOrigin,
         });
         break;
       }

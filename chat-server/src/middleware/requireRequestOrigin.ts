@@ -1,16 +1,10 @@
-import { Request, Response, NextFunction } from "express";
 import { getRequestId, logRequest, sendErrorResponse } from "../utils";
+import { ConversationsMiddleware } from "../routes/conversations/conversationsRouter";
 
 export const CUSTOM_REQUEST_ORIGIN_HEADER = "X-Request-Origin";
 
-declare module "express-serve-static-core" {
-  interface Request {
-    origin: string;
-  }
-}
-
-export function requireRequestOrigin() {
-  return async (req: Request, res: Response, next: NextFunction) => {
+export function requireRequestOrigin(): ConversationsMiddleware {
+  return (req, res, next) => {
     const reqId = getRequestId(req);
 
     const origin = req.header("origin");
@@ -26,12 +20,13 @@ export function requireRequestOrigin() {
       });
     }
 
-    req.origin = requestOrigin;
+    res.locals.customData.origin = requestOrigin;
+
     logRequest({
       reqId,
-      message: `Request origin ${req.origin} is allowed`,
+      message: `Request origin ${requestOrigin} is allowed`,
     });
 
-    return next();
+    next();
   };
 }

@@ -7,7 +7,6 @@ import { ObjectId, EmbeddedContent, References } from "mongodb-rag-core";
 import {
   ConversationsService,
   Message,
-  conversationConstants,
   Conversation,
 } from "../../services/conversations";
 import { DataStreamer } from "../../services/dataStreamer";
@@ -21,7 +20,6 @@ import {
   ApiMessage,
   RequestError,
   convertMessageFromDbToApi,
-  isValidIp,
   makeRequestError,
 } from "./utils";
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
@@ -29,6 +27,10 @@ import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
 import { FindContentFunc } from "./FindContentFunc";
+import {
+  AddCustomDataFunc,
+  ConversationsRouterLocals,
+} from "./conversationsRouter";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 export const DEFAULT_MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
@@ -51,8 +53,6 @@ export const AddMessageRequest = SomeExpressRequest.merge(
       stream: z.string().optional(),
     }),
     body: AddMessageRequestBody,
-    ip: z.string(),
-    origin: z.string(),
   })
 );
 
@@ -68,6 +68,7 @@ export interface AddMessageToConversationRouteParams {
   maxMessagesInConversation?: number;
   findContent: FindContentFunc;
   makeReferenceLinks?: MakeReferenceLinksFunc;
+  addMessageToConversationCustomData?: AddCustomDataFunc;
 }
 
 export function makeAddMessageToConversationRoute({
@@ -80,10 +81,11 @@ export function makeAddMessageToConversationRoute({
   maxInputLengthCharacters = DEFAULT_MAX_INPUT_LENGTH,
   maxMessagesInConversation = DEFAULT_MAX_MESSAGES_IN_CONVERSATION,
   makeReferenceLinks = makeDefaultReferenceLinks,
+  addMessageToConversationCustomData,
 }: AddMessageToConversationRouteParams) {
   return async (
     req: ExpressRequest<AddMessageRequest["params"]>,
-    res: ExpressResponse<ApiMessage>
+    res: ExpressResponse<ApiMessage, ConversationsRouterLocals>
   ) => {
     const reqId = getRequestId(req);
     try {
@@ -92,7 +94,6 @@ export function makeAddMessageToConversationRoute({
         body: { message },
         query: { stream },
         ip,
-        origin: requestOrigin,
       } = req;
       logRequest({
         reqId,
@@ -100,23 +101,8 @@ export function makeAddMessageToConversationRoute({
           User message: ${message}
           Stream: ${stream}
           IP: ${ip}
-          Origin: ${requestOrigin}
           ConversationId: ${conversationIdString}`,
       });
-
-      if (!requestOrigin) {
-        throw makeRequestError({
-          httpStatus: 400,
-          message: "Origin header not present",
-        });
-      }
-
-      if (!isValidIp(ip)) {
-        throw makeRequestError({
-          httpStatus: 400,
-          message: `Invalid IP address ${ip}`,
-        });
-      }
 
       const latestMessageText = message;
 
@@ -126,6 +112,12 @@ export function makeAddMessageToConversationRoute({
           message: "Message too long",
         });
       }
+
+      const customData = await getCustomData({
+        req,
+        res,
+        addMessageToConversationCustomData,
+      });
 
       // --- LOAD CONVERSATION ---
       const conversation = await loadConversation({
@@ -186,7 +178,6 @@ export function makeAddMessageToConversationRoute({
           latestMessageText,
           shouldStream,
           dataStreamer,
-          requestOrigin,
           res,
           originalMessageEmbedding: [],
         });
@@ -211,7 +202,6 @@ export function makeAddMessageToConversationRoute({
           latestMessageText,
           shouldStream,
           dataStreamer,
-          requestOrigin,
           res,
           originalMessageEmbedding: queryEmbedding,
         });
@@ -302,7 +292,7 @@ export function makeAddMessageToConversationRoute({
           });
           const answer = {
             role: "assistant",
-            content: conversationConstants.LLM_NOT_WORKING,
+            content: conversations.conversationConstants.LLM_NOT_WORKING,
           } satisfies OpenAiChatMessage;
           return answer.content;
         }
@@ -319,12 +309,12 @@ export function makeAddMessageToConversationRoute({
       const { assistantMessage } = await addMessagesToDatabase({
         conversations,
         conversation,
-        requestOrigin,
         preprocessedUserMessageContent,
         originalUserMessageContent: message,
         assistantMessageContent: answerContent,
         assistantMessageReferences: references,
         userMessageEmbedding: queryEmbedding,
+        customData,
       });
 
       const apiRes = convertMessageFromDbToApi(assistantMessage);
@@ -362,6 +352,27 @@ export function makeAddMessageToConversationRoute({
   };
 }
 
+async function getCustomData({
+  req,
+  res,
+  addMessageToConversationCustomData,
+}: {
+  req: ExpressRequest;
+  res: ExpressResponse<ApiMessage, ConversationsRouterLocals>;
+  addMessageToConversationCustomData?: AddCustomDataFunc;
+}) {
+  try {
+    return addMessageToConversationCustomData
+      ? await addMessageToConversationCustomData(req, res)
+      : undefined;
+  } catch (_err) {
+    throw makeRequestError({
+      httpStatus: 500,
+      message: "Unable to process custom data",
+    });
+  }
+}
+
 export async function sendStaticNonResponse({
   conversations,
   conversation,
@@ -371,7 +382,6 @@ export async function sendStaticNonResponse({
   dataStreamer,
   res,
   rejectQuery,
-  requestOrigin,
   originalMessageEmbedding,
 }: {
   conversations: ConversationsService;
@@ -382,18 +392,17 @@ export async function sendStaticNonResponse({
   shouldStream: boolean;
   dataStreamer: DataStreamer;
   res: ExpressResponse<ApiMessage>;
-  requestOrigin: string;
   originalMessageEmbedding: number[];
 }) {
   const { assistantMessage } = await addMessagesToDatabase({
     conversations,
     conversation,
     rejectQuery,
-    requestOrigin,
     preprocessedUserMessageContent: preprocessedUserMessageContent,
     originalUserMessageContent: latestMessageText,
     userMessageEmbedding: originalMessageEmbedding,
-    assistantMessageContent: conversationConstants.NO_RELEVANT_CONTENT,
+    assistantMessageContent:
+      conversations.conversationConstants.NO_RELEVANT_CONTENT,
     assistantMessageReferences: [],
   });
   const apiRes = convertMessageFromDbToApi(assistantMessage);
@@ -432,7 +441,7 @@ interface AddMessagesToDatabaseParams {
   conversations: ConversationsService;
   userMessageEmbedding: number[];
   rejectQuery?: boolean;
-  requestOrigin: string;
+  customData?: Record<string, unknown>;
 }
 
 export async function addMessagesToDatabase({
@@ -444,7 +453,7 @@ export async function addMessagesToDatabase({
   conversations,
   userMessageEmbedding,
   rejectQuery,
-  requestOrigin,
+  customData,
 }: AddMessagesToDatabaseParams) {
   // TODO: consider refactoring addConversationMessage to take in an array of messages.
   // Would limit database calls.
@@ -456,7 +465,7 @@ export async function addMessagesToDatabase({
     embedding: userMessageEmbedding,
     preprocessedContent: preprocessedUserMessageContent,
     rejectQuery,
-    requestOrigin,
+    customData,
   });
   const assistantMessage = await conversations.addConversationMessage({
     conversationId,

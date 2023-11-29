@@ -9,11 +9,11 @@ import {
   ObjectId,
 } from "mongodb-rag-core";
 import {
-  conversationConstants,
   Conversation,
   ConversationsService,
   makeMongoDbConversationsService,
   AssistantMessage,
+  defaultConversationConstants,
 } from "../../services/conversations";
 import express, { Express } from "express";
 import {
@@ -43,9 +43,9 @@ import { AppConfig } from "../../app";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { makeDefaultFindContentFunc } from "./FindContentFunc";
 import { embedder, embeddedContentStore as store } from "../../test/testConfig";
-import { requireRequestOrigin } from "../../middleware/requestOrigin";
+import { requireRequestOrigin } from "../../middleware/requireRequestOrigin";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
-
+import { strict as assert } from "assert";
 const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
   assertEnvVars(CORE_ENV_VARS);
 jest.setTimeout(100000);
@@ -92,7 +92,7 @@ describe("POST /conversations/:conversationId/messages", () => {
     it("should respond with 200, add messages to the conversation, and respond", async () => {
       const requestBody: AddMessageRequestBody = {
         message:
-          "how can i use mongodb products to help me build my new mobile app?",
+          "how can i use mongodb realm to help me build my new mobile app?",
       };
       const res = await request(app)
         .post(testEndpointUrl)
@@ -123,6 +123,28 @@ describe("POST /conversations/:conversationId/messages", () => {
           _id: new ObjectId(conversationId),
         });
       expect(conversationInDb?.messages).toHaveLength(5); // system, user, assistant, user, assistant
+    });
+  });
+
+  test("should append custom data to the message", async () => {
+    const requestBody: AddMessageRequestBody = {
+      message:
+        "how can i use mongodb products to help me build my new mobile app?",
+    };
+    const res = await request(app)
+      .post(testEndpointUrl)
+      .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
+      .send(requestBody);
+    expect(res.statusCode).toEqual(200);
+    const conversation = await conversations.findById({
+      _id: new ObjectId(conversationId),
+    });
+    assert(conversation);
+    const userMessageWithCustomData =
+      conversation.messages[conversation.messages.length - 2];
+    expect(userMessageWithCustomData?.customData).toStrictEqual({
+      origin,
     });
   });
 
@@ -163,16 +185,6 @@ describe("POST /conversations/:conversationId/messages", () => {
       });
     });
 
-    it("should respond 400 if neither the Origin nor X-Request-Origin header is present", async () => {
-      const res: request.Response = await request(app)
-        .post(endpointUrl.replace(":conversationId", conversationId))
-        .send({ message: "howdy there" });
-      expect(res.statusCode).toEqual(400);
-      expect(res.body).toEqual({
-        error: "You must specify either an Origin or X-Request-Origin header",
-      });
-    });
-
     it("should respond 400 for invalid request bodies", async () => {
       const res = await request(app)
         .post(endpointUrl.replace(":conversationId", conversationId))
@@ -208,9 +220,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       expect(res.body?.error).toMatch(/^Conversation [a-f0-9]{24} not found$/);
     });
     test("Should respond 400 if number of messages in conversation exceeds limit", async () => {
-      const { _id } = await conversations.create({
-        ipAddress,
-      });
+      const { _id } = await conversations.create();
       // Init conversation with max length
       for await (const i of Array(DEFAULT_MAX_MESSAGES_IN_CONVERSATION - 1)) {
         const role = i % 2 === 0 ? "user" : "assistant";
@@ -227,7 +237,6 @@ describe("POST /conversations/:conversationId/messages", () => {
             content: `message ${i}`,
             role,
             embedding: [1, 2, 3],
-            requestOrigin: origin,
           });
         }
       }
@@ -282,6 +291,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         async rateMessage() {
           throw new Error("mock error");
         },
+        conversationConstants: defaultConversationConstants,
       };
       const app = await makeApp({
         ...appConfig,
@@ -314,7 +324,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         .send({ message: query });
       expect(res.statusCode).toEqual(200);
       expect(res.body.content).toEqual(
-        conversationConstants.NO_RELEVANT_CONTENT
+        defaultConversationConstants.NO_RELEVANT_CONTENT
       );
     });
     test("Should respond with 200 and static response if no vector search content for user message", async () => {
@@ -332,7 +342,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         .send({ message: nonsenseMessage });
       expect(response.statusCode).toBe(200);
       expect(response.body.content).toEqual(
-        conversationConstants.NO_RELEVANT_CONTENT
+        defaultConversationConstants.NO_RELEVANT_CONTENT
       );
       expect(response.body.references).toStrictEqual([]);
     });
@@ -359,37 +369,23 @@ describe("POST /conversations/:conversationId/messages", () => {
       let testMongo: Db;
       let testMongoClient: MongoClient;
       beforeEach(async () => {
-        const { mongodb, mongoClient } = makeTestAppConfig();
+        const { mongodb, mongoClient, appConfig } = makeTestAppConfig();
         testMongo = mongodb;
         testMongoClient = mongoClient;
+        ({ app } = await makeTestApp({
+          ...appConfig,
+          conversationsRouterConfig: {
+            ...appConfig.conversationsRouterConfig,
+            llm: brokenLlmService,
+          },
+        }));
 
         conversations = makeMongoDbConversationsService(
           testMongo,
           systemPrompt
         );
-        const { _id } = await conversations.create({
-          ipAddress,
-        });
+        const { _id } = await conversations.create();
         conversationId = _id;
-
-        const findContent = makeDefaultFindContentFunc({
-          embedder,
-          store,
-        });
-        app = express();
-        app.use(express.json());
-        app.use(reqHandler);
-        app.post(
-          endpointUrl,
-          requireRequestOrigin(),
-          validateRequestSchema(AddMessageRequest),
-          makeAddMessageToConversationRoute({
-            conversations,
-            llm: brokenLlmService,
-            dataStreamer,
-            findContent,
-          })
-        );
       });
       afterEach(async () => {
         await testMongo.dropDatabase();
@@ -407,7 +403,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         expect(response.statusCode).toBe(200);
         expect(
           response.body.content.startsWith(
-            conversationConstants.LLM_NOT_WORKING
+            defaultConversationConstants.LLM_NOT_WORKING
           )
         ).toBe(true);
         expect(response.body.references.length).toBeGreaterThan(0);
@@ -418,9 +414,7 @@ describe("POST /conversations/:conversationId/messages", () => {
     describe("addMessagesToDatabase()", () => {
       let conversationId: ObjectId;
       beforeAll(async () => {
-        const { _id } = await conversations.create({
-          ipAddress,
-        });
+        const { _id } = await conversations.create({});
         conversationId = _id;
       });
       test("Should add messages to the database", async () => {
@@ -429,7 +423,6 @@ describe("POST /conversations/:conversationId/messages", () => {
         const { userMessage, assistantMessage } = await addMessagesToDatabase({
           conversation: {
             _id: conversationId,
-            ipAddress,
             createdAt: new Date(),
             messages: [],
           },
@@ -439,7 +432,6 @@ describe("POST /conversations/:conversationId/messages", () => {
             { url: "https://www.example.com/", title: "Example Reference" },
           ],
           conversations,
-          requestOrigin: origin,
           userMessageEmbedding: [1, 2, 3],
         });
         expect(userMessage.content).toBe(userMessageContent);

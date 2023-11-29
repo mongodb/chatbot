@@ -83,7 +83,7 @@
     "@lg-chat/chat-disclaimer": "^2.0.0",
     "@lg-chat/chat-window": "^1.0.4",
     "@lg-chat/fixed-chat-window": "^1.1.1",
-    "@lg-chat/input-bar": "^3.2.4",
+    "@lg-chat/input-bar": "^3.2.6",
     "@lg-chat/leafygreen-chat-provider": "^1.0.2",
     "@lg-chat/message": "^2.0.8",
     "@lg-chat/message-feed": "^2.0.7",

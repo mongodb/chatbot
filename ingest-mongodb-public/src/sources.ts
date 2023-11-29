@@ -16,6 +16,7 @@ import {
   prepareSnootySources,
   LocallySpecifiedSnootyProjectConfig,
 } from "mongodb-rag-ingest/sources/snooty";
+import { wiredTigerSourceConstructor } from "./sources/wiredTiger";
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -562,4 +563,5 @@ export const sourceConstructors: SourceConstructor[] = [
   scalaSourceConstructor,
   libmongocSourceConstructor,
   terraformProviderSourceConstructor,
+  wiredTigerSourceConstructor,
 ];

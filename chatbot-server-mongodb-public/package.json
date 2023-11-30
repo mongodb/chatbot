@@ -43,7 +43,7 @@
     "typechat": "^0.0.10",
     "winston": "^3.9.0",
     "zod-error": "^1.5.0",
-    "mongodb-chatbot-server": "^0.1.7"
+    "mongodb-chatbot-server": "^0.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.22.5",

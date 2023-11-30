@@ -7,41 +7,52 @@ export interface TiCatalogItem {
   id: string;
   ti_id: string;
   /**
-        IDs for videos associated with the catalog item.
-       */
+    IDs for videos associated with the catalog item.
+   */
   associated_videos: string[];
   /**
-        Learning format for the catalog item.
-        @example "Unit" || "Course" || "Lab" || "...etc"
-       */
-  learning_format: string;
+    Learning format for the catalog item.
+   */
+  learning_format: TiCatalogLearningFormat;
   name: string;
   slug: string;
   status: string;
   tags: string[];
   legacy: boolean;
   /**
-        Thought Industries microsites associated with the catalog item.
-        @example ["University", "Technical Services"]
-       */
+    Thought Industries microsites associated with the catalog item.
+    @example ["University", "Technical Services"]
+   */
   microsites: string[];
   /**
-        IDs of labs associated with the catalog item.
-       */
+    IDs of labs associated with the catalog item.
+   */
   associated_labs: string[];
   // TODO: is this always null?
   associated_content: null | any;
   /**
-        Whether or not the catalog item is in development.
-       */
+    Whether or not the catalog item is in development.
+   */
   in_development: boolean;
   created_at: string;
   /**
-        Sections in the catalog item. This contains metadata
-        about the sections and lessons.
-       */
+    Sections in the catalog item. This contains metadata
+    about the sections and lessons.
+   */
   sections: TiCatalogSection[];
 }
+
+type TiCatalogLearningFormat =
+  | "Certification"
+  | "Course"
+  | "Educator Content"
+  | "Instructor Led"
+  | "Lab"
+  | "Learning Bytes"
+  | "Learning Path"
+  | "Resource"
+  | "Unit"
+  | "Video";
 
 interface TiCatalogSection {
   slug: string;
@@ -52,7 +63,7 @@ interface TiCatalogSection {
 interface TiCatalogLesson {
   slug: string;
   title: string;
-  labs: string[]; // Assuming 'labs' is an array of strings, similar to 'videos'.
+  labs: string[];
   videos: string[];
 }
 
@@ -104,7 +115,7 @@ interface ResponseMetadata {
   filter: null | any;
 }
 
-interface getAllCatalogItemsResponseData {
+interface GetAllCatalogItemsResponseData {
   data: TiCatalogItem[];
   metadata: ResponseMetadata;
 }
@@ -124,7 +135,7 @@ export interface MongoDbUniversityDataApiClient {
     Load all the catalog items from the MongoDB University
     Data API.
    */
-  getAllCatalogItems(): Promise<getAllCatalogItemsResponseData>;
+  getAllCatalogItems(): Promise<GetAllCatalogItemsResponseData>;
   /**
     Load all the videos from the MongoDB University Data API.
    */
@@ -141,15 +152,17 @@ export function makeMongoDbUniversityDataApiClient({
   baseUrl: string;
   apiKey: string;
 }) {
+  const headers = {
+    "X-API-KEY": apiKey,
+  };
+
   return {
     async getAllCatalogItems() {
       const response = await fetch(`${baseUrl}/ti`, {
-        headers: {
-          "X-API-KEY": apiKey,
-        },
+        headers,
       });
       const json = await response.json();
-      return json as getAllCatalogItemsResponseData;
+      return json as GetAllCatalogItemsResponseData;
     },
     async getAllVideos() {
       let offset = 0;
@@ -161,9 +174,7 @@ export function makeMongoDbUniversityDataApiClient({
         const response = await fetch(
           `${baseUrl}/videos?limit=${LIMIT}&offset=${offset}`,
           {
-            headers: {
-              "X-API-KEY": apiKey,
-            },
+            headers,
           }
         );
         const { data, metadata: resMetadata } =

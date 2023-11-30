@@ -246,6 +246,8 @@ export const universityConfig: MakeMongoDbUniversityDataSourceParams = {
     tags: ["transcript"],
   },
 };
+const mongoDbUniversitySourceConstructor = async () =>
+  makeMongoDbUniversityDataSource(universityConfig);
 
 export const pyMongoSourceConstructor = async () => {
   return await makeRstOnGitHubDataSource({
@@ -569,7 +571,7 @@ export const sourceConstructors: SourceConstructor[] = [
       snootyDataApiBaseUrl: "https://snooty-data-api.mongodb.com/prod/",
     }),
   () => makeDevCenterDataSource(devCenterProjectConfig),
-  async () => makeMongoDbUniversityDataSource(universityConfig),
+  mongoDbUniversitySourceConstructor,
   pyMongoSourceConstructor,
   mongooseSourceConstructor,
   cppSourceConstructor,

@@ -11,30 +11,30 @@ import {
  */
 export interface MakeMongoDbUniversityDataSourceParams {
   /**
-      Name of the MongoDB University Data API source.
-      Maps to the {@link DataSource.name}.
-     */
+    Name of the MongoDB University Data API source.
+    Maps to the {@link DataSource.name}.
+   */
   sourceName: string;
 
   /**
-      Base URL for the MongoDB University Data API.
-     */
+    Base URL for the MongoDB University Data API.
+   */
   baseUrl: string;
 
   /**
-      API key for the MongoDB University Data API.
-     */
+    API key for the MongoDB University Data API.
+   */
   apiKey: string;
 
   /**
-      Filter function for filtering out items from the MongoDB University
-      catalog. For example, you may want to only ingest items that are
-      in public content.
+    Filter function for filtering out items from the MongoDB University
+    catalog. For example, you may want to only ingest items that are
+    in public content.
 
-      To only ingest public, published, and non-legacy
-      MongoDB University content, use the
-      {@link filterOnlyPublicActiveTiCatalogItems} filter function.
-     */
+    To only ingest public, published, and non-legacy
+    MongoDB University content, use the
+    {@link filterOnlyPublicActiveTiCatalogItems} filter function.
+   */
   tiCatalogFilterFunc: (item: TiCatalogItem) => boolean;
 
   /**

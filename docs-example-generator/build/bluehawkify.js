@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const openai_1 = require("@azure/openai");
 const mongodb_rag_core_1 = require("mongodb-rag-core");
 const fs_1 = require("fs");
+const mongodb_chatbot_server_1 = require("mongodb-chatbot-server");
 const common_tags_1 = require("common-tags");
 require("dotenv/config");
 const util_1 = require("./util");
@@ -41,24 +42,25 @@ async function main() {
     // );
     // const transformation: Transformation = YAML.parse(transformationFile);
     // console.log(`transformation:`, transformation);
-    const { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME, OPENAI_API_KEY, OPENAI_EMBEDDING_MODEL_VERSION, OPENAI_EMBEDDING_DEPLOYMENT, OPENAI_ENDPOINT, } = (0, mongodb_rag_core_1.assertEnvVars)(mongodb_rag_core_1.CORE_ENV_VARS);
-    // const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
     try {
-        // const findContent = makeDefaultFindContentFunc({
-        //   embed: makeOpenAiEmbedFunc({
-        //     apiKey,
-        //     apiVersion,
-        //     baseUrl,
-        //     deployment,
-        //   }),
-        //   store,
-        //   findNearestNeighborsOptions: {
-        //     k: 25,
-        //   },
-        // });
         const sourceCode = inputCodeFile;
         console.log(`Setting up...`);
         const generate = makeGenerateFunc();
+        const findContent = makeFindContentFunc();
+        console.log(`Querying...`);
+        const { queryEmbedding, content, } = await findContent({
+            query: "How does the driver version API and ABI?",
+            ipAddress: "::1"
+        });
+        console.log(`Logging...`);
+        for (const embed of content) {
+            console.log(`Embedding: ${embed.score}`, embed);
+        }
+        console.log(`Logged ${content.length} chunks`);
+        return;
+        // Find content in the existing off-site docs if we have them
+        // e.g. if the target is C++ then we'd want to find content from https://mongocxx.org
+        // e.g. if the target is PHP then we'd want to find content from https://mongocxx.org
         console.log(`Analyzing code...`);
         const analyzeCodeOutput = await summarize({ generate, sourceCode });
         console.log(`Input analysis:\n\n${analyzeCodeOutput}\n`);
@@ -110,6 +112,39 @@ function makeGenerateFunc() {
             throw err;
         }
     };
+}
+function makeFindContentFunc() {
+    const { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME, OPENAI_API_KEY, OPENAI_EMBEDDING_DEPLOYMENT, OPENAI_ENDPOINT, } = (0, mongodb_rag_core_1.assertEnvVars)(mongodb_rag_core_1.CORE_ENV_VARS);
+    const openAiClient = new openai_1.OpenAIClient(OPENAI_ENDPOINT, new openai_1.AzureKeyCredential(OPENAI_API_KEY));
+    const embedder = (0, mongodb_rag_core_1.makeOpenAiEmbedder)({
+        openAiClient,
+        deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+        backoffOptions: {
+            numOfAttempts: 3,
+            maxDelay: 5000,
+        },
+    });
+    const store = (0, mongodb_rag_core_1.makeMongoDbEmbeddedContentStore)({
+        connectionUri: MONGODB_CONNECTION_URI,
+        databaseName: MONGODB_DATABASE_NAME,
+    });
+    const findContent = (0, mongodb_chatbot_server_1.makeDefaultFindContentFunc)({
+        embedder,
+        store,
+        findNearestNeighborsOptions: {
+            indexName: "default",
+            path: "embedding",
+            k: 3,
+            minScore: 0.85,
+            filter: {
+                phrase: {
+                    path: "sourceName",
+                    query: "cxx-driver"
+                }
+            },
+        },
+    });
+    return findContent;
 }
 async function summarize({ generate, sourceCode, }) {
     generate = generate ?? makeGenerateFunc();

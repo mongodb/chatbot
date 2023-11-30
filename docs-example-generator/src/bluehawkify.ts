@@ -4,6 +4,7 @@ import {
   assertEnvVars,
   CORE_ENV_VARS,
   makeOpenAiEmbedder,
+  makeMongoDbEmbeddedContentStore,
 } from "mongodb-rag-core";
 import { promises as fs } from "fs";
 import { MongoClient } from "mongodb";
@@ -60,35 +61,33 @@ async function main() {
   // const transformation: Transformation = YAML.parse(transformationFile);
   // console.log(`transformation:`, transformation);
 
-  const {
-    MONGODB_CONNECTION_URI,
-    MONGODB_DATABASE_NAME,
-    OPENAI_API_KEY,
-    OPENAI_EMBEDDING_MODEL_VERSION,
-    OPENAI_EMBEDDING_DEPLOYMENT,
-    OPENAI_ENDPOINT,
-  } = assertEnvVars(CORE_ENV_VARS);
-
-  // const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 
   try {
-    // const findContent = makeDefaultFindContentFunc({
-    //   embed: makeOpenAiEmbedFunc({
-    //     apiKey,
-    //     apiVersion,
-    //     baseUrl,
-    //     deployment,
-    //   }),
-    //   store,
-    //   findNearestNeighborsOptions: {
-    //     k: 25,
-    //   },
-    // });
-
     const sourceCode = inputCodeFile;
 
     console.log(`Setting up...`);
     const generate = makeGenerateFunc();
+    const findContent = makeFindContentFunc();
+
+    console.log(`Querying...`);
+    const {
+      queryEmbedding,
+      content,
+    } = await findContent({
+      query: "How does the driver version API and ABI?",
+      ipAddress: "::1"
+    })
+
+    console.log(`Logging...`);
+    for(const embed of content) {
+      console.log(`Embedding: ${embed.score}`, embed);
+    }
+    console.log(`Logged ${content.length} chunks`);
+    return
+
+    // Find content in the existing off-site docs if we have them
+    // e.g. if the target is C++ then we'd want to find content from https://mongocxx.org
+    // e.g. if the target is PHP then we'd want to find content from https://mongocxx.org
 
     console.log(`Analyzing code...`);
     const analyzeCodeOutput = await summarize({ generate, sourceCode });
@@ -160,6 +159,54 @@ function makeGenerateFunc(): GenerateFunc {
       throw err;
     }
   };
+}
+
+function makeFindContentFunc(): FindContentFunc {
+  const {
+    MONGODB_CONNECTION_URI,
+    MONGODB_DATABASE_NAME,
+    OPENAI_API_KEY,
+    OPENAI_EMBEDDING_DEPLOYMENT,
+    OPENAI_ENDPOINT,
+  } = assertEnvVars(CORE_ENV_VARS);
+
+  const openAiClient = new OpenAIClient(
+    OPENAI_ENDPOINT,
+    new AzureKeyCredential(OPENAI_API_KEY)
+  );
+
+  const embedder = makeOpenAiEmbedder({
+    openAiClient,
+    deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+    backoffOptions: {
+      numOfAttempts: 3,
+      maxDelay: 5000,
+    },
+  });
+
+  const store = makeMongoDbEmbeddedContentStore({
+    connectionUri: MONGODB_CONNECTION_URI,
+    databaseName: MONGODB_DATABASE_NAME,
+  });
+
+  const findContent = makeDefaultFindContentFunc({
+    embedder,
+    store,
+    findNearestNeighborsOptions: {
+      indexName: "default",
+      path: "embedding",
+      k: 3,
+      minScore: 0.85,
+      filter: {
+        phrase: {
+          path: "sourceName",
+          query: "cxx-driver"
+        }
+      },
+    },
+  });
+
+  return findContent;
 }
 
 async function summarize({

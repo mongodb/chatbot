@@ -15,6 +15,7 @@ trigger:
       - scripts/**/*
       - ingest-mongodb-public/**/*
       - chatbot-server-mongodb-public/**/*
+      - package-lock.json
 
 steps:
   - name: test
@@ -496,13 +497,11 @@ steps:
       - npm run build -- --scope mongodb-rag-core
       - cd chat-core && npm publish
     environment:
-      LG_ARTIFACTORY_PASSWORD:
-        from_secret: lg_artifactory_password
-      LG_ARTIFACTORY_USERNAME:
-        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_TOKEN:
+        from_secret: lg_artifactory_token
       LG_ARTIFACTORY_EMAIL:
         from_secret: lg_artifactory_email
-      NPM_TOKEN:
+      MONGODB_EAI_NPM_TOKEN:
         from_secret: mongodb_ai_npm_token
 
 # ---
@@ -530,13 +529,11 @@ steps:
       - npm run build -- --scope='{mongodb-rag-core,mongodb-rag-ingest}'
       - cd ingest && npm publish
     environment:
-      LG_ARTIFACTORY_PASSWORD:
-        from_secret: lg_artifactory_password
-      LG_ARTIFACTORY_USERNAME:
-        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_TOKEN:
+        from_secret: lg_artifactory_token
       LG_ARTIFACTORY_EMAIL:
         from_secret: lg_artifactory_email
-      NPM_TOKEN:
+      MONGODB_EAI_NPM_TOKEN:
         from_secret: mongodb_ai_npm_token
 # ---
 # mongodb-chatbot-server package
@@ -563,13 +560,11 @@ steps:
       - npm run build -- --scope='{mongodb-rag-core,mongodb-chatbot-server}'
       - cd chat-server && npm publish
     environment:
-      LG_ARTIFACTORY_PASSWORD:
-        from_secret: lg_artifactory_password
-      LG_ARTIFACTORY_USERNAME:
-        from_secret: lg_artifactory_username
+      LG_ARTIFACTORY_TOKEN:
+        from_secret: lg_artifactory_token
       LG_ARTIFACTORY_EMAIL:
         from_secret: lg_artifactory_email
-      NPM_TOKEN:
+      MONGODB_EAI_NPM_TOKEN:
         from_secret: mongodb_ai_npm_token
 
 # ---
@@ -600,7 +595,7 @@ steps:
         from_secret: lg_artifactory_token
       LG_ARTIFACTORY_EMAIL:
         from_secret: lg_artifactory_email
-      NPM_TOKEN:
+      MONGODB_EAI_NPM_TOKEN:
         from_secret: mongodb_ai_npm_token
 # ---
 # Scripts service

@@ -20,6 +20,7 @@ cronJobs:
       OPENAI_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-prod
       DEVCENTER_CONNECTION_URI: docs-chatbot-prod
       GITHUB_ACCESS_TOKEN: docs-chatbot-prod
+      UNIVERSITY_DATA_API_KEY: docs-chatbot-prod
     resources:
       # guaranteed amount of resources
       requests:

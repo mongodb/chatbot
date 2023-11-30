@@ -15,6 +15,7 @@ trigger:
       - scripts/**/*
       - ingest-mongodb-public/**/*
       - chatbot-server-mongodb-public/**/*
+      - package-lock.json
 
 steps:
   - name: test

@@ -502,7 +502,7 @@ steps:
         from_secret: lg_artifactory_username
       LG_ARTIFACTORY_EMAIL:
         from_secret: lg_artifactory_email
-      NPM_TOKEN:
+      MONGODB_EAI_NPM_TOKEN:
         from_secret: mongodb_ai_npm_token
 
 # ---
@@ -536,7 +536,7 @@ steps:
         from_secret: lg_artifactory_username
       LG_ARTIFACTORY_EMAIL:
         from_secret: lg_artifactory_email
-      NPM_TOKEN:
+      MONGODB_EAI_NPM_TOKEN:
         from_secret: mongodb_ai_npm_token
 # ---
 # mongodb-chatbot-server package
@@ -569,7 +569,7 @@ steps:
         from_secret: lg_artifactory_username
       LG_ARTIFACTORY_EMAIL:
         from_secret: lg_artifactory_email
-      NPM_TOKEN:
+      MONGODB_EAI_NPM_TOKEN:
         from_secret: mongodb_ai_npm_token
 
 # ---
@@ -600,7 +600,7 @@ steps:
         from_secret: lg_artifactory_token
       LG_ARTIFACTORY_EMAIL:
         from_secret: lg_artifactory_email
-      NPM_TOKEN:
+      MONGODB_EAI_NPM_TOKEN:
         from_secret: mongodb_ai_npm_token
 # ---
 # Scripts service

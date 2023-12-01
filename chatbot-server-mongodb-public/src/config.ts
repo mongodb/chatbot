@@ -203,4 +203,5 @@ export const config: AppConfig = {
   corsOptions: {
     origin: allowedOrigins,
   },
+  serveStaticSite: process.env.NODE_ENV !== "production",
 };

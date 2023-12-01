@@ -1,4 +1,17 @@
+---
+title: Home
+---
+
 # MongoDB RAG Framework
+
+:::warning[👷‍♂️ Work In Progress 👷‍♂️]
+
+The MongoDB RAG Framework is under active development
+and may undergo breaking changes.
+
+We aim to keep the documentation up to date with the latest changes.
+
+:::
 
 Build full stack retrieval augmented generation (RAG) applications using MongoDB
 and [Atlas Vector Search](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/).

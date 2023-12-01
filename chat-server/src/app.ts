@@ -17,6 +17,7 @@ import { getRequestId, logRequest, sendErrorResponse } from "./utils";
 import { CorsOptions } from "cors";
 import { logger } from "mongodb-rag-core";
 import cloneDeep from "lodash.clonedeep";
+import path from "path";
 
 /**
   Configuration for the server Express.js app.
@@ -42,6 +43,17 @@ export interface AppConfig {
     Prefix for all API routes. Defaults to `/api/v1`.
    */
   apiPrefix?: string;
+
+  /**
+    Whether to serve a static site from the root path (`GET https://my-site.com/`).
+    Defaults to false.
+    This is useful for demo and testing purposes.
+
+    You should probably not include this in your production server.
+    You can control including this in dev/test/staging but not production
+    with an environment variable.
+   */
+  serveStaticSite?: boolean;
 }
 
 /**
@@ -106,6 +118,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
     conversationsRouterConfig,
     corsOptions,
     apiPrefix = DEFAULT_API_PREFIX,
+    serveStaticSite,
   } = config;
   logger.info("Server has the following configuration:");
   logger.info(
@@ -117,13 +130,8 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
   app.use(cors(corsOptions));
   app.use(express.json());
   app.use(reqHandler);
-  const { NODE_ENV } = process.env;
-  if (
-    NODE_ENV === "development" ||
-    NODE_ENV === "staging" ||
-    NODE_ENV === "qa"
-  ) {
-    app.use(express.static("static"));
+  if (serveStaticSite) {
+    app.use("/", express.static(path.join(__dirname, "..", "static")));
   }
   app.use(
     `${apiPrefix}/conversations`,

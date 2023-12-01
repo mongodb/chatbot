@@ -18,7 +18,7 @@ import { stripIndents } from "common-tags";
 import "dotenv/config";
 import { ChatMessage, systemMessage, userMessage } from "./util";
 
-// ./build/code2code.js <input code file> <output path> <transformation file>
+// ./build/generate.js <input code file> <output path> <transformation file>
 
 async function main() {
   const inputCodeFilePath = process.argv[2];
@@ -26,16 +26,16 @@ async function main() {
     console.error(`Missing argument: inputCodeFilePath`);
     return;
   }
-  const outputFilePath = process.argv[3];
-  if (outputFilePath === undefined) {
-    console.error(`Missing argument: outputFilePath`);
-    return;
-  }
-  const transformationFilePath = process.argv[4];
-  if (transformationFilePath === undefined) {
-    console.error(`Missing argument: transformationFilePath`);
-    return;
-  }
+  // const outputFilePath = process.argv[3];
+  // if (outputFilePath === undefined) {
+  //   console.error(`Missing argument: outputFilePath`);
+  //   return;
+  // }
+  // const transformationFilePath = process.argv[4];
+  // if (transformationFilePath === undefined) {
+  //   console.error(`Missing argument: transformationFilePath`);
+  //   return;
+  // }
 
   const [
     inputCodeFile,

@@ -10,7 +10,10 @@
     "build": "tsc",
     "start": "node build/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npm run build && node build/bluehawkify.js ./examples/inputs/insertOne.ts ../docs-example-generator/examples/outputs-insertOne.rs ./transformations/ts2ts_bluehawk.yaml"
+    "dev": "npm run build && node build/generate.js",
+    "dev:node:insertOne.ts": "npm run dev -- ./examples/node/inputs/insertOne.ts",
+    "dev:kotlin:InsertTest.kt": "npm run dev -- ./examples/kotlin/tests/InsertTest.kt",
+    "dev:kotlin:DeleteTest.kt": "npm run dev -- ./examples/kotlin/tests/DeleteTest.kt"
   },
   "keywords": [],
   "author": "Nick Larew",

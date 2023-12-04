@@ -20,6 +20,7 @@ cronJobs:
       OPENAI_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-staging
       DEVCENTER_CONNECTION_URI: docs-chatbot-staging
       GITHUB_ACCESS_TOKEN: docs-chatbot-staging
+      UNIVERSITY_DATA_API_KEY: docs-chatbot-staging
     resources:
       # guaranteed amount of resources
       requests:

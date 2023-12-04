@@ -1,3 +1,4 @@
+import { strict as assert } from "assert";
 import { Page, extractFrontMatter } from "mongodb-rag-core";
 import {
   DataSource,
@@ -11,12 +12,16 @@ import {
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
   removeMarkdownImagesAndLinks,
+  MakeMongoDbUniversityDataSourceParams,
+  makeMongoDbUniversityDataSource,
+  filterOnlyPublicActiveTiCatalogItems,
 } from "mongodb-rag-ingest/sources";
 import {
   prepareSnootySources,
   LocallySpecifiedSnootyProjectConfig,
 } from "mongodb-rag-ingest/sources/snooty";
 import { prismaSourceConstructor } from "./prisma";
+import { wiredTigerSourceConstructor } from "./wiredTiger";
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -231,6 +236,20 @@ export const devCenterProjectConfig: DevCenterProjectConfig = {
   databaseName: "devcenter",
   baseUrl: "https://www.mongodb.com/developer",
 };
+
+const universityDataApiKey = process.env.UNIVERSITY_DATA_API_KEY;
+assert(!!universityDataApiKey, "UNIVERSITY_DATA_API_KEY required");
+export const universityConfig: MakeMongoDbUniversityDataSourceParams = {
+  sourceName: "mongodb-university",
+  baseUrl: "https://api.learn.mongodb.com/rest/catalog",
+  apiKey: universityDataApiKey,
+  tiCatalogFilterFunc: filterOnlyPublicActiveTiCatalogItems,
+  metadata: {
+    tags: ["transcript"],
+  },
+};
+const mongoDbUniversitySourceConstructor = async () =>
+  makeMongoDbUniversityDataSource(universityConfig);
 
 export const pyMongoSourceConstructor = async () => {
   return await makeRstOnGitHubDataSource({
@@ -554,6 +573,7 @@ export const sourceConstructors: SourceConstructor[] = [
       snootyDataApiBaseUrl: "https://snooty-data-api.mongodb.com/prod/",
     }),
   () => makeDevCenterDataSource(devCenterProjectConfig),
+  mongoDbUniversitySourceConstructor,
   pyMongoSourceConstructor,
   mongooseSourceConstructor,
   prismaSourceConstructor,
@@ -564,4 +584,5 @@ export const sourceConstructors: SourceConstructor[] = [
   scalaSourceConstructor,
   libmongocSourceConstructor,
   terraformProviderSourceConstructor,
+  wiredTigerSourceConstructor,
 ];

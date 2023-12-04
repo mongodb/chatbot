@@ -38,7 +38,7 @@
   "dependencies": {
     "@release-it/bumper": "^5.1.0",
     "dotenv": "^16",
-    "mongodb-rag-core": "^0.0.5",
+    "mongodb-rag-core": "^0.1.0",
     "mongodb-rag-ingest": "^0.1.5"
   }
 }

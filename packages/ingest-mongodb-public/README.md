@@ -6,7 +6,7 @@ It also serves as an example of implementing a configuration/plugin for ingest.
 
 ## Building the Config
 
-Be sure to build `chat-core` and `ingest` first.
+Be sure to build `mongodb-rag-core` and `mongodb-rag-ingest` first.
 
 ```sh
 npm i

@@ -18,13 +18,13 @@ We use [Lerna](https://lerna.js.org/) to manage our monorepo.
 
 The monorepo has the following main projects, each of which correspond to a JavaScript module:
 
-- `chat-server`: Express.js server that performs chat functionality. RESTful API.
-- `ingest`: CLI application that takes data from data sources and converts it to `embedded_content`
+- `mongodb-chatbot-server`: Express.js server that performs chat functionality. RESTful API.
+- `mongodb-rag-ingest`: CLI application that takes data from data sources and converts it to `embedded_content`
   used by Atlas Vector Search.
-- `chat-ui`: React component for interfacing with the `chat-server`.
+- `chat-ui`: React component for interfacing with the `mongodb-chatbot-server`.
   Built with Leafygreen and vite.
-- `chat-core`: Common resources shared across other projects.
-  - You need to recompile `chat-core` by running `npm run build`
+- `mongodb-rag-core`: Common resources shared across other projects.
+  - You need to recompile `mongodb-rag-core` by running `npm run build`
     every time you update it for the changes to be accessible in the other projects
     that dependend on it.
 - `mongodb-atlas`: Collection of scripts related to managing the MongoDB Atlas deployment used by the project.
@@ -60,8 +60,8 @@ Before you begin setting up the project, ask a current project contributor for t
 
 1. Artifactory credentials
 2. `.env` file variables for whichever projects you're working on.
-   At a minimum, you'll need the `chat-core` environment variables, as the other
-   projects depend on `chat-core`. If you're unsure which projects you need
+   At a minimum, you'll need the `mongodb-rag-core` environment variables, as the other
+   projects depend on `mongodb-rag-core`. If you're unsure which projects you need
    to work with, ask a current contributor.
 
 ### 2. Add Artifactory credentials
@@ -101,7 +101,7 @@ you need. You need to add the `.env` file to every project that you're working o
 
 Refer to the each project's `README` files for information about running that project.
 
-You can also run a development build of both the `chat-server` and `chat-ui`
+You can also run a development build of both the `mongodb-chatbot-server` and `chat-ui`
 with hot reload by running the following command from the root of the monorepo:
 
 ```sh
@@ -128,7 +128,7 @@ All packages' versioning is managed independently, which means that each package
 
 We use [semantic versioning](https://semver.org/) to version packages.
 
-Updating the version of a package is done as part of the release flow. Run the following command from a given package (e.g. `chat-server`):
+Updating the version of a package is done as part of the release flow. Run the following command from a given package (e.g. `mongodb-chatbot-server`):
 
 ```sh
 npm run release
@@ -143,7 +143,7 @@ that publishes the package to npm.
 
 ### Staging
 
-We run a staging version of the `chat-server` and `ingest` that uses
+We run a staging version of the `mongodb-chatbot-server` and `mongodb-rag-ingest` that uses
 the latest commit on the `main` branch. When you merge new commits into `main`,
 a CI/CD pipeline automatically builds and publishes the updated staging server and demo site.
 
@@ -186,7 +186,7 @@ builds and deploys the branch to the QA server.
 ### Production Deployments
 
 We use a tool called `release-it` to prepare production releases for the
-`chat-server`, `ingest`, and `chat-ui` projects.
+`mongodb-chatbot-server`, `mongodb-rag-ingest`, and `chat-ui` projects.
 
 Production releases are triggered by creating a git tag prefaced with the
 package name (e.g. `chat-server-v{version-number}`).
@@ -199,7 +199,7 @@ To create a new production release:
    git pull upstream main
    ```
 
-2. In the relevant package directory (e.g `chat-server`) run the release
+2. In the relevant package directory (e.g `mongodb-chatbot-server`) run the release
    command. This gets the package ready for a new release.
 
    ```sh

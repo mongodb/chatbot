@@ -54,7 +54,7 @@ for details.
 Set up the project monorepo. Refer to the [Contributor Guide](../CONTRIBUTING.md)
 for more info on monorepo setup.
 
-Make sure you set up the `.env` files in both the `ingest` and `chat-core` projects.
+Make sure you set up the `.env` files in both the `mongodb-rag-ingest` and `mongodb-rag-core` projects.
 
 To use the ingest CLI locally, run:
 
@@ -66,9 +66,9 @@ node .
 node . <command> <options>
 ```
 
-A few things to keep in mind when developing in the `ingest` project:
+A few things to keep in mind when developing in the `mongodb-rag-ingest` project:
 
-1. You **must** recompile the `ingest` project with `npm run build` before running it
+1. You **must** recompile the `mongodb-rag-ingest` project with `npm run build` before running it
    from the CLI for changes to take effect. Therefore, when testing CLI commands locally,
    it can be convenient to run compilation and the command as a one-liner:
 
@@ -76,8 +76,8 @@ A few things to keep in mind when developing in the `ingest` project:
     npm run build && node . <command> <options>
    ```
 
-2. You must also recompile `chat-core` with `npm run build` every time you make
-   changes to it for the changes to be accessible to `ingest` or any other projects that
+2. You must also recompile `mongodb-rag-core` with `npm run build` every time you make
+   changes to it for the changes to be accessible to `mongodb-rag-ingest` or any other projects that
    depend on it.
 
    ```shell

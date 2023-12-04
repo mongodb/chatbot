@@ -20,6 +20,6 @@ export default defineConfig({
   ],
   root: ".",
   build: {
-    outDir: "../chatbot-server-mongodb-public/static",
+    outDir: "../chat-server/static",
   },
 });

@@ -120,6 +120,7 @@ export const config: AppConfig = {
     conversations,
   },
   maxRequestTimeoutMs: 30000,
+  serveStaticSite: true,
 };
 
 const PORT = process.env.PORT || 3000;

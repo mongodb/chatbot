@@ -14,7 +14,7 @@
     "scripts"
   ],
   "scripts": {
-    "bootstrap": "lerna bootstrap",
+    "bootstrap": "lerna bootstrap --force-local",
     "dev": "lerna run dev --scope='{chatbot-server-mongodb-public,mongodb-chatbot-ui}' --stream --parallel",
     "dev:server": "lerna run dev --scope='chatbot-server-mongodb-public' --stream",
     "dev:ui": "lerna run dev --scope='mongodb-chatbot-ui' --stream",

@@ -1,8 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
-export { Chatbot as default, type ChatbotProps } from "./Chatbot";
+export { Chatbot as default, type ChatbotProps } from "./Chatbot.tsx";
 // Pre-defined Chatbot use cases
-export { DocsChatbot } from "./DocsChatbot";
-export { DevCenterChatbot } from "./DevCenterChatbot";
+export { DocsChatbot } from "./DocsChatbot.tsx";
+export { DevCenterChatbot } from "./DevCenterChatbot.tsx";
 // Building blocks for a custom Chatbot UI
 export {
   useConversation,
@@ -21,5 +21,5 @@ export {
 } from "./FloatingActionButtonTrigger.tsx";
 export { ModalView, type ModalViewProps } from "./ModalView.tsx";
 export { type ChatbotViewProps } from "./ChatbotView.tsx";
-export { type DarkModeProps } from "./DarkMode.tsx";
+export { type DarkModeProps } from "./DarkMode.ts";
 export { type Role, type MessageData } from "./services/conversations.ts";

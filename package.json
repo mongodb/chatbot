@@ -3,15 +3,7 @@
   "license": "Apache-2.0",
   "private": true,
   "workspaces": [
-    "chat-core",
-    "chat-server",
-    "chat-ui",
-    "ingest",
-    "chatbot-server-mongodb-public",
-    "ingest-mongodb-public",
-    "mongodb-atlas",
-    "performance-tests",
-    "scripts"
+    "packages/*"
   ],
   "scripts": {
     "bootstrap": "lerna bootstrap",

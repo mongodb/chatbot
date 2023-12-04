@@ -81,7 +81,7 @@ A few things to keep in mind when developing in the `ingest` project:
    depend on it.
 
    ```shell
-   cd ../chat-core
+   cd ../mongodb-rag-core
    npm run build
    cd ../ingest
    # do stuff

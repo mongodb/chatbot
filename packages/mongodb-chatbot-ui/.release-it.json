@@ -18,7 +18,7 @@
   },
   "hooks": {
     "before:init": [
-      "pushd ../chat-core && npm i && npm run build && popd",
+      "pushd ../mongodb-rag-core && npm i && npm run build && popd",
       "npm run build:component",
       "npm run lint"
     ]

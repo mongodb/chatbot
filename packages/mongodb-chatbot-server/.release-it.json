@@ -1,25 +1,26 @@
 {
   "git": {
     "commitArgs": ["-a"],
-    "commitMessage": "Release mongodb-rag-ingest v${version}\n\n${changelog}",
+    "commitMessage": "Release mongodb-chatbot-server v${version}\n\n${changelog}",
     "changelog": "git log --pretty=format:\"* %s (%h)\" ${from}..${to} -- .",
     "tag": true,
     "push": true,
     "pushRepo": "upstream",
-    "tagName": "mongodb-rag-ingest-v${version}"
+    "tagName": "mongodb-chatbot-server-v${version}"
   },
   "npm": {
     "publish": false
   },
   "github": {
-    "releaseName": "mongodb-rag-ingest-v${version}",
+    "releaseName": "mongodb-chatbot-server-v${version}",
     "draft": true,
     "release": true
   },
   "hooks": {
     "before:init": [
-      "pushd ../chat-core && npm i && npm run build && popd",
-      "npm run build"
+      "pushd ../mongodb-rag-core && npm i && npm run build && popd",
+      "npm run build",
+      "npm run lint"
     ]
   }
 }

@@ -8,13 +8,13 @@ trigger:
     - tag
   paths:
     include:
-      - chat-server/**/*
-      - chat-core/**/*
-      - chat-ui/**/*
-      - ingest/**/*
-      - scripts/**/*
-      - ingest-mongodb-public/**/*
-      - chatbot-server-mongodb-public/**/*
+      - packages/mongodb-chatbot-server/**/*
+      - packages/mongodb-rag-core/**/*
+      - packages/mongodb-chatbot-ui/**/*
+      - packages/mongodb-rag-ingest/**/*
+      - packages/scripts/**/*
+      - packages/ingest-mongodb-public/**/*
+      - packages/chatbot-server-mongodb-public/**/*
       - package-lock.json
 
 steps:
@@ -71,10 +71,10 @@ trigger:
 
   paths:
     include:
-      - chat-server/**/*
-      - chatbot-server-mongodb-public/**/*
-      - chat-core/**/*
-      - chat-ui/**/*
+      - packages/mongodb-chatbot-server/**/*
+      - packages/chatbot-server-mongodb-public/**/*
+      - packages/mongodb-rag-core/**/*
+      - packages/mongodb-chatbot-ui/**/*
 
 steps:
   # Builds and publishes Docker image for staging
@@ -124,10 +124,10 @@ trigger:
     - staging
   paths:
     include:
-      - chat-server/**/*
-      - chatbot-server-mongodb-public/**/*
-      - chat-core/**/*
-      - chat-ui/**/*
+      - packages/mongodb-chatbot-server/**/*
+      - packages/chatbot-server-mongodb-public/**/*
+      - packages/mongodb-rag-core/**/*
+      - packages/mongodb-chatbot-ui/**/*
   branch:
     - main
 
@@ -142,7 +142,8 @@ steps:
       namespace: docs
       release: chat-server-staging
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-server.docs.staging.corp.mongodb.com
-      values_files: ["chatbot-server-mongodb-public/environments/staging.yml"]
+      values_files:
+        ["packages/chatbot-server-mongodb-public/environments/staging.yml"]
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
@@ -220,7 +221,7 @@ steps:
       namespace: docs
       release: chat-server-qa
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-qa,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-qa.docs.staging.corp.mongodb.com
-      values_files: ["chat-server/environments/qa.yml"]
+      values_files: ["packages/mongodb-chatbot-server/environments/qa.yml"]
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
@@ -299,7 +300,7 @@ steps:
       release: docs-chat
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-production,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-server.docs.prod.corp.mongodb.com
       values_files:
-        ["chatbot-server-mongodb-public/environments/production.yml"]
+        ["packages/chatbot-server-mongodb-public/environments/production.yml"]
       api_server: https://api.prod.corp.mongodb.com
       kubernetes_token:
         from_secret: prod_kubernetes_token
@@ -320,9 +321,9 @@ trigger:
     - push
   paths:
     include:
-      - ingest/**/*
-      - ingest-mongodb-public/**/*
-      - chat-core/**/*
+      - packages/mongodb-rag-ingest/**/*
+      - packages/ingest-mongodb-public/**/*
+      - packages/mongodb-rag-core/**/*
 
 steps:
   # Builds and publishes Docker image for staging
@@ -371,9 +372,9 @@ trigger:
     - staging
   paths:
     include:
-      - ingest/**/*
-      - ingest-mongodb-public/**/*
-      - chat-core/**/*
+      - packages/mongodb-rag-ingest/**/*
+      - packages/ingest-mongodb-public/**/*
+      - packages/mongodb-rag-core/**/*
   branch:
     - main
 
@@ -389,7 +390,7 @@ steps:
       release: ingest-service
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-ingest-service
       values_files:
-        - ingest-mongodb-public/environments/staging.yml
+        - packages/ingest-mongodb-public/environments/staging.yml
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
@@ -467,7 +468,7 @@ steps:
       release: ingest-service
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-production,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-ingest-service
       values_files:
-        - ingest-mongodb-public/environments/production.yml
+        - packages/ingest-mongodb-public/environments/production.yml
       api_server: https://api.prod.corp.mongodb.com
       kubernetes_token:
         from_secret: prod_kubernetes_token
@@ -495,7 +496,7 @@ steps:
       - npm install lerna
       - npm run bootstrap -- --scope mongodb-rag-core
       - npm run build -- --scope mongodb-rag-core
-      - cd chat-core && npm publish
+      - cd mongodb-rag-core && npm publish
     environment:
       LG_ARTIFACTORY_TOKEN:
         from_secret: lg_artifactory_token
@@ -527,7 +528,7 @@ steps:
       - npm install lerna
       - npm run bootstrap -- --scope='{mongodb-rag-core,mongodb-rag-ingest}'
       - npm run build -- --scope='{mongodb-rag-core,mongodb-rag-ingest}'
-      - cd ingest && npm publish
+      - cd packages/mongodb-rag-ingest && npm publish
     environment:
       LG_ARTIFACTORY_TOKEN:
         from_secret: lg_artifactory_token
@@ -558,7 +559,7 @@ steps:
       - npm install lerna
       - npm run bootstrap -- --scope='{mongodb-rag-core,mongodb-chatbot-server}'
       - npm run build -- --scope='{mongodb-rag-core,mongodb-chatbot-server}'
-      - cd chat-server && npm publish
+      - cd packages/mongodb-chatbot-server && npm publish
     environment:
       LG_ARTIFACTORY_TOKEN:
         from_secret: lg_artifactory_token
@@ -589,7 +590,7 @@ steps:
       - npm install lerna
       - npm run bootstrap -- --scope='{mongodb-rag-core,mongodb-chatbot-ui}'
       - npm run build -- --scope='{mongodb-rag-core,mongodb-chatbot-ui}'
-      - cd chat-ui && npm publish
+      - cd packages/mongodb-chatbot-ui && npm publish
     environment:
       LG_ARTIFACTORY_TOKEN:
         from_secret: lg_artifactory_token
@@ -613,9 +614,9 @@ trigger:
     - push
   paths:
     include:
-      - scripts/**/*
-      - chat-core/**/*
-      - chat-server/**/*
+      - packages/scripts/**/*
+      - packages/mongodb-rag-core/**/*
+      - packages/mongodb-chatbot-server/**/*
 
 steps:
   # Builds and publishes Docker image for staging
@@ -664,9 +665,9 @@ trigger:
     - staging
   paths:
     include:
-      - scripts/**/*
-      - chat-core/**/*
-      - chat-server/**/*
+      - packages/scripts/**/*
+      - packages/mongodb-rag-core/**/*
+      - packages/mongodb-chatbot-server/**/*
   branch:
     - main
 
@@ -682,7 +683,7 @@ steps:
       release: scripts-service
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-scripts-service
       values_files:
-        - scripts/environments/staging.yml
+        - packages/scripts/environments/staging.yml
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
@@ -760,7 +761,7 @@ steps:
       release: scripts-service
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-production,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-scripts-service
       values_files:
-        - scripts/environments/production.yml
+        - packages/scripts/environments/production.yml
       api_server: https://api.prod.corp.mongodb.com
       kubernetes_token:
         from_secret: prod_kubernetes_token

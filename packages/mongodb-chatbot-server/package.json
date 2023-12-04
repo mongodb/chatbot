@@ -35,7 +35,7 @@
     "langchain": "^0.0.148",
     "lodash.clonedeep": "^4.5.0",
     "mongodb": "^5.7.0",
-    "mongodb-rag-core": "^0.1.0",
+    "mongodb-rag-core": "*",
     "openai": "^3.2.1",
     "pm2": "^5.3.0",
     "rate-limit-mongo": "^2.3.2",

@@ -9,7 +9,7 @@ title: Home
 The MongoDB RAG Framework is under active development
 and may undergo breaking changes.
 
-We aim to keep the documentation up to date with the latest changes.
+We aim to keep the documentation up to date with the latest version.
 
 :::
 

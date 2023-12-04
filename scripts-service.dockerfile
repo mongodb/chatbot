@@ -15,11 +15,11 @@ FROM node:18-alpine as main
 ENV NODE_ENV=production
 WORKDIR /bin
 
-COPY --from=builder app/chat-core ./chat-core/
+COPY --from=builder app/packages/mongodb-rag-core ./chat-core/
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder app/scripts/package*.json ./scripts/
-COPY --from=builder app/scripts/node_modules ./scripts/node_modules
-COPY --from=builder app/scripts/build ./scripts/build
+COPY --from=builder app/packages/scripts/package*.json ./scripts/
+COPY --from=builder app/packages/scripts/node_modules ./scripts/node_modules
+COPY --from=builder app/packages/scripts/build ./scripts/build
 
 WORKDIR /bin/scripts

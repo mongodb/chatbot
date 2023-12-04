@@ -13,7 +13,7 @@ const removeElements = (domDoc: Document) => [
 ];
 const extractTitle = (domDoc: Document) => {
   const title = domDoc.querySelector("title");
-  if (title?.textContent?.includes("WiredTiger:")) {
+  if (title?.textContent?.includes("WiredTiger: ")) {
     return title?.textContent?.replace("WiredTiger: ", "").trim() ?? undefined;
   }
   return title?.textContent ?? undefined;
@@ -45,7 +45,7 @@ export const wiredTigerSourceConstructor = async () => {
     },
     filter: (path: string) =>
       path.endsWith(".html") &&
-      path.includes("develop/") &&
+      path.startsWith("/develop/") &&
       !path.includes("group__wt") &&
       !path.includes("develop/search") &&
       !path.includes("struct_w_t___"),

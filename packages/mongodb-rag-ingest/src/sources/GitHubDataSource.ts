@@ -2,7 +2,7 @@ import { Document } from "langchain/document";
 import { GithubRepoLoaderParams } from "langchain/document_loaders/web/github";
 import { Page } from "mongodb-rag-core";
 import { DataSource } from "./DataSource";
-import { makeGitDataSource } from "./GitDataSource";
+import { MakeGitDataSourceParams, makeGitDataSource } from "./GitDataSource";
 
 export type MakeGitHubDataSourceArgs = {
   /**
@@ -14,6 +14,12 @@ export type MakeGitHubDataSourceArgs = {
     The GitHub repo URL.
    */
   repoUrl: string;
+
+  /**
+    Filter function to filter out files from the repo.
+    Using this overrides the `repoLoaderOptions.ignorePaths` option.
+   */
+  filter?: MakeGitDataSourceParams["filter"];
 
   /**
     The branch to fetch.
@@ -42,6 +48,7 @@ export type MakeGitHubDataSourceArgs = {
 export const makeGitHubDataSource = ({
   name,
   repoUrl,
+  filter,
   repoLoaderOptions,
   handleDocumentInRepo,
 }: MakeGitHubDataSourceArgs): DataSource => {
@@ -63,26 +70,28 @@ export const makeGitHubDataSource = ({
     async handlePage(path, pageContent) {
       return handleDocumentInRepo({ pageContent, metadata: { source: path } });
     },
-    filter(path) {
-      if (repoLoaderOptions === undefined) {
-        return true;
-      }
-      const { ignorePaths, ignoreFiles } = repoLoaderOptions;
-      for (const ignorePath of ignorePaths ?? []) {
-        if (path === ignorePath) {
-          return false;
+    filter:
+      filter ??
+      function (path) {
+        if (repoLoaderOptions === undefined) {
+          return true;
         }
-      }
-      for (const ignoreFile of ignoreFiles ?? []) {
-        if (typeof ignoreFile === "string") {
-          if (path === ignoreFile) {
+        const { ignorePaths, ignoreFiles } = repoLoaderOptions;
+        for (const ignorePath of ignorePaths ?? []) {
+          if (path === ignorePath) {
             return false;
           }
-        } else if (ignoreFile.test(path)) {
-          return false;
         }
-      }
-      return true;
-    },
+        for (const ignoreFile of ignoreFiles ?? []) {
+          if (typeof ignoreFile === "string") {
+            if (path === ignoreFile) {
+              return false;
+            }
+          } else if (ignoreFile.test(path)) {
+            return false;
+          }
+        }
+        return true;
+      },
   });
 };

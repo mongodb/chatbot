@@ -109,6 +109,11 @@ const config: Config = {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
     },
+    announcementBar: {
+      content:
+        "⚠️ The MongoDB RAG Framework is under active development and may undergo breaking changes. ⚠️",
+      backgroundColor: "#FFF8E6",
+    },
   } satisfies Preset.ThemeConfig,
 };
 

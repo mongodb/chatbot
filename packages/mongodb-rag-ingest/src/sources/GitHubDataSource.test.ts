@@ -48,4 +48,33 @@ describe("makeGitHubDataSource", () => {
       "# Minimal makefile for Sphinx documentation"
     );
   });
+  it("should use the `filter` option to filter out files", async () => {
+    const mockFilter = jest.fn();
+    const source = await makeGitHubDataSource({
+      name: "python-TEST",
+      repoUrl: "https://github.com/mongodb/mongo-python-driver",
+      filter: mockFilter,
+      repoLoaderOptions: {
+        branch: "4.5.0",
+        ignoreFiles: [/^(?!\/doc\/).*/], // Everything BUT /doc/
+      },
+      async handleDocumentInRepo(document) {
+        // Can return multiple documents
+        return [
+          {
+            body: document.pageContent,
+            format: "txt",
+            url: document.metadata.source,
+          },
+          {
+            body: document.pageContent,
+            format: "txt",
+            url: `${document.metadata.source}-CLONE`,
+          },
+        ];
+      },
+    });
+    await source.fetchPages();
+    expect(mockFilter).toHaveBeenCalled();
+  });
 });

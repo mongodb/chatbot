@@ -66,4 +66,24 @@ describe("MdOnGithubDataSource", () => {
     const samplePage = pages[0];
     expect(samplePage.title).toBeTruthy();
   });
+  it("works with .mdx files", async () => {
+    const sampleConf: MakeMdOnGithubDataSourceParams = {
+      name: "sample",
+      repoUrl: "https://github.com/mongodb/chatbot",
+      repoLoaderOptions: {
+        branch: "main",
+      },
+      pathToPageUrl: (path) => path,
+      metadata: {
+        productName: "C++ Driver (mongocxx)",
+      },
+      filter: (path) => path.includes("ingest/testData"),
+    };
+    const dataSource = await makeMdOnGithubDataSource(sampleConf);
+    const pages = await dataSource.fetchPages();
+    expect(pages.length).toBeGreaterThan(1);
+    expect(
+      pages.find((page) => page.url.includes("sampleMdxFile"))
+    ).toBeTruthy();
+  });
 });

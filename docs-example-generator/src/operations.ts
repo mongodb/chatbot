@@ -40,15 +40,15 @@ export async function summarizePage({
   generate = generate ?? makeGenerateFunc();
   const analyzeCodeChat = [
     systemMessage(stripIndents`
-        Your task is to analyze a provided documentation page and write a succinct
-        description of the content as well as its style and other notable choices.
-        Limit your response to 100 words.
-      `),
+      Your task is to analyze a provided documentation page and write a succinct
+      description of the content as well as its style and other notable choices.
+      Limit your response to 100 words.
+    `),
     userMessage(stripIndents`
-        Analyze the following page and describe its contents:
+      Analyze the following page and describe its contents:
 
-        ${sourcePage}
-      `),
+      ${sourcePage}
+    `),
   ];
 
   const analyzeCodeOutput = await generate(analyzeCodeChat);

@@ -1,4 +1,7 @@
-import { FindContentFunc, makeDefaultFindContentFunc } from "mongodb-chatbot-server";
+import {
+  FindContentFunc,
+  makeDefaultFindContentFunc,
+} from "mongodb-chatbot-server";
 import {
   WithScore,
   EmbeddedContent,
@@ -23,7 +26,9 @@ export type FindContentResult = {
   content: WithScore<EmbeddedContent>[];
 };
 
-export type FindContent = ({ query }: FindContentArgs) => Promise<FindContentResult>;
+export type FindContent = ({
+  query,
+}: FindContentArgs) => Promise<FindContentResult>;
 
 export type MakeDefaultFindContentArgs = {
   embedder: Embedder;
@@ -32,41 +37,10 @@ export type MakeDefaultFindContentArgs = {
   // searchBoosters?: SearchBooster[];
 };
 
-/**
-  Basic implementation of FindContent.
- */
-// export const makeDefaultFindContent = ({
-//   embedder,
-//   store,
-//   findNearestNeighborsOptions,
-//   // searchBoosters,
-// }: MakeDefaultFindContentArgs): FindContent => {
-//   return async ({ query }) => {
-//     const { embedding } = await embedder.embed({
-//       text: query,
-//       userIp: "::1",
-//     });
-
-//     let content = await store.findNearestNeighbors(
-//       embedding,
-//       findNearestNeighborsOptions
-//     );
-
-//     // for (const booster of searchBoosters ?? []) {
-//     //   if (await booster.shouldBoost({ text: query })) {
-//     //     content = await booster.boost({
-//     //       existingResults: content,
-//     //       embedding,
-//     //       store,
-//     //     });
-//     //   }
-//     // }
-
-//     return { queryEmbedding: embedding, content };
-//   };
-// };
-
-export function makeFindContentFunc(): FindContentFunc {
+export function makeFindContent(): {
+  findContent: FindContent;
+  cleanup: () => Promise<void>;
+} {
   const {
     MONGODB_CONNECTION_URI,
     MONGODB_DATABASE_NAME,
@@ -94,13 +68,13 @@ export function makeFindContentFunc(): FindContentFunc {
     databaseName: MONGODB_DATABASE_NAME,
   });
 
-  const findContent = makeDefaultFindContentFunc({
+  const findContentFunc = makeDefaultFindContentFunc({
     embedder,
     store,
     findNearestNeighborsOptions: {
       indexName: "default",
       path: "embedding",
-      k: 3,
+      k: 5,
       minScore: 0.85,
       // filter: {
       //   phrase: {
@@ -111,5 +85,11 @@ export function makeFindContentFunc(): FindContentFunc {
     },
   });
 
-  return findContent;
+  const findContent = async ({ query }: FindContentArgs) => {
+    return await findContentFunc({ query, ipAddress: "::1" });
+  }
+
+  const cleanup = async () => store.close();
+
+  return { findContent, cleanup };
 }

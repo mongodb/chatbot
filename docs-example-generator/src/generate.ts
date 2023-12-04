@@ -17,7 +17,7 @@ import { stripIndents } from "common-tags";
 
 import "dotenv/config";
 import { ChatMessage, systemMessage, userMessage } from "./util";
-import { makeFindContentFunc } from "./findContentFunc";
+// import { makeFindContent } from "./findContentFunc";
 import { generateCodeExample } from "./generateCodeExample";
 import { generateDocsPage } from "./generateDocsPage";
 

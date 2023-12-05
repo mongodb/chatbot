@@ -384,7 +384,7 @@ steps:
     image: quay.io/mongodb/drone-helm:v3
     settings:
       chart: mongodb/cronjobs
-      chart_version: 1.7.1
+      chart_version: 1.10.0
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: docs
       release: ingest-service
@@ -462,7 +462,7 @@ steps:
     image: quay.io/mongodb/drone-helm:v3
     settings:
       chart: mongodb/cronjobs
-      chart_version: 1.7.1
+      chart_version: 1.10.0
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: docs
       release: ingest-service
@@ -496,7 +496,7 @@ steps:
       - npm install lerna
       - npm run bootstrap -- --scope mongodb-rag-core
       - npm run build -- --scope mongodb-rag-core
-      - cd mongodb-rag-core && npm publish
+      - cd packages/mongodb-rag-core && npm publish
     environment:
       LG_ARTIFACTORY_TOKEN:
         from_secret: lg_artifactory_token
@@ -677,7 +677,7 @@ steps:
     image: quay.io/mongodb/drone-helm:v3
     settings:
       chart: mongodb/cronjobs
-      chart_version: 1.7.1
+      chart_version: 1.10.0
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: docs
       release: scripts-service
@@ -755,7 +755,7 @@ steps:
     image: quay.io/mongodb/drone-helm:v3
     settings:
       chart: mongodb/cronjobs
-      chart_version: 1.7.1
+      chart_version: 1.10.0
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: docs
       release: scripts-service

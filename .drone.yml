@@ -496,7 +496,7 @@ steps:
       - npm install lerna
       - npm run bootstrap -- --scope mongodb-rag-core
       - npm run build -- --scope mongodb-rag-core
-      - cd mongodb-rag-core && npm publish
+      - cd packages/mongodb-rag-core && npm publish
     environment:
       LG_ARTIFACTORY_TOKEN:
         from_secret: lg_artifactory_token

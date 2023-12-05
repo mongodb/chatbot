@@ -2,7 +2,7 @@
 
 This is the standard ingest config for public MongoDB documentation.
 
-It also serves as an example of implementing a configuration/plugin for ingest.
+It also serves as an example of implementing a configuration/plugin for the `mongodb-rag-ingest` CLI.
 
 ## Building the Config
 

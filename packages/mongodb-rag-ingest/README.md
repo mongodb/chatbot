@@ -1,6 +1,6 @@
 # Ingest
 
-The ingest tool fetches pages from sources and stores the embeddings in the
+The ingest CLI fetches pages from sources and stores the embeddings in the
 database.
 
 ## System Overview

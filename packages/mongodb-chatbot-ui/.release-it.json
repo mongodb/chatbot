@@ -1,0 +1,26 @@
+{
+  "git": {
+    "commitArgs": ["-a"],
+    "commitMessage": "Release chat-ui v${version}",
+    "tag": false,
+    "push": true,
+    "pushRepo": "upstream",
+    "tagName": "chat-ui-v${version}"
+  },
+  "npm": {
+    "publish": false
+  },
+  "github": {
+    "releaseName": "chat-ui-v${version}",
+    "draft": true,
+    "autoGenerate": true,
+    "release": true
+  },
+  "hooks": {
+    "before:init": [
+      "pushd ../mongodb-rag-core && npm i && npm run build && popd",
+      "npm run build:component",
+      "npm run lint"
+    ]
+  }
+}

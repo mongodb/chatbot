@@ -17,4 +17,4 @@ RUN apk add --no-cache git
 
 ENV NODE_ENV=production
 
-WORKDIR /bin/ingest-mongodb-public
+WORKDIR /bin/packages/ingest-mongodb-public

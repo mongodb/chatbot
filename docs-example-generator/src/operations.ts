@@ -125,17 +125,14 @@ export async function translatePage({
 
       ${sourceDescription}
 
-      This is the original page written for the Node.js driver:
-
-      <<<<<<<<<BEGIN ORIGINAL PAGE
-      ${sourcePage}
-      END ORIGINAL PAGE>>>>>>>>>>>>>>>>
-
       The desired output has the following description:
 
       ${targetDescription}
 
-      Now translate to the desired output. Return only the translated page with no additional text.`),
+      Now translate the following original page text to match desired output. Return only the translated page with no additional text.
+
+      ${sourcePage}
+    `),
   ];
 
   const output = await generate(translateCodeChat);

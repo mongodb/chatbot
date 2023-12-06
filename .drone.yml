@@ -406,7 +406,7 @@ trigger:
     - tag
   ref:
     include:
-      - refs/tags/ingest-v*
+      - refs/tags/ingest-mongodb-public-v*
 
 steps:
   # Builds and publishes Docker image for production

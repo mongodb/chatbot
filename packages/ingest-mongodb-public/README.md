@@ -21,3 +21,4 @@ npm run ingest:all
 
 This runs the ingest script with the `--config` flag passing
 the built config file (`build/config.js`) to the tool.
+

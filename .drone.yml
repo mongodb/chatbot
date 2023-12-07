@@ -610,7 +610,6 @@ name: staging-build-scripts-service
 trigger:
   branch:
     - main
-    - scripts_fix
   event:
     - push
   paths:
@@ -671,7 +670,6 @@ trigger:
       - packages/mongodb-chatbot-server/**/*
   branch:
     - main
-    - scripts_fix
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion

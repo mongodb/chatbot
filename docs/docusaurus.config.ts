@@ -26,6 +26,44 @@ const config: Config = {
     defaultLocale: "en",
     locales: ["en"],
   },
+  plugins: [
+    [
+      "docusaurus-plugin-typedoc",
+      {
+        id: "server",
+        entryPoints: ["../packages/mongodb-chatbot-server/src/index.ts"],
+        tsconfig: "../packages/mongodb-chatbot-server/tsconfig.build.json",
+        sidebar: {
+          fullNames: true,
+        },
+        out: "reference/server",
+      },
+    ],
+    [
+      "docusaurus-plugin-typedoc",
+      {
+        id: "core",
+        entryPoints: ["../packages/mongodb-rag-core/src/index.ts"],
+        tsconfig: "../packages/mongodb-rag-core/tsconfig.json",
+        sidebar: {
+          fullNames: true,
+        },
+        out: "reference/core",
+      },
+    ],
+    [
+      "docusaurus-plugin-typedoc",
+      {
+        id: "ingest",
+        entryPoints: ["../packages/mongodb-rag-ingest/src/index.ts"],
+        tsconfig: "../packages/mongodb-rag-ingest/tsconfig.build.json",
+        sidebar: {
+          fullNames: true,
+        },
+        out: "reference/ingest",
+      },
+    ],
+  ],
   presets: [
     [
       "classic",

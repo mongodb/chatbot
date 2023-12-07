@@ -8,13 +8,14 @@ import {
 } from "mongodb-rag-core";
 import { SearchBooster } from "../../processors/SearchBooster";
 
-export type FindContentFunc = ({
-  query,
-  ipAddress,
-}: {
+export type FindContentFuncArgs = {
   query: string;
   ipAddress: string;
-}) => Promise<FindContentResult>;
+};
+
+export type FindContentFunc = (
+  args: FindContentFuncArgs
+) => Promise<FindContentResult>;
 
 export type FindContentResult = {
   queryEmbedding: number[];
@@ -43,20 +44,26 @@ export const makeDefaultFindContentFunc = ({
       userIp: ipAddress,
     });
 
-    let content = await store.findNearestNeighbors(
-      embedding,
-      findNearestNeighborsOptions
-    );
-
-    for (const booster of searchBoosters ?? []) {
-      if (await booster.shouldBoost({ text: query })) {
-        content = await booster.boost({
-          existingResults: content,
-          embedding,
-          store,
-        });
-      }
+    const content = [];
+    const highContent = await store.findNearestNeighbors(embedding, {
+      k: 5,
+      filter: {
+        "metadata.weight": "high",
+      },
+    });
+    content.push(...highContent);
+    if (content.length < 5) {
+      const mediumContent = await store.findNearestNeighbors(embedding, {
+        k: 5 - content.length,
+        filter: {
+          "metadata.weight": "medium",
+        },
+      });
+      content.push(...mediumContent);
     }
+    //...same for low
+    // sort by score so that low is on top
+
     return { queryEmbedding: embedding, content };
   };
 };

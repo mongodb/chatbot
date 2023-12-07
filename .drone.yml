@@ -317,7 +317,6 @@ name: staging-build-ingest-mongodb-public
 trigger:
   branch:
     - main
-    - fix_ingest_cron
   event:
     - push
   paths:
@@ -378,7 +377,6 @@ trigger:
       - packages/mongodb-rag-core/**/*
   branch:
     - main
-    - fix_ingest_cron
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion

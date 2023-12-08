@@ -27,8 +27,8 @@
     "csv": "^6.3.1",
     "dotenv": "^16.3.1",
     "mongodb": "^5.7.0",
-    "mongodb-chatbot-server": "^0.2.0",
-    "mongodb-rag-core": "^0.1.0",
+    "mongodb-chatbot-server": "*",
+    "mongodb-rag-core": "*",
     "yaml": "^2.3.4"
   },
   "devDependencies": {

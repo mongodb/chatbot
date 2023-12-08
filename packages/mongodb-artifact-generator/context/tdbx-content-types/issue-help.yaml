@@ -1,0 +1,27 @@
+type: issue-help
+name: Issues & Help
+objectives:
+  - Provide information on how to get support for general questions, how to report bugs, how to request new features, and how to contribute to the driver.
+pageStructure: |
+  =============
+  Issues & Help
+  =============
+
+  Link to MongoDB community forum.
+
+  Bugs / Feature Requests
+  -----------------------
+
+  Provide the user with instructions on how to open a ticket on JIRA.
+
+  Pull Requests
+  -------------
+
+  Provide the user with instructions on how to open a PR against the official driver repository.
+examples:
+  # - https://www.mongodb.com/docs/kafka-connector/current/issues-and-help/
+  - https://www.mongodb.com/docs/kafka-connector/v1.10/issues-and-help/
+  - https://www.mongodb.com/docs/drivers/go/current/issues-and-help/
+  # - https://www.mongodb.com/docs/drivers/node/current/issues-and-help/
+  - https://www.mongodb.com/docs/drivers/node/v5.7/issues-and-help/
+

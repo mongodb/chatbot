@@ -1,0 +1,25 @@
+{
+  "git": {
+    "commitArgs": ["-a"],
+    "commitMessage": "Release mongodb-artifact-generator v${version}\n\n${changelog}",
+    "changelog": "git log --pretty=format:\"* %s (%h)\" ${from}..${to} -- .",
+    "tag": true,
+    "push": true,
+    "pushRepo": "upstream",
+    "tagName": "mongodb-artifact-generator-v${version}"
+  },
+  "npm": {
+    "publish": false
+  },
+  "github": {
+    "releaseName": "mongodb-artifact-generator-v${version}",
+    "draft": true,
+    "release": true
+  },
+  "hooks": {
+    "before:init": [
+      "pushd ../mongodb-rag-core && npm i && npm run build && popd",
+      "npm run build"
+    ]
+  }
+}

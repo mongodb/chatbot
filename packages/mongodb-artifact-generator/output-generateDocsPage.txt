@@ -1,0 +1,89 @@
+```restructuredtext
+Quick Start for MongoDB Rust Driver
+====================================
+
+This quick start guide will help you set up a sample development environment that accomplishes establishing a connection
+to your MongoDB cluster and running a command to observe the results using the Rust MongoDB driver.
+
+To complete this tutorial you should have:
+* Basic knowledge of Rust programming language
+* An installed version of Rust
+* An installed MongoDB instance 
+
+Setup
+-----
+
+1. Add the `mongodb` package to your Cargo.toml dependencies:
+
+   .. code-block:: toml
+      :emphasize-lines: 3
+
+      [dependencies]
+      mongodb = "2.0.0-alpha.1"
+
+2. In your Rust code, import the driver with:
+
+   .. code-block:: rust
+      :emphasize-lines: 1-5
+
+      use mongodb::{Client, options::ClientOptions};
+
+      #[tokio::main]
+      async fn main() -> Result<(), Box<dyn std::error::Error>> {
+        let client_options = ClientOptions::parse("mongodb://localhost:27017").await?;
+        let client = Client::with_options(client_options)?;
+
+        // Run a command
+        let result = client.database("test").run_command(doc!{"ping": 1}, None).await?;
+
+        println!("Result: {:?}", result);
+
+        Ok(())
+      }
+
+   This code connects to a MongoDB deployment running on localhost on the default port (27017), pings the server, and 
+   prints the response.
+
+Congratulations, you have successfully established a connection from your Rust application to MongoDB!
+
+Optional Atlas Setup
+--------------------
+
+If you do not have a MongoDB instance installed, you can use the following steps to create a free tier MongoDB 
+Atlas cluster, which will enable you to complete this tutorial.
+
+1. Go to https://www.mongodb.com/cloud/atlas/register to register for an account or log in to an existing account.
+
+2. Create an Atlas Free Tier cluster.
+
+3. Add a sample dataset to your cluster.
+
+   * Go to the "Collections" tab.
+   * Click the "Add my own data" button.
+   * Select "Load Sample Dataset".
+   * Follow the prompts to load the sample data.
+
+4. Get your connection string.
+
+   * Click the "Connect" button for your cluster.
+   * Select "Connect your application".
+   * Choose "Driver: Rust", and copy the connection string.
+
+5. Replace the connection string in `ClientOptions::parse()` with your Atlas connection string.
+
+Additional Instructions
+-----------------------
+
+Refer to the [MongoDB Rust driver documentation](https://docs.rs/mongodb/2.0.0-alpha.1/mongodb/) for more 
+information on using the driver.
+
+Next Steps
+----------
+
+Now that you have successfully connected to MongoDB using the Rust driver, you can explore other features and 
+functionalities of the driver or MongoDB itself.
+
+Next steps include:
+* Learning more about the Rust MongoDB driver by visiting https://docs.rs/mongodb/2.0.0-alpha.1/mongodb/
+* Exploring MongoDB's Aggregation Pipeline to perform advanced data operations.
+```

@@ -34,7 +34,7 @@ async function savePageMarkdown(page: Page) {
   const res = await fs.writeFile(
     path.join(
       OUTPUT_DIRECTORY,
-      `${page.sourceName}_${page.title ?? page._id}.md`
+      `${page.sourceName}_${page.title?.replaceAll(/\//g, "_") ?? page._id}.md`
     ),
     page.body
   );
@@ -82,6 +82,9 @@ function partitionPromiseResults<T>(arr: PromiseSettledResult<T>[]) {
     console.log(`Successfully wrote ${successes.length} pages.`);
     if (failures.length > 0) {
       console.error(`Failed to write ${failures.length} pages`);
+      for (const failure of failures) {
+        console.error(failure.reason);
+      }
     }
   } finally {
     await client.close();

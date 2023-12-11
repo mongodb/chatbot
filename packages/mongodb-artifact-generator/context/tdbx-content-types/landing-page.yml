@@ -26,5 +26,5 @@ pageStructure: |
 
   Link to the MongoDB University course, if one exists for the product.
 examples:
-  - https://www.mongodb.com/docs/drivers/java/sync/current/
-  - https://www.mongodb.com/docs/drivers/c/
+  - https://mongodb.com/docs/drivers/java/sync/current/
+  - https://mongodb.com/docs/drivers/c/

@@ -18,8 +18,7 @@ pageStructure: |
   
   In the “Syntax” column, provide a code example that demonstrates how to call the command, and sample output if it adds clarity.
 examples:
-  - https://www.mongodb.com/docs/drivers/java/sync/current/quick-reference/
-  # - https://www.mongodb.com/docs/drivers/node/current/quick-reference/
-  - https://www.mongodb.com/docs/drivers/node/v5.7/quick-reference/
+  - https://mongodb.com/docs/drivers/java/sync/current/quick-reference/
+  # - https://mongodb.com/docs/drivers/node/current/quick-reference/
+  - https://mongodb.com/docs/drivers/node/v5.7/quick-reference/
   - https://mongodb.com/docs/drivers/go/current/quick-reference
-

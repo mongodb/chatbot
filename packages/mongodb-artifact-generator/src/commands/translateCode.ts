@@ -6,17 +6,15 @@ import {
 import { createCommand } from "../createCommand";
 import { promises as fs } from "fs";
 import { html, stripIndents } from "common-tags";
-import { makeFindContent } from "../search";
+import { makeFindContent } from "../vectorSearch";
 import { makeGenerateChatCompletion } from "../chat";
 import { summarizePage, translatePage } from "../operations";
-import { makeLogFile } from "../runlogs";
+import {
+  makeRunLogger,
+} from "../runlogger";
 import { rstDescription, stringifyVectorSearchChunks } from "../prompt";
 
-const logs = makeLogFile({
-  onAppend: (line) => {
-    console.log(line);
-  }
-})
+const logger = makeRunLogger({ topic: "translateCode" });
 
 type TranslateCodeCommandArgs = {
   source: string;
@@ -39,10 +37,11 @@ export default createCommand<TranslateCodeCommandArgs>({
       });
   },
   async handler(args) {
-    logs.append(`translateCode ${JSON.stringify(args)}`);
+    logger.logInfo(`Running command with args: ${JSON.stringify(args)}`);
     const result = await withConfig(action, args);
-    logs.append(`translateCode result: ${JSON.stringify(result)}`);
-    await logs.flush();
+    logger.logInfo(`Success`);
+    await logger.flushLogs();
+    await logger.flushArtifacts();
     return result;
   },
   describe: "Translate a documentation page into a new context.",

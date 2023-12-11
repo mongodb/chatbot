@@ -31,7 +31,6 @@ pageStructure: |
 
   Link to additional information such as API documentation or other MongoDB docs.
 examples:
-  - https://www.mongodb.com/docs/drivers/java/sync/current/usage-examples/findOne/
-  # - https://www.mongodb.com/docs/drivers/node/current/usage-examples/updateMany/
-  - https://www.mongodb.com/docs/drivers/node/v5.7/usage-examples/updateMany/
-
+  - https://mongodb.com/docs/drivers/java/sync/current/usage-examples/findOne/
+  # - https://mongodb.com/docs/drivers/node/current/usage-examples/updateMany/
+  - https://mongodb.com/docs/drivers/node/v5.7/usage-examples/updateMany/

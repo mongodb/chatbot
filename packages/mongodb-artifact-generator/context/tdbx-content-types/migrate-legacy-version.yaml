@@ -19,6 +19,5 @@ pageStructure: |
 
   Provide a list of changes that explains the legacy implementation and corresponding current implementation
 examples:
-  - https://www.mongodb.com/docs/drivers/java/sync/current/legacy/
+  - https://mongodb.com/docs/drivers/java/sync/current/legacy/
 ...
-

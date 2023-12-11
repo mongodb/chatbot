@@ -30,8 +30,7 @@ pageStructure: |
 
   Provide links to related information and API documentation.
 examples:
-  - https://www.mongodb.com/docs/drivers/java/sync/current/fundamentals/crud/compound-operations/
-  - https://www.mongodb.com/docs/drivers/go/current/fundamentals/bson/
-  # - https://www.mongodb.com/docs/drivers/node/current/fundamentals/connection/network-compression/
-  - https://www.mongodb.com/docs/drivers/node/v5.7/fundamentals/connection/network-compression/
-
+  - https://mongodb.com/docs/drivers/java/sync/current/fundamentals/crud/compound-operations/
+  - https://mongodb.com/docs/drivers/go/current/fundamentals/bson/
+  # - https://mongodb.com/docs/drivers/node/current/fundamentals/connection/network-compression/
+  - https://mongodb.com/docs/drivers/node/v5.7/fundamentals/connection/network-compression/

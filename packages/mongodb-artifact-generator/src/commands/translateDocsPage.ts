@@ -5,18 +5,16 @@ import {
 } from "../withConfig";
 import { createCommand } from "../createCommand";
 import { promises as fs } from "fs";
-import { html, stripIndents } from "common-tags";
-import { makeFindContent } from "../search";
+import { stripIndents } from "common-tags";
+import { makeFindContent } from "../vectorSearch";
 import { makeGenerateChatCompletion } from "../chat";
 import { summarizePage, translatePage } from "../operations";
-import { makeLogFile } from "../runlogs";
+import {
+  makeRunLogger,
+} from "../runlogger";
 import { rstDescription, stringifyVectorSearchChunks } from "../prompt";
 
-const logs = makeLogFile({
-  onAppend: (line) => {
-    console.log(line);
-  }
-})
+const logger = makeRunLogger({ topic: "translateDocsPage" });
 
 type TranslateDocsPageCommandArgs = {
   source: string;
@@ -39,20 +37,18 @@ export default createCommand<TranslateDocsPageCommandArgs>({
       });
   },
   async handler(args) {
-    logs.append(`translateDocsPage ${JSON.stringify(args)}`);
+    logger.logInfo(`Running command with args: ${JSON.stringify(args)}`);
     const result = await withConfig(action, args);
-    logs.append(`translateDocsPage result: ${JSON.stringify(result)}`);
-    await logs.flush();
+    logger.logInfo(`Success`);
+    await logger.flushLogs();
+    await logger.flushArtifacts();
     return result;
   },
   describe: "Translate a documentation page into a new context.",
 });
 
 export const action = createConfiguredAction<TranslateDocsPageCommandArgs>(
-  async (
-    { embeddedContentStore, embedder },
-    { source, targetDescription }
-  ) => {
+  async ({ embeddedContentStore, embedder }, { source, targetDescription }) => {
     const sourcePage = await fs.readFile(source, "utf8");
 
     console.log(`Setting up...`);
@@ -73,6 +69,7 @@ export const action = createConfiguredAction<TranslateDocsPageCommandArgs>(
         sourcePage,
       });
       console.log(`Input analysis:\n\n${analyzePageOutput}\n`);
+      logger.logInfo(`Input analysis:\n\n${analyzePageOutput}\n`);
 
       console.log(`Finding Relevant Content...`);
       // Find content in the existing off-site docs if we have them
@@ -87,6 +84,12 @@ export const action = createConfiguredAction<TranslateDocsPageCommandArgs>(
       const searchResults = stringifyVectorSearchChunks(content).join("\n");
       console.log(searchResults);
       console.log(`Logged ${searchResults.length} search result chunks`);
+      logger.logInfo(
+        stripIndents`
+          Found ${searchResults.length} search result chunks!
+          ${searchResults}
+        `
+      );
 
       console.log(`Transforming page...`);
       const transformed = await translatePage({

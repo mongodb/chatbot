@@ -4,6 +4,7 @@ import {
   Embedder,
   EmbeddedContentStore,
   FindNearestNeighborsOptions,
+  PageStore,
 } from "mongodb-rag-core";
 // import { SearchBooster } from "../../processors/SearchBooster";
 

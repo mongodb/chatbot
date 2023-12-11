@@ -1,89 +1,99 @@
-```restructuredtext
-Quick Start for MongoDB Rust Driver
-====================================
+.. _quickstart-rust:
 
-This quick start guide will help you set up a sample development environment that accomplishes establishing a connection
-to your MongoDB cluster and running a command to observe the results using the Rust MongoDB driver.
+Quick Start for the MongoDB Rust Driver
+=======================================
 
-To complete this tutorial you should have:
-* Basic knowledge of Rust programming language
-* An installed version of Rust
-* An installed MongoDB instance 
+This quickstart guide provides instructions for setting up the MongoDB Rust driver, and performing basic CRUD operations using MongoDB Rust driver. By following this guide, you will learn how to connect to MongoDB using Rust and run basic queries.
+
+Introduction
+------------
+
+The MongoDB Rust driver is a third-party driver created by the community, providing an efficient and easy-to-use interface for working with MongoDB from Rust.
+
+In the rest of this guide, we will go through the following steps:
+
+1. Install Rust and any necessary dependencies
+2. Install the MongoDB Rust driver
+3. Connect to a MongoDB instance
+4. Insert, read, and delete data in a MongoDB collection
 
 Setup
 -----
 
-1. Add the `mongodb` package to your Cargo.toml dependencies:
+Before we start, ensure that Rust is installed on your system. If Rust is not yet installed, go to https://www.rust-lang.org/tools/install to install Rust and its package manager, Cargo.
 
-   .. code-block:: toml
-      :emphasize-lines: 3
+Next, create a new Rust project and add the MongoDB Rust driver as a dependency in your project's `Cargo.toml` file:
 
-      [dependencies]
-      mongodb = "2.0.0-alpha.1"
+.. code-block:: toml
+    :emphasize-lines: 2
 
-2. In your Rust code, import the driver with:
+    [dependencies]
+    mongodb = "2.0"
 
-   .. code-block:: rust
-      :emphasize-lines: 1-5
-
-      use mongodb::{Client, options::ClientOptions};
-
-      #[tokio::main]
-      async fn main() -> Result<(), Box<dyn std::error::Error>> {
-        let client_options = ClientOptions::parse("mongodb://localhost:27017").await?;
-        let client = Client::with_options(client_options)?;
-
-        // Run a command
-        let result = client.database("test").run_command(doc!{"ping": 1}, None).await?;
-
-        println!("Result: {:?}", result);
-
-        Ok(())
-      }
-
-   This code connects to a MongoDB deployment running on localhost on the default port (27017), pings the server, and 
-   prints the response.
-
-Congratulations, you have successfully established a connection from your Rust application to MongoDB!
+If using Rust version 1.51 or below, additional dependencies may be required to compile the driver. Refer to driver documentation for more information.
 
 Optional Atlas Setup
 --------------------
 
-If you do not have a MongoDB instance installed, you can use the following steps to create a free tier MongoDB 
-Atlas cluster, which will enable you to complete this tutorial.
+If you don't have a MongoDB instance running, you can use the free tier of MongoDB Atlas to create a MongoDB instance in the cloud. Follow these steps to create an Atlas cluster:
 
-1. Go to https://www.mongodb.com/cloud/atlas/register to register for an account or log in to an existing account.
+1. Go to https://www.mongodb.com/cloud/atlas/signup and create an account
+2. Create a new project
+3. Click "Build a Cluster"
+4. Follow the prompts to create your cluster
+5. Click "Connect" to get your connection string
 
-2. Create an Atlas Free Tier cluster.
+Replace the database, password, and collection name in the connection string with the correct values for your cluster.
 
-3. Add a sample dataset to your cluster.
+Connect to MongoDB
+------------------
 
-   * Go to the "Collections" tab.
-   * Click the "Add my own data" button.
-   * Select "Load Sample Dataset".
-   * Follow the prompts to load the sample data.
+To connect to MongoDB, use the `mongodb::Client` struct. 
 
-4. Get your connection string.
+.. code-block:: rust
+    :emphasize-lines: 1
 
-   * Click the "Connect" button for your cluster.
-   * Select "Connect your application".
-   * Choose "Driver: Rust", and copy the connection string.
+    use mongodb::{Client, options::ClientOptions};
 
-5. Replace the connection string in `ClientOptions::parse()` with your Atlas connection string.
+    #[tokio::main]
+    async fn main() -> Result<(), anyhow::Error> {
+        let client_options = ClientOptions::parse("<MongoDB connection string>").await?;
+        let client = Client::with_options(client_options)?;
+    
+        // Connection successful
+        Ok(())
+    }
 
-Additional Instructions
------------------------
+Replace the `<MongoDB connection string>` with your connection string.
 
-Refer to the [MongoDB Rust driver documentation](https://docs.rs/mongodb/2.0.0-alpha.1/mongodb/) for more 
-information on using the driver.
+Insert, Read, and Delete Data
+------------------------------
+
+After connecting to MongoDB, you can perform CRUD (Create, Read, Update, Delete) operations.
+
+For example, as shown here you can insert a document into a collection:
+
+.. code-block:: rust
+    :emphasize-lines: 1, 2
+
+    use bson::{doc, Document};
+    use mongodb::{Client, Collection};
+
+    #[tokio::main]
+    async fn main() -> Result<(), anyhow::Error> {
+        let client = Client::with_uri_str("<MongoDB connection string>").await?;
+        let db = client.database("mydb");
+        let collection: Collection<Document> = db.collection("test");
+
+        let result = collection.insert_one(doc!{ "name": "example" }, None).await?;
+    
+        // Insertion successful
+        Ok(())
+    }
+
+Replace the `<MongoDB connection string>` with your connection string.
 
 Next Steps
 ----------
 
-Now that you have successfully connected to MongoDB using the Rust driver, you can explore other features and 
-functionalities of the driver or MongoDB itself.
-
-Next steps include:
-* Learning more about the Rust MongoDB driver by visiting https://docs.rs/mongodb/2.0.0-alpha.1/mongodb/
-* Exploring MongoDB's Aggregation Pipeline to perform advanced data operations.
-```
+You have learned how to setup the MongoDB Rust driver, and how to connect to a MongoDB instance and perform basic CRUD operations. For more advanced usage of the MongoDB Rust driver, refer to the driver's documentation.

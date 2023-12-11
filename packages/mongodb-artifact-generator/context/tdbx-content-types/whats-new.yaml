@@ -19,6 +19,6 @@ pageStructure: |
   Link to release notes if they provide more insight.
   if useful.
 examples:
-  - https://www.mongodb.com/docs/drivers/go/current/whats-new/
-  # - https://www.mongodb.com/docs/drivers/node/current/whats-new/
-  - https://www.mongodb.com/docs/drivers/node/v5.7/whats-new/
+  - https://mongodb.com/docs/drivers/go/current/whats-new/
+  # - https://mongodb.com/docs/drivers/node/current/whats-new/
+  - https://mongodb.com/docs/drivers/node/v5.7/whats-new/

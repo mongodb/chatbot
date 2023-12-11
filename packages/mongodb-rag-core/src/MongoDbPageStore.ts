@@ -4,7 +4,7 @@ import {
   MakeMongoDbDatabaseConnectionParams,
   makeMongoDbDatabaseConnection,
 } from "./MongoDbDatabaseConnection";
-import { PageStore, PersistedPage } from "./Page";
+import { LoadPagesArgs, LoadPagesQuery, PageStore, PersistedPage } from "./Page";
 import { Filter } from "mongodb";
 
 /**
@@ -23,12 +23,16 @@ export function makeMongoDbPageStore({
     drop,
     close,
     async loadPages(args) {
-      const filter: Filter<PersistedPage> = {};
-      if (args?.sources !== undefined) {
-        filter.sourceName = { $in: args.sources };
-      }
-      if (args?.updated !== undefined) {
-        filter.updated = { $gte: args.updated };
+      const _query = (args as LoadPagesQuery)?.query
+      const filter: Filter<PersistedPage> = _query ?? {};
+      if (!_query) {
+        const { sources, updated } = args as LoadPagesArgs;
+        if (sources !== undefined) {
+          filter.sourceName = { $in: sources };
+        }
+        if (updated !== undefined) {
+          filter.updated = { $gte: updated };
+        }
       }
       return pagesCollection.find(filter).toArray();
     },

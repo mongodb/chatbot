@@ -5,19 +5,17 @@ import {
 } from "../withConfig";
 import { createCommand } from "../createCommand";
 import { promises as fs } from "fs";
-import { html, stripIndents } from "common-tags";
-import { makeFindContent } from "../search";
+import { stripIndents } from "common-tags";
+import { makeFindContent } from "../vectorSearch";
 import { makeGenerateChatCompletion } from "../chat";
-import { summarizePage, generatePage } from "../operations";
-import { makeLogFile } from "../runlogs";
-import { rstDescription, stringifyVectorSearchChunks } from "../prompt";
+import { generatePage } from "../operations";
+import {
+  makeRunLogger,
+} from "../runlogger";
+import { rstDescription } from "../prompt";
 import { TdbxContentTypeId, importTdbxContentTypes, tdbxContentTypeIds } from "../tdbxContentTypes";
 
-const logs = makeLogFile({
-  onAppend: (line) => {
-    console.log(line);
-  }
-})
+const logger = makeRunLogger({ topic: "generateDocsPage" });
 
 type GenerateDocsPageCommandArgs = {
   targetDescription: string;
@@ -41,10 +39,11 @@ export default createCommand<GenerateDocsPageCommandArgs>({
       });
   },
   async handler(args) {
-    logs.append(`generateDocsPage ${JSON.stringify(args)}`);
+    logger.logInfo(`Running command with args: ${JSON.stringify(args)}`);
     const result = await withConfig(action, args);
-    logs.append(`generateDocsPage result: ${JSON.stringify(result)}`);
-    await logs.flush();
+    logger.logInfo(`Success`);
+    await logger.flushArtifacts();
+    await logger.flushLogs();
     return result;
   },
   describe: "Generate a new documentation page based on a prompt.",
@@ -53,19 +52,19 @@ export default createCommand<GenerateDocsPageCommandArgs>({
 export const action = createConfiguredAction<GenerateDocsPageCommandArgs>(
   async (
     { embeddedContentStore, embedder },
-    { targetDescription }
+    { targetDescription, template }
   ) => {
 
     console.log(`Setting up...`);
     const generate = makeGenerateChatCompletion();
-    const { findContent, cleanup: cleanupFindContent } = makeFindContent({
-      embedder,
-      embeddedContentStore,
-      findNearestNeighborsOptions: {
-        k: 3,
-        minScore: 0.85,
-      },
-    });
+    // const { findContent, cleanup: cleanupFindContent } = makeFindContent({
+    //   embedder,
+    //   embeddedContentStore,
+    //   findNearestNeighborsOptions: {
+    //     k: 3,
+    //     minScore: 0.85,
+    //   },
+    // });
 
     try {
       // console.log(`Analyzing page...`);
@@ -90,12 +89,8 @@ export const action = createConfiguredAction<GenerateDocsPageCommandArgs>(
       // console.log(`Logged ${searchResults.length} search result chunks`);
 
       const contentTypes = await importTdbxContentTypes();
-      const pageTemplate = contentTypes[0];
+      const pageTemplate = contentTypes.find((ct) => ct.type === template);
       console.log(contentTypes.map(ct => ct.type))
-      // console.log("pageTemplate", pageTemplate, "pageTemplate");
-      return
-
-      // TODO load this properly from a file
       // const pageTemplate = {
       //   type: "quick-start",
       //   name: "Quick Start",
@@ -108,6 +103,10 @@ export const action = createConfiguredAction<GenerateDocsPageCommandArgs>(
       //     "https://www.mongodb.com/docs/drivers/node/v5.7/quick-start/",
       //   ],
       // };
+      let example = "";
+      if(pageTemplate?.examples) {
+
+      }
 
       console.log(`Generating page...`);
       const transformed = await generatePage({
@@ -140,10 +139,11 @@ export const action = createConfiguredAction<GenerateDocsPageCommandArgs>(
 
       console.log(`Created output:\n\n${transformed}\n`);
       console.log("writing");
-      await fs.writeFile("./output-generateDocsPage.txt", transformed);
+      logger.appendArtifact("output-generateDocsPage.txt", transformed);
+      // await fs.writeFile("./output-generateDocsPage.txt", transformed);
       console.log("written");
     } finally {
-      await cleanupFindContent();
+      // await cleanupFindContent();
     }
   }
 );

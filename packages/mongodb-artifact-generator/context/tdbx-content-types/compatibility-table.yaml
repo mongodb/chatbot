@@ -36,5 +36,4 @@ pageStructure: |
   Use dependency management notations with care for both maintainability and readability by your audience.
   Ensure all the versions are included in the meta keywords to improve internal search. Meta keywords example
 examples:
-  - https://www.mongodb.com/docs/drivers/java/sync/current/compatibility/
-
+  - https://mongodb.com/docs/drivers/java/sync/current/compatibility/

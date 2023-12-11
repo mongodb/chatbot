@@ -1,3 +1,5 @@
+import { Filter } from "mongodb";
+
 /**
   Represents a page from a data source.
  */
@@ -54,6 +56,27 @@ export type PersistedPage = Page & {
   action: PageAction;
 };
 
+export type LoadPagesQuery = {
+  /**
+    A MongoDB query to refine the pages to load.
+   */
+  query: Filter<PersistedPage>;
+};
+
+export type LoadPagesArgs = {
+  /**
+   If specified, refines the query to load pages with an updated date later
+   or equal to the given date.
+  */
+  updated?: Date;
+
+  /**
+   The names of the sources to load pages from. If undefined, loads available
+   pages from all sources.
+  */
+  sources?: string[];
+};
+
 /**
   Data store for {@link Page} objects.
  */
@@ -61,19 +84,7 @@ export type PageStore = {
   /**
     Loads pages from the Page store.
    */
-  loadPages(args?: {
-    /**
-      If specified, refines the query to load pages with an updated date later
-      or equal to the given date.
-     */
-    updated?: Date;
-
-    /**
-      The names of the sources to load pages from. If undefined, loads available
-      pages from all sources.
-     */
-    sources?: string[];
-  }): Promise<PersistedPage[]>;
+  loadPages(args?: LoadPagesQuery | LoadPagesArgs): Promise<PersistedPage[]>;
 
   /**
     Updates or adds the given pages in the store.

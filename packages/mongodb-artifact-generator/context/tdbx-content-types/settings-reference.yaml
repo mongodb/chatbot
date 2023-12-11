@@ -23,7 +23,7 @@ pageStructure: |
 
   In the  “Description” column, provide information such as setting data type, a description of what the setting does along with example values if applicable, the default value, and a list of accepted values.
 examples:
-  # - https://www.mongodb.com/docs/kafka-connector/current/source-connector/configuration-properties/mongodb-connection/
-  - https://www.mongodb.com/docs/kafka-connector/v1.10/source-connector/configuration-properties/mongodb-connection/
-  # - https://www.mongodb.com/docs/drivers/node/current/fundamentals/connection/connection-options/
-  - https://www.mongodb.com/docs/drivers/node/v5.7/fundamentals/connection/connection-options/
+  # - https://mongodb.com/docs/kafka-connector/current/source-connector/configuration-properties/mongodb-connection/
+  - https://mongodb.com/docs/kafka-connector/v1.10/source-connector/configuration-properties/mongodb-connection/
+  # - https://mongodb.com/docs/drivers/node/current/fundamentals/connection/connection-options/
+  - https://mongodb.com/docs/drivers/node/v5.7/fundamentals/connection/connection-options/

@@ -39,5 +39,5 @@ pageStructure: |
 
   Recommend next steps in the learning journey.
 examples:
-  # - https://www.mongodb.com/docs/drivers/node/current/quick-start/
-  - https://www.mongodb.com/docs/drivers/node/v5.7/quick-start/
+  # - https://mongodb.com/docs/drivers/node/current/quick-start/
+  - https://mongodb.com/docs/drivers/node/v5.7/quick-start/

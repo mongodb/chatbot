@@ -3,12 +3,5 @@
   "useNx": true,
   "useWorkspaces": true,
   "version": "independent",
-  "packages": [
-    "chat-core",
-    "chat-server",
-    "chat-ui",
-    "ingest",
-    "mongodb-atlas",
-    "scripts"
-  ]
+  "packages": ["packages/*"]
 }

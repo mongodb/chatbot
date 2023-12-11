@@ -1,0 +1,24 @@
+{
+  "git": {
+    "commitArgs": ["-a"],
+    "commitMessage": "Release ingest v${version}",
+    "tag": false,
+    "push": true,
+    "pushRepo": "upstream",
+    "tagName": "ingest-v${version}"
+  },
+  "npm": {
+    "publish": false
+  },
+  "github": {
+    "releaseName": "ingest-v${version}",
+    "draft": true,
+    "release": true
+  },
+  "hooks": {
+    "before:init": [
+      "pushd ../mongodb-rag-core && npm i && npm run build && popd",
+      "npm run build"
+    ]
+  }
+}

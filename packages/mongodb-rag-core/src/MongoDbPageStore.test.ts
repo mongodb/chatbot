@@ -101,4 +101,53 @@ describe("MongoDbPageStore", () => {
     expect(changedPages.length).toBe(1);
     expect(changedPages[0].url).toBe("matrix2");
   });
+
+  it("supports custom MongoDB queries", async () => {
+    assert(store);
+
+    await store.updatePages([
+      {
+        action: "created",
+        body: "The Matrix (1999) comes out",
+        format: "md",
+        sourceName: "",
+        metadata: {
+          tags: [],
+        },
+        updated: new Date("1999-03-31"),
+        url: "matrix1",
+      },
+      {
+        action: "created",
+        body: "The Matrix: Reloaded (2003) comes out",
+        format: "md",
+        sourceName: "",
+        metadata: {
+          tags: [],
+        },
+        updated: new Date("2003-05-15"),
+        url: "matrix2",
+      },
+      {
+        action: "created",
+        body: "The Matrix: Revolutions (2003) comes out",
+        format: "md",
+        sourceName: "",
+        metadata: {
+          tags: [],
+        },
+        updated: new Date("2003-11-05"),
+        url: "matrix3",
+      },
+    ]);
+
+    const sequels = await store.loadPages({
+      query: {
+        $or: [{ url: "matrix3" }, { updated: { $gt: new Date("2000-01-01") } }],
+      },
+    });
+
+    expect(sequels.length).toBe(2);
+    expect(sequels[0].url).toBe("matrix2");
+  });
 });

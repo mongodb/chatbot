@@ -66,6 +66,7 @@ name: staging-build-chat-server
 trigger:
   branch:
     - main
+    - fix_staging_static_site
   event:
     - push
 
@@ -130,6 +131,7 @@ trigger:
       - packages/mongodb-chatbot-ui/**/*
   branch:
     - main
+    - fix_staging_static_site
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion

@@ -34,7 +34,7 @@ custom_edit_url: null
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:111](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L111)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:111](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L111)
 
 ___
 
@@ -44,7 +44,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:118](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L118)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:118](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L118)
 
 ___
 
@@ -73,7 +73,7 @@ from the Response.locals object.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:62](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L62)
+[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:62](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L62)
 
 ___
 
@@ -83,7 +83,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:102](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L102)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:102](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L102)
 
 ___
 
@@ -93,7 +93,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:106](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L106)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:106](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L106)
 
 ___
 
@@ -103,7 +103,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:36](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L36)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:36](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L36)
 
 ___
 
@@ -113,7 +113,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:76](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L76)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:76](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L76)
 
 ___
 
@@ -131,7 +131,7 @@ with the `POST /conversations` endpoint with the [AddCustomDataFunc](modules.md#
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:85](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L85)
+[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:85](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L85)
 
 ___
 
@@ -147,7 +147,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:98](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L98)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:98](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L98)
 
 ___
 
@@ -262,7 +262,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts:16](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts#L16)
+[packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts:16](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts#L16)
 
 ___
 
@@ -279,7 +279,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts:11](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts#L11)
+[packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts:11](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts#L11)
 
 ___
 
@@ -296,7 +296,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts:20](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts#L20)
+[packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts:20](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts#L20)
 
 ___
 
@@ -345,7 +345,7 @@ This should include the content from vector search.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts:19](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts#L19)
+[packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts:19](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts#L19)
 
 ___
 
@@ -362,7 +362,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts:11](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts#L11)
+[packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts:11](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts#L11)
 
 ___
 
@@ -381,7 +381,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts:25](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts#L25)
+[packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts:25](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts#L25)
 
 ___
 
@@ -425,7 +425,7 @@ Function that generates the references in the response to user.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/routes/conversations/addMessageToConversation.ts:482](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/routes/conversations/addMessageToConversation.ts#L482)
+[packages/mongodb-chatbot-server/src/routes/conversations/addMessageToConversation.ts:482](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/routes/conversations/addMessageToConversation.ts#L482)
 
 ___
 
@@ -465,7 +465,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:5](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L5)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:5](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L5)
 
 ___
 
@@ -475,7 +475,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:29](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L29)
+[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:29](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L29)
 
 ___
 
@@ -485,7 +485,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:33](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L33)
+[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:33](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L33)
 
 ___
 
@@ -495,7 +495,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:8](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L8)
+[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:8](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L8)
 
 ___
 
@@ -505,7 +505,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:31](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L31)
+[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:31](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L31)
 
 ___
 
@@ -638,7 +638,7 @@ want to send a canned response).
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts:17](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts#L17)
+[packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts:17](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts#L17)
 
 ___
 
@@ -655,7 +655,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts:21](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts#L21)
+[packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts:21](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts#L21)
 
 ___
 
@@ -672,7 +672,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts:3](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts#L3)
+[packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts:3](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts#L3)
 
 ___
 
@@ -713,7 +713,7 @@ Message in the [Conversation](interfaces/Conversation.md) as stored in the datab
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:74](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L74)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:74](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L74)
 
 ___
 
@@ -723,7 +723,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:32](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L32)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:32](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L32)
 
 ___
 
@@ -733,7 +733,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:22](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L22)
+[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:22](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L22)
 
 ___
 
@@ -743,7 +743,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:52](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L52)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:52](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L52)
 
 ___
 
@@ -759,7 +759,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/processors/makeBoostOnAtlasSearchFilter.ts:9](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/processors/makeBoostOnAtlasSearchFilter.ts#L9)
+[packages/mongodb-chatbot-server/src/processors/makeBoostOnAtlasSearchFilter.ts:9](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/processors/makeBoostOnAtlasSearchFilter.ts#L9)
 
 ___
 
@@ -811,7 +811,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/middleware/requireRequestOrigin.ts:4](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/middleware/requireRequestOrigin.ts#L4)
+[packages/mongodb-chatbot-server/src/middleware/requireRequestOrigin.ts:4](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/middleware/requireRequestOrigin.ts#L4)
 
 ___
 
@@ -821,7 +821,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/app.ts:108](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/app.ts#L108)
+[packages/mongodb-chatbot-server/src/app.ts:108](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/app.ts#L108)
 
 ___
 
@@ -831,7 +831,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/app.ts:110](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/app.ts#L110)
+[packages/mongodb-chatbot-server/src/app.ts:110](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/app.ts#L110)
 
 ___
 
@@ -865,7 +865,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/middleware/validateRequestSchema.ts:6](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/middleware/validateRequestSchema.ts#L6)
+[packages/mongodb-chatbot-server/src/middleware/validateRequestSchema.ts:6](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/middleware/validateRequestSchema.ts#L6)
 
 ___
 
@@ -875,7 +875,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:163](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L163)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:163](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L163)
 
 ___
 
@@ -901,7 +901,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:161](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L161)
+[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:161](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L161)
 
 ## Functions
 
@@ -974,7 +974,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:260](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L260)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:260](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L260)
 
 ___
 
@@ -996,7 +996,7 @@ Create a [Message](modules.md#message) object from the [OpenAiChatMessage](inter
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:278](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L278)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:278](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L278)
 
 ___
 
@@ -1137,7 +1137,7 @@ Constructor function to make the Express.js app.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/app.ts:115](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/app.ts#L115)
+[packages/mongodb-chatbot-server/src/app.ts:115](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/app.ts#L115)
 
 ___
 
@@ -1159,7 +1159,7 @@ Boost certain results in search results from Atlas Search.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/processors/makeBoostOnAtlasSearchFilter.ts:37](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/processors/makeBoostOnAtlasSearchFilter.ts#L37)
+[packages/mongodb-chatbot-server/src/processors/makeBoostOnAtlasSearchFilter.ts:37](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/processors/makeBoostOnAtlasSearchFilter.ts#L37)
 
 ___
 
@@ -1181,7 +1181,7 @@ Constructor function to make the /conversations/* Express.js router.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:184](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L184)
+[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:184](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L184)
 
 ___
 
@@ -1197,7 +1197,7 @@ Create a [DataStreamer](interfaces/DataStreamer.md) that streams data to the cli
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/dataStreamer.ts:95](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/dataStreamer.ts#L95)
+[packages/mongodb-chatbot-server/src/services/dataStreamer.ts:95](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/dataStreamer.ts#L95)
 
 ___
 
@@ -1219,7 +1219,7 @@ Basic implementation of FindContentFunc with search boosters.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts:35](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts#L35)
+[packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts:35](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/routes/conversations/FindContentFunc.ts#L35)
 
 ___
 
@@ -1248,7 +1248,7 @@ The default reference format returns the following for chunks from _unique_ page
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/routes/conversations/addMessageToConversation.ts:482](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/routes/conversations/addMessageToConversation.ts#L482)
+[packages/mongodb-chatbot-server/src/routes/conversations/addMessageToConversation.ts:482](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/routes/conversations/addMessageToConversation.ts#L482)
 
 ___
 
@@ -1282,7 +1282,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/app.ts:93](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/app.ts#L93)
+[packages/mongodb-chatbot-server/src/app.ts:93](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/app.ts#L93)
 
 ___
 
@@ -1306,7 +1306,7 @@ Create [ConversationsService](interfaces/ConversationsService.md) that uses Mong
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:176](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L176)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:176](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L176)
 
 ___
 
@@ -1371,7 +1371,7 @@ The `ChatLlm` wraps the [@azure/openai](https://www.npmjs.com/package/@azure/ope
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts:38](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts#L38)
+[packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts:38](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts#L38)
 
 ___
 
@@ -1417,7 +1417,7 @@ Middleware that serves the static site from the root path
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/routes/staticSite.ts:8](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/routes/staticSite.ts#L8)
+[packages/mongodb-chatbot-server/src/routes/staticSite.ts:8](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/routes/staticSite.ts#L8)
 
 ___
 
@@ -1512,7 +1512,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/middleware/requireRequestOrigin.ts:6](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/middleware/requireRequestOrigin.ts#L6)
+[packages/mongodb-chatbot-server/src/middleware/requireRequestOrigin.ts:6](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/middleware/requireRequestOrigin.ts#L6)
 
 ___
 
@@ -1526,7 +1526,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/middleware/requireValidIpAddress.ts:5](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/middleware/requireValidIpAddress.ts#L5)
+[packages/mongodb-chatbot-server/src/middleware/requireValidIpAddress.ts:5](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/middleware/requireValidIpAddress.ts#L5)
 
 ___
 

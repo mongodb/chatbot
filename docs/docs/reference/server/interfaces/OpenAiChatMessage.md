@@ -26,7 +26,7 @@ ChatMessage.content
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:14](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L14)
+[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:14](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L14)
 
 ___
 
@@ -38,7 +38,7 @@ The vector representation of the content.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:19](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L19)
+[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:19](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L19)
 
 ___
 
@@ -54,4 +54,4 @@ ChatMessage.role
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:12](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L12)
+[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:12](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L12)

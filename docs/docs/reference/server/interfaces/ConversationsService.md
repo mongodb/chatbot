@@ -30,7 +30,7 @@ Service for managing [Conversation](Conversation.md)s.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:152](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L152)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:152](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L152)
 
 ___
 
@@ -40,7 +40,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:150](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L150)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:150](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L150)
 
 ___
 
@@ -64,7 +64,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:151](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L151)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:151](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L151)
 
 ___
 
@@ -88,7 +88,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:155](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L155)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:155](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L155)
 
 ___
 
@@ -112,4 +112,4 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:156](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/conversations.ts#L156)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:156](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L156)

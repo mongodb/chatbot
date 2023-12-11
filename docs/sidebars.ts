@@ -19,8 +19,8 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "Data Ingest CLI",
-      collapsible: false,
-      collapsed: false,
+      collapsible: true,
+      collapsed: true,
       items: [
         "ingest/configure",
         "ingest/configuration-reference",
@@ -32,10 +32,16 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "Chat Server",
-      collapsible: false,
-      collapsed: false,
+      collapsible: true,
+      collapsed: true,
       items: [
         "server/configure",
+        "server/how-it-works",
+        "server/retrieve",
+        "server/llm",
+        "server/preprocess",
+        "server/custom-middleware",
+        "server/evaluate",
         {
           type: "link",
           label: "OpenAPI Spec",
@@ -45,7 +51,18 @@ const sidebars: SidebarsConfig = {
     },
     "ui",
     {
-      "API Reference": [
+      type: "category",
+      label: "API Reference",
+      // collapsible: true,
+      // collapsed: true,
+      link: {
+        type: "generated-index",
+        title: "API Reference",
+        description:
+          "This section contains full generated API reference documentation.",
+        slug: "/reference/",
+      },
+      items: [
         {
           "mongodb-chatbot-server": [
             {

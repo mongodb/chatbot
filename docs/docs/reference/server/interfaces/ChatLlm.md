@@ -26,7 +26,7 @@ LLM that responds to user queries. Provides both streaming and awaited options.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:43](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L43)
+[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:43](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L43)
 
 ___
 
@@ -46,4 +46,4 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:39](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L39)
+[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:39](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L39)

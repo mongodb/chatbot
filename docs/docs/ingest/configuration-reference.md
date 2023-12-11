@@ -12,6 +12,11 @@ To set up a configuration file, you must first install the following packages:
 npm install mongodb-rag-ingest mongodb-rag-core
 ```
 
+## API Reference
+
+For a full API reference of all modules exported by `mongodb-rag-ingest`
+and `mongodb-rag-core`, refer to the [API Reference](../api.md) documentation.
+
 ## `Config`
 
 The `Config` type is the root configuration type for the Ingest CLI.

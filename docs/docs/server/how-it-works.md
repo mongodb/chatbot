@@ -1,0 +1,56 @@
+# How the Chatbot Server Works
+
+This guide explains how the MongoDB Chatbot Server works, and the different
+points where you can customize its behavior.
+
+## Endpoints
+
+The server has the following endpoints:
+
+- `POST /conversations/`: Create a new conversation. You must create a conversation
+  before you can send messages to the chatbot.
+- `POST /conversations/:conversationId/messages`: Send a message to the chatbot,
+  and get a response back.
+- `POST /conversations/:conversationId/messages/:messageId/rating`: Rate a message
+  in the conversation.
+
+For more information on these endpoints, refer to the [API Specification](openapi).
+
+## Add Message Flow
+
+When you add a message to a conversation with the `POST /conversations/:conversationId/messages` endpoint, the following happens on the server:
+
+1. (Optional) Custom Express.js middleware runs. To learn more,
+   refer to the [Custom Middleware](./custom-middleware) guide.
+1. Load conversation from the database.
+1. (Optional) The user message is preprocessed. To learn more, refer to the
+   [Preprocessing](./preprocessing) guide.
+   a. The preprocessor can also flag if the message is rejected
+   (for example if it's inappropriate). If the message is rejected,
+   the server returns a static response to the user.
+1. Find relevant content based on the user query. If you use the preprocessor,
+   the preprocessed message is used. To learn more, refer to [Retrieve Context Information](./retrieve).
+   a. If no relevant content is found, the server returns a static response to the user.
+1. The relevant content is used to generate a user prompt. To learn more about
+   generating the user message, refer to the [User Prompt Engineering](./llm.md#user-prompt) guide.
+1. The user prompt is used to generate a chatbot response.
+1. The chatbot response is returned to the user.
+1. The conversation is updated with the new user and assistant messages.
+
+Here's a flow chart of this process:
+
+```mermaid
+graph TD
+    SEND[Send User Message] --> MID[Optional: Run Custom Middleware]
+    MID --> LOAD[Load Conversation from DB]
+    LOAD --> PREP[Optional: Pre-process User Message]
+    PREP -->|Reject Message| REJ[Return Static Response to User]
+    PREP --> FIND[Find Relevant Content]
+    FIND -->|No Content Found| NOCO[Return Static Response to User]
+    FIND --> USER[Generate User Prompt from Relevant Content]
+    USER --> LLM[Generate Chatbot Response with LLM]
+    LLM --> RES[Return Chatbot Response to User]
+    RES --> UPDATE[Update Conversation in DB with New Messages]
+    REJ --> UPDATE
+    NOCO --> UPDATE
+```

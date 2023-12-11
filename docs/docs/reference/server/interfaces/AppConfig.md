@@ -18,7 +18,7 @@ Prefix for all API routes. Defaults to `/api/v1`.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/app.ts:45](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/app.ts#L45)
+[packages/mongodb-chatbot-server/src/app.ts:45](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/app.ts#L45)
 
 ___
 
@@ -30,7 +30,7 @@ Configuration for the conversations router.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/app.ts:29](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/app.ts#L29)
+[packages/mongodb-chatbot-server/src/app.ts:29](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/app.ts#L29)
 
 ___
 
@@ -42,7 +42,7 @@ Configuration for CORS middleware. Defaults to allowing all origins.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/app.ts:40](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/app.ts#L40)
+[packages/mongodb-chatbot-server/src/app.ts:40](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/app.ts#L40)
 
 ___
 
@@ -55,7 +55,7 @@ Defaults to 60000 (1 minute).
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/app.ts:35](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/app.ts#L35)
+[packages/mongodb-chatbot-server/src/app.ts:35](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/app.ts#L35)
 
 ___
 
@@ -73,4 +73,4 @@ with an environment variable.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/app.ts:56](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-chatbot-server/src/app.ts#L56)
+[packages/mongodb-chatbot-server/src/app.ts:56](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/app.ts#L56)

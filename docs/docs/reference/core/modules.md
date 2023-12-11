@@ -26,7 +26,7 @@ custom_edit_url: null
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/DatabaseConnection.ts:1](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/DatabaseConnection.ts#L1)
+[packages/mongodb-rag-core/src/DatabaseConnection.ts:1](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/DatabaseConnection.ts#L1)
 
 ___
 
@@ -43,7 +43,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/Embedder.ts:1](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/Embedder.ts#L1)
+[packages/mongodb-rag-core/src/Embedder.ts:1](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/Embedder.ts#L1)
 
 ___
 
@@ -59,7 +59,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/Embedder.ts:13](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/Embedder.ts#L13)
+[packages/mongodb-rag-core/src/Embedder.ts:13](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/Embedder.ts#L13)
 
 ___
 
@@ -81,7 +81,7 @@ Data store of the embedded content.
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/EmbeddedContent.ts:59](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/EmbeddedContent.ts#L59)
+[packages/mongodb-rag-core/src/EmbeddedContent.ts:59](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/EmbeddedContent.ts#L59)
 
 ___
 
@@ -100,7 +100,7 @@ vector embedding of the text.
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/Embedder.ts:24](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/Embedder.ts#L24)
+[packages/mongodb-rag-core/src/Embedder.ts:24](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/Embedder.ts#L24)
 
 ___
 
@@ -122,7 +122,7 @@ Options for performing a nearest-neighbor search.
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/EmbeddedContent.ts:97](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/EmbeddedContent.ts#L97)
+[packages/mongodb-rag-core/src/EmbeddedContent.ts:97](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/EmbeddedContent.ts#L97)
 
 ___
 
@@ -140,7 +140,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/OpenAiEmbedder.ts:7](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/OpenAiEmbedder.ts#L7)
+[packages/mongodb-rag-core/src/OpenAiEmbedder.ts:7](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/OpenAiEmbedder.ts#L7)
 
 ___
 
@@ -160,7 +160,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts:15](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts#L15)
+[packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts:15](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts#L15)
 
 ___
 
@@ -183,7 +183,7 @@ Represents a page from a data source.
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/Page.ts:4](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/Page.ts#L4)
+[packages/mongodb-rag-core/src/Page.ts:4](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/Page.ts#L4)
 
 ___
 
@@ -193,7 +193,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/Page.ts:40](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/Page.ts#L40)
+[packages/mongodb-rag-core/src/Page.ts:40](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/Page.ts#L40)
 
 ___
 
@@ -203,7 +203,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/Page.ts:38](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/Page.ts#L38)
+[packages/mongodb-rag-core/src/Page.ts:38](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/Page.ts#L38)
 
 ___
 
@@ -223,7 +223,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/Page.ts:30](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/Page.ts#L30)
+[packages/mongodb-rag-core/src/Page.ts:30](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/Page.ts#L30)
 
 ___
 
@@ -243,7 +243,7 @@ Data store for [Page](modules.md#page) objects.
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/Page.ts:60](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/Page.ts#L60)
+[packages/mongodb-rag-core/src/Page.ts:60](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/Page.ts#L60)
 
 ___
 
@@ -255,7 +255,7 @@ Represents a [Page](modules.md#page) stored in the database.
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/Page.ts:45](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/Page.ts#L45)
+[packages/mongodb-rag-core/src/Page.ts:45](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/Page.ts#L45)
 
 ___
 
@@ -270,9 +270,9 @@ a MongoDB University module.
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/services/conversations.ts:9](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/services/conversations.ts#L9)
+[packages/mongodb-rag-core/src/services/conversations.ts:9](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/services/conversations.ts#L9)
 
-[packages/mongodb-rag-core/src/services/conversations.ts:10](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/services/conversations.ts#L10)
+[packages/mongodb-rag-core/src/services/conversations.ts:10](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/services/conversations.ts#L10)
 
 ___
 
@@ -282,9 +282,9 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/services/conversations.ts:15](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/services/conversations.ts#L15)
+[packages/mongodb-rag-core/src/services/conversations.ts:15](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/services/conversations.ts#L15)
 
-[packages/mongodb-rag-core/src/services/conversations.ts:16](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/services/conversations.ts#L16)
+[packages/mongodb-rag-core/src/services/conversations.ts:16](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/services/conversations.ts#L16)
 
 ___
 
@@ -300,7 +300,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/EmbeddedContent.ts:92](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/EmbeddedContent.ts#L92)
+[packages/mongodb-rag-core/src/EmbeddedContent.ts:92](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/EmbeddedContent.ts#L92)
 
 ## Variables
 
@@ -326,7 +326,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/CoreEnvVars.ts:1](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/CoreEnvVars.ts#L1)
+[packages/mongodb-rag-core/src/CoreEnvVars.ts:1](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/CoreEnvVars.ts#L1)
 
 ___
 
@@ -336,9 +336,9 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/services/conversations.ts:9](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/services/conversations.ts#L9)
+[packages/mongodb-rag-core/src/services/conversations.ts:9](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/services/conversations.ts#L9)
 
-[packages/mongodb-rag-core/src/services/conversations.ts:10](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/services/conversations.ts#L10)
+[packages/mongodb-rag-core/src/services/conversations.ts:10](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/services/conversations.ts#L10)
 
 ___
 
@@ -348,9 +348,9 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/services/conversations.ts:15](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/services/conversations.ts#L15)
+[packages/mongodb-rag-core/src/services/conversations.ts:15](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/services/conversations.ts#L15)
 
-[packages/mongodb-rag-core/src/services/conversations.ts:16](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/services/conversations.ts#L16)
+[packages/mongodb-rag-core/src/services/conversations.ts:16](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/services/conversations.ts#L16)
 
 ___
 
@@ -360,7 +360,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/services/logger.ts:44](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/services/logger.ts#L44)
+[packages/mongodb-rag-core/src/services/logger.ts:44](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/services/logger.ts#L44)
 
 ## Functions
 
@@ -386,7 +386,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/assertEnvVars.ts:1](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/assertEnvVars.ts#L1)
+[packages/mongodb-rag-core/src/assertEnvVars.ts:1](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/assertEnvVars.ts#L1)
 
 ___
 
@@ -413,7 +413,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/services/logger.ts:10](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/services/logger.ts#L10)
+[packages/mongodb-rag-core/src/services/logger.ts:10](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/services/logger.ts#L10)
 
 ___
 
@@ -451,7 +451,7 @@ for developer convenience.
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/extractFrontMatter.ts:10](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/extractFrontMatter.ts#L10)
+[packages/mongodb-rag-core/src/extractFrontMatter.ts:10](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/extractFrontMatter.ts#L10)
 
 ___
 
@@ -479,7 +479,7 @@ Given an array of possibly undefined T, return those that are defined.
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/arrayFilters.ts:14](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/arrayFilters.ts#L14)
+[packages/mongodb-rag-core/src/arrayFilters.ts:14](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/arrayFilters.ts#L14)
 
 ___
 
@@ -507,7 +507,7 @@ Given an array of PromiseSettledResults, return those that are fulfilled as Prom
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/arrayFilters.ts:4](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/arrayFilters.ts#L4)
+[packages/mongodb-rag-core/src/arrayFilters.ts:4](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/arrayFilters.ts#L4)
 
 ___
 
@@ -527,7 +527,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/MongoDbEmbeddedContentStore.ts:15](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/MongoDbEmbeddedContentStore.ts#L15)
+[packages/mongodb-rag-core/src/MongoDbEmbeddedContentStore.ts:15](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/MongoDbEmbeddedContentStore.ts#L15)
 
 ___
 
@@ -549,7 +549,7 @@ Data store for [Page](modules.md#page) objects using MongoDB.
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/MongoDbPageStore.ts:13](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/MongoDbPageStore.ts#L13)
+[packages/mongodb-rag-core/src/MongoDbPageStore.ts:13](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/MongoDbPageStore.ts#L13)
 
 ___
 
@@ -572,7 +572,7 @@ Embeddings API](https://platform.openai.com/docs/guides/embeddings).
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/OpenAiEmbedder.ts:28](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/OpenAiEmbedder.ts#L28)
+[packages/mongodb-rag-core/src/OpenAiEmbedder.ts:28](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/OpenAiEmbedder.ts#L28)
 
 ___
 
@@ -610,7 +610,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts:42](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts#L42)
+[packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts:42](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts#L42)
 
 ___
 
@@ -631,7 +631,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/removeFrontMatter.ts:2](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/removeFrontMatter.ts#L2)
+[packages/mongodb-rag-core/src/removeFrontMatter.ts:2](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/removeFrontMatter.ts#L2)
 
 ___
 
@@ -652,4 +652,4 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/updateFrontMatter.ts:4](https://github.com/mongodben/chatbot/blob/dbe6fdb/packages/mongodb-rag-core/src/updateFrontMatter.ts#L4)
+[packages/mongodb-rag-core/src/updateFrontMatter.ts:4](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/updateFrontMatter.ts#L4)

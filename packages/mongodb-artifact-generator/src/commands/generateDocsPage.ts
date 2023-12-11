@@ -103,9 +103,17 @@ export const action = createConfiguredAction<GenerateDocsPageCommandArgs>(
       //     "https://www.mongodb.com/docs/drivers/node/v5.7/quick-start/",
       //   ],
       // };
-      let example = "";
       if(pageTemplate?.examples) {
-
+        // Look up the examples in the pages collection
+        const examples = await Promise.all(
+          pageTemplate.examples.map(async (url) => {
+            const example = await findPageByUrl(url);
+            if (!example) {
+              throw new Error(`Could not find example page at ${url}`);
+            }
+            return example;
+          })
+        );
       }
 
       console.log(`Generating page...`);

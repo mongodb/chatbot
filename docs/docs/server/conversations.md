@@ -1,6 +1,6 @@
-# How the Chatbot Server Works
+# Conversations
 
-This guide explains how the MongoDB Chatbot Server works, and the different
+This guide explains how the MongoDB Chatbot Server manages conversations, and the different
 points where you can customize its behavior.
 
 ## Endpoints
@@ -15,6 +15,18 @@ The server has the following endpoints:
   in the conversation.
 
 For more information on these endpoints, refer to the [API Specification](openapi).
+
+## Expose the Conversations Endpoints in Your App
+
+The MongoDB Chatbot Server exposes the conversation endpoints at the `/conversations` path.
+There are two ways that you can expose these endpoints in your app:
+
+1. Use the [`makeApp()`](../reference/server/modules.md#makeapp)
+   function to create an Express.js app. This is the easiest way to get started
+   and contains everything you need out of the box.
+1. Use the [`makeConversationsRouter()`](../reference/server/modules.md#makeconversationsrouter) function to create an Express.js [`Router`](https://expressjs.com/en/guide/routing.html) that you can add to an Express app.
+   This is useful if you want to expose the conversation endpoints within a larger
+   Express.js app or customize your server beyond what's possible with `makeApp()`.
 
 ## Add Message Flow
 

@@ -36,7 +36,7 @@ const sidebars: SidebarsConfig = {
       collapsed: true,
       items: [
         "server/configure",
-        "server/how-it-works",
+        "server/conversations",
         "server/retrieve",
         "server/llm",
         "server/preprocess",

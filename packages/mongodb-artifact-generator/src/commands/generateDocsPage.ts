@@ -9,11 +9,13 @@ import { stripIndents } from "common-tags";
 import { makeFindContent } from "../vectorSearch";
 import { makeGenerateChatCompletion } from "../chat";
 import { generatePage } from "../operations";
-import {
-  makeRunLogger,
-} from "../runlogger";
+import { makeRunLogger } from "../runlogger";
 import { rstDescription } from "../prompt";
-import { TdbxContentTypeId, importTdbxContentTypes, tdbxContentTypeIds } from "../tdbxContentTypes";
+import {
+  TdbxContentTypeId,
+  importTdbxContentTypes,
+  tdbxContentTypeIds,
+} from "../tdbxContentTypes";
 
 const logger = makeRunLogger({ topic: "generateDocsPage" });
 
@@ -51,10 +53,9 @@ export default createCommand<GenerateDocsPageCommandArgs>({
 
 export const action = createConfiguredAction<GenerateDocsPageCommandArgs>(
   async (
-    { embeddedContentStore, embedder },
+    { embeddedContentStore, embedder, pageStore },
     { targetDescription, template }
   ) => {
-
     console.log(`Setting up...`);
     const generate = makeGenerateChatCompletion();
     // const { findContent, cleanup: cleanupFindContent } = makeFindContent({
@@ -90,7 +91,6 @@ export const action = createConfiguredAction<GenerateDocsPageCommandArgs>(
 
       const contentTypes = await importTdbxContentTypes();
       const pageTemplate = contentTypes.find((ct) => ct.type === template);
-      console.log(contentTypes.map(ct => ct.type))
       // const pageTemplate = {
       //   type: "quick-start",
       //   name: "Quick Start",
@@ -103,18 +103,35 @@ export const action = createConfiguredAction<GenerateDocsPageCommandArgs>(
       //     "https://www.mongodb.com/docs/drivers/node/v5.7/quick-start/",
       //   ],
       // };
-      if(pageTemplate?.examples) {
-        // Look up the examples in the pages collection
-        const examples = await Promise.all(
-          pageTemplate.examples.map(async (url) => {
-            const example = await findPageByUrl(url);
-            if (!example) {
-              throw new Error(`Could not find example page at ${url}`);
-            }
-            return example;
+      console.log("pageTemplate.examples", pageTemplate?.examples);
+      const exampleRegexes =
+        pageTemplate?.examples.map((example) => new RegExp(example)) ?? [];
+      const query = {
+        $or: exampleRegexes.map((regex) => ({
+          url: { $regex: regex, $options: "i" },
+        })),
+      };
+      const templateExamplePages = pageTemplate?.examples
+        ? await pageStore.loadPages({
+            query,
+            // query: {
+            //   url: {
+            //     $in: pageTemplate.examples
+            //   }
+            // }
           })
-        );
+        : [];
+      console.log(`Found ${templateExamplePages.length} templateExamplePages`);
+      for (const [i, example] of Object.entries(templateExamplePages)) {
+        logger.logInfo(`templateExamplePages ${i}: ${JSON.stringify(example)}`);
       }
+      const maxTemplateExamplePages = 3;
+      console.log(
+        `Limiting to ${maxTemplateExamplePages} templateExamplePages`
+      );
+      const templateExamples = templateExamplePages
+        .slice(0, maxTemplateExamplePages)
+        .map((page) => page.body);
 
       console.log(`Generating page...`);
       const transformed = await generatePage({
@@ -132,6 +149,9 @@ export const action = createConfiguredAction<GenerateDocsPageCommandArgs>(
 
             Page Structure:
             ${pageTemplate?.pageStructure ?? "None provided."}
+
+            Examples:
+            ${templateExamples.join("\n\n")}
 
             ${
               !targetDescription

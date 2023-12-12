@@ -26,7 +26,5 @@ pageStructure: |
 
   Link to additional, related resources
 examples:
-  # - https://mongodb.com/docs/kafka-connector/current/tutorials/tutorial-setup
-  - https://mongodb.com/docs/kafka-connector/v1.10/tutorials/tutorial-setup
-  # - https://mongodb.com/docs/kafka-connector/current/tutorials/source-connector/
-  - https://mongodb.com/docs/kafka-connector/v1.10/tutorials/source-connector/
+  - https://mongodb.com/docs/kafka-connector/current/tutorials/tutorial-setup
+  - https://mongodb.com/docs/kafka-connector/current/tutorials/source-connector/

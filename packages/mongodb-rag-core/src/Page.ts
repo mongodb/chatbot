@@ -58,9 +58,9 @@ export type PersistedPage = Page & {
 
 export type LoadPagesQuery = {
   /**
-    A MongoDB query to refine the pages to load.
+    A custom query to refine the pages to load.
    */
-  query: Filter<PersistedPage>;
+  query: unknown;
 };
 
 export type LoadPagesArgs = {
@@ -81,6 +81,10 @@ export type LoadPagesArgs = {
   Data store for {@link Page} objects.
  */
 export type PageStore = {
+  /**
+    The query format the store accepts.
+   */
+  queryType: "mongodb" | string;
   /**
     Loads pages from the Page store.
    */

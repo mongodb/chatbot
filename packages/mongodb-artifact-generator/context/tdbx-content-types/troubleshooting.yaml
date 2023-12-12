@@ -23,5 +23,4 @@ pageStructure: |
 
   Recommend preventative measures
 examples:
-  # - https://mongodb.com/docs/kafka-connector/current/troubleshooting/recover-from-invalid-resume-token/
-  - https://mongodb.com/docs/kafka-connector/v1.10/troubleshooting/recover-from-invalid-resume-token/
+  - https://mongodb.com/docs/kafka-connector/current/troubleshooting/recover-from-invalid-resume-token/

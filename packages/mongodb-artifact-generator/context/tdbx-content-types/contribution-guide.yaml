@@ -13,5 +13,4 @@ pageStructure: |
 
   Link to any other resources that can help the user author or submit a contribution.
 examples:
-  # - https://mongodb.com/docs/kafka-connector/current/contribute/
-  - https://mongodb.com/docs/kafka-connector/v1.10/contribute/
+  - https://mongodb.com/docs/kafka-connector/current/contribute/

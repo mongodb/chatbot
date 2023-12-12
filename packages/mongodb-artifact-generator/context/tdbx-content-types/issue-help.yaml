@@ -19,8 +19,6 @@ pageStructure: |
 
   Provide the user with instructions on how to open a PR against the official driver repository.
 examples:
-  # - https://mongodb.com/docs/kafka-connector/current/issues-and-help/
-  - https://mongodb.com/docs/kafka-connector/v1.10/issues-and-help/
+  - https://mongodb.com/docs/kafka-connector/current/issues-and-help/
   - https://mongodb.com/docs/drivers/go/current/issues-and-help/
-  # - https://mongodb.com/docs/drivers/node/current/issues-and-help/
-  - https://mongodb.com/docs/drivers/node/v5.7/issues-and-help/
+  - https://mongodb.com/docs/drivers/node/current/issues-and-help/

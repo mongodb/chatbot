@@ -18,7 +18,6 @@ pageStructure: |
 
   Present one or more brief answers to the question, including any copy and paste code examples as well as links to internal or external documentation that provide more information.
 examples:
-  # - https://mongodb.com/docs/drivers/node/current/faq/
-  - https://mongodb.com/docs/drivers/node/v5.7/faq/
+  - https://mongodb.com/docs/drivers/node/current/faq/
   - https://mongodb.com/docs/drivers/go/current/faq/
   - https://mongodb.com/docs/drivers/java/sync/current/faq/

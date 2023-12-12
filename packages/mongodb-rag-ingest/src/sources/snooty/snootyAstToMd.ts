@@ -1,4 +1,4 @@
-import { SnootyNode } from "./SnootyDataSource";
+import { SnootyNode, SnootyTextNode } from "./SnootyDataSource";
 import { strict as assert } from "assert";
 import { renderSnootyTable } from "./renderSnootyTable";
 
@@ -168,11 +168,31 @@ const findNode = (
   return undefined;
 };
 
+/**
+  Return all nodes in the given tree that match the given predicate.
+ */
+const findAll = (
+  node: SnootyNode,
+  predicate: (node: SnootyNode) => boolean
+): SnootyNode[] => {
+  const matches: SnootyNode[] = [];
+  for (const child of node.children ?? []) {
+    if (predicate(child)) {
+      matches.push(child);
+    }
+    matches.push(...findAll(child, predicate));
+  }
+  return matches;
+};
+
 export const getTitleFromSnootyAst = (node: SnootyNode): string | undefined => {
   const firstHeading = findNode(node, ({ type }) => type === "heading");
   if (!firstHeading) {
     return undefined;
   }
-  const textNode = findNode(firstHeading, ({ type }) => type === "text");
-  return textNode?.value as string;
+  const textNodes = findAll(
+    firstHeading,
+    ({ type }) => type === "text"
+  ) as SnootyTextNode[];
+  return textNodes.map(({ value }) => value).join("");
 };

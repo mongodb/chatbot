@@ -1,6 +1,6 @@
 # MongoDB AI Chatbot Server
 
-This is the implementation of `mongodb-chatbot-server` that powers the MongoDB AI Chatbot.
+This is an implementation of `mongodb-chatbot-server` that powers the MongoDB AI Chatbot.
 
 The project is a Express.js server.
 
@@ -49,3 +49,4 @@ To format the code, run:
 ```sh
 npm run format
 ```
+

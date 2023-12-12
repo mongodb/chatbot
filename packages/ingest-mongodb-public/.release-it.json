@@ -1,17 +1,17 @@
 {
   "git": {
     "commitArgs": ["-a"],
-    "commitMessage": "Release ingest v${version}",
+    "commitMessage": "Release ingest-mongodb-public v${version}",
     "tag": false,
     "push": true,
     "pushRepo": "upstream",
-    "tagName": "ingest-v${version}"
+    "tagName": "ingest-mongodb-public-v${version}"
   },
   "npm": {
     "publish": false
   },
   "github": {
-    "releaseName": "ingest-v${version}",
+    "releaseName": "ingest-mongodb-public-v${version}",
     "draft": true,
     "release": true
   },

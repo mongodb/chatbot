@@ -46,20 +46,19 @@ export const makeOpenAiEmbedder = ({
         {
           ...backoffOptions,
           async retry(err, attemptNumber) {
-            // Catch axios errors which occur if response 4XX or 5XX
-            if (!err.response?.status && !err.response?.data?.error) {
+            // Catch errors if response 4XX or 5XX
+            if (err.code === undefined) {
               logger.error(
-                `OpenAI Embedding API request failed with unknown error: ${err}`
+                `OpenAI Embedding API request failed with unknown error: ${JSON.stringify(
+                  err
+                )}`
               );
               return false;
             }
-            const {
-              status,
-              data: { error },
-            } = err.response;
-
-            const errorMessage = error?.message ?? "Unknown error";
-            if (status === 429) {
+            const { code: codeString, message } = err;
+            const code = parseInt(codeString);
+            const errorMessage = (message as string) ?? "Unknown error";
+            if (code === 429) {
               logger.info(
                 `OpenAI Embedding API rate limited (attempt ${
                   attemptNumber - 1
@@ -81,7 +80,7 @@ export const makeOpenAiEmbedder = ({
               return true; // Keep trying until max attempts
             }
             // Azure OpenAI service returns 5XX errors for rate limiting in addition to 429
-            if (status >= 500) {
+            if (code >= 500) {
               logger.info(
                 `OpenAI Embedding API unavailable (attempt ${
                   attemptNumber - 1
@@ -92,10 +91,10 @@ export const makeOpenAiEmbedder = ({
               );
               return true; // Keep trying until max attempts
             }
-            const message = stripIndent`OpenAI Embedding API returned an error:
-- status: ${status}
-- error: ${errorMessage}`;
-            logger.error(message);
+            const resultMessage = stripIndent`OpenAI Embedding API returned an error:
+- code: ${code}
+- message: ${errorMessage}`;
+            logger.error(resultMessage);
             return false;
           },
         }

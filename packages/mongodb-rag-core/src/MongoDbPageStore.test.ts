@@ -102,6 +102,40 @@ describe("MongoDbPageStore", () => {
     expect(changedPages[0].url).toBe("matrix2");
   });
 
+  it("loads pages by URL", async () => {
+    assert(store);
+
+    await store.updatePages([
+      {
+        action: "created",
+        body: "Page One",
+        format: "md",
+        sourceName: "",
+        metadata: {
+          tags: [],
+        },
+        updated: new Date("2000-01-01"),
+        url: "page-one",
+      },
+      {
+        action: "created",
+        body: "Page Two",
+        format: "md",
+        sourceName: "",
+        metadata: {
+          tags: [],
+        },
+        updated: new Date("2000-01-02"),
+        url: "page-two",
+      },
+    ]);
+
+    const pages = await store.loadPages({ urls: ["page-two"] });
+
+    expect(pages.length).toBe(1);
+    expect(pages[0].url).toBe("page-two");
+  });
+
   it("supports custom MongoDB queries", async () => {
     assert(store);
 

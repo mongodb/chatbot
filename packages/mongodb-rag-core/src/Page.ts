@@ -1,5 +1,3 @@
-import { Filter } from "mongodb";
-
 /**
   Represents a page from a data source.
  */
@@ -56,11 +54,11 @@ export type PersistedPage = Page & {
   action: PageAction;
 };
 
-export type LoadPagesQuery = {
+export type LoadPagesQuery<T = unknown> = {
   /**
-    A MongoDB query to refine the pages to load.
+    A custom query to refine the pages to load.
    */
-  query: Filter<PersistedPage>;
+  query: T;
 };
 
 export type LoadPagesArgs = {
@@ -69,6 +67,12 @@ export type LoadPagesArgs = {
    or equal to the given date.
   */
   updated?: Date;
+
+  /**
+   If specified, refines the query to only load pages where the url
+   is included in the list.
+  */
+  urls?: string[];
 
   /**
    The names of the sources to load pages from. If undefined, loads available
@@ -80,11 +84,17 @@ export type LoadPagesArgs = {
 /**
   Data store for {@link Page} objects.
  */
-export type PageStore = {
+export type PageStore<QueryShape = unknown> = {
+  /**
+    The format that the store uses for custom queries. If not specified,
+    the store does not allow custom queries.
+   */
+  queryType?: "mongodb" | string;
+
   /**
     Loads pages from the Page store.
    */
-  loadPages(args?: LoadPagesQuery | LoadPagesArgs): Promise<PersistedPage[]>;
+  loadPages(args?: LoadPagesQuery<QueryShape> | LoadPagesArgs): Promise<PersistedPage[]>;
 
   /**
     Updates or adds the given pages in the store.
@@ -96,3 +106,28 @@ export type PageStore = {
    */
   close?: () => Promise<void>;
 };
+
+export type ParsedLoadPagesQuery<QueryShape = unknown> = {
+  type: "query";
+  query: LoadPagesQuery<QueryShape>["query"];
+};
+
+export type ParsedLoadPagesArgs = {
+  type: "args";
+  args: LoadPagesArgs;
+};
+
+export type ParsedLoadPagesArgsOrQuery<QueryShape = unknown> =
+  | ParsedLoadPagesQuery<QueryShape>
+  | ParsedLoadPagesArgs;
+
+export function parseLoadPagesArgs<QueryShape = unknown>(
+  args: NonNullable<Parameters<PageStore["loadPages"]>[0]>
+): ParsedLoadPagesArgsOrQuery<QueryShape> {
+  const query = (args as Partial<LoadPagesQuery<QueryShape>>).query;
+  if (query) {
+    return { type: "query", query };
+  } else {
+    return { type: "args", args: args as LoadPagesArgs };
+  }
+}

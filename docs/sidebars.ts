@@ -40,7 +40,7 @@ const sidebars: SidebarsConfig = {
         "server/retrieve",
         "server/llm",
         "server/preprocess",
-        "server/custom-middleware",
+        "server/custom-logic",
         "server/evaluate",
         {
           type: "link",

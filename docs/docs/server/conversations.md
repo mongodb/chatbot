@@ -1,4 +1,4 @@
-# Conversations
+# Manage Conversations
 
 This guide explains how the MongoDB Chatbot Server manages conversations, and the different
 points where you can customize its behavior.

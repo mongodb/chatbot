@@ -160,10 +160,10 @@ export const llm = makeOpenAiChatLlm({
 ### User Prompt
 
 You can modify what the chatbot uses as the user prompt by implementing the
-[`generateUserPrompt()`](../reference/server/modules.md#generateuserprompt) function.
+[`GenerateUserPrompt`](../reference/server/modules.md#generateuserprompt) function.
 
-The `generateUserPrompt()` function takes in the user's question and the context
-information found by the vector search, and returns a `UserPrompt` message.
+The `GenerateUserPrompt` function takes in the user's question and the context
+information found by the vector search, and returns a user message.
 
 ```ts
 import { makeOpenAiChatLlm, OpenAiChatMessage } from "mongodb-chatbot-server";

@@ -4,7 +4,7 @@ import {
   MakeMongoDbDatabaseConnectionParams,
   makeMongoDbDatabaseConnection,
 } from "./MongoDbDatabaseConnection";
-import { LoadPagesArgs, LoadPagesQuery, PageStore, PersistedPage, parseLoadPagesArgs } from "./Page";
+import { LoadPagesArgs, PageStore, PersistedPage } from "./Page";
 import { Filter } from "mongodb";
 
 /**
@@ -23,18 +23,10 @@ export function makeMongoDbPageStore({
     queryType: "mongodb",
     drop,
     close,
-    async loadPages(
-      args: LoadPagesQuery<Filter<PersistedPage>> | LoadPagesArgs | undefined
-    ) {
-      let filter: Filter<PersistedPage> = {};
-      if (args) {
-        const parsedArgs = parseLoadPagesArgs<Filter<PersistedPage>>(args);
-        if (parsedArgs.type === "query") {
-          filter = parsedArgs.query;
-        } else {
-          filter = createLoadPagesQueryFilterFromArgs(parsedArgs.args);
-        }
-      }
+    async loadPages(args?: LoadPagesArgs) {
+      const filter: Filter<PersistedPage> = args
+        ? createQueryFilterFromLoadPagesArgs(args)
+        : {};
       return pagesCollection.find(filter).toArray();
     },
     async updatePages(pages) {
@@ -59,18 +51,36 @@ export function makeMongoDbPageStore({
   };
 }
 
-function createLoadPagesQueryFilterFromArgs(args: LoadPagesArgs): Filter<PersistedPage> {
-  const { updated, urls, sources } = args;
-  let filter: Filter<PersistedPage> = {};
+function createQueryFilterFromLoadPagesArgs(args: LoadPagesArgs) {
+  const { query, sources, updated, urls } = args;
 
+  // We use $and to support custom queries along with the other filters.
+  // The $and operator requires at least one element, so we add an empty
+  // filter.
+  const filter = {
+    $and: [{} as Filter<PersistedPage>],
+  } satisfies Filter<PersistedPage>;
+
+  // Handle custom queries
+  if (query !== undefined) {
+    if (typeof query === "object" && query !== null) {
+      filter["$and"].push(query);
+    } else {
+      throw new Error(
+        `Invalid query - MongoDbPageStore expects a MongoDB query filter. Instead, got: ${query}`
+      );
+    }
+  }
+
+  // Handle other query filters
   if (updated !== undefined) {
-    filter.updated = { $gte: updated };
+    filter["$and"][0].updated = { $gte: updated };
   }
   if (urls !== undefined) {
-    filter.url = { $in: urls };
+    filter["$and"][0].url = { $in: urls };
   }
   if (sources !== undefined) {
-    filter.sourceName = { $in: sources };
+    filter["$and"][0].sourceName = { $in: sources };
   }
 
   return filter;

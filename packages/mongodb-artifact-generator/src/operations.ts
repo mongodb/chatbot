@@ -116,17 +116,24 @@ export async function translatePage({
   generate = generate ?? makeGenerateChatCompletion();
   const translateCodeChat = [
     systemMessage(stripIndents`
-      Given a documentation page that describes a database drivers for a specific platform and programming language,
-      translate the page for the specified platform and/or programming language.
-      Assume the provided page is correct.
+      You transform technical documentation pages based on a user's requests. The user will provide the content to transform and a description of the desired output.
+
+      For example, you might translate a documentation page from one programming language to another, or from one platform to another.
+
+      Assume the provided information is correct and do your best to completely and accurately represent all of relevant provided information in your output.
+
       Use idiomatic suggestions and style conventions in the tranformed output.
     `),
     userMessage(stripIndents`
-      ${!searchResults ? "" : stripIndents`
+      ${
+        !searchResults
+          ? ""
+          : stripIndents`
         Here is some helpful context for the page you will be translating:
 
         ${searchResults}
-      `}
+      `
+      }
 
       This is a description of the original page:
 

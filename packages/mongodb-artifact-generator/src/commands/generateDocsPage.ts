@@ -8,7 +8,7 @@ import { promises as fs } from "fs";
 import { stripIndents } from "common-tags";
 import { makeFindContent } from "../vectorSearch";
 import { makeGenerateChatCompletion } from "../chat";
-import { generatePage } from "../operations";
+import { generatePage, summarize, summarizePage, translatePage } from "../operations";
 import { makeRunLogger } from "../runlogger";
 import { rstDescription } from "../prompt";
 import {
@@ -138,9 +138,6 @@ export const action = createConfiguredAction<GenerateDocsPageCommandArgs>(
         generate,
         targetDescription: stripIndents`
             A new documentation page covering topic(s) and using a content type specified by the user.
-            The page should use well-formatted reStructuredText markup, not Markdown or another markup language.
-
-            ${rstDescription}
 
             The new page should use the following template:
 
@@ -166,8 +163,14 @@ export const action = createConfiguredAction<GenerateDocsPageCommandArgs>(
       });
 
       console.log(`Created output:\n\n${transformed}\n`);
+      const pageSummary = await summarizePage({ generate, sourcePage: transformed });
+      const rstVersion = await rewriteMarkdownAsRst({
+        page: transformed,
+        pageSummary,
+      });
       console.log("writing");
-      logger.appendArtifact("output-generateDocsPage.txt", transformed);
+      logger.appendArtifact("output-xgenerateDocsPage.md", transformed);
+      logger.appendArtifact("output-xgenerateDocsPage.rst", rstVersion);
       // await fs.writeFile("./output-generateDocsPage.txt", transformed);
       console.log("written");
     } finally {
@@ -175,3 +178,23 @@ export const action = createConfiguredAction<GenerateDocsPageCommandArgs>(
     }
   }
 );
+
+// Given the contents of a markdown file as a string, return the contents of the file as well-formatted reStructuredText.
+async function rewriteMarkdownAsRst(args: {
+  page: string;
+  pageSummary: string;
+}) {
+  return await translatePage({
+    sourcePage: args.page,
+    sourceDescription: args.pageSummary,
+    targetDescription: stripIndents`
+      The same content as the input, but formatted as reStructuredText (rST).
+
+      Here's a primer on how rST works.
+
+      ${rstDescription}
+
+      In your output, you must use the same page structure and words as the given page. Only update the markup to use rST instead of markdown.
+    `,
+  });
+}

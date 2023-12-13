@@ -18,7 +18,58 @@ export function stringifyVectorSearchChunks(
 }
 
 export const rstDescription = html`
-- All rST directives must be properly indented with three spaces, as in the following example:
+- All headings must use rST format where the heading text is underlined with symbols.
+
+  This markdown:
+
+    # Heading 1
+
+    Some text
+
+    ## Heading 2
+
+    Some more text
+
+    \`\`\`js
+    const x = 1;
+    \`\`\`
+
+    ### Heading 3
+
+    Even more text
+
+    #### Heading 4
+
+    Still more text
+
+  Should be converted to:
+
+    =========
+    Heading 1
+    =========
+
+    Some text
+
+    Heading 2
+    ---------
+
+    Some more text
+
+    .. code-block:: javascript
+
+       const x = 1;
+
+    Heading 3
+    ~~~~~~~~~
+
+    Even more text
+
+    Heading 4
+    +++++++++
+
+    Still more text
+
+- All rST directives must be properly indented with three spaces and should not use triple backtick fences. Consider the following example:
 
   .. facet::
      :name: genre

@@ -20,7 +20,7 @@ updated because the function or options have changed.
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/EmbeddedContent.ts:53](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/EmbeddedContent.ts#L53)
+[packages/mongodb-rag-core/src/EmbeddedContent.ts:53](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-rag-core/src/EmbeddedContent.ts#L53)
 
 ___
 
@@ -32,7 +32,7 @@ The order of the chunk if this content was chunked from a larger page.
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/EmbeddedContent.ts:46](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/EmbeddedContent.ts#L46)
+[packages/mongodb-rag-core/src/EmbeddedContent.ts:46](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-rag-core/src/EmbeddedContent.ts#L46)
 
 ___
 
@@ -44,7 +44,7 @@ The vector embedding of the text.
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/EmbeddedContent.ts:30](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/EmbeddedContent.ts#L30)
+[packages/mongodb-rag-core/src/EmbeddedContent.ts:30](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-rag-core/src/EmbeddedContent.ts#L30)
 
 ___
 
@@ -67,7 +67,7 @@ metadata in Front Matter format, this metadata should match that metadata.
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/EmbeddedContent.ts:41](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/EmbeddedContent.ts#L41)
+[packages/mongodb-rag-core/src/EmbeddedContent.ts:41](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-rag-core/src/EmbeddedContent.ts#L41)
 
 ___
 
@@ -79,7 +79,7 @@ The name of the data source the page was loaded from.
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/EmbeddedContent.ts:15](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/EmbeddedContent.ts#L15)
+[packages/mongodb-rag-core/src/EmbeddedContent.ts:15](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-rag-core/src/EmbeddedContent.ts#L15)
 
 ___
 
@@ -91,7 +91,7 @@ The text represented by the vector embedding.
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/EmbeddedContent.ts:20](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/EmbeddedContent.ts#L20)
+[packages/mongodb-rag-core/src/EmbeddedContent.ts:20](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-rag-core/src/EmbeddedContent.ts#L20)
 
 ___
 
@@ -103,7 +103,7 @@ The number of embedding tokens in the content.
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/EmbeddedContent.ts:25](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/EmbeddedContent.ts#L25)
+[packages/mongodb-rag-core/src/EmbeddedContent.ts:25](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-rag-core/src/EmbeddedContent.ts#L25)
 
 ___
 
@@ -115,7 +115,7 @@ The date the content was last updated.
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/EmbeddedContent.ts:35](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/EmbeddedContent.ts#L35)
+[packages/mongodb-rag-core/src/EmbeddedContent.ts:35](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-rag-core/src/EmbeddedContent.ts#L35)
 
 ___
 
@@ -127,4 +127,4 @@ The URL of the page with the content.
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/EmbeddedContent.ts:10](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/EmbeddedContent.ts#L10)
+[packages/mongodb-rag-core/src/EmbeddedContent.ts:10](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-rag-core/src/EmbeddedContent.ts#L10)

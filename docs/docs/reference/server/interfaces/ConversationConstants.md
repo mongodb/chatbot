@@ -18,7 +18,7 @@ Response message sent when the chatbot's LLM is not working.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:144](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L144)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:144](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/services/conversations.ts#L144)
 
 ___
 
@@ -31,4 +31,4 @@ that doesn't match anything in the chatbot's knowledge base.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:140](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L140)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:140](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/services/conversations.ts#L140)

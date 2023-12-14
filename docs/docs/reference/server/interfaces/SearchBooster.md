@@ -34,7 +34,7 @@ after the search has been performed.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/processors/SearchBooster.ts:13](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/processors/SearchBooster.ts#L13)
+[packages/mongodb-chatbot-server/src/processors/SearchBooster.ts:13](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/processors/SearchBooster.ts#L13)
 
 ___
 
@@ -59,4 +59,4 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/processors/SearchBooster.ts:12](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/processors/SearchBooster.ts#L12)
+[packages/mongodb-chatbot-server/src/processors/SearchBooster.ts:12](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/processors/SearchBooster.ts#L12)

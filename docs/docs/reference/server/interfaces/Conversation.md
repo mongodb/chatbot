@@ -22,7 +22,7 @@ Conversation between the user and the chatbot as stored in the database.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:84](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L84)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:84](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/services/conversations.ts#L84)
 
 ___
 
@@ -34,7 +34,7 @@ The date the conversation was created.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:88](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L88)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:88](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/services/conversations.ts#L88)
 
 ___
 
@@ -47,7 +47,7 @@ You can pass this data to the [()](ConversationsService.md#create) method.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:96](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L96)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:96](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/services/conversations.ts#L96)
 
 ___
 
@@ -59,7 +59,7 @@ Messages in the conversation.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:86](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L86)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:86](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/services/conversations.ts#L86)
 
 ___
 
@@ -71,4 +71,4 @@ The hostname that the request originated from.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:90](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L90)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:90](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/services/conversations.ts#L90)

@@ -18,7 +18,7 @@ This is useful if you want to do authentication or dynamic data validation.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:73](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L73)
+[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:73](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L73)
 
 ___
 
@@ -28,4 +28,4 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:74](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L74)
+[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:74](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L74)

@@ -20,7 +20,7 @@ it could be more restrictive than the global rate limit.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:42](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L42)
+[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:42](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L42)
 
 ___
 
@@ -34,7 +34,7 @@ it could be more restrictive than the global slow down.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:54](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L54)
+[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:54](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L54)
 
 ___
 
@@ -46,7 +46,7 @@ Configuration for rate limiting on ALL /conversations/* routes.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:35](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L35)
+[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:35](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L35)
 
 ___
 
@@ -58,4 +58,4 @@ Configuration for slow down on ALL /conversations/* routes.
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:47](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L47)
+[packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:47](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L47)

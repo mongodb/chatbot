@@ -14,7 +14,7 @@ custom_edit_url: null
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts:9](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts#L9)
+[packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts:9](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts#L9)
 
 ___
 
@@ -24,7 +24,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts:10](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts#L10)
+[packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts:10](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts#L10)
 
 ___
 
@@ -34,7 +34,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts:11](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts#L11)
+[packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts:11](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts#L11)
 
 ___
 
@@ -44,4 +44,4 @@ ___
 
 #### Defined in
 
-[packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts:12](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts#L12)
+[packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts:12](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-rag-core/src/TypeChatJsonTranslateFunc.ts#L12)

@@ -14,7 +14,7 @@ custom_edit_url: null
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:26](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L26)
+[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:26](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L26)
 
 ___
 
@@ -24,4 +24,4 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:25](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L25)
+[packages/mongodb-chatbot-server/src/services/ChatLlm.ts:25](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L25)

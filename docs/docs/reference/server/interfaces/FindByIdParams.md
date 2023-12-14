@@ -14,4 +14,4 @@ custom_edit_url: null
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/conversations.ts:124](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/conversations.ts#L124)
+[packages/mongodb-chatbot-server/src/services/conversations.ts:124](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/services/conversations.ts#L124)

@@ -16,7 +16,7 @@ Configuration for the [makeOpenAiChatLlm](../modules.md#makeopenaichatllm) funct
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts:27](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts#L27)
+[packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts:27](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts#L27)
 
 ___
 
@@ -26,7 +26,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts:30](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts#L30)
+[packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts:30](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts#L30)
 
 ___
 
@@ -36,7 +36,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts:28](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts#L28)
+[packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts:28](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts#L28)
 
 ___
 
@@ -46,7 +46,7 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts:29](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts#L29)
+[packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts:29](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts#L29)
 
 ___
 
@@ -56,4 +56,4 @@ ___
 
 #### Defined in
 
-[packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts:31](https://github.com/mongodben/chatbot/blob/2994a88/packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts#L31)
+[packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts:31](https://github.com/mongodben/chatbot/blob/4bc75a7/packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts#L31)

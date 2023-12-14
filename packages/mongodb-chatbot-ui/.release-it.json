@@ -1,19 +1,21 @@
 {
   "git": {
     "commitArgs": ["-a"],
-    "commitMessage": "Release chat-ui v${version}",
-    "tag": false,
+    "commitMessage": "Release ${npm.name} v${version}",
+    "changelog": "git log --pretty=format:'* %s (%h)' ${latestTag}..HEAD -- .",
+    "tagMatch": "${npm.name}-*",
+    "getLatestTagFromAllRefs": true,
+    "tag": true,
     "push": true,
     "pushRepo": "upstream",
-    "tagName": "chat-ui-v${version}"
+    "tagName": "${npm.name}-v${version}"
   },
   "npm": {
     "publish": false
   },
   "github": {
-    "releaseName": "chat-ui-v${version}",
+    "releaseName": "${npm.name}-v${version}",
     "draft": true,
-    "autoGenerate": true,
     "release": true
   },
   "hooks": {

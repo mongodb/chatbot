@@ -44,25 +44,20 @@ export const makeDefaultFindContentFunc = ({
       userIp: ipAddress,
     });
 
-    const content = [];
-    const highContent = await store.findNearestNeighbors(embedding, {
-      k: 5,
-      filter: {
-        "metadata.weight": "high",
-      },
-    });
-    content.push(...highContent);
-    if (content.length < 5) {
-      const mediumContent = await store.findNearestNeighbors(embedding, {
-        k: 5 - content.length,
-        filter: {
-          "metadata.weight": "medium",
-        },
-      });
-      content.push(...mediumContent);
+    let content = await store.findNearestNeighbors(
+      embedding,
+      findNearestNeighborsOptions
+    );
+
+    for (const booster of searchBoosters ?? []) {
+      if (await booster.shouldBoost({ text: query })) {
+        content = await booster.boost({
+          existingResults: content,
+          embedding,
+          store,
+        });
+      }
     }
-    //...same for low
-    // sort by score so that low is on top
 
     return { queryEmbedding: embedding, content };
   };

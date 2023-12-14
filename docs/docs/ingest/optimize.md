@@ -1,8 +1,8 @@
-# Fine Tune Ingestion
+# Optimize Ingestion
 
-You can fine tune your data ingestion process to optimize it for your application.
+You can optimize your data ingestion process for your application.
 
-This page contains some information on fine tuning ingestion
+This page contains some information on optimizing ingestion
 based on our experience building RAG applications and emerging best practices.
 
 ## Standardize Data Formats
@@ -15,7 +15,7 @@ into your RAG application. This is advantageous for the following reasons:
 
 ### Text
 
-Using [Markdown](https://www.markdownguide.org/) as the standard format for content
+Using [Markdown](https://www.markdownguide.org/) as the standard format
 is a good choice for most text-based content. LLMs can reason with Markdown,
 and even respond in Markdown. (This is actually how ChatGPT creates rich text).
 There are lots of tools in the JavaScript ecosystem for working with Markdown as well.

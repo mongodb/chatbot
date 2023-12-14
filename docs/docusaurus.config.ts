@@ -59,7 +59,11 @@ const config: Config = {
       "docusaurus-plugin-typedoc",
       {
         id: "ingest",
-        entryPoints: ["../packages/mongodb-rag-ingest/src/index.ts"],
+        entryPoints: [
+          "../packages/mongodb-rag-ingest/src/index.ts",
+          "../packages/mongodb-rag-ingest/src/sources/index.ts",
+          "../packages/mongodb-rag-ingest/src/embed/index.ts",
+        ],
         tsconfig: "../packages/mongodb-rag-ingest/tsconfig.build.json",
         sidebar: {
           fullNames: true,

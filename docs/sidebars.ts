@@ -26,7 +26,7 @@ const sidebars: SidebarsConfig = {
         "ingest/configuration-reference",
         "ingest/command-reference",
         "ingest/data-sources",
-        "ingest/fine-tune",
+        "ingest/optimize",
       ],
     },
     {

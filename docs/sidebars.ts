@@ -39,6 +39,7 @@ const sidebars: SidebarsConfig = {
         "server/conversations",
         "server/retrieve",
         "server/llm",
+        "server/references",
         "server/preprocess",
         "server/custom-logic",
         "server/evaluate",

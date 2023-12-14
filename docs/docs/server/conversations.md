@@ -33,7 +33,9 @@ There are two ways that you can expose these endpoints in your app:
 When you add a message to a conversation with the `POST /conversations/:conversationId/messages` endpoint, the following happens on the server:
 
 1. (Optional) Custom Express.js middleware runs. To learn more,
-   refer to the [Custom Middleware](./custom-middleware) guide.
+   refer to the [Custom Middleware](./custom-logic#middleware) guide.
+1. (Optional) Get custom data to add to the user message. To learn more,
+   refer to the [Custom Data](./custom-logic#add-custom-data-to-messages) guide.
 1. Load conversation from the database.
 1. (Optional) The user message is preprocessed. To learn more, refer to the
    [Preprocessing](./preprocessing) guide.
@@ -46,7 +48,7 @@ When you add a message to a conversation with the `POST /conversations/:conversa
 1. The relevant content is used to generate a user prompt. To learn more about
    generating the user message, refer to the [User Prompt Engineering](./llm.md#user-prompt) guide.
 1. The user prompt is used to generate a chatbot response.
-1. The chatbot response is returned to the user.
+1. The generated response is returned to the user.
 1. The conversation is updated with the new user and assistant messages.
 
 Here's a flow chart of this process:
@@ -54,14 +56,15 @@ Here's a flow chart of this process:
 ```mermaid
 graph TD
     SEND[Send User Message] --> MID[Optional: Run Custom Middleware]
-    MID --> LOAD[Load Conversation from DB]
+    MID --> CD[Optional: Add Custom Data]
+    CD --> LOAD[Load Conversation from DB]
     LOAD --> PREP[Optional: Pre-process User Message]
     PREP -->|Reject Message| REJ[Return Static Response to User]
     PREP --> FIND[Find Relevant Content]
     FIND -->|No Content Found| NOCO[Return Static Response to User]
     FIND --> USER[Generate User Prompt from Relevant Content]
     USER --> LLM[Generate Chatbot Response with LLM]
-    LLM --> RES[Return Chatbot Response to User]
+    LLM --> RES[Return Generated Response to User]
     RES --> UPDATE[Update Conversation in DB with New Messages]
     REJ --> UPDATE
     NOCO --> UPDATE

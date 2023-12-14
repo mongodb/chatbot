@@ -10,10 +10,10 @@ const ArtifactSchema = z
   .describe(
     "An artifact created by the generator. For now this will always be a file."
   );
-export const isArtifact = (data: any): data is Artifact => {
+export const isArtifact = (data: unknown): data is Artifact => {
   return ArtifactSchema.safeParse(data).success;
 };
-export const asArtifact = (data: any): Artifact => {
+export const asArtifact = (data: unknown): Artifact => {
   return ArtifactSchema.parse(data);
 };
 
@@ -34,12 +34,16 @@ const LogEntrySchema = z.object({
     ),
   m: z.string().describe(`The message.`),
 });
-export const isLogEntry = (data: any): data is LogEntry => {
+export const isLogEntry = (data: unknown): data is LogEntry => {
   return LogEntrySchema.safeParse(data).success;
 };
-export const asLogEntry = (data: any): LogEntry => {
+export const asLogEntry = (data: unknown): LogEntry => {
   return LogEntrySchema.parse(data);
 };
+
+function formatLogEntry(entry: LogEntry) {
+  return `${entry.t} [${entry.l}] ${entry.n}: ${entry.m}`;
+}
 
 export type RunLoggerArgs = {
   topic: string;
@@ -94,6 +98,7 @@ class RunLogger {
         content,
       })
     );
+    this.logInfo(`Created artifact: ${name}`);
   }
 
   async flushArtifacts(
@@ -116,7 +121,7 @@ export type LogFlushHandler = (entries: LogEntry[]) => Promise<void>;
 
 export const flushLogsToConsole: LogFlushHandler = async (entries) => {
   for (const entry of entries) {
-    console.log(entry);
+    console.log(formatLogEntry(entry));
   }
 };
 

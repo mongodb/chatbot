@@ -56,7 +56,7 @@ export const action = createConfiguredAction<GenerateDocsPageCommandArgs>(
     { embeddedContentStore, embedder, pageStore },
     { targetDescription, template }
   ) => {
-    console.log(`Setting up...`);
+    logger.logInfo(`Setting up...`);
     const generate = makeGenerateChatCompletion();
     // const { findContent, cleanup: cleanupFindContent } = makeFindContent({
     //   embedder,
@@ -103,37 +103,33 @@ export const action = createConfiguredAction<GenerateDocsPageCommandArgs>(
       //     "https://www.mongodb.com/docs/drivers/node/v5.7/quick-start/",
       //   ],
       // };
-      console.log("pageTemplate.examples", pageTemplate?.examples);
+      // console.log("pageTemplate.examples", pageTemplate?.examples);
       const exampleRegexes =
         pageTemplate?.examples.map((example) => new RegExp(example)) ?? [];
-      const query = {
-        $or: exampleRegexes.map((regex) => ({
-          url: { $regex: regex, $options: "i" },
-        })),
-      };
       const templateExamplePages = pageTemplate?.examples
         ? await pageStore.loadPages({
-            query,
-            // query: {
-            //   url: {
-            //     $in: pageTemplate.examples
-            //   }
-            // }
+            query: {
+              $or: exampleRegexes.map((regex) => ({
+                url: { $regex: regex, $options: "i" },
+              })),
+            },
           })
         : [];
-      console.log(`Found ${templateExamplePages.length} templateExamplePages`);
-      for (const [i, example] of Object.entries(templateExamplePages)) {
-        logger.logInfo(`templateExamplePages ${i}: ${JSON.stringify(example)}`);
-      }
+      logger.logInfo(
+        `Found ${templateExamplePages.length} templateExamplePages: [${templateExamplePages.map(p => `"${p.url}"`).join(", ")}]`
+      );
+      // for (const [i, example] of Object.entries(templateExamplePages)) {
+      //   logger.logInfo(`templateExamplePages ${i}: ${JSON.stringify(example)}`);
+      // }
       const maxTemplateExamplePages = 3;
-      console.log(
+      logger.logInfo(
         `Limiting to ${maxTemplateExamplePages} templateExamplePages`
       );
       const templateExamples = templateExamplePages
         .slice(0, maxTemplateExamplePages)
         .map((page) => page.body);
 
-      console.log(`Generating page...`);
+      logger.logInfo(`Generating page...`);
       const transformed = await generatePage({
         generate,
         targetDescription: stripIndents`

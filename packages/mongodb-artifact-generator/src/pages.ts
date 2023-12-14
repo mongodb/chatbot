@@ -1,4 +1,4 @@
-import { LoadPagesQuery, Page, PageStore } from "mongodb-rag-core";
+import { MongoDbPageStore, Page, PageStore } from "mongodb-rag-core";
 
 export type FindPagesArgs = {
   urls: string[];
@@ -23,13 +23,16 @@ export function makeFindPages({
   cleanup: () => Promise<void>;
 } {
   const findPages: FindPages = async ({ urls }) => {
+    if(pageStore.queryType !== "mongodb") {
+      throw new Error(`Unsupported query type: ${pageStore.queryType}. Must be "mongodb".`);
+    }
     pageStore.loadPages({
       query: {
         url: {
           $or: urls.map((url) => ({ $regex: url })),
         },
       },
-    } as LoadPagesQuery);
+    });
 
     return { pages: [] };
   };

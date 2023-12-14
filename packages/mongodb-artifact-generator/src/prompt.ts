@@ -69,7 +69,7 @@ export const rstDescription = html`
 
     Still more text
 
-- All rST directives must be properly indented with three spaces and should not use triple backtick fences. Consider the following example:
+- Directives should use rST notation, not triple backtick fences. Options and body must be indented three spaces. Consider the following example:
 
   .. facet::
      :name: genre

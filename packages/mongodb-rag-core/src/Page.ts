@@ -56,14 +56,18 @@ export type PersistedPage = Page & {
   action: PageAction;
 };
 
-export type LoadPagesQuery = {
+export type LoadPagesArgs<QueryShape = unknown> = {
   /**
     A custom query to refine the pages to load.
    */
-  query: unknown;
-};
+  query?: QueryShape;
 
-export type LoadPagesArgs = {
+  /**
+   The names of the sources to load pages from. If undefined, loads available
+   pages from all sources.
+  */
+  sources?: string[];
+
   /**
    If specified, refines the query to load pages with an updated date later
    or equal to the given date.
@@ -71,10 +75,10 @@ export type LoadPagesArgs = {
   updated?: Date;
 
   /**
-   The names of the sources to load pages from. If undefined, loads available
-   pages from all sources.
+   If specified, refines the query to only load pages where the url
+   is included in the list.
   */
-  sources?: string[];
+  urls?: string[];
 };
 
 /**
@@ -82,13 +86,15 @@ export type LoadPagesArgs = {
  */
 export type PageStore = {
   /**
-    The query format the store accepts.
+    The format that the store uses for custom queries. If not specified,
+    the store does not allow custom queries.
    */
-  queryType: "mongodb" | string;
+  queryType?: "mongodb" | string;
+
   /**
     Loads pages from the Page store.
    */
-  loadPages(args?: LoadPagesQuery | LoadPagesArgs): Promise<PersistedPage[]>;
+  loadPages(args?: LoadPagesArgs): Promise<PersistedPage[]>;
 
   /**
     Updates or adds the given pages in the store.

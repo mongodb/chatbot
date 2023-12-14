@@ -4,8 +4,17 @@ import {
   MakeMongoDbDatabaseConnectionParams,
   makeMongoDbDatabaseConnection,
 } from "./MongoDbDatabaseConnection";
-import { LoadPagesArgs, LoadPagesQuery, PageStore, PersistedPage } from "./Page";
+import { LoadPagesArgs, PageStore, PersistedPage } from "./Page";
 import { Filter } from "mongodb";
+
+export type MongoDbPageStore = DatabaseConnection &
+  Omit<PageStore, "loadPages"> // We omit loadPages so that the generic override below works
+  & {
+    queryType: "mongodb";
+    loadPages(
+      args?: LoadPagesArgs<Filter<PersistedPage>>
+    ): Promise<PersistedPage[]>;
+  };
 
 /**
   Data store for {@link Page} objects using MongoDB.
@@ -13,27 +22,20 @@ import { Filter } from "mongodb";
 export function makeMongoDbPageStore({
   connectionUri,
   databaseName,
-}: MakeMongoDbDatabaseConnectionParams): PageStore & DatabaseConnection {
+}: MakeMongoDbDatabaseConnectionParams): MongoDbPageStore {
   const { db, drop, close } = makeMongoDbDatabaseConnection({
     connectionUri,
     databaseName,
   });
   const pagesCollection = db.collection<PersistedPage>("pages");
   return {
+    queryType: "mongodb",
     drop,
     close,
     async loadPages(args) {
-      const _query = (args as LoadPagesQuery)?.query
-      const filter: Filter<PersistedPage> = _query ?? {};
-      if (!_query) {
-        const { sources, updated } = args as LoadPagesArgs;
-        if (sources !== undefined) {
-          filter.sourceName = { $in: sources };
-        }
-        if (updated !== undefined) {
-          filter.updated = { $gte: updated };
-        }
-      }
+      const filter: Filter<PersistedPage> = args
+        ? createQueryFilterFromLoadPagesArgs(args)
+        : {};
       return pagesCollection.find(filter).toArray();
     },
     async updatePages(pages) {
@@ -56,4 +58,39 @@ export function makeMongoDbPageStore({
       );
     },
   };
+}
+
+function createQueryFilterFromLoadPagesArgs(args: LoadPagesArgs) {
+  const { query, sources, updated, urls } = args;
+
+  // We use $and to support custom queries along with the other filters.
+  // The $and operator requires at least one element, so we add an empty
+  // filter.
+  const filter = {
+    $and: [{} as Filter<PersistedPage>],
+  } satisfies Filter<PersistedPage>;
+
+  // Handle custom queries
+  if (query !== undefined) {
+    if (typeof query === "object" && query !== null) {
+      filter["$and"].push(query);
+    } else {
+      throw new Error(
+        `Invalid query - MongoDbPageStore expects a MongoDB query filter. Instead, got: ${query}`
+      );
+    }
+  }
+
+  // Handle other query filters
+  if (updated !== undefined) {
+    filter["$and"][0].updated = { $gte: updated };
+  }
+  if (urls !== undefined) {
+    filter["$and"][0].url = { $in: urls };
+  }
+  if (sources !== undefined) {
+    filter["$and"][0].sourceName = { $in: sources };
+  }
+
+  return filter;
 }

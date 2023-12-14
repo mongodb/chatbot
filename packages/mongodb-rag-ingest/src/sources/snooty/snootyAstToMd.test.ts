@@ -211,14 +211,28 @@ Some of your App Services App's features are associated with user accounts. For 
   });
 });
 describe("getTitleFromSnootyAst", () => {
-  const samplePage = JSON.parse(
-    fs.readFileSync(Path.resolve(SRC_ROOT, "../testData/samplePage.json"), {
-      encoding: "utf-8",
-    })
-  );
   it("extracts a title", () => {
+    const samplePage = JSON.parse(
+      fs.readFileSync(Path.resolve(SRC_ROOT, "../testData/samplePage.json"), {
+        encoding: "utf-8",
+      })
+    );
     expect(getTitleFromSnootyAst(samplePage.data.ast)).toBe(
       "$merge (aggregation)"
+    );
+  });
+
+  it("extracts a title correctly when title text spans multiple nodes", () => {
+    const sampleAst = JSON.parse(
+      fs.readFileSync(
+        Path.resolve(SRC_ROOT, "../testData/sampleCompoundTitlePageAst.json"),
+        {
+          encoding: "utf-8",
+        }
+      )
+    );
+    expect(getTitleFromSnootyAst(sampleAst)).toBe(
+      "What is MongoDB Atlas Search?"
     );
   });
 });

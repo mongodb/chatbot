@@ -6,7 +6,7 @@ in the response. This allows you to link to the original source of the informati
 These references are included in the `references` property of the response
 from the [`POST /conversations/:conversationId/messages`](openapi#operation/createConversation).
 
-## Format the References
+## Format References
 
 Format the references in the response using a [`MakeReferenceLinksFunc`](../reference/server/modules.md#makereferencelinksfunc) function.
 

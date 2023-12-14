@@ -4,7 +4,9 @@ If you're using the MongoDB Chatbot Server to perform RAG, you must retrieve
 context information to include in your answer. The primary way of doing this
 is with semantic search.
 
-## `FindContentFunc`
+You can add the information that you retrieve using the [MongoDB RAG Ingest CLI](../ingest/configure.md). Information retrieval is the single point of contact between the MongoDB RAG Ingest CLI and the MongoDB Chatbot Server.
+
+## The `FindContentFunc` Function
 
 To perform semantic search, you must implement a [`FindContentFunc`](../reference/server/modules.md#findcontentfunc) function. To see the default implementation
 using Atlas Vector Search, refer to the following
@@ -25,10 +27,12 @@ const appConfig: AppConfig = {
 };
 ```
 
-## Configure Atlas Vector Search
+## Find Content with Atlas Vector Search
 
 To use the MongoDB Chatbot Server with Atlas Vector Search for semantic search,
 you can use the [`makeDefaultFindContentFunc()`](../reference/server/modules.md#makedefaultfindcontentfunc).
+
+This function retrieves data from an [`EmbeddedContentStore`](../reference/core/modules.md#embeddedcontentstore). To learn more about how to add data to an `EmbeddedContentStore`, refer to the [Ingest CLI documentation](../ingest/configure.md).
 
 Pass a [`MakeDefaultFindContentFuncArgs`](../reference/server/modules.md#makedefaultfindcontentfuncargs) object to the `makeDefaultFindContentFunc()` function.
 

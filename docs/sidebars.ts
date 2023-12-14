@@ -42,6 +42,7 @@ const sidebars: SidebarsConfig = {
         "server/references",
         "server/preprocess",
         "server/custom-logic",
+        "server/persist",
         "server/evaluate",
         {
           type: "link",

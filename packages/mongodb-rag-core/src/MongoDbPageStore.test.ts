@@ -1,6 +1,6 @@
 import { strict as assert } from "assert";
 import { DatabaseConnection } from "./DatabaseConnection";
-import { makeMongoDbPageStore } from "./MongoDbPageStore";
+import { MongoDbPageStore, makeMongoDbPageStore } from "./MongoDbPageStore";
 import { PageStore, PersistedPage } from "./Page";
 import { assertEnvVars } from "./assertEnvVars";
 import { CORE_ENV_VARS } from "./CoreEnvVars";
@@ -69,7 +69,7 @@ const moviePages: PersistedPage[] = [
 const pageUrls = (pages: PersistedPage[]) => pages.map(({ url }) => url);
 
 describe("MongoDbPageStore", () => {
-  let store: (DatabaseConnection & PageStore) | undefined;
+  let store: MongoDbPageStore | undefined;
   beforeEach(async () => {
     // Need to use real Atlas connection in order to run vector searches
     const databaseName = `test-database-${Date.now()}`;
@@ -166,10 +166,7 @@ describe("MongoDbPageStore", () => {
 
     const sequels = await store.loadPages({
       query: {
-        $and: [
-          { url: /matrix/ },
-          { updated: { $gt: new Date("2000-01-01") } },
-        ],
+        $and: [{ url: /matrix/ }, { updated: { $gt: new Date("2000-01-01") } }],
       },
     });
 
@@ -201,6 +198,7 @@ describe("MongoDbPageStore", () => {
     await store.updatePages(moviePages);
 
     const sqlQueryPromise = store.loadPages({
+      // @ts-expect-error
       query: "SELECT * FROM pages WHERE url = 'matrix1'",
     });
 

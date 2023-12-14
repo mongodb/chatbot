@@ -7,13 +7,22 @@ import {
 import { LoadPagesArgs, PageStore, PersistedPage } from "./Page";
 import { Filter } from "mongodb";
 
+export type MongoDbPageStore = DatabaseConnection &
+  Omit<PageStore, "loadPages"> // We omit loadPages so that the generic override below works
+  & {
+    queryType: "mongodb";
+    loadPages(
+      args?: LoadPagesArgs<Filter<PersistedPage>>
+    ): Promise<PersistedPage[]>;
+  };
+
 /**
   Data store for {@link Page} objects using MongoDB.
  */
 export function makeMongoDbPageStore({
   connectionUri,
   databaseName,
-}: MakeMongoDbDatabaseConnectionParams): PageStore & DatabaseConnection {
+}: MakeMongoDbDatabaseConnectionParams): MongoDbPageStore {
   const { db, drop, close } = makeMongoDbDatabaseConnection({
     connectionUri,
     databaseName,
@@ -23,7 +32,7 @@ export function makeMongoDbPageStore({
     queryType: "mongodb",
     drop,
     close,
-    async loadPages(args?: LoadPagesArgs) {
+    async loadPages(args) {
       const filter: Filter<PersistedPage> = args
         ? createQueryFilterFromLoadPagesArgs(args)
         : {};

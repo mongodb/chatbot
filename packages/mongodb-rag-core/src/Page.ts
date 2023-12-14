@@ -54,11 +54,11 @@ export type PersistedPage = Page & {
   action: PageAction;
 };
 
-export type LoadPagesArgs = {
+export type LoadPagesArgs<QueryShape = unknown> = {
   /**
     A custom query to refine the pages to load.
    */
-  query?: unknown;
+  query?: QueryShape;
 
   /**
    The names of the sources to load pages from. If undefined, loads available

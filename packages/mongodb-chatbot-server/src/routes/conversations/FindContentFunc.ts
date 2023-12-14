@@ -58,7 +58,6 @@ export const makeDefaultFindContentFunc = ({
         });
       }
     }
-
     return { queryEmbedding: embedding, content };
   };
 };

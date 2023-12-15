@@ -1,0 +1,24 @@
+{
+  "name": "mongodb-rag-framework-quickstart",
+  "version": "1.0.0",
+  "description": "Quick start for the MongoDB RAG Framework",
+  "main": "build/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node build/index.js",
+    "dev": "src/index.ts",
+    "ingest": "ingest all --config build/ingest.config.js --since 1970"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "mongodb-chatbot-server": "^0.2.1",
+    "mongodb-rag-core": "^0.1.2",
+    "mongodb-rag-ingest": "^0.1.7"
+  },
+  "devDependencies": {
+    "@azure/openai": "^1.0.0-beta.8",
+    "nodemon": "^3.0.2",
+    "typescript": "^5.3.3"
+  }
+}

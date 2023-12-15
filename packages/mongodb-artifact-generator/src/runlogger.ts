@@ -1,5 +1,7 @@
 import { promises as fs } from "fs";
+import path from "path";
 import { z } from "zod";
+import { ObjectId } from "mongodb";
 
 export type Artifact = z.infer<typeof ArtifactSchema>;
 const ArtifactSchema = z
@@ -49,12 +51,18 @@ export type RunLoggerArgs = {
   topic: string;
 };
 
+export function makeRunLogger(args: { topic: string }) {
+  return new RunLogger(args);
+}
+
 class RunLogger {
   #entries: LogEntry[] = [];
   #artifacts: Artifact[] = [];
+  #runId: string;
   topic: string;
 
   constructor(args: RunLoggerArgs) {
+    this.#runId = new ObjectId().toHexString();
     this.topic = args.topic;
   }
 
@@ -84,7 +92,10 @@ class RunLogger {
     }
 
     try {
-      await logFlushHandler(this.#entries);
+      await logFlushHandler(this.#entries, {
+        topic: this.topic,
+        runId: this.#runId,
+      });
       this.#entries = []; // Clear the entries after successful flush
     } catch (error) {
       console.error("Failed to flush log entries:", error);
@@ -109,7 +120,10 @@ class RunLogger {
     }
 
     try {
-      await artifactFlushHandler(this.#artifacts);
+      await artifactFlushHandler(this.#artifacts, {
+        topic: this.topic,
+        runId: this.#runId,
+      });
       this.#artifacts = []; // Clear the artifacts after successful flush
     } catch (error) {
       console.error("Failed to flush artifacts:", error);
@@ -117,16 +131,33 @@ class RunLogger {
   }
 }
 
-export type LogFlushHandler = (entries: LogEntry[]) => Promise<void>;
+export type FlushOptions = { topic?: string; runId?: string };
 
-export const flushLogsToConsole: LogFlushHandler = async (entries) => {
+export type LogFlushHandler = (
+  entries: LogEntry[],
+  options?: FlushOptions
+) => Promise<void>;
+
+export const flushLogsToConsole: LogFlushHandler = async (
+  entries,
+  // options = createDefaultFlushOptions()
+) => {
   for (const entry of entries) {
     console.log(formatLogEntry(entry));
   }
 };
 
-export const flushLogsToFile: LogFlushHandler = async (entries) => {
-  const filePath = `./runlogs/${Date.now()}.runlog.jsonl`;
+export const flushLogsToFile: LogFlushHandler = async (
+  entries,
+  options = createDefaultFlushOptions()
+) => {
+  await assertFlushDirectory(options);
+  // const filePath = `./runlogs/${Date.now()}.runlog.jsonl`;
+  const oid = new ObjectId().toHexString();
+  const filePath = path.join(
+    getFlushDirectoryPath(options),
+    `runlog-${oid}.jsonl`
+  );
   // const content = JSON.stringify(entries, null, 2);
   const content = entries.map((e) => JSON.stringify(e)).join("\n");
   await fs.writeFile(filePath, content, {
@@ -134,12 +165,19 @@ export const flushLogsToFile: LogFlushHandler = async (entries) => {
   });
 };
 
-export const defaultFlushLogs: LogFlushHandler = async (logs) => {
-  flushLogsToConsole(logs);
-  flushLogsToFile(logs);
+export const defaultFlushLogs: LogFlushHandler = async (logs, optionOverrides) => {
+  const options = {
+    ...createDefaultFlushOptions(),
+    ...optionOverrides,
+  };
+  flushLogsToConsole(logs, options);
+  flushLogsToFile(logs, options);
 };
 
-export type ArtifactFlushHandler = (artifacts: Artifact[]) => Promise<void>;
+export type ArtifactFlushHandler = (
+  artifacts: Artifact[],
+  options?: FlushOptions
+) => Promise<void>;
 
 export const flushArtifactsToConsole: ArtifactFlushHandler = async (
   artifacts
@@ -149,9 +187,13 @@ export const flushArtifactsToConsole: ArtifactFlushHandler = async (
   }
 };
 
-export const flushArtifactsToFile: ArtifactFlushHandler = async (artifacts) => {
+export const flushArtifactsToFile: ArtifactFlushHandler = async (
+  artifacts,
+  options = createDefaultFlushOptions()
+) => {
+  await assertFlushDirectory(options);
   for (const artifact of artifacts) {
-    const filePath = `./runlogs/${artifact.name}`;
+    const filePath = path.join(getFlushDirectoryPath(options), artifact.name);
     await fs.writeFile(filePath, artifact.content, {
       encoding: "utf8",
     });
@@ -159,12 +201,35 @@ export const flushArtifactsToFile: ArtifactFlushHandler = async (artifacts) => {
 };
 
 export const defaultFlushArtifacts: ArtifactFlushHandler = async (
-  artifacts
+  artifacts,
+  optionOverrides,
 ) => {
-  flushArtifactsToConsole(artifacts);
-  flushArtifactsToFile(artifacts);
+  const options = {
+    ...createDefaultFlushOptions(),
+    ...optionOverrides,
+  }
+  flushArtifactsToConsole(artifacts, options);
+  flushArtifactsToFile(artifacts, options);
 };
 
-export function makeRunLogger(args: { topic: string }) {
-  return new RunLogger(args);
+function createDefaultFlushOptions() {
+  return {
+    topic: "default",
+    runId: new ObjectId().toHexString(),
+  };
+}
+
+async function assertFlushDirectory({
+  topic = "default",
+  runId,
+}: Partial<FlushOptions> & Pick<FlushOptions, "runId">) {
+  return await fs.mkdir(getFlushDirectoryPath({ topic, runId }), {
+    recursive: true,
+  });
+}
+
+function getFlushDirectoryPath(options: FlushOptions) {
+  const { topic, runId } = options;
+  const dir = `./runlogs/${topic}/${runId}`;
+  return dir;
 }

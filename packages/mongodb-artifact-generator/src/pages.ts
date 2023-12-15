@@ -1,4 +1,4 @@
-import { MongoDbPageStore, Page, PageStore } from "mongodb-rag-core";
+import { Page, PageStore } from "mongodb-rag-core";
 
 export type FindPagesArgs = {
   urls: string[];

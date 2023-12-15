@@ -4,22 +4,21 @@ import {
   withConfigOptions,
 } from "../withConfig";
 import { createCommand } from "../createCommand";
-import { promises as fs } from "fs";
 import { stripIndents } from "common-tags";
-import { makeFindContent } from "../vectorSearch";
+// import { makeFindContent } from "../vectorSearch";
 import { makeGenerateChatCompletion } from "../chat";
-import { generatePage, summarize, summarizePage, translatePage } from "../operations";
-import { makeRunLogger } from "../runlogger";
-import { rstDescription } from "../prompt";
+import { generatePage, rewriteAsRst, summarizePage } from "../operations";
+import { makeRunLogger, type RunLogger } from "../runlogger";
 import {
   TdbxContentTypeId,
   importTdbxContentTypes,
   tdbxContentTypeIds,
 } from "../tdbxContentTypes";
 
-const logger = makeRunLogger({ topic: "generateDocsPage" });
+let logger: RunLogger;
 
 type GenerateDocsPageCommandArgs = {
+  runId?: string;
   targetDescription: string;
   template?: TdbxContentTypeId;
 };
@@ -28,6 +27,11 @@ export default createCommand<GenerateDocsPageCommandArgs>({
   command: "generateDocsPage",
   builder(args) {
     return withConfigOptions(args)
+      .option("runId", {
+        type: "string",
+        demandOption: false,
+        description: "A (hopefully unique) name for the run.",
+      })
       .option("targetDescription", {
         type: "string",
         demandOption: true,
@@ -41,6 +45,7 @@ export default createCommand<GenerateDocsPageCommandArgs>({
       });
   },
   async handler(args) {
+    logger = makeRunLogger({ topic: "generateDocsPage", runId: args.runId });
     logger.logInfo(`Running command with args: ${JSON.stringify(args)}`);
     const result = await withConfig(action, args);
     logger.logInfo(`Success`);
@@ -116,7 +121,11 @@ export const action = createConfiguredAction<GenerateDocsPageCommandArgs>(
           })
         : [];
       logger.logInfo(
-        `Found ${templateExamplePages.length} templateExamplePages: [${templateExamplePages.map(p => `"${p.url}"`).join(", ")}]`
+        `Found ${
+          templateExamplePages.length
+        } templateExamplePages: [${templateExamplePages
+          .map((p) => `"${p.url}"`)
+          .join(", ")}]`
       );
       // for (const [i, example] of Object.entries(templateExamplePages)) {
       //   logger.logInfo(`templateExamplePages ${i}: ${JSON.stringify(example)}`);
@@ -159,38 +168,20 @@ export const action = createConfiguredAction<GenerateDocsPageCommandArgs>(
       });
 
       console.log(`Created output:\n\n${transformed}\n`);
-      const pageSummary = await summarizePage({ generate, sourcePage: transformed });
-      const rstVersion = await rewriteMarkdownAsRst({
+      const pageSummary = await summarizePage({
+        generate,
+        sourcePage: transformed,
+      });
+      const rstVersion = await rewriteAsRst({
         page: transformed,
         pageSummary,
       });
       console.log("writing");
-      logger.appendArtifact("output-xgenerateDocsPage.md", transformed);
-      logger.appendArtifact("output-xgenerateDocsPage.rst", rstVersion);
-      // await fs.writeFile("./output-generateDocsPage.txt", transformed);
+      logger.appendArtifact("output.md", transformed);
+      logger.appendArtifact("output.rst", rstVersion);
       console.log("written");
     } finally {
       // await cleanupFindContent();
     }
   }
 );
-
-// Given the contents of a markdown file as a string, return the contents of the file as well-formatted reStructuredText.
-async function rewriteMarkdownAsRst(args: {
-  page: string;
-  pageSummary: string;
-}) {
-  return await translatePage({
-    sourcePage: args.page,
-    sourceDescription: args.pageSummary,
-    targetDescription: stripIndents`
-      The same content as the input, but formatted as reStructuredText (rST).
-
-      Here's a primer on how rST works.
-
-      ${rstDescription}
-
-      In your output, you must use the same page structure and words as the given page. Only update the markup to use rST instead of markdown.
-    `,
-  });
-}

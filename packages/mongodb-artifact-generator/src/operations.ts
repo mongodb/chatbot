@@ -1,6 +1,7 @@
-import { stripIndents } from "common-tags";
+import { stripIndents, html } from "common-tags";
 import { GenerateChatCompletion, makeGenerateChatCompletion } from "./chat";
 import { systemMessage, userMessage } from "./chat";
+import { rstDescription } from "./prompt";
 
 export async function summarize({
   generate,
@@ -16,7 +17,7 @@ export async function summarize({
         description of the code's purpose as well as its style and other
         notable choices. Limit your response to 100 words.
       `),
-    userMessage(stripIndents`
+    userMessage(html`
         Analyze the following code snippet and describe its purpose:
 
         ${sourceCode}
@@ -44,7 +45,7 @@ export async function summarizePage({
       description of the content as well as its style and other notable choices.
       Limit your response to 100 words.
     `),
-    userMessage(stripIndents`
+    userMessage(html`
       Analyze the following page and describe its contents:
 
       ${sourcePage}
@@ -63,22 +64,37 @@ export async function translate({
   sourceCode,
   sourceDescription,
   targetDescription,
+  searchResults,
 }: {
   generate?: GenerateChatCompletion;
   sourceCode: string;
   sourceDescription?: string;
   targetDescription?: string;
+  searchResults?: string;
 }) {
   generate = generate ?? makeGenerateChatCompletion();
   const translateCodeChat = [
     systemMessage(stripIndents`
       You transform source code files from one programming language into another programming language.
+
       Assume the provided code is correct.
+
       Use idiomatic code and style conventions in the tranformed output.
+
       Output only the transformed code with no additional text.
     `),
-    userMessage(stripIndents`
-      The source code snippet has the following description:
+    userMessage(html`
+      ${
+        !searchResults
+          ? ""
+          : html`
+        Here is some helpful context for the page you will be translating:
+
+        ${searchResults}
+
+      `
+      }
+      This is a description of the original source code file:
 
       ${sourceDescription}
 
@@ -86,7 +102,7 @@ export async function translate({
 
       ${targetDescription}
 
-      Here is the source code snippet:
+      Here is the source code file to translate:
 
       ${sourceCode}
 
@@ -124,17 +140,17 @@ export async function translatePage({
 
       Use idiomatic suggestions and style conventions in the tranformed output.
     `),
-    userMessage(stripIndents`
+    userMessage(html`
       ${
         !searchResults
           ? ""
-          : stripIndents`
+          : html`
         Here is some helpful context for the page you will be translating:
 
         ${searchResults}
+
       `
       }
-
       This is a description of the original page:
 
       ${sourceDescription}
@@ -176,7 +192,7 @@ export async function bluehawkify({
       Use idiomatic code and style conventions in the test code.
       Output only the test file code with no additional text.
     `),
-    userMessage(stripIndents`
+    userMessage(html`
       Adapt the following code snippet into a file that tests the provided source code. Make sure to import the necessary dependencies and declare any necessary types, classes, structs, etc.
 
       The source code snippet has the following description:
@@ -194,8 +210,6 @@ export async function bluehawkify({
       Now generate the desired output. Return only the code with no additional text.,
     `),
   ];
-
-  console.log("bluehawkifying - here's the chat", bluehawkifyChat);
 
   const output = await generate(bluehawkifyChat);
   if (!output) {
@@ -218,11 +232,11 @@ export async function generatePage({
     systemMessage(stripIndents`
       Generate a new MongoDB documentation page based on the provided description.
     `),
-    userMessage(stripIndents`
+    userMessage(html`
       ${
         !searchResults
           ? ""
-          : stripIndents`
+          : html`
         Here is some helpful context for the page you will be creating:
 
         ${searchResults}
@@ -244,4 +258,24 @@ export async function generatePage({
     throw new Error("Could not generate output for query");
   }
   return output;
+}
+
+// Given the contents of a markdown or pseudo-rST file as a string, return the contents of the file as well-formatted reStructuredText.
+export async function rewriteAsRst(args: {
+  page: string;
+  pageSummary: string;
+}) {
+  return await translatePage({
+    sourcePage: args.page,
+    sourceDescription: args.pageSummary,
+    targetDescription: stripIndents`
+      The same content as the input, but as well-formatted reStructuredText (rST).
+
+      Here's a primer on how rST works.
+
+      ${rstDescription}
+
+      In your output, you must use the same page structure and words as the given page. Only update the markup to use rST instead of pseudo-rST or markdown.
+    `,
+  });
 }

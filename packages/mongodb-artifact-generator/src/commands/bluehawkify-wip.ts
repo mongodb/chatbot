@@ -5,27 +5,28 @@ import {
 } from "../withConfig";
 import { createCommand } from "../createCommand";
 import { promises as fs } from "fs";
-import { stripIndents } from "common-tags";
+import { stripIndents, html } from "common-tags";
 import { makeFindContent } from "../vectorSearch";
 import { makeGenerateChatCompletion } from "../chat";
-import { rewriteAsRst, summarizePage, translatePage } from "../operations";
+import { rewriteAsRst, summarize, translate, bluehawkify } from "../operations";
 import {
   makeRunLogger,
   type RunLogger
 } from "../runlogger";
-import { rstDescription, stringifyVectorSearchChunks } from "../prompt";
+import { stringifyVectorSearchChunks } from "../prompt";
 import path from "path"
 
 let logger: RunLogger;
 
-type TranslateDocsPageCommandArgs = {
+type BluehawkCodeCommandArgs = {
   runId?: string;
   source: string;
   targetDescription: string;
+  targetFileExtension?: string;
 };
 
-export default createCommand<TranslateDocsPageCommandArgs>({
-  command: "translateDocsPage",
+export default createCommand<BluehawkCodeCommandArgs>({
+  command: "bluehawkCode",
   builder(args) {
     return withConfigOptions(args)
       .option("runId", {
@@ -36,7 +37,7 @@ export default createCommand<TranslateDocsPageCommandArgs>({
       .option("source", {
         type: "string",
         demandOption: true,
-        description: "The path of the documentation file to translate.",
+        description: "The path of the source code file to translate.",
       })
       .option("targetDescription", {
         type: "string",
@@ -46,7 +47,7 @@ export default createCommand<TranslateDocsPageCommandArgs>({
   },
   async handler(args) {
     logger = makeRunLogger({
-      topic: "translateDocsPage",
+      topic: "bluehawkify",
       runId: args.runId,
     });
     logger.logInfo(`Running command with args: ${JSON.stringify(args)}`);
@@ -56,12 +57,16 @@ export default createCommand<TranslateDocsPageCommandArgs>({
     await logger.flushArtifacts();
     return result;
   },
-  describe: "Translate a documentation page into a new context.",
+  describe:
+    "Transform a source code file into a tested example marked up with bluehawk.",
 });
 
-export const action = createConfiguredAction<TranslateDocsPageCommandArgs>(
-  async ({ embeddedContentStore, embedder }, { source, targetDescription }) => {
-    const sourcePage = await fs.readFile(source, "utf8");
+export const action = createConfiguredAction<BluehawkCodeCommandArgs>(
+  async (
+    { embeddedContentStore, embedder },
+    { source, targetDescription, targetFileExtension = "txt" }
+  ) => {
+    const sourceCode = await fs.readFile(source, "utf8");
 
     logger.logInfo(`Setting up...`);
     const generate = makeGenerateChatCompletion();
@@ -76,9 +81,9 @@ export const action = createConfiguredAction<TranslateDocsPageCommandArgs>(
 
     try {
       logger.logInfo(`Analyzing page...`);
-      const analyzePageOutput = await summarizePage({
+      const analyzePageOutput = await summarize({
         generate,
-        sourcePage,
+        sourceCode,
       });
       logger.logInfo(`Input analysis:\n\n${analyzePageOutput}\n`);
 
@@ -103,43 +108,22 @@ export const action = createConfiguredAction<TranslateDocsPageCommandArgs>(
       );
 
       logger.logInfo(`Transforming page...`);
-      const transformed = await translatePage({
+      const transformed = await translate({
         generate,
         searchResults,
-        sourcePage,
+        sourceCode,
         sourceDescription: analyzePageOutput,
-        targetDescription: stripIndents`
-            A documentation page covering the same topics and content as the source page but in a new context.
-            The page should use well-formatted reStructuredText markup, not Markdown or another markup language.
-
-            ${rstDescription}
-
-            ${
-              !targetDescription
-                ? ""
-                : stripIndents`
-              The user provided the following description of the desired output:
-
-              ${targetDescription}
-            `
-            }
-          `,
+        targetDescription: html`
+          A source code file with the same functionality and content as the
+          original source code but in a new context. ${targetDescription}
+        `,
       });
 
       logger.logInfo(`Created output:\n\n${transformed}\n`);
       const inputFileName = path.parse(source).name;
-      logger.appendArtifact(`${inputFileName}.translated.rst`, transformed);
-
-      const rstPostProcessed = await rewriteAsRst({
-        page: transformed,
-        pageSummary: analyzePageOutput,
-      });
-
-      logger.logInfo(`Created rst post-procesed output:\n\n${rstPostProcessed}\n`);
-      logger.appendArtifact(
-        `${inputFileName}-rsttest.translated.rst`,
-        rstPostProcessed
-      );
+      // TODO validate that targetFileExtension is a valid file extension string
+      const outputFileName = `${inputFileName}.translated.${targetFileExtension}`;
+      logger.appendArtifact(outputFileName, transformed);
     } finally {
       await cleanupFindContent();
     }

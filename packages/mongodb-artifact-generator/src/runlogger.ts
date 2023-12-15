@@ -48,21 +48,22 @@ function formatLogEntry(entry: LogEntry) {
 }
 
 export type RunLoggerArgs = {
+  runId?: string;
   topic: string;
 };
 
-export function makeRunLogger(args: { topic: string }) {
+export function makeRunLogger(args: RunLoggerArgs) {
   return new RunLogger(args);
 }
 
-class RunLogger {
+export class RunLogger {
   #entries: LogEntry[] = [];
   #artifacts: Artifact[] = [];
   #runId: string;
   topic: string;
 
   constructor(args: RunLoggerArgs) {
-    this.#runId = new ObjectId().toHexString();
+    this.#runId = args.runId ?? new ObjectId().toHexString();
     this.topic = args.topic;
   }
 

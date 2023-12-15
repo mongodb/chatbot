@@ -113,11 +113,8 @@ Say you have this document in the `pages` collection:
 }
 ```
 
-When chunking the page, `standardChunkFrontMatterUpdater()` will transform
+When chunking the page, `standardChunkFrontMatterUpdater()` transforms
 the page text into the following chunk text:
-
-````yaml
-into the following chunk:
 
 ```yaml
 ---
@@ -128,7 +125,7 @@ tags:
 productName: Product Name
 ---
 This is my page...
-````
+```
 
 You then use this chunk with metadata to create the embedding.
 The embedding then has the semantic meaning of both the chunk content and metadata.

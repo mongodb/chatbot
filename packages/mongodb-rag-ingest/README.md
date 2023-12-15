@@ -51,7 +51,7 @@ for details.
 
 ### Build & Run
 
-Set up the project monorepo. Refer to the [Contributor Guide](../CONTRIBUTING.md)
+Set up the project monorepo. Refer to the [Contributor Guide](https://github.com/mongodb/chatbot/blob/main/CONTRIBUTING.md)
 for more info on monorepo setup.
 
 Make sure you set up the `.env` files in both the `mongodb-rag-ingest` and `mongodb-rag-core` projects.

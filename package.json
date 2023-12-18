@@ -10,6 +10,7 @@
     "dev": "lerna run dev --scope='{chatbot-server-mongodb-public,mongodb-chatbot-ui}' --stream --parallel",
     "dev:server": "lerna run dev --scope='chatbot-server-mongodb-public' --stream",
     "dev:ui": "lerna run dev --scope='mongodb-chatbot-ui' --stream",
+    "start:server": "lerna run start --scope='chatbot-server-mongodb-public'",
     "clean": "lerna clean",
     "build": "lerna run build",
     "test": "lerna run test",

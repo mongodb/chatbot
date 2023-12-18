@@ -340,6 +340,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         .set("X-FORWARDED-FOR", ipAddress)
         .set("Origin", origin)
         .send({ message: nonsenseMessage });
+      console.log(response.body);
       expect(response.statusCode).toBe(200);
       expect(response.body.content).toEqual(
         defaultConversationConstants.NO_RELEVANT_CONTENT

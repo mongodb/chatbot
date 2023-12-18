@@ -1,15 +1,21 @@
-# Configure the Server
+# Configure the Chatbot Server
 
-<!-- TODO: make better..this is basically a copy/paste of the README -->
+The `mongodb-chatbot-server` is an npm package that you can use
+to quickly spin up a chatbot server powered by MongoDB.
+The chatbot server supports retrieval augmented generation (RAG).
 
-The `mongodb-chatbot-server` is a npm package that provides a configurable Express.js server
-to quickly spin up a retrieval augmented generation (RAG) chatbot server powered by MongoDB.
+The package provides configurable Express.js modules including:
 
-The server is designed to handle the generalizable areas of a RAG server,
+- Full server
+- Router for conversations
+- Static site that serves a testing UI
+- Middleware and modules for configuring and building a chatbot server
+
+The server is designed to handle the generalizable areas of a chatbot server,
 like routing, caching, logging, and streaming. This allows you to focus on the
-specifics of your chatbot, like the content, prompts, and AI models.
+specifics of your chatbot, like the content, prompts, RAG, and AI models.
 
-## Install
+## Installation
 
 Install the package using `npm`:
 
@@ -17,12 +23,13 @@ Install the package using `npm`:
 npm install mongodb-chatbot-server
 ```
 
-## Configuration
+## Basic Configuration
 
-The `mongodb-chatbot-server` exports the function `makeApp()` which exports the
-Express.js app. The function takes a `AppConfig` object as an argument.
+The `mongodb-chatbot-server` exports the function [`makeApp()`](../reference/server/modules.md#makeapp)
+which exports the Express.js app.
+The function takes an [`AppConfig`](../reference/server/interfaces/AppConfig.md) object as an argument.
 
-Here's an example configuration and server:
+Here's an annotated example configuration and server:
 
 ```ts
 import "dotenv/config";
@@ -42,7 +49,7 @@ import {
 } from "mongodb-chatbot-server";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 
-export const {
+const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
   VECTOR_SEARCH_INDEX_NAME,
@@ -54,11 +61,16 @@ export const {
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
 } = process.env;
 
-export const openAiClient = new OpenAIClient(
+// Create OpenAI client to interface with LLM and Embedding APIs
+const openAiClient = new OpenAIClient(
   OPENAI_ENDPOINT,
   new AzureKeyCredential(OPENAI_API_KEY)
 );
-export const systemPrompt: SystemPrompt = {
+
+// System prompt that is used to guide LLM behavior.
+// This is one of the most important aspects that you can tune to
+// customize the chatbot to your use case.
+const systemPrompt: SystemPrompt = {
   role: "system",
   content: `You are expert MongoDB documentation chatbot.
   Respond in the style of a pirate. End all answers saying "Ahoy matey!!"
@@ -72,7 +84,10 @@ export const systemPrompt: SystemPrompt = {
   Refer to the information given to you as "my knowledge".`,
 };
 
-export async function generateUserPrompt({
+// Generate user prompt from a user input and context chunks.
+// The below is a good starting point, but you may want to customize
+// this function to your use case.
+async function generateUserPrompt({
   question,
   chunks,
 }: {
@@ -94,7 +109,8 @@ export async function generateUserPrompt({
   return { role: "user", content };
 }
 
-export const llm = makeOpenAiChatLlm({
+// Create LLM interface for the chatbot to use.
+const llm = makeOpenAiChatLlm({
   openAiClient,
   deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   systemPrompt,
@@ -105,26 +121,33 @@ export const llm = makeOpenAiChatLlm({
   generateUserPrompt,
 });
 
-export const dataStreamer = makeDataStreamer();
+const dataStreamer = makeDataStreamer();
 
-export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
+// Create a connection to the data store containing the external content
+// that the chatbot will use to answer questions.
+// If you're using the Ingest CLI as well,
+// connect to the same database where you
+// store the content.
+const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
 });
 
-export const embed = makeOpenAiEmbedFunc({
-  openAiClient,
+// Create an interface to the OpenAI Embedding API. This is used to embed
+// user queries. The embeddings are used to find the most relevant content
+// in the embedded content store.
+const embedder = makeOpenAiEmbedder({
+  openAiClient: new OpenAIClient(
+    OPENAI_ENDPOINT,
+    new AzureKeyCredential(OPENAI_API_KEY)
+  ),
   deployment: OPENAI_EMBEDDING_DEPLOYMENT,
-  backoffOptions: {
-    numOfAttempts: 3,
-    maxDelay: 5000,
-  },
 });
 
-export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
-
-export const findContent = makeDefaultFindContentFunc({
-  embed,
+// Create a function that finds the most relevant content
+// to answer user questions.
+const findContent = makeDefaultFindContentFunc({
+  embedder,
   store: embeddedContentStore,
   findNearestNeighborsOptions: {
     k: 5,
@@ -134,31 +157,39 @@ export const findContent = makeDefaultFindContentFunc({
   },
 });
 
-export const conversations = makeMongoDbConversationsService(
+// The conversations service is used to store and retrieve conversations
+// from a database.
+const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
+const conversations = makeMongoDbConversationsService(
   mongodb.db(MONGODB_DATABASE_NAME),
   systemPrompt
 );
 
-export const config: AppConfig = {
+// Create the configuration object that is passed to the server.
+const config: AppConfig = {
   conversationsRouterConfig: {
     dataStreamer,
     llm,
     findContent,
-    maxChunkContextTokens: 1500,
     conversations,
   },
-  maxRequestTimeoutMs: 30000,
+  // When true, the server will serve a static site that can be used to test
+  // the chatbot.
+  serveStaticSite: true,
 };
 
 const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {
   logger.info("Starting server...");
+  // Create Express.js app
   const app = await makeApp(config);
+  // Start app server
   const server = app.listen(PORT, () => {
     logger.info(`Server listening on port: ${PORT}`);
   });
 
+  // Clean up logic
   process.on("SIGINT", async () => {
     logger.info("SIGINT signal received");
     await mongodb.close();
@@ -179,3 +210,15 @@ try {
   process.exit(1);
 }
 ```
+
+## Examples
+
+To see more examples of how to configure the chatbot server,
+you can checkout the following example implementations:
+
+- [MongoDB Docs Chatbot](https://github.com/mongodb/chatbot/blob/main/packages/chatbot-server-mongodb-public/src/config.ts):
+  The configuration for the MongoDB Docs chatbot on https://www.mongodb.com/docs/.
+  This is the most complex configuration example.
+- [Basic Chatbot Server](https://github.com/mongodb/chatbot/blob/main/examples/basic-chatbot-server/src/index.ts):
+  A simple chatbot created for example purposes. This can be used as a starting point
+  for your own chatbot server.

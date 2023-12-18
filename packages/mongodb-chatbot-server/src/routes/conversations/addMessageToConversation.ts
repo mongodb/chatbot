@@ -486,7 +486,7 @@ export type MakeReferenceLinksFunc = (chunks: EmbeddedContent[]) => References;
 
   ```js
   {
-    title: chunk.title ?? chunk.url, // if title doesn't exist, just put url
+    title: chunk.metadata.pageTitle ?? chunk.url, // if title doesn't exist, just put url
     url: chunk.url // this always exists
   }
   ```

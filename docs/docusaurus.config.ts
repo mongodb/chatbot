@@ -17,7 +17,7 @@ const config: Config = {
   projectName: "chatbot", // Usually your repo name.
 
   onBrokenLinks: "throw",
-  onBrokenMarkdownLinks: "warn",
+  onBrokenMarkdownLinks: "throw",
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
@@ -26,6 +26,52 @@ const config: Config = {
     defaultLocale: "en",
     locales: ["en"],
   },
+  markdown: {
+    mermaid: true,
+  },
+  themes: ["@docusaurus/theme-mermaid"],
+  plugins: [
+    [
+      "docusaurus-plugin-typedoc",
+      {
+        id: "server",
+        entryPoints: ["../packages/mongodb-chatbot-server/src/index.ts"],
+        tsconfig: "../packages/mongodb-chatbot-server/tsconfig.build.json",
+        sidebar: {
+          fullNames: true,
+        },
+        out: "reference/server",
+      },
+    ],
+    [
+      "docusaurus-plugin-typedoc",
+      {
+        id: "core",
+        entryPoints: ["../packages/mongodb-rag-core/src/index.ts"],
+        tsconfig: "../packages/mongodb-rag-core/tsconfig.json",
+        sidebar: {
+          fullNames: true,
+        },
+        out: "reference/core",
+      },
+    ],
+    [
+      "docusaurus-plugin-typedoc",
+      {
+        id: "ingest",
+        entryPoints: [
+          "../packages/mongodb-rag-ingest/src/index.ts",
+          "../packages/mongodb-rag-ingest/src/sources/index.ts",
+          "../packages/mongodb-rag-ingest/src/embed/index.ts",
+        ],
+        tsconfig: "../packages/mongodb-rag-ingest/tsconfig.build.json",
+        sidebar: {
+          fullNames: true,
+        },
+        out: "reference/ingest",
+      },
+    ],
+  ],
   presets: [
     [
       "classic",

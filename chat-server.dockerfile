@@ -20,5 +20,4 @@ RUN npm run build -- --scope='{mongodb-rag-core,mongodb-chatbot-server,chatbot-s
 ENV NODE_ENV=production
 
 EXPOSE 3000
-WORKDIR /app
-CMD ["npm", "run", "start:server"]
+CMD ["npm", "run", "server:start"]

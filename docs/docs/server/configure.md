@@ -1,6 +1,6 @@
 # Configure the Chatbot Server
 
-The `mongodb-chatbot-server` is a npm package that you can use
+The `mongodb-chatbot-server` is an npm package that you can use
 to quickly spin up a chatbot server powered by MongoDB.
 The chatbot server supports retrieval augmented generation (RAG).
 

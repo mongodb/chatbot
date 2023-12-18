@@ -55,8 +55,8 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "API Reference",
-      // collapsible: true,
-      // collapsed: true,
+      collapsible: true,
+      collapsed: true,
       link: {
         type: "generated-index",
         title: "API Reference",

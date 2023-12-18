@@ -15,8 +15,7 @@ into your RAG application. This is advantageous for the following reasons:
 
 ### Text
 
-Using [Markdown](https://www.markdownguide.org/) as the standard format
-is a good choice for most text-based content. LLMs can reason with Markdown,
+[Markdown](https://www.markdownguide.org/) works well as the standard format for most text-based content. LLMs can reason with Markdown,
 and even respond in Markdown. (This is actually how ChatGPT creates rich text).
 There are lots of tools in the JavaScript ecosystem for working with Markdown as well.
 

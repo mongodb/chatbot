@@ -16,7 +16,7 @@ directly to find relevant content and the query will never be rejected.
 
 Generally, preprocessors use LLMs to perform the transformation.
 
-For example, say user sends the following message to a chatbot
+For example, say a user sends the following message to a chatbot
 that answers questions about the MongoDB documentation:
 
 ```txt

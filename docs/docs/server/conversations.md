@@ -7,12 +7,12 @@ points where you can customize its behavior.
 
 The server has the following endpoints:
 
-- `POST /conversations/`: Create a new conversation. You must create a conversation
-  before you can send messages to the chatbot.
-- `POST /conversations/:conversationId/messages`: Send a message to the chatbot,
-  and get a response back.
-- `POST /conversations/:conversationId/messages/:messageId/rating`: Rate a message
-  in the conversation.
+- `POST /conversations/` creates a new conversation. You must create a
+  conversation before you can send messages to the chatbot.
+- `POST /conversations/:conversationId/messages` sends a message to the chatbot,
+  and gets a response back.
+- `POST /conversations/:conversationId/messages/:messageId/rating` rates a
+  message in the conversation.
 
 For more information on these endpoints, refer to the [API Specification](openapi).
 

@@ -38,7 +38,7 @@ When you add a message to a conversation with the `POST /conversations/:conversa
    refer to the [Custom Data](./custom-logic#add-custom-data-to-messages) guide.
 1. Load conversation from the database.
 1. (Optional) The user message is preprocessed. To learn more, refer to the
-   [Preprocessing](./preprocessing) guide.
+   [Preprocessing](./preprocess) guide.
    a. The preprocessor can also flag if the message is rejected
    (for example if it's inappropriate). If the message is rejected,
    the server returns a static response to the user.

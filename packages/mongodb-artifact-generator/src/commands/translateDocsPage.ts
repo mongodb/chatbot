@@ -135,9 +135,8 @@ export const action = createConfiguredAction<TranslateDocsPageCommandArgs>(
         pageSummary: analyzePageOutput,
       });
 
-      logger.logInfo(`Created rst post-procesed output:\n\n${rstPostProcessed}\n`);
       logger.appendArtifact(
-        `${inputFileName}-rsttest.translated.rst`,
+        `${inputFileName}-rstPostProcessorTest.translated.rst`,
         rstPostProcessed
       );
     } finally {

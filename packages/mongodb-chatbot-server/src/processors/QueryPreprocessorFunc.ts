@@ -1,5 +1,10 @@
 import { Message } from "../services";
 
+export type QueryProcessorFuncParams = {
+  query?: string;
+  messages: Message[];
+};
+
 /**
   Query preprocessors transform an input query to a new query based on your
   business logic.
@@ -11,13 +16,7 @@ import { Message } from "../services";
 */
 export type QueryPreprocessorFunc<
   ReturnType extends QueryPreprocessorResult = QueryPreprocessorResult
-> = ({
-  query,
-  messages,
-}: {
-  query?: string;
-  messages: Message[];
-}) => Promise<ReturnType>;
+> = (params: QueryProcessorFuncParams) => Promise<ReturnType>;
 
 export type QueryPreprocessorResult = {
   query?: string;

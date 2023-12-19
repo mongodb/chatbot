@@ -55,12 +55,7 @@ describe("OpenAiEmbedFunc", () => {
     const mockGetEmbeddings = jest.fn().mockImplementation(async () => {
       serverHitCount++;
       throw {
-        response: {
-          status: 429,
-          data: {
-            error: "error!",
-          },
-        },
+        code: 429,
         message: "Fake error",
       };
     });

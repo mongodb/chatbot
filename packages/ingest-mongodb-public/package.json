@@ -1,6 +1,6 @@
 {
   "name": "ingest-mongodb-public",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "description": "Plugin for ingesting MongoDB public data sources.",
   "author": "",
   "license": "Apache-2.0",
@@ -15,6 +15,7 @@
     "watch": "tsc -b -w",
     "release": "release-it",
     "ingest:all": "ingest all --config ./build/config.js",
+    "ingest:k8s": "../../node_modules/mongodb-rag-ingest/build/main.js all --config ./build/config.js",
     "ingest:pages": "ingest pages --config ./build/config.js",
     "ingest:embed": "ingest embed --config ./build/config.js"
   },

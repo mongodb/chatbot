@@ -9,7 +9,7 @@ import {
   makeMongoDbEmbeddedContentStore,
   makeOpenAiEmbedder,
 } from "mongodb-rag-core";
-import { makeMongoDbConversationsService } from "../services/conversations";
+import { makeMongoDbConversationsService } from "../services/mongodbConversations";
 import { makeDataStreamer } from "../services/dataStreamer";
 import { makeOpenAiChatLlm } from "../services/openAiChatLlm";
 import { stripIndents } from "common-tags";

@@ -171,14 +171,29 @@ export interface ConversationConstants {
  */
 export interface ConversationsService {
   conversationConstants: ConversationConstants;
+
+  /**
+    Create a new {@link Conversation}.
+   */
   create: (params?: CreateConversationParams) => Promise<Conversation>;
+
+  /**
+    Add a {@link Message} to a {@link Conversation}.
+   */
   addConversationMessage: (
     params: AddConversationMessageParams
   ) => Promise<Message>;
+  /**
+    Add multiple {@link Message} objects to a {@link Conversation}.
+   */
   addManyConversationMessages: (
     params: AddManyConversationMessagesParams
   ) => Promise<Message[]>;
   findById: ({ _id }: FindByIdParams) => Promise<Conversation | null>;
+
+  /**
+    Rate a {@link Message} in a {@link Conversation}.
+   */
   rateMessage: ({
     conversationId,
     messageId,

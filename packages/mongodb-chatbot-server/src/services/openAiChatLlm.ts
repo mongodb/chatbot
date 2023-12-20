@@ -118,12 +118,8 @@ async function prepConversationForOpenAiLlm({
   systemPrompt: SystemPrompt;
 }): Promise<OpenAiChatMessage[]> {
   const lastMessage = messages[messages.length - 1];
+  assert(messages.length > 0, "No messages provided");
   if (lastMessage.role === "user") {
-    assert(
-      typeof lastMessage.content === "string",
-      `Last message must be user message: ${JSON.stringify(lastMessage)}`
-    );
-
     const newestMessageForLlm = await generateUserPrompt({
       question: lastMessage.content,
       chunks,

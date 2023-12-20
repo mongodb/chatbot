@@ -71,53 +71,7 @@ describe("OpenAI Llm", () => {
       });
     await expect(response).rejects.toThrow("No messages provided");
   });
-  test("should not answer if no system prompt", async () => {
-    const response = async () =>
-      await openAiLlmService.answerQuestionAwaited({
-        messages: conversation.slice(1),
-        chunks,
-      });
-    await expect(response).rejects.toThrow(
-      `First message must be system prompt: ${JSON.stringify(systemPrompt)}`
-    );
-  });
-  test("should not answer if the second to last message is not assistant", async () => {
-    const response = async () =>
-      await openAiLlmService.answerQuestionAwaited({
-        messages: [
-          systemPrompt,
-          {
-            role: "user",
-            content: "How do I connect to my cluster?",
-          },
-          {
-            role: "user",
-            content: "How do I connect to my cluster?",
-          },
-        ],
-        chunks,
-      });
-    await expect(response).rejects.toThrow("Messages must alternate roles");
-  });
-  test("should not answer if last message not user", async () => {
-    const test = async () =>
-      await openAiLlmService.answerQuestionAwaited({
-        messages: [
-          systemPrompt,
-          {
-            role: "user",
-            content: "What's the capital of the United States of America?",
-          },
-          {
-            role: "assistant",
-            content:
-              "Hello, I'm a MongoDB documentation chatbot. How can I help you today?",
-          },
-        ],
-        chunks,
-      });
-    await expect(test).rejects.toThrow("Last message must be user message");
-  });
+
   test("should call tool", async () => {
     // TODO:
   });

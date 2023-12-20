@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { makeMongoDbConversationsService } from "./conversations";
+import { makeMongoDbConversationsService } from "./mongodbConversations";
 import { BSON, MongoClient } from "mongodb-rag-core";
 import { systemPrompt } from "../test/testHelpers";
 import {
@@ -148,7 +148,25 @@ describe("Conversations Service", () => {
     expect(conversationInDb?.messages[1].customData).toStrictEqual(customData);
   });
   test("should add many conversation messages", async () => {
-    // TODO
+    const conversation = await conversationsService.create();
+    const content = "Tell me about MongoDB";
+    const customData = undefined;
+    const newMessages = await conversationsService.addManyConversationMessages({
+      conversationId: conversation._id,
+      messages: [
+        {
+          role: "user",
+          content,
+          customData,
+          embedding: [1, 2, 3],
+        },
+        {
+          role: "assistant",
+          content,
+          customData,
+        },
+      ],
+    });
   });
   test("Should find a conversation by id", async () => {
     const conversation = await conversationsService.create();

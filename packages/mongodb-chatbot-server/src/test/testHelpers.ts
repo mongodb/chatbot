@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb-rag-core";
 import { AppConfig, makeApp } from "../app";
 import { MONGODB_CONNECTION_URI, config, systemPrompt } from "./testConfig";
-import { makeMongoDbConversationsService } from "../services/conversations";
+import { makeMongoDbConversationsService } from "../services/mongodbConversations";
 
 export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
   const testDbName = `conversations-test-${Date.now()}`;

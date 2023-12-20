@@ -8,25 +8,22 @@ import {
   Db,
   ObjectId,
 } from "mongodb-rag-core";
-import { makeMongoDbConversationsService } from "../../services/conversations";
-import express, { Express } from "express";
+import { makeMongoDbConversationsService } from "../../services/mongodbConversations";
+import { Express } from "express";
 import {
   AddMessageRequestBody,
   addMessagesToDatabase,
-  makeAddMessageToConversationRoute,
   convertDbMessageToOpenAiMessage,
-  validateApiConversationFormatting,
   DEFAULT_MAX_INPUT_LENGTH,
   DEFAULT_MAX_MESSAGES_IN_CONVERSATION,
   includeChunksForMaxTokensPossible,
   makeDefaultReferenceLinks,
-  AddMessageRequest,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
 import { makeOpenAiChatLlm } from "../../services/openAiChatLlm";
 import { makeDataStreamer } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
-import { makeApp, DEFAULT_API_PREFIX, reqHandler } from "../../app";
+import { makeApp, DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import {
   makeTestAppConfig,
@@ -37,8 +34,6 @@ import { AppConfig } from "../../app";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { makeDefaultFindContentFunc } from "./FindContentFunc";
 import { embedder, embeddedContentStore as store } from "../../test/testConfig";
-import { requireRequestOrigin } from "../../middleware/requireRequestOrigin";
-import validateRequestSchema from "../../middleware/validateRequestSchema";
 import { strict as assert } from "assert";
 import {
   ConversationsService,
@@ -55,7 +50,6 @@ describe("POST /conversations/:conversationId/messages", () => {
   let mongoClient: MongoClient;
   let ipAddress: string;
   let origin: string;
-  let dataStreamer: ReturnType<typeof makeDataStreamer>;
   let conversations: ConversationsService;
   let app: Express;
   let appConfig: AppConfig;
@@ -64,7 +58,7 @@ describe("POST /conversations/:conversationId/messages", () => {
     ({ ipAddress, origin, mongodb, app, appConfig, mongoClient } =
       await makeTestApp());
     ({
-      conversationsRouterConfig: { dataStreamer, conversations },
+      conversationsRouterConfig: { conversations },
     } = appConfig);
   });
 
@@ -283,7 +277,6 @@ describe("POST /conversations/:conversationId/messages", () => {
     });
 
     test("Should respond 500 if error with conversation service", async () => {
-      // TODO: resume here
       const mockBrokenConversationsService: ConversationsService = {
         async create() {
           throw new Error("mock error");
@@ -669,109 +662,6 @@ describe("POST /conversations/:conversationId/messages", () => {
           maxTokens: maxTokens2,
         });
         expect(includedChunks2).toStrictEqual(content.slice(0, 2));
-      });
-    });
-    describe("validateApiConversationFormatting()", () => {
-      test("Should validate correctly formatted conversation", () => {
-        const correctlyFormattedConversation: ApiConversation = {
-          _id: new ObjectId().toHexString(),
-          messages: [
-            {
-              content: "hi",
-              role: "assistant",
-              createdAt: Date.now(),
-              id: new ObjectId().toHexString(),
-            },
-            {
-              content: "hello",
-              role: "user",
-              createdAt: Date.now(),
-              id: new ObjectId().toHexString(),
-            },
-            {
-              content: "bye",
-              role: "assistant",
-              createdAt: Date.now(),
-              id: new ObjectId().toHexString(),
-            },
-            {
-              content: "good bye",
-              role: "user",
-              createdAt: Date.now(),
-              id: new ObjectId().toHexString(),
-            },
-          ],
-          createdAt: Date.now(),
-        };
-        const validation = validateApiConversationFormatting({
-          conversation: correctlyFormattedConversation,
-        });
-        expect(validation).toBe(true);
-      });
-      test("Should not validate empty conversation", () => {
-        const emptyConversation: ApiConversation = {
-          _id: new ObjectId().toHexString(),
-          messages: [],
-          createdAt: Date.now(),
-        };
-        const validation = validateApiConversationFormatting({
-          conversation: emptyConversation,
-        });
-        expect(validation).toBe(false);
-      });
-      test("Should not validate odd number of messages", () => {
-        const oddNumberOfMessages: ApiConversation = {
-          _id: new ObjectId().toHexString(),
-          messages: [
-            {
-              content: "hi",
-              role: "assistant",
-              createdAt: Date.now(),
-              id: new ObjectId().toHexString(),
-            },
-            {
-              content: "hello",
-              role: "user",
-              createdAt: Date.now(),
-              id: new ObjectId().toHexString(),
-            },
-            {
-              content: "bye",
-              role: "assistant",
-              createdAt: Date.now(),
-              id: new ObjectId().toHexString(),
-            },
-          ],
-          createdAt: Date.now(),
-        };
-        const validation = validateApiConversationFormatting({
-          conversation: oddNumberOfMessages,
-        });
-        expect(validation).toBe(false);
-      });
-      test("Should not validate incorrect conversation order", () => {
-        const incorrectConversationOrder: ApiConversation = {
-          _id: new ObjectId().toHexString(),
-          messages: [
-            {
-              content: "hi",
-              role: "assistant",
-              createdAt: Date.now(),
-              id: new ObjectId().toHexString(),
-            },
-            {
-              content: "bye",
-              role: "assistant",
-              createdAt: Date.now(),
-              id: new ObjectId().toHexString(),
-            },
-          ],
-          createdAt: Date.now(),
-        };
-        const validation = validateApiConversationFormatting({
-          conversation: incorrectConversationOrder,
-        });
-        expect(validation).toBe(false);
       });
     });
   });

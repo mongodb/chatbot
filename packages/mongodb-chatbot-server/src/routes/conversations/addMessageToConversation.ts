@@ -6,18 +6,12 @@ import {
 import { ObjectId, EmbeddedContent, References } from "mongodb-rag-core";
 import {
   ConversationsService,
-  Message,
   Conversation,
   SomeMessage,
 } from "../../services/ConversationsService";
-import { DataStreamer } from "../../services/dataStreamer";
+import { DataStreamer, makeDataStreamer } from "../../services/dataStreamer";
+import { ChatLlm, OpenAiChatMessage } from "../../services/ChatLlm";
 import {
-  ChatLlm,
-  OpenAiChatMessage,
-  OpenAiMessageRole,
-} from "../../services/ChatLlm";
-import {
-  ApiConversation,
   ApiMessage,
   RequestError,
   convertMessageFromDbToApi,
@@ -62,7 +56,7 @@ export type AddMessageRequest = z.infer<typeof AddMessageRequest>;
 export interface AddMessageToConversationRouteParams {
   conversations: ConversationsService;
   llm: ChatLlm;
-  dataStreamer: DataStreamer;
+  dataStreamer?: DataStreamer;
   userQueryPreprocessor?: QueryPreprocessorFunc;
   maxChunkContextTokens?: number;
   maxInputLengthCharacters?: number;
@@ -75,7 +69,7 @@ export interface AddMessageToConversationRouteParams {
 export function makeAddMessageToConversationRoute({
   conversations,
   llm,
-  dataStreamer,
+  dataStreamer = makeDataStreamer(),
   findContent,
   userQueryPreprocessor,
   maxChunkContextTokens = DEFAULT_MAX_CONTEXT_TOKENS,
@@ -450,7 +444,7 @@ export function convertDbMessageToOpenAiMessage(
     return {
       content: content,
       role: "assistant",
-      functionCall: message.functionCall,
+      ...(message.functionCall ? { functionCall: message.functionCall } : {}),
     } satisfies OpenAiChatMessage;
   }
   throw new Error(`Invalid message role: ${role}`);
@@ -553,33 +547,6 @@ export function includeChunksForMaxTokensPossible({
     ({ tokenCount }) => (total += tokenCount) > maxTokens
   );
   return fitRangeEndIndex === -1 ? content : content.slice(0, fitRangeEndIndex);
-}
-
-export function validateApiConversationFormatting({
-  conversation,
-}: {
-  conversation: ApiConversation;
-}) {
-  const { messages } = conversation;
-  if (
-    messages?.length === 0 || // Must be messages in the conversation
-    messages.length % 2 !== 0 // Must be an even number of messages
-  ) {
-    return false;
-  }
-  // Must alternate between assistant and user
-  for (let i = 0; i < messages.length; i++) {
-    const message = messages[i];
-    const isAssistant = i % 2 === 0;
-    if (isAssistant && message.role !== "assistant") {
-      return false;
-    }
-    if (!isAssistant && message.role !== "user") {
-      return false;
-    }
-  }
-
-  return true;
 }
 
 const loadConversation = async ({

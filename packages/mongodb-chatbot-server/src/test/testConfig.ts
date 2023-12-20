@@ -10,7 +10,6 @@ import {
   makeOpenAiEmbedder,
 } from "mongodb-rag-core";
 import { makeMongoDbConversationsService } from "../services/mongodbConversations";
-import { makeDataStreamer } from "../services/dataStreamer";
 import { makeOpenAiChatLlm } from "../services/openAiChatLlm";
 import { stripIndents } from "common-tags";
 import { AppConfig } from "../app";
@@ -130,8 +129,6 @@ export const llm = makeOpenAiChatLlm({
   generateUserPrompt,
 });
 
-export const dataStreamer = makeDataStreamer();
-
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
@@ -189,7 +186,6 @@ export function makeMongoDbReferences(chunks: EmbeddedContent[]) {
 
 export const config: AppConfig = {
   conversationsRouterConfig: {
-    dataStreamer,
     llm,
     findContent,
     maxChunkContextTokens: 1500,

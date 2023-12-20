@@ -29,9 +29,22 @@ export interface MakeOpenAiChatLlmParams {
   deployment: string;
   openAiClient: OpenAIClient;
   openAiLmmConfigOptions: GetChatCompletionsOptions;
-  generateUserPrompt: GenerateUserPrompt;
+  generateUserPrompt?: GenerateUserPrompt;
   systemPrompt: SystemPrompt;
   tools?: Tool[];
+}
+
+/**
+  Generate the user prompt sent to the {@link ChatLlm}
+  _without_ any data transformations.
+ */
+async function defaultGenerateUserPrompt({
+  question,
+}: GenerateUserPromptParams) {
+  return {
+    role: "user",
+    content: question,
+  } satisfies OpenAiChatMessage;
 }
 
 /**
@@ -42,12 +55,12 @@ export function makeOpenAiChatLlm({
   deployment,
   openAiClient,
   openAiLmmConfigOptions,
-  generateUserPrompt,
+  generateUserPrompt = defaultGenerateUserPrompt,
   systemPrompt,
-  tools = [],
+  tools,
 }: MakeOpenAiChatLlmParams): ChatLlm {
   const toolDict: { [key: string]: Tool } = {};
-  tools.forEach((tool) => {
+  tools?.forEach((tool) => {
     const name = tool.definition.name;
     toolDict[name] = tool;
   });
@@ -65,26 +78,10 @@ export function makeOpenAiChatLlm({
         messagesForLlm,
         {
           ...openAiLmmConfigOptions,
+          functions: tools?.map((tool) => tool.definition),
         }
       );
       return completionStream;
-    },
-    async callTool(message: OpenAiChatMessage) {
-      // Only call tool if the message is an assistant message with a function call.
-      assert(
-        message.role === "assistant" && message.functionCall !== undefined,
-        `Last message must be function call: ${JSON.stringify(message)}`
-      );
-      const availableFunctions = Object.keys(toolDict);
-      assert(
-        availableFunctions.includes(message.functionCall.name),
-        `Function not found: ${message.functionCall.name}. Available functions: ${availableFunctions}`
-      );
-
-      const { functionCall } = message;
-      const tool = toolDict[functionCall.name];
-      const response = await tool.call(JSON.parse(functionCall.arguments));
-      return response;
     },
     async answerQuestionAwaited({ messages, chunks }: LlmAnswerQuestionParams) {
       const messagesForLlm = await prepConversationForOpenAiLlm({
@@ -95,23 +92,38 @@ export function makeOpenAiChatLlm({
       });
       const {
         choices: [choice],
-      } = await openAiClient.getChatCompletions(
-        deployment,
-        messagesForLlm,
-        openAiLmmConfigOptions
-      );
+      } = await openAiClient.getChatCompletions(deployment, messagesForLlm, {
+        ...openAiLmmConfigOptions,
+        functions: tools?.map((tool) => tool.definition),
+      });
       const { message } = choice;
       if (!message) {
         throw new Error("No message returned from OpenAI");
       }
       return message as OpenAiChatMessage;
     },
+    async callTool(message: OpenAiChatMessage) {
+      // Only call tool if the message is an assistant message with a function call.
+      assert(
+        message.role === "assistant" && message.functionCall !== undefined,
+        `Message must be a tool call`
+      );
+      assert(
+        Object.keys(toolDict).includes(message.functionCall.name),
+        `Tool not found`
+      );
+
+      const { functionCall } = message;
+      const tool = toolDict[functionCall.name];
+      const response = await tool.call(JSON.parse(functionCall.arguments));
+      return response;
+    },
   };
 }
 
 async function prepConversationForOpenAiLlm({
   messages,
-  chunks,
+  chunks = [],
   generateUserPrompt,
 }: LlmAnswerQuestionParams & {
   generateUserPrompt: GenerateUserPrompt;

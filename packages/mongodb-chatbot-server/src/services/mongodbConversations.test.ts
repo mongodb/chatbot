@@ -6,6 +6,7 @@ import {
   Conversation,
   UserMessage,
   AssistantMessage,
+  AddSomeMessageParams,
 } from "./ConversationsService";
 
 jest.setTimeout(100000);
@@ -150,23 +151,24 @@ describe("Conversations Service", () => {
   test("should add many conversation messages", async () => {
     const conversation = await conversationsService.create();
     const content = "Tell me about MongoDB";
-    const customData = undefined;
+    const messages = [
+      {
+        role: "user",
+        content,
+        embedding: [1, 2, 3],
+      },
+      {
+        role: "assistant",
+        content,
+      },
+    ] satisfies AddSomeMessageParams[];
     const newMessages = await conversationsService.addManyConversationMessages({
       conversationId: conversation._id,
-      messages: [
-        {
-          role: "user",
-          content,
-          customData,
-          embedding: [1, 2, 3],
-        },
-        {
-          role: "assistant",
-          content,
-          customData,
-        },
-      ],
+      messages,
     });
+    expect(newMessages).toHaveLength(2);
+    expect(newMessages[0]).toEqual(messages[0]);
+    expect(newMessages[1]).toEqual(messages[1]);
   });
   test("Should find a conversation by id", async () => {
     const conversation = await conversationsService.create();

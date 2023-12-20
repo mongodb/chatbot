@@ -14,6 +14,9 @@ import {
   UserMessage,
   AddManyConversationMessagesParams,
   AddSomeMessageParams,
+  AssistantMessage,
+  SystemMessage,
+  FunctionMessage,
 } from "./ConversationsService";
 
 /**
@@ -145,20 +148,48 @@ export function createMessage(messageParams: AddSomeMessageParams) {
 /**
   Create a {@link Message} object from the {@link OpenAiChatMessage} object.
  */
-export function createMessageFromOpenAIChatMessage({
-  role,
-  content,
-  embedding,
-}: OpenAiChatMessage): SomeMessage {
-  const message: Message = {
+export function createMessageFromOpenAIChatMessage(
+  chatMessage: AddSomeMessageParams
+): SomeMessage {
+  const dbMessageBase = {
     id: new ObjectId(),
-    role,
-    content,
     createdAt: new Date(),
+    ...(chatMessage.customData ? { customData: chatMessage.customData } : {}),
   };
+
   // Avoid MongoDB inserting null for undefineds
-  if (role === "user" && embedding !== undefined) {
-    (message as UserMessage).embedding = embedding;
+  if (chatMessage.role === "user") {
+    return {
+      ...dbMessageBase,
+      role: chatMessage.role,
+      content: chatMessage.content,
+      embedding: chatMessage.embedding ?? [],
+    } satisfies UserMessage;
   }
-  return message as SomeMessage;
+  if (chatMessage.role === "assistant") {
+    return {
+      ...dbMessageBase,
+      role: chatMessage.role,
+      content: chatMessage.content ?? "",
+      ...(chatMessage.functionCall
+        ? { functionCall: chatMessage.functionCall }
+        : {}),
+    } satisfies AssistantMessage;
+  }
+  if (chatMessage.role === "system") {
+    return {
+      ...dbMessageBase,
+      role: chatMessage.role,
+      content: chatMessage.content,
+    } satisfies SystemMessage;
+  }
+  if (chatMessage.role === "function") {
+    return {
+      ...dbMessageBase,
+      role: chatMessage.role,
+      content: chatMessage.content ?? "",
+      name: chatMessage.name,
+    } satisfies FunctionMessage;
+  }
+  throw new Error(`Invalid message for message: ${chatMessage}`);
 }

@@ -1,11 +1,16 @@
 import "dotenv/config";
 
 import { stripIndent } from "common-tags";
-import { OpenAiChatMessage } from "./ChatLlm";
+import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
+import { OpenAiChatMessage, Tool } from "./ChatLlm";
 import { makeTestAppConfig, systemPrompt } from "../test/testHelpers";
+import { makeOpenAiChatLlm } from "./openAiChatLlm";
+import { assertEnvVars, CORE_ENV_VARS } from "mongodb-rag-core";
+import { strict as assert } from "assert";
 
 jest.setTimeout(30000);
-
+const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_CHAT_COMPLETION_DEPLOYMENT } =
+  assertEnvVars(CORE_ENV_VARS);
 const chunks = [
   stripIndent`You can connect to your cluster in a variety of ways. In this tutorial, you use one of the following methods:
 
@@ -24,6 +29,50 @@ const conversation = [
     content: "How do I connect to my cluster?",
   },
 ] as OpenAiChatMessage[];
+const testTools = [
+  {
+    definition: {
+      name: "test_tool",
+      description: "Test tool",
+      parameters: {
+        type: "object",
+        properties: {
+          test: {
+            description: "Test parameter. Always be the string 'test'.",
+            example: "test",
+            type: "string",
+          },
+        },
+        required: ["test"],
+      },
+    },
+    async call() {
+      return {
+        role: "assistant",
+        name: "test_tool",
+        content: "Test tool called",
+      };
+    },
+  },
+] satisfies Tool[];
+
+const openAiClient = new OpenAIClient(
+  OPENAI_ENDPOINT,
+  new AzureKeyCredential(OPENAI_API_KEY)
+);
+const toolOpenAiLlm = makeOpenAiChatLlm({
+  openAiClient,
+  deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  systemPrompt,
+  openAiLmmConfigOptions: {
+    temperature: 0,
+    maxTokens: 500,
+    functionCall: {
+      name: "test_tool",
+    },
+  },
+  tools: testTools,
+});
 
 const { appConfig: config } = makeTestAppConfig();
 
@@ -73,12 +122,49 @@ describe("OpenAI Llm", () => {
   });
 
   test("should call tool", async () => {
-    // TODO:
+    const response = await toolOpenAiLlm.answerQuestionAwaited({
+      messages: [
+        {
+          role: "user",
+          content: "hi",
+        },
+      ],
+    });
+    assert(
+      response.role === "assistant" && response.functionCall !== undefined
+    );
+    const toolResponse = await toolOpenAiLlm.callTool(response);
+    expect(response.role).toBe("assistant");
+    expect(response.functionCall.name).toBe("test_tool");
+    expect(JSON.parse(response.functionCall.arguments)).toStrictEqual({
+      test: "test",
+    });
+    expect(toolResponse).toStrictEqual({
+      role: "assistant",
+      name: "test_tool",
+      content: "Test tool called",
+    });
   });
   test("should throw error if calls tool that does not exist", async () => {
-    // TODO:
+    await expect(
+      toolOpenAiLlm.callTool({
+        role: "assistant",
+        functionCall: {
+          name: "not_a_tool",
+          arguments: JSON.stringify({
+            test: "test",
+          }),
+        },
+        content: "",
+      })
+    ).rejects.toThrow("Tool not found");
   });
-  test("should throw error if calls a tool on a message that isn't a tool call", () => {
-    // TODO:
+  test("should throw error if calls a tool on a message that isn't a tool call", async () => {
+    await expect(
+      toolOpenAiLlm.callTool({
+        role: "assistant",
+        content: "",
+      })
+    ).rejects.toThrow("Message must be a tool call");
   });
 });

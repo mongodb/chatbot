@@ -19,15 +19,17 @@ export type OpenAiChatMessage = ChatRequestMessage & {
     The vector representation of the content.
    */
   embedding?: number[];
+  content: string | null;
+};
 
+export type SystemPrompt = OpenAiChatMessage & {
+  role: "system";
   content: string;
 };
 
-export type SystemPrompt = OpenAiChatMessage & { role: "system" };
-
 export interface LlmAnswerQuestionParams {
   messages: OpenAiChatMessage[];
-  chunks: string[];
+  chunks?: string[];
 }
 /**
   Tool for the chatbot to use.
@@ -62,5 +64,5 @@ export interface ChatLlm {
     messages,
     chunks,
   }: LlmAnswerQuestionParams): Promise<OpenAiAwaitedResponse>;
-  callTool?(message: OpenAiChatMessage): Promise<OpenAiChatMessage>;
+  callTool(message: OpenAiChatMessage): Promise<OpenAiChatMessage>;
 }

@@ -8,7 +8,7 @@ import {
   ConversationCustomData,
   ConversationsService,
 } from "../../services/ConversationsService";
-import { DataStreamer } from "../../services/dataStreamer";
+import { DataStreamer, makeDataStreamer } from "../../services/dataStreamer";
 import { RateMessageRequest, makeRateMessageRoute } from "./rateMessage";
 import {
   CreateConversationRequest,
@@ -95,7 +95,7 @@ export type ConversationsMiddleware = RequestHandler<
  */
 export interface ConversationsRouterParams {
   llm: ChatLlm;
-  dataStreamer: DataStreamer;
+  dataStreamer?: DataStreamer;
   conversations: ConversationsService;
   userQueryPreprocessor?: QueryPreprocessorFunc;
   /**
@@ -183,7 +183,6 @@ const addOriginToCustomData: AddCustomDataFunc = async (_, res) =>
  */
 export function makeConversationsRouter({
   llm,
-  dataStreamer,
   conversations,
   userQueryPreprocessor,
   maxChunkContextTokens,
@@ -192,6 +191,7 @@ export function makeConversationsRouter({
   rateLimitConfig,
   findContent,
   makeReferenceLinks,
+  dataStreamer = makeDataStreamer(),
   middleware = [requireValidIpAddress(), requireRequestOrigin()],
   createConversationCustomData = addOriginAndIpToCustomData,
   addMessageToConversationCustomData = addOriginToCustomData,

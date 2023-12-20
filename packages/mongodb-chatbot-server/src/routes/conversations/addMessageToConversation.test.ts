@@ -21,7 +21,6 @@ import {
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
 import { makeOpenAiChatLlm } from "../../services/openAiChatLlm";
-import { makeDataStreamer } from "../../services/dataStreamer";
 import { stripIndent } from "common-tags";
 import { makeApp, DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";

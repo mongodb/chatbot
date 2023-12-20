@@ -56,7 +56,7 @@ export type AddMessageRequest = z.infer<typeof AddMessageRequest>;
 export interface AddMessageToConversationRouteParams {
   conversations: ConversationsService;
   llm: ChatLlm;
-  dataStreamer?: DataStreamer;
+  dataStreamer: DataStreamer;
   userQueryPreprocessor?: QueryPreprocessorFunc;
   maxChunkContextTokens?: number;
   maxInputLengthCharacters?: number;
@@ -69,7 +69,7 @@ export interface AddMessageToConversationRouteParams {
 export function makeAddMessageToConversationRoute({
   conversations,
   llm,
-  dataStreamer = makeDataStreamer(),
+  dataStreamer,
   findContent,
   userQueryPreprocessor,
   maxChunkContextTokens = DEFAULT_MAX_CONTEXT_TOKENS,

@@ -27,15 +27,20 @@ Then, create the following Atlas Vector Search index on the `embedded_content` c
 
 ```js
 {
-  "mappings": {
-    "fields": {
-      "embedding": {
-        "dimensions": 1536,
-        "similarity": "cosine",
-        "type": "knnVector"
-      }
-    }
-  }
+  "fields": [
+    {
+      // Whatever the dimensionality of your embeddings is
+      "numDimensions": "<embedding length, e.g. 1536>",
+      "path": "embedding",
+      "similarity": "cosine",
+      "type": "vector"
+    },
+    // Any fields you want to filter on
+    // {
+    //   "path": "sourceName",
+    //   "type": "filter"
+    // }
+  ]
 }
 ```
 

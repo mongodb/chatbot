@@ -154,11 +154,9 @@ describe("nearest neighbor search", () => {
     assert(store);
     const query = "db.collection.insertOne()";
     const filter = {
-      text: {
-        path: "sourceName",
-        query: "snooty-docs",
-      },
+      sourceName: "snooty-docs",
     };
+
     const { embedding } = await embedder.embed({
       text: query,
       userIp: "XYZ",
@@ -176,10 +174,7 @@ describe("nearest neighbor search", () => {
     assert(store);
     const query = "db.collection.insertOne()";
     const filter = {
-      text: {
-        path: "sourceName",
-        query: "not-a-source-name",
-      },
+      sourceName: { $eq: "not-a-source-name" },
     };
     const { embedding } = await embedder.embed({
       text: query,

@@ -80,6 +80,10 @@ export function makeMongoDbEmbeddedContentStore({
       });
     },
 
+    /**
+      @param vector - The vector to search for nearest neighbors to.
+      @param options - Options for performing a nearest-neighbor search.
+     */
     async findNearestNeighbors(vector, options) {
       const {
         indexName,
@@ -87,33 +91,32 @@ export function makeMongoDbEmbeddedContentStore({
         k,
         minScore,
         filter,
+        numCandidates,
       }: Partial<FindNearestNeighborsOptions> = {
         // Default options
-        indexName: "default",
+        indexName: "vector_index",
         path: "embedding",
         k: 3,
         minScore: 0.9,
-
         // User options override
         ...(options ?? {}),
       };
       return embeddedContentCollection
         .aggregate<WithScore<EmbeddedContent>>([
           {
-            $search: {
+            $vectorSearch: {
               index: indexName,
-              knnBeta: {
-                vector,
-                path,
-                k,
-                filter,
-              },
+              queryVector: vector,
+              path,
+              limit: k,
+              numCandidates: numCandidates ?? k * 15,
+              filter,
             },
           },
           {
             $addFields: {
               score: {
-                $meta: "searchScore",
+                $meta: "vectorSearchScore",
               },
             },
           },

@@ -16,23 +16,22 @@ When you run it:
   You can go on the NYC VPN to access.
 - If you get a 400 error, it's likely because the index already exists.
 
-### Atlas Search Index Configuration
+### Atlas Vector Search Index Configuration
 
 ```json
 {
-  "mappings": {
-    "fields": {
-      "embedding": {
-        "dimensions": 1536,
-        "similarity": "cosine",
-        "type": "knnVector"
-      },
-      "sourceName": {
-        "analyzer": "lucene.keyword",
-        "type": "string"
-      }
+  "fields": [
+    {
+      "numDimensions": 1536,
+      "path": "embedding",
+      "similarity": "cosine",
+      "type": "vector"
+    },
+    {
+      "path": "sourceName",
+      "type": "filter"
     }
-  }
+  ]
 }
 ```
 

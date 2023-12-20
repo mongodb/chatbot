@@ -3,12 +3,12 @@ import { rateLimit, Options as RateLimitOptions } from "express-rate-limit";
 import slowDown, { Options as SlowDownOptions } from "express-slow-down";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
 import { ChatLlm } from "../../services/ChatLlm";
-import { Conversation } from "../../services/conversations";
-import { DataStreamer } from "../../services/dataStreamer";
 import {
+  Conversation,
   ConversationCustomData,
   ConversationsService,
-} from "../../services/conversations";
+} from "../../services/ConversationsService";
+import { DataStreamer } from "../../services/dataStreamer";
 import { RateMessageRequest, makeRateMessageRoute } from "./rateMessage";
 import {
   CreateConversationRequest,

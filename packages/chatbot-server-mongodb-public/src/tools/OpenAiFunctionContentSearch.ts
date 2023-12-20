@@ -1,10 +1,11 @@
 import {
-  ChatMessage,
+  ChatResponseMessage,
   FunctionDefinition,
   FunctionCall,
   FindContentFunc,
   FindContentResult,
   References,
+  EmbeddedContent,
 } from "mongodb-chatbot-server";
 import yaml from "yaml";
 import { strict as assert } from "assert";
@@ -59,14 +60,13 @@ export function makeOpenAiFunctionContentSearch({
         required: ["query", "product"],
       },
     } satisfies FunctionDefinition,
-    async search(assistantFunctionCall: ChatMessage): Promise<{
-      message: ChatMessage;
+    async search(assistantFunctionCall: ChatResponseMessage): Promise<{
+      message: ChatResponseMessage;
       queryEmbedding: number[];
-      references: References;
+      content: EmbeddedContent[];
     }> {
       assert(
-        assistantFunctionCall.functionCall &&
-          assistantFunctionCall.name === name &&
+        assistantFunctionCall?.functionCall?.name === name &&
           assistantFunctionCall.role === "assistant",
         `Only call this method in response to function call for '${name}'`
       );
@@ -77,13 +77,10 @@ export function makeOpenAiFunctionContentSearch({
       const findQuery = yaml.stringify({ product, programmingLanguage, query });
       const { content, queryEmbedding } = await findContent({
         query: findQuery,
+        ipAddress: "",
       });
       const message = convertFindContentResultsToMessage(content);
-      const references: References = content.map(({ url, metadata }) => ({
-        url,
-        title: (metadata?.pageTitle as string) ?? "",
-      }));
-      return { queryEmbedding, message, references };
+      return { queryEmbedding, message, content };
     },
   };
 }
@@ -96,7 +93,7 @@ interface PreprocessedQuery {
 
 function convertFindContentResultsToMessage(
   foundContent: FindContentResult["content"]
-): ChatMessage {
+): ChatResponseMessage {
   const texts = [...foundContent]
     .sort((a, b) => a.score - b.score)
     .map(({ text }) => {
@@ -107,5 +104,6 @@ function convertFindContentResultsToMessage(
   return {
     role: "function",
     content,
+    toolCalls: [],
   };
 }

@@ -8,7 +8,8 @@ import {
   ConversationsService,
   Message,
   Conversation,
-} from "../../services/conversations";
+  SomeMessage,
+} from "../../services/ConversationsService";
 import { DataStreamer } from "../../services/dataStreamer";
 import {
   ChatLlm,
@@ -424,14 +425,37 @@ export async function sendStaticNonResponse({
 }
 
 export function convertDbMessageToOpenAiMessage(
-  message: Message
+  message: SomeMessage
 ): OpenAiChatMessage {
-  return {
-    content: message.content,
-    role: message.role as OpenAiMessageRole,
-  };
+  const { content, role } = message;
+  if (role === "system") {
+    return {
+      content: content,
+      role: "system",
+    } satisfies OpenAiChatMessage;
+  }
+  if (role === "function") {
+    return {
+      content: content,
+      role: "function",
+      name: message.name,
+    } satisfies OpenAiChatMessage;
+  }
+  if (role === "user") {
+    return {
+      content: content,
+      role: "user",
+    } satisfies OpenAiChatMessage;
+  }
+  if (role === "assistant") {
+    return {
+      content: content,
+      role: "assistant",
+      functionCall: message.functionCall,
+    } satisfies OpenAiChatMessage;
+  }
+  throw new Error(`Invalid message role: ${role}`);
 }
-
 interface AddMessagesToDatabaseParams {
   conversation: Conversation;
   originalUserMessageContent: string;
@@ -460,18 +484,22 @@ export async function addMessagesToDatabase({
   const conversationId = conversation._id;
   const userMessage = await conversations.addConversationMessage({
     conversationId,
-    content: originalUserMessageContent,
-    role: "user",
-    embedding: userMessageEmbedding,
-    preprocessedContent: preprocessedUserMessageContent,
-    rejectQuery,
-    customData,
+    message: {
+      content: originalUserMessageContent,
+      role: "user",
+      embedding: userMessageEmbedding,
+      preprocessedContent: preprocessedUserMessageContent,
+      rejectQuery,
+      customData,
+    },
   });
   const assistantMessage = await conversations.addConversationMessage({
     conversationId,
-    content: assistantMessageContent,
-    role: "assistant",
-    references: assistantMessageReferences,
+    message: {
+      content: assistantMessageContent,
+      role: "assistant",
+      references: assistantMessageReferences,
+    },
   });
   return { userMessage, assistantMessage };
 }

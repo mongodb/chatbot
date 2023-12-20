@@ -27,97 +27,104 @@ const conversation = [
 
 const { appConfig: config } = makeTestAppConfig();
 
-describe("LLM", () => {
-  describe("OpenAI Llm", () => {
-    const openAiLlmService = config.conversationsRouterConfig.llm;
-    test("should answer question in conversation - awaited", async () => {
-      const response = await openAiLlmService.answerQuestionAwaited({
-        messages: conversation,
-        chunks,
-      });
-      expect(response.role).toBe("assistant");
-      expect(response.content).toContain("MongoDB Shell");
-      expect(response.content).toContain("MongoDB driver");
+describe("OpenAI Llm", () => {
+  const openAiLlmService = config.conversationsRouterConfig.llm;
+  test("should answer question in conversation - awaited", async () => {
+    const response = await openAiLlmService.answerQuestionAwaited({
+      messages: conversation,
+      chunks,
     });
+    expect(response.role).toBe("assistant");
+    expect(response.content).toContain("MongoDB Shell");
+    expect(response.content).toContain("MongoDB driver");
+  });
 
-    test("should answer question in conversation - streamed", async () => {
-      const events = await openAiLlmService.answerQuestionStream({
-        messages: conversation,
-        chunks,
-      });
-      let count = 0;
-      let message = "";
-      await (async () => {
-        for await (const event of events) {
-          count++;
-          for (const choice of event.choices) {
-            const delta = choice.delta?.content;
-            if (delta !== undefined) {
-              message += delta;
-            }
+  test("should answer question in conversation - streamed", async () => {
+    const events = await openAiLlmService.answerQuestionStream({
+      messages: conversation,
+      chunks,
+    });
+    let count = 0;
+    let message = "";
+    await (async () => {
+      for await (const event of events) {
+        count++;
+        for (const choice of event.choices) {
+          const delta = choice.delta?.content;
+          if (delta !== undefined) {
+            message += delta;
           }
         }
-      })();
-      expect(count).toBeGreaterThan(10);
-      expect(message).toContain("MongoDB Compass");
-      expect(message).toContain("MongoDB Shell");
-      expect(message).toContain("MongoDB driver");
-    });
+      }
+    })();
+    expect(count).toBeGreaterThan(10);
+    expect(message).toContain("MongoDB Compass");
+    expect(message).toContain("MongoDB Shell");
+    expect(message).toContain("MongoDB driver");
+  });
 
-    test("should not answer if no messages in conversation", async () => {
-      const response = async () =>
-        await openAiLlmService.answerQuestionAwaited({
-          messages: [],
-          chunks,
-        });
-      await expect(response).rejects.toThrow("No messages provided");
-    });
-    test("should not answer if no system prompt", async () => {
-      const response = async () =>
-        await openAiLlmService.answerQuestionAwaited({
-          messages: conversation.slice(1),
-          chunks,
-        });
-      await expect(response).rejects.toThrow(
-        `First message must be system prompt: ${JSON.stringify(systemPrompt)}`
-      );
-    });
-    test("should not answer if the second to last message is not assistant", async () => {
-      const response = async () =>
-        await openAiLlmService.answerQuestionAwaited({
-          messages: [
-            systemPrompt,
-            {
-              role: "user",
-              content: "How do I connect to my cluster?",
-            },
-            {
-              role: "user",
-              content: "How do I connect to my cluster?",
-            },
-          ],
-          chunks,
-        });
-      await expect(response).rejects.toThrow("Messages must alternate roles");
-    });
-    test("should not answer if last message not user", async () => {
-      const test = async () =>
-        await openAiLlmService.answerQuestionAwaited({
-          messages: [
-            systemPrompt,
-            {
-              role: "user",
-              content: "What's the capital of the United States of America?",
-            },
-            {
-              role: "assistant",
-              content:
-                "Hello, I'm a MongoDB documentation chatbot. How can I help you today?",
-            },
-          ],
-          chunks,
-        });
-      await expect(test).rejects.toThrow("Last message must be user message");
-    });
+  test("should not answer if no messages in conversation", async () => {
+    const response = async () =>
+      await openAiLlmService.answerQuestionAwaited({
+        messages: [],
+        chunks,
+      });
+    await expect(response).rejects.toThrow("No messages provided");
+  });
+  test("should not answer if no system prompt", async () => {
+    const response = async () =>
+      await openAiLlmService.answerQuestionAwaited({
+        messages: conversation.slice(1),
+        chunks,
+      });
+    await expect(response).rejects.toThrow(
+      `First message must be system prompt: ${JSON.stringify(systemPrompt)}`
+    );
+  });
+  test("should not answer if the second to last message is not assistant", async () => {
+    const response = async () =>
+      await openAiLlmService.answerQuestionAwaited({
+        messages: [
+          systemPrompt,
+          {
+            role: "user",
+            content: "How do I connect to my cluster?",
+          },
+          {
+            role: "user",
+            content: "How do I connect to my cluster?",
+          },
+        ],
+        chunks,
+      });
+    await expect(response).rejects.toThrow("Messages must alternate roles");
+  });
+  test("should not answer if last message not user", async () => {
+    const test = async () =>
+      await openAiLlmService.answerQuestionAwaited({
+        messages: [
+          systemPrompt,
+          {
+            role: "user",
+            content: "What's the capital of the United States of America?",
+          },
+          {
+            role: "assistant",
+            content:
+              "Hello, I'm a MongoDB documentation chatbot. How can I help you today?",
+          },
+        ],
+        chunks,
+      });
+    await expect(test).rejects.toThrow("Last message must be user message");
+  });
+  test("should call tool", async () => {
+    // TODO:
+  });
+  test("should throw error if calls tool that does not exist", async () => {
+    // TODO:
+  });
+  test("should throw error if calls a tool on a message that isn't a tool call", () => {
+    // TODO:
   });
 });

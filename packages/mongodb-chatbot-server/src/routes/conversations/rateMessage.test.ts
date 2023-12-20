@@ -6,7 +6,7 @@ import {
   Message,
   AssistantMessage,
   ConversationsService,
-} from "../../services/conversations";
+} from "../../services/ConversationsService";
 import { Express } from "express";
 import { Db, MongoClient, ObjectId } from "mongodb-rag-core";
 import { makeRateMessageRoute } from "./rateMessage";

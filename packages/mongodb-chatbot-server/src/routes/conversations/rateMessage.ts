@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb-rag-core";
 import {
   Conversation,
   ConversationsService,
-} from "../../services/conversations";
+} from "../../services/ConversationsService";
 import {
   Request as ExpressRequest,
   Response as ExpressResponse,

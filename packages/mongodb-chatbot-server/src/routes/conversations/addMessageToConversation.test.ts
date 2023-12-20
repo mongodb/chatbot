@@ -8,13 +8,7 @@ import {
   Db,
   ObjectId,
 } from "mongodb-rag-core";
-import {
-  Conversation,
-  ConversationsService,
-  makeMongoDbConversationsService,
-  AssistantMessage,
-  defaultConversationConstants,
-} from "../../services/conversations";
+import { makeMongoDbConversationsService } from "../../services/conversations";
 import express, { Express } from "express";
 import {
   AddMessageRequestBody,
@@ -46,6 +40,13 @@ import { embedder, embeddedContentStore as store } from "../../test/testConfig";
 import { requireRequestOrigin } from "../../middleware/requireRequestOrigin";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
 import { strict as assert } from "assert";
+import {
+  ConversationsService,
+  Conversation,
+  defaultConversationConstants,
+  AssistantMessage,
+  OpenAiMessageRole,
+} from "../../services";
 const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
   assertEnvVars(CORE_ENV_VARS);
 jest.setTimeout(100000);
@@ -227,16 +228,20 @@ describe("POST /conversations/:conversationId/messages", () => {
         if (role === "assistant") {
           await conversations.addConversationMessage({
             conversationId: _id,
-            content: `message ${i}`,
-            role,
-            references: [],
+            message: {
+              content: `message ${i}`,
+              role,
+              references: [],
+            },
           });
         } else {
           await conversations.addConversationMessage({
             conversationId: _id,
-            content: `message ${i}`,
-            role,
-            embedding: [1, 2, 3],
+            message: {
+              content: `message ${i}`,
+              role,
+              embedding: [1, 2, 3],
+            },
           });
         }
       }
@@ -278,11 +283,15 @@ describe("POST /conversations/:conversationId/messages", () => {
     });
 
     test("Should respond 500 if error with conversation service", async () => {
+      // TODO: resume here
       const mockBrokenConversationsService: ConversationsService = {
         async create() {
           throw new Error("mock error");
         },
         async addConversationMessage() {
+          throw new Error("mock error");
+        },
+        async addManyConversationMessages() {
           throw new Error("mock error");
         },
         async findById() {
@@ -441,24 +450,14 @@ describe("POST /conversations/:conversationId/messages", () => {
         });
         expect(
           conversationInDb?.messages.find(
-            ({
-              role,
-              content,
-            }: {
-              role: "system" | "user" | "assistant";
-              content: string;
-            }) => role === "user" && content === userMessageContent
+            ({ role, content }: { role: OpenAiMessageRole; content: string }) =>
+              role === "user" && content === userMessageContent
           )
         ).toBeDefined();
         expect(
           conversationInDb?.messages.find(
-            ({
-              role,
-              content,
-            }: {
-              role: "system" | "user" | "assistant";
-              content: string;
-            }) => role === "assistant" && content === assistantMessageContent
+            ({ role, content }: { role: OpenAiMessageRole; content: string }) =>
+              role === "assistant" && content === assistantMessageContent
           )
         ).toBeDefined();
       });

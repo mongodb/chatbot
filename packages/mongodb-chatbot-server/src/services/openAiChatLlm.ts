@@ -55,7 +55,6 @@ export function makeOpenAiChatLlm({
         messagesForLlm,
         {
           ...openAiLmmConfigOptions,
-          stream: true,
         }
       );
       return completionStream;

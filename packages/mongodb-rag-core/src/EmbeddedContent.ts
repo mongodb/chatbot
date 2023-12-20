@@ -111,6 +111,13 @@ export type FindNearestNeighborsOptions = {
   k: number;
 
   /**
+    Number of nearest neighbors to use during the search.
+    Value must be less than or equal to (<=) 10000.
+    You can't specify a number less than the number of documents to return (k).
+   */
+  numCandidates: number;
+
+  /**
     The minimum nearest-neighbor score threshold between 0-1.
    */
   minScore: number;

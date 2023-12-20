@@ -189,7 +189,6 @@ export function makeAddMessageToConversationRoute({
         query,
         ipAddress: ip ?? "::1",
       });
-
       if (content.length === 0) {
         logRequest({
           reqId,

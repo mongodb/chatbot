@@ -143,7 +143,6 @@ export function ModalView(props: ModalViewProps) {
       size="large"
       initialFocus={`#${ActiveInputBarId}`}
       shouldClose={shouldClose}
-      placeholder=""
     >
       <LeafyGreenChatProvider>
         <ChatWindow

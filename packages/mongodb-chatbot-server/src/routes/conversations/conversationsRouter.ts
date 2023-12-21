@@ -16,14 +16,17 @@ import {
 } from "./createConversation";
 import {
   AddMessageRequest,
-  MakeReferenceLinksFunc,
   makeAddMessageToConversationRoute,
 } from "./addMessageToConversation";
 import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
-import { FindContentFunc } from "./FindContentFunc";
+import { FindContentFunc } from "../../processors/FindContentFunc";
 import { requireRequestOrigin } from "../../middleware/requireRequestOrigin";
 import { NextFunction, ParamsDictionary } from "express-serve-static-core";
 import { requireValidIpAddress } from "../../middleware";
+import {
+  GenerateUserPromptFunc,
+  MakeReferenceLinksFunc,
+} from "../../processors";
 
 /**
   Configuration for rate limiting on the /conversations/* routes.
@@ -119,6 +122,7 @@ export interface ConversationsRouterParams {
   rateLimitConfig?: ConversationsRateLimitConfig;
   findContent: FindContentFunc;
   makeReferenceLinks?: MakeReferenceLinksFunc;
+  generateUserPrompt?: GenerateUserPromptFunc;
 
   /**
     Middleware to put in front of all the routes in the conversationsRouter.
@@ -184,13 +188,10 @@ const addOriginToCustomData: AddCustomDataFunc = async (_, res) =>
 export function makeConversationsRouter({
   llm,
   conversations,
-  userQueryPreprocessor,
-  maxChunkContextTokens,
   maxInputLengthCharacters,
   maxMessagesInConversation,
   rateLimitConfig,
-  findContent,
-  makeReferenceLinks,
+  generateUserPrompt,
   dataStreamer = makeDataStreamer(),
   middleware = [requireValidIpAddress(), requireRequestOrigin()],
   createConversationCustomData = addOriginAndIpToCustomData,
@@ -274,13 +275,10 @@ export function makeConversationsRouter({
     conversations,
     llm,
     dataStreamer,
-    userQueryPreprocessor,
-    maxChunkContextTokens,
     maxInputLengthCharacters,
     maxMessagesInConversation,
-    findContent,
-    makeReferenceLinks,
     addMessageToConversationCustomData,
+    generateUserPrompt,
   });
   conversationsRouter.post(
     "/:conversationId/messages",

@@ -1,13 +1,8 @@
-import { ObjectId, References } from "mongodb-rag-core";
+import { EmbeddedContent, ObjectId, References } from "mongodb-rag-core";
 import { FunctionCall } from "@azure/openai";
-import { OpenAiMessageRole } from "./ChatLlm";
+import { OpenAiChatMessage, OpenAiMessageRole } from "./ChatLlm";
 
-export type Message = {
-  /**
-    Unique identifier for the message.
-   */
-  id: ObjectId;
-
+export type MessageBase = {
   /**
     The role of the message in the conversation.
    */
@@ -19,21 +14,16 @@ export type Message = {
   content: string;
 
   /**
-    The date the message was created.
-   */
-  createdAt: Date;
-
-  /**
     Custom data to include in the Message persisted to the database.
    */
   customData?: Record<string, unknown>;
 };
 
-export type SystemMessage = Message & {
+export type SystemMessage = MessageBase & {
   role: "system";
 };
 
-export type AssistantMessage = Message & {
+export type AssistantMessage = MessageBase & {
   role: "assistant";
 
   /**
@@ -51,12 +41,12 @@ export type AssistantMessage = Message & {
   functionCall?: FunctionCall;
 };
 
-export type FunctionMessage = Message & {
+export type FunctionMessage = MessageBase & {
   role: "function";
   name: string;
 };
 
-export type UserMessage = Message & {
+export type UserMessage = MessageBase & {
   role: "user";
 
   /**
@@ -72,7 +62,7 @@ export type UserMessage = Message & {
   /**
     The vector representation of the message content.
    */
-  embedding: number[];
+  embedding?: number[];
 };
 
 /**
@@ -84,6 +74,21 @@ export type SomeMessage =
   | SystemMessage
   | FunctionMessage;
 
+/**
+  Message stored in the database.
+*/
+export type Message = SomeMessage & {
+  /**
+      Unique identifier for the message.
+     */
+  id: ObjectId;
+
+  /**
+      The date the message was created.
+     */
+  createdAt: Date;
+};
+
 export type ConversationCustomData = Record<string, unknown> | undefined;
 
 /**
@@ -94,7 +99,7 @@ export interface Conversation<
 > {
   _id: ObjectId;
   /** Messages in the conversation. */
-  messages: SomeMessage[];
+  messages: Message[];
   /** The date the conversation was created. */
   createdAt: Date;
   /** The hostname that the request originated from. */

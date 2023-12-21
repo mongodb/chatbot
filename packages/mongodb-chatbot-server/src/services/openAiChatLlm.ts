@@ -10,18 +10,6 @@ import {
   Tool,
 } from "./ChatLlm";
 
-export type GenerateUserPromptParams = {
-  question: string;
-  chunks: string[];
-};
-/**
-  Generate the user prompt sent to the {@link ChatLlm}.
-  This should include the content from vector search.
- */
-export type GenerateUserPrompt = (
-  params: GenerateUserPromptParams
-) => Promise<OpenAiChatMessage & { role: "user" }>;
-
 /**
   Configuration for the {@link makeOpenAiChatLlm} function.
  */
@@ -29,22 +17,8 @@ export interface MakeOpenAiChatLlmParams {
   deployment: string;
   openAiClient: OpenAIClient;
   openAiLmmConfigOptions: GetChatCompletionsOptions;
-  generateUserPrompt?: GenerateUserPrompt;
   systemPrompt: SystemPrompt;
   tools?: Tool[];
-}
-
-/**
-  Generate the user prompt sent to the {@link ChatLlm}
-  _without_ any data transformations.
- */
-async function defaultGenerateUserPrompt({
-  question,
-}: GenerateUserPromptParams) {
-  return {
-    role: "user",
-    content: question,
-  } satisfies OpenAiChatMessage;
 }
 
 /**
@@ -55,8 +29,6 @@ export function makeOpenAiChatLlm({
   deployment,
   openAiClient,
   openAiLmmConfigOptions,
-  generateUserPrompt = defaultGenerateUserPrompt,
-  systemPrompt,
   tools,
 }: MakeOpenAiChatLlmParams): ChatLlm {
   const toolDict: { [key: string]: Tool } = {};
@@ -66,16 +38,10 @@ export function makeOpenAiChatLlm({
   });
 
   return {
-    async answerQuestionStream({ messages, chunks }: LlmAnswerQuestionParams) {
-      const messagesForLlm = await prepConversationForOpenAiLlm({
-        messages,
-        chunks,
-        generateUserPrompt,
-        systemPrompt,
-      });
+    async answerQuestionStream({ messages }: LlmAnswerQuestionParams) {
       const completionStream = await openAiClient.listChatCompletions(
         deployment,
-        messagesForLlm,
+        messages,
         {
           ...openAiLmmConfigOptions,
           functions: tools?.map((tool) => tool.definition),
@@ -83,16 +49,10 @@ export function makeOpenAiChatLlm({
       );
       return completionStream;
     },
-    async answerQuestionAwaited({ messages, chunks }: LlmAnswerQuestionParams) {
-      const messagesForLlm = await prepConversationForOpenAiLlm({
-        messages,
-        chunks,
-        generateUserPrompt,
-        systemPrompt,
-      });
+    async answerQuestionAwaited({ messages }: LlmAnswerQuestionParams) {
       const {
         choices: [choice],
-      } = await openAiClient.getChatCompletions(deployment, messagesForLlm, {
+      } = await openAiClient.getChatCompletions(deployment, messages, {
         ...openAiLmmConfigOptions,
         functions: tools?.map((tool) => tool.definition),
       });
@@ -115,28 +75,8 @@ export function makeOpenAiChatLlm({
 
       const { functionCall } = message;
       const tool = toolDict[functionCall.name];
-      const response = await tool.call(JSON.parse(functionCall.arguments));
-      return response;
+      const toolResponse = await tool.call(JSON.parse(functionCall.arguments));
+      return toolResponse;
     },
   };
-}
-
-async function prepConversationForOpenAiLlm({
-  messages,
-  chunks = [],
-  generateUserPrompt,
-}: LlmAnswerQuestionParams & {
-  generateUserPrompt: GenerateUserPrompt;
-  systemPrompt: SystemPrompt;
-}): Promise<OpenAiChatMessage[]> {
-  const lastMessage = messages[messages.length - 1];
-  assert(messages.length > 0, "No messages provided");
-  if (lastMessage.role === "user") {
-    const newestMessageForLlm = await generateUserPrompt({
-      question: lastMessage.content,
-      chunks,
-    });
-    return [...messages.slice(0, -1), newestMessageForLlm];
-  }
-  return messages;
 }

@@ -135,7 +135,7 @@ export function createMessage(messageParams: AddSomeMessageParams) {
     id: new ObjectId(),
     createdAt: new Date(),
     ...messageParams,
-  } satisfies SomeMessage;
+  } satisfies Message;
 
   // Remove undefined customData so that it's
   // not persisted to the database as `customData: null`.
@@ -150,7 +150,7 @@ export function createMessage(messageParams: AddSomeMessageParams) {
  */
 export function createMessageFromOpenAIChatMessage(
   chatMessage: AddSomeMessageParams
-): SomeMessage {
+): Message {
   const dbMessageBase = {
     id: new ObjectId(),
     createdAt: new Date(),

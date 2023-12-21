@@ -9,6 +9,11 @@ import {
   ChatRequestMessage,
   FunctionDefinition,
 } from "@azure/openai";
+import {
+  ConversationConstants,
+  AssistantMessage,
+} from "./ConversationsService";
+import { Reference } from "mongodb-rag-core";
 export type OpenAiMessageRole = "system" | "assistant" | "user" | "function";
 
 export type OpenAiChatMessage = ChatRequestMessage & {
@@ -29,7 +34,6 @@ export type SystemPrompt = OpenAiChatMessage & {
 
 export interface LlmAnswerQuestionParams {
   messages: OpenAiChatMessage[];
-  chunks?: string[];
 }
 /**
   Tool for the chatbot to use.
@@ -43,7 +47,7 @@ export interface Tool {
   /**
       Call the function based on the arguments in the {@link Tool.definition}.
      */
-  call(args: unknown): Promise<OpenAiChatMessage>;
+  call(args: unknown): Promise<CallToolResponse>;
 }
 
 export type OpenAIChatCompletionWithoutUsage = Omit<ChatCompletions, "usage">;
@@ -52,17 +56,34 @@ export type OpenAiStreamingResponse =
   AsyncIterable<OpenAIChatCompletionWithoutUsage>;
 export type OpenAiAwaitedResponse = OpenAiChatMessage;
 
+export interface CallToolResponse {
+  /**
+    Message to add to the conversation.
+   */
+  functionMessage: OpenAiChatMessage;
+
+  /**
+    If `true`, the user query should be rejected.
+    You can use this to short circuit the conversation,
+    and return the {@link ConversationConstants.NO_RELEVANT_CONTENT} message.
+   */
+  rejectUserQuery?: boolean;
+
+  /**
+    References to add to the {@link AssistantMessage} sent to the user.
+   */
+  references?: Reference[];
+}
+
 /**
   LLM that responds to user queries. Provides both streaming and awaited options.
  */
 export interface ChatLlm {
   answerQuestionStream({
     messages,
-    chunks,
   }: LlmAnswerQuestionParams): Promise<OpenAiStreamingResponse>;
   answerQuestionAwaited({
     messages,
-    chunks,
   }: LlmAnswerQuestionParams): Promise<OpenAiAwaitedResponse>;
-  callTool(message: OpenAiChatMessage): Promise<OpenAiChatMessage>;
+  callTool(message: OpenAiChatMessage): Promise<CallToolResponse>;
 }

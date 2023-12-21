@@ -1,4 +1,3 @@
-import { strict as assert } from "assert";
 import {
   WithScore,
   EmbeddedContent,
@@ -6,7 +5,7 @@ import {
   EmbeddedContentStore,
   FindNearestNeighborsOptions,
 } from "mongodb-rag-core";
-import { SearchBooster } from "../../processors/SearchBooster";
+import { SearchBooster } from "./SearchBooster";
 
 export type FindContentFuncArgs = {
   query: string;

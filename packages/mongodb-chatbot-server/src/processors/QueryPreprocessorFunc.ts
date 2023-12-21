@@ -20,5 +20,5 @@ export type QueryPreprocessorFunc<
 
 export type QueryPreprocessorResult = {
   query?: string;
-  rejectQuery: boolean;
+  rejectQuery?: boolean;
 };

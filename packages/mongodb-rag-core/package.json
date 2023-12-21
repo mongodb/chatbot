@@ -1,6 +1,6 @@
 {
   "name": "mongodb-rag-core",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Common elements used by the chatbot components.",
   "author": "MongoDB, Inc.",
   "license": "Apache-2.0",
@@ -53,7 +53,7 @@
     "exponential-backoff": "^3.1.1",
     "front-matter": "^4.0.2",
     "gray-matter": "^4.0.3",
-    "mongodb": "^5.6.0",
+    "mongodb": "^6.3.0",
     "openai": "^3",
     "toml": "^3.0.0",
     "typechat": "^0.0.10",

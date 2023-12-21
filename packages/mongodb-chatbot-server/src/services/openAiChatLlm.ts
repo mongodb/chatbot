@@ -8,17 +8,17 @@ import {
   SystemPrompt,
 } from "./ChatLlm";
 
+export type GenerateUserPromptParams = {
+  question: string;
+  chunks: string[];
+};
 /**
   Generate the user prompt sent to the {@link ChatLlm}.
   This should include the content from vector search.
  */
-export type GenerateUserPrompt = ({
-  question,
-  chunks,
-}: {
-  question: string;
-  chunks: string[];
-}) => Promise<OpenAiChatMessage & { role: "user" }>;
+export type GenerateUserPrompt = (
+  params: GenerateUserPromptParams
+) => Promise<OpenAiChatMessage & { role: "user" }>;
 
 /**
   Configuration for the {@link makeOpenAiChatLlm} function.
@@ -55,7 +55,6 @@ export function makeOpenAiChatLlm({
         messagesForLlm,
         {
           ...openAiLmmConfigOptions,
-          stream: true,
         }
       );
       return completionStream;

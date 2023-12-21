@@ -1,18 +1,20 @@
 {
   "git": {
     "commitArgs": ["-a"],
-    "commitMessage": "Release mongodb-chatbot-server v${version}\n\n${changelog}",
-    "changelog": "git log --pretty=format:\"* %s (%h)\" ${from}..${to} -- .",
+    "commitMessage": "Release ${npm.name} v${version}",
+    "changelog": "git log --pretty=format:'* %s (%h)' ${latestTag}..HEAD -- .",
+    "tagMatch": "${npm.name}-*",
+    "getLatestTagFromAllRefs": true,
     "tag": true,
     "push": true,
     "pushRepo": "upstream",
-    "tagName": "mongodb-chatbot-server-v${version}"
+    "tagName": "${npm.name}-v${version}"
   },
   "npm": {
     "publish": false
   },
   "github": {
-    "releaseName": "mongodb-chatbot-server-v${version}",
+    "releaseName": "${npm.name}-v${version}",
     "draft": true,
     "release": true
   },

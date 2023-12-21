@@ -6,7 +6,7 @@ env:
   OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
   OPENAI_EMBEDDING_MODEL_VERSION: 2023-03-15-preview
   MONGODB_DATABASE_NAME: docs-chatbot-staging
-  VECTOR_SEARCH_INDEX_NAME: default
+  VECTOR_SEARCH_INDEX_NAME: vector_index
   OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
   ALLOWED_ORIGINS: https://knowledge.staging.corp.mongodb.com,https://docs-mongodborg-staging.corp.mongodb.com,https://mongodbcom-cdn.website.staging.corp.mongodb.com,https://docs-mongodb-org-stg.s3.us-east-2.amazonaws.com
   NODE_ENV: staging

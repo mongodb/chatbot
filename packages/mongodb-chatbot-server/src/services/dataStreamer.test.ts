@@ -5,8 +5,9 @@ import type {
 } from "./ChatLlm";
 import { createResponse } from "node-mocks-http";
 import { EventEmitter } from "events";
+import { Response } from "express";
 
-let res: ReturnType<typeof createResponse>;
+let res: ReturnType<typeof createResponse> & Response;
 const dataStreamer = makeDataStreamer();
 describe("Data Streaming", () => {
   beforeEach(() => {

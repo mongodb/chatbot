@@ -27,7 +27,6 @@
     "@release-it/bumper": "^5.1.0",
     "csv": "^6.3.1",
     "dotenv": "^16.3.1",
-    "mongodb": "^5.7.0",
     "mongodb-chatbot-server": "*",
     "mongodb-rag-core": "*",
     "yaml": "^2.3.4"

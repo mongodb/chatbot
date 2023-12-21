@@ -31,7 +31,7 @@ steps:
       OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
       OPENAI_EMBEDDING_MODEL_VERSION: 2023-03-15-preview
       MONGODB_DATABASE_NAME: docs-chatbot-test
-      VECTOR_SEARCH_INDEX_NAME: default
+      VECTOR_SEARCH_INDEX_NAME: vector_index
       OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
       MONGODB_CONNECTION_URI:
         from_secret: mongodb_connection_uri
@@ -66,7 +66,6 @@ name: staging-build-chat-server
 trigger:
   branch:
     - main
-    - fix_staging_static_site
   event:
     - push
 
@@ -131,7 +130,6 @@ trigger:
       - packages/mongodb-chatbot-ui/**/*
   branch:
     - main
-    - fix_staging_static_site
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion

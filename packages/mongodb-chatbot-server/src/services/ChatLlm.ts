@@ -4,10 +4,10 @@
  * from that. This interface could still work with non OpenAI providers if they
  * implement the same interface.
  */
-import { ChatMessage, ChatCompletions } from "@azure/openai";
+import { ChatCompletions } from "@azure/openai";
 export type OpenAiMessageRole = "system" | "assistant" | "user";
 
-export interface OpenAiChatMessage extends ChatMessage {
+export interface OpenAiChatMessage {
   /** The role of the message in the context of the conversation. */
   role: OpenAiMessageRole;
   /** Response to user's chat message in the context of the conversation. */

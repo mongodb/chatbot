@@ -8,13 +8,14 @@ import {
 } from "mongodb-rag-core";
 import { SearchBooster } from "../../processors/SearchBooster";
 
-export type FindContentFunc = ({
-  query,
-  ipAddress,
-}: {
+export type FindContentFuncArgs = {
   query: string;
   ipAddress: string;
-}) => Promise<FindContentResult>;
+};
+
+export type FindContentFunc = (
+  args: FindContentFuncArgs
+) => Promise<FindContentResult>;
 
 export type FindContentResult = {
   queryEmbedding: number[];

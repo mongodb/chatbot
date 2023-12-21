@@ -1,8 +1,8 @@
-# Fine Tune Ingestion
+# Optimize Ingestion
 
-You can fine tune your data ingestion process to optimize it for your application.
+You can optimize your data ingestion process for your application.
 
-This page contains some information on fine tuning ingestion
+This page contains some information on optimizing ingestion
 based on our experience building RAG applications and emerging best practices.
 
 ## Standardize Data Formats
@@ -15,8 +15,7 @@ into your RAG application. This is advantageous for the following reasons:
 
 ### Text
 
-Using [Markdown](https://www.markdownguide.org/) as the standard format for content
-is a good choice for most text-based content. LLMs can reason with Markdown,
+[Markdown](https://www.markdownguide.org/) works well as the standard format for most text-based content. LLMs can reason with Markdown,
 and even respond in Markdown. (This is actually how ChatGPT creates rich text).
 There are lots of tools in the JavaScript ecosystem for working with Markdown as well.
 
@@ -113,11 +112,8 @@ Say you have this document in the `pages` collection:
 }
 ```
 
-When chunking the page, `standardChunkFrontMatterUpdater()` will transform
+When chunking the page, `standardChunkFrontMatterUpdater()` transforms
 the page text into the following chunk text:
-
-````yaml
-into the following chunk:
 
 ```yaml
 ---
@@ -128,7 +124,7 @@ tags:
 productName: Product Name
 ---
 This is my page...
-````
+```
 
 You then use this chunk with metadata to create the embedding.
 The embedding then has the semantic meaning of both the chunk content and metadata.

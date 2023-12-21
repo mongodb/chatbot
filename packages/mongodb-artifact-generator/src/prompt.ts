@@ -96,4 +96,34 @@ export const rstDescription = html`
 - Always use a code-block directive or default inline role to represent code or configuration.
 
 - Always use dashes (-) for unordered lists.
+
+- Always include an explicit cross-reference title at the top of the page with an appropriate title. For example:
+
+    .. _somelang-get-started:
+
+    ============================================
+    Get Started with the MongoDB SomeLang Driver
+    ============================================
+
+- Represent a page-level table of contents with a .. contents:: directive, for example:
+
+  .. contents:: On this page
+     :depth: 2
+
+- Always use a .. list-table:: directive instead of an ascii table. For example:
+
+  .. list-table::
+     :header-rows: 1
+
+     * - Name
+       - Birthday
+
+     * - Alice
+       - December 1, 1988
+
+     * - Bob
+       - October 8, 1982
+
+     * - Charlie
+       - March 9, 2014
 `

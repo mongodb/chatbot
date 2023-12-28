@@ -17,12 +17,12 @@ import {
   assertEnvVars,
   makeDefaultFindContent,
   makeDefaultReferenceLinks,
-  OpenAiChatMessage,
   SystemPrompt,
   GenerateUserPromptFunc,
   makeRagGenerateUserPrompt,
   MakeUserMessageFunc,
   MakeUserMessageFuncParams,
+  UserMessage,
 } from "mongodb-chatbot-server";
 import { stripIndents } from "common-tags";
 import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
@@ -96,7 +96,8 @@ export const makeUserMessage: MakeUserMessageFunc = async function ({
   preprocessedUserMessage,
   originalUserMessage,
   content,
-}: MakeUserMessageFuncParams): Promise<OpenAiChatMessage & { role: "user" }> {
+  queryEmbedding,
+}: MakeUserMessageFuncParams): Promise<UserMessage> {
   const chunkSeparator = "~~~~~~";
   const context = content.map((c) => c.text).join(`\n${chunkSeparator}\n`);
   const messageContent = `Using the following information, answer the question.
@@ -109,7 +110,13 @@ ${context}
 <Question>
 ${preprocessedUserMessage ?? originalUserMessage}
 <End Question>`;
-  return { role: "user", content: messageContent };
+  return {
+    role: "user",
+    content: messageContent,
+    embedding: queryEmbedding,
+    preprocessedContent: preprocessedUserMessage,
+    originalContent: originalUserMessage,
+  };
 };
 
 export const llm = makeOpenAiChatLlm({
@@ -148,8 +155,6 @@ export const embedder = makeOpenAiEmbedder({
   },
 });
 
-export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
-
 export const findContent = makeDefaultFindContent({
   embedder,
   store: embeddedContentStore,
@@ -161,19 +166,6 @@ export const findContent = makeDefaultFindContent({
   },
   searchBoosters: [boostManual],
 });
-
-export const conversations = makeMongoDbConversationsService(
-  mongodb.db(MONGODB_DATABASE_NAME),
-  systemPrompt
-);
-
-export const generateUserPrompt: GenerateUserPromptFunc =
-  makeRagGenerateUserPrompt({
-    findContent,
-    queryPreprocessor: mongoDbUserQueryPreprocessor,
-    makeUserMessage,
-    makeReferenceLinks: makeMongoDbReferences,
-  });
 
 /**
   MongoDB Chatbot implementation of {@link MakeReferenceLinksFunc}.
@@ -197,12 +189,28 @@ export function makeMongoDbReferences(chunks: EmbeddedContent[]) {
   });
 }
 
+export const generateUserPrompt: GenerateUserPromptFunc =
+  makeRagGenerateUserPrompt({
+    findContent,
+    queryPreprocessor: mongoDbUserQueryPreprocessor,
+    makeUserMessage,
+    makeReferenceLinks: makeMongoDbReferences,
+  });
+
+export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
+
+export const conversations = makeMongoDbConversationsService(
+  mongodb.db(MONGODB_DATABASE_NAME),
+  systemPrompt
+);
+
 export const config: AppConfig = {
   conversationsRouterConfig: {
     dataStreamer,
     llm,
     maxChunkContextTokens: 1500,
     conversations,
+    generateUserPrompt,
   },
   maxRequestTimeoutMs: 30000,
   corsOptions: {

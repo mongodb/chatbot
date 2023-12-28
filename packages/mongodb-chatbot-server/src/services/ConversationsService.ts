@@ -1,6 +1,6 @@
-import { EmbeddedContent, ObjectId, References } from "mongodb-rag-core";
+import { ObjectId, References } from "mongodb-rag-core";
 import { FunctionCall } from "@azure/openai";
-import { OpenAiChatMessage, OpenAiMessageRole } from "./ChatLlm";
+import { OpenAiMessageRole } from "./ChatLlm";
 
 export type MessageBase = {
   /**
@@ -10,6 +10,7 @@ export type MessageBase = {
 
   /**
     Message that occurs in the conversation.
+    This is used by the LLM to generate a response.
    */
   content: string;
 
@@ -50,7 +51,12 @@ export type UserMessage = MessageBase & {
   role: "user";
 
   /**
-    The preprocessed content of the message that is sent to vector search.
+      The original content of the message before preprocessing.
+   */
+  originalContent?: string;
+
+  /**
+    The preprocessed content of the message.
    */
   preprocessedContent?: string;
 

@@ -61,7 +61,10 @@ export function makePreprocessMongoDbUserQuery({
     if (query === undefined) {
       return { query, rejectQuery: false };
     }
-    const prompt = generateMongoDbQueryPreProcessorPrompt({ query, messages });
+    const prompt = generateMongoDbQueryPreProcessorPrompt({
+      query,
+      messages: messages ?? [],
+    });
     const data = await translate(prompt);
     return {
       ...data,

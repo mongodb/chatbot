@@ -16,7 +16,7 @@ import { AppConfig } from "../app";
 import { makeBoostOnAtlasSearchFilter } from "../processors/makeBoostOnAtlasSearchFilter";
 import { CORE_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
-import { OpenAiChatMessage, SystemPrompt } from "../services/ChatLlm";
+import { SystemPrompt } from "../services/ChatLlm";
 import { makePreprocessMongoDbUserQuery } from "./testPreProcessor/makePreprocessMongoDbUserQuery";
 import {
   MakeUserMessageFunc,
@@ -25,6 +25,7 @@ import {
 } from "../processors";
 import { makeDefaultFindContent } from "../processors/makeDefaultFindContent";
 import { makeDefaultReferenceLinks } from "../processors/makeDefaultReferenceLinks";
+import { UserMessage } from "../services";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -110,7 +111,7 @@ export const makeUserMessage: MakeUserMessageFunc = async function ({
   preprocessedUserMessage,
   originalUserMessage,
   content,
-}: MakeUserMessageFuncParams): Promise<OpenAiChatMessage & { role: "user" }> {
+}: MakeUserMessageFuncParams): Promise<UserMessage> {
   const chunkSeparator = "~~~~~~";
   const context = content.map((c) => c.text).join(`\n${chunkSeparator}\n`);
   const messageContent = `Using the following information, answer the question.
@@ -123,7 +124,11 @@ ${context}
 <Question>
 ${preprocessedUserMessage ?? originalUserMessage}
 <End Question>`;
-  return { role: "user", content: messageContent };
+  return {
+    role: "user",
+    content: messageContent,
+    originalUserContent: originalUserMessage,
+  };
 };
 
 export const generateUserPrompt = makeRagGenerateUserPrompt({

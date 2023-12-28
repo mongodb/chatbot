@@ -81,10 +81,11 @@ const scrubMessages = async ({ db }: { db: Db }) => {
           // Add keys to omit from the projection below.
           | "id"
           | "content"
-          | "preprocessedContent"
           | "analysis"
           | "responseRating"
           | "functionCall"
+          | "originalContent"
+          | "preprocessedContent"
         >,
         string | number
       >,

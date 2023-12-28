@@ -68,11 +68,10 @@ export function makeRagGenerateUserPrompt({
       };
     }
 
-    const query = preprocessedUserMessageContent ?? userMessageText;
-
     // --- VECTOR SEARCH / RETRIEVAL ---
+    const findContentQuery = preprocessedUserMessageContent ?? userMessageText;
     const { content, queryEmbedding } = await findContent({
-      query,
+      query: findContentQuery,
     });
     if (content.length === 0) {
       logRequest({
@@ -114,7 +113,10 @@ export function makeRagGenerateUserPrompt({
     });
     logRequest({
       reqId,
-      message: `Latest message sent to LLM: ${JSON.stringify(userMessage)}`,
+      message: `Latest message sent to LLM: ${JSON.stringify({
+        role: userMessage.role,
+        content: userMessage.content,
+      })}`,
     });
     return {
       userMessage,

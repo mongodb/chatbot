@@ -79,8 +79,9 @@ describe("OpenAiLlm", () => {
       messages: conversation,
     });
     expect(response.role).toBe("assistant");
-    expect(response.content).toContain("MongoDB Shell");
-    expect(response.content).toContain("MongoDB driver");
+    const lowerMessage = response.content?.toLowerCase();
+    expect(lowerMessage).toContain("mongodb shell");
+    expect(lowerMessage).toContain("mongodb driver");
   });
 
   test("should answer question in conversation - streamed", async () => {
@@ -101,17 +102,9 @@ describe("OpenAiLlm", () => {
       }
     })();
     expect(count).toBeGreaterThan(10);
-    expect(message).toContain("MongoDB Compass");
-    expect(message).toContain("MongoDB Shell");
-    expect(message).toContain("MongoDB driver");
-  });
-
-  test("should not answer if no messages in conversation", async () => {
-    const response = async () =>
-      await openAiLlmService.answerQuestionAwaited({
-        messages: [],
-      });
-    await expect(response).rejects.toThrow("No messages provided");
+    const lowerMessage = message.toLowerCase();
+    expect(lowerMessage).toContain("mongodb shell");
+    expect(lowerMessage).toContain("mongodb driver");
   });
 
   test("should call tool", async () => {

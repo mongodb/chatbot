@@ -167,7 +167,7 @@ export function makeAddMessageToConversationRoute({
       );
 
       // --- GENERATE RESPONSE ---
-      // TODO: refactor to include N messages
+      // EAI-121_PART_2_TODO: refactor to include N messages
       // rather than take the conversation, take previous messages, and newMessages.
       // manipulate the newMessages object in generated response.
       // return newMessages
@@ -183,7 +183,7 @@ export function makeAddMessageToConversationRoute({
           conversations.conversationConstants.LLM_NOT_WORKING,
       });
 
-      // TODO: with refactor to make generateResponse return newMessages,
+      // EAI-121_PART_2_TODO: with refactor to make generateResponse return newMessages,
       // i don't think this is needed anymore.
       if (!answerContent) {
         throw makeRequestError({
@@ -228,6 +228,8 @@ export function makeAddMessageToConversationRoute({
     }
   };
 }
+
+// --- HELPERS ---
 
 async function getCustomData({
   req,
@@ -366,7 +368,7 @@ async function generateResponse({
   }
 }
 
-export function convertConversationMessageToLlmMessage(
+function convertConversationMessageToLlmMessage(
   message: SomeMessage
 ): OpenAiChatMessage {
   const { content, role } = message;
@@ -404,7 +406,7 @@ interface AddMessagesToDatabaseParams {
   messages: SomeMessage[];
 }
 
-export async function addMessagesToDatabase({
+async function addMessagesToDatabase({
   conversation,
   conversations,
   messages,

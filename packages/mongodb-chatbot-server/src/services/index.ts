@@ -1,5 +1,5 @@
 export * from "./ChatLlm";
 export * from "./ConversationsService";
-export * from "./openAiChatLlm";
+export * from "./makeOpenAiChatLlm";
 export * from "./dataStreamer";
 export * from "./mongodbConversations";

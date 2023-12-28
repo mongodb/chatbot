@@ -3,7 +3,6 @@ import "dotenv/config";
 import {
   assertEnvVars,
   CORE_ENV_VARS,
-  EmbeddedContent,
   MongoClient,
   Db,
   ObjectId,
@@ -12,28 +11,22 @@ import { makeMongoDbConversationsService } from "../../services/mongodbConversat
 import { Express } from "express";
 import {
   AddMessageRequestBody,
-  addMessagesToDatabase,
   DEFAULT_MAX_INPUT_LENGTH,
   DEFAULT_MAX_MESSAGES_IN_CONVERSATION,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
-import { makeOpenAiChatLlm } from "../../services/openAiChatLlm";
+import { makeOpenAiChatLlm } from "../../services/makeOpenAiChatLlm";
 import { stripIndent } from "common-tags";
 import { makeApp, DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { makeTestAppConfig, systemPrompt } from "../../test/testHelpers";
 import { AppConfig } from "../../app";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
-import { makeDefaultFindContentFunc } from "../../processors/FindContentFunc";
-import { embedder, embeddedContentStore as store } from "../../test/testConfig";
 import { strict as assert } from "assert";
 import {
   ConversationsService,
   Conversation,
   defaultConversationConstants,
-  OpenAiMessageRole,
-  SomeMessage,
-  Message,
 } from "../../services";
 const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
   assertEnvVars(CORE_ENV_VARS);
@@ -398,56 +391,6 @@ describe("POST /conversations/:conversationId/messages", () => {
           )
         ).toBe(true);
         expect(response.body.references.length).toBeGreaterThan(0);
-      });
-    });
-  });
-  describe("Utility functions", () => {
-    describe("addMessagesToDatabase()", () => {
-      let conversationId: ObjectId;
-      beforeAll(async () => {
-        const { _id } = await conversations.create({});
-        conversationId = _id;
-      });
-      test("Should add messages to the database", async () => {
-        const messagesToAdd = [
-          {
-            content: "hello",
-            role: "user",
-          },
-          {
-            content: "hi",
-            role: "assistant",
-          },
-        ] satisfies SomeMessage[];
-        const userMessageContent = messagesToAdd[0].content;
-        const assistantMessageContent = messagesToAdd[1].content;
-        const [userMessage, assistantMessage] = await addMessagesToDatabase({
-          conversation: {
-            _id: conversationId,
-            createdAt: new Date(),
-            messages: [],
-          },
-          messages: messagesToAdd,
-
-          conversations,
-        });
-        expect(userMessage.content).toBe(userMessageContent);
-        expect(assistantMessage.content).toBe(assistantMessageContent);
-        const conversationInDb = await conversations.findById({
-          _id: conversationId,
-        });
-        expect(
-          conversationInDb?.messages.find(
-            ({ role, content }: { role: OpenAiMessageRole; content: string }) =>
-              role === "user" && content === userMessageContent
-          )
-        ).toBeDefined();
-        expect(
-          conversationInDb?.messages.find(
-            ({ role, content }: { role: OpenAiMessageRole; content: string }) =>
-              role === "assistant" && content === assistantMessageContent
-          )
-        ).toBeDefined();
       });
     });
   });

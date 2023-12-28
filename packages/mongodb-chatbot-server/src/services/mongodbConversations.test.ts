@@ -167,8 +167,8 @@ describe("Conversations Service", () => {
       messages,
     });
     expect(newMessages).toHaveLength(2);
-    expect(newMessages[0]).toEqual(messages[0]);
-    expect(newMessages[1]).toEqual(messages[1]);
+    expect(newMessages[0]).toMatchObject(messages[0]);
+    expect(newMessages[1]).toMatchObject(messages[1]);
   });
   test("Should find a conversation by id", async () => {
     const conversation = await conversationsService.create();

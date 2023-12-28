@@ -1,8 +1,8 @@
 import { Message } from "../services";
 
 export type QueryProcessorFuncParams = {
-  query?: string;
-  messages: Message[];
+  query: string;
+  messages?: Message[];
 };
 
 /**

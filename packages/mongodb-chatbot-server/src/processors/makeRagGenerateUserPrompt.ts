@@ -32,8 +32,14 @@ const DEFAULT_MAX_CONTEXT_TOKENS = 1500; // magic number for max context tokens 
 
 /**
   Construct a {@link GenerateUserPromptFunc} function
-  that uses retrieval augmented generation (RAG) to generate the user prompt.
- */
+  that uses retrieval augmented generation (RAG) to generate the user prompt
+  and return references to use in the answer.
+  The returned RAG user prompt generator performs the following steps:
+  1. Preprocess the user's message using the query preprocessor.
+  2. Find content using vector search.
+  3. Removes any chunks that would exceed the max context tokens.
+  4. Generate the user message using the make user message function.
+  5. Return the user message and references.0                                                                                                                  */
 export function makeRagGenerateUserPrompt({
   queryPreprocessor,
   findContent,
@@ -121,7 +127,7 @@ export function makeRagGenerateUserPrompt({
 interface PreProcessUserMessageParams {
   queryPreprocessor?: QueryPreprocessorFunc;
   userMessageText: string;
-  conversation: Conversation;
+  conversation?: Conversation;
   reqId: string;
 }
 
@@ -141,7 +147,7 @@ async function preProcessUserMessage({
   try {
     const { query, rejectQuery } = await queryPreprocessor({
       query: userMessageText,
-      messages: conversation.messages,
+      messages: conversation?.messages,
     });
     logRequest({
       reqId,

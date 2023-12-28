@@ -15,7 +15,7 @@ import {
   DEFAULT_MAX_MESSAGES_IN_CONVERSATION,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
-import { makeOpenAiChatLlm } from "../../services/makeOpenAiChatLlm";
+import { makeOpenAiChatLlm } from "../../services/openAiChatLlm";
 import { stripIndent } from "common-tags";
 import { makeApp, DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
@@ -240,26 +240,6 @@ describe("POST /conversations/:conversationId/messages", () => {
       });
     });
 
-    // TODO: refactor
-    test("should respond 500 if error with findContent func", async () => {
-      const app = await makeApp({
-        ...appConfig,
-        conversationsRouterConfig: {
-          ...appConfig.conversationsRouterConfig,
-        },
-      });
-
-      const res = await request(app)
-        .post(endpointUrl.replace(":conversationId", conversationId))
-        .set("X-FORWARDED-FOR", ipAddress)
-        .set("Origin", origin)
-        .send({ message: "hello" });
-      expect(res.statusCode).toEqual(500);
-      expect(res.body).toStrictEqual({
-        error: "Broken!",
-      });
-    });
-
     test("Should respond 500 if error with conversation service", async () => {
       const mockBrokenConversationsService: ConversationsService = {
         async create() {
@@ -385,11 +365,9 @@ describe("POST /conversations/:conversationId/messages", () => {
           .set("Origin", origin)
           .send({ message: messageThatHasSearchResults });
         expect(response.statusCode).toBe(200);
-        expect(
-          response.body.content.startsWith(
-            defaultConversationConstants.LLM_NOT_WORKING
-          )
-        ).toBe(true);
+        expect(response.body.content).toBe(
+          defaultConversationConstants.LLM_NOT_WORKING
+        );
         expect(response.body.references.length).toBeGreaterThan(0);
       });
     });

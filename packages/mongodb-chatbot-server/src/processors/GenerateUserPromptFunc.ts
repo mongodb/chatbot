@@ -14,7 +14,7 @@ export type GenerateUserPromptFuncParams = {
   /**
     Conversation with preceding messages
    */
-  conversation: Conversation;
+  conversation?: Conversation;
 
   /**
     String Id for request
@@ -24,7 +24,7 @@ export type GenerateUserPromptFuncParams = {
   /**
     Custom data for the message request.
    */
-  customData: ConversationCustomData;
+  customData?: ConversationCustomData;
 };
 
 export interface GenerateUserPromptFuncReturnValue {
@@ -33,6 +33,8 @@ export interface GenerateUserPromptFuncReturnValue {
     If `rejectQuery: true`, then the server gives a static response
     before sending the query to an LLM.
    */
+  rejectQuery?: boolean;
+
   userMessage: UserMessage;
 
   /**
@@ -42,7 +44,13 @@ export interface GenerateUserPromptFuncReturnValue {
 }
 /**
   Generate the user prompt sent to the {@link ChatLlm}.
-  This should include the content from vector search.
+  This function is a flexible construct that you can use to customize
+  the chatbot behavior. For example, you can use this function to
+  perform retrieval augmented generation (RAG) or chain of thought prompting.
+  Include whatever logic in here to construct the user message
+  that the LLM responds to.
+
+  If you are doing RAG, this can include the content from vector search.
  */
 export type GenerateUserPromptFunc = (
   params: GenerateUserPromptFuncParams

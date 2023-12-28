@@ -129,7 +129,7 @@ export function makeAddMessageToConversationRoute({
       const shouldStream = Boolean(stream);
 
       // --- GENERATE USER MESSAGE ---
-      const { userMessage, references } = await (generateUserPrompt
+      const { userMessage, references, rejectQuery } = await (generateUserPrompt
         ? generateUserPrompt({
             userMessageText: latestMessageText,
             conversation,
@@ -143,16 +143,24 @@ export function makeAddMessageToConversationRoute({
               customData,
             } satisfies UserMessage,
           });
-      const { rejectQuery } = userMessage;
-      const newMessages = [userMessage];
+      // Add request custom data to user message.
+      const userMessageWithCustomData = customData
+        ? {
+            ...userMessage,
+            // Override request custom data fields with user message custom data fields.
+            customData: { ...customData, ...(userMessage.customData ?? {}) },
+          }
+        : userMessage;
+      const newMessages: SomeMessage[] = [userMessageWithCustomData];
       if (rejectQuery) {
-        const rejectMessage = {
+        const rejectionMessage = {
           role: "assistant",
           content: conversations.conversationConstants.NO_RELEVANT_CONTENT,
+          references: references ?? [],
         } satisfies AssistantMessage;
 
-        const messages = [...newMessages, rejectMessage];
-        return sendStaticNonResponse({
+        const messages = [...newMessages, rejectionMessage];
+        sendStaticNonResponse({
           conversations,
           conversation,
           shouldStream,
@@ -160,51 +168,62 @@ export function makeAddMessageToConversationRoute({
           res,
           messages,
         });
-      }
+      } else {
+        const llmConversation = [...conversation.messages, ...newMessages].map(
+          convertConversationMessageToLlmMessage
+        );
 
-      const llmConversation = [...conversation.messages, ...newMessages].map(
-        convertConversationMessageToLlmMessage
-      );
-
-      // --- GENERATE RESPONSE ---
-      // EAI-121_PART_2_TODO: refactor to include N messages
-      // rather than take the conversation, take previous messages, and newMessages.
-      // manipulate the newMessages object in generated response.
-      // return newMessages
-      const answerContent = await generateResponse({
-        shouldStream,
-        llm,
-        llmConversation,
-        dataStreamer,
-        res,
-        references,
-        reqId,
-        llmNotWorkingMessage:
-          conversations.conversationConstants.LLM_NOT_WORKING,
-      });
-
-      // EAI-121_PART_2_TODO: with refactor to make generateResponse return newMessages,
-      // i don't think this is needed anymore.
-      if (!answerContent) {
-        throw makeRequestError({
-          httpStatus: 500,
-          message: "No answer content",
+        // --- GENERATE RESPONSE ---
+        // EAI-121_PART_2_TODO: refactor to include N messages
+        // rather than take the conversation, take previous messages, and newMessages.
+        // manipulate the newMessages object in generated response.
+        // return newMessages
+        const answerContent = await generateResponse({
+          shouldStream,
+          llm,
+          llmConversation,
+          dataStreamer,
+          res,
+          references,
+          reqId,
+          llmNotWorkingMessage:
+            conversations.conversationConstants.LLM_NOT_WORKING,
         });
-      }
 
-      // --- SAVE QUESTION & RESPONSE ---
-      const dbNewMessages = await addMessagesToDatabase({
-        conversations,
-        conversation,
-        messages: newMessages,
-      });
+        // EAI-121_PART_2_TODO: with refactor to make generateResponse return newMessages,
+        // i don't think this is needed anymore.
+        if (!answerContent) {
+          throw makeRequestError({
+            httpStatus: 500,
+            message: "No answer content",
+          });
+        }
+        const assistantMessage = {
+          role: "assistant",
+          content: answerContent,
+          references: references ?? [],
+        } satisfies AssistantMessage;
+        newMessages.push(assistantMessage);
 
-      const assistantMessage = dbNewMessages.pop();
-      assert(assistantMessage !== undefined, "No assistant message found");
-      const apiRes = convertMessageFromDbToApi(assistantMessage);
+        // --- SAVE QUESTION & RESPONSE ---
+        const dbNewMessages = await addMessagesToDatabase({
+          conversations,
+          conversation,
+          messages: newMessages,
+        });
+        const dbAssistantMessage = dbNewMessages[dbNewMessages.length - 1];
 
-      if (!shouldStream) {
-        return res.status(200).json(apiRes);
+        assert(assistantMessage !== undefined, "No assistant message found");
+        const apiRes = convertMessageFromDbToApi(dbAssistantMessage);
+
+        if (!shouldStream) {
+          return res.status(200).json(apiRes);
+        } else {
+          dataStreamer.streamData({
+            type: "finished",
+            data: apiRes.id,
+          });
+        }
       }
     } catch (error) {
       const { httpStatus, message } =
@@ -216,15 +235,16 @@ export function makeAddMessageToConversationRoute({
               httpStatus: 500,
             });
 
-      if (dataStreamer.connected) {
-        dataStreamer.disconnect();
-      }
       sendErrorResponse({
         res,
         reqId,
         httpStatus,
         errorMessage: message,
       });
+    } finally {
+      if (dataStreamer.connected) {
+        dataStreamer.disconnect();
+      }
     }
   };
 }
@@ -252,7 +272,7 @@ async function getCustomData({
   }
 }
 
-export async function sendStaticNonResponse({
+async function sendStaticNonResponse({
   conversations,
   conversation,
   messages,
@@ -316,10 +336,10 @@ async function generateResponse({
   llmNotWorkingMessage,
 }: GenerateResponseParams) {
   if (shouldStream) {
+    dataStreamer.connect(res);
     const answerStream = await llm.answerQuestionStream({
       messages: llmConversation,
     });
-    dataStreamer.connect(res);
     const answerContent = await dataStreamer.stream({
       stream: answerStream,
     });
@@ -360,11 +380,7 @@ async function generateResponse({
       reqId,
       message: "Only sending vector search results to user",
     });
-    const answer = {
-      role: "assistant",
-      content: llmNotWorkingMessage,
-    } satisfies OpenAiChatMessage;
-    return answer.content;
+    return llmNotWorkingMessage;
   }
 }
 

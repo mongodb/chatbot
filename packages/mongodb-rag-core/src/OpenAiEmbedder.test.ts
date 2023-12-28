@@ -15,12 +15,10 @@ describe("OpenAiEmbedFunc", () => {
     deployment: OPENAI_EMBEDDING_DEPLOYMENT,
     openAiClient,
   });
-  const userIp = "abc123";
 
   test("Should return an array of numbers of length 1536", async () => {
     const { embedding } = await embedder.embed({
       text: "Hello world",
-      userIp,
     });
     expect(embedding).toHaveLength(1536);
   });
@@ -38,7 +36,7 @@ describe("OpenAiEmbedFunc", () => {
       },
     });
     await expect(async () => {
-      await embedder.embed({ text: input, userIp: "" });
+      await embedder.embed({ text: input });
     }).rejects.toHaveProperty("type", "invalid_request_error");
   });
   jest.setTimeout(20000);
@@ -69,7 +67,7 @@ describe("OpenAiEmbedFunc", () => {
     });
 
     try {
-      await embedder.embed({ text: "", userIp: "" });
+      await embedder.embed({ text: "" });
     } catch (e: any) {
       // Expected to fail - server returns 429
       expect(e.message).toContain("Fake error");

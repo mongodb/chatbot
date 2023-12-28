@@ -127,7 +127,8 @@ ${preprocessedUserMessage ?? originalUserMessage}
   return {
     role: "user",
     content: messageContent,
-    originalUserContent: originalUserMessage,
+    originalContent: originalUserMessage,
+    preprocessedContent: preprocessedUserMessage,
   };
 };
 

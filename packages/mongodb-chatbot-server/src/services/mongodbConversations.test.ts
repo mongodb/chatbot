@@ -81,7 +81,7 @@ describe("Conversations Service", () => {
       message: {
         role: "user",
         content,
-        originalUserContent,
+        originalContent: originalUserContent,
         embedding,
       },
     });
@@ -94,7 +94,7 @@ describe("Conversations Service", () => {
     expect(conversationInDb?.messages).toHaveLength(2);
     expect(conversationInDb?.messages[1].content).toStrictEqual(content);
     expect(
-      (conversationInDb?.messages[1] as UserMessage)?.originalUserContent
+      (conversationInDb?.messages[1] as UserMessage)?.originalContent
     ).toStrictEqual(originalUserContent);
     expect(
       (conversationInDb?.messages[1] as UserMessage)?.embedding

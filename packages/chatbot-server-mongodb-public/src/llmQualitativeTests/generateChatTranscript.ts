@@ -5,8 +5,6 @@ import { strict as assert } from "assert";
 import { stringifyConversation } from "./stringifyConversation";
 import { TestCaseMessage } from "./TestCase";
 
-const requestOrigin = "llmQualitativeTests";
-
 export async function generateTranscript({
   app,
   conversations,
@@ -26,27 +24,13 @@ export async function generateTranscript({
   const [setUpMessages, testMessage] = [messages.slice(0, -1), messages.pop()];
   const conversationId = conversation._id;
   for (const message of setUpMessages) {
-    switch (message.role) {
-      case "user": {
-        await conversations.addConversationMessage({
-          conversationId,
-          role: message.role,
-          content: message.content,
-          embedding: [],
-        });
-        break;
-      }
-      case "assistant": {
-        await conversations.addConversationMessage({
-          conversationId,
-          role: message.role,
-          content: message.content,
-          references: [],
-        });
-        break;
-      }
-    }
+    await conversations.addConversationMessage({
+      conversationId,
+      message,
+    });
+    break;
   }
+
   // Add user message + service response to conversation in DB.
   await request(app)
     .post(endpoint.replace(":conversationId", conversationId.toString()))

@@ -21,6 +21,9 @@ export type GenerateUserPromptFuncParams = {
    */
   reqId: string;
 
+  /**
+    Custom data for the message request.
+   */
   customData: ConversationCustomData;
 };
 

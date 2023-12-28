@@ -60,7 +60,6 @@ const openAiClient = new OpenAIClient(
 const toolOpenAiLlm = makeOpenAiChatLlm({
   openAiClient,
   deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  systemPrompt,
   openAiLmmConfigOptions: {
     temperature: 0,
     maxTokens: 500,

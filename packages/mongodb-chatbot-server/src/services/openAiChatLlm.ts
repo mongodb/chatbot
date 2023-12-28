@@ -6,7 +6,6 @@ import {
   ChatLlm,
   LlmAnswerQuestionParams,
   OpenAiChatMessage,
-  SystemPrompt,
   Tool,
 } from "./ChatLlm";
 
@@ -17,7 +16,6 @@ export interface MakeOpenAiChatLlmParams {
   deployment: string;
   openAiClient: OpenAIClient;
   openAiLmmConfigOptions: GetChatCompletionsOptions;
-  systemPrompt: SystemPrompt;
   tools?: Tool[];
 }
 

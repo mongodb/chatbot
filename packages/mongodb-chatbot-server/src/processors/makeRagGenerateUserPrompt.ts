@@ -4,7 +4,9 @@ import { GenerateUserPromptFunc } from "./GenerateUserPromptFunc";
 import { QueryPreprocessorFunc } from "./QueryPreprocessorFunc";
 import { logRequest } from "../utils";
 import { Conversation, UserMessage } from "../services";
-import { EmbeddedContent, References } from "mongodb-rag-core";
+import { EmbeddedContent } from "mongodb-rag-core";
+import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
+import { makeDefaultReferenceLinks } from "./makeDefaultReferenceLinks";
 
 export interface MakeRagGenerateUserPromptParams {
   queryPreprocessor: QueryPreprocessorFunc;
@@ -21,13 +23,10 @@ export type MakeUserMessageFuncParams = {
   queryEmbedding?: number[];
   rejectQuery?: boolean;
 };
+
 export type MakeUserMessageFunc = (
   params: MakeUserMessageFuncParams
 ) => Promise<UserMessage>;
-/**
-  Function that generates the references in the response to user.
- */
-export type MakeReferenceLinksFunc = (chunks: EmbeddedContent[]) => References;
 
 const DEFAULT_MAX_CONTEXT_TOKENS = 1500; // magic number for max context tokens for LLM
 
@@ -68,7 +67,6 @@ export function makeRagGenerateUserPrompt({
     // --- VECTOR SEARCH / RETRIEVAL ---
     const { content, queryEmbedding } = await findContent({
       query,
-      ipAddress: "::1",
     });
     if (content.length === 0) {
       logRequest({
@@ -162,35 +160,6 @@ async function preProcessUserMessage({
     });
   }
 }
-
-/**
-    The default reference format returns the following for chunks from _unique_ pages:
-
-    ```js
-    {
-      title: chunk.metadata.pageTitle ?? chunk.url, // if title doesn't exist, just put url
-      url: chunk.url // this always exists
-    }
-    ```
-   */
-export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
-  // Filter chunks with unique URLs
-  const uniqueUrls = new Set();
-  const uniqueChunks = chunks.filter((chunk) => {
-    if (!uniqueUrls.has(chunk.url)) {
-      uniqueUrls.add(chunk.url);
-      return true; // Keep the chunk as it has a unique URL
-    }
-    return false; // Discard the chunk as its URL is not unique
-  });
-
-  return uniqueChunks.map((chunk) => {
-    return {
-      title: (chunk.metadata?.pageTitle as string) ?? chunk.url,
-      url: chunk.url,
-    };
-  });
-};
 
 /**
       This function returns the chunks that can fit in the maxTokens.

@@ -18,15 +18,10 @@ import {
   AddMessageRequest,
   makeAddMessageToConversationRoute,
 } from "./addMessageToConversation";
-import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
-import { FindContentFunc } from "../../processors/FindContentFunc";
 import { requireRequestOrigin } from "../../middleware/requireRequestOrigin";
 import { NextFunction, ParamsDictionary } from "express-serve-static-core";
 import { requireValidIpAddress } from "../../middleware";
-import {
-  GenerateUserPromptFunc,
-  MakeReferenceLinksFunc,
-} from "../../processors";
+import { GenerateUserPromptFunc } from "../../processors";
 
 /**
   Configuration for rate limiting on the /conversations/* routes.
@@ -100,7 +95,12 @@ export interface ConversationsRouterParams {
   llm: ChatLlm;
   dataStreamer?: DataStreamer;
   conversations: ConversationsService;
-  userQueryPreprocessor?: QueryPreprocessorFunc;
+  /**
+    Function to generate the user prompt sent to the {@link ChatLlm}.
+    You can perform any preprocessing of the user's message
+    including retrieval augmented generation here.
+   */
+  generateUserPrompt?: GenerateUserPromptFunc;
   /**
     Maximum number of tokens of context to send to the LLM in retrieval augmented generation
     in addition to system prompt, other user messages, etc.
@@ -120,9 +120,6 @@ export interface ConversationsRouterParams {
    */
   maxMessagesInConversation?: number;
   rateLimitConfig?: ConversationsRateLimitConfig;
-  findContent: FindContentFunc;
-  makeReferenceLinks?: MakeReferenceLinksFunc;
-  generateUserPrompt?: GenerateUserPromptFunc;
 
   /**
     Middleware to put in front of all the routes in the conversationsRouter.

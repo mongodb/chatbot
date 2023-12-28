@@ -13,33 +13,27 @@ import { Express } from "express";
 import {
   AddMessageRequestBody,
   addMessagesToDatabase,
-  convertDbMessageToOpenAiMessage,
   DEFAULT_MAX_INPUT_LENGTH,
   DEFAULT_MAX_MESSAGES_IN_CONVERSATION,
-  includeChunksForMaxTokensPossible,
-  makeDefaultReferenceLinks,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
 import { makeOpenAiChatLlm } from "../../services/openAiChatLlm";
 import { stripIndent } from "common-tags";
 import { makeApp, DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
-import {
-  makeTestAppConfig,
-  generateUserPrompt,
-  systemPrompt,
-} from "../../test/testHelpers";
+import { makeTestAppConfig, systemPrompt } from "../../test/testHelpers";
 import { AppConfig } from "../../app";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
-import { makeDefaultFindContentFunc } from "./FindContentFunc";
+import { makeDefaultFindContentFunc } from "../../processors/FindContentFunc";
 import { embedder, embeddedContentStore as store } from "../../test/testConfig";
 import { strict as assert } from "assert";
 import {
   ConversationsService,
   Conversation,
   defaultConversationConstants,
-  AssistantMessage,
   OpenAiMessageRole,
+  SomeMessage,
+  Message,
 } from "../../services";
 const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
   assertEnvVars(CORE_ENV_VARS);
@@ -253,14 +247,12 @@ describe("POST /conversations/:conversationId/messages", () => {
       });
     });
 
+    // TODO: refactor
     test("should respond 500 if error with findContent func", async () => {
       const app = await makeApp({
         ...appConfig,
         conversationsRouterConfig: {
           ...appConfig.conversationsRouterConfig,
-          findContent() {
-            throw new Error("Broken!");
-          },
         },
       });
 
@@ -356,12 +348,10 @@ describe("POST /conversations/:conversationId/messages", () => {
       const brokenLlmService = makeOpenAiChatLlm({
         openAiClient,
         deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-        systemPrompt,
         openAiLmmConfigOptions: {
           temperature: 0,
           maxTokens: 500,
         },
-        generateUserPrompt,
       });
 
       let conversationId: ObjectId,
@@ -419,21 +409,27 @@ describe("POST /conversations/:conversationId/messages", () => {
         conversationId = _id;
       });
       test("Should add messages to the database", async () => {
-        const userMessageContent = "hello";
-        const assistantMessageContent = "hi";
-        const { userMessage, assistantMessage } = await addMessagesToDatabase({
+        const messagesToAdd = [
+          {
+            content: "hello",
+            role: "user",
+          },
+          {
+            content: "hi",
+            role: "assistant",
+          },
+        ] satisfies SomeMessage[];
+        const userMessageContent = messagesToAdd[0].content;
+        const assistantMessageContent = messagesToAdd[1].content;
+        const [userMessage, assistantMessage] = await addMessagesToDatabase({
           conversation: {
             _id: conversationId,
             createdAt: new Date(),
             messages: [],
           },
-          originalUserMessageContent: userMessageContent,
-          assistantMessageContent,
-          assistantMessageReferences: [
-            { url: "https://www.example.com/", title: "Example Reference" },
-          ],
+          messages: messagesToAdd,
+
           conversations,
-          userMessageEmbedding: [1, 2, 3],
         });
         expect(userMessage.content).toBe(userMessageContent);
         expect(assistantMessage.content).toBe(assistantMessageContent);
@@ -452,215 +448,6 @@ describe("POST /conversations/:conversationId/messages", () => {
               role === "assistant" && content === assistantMessageContent
           )
         ).toBeDefined();
-      });
-    });
-    test("convertDbMessageToOpenAiMessage()", () => {
-      const sampleDbMessage: AssistantMessage = {
-        id: new ObjectId(),
-        content: "hello",
-        role: "assistant",
-        createdAt: new Date(),
-        rating: true,
-        references: [],
-      };
-
-      const sampleApiMessage = convertDbMessageToOpenAiMessage(sampleDbMessage);
-      expect(sampleApiMessage).toStrictEqual({
-        content: sampleDbMessage.content,
-        role: sampleDbMessage.role,
-      });
-    });
-
-    describe("default find content", () => {
-      const findContent = makeDefaultFindContentFunc({
-        embedder,
-        store,
-      });
-      test("Should return content for relevant text", async () => {
-        const query = "MongoDB Atlas";
-        const { content } = await findContent({
-          query,
-          ipAddress,
-        });
-        expect(content).toBeDefined();
-        expect(content.length).toBeGreaterThan(0);
-      });
-      test("Should not return content for irrelevant text", async () => {
-        const query =
-          "asdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjafdshgjfkhfdugytfasfghjkujufgjdfhstgragtyjuikolaf;ldkgsdjfnh;ks'l;addfsghjklafjklsgfjgreaj;agre;jlg;ljewrqjknerqnkjkgn;jwr;lwreg";
-        const { content } = await findContent({
-          query,
-          ipAddress,
-        });
-        expect(content).toBeDefined();
-        expect(content.length).toBe(0);
-      });
-    });
-    describe("generateReferences()", () => {
-      // Chunk 1 and 2 are the same page. Chunk 3 is a different page.
-      const chunk1 = {
-        _id: new ObjectId(),
-        url: "https://mongodb.com/docs/realm/sdk/node/",
-        text: "blah blah blah",
-        tokenCount: 100,
-        embedding: [0.1, 0.2, 0.3],
-        updated: new Date(),
-        sourceName: "realm",
-      };
-      const chunk2 = {
-        _id: new ObjectId(),
-        url: "https://mongodb.com/docs/realm/sdk/node/",
-        text: "blah blah blah",
-        tokenCount: 100,
-        embedding: [0.1, 0.2, 0.3],
-        updated: new Date(),
-        sourceName: "realm",
-      };
-      const chunk3 = {
-        _id: new ObjectId(),
-        url: "https://mongodb.com/docs/realm/sdk/node/xyz",
-        text: "blah blah blah",
-        tokenCount: 100,
-        embedding: [0.1, 0.2, 0.3],
-        updated: new Date(),
-        sourceName: "realm",
-      };
-      const chunkWithTitle = {
-        _id: new ObjectId(),
-        url: "https://mongodb.com/docs/realm/sdk/node/xyz",
-        text: "blah blah blah",
-        metadata: {
-          pageTitle: "title",
-        },
-        tokenCount: 100,
-        embedding: [0.1, 0.2, 0.3],
-        updated: new Date(),
-        sourceName: "realm",
-      };
-      test("No sources should return empty string", () => {
-        const noChunks: EmbeddedContent[] = [];
-        const noReferences = makeDefaultReferenceLinks(noChunks);
-        expect(noReferences).toEqual([]);
-      });
-      test("One source should return one link", () => {
-        const oneChunk: EmbeddedContent[] = [chunk1];
-        const oneReference = makeDefaultReferenceLinks(oneChunk);
-        const expectedOneReference = [
-          {
-            title: "https://mongodb.com/docs/realm/sdk/node/",
-            url: "https://mongodb.com/docs/realm/sdk/node/",
-          },
-        ];
-        expect(oneReference).toEqual(expectedOneReference);
-      });
-      test("Chunk with title should return title in reference", () => {
-        const oneChunk: EmbeddedContent[] = [chunkWithTitle];
-        const oneReference = makeDefaultReferenceLinks(oneChunk);
-        const expectedOneReference = [
-          {
-            title: "title",
-            url: "https://mongodb.com/docs/realm/sdk/node/xyz",
-          },
-        ];
-        expect(oneReference).toEqual(expectedOneReference);
-      });
-      test("Multiple sources from same page should return one link", () => {
-        const twoChunksSamePage: EmbeddedContent[] = [chunk1, chunk2];
-        const oneReferenceSamePage =
-          makeDefaultReferenceLinks(twoChunksSamePage);
-        const expectedOneReferenceSamePage = [
-          {
-            title: "https://mongodb.com/docs/realm/sdk/node/",
-            url: "https://mongodb.com/docs/realm/sdk/node/",
-          },
-        ];
-        expect(oneReferenceSamePage).toEqual(expectedOneReferenceSamePage);
-      });
-      test("Multiple sources from different pages should return 1 link per page", () => {
-        const twoChunksDifferentPage: EmbeddedContent[] = [chunk1, chunk3];
-        const multipleReferencesDifferentPage = makeDefaultReferenceLinks(
-          twoChunksDifferentPage
-        );
-        const expectedMultipleReferencesDifferentPage = [
-          {
-            title: "https://mongodb.com/docs/realm/sdk/node/",
-            url: "https://mongodb.com/docs/realm/sdk/node/",
-          },
-          {
-            title: "https://mongodb.com/docs/realm/sdk/node/xyz",
-            url: "https://mongodb.com/docs/realm/sdk/node/xyz",
-          },
-        ];
-        expect(multipleReferencesDifferentPage).toEqual(
-          expectedMultipleReferencesDifferentPage
-        );
-        // All three sources. Two from the same page. One from a different page.
-        const threeChunks: EmbeddedContent[] = [chunk1, chunk2, chunk3];
-        const multipleSourcesWithSomePageOverlap =
-          makeDefaultReferenceLinks(threeChunks);
-        const expectedMultipleSourcesWithSomePageOverlap = [
-          {
-            title: "https://mongodb.com/docs/realm/sdk/node/",
-            url: "https://mongodb.com/docs/realm/sdk/node/",
-          },
-          {
-            title: "https://mongodb.com/docs/realm/sdk/node/xyz",
-            url: "https://mongodb.com/docs/realm/sdk/node/xyz",
-          },
-        ];
-        expect(multipleSourcesWithSomePageOverlap).toEqual(
-          expectedMultipleSourcesWithSomePageOverlap
-        );
-      });
-    });
-    describe("includeChunksForMaxTokensPossible()", () => {
-      const content: EmbeddedContent[] = [
-        {
-          url: "https://mongodb.com/docs/realm/sdk/node/",
-          text: "foo foo foo",
-          tokenCount: 100,
-          embedding: [0.1, 0.2, 0.3],
-          sourceName: "realm",
-          updated: new Date(),
-        },
-        {
-          url: "https://mongodb.com/docs/realm/sdk/node/",
-          text: "bar bar bar",
-          tokenCount: 100,
-          embedding: [0.1, 0.2, 0.3],
-          sourceName: "realm",
-          updated: new Date(),
-        },
-        {
-          url: "https://mongodb.com/docs/realm/sdk/node/",
-          text: "baz baz baz",
-          tokenCount: 100,
-          embedding: [0.1, 0.2, 0.3],
-          sourceName: "realm",
-          updated: new Date(),
-        },
-      ];
-      test("Should include all chunks if less that max tokens", () => {
-        const maxTokens = 1000;
-        const includedChunks = includeChunksForMaxTokensPossible({
-          content,
-          maxTokens,
-        });
-        expect(includedChunks).toStrictEqual(content);
-      });
-      test("should only include subset of chunks that fit within max tokens, inclusive", () => {
-        const maxTokens = 200;
-        const includedChunks = includeChunksForMaxTokensPossible({
-          content,
-          maxTokens,
-        });
-        expect(includedChunks).toStrictEqual(content.slice(0, 2));
-        const maxTokens2 = maxTokens + 1;
-        const includedChunks2 = includeChunksForMaxTokensPossible({
-          content,
-          maxTokens: maxTokens2,
-        });
-        expect(includedChunks2).toStrictEqual(content.slice(0, 2));
       });
     });
   });

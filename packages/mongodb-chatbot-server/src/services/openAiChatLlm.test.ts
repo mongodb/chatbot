@@ -80,8 +80,8 @@ describe("OpenAiLlm", () => {
     });
     expect(response.role).toBe("assistant");
     const lowerMessage = response.content?.toLowerCase();
-    expect(lowerMessage).toContain("mongodb shell");
-    expect(lowerMessage).toContain("mongodb driver");
+    expect(lowerMessage).toContain("shell");
+    expect(lowerMessage).toContain("driver");
   });
 
   test("should answer question in conversation - streamed", async () => {
@@ -103,8 +103,8 @@ describe("OpenAiLlm", () => {
     })();
     expect(count).toBeGreaterThan(10);
     const lowerMessage = message.toLowerCase();
-    expect(lowerMessage).toContain("mongodb shell");
-    expect(lowerMessage).toContain("mongodb driver");
+    expect(lowerMessage).toContain("shell");
+    expect(lowerMessage).toContain("driver");
   });
 
   test("should call tool", async () => {

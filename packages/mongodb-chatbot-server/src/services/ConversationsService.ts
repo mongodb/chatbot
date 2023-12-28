@@ -1,12 +1,11 @@
 import { ObjectId, References } from "mongodb-rag-core";
 import { FunctionCall } from "@azure/openai";
-import { OpenAiMessageRole } from "./ChatLlm";
 
 export type MessageBase = {
   /**
     The role of the message in the conversation.
    */
-  role: OpenAiMessageRole;
+  role: string;
 
   /**
     Message that occurs in the conversation.
@@ -72,7 +71,7 @@ export type UserMessage = MessageBase & {
 };
 
 /**
-  Message in the {@link Conversation} as stored in the database.
+  Message in the {@link Conversation}.
  */
 export type SomeMessage =
   | UserMessage

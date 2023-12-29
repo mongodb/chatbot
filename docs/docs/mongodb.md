@@ -19,7 +19,11 @@ However, you could theoretically use separate databases for collections, if you 
 You can give the database any name you want.
 You pass the name as a variable throughout the RAG framework.
 
-### 3. Create Atlas Vector Search Index
+### 3. Create Atlas Vector Search Index (required for RAG)
+
+If you're using the Data Ingest CLI and Chatbot server
+to perform retrieval augmented generation (RAG),
+you must create an Atlas Vector Search index.
 
 In your database create a collection called `embedded_content`.
 
@@ -80,7 +84,7 @@ Documents in the `pages` collection follow the [`PersistedPage`](./reference/cor
 
 ### `embedded_content` Collection
 
-The ``collection holds the content that is queried by Atlas Vector Search.
+The `embedded_content` collection holds the content that is queried by Atlas Vector Search.
 It is generated with the ingest CLI`embed`command from the data in the`pages` collection.
 
 Documents in the `embedded_content` collection follow the [`EmbeddedContent`](./reference/core/interfaces/EmbeddedContent.md) schema.

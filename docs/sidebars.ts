@@ -31,7 +31,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "category",
-      label: "Chat Server",
+      label: "Chatbot Server",
       collapsible: true,
       collapsed: true,
       items: [

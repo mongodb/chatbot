@@ -93,6 +93,17 @@ describe("makeRagGenerateUserPrompt()", () => {
     });
     expect(response.rejectQuery).toBe(true);
   });
+  test("should pass through queries without preprocessor", async () => {
+    const generateUserPromptFunc = makeRagGenerateUserPrompt({
+      ...mockConfig,
+      queryPreprocessor: undefined,
+    });
+    const response = await generateUserPromptFunc({
+      userMessageText: "foo",
+      reqId: "foo",
+    });
+    expect(response.userMessage.content).toBe("foo");
+  });
   test("should include found content with findContent", async () => {
     const generateUserPromptFunc = makeRagGenerateUserPrompt({
       ...mockConfig,

@@ -70,14 +70,19 @@ export function makeRagGenerateUserPrompt({
 }: MakeRagGenerateUserPromptParams): GenerateUserPromptFunc {
   return async ({ userMessageText, conversation, reqId }) => {
     // --- PREPROCESS ---
-    const preprocessResult = await preProcessUserMessage({
-      queryPreprocessor,
-      userMessageText,
-      conversation,
-      reqId,
-    });
+    const preprocessResult = preProcessUserMessage
+      ? await preProcessUserMessage({
+          queryPreprocessor,
+          userMessageText,
+          conversation,
+          reqId,
+        })
+      : undefined;
     const { rejectQuery, query: preprocessedUserMessageContent } =
-      preprocessResult ?? {};
+      preprocessResult ?? {
+        rejectQuery: false,
+        query: userMessageText,
+      };
     if (rejectQuery) {
       logRequest({
         reqId,

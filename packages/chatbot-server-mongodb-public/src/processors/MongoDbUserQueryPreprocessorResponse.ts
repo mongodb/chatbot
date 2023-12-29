@@ -8,7 +8,7 @@ export interface MongoDbUserQueryPreprocessorResponse {
     One or more programming languages present in the content ordered by
     relevancy. If no programming language is present and the user is asking for
     a code example, include "shell".
-    @example ["shell", "javascript", "typescript", "python", "java", "csharp",
+    @example One or a few of the following: ["shell", "javascript", "typescript", "python", "java", "csharp",
     "cpp", "ruby", "kotlin", "c", "dart", "php", "rust", "scala", "swift"
     ...other popular programming languages ]
   */
@@ -18,7 +18,7 @@ export interface MongoDbUserQueryPreprocessorResponse {
     One or more MongoDB products present in the content. Which MongoDB products
     is the user interested in? Order by relevancy. Include "Driver" if the user
     is asking about a programming language with a MongoDB driver.
-    @example ["MongoDB Atlas", "Atlas Charts", "Atlas Search", "Aggregation
+    @example One or a few of the following: ["MongoDB Atlas", "Atlas Charts", "Atlas Search", "Aggregation
     Framework", "MongoDB Server", "Compass", "MongoDB Connector for BI", "Realm
     SDK", "Driver", "Atlas App Services", ...other MongoDB products]
    */
@@ -28,14 +28,44 @@ export interface MongoDbUserQueryPreprocessorResponse {
     Using your knowledge of MongoDB and the conversational context, rephrase the
     latest user query to make it more meaningful. Rephrase the query into a
     question if it's not already one. The query generated here is passed to
-    semantic search. If you do not know how to rephrase the query, leave this
-    field undefined.
+    semantic search.
+    Include relevant MongoDB products and programming languages in the query if they are
+    not already present.
+    If you do not know how to rephrase the query because the query doesn't make sense,
+    leave this field `undefined`.
+    @example
+    User input: "How do I create a chart?"
+    Output query: "How do I create a chart in MongoDB Atlas Charts?"
+    @example
+    User input: "query python"
+    Output query: "How do I query MongoDB using the Python driver?"
+    @example:
+    User input: "asdf asdf asdf"
+    Output query: undefined
+    @example:
+    User input: "Whispering dandelions compose sonnets in the language of breezy summers."
+    Output query: undefined
   */
   query?: string;
 
   /**
-    Set to true if and only if the query is hostile, offensive, or disparages
-    MongoDB or its products.
+    Set to `true` if the following is true of the user query:
+    - It is hostile/offensive
+    - It disparages MongoDB or its products.
+    @example (disparages MongoDB and is hostile/offensive)
+    User input: "Why does MongoDB suck so much?"
+    Output rejectQuery: true
+    @example (disparages MongoDB)
+    User input: "Why is SQL so much better than MongoDB?"
+    Output rejectQuery: true
+    - It doesn't make any logical sense in relation to MongoDB or its products.
+    - It is gibberish
+    @example (gibberish)
+    User input: "asdf asdf asdf"
+    Output rejectQuery: true
+    @example (doesn't make any logical sense in relation to MongoDB or its products)
+    User input: "Whispering dandelions compose sonnets in the language of breezy summers."
+    Output rejectQuery: true
    */
   rejectQuery: boolean;
 }

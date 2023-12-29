@@ -66,7 +66,6 @@ name: staging-build-chat-server
 trigger:
   branch:
     - main
-    - EAI-143 # TODO:remove before merge
   event:
     - push
 
@@ -131,7 +130,6 @@ trigger:
       - packages/mongodb-chatbot-ui/**/*
   branch:
     - main
-    - EAI-143 # TODO:remove before merge
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion
@@ -319,7 +317,6 @@ name: staging-build-ingest-mongodb-public
 trigger:
   branch:
     - main
-    - EAI-143 # TODO: remove before merge
   event:
     - push
   paths:
@@ -380,7 +377,6 @@ trigger:
       - packages/mongodb-rag-core/**/*
   branch:
     - main
-    - EAI-143 # TODO: remove before merge
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion

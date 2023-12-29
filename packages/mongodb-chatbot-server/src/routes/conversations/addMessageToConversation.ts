@@ -120,8 +120,6 @@ export function makeAddMessageToConversationRoute({
         (acc, message) => (message.role === "user" ? acc + 1 : acc),
         0
       );
-      console.log(conversation.messages);
-      console.log("numUserMessages", numUserMessages);
       if (numUserMessages >= maxUserMessagesInConversation) {
         // Omit the system prompt and assume the user always received one response per message
         throw makeRequestError({

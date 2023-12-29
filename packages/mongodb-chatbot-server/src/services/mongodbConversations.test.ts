@@ -73,28 +73,28 @@ describe("Conversations Service", () => {
   });
   test("Should add a message to a conversation with optional fields", async () => {
     const conversation = await conversationsService.create();
-    const content = "<processed> Tell me about MongoDB";
+    const contentForLlm = "<processed> Tell me about MongoDB";
     const originalUserContent = "Tell me about MongoDB";
     const embedding = [1, 2, 3];
     const newMessage = await conversationsService.addConversationMessage({
       conversationId: conversation._id,
       message: {
         role: "user",
-        content,
-        originalContent: originalUserContent,
+        content: originalUserContent,
+        contentForLlm,
         embedding,
       },
     });
-    expect(newMessage.content).toBe(content);
+    expect(newMessage.content).toBe(contentForLlm);
 
     const conversationInDb = await mongodb
       .collection<Conversation>("conversations")
       .findOne({ _id: conversation._id });
     expect(conversationInDb).toHaveProperty("messages");
     expect(conversationInDb?.messages).toHaveLength(2);
-    expect(conversationInDb?.messages[1].content).toStrictEqual(content);
+    expect(conversationInDb?.messages[1].content).toStrictEqual(contentForLlm);
     expect(
-      (conversationInDb?.messages[1] as UserMessage)?.originalContent
+      (conversationInDb?.messages[1] as UserMessage)?.content
     ).toStrictEqual(originalUserContent);
     expect(
       (conversationInDb?.messages[1] as UserMessage)?.embedding

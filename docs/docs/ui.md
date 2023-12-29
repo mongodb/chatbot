@@ -1,4 +1,4 @@
-# Chat UI
+# Chatbot UI
 
 The MongoDB Chatbot UI is a React.js component library that you can use to build a chatbot UI.
 

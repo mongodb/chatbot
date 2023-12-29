@@ -9,7 +9,6 @@ export type MessageBase = {
 
   /**
     Message that occurs in the conversation.
-    This is used by the LLM to generate a response.
    */
   content: string;
 
@@ -50,9 +49,11 @@ export type UserMessage = MessageBase & {
   role: "user";
 
   /**
-      The original content of the message before preprocessing.
+    The content of the message that the LLM will use to generate a response.
+    This is only used for the latest user message.
+    For previous user messages, the LLM will use the `content` field.
    */
-  originalContent?: string;
+  contentForLlm?: string;
 
   /**
     The preprocessed content of the message.

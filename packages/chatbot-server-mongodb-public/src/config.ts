@@ -100,7 +100,7 @@ export const makeUserMessage: MakeUserMessageFunc = async function ({
 }: MakeUserMessageFuncParams): Promise<UserMessage> {
   const chunkSeparator = "~~~~~~";
   const context = content.map((c) => c.text).join(`\n${chunkSeparator}\n`);
-  const messageContent = `Using the following information, answer the question.
+  const llmMessage = `Using the following information, answer the question.
 Different pieces of information are separated by "${chunkSeparator}".
 
 <Information>
@@ -112,10 +112,10 @@ ${preprocessedUserMessage ?? originalUserMessage}
 <End Question>`;
   return {
     role: "user",
-    content: messageContent,
+    content: originalUserMessage,
     embedding: queryEmbedding,
     preprocessedContent: preprocessedUserMessage,
-    originalContent: originalUserMessage,
+    contentForLlm: llmMessage,
   };
 };
 
@@ -208,7 +208,6 @@ export const config: AppConfig = {
   conversationsRouterConfig: {
     dataStreamer,
     llm,
-    maxChunkContextTokens: 1500,
     conversations,
     generateUserPrompt,
   },

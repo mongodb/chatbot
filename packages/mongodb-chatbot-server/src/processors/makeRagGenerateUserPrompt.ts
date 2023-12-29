@@ -9,20 +9,41 @@ import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
 import { makeDefaultReferenceLinks } from "./makeDefaultReferenceLinks";
 
 export interface MakeRagGenerateUserPromptParams {
-  queryPreprocessor: QueryPreprocessorFunc;
+  /**
+    Transform the user's message before sending it to the `findContent` function.
+   */
+  queryPreprocessor?: QueryPreprocessorFunc;
+
+  /**
+    Find content based on the user's message and preprocessing.
+   */
   findContent: FindContentFunc;
+
+  /**
+    If not specified, uses {@link makeDefaultReferenceLinks}.
+   */
   makeReferenceLinks?: MakeReferenceLinksFunc;
+
+  /**
+    Number of tokens from the found context to send to the `makeUserMessage` function.
+    All chunks that exceed this threshold are discarded.
+    If not specified, uses {@link DEFAULT_MAX_CONTEXT_TOKENS}.
+   */
   maxChunkContextTokens?: number;
+
+  /**
+    Construct user message which is sent to the LLM and stored in the database.
+   */
   makeUserMessage: MakeUserMessageFunc;
 }
 
-export type MakeUserMessageFuncParams = {
+export interface MakeUserMessageFuncParams {
   content: EmbeddedContent[];
   originalUserMessage: string;
   preprocessedUserMessage?: string;
   queryEmbedding?: number[];
   rejectQuery?: boolean;
-};
+}
 
 export type MakeUserMessageFunc = (
   params: MakeUserMessageFuncParams
@@ -39,7 +60,7 @@ const DEFAULT_MAX_CONTEXT_TOKENS = 1500; // magic number for max context tokens 
   2. Find content using vector search.
   3. Removes any chunks that would exceed the max context tokens.
   4. Generate the user message using the make user message function.
-  5. Return the user message and references.0                                                                                                                  */
+  5. Return the user message and references.                                                                                                                */
 export function makeRagGenerateUserPrompt({
   queryPreprocessor,
   findContent,

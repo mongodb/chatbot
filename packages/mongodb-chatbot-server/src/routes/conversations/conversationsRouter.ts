@@ -101,11 +101,6 @@ export interface ConversationsRouterParams {
     including retrieval augmented generation here.
    */
   generateUserPrompt?: GenerateUserPromptFunc;
-  /**
-    Maximum number of tokens of context to send to the LLM in retrieval augmented generation
-    in addition to system prompt, other user messages, etc.
-   */
-  maxChunkContextTokens?: number;
 
   /**
     Maximum number of characters in user input.

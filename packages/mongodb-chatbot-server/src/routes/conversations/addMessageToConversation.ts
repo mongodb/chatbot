@@ -169,9 +169,20 @@ export function makeAddMessageToConversationRoute({
           messages,
         });
       } else {
-        const llmConversation = [...conversation.messages, ...newMessages].map(
-          convertConversationMessageToLlmMessage
-        );
+        const llmConversation = [
+          ...conversation.messages.map(convertConversationMessageToLlmMessage),
+          ...newMessages.map((m) => {
+            // Use transformed content if it exists for user message,
+            // otherwise use original content.
+            if (m.role === "user") {
+              return {
+                content: m.contentForLlm ?? m.content,
+                role: "user",
+              } satisfies OpenAiChatMessage;
+            }
+            return convertConversationMessageToLlmMessage(m);
+          }),
+        ];
 
         // --- GENERATE RESPONSE ---
         // EAI-121_PART_2_TODO: refactor to include N messages

@@ -4,46 +4,37 @@ If you're using the MongoDB Chatbot Server to perform RAG, you must retrieve
 context information to include in your answer. The primary way of doing this
 is with semantic search.
 
-You can add the information that you retrieve using the [MongoDB RAG Ingest CLI](../ingest/configure.md). Information retrieval is the single point of contact between the MongoDB RAG Ingest CLI and the MongoDB Chatbot Server.
+You can add the information that you retrieve using the [MongoDB RAG Ingest CLI](../../ingest/configure.md). Information retrieval is the single point of contact between the MongoDB RAG Ingest CLI and the MongoDB Chatbot Server.
 
 ## The `FindContentFunc` Function
 
-To perform semantic search, you must implement a [`FindContentFunc`](../reference/server/modules.md#findcontentfunc) function. To see the default implementation
+To perform semantic search, you must implement a [`FindContentFunc`](../../reference/server/modules.md#findcontentfunc) function. To see the default implementation
 using Atlas Vector Search, refer to the following
-[Configure Atlas Vector Search](#configure-atlas-vector-search) section.
+[Find Content with Atlas Vector Search](#find-content-with-atlas-vector-search) section.
 
-Pass the `FindContentFunc` to the [`ConversationsRouterParams.findContent`](../reference/server/interfaces/ConversationsRouterParams.md#findcontent) property.
+Pass the `FindContentFunc` to the [`MakeRagGenerateUserPromptParams.findContent`](../../reference/server/interfaces/MakeRagGenerateUserPromptParams.md#findcontent) property.
 
 ```ts
-import { FindContentFunc } from "mongodb-chatbot-server";
+import { makeRagGenerateUserPrompt } from "mongodb-chatbot-server";
 import { someFindContentFunc } from "./someFindContentFunc"; // example
 
-const appConfig: AppConfig = {
+const ragGenerateUserPrompt = makeRagGenerateUserPrompt({
+  findContent: someFindContentFunc,
   // ...other config
-  conversationsRouterParams: {
-    findContent: someFindContentFunc,
-    // ...other config
-  },
-};
+});
 ```
 
 ## Find Content with Atlas Vector Search
 
 To use the MongoDB Chatbot Server with Atlas Vector Search for semantic search,
-you can use the [`makeDefaultFindContentFunc()`](../reference/server/modules.md#makedefaultfindcontentfunc).
+you can use the [`makeDefaultFindContentFunc()`](../../reference/server/modules.md#makedefaultfindcontentfunc).
 
-This function retrieves data from an [`EmbeddedContentStore`](../reference/core/modules.md#embeddedcontentstore). To learn more about how to add data to an `EmbeddedContentStore`, refer to the [Ingest CLI documentation](../ingest/configure.md).
+This function retrieves data from an [`EmbeddedContentStore`](../../reference/core/modules.md#embeddedcontentstore). To learn more about how to add data to an `EmbeddedContentStore`, refer to the [Ingest CLI documentation](../../ingest/configure.md).
 
-Pass a [`MakeDefaultFindContentFuncArgs`](../reference/server/modules.md#makedefaultfindcontentfuncargs) object to the `makeDefaultFindContentFunc()` function.
+Pass a [`MakeDefaultFindContentFuncArgs`](../../reference/server/modules.md#makedefaultfindcontentfuncargs) object to the `makeDefaultFindContentFunc()` function.
 
 ```ts
-import {
-  makeMongoDbEmbeddedContentStore,
-  makeOpenAiEmbedder,
-  AppConfig,
-  makeDefaultFindContentFunc,
-  MakeDefaultFindContentFuncArgs,
-} from "mongodb-chatbot-server";
+import { makeRagGenerateUserPrompt } from "mongodb-chatbot-server";
 
 // Create function that creates vector embeddings
 // for user query.
@@ -75,19 +66,16 @@ const args: MakeDefaultFindContentFuncArgs = {
 };
 const findContent = makeDefaultFindContentFunc(args);
 
-const appConfig: AppConfig = {
+const ragGenerateUserPrompt = makeRagGenerateUserPrompt({
+  findContent,
   // ...other config
-  conversationsRouterParams: {
-    findContent,
-    // ...other config
-  },
-};
+});
 ```
 
 ### Boost Results
 
 You can modify the results returned by the default find content function with
-[`SearchBooster`](../reference/server/interfaces/SearchBooster.md) objects.
+[`SearchBooster`](../../reference/server/interfaces/SearchBooster.md) objects.
 `SearchBooster`s mutate the results returned by the default find content function.
 
 You could use a `SearchBooster` to do things like:

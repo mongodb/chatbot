@@ -1,8 +1,8 @@
 # MongoDB & Atlas Vector Search
 
-The MongoDB RAG framework uses MongoDB Atlas as its data layer.
+The MongoDB Chatbot Framework uses MongoDB Atlas as its data layer.
 
-This page explains how to set up MongoDB Atlas and Atlas Vector Search for use with the MongoDB RAG framework, and what is stored in all the collections.
+This page explains how to set up MongoDB Atlas and Atlas Vector Search for use with the MongoDB Chatbot Framework, and what is stored in all the collections.
 
 ## Set up
 

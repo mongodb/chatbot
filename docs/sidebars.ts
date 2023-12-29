@@ -37,10 +37,24 @@ const sidebars: SidebarsConfig = {
       items: [
         "server/configure",
         "server/conversations",
-        "server/retrieve",
+        "server/user-message",
         "server/llm",
-        "server/references",
-        "server/preprocess",
+        {
+          type: "category",
+          label: "Retrieval Augmented Generation (RAG)",
+          collapsed: true,
+          collapsible: true,
+          items: [
+            {
+              type: "doc",
+              id: "server/rag/index",
+              label: "Set up RAG",
+            },
+            "server/rag/preprocess",
+            "server/rag/retrieve",
+            "server/rag/references",
+          ],
+        },
         "server/custom-logic",
         "server/persist",
         "server/evaluate",

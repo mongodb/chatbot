@@ -85,14 +85,16 @@ describe("Conversations Service", () => {
         embedding,
       },
     });
-    expect(newMessage.content).toBe(contentForLlm);
+    expect(newMessage.content).toBe(originalUserContent);
 
     const conversationInDb = await mongodb
       .collection<Conversation>("conversations")
       .findOne({ _id: conversation._id });
     expect(conversationInDb).toHaveProperty("messages");
     expect(conversationInDb?.messages).toHaveLength(2);
-    expect(conversationInDb?.messages[1].content).toStrictEqual(contentForLlm);
+    expect(
+      (conversationInDb?.messages[1] as UserMessage).contentForLlm
+    ).toStrictEqual(contentForLlm);
     expect(
       (conversationInDb?.messages[1] as UserMessage)?.content
     ).toStrictEqual(originalUserContent);

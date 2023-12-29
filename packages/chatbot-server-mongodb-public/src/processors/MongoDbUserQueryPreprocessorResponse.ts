@@ -31,14 +31,14 @@ export interface MongoDbUserQueryPreprocessorResponse {
     semantic search.
     Include relevant MongoDB products and programming languages in the query if they are
     not already present.
-    If you do not know how to rephrase the query because the query doesn't make sense,
-    leave this field `undefined`.
     @example
     User input: "How do I create a chart?"
     Output query: "How do I create a chart in MongoDB Atlas Charts?"
     @example
     User input: "query python"
     Output query: "How do I query MongoDB using the Python driver?"
+    If you do not know how to rephrase the query because the query doesn't make sense
+    in relation to MongoDB or its products, leave this field `undefined`.
     @example:
     User input: "asdf asdf asdf"
     Output query: undefined

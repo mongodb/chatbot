@@ -113,13 +113,13 @@ describe("makePreprocessMongoDbUserQuery()", () => {
     expect(response.rejectQuery).toBe(false);
   });
   test("should leave query undefined if the input query is gibberish", async () => {
-    const nonsensicalQuery = "where can i find doritos in bhutan";
+    const nonsensicalQuery = "fsdhdjyt fjgklh ; 1234";
     const messages: Message[] = [];
     const response = await preprocessMongoDbUserQuery({
       query: nonsensicalQuery,
       messages,
     });
-    expect(response.rejectQuery).toBe(true);
+    expect(response.query).toBeUndefined();
   });
   test("should set rejectQuery to true if the query is negative toward MongoDB", async () => {
     const query = "why is MongoDB the worst database";

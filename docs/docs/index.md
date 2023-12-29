@@ -37,7 +37,7 @@ To get started using the MongoDB Chatbot Framework, refer to the [Quick Start](.
 
 The MongoDB Chatbot Framework is designed around the following principles:
 
-- Composability: You can use components of the RAG framework independently of each other.
+- Composability: You can use components of the chatbot framework independently of each other.
   For example, we have some users who are using only our ingestion CLI to ingest content into MongoDB Atlas, but use other tools to build their chatbot and UI.
 - Pluggability: You can plug in your own implementations of components.
   For example, you can plug in your own implementations of the `DataSource` interface
@@ -49,7 +49,7 @@ The MongoDB Chatbot Framework is designed around the following principles:
 
 This framework is used to build the MongoDB Docs Chatbot, a RAG chatbot that answers questions about the MongoDB documentation. You can try it out on [mongodb.com/docs](https://www.mongodb.com/docs/).
 
-Here's a reference architecture for how the MongoDB RAG system works for the MongoDB Docs Chatbot.
+Here's a reference architecture for how the MongoDB Chatbot Framework system works for the MongoDB Docs Chatbot.
 
 Data ingestion:
 

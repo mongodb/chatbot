@@ -30,7 +30,7 @@ import {
 import { GenerateUserPromptFunc } from "../../processors/GenerateUserPromptFunc";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
-export const DEFAULT_MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
+export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for max messages in a conversation
 
 export type AddMessageRequestBody = z.infer<typeof AddMessageRequestBody>;
 export const AddMessageRequestBody = z.object({
@@ -60,7 +60,7 @@ export interface AddMessageToConversationRouteParams {
   generateUserPrompt?: GenerateUserPromptFunc;
   dataStreamer: DataStreamer;
   maxInputLengthCharacters?: number;
-  maxMessagesInConversation?: number;
+  maxUserMessagesInConversation?: number;
   addMessageToConversationCustomData?: AddCustomDataFunc;
 }
 
@@ -70,7 +70,7 @@ export function makeAddMessageToConversationRoute({
   dataStreamer,
   generateUserPrompt,
   maxInputLengthCharacters = DEFAULT_MAX_INPUT_LENGTH,
-  maxMessagesInConversation = DEFAULT_MAX_MESSAGES_IN_CONVERSATION,
+  maxUserMessagesInConversation = DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION,
   addMessageToConversationCustomData,
 }: AddMessageToConversationRouteParams) {
   return async (
@@ -116,12 +116,17 @@ export function makeAddMessageToConversationRoute({
       });
 
       // --- MAX CONVERSATION LENGTH CHECK ---
-      if (conversation.messages.length >= maxMessagesInConversation) {
+      const numUserMessages = conversation.messages.reduce(
+        (acc, message) => (message.role === "user" ? acc + 1 : acc),
+        0
+      );
+      console.log(conversation.messages);
+      console.log("numUserMessages", numUserMessages);
+      if (numUserMessages >= maxUserMessagesInConversation) {
         // Omit the system prompt and assume the user always received one response per message
-        const maxUserMessages = (maxMessagesInConversation - 1) / 2;
         throw makeRequestError({
           httpStatus: 400,
-          message: `Too many messages. You cannot send more than ${maxUserMessages} messages in this conversation.`,
+          message: `Too many messages. You cannot send more than ${maxUserMessagesInConversation} messages in this conversation.`,
         });
       }
 

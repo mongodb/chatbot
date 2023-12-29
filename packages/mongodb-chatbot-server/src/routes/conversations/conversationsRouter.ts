@@ -109,11 +109,11 @@ export interface ConversationsRouterParams {
   maxInputLengthCharacters?: number;
 
   /**
-    Maximum number of messages in a conversation.
+    Maximum number of user-sent messages in a conversation.
     Server returns 400 error if user tries to add a message to a conversation
     that has this many messages.
    */
-  maxMessagesInConversation?: number;
+  maxUserMessagesInConversation?: number;
   rateLimitConfig?: ConversationsRateLimitConfig;
 
   /**
@@ -181,7 +181,7 @@ export function makeConversationsRouter({
   llm,
   conversations,
   maxInputLengthCharacters,
-  maxMessagesInConversation,
+  maxUserMessagesInConversation,
   rateLimitConfig,
   generateUserPrompt,
   dataStreamer = makeDataStreamer(),
@@ -268,7 +268,7 @@ export function makeConversationsRouter({
     llm,
     dataStreamer,
     maxInputLengthCharacters,
-    maxMessagesInConversation,
+    maxUserMessagesInConversation,
     addMessageToConversationCustomData,
     generateUserPrompt,
   });

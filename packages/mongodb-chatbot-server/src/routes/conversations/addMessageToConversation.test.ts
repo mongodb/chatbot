@@ -12,7 +12,7 @@ import { Express } from "express";
 import {
   AddMessageRequestBody,
   DEFAULT_MAX_INPUT_LENGTH,
-  DEFAULT_MAX_MESSAGES_IN_CONVERSATION,
+  DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
 import { makeOpenAiChatLlm } from "../../services/openAiChatLlm";
@@ -203,40 +203,27 @@ describe("POST /conversations/:conversationId/messages", () => {
     test("Should respond 400 if number of messages in conversation exceeds limit", async () => {
       const { _id } = await conversations.create();
       // Init conversation with max length
-      for await (const i of Array(DEFAULT_MAX_MESSAGES_IN_CONVERSATION - 1)) {
-        const role = i % 2 === 0 ? "user" : "assistant";
-        if (role === "assistant") {
-          await conversations.addConversationMessage({
-            conversationId: _id,
-            message: {
-              content: `message ${i}`,
-              role,
-              references: [],
-            },
-          });
-        } else {
-          await conversations.addConversationMessage({
-            conversationId: _id,
-            message: {
-              content: `message ${i}`,
-              role,
-              embedding: [1, 2, 3],
-            },
-          });
-        }
+      for await (const i of Array(DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION)) {
+        await conversations.addConversationMessage({
+          conversationId: _id,
+          message: {
+            content: `message ${i}`,
+            role: "user",
+            embedding: [1, 2, 3],
+          },
+        });
       }
 
       const res = await request(app)
         .post(endpointUrl.replace(":conversationId", _id.toString()))
-        .set("X-Forwarded-For", ipAddress) // different IP address
+        .set("X-Forwarded-For", ipAddress)
         .set("Origin", origin)
         .send({
           message: "hello",
         });
       expect(res.statusCode).toEqual(400);
       expect(res.body).toStrictEqual({
-        error:
-          "Too many messages. You cannot send more than 6 messages in this conversation.",
+        error: `Too many messages. You cannot send more than ${DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION} messages in this conversation.`,
       });
     });
 

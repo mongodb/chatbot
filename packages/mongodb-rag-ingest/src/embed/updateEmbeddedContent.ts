@@ -138,7 +138,6 @@ export const updateEmbeddedContentForPage = async ({
     );
     const { embedding } = await embedder.embed({
       text: chunk.text,
-      userIp: "127.0.0.1",
     });
     embeddedContent.push({
       ...chunk,

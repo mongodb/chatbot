@@ -3,7 +3,7 @@ import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
-  title: "MongoDB RAG Framework",
+  title: "MongoDB Chatbot Framework",
   tagline: "Build RAG applications with MongoDB and Atlas Vector Search",
   staticDirectories: ["static"],
 
@@ -112,7 +112,7 @@ const config: Config = {
     // Replace with your project's social card
     // TODO: add link to GH repo
     navbar: {
-      title: "MongoDB RAG Framework",
+      title: "MongoDB Chatbot Framework",
       // logo: {
       //   alt: 'My Site Logo',
       //   src: 'img/logo.svg',
@@ -157,7 +157,7 @@ const config: Config = {
     },
     announcementBar: {
       content:
-        "⚠️ The MongoDB RAG Framework is under active development and may undergo breaking changes. ⚠️",
+        "⚠️ The MongoDB Chatbot Framework is under active development and may undergo breaking changes. ⚠️",
       backgroundColor: "#FFF8E6",
     },
   } satisfies Preset.ThemeConfig,

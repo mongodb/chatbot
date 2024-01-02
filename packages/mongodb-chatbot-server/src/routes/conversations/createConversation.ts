@@ -6,7 +6,7 @@ import { z } from "zod";
 import {
   ConversationCustomData,
   ConversationsService,
-} from "../../services/conversations";
+} from "../../services/ConversationsService";
 import {
   ApiConversation,
   convertConversationFromDbToApi,

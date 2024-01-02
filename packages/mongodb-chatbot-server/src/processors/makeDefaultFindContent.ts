@@ -1,26 +1,10 @@
-import { strict as assert } from "assert";
 import {
-  WithScore,
-  EmbeddedContent,
   Embedder,
   EmbeddedContentStore,
   FindNearestNeighborsOptions,
 } from "mongodb-rag-core";
-import { SearchBooster } from "../../processors/SearchBooster";
-
-export type FindContentFuncArgs = {
-  query: string;
-  ipAddress: string;
-};
-
-export type FindContentFunc = (
-  args: FindContentFuncArgs
-) => Promise<FindContentResult>;
-
-export type FindContentResult = {
-  queryEmbedding: number[];
-  content: WithScore<EmbeddedContent>[];
-};
+import { FindContentFunc } from "./FindContentFunc";
+import { SearchBooster } from "./SearchBooster";
 
 export type MakeDefaultFindContentFuncArgs = {
   embedder: Embedder;
@@ -32,16 +16,15 @@ export type MakeDefaultFindContentFuncArgs = {
 /**
   Basic implementation of FindContentFunc with search boosters.
  */
-export const makeDefaultFindContentFunc = ({
+export const makeDefaultFindContent = ({
   embedder,
   store,
   findNearestNeighborsOptions,
   searchBoosters,
 }: MakeDefaultFindContentFuncArgs): FindContentFunc => {
-  return async ({ query, ipAddress }) => {
+  return async ({ query }) => {
     const { embedding } = await embedder.embed({
       text: query,
-      userIp: ipAddress,
     });
 
     let content = await store.findNearestNeighbors(

@@ -5,7 +5,7 @@ import { MongoClient, Db, ObjectId } from "mongodb";
 import { makeTypeChatJsonTranslateFunc, assertEnvVars } from "mongodb-rag-core";
 import {
   Conversation,
-  SomeMessage,
+  Message,
   AssistantMessage,
 } from "mongodb-chatbot-server";
 import { MessageAnalysis } from "./MessageAnalysis";
@@ -43,7 +43,7 @@ main();
 const analyzeMessages = async ({ db }: { db: Db }) => {
   const conversationsCollection = db.collection<Conversation>("conversations");
   const originalMessages = conversationsCollection.aggregate<
-    SomeMessage & { indexInConvo: number; convoId: ObjectId }
+    Message & { indexInConvo: number; convoId: ObjectId }
   >([
     {
       // Find messages in a recent timeframe

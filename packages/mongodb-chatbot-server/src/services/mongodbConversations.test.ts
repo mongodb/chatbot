@@ -1,12 +1,13 @@
 import "dotenv/config";
+import { makeMongoDbConversationsService } from "./mongodbConversations";
+import { BSON, MongoClient } from "mongodb-rag-core";
+import { systemPrompt } from "../test/testHelpers";
 import {
   Conversation,
   UserMessage,
   AssistantMessage,
-  makeMongoDbConversationsService,
-} from "./conversations";
-import { BSON, MongoClient } from "mongodb-rag-core";
-import { systemPrompt } from "../test/testHelpers";
+  AddSomeMessageParams,
+} from "./ConversationsService";
 
 jest.setTimeout(100000);
 
@@ -55,9 +56,11 @@ describe("Conversations Service", () => {
     const content = "Tell me about MongoDB";
     const newMessage = await conversationsService.addConversationMessage({
       conversationId: conversation._id,
-      role: "user",
-      content,
-      embedding: [1, 2, 3],
+      message: {
+        role: "user",
+        content,
+        embedding: [1, 2, 3],
+      },
     });
     expect(newMessage.content).toBe(content);
 
@@ -70,27 +73,31 @@ describe("Conversations Service", () => {
   });
   test("Should add a message to a conversation with optional fields", async () => {
     const conversation = await conversationsService.create();
-    const content = "Tell me about MongoDB";
-    const preprocessedContent = "<preprocessed> Tell me about MongoDB";
+    const contentForLlm = "<processed> Tell me about MongoDB";
+    const originalUserContent = "Tell me about MongoDB";
     const embedding = [1, 2, 3];
     const newMessage = await conversationsService.addConversationMessage({
       conversationId: conversation._id,
-      role: "user",
-      content,
-      preprocessedContent,
-      embedding,
+      message: {
+        role: "user",
+        content: originalUserContent,
+        contentForLlm,
+        embedding,
+      },
     });
-    expect(newMessage.content).toBe(content);
+    expect(newMessage.content).toBe(originalUserContent);
 
     const conversationInDb = await mongodb
       .collection<Conversation>("conversations")
       .findOne({ _id: conversation._id });
     expect(conversationInDb).toHaveProperty("messages");
     expect(conversationInDb?.messages).toHaveLength(2);
-    expect(conversationInDb?.messages[1].content).toStrictEqual(content);
     expect(
-      (conversationInDb?.messages[1] as UserMessage)?.preprocessedContent
-    ).toStrictEqual(preprocessedContent);
+      (conversationInDb?.messages[1] as UserMessage).contentForLlm
+    ).toStrictEqual(contentForLlm);
+    expect(
+      (conversationInDb?.messages[1] as UserMessage)?.content
+    ).toStrictEqual(originalUserContent);
     expect(
       (conversationInDb?.messages[1] as UserMessage)?.embedding
     ).toStrictEqual(embedding);
@@ -103,10 +110,12 @@ describe("Conversations Service", () => {
     };
     const newMessage = await conversationsService.addConversationMessage({
       conversationId: conversation._id,
-      role: "user",
-      content,
-      customData,
-      embedding: [1, 2, 3],
+      message: {
+        role: "user",
+        content,
+        customData,
+        embedding: [1, 2, 3],
+      },
     });
     expect(newMessage.content).toBe(content);
 
@@ -124,10 +133,12 @@ describe("Conversations Service", () => {
     const customData = undefined;
     const newMessage = await conversationsService.addConversationMessage({
       conversationId: conversation._id,
-      role: "user",
-      content,
-      customData,
-      embedding: [1, 2, 3],
+      message: {
+        role: "user",
+        content,
+        customData,
+        embedding: [1, 2, 3],
+      },
     });
     expect(newMessage.content).toBe(content);
 
@@ -138,6 +149,28 @@ describe("Conversations Service", () => {
     expect(conversationInDb?.messages).toHaveLength(2);
     expect(conversationInDb?.messages[1].content).toStrictEqual(content);
     expect(conversationInDb?.messages[1].customData).toStrictEqual(customData);
+  });
+  test("should add many conversation messages", async () => {
+    const conversation = await conversationsService.create();
+    const content = "Tell me about MongoDB";
+    const messages = [
+      {
+        role: "user",
+        content,
+        embedding: [1, 2, 3],
+      },
+      {
+        role: "assistant",
+        content,
+      },
+    ] satisfies AddSomeMessageParams[];
+    const newMessages = await conversationsService.addManyConversationMessages({
+      conversationId: conversation._id,
+      messages,
+    });
+    expect(newMessages).toHaveLength(2);
+    expect(newMessages[0]).toMatchObject(messages[0]);
+    expect(newMessages[1]).toMatchObject(messages[1]);
   });
   test("Should find a conversation by id", async () => {
     const conversation = await conversationsService.create();
@@ -158,16 +191,20 @@ describe("Conversations Service", () => {
 
     await conversationsService.addConversationMessage({
       conversationId,
-      role: "user",
-      content: "What is the MongoDB Document Model?",
-      embedding: [1, 2, 3],
+      message: {
+        role: "user",
+        content: "What is the MongoDB Document Model?",
+        embedding: [1, 2, 3],
+      },
     });
 
     const assistantMessage = await conversationsService.addConversationMessage({
       conversationId,
-      role: "assistant",
-      content: "That's a good question! Let me explain...",
-      references: [],
+      message: {
+        role: "assistant",
+        content: "That's a good question! Let me explain...",
+        references: [],
+      },
     });
 
     const result = await conversationsService.rateMessage({

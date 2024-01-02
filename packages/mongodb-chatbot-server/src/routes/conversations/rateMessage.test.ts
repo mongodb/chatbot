@@ -6,7 +6,7 @@ import {
   Message,
   AssistantMessage,
   ConversationsService,
-} from "../../services/conversations";
+} from "../../services/ConversationsService";
 import { Express } from "express";
 import { Db, MongoClient, ObjectId } from "mongodb-rag-core";
 import { makeRateMessageRoute } from "./rateMessage";
@@ -43,9 +43,11 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
     conversation = await conversations.create();
     testMsg = await conversations.addConversationMessage({
       conversationId: conversation._id,
-      content: "hello",
-      role: "assistant",
-      references: [],
+      message: {
+        content: "hello",
+        role: "assistant",
+        references: [],
+      },
     });
     testEndpointUrl = endpointUrl
       .replace(":conversationId", conversation._id.toHexString())

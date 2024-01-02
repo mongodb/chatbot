@@ -3,11 +3,6 @@ export type EmbedArgs = {
     The text to embed.
    */
   text: string;
-
-  /**
-    The user's IP address. Used to prevent abuse.
-   */
-  userIp: string;
 };
 
 export type EmbedResult = {

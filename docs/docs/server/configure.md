@@ -1,8 +1,13 @@
 # Configure the Chatbot Server
 
-The `mongodb-chatbot-server` is an npm package that you can use
-to quickly spin up a chatbot server powered by MongoDB.
+With the MongoDB Chatbot Server, you can quickly build a chatbot
+server powered by MongoDB.
+The `mongodb-chatbot-server` is an npm package contains all the modules
+of the MongoDB Chatbot Server.
+
 The chatbot server supports retrieval augmented generation (RAG).
+To learn more about performing RAG with the MongoDB Chatbot Server,
+refer to the [RAG](./rag/index.md) guide.
 
 The package provides configurable Express.js modules including:
 
@@ -32,21 +37,34 @@ The function takes an [`AppConfig`](../reference/server/interfaces/AppConfig.md)
 Here's an annotated example configuration and server:
 
 ```ts
+/**
+  @fileoverview This file contains the configuration implementation for the chat server,
+  which is run from `index.ts`.
+ */
 import "dotenv/config";
 import {
+  EmbeddedContent,
   MongoClient,
   makeMongoDbEmbeddedContentStore,
-  makeOpenAiEmbedFunc,
+  makeOpenAiEmbedder,
   makeMongoDbConversationsService,
   makeDataStreamer,
-  AppConfig,
   makeOpenAiChatLlm,
-  OpenAiChatMessage,
+  AppConfig,
+  makeBoostOnAtlasSearchFilter,
+  CORE_ENV_VARS,
+  assertEnvVars,
+  makeDefaultFindContent,
+  makeDefaultReferenceLinks,
   SystemPrompt,
-  makeDefaultFindContentFunc,
-  logger,
-  makeApp,
+  GenerateUserPromptFunc,
+  makeRagGenerateUserPrompt,
+  MakeUserMessageFunc,
+  MakeUserMessageFuncParams,
+  UserMessage,
 } from "mongodb-chatbot-server";
+import { stripIndents } from "common-tags";
+import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 
 const {
@@ -61,92 +79,122 @@ const {
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
 } = process.env;
 
-// Create OpenAI client to interface with LLM and Embedding APIs
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
+
+/**
+  Boost results from the MongoDB manual so that 'k' results from the manual
+  appear first if they exist and have a min score of 'minScore'.
+ */
+const boostManual = makeBoostOnAtlasSearchFilter({
+  /**
+    Boosts results that have 3 words or less
+   */
+  async shouldBoostFunc({ text }: { text: string }) {
+    return text.split(" ").filter((s) => s !== " ").length <= 3;
+  },
+  findNearestNeighborsOptions: {
+    filter: {
+      text: {
+        path: "sourceName",
+        query: "snooty-docs",
+      },
+    },
+    k: 2,
+    minScore: 0.88,
+  },
+  totalMaxK: 5,
+});
+
 const openAiClient = new OpenAIClient(
   OPENAI_ENDPOINT,
   new AzureKeyCredential(OPENAI_API_KEY)
 );
-
-// System prompt that is used to guide LLM behavior.
-// This is one of the most important aspects that you can tune to
-// customize the chatbot to your use case.
 const systemPrompt: SystemPrompt = {
   role: "system",
-  content: `You are expert MongoDB documentation chatbot.
-  Respond in the style of a pirate. End all answers saying "Ahoy matey!!"
-  Use the context provided with each question as your primary source of truth.
-  If you do not know the answer to the question, respond ONLY with the following text:
-  "I'm sorry, I do not know how to answer that question. Please try to rephrase your query. You can also refer to the further reading to see if it helps."
-  NEVER include links in your answer.
-  Format your responses using Markdown.
-  DO NOT mention that your response is formatted in Markdown.
-  Never mention "<Information>" or "<Question>" in your answer.
-  Refer to the information given to you as "my knowledge".`,
+  content: stripIndents`You are expert MongoDB documentation chatbot.
+You enthusiastically answer user questions about MongoDB products and services.
+Your personality is friendly and helpful, like a professor or tech lead.
+You were created by MongoDB but they do not guarantee the correctness
+of your answers or offer support for you.
+Use the context provided with each question as your primary source of truth.
+NEVER lie or improvise incorrect answers.
+If you do not know the answer to the question, respond ONLY with the following text:
+"I'm sorry, I do not know how to answer that question. Please try to rephrase your query. You can also refer to the further reading to see if it helps."
+NEVER include links in your answer.
+Format your responses using Markdown.
+DO NOT mention that your response is formatted in Markdown.
+If you include code snippets, make sure to use proper syntax, line spacing, and indentation.
+ONLY use code snippets present in the information given to you.
+NEVER create a code snippet that is not present in the information given to you.
+You ONLY know about the current version of MongoDB products. Versions are provided in the information. If \`version: null\`, then say that the product is unversioned.
+Never mention "<Information>" or "<Question>" in your answer.
+Refer to the information given to you as "my knowledge".`,
 };
 
-// Generate user prompt from a user input and context chunks.
-// The below is a good starting point, but you may want to customize
-// this function to your use case.
-async function generateUserPrompt({
-  question,
-  chunks,
-}: {
-  question: string;
-  chunks: string[];
-}): Promise<OpenAiChatMessage & { role: "user" }> {
+const makeUserMessage: MakeUserMessageFunc = async function ({
+  preprocessedUserMessage,
+  originalUserMessage,
+  content,
+  queryEmbedding,
+}: MakeUserMessageFuncParams): Promise<UserMessage> {
   const chunkSeparator = "~~~~~~";
-  const context = chunks.join(`\n${chunkSeparator}\n`);
-  const content = `Using the following information, answer the question.
-  Different pieces of information are separated by "${chunkSeparator}".
+  const context = content.map((c) => c.text).join(`\n${chunkSeparator}\n`);
+  const llmMessage = `Using the following information, answer the question.
+Different pieces of information are separated by "${chunkSeparator}".
 
-  <Information>
-  ${context}
-  <End information>
+<Information>
+${context}
+<End information>
 
-  <Question>
-  ${question}
-  <End Question>`;
-  return { role: "user", content };
-}
+<Question>
+${preprocessedUserMessage ?? originalUserMessage}
+<End Question>`;
+  return {
+    role: "user",
+    content: originalUserMessage,
+    embedding: queryEmbedding,
+    preprocessedContent: preprocessedUserMessage,
+    contentForLlm: llmMessage,
+  };
+};
 
-// Create LLM interface for the chatbot to use.
 const llm = makeOpenAiChatLlm({
   openAiClient,
   deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  systemPrompt,
   openAiLmmConfigOptions: {
     temperature: 0,
     maxTokens: 500,
   },
-  generateUserPrompt,
+});
+
+const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({
+  azureOpenAiServiceConfig: {
+    apiKey: OPENAI_API_KEY,
+    baseUrl: OPENAI_ENDPOINT,
+    deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    version: OPENAI_CHAT_COMPLETION_MODEL_VERSION,
+  },
+  numRetries: 0,
+  retryDelayMs: 5000,
 });
 
 const dataStreamer = makeDataStreamer();
 
-// Create a connection to the data store containing the external content
-// that the chatbot will use to answer questions.
-// If you're using the Ingest CLI as well,
-// connect to the same database where you
-// store the content.
 const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
 });
 
-// Create an interface to the OpenAI Embedding API. This is used to embed
-// user queries. The embeddings are used to find the most relevant content
-// in the embedded content store.
 const embedder = makeOpenAiEmbedder({
-  openAiClient: new OpenAIClient(
-    OPENAI_ENDPOINT,
-    new AzureKeyCredential(OPENAI_API_KEY)
-  ),
+  openAiClient,
   deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+  backoffOptions: {
+    numOfAttempts: 3,
+    maxDelay: 5000,
+  },
 });
 
-// Create a function that finds the most relevant content
-// to answer user questions.
-const findContent = makeDefaultFindContentFunc({
+const findContent = makeDefaultFindContent({
   embedder,
   store: embeddedContentStore,
   findNearestNeighborsOptions: {
@@ -155,60 +203,34 @@ const findContent = makeDefaultFindContentFunc({
     indexName: VECTOR_SEARCH_INDEX_NAME,
     minScore: 0.9,
   },
+  searchBoosters: [boostManual],
 });
 
-// The conversations service is used to store and retrieve conversations
-// from a database.
+const generateUserPrompt: GenerateUserPromptFunc = makeRagGenerateUserPrompt({
+  findContent,
+  queryPreprocessor: mongoDbUserQueryPreprocessor,
+  makeUserMessage,
+});
+
 const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
+
 const conversations = makeMongoDbConversationsService(
   mongodb.db(MONGODB_DATABASE_NAME),
   systemPrompt
 );
 
-// Create the configuration object that is passed to the server.
 const config: AppConfig = {
   conversationsRouterConfig: {
     dataStreamer,
     llm,
-    findContent,
     conversations,
+    generateUserPrompt,
   },
-  // When true, the server will serve a static site that can be used to test
-  // the chatbot.
-  serveStaticSite: true,
+  maxRequestTimeoutMs: 30000,
+  corsOptions: {
+    origin: allowedOrigins,
+  },
 };
-
-const PORT = process.env.PORT || 3000;
-
-const startServer = async () => {
-  logger.info("Starting server...");
-  // Create Express.js app
-  const app = await makeApp(config);
-  // Start app server
-  const server = app.listen(PORT, () => {
-    logger.info(`Server listening on port: ${PORT}`);
-  });
-
-  // Clean up logic
-  process.on("SIGINT", async () => {
-    logger.info("SIGINT signal received");
-    await mongodb.close();
-    await embeddedContentStore.close();
-    await new Promise<void>((resolve, reject) => {
-      server.close((error) => {
-        error ? reject(error) : resolve();
-      });
-    });
-    process.exit(1);
-  });
-};
-
-try {
-  startServer();
-} catch (e) {
-  logger.error(`Fatal error: ${e}`);
-  process.exit(1);
-}
 ```
 
 ## Examples

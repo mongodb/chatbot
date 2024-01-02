@@ -61,7 +61,10 @@ export function makePreprocessMongoDbUserQuery({
     if (query === undefined) {
       return { query, rejectQuery: false };
     }
-    const prompt = generateMongoDbQueryPreProcessorPrompt({ query, messages });
+    const prompt = generateMongoDbQueryPreProcessorPrompt({
+      query,
+      messages: messages ?? [],
+    });
     const data = await translate(prompt);
     return {
       ...data,
@@ -98,7 +101,7 @@ export function generateMongoDbQueryPreProcessorPrompt({
     : "No previous conversation history.";
 
   // This is adapted from llamaindex https://github.com/jerryjliu/llama_index/blob/551643ac725306560fc635787e7c7a1f197d9393/llama_index/chat_engine/condense_question.py#L23
-  const prompt = `Given a conversation (between USER and ASSISTANT) and a follow up message from USER, rewrite the message to be a standalone question that captures all relevant context from the conversation.
+  const prompt = `Given a conversation (between USER and ASSISTANT) and a follow up message from USER, output an object conforming to the given TypeScript type.
 
 <Conversation History>
 ${conversationHistory}

@@ -177,6 +177,7 @@ export interface ConversationConstants {
    */
   LLM_NOT_WORKING: string;
 }
+
 /**
   Service for managing {@link Conversation}s.
  */

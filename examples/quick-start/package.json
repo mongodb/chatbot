@@ -1,0 +1,16 @@
+{
+  "name": "mongodb-chatbot-framework-quickstart",
+  "version": "1.0.0",
+  "description": "Quick start code for MongoDB Chatbot Framework",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "ingest:all": "lerna run ingest:all --scope=ingest"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "lerna": "^8.0.1"
+  }
+}

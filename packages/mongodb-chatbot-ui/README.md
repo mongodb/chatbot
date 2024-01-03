@@ -1,6 +1,10 @@
 # MongoDB Chatbot UI
 
-The official React client for the [MongoDB Chatbot Framework](https://mongodb.github.io/chatbot/).
+The React components for the [MongoDB Chatbot Framework](https://mongodb.github.io/chatbot/).
+
+## Documentation
+
+To learn more about the MongoDB Chatbot UI components, check out the [documentation](https://mongodb.github.io/chatbot/ui/).
 
 ## Install
 

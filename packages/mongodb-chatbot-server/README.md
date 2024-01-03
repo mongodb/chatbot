@@ -1,11 +1,17 @@
 # MongoDB Chatbot Server
 
+Chatbot server for the MongoDB Chatbot Framework.
+
 The `mongodb-chatbot-server` is a npm package that provides a configurable Express.js server
 to quickly spin up a retrieval augmented generation (RAG) chatbot server powered by MongoDB.
 
 The server is designed to handle the generalizable areas of a RAG server,
 like routing, caching, logging, and streaming. This allows you to focus on the
 specifics of your chatbot, like the content, prompts, and AI models.
+
+## Documentation
+
+To learn more about the MongoDB Chatbot Server, check out the [documentation](https://mongodb.github.io/chatbot/server/configure/).
 
 ## Usage
 

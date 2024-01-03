@@ -1,10 +1,21 @@
 {
   "name": "mongodb-rag-ingest",
   "version": "0.1.8",
-  "description": "Ingests data sources and stores embeddings.",
+  "description": "MongoDB Ingest CLI for the MongoDB Chatbot Framework.",
   "author": "",
   "license": "Apache-2.0",
-  "keywords": [],
+  "keywords": [
+    "retrieval-augmented-generation",
+    "rag",
+    "chatbot",
+    "mongodb",
+    "mongodb-chatbot-framework"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mongodb/chatbot.git"
+  },
+  "homepage": "https://mongodb.github.io/chatbot/ingest/configure/",
   "engines": {
     "node": ">=18",
     "npm": ">=8"

@@ -3,8 +3,8 @@
 The MongoDB Chatbot Framework is a set of libraries that you can use to build
 full-stack intelligent chatbot applications using MongoDB and [Atlas Vector Search](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/).
 
-You can use the MongoDB Chatbot Framework to perform
-retrieval augmented generation (RAG) application.
+You can use the MongoDB Chatbot Framework to create
+retrieval augmented generation (RAG) applications.
 
 ## Documentation
 
@@ -30,7 +30,7 @@ To learn more about how we built the chatbot, check out the MongoDB Developer Ce
 
 ## Contributing
 
-To learn how to get started contributing to the project, refer to the [Contributor Guide](./CONTRIBUTING.md)
+To learn how to get started contributing to the project, refer to the [Contributor Guide](./CONTRIBUTING.md).
 
 ## License
 

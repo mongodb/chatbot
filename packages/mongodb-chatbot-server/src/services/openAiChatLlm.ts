@@ -37,7 +37,7 @@ export function makeOpenAiChatLlm({
 
   return {
     async answerQuestionStream({ messages }: LlmAnswerQuestionParams) {
-      const completionStream = await openAiClient.listChatCompletions(
+      const completionStream = await openAiClient.streamChatCompletions(
         deployment,
         messages,
         {

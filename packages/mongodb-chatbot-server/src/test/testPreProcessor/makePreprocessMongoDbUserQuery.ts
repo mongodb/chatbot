@@ -10,7 +10,7 @@ import {
   makeTypeChatJsonTranslateFunc,
   AzureOpenAiServiceConfig,
 } from "mongodb-rag-core";
-import { Message } from "../../services/conversations";
+import { Message } from "../../services/ConversationsService";
 
 /**
   Query preprocessor that uses the Azure OpenAI service to preprocess
@@ -78,7 +78,7 @@ export function generateMongoDbQueryPreProcessorPrompt({
   numMessagesToInclude = 4,
 }: {
   query: string;
-  messages: Message[];
+  messages?: Message[];
   numMessagesToInclude?: number;
 }) {
   query = query.trim();
@@ -89,7 +89,7 @@ export function generateMongoDbQueryPreProcessorPrompt({
   if (query.split(/\s/).length === 1 && query.toLowerCase() !== "mongodb") {
     query += " for MongoDB";
   }
-  const conversationHistory = messages.length
+  const conversationHistory = messages?.length
     ? messages
         .filter((message) => message.role !== "system") // remove system message
         .slice(0 - numMessagesToInclude) // only use last 4 messages

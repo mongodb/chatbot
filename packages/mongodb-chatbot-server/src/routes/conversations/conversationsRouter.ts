@@ -3,12 +3,12 @@ import { rateLimit, Options as RateLimitOptions } from "express-rate-limit";
 import slowDown, { Options as SlowDownOptions } from "express-slow-down";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
 import { ChatLlm } from "../../services/ChatLlm";
-import { Conversation } from "../../services/conversations";
-import { DataStreamer } from "../../services/dataStreamer";
 import {
+  Conversation,
   ConversationCustomData,
   ConversationsService,
-} from "../../services/conversations";
+} from "../../services/ConversationsService";
+import { DataStreamer, makeDataStreamer } from "../../services/dataStreamer";
 import { RateMessageRequest, makeRateMessageRoute } from "./rateMessage";
 import {
   CreateConversationRequest,
@@ -16,14 +16,12 @@ import {
 } from "./createConversation";
 import {
   AddMessageRequest,
-  MakeReferenceLinksFunc,
   makeAddMessageToConversationRoute,
 } from "./addMessageToConversation";
-import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
-import { FindContentFunc } from "./FindContentFunc";
 import { requireRequestOrigin } from "../../middleware/requireRequestOrigin";
 import { NextFunction, ParamsDictionary } from "express-serve-static-core";
 import { requireValidIpAddress } from "../../middleware";
+import { GenerateUserPromptFunc } from "../../processors";
 
 /**
   Configuration for rate limiting on the /conversations/* routes.
@@ -95,14 +93,14 @@ export type ConversationsMiddleware = RequestHandler<
  */
 export interface ConversationsRouterParams {
   llm: ChatLlm;
-  dataStreamer: DataStreamer;
+  dataStreamer?: DataStreamer;
   conversations: ConversationsService;
-  userQueryPreprocessor?: QueryPreprocessorFunc;
   /**
-    Maximum number of tokens of context to send to the LLM in retrieval augmented generation
-    in addition to system prompt, other user messages, etc.
+    Function to generate the user prompt sent to the {@link ChatLlm}.
+    You can perform any preprocessing of the user's message
+    including retrieval augmented generation here.
    */
-  maxChunkContextTokens?: number;
+  generateUserPrompt?: GenerateUserPromptFunc;
 
   /**
     Maximum number of characters in user input.
@@ -111,14 +109,12 @@ export interface ConversationsRouterParams {
   maxInputLengthCharacters?: number;
 
   /**
-    Maximum number of messages in a conversation.
+    Maximum number of user-sent messages in a conversation.
     Server returns 400 error if user tries to add a message to a conversation
     that has this many messages.
    */
-  maxMessagesInConversation?: number;
+  maxUserMessagesInConversation?: number;
   rateLimitConfig?: ConversationsRateLimitConfig;
-  findContent: FindContentFunc;
-  makeReferenceLinks?: MakeReferenceLinksFunc;
 
   /**
     Middleware to put in front of all the routes in the conversationsRouter.
@@ -183,15 +179,12 @@ const addOriginToCustomData: AddCustomDataFunc = async (_, res) =>
  */
 export function makeConversationsRouter({
   llm,
-  dataStreamer,
   conversations,
-  userQueryPreprocessor,
-  maxChunkContextTokens,
   maxInputLengthCharacters,
-  maxMessagesInConversation,
+  maxUserMessagesInConversation,
   rateLimitConfig,
-  findContent,
-  makeReferenceLinks,
+  generateUserPrompt,
+  dataStreamer = makeDataStreamer(),
   middleware = [requireValidIpAddress(), requireRequestOrigin()],
   createConversationCustomData = addOriginAndIpToCustomData,
   addMessageToConversationCustomData = addOriginToCustomData,
@@ -274,13 +267,10 @@ export function makeConversationsRouter({
     conversations,
     llm,
     dataStreamer,
-    userQueryPreprocessor,
-    maxChunkContextTokens,
     maxInputLengthCharacters,
-    maxMessagesInConversation,
-    findContent,
-    makeReferenceLinks,
+    maxUserMessagesInConversation,
     addMessageToConversationCustomData,
+    generateUserPrompt,
   });
   conversationsRouter.post(
     "/:conversationId/messages",

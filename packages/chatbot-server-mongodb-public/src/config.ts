@@ -15,10 +15,14 @@ import {
   makeBoostOnAtlasSearchFilter,
   CORE_ENV_VARS,
   assertEnvVars,
-  makeDefaultFindContentFunc,
+  makeDefaultFindContent,
   makeDefaultReferenceLinks,
-  OpenAiChatMessage,
   SystemPrompt,
+  GenerateUserPromptFunc,
+  makeRagGenerateUserPrompt,
+  MakeUserMessageFunc,
+  MakeUserMessageFuncParams,
+  UserMessage,
 } from "mongodb-chatbot-server";
 import { stripIndents } from "common-tags";
 import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
@@ -88,16 +92,15 @@ Never mention "<Information>" or "<Question>" in your answer.
 Refer to the information given to you as "my knowledge".`,
 };
 
-export async function generateUserPrompt({
-  question,
-  chunks,
-}: {
-  question: string;
-  chunks: string[];
-}): Promise<OpenAiChatMessage & { role: "user" }> {
+export const makeUserMessage: MakeUserMessageFunc = async function ({
+  preprocessedUserMessage,
+  originalUserMessage,
+  content,
+  queryEmbedding,
+}: MakeUserMessageFuncParams): Promise<UserMessage> {
   const chunkSeparator = "~~~~~~";
-  const context = chunks.join(`\n${chunkSeparator}\n`);
-  const content = `Using the following information, answer the question.
+  const context = content.map((c) => c.text).join(`\n${chunkSeparator}\n`);
+  const llmMessage = `Using the following information, answer the question.
 Different pieces of information are separated by "${chunkSeparator}".
 
 <Information>
@@ -105,20 +108,24 @@ ${context}
 <End information>
 
 <Question>
-${question}
+${preprocessedUserMessage ?? originalUserMessage}
 <End Question>`;
-  return { role: "user", content };
-}
+  return {
+    role: "user",
+    content: originalUserMessage,
+    embedding: queryEmbedding,
+    preprocessedContent: preprocessedUserMessage,
+    contentForLlm: llmMessage,
+  };
+};
 
 export const llm = makeOpenAiChatLlm({
   openAiClient,
   deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  systemPrompt,
   openAiLmmConfigOptions: {
     temperature: 0,
     maxTokens: 500,
   },
-  generateUserPrompt,
 });
 
 const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({
@@ -148,9 +155,7 @@ export const embedder = makeOpenAiEmbedder({
   },
 });
 
-export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
-
-export const findContent = makeDefaultFindContentFunc({
+export const findContent = makeDefaultFindContent({
   embedder,
   store: embeddedContentStore,
   findNearestNeighborsOptions: {
@@ -161,11 +166,6 @@ export const findContent = makeDefaultFindContentFunc({
   },
   searchBoosters: [boostManual],
 });
-
-export const conversations = makeMongoDbConversationsService(
-  mongodb.db(MONGODB_DATABASE_NAME),
-  systemPrompt
-);
 
 /**
   MongoDB Chatbot implementation of {@link MakeReferenceLinksFunc}.
@@ -189,15 +189,27 @@ export function makeMongoDbReferences(chunks: EmbeddedContent[]) {
   });
 }
 
+export const generateUserPrompt: GenerateUserPromptFunc =
+  makeRagGenerateUserPrompt({
+    findContent,
+    queryPreprocessor: mongoDbUserQueryPreprocessor,
+    makeUserMessage,
+    makeReferenceLinks: makeMongoDbReferences,
+  });
+
+export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
+
+export const conversations = makeMongoDbConversationsService(
+  mongodb.db(MONGODB_DATABASE_NAME),
+  systemPrompt
+);
+
 export const config: AppConfig = {
   conversationsRouterConfig: {
     dataStreamer,
     llm,
-    findContent,
-    userQueryPreprocessor: mongoDbUserQueryPreprocessor,
-    maxChunkContextTokens: 1500,
     conversations,
-    makeReferenceLinks: makeMongoDbReferences,
+    generateUserPrompt,
   },
   maxRequestTimeoutMs: 30000,
   corsOptions: {

@@ -1,6 +1,6 @@
 {
   "name": "mongodb-rag-ingest",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Ingests data sources and stores embeddings.",
   "author": "",
   "license": "Apache-2.0",
@@ -80,7 +80,7 @@
     "ignore": "^5.2.4",
     "jsdom": "^22.1.0",
     "langchain": "^0.0.148",
-    "mongodb-rag-core": "^0.1.0",
+    "mongodb-rag-core": "*",
     "node-fetch": "^2",
     "rimraf": "^5.0.1",
     "simple-git": "^3.19.1",

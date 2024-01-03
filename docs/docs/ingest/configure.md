@@ -1,7 +1,8 @@
 # Configure the Ingest CLI
 
 This guide explains how you can configure the MongoDB Ingest CLI to ingest
-content into a MongoDB collection that you can use for RAG applications.
+content into a MongoDB collection that you can use for retrieval augmented generation
+(RAG) applications.
 
 ## Install the Ingest CLI
 

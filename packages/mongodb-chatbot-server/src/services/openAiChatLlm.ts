@@ -1,24 +1,13 @@
 import { GetChatCompletionsOptions } from "@azure/openai";
 import "dotenv/config";
 import { OpenAIClient } from "@azure/openai";
+import { strict as assert } from "assert";
 import {
   ChatLlm,
   LlmAnswerQuestionParams,
   OpenAiChatMessage,
-  SystemPrompt,
+  Tool,
 } from "./ChatLlm";
-
-export type GenerateUserPromptParams = {
-  question: string;
-  chunks: string[];
-};
-/**
-  Generate the user prompt sent to the {@link ChatLlm}.
-  This should include the content from vector search.
- */
-export type GenerateUserPrompt = (
-  params: GenerateUserPromptParams
-) => Promise<OpenAiChatMessage & { role: "user" }>;
 
 /**
   Configuration for the {@link makeOpenAiChatLlm} function.
@@ -27,8 +16,7 @@ export interface MakeOpenAiChatLlmParams {
   deployment: string;
   openAiClient: OpenAIClient;
   openAiLmmConfigOptions: GetChatCompletionsOptions;
-  generateUserPrompt: GenerateUserPrompt;
-  systemPrompt: SystemPrompt;
+  tools?: Tool[];
 }
 
 /**
@@ -39,100 +27,54 @@ export function makeOpenAiChatLlm({
   deployment,
   openAiClient,
   openAiLmmConfigOptions,
-  generateUserPrompt,
-  systemPrompt,
+  tools,
 }: MakeOpenAiChatLlmParams): ChatLlm {
+  const toolDict: { [key: string]: Tool } = {};
+  tools?.forEach((tool) => {
+    const name = tool.definition.name;
+    toolDict[name] = tool;
+  });
+
   return {
-    async answerQuestionStream({ messages, chunks }: LlmAnswerQuestionParams) {
-      const messagesForLlm = await prepConversationForOpenAiLlm({
-        messages,
-        chunks,
-        generateUserPrompt,
-        systemPrompt,
-      });
-      const completionStream = await openAiClient.listChatCompletions(
+    async answerQuestionStream({ messages }: LlmAnswerQuestionParams) {
+      const completionStream = await openAiClient.streamChatCompletions(
         deployment,
-        messagesForLlm,
+        messages,
         {
           ...openAiLmmConfigOptions,
+          functions: tools?.map((tool) => tool.definition),
         }
       );
       return completionStream;
     },
-    async answerQuestionAwaited({ messages, chunks }: LlmAnswerQuestionParams) {
-      const messagesForLlm = await prepConversationForOpenAiLlm({
-        messages,
-        chunks,
-        generateUserPrompt,
-        systemPrompt,
-      });
+    async answerQuestionAwaited({ messages }: LlmAnswerQuestionParams) {
       const {
         choices: [choice],
-      } = await openAiClient.getChatCompletions(
-        deployment,
-        messagesForLlm,
-        openAiLmmConfigOptions
-      );
+      } = await openAiClient.getChatCompletions(deployment, messages, {
+        ...openAiLmmConfigOptions,
+        functions: tools?.map((tool) => tool.definition),
+      });
       const { message } = choice;
       if (!message) {
         throw new Error("No message returned from OpenAI");
       }
       return message as OpenAiChatMessage;
     },
+    async callTool(message: OpenAiChatMessage) {
+      // Only call tool if the message is an assistant message with a function call.
+      assert(
+        message.role === "assistant" && message.functionCall !== undefined,
+        `Message must be a tool call`
+      );
+      assert(
+        Object.keys(toolDict).includes(message.functionCall.name),
+        `Tool not found`
+      );
+
+      const { functionCall } = message;
+      const tool = toolDict[functionCall.name];
+      const toolResponse = await tool.call(JSON.parse(functionCall.arguments));
+      return toolResponse;
+    },
   };
-}
-
-async function prepConversationForOpenAiLlm({
-  messages,
-  chunks,
-  generateUserPrompt,
-  systemPrompt,
-}: LlmAnswerQuestionParams & {
-  generateUserPrompt: GenerateUserPrompt;
-  systemPrompt: SystemPrompt;
-}): Promise<OpenAiChatMessage[]> {
-  validateOpenAiConversation(messages, systemPrompt);
-  const lastMessage = messages[messages.length - 1];
-  const newestMessageForLlm = await generateUserPrompt({
-    question: lastMessage.content,
-    chunks,
-  });
-  return [...messages.slice(0, -1), newestMessageForLlm];
-}
-
-function validateOpenAiConversation(
-  messages: OpenAiChatMessage[],
-  systemPrompt: SystemPrompt
-) {
-  if (messages.length === 0) {
-    throw new Error("No messages provided");
-  }
-  const firstMessage = messages[0];
-  if (
-    firstMessage.content !== systemPrompt.content ||
-    firstMessage.role !== systemPrompt.role
-  ) {
-    throw new Error(
-      `First message must be system prompt: ${JSON.stringify(systemPrompt)}`
-    );
-  }
-  if (messages.length < 2) {
-    throw new Error("No user message provided");
-  }
-  const secondMessage = messages[1];
-  if (secondMessage.role !== "user") {
-    throw new Error("Second message must be user message");
-  }
-  if (messages.length > 2) {
-    const secondToLastMessage = messages[messages.length - 2];
-    const lastMessage = messages[messages.length - 1];
-
-    if (secondToLastMessage.role === lastMessage.role) {
-      throw new Error(`Messages must alternate roles`);
-    }
-
-    if (lastMessage.role !== "user") {
-      throw new Error("Last message must be user message");
-    }
-  }
 }

@@ -35,10 +35,10 @@ which are then used to generate a better answer.
 
 ## The `Preprocessor` Function
 
-Preprocessors have the [`QueryPreprocessorFunc`](../reference/server/modules.md#querypreprocessorfunc) signature.
+Preprocessors have the [`QueryPreprocessorFunc`](../../reference/server/modules.md#querypreprocessorfunc) signature.
 
 To run a preprocessor when adding user messages, include a `QueryPreprocessorFunc`
-in the [`ConversationsRouterParams.queryPreprocessor`](../reference/server/interfaces/ConversationsRouterParams.md#userQueryPreprocessor) property.
+in the [`MakeRagGenerateUserPromptParams.queryPreprocessor`](../../reference/server/interfaces/MakeRagGenerateUserPromptParams.md#querypreprocessor) property.
 
 ## Mutate Queries
 
@@ -51,7 +51,10 @@ Here's an example of preprocessor that transforms the user query
 to a more semantically relevant question:
 
 ```ts
-import { QueryPreprocessorFunc, AppConfig } from "mongodb-chatbot-server";
+import {
+  QueryPreprocessorFunc,
+  makeRagGenerateUserPrompt,
+} from "mongodb-chatbot-server";
 import { OpenAIClient, AzureKeyCredential } from "@azure/openai";
 
 const openAiClient = new OpenAIClient(
@@ -89,13 +92,10 @@ const queryToQuestionPreprocessor: QueryPreprocessorFunc = async function ({
   };
 };
 
-const appConfig: AppConfig = {
+const ragGenerateUserPrompt = makeRagGenerateUserPrompt({
+  queryPreprocessor: queryToQuestionPreprocessor,
   // ...other config
-  conversationsRouterParams: {
-    queryPreprocessor: queryToQuestionPreprocessor,
-    // ...other config
-  },
-};
+});
 ```
 
 ### Reject Queries
@@ -108,7 +108,7 @@ You can use a preprocessor to check if the query contains profanity,
 and reject the query if it does.
 
 ```ts
-import { AppConfig } from "mongodb-chatbot-server";
+import { makeRagGenerateUserPrompt } from "mongodb-chatbot-server";
 import { profanityCheck } from "./profanityCheck"; // checks if query contains profanity
 
 async function rejectProfanePreprocessor({ query, messages }) {
@@ -121,11 +121,8 @@ async function rejectProfanePreprocessor({ query, messages }) {
   };
 }
 
-const appConfig: AppConfig = {
+const ragGenerateUserPrompt = makeRagGenerateUserPrompt({
+  queryPreprocessor: rejectProfanePreprocessor,
   // ...other config
-  conversationsRouterParams: {
-    queryPreprocessor: rejectProfanePreprocessor,
-    // ...other config
-  },
-};
+});
 ```

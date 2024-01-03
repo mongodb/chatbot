@@ -37,16 +37,11 @@ When you add a message to a conversation with the `POST /conversations/:conversa
 1. (Optional) Get custom data to add to the user message. To learn more,
    refer to the [Custom Data](./custom-logic#add-custom-data-to-messages) guide.
 1. Load conversation from the database.
-1. (Optional) The user message is preprocessed. To learn more, refer to the
-   [Preprocessing](./preprocess) guide.
-   a. The preprocessor can also flag if the message is rejected
-   (for example if it's inappropriate). If the message is rejected,
-   the server returns a static response to the user.
-1. Find relevant content based on the user query. If you use the preprocessor,
-   the preprocessed message is used. To learn more, refer to [Retrieve Context Information](./retrieve).
-   a. If no relevant content is found, the server returns a static response to the user.
-1. The relevant content is used to generate a user prompt. To learn more about
-   generating the user message, refer to the [User Prompt Engineering](./llm.md#user-prompt) guide.
+1. Generate the user message. You can use this step to perform
+   retrieval augmented generation (RAG), or other preprocessing of the user message.
+   To learn more about generating the user message,
+   refer to the [Generate User Message](./user-message.md) guide.
+   1. To perform retrieval augmented generation (RAG), refer to the [RAG](./rag/index.md) guide.
 1. The user prompt is used to generate a chatbot response.
 1. The generated response is returned to the user.
 1. The conversation is updated with the new user and assistant messages.
@@ -58,14 +53,10 @@ graph TD
     SEND[Send User Message] --> MID[Optional: Run Custom Middleware]
     MID --> CD[Optional: Add Custom Data]
     CD --> LOAD[Load Conversation from DB]
-    LOAD --> PREP[Optional: Pre-process User Message]
-    PREP -->|Reject Message| REJ[Return Static Response to User]
-    PREP --> FIND[Find Relevant Content]
-    FIND -->|No Content Found| NOCO[Return Static Response to User]
-    FIND --> USER[Generate User Prompt from Relevant Content]
-    USER --> LLM[Generate Chatbot Response with LLM]
+    LOAD --> GUM[Generate User Message]
+    GUM -->|Reject Message| REJ[Return Static Response to User]
+    GUM --> LLM[Generate Chatbot Response with LLM]
     LLM --> RES[Return Generated Response to User]
     RES --> UPDATE[Update Conversation in DB with New Messages]
     REJ --> UPDATE
-    NOCO --> UPDATE
 ```

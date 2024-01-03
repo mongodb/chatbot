@@ -1,10 +1,10 @@
 import { ObjectId } from "mongodb";
-import { SomeMessage } from "mongodb-chatbot-server";
+import { Message } from "mongodb-chatbot-server";
 import { MessageAnalysis } from "MessageAnalysis";
 
 export type ScrubbedMessage = Omit<
-  SomeMessage,
-  "content" | "preprocessedContent" | "id"
+  Message,
+  "content" | "originalUserContent" | "id"
 > & {
   /**
     The ID, which should match the ID of the original message within the

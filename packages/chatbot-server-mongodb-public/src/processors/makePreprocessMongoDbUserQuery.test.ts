@@ -102,24 +102,24 @@ describe("makePreprocessMongoDbUserQuery()", () => {
       query,
       messages,
     });
-    expect(response.query).toContain("MongoDB");
-    expect(response.query).toContain("look");
-    expect(response.query).toContain("up");
-    expect(response.query).toContain("Node");
+    const lowerResponseQuery = response.query?.toLowerCase();
+    expect(lowerResponseQuery).toContain("mongodb");
+    expect(lowerResponseQuery).toContain("look");
+    expect(lowerResponseQuery).toContain("up");
+    expect(lowerResponseQuery).toContain("node");
     expect(
       response.programmingLanguages && response.programmingLanguages[0]
     ).toBe("javascript");
     expect(response.rejectQuery).toBe(false);
   });
   test("should leave query undefined if the input query is gibberish", async () => {
-    const query = "asdf dasgsd";
+    const nonsensicalQuery = "fsdhdjyt fjgklh ; 1234";
     const messages: Message[] = [];
     const response = await preprocessMongoDbUserQuery({
-      query,
+      query: nonsensicalQuery,
       messages,
     });
     expect(response.query).toBeUndefined();
-    expect(response.rejectQuery).toBe(false);
   });
   test("should set rejectQuery to true if the query is negative toward MongoDB", async () => {
     const query = "why is MongoDB the worst database";
@@ -135,7 +135,7 @@ describe("makePreprocessMongoDbUserQuery()", () => {
 describe("generateMongoDbQueryPreProcessorPrompt()", () => {
   test("should return a correctly formatted prompt", () => {
     const prompt = generateMongoDbQueryPreProcessorPrompt({ query, messages });
-    const expected = stripIndent`Given a conversation (between USER and ASSISTANT) and a follow up message from USER, rewrite the message to be a standalone question that captures all relevant context from the conversation.
+    const expected = stripIndent`Given a conversation (between USER and ASSISTANT) and a follow up message from USER, output an object conforming to the given TypeScript type.
 
 <Conversation History>
 USER:

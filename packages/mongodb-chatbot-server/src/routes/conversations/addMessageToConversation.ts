@@ -1,22 +1,20 @@
 import { stripIndents } from "common-tags";
+import { strict as assert } from "assert";
 import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { ObjectId, EmbeddedContent, References } from "mongodb-rag-core";
+import { ObjectId, References } from "mongodb-rag-core";
 import {
   ConversationsService,
-  Message,
   Conversation,
-} from "../../services/conversations";
+  SomeMessage,
+  UserMessage,
+  AssistantMessage,
+} from "../../services/ConversationsService";
 import { DataStreamer } from "../../services/dataStreamer";
+import { ChatLlm, OpenAiChatMessage } from "../../services/ChatLlm";
 import {
-  ChatLlm,
-  OpenAiChatMessage,
-  OpenAiMessageRole,
-} from "../../services/ChatLlm";
-import {
-  ApiConversation,
   ApiMessage,
   RequestError,
   convertMessageFromDbToApi,
@@ -25,16 +23,14 @@ import {
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
-import { QueryPreprocessorFunc } from "../../processors/QueryPreprocessorFunc";
-import { FindContentFunc } from "./FindContentFunc";
 import {
   AddCustomDataFunc,
   ConversationsRouterLocals,
 } from "./conversationsRouter";
+import { GenerateUserPromptFunc } from "../../processors/GenerateUserPromptFunc";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
-export const DEFAULT_MAX_MESSAGES_IN_CONVERSATION = 13; // magic number for max messages in a conversation
-export const DEFAULT_MAX_CONTEXT_TOKENS = 1500; // magic number for max context tokens for LLM
+export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for max messages in a conversation
 
 export type AddMessageRequestBody = z.infer<typeof AddMessageRequestBody>;
 export const AddMessageRequestBody = z.object({
@@ -61,13 +57,10 @@ export type AddMessageRequest = z.infer<typeof AddMessageRequest>;
 export interface AddMessageToConversationRouteParams {
   conversations: ConversationsService;
   llm: ChatLlm;
+  generateUserPrompt?: GenerateUserPromptFunc;
   dataStreamer: DataStreamer;
-  userQueryPreprocessor?: QueryPreprocessorFunc;
-  maxChunkContextTokens?: number;
   maxInputLengthCharacters?: number;
-  maxMessagesInConversation?: number;
-  findContent: FindContentFunc;
-  makeReferenceLinks?: MakeReferenceLinksFunc;
+  maxUserMessagesInConversation?: number;
   addMessageToConversationCustomData?: AddCustomDataFunc;
 }
 
@@ -75,12 +68,9 @@ export function makeAddMessageToConversationRoute({
   conversations,
   llm,
   dataStreamer,
-  findContent,
-  userQueryPreprocessor,
-  maxChunkContextTokens = DEFAULT_MAX_CONTEXT_TOKENS,
+  generateUserPrompt,
   maxInputLengthCharacters = DEFAULT_MAX_INPUT_LENGTH,
-  maxMessagesInConversation = DEFAULT_MAX_MESSAGES_IN_CONVERSATION,
-  makeReferenceLinks = makeDefaultReferenceLinks,
+  maxUserMessagesInConversation = DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION,
   addMessageToConversationCustomData,
 }: AddMessageToConversationRouteParams) {
   return async (
@@ -126,208 +116,129 @@ export function makeAddMessageToConversationRoute({
       });
 
       // --- MAX CONVERSATION LENGTH CHECK ---
-      if (conversation.messages.length >= maxMessagesInConversation) {
+      const numUserMessages = conversation.messages.reduce(
+        (acc, message) => (message.role === "user" ? acc + 1 : acc),
+        0
+      );
+      if (numUserMessages >= maxUserMessagesInConversation) {
         // Omit the system prompt and assume the user always received one response per message
-        const maxUserMessages = (maxMessagesInConversation - 1) / 2;
         throw makeRequestError({
           httpStatus: 400,
-          message: `Too many messages. You cannot send more than ${maxUserMessages} messages in this conversation.`,
+          message: `Too many messages. You cannot send more than ${maxUserMessagesInConversation} messages in this conversation.`,
         });
       }
 
-      // --- PREPROCESS ---
-      const preprocessResult = await (async (): Promise<
-        { query: string; rejectQuery: boolean } | undefined
-      > => {
-        // Try to preprocess the user's message. If the user's message cannot be preprocessed
-        // (likely due to LLM timeout), then we will just use the original message.
-        if (!userQueryPreprocessor) {
-          return undefined;
-        }
-        try {
-          const { query, rejectQuery } = await userQueryPreprocessor({
-            query: latestMessageText,
-            messages: conversation.messages,
-          });
-          logRequest({
-            reqId,
-            message: stripIndents`Successfully preprocessed user query.
-              Original query: ${latestMessageText}
-              Preprocessed query: ${query}`,
-          });
-          return { query: query ?? latestMessageText, rejectQuery };
-        } catch (err: unknown) {
-          logRequest({
-            reqId,
-            type: "error",
-            message: `Error preprocessing query: ${JSON.stringify(
-              err
-            )}. Using original query: ${latestMessageText}`,
-          });
-        }
-      })();
+      // --- DETERMINE IF SHOULD STREAM ---
       const shouldStream = Boolean(stream);
-      const { rejectQuery, query: preprocessedUserMessageContent } =
-        preprocessResult ?? {};
+
+      // --- GENERATE USER MESSAGE ---
+      const { userMessage, references, rejectQuery } = await (generateUserPrompt
+        ? generateUserPrompt({
+            userMessageText: latestMessageText,
+            conversation,
+            reqId,
+            customData,
+          })
+        : {
+            userMessage: {
+              role: "user",
+              content: latestMessageText,
+              customData,
+            } satisfies UserMessage,
+          });
+      // Add request custom data to user message.
+      const userMessageWithCustomData = customData
+        ? {
+            ...userMessage,
+            // Override request custom data fields with user message custom data fields.
+            customData: { ...customData, ...(userMessage.customData ?? {}) },
+          }
+        : userMessage;
+      const newMessages: SomeMessage[] = [userMessageWithCustomData];
       if (rejectQuery) {
-        return await sendStaticNonResponse({
+        const rejectionMessage = {
+          role: "assistant",
+          content: conversations.conversationConstants.NO_RELEVANT_CONTENT,
+          references: references ?? [],
+        } satisfies AssistantMessage;
+
+        const messages = [...newMessages, rejectionMessage];
+        sendStaticNonResponse({
           conversations,
           conversation,
-          rejectQuery,
-          preprocessedUserMessageContent,
-          latestMessageText,
           shouldStream,
           dataStreamer,
           res,
-          originalMessageEmbedding: [],
+          messages,
         });
-      }
-      const query = preprocessedUserMessageContent ?? latestMessageText;
+      } else {
+        const llmConversation = [
+          ...conversation.messages.map(convertConversationMessageToLlmMessage),
+          ...newMessages.map((m) => {
+            // Use transformed content if it exists for user message,
+            // otherwise use original content.
+            if (m.role === "user") {
+              return {
+                content: m.contentForLlm ?? m.content,
+                role: "user",
+              } satisfies OpenAiChatMessage;
+            }
+            return convertConversationMessageToLlmMessage(m);
+          }),
+        ];
 
-      // --- VECTOR SEARCH / RETRIEVAL ---
-      const { content, queryEmbedding } = await findContent({
-        query,
-        ipAddress: ip ?? "::1",
-      });
-      if (content.length === 0) {
-        logRequest({
+        // --- GENERATE RESPONSE ---
+        // EAI-121_PART_2_TODO: refactor to include N messages
+        // rather than take the conversation, take previous messages, and newMessages.
+        // manipulate the newMessages object in generated response.
+        // return newMessages
+        const answerContent = await generateResponse({
+          shouldStream,
+          llm,
+          llmConversation,
+          dataStreamer,
+          res,
+          references,
           reqId,
-          message: "No matching content found",
+          llmNotWorkingMessage:
+            conversations.conversationConstants.LLM_NOT_WORKING,
         });
-        return await sendStaticNonResponse({
+
+        // EAI-121_PART_2_TODO: with refactor to make generateResponse return newMessages,
+        // i don't think this is needed anymore.
+        if (!answerContent) {
+          throw makeRequestError({
+            httpStatus: 500,
+            message: "No answer content",
+          });
+        }
+        const assistantMessage = {
+          role: "assistant",
+          content: answerContent,
+          references: references ?? [],
+        } satisfies AssistantMessage;
+        newMessages.push(assistantMessage);
+
+        // --- SAVE QUESTION & RESPONSE ---
+        const dbNewMessages = await addMessagesToDatabase({
           conversations,
           conversation,
-          preprocessedUserMessageContent,
-          latestMessageText,
-          shouldStream,
-          dataStreamer,
-          res,
-          originalMessageEmbedding: queryEmbedding,
+          messages: newMessages,
         });
-      }
+        const dbAssistantMessage = dbNewMessages[dbNewMessages.length - 1];
 
-      logRequest({
-        reqId,
-        message: stripIndents`Chunks found: ${JSON.stringify(
-          content.map(
-            ({ embedding, chunkAlgoHash, ...wantedProperties }) =>
-              wantedProperties
-          )
-        )}`,
-      });
+        assert(assistantMessage !== undefined, "No assistant message found");
+        const apiRes = convertMessageFromDbToApi(dbAssistantMessage);
 
-      const references = makeReferenceLinks(content);
-      const chunkTexts = includeChunksForMaxTokensPossible({
-        maxTokens: maxChunkContextTokens,
-        content,
-      }).map(({ text }) => text);
-
-      const latestMessage = {
-        content: query,
-        role: "user",
-      } satisfies OpenAiChatMessage;
-      logRequest({
-        reqId,
-        message: `Latest message sent to LLM: ${JSON.stringify(latestMessage)}`,
-      });
-
-      const messages = [
-        ...conversation.messages.map(convertDbMessageToOpenAiMessage),
-        latestMessage,
-      ] satisfies OpenAiChatMessage[];
-
-      // --- GENERATE RESPONSE ---
-      const answerContent = await (async () => {
-        if (shouldStream) {
-          const answerStream = await llm.answerQuestionStream({
-            messages,
-            chunks: chunkTexts,
-          });
-          dataStreamer.connect(res);
-          const answerContent = await dataStreamer.stream({
-            stream: answerStream,
-          });
-          logRequest({
-            reqId,
-            message: `LLM response: ${JSON.stringify(answerContent)}`,
-          });
+        if (!shouldStream) {
+          return res.status(200).json(apiRes);
+        } else {
           dataStreamer.streamData({
-            type: "references",
-            data: references,
+            type: "finished",
+            data: apiRes.id,
           });
-          return answerContent;
         }
-
-        try {
-          const messages = [
-            ...conversation.messages.map(convertDbMessageToOpenAiMessage),
-            latestMessage,
-          ];
-          logRequest({
-            reqId,
-            message: `LLM query: ${JSON.stringify(messages)}`,
-          });
-          // --- GENERATE RESPONSE ---
-          const answer = await llm.answerQuestionAwaited({
-            messages,
-            chunks: chunkTexts,
-          });
-          logRequest({
-            reqId,
-            message: `LLM response: ${JSON.stringify(answer)}`,
-          });
-          return answer.content;
-        } catch (err) {
-          const errorMessage =
-            err instanceof Error ? err.message : JSON.stringify(err);
-          logRequest({
-            reqId: req.headers["req-id"] as string,
-            message: `LLM error: ${errorMessage}`,
-            type: "error",
-          });
-          logRequest({
-            reqId,
-            message: "Only sending vector search results to user",
-          });
-          const answer = {
-            role: "assistant",
-            content: conversations.conversationConstants.LLM_NOT_WORKING,
-          } satisfies OpenAiChatMessage;
-          return answer.content;
-        }
-      })();
-
-      if (!answerContent) {
-        throw makeRequestError({
-          httpStatus: 500,
-          message: "No answer content",
-        });
       }
-
-      // --- SAVE QUESTION & RESPONSE ---
-      const { assistantMessage } = await addMessagesToDatabase({
-        conversations,
-        conversation,
-        preprocessedUserMessageContent,
-        originalUserMessageContent: message,
-        assistantMessageContent: answerContent,
-        assistantMessageReferences: references,
-        userMessageEmbedding: queryEmbedding,
-        customData,
-      });
-
-      const apiRes = convertMessageFromDbToApi(assistantMessage);
-
-      if (!shouldStream) {
-        return res.status(200).json(apiRes);
-      }
-
-      dataStreamer.streamData({
-        type: "finished",
-        data: apiRes.id,
-      });
-
-      dataStreamer.disconnect();
     } catch (error) {
       const { httpStatus, message } =
         (error as Error).name === "RequestError"
@@ -338,18 +249,21 @@ export function makeAddMessageToConversationRoute({
               httpStatus: 500,
             });
 
-      if (dataStreamer.connected) {
-        dataStreamer.disconnect();
-      }
       sendErrorResponse({
         res,
         reqId,
         httpStatus,
         errorMessage: message,
       });
+    } finally {
+      if (dataStreamer.connected) {
+        dataStreamer.disconnect();
+      }
     }
   };
 }
+
+// --- HELPERS ---
 
 async function getCustomData({
   req,
@@ -372,38 +286,31 @@ async function getCustomData({
   }
 }
 
-export async function sendStaticNonResponse({
+async function sendStaticNonResponse({
   conversations,
   conversation,
-  preprocessedUserMessageContent,
-  latestMessageText,
+  messages,
   shouldStream,
   dataStreamer,
   res,
-  rejectQuery,
-  originalMessageEmbedding,
 }: {
   conversations: ConversationsService;
   conversation: Conversation;
-  rejectQuery?: boolean;
-  preprocessedUserMessageContent?: string;
-  latestMessageText: string;
+  messages: SomeMessage[];
   shouldStream: boolean;
   dataStreamer: DataStreamer;
   res: ExpressResponse<ApiMessage>;
-  originalMessageEmbedding: number[];
 }) {
-  const { assistantMessage } = await addMessagesToDatabase({
+  const dbMessages = await addMessagesToDatabase({
     conversations,
     conversation,
-    rejectQuery,
-    preprocessedUserMessageContent: preprocessedUserMessageContent,
-    originalUserMessageContent: latestMessageText,
-    userMessageEmbedding: originalMessageEmbedding,
-    assistantMessageContent:
-      conversations.conversationConstants.NO_RELEVANT_CONTENT,
-    assistantMessageReferences: [],
+    messages,
   });
+  const assistantMessage = dbMessages.pop();
+  assert(
+    assistantMessage !== undefined && assistantMessage.role === "assistant",
+    "No assistant message found"
+  );
   const apiRes = convertMessageFromDbToApi(assistantMessage);
   if (shouldStream) {
     dataStreamer.connect(res);
@@ -422,136 +329,124 @@ export async function sendStaticNonResponse({
   }
 }
 
-export function convertDbMessageToOpenAiMessage(
-  message: Message
-): OpenAiChatMessage {
-  return {
-    content: message.content,
-    role: message.role as OpenAiMessageRole,
-  };
+interface GenerateResponseParams {
+  shouldStream: boolean;
+  llm: ChatLlm;
+  llmConversation: OpenAiChatMessage[];
+  dataStreamer: DataStreamer;
+  res: ExpressResponse<ApiMessage>;
+  references?: References;
+  reqId: string;
+  llmNotWorkingMessage: string;
+}
+async function generateResponse({
+  shouldStream,
+  llm,
+  llmConversation,
+  dataStreamer,
+  res,
+  references,
+  reqId,
+  llmNotWorkingMessage,
+}: GenerateResponseParams) {
+  if (shouldStream) {
+    dataStreamer.connect(res);
+    const answerStream = await llm.answerQuestionStream({
+      messages: llmConversation,
+    });
+    const answerContent = await dataStreamer.stream({
+      stream: answerStream,
+    });
+    logRequest({
+      reqId,
+      message: `LLM response: ${JSON.stringify(answerContent)}`,
+    });
+    dataStreamer.streamData({
+      type: "references",
+      data: references ?? [],
+    });
+    return answerContent;
+  }
+
+  try {
+    logRequest({
+      reqId,
+      message: `LLM query: ${JSON.stringify(llmConversation)}`,
+    });
+    // --- GENERATE RESPONSE ---
+    const answer = await llm.answerQuestionAwaited({
+      messages: llmConversation,
+    });
+    logRequest({
+      reqId,
+      message: `LLM response: ${JSON.stringify(answer)}`,
+    });
+    return answer.content;
+  } catch (err) {
+    const errorMessage =
+      err instanceof Error ? err.message : JSON.stringify(err);
+    logRequest({
+      reqId,
+      message: `LLM error: ${errorMessage}`,
+      type: "error",
+    });
+    logRequest({
+      reqId,
+      message: "Only sending vector search results to user",
+    });
+    return llmNotWorkingMessage;
+  }
 }
 
+function convertConversationMessageToLlmMessage(
+  message: SomeMessage
+): OpenAiChatMessage {
+  const { content, role } = message;
+  if (role === "system") {
+    return {
+      content: content,
+      role: "system",
+    } satisfies OpenAiChatMessage;
+  }
+  if (role === "function") {
+    return {
+      content: content,
+      role: "function",
+      name: message.name,
+    } satisfies OpenAiChatMessage;
+  }
+  if (role === "user") {
+    return {
+      content: content,
+      role: "user",
+    } satisfies OpenAiChatMessage;
+  }
+  if (role === "assistant") {
+    return {
+      content: content,
+      role: "assistant",
+      ...(message.functionCall ? { functionCall: message.functionCall } : {}),
+    } satisfies OpenAiChatMessage;
+  }
+  throw new Error(`Invalid message role: ${role}`);
+}
 interface AddMessagesToDatabaseParams {
   conversation: Conversation;
-  originalUserMessageContent: string;
-  preprocessedUserMessageContent?: string;
-  assistantMessageContent: string;
-  assistantMessageReferences: References;
   conversations: ConversationsService;
-  userMessageEmbedding: number[];
-  rejectQuery?: boolean;
-  customData?: Record<string, unknown>;
+  messages: SomeMessage[];
 }
 
-export async function addMessagesToDatabase({
+async function addMessagesToDatabase({
   conversation,
-  originalUserMessageContent,
-  preprocessedUserMessageContent,
-  assistantMessageContent,
-  assistantMessageReferences,
   conversations,
-  userMessageEmbedding,
-  rejectQuery,
-  customData,
+  messages,
 }: AddMessagesToDatabaseParams) {
-  // TODO: consider refactoring addConversationMessage to take in an array of messages.
-  // Would limit database calls.
   const conversationId = conversation._id;
-  const userMessage = await conversations.addConversationMessage({
+  const dbMessages = await conversations.addManyConversationMessages({
     conversationId,
-    content: originalUserMessageContent,
-    role: "user",
-    embedding: userMessageEmbedding,
-    preprocessedContent: preprocessedUserMessageContent,
-    rejectQuery,
-    customData,
+    messages,
   });
-  const assistantMessage = await conversations.addConversationMessage({
-    conversationId,
-    content: assistantMessageContent,
-    role: "assistant",
-    references: assistantMessageReferences,
-  });
-  return { userMessage, assistantMessage };
-}
-
-/**
-  Function that generates the references in the response to user.
- */
-export type MakeReferenceLinksFunc = (chunks: EmbeddedContent[]) => References;
-
-/**
-  The default reference format returns the following for chunks from _unique_ pages:
-
-  ```js
-  {
-    title: chunk.metadata.pageTitle ?? chunk.url, // if title doesn't exist, just put url
-    url: chunk.url // this always exists
-  }
-  ```
- */
-export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
-  // Filter chunks with unique URLs
-  const uniqueUrls = new Set();
-  const uniqueChunks = chunks.filter((chunk) => {
-    if (!uniqueUrls.has(chunk.url)) {
-      uniqueUrls.add(chunk.url);
-      return true; // Keep the chunk as it has a unique URL
-    }
-    return false; // Discard the chunk as its URL is not unique
-  });
-
-  return uniqueChunks.map((chunk) => {
-    return {
-      title: (chunk.metadata?.pageTitle as string) ?? chunk.url,
-      url: chunk.url,
-    };
-  });
-};
-
-/**
-  This function will return the chunks that can fit in the maxTokens.
-  It limits the number of tokens that are sent to the LLM.
- */
-export function includeChunksForMaxTokensPossible({
-  maxTokens,
-  content,
-}: {
-  maxTokens: number;
-  content: EmbeddedContent[];
-}): EmbeddedContent[] {
-  let total = 0;
-  const fitRangeEndIndex = content.findIndex(
-    ({ tokenCount }) => (total += tokenCount) > maxTokens
-  );
-  return fitRangeEndIndex === -1 ? content : content.slice(0, fitRangeEndIndex);
-}
-
-export function validateApiConversationFormatting({
-  conversation,
-}: {
-  conversation: ApiConversation;
-}) {
-  const { messages } = conversation;
-  if (
-    messages?.length === 0 || // Must be messages in the conversation
-    messages.length % 2 !== 0 // Must be an even number of messages
-  ) {
-    return false;
-  }
-  // Must alternate between assistant and user
-  for (let i = 0; i < messages.length; i++) {
-    const message = messages[i];
-    const isAssistant = i % 2 === 0;
-    if (isAssistant && message.role !== "assistant") {
-      return false;
-    }
-    if (!isAssistant && message.role !== "user") {
-      return false;
-    }
-  }
-
-  return true;
+  return dbMessages;
 }
 
 const loadConversation = async ({

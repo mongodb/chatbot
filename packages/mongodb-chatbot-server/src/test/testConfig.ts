@@ -9,18 +9,23 @@ import {
   makeMongoDbEmbeddedContentStore,
   makeOpenAiEmbedder,
 } from "mongodb-rag-core";
-import { makeMongoDbConversationsService } from "../services/conversations";
-import { makeDataStreamer } from "../services/dataStreamer";
+import { makeMongoDbConversationsService } from "../services/mongodbConversations";
 import { makeOpenAiChatLlm } from "../services/openAiChatLlm";
 import { stripIndents } from "common-tags";
 import { AppConfig } from "../app";
 import { makeBoostOnAtlasSearchFilter } from "../processors/makeBoostOnAtlasSearchFilter";
 import { CORE_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
-import { OpenAiChatMessage, SystemPrompt } from "../services/ChatLlm";
-import { makeDefaultFindContentFunc } from "../routes/conversations/FindContentFunc";
-import { makeDefaultReferenceLinks } from "../routes/conversations/addMessageToConversation";
+import { SystemPrompt } from "../services/ChatLlm";
 import { makePreprocessMongoDbUserQuery } from "./testPreProcessor/makePreprocessMongoDbUserQuery";
+import {
+  MakeUserMessageFunc,
+  MakeUserMessageFuncParams,
+  makeRagGenerateUserPrompt,
+} from "../processors";
+import { makeDefaultFindContent } from "../processors/makeDefaultFindContent";
+import { makeDefaultReferenceLinks } from "../processors/makeDefaultReferenceLinks";
+import { UserMessage } from "../services";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -65,6 +70,20 @@ export const openAiClient = new OpenAIClient(
   new AzureKeyCredential(OPENAI_API_KEY)
 );
 
+export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
+  connectionUri: MONGODB_CONNECTION_URI,
+  databaseName: MONGODB_DATABASE_NAME,
+});
+
+export const embedder = makeOpenAiEmbedder({
+  openAiClient,
+  deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+  backoffOptions: {
+    numOfAttempts: 3,
+    maxDelay: 5000,
+  },
+});
+
 const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({
   azureOpenAiServiceConfig: {
     apiKey: OPENAI_API_KEY,
@@ -74,6 +93,50 @@ const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({
   },
   numRetries: 0,
   retryDelayMs: 5000,
+});
+
+export const findContent = makeDefaultFindContent({
+  embedder,
+  store: embeddedContentStore,
+  findNearestNeighborsOptions: {
+    k: 5,
+    path: "embedding",
+    indexName: VECTOR_SEARCH_INDEX_NAME,
+    minScore: 0.9,
+  },
+  searchBoosters: [boostManual],
+});
+
+export const makeUserMessage: MakeUserMessageFunc = async function ({
+  preprocessedUserMessage,
+  originalUserMessage,
+  content,
+}: MakeUserMessageFuncParams): Promise<UserMessage> {
+  const chunkSeparator = "~~~~~~";
+  const context = content.map((c) => c.text).join(`\n${chunkSeparator}\n`);
+  const contentForLlm = `Using the following information, answer the question.
+Different pieces of information are separated by "${chunkSeparator}".
+
+<Information>
+${context}
+<End information>
+
+<Question>
+${preprocessedUserMessage ?? originalUserMessage}
+<End Question>`;
+  return {
+    role: "user",
+    contentForLlm,
+    content: originalUserMessage,
+    preprocessedContent: preprocessedUserMessage,
+  };
+};
+
+export const generateUserPrompt = makeRagGenerateUserPrompt({
+  findContent,
+  queryPreprocessor: mongoDbUserQueryPreprocessor,
+  makeReferenceLinks: makeMongoDbReferences,
+  makeUserMessage,
 });
 export const systemPrompt: SystemPrompt = {
   role: "system",
@@ -97,68 +160,16 @@ Never mention "<Information>" or "<Question>" in your answer.
 Refer to the information given to you as "my knowledge".`,
 };
 
-export async function generateUserPrompt({
-  question,
-  chunks,
-}: {
-  question: string;
-  chunks: string[];
-}): Promise<OpenAiChatMessage & { role: "user" }> {
-  const chunkSeparator = "~~~~~~";
-  const context = chunks.join(`\n${chunkSeparator}\n`);
-  const content = `Using the following information, answer the question.
-Different pieces of information are separated by "${chunkSeparator}".
-
-<Information>
-${context}
-<End information>
-
-<Question>
-${question}
-<End Question>`;
-  return { role: "user", content };
-}
-
 export const llm = makeOpenAiChatLlm({
   openAiClient,
   deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  systemPrompt,
   openAiLmmConfigOptions: {
     temperature: 0,
     maxTokens: 500,
   },
-  generateUserPrompt,
-});
-
-export const dataStreamer = makeDataStreamer();
-
-export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
-  connectionUri: MONGODB_CONNECTION_URI,
-  databaseName: MONGODB_DATABASE_NAME,
-});
-
-export const embedder = makeOpenAiEmbedder({
-  openAiClient,
-  deployment: OPENAI_EMBEDDING_DEPLOYMENT,
-  backoffOptions: {
-    numOfAttempts: 3,
-    maxDelay: 5000,
-  },
 });
 
 export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
-
-export const findContent = makeDefaultFindContentFunc({
-  embedder,
-  store: embeddedContentStore,
-  findNearestNeighborsOptions: {
-    k: 5,
-    path: "embedding",
-    indexName: VECTOR_SEARCH_INDEX_NAME,
-    minScore: 0.9,
-  },
-  searchBoosters: [boostManual],
-});
 
 export const conversations = makeMongoDbConversationsService(
   mongodb.db(MONGODB_DATABASE_NAME),
@@ -178,7 +189,7 @@ export const conversations = makeMongoDbConversationsService(
  */
 export function makeMongoDbReferences(chunks: EmbeddedContent[]) {
   const baseReferences = makeDefaultReferenceLinks(chunks);
-  return baseReferences.map((ref) => {
+  return baseReferences.map((ref: { url: string }) => {
     const url = new URL(ref.url);
     return {
       url: url.href,
@@ -189,13 +200,9 @@ export function makeMongoDbReferences(chunks: EmbeddedContent[]) {
 
 export const config: AppConfig = {
   conversationsRouterConfig: {
-    dataStreamer,
     llm,
-    findContent,
-    maxChunkContextTokens: 1500,
     conversations,
-    makeReferenceLinks: makeMongoDbReferences,
-    userQueryPreprocessor: mongoDbUserQueryPreprocessor,
+    generateUserPrompt,
   },
   maxRequestTimeoutMs: 30000,
   corsOptions: {

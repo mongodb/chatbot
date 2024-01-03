@@ -141,7 +141,6 @@ describe("nearest neighbor search", () => {
     const query = "Connect to MongoDB with Node.js";
     const { embedding } = await embedder.embed({
       text: query,
-      userIp: "XYZ",
     });
 
     const matches = await store.findNearestNeighbors(
@@ -159,7 +158,6 @@ describe("nearest neighbor search", () => {
 
     const { embedding } = await embedder.embed({
       text: query,
-      userIp: "XYZ",
     });
 
     const matches = await store.findNearestNeighbors(embedding, {
@@ -178,7 +176,6 @@ describe("nearest neighbor search", () => {
     };
     const { embedding } = await embedder.embed({
       text: query,
-      userIp: "XYZ",
     });
 
     const noMatches = await store.findNearestNeighbors(embedding, {
@@ -204,7 +201,6 @@ describe("nearest neighbor search", () => {
     Chickens and other egg-laying creatures are kept widely throughout the world and mass production of chicken eggs is a global industry. In 2009, an estimated 62.1 million metric tons of eggs were produced worldwide from a total laying flock of approximately 6.4 billion hens.[5] There are issues of regional variation in demand and expectation, as well as current debates concerning methods of mass production. In 2012, the European Union banned battery husbandry of chickens.`;
     const { embedding } = await embedder.embed({
       text: query,
-      userIp: "XYZ",
     });
     const matches = await store.findNearestNeighbors(
       embedding,

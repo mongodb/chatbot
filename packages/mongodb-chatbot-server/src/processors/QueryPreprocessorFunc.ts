@@ -1,8 +1,8 @@
 import { Message } from "../services";
 
 export type QueryProcessorFuncParams = {
-  query?: string;
-  messages: Message[];
+  query: string;
+  messages?: Message[];
 };
 
 /**
@@ -20,5 +20,5 @@ export type QueryPreprocessorFunc<
 
 export type QueryPreprocessorResult = {
   query?: string;
-  rejectQuery: boolean;
+  rejectQuery?: boolean;
 };

@@ -1,7 +1,6 @@
 import { MongoClient, Db, Collection, Document } from "mongodb";
 import {
   Conversation,
-  Message,
   UserMessage,
   AssistantMessage,
   SystemMessage,
@@ -73,7 +72,7 @@ const scrubMessages = async ({ db }: { db: Db }) => {
         Exclude<
           // This protects against unknown entries in the $project stage and
           // ensures all of the fields that we do want are projected. We can't
-          // just use ScrubbedMessage/SomeMessage because we want the union of
+          // just use ScrubbedMessage/Message because we want the union of
           // all possible Message-type keys.
           | keyof UserMessage
           | keyof AssistantMessage
@@ -82,9 +81,11 @@ const scrubMessages = async ({ db }: { db: Db }) => {
           // Add keys to omit from the projection below.
           | "id"
           | "content"
-          | "preprocessedContent"
           | "analysis"
           | "responseRating"
+          | "functionCall"
+          | "contentForLlm"
+          | "preprocessedContent"
         >,
         string | number
       >,

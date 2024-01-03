@@ -1,6 +1,6 @@
 {
   "name": "mongodb-rag-ingest",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Ingests data sources and stores embeddings.",
   "author": "",
   "license": "Apache-2.0",

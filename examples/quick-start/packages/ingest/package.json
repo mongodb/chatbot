@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "description": "",
   "scripts": {
-    "ingest:all": "ingest all --config build/ingest.config.js --since 1970"
+    "build": "tsc",
+    "ingest:all": "npm run build && ingest all --config build/ingest.config.js --since 1970"
   },
   "keywords": [],
   "author": "",

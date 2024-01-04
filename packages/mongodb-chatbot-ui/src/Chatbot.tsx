@@ -13,7 +13,7 @@ export type ChatbotProps = {
   serverBaseUrl?: string;
   shouldStream?: boolean;
   user?: User;
-  children: React.ReactElement;
+  children: React.ReactElement | React.ReactElement[];
 };
 
 export function Chatbot({

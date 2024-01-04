@@ -13,16 +13,8 @@
     "build",
     "README.md"
   ],
-  "exports": {
-    ".": "./build/index.js",
-    "./embed": "./build/embed/index.js",
-    "./pages": "./build/pages/index.js",
-    "./sources": "./build/sources/index.js",
-    "./sources/snooty": "./build/sources/snooty/index.js",
-    "./core": "./build/core/index.js"
-  },
   "bin": {
-    "mag": "./build/main.js"
+    "eai-generator": "./build/main.js"
   },
   "scripts": {
     "clean": "rm -rf build",
@@ -30,8 +22,7 @@
     "postbuild": "chmod +x build/main.js",
     "watch": "tsc -b -w",
     "test": "jest --forceExit",
-    "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
-    "release": "release-it"
+    "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",

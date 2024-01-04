@@ -8,7 +8,7 @@ import { promises as fs } from "fs";
 import { stripIndents, html } from "common-tags";
 import { makeFindContent } from "../vectorSearch";
 import { makeGenerateChatCompletion } from "../chat";
-import { rewriteAsRst, summarize, translate } from "../operations";
+import { summarize, translate } from "../operations";
 import {
   makeRunLogger,
   type RunLogger
@@ -125,7 +125,6 @@ export const action = createConfiguredAction<TranslateCodeCommandArgs>(
 
       logger.logInfo(`Created output:\n\n${transformed}\n`);
       const inputFileName = path.parse(source).name;
-      // TODO validate that targetFileExtension is a valid file extension string
       const outputFileName = `${inputFileName}.translated.${targetFileExtension}`;
       logger.appendArtifact(outputFileName, transformed);
     } finally {

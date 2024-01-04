@@ -1,6 +1,6 @@
 {
   "name": "mongodb-artifact-generator",
-  "version": "0.1.7",
+  "version": "0.0.0",
   "description": "Generates content artifacts for MongoDB Education.",
   "author": "",
   "license": "Apache-2.0",

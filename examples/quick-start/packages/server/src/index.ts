@@ -1,4 +1,3 @@
-import "dotenv/config";
 import {
   MongoClient,
   makeMongoDbEmbeddedContentStore,
@@ -15,11 +14,7 @@ import {
   makeRagGenerateUserPrompt,
   MakeUserMessageFunc,
 } from "mongodb-chatbot-server";
-import {
-  AzureKeyCredential,
-  OpenAIClient,
-  OpenAIKeyCredential,
-} from "@azure/openai";
+import { OpenAIClient, OpenAIKeyCredential } from "@azure/openai";
 import path from "path";
 import { loadEnvVars } from "./loadEnvVars";
 
@@ -110,6 +105,7 @@ const systemPrompt: SystemPrompt = {
   content: `You are an assistant to users of the MongoDB Chatbot Framework.
 Answer their questions about the framework in a friendly conversational tone.
 Format your answers in Markdown.
+Be concise in your answers.
 If you do not know the answer to the question based on the information provided,
 respond: "I'm sorry, I don't know the answer to that question. Please try to rephrase it. Refer to the below information to see if it helps."`,
 };
@@ -147,7 +143,7 @@ const startServer = async () => {
     await mongodb.close();
     await embeddedContentStore.close();
     await new Promise<void>((resolve, reject) => {
-      server.close((error) => {
+      server.close((error: any) => {
         error ? reject(error) : resolve();
       });
     });

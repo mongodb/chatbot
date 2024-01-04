@@ -18,7 +18,10 @@ const mongodbChatbotFrameworkDocsConfig: MakeMdOnGithubDataSourceParams = {
     !path.endsWith("README.md"),
   pathToPageUrl(pathInRepo) {
     const baseUrl = "https://mongodb.github.io/chatbot/";
-    const path = pathInRepo.replace(/^docs\/docs\//, "").replace(/\.md$/, "");
+    const path = pathInRepo
+      .replace(/^\/docs\/docs\//, "")
+      .replace(/\.md$/, "")
+      .replace(/index$/, "");
     return `${baseUrl}${path}`;
   },
   extractTitle: (pageContent, frontmatter) =>

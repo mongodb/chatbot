@@ -1,35 +1,30 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import "./App.css";
+import Chatbot, {
+  FloatingActionButtonTrigger,
+  InputBarTrigger,
+  ModalView,
+} from "mongodb-chatbot-ui";
 
-function App() {
-  const [count, setCount] = useState(0)
-
+function MyApp() {
+  const suggestedPrompts = [
+    "Why should I use the MongoDB Chatbot Framework?",
+    "How does the framework use Atlas Vector Search?",
+    "Do you support using LLMs from OpenAI?",
+  ];
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div>
+      <Chatbot darkMode={true} serverBaseUrl="http://localhost:3000">
+        <>
+          <InputBarTrigger suggestedPrompts={suggestedPrompts} />
+          <FloatingActionButtonTrigger text="My MongoDB AI" />
+          <ModalView
+            initialMessageText="Welcome to MongoDB AI Assistant. What can I help you with?"
+            initialMessageSuggestedPrompts={suggestedPrompts}
+          />
+        </>
+      </Chatbot>
+    </div>
+  );
 }
 
-export default App
+export default MyApp;

@@ -61,7 +61,7 @@ A few things to keep in mind when developing in the `mongodb-artifact-generator`
    ```shell
    cd ../mongodb-rag-core
    npm run build
-   cd ../ingest
+   cd ../mongodb-artifact-generator
    # do stuff
    ```
 

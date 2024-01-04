@@ -141,7 +141,6 @@ export type LogFlushHandler = (
 
 export const flushLogsToConsole: LogFlushHandler = async (
   entries,
-  // options = createDefaultFlushOptions()
 ) => {
   for (const entry of entries) {
     console.log(formatLogEntry(entry));
@@ -153,13 +152,11 @@ export const flushLogsToFile: LogFlushHandler = async (
   options = createDefaultFlushOptions()
 ) => {
   await assertFlushDirectory(options);
-  // const filePath = `./runlogs/${Date.now()}.runlog.jsonl`;
   const oid = new ObjectId().toHexString();
   const filePath = path.join(
     getFlushDirectoryPath(options),
     `runlog-${oid}.jsonl`
   );
-  // const content = JSON.stringify(entries, null, 2);
   const content = entries.map((e) => JSON.stringify(e)).join("\n");
   await fs.writeFile(filePath, content, {
     encoding: "utf8",

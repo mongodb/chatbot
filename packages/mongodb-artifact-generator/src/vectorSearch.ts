@@ -4,9 +4,7 @@ import {
   Embedder,
   EmbeddedContentStore,
   FindNearestNeighborsOptions,
-  PageStore,
 } from "mongodb-rag-core";
-// import { SearchBooster } from "../../processors/SearchBooster";
 
 export type FindContentArgs = {
   query: string;
@@ -50,8 +48,8 @@ export function makeFindContent({
     return { queryEmbedding: embedding, content: embeddedContent };
   };
 
-  // const cleanup = async () => embeddedContentStore.close?.();
   const cleanup = async () => {
+    // embeddedContentStore.close?.();
     return;
   };
 

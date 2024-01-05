@@ -22,9 +22,9 @@ To build the chatbot, you will:
 
 1. Set up the MongoDB Atlas Database with Atlas Vector Search
 1. Set up the project source code.
-1. Create an `.env` file
 1. Ingest the content that the chatbot uses to answer questions
 1. Spin up a server and frontend to query the chatbot
+1. Look at next steps that you can take to customize the chatbot
 
 ## Steps
 
@@ -33,26 +33,53 @@ To build the chatbot, you will:
 Log into MongoDB Atlas and create a new project. Create a new cluster in the project.
 You can use the free tier cluster (M0). You **cannot** use a serverless cluster.
 
-In the Atlas UI, create the database `mongodb-chatbot-framework-chatbot` with a collection `embedded_content`. You can leave the collection empty for now.
-TODO: refine and add link
+Once the cluster is created, you must copy the connection string to use in your project.
+In the Atlas UI on the cluster overview page, perform the following:
 
-Create an Atlas Vector Search Index wih the default name `vector-index` on the `embedded_content` collection.
-TODO: Expand with more details + link to Atlas docs
+1. Press the **Connect** button.
+1. Press the **Drivers** button.
+1. Copy the connection string and store it in a safe place.
+   You will need it soon. If you haven't created a user yet, you can create one now.
+   - If you need help creating a user, refer to [Configure Database Users](https://www.mongodb.com/docs/atlas/security-add-mongodb-users/) in the MongoDB Atlas documentation.
 
-Use the following index definition for the `vector-index` index:
+Next you will create the database `mongodb-chatbot-framework-chatbot` with a collection
+`embedded_content`. You can leave the collection empty for now.
+In the Atlas UI, go to your cluster's overview page, and perform the following:
 
-```json
-{
-  "fields": [
-    {
-      "numDimensions": 1536,
-      "path": "embedding",
-      "similarity": "cosine",
-      "type": "vector"
-    }
-  ]
-}
-```
+1. Go to the **Collections** tab.
+1. Press the **Create Database** button.
+1. In the modal window, add the database name `mongodb-chatbot-framework-chatbot`
+   and collection name `embedded_content`. Then press **Create**.
+
+Once the database and collection are created, you will create an Atlas Vector Search index
+on the `embedded_content` collection. This collection will be used to store vector embeddings. In the Atlas UI, perform the following:
+
+1. Go to the **Atlas Search** tab.
+1. Press the **Create Search Index** button.
+1. Select the **Atlas Vector Search JSON Index** option, then press the **Next** button.
+1. In the **Database and Collection** section, select the
+   `mongodb-chatbot-framework-chatbot` database and `embedded_content` collection.
+1. In the **Index Name** field, leave the default `vector_index`.
+1. In the index definition field, paste the following index definition:
+
+   ```js
+   {
+     "fields": [
+       {
+         "numDimensions": 1536,
+         "path": "embedding",
+         "similarity": "cosine",
+         "type": "vector"
+       }
+     ]
+   }
+   ```
+
+1. Press the **Next** button, then on the next page press the **Create Search Index** button.
+1. Wait for the index to be created. This should happen in under a minute.
+   When the index is successfully created, you should see that the status is **Active**.
+
+Now the Atlas cluster and Vector Search index are ready for you to use in your app.
 
 For more information on setting up MongoDB for the Chatbot Framework,
 refer to the [MongoDB & Atlas Vector Search](./mongodb.md) guide.
@@ -116,7 +143,13 @@ If you've run the command successfully, you should an output resembling the foll
 in your terminal:
 
 ```shell
-TODO: add output
+{"level":"info","message":"Logger created"}
+{"level":"info","message":"Last successful run date: Thu Jan 04 2024 12:23:27 GMT-0500 (Eastern Standard Time)"}
+{"level":"info","message":"Loaded sources:\n- mongodb-rag-framework"}
+{"level":"info","message":"Fetching pages for mongodb-rag-framework"}
+{"level":"info","message":"Created /var/folders/v3/128h981j6vx4ncq_68qcg2cm0000gp/T/mongodb-rag-frameworkV3BE8d for https://github.com/mongodb/chatbot/"}
+# ...
+{"level":"info","message":"Updating last successful run date"}
 ```
 
 To learn more about how you can configure the MongoDB Ingest CLI,
@@ -124,7 +157,9 @@ refer to the [Configure the Ingest CLI](./ingest/configure.md) guide.
 
 ### 4. Query the Chatbot
 
-TODO: preface
+In this step, you will spin up a server and frontend to query the chatbot.
+You'll be able to ask questions about the MongoDB Chatbot Framework
+using the data you ingested in the previous step.
 
 Start the chatbot server and UI with:
 
@@ -134,6 +169,8 @@ npm run dev
 
 Open http://localhost:5173/ in your browser to see the UI.
 You can ask the chatbot questions and see the responses.
+
+Have fun!
 
 You can also query the server directly with curl:
 
@@ -149,10 +186,23 @@ refer to the [Chatbot UI](./ui.md) guide.
 
 ### 5. Explore and Modify the Code
 
-TODO: add ...
+Now that you've set up the quick start project, you can explore and modify the code
+to customize the chatbot to your needs.
 
-- Mention entry points for each package that user can customize.
+Some things you can do to customize the chatbot:
 
-## Next Steps
-
-TODO: add ...
+- Modify data ingestion in the `ingest` project.
+  - You can add your own data sources to ingest content from.
+    To learn more about how you can add new data sources, refer to the [Add a Data Source](./ingest/data-sources.md) guide.
+- Modify the chatbot server in the `server` project.
+  - Update the system prompt and user message. To learn more, refer to the [Prompt Engineering](./server/llm.md#prompt-engineering) guide.
+  - Pre-process user messages before they are sent to the chatbot.
+    To learn more, refer to the [Pre-Process User Queries](./server/rag/preprocess.md) guide.
+  - Add custom logic to the chatbot server. To learn more,
+    refer to the [Customize Server Logic](./server/custom-logic.md) guide.
+- Modify the chatbot UI in the `ui` project.
+  - You can build your frontend on top of this project, or add the React components
+    to your own React app. To learn more, refer to the [Chatbot UI](./ui.md) guide.
+  - Even if you're adding the components to your own project,
+    you might want to keep the `ui` project as is to manually test changes
+    you make to the Chatbot Server.

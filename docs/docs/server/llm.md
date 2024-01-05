@@ -157,6 +157,8 @@ export const llm = makeOpenAiChatLlm({
 });
 ```
 
+TODO: update with the new implementation
+
 ### User Prompt
 
 You can modify what the chatbot uses as the user prompt by implementing the

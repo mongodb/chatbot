@@ -157,43 +157,14 @@ export const llm = makeOpenAiChatLlm({
 });
 ```
 
-TODO: update with the new implementation
-
 ### User Prompt
 
 You can modify what the chatbot uses as the user prompt by implementing the
-[`GenerateUserPrompt`](../reference/server/modules.md#generateuserprompt) function.
+[`GenerateUserPromptFunc`](../reference/server/modules.md#generateuserpromptfunc) function.
 
-The `GenerateUserPrompt` function takes in the user's question and the context
-information found by the vector search, and returns a user message.
+`GenerateUserPromptFunc` takes in the user's query and previous messages in the conversation, then returns a new user message. For an overview of the `GenerateUserPromptFunc` function, refer to the [Generate User Message](./user-message.md) guide.
 
-```ts
-import { makeOpenAiChatLlm, OpenAiChatMessage } from "mongodb-chatbot-server";
-
-async function generateUserPrompt({
-  question,
-  chunks,
-}: {
-  question: string;
-  chunks: string[];
-}): Promise<OpenAiChatMessage & { role: "user" }> {
-  const chunkSeparator = "~~~~~~";
-  const context = chunks.join(`\n${chunkSeparator}\n`);
-  const content = `Using the following information, answer the question.
-Different pieces of information are separated by "${chunkSeparator}".
-
-<Information>
-${context}
-<End information>
-
-<Question>
-${question}
-<End Question>`;
-  return { role: "user", content };
-}
-
-const llm = makeOpenAiChatLlm({
-  generateUserPrompt,
-  ...otherConfig,
-});
-```
+You might want to modify the user prompt if you're using a prompting technique
+like retrieval augmented generation (RAG) or chain of thought.
+To learn more about using RAG with the MongoDB Chatbot Server, refer to the
+[RAG](./rag/index.md) guide.

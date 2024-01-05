@@ -21,6 +21,6 @@
     "server:start": "lerna run start --scope='chatbot-server-mongodb-public'"
   },
   "devDependencies": {
-    "lerna": "^8.0.1"
+    "lerna": "^5.6.2"
   }
 }

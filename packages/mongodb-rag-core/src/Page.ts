@@ -1,5 +1,3 @@
-import { Filter } from "mongodb";
-
 /**
   Represents a page from a data source.
  */

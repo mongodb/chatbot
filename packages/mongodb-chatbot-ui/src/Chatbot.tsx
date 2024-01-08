@@ -13,6 +13,7 @@ export type ChatbotProps = {
   serverBaseUrl?: string;
   shouldStream?: boolean;
   user?: User;
+  maxInputCharacters?: number;
   children: React.ReactElement | React.ReactElement[];
 };
 
@@ -25,9 +26,19 @@ export function Chatbot({
 }: ChatbotProps) {
   const { darkMode } = useDarkMode(props.darkMode);
 
+  if (
+    props.maxInputCharacters !== undefined &&
+    props.maxInputCharacters > 300
+  ) {
+    console.warn(
+      `maxInputCharacters is capped at 300 characters by the chat server. The chatbot UI is configured to allow ${props.maxInputCharacters}.`
+    );
+  }
+
   const chatbotData = useChatbot({
     serverBaseUrl,
     shouldStream,
+    maxInputCharacters: props.maxInputCharacters ?? 300, // The server currently enforces a max of 300, so reflect that here
   });
 
   const tck = props.tck ?? "mongodb_ai_chatbot";

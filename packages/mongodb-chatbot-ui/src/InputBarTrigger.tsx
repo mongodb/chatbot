@@ -8,7 +8,6 @@ import { useLinkData } from "./useLinkData";
 import { addQueryParams } from "./utils";
 import { useState } from "react";
 import { useChatbotContext } from "./useChatbotContext";
-import { SUGGESTED_PROMPTS } from "./constants";
 
 const styles = {
   info_box: css`
@@ -47,7 +46,7 @@ export type InputBarTriggerProps = DarkModeProps & {
 
 export function InputBarTrigger(props: InputBarTriggerProps) {
   const { darkMode } = useDarkMode(props.darkMode);
-  const { suggestedPrompts = SUGGESTED_PROMPTS } = props;
+  const { suggestedPrompts = [] } = props;
   const {
     openChat,
     awaitingReply,
@@ -63,7 +62,7 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
   const hasError = inputTextError !== "";
   const showError = inputTextError !== "" && !open;
   const showSuggestedPrompts =
-    (suggestedPrompts ?? []).length > 0 &&
+    suggestedPrompts.length > 0 &&
     inputText.length === 0 &&
     conversation.messages.length === 0 &&
     !awaitingReply;

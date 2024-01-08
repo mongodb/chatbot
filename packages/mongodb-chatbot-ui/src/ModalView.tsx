@@ -12,7 +12,6 @@ import { ErrorBanner } from "./Banner";
 import { CharacterCount, InputBar } from "./InputBar";
 import { LegalDisclosure } from "./LegalDisclosure";
 import { Message } from "./Message";
-import { MAX_INPUT_CHARACTERS } from "./constants";
 import { MessageData } from "./services/conversations";
 import { Conversation } from "./useConversation";
 import { type StylesProps } from "./utils";
@@ -99,6 +98,7 @@ export function ModalView(props: ModalViewProps) {
     inputBarRef,
     inputText,
     inputTextError,
+    maxInputCharacters,
     open,
     setInputText,
   } = useChatbotContext();
@@ -238,11 +238,13 @@ export function ModalView(props: ModalViewProps) {
                     This is an experimental generative AI chatbot. All
                     information should be verified prior to use.
                   </Body>
-                  <CharacterCount
-                    darkMode={darkMode}
-                    current={inputText.length}
-                    max={MAX_INPUT_CHARACTERS}
-                  />
+                  {!maxInputCharacters ? null : (
+                    <CharacterCount
+                      darkMode={darkMode}
+                      current={inputText.length}
+                      max={maxInputCharacters}
+                    />
+                  )}
                 </div>
               </>
             ) : null}

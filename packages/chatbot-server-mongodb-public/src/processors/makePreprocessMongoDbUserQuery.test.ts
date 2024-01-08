@@ -2,30 +2,24 @@ import "dotenv/config";
 import {
   CORE_ENV_VARS,
   assertEnvVars,
-  AzureOpenAiServiceConfig,
   ObjectId,
   Message,
+  OpenAIClient,
+  AzureKeyCredential,
 } from "mongodb-chatbot-server";
 import {
-  addMetadataToQuery,
   generateMongoDbQueryPreProcessorPrompt,
   makePreprocessMongoDbUserQuery,
 } from "./makePreprocessMongoDbUserQuery";
 import { stripIndent } from "common-tags";
 
-const {
-  OPENAI_ENDPOINT,
-  OPENAI_API_KEY,
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  OPENAI_CHAT_COMPLETION_MODEL_VERSION,
-} = assertEnvVars(CORE_ENV_VARS);
+const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_CHAT_COMPLETION_DEPLOYMENT } =
+  assertEnvVars(CORE_ENV_VARS);
 
-const azureOpenAiServiceConfig: AzureOpenAiServiceConfig = {
-  apiKey: OPENAI_API_KEY,
-  baseUrl: OPENAI_ENDPOINT,
-  deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  version: OPENAI_CHAT_COMPLETION_MODEL_VERSION,
-};
+const openAiClient = new OpenAIClient(
+  OPENAI_ENDPOINT,
+  new AzureKeyCredential(OPENAI_API_KEY)
+);
 
 const messages: Message[] = [
   {
@@ -54,26 +48,20 @@ jest.setTimeout(30000);
 
 describe("makePreprocessMongoDbUserQuery()", () => {
   const preprocessMongoDbUserQuery = makePreprocessMongoDbUserQuery({
-    azureOpenAiServiceConfig,
-    numRetries: 0,
-    retryDelayMs: 5000,
+    openAiClient: openAiClient,
+    deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   });
   test("should convert user message into something that's more conversationally relevant", async () => {
     const response = await preprocessMongoDbUserQuery({
       query,
       messages,
     });
-    const {
-      query: outputQuery,
-      programmingLanguages,
-      mongoDbProducts,
-    } = response;
+    const { query: outputQuery, programmingLanguage } = response;
     expect(outputQuery).toContain("MongoDB");
     expect(outputQuery).toContain("code example");
     expect(outputQuery?.toLowerCase()).toContain("aggregation");
     expect(outputQuery).toContain("?");
-    expect(programmingLanguages).toStrictEqual(["shell"]);
-    expect(mongoDbProducts && mongoDbProducts[0]).toBeDefined();
+    expect(programmingLanguage).toBe("shell");
   });
   test("should ID programming languages", async () => {
     const query = "python aggregation";
@@ -82,11 +70,11 @@ describe("makePreprocessMongoDbUserQuery()", () => {
       query,
       messages,
     });
-    const { programmingLanguages } = response;
-    expect(programmingLanguages && programmingLanguages[0]).toBe("python");
+    const { programmingLanguage } = response;
+    expect(programmingLanguage).toBe("python");
   });
   test("should ID products", async () => {
-    const query = "create a chart";
+    const query = "create a atlas chart";
     const messages: Message[] = [];
     const response = await preprocessMongoDbUserQuery({
       query,
@@ -107,19 +95,17 @@ describe("makePreprocessMongoDbUserQuery()", () => {
     expect(lowerResponseQuery).toContain("look");
     expect(lowerResponseQuery).toContain("up");
     expect(lowerResponseQuery).toContain("node");
-    expect(
-      response.programmingLanguages && response.programmingLanguages[0]
-    ).toBe("javascript");
-    expect(response.rejectQuery).toBe(false);
+    expect(response.programmingLanguage).toBe("javascript");
+    expect(response.rejectQuery).toBeFalsy();
   });
-  test("should leave query undefined if the input query is gibberish", async () => {
+  test("should reject query if input query is gibberish", async () => {
     const nonsensicalQuery = "fsdhdjyt fjgklh ; 1234";
     const messages: Message[] = [];
     const response = await preprocessMongoDbUserQuery({
       query: nonsensicalQuery,
       messages,
     });
-    expect(response.query).toBeUndefined();
+    expect(response.rejectQuery).toBe(true);
   });
   test("should set rejectQuery to true if the query is negative toward MongoDB", async () => {
     const query = "why is MongoDB the worst database";
@@ -190,25 +176,5 @@ code example
         messages,
       })
     ).not.toContain("mongoDb for MongoDB");
-  });
-});
-describe("addMetadataToQuery()", () => {
-  test("should append metadata to the query", () => {
-    const response = {
-      query: "foo",
-      programmingLanguages: ["javascript"],
-      mongoDbProducts: ["charts"],
-      rejectQuery: false,
-    };
-    const output = addMetadataToQuery(response);
-    const expected = `---
-programmingLanguages:
-  - javascript
-mongoDbProducts:
-  - charts
----
-
-foo`;
-    expect(output).toBe(expected);
   });
 });

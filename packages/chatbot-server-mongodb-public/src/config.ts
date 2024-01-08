@@ -129,14 +129,8 @@ export const llm = makeOpenAiChatLlm({
 });
 
 const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({
-  azureOpenAiServiceConfig: {
-    apiKey: OPENAI_API_KEY,
-    baseUrl: OPENAI_ENDPOINT,
-    deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-    version: OPENAI_CHAT_COMPLETION_MODEL_VERSION,
-  },
-  numRetries: 0,
-  retryDelayMs: 5000,
+  openAiClient,
+  deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
 });
 
 export const dataStreamer = makeDataStreamer();

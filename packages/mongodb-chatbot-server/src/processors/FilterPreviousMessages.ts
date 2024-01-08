@@ -6,4 +6,6 @@ import { Conversation, Message } from "../services";
   For example, you may only want to send the system prompt to the LLM
   with the user message or the system prompt and X prior messages.
  */
-export type FilterPreviousMessages = (conversation: Conversation) => Message[];
+export type FilterPreviousMessages = (
+  conversation: Conversation
+) => Promise<Message[]>;

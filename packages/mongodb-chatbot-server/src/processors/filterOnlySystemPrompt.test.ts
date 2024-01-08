@@ -21,33 +21,33 @@ const userMessage = {
 } satisfies Message;
 
 describe("filterOnlySystemPrompt", () => {
-  it("should return an empty array when there are no messages", () => {
+  it("should return an empty array when there are no messages", async () => {
     const conversation = mockConversationBase;
-    const result = filterOnlySystemPrompt(conversation);
+    const result = await filterOnlySystemPrompt(conversation);
     expect(result).toEqual([]);
   });
 
-  it("should return an array with the system message when there is one", () => {
+  it("should return an array with the system message when there is one", async () => {
     const conversation = {
       ...mockConversationBase,
       messages: [systemMessage, userMessage],
     };
-    const result = filterOnlySystemPrompt(conversation);
+    const result = await filterOnlySystemPrompt(conversation);
     expect(result).toEqual([systemMessage]);
   });
 
-  it("should return an empty array when there is no system message", () => {
+  it("should return an empty array when there is no system message", async () => {
     const conversation = { ...mockConversationBase, messages: [userMessage] };
-    const result = filterOnlySystemPrompt(conversation);
+    const result = await filterOnlySystemPrompt(conversation);
     expect(result).toEqual([]);
   });
 
-  it("should only return first system message", () => {
+  it("should only return first system message", async () => {
     const conversation = {
       ...mockConversationBase,
       messages: [systemMessage, systemMessage, userMessage],
     };
-    const result = filterOnlySystemPrompt(conversation);
+    const result = await filterOnlySystemPrompt(conversation);
     expect(result).toEqual([systemMessage]);
   });
 });

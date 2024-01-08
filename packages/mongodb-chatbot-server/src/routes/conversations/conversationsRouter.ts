@@ -21,7 +21,10 @@ import {
 import { requireRequestOrigin } from "../../middleware/requireRequestOrigin";
 import { NextFunction, ParamsDictionary } from "express-serve-static-core";
 import { requireValidIpAddress } from "../../middleware";
-import { GenerateUserPromptFunc } from "../../processors";
+import {
+  FilterPreviousMessages,
+  GenerateUserPromptFunc,
+} from "../../processors";
 
 /**
   Configuration for rate limiting on the /conversations/* routes.
@@ -109,6 +112,14 @@ export interface ConversationsRouterParams {
   maxInputLengthCharacters?: number;
 
   /**
+    Function to filter which previous messages are sent to the {@link ChatLlm}.
+    For example, you may only want to send the system prompt to the LLM
+    with the user message or the system prompt and X prior messages.
+    Defaults to sending only the system prompt.
+   */
+  filterPreviousMessages?: FilterPreviousMessages;
+
+  /**
     Maximum number of user-sent messages in a conversation.
     Server returns 400 error if user tries to add a message to a conversation
     that has this many messages.
@@ -182,6 +193,7 @@ export function makeConversationsRouter({
   conversations,
   maxInputLengthCharacters,
   maxUserMessagesInConversation,
+  filterPreviousMessages,
   rateLimitConfig,
   generateUserPrompt,
   dataStreamer = makeDataStreamer(),
@@ -271,6 +283,7 @@ export function makeConversationsRouter({
     maxUserMessagesInConversation,
     addMessageToConversationCustomData,
     generateUserPrompt,
+    filterPreviousMessages,
   });
   conversationsRouter.post(
     "/:conversationId/messages",

@@ -30,12 +30,24 @@ export async function generateTranscript({
     });
     break;
   }
+  const endpointWithId = endpoint.replace(
+    ":conversationId",
+    conversationId.toString()
+  );
 
   // Add user message + service response to conversation in DB.
-  await request(app)
-    .post(endpoint.replace(":conversationId", conversationId.toString()))
+  const res = await request(app)
+    .post(endpointWithId)
     .send({ message: (testMessage as TestCaseMessage).content })
-    .set("X-Forwarded-For", ipAddress);
+    .set("X-Forwarded-For", ipAddress)
+    .set("Origin", "http://localhost:3000");
+  if (res.status !== 200) {
+    throw new Error(
+      `Failed to add message to conversation: ${JSON.stringify(res.body)}, ${
+        res.status
+      }`
+    );
+  }
 
   // Read full conversation with added messages from the DB
   const fullConversation = await conversations.findById({

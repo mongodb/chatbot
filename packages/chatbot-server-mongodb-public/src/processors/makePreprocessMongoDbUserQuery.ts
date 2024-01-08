@@ -127,10 +127,11 @@ export function makePreprocessMongoDbUserQuery({
     const data: ContentSearchResponse = JSON.parse(
       result.functionCall.arguments
     );
-
+    const processedQuery = addMetadataToQuery(data);
+    console.log("processed query::", processedQuery);
     return {
       ...data,
-      query: addMetadataToQuery(data),
+      query: processedQuery,
     };
   };
 }
@@ -181,7 +182,8 @@ function addMetadataToQuery({
   query,
   programmingLanguage,
   mongoDbProducts,
-}: ContentSearchResponse): string | undefined {
+}: ContentSearchResponse): string {
+  if (!programmingLanguage && !mongoDbProducts) return query;
   return updateFrontMatter(query, {
     programmingLanguage,
     mongoDbProducts,

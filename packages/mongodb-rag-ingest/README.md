@@ -1,7 +1,12 @@
-# Ingest
+# MongoDB Ingest CLI
 
-The ingest CLI fetches pages from sources and stores the embeddings in the
-database.
+The MongoDB Ingest CLI ingest content into a MongoDB collection that you can use for retrieval augmented generation (RAG) applications.
+
+You can use the Ingest CLI to ingest data into RAG applications built with the MongoDB Chatbot Framework.
+
+## Documentation
+
+To learn more about the MongoDB Ingest CLI, refer to the [documentation](https://mongodb.github.io/chatbot/ingest/configure).
 
 ## System Overview
 

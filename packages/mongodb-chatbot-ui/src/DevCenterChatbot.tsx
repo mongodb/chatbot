@@ -2,6 +2,7 @@ import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { DarkModeProps } from "./DarkMode";
 import { FloatingActionButtonTrigger } from "./FloatingActionButtonTrigger";
 import { ModalView, ModalViewProps } from "./ModalView";
+import { MongoDbLegalDisclosure } from ".";
 
 export type DevCenterChatbotProps = DarkModeProps & {
   initialMessageText?: string;
@@ -18,7 +19,7 @@ export function DevCenterChatbot(props: DevCenterChatbotProps) {
       "Welcome to MongoDB AI Assistant. What can I help you with?",
     initialMessageSuggestedPrompts:
       props.initialMessageSuggestedPrompts ?? [],
-    showDisclaimer: true,
+    disclaimer: <MongoDbLegalDisclosure />,
   } satisfies ModalViewProps;
 
   return (

@@ -1,5 +1,5 @@
 import { css } from "@emotion/css";
-import { LegalDisclosure } from "./LegalDisclosure";
+import { MongoDbLegalDisclosure } from "./MongoDbLegal";
 import { DarkModeProps } from "./DarkMode";
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { Body, Error as ErrorText, Link } from "@leafygreen-ui/typography";
@@ -41,12 +41,13 @@ const styles = {
 };
 
 export type InputBarTriggerProps = DarkModeProps & {
+  disclaimer?: React.ReactNode;
   suggestedPrompts?: string[];
 };
 
 export function InputBarTrigger(props: InputBarTriggerProps) {
   const { darkMode } = useDarkMode(props.darkMode);
-  const { suggestedPrompts = [] } = props;
+  const { suggestedPrompts = [], disclaimer } = props;
   const {
     openChat,
     awaitingReply,
@@ -139,7 +140,7 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
 
         <div className={styles.info_box}>
           {showError ? <ErrorText>{inputTextError}</ErrorText> : null}
-          <LegalDisclosure />
+          {disclaimer}
         </div>
       </div>
     </div>

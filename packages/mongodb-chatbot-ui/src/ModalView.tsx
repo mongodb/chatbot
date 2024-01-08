@@ -10,7 +10,6 @@ import { MessageFeed } from "@lg-chat/message-feed";
 import { useMemo } from "react";
 import { ErrorBanner } from "./Banner";
 import { CharacterCount, InputBar } from "./InputBar";
-import { LegalDisclosure } from "./LegalDisclosure";
 import { Message } from "./Message";
 import { MessageData } from "./services/conversations";
 import { Conversation } from "./useConversation";
@@ -88,8 +87,12 @@ export type ModalViewProps = ChatbotViewProps & {
 
 export function ModalView(props: ModalViewProps) {
   const { darkMode } = useDarkMode(props.darkMode);
-  const { initialMessageText, initialMessageSuggestedPrompts, showDisclaimer } =
-    props;
+  const {
+    initialMessageText,
+    initialMessageSuggestedPrompts,
+    disclaimer,
+  } = props;
+
   const {
     awaitingReply,
     closeChat,
@@ -153,12 +156,12 @@ export function ModalView(props: ModalViewProps) {
         >
           {!isEmptyConversation ? (
             <MessageFeed darkMode={darkMode} className={styles.message_feed}>
-              {showDisclaimer ? (
+              {disclaimer ? (
                 <DisclaimerText
                   title="Terms and Policy"
                   className={styles.disclaimer_text}
                 >
-                  <LegalDisclosure />
+                  {disclaimer}
                 </DisclaimerText>
               ) : null}
               {messages.map((message, idx) => {

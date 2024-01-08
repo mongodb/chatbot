@@ -27,6 +27,7 @@ import Chatbot, {
   FloatingActionButtonTrigger,
   InputBarTrigger,
   ModalView,
+  MongoDbLegalDisclosure,
 } from "mongodb-chatbot-ui";
 
 function MyApp() {
@@ -38,10 +39,14 @@ function MyApp() {
   return (
     <div>
       <Chatbot>
-        <InputBarTrigger suggestedPrompts={suggestedPrompts} />
-        <FloatingActionButtonTrigger text="My MongoDB AI" />
+        <InputBarTrigger
+          disclaimer={<MongoDbLegalDisclosure />}
+          suggestedPrompts={suggestedPrompts}
+        />
+        <FloatingActionButtonTrigger text="Ask My MongoDB AI" />
         <ModalView
-          initialMessageText="Welcome to MongoDB AI Assistant. What can I help you with?"
+          disclaimer={<MongoDbLegalDisclosure />}
+          initialMessageText="Welcome to my MongoDB AI Assistant. What can I help you with?"
           initialMessageSuggestedPrompts={suggestedPrompts}
         />
       </Chatbot>
@@ -80,18 +85,19 @@ The `<FloatingActionButtonTrigger />` component opens the `<ModalView />` when c
 
 The `<InputBarTrigger />` component opens the `<ModalView />` when the user sends their first message. It accepts the following props:
 
-| Prop               | Type        | Description                                                                                    | Default                                                 |
-| ------------------ | ----------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| `darkMode`         | `boolean?`  | If `true`, this renders in dark mode. This overrides any theme or provider `darkMode` setting. | The user's OS preference or theme value of `darkMode`.  |
-| `suggestedPrompts` | `string[]?` | A list of suggested prompts that appear in the input bar dropdown menu.                        | If no prompts are specified, the dropdown is not shown. |
+| Prop               | Type         | Description                                                                                    | Default                                                 |
+| ------------------ | ------------ | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `darkMode`         | `boolean?`   | If `true`, this renders in dark mode. This overrides any theme or provider `darkMode` setting. | The user's OS preference or theme value of `darkMode`.  |
+| `disclaimer`       | `ReactNode?` | A disclaimer message shown before user interaction. Can include terms of service, etc.         |                                                         |
+| `suggestedPrompts` | `string[]?`  | A list of suggested prompts that appear in the input bar dropdown menu.                        | If no prompts are specified, the dropdown is not shown. |
 
 ### `ModalView`
 
 The `<ModalView />` component renders a chat message feed in a modal window. It accepts the following props:
 
-| Prop                             | Type        | Description                                                                                    | Default                                                 |
-| -------------------------------- | ----------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| `darkMode`                       | `boolean?`  | If `true`, this renders in dark mode. This overrides any theme or provider `darkMode` setting. | The user's OS preference or theme value of `darkMode`.  |
-| `initialMessageSuggestedPrompts` | `string[]?` | A list of suggested prompts that appear alongside the initial assistant message.               | If no prompts are specified, then no prompts are shown. |
-| `initialMessageText`             | `string?`   | The text content of an initial assistant message at the top of the message feed.               | If no text is specified, then no message is shown.      |
-| `showDisclaimer`                 | `boolean?`  | Controls whether or not to show a disclaimer about AI content above the message feed.          | `false`                                                 |
+| Prop                             | Type          | Description                                                                                    | Default                                                 |
+| -------------------------------- | ------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `darkMode`                       | `boolean?`    | If `true`, this renders in dark mode. This overrides any theme or provider `darkMode` setting. | The user's OS preference or theme value of `darkMode`.  |
+| `initialMessageSuggestedPrompts` | `string[]?`   | A list of suggested prompts that appear alongside the initial assistant message.               | If no prompts are specified, then no prompts are shown. |
+| `initialMessageText`             | `string?`     | The text content of an initial assistant message at the top of the message feed.               | If no text is specified, then no message is shown.      |
+| `disclaimer`                     | `ReactNode?`  | A disclaimer message shown before user interaction. Can include terms of service, etc.         |                                                         |

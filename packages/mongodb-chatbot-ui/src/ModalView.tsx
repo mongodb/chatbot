@@ -91,6 +91,7 @@ export function ModalView(props: ModalViewProps) {
     initialMessageText,
     initialMessageSuggestedPrompts,
     disclaimer,
+    windowTitle,
   } = props;
 
   const {
@@ -102,6 +103,7 @@ export function ModalView(props: ModalViewProps) {
     inputBarRef,
     inputText,
     inputTextError,
+    isExperimental,
     maxInputCharacters,
     open,
     setInputText,
@@ -154,8 +156,8 @@ export function ModalView(props: ModalViewProps) {
       <LeafyGreenChatProvider>
         <ChatWindow
           className={styles.chat_window}
-          badgeText="Experimental"
-          title={chatbotName ?? "MongoDB AI"}
+          badgeText={isExperimental ? "Experimental" : undefined}
+          title={windowTitle ?? chatbotName ?? ""}
           darkMode={darkMode}
         >
           {!isEmptyConversation ? (
@@ -227,7 +229,7 @@ export function ModalView(props: ModalViewProps) {
                     onChange: (e) => {
                       setInputText(e.target.value);
                     },
-                    placeholder: inputPlaceholder
+                    placeholder: inputPlaceholder,
                   }}
                 />
 
@@ -237,17 +239,19 @@ export function ModalView(props: ModalViewProps) {
                     justify-content: space-between;
                   `}
                 >
-                  <Body baseFontSize={13} className={styles.verify_information}>
-                    This is an experimental generative AI chatbot. All
-                    information should be verified prior to use.
-                  </Body>
-                  {!maxInputCharacters ? null : (
+                  {isExperimental ? (
+                    <Body baseFontSize={13} className={styles.verify_information}>
+                      This is an experimental generative AI chatbot. All
+                      information should be verified prior to use.
+                    </Body>
+                  ) : null}
+                  {maxInputCharacters ? (
                     <CharacterCount
                       darkMode={darkMode}
                       current={inputText.length}
                       max={maxInputCharacters}
                     />
-                  )}
+                  ) : null}
                 </div>
               </>
             ) : null}

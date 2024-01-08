@@ -2,7 +2,12 @@ import { css } from "@emotion/css";
 import { DarkModeProps } from "./DarkMode";
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { Body, Error as ErrorText, Link } from "@leafygreen-ui/typography";
-import { InputBar, MongoDbInputBarPlaceholder, SuggestedPrompt, SuggestedPrompts } from "./InputBar";
+import {
+  InputBar,
+  MongoDbInputBarPlaceholder,
+  SuggestedPrompt,
+  SuggestedPrompts,
+} from "./InputBar";
 import { useLinkData } from "./useLinkData";
 import { addQueryParams } from "./utils";
 import { useState } from "react";
@@ -56,6 +61,7 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
     inputText,
     setInputText,
     inputTextError,
+    isExperimental,
   } = useChatbotContext();
 
   const [focused, setFocused] = useState(false);
@@ -68,6 +74,12 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
     conversation.messages.length === 0 &&
     !awaitingReply;
   const inputPlaceholder = props.placeholder ?? MongoDbInputBarPlaceholder();
+  const badgeText =
+    focused || inputText.length > 0
+      ? undefined
+      : isExperimental
+      ? "Experimental"
+      : undefined;
 
   return (
     <div className={styles.chatbot_container}>
@@ -76,9 +88,7 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
           key={"inputBarTrigger"}
           darkMode={darkMode}
           hasError={hasError ?? false}
-          badgeText={
-            focused || inputText.length > 0 ? undefined : "Experimental"
-          }
+          badgeText={badgeText}
           dropdownProps={{
             usePortal: false,
           }}

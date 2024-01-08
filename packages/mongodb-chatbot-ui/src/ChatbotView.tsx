@@ -5,4 +5,5 @@ export type ChatbotViewProps = DarkModeProps & {
   initialMessageSuggestedPrompts?: string[];
   initialMessageText?: string;
   inputBarPlaceholder?: string;
+  windowTitle?: string;
 };

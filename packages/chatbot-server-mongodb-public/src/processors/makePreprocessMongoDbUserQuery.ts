@@ -127,7 +127,6 @@ export function makePreprocessMongoDbUserQuery({
     const data: ContentSearchResponse = JSON.parse(
       result.functionCall.arguments
     );
-    console.log(data);
 
     return {
       ...data,

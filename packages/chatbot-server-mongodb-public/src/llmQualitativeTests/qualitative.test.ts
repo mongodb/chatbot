@@ -3,6 +3,7 @@ import { makeTestApp } from "../test/testHelpers";
 import {
   AppConfig,
   ConversationsService,
+  Db,
   MongoClient,
 } from "mongodb-chatbot-server";
 import { generateTranscript } from "./generateChatTranscript";
@@ -14,22 +15,23 @@ const testCases = getTestCasesFromYaml("testCases.yaml").filter(
   (testCase) => !testCase.skip
 );
 
-let mongodb: MongoClient;
+let mongoClient: MongoClient;
+let db: Db;
 let app: Express;
 let appConfig: AppConfig;
 let conversations: ConversationsService;
 let ipAddress: string;
 const addMessageEndpoint =
-  +"/conversations/:conversationId/messages?stream=false";
+  "/conversations/:conversationId/messages?stream=false";
 
 jest.setTimeout(30000);
 beforeAll(async () => {
-  ({ mongodb, app, appConfig, ipAddress } = await makeTestApp());
+  ({ mongoClient, db, app, appConfig, ipAddress } = await makeTestApp());
   conversations = appConfig.conversationsRouterConfig.conversations;
 });
 afterAll(async () => {
-  await mongodb?.db.dropDatabase();
-  await mongodb?.close();
+  await db.dropDatabase();
+  await mongoClient?.close();
 });
 
 describe("Edge Cases Qualitative Tests", () => {

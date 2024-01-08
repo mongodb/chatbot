@@ -9,6 +9,7 @@ import { ChatbotProvider } from "./ChatbotProvider";
 
 export type ChatbotProps = {
   darkMode?: boolean;
+  name?: string;
   tck?: string;
   serverBaseUrl?: string;
   shouldStream?: boolean;
@@ -22,6 +23,7 @@ export function Chatbot({
   serverBaseUrl,
   shouldStream,
   user,
+  name,
   ...props
 }: ChatbotProps) {
   const { darkMode } = useDarkMode(props.darkMode);
@@ -36,6 +38,7 @@ export function Chatbot({
   }
 
   const chatbotData = useChatbot({
+    chatbotName: name,
     serverBaseUrl,
     shouldStream,
     maxInputCharacters: props.maxInputCharacters ?? 300, // The server currently enforces a max of 300, so reflect that here

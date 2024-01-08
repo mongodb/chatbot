@@ -34,10 +34,10 @@ function App() {
   return (
     <div className={app_background(darkMode)}>
       <div className={styles.main_content}>
-        <Chatbot shouldStream={shouldStream} darkMode={darkMode}>
+        <Chatbot name="MongoDB AI" shouldStream={shouldStream} darkMode={darkMode}>
           <DocsChatbot suggestedPrompts={SUGGESTED_PROMPTS} />
         </Chatbot>
-        <Chatbot shouldStream={shouldStream} darkMode={darkMode}>
+        <Chatbot name="MongoDB AI" shouldStream={shouldStream} darkMode={darkMode}>
           <DevCenterChatbot
             initialMessageSuggestedPrompts={SUGGESTED_PROMPTS}
           />

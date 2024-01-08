@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useConversation } from "./useConversation";
 
 export type UseChatbotProps = {
+  chatbotName?: string;
   maxInputCharacters?: number;
   serverBaseUrl?: string;
   shouldStream?: boolean;
@@ -10,6 +11,7 @@ export type UseChatbotProps = {
 
 export type ChatbotData = {
   awaitingReply: boolean;
+  chatbotName?: string;
   closeChat: () => boolean;
   conversation: ReturnType<typeof useConversation>;
   handleSubmit: (text: string) => void | Promise<void>;
@@ -30,6 +32,7 @@ export function useChatbot(props: UseChatbotProps): ChatbotData {
   const [open, setOpen] = useState(false);
   const [awaitingReply, setAwaitingReply] = useState(false);
   const inputBarRef = useRef<HTMLFormElement>(null);
+  const chatbotName = props.chatbotName;
 
   async function openChat() {
     if (open) {
@@ -91,6 +94,7 @@ export function useChatbot(props: UseChatbotProps): ChatbotData {
 
   return {
     awaitingReply,
+    chatbotName,
     closeChat,
     conversation,
     handleSubmit,

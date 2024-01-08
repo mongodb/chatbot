@@ -8,6 +8,7 @@ import {
 import { forwardRef } from "react";
 export { SuggestedPrompts, SuggestedPrompt } from "@lg-chat/input-bar";
 import { type StylesProps } from "./utils";
+import { useChatbotContext } from "./useChatbotContext";
 
 const styles = {
   chatbot_input_error_border: css`
@@ -79,4 +80,19 @@ export function CharacterCount({
       {`${current} / ${max}`}
     </Body>
   );
+}
+
+export function MongoDbInputBarPlaceholder() {
+  const { awaitingReply, chatbotName, conversation } = useChatbotContext();
+  if (conversation.error) {
+    return "Something went wrong. Try reloading the page and starting a new conversation.";
+  }
+  if (awaitingReply) {
+    return chatbotName
+      ? `${chatbotName} is answering...`
+      : "Answering..."
+  }
+  return chatbotName
+    ? `Ask ${chatbotName} a Question`
+    : "Ask a Question";
 }

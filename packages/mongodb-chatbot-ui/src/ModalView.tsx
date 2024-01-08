@@ -9,7 +9,7 @@ import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
 import { MessageFeed } from "@lg-chat/message-feed";
 import { useMemo } from "react";
 import { ErrorBanner } from "./Banner";
-import { CharacterCount, InputBar } from "./InputBar";
+import { CharacterCount, InputBar, MongoDbInputBarPlaceholder } from "./InputBar";
 import { Message } from "./Message";
 import { MessageData } from "./services/conversations";
 import { Conversation } from "./useConversation";
@@ -95,6 +95,7 @@ export function ModalView(props: ModalViewProps) {
 
   const {
     awaitingReply,
+    chatbotName,
     closeChat,
     conversation,
     handleSubmit,
@@ -139,6 +140,9 @@ export function ModalView(props: ModalViewProps) {
     }
   };
 
+  const inputPlaceholder =
+    props.inputBarPlaceholder ?? MongoDbInputBarPlaceholder();
+
   return (
     <Modal
       className={styles.modal_container({ darkMode })}
@@ -151,7 +155,7 @@ export function ModalView(props: ModalViewProps) {
         <ChatWindow
           className={styles.chat_window}
           badgeText="Experimental"
-          title="MongoDB AI"
+          title={chatbotName ?? "MongoDB AI"}
           darkMode={darkMode}
         >
           {!isEmptyConversation ? (
@@ -223,11 +227,7 @@ export function ModalView(props: ModalViewProps) {
                     onChange: (e) => {
                       setInputText(e.target.value);
                     },
-                    placeholder: conversation.error
-                      ? "Something went wrong. Try reloading the page and starting a new conversation."
-                      : awaitingReply
-                      ? "MongoDB AI is answering..."
-                      : "Ask MongoDB AI a Question",
+                    placeholder: inputPlaceholder
                   }}
                 />
 

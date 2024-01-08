@@ -2,7 +2,7 @@ import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { DarkModeProps } from "./DarkMode";
 import { InputBarTrigger, InputBarTriggerProps } from "./InputBarTrigger";
 import { ModalView, ModalViewProps } from "./ModalView";
-import { MongoDbLegalDisclosure } from ".";
+import { MongoDbLegalDisclosure } from "./MongoDbLegal";
 
 export type DocsChatbotProps = DarkModeProps & {
   suggestedPrompts?: string[];

@@ -1,9 +1,8 @@
 import { css } from "@emotion/css";
-import { MongoDbLegalDisclosure } from "./MongoDbLegal";
 import { DarkModeProps } from "./DarkMode";
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { Body, Error as ErrorText, Link } from "@leafygreen-ui/typography";
-import { InputBar, SuggestedPrompt, SuggestedPrompts } from "./InputBar";
+import { InputBar, MongoDbInputBarPlaceholder, SuggestedPrompt, SuggestedPrompts } from "./InputBar";
 import { useLinkData } from "./useLinkData";
 import { addQueryParams } from "./utils";
 import { useState } from "react";
@@ -43,6 +42,7 @@ const styles = {
 export type InputBarTriggerProps = DarkModeProps & {
   disclaimer?: React.ReactNode;
   suggestedPrompts?: string[];
+  placeholder?: string;
 };
 
 export function InputBarTrigger(props: InputBarTriggerProps) {
@@ -67,11 +67,7 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
     inputText.length === 0 &&
     conversation.messages.length === 0 &&
     !awaitingReply;
-  const inputPlaceholder = conversation.error
-    ? "Something went wrong. Try reloading the page and starting a new conversation."
-    : awaitingReply
-    ? "MongoDB AI is answering..."
-    : "Ask MongoDB AI a Question";
+  const inputPlaceholder = props.placeholder ?? MongoDbInputBarPlaceholder();
 
   return (
     <div className={styles.chatbot_container}>

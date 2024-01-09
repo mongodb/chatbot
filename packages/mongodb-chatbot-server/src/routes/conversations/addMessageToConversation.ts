@@ -74,7 +74,6 @@ export function makeAddMessageToConversationRoute({
   generateUserPrompt,
   maxInputLengthCharacters = DEFAULT_MAX_INPUT_LENGTH,
   maxUserMessagesInConversation = DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION,
-  // TODO: use
   filterPreviousMessages = filterOnlySystemPrompt,
   addMessageToConversationCustomData,
 }: AddMessageToConversationRouteParams) {

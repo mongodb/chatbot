@@ -28,6 +28,8 @@ import {
   ConversationsRouterLocals,
 } from "./conversationsRouter";
 import { GenerateUserPromptFunc } from "../../processors/GenerateUserPromptFunc";
+import { FilterPreviousMessages } from "../../processors/FilterPreviousMessages";
+import { filterOnlySystemPrompt } from "../../processors/filterOnlySystemPrompt";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for max messages in a conversation
@@ -58,6 +60,7 @@ export interface AddMessageToConversationRouteParams {
   conversations: ConversationsService;
   llm: ChatLlm;
   generateUserPrompt?: GenerateUserPromptFunc;
+  filterPreviousMessages?: FilterPreviousMessages;
   dataStreamer: DataStreamer;
   maxInputLengthCharacters?: number;
   maxUserMessagesInConversation?: number;
@@ -71,6 +74,7 @@ export function makeAddMessageToConversationRoute({
   generateUserPrompt,
   maxInputLengthCharacters = DEFAULT_MAX_INPUT_LENGTH,
   maxUserMessagesInConversation = DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION,
+  filterPreviousMessages = filterOnlySystemPrompt,
   addMessageToConversationCustomData,
 }: AddMessageToConversationRouteParams) {
   return async (
@@ -173,7 +177,9 @@ export function makeAddMessageToConversationRoute({
         });
       } else {
         const llmConversation = [
-          ...conversation.messages.map(convertConversationMessageToLlmMessage),
+          ...(await filterPreviousMessages(conversation)).map(
+            convertConversationMessageToLlmMessage
+          ),
           ...newMessages.map((m) => {
             // Use transformed content if it exists for user message,
             // otherwise use original content.

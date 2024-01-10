@@ -83,10 +83,7 @@ export function CharacterCount({
 }
 
 export function MongoDbInputBarPlaceholder() {
-  const { awaitingReply, chatbotName, conversation } = useChatbotContext();
-  if (conversation.error) {
-    return "Something went wrong. Try reloading the page and starting a new conversation.";
-  }
+  const { awaitingReply, chatbotName } = useChatbotContext();
   if (awaitingReply) {
     return chatbotName
       ? `${chatbotName} is answering...`
@@ -96,3 +93,5 @@ export function MongoDbInputBarPlaceholder() {
     ? `Ask ${chatbotName} a Question`
     : "Ask a Question";
 }
+
+export const MongoDbChatbotFatalErrorMessage = "Something went wrong. Try reloading the page and starting a new conversation."

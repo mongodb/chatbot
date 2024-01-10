@@ -9,7 +9,12 @@ import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
 import { MessageFeed } from "@lg-chat/message-feed";
 import { useMemo } from "react";
 import { ErrorBanner } from "./Banner";
-import { CharacterCount, InputBar, MongoDbInputBarPlaceholder } from "./InputBar";
+import {
+  CharacterCount,
+  InputBar,
+  MongoDbChatbotFatalErrorMessage,
+  MongoDbInputBarPlaceholder,
+} from "./InputBar";
 import { Message } from "./Message";
 import { MessageData } from "./services/conversations";
 import { Conversation } from "./useConversation";
@@ -90,6 +95,7 @@ export function ModalView(props: ModalViewProps) {
   const {
     disclaimer,
     disclaimerHeading,
+    fatalErrorMessage = MongoDbChatbotFatalErrorMessage,
     initialMessageText,
     initialMessageSuggestedPrompts,
     inputBottomText,
@@ -144,8 +150,9 @@ export function ModalView(props: ModalViewProps) {
     }
   };
 
-  const inputPlaceholder =
-    props.inputBarPlaceholder ?? MongoDbInputBarPlaceholder();
+  const inputPlaceholder = conversation.error
+    ? fatalErrorMessage
+    : props.inputBarPlaceholder ?? MongoDbInputBarPlaceholder();
 
   return (
     <Modal

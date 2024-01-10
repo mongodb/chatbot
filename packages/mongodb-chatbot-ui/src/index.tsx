@@ -11,7 +11,10 @@ export {
 } from "./useConversation.tsx";
 export { useChatbot } from "./useChatbot.tsx";
 export { useChatbotContext } from "./useChatbotContext.tsx";
-export { MongoDbInputBarPlaceholder } from "./InputBar.tsx";
+export {
+  MongoDbInputBarPlaceholder,
+  MongoDbChatbotFatalErrorMessage,
+} from "./InputBar.tsx";
 export {
   InputBarTrigger,
   type InputBarTriggerProps,

@@ -4,6 +4,7 @@ import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { Body, Error as ErrorText, Link } from "@leafygreen-ui/typography";
 import {
   InputBar,
+  MongoDbChatbotFatalErrorMessage,
   MongoDbInputBarPlaceholder,
   SuggestedPrompt,
   SuggestedPrompts,
@@ -46,13 +47,14 @@ const styles = {
 
 export type InputBarTriggerProps = DarkModeProps & {
   bottomContent?: React.ReactNode;
-  suggestedPrompts?: string[];
+  fatalErrorMessage?: string;
   placeholder?: string;
+  suggestedPrompts?: string[];
 };
 
 export function InputBarTrigger(props: InputBarTriggerProps) {
   const { darkMode } = useDarkMode(props.darkMode);
-  const { suggestedPrompts = [], bottomContent } = props;
+  const { suggestedPrompts = [], bottomContent, fatalErrorMessage = MongoDbChatbotFatalErrorMessage } = props;
   const {
     openChat,
     awaitingReply,
@@ -73,13 +75,15 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
     inputText.length === 0 &&
     conversation.messages.length === 0 &&
     !awaitingReply;
-  const inputPlaceholder = props.placeholder ?? MongoDbInputBarPlaceholder();
   const badgeText =
     focused || inputText.length > 0
       ? undefined
       : isExperimental
       ? "Experimental"
       : undefined;
+  const inputPlaceholder = conversation.error
+    ? fatalErrorMessage
+    : props.placeholder ?? MongoDbInputBarPlaceholder();
 
   return (
     <div className={styles.chatbot_container}>

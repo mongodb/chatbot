@@ -1,5 +1,7 @@
 ---
 title: Home
+description: Build full-stack intelligent chatbot applications using MongoDB
+and Atlas Vector Search.
 ---
 
 # MongoDB Chatbot Framework

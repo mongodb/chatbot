@@ -60,6 +60,47 @@ refer to [this documentation](https://www.npmjs.com/package/@azure/openai#using-
 
 :::
 
+## Manage Previous Messages Sent to the LLM
+
+The MongoDB Chatbot Server always sends the **current** user message to the LLM.
+
+You can also manage which **previous** messages in a conversation the MongoDB Chatbot Server sends to the LLM on each user message.
+You might want to do this to allow for appropriate context to be sent to the LLM
+without exceeding the maximum number of tokens in the LLM's context window.
+
+You do this at the `ConversationRouter` level with the [`ConversationsRouterParams.filterPreviousMessages`](../reference/server/interfaces/ConversationsRouterParams.md#filterpreviousmessages) property.
+The `filterPreviousMessages` property accepts a [`FilterPreviousMessages`](../reference/server/modules.md#filterpreviousmessages) function.
+
+By default, the MongoDB Chatbot Server only send the initial system prompt
+and the user's current message to the LLM. You can change this behavior by
+implementing your own `FilterPreviousMessages` function.
+
+The MongoDB Chatbot Server package also comes with a [`makeFilterNPreviousMessages`](../reference/server/modules.md#makefilternpreviousmessages)
+constructor function. `makeFilterNPreviousMessages`
+creates a `FilterPreviousMessages` function that returns the previous `n` messages
+plus the initial system prompt.
+
+The following is an example implementation of `makeFilterNPreviousMessages()`:
+
+```ts
+import {
+  makeFilterNPreviousMessages,
+  ConversationsRouterParams,
+  AppConfig,
+} from "mongodb-chatbot-server";
+
+const filter10PreviousMessages = makeFilterNPreviousMessages(10);
+
+const conversationsRouterConfig: ConversationsRouterParams = {
+  filterPreviousMessages: filter10PreviousMessages,
+  ...otherConfig,
+};
+const appConfig: AppConfig = {
+  conversationsRouterConfig,
+  ...otherConfig,
+};
+```
+
 ## Prompt Engineering
 
 Prompt engineering is the process of directing the output of a language model

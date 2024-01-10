@@ -1,7 +1,9 @@
 import dbscan from "@cdxoo/dbscan";
 import { strict as assert } from "assert";
 
-// Based on https://www.npmjs.com/package/@cdxoo/dbscan
+/**
+  Based on https://www.npmjs.com/package/@cdxoo/dbscan
+ */
 export type DbscanOptions = {
   /**
     Maximum distance between datapoints. Determine if a datapoint is in a

@@ -1,11 +1,10 @@
 import { strict as assert } from "assert";
 
 /**
-  Finds the barycenter (center of mass) of a set of equally-weighted
-  n-dimensional vectors.
+  Finds the centroid (mean) of a set of n-dimensional vectors.
  */
-export const barycenter = (vectors: number[][]) => {
-  assert(vectors.length > 0, "Cannot find barycenter of 0 vectors!");
+export const findCentroid = (vectors: number[][]) => {
+  assert(vectors.length > 0, "Cannot find centroid of 0 vectors!");
   assert(
     vectors.find((vector) => vectors[0].length !== vector.length) === undefined,
     "Vector dimensionality mismatch!"

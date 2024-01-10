@@ -1,16 +1,16 @@
-import { barycenter } from "./barycenter";
+import { findCentroid } from "./findCentroid";
 
-describe("barycenter", () => {
-  it("finds barycenter of n-dimensional vectors", () => {
+describe("findCentroid", () => {
+  it("finds centroid (mean) of M n-dimensional vectors", () => {
     expect(
-      barycenter([
+      findCentroid([
         [0, 0],
         [1, 1],
       ])
     ).toStrictEqual([0.5, 0.5]);
 
     expect(
-      barycenter([
+      findCentroid([
         [4, 0, 0],
         [0, 4, 4],
         [4, 0, 4],
@@ -19,7 +19,7 @@ describe("barycenter", () => {
     ).toStrictEqual([2, 1, 3]);
 
     expect(
-      barycenter([
+      findCentroid([
         [1, 1, 1],
         [1, 1, 1],
         [1, 1, 1],
@@ -29,13 +29,13 @@ describe("barycenter", () => {
 
   it("rejects mixed-dimensional vectors", () => {
     expect(() => {
-      barycenter([[1], [1, 1]]);
+      findCentroid([[1], [1, 1]]);
     }).toThrow();
   });
 
   it("rejects empty vector set", () => {
     expect(() => {
-      barycenter([]);
+      findCentroid([]);
     }).toThrow();
   });
 });

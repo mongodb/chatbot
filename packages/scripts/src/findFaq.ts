@@ -8,7 +8,7 @@ import {
   FunctionMessage,
 } from "mongodb-chatbot-server";
 import { clusterize, DbscanOptions } from "./clusterize";
-import { barycenter } from "./barycenter";
+import { findCentroid } from "./findCentroid";
 
 export type QuestionAndResponses = {
   embedding: number[];
@@ -126,7 +126,7 @@ export const findFaq = async ({
     .map((cluster) => {
       const embeddings = cluster.map(({ embedding }) => embedding);
       return {
-        embedding: barycenter(embeddings),
+        embedding: findCentroid(embeddings),
         embeddings,
         questions: cluster.map(({ question }) => question),
         responses: cluster.map(({ responses }) => responses),

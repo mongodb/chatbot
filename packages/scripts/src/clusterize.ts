@@ -63,7 +63,7 @@ export const distanceSquared = (a: number[], b: number[]) => {
     a.length === b.length,
     "Unexpected inconsistent dimensionality in distanceFunction"
   );
-  // Pythagoras: the square of the hypotenuse is equal to the sum of the squares
-  // of the other sides
+  // Pythagorean theorem: the square of the hypotenuse is equal to the sum of
+  // the squares of the other sides
   return a.reduce((acc, cur, i) => acc + Math.pow(b[i] - cur, 2), 0);
 };

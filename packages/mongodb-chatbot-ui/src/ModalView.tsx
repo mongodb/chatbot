@@ -88,9 +88,11 @@ export type ModalViewProps = ChatbotViewProps & {
 export function ModalView(props: ModalViewProps) {
   const { darkMode } = useDarkMode(props.darkMode);
   const {
+    disclaimer,
+    disclaimerHeading,
     initialMessageText,
     initialMessageSuggestedPrompts,
-    disclaimer,
+    inputBottomText,
     windowTitle,
   } = props;
 
@@ -164,7 +166,7 @@ export function ModalView(props: ModalViewProps) {
             <MessageFeed darkMode={darkMode} className={styles.message_feed}>
               {disclaimer ? (
                 <DisclaimerText
-                  title="Terms and Policy"
+                  title={disclaimerHeading ?? "Terms of Use"}
                   className={styles.disclaimer_text}
                 >
                   {disclaimer}
@@ -239,10 +241,12 @@ export function ModalView(props: ModalViewProps) {
                     justify-content: space-between;
                   `}
                 >
-                  {isExperimental ? (
-                    <Body baseFontSize={13} className={styles.verify_information}>
-                      This is an experimental generative AI chatbot. All
-                      information should be verified prior to use.
+                  {inputBottomText ? (
+                    <Body
+                      baseFontSize={13}
+                      className={styles.verify_information}
+                    >
+                      {inputBottomText}
                     </Body>
                   ) : null}
                   {maxInputCharacters ? (

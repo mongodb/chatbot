@@ -90,8 +90,8 @@ The `<InputBarTrigger />` component opens the `<ModalView />` when the user send
 
 | Prop               | Type         | Description                                                                                    | Default                                                    |
 | ------------------ | ------------ | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `bottomContent`    | `ReactNode?` | Content that appears immediately below the input bar, e.g. for a terms of use disclaimer.      | If not specified, no content is shown.                     |
 | `darkMode`         | `boolean?`   | If `true`, this renders in dark mode. This overrides any theme or provider `darkMode` setting. | The user's OS preference or theme value of `darkMode`.     |
-| `disclaimer`       | `ReactNode?` | A disclaimer message shown before user interaction. Can include terms of service, etc.         | If not specified, no disclaimer is shown.                  |
 | `suggestedPrompts` | `string[]?`  | A list of suggested prompts that appear in the input bar dropdown menu.                        | If no prompts are specified, the dropdown is not shown.    |
 | `placeholder`      | `string?`    | The placeholder text shown when the input bar is empty.                                        | If not specified, the input bar uses default placeholders. |
 
@@ -102,8 +102,10 @@ The `<ModalView />` component renders a chat message feed in a modal window. It 
 | Prop                             | Type          | Description                                                                                    | Default                                                    |
 | -------------------------------- | ------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
 | `darkMode`                       | `boolean?`    | If `true`, this renders in dark mode. This overrides any theme or provider `darkMode` setting. | The user's OS preference or theme value of `darkMode`.     |
-| `disclaimer`                     | `ReactNode?`  | A disclaimer message shown before user interaction. Can include terms of service, etc.         | If not specified, no disclaimer is shown.                  |
+| `disclaimer`                     | `ReactNode?`  | A disclaimer message shown at the top of the message feed. Can include terms of service, etc.  | If not specified, no disclaimer is shown.                  |
+| `disclaimerHeading`              | `string?`     | A custom heading for the disclaimer at the top of the message feed.                            | "Terms of Use"                                             |
 | `initialMessageSuggestedPrompts` | `string[]?`   | A list of suggested prompts that appear alongside the initial assistant message.               | If no prompts are specified, then no prompts are shown.    |
 | `initialMessageText`             | `string?`     | The text content of an initial assistant message at the top of the message feed.               | If no text is specified, then no message is shown.         |
 | `inputBarPlaceholder`            | `string?`     | The placeholder text shown when the input bar is empty.                                        | If not specified, the input bar uses default placeholders. |
+| `inputBottomContent`             | `ReactNode?`  | Content that appears immediately below the input bar.                                          | If not specified, no bottom content is shown.              |
 | `windowTitle`                    | `string?`     | The text shown at the top of the chat window.                                                  | If not specified, the window has no title.                 |

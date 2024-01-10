@@ -45,14 +45,14 @@ const styles = {
 };
 
 export type InputBarTriggerProps = DarkModeProps & {
-  disclaimer?: React.ReactNode;
+  bottomContent?: React.ReactNode;
   suggestedPrompts?: string[];
   placeholder?: string;
 };
 
 export function InputBarTrigger(props: InputBarTriggerProps) {
   const { darkMode } = useDarkMode(props.darkMode);
-  const { suggestedPrompts = [], disclaimer } = props;
+  const { suggestedPrompts = [], bottomContent } = props;
   const {
     openChat,
     awaitingReply,
@@ -146,7 +146,7 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
 
         <div className={styles.info_box}>
           {showError ? <ErrorText>{inputTextError}</ErrorText> : null}
-          {disclaimer}
+          {bottomContent}
         </div>
       </div>
     </div>

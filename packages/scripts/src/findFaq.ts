@@ -6,21 +6,49 @@ import {
   SomeMessage,
   AssistantMessage,
   FunctionMessage,
+  UserMessage,
 } from "mongodb-chatbot-server";
 import { clusterize, DbscanOptions } from "./clusterize";
 import { findCentroid } from "./findCentroid";
 
+export type ResponseMessage = AssistantMessage | FunctionMessage;
+
 export type QuestionAndResponses = {
   embedding: number[];
-  question: string;
-  responses: (AssistantMessage | FunctionMessage)[];
+  question: UserMessage;
+  responses: ResponseMessage[];
 };
 
 export type FaqEntry = {
+  /**
+    An arbitrarily-selected representative question from the questions array.
+   */
+  question: string;
+
+  /**
+    The centroid (mean) of all of the question embeddings in the cluster.
+   */
   embedding: number[];
+
+  /**
+    The original question embeddings.
+   */
   embeddings: number[][];
-  questions: string[];
-  responses: (AssistantMessage | FunctionMessage)[][];
+
+  /**
+    The original question user messages.
+   */
+  questions: UserMessage[];
+
+  /**
+    The original response(s) to the user message.
+   */
+  responses: ResponseMessage[][];
+
+  /**
+    The relative frequency of this question, which is determined by cluster size
+    (a cluster with more objects in it is a more frequently asked question).
+   */
   faqScore: number;
 };
 
@@ -87,7 +115,7 @@ export const findFaq = async ({
           addQuestionToList(currentQuestion);
           currentQuestion = undefined;
 
-          const { embedding, content: question } = message;
+          const { embedding } = message;
           if (embedding === undefined) {
             // Earlier versions did not store user question embedding
             continue;
@@ -95,7 +123,7 @@ export const findFaq = async ({
 
           currentQuestion = {
             embedding,
-            question,
+            question: message,
             responses: [],
           };
         }
@@ -123,11 +151,12 @@ export const findFaq = async ({
   );
 
   const faqEntries = clusters
-    .map((cluster) => {
+    .map((cluster): FaqEntry => {
       const embeddings = cluster.map(({ embedding }) => embedding);
       return {
         embedding: findCentroid(embeddings),
         embeddings,
+        question: cluster[0].question.content,
         questions: cluster.map(({ question }) => question),
         responses: cluster.map(({ responses }) => responses),
         faqScore: cluster.length / (questions.length - noise.length),

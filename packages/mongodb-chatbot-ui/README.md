@@ -33,11 +33,11 @@ function MyApp() {
   ];
   return (
     <div>
-      <Chatbot>
+      <Chatbot name="MongoDB AI">
         <InputBarTrigger suggestedPrompts={suggestedPrompts} />
-        <FloatingActionButtonTrigger text="My MongoDB AI" />
+        <FloatingActionButtonTrigger text="Ask My Custom MongoDB AI" />
         <ModalView
-          initialMessageText="Welcome to MongoDB AI Assistant. What can I help you with?"
+          initialMessageText="Welcome to my custom MongoDB AI Assistant. What can I help you with?"
           initialMessageSuggestedPrompts={suggestedPrompts}
         />
       </Chatbot>

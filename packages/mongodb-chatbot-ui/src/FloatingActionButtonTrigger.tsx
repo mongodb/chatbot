@@ -30,7 +30,7 @@ export function FloatingActionButtonTrigger(
 ) {
   const { darkMode } = useDarkMode(props.darkMode);
   const { chatbotName, openChat } = useChatbotContext();
-  const text = props.text ?? `Ask ${chatbotName}`;
+  const text = props.text ?? `Ask ${chatbotName ?? "The Chatbot"}`;
 
   return (
     <ChatTrigger

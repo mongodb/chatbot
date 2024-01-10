@@ -141,7 +141,7 @@ export const findFaq = async ({
   addQuestionToList(currentQuestion);
   currentQuestion = undefined;
 
-  const { clusters, noise } = clusterize(
+  const { clusters } = clusterize(
     questions,
     (q) => {
       assert(q.embedding);
@@ -159,7 +159,7 @@ export const findFaq = async ({
         question: cluster[0].question.content,
         questions: cluster.map(({ question }) => question),
         responses: cluster.map(({ responses }) => responses),
-        faqScore: cluster.length / (questions.length - noise.length),
+        faqScore: cluster.length / questions.length,
       };
     })
     .sort((a, b) => b.faqScore - a.faqScore);

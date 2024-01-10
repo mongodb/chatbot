@@ -28,11 +28,29 @@ const defaultDbscanOptions: DbscanOptions = {
   minimumPoints: 2,
 };
 
+/**
+  Groups arbitrary data into clusters.
+  @param dataset The collection of instances to group into clusters.
+  @param getVector A function that, given an element of the dataset, returns the
+  spatial position of that element.
+  @param optionsIn Additional dbscan options.
+ */
 export const clusterize = <T>(
   dataset: T[],
   getVector: (x: T) => number[],
   optionsIn?: Partial<DbscanOptions>
-): { clusters: T[][]; noise: T[] } => {
+): {
+  /**
+    Each cluster is represented as an array of the instances that fell into that
+    cluster.
+   */
+  clusters: T[][];
+
+  /**
+    The "noise" array contains the instances that did not fall into any cluster.
+   */
+  noise: T[];
+} => {
   if (dataset.length === 0) {
     return { clusters: [], noise: [] };
   }

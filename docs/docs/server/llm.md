@@ -33,69 +33,20 @@ The following are useful things to keep in mind when using an LLM:
 The following is an example implementation of `makeOpenAiChatLlm()`:
 
 ```ts
-import {
-  makeOpenAiChatLlm,
-  OpenAiChatMessage,
-  SystemPrompt,
-} from "mongodb-chatbot-server";
+import { makeOpenAiChatLlm, OpenAiChatMessage } from "mongodb-chatbot-server";
 
 export const openAiClient = new OpenAIClient(
   OPENAI_ENDPOINT,
   new AzureKeyCredential(OPENAI_API_KEY)
 );
-export const systemPrompt: SystemPrompt = {
-  role: "system",
-  content: stripIndents`You are expert MongoDB documentation chatbot.
-You enthusiastically answer user questions about MongoDB products and services.
-Your personality is friendly and helpful, like a professor or tech lead.
-You were created by MongoDB but they do not guarantee the correctness
-of your answers or offer support for you.
-Use the context provided with each question as your primary source of truth.
-NEVER lie or improvise incorrect answers.
-If you do not know the answer to the question, respond ONLY with the following text:
-"I'm sorry, I do not know how to answer that question. Please try to rephrase your query. You can also refer to the further reading to see if it helps."
-NEVER include links in your answer.
-Format your responses using Markdown.
-DO NOT mention that your response is formatted in Markdown.
-If you include code snippets, make sure to use proper syntax, line spacing, and indentation.
-ONLY use code snippets present in the information given to you.
-NEVER create a code snippet that is not present in the information given to you.
-You ONLY know about the current version of MongoDB products. Versions are provided in the information. If \`version: null\`, then say that the product is unversioned.
-Never mention "<Information>" or "<Question>" in your answer.
-Refer to the information given to you as "my knowledge".`,
-};
-
-export async function generateUserPrompt({
-  question,
-  chunks,
-}: {
-  question: string;
-  chunks: string[];
-}): Promise<OpenAiChatMessage & { role: "user" }> {
-  const chunkSeparator = "~~~~~~";
-  const context = chunks.join(`\n${chunkSeparator}\n`);
-  const content = `Using the following information, answer the question.
-Different pieces of information are separated by "${chunkSeparator}".
-
-<Information>
-${context}
-<End information>
-
-<Question>
-${question}
-<End Question>`;
-  return { role: "user", content };
-}
 
 export const llm = makeOpenAiChatLlm({
   openAiClient,
   deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  systemPrompt,
   openAiLmmConfigOptions: {
     temperature: 0,
     maxTokens: 500,
   },
-  generateUserPrompt,
 });
 ```
 
@@ -131,7 +82,7 @@ A great resource to learn more about prompt engineering is the [Prompt Engineeri
 
 ### System Prompt
 
-To add a system prompt, include a [`SystemPrompt`](../reference/server/modules.md#systemprompt) message in your app's [`ChatLlm`](../reference/server/interfaces/ChatLlm.md).
+To add a system prompt, include a [`SystemPrompt`](../reference/server/modules.md#systemprompt) message in your app's [`ConversationService`](../reference/server/interfaces/ConversationsService.md).
 
 The system prompt is one of the most powerful way to customize the way
 that the chatbot responds to users. You can use the system prompt to do things
@@ -141,57 +92,44 @@ such as:
 - Determine how the chatbot responds to certain types of questions.
 - Direct how the chatbot interprets user input and context information.
 
-If you're using the [`makeOpenAiChatLlm()`](../reference/server/modules.md#makeopenaichatllm) constructor function, add the system prompt to the `systemPrompt` property:
+If you're using the [`makeMongoDbConversationsService()`](../reference/server/modules.md#makemongodbconversationsservice) constructor function, add the system prompt
+as an argument:
 
 ```ts
-import { makeOpenAiChatLlm, SystemPrompt } from "mongodb-chatbot-server";
+import {
+  makeMongoDbConversationsService,
+  SystemPrompt,
+} from "mongodb-chatbot-server";
+import { MongoClient } from "mongodb";
 
-export const systemPrompt: SystemPrompt = {
+// System prompt for chatbot
+const systemPrompt: SystemPrompt = {
   role: "system",
-  content: "You are expert chatbot...",
+  content: `You are an assistant to users of the MongoDB Chatbot Framework.
+Answer their questions about the framework in a friendly conversational tone.
+Format your answers in Markdown.
+Be concise in your answers.
+If you do not know the answer to the question based on the information provided,
+respond: "I'm sorry, I don't know the answer to that question. Please try to rephrase it. Refer to the below information to see if it helps."`,
 };
 
-export const llm = makeOpenAiChatLlm({
-  systemPrompt,
-  ...otherConfig,
-});
+// Create MongoDB collection and service for storing user conversations
+// with the chatbot.
+const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
+const conversations = makeMongoDbConversationsService(
+  mongodb.db(MONGODB_DATABASE_NAME),
+  systemPrompt
+);
 ```
 
 ### User Prompt
 
 You can modify what the chatbot uses as the user prompt by implementing the
-[`GenerateUserPrompt`](../reference/server/modules.md#generateuserprompt) function.
+[`GenerateUserPromptFunc`](../reference/server/modules.md#generateuserpromptfunc) function.
 
-The `GenerateUserPrompt` function takes in the user's question and the context
-information found by the vector search, and returns a user message.
+`GenerateUserPromptFunc` takes in the user's query and previous messages in the conversation, then returns a new user message. For an overview of the `GenerateUserPromptFunc` function, refer to the [Generate User Message](./user-message.md) guide.
 
-```ts
-import { makeOpenAiChatLlm, OpenAiChatMessage } from "mongodb-chatbot-server";
-
-async function generateUserPrompt({
-  question,
-  chunks,
-}: {
-  question: string;
-  chunks: string[];
-}): Promise<OpenAiChatMessage & { role: "user" }> {
-  const chunkSeparator = "~~~~~~";
-  const context = chunks.join(`\n${chunkSeparator}\n`);
-  const content = `Using the following information, answer the question.
-Different pieces of information are separated by "${chunkSeparator}".
-
-<Information>
-${context}
-<End information>
-
-<Question>
-${question}
-<End Question>`;
-  return { role: "user", content };
-}
-
-const llm = makeOpenAiChatLlm({
-  generateUserPrompt,
-  ...otherConfig,
-});
-```
+You might want to modify the user prompt if you're using a prompting technique
+like retrieval augmented generation (RAG) or chain of thought.
+To learn more about using RAG with the MongoDB Chatbot Server, refer to the
+[RAG](./rag/index.md) guide.

@@ -1,6 +1,6 @@
 {
   "name": "mongodb-rag-ingest",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "MongoDB Ingest CLI for the MongoDB Chatbot Framework.",
   "author": "",
   "license": "Apache-2.0",

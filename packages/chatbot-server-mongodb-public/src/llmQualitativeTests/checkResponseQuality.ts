@@ -1,7 +1,3 @@
-import fs from "fs";
-import path from "path";
-import { createAzureOpenAILanguageModel, createJsonTranslator } from "typechat";
-import { CheckQualityResult } from "./CheckQualityResult";
 import { stripIndents } from "common-tags";
 import {
   AzureKeyCredential,
@@ -20,7 +16,7 @@ export async function checkResponseQuality(
   received: string,
   expectedOutputDescription: string,
   azureOpenAiServiceConfig: AzureOpenAiServiceConfig
-): Promise<CheckQualityResult> {
+): Promise<CheckResponseQuality> {
   const { apiKey, baseUrl, deployment } = azureOpenAiServiceConfig;
 
   const openaiClient = new OpenAIClient(

@@ -12,8 +12,8 @@ import { ErrorBanner } from "./Banner";
 import {
   CharacterCount,
   InputBar,
-  MongoDbChatbotFatalErrorMessage,
   MongoDbInputBarPlaceholder,
+  defaultChatbotFatalErrorMessage,
 } from "./InputBar";
 import { Message } from "./Message";
 import { MessageData } from "./services/conversations";

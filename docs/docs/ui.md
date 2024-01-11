@@ -28,6 +28,7 @@ import Chatbot, {
   InputBarTrigger,
   ModalView,
   MongoDbLegalDisclosure,
+  mongoDbVerifyInformationMessage,
 } from "mongodb-chatbot-ui";
 
 function MyApp() {
@@ -38,9 +39,12 @@ function MyApp() {
   ];
   return (
     <div>
-      <Chatbot>
+      <Chatbot
+        name="MongoDB AI"
+        maxInputCharacters={300}
+      >
         <InputBarTrigger
-          disclaimer={<MongoDbLegalDisclosure />}
+          bottomContent={<MongoDbLegalDisclosure />}
           suggestedPrompts={suggestedPrompts}
         />
         <FloatingActionButtonTrigger text="Ask My MongoDB AI" />
@@ -48,6 +52,7 @@ function MyApp() {
           disclaimer={<MongoDbLegalDisclosure />}
           initialMessageText="Welcome to my MongoDB AI Assistant. What can I help you with?"
           initialMessageSuggestedPrompts={suggestedPrompts}
+          inputBottomText={mongoDbVerifyInformationMessage}
         />
       </Chatbot>
     </div>
@@ -100,14 +105,14 @@ The `<InputBarTrigger />` component opens the `<ModalView />` when the user send
 
 The `<ModalView />` component renders a chat message feed in a modal window. It accepts the following props:
 
-| Prop                             | Type          | Description                                                                                    | Default                                                                         |
-| -------------------------------- | ------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `darkMode`                       | `boolean?`    | If `true`, this renders in dark mode. This overrides any theme or provider `darkMode` setting. | The user's OS preference or theme value of `darkMode`.                          |
-| `disclaimer`                     | `ReactNode?`  | A disclaimer message shown at the top of the message feed. Can include terms of service, etc.  | If not specified, no disclaimer is shown.                                       |
-| `disclaimerHeading`              | `string?`     | A custom heading for the disclaimer at the top of the message feed.                            | "Terms of Use"                                                                  |
-| `fatalErrorMessage`              | `string?`     | A custom error message shown in the input bar when an unrecoverable error has occurred.        | "Something went wrong. Try reloading the page and starting a new conversation." |
-| `initialMessageSuggestedPrompts` | `string[]?`   | A list of suggested prompts that appear alongside the initial assistant message.               | If no prompts are specified, then no prompts are shown.                         |
-| `initialMessageText`             | `string?`     | The text content of an initial assistant message at the top of the message feed.               | If no text is specified, then no message is shown.                              |
-| `inputBarPlaceholder`            | `string?`     | The placeholder text shown when the input bar is empty.                                        | If not specified, the input bar uses default placeholders.                      |
-| `inputBottomText`                | `string?`     | Text that appears immediately below the input bar.                                             | If not specified, no bottom text is shown.                                      |
-| `windowTitle`                    | `string?`     | The text shown at the top of the chat window.                                                  | If not specified, the window has no title.                                      |
+| Prop                             | Type          | Description                                                                                    | Default                                                                                      |
+| -------------------------------- | ------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `darkMode`                       | `boolean?`    | If `true`, this renders in dark mode. This overrides any theme or provider `darkMode` setting. | The user's OS preference or theme value of `darkMode`.                                       |
+| `disclaimer`                     | `ReactNode?`  | A disclaimer message shown at the top of the message feed. Can include terms of service, etc.  | If not specified, no disclaimer is shown.                                                    |
+| `disclaimerHeading`              | `string?`     | A custom heading for the disclaimer at the top of the message feed.                            | "Terms of Use"                                                                               |
+| `fatalErrorMessage`              | `string?`     | A custom error message shown in the input bar when an unrecoverable error has occurred.        | "Something went wrong. Try reloading the page and starting a new conversation."              |
+| `initialMessageSuggestedPrompts` | `string[]?`   | A list of suggested prompts that appear alongside the initial assistant message.               | If no prompts are specified, then no prompts are shown.                                      |
+| `initialMessageText`             | `string?`     | The text content of an initial assistant message at the top of the message feed.               | If no text is specified, then no message is shown.                                           |
+| `inputBarPlaceholder`            | `string?`     | The placeholder text shown when the input bar is empty.                                        | If not specified, the input bar uses default placeholders.                                   |
+| `inputBottomText`                | `string?`     | Text that appears immediately below the input bar.                                             | If not specified, no bottom text is shown.                                                   |
+| `windowTitle`                    | `string?`     | The text shown at the top of the chat window.                                                  | If not specified, this is the `Chatbot.name`. If that's `undefined` the window has no title. |

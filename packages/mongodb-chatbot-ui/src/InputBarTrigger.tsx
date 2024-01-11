@@ -4,10 +4,10 @@ import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { Body, Error as ErrorText, Link } from "@leafygreen-ui/typography";
 import {
   InputBar,
-  MongoDbChatbotFatalErrorMessage,
   MongoDbInputBarPlaceholder,
   SuggestedPrompt,
   SuggestedPrompts,
+  defaultChatbotFatalErrorMessage,
 } from "./InputBar";
 import { useLinkData } from "./useLinkData";
 import { addQueryParams } from "./utils";

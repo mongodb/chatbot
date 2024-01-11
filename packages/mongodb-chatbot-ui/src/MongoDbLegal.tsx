@@ -34,4 +34,4 @@ export function MongoDbLegalDisclosure() {
   );
 }
 
-export const MongoDbVerifyInformationMessage = "This is an experimental generative AI chatbot. All information should be verified prior to use."
+export const mongoDbVerifyInformationMessage = "This is an experimental generative AI chatbot. All information should be verified prior to use."

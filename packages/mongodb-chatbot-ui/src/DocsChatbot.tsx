@@ -2,7 +2,10 @@ import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { DarkModeProps } from "./DarkMode";
 import { InputBarTrigger, InputBarTriggerProps } from "./InputBarTrigger";
 import { ModalView, ModalViewProps } from "./ModalView";
-import { MongoDbLegalDisclosure, MongoDbVerifyInformationMessage } from "./MongoDbLegal";
+import {
+  MongoDbLegalDisclosure,
+  mongoDbVerifyInformationMessage,
+} from "./MongoDbLegal";
 
 export type DocsChatbotProps = DarkModeProps & {
   suggestedPrompts?: string[];
@@ -18,7 +21,7 @@ export function DocsChatbot(props: DocsChatbotProps) {
 
   const viewProps = {
     darkMode,
-    inputBottomText: MongoDbVerifyInformationMessage,
+    inputBottomText: mongoDbVerifyInformationMessage,
   } satisfies ModalViewProps;
 
   return (

@@ -98,7 +98,7 @@ const analyzeMessages = async ({ db }: { db: Db }) => {
         embedding: 0,
       },
     },
-    { $sort: { conversationId: 1, createdAt: 1 } },
+    { $sort: { convoId: 1, createdAt: 1 } },
   ]);
 
   const analyze = await makeAnalyzer();

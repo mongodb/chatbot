@@ -28,7 +28,6 @@ export async function generateTranscript({
       conversationId,
       message,
     });
-    break;
   }
   const endpointWithId = endpoint.replace(
     ":conversationId",

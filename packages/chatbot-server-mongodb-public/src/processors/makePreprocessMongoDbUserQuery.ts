@@ -128,7 +128,6 @@ export function makePreprocessMongoDbUserQuery({
       result.functionCall.arguments
     );
     const processedQuery = addMetadataToQuery(data);
-    console.log("processed query::", processedQuery);
     return {
       ...data,
       query: processedQuery,

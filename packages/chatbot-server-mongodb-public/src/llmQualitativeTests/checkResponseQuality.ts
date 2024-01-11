@@ -34,9 +34,7 @@ export async function checkResponseQuality(
     schemaName
   );
 
-  const promptWrapper = stripIndents`You are an expert quality assurance tester.
-  You must evaluate if the final message from the ASSISTANT in the 'CONTENT' meets the expectation of the <Expected Output>.
-  Provide a reason why the answer doesn't meet the expectation if it doesn't.
+  const promptWrapper = stripIndents`
 
   <Content>
 
@@ -44,8 +42,9 @@ export async function checkResponseQuality(
 
   <End of content>
 
-  Evaluate if the final message from the ASSISTANT in the content meets this expectation:
+  <Expectation>
   ${expectedOutputDescription}
+  <End of expectation>
   `;
 
   const response = await translator.translate(promptWrapper);

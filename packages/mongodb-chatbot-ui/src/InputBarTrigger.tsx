@@ -54,7 +54,7 @@ export type InputBarTriggerProps = DarkModeProps & {
 
 export function InputBarTrigger(props: InputBarTriggerProps) {
   const { darkMode } = useDarkMode(props.darkMode);
-  const { suggestedPrompts = [], bottomContent, fatalErrorMessage = MongoDbChatbotFatalErrorMessage } = props;
+  const { suggestedPrompts = [], bottomContent, fatalErrorMessage = defaultChatbotFatalErrorMessage } = props;
   const {
     openChat,
     awaitingReply,

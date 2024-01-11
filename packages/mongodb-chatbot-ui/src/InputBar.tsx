@@ -94,4 +94,4 @@ export function MongoDbInputBarPlaceholder() {
     : "Ask a Question";
 }
 
-export const MongoDbChatbotFatalErrorMessage = "Something went wrong. Try reloading the page and starting a new conversation."
+export const defaultChatbotFatalErrorMessage = "Something went wrong. Try reloading the page and starting a new conversation."

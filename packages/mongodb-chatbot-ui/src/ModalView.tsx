@@ -95,7 +95,7 @@ export function ModalView(props: ModalViewProps) {
   const {
     disclaimer,
     disclaimerHeading,
-    fatalErrorMessage = MongoDbChatbotFatalErrorMessage,
+    fatalErrorMessage = defaultChatbotFatalErrorMessage,
     initialMessageText,
     initialMessageSuggestedPrompts,
     inputBottomText,

@@ -29,8 +29,8 @@ export function Chatbot({
 }: ChatbotProps) {
   const { darkMode } = useDarkMode(props.darkMode);
 
-  // The server currently uses a max of 300 input characters, so we'll default to that here
-  const maxInputCharacters = props.maxInputCharacters ?? 300;
+  const DEFAULT_MAX_INPUT_CHARACTERS = 300;
+  const maxInputCharacters = props.maxInputCharacters ?? DEFAULT_MAX_INPUT_CHARACTERS;
 
   const chatbotData = useChatbot({
     chatbotName: name,

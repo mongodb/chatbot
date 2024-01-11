@@ -56,10 +56,7 @@ export const boostManual = makeBoostOnAtlasSearchFilter({
   },
   findNearestNeighborsOptions: {
     filter: {
-      text: {
-        path: "sourceName",
-        query: "snooty-docs",
-      },
+      sourceName: "snooty-docs",
     },
     k: 2,
     minScore: 0.88,

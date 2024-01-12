@@ -29,8 +29,8 @@ export function FloatingActionButtonTrigger(
   props: FloatingActionButtonTriggerProps
 ) {
   const { darkMode } = useDarkMode(props.darkMode);
-  const { openChat } = useChatbotContext();
-  const text = props.text ?? "MongoDB AI";
+  const { chatbotName, openChat } = useChatbotContext();
+  const text = props.text ?? `Ask ${chatbotName ?? "the Chatbot"}`;
 
   return (
     <ChatTrigger

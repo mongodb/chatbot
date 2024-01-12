@@ -23,6 +23,7 @@ import {
   MakeUserMessageFunc,
   MakeUserMessageFuncParams,
   UserMessage,
+  makeFilterNPreviousMessages,
 } from "mongodb-chatbot-server";
 import { stripIndents } from "common-tags";
 import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
@@ -210,6 +211,8 @@ export const config: AppConfig = {
     llm,
     conversations,
     generateUserPrompt,
+    maxUserMessagesInConversation: 50,
+    filterPreviousMessages: makeFilterNPreviousMessages(12),
   },
   maxRequestTimeoutMs: 30000,
   corsOptions: {

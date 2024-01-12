@@ -1,10 +1,21 @@
 {
   "name": "mongodb-rag-core",
-  "version": "0.2.0",
-  "description": "Common elements used by the chatbot components.",
+  "version": "0.2.1",
+  "description": "Common elements used by MongoDB Chatbot Framework components.",
   "author": "MongoDB, Inc.",
   "license": "Apache-2.0",
-  "keywords": [],
+  "keywords": [
+    "retrieval-augmented-generation",
+    "rag",
+    "chatbot",
+    "mongodb",
+    "mongodb-chatbot-framework"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mongodb/chatbot.git"
+  },
+  "homepage": "https://mongodb.github.io/chatbot/",
   "engines": {
     "node": ">=18",
     "npm": ">=8"

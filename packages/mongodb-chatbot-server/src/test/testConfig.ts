@@ -21,6 +21,7 @@ import { makePreprocessMongoDbUserQuery } from "./testPreProcessor/makePreproces
 import {
   MakeUserMessageFunc,
   MakeUserMessageFuncParams,
+  makeFilterNPreviousMessages,
   makeRagGenerateUserPrompt,
 } from "../processors";
 import { makeDefaultFindContent } from "../processors/makeDefaultFindContent";
@@ -198,11 +199,14 @@ export function makeMongoDbReferences(chunks: EmbeddedContent[]) {
   });
 }
 
+export const filterPrevious12Messages = makeFilterNPreviousMessages(12);
+
 export const config: AppConfig = {
   conversationsRouterConfig: {
     llm,
     conversations,
     generateUserPrompt,
+    filterPreviousMessages: filterPrevious12Messages,
   },
   maxRequestTimeoutMs: 30000,
   corsOptions: {

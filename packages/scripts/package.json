@@ -10,11 +10,13 @@
     "scrubMessages": "npm run build && node ./build/scrubMessages.js",
     "sampleAndSaveMarkdownPages": "npm run build && node ./build/sampleAndSaveMarkdownPages.js",
     "analyzeMessages": "npm run build && node ./build/analyzeMessages.js",
+    "findFaq": "npm run build && node ./build/main/findFaqMain.js",
     "createView/messages_by_rating": "npm run build && node ./build/createView/messages_by_rating.js",
     "createView/top_250_references": "npm run build && node ./build/createView/top_250_references.js",
     "createView/scrubbed_messages_by_rating": "npm run build && node ./build/createView/scrubbed_messages_by_rating.js",
     "createView/scrubbed_top_250_references": "npm run build && node ./build/createView/scrubbed_top_250_references.js",
     "createView/scrubbed_topics": "npm run build && node ./build/createView/scrubbed_topics.js",
+    "test": "jest --forceExit",
     "build": "npm run clean && tsc -b",
     "postbuild": "cp ./src/MessageAnalysis.d.ts ./build/",
     "clean": "rm -rf ./build",
@@ -24,6 +26,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@cdxoo/dbscan": "^1.1.1",
     "@release-it/bumper": "^5.1.0",
     "csv": "^6.3.1",
     "dotenv": "^16.3.1",
@@ -34,6 +37,7 @@
   "devDependencies": {
     "@babel/preset-typescript": "^7",
     "@babel/types": "^7.22.5",
+    "@types/jest": "^29.5.2",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
     "eslint": "^8",
@@ -41,8 +45,10 @@
     "eslint-plugin-jsdoc": "^46.4.5",
     "eslint-plugin-prettier": "^4",
     "eslint-plugin-tsdoc": "^0.2.14",
+    "jest": "^29.5.0",
     "prettier": "^2",
     "release-it": "^16",
+    "ts-jest": "^29.1.0",
     "typescript": "^5"
   }
 }

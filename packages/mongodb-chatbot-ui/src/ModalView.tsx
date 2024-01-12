@@ -9,11 +9,14 @@ import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
 import { MessageFeed } from "@lg-chat/message-feed";
 import { useMemo } from "react";
 import { ErrorBanner } from "./Banner";
-import { CharacterCount, InputBar } from "./InputBar";
-import { LegalDisclosure } from "./LegalDisclosure";
+import {
+  CharacterCount,
+  InputBar,
+  MongoDbInputBarPlaceholder,
+} from "./InputBar";
 import { Message } from "./Message";
-import { MAX_INPUT_CHARACTERS } from "./constants";
 import { MessageData } from "./services/conversations";
+import { defaultChatbotFatalErrorMessage } from "./ui-text";
 import { Conversation } from "./useConversation";
 import { type StylesProps } from "./utils";
 import { type ChatbotViewProps } from "./ChatbotView";
@@ -89,16 +92,27 @@ export type ModalViewProps = ChatbotViewProps & {
 
 export function ModalView(props: ModalViewProps) {
   const { darkMode } = useDarkMode(props.darkMode);
-  const { initialMessageText, initialMessageSuggestedPrompts, showDisclaimer } =
-    props;
+  const {
+    disclaimer,
+    disclaimerHeading,
+    fatalErrorMessage = defaultChatbotFatalErrorMessage,
+    initialMessageText,
+    initialMessageSuggestedPrompts,
+    inputBottomText,
+    windowTitle,
+  } = props;
+
   const {
     awaitingReply,
+    chatbotName,
     closeChat,
     conversation,
     handleSubmit,
     inputBarRef,
     inputText,
     inputTextError,
+    isExperimental,
+    maxInputCharacters,
     open,
     setInputText,
   } = useChatbotContext();
@@ -136,6 +150,10 @@ export function ModalView(props: ModalViewProps) {
     }
   };
 
+  const inputPlaceholder = conversation.error
+    ? fatalErrorMessage
+    : props.inputBarPlaceholder ?? MongoDbInputBarPlaceholder();
+
   return (
     <Modal
       className={styles.modal_container({ darkMode })}
@@ -147,18 +165,18 @@ export function ModalView(props: ModalViewProps) {
       <LeafyGreenChatProvider>
         <ChatWindow
           className={styles.chat_window}
-          badgeText="Experimental"
-          title="MongoDB AI"
+          badgeText={isExperimental ? "Experimental" : undefined}
+          title={windowTitle ?? chatbotName ?? ""}
           darkMode={darkMode}
         >
           {!isEmptyConversation ? (
             <MessageFeed darkMode={darkMode} className={styles.message_feed}>
-              {showDisclaimer ? (
+              {disclaimer ? (
                 <DisclaimerText
-                  title="Terms and Policy"
+                  title={disclaimerHeading ?? "Terms of Use"}
                   className={styles.disclaimer_text}
                 >
-                  <LegalDisclosure />
+                  {disclaimer}
                 </DisclaimerText>
               ) : null}
               {messages.map((message, idx) => {
@@ -220,11 +238,7 @@ export function ModalView(props: ModalViewProps) {
                     onChange: (e) => {
                       setInputText(e.target.value);
                     },
-                    placeholder: conversation.error
-                      ? "Something went wrong. Try reloading the page and starting a new conversation."
-                      : awaitingReply
-                      ? "MongoDB AI is answering..."
-                      : "Ask MongoDB AI a Question",
+                    placeholder: inputPlaceholder,
                   }}
                 />
 
@@ -234,15 +248,21 @@ export function ModalView(props: ModalViewProps) {
                     justify-content: space-between;
                   `}
                 >
-                  <Body baseFontSize={13} className={styles.verify_information}>
-                    This is an experimental generative AI chatbot. All
-                    information should be verified prior to use.
-                  </Body>
-                  <CharacterCount
-                    darkMode={darkMode}
-                    current={inputText.length}
-                    max={MAX_INPUT_CHARACTERS}
-                  />
+                  {inputBottomText ? (
+                    <Body
+                      baseFontSize={13}
+                      className={styles.verify_information}
+                    >
+                      {inputBottomText}
+                    </Body>
+                  ) : null}
+                  {maxInputCharacters ? (
+                    <CharacterCount
+                      darkMode={darkMode}
+                      current={inputText.length}
+                      max={maxInputCharacters}
+                    />
+                  ) : null}
                 </div>
               </>
             ) : null}

@@ -8,12 +8,15 @@ import { type User } from "./useUser";
 import { ChatbotProvider } from "./ChatbotProvider";
 
 export type ChatbotProps = {
+  children: React.ReactElement | React.ReactElement[];
   darkMode?: boolean;
-  tck?: string;
+  isExperimental?: boolean;
+  maxInputCharacters?: number;
+  name?: string;
   serverBaseUrl?: string;
   shouldStream?: boolean;
+  tck?: string;
   user?: User;
-  children: React.ReactElement;
 };
 
 export function Chatbot({
@@ -21,13 +24,19 @@ export function Chatbot({
   serverBaseUrl,
   shouldStream,
   user,
+  name,
   ...props
 }: ChatbotProps) {
   const { darkMode } = useDarkMode(props.darkMode);
 
+  const DEFAULT_MAX_INPUT_CHARACTERS = 300;
+  const maxInputCharacters = props.maxInputCharacters ?? DEFAULT_MAX_INPUT_CHARACTERS;
+
   const chatbotData = useChatbot({
+    chatbotName: name,
     serverBaseUrl,
     shouldStream,
+    maxInputCharacters: maxInputCharacters,
   });
 
   const tck = props.tck ?? "mongodb_ai_chatbot";

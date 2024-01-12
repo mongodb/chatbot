@@ -11,6 +11,7 @@ export {
 } from "./useConversation.tsx";
 export { useChatbot } from "./useChatbot.tsx";
 export { useChatbotContext } from "./useChatbotContext.tsx";
+export { MongoDbInputBarPlaceholder } from "./InputBar.tsx";
 export {
   InputBarTrigger,
   type InputBarTriggerProps,
@@ -23,3 +24,8 @@ export { ModalView, type ModalViewProps } from "./ModalView.tsx";
 export { type ChatbotViewProps } from "./ChatbotView.tsx";
 export { type DarkModeProps } from "./DarkMode.ts";
 export { type Role, type MessageData } from "./services/conversations.ts";
+export { MongoDbLegalDisclosure } from "./MongoDbLegal.tsx";
+export {
+  mongoDbVerifyInformationMessage,
+  defaultChatbotFatalErrorMessage,
+} from "./ui-text.ts";

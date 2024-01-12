@@ -14,6 +14,13 @@ import { DevCenterChatbot } from "./DevCenterChatbot";
 const prefersDarkMode = () =>
   window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
 
+const SUGGESTED_PROMPTS = [
+  "How do you deploy a free cluster in Atlas?",
+  "How do you import or migrate data into MongoDB Atlas?",
+  "How do I get started with MongoDB?",
+  "Why should I use Atlas Search?",
+];
+
 function App() {
   const [shouldStream, setShouldStream] = useState(canUseServerSentEvents());
   const { contextDarkMode: darkMode = false, setDarkMode } =
@@ -27,11 +34,13 @@ function App() {
   return (
     <div className={app_background(darkMode)}>
       <div className={styles.main_content}>
-        <Chatbot shouldStream={shouldStream} darkMode={darkMode}>
-          <DocsChatbot />
+        <Chatbot name="MongoDB AI" shouldStream={shouldStream} darkMode={darkMode}>
+          <DocsChatbot suggestedPrompts={SUGGESTED_PROMPTS} />
         </Chatbot>
-        <Chatbot shouldStream={shouldStream} darkMode={darkMode}>
-          <DevCenterChatbot />
+        <Chatbot name="MongoDB AI" shouldStream={shouldStream} darkMode={darkMode}>
+          <DevCenterChatbot
+            initialMessageSuggestedPrompts={SUGGESTED_PROMPTS}
+          />
         </Chatbot>
       </div>
       <Controls>

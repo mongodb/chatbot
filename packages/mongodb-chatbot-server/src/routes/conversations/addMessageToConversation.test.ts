@@ -27,6 +27,7 @@ import {
   ConversationsService,
   Conversation,
   defaultConversationConstants,
+  Message,
 } from "../../services";
 const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
   assertEnvVars(CORE_ENV_VARS);
@@ -127,6 +128,39 @@ describe("POST /conversations/:conversationId/messages", () => {
     expect(userMessageWithCustomData?.customData).toStrictEqual({
       origin,
     });
+  });
+  test("uses previous message filter", async () => {
+    const mockMsg = {
+      role: "user",
+      // This corresponds to ~130 tokens
+      content:
+        "In a quaint village nestled among verdant hills, a whimsical inventor, Eleanor, toiled in her sun-dappled workshop. Every day, she crafted extraordinary gadgets, each more intricate than the last. One morning, as the village awoke to a chorus of songbirds, Eleanor unveiled her latest creation: a clockwork bird with iridescent feathers. This mechanical marvel could mimic any tune it heard. The villagers gathered, marveling as the bird sang melodies from distant lands. Meanwhile, beyond the rolling meadows, a curious fox watched, its amber eyes reflecting a world where nature and Eleanor's inventions coexisted in harmonious wonder.",
+      id: new ObjectId(),
+      createdAt: new Date(),
+    } satisfies Message;
+    // total tokens is > 500,000. Would cause any LLM to fail
+    const manyMessages = Array.from({ length: 5000 }, () => mockMsg);
+
+    const conversation = await conversations.create();
+    await conversations.addManyConversationMessages({
+      conversationId: conversation._id,
+      messages: manyMessages,
+    });
+    const conversationId = conversation._id.toString();
+    const testEndpointUrl = endpointUrl.replace(
+      ":conversationId",
+      conversationId
+    );
+    const requestBody: AddMessageRequestBody = {
+      message:
+        "how can i use mongodb realm to help me build my new mobile app?",
+    };
+    const res = await request(app)
+      .post(testEndpointUrl)
+      .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
+      .send(requestBody);
+    expect(res.statusCode).not.toEqual(500);
   });
 
   describe("Streamed response", () => {

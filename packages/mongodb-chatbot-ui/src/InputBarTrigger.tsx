@@ -1,14 +1,18 @@
 import { css } from "@emotion/css";
-import { LegalDisclosure } from "./LegalDisclosure";
 import { DarkModeProps } from "./DarkMode";
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { Body, Error as ErrorText, Link } from "@leafygreen-ui/typography";
-import { InputBar, SuggestedPrompt, SuggestedPrompts } from "./InputBar";
+import {
+  InputBar,
+  MongoDbInputBarPlaceholder,
+  SuggestedPrompt,
+  SuggestedPrompts,
+} from "./InputBar";
+import { defaultChatbotFatalErrorMessage } from "./ui-text";
 import { useLinkData } from "./useLinkData";
 import { addQueryParams } from "./utils";
 import { useState } from "react";
 import { useChatbotContext } from "./useChatbotContext";
-import { SUGGESTED_PROMPTS } from "./constants";
 
 const styles = {
   info_box: css`
@@ -42,12 +46,15 @@ const styles = {
 };
 
 export type InputBarTriggerProps = DarkModeProps & {
+  bottomContent?: React.ReactNode;
+  fatalErrorMessage?: string;
+  placeholder?: string;
   suggestedPrompts?: string[];
 };
 
 export function InputBarTrigger(props: InputBarTriggerProps) {
   const { darkMode } = useDarkMode(props.darkMode);
-  const { suggestedPrompts = SUGGESTED_PROMPTS } = props;
+  const { suggestedPrompts = [], bottomContent, fatalErrorMessage = defaultChatbotFatalErrorMessage } = props;
   const {
     openChat,
     awaitingReply,
@@ -56,6 +63,7 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
     inputText,
     setInputText,
     inputTextError,
+    isExperimental,
   } = useChatbotContext();
 
   const [focused, setFocused] = useState(false);
@@ -63,15 +71,19 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
   const hasError = inputTextError !== "";
   const showError = inputTextError !== "" && !open;
   const showSuggestedPrompts =
-    (suggestedPrompts ?? []).length > 0 &&
+    suggestedPrompts.length > 0 &&
     inputText.length === 0 &&
     conversation.messages.length === 0 &&
     !awaitingReply;
+  const badgeText =
+    focused || inputText.length > 0
+      ? undefined
+      : isExperimental
+      ? "Experimental"
+      : undefined;
   const inputPlaceholder = conversation.error
-    ? "Something went wrong. Try reloading the page and starting a new conversation."
-    : awaitingReply
-    ? "MongoDB AI is answering..."
-    : "Ask MongoDB AI a Question";
+    ? fatalErrorMessage
+    : props.placeholder ?? MongoDbInputBarPlaceholder();
 
   return (
     <div className={styles.chatbot_container}>
@@ -80,9 +92,7 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
           key={"inputBarTrigger"}
           darkMode={darkMode}
           hasError={hasError ?? false}
-          badgeText={
-            focused || inputText.length > 0 ? undefined : "Experimental"
-          }
+          badgeText={badgeText}
           dropdownProps={{
             usePortal: false,
           }}
@@ -140,7 +150,7 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
 
         <div className={styles.info_box}>
           {showError ? <ErrorText>{inputTextError}</ErrorText> : null}
-          <LegalDisclosure />
+          {bottomContent}
         </div>
       </div>
     </div>

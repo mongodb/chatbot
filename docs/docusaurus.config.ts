@@ -109,36 +109,31 @@ const config: Config = {
   ],
 
   themeConfig: {
-    // Replace with your project's social card
-    // TODO: add link to GH repo
     navbar: {
       title: "MongoDB Chatbot Framework",
       // logo: {
       //   alt: 'My Site Logo',
       //   src: 'img/logo.svg',
       // },
-      // items: [
-      //   {
-      //     type: 'docSidebar',
-      //     sidebarId: 'tutorialSidebar',
-      //     position: 'left',
-      //     label: 'Tutorial',
-      //   },
-      //   {to: '/blog', label: 'Blog', position: 'left'},
-      //   {
-      //     href: 'https://github.com/facebook/docusaurus',
-      //     label: 'GitHub',
-      //     position: 'right',
-      //   },
-      // ],
+      items: [
+        {
+          href: "https://github.com/mongodb/chatbot",
+          position: "right",
+          className: "header-github-link",
+          "aria-label": "GitHub repository",
+        },
+      ],
     },
-    // TODO: add links
     footer: {
       style: "dark",
       links: [
         {
           title: "Links",
           items: [
+            {
+              label: "Home",
+              to: "/",
+            },
             {
               label: "Quick Start",
               to: "/quick-start",
@@ -154,11 +149,6 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
-    },
-    announcementBar: {
-      content:
-        "⚠️ The MongoDB Chatbot Framework is under active development and may undergo breaking changes. ⚠️",
-      backgroundColor: "#FFF8E6",
     },
   } satisfies Preset.ThemeConfig,
 };

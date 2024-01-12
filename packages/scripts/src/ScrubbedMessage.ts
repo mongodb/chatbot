@@ -4,7 +4,7 @@ import { MessageAnalysis } from "MessageAnalysis";
 
 export type ScrubbedMessage = Omit<
   Message,
-  "content" | "originalUserContent" | "id"
+  "content" | "preprocessedContent" | "id"
 > & {
   /**
     The ID, which should match the ID of the original message within the

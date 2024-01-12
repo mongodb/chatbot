@@ -1,8 +1,10 @@
 import { useRef, useState } from "react";
-import { MAX_INPUT_CHARACTERS } from "./constants";
 import { useConversation } from "./useConversation";
 
 export type UseChatbotProps = {
+  chatbotName?: string;
+  isExperimental?: boolean;
+  maxInputCharacters?: number;
   serverBaseUrl?: string;
   shouldStream?: boolean;
   suggestedPrompts?: string[];
@@ -10,12 +12,15 @@ export type UseChatbotProps = {
 
 export type ChatbotData = {
   awaitingReply: boolean;
+  chatbotName?: string;
   closeChat: () => boolean;
   conversation: ReturnType<typeof useConversation>;
   handleSubmit: (text: string) => void | Promise<void>;
   inputBarRef: React.RefObject<HTMLFormElement>;
   inputText: string;
   inputTextError: string;
+  isExperimental: boolean;
+  maxInputCharacters?: number;
   open: boolean;
   openChat: () => void;
   setInputText: (text: string) => void;
@@ -29,6 +34,8 @@ export function useChatbot(props: UseChatbotProps): ChatbotData {
   const [open, setOpen] = useState(false);
   const [awaitingReply, setAwaitingReply] = useState(false);
   const inputBarRef = useRef<HTMLFormElement>(null);
+  const chatbotName = props.chatbotName;
+  const isExperimental = props.isExperimental ?? true;
 
   async function openChat() {
     if (open) {
@@ -52,12 +59,14 @@ export function useChatbot(props: UseChatbotProps): ChatbotData {
   const inputText = inputData.text;
   const inputTextError = inputData.error;
   function setInputText(text: string) {
-    const isValid = text.length <= MAX_INPUT_CHARACTERS;
+    const isValid = props.maxInputCharacters
+      ? text.length <= props.maxInputCharacters
+      : true;
     setInputData({
       text,
       error: isValid
         ? ""
-        : `Input must be less than ${MAX_INPUT_CHARACTERS} characters`,
+        : `Input must be less than ${props.maxInputCharacters} characters`,
     });
   }
 
@@ -88,12 +97,15 @@ export function useChatbot(props: UseChatbotProps): ChatbotData {
 
   return {
     awaitingReply,
+    chatbotName,
     closeChat,
     conversation,
     handleSubmit,
     inputBarRef,
     inputText,
     inputTextError,
+    isExperimental,
+    maxInputCharacters: props.maxInputCharacters,
     open,
     openChat,
     setInputText,

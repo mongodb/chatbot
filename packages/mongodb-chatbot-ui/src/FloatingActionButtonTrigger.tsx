@@ -1,8 +1,9 @@
 import { css } from "@emotion/css";
-import { DarkModeProps } from "./DarkMode";
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { ChatTrigger } from "@lg-chat/fixed-chat-window";
+import { ChatbotTriggerProps } from "./ChatbotTrigger";
 import { useChatbotContext } from "./useChatbotContext";
+import classNames from "classnames";
 
 const styles = {
   chat_trigger: css`
@@ -21,7 +22,7 @@ const styles = {
   `,
 };
 
-export type FloatingActionButtonTriggerProps = DarkModeProps & {
+export type FloatingActionButtonTriggerProps = ChatbotTriggerProps & {
   text?: string;
 };
 
@@ -30,15 +31,17 @@ export function FloatingActionButtonTrigger(
 ) {
   const { darkMode } = useDarkMode(props.darkMode);
   const { chatbotName, openChat } = useChatbotContext();
-  const text = props.text ?? `Ask ${chatbotName ?? "the Chatbot"}`;
+  const { className, text } = props;
+
+  const buttonText = text ?? `Ask ${chatbotName ?? "the Chatbot"}`;
 
   return (
     <ChatTrigger
-      className={styles.chat_trigger}
+      className={classNames(styles.chat_trigger, className)}
       darkMode={darkMode}
       onClick={openChat}
     >
-      {text}
+      {buttonText}
     </ChatTrigger>
   );
 }

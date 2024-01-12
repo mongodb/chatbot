@@ -1,5 +1,4 @@
 import { css } from "@emotion/css";
-import { DarkModeProps } from "./DarkMode";
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { Body, Error as ErrorText, Link } from "@leafygreen-ui/typography";
 import {
@@ -12,7 +11,9 @@ import { defaultChatbotFatalErrorMessage } from "./ui-text";
 import { useLinkData } from "./useLinkData";
 import { addQueryParams } from "./utils";
 import { useState } from "react";
+import { ChatbotTriggerProps } from "./ChatbotTrigger";
 import { useChatbotContext } from "./useChatbotContext";
+import classNames from "classnames";
 
 const styles = {
   info_box: css`
@@ -45,7 +46,7 @@ const styles = {
   `,
 };
 
-export type InputBarTriggerProps = DarkModeProps & {
+export type InputBarTriggerProps = ChatbotTriggerProps & {
   bottomContent?: React.ReactNode;
   fatalErrorMessage?: string;
   placeholder?: string;
@@ -54,7 +55,7 @@ export type InputBarTriggerProps = DarkModeProps & {
 
 export function InputBarTrigger(props: InputBarTriggerProps) {
   const { darkMode } = useDarkMode(props.darkMode);
-  const { suggestedPrompts = [], bottomContent, fatalErrorMessage = defaultChatbotFatalErrorMessage } = props;
+  const { className, suggestedPrompts = [], bottomContent, fatalErrorMessage = defaultChatbotFatalErrorMessage } = props;
   const {
     openChat,
     awaitingReply,
@@ -86,7 +87,7 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
     : props.placeholder ?? MongoDbInputBarPlaceholder();
 
   return (
-    <div className={styles.chatbot_container}>
+    <div className={classNames(styles.chatbot_container, className)}>
       <div className={styles.chatbot_input}>
         <InputBar
           key={"inputBarTrigger"}

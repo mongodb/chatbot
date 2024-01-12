@@ -21,6 +21,7 @@ import { Conversation } from "./useConversation";
 import { type StylesProps } from "./utils";
 import { type ChatbotViewProps } from "./ChatbotView";
 import { useChatbotContext } from "./useChatbotContext";
+import classNames from "classnames";
 
 const styles = {
   chatbot_input: css`
@@ -93,6 +94,7 @@ export type ModalViewProps = ChatbotViewProps & {
 export function ModalView(props: ModalViewProps) {
   const { darkMode } = useDarkMode(props.darkMode);
   const {
+    className,
     disclaimer,
     disclaimerHeading,
     fatalErrorMessage = defaultChatbotFatalErrorMessage,
@@ -156,7 +158,12 @@ export function ModalView(props: ModalViewProps) {
 
   return (
     <Modal
-      className={styles.modal_container({ darkMode })}
+      className={
+        classNames(
+          styles.modal_container({ darkMode }),
+          className
+        )
+      }
       open={open}
       size="large"
       initialFocus={`#${ActiveInputBarId}`}

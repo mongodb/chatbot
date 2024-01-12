@@ -13,10 +13,10 @@ import {
   CharacterCount,
   InputBar,
   MongoDbInputBarPlaceholder,
-  defaultChatbotFatalErrorMessage,
 } from "./InputBar";
 import { Message } from "./Message";
 import { MessageData } from "./services/conversations";
+import { defaultChatbotFatalErrorMessage } from "./ui-text";
 import { Conversation } from "./useConversation";
 import { type StylesProps } from "./utils";
 import { type ChatbotViewProps } from "./ChatbotView";

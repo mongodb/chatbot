@@ -7,8 +7,8 @@ import {
   MongoDbInputBarPlaceholder,
   SuggestedPrompt,
   SuggestedPrompts,
-  defaultChatbotFatalErrorMessage,
 } from "./InputBar";
+import { defaultChatbotFatalErrorMessage } from "./ui-text";
 import { useLinkData } from "./useLinkData";
 import { addQueryParams } from "./utils";
 import { useState } from "react";

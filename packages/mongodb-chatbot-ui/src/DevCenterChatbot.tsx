@@ -2,7 +2,8 @@ import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { DarkModeProps } from "./DarkMode";
 import { FloatingActionButtonTrigger, FloatingActionButtonTriggerProps } from "./FloatingActionButtonTrigger";
 import { ModalView, ModalViewProps } from "./ModalView";
-import { MongoDbLegalDisclosure, mongoDbVerifyInformationMessage } from "./MongoDbLegal";
+import { MongoDbLegalDisclosure } from "./MongoDbLegal";
+import { mongoDbVerifyInformationMessage } from "./ui-text";
 
 
 export type DevCenterChatbotProps = DarkModeProps & {

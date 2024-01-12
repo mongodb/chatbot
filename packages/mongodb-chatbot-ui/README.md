@@ -23,6 +23,8 @@ import Chatbot, {
   FloatingActionButtonTrigger,
   InputBarTrigger,
   ModalView,
+  MongoDbLegalDisclosure,
+  mongoDbVerifyInformationMessage,
 } from "mongodb-chatbot-ui";
 
 function MyApp() {
@@ -33,12 +35,20 @@ function MyApp() {
   ];
   return (
     <div>
-      <Chatbot>
-        <InputBarTrigger suggestedPrompts={suggestedPrompts} />
-        <FloatingActionButtonTrigger text="My MongoDB AI" />
+      <Chatbot
+        name="MongoDB AI"
+        maxInputCharacters={300}
+      >
+        <InputBarTrigger
+          bottomContent={<MongoDbLegalDisclosure />}
+          suggestedPrompts={suggestedPrompts}
+        />
+        <FloatingActionButtonTrigger text="Ask My MongoDB AI" />
         <ModalView
-          initialMessageText="Welcome to MongoDB AI Assistant. What can I help you with?"
+          disclaimer={<MongoDbLegalDisclosure />}
+          initialMessageText="Welcome to my MongoDB AI Assistant. What can I help you with?"
           initialMessageSuggestedPrompts={suggestedPrompts}
+          inputBottomText={mongoDbVerifyInformationMessage}
         />
       </Chatbot>
     </div>

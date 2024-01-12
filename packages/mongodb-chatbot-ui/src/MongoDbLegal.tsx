@@ -2,7 +2,7 @@ import { useLinkData } from "./useLinkData";
 import { addQueryParams } from "./utils";
 import { Body, Link } from "@leafygreen-ui/typography";
 
-export function LegalDisclosure() {
+export function MongoDbLegalDisclosure() {
   const { tck } = useLinkData();
   const TermsOfUse = () => (
     <Link

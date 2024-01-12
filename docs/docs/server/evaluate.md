@@ -8,7 +8,11 @@ The simplest way to evaluate your chatbot's responses is to manually test it you
 You can do this with the MongoDB Chatbot Server by running the server locally and
 querying it.
 
-If you want to query it from a UI, you can quickly spin up the UI from the [Quick Start](../quick-start.md) guide.
+If you want to query it from a UI, you have the following options:
+
+- Spin up the UI from the [Quick Start](../quick-start.md) guide.
+- Build your own UI with the [Chatbot UI](../ui.md) components.
+- Build a custom UI that queries the server directly. Refer to the [API specification](./openapi) for more information on the endpoints.
 
 :::note[Query Server Directly]
 

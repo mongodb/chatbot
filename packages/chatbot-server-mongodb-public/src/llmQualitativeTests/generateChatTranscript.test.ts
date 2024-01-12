@@ -10,7 +10,7 @@ import { makeTestApp } from "../test/testHelpers";
 import { generateTranscript } from "./generateChatTranscript";
 import { stripIndents } from "common-tags";
 
-let mongodb: Db;
+let db: Db;
 let mongoClient: MongoClient;
 let app: Express;
 let conversations: ConversationsService;
@@ -22,11 +22,11 @@ const addMessageEndpoint =
 
 jest.setTimeout(20000);
 beforeAll(async () => {
-  ({ mongodb, mongoClient, app, appConfig, ipAddress } = await makeTestApp());
+  ({ db, mongoClient, app, appConfig, ipAddress } = await makeTestApp());
   conversations = appConfig.conversationsRouterConfig.conversations;
 });
 afterAll(async () => {
-  await mongodb.dropDatabase();
+  await db.dropDatabase();
   await mongoClient?.close();
 });
 describe("generateChatTranscript()", () => {

@@ -67,7 +67,7 @@ describe("checkResponseQuality()", () => {
     const conversation = stripIndents`USER: What is the $lookup aggregation operator for MongoDB?
     ASSISTANT: One way to look up data in MongoDB is by using a find operation such as the \`find()\` or \`findOne()\` methods. These methods allow you to request results based on a set of criteria from the existing set of data. You can also further specify the information you are requesting by including additional parameters or by chaining other methods such as sorting, skipping, limiting, or specifying which fields to return. Another way to look up data is by using an aggregation operation, which allows you to apply an ordered pipeline of transformations to the matched data. Additionally, you can use the watch operation to monitor the database for incoming data that matches a set of criteria and be notified in real-time when matching data is inserted.`;
     const expectation =
-      "The ASSISTANT explains that the `$lookup` aggregation operator joins data from multiple collections. The ASSISTANT directly mentions the `$lookup` aggregation operator.";
+      "The final ASSISTANT message explains that the `$lookup` aggregation operator joins data from multiple collections. The ASSISTANT directly mentions the `$lookup` aggregation operator.";
     const result = await checkResponseQuality(
       conversation,
       expectation,

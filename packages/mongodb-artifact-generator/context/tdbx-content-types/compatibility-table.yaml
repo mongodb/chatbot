@@ -1,0 +1,39 @@
+type: compatibility-table
+name: Compatibility Tables
+objectives:
+  - Show driver version feature support against versions of MongoDB and
+    driver version support against language versions.
+  - Help users identify what parts of their development/deployment
+    environment they need to change when planning to upgrade  MongoDB
+    server, driver, and/or language versions.
+pageStructure: |
+  =============
+  Compatibility
+  =============
+
+  MongoDB Compatibility
+  --------------------
+
+  Compatibility Table Legend
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  For the MongoDB compatibility table, we currently show one of three values to indicate complete feature support, partial feature support, and incompatibility. The legend provides descriptions for the symbols that represent these values.
+
+  Provide a table showing driver/connector versions on the y-axis and MongoDB server versions on the x-axis.
+
+
+  Language Compatibility
+  ----------------------
+
+  Provide a table showing driver/connector versions on the y-axis and language versions on the x-axis.
+
+
+  Link to a page that provides more detail on how to interpret the tables.
+
+  Note:
+  When representing multiple versions with a single row or column, follow these guidelines:
+  Avoid using “>” (greater than) and “>=” (equal to or greater than) for maintainability
+  Use dependency management notations with care for both maintainability and readability by your audience.
+  Ensure all the versions are included in the meta keywords to improve internal search. Meta keywords example
+examples:
+  - https://mongodb.com/docs/drivers/java/sync/current/compatibility/

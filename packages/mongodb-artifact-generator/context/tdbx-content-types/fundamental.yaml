@@ -1,0 +1,35 @@
+type: fundamental
+name: Fundamentals
+objectives:
+  - Describe the concepts related to a topic including implementation
+    details.
+  - Similar in structure and intent to the Divio/Diataxis “How-to” content type.
+pageStructure: |
+  ==============
+  <Concept Name>
+  ==============
+
+  Overview
+  --------
+
+  Summarize the learning goal and its relation to the current set of documentation.
+
+  <Related Concepts/Terminology>
+  ------------------------------
+
+  Provide information that helps the user understand the terms and concepts used in the guide.
+
+  <Concepts and Implementation Examples>
+  --------------------------------------
+
+  Explain what each concept or command is to provide context to the reader.
+
+  List implementation requirements such as including additional libraries or loading sample data.
+
+  Demonstrate how to implement the concept using code examples
+
+  Provide links to related information and API documentation.
+examples:
+  - https://mongodb.com/docs/drivers/java/sync/current/fundamentals/crud/compound-operations/
+  - https://mongodb.com/docs/drivers/go/current/fundamentals/bson/
+  - https://mongodb.com/docs/drivers/node/current/fundamentals/connection/network-compression/

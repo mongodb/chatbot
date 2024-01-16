@@ -1,0 +1,27 @@
+type: settings-reference
+name: Settings Reference
+objectives:
+  - Categorize available configuration settings that might be difficult
+    to locate in API documentation or require more explanation.
+pageStructure: |
+  ===================
+  <Settings Category>
+  ===================
+
+  Overview
+  ---------
+
+  Explain this category of settings
+  Provide a link to a full list of settings if one exists.
+
+  Settings
+  --------
+
+  Present the settings in a table with columns for “Name” and “Description”, or another presentation format if that organizes the information better.
+
+  In the “Name” column, list the setting name as used in the configuration.
+
+  In the  “Description” column, provide information such as setting data type, a description of what the setting does along with example values if applicable, the default value, and a list of accepted values.
+examples:
+  - https://mongodb.com/docs/kafka-connector/current/source-connector/configuration-properties/mongodb-connection/
+  - https://mongodb.com/docs/drivers/node/current/fundamentals/connection/connection-options/

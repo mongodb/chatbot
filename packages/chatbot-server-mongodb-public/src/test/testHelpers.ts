@@ -9,8 +9,8 @@ import { MONGODB_CONNECTION_URI, config, systemPrompt } from "../config";
 export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
   const testDbName = `conversations-test-${Date.now()}`;
   const mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
-  const mongodb = mongoClient.db(testDbName);
-  const conversations = makeMongoDbConversationsService(mongodb, systemPrompt);
+  const db = mongoClient.db(testDbName);
+  const conversations = makeMongoDbConversationsService(db, systemPrompt);
   const appConfig: AppConfig = {
     ...config,
     conversationsRouterConfig: {
@@ -19,7 +19,7 @@ export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
     },
     ...(defaultConfigOverrides ?? {}),
   };
-  return { appConfig, mongodb, conversations, systemPrompt, mongoClient };
+  return { appConfig, db, conversations, systemPrompt, mongoClient };
 }
 
 /**
@@ -30,7 +30,7 @@ export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
   // ip address for local host
   const ipAddress = "127.0.0.1";
 
-  const { appConfig, systemPrompt, mongodb, mongoClient, conversations } =
+  const { appConfig, systemPrompt, db, mongoClient, conversations } =
     makeTestAppConfig(defaultConfigOverrides);
   const app = await makeApp(appConfig);
 
@@ -40,7 +40,7 @@ export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
     conversations,
     ipAddress,
     mongoClient,
-    mongodb,
+    db,
     systemPrompt,
   };
 }

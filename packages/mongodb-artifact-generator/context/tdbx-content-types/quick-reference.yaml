@@ -1,0 +1,23 @@
+type: quick-reference
+name: Quick Reference
+objectives:
+  - Provide users with a list of common operations to help them with the
+    syntax and locate further guidance and learning (e.g. links to
+    guidance and API documentation)
+pageStructure: |
+  ===============
+  Quick Reference
+  ===============
+  
+  Describe the purpose of the page, e.g.:
+  “This page shows the driver syntax for several MongoDB commands and links to their related reference and API documentation.”
+  
+  Provide a table containing columns for “Command” and “Syntax”. Each row contains a different command.
+  
+  In the “Command” column, provide a human readable description of the command as well as links to API documentation, Usage Example, and Fundamentals page if they exist. 
+  
+  In the “Syntax” column, provide a code example that demonstrates how to call the command, and sample output if it adds clarity.
+examples:
+  - https://mongodb.com/docs/drivers/java/sync/current/quick-reference/
+  - https://mongodb.com/docs/drivers/node/current/quick-reference/
+  - https://mongodb.com/docs/drivers/go/current/quick-reference

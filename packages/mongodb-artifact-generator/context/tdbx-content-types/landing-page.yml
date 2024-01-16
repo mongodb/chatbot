@@ -1,0 +1,30 @@
+type: landing-page
+name: Landing Page
+objectives:
+  - Introduce the product and sections of the documentation.
+pageStructure: |
+  ==============
+  <Product Name>
+  ==============
+
+  Introduce the product and what it does.
+
+  <Section Name(s)>
+  -----------------
+
+  Summarize the content the user can find in each section of this product’s documentation.
+
+  <Optional: Starter Content>
+  ---------------------------
+
+  For drivers that do not have a corresponding docs site on mongodb.com, provide instructions on how to get started using that driver.
+
+  Learn
+  -----
+
+  Link to the Developher Hub search results for the product.
+
+  Link to the MongoDB University course, if one exists for the product.
+examples:
+  - https://mongodb.com/docs/drivers/java/sync/current/
+  - https://mongodb.com/docs/drivers/c/

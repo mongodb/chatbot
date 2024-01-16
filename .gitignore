@@ -8,3 +8,5 @@ node_modules
 
 .secrets.*
 !.secrets.example
+
+.vscode

@@ -1,0 +1,42 @@
+type: quick-start
+name: Quick Start
+objectives:
+  - Help readers set up a sample development environment that
+    accomplishes a specific goal – usually establishing a connection
+    and running a command – to be able to observe the results.
+pageStructure: |
+  ===========
+  Quick Start
+  ===========
+
+  Identify what the content of the page shows. Refer to related resources if they landed in the wrong place.
+
+  Define any terms that a new user may not be familiar with (e.g. MongoDB driver, MongoDB Atlas, etc.)
+
+  Explain what the rest of the page demonstrates.
+
+  <Setup/Requirements>
+  --------------------
+
+  Provide steps required to set up a project or development environment including installation of dependencies or setting them up using a build tool.
+
+  <Optional Atlas Setup>
+  ----------------------
+
+  If the project can be run using a free tier MongoDB Atlas cluster, provide instructions on setup. Add steps for loading sample data if required.
+
+  <Additional Instructions>
+  -------------------------
+
+  Provide steps for any other instructions and code examples to achieve the goal of the tutorial.
+
+  Each enumerated step is presented in the recommended/essential order to complete the task. Each step should have a title that describes the task. Each step description should provide instructions on how to complete that task and verify success.
+
+  Describe what the developer accomplished at the completion of the tutorial.
+
+  Next Steps
+  ----------
+
+  Recommend next steps in the learning journey.
+examples:
+  - https://mongodb.com/docs/drivers/node/current/quick-start/

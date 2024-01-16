@@ -1,0 +1,16 @@
+type: contribution-guide
+name: How to Contribute
+objectives:
+  - Provide instructions on how to contribute to the driver
+pageStructure: |
+  =================
+  How to Contribute
+  =================
+
+  Summarize the actions required for authoring and submitting a contribution.
+
+  Link to the GitHub repository for the driver or connector.
+
+  Link to any other resources that can help the user author or submit a contribution.
+examples:
+  - https://mongodb.com/docs/kafka-connector/current/contribute/

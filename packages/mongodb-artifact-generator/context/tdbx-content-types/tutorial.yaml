@@ -1,0 +1,30 @@
+type: tutorial
+name: Tutorials
+objectives:
+  - Help readers accomplish a specific goal that includes working source
+    code or configurations to be able to observe the results in their
+    development environments.
+pageStructure: |
+  ====================
+  <Tutorial Objective>
+  ====================
+
+  Clarify the task if necessary and describe the end goal.
+
+  <Goal Description>
+  ------------------
+
+  Present each enumerated step in the recommended/essential order to ensure successful completion of the task. Each step should have a title that describes the task. Each step description should provide instructions on how to complete that task and verify success.
+
+  Summary
+  -------
+
+  Describe what the developer accomplished at the completion of the tutorial.
+
+  Learn More
+  ----------
+
+  Link to additional, related resources
+examples:
+  - https://mongodb.com/docs/kafka-connector/current/tutorials/tutorial-setup
+  - https://mongodb.com/docs/kafka-connector/current/tutorials/source-connector/

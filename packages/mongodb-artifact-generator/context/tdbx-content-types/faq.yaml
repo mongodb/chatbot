@@ -1,0 +1,23 @@
+type: faq
+name: FAQ
+objectives:
+  - Show commonly encountered issues/questions and provide answers and
+    guidance on troubleshooting, usually driven by SEO findings. Prefer
+    explaining how to correctly implement and configure the driver to
+    accomplish tasks and avoid errors in other sections of the
+    documentation.
+pageStructure: |
+  ===
+  FAQ
+  ===
+  
+  List frequently asked questions, each with its own header as shown below:
+    
+  <Question>
+  ----------
+
+  Present one or more brief answers to the question, including any copy and paste code examples as well as links to internal or external documentation that provide more information.
+examples:
+  - https://mongodb.com/docs/drivers/node/current/faq/
+  - https://mongodb.com/docs/drivers/go/current/faq/
+  - https://mongodb.com/docs/drivers/java/sync/current/faq/

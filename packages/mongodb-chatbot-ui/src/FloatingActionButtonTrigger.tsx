@@ -22,10 +22,12 @@ const styles = {
   `,
 };
 
+export type FloatingActionButtonTriggerProps = ActionButtonTriggerProps;
+
 export function FloatingActionButtonTrigger({
   className,
   ...props
-}: ActionButtonTriggerProps) {
+}: FloatingActionButtonTriggerProps) {
   return (
     <ActionButtonTrigger
       className={classNames(styles.chat_trigger, className)}

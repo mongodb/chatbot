@@ -80,9 +80,9 @@ The `<Chatbot />` component is effectively a React context provider that wraps y
 | `tck`                | `string?`                        | An analytics identifier to add to the end of all hyperlinks.                                     | `"docs_chatbot"`                                       |
 | `user`               | `{ name: string; }?`             | An object with information about the current user (if there is one).                             | `undefined`                                            |
 
-### `FloatingActionButtonTrigger`
+### `ActionButtonTrigger`
 
-The `<FloatingActionButtonTrigger />` component opens the `<ModalView />` when clicked. It accepts the following props:
+The `<ActionButtonTrigger />` component opens a view component (like `<ModalView />`) when clicked. It accepts the following props:
 
 | Prop        | Type       | Description                                                                                    | Default                                                |
 | ----------- | ---------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
@@ -90,9 +90,13 @@ The `<FloatingActionButtonTrigger />` component opens the `<ModalView />` when c
 | `darkMode`  | `boolean?` | If `true`, this renders in dark mode. This overrides any theme or provider `darkMode` setting. | The user's OS preference or theme value of `darkMode`. |
 | `text`      | `string?`  | The text shown in the floating action button.                                                  | `"MongoDB AI"`                                         |
 
+### `FloatingActionButtonTrigger`
+
+The `<FloatingActionButtonTrigger />` component opens a view component (like `<ModalView />`) when clicked. It accepts the same props as [ActionButtonTrigger](#actionbuttontrigger) but also includes a default `position: fixed` style that makes the button float in the bottom right of the window on top of the content (`z-index: 100`).
+
 ### `InputBarTrigger`
 
-The `<InputBarTrigger />` component opens the `<ModalView />` when the user sends their first message. It accepts the following props:
+The `<InputBarTrigger />` component opens a view component (like `<ModalView />`) when the user sends their first message. It accepts the following props:
 
 | Prop                | Type         | Description                                                                                    | Default                                                                         |
 | ------------------- | ------------ | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |

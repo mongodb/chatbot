@@ -1,6 +1,7 @@
 import { DarkModeProps } from "./DarkMode";
 
 export type ChatbotViewProps = DarkModeProps & {
+  className?: HTMLElement["className"];
   disclaimer?: React.ReactNode;
   disclaimerHeading?: string;
   fatalErrorMessage?: string;

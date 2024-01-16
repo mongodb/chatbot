@@ -1,0 +1,24 @@
+type: upgrade-version
+name: Upgrading Versions
+objectives:
+  - Help a reader identify what changes they need to make to their
+    application or build/deployment environment when upgrading to a new
+    version.
+pageStructure: |
+  ==================
+  <Upgrade Versions>
+  ==================
+
+  Overview
+  --------
+
+  Identify Link to required products for upgrading
+
+  Breaking Changes
+  ----------------
+
+  Provide lists of breaking changes for each version to help the reader understand what they need to change when upgrading to a newer version of the driver.
+
+  For drivers, create a separate section to list driver versions that drop support for which server versions. 
+examples:
+  - https://mongodb.com/docs/drivers/java/sync/current/upgrade/

@@ -1,0 +1,26 @@
+type: troubleshooting
+name: Troubleshooting
+notes:
+  - Currently an experimental type that overlaps objectives of the FAQ
+    and the Fundamental types. Requested by Kafka Connector PM to
+    present content that customers frequently ask about.
+objectives:
+  - Provide detailed answers on how to resolve a common issue including
+    implementation examples.
+pageStructure: |
+  =======================
+  <Troubleshooting Topic>
+  =======================
+
+  Overview
+  --------
+
+  Describe the topic and provide information that helps the user identify whether their situation matches.
+
+  Identify common causes
+
+  Provide potential solutions
+
+  Recommend preventative measures
+examples:
+  - https://mongodb.com/docs/kafka-connector/current/troubleshooting/recover-from-invalid-resume-token/

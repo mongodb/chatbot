@@ -120,11 +120,18 @@ export function addMetadataToQuery({
   programmingLanguages,
   mongoDbProducts,
 }: MongoDbUserQueryPreprocessorResponse): string | undefined {
-  return (
-    query &&
-    updateFrontMatter(query, {
-      programmingLanguages,
-      mongoDbProducts,
-    })
-  );
+  const frontMatter: {
+    programmingLanguages?: string[];
+    mongoDbProducts?: string[];
+  } = {};
+  if (programmingLanguages?.length > 0) {
+    frontMatter.programmingLanguages = programmingLanguages;
+  }
+  if (mongoDbProducts?.length > 0) {
+    frontMatter.mongoDbProducts = mongoDbProducts;
+  }
+  if (Object.keys(frontMatter).length > 0 && query) {
+    return updateFrontMatter(query, frontMatter);
+  }
+  return query;
 }

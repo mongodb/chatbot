@@ -1,0 +1,23 @@
+type: whats-new
+name: What’s New
+objectives:
+  - Inform users of new features/functionality 
+  - Inform users of behavior changes 
+  - Inform users of deprecated/replaced functionality
+pageStructure: |
+  ==========
+  What’s New
+  ==========
+
+  <Optionally link to each section corresponding to version releases depending on number of sections>
+
+  What's New in x.xx
+  ------------------
+
+  List the features, behavior changes, and deprecated/replaced functionality new to this version
+
+  Link to release notes if they provide more insight.
+  if useful.
+examples:
+  - https://mongodb.com/docs/drivers/go/current/whats-new/
+  - https://mongodb.com/docs/drivers/node/current/whats-new/

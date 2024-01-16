@@ -1,0 +1,23 @@
+type: migrate-legacy-version
+name: Migration from Legacy Version
+objectives:
+  - Provide guidance on how to migrate from a legacy driver/library to
+    the supported driver versions.
+pageStructure: |
+  ===========================
+  Migrate from the Legacy API
+  ===========================
+
+  Overview
+  ----------
+
+  Provide instructions on how to identify whether the reader is using the legacy versions or API.
+  Describe a common solution to making changes
+
+  API Changes
+  -----------
+
+  Provide a list of changes that explains the legacy implementation and corresponding current implementation
+examples:
+  - https://mongodb.com/docs/drivers/java/sync/current/legacy/
+...

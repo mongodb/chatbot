@@ -1,0 +1,35 @@
+type: usage-example
+name: Usage Examples
+objectives:
+  - Improve SEO by answering “How do I …?” questions for a subset of the
+    most commonly-searched terms related to drivers.
+  - Provide a copy-paste example of the command that the reader can run
+    after completing the Quick Start or setting up a similar environment.
+pageStructure: |
+  =====================
+  <Command Description>
+  =====================
+
+  Describe what the command accomplishes.
+
+  Link to more information for related conceptual learning.
+
+  Optional: information on optional parameters and/or related or chainable commands.
+
+  Example
+  -------
+
+  Describe what the code example accomplishes.
+
+  Describe the parameters passed to the command.
+
+  List the parameters used in the example and what they do
+
+  Provide a code example
+
+  Provide sample output if it seems useful
+
+  Link to additional information such as API documentation or other MongoDB docs.
+examples:
+  - https://mongodb.com/docs/drivers/java/sync/current/usage-examples/findOne/
+  - https://mongodb.com/docs/drivers/node/current/usage-examples/updateMany/

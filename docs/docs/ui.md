@@ -86,7 +86,7 @@ The `<FloatingActionButtonTrigger />` component opens the `<ModalView />` when c
 
 | Prop        | Type       | Description                                                                                    | Default                                                |
 | ----------- | ---------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| `className` | `string?`  | A custom class name for the trigger container.                                                 |                                                        |
+| `className` | `string?`  | A custom class name for the trigger container. Use this to apply custom css styles.            |                                                        |
 | `darkMode`  | `boolean?` | If `true`, this renders in dark mode. This overrides any theme or provider `darkMode` setting. | The user's OS preference or theme value of `darkMode`. |
 | `text`      | `string?`  | The text shown in the floating action button.                                                  | `"MongoDB AI"`                                         |
 
@@ -97,7 +97,7 @@ The `<InputBarTrigger />` component opens the `<ModalView />` when the user send
 | Prop                | Type         | Description                                                                                    | Default                                                                         |
 | ------------------- | ------------ | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | `bottomContent`     | `ReactNode?` | Content that appears immediately below the input bar, e.g. for a terms of use disclaimer.      | If not specified, no content is shown.                                          |
-| `className`         | `string?`    | A custom class name for the trigger container.                                                 |                                                                                 |
+| `className`         | `string?`    | A custom class name for the trigger container. Use this to apply custom css styles.            |                                                                                 |
 | `darkMode`          | `boolean?`   | If `true`, this renders in dark mode. This overrides any theme or provider `darkMode` setting. | The user's OS preference or theme value of `darkMode`.                          |
 | `fatalErrorMessage` | `string?`    | A custom error message shown in the input bar when an unrecoverable error has occurred.        | "Something went wrong. Try reloading the page and starting a new conversation." |
 | `suggestedPrompts`  | `string[]?`  | A list of suggested prompts that appear in the input bar dropdown menu.                        | If no prompts are specified, the dropdown is not shown.                         |
@@ -109,7 +109,7 @@ The `<ModalView />` component renders a chat message feed in a modal window. It 
 
 | Prop                             | Type          | Description                                                                                    | Default                                                                                      |
 | -------------------------------- | ------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `className`                      | `string?`     | A custom class name for the view container.                                                    |                                                                                              |
+| `className`                      | `string?`     | A custom class name for the view container. Use this to apply custom css styles.               |                                                                                              |
 | `darkMode`                       | `boolean?`    | If `true`, this renders in dark mode. This overrides any theme or provider `darkMode` setting. | The user's OS preference or theme value of `darkMode`.                                       |
 | `disclaimer`                     | `ReactNode?`  | A disclaimer message shown at the top of the message feed. Can include terms of service, etc.  | If not specified, no disclaimer is shown.                                                    |
 | `disclaimerHeading`              | `string?`     | A custom heading for the disclaimer at the top of the message feed.                            | "Terms of Use"                                                                               |

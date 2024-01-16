@@ -158,12 +158,7 @@ export function ModalView(props: ModalViewProps) {
 
   return (
     <Modal
-      className={
-        classNames(
-          styles.modal_container({ darkMode }),
-          className
-        )
-      }
+      className={classNames(styles.modal_container({ darkMode }), className)}
       open={open}
       size="large"
       initialFocus={`#${ActiveInputBarId}`}

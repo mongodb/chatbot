@@ -85,11 +85,7 @@ export function CharacterCount({
 export function MongoDbInputBarPlaceholder() {
   const { awaitingReply, chatbotName } = useChatbotContext();
   if (awaitingReply) {
-    return chatbotName
-      ? `${chatbotName} is answering...`
-      : "Answering..."
+    return chatbotName ? `${chatbotName} is answering...` : "Answering...";
   }
-  return chatbotName
-    ? `Ask ${chatbotName} a Question`
-    : "Ask a Question";
+  return chatbotName ? `Ask ${chatbotName} a Question` : "Ask a Question";
 }

@@ -10,7 +10,7 @@ module.exports = {
     "plugin:jest/recommended",
     "prettier",
   ],
-  ignorePatterns: ["dist/", "node_modules/"],
+  ignorePatterns: ["build/", "node_modules/"],
   plugins: ["@typescript-eslint", "jest"],
   parserOptions: {
     ecmaVersion: 2018,

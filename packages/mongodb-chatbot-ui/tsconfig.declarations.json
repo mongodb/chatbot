@@ -14,7 +14,7 @@
     "noEmit": false,
     "emitDeclarationOnly": true,
     "declaration": true,
-    "outDir": "./dist/types",
+    "outDir": "./build/types",
     "jsx": "react-jsx",
 
     /* Linting */
@@ -24,7 +24,7 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
-    "noImplicitThis": true,
+    "noImplicitThis": true
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]

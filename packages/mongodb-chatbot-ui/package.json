@@ -22,17 +22,17 @@
   },
   "type": "module",
   "files": [
-    "dist",
+    "build",
     "README.md"
   ],
-  "main": "./dist/mongodb-chatbot-ui.umd.js",
-  "module": "./dist/mongodb-chatbot-ui.es.js",
-  "types": "./dist/types/index.d.ts",
+  "main": "./build/mongodb-chatbot-ui.umd.js",
+  "module": "./build/mongodb-chatbot-ui.es.js",
+  "types": "./build/types/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/mongodb-chatbot-ui.es.js",
-      "require": "./dist/mongodb-chatbot-ui.umd.js",
-      "types": "./dist/types/index.d.ts"
+      "import": "./build/mongodb-chatbot-ui.es.js",
+      "require": "./build/mongodb-chatbot-ui.umd.js",
+      "types": "./build/types/index.d.ts"
     }
   },
   "scripts": {

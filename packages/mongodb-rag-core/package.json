@@ -27,8 +27,7 @@
   "main": "./build/index.js",
   "scripts": {
     "clean": "rm -rf build",
-    "build": "tsc -b",
-    "watch": "tsc -b -w",
+    "build": "tsc -b tsconfig.build.json",
     "test": "jest",
     "docs": "npx typedoc --excludePrivate --exclude '**/*.test.ts' --out docs src",
     "release": "release-it"

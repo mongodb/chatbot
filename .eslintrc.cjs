@@ -4,19 +4,17 @@ module.exports = {
   },
   root: true,
   parser: "@typescript-eslint/parser",
-  plugins: ["@typescript-eslint", "jest", "jsdoc"],
-  extends: [
-    "eslint:recommended",
-    "prettier",
-    "plugin:prettier/recommended",
-    "plugin:@typescript-eslint/recommended",
-  ],
+  plugins: ["@typescript-eslint", "jest", "jsdoc", "prettier"],
+  extends: ["eslint:recommended", "prettier"],
   ignorePatterns: ["build/*"],
   parserOptions: {
     ecmaVersion: 2018,
     sourceType: "module",
   },
   rules: {
+    "prettier/prettier": "warn",
+    "arrow-body-style": "off",
+    "prefer-arrow-callback": "off",
     "jsdoc/require-asterisk-prefix": ["error", "never"],
     "@typescript-eslint/no-unused-vars": [
       "warn",

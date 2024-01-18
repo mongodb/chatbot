@@ -159,4 +159,4 @@ const defaultMdChunkOptions: ChunkOptions = {
 };
 ```
 
-For more information on fine tuning the `ChunkOptions`, refer to [Refine the Chunking Strategy](./optimize.md#refine-the-chunking-strategy) in the Fine Tuning documentation.
+For more information on optimizing the `ChunkOptions`, refer to [Refine the Chunking Strategy](./optimize.md#refine-the-chunking-strategy) in the Optimization documentation.

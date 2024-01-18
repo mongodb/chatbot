@@ -144,6 +144,6 @@ For complete reference documentation, refer to the [Configuration Reference](./c
 
 For additional example configurations, check out the following projects:
 
-- [MongoDB documentation ingest](https://github.com/mongodb/chatbot/blob/main/ingest-mongodb-public/src/config.ts): This is the most complex configuration. The ingest CLI was actually built for this project.
+- [MongoDB documentation ingest](https://github.com/mongodb/chatbot/blob/main/packages/ingest-mongodb-public/src/config.ts): This is the most complex configuration. The ingest CLI was actually built for this project.
 - [mongodb.com/customers ingest](https://github.com/mongodben/ingest-customers/blob/main/src/config.ts):
   Simple implementation with a single data source.

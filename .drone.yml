@@ -581,7 +581,7 @@ trigger:
     - tag
   ref:
     include:
-      - refs/tags/chat-ui-v*
+      - refs/tags/mongodb-chatbot-ui-v*
 
 steps:
   - name: build package

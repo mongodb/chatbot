@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.0.0">
 <title data-rh="true">mongodb-chatbot-server | MongoDB Chatbot Framework</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://mongodb.github.io/chatbot/reference/server/modules"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="mongodb-chatbot-server | MongoDB Chatbot Framework"><meta data-rh="true" name="description" content="Interfaces"><meta data-rh="true" property="og:description" content="Interfaces"><link data-rh="true" rel="canonical" href="https://mongodb.github.io/chatbot/reference/server/modules"><link data-rh="true" rel="alternate" href="https://mongodb.github.io/chatbot/reference/server/modules" hreflang="en"><link data-rh="true" rel="alternate" href="https://mongodb.github.io/chatbot/reference/server/modules" hreflang="x-default"><link rel="stylesheet" href="/chatbot/assets/css/styles.d95408d0.css">
-<script src="/chatbot/assets/js/runtime~main.6dbee1de.js" defer="defer"></script>
+<script src="/chatbot/assets/js/runtime~main.05a62a1b.js" defer="defer"></script>
 <script src="/chatbot/assets/js/main.f9288bd0.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -36,14 +36,14 @@
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="addassistantmessageparams">AddAssistantMessageParams<a href="#addassistantmessageparams" class="hash-link" aria-label="Direct link to AddAssistantMessageParams" title="Direct link to AddAssistantMessageParams">​</a></h3>
 <p>Ƭ <strong>AddAssistantMessageParams</strong>: <code>Omit</code>&lt;<a href="/chatbot/reference/server/modules#assistantmessage"><code>AssistantMessage</code></a>, <code>&quot;id&quot;</code> | <code>&quot;createdAt&quot;</code>&gt;</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in">Defined in<a href="#defined-in" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L137" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:137</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L137" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:137</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="addconversationmessageparams">AddConversationMessageParams<a href="#addconversationmessageparams" class="hash-link" aria-label="Direct link to AddConversationMessageParams" title="Direct link to AddConversationMessageParams">​</a></h3>
 <p>Ƭ <strong>AddConversationMessageParams</strong>: <code>Object</code></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="type-declaration">Type declaration<a href="#type-declaration" class="hash-link" aria-label="Direct link to Type declaration" title="Direct link to Type declaration">​</a></h4>
 <table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>conversationId</code></td><td style="text-align:left"><code>ObjectId</code></td></tr><tr><td style="text-align:left"><code>message</code></td><td style="text-align:left"><a href="/chatbot/reference/server/modules#addsomemessageparams"><code>AddSomeMessageParams</code></a></td></tr></tbody></table>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-1">Defined in<a href="#defined-in-1" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L148" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:148</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L148" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:148</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="addcustomdatafunc">AddCustomDataFunc<a href="#addcustomdatafunc" class="hash-link" aria-label="Direct link to AddCustomDataFunc" title="Direct link to AddCustomDataFunc">​</a></h3>
 <p>Ƭ <strong>AddCustomDataFunc</strong>: (<code>request</code>: <code>Request</code>, <code>response</code>: <code>Response</code>&lt;<code>any</code>, <a href="/chatbot/reference/server/interfaces/ConversationsRouterLocals"><code>ConversationsRouterLocals</code></a>&gt;) =&gt; <code>Promise</code>&lt;<a href="/chatbot/reference/server/modules#conversationcustomdata"><code>ConversationCustomData</code></a>&gt;</p>
@@ -57,44 +57,44 @@ from the Response.locals object.</p>
 <h5 class="anchor anchorWithStickyNavbar_LWe7" id="returns">Returns<a href="#returns" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h5>
 <p><code>Promise</code>&lt;<a href="/chatbot/reference/server/modules#conversationcustomdata"><code>ConversationCustomData</code></a>&gt;</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-2">Defined in<a href="#defined-in-2" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L63" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:63</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L63" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:63</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="addfunctionmessageparams">AddFunctionMessageParams<a href="#addfunctionmessageparams" class="hash-link" aria-label="Direct link to AddFunctionMessageParams" title="Direct link to AddFunctionMessageParams">​</a></h3>
 <p>Ƭ <strong>AddFunctionMessageParams</strong>: <code>Omit</code>&lt;<a href="/chatbot/reference/server/modules#functionmessage"><code>FunctionMessage</code></a>, <code>&quot;id&quot;</code> | <code>&quot;createdAt&quot;</code>&gt; &amp; { <code>customData?</code>: <code>Record</code>&lt;<code>string</code>, <code>unknown</code>&gt;  }</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-3">Defined in<a href="#defined-in-3" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L130" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:130</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L130" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:130</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="addmanyconversationmessagesparams">AddManyConversationMessagesParams<a href="#addmanyconversationmessagesparams" class="hash-link" aria-label="Direct link to AddManyConversationMessagesParams" title="Direct link to AddManyConversationMessagesParams">​</a></h3>
 <p>Ƭ <strong>AddManyConversationMessagesParams</strong>: <code>Object</code></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="type-declaration-2">Type declaration<a href="#type-declaration-2" class="hash-link" aria-label="Direct link to Type declaration" title="Direct link to Type declaration">​</a></h4>
 <table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>conversationId</code></td><td style="text-align:left"><code>ObjectId</code></td></tr><tr><td style="text-align:left"><code>messages</code></td><td style="text-align:left"><a href="/chatbot/reference/server/modules#addsomemessageparams"><code>AddSomeMessageParams</code></a>[]</td></tr></tbody></table>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-4">Defined in<a href="#defined-in-4" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L153" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:153</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L153" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:153</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="addsomemessageparams">AddSomeMessageParams<a href="#addsomemessageparams" class="hash-link" aria-label="Direct link to AddSomeMessageParams" title="Direct link to AddSomeMessageParams">​</a></h3>
 <p>Ƭ <strong>AddSomeMessageParams</strong>: <a href="/chatbot/reference/server/modules#addsystemmessageparams"><code>AddSystemMessageParams</code></a> | <a href="/chatbot/reference/server/modules#addusermessageparams"><code>AddUserMessageParams</code></a> | <a href="/chatbot/reference/server/modules#addassistantmessageparams"><code>AddAssistantMessageParams</code></a> | <a href="/chatbot/reference/server/modules#addfunctionmessageparams"><code>AddFunctionMessageParams</code></a></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-5">Defined in<a href="#defined-in-5" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L142" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:142</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L142" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:142</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="addsystemmessageparams">AddSystemMessageParams<a href="#addsystemmessageparams" class="hash-link" aria-label="Direct link to AddSystemMessageParams" title="Direct link to AddSystemMessageParams">​</a></h3>
 <p>Ƭ <strong>AddSystemMessageParams</strong>: <code>Omit</code>&lt;<a href="/chatbot/reference/server/modules#systemmessage"><code>SystemMessage</code></a>, <code>&quot;id&quot;</code> | <code>&quot;createdAt&quot;</code>&gt;</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-6">Defined in<a href="#defined-in-6" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L124" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:124</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L124" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:124</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="addusermessageparams">AddUserMessageParams<a href="#addusermessageparams" class="hash-link" aria-label="Direct link to AddUserMessageParams" title="Direct link to AddUserMessageParams">​</a></h3>
 <p>Ƭ <strong>AddUserMessageParams</strong>: <code>Omit</code>&lt;<a href="/chatbot/reference/server/modules#usermessage"><code>UserMessage</code></a>, <code>&quot;id&quot;</code> | <code>&quot;createdAt&quot;</code>&gt; &amp; { <code>customData?</code>: <code>Record</code>&lt;<code>string</code>, <code>unknown</code>&gt;  }</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-7">Defined in<a href="#defined-in-7" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L126" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:126</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L126" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:126</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="assistantmessage">AssistantMessage<a href="#assistantmessage" class="hash-link" aria-label="Direct link to AssistantMessage" title="Direct link to AssistantMessage">​</a></h3>
 <p>Ƭ <strong>AssistantMessage</strong>: <a href="/chatbot/reference/server/modules#messagebase"><code>MessageBase</code></a> &amp; { <code>functionCall?</code>: <code>FunctionCall</code> ; <code>rating?</code>: <code>boolean</code> ; <code>references?</code>: <code>any</code>[] ; <code>role</code>: <code>&quot;assistant&quot;</code>  }</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-8">Defined in<a href="#defined-in-8" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L25" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:25</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L25" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:25</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="conversationcustomdata">ConversationCustomData<a href="#conversationcustomdata" class="hash-link" aria-label="Direct link to ConversationCustomData" title="Direct link to ConversationCustomData">​</a></h3>
 <p>Ƭ <strong>ConversationCustomData</strong>: <code>Record</code>&lt;<code>string</code>, <code>unknown</code>&gt; | <code>undefined</code></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-9">Defined in<a href="#defined-in-9" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L98" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:98</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L98" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:98</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="conversationsmiddleware">ConversationsMiddleware<a href="#conversationsmiddleware" class="hash-link" aria-label="Direct link to ConversationsMiddleware" title="Direct link to ConversationsMiddleware">​</a></h3>
 <p>Ƭ <strong>ConversationsMiddleware</strong>: <code>RequestHandler</code>&lt;<code>ParamsDictionary</code>, <code>any</code>, <code>any</code>, <code>any</code>, <a href="/chatbot/reference/server/interfaces/ConversationsRouterLocals"><code>ConversationsRouterLocals</code></a>&gt;</p>
@@ -106,14 +106,14 @@ It also lets you access <a href="/chatbot/reference/server/interfaces/Conversati
 You can use the locals in other middleware or persist when you create the conversation
 with the <code>POST /conversations</code> endpoint with the <a href="/chatbot/reference/server/modules#addcustomdatafunc">AddCustomDataFunc</a>.</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-10">Defined in<a href="#defined-in-10" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L86" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:86</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L86" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:86</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="createconversationparams">CreateConversationParams<a href="#createconversationparams" class="hash-link" aria-label="Direct link to CreateConversationParams" title="Direct link to CreateConversationParams">​</a></h3>
 <p>Ƭ <strong>CreateConversationParams</strong>: <code>Object</code></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="type-declaration-3">Type declaration<a href="#type-declaration-3" class="hash-link" aria-label="Direct link to Type declaration" title="Direct link to Type declaration">​</a></h4>
 <table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>customData?</code></td><td style="text-align:left"><a href="/chatbot/reference/server/modules#conversationcustomdata"><code>ConversationCustomData</code></a></td></tr></tbody></table>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-11">Defined in<a href="#defined-in-11" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L120" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:120</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L120" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:120</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="databaseconnection">DatabaseConnection<a href="#databaseconnection" class="hash-link" aria-label="Direct link to DatabaseConnection" title="Direct link to DatabaseConnection">​</a></h3>
 <p>Ƭ <strong>DatabaseConnection</strong>: <code>Object</code></p>
@@ -166,7 +166,7 @@ with the user message or the system prompt and X prior messages.</p>
 <h5 class="anchor anchorWithStickyNavbar_LWe7" id="returns-1">Returns<a href="#returns-1" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h5>
 <p><code>Promise</code>&lt;<a href="/chatbot/reference/server/modules#message"><code>Message</code></a>[]&gt;</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-17">Defined in<a href="#defined-in-17" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/FilterPreviousMessages.ts#L9" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/FilterPreviousMessages.ts:9</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/FilterPreviousMessages.ts#L9" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/FilterPreviousMessages.ts:9</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="findcontentfunc">FindContentFunc<a href="#findcontentfunc" class="hash-link" aria-label="Direct link to FindContentFunc" title="Direct link to FindContentFunc">​</a></h3>
 <p>Ƭ <strong>FindContentFunc</strong>: (<code>args</code>: <a href="/chatbot/reference/server/modules#findcontentfuncargs"><code>FindContentFuncArgs</code></a>) =&gt; <code>Promise</code>&lt;<a href="/chatbot/reference/server/modules#findcontentresult"><code>FindContentResult</code></a>&gt;</p>
@@ -177,21 +177,21 @@ with the user message or the system prompt and X prior messages.</p>
 <h5 class="anchor anchorWithStickyNavbar_LWe7" id="returns-2">Returns<a href="#returns-2" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h5>
 <p><code>Promise</code>&lt;<a href="/chatbot/reference/server/modules#findcontentresult"><code>FindContentResult</code></a>&gt;</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-18">Defined in<a href="#defined-in-18" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/FindContentFunc.ts#L7" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/FindContentFunc.ts:7</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/FindContentFunc.ts#L7" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/FindContentFunc.ts:7</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="findcontentfuncargs">FindContentFuncArgs<a href="#findcontentfuncargs" class="hash-link" aria-label="Direct link to FindContentFuncArgs" title="Direct link to FindContentFuncArgs">​</a></h3>
 <p>Ƭ <strong>FindContentFuncArgs</strong>: <code>Object</code></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="type-declaration-11">Type declaration<a href="#type-declaration-11" class="hash-link" aria-label="Direct link to Type declaration" title="Direct link to Type declaration">​</a></h4>
 <table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>query</code></td><td style="text-align:left"><code>string</code></td></tr></tbody></table>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-19">Defined in<a href="#defined-in-19" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/FindContentFunc.ts#L3" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/FindContentFunc.ts:3</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/FindContentFunc.ts#L3" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/FindContentFunc.ts:3</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="findcontentresult">FindContentResult<a href="#findcontentresult" class="hash-link" aria-label="Direct link to FindContentResult" title="Direct link to FindContentResult">​</a></h3>
 <p>Ƭ <strong>FindContentResult</strong>: <code>Object</code></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="type-declaration-12">Type declaration<a href="#type-declaration-12" class="hash-link" aria-label="Direct link to Type declaration" title="Direct link to Type declaration">​</a></h4>
 <table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>content</code></td><td style="text-align:left"><a href="/chatbot/reference/server/modules#withscore"><code>WithScore</code></a>&lt;<a href="/chatbot/reference/server/interfaces/EmbeddedContent.md"><code>EmbeddedContent</code></a>&gt;[]</td></tr><tr><td style="text-align:left"><code>queryEmbedding</code></td><td style="text-align:left"><code>number</code>[]</td></tr></tbody></table>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-20">Defined in<a href="#defined-in-20" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/FindContentFunc.ts#L11" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/FindContentFunc.ts:11</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/FindContentFunc.ts#L11" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/FindContentFunc.ts:11</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="findnearestneighborsoptions">FindNearestNeighborsOptions<a href="#findnearestneighborsoptions" class="hash-link" aria-label="Direct link to FindNearestNeighborsOptions" title="Direct link to FindNearestNeighborsOptions">​</a></h3>
 <p>Ƭ <strong>FindNearestNeighborsOptions</strong>: <code>Object</code></p>
@@ -204,7 +204,7 @@ with the user message or the system prompt and X prior messages.</p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="functionmessage">FunctionMessage<a href="#functionmessage" class="hash-link" aria-label="Direct link to FunctionMessage" title="Direct link to FunctionMessage">​</a></h3>
 <p>Ƭ <strong>FunctionMessage</strong>: <a href="/chatbot/reference/server/modules#messagebase"><code>MessageBase</code></a> &amp; { <code>name</code>: <code>string</code> ; <code>role</code>: <code>&quot;function&quot;</code>  }</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-22">Defined in<a href="#defined-in-22" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L43" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:43</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L43" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:43</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="generateuserpromptfunc">GenerateUserPromptFunc<a href="#generateuserpromptfunc" class="hash-link" aria-label="Direct link to GenerateUserPromptFunc" title="Direct link to GenerateUserPromptFunc">​</a></h3>
 <p>Ƭ <strong>GenerateUserPromptFunc</strong>: (<code>params</code>: <a href="/chatbot/reference/server/modules#generateuserpromptfuncparams"><code>GenerateUserPromptFuncParams</code></a>) =&gt; <code>Promise</code>&lt;<a href="/chatbot/reference/server/interfaces/GenerateUserPromptFuncReturnValue"><code>GenerateUserPromptFuncReturnValue</code></a>&gt;</p>
@@ -222,14 +222,14 @@ that the LLM responds to.</p>
 <h5 class="anchor anchorWithStickyNavbar_LWe7" id="returns-3">Returns<a href="#returns-3" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h5>
 <p><code>Promise</code>&lt;<a href="/chatbot/reference/server/interfaces/GenerateUserPromptFuncReturnValue"><code>GenerateUserPromptFuncReturnValue</code></a>&gt;</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-23">Defined in<a href="#defined-in-23" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/GenerateUserPromptFunc.ts#L55" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/GenerateUserPromptFunc.ts:55</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/GenerateUserPromptFunc.ts#L55" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/GenerateUserPromptFunc.ts:55</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="generateuserpromptfuncparams">GenerateUserPromptFuncParams<a href="#generateuserpromptfuncparams" class="hash-link" aria-label="Direct link to GenerateUserPromptFuncParams" title="Direct link to GenerateUserPromptFuncParams">​</a></h3>
 <p>Ƭ <strong>GenerateUserPromptFuncParams</strong>: <code>Object</code></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="type-declaration-15">Type declaration<a href="#type-declaration-15" class="hash-link" aria-label="Direct link to Type declaration" title="Direct link to Type declaration">​</a></h4>
 <table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th><th style="text-align:left">Description</th></tr></thead><tbody><tr><td style="text-align:left"><code>conversation?</code></td><td style="text-align:left"><a href="/chatbot/reference/server/interfaces/Conversation"><code>Conversation</code></a></td><td style="text-align:left">Conversation with preceding messages</td></tr><tr><td style="text-align:left"><code>customData?</code></td><td style="text-align:left"><a href="/chatbot/reference/server/modules#conversationcustomdata"><code>ConversationCustomData</code></a></td><td style="text-align:left">Custom data for the message request.</td></tr><tr><td style="text-align:left"><code>reqId</code></td><td style="text-align:left"><code>string</code></td><td style="text-align:left">String Id for request</td></tr><tr><td style="text-align:left"><code>userMessageText</code></td><td style="text-align:left"><code>string</code></td><td style="text-align:left">Original user message</td></tr></tbody></table>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-24">Defined in<a href="#defined-in-24" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/GenerateUserPromptFunc.ts#L8" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/GenerateUserPromptFunc.ts:8</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/GenerateUserPromptFunc.ts#L8" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/GenerateUserPromptFunc.ts:8</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="loadpagesargs">LoadPagesArgs<a href="#loadpagesargs" class="hash-link" aria-label="Direct link to LoadPagesArgs" title="Direct link to LoadPagesArgs">​</a></h3>
 <p>Ƭ <strong>LoadPagesArgs</strong>&lt;<code>QueryShape</code>&gt;: <code>Object</code></p>
@@ -245,7 +245,7 @@ that the LLM responds to.</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="type-declaration-17">Type declaration<a href="#type-declaration-17" class="hash-link" aria-label="Direct link to Type declaration" title="Direct link to Type declaration">​</a></h4>
 <table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>embedder</code></td><td style="text-align:left"><a href="/chatbot/reference/server/modules#embedder"><code>Embedder</code></a></td></tr><tr><td style="text-align:left"><code>findNearestNeighborsOptions?</code></td><td style="text-align:left"><code>Partial</code>&lt;<a href="/chatbot/reference/server/modules#findnearestneighborsoptions"><code>FindNearestNeighborsOptions</code></a>&gt;</td></tr><tr><td style="text-align:left"><code>searchBoosters?</code></td><td style="text-align:left"><a href="/chatbot/reference/server/interfaces/SearchBooster"><code>SearchBooster</code></a>[]</td></tr><tr><td style="text-align:left"><code>store</code></td><td style="text-align:left"><a href="/chatbot/reference/server/modules#embeddedcontentstore"><code>EmbeddedContentStore</code></a></td></tr></tbody></table>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-26">Defined in<a href="#defined-in-26" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/makeDefaultFindContent.ts#L9" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/makeDefaultFindContent.ts:9</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/makeDefaultFindContent.ts#L9" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/makeDefaultFindContent.ts:9</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="makeopenaiembedderargs">MakeOpenAiEmbedderArgs<a href="#makeopenaiembedderargs" class="hash-link" aria-label="Direct link to MakeOpenAiEmbedderArgs" title="Direct link to MakeOpenAiEmbedderArgs">​</a></h3>
 <p>Ƭ <strong>MakeOpenAiEmbedderArgs</strong>: <code>Object</code></p>
@@ -264,7 +264,7 @@ that the LLM responds to.</p>
 <h5 class="anchor anchorWithStickyNavbar_LWe7" id="returns-4">Returns<a href="#returns-4" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h5>
 <p><code>any</code>[]</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-28">Defined in<a href="#defined-in-28" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/MakeReferenceLinksFunc.ts#L6" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/MakeReferenceLinksFunc.ts:6</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/MakeReferenceLinksFunc.ts#L6" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/MakeReferenceLinksFunc.ts:6</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="maketypechatjsontranslatefuncargs">MakeTypeChatJsonTranslateFuncArgs<a href="#maketypechatjsontranslatefuncargs" class="hash-link" aria-label="Direct link to MakeTypeChatJsonTranslateFuncArgs" title="Direct link to MakeTypeChatJsonTranslateFuncArgs">​</a></h3>
 <p>Ƭ <strong>MakeTypeChatJsonTranslateFuncArgs</strong>: <code>Object</code></p>
@@ -282,20 +282,20 @@ that the LLM responds to.</p>
 <h5 class="anchor anchorWithStickyNavbar_LWe7" id="returns-5">Returns<a href="#returns-5" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h5>
 <p><code>Promise</code>&lt;<a href="/chatbot/reference/server/modules#usermessage"><code>UserMessage</code></a>&gt;</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-30">Defined in<a href="#defined-in-30" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/makeRagGenerateUserPrompt.ts#L48" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/makeRagGenerateUserPrompt.ts:48</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/makeRagGenerateUserPrompt.ts#L48" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/makeRagGenerateUserPrompt.ts:48</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="message">Message<a href="#message" class="hash-link" aria-label="Direct link to Message" title="Direct link to Message">​</a></h3>
 <p>Ƭ <strong>Message</strong>: <a href="/chatbot/reference/server/modules#somemessage"><code>SomeMessage</code></a> &amp; { <code>createdAt</code>: <code>Date</code> ; <code>id</code>: <code>ObjectId</code>  }</p>
 <p>Message stored in the database.</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-31">Defined in<a href="#defined-in-31" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L86" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:86</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L86" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:86</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="messagebase">MessageBase<a href="#messagebase" class="hash-link" aria-label="Direct link to MessageBase" title="Direct link to MessageBase">​</a></h3>
 <p>Ƭ <strong>MessageBase</strong>: <code>Object</code></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="type-declaration-22">Type declaration<a href="#type-declaration-22" class="hash-link" aria-label="Direct link to Type declaration" title="Direct link to Type declaration">​</a></h4>
 <table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th><th style="text-align:left">Description</th></tr></thead><tbody><tr><td style="text-align:left"><code>content</code></td><td style="text-align:left"><code>string</code></td><td style="text-align:left">Message that occurs in the conversation.</td></tr><tr><td style="text-align:left"><code>customData?</code></td><td style="text-align:left"><code>Record</code>&lt;<code>string</code>, <code>unknown</code>&gt;</td><td style="text-align:left">Custom data to include in the Message persisted to the database.</td></tr><tr><td style="text-align:left"><code>role</code></td><td style="text-align:left"><code>string</code></td><td style="text-align:left">The role of the message in the conversation.</td></tr></tbody></table>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-32">Defined in<a href="#defined-in-32" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L4" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:4</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L4" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:4</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="mongodbpagestore">MongoDbPageStore<a href="#mongodbpagestore" class="hash-link" aria-label="Direct link to MongoDbPageStore" title="Direct link to MongoDbPageStore">​</a></h3>
 <p>Ƭ <strong>MongoDbPageStore</strong>: <a href="/chatbot/reference/server/modules#databaseconnection"><code>DatabaseConnection</code></a> &amp; <code>Omit</code>&lt;<a href="/chatbot/reference/server/modules#pagestore"><code>PageStore</code></a>, <code>&quot;loadPages&quot;</code>&gt; &amp; { <code>queryType</code>: <code>&quot;mongodb&quot;</code> ; <code>loadPages</code>: (<code>args?</code>: <a href="/chatbot/reference/server/modules#loadpagesargs"><code>LoadPagesArgs</code></a>&lt;<code>Filter</code>&lt;<a href="/chatbot/reference/server/modules.md#persistedpage"><code>PersistedPage</code></a>&gt;&gt;) =&gt; <code>Promise</code>&lt;<a href="/chatbot/reference/server/modules#persistedpage"><code>PersistedPage</code></a>[]&gt;  }</p>
@@ -305,27 +305,27 @@ that the LLM responds to.</p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="openaichatcompletionwithoutusage">OpenAIChatCompletionWithoutUsage<a href="#openaichatcompletionwithoutusage" class="hash-link" aria-label="Direct link to OpenAIChatCompletionWithoutUsage" title="Direct link to OpenAIChatCompletionWithoutUsage">​</a></h3>
 <p>Ƭ <strong>OpenAIChatCompletionWithoutUsage</strong>: <code>Omit</code>&lt;<code>ChatCompletions</code>, <code>&quot;usage&quot;</code>&gt;</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-34">Defined in<a href="#defined-in-34" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L53" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ChatLlm.ts:53</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L53" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ChatLlm.ts:53</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="openaiawaitedresponse">OpenAiAwaitedResponse<a href="#openaiawaitedresponse" class="hash-link" aria-label="Direct link to OpenAiAwaitedResponse" title="Direct link to OpenAiAwaitedResponse">​</a></h3>
 <p>Ƭ <strong>OpenAiAwaitedResponse</strong>: <a href="/chatbot/reference/server/modules#openaichatmessage"><code>OpenAiChatMessage</code></a></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-35">Defined in<a href="#defined-in-35" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L57" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ChatLlm.ts:57</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L57" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ChatLlm.ts:57</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="openaichatmessage">OpenAiChatMessage<a href="#openaichatmessage" class="hash-link" aria-label="Direct link to OpenAiChatMessage" title="Direct link to OpenAiChatMessage">​</a></h3>
 <p>Ƭ <strong>OpenAiChatMessage</strong>: <code>ChatRequestMessage</code> &amp; { <code>content</code>: <code>string</code> | <code>null</code> ; <code>embedding?</code>: <code>number</code>[] ; <code>role</code>: <a href="/chatbot/reference/server/modules#openaimessagerole"><code>OpenAiMessageRole</code></a>  }</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-36">Defined in<a href="#defined-in-36" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L19" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ChatLlm.ts:19</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L19" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ChatLlm.ts:19</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="openaimessagerole">OpenAiMessageRole<a href="#openaimessagerole" class="hash-link" aria-label="Direct link to OpenAiMessageRole" title="Direct link to OpenAiMessageRole">​</a></h3>
 <p>Ƭ <strong>OpenAiMessageRole</strong>: <code>&quot;system&quot;</code> | <code>&quot;assistant&quot;</code> | <code>&quot;user&quot;</code> | <code>&quot;function&quot;</code></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-37">Defined in<a href="#defined-in-37" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L17" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ChatLlm.ts:17</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L17" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ChatLlm.ts:17</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="openaistreamingresponse">OpenAiStreamingResponse<a href="#openaistreamingresponse" class="hash-link" aria-label="Direct link to OpenAiStreamingResponse" title="Direct link to OpenAiStreamingResponse">​</a></h3>
 <p>Ƭ <strong>OpenAiStreamingResponse</strong>: <code>AsyncIterable</code>&lt;<a href="/chatbot/reference/server/modules#openaichatcompletionwithoutusage"><code>OpenAIChatCompletionWithoutUsage</code></a>&gt;</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-38">Defined in<a href="#defined-in-38" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L55" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ChatLlm.ts:55</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L55" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ChatLlm.ts:55</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="page">Page<a href="#page" class="hash-link" aria-label="Direct link to Page" title="Direct link to Page">​</a></h3>
 <p>Ƭ <strong>Page</strong>: <code>Object</code></p>
@@ -385,21 +385,21 @@ want to send a canned response).</p>
 <h5 class="anchor anchorWithStickyNavbar_LWe7" id="returns-6">Returns<a href="#returns-6" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h5>
 <p><code>Promise</code>&lt;<code>ReturnType</code>&gt;</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-45">Defined in<a href="#defined-in-45" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts#L17" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts:17</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts#L17" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts:17</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="querypreprocessorresult">QueryPreprocessorResult<a href="#querypreprocessorresult" class="hash-link" aria-label="Direct link to QueryPreprocessorResult" title="Direct link to QueryPreprocessorResult">​</a></h3>
 <p>Ƭ <strong>QueryPreprocessorResult</strong>: <code>Object</code></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="type-declaration-27">Type declaration<a href="#type-declaration-27" class="hash-link" aria-label="Direct link to Type declaration" title="Direct link to Type declaration">​</a></h4>
 <table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>query?</code></td><td style="text-align:left"><code>string</code></td></tr><tr><td style="text-align:left"><code>rejectQuery?</code></td><td style="text-align:left"><code>boolean</code></td></tr></tbody></table>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-46">Defined in<a href="#defined-in-46" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts#L21" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts:21</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts#L21" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts:21</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="queryprocessorfuncparams">QueryProcessorFuncParams<a href="#queryprocessorfuncparams" class="hash-link" aria-label="Direct link to QueryProcessorFuncParams" title="Direct link to QueryProcessorFuncParams">​</a></h3>
 <p>Ƭ <strong>QueryProcessorFuncParams</strong>: <code>Object</code></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="type-declaration-28">Type declaration<a href="#type-declaration-28" class="hash-link" aria-label="Direct link to Type declaration" title="Direct link to Type declaration">​</a></h4>
 <table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>messages?</code></td><td style="text-align:left"><a href="/chatbot/reference/server/modules#message"><code>Message</code></a>[]</td></tr><tr><td style="text-align:left"><code>query</code></td><td style="text-align:left"><code>string</code></td></tr></tbody></table>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-47">Defined in<a href="#defined-in-47" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts#L3" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts:3</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts#L3" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/QueryPreprocessorFunc.ts:3</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="reference">Reference<a href="#reference" class="hash-link" aria-label="Direct link to Reference" title="Direct link to Reference">​</a></h3>
 <p>Ƭ <strong>Reference</strong>: <code>z.infer</code>&lt;typeof <a href="/chatbot/reference/server/modules#reference-1"><code>Reference</code></a>&gt;</p>
@@ -420,29 +420,29 @@ a MongoDB University module.</p>
 <p>Ƭ <strong>SomeMessage</strong>: <a href="/chatbot/reference/server/modules#usermessage"><code>UserMessage</code></a> | <a href="/chatbot/reference/server/modules#assistantmessage"><code>AssistantMessage</code></a> | <a href="/chatbot/reference/server/modules#systemmessage"><code>SystemMessage</code></a> | <a href="/chatbot/reference/server/modules#functionmessage"><code>FunctionMessage</code></a></p>
 <p>Message in the <a href="/chatbot/reference/server/interfaces/Conversation">Conversation</a>.</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-50">Defined in<a href="#defined-in-50" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L77" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:77</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L77" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:77</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="systemmessage">SystemMessage<a href="#systemmessage" class="hash-link" aria-label="Direct link to SystemMessage" title="Direct link to SystemMessage">​</a></h3>
 <p>Ƭ <strong>SystemMessage</strong>: <a href="/chatbot/reference/server/modules#messagebase"><code>MessageBase</code></a> &amp; { <code>role</code>: <code>&quot;system&quot;</code>  }</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-51">Defined in<a href="#defined-in-51" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L21" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:21</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L21" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:21</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="systemprompt">SystemPrompt<a href="#systemprompt" class="hash-link" aria-label="Direct link to SystemPrompt" title="Direct link to SystemPrompt">​</a></h3>
 <p>Ƭ <strong>SystemPrompt</strong>: <a href="/chatbot/reference/server/modules#openaichatmessage"><code>OpenAiChatMessage</code></a> &amp; { <code>content</code>: <code>string</code> ; <code>role</code>: <code>&quot;system&quot;</code>  }</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-52">Defined in<a href="#defined-in-52" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L30" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ChatLlm.ts:30</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ChatLlm.ts#L30" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ChatLlm.ts:30</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="usermessage">UserMessage<a href="#usermessage" class="hash-link" aria-label="Direct link to UserMessage" title="Direct link to UserMessage">​</a></h3>
 <p>Ƭ <strong>UserMessage</strong>: <a href="/chatbot/reference/server/modules#messagebase"><code>MessageBase</code></a> &amp; { <code>contentForLlm?</code>: <code>string</code> ; <code>embedding?</code>: <code>number</code>[] ; <code>preprocessedContent?</code>: <code>string</code> ; <code>rejectQuery?</code>: <code>boolean</code> ; <code>role</code>: <code>&quot;user&quot;</code>  }</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-53">Defined in<a href="#defined-in-53" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L48" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:48</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L48" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:48</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="withfilterandk">WithFilterAndK<a href="#withfilterandk" class="hash-link" aria-label="Direct link to WithFilterAndK" title="Direct link to WithFilterAndK">​</a></h3>
 <p>Ƭ <strong>WithFilterAndK</strong>&lt;<code>T</code>&gt;: <code>T</code> &amp; { <code>filter</code>: <code>Record</code>&lt;<code>string</code>, <code>unknown</code>&gt; ; <code>k</code>: <code>number</code>  }</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="type-parameters-2">Type parameters<a href="#type-parameters-2" class="hash-link" aria-label="Direct link to Type parameters" title="Direct link to Type parameters">​</a></h4>
 <table><thead><tr><th style="text-align:left">Name</th></tr></thead><tbody><tr><td style="text-align:left"><code>T</code></td></tr></tbody></table>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-54">Defined in<a href="#defined-in-54" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/makeBoostOnAtlasSearchFilter.ts#L9" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/makeBoostOnAtlasSearchFilter.ts:9</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/makeBoostOnAtlasSearchFilter.ts#L9" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/makeBoostOnAtlasSearchFilter.ts:9</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="withscore">WithScore<a href="#withscore" class="hash-link" aria-label="Direct link to WithScore" title="Direct link to WithScore">​</a></h3>
 <p>Ƭ <strong>WithScore</strong>&lt;<code>T</code>&gt;: <code>T</code> &amp; { <code>score</code>: <code>number</code>  }</p>
@@ -461,17 +461,17 @@ a MongoDB University module.</p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="custom_request_origin_header">CUSTOM_REQUEST_ORIGIN_HEADER<a href="#custom_request_origin_header" class="hash-link" aria-label="Direct link to CUSTOM_REQUEST_ORIGIN_HEADER" title="Direct link to CUSTOM_REQUEST_ORIGIN_HEADER">​</a></h3>
 <p>• <code>Const</code> <strong>CUSTOM_REQUEST_ORIGIN_HEADER</strong>: <code>&quot;X-Request-Origin&quot;</code></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-57">Defined in<a href="#defined-in-57" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/middleware/requireRequestOrigin.ts#L4" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/middleware/requireRequestOrigin.ts:4</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/middleware/requireRequestOrigin.ts#L4" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/middleware/requireRequestOrigin.ts:4</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="default_api_prefix">DEFAULT_API_PREFIX<a href="#default_api_prefix" class="hash-link" aria-label="Direct link to DEFAULT_API_PREFIX" title="Direct link to DEFAULT_API_PREFIX">​</a></h3>
 <p>• <code>Const</code> <strong>DEFAULT_API_PREFIX</strong>: <code>&quot;/api/v1&quot;</code></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-58">Defined in<a href="#defined-in-58" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/app.ts#L108" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/app.ts:108</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/app.ts#L108" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/app.ts:108</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="default_max_request_timeout_ms">DEFAULT_MAX_REQUEST_TIMEOUT_MS<a href="#default_max_request_timeout_ms" class="hash-link" aria-label="Direct link to DEFAULT_MAX_REQUEST_TIMEOUT_MS" title="Direct link to DEFAULT_MAX_REQUEST_TIMEOUT_MS">​</a></h3>
 <p>• <code>Const</code> <strong>DEFAULT_MAX_REQUEST_TIMEOUT_MS</strong>: <code>60000</code></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-59">Defined in<a href="#defined-in-59" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/app.ts#L110" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/app.ts:110</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/app.ts#L110" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/app.ts:110</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="reference-1">Reference<a href="#reference-1" class="hash-link" aria-label="Direct link to Reference" title="Direct link to Reference">​</a></h3>
 <p>• <strong>Reference</strong>: <code>ZodObject</code>&lt;{ <code>title</code>: <code>ZodString</code> ; <code>url</code>: <code>ZodString</code>  }, <code>&quot;strip&quot;</code>, <code>ZodTypeAny</code>, { <code>title</code>: <code>string</code> ; <code>url</code>: <code>string</code>  }, { <code>title</code>: <code>string</code> ; <code>url</code>: <code>string</code>  }&gt;</p>
@@ -488,12 +488,12 @@ a MongoDB University module.</p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="someexpressrequest">SomeExpressRequest<a href="#someexpressrequest" class="hash-link" aria-label="Direct link to SomeExpressRequest" title="Direct link to SomeExpressRequest">​</a></h3>
 <p>• <code>Const</code> <strong>SomeExpressRequest</strong>: <code>ZodObject</code>&lt;{ <code>body</code>: <code>ZodOptional</code>&lt;<code>ZodObject</code>&lt;<!-- -->, <code>&quot;strip&quot;</code>, <code>ZodTypeAny</code>, <!-- -->, <!-- -->&gt;&gt; ; <code>headers</code>: <code>ZodOptional</code>&lt;<code>ZodObject</code>&lt;<!-- -->, <code>&quot;strip&quot;</code>, <code>ZodTypeAny</code>, <!-- -->, <!-- -->&gt;&gt; ; <code>params</code>: <code>ZodOptional</code>&lt;<code>ZodObject</code>&lt;<!-- -->, <code>&quot;strip&quot;</code>, <code>ZodTypeAny</code>, <!-- -->, <!-- -->&gt;&gt; ; <code>query</code>: <code>ZodOptional</code>&lt;<code>ZodObject</code>&lt;<!-- -->, <code>&quot;strip&quot;</code>, <code>ZodTypeAny</code>, <!-- -->, <!-- -->&gt;&gt;  }, <code>&quot;strip&quot;</code>, <code>ZodTypeAny</code>, { <code>body?</code>: {} ; <code>headers?</code>: {} ; <code>params?</code>: {} ; <code>query?</code>: {}  }, { <code>body?</code>: {} ; <code>headers?</code>: {} ; <code>params?</code>: {} ; <code>query?</code>: {}  }&gt;</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-62">Defined in<a href="#defined-in-62" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/middleware/validateRequestSchema.ts#L6" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/middleware/validateRequestSchema.ts:6</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/middleware/validateRequestSchema.ts#L6" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/middleware/validateRequestSchema.ts:6</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="defaultconversationconstants">defaultConversationConstants<a href="#defaultconversationconstants" class="hash-link" aria-label="Direct link to defaultConversationConstants" title="Direct link to defaultConversationConstants">​</a></h3>
 <p>• <code>Const</code> <strong>defaultConversationConstants</strong>: <a href="/chatbot/reference/server/interfaces/ConversationConstants"><code>ConversationConstants</code></a></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-63">Defined in<a href="#defined-in-63" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L216" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:216</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/ConversationsService.ts#L216" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/ConversationsService.ts:216</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="logger">logger<a href="#logger" class="hash-link" aria-label="Direct link to logger" title="Direct link to logger">​</a></h3>
 <p>• <code>Const</code> <strong>logger</strong>: <code>Logger</code></p>
@@ -505,7 +505,7 @@ a MongoDB University module.</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="type-declaration-30">Type declaration<a href="#type-declaration-30" class="hash-link" aria-label="Direct link to Type declaration" title="Direct link to Type declaration">​</a></h4>
 <table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>error</code></td><td style="text-align:left"><code>string</code></td></tr></tbody></table>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-65">Defined in<a href="#defined-in-65" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L168" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:168</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L168" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:168</a></p>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="functions">Functions<a href="#functions" class="hash-link" aria-label="Direct link to Functions" title="Direct link to Functions">​</a></h2>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="assertenvvars">assertEnvVars<a href="#assertenvvars" class="hash-link" aria-label="Direct link to assertEnvVars" title="Direct link to assertEnvVars">​</a></h3>
 <p>▸ <strong>assertEnvVars</strong>&lt;<code>T</code>&gt;(<code>ENV_VARS</code>): <code>T</code></p>
@@ -535,7 +535,7 @@ a MongoDB University module.</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="returns-9">Returns<a href="#returns-9" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
 <p>{ <code>content</code>: <code>string</code> ; <code>createdAt</code>: <code>Date</code> ; <code>customData?</code>: <code>Record</code>&lt;<code>string</code>, <code>unknown</code>&gt; ; <code>id</code>: <code>ObjectId</code> ; <code>role</code>: <code>&quot;system&quot;</code>  } | { <code>content</code>: <code>string</code> ; <code>contentForLlm?</code>: <code>string</code> ; <code>createdAt</code>: <code>Date</code> ; <code>customData?</code>: <code>Record</code>&lt;<code>string</code>, <code>unknown</code>&gt; ; <code>embedding?</code>: <code>number</code>[] ; <code>id</code>: <code>ObjectId</code> ; <code>preprocessedContent?</code>: <code>string</code> ; <code>rejectQuery?</code>: <code>boolean</code> ; <code>role</code>: <code>&quot;user&quot;</code>  } | { <code>content</code>: <code>string</code> ; <code>createdAt</code>: <code>Date</code> ; <code>customData?</code>: <code>Record</code>&lt;<code>string</code>, <code>unknown</code>&gt; ; <code>id</code>: <code>ObjectId</code> ; <code>name</code>: <code>string</code> ; <code>role</code>: <code>&quot;function&quot;</code>  } | { <code>content</code>: <code>string</code> ; <code>createdAt</code>: <code>Date</code> ; <code>customData?</code>: <code>Record</code>&lt;<code>string</code>, <code>unknown</code>&gt; ; <code>functionCall?</code>: <code>FunctionCall</code> ; <code>id</code>: <code>ObjectId</code> ; <code>rating?</code>: <code>boolean</code> ; <code>references?</code>: { <code>title</code>: <code>string</code> ; <code>url</code>: <code>string</code>  }[] ; <code>role</code>: <code>&quot;assistant&quot;</code>  }</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-68">Defined in<a href="#defined-in-68" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/mongodbConversations.ts#L133" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/mongodbConversations.ts:133</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/mongodbConversations.ts#L133" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/mongodbConversations.ts:133</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="createmessagefromopenaichatmessage">createMessageFromOpenAIChatMessage<a href="#createmessagefromopenaichatmessage" class="hash-link" aria-label="Direct link to createMessageFromOpenAIChatMessage" title="Direct link to createMessageFromOpenAIChatMessage">​</a></h3>
 <p>▸ <strong>createMessageFromOpenAIChatMessage</strong>(<code>chatMessage</code>): <a href="/chatbot/reference/server/modules#message"><code>Message</code></a></p>
@@ -545,7 +545,7 @@ a MongoDB University module.</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="returns-10">Returns<a href="#returns-10" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
 <p><a href="/chatbot/reference/server/modules#message"><code>Message</code></a></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-69">Defined in<a href="#defined-in-69" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/mongodbConversations.ts#L151" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/mongodbConversations.ts:151</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/mongodbConversations.ts#L151" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/mongodbConversations.ts:151</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="errorhandler">errorHandler<a href="#errorhandler" class="hash-link" aria-label="Direct link to errorHandler" title="Direct link to errorHandler">​</a></h3>
 <p>▸ <strong>errorHandler</strong>(<code>err</code>, <code>req</code>, <code>res</code>, <code>next</code>): <code>void</code></p>
@@ -605,7 +605,7 @@ for developer convenience.</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="returns-15">Returns<a href="#returns-15" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
 <p><code>Promise</code>&lt;<a href="/chatbot/reference/server/modules#message"><code>Message</code></a>[]&gt;</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-74">Defined in<a href="#defined-in-74" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/FilterPreviousMessages.ts#L9" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/FilterPreviousMessages.ts:9</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/FilterPreviousMessages.ts#L9" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/FilterPreviousMessages.ts:9</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="includechunksformaxtokenspossible">includeChunksForMaxTokensPossible<a href="#includechunksformaxtokenspossible" class="hash-link" aria-label="Direct link to includeChunksForMaxTokensPossible" title="Direct link to includeChunksForMaxTokensPossible">​</a></h3>
 <p>▸ <strong>includeChunksForMaxTokensPossible</strong>(<code>«destructured»</code>): <a href="/chatbot/reference/server/interfaces/EmbeddedContent"><code>EmbeddedContent</code></a>[]</p>
@@ -616,7 +616,7 @@ It limits the number of tokens that are sent to the LLM.</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="returns-16">Returns<a href="#returns-16" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
 <p><a href="/chatbot/reference/server/interfaces/EmbeddedContent"><code>EmbeddedContent</code></a>[]</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-75">Defined in<a href="#defined-in-75" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/makeRagGenerateUserPrompt.ts#L202" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/makeRagGenerateUserPrompt.ts:202</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/makeRagGenerateUserPrompt.ts#L202" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/makeRagGenerateUserPrompt.ts:202</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="makeapp">makeApp<a href="#makeapp" class="hash-link" aria-label="Direct link to makeApp" title="Direct link to makeApp">​</a></h3>
 <p>▸ <strong>makeApp</strong>(<code>config</code>): <code>Promise</code>&lt;<code>Express</code>&gt;</p>
@@ -626,7 +626,7 @@ It limits the number of tokens that are sent to the LLM.</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="returns-17">Returns<a href="#returns-17" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
 <p><code>Promise</code>&lt;<code>Express</code>&gt;</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-76">Defined in<a href="#defined-in-76" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/app.ts#L115" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/app.ts:115</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/app.ts#L115" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/app.ts:115</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="makeboostonatlassearchfilter">makeBoostOnAtlasSearchFilter<a href="#makeboostonatlassearchfilter" class="hash-link" aria-label="Direct link to makeBoostOnAtlasSearchFilter" title="Direct link to makeBoostOnAtlasSearchFilter">​</a></h3>
 <p>▸ <strong>makeBoostOnAtlasSearchFilter</strong>(<code>«destructured»</code>): <a href="/chatbot/reference/server/interfaces/SearchBooster"><code>SearchBooster</code></a></p>
@@ -636,7 +636,7 @@ It limits the number of tokens that are sent to the LLM.</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="returns-18">Returns<a href="#returns-18" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
 <p><a href="/chatbot/reference/server/interfaces/SearchBooster"><code>SearchBooster</code></a></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-77">Defined in<a href="#defined-in-77" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/makeBoostOnAtlasSearchFilter.ts#L37" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/makeBoostOnAtlasSearchFilter.ts:37</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/makeBoostOnAtlasSearchFilter.ts#L37" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/makeBoostOnAtlasSearchFilter.ts:37</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="makeconversationsrouter">makeConversationsRouter<a href="#makeconversationsrouter" class="hash-link" aria-label="Direct link to makeConversationsRouter" title="Direct link to makeConversationsRouter">​</a></h3>
 <p>▸ <strong>makeConversationsRouter</strong>(<code>«destructured»</code>): <code>Router</code></p>
@@ -646,7 +646,7 @@ It limits the number of tokens that are sent to the LLM.</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="returns-19">Returns<a href="#returns-19" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
 <p><code>Router</code></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-78">Defined in<a href="#defined-in-78" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L191" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:191</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts#L191" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/routes/conversations/conversationsRouter.ts:191</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="makedatastreamer">makeDataStreamer<a href="#makedatastreamer" class="hash-link" aria-label="Direct link to makeDataStreamer" title="Direct link to makeDataStreamer">​</a></h3>
 <p>▸ <strong>makeDataStreamer</strong>(): <a href="/chatbot/reference/server/interfaces/DataStreamer"><code>DataStreamer</code></a></p>
@@ -654,7 +654,7 @@ It limits the number of tokens that are sent to the LLM.</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="returns-20">Returns<a href="#returns-20" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
 <p><a href="/chatbot/reference/server/interfaces/DataStreamer"><code>DataStreamer</code></a></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-79">Defined in<a href="#defined-in-79" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/dataStreamer.ts#L95" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/dataStreamer.ts:95</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/dataStreamer.ts#L95" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/dataStreamer.ts:95</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="makedefaultfindcontent">makeDefaultFindContent<a href="#makedefaultfindcontent" class="hash-link" aria-label="Direct link to makeDefaultFindContent" title="Direct link to makeDefaultFindContent">​</a></h3>
 <p>▸ <strong>makeDefaultFindContent</strong>(<code>«destructured»</code>): <a href="/chatbot/reference/server/modules#findcontentfunc"><code>FindContentFunc</code></a></p>
@@ -664,7 +664,7 @@ It limits the number of tokens that are sent to the LLM.</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="returns-21">Returns<a href="#returns-21" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
 <p><a href="/chatbot/reference/server/modules#findcontentfunc"><code>FindContentFunc</code></a></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-80">Defined in<a href="#defined-in-80" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/makeDefaultFindContent.ts#L19" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/makeDefaultFindContent.ts:19</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/makeDefaultFindContent.ts#L19" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/makeDefaultFindContent.ts:19</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="makedefaultreferencelinks">makeDefaultReferenceLinks<a href="#makedefaultreferencelinks" class="hash-link" aria-label="Direct link to makeDefaultReferenceLinks" title="Direct link to makeDefaultReferenceLinks">​</a></h3>
 <p>▸ <strong>makeDefaultReferenceLinks</strong>(<code>chunks</code>): { <code>title</code>: <code>string</code> ; <code>url</code>: <code>string</code>  }[]</p>
@@ -675,7 +675,7 @@ It limits the number of tokens that are sent to the LLM.</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="returns-22">Returns<a href="#returns-22" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
 <p>{ <code>title</code>: <code>string</code> ; <code>url</code>: <code>string</code>  }[]</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-81">Defined in<a href="#defined-in-81" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/MakeReferenceLinksFunc.ts#L6" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/MakeReferenceLinksFunc.ts:6</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/MakeReferenceLinksFunc.ts#L6" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/MakeReferenceLinksFunc.ts:6</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="makefilternpreviousmessages">makeFilterNPreviousMessages<a href="#makefilternpreviousmessages" class="hash-link" aria-label="Direct link to makeFilterNPreviousMessages" title="Direct link to makeFilterNPreviousMessages">​</a></h3>
 <p>▸ <strong>makeFilterNPreviousMessages</strong>(<code>n</code>): <a href="/chatbot/reference/server/modules#filterpreviousmessages"><code>FilterPreviousMessages</code></a></p>
@@ -686,7 +686,7 @@ The first message in the conversation <strong>must</strong> be the system prompt
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="returns-23">Returns<a href="#returns-23" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
 <p><a href="/chatbot/reference/server/modules#filterpreviousmessages"><code>FilterPreviousMessages</code></a></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-82">Defined in<a href="#defined-in-82" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/makeFilterNPreviousMessages.ts#L8" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/makeFilterNPreviousMessages.ts:8</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/makeFilterNPreviousMessages.ts#L8" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/makeFilterNPreviousMessages.ts:8</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="makehandletimeoutmiddleware">makeHandleTimeoutMiddleware<a href="#makehandletimeoutmiddleware" class="hash-link" aria-label="Direct link to makeHandleTimeoutMiddleware" title="Direct link to makeHandleTimeoutMiddleware">​</a></h3>
 <p>▸ <strong>makeHandleTimeoutMiddleware</strong>(<code>apiTimeout</code>): (<code>req</code>: <code>Request</code>&lt;<code>ParamsDictionary</code>, <code>any</code>, <code>any</code>, <code>ParsedQs</code>, <code>Record</code>&lt;<code>string</code>, <code>any</code>&gt;&gt;, <code>res</code>: <code>Response</code>&lt;<code>any</code>, <code>Record</code>&lt;<code>string</code>, <code>any</code>&gt;&gt;, <code>next</code>: <code>NextFunction</code>) =&gt; <code>void</code></p>
@@ -700,7 +700,7 @@ The first message in the conversation <strong>must</strong> be the system prompt
 <h5 class="anchor anchorWithStickyNavbar_LWe7" id="returns-25">Returns<a href="#returns-25" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h5>
 <p><code>void</code></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-83">Defined in<a href="#defined-in-83" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/app.ts#L93" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/app.ts:93</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/app.ts#L93" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/app.ts:93</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="makemongodbconversationsservice">makeMongoDbConversationsService<a href="#makemongodbconversationsservice" class="hash-link" aria-label="Direct link to makeMongoDbConversationsService" title="Direct link to makeMongoDbConversationsService">​</a></h3>
 <p>▸ <strong>makeMongoDbConversationsService</strong>(<code>database</code>, <code>systemPrompt</code>, <code>conversationConstants?</code>): <a href="/chatbot/reference/server/interfaces/ConversationsService"><code>ConversationsService</code></a></p>
@@ -710,7 +710,7 @@ The first message in the conversation <strong>must</strong> be the system prompt
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="returns-26">Returns<a href="#returns-26" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
 <p><a href="/chatbot/reference/server/interfaces/ConversationsService"><code>ConversationsService</code></a></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-84">Defined in<a href="#defined-in-84" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/mongodbConversations.ts#L25" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/mongodbConversations.ts:25</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/mongodbConversations.ts#L25" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/mongodbConversations.ts:25</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="makemongodbembeddedcontentstore">makeMongoDbEmbeddedContentStore<a href="#makemongodbembeddedcontentstore" class="hash-link" aria-label="Direct link to makeMongoDbEmbeddedContentStore" title="Direct link to makeMongoDbEmbeddedContentStore">​</a></h3>
 <p>▸ <strong>makeMongoDbEmbeddedContentStore</strong>(<code>«destructured»</code>): <a href="/chatbot/reference/server/modules#embeddedcontentstore"><code>EmbeddedContentStore</code></a> &amp; <a href="/chatbot/reference/server/modules#databaseconnection"><code>DatabaseConnection</code></a></p>
@@ -740,7 +740,7 @@ The <code>ChatLlm</code> wraps the <a href="https://www.npmjs.com/package/@azure
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="returns-29">Returns<a href="#returns-29" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
 <p><a href="/chatbot/reference/server/interfaces/ChatLlm"><code>ChatLlm</code></a></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-87">Defined in<a href="#defined-in-87" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts#L26" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts:26</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts#L26" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/services/openAiChatLlm.ts:26</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="makeopenaiembedder">makeOpenAiEmbedder<a href="#makeopenaiembedder" class="hash-link" aria-label="Direct link to makeOpenAiEmbedder" title="Direct link to makeOpenAiEmbedder">​</a></h3>
 <p>▸ <strong>makeOpenAiEmbedder</strong>(<code>«destructured»</code>): <a href="/chatbot/reference/server/modules#embedder"><code>Embedder</code></a></p>
@@ -771,7 +771,7 @@ The returned RAG user prompt generator performs the following steps:</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="returns-31">Returns<a href="#returns-31" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
 <p><a href="/chatbot/reference/server/modules#generateuserpromptfunc"><code>GenerateUserPromptFunc</code></a></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-89">Defined in<a href="#defined-in-89" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/processors/makeRagGenerateUserPrompt.ts#L64" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/makeRagGenerateUserPrompt.ts:64</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/processors/makeRagGenerateUserPrompt.ts#L64" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/processors/makeRagGenerateUserPrompt.ts:64</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="makestaticsite">makeStaticSite<a href="#makestaticsite" class="hash-link" aria-label="Direct link to makeStaticSite" title="Direct link to makeStaticSite">​</a></h3>
 <p>▸ <strong>makeStaticSite</strong>(<code>app</code>): <code>Express</code></p>
@@ -782,7 +782,7 @@ The returned RAG user prompt generator performs the following steps:</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="returns-32">Returns<a href="#returns-32" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
 <p><code>Express</code></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-90">Defined in<a href="#defined-in-90" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/routes/staticSite.ts#L8" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/routes/staticSite.ts:8</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/routes/staticSite.ts#L8" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/routes/staticSite.ts:8</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="maketypechatjsontranslatefunc">makeTypeChatJsonTranslateFunc<a href="#maketypechatjsontranslatefunc" class="hash-link" aria-label="Direct link to makeTypeChatJsonTranslateFunc" title="Direct link to makeTypeChatJsonTranslateFunc">​</a></h3>
 <p>▸ <strong>makeTypeChatJsonTranslateFunc</strong>&lt;<code>SchemaType</code>&gt;(<code>«destructured»</code>): (<code>prompt</code>: <code>string</code>) =&gt; <code>Promise</code>&lt;<code>SchemaType</code>&gt;</p>
@@ -823,14 +823,14 @@ The returned RAG user prompt generator performs the following steps:</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="returns-37">Returns<a href="#returns-37" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
 <p><a href="/chatbot/reference/server/modules#conversationsmiddleware"><code>ConversationsMiddleware</code></a></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-94">Defined in<a href="#defined-in-94" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/middleware/requireRequestOrigin.ts#L6" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/middleware/requireRequestOrigin.ts:6</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/middleware/requireRequestOrigin.ts#L6" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/middleware/requireRequestOrigin.ts:6</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="requirevalidipaddress">requireValidIpAddress<a href="#requirevalidipaddress" class="hash-link" aria-label="Direct link to requireValidIpAddress" title="Direct link to requireValidIpAddress">​</a></h3>
 <p>▸ <strong>requireValidIpAddress</strong>(): <a href="/chatbot/reference/server/modules#conversationsmiddleware"><code>ConversationsMiddleware</code></a></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="returns-38">Returns<a href="#returns-38" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
 <p><a href="/chatbot/reference/server/modules#conversationsmiddleware"><code>ConversationsMiddleware</code></a></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="defined-in-95">Defined in<a href="#defined-in-95" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
-<p><a href="https://github.com/mongodben/chatbot/blob/89b6b72/packages/mongodb-chatbot-server/src/middleware/requireValidIpAddress.ts#L5" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/middleware/requireValidIpAddress.ts:5</a></p>
+<p><a href="https://github.com/mongodben/chatbot/blob/f90d2be/packages/mongodb-chatbot-server/src/middleware/requireValidIpAddress.ts#L5" target="_blank" rel="noopener noreferrer">packages/mongodb-chatbot-server/src/middleware/requireValidIpAddress.ts:5</a></p>
 <hr>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="updatefrontmatter">updateFrontMatter<a href="#updatefrontmatter" class="hash-link" aria-label="Direct link to updateFrontMatter" title="Direct link to updateFrontMatter">​</a></h3>
 <p>▸ <strong>updateFrontMatter</strong>(<code>text</code>, <code>metadataIn</code>): <code>string</code></p>

@@ -5,10 +5,14 @@ module.exports = {
   root: true,
   parser: "@typescript-eslint/parser",
   plugins: ["@typescript-eslint", "jest", "jsdoc", "prettier"],
-  extends: ["eslint:recommended", "prettier"],
+  extends: [
+    "eslint:recommended",
+    "prettier",
+    "plugin:@typescript-eslint/recommended",
+  ],
   ignorePatterns: ["build/*"],
   parserOptions: {
-    ecmaVersion: 2018,
+    ecmaVersion: 2021,
     sourceType: "module",
   },
   rules: {

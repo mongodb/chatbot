@@ -177,6 +177,19 @@ describe("ConversationService", () => {
     expect(savedRating).toEqual(rating);
   });
 
+  it("supports user comments on messages", async () => {
+    const conversationId = "650b4b260f975ef031016c8d";
+    const ratedMessageId = "650b4be0d5a57dd66be2ccb9";
+    const comment = "This was a satisfying response.";
+    mockFetchResponse({ status: 204, data: undefined });
+    const commentPromise = conversationService.commentMessage({
+      conversationId,
+      messageId: ratedMessageId,
+      comment,
+    });
+    expect(commentPromise).resolves.toBeUndefined();
+  });
+
   it("throws on invalid inputs", async () => {
     const conversationId = "650b4b260f975ef031016c8d";
     const messageId = "650b4be0d5a57dd66be2ccb9";
@@ -194,6 +207,20 @@ describe("ConversationService", () => {
         rating: "true" as unknown as boolean,
       });
     }).rejects.toThrowError(invalidRatingErrorMessage);
+
+    const invalidCommentErrorMessage = "Failed to save comment on message";
+    mockFetchResponse({
+      status: 400,
+      data: { error: invalidCommentErrorMessage },
+    });
+
+    expect(async () => {
+      return conversationService.commentMessage({
+        conversationId,
+        messageId,
+        comment: 42 as unknown as string,
+      });
+    }).rejects.toThrowError(invalidCommentErrorMessage);
 
     const invalidConversationIdErrorMessage = "Invalid conversation ID";
     mockFetchResponse({

@@ -221,4 +221,126 @@ describe("Conversations Service", () => {
       true
     );
   });
+  test("Should add a user comment to a message", async () => {
+    const { _id: conversationId } = await conversationsService.create();
+
+    await conversationsService.addConversationMessage({
+      conversationId,
+      message: {
+        role: "user",
+        content: "What is the MongoDB Document Model?",
+        embedding: [1, 2, 3],
+      },
+    });
+
+    const assistantMessage = await conversationsService.addConversationMessage({
+      conversationId,
+      message: {
+        role: "assistant",
+        content: "That's a good question! Let me explain...",
+        references: [],
+      },
+    });
+
+    const rateResult = await conversationsService.rateMessage({
+      conversationId,
+      messageId: assistantMessage.id,
+      rating: true,
+    });
+    expect(rateResult).toBe(true);
+
+    const comment = "This answer was super helpful!";
+    const commentResult = await conversationsService.commentMessage({
+      conversationId,
+      messageId: assistantMessage.id,
+      comment,
+    });
+    expect(commentResult).toBe(true);
+
+    const conversationInDb = await mongodb
+      .collection<Conversation>("conversations")
+      .findOne({ _id: conversationId });
+
+    const finalAssistantMessage = (conversationInDb?.messages[2] as AssistantMessage)
+    expect(finalAssistantMessage?.rating).toBe(true);
+    expect(finalAssistantMessage?.userComment).toBe(comment);
+  });
+  test("Does not allow users to comment on a message that is not rated", async () => {
+    const { _id: conversationId } = await conversationsService.create();
+
+    await conversationsService.addConversationMessage({
+      conversationId,
+      message: {
+        role: "user",
+        content: "What is the MongoDB Document Model?",
+        embedding: [1, 2, 3],
+      },
+    });
+
+    const assistantMessage = await conversationsService.addConversationMessage({
+      conversationId,
+      message: {
+        role: "assistant",
+        content: "That's a good question! Let me explain...",
+        references: [],
+      },
+    });
+
+    const comment = "This answer was super helpful!";
+    const commentPromise = conversationsService.commentMessage({
+      conversationId,
+      messageId: assistantMessage.id,
+      comment,
+    });
+
+    await expect(commentPromise).rejects.toThrow(
+      "Failed to save comment on message"
+    );
+  });
+  test("Does not allow users to comment on a message that already has a comment", async () => {
+    const { _id: conversationId } = await conversationsService.create();
+
+    await conversationsService.addConversationMessage({
+      conversationId,
+      message: {
+        role: "user",
+        content: "What is the MongoDB Document Model?",
+        embedding: [1, 2, 3],
+      },
+    });
+
+    const assistantMessage = await conversationsService.addConversationMessage({
+      conversationId,
+      message: {
+        role: "assistant",
+        content: "That's a good question! Let me explain...",
+        references: [],
+      },
+    });
+
+    const rateResult = await conversationsService.rateMessage({
+      conversationId,
+      messageId: assistantMessage.id,
+      rating: true,
+    });
+    expect(rateResult).toBe(true);
+
+    const comment = "This answer was super helpful!";
+    const commentResult = await conversationsService.commentMessage({
+      conversationId,
+      messageId: assistantMessage.id,
+      comment,
+    });
+    expect(commentResult).toBe(true);
+
+    const secondCommentPromise = conversationsService.commentMessage({
+      conversationId,
+      messageId: assistantMessage.id,
+      comment: "This is a second comment that is not allowed!",
+    });
+
+    await expect(secondCommentPromise).rejects.toThrow(
+      "Failed to save comment on message"
+    );
+  });
 });

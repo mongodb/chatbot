@@ -8,6 +8,7 @@ import {
   ConversationsService,
 } from "../../services/ConversationsService";
 import { DataStreamer, makeDataStreamer } from "../../services/dataStreamer";
+import { CommentMessageRequest, makeCommentMessageRoute } from "./commentMessage";
 import { RateMessageRequest, makeRateMessageRoute } from "./rateMessage";
 import {
   CreateConversationRequest,
@@ -310,6 +311,13 @@ export function makeConversationsRouter({
     "/:conversationId/messages/:messageId/rating",
     validateRequestSchema(RateMessageRequest),
     makeRateMessageRoute({ conversations })
+  );
+
+  // Comment on a message.
+  conversationsRouter.post(
+    "/:conversationId/messages/:messageId/comment",
+    validateRequestSchema(CommentMessageRequest),
+    makeCommentMessageRoute({ conversations })
   );
 
   return conversationsRouter;

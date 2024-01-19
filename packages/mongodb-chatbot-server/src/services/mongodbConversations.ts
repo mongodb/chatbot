@@ -16,6 +16,7 @@ import {
   AssistantMessage,
   SystemMessage,
   FunctionMessage,
+  CommentMessageParams,
 } from "./ConversationsService";
 
 /**
@@ -123,6 +124,39 @@ export function makeMongoDbConversationsService(
       );
       if (!updateResult.acknowledged || updateResult.matchedCount === 0) {
         throw new Error("Failed to rate message");
+      }
+      return true;
+    },
+
+    async commentMessage({
+      conversationId,
+      messageId,
+      comment,
+    }: CommentMessageParams) {
+      const updateResult = await conversationsCollection.updateOne(
+        {
+          _id: conversationId,
+          messages: {
+            $elemMatch: {
+              id: messageId,
+              role: "assistant",
+              rating: { $exists: true },
+              userComment: { $exists: false },
+            },
+          },
+        },
+        {
+          $set: {
+            "messages.$[message].userComment": comment,
+          },
+        },
+        {
+          arrayFilters: [{ "message.id": messageId }],
+        }
+      );
+
+      if (!updateResult.acknowledged || updateResult.matchedCount === 0) {
+        throw new Error("Failed to save comment on message");
       }
       return true;
     },

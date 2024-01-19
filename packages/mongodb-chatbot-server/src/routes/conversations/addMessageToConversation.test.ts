@@ -278,6 +278,9 @@ describe("POST /conversations/:conversationId/messages", () => {
         async rateMessage() {
           throw new Error("mock error");
         },
+        async commentMessage() {
+          throw new Error("mock error");
+        },
         conversationConstants: defaultConversationConstants,
       };
       const app = await makeApp({

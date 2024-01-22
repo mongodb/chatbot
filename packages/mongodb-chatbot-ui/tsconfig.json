@@ -20,5 +20,5 @@
     "noImplicitReturns": true,
     "noImplicitThis": true
   },
-  "include": ["./src/**/*.ts"]
+  "include": ["./src/**/*.ts", "./src/**/*.tsx"]
 }

@@ -42,6 +42,28 @@ cronJobs:
         cpu: 500m
         memory: 5Gi
 
+  - name: findFaq
+    schedule: "0 8 * * *" # every day at 8am UTC
+    command: ["npm", "run", "scripts:findFaq"]
+    env:
+      MONGODB_DATABASE_NAME: docs-chatbot-prod
+      OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
+    envSecrets:
+      MONGODB_CONNECTION_URI: docs-chatbot-prod
+      OPENAI_ENDPOINT: docs-chatbot-prod
+      OPENAI_API_KEY: docs-chatbot-prod
+      OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-prod
+      OPENAI_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-prod
+    resources:
+      # guaranteed amount of resources
+      requests:
+        cpu: 100m
+        memory: 2Gi
+      # maximum allowed resources
+      limits:
+        cpu: 500m
+        memory: 5Gi
+
 # Alerts
 defaultAlerts:
   enabled: true

@@ -96,7 +96,7 @@ import { removeMarkdownImagesAndLinks } from "mongodb-rag-ingest/sources";
 ```
 
 To learn more about why you might want to strip out images and links,
-refer to the [Clean up Text as You Ingest in the Fine Tuning documentation](./optimize.md#clean-up-text-as-you-ingest).
+refer to the [Clean up Text as You Ingest in the Optimization documentation](./optimize.md#clean-up-text-as-you-ingest).
 
 ### Convert HTML Documents to Markdown
 
@@ -114,9 +114,9 @@ import { handleHtmlDocument } from "mongodb-rag-ingest/sources";
 You can see `handleHtmlDocument()` [used in the MongoDB Docs AI Chatbot configuration](https://github.com/mongodb/chatbot/blob/6ab06a24ae085d0db650bc4883ce1278728e3131/ingest-mongodb-public/src/sources.ts#L258).
 
 To learn more about why you might want to convert HTML documents to Markdown,
-refer to the [Standardize Data Formats in the Fine Tuning documentation](./optimize.md#standardize-data-formats).
+refer to the [Standardize Data Formats in the Optimization documentation](./optimize.md#standardize-data-formats).
 
 ## Optimize Data Ingestion
 
 For some suggestions on how you can optimize the data that you ingest
-to best serve your chatbot, see the [Fine Tuning documentation](./optimize.md).
+to best serve your chatbot, see the [Optimization documentation](./optimize.md).

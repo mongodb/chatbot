@@ -1,17 +1,27 @@
-import { Request, Response } from "express";
+import { Request } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 import { createRequest, createResponse } from "node-mocks-http";
-import { ConversationsRouterLocals } from "../routes/conversations/conversationsRouter";
+import { ConversationsService } from "../services";
+import {
+  ConversationsRouterLocals,
+  ConversationsRouterResponse,
+} from "../routes/conversations/conversationsRouter";
 
 export const createConversationsMiddlewareReq = () =>
   createRequest<
-    Request<ParamsDictionary, any, any, any, ConversationsRouterLocals>
+    Request<
+      ParamsDictionary,
+      unknown,
+      unknown,
+      unknown,
+      ConversationsRouterLocals
+    >
   >();
 
 export const createConversationsMiddlewareRes = () => {
-  const res = createResponse<Response<any, ConversationsRouterLocals>>();
+  const res = createResponse<ConversationsRouterResponse>();
   res.locals = {
-    conversations: {} as any,
+    conversations: {} as unknown as ConversationsService,
     customData: {},
   };
   return res;

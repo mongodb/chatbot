@@ -68,9 +68,9 @@ describe("OpenAiEmbedFunc", () => {
 
     try {
       await embedder.embed({ text: "" });
-    } catch (e: any) {
+    } catch (e) {
       // Expected to fail - server returns 429
-      expect(e.message).toContain("Fake error");
+      expect((e as Error).message).toContain("Fake error");
     }
     expect(serverHitCount).toBe(3);
   });

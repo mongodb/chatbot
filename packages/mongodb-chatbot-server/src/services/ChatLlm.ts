@@ -1,23 +1,21 @@
 /**
- * @fileoverview This file contains the interfaces for the LLM service.
- * Note that the LLM service is based on the OpenAI API, so the interface borrow
- * from that. This interface could still work with non OpenAI providers if they
- * implement the same interface.
+  @fileoverview This file contains the interfaces for the LLM service.
+  Note that the LLM service is based on the OpenAI API, so the interface borrow
+  from that. This interface could still work with non OpenAI providers if they
+  implement the same interface.
  */
 import {
   ChatCompletions,
   ChatRequestMessage,
   FunctionDefinition,
 } from "@azure/openai";
-import {
-  ConversationConstants,
-  AssistantMessage,
-} from "./ConversationsService";
 import { Reference } from "mongodb-rag-core";
 export type OpenAiMessageRole = "system" | "assistant" | "user" | "function";
 
 export type OpenAiChatMessage = ChatRequestMessage & {
-  /** The role of the message in the context of the conversation. */
+  /**
+    The role of the message in the context of the conversation.
+   */
   role: OpenAiMessageRole;
 
   /**
@@ -40,13 +38,13 @@ export interface LlmAnswerQuestionParams {
  */
 export interface Tool {
   /**
-      Function definition for the LLM to invoke.
-     */
+    Function definition for the LLM to invoke.
+   */
   definition: FunctionDefinition;
 
   /**
-      Call the function based on the arguments in the {@link Tool.definition}.
-     */
+    Call the function based on the arguments in the {@link Tool.definition}.
+   */
   call(args: unknown): Promise<CallToolResponse>;
 }
 

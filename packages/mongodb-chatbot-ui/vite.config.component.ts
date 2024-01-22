@@ -22,7 +22,7 @@ export default defineConfig({
     react(),
   ],
   build: {
-    outDir: "dist",
+    outDir: "build",
     lib: {
       entry: entryPath,
       name: "Chatbot",

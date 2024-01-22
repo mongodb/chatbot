@@ -18,6 +18,7 @@
     "release:chat-ui": "lerna run release --scope='mongodb-chatbot-ui' && git add ./package-lock.json && git commit --amend --no-edit",
     "scripts:analyzeMessages": "lerna run analyzeMessages --scope='scripts'",
     "scripts:scrubMessages": "lerna run scrubMessages --scope='scripts'",
+    "scripts:findFaq": "lerna run findFaq --scope='scripts'",
     "server:start": "lerna run start --scope='chatbot-server-mongodb-public'"
   },
   "devDependencies": {

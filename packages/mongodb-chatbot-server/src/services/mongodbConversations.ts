@@ -1,4 +1,4 @@
-import { OpenAiChatMessage, SystemPrompt } from "./ChatLlm";
+import { SystemPrompt } from "./ChatLlm";
 import { ObjectId, Db } from "mongodb-rag-core";
 import {
   ConversationConstants,
@@ -9,7 +9,6 @@ import {
   AddConversationMessageParams,
   FindByIdParams,
   RateMessageParams,
-  SomeMessage,
   Message,
   UserMessage,
   AddManyConversationMessagesParams,

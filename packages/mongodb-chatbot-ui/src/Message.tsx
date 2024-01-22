@@ -80,8 +80,9 @@ const styles = {
     }
   `,
   // End hacky fix
-  markdown_ul: css`
+  markdown_list: css`
     overflow-wrap: anywhere;
+    margin-bottom: -1.5rem;
   `,
   loading_skeleton: css`
     width: 100%;
@@ -95,7 +96,23 @@ const styles = {
   `,
   message_comment_input: css`
     margin-top: 1rem;
-  `
+  `,
+  message_rating_comment: css`
+    transition: opacity ${TRANSITION_DURATION}ms ease-in;
+
+    &-enter {
+      opacity: 0;
+    }
+    &-enter-active {
+      opacity: 1;
+    }
+    &-exit {
+      opacity: 1;
+    }
+    &-exit-active {
+      opacity: 0;
+    }
+  `,
 };
 
 const LoadingSkeleton = () => {
@@ -133,21 +150,20 @@ export const Message = ({
   const user = useUser();
   const info = getMessageInfo(messageData, user);
 
-  const [ratingCommentSubmitted, setRatingCommentSubmitted] = useState(false);
+  type RatingCommentStatus = "none" | "submitted" | "abandoned";
+  const [ratingCommentStatus, setRatingCommentStatus] =
+    useState<RatingCommentStatus>("none");
 
-  // TODO: Animate the delayed fade for submitted feedback
-  const [ratingCommentInputVisible, setRatingCommentInputVisible] = useState(false);
-  function cancelRatingComment() {
-    setRatingCommentInputVisible(false);
-  }
-
-  function submitRatingComment(commentText: string) {
+  async function submitRatingComment(commentText: string) {
     if (!commentText) {
       return;
     }
-    conversation.commentMessage(messageData.id, commentText);
-    setRatingCommentSubmitted(true);
-    // setRatingCommentInputVisible(false);
+    console.log("submit", messageData.id, commentText);
+    await conversation.commentMessage(messageData.id, commentText);
+    setRatingCommentStatus("submitted");
+  }
+  function abandonRatingComment() {
+    setRatingCommentStatus("abandoned");
   }
 
   return (
@@ -155,35 +171,30 @@ export const Message = ({
       <LGMessage
         baseFontSize={16}
         isSender={info.isSender}
-        messageRatingProps={
-          showRating
-            ? {
-                className: styles.message_rating,
-                description: "How was the response?",
-                onChange: async (e) => {
-                  const value = e.target.value as MessageRatingProps["value"];
-                  if (!value) {
-                    return;
-                  }
-                  if (ratingCommentSubmitted) {
-                    // Once a user has submitted a comment for their rating we don't want them to be able to change their rating
-                    return;
-                  }
-                  conversation.rateMessage(
-                    messageData.id,
-                    value === "liked" ? true : false
-                  );
-                  setRatingCommentInputVisible(true);
-                },
-                value:
-                  messageData.rating === undefined
-                    ? undefined
-                    : messageData.rating
-                    ? "liked"
-                    : "disliked",
-              }
-            : undefined
-        }
+        messageRatingProps={{
+          className: styles.message_rating,
+          description: "How was the response?",
+          onChange: async (e) => {
+            const value = e.target.value as MessageRatingProps["value"];
+            if (!value) {
+              return;
+            }
+            if (ratingCommentStatus === "submitted") {
+              // Once a user has submitted a comment for their rating we don't want them to be able to change their rating
+              return;
+            }
+            conversation.rateMessage(
+              messageData.id,
+              value === "liked" ? true : false
+            );
+          },
+          value:
+            messageData.rating === undefined
+              ? undefined
+              : messageData.rating
+              ? "liked"
+              : "disliked",
+        }}
         avatar={<Avatar variant={info.avatarVariant} name={info.senderName} />}
         sourceType={isLoading ? undefined : MessageSourceType.Markdown}
         componentOverrides={{
@@ -191,45 +202,16 @@ export const Message = ({
             <MessageContainer className={styles.message_container} {...props} />
           ),
           MessageRating: (props) => (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.5rem",
-              }}
-            >
-              <MessageRating {...props} />
-              {messageData.rating !== undefined && ratingCommentInputVisible ? (
-                <InlineMessageFeedback
-                  cancelButtonText="Cancel"
-                  onCancel={cancelRatingComment}
-                  // cancelButtonProps
-                  submitButtonText="Submit"
-                  // submitButtonProps
-                  onSubmit={(e) => {
-                    const form = e.target as HTMLFormElement;
-                    const textarea = form.querySelector("textarea");
-                    submitRatingComment(textarea?.value ?? "");
-                  }}
-                  isSubmitted={ratingCommentSubmitted}
-                  submittedMessage="Submitted! Thank you for your feedback."
-                  textareaProps={
-                    {
-                      // "aria-labelledby": "message-rating-comment-label",
-                      // value: ratingCommentText,
-                      // onChange: (e) => {
-                      // setRatingCommentText(e.target.value);
-                      // },
-                    }
-                  }
-                  label={
-                    messageData.rating === true
-                      ? "Provide additional feedback here. What did you like about this response?"
-                      : "Provide additional feedback here. How can we improve?"
-                  }
+            <>
+              {showRating ? (
+                <MessageRatingWithFeedbackComment
+                  {...props}
+                  submit={submitRatingComment}
+                  abandon={abandonRatingComment}
+                  status={ratingCommentStatus}
                 />
               ) : null}
-            </div>
+            </>
           ),
         }}
         markdownProps={{
@@ -247,14 +229,14 @@ export const Message = ({
             },
             ol: ({ children, ordered, ...props }) => {
               return (
-                <Body as="ol" {...props}>
+                <Body as="ol" className={styles.markdown_list} {...props}>
                   {children}
                 </Body>
               );
             },
             ul: ({ children, ordered, ...props }) => {
               return (
-                <Body className={styles.markdown_ul} as="ul" {...props}>
+                <Body className={styles.markdown_list} as="ul" {...props}>
                   {children}
                 </Body>
               );
@@ -326,3 +308,58 @@ export const MessagePrompts = ({
     </CSSTransition>
   );
 };
+
+export type MessageRatingWithFeedbackCommentProps = MessageRatingProps & {
+  submit: (commentText: string) => void;
+  abandon: () => void;
+  status: "none" | "submitted" | "abandoned";
+};
+
+export function MessageRatingWithFeedbackComment(
+  props: MessageRatingWithFeedbackCommentProps
+) {
+  const { value, submit, abandon, status } = props;
+
+  const ratingCommentInputVisible =
+    value !== undefined && status !== "submitted" && status !== "abandoned";
+
+  const ratingCommentRef = useRef(null);
+
+  return (
+    <div
+    // className={styles.message_rating_container} // TODO
+    >
+      <MessageRating {...props} />
+      {status}
+      {ratingCommentInputVisible}
+      {value !== undefined && ratingCommentInputVisible ? (
+        <CSSTransition
+          in={ratingCommentInputVisible}
+          timeout={3000}
+          nodeRef={ratingCommentRef}
+          classNames={styles.message_rating_comment}
+        >
+          <InlineMessageFeedback
+            ref={ratingCommentRef}
+            // className={styles.message_rating_comment} // TODO: depends on https://jira.mongodb.org/browse/LG-3965
+            cancelButtonText="Cancel"
+            onCancel={() => abandon()}
+            submitButtonText="Submit"
+            onSubmit={(e) => {
+              const form = e.target as HTMLFormElement;
+              const textarea = form.querySelector("textarea");
+              submit(textarea?.value ?? "");
+            }}
+            isSubmitted={status === "submitted"}
+            submittedMessage="Submitted! Thank you for your feedback."
+            label={
+              value === "liked"
+                ? "Provide additional feedback here. What did you like about this response?"
+                : "Provide additional feedback here. How can we improve?"
+            }
+          />
+        </CSSTransition>
+      ) : null}
+    </div>
+  );
+}

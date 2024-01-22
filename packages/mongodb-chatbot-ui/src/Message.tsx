@@ -11,12 +11,13 @@ import {
   MessagePrompts as LGMessagePrompts,
   MessagePrompt,
 } from "@lg-chat/message-prompts";
-import { MessageRatingProps } from "@lg-chat/message-rating";
+import { MessageRating, MessageRatingProps } from "@lg-chat/message-rating";
 import { Fragment, useRef, useState } from "react";
 import { CSSTransition } from "react-transition-group";
 import { useUser, User } from "./useUser";
 import { MessageData } from "./services/conversations";
 import { Conversation } from "./useConversation";
+import { InlineMessageFeedback } from "@lg-chat/message-feedback";
 
 const TRANSITION_DURATION = 300;
 
@@ -43,7 +44,7 @@ const styles = {
     }
   `,
   message_rating: css`
-    margin-top: 1rem;
+    margin-top: 0.5rem;
 
     // Ensure that the rating icons are properly center aligned. The
     // docs site has a global label style that adds a margin here
@@ -83,7 +84,6 @@ const styles = {
     overflow-wrap: anywhere;
   `,
   loading_skeleton: css`
-    margin-bottom: 16px;
     width: 100%;
 
     & > div {
@@ -93,6 +93,9 @@ const styles = {
   message_container: css`
     min-width: 320px;
   `,
+  message_comment_input: css`
+    margin-top: 1rem;
+  `
 };
 
 const LoadingSkeleton = () => {
@@ -130,6 +133,23 @@ export const Message = ({
   const user = useUser();
   const info = getMessageInfo(messageData, user);
 
+  const [ratingCommentSubmitted, setRatingCommentSubmitted] = useState(false);
+
+  // TODO: Animate the delayed fade for submitted feedback
+  const [ratingCommentInputVisible, setRatingCommentInputVisible] = useState(false);
+  function cancelRatingComment() {
+    setRatingCommentInputVisible(false);
+  }
+
+  function submitRatingComment(commentText: string) {
+    if (!commentText) {
+      return;
+    }
+    conversation.commentMessage(messageData.id, commentText);
+    setRatingCommentSubmitted(true);
+    // setRatingCommentInputVisible(false);
+  }
+
   return (
     <Fragment key={messageData.id}>
       <LGMessage
@@ -140,15 +160,20 @@ export const Message = ({
             ? {
                 className: styles.message_rating,
                 description: "How was the response?",
-                onChange: (e) => {
+                onChange: async (e) => {
                   const value = e.target.value as MessageRatingProps["value"];
                   if (!value) {
+                    return;
+                  }
+                  if (ratingCommentSubmitted) {
+                    // Once a user has submitted a comment for their rating we don't want them to be able to change their rating
                     return;
                   }
                   conversation.rateMessage(
                     messageData.id,
                     value === "liked" ? true : false
                   );
+                  setRatingCommentInputVisible(true);
                 },
                 value:
                   messageData.rating === undefined
@@ -164,6 +189,47 @@ export const Message = ({
         componentOverrides={{
           MessageContainer: (props) => (
             <MessageContainer className={styles.message_container} {...props} />
+          ),
+          MessageRating: (props) => (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+              }}
+            >
+              <MessageRating {...props} />
+              {messageData.rating !== undefined && ratingCommentInputVisible ? (
+                <InlineMessageFeedback
+                  cancelButtonText="Cancel"
+                  onCancel={cancelRatingComment}
+                  // cancelButtonProps
+                  submitButtonText="Submit"
+                  // submitButtonProps
+                  onSubmit={(e) => {
+                    const form = e.target as HTMLFormElement;
+                    const textarea = form.querySelector("textarea");
+                    submitRatingComment(textarea?.value ?? "");
+                  }}
+                  isSubmitted={ratingCommentSubmitted}
+                  submittedMessage="Submitted! Thank you for your feedback."
+                  textareaProps={
+                    {
+                      // "aria-labelledby": "message-rating-comment-label",
+                      // value: ratingCommentText,
+                      // onChange: (e) => {
+                      // setRatingCommentText(e.target.value);
+                      // },
+                    }
+                  }
+                  label={
+                    messageData.rating === true
+                      ? "Provide additional feedback here. What did you like about this response?"
+                      : "Provide additional feedback here. How can we improve?"
+                  }
+                />
+              ) : null}
+            </div>
           ),
         }}
         markdownProps={{

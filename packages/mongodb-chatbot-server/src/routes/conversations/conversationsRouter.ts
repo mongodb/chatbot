@@ -4,7 +4,6 @@ import slowDown, { Options as SlowDownOptions } from "express-slow-down";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
 import { ChatLlm } from "../../services/ChatLlm";
 import {
-  Conversation,
   ConversationCustomData,
   ConversationsService,
 } from "../../services/ConversationsService";
@@ -62,7 +61,7 @@ export interface ConversationsRateLimitConfig {
  */
 export type AddCustomDataFunc = (
   request: Request,
-  response: Response<any, ConversationsRouterLocals>
+  response: ConversationsRouterResponse
 ) => Promise<ConversationCustomData>;
 
 /**
@@ -74,6 +73,16 @@ export interface ConversationsRouterLocals {
   conversations: ConversationsService;
   customData: Record<string, unknown>;
 }
+
+/**
+  Express.js Response from the app's {@link ConversationsService}.
+ */
+export type ConversationsRouterResponse = Response<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  any,
+  ConversationsRouterLocals
+>;
+
 /**
   Middleware to put in front of all the routes in the conversationsRouter.
   This middleware is useful for things like authentication, data validation, etc.
@@ -85,8 +94,11 @@ export interface ConversationsRouterLocals {
  */
 export type ConversationsMiddleware = RequestHandler<
   ParamsDictionary,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
   ConversationsRouterLocals
 >;

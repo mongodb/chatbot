@@ -186,7 +186,6 @@ describe("Conversations Service", () => {
     expect(conversationInDb).toBeNull();
   });
   test("Should rate a message", async () => {
-    const ipAddress = new BSON.UUID().toString();
     const { _id: conversationId } = await conversationsService.create();
 
     await conversationsService.addConversationMessage({

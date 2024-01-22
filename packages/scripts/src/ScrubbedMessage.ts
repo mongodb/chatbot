@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import { Message } from "mongodb-chatbot-server";
-import { MessageAnalysis } from "MessageAnalysis";
+import { MessageAnalysis } from "./MessageAnalysis";
 
 export type ScrubbedMessage = Omit<
   Message,

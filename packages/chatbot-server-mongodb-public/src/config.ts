@@ -28,6 +28,7 @@ import {
 import { stripIndents } from "common-tags";
 import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
+import { makeStepBackRagGenerateUserPrompt } from "./processors/stepBackRagGenerateUserPrompt";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -188,12 +189,18 @@ export function makeMongoDbReferences(chunks: EmbeddedContent[]) {
 }
 
 export const generateUserPrompt: GenerateUserPromptFunc =
-  makeRagGenerateUserPrompt({
+  makeStepBackRagGenerateUserPrompt({
+    openAiClient,
+    deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     findContent,
-    queryPreprocessor: mongoDbUserQueryPreprocessor,
-    makeUserMessage,
-    makeReferenceLinks: makeMongoDbReferences,
+    numPrecedingMessagesToInclude: 12,
   });
+// makeRagGenerateUserPrompt({
+//   findContent,
+//   queryPreprocessor: mongoDbUserQueryPreprocessor,
+//   makeUserMessage,
+//   makeReferenceLinks: makeMongoDbReferences,
+// });
 
 export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 

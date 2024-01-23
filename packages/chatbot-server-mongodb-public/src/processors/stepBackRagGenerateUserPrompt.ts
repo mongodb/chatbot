@@ -1,22 +1,30 @@
-import { stripIndents } from "common-tags";
+// TODO: see if can refactor to use the RAG module..
+// there's good edge case handling and logging there
 import {
-  Conversation,
+  EmbeddedContent,
   FindContentFunc,
-  FunctionDefinition,
   GenerateUserPromptFunc,
+  GenerateUserPromptFuncReturnValue,
+  Message,
   OpenAIClient,
   UserMessage,
+  updateFrontMatter,
 } from "mongodb-chatbot-server";
 import { extractMetadataFromUserMessage } from "./extractMetadataFromUserMessage";
+import { makeStepBackUserQuery } from "./makeStepBackUserQuery";
+import { stripIndents } from "common-tags";
+import { strict as assert } from "assert";
+import { logRequest } from "../utils";
 interface MakeStepBackGenerateUserPromptProps {
   openAiClient: OpenAIClient;
   deploymentName: string;
   numPrecedingMessagesToInclude?: number;
   findContent: FindContentFunc;
 }
+
 /**
-  Generate user prompt using the "step back" method of prompt engineering to construct
-  search query.
+  Generate user prompt using the ["step back" method of prompt engineering](https://arxiv.org/abs/2310.06117)
+  to construct search query.
   Also extract metadata to use in the search query or reject the user message.
  */
 export const makeStepBackRagGenerateUserPrompt = ({
@@ -31,12 +39,27 @@ export const makeStepBackRagGenerateUserPrompt = ({
     conversation,
     customData,
   }) => {
+    assert(
+      numPrecedingMessagesToInclude >= 0,
+      "'numPrecedingMessagesToInclude' must be >= 0. Got: " +
+        numPrecedingMessagesToInclude
+    );
+    assert(
+      Number.isInteger(numPrecedingMessagesToInclude),
+      "'numPrecedingMessagesToInclude' must be an integer. Got: " +
+        numPrecedingMessagesToInclude
+    );
+
+    const messages = conversation?.messages ?? [];
+    const precedingMessagesToInclude =
+      numPrecedingMessagesToInclude === 0
+        ? []
+        : messages.slice(-numPrecedingMessagesToInclude);
     const metadata = await extractMetadataFromUserMessage({
       openAiClient,
       deploymentName,
       userMessageText,
-      conversation,
-      numPrecedingMessagesToInclude,
+      messages: precedingMessagesToInclude,
     });
     if (metadata.rejectQuery) {
       return {
@@ -48,89 +71,102 @@ export const makeStepBackRagGenerateUserPrompt = ({
         rejectQuery: true,
       };
     }
-    // ...
-    // TODO: only pass relevant metadata to step back user query
-    const stepBackUserQuery = await generateStepBackUserQuery({
+    logRequest({
+      reqId,
+      message: `Extracted metadata from user message: ${JSON.stringify(
+        metadata
+      )}`,
+    });
+    const metadataForQuery: Record<string, unknown> = {};
+    if (metadata.programmingLanguage) {
+      metadataForQuery.programmingLanguage = metadata.programmingLanguage;
+    }
+    if (metadata.mongoDbProductName) {
+      metadataForQuery.mongoDbProductName = metadata.mongoDbProductName;
+    }
+
+    const stepBackUserQuery = await makeStepBackUserQuery({
       openAiClient,
       deploymentName,
-      conversation,
+      messages: precedingMessagesToInclude,
       userMessageText,
-      metadata,
-      numPrecedingMessagesToInclude,
+      metadata: metadataForQuery,
     });
-    const content = await findContent({
-      query: stepBackUserQuery,
+    logRequest({
+      reqId,
+      message: `Step back query: ${stepBackUserQuery}`,
+    });
+
+    const { content, queryEmbedding } = await findContent({
+      query: updateFrontMatter(stepBackUserQuery, metadataForQuery),
+    });
+    logRequest({
+      reqId,
+      message: `Found ${content.length} results for query: ${content
+        .map((c) => c.text)
+        .join("---")}`,
     });
     const userPrompt = {
       role: "user",
-      embedding: content.queryEmbedding,
+      embedding: queryEmbedding,
       content: userMessageText,
-      contentForLlm: "TODO...make big message",
+      contentForLlm: makeUserContentForLlm({
+        userMessageText,
+        stepBackUserQuery,
+        messages,
+        metadata,
+        content,
+      }),
       customData,
     } satisfies UserMessage;
-    return { userMessage: userPrompt };
+    const references = content.map((c) => ({
+      url: c.url,
+      ...(typeof c.metadata?.title === "string"
+        ? {
+            title: c.metadata.title,
+          }
+        : { title: c.url }),
+    }));
+    return {
+      userMessage: userPrompt,
+      references,
+    } satisfies GenerateUserPromptFuncReturnValue;
   };
   return stepBackRagGenerateUserPrompt;
 };
 
-// TODO: glue the stuff together
-async function generateStepBackUserQuery({
-  openAiClient,
-  deploymentName,
-  conversation,
+function makeUserContentForLlm({
   userMessageText,
+  stepBackUserQuery,
+  messages,
   metadata,
-  numPrecedingMessagesToInclude,
+  content,
 }: {
-  openAiClient: OpenAIClient;
-  deploymentName: string;
-  conversation?: Conversation;
   userMessageText: string;
-  metadata?: Record<string, unknown>;
-  numPrecedingMessagesToInclude?: number;
+  stepBackUserQuery: string;
+  messages: Message[];
+  metadata?: Record<string, any>;
+  content: EmbeddedContent[];
 }) {
-  const systemPrompt = {
-    role: "system",
-    content: stripIndents`Your purpose is to generate a search query for a given user input.
-    You are doing this for MongoDB, and all queries relate to MongoDB products.
-    When constructing the query, take a "step back" to generate a more general search query that finds the data relevant to the user query if relevant.
-    You should also transform the user query into a fully formed question, if relevant.
+  return stripIndents`Use the following information to respond to the "user message".
+  Previous conversation messages:
+  ${messages
+    .filter((message) => message.role !== "system")
+    .map((message) => message.role.toUpperCase() + ": " + message.content)
+    .join("\n")}
 
-    Examples of taking a step back when relevant:
-    Original user input: aggregate filter where flowerType is rose
-    Step back user query: How do I filter by specific field value in a MongoDB aggregation pipeline?
+  Content from the MongoDB documentation:
+  ${[...content]
+    .reverse()
+    .map((c) => c.text)
+    .join("---")}
 
-    Original user input: How long does it take to import 2GB of data?
-    Step back user query: What affects the rate of data import in MongoDB?
+  Relevant metadata: ${JSON.stringify({
+    ...(metadata ?? {}),
+    searchQuery: stepBackUserQuery,
+  })}
 
-    Original user input: how to display the first five
-    Step back user query: How do I limit the number of results in a MongoDB query?
+  User message: ${userMessageText}
 
-    Examples of not taking a step back when query is general enough:
-    Original user input: aggregate
-    Step back user query: Overview of aggregation in MongoDB
-
-    Original user input: $match
-    Step back user query: What is the $match stage in a MongoDB aggregation pipeline?
-`,
-  };
-  const stepBackUserQuery: FunctionDefinition = {
-    name: "step_back_user_query",
-    description: "Create a user query using the 'step back' method.",
-    parameters: {
-      type: "object",
-      properties: {
-        transformedUserQuery: {
-          type: "string",
-          description: "Transformed user query",
-        },
-      },
-      required: ["transformedUserQuery"],
-    },
-  };
-  // tie this up
-}
-
-interface StepBackUserQueryResponse {
-  transformedUserQuery: string;
+  `;
 }

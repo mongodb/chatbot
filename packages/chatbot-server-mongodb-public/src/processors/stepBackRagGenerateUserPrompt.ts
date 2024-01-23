@@ -15,11 +15,13 @@ import { makeStepBackUserQuery } from "./makeStepBackUserQuery";
 import { stripIndents } from "common-tags";
 import { strict as assert } from "assert";
 import { logRequest } from "../utils";
+import { makeMongoDbReferences } from "./makeMongoDbReferences";
 interface MakeStepBackGenerateUserPromptProps {
   openAiClient: OpenAIClient;
   deploymentName: string;
   numPrecedingMessagesToInclude?: number;
   findContent: FindContentFunc;
+  maxContextTokenCount?: number;
 }
 
 /**
@@ -32,6 +34,7 @@ export const makeStepBackRagGenerateUserPrompt = ({
   deploymentName,
   numPrecedingMessagesToInclude = 0,
   findContent,
+  maxContextTokenCount = 1800,
 }: MakeStepBackGenerateUserPromptProps) => {
   const stepBackRagGenerateUserPrompt: GenerateUserPromptFunc = async ({
     reqId,
@@ -116,17 +119,11 @@ export const makeStepBackRagGenerateUserPrompt = ({
         messages,
         metadata,
         content,
+        maxContextTokenCount,
       }),
       customData,
     } satisfies UserMessage;
-    const references = content.map((c) => ({
-      url: c.url,
-      ...(typeof c.metadata?.title === "string"
-        ? {
-            title: c.metadata.title,
-          }
-        : { title: c.url }),
-    }));
+    const references = makeMongoDbReferences(content);
     return {
       userMessage: userPrompt,
       references,
@@ -141,32 +138,56 @@ function makeUserContentForLlm({
   messages,
   metadata,
   content,
+  maxContextTokenCount,
 }: {
   userMessageText: string;
   stepBackUserQuery: string;
   messages: Message[];
   metadata?: Record<string, any>;
   content: EmbeddedContent[];
+  maxContextTokenCount: number;
 }) {
-  return stripIndents`Use the following information to respond to the "user message".
-  Previous conversation messages:
-  ${messages
+  const previousConversationMessages = messages
     .filter((message) => message.role !== "system")
     .map((message) => message.role.toUpperCase() + ": " + message.content)
-    .join("\n")}
-
-  Content from the MongoDB documentation:
-  ${[...content]
-    .reverse()
-    .map((c) => c.text)
-    .join("---")}
-
-  Relevant metadata: ${JSON.stringify({
+    .join("\n");
+  const relevantMetadata = JSON.stringify({
     ...(metadata ?? {}),
     searchQuery: stepBackUserQuery,
-  })}
+  });
+  if (content.length === 0) {
+    return stripIndents`Use the following information to respond to the "user message" by:
+    1. Asking the user to rephrase their query
+    2. Providing a few suggestions for how to rephrase the query as a more general search query (e.g. "how do i filter documents in python to only find where carType is 'suv'" -> "How do I query MongoDB documents in Python based on a specific field value?")
 
-  User message: ${userMessageText}
+    Relevant metadata: ${JSON.stringify({
+      ...(metadata ?? {}),
+      searchQuery: stepBackUserQuery,
+    })}
 
-  `;
+    User message: ${userMessageText}`;
+  }
+
+  let currentTotalTokenCount = 0;
+  const contentForLlm = [...content]
+    .reverse()
+    .filter((c) => {
+      if (currentTotalTokenCount <= maxContextTokenCount) {
+        currentTotalTokenCount += c.tokenCount;
+        return true;
+      }
+      return false;
+    })
+    .map((c) => c.text)
+    .join("---");
+  return stripIndents`Use the following information to respond to the "user message".
+  Previous conversation messages:
+  ${previousConversationMessages}
+
+  Content from the MongoDB documentation:
+  ${contentForLlm}
+
+  Relevant metadata: ${relevantMetadata}
+
+  User message: ${userMessageText}`;
 }

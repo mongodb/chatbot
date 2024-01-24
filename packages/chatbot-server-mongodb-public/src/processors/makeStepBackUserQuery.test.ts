@@ -34,7 +34,7 @@ const mockOpenAIClient = {
   },
 };
 
-describe("extractMetadataFromUserMessage - unit tests", () => {
+describe("makeStepBackUserQuery - unit tests", () => {
   test("should return step back user query", async () => {
     expect(
       await makeStepBackUserQuery({
@@ -44,7 +44,7 @@ describe("extractMetadataFromUserMessage - unit tests", () => {
     ).toEqual("foo");
   });
 });
-describe("extractMetadataFromUserMessage - qualitative tests", () => {
+describe("makeStepBackUserQuery - qualitative tests", () => {
   it("Should return a step back user query", async () => {
     const stepBackUserQuery = await makeStepBackUserQuery({
       ...args,
@@ -103,12 +103,25 @@ describe("extractMetadataFromUserMessage - qualitative tests", () => {
 
     expect(semanticSimilarity).toBeGreaterThan(0.95);
   });
-  it("should not do step back if original message that doesn't need to be mutated", async () => {
+  it("should not do step back if original message doesn't need to be mutated", async () => {
+    const userMessageText = "How do I connect to MongoDB Atlas?";
     const stepBackUserQuery = await makeStepBackUserQuery({
       ...args,
       openAiClient,
-      userMessageText: "How do I connect to MongoDB Atlas?",
+      userMessageText,
     });
-    expect(stepBackUserQuery).toEqual("How do I connect to MongoDB Atlas?");
+    const modelAnswer = userMessageText; // Model is the actual message
+    const modelEmbedding = await embedder.embed({
+      text: modelAnswer,
+    });
+    const actualEmbedding = await embedder.embed({
+      text: stepBackUserQuery,
+    });
+    const semanticSimilarity = cosineSimilarity(
+      modelEmbedding.embedding,
+      actualEmbedding.embedding
+    );
+
+    expect(semanticSimilarity).toBeGreaterThan(0.99);
   });
 });

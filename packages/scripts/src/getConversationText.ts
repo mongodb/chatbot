@@ -12,7 +12,7 @@ const { MONGODB_DATABASE_NAME, MONGODB_CONNECTION_URI } = assertEnvVars({
 const conversationIdString = process.argv[2];
 if (!conversationIdString) {
   throw new Error(
-    "Missing conversation id. Usage: getConversationText <conversationId>"
+    "Missing conversation id. Usage: getConversationText <conversationId> (or via package.json: npm run getConversationText -- <conversationId>)"
   );
 }
 

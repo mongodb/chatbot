@@ -18,7 +18,7 @@ if (!conversationIdString) {
 
 const conversationId = new BSON.ObjectId(conversationIdString);
 
-(async function main() {
+async function main() {
   const client = await MongoClient.connect(MONGODB_CONNECTION_URI);
   try {
     const db = client.db(MONGODB_DATABASE_NAME);
@@ -38,4 +38,6 @@ const conversationId = new BSON.ObjectId(conversationIdString);
   } finally {
     await client.close();
   }
-})();
+}
+
+main();

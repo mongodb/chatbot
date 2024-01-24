@@ -3,7 +3,6 @@ import { Page, extractFrontMatter } from "mongodb-rag-core";
 import {
   DataSource,
   makeDevCenterDataSource,
-  makeRstOnGitHubDataSource,
   DevCenterProjectConfig,
   makeGitDataSource,
   HandleHtmlPageFuncOptions,
@@ -22,6 +21,7 @@ import {
 } from "mongodb-rag-ingest/sources/snooty";
 import { prismaSourceConstructor } from "./prisma";
 import { wiredTigerSourceConstructor } from "./wiredTiger";
+import { pyMongoSourceConstructor } from "./pyMongo";
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -237,42 +237,19 @@ export const devCenterProjectConfig: DevCenterProjectConfig = {
   baseUrl: "https://www.mongodb.com/developer",
 };
 
-const universityDataApiKey = process.env.UNIVERSITY_DATA_API_KEY;
-assert(!!universityDataApiKey, "UNIVERSITY_DATA_API_KEY required");
-export const universityConfig: MakeMongoDbUniversityDataSourceParams = {
-  sourceName: "mongodb-university",
-  baseUrl: "https://api.learn.mongodb.com/rest/catalog",
-  apiKey: universityDataApiKey,
-  tiCatalogFilterFunc: filterOnlyPublicActiveTiCatalogItems,
-  metadata: {
-    tags: ["transcript"],
-  },
-};
-const mongoDbUniversitySourceConstructor = async () =>
-  makeMongoDbUniversityDataSource(universityConfig);
-
-export const pyMongoSourceConstructor = async () => {
-  return await makeRstOnGitHubDataSource({
-    name: "pymongo",
-    repoUrl: "https://github.com/mongodb/mongo-python-driver",
-    repoLoaderOptions: {
-      branch: "master",
-      ignoreFiles: [/^(?!^doc\/).*/], // Everything BUT doc/
+const mongoDbUniversitySourceConstructor = async () => {
+  const universityDataApiKey = process.env.UNIVERSITY_DATA_API_KEY;
+  assert(!!universityDataApiKey, "UNIVERSITY_DATA_API_KEY required");
+  const universityConfig: MakeMongoDbUniversityDataSourceParams = {
+    sourceName: "mongodb-university",
+    baseUrl: "https://api.learn.mongodb.com/rest/catalog",
+    apiKey: universityDataApiKey,
+    tiCatalogFilterFunc: filterOnlyPublicActiveTiCatalogItems,
+    metadata: {
+      tags: ["transcript"],
     },
-    pathToPageUrl(path) {
-      return path
-        .replace(/^doc\//, "https://pymongo.readthedocs.io/en/stable/")
-        .replace(/\.rst$/, ".html");
-    },
-    getMetadata({ title }) {
-      return {
-        tags: ["docs", "python"],
-        productName: "PyMongo",
-        version: "4.5.0 (current)",
-        pageTitle: title,
-      };
-    },
-  });
+  };
+  return makeMongoDbUniversityDataSource(universityConfig);
 };
 
 const jvmDriversVersion = "4.10";
@@ -380,7 +357,7 @@ const libmongocHtmlParserOptions: Omit<
 
 const libmongocVersion = "1.24.4";
 export const libmongocSourceConstructor = async () => {
-  return await makeGitDataSource({
+  return makeGitDataSource({
     name: "c",
     repoUri: "https://github.com/mongodb/mongo-c-driver.git",
     repoOptions: {
@@ -401,17 +378,18 @@ export const libmongocSourceConstructor = async () => {
       await handleHtmlDocument(path, content, libmongocHtmlParserOptions),
   });
 };
-const mongooseSourceConstructor = async () => {
+
+export const mongooseSourceConstructor = async () => {
   const repoUrl = "https://github.com/Automattic/mongoose";
   const testFileLoaderOptions = {
     branch: "master",
     recursive: true,
-    ignoreFiles: [/^(?!\/test\/).+$/],
+    ignoreFiles: [/^(?!^\/test\/).+$/],
   };
   const repoLoaderOptions = {
     branch: "master",
     recursive: true,
-    ignoreFiles: [/^(?!docs\/).+$/],
+    ignoreFiles: [/^(?!^\/docs\/).+$/],
   };
   return await makeAcquitRequireMdOnGithubDataSource({
     repoUrl,
@@ -419,7 +397,7 @@ const mongooseSourceConstructor = async () => {
     name: "mongoose",
     pathToPageUrl(path) {
       return path
-        .replace(/^docs\//, "https://mongoosejs.com/docs/")
+        .replace(/^\/docs\//, "https://mongoosejs.com/docs/")
         .replace(/\.md$/, ".html");
     },
     testFileLoaderOptions,
@@ -437,15 +415,19 @@ export function mongoDbCppDriverPathToPageUrlConverter(pathInRepo: string) {
     pathInRepo = pathInRepo.replace("_index.md", "index.md");
   }
   return pathInRepo
-    .replace(/^docs\/content\/mongocxx-v3/, "https://mongocxx.org/mongocxx-v3")
+    .replace(
+      /^\/docs\/content\/mongocxx-v3/,
+      "https://mongocxx.org/mongocxx-v3"
+    )
     .replace(/\.md$/, "/");
 }
+
 export const mongoDbCppDriverConfig: MakeMdOnGithubDataSourceParams = {
   name: "cxx-driver",
   repoUrl: "https://github.com/mongodb/mongo-cxx-driver/",
   repoLoaderOptions: {
     branch: "master",
-    ignoreFiles: [/^(?!^docs\/content\/mongocxx-v3\/).*/],
+    ignoreFiles: [/^(?!^\/docs\/content\/mongocxx-v3\/).*/],
   },
   pathToPageUrl: mongoDbCppDriverPathToPageUrlConverter,
   metadata: {
@@ -460,7 +442,8 @@ export const mongoDbCppDriverConfig: MakeMdOnGithubDataSourceParams = {
   },
   extractTitle: (_, frontmatter) => frontmatter?.title as string,
 };
-const cppSourceConstructor = async () => {
+
+export const cppSourceConstructor = async () => {
   return await makeMdOnGithubDataSource(mongoDbCppDriverConfig);
 };
 
@@ -469,7 +452,7 @@ export const mongoDbCorpDataSourceConfig: MakeMdOnGithubDataSourceParams = {
   repoUrl: "https://github.com/mongodb/chatbot/",
   repoLoaderOptions: {
     branch: "main",
-    ignoreFiles: [/^(?!^mongodb-corp\/).*/, /^(mongodb-corp\/README\.md)$/],
+    ignoreFiles: [/^(?!^\/mongodb-corp\/).*/, /^(mongodb-corp\/README\.md)$/],
   },
   pathToPageUrl(_, frontMatter) {
     if (!frontMatter?.url) {
@@ -496,7 +479,7 @@ export const practicalAggregationsConfig: MakeMdOnGithubDataSourceParams = {
   repoUrl: "https://github.com/pkdone/practical-mongodb-aggregations-book",
   repoLoaderOptions: {
     branch: "main",
-    ignoreFiles: [/^(?!^src\/).*/, /^(src\/SUMMARY\.md)$/],
+    ignoreFiles: [/^(?!^\/src\/).*/, /^(\/src\/SUMMARY\.md)$/],
   },
   pathToPageUrl(pathInRepo) {
     return (
@@ -509,7 +492,8 @@ export const practicalAggregationsConfig: MakeMdOnGithubDataSourceParams = {
     tags: ["docs", "aggregations", "book"],
   },
 };
-const practicalAggregationsDataSource = async () => {
+
+export const practicalAggregationsDataSource = async () => {
   return await makeMdOnGithubDataSource(practicalAggregationsConfig);
 };
 
@@ -563,6 +547,7 @@ function getTerraformPageUrl(siteBaseUrl: string, path: string) {
     );
   }
 }
+
 /**
   The constructors for the sources used by the docs chatbot.
  */

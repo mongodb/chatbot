@@ -45,4 +45,31 @@ export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
   };
 }
 
-export { systemPrompt, generateUserPrompt } from "../config";
+export function cosineSimilarity(a: number[], b: number[]) {
+  // https://towardsdatascience.com/how-to-build-a-textual-similarity-analysis-web-app-aa3139d4fb71
+
+  const magnitudeA = Math.sqrt(dotProduct(a, a));
+  const magnitudeB = Math.sqrt(dotProduct(b, b));
+  if (magnitudeA && magnitudeB) {
+    // https://towardsdatascience.com/how-to-measure-distances-in-machine-learning-13a396aa34ce
+    return dotProduct(a, b) / (magnitudeA * magnitudeB);
+  } else {
+    return 0;
+  }
+}
+
+function dotProduct(a: number[], b: number[]) {
+  let sum = 0;
+  for (let i = 0; i < a.length; i++) {
+    sum += a[i] * b[i];
+  }
+  return sum;
+}
+
+export {
+  systemPrompt,
+  generateUserPrompt,
+  openAiClient,
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_EMBEDDING_DEPLOYMENT,
+} from "../config";

@@ -17,7 +17,6 @@ import {
   makeDefaultFindContent,
   SystemPrompt,
   GenerateUserPromptFunc,
-  makeFilterNPreviousMessages,
 } from "mongodb-chatbot-server";
 import { stripIndents } from "common-tags";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";

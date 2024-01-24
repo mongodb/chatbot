@@ -67,7 +67,7 @@ const extractMetadataFunctionDefinition: FunctionDefinition = {
       mongoDbProduct: {
         type: "string",
         description: stripIndents`One or more MongoDB products present in the content. Order by relevancy. Include "Driver" if the user is asking about a programming language with a MongoDB driver.
-        Example values: ["MongoDB Atlas", "Atlas Charts", "Atlas Search", "Atlas CLI", "Aggregation Framework", "MongoDB Server", "Compass", "MongoDB Connector for BI", "Realm SDK", "Driver", "Atlas App Services", "Atlas Vector Search", "Atlas Stream Processing", "Atlas Triggers", "Atlas Device Sync", "Atlas Data API", ...other MongoDB products]`,
+        Example values: "MongoDB Atlas", "Atlas Charts", "Atlas Search", "Atlas CLI", "Aggregation Framework", "MongoDB Server", "Compass", "MongoDB Connector for BI", "Realm SDK", "Driver", "Atlas App Services", "Atlas Vector Search", "Atlas Stream Processing", "Atlas Triggers", "Atlas Device Sync", "Atlas Data API", ...other MongoDB products`,
       },
       rejectionReason: {
         type: "string",
@@ -85,39 +85,28 @@ const extractMetadataFunctionDefinition: FunctionDefinition = {
 };
 
 /**
-  Extract metadata relevant to the docs chatbot from a user message in the conversation.
+  Extract metadata relevant to the MongoDB docs chatbot from a user message in the conversation.
  */
 export async function extractMetadataFromUserMessage({
   openAiClient,
   deploymentName,
   userMessageText,
   messages = [],
-  numPrecedingMessagesToInclude = 0,
 }: {
   openAiClient: OpenAIClient;
   deploymentName: string;
   userMessageText: string;
   messages?: Message[];
-  numPrecedingMessagesToInclude?: number;
 }) {
-  assert(
-    numPrecedingMessagesToInclude >= 0,
-    "numPrecedingMessagesToInclude must be >= 0"
-  );
-
-  const precedingMessagesToInclude = messages
-    .filter((m) => m.role !== "system")
-    .slice(messages?.length - numPrecedingMessagesToInclude);
   const userMessage = {
     role: "user",
     content: stripIndents`${
-      numPrecedingMessagesToInclude !== 0
-        ? "Preceding conversation messages:"
+      messages.length > 0
+        ? `Preceding conversation messages: ${messages
+            .map((m) => m.role + ": " + m.content)
+            .join("\n")}`
         : ""
     }
-  ${precedingMessagesToInclude
-    ?.map((m) => m.role + ": " + m.content)
-    .join("\n")}
 
   Original user message: ${userMessageText}`.trim(),
   } satisfies ChatRequestMessage;
@@ -138,7 +127,8 @@ export async function extractMetadataFromUserMessage({
 }
 
 export interface ExtractMetadataResponse extends Record<string, unknown> {
-  mongoDbProductName?: string;
+  mongoDbProduct?: string;
   programmingLanguage?: string;
   rejectQuery: boolean;
+  rejectionReason?: string;
 }

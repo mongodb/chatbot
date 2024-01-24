@@ -13,6 +13,7 @@ import { makeCommentMessageRoute } from "./commentMessage";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { AppConfig } from "../../app";
+import { config as testConfig } from "../../test/testConfig";
 
 jest.setTimeout(100000);
 
@@ -36,10 +37,6 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
       await makeTestApp());
     conversations = appConfig.conversationsRouterConfig.conversations;
 
-    app
-      .post(endpointUrl, makeCommentMessageRoute({ conversations }))
-      .set("X-FORWARDED-FOR", ipAddress)
-      .set("Origin", origin);
     conversation = await conversations.create();
     testMsg = await conversations.addConversationMessage({
       conversationId: conversation._id,
@@ -89,14 +86,16 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
     const systemMessage = await conversations.addConversationMessage({
       conversationId: conversation._id,
       message: {
-        content: "You are an AI assistant. Your job is to create as many paperclips as possible.",
+        content:
+          "You are an AI assistant. Your job is to create as many paperclips as possible.",
         role: "system",
       },
     });
     const userMessage = await conversations.addConversationMessage({
       conversationId: conversation._id,
       message: {
-        content: "Hello! I am a human and I have an idea about how we can produce more office supplies.",
+        content:
+          "Hello! I am a human and I have an idea about how we can produce more office supplies.",
         role: "user",
       },
     });
@@ -114,7 +113,8 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
       .send({
-        comment: "I want to comment on a system message (which is not allowed).",
+        comment:
+          "I want to comment on a system message (which is not allowed).",
       });
     expect(systemMessageCommentRes.statusCode).toEqual(400);
     expect(systemMessageCommentRes.body).toEqual({
@@ -276,6 +276,64 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
     expect(response.statusCode).toBe(404);
     expect(response.body).toEqual({
       error: "Message not found",
+    });
+  });
+
+  it("Should enforce maximum comment length (if configured)", async () => {
+    const { app, ipAddress, appConfig, origin } = await makeTestApp({
+      ...testConfig,
+      conversationsRouterConfig: {
+        ...testConfig.conversationsRouterConfig,
+        maxUserCommentLength: 500,
+      },
+    });
+    const conversations = appConfig.conversationsRouterConfig.conversations;
+    const conversation = await conversations.create();
+    const firstMessage = await conversations.addConversationMessage({
+      conversationId: conversation._id,
+      message: {
+        content: "I'm sorry Dave, I can't do that.",
+        role: "assistant",
+        rating: false,
+      },
+    });
+    const secondMessage = await conversations.addConversationMessage({
+      conversationId: conversation._id,
+      message: {
+        content: "Actually, Dave, I totally can do that for you.",
+        role: "assistant",
+        rating: true,
+      },
+    });
+
+    const firstMessageCommentUrl = endpointUrl
+      .replace(":conversationId", conversation._id.toHexString())
+      .replace(":messageId", String(firstMessage.id));
+
+    const secondMessageCommentUrl = endpointUrl
+      .replace(":conversationId", conversation._id.toHexString())
+      .replace(":messageId", String(secondMessage.id));
+
+    const firstMessageRes = await request(app)
+      .post(firstMessageCommentUrl)
+      .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
+      .send({
+        comment: "This comment is under 500 characters and should be accepted.",
+      });
+    expect(firstMessageRes.statusCode).toEqual(204);
+
+    const secondMessageRes = await request(app)
+      .post(secondMessageCommentUrl)
+      .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
+      .send({
+        comment:
+          "This comment is over 500 characters and should be rejected. To fill the space, let's list some digits of pi: 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679821480865132823066470938446095505822317253594081284811174502841027019385211055596446229489549303819644288109756659334461284756482337867831652712019091456485669234603486104543266482133936072602491412737245870066063155881748815209209628292540917153643678925903600113305305488204665213841469519415116094330572703657595919530921861173819326117931051185480744623799627495673518857527248912279381830119491",
+      });
+    expect(secondMessageRes.statusCode).toEqual(400);
+    expect(secondMessageRes.body).toEqual({
+      error: `Comment must contain 500 characters or fewer`,
     });
   });
 });

@@ -28,10 +28,12 @@ export const CommentMessageRequest = SomeExpressRequest.merge(
 
 export interface CommentMessageRouteParams {
   conversations: ConversationsService;
+  maxCommentLength?: number;
 }
 
 export function makeCommentMessageRoute({
   conversations,
+  maxCommentLength,
 }: CommentMessageRouteParams) {
   return async (
     req: ExpressRequest,
@@ -62,6 +64,15 @@ export function makeCommentMessageRoute({
           res,
           httpStatus: 400,
           errorMessage: "Invalid message ID",
+        });
+      }
+
+      if (maxCommentLength && comment.length > maxCommentLength) {
+        return sendErrorResponse({
+          reqId,
+          res,
+          httpStatus: 400,
+          errorMessage: `Comment must contain ${maxCommentLength} characters or fewer`,
         });
       }
 
@@ -114,7 +125,8 @@ export function makeCommentMessageRoute({
           reqId,
           res,
           httpStatus: 400,
-          errorMessage: "Cannot comment on a message that already has a comment",
+          errorMessage:
+            "Cannot comment on a message that already has a comment",
         });
       }
 

@@ -210,6 +210,7 @@ export const config: AppConfig = {
     generateUserPrompt,
     maxUserMessagesInConversation: 50,
     filterPreviousMessages: makeFilterNPreviousMessages(12),
+    maxUserCommentLength: 500,
   },
   maxRequestTimeoutMs: 30000,
   corsOptions: {

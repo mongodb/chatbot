@@ -20,7 +20,7 @@ import {
 } from "mongodb-chatbot-server";
 import { stripIndents } from "common-tags";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
-import { makeStepBackRagGenerateUserPrompt } from "./processors/stepBackRagGenerateUserPrompt";
+import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";
 
 export const {
   MONGODB_CONNECTION_URI,

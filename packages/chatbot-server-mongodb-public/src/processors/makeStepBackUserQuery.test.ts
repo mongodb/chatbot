@@ -16,7 +16,6 @@ const args: Parameters<typeof makeStepBackUserQuery>[0] = {
 
 const mockOpenAIClient = {
   async getChatCompletions() {
-    // Return a mock response or use jest.fn() for more control
     return {
       choices: [
         {

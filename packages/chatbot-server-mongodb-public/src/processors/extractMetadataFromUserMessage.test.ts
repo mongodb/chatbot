@@ -4,17 +4,9 @@ import {
   openAiClient,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
 } from "../test/testHelpers";
-import { ObjectId } from "mongodb-chatbot-server";
 
-const args: Parameters<typeof extractMetadataFromUserMessage>[0] = {
-  openAiClient,
-  deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  userMessageText: "hi",
-};
-
-const mockOpenAIClient = {
+export const mockOpenAIClient = {
   async getChatCompletions() {
-    // Return a mock response or use jest.fn() for more control
     return {
       choices: [
         {
@@ -30,6 +22,12 @@ const mockOpenAIClient = {
       ],
     };
   },
+};
+
+const args: Parameters<typeof extractMetadataFromUserMessage>[0] = {
+  openAiClient,
+  deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  userMessageText: "hi",
 };
 
 describe("extractMetadataFromUserMessage - unit tests", () => {

@@ -72,4 +72,5 @@ export {
   openAiClient,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_EMBEDDING_DEPLOYMENT,
+  findContent,
 } from "../config";

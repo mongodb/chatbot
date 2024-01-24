@@ -34,23 +34,22 @@ export const makeStepBackRagGenerateUserPrompt = ({
   findContent,
   maxContextTokenCount = 1800,
 }: MakeStepBackGenerateUserPromptProps) => {
+  assert(
+    numPrecedingMessagesToInclude >= 0,
+    "'numPrecedingMessagesToInclude' must be >= 0. Got: " +
+      numPrecedingMessagesToInclude
+  );
+  assert(
+    Number.isInteger(numPrecedingMessagesToInclude),
+    "'numPrecedingMessagesToInclude' must be an integer. Got: " +
+      numPrecedingMessagesToInclude
+  );
   const stepBackRagGenerateUserPrompt: GenerateUserPromptFunc = async ({
     reqId,
     userMessageText,
     conversation,
     customData,
   }) => {
-    assert(
-      numPrecedingMessagesToInclude >= 0,
-      "'numPrecedingMessagesToInclude' must be >= 0. Got: " +
-        numPrecedingMessagesToInclude
-    );
-    assert(
-      Number.isInteger(numPrecedingMessagesToInclude),
-      "'numPrecedingMessagesToInclude' must be an integer. Got: " +
-        numPrecedingMessagesToInclude
-    );
-
     const messages = conversation?.messages ?? [];
     const precedingMessagesToInclude =
       numPrecedingMessagesToInclude === 0
@@ -131,6 +130,7 @@ export const makeStepBackRagGenerateUserPrompt = ({
         maxContextTokenCount,
       }),
       customData,
+      preprocessedContent: stepBackUserQuery,
     } satisfies UserMessage;
     const references = makeMongoDbReferences(content);
     logRequest({

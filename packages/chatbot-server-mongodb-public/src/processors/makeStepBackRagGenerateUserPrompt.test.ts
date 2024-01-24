@@ -80,6 +80,7 @@ describe("makeStepBackRagGenerateUserPrompt", () => {
         ],
       },
     });
+    console.log(res.userMessage);
     expect(res.userMessage.contentForLlm).not.toContain("abracadabra");
   });
   test("should only include 'numPrecedingMessagesToInclude' previous messages", async () => {

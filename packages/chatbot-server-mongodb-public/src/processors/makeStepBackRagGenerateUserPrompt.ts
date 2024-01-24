@@ -124,7 +124,7 @@ export const makeStepBackRagGenerateUserPrompt = ({
       contentForLlm: makeUserContentForLlm({
         userMessageText,
         stepBackUserQuery,
-        messages,
+        messages: precedingMessagesToInclude,
         metadata,
         content,
         maxContextTokenCount,
@@ -186,15 +186,15 @@ function makeUserContentForLlm({
 
   let currentTotalTokenCount = 0;
   const contentForLlm = [...content]
-    .reverse()
     .filter((c) => {
-      if (currentTotalTokenCount <= maxContextTokenCount) {
+      if (currentTotalTokenCount < maxContextTokenCount) {
         currentTotalTokenCount += c.tokenCount;
         return true;
       }
       return false;
     })
     .map((c) => c.text)
+    .reverse()
     .join("---");
   return stripIndents`Use the following information to respond to the "user message".
   Previous conversation messages:

@@ -1,5 +1,3 @@
-// TODO: see if can refactor to use the RAG module..
-// there's good edge case handling and logging there
 import {
   EmbeddedContent,
   FindContentFunc,
@@ -65,11 +63,22 @@ export const makeStepBackRagGenerateUserPrompt = ({
       messages: precedingMessagesToInclude,
     });
     if (metadata.rejectQuery) {
+      const { rejectionReason } = metadata;
+      logRequest({
+        reqId,
+        message: `Rejected user message: ${JSON.stringify({
+          userMessageText,
+          rejectionReason,
+        })}`,
+      });
       return {
         userMessage: {
           role: "user",
           content: userMessageText,
           rejectQuery: true,
+          customData: {
+            rejectionReason,
+          },
         } satisfies UserMessage,
         rejectQuery: true,
       };
@@ -124,6 +133,13 @@ export const makeStepBackRagGenerateUserPrompt = ({
       customData,
     } satisfies UserMessage;
     const references = makeMongoDbReferences(content);
+    logRequest({
+      reqId,
+      message: stripIndents`Generated user prompt for LLM: ${
+        userPrompt.contentForLlm
+      }
+      Generated references: ${JSON.stringify(references)}`,
+    });
     return {
       userMessage: userPrompt,
       references,

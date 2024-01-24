@@ -172,16 +172,16 @@ function makeUserContentForLlm({
     searchQuery: stepBackUserQuery,
   });
   if (content.length === 0) {
-    return stripIndents`Use the following information to respond to the "user message" by:
-    1. Asking the user to rephrase their query
-    2. Providing a few suggestions for how to rephrase the query as a more general search query (e.g. "how do i filter documents in python to only find where carType is 'suv'" -> "How do I query MongoDB documents in Python based on a specific field value?")
+    return `Use the following information to respond to the "user message" by:
+1. Asking the user to rephrase their query
+2. Providing a few suggestions for how to rephrase the query as a more general search query (e.g. "how do i filter documents in python to only find where carType is 'suv'" -> "How do I query MongoDB documents in Python based on a specific field value?")
 
-    Relevant metadata: ${JSON.stringify({
+Relevant metadata: ${JSON.stringify({
       ...(metadata ?? {}),
       searchQuery: stepBackUserQuery,
     })}
 
-    User message: ${userMessageText}`;
+User message: ${userMessageText}`;
   }
 
   let currentTotalTokenCount = 0;
@@ -196,14 +196,17 @@ function makeUserContentForLlm({
     .map((c) => c.text)
     .reverse()
     .join("---");
-  return stripIndents`Use the following information to respond to the "user message".
-  Previous conversation messages:
-  ${previousConversationMessages}
+  return `Use the following information to respond to the "user message".
+${
+  previousConversationMessages.length > 0
+    ? `Previous conversation messages: ${previousConversationMessages}`
+    : ""
+}
 
-  Content from the MongoDB documentation:
-  ${contentForLlm}
+Content from the MongoDB documentation:
+${contentForLlm}
 
-  Relevant metadata: ${relevantMetadata}
+Relevant metadata: ${relevantMetadata}
 
-  User message: ${userMessageText}`;
+User message: ${userMessageText}`;
 }

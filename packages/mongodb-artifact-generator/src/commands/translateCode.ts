@@ -15,6 +15,7 @@ import {
 } from "../runlogger";
 import { stringifyVectorSearchChunks } from "../prompt";
 import path from "path"
+import { ObjectId } from "mongodb";
 
 let logger: RunLogger;
 
@@ -72,6 +73,13 @@ export const action = createConfiguredAction<TranslateCodeCommandArgs>(
   ) => {
     const sourceCode = await fs.readFile(source, "utf8");
 
+    if(!logger) {
+      logger = makeRunLogger({
+        topic: "translateCode",
+        runId: new ObjectId().toHexString(),
+      });
+    }
+
     logger.logInfo(`Setting up...`);
     const generate = makeGenerateChatCompletion();
     const { findContent, cleanup: cleanupFindContent } = makeFindContent({
@@ -127,6 +135,8 @@ export const action = createConfiguredAction<TranslateCodeCommandArgs>(
       const inputFileName = path.parse(source).name;
       const outputFileName = `${inputFileName}.translated.${targetFileExtension}`;
       logger.appendArtifact(outputFileName, transformed);
+      logger.flushLogs();
+      logger.flushArtifacts();
     } finally {
       await cleanupFindContent();
     }

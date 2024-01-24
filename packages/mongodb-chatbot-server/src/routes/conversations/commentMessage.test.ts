@@ -60,7 +60,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
     await mongoClient.close();
   });
 
-  test("Should return 204 for valid comment", async () => {
+  it("Should return 204 for valid comment", async () => {
     const response = await request(app)
       .post(testEndpointUrl)
       .set("X-Forwarded-For", ipAddress)
@@ -83,6 +83,57 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
     ).toBe("This answer was super helpful!");
   });
 
+  it("Should return 400 if the message is not an assistant message", async () => {
+    // Create a new conversation and add a message with no rating to it
+    conversation = await conversations.create();
+    const systemMessage = await conversations.addConversationMessage({
+      conversationId: conversation._id,
+      message: {
+        content: "You are an AI assistant. Your job is to create as many paperclips as possible.",
+        role: "system",
+      },
+    });
+    const userMessage = await conversations.addConversationMessage({
+      conversationId: conversation._id,
+      message: {
+        content: "Hello! I am a human and I have an idea about how we can produce more office supplies.",
+        role: "user",
+      },
+    });
+
+    const systemMessageCommentUrl = endpointUrl
+      .replace(":conversationId", conversation._id.toHexString())
+      .replace(":messageId", String(systemMessage.id));
+
+    const userMessageCommentUrl = endpointUrl
+      .replace(":conversationId", conversation._id.toHexString())
+      .replace(":messageId", String(userMessage.id));
+
+    const systemMessageCommentRes = await request(app)
+      .post(systemMessageCommentUrl)
+      .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
+      .send({
+        comment: "I want to comment on a system message (which is not allowed).",
+      });
+    expect(systemMessageCommentRes.statusCode).toEqual(400);
+    expect(systemMessageCommentRes.body).toEqual({
+      error: "Cannot comment on a non-assistant message",
+    });
+
+    const userMessageCommentRes = await request(app)
+      .post(userMessageCommentUrl)
+      .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
+      .send({
+        comment: "I want to comment on a user message (which is not allowed).",
+      });
+    expect(userMessageCommentRes.statusCode).toEqual(400);
+    expect(userMessageCommentRes.body).toEqual({
+      error: "Cannot comment on a non-assistant message",
+    });
+  });
+
   it("Should return 400 if the message doesn't have a rating", async () => {
     // Create a new conversation and add a message with no rating to it
     conversation = await conversations.create();
@@ -101,9 +152,42 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
       .post(testEndpointUrl)
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
-      .send({ comment: "I didn't rate this response but am trying to comment on it." });
+      .send({
+        comment: "I didn't rate this response but am trying to comment on it.",
+      });
     expect(res.statusCode).toEqual(400);
-    expect(res.body).toEqual({ error: "Invalid comment" });
+    expect(res.body).toEqual({
+      error: "Cannot comment on a message with no rating",
+    });
+  });
+
+  it("Should return 400 if the message already has a comment", async () => {
+    // Create a new conversation and add a message with a rating and comment alrady on it
+    conversation = await conversations.create();
+    testMsg = await conversations.addConversationMessage({
+      conversationId: conversation._id,
+      message: {
+        content: "hello",
+        role: "assistant",
+        references: [],
+        rating: true,
+        userComment: "This answer was super helpful!",
+      },
+    });
+    testEndpointUrl = endpointUrl
+      .replace(":conversationId", conversation._id.toHexString())
+      .replace(":messageId", String(testMsg.id));
+    const res = await request(app)
+      .post(testEndpointUrl)
+      .set("X-FORWARDED-FOR", ipAddress)
+      .set("Origin", origin)
+      .send({
+        comment: "I'm trying to overwrite the existing comment",
+      });
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toEqual({
+      error: "Cannot comment on a message that already has a comment",
+    });
   });
 
   it("Should return 400 if the comment is an empty string", async () => {
@@ -134,7 +218,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
     expect(res2.body).toEqual({ error: "Invalid request" });
   });
 
-  test("Should return 400 for invalid conversation ID", async () => {
+  it("Should return 400 for invalid conversation ID", async () => {
     const response = await request(app)
       .post(
         `${DEFAULT_API_PREFIX}/conversations/123/messages/${conversation.messages[0].id}/comment`
@@ -148,7 +232,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
       error: "Invalid conversation ID",
     });
   });
-  test("Should return 400 for invalid message ID", async () => {
+  it("Should return 400 for invalid message ID", async () => {
     const response = await request(app)
       .post(
         `${DEFAULT_API_PREFIX}/conversations/${testMsg.id}/messages/123/comment`
@@ -162,7 +246,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
       error: "Invalid message ID",
     });
   });
-  test("Should return 404 for conversation not in DB", async () => {
+  it("Should return 404 for conversation not in DB", async () => {
     const response = await request(app)
       .post(
         `${DEFAULT_API_PREFIX}/conversations/${new ObjectId().toHexString()}/messages/${
@@ -178,7 +262,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
       error: "Conversation not found",
     });
   });
-  test("Should return 404 for message not in conversation", async () => {
+  it("Should return 404 for message not in conversation", async () => {
     const response = await request(app)
       .post(
         `${DEFAULT_API_PREFIX}/conversations/${

@@ -140,8 +140,6 @@ export function makeMongoDbConversationsService(
             $elemMatch: {
               id: messageId,
               role: "assistant",
-              rating: { $exists: true },
-              userComment: { $exists: false },
             },
           },
         },

@@ -38,7 +38,7 @@ export type AssistantMessage = MessageBase & {
     too. Note that only messages with `role: "assistant"` can be rated
     and commented on.
    */
-  userComment?: boolean;
+  userComment?: string;
 
   /**
     Further reading links for the message.
@@ -226,7 +226,7 @@ export interface ConversationsService {
   }: RateMessageParams) => Promise<boolean>;
 
   /**
-    Add a user comment to a {@link Message} that already has a rating.
+    Add a user comment to an assistant {@link Message}.
    */
   commentMessage: ({
     conversationId,

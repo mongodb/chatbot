@@ -1,8 +1,5 @@
 import { ObjectId } from "mongodb-rag-core";
-import {
-  Conversation,
-  ConversationsService,
-} from "../../services/ConversationsService";
+import { ConversationsService } from "../../services/ConversationsService";
 import {
   Request as ExpressRequest,
   Response as ExpressResponse,
@@ -81,16 +78,43 @@ export function makeCommentMessageRoute({
         });
       }
 
-      if (
-        !conversationInDb.messages.find((message) =>
-          message.id.equals(messageId)
-        )
-      ) {
+      const existingMessage = conversationInDb.messages.find((message) =>
+        message.id.equals(messageId)
+      );
+
+      if (existingMessage === undefined) {
         return sendErrorResponse({
           reqId,
           res,
           httpStatus: 404,
           errorMessage: "Message not found",
+        });
+      }
+
+      if (existingMessage.role !== "assistant") {
+        return sendErrorResponse({
+          reqId,
+          res,
+          httpStatus: 400,
+          errorMessage: "Cannot comment on a non-assistant message",
+        });
+      }
+
+      if (existingMessage.rating === undefined) {
+        return sendErrorResponse({
+          reqId,
+          res,
+          httpStatus: 400,
+          errorMessage: "Cannot comment on a message with no rating",
+        });
+      }
+
+      if (existingMessage.userComment !== undefined) {
+        return sendErrorResponse({
+          reqId,
+          res,
+          httpStatus: 400,
+          errorMessage: "Cannot comment on a message that already has a comment",
         });
       }
 

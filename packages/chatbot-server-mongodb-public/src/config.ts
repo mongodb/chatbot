@@ -27,6 +27,7 @@ import {
   requireRequestOrigin,
   requireValidIpAddress,
   ConversationCustomData,
+  AddCustomDataFunc,
 } from "mongodb-chatbot-server";
 import { stripIndents } from "common-tags";
 import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
@@ -206,6 +207,21 @@ export const conversations = makeMongoDbConversationsService(
   systemPrompt
 );
 
+export const createCustomConversationDataWithIpAuthUserAndOrigin: AddCustomDataFunc =
+  async (req, res) => {
+    const customData: ConversationCustomData = {};
+    if (!isProduction && req.cookies.auth_user) {
+      customData.authUser = req.cookies.auth_user;
+    }
+    if (req.ip) {
+      customData.ip = req.ip;
+    }
+    if (res.locals.customData.origin) {
+      customData.origin = res.locals.customData.origin;
+    }
+    return customData;
+  };
+
 const isProduction = process.env.NODE_ENV === "production";
 export const config: AppConfig = {
   conversationsRouterConfig: {
@@ -217,19 +233,8 @@ export const config: AppConfig = {
       requireValidIpAddress(),
       cookieParser(),
     ],
-    createConversationCustomData: async (req, res) => {
-      const customData: ConversationCustomData = {};
-      if (!isProduction && req.cookies.auth_user) {
-        customData.authUser = req.cookies.auth_user;
-      }
-      if (req.ip) {
-        customData.ip = req.ip;
-      }
-      if (res.locals.customData.origin) {
-        customData.origin = res.locals.customData.origin;
-      }
-      return customData;
-    },
+    createConversationCustomData:
+      createCustomConversationDataWithIpAuthUserAndOrigin,
     generateUserPrompt,
     maxUserMessagesInConversation: 50,
     filterPreviousMessages: makeFilterNPreviousMessages(12),

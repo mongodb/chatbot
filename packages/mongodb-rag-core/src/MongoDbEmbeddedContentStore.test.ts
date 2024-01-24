@@ -27,7 +27,7 @@ describe("MongoDbEmbeddedContentStore", () => {
   beforeEach(async () => {
     // Need to use real Atlas connection in order to run vector searches
     const databaseName = `test-database-${Date.now()}`;
-    store = await makeMongoDbEmbeddedContentStore({
+    store = makeMongoDbEmbeddedContentStore({
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName,
     });

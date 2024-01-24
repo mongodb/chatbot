@@ -30,11 +30,11 @@ async function main() {
       throw new Error(`Conversation ${conversationId} not found`);
     }
 
-    const converationTranscript = conversation.messages
+    const conversationTranscript = conversation.messages
       .filter((message) => ["user", "assistant"].includes(message.role))
-      .map((message) => `${message.role.toUpperCase()}: ${message.content}`)
+      .map((message) => `*${message.role.toUpperCase()}*: ${message.content}`)
       .join("\n\n");
-    process.stdout.write(converationTranscript);
+    console.log(conversationTranscript);
   } finally {
     await client.close();
   }

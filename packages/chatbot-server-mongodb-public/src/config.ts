@@ -24,10 +24,14 @@ import {
   MakeUserMessageFuncParams,
   UserMessage,
   makeFilterNPreviousMessages,
+  requireRequestOrigin,
+  requireValidIpAddress,
+  ConversationCustomData,
 } from "mongodb-chatbot-server";
 import { stripIndents } from "common-tags";
 import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
+import cookieParser from "cookie-parser";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -202,11 +206,30 @@ export const conversations = makeMongoDbConversationsService(
   systemPrompt
 );
 
+const isProduction = process.env.NODE_ENV === "production";
 export const config: AppConfig = {
   conversationsRouterConfig: {
     dataStreamer,
     llm,
     conversations,
+    middleware: [
+      requireRequestOrigin(),
+      requireValidIpAddress(),
+      cookieParser(),
+    ],
+    createConversationCustomData: async (req, res) => {
+      const customData: ConversationCustomData = {};
+      if (!isProduction && req.cookies.auth_user) {
+        customData.authUser = req.cookies.auth_user;
+      }
+      if (req.ip) {
+        customData.ip = req.ip;
+      }
+      if (res.locals.customData.origin) {
+        customData.origin = res.locals.customData.origin;
+      }
+      return customData;
+    },
     generateUserPrompt,
     maxUserMessagesInConversation: 50,
     filterPreviousMessages: makeFilterNPreviousMessages(12),
@@ -215,5 +238,5 @@ export const config: AppConfig = {
   corsOptions: {
     origin: allowedOrigins,
   },
-  serveStaticSite: process.env.NODE_ENV !== "production",
+  serveStaticSite: !isProduction,
 };

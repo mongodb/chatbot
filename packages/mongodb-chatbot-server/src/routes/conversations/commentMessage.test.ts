@@ -9,7 +9,6 @@ import {
 } from "../../services/ConversationsService";
 import { Express } from "express";
 import { Db, MongoClient, ObjectId } from "mongodb-rag-core";
-import { makeCommentMessageRoute } from "./commentMessage";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { AppConfig } from "../../app";

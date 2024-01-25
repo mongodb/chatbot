@@ -11,7 +11,11 @@ import {
   MessagePrompts as LGMessagePrompts,
   MessagePrompt,
 } from "@lg-chat/message-prompts";
-import { MessageRating, MessageRatingProps } from "@lg-chat/message-rating";
+import {
+  MessageRating,
+  type MessageRatingProps,
+  type MessageRatingValue,
+} from "@lg-chat/message-rating";
 import { Fragment, useRef, useState } from "react";
 import { CSSTransition } from "react-transition-group";
 import { useUser, User } from "./useUser";
@@ -23,6 +27,8 @@ import WarningIcon from "@leafygreen-ui/icon/dist/Warning";
 import { spacing } from "@leafygreen-ui/tokens";
 import { palette } from "@leafygreen-ui/palette";
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
+import { CharacterCount } from "./InputBar";
+import { useChatbotContext } from "./useChatbotContext";
 
 const TRANSITION_DURATION = 300;
 
@@ -159,6 +165,7 @@ export const Message = ({
   showRating,
   conversation,
 }: MessageProp) => {
+  const { maxCommentCharacters } = useChatbotContext();
   const user = useUser();
   const info = getMessageInfo(messageData, user);
 
@@ -169,6 +176,10 @@ export const Message = ({
     string | undefined
   >();
 
+  const [submittedRatingValue, setSubmittedRatingValue] = useState<
+    MessageRatingValue | undefined
+  >(undefined);
+
   async function submitRatingComment(commentText: string) {
     if (!commentText) {
       return;
@@ -176,6 +187,8 @@ export const Message = ({
     try {
       await conversation.commentMessage(messageData.id, commentText);
       setRatingCommentStatus("submitted");
+      setSubmittedRatingValue(messageData.rating ? "liked" : "disliked");
+      setRatingCommentErrorMessage(undefined);
     } catch (err) {
       setRatingCommentErrorMessage(
         "Oops, there was an issue submitting the response to the server. Please try again."
@@ -194,6 +207,8 @@ export const Message = ({
         messageRatingProps={{
           className: styles.message_rating,
           description: "How was the response?",
+          hideThumbsUp: submittedRatingValue === "disliked",
+          hideThumbsDown: submittedRatingValue === "liked",
           onChange: async (e) => {
             const value = e.target.value as MessageRatingProps["value"];
             if (!value) {
@@ -222,7 +237,6 @@ export const Message = ({
             <MessageContainer className={styles.message_container} {...props} />
           ),
           MessageRating: (props) => {
-            console.log("MessageRating::props", props);
             return (
               <>
                 {showRating ? (
@@ -232,6 +246,10 @@ export const Message = ({
                     abandon={abandonRatingComment}
                     status={ratingCommentStatus}
                     errorMessage={ratingCommentErrorMessage}
+                    clearErrorMessage={() =>
+                      setRatingCommentErrorMessage(undefined)
+                    }
+                    maxCommentCharacterCount={maxCommentCharacters}
                   />
                 ) : null}
               </>
@@ -334,10 +352,12 @@ export const MessagePrompts = ({
 };
 
 export type MessageRatingWithFeedbackCommentProps = MessageRatingProps & {
-  submit: (commentText: string) => void;
+  submit: (commentText: string) => void | Promise<void>;
   abandon: () => void;
   status: "none" | "submitted" | "abandoned";
   errorMessage?: string;
+  clearErrorMessage?: () => void;
+  maxCommentCharacterCount?: number;
 };
 
 export function MessageRatingWithFeedbackComment(
@@ -349,6 +369,8 @@ export function MessageRatingWithFeedbackComment(
     abandon,
     status,
     errorMessage,
+    clearErrorMessage,
+    maxCommentCharacterCount,
     ...messageRatingProps
   } = props;
 
@@ -360,7 +382,12 @@ export function MessageRatingWithFeedbackComment(
   const ratingCommentRef = useRef(null);
 
   const isSubmitted = status === "submitted";
-  console.log("isSubmitted", isSubmitted);
+
+  const [characterCount, setCharacterCount] = useState(0);
+
+  const characterCountExceeded = maxCommentCharacterCount
+    ? characterCount > maxCommentCharacterCount
+    : false;
 
   return (
     <div
@@ -383,12 +410,18 @@ export function MessageRatingWithFeedbackComment(
             cancelButtonText="Cancel"
             onCancel={() => abandon()}
             submitButtonText="Submit"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               const form = e.target as HTMLFormElement;
               const textarea = form.querySelector("textarea");
-              submit(textarea?.value ?? "");
+              if (!characterCountExceeded) {
+                await submit(textarea?.value ?? "");
+              }
             }}
             textareaProps={{
+              onChange: (e) => {
+                const textarea = e.target as HTMLTextAreaElement;
+                setCharacterCount(textarea.value.length);
+              },
               // @ts-expect-error Hacky fix for https://jira.mongodb.org/browse/LG-3964
               label:
                 value === "liked"
@@ -404,6 +437,32 @@ export function MessageRatingWithFeedbackComment(
             //     : "Provide additional feedback here. How can we improve?"
             // }
           />
+
+          {maxCommentCharacterCount && status !== "submitted" ? (
+            <div
+              className={css`
+                margin-top: -2rem !important;
+                display: flex;
+                flex-direction: row;
+                gap: 0.5rem;
+              `}
+            >
+              <CharacterCount
+                current={characterCount}
+                max={maxCommentCharacterCount}
+              />
+              {characterCountExceeded ? (
+                <Body
+                  className={css`
+                    color: ${palette.red.base};
+                  `}
+                >
+                  {`Message must contain ${maxCommentCharacterCount} characters or fewer`}
+                </Body>
+              ) : null}
+            </div>
+          ) : null}
+
           {errorMessage ? (
             <InlineMessageFeedbackErrorState errorMessage={errorMessage} />
           ) : null}

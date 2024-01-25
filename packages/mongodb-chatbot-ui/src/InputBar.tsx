@@ -63,19 +63,24 @@ export interface CharacterCountProps {
   current: number;
   max: number;
   darkMode?: boolean;
+  className?: HTMLElement["className"];
 }
 
 export function CharacterCount({
   current,
   max,
   darkMode,
+  className,
 }: CharacterCountProps) {
   return (
     <Body
-      className={styles.character_count({
-        darkMode,
-        isError: current > max,
-      })}
+      className={cx(
+        styles.character_count({
+          darkMode,
+          isError: current > max,
+        }),
+        className,
+      )}
     >
       {`${current} / ${max}`}
     </Body>

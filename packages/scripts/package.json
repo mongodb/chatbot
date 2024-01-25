@@ -1,6 +1,6 @@
 {
   "name": "scripts",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "",
   "main": "index.js",
   "private": true,
@@ -17,6 +17,7 @@
     "createView/scrubbed_top_250_references": "npm run build && node ./build/createView/scrubbed_top_250_references.js",
     "createView/scrubbed_topics": "npm run build && node ./build/createView/scrubbed_topics.js",
     "removeTestDatabases": "npm run build && node ./build/removeTestDatabases.js",
+    "getConversationText": "npm run build && node ./build/getConversationText.js",
     "test": "jest --forceExit",
     "build": "npm run clean && tsc -b tsconfig.build.json",
     "postbuild": "cp ./src/MessageAnalysis.d.ts ./build/",

@@ -69,14 +69,19 @@ export default createCommand<TranslateCodeCommandArgs>({
 export const action = createConfiguredAction<TranslateCodeCommandArgs>(
   async (
     { embeddedContentStore, embedder },
-    { source, targetDescription, targetFileExtension = "txt" }
+    {
+      source,
+      targetDescription,
+      targetFileExtension = "txt",
+      runId = new ObjectId().toHexString(),
+    }
   ) => {
     const sourceCode = await fs.readFile(source, "utf8");
 
-    if(!logger) {
+    if (!logger) {
       logger = makeRunLogger({
         topic: "translateCode",
-        runId: new ObjectId().toHexString(),
+        runId,
       });
     }
 

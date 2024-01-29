@@ -12,10 +12,12 @@ import path from "path";
 
 import { action as translateCodeAction } from "./translateCode";
 import { action as translateDocsPageAction } from "./translateDocsPage";
+import { ObjectId } from "mongodb";
 
 let logger: RunLogger;
 
 type ParseDriversCsvCommandArgs = {
+  runId?: string;
   csv: string;
   repoPath: string;
 };
@@ -24,6 +26,11 @@ export default createCommand<ParseDriversCsvCommandArgs>({
   command: "parseDriversCsv",
   builder(args) {
     return withConfigOptions(args)
+      .option("runId", {
+        type: "string",
+        demandOption: false,
+        description: "A unique identifier for this run.",
+      })
       .option("csv", {
         type: "string",
         demandOption: true,
@@ -48,7 +55,7 @@ export default createCommand<ParseDriversCsvCommandArgs>({
 });
 
 export const action = createConfiguredAction<ParseDriversCsvCommandArgs>(
-  async (_config, { csv, repoPath }) => {
+  async (_config, { csv, repoPath, runId=new ObjectId().toHexString(), }) => {
     try {
       logger.logInfo(`Setting up...`);
       const csvData = await fs.readFile(csv, "utf8");
@@ -91,31 +98,37 @@ export const action = createConfiguredAction<ParseDriversCsvCommandArgs>(
             nodeAssetName,
             nodeAssetRemotePath: nodeAssetPath,
             nodeAssetPathRelativeToSourceRepo,
-            nodeAssetFullPath: path.join(repoPath, nodeAssetPathRelativeToSourceRepo),
+            nodeAssetFullPath: path.join(
+              repoPath,
+              nodeAssetPathRelativeToSourceRepo
+            ),
             assetType,
           };
         }
       );
-      // console.log("parsed\n", relevantAssetFieldsOnly);
 
-      const { Code: codeExampleAssets, Page: pageAssets } = groupBy(relevantAssetFieldsOnly, (asset) => asset.assetType);
+      const { Code: codeExampleAssets, Page: pageAssets } = groupBy(
+        relevantAssetFieldsOnly.filter((r) => r !== undefined),
+        (asset) => asset.assetType
+      );
 
-      // console.log("grouped\n", grouped);
-      // console.log("codeExampleAssets\n", codeExampleAssets);
-      // console.log("pageAssets\n", pageAssets);
-
-      for await (const [i, codeExampleAsset] of Object.entries(codeExampleAssets)) {
-        console.log(`Translating[${i}] ${codeExampleAsset.nodeAssetName}`)
+      for await (const [i, codeExampleAsset] of Object.entries(
+        codeExampleAssets
+      )) {
+        console.log(`Translating[${i}] ${codeExampleAsset.nodeAssetName}`);
         await withConfig(translateCodeAction, {
+          runId,
           config: "./build/standardConfig.js",
           source: codeExampleAsset.nodeAssetFullPath,
           targetDescription:
-            "The same functionality but using the MongoDB PHP Driver. Write idiomatic code that uses equivalent methods and functions to those in the source.",
-          targetFileExtension: "php",
+            // "The same functionality but using the MongoDB Python Driver called PyMongo. Write idiomatic code that uses equivalent methods and functions to those in the source.",
+            "The same functionality but using the MongoDB C Driver. Write idiomatic code that uses equivalent methods and functions to those in the source.",
+            // "The same functionality but using the MongoDB PHP Integration for Laravel, mongodb/laravel-mongodb. Write idiomatic code that uses equivalent methods and functions to those in the source.",
+          targetFileExtension: "c",
         });
       }
 
-      console.log("done!")
+      console.log("done!");
     } finally {
       // await cleanupFindContent();
     }

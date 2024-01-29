@@ -31,7 +31,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
   let appConfig: AppConfig;
   let origin: string;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     ({ mongodb, mongoClient, app, ipAddress, appConfig, origin } =
       await makeTestApp());
     conversations = appConfig.conversationsRouterConfig.conversations;
@@ -51,7 +51,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
       .replace(":messageId", String(testMsg.id));
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await mongodb.dropDatabase();
     await mongoClient.close();
   });
@@ -279,13 +279,17 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
   });
 
   it("Should enforce maximum comment length (if configured)", async () => {
-    const { app, ipAddress, appConfig, origin } = await makeTestApp({
-      ...testConfig,
-      conversationsRouterConfig: {
-        ...testConfig.conversationsRouterConfig,
-        maxUserCommentLength: 500,
-      },
-    });
+    const { app, ipAddress, appConfig, origin, ...testApp } = await makeTestApp(
+      {
+        ...testConfig,
+        conversationsRouterConfig: {
+          ...testConfig.conversationsRouterConfig,
+          maxUserCommentLength: 500,
+        },
+      }
+    );
+    mongodb = testApp.mongodb;
+    mongoClient = testApp.mongoClient;
     const conversations = appConfig.conversationsRouterConfig.conversations;
     const conversation = await conversations.create();
     const firstMessage = await conversations.addConversationMessage({

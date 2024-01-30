@@ -6,6 +6,7 @@ import { useChatbot } from "./useChatbot";
 import { LinkDataProvider } from "./LinkDataProvider";
 import { type User } from "./useUser";
 import { ChatbotProvider } from "./ChatbotProvider";
+import { ConversationFetchOptions } from "./services/conversations";
 
 export type ChatbotProps = {
   children: React.ReactElement | React.ReactElement[];
@@ -17,6 +18,7 @@ export type ChatbotProps = {
   shouldStream?: boolean;
   tck?: string;
   user?: User;
+  fetchOptions?: ConversationFetchOptions;
 };
 
 export function Chatbot({
@@ -25,6 +27,7 @@ export function Chatbot({
   shouldStream,
   user,
   name,
+  fetchOptions,
   ...props
 }: ChatbotProps) {
   const { darkMode } = useDarkMode(props.darkMode);
@@ -38,6 +41,7 @@ export function Chatbot({
     serverBaseUrl,
     shouldStream,
     maxInputCharacters: maxInputCharacters,
+    fetchOptions,
   });
 
   const tck = props.tck ?? "mongodb_ai_chatbot";

@@ -62,12 +62,25 @@ export class TimeoutError<Data extends object = object> extends Error {
   }
 }
 
+/**
+  Options to include with every fetch request made by the ConversationService.
+  This can be used to set headers, etc.
+ */
+export type ConversationFetchOptions = Omit<
+  RequestInit,
+  "body" | "method" | "headers" | "signal"
+> & {
+  headers: Record<string, string>;
+};
+
 export type ConversationServiceConfig = {
   serverUrl: string;
+  fetchOptions?: ConversationFetchOptions;
 };
 
 export class ConversationService {
   private serverUrl: string;
+  private fetchOptions: ConversationFetchOptions;
 
   constructor(config: ConversationServiceConfig) {
     assert(
@@ -80,6 +93,13 @@ export class ConversationService {
           window.location.protocol + "//" + window.location.host
         ).href
       : config.serverUrl;
+    const defaultFetchOptions = {
+      headers: {},
+    } satisfies ConversationFetchOptions;
+    this.fetchOptions = {
+      ...defaultFetchOptions,
+      ...(config.fetchOptions ?? {}),
+    };
   }
 
   private getUrl(path: string, queryParams: Record<string, string> = {}) {
@@ -102,8 +122,10 @@ export class ConversationService {
   async createConversation(): Promise<Required<ConversationState>> {
     const path = `/conversations`;
     const resp = await fetch(this.getUrl(path), {
+      ...this.fetchOptions,
       method: "POST",
       headers: {
+        ...this.fetchOptions.headers,
         "Content-Type": "application/json",
         [CUSTOM_REQUEST_ORIGIN_HEADER]: getCustomRequestOrigin() ?? "",
       },
@@ -134,10 +156,12 @@ export class ConversationService {
   }): Promise<MessageData> {
     const path = `/conversations/${conversationId}/messages`;
     const resp = await fetch(this.getUrl(path), {
+      ...this.fetchOptions,
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         [CUSTOM_REQUEST_ORIGIN_HEADER]: getCustomRequestOrigin() ?? "",
+        ...this.fetchOptions.headers,
       },
       body: JSON.stringify({ message }),
     });
@@ -199,9 +223,11 @@ export class ConversationService {
     };
 
     await fetchEventSource(this.getUrl(path, { stream: "true" }), {
+      ...this.fetchOptions,
       signal: signal ?? null,
       method: "POST",
       headers: {
+        ...this.fetchOptions.headers,
         "Content-Type": "application/json",
         [CUSTOM_REQUEST_ORIGIN_HEADER]: getCustomRequestOrigin() ?? "",
       },
@@ -309,8 +335,10 @@ export class ConversationService {
   }): Promise<boolean> {
     const path = `/conversations/${conversationId}/messages/${messageId}/rating`;
     const res = await fetch(this.getUrl(path), {
+      ...this.fetchOptions,
       method: "POST",
       headers: {
+        ...this.fetchOptions.headers,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ rating }),

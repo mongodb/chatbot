@@ -210,7 +210,9 @@ export const conversations = makeMongoDbConversationsService(
 export const createCustomConversationDataWithIpAuthUserAndOrigin: AddCustomDataFunc =
   async (req, res) => {
     const customData: ConversationCustomData = {};
-    if (!isProduction && req.cookies.auth_user) {
+    console.log("!!!req.cookies", req.cookies);
+    if (req.cookies.auth_user) {
+      console.log("!!!auth_user", req.cookies.auth_user);
       customData.authUser = req.cookies.auth_user;
     }
     if (req.ip) {
@@ -233,8 +235,9 @@ export const config: AppConfig = {
       requireValidIpAddress(),
       cookieParser(),
     ],
-    createConversationCustomData:
-      createCustomConversationDataWithIpAuthUserAndOrigin,
+    createConversationCustomData: !isProduction
+      ? createCustomConversationDataWithIpAuthUserAndOrigin
+      : undefined,
     generateUserPrompt,
     maxUserMessagesInConversation: 50,
     filterPreviousMessages: makeFilterNPreviousMessages(12),
@@ -242,6 +245,7 @@ export const config: AppConfig = {
   maxRequestTimeoutMs: 30000,
   corsOptions: {
     origin: allowedOrigins,
+    credentials: !isProduction,
   },
   serveStaticSite: !isProduction,
 };

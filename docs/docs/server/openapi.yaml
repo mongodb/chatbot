@@ -99,7 +99,11 @@ paths:
   /conversations/{conversationId}/messages/{messageId}/comment:
     post:
       operationId: commentMessage
-      summary: Add a comment to an assistant message that clarifies a thumbs up/down rating.
+      summary: Add comment to an assistant message
+      description: |
+        Add a comment to an assistant message that clarifies a thumbs up/down rating.
+        
+        You can only rate an an assistant message that has a thumbs up/down rating. You can only rate a message once. The server returns a `400` error response if the message is not from the assistant, is not rated, or has already been rated.
       parameters:
         - $ref: "#/components/parameters/conversationId"
         - $ref: "#/components/parameters/messageId"

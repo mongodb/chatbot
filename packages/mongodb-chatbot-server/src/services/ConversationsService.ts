@@ -35,8 +35,7 @@ export type AssistantMessage = MessageBase & {
   /**
     An additional text comment provided by the user to clarify their
     `rating` for the message. If `rating` is undefined, this should be
-    too. Note that only messages with `role: "assistant"` can be rated
-    and commented on.
+    too.
    */
   userComment?: string;
 

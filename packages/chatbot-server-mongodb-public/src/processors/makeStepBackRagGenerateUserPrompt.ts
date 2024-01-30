@@ -117,10 +117,22 @@ export const makeStepBackRagGenerateUserPrompt = ({
         .map((c) => c.text)
         .join("---")}`,
     });
-    const userPrompt = {
+    const baseUserMessage = {
       role: "user",
       embedding: queryEmbedding,
       content: userMessageText,
+      customData,
+      preprocessedContent: stepBackUserQuery,
+    } satisfies UserMessage;
+    if (content.length === 0) {
+      return {
+        userMessage: { ...baseUserMessage, rejectQuery: true },
+        rejectQuery: true,
+        references: [],
+      } satisfies GenerateUserPromptFuncReturnValue;
+    }
+    const userPrompt = {
+      ...baseUserMessage,
       contentForLlm: makeUserContentForLlm({
         userMessageText,
         stepBackUserQuery,
@@ -129,8 +141,6 @@ export const makeStepBackRagGenerateUserPrompt = ({
         content,
         maxContextTokenCount,
       }),
-      customData,
-      preprocessedContent: stepBackUserQuery,
     } satisfies UserMessage;
     const references = makeMongoDbReferences(content);
     logRequest({

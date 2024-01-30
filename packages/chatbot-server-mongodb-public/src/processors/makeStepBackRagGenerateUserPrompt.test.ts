@@ -29,6 +29,9 @@ describe("makeStepBackRagGenerateUserPrompt", () => {
     expect(res.userMessage.role).toBe("user");
     expect(res.userMessage.embedding).toHaveLength(1536);
   });
+  test("should reject query if no content", async () => {
+    // TODO: add
+  });
   test("should return references", async () => {
     const res = await stepBackRagGenerateUserPrompt({
       reqId: "123",

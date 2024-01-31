@@ -11,6 +11,7 @@ The server has the following endpoints:
   conversation before you can send messages to the chatbot.
 - `POST /conversations/:conversationId/messages` sends a message to the chatbot,
   and gets a response back.
+- `GET /conversations/:conversationId` gets a conversation in its current state.
 - `POST /conversations/:conversationId/messages/:messageId/rating` rates a
   message in the conversation.
 

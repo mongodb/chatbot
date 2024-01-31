@@ -17,11 +17,6 @@ import {
   makeDefaultFindContent,
   SystemPrompt,
   GenerateUserPromptFunc,
-  makeRagGenerateUserPrompt,
-  MakeUserMessageFunc,
-  MakeUserMessageFuncParams,
-  UserMessage,
-  makeFilterNPreviousMessages,
   requireRequestOrigin,
   requireValidIpAddress,
   ConversationCustomData,
@@ -157,6 +152,7 @@ export const createCustomConversationDataWithIpAuthUserAndOrigin: AddCustomDataF
   };
 
 const isProduction = process.env.NODE_ENV === "production";
+console.log({ isProduction });
 export const config: AppConfig = {
   conversationsRouterConfig: {
     dataStreamer,

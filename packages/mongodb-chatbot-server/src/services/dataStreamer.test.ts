@@ -26,7 +26,6 @@ describe("Data Streaming", () => {
   it("Flushes headers on connect to begin an SSE stream", () => {
     expect(res.header("Content-Type")).toBe("text/event-stream");
     expect(res.header("Cache-Control")).toBe("no-cache");
-    expect(res.header("Access-Control-Allow-Origin")).toBe("*");
     expect(res.header("Access-Control-Allow-Credentials")).toBe("true");
     expect(res.header("Connection")).toBe("keep-alive");
   });

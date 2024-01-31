@@ -34,7 +34,7 @@ export function useChatbot(props: UseChatbotProps): ChatbotData {
   const conversation = useConversation({
     serverBaseUrl: props.serverBaseUrl,
     shouldStream: props.shouldStream,
-    fetchOptions?: ConversationFetchOptions;
+    fetchOptions: props.fetchOptions,
   });
   const [open, setOpen] = useState(false);
   const [awaitingReply, setAwaitingReply] = useState(false);

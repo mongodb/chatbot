@@ -36,7 +36,7 @@ const startServer = async () => {
     await mongodb.close();
     await embeddedContentStore.close();
     await new Promise<void>((resolve, reject) => {
-      server.close((error) => {
+      server.close((error: any) => {
         error ? reject(error) : resolve();
       });
     });

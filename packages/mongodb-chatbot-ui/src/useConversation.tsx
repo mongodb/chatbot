@@ -38,12 +38,13 @@ type ConversationAction =
   | { type: "cancelStreamingResponse" };
 
 type ConversationActor = {
-  createConversation: () => void;
+  createConversation: () => Promise<void>;
   endConversationWithError: (errorMessage: string) => void;
-  addMessage: (role: Role, content: string) => void;
-  modifyMessage: (messageId: string, content: string) => void;
-  deleteMessage: (messageId: string) => void;
-  rateMessage: (messageId: string, rating: boolean) => void;
+  addMessage: (role: Role, content: string) => Promise<void>;
+  modifyMessage: (messageId: string, content: string) => Promise<void>;
+  deleteMessage: (messageId: string) => Promise<void>;
+  rateMessage: (messageId: string, rating: boolean) => Promise<void>;
+  commentMessage: (messageId: string, comment: string) => Promise<void>;
 };
 
 export type Conversation = ConversationState & ConversationActor;
@@ -488,6 +489,18 @@ export function useConversation(params: UseConversationParams = {}) {
     dispatch({ type: "rateMessage", messageId, rating });
   };
 
+  const commentMessage = async (messageId: string, comment: string) => {
+    if (!state.conversationId) {
+      console.error(`Cannot commentMessage without a conversationId`);
+      return;
+    }
+    await conversationService.commentMessage({
+      conversationId: state.conversationId,
+      messageId,
+      comment,
+    });
+  };
+
   const streamingMessage = state.messages.find(
     (m) => m.id === STREAMING_MESSAGE_ID
   );
@@ -501,5 +514,6 @@ export function useConversation(params: UseConversationParams = {}) {
     modifyMessage,
     deleteMessage,
     rateMessage,
+    commentMessage,
   } satisfies Conversation;
 }

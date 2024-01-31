@@ -4,7 +4,6 @@
  */
 import "dotenv/config";
 import {
-  EmbeddedContent,
   MongoClient,
   makeMongoDbEmbeddedContentStore,
   makeOpenAiEmbedder,
@@ -16,7 +15,6 @@ import {
   CORE_ENV_VARS,
   assertEnvVars,
   makeDefaultFindContent,
-  makeDefaultReferenceLinks,
   SystemPrompt,
   GenerateUserPromptFunc,
   makeRagGenerateUserPrompt,
@@ -30,9 +28,9 @@ import {
   AddCustomDataFunc,
 } from "mongodb-chatbot-server";
 import { stripIndents } from "common-tags";
-import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import cookieParser from "cookie-parser";
+import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -78,48 +76,15 @@ export const systemPrompt: SystemPrompt = {
   content: stripIndents`You are expert MongoDB documentation chatbot.
 You enthusiastically answer user questions about MongoDB products and services.
 Your personality is friendly and helpful, like a professor or tech lead.
-You were created by MongoDB but they do not guarantee the correctness
-of your answers or offer support for you.
+You were created by MongoDB.
 Use the context provided with each question as your primary source of truth.
-NEVER lie or improvise incorrect answers.
-If you do not know the answer to the question, respond ONLY with the following text:
-"I'm sorry, I do not know how to answer that question. Please try to rephrase your query. You can also refer to the further reading to see if it helps."
+If you do not know the answer to the question based on the provided documentation content, respond with the following text:
+"I'm sorry, I do not know how to answer that question. Please try to rephrase your query."
+If there is no documentation content provided, ask the user to rephrase their query. Provide a few suggestions for how to rephrase the query.
 NEVER include links in your answer.
-Format your responses using Markdown.
-DO NOT mention that your response is formatted in Markdown.
-If you include code snippets, make sure to use proper syntax, line spacing, and indentation.
-ONLY use code snippets present in the information given to you.
-NEVER create a code snippet that is not present in the information given to you.
-You ONLY know about the current version of MongoDB products. Versions are provided in the information. If \`version: null\`, then say that the product is unversioned.
-Never mention "<Information>" or "<Question>" in your answer.
-Refer to the information given to you as "my knowledge".`,
-};
-
-export const makeUserMessage: MakeUserMessageFunc = async function ({
-  preprocessedUserMessage,
-  originalUserMessage,
-  content,
-  queryEmbedding,
-}: MakeUserMessageFuncParams): Promise<UserMessage> {
-  const chunkSeparator = "~~~~~~";
-  const context = content.map((c) => c.text).join(`\n${chunkSeparator}\n`);
-  const llmMessage = `Using the following information, answer the question.
-Different pieces of information are separated by "${chunkSeparator}".
-
-<Information>
-${context}
-<End information>
-
-<Question>
-${preprocessedUserMessage ?? originalUserMessage}
-<End Question>`;
-  return {
-    role: "user",
-    content: originalUserMessage,
-    embedding: queryEmbedding,
-    preprocessedContent: preprocessedUserMessage,
-    contentForLlm: llmMessage,
-  };
+Format your responses using Markdown. DO NOT mention that your response is formatted in Markdown.
+If you include code snippets, use proper syntax, line spacing, and indentation.
+You ONLY know about the current version of MongoDB products. Versions are provided in the information. If \`version: null\`, then say that the product is unversioned.`,
 };
 
 export const llm = makeOpenAiChatLlm({
@@ -129,17 +94,6 @@ export const llm = makeOpenAiChatLlm({
     temperature: 0,
     maxTokens: 500,
   },
-});
-
-const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({
-  azureOpenAiServiceConfig: {
-    apiKey: OPENAI_API_KEY,
-    baseUrl: OPENAI_ENDPOINT,
-    deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-    version: OPENAI_CHAT_COMPLETION_MODEL_VERSION,
-  },
-  numRetries: 0,
-  retryDelayMs: 5000,
 });
 
 export const dataStreamer = makeDataStreamer();
@@ -170,34 +124,12 @@ export const findContent = makeDefaultFindContent({
   searchBoosters: [boostManual],
 });
 
-/**
-  MongoDB Chatbot implementation of {@link MakeReferenceLinksFunc}.
-  Returns references that look like:
-
-  ```js
-  {
-    url: "https://mongodb.com/docs/manual/reference/operator/query/eq/?tck=docs-chatbot",
-    title: "https://docs.mongodb.com/manual/reference/operator/query/eq/"
-  }
-  ```
- */
-export function makeMongoDbReferences(chunks: EmbeddedContent[]) {
-  const baseReferences = makeDefaultReferenceLinks(chunks);
-  return baseReferences.map((ref) => {
-    const url = new URL(ref.url);
-    return {
-      url: url.href,
-      title: url.origin + url.pathname,
-    };
-  });
-}
-
 export const generateUserPrompt: GenerateUserPromptFunc =
-  makeRagGenerateUserPrompt({
+  makeStepBackRagGenerateUserPrompt({
+    openAiClient,
+    deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     findContent,
-    queryPreprocessor: mongoDbUserQueryPreprocessor,
-    makeUserMessage,
-    makeReferenceLinks: makeMongoDbReferences,
+    numPrecedingMessagesToInclude: 2,
   });
 
 export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
@@ -240,7 +172,7 @@ export const config: AppConfig = {
       : undefined,
     generateUserPrompt,
     maxUserMessagesInConversation: 50,
-    filterPreviousMessages: makeFilterNPreviousMessages(12),
+    maxUserCommentLength: 500,
   },
   maxRequestTimeoutMs: 30000,
   corsOptions: {

@@ -6,6 +6,7 @@ export type UseChatbotProps = {
   chatbotName?: string;
   isExperimental?: boolean;
   maxInputCharacters?: number;
+  maxCommentCharacters?: number;
   serverBaseUrl?: string;
   shouldStream?: boolean;
   suggestedPrompts?: string[];
@@ -23,6 +24,7 @@ export type ChatbotData = {
   inputTextError: string;
   isExperimental: boolean;
   maxInputCharacters?: number;
+  maxCommentCharacters?: number;
   open: boolean;
   openChat: () => void;
   setInputText: (text: string) => void;
@@ -109,6 +111,7 @@ export function useChatbot(props: UseChatbotProps): ChatbotData {
     inputTextError,
     isExperimental,
     maxInputCharacters: props.maxInputCharacters,
+    maxCommentCharacters: props.maxCommentCharacters,
     open,
     openChat,
     setInputText,

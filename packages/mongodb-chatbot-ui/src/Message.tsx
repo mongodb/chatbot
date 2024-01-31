@@ -11,12 +11,24 @@ import {
   MessagePrompts as LGMessagePrompts,
   MessagePrompt,
 } from "@lg-chat/message-prompts";
-import { MessageRatingProps } from "@lg-chat/message-rating";
+import {
+  MessageRating,
+  type MessageRatingProps,
+  type MessageRatingValue,
+} from "@lg-chat/message-rating";
 import { Fragment, useRef, useState } from "react";
 import { CSSTransition } from "react-transition-group";
 import { useUser, User } from "./useUser";
 import { MessageData } from "./services/conversations";
 import { Conversation } from "./useConversation";
+import { InlineMessageFeedback } from "@lg-chat/message-feedback";
+// @ts-expect-error Typescript imports of icons currently not supported
+import WarningIcon from "@leafygreen-ui/icon/dist/Warning";
+import { spacing } from "@leafygreen-ui/tokens";
+import { palette } from "@leafygreen-ui/palette";
+import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
+import { CharacterCount } from "./InputBar";
+import { useChatbotContext } from "./useChatbotContext";
 
 const TRANSITION_DURATION = 300;
 
@@ -43,7 +55,7 @@ const styles = {
     }
   `,
   message_rating: css`
-    margin-top: 1rem;
+    margin-top: 0.5rem;
 
     // Ensure that the rating icons are properly center aligned. The
     // docs site has a global label style that adds a margin here
@@ -79,11 +91,19 @@ const styles = {
     }
   `,
   // End hacky fix
-  markdown_ul: css`
+  markdown_list: css`
     overflow-wrap: anywhere;
+    margin-bottom: -1.5rem;
+
+    & ul {
+      margin-bottom: 0;
+    }
+
+    & ol {
+      margin-bottom: 0;
+    }
   `,
   loading_skeleton: css`
-    margin-bottom: 16px;
     width: 100%;
 
     & > div {
@@ -92,6 +112,22 @@ const styles = {
   `,
   message_container: css`
     min-width: 320px;
+  `,
+  message_rating_comment: css`
+    transition: opacity ${TRANSITION_DURATION}ms ease-in;
+
+    &-enter {
+      opacity: 0;
+    }
+    &-enter-active {
+      opacity: 1;
+    }
+    &-exit {
+      opacity: 1;
+    }
+    &-exit-active {
+      opacity: 0;
+    }
   `,
 };
 
@@ -118,6 +154,8 @@ function getMessageInfo(message: MessageData, user?: User) {
   };
 }
 
+type RatingCommentStatus = "none" | "submitted" | "abandoned";
+
 export const Message = ({
   messageData,
   suggestedPrompts = [],
@@ -127,44 +165,96 @@ export const Message = ({
   showRating,
   conversation,
 }: MessageProp) => {
+  const { maxCommentCharacters } = useChatbotContext();
   const user = useUser();
   const info = getMessageInfo(messageData, user);
+
+  const [ratingCommentStatus, setRatingCommentStatus] =
+    useState<RatingCommentStatus>("none");
+
+  const [ratingCommentErrorMessage, setRatingCommentErrorMessage] = useState<
+    string | undefined
+  >();
+
+  const [submittedRatingValue, setSubmittedRatingValue] = useState<
+    MessageRatingValue | undefined
+  >(undefined);
+
+  async function submitRatingComment(commentText: string) {
+    if (!commentText) {
+      return;
+    }
+    try {
+      await conversation.commentMessage(messageData.id, commentText);
+      setRatingCommentStatus("submitted");
+      setSubmittedRatingValue(messageData.rating ? "liked" : "disliked");
+      setRatingCommentErrorMessage(undefined);
+    } catch (err) {
+      setRatingCommentErrorMessage(
+        "Oops, there was an issue submitting the response to the server. Please try again."
+      );
+    }
+  }
+  function abandonRatingComment() {
+    setRatingCommentStatus("abandoned");
+  }
 
   return (
     <Fragment key={messageData.id}>
       <LGMessage
         baseFontSize={16}
         isSender={info.isSender}
-        messageRatingProps={
-          showRating
-            ? {
-                className: styles.message_rating,
-                description: "How was the response?",
-                onChange: (e) => {
-                  const value = e.target.value as MessageRatingProps["value"];
-                  if (!value) {
-                    return;
-                  }
-                  conversation.rateMessage(
-                    messageData.id,
-                    value === "liked" ? true : false
-                  );
-                },
-                value:
-                  messageData.rating === undefined
-                    ? undefined
-                    : messageData.rating
-                    ? "liked"
-                    : "disliked",
-              }
-            : undefined
-        }
+        messageRatingProps={{
+          className: styles.message_rating,
+          description: "How was the response?",
+          hideThumbsUp: submittedRatingValue === "disliked",
+          hideThumbsDown: submittedRatingValue === "liked",
+          onChange: async (e) => {
+            const value = e.target.value as MessageRatingProps["value"];
+            if (!value) {
+              return;
+            }
+            if (ratingCommentStatus === "submitted") {
+              // Once a user has submitted a comment for their rating we don't want them to be able to change their rating
+              return;
+            }
+            await conversation.rateMessage(
+              messageData.id,
+              value === "liked" ? true : false
+            );
+          },
+          value:
+            messageData.rating === undefined
+              ? undefined
+              : messageData.rating
+              ? "liked"
+              : "disliked",
+        }}
         avatar={<Avatar variant={info.avatarVariant} name={info.senderName} />}
         sourceType={isLoading ? undefined : MessageSourceType.Markdown}
         componentOverrides={{
           MessageContainer: (props) => (
             <MessageContainer className={styles.message_container} {...props} />
           ),
+          MessageRating: (props) => {
+            return (
+              <>
+                {showRating ? (
+                  <MessageRatingWithFeedbackComment
+                    {...props}
+                    submit={submitRatingComment}
+                    abandon={abandonRatingComment}
+                    status={ratingCommentStatus}
+                    errorMessage={ratingCommentErrorMessage}
+                    clearErrorMessage={() =>
+                      setRatingCommentErrorMessage(undefined)
+                    }
+                    maxCommentCharacterCount={maxCommentCharacters}
+                  />
+                ) : null}
+              </>
+            );
+          },
         }}
         markdownProps={{
           className: styles.markdown_container,
@@ -181,14 +271,14 @@ export const Message = ({
             },
             ol: ({ children, ordered, ...props }) => {
               return (
-                <Body as="ol" {...props}>
+                <Body as="ol" className={styles.markdown_list} {...props}>
                   {children}
                 </Body>
               );
             },
             ul: ({ children, ordered, ...props }) => {
               return (
-                <Body className={styles.markdown_ul} as="ul" {...props}>
+                <Body className={styles.markdown_list} as="ul" {...props}>
                   {children}
                 </Body>
               );
@@ -260,3 +350,151 @@ export const MessagePrompts = ({
     </CSSTransition>
   );
 };
+
+export type MessageRatingWithFeedbackCommentProps = MessageRatingProps & {
+  submit: (commentText: string) => void | Promise<void>;
+  abandon: () => void;
+  status: "none" | "submitted" | "abandoned";
+  errorMessage?: string;
+  clearErrorMessage?: () => void;
+  maxCommentCharacterCount?: number;
+};
+
+export function MessageRatingWithFeedbackComment(
+  props: MessageRatingWithFeedbackCommentProps
+) {
+  const {
+    value,
+    submit,
+    abandon,
+    status,
+    errorMessage,
+    clearErrorMessage,
+    maxCommentCharacterCount,
+    ...messageRatingProps
+  } = props;
+
+  const hasRating = value !== undefined;
+
+  // TODO: Use this to animate the transition after https://jira.mongodb.org/browse/LG-3965 is merged.
+  // const ratingCommentInputVisible = hasRating && status !== "submitted" && status !== "abandoned";
+
+  const ratingCommentRef = useRef(null);
+
+  const isSubmitted = status === "submitted";
+
+  const [characterCount, setCharacterCount] = useState(0);
+
+  const characterCountExceeded = maxCommentCharacterCount
+    ? characterCount > maxCommentCharacterCount
+    : false;
+
+  return (
+    <div
+      // TODO: This css is a hacky fix until https://jira.mongodb.org/browse/LG-3965 is merged
+      // Once merged we can apply this margin directly to InlineMesssageFeedback
+      className={css`
+        & > div + div {
+          margin-top: 0.5rem;
+        }
+      `}
+    >
+      <MessageRating value={value} {...messageRatingProps} />
+      {hasRating && status !== "abandoned" ? (
+        <>
+          <InlineMessageFeedback
+            ref={ratingCommentRef}
+            // TODO: A custom className depends on https://jira.mongodb.org/browse/LG-3965
+            // Once merged, we can use this className to animate a fade out animation with CSSTransition
+            // className={styles.message_rating_comment}
+            cancelButtonText="Cancel"
+            onCancel={() => abandon()}
+            submitButtonText="Submit"
+            onSubmit={async (e) => {
+              const form = e.target as HTMLFormElement;
+              const textarea = form.querySelector("textarea");
+              if (!characterCountExceeded) {
+                await submit(textarea?.value ?? "");
+              }
+            }}
+            textareaProps={{
+              onChange: (e) => {
+                const textarea = e.target as HTMLTextAreaElement;
+                setCharacterCount(textarea.value.length);
+              },
+              // @ts-expect-error Hacky fix for https://jira.mongodb.org/browse/LG-3964
+              label:
+                value === "liked"
+                  ? "Provide additional feedback here. What did you like about this response?"
+                  : "Provide additional feedback here. How can we improve?",
+            }}
+            isSubmitted={isSubmitted}
+            submittedMessage="Submitted! Thank you for your feedback."
+            // TODO: we need to define textAreaProps.label instead of the regular label prop until https://jira.mongodb.org/browse/LG-3964 is merged
+            // label={
+            //   value === "liked"
+            //     ? "Provide additional feedback here. What did you like about this response?"
+            //     : "Provide additional feedback here. How can we improve?"
+            // }
+          />
+
+          {maxCommentCharacterCount && status !== "submitted" ? (
+            <div
+              className={css`
+                margin-top: -2rem !important;
+                display: flex;
+                flex-direction: row;
+                gap: 0.5rem;
+              `}
+            >
+              <CharacterCount
+                current={characterCount}
+                max={maxCommentCharacterCount}
+              />
+              {characterCountExceeded ? (
+                <Body
+                  className={css`
+                    color: ${palette.red.base};
+                  `}
+                >
+                  {`Message must contain ${maxCommentCharacterCount} characters or fewer`}
+                </Body>
+              ) : null}
+            </div>
+          ) : null}
+
+          {errorMessage ? (
+            <InlineMessageFeedbackErrorState errorMessage={errorMessage} />
+          ) : null}
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+// TODO: replace this with built-in error state after https://jira.mongodb.org/browse/LG-3966 is merged.
+function InlineMessageFeedbackErrorState({
+  errorMessage,
+}: {
+  errorMessage: string;
+}) {
+  const { darkMode } = useDarkMode();
+  return (
+    <div
+      className={css`
+        display: flex;
+        gap: ${spacing[1]}px;
+        align-items: center;
+      `}
+    >
+      <WarningIcon color={palette.red.base} />
+      <Body
+        className={css`
+          color: ${darkMode ? palette.gray.light1 : palette.gray.dark2};
+        `}
+      >
+        {errorMessage}
+      </Body>
+    </div>
+  );
+}

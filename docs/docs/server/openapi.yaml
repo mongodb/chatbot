@@ -96,6 +96,32 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
+  /conversations/{conversationId}/messages/{messageId}/comment:
+    post:
+      operationId: commentMessage
+      summary: Add comment to an assistant message
+      description: |
+        Add a comment to an assistant message that clarifies a thumbs up/down rating.
+        
+        You can only rate an an assistant message that has a thumbs up/down rating. You can only rate a message once. The server returns a `400` error response if the message is not from the assistant, is not rated, or has already been rated.
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+        - $ref: "#/components/parameters/messageId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageComment"
+      responses:
+        204:
+          description: Comment Saved
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -164,7 +190,15 @@ components:
           description: |
             Set to `true` if the user liked the response, `false` if the user didn't like the response.
             No value if user didn't rate the response.
+
             Note that only messages with `role: "assistant"` can be rated.
+        userComment:
+          type: string
+          description: |
+            Comment from the user clarifying why they liked or disliked
+            the message. No value if user didn't comment on the response.
+
+            Note that only messages with `role: "assistant"` can be commented on.
         createdAt:
           type: integer
           description: |
@@ -192,11 +226,21 @@ components:
                 format: uri
                 description: |
                   URL to the reference. For example, "https://mongodb.com/docs/atlas/getting-started?tck=docs_chat".
+    MessageComment:
+      type: object
+      properties:
+        comment:
+          type: string
+          description: |
+            Comment from the user clarifying why they liked or disliked
+            the message.
     MessageRating:
       type: object
       properties:
         rating:
           type: boolean
+          description: |
+            Set to `true` if the user liked the message, `false` if the user didn't like the message.
     ErrorResponse:
       type: object
   parameters:

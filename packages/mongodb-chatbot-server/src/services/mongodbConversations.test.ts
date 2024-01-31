@@ -221,4 +221,48 @@ describe("Conversations Service", () => {
       true
     );
   });
+  test("Should add a user comment to a message", async () => {
+    const { _id: conversationId } = await conversationsService.create();
+
+    await conversationsService.addConversationMessage({
+      conversationId,
+      message: {
+        role: "user",
+        content: "What is the MongoDB Document Model?",
+        embedding: [1, 2, 3],
+      },
+    });
+
+    const assistantMessage = await conversationsService.addConversationMessage({
+      conversationId,
+      message: {
+        role: "assistant",
+        content: "That's a good question! Let me explain...",
+        references: [],
+      },
+    });
+
+    const rateResult = await conversationsService.rateMessage({
+      conversationId,
+      messageId: assistantMessage.id,
+      rating: true,
+    });
+    expect(rateResult).toBe(true);
+
+    const comment = "This answer was super helpful!";
+    const commentResult = await conversationsService.commentMessage({
+      conversationId,
+      messageId: assistantMessage.id,
+      comment,
+    });
+    expect(commentResult).toBe(true);
+
+    const conversationInDb = await mongodb
+      .collection<Conversation>("conversations")
+      .findOne({ _id: conversationId });
+
+    const finalAssistantMessage = (conversationInDb?.messages[2] as AssistantMessage)
+    expect(finalAssistantMessage?.rating).toBe(true);
+    expect(finalAssistantMessage?.userComment).toBe(comment);
+  });
 });

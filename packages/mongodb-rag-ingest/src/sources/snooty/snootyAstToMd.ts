@@ -86,8 +86,8 @@ const renderAst = (node: SnootyNode, state: RenderState): string => {
         .split("\n")
         .map((line, i) =>
           i === 0
-            ? `${listBullet}${line}`
-            : `${" ".repeat(listBullet?.length ?? 0)}${line}`
+            ? `${listBullet}${line}`.trimEnd()
+            : `${" ".repeat(listBullet?.length ?? 0)}${line}`.trimEnd()
         )
         .join("\n")}\n`;
 

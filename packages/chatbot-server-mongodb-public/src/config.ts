@@ -136,6 +136,7 @@ export const config: AppConfig = {
     conversations,
     generateUserPrompt,
     maxUserMessagesInConversation: 50,
+    maxUserCommentLength: 500,
   },
   maxRequestTimeoutMs: 30000,
   corsOptions: {

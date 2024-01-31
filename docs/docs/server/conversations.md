@@ -11,8 +11,10 @@ The server has the following endpoints:
   conversation before you can send messages to the chatbot.
 - `POST /conversations/:conversationId/messages` sends a message to the chatbot,
   and gets a response back.
-- `POST /conversations/:conversationId/messages/:messageId/rating` rates a
-  message in the conversation.
+- `POST /conversations/:conversationId/messages/:messageId/rating` rates an
+  assistant message in the conversation.
+- `POST /conversations/:conversationId/messages/:messageId/comment` adds a user
+  comment to an assistant message in the conversation.
 
 For more information on these endpoints, refer to the [API Specification](openapi).
 

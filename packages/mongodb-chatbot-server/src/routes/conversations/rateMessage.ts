@@ -9,7 +9,6 @@ import {
   NextFunction,
 } from "express";
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
-import { isValidIp } from "./utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 
@@ -44,17 +43,6 @@ export function makeRateMessageRoute({
   ) => {
     const reqId = getRequestId(req);
     try {
-      const { ip } = req;
-
-      if (!isValidIp(ip)) {
-        return sendErrorResponse({
-          reqId,
-          res,
-          httpStatus: 400,
-          errorMessage: `Invalid IP address ${ip}`,
-        });
-      }
-
       const { conversationId: conversationIdStr, messageId: messageIdStr } =
         req.params;
       const { rating } = req.body;

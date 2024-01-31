@@ -68,17 +68,18 @@ The `mongodb-chatbot-ui` package exports the following components.
 
 The `<Chatbot />` component is effectively a React context provider that wraps your chatbot. It accepts the following props:
 
-| Prop                 | Type                             | Description                                                                                      | Default                                                |
-| -------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------ |
-| `children`           | `ReactElement \| ReactElement[]` | Trigger and View components for the chatbot, e.g. `FloatingActionButtonTrigger` and `ModalView`. |                                                        |
-| `darkMode`           | `boolean?`                       | If `true`, the UI renders in dark mode. This overrides any theme `darkMode` setting.             | The user's OS preference or theme value of `darkMode`. |
-| `isExperimental`     | `boolean?`                       | If `true`, the UI includes EXPERIMENTAL badges throughout.                                       | `true`                                                 |
-| `maxInputCharacters` | `number?`                        | The maximum number of characters allowed in a user message.                                      | `300`                                                  |
-| `name`               | `string?`                        | The name of the chatbot. Used as the default in text throughout the UI.                          | If unspecified, the chatbot is anonymous.              |
-| `serverBaseUrl`      | `string?`                        | The base URL for the Chatbot API.                                                                | `https://knowledge.mongodb.com/api/v1`                 |
-| `shouldStream`       | `boolean?`                       | If `true`, responses are streamed with SSE. Otherwise the entire response is awaited.            | If the browser supports SSE, `true`, else `false`.     |
-| `tck`                | `string?`                        | An analytics identifier to add to the end of all hyperlinks.                                     | `"docs_chatbot"`                                       |
-| `user`               | `{ name: string; }?`             | An object with information about the current user (if there is one).                             | `undefined`                                            |
+| Prop                   | Type                             | Description                                                                                      | Default                                                |
+| ---------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------ |
+| `children`             | `ReactElement \| ReactElement[]` | Trigger and View components for the chatbot, e.g. `FloatingActionButtonTrigger` and `ModalView`. |                                                        |
+| `darkMode`             | `boolean?`                       | If `true`, the UI renders in dark mode. This overrides any theme `darkMode` setting.             | The user's OS preference or theme value of `darkMode`. |
+| `isExperimental`       | `boolean?`                       | If `true`, the UI includes EXPERIMENTAL badges throughout.                                       | `true`                                                 |
+| `maxCommentCharacters` | `number?`                        | The maximum number of characters allowed in a user's comment on an assistant message.            | `500`                                                  |
+| `maxInputCharacters`   | `number?`                        | The maximum number of characters allowed in a user message.                                      | `300`                                                  |
+| `name`                 | `string?`                        | The name of the chatbot. Used as the default in text throughout the UI.                          | If unspecified, the chatbot is anonymous.              |
+| `serverBaseUrl`        | `string?`                        | The base URL for the Chatbot API.                                                                | `https://knowledge.mongodb.com/api/v1`                 |
+| `shouldStream`         | `boolean?`                       | If `true`, responses are streamed with SSE. Otherwise the entire response is awaited.            | If the browser supports SSE, `true`, else `false`.     |
+| `tck`                  | `string?`                        | An analytics identifier to add to the end of all hyperlinks.                                     | `"docs_chatbot"`                                       |
+| `user`                 | `{ name: string; }?`             | An object with information about the current user (if there is one).                             | `undefined`                                            |
 
 ### `ActionButtonTrigger`
 

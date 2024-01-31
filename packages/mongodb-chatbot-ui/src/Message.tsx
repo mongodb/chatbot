@@ -4,8 +4,8 @@ import { ParagraphSkeleton } from "@leafygreen-ui/skeleton-loader";
 import { Avatar, Variant as AvatarVariant } from "@lg-chat/avatar";
 import {
   Message as LGMessage,
+  MessageProps as LGMessageProps,
   MessageSourceType,
-  MessageContainer,
 } from "@lg-chat/message";
 import {
   MessagePrompts as LGMessagePrompts,
@@ -89,6 +89,10 @@ const styles = {
         margin-top: 0;
       }
     }
+
+    & code {
+      white-space: pre-wrap;
+    }
   `,
   // End hacky fix
   markdown_list: css`
@@ -105,13 +109,11 @@ const styles = {
   `,
   loading_skeleton: css`
     width: 100%;
+    min-width: 120px;
 
     & > div {
       width: 100%;
     }
-  `,
-  message_container: css`
-    min-width: 320px;
   `,
   message_rating_comment: css`
     transition: opacity ${TRANSITION_DURATION}ms ease-in;
@@ -130,6 +132,43 @@ const styles = {
     }
   `,
 };
+
+const markdownProps = {
+  className: styles.markdown_container,
+  components: {
+    a: ({ children, href }) => {
+      return (
+        <Link hideExternalIcon href={href}>
+          {children}
+        </Link>
+      );
+    },
+    p: ({ children, ...props }) => {
+      return <Body {...props}>{children}</Body>;
+    },
+    ol: ({ children, ordered, ...props }) => {
+      return (
+        <Body as="ol" className={styles.markdown_list} {...props}>
+          {children}
+        </Body>
+      );
+    },
+    ul: ({ children, ordered, ...props }) => {
+      return (
+        <Body className={styles.markdown_list} as="ul" {...props}>
+          {children}
+        </Body>
+      );
+    },
+    li: ({ children, ordered, node, ...props }) => {
+      return (
+        <Body as="li" {...props}>
+          {children}
+        </Body>
+      );
+    },
+  },
+} satisfies LGMessageProps["markdownProps"];
 
 const LoadingSkeleton = () => {
   return <ParagraphSkeleton className={styles.loading_skeleton} />;
@@ -233,9 +272,6 @@ export const Message = ({
         avatar={<Avatar variant={info.avatarVariant} name={info.senderName} />}
         sourceType={isLoading ? undefined : MessageSourceType.Markdown}
         componentOverrides={{
-          MessageContainer: (props) => (
-            <MessageContainer className={styles.message_container} {...props} />
-          ),
           MessageRating: (props) => {
             return (
               <>
@@ -256,42 +292,7 @@ export const Message = ({
             );
           },
         }}
-        markdownProps={{
-          className: styles.markdown_container,
-          components: {
-            a: ({ children, href }) => {
-              return (
-                <Link hideExternalIcon href={href}>
-                  {children}
-                </Link>
-              );
-            },
-            p: ({ children, ...props }) => {
-              return <Body {...props}>{children}</Body>;
-            },
-            ol: ({ children, ordered, ...props }) => {
-              return (
-                <Body as="ol" className={styles.markdown_list} {...props}>
-                  {children}
-                </Body>
-              );
-            },
-            ul: ({ children, ordered, ...props }) => {
-              return (
-                <Body className={styles.markdown_list} as="ul" {...props}>
-                  {children}
-                </Body>
-              );
-            },
-            li: ({ children, ordered, node, ...props }) => {
-              return (
-                <Body as="li" {...props}>
-                  {children}
-                </Body>
-              );
-            },
-          },
-        }}
+        markdownProps={markdownProps}
       >
         {isLoading
           ? ((<LoadingSkeleton />) as unknown as string)

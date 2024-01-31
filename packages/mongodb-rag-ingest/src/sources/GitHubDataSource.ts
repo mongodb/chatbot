@@ -16,8 +16,10 @@ export type MakeGitHubDataSourceArgs = {
   repoUrl: string;
 
   /**
-    Filter function to filter out files from the repo.
-    Using this overrides the `repoLoaderOptions.ignorePaths` option.
+    Filter function to filter out files from the repo. Using this overrides the
+    `repoLoaderOptions.ignorePaths` option.
+
+    Note that file paths will have a leading slash (e.g. `/somedir/somefile.txt`).
    */
   filter?: MakeGitDataSourceParams["filter"];
 

@@ -89,7 +89,7 @@ export function makeCommentMessageRoute({
         });
       }
 
-      const existingMessage = conversationInDb.messages.find((message) =>
+      const existingMessage = conversationInDb.messages.findLast((message) =>
         message.id.equals(messageId)
       );
 

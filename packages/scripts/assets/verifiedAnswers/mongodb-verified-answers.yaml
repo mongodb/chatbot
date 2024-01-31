@@ -1,0 +1,16 @@
+- questions:
+    - How do I verify answers?
+  answer: To verify an answer...
+  author_email: someone@example.com
+  references:
+    - uri: http://example.com
+      title: Example
+  hidden: true
+- questions:
+    - Why did the chicken cross the road?
+  answer: To get to the other side.
+  author_email: someone@example.com
+  hidden: true
+  references:
+    - uri: http://example.com
+      title: Example

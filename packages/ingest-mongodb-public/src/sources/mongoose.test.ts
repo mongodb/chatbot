@@ -1,3 +1,5 @@
+import { mongooseSourceConstructor } from "./mongoose";
+
 describe("mongooseSourceConstructor", () => {
   it("correctly loads files", async () => {
     const source = await mongooseSourceConstructor();

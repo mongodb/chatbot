@@ -7,19 +7,22 @@ import {
 
 export const ConversationContext = createContext<Conversation>({
   ...defaultConversationState,
-  createConversation: () => {
+  createConversation: async () => {
     return;
   },
-  addMessage: () => {
+  addMessage: async () => {
     return;
   },
-  modifyMessage: () => {
+  modifyMessage: async () => {
     return;
   },
-  deleteMessage: () => {
+  deleteMessage: async () => {
     return;
   },
-  rateMessage: () => {
+  rateMessage: async () => {
+    return;
+  },
+  commentMessage: async () => {
     return;
   },
   endConversationWithError: () => {

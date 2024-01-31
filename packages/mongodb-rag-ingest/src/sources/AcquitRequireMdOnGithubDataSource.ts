@@ -97,7 +97,7 @@ export async function getAcquitTestsFromGithubRepo(
   repoUrl: string,
   repoLoaderOptions: Partial<GithubRepoLoaderParams>
 ) {
-  const testFileSource = await makeGitHubDataSource({
+  const testFileSource = makeGitHubDataSource({
     name: "acquit-tests",
     repoUrl,
     repoLoaderOptions,

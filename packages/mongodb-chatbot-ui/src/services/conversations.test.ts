@@ -20,10 +20,20 @@ function mockFetchResponse<T = unknown>({
   status?: number;
   data: T;
 }) {
-  (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-    status,
-    json: () => new Promise((resolve) => resolve(data)),
-  });
+  let lastRequestOptions: Partial<RequestInit>;
+  (global.fetch as ReturnType<typeof vi.fn>).mockImplementation(
+    async (_url, options) => {
+      // Capture the request options
+      lastRequestOptions = options;
+
+      return {
+        status,
+        json: () => Promise.resolve(data),
+        // You can add other properties of the Response object if necessary
+      };
+    }
+  );
+  return () => lastRequestOptions;
 }
 
 // Mock @microsoft/fetch-event-source for SSE streaming requests
@@ -188,6 +198,79 @@ describe("ConversationService", () => {
       comment,
     });
     expect(commentPromise).resolves.toBeUndefined();
+  });
+
+  it("appends custom fetch options", async () => {
+    let getOptions = mockFetchResponse({ data: {} });
+    const conversationService = new ConversationService({
+      serverUrl,
+      fetchOptions: {
+        headers: {
+          foo: "bar",
+        },
+        credentials: "include",
+      },
+    });
+    await conversationService.createConversation();
+    const createOptions = getOptions();
+    expect(createOptions.headers).toHaveProperty("foo", "bar");
+    expect(createOptions.headers).toHaveProperty(
+      "Content-Type",
+      "application/json"
+    );
+    expect(createOptions.credentials).toBe("include");
+
+    await conversationService.addMessage({ conversationId: "", message: "" });
+    const addOptions = getOptions();
+    expect(addOptions.headers).toHaveProperty("foo", "bar");
+    expect(addOptions.headers).toHaveProperty(
+      "Content-Type",
+      "application/json"
+    );
+    expect(addOptions.credentials).toBe("include");
+
+    await conversationService.addMessageStreaming({
+      conversationId: "",
+      message: "",
+      onResponseDelta: vi.fn(),
+      onResponseFinished: vi.fn(),
+      onReferences: vi.fn(),
+    });
+    const addStreamingOptions = getOptions();
+    expect(addStreamingOptions.headers).toHaveProperty("foo", "bar");
+    expect(addStreamingOptions.headers).toHaveProperty(
+      "Content-Type",
+      "application/json"
+    );
+    expect(addStreamingOptions.credentials).toBe("include");
+
+    // Updating the mock fetch to return 204, which is used by the following two calls.
+    getOptions = mockFetchResponse({ data: {}, status: 204 });
+    await conversationService.rateMessage({
+      conversationId: "a",
+      messageId: "b",
+      rating: true,
+    });
+    const ratingOptions = getOptions();
+    expect(ratingOptions.headers).toHaveProperty("foo", "bar");
+    expect(ratingOptions.headers).toHaveProperty(
+      "Content-Type",
+      "application/json"
+    );
+    expect(ratingOptions.credentials).toBe("include");
+
+    await conversationService.commentMessage({
+      conversationId: "",
+      comment: "",
+      messageId: "",
+    });
+    const commentOptions = getOptions();
+    expect(commentOptions.headers).toHaveProperty("foo", "bar");
+    expect(commentOptions.headers).toHaveProperty(
+      "Content-Type",
+      "application/json"
+    );
+    expect(commentOptions.credentials).toBe("include");
   });
 
   it("throws on invalid inputs", async () => {

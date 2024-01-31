@@ -70,7 +70,7 @@ export type ConversationFetchOptions = Omit<
   RequestInit,
   "body" | "method" | "headers" | "signal"
 > & {
-  headers: Record<string, string>;
+  headers?: Record<string, string>;
 };
 
 export type ConversationServiceConfig = {
@@ -338,8 +338,8 @@ export class ConversationService {
       ...this.fetchOptions,
       method: "POST",
       headers: {
-        ...this.fetchOptions.headers,
         "Content-Type": "application/json",
+        ...this.fetchOptions.headers,
       },
       body: JSON.stringify({ rating }),
     });
@@ -367,9 +367,11 @@ export class ConversationService {
   }): Promise<void> {
     const path = `/conversations/${conversationId}/messages/${messageId}/comment`;
     const res = await fetch(this.getUrl(path), {
+      ...this.fetchOptions,
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...this.fetchOptions.headers,
       },
       body: JSON.stringify({ comment }),
     });

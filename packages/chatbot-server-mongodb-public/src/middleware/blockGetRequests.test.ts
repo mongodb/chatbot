@@ -22,7 +22,7 @@ describe("blockGetRequests", () => {
     blockGetRequests(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith({ message: "Not found" });
+    expect(res.json).toHaveBeenCalledWith({ message: "Route not found" });
     expect(next).not.toHaveBeenCalled();
   });
 

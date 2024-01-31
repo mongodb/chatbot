@@ -7,7 +7,6 @@ import {
   makeGitDataSource,
   HandleHtmlPageFuncOptions,
   handleHtmlDocument,
-  makeAcquitRequireMdOnGithubDataSource,
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
   removeMarkdownImagesAndLinks,
@@ -22,6 +21,9 @@ import {
 import { prismaSourceConstructor } from "./prisma";
 import { wiredTigerSourceConstructor } from "./wiredTiger";
 import { pyMongoSourceConstructor } from "./pyMongo";
+import { cppSourceConstructor } from "./cppDriver";
+import { mongooseSourceConstructor } from "./mongoose";
+import { practicalAggregationsDataSource } from "./practicalAggregations";
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -379,74 +381,6 @@ export const libmongocSourceConstructor = async () => {
   });
 };
 
-export const mongooseSourceConstructor = async () => {
-  const repoUrl = "https://github.com/Automattic/mongoose";
-  const testFileLoaderOptions = {
-    branch: "master",
-    recursive: true,
-    ignoreFiles: [/^(?!^\/test\/).+$/],
-  };
-  const repoLoaderOptions = {
-    branch: "master",
-    recursive: true,
-    ignoreFiles: [/^(?!^\/docs\/).+$/],
-  };
-  return await makeAcquitRequireMdOnGithubDataSource({
-    repoUrl,
-    repoLoaderOptions,
-    name: "mongoose",
-    pathToPageUrl(path) {
-      return path
-        .replace(/^\/docs\//, "https://mongoosejs.com/docs/")
-        .replace(/\.md$/, ".html");
-    },
-    testFileLoaderOptions,
-    acquitCodeBlockLanguageReplacement: "javascript",
-    metadata: {
-      productName: "Mongoose ODM",
-      tags: ["node.js", "community library", "mongoose", "odm"],
-      version: "v7.x (current)",
-    },
-  });
-};
-
-export function mongoDbCppDriverPathToPageUrlConverter(pathInRepo: string) {
-  if (pathInRepo.endsWith("_index.md")) {
-    pathInRepo = pathInRepo.replace("_index.md", "index.md");
-  }
-  return pathInRepo
-    .replace(
-      /^\/docs\/content\/mongocxx-v3/,
-      "https://mongocxx.org/mongocxx-v3"
-    )
-    .replace(/\.md$/, "/");
-}
-
-export const mongoDbCppDriverConfig: MakeMdOnGithubDataSourceParams = {
-  name: "cxx-driver",
-  repoUrl: "https://github.com/mongodb/mongo-cxx-driver/",
-  repoLoaderOptions: {
-    branch: "master",
-    ignoreFiles: [/^(?!^\/docs\/content\/mongocxx-v3\/).*/],
-  },
-  pathToPageUrl: mongoDbCppDriverPathToPageUrlConverter,
-  metadata: {
-    productName: "C++ Driver (mongocxx)",
-    tags: ["docs", "driver", "c++", "cpp", "cxx", "mongocxx"],
-    version: "v3.x (current)",
-  },
-  frontMatter: {
-    process: true,
-    separator: "+++",
-    format: "toml",
-  },
-  extractTitle: (_, frontmatter) => frontmatter?.title as string,
-};
-
-export const cppSourceConstructor = async () => {
-  return await makeMdOnGithubDataSource(mongoDbCppDriverConfig);
-};
-
 export const mongoDbCorpDataSourceConfig: MakeMdOnGithubDataSourceParams = {
   name: "mongodb-corp",
   repoUrl: "https://github.com/mongodb/chatbot/",
@@ -472,29 +406,6 @@ export const mongoDbCorpDataSourceConfig: MakeMdOnGithubDataSourceParams = {
 };
 const mongoDbCorpDataSource = async () => {
   return await makeMdOnGithubDataSource(mongoDbCorpDataSourceConfig);
-};
-
-export const practicalAggregationsConfig: MakeMdOnGithubDataSourceParams = {
-  name: "practical-aggregations-book",
-  repoUrl: "https://github.com/pkdone/practical-mongodb-aggregations-book",
-  repoLoaderOptions: {
-    branch: "main",
-    ignoreFiles: [/^(?!^\/src\/).*/, /^(\/src\/SUMMARY\.md)$/],
-  },
-  pathToPageUrl(pathInRepo) {
-    return (
-      "https://www.practical-mongodb-aggregations.com" +
-      pathInRepo.replace(/^src\//, "/").replace(/\.md$/, "")
-    );
-  },
-  metadata: {
-    bookName: "Practical MongoDB Aggregations",
-    tags: ["docs", "aggregations", "book"],
-  },
-};
-
-export const practicalAggregationsDataSource = async () => {
-  return await makeMdOnGithubDataSource(practicalAggregationsConfig);
 };
 
 export const terraformProviderSourceConstructor = async () => {

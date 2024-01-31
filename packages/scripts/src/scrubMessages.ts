@@ -86,6 +86,7 @@ const scrubMessages = async ({ db }: { db: Db }) => {
           | "functionCall"
           | "contentForLlm"
           | "preprocessedContent"
+          | "userComment"
         >,
         string | number
       >,

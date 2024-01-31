@@ -198,6 +198,10 @@ export function ModalView(props: ModalViewProps) {
                       // Users can rate assistant messages that have started streaming
                       message.role === "assistant" &&
                       !isLoading &&
+                      !(
+                        awaitingReply &&
+                        conversation.streamingMessage?.id === message.id
+                      ) &&
                       // We don't want users to rate the initial message (and they can't because it's not in the database)
                       !isInitialMessage
                     }

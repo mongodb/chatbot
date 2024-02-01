@@ -201,7 +201,7 @@ function makeUserContentForLlm({
     .map((c) => c.text)
     .reverse()
     .join("---");
-  return `Use the following information to respond to the "User message". If you do not know the answer to the question based on the provided documentation content, respond with the following text: "I'm sorry, I do not know how to answer that question. Please try to rephrase your query."
+  return `Use the following information to respond to the "User message". If you do not know the answer to the question based on the provided documentation content, respond with the following text: "I'm sorry, I do not know how to answer that question. Please try to rephrase your query." NEVER include Markdown links in the answer.
 ${
   previousConversationMessages.length > 0
     ? `Previous conversation messages: ${previousConversationMessages}`

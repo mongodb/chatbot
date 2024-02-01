@@ -8,6 +8,7 @@ import {
   OpenAiChatMessage,
   Tool,
 } from "./ChatLlm";
+import { Conversation } from "./ConversationsService";
 
 /**
   Configuration for the {@link makeOpenAiChatLlm} function.
@@ -60,7 +61,7 @@ export function makeOpenAiChatLlm({
       }
       return message as OpenAiChatMessage;
     },
-    async callTool(message: OpenAiChatMessage) {
+    async callTool(message: OpenAiChatMessage, conversation?: Conversation) {
       // Only call tool if the message is an assistant message with a function call.
       assert(
         message.role === "assistant" && message.functionCall !== undefined,
@@ -73,7 +74,10 @@ export function makeOpenAiChatLlm({
 
       const { functionCall } = message;
       const tool = toolDict[functionCall.name];
-      const toolResponse = await tool.call(JSON.parse(functionCall.arguments));
+      const toolResponse = await tool.call({
+        functionArgs: JSON.parse(functionCall.arguments),
+        conversation,
+      });
       return toolResponse;
     },
   };

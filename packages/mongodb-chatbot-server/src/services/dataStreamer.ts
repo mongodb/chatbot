@@ -2,7 +2,7 @@ import { Response } from "express";
 import { OpenAiStreamingResponse } from "./ChatLlm";
 import { logger, References } from "mongodb-rag-core";
 
-function escapeNewlines(str: string): string {
+export function escapeNewlines(str: string): string {
   return str.replaceAll(`\n`, `\\n`);
 }
 
@@ -55,6 +55,18 @@ type StreamEvent = { type: string; data: unknown };
 type DeltaStreamEvent = StreamEvent & { type: "delta"; data: string };
 
 /**
+  Event for when the server is processing a request.
+ */
+type ProcessingStreamEvent = StreamEvent & {
+  type: "processing";
+  /**
+    Information about processing that is occurring.
+    @example "Searching for related content"
+   */
+  data: string;
+};
+
+/**
   Event when server streams single {@link References} object to the client.
  */
 type ReferencesStreamEvent = StreamEvent & {
@@ -75,6 +87,7 @@ type FinishedStreamEvent = StreamEvent & {
  */
 type SomeStreamEvent =
   | DeltaStreamEvent
+  | ProcessingStreamEvent
   | ReferencesStreamEvent
   | FinishedStreamEvent;
 

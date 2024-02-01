@@ -7,9 +7,13 @@
 import {
   ChatCompletions,
   ChatRequestMessage,
+  FunctionCall,
+  FunctionCallPreset,
   FunctionDefinition,
+  FunctionName,
 } from "@azure/openai";
 import { Reference } from "mongodb-rag-core";
+import { Conversation } from "./ConversationsService";
 export type OpenAiMessageRole = "system" | "assistant" | "user" | "function";
 
 export type OpenAiChatMessage = ChatRequestMessage & {
@@ -43,9 +47,20 @@ export interface Tool {
   definition: FunctionDefinition;
 
   /**
+    Message to stream to the client informing it that processing is happening.
+    @example "Searching for related content"
+   */
+  processingMessage?: string;
+
+  /**
     Call the function based on the arguments in the {@link Tool.definition}.
    */
-  call(args: unknown): Promise<CallToolResponse>;
+  call(args: ToolCallParams): Promise<CallToolResponse>;
+}
+
+export interface ToolCallParams<T = unknown> {
+  functionArgs: T;
+  conversation?: Conversation;
 }
 
 export type OpenAIChatCompletionWithoutUsage = Omit<ChatCompletions, "usage">;
@@ -67,6 +82,9 @@ export interface CallToolResponse {
    */
   rejectUserQuery?: boolean;
 
+  /** Direction for what the LLM should do following this tool call. */
+  subsequentToolCall?: FunctionCallPreset | FunctionName;
+
   /**
     References to add to the {@link AssistantMessage} sent to the user.
    */
@@ -83,5 +101,8 @@ export interface ChatLlm {
   answerQuestionAwaited({
     messages,
   }: LlmAnswerQuestionParams): Promise<OpenAiAwaitedResponse>;
-  callTool(message: OpenAiChatMessage): Promise<CallToolResponse>;
+  callTool(
+    message: OpenAiChatMessage,
+    conversation?: Conversation
+  ): Promise<CallToolResponse>;
 }

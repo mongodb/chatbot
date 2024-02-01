@@ -47,6 +47,7 @@ paths:
           required: false
           schema:
             type: boolean
+            default: false
           description: |
             If `true`, the response will be streamed to the client. This is useful for long-running conversations.
       requestBody:
@@ -262,50 +263,36 @@ components:
         - $ref: "#/components/schemas/StreamEventReferences"
         - $ref: "#/components/schemas/StreamEventFinished"
       description: A server-sent event data payload for a streaming message.
-    StreamEvent:
+    StreamEventDelta:
+      description: Assistant response text.
       type: object
-      description: Abstract base type for stream events.
       properties:
         type:
           type: string
+          enum: [delta]
         data:
+          description: Piece of content
           type: string
-    StreamEventDelta:
-      description: Assistant response text.
-      allOf:
-        - $ref: "#/components/schemas/StreamEvent"
-        - type: object
-          properties:
-            type:
-              type: string
-              enum: [delta]
-            data:
-              description: Piece of content
-              type: string
 
     StreamEventReferences:
       description: References to include with the answer.
-      allOf:
-        - $ref: "#/components/schemas/StreamEvent"
-        - type: object
-          properties:
-            type:
-              type: string
-              enum: [references]
-            data:
-              $ref: "#/components/schemas/References"
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [references]
+        data:
+          $ref: "#/components/schemas/References"
     StreamEventFinished:
       description: Last message when streaming has finished.
-      allOf:
-        - $ref: "#/components/schemas/StreamEvent"
-        - type: object
-          properties:
-            type:
-              type: string
-              enum: [finished]
-            data:
-              description: Message ID.
-              type: string
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [finished]
+        data:
+          description: Message ID.
+          type: string
     MessageComment:
       type: object
       properties:

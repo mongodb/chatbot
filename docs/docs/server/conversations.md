@@ -19,6 +19,14 @@ The server has the following endpoints:
 
 For more information on these endpoints, refer to the [API Specification](openapi).
 
+## Security
+
+If you do not add custom middleware that handles authentication/authorization,
+a malicious actor who gets a conversation ID can modify the conversation.
+You can also add custom middleware to block requests to endpoints if you do not need them in your app.
+
+For more information about securing your server with custom middleware, refer to the [custom middleware request validation](custom-logic.md#request-validation) documentation.
+
 ## Expose the Conversations Endpoints in Your App
 
 The MongoDB Chatbot Server exposes the conversation endpoints at the `/conversations` path.

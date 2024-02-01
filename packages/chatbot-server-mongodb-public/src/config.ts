@@ -26,6 +26,8 @@ import { stripIndents } from "common-tags";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import cookieParser from "cookie-parser";
 import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";
+import { getRequestId, logRequest } from "./utils";
+import { Request, Response } from "express";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -137,9 +139,7 @@ export const conversations = makeMongoDbConversationsService(
 export const createCustomConversationDataWithIpAuthUserAndOrigin: AddCustomDataFunc =
   async (req, res) => {
     const customData: ConversationCustomData = {};
-    console.log("!!!req.cookies", req.cookies);
     if (req.cookies.auth_user) {
-      console.log("!!!auth_user", req.cookies.auth_user);
       customData.authUser = req.cookies.auth_user;
     }
     if (req.ip) {
@@ -148,11 +148,14 @@ export const createCustomConversationDataWithIpAuthUserAndOrigin: AddCustomDataF
     if (res.locals.customData.origin) {
       customData.origin = res.locals.customData.origin;
     }
+    logRequest({
+      reqId: getRequestId(req),
+      message: `Custom data: ${customData}`,
+    });
     return customData;
   };
 
 const isProduction = process.env.NODE_ENV === "production";
-console.log({ isProduction });
 export const config: AppConfig = {
   conversationsRouterConfig: {
     dataStreamer,

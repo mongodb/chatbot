@@ -356,22 +356,14 @@ async function generateResponse({
   llmNotWorkingMessage,
 }: GenerateResponseParams) {
   if (shouldStream) {
-    dataStreamer.connect(res);
-    const answerStream = await llm.answerQuestionStream({
-      messages: llmConversation,
-    });
-    const answerContent = await dataStreamer.stream({
-      stream: answerStream,
-    });
-    logRequest({
+    return await streamResponse({
+      dataStreamer,
+      res,
+      references,
       reqId,
-      message: `LLM response: ${JSON.stringify(answerContent)}`,
+      llm,
+      llmConversation,
     });
-    dataStreamer.streamData({
-      type: "references",
-      data: references ?? [],
-    });
-    return answerContent;
   }
 
   try {
@@ -402,6 +394,39 @@ async function generateResponse({
     });
     return llmNotWorkingMessage;
   }
+}
+
+async function streamResponse({
+  dataStreamer,
+  res,
+  llm,
+  llmConversation,
+  reqId,
+  references,
+}: {
+  dataStreamer: DataStreamer;
+  res: ExpressResponse;
+  llm: ChatLlm;
+  llmConversation: OpenAiChatMessage[];
+  reqId: string;
+  references?: References;
+}) {
+  dataStreamer.connect(res);
+  const answerStream = await llm.answerQuestionStream({
+    messages: llmConversation,
+  });
+  const answerContent = await dataStreamer.stream({
+    stream: answerStream,
+  });
+  logRequest({
+    reqId,
+    message: `LLM response: ${JSON.stringify(answerContent)}`,
+  });
+  dataStreamer.streamData({
+    type: "references",
+    data: references ?? [],
+  });
+  return answerContent;
 }
 
 function convertConversationMessageToLlmMessage(

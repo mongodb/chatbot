@@ -126,6 +126,9 @@ export function makeDataStreamer(): DataStreamer {
       connected = false;
     },
 
+    /**
+      Streams single item of data in an event stream.
+     */
     streamData(data: SomeStreamEvent) {
       if (!this.connected) {
         throw new Error(
@@ -135,6 +138,9 @@ export function makeDataStreamer(): DataStreamer {
       sse?.sendData(data);
     },
 
+    /**
+      Streams all message events in an event stream.
+     */
     async stream({ stream }: StreamParams) {
       if (!this.connected) {
         throw new Error(

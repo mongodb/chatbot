@@ -1,25 +1,19 @@
 import { parse } from "yaml";
 import { z } from "zod";
-
-export const referenceSchema = z.object({
-  uri: z.string(),
-  title: z.optional(z.string()),
-});
-
-export type Reference = z.infer<typeof referenceSchema>;
+import { Reference } from "mongodb-rag-core";
 
 /**
   Verified answers as specified in the verified answer yaml.
  */
-export const verifiedAnswerSpecSchema = z.object({
+export const VerifiedAnswerSpec = z.object({
   questions: z.array(z.string()),
   answer: z.string(),
   author_email: z.string(),
   hidden: z.optional(z.boolean()),
-  references: z.array(referenceSchema),
+  references: z.array(Reference),
 });
 
-export type VerifiedAnswerSpec = z.infer<typeof verifiedAnswerSpecSchema>;
+export type VerifiedAnswerSpec = z.infer<typeof VerifiedAnswerSpec>;
 
 export const parseVerifiedAnswerYaml = (yaml: string): VerifiedAnswerSpec[] => {
   if (yaml.trim() === "") {
@@ -27,5 +21,5 @@ export const parseVerifiedAnswerYaml = (yaml: string): VerifiedAnswerSpec[] => {
   }
 
   const parsed = parse(yaml);
-  return z.array(verifiedAnswerSpecSchema).parse(parsed);
+  return z.array(VerifiedAnswerSpec).parse(parsed);
 };

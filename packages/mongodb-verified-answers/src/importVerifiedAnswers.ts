@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { Db } from "mongodb";
-import { Embedder, Reference, logger } from "mongodb-rag-core";
+import { Embedder, Reference } from "mongodb-rag-core";
 import { VerifiedAnswerSpec } from "./parseVerifiedAnswersYaml";
 import deepEqual from "deep-equal";
 
@@ -88,7 +88,7 @@ export const importVerifiedAnswers = async ({
     _id: { $in: idsToDelete },
   });
 
-  logger.info({ ...upsertSummary, deleted: deleteResults.deletedCount });
+  return { ...upsertSummary, deleted: deleteResults.deletedCount };
 };
 
 /**
@@ -188,8 +188,7 @@ export const prepareVerifiedAnswers = async ({
 
       // The entry exists and is unchanged.
       return undefined;
-    })
-    .filter((entry) => entry !== undefined);
+    });
 
   const idsToDelete = Object.values(storedAnswers)
     .filter(({ stillExistsInYaml }) => !stillExistsInYaml)
@@ -200,8 +199,7 @@ export const prepareVerifiedAnswers = async ({
       verifiedAnswers.map(
         async (verifiedAnswer): Promise<VerifiedAnswer | undefined> => {
           if (verifiedAnswer === undefined) {
-            // Nothing to update.
-            return;
+            return undefined;
           }
 
           const { question } = verifiedAnswer;

@@ -1,9 +1,11 @@
 import crypto from "crypto";
+import { Db } from "mongodb";
 import { Embedder } from "mongodb-rag-core";
 import {
   makeQuestionId,
   prepareVerifiedAnswers,
   VerifiedAnswer,
+  importVerifiedAnswers,
 } from "./importVerifiedAnswers";
 import { VerifiedAnswerSpec } from "./parseVerifiedAnswersYaml";
 
@@ -18,67 +20,67 @@ describe("makeQuestionId", () => {
   });
 });
 
+// Mock embedder
+const doEmbed = (text: string) =>
+  crypto
+    .createHash("sha256")
+    .update(text, "utf8")
+    .digest("hex")
+    .split("")
+    .map((x) => parseInt(`0x${x}`));
+const embedder: Embedder = {
+  embed: async ({ text }) => ({
+    // Use a non-cryptographic hash just to be sure that different text
+    // produces different results (and same text produces same results)
+    embedding: doEmbed(text),
+  }),
+};
+const embeddingModel = "mock-hash";
+const embeddingModelVersion = "1.0";
+const mockPrepareVerifiedAnswersArgs = {
+  embedder,
+  embeddingModel,
+  embeddingModelVersion,
+};
+
+const makeMockVerifiedAnswer = (
+  question: string,
+  answer: string,
+  more?: Omit<Partial<VerifiedAnswer>, "question" | "answer">
+): VerifiedAnswer => {
+  return {
+    _id: makeQuestionId(question),
+    question: {
+      embedding: doEmbed(question),
+      embedding_model: embeddingModel,
+      embedding_model_version: embeddingModelVersion,
+      text: question,
+    },
+    answer,
+    author_email: "foo@example.com",
+    created: new Date("1999-03-31"),
+    references: [],
+    hidden: false,
+    ...(more ?? {}),
+  };
+};
+
+const makeMockVerifiedAnswerSpec = (
+  questions: string | string[],
+  answer: string,
+  more?: Omit<Partial<VerifiedAnswerSpec>, "questions" | "answer">
+): VerifiedAnswerSpec => {
+  return {
+    questions: Array.isArray(questions) ? questions : [questions],
+    answer,
+    author_email: "foo@example.com",
+    references: [],
+    hidden: false,
+    ...(more ?? {}),
+  };
+};
+
 describe("prepareVerifiedAnswers", () => {
-  // Mock embedder
-  const doEmbed = (text: string) =>
-    crypto
-      .createHash("sha256")
-      .update(text, "utf8")
-      .digest("hex")
-      .split("")
-      .map((x) => parseInt(`0x${x}`));
-  const embedder: Embedder = {
-    embed: async ({ text }) => ({
-      // Use a non-cryptographic hash just to be sure that different text
-      // produces different results (and same text produces same results)
-      embedding: doEmbed(text),
-    }),
-  };
-  const embeddingModel = "mock-hash";
-  const embeddingModelVersion = "1.0";
-  const mockPrepareVerifiedAnswersArgs = {
-    embedder,
-    embeddingModel,
-    embeddingModelVersion,
-  };
-
-  const makeMockVerifiedAnswer = (
-    question: string,
-    answer: string,
-    more?: Omit<Partial<VerifiedAnswer>, "question" | "answer">
-  ): VerifiedAnswer => {
-    return {
-      _id: makeQuestionId(question),
-      question: {
-        embedding: doEmbed(question),
-        embedding_model: embeddingModel,
-        embedding_model_version: embeddingModelVersion,
-        text: question,
-      },
-      answer,
-      author_email: "foo@example.com",
-      created: new Date("1999-03-31"),
-      references: [],
-      hidden: false,
-      ...(more ?? {}),
-    };
-  };
-
-  const makeMockVerifiedAnswerSpec = (
-    questions: string | string[],
-    answer: string,
-    more?: Omit<Partial<VerifiedAnswerSpec>, "questions" | "answer">
-  ): VerifiedAnswerSpec => {
-    return {
-      questions: Array.isArray(questions) ? questions : [questions],
-      answer,
-      author_email: "foo@example.com",
-      references: [],
-      hidden: false,
-      ...(more ?? {}),
-    };
-  };
-
   it("correctly performs set difference", async () => {
     const { idsToDelete, answersToUpsert } = await prepareVerifiedAnswers({
       ...mockPrepareVerifiedAnswersArgs,

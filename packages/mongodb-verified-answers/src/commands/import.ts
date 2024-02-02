@@ -58,13 +58,14 @@ export const doImportCommand = async ({ path }: ImportCommandArgs) => {
   const client = await MongoClient.connect(MONGODB_CONNECTION_URI);
   try {
     const db = client.db(MONGODB_DATABASE_NAME);
-    await importVerifiedAnswers({
+    const result = await importVerifiedAnswers({
       embedder,
       db,
       verifiedAnswerSpecs,
       embeddingModel,
       embeddingModelVersion,
     });
+    console.log(result);
   } finally {
     await client.close();
   }

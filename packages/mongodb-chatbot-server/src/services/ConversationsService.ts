@@ -33,6 +33,13 @@ export type AssistantMessage = MessageBase & {
   rating?: boolean;
 
   /**
+    An additional text comment provided by the user to clarify their
+    `rating` for the message. If `rating` is undefined, this should be
+    too.
+   */
+  userComment?: string;
+
+  /**
     Further reading links for the message.
    */
   references?: References;
@@ -162,6 +169,11 @@ export interface RateMessageParams {
   messageId: ObjectId;
   rating: boolean;
 }
+export interface CommentMessageParams {
+  conversationId: ObjectId;
+  messageId: ObjectId;
+  comment: string;
+}
 
 /**
   Static responses to send in pre-defined edge case scenarios.
@@ -211,6 +223,15 @@ export interface ConversationsService {
     messageId,
     rating,
   }: RateMessageParams) => Promise<boolean>;
+
+  /**
+    Add a user comment to an assistant {@link Message}.
+   */
+  commentMessage: ({
+    conversationId,
+    messageId,
+    comment,
+  }: CommentMessageParams) => Promise<boolean>;
 }
 
 export const defaultConversationConstants: ConversationConstants = {

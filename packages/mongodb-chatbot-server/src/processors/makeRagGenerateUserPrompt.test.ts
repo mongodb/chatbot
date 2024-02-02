@@ -47,7 +47,7 @@ const mockPreprocessor: QueryPreprocessorFunc = async ({ query }) => ({
   query: mockTransformText(query),
   rejectQuery: false,
 });
-const mockFindContent: FindContentFunc = async ({ query }) => {
+const mockFindContent: FindContentFunc = async () => {
   return {
     queryEmbedding: [0.1, 0.2, 0.3],
     content: mockContent,

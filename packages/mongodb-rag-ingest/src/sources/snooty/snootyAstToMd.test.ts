@@ -2,6 +2,7 @@ import Path from "path";
 import fs from "fs";
 import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
 import { SnootyNode } from "./SnootyDataSource";
+import { rstToSnootyAst } from "./rstToSnootyAst";
 
 const SRC_ROOT = Path.resolve(__dirname, "../../");
 
@@ -206,6 +207,69 @@ Some of your App Services App's features are associated with user accounts. For 
 1. Find the App ID in the Realm UI.
 
 2. Create an App object with your App's ID as the argument. You use this \`App\` instance to access App Services features throughout your client application.
+
+`);
+  });
+
+  it("renders nested lists", () => {
+    let result = snootyAstToMd(
+      rstToSnootyAst(`Sample list:
+
+1. This is a list.
+
+   - And it has a nested list
+   - Wow
+
+#. Item 2
+`)
+    );
+    expect(result).toBe(
+      `Sample list:
+
+1. This is a list.
+
+   - And it has a nested list
+
+   - Wow
+
+2. Item 2
+
+`
+    );
+    const ast = rstToSnootyAst(`Sample list 2:
+
+- This is a list.
+
+   - And it has a nested list
+   
+     - With a nested list
+     - Wow
+     - Cool
+   
+   - Wow
+     
+     And a new paragraph is properly aligned
+
+- Item 2
+`);
+    result = snootyAstToMd(ast);
+    expect(result).toBe(`Sample list 2:
+
+- This is a list.
+
+  - And it has a nested list
+
+    - With a nested list
+
+    - Wow
+
+    - Cool
+
+  - Wow
+
+    And a new paragraph is properly aligned
+
+- Item 2
 
 `);
   });

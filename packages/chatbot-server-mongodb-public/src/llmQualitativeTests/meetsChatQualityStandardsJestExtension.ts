@@ -9,13 +9,12 @@ const {
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
 } = assertEnvVars(CORE_ENV_VARS);
 /**
- *
- * @param received - The output from the LLM
- * @param expectedOutputDescription - A description of the expected output
+  @param received - The output from the LLM
+  @param expectedOutputDescription - A description of the expected output
  */
 export async function meetsChatQualityStandards(
   received: string,
-  expectedOutputDescription: any
+  expectedOutputDescription: string
 ) {
   const result = await checkResponseQuality(
     received,

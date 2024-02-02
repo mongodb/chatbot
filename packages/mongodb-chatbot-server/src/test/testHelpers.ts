@@ -47,12 +47,12 @@ export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
 }
 
 /**
- * Create a URL to represent a client-side route on the test origin.
- * @param path - path to append to the origin base URL.
- * @returns a URL object with the origin base URL and the path appended.
- * @example
- * const url = createTestOriginUrl("/conversations");
- * expect(url.href).toEqual("http://localhost:5173/conversations")
+  Create a URL to represent a client-side route on the test origin.
+  @param path - path to append to the origin base URL.
+  @returns a URL object with the origin base URL and the path appended.
+  @example
+    const url = createTestOriginUrl("/conversations");
+    expect(url.href).toEqual("http://localhost:5173/conversations")
  */
 export function createTestOriginUrl(path: string) {
   return new URL(path, TEST_ORIGIN);

@@ -1,7 +1,7 @@
 import { DocumentLoader } from "langchain/dist/document_loaders/base";
 import { Document as LangchainDocument } from "langchain/document";
 import { DataSource } from "./DataSource";
-import { Page, PageFormat, PageMetadata } from "mongodb-rag-core";
+import { Page, PageMetadata, PageStore } from "mongodb-rag-core";
 
 export interface MakeLangChainDocumentLoaderDataSourceParams {
   /**
@@ -10,39 +10,25 @@ export interface MakeLangChainDocumentLoaderDataSourceParams {
   documentLoader: DocumentLoader;
 
   /**
-    Name of the data source used by the MongoDB RAG Ingest.
+    Name of the data source used by MongoDB RAG Ingest.
    */
   name: string;
 
   /**
-    Format of the pages being loaded.
-   */
-  format: PageFormat;
+    Metadata to use in the page metadata of all documents.
 
-  /**
-    Metadata to use in the page metadata of all documents
+    `Page.metadata` generated with `transformLangchainDocumentToPage()`
+    overrides this metadata if the properties have the same key.
    */
   metadata?: PageMetadata;
 
   /**
-    Get the URL of the page from the Langchain document.
+    Take the {@link LangchainDocument} returned by the `documentLoader`
+    and transform it into the {@link Page} persisted in the {@link PageStore}.
    */
-  getPageUrl: (doc: LangchainDocument) => string;
-
-  /**
-    Extract the title of the page from the Langchain document.
-   */
-  extractTitle: (doc: LangchainDocument) => Promise<string>;
-
-  /**
-    Transform the body of the Langchain document to use in the page body.
-    For example, you might want to remove links from the page body.
-   */
-  transformPageBody?: (doc: LangchainDocument) => Promise<string>;
-  /**
-    Extract metadata from the Langchain document to use in the page metadata.
-   */
-  getMetadata?: (doc: LangchainDocument) => Promise<PageMetadata>;
+  transformLangchainDocumentToPage(
+    doc: LangchainDocument
+  ): Promise<Omit<Page, "sourceName">>;
 }
 
 /**
@@ -52,11 +38,7 @@ export function makeLangChainDocumentLoaderDataSource({
   documentLoader,
   name,
   metadata,
-  getPageUrl,
-  extractTitle,
-  transformPageBody,
-  format,
-  getMetadata,
+  transformLangchainDocumentToPage,
 }: MakeLangChainDocumentLoaderDataSourceParams): DataSource {
   return {
     name,
@@ -64,21 +46,14 @@ export function makeLangChainDocumentLoaderDataSource({
       const documents = await documentLoader.load();
       const pages: Page[] = [];
       for (const d of documents) {
+        const transformedPage = await transformLangchainDocumentToPage(d);
         pages.push({
+          ...transformedPage,
           sourceName: name,
-          url: getPageUrl(d),
-          ...(extractTitle ? { title: await extractTitle(d) } : {}),
-          format,
-          body: transformPageBody ? await transformPageBody(d) : d.pageContent,
-          // Add metadata if it exists
-          ...(metadata || getMetadata
-            ? {
-                metadata: {
-                  ...(metadata ?? {}),
-                  ...(getMetadata ? await getMetadata(d) : {}),
-                },
-              }
-            : {}),
+          metadata: {
+            ...metadata,
+            ...(transformedPage.metadata ?? {}),
+          },
         });
       }
       return pages;

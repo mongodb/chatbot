@@ -36,6 +36,7 @@ export type SystemPrompt = OpenAiChatMessage & {
 
 export interface LlmAnswerQuestionParams {
   messages: OpenAiChatMessage[];
+  toolCallOptions?: ToolCallDirective;
 }
 /**
   Tool for the chatbot to use.
@@ -83,7 +84,7 @@ export interface CallToolResponse {
   rejectUserQuery?: boolean;
 
   /** Direction for what the LLM should do following this tool call. */
-  subsequentToolCall?: FunctionCallPreset | FunctionName;
+  subsequentLlmCall?: FunctionCallPreset | FunctionName;
 
   /**
     References to add to the {@link AssistantMessage} sent to the user.
@@ -91,18 +92,28 @@ export interface CallToolResponse {
   references?: Reference[];
 }
 
+export type ToolCallDirective = FunctionCallPreset | FunctionName;
+
+export interface LlmCallToolParams {
+  /**
+    Messages to send to the LLM.
+   */
+  messages: OpenAiChatMessage[];
+  /**
+    Conversation in the DB. Useful for getting metadata to use in tool calls.
+   */
+  conversation?: Conversation;
+}
+
 /**
   LLM that responds to user queries. Provides both streaming and awaited options.
  */
 export interface ChatLlm {
-  answerQuestionStream({
-    messages,
-  }: LlmAnswerQuestionParams): Promise<OpenAiStreamingResponse>;
-  answerQuestionAwaited({
-    messages,
-  }: LlmAnswerQuestionParams): Promise<OpenAiAwaitedResponse>;
-  callTool(
-    message: OpenAiChatMessage,
-    conversation?: Conversation
-  ): Promise<CallToolResponse>;
+  answerQuestionStream(
+    params: LlmAnswerQuestionParams
+  ): Promise<OpenAiStreamingResponse>;
+  answerQuestionAwaited(
+    params: LlmAnswerQuestionParams
+  ): Promise<OpenAiAwaitedResponse>;
+  callTool(params: LlmCallToolParams): Promise<CallToolResponse>;
 }

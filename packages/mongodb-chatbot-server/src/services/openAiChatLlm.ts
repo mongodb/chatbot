@@ -37,22 +37,30 @@ export function makeOpenAiChatLlm({
   });
 
   return {
-    async answerQuestionStream({ messages }: LlmAnswerQuestionParams) {
+    async answerQuestionStream({
+      messages,
+      toolCallOptions,
+    }: LlmAnswerQuestionParams) {
       const completionStream = await openAiClient.streamChatCompletions(
         deployment,
         messages,
         {
           ...openAiLmmConfigOptions,
+          // TODO: deal with toolCallOptions
           functions: tools?.map((tool) => tool.definition),
         }
       );
       return completionStream;
     },
-    async answerQuestionAwaited({ messages }: LlmAnswerQuestionParams) {
+    async answerQuestionAwaited({
+      messages,
+      toolCallOptions,
+    }: LlmAnswerQuestionParams) {
       const {
         choices: [choice],
       } = await openAiClient.getChatCompletions(deployment, messages, {
         ...openAiLmmConfigOptions,
+        // TODO: deal with toolCallOptions
         functions: tools?.map((tool) => tool.definition),
       });
       const { message } = choice;
@@ -61,18 +69,20 @@ export function makeOpenAiChatLlm({
       }
       return message as OpenAiChatMessage;
     },
-    async callTool(message: OpenAiChatMessage, conversation?: Conversation) {
+    async callTool({ messages, conversation }) {
+      const lastMessage = messages[messages.length - 1];
       // Only call tool if the message is an assistant message with a function call.
       assert(
-        message.role === "assistant" && message.functionCall !== undefined,
+        lastMessage.role === "assistant" &&
+          lastMessage.functionCall !== undefined,
         `Message must be a tool call`
       );
       assert(
-        Object.keys(toolDict).includes(message.functionCall.name),
+        Object.keys(toolDict).includes(lastMessage.functionCall.name),
         `Tool not found`
       );
 
-      const { functionCall } = message;
+      const { functionCall } = lastMessage;
       const tool = toolDict[functionCall.name];
       const toolResponse = await tool.call({
         functionArgs: JSON.parse(functionCall.arguments),

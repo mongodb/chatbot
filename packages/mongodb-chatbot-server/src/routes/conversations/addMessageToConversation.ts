@@ -4,7 +4,7 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { FunctionCall, ObjectId, References } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core";
 import {
   ConversationsService,
   Conversation,
@@ -12,7 +12,7 @@ import {
   UserMessage,
   AssistantMessage,
 } from "../../services/ConversationsService";
-import { DataStreamer, escapeNewlines } from "../../services/dataStreamer";
+import { DataStreamer } from "../../services/dataStreamer";
 import { ChatLlm, OpenAiChatMessage } from "../../services/ChatLlm";
 import {
   ApiMessage,
@@ -30,7 +30,10 @@ import {
 import { GenerateUserPromptFunc } from "../../processors/GenerateUserPromptFunc";
 import { FilterPreviousMessages } from "../../processors/FilterPreviousMessages";
 import { filterOnlySystemPrompt } from "../../processors/filterOnlySystemPrompt";
-import { ChatCompletionRequestMessageFunctionCall } from "openai";
+import {
+  convertMessageFromLlmToDb,
+  generateResponse,
+} from "../generateResponse";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for max messages in a conversation
@@ -199,7 +202,7 @@ export function makeAddMessageToConversationRoute({
         // rather than take the conversation, take previous messages, and newMessages.
         // manipulate the newMessages object in generated response.
         // return newMessages
-        const answerContent = await generateResponse({
+        const { messages: generatedMessages } = await generateResponse({
           shouldStream,
           llm,
           llmConversation,
@@ -209,32 +212,22 @@ export function makeAddMessageToConversationRoute({
           reqId,
           llmNotWorkingMessage:
             conversations.conversationConstants.LLM_NOT_WORKING,
+          noRelevantContentMessage:
+            conversations.conversationConstants.NO_RELEVANT_CONTENT,
         });
-
-        // EAI-121_PART_2_TODO: with refactor to make generateResponse return newMessages,
-        // i don't think this is needed anymore.
-        if (!answerContent) {
-          throw makeRequestError({
-            httpStatus: 500,
-            message: "No answer content",
-          });
-        }
-        const assistantMessage = {
-          role: "assistant",
-          content: answerContent,
-          references: references ?? [],
-        } satisfies AssistantMessage;
-        newMessages.push(assistantMessage);
 
         // --- SAVE QUESTION & RESPONSE ---
         const dbNewMessages = await addMessagesToDatabase({
           conversations,
           conversation,
-          messages: newMessages,
+          messages: [
+            ...newMessages,
+            ...generatedMessages.map((m) => convertMessageFromLlmToDb(m)),
+          ],
         });
         const dbAssistantMessage = dbNewMessages[dbNewMessages.length - 1];
 
-        assert(assistantMessage !== undefined, "No assistant message found");
+        assert(dbAssistantMessage !== undefined, "No assistant message found");
         const apiRes = convertMessageFromDbToApi(dbAssistantMessage);
 
         if (!shouldStream) {
@@ -334,164 +327,6 @@ async function sendStaticNonResponse({
   } else {
     return res.status(200).json(apiRes);
   }
-}
-
-interface GenerateResponseParams {
-  shouldStream: boolean;
-  llm: ChatLlm;
-  llmConversation: OpenAiChatMessage[];
-  dataStreamer: DataStreamer;
-  res: ExpressResponse<ApiMessage>;
-  references?: References;
-  reqId: string;
-  llmNotWorkingMessage: string;
-}
-async function generateResponse({
-  shouldStream,
-  llm,
-  llmConversation,
-  dataStreamer,
-  res,
-  references,
-  reqId,
-  llmNotWorkingMessage,
-}: GenerateResponseParams): Promise<OpenAiChatMessage[]> {
-  // Make copy so not mutating original object in the helper methods
-  const llmConversationCopy = [...llmConversation];
-  if (shouldStream) {
-    return await streamGenerateResponse({
-      dataStreamer,
-      res,
-      references,
-      reqId,
-      llm,
-      llmConversation: llmConversationCopy,
-    });
-  } else {
-    return await awaitGenerateResponse({
-      res,
-      references,
-      reqId,
-      llm,
-      llmConversation: llmConversationCopy,
-      llmNotWorkingMessage,
-    });
-  }
-}
-
-async function awaitGenerateResponse({
-  reqId,
-  llmConversation,
-  llm,
-  llmNotWorkingMessage,
-}: Omit<GenerateResponseParams, "shouldStream" | "dataStreamer">) {
-  // TODO: need to make into a loopy thing like the streamer for tool calling.
-  try {
-    logRequest({
-      reqId,
-      message: `LLM query: ${JSON.stringify(llmConversation)}`,
-    });
-    const answer = await llm.answerQuestionAwaited({
-      messages: llmConversation,
-    });
-    llmConversation.push(answer);
-    logRequest({
-      reqId,
-      message: `LLM response: ${JSON.stringify(answer)}`,
-    });
-  } catch (err) {
-    const errorMessage =
-      err instanceof Error ? err.message : JSON.stringify(err);
-    logRequest({
-      reqId,
-      message: `LLM error: ${errorMessage}`,
-      type: "error",
-    });
-    logRequest({
-      reqId,
-      message: "Only sending vector search results to user",
-    });
-    const llmNotWorkingResponse = {
-      role: "assistant",
-      content: llmNotWorkingMessage,
-    } satisfies OpenAiChatMessage;
-    llmConversation.push(llmNotWorkingResponse);
-  }
-  return llmConversation;
-}
-
-async function streamGenerateResponse({
-  dataStreamer,
-  res,
-  llm,
-  llmConversation,
-  reqId,
-  references,
-}: Omit<GenerateResponseParams, "shouldStream" | "llmNotWorkingMessage">) {
-  dataStreamer.connect(res);
-  let keepStreaming = true;
-  // TODO: have some logic to short circuit looping...a function or maybe just x num tool calls?
-  while (keepStreaming) {
-    const answerStream = await llm.answerQuestionStream({
-      messages: llmConversation,
-    });
-    // TODO: consolidate these two into 1 type for the assistant message that will get made
-    let answerContent = "";
-    const functionCallContent: ChatCompletionRequestMessageFunctionCall = {
-      name: "",
-      arguments: "",
-    };
-    for await (const event of answerStream) {
-      if (event.choices.length === 0) {
-        continue;
-      }
-      // The event could contain many choices, but we only want the first one
-      const choice = event.choices[0];
-
-      // Assistant response to user (stop loop)
-      if (choice.delta?.content) {
-        keepStreaming = false;
-        const content = escapeNewlines(choice.delta.content ?? "");
-        dataStreamer.streamData({
-          type: "delta",
-          data: content,
-        });
-        answerContent += content;
-      }
-      // Tool call (keep looping)
-      else if (choice.delta?.functionCall) {
-        if (choice.delta?.functionCall.name) {
-          functionCallContent.name += escapeNewlines(
-            choice.delta?.functionCall.name ?? ""
-          );
-        }
-        if (choice.delta?.functionCall.name) {
-          functionCallContent.name += escapeNewlines(
-            choice.delta?.functionCall.arguments ?? ""
-          );
-        }
-        // TODO: do more stuff here
-        // also need some logic to add the full function message to the conversation
-      } else if (choice.message) {
-        logRequest({
-          reqId,
-          message: `Unexpected message in stream: no delta. Message: ${JSON.stringify(
-            choice.message
-          )}`,
-          type: "warn",
-        });
-      }
-    }
-    logRequest({
-      reqId,
-      message: `LLM response: ${JSON.stringify(answerContent)}`,
-    });
-  }
-  dataStreamer.streamData({
-    type: "references",
-    data: references ?? [],
-  });
-  return llmConversation;
 }
 
 function convertConversationMessageToLlmMessage(

@@ -32,6 +32,39 @@ export default {
 While you have full flexibility to implement your own data sources,
 the RAG framework provides helpers to make it easier to ingest data from common sources.
 
+## Ingest with a Langchain `DocumentLoader`
+
+To ingest any data that you can access with a Langchain.js [`DocumentLoader`](https://js.langchain.com/docs/integrations/document_loaders),
+use the [`makeLangchainDocumentLoaderDataSource`](../reference/ingest/modules/sources.md#makelangchaindocumentloaderdatasource) function.
+
+Here's an example implementation:
+
+```ts
+import { makeLangChainDocumentLoaderDataSource } from "./LangchainDocumentLoaderDataSource";
+import { TextLoader } from "langchain/document_loaders/fs/text";
+
+// Langchain document loader
+const documentLoader = new TextLoader(docPath);
+
+const documentLoaderDataSource = makeLangChainDocumentLoaderDataSource({
+  documentLoader,
+  name: "some-source",
+  metadata: {
+    foo: "bar",
+  },
+  // This function transforms the Langchain document to a MongoDB Chatbot Framework `Page`
+  transformLangchainDocumentToPage: async (doc) => ({
+    format: "md",
+    url: someFunctionToGetUrlFromDoc(doc),
+    body: doc.pageContent,
+    metadata: {
+      fizz: "buzz",
+    },
+    title: someFunctionToGetTitleFromDoc(doc),
+  }),
+});
+```
+
 ### Ingest from a Git Repository
 
 To ingest data stored in a Git repository, use the [`makeGitDataSource()`](../reference/ingest/modules/sources.md#makegitdatasource) function.

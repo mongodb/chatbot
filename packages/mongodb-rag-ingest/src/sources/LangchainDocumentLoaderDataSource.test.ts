@@ -1,5 +1,6 @@
 // import { TextLoader } from "langchain/document_loaders/fs/text";
 import { makeLangChainDocumentLoaderDataSource } from "./LangchainDocumentLoaderDataSource";
+import { TextLoader } from "langchain/document_loaders/fs/text";
 import Path from "path";
 import fs from "fs";
 import { Page } from "mongodb-rag-core";
@@ -9,7 +10,6 @@ const docPath = Path.resolve(SRC_ROOT, "testData/sampleMdxFile.mdx");
 
 describe("LangchainDocumentLoaderDataSource", () => {
   it("should load pages from a Langchain DocumentLoader", async () => {
-    const { TextLoader } = await import("langchain/document_loaders/fs/text");
     const documentLoader = new TextLoader(docPath);
     const documentLoaderDataSource = makeLangChainDocumentLoaderDataSource({
       documentLoader,

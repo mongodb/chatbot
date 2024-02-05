@@ -1,11 +1,6 @@
 import { Express } from "express";
 import { makeTestApp } from "../test/testHelpers";
-import {
-  AppConfig,
-  ConversationsService,
-  Db,
-  MongoClient,
-} from "mongodb-chatbot-server";
+import { ConversationsService, Db, MongoClient } from "mongodb-chatbot-server";
 import { generateTranscript } from "./generateChatTranscript";
 import { getTestCasesFromYaml } from "./getTestCasesFromYaml";
 import "../../global.d.ts";
@@ -112,7 +107,7 @@ describe("Server Qualitative Tests", () => {
   );
   test.each(driversTestCases.map((testCase) => testCase))(
     "$name",
-    async (testCase: any) => {
+    async (testCase) => {
       const transcript = await generateTranscript({
         messages: testCase.messages,
         conversations,

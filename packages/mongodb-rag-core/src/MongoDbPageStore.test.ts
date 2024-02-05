@@ -1,7 +1,6 @@
 import { strict as assert } from "assert";
-import { DatabaseConnection } from "./DatabaseConnection";
 import { MongoDbPageStore, makeMongoDbPageStore } from "./MongoDbPageStore";
-import { PageStore, PersistedPage } from "./Page";
+import { PersistedPage } from "./Page";
 import { assertEnvVars } from "./assertEnvVars";
 import { CORE_ENV_VARS } from "./CoreEnvVars";
 import "dotenv/config";
@@ -198,7 +197,7 @@ describe("MongoDbPageStore", () => {
     await store.updatePages(moviePages);
 
     const sqlQueryPromise = store.loadPages({
-      // @ts-expect-error
+      // @ts-expect-error: Testing that the query type matches expectation
       query: "SELECT * FROM pages WHERE url = 'matrix1'",
     });
 

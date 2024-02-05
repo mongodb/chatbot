@@ -12,6 +12,7 @@ export type ChatbotProps = {
   darkMode?: boolean;
   isExperimental?: boolean;
   maxInputCharacters?: number;
+  maxCommentCharacters?: number;
   name?: string;
   serverBaseUrl?: string;
   shouldStream?: boolean;
@@ -33,11 +34,16 @@ export function Chatbot({
   const maxInputCharacters =
     props.maxInputCharacters ?? DEFAULT_MAX_INPUT_CHARACTERS;
 
+  const DEFAULT_MAX_COMMENT_CHARACTERS = 500;
+  const maxCommentCharacters =
+    props.maxCommentCharacters ?? DEFAULT_MAX_COMMENT_CHARACTERS;
+
   const chatbotData = useChatbot({
     chatbotName: name,
     serverBaseUrl,
     shouldStream,
-    maxInputCharacters: maxInputCharacters,
+    maxInputCharacters,
+    maxCommentCharacters,
   });
 
   const tck = props.tck ?? "mongodb_ai_chatbot";

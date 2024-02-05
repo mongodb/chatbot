@@ -1041,41 +1041,41 @@
                                       "value": " to\nmap data from the Okta JWT. This is optional, however, you might\nfind the field mapping useful for getting user information from\nOkta into your App."
                                     }
                                   ]
+                                },
+                                {
+                                  "type": "directive",
+                                  "position": { "start": { "line": 129 } },
+                                  "children": [
+                                    {
+                                      "type": "code",
+                                      "position": { "start": { "line": 129 } },
+                                      "lang": "json",
+                                      "caption": "/auth/providers.json",
+                                      "copyable": true,
+                                      "emphasize_lines": [[7, 7]],
+                                      "value": "{\n  \"custom-token\": {\n    \"name\": \"custom-token\",\n    \"type\": \"custom-token\",\n    \"disabled\": false,\n    \"config\": {\n      \"audience\": [],\n      \"jwkURI\": \"https://<Your Okta Domain>/oauth2/<Your Authorization Server ID>/v1/keys\",\n      \"useJWKURI\": true\n    },\n    \"secret_config\": {\n      \"signingKeys\": []\n    },\n    \"metadata_fields\": []\n  }\n}\n",
+                                      "linenos": false
+                                    }
+                                  ],
+                                  "domain": "",
+                                  "name": "literalinclude",
+                                  "argument": [
+                                    {
+                                      "type": "text",
+                                      "position": { "start": { "line": 129 } },
+                                      "value": "/authentication/custom-jwt-okta-config-template.json"
+                                    }
+                                  ],
+                                  "options": {
+                                    "language": "json",
+                                    "caption": "/auth/providers.json",
+                                    "emphasize-lines": "7"
+                                  }
                                 }
                               ]
                             }
                           ],
                           "enumtype": "unordered"
-                        },
-                        {
-                          "type": "directive",
-                          "position": { "start": { "line": 129 } },
-                          "children": [
-                            {
-                              "type": "code",
-                              "position": { "start": { "line": 129 } },
-                              "lang": "json",
-                              "caption": "/auth/providers.json",
-                              "copyable": true,
-                              "emphasize_lines": [[7, 7]],
-                              "value": "{\n  \"custom-token\": {\n    \"name\": \"custom-token\",\n    \"type\": \"custom-token\",\n    \"disabled\": false,\n    \"config\": {\n      \"audience\": [],\n      \"jwkURI\": \"https://<Your Okta Domain>/oauth2/<Your Authorization Server ID>/v1/keys\",\n      \"useJWKURI\": true\n    },\n    \"secret_config\": {\n      \"signingKeys\": []\n    },\n    \"metadata_fields\": []\n  }\n}\n",
-                              "linenos": false
-                            }
-                          ],
-                          "domain": "",
-                          "name": "literalinclude",
-                          "argument": [
-                            {
-                              "type": "text",
-                              "position": { "start": { "line": 129 } },
-                              "value": "/authentication/custom-jwt-okta-config-template.json"
-                            }
-                          ],
-                          "options": {
-                            "language": "json",
-                            "caption": "/auth/providers.json",
-                            "emphasize-lines": "7"
-                          }
                         },
                         {
                           "type": "paragraph",
@@ -1330,39 +1330,39 @@
                                       "value": " to\nmap data from the Okta JWT. This is optional, however, you might\nfind the field mapping useful for getting user information from\nOkta into your App."
                                     }
                                   ]
+                                },
+                                {
+                                  "type": "directive",
+                                  "position": { "start": { "line": 164 } },
+                                  "children": [
+                                    {
+                                      "type": "code",
+                                      "position": { "start": { "line": 164 } },
+                                      "lang": "bash",
+                                      "copyable": true,
+                                      "emphasize_lines": [[10, 10]],
+                                      "value": "curl \"https://realm.mongodb.com/api/admin/v3.0/groups/$PROJECT_ID/apps/$APP_ID/auth_providers\" \\\n  -X \"POST\" \\\n  -H \"Authorization: Bearer $ACCESS_TOKEN\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"name\": \"custom-token\",\n    \"type\": \"custom-token\",\n    \"disabled\": false,\n    \"config\": {\n      \"audience\": [],\n      \"jwkURI\": \"https://<Your Okta Domain>/oauth2/<Your Authorization Server ID>/v1/keys\",\n      \"useJWKURI\": true\n    },\n    \"secret_config\": {\n      \"signingKeys\": []\n    },\n    \"metadata_fields\": []\n  }'\n",
+                                      "linenos": false
+                                    }
+                                  ],
+                                  "domain": "",
+                                  "name": "literalinclude",
+                                  "argument": [
+                                    {
+                                      "type": "text",
+                                      "position": { "start": { "line": 164 } },
+                                      "value": "/authentication/custom-jwt-okta-config-admin-api-template.sh"
+                                    }
+                                  ],
+                                  "options": {
+                                    "language": "bash",
+                                    "emphasize-lines": "10"
+                                  }
                                 }
                               ]
                             }
                           ],
                           "enumtype": "unordered"
-                        },
-                        {
-                          "type": "directive",
-                          "position": { "start": { "line": 164 } },
-                          "children": [
-                            {
-                              "type": "code",
-                              "position": { "start": { "line": 164 } },
-                              "lang": "bash",
-                              "copyable": true,
-                              "emphasize_lines": [[10, 10]],
-                              "value": "curl \"https://realm.mongodb.com/api/admin/v3.0/groups/$PROJECT_ID/apps/$APP_ID/auth_providers\" \\\n  -X \"POST\" \\\n  -H \"Authorization: Bearer $ACCESS_TOKEN\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"name\": \"custom-token\",\n    \"type\": \"custom-token\",\n    \"disabled\": false,\n    \"config\": {\n      \"audience\": [],\n      \"jwkURI\": \"https://<Your Okta Domain>/oauth2/<Your Authorization Server ID>/v1/keys\",\n      \"useJWKURI\": true\n    },\n    \"secret_config\": {\n      \"signingKeys\": []\n    },\n    \"metadata_fields\": []\n  }'\n",
-                              "linenos": false
-                            }
-                          ],
-                          "domain": "",
-                          "name": "literalinclude",
-                          "argument": [
-                            {
-                              "type": "text",
-                              "position": { "start": { "line": 164 } },
-                              "value": "/authentication/custom-jwt-okta-config-admin-api-template.sh"
-                            }
-                          ],
-                          "options": {
-                            "language": "bash",
-                            "emphasize-lines": "10"
-                          }
                         }
                       ],
                       "domain": "",

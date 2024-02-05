@@ -15,7 +15,6 @@ export function extractFrontMatter<T extends Record<string, unknown>>(
   metadata?: T;
   body: string;
 } {
-  let metadata: T | undefined;
   let body = text;
   const options = {
     delimiters: delimiter,
@@ -29,7 +28,7 @@ export function extractFrontMatter<T extends Record<string, unknown>>(
     ? matter.default(text, options)
     : undefined;
   body = frontmatterResult?.content ?? text;
-  metadata = frontmatterResult?.data as T | undefined;
+  const metadata = frontmatterResult?.data as T | undefined;
 
   return {
     metadata,

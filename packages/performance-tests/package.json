@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "clean": "rm -rf build",
-    "build": "npm run clean && tsc",
+    "build": "npm run clean && tsc -b tsconfig.build.json",
     "test:serverLoad:dev": "npm run build && BASE_URL=http://localhost:3000 k6 run build/serverLoad.js",
     "test:serverLoad:staging": "echo 'see README'"
   },

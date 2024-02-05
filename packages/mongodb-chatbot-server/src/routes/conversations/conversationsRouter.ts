@@ -4,11 +4,11 @@ import slowDown, { Options as SlowDownOptions } from "express-slow-down";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
 import { ChatLlm } from "../../services/ChatLlm";
 import {
-  Conversation,
   ConversationCustomData,
   ConversationsService,
 } from "../../services/ConversationsService";
 import { DataStreamer, makeDataStreamer } from "../../services/dataStreamer";
+import { CommentMessageRequest, makeCommentMessageRoute } from "./commentMessage";
 import { RateMessageRequest, makeRateMessageRoute } from "./rateMessage";
 import {
   CreateConversationRequest,
@@ -25,6 +25,10 @@ import {
   FilterPreviousMessages,
   GenerateUserPromptFunc,
 } from "../../processors";
+import {
+  GetConversationRequest,
+  makeGetConversationRoute,
+} from "./getConversation";
 
 /**
   Configuration for rate limiting on the /conversations/* routes.
@@ -62,7 +66,7 @@ export interface ConversationsRateLimitConfig {
  */
 export type AddCustomDataFunc = (
   request: Request,
-  response: Response<any, ConversationsRouterLocals>
+  response: ConversationsRouterResponse
 ) => Promise<ConversationCustomData>;
 
 /**
@@ -74,6 +78,16 @@ export interface ConversationsRouterLocals {
   conversations: ConversationsService;
   customData: Record<string, unknown>;
 }
+
+/**
+  Express.js Response from the app's {@link ConversationsService}.
+ */
+export type ConversationsRouterResponse = Response<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  any,
+  ConversationsRouterLocals
+>;
+
 /**
   Middleware to put in front of all the routes in the conversationsRouter.
   This middleware is useful for things like authentication, data validation, etc.
@@ -85,8 +99,11 @@ export interface ConversationsRouterLocals {
  */
 export type ConversationsMiddleware = RequestHandler<
   ParamsDictionary,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
   ConversationsRouterLocals
 >;
@@ -163,6 +180,12 @@ export interface ConversationsRouterParams {
     {@link Message.customData} field inside of the {@link Conversation.messages} array.
    */
   addMessageToConversationCustomData?: AddCustomDataFunc;
+
+  /**
+    Maximum number of characters allowed in a user's comment on an assistant {@link Message}.
+    If not specified, user comments may be of any length.
+   */
+  maxUserCommentLength?: number;
 }
 
 export const rateLimitResponse = {
@@ -200,6 +223,7 @@ export function makeConversationsRouter({
   middleware = [requireValidIpAddress(), requireRequestOrigin()],
   createConversationCustomData = addOriginAndIpToCustomData,
   addMessageToConversationCustomData = addOriginToCustomData,
+  maxUserCommentLength,
 }: ConversationsRouterParams) {
   const conversationsRouter = Router();
   // Set the customData and conversations on the response locals
@@ -293,11 +317,28 @@ export function makeConversationsRouter({
     addMessageToConversationRoute
   );
 
+  // Get conversations by conversation ID.
+  conversationsRouter.get(
+    "/:conversationId",
+    validateRequestSchema(GetConversationRequest),
+    makeGetConversationRoute({ conversations })
+  );
+
   // Rate a message.
   conversationsRouter.post(
     "/:conversationId/messages/:messageId/rating",
     validateRequestSchema(RateMessageRequest),
     makeRateMessageRoute({ conversations })
+  );
+
+  // Comment on a message.
+  conversationsRouter.post(
+    "/:conversationId/messages/:messageId/comment",
+    validateRequestSchema(CommentMessageRequest),
+    makeCommentMessageRoute({
+      conversations,
+      maxCommentLength: maxUserCommentLength,
+    })
   );
 
   return conversationsRouter;

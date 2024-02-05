@@ -327,4 +327,34 @@ export class ConversationService {
       `Server encountered an unexpected status: ${res.status} (message: ${res.statusText})`
     );
   }
+
+  async commentMessage({
+    conversationId,
+    messageId,
+    comment,
+  }: {
+    conversationId: string;
+    messageId: string;
+    comment: string;
+  }): Promise<void> {
+    const path = `/conversations/${conversationId}/messages/${messageId}/comment`;
+    const res = await fetch(this.getUrl(path), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ comment }),
+    });
+
+    if (res.status === 204) {
+      return;
+    }
+    if (res.status >= 400) {
+      const data = await res.json();
+      throw new Error(data.error);
+    }
+    throw new Error(
+      `Server encountered an unexpected status: ${res.status} (message: ${res.statusText})`
+    );
+  }
 }

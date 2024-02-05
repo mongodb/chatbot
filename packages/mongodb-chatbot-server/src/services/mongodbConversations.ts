@@ -1,4 +1,4 @@
-import { OpenAiChatMessage, SystemPrompt } from "./ChatLlm";
+import { SystemPrompt } from "./ChatLlm";
 import { ObjectId, Db } from "mongodb-rag-core";
 import {
   ConversationConstants,
@@ -9,7 +9,6 @@ import {
   AddConversationMessageParams,
   FindByIdParams,
   RateMessageParams,
-  SomeMessage,
   Message,
   UserMessage,
   AddManyConversationMessagesParams,
@@ -17,6 +16,7 @@ import {
   AssistantMessage,
   SystemMessage,
   FunctionMessage,
+  CommentMessageParams,
 } from "./ConversationsService";
 
 /**
@@ -124,6 +124,37 @@ export function makeMongoDbConversationsService(
       );
       if (!updateResult.acknowledged || updateResult.matchedCount === 0) {
         throw new Error("Failed to rate message");
+      }
+      return true;
+    },
+
+    async commentMessage({
+      conversationId,
+      messageId,
+      comment,
+    }: CommentMessageParams) {
+      const updateResult = await conversationsCollection.updateOne(
+        {
+          _id: conversationId,
+          messages: {
+            $elemMatch: {
+              id: messageId,
+              role: "assistant",
+            },
+          },
+        },
+        {
+          $set: {
+            "messages.$[message].userComment": comment,
+          },
+        },
+        {
+          arrayFilters: [{ "message.id": messageId }],
+        }
+      );
+
+      if (!updateResult.acknowledged || updateResult.matchedCount === 0) {
+        throw new Error("Failed to save comment on message");
       }
       return true;
     },

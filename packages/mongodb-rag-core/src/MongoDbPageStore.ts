@@ -8,8 +8,8 @@ import { LoadPagesArgs, PageStore, PersistedPage } from "./Page";
 import { Filter } from "mongodb";
 
 export type MongoDbPageStore = DatabaseConnection &
-  Omit<PageStore, "loadPages"> // We omit loadPages so that the generic override below works
-  & {
+  // We omit loadPages so that the generic override below works
+  Omit<PageStore, "loadPages"> & {
     queryType: "mongodb";
     loadPages(
       args?: LoadPagesArgs<Filter<PersistedPage>>

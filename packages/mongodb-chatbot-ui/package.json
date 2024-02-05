@@ -22,21 +22,21 @@
   },
   "type": "module",
   "files": [
-    "dist",
+    "build",
     "README.md"
   ],
-  "main": "./dist/mongodb-chatbot-ui.umd.js",
-  "module": "./dist/mongodb-chatbot-ui.es.js",
-  "types": "./dist/types/index.d.ts",
+  "main": "./build/mongodb-chatbot-ui.umd.js",
+  "module": "./build/mongodb-chatbot-ui.es.js",
+  "types": "./build/types/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/mongodb-chatbot-ui.es.js",
-      "require": "./dist/mongodb-chatbot-ui.umd.js",
-      "types": "./dist/types/index.d.ts"
+      "import": "./build/mongodb-chatbot-ui.es.js",
+      "require": "./build/mongodb-chatbot-ui.umd.js",
+      "types": "./build/types/index.d.ts"
     }
   },
   "scripts": {
-    "build": "npm run build:component && if [[ \"$ENVIRONMENT\" == \"qa\" ]]; then npm run build:static-site:qa && echo \"qa\"; else npm run build:static-site:staging; fi",
+    "build": "npm run build:component && if [ \"$ENVIRONMENT\" = \"qa\" ]; then npm run build:static-site:qa && echo \"qa\"; else npm run build:static-site:staging; fi",
     "build:dts": "tsc --project tsconfig.declarations.json",
     "build:component": "tsc && vite build --config vite.config.component.js && npm run build:dts",
     "build:static-site:dev": "tsc && VITE_GIT_COMMIT=$(npm run --silent env:get-git-commit) vite build --config vite.config.static-site.js --mode development",
@@ -98,6 +98,7 @@
     "@lg-chat/leafygreen-chat-provider": "^1.0.2",
     "@lg-chat/message": "^2.0.8",
     "@lg-chat/message-feed": "^2.0.7",
+    "@lg-chat/message-feedback": "^1.0.0",
     "@lg-chat/message-prompts": "^1.0.2",
     "@lg-chat/message-rating": "^1.1.3",
     "@microsoft/fetch-event-source": "^2.0.1",

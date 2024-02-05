@@ -286,7 +286,7 @@ trigger:
     - production
   ref:
     include:
-      - refs/tags/chat-server-v*
+      - refs/tags/chatbot-server-mongodb-public-v*
 
 steps:
   # Deploys Docker image associated with production build that triggered promotion

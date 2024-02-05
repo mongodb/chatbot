@@ -7,6 +7,7 @@ import { renderSnootyTable } from "./renderSnootyTable";
  */
 export const snootyAstToMd = (node: SnootyNode): string => {
   return renderAst(node, { parentHeadingLevel: 0 })
+    .replaceAll(/ +\n/g, "\n")
     .replaceAll(/\n{3,}/g, "\n\n") // remove extra newlines with just 2
     .trimStart();
 };
@@ -72,16 +73,23 @@ const renderAst = (node: SnootyNode, state: RenderState): string => {
         .map((listItem, index) =>
           renderAst(listItem, {
             parentHeadingLevel,
-            listBullet: isOrderedList ? `${index + 1}.` : "-",
+            listBullet: isOrderedList ? `${index + 1}. ` : "- ",
           })
         )
         .join("\n");
     }
 
     case "listItem":
-      return `${listBullet} ${node.children
+      return `${node.children
         .map((child) => renderAst(child, { parentHeadingLevel }))
-        .join("")}`;
+        .join("")
+        .split("\n")
+        .map((line, i) =>
+          i === 0
+            ? `${listBullet}${line}`
+            : `${" ".repeat(listBullet?.length ?? 0)}${line}`
+        )
+        .join("\n")}\n`;
 
     // recursive inline cases
     case "literal":

@@ -164,7 +164,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
  */
 function stringifyFunctions(obj: Record<string, unknown>) {
   if (typeof obj === "function") {
-    return (obj as (...args: any[]) => any)
+    return (obj as (...args: unknown[]) => unknown)
       .toString()
       .split("\n")
       .map((line) => line.trim())

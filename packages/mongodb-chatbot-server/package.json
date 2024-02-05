@@ -21,13 +21,13 @@
     "npm": ">=8"
   },
   "files": [
-    "dist",
+    "build",
     "README.md",
     "static"
   ],
-  "main": "./dist/index.js",
+  "main": "./build/index.js",
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "rm -rf build",
     "build": "npm run clean && tsc -b tsconfig.build.json",
     "format": "prettier ./src --write",
     "format:check": "prettier ./src --check",

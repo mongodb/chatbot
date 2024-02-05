@@ -6,11 +6,9 @@ import { logger } from "mongodb-rag-core";
 import { stripIndent } from "common-tags";
 
 /**
- * Checks for req-id Request Header. Returns an empty string if the header is not
- * a truthy string.
- *
- * @param req
- * @returns
+  Checks for req-id Request Header. Returns an empty string if the header is not
+  a truthy string.
+  @param req
  */
 export const getRequestId = (req: ExpressRequest) => {
   const reqId = req.header("req-id");

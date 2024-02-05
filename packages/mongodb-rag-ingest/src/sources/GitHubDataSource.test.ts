@@ -50,7 +50,7 @@ describe("makeGitHubDataSource", () => {
   });
   it("should use the `filter` option to filter out files", async () => {
     const mockFilter = jest.fn();
-    const source = await makeGitHubDataSource({
+    const source = makeGitHubDataSource({
       name: "python-TEST",
       repoUrl: "https://github.com/mongodb/mongo-python-driver",
       filter: mockFilter,

@@ -1,18 +1,16 @@
 import { makeGitDataSource } from "./GitDataSource";
-jest.setTimeout(60000);
+jest.setTimeout(90000);
 describe("GitDataSource", () => {
   it("should load and process a real repo", async () => {
     const dataSource = makeGitDataSource({
       name: "sample",
-      repoUri: "https://github.com/mongodb/mongo-java-driver.git",
+      repoUri: "https://github.com/mongodb/chatbot.git",
       repoOptions: {
         "--depth": 1,
-        "--branch": "gh-pages",
+        "--branch": "main",
       },
       filter: (path: string) =>
-        path.endsWith(".html") &&
-        path.includes("4.10") &&
-        path.includes("driver-reactive"),
+        path.endsWith(".md") && path.includes("docs/docs"),
       metadata: {
         foo: "bar",
       },

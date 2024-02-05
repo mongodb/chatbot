@@ -1,6 +1,6 @@
 {
   "name": "mongodb-chatbot-ui",
-  "version": "0.1.2",
+  "version": "0.2.1",
   "description": "UI React components for the MongoDB Chatbot Framework",
   "author": "MongoDB, Inc.",
   "license": "Apache-2.0",
@@ -36,7 +36,7 @@
     }
   },
   "scripts": {
-    "build": "if [ \"$ENVIRONMENT\" = \"qa\" ]; then npm run build:static-site:qa && echo \"qa\"; else npm run build:static-site:staging; fi",
+    "build": "npm run build:component && if [ \"$ENVIRONMENT\" = \"qa\" ]; then npm run build:static-site:qa && echo \"qa\"; else npm run build:static-site:staging; fi",
     "build:dts": "tsc --project tsconfig.declarations.json",
     "build:component": "tsc && vite build --config vite.config.component.js && npm run build:dts",
     "build:static-site:dev": "tsc && VITE_GIT_COMMIT=$(npm run --silent env:get-git-commit) vite build --config vite.config.static-site.js --mode development",
@@ -54,7 +54,7 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "release:interactive": "release-it",
-    "release": "release-it --ci",
+    "release": "release-it",
     "test": "vitest run",
     "test:watch": "vitest"
   },

@@ -1,6 +1,7 @@
 import request from "supertest";
 import "dotenv/config";
-import { ObjectId } from "mongodb-rag-core";
+import { AppConfig } from "../../app";
+import { Db, ObjectId } from "mongodb-rag-core";
 import { Conversation } from "../../services/ConversationsService";
 import { ApiConversation } from "./utils";
 import { DEFAULT_API_PREFIX } from "../../app";
@@ -8,11 +9,10 @@ import { makeTestApp, makeTestAppConfig } from "../../test/testHelpers";
 
 const CONVERSATIONS_API_V1_PREFIX = DEFAULT_API_PREFIX + "/conversations";
 describe("POST /conversations", () => {
-  const { mongodb, appConfig, mongoClient } = makeTestAppConfig();
-
-  afterAll(async () => {
-    await mongodb.dropDatabase();
-    await mongoClient.close();
+  let appConfig: AppConfig;
+  let mongodb: Db;
+  beforeAll(() => {
+    ({ appConfig, mongodb } = makeTestAppConfig());
   });
 
   it("should respond 200 and create a conversation", async () => {

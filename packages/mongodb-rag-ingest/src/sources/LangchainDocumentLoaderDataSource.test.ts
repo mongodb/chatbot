@@ -1,4 +1,3 @@
-// import { TextLoader } from "langchain/document_loaders/fs/text";
 import { makeLangChainDocumentLoaderDataSource } from "./LangchainDocumentLoaderDataSource";
 import Path from "path";
 import fs from "fs";

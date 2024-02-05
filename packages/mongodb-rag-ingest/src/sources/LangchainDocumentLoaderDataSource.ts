@@ -1,4 +1,4 @@
-import { DocumentLoader } from "langchain/dist/document_loaders/base";
+import { DocumentLoader } from "langchain/document_loaders/base";
 import { Document as LangchainDocument } from "langchain/document";
 import { DataSource } from "./DataSource";
 import { Page, PageMetadata, PageStore } from "mongodb-rag-core";

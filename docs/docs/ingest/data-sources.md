@@ -32,7 +32,7 @@ export default {
 While you have full flexibility to implement your own data sources,
 the RAG framework provides helpers to make it easier to ingest data from common sources.
 
-## Ingest with a Langchain `DocumentLoader`
+### Ingest with a Langchain `DocumentLoader`
 
 To ingest any data that you can access with a Langchain.js [`DocumentLoader`](https://js.langchain.com/docs/integrations/document_loaders),
 use the [`makeLangchainDocumentLoaderDataSource`](../reference/ingest/modules/sources.md#makelangchaindocumentloaderdatasource) function.

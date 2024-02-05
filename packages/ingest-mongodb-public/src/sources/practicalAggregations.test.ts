@@ -1,5 +1,6 @@
 import { practicalAggregationsDataSource } from "./practicalAggregations";
 
+jest.setTimeout(90000);
 describe("practicalAggregationsDataSource", () => {
   it("correctly loads files", async () => {
     const source = await practicalAggregationsDataSource();

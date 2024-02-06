@@ -1,16 +1,15 @@
-import { ObjectId } from "mongodb";
+import { Db, ObjectId } from "mongodb-rag-core";
+import { ConversationsService } from "../../services";
 import { makeTestApp, makeTestAppConfig } from "../../test/testHelpers";
 import request from "supertest";
-import { DEFAULT_API_PREFIX } from "../../app";
+import { AppConfig, DEFAULT_API_PREFIX } from "../../app";
 const CONVERSATIONS_API_V1_PREFIX = DEFAULT_API_PREFIX + "/conversations";
 
 describe("GET /conversations/:conversationId", () => {
-  const { mongodb, appConfig, mongoClient, conversations } =
-    makeTestAppConfig();
-
-  afterAll(async () => {
-    await mongodb.dropDatabase();
-    await mongoClient.close();
+  let appConfig: AppConfig;
+  let conversations: ConversationsService;
+  beforeAll(() => {
+    ({ appConfig, conversations } = makeTestAppConfig());
   });
 
   it("should return 400 when the conversation ID is invalid", async () => {

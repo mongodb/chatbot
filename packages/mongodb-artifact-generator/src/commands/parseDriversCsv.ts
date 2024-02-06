@@ -20,6 +20,8 @@ type ParseDriversCsvCommandArgs = {
   runId?: string;
   csv: string;
   repoPath: string;
+  targetDescription: string;
+  targetCodeFileExtension: string;
 };
 
 export default createCommand<ParseDriversCsvCommandArgs>({
@@ -40,6 +42,16 @@ export default createCommand<ParseDriversCsvCommandArgs>({
         type: "string",
         demandOption: true,
         description: "Path to the local drivers repo with source assets",
+      })
+      .option("targetDescription", {
+        type: "string",
+        demandOption: true,
+        description: "A text description of the desired output.",
+      })
+      .option("targetCodeFileExtension", {
+        type: "string",
+        demandOption: true,
+        description: "The file extension to use for the output code files",
       });
   },
   async handler(args) {
@@ -55,7 +67,16 @@ export default createCommand<ParseDriversCsvCommandArgs>({
 });
 
 export const action = createConfiguredAction<ParseDriversCsvCommandArgs>(
-  async (_config, { csv, repoPath, runId=new ObjectId().toHexString(), }) => {
+  async (
+    _config,
+    {
+      csv,
+      repoPath,
+      runId = new ObjectId().toHexString(),
+      targetDescription,
+      targetCodeFileExtension,
+    }
+  ) => {
     try {
       logger.logInfo(`Setting up...`);
       const csvData = await fs.readFile(csv, "utf8");
@@ -112,6 +133,12 @@ export const action = createConfiguredAction<ParseDriversCsvCommandArgs>(
         (asset) => asset.assetType
       );
 
+      const sharedPromptAssertions = [
+        "Code should be idiomatic to the target environment and use equivalent methods and functions to those in the source whenever possible.",
+        "The output should not contain any non-code text or markdown artifacts.",
+        "The output should NEVER be wrapped in triple backtick code fences (e.g. ``` or ```python).",
+      ].join(" ");
+
       for await (const [i, codeExampleAsset] of Object.entries(
         codeExampleAssets
       )) {
@@ -120,11 +147,15 @@ export const action = createConfiguredAction<ParseDriversCsvCommandArgs>(
           runId,
           config: "./build/standardConfig.js",
           source: codeExampleAsset.nodeAssetFullPath,
-          targetDescription:
-            // "The same functionality but using the MongoDB Python Driver called PyMongo. Write idiomatic code that uses equivalent methods and functions to those in the source.",
-            "The same functionality but using the MongoDB C Driver. Write idiomatic code that uses equivalent methods and functions to those in the source.",
-            // "The same functionality but using the MongoDB PHP Integration for Laravel, mongodb/laravel-mongodb. Write idiomatic code that uses equivalent methods and functions to those in the source.",
-          targetFileExtension: "c",
+          targetDescription: targetDescription + sharedPromptAssertions,
+          // "Uses the MongoDB Python Driver, PyMongo." + sharedPromptAssertions,
+          // "Uses the MongoDB C Driver." + sharedPromptAssertions,
+          // "Uses the MongoDB PHP Driver." + sharedPromptAssertions,
+          // "Uses the MongoDB PHP Integration for Laravel, laravel-mongodb." + sharedPromptAssertions,
+          targetFileExtension: targetCodeFileExtension,
+          outputPath: extractPathSubset(
+            codeExampleAsset.nodeAssetPathRelativeToSourceRepo
+          ),
         });
       }
 
@@ -134,7 +165,6 @@ export const action = createConfiguredAction<ParseDriversCsvCommandArgs>(
     }
   }
 );
-
 
 function groupBy<T, K extends keyof any>(
   array: T[],
@@ -148,4 +178,22 @@ function groupBy<T, K extends keyof any>(
     accumulator[key].push(currentItem);
     return accumulator;
   }, {} as Record<K, T[]>);
+}
+
+function extractPathSubset(filePath: string) {
+  if (!isValidFilePath(filePath)) {
+    throw new Error(`Invalid file path: ${filePath}`);
+  }
+  return filePath
+    .replace(/^source\/code-snippets\//, "")
+    .replace(/\/[^/]*$/, "/");
+}
+
+function isValidFilePath(filePath: string) {
+  try {
+    path.parse(filePath);
+    return true;
+  } catch (e) {
+    return false;
+  }
 }

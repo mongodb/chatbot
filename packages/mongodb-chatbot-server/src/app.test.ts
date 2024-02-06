@@ -6,18 +6,14 @@ import { makeTestAppConfig } from "./test/testHelpers";
 
 describe("App", () => {
   let app: Express;
-  const { appConfig, mongodb, mongoClient } = makeTestAppConfig();
   beforeAll(async () => {
+    const { appConfig } = makeTestAppConfig();
     app = await makeApp({
       ...appConfig,
       corsOptions: {
         origin: ["http://localhost:3000", "http://example.com"],
       },
     });
-  });
-  afterAll(async () => {
-    await mongodb.dropDatabase();
-    await mongoClient.close();
   });
   test("should server static files", async () => {
     const { appConfig } = makeTestAppConfig();

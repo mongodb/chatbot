@@ -92,6 +92,8 @@ export const action = createConfiguredAction<ParseDriversCsvCommandArgs>(
                 "Node Asset Name": "nodeAssetName",
                 "Asset Path": "nodeAssetPath",
                 "Asset Type": "assetType",
+                "File Rename": "fileRename",
+                "Custom Prompt": "customPrompt",
                 "Generated Asset": "generatedAsset",
                 "Reviewed / Tested by Docs": "reviewedByDocs",
                 "Reviewed / Tested by DBX": "reviewedByDbx",
@@ -109,22 +111,36 @@ export const action = createConfiguredAction<ParseDriversCsvCommandArgs>(
       const nodeRepoBaseUrl =
         "https://github.com/mongodb/docs-node/blob/master/";
 
-      const relevantAssetFieldsOnly = parsedAndNormalized.map(
-        ({ nodeAssetName, nodeAssetPath, assetType }) => {
+
+        type RelevantAssetFields = {
+          nodeAssetName: string;
+          nodeAssetRemotePath: string;
+          nodeAssetPathRelativeToSourceRepo: string;
+          nodeAssetFullPath: string;
+          assetType: string;
+          fileRename?: string;
+        };
+        const relevantAssetFieldsOnly = parsedAndNormalized.map(
+        ({ nodeAssetName, nodeAssetPath, assetType, fileRename }) => {
           const nodeAssetPathRelativeToSourceRepo = nodeAssetPath.replace(
             nodeRepoBaseUrl,
             ""
           );
-          return {
+
+          const nodeAssetFullPath = path.join(
+            repoPath,
+            nodeAssetPathRelativeToSourceRepo
+          );
+
+          const relevantAssetFields: RelevantAssetFields = {
             nodeAssetName,
             nodeAssetRemotePath: nodeAssetPath,
             nodeAssetPathRelativeToSourceRepo,
-            nodeAssetFullPath: path.join(
-              repoPath,
-              nodeAssetPathRelativeToSourceRepo
-            ),
+            nodeAssetFullPath,
             assetType,
+            fileRename: fileRename === "" ? undefined : fileRename,
           };
+          return relevantAssetFields;
         }
       );
 
@@ -135,8 +151,8 @@ export const action = createConfiguredAction<ParseDriversCsvCommandArgs>(
 
       const sharedPromptAssertions = [
         "Code should be idiomatic to the target environment and use equivalent methods and functions to those in the source whenever possible.",
-        "The output should not contain any non-code text or markdown artifacts.",
-        "The output should NEVER be wrapped in triple backtick code fences (e.g. ``` or ```python).",
+        "The output should not contain any non-code text or markdown syntax.",
+        "The output should NEVER be wrapped in triple backtick code fences (e.g. ```java, ```Java, ```, etc). Do not add these to any output.",
       ].join(" ");
 
       for await (const [i, codeExampleAsset] of Object.entries(
@@ -147,7 +163,7 @@ export const action = createConfiguredAction<ParseDriversCsvCommandArgs>(
           runId,
           config: "./build/standardConfig.js",
           source: codeExampleAsset.nodeAssetFullPath,
-          targetDescription: targetDescription + sharedPromptAssertions,
+          targetDescription: targetDescription + " " + sharedPromptAssertions,
           // "Uses the MongoDB Python Driver, PyMongo." + sharedPromptAssertions,
           // "Uses the MongoDB C Driver." + sharedPromptAssertions,
           // "Uses the MongoDB PHP Driver." + sharedPromptAssertions,
@@ -156,6 +172,7 @@ export const action = createConfiguredAction<ParseDriversCsvCommandArgs>(
           outputPath: extractPathSubset(
             codeExampleAsset.nodeAssetPathRelativeToSourceRepo
           ),
+          outputFilename: codeExampleAsset.fileRename,
         });
       }
 

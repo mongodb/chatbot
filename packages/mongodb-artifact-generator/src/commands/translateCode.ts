@@ -22,6 +22,7 @@ type TranslateCodeCommandArgs = {
   targetDescription: string;
   targetFileExtension?: string;
   outputPath?: string;
+  outputFilename?: string;
 };
 
 export default createCommand<TranslateCodeCommandArgs>({
@@ -53,6 +54,12 @@ export default createCommand<TranslateCodeCommandArgs>({
         demandOption: false,
         description:
           "A file path to prepend to the output file name. If not specified, outputs only the file name.",
+      })
+      .option("outputFilename", {
+        type: "string",
+        demandOption: false,
+        description:
+          "The name of the output file. If not specified, uses the input file name.",
       });
   },
   async handler(args) {
@@ -78,6 +85,7 @@ export const action = createConfiguredAction<TranslateCodeCommandArgs>(
       targetDescription,
       targetFileExtension = "txt",
       outputPath,
+      outputFilename,
       runId = new ObjectId().toHexString(),
     }
   ) => {
@@ -144,8 +152,10 @@ export const action = createConfiguredAction<TranslateCodeCommandArgs>(
       });
 
       logger.logInfo(`Created output:\n\n${transformed}\n`);
+
+
       const inputFileName = path.parse(source).name;
-      const outputFileName = `${inputFileName}.translated.${targetFileExtension}`;
+      const outputFileName = `${outputFilename ?? inputFileName}.translated.${targetFileExtension}`;
       const outputFilePath = outputPath
         ? path.join(outputPath, outputFileName)
         : outputFileName;

@@ -317,33 +317,37 @@ export const MessagePrompts = ({
   messagePrompts,
   messagePromptsOnClick,
 }: MessagePromptsProps) => {
-  const [inProp, setInProp] = useState(true);
+  const [showPrompts, setShowPrompts] = useState(true);
   const [suggestedPromptIdx, setSuggestedPromptIdx] = useState(-1);
   const nodeRef = useRef(null);
   const duration = 300;
 
+  const onPromptSelected = (prompt: string, idx: number) => {
+    setSuggestedPromptIdx(idx);
+    setShowPrompts(false);
+    setTimeout(() => {
+      messagePromptsOnClick(prompt);
+    }, duration);
+  };
+
   return (
     <CSSTransition
-      in={inProp}
+      in={showPrompts}
       timeout={duration}
       nodeRef={nodeRef}
       classNames={styles.message_prompts}
     >
       <div className={styles.message_prompts} ref={nodeRef}>
         <LGMessagePrompts label="Suggested Prompts">
-          {messagePrompts.map((sp, idx) => (
+          {messagePrompts.map((suggestedPrompt, idx) => (
             <MessagePrompt
-              key={sp}
-              onClick={() => {
-                setSuggestedPromptIdx(idx);
-                setInProp(false);
-                setTimeout(() => {
-                  messagePromptsOnClick(messagePrompts[idx]);
-                }, duration);
-              }}
+              key={suggestedPrompt}
+              onClick={() =>
+                showPrompts === true && onPromptSelected(suggestedPrompt, idx)
+              }
               selected={idx === suggestedPromptIdx}
             >
-              {sp}
+              {suggestedPrompt}
             </MessagePrompt>
           ))}
         </LGMessagePrompts>

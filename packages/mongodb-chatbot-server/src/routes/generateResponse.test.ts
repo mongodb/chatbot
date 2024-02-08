@@ -1,6 +1,30 @@
+import { References } from "mongodb-rag-core";
+import {
+  AwaitGenerateResponseParams,
+  awaitGenerateResponse,
+} from "./generateResponse";
+import { Conversation } from "../services";
+
+const llm = {};
+const llmConversation = [];
+const references: References = [];
+const reqId = "foo";
+const llmNotWorkingMessage = "llm not working";
+const noRelevantContentMessage = "no relevant content";
+const conversation: Conversation = {};
+
 describe("awaitGenerateResponse", () => {
+  const baseArgs = {
+    llm,
+    llmConversation,
+    references,
+    reqId,
+    llmNotWorkingMessage,
+    noRelevantContentMessage,
+    conversation,
+  } satisfies AwaitGenerateResponseParams;
   it("should generate assistant response if no tools", async () => {
-    // TODO
+    const { messages } = await awaitGenerateResponse({ llmNotWorkingMessage });
   });
   it("should include references with final assistant message", async () => {
     // TODO

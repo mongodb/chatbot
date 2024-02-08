@@ -46,7 +46,7 @@ export function makeOpenAiChatLlm({
         messages,
         {
           ...openAiLmmConfigOptions,
-          // TODO: deal with toolCallOptions
+          functionCall: toolCallOptions,
           functions: tools?.map((tool) => tool.definition),
         }
       );
@@ -60,7 +60,7 @@ export function makeOpenAiChatLlm({
         choices: [choice],
       } = await openAiClient.getChatCompletions(deployment, messages, {
         ...openAiLmmConfigOptions,
-        // TODO: deal with toolCallOptions
+        functionCall: toolCallOptions,
         functions: tools?.map((tool) => tool.definition),
       });
       const { message } = choice;

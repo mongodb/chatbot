@@ -59,7 +59,6 @@ export async function generateResponse({
     });
   } else {
     return await awaitGenerateResponse({
-      res,
       references,
       reqId,
       llm,
@@ -71,20 +70,22 @@ export async function generateResponse({
   }
 }
 
-async function awaitGenerateResponse({
+export type AwaitGenerateResponseParams = Omit<
+  GenerateResponseParams,
+  "shouldStream" | "dataStreamer" | "res"
+>;
+
+export async function awaitGenerateResponse({
   reqId,
   llmConversation,
   llm,
-  llmNotWorkingMessage,
   conversation,
+  references,
+  llmNotWorkingMessage,
   noRelevantContentMessage,
-  references: inputReferences,
-}: Omit<
-  GenerateResponseParams,
-  "shouldStream" | "dataStreamer"
->): Promise<GenerateResponseReturnValue> {
+}: AwaitGenerateResponseParams): Promise<GenerateResponseReturnValue> {
   const newMessages: SomeMessage[] = [];
-  const references: References = inputReferences ?? [];
+  const outputReferences: References = references ?? [];
   let llmCallBehavior = undefined;
   let keepAnswering = true;
   try {
@@ -133,7 +134,7 @@ async function awaitGenerateResponse({
           });
         }
         if (toolReferences) {
-          references.push(...toolReferences);
+          outputReferences.push(...toolReferences);
         }
         llmCallBehavior = subsequentLlmCall;
       }
@@ -165,7 +166,7 @@ async function awaitGenerateResponse({
   return { messages: newMessages };
 }
 
-async function streamGenerateResponse({
+export async function streamGenerateResponse({
   dataStreamer,
   res,
   llm,

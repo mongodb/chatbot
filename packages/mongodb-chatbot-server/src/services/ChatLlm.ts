@@ -115,5 +115,5 @@ export interface ChatLlm {
   answerQuestionAwaited(
     params: LlmAnswerQuestionParams
   ): Promise<OpenAiAwaitedResponse>;
-  callTool(params: LlmCallToolParams): Promise<CallToolResponse>;
+  callTool?(params: LlmCallToolParams): Promise<CallToolResponse>;
 }

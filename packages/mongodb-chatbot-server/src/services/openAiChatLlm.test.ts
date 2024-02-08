@@ -119,7 +119,7 @@ describe("OpenAiLlm", () => {
     assert(
       response.role === "assistant" && response.functionCall !== undefined
     );
-    const toolResponse = await toolOpenAiLlm.callTool(response);
+    const toolResponse = await toolOpenAiLlm.callTool({ messages: [response] });
     expect(response.role).toBe("assistant");
     expect(response.functionCall.name).toBe("test_tool");
     expect(JSON.parse(response.functionCall.arguments)).toStrictEqual({
@@ -143,22 +143,30 @@ describe("OpenAiLlm", () => {
   test("should throw error if calls tool that does not exist", async () => {
     await expect(
       toolOpenAiLlm.callTool({
-        role: "assistant",
-        functionCall: {
-          name: "not_a_tool",
-          arguments: JSON.stringify({
-            test: "test",
-          }),
-        },
-        content: "",
+        messages: [
+          {
+            role: "assistant",
+            functionCall: {
+              name: "not_a_tool",
+              arguments: JSON.stringify({
+                test: "test",
+              }),
+            },
+            content: "",
+          },
+        ],
       })
     ).rejects.toThrow("Tool not found");
   });
   test("should throw error if calls a tool on a message that isn't a tool call", async () => {
     await expect(
       toolOpenAiLlm.callTool({
-        role: "assistant",
-        content: "",
+        messages: [
+          {
+            role: "assistant",
+            content: "",
+          },
+        ],
       })
     ).rejects.toThrow("Message must be a tool call");
   });

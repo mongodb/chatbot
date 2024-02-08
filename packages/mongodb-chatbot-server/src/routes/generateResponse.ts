@@ -12,6 +12,7 @@ import {
 import { logRequest } from "../utils";
 import { ApiMessage } from "./conversations/utils";
 import { Response as ExpressResponse } from "express";
+import { strict as assert } from "assert";
 
 interface GenerateResponseParams {
   shouldStream: boolean;
@@ -110,6 +111,10 @@ export async function awaitGenerateResponse({
       }
       // LLM responds with tool call
       else {
+        assert(
+          llm.callTool,
+          "You must implement the callTool() method on your ChatLlm to access this code."
+        );
         const toolAnswer = await llm.callTool({
           messages: [...llmConversation, ...newMessages],
           conversation,

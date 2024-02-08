@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
-import { OpenAiChatMessage, Tool } from "./ChatLlm";
+import { ChatLlm, OpenAiChatMessage, Tool } from "./ChatLlm";
 import { makeTestAppConfig, systemPrompt } from "../test/testHelpers";
 import { makeOpenAiChatLlm } from "./openAiChatLlm";
 import { assertEnvVars, CORE_ENV_VARS } from "mongodb-rag-core";
@@ -70,10 +70,13 @@ const toolOpenAiLlm = makeOpenAiChatLlm({
   tools: testTools,
 });
 
-const { appConfig: config } = makeTestAppConfig();
-
 describe("OpenAiLlm", () => {
-  const openAiLlmService = config.conversationsRouterConfig.llm;
+  let openAiLlmService: ChatLlm;
+  beforeAll(() => {
+    const { appConfig: config } = makeTestAppConfig();
+    openAiLlmService = config.conversationsRouterConfig.llm;
+  });
+
   test("should answer question in conversation - awaited", async () => {
     const response = await openAiLlmService.answerQuestionAwaited({
       messages: conversation,

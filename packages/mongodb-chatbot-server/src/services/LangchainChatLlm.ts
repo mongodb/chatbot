@@ -46,7 +46,7 @@ export function makeLangchainChatLlm({
             created: new Date(),
             choices: [
               {
-                finishReason: "N_A",
+                finishReason: null,
                 index: index,
                 delta: {
                   role: "assistant",

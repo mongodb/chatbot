@@ -68,6 +68,7 @@
     "@lg-chat/leafygreen-chat-provider",
     "@lg-chat/message",
     "@lg-chat/message-feed",
+    "@lg-chat/message-feedback",
     "@lg-chat/message-prompts",
     "@lg-chat/message-rating"
   ],

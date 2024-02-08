@@ -83,5 +83,5 @@ export interface ChatLlm {
   answerQuestionAwaited({
     messages,
   }: LlmAnswerQuestionParams): Promise<OpenAiAwaitedResponse>;
-  callTool(message: OpenAiChatMessage): Promise<CallToolResponse>;
+  callTool?: (message: OpenAiChatMessage) => Promise<CallToolResponse>;
 }

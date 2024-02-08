@@ -28,7 +28,7 @@ export function makeOpenAiChatLlm({
   openAiClient,
   openAiLmmConfigOptions,
   tools,
-}: MakeOpenAiChatLlmParams): ChatLlm {
+}: MakeOpenAiChatLlmParams): Required<ChatLlm> {
   const toolDict: { [key: string]: Tool } = {};
   tools?.forEach((tool) => {
     const name = tool.definition.name;

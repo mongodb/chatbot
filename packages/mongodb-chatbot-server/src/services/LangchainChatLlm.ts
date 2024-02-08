@@ -38,14 +38,16 @@ export function makeLangchainChatLlm({
           messages.map((m) => messageBaseToLangchainMessage(m)),
           options
         );
+        let index = 0;
         for await (const chunk of stream) {
+          index++;
           yield {
-            id: "",
+            id: index.toString(),
             created: new Date(),
             choices: [
               {
                 finishReason: "N_A",
-                index: 0,
+                index: index,
                 delta: {
                   role: "assistant",
                   content:

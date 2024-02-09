@@ -73,7 +73,7 @@ export function makeOpenAiChatLlm({
       }
       return message as ChatRequestAssistantMessage;
     },
-    async callTool({ messages, conversation }) {
+    async callTool({ messages, conversation, dataStreamer }) {
       const lastMessage = messages[messages.length - 1];
       // Only call tool if the message is an assistant message with a function call.
       assert(
@@ -91,6 +91,7 @@ export function makeOpenAiChatLlm({
       const toolResponse = await tool.call({
         functionArgs: JSON.parse(functionCall.arguments),
         conversation,
+        dataStreamer,
       });
       return toolResponse;
     },

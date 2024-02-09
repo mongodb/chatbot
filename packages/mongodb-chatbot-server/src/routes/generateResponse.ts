@@ -56,6 +56,7 @@ export async function generateResponse({
       llm,
       llmConversation,
       noRelevantContentMessage,
+      llmNotWorkingMessage,
     });
   } else {
     return await awaitGenerateResponse({
@@ -172,11 +173,14 @@ export async function streamGenerateResponse({
   res,
   llm,
   llmConversation,
+  conversation,
   reqId,
   references,
+  noRelevantContentMessage,
+  llmNotWorkingMessage,
 }: Omit<
   GenerateResponseParams,
-  "shouldStream" | "llmNotWorkingMessage"
+  "shouldStream"
 >): Promise<GenerateResponseReturnValue> {
   dataStreamer.connect(res);
   const newMessages: SomeMessage[] = [];
@@ -189,8 +193,7 @@ export async function streamGenerateResponse({
     const answerStream = await llm.answerQuestionStream({
       messages: llmConversation,
     });
-    // TODO: consolidate these two into 1 type for the assistant message that will get made
-    const assistantMessage: AssistantMessage = {
+    const initialAssistantMessage: AssistantMessage = {
       role: "assistant",
       content: "",
     };
@@ -206,17 +209,16 @@ export async function streamGenerateResponse({
       // The event could contain many choices, but we only want the first one
       const choice = event.choices[0];
 
-      // Assistant response to user (stop loop)
+      // Assistant response to user
       if (choice.delta?.content) {
         const content = escapeNewlines(choice.delta.content ?? "");
         dataStreamer.streamData({
           type: "delta",
           data: content,
         });
-        assistantMessage.content += content;
-        assistantMessage.references = references;
+        initialAssistantMessage.content += content;
       }
-      // Tool call (keep looping)
+      // Tool call
       else if (choice.delta?.functionCall) {
         if (choice.delta?.functionCall.name) {
           functionCallContent.name += escapeNewlines(
@@ -228,8 +230,6 @@ export async function streamGenerateResponse({
             choice.delta?.functionCall.arguments ?? ""
           );
         }
-        // TODO: do more stuff here
-        // also need some logic to add the full function message to the conversation
       } else if (choice.message) {
         logRequest({
           reqId,
@@ -240,21 +240,83 @@ export async function streamGenerateResponse({
         });
       }
     }
-    if (functionCallContent.name) {
-      assistantMessage.functionCall = functionCallContent;
+    const shouldCallTool = functionCallContent.name !== "";
+    if (shouldCallTool) {
+      initialAssistantMessage.functionCall = functionCallContent;
     }
+    newMessages.push(initialAssistantMessage);
+
     logRequest({
       reqId,
-      message: `LLM response: ${JSON.stringify(assistantMessage)}`,
+      message: `LLM response: ${JSON.stringify(initialAssistantMessage)}`,
     });
+    // Tool call
+    if (shouldCallTool) {
+      assert(
+        llm.callTool,
+        "You must implement the callTool() method on your ChatLlm to access this code."
+      );
+      const {
+        functionMessage,
+        references: toolReferences,
+        rejectUserQuery,
+      } = await llm.callTool({
+        messages: [...llmConversation, ...newMessages],
+        conversation,
+        dataStreamer,
+      });
+
+      if (rejectUserQuery) {
+        newMessages.push({
+          role: "assistant",
+          content: noRelevantContentMessage,
+        });
+        dataStreamer.streamData({
+          type: "delta",
+          data: noRelevantContentMessage,
+        });
+      } else {
+        if (toolReferences) {
+          outputReferences.push(...toolReferences);
+        }
+        // TODO: handle stream and save function message
+
+        // TODO: Handle stream and save subsequent assistant message
+      }
+    }
   } catch (err) {
-    // TODO: add catch behavior
+    const errorMessage =
+      err instanceof Error ? err.message : JSON.stringify(err);
+    logRequest({
+      reqId,
+      message: `LLM error: ${errorMessage}`,
+      type: "error",
+    });
+    logRequest({
+      reqId,
+      message: "Only sending vector search results to user",
+    });
+    const llmNotWorkingResponse = {
+      role: "assistant",
+      content: llmNotWorkingMessage,
+    } satisfies AssistantMessage;
+    dataStreamer.streamData({
+      type: "delta",
+      data: llmNotWorkingMessage,
+    });
+    newMessages.push(llmNotWorkingResponse);
   }
+
+  // Stream back references
   dataStreamer.streamData({
     type: "references",
     data: outputReferences,
   });
-  // TODO: make sure that references on the last message
+
+  // Add references to the last assistant message
+  (newMessages[newMessages.length - 1] as AssistantMessage).references =
+    outputReferences;
+
   return { messages: newMessages };
 }
 export function convertMessageFromLlmToDb(

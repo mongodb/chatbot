@@ -14,6 +14,7 @@ import {
 } from "@azure/openai";
 import { Reference } from "mongodb-rag-core";
 import { Conversation } from "./ConversationsService";
+import { DataStreamer } from "./dataStreamer";
 export type OpenAiMessageRole = "system" | "assistant" | "user" | "function";
 
 export type OpenAiChatMessage = ChatRequestMessage & {
@@ -61,7 +62,20 @@ export interface Tool {
 
 export interface ToolCallParams<T = unknown> {
   functionArgs: T;
+
+  /**
+    Conversation in the DB. Useful for getting metadata to use in tool calls.
+   */
   conversation?: Conversation;
+
+  /**
+    Data streamer with connection open to send events to the client.
+
+    For example, you could use this to send updates about
+    what the tool is doing to the client.
+
+   */
+  dataStreamer?: DataStreamer;
 }
 
 export type OpenAIChatCompletionWithoutUsage = Omit<ChatCompletions, "usage">;
@@ -99,10 +113,20 @@ export interface LlmCallToolParams {
     Messages to send to the LLM.
    */
   messages: OpenAiChatMessage[];
+
   /**
     Conversation in the DB. Useful for getting metadata to use in tool calls.
    */
   conversation?: Conversation;
+
+  /**
+    Data streamer with connection open to send events to the client.
+
+    For example, you could use this to send updates about
+    what the tool is doing to the client.
+
+   */
+  dataStreamer?: DataStreamer;
 }
 
 /**

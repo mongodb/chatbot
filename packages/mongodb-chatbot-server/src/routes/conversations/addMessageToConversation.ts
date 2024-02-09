@@ -198,10 +198,6 @@ export function makeAddMessageToConversationRoute({
         ];
 
         // --- GENERATE RESPONSE ---
-        // EAI-121_PART_2_TODO: refactor to include N messages
-        // rather than take the conversation, take previous messages, and newMessages.
-        // manipulate the newMessages object in generated response.
-        // return newMessages
         const { messages: generatedMessages } = await generateResponse({
           shouldStream,
           llm,

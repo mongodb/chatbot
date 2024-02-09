@@ -53,30 +53,44 @@ describe("GET /conversations/:conversationId", () => {
     });
   });
 
-  it("should not include system messages in the response", async () => {
+  it("should not include system messages or function calls in the response", async () => {
     const convo = await conversations.create();
     await conversations.addManyConversationMessages({
       conversationId: convo._id,
       messages: [
         {
           role: "user",
-          content: "user message 1",
+          content: "Can you do math?",
         },
         {
           role: "assistant",
-          content: "assistant message 1",
+          content: "Sure I can! What do you need?",
         },
         {
           role: "system",
-          content: "new system message",
+          content:
+            "You are now an expert mathlete. You can add numbers with the addNumbers function.",
         },
         {
           role: "user",
-          content: "user message 2",
+          content: "What is 1 + 2 + 3 + 4 + 5?",
         },
         {
           role: "assistant",
-          content: "assistant message 2",
+          content: "",
+          functionCall: {
+            name: "addNumbers",
+            arguments: `[1, 2, 3, 4, 5]`,
+          },
+        },
+        {
+          role: "function",
+          name: "addNumbers",
+          content: "15",
+        },
+        {
+          role: "assistant",
+          content: "The sum 1 + 2 + 3 + 4 + 5 is equal to 15.",
         },
       ],
     });
@@ -91,6 +105,10 @@ describe("GET /conversations/:conversationId", () => {
     expect(apiConversation.messages.length).toEqual(4);
     apiConversation.messages.forEach((message) => {
       expect(message.role).not.toEqual("system");
+      expect(message.role).not.toEqual("function");
+      if (message.role === "assistant") {
+        expect(Object.keys(message).includes("functionCall")).toEqual(false);
+      }
     });
   });
 });

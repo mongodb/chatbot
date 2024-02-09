@@ -47,7 +47,6 @@ export async function generateResponse({
   noRelevantContentMessage,
   conversation,
 }: GenerateResponseParams): Promise<GenerateResponseReturnValue> {
-  // Make copy so not mutating original object in the helper methods
   if (shouldStream) {
     return await streamGenerateResponse({
       dataStreamer,
@@ -86,62 +85,60 @@ export async function awaitGenerateResponse({
   noRelevantContentMessage,
 }: AwaitGenerateResponseParams): Promise<GenerateResponseReturnValue> {
   const newMessages: SomeMessage[] = [];
-  const outputReferences: References = references ?? [];
-  let llmCallBehavior = undefined;
-  let keepAnswering = true;
+  const outputReferences: References = [];
+
+  if (references) {
+    outputReferences.push(...references);
+  }
+
   try {
-    while (keepAnswering) {
-      [...llmConversation, ...newMessages];
-      logRequest({
-        reqId,
-        message: `All messages for LLM: ${JSON.stringify(llmConversation)}`,
-      });
-      const answer = await llm.answerQuestionAwaited({
+    logRequest({
+      reqId,
+      message: `All messages for LLM: ${JSON.stringify(llmConversation)}`,
+    });
+    const answer = await llm.answerQuestionAwaited({
+      messages: llmConversation,
+    });
+    newMessages.push(convertMessageFromLlmToDb(answer));
+
+    // LLM responds with tool call
+    if (answer?.functionCall) {
+      assert(
+        llm.callTool,
+        "You must implement the callTool() method on your ChatLlm to access this code."
+      );
+      const toolAnswer = await llm.callTool({
         messages: [...llmConversation, ...newMessages],
-        toolCallOptions: llmCallBehavior,
+        conversation,
       });
       logRequest({
         reqId,
-        message: `LLM response: ${JSON.stringify(answer)}`,
+        message: `LLM tool call: ${JSON.stringify(toolAnswer)}`,
       });
-      newMessages.push(convertMessageFromLlmToDb(answer));
-      // LLM responds with a message for user
-      if (!answer.name) {
-        keepAnswering = false;
+      const {
+        functionMessage,
+        references: toolReferences,
+        rejectUserQuery,
+      } = toolAnswer;
+      newMessages.push(convertMessageFromLlmToDb(functionMessage));
+      // Update references from tool call
+      if (toolReferences) {
+        outputReferences.push(...toolReferences);
       }
-      // LLM responds with tool call
+      // Return static response if query rejected
+      if (rejectUserQuery) {
+        newMessages.push({
+          role: "assistant",
+          content: noRelevantContentMessage,
+        });
+      } // Otherwise respond with LLM again
       else {
-        assert(
-          llm.callTool,
-          "You must implement the callTool() method on your ChatLlm to access this code."
-        );
-        const toolAnswer = await llm.callTool({
+        const answer = await llm.answerQuestionAwaited({
           messages: [...llmConversation, ...newMessages],
-          conversation,
+          // Only allow 1 tool call per user message.
+          toolCallOptions: "none",
         });
-        logRequest({
-          reqId,
-          message: `LLM tool call: ${JSON.stringify(toolAnswer)}`,
-        });
-        const {
-          functionMessage,
-          references: toolReferences,
-          rejectUserQuery,
-          subsequentLlmCall,
-        } = toolAnswer;
-        newMessages.push(convertMessageFromLlmToDb(functionMessage));
-        // Stop looping and return static response if query rejected
-        if (rejectUserQuery) {
-          keepAnswering = false;
-          newMessages.push({
-            role: "assistant",
-            content: noRelevantContentMessage,
-          });
-        }
-        if (toolReferences) {
-          outputReferences.push(...toolReferences);
-        }
-        llmCallBehavior = subsequentLlmCall;
+        newMessages.push(convertMessageFromLlmToDb(answer));
       }
     }
   } catch (err) {
@@ -160,13 +157,12 @@ export async function awaitGenerateResponse({
       role: "assistant",
       content: llmNotWorkingMessage,
       references,
-    } satisfies SomeMessage;
+    } satisfies AssistantMessage;
     newMessages.push(llmNotWorkingResponse);
   }
-
   // Add references to the last assistant message
   (newMessages[newMessages.length - 1] as AssistantMessage).references =
-    references;
+    outputReferences;
 
   return { messages: newMessages };
 }
@@ -177,21 +173,21 @@ export async function streamGenerateResponse({
   llm,
   llmConversation,
   reqId,
-  references: inputReferences,
+  references,
 }: Omit<
   GenerateResponseParams,
   "shouldStream" | "llmNotWorkingMessage"
 >): Promise<GenerateResponseReturnValue> {
   dataStreamer.connect(res);
   const newMessages: SomeMessage[] = [];
-  const references: References = inputReferences ?? [];
-  let llmCallBehavior = undefined;
-  let keepAnswering = true;
-  // TODO: have some logic to short circuit looping...a function or maybe just x num tool calls?
-  while (keepAnswering) {
+  const outputReferences: References = [];
+
+  if (references) {
+    outputReferences.push(...references);
+  }
+  try {
     const answerStream = await llm.answerQuestionStream({
       messages: llmConversation,
-      toolCallOptions: llmCallBehavior,
     });
     // TODO: consolidate these two into 1 type for the assistant message that will get made
     const assistantMessage: AssistantMessage = {
@@ -212,7 +208,6 @@ export async function streamGenerateResponse({
 
       // Assistant response to user (stop loop)
       if (choice.delta?.content) {
-        keepAnswering = false;
         const content = escapeNewlines(choice.delta.content ?? "");
         dataStreamer.streamData({
           type: "delta",
@@ -252,10 +247,12 @@ export async function streamGenerateResponse({
       reqId,
       message: `LLM response: ${JSON.stringify(assistantMessage)}`,
     });
+  } catch (err) {
+    // TODO: add catch behavior
   }
   dataStreamer.streamData({
     type: "references",
-    data: references,
+    data: outputReferences,
   });
   // TODO: make sure that references on the last message
   return { messages: newMessages };
@@ -265,6 +262,6 @@ export function convertMessageFromLlmToDb(
 ): SomeMessage {
   return {
     ...message,
-    content: message.content ?? "",
+    content: message?.content ?? "",
   };
 }

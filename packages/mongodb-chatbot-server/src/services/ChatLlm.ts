@@ -6,8 +6,8 @@
  */
 import {
   ChatCompletions,
+  ChatRequestAssistantMessage,
   ChatRequestMessage,
-  FunctionCall,
   FunctionCallPreset,
   FunctionDefinition,
   FunctionName,
@@ -68,7 +68,7 @@ export type OpenAIChatCompletionWithoutUsage = Omit<ChatCompletions, "usage">;
 
 export type OpenAiStreamingResponse =
   AsyncIterable<OpenAIChatCompletionWithoutUsage>;
-export type OpenAiAwaitedResponse = OpenAiChatMessage;
+export type OpenAiAwaitedResponse = ChatRequestAssistantMessage;
 
 export interface CallToolResponse {
   /**

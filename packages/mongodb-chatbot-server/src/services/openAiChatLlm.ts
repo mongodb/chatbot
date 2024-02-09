@@ -1,4 +1,8 @@
-import { GetChatCompletionsOptions } from "@azure/openai";
+import {
+  ChatRequestAssistantMessage,
+  ChatResponseMessage,
+  GetChatCompletionsOptions,
+} from "@azure/openai";
 import "dotenv/config";
 import { OpenAIClient } from "@azure/openai";
 import { strict as assert } from "assert";
@@ -67,7 +71,7 @@ export function makeOpenAiChatLlm({
       if (!message) {
         throw new Error("No message returned from OpenAI");
       }
-      return message as OpenAiChatMessage;
+      return message as ChatRequestAssistantMessage;
     },
     async callTool({ messages, conversation }) {
       const lastMessage = messages[messages.length - 1];

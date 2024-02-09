@@ -34,7 +34,6 @@ const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
 jest.setTimeout(100000);
 describe("POST /conversations/:conversationId/messages", () => {
   let mongodb: Db;
-  let mongoClient: MongoClient;
   let ipAddress: string;
   let origin: string;
   let conversations: ConversationsService;
@@ -42,16 +41,10 @@ describe("POST /conversations/:conversationId/messages", () => {
   let appConfig: AppConfig;
 
   beforeAll(async () => {
-    ({ ipAddress, origin, mongodb, app, appConfig, mongoClient } =
-      await makeTestApp());
+    ({ ipAddress, origin, mongodb, app, appConfig } = await makeTestApp());
     ({
       conversationsRouterConfig: { conversations },
     } = appConfig);
-  });
-
-  afterAll(async () => {
-    await mongodb.dropDatabase();
-    await mongoClient.close();
   });
 
   let conversationId: string;
@@ -355,11 +348,9 @@ describe("POST /conversations/:conversationId/messages", () => {
         conversations: ConversationsService,
         app: Express;
       let testMongo: Db;
-      let testMongoClient: MongoClient;
       beforeEach(async () => {
-        const { mongodb, mongoClient, appConfig } = makeTestAppConfig();
+        const { mongodb, appConfig } = makeTestAppConfig();
         testMongo = mongodb;
-        testMongoClient = mongoClient;
         ({ app } = await makeTestApp({
           ...appConfig,
           conversationsRouterConfig: {
@@ -374,10 +365,6 @@ describe("POST /conversations/:conversationId/messages", () => {
         );
         const { _id } = await conversations.create();
         conversationId = _id;
-      });
-      afterEach(async () => {
-        await testMongo.dropDatabase();
-        await testMongoClient.close();
       });
       test("should respond 200, static message, and vector search results", async () => {
         const messageThatHasSearchResults = "Why use MongoDB?";

@@ -1,12 +1,28 @@
-import { MongoClient } from "mongodb-rag-core";
+import { strict as assert } from "assert";
+import { MongoClient, Db } from "mongodb-rag-core";
 import { AppConfig, makeApp } from "../app";
 import { MONGODB_CONNECTION_URI, config, systemPrompt } from "./testConfig";
 import { makeMongoDbConversationsService } from "../services/mongodbConversations";
 
+let mongoClient: MongoClient | undefined;
+let mongodb: Db | undefined;
+let testDbName: string | undefined;
+
+beforeAll(async () => {
+  testDbName = `conversations-test-${Date.now()}`;
+  mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
+  mongodb = mongoClient.db(testDbName);
+});
+
+afterAll(async () => {
+  await mongodb?.dropDatabase();
+  await mongoClient?.close();
+});
+
 export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
-  const testDbName = `conversations-test-${Date.now()}`;
-  const mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
-  const mongodb = mongoClient.db(testDbName);
+  assert(mongodb !== undefined);
+  assert(mongoClient !== undefined);
+
   const conversations = makeMongoDbConversationsService(mongodb, systemPrompt);
   const appConfig: AppConfig = {
     ...config,
@@ -22,7 +38,8 @@ export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
 export const TEST_ORIGIN = "http://localhost:5173";
 
 /**
-  Helper function to quickly make an app for testing purposes.
+  Helper function to quickly make an app for testing purposes. Can't be called
+  before `beforeAll()`.
   @param defaultConfigOverrides - optional overrides for default app config
  */
 export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
@@ -30,8 +47,9 @@ export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
   const ipAddress = "127.0.0.1";
   const origin = TEST_ORIGIN;
 
-  const { appConfig, systemPrompt, mongodb, mongoClient, conversations } =
-    makeTestAppConfig(defaultConfigOverrides);
+  const { appConfig, systemPrompt, mongodb, conversations } = makeTestAppConfig(
+    defaultConfigOverrides
+  );
   const app = await makeApp(appConfig);
 
   return {
@@ -40,7 +58,6 @@ export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
     appConfig,
     app,
     conversations,
-    mongoClient,
     mongodb,
     systemPrompt,
   };

@@ -1,5 +1,6 @@
 import request from "supertest";
 import { Express } from "express";
+import { AppConfig } from "../../app";
 import {
   ConversationsMiddleware,
   rateLimitResponse,
@@ -14,13 +15,11 @@ describe("Conversations Router", () => {
   const ipAddress = "127.0.0.1";
   const addMessageEndpointUrl =
     DEFAULT_API_PREFIX + "/conversations/:conversationId/messages";
-  const { mongodb, appConfig, mongoClient } = makeTestAppConfig();
-  afterAll(async () => {
-    // clean up
-    await mongodb.dropDatabase();
-    await mongoClient.close();
-  });
 
+  let appConfig: AppConfig;
+  beforeAll(() => {
+    ({ appConfig } = makeTestAppConfig());
+  });
   test("Should apply conversation router rate limit", async () => {
     const { app, origin } = await makeTestApp({
       conversationsRouterConfig: {

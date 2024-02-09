@@ -28,6 +28,10 @@ import {
   FilterPreviousMessages,
   GenerateUserPromptFunc,
 } from "../../processors";
+import {
+  GetConversationRequest,
+  makeGetConversationRoute,
+} from "./getConversation";
 
 /**
   Configuration for rate limiting on the /conversations/* routes.
@@ -314,6 +318,13 @@ export function makeConversationsRouter({
     addMessageSlowDown,
     validateRequestSchema(AddMessageRequest),
     addMessageToConversationRoute
+  );
+
+  // Get conversations by conversation ID.
+  conversationsRouter.get(
+    "/:conversationId",
+    validateRequestSchema(GetConversationRequest),
+    makeGetConversationRoute({ conversations })
   );
 
   // Rate a message.

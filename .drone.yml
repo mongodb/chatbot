@@ -12,6 +12,7 @@ trigger:
       - packages/mongodb-rag-core/**/*
       - packages/mongodb-chatbot-ui/**/*
       - packages/mongodb-rag-ingest/**/*
+      - packages/mongodb-verified-answers/**/*
       - packages/scripts/**/*
       - packages/ingest-mongodb-public/**/*
       - packages/chatbot-server-mongodb-public/**/*
@@ -581,7 +582,7 @@ trigger:
     - tag
   ref:
     include:
-      - refs/tags/chat-ui-v*
+      - refs/tags/mongodb-chatbot-ui-v*
 
 steps:
   - name: build package

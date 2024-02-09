@@ -64,6 +64,34 @@ cronJobs:
         cpu: 500m
         memory: 5Gi
 
+  - name: clean-up-test-databases-dev
+    schedule: 0 8 * * SUN
+    command: ["npm", "run", "scripts:removeTestDatabases"]
+    envSecrets:
+      # dev cluster
+      MONGODB_CONNECTION_URI: docs-chatbot-scripts-admin-dev
+    resources:
+      requests:
+        cpu: 100m
+        memory: 2Gi
+      limits:
+        cpu: 500m
+        memory: 5Gi
+
+  - name: clean-up-test-databases-test
+    schedule: 0 9 * * SUN
+    command: ["npm", "run", "scripts:removeTestDatabases"]
+    envSecrets:
+      # test cluster
+      MONGODB_CONNECTION_URI: docs-chatbot-scripts-admin-test
+    resources:
+      requests:
+        cpu: 100m
+        memory: 2Gi
+      limits:
+        cpu: 500m
+        memory: 5Gi
+
 # Alerts
 defaultAlerts:
   enabled: true

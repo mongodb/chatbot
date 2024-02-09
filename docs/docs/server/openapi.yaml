@@ -39,7 +39,11 @@ paths:
     post:
       operationId: addMessage
       summary: Add message to the conversation
+<<<<<<< HEAD
       description: Add message to conversation and get response from chatbot.
+=======
+      description: Add a message to the conversation and get a response back from chatbot.
+>>>>>>> upstream/main
       parameters:
         - $ref: "#/components/parameters/conversationId"
         - name: stream
@@ -47,6 +51,7 @@ paths:
           required: false
           schema:
             type: boolean
+            default: false
           description: |
             If `true`, the response will be streamed to the client. This is useful for long-running conversations.
       requestBody:
@@ -95,13 +100,34 @@ paths:
                     value:
                       type: "delta"
                       data: "Updated event information or specific content changes."
+<<<<<<< HEAD
+=======
         400:
           $ref: "#/components/responses/BadRequest"
         404:
           $ref: "#/components/responses/NotFound"
         500:
           $ref: "#/components/responses/InternalServerError"
-
+  /conversations/{conversationId}:
+    get:
+      operationId: getConversation
+      summary: Get a conversation
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+>>>>>>> upstream/main
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
   /conversations/{conversationId}/messages/{messageId}/rating:
     post:
       operationId: rateMessage
@@ -282,7 +308,6 @@ components:
             data:
               description: Piece of content
               type: string
-
     StreamEventReferences:
       description: References to include with the answer.
       allOf:

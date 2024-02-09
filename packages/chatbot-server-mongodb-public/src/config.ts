@@ -17,10 +17,13 @@ import {
   makeDefaultFindContent,
   SystemPrompt,
   GenerateUserPromptFunc,
+  requireValidIpAddress,
+  requireRequestOrigin,
 } from "mongodb-chatbot-server";
 import { stripIndents } from "common-tags";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";
+import { blockGetRequests } from "./middleware/blockGetRequests";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -133,6 +136,11 @@ export const config: AppConfig = {
   conversationsRouterConfig: {
     dataStreamer,
     llm,
+    middleware: [
+      blockGetRequests,
+      requireValidIpAddress(),
+      requireRequestOrigin(),
+    ],
     conversations,
     generateUserPrompt,
     maxUserMessagesInConversation: 50,

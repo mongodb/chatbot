@@ -30,7 +30,7 @@ import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { CharacterCount } from "./InputBar";
 import { useChatbotContext } from "./useChatbotContext";
 
-const TRANSITION_DURATION = 300;
+const TRANSITION_DURATION_MS = 300;
 
 const styles = {
   message_prompts: css`
@@ -39,7 +39,7 @@ const styles = {
       margin-left: 50px;
     }
 
-    transition: opacity ${TRANSITION_DURATION}ms ease-in;
+    transition: opacity ${TRANSITION_DURATION_MS}ms ease-in;
 
     &-enter {
       opacity: 0;
@@ -116,7 +116,7 @@ const styles = {
     }
   `,
   message_rating_comment: css`
-    transition: opacity ${TRANSITION_DURATION}ms ease-in;
+    transition: opacity ${TRANSITION_DURATION_MS}ms ease-in;
 
     &-enter {
       opacity: 0;
@@ -320,20 +320,34 @@ export const MessagePrompts = ({
   const [showPrompts, setShowPrompts] = useState(true);
   const [suggestedPromptIdx, setSuggestedPromptIdx] = useState(-1);
   const nodeRef = useRef(null);
-  const duration = 300;
+
+  // This ref is used to prevent the user from clicking a suggested
+  // prompt multiple times. We use a ref instead of the `showPrompts`
+  // state to ensure that the prompt is only selected and sent to the
+  // server once regardless of where we are in the React render cycle.
+  const suggestedPromptClickedRef = useRef(false);
 
   const onPromptSelected = (prompt: string, idx: number) => {
+    // Check the ref to prevent the prompt from being clicked multiple
+    // times. This might happen if the user clicks the prompt again
+    // while the list of prompts is animating out.
+    if (suggestedPromptClickedRef.current) {
+      return;
+    }
+    suggestedPromptClickedRef.current = true;
     setSuggestedPromptIdx(idx);
     setShowPrompts(false);
+    // Wait for the prompts to fully animate out before calling the
+    // click handler.
     setTimeout(() => {
       messagePromptsOnClick(prompt);
-    }, duration);
+    }, TRANSITION_DURATION_MS);
   };
 
   return (
     <CSSTransition
       in={showPrompts}
-      timeout={duration}
+      timeout={TRANSITION_DURATION_MS}
       nodeRef={nodeRef}
       classNames={styles.message_prompts}
     >
@@ -342,9 +356,7 @@ export const MessagePrompts = ({
           {messagePrompts.map((suggestedPrompt, idx) => (
             <MessagePrompt
               key={suggestedPrompt}
-              onClick={() =>
-                showPrompts === true && onPromptSelected(suggestedPrompt, idx)
-              }
+              onClick={() => onPromptSelected(suggestedPrompt, idx)}
               selected={idx === suggestedPromptIdx}
             >
               {suggestedPrompt}

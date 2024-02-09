@@ -12,4 +12,9 @@ export interface SearchParams {
   limit: number;
   offset: number;
 }
-export type SearchFunc = (params: SearchParams) => Promise<SearchResult[]>;
+
+export interface SearchReturnValue {
+  results: SearchResult[];
+  rejectQuery?: boolean;
+}
+export type SearchFunc = (params: SearchParams) => Promise<SearchReturnValue>;

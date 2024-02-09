@@ -85,11 +85,13 @@ function convertDbConversationToApiConversation(conversation: Conversation) {
   return {
     _id: conversation._id.toHexString(),
     createdAt: conversation.createdAt.getTime(),
-    messages: conversation.messages.map((message) => ({
-      id: message.id.toHexString(),
-      role: message.role,
-      content: message.content,
-      createdAt: message.createdAt.getTime(),
-    })),
+    messages: conversation.messages
+      .filter((message) => message.role !== "system")
+      .map((message) => ({
+        id: message.id.toHexString(),
+        role: message.role,
+        content: message.content,
+        createdAt: message.createdAt.getTime(),
+      })),
   } satisfies ApiConversation;
 }

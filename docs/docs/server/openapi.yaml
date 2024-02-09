@@ -39,11 +39,7 @@ paths:
     post:
       operationId: addMessage
       summary: Add message to the conversation
-<<<<<<< HEAD
-      description: Add message to conversation and get response from chatbot.
-=======
       description: Add a message to the conversation and get a response back from chatbot.
->>>>>>> upstream/main
       parameters:
         - $ref: "#/components/parameters/conversationId"
         - name: stream
@@ -100,8 +96,6 @@ paths:
                     value:
                       type: "delta"
                       data: "Updated event information or specific content changes."
-<<<<<<< HEAD
-=======
         400:
           $ref: "#/components/responses/BadRequest"
         404:
@@ -121,7 +115,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Conversation"
->>>>>>> upstream/main
         400:
           $ref: "#/components/responses/BadRequest"
         404:

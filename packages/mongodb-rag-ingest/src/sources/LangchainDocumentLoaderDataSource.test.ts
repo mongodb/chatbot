@@ -2,16 +2,32 @@ import { makeLangChainDocumentLoaderDataSource } from "./LangchainDocumentLoader
 import Path from "path";
 import fs from "fs";
 import { Page } from "mongodb-rag-core";
+import {
+  BaseDocumentLoader,
+  DocumentLoader,
+} from "langchain/document_loaders/base";
+import { Document } from "langchain/document";
 
 const SRC_ROOT = Path.resolve(__dirname, "../../");
 const docPath = Path.resolve(SRC_ROOT, "testData/sampleMdxFile.mdx");
 
+const mockDocumentLoader: DocumentLoader = {
+  load: jest.fn(async () => {
+    return [
+      new Document({
+        pageContent: fs.readFileSync(docPath, {
+          encoding: "utf-8",
+        }),
+      }),
+    ];
+  }),
+  loadAndSplit: jest.fn(),
+};
+
 describe("LangchainDocumentLoaderDataSource", () => {
   it("should load pages from a Langchain DocumentLoader", async () => {
-    const { TextLoader } = await import("langchain/document_loaders/fs/text");
-    const documentLoader = new TextLoader(docPath);
     const documentLoaderDataSource = makeLangChainDocumentLoaderDataSource({
-      documentLoader,
+      documentLoader: mockDocumentLoader,
       name: "some-source",
       metadata: {
         foo: "bar",

@@ -1,10 +1,6 @@
 import { isIP } from "net";
 import { Address6 } from "ip-address";
-import {
-  Conversation,
-  Message,
-  AssistantMessage,
-} from "../../services/ConversationsService";
+import { Conversation, Message } from "../../services/ConversationsService";
 import { References } from "mongodb-rag-core";
 import { z } from "zod";
 
@@ -33,7 +29,7 @@ export function convertMessageFromDbToApi(message: Message): ApiMessage {
     content,
     createdAt: createdAt.getTime(),
   };
-  if(role === "assistant") {
+  if (role === "assistant") {
     const { rating, references } = message;
     return {
       ...apiMessage,
@@ -48,7 +44,7 @@ function assertNever(x: never): never {
   throw new Error("Unexpected object: " + x);
 }
 
-export function isMessageAllowedInApiResponse(message: Message) {
+function isMessageAllowedInApiResponse(message: Message) {
   // Only return user messages and assistant messages that are not function calls
   switch (message.role) {
     case "system":

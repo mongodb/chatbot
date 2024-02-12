@@ -29,12 +29,14 @@ The following are useful things to keep in mind when using an LLM:
 1. **Prompt engineering.** What additional information to include in the prompt
    to guide the model's behavior. For more information, refer to the
    [Prompt Engineering](#prompt-engineering) section.
+1. **Tools.** What tools to give the model to use. For more information, refer to the
+   [Tool Calling](./tools.md) guide.
 
 The following is an example implementation of `makeOpenAiChatLlm()`:
 
 ```ts
 import { makeOpenAiChatLlm, OpenAiChatMessage } from "mongodb-chatbot-server";
-
+import { someTool } from "./someTool";
 export const openAiClient = new OpenAIClient(
   OPENAI_ENDPOINT,
   new AzureKeyCredential(OPENAI_API_KEY)
@@ -47,13 +49,14 @@ export const llm = makeOpenAiChatLlm({
     temperature: 0,
     maxTokens: 500,
   },
+  tools: [someTool],
 });
 ```
 
 :::note[Both OpenAI API and Azure OpenAI Service Supported]
 
-The MongoDB Chatbot Server supports both the OpenAI API and Azure OpenAI Service.
-It uses the `@azure/openai` package, which supports both of these services.
+`makeOpenAiChatLlm()` supports both the OpenAI API and Azure OpenAI Service.
+It wraps the `@azure/openai` package, which supports both of these services.
 
 To use the `@azure/openai` package with the OpenAI API,
 refer to [this documentation](https://www.npmjs.com/package/@azure/openai#using-an-api-key-from-openai).

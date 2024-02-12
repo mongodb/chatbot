@@ -21,7 +21,7 @@ export const getRequestId = (req: ExpressRequest) => {
 export interface LogRequestParams {
   reqId: string;
   message: string;
-  type?: "info" | "error";
+  type?: "info" | "error" | "warn";
 }
 
 export const logRequest = ({

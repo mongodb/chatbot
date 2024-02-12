@@ -13,6 +13,7 @@ export type UseChatbotProps = {
 
 export type ChatbotData = {
   awaitingReply: boolean;
+  canSubmit: (text: string) => boolean;
   chatbotName?: string;
   closeChat: () => boolean;
   conversation: ReturnType<typeof useConversation>;
@@ -72,19 +73,32 @@ export function useChatbot(props: UseChatbotProps): ChatbotData {
     });
   }
 
-  async function handleSubmit(text: string) {
+  function canSubmit(text: string) {
+    // Don't let users submit a message if the conversation hasn't fully loaded
     if (!conversation.conversationId) {
-      console.error(`Cannot addMessage without a conversationId`);
-      return;
+      console.error(`Cannot add message without a conversationId`);
+      return false;
     }
+    // Don't let users submit a message if something is wrong with their input text
     if (inputData.error) {
-      console.error(`Cannot addMessage with invalid input text`);
-      return;
+      console.error(`Cannot add message with invalid input text`);
+      return false;
     }
     // Don't let users submit a message that is empty or only whitespace
-    if (text.replace(/\s/g, "").length === 0) return;
+    if (text.replace(/\s/g, "").length === 0) {
+      console.error(`Cannot add message with no text`);
+      return false;
+    };
     // Don't let users submit a message if we're already waiting for a reply
-    if (awaitingReply) return;
+    if (awaitingReply) {
+      console.error(`Cannot add message while awaiting a reply`);
+      return false;
+    };
+    return true;
+  }
+
+  async function handleSubmit(text: string) {
+    if(!canSubmit(text)) return;
     try {
       setInputText("");
       setAwaitingReply(true);
@@ -99,6 +113,7 @@ export function useChatbot(props: UseChatbotProps): ChatbotData {
 
   return {
     awaitingReply,
+    canSubmit,
     chatbotName,
     closeChat,
     conversation,

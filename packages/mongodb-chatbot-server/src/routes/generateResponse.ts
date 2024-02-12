@@ -13,7 +13,7 @@ import {
 import { logRequest } from "../utils";
 import { strict as assert } from "assert";
 
-interface GenerateResponseParams {
+export interface GenerateResponseParams {
   shouldStream: boolean;
   llm: ChatLlm;
   llmConversation: OpenAiChatMessage[];
@@ -119,11 +119,11 @@ export async function awaitGenerateResponse({
         message: `LLM tool call: ${JSON.stringify(toolAnswer)}`,
       });
       const {
-        functionMessage,
+        toolCallMessage,
         references: toolReferences,
         rejectUserQuery,
       } = toolAnswer;
-      newMessages.push(convertMessageFromLlmToDb(functionMessage));
+      newMessages.push(convertMessageFromLlmToDb(toolCallMessage));
       // Update references from tool call
       if (toolReferences) {
         outputReferences.push(...toolReferences);
@@ -228,8 +228,8 @@ export async function streamGenerateResponse({
             choice.delta?.functionCall.name ?? ""
           );
         }
-        if (choice.delta?.functionCall.name) {
-          functionCallContent.name += escapeNewlines(
+        if (choice.delta?.functionCall.arguments) {
+          functionCallContent.arguments += escapeNewlines(
             choice.delta?.functionCall.arguments ?? ""
           );
         }
@@ -260,7 +260,7 @@ export async function streamGenerateResponse({
         "You must implement the callTool() method on your ChatLlm to access this code."
       );
       const {
-        functionMessage,
+        toolCallMessage,
         references: toolReferences,
         rejectUserQuery,
       } = await llm.callTool({
@@ -269,7 +269,7 @@ export async function streamGenerateResponse({
         dataStreamer,
         request,
       });
-      newMessages.push(convertMessageFromLlmToDb(functionMessage));
+      newMessages.push(convertMessageFromLlmToDb(toolCallMessage));
 
       if (rejectUserQuery) {
         newMessages.push({

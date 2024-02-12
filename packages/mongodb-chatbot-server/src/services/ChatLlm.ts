@@ -50,12 +50,6 @@ export interface Tool {
   definition: FunctionDefinition;
 
   /**
-    Message to stream to the client informing it that processing is happening.
-    @example "Searching for related content"
-   */
-  processingMessage?: string;
-
-  /**
     Call the function based on the arguments in the {@link Tool.definition}.
    */
   call(args: ToolCallParams): Promise<CallToolResponse>;
@@ -95,7 +89,7 @@ export interface CallToolResponse {
   /**
     Message to add to the conversation.
    */
-  functionMessage: OpenAiChatMessage;
+  toolCallMessage: OpenAiChatMessage;
 
   /**
     If `true`, the user query should be rejected.
@@ -103,9 +97,6 @@ export interface CallToolResponse {
     and return the {@link ConversationConstants.NO_RELEVANT_CONTENT} message.
    */
   rejectUserQuery?: boolean;
-
-  /** Direction for what the LLM should do following this tool call. */
-  subsequentLlmCall?: FunctionCallPreset | FunctionName;
 
   /**
     References to add to the {@link AssistantMessage} sent to the user.

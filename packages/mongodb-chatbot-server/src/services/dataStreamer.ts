@@ -52,12 +52,12 @@ type StreamEvent = { type: string; data: unknown };
 /**
   Event when server streams additional message response to the client.
  */
-type DeltaStreamEvent = StreamEvent & { type: "delta"; data: string };
+export type DeltaStreamEvent = StreamEvent & { type: "delta"; data: string };
 
 /**
   Event for when the server is processing a request.
  */
-type ProcessingStreamEvent = StreamEvent & {
+export type ProcessingStreamEvent = StreamEvent & {
   type: "processing";
   /**
     Information about processing that is occurring.
@@ -69,7 +69,7 @@ type ProcessingStreamEvent = StreamEvent & {
 /**
   Event when server streams single {@link References} object to the client.
  */
-type ReferencesStreamEvent = StreamEvent & {
+export type ReferencesStreamEvent = StreamEvent & {
   type: "references";
   data: References;
 };
@@ -77,7 +77,7 @@ type ReferencesStreamEvent = StreamEvent & {
 /**
   Event denoting the end of streaming.
  */
-type FinishedStreamEvent = StreamEvent & {
+export type FinishedStreamEvent = StreamEvent & {
   type: "finished";
   data: string;
 };
@@ -85,7 +85,7 @@ type FinishedStreamEvent = StreamEvent & {
 /**
   The event types streamed from the chat server to the client.
  */
-type SomeStreamEvent =
+export type SomeStreamEvent =
   | DeltaStreamEvent
   | ProcessingStreamEvent
   | ReferencesStreamEvent

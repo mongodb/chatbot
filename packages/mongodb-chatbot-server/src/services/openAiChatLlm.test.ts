@@ -36,7 +36,7 @@ const testTools = [
     },
     async call() {
       return {
-        functionMessage: {
+        toolCallMessage: {
           role: "assistant",
           name: "test_tool",
           content: "Test tool called",
@@ -129,7 +129,7 @@ describe("OpenAiLlm", () => {
       test: "test",
     });
     expect(toolResponse).toStrictEqual({
-      functionMessage: {
+      toolCallMessage: {
         role: "assistant",
         name: "test_tool",
         content: "Test tool called",

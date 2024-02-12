@@ -198,18 +198,21 @@ export function makeAddMessageToConversationRoute({
         ];
 
         // --- GENERATE RESPONSE ---
+        if (shouldStream) {
+          dataStreamer.connect(res);
+        }
         const { messages: generatedMessages } = await generateResponse({
           shouldStream,
           llm,
           llmConversation,
           dataStreamer,
-          res,
           references,
           reqId,
           llmNotWorkingMessage:
             conversations.conversationConstants.LLM_NOT_WORKING,
           noRelevantContentMessage:
             conversations.conversationConstants.NO_RELEVANT_CONTENT,
+          request: req,
         });
 
         // --- SAVE QUESTION & RESPONSE ---

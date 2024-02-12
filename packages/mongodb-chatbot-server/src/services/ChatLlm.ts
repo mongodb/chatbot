@@ -13,6 +13,7 @@ import {
   FunctionName,
 } from "@azure/openai";
 import { Reference } from "mongodb-rag-core";
+import { Request as ExpressRequest } from "express";
 import { Conversation } from "./ConversationsService";
 import { DataStreamer } from "./dataStreamer";
 export type OpenAiMessageRole = "system" | "assistant" | "user" | "function";
@@ -76,6 +77,12 @@ export interface ToolCallParams<T = unknown> {
 
    */
   dataStreamer?: DataStreamer;
+
+  /**
+    Current Express.js request from the client.
+    Useful for getting metadata to use in tool calls.
+   */
+  request?: ExpressRequest;
 }
 
 export type OpenAIChatCompletionWithoutUsage = Omit<ChatCompletions, "usage">;
@@ -127,6 +134,12 @@ export interface LlmCallToolParams {
 
    */
   dataStreamer?: DataStreamer;
+
+  /**
+    Current Express.js request from the client.
+    Useful for getting metadata to use in tool calls.
+   */
+  request?: ExpressRequest;
 }
 
 /**

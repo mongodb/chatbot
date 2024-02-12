@@ -1,5 +1,6 @@
 import { References } from "mongodb-rag-core";
 import { ChatCompletionRequestMessageFunctionCall } from "openai";
+import { Request as ExpressRequest } from "express";
 import {
   ChatLlm,
   SomeMessage,
@@ -10,8 +11,6 @@ import {
   AssistantMessage,
 } from "../services";
 import { logRequest } from "../utils";
-import { ApiMessage } from "./conversations/utils";
-import { Response as ExpressResponse } from "express";
 import { strict as assert } from "assert";
 
 interface GenerateResponseParams {
@@ -19,12 +18,12 @@ interface GenerateResponseParams {
   llm: ChatLlm;
   llmConversation: OpenAiChatMessage[];
   dataStreamer: DataStreamer;
-  res: ExpressResponse<ApiMessage>;
   references?: References;
   reqId: string;
   llmNotWorkingMessage: string;
   noRelevantContentMessage: string;
   conversation?: Conversation;
+  request?: ExpressRequest;
 }
 
 interface GenerateResponseReturnValue {
@@ -40,23 +39,23 @@ export async function generateResponse({
   llm,
   llmConversation,
   dataStreamer,
-  res,
   references,
   reqId,
   llmNotWorkingMessage,
   noRelevantContentMessage,
   conversation,
+  request,
 }: GenerateResponseParams): Promise<GenerateResponseReturnValue> {
   if (shouldStream) {
     return await streamGenerateResponse({
       dataStreamer,
-      res,
       references,
       reqId,
       llm,
       llmConversation,
       noRelevantContentMessage,
       llmNotWorkingMessage,
+      request,
     });
   } else {
     return await awaitGenerateResponse({
@@ -67,13 +66,14 @@ export async function generateResponse({
       llmNotWorkingMessage,
       conversation,
       noRelevantContentMessage,
+      request,
     });
   }
 }
 
 export type AwaitGenerateResponseParams = Omit<
   GenerateResponseParams,
-  "shouldStream" | "dataStreamer" | "res"
+  "shouldStream" | "dataStreamer"
 >;
 
 export async function awaitGenerateResponse({
@@ -84,6 +84,7 @@ export async function awaitGenerateResponse({
   references,
   llmNotWorkingMessage,
   noRelevantContentMessage,
+  request,
 }: AwaitGenerateResponseParams): Promise<GenerateResponseReturnValue> {
   const newMessages: SomeMessage[] = [];
   const outputReferences: References = [];
@@ -111,6 +112,7 @@ export async function awaitGenerateResponse({
       const toolAnswer = await llm.callTool({
         messages: [...llmConversation, ...newMessages],
         conversation,
+        request,
       });
       logRequest({
         reqId,
@@ -168,9 +170,13 @@ export async function awaitGenerateResponse({
   return { messages: newMessages };
 }
 
+export type StreamGenerateResponseParams = Omit<
+  GenerateResponseParams,
+  "shouldStream"
+>;
+
 export async function streamGenerateResponse({
   dataStreamer,
-  res,
   llm,
   llmConversation,
   conversation,
@@ -178,11 +184,8 @@ export async function streamGenerateResponse({
   references,
   noRelevantContentMessage,
   llmNotWorkingMessage,
-}: Omit<
-  GenerateResponseParams,
-  "shouldStream"
->): Promise<GenerateResponseReturnValue> {
-  dataStreamer.connect(res);
+  request,
+}: StreamGenerateResponseParams): Promise<GenerateResponseReturnValue> {
   const newMessages: SomeMessage[] = [];
   const outputReferences: References = [];
 
@@ -264,7 +267,9 @@ export async function streamGenerateResponse({
         messages: [...llmConversation, ...newMessages],
         conversation,
         dataStreamer,
+        request,
       });
+      newMessages.push(convertMessageFromLlmToDb(functionMessage));
 
       if (rejectUserQuery) {
         newMessages.push({
@@ -279,9 +284,17 @@ export async function streamGenerateResponse({
         if (toolReferences) {
           outputReferences.push(...toolReferences);
         }
-        // TODO: handle stream and save function message
-
-        // TODO: Handle stream and save subsequent assistant message
+        const answerStream = await llm.answerQuestionStream({
+          messages: [...llmConversation, ...newMessages],
+        });
+        const answerContent = await dataStreamer.stream({
+          stream: answerStream,
+        });
+        const answerMessage = {
+          role: "assistant",
+          content: answerContent,
+        } satisfies AssistantMessage;
+        newMessages.push(answerMessage);
       }
     }
   } catch (err) {

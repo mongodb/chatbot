@@ -63,9 +63,7 @@ const toolOpenAiLlm = makeOpenAiChatLlm({
   openAiLmmConfigOptions: {
     temperature: 0,
     maxTokens: 500,
-    functionCall: {
-      name: "test_tool",
-    },
+    functionCall: "none",
   },
   tools: testTools,
 });
@@ -118,6 +116,9 @@ describe("OpenAiLlm", () => {
           content: "hi",
         },
       ],
+      toolCallOptions: {
+        name: testTools[0].definition.name,
+      },
     });
     assert(
       response.role === "assistant" && response.functionCall !== undefined

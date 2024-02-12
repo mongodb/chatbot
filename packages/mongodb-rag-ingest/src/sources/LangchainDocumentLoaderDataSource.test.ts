@@ -2,10 +2,7 @@ import { makeLangChainDocumentLoaderDataSource } from "./LangchainDocumentLoader
 import Path from "path";
 import fs from "fs";
 import { Page } from "mongodb-rag-core";
-import {
-  BaseDocumentLoader,
-  DocumentLoader,
-} from "langchain/document_loaders/base";
+import { DocumentLoader } from "langchain/document_loaders/base";
 import { Document } from "langchain/document";
 
 const SRC_ROOT = Path.resolve(__dirname, "../../");

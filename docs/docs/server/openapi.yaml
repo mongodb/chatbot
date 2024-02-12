@@ -73,6 +73,8 @@ paths:
             The below schema for `text/event-stream` corresponds to contents of the event's `data` field. For example:
 
             ```txt
+            data: {"type": "processing", "data": "Calling tool to get information..."}
+
             data: {"type": "delta", "data": "Starting "}
 
             data: {"type": "delta", "data": "to "}
@@ -225,7 +227,7 @@ components:
           description: The unique identifier for a message.
         role:
           type: string
-          enum: [user, assistant, system]
+          enum: [user, assistant]
         content:
           type: string
           format: markdown
@@ -278,52 +280,52 @@ components:
     MessageResponseStreamEvent:
       oneOf:
         - $ref: "#/components/schemas/StreamEventDelta"
+        - $ref: "#/components/schemas/StreamEventProcessing"
         - $ref: "#/components/schemas/StreamEventReferences"
         - $ref: "#/components/schemas/StreamEventFinished"
-      description: Item in data stream when streaming a response message.
-    StreamEvent:
+      description: A server-sent event data payload for a streaming message.
+    StreamEventDelta:
+      description: Assistant response text.
       type: object
-      description: Abstract base type for stream events.
       properties:
         type:
           type: string
+          enum: [delta]
         data:
+          description: Piece of content
           type: string
-    StreamEventDelta:
-      description: Assistant response text.
-      allOf:
-        - $ref: "#/components/schemas/StreamEvent"
-        - type: object
-          properties:
-            type:
-              type: string
-              enum: [delta]
-            data:
-              description: Piece of content
-              type: string
+    StreamEventProcessing:
+      description: |
+        Message to send while processing a user request.
+        For example, you could send a processing message during a long running tool
+        call to update the user of what is occurring.
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [processing]
+        data:
+          description: Information about processing event.
+          type: string
     StreamEventReferences:
       description: References to include with the answer.
-      allOf:
-        - $ref: "#/components/schemas/StreamEvent"
-        - type: object
-          properties:
-            type:
-              type: string
-              enum: [references]
-            data:
-              $ref: "#/components/schemas/References"
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [references]
+        data:
+          $ref: "#/components/schemas/References"
     StreamEventFinished:
       description: Last message when streaming has finished.
-      allOf:
-        - $ref: "#/components/schemas/StreamEvent"
-        - type: object
-          properties:
-            type:
-              type: string
-              enum: [finished]
-            data:
-              description: Message ID.
-              type: string
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [finished]
+        data:
+          description: Message ID.
+          type: string
     MessageComment:
       type: object
       properties:

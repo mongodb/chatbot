@@ -55,6 +55,9 @@ export interface Tool {
   call(args: ToolCallParams): Promise<CallToolResponse>;
 }
 
+/**
+  Parameters for invoking a tool call.
+ */
 export interface ToolCallParams {
   functionArgs: unknown;
 
@@ -106,9 +109,13 @@ export interface CallToolResponse {
 
 export type ToolCallDirective = FunctionCallPreset | FunctionName;
 
+/**
+  Parameters for invoking a tool call from the LLM.
+ */
 export interface LlmCallToolParams {
   /**
-    Messages to send to the LLM.
+    Messages to send to the LLM. The tool call invocation information
+    should be in the last message.
    */
   messages: OpenAiChatMessage[];
 

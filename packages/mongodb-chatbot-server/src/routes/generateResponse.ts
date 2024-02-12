@@ -163,6 +163,7 @@ export async function awaitGenerateResponse({
     } satisfies AssistantMessage;
     newMessages.push(llmNotWorkingResponse);
   }
+  assert(newMessages.length > 0);
   // Add references to the last assistant message
   (newMessages[newMessages.length - 1] as AssistantMessage).references =
     outputReferences;
@@ -326,6 +327,7 @@ export async function streamGenerateResponse({
     data: outputReferences,
   });
 
+  assert(newMessages.length > 0);
   // Add references to the last assistant message
   (newMessages[newMessages.length - 1] as AssistantMessage).references =
     outputReferences;

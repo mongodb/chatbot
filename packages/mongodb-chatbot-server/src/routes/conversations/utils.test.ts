@@ -88,7 +88,7 @@ const exampleConversationInDatabase: Conversation = {
   ],
 };
 
-describe.only("Data Conversion Functions", () => {
+describe("Data Conversion Functions", () => {
   describe("convertMessageFromDbToApi", () => {
     test("serializes values", () => {
       const [

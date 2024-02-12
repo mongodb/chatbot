@@ -174,11 +174,12 @@ const LoadingSkeleton = () => {
   return <ParagraphSkeleton className={styles.loading_skeleton} />;
 };
 
-export type MessageProp = {
+export type MessageProps = {
   messageData: MessageData;
   suggestedPrompts?: string[];
   showSuggestedPrompts?: boolean;
   onSuggestedPromptClick?: (prompt: string) => void;
+  canSubmitSuggestedPrompt?: (prompt: string) => boolean;
   isLoading: boolean;
   showRating: boolean;
   conversation: Conversation;
@@ -199,11 +200,12 @@ export const Message = ({
   messageData,
   suggestedPrompts = [],
   showSuggestedPrompts = true,
+  canSubmitSuggestedPrompt = () => true,
   onSuggestedPromptClick,
   isLoading,
   showRating,
   conversation,
-}: MessageProp) => {
+}: MessageProps) => {
   const { maxCommentCharacters } = useChatbotContext();
   const user = useUser();
   const info = getMessageInfo(messageData, user);
@@ -302,6 +304,7 @@ export const Message = ({
         <MessagePrompts
           messagePrompts={suggestedPrompts}
           messagePromptsOnClick={(prompt) => onSuggestedPromptClick?.(prompt)}
+          canSubmitSuggestedPrompt={canSubmitSuggestedPrompt}
         />
       )}
     </Fragment>
@@ -311,23 +314,28 @@ export const Message = ({
 export type MessagePromptsProps = {
   messagePrompts: string[];
   messagePromptsOnClick: (prompt: string) => void;
+  canSubmitSuggestedPrompt: (prompt: string) => boolean;
 };
 
 export const MessagePrompts = ({
   messagePrompts,
   messagePromptsOnClick,
+  canSubmitSuggestedPrompt,
 }: MessagePromptsProps) => {
-  const [showPrompts, setShowPrompts] = useState(true);
-  const [suggestedPromptIdx, setSuggestedPromptIdx] = useState(-1);
+  const [selectedSuggestedPromptIndex, setSelectedSuggestedPromptIndex] =
+    useState<number | undefined>(undefined);
   const nodeRef = useRef(null);
 
   // This ref is used to prevent the user from clicking a suggested
-  // prompt multiple times. We use a ref instead of the `showPrompts`
-  // state to ensure that the prompt is only selected and sent to the
-  // server once regardless of where we are in the React render cycle.
+  // prompt multiple times. We use a ref instead of state to ensure that
+  // the prompt is only selected and sent to the server once regardless
+  // of where we are in the React render cycle.
   const suggestedPromptClickedRef = useRef(false);
-
   const onPromptSelected = (prompt: string, idx: number) => {
+    // Don't do anything if the prompt is not selectable.
+    if (!canSubmitSuggestedPrompt(prompt)) {
+      return;
+    }
     // Check the ref to prevent the prompt from being clicked multiple
     // times. This might happen if the user clicks the prompt again
     // while the list of prompts is animating out.
@@ -335,8 +343,7 @@ export const MessagePrompts = ({
       return;
     }
     suggestedPromptClickedRef.current = true;
-    setSuggestedPromptIdx(idx);
-    setShowPrompts(false);
+    setSelectedSuggestedPromptIndex(idx);
     // Wait for the prompts to fully animate out before calling the
     // click handler.
     setTimeout(() => {
@@ -346,7 +353,7 @@ export const MessagePrompts = ({
 
   return (
     <CSSTransition
-      in={showPrompts}
+      in={selectedSuggestedPromptIndex === undefined}
       timeout={TRANSITION_DURATION_MS}
       nodeRef={nodeRef}
       classNames={styles.message_prompts}
@@ -357,7 +364,7 @@ export const MessagePrompts = ({
             <MessagePrompt
               key={suggestedPrompt}
               onClick={() => onPromptSelected(suggestedPrompt, idx)}
-              selected={idx === suggestedPromptIdx}
+              selected={idx === selectedSuggestedPromptIndex}
             >
               {suggestedPrompt}
             </MessagePrompt>

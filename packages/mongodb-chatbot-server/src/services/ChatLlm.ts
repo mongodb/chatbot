@@ -55,8 +55,8 @@ export interface Tool {
   call(args: ToolCallParams): Promise<CallToolResponse>;
 }
 
-export interface ToolCallParams<T = unknown> {
-  functionArgs: T;
+export interface ToolCallParams {
+  functionArgs: unknown;
 
   /**
     Conversation in the DB. Useful for getting metadata to use in tool calls.

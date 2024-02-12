@@ -76,7 +76,7 @@ export const weatherTool: Tool = {
 To give the chatbot access to the tool, you must provide the [`ChatLlm`](../reference/server/interfaces/ChatLlm.md) with the tool.
 
 The [`makeOpenAiChatLlm()`](../reference/server/modules.md#makeopenaichatllm)
-function, which you can use to chat with an OpenAI model, takes a `tools` argument.
+function, which you can use to instantiate a client for an OpenAI model, takes a `tools` argument.
 Provide an array of tools to the `tools` argument.
 
 ```ts

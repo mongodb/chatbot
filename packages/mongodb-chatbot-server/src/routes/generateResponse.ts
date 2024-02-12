@@ -332,6 +332,7 @@ export async function streamGenerateResponse({
 
   return { messages: newMessages };
 }
+
 export function convertMessageFromLlmToDb(
   message: OpenAiChatMessage
 ): SomeMessage {

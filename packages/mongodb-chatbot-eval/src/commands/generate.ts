@@ -9,7 +9,7 @@ import {
 const commandModule: CommandModule<unknown, LoadConfigArgs> = {
   command: "generate",
   builder(args) {
-    return withConfigOptions(args);
+    return withConfigOptions(args).string("name").demandOption("name");
   },
   async handler(args) {
     return withConfig(generateCommand, {

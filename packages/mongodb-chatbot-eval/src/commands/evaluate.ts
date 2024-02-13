@@ -9,7 +9,14 @@ import {
 const commandModule: CommandModule<unknown, LoadConfigArgs> = {
   command: "evaluate",
   builder(args) {
-    return withConfigOptions(args);
+    return withConfigOptions(args)
+      .string("name")
+      .option("generatedDataQuery", {
+        type: "string",
+        description: "Query to filter generated data.",
+      })
+      .demandOption("generatedDataQuery")
+      .demandOption("name");
   },
   async handler(args) {
     return withConfig(evaluateCommand, {

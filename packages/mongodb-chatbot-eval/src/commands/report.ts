@@ -9,7 +9,14 @@ import {
 const commandModule: CommandModule<unknown, LoadConfigArgs> = {
   command: "report",
   builder(args) {
-    return withConfigOptions(args);
+    return withConfigOptions(args)
+      .string("name")
+      .option("evalResultsQuery", {
+        type: "string",
+        description: "Query to filer evaluation results.",
+      })
+      .demandOption("evalResultsQuery")
+      .demandOption("name");
   },
   async handler(args) {
     return withConfig(reportCommand, {

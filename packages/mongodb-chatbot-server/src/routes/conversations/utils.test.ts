@@ -55,7 +55,7 @@ const exampleConversationInDatabase: Conversation = {
       id: new ObjectId("65ca76775a57e51c3b4c286d"),
       role: "user",
       content:
-        "Hello! I'm looking for a new book to read. I like fantasy novels. Can you recommend one?",
+        "Hello! I'm looking for a new book to read. I like fantasy and science fiction novels. Can you recommend one?",
       createdAt: new Date("2024-01-01T00:00:42Z"),
     },
     {
@@ -64,7 +64,7 @@ const exampleConversationInDatabase: Conversation = {
       content: "",
       functionCall: {
         name: "getBookRecommendations",
-        arguments: JSON.stringify({ genre: ["fantasy"] }),
+        arguments: JSON.stringify({ genre: ["fantasy", "sci-fi"] }),
       },
       createdAt: new Date("2024-01-01T00:00:45Z"),
     },
@@ -74,15 +74,15 @@ const exampleConversationInDatabase: Conversation = {
       name: "getBookRecommendations",
       content: JSON.stringify([
         { title: "The Way of Kings", author: "Brandon Sanderson" },
-        { title: "The Name of the Wind", author: "Patrick Rothfuss" },
-        { title: "Uprooted", author: "Naomi Novik" },
+        { title: "Neuromancer", author: "William Gibson" },
+        { title: "Snow Crash", author: "Neal Stephenson" },
       ]),
       createdAt: new Date("2024-01-01T00:00:47Z"),
     },
     {
       id: new ObjectId("65ca76874e1df9cf2742bf86"),
       role: "assistant",
-      content: `I recommend "The Way of Kings" by Brandon Sanderson. You may also enjoy "The Name of the Wind" by Patrick Rothfuss or "Uprooted" by Naomi Novik.`,
+      content: `I recommend "The Way of Kings" by Brandon Sanderson. You may also enjoy "Neuromancer" by William Gibson or "Snow Crash" by Neal Stephenson.`,
       createdAt: new Date("2024-01-01T00:00:52Z"),
     },
   ],
@@ -111,7 +111,7 @@ describe("Data Conversion Functions", () => {
         id: "65ca76775a57e51c3b4c286d",
         role: "user",
         content:
-          "Hello! I'm looking for a new book to read. I like fantasy novels. Can you recommend one?",
+          "Hello! I'm looking for a new book to read. I like fantasy and science fiction novels. Can you recommend one?",
         createdAt: 1704067242000,
       });
 
@@ -127,8 +127,8 @@ describe("Data Conversion Functions", () => {
         role: "function",
         content: JSON.stringify([
           { title: "The Way of Kings", author: "Brandon Sanderson" },
-          { title: "The Name of the Wind", author: "Patrick Rothfuss" },
-          { title: "Uprooted", author: "Naomi Novik" },
+          { title: "Neuromancer", author: "William Gibson" },
+          { title: "Snow Crash", author: "Neal Stephenson" },
         ]),
         createdAt: 1704067247000,
       });
@@ -136,7 +136,7 @@ describe("Data Conversion Functions", () => {
       expect(convertMessageFromDbToApi(assistantMessage)).toEqual({
         id: "65ca76874e1df9cf2742bf86",
         role: "assistant",
-        content: `I recommend "The Way of Kings" by Brandon Sanderson. You may also enjoy "The Name of the Wind" by Patrick Rothfuss or "Uprooted" by Naomi Novik.`,
+        content: `I recommend "The Way of Kings" by Brandon Sanderson. You may also enjoy "Neuromancer" by William Gibson or "Snow Crash" by Neal Stephenson.`,
         createdAt: 1704067252000,
         rating: undefined,
         references: undefined,
@@ -157,13 +157,13 @@ describe("Data Conversion Functions", () => {
             id: "65ca76775a57e51c3b4c286d",
             role: "user",
             content:
-              "Hello! I'm looking for a new book to read. I like fantasy novels. Can you recommend one?",
+              "Hello! I'm looking for a new book to read. I like fantasy and science fiction novels. Can you recommend one?",
             createdAt: 1704067242000,
           },
           {
             id: "65ca76874e1df9cf2742bf86",
             role: "assistant",
-            content: `I recommend "The Way of Kings" by Brandon Sanderson. You may also enjoy "The Name of the Wind" by Patrick Rothfuss or "Uprooted" by Naomi Novik.`,
+            content: `I recommend "The Way of Kings" by Brandon Sanderson. You may also enjoy "Neuromancer" by William Gibson or "Snow Crash" by Neal Stephenson.`,
             createdAt: 1704067252000,
             rating: undefined,
             references: undefined,

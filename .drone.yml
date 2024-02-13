@@ -8,15 +8,9 @@ trigger:
     - tag
   paths:
     include:
-      - packages/mongodb-chatbot-server/**/*
-      - packages/mongodb-rag-core/**/*
-      - packages/mongodb-chatbot-ui/**/*
-      - packages/mongodb-rag-ingest/**/*
-      - packages/mongodb-verified-answers/**/*
-      - packages/scripts/**/*
-      - packages/ingest-mongodb-public/**/*
-      - packages/chatbot-server-mongodb-public/**/*
+      - packages/**/*
       - package-lock.json
+      - package.json
 
 steps:
   - name: test
@@ -76,6 +70,8 @@ trigger:
       - packages/chatbot-server-mongodb-public/**/*
       - packages/mongodb-rag-core/**/*
       - packages/mongodb-chatbot-ui/**/*
+      - package-lock.json
+      - package.json
 
 steps:
   # Builds and publishes Docker image for staging
@@ -129,6 +125,8 @@ trigger:
       - packages/chatbot-server-mongodb-public/**/*
       - packages/mongodb-rag-core/**/*
       - packages/mongodb-chatbot-ui/**/*
+      - package-lock.json
+      - package.json
   branch:
     - main
 
@@ -325,6 +323,8 @@ trigger:
       - packages/mongodb-rag-ingest/**/*
       - packages/ingest-mongodb-public/**/*
       - packages/mongodb-rag-core/**/*
+      - package-lock.json
+      - package.json
 
 steps:
   # Builds and publishes Docker image for staging
@@ -376,6 +376,9 @@ trigger:
       - packages/mongodb-rag-ingest/**/*
       - packages/ingest-mongodb-public/**/*
       - packages/mongodb-rag-core/**/*
+      - package-lock.json
+      - package.json
+
   branch:
     - main
 
@@ -618,6 +621,8 @@ trigger:
       - packages/scripts/**/*
       - packages/mongodb-rag-core/**/*
       - packages/mongodb-chatbot-server/**/*
+      - package-lock.json
+      - package.json
 
 steps:
   # Builds and publishes Docker image for staging
@@ -669,6 +674,9 @@ trigger:
       - packages/scripts/**/*
       - packages/mongodb-rag-core/**/*
       - packages/mongodb-chatbot-server/**/*
+      - package-lock.json
+      - package.json
+
   branch:
     - main
 

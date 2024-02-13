@@ -3,6 +3,7 @@ import { Address6 } from "ip-address";
 import { Conversation, Message } from "../../services/ConversationsService";
 import { References } from "mongodb-rag-core";
 import { z } from "zod";
+import { OpenAiChatMessage } from "../../services";
 
 export type ApiMessage = z.infer<typeof ApiMessage>;
 export const ApiMessage = z.object({

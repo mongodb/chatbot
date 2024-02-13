@@ -85,6 +85,10 @@ paths:
 
             ```txt
 
+            data: {"type": "processing", "data": "Calling tool to get
+            information..."}
+
+
             data: {"type": "delta", "data": "Starting "}
 
 
@@ -250,7 +254,6 @@ components:
           enum:
             - user
             - assistant
-            - system
         content:
           type: string
           format: markdown
@@ -312,6 +315,7 @@ components:
     MessageResponseStreamEvent:
       oneOf:
         - $ref: '#/components/schemas/StreamEventDelta'
+        - $ref: '#/components/schemas/StreamEventProcessing'
         - $ref: '#/components/schemas/StreamEventReferences'
         - $ref: '#/components/schemas/StreamEventFinished'
       description: A server-sent event data payload for a streaming message.
@@ -325,6 +329,23 @@ components:
             - delta
         data:
           description: Piece of content
+          type: string
+    StreamEventProcessing:
+      description: >
+        Message to send while processing a user request.
+
+        For example, you could send a processing message during a long running
+        tool
+
+        call to update the user of what is occurring.
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - processing
+        data:
+          description: Information about processing event.
           type: string
     StreamEventReferences:
       description: References to include with the answer.

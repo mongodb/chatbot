@@ -139,9 +139,7 @@ export type LogFlushHandler = (
   options?: FlushOptions
 ) => Promise<void>;
 
-export const flushLogsToConsole: LogFlushHandler = async (
-  entries,
-) => {
+export const flushLogsToConsole: LogFlushHandler = async (entries) => {
   for (const entry of entries) {
     console.log(formatLogEntry(entry));
   }
@@ -163,7 +161,10 @@ export const flushLogsToFile: LogFlushHandler = async (
   });
 };
 
-export const defaultFlushLogs: LogFlushHandler = async (logs, optionOverrides) => {
+export const defaultFlushLogs: LogFlushHandler = async (
+  logs,
+  optionOverrides
+) => {
   const options = {
     ...createDefaultFlushOptions(),
     ...optionOverrides,
@@ -191,8 +192,10 @@ export const flushArtifactsToFile: ArtifactFlushHandler = async (
 ) => {
   await assertFlushDirectory(options);
   for (const artifact of artifacts) {
+    console.log("Writing artifact to file", artifact);
     const filePath = path.join(getFlushDirectoryPath(options), artifact.name);
-    await fs.writeFile(filePath, artifact.content, {
+    await assertDirectory(path.dirname(filePath));
+    await fs.writeFile(filePath, ensureFileEndsWithNewline(artifact.content), {
       encoding: "utf8",
     });
   }
@@ -200,12 +203,12 @@ export const flushArtifactsToFile: ArtifactFlushHandler = async (
 
 export const defaultFlushArtifacts: ArtifactFlushHandler = async (
   artifacts,
-  optionOverrides,
+  optionOverrides
 ) => {
   const options = {
     ...createDefaultFlushOptions(),
     ...optionOverrides,
-  }
+  };
   flushArtifactsToConsole(artifacts, options);
   flushArtifactsToFile(artifacts, options);
 };
@@ -221,7 +224,11 @@ async function assertFlushDirectory({
   topic = "default",
   runId,
 }: Partial<FlushOptions> & Pick<FlushOptions, "runId">) {
-  return await fs.mkdir(getFlushDirectoryPath({ topic, runId }), {
+  return await assertDirectory(getFlushDirectoryPath({ topic, runId }));
+}
+
+async function assertDirectory(path: string) {
+  return await fs.mkdir(path, {
     recursive: true,
   });
 }
@@ -230,4 +237,8 @@ function getFlushDirectoryPath(options: FlushOptions) {
   const { topic, runId } = options;
   const dir = `./runlogs/${topic}/${runId}`;
   return dir;
+}
+
+function ensureFileEndsWithNewline(fileText: string) {
+  return fileText.endsWith("\n") ? fileText : fileText + "\n";
 }

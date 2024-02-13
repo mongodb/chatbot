@@ -22,7 +22,8 @@
     "postbuild": "chmod +x build/main.js",
     "watch": "tsc -b -w",
     "test": "jest --forceExit",
-    "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives"
+    "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
+    "parseDriversCsv": "npm run build && node ./build/main.js parseDriversCsv --config='./build/standardConfig.js'"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",
@@ -30,6 +31,7 @@
     "@types/jest": "^29.5.2",
     "@types/jsdom": "^21.1.2",
     "@types/node": "^12.20.55",
+    "@types/papaparse": "^5.3.14",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
     "eslint": "^8",
@@ -52,6 +54,7 @@
     "front-matter": "^4.0.2",
     "mongodb": "^5.9.2",
     "mongodb-rag-core": "^0.1.0",
+    "papaparse": "^5.4.1",
     "yaml": "^2.3.1",
     "yargs": "^17",
     "zod": "^3.22.4"

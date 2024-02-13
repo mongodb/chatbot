@@ -1,6 +1,6 @@
 {
   "name": "mongodb-chatbot-server",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "license": "Apache-2.0",
   "description": "A chatbot server for retrieval augmented generation (RAG).",
   "author": "MongoDB, Inc.",

@@ -1,4 +1,8 @@
-import { GetChatCompletionsOptions } from "@azure/openai";
+import {
+  ChatRequestAssistantMessage,
+  ChatResponseMessage,
+  GetChatCompletionsOptions,
+} from "@azure/openai";
 import "dotenv/config";
 import { OpenAIClient } from "@azure/openai";
 import { strict as assert } from "assert";
@@ -8,6 +12,7 @@ import {
   OpenAiChatMessage,
   Tool,
 } from "./ChatLlm";
+import { Conversation } from "./ConversationsService";
 
 /**
   Configuration for the {@link makeOpenAiChatLlm} function.
@@ -36,44 +41,59 @@ export function makeOpenAiChatLlm({
   });
 
   return {
-    async answerQuestionStream({ messages }: LlmAnswerQuestionParams) {
+    async answerQuestionStream({
+      messages,
+      toolCallOptions,
+    }: LlmAnswerQuestionParams) {
       const completionStream = await openAiClient.streamChatCompletions(
         deployment,
         messages,
         {
           ...openAiLmmConfigOptions,
+          ...(toolCallOptions ? { functionCall: toolCallOptions } : {}),
           functions: tools?.map((tool) => tool.definition),
         }
       );
       return completionStream;
     },
-    async answerQuestionAwaited({ messages }: LlmAnswerQuestionParams) {
+    async answerQuestionAwaited({
+      messages,
+      toolCallOptions,
+    }: LlmAnswerQuestionParams) {
       const {
         choices: [choice],
       } = await openAiClient.getChatCompletions(deployment, messages, {
         ...openAiLmmConfigOptions,
+        ...(toolCallOptions ? { functionCall: toolCallOptions } : {}),
         functions: tools?.map((tool) => tool.definition),
       });
       const { message } = choice;
       if (!message) {
         throw new Error("No message returned from OpenAI");
       }
-      return message as OpenAiChatMessage;
+      return message as ChatRequestAssistantMessage;
     },
-    async callTool(message: OpenAiChatMessage) {
+    async callTool({ messages, conversation, dataStreamer, request }) {
+      const lastMessage = messages[messages.length - 1];
       // Only call tool if the message is an assistant message with a function call.
       assert(
-        message.role === "assistant" && message.functionCall !== undefined,
+        lastMessage.role === "assistant" &&
+          lastMessage.functionCall !== undefined,
         `Message must be a tool call`
       );
       assert(
-        Object.keys(toolDict).includes(message.functionCall.name),
+        Object.keys(toolDict).includes(lastMessage.functionCall.name),
         `Tool not found`
       );
 
-      const { functionCall } = message;
+      const { functionCall } = lastMessage;
       const tool = toolDict[functionCall.name];
-      const toolResponse = await tool.call(JSON.parse(functionCall.arguments));
+      const toolResponse = await tool.call({
+        functionArgs: JSON.parse(functionCall.arguments),
+        conversation,
+        dataStreamer,
+        request,
+      });
       return toolResponse;
     },
   };

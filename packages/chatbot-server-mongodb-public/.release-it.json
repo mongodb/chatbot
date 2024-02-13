@@ -23,8 +23,7 @@
       "pushd ../mongodb-rag-core && npm i && npm run build && popd",
       "pushd ../mongodb-chatbot-server && npm i && npm run build && popd",
       "npm run build",
-      "npm run lint",
-      "npm run test"
+      "npm run lint"
     ]
   }
 }

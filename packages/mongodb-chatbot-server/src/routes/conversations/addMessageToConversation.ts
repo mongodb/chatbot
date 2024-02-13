@@ -4,7 +4,7 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { ObjectId, References } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core";
 import {
   ConversationsService,
   Conversation,
@@ -30,6 +30,10 @@ import {
 import { GenerateUserPromptFunc } from "../../processors/GenerateUserPromptFunc";
 import { FilterPreviousMessages } from "../../processors/FilterPreviousMessages";
 import { filterOnlySystemPrompt } from "../../processors/filterOnlySystemPrompt";
+import {
+  convertMessageFromLlmToDb,
+  generateResponse,
+} from "../generateResponse";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 300; // magic number for max input size for LLM
 export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for max messages in a conversation
@@ -194,46 +198,35 @@ export function makeAddMessageToConversationRoute({
         ];
 
         // --- GENERATE RESPONSE ---
-        // EAI-121_PART_2_TODO: refactor to include N messages
-        // rather than take the conversation, take previous messages, and newMessages.
-        // manipulate the newMessages object in generated response.
-        // return newMessages
-        const answerContent = await generateResponse({
+        if (shouldStream) {
+          dataStreamer.connect(res);
+        }
+        const { messages: generatedMessages } = await generateResponse({
           shouldStream,
           llm,
           llmConversation,
           dataStreamer,
-          res,
           references,
           reqId,
           llmNotWorkingMessage:
             conversations.conversationConstants.LLM_NOT_WORKING,
+          noRelevantContentMessage:
+            conversations.conversationConstants.NO_RELEVANT_CONTENT,
+          request: req,
         });
-
-        // EAI-121_PART_2_TODO: with refactor to make generateResponse return newMessages,
-        // i don't think this is needed anymore.
-        if (!answerContent) {
-          throw makeRequestError({
-            httpStatus: 500,
-            message: "No answer content",
-          });
-        }
-        const assistantMessage = {
-          role: "assistant",
-          content: answerContent,
-          references: references ?? [],
-        } satisfies AssistantMessage;
-        newMessages.push(assistantMessage);
 
         // --- SAVE QUESTION & RESPONSE ---
         const dbNewMessages = await addMessagesToDatabase({
           conversations,
           conversation,
-          messages: newMessages,
+          messages: [
+            ...newMessages,
+            ...generatedMessages.map((m) => convertMessageFromLlmToDb(m)),
+          ],
         });
         const dbAssistantMessage = dbNewMessages[dbNewMessages.length - 1];
 
-        assert(assistantMessage !== undefined, "No assistant message found");
+        assert(dbAssistantMessage !== undefined, "No assistant message found");
         const apiRes = convertMessageFromDbToApi(dbAssistantMessage);
 
         if (!shouldStream) {
@@ -332,75 +325,6 @@ async function sendStaticNonResponse({
     return;
   } else {
     return res.status(200).json(apiRes);
-  }
-}
-
-interface GenerateResponseParams {
-  shouldStream: boolean;
-  llm: ChatLlm;
-  llmConversation: OpenAiChatMessage[];
-  dataStreamer: DataStreamer;
-  res: ExpressResponse<ApiMessage>;
-  references?: References;
-  reqId: string;
-  llmNotWorkingMessage: string;
-}
-async function generateResponse({
-  shouldStream,
-  llm,
-  llmConversation,
-  dataStreamer,
-  res,
-  references,
-  reqId,
-  llmNotWorkingMessage,
-}: GenerateResponseParams) {
-  if (shouldStream) {
-    dataStreamer.connect(res);
-    const answerStream = await llm.answerQuestionStream({
-      messages: llmConversation,
-    });
-    const answerContent = await dataStreamer.stream({
-      stream: answerStream,
-    });
-    logRequest({
-      reqId,
-      message: `LLM response: ${JSON.stringify(answerContent)}`,
-    });
-    dataStreamer.streamData({
-      type: "references",
-      data: references ?? [],
-    });
-    return answerContent;
-  }
-
-  try {
-    logRequest({
-      reqId,
-      message: `LLM query: ${JSON.stringify(llmConversation)}`,
-    });
-    // --- GENERATE RESPONSE ---
-    const answer = await llm.answerQuestionAwaited({
-      messages: llmConversation,
-    });
-    logRequest({
-      reqId,
-      message: `LLM response: ${JSON.stringify(answer)}`,
-    });
-    return answer.content;
-  } catch (err) {
-    const errorMessage =
-      err instanceof Error ? err.message : JSON.stringify(err);
-    logRequest({
-      reqId,
-      message: `LLM error: ${errorMessage}`,
-      type: "error",
-    });
-    logRequest({
-      reqId,
-      message: "Only sending vector search results to user",
-    });
-    return llmNotWorkingMessage;
   }
 }
 

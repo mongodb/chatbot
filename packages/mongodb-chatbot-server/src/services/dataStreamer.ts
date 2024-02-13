@@ -2,7 +2,7 @@ import { Response } from "express";
 import { OpenAiStreamingResponse } from "./ChatLlm";
 import { logger, References } from "mongodb-rag-core";
 
-function escapeNewlines(str: string): string {
+export function escapeNewlines(str: string): string {
   return str.replaceAll(`\n`, `\\n`);
 }
 
@@ -52,12 +52,24 @@ type StreamEvent = { type: string; data: unknown };
 /**
   Event when server streams additional message response to the client.
  */
-type DeltaStreamEvent = StreamEvent & { type: "delta"; data: string };
+export type DeltaStreamEvent = StreamEvent & { type: "delta"; data: string };
+
+/**
+  Event for when the server is processing a request.
+ */
+export type ProcessingStreamEvent = StreamEvent & {
+  type: "processing";
+  /**
+    Information about processing that is occurring.
+    @example "Searching for related content"
+   */
+  data: string;
+};
 
 /**
   Event when server streams single {@link References} object to the client.
  */
-type ReferencesStreamEvent = StreamEvent & {
+export type ReferencesStreamEvent = StreamEvent & {
   type: "references";
   data: References;
 };
@@ -65,7 +77,7 @@ type ReferencesStreamEvent = StreamEvent & {
 /**
   Event denoting the end of streaming.
  */
-type FinishedStreamEvent = StreamEvent & {
+export type FinishedStreamEvent = StreamEvent & {
   type: "finished";
   data: string;
 };
@@ -73,8 +85,9 @@ type FinishedStreamEvent = StreamEvent & {
 /**
   The event types streamed from the chat server to the client.
  */
-type SomeStreamEvent =
+export type SomeStreamEvent =
   | DeltaStreamEvent
+  | ProcessingStreamEvent
   | ReferencesStreamEvent
   | FinishedStreamEvent;
 
@@ -126,6 +139,9 @@ export function makeDataStreamer(): DataStreamer {
       connected = false;
     },
 
+    /**
+      Streams single item of data in an event stream.
+     */
     streamData(data: SomeStreamEvent) {
       if (!this.connected) {
         throw new Error(
@@ -135,6 +151,9 @@ export function makeDataStreamer(): DataStreamer {
       sse?.sendData(data);
     },
 
+    /**
+      Streams all message events in an event stream.
+     */
     async stream({ stream }: StreamParams) {
       if (!this.connected) {
         throw new Error(

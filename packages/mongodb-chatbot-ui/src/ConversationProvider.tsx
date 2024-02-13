@@ -10,6 +10,9 @@ export const ConversationContext = createContext<Conversation>({
   createConversation: async () => {
     return;
   },
+  endConversationWithError: () => {
+    return;
+  },
   addMessage: async () => {
     return;
   },
@@ -25,7 +28,7 @@ export const ConversationContext = createContext<Conversation>({
   commentMessage: async () => {
     return;
   },
-  endConversationWithError: () => {
+  switchConversation: async () => {
     return;
   },
 });

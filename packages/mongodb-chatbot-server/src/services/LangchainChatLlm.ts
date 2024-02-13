@@ -8,7 +8,7 @@ import { AssistantMessage } from "./ConversationsService";
 
 export interface MakeLangchainChatLlmProps {
   chatModel: BaseChatModel;
-  options?: BaseChatModelCallOptions;
+  callOptions?: BaseChatModelCallOptions;
 }
 
 /**
@@ -19,13 +19,13 @@ export interface MakeLangchainChatLlmProps {
  */
 export function makeLangchainChatLlm({
   chatModel,
-  options,
+  callOptions,
 }: MakeLangchainChatLlmProps): ChatLlm {
   return {
     async answerQuestionAwaited({ messages }) {
       const res = await chatModel.invoke(
         messages.map((m) => messageBaseToLangchainMessage(m)),
-        options
+        callOptions
       );
       return {
         role: "assistant",
@@ -35,8 +35,8 @@ export function makeLangchainChatLlm({
     answerQuestionStream: async ({ messages }) =>
       (async function* () {
         const stream = await chatModel.stream(
-          messages.map((m) => messageBaseToLangchainMessage(m)),
-          options
+          messages.map(messageBaseToLangchainMessage),
+          callOptions
         );
         let index = 0;
         for await (const chunk of stream) {

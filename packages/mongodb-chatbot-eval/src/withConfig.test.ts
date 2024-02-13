@@ -5,7 +5,11 @@ describe("withConfig", () => {
   it("loads a config file", async () => {
     await withConfig(
       async (config) => {
-        expect(config.dataSources).toBeDefined();
+        expect(config.commands).toBeDefined();
+        expect(config.evaluationStore).toBeDefined();
+        expect(config.generatedDataStore).toBeDefined();
+        expect(config.metadataStore).toBeDefined();
+        expect(config.reportStore).toBeDefined();
       },
       {
         config: Path.resolve(

@@ -36,9 +36,21 @@
     "eval": "./build/main.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc -b tsconfig.build.json",
+    "postbuild": "chmod +x build/main.js",
+    "watch": "tsc -b -w",
+    "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
+    "release": "release-it",
+    "test": "jest"
   },
   "bugs": {
     "url": "https://github.com/mongodb/chatbot/issues"
+  },
+  "dependencies": {
+    "jest": "^29.7.0",
+    "mongodb-rag-core": "*"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.4"
   }
 }

@@ -1,0 +1,44 @@
+{
+  "name": "mongodb-chatbot-eval",
+  "version": "0.0.0",
+  "description": "Evaluate responses from MongoDB chatbot server",
+  "license": "Apache-2.0",
+  "author": "MongoDB, Inc.",
+  "keywords": [
+    "retrieval-augmented-generation",
+    "rag",
+    "chatbot",
+    "mongodb",
+    "mongodb-chatbot-framework"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mongodb/chatbot.git"
+  },
+  "homepage": "https://mongodb.github.io/chatbot/eval",
+  "main": "build/main.js",
+  "engines": {
+    "node": ">=18",
+    "npm": ">=8"
+  },
+  "files": [
+    "build",
+    "README.md"
+  ],
+  "exports": {
+    ".": "./build/index.js",
+    "./generate": "./build/generate/index.js",
+    "./evaluate": "./build/evaluate/index.js",
+    "./report": "./build/report/index.js",
+    "./core": "./build/core/index.js"
+  },
+  "bin": {
+    "eval": "./build/main.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/mongodb/chatbot/issues"
+  }
+}

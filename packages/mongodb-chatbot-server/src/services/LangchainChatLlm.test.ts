@@ -42,7 +42,6 @@ describe("LangchainChatLlm", () => {
     });
     let content = "";
     for await (const event of res) {
-      // expect(event.choices[0].delta?.content).toBe(fakeResponses[0]);
       content += event.choices[0].delta?.content;
     }
     expect(content).toBe(fakeResponses[0]);

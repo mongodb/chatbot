@@ -1,14 +1,16 @@
 import { ObjectId } from "mongodb-rag-core";
-import {
-  Conversation,
-  ConversationsService,
-} from "../../services/ConversationsService";
+import { ConversationsService } from "../../services/ConversationsService";
 import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
-import { ApiConversation, RequestError, makeRequestError } from "./utils";
+import {
+  ApiConversation,
+  RequestError,
+  convertConversationFromDbToApi,
+  makeRequestError,
+} from "./utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 
@@ -54,8 +56,7 @@ export function makeGetConversationRoute({
           httpStatus: 404,
         });
       }
-      const apiConversation =
-        convertDbConversationToApiConversation(conversationInDb);
+      const apiConversation = convertConversationFromDbToApi(conversationInDb);
       logRequest({
         reqId,
         message: `Successfully retrieved conversation: ${apiConversation}`,
@@ -79,17 +80,4 @@ export function makeGetConversationRoute({
       });
     }
   };
-}
-
-function convertDbConversationToApiConversation(conversation: Conversation) {
-  return {
-    _id: conversation._id.toHexString(),
-    createdAt: conversation.createdAt.getTime(),
-    messages: conversation.messages.map((message) => ({
-      id: message.id.toHexString(),
-      role: message.role,
-      content: message.content,
-      createdAt: message.createdAt.getTime(),
-    })),
-  } satisfies ApiConversation;
 }

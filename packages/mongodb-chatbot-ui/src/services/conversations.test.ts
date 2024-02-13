@@ -71,6 +71,61 @@ describe("ConversationService", () => {
     expect(conversation.messages).toEqual([]);
   });
 
+  it("gets an existing conversation", async () => {
+    const conversationId = "65c680decdb62b4c92797323";
+    mockFetchResponse({
+      data: {
+        _id: conversationId,
+        messages: [
+          {
+            id: "65c680decdb62b4c92797324",
+            role: "user",
+            content: "Hello world!",
+            createdAt: new Date().toISOString(),
+            references: [],
+          },
+          {
+            id: "65c680decdb62b4c92797325",
+            role: "assistant",
+            content: "I'm sorry, I don't know how to help with that.",
+            createdAt: new Date().toISOString(),
+            references: [
+              { title: "Title 1", url: "https://example.com/1" },
+              { title: "Title 2", url: "https://example.com/2" },
+              { title: "Title 3", url: "https://example.com/3" },
+            ],
+          },
+        ],
+      },
+    });
+    const conversation = await conversationService.getConversation(conversationId);
+    expect(conversation.conversationId).toEqual(conversationId);
+    expect(conversation.messages[0].id).toEqual("65c680decdb62b4c92797324");
+    expect(conversation.messages[1].id).toEqual("65c680decdb62b4c92797325");
+    expect(conversation.messages[2]).toBeUndefined();
+  });
+
+  it("throws if you try to get a conversation with an invalid ID", async () => {
+    mockFetchResponse({
+      status: 400,
+      data: { error: "Invalid conversation ID" },
+    });
+    expect(async () => {
+      return conversationService.getConversation("not-a-real-conversation-id");
+    }).rejects.toThrow("Invalid conversation ID");
+  });
+
+  it("throws if you try to get a non-existent conversation", async () => {
+    mockFetchResponse({
+      status: 404,
+      data: { error: "Conversation not found" },
+    });
+    expect(async () => {
+      // Assumes 65c689e3ccdb70bebc178017 is not in the database
+      return conversationService.getConversation("65c689e3ccdb70bebc178017");
+    }).rejects.toThrow("Conversation not found");
+  });
+
   it("adds messages w/ an awaited response", async () => {
     const conversationId = "650b4b260f975ef031016c8b";
     const mockMessage = {
@@ -206,7 +261,7 @@ describe("ConversationService", () => {
         messageId,
         rating: "true" as unknown as boolean,
       });
-    }).rejects.toThrowError(invalidRatingErrorMessage);
+    }).rejects.toThrow(invalidRatingErrorMessage);
 
     const invalidCommentErrorMessage = "Failed to save comment on message";
     mockFetchResponse({
@@ -220,7 +275,7 @@ describe("ConversationService", () => {
         messageId,
         comment: 42 as unknown as string,
       });
-    }).rejects.toThrowError(invalidCommentErrorMessage);
+    }).rejects.toThrow(invalidCommentErrorMessage);
 
     const invalidConversationIdErrorMessage = "Invalid conversation ID";
     mockFetchResponse({
@@ -251,7 +306,7 @@ describe("ConversationService", () => {
         conversationId,
         message: "Hello world!",
       });
-    }).rejects.toThrowError(internalServerErrorMessage);
+    }).rejects.toThrow(internalServerErrorMessage);
 
     expect(async () => {
       return conversationService.rateMessage({
@@ -259,7 +314,7 @@ describe("ConversationService", () => {
         messageId,
         rating: true,
       });
-    }).rejects.toThrowError(internalServerErrorMessage);
+    }).rejects.toThrow(internalServerErrorMessage);
   });
 });
 

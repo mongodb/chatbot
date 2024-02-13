@@ -125,6 +125,29 @@ export class ConversationService {
     };
   }
 
+  async getConversation(
+    conversationId: string
+  ): Promise<Required<ConversationState>> {
+    const path = `/conversations/${conversationId}`;
+    const resp = await fetch(this.getUrl(path), {
+      headers: {
+        "Content-Type": "application/json",
+        [CUSTOM_REQUEST_ORIGIN_HEADER]: getCustomRequestOrigin() ?? "",
+      },
+    });
+    const conversation = await resp.json();
+    if (resp.status === 404) {
+      throw new Error(`Conversation not found: ${conversationId}`);
+    }
+    if (resp.status !== 200) {
+      throw new Error(`Failed to fetch conversation: ${conversation.error}`);
+    }
+    return {
+      ...conversation,
+      conversationId: conversation._id,
+    };
+  }
+
   async addMessage({
     conversationId,
     message,

@@ -44,6 +44,7 @@ type ConversationActor = {
   deleteMessage: (messageId: string) => Promise<void>;
   rateMessage: (messageId: string, rating: boolean) => Promise<void>;
   commentMessage: (messageId: string, comment: string) => Promise<void>;
+  switchConversation: (conversationId: string) => Promise<void>;
 };
 
 export type Conversation = ConversationState & ConversationActor;
@@ -306,12 +307,6 @@ export function useConversation(params: UseConversationParams = {}) {
 
   const createConversation = async () => {
     try {
-      if (state.conversationId) {
-        console.error(
-          `Cannot createConversation when conversationId already exists`
-        );
-        return;
-      }
       const conversation = await conversationService.createConversation();
       setConversation({
         ...conversation,
@@ -502,6 +497,31 @@ export function useConversation(params: UseConversationParams = {}) {
     (m) => m.id === STREAMING_MESSAGE_ID
   );
 
+  /**
+   * Switch to a different, existing conversation.
+   */
+  const switchConversation = async (conversationId: string) => {
+    try {
+      const conversation = await conversationService.getConversation(
+        conversationId
+      );
+      setConversation({
+        ...conversation,
+        error: "",
+      });
+    } catch (error) {
+      const errorMessage =
+        typeof error === "string"
+          ? error
+          : error instanceof Error
+          ? error.message
+          : "Failed to switch conversation.";
+      console.error(errorMessage);
+      // Rethrow the error so that we can handle it in the UI
+      throw error;
+    }
+  };
+
   return {
     ...state,
     createConversation,
@@ -512,5 +532,6 @@ export function useConversation(params: UseConversationParams = {}) {
     deleteMessage,
     rateMessage,
     commentMessage,
+    switchConversation,
   } satisfies Conversation;
 }

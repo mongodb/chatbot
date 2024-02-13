@@ -11,6 +11,14 @@ export interface CommandMetadataStore {
   findById(commandId: ObjectId): Promise<CommandRunMetadata | undefined>;
 }
 
+// TODO: implement
 export function makeMongoDbCommandMetadataStore(): CommandMetadataStore {
-  return {};
+  return {
+    async insertOne(command) {
+      return true;
+    },
+    async findById(commandId) {
+      return undefined;
+    },
+  };
 }

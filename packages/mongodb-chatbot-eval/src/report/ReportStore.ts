@@ -13,6 +13,14 @@ export interface ReportStore {
   find(filter: Record<string, unknown>): Promise<Report[] | undefined>;
 }
 
+// TODO: implement
 export function makeMongoDbReportStore(): ReportStore {
-  return {};
+  return {
+    async insertOne(evalResult) {
+      return true;
+    },
+    async find(filter) {
+      return undefined;
+    },
+  };
 }

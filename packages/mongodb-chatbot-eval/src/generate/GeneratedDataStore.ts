@@ -14,6 +14,17 @@ export interface GeneratedDataStore {
   find(filter: Record<string, unknown>): Promise<GeneratedData[] | undefined>;
 }
 
+// TODO: implement
 export function makeMongoDbGeneratedDataStore(): GeneratedDataStore {
-  return {};
+  return {
+    async insertOne(generatedData) {
+      return true;
+    },
+    async findById(generatedDataId) {
+      return undefined;
+    },
+    async find(filter) {
+      return undefined;
+    },
+  };
 }

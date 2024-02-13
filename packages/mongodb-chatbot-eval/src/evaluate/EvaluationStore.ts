@@ -17,6 +17,14 @@ export interface EvaluationStore {
   find(filter: Record<string, unknown>): Promise<EvalResult[] | undefined>;
 }
 
+// TODO: implement
 export function makeMongoDbEvaluationStore(): EvaluationStore {
-  return {};
+  return {
+    async insertOne(evalResult) {
+      return true;
+    },
+    async find(filter) {
+      return undefined;
+    },
+  };
 }

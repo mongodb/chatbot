@@ -20,7 +20,6 @@
     "scripts:scrubMessages": "lerna run scrubMessages --scope='scripts'",
     "scripts:findFaq": "lerna run findFaq --scope='scripts'",
     "scripts:getConversationText": "lerna run --scope='scripts' getConversationText -- ",
-    "scripts:removeTestDatabases": "lerna run --scope='scripts' removeTestDatabases -- ",
     "server:start": "lerna run start --scope='chatbot-server-mongodb-public'"
   },
   "devDependencies": {

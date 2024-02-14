@@ -1,8 +1,8 @@
-import { ObjectId } from "../core";
+import { Filter, MongoClient, ObjectId } from "mongodb-rag-core";
 
 export interface EvalResult {
   _id: ObjectId;
-  conversationId: ObjectId;
+  generatedDataId: ObjectId;
   commandRunMetadataId: ObjectId;
   evalName: string;
   /**
@@ -14,17 +14,43 @@ export interface EvalResult {
 
 export interface EvaluationStore {
   insertOne(evalResult: EvalResult): Promise<boolean>;
-  find(filter: Record<string, unknown>): Promise<EvalResult[] | undefined>;
+  find(filter: unknown): Promise<EvalResult[] | undefined>;
+  close(): Promise<void>;
 }
 
-// TODO: implement
-export function makeMongoDbEvaluationStore(): EvaluationStore {
+export interface MakeMongoDbEvaluationStoreParams {
+  connectionUri: string;
+  databaseName: string;
+  /**
+    @default "evaluations"
+   */
+  collectionName?: string;
+}
+
+export interface MongoDbEvaluationStore extends EvaluationStore {
+  find(filter: Filter<EvalResult>): Promise<EvalResult[] | undefined>;
+}
+
+export function makeMongoDbEvaluationStore({
+  connectionUri,
+  databaseName,
+  collectionName,
+}: MakeMongoDbEvaluationStoreParams): MongoDbEvaluationStore {
+  const client = new MongoClient(connectionUri);
+  const collection = client
+    .db(databaseName)
+    .collection<EvalResult>(collectionName ?? "evaluations");
   return {
     async insertOne(evalResult) {
-      return true;
+      const { acknowledged } = await collection.insertOne(evalResult);
+      return acknowledged;
     },
     async find(filter) {
-      return undefined;
+      const cursor = await collection.find(filter);
+      return await cursor.toArray();
+    },
+    async close() {
+      await client.close();
     },
   };
 }

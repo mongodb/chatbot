@@ -41,7 +41,7 @@
     "watch": "tsc -b -w",
     "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
     "release": "release-it",
-    "test": "jest"
+    "test": "jest --forceExit"
   },
   "bugs": {
     "url": "https://github.com/mongodb/chatbot/issues"

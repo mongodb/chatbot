@@ -1,4 +1,4 @@
-import { ObjectId } from "../core";
+import { Filter, MongoClient, ObjectId } from "mongodb-rag-core";
 
 export interface GeneratedData {
   _id: ObjectId;
@@ -9,22 +9,48 @@ export interface GeneratedData {
 }
 
 export interface GeneratedDataStore {
-  insertOne(generatedData: Omit<GeneratedData, "_id">): Promise<boolean>;
+  insertOne(generatedData: GeneratedData): Promise<boolean>;
   findById(generatedDataId: ObjectId): Promise<GeneratedData | undefined>;
-  find(filter: Record<string, unknown>): Promise<GeneratedData[] | undefined>;
+  find(filter: unknown): Promise<GeneratedData[] | undefined>;
+  close(): Promise<void>;
 }
 
-// TODO: implement
-export function makeMongoDbGeneratedDataStore(): GeneratedDataStore {
+export interface MakeMongoDbGeneratedDataStoreParams {
+  connectionUri: string;
+  databaseName: string;
+  /**
+    @default "generated_data"
+   */
+  collectionName?: string;
+}
+
+export interface MongoDbGeneratedDataStore extends GeneratedDataStore {
+  find(filter: Filter<GeneratedData>): Promise<GeneratedData[] | undefined>;
+}
+
+export function makeMongoDbGeneratedDataStore({
+  connectionUri,
+  databaseName,
+  collectionName,
+}: MakeMongoDbGeneratedDataStoreParams): MongoDbGeneratedDataStore {
+  const client = new MongoClient(connectionUri);
+  const collection = client
+    .db(databaseName)
+    .collection<GeneratedData>(collectionName ?? "generated_data");
   return {
     async insertOne(generatedData) {
-      return true;
+      const { acknowledged } = await collection.insertOne(generatedData);
+      return acknowledged;
     },
     async findById(generatedDataId) {
-      return undefined;
+      return (await collection.findOne({ _id: generatedDataId })) ?? undefined;
     },
-    async find(filter) {
-      return undefined;
+    async find(filter: Filter<GeneratedData>) {
+      const cursor = await collection.find(filter);
+      return await cursor.toArray();
+    },
+    async close() {
+      await client.close();
     },
   };
 }

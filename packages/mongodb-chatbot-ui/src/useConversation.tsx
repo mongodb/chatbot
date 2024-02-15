@@ -94,6 +94,7 @@ function conversationReducer(
       if (!state.conversationId) {
         console.error(`Cannot addMessage without a conversationId`);
       }
+      console.log(`addMessage`, action);
       const newMessage = createMessage(action.role, action.content);
       return {
         ...state,

@@ -80,7 +80,7 @@ export type ConversationServiceConfig = {
 
 export class ConversationService {
   private serverUrl: string;
-  private fetchOptions: ConversationFetchOptions;
+  private fetchOptions?: ConversationFetchOptions;
 
   constructor(config: ConversationServiceConfig) {
     assert(
@@ -93,21 +93,19 @@ export class ConversationService {
           window.location.protocol + "//" + window.location.host
         ).href
       : config.serverUrl;
-    const defaultHeaders = new Headers();
-    defaultHeaders.set(
-      CUSTOM_REQUEST_ORIGIN_HEADER,
-      getCustomRequestOrigin() ?? ""
-    );
-    defaultHeaders.set("Content-Type", "application/json");
-    const defaultFetchOptions = {
-      headers: defaultHeaders,
-    } satisfies ConversationFetchOptions;
+
+    const defaultHeaders = new Headers({
+      "Content-Type": "application/json",
+      [`${CUSTOM_REQUEST_ORIGIN_HEADER}`]: getCustomRequestOrigin() ?? "",
+    });
+
     this.fetchOptions = {
-      ...defaultFetchOptions,
       ...(config.fetchOptions ?? {}),
       headers: this.mergeHeaders(
         defaultHeaders,
-        config.fetchOptions?.headers ?? new Headers()
+        config.fetchOptions?.headers
+          ? new Headers(config.fetchOptions?.headers)
+          : new Headers()
       ),
     };
   }
@@ -171,12 +169,7 @@ export class ConversationService {
     conversationId: string
   ): Promise<Required<ConversationState>> {
     const path = `/conversations/${conversationId}`;
-    const resp = await fetch(this.getUrl(path), {
-      headers: {
-        "Content-Type": "application/json",
-        [CUSTOM_REQUEST_ORIGIN_HEADER]: getCustomRequestOrigin() ?? "",
-      },
-    });
+    const resp = await fetch(this.getUrl(path), this.fetchOptions);
     const conversation = await resp.json();
     if (resp.status === 404) {
       throw new Error(`Conversation not found: ${conversationId}`);
@@ -262,6 +255,8 @@ export class ConversationService {
 
     await fetchEventSource(this.getUrl(path, { stream: "true" }), {
       ...this.fetchOptions,
+      // Need to convert Headers to plain object for fetchEventSource
+      headers: Object.fromEntries(this.fetchOptions?.headers ?? new Headers()),
       signal: signal ?? null,
       method: "POST",
       body: JSON.stringify({ message }),

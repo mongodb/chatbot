@@ -117,10 +117,29 @@ export const makeStepBackRagGenerateUserPrompt = ({
         .map((c) => c.text)
         .join("---")}`,
     });
-    const userPrompt = {
+    const baseUserMessage = {
       role: "user",
       embedding: queryEmbedding,
       content: userMessageText,
+      customData,
+      preprocessedContent: stepBackUserQuery,
+    } satisfies UserMessage;
+    if (content.length === 0) {
+      return {
+        userMessage: {
+          ...baseUserMessage,
+          rejectQuery: true,
+          customData: {
+            ...customData,
+            rejectionReason: "Did not find any content matching the query",
+          },
+        },
+        rejectQuery: true,
+        references: [],
+      } satisfies GenerateUserPromptFuncReturnValue;
+    }
+    const userPrompt = {
+      ...baseUserMessage,
       contentForLlm: makeUserContentForLlm({
         userMessageText,
         stepBackUserQuery,
@@ -129,8 +148,6 @@ export const makeStepBackRagGenerateUserPrompt = ({
         content,
         maxContextTokenCount,
       }),
-      customData,
-      preprocessedContent: stepBackUserQuery,
     } satisfies UserMessage;
     const references = makeMongoDbReferences(content);
     logRequest({
@@ -171,18 +188,6 @@ function makeUserContentForLlm({
     ...(metadata ?? {}),
     searchQuery: stepBackUserQuery,
   });
-  if (content.length === 0) {
-    return `Use the following information to respond to the "user message" by:
-1. Asking the user to rephrase their query
-2. Providing a few suggestions for how to rephrase the query as a more general search query (e.g. "how do i filter documents in python to only find where carType is 'suv'" -> "How do I query MongoDB documents in Python based on a specific field value?")
-
-Relevant metadata: ${JSON.stringify({
-      ...(metadata ?? {}),
-      searchQuery: stepBackUserQuery,
-    })}
-
-User message: ${userMessageText}`;
-  }
 
   let currentTotalTokenCount = 0;
   const contentForLlm = [...content]
@@ -196,7 +201,7 @@ User message: ${userMessageText}`;
     .map((c) => c.text)
     .reverse()
     .join("---");
-  return `Use the following information to respond to the "user message".
+  return `Use the following information to respond to the "User message". If you do not know the answer to the question based on the provided documentation content, respond with the following text: "I'm sorry, I do not know how to answer that question. Please try to rephrase your query." NEVER include Markdown links in the answer.
 ${
   previousConversationMessages.length > 0
     ? `Previous conversation messages: ${previousConversationMessages}`

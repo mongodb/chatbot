@@ -3,15 +3,11 @@ import {
   ConversationsService,
   AppConfig,
   DEFAULT_API_PREFIX,
-  Db,
-  MongoClient,
 } from "mongodb-chatbot-server";
 import { makeTestApp } from "../test/testHelpers";
 import { generateTranscript } from "./generateChatTranscript";
 import { stripIndents } from "common-tags";
 
-let db: Db;
-let mongoClient: MongoClient;
 let app: Express;
 let conversations: ConversationsService;
 let ipAddress: string;
@@ -22,12 +18,8 @@ const addMessageEndpoint =
 
 jest.setTimeout(20000);
 beforeAll(async () => {
-  ({ db, mongoClient, app, appConfig, ipAddress } = await makeTestApp());
+  ({ app, appConfig, ipAddress } = await makeTestApp());
   conversations = appConfig.conversationsRouterConfig.conversations;
-});
-afterAll(async () => {
-  await db.dropDatabase();
-  await mongoClient?.close();
 });
 describe("generateChatTranscript()", () => {
   test("Should generate a transcript when 1 message", async () => {

@@ -1,16 +1,33 @@
+import { strict as assert } from "assert";
 import {
   MongoClient,
+  Db,
   AppConfig,
   makeApp,
   makeMongoDbConversationsService,
 } from "mongodb-chatbot-server";
 import { MONGODB_CONNECTION_URI, config, systemPrompt } from "../config";
 
+let mongoClient: MongoClient | undefined;
+let mongodb: Db | undefined;
+let testDbName: string | undefined;
+
+beforeAll(async () => {
+  testDbName = `conversations-test-${Date.now()}`;
+  mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
+  mongodb = mongoClient.db(testDbName);
+});
+
+afterAll(async () => {
+  await mongodb?.dropDatabase();
+  await mongoClient?.close();
+});
+
 export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
-  const testDbName = `conversations-test-${Date.now()}`;
-  const mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
-  const db = mongoClient.db(testDbName);
-  const conversations = makeMongoDbConversationsService(db, systemPrompt);
+  assert(mongodb !== undefined);
+  assert(mongoClient !== undefined);
+
+  const conversations = makeMongoDbConversationsService(mongodb, systemPrompt);
   const appConfig: AppConfig = {
     ...config,
     conversationsRouterConfig: {
@@ -19,7 +36,7 @@ export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
     },
     ...(defaultConfigOverrides ?? {}),
   };
-  return { appConfig, db, conversations, systemPrompt, mongoClient };
+  return { appConfig, mongodb, conversations, systemPrompt };
 }
 
 /**
@@ -30,8 +47,9 @@ export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
   // ip address for local host
   const ipAddress = "127.0.0.1";
 
-  const { appConfig, systemPrompt, db, mongoClient, conversations } =
-    makeTestAppConfig(defaultConfigOverrides);
+  const { appConfig, systemPrompt, mongodb, conversations } = makeTestAppConfig(
+    defaultConfigOverrides
+  );
   const app = await makeApp(appConfig);
 
   return {
@@ -39,8 +57,7 @@ export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
     appConfig,
     conversations,
     ipAddress,
-    mongoClient,
-    db,
+    mongodb,
     systemPrompt,
   };
 }

@@ -8,14 +8,9 @@ trigger:
     - tag
   paths:
     include:
-      - packages/mongodb-chatbot-server/**/*
-      - packages/mongodb-rag-core/**/*
-      - packages/mongodb-chatbot-ui/**/*
-      - packages/mongodb-rag-ingest/**/*
-      - packages/scripts/**/*
-      - packages/ingest-mongodb-public/**/*
-      - packages/chatbot-server-mongodb-public/**/*
+      - packages/**/*
       - package-lock.json
+      - package.json
 
 steps:
   - name: test
@@ -29,7 +24,7 @@ steps:
     environment:
       PORT: 3000
       OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
-      OPENAI_EMBEDDING_MODEL_VERSION: 2023-03-15-preview
+      OPENAI_EMBEDDING_MODEL_VERSION: "2023-05-15"
       MONGODB_DATABASE_NAME: docs-chatbot-test
       VECTOR_SEARCH_INDEX_NAME: vector_index
       OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
@@ -75,6 +70,8 @@ trigger:
       - packages/chatbot-server-mongodb-public/**/*
       - packages/mongodb-rag-core/**/*
       - packages/mongodb-chatbot-ui/**/*
+      - package-lock.json
+      - package.json
 
 steps:
   # Builds and publishes Docker image for staging
@@ -128,6 +125,8 @@ trigger:
       - packages/chatbot-server-mongodb-public/**/*
       - packages/mongodb-rag-core/**/*
       - packages/mongodb-chatbot-ui/**/*
+      - package-lock.json
+      - package.json
   branch:
     - main
 
@@ -324,6 +323,8 @@ trigger:
       - packages/mongodb-rag-ingest/**/*
       - packages/ingest-mongodb-public/**/*
       - packages/mongodb-rag-core/**/*
+      - package-lock.json
+      - package.json
 
 steps:
   # Builds and publishes Docker image for staging
@@ -375,6 +376,9 @@ trigger:
       - packages/mongodb-rag-ingest/**/*
       - packages/ingest-mongodb-public/**/*
       - packages/mongodb-rag-core/**/*
+      - package-lock.json
+      - package.json
+
   branch:
     - main
 
@@ -581,7 +585,7 @@ trigger:
     - tag
   ref:
     include:
-      - refs/tags/chat-ui-v*
+      - refs/tags/mongodb-chatbot-ui-v*
 
 steps:
   - name: build package
@@ -617,6 +621,8 @@ trigger:
       - packages/scripts/**/*
       - packages/mongodb-rag-core/**/*
       - packages/mongodb-chatbot-server/**/*
+      - package-lock.json
+      - package.json
 
 steps:
   # Builds and publishes Docker image for staging
@@ -668,6 +674,9 @@ trigger:
       - packages/scripts/**/*
       - packages/mongodb-rag-core/**/*
       - packages/mongodb-chatbot-server/**/*
+      - package-lock.json
+      - package.json
+
   branch:
     - main
 

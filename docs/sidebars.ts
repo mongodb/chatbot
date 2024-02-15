@@ -56,6 +56,7 @@ const sidebars: SidebarsConfig = {
           ],
         },
         "server/custom-logic",
+        "server/tools",
         "server/persist",
         "server/evaluate",
         {

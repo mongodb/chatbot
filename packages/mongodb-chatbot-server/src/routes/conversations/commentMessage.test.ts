@@ -8,7 +8,7 @@ import {
   ConversationsService,
 } from "../../services/ConversationsService";
 import { Express } from "express";
-import { Db, MongoClient, ObjectId } from "mongodb-rag-core";
+import { Db, ObjectId } from "mongodb-rag-core";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { AppConfig } from "../../app";
@@ -25,15 +25,12 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
   let conversation: Conversation;
   let testMsg: Message;
   let testEndpointUrl: string;
-  let mongodb: Db;
-  let mongoClient: MongoClient;
   let ipAddress: string;
   let appConfig: AppConfig;
   let origin: string;
 
   beforeEach(async () => {
-    ({ mongodb, mongoClient, app, ipAddress, appConfig, origin } =
-      await makeTestApp());
+    ({ app, ipAddress, appConfig, origin } = await makeTestApp());
     conversations = appConfig.conversationsRouterConfig.conversations;
 
     conversation = await conversations.create();
@@ -49,11 +46,6 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
     testEndpointUrl = endpointUrl
       .replace(":conversationId", conversation._id.toHexString())
       .replace(":messageId", String(testMsg.id));
-  });
-
-  afterEach(async () => {
-    await mongodb.dropDatabase();
-    await mongoClient.close();
   });
 
   it("Should return 204 for valid comment", async () => {
@@ -279,17 +271,13 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
   });
 
   it("Should enforce maximum comment length (if configured)", async () => {
-    const { app, ipAddress, appConfig, origin, ...testApp } = await makeTestApp(
-      {
-        ...testConfig,
-        conversationsRouterConfig: {
-          ...testConfig.conversationsRouterConfig,
-          maxUserCommentLength: 500,
-        },
-      }
-    );
-    mongodb = testApp.mongodb;
-    mongoClient = testApp.mongoClient;
+    const { app, ipAddress, appConfig, origin } = await makeTestApp({
+      ...testConfig,
+      conversationsRouterConfig: {
+        ...testConfig.conversationsRouterConfig,
+        maxUserCommentLength: 500,
+      },
+    });
     const conversations = appConfig.conversationsRouterConfig.conversations;
     const conversation = await conversations.create();
     const firstMessage = await conversations.addConversationMessage({

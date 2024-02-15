@@ -6,10 +6,16 @@
  */
 import {
   ChatCompletions,
+  ChatRequestAssistantMessage,
   ChatRequestMessage,
+  FunctionCallPreset,
   FunctionDefinition,
+  FunctionName,
 } from "@azure/openai";
 import { Reference } from "mongodb-rag-core";
+import { Request as ExpressRequest } from "express";
+import { Conversation } from "./ConversationsService";
+import { DataStreamer } from "./dataStreamer";
 export type OpenAiMessageRole = "system" | "assistant" | "user" | "function";
 
 export type OpenAiChatMessage = ChatRequestMessage & {
@@ -32,6 +38,7 @@ export type SystemPrompt = OpenAiChatMessage & {
 
 export interface LlmAnswerQuestionParams {
   messages: OpenAiChatMessage[];
+  toolCallOptions?: ToolCallDirective;
 }
 /**
   Tool for the chatbot to use.
@@ -45,20 +52,47 @@ export interface Tool {
   /**
     Call the function based on the arguments in the {@link Tool.definition}.
    */
-  call(args: unknown): Promise<CallToolResponse>;
+  call(args: ToolCallParams): Promise<CallToolResponse>;
+}
+
+/**
+  Parameters for invoking a tool call.
+ */
+export interface ToolCallParams {
+  functionArgs: unknown;
+
+  /**
+    Conversation in the DB. Useful for getting metadata to use in tool calls.
+   */
+  conversation?: Conversation;
+
+  /**
+    Data streamer with connection open to send events to the client.
+
+    For example, you could use this to send updates about
+    what the tool is doing to the client.
+
+   */
+  dataStreamer?: DataStreamer;
+
+  /**
+    Current Express.js request from the client.
+    Useful for getting metadata to use in tool calls.
+   */
+  request?: ExpressRequest;
 }
 
 export type OpenAIChatCompletionWithoutUsage = Omit<ChatCompletions, "usage">;
 
 export type OpenAiStreamingResponse =
   AsyncIterable<OpenAIChatCompletionWithoutUsage>;
-export type OpenAiAwaitedResponse = OpenAiChatMessage;
+export type OpenAiAwaitedResponse = ChatRequestAssistantMessage;
 
 export interface CallToolResponse {
   /**
     Message to add to the conversation.
    */
-  functionMessage: OpenAiChatMessage;
+  toolCallMessage: OpenAiChatMessage;
 
   /**
     If `true`, the user query should be rejected.
@@ -73,15 +107,48 @@ export interface CallToolResponse {
   references?: Reference[];
 }
 
+export type ToolCallDirective = FunctionCallPreset | FunctionName;
+
+/**
+  Parameters for invoking a tool call from the LLM.
+ */
+export interface LlmCallToolParams {
+  /**
+    Messages to send to the LLM. The tool call invocation information
+    should be in the last message.
+   */
+  messages: OpenAiChatMessage[];
+
+  /**
+    Conversation in the DB. Useful for getting metadata to use in tool calls.
+   */
+  conversation?: Conversation;
+
+  /**
+    Data streamer with connection open to send events to the client.
+
+    For example, you could use this to send updates about
+    what the tool is doing to the client.
+
+   */
+  dataStreamer?: DataStreamer;
+
+  /**
+    Current Express.js request from the client.
+    Useful for getting metadata to use in tool calls.
+   */
+  request?: ExpressRequest;
+}
+
 /**
   LLM that responds to user queries. Provides both streaming and awaited options.
  */
 export interface ChatLlm {
-  answerQuestionStream({
-    messages,
-  }: LlmAnswerQuestionParams): Promise<OpenAiStreamingResponse>;
-  answerQuestionAwaited({
-    messages,
-  }: LlmAnswerQuestionParams): Promise<OpenAiAwaitedResponse>;
-  callTool(message: OpenAiChatMessage): Promise<CallToolResponse>;
+  answerQuestionStream(
+    params: LlmAnswerQuestionParams
+  ): Promise<OpenAiStreamingResponse>;
+  answerQuestionAwaited(
+    params: LlmAnswerQuestionParams
+  ): Promise<OpenAiAwaitedResponse>;
+  callTool?(params: LlmCallToolParams): Promise<CallToolResponse>;
 }

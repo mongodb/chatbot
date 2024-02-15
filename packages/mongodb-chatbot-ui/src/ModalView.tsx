@@ -106,6 +106,7 @@ export function ModalView(props: ModalViewProps) {
 
   const {
     awaitingReply,
+    canSubmit,
     chatbotName,
     closeChat,
     conversation,
@@ -212,6 +213,7 @@ export function ModalView(props: ModalViewProps) {
                       isInitialMessage && conversation.messages.length === 0
                     }
                     onSuggestedPromptClick={handleSubmit}
+                    canSubmitSuggestedPrompt={canSubmit}
                   />
                 );
               })}

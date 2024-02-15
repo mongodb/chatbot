@@ -12,9 +12,6 @@ The MongoDB Chatbot Server comes with an implementation of the `ChatLlm`,
 which uses the OpenAI API. You could also implement your own `ChatLlm` to
 use a different language model or different configuration on the OpenAI API.
 
-You can use the [`makeOpenAiChatLlm()`](../reference/server/modules.md#makeopenaichatllm)
-constructor function to create an `OpenAiChatLlm` instance.
-
 The following are useful things to keep in mind when using an LLM:
 
 1. **What model to use.** This is probably the single most important decision
@@ -29,12 +26,25 @@ The following are useful things to keep in mind when using an LLM:
 1. **Prompt engineering.** What additional information to include in the prompt
    to guide the model's behavior. For more information, refer to the
    [Prompt Engineering](#prompt-engineering) section.
+1. **Tools.** What tools to give the model to use. For more information, refer to the
+   [Tool Calling](./tools.md) guide.
+
+### Use OpenAI API
+
+You can use the [`makeOpenAiChatLlm()`](../reference/server/modules.md#makeopenaichatllm)
+constructor function to create a `ChatLlm` that uses an OpenAI model like GPT-3.5.
+
+`makeOpenAiChatLlm()` supports both the OpenAI API and Azure OpenAI Service.
+It wraps the `@azure/openai` package, which supports both of these services.
+
+To use the `@azure/openai` package with the OpenAI API,
+refer to [this documentation](https://www.npmjs.com/package/@azure/openai#using-an-api-key-from-openai).
 
 The following is an example implementation of `makeOpenAiChatLlm()`:
 
 ```ts
 import { makeOpenAiChatLlm, OpenAiChatMessage } from "mongodb-chatbot-server";
-
+import { someTool } from "./someTool";
 export const openAiClient = new OpenAIClient(
   OPENAI_ENDPOINT,
   new AzureKeyCredential(OPENAI_API_KEY)
@@ -47,18 +57,28 @@ export const llm = makeOpenAiChatLlm({
     temperature: 0,
     maxTokens: 500,
   },
+  tools: [someTool],
 });
 ```
 
-:::note[Both OpenAI API and Azure OpenAI Service Supported]
+### Use Langchain `ChatModel`
 
-The MongoDB Chatbot Server supports both the OpenAI API and Azure OpenAI Service.
-It uses the `@azure/openai` package, which supports both of these services.
+You can use the [`makeLangchainChatLlm()`](../reference/server/modules.md#makelangchainchatllm) constructor function to create a `ChatLlm` that uses a Langchain `ChatModel`. For more information on available `ChatModel` implementations, refer to the [Chat Models](https://js.langchain.com/docs/integrations/chat/) in the Langchain documentation.
 
-To use the `@azure/openai` package with the OpenAI API,
-refer to [this documentation](https://www.npmjs.com/package/@azure/openai#using-an-api-key-from-openai).
+The following is an example implementation of using `makeLangchainChatLlm()` to
+use Anthropic's Claude family of models:
 
-:::
+```ts
+import { makeLangchainChatLlm } from "mongodb-chatbot-server";
+import { ChatAnthropic } from "@langchain/anthropic";
+
+const anthropicModel = new ChatAnthropic({
+  temperature: 0.9,
+  anthropicApiKey: "YOUR-API-KEY",
+  maxTokensToSample: 1024,
+});
+const anthropicChatLlm = makeLangchainChatLlm({ chatModel: anthropicModel });
+```
 
 ## Manage Previous Messages Sent to the LLM
 

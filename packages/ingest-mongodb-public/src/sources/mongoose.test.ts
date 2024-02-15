@@ -1,5 +1,6 @@
 import { mongooseSourceConstructor } from "./mongoose";
 
+jest.setTimeout(90000);
 describe("mongooseSourceConstructor", () => {
   it("correctly loads files", async () => {
     const source = await mongooseSourceConstructor();

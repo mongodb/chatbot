@@ -21,7 +21,7 @@
   "hooks": {
     "before:init": [
       "pushd ../mongodb-rag-core && npm i && npm run build && popd",
-      "npm run build:component",
+      "npm run build",
       "npm run lint"
     ]
   }

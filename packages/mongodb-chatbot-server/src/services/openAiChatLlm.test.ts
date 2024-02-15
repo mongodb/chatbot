@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
-import { OpenAiChatMessage, Tool } from "./ChatLlm";
+import { ChatLlm, OpenAiChatMessage, Tool } from "./ChatLlm";
 import { makeTestAppConfig, systemPrompt } from "../test/testHelpers";
 import { makeOpenAiChatLlm } from "./openAiChatLlm";
 import { assertEnvVars, CORE_ENV_VARS } from "mongodb-rag-core";
@@ -36,7 +36,7 @@ const testTools = [
     },
     async call() {
       return {
-        functionMessage: {
+        toolCallMessage: {
           role: "assistant",
           name: "test_tool",
           content: "Test tool called",
@@ -63,17 +63,18 @@ const toolOpenAiLlm = makeOpenAiChatLlm({
   openAiLmmConfigOptions: {
     temperature: 0,
     maxTokens: 500,
-    functionCall: {
-      name: "test_tool",
-    },
+    functionCall: "none",
   },
   tools: testTools,
 });
 
-const { appConfig: config } = makeTestAppConfig();
-
 describe("OpenAiLlm", () => {
-  const openAiLlmService = config.conversationsRouterConfig.llm;
+  let openAiLlmService: ChatLlm;
+  beforeAll(() => {
+    const { appConfig: config } = makeTestAppConfig();
+    openAiLlmService = config.conversationsRouterConfig.llm;
+  });
+
   test("should answer question in conversation - awaited", async () => {
     const response = await openAiLlmService.answerQuestionAwaited({
       messages: conversation,
@@ -115,18 +116,21 @@ describe("OpenAiLlm", () => {
           content: "hi",
         },
       ],
+      toolCallOptions: {
+        name: testTools[0].definition.name,
+      },
     });
     assert(
       response.role === "assistant" && response.functionCall !== undefined
     );
-    const toolResponse = await toolOpenAiLlm.callTool(response);
+    const toolResponse = await toolOpenAiLlm.callTool({ messages: [response] });
     expect(response.role).toBe("assistant");
     expect(response.functionCall.name).toBe("test_tool");
     expect(JSON.parse(response.functionCall.arguments)).toStrictEqual({
       test: "test",
     });
     expect(toolResponse).toStrictEqual({
-      functionMessage: {
+      toolCallMessage: {
         role: "assistant",
         name: "test_tool",
         content: "Test tool called",
@@ -143,22 +147,30 @@ describe("OpenAiLlm", () => {
   test("should throw error if calls tool that does not exist", async () => {
     await expect(
       toolOpenAiLlm.callTool({
-        role: "assistant",
-        functionCall: {
-          name: "not_a_tool",
-          arguments: JSON.stringify({
-            test: "test",
-          }),
-        },
-        content: "",
+        messages: [
+          {
+            role: "assistant",
+            functionCall: {
+              name: "not_a_tool",
+              arguments: JSON.stringify({
+                test: "test",
+              }),
+            },
+            content: "",
+          },
+        ],
       })
     ).rejects.toThrow("Tool not found");
   });
   test("should throw error if calls a tool on a message that isn't a tool call", async () => {
     await expect(
       toolOpenAiLlm.callTool({
-        role: "assistant",
-        content: "",
+        messages: [
+          {
+            role: "assistant",
+            content: "",
+          },
+        ],
       })
     ).rejects.toThrow("Message must be a tool call");
   });

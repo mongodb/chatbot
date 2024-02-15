@@ -26,14 +26,12 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
   let testMsg: Message;
   let testEndpointUrl: string;
   let mongodb: Db;
-  let mongoClient: MongoClient;
   let ipAddress: string;
   let appConfig: AppConfig;
   let origin: string;
 
   beforeAll(async () => {
-    ({ mongodb, mongoClient, app, ipAddress, appConfig, origin } =
-      await makeTestApp());
+    ({ mongodb, app, ipAddress, appConfig, origin } = await makeTestApp());
     conversations = appConfig.conversationsRouterConfig.conversations;
 
     app
@@ -52,11 +50,6 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
     testEndpointUrl = endpointUrl
       .replace(":conversationId", conversation._id.toHexString())
       .replace(":messageId", String(testMsg.id));
-  });
-
-  afterAll(async () => {
-    await mongodb.dropDatabase();
-    await mongoClient.close();
   });
 
   test("Should return 204 for valid rating", async () => {

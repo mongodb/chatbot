@@ -1,6 +1,6 @@
 {
   "name": "mongodb-rag-ingest",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "MongoDB Ingest CLI for the MongoDB Chatbot Framework.",
   "author": "",
   "license": "Apache-2.0",
@@ -40,7 +40,7 @@
     "build": "tsc -b tsconfig.build.json",
     "postbuild": "chmod +x build/main.js",
     "watch": "tsc -b -w",
-    "test": "jest --forceExit",
+    "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --forceExit",
     "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
     "docs": "npx typedoc --excludePrivate --exclude '**/*.test.ts' --out docs src",
     "release": "release-it"
@@ -90,7 +90,7 @@
     "html-to-text": "^9.0.5",
     "ignore": "^5.2.4",
     "jsdom": "^22.1.0",
-    "langchain": "^0.0.148",
+    "langchain": "^0.1.16",
     "mongodb-rag-core": "*",
     "node-fetch": "^2",
     "rimraf": "^5.0.1",

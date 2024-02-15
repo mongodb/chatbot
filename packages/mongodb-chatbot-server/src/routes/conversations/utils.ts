@@ -1,12 +1,9 @@
 import { isIP } from "net";
 import { Address6 } from "ip-address";
-import {
-  Conversation,
-  Message,
-  AssistantMessage,
-} from "../../services/ConversationsService";
+import { Conversation, Message } from "../../services/ConversationsService";
 import { References } from "mongodb-rag-core";
 import { z } from "zod";
+import { OpenAiChatMessage } from "../../services";
 
 export type ApiMessage = z.infer<typeof ApiMessage>;
 export const ApiMessage = z.object({
@@ -27,26 +24,54 @@ export const ApiConversation = z.object({
 
 export function convertMessageFromDbToApi(message: Message): ApiMessage {
   const { id, createdAt, role, content } = message;
-  const { rating, references } = message as Partial<AssistantMessage>;
-  return {
+  const apiMessage = {
     id: id.toString(),
     role,
     content,
     createdAt: createdAt.getTime(),
-    rating,
-    references,
   };
+  if (role === "assistant") {
+    const { rating, references } = message;
+    return {
+      ...apiMessage,
+      rating,
+      references,
+    };
+  }
+  return apiMessage;
 }
+
+function assertNever(x: never): never {
+  throw new Error("Unexpected object: " + x);
+}
+
+function isMessageAllowedInApiResponse(message: Message) {
+  // Only return user messages and assistant messages that are not function calls
+  switch (message.role) {
+    case "system":
+      return false;
+    case "user":
+      return true;
+    case "assistant":
+      return message.functionCall === undefined;
+    case "function":
+      return false;
+    default:
+      // This should never happen - it means we missed a case in the switch.
+      // The assertNever function raises a type error if this happens.
+      return assertNever(message);
+  }
+}
+
 export function convertConversationFromDbToApi(
   conversation: Conversation
 ): ApiConversation {
-  const nonSystemMessages = conversation.messages.filter(
-    (msg) => msg.role !== "system"
-  );
   return {
-    _id: conversation._id.toString(),
-    messages: nonSystemMessages.map(convertMessageFromDbToApi),
+    _id: conversation._id.toHexString(),
     createdAt: conversation.createdAt.getTime(),
+    messages: conversation.messages
+      .filter(isMessageAllowedInApiResponse)
+      .map(convertMessageFromDbToApi),
   };
 }
 

@@ -29,6 +29,29 @@ describe("makeStepBackRagGenerateUserPrompt", () => {
     expect(res.userMessage.role).toBe("user");
     expect(res.userMessage.embedding).toHaveLength(1536);
   });
+  test("should reject query if no content", async () => {
+    const mockFindContent: FindContentFunc = async () => {
+      return {
+        queryEmbedding: [],
+        content: [],
+      } satisfies FindContentResult;
+    };
+    const stepBackRagGenerateUserPrompt = makeStepBackRagGenerateUserPrompt({
+      ...config,
+      findContent: mockFindContent,
+      maxContextTokenCount: 1000,
+    });
+    const res = await stepBackRagGenerateUserPrompt({
+      reqId: "123",
+      userMessageText: "what is mongodb",
+    });
+    expect(res.rejectQuery).toBe(true);
+    expect(res.userMessage.customData).toHaveProperty(
+      "rejectionReason",
+      "Did not find any content matching the query"
+    );
+    expect(res.userMessage.rejectQuery).toBe(true);
+  });
   test("should return references", async () => {
     const res = await stepBackRagGenerateUserPrompt({
       reqId: "123",
@@ -80,7 +103,6 @@ describe("makeStepBackRagGenerateUserPrompt", () => {
         ],
       },
     });
-    console.log(res.userMessage);
     expect(res.userMessage.contentForLlm).not.toContain("abracadabra");
   });
   test("should only include 'numPrecedingMessagesToInclude' previous messages", async () => {

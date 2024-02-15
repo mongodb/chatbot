@@ -11,12 +11,21 @@ The server has the following endpoints:
   conversation before you can send messages to the chatbot.
 - `POST /conversations/:conversationId/messages` sends a message to the chatbot,
   and gets a response back.
+- `GET /conversations/:conversationId` gets a conversation in its current state.
 - `POST /conversations/:conversationId/messages/:messageId/rating` rates an
   assistant message in the conversation.
 - `POST /conversations/:conversationId/messages/:messageId/comment` adds a user
   comment to an assistant message in the conversation.
 
 For more information on these endpoints, refer to the [API Specification](openapi).
+
+## Security
+
+If you do not add custom middleware that handles authentication/authorization,
+a malicious actor who gets a conversation ID can modify the conversation.
+You can also add custom middleware to block requests to endpoints if you do not need them in your app.
+
+For more information about securing your server with custom middleware, refer to the [custom middleware request validation](custom-logic.md#request-validation) documentation.
 
 ## Expose the Conversations Endpoints in Your App
 

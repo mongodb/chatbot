@@ -9,12 +9,10 @@ import { stripIndents, html } from "common-tags";
 import { makeFindContent } from "../vectorSearch";
 import { makeGenerateChatCompletion } from "../chat";
 import { summarize, translate } from "../operations";
-import {
-  makeRunLogger,
-  type RunLogger
-} from "../runlogger";
+import { makeRunLogger, type RunLogger } from "../runlogger";
 import { stringifyVectorSearchChunks } from "../prompt";
-import path from "path"
+import path from "path";
+import { ObjectId } from "mongodb";
 
 let logger: RunLogger;
 
@@ -23,6 +21,8 @@ type TranslateCodeCommandArgs = {
   source: string;
   targetDescription: string;
   targetFileExtension?: string;
+  outputPath?: string;
+  outputFilename?: string;
 };
 
 export default createCommand<TranslateCodeCommandArgs>({
@@ -48,6 +48,18 @@ export default createCommand<TranslateCodeCommandArgs>({
         type: "string",
         demandOption: false,
         description: "The file extension. Defaults to .txt.",
+      })
+      .option("outputPath", {
+        type: "string",
+        demandOption: false,
+        description:
+          "A file path to prepend to the output file name. If not specified, outputs only the file name.",
+      })
+      .option("outputFilename", {
+        type: "string",
+        demandOption: false,
+        description:
+          "The name of the output file. If not specified, uses the input file name.",
       });
   },
   async handler(args) {
@@ -68,9 +80,23 @@ export default createCommand<TranslateCodeCommandArgs>({
 export const action = createConfiguredAction<TranslateCodeCommandArgs>(
   async (
     { embeddedContentStore, embedder },
-    { source, targetDescription, targetFileExtension = "txt" }
+    {
+      source,
+      targetDescription,
+      targetFileExtension = "txt",
+      outputPath,
+      outputFilename,
+      runId = new ObjectId().toHexString(),
+    }
   ) => {
     const sourceCode = await fs.readFile(source, "utf8");
+
+    if (!logger) {
+      logger = makeRunLogger({
+        topic: "translateCode",
+        runId,
+      });
+    }
 
     logger.logInfo(`Setting up...`);
     const generate = makeGenerateChatCompletion();
@@ -119,14 +145,23 @@ export const action = createConfiguredAction<TranslateCodeCommandArgs>(
         sourceDescription: analyzePageOutput,
         targetDescription: html`
           A source code file with the same functionality and content as the
-          original source code but in a new context. ${targetDescription}
+          original source code but in a new context.
+
+          ${targetDescription}
         `,
       });
 
       logger.logInfo(`Created output:\n\n${transformed}\n`);
+
+
       const inputFileName = path.parse(source).name;
-      const outputFileName = `${inputFileName}.translated.${targetFileExtension}`;
-      logger.appendArtifact(outputFileName, transformed);
+      const outputFileName = `${outputFilename ?? inputFileName}.translated.${targetFileExtension}`;
+      const outputFilePath = outputPath
+        ? path.join(outputPath, outputFileName)
+        : outputFileName;
+      logger.appendArtifact(outputFilePath, transformed);
+      logger.flushLogs();
+      logger.flushArtifacts();
     } finally {
       await cleanupFindContent();
     }

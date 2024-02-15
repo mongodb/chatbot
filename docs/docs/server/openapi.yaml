@@ -22,7 +22,7 @@ paths:
   /conversations:
     post:
       operationId: createConversation
-      summary: Start a new conversation
+      summary: Start new conversation
       responses:
         200:
           description: OK
@@ -38,7 +38,8 @@ paths:
   /conversations/{conversationId}/messages:
     post:
       operationId: addMessage
-      summary: Send a message to the conversation
+      summary: Add message to the conversation
+      description: Add a message to the conversation and get a response back from chatbot.
       parameters:
         - $ref: "#/components/parameters/conversationId"
         - name: stream
@@ -46,6 +47,7 @@ paths:
           required: false
           schema:
             type: boolean
+            default: false
           description: |
             If `true`, the response will be streamed to the client. This is useful for long-running conversations.
       requestBody:
@@ -62,22 +64,69 @@ paths:
                     Markdown-formatted message from the user.
       responses:
         200:
-          description: OK
+          x-summary: OK
+          description: |
+            If you set the query parameter `?stream=false`, the server responds with `application/json`.
+
+            If you set the query parameter `?stream=true`, the server responds with `text/event-stream`. The server returns a [server-sent event](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#event_stream_format) stream.
+            (Note that the server does not use [named events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#named_events).)
+            The below schema for `text/event-stream` corresponds to contents of the event's `data` field. For example:
+
+            ```txt
+            data: {"type": "processing", "data": "Calling tool to get information..."}
+
+            data: {"type": "delta", "data": "Starting "}
+
+            data: {"type": "delta", "data": "to "}
+
+            data: {"type": "delta", "data": "stream "}
+
+            data: {"type": "references", "data": [{"url": "https://mongodb.com/docs/atlas/getting-started", "title": "Get Started with MongoDB Atlas"}]}
+
+            data: {"type": "finished", "data": "someMessageId"}
+            ```
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Message"
+            text/event-stream:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/MessageResponseStreamEvent"
+                examples:
+                  - summary: Example of a StreamEventDelta
+                    value:
+                      type: "delta"
+                      data: "Updated event information or specific content changes."
         400:
           $ref: "#/components/responses/BadRequest"
         404:
           $ref: "#/components/responses/NotFound"
         500:
           $ref: "#/components/responses/InternalServerError"
-
+  /conversations/{conversationId}:
+    get:
+      operationId: getConversation
+      summary: Get a conversation
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
   /conversations/{conversationId}/messages/{messageId}/rating:
     post:
       operationId: rateMessage
-      summary: Rate a message
+      summary: Rate message
       parameters:
         - $ref: "#/components/parameters/conversationId"
         - $ref: "#/components/parameters/messageId"
@@ -99,10 +148,10 @@ paths:
   /conversations/{conversationId}/messages/{messageId}/comment:
     post:
       operationId: commentMessage
-      summary: Add comment to an assistant message
+      summary: Add comment to assistant message
       description: |
         Add a comment to an assistant message that clarifies a thumbs up/down rating.
-        
+
         You can only rate an an assistant message that has a thumbs up/down rating. You can only rate a message once. The server returns a `400` error response if the message is not from the assistant, is not rated, or has already been rated.
       parameters:
         - $ref: "#/components/parameters/conversationId"
@@ -178,7 +227,7 @@ components:
           description: The unique identifier for a message.
         role:
           type: string
-          enum: [user, assistant, system]
+          enum: [user, assistant]
         content:
           type: string
           format: markdown
@@ -204,28 +253,79 @@ components:
           description: |
             Unix timestamp for when the message was sent.
         references:
-          type: array
-          description: |
-            List of references to external resources that are relevant
-            to the message. For example, if the message is a response to
-            a user's question about how to connect, the list of
-            references could include links to the documentation, dev
-            center articles, or a video lesson on MongoDB University.
-          items:
-            type: object
-            required: [title, url]
-            properties:
-              title:
-                type: string
-                description: |
-                  Title of the reference. This is what shows up in
-                  rendered links. For example, "How to connect to
-                  MongoDB Atlas".
-              url:
-                type: string
-                format: uri
-                description: |
-                  URL to the reference. For example, "https://mongodb.com/docs/atlas/getting-started?tck=docs_chat".
+          $ref: "#/components/schemas/References"
+    References:
+      type: array
+      description: |
+        List of references to external resources that are relevant
+        to the message. For example, if the message is a response to
+        a user's question about how to connect, the list of
+        references could include links to the documentation, dev
+        center articles, or a video lesson on MongoDB University.
+      items:
+        type: object
+        required: [title, url]
+        properties:
+          title:
+            type: string
+            description: |
+              Title of the reference. This is what shows up in
+              rendered links. For example, "How to connect to
+              MongoDB Atlas".
+          url:
+            type: string
+            format: uri
+            description: |
+              URL to the reference. For example, "https://mongodb.com/docs/atlas/getting-started".
+    MessageResponseStreamEvent:
+      oneOf:
+        - $ref: "#/components/schemas/StreamEventDelta"
+        - $ref: "#/components/schemas/StreamEventProcessing"
+        - $ref: "#/components/schemas/StreamEventReferences"
+        - $ref: "#/components/schemas/StreamEventFinished"
+      description: A server-sent event data payload for a streaming message.
+    StreamEventDelta:
+      description: Assistant response text.
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [delta]
+        data:
+          description: Piece of content
+          type: string
+    StreamEventProcessing:
+      description: |
+        Message to send while processing a user request.
+        For example, you could send a processing message during a long running tool
+        call to update the user of what is occurring.
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [processing]
+        data:
+          description: Information about processing event.
+          type: string
+    StreamEventReferences:
+      description: References to include with the answer.
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [references]
+        data:
+          $ref: "#/components/schemas/References"
+    StreamEventFinished:
+      description: Last message when streaming has finished.
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [finished]
+        data:
+          description: Message ID.
+          type: string
     MessageComment:
       type: object
       properties:

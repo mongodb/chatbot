@@ -70,7 +70,7 @@ export type ConversationFetchOptions = Omit<
   RequestInit,
   "body" | "method" | "headers" | "signal"
 > & {
-  headers?: Record<string, string>;
+  headers?: Headers;
 };
 
 export type ConversationServiceConfig = {
@@ -93,13 +93,38 @@ export class ConversationService {
           window.location.protocol + "//" + window.location.host
         ).href
       : config.serverUrl;
+    const defaultHeaders = new Headers();
+    defaultHeaders.set(
+      CUSTOM_REQUEST_ORIGIN_HEADER,
+      getCustomRequestOrigin() ?? ""
+    );
+    defaultHeaders.set("Content-Type", "application/json");
     const defaultFetchOptions = {
-      headers: {},
+      headers: defaultHeaders,
     } satisfies ConversationFetchOptions;
     this.fetchOptions = {
       ...defaultFetchOptions,
       ...(config.fetchOptions ?? {}),
+      headers: this.mergeHeaders(
+        defaultHeaders,
+        config.fetchOptions?.headers ?? new Headers()
+      ),
     };
+  }
+
+  private mergeHeaders(headers1: Headers, headers2: Headers): Headers {
+    const mergedHeaders = new Headers();
+
+    // Append headers from the first Headers object
+    for (const [key, value] of headers1.entries()) {
+      mergedHeaders.append(key, value);
+    }
+
+    // Append headers from the second Headers object, adding to existing or creating new entries
+    for (const [key, value] of headers2.entries()) {
+      mergedHeaders.append(key, value);
+    }
+    return mergedHeaders;
   }
 
   private getUrl(path: string, queryParams: Record<string, string> = {}) {
@@ -124,11 +149,6 @@ export class ConversationService {
     const resp = await fetch(this.getUrl(path), {
       ...this.fetchOptions,
       method: "POST",
-      headers: {
-        ...this.fetchOptions.headers,
-        "Content-Type": "application/json",
-        [CUSTOM_REQUEST_ORIGIN_HEADER]: getCustomRequestOrigin() ?? "",
-      },
     });
     const conversation = await resp.json();
     if (resp.status === 400) {
@@ -158,11 +178,6 @@ export class ConversationService {
     const resp = await fetch(this.getUrl(path), {
       ...this.fetchOptions,
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        [CUSTOM_REQUEST_ORIGIN_HEADER]: getCustomRequestOrigin() ?? "",
-        ...this.fetchOptions.headers,
-      },
       body: JSON.stringify({ message }),
     });
     const data = await resp.json();
@@ -226,11 +241,6 @@ export class ConversationService {
       ...this.fetchOptions,
       signal: signal ?? null,
       method: "POST",
-      headers: {
-        ...this.fetchOptions.headers,
-        "Content-Type": "application/json",
-        [CUSTOM_REQUEST_ORIGIN_HEADER]: getCustomRequestOrigin() ?? "",
-      },
       body: JSON.stringify({ message }),
       openWhenHidden: true,
 
@@ -337,10 +347,6 @@ export class ConversationService {
     const res = await fetch(this.getUrl(path), {
       ...this.fetchOptions,
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...this.fetchOptions.headers,
-      },
       body: JSON.stringify({ rating }),
     });
 
@@ -369,10 +375,6 @@ export class ConversationService {
     const res = await fetch(this.getUrl(path), {
       ...this.fetchOptions,
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...this.fetchOptions.headers,
-      },
       body: JSON.stringify({ comment }),
     });
 

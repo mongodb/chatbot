@@ -1,12 +1,12 @@
 import { vi } from "vitest";
 import {
+  ConversationFetchOptions,
   ConversationService,
   formatReferences,
   getCustomRequestOrigin,
 } from "./conversations";
 import { type References } from "mongodb-rag-core";
 import * as FetchEventSource from "@microsoft/fetch-event-source";
-
 // Mock fetch for regular awaited HTTP requests
 // TODO: make TypeScript compiler ok with this, or skip putting this in the compiled code for staging
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -20,9 +20,9 @@ function mockFetchResponse<T = unknown>({
   status?: number;
   data: T;
 }) {
-  let lastRequestOptions: Partial<RequestInit>;
+  let lastRequestOptions: Partial<ConversationFetchOptions>;
   (global.fetch as ReturnType<typeof vi.fn>).mockImplementation(
-    async (_url, options) => {
+    async (_url, options: ConversationFetchOptions) => {
       // Capture the request options
       lastRequestOptions = options;
 
@@ -205,28 +205,23 @@ describe("ConversationService", () => {
     const conversationService = new ConversationService({
       serverUrl,
       fetchOptions: {
-        headers: {
+        headers: new Headers({
           foo: "bar",
-        },
+        }),
         credentials: "include",
       },
     });
     await conversationService.createConversation();
     const createOptions = getOptions();
-    expect(createOptions.headers).toHaveProperty("foo", "bar");
-    expect(createOptions.headers).toHaveProperty(
-      "Content-Type",
-      "application/json"
-    );
+
+    expect(createOptions.headers?.get("foo")).toBe("bar");
+    expect(createOptions.headers?.get("content-type")).toBe("application/json");
     expect(createOptions.credentials).toBe("include");
 
     await conversationService.addMessage({ conversationId: "", message: "" });
     const addOptions = getOptions();
-    expect(addOptions.headers).toHaveProperty("foo", "bar");
-    expect(addOptions.headers).toHaveProperty(
-      "Content-Type",
-      "application/json"
-    );
+    expect(addOptions.headers?.get("foo")).toBe("bar");
+    expect(addOptions.headers?.get("content-type")).toBe("application/json");
     expect(addOptions.credentials).toBe("include");
 
     await conversationService.addMessageStreaming({
@@ -237,9 +232,8 @@ describe("ConversationService", () => {
       onReferences: vi.fn(),
     });
     const addStreamingOptions = getOptions();
-    expect(addStreamingOptions.headers).toHaveProperty("foo", "bar");
-    expect(addStreamingOptions.headers).toHaveProperty(
-      "Content-Type",
+    expect(addStreamingOptions.headers?.get("foo")).toBe("bar");
+    expect(addStreamingOptions.headers?.get("content-type")).toBe(
       "application/json"
     );
     expect(addStreamingOptions.credentials).toBe("include");
@@ -252,11 +246,8 @@ describe("ConversationService", () => {
       rating: true,
     });
     const ratingOptions = getOptions();
-    expect(ratingOptions.headers).toHaveProperty("foo", "bar");
-    expect(ratingOptions.headers).toHaveProperty(
-      "Content-Type",
-      "application/json"
-    );
+    expect(ratingOptions.headers?.get("foo")).toBe("bar");
+    expect(ratingOptions.headers?.get("content-type")).toBe("application/json");
     expect(ratingOptions.credentials).toBe("include");
 
     await conversationService.commentMessage({
@@ -265,9 +256,8 @@ describe("ConversationService", () => {
       messageId: "",
     });
     const commentOptions = getOptions();
-    expect(commentOptions.headers).toHaveProperty("foo", "bar");
-    expect(commentOptions.headers).toHaveProperty(
-      "Content-Type",
+    expect(commentOptions.headers?.get("foo")).toBe("bar");
+    expect(commentOptions.headers?.get("content-type")).toBe(
       "application/json"
     );
     expect(commentOptions.credentials).toBe("include");

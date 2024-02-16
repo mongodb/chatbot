@@ -177,7 +177,8 @@ export const config: AppConfig = {
   maxRequestTimeoutMs: 30000,
   corsOptions: {
     origin: allowedOrigins,
-    credentials: !isProduction,
+    // Allow cookies from different origins to be sent to the server.
+    credentials: true,
   },
   serveStaticSite: !isProduction,
 };

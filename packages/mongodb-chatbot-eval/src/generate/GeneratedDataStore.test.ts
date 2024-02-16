@@ -5,6 +5,7 @@ import {
   GeneratedDataStore,
   makeMongoDbGeneratedDataStore,
 } from "./GeneratedDataStore";
+
 describe("MongoDbGeneratedDataStore", () => {
   const { MONGODB_CONNECTION_URI } = process.env;
   assert(MONGODB_CONNECTION_URI);
@@ -27,6 +28,7 @@ describe("MongoDbGeneratedDataStore", () => {
     await db.dropDatabase();
     await generatedDataStore.close();
   });
+
   it("should insert new generated data", async () => {
     const generatedData = {
       _id: new ObjectId(),

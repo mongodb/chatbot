@@ -15,11 +15,13 @@ export interface CommandMetadataStore {
 export interface MakeMongoDbCommandMetadataStoreParams {
   connectionUri: string;
   databaseName: string;
+
   /**
     @default "command_run_metadata"
    */
   collectionName?: string;
 }
+
 export function makeMongoDbCommandMetadataStore({
   connectionUri,
   databaseName,
@@ -29,6 +31,7 @@ export function makeMongoDbCommandMetadataStore({
   const collection = client
     .db(databaseName)
     .collection<CommandRunMetadata>(collectionName ?? "command_run_metadata");
+
   return {
     async insertOne(command) {
       const { acknowledged } = await collection.insertOne(command);

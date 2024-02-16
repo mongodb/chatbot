@@ -28,6 +28,7 @@ describe("MongoDbReportStore", () => {
     await db.dropDatabase();
     await evalStore.close();
   });
+
   it("should insert new data", async () => {
     const report = {
       _id: new ObjectId(),

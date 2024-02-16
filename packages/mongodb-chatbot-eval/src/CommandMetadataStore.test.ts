@@ -4,6 +4,7 @@ import {
 } from "./CommandMetadataStore";
 import { Db, MongoClient, ObjectId } from "mongodb-rag-core";
 import { strict as assert } from "assert";
+
 describe("MongoDbCommandMetadataStore", () => {
   const { MONGODB_CONNECTION_URI } = process.env;
   assert(MONGODB_CONNECTION_URI);

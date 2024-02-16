@@ -35,6 +35,7 @@ export function makeMongoDbReportStore({
   const collection = client
     .db(databaseName)
     .collection<Report>(collectionName ?? "reports");
+
   return {
     async insertOne(report) {
       const { acknowledged } = await collection.insertOne(report);

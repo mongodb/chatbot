@@ -5,6 +5,7 @@ import {
   EvaluationStore,
   makeMongoDbEvaluationStore,
 } from "./EvaluationStore";
+
 describe("MongoDbReportStore", () => {
   const { MONGODB_CONNECTION_URI } = process.env;
   assert(MONGODB_CONNECTION_URI);
@@ -27,6 +28,7 @@ describe("MongoDbReportStore", () => {
     await db.dropDatabase();
     await evalStore.close();
   });
+
   it("should insert new data", async () => {
     const evalResult = {
       _id: new ObjectId(),

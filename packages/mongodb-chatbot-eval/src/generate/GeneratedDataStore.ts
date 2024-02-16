@@ -18,6 +18,7 @@ export interface GeneratedDataStore {
 export interface MakeMongoDbGeneratedDataStoreParams {
   connectionUri: string;
   databaseName: string;
+
   /**
     @default "generated_data"
    */

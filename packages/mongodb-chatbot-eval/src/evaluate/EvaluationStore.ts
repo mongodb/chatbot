@@ -40,6 +40,7 @@ export function makeMongoDbEvaluationStore({
   const collection = client
     .db(databaseName)
     .collection<EvalResult>(collectionName ?? "evaluations");
+
   return {
     async insertOne(evalResult) {
       const { acknowledged } = await collection.insertOne(evalResult);

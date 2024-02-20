@@ -3,7 +3,7 @@ import { EvaluateQualityFunc } from "./evaluate/EvaluateQualityFunc";
 import { EvaluationStore } from "./evaluate/EvaluationStore";
 import { GenerateDataFunc } from "./generate/GenerateDataFunc";
 import { GeneratedDataStore } from "./generate/GeneratedDataStore";
-import { TestCase } from "./generate/TestCase";
+import { SomeTestCase } from "./generate/TestCase";
 import { ReportEvalFunc } from "./report/ReportEvalFunc";
 import { ReportStore } from "./report/ReportStore";
 
@@ -19,7 +19,7 @@ export interface EvalConfig {
     generate?: {
       [k: string]: {
         type: string;
-        testCases: TestCase[];
+        testCases: SomeTestCase[];
         generator: GenerateDataFunc;
       };
     };

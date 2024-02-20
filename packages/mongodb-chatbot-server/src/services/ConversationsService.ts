@@ -1,4 +1,4 @@
-import { ObjectId, References } from "mongodb-rag-core";
+import { EmbeddedContent, ObjectId, References } from "mongodb-rag-core";
 import { FunctionCall } from "@azure/openai";
 
 export type MessageBase = {
@@ -64,8 +64,17 @@ export type UserMessage = MessageBase & {
 
   /**
     The preprocessed content of the message.
+    For example, the query used for vector search.
    */
   preprocessedContent?: string;
+
+  /**
+    Embedded content found using vector search for the message.
+    Useful to include for evaluation purposes.
+    For example, you might want to assess how faithful the LLM response
+    to the found content.
+   */
+  foundEmbeddedContent?: Partial<EmbeddedContent>[];
 
   /**
     Whether preprocessor suggested not to answer based on the input.

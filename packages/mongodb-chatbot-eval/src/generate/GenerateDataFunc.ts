@@ -1,19 +1,20 @@
 import { ObjectId } from "mongodb-rag-core";
-import { GeneratedData } from "./GeneratedDataStore";
-import { TestCase } from "./TestCase";
-import { Express } from "express";
+import { SomeGeneratedData } from "./GeneratedDataStore";
+import { SomeTestCase } from "./TestCase";
 
-export interface GenerateDataFuncParams<T extends TestCase> {
+export interface GenerateDataFuncParams {
   /**
     Test cases to generate data for.
    */
-  testCases: T[];
+  // TODO: how to make it so that anything that satisfies the TestCase interface can be used here?
+  testCases: SomeTestCase[];
   /**
     Unique ID for all generated data for this run.
    */
   runId: ObjectId;
 }
 
-export type GenerateDataFunc<T extends TestCase, U extends GeneratedData> = (
-  params: GenerateDataFuncParams<T>
-) => Promise<U[]>;
+export type GenerateDataFunc = (params: GenerateDataFuncParams) => Promise<{
+  generatedData: SomeGeneratedData[];
+  failedCases: SomeTestCase[];
+}>;

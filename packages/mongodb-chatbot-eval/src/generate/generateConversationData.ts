@@ -1,33 +1,48 @@
-import { GeneratedData } from "./GeneratedDataStore";
-import { Conversation, ConversationsService } from "mongodb-chatbot-server";
+import { ConversationGeneratedData } from "./GeneratedDataStore";
+import { ConversationsService, ObjectId } from "mongodb-chatbot-server";
 import { GenerateDataFunc } from "./GenerateDataFunc";
-import { ConversationTestCase } from "./TestCase";
+import { ConversationTestCase, SomeTestCase } from "./TestCase";
 import request from "supertest";
 import { Express } from "express";
 import { strict as assert } from "assert";
 
-export interface ConversationGeneratedData extends GeneratedData {
-  type: "conversation";
-  data: Conversation;
-  evalData: ConversationEvalData;
-}
-
-export interface ConversationEvalData extends Record<string, unknown> {
-  /**
-    Arbitrary metadata about the conversation.
-   */
-  tags?: string[];
-  /**
-    Description of what you want to see from the final assistant message.
-   */
-  qualitativeFinalAssistantMessageExpectation: string;
-}
-
 export interface MakeGenerateConversationDataParams {
+  /**
+    Same `ConversationsService` instance used in the chatbot.
+    The function uses the service to create conversations and add initial messages.
+   */
   conversations: ConversationsService;
+
+  /**
+    Express.js HTTP server for the chatbot.
+   */
   testApp: Express;
-  // TODO: not sure if this quite right...should it be automatic? or at least a default value
-  endpoint: string;
+
+  /**
+    URL for the endpoint to add a message to a conversation.
+    The function replaces ":conversationId" with the actual conversation ID.
+    @default "api/v1/conversations/:conversationId/messages"
+  */
+  addMessageToConversationEndpoint?: string;
+
+  /**
+    HTTP headers to include in the request to add a message to a conversation.
+    @example
+    ```json
+    {
+      "Authorization": "Bearer <some token>",
+    }
+    ```
+  */
+  addMessageToConversationHttpHeaders?: Record<string, string>;
+
+  /**
+    Number of milliseconds to sleep between each conversation.
+    This can be useful if there's a rate limit on some components of the chatbot.
+    Often LLM APIs have a rate limit, for example.
+    @default 0
+   */
+  sleepMs?: number;
 }
 /**
   Generate conversation data from test cases.
@@ -35,14 +50,26 @@ export interface MakeGenerateConversationDataParams {
 export const makeGenerateConversationData = function ({
   conversations,
   testApp,
-  endpoint,
-}: MakeGenerateConversationDataParams): GenerateDataFunc<
-  ConversationTestCase,
-  ConversationGeneratedData
-> {
-  return async function ({ testCases, runId }) {
+  addMessageToConversationHttpHeaders = {},
+  addMessageToConversationEndpoint = "api/v1/conversations/:conversationId/messages",
+  sleepMs = 0,
+}: MakeGenerateConversationDataParams): GenerateDataFunc {
+  return async function ({
+    testCases,
+    runId,
+  }: {
+    testCases: SomeTestCase[];
+    runId: ObjectId;
+  }): Promise<{
+    generatedData: ConversationGeneratedData[];
+    failedCases: ConversationTestCase[];
+  }> {
+    // TODO: how to go away from this?
+    const convoTestCases = testCases as ConversationTestCase[];
+
     const generatedData: ConversationGeneratedData[] = [];
-    for await (const testCase of testCases) {
+    const failedCases: ConversationTestCase[] = [];
+    for await (const testCase of convoTestCases) {
       if (testCase.data.skip) {
         continue;
       }
@@ -61,21 +88,21 @@ export const makeGenerateConversationData = function ({
           message,
         });
       }
-      const endpointWithId = endpoint.replace(
+      const endpointWithId = addMessageToConversationEndpoint.replace(
         ":conversationId",
         conversationId.toString()
       );
 
+      const req = request(testApp).post(endpointWithId);
+      for (const [key, value] of Object.entries(
+        addMessageToConversationHttpHeaders
+      )) {
+        req.set(key, value);
+      }
       // Add user message + service response to conversation in DB.
-      const res = await request(testApp)
-        .post(endpointWithId)
-        .send({ message: testMessage.content });
+      const res = await req.send({ message: testMessage.content });
       if (res.status !== 200) {
-        throw new Error(
-          `Failed to add message to conversation: ${JSON.stringify(
-            res.body
-          )}, ${res.status}`
-        );
+        failedCases.push(testCase);
       }
 
       // Read full conversation with added messages from the DB
@@ -94,8 +121,13 @@ export const makeGenerateConversationData = function ({
           tags: testCase.data.tags,
         },
       });
+      await sleep(sleepMs);
     }
 
-    return generatedData;
+    return { generatedData, failedCases };
   };
 };
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

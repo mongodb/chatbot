@@ -1,7 +1,7 @@
 import { Db, MongoClient, ObjectId } from "mongodb-rag-core";
 import { strict as assert } from "assert";
 import {
-  GeneratedData,
+  SomeGeneratedData,
   GeneratedDataStore,
   makeMongoDbGeneratedDataStore,
 } from "./GeneratedDataStore";
@@ -29,7 +29,7 @@ describe("MongoDbGeneratedDataStore", () => {
     await generatedDataStore.close();
   });
 
-  it("should insert new generated data", async () => {
+  it("should insert one new generated data", async () => {
     const generatedData = {
       _id: new ObjectId(),
       commandRunId: new ObjectId(),
@@ -38,8 +38,33 @@ describe("MongoDbGeneratedDataStore", () => {
       evalData: {
         fizz: "buzz",
       },
-    } satisfies GeneratedData;
+    } satisfies SomeGeneratedData;
     const inserted = await generatedDataStore.insertOne(generatedData);
+    expect(inserted).toBe(true);
+  });
+  it("should insert many new generated data", async () => {
+    const generatedData1 = {
+      _id: new ObjectId(),
+      commandRunId: new ObjectId(),
+      data: "foo",
+      type: "bar",
+      evalData: {
+        fizz: "buzz",
+      },
+    } satisfies SomeGeneratedData;
+    const generatedData2 = {
+      _id: new ObjectId(),
+      commandRunId: new ObjectId(),
+      data: "fizz",
+      type: "buzz",
+      evalData: {
+        buzz: "fizz",
+      },
+    } satisfies SomeGeneratedData;
+    const inserted = await generatedDataStore.insertMany([
+      generatedData1,
+      generatedData2,
+    ]);
     expect(inserted).toBe(true);
   });
   it("should find generated data by id", async () => {
@@ -51,7 +76,7 @@ describe("MongoDbGeneratedDataStore", () => {
       evalData: {
         fizz: "buzz",
       },
-    } satisfies GeneratedData;
+    } satisfies SomeGeneratedData;
     await generatedDataStore.insertOne(generatedData);
     const foundData = await generatedDataStore.findById(generatedData._id);
     expect(foundData).toMatchObject(generatedData);
@@ -65,7 +90,7 @@ describe("MongoDbGeneratedDataStore", () => {
       evalData: {
         fizz: "buzz",
       },
-    } satisfies GeneratedData;
+    } satisfies SomeGeneratedData;
     await generatedDataStore.insertOne(generatedData);
     const found = await generatedDataStore.find({ data: "foo" });
     expect(found && found[0]).toMatchObject(generatedData);

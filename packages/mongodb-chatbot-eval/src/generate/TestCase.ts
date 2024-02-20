@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export interface TestCase {
+export interface BaseTestCase {
   name: string;
   data: Record<string, unknown>;
 }
@@ -24,7 +24,9 @@ export type ConversationTestCaseData = z.infer<
   typeof ConversationTestCaseDataSchema
 >;
 
-export interface ConversationTestCase extends TestCase {
-  name: "conversation";
+export interface ConversationTestCase extends BaseTestCase {
   data: ConversationTestCaseData;
+  name: "conversation";
 }
+
+export type SomeTestCase = ConversationTestCase | BaseTestCase;

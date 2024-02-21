@@ -70,7 +70,7 @@ export type ConversationFetchOptions = Omit<
   RequestInit,
   "body" | "method" | "headers" | "signal"
 > & {
-  headers?: Headers;
+  headers: Headers;
 };
 
 export type ConversationServiceConfig = {
@@ -80,7 +80,7 @@ export type ConversationServiceConfig = {
 
 export class ConversationService {
   private serverUrl: string;
-  private fetchOptions?: ConversationFetchOptions;
+  private fetchOptions: ConversationFetchOptions;
 
   constructor(config: ConversationServiceConfig) {
     assert(
@@ -256,7 +256,7 @@ export class ConversationService {
     await fetchEventSource(this.getUrl(path, { stream: "true" }), {
       ...this.fetchOptions,
       // Need to convert Headers to plain object for fetchEventSource
-      headers: Object.fromEntries(this.fetchOptions?.headers ?? new Headers()),
+      headers: Object.fromEntries(this.fetchOptions.headers),
       signal: signal ?? null,
       method: "POST",
       body: JSON.stringify({ message }),

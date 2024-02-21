@@ -51,7 +51,7 @@ export const makeGenerateConversationData = function ({
   conversations,
   testApp,
   addMessageToConversationHttpHeaders = {},
-  addMessageToConversationEndpoint = "api/v1/conversations/:conversationId/messages",
+  addMessageToConversationEndpoint = "/api/v1/conversations/:conversationId/messages",
   sleepMs = 0,
 }: MakeGenerateConversationDataParams): GenerateDataFunc {
   return async function ({
@@ -64,7 +64,7 @@ export const makeGenerateConversationData = function ({
     generatedData: ConversationGeneratedData[];
     failedCases: ConversationTestCase[];
   }> {
-    // TODO: how to go away from this?
+    // FIXME: how to go away from this to something more elegant/typescripty?
     const convoTestCases = testCases as ConversationTestCase[];
 
     const generatedData: ConversationGeneratedData[] = [];
@@ -75,11 +75,12 @@ export const makeGenerateConversationData = function ({
       }
 
       const { messages } = testCase.data;
+      assert(messages.length > 0, "Must contain at least 1 message");
       const conversation = await conversations.create();
-      const [setUpMessages, testMessage] = [
-        messages.slice(0, -1),
-        messages.pop(),
-      ];
+
+      const setUpMessages = messages.slice(0, -1); // All but the last message
+      const testMessage = messages[messages.length - 1]; // Send last message to server
+
       assert(testMessage);
       const conversationId = conversation._id;
       for (const message of setUpMessages) {

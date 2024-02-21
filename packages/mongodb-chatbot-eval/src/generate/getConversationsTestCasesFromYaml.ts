@@ -1,5 +1,5 @@
 import {
-  ConversationTestCaseData,
+  ConversationTestCase,
   ConversationTestCaseDataSchema,
 } from "./TestCase";
 import yaml from "yaml";
@@ -11,10 +11,14 @@ import yaml from "yaml";
  */
 export function getConversationsTestCasesFromYaml(
   yamlData: string
-): ConversationTestCaseData[] {
+): ConversationTestCase[] {
   const yamlTestCases = yaml.parse(yamlData) as unknown[];
-  const testCases = yamlTestCases.map((tc) =>
-    ConversationTestCaseDataSchema.parse(tc)
-  ) satisfies ConversationTestCaseData[];
+  const testCases = yamlTestCases.map(
+    (tc) =>
+      ({
+        name: "conversation",
+        data: ConversationTestCaseDataSchema.parse(tc),
+      } satisfies ConversationTestCase)
+  );
   return testCases;
 }

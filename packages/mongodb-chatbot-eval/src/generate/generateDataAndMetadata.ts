@@ -4,7 +4,7 @@ import { GenerateDataFunc } from "./GenerateDataFunc";
 import { GeneratedDataStore } from "./GeneratedDataStore";
 import { SomeTestCase } from "./TestCase";
 
-export interface GenerateParams {
+export interface GenerateDataAndMetadataParams {
   /**
     Test cases to generate data from.
    */
@@ -40,7 +40,7 @@ export async function generateDataAndMetadata({
   generator,
   generatedDataStore,
   metadataStore,
-}: GenerateParams) {
+}: GenerateDataAndMetadataParams) {
   const startTime = new Date();
   const runId = new ObjectId();
   logger.info(`Generating ${testCases.length} test cases for ${name}`);

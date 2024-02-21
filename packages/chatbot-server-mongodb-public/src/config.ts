@@ -19,11 +19,15 @@ import {
   GenerateUserPromptFunc,
   requireValidIpAddress,
   requireRequestOrigin,
+  AddCustomDataFunc,
+  ConversationCustomData,
 } from "mongodb-chatbot-server";
 import { stripIndents } from "common-tags";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
+import cookieParser from "cookie-parser";
 import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";
 import { blockGetRequests } from "./middleware/blockGetRequests";
+import { getRequestId, logRequest } from "./utils";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -132,6 +136,26 @@ export const conversations = makeMongoDbConversationsService(
   systemPrompt
 );
 
+export const createCustomConversationDataWithIpAuthUserAndOrigin: AddCustomDataFunc =
+  async (req, res) => {
+    const customData: ConversationCustomData = {};
+    if (req.cookies.auth_user) {
+      customData.authUser = req.cookies.auth_user;
+    }
+    if (req.ip) {
+      customData.ip = req.ip;
+    }
+    if (res.locals.customData.origin) {
+      customData.origin = res.locals.customData.origin;
+    }
+    logRequest({
+      reqId: getRequestId(req),
+      message: `Custom data: ${customData}`,
+    });
+    return customData;
+  };
+
+const isProduction = process.env.NODE_ENV === "production";
 export const config: AppConfig = {
   conversationsRouterConfig: {
     dataStreamer,
@@ -140,15 +164,21 @@ export const config: AppConfig = {
       blockGetRequests,
       requireValidIpAddress(),
       requireRequestOrigin(),
+      cookieParser(),
     ],
-    conversations,
+    createConversationCustomData: !isProduction
+      ? createCustomConversationDataWithIpAuthUserAndOrigin
+      : undefined,
     generateUserPrompt,
     maxUserMessagesInConversation: 50,
     maxUserCommentLength: 500,
+    conversations,
   },
   maxRequestTimeoutMs: 30000,
   corsOptions: {
     origin: allowedOrigins,
+    // Allow cookies from different origins to be sent to the server.
+    credentials: true,
   },
-  serveStaticSite: process.env.NODE_ENV !== "production",
+  serveStaticSite: !isProduction,
 };

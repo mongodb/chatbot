@@ -62,12 +62,25 @@ export class TimeoutError<Data extends object = object> extends Error {
   }
 }
 
+/**
+  Options to include with every fetch request made by the ConversationService.
+  This can be used to set headers, etc.
+ */
+export type ConversationFetchOptions = Omit<
+  RequestInit,
+  "body" | "method" | "headers" | "signal"
+> & {
+  headers?: Headers;
+};
+
 export type ConversationServiceConfig = {
   serverUrl: string;
+  fetchOptions?: ConversationFetchOptions;
 };
 
 export class ConversationService {
   private serverUrl: string;
+  private fetchOptions: ConversationFetchOptions & { headers: Headers };
 
   constructor(config: ConversationServiceConfig) {
     assert(
@@ -80,6 +93,36 @@ export class ConversationService {
           window.location.protocol + "//" + window.location.host
         ).href
       : config.serverUrl;
+
+    const defaultHeaders = new Headers({
+      "Content-Type": "application/json",
+      [`${CUSTOM_REQUEST_ORIGIN_HEADER}`]: getCustomRequestOrigin() ?? "",
+    });
+
+    this.fetchOptions = {
+      ...(config.fetchOptions ?? {}),
+      headers: this.mergeHeaders(
+        defaultHeaders,
+        config.fetchOptions?.headers
+          ? new Headers(config.fetchOptions?.headers)
+          : new Headers()
+      ),
+    };
+  }
+
+  private mergeHeaders(headers1: Headers, headers2: Headers): Headers {
+    const mergedHeaders = new Headers();
+
+    // Append headers from the first Headers object
+    for (const [key, value] of headers1.entries()) {
+      mergedHeaders.append(key, value);
+    }
+
+    // Append headers from the second Headers object, adding to existing or creating new entries
+    for (const [key, value] of headers2.entries()) {
+      mergedHeaders.append(key, value);
+    }
+    return mergedHeaders;
   }
 
   private getUrl(path: string, queryParams: Record<string, string> = {}) {
@@ -102,11 +145,8 @@ export class ConversationService {
   async createConversation(): Promise<Required<ConversationState>> {
     const path = `/conversations`;
     const resp = await fetch(this.getUrl(path), {
+      ...this.fetchOptions,
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        [CUSTOM_REQUEST_ORIGIN_HEADER]: getCustomRequestOrigin() ?? "",
-      },
     });
     const conversation = await resp.json();
     if (resp.status === 400) {
@@ -129,12 +169,7 @@ export class ConversationService {
     conversationId: string
   ): Promise<Required<ConversationState>> {
     const path = `/conversations/${conversationId}`;
-    const resp = await fetch(this.getUrl(path), {
-      headers: {
-        "Content-Type": "application/json",
-        [CUSTOM_REQUEST_ORIGIN_HEADER]: getCustomRequestOrigin() ?? "",
-      },
-    });
+    const resp = await fetch(this.getUrl(path), this.fetchOptions);
     const conversation = await resp.json();
     if (resp.status === 404) {
       throw new Error(`Conversation not found: ${conversationId}`);
@@ -157,11 +192,8 @@ export class ConversationService {
   }): Promise<MessageData> {
     const path = `/conversations/${conversationId}/messages`;
     const resp = await fetch(this.getUrl(path), {
+      ...this.fetchOptions,
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        [CUSTOM_REQUEST_ORIGIN_HEADER]: getCustomRequestOrigin() ?? "",
-      },
       body: JSON.stringify({ message }),
     });
     const data = await resp.json();
@@ -222,12 +254,11 @@ export class ConversationService {
     };
 
     await fetchEventSource(this.getUrl(path, { stream: "true" }), {
+      ...this.fetchOptions,
+      // Need to convert Headers to plain object for fetchEventSource
+      headers: Object.fromEntries(this.fetchOptions.headers),
       signal: signal ?? null,
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        [CUSTOM_REQUEST_ORIGIN_HEADER]: getCustomRequestOrigin() ?? "",
-      },
       body: JSON.stringify({ message }),
       openWhenHidden: true,
 
@@ -332,10 +363,8 @@ export class ConversationService {
   }): Promise<boolean> {
     const path = `/conversations/${conversationId}/messages/${messageId}/rating`;
     const res = await fetch(this.getUrl(path), {
+      ...this.fetchOptions,
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({ rating }),
     });
 
@@ -362,10 +391,8 @@ export class ConversationService {
   }): Promise<void> {
     const path = `/conversations/${conversationId}/messages/${messageId}/comment`;
     const res = await fetch(this.getUrl(path), {
+      ...this.fetchOptions,
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({ comment }),
     });
 

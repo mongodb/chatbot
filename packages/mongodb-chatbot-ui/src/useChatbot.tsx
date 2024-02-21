@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useConversation } from "./useConversation";
+import { ConversationFetchOptions } from "./services/conversations";
 
 export type UseChatbotProps = {
   chatbotName?: string;
@@ -9,6 +10,7 @@ export type UseChatbotProps = {
   serverBaseUrl?: string;
   shouldStream?: boolean;
   suggestedPrompts?: string[];
+  fetchOptions?: ConversationFetchOptions;
 };
 
 export type ChatbotData = {
@@ -33,6 +35,7 @@ export function useChatbot(props: UseChatbotProps): ChatbotData {
   const conversation = useConversation({
     serverBaseUrl: props.serverBaseUrl,
     shouldStream: props.shouldStream,
+    fetchOptions: props.fetchOptions,
   });
   const [open, setOpen] = useState(false);
   const [awaitingReply, setAwaitingReply] = useState(false);

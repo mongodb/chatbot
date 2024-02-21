@@ -70,7 +70,7 @@ export type ConversationFetchOptions = Omit<
   RequestInit,
   "body" | "method" | "headers" | "signal"
 > & {
-  headers: Headers;
+  headers?: Headers;
 };
 
 export type ConversationServiceConfig = {
@@ -80,7 +80,7 @@ export type ConversationServiceConfig = {
 
 export class ConversationService {
   private serverUrl: string;
-  private fetchOptions: ConversationFetchOptions;
+  private fetchOptions: ConversationFetchOptions & { headers: Headers };
 
   constructor(config: ConversationServiceConfig) {
     assert(

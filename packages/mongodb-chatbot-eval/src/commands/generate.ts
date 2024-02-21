@@ -6,6 +6,11 @@ import {
   withConfigOptions,
 } from "../withConfig";
 import { ObjectId, logger } from "mongodb-rag-core";
+import { CommandMetadataStore } from "../CommandMetadataStore";
+import { GenerateDataFunc } from "../generate/GenerateDataFunc";
+import { GeneratedDataStore } from "../generate/GeneratedDataStore";
+import { SomeTestCase } from "../generate/TestCase";
+import { generateDataAndMetadata } from "../generate/generateDataAndMetadata";
 
 const commandModule: CommandModule<unknown, LoadConfigArgs> = {
   command: "generate",
@@ -27,7 +32,7 @@ export const generateCommand = async (
   config: ResolvedConfig,
   { name }: { name: string }
 ) => {
-  const startTime = new Date();
+  // Get config
   const {
     generatedDataStore,
     metadataStore,
@@ -36,27 +41,14 @@ export const generateCommand = async (
   if (!generate || !generate[name]) {
     throw new Error(`No generate command found with name: ${name}`);
   }
-  const runId = new ObjectId();
   const { generator, testCases } = generate[name];
-  logger.info(`Generating ${testCases.length} test cases for ${name}`);
-  // do stuff
-  const { generatedData, failedCases } = await generator({ testCases, runId });
-  for (const failedCase of failedCases) {
-    logger.error(`Failed to generate data for test case: ${failedCase.name}`);
-  }
-  await generatedDataStore.insertMany(generatedData);
 
-  const endTime = new Date();
-  const metadata = {
-    _id: runId,
-    command: "generate",
+  // Generate data
+  await generateDataAndMetadata({
+    testCases,
     name,
-    startTime,
-    endTime,
-  };
-  await metadataStore.insertOne(metadata);
-  logger.info(
-    `Generated data for ${generatedData.length}/${testCases.length} test cases for generate data command '${name}'`
-  );
-  logger.info(metadata);
+    generator,
+    generatedDataStore,
+    metadataStore,
+  });
 };

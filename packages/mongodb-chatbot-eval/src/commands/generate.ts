@@ -1,11 +1,7 @@
 import { CommandModule } from "yargs";
-import {
-  ResolvedConfig,
-  LoadConfigArgs,
-  withConfig,
-  withConfigOptions,
-} from "../withConfig";
+import { LoadConfigArgs, withConfig, withConfigOptions } from "../withConfig";
 import { generateDataAndMetadata } from "../generate/generateDataAndMetadata";
+import { EvalConfig } from "../EvalConfig";
 
 const commandModule: CommandModule<unknown, LoadConfigArgs> = {
   command: "generate",
@@ -29,7 +25,7 @@ const commandModule: CommandModule<unknown, LoadConfigArgs> = {
 export default commandModule;
 
 export const generateCommand = async (
-  config: ResolvedConfig,
+  config: EvalConfig,
   { name }: { name: string }
 ) => {
   // Get config

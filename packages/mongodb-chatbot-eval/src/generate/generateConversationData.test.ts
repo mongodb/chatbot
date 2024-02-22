@@ -11,7 +11,10 @@ const mockExpressApp = makeMockExpressApp(mockConversations);
 describe("makeGenerateConversationData", () => {
   const generateConversationData = makeGenerateConversationData({
     conversations: mockConversations,
-    testApp: mockExpressApp,
+  });
+  const server = mockExpressApp.listen(3000);
+  afterAll(() => {
+    server.close();
   });
   it("should generate conversation data", async () => {
     const conversationData = await generateConversationData({
@@ -42,7 +45,6 @@ describe("makeGenerateConversationData", () => {
     const numSleeps = testCases.length - 1; // sleeps between each test case
     const generateConversationDataWithSleep = makeGenerateConversationData({
       conversations: mockConversations,
-      testApp: mockExpressApp,
       sleepMs: SLEEP_TIME,
     });
     const start = Date.now();

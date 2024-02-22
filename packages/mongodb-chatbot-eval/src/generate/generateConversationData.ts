@@ -2,9 +2,8 @@ import { ConversationGeneratedData } from "./GeneratedDataStore";
 import { ConversationsService, ObjectId } from "mongodb-chatbot-server";
 import { GenerateDataFunc } from "./GenerateDataFunc";
 import { ConversationTestCase, SomeTestCase } from "./TestCase";
-import request from "supertest";
-import { Express } from "express";
 import { strict as assert } from "assert";
+import axios from "axios";
 
 export interface MakeGenerateConversationDataParams {
   /**
@@ -14,16 +13,10 @@ export interface MakeGenerateConversationDataParams {
   conversations: ConversationsService;
 
   /**
-    Express.js HTTP server for the chatbot.
-   */
-  testApp: Express;
-
-  /**
-    URL for the endpoint to add a message to a conversation.
-    The function replaces ":conversationId" with the actual conversation ID.
-    @default "api/v1/conversations/:conversationId/messages"
+    URL for the server you're evaluating.
+    @default "http://localhost:3000/api/v1/"
   */
-  addMessageToConversationEndpoint?: string;
+  apiBaseUrl?: string;
 
   /**
     HTTP headers to include in the request to add a message to a conversation.
@@ -34,7 +27,7 @@ export interface MakeGenerateConversationDataParams {
     }
     ```
   */
-  addMessageToConversationHttpHeaders?: Record<string, string>;
+  httpHeaders?: Record<string, string>;
 
   /**
     Number of milliseconds to sleep between each conversation.
@@ -49,9 +42,8 @@ export interface MakeGenerateConversationDataParams {
  */
 export const makeGenerateConversationData = function ({
   conversations,
-  testApp,
-  addMessageToConversationHttpHeaders = {},
-  addMessageToConversationEndpoint = "/api/v1/conversations/:conversationId/messages",
+  httpHeaders = {},
+  apiBaseUrl = "http://localhost:3000/api/v1/",
   sleepMs = 0,
 }: MakeGenerateConversationDataParams): GenerateDataFunc {
   return async function ({
@@ -67,16 +59,34 @@ export const makeGenerateConversationData = function ({
     // FIXME: how to go away from this to something more elegant/typescripty?
     const convoTestCases = testCases as ConversationTestCase[];
 
+    apiBaseUrl = apiBaseUrl.replace(/\/$/, ""); // remove trailing slash if it exists
+
     const generatedData: ConversationGeneratedData[] = [];
     const failedCases: ConversationTestCase[] = [];
-    for await (const testCase of convoTestCases) {
+    for (const testCase of convoTestCases) {
       if (testCase.data.skip) {
         continue;
       }
 
       const { messages } = testCase.data;
       assert(messages.length > 0, "Must contain at least 1 message");
-      const conversation = await conversations.create();
+      const createRes = await axios.post(
+        `${apiBaseUrl}/conversations`,
+        {},
+        {
+          headers: httpHeaders,
+          validateStatus: () => true, // don't throw on non-200 status
+        }
+      );
+      if (createRes.status !== 200) {
+        failedCases.push(testCase);
+        continue;
+      }
+      console.log(ObjectId.createFromHexString(createRes.data._id));
+      const conversation = await conversations.findById({
+        _id: ObjectId.createFromHexString(createRes.data._id),
+      });
+      assert(conversation);
 
       const setUpMessages = messages.slice(0, -1); // All but the last message
       const testMessage = messages[messages.length - 1]; // Send last message to server
@@ -89,21 +99,26 @@ export const makeGenerateConversationData = function ({
           message,
         });
       }
-      const endpointWithId = addMessageToConversationEndpoint.replace(
-        ":conversationId",
-        conversationId.toString()
+      const addMessageToConversationEndpoint =
+        `${apiBaseUrl}/conversations/:conversationId/messages`.replace(
+          ":conversationId",
+          conversationId.toString()
+        );
+
+      const res = await axios.post(
+        addMessageToConversationEndpoint,
+        {
+          message: testMessage.content,
+        },
+        {
+          headers: httpHeaders,
+          validateStatus: () => true, // don't throw on non-200 status
+        }
       );
 
-      const req = request(testApp).post(endpointWithId);
-      for (const [key, value] of Object.entries(
-        addMessageToConversationHttpHeaders
-      )) {
-        req.set(key, value);
-      }
-      // Add user message + service response to conversation in DB.
-      const res = await req.send({ message: testMessage.content });
       if (res.status !== 200) {
         failedCases.push(testCase);
+        continue;
       }
 
       // Read full conversation with added messages from the DB

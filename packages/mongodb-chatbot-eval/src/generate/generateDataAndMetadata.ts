@@ -43,7 +43,9 @@ export async function generateDataAndMetadata({
 }: GenerateDataAndMetadataParams) {
   const startTime = new Date();
   const runId = new ObjectId();
-  logger.info(`Generating ${testCases.length} test cases for ${name}`);
+  logger.info(
+    `Generating ${testCases.length} test cases for the '${name}' command.`
+  );
   // do stuff
   const { generatedData, failedCases } = await generator({ testCases, runId });
   for (const failedCase of failedCases) {

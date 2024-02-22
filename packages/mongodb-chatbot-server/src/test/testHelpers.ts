@@ -23,7 +23,7 @@ export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
   assert(mongodb !== undefined);
   assert(mongoClient !== undefined);
 
-  const conversations = makeMongoDbConversationsService(mongodb, systemPrompt);
+  const conversations = makeMongoDbConversationsService(mongodb);
   const appConfig: AppConfig = {
     ...config,
     conversationsRouterConfig: {

@@ -12,7 +12,7 @@ import { Db, ObjectId } from "mongodb-rag-core";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { AppConfig } from "../../app";
-import { config as testConfig } from "../../test/testConfig";
+import { systemPrompt, config as testConfig } from "../../test/testConfig";
 
 jest.setTimeout(100000);
 
@@ -33,7 +33,9 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
     ({ app, ipAddress, appConfig, origin } = await makeTestApp());
     conversations = appConfig.conversationsRouterConfig.conversations;
 
-    conversation = await conversations.create();
+    conversation = await conversations.create({
+      initialMessages: [systemPrompt],
+    });
     testMsg = await conversations.addConversationMessage({
       conversationId: conversation._id,
       message: {

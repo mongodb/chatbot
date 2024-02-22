@@ -60,27 +60,24 @@ export const loadConfig = async ({
 };
 
 export const withConfig = async <T>(
-  action: (config: ResolvedConfig, args: T) => Promise<void>,
+  action: (config: EvalConfig, args: T) => Promise<void>,
   args: LoadConfigArgs & T
 ) => {
   const config = await loadConfig(args);
-  const [resolvedConfig, cleanup, afterAll] = await resolveConfig(config);
   try {
-    return await action(resolvedConfig, args);
+    return await action(config, args);
   } catch (error) {
     logger.error(`Action failed: ${(error as Error).message}`);
+    throw error;
   } finally {
+    // Close all closable resources
     await Promise.all(
-      cleanup.map(async (close) => {
-        try {
-          await close();
-        } catch (error) {
-          logger.error(`Cleanup failed: ${(error as Error).message}`);
-        }
-      })
+      Object.values(config)
+        .filter((v) => v.close !== undefined)
+        .map((v) => v.close as () => Promise<void>)
     );
-    console.log("afterAll you're my wonder wall");
-    afterAll && (await afterAll());
+    // Run afterAll if it exists
+    config.afterAll && (await config?.afterAll());
   }
 };
 
@@ -96,53 +93,6 @@ export const withConfigOptions = <T>(
   });
 };
 // NOTE: consider moving the generic configurable CLI stuff to `mongodb-rag-core` or another independent library since we're using across multiple projects.
-/**
-  Config with promises resolved.
- */
-export type ResolvedConfig = {
-  [K in keyof EvalConfig]: Constructed<EvalConfig[K]>;
-};
-
-type Constructed<T> = Awaited<T extends () => infer R ? R : T>;
-
-/**
-  Resolve any promises in the config object.
- */
-const resolveConfig = async (
-  config: EvalConfig
-): Promise<
-  [ResolvedConfig, CleanupFunc[], (() => Promise<void>) | undefined]
-> => {
-  const cleanup: CleanupFunc[] = [];
-  try {
-    return [
-      Object.fromEntries(
-        await Promise.all(
-          Object.entries(config).map(async ([k, v]) => {
-            const resolved = await resolve(v);
-            const closeable = resolved as unknown as Closeable;
-            if (closeable?.close !== undefined) {
-              // Save cleanup so that any constructed instances can be cleaned up
-              // if subsequent construction fails
-              cleanup.push(async () => {
-                closeable.close && (await closeable.close());
-              });
-            }
-            return [k, resolved];
-          })
-        )
-      ),
-      cleanup,
-      config.afterAll,
-    ];
-  } catch (error) {
-    await Promise.all(cleanup.map((close) => close()));
-    throw error;
-  }
-};
-
-const resolve = async <T>(v: T): Promise<Constructed<T>> =>
-  typeof v === "function" ? v() : v;
 
 /**
   Asserts that the given property is defined in the given object and returns

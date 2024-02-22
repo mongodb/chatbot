@@ -6,6 +6,8 @@ import { z } from "zod";
 import {
   ConversationCustomData,
   ConversationsService,
+  SomeMessage,
+  SystemMessage,
 } from "../../services/ConversationsService";
 import {
   ApiConversation,
@@ -32,11 +34,13 @@ export const CreateConversationRequest = SomeExpressRequest.extend({
 export interface CreateConversationRouteParams {
   conversations: ConversationsService;
   createConversationCustomData?: AddCustomDataFunc;
+  systemPrompt?: SystemMessage;
 }
 
 export function makeCreateConversationRoute({
   conversations,
   createConversationCustomData,
+  systemPrompt,
 }: CreateConversationRouteParams) {
   return async (
     req: ExpressRequest,
@@ -53,7 +57,10 @@ export function makeCreateConversationRoute({
         res,
         createConversationCustomData
       );
-      const conversationInDb = await conversations.create({ customData });
+      const conversationInDb = await conversations.create({
+        customData,
+        initialMessages: systemPrompt ? [systemPrompt] : [],
+      });
       const responseConversation =
         convertConversationFromDbToApi(conversationInDb);
       res.status(200).json(responseConversation);

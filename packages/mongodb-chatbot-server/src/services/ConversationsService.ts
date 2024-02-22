@@ -134,6 +134,7 @@ export interface Conversation<
   customData?: CustomData;
 }
 export type CreateConversationParams = {
+  initialMessages?: SomeMessage[];
   customData?: ConversationCustomData;
 };
 

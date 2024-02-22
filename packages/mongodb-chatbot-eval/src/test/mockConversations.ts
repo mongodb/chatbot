@@ -1,29 +1,35 @@
 import {
+  AssistantMessage,
   Conversation,
   ConversationsService,
   Message,
+  MessageBase,
+  SystemMessage,
+  UserMessage,
 } from "mongodb-chatbot-server";
 import { ObjectId } from "mongodb-rag-core";
 
-const createMockConvo = () =>
+const createMockConvo = (initialMessages: MessageBase[]) =>
   ({
     _id: new ObjectId(),
-    messages: [
-      {
-        content: "Hello",
-        role: "user",
-        createdAt: new Date(),
-        id: new ObjectId(),
-      },
-    ],
+    messages: initialMessages.map(
+      (msg) =>
+        ({
+          ...msg,
+          id: new ObjectId(),
+          createdAt: new Date(),
+        } as Message)
+    ),
+
     createdAt: new Date(),
   } satisfies Conversation);
 
-export const makeMockConversations = () => {
+export const makeMockConversations: () => ConversationsService = () => {
   const conversationDb: Record<string, Conversation> = {};
   return {
-    async create() {
-      const conversation = createMockConvo();
+    async create(params) {
+      const initialMessages = params?.initialMessages ?? [];
+      const conversation = createMockConvo(initialMessages);
       conversationDb[conversation._id.toHexString()] = conversation;
       return conversation;
     },

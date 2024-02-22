@@ -20,10 +20,7 @@ export const {
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
 } = assertEnvVars(CORE_ENV_VARS);
-import { config, mongodb, embeddedContentStore, systemPrompt } from "./config";
-
-// Export for use in testing
-export { config, mongodb, embeddedContentStore, systemPrompt };
+import { config, mongodb, embeddedContentStore } from "./config";
 
 const PORT = process.env.PORT || 3000;
 

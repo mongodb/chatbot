@@ -9,39 +9,18 @@ import {
 } from "mongodb-chatbot-eval/generate";
 import { makeMongoDbEvaluationStore } from "mongodb-chatbot-eval/evaluate";
 import { makeMongoDbReportStore } from "mongodb-chatbot-eval/report";
-import {
-  makeApp,
-  makeMongoDbConversationsService,
-} from "mongodb-chatbot-server";
-import dotenv from "dotenv";
+import { makeMongoDbConversationsService } from "mongodb-chatbot-server";
+import "dotenv/config";
 import { strict as assert } from "assert";
 import fs from "fs";
 import path from "path";
-import { MongoClient } from "mongodb-rag-core";
-
-// Use same dotenv file as chatbot-server-mongodb-public.
-// Need this to load config from there.
-const dotenvPath = path.resolve(
-  __dirname,
-  "..",
-  "..",
-  "chatbot-server-mongodb-public",
-  ".env"
-);
-dotenv.config({
-  path: dotenvPath,
-});
-
-const { MONGODB_DATABASE_NAME, MONGODB_CONNECTION_URI } = process.env;
-assert(MONGODB_DATABASE_NAME, "MONGODB_DATABASE_NAME is required");
-assert(MONGODB_CONNECTION_URI, "MONGODB_CONNECTION_URI is required");
+import { MongoClient, ObjectId } from "mongodb-rag-core";
 
 export default async () => {
+  const { MONGODB_DATABASE_NAME, MONGODB_CONNECTION_URI } = process.env;
+  assert(MONGODB_DATABASE_NAME, "MONGODB_DATABASE_NAME is required");
+  assert(MONGODB_CONNECTION_URI, "MONGODB_CONNECTION_URI is required");
   // dynamic import to allow loading from .env file before import
-  const { config, embeddedContentStore, systemPrompt, mongodb } = await import(
-    "chatbot-server-mongodb-public"
-  );
-  const app = await makeApp(config);
   const testCases = getConversationsTestCasesFromYaml(
     fs.readFileSync(
       path.resolve(__dirname, "..", "testCases", "conversations.yml"),
@@ -53,30 +32,35 @@ export default async () => {
     databaseName: MONGODB_DATABASE_NAME,
   };
 
+  const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
   await mongodb.connect();
-  const db = mongodb.db(MONGODB_DATABASE_NAME);
 
-  const evalConfig: EvalConfig = {
+  const db = mongodb.db(MONGODB_DATABASE_NAME);
+  const conversations = makeMongoDbConversationsService(db);
+
+  const evalConfig = {
     metadataStore: makeMongoDbCommandMetadataStore(storeDbOptions),
     generatedDataStore: makeMongoDbGeneratedDataStore(storeDbOptions),
     evaluationStore: makeMongoDbEvaluationStore(storeDbOptions),
     reportStore: makeMongoDbReportStore(storeDbOptions),
+
     commands: {
       generate: {
         conversations: {
           type: "conversation",
           testCases,
           generator: makeGenerateConversationData({
-            conversations: makeMongoDbConversationsService(db, systemPrompt),
-            testApp: app,
+            conversations,
+            httpHeaders: {
+              Origin: "Testing",
+            },
           }),
         },
       },
     },
     async afterAll() {
       await mongodb.close();
-      await embeddedContentStore.close();
     },
-  };
+  } satisfies EvalConfig;
   return evalConfig;
 };

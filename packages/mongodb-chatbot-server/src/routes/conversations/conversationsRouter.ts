@@ -2,7 +2,7 @@ import { Request, Router, RequestHandler, Response } from "express";
 import { rateLimit, Options as RateLimitOptions } from "express-rate-limit";
 import slowDown, { Options as SlowDownOptions } from "express-slow-down";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
-import { ChatLlm } from "../../services/ChatLlm";
+import { ChatLlm, SystemPrompt } from "../../services/ChatLlm";
 import {
   ConversationCustomData,
   ConversationsService,
@@ -118,6 +118,7 @@ export interface ConversationsRouterParams {
   llm: ChatLlm;
   dataStreamer?: DataStreamer;
   conversations: ConversationsService;
+  systemPrompt?: SystemPrompt;
   /**
     Function to generate the user prompt sent to the {@link ChatLlm}.
     You can perform any preprocessing of the user's message
@@ -217,6 +218,7 @@ const addOriginToCustomData: AddCustomDataFunc = async (_, res) =>
 export function makeConversationsRouter({
   llm,
   conversations,
+  systemPrompt,
   maxInputLengthCharacters,
   maxUserMessagesInConversation,
   filterPreviousMessages,
@@ -270,7 +272,11 @@ export function makeConversationsRouter({
   conversationsRouter.post(
     "/",
     validateRequestSchema(CreateConversationRequest),
-    makeCreateConversationRoute({ conversations, createConversationCustomData })
+    makeCreateConversationRoute({
+      conversations,
+      createConversationCustomData,
+      systemPrompt,
+    })
   );
 
   /*

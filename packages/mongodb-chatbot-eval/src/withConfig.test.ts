@@ -10,6 +10,7 @@ describe("withConfig", () => {
         expect(config.generatedDataStore).toBeDefined();
         expect(config.metadataStore).toBeDefined();
         expect(config.reportStore).toBeDefined();
+        expect(config.afterAll).toBeDefined();
       },
       {
         config: Path.resolve(

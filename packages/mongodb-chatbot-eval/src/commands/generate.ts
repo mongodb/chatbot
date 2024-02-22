@@ -5,17 +5,17 @@ import {
   withConfig,
   withConfigOptions,
 } from "../withConfig";
-import { ObjectId, logger } from "mongodb-rag-core";
-import { CommandMetadataStore } from "../CommandMetadataStore";
-import { GenerateDataFunc } from "../generate/GenerateDataFunc";
-import { GeneratedDataStore } from "../generate/GeneratedDataStore";
-import { SomeTestCase } from "../generate/TestCase";
 import { generateDataAndMetadata } from "../generate/generateDataAndMetadata";
 
 const commandModule: CommandModule<unknown, LoadConfigArgs> = {
   command: "generate",
   builder(args) {
-    return withConfigOptions(args).string("name").demandOption("name");
+    return withConfigOptions(args)
+      .option("name", {
+        type: "string",
+        description: "Name of the data generation.",
+      })
+      .demandOption("name");
   },
   async handler(args) {
     return withConfig(generateCommand, {
@@ -42,7 +42,6 @@ export const generateCommand = async (
     throw new Error(`No generate command found with name: ${name}`);
   }
   const { generator, testCases } = generate[name];
-
   // Generate data
   await generateDataAndMetadata({
     testCases,

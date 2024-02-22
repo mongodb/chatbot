@@ -64,9 +64,11 @@ export const withConfig = async <T>(
   args: LoadConfigArgs & T
 ) => {
   const config = await loadConfig(args);
-  const [resolvedConfig, cleanup] = await resolveConfig(config);
+  const [resolvedConfig, cleanup, afterAll] = await resolveConfig(config);
   try {
     return await action(resolvedConfig, args);
+  } catch (error) {
+    logger.error(`Action failed: ${(error as Error).message}`);
   } finally {
     await Promise.all(
       cleanup.map(async (close) => {
@@ -77,6 +79,8 @@ export const withConfig = async <T>(
         }
       })
     );
+    console.log("afterAll you're my wonder wall");
+    afterAll && (await afterAll());
   }
 };
 
@@ -106,7 +110,9 @@ type Constructed<T> = Awaited<T extends () => infer R ? R : T>;
  */
 const resolveConfig = async (
   config: EvalConfig
-): Promise<[ResolvedConfig, CleanupFunc[]]> => {
+): Promise<
+  [ResolvedConfig, CleanupFunc[], (() => Promise<void>) | undefined]
+> => {
   const cleanup: CleanupFunc[] = [];
   try {
     return [
@@ -127,6 +133,7 @@ const resolveConfig = async (
         )
       ),
       cleanup,
+      config.afterAll,
     ];
   } catch (error) {
     await Promise.all(cleanup.map((close) => close()));

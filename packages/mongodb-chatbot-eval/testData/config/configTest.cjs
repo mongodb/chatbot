@@ -4,4 +4,7 @@ module.exports = async () => ({
   evaluationStore: {},
   reportStore: {},
   commands: [],
+  async afterAll() {
+    "foo";
+  },
 });

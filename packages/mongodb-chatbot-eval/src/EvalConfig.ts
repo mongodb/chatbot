@@ -34,6 +34,13 @@ export interface EvalConfig {
       };
     };
   };
+
+  /**
+    Function that runs after all actions in the eval command.
+    Can use for things like cleaning up resources besides the stores.
+    The stores are cleaned up automatically.
+   */
+  afterAll?: () => Promise<void>;
 }
 
 export type ConfigConstructor = () => Promise<EvalConfig>;

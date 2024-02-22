@@ -15,8 +15,7 @@
     "watch": "tsc -b -w",
     "release": "release-it",
     "lint": "eslint ./src --ext ts --report-unused-disable-directives",
-    "generate-conversations": "../mongodb-chatbot-eval/build/main.js generate --name conversations --config ./build/eval.config.js",
-    "test": "jest --forceExit"
+    "generate-conversations": "../mongodb-chatbot-eval/build/main.js generate --name conversations --config ./build/eval.config.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",

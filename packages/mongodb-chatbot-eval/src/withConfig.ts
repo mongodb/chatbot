@@ -78,6 +78,8 @@ export const withConfig = async <T>(
     );
     // Run afterAll if it exists
     config.afterAll && (await config?.afterAll());
+    // TODO: how to test this w jest?
+    process.exit(0);
   }
 };
 

@@ -14,13 +14,21 @@ import "dotenv/config";
 import { strict as assert } from "assert";
 import fs from "fs";
 import path from "path";
-import { MongoClient, ObjectId } from "mongodb-rag-core";
+import { MongoClient } from "mongodb-rag-core";
+
+const {
+  MONGODB_DATABASE_NAME,
+  MONGODB_CONNECTION_URI,
+  CONVERSATIONS_SERVER_BASE_URL,
+} = process.env;
+assert(MONGODB_DATABASE_NAME, "MONGODB_DATABASE_NAME is required");
+assert(MONGODB_CONNECTION_URI, "MONGODB_CONNECTION_URI is required");
+assert(
+  CONVERSATIONS_SERVER_BASE_URL,
+  "CONVERSATIONS_SERVER_BASE_URL is required"
+);
 
 export default async () => {
-  const { MONGODB_DATABASE_NAME, MONGODB_CONNECTION_URI } = process.env;
-  assert(MONGODB_DATABASE_NAME, "MONGODB_DATABASE_NAME is required");
-  assert(MONGODB_CONNECTION_URI, "MONGODB_CONNECTION_URI is required");
-  // dynamic import to allow loading from .env file before import
   const testCases = getConversationsTestCasesFromYaml(
     fs.readFileSync(
       path.resolve(__dirname, "..", "testCases", "conversations.yml"),
@@ -54,6 +62,7 @@ export default async () => {
             httpHeaders: {
               Origin: "Testing",
             },
+            apiBaseUrl: CONVERSATIONS_SERVER_BASE_URL,
           }),
         },
       },

@@ -1,5 +1,6 @@
 import { ConversationGeneratedData } from "./GeneratedDataStore";
 import { ConversationsService, ObjectId } from "mongodb-chatbot-server";
+import { logger } from "mongodb-rag-core";
 import { GenerateDataFunc } from "./GenerateDataFunc";
 import { ConversationTestCase, SomeTestCase } from "./TestCase";
 import { strict as assert } from "assert";
@@ -64,6 +65,7 @@ export const makeGenerateConversationData = function ({
     const generatedData: ConversationGeneratedData[] = [];
     const failedCases: ConversationTestCase[] = [];
     for (const testCase of convoTestCases) {
+      logger.info(`Generating data for test case: ${testCase.name}`);
       if (testCase.data.skip) {
         continue;
       }

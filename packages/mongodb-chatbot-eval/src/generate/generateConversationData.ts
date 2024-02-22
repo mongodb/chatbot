@@ -82,7 +82,6 @@ export const makeGenerateConversationData = function ({
         failedCases.push(testCase);
         continue;
       }
-      console.log(ObjectId.createFromHexString(createRes.data._id));
       const conversation = await conversations.findById({
         _id: ObjectId.createFromHexString(createRes.data._id),
       });

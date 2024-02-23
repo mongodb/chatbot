@@ -9,11 +9,13 @@ export interface EvalResult {
     Number between 0 and 1, inclusive.
    */
   result: number;
-  endTime: Date;
+  createdAt: Date;
+  metadata?: Record<string, unknown>;
 }
 
 export interface EvaluationStore {
   insertOne(evalResult: EvalResult): Promise<boolean>;
+  insertMany(evalResults: EvalResult[]): Promise<boolean>;
   find(filter: unknown): Promise<EvalResult[] | undefined>;
   close(): Promise<void>;
 }
@@ -44,6 +46,10 @@ export function makeMongoDbEvaluationStore({
   return {
     async insertOne(evalResult) {
       const { acknowledged } = await collection.insertOne(evalResult);
+      return acknowledged;
+    },
+    async insertMany(evalResults) {
+      const { acknowledged } = await collection.insertMany(evalResults);
       return acknowledged;
     },
     async find(filter) {

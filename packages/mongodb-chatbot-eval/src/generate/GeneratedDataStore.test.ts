@@ -95,4 +95,19 @@ describe("MongoDbGeneratedDataStore", () => {
     const found = await generatedDataStore.find({ data: "foo" });
     expect(found && found[0]).toMatchObject(generatedData);
   });
+  it("should find generated data by command run id", async () => {
+    const commandRunId = new ObjectId();
+    const generatedData = {
+      _id: new ObjectId(),
+      commandRunId,
+      data: "foo",
+      type: "bar",
+      evalData: {
+        fizz: "buzz",
+      },
+    } satisfies SomeGeneratedData;
+    await generatedDataStore.insertOne(generatedData);
+    const found = await generatedDataStore.findByCommandRunId(commandRunId);
+    expect(found && found[0]).toMatchObject(generatedData);
+  });
 });

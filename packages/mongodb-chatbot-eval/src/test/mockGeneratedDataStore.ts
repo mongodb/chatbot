@@ -2,12 +2,7 @@ import {
   GeneratedDataStore,
   SomeGeneratedData,
 } from "../generate/GeneratedDataStore";
-
-export type MockFindFilter = (
-  number: any,
-  index: any,
-  array: SomeGeneratedData[]
-) => boolean;
+import { MockFindFilter } from "./MockFindFilter";
 
 export const makeMockGeneratedDataStore = () => {
   const memDb: Record<string, SomeGeneratedData> = {};
@@ -19,7 +14,12 @@ export const makeMockGeneratedDataStore = () => {
     findById: async (id) => {
       return memDb[id.toHexString()];
     },
-    async find(filterFunc: MockFindFilter) {
+    findByCommandRunId: async (commandRunId) => {
+      return Object.values(memDb).filter(
+        (d) => d.commandRunId.toHexString() === commandRunId.toHexString()
+      );
+    },
+    async find(filterFunc: MockFindFilter<SomeGeneratedData>) {
       return Object.values(memDb).filter(filterFunc);
     },
     async insertMany(data) {

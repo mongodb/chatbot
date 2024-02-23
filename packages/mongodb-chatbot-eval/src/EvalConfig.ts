@@ -1,15 +1,18 @@
+import { Filter } from "mongodb-rag-core";
 import { CommandMetadataStore } from "./CommandMetadataStore";
 import { EvaluateQualityFunc } from "./evaluate/EvaluateQualityFunc";
 import { EvaluationStore } from "./evaluate/EvaluationStore";
 import { GenerateDataFunc } from "./generate/GenerateDataFunc";
-import { GeneratedDataStore } from "./generate/GeneratedDataStore";
+import {
+  GeneratedDataStore,
+  SomeGeneratedData,
+} from "./generate/GeneratedDataStore";
 import { SomeTestCase } from "./generate/TestCase";
 import { ReportEvalFunc } from "./report/ReportEvalFunc";
 import { ReportStore } from "./report/ReportStore";
 
-/**
-  Config
- */
+export type EvalGeneratedDataFilter = Filter<SomeGeneratedData> | unknown;
+
 export interface EvalConfig {
   metadataStore: CommandMetadataStore;
   generatedDataStore: GeneratedDataStore;
@@ -23,9 +26,10 @@ export interface EvalConfig {
         generator: GenerateDataFunc;
       };
     };
-    eval?: {
+    evaluate?: {
       [k: string]: {
         evaluator: EvaluateQualityFunc;
+        defaultGeneratedDataQuery?: EvalGeneratedDataFilter;
       };
     };
     report?: {

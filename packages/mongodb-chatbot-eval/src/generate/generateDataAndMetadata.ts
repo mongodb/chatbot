@@ -1,5 +1,8 @@
 import { ObjectId, logger } from "mongodb-rag-core";
-import { CommandMetadataStore } from "../CommandMetadataStore";
+import {
+  CommandMetadataStore,
+  CommandRunMetadata,
+} from "../CommandMetadataStore";
 import { GenerateDataFunc } from "./GenerateDataFunc";
 import { GeneratedDataStore } from "./GeneratedDataStore";
 import { SomeTestCase } from "./TestCase";
@@ -60,7 +63,7 @@ export async function generateDataAndMetadata({
     name,
     startTime,
     endTime,
-  };
+  } satisfies CommandRunMetadata;
   await metadataStore.insertOne(metadata);
   logger.info(
     `Generated data for ${generatedData.length}/${testCases.length} test cases for generate data command '${name}'`

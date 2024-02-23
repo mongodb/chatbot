@@ -15,7 +15,8 @@
     "watch": "tsc -b -w",
     "release": "release-it",
     "lint": "eslint ./src --ext ts --report-unused-disable-directives",
-    "generate-conversations": "../mongodb-chatbot-eval/build/main.js generate --name conversations --config ./build/eval.config.js"
+    "generate-conversations": "../mongodb-chatbot-eval/build/main.js generate --name conversations --config ./build/eval.config.js",
+    "eval-conversation-quality": "../mongodb-chatbot-eval/build/main.js evaluate --name conversationQuality --config ./build/eval.config.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",
@@ -37,10 +38,11 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@azure/openai": "^1.0.0-beta.11",
+    "chatbot-server-mongodb-public": "*",
     "dotenv": "^16",
-    "mongodb-rag-core": "*",
-    "mongodb-chatbot-server": "*",
     "mongodb-chatbot-eval": "*",
-    "chatbot-server-mongodb-public": "*"
+    "mongodb-chatbot-server": "*",
+    "mongodb-rag-core": "*"
   }
 }

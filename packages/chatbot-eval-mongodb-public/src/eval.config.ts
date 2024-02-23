@@ -1,11 +1,10 @@
 import {
   EvalConfig,
   makeMongoDbCommandMetadataStore,
-} from "mongodb-chatbot-eval";
-import {
   makeMongoDbGeneratedDataStore,
   makeGenerateConversationData,
   getConversationsTestCasesFromYaml,
+  makeEvaluateConversationQuality,
   makeMongoDbEvaluationStore,
   makeMongoDbReportStore,
 } from "mongodb-chatbot-eval";
@@ -20,9 +19,13 @@ const {
   MONGODB_DATABASE_NAME,
   MONGODB_CONNECTION_URI,
   CONVERSATIONS_SERVER_BASE_URL,
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_ENDPOINT,
+  OPENAI_API_KEY,
 } = assertEnvVars(envVars);
 
 export default async () => {
+  const { OpenAIClient, AzureKeyCredential } = await import("@azure/openai");
   const testCases = getConversationsTestCasesFromYaml(
     fs.readFileSync(
       path.resolve(__dirname, "..", "testCases", "conversations.yml"),
@@ -57,6 +60,17 @@ export default async () => {
               Origin: "Testing",
             },
             apiBaseUrl: CONVERSATIONS_SERVER_BASE_URL,
+          }),
+        },
+      },
+      evaluate: {
+        conversationQuality: {
+          evaluator: makeEvaluateConversationQuality({
+            deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+            openAiClient: new OpenAIClient(
+              OPENAI_ENDPOINT,
+              new AzureKeyCredential(OPENAI_API_KEY)
+            ),
           }),
         },
       },

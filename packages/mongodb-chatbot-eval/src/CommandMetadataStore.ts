@@ -2,7 +2,7 @@ import { MongoClient, ObjectId } from "mongodb-rag-core";
 
 export interface CommandRunMetadata {
   _id: ObjectId;
-  command: string;
+  command: "generate" | "evaluate" | "report";
   name: string;
   startTime: Date;
   endTime: Date;

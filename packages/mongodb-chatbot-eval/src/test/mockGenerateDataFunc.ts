@@ -4,6 +4,7 @@ import { SomeGeneratedData } from "../generate/GeneratedDataStore";
 import { TRIGGER_SERVER_ERROR_MESSAGE } from "./mockExpressApp";
 import { strict as assert } from "assert";
 import { SomeTestCase } from "../generate/TestCase";
+import { Message } from "mongodb-chatbot-server";
 
 export const mockGenerateDataFunc: GenerateDataFunc = async ({
   runId,
@@ -25,7 +26,13 @@ export const mockGenerateDataFunc: GenerateDataFunc = async ({
       commandRunId: runId,
       type: "conversation",
       data: {
-        name: testCase.name,
+        messages: [
+          ...(testCase.data.messages as Message[]),
+          {
+            content: "This is a test message",
+            role: "assistant",
+          },
+        ] as Message[],
       },
     }));
   return {

@@ -140,20 +140,21 @@ export function makeAddMessageToConversationRoute({
       const shouldStream = Boolean(stream);
 
       // --- GENERATE USER MESSAGE ---
-      const { userMessage, references, rejectQuery } = await (generateUserPrompt
-        ? generateUserPrompt({
-            userMessageText: latestMessageText,
-            conversation,
-            reqId,
-            customData,
-          })
-        : {
-            userMessage: {
-              role: "user",
-              content: latestMessageText,
+      const { userMessage, references, staticResponse, rejectQuery } =
+        await (generateUserPrompt
+          ? generateUserPrompt({
+              userMessageText: latestMessageText,
+              conversation,
+              reqId,
               customData,
-            } satisfies UserMessage,
-          });
+            })
+          : {
+              userMessage: {
+                role: "user",
+                content: latestMessageText,
+                customData,
+              } satisfies UserMessage,
+            });
       // Add request custom data to user message.
       const userMessageWithCustomData = customData
         ? {
@@ -163,14 +164,13 @@ export function makeAddMessageToConversationRoute({
           }
         : userMessage;
       const newMessages: SomeMessage[] = [userMessageWithCustomData];
-      if (rejectQuery) {
+      if (rejectQuery || staticResponse !== undefined) {
         const rejectionMessage = {
           role: "assistant",
           content: conversations.conversationConstants.NO_RELEVANT_CONTENT,
           references: references ?? [],
         } satisfies AssistantMessage;
-
-        const messages = [...newMessages, rejectionMessage];
+        const messages = [...newMessages, staticResponse ?? rejectionMessage];
         sendStaticNonResponse({
           conversations,
           conversation,

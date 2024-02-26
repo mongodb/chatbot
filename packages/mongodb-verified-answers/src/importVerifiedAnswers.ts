@@ -1,26 +1,8 @@
 import crypto from "crypto";
 import { Db } from "mongodb";
-import { Embedder, Reference } from "mongodb-rag-core";
+import { Embedder, VerifiedAnswer } from "mongodb-rag-core";
 import { VerifiedAnswerSpec } from "./parseVerifiedAnswersYaml";
 import deepEqual from "deep-equal";
-
-export type Question = {
-  embedding: number[];
-  embedding_model: string;
-  embedding_model_version: string;
-  text: string;
-};
-
-export type VerifiedAnswer = {
-  _id: string;
-  question: Question;
-  answer: string;
-  author_email: string;
-  hidden?: boolean;
-  references: Reference[];
-  created: Date;
-  updated?: Date;
-};
 
 /**
   Creates a non-cryptographic hash of the given question text.

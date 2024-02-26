@@ -6,6 +6,7 @@ import "dotenv/config";
 import {
   MongoClient,
   makeMongoDbEmbeddedContentStore,
+  makeMongoDbVerifiedAnswerStore,
   makeOpenAiEmbedder,
   makeMongoDbConversationsService,
   makeDataStreamer,
@@ -16,11 +17,12 @@ import {
   assertEnvVars,
   makeDefaultFindContent,
   SystemPrompt,
-  GenerateUserPromptFunc,
   requireValidIpAddress,
   requireRequestOrigin,
   AddCustomDataFunc,
   ConversationCustomData,
+  makeVerifiedAnswerGenerateUserPrompt,
+  makeDefaultFindVerifiedAnswer,
 } from "mongodb-chatbot-server";
 import { stripIndents } from "common-tags";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
@@ -121,13 +123,25 @@ export const findContent = makeDefaultFindContent({
   searchBoosters: [boostManual],
 });
 
-export const generateUserPrompt: GenerateUserPromptFunc =
-  makeStepBackRagGenerateUserPrompt({
+export const verifiedAnswerStore = makeMongoDbVerifiedAnswerStore({
+  connectionUri: MONGODB_CONNECTION_URI,
+  databaseName: MONGODB_DATABASE_NAME,
+});
+
+export const findVerifiedAnswer = makeDefaultFindVerifiedAnswer({
+  embedder,
+  store: verifiedAnswerStore,
+});
+
+export const generateUserPrompt = makeVerifiedAnswerGenerateUserPrompt({
+  findVerifiedAnswer,
+  continuation: makeStepBackRagGenerateUserPrompt({
     openAiClient,
     deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     findContent,
     numPrecedingMessagesToInclude: 2,
-  });
+  }),
+});
 
 export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 

@@ -11,7 +11,10 @@ import {
   makeEvaluateConversationQuality,
   makeMongoDbEvaluationStore,
 } from "mongodb-chatbot-eval/evaluate";
-import { makeMongoDbReportStore } from "mongodb-chatbot-eval/report";
+import {
+  makeMongoDbReportStore,
+  reportMostRecentConversationStats,
+} from "mongodb-chatbot-eval/report";
 import { makeMongoDbConversationsService } from "mongodb-chatbot-server";
 import "dotenv/config";
 import { strict as assert } from "assert";
@@ -89,6 +92,11 @@ export default async () => {
               new AzureKeyCredential(OPENAI_API_KEY)
             ),
           }),
+        },
+      },
+      report: {
+        mostRecentConversationQuality: {
+          reporter: reportMostRecentConversationStats,
         },
       },
     },

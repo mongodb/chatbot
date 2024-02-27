@@ -74,4 +74,28 @@ describe("MongoDbReportStore", () => {
     const found = await evalStore.find({ result: 0.5, evalName: "foo" });
     expect(found && found[0]).toMatchObject(evalResult);
   });
+  it("should aggregate data", async () => {
+    const evalResult1 = {
+      _id: new ObjectId(),
+      createdAt: new Date(),
+      commandRunMetadataId: new ObjectId(),
+      evalName: "foo",
+      result: 0.5,
+      generatedDataId: new ObjectId(),
+    } satisfies EvalResult;
+    const evalResult2 = {
+      _id: new ObjectId(),
+      createdAt: new Date(),
+      commandRunMetadataId: new ObjectId(),
+      evalName: "bar",
+      result: 0.123,
+      generatedDataId: new ObjectId(),
+    } satisfies EvalResult;
+    await evalStore.insertMany([evalResult1, evalResult2]);
+    const aggregated = await evalStore.aggregate([
+      { $match: { result: 0.5, evalName: "foo" } },
+    ]);
+    expect(aggregated).toHaveLength(1);
+    expect(aggregated[0]).toMatchObject(evalResult1);
+  });
 });

@@ -16,6 +16,15 @@ export interface EvaluateConversationQualityParams {
   deploymentName: string;
 }
 
+export interface ConversationQualityEvalResult extends EvalResult {
+  result: 0 | 1;
+  evalName: "conversation_quality";
+  metadata: {
+    reason: string;
+    conversationTranscript: string;
+  };
+}
+
 /**
   Construct a a {@link EvaluateQualityFunc} that evaluates the quality of a conversation
   using an OpenAI ChatGPT LLM.
@@ -58,7 +67,7 @@ export function makeEvaluateConversationQuality({
         reason,
         conversationTranscript,
       },
-    } satisfies EvalResult;
+    } satisfies ConversationQualityEvalResult;
     return result;
   };
 }

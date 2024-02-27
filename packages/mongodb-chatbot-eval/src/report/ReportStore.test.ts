@@ -33,8 +33,9 @@ describe("MongoDbReportStore", () => {
     const report = {
       _id: new ObjectId(),
       reportName: "foo",
+      commandRunMetadataId: new ObjectId(),
       data: { fizz: "buzz" },
-      endTime: new Date(),
+      createdAt: new Date(),
     } satisfies Report;
     const inserted = await evalStore.insertOne(report);
     expect(inserted).toBe(true);
@@ -43,8 +44,9 @@ describe("MongoDbReportStore", () => {
     const report = {
       _id: new ObjectId(),
       reportName: "foo",
+      commandRunMetadataId: new ObjectId(),
       data: { fizz: "buzz" },
-      endTime: new Date(),
+      createdAt: new Date(),
     } satisfies Report;
     await evalStore.insertOne(report);
     const found = await evalStore.find({

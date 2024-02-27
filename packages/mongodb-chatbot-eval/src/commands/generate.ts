@@ -9,9 +9,9 @@ const commandModule: CommandModule<unknown, LoadConfigArgs> = {
     return withConfigOptions(args)
       .option("name", {
         type: "string",
+        demandOption: true,
         description: "Name of the data generation.",
       })
-      .demandOption("name");
   },
   async handler(args) {
     return withConfig(generateCommand, {
@@ -34,7 +34,7 @@ export const generateCommand = async (
     metadataStore,
     commands: { generate },
   } = config;
-  if (!generate || !generate[name]) {
+  if (!generate?.[name]) {
     throw new Error(`No generate command found with name: ${name}`);
   }
   const { generator, testCases } = generate[name];

@@ -87,12 +87,12 @@ export const makeGenerateConversationData = function ({
       const conversation = await conversations.findById({
         _id: ObjectId.createFromHexString(createRes.data._id),
       });
-      assert(conversation);
+      assert(conversation, "Conversation must exist");
 
       const setUpMessages = messages.slice(0, -1); // All but the last message
       const testMessage = messages[messages.length - 1]; // Send last message to server
 
-      assert(testMessage);
+      assert(testMessage, "Conversation must include at least one message to test");
       const conversationId = conversation._id;
       for (const message of setUpMessages) {
         await conversations.addConversationMessage({
@@ -101,10 +101,7 @@ export const makeGenerateConversationData = function ({
         });
       }
       const addMessageToConversationEndpoint =
-        `${apiBaseUrl}/conversations/:conversationId/messages`.replace(
-          ":conversationId",
-          conversationId.toString()
-        );
+        `${apiBaseUrl}/conversations/${conversationId}/messages`;
 
       const res = await axios.post(
         addMessageToConversationEndpoint,

@@ -77,8 +77,7 @@ export const withConfig = async <T>(
         .map((v) => v.close as () => Promise<void>)
     );
     // Run afterAll if it exists
-    config.afterAll && (await config?.afterAll());
-    // TODO: how to test this w jest?
+    await config.afterAll?.();
     process.exit(0);
   }
 };

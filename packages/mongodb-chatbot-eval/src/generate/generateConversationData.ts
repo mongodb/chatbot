@@ -63,7 +63,7 @@ export const makeGenerateConversationData = function ({
   }> {
     const convoTestCases = testCases.filter((testCase) =>
       isConversationTestCase(testCase)
-    ) satisfies ConversationTestCase[];
+    ) as ConversationTestCase[];
 
     apiBaseUrl = apiBaseUrl.replace(/\/$/, ""); // remove trailing slash if it exists
 

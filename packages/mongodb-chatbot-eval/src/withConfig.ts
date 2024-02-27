@@ -93,7 +93,6 @@ export const withConfigOptions = <T>(
     description: "Path to config JS file.",
   });
 };
-// NOTE: consider moving the generic configurable CLI stuff to `mongodb-rag-core` or another independent library since we're using across multiple projects.
 
 /**
   Asserts that the given property is defined in the given object and returns

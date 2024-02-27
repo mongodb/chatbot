@@ -34,7 +34,7 @@ export const CreateConversationRequest = SomeExpressRequest.extend({
 export interface CreateConversationRouteParams {
   conversations: ConversationsService;
   createConversationCustomData?: AddCustomDataFunc;
-  systemPrompt?: SystemMessage;
+  systemPrompt: SystemMessage;
 }
 
 export function makeCreateConversationRoute({

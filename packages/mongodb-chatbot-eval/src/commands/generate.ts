@@ -6,12 +6,11 @@ import { EvalConfig } from "../EvalConfig";
 const commandModule: CommandModule<unknown, LoadConfigArgs> = {
   command: "generate",
   builder(args) {
-    return withConfigOptions(args)
-      .option("name", {
-        type: "string",
-        demandOption: true,
-        description: "Name of the data generation.",
-      })
+    return withConfigOptions(args).option("name", {
+      type: "string",
+      demandOption: true,
+      description: "Name of the data generation.",
+    });
   },
   async handler(args) {
     return withConfig(generateCommand, {

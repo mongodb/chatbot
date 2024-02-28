@@ -32,7 +32,7 @@ export function makeMongoDbVerifiedAnswerStore({
         indexName: "vector_index",
         path: "question.embedding",
         k: 1,
-        minScore: 0.9,
+        minScore: 0.95,
         // User options override
         ...(options ?? {}),
       };

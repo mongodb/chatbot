@@ -1,7 +1,10 @@
 import { ConversationGeneratedData } from "../generate/GeneratedDataStore";
 import { EvaluateQualityFunc } from "./EvaluateQualityFunc";
 import { strict as assert } from "assert";
-import { checkResponseQuality } from "./checkResponseQuality";
+import {
+  ResponseQualityExample,
+  checkResponseQuality,
+} from "./checkResponseQuality";
 import { ObjectId, OpenAIClient } from "mongodb-rag-core";
 import { EvalResult } from "./EvaluationStore";
 import { stringifyConversation } from "./stringifyConversation";
@@ -14,6 +17,18 @@ export interface EvaluateConversationQualityParams {
     @example "gpt-3.5-turbo"
    */
   deploymentName: string;
+
+  /**
+    Provide a few examples of conversation transcripts, expected outputs,
+    and what the LLM output should be.
+    This is _extremely_ useful for helping the LLM understand
+    its expected behavior for your use case.
+    While not strictly necessary, it is highly recommended
+    to include a few representative examples.
+
+    Here, the LLM utilizes a prompting technique called ["few-shot prompting"](https://www.promptingguide.ai/techniques/fewshot.en).
+   */
+  fewShotExamples?: ResponseQualityExample[];
 }
 
 /**

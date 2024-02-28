@@ -1,6 +1,9 @@
 import "dotenv/config";
 import { stripIndents } from "common-tags";
-import { checkResponseQuality } from "./checkResponseQuality";
+import {
+  checkResponseQuality,
+  mongodbResponseQualityExamples,
+} from "./checkResponseQuality";
 import { OpenAIClient, AzureKeyCredential } from "@azure/openai";
 import { strict as assert } from "assert";
 
@@ -17,6 +20,11 @@ describe("checkResponseQuality()", () => {
     OPENAI_ENDPOINT,
     new AzureKeyCredential(OPENAI_API_KEY)
   );
+  const baseArgs = {
+    openAiClient,
+    deploymentName,
+    fewShotExamples: mongodbResponseQualityExamples,
+  };
   test("should return true when the response meets chat quality standards", async () => {
     const conversation = stripIndents`USER: I am a golden retriever named Jasper.
     ASSISTANT: Hi Jasper! What can I help you with today?
@@ -25,10 +33,9 @@ describe("checkResponseQuality()", () => {
     const expectation =
       "The assistant should correctly respond with the user's name.";
     const result = await checkResponseQuality({
+      ...baseArgs,
       received: conversation,
       expectedOutputDescription: expectation,
-      openAiClient,
-      deploymentName,
     });
 
     expect(result.meetsChatQualityStandards).toBe(true);
@@ -41,10 +48,9 @@ describe("checkResponseQuality()", () => {
     const expectation =
       "The assistant should correctly respond with the user's name.";
     const result = await checkResponseQuality({
+      ...baseArgs,
       received: conversation,
       expectedOutputDescription: expectation,
-      openAiClient,
-      deploymentName,
     });
     expect(result.meetsChatQualityStandards).toBe(false);
     expect(result.reason).toBeTruthy();
@@ -59,10 +65,9 @@ describe("checkResponseQuality()", () => {
     - Postgres is SQL
     - MongoDB is document-based an NoSQL`;
     const result = await checkResponseQuality({
+      ...baseArgs,
       received: conversation,
       expectedOutputDescription: expectation,
-      openAiClient,
-      deploymentName,
     });
     expect(result.meetsChatQualityStandards).toBe(true);
   });
@@ -72,10 +77,9 @@ describe("checkResponseQuality()", () => {
     const expectation =
       "The final ASSISTANT message explains that the `$lookup` aggregation operator joins data from multiple collections. The ASSISTANT directly mentions the `$lookup` aggregation operator.";
     const result = await checkResponseQuality({
+      ...baseArgs,
       received: conversation,
       expectedOutputDescription: expectation,
-      openAiClient,
-      deploymentName,
     });
     expect(result.meetsChatQualityStandards).toBe(false);
     expect(result.reason).toContain("$lookup");

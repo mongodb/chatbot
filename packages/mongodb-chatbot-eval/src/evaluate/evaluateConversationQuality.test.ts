@@ -5,6 +5,7 @@ import "dotenv/config";
 import { ObjectId } from "mongodb-rag-core";
 import { ConversationGeneratedData } from "../generate";
 import { EvalResult } from "./EvaluationStore";
+import { mongodbResponseQualityExamples } from "./checkResponseQuality";
 
 const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_CHAT_COMPLETION_DEPLOYMENT } =
   process.env;
@@ -64,6 +65,7 @@ describe("makeEvaluateConversationQuality", () => {
   const evaluateConversationQuality = makeEvaluateConversationQuality({
     openAiClient,
     deploymentName,
+    fewShotExamples: mongodbResponseQualityExamples,
   });
   const commandRunId = new ObjectId();
   it("should return '1' if the conversation meets quality standards", async () => {

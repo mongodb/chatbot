@@ -7,6 +7,7 @@ import {
   makeEvaluateConversationQuality,
   makeMongoDbEvaluationStore,
   makeMongoDbReportStore,
+  mongodbResponseQualityExamples,
 } from "mongodb-chatbot-eval";
 import { makeMongoDbConversationsService } from "mongodb-chatbot-server";
 import "dotenv/config";
@@ -71,6 +72,7 @@ export default async () => {
               OPENAI_ENDPOINT,
               new AzureKeyCredential(OPENAI_API_KEY)
             ),
+            fewShotExamples: mongodbResponseQualityExamples,
           }),
         },
       },

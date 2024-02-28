@@ -61,16 +61,17 @@ export const makeGenerateConversationData = function ({
     generatedData: ConversationGeneratedData[];
     failedCases: ConversationTestCase[];
   }> {
-    const convoTestCases = testCases.filter((testCase) =>
-      isConversationTestCase(testCase)
-    ) as ConversationTestCase[];
+    const convoTestCases = testCases.filter(
+      (testCase): testCase is ConversationTestCase =>
+        isConversationTestCase(testCase)
+    );
 
     apiBaseUrl = apiBaseUrl.replace(/\/$/, ""); // remove trailing slash if it exists
 
     const generatedData: ConversationGeneratedData[] = [];
     const failedCases: ConversationTestCase[] = [];
     for (const testCase of convoTestCases) {
-      logger.info(`Generating data for test case: ${testCase.name}`);
+      logger.info(`Generating data for test case: '${testCase.data.name}'`);
       if (testCase.data.skip) {
         continue;
       }

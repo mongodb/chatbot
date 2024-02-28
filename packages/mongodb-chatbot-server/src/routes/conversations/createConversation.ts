@@ -59,7 +59,7 @@ export function makeCreateConversationRoute({
       );
       const conversationInDb = await conversations.create({
         customData,
-        initialMessages: systemPrompt ? [systemPrompt] : [],
+        initialMessages: [systemPrompt],
       });
       const responseConversation =
         convertConversationFromDbToApi(conversationInDb);

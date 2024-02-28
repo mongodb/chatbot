@@ -6,27 +6,21 @@ import {
   makeMongoDbGeneratedDataStore,
   makeGenerateConversationData,
   getConversationsTestCasesFromYaml,
-} from "mongodb-chatbot-eval/generate";
-import { makeMongoDbEvaluationStore } from "mongodb-chatbot-eval/evaluate";
-import { makeMongoDbReportStore } from "mongodb-chatbot-eval/report";
+  makeMongoDbEvaluationStore,
+  makeMongoDbReportStore,
+} from "mongodb-chatbot-eval";
 import { makeMongoDbConversationsService } from "mongodb-chatbot-server";
 import "dotenv/config";
-import { strict as assert } from "assert";
 import fs from "fs";
 import path from "path";
-import { MongoClient } from "mongodb-rag-core";
+import { MongoClient, assertEnvVars } from "mongodb-rag-core";
+import { envVars } from "./envVars";
 
 const {
   MONGODB_DATABASE_NAME,
   MONGODB_CONNECTION_URI,
   CONVERSATIONS_SERVER_BASE_URL,
-} = process.env;
-assert(MONGODB_DATABASE_NAME, "MONGODB_DATABASE_NAME is required");
-assert(MONGODB_CONNECTION_URI, "MONGODB_CONNECTION_URI is required");
-assert(
-  CONVERSATIONS_SERVER_BASE_URL,
-  "CONVERSATIONS_SERVER_BASE_URL is required"
-);
+} = assertEnvVars(envVars);
 
 export default async () => {
   const testCases = getConversationsTestCasesFromYaml(

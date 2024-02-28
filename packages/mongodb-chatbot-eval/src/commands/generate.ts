@@ -3,7 +3,14 @@ import { LoadConfigArgs, withConfig, withConfigOptions } from "../withConfig";
 import { generateDataAndMetadata } from "../generate/generateDataAndMetadata";
 import { EvalConfig } from "../EvalConfig";
 
-const commandModule: CommandModule<unknown, LoadConfigArgs> = {
+interface GenerateCommandArgs {
+  name: string;
+}
+
+const commandModule: CommandModule<
+  unknown,
+  LoadConfigArgs & GenerateCommandArgs
+> = {
   command: "generate",
   builder(args) {
     return withConfigOptions(args).option("name", {
@@ -15,7 +22,7 @@ const commandModule: CommandModule<unknown, LoadConfigArgs> = {
   async handler(args) {
     return withConfig(generateCommand, {
       ...args,
-      name: args.name as string,
+      name: args.name,
     });
   },
   describe: "Generate data for evaluation.",

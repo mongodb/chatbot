@@ -5,6 +5,6 @@ module.exports = async () => ({
   reportStore: {},
   commands: [],
   async afterAll() {
-    "foo";
+    // Appease ESLint by giving function a body
   },
 });

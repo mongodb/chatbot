@@ -69,7 +69,7 @@ export type UserMessage = MessageBase & {
   preprocessedContent?: string;
 
   /**
-    Embedded content found using vector search for the message.
+    Content found to help generate the message.
     Useful to include for evaluation purposes.
     For example, you might want to assess how faithful the LLM response
     to the found content.

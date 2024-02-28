@@ -3,7 +3,6 @@ import { Address6 } from "ip-address";
 import { Conversation, Message } from "../../services/ConversationsService";
 import { References } from "mongodb-rag-core";
 import { z } from "zod";
-import { OpenAiChatMessage } from "../../services";
 
 export type ApiMessage = z.infer<typeof ApiMessage>;
 export const ApiMessage = z.object({
@@ -13,6 +12,7 @@ export const ApiMessage = z.object({
   rating: z.boolean().optional(),
   createdAt: z.number(),
   references: References.optional(),
+  metadata: z.record(z.unknown()).optional(),
 });
 
 export type ApiConversation = z.infer<typeof ApiConversation>;
@@ -31,11 +31,12 @@ export function convertMessageFromDbToApi(message: Message): ApiMessage {
     createdAt: createdAt.getTime(),
   };
   if (role === "assistant") {
-    const { rating, references } = message;
+    const { rating, references, metadata } = message;
     return {
       ...apiMessage,
       rating,
       references,
+      metadata,
     };
   }
   return apiMessage;

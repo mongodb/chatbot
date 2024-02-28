@@ -171,7 +171,7 @@ export function makeAddMessageToConversationRoute({
           references: references ?? [],
         } satisfies AssistantMessage;
         const messages = [...newMessages, staticResponse ?? rejectionMessage];
-        sendStaticNonResponse({
+        sendStaticResponse({
           conversations,
           conversation,
           shouldStream,
@@ -285,7 +285,7 @@ async function getCustomData({
   }
 }
 
-async function sendStaticNonResponse({
+async function sendStaticResponse({
   conversations,
   conversation,
   messages,
@@ -312,11 +312,29 @@ async function sendStaticNonResponse({
   );
   const apiRes = convertMessageFromDbToApi(assistantMessage);
   if (shouldStream) {
+    const { metadata, references } = apiRes;
+
     dataStreamer.connect(res);
+
+    if (metadata) {
+      dataStreamer.streamData({
+        type: "metadata",
+        data: metadata,
+      });
+    }
+
     dataStreamer.streamData({
       type: "delta",
       data: apiRes.content,
     });
+
+    if (references) {
+      dataStreamer.streamData({
+        type: "references",
+        data: references,
+      });
+    }
+
     dataStreamer.streamData({
       type: "finished",
       data: apiRes.id,

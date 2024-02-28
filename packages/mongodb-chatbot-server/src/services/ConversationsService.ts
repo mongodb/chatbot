@@ -1,4 +1,4 @@
-import { ObjectId, References } from "mongodb-rag-core";
+import { ObjectId, References, VerifiedAnswer } from "mongodb-rag-core";
 import { FunctionCall } from "@azure/openai";
 
 export type MessageBase = {
@@ -45,6 +45,19 @@ export type AssistantMessage = MessageBase & {
   references?: References;
 
   functionCall?: FunctionCall;
+
+  /**
+    Additional metadata.
+   */
+  metadata?: {
+    [k: string]: unknown;
+
+    /**
+      If the message came from the verified answers collection, contains the
+      metadata about the verified answer.
+     */
+    verifiedAnswer?: VerifiedAnswer;
+  };
 };
 
 export type FunctionMessage = MessageBase & {

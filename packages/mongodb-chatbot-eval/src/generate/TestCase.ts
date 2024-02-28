@@ -1,22 +1,38 @@
-export interface TestCase {
+import { z } from "zod";
+
+export interface BaseTestCase {
   name: string;
   data: Record<string, unknown>;
 }
 
-export interface ConversationTestCase extends TestCase {
-  name: "conversation";
+export const ConversationTestCaseDataSchema = z.object({
+  name: z.string(),
+  expectation: z.string(),
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(["assistant", "user"]),
+        content: z.string(),
+      })
+    )
+    .min(1),
+  tags: z.array(z.string()).optional(),
+  skip: z.boolean().optional(),
+});
+
+export type ConversationTestCaseData = z.infer<
+  typeof ConversationTestCaseDataSchema
+>;
+
+export interface ConversationTestCase extends BaseTestCase {
   data: ConversationTestCaseData;
+  name: "conversation";
 }
 
-export interface ConversationTestCaseData extends Record<string, unknown> {
-  name: string;
-  expectation: string;
-  messages: ConversationTestCaseMessage[];
-  tags?: string[];
-  skip?: boolean;
-}
+export type SomeTestCase = ConversationTestCase | BaseTestCase;
 
-export interface ConversationTestCaseMessage {
-  role: "user" | "assistant";
-  content: string;
+export function isConversationTestCase(
+  testCase: SomeTestCase
+): testCase is ConversationTestCase {
+  return ConversationTestCaseDataSchema.safeParse(testCase.data).success;
 }

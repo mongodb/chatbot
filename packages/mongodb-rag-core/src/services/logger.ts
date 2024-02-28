@@ -36,8 +36,6 @@ const initiateLogger = () => {
     ],
   });
 
-  logger.info("Logger created");
-
   return logger;
 };
 

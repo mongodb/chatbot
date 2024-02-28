@@ -1,3 +1,3 @@
 # MongoDB Chatbot Evaluation CLI
 
-TODO
+CLI application for evaluating MongoDB Chatbot Framework quality.

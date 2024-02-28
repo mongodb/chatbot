@@ -68,6 +68,7 @@ export const openAiClient = new OpenAIClient(
   OPENAI_ENDPOINT,
   new AzureKeyCredential(OPENAI_API_KEY)
 );
+
 export const systemPrompt: SystemPrompt = {
   role: "system",
   content: stripIndents`You are expert MongoDB documentation chatbot.
@@ -132,8 +133,7 @@ export const generateUserPrompt: GenerateUserPromptFunc =
 export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 
 export const conversations = makeMongoDbConversationsService(
-  mongodb.db(MONGODB_DATABASE_NAME),
-  systemPrompt
+  mongodb.db(MONGODB_DATABASE_NAME)
 );
 
 export const createCustomConversationDataWithIpAuthUserAndOrigin: AddCustomDataFunc =
@@ -170,6 +170,7 @@ export const config: AppConfig = {
       ? createCustomConversationDataWithIpAuthUserAndOrigin
       : undefined,
     generateUserPrompt,
+    systemPrompt,
     maxUserMessagesInConversation: 50,
     maxUserCommentLength: 500,
     conversations,

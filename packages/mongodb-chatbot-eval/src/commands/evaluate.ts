@@ -1,10 +1,6 @@
 import { CommandModule } from "yargs";
-import {
-  ResolvedConfig,
-  LoadConfigArgs,
-  withConfig,
-  withConfigOptions,
-} from "../withConfig";
+import { LoadConfigArgs, withConfig, withConfigOptions } from "../withConfig";
+import { EvalConfig } from "../EvalConfig";
 
 const commandModule: CommandModule<unknown, LoadConfigArgs> = {
   command: "evaluate",
@@ -29,7 +25,7 @@ const commandModule: CommandModule<unknown, LoadConfigArgs> = {
 export default commandModule;
 
 export const evaluateCommand = async (
-  config: ResolvedConfig
+  config: EvalConfig
   // other args?
 ) => {
   // TODO: do stuff

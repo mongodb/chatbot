@@ -24,7 +24,6 @@ import {
  */
 export function makeMongoDbConversationsService(
   database: Db,
-  systemPrompt: SystemPrompt,
   conversationConstants: ConversationConstants = defaultConversationConstants
 ): ConversationsService {
   const conversationsCollection =
@@ -33,9 +32,12 @@ export function makeMongoDbConversationsService(
     conversationConstants,
     async create(params?: CreateConversationParams) {
       const customData = params?.customData;
+      const initialMessages = params?.initialMessages;
       const newConversation = {
         _id: new ObjectId(),
-        messages: [createMessageFromOpenAIChatMessage(systemPrompt)],
+        messages: initialMessages
+          ? initialMessages?.map(createMessageFromOpenAIChatMessage)
+          : [],
         createdAt: new Date(),
         // Conditionally include `customData` only if it's not undefined
         // Otherwise MongoDB adds it as `customData: null`,

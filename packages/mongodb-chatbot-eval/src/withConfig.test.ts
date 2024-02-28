@@ -3,6 +3,8 @@ import { withConfig } from "./withConfig";
 
 describe("withConfig", () => {
   it("loads a config file", async () => {
+    const mockExit = jest.fn() as any;
+    process.exit = mockExit;
     await withConfig(
       async (config) => {
         expect(config.commands).toBeDefined();
@@ -10,6 +12,7 @@ describe("withConfig", () => {
         expect(config.generatedDataStore).toBeDefined();
         expect(config.metadataStore).toBeDefined();
         expect(config.reportStore).toBeDefined();
+        expect(config.afterAll).toBeDefined();
       },
       {
         config: Path.resolve(
@@ -21,5 +24,7 @@ describe("withConfig", () => {
         ),
       }
     );
+    expect(mockExit).toHaveBeenCalled();
+    jest.clearAllMocks();
   });
 });

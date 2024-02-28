@@ -215,8 +215,7 @@ const generateUserPrompt: GenerateUserPromptFunc = makeRagGenerateUserPrompt({
 const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 
 const conversations = makeMongoDbConversationsService(
-  mongodb.db(MONGODB_DATABASE_NAME),
-  systemPrompt
+  mongodb.db(MONGODB_DATABASE_NAME)
 );
 
 const config: AppConfig = {
@@ -225,6 +224,7 @@ const config: AppConfig = {
     llm,
     conversations,
     generateUserPrompt,
+    systemPrompt,
   },
   maxRequestTimeoutMs: 30000,
   corsOptions: {

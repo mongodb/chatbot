@@ -173,8 +173,7 @@ export const llm = makeOpenAiChatLlm({
 export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 
 export const conversations = makeMongoDbConversationsService(
-  mongodb.db(MONGODB_DATABASE_NAME),
-  systemPrompt
+  mongodb.db(MONGODB_DATABASE_NAME)
 );
 
 /**
@@ -207,6 +206,7 @@ export const config: AppConfig = {
     conversations,
     generateUserPrompt,
     filterPreviousMessages: filterPrevious12Messages,
+    systemPrompt,
   },
   maxRequestTimeoutMs: 30000,
   corsOptions: {

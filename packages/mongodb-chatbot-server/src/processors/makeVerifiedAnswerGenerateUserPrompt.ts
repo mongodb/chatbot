@@ -19,7 +19,7 @@ export const makeVerifiedAnswerGenerateUserPrompt = ({
 }: MakeVerifiedAnswerGenerateUserPromptParams): GenerateUserPromptFunc => {
   return async (args) => {
     const { userMessageText } = args;
-    const { answer } = await findVerifiedAnswer({
+    const { answer, queryEmbedding } = await findVerifiedAnswer({
       query: userMessageText,
     });
 
@@ -27,6 +27,7 @@ export const makeVerifiedAnswerGenerateUserPrompt = ({
       const { answer: content, references, ...additionalInfo } = answer;
       return {
         userMessage: {
+          embedding: queryEmbedding,
           content: userMessageText,
           role: "user",
         },

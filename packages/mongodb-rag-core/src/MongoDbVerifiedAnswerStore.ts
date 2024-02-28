@@ -55,7 +55,12 @@ export function makeMongoDbVerifiedAnswerStore({
               },
             },
           },
-          { $match: { score: { $gte: minScore } } },
+          {
+            $match: {
+              score: { $gte: minScore },
+              hidden: { $in: [false, null] },
+            },
+          },
         ])
         .toArray();
     },

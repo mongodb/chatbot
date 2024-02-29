@@ -22,7 +22,6 @@ const commandModule: CommandModule<
   async handler(args) {
     return withConfig(generateCommand, {
       ...args,
-      name: args.name,
     });
   },
   describe: "Generate data for evaluation.",

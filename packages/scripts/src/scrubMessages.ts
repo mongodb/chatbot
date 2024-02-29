@@ -87,7 +87,11 @@ const scrubMessages = async ({ db }: { db: Db }) => {
           | "contentForLlm"
           | "preprocessedContent"
           | "userComment"
+<<<<<<< HEAD
           | "foundEmbeddedContent"
+=======
+          | "contextContent"
+>>>>>>> upstream/EAI-237
         >,
         string | number
       >,

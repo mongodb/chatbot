@@ -20,7 +20,7 @@ export const makeMockExpressApp = (conversations: ConversationsService) => {
   app.post("/api/v1/conversations", async (req, res) => {
     const conversationInDb = await conversations.create({
       initialMessages: [
-        { content: "You're friendly neighborhood chatbot", role: "system" },
+        { content: "Your friendly neighborhood chatbot", role: "system" },
       ],
     });
     const apiRes = {

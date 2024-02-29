@@ -2,7 +2,11 @@ import { ConversationGeneratedData } from "./GeneratedDataStore";
 import { ConversationsService, ObjectId } from "mongodb-chatbot-server";
 import { logger } from "mongodb-rag-core";
 import { GenerateDataFunc } from "./GenerateDataFunc";
-import { ConversationTestCase, SomeTestCase } from "./TestCase";
+import {
+  ConversationTestCase,
+  SomeTestCase,
+  isConversationTestCase,
+} from "./TestCase";
 import { strict as assert } from "assert";
 import axios from "axios";
 
@@ -57,15 +61,17 @@ export const makeGenerateConversationData = function ({
     generatedData: ConversationGeneratedData[];
     failedCases: ConversationTestCase[];
   }> {
-    // FIXME: how to go away from this to something more elegant/typescripty?
-    const convoTestCases = testCases as ConversationTestCase[];
+    const convoTestCases = testCases.filter(
+      (testCase): testCase is ConversationTestCase =>
+        isConversationTestCase(testCase)
+    );
 
     apiBaseUrl = apiBaseUrl.replace(/\/$/, ""); // remove trailing slash if it exists
 
     const generatedData: ConversationGeneratedData[] = [];
     const failedCases: ConversationTestCase[] = [];
     for (const testCase of convoTestCases) {
-      logger.info(`Generating data for test case: ${testCase.name}`);
+      logger.info(`Generating data for test case: '${testCase.data.name}'`);
       if (testCase.data.skip) {
         continue;
       }
@@ -87,12 +93,15 @@ export const makeGenerateConversationData = function ({
       const conversation = await conversations.findById({
         _id: ObjectId.createFromHexString(createRes.data._id),
       });
-      assert(conversation);
+      assert(conversation, "Conversation must exist");
 
       const setUpMessages = messages.slice(0, -1); // All but the last message
       const testMessage = messages[messages.length - 1]; // Send last message to server
 
-      assert(testMessage);
+      assert(
+        testMessage,
+        "Conversation must include at least one message to test"
+      );
       const conversationId = conversation._id;
       for (const message of setUpMessages) {
         await conversations.addConversationMessage({
@@ -100,11 +109,7 @@ export const makeGenerateConversationData = function ({
           message,
         });
       }
-      const addMessageToConversationEndpoint =
-        `${apiBaseUrl}/conversations/:conversationId/messages`.replace(
-          ":conversationId",
-          conversationId.toString()
-        );
+      const addMessageToConversationEndpoint = `${apiBaseUrl}/conversations/${conversationId}/messages`;
 
       const res = await axios.post(
         addMessageToConversationEndpoint,

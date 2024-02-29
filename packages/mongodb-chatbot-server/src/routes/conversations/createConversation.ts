@@ -34,7 +34,11 @@ export const CreateConversationRequest = SomeExpressRequest.extend({
 export interface CreateConversationRouteParams {
   conversations: ConversationsService;
   createConversationCustomData?: AddCustomDataFunc;
+<<<<<<< HEAD
   systemPrompt?: SystemMessage;
+=======
+  systemPrompt: SystemMessage;
+>>>>>>> upstream/EAI-237
 }
 
 export function makeCreateConversationRoute({
@@ -59,7 +63,11 @@ export function makeCreateConversationRoute({
       );
       const conversationInDb = await conversations.create({
         customData,
+<<<<<<< HEAD
         initialMessages: systemPrompt ? [systemPrompt] : [],
+=======
+        initialMessages: [systemPrompt],
+>>>>>>> upstream/EAI-237
       });
       const responseConversation =
         convertConversationFromDbToApi(conversationInDb);

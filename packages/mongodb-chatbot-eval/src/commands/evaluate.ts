@@ -4,23 +4,35 @@ import { EvalConfig } from "../EvalConfig";
 import { generateEvalsAndMetadata } from "../evaluate/generateEvalsAndMetadata";
 import { ObjectId } from "mongodb-rag-core";
 
-const commandModule: CommandModule<unknown, LoadConfigArgs> = {
+interface EvaluateCommandArgs {
+  name: string;
+  generatedDataRunId: string;
+}
+
+const commandModule: CommandModule<
+  unknown,
+  LoadConfigArgs & EvaluateCommandArgs
+> = {
   command: "evaluate",
   builder(args) {
     return withConfigOptions(args)
-      .string("name")
+      .option("name", {
+        type: "string",
+        demandOption: true,
+        description: "Name of the evaluation.",
+      })
       .option("generatedDataRunId", {
         type: "string",
         description:
           "RunId for a 'generate' command that you want to create evaluations for. If not provided, uses the `defaultGeneratedDataQuery` from the config. Throws an error if no filter provided here or there's no default.",
-      })
-      .demandOption("name");
+        demandOption: true,
+      });
   },
   async handler(args) {
     return withConfig(evaluateCommand, {
       ...args,
-      name: args.name as string,
-      generatedDataRunId: args.generatedDataRunId as string | undefined,
+      name: args.name,
+      generatedDataRunId: args.generatedDataRunId,
     });
   },
   describe: "Evaluate generated data.",
@@ -30,7 +42,7 @@ export default commandModule;
 
 export const evaluateCommand = async (
   config: EvalConfig,
-  { name, generatedDataRunId }: { name: string; generatedDataRunId?: string }
+  { name, generatedDataRunId }: EvaluateCommandArgs
 ) => {
   // Get config
   const {
@@ -39,13 +51,15 @@ export const evaluateCommand = async (
     metadataStore,
     commands: { evaluate: evaluations },
   } = config;
-  if (!evaluations || !evaluations[name]) {
+  if (!evaluations?.[name]) {
     throw new Error(`No generate command found with name: ${name}`);
   }
-  const { evaluator, defaultGeneratedDataQuery } = evaluations[name];
+  const { evaluator } = evaluations[name];
   let generatedDataRunObjectId: ObjectId | undefined;
-  if (generatedDataRunId && ObjectId.isValid(generatedDataRunId)) {
+  if (ObjectId.isValid(generatedDataRunId)) {
     generatedDataRunObjectId = ObjectId.createFromHexString(generatedDataRunId);
+  } else {
+    throw new Error(`Invalid ObjectId: ${generatedDataRunId}`);
   }
   // Generate evals
   await generateEvalsAndMetadata({
@@ -55,6 +69,5 @@ export const evaluateCommand = async (
     generatedDataStore,
     evaluationStore,
     metadataStore,
-    defaultGeneratedDataQuery,
   });
 };

@@ -38,6 +38,7 @@ function App() {
           name="MongoDB AI"
           shouldStream={shouldStream}
           darkMode={darkMode}
+          fetchOptions={{ credentials: "include" }}
         >
           <DocsChatbot suggestedPrompts={SUGGESTED_PROMPTS} />
         </Chatbot>
@@ -45,6 +46,7 @@ function App() {
           name="MongoDB AI"
           shouldStream={shouldStream}
           darkMode={darkMode}
+          fetchOptions={{ credentials: "include" }}
         >
           <DevCenterChatbot
             initialMessageSuggestedPrompts={SUGGESTED_PROMPTS}

@@ -56,7 +56,7 @@ export const reportConversationStatsForEvalRun: ReportEvalFunc = async ({
   return {
     _id: new ObjectId(),
     commandRunMetadataId: runId,
-    reportName: "conversation_stats",
+    reportName: "conversation_quality_stats",
     data: {
       passRate,
       totalTestCount: totalCount,

@@ -118,7 +118,11 @@ export interface ConversationsRouterParams {
   llm: ChatLlm;
   dataStreamer?: DataStreamer;
   conversations: ConversationsService;
+<<<<<<< HEAD
   systemPrompt?: SystemPrompt;
+=======
+  systemPrompt: SystemPrompt;
+>>>>>>> upstream/EAI-237
   /**
     Function to generate the user prompt sent to the {@link ChatLlm}.
     You can perform any preprocessing of the user's message

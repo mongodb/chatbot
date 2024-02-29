@@ -21,8 +21,8 @@ describe("makeGenerateConversationData", () => {
       runId: new ObjectId(),
       testCases,
     });
-    expect(conversationData.generatedData.length).toBeGreaterThan(0);
     expect(conversationData.failedCases.length).toBe(0);
+    expect(conversationData.generatedData.length).toBeGreaterThan(0);
   });
   it("should handle skipped test cases", async () => {
     const conversationData = await generateConversationData({

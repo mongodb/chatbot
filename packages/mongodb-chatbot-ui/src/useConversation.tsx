@@ -5,6 +5,7 @@ import {
   Role,
   ConversationService,
   formatReferences,
+  ConversationFetchOptions,
 } from "./services/conversations";
 import createMessage, { createMessageId } from "./createMessage";
 import {
@@ -93,6 +94,7 @@ function conversationReducer(
       if (!state.conversationId) {
         console.error(`Cannot addMessage without a conversationId`);
       }
+      console.log(`addMessage`, action);
       const newMessage = createMessage(action.role, action.content);
       return {
         ...state,
@@ -277,14 +279,16 @@ function conversationReducer(
 type UseConversationParams = {
   serverBaseUrl?: string;
   shouldStream?: boolean;
+  fetchOptions?: ConversationFetchOptions;
 };
 
 export function useConversation(params: UseConversationParams = {}) {
   const conversationService = useMemo(() => {
     return new ConversationService({
       serverUrl: params.serverBaseUrl ?? import.meta.env.VITE_SERVER_BASE_URL,
+      fetchOptions: params.fetchOptions,
     });
-  }, [params.serverBaseUrl]);
+  }, [params.serverBaseUrl, params.fetchOptions]);
 
   const [state, _dispatch] = useReducer(
     conversationReducer,

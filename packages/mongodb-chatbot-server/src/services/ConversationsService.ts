@@ -69,12 +69,20 @@ export type UserMessage = MessageBase & {
   preprocessedContent?: string;
 
   /**
+<<<<<<< HEAD
     Embedded content found using vector search for the message.
+=======
+    Content found to help generate the message.
+>>>>>>> upstream/EAI-237
     Useful to include for evaluation purposes.
     For example, you might want to assess how faithful the LLM response
     to the found content.
    */
+<<<<<<< HEAD
   foundEmbeddedContent?: Partial<EmbeddedContent>[];
+=======
+  contextContent?: Partial<EmbeddedContent>[];
+>>>>>>> upstream/EAI-237
 
   /**
     Whether preprocessor suggested not to answer based on the input.

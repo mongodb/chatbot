@@ -14,8 +14,7 @@ export type GenerateEvalsAndMetadataParams = {
   generatedDataStore: GeneratedDataStore;
   evaluationStore: EvaluationStore;
   metadataStore: CommandMetadataStore;
-  generatedDataRunId?: ObjectId;
-  defaultGeneratedDataQuery?: unknown;
+  generatedDataRunId: ObjectId;
 };
 
 export async function generateEvalsAndMetadata({
@@ -25,20 +24,15 @@ export async function generateEvalsAndMetadata({
   generatedDataStore,
   evaluationStore,
   metadataStore,
-  defaultGeneratedDataQuery,
 }: GenerateEvalsAndMetadataParams) {
   const evalResults: EvalResult[] = [];
   const failedCases: ObjectId[] = [];
   const startTime = new Date();
   const runId = new ObjectId();
 
-  assert(
-    generatedDataRunId || defaultGeneratedDataQuery,
-    "No generated data query or run ID provided."
+  const generatedData = await generatedDataStore.findByCommandRunId(
+    generatedDataRunId
   );
-  const generatedData = generatedDataRunId
-    ? await generatedDataStore.findByCommandRunId(generatedDataRunId)
-    : await generatedDataStore.find(defaultGeneratedDataQuery);
   assert(generatedData, "No generated data found for the given query.");
 
   logger.info(

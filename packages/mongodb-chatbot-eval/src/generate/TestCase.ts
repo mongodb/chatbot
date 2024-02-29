@@ -30,3 +30,9 @@ export interface ConversationTestCase extends BaseTestCase {
 }
 
 export type SomeTestCase = ConversationTestCase | BaseTestCase;
+
+export function isConversationTestCase(
+  testCase: SomeTestCase
+): testCase is ConversationTestCase {
+  return ConversationTestCaseDataSchema.safeParse(testCase.data).success;
+}

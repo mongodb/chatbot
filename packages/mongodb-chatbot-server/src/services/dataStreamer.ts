@@ -24,7 +24,6 @@ function makeServerSentEventDispatcher<
       res.writeHead(200, {
         "Cache-Control": "no-cache",
         "Content-Type": "text/event-stream",
-        "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Credentials": "true",
         Connection: "keep-alive",
       });

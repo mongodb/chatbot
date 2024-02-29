@@ -13,7 +13,7 @@ export const practicalAggregationsConfig: MakeMdOnGithubDataSourceParams = {
   pathToPageUrl(pathInRepo) {
     return (
       "https://www.practical-mongodb-aggregations.com" +
-      pathInRepo.replace(/^src\//, "/").replace(/\.md$/, "")
+      pathInRepo.replace(/^\/src\//, "/").replace(/\.md$/, "")
     );
   },
   metadata: {

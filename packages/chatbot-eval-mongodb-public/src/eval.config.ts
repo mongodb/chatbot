@@ -1,27 +1,21 @@
 import {
   EvalConfig,
   makeMongoDbCommandMetadataStore,
-} from "mongodb-chatbot-eval";
-import {
   makeMongoDbGeneratedDataStore,
   makeGenerateConversationData,
   getConversationsTestCasesFromYaml,
-} from "mongodb-chatbot-eval/generate";
-import {
   makeEvaluateConversationQuality,
   makeMongoDbEvaluationStore,
-} from "mongodb-chatbot-eval/evaluate";
-import {
   makeMongoDbReportStore,
-  reportMostRecentConversationStats,
-} from "mongodb-chatbot-eval/report";
+  mongodbResponseQualityExamples,
+  reportConversationStatsForEvalRun,
+} from "mongodb-chatbot-eval";
 import { makeMongoDbConversationsService } from "mongodb-chatbot-server";
 import "dotenv/config";
-import { strict as assert } from "assert";
 import fs from "fs";
 import path from "path";
-import { AzureKeyCredential, MongoClient } from "mongodb-rag-core";
-import {} from "chatbot-server-mongodb-public";
+import { MongoClient, assertEnvVars } from "mongodb-rag-core";
+import { envVars } from "./envVars";
 
 const {
   MONGODB_DATABASE_NAME,
@@ -30,22 +24,10 @@ const {
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_ENDPOINT,
   OPENAI_API_KEY,
-} = process.env;
-assert(MONGODB_DATABASE_NAME, "MONGODB_DATABASE_NAME is required");
-assert(MONGODB_CONNECTION_URI, "MONGODB_CONNECTION_URI is required");
-assert(
-  CONVERSATIONS_SERVER_BASE_URL,
-  "CONVERSATIONS_SERVER_BASE_URL is required"
-);
-assert(
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  "OPENAI_CHAT_COMPLETION_DEPLOYMENT is required"
-);
-assert(OPENAI_ENDPOINT, "OPENAI_ENDPOINT is required");
-assert(OPENAI_API_KEY, "OPENAI_API_KEY is required");
+} = assertEnvVars(envVars);
 
 export default async () => {
-  const { OpenAIClient } = await import("@azure/openai");
+  const { OpenAIClient, AzureKeyCredential } = await import("@azure/openai");
   const testCases = getConversationsTestCasesFromYaml(
     fs.readFileSync(
       path.resolve(__dirname, "..", "testCases", "conversations.yml"),
@@ -91,12 +73,13 @@ export default async () => {
               OPENAI_ENDPOINT,
               new AzureKeyCredential(OPENAI_API_KEY)
             ),
+            fewShotExamples: mongodbResponseQualityExamples,
           }),
         },
       },
       report: {
-        mostRecentConversationQuality: {
-          reporter: reportMostRecentConversationStats,
+        conversationQualityRun: {
+          reporter: reportConversationStatsForEvalRun,
         },
       },
     },

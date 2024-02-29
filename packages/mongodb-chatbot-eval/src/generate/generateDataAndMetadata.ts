@@ -49,7 +49,6 @@ export async function generateDataAndMetadata({
   logger.info(
     `Generating ${testCases.length} test cases for the '${name}' command.`
   );
-  // do stuff
   const { generatedData, failedCases } = await generator({ testCases, runId });
   for (const failedCase of failedCases) {
     logger.error(`Failed to generate data for test case: ${failedCase.name}`);

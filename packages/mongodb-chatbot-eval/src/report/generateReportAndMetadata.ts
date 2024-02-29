@@ -45,7 +45,7 @@ export async function generateReportAndMetadata({
     endTime,
   } satisfies CommandRunMetadata;
   await metadataStore.insertOne(metadata);
-  logger.info(`Generated report ${report.reportName}`);
+  logger.info(`Generated report '${report.reportName}' for command '${name}'`);
   logger.info(metadata);
   return { report, metadata };
 }

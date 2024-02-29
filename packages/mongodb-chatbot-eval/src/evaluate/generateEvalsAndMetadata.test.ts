@@ -13,7 +13,6 @@ import {
 import {
   ConversationTestCase,
   GeneratedDataStore,
-  SomeGeneratedData,
   generateDataAndMetadata,
 } from "../generate";
 import { testCases } from "../test/mockTestCases";
@@ -22,7 +21,6 @@ import {
   CommandMetadataStore,
   CommandRunMetadata,
 } from "../CommandMetadataStore";
-import { MockFindFilter } from "../test/MockFindFilter";
 import { EvalResult } from "./EvaluationStore";
 import { Conversation } from "mongodb-chatbot-server";
 
@@ -82,26 +80,6 @@ describe("generateEvalsAndMetadata", () => {
     testEvalResults(res.evalResults);
   });
 
-  it("should generate evals given a defaultGeneratedDataQuery", async () => {
-    const targetTestCase = testData[0];
-    // Filter to only get data for single test case
-    const defaultQuery: MockFindFilter<SomeGeneratedData> = (genData) => {
-      return (
-        genData.type === "conversation" &&
-        genData?.evalData?.qualitativeFinalAssistantMessageExpectation ===
-          targetTestCase.data.expectation
-      );
-    };
-    const res = await generateEvalsAndMetadata({
-      ...baseArgs,
-      generatedDataRunId: generatedDataRunMetadata._id,
-      defaultGeneratedDataQuery: defaultQuery,
-    });
-    expect(res.evalResults).toHaveLength(4);
-    expect(res.failedCases).toHaveLength(0);
-    testEvalResults(res.evalResults);
-  });
-
   it("should verify metadata storage with correct details", async () => {
     const res = await generateEvalsAndMetadata({
       ...baseArgs,
@@ -121,15 +99,6 @@ describe("generateEvalsAndMetadata", () => {
     expect(
       res.metadata.startTime.getTime() <= res.metadata.endTime.getTime()
     ).toBe(true);
-  });
-
-  it("should throw when neither generatedDataRunId nor defaultGeneratedDataQuery is provided", async () => {
-    expect(
-      async () =>
-        await generateEvalsAndMetadata({
-          ...baseArgs,
-        })
-    ).rejects.toThrow();
   });
 
   test("should handle failed eval generation for some test cases", async () => {

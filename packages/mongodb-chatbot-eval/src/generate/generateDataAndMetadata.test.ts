@@ -30,7 +30,7 @@ describe("generateDataAndMetadata", () => {
       );
     }
   });
-  test("handles failed data generation for some test cases", async () => {
+  test("handles failed data generation for some test cases without causing all to fail", async () => {
     const { failedCases, generatedData } = await generateDataAndMetadata({
       ...baseParams,
       testCases: [...testCases, ...triggerErrorTestCases],

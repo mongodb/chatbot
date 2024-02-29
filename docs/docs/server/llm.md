@@ -143,7 +143,7 @@ A great resource to learn more about prompt engineering is the [Prompt Engineeri
 
 ### System Prompt
 
-To add a system prompt, include a [`SystemPrompt`](../reference/server/modules.md#systemprompt) message in your app's [`ConversationService`](../reference/server/interfaces/ConversationsService.md).
+To add a system prompt, include a [`SystemPrompt`](../reference/server/modules.md#systemprompt) message in your app's [`ConversationsRouterParams.systemPrompt`](../reference/server/interfaces/ConversationsRouterParams.md#systemprompt).
 
 The system prompt is one of the most powerful way to customize the way
 that the chatbot responds to users. You can use the system prompt to do things
@@ -153,13 +153,10 @@ such as:
 - Determine how the chatbot responds to certain types of questions.
 - Direct how the chatbot interprets user input and context information.
 
-If you're using the [`makeMongoDbConversationsService()`](../reference/server/modules.md#makemongodbconversationsservice) constructor function, add the system prompt
-as an argument:
-
 ```ts
 import {
-  makeMongoDbConversationsService,
   SystemPrompt,
+  ConversationsRouterParams,
 } from "mongodb-chatbot-server";
 import { MongoClient } from "mongodb";
 
@@ -174,13 +171,10 @@ If you do not know the answer to the question based on the information provided,
 respond: "I'm sorry, I don't know the answer to that question. Please try to rephrase it. Refer to the below information to see if it helps."`,
 };
 
-// Create MongoDB collection and service for storing user conversations
-// with the chatbot.
-const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
-const conversations = makeMongoDbConversationsService(
-  mongodb.db(MONGODB_DATABASE_NAME),
-  systemPrompt
-);
+const conversationsRouterConfig: ConversationsRouterParams = {
+  // ...other config
+  systemPrompt,
+};
 ```
 
 ### User Prompt

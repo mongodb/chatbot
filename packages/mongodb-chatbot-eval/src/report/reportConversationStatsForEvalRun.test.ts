@@ -88,7 +88,7 @@ describe("reportConversationStatsForEvalRun", () => {
     expect(report).toMatchObject({
       _id: expect.any(ObjectId),
       commandRunMetadataId: expect.any(ObjectId),
-      reportName: "conversation_stats",
+      reportName: "conversation_quality_stats",
       data: {
         passRate: 0.5,
         // only capture 'commandRunId1' evals that are 'conversation_quality' evals

@@ -29,7 +29,7 @@ describe("MongoDbReportStore", () => {
     await evalStore.close();
   });
 
-  it("should insert one new data", async () => {
+  it("should insert one new evaluation result", async () => {
     const evalResult = {
       _id: new ObjectId(),
       createdAt: new Date(),
@@ -41,7 +41,7 @@ describe("MongoDbReportStore", () => {
     const inserted = await evalStore.insertOne(evalResult);
     expect(inserted).toBe(true);
   });
-  it("should insert many new data", async () => {
+  it("should insert many new evaluation results", async () => {
     const evalResult1 = {
       _id: new ObjectId(),
       createdAt: new Date(),

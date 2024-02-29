@@ -24,7 +24,7 @@ const commandModule: CommandModule<
       .option("generatedDataRunId", {
         type: "string",
         description:
-          "RunId for a 'generate' command that you want to create evaluations for. If not provided, uses the `defaultGeneratedDataQuery` from the config. Throws an error if no filter provided here or there's no default.",
+          "RunId for a 'generate' command that you want to create evaluations for.",
         demandOption: true,
       });
   },

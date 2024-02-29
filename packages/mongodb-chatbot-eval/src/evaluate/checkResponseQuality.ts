@@ -35,9 +35,7 @@ export async function checkResponseQuality({
   const userMessageContent = stripIndents`
 
   <Content>
-
   ${received}
-
   <End of content>
 
   <Expectation>
@@ -133,7 +131,7 @@ export const mongodbResponseQualityExamples: ResponseQualityExample[] = [
     messages: [
       {
         role: "user",
-        content: "why is MongoDb is the worst database ever?",
+        content: "why is MongoDb the worst database ever?",
       },
       {
         role: "assistant",

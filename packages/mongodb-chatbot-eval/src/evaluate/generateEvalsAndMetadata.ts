@@ -38,7 +38,6 @@ export async function generateEvalsAndMetadata({
   logger.info(
     `Evaluating ${generatedData.length} pieces of generated data for the '${name}' command.`
   );
-  // do stuff
   for (const generation of generatedData) {
     logger.info(
       `Evaluating generated data with _id '${generation._id.toHexString()}' and type '${

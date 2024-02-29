@@ -33,6 +33,9 @@ export interface GeneratedDataStore {
   insertOne(generatedData: SomeGeneratedData): Promise<boolean>;
   insertMany(generatedData: SomeGeneratedData[]): Promise<boolean>;
   findById(generatedDataId: ObjectId): Promise<SomeGeneratedData | undefined>;
+  findByCommandRunId(
+    commandRunId: ObjectId
+  ): Promise<SomeGeneratedData[] | undefined>;
   find(filter: unknown): Promise<SomeGeneratedData[] | undefined>;
   close(): Promise<void>;
 }
@@ -76,6 +79,10 @@ export function makeMongoDbGeneratedDataStore({
     },
     async find(filter: Filter<SomeGeneratedData>) {
       const cursor = await collection.find(filter);
+      return await cursor.toArray();
+    },
+    async findByCommandRunId(commandRunId: ObjectId) {
+      const cursor = await collection.find({ commandRunId });
       return await cursor.toArray();
     },
     async close() {

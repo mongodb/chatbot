@@ -1,18 +1,32 @@
 import { CommandModule } from "yargs";
 import { LoadConfigArgs, withConfig, withConfigOptions } from "../withConfig";
 import { EvalConfig } from "../EvalConfig";
+import { generateEvalsAndMetadata } from "../evaluate/generateEvalsAndMetadata";
+import { ObjectId } from "mongodb-rag-core";
 
-const commandModule: CommandModule<unknown, LoadConfigArgs> = {
+interface EvaluateCommandArgs {
+  name: string;
+  generatedDataRunId: string;
+}
+
+const commandModule: CommandModule<
+  unknown,
+  LoadConfigArgs & EvaluateCommandArgs
+> = {
   command: "evaluate",
   builder(args) {
     return withConfigOptions(args)
-      .string("name")
-      .option("generatedDataQuery", {
+      .option("name", {
         type: "string",
-        description: "Query to filter generated data.",
+        demandOption: true,
+        description: "Name of the evaluation.",
       })
-      .demandOption("generatedDataQuery")
-      .demandOption("name");
+      .option("generatedDataRunId", {
+        type: "string",
+        description:
+          "RunId for a 'generate' command that you want to create evaluations for.",
+        demandOption: true,
+      });
   },
   async handler(args) {
     return withConfig(evaluateCommand, {
@@ -25,8 +39,33 @@ const commandModule: CommandModule<unknown, LoadConfigArgs> = {
 export default commandModule;
 
 export const evaluateCommand = async (
-  config: EvalConfig
-  // other args?
+  config: EvalConfig,
+  { name, generatedDataRunId }: EvaluateCommandArgs
 ) => {
-  // TODO: do stuff
+  // Get config
+  const {
+    generatedDataStore,
+    evaluationStore,
+    metadataStore,
+    commands: { evaluate: evaluations },
+  } = config;
+  if (!evaluations?.[name]) {
+    throw new Error(`No generate command found with name: ${name}`);
+  }
+  const { evaluator } = evaluations[name];
+  let generatedDataRunObjectId: ObjectId | undefined;
+  if (ObjectId.isValid(generatedDataRunId)) {
+    generatedDataRunObjectId = ObjectId.createFromHexString(generatedDataRunId);
+  } else {
+    throw new Error(`Invalid ObjectId: ${generatedDataRunId}`);
+  }
+  // Generate evals
+  await generateEvalsAndMetadata({
+    name,
+    evaluator,
+    generatedDataRunId: generatedDataRunObjectId,
+    generatedDataStore,
+    evaluationStore,
+    metadataStore,
+  });
 };

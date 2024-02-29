@@ -7,9 +7,6 @@ import { SomeTestCase } from "./generate/TestCase";
 import { ReportEvalFunc } from "./report/ReportEvalFunc";
 import { ReportStore } from "./report/ReportStore";
 
-/**
-  Config
- */
 export interface EvalConfig {
   metadataStore: CommandMetadataStore;
   generatedDataStore: GeneratedDataStore;
@@ -23,7 +20,7 @@ export interface EvalConfig {
         generator: GenerateDataFunc;
       };
     };
-    eval?: {
+    evaluate?: {
       [k: string]: {
         evaluator: EvaluateQualityFunc;
       };

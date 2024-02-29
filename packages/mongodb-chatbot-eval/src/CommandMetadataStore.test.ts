@@ -1,5 +1,6 @@
 import {
   CommandMetadataStore,
+  CommandRunMetadata,
   convertCommandRunMetadataToJson,
   makeMongoDbCommandMetadataStore,
 } from "./CommandMetadataStore";
@@ -31,22 +32,22 @@ describe("MongoDbCommandMetadataStore", () => {
   it("should insert new command metadata", async () => {
     const metadata = {
       _id: new ObjectId(),
-      command: "foo",
+      command: "evaluate",
       name: "bar",
       startTime: new Date(),
       endTime: new Date(),
-    };
+    } satisfies CommandRunMetadata;
     const inserted = await commandMetadataStore.insertOne(metadata);
     expect(inserted).toBe(true);
   });
   it("should find command metadata by id", async () => {
     const metadata = {
       _id: new ObjectId(),
-      command: "bar",
+      command: "generate",
       name: "foo",
       startTime: new Date(),
       endTime: new Date(),
-    };
+    } satisfies CommandRunMetadata;
     await commandMetadataStore.insertOne(metadata);
     const foundMetadata = await commandMetadataStore.findById(metadata._id);
     expect(foundMetadata).toMatchObject(metadata);
@@ -57,11 +58,11 @@ describe("convertCommandRunMetadataToJson", () => {
   test("should convert CommandRunMetadata to JSON-compatible object", () => {
     const metadata = {
       _id: new ObjectId(),
-      command: "foo",
+      command: "report",
       name: "bar",
       startTime: new Date(),
       endTime: new Date(),
-    };
+    } satisfies CommandRunMetadata;
     const json = convertCommandRunMetadataToJson(metadata);
     expect(json).toMatchObject({
       _id: metadata._id.toHexString(),

@@ -140,7 +140,7 @@ export const findVerifiedAnswer = makeDefaultFindVerifiedAnswer({
 
 export const generateUserPrompt = makeVerifiedAnswerGenerateUserPrompt({
   findVerifiedAnswer,
-  continuation: makeStepBackRagGenerateUserPrompt({
+  onNoVerifiedAnswerFound: makeStepBackRagGenerateUserPrompt({
     openAiClient,
     deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     findContent,

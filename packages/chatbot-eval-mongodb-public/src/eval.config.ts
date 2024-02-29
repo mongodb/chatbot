@@ -8,6 +8,7 @@ import {
   makeMongoDbEvaluationStore,
   makeMongoDbReportStore,
   mongodbResponseQualityExamples,
+  reportConversationStatsForEvalRun,
 } from "mongodb-chatbot-eval";
 import { makeMongoDbConversationsService } from "mongodb-chatbot-server";
 import "dotenv/config";
@@ -74,6 +75,11 @@ export default async () => {
             ),
             fewShotExamples: mongodbResponseQualityExamples,
           }),
+        },
+      },
+      report: {
+        conversationQualityRun: {
+          reporter: reportConversationStatsForEvalRun,
         },
       },
     },

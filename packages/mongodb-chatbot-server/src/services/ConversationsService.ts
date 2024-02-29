@@ -69,7 +69,15 @@ export type UserMessage = MessageBase & {
   preprocessedContent?: string;
 
   /**
+<<<<<<< HEAD
     Content found to help generate the message.
+=======
+<<<<<<< HEAD
+    Embedded content found using vector search for the message.
+=======
+    Content found to help generate the message.
+>>>>>>> upstream/EAI-237
+>>>>>>> eff1655 (report command)
     Useful to include for evaluation purposes.
     For example, you might want to assess how faithful the LLM response
     to the found content.

@@ -1,6 +1,8 @@
 import { CommandModule } from "yargs";
 import { LoadConfigArgs, withConfig, withConfigOptions } from "../withConfig";
 import { EvalConfig } from "../EvalConfig";
+import { generateReportAndMetadata } from "../report/generateReportAndMetadata";
+import { ObjectId } from "mongodb-rag-core";
 
 const commandModule: CommandModule<unknown, LoadConfigArgs> = {
   command: "report",

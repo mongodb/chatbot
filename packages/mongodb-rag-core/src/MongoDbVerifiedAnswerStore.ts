@@ -9,13 +9,15 @@ import {
 export function makeMongoDbVerifiedAnswerStore({
   connectionUri,
   databaseName,
-}: MakeMongoDbDatabaseConnectionParams): VerifiedAnswerStore &
-  DatabaseConnection {
+  collectionName,
+}: MakeMongoDbDatabaseConnectionParams & {
+  collectionName: string;
+}): VerifiedAnswerStore & DatabaseConnection {
   const { db, drop, close } = makeMongoDbDatabaseConnection({
     connectionUri,
     databaseName,
   });
-  const collection = db.collection<VerifiedAnswer>("verified_answers");
+  const collection = db.collection<VerifiedAnswer>(collectionName);
   return {
     drop,
     close,

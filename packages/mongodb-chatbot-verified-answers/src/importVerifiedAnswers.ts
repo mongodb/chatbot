@@ -21,14 +21,18 @@ export const importVerifiedAnswers = async ({
   embedder,
   embeddingModel,
   embeddingModelVersion,
+  verifiedAnswersCollectionName,
 }: {
   verifiedAnswerSpecs: VerifiedAnswerSpec[];
   db: Db;
   embedder: Embedder;
   embeddingModel: string;
   embeddingModelVersion: string;
+  verifiedAnswersCollectionName: string;
 }) => {
-  const collection = db.collection<VerifiedAnswer>("verified_answers");
+  const collection = db.collection<VerifiedAnswer>(
+    verifiedAnswersCollectionName
+  );
 
   // Load all entries from collection so we know what to update
   const storedAnswers = await collection.find().toArray();

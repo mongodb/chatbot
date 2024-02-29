@@ -13,6 +13,11 @@ export interface MakeVerifiedAnswerGenerateUserPromptParams {
   onNoVerifiedAnswerFound: GenerateUserPromptFunc;
 }
 
+/**
+  Constructs a GenerateUserPromptFunc that searches for verified answers for the
+  user query. If no verified answer can be found for the given query, the
+  onNoVerifiedAnswerFound GenerateUserPromptFunc is called instead.
+ */
 export const makeVerifiedAnswerGenerateUserPrompt = ({
   findVerifiedAnswer,
   onNoVerifiedAnswerFound,

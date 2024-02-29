@@ -3,6 +3,13 @@
 "Verified answers" is a feature of the chatbot server that allows the chatbot to
 return pre-written answers for a given question.
 
+:::warning[👷‍♂️ Work In Progress 👷‍♂️]
+
+The verified answers feature is in active development and is not ready for
+production deployment.
+
+:::
+
 ## `VerifiedAnswerStore`
 
 The `VerifiedAnswerStore` is an interface to the stored verified answers in your app.

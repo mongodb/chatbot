@@ -1,4 +1,6 @@
-import { GeneratedData } from "../generate/GeneratedDataStore";
+import { SomeGeneratedData } from "../generate/GeneratedDataStore";
 import { EvalResult } from "./EvaluationStore";
 
-export type EvaluateQualityFunc = (data: GeneratedData) => Promise<EvalResult>;
+export type EvaluateQualityFunc = (
+  data: SomeGeneratedData
+) => Promise<EvalResult>;

@@ -1,5 +1,6 @@
 import {
   CommandMetadataStore,
+  convertCommandRunMetadataToJson,
   makeMongoDbCommandMetadataStore,
 } from "./CommandMetadataStore";
 import { Db, MongoClient, ObjectId } from "mongodb-rag-core";
@@ -30,7 +31,8 @@ describe("MongoDbCommandMetadataStore", () => {
   it("should insert new command metadata", async () => {
     const metadata = {
       _id: new ObjectId(),
-      commandName: "foo",
+      command: "foo",
+      name: "bar",
       startTime: new Date(),
       endTime: new Date(),
     };
@@ -40,12 +42,33 @@ describe("MongoDbCommandMetadataStore", () => {
   it("should find command metadata by id", async () => {
     const metadata = {
       _id: new ObjectId(),
-      commandName: "bar",
+      command: "bar",
+      name: "foo",
       startTime: new Date(),
       endTime: new Date(),
     };
     await commandMetadataStore.insertOne(metadata);
     const foundMetadata = await commandMetadataStore.findById(metadata._id);
     expect(foundMetadata).toMatchObject(metadata);
+  });
+});
+
+describe("convertCommandRunMetadataToJson", () => {
+  test("should convert CommandRunMetadata to JSON-compatible object", () => {
+    const metadata = {
+      _id: new ObjectId(),
+      command: "foo",
+      name: "bar",
+      startTime: new Date(),
+      endTime: new Date(),
+    };
+    const json = convertCommandRunMetadataToJson(metadata);
+    expect(json).toMatchObject({
+      _id: metadata._id.toHexString(),
+      command: metadata.command,
+      name: metadata.name,
+      startTime: metadata.startTime.getTime(),
+      endTime: metadata.endTime.getTime(),
+    });
   });
 });

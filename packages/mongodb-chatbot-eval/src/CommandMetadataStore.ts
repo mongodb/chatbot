@@ -2,7 +2,8 @@ import { MongoClient, ObjectId } from "mongodb-rag-core";
 
 export interface CommandRunMetadata {
   _id: ObjectId;
-  commandName: string;
+  command: string;
+  name: string;
   startTime: Date;
   endTime: Date;
 }
@@ -10,6 +11,16 @@ export interface CommandMetadataStore {
   insertOne(command: CommandRunMetadata): Promise<boolean>;
   findById(commandId: ObjectId): Promise<CommandRunMetadata | undefined>;
   close(): Promise<void>;
+}
+
+export function convertCommandRunMetadataToJson(command: CommandRunMetadata) {
+  return {
+    _id: command._id.toHexString(),
+    command: command.command,
+    name: command.name,
+    startTime: command.startTime.getTime(),
+    endTime: command.endTime.getTime(),
+  };
 }
 
 export interface MakeMongoDbCommandMetadataStoreParams {

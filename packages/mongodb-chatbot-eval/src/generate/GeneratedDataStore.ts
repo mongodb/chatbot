@@ -1,6 +1,7 @@
+import { Conversation } from "mongodb-chatbot-server";
 import { Filter, MongoClient, ObjectId } from "mongodb-rag-core";
 
-export interface GeneratedData {
+export interface BaseGeneratedData {
   _id: ObjectId;
   commandRunId: ObjectId;
   type: string;
@@ -8,10 +9,31 @@ export interface GeneratedData {
   evalData?: Record<string, unknown>;
 }
 
+export interface ConversationGeneratedData extends BaseGeneratedData {
+  type: "conversation";
+  data: Conversation;
+  evalData: ConversationEvalData;
+}
+export type SomeGeneratedData = ConversationGeneratedData | BaseGeneratedData;
+
+export interface ConversationEvalData extends Record<string, unknown> {
+  /**
+    Arbitrary metadata about the conversation.
+   */
+  tags?: string[];
+
+  /**
+    Description of what you want to see from the final assistant message.
+    An LLM can use this description to see if the final assistant message meets this expectation.
+   */
+  qualitativeFinalAssistantMessageExpectation: string;
+}
+
 export interface GeneratedDataStore {
-  insertOne(generatedData: GeneratedData): Promise<boolean>;
-  findById(generatedDataId: ObjectId): Promise<GeneratedData | undefined>;
-  find(filter: unknown): Promise<GeneratedData[] | undefined>;
+  insertOne(generatedData: SomeGeneratedData): Promise<boolean>;
+  insertMany(generatedData: SomeGeneratedData[]): Promise<boolean>;
+  findById(generatedDataId: ObjectId): Promise<SomeGeneratedData | undefined>;
+  find(filter: unknown): Promise<SomeGeneratedData[] | undefined>;
   close(): Promise<void>;
 }
 
@@ -26,7 +48,9 @@ export interface MakeMongoDbGeneratedDataStoreParams {
 }
 
 export interface MongoDbGeneratedDataStore extends GeneratedDataStore {
-  find(filter: Filter<GeneratedData>): Promise<GeneratedData[] | undefined>;
+  find(
+    filter: Filter<SomeGeneratedData>
+  ): Promise<SomeGeneratedData[] | undefined>;
 }
 
 export function makeMongoDbGeneratedDataStore({
@@ -37,16 +61,20 @@ export function makeMongoDbGeneratedDataStore({
   const client = new MongoClient(connectionUri);
   const collection = client
     .db(databaseName)
-    .collection<GeneratedData>(collectionName ?? "generated_data");
+    .collection<SomeGeneratedData>(collectionName ?? "generated_data");
   return {
     async insertOne(generatedData) {
       const { acknowledged } = await collection.insertOne(generatedData);
       return acknowledged;
     },
+    async insertMany(generatedData) {
+      const { acknowledged } = await collection.insertMany(generatedData);
+      return acknowledged;
+    },
     async findById(generatedDataId) {
       return (await collection.findOne({ _id: generatedDataId })) ?? undefined;
     },
-    async find(filter: Filter<GeneratedData>) {
+    async find(filter: Filter<SomeGeneratedData>) {
       const cursor = await collection.find(filter);
       return await cursor.toArray();
     },

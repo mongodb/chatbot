@@ -353,11 +353,10 @@ describe("POST /conversations/:conversationId/messages", () => {
           },
         }));
 
-        conversations = makeMongoDbConversationsService(
-          testMongo,
-          systemPrompt
-        );
-        const { _id } = await conversations.create();
+        conversations = makeMongoDbConversationsService(testMongo);
+        const { _id } = await conversations.create({
+          initialMessages: [systemPrompt],
+        });
         conversationId = _id;
       });
       test("should respond 200, static message, and vector search results", async () => {

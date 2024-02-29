@@ -4,4 +4,7 @@ module.exports = async () => ({
   evaluationStore: {},
   reportStore: {},
   commands: [],
+  async afterAll() {
+    // Appease ESLint by giving function a body
+  },
 });

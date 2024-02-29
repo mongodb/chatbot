@@ -1,19 +1,28 @@
 import { CommandModule } from "yargs";
-import {
-  ResolvedConfig,
-  LoadConfigArgs,
-  withConfig,
-  withConfigOptions,
-} from "../withConfig";
+import { LoadConfigArgs, withConfig, withConfigOptions } from "../withConfig";
+import { generateDataAndMetadata } from "../generate/generateDataAndMetadata";
+import { EvalConfig } from "../EvalConfig";
 
-const commandModule: CommandModule<unknown, LoadConfigArgs> = {
+interface GenerateCommandArgs {
+  name: string;
+}
+
+const commandModule: CommandModule<
+  unknown,
+  LoadConfigArgs & GenerateCommandArgs
+> = {
   command: "generate",
   builder(args) {
-    return withConfigOptions(args).string("name").demandOption("name");
+    return withConfigOptions(args).option("name", {
+      type: "string",
+      demandOption: true,
+      description: "Name of the data generation.",
+    });
   },
   async handler(args) {
     return withConfig(generateCommand, {
       ...args,
+      name: args.name,
     });
   },
   describe: "Generate data for evaluation.",
@@ -22,8 +31,25 @@ const commandModule: CommandModule<unknown, LoadConfigArgs> = {
 export default commandModule;
 
 export const generateCommand = async (
-  config: ResolvedConfig
-  // other args?
+  config: EvalConfig,
+  { name }: { name: string }
 ) => {
-  // TODO: do stuff
+  // Get config
+  const {
+    generatedDataStore,
+    metadataStore,
+    commands: { generate },
+  } = config;
+  if (!generate?.[name]) {
+    throw new Error(`No generate command found with name: ${name}`);
+  }
+  const { generator, testCases } = generate[name];
+  // Generate data
+  await generateDataAndMetadata({
+    testCases,
+    name,
+    generator,
+    generatedDataStore,
+    metadataStore,
+  });
 };

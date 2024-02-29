@@ -28,23 +28,25 @@ describe("Conversations Service", () => {
     await mongoClient.close();
   });
 
-  const conversationsService = makeMongoDbConversationsService(
-    mongodb,
-    systemPrompt
-  );
+  const conversationsService = makeMongoDbConversationsService(mongodb);
   test("Should create a conversation", async () => {
-    const conversation = await conversationsService.create();
+    const conversation = await conversationsService.create({
+      initialMessages: [systemPrompt],
+    });
     expect(conversation).toHaveProperty("_id");
     const conversationInDb = await mongodb
       .collection("conversations")
       .findOne({ _id: conversation._id });
     expect(conversationInDb).toStrictEqual(conversation);
   });
-  test("Should create a conversation with custom data", async () => {
+  test("Should create a conversation with custom data + system prompt(s)", async () => {
     const customData = {
       foo: "bar",
     };
-    const conversation = await conversationsService.create({ customData });
+    const conversation = await conversationsService.create({
+      customData,
+      initialMessages: [systemPrompt],
+    });
     expect(conversation).toHaveProperty("customData", customData);
     const conversationInDb = await mongodb
       .collection("conversations")
@@ -52,7 +54,9 @@ describe("Conversations Service", () => {
     expect(conversationInDb).toStrictEqual(conversation);
   });
   test("Should add a message to a conversation", async () => {
-    const conversation = await conversationsService.create();
+    const conversation = await conversationsService.create({
+      initialMessages: [systemPrompt],
+    });
     const content = "Tell me about MongoDB";
     const newMessage = await conversationsService.addConversationMessage({
       conversationId: conversation._id,
@@ -72,7 +76,9 @@ describe("Conversations Service", () => {
     expect(conversationInDb?.messages[1].content).toStrictEqual(content);
   });
   test("Should add a message to a conversation with optional fields", async () => {
-    const conversation = await conversationsService.create();
+    const conversation = await conversationsService.create({
+      initialMessages: [systemPrompt],
+    });
     const contentForLlm = "<processed> Tell me about MongoDB";
     const originalUserContent = "Tell me about MongoDB";
     const embedding = [1, 2, 3];
@@ -103,7 +109,9 @@ describe("Conversations Service", () => {
     ).toStrictEqual(embedding);
   });
   test("Should add a message to a conversation with custom data", async () => {
-    const conversation = await conversationsService.create();
+    const conversation = await conversationsService.create({
+      initialMessages: [systemPrompt],
+    });
     const content = "Tell me about MongoDB";
     const customData = {
       foo: "bar",
@@ -128,7 +136,9 @@ describe("Conversations Service", () => {
     expect(conversationInDb?.messages[1].customData).toStrictEqual(customData);
   });
   test("Should add a message to a conversation with undefined custom data", async () => {
-    const conversation = await conversationsService.create();
+    const conversation = await conversationsService.create({
+      initialMessages: [systemPrompt],
+    });
     const content = "Tell me about MongoDB";
     const customData = undefined;
     const newMessage = await conversationsService.addConversationMessage({
@@ -151,7 +161,9 @@ describe("Conversations Service", () => {
     expect(conversationInDb?.messages[1].customData).toStrictEqual(customData);
   });
   test("should add many conversation messages", async () => {
-    const conversation = await conversationsService.create();
+    const conversation = await conversationsService.create({
+      initialMessages: [systemPrompt],
+    });
     const content = "Tell me about MongoDB";
     const messages = [
       {
@@ -173,7 +185,9 @@ describe("Conversations Service", () => {
     expect(newMessages[1]).toMatchObject(messages[1]);
   });
   test("Should find a conversation by id", async () => {
-    const conversation = await conversationsService.create();
+    const conversation = await conversationsService.create({
+      initialMessages: [systemPrompt],
+    });
     const conversationInDb = await conversationsService.findById({
       _id: conversation._id,
     });
@@ -186,7 +200,9 @@ describe("Conversations Service", () => {
     expect(conversationInDb).toBeNull();
   });
   test("Should rate a message", async () => {
-    const { _id: conversationId } = await conversationsService.create();
+    const { _id: conversationId } = await conversationsService.create({
+      initialMessages: [systemPrompt],
+    });
 
     await conversationsService.addConversationMessage({
       conversationId,
@@ -222,7 +238,9 @@ describe("Conversations Service", () => {
     );
   });
   test("Should add a user comment to a message", async () => {
-    const { _id: conversationId } = await conversationsService.create();
+    const { _id: conversationId } = await conversationsService.create({
+      initialMessages: [systemPrompt],
+    });
 
     await conversationsService.addConversationMessage({
       conversationId,
@@ -261,7 +279,8 @@ describe("Conversations Service", () => {
       .collection<Conversation>("conversations")
       .findOne({ _id: conversationId });
 
-    const finalAssistantMessage = (conversationInDb?.messages[2] as AssistantMessage)
+    const finalAssistantMessage = conversationInDb
+      ?.messages[2] as AssistantMessage;
     expect(finalAssistantMessage?.rating).toBe(true);
     expect(finalAssistantMessage?.userComment).toBe(comment);
   });

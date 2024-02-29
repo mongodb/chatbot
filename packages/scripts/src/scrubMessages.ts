@@ -88,6 +88,7 @@ const scrubMessages = async ({ db }: { db: Db }) => {
           | "contentForLlm"
           | "preprocessedContent"
           | "userComment"
+          | "contextContent"
         >,
         string | number
       >,

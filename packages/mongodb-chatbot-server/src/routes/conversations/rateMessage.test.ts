@@ -11,7 +11,7 @@ import { Express } from "express";
 import { Db, MongoClient, ObjectId } from "mongodb-rag-core";
 import { makeRateMessageRoute } from "./rateMessage";
 import { DEFAULT_API_PREFIX } from "../../app";
-import { makeTestApp } from "../../test/testHelpers";
+import { makeTestApp, systemPrompt } from "../../test/testHelpers";
 import { AppConfig } from "../../app";
 
 jest.setTimeout(100000);
@@ -38,7 +38,9 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
       .post(endpointUrl, makeRateMessageRoute({ conversations }))
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin);
-    conversation = await conversations.create();
+    conversation = await conversations.create({
+      initialMessages: [systemPrompt],
+    });
     testMsg = await conversations.addConversationMessage({
       conversationId: conversation._id,
       message: {

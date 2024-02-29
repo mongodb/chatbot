@@ -2,7 +2,7 @@ import { makeVerifiedAnswerGenerateUserPrompt } from "./makeVerifiedAnswerGenera
 import { VerifiedAnswer, WithScore } from "mongodb-rag-core";
 
 describe("makeVerifiedAnswerGenerateUserPrompt", () => {
-  it("uses verified answer if available, continuation otherwise", async () => {
+  it("uses verified answer if available, onNoVerifiedAnswerFound otherwise", async () => {
     const MAGIC_VERIFIABLE = "VERIFIABLE";
     const generatePrompt = makeVerifiedAnswerGenerateUserPrompt({
       findVerifiedAnswer: async ({ query }) => {
@@ -16,11 +16,11 @@ describe("makeVerifiedAnswerGenerateUserPrompt", () => {
               : undefined,
         };
       },
-      continuation: async () => {
+      onNoVerifiedAnswerFound: async () => {
         return {
           userMessage: {
             role: "user",
-            content: "returned from continuation",
+            content: "returned from onNoVerifiedAnswerFound",
           },
         };
       },
@@ -32,7 +32,9 @@ describe("makeVerifiedAnswerGenerateUserPrompt", () => {
       userMessageText: "not verified",
     });
     expect(answer.staticResponse).toBeUndefined();
-    expect(answer.userMessage.content).toBe("returned from continuation"); // continuation called
+    expect(answer.userMessage.content).toBe(
+      "returned from onNoVerifiedAnswerFound"
+    ); // onNoVerifiedAnswerFound called
 
     // This will find a verified answer
     answer = await generatePrompt({
@@ -41,6 +43,6 @@ describe("makeVerifiedAnswerGenerateUserPrompt", () => {
     });
     expect(answer.staticResponse).toBeDefined();
     expect(answer.staticResponse?.content).toBe("verified answer");
-    expect(answer.userMessage.content).toBe(MAGIC_VERIFIABLE); // continuation not called
+    expect(answer.userMessage.content).toBe(MAGIC_VERIFIABLE); // onNoVerifiedAnswerFound not called
   });
 });

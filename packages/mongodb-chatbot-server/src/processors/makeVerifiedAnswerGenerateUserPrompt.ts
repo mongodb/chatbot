@@ -10,12 +10,12 @@ export interface MakeVerifiedAnswerGenerateUserPromptParams {
    */
   findVerifiedAnswer: FindVerifiedAnswerFunc;
 
-  continuation: GenerateUserPromptFunc;
+  onNoVerifiedAnswerFound: GenerateUserPromptFunc;
 }
 
 export const makeVerifiedAnswerGenerateUserPrompt = ({
   findVerifiedAnswer,
-  continuation,
+  onNoVerifiedAnswerFound,
 }: MakeVerifiedAnswerGenerateUserPromptParams): GenerateUserPromptFunc => {
   return async (args) => {
     const { userMessageText } = args;
@@ -39,6 +39,6 @@ export const makeVerifiedAnswerGenerateUserPrompt = ({
         },
       } satisfies GenerateUserPromptFuncReturnValue;
     }
-    return await continuation(args);
+    return await onNoVerifiedAnswerFound(args);
   };
 };

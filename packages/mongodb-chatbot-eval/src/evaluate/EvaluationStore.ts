@@ -1,4 +1,10 @@
-import { Filter, MongoClient, ObjectId } from "mongodb-rag-core";
+import {
+  AggregateOptions,
+  Document,
+  Filter,
+  MongoClient,
+  ObjectId,
+} from "mongodb-rag-core";
 
 export interface EvalResult {
   _id: ObjectId;
@@ -17,6 +23,7 @@ export interface EvaluationStore {
   insertOne(evalResult: EvalResult): Promise<boolean>;
   insertMany(evalResults: EvalResult[]): Promise<boolean>;
   find(filter: unknown): Promise<EvalResult[] | undefined>;
+  aggregate(pipeline: unknown[], options?: unknown): Promise<Document[]>;
   close(): Promise<void>;
 }
 
@@ -31,6 +38,10 @@ export interface MakeMongoDbEvaluationStoreParams {
 
 export interface MongoDbEvaluationStore extends EvaluationStore {
   find(filter: Filter<EvalResult>): Promise<EvalResult[] | undefined>;
+  aggregate(
+    pipeline: Document[],
+    options?: AggregateOptions
+  ): Promise<Document[]>;
 }
 
 export function makeMongoDbEvaluationStore({
@@ -54,6 +65,10 @@ export function makeMongoDbEvaluationStore({
     },
     async find(filter) {
       const cursor = await collection.find(filter);
+      return await cursor.toArray();
+    },
+    async aggregate(pipeline, options) {
+      const cursor = await collection.aggregate<EvalResult>(pipeline, options);
       return await cursor.toArray();
     },
     async close() {

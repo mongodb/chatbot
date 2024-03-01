@@ -6,7 +6,6 @@ import { z } from "zod";
 import {
   ConversationCustomData,
   ConversationsService,
-  SomeMessage,
   SystemMessage,
 } from "../../services/ConversationsService";
 import {

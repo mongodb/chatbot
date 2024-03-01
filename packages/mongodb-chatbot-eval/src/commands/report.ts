@@ -4,7 +4,15 @@ import { EvalConfig } from "../EvalConfig";
 import { generateReportAndMetadata } from "../report/generateReportAndMetadata";
 import { ObjectId } from "mongodb-rag-core";
 
-const commandModule: CommandModule<unknown, LoadConfigArgs> = {
+interface ReportCommandArgs {
+  name: string;
+  evalResultsRunId: string;
+}
+
+const commandModule: CommandModule<
+  unknown,
+  LoadConfigArgs & ReportCommandArgs
+> = {
   command: "report",
   builder(args) {
     return withConfigOptions(args)
@@ -23,8 +31,6 @@ const commandModule: CommandModule<unknown, LoadConfigArgs> = {
   async handler(args) {
     return withConfig(reportCommand, {
       ...args,
-      name: args.name as string,
-      evalResultsRunId: args.evalResultsRunId as string,
     });
   },
   describe: "Report generated data.",

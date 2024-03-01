@@ -31,8 +31,6 @@ const commandModule: CommandModule<
   async handler(args) {
     return withConfig(evaluateCommand, {
       ...args,
-      name: args.name,
-      generatedDataRunId: args.generatedDataRunId,
     });
   },
   describe: "Evaluate generated data.",

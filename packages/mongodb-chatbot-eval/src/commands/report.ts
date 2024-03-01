@@ -8,17 +8,23 @@ const commandModule: CommandModule<unknown, LoadConfigArgs> = {
   command: "report",
   builder(args) {
     return withConfigOptions(args)
-      .string("name")
-      .option("evalResultsQuery", {
+      .option("name", {
         type: "string",
-        description: "Query to filer evaluation results.",
+        description: "Name of the report.",
+        demandOption: true,
       })
-      .demandOption("evalResultsQuery")
-      .demandOption("name");
+      .option("evalResultsRunId", {
+        type: "string",
+        description:
+          "RunId for a 'evaluate' command that you want to create a report for.",
+        demandOption: true,
+      });
   },
   async handler(args) {
     return withConfig(reportCommand, {
       ...args,
+      name: args.name as string,
+      evalResultsRunId: args.evalResultsRunId as string,
     });
   },
   describe: "Report generated data.",
@@ -27,8 +33,32 @@ const commandModule: CommandModule<unknown, LoadConfigArgs> = {
 export default commandModule;
 
 export const reportCommand = async (
-  config: EvalConfig
-  // other args?
+  config: EvalConfig,
+  { name, evalResultsRunId }: { name: string; evalResultsRunId: string }
 ) => {
-  // TODO: do stuff
+  // Set up config
+  if (!ObjectId.isValid(evalResultsRunId)) {
+    throw new Error(
+      `'evalResultsRunId' must be a valid ObjectId. Received: ${evalResultsRunId}`
+    );
+  }
+
+  const { reportStore, evaluationStore, metadataStore } = config;
+  const reportCommand = config.commands.report?.[name];
+  if (!reportCommand) {
+    throw new Error(`No report command found with name: ${name}`);
+  }
+  const { reporter } = reportCommand;
+
+  const evaluationRunId = ObjectId.createFromHexString(evalResultsRunId);
+
+  // Run command
+  await generateReportAndMetadata({
+    name,
+    reportEvalFunc: reporter,
+    reportStore,
+    evaluationStore,
+    metadataStore,
+    evaluationRunId,
+  });
 };

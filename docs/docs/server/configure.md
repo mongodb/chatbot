@@ -201,6 +201,10 @@ const findContent = makeDefaultFindContent({
     k: 5,
     path: "embedding",
     indexName: VECTOR_SEARCH_INDEX_NAME,
+    // Note: you may want to adjust the minScore depending
+    // on the embedding model you use. We've found 0.9 works well
+    // for OpenAI's text-embedding-ada-02 model for most use cases,
+    // but you may want to adjust this value if you're using a different model.
     minScore: 0.9,
   },
   searchBoosters: [boostManual],

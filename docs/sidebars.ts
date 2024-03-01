@@ -59,7 +59,6 @@ const sidebars: SidebarsConfig = {
         "server/tools",
         "server/persist",
         "server/evaluate",
-        "server/verified-answers",
         {
           type: "link",
           label: "OpenAPI Spec",

@@ -5,7 +5,6 @@ import {
   EvalResult,
   makeMongoDbEvaluationStore,
 } from "../evaluate/EvaluationStore";
-import { ConversationQualityEvalResult } from "../evaluate/evaluateConversationQuality";
 import { reportConversationStatsForEvalRun } from "./reportConversationStatsForEvalRun";
 
 const { MONGODB_CONNECTION_URI } = process.env;
@@ -61,7 +60,7 @@ describe("reportConversationStatsForEvalRun", () => {
           conversationTranscript: "bar",
         },
       },
-    ] satisfies ConversationQualityEvalResult[];
+    ] satisfies EvalResult[];
     await evaluationStore.insertMany(conversationEvals);
     const otherEval = {
       _id: new ObjectId(),

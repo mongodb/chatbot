@@ -13,7 +13,6 @@ import {
 import {
   ConversationTestCase,
   GeneratedDataStore,
-  SomeGeneratedData,
   generateDataAndMetadata,
 } from "../generate";
 import { testCases } from "../test/mockTestCases";
@@ -22,7 +21,6 @@ import {
   CommandMetadataStore,
   CommandRunMetadata,
 } from "../CommandMetadataStore";
-import { MockFindFilter } from "../test/MockFindFilter";
 import { EvalResult } from "./EvaluationStore";
 import { Conversation } from "mongodb-chatbot-server";
 

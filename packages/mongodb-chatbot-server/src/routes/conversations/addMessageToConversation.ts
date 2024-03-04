@@ -201,6 +201,7 @@ export function makeAddMessageToConversationRoute({
         if (shouldStream) {
           dataStreamer.connect(res);
         }
+
         const { messages: generatedMessages } = await generateResponse({
           shouldStream,
           llm,

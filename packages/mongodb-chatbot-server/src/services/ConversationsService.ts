@@ -18,9 +18,15 @@ export type MessageBase = {
   content: string;
 
   /**
-    Custom data to include in the Message persisted to the database.
+    Custom data received from the client to include in the Message persisted to
+    the database.
    */
   customData?: Record<string, unknown>;
+
+  /**
+    Arbitrary data about the message that should be sent to the client.
+   */
+  metadata?: Record<string, unknown>;
 };
 
 export type SystemMessage = MessageBase & {
@@ -51,9 +57,6 @@ export type AssistantMessage = MessageBase & {
 
   functionCall?: FunctionCall;
 
-  /**
-    Additional metadata.
-   */
   metadata?: {
     [k: string]: unknown;
 

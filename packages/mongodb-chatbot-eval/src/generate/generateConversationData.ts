@@ -86,6 +86,7 @@ export const makeGenerateConversationData = function ({
           validateStatus: () => true, // don't throw on non-200 status
         }
       );
+      console.log("create res::", createRes.data);
       if (createRes.status !== 200) {
         failedCases.push(testCase);
         continue;

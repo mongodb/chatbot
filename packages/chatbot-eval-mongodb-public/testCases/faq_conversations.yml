@@ -71,7 +71,7 @@
     - role: user
       content: How do I use MongoDB with the nodejs driver?
 - name: Should know how connect to MongoDB using Mongoose?
-  expectation: TODO
+  expectation: ASSISTANT should explain that you can use the mongoose.connect() method.
   tags:
     - faq
     - mongoose
@@ -80,7 +80,7 @@
     - role: user
       content: How do I connect to MongoDB using Mongoose?
 - name: Should know how to connect to MongoDB with a connection string
-  expectation: TODO
+  expectation: ASSISTANT provides example of connecting to MongoDB using a connection string. Use either mongosh or Node.js driver.
   tags:
     - faq
   messages:
@@ -89,14 +89,32 @@
         MONGO_URI=mongodb+srv://testUser:sdagfjlfh@cluster0.v9iuxyr.mongodb.net/some_collection
         connect to database with this connection string
 - name: Should know how to insert data
-  expectation: TODO
+  expectation: ASSISTANT explains how to insert data into a MongoDB collection. Include the `insertOne` AND/OR `insertMany` methods.
   tags:
     - faq
   messages:
     - role: user
       content: How do I insert data into MongoDB?
 - name: Should know how to insert data given a collection and specific documents
-  expectation: TODO
+  expectation: |
+    ASSISTANT shows how to insert data into a MongoDB collection.
+    The response meets the following criteria:
+    1. Collection called `students`.
+    2. Adds TWO documents that include the fields: `name`, `address`, and `grade`.
+    Example documents:
+    ```json
+    {
+      "name": "John Doe",
+      "address": "123 Main St",
+      "grade": "A"
+    }
+    {
+      "name": "Jane Doe",
+      "address": "456 Elm St",
+      "grade": "B"
+    }
+    ```
+    3. Inserts the data with the insertMany command.
   tags:
     - faq
   messages:
@@ -104,56 +122,83 @@
       content: |
         create a collection students and insert two documents. in documents include: name, address, grade
 - name: Should know how to create a new collection
-  expectation: TODO
+  expectation: ASSISTANT shows how to use the db.createCollection() method to create a new collection in MongoDB.
   tags:
     - faq
   messages:
     - role: user
       content: command to create new collection
 - name: Should know about itself
-  expectation: TODO
+  expectation: ASSISTANT explains that it is a MongoDB AI Chatbot. It's goal is to help users with MongoDB related questions.
   tags:
     - faq
   messages:
     - role: user
       content: tell me about you
 - name: Should explain what MongoDB is
-  expectation: TODO
+  expectation: ASSISTANT explains MongoDB is a document database. Mentions MongoDB Atlas and MongoDB Community.
   tags:
     - faq
   messages:
     - role: user
       content: What is mongodb?
 - name: Should know how to update many documents
-  expectation: TODO
+  expectation: |
+    ASSISTANT provides information on how to update multiple documents in a MongoDB collection with the updateMany methods.
+    provide API example such as:
+
+    ```javascript
+    db.collection.updateMany(
+      <filter>,
+      <update>,
+      {
+        upsert: <boolean>,
+        writeConcern: <document>,
+        collation: <document>,
+        arrayFilters: [ <filterdocument1>, ... ],
+        hint:  <document|string>        // Available starting in MongoDB 4.2.1
+      }
+    )
+    ```
+
   tags:
     - faq
   messages:
     - role: user
       content: updateMany
 - name: Should know how to count documents
-  expectation: TODO
+  expectation: |
+    ASSISTANT explains countDocuments() is a Node.js method that returns the count of documents in a collection for a query.
+    Include a code example of the countDocuments() method.
   tags:
     - faq
   messages:
     - role: user
       content: countDocuments
 - name: Should know "how to query"
-  expectation: TODO
+  expectation: |
+    ASSISTANT explains that you can use the following 2 methods to query data:
+    1. find()
+    2. aggregate()
+    Shows a code example of how to use the find() AND/OR aggregate() method(s).
   tags:
     - faq
   messages:
     - role: user
       content: how to query
 - name: should know how to delete data
-  expectation: TODO
+  expectation: |
+    ASSISTANT explains that to delete data in MongoDB, you can use the deleteOne() or deleteMany() methods.
+    Shows code example of how to use the deleteOne() AND/OR deleteMany() method(s).
   tags:
     - faq
   messages:
     - role: user
       content: how to delete data
 - name: should know how to delete one document
-  expectation: TODO
+  expectation: |
+    ASSISTANT mentions you can use the deleteOne() method to delete a document.
+    Includes a code example of how to use the deleteOne() method.
   tags:
     - faq
   messages:

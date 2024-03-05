@@ -43,9 +43,6 @@ export const {
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
 } = assertEnvVars(CORE_ENV_VARS);
 
-const VERIFIED_ANSWERS_CONNECTION_NAME =
-  process.env.VERIFIED_ANSWERS_CONNECTION_NAME ?? "verified_answers";
-
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
 /**
@@ -130,7 +127,7 @@ export const findContent = makeDefaultFindContent({
 export const verifiedAnswerStore = makeMongoDbVerifiedAnswerStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
-  collectionName: VERIFIED_ANSWERS_CONNECTION_NAME,
+  collectionName: "verified_answers",
 });
 
 export const findVerifiedAnswer = makeDefaultFindVerifiedAnswer({

@@ -21,13 +21,16 @@ describe("runPipeline", () => {
     evaluationStore,
     reportStore,
   ];
+  const mockExit = jest.fn() as any;
   beforeEach(() => {
     for (const store of stores) {
       jest.spyOn(store, "close");
     }
+    process.exit = mockExit;
   });
   afterEach(() => {
     jest.clearAllMocks();
+    mockExit.mockClear();
   });
 
   const configConstructor = async () => {
@@ -60,18 +63,18 @@ describe("runPipeline", () => {
   };
   it("should run the pipeline", async () => {
     let theEnd = false;
-    const pipelineFunc: PipelineFunc = async (generate, evaluate, report) => {
-      const { _id: genRunId } = await generate("conversations");
-      const { _id: evalRunId } = await evaluate(
-        "conversationQuality",
-        genRunId
-      );
-      await report("conversationQualityRun", evalRunId);
-      theEnd = true;
-    };
+
     await runPipeline({
       configConstructor,
-      pipelineFunc,
+      pipelineFunc: async (generate, evaluate, report) => {
+        const { _id: genRunId } = await generate("conversations");
+        const { _id: evalRunId } = await evaluate(
+          "conversationQuality",
+          genRunId
+        );
+        await report("conversationQualityRun", evalRunId);
+        theEnd = true;
+      },
     });
     // expect it to make it through the pipeline
     expect(theEnd).toBe(true);
@@ -81,6 +84,7 @@ describe("runPipeline", () => {
     for (const store of stores) {
       expect(store.close).toHaveBeenCalled();
     }
+    expect(mockExit).toHaveBeenCalled();
   });
   it("should throw if command not found", async () => {
     expect(

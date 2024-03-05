@@ -50,10 +50,10 @@ interface RunPipelineParams {
   then generate N evaluations for each conversation,
   and then M reports for each evaluation.
  */
-export const runPipeline = async ({
+export async function runPipeline({
   configConstructor,
   pipelineFunc,
-}: RunPipelineParams): Promise<void> => {
+}: RunPipelineParams): Promise<void> {
   logger.info("Starting pipeline.");
   logger.info("Constructing pipeline config.");
 
@@ -129,6 +129,7 @@ export const runPipeline = async ({
     await evaluationStore.close();
     await reportStore.close();
     await afterAll?.();
-    logger.info("Cleaned up and finished pipeline.");
+    logger.info("Cleaned up and finished pipeline. Exiting process.");
+    process.exit(0);
   }
-};
+}

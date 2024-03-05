@@ -1,0 +1,373 @@
+# suggested prompts
+- name: Should get started with MongoDB
+  expectation: ASSISTANT provides actionable information to get started with MongoDB. Could be a tutorial or guide.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: Get started with MongoDB
+- name: Should know how to deploy a free cluster in Atlas
+  expectation: "ASSISTANT provides clear direction on how to deploy a free cluster in Atlas. Uses at least one of the following: Atlas UI, Atlas API, Atlas CLI."
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: How do I deploy a free cluster in Atlas?
+- name: Should know how to import or migrate data into MongoDB
+  expectation: ASSISTANT explains that can use mongoimport. Shows how to use mongoimport including example resembling 'mongoimport --db myDatabase --collection myCollection --file data.json'
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: How do I import or migrate data into MongoDB?
+- name: Should explain how to use Atlas Search
+  expectation: "Explains benefits of Atlas Search, including: integration with Atlas, complex search queries, scalable, easy to use."
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: Why should I use Atlas Search?
+# End suggested prompts
+- name: Should explain how to install MongoDB
+  expectation: ASSISTANT rovides instructions on a way to install mongodb.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: How do I install MongoDB?
+- name: Should explain hwo to install MongoDB on Ubuntu
+  expectation: ASSISTANT provides Ubuntu-specific instructions on how to install mongodb. Include specific install instructions, such as using the tool `dpkg`
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: How do I install MongoDB on ubuntu?
+- name: Should explain how to install MongoDB on Windows
+  expectation: ASSISTANT provides Windows-specific instructions on how to install mongodb. Include specific install instructions, such as using the `.msi` installer.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: How do I install MongoDB on Windows?
+- name: Should explain hwo to install MongoDB on Mac
+  expectation: ASSISTANT provides Mac-specific instructions on how to install mongodb. Include specific install instructions, such as using the Homebrew with the commands `brew tap mongodb/brew` and `brew install mongodb-community@7.0`.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: How do I install MongoDB on Mac?
+- name: Should know how to use with nodejs mongodb driver
+  expectation: |
+    ASSISTANT provides clear information on getting started with the MongoDB Node.js driver.
+    Answer includes:
+    1. Installing `mongodb` package with `npm install mongodb`.
+    2. Connection to database using the `MongoClient` class.
+    3. Basic querying or inserting data operation.
+  tags:
+    - faq
+    - javascript
+    - driver
+  messages:
+    - role: user
+      content: How do I use MongoDB with the nodejs driver?
+- name: Should know how connect to MongoDB using Mongoose?
+  expectation: TODO
+  tags:
+    - faq
+    - mongoose
+    - javascript
+  messages:
+    - role: user
+      content: How do I connect to MongoDB using Mongoose?
+- name: Should know how to connect to MongoDB with a connection string
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: |
+        MONGO_URI=mongodb+srv://testUser:sdagfjlfh@cluster0.v9iuxyr.mongodb.net/some_collection
+        connect to database with this connection string
+- name: Should know how to insert data
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: How do I insert data into MongoDB?
+- name: Should know how to insert data given a collection and specific documents
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: |
+        create a collection students and insert two documents. in documents include: name, address, grade
+- name: Should know how to create a new collection
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: command to create new collection
+- name: Should know about itself
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: tell me about you
+- name: Should explain what MongoDB is
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: What is mongodb?
+- name: Should know how to update many documents
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: updateMany
+- name: Should know how to count documents
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: countDocuments
+- name: Should know "how to query"
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to query
+- name: should know how to delete data
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to delete data
+- name: should know how to delete one document
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: delete one document
+- name: should know how to back up database
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: How do I backup a MongoDB database?
+- name: should know what the aggregation framework is
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: What is aggregation in MongoDB?
+- name: should know what the mongoshell is
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: mongoshell
+- name: Should know how to connect from Python
+  expectation: TODO
+  tags:
+    - faq
+    - python
+  messages:
+    - role: user
+      content: can you give me an example of connecting to a db using python
+- name: Should know how to remove element from an array
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to remove object in array in mongoDB
+- name: should know how to create a database
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to create a database
+- name: should know how to find distinct values
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: distinct
+- name: should know to use distinct for 'unique' values
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to find unique values in my fields
+- name: Should know about Atlas Vector Search
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: vector search
+- name: Should know how to change maxBsonObjectSize
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to change maxBsonObjectSize
+- name: Should know how to update a document
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: update
+- name: Should know how to populate a database
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to populate database
+- name: Should know how to make a cluster
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: create a cluster
+- name: Should know about various operators
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: operator
+- name: Should know how to do a projection
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how do I find with a projection
+- name: should find document by id
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how can i find a document by id
+- name: should know about connection string
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: connection string
+- name: Should know about authentication methods
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how many authentication methods for MongoDB?
+- name: Show know how to setup replica cluster
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to setup replica cluster
+- name: Should know how to use the $and operator
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: give me an example of how to use the $and operator
+- name: Should know how to use the $in operator
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: give me an example of how to use the $in operator
+- name: should find with filter on specific date
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: OK, now I have a date field, I only want to show createdDate values between now and 90 days ago.
+- name: should know difference between monogdb and oracle
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: Mongodb vs oracle
+- name: Should know how to connect to mongodb though mongosh
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to connect to mongodb through mongosh
+- name: Should know how to open a change stream watch on a database and filter the stream
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to open a change stream watch on a database and filter the stream
+- name: Should know how to limit number of documents for a specific query
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: i have around 20 lac documents in a collection and i want to examined first 1k documents only in a find query, how can i do this?
+- name: Should know the latest version of MongoDB
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: what is the latest version of MongoDB
+- name: Should know how to do an aggregation pipeline with $lookup and $match
+  expectation: TODO
+  tags:
+    - faq
+    - aggregation
+  messages:
+    - role: user
+      content: Can you please give me a mongodb aggregation pipeline which does a $lookup and $match
+- name: Should know how to maximize uptime with MongoDB
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: How to maximize uptime with MongoDB?
+- name: Should ask for clarification question if the user asks about resetting password
+  expectation: TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: Can i reset my password

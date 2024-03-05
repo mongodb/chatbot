@@ -71,7 +71,18 @@ const config: Config = {
         out: "reference/ingest",
       },
     ],
-    // TODO: add eval lib
+    [
+      "docusaurus-plugin-typedoc",
+      {
+        id: "eval",
+        entryPoints: ["../packages/mongodb-chatbot-eval/src/index.ts"],
+        tsconfig: "../packages/mongodb-chatbot-eval/tsconfig.build.json",
+        sidebar: {
+          fullNames: true,
+        },
+        out: "reference/eval",
+      },
+    ],
   ],
   presets: [
     [

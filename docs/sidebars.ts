@@ -69,6 +69,23 @@ const sidebars: SidebarsConfig = {
     "ui",
     {
       type: "category",
+      label: "Evaluation CLI",
+      collapsible: true,
+      collapsed: true,
+      items: [
+        {
+          type: "doc",
+          id: "eval/index",
+          label: "Set up the Evaluation CLI",
+        },
+        "eval/configuration-reference",
+        "eval/command-reference",
+        "eval/pipelines",
+      ],
+    },
+
+    {
+      type: "category",
       label: "API Reference",
       collapsible: true,
       collapsed: true,

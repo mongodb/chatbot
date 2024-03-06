@@ -280,6 +280,7 @@ components:
     MessageResponseStreamEvent:
       oneOf:
         - $ref: "#/components/schemas/StreamEventDelta"
+        - $ref: "#/components/schemas/StreamEventMetadata"
         - $ref: "#/components/schemas/StreamEventProcessing"
         - $ref: "#/components/schemas/StreamEventReferences"
         - $ref: "#/components/schemas/StreamEventFinished"
@@ -316,6 +317,16 @@ components:
           enum: [references]
         data:
           $ref: "#/components/schemas/References"
+    StreamEventMetadata:
+      description: Any additional metadata with the answer.
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [metadata]
+        data:
+          type: object
+          additionalProperties: true
     StreamEventFinished:
       description: Last message when streaming has finished.
       type: object

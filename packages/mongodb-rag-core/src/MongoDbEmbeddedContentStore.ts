@@ -1,11 +1,7 @@
 import { pageIdentity } from "./pageIdentity";
 import { DatabaseConnection } from "./DatabaseConnection";
-import {
-  EmbeddedContent,
-  EmbeddedContentStore,
-  FindNearestNeighborsOptions,
-  WithScore,
-} from "./EmbeddedContent";
+import { EmbeddedContent, EmbeddedContentStore } from "./EmbeddedContent";
+import { FindNearestNeighborsOptions, WithScore } from "./VectorStore";
 import {
   MakeMongoDbDatabaseConnectionParams,
   makeMongoDbDatabaseConnection,

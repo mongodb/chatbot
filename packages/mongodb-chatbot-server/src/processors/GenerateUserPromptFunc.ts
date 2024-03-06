@@ -3,6 +3,7 @@ import {
   Conversation,
   ConversationCustomData,
   UserMessage,
+  AssistantMessage,
 } from "../services/ConversationsService";
 
 export type GenerateUserPromptFuncParams = {
@@ -29,12 +30,21 @@ export type GenerateUserPromptFuncParams = {
 
 export interface GenerateUserPromptFuncReturnValue {
   /**
-    User message used to send to LLM and store in the database.
-    If `rejectQuery: true`, then the server gives a static response
-    before sending the query to an LLM.
+    If defined, this message should be sent as a response instead of generating
+    a response to the user query with the LLM.
+   */
+  staticResponse?: AssistantMessage;
+
+  /**
+    If true, no response should be generated with an LLM. Instead, return the
+    `staticResponse` if set or otherwise respond with a standard static
+    rejection response.
    */
   rejectQuery?: boolean;
 
+  /**
+    The (preprocessed) user message to insert into the conversation.
+   */
   userMessage: UserMessage;
 
   /**
@@ -42,6 +52,7 @@ export interface GenerateUserPromptFuncReturnValue {
    */
   references?: References;
 }
+
 /**
   Generate the user prompt sent to the {@link ChatLlm}.
   This function is a flexible construct that you can use to customize

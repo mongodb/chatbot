@@ -16,11 +16,10 @@ steps:
   - name: test
     image: node:18
     commands:
-      # - npm ci
-      # - npm run build
-      # - npm run lint
-      # - npm run test
-      - echo "Testing" # TODO: add back
+      - npm ci
+      - npm run build
+      - npm run lint
+      - npm run test
 
     environment:
       PORT: 3000
@@ -788,7 +787,6 @@ name: staging-build-mongodb-eval
 trigger:
   branch:
     - main
-    - EAI-192 # TODO: remove before merging
   event:
     - push
   paths:
@@ -856,7 +854,6 @@ trigger:
 
   branch:
     - main
-    - EAI-192 # TODO: remove before merging
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion

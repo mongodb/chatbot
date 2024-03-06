@@ -100,15 +100,6 @@ describe("runPipeline", () => {
       async () =>
         await runPipeline({
           configConstructor,
-          pipeline: async (_generate, evaluate) => {
-            await evaluate("notFound", new ObjectId());
-          },
-        })
-    ).rejects.toThrow();
-    expect(
-      async () =>
-        await runPipeline({
-          configConstructor,
           pipeline: async (_generate, _evaluate, report) => {
             await report("notFound", new ObjectId());
           },

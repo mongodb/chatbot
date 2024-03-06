@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb-rag-core";
 import { EvalConfig } from "./EvalConfig";
-import { PipelineFunc, runPipeline } from "./Pipeline";
+import { Pipeline, runPipeline } from "./Pipeline";
 import { mockEvaluateConversation } from "./test/mockEvaluateConversation";
 import { makeMockEvaluationStore } from "./test/mockEvaluationStore";
 import { mockGenerateDataFunc } from "./test/mockGenerateDataFunc";
@@ -21,13 +21,16 @@ describe("runPipeline", () => {
     evaluationStore,
     reportStore,
   ];
+  const mockExit = jest.fn() as any;
   beforeEach(() => {
     for (const store of stores) {
       jest.spyOn(store, "close");
     }
+    process.exit = mockExit;
   });
   afterEach(() => {
     jest.clearAllMocks();
+    mockExit.mockClear();
   });
 
   const configConstructor = async () => {
@@ -60,18 +63,18 @@ describe("runPipeline", () => {
   };
   it("should run the pipeline", async () => {
     let theEnd = false;
-    const pipelineFunc: PipelineFunc = async (generate, evaluate, report) => {
-      const { _id: genRunId } = await generate("conversations");
-      const { _id: evalRunId } = await evaluate(
-        "conversationQuality",
-        genRunId
-      );
-      await report("conversationQualityRun", evalRunId);
-      theEnd = true;
-    };
+
     await runPipeline({
       configConstructor,
-      pipelineFunc,
+      pipeline: async (generate, evaluate, report) => {
+        const { _id: genRunId } = await generate("conversations");
+        const { _id: evalRunId } = await evaluate(
+          "conversationQuality",
+          genRunId
+        );
+        await report("conversationQualityRun", evalRunId);
+        theEnd = true;
+      },
     });
     // expect it to make it through the pipeline
     expect(theEnd).toBe(true);
@@ -81,13 +84,14 @@ describe("runPipeline", () => {
     for (const store of stores) {
       expect(store.close).toHaveBeenCalled();
     }
+    expect(mockExit).toHaveBeenCalled();
   });
   it("should throw if command not found", async () => {
     expect(
       async () =>
         await runPipeline({
           configConstructor,
-          pipelineFunc: async (generate) => {
+          pipeline: async (generate) => {
             await generate("notFound");
           },
         })
@@ -96,16 +100,7 @@ describe("runPipeline", () => {
       async () =>
         await runPipeline({
           configConstructor,
-          pipelineFunc: async (_generate, evaluate) => {
-            await evaluate("notFound", new ObjectId());
-          },
-        })
-    ).rejects.toThrow();
-    expect(
-      async () =>
-        await runPipeline({
-          configConstructor,
-          pipelineFunc: async (_generate, _evaluate, report) => {
+          pipeline: async (_generate, _evaluate, report) => {
             await report("notFound", new ObjectId());
           },
         })

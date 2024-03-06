@@ -1,10 +1,8 @@
 import { stripIndent } from "common-tags";
 import { strict as assert } from "assert";
 import { DatabaseConnection } from "./DatabaseConnection";
-import {
-  EmbeddedContentStore,
-  FindNearestNeighborsOptions,
-} from "./EmbeddedContent";
+import { EmbeddedContentStore } from "./EmbeddedContent";
+import { FindNearestNeighborsOptions } from "./VectorStore";
 import { makeMongoDbEmbeddedContentStore } from "./MongoDbEmbeddedContentStore";
 import { assertEnvVars } from "./assertEnvVars";
 import { CORE_ENV_VARS } from "./CoreEnvVars";

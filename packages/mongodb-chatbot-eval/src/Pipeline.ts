@@ -18,7 +18,7 @@ type PipelineReportFunc = (
   evalResultsRunId: ObjectId
 ) => Promise<CommandRunMetadata>;
 
-export type PipelineFunc = (
+export type Pipeline = (
   generate: PipelineGenerateFunc,
   evaluate: PipelineEvaluateFunc,
   report: PipelineReportFunc
@@ -39,7 +39,7 @@ interface RunPipelineParams {
     creating the relevant data in their respective stores
     and adding the command metadata.
    */
-  pipelineFunc: PipelineFunc;
+  pipeline: Pipeline;
 }
 
 /**
@@ -50,10 +50,10 @@ interface RunPipelineParams {
   then generate N evaluations for each conversation,
   and then M reports for each evaluation.
  */
-export const runPipeline = async ({
+export async function runPipeline({
   configConstructor,
-  pipelineFunc,
-}: RunPipelineParams): Promise<void> => {
+  pipeline,
+}: RunPipelineParams): Promise<void> {
   logger.info("Starting pipeline.");
   logger.info("Constructing pipeline config.");
 
@@ -122,13 +122,14 @@ export const runPipeline = async ({
 
   try {
     logger.info("Running pipeline actions.");
-    await pipelineFunc(generateFunc, evaluateFunc, reportFunc);
+    await pipeline(generateFunc, evaluateFunc, reportFunc);
   } finally {
     await metadataStore.close();
     await generatedDataStore.close();
     await evaluationStore.close();
     await reportStore.close();
     await afterAll?.();
-    logger.info("Cleaned up and finished pipeline.");
+    logger.info("Cleaned up and finished pipeline. Exiting process.");
+    process.exit(0);
   }
-};
+}

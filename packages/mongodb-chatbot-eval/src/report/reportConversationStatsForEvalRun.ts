@@ -39,6 +39,8 @@ export const reportConversationStatsForEvalRun: ReportEvalFunc = async ({
       $project: {
         _id: 0,
         totalCount: 1,
+        passCount: 1,
+        failCount: 1,
         passRate: {
           $divide: ["$passCount", "$totalCount"],
         },

@@ -1,5 +1,5 @@
 {
-  "name": "mongodb-verified-answers",
+  "name": "mongodb-chatbot-verified-answers",
   "version": "0.0.1",
   "description": "MongoDB Verified Answers CLI for the MongoDB Chatbot Framework.",
   "author": "",

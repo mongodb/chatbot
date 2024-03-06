@@ -1,11 +1,8 @@
 import crypto from "crypto";
-import { Db } from "mongodb";
-import { Embedder } from "mongodb-rag-core";
+import { Embedder, VerifiedAnswer } from "mongodb-rag-core";
 import {
   makeQuestionId,
   prepareVerifiedAnswers,
-  VerifiedAnswer,
-  importVerifiedAnswers,
 } from "./importVerifiedAnswers";
 import { VerifiedAnswerSpec } from "./parseVerifiedAnswersYaml";
 

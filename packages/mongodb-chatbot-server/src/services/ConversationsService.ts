@@ -1,4 +1,9 @@
-import { EmbeddedContent, ObjectId, References } from "mongodb-rag-core";
+import {
+  EmbeddedContent,
+  ObjectId,
+  References,
+  VerifiedAnswer,
+} from "mongodb-rag-core";
 import { FunctionCall } from "@azure/openai";
 
 export type MessageBase = {
@@ -13,9 +18,15 @@ export type MessageBase = {
   content: string;
 
   /**
-    Custom data to include in the Message persisted to the database.
+    Custom data received from the client to include in the Message persisted to
+    the database.
    */
   customData?: Record<string, unknown>;
+
+  /**
+    Arbitrary data about the message that should be sent to the client.
+   */
+  metadata?: Record<string, unknown>;
 };
 
 export type SystemMessage = MessageBase & {
@@ -45,6 +56,16 @@ export type AssistantMessage = MessageBase & {
   references?: References;
 
   functionCall?: FunctionCall;
+
+  metadata?: {
+    [k: string]: unknown;
+
+    /**
+      If the message came from the verified answers collection, contains the
+      metadata about the verified answer.
+     */
+    verifiedAnswer?: VerifiedAnswer;
+  };
 };
 
 export type FunctionMessage = MessageBase & {

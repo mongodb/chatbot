@@ -24,7 +24,7 @@ const commandModule: CommandModule<
       .option("evalResultsRunId", {
         type: "string",
         description:
-          "RunId for a 'evaluate' command that you want to create a report for.",
+          "RunId for an 'evaluate' command that you want to create a report for.",
         demandOption: true,
       });
   },
@@ -40,7 +40,7 @@ export default commandModule;
 
 export const reportCommand = async (
   config: EvalConfig,
-  { name, evalResultsRunId }: { name: string; evalResultsRunId: string }
+  { name, evalResultsRunId }: ReportCommandArgs
 ) => {
   // Set up config
   if (!ObjectId.isValid(evalResultsRunId)) {

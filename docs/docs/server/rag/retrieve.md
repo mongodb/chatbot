@@ -151,18 +151,18 @@ in the MongoDB Atlas documentation.
 For example, if you want to ensure that you include data from a specific data source `sourceName` in your results,
 include the following in your vector search index definition:
 
-```json
+```js
 {
-  "fields":[
+  "fields": [
     {
-      "type": "vector",
-      ...
+      "type": "vector"
+      // ...
     },
     {
       "type": "filter",
       "path": "sourceName"
-    },
-    ...
+    }
+    // ...
   ]
 }
 ```

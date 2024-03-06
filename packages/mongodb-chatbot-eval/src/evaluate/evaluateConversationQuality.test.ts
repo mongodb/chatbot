@@ -58,6 +58,7 @@ const generatedConversationData = {
   evalData: {
     qualitativeFinalAssistantMessageExpectation:
       "The assistant should correctly respond with the user's name.",
+    name: "User name",
   },
 } satisfies ConversationGeneratedData;
 

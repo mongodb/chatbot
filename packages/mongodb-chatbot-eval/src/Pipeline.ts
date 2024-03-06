@@ -18,7 +18,7 @@ type PipelineReportFunc = (
   evalResultsRunId: ObjectId
 ) => Promise<CommandRunMetadata>;
 
-export type PipelineFunc = (
+export type Pipeline = (
   generate: PipelineGenerateFunc,
   evaluate: PipelineEvaluateFunc,
   report: PipelineReportFunc
@@ -39,7 +39,7 @@ interface RunPipelineParams {
     creating the relevant data in their respective stores
     and adding the command metadata.
    */
-  pipelineFunc: PipelineFunc;
+  pipeline: Pipeline;
 }
 
 /**
@@ -52,7 +52,7 @@ interface RunPipelineParams {
  */
 export async function runPipeline({
   configConstructor,
-  pipelineFunc,
+  pipeline,
 }: RunPipelineParams): Promise<void> {
   logger.info("Starting pipeline.");
   logger.info("Constructing pipeline config.");
@@ -122,7 +122,7 @@ export async function runPipeline({
 
   try {
     logger.info("Running pipeline actions.");
-    await pipelineFunc(generateFunc, evaluateFunc, reportFunc);
+    await pipeline(generateFunc, evaluateFunc, reportFunc);
   } finally {
     await metadataStore.close();
     await generatedDataStore.close();

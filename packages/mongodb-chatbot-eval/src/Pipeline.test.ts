@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb-rag-core";
 import { EvalConfig } from "./EvalConfig";
-import { PipelineFunc, runPipeline } from "./Pipeline";
+import { Pipeline, runPipeline } from "./Pipeline";
 import { mockEvaluateConversation } from "./test/mockEvaluateConversation";
 import { makeMockEvaluationStore } from "./test/mockEvaluationStore";
 import { mockGenerateDataFunc } from "./test/mockGenerateDataFunc";
@@ -66,7 +66,7 @@ describe("runPipeline", () => {
 
     await runPipeline({
       configConstructor,
-      pipelineFunc: async (generate, evaluate, report) => {
+      pipeline: async (generate, evaluate, report) => {
         const { _id: genRunId } = await generate("conversations");
         const { _id: evalRunId } = await evaluate(
           "conversationQuality",
@@ -91,7 +91,7 @@ describe("runPipeline", () => {
       async () =>
         await runPipeline({
           configConstructor,
-          pipelineFunc: async (generate) => {
+          pipeline: async (generate) => {
             await generate("notFound");
           },
         })
@@ -100,7 +100,7 @@ describe("runPipeline", () => {
       async () =>
         await runPipeline({
           configConstructor,
-          pipelineFunc: async (_generate, evaluate) => {
+          pipeline: async (_generate, evaluate) => {
             await evaluate("notFound", new ObjectId());
           },
         })
@@ -109,7 +109,7 @@ describe("runPipeline", () => {
       async () =>
         await runPipeline({
           configConstructor,
-          pipelineFunc: async (_generate, _evaluate, report) => {
+          pipeline: async (_generate, _evaluate, report) => {
             await report("notFound", new ObjectId());
           },
         })

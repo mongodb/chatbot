@@ -28,12 +28,19 @@ export default async () => {
   } = assertEnvVars(envVars);
 
   const { OpenAIClient, AzureKeyCredential } = await import("@azure/openai");
-  const testCases = getConversationsTestCasesFromYaml(
+  const miscTestCases = getConversationsTestCasesFromYaml(
     fs.readFileSync(
       path.resolve(__dirname, "..", "testCases", "conversations.yml"),
       "utf8"
     )
   );
+  const faqTestCases = getConversationsTestCasesFromYaml(
+    fs.readFileSync(
+      path.resolve(__dirname, "..", "testCases", "faq_conversations.yml"),
+      "utf8"
+    )
+  );
+
   const storeDbOptions = {
     connectionUri: MONGODB_CONNECTION_URI,
     databaseName: MONGODB_DATABASE_NAME,
@@ -55,7 +62,18 @@ export default async () => {
       generate: {
         conversations: {
           type: "conversation",
-          testCases,
+          testCases: [...miscTestCases, ...faqTestCases],
+          generator: makeGenerateConversationData({
+            conversations,
+            httpHeaders: {
+              Origin: "Testing",
+            },
+            apiBaseUrl: CONVERSATIONS_SERVER_BASE_URL,
+          }),
+        },
+        faqConversations: {
+          type: "conversation",
+          testCases: faqTestCases,
           generator: makeGenerateConversationData({
             conversations,
             httpHeaders: {

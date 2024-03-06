@@ -4,6 +4,7 @@ export * from "./Embedder";
 export * from "./EmbeddedContent";
 export * from "./OpenAiEmbedder";
 export * from "./Page";
+export * from "./PageFormat";
 export * from "./arrayFilters";
 export * from "./assertEnvVars";
 export * from "./services/logger";

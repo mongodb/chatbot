@@ -4,6 +4,7 @@ import {
   makeGitHubDataSource,
 } from "./GitHubDataSource";
 import path from "path";
+import { pageFormat } from "mongodb-rag-core/build/PageFormat";
 
 export type MakeCodeOnGithubTextDataSourceParams =
   // MakeGitHubDataSourceArgs & {
@@ -42,9 +43,10 @@ export const makeCodeOnGithubTextDataSource = async ({
       ],
     },
     async handleDocumentInRepo(document) {
+      const format = pageFormat(getFileExtension(document.metadata.source));
       const page: Page = {
         body: document.pageContent,
-        format: "txt",
+        format,
         sourceName: name,
         url: pageBlobUrl({
           repoUrl,
@@ -53,7 +55,7 @@ export const makeCodeOnGithubTextDataSource = async ({
         }),
         metadata: {
           ...(metadata ?? {}),
-          programmingLanguage: getFileExtension(document.metadata.source),
+          programmingLanguage: format,
         },
       };
       return page;

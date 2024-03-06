@@ -74,6 +74,14 @@ export type ReferencesStreamEvent = StreamEvent & {
 };
 
 /**
+  Event when server streams a metadata object to the client.
+ */
+export type MetadataStreamEvent = StreamEvent & {
+  type: "metadata";
+  data: Record<string, unknown>;
+};
+
+/**
   Event denoting the end of streaming.
  */
 export type FinishedStreamEvent = StreamEvent & {
@@ -86,6 +94,7 @@ export type FinishedStreamEvent = StreamEvent & {
  */
 export type SomeStreamEvent =
   | DeltaStreamEvent
+  | MetadataStreamEvent
   | ProcessingStreamEvent
   | ReferencesStreamEvent
   | FinishedStreamEvent;

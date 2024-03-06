@@ -68,6 +68,7 @@ const scrubMessages = async ({ db }: { db: Db }) => {
         references: "$messages.references",
         rejectQuery: "$messages.rejectQuery",
         customData: "$messages.customData",
+        metadata: "$messages.metadata",
       } satisfies Record<
         Exclude<
           // This protects against unknown entries in the $project stage and

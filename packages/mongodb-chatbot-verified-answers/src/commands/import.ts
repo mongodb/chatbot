@@ -64,6 +64,7 @@ export const doImportCommand = async ({ path }: ImportCommandArgs) => {
       verifiedAnswerSpecs,
       embeddingModel,
       embeddingModelVersion,
+      verifiedAnswersCollectionName: "verified_answers",
     });
     console.log(result);
   } finally {

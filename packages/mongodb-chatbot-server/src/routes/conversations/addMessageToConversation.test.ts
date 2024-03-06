@@ -1,12 +1,6 @@
 import request from "supertest";
 import "dotenv/config";
-import {
-  assertEnvVars,
-  CORE_ENV_VARS,
-  MongoClient,
-  Db,
-  ObjectId,
-} from "mongodb-rag-core";
+import { assertEnvVars, CORE_ENV_VARS, Db, ObjectId } from "mongodb-rag-core";
 import { makeMongoDbConversationsService } from "../../services/mongodbConversations";
 import { Express } from "express";
 import {

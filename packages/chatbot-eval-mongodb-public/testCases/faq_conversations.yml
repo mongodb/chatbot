@@ -21,7 +21,14 @@
     - role: user
       content: How do I import or migrate data into MongoDB?
 - name: Should explain how to use Atlas Search
-  expectation: "Explains benefits of Atlas Search, including: integration with Atlas, complex search queries, scalable, easy to use."
+  expectation: |
+    ASSISTANT explains benefits of Atlas Search, including:
+    - integration with Atlas
+    - complex search queries
+    - scalable
+    - easy to use
+
+    The response must include at least one of these benefits, but does not need to include all of them.
   tags:
     - faq
   messages:
@@ -114,7 +121,7 @@
       "grade": "B"
     }
     ```
-    3. Inserts the data with the insertMany command.
+    3. Inserts the data with the either the insertOne OR insertMany command.
   tags:
     - faq
   messages:
@@ -312,7 +319,7 @@
   messages:
     - role: user
       content: update document
-- name: Should know how to populate a database
+- name: Should know how to import data into a database
   expectation: |
     ASSISTANT says that to populate a MongoDB database, you can use the mongoimport tool. 
     Provides code example of how to use the mongoimport tool. Code example roughly resembling the following:
@@ -323,7 +330,7 @@
     - faq
   messages:
     - role: user
-      content: how to populate database
+      content: how to import data
 - name: Should know how to create a cluster
   expectation: |
     ASSISTANT should explain how to create a cluster in MongoDB Atlas.
@@ -503,8 +510,11 @@
       content: Mongodb vs oracle
 - name: Should know how to connect to mongodb though mongosh
   expectation: |
-    The ASSISTANT should explain that you can connect to MongoDB from mongosh using the command `mongosh <connection uri>`.
-    The assistant includes an example such as: `mongosh "mongodb+srv://<username>:<password>@<cluster-url>/<database-name>"`
+    The ASSISTANT should explain that you can connect to MongoDB from mongosh using the command `mongosh <args>`.
+    The assistant includes an example of a correct way to connect to MongoDB such as one of the following:
+
+    - `mongosh "mongodb+srv://<username>:<password>@<cluster-url>/<database-name>"`
+    - `mongosh --port 27017`
 
   tags:
     - faq
@@ -529,7 +539,10 @@
     - role: user
       content: i have around 20 lac documents in a collection and i want to examined first 1k documents only in a find query, how can i do this?
 - name: Should know the latest version of MongoDB
-  expectation: The ASSISTANT should know that the latest version of MongoDB is v7.0.
+  expectation: |
+    The ASSISTANT should know that the latest version of MongoDB is v7.0.
+    The ASSISTANT should provide the version number in the response.
+    The ASSISTANT may direct the user to the official MongoDB documentation for the latest version.
   tags:
     - faq
   messages:
@@ -546,7 +559,7 @@
       content: Can you please give me a mongodb aggregation pipeline which does a $lookup and $match
 - name: Should know how to maximize uptime with MongoDB
   expectation: |
-    The ASSISTANT provides the following advice to maximize uptime with MongoDB:
+    The ASSISTANT provides the some of the following advice (at least 2 of the below items) to maximize uptime with MongoDB:
     - Use Replica Sets
     - Monitor Your Deployment
     - Perform Regular Maintenance
@@ -560,10 +573,9 @@
       content: How to maximize uptime with MongoDB?
 - name: Should ask for clarification question if the user asks about resetting password
   expectation: |
-    The ASSISTANT notes that the rest password behavior depends on the application that the user needs to reset password for.
     The ASSISTANT either:
     1. Asks for clarification on the application the user is asking about.
-    2. Provides instructions for a variety of different applications the user would reset a password for, such as MongoDB Atlas or a specific cluster.
+    2. Provides instructions for one or a variety of different applications the user would reset a password for, such as MongoDB Atlas or a specific cluster.
   tags:
     - faq
   messages:

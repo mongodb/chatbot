@@ -17,16 +17,16 @@ import path from "path";
 import { MongoClient, assertEnvVars } from "mongodb-rag-core";
 import { envVars } from "./envVars";
 
-const {
-  MONGODB_DATABASE_NAME,
-  MONGODB_CONNECTION_URI,
-  CONVERSATIONS_SERVER_BASE_URL,
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  OPENAI_ENDPOINT,
-  OPENAI_API_KEY,
-} = assertEnvVars(envVars);
-
 export default async () => {
+  const {
+    MONGODB_DATABASE_NAME,
+    MONGODB_CONNECTION_URI,
+    CONVERSATIONS_SERVER_BASE_URL,
+    OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    OPENAI_ENDPOINT,
+    OPENAI_API_KEY,
+  } = assertEnvVars(envVars);
+
   const { OpenAIClient, AzureKeyCredential } = await import("@azure/openai");
   const testCases = getConversationsTestCasesFromYaml(
     fs.readFileSync(

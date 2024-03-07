@@ -7,7 +7,6 @@ import {
   ConversationCustomData,
   ConversationsService,
 } from "../../services/ConversationsService";
-import { DataStreamer, makeDataStreamer } from "../../services/dataStreamer";
 import {
   CommentMessageRequest,
   makeCommentMessageRoute,
@@ -116,7 +115,6 @@ export type ConversationsMiddleware = RequestHandler<
  */
 export interface ConversationsRouterParams {
   llm: ChatLlm;
-  dataStreamer?: DataStreamer;
   conversations: ConversationsService;
   systemPrompt: SystemPrompt;
 
@@ -225,7 +223,6 @@ export function makeConversationsRouter({
   filterPreviousMessages,
   rateLimitConfig,
   generateUserPrompt,
-  dataStreamer = makeDataStreamer(),
   middleware = [requireValidIpAddress(), requireRequestOrigin()],
   createConversationCustomData = addOriginAndIpToCustomData,
   addMessageToConversationCustomData = addOriginToCustomData,
@@ -312,7 +309,6 @@ export function makeConversationsRouter({
   const addMessageToConversationRoute = makeAddMessageToConversationRoute({
     conversations,
     llm,
-    dataStreamer,
     maxInputLengthCharacters,
     maxUserMessagesInConversation,
     addMessageToConversationCustomData,

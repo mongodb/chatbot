@@ -4,6 +4,20 @@ import { Body, Link } from "@leafygreen-ui/typography";
 
 export function MongoDbLegalDisclosure() {
   const { tck } = useLinkData();
+
+  const AtlasVectorSearch = () => (
+    <Link
+      hideExternalIcon
+      href={addQueryParams(
+        "https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/",
+        {
+          tck,
+        }
+      )}
+    >
+      Atlas Vector Search
+    </Link>
+  );
   const TermsOfUse = () => (
     <Link
       hideExternalIcon
@@ -28,8 +42,8 @@ export function MongoDbLegalDisclosure() {
 
   return (
     <Body>
-      This is a generative AI chatbot. By interacting with it, you agree to
-      MongoDB's <TermsOfUse /> and <AcceptableUsePolicy />.
+      This is a generative AI chatbot powered by <AtlasVectorSearch />.
+      By interacting with it, you agree to MongoDB's <TermsOfUse /> and <AcceptableUsePolicy />.
     </Body>
   );
 }

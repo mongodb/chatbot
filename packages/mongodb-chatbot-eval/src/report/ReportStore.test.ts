@@ -52,7 +52,7 @@ describe("MongoDbReportStore", () => {
     } satisfies Report;
     await evalStore.insertOne(report);
     const found = await evalStore.find({
-      reportName: "foo",
+      name: "foo",
       "data.fizz": "buzz",
     });
     expect(found && found[0]).toMatchObject(report);

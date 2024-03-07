@@ -63,15 +63,6 @@ describe("reportStatsForBinaryEvalRun", () => {
       },
     ] satisfies EvalResult[];
     await evaluationStore.insertMany(conversationEvals);
-    const otherEval = {
-      _id: new ObjectId(),
-      generatedDataId: new ObjectId(),
-      commandRunMetadataId: commandRunId1,
-      evalName: "other_eval",
-      result: 0,
-      createdAt: new Date(),
-    } satisfies EvalResult;
-    await evaluationStore.insertOne(otherEval);
   });
   afterAll(async () => {
     await client.connect();
@@ -84,7 +75,7 @@ describe("reportStatsForBinaryEvalRun", () => {
     const report = await reportStatsForBinaryEvalRun({
       evaluationRunId: commandRunId1,
       evaluationStore,
-      runId: new ObjectId(),
+      runId,
       reportName: "conversation_quality_stats",
     });
     expect(report).toMatchObject({

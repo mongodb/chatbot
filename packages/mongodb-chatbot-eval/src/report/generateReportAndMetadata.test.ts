@@ -53,7 +53,7 @@ describe("generateReportAndMetadata", () => {
         },
       },
     ] satisfies EvalResult[];
-    evaluationStore.insertMany(evals);
+    await evaluationStore.insertMany(evals);
   });
   it("should generate the report and metadata", async () => {
     const { report, metadata } = await generateReportAndMetadata({

@@ -64,7 +64,7 @@ describe("generateReportAndMetadata", () => {
       evaluationRunId,
     });
     expect(metadata).toMatchObject({
-      command: "evaluate",
+      command: "report",
       name: "mock_report",
       _id: expect.any(ObjectId),
       endTime: expect.any(Date),

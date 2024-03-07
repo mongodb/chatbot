@@ -39,7 +39,7 @@ export async function generateReportAndMetadata({
   const endTime = new Date();
   const metadata = {
     _id: runId,
-    command: "evaluate",
+    command: "report",
     name,
     startTime,
     endTime,

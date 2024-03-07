@@ -21,7 +21,8 @@
     "scripts:findFaq": "lerna run findFaq --scope='scripts'",
     "scripts:getConversationText": "lerna run --scope='scripts' getConversationText -- ",
     "scripts:removeTestDatabases": "lerna run --scope='scripts' removeTestDatabases -- ",
-    "server:start": "lerna run start --scope='chatbot-server-mongodb-public'"
+    "server:start": "lerna run start --scope='chatbot-server-mongodb-public'",
+    "eval:conversationQualityCheckPipeline": "lerna run pipeline:conversationQualityCheck --scope='chatbot-eval-mongodb-public'"
   },
   "devDependencies": {
     "lerna": "^5.6.2"

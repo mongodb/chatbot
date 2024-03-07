@@ -140,20 +140,21 @@ export function makeAddMessageToConversationRoute({
       const shouldStream = Boolean(stream);
 
       // --- GENERATE USER MESSAGE ---
-      const { userMessage, references, rejectQuery } = await (generateUserPrompt
-        ? generateUserPrompt({
-            userMessageText: latestMessageText,
-            conversation,
-            reqId,
-            customData,
-          })
-        : {
-            userMessage: {
-              role: "user",
-              content: latestMessageText,
+      const { userMessage, references, staticResponse, rejectQuery } =
+        await (generateUserPrompt
+          ? generateUserPrompt({
+              userMessageText: latestMessageText,
+              conversation,
+              reqId,
               customData,
-            } satisfies UserMessage,
-          });
+            })
+          : {
+              userMessage: {
+                role: "user",
+                content: latestMessageText,
+                customData,
+              } satisfies UserMessage,
+            });
       // Add request custom data to user message.
       const userMessageWithCustomData = customData
         ? {
@@ -163,15 +164,14 @@ export function makeAddMessageToConversationRoute({
           }
         : userMessage;
       const newMessages: SomeMessage[] = [userMessageWithCustomData];
-      if (rejectQuery) {
+      if (rejectQuery || staticResponse !== undefined) {
         const rejectionMessage = {
           role: "assistant",
           content: conversations.conversationConstants.NO_RELEVANT_CONTENT,
           references: references ?? [],
         } satisfies AssistantMessage;
-
-        const messages = [...newMessages, rejectionMessage];
-        sendStaticNonResponse({
+        const messages = [...newMessages, staticResponse ?? rejectionMessage];
+        sendStaticResponse({
           conversations,
           conversation,
           shouldStream,
@@ -201,6 +201,7 @@ export function makeAddMessageToConversationRoute({
         if (shouldStream) {
           dataStreamer.connect(res);
         }
+
         const { messages: generatedMessages } = await generateResponse({
           shouldStream,
           llm,
@@ -285,7 +286,7 @@ async function getCustomData({
   }
 }
 
-async function sendStaticNonResponse({
+async function sendStaticResponse({
   conversations,
   conversation,
   messages,
@@ -312,11 +313,29 @@ async function sendStaticNonResponse({
   );
   const apiRes = convertMessageFromDbToApi(assistantMessage);
   if (shouldStream) {
+    const { metadata, references } = apiRes;
+
     dataStreamer.connect(res);
+
+    if (metadata) {
+      dataStreamer.streamData({
+        type: "metadata",
+        data: metadata,
+      });
+    }
+
     dataStreamer.streamData({
       type: "delta",
       data: apiRes.content,
     });
+
+    if (references) {
+      dataStreamer.streamData({
+        type: "references",
+        data: references,
+      });
+    }
+
     dataStreamer.streamData({
       type: "finished",
       data: apiRes.id,

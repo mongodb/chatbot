@@ -34,18 +34,19 @@ export async function generateReportAndMetadata({
     evaluationStore,
     evaluationRunId,
   });
-  reportStore.insertOne(report);
+  await reportStore.insertOne(report);
 
   const endTime = new Date();
   const metadata = {
     _id: runId,
-    command: "evaluate",
+    command: "report",
     name,
     startTime,
     endTime,
   } satisfies CommandRunMetadata;
   await metadataStore.insertOne(metadata);
-  logger.info(`Generated report '${report.reportName}' for command '${name}'`);
+  logger.info(`Generated report '${report.reportName}' for command '${name}':`);
+  logger.info(report);
   logger.info(metadata);
   return { report, metadata };
 }

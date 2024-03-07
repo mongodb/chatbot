@@ -35,13 +35,13 @@ const pageFormatsWithSynonyms = [
   ["kotlin", "kt"],
   ["latex", "tex"],
   ["objective-c", "m"],
-  ["php", "php"],
+  "php",
   ["python", "py"],
   ["ruby", "rb"],
   ["rust", "rs"],
   ["scala", "sc"],
   ["shell", "sh"],
-  ["swift", "swift"],
+  "swift",
   ["typescript", "ts"],
 ] as const;
 

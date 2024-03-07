@@ -52,10 +52,6 @@ export const chunkCode: ChunkFunc = async function (
         ...transformedChunk,
         tokenCount: tokenizer.encode(transformedChunk.text).bpe.length,
       };
-      // const { metadata } = extractFrontMatter(transformedChunk.text);
-      // if (metadata) {
-      //   chunk["metadata"] = metadata;
-      // }
       return chunk;
     })
   );

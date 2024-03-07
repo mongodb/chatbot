@@ -123,6 +123,10 @@ export async function runPipeline({
   try {
     logger.info("Running pipeline actions.");
     await pipeline(generateFunc, evaluateFunc, reportFunc);
+  } catch (err) {
+    logger.error("Error running pipeline actions.");
+    logger.error(err);
+    throw err;
   } finally {
     await metadataStore.close();
     await generatedDataStore.close();

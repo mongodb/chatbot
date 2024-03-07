@@ -5,6 +5,7 @@ import {
 } from "./GitHubDataSource";
 import path from "path";
 import { pageFormat } from "mongodb-rag-core/build/PageFormat";
+import { promises as fs } from "fs";
 
 export type MakeCodeOnGithubTextDataSourceParams =
   // MakeGitHubDataSourceArgs & {

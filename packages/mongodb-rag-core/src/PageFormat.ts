@@ -31,8 +31,9 @@ const pageFormatsWithSynonyms = [
   ["go", "golang"],
   "html",
   "java",
-  ["javascript", "js"],
+  ["javascript", "js", "cjs", "mjs"],
   ["kotlin", "kt"],
+  ["latex", "tex"],
   ["objective-c", "m"],
   ["php", "php"],
   ["python", "py"],
@@ -55,7 +56,7 @@ export const pageFormats = pageFormatsWithSynonyms.map((type) =>
 // We define this outside of the function because it's derived from a
 // const so does not need to be redefined every time the function is
 // called.
-const pageFormatsWithSynonymsAsTuples = pageFormatsWithSynonyms.map((t) =>
+const pageFormatsAndSynonymsAsTuples = pageFormatsWithSynonyms.map((t) =>
   typeof t === "string" ? ([t] as const) : t
 );
 
@@ -66,9 +67,9 @@ const pageFormatsWithSynonymsAsTuples = pageFormatsWithSynonyms.map((t) =>
   a recognized page format.
  */
 export const asPageFormat = (str: string): PageFormat | undefined => {
-  for (const [pageFormat, ...synonyms] of pageFormatsWithSynonymsAsTuples) {
-    if (([pageFormat, ...synonyms] as string[]).includes(str)) {
-      return pageFormat;
+  for (const pageFormatAndSynonyms of pageFormatsAndSynonymsAsTuples) {
+    if ((pageFormatAndSynonyms as readonly string[]).includes(str)) {
+      return pageFormatAndSynonyms[0];
     }
   }
 };
@@ -87,8 +88,8 @@ export function isPageFormat(str: string): str is PageFormat {
 
 /**
   Converts a string to a canonical page format. If the string is not a
-  recognized page format or a synonym for one, it returns a default page
-  format.
+  recognized page format or a synonym for one, this returns a default
+  page format.
  */
 export function pageFormat(
   str: string,

@@ -22,6 +22,7 @@ const sampleConf: MakeCodeOnGithubTextDataSourceParams = {
   repoUrl: "https://github.com/mongodb-developer/nodejs-quickstart/",
   repoLoaderOptions: {
     branch: "master",
+    recursive: true,
     ignoreFiles: ["LICENSE"],
   },
   metadata: {

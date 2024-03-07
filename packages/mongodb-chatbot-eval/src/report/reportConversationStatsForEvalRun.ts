@@ -49,7 +49,7 @@ export const reportConversationStatsForEvalRun: ReportEvalFunc = async ({
   ];
   const result = await evaluationStore.aggregate(pipeline);
   assert(result.length === 1, "Expected exactly one result.");
-  const { passRate, totalCount } = result[0];
+  const { passRate, totalCount, passCount, failCount } = result[0];
   assert(typeof passRate === "number", "Expected 'passRate' to be a number.");
   assert(
     typeof totalCount === "number",
@@ -61,6 +61,8 @@ export const reportConversationStatsForEvalRun: ReportEvalFunc = async ({
     reportName: "conversation_quality_stats",
     data: {
       passRate,
+      passCount,
+      failCount,
       totalTestCount: totalCount,
     },
     createdAt: new Date(),

@@ -34,12 +34,12 @@ export async function generateReportAndMetadata({
     evaluationStore,
     evaluationRunId,
   });
-  reportStore.insertOne(report);
+  await reportStore.insertOne(report);
 
   const endTime = new Date();
   const metadata = {
     _id: runId,
-    command: "evaluate",
+    command: "report",
     name,
     startTime,
     endTime,

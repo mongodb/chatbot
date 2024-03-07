@@ -24,9 +24,9 @@ cronJobs:
       limits:
         cpu: 500m
         memory: 5Gi
-  - name: eval-quality
+  - name: faq-eval-quality
     schedule: "30 4 * * *" # every day at 4am UTC (11PM EST)
-    command: ["npm", "run", "eval:conversationQualityCheckPipeline"]
+    command: ["npm", "run", "eval:faqConversationQualityCheckPipeline"]
     env:
       MONGODB_DATABASE_NAME: docs-chatbot-staging
       CONVERSATIONS_SERVER_BASE_URL: "http://chat-server-staging-web-app:80/api/v1"

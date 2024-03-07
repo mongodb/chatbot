@@ -111,8 +111,6 @@ export const llm = makeOpenAiChatLlm({
   generateUserPrompt,
 });
 
-export const dataStreamer = makeDataStreamer();
-
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
@@ -147,7 +145,6 @@ export const conversations = makeMongoDbConversationsService(
 
 export const config: AppConfig = {
   conversationsRouterConfig: {
-    dataStreamer,
     llm,
     findContent,
     maxChunkContextTokens: 1500,

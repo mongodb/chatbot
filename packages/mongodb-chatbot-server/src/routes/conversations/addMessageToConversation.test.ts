@@ -47,13 +47,7 @@ describe("POST /conversations/:conversationId/messages", () => {
     DEFAULT_API_PREFIX + "/conversations/:conversationId/messages";
 
   beforeEach(async () => {
-    const createConversationRes = await request(app)
-      .post(DEFAULT_API_PREFIX + "/conversations")
-      .set("X-FORWARDED-FOR", ipAddress)
-      .set("Origin", origin)
-      .send();
-    const res: ApiConversation = createConversationRes.body;
-    conversationId = res._id;
+    conversationId = await createNewConversation(app, ipAddress, origin);
     testEndpointUrl = endpointUrl.replace(":conversationId", conversationId);
   });
 
@@ -168,6 +162,33 @@ describe("POST /conversations/:conversationId/messages", () => {
       expect(res.text).toContain(`data: {"type":"delta","data":"`);
       expect(res.text).toContain(`data: {"type":"references","data":[{`);
       expect(res.text).toContain(`data: {"type":"finished","data":"`);
+    });
+    it("should stream two requests concurrently", async () => {
+      const newConvoId1 = await createNewConversation(app, ipAddress);
+      const newConvoId2 = await createNewConversation(app, ipAddress);
+      const requestBody = {
+        message:
+          "how can i use mongodb products to help me build my new mobile app?",
+      } satisfies AddMessageRequestBody;
+
+      // Run requests concurrently
+      const [res1, res2] = await Promise.all([
+        request(app)
+          .post(
+            endpointUrl.replace(":conversationId", newConvoId1) + "?stream=true"
+          )
+          .set("Origin", origin)
+          .send(requestBody),
+        request(app)
+          .post(
+            endpointUrl.replace(":conversationId", newConvoId2) + "?stream=true"
+          )
+          .set("Origin", origin)
+          .send(requestBody),
+      ]);
+
+      expect(res1.statusCode).toEqual(200);
+      expect(res2.statusCode).toEqual(200);
     });
   });
 
@@ -377,3 +398,18 @@ describe("POST /conversations/:conversationId/messages", () => {
     });
   });
 });
+
+async function createNewConversation(
+  app: Express,
+  ipAddress: string,
+  origin = "http://localhost"
+) {
+  const createConversationRes = await request(app)
+    .post(DEFAULT_API_PREFIX + "/conversations")
+    .set("X-FORWARDED-FOR", ipAddress)
+    .set("Origin", origin)
+    .send();
+  const res: ApiConversation = createConversationRes.body;
+  const conversationId = res._id;
+  return conversationId;
+}

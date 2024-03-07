@@ -12,7 +12,7 @@ import {
   UserMessage,
   AssistantMessage,
 } from "../../services/ConversationsService";
-import { DataStreamer } from "../../services/dataStreamer";
+import { DataStreamer, makeDataStreamer } from "../../services/dataStreamer";
 import { ChatLlm, OpenAiChatMessage } from "../../services/ChatLlm";
 import {
   ApiMessage,
@@ -65,7 +65,6 @@ export interface AddMessageToConversationRouteParams {
   llm: ChatLlm;
   generateUserPrompt?: GenerateUserPromptFunc;
   filterPreviousMessages?: FilterPreviousMessages;
-  dataStreamer: DataStreamer;
   maxInputLengthCharacters?: number;
   maxUserMessagesInConversation?: number;
   addMessageToConversationCustomData?: AddCustomDataFunc;
@@ -74,7 +73,6 @@ export interface AddMessageToConversationRouteParams {
 export function makeAddMessageToConversationRoute({
   conversations,
   llm,
-  dataStreamer,
   generateUserPrompt,
   maxInputLengthCharacters = DEFAULT_MAX_INPUT_LENGTH,
   maxUserMessagesInConversation = DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION,
@@ -85,6 +83,7 @@ export function makeAddMessageToConversationRoute({
     req: ExpressRequest<AddMessageRequest["params"]>,
     res: ExpressResponse<ApiMessage, ConversationsRouterLocals>
   ) => {
+    const dataStreamer = makeDataStreamer();
     const reqId = getRequestId(req);
     try {
       const {

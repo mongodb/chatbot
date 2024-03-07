@@ -5,7 +5,7 @@ import {
 } from "llamaindex";
 import { EvaluateQualityFunc } from "./EvaluateQualityFunc";
 import { ConversationGeneratedData } from "../generate";
-import { ObjectId, UserMessage } from "mongodb-chatbot-server";
+import { ObjectId, UserMessage, logger } from "mongodb-chatbot-server";
 import { strict as assert } from "assert";
 import { EvalResult } from "./EvaluationStore";
 
@@ -36,41 +36,53 @@ export function makeFaithfulnessEvaluator({
     const conversationData = generatedData as ConversationGeneratedData;
     const {
       data: { messages },
+      evalData: { name },
     } = conversationData;
     const ragUserMessage = messages.find(
       (m) => m.role === "user" && m.contextContent
     ) as UserMessage;
-    if (!ragUserMessage) {
-      throw new Error("No user message found with context content.");
-      // TODO: do we want this behavior?
+    if (!ragUserMessage || !ragUserMessage.contextContent) {
+      throw new Error(
+        `No user message with contextContent for test case '${name}'.`
+      );
     }
 
-    // TODO: handle if no context content
-    const texts =
-      ragUserMessage.contextContent?.map(({ text }) => text ?? "") ?? [];
+    const texts = ragUserMessage.contextContent.map(({ text }) => text ?? "");
 
-    const query = ragUserMessage.content;
+    const userQueryContent = ragUserMessage.content;
 
-    const response = "TODO: get response from convo...last assistant msg";
+    const assistantMessage = messages[messages.length - 1];
+    const { content: assistantResponseContent, role } = assistantMessage;
+    if (role !== "assistant") {
+      throw new Error(
+        `No final assistant message found for test case '${name}'. Something unexpected occurred. Please check the test case data.`
+      );
+    }
 
-    const result = await evaluator.evaluate({
-      query,
-      response,
+    const { score } = await evaluator.evaluate({
+      query: userQueryContent,
+      response: assistantResponseContent,
       contexts: texts,
     });
-    // TODO: explore data in the response object...perhaps some metadata to add to the eval result
 
-    console.log(
-      `the response is ${result.passing ? "faithful" : "not faithful"}`
+    logger.info(
+      `The response to '${conversationData.evalData.name}' is ${
+        score ? "'faithful'" : "'not faithful'"
+      }`
     );
     return {
       generatedDataId: generatedData._id,
-      result: result.passing ? 1 : 0,
+      result: score,
       evalName: "conversation_faithfulness",
       _id: new ObjectId(),
       createdAt: new Date(),
       commandRunMetadataId: runId,
-      metadata: {},
+      metadata: {
+        contextContent: texts,
+        userQueryContent,
+        assistantResponseContent,
+        name,
+      },
     } satisfies EvalResult;
   };
 }

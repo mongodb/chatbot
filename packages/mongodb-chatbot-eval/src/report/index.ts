@@ -1,4 +1,4 @@
 export * from "./generateReportAndMetadata";
-export * from "./reportConversationStatsForEvalRun";
+export * from "./reportStatsForBinaryEvalRun";
 export * from "./ReportEvalFunc";
 export * from "./ReportStore";

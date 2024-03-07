@@ -32,7 +32,8 @@ describe("MongoDbReportStore", () => {
   it("should insert new data", async () => {
     const report = {
       _id: new ObjectId(),
-      reportName: "foo",
+      name: "foo",
+      type: "bar",
       commandRunMetadataId: new ObjectId(),
       data: { fizz: "buzz" },
       createdAt: new Date(),
@@ -43,7 +44,8 @@ describe("MongoDbReportStore", () => {
   it("should find data with arbitrary mongodb filter", async () => {
     const report = {
       _id: new ObjectId(),
-      reportName: "foo",
+      name: "foo",
+      type: "bar",
       commandRunMetadataId: new ObjectId(),
       data: { fizz: "buzz" },
       createdAt: new Date(),

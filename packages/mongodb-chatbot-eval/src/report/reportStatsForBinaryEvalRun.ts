@@ -4,19 +4,19 @@ import { strict as assert } from "assert";
 import { Report } from "./ReportStore";
 
 /**
-  Report on the pass percentage of the `"conversation_quality"` evaluation
+  Report on the pass percentage of a binary evaluation (eval that return either 1 or 0)
   for eval run `evaluationRunId`.
  */
-export const reportConversationStatsForEvalRun: ReportEvalFunc = async ({
+export const reportStatsForBinaryEvalRun: ReportEvalFunc = async ({
   runId,
   evaluationStore,
   evaluationRunId,
+  reportName,
 }: ReportEvalFuncParams) => {
   const pipeline = [
     {
       $match: {
         commandRunMetadataId: evaluationRunId,
-        evalName: "conversation_quality",
       },
     },
     {
@@ -58,7 +58,8 @@ export const reportConversationStatsForEvalRun: ReportEvalFunc = async ({
   return {
     _id: new ObjectId(),
     commandRunMetadataId: runId,
-    reportName: "conversation_quality_stats",
+    name: reportName,
+    type: "binary_eval_stats",
     data: {
       passRate,
       passCount,

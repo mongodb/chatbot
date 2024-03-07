@@ -2,7 +2,16 @@ import { Filter, MongoClient, ObjectId } from "mongodb-rag-core";
 
 export interface Report {
   _id: ObjectId;
-  reportName: string;
+
+  /**
+    The type of the report.
+   */
+  type: string;
+
+  /**
+    The name passed from the command that was run.
+   */
+  name: string;
   commandRunMetadataId: ObjectId;
   data: Record<string, unknown>;
   createdAt: Date;

@@ -5,12 +5,13 @@ import {
   EvalResult,
   makeMongoDbEvaluationStore,
 } from "../evaluate/EvaluationStore";
-import { reportConversationStatsForEvalRun } from "./reportConversationStatsForEvalRun";
+import { reportStatsForBinaryEvalRun } from "./reportStatsForBinaryEvalRun";
+import { Report } from "./ReportStore";
 
 const { MONGODB_CONNECTION_URI } = process.env;
 assert(MONGODB_CONNECTION_URI, "MONGODB_CONNECTION_URI is required");
 
-describe("reportConversationStatsForEvalRun", () => {
+describe("reportStatsForBinaryEvalRun", () => {
   const databaseName = `test-${Date.now()}`;
 
   const evaluationStore = makeMongoDbEvaluationStore({
@@ -79,21 +80,24 @@ describe("reportConversationStatsForEvalRun", () => {
   });
 
   it("should capture eval run and calculate pass percentage", async () => {
-    const report = await reportConversationStatsForEvalRun({
+    const runId = new ObjectId();
+    const report = await reportStatsForBinaryEvalRun({
       evaluationRunId: commandRunId1,
       evaluationStore,
       runId: new ObjectId(),
+      reportName: "conversation_quality_stats",
     });
     expect(report).toMatchObject({
       _id: expect.any(ObjectId),
-      commandRunMetadataId: expect.any(ObjectId),
-      reportName: "conversation_quality_stats",
+      commandRunMetadataId: runId,
+      name: "conversation_quality_stats",
+      type: "binary_eval_stats",
       data: {
         passRate: 0.5,
         // only capture 'commandRunId1' evals that are 'conversation_quality' evals
         totalTestCount: 2,
       },
       createdAt: expect.any(Date),
-    });
+    } satisfies Report);
   });
 });

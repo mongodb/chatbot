@@ -141,15 +141,18 @@ const args: MakeDefaultFindContentFuncArgs = {
 };
 ```
 
-:::note Index Atlas Vector Search Filters Used in Boosters
+:::note Include Search Booster Filters In Your Atlas Vector Search Index
 
 If you are using an Atlas Vector Search filter in a booster,
 you must include the filter in your index definition. For more information on Atlas Vector Search filters,
 refer to [Atlas Vector Search filter index definition](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/#about-the-filter-type)
 in the MongoDB Atlas documentation.
 
-For example, if you want to ensure that you include data from a specific data source `sourceName` in your results,
-include the following in your vector search index definition:
+For example, you might have a booster that finds data from a specific
+data source by including a filter on a field named `sourceName` during
+vector search. For the search to run, you must include the `dataSource`
+field and any other filtered fields in your vector search index
+definition:
 
 ```js
 {

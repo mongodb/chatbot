@@ -17,6 +17,7 @@ export const makeMockEvaluationStore = () => {
       }
       return true;
     },
+    aggregate: jest.fn(),
     close: jest.fn(),
   } satisfies EvaluationStore;
 };

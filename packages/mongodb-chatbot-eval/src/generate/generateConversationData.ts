@@ -141,6 +141,7 @@ export const makeGenerateConversationData = function ({
           qualitativeFinalAssistantMessageExpectation:
             testCase.data.expectation,
           tags: testCase.data.tags,
+          name: testCase.data.name,
         },
       });
       await sleep(sleepMs);

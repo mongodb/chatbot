@@ -24,6 +24,11 @@ export interface GenerateResponseParams {
   noRelevantContentMessage: string;
   conversation?: Conversation;
   request?: ExpressRequest;
+
+  /**
+    Arbitrary data about the message to stream before the generated response.
+   */
+  metadata?: Record<string, unknown>;
 }
 
 interface GenerateResponseReturnValue {
@@ -186,6 +191,7 @@ export async function streamGenerateResponse({
   noRelevantContentMessage,
   llmNotWorkingMessage,
   request,
+  metadata,
 }: StreamGenerateResponseParams): Promise<GenerateResponseReturnValue> {
   const newMessages: SomeMessage[] = [];
   const outputReferences: References = [];
@@ -193,6 +199,11 @@ export async function streamGenerateResponse({
   if (references) {
     outputReferences.push(...references);
   }
+
+  if (metadata) {
+    dataStreamer.streamData({ type: "metadata", data: metadata });
+  }
+
   try {
     const answerStream = await llm.answerQuestionStream({
       messages: llmConversation,

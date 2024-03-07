@@ -54,7 +54,7 @@ export function makeEvaluateConversationQuality({
       data: { messages },
     } = conversationData;
     const conversationTranscript = stringifyConversation(messages);
-    const { qualitativeFinalAssistantMessageExpectation } =
+    const { qualitativeFinalAssistantMessageExpectation, name } =
       conversationData.evalData;
     const { meetsChatQualityStandards, reason } = await checkResponseQuality({
       deploymentName,
@@ -72,6 +72,8 @@ export function makeEvaluateConversationQuality({
       metadata: {
         reason,
         conversationTranscript,
+        name,
+        qualitativeFinalAssistantMessageExpectation,
       },
     } satisfies EvalResult;
     return result;

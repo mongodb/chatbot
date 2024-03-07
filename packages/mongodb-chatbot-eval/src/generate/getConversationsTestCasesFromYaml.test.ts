@@ -11,7 +11,7 @@ describe("getConversationsTestCasesFromYaml", () => {
       getConversationsTestCasesFromYaml(improperlyFormattedTestCases)
     ).toThrow();
 
-    const notEvenYaml = "thisIsInvalidYaml { answer: 42 }"
+    const notEvenYaml = "thisIsInvalidYaml { answer: 42 }";
     expect(() => getConversationsTestCasesFromYaml(notEvenYaml)).toThrow();
   });
 });

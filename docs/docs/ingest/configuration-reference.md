@@ -65,8 +65,8 @@ const pageStore = makeMongoDbPageStore({
 
 ## `EmbeddedContentStore`
 
-The `EmbeddedContentStore` is an interface to interact with MongoDB collection
-`embedded_content` that stores the content and vector embeddings used in your RAG app.
+The `EmbeddedContentStore` is an interface to the stored content and vector
+embeddings used in your RAG app.
 
 To create an `EmbeddedContentStore` that stores data in MongoDB,
 you can use the function [`makeMongoDbEmbeddedContentStore()`](../reference/core/modules.md#makemongodbembeddedcontentstore).

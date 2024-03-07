@@ -8,6 +8,7 @@ import {
   MongoClient,
   makeMongoDbEmbeddedContentStore,
   makeOpenAiEmbedder,
+  makeMongoDbVerifiedAnswerStore,
 } from "mongodb-rag-core";
 import { makeMongoDbConversationsService } from "../services/mongodbConversations";
 import { makeOpenAiChatLlm } from "../services/openAiChatLlm";
@@ -74,6 +75,12 @@ export const openAiClient = new OpenAIClient(
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
+});
+
+export const verifiedAnswerStore = makeMongoDbVerifiedAnswerStore({
+  connectionUri: MONGODB_CONNECTION_URI,
+  databaseName: MONGODB_DATABASE_NAME,
+  collectionName: "verified_answers",
 });
 
 export const embedder = makeOpenAiEmbedder({

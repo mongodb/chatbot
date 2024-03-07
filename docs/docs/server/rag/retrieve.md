@@ -61,6 +61,10 @@ const args: MakeDefaultFindContentFuncArgs = {
     k: 5,
     path: "embedding",
     indexName: VECTOR_SEARCH_INDEX_NAME,
+    // Note: you may want to adjust the minScore depending
+    // on the embedding model you use. We've found 0.9 works well
+    // for OpenAI's text-embedding-ada-02 model for most use cases,
+    // but you may want to adjust this value if you're using a different model.
     minScore: 0.9,
   },
 };
@@ -136,3 +140,36 @@ const args: MakeDefaultFindContentFuncArgs = {
   searchBoosters: [boostFoo],
 };
 ```
+
+:::note Include Search Booster Filters In Your Atlas Vector Search Index
+
+If you are using an Atlas Vector Search filter in a booster,
+you must include the filter in your index definition. For more information on Atlas Vector Search filters,
+refer to [Atlas Vector Search filter index definition](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/#about-the-filter-type)
+in the MongoDB Atlas documentation.
+
+For example, you might have a booster that finds data from a specific
+data source by including a filter on a field named `sourceName` during
+vector search. For the search to run, you must include the `dataSource`
+field and any other filtered fields in your vector search index
+definition:
+
+```js
+{
+  "fields": [
+    {
+      "type": "vector"
+      // ...
+    },
+    {
+      "type": "filter",
+      "path": "sourceName"
+    }
+    // ...
+  ]
+}
+```
+
+Then you can include the filter in the `$search` query in your booster.
+
+:::

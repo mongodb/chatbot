@@ -1,5 +1,4 @@
 import { stripIndents } from "common-tags";
-import e from "express";
 import {
   FunctionDefinition,
   OpenAIClient,

@@ -3,8 +3,9 @@ import { Filter, MongoClient, ObjectId } from "mongodb-rag-core";
 export interface Report {
   _id: ObjectId;
   reportName: string;
+  commandRunMetadataId: ObjectId;
   data: Record<string, unknown>;
-  endTime: Date;
+  createdAt: Date;
 }
 
 export interface ReportStore {

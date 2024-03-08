@@ -16,8 +16,16 @@ interface MakeEvaluatorParams {
 /**
   Evaluate whether the assistant's response is faithful to the retrieved context information
   Wraps the LlamaIndex.ts [`FaithfulnessEvaluator`](https://ts.llamaindex.ai/modules/evaluation/modules/faithfulness).
+
+  Note that in our testing experience, results vary based on the large language model
+  used in the evaluator. For example, on a dataset of ~50 questions,
+  the OpenAI GPT-3.5 model had a higher incidence of false negatives,
+  while the OpenAI GPT-4 model had more false positives.
+
+  All evaluation results should be analyzed with a critical eye
+  and you should thoroughly review results before making any decisions based on them.
  */
-export function makeFaithfulnessEvaluator({
+export function makeEvaluateConversationFaithfulness({
   llamaIndexLlm,
 }: MakeEvaluatorParams): EvaluateQualityFunc {
   const ctx = serviceContextFromDefaults({

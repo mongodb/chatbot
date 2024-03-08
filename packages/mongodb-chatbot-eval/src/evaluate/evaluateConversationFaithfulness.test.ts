@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { ObjectId } from "mongodb-rag-core";
-import { makeFaithfulnessEvaluator } from "./evaluateConversationFaithfulness";
+import { makeEvaluateConversationFaithfulness } from "./evaluateConversationFaithfulness";
 import { ConversationGeneratedData } from "../generate";
 import { Message } from "mongodb-chatbot-server";
 import { OpenAI } from "llamaindex";
@@ -12,7 +12,7 @@ assert(OPENAI_ENDPOINT);
 assert(OPENAI_API_KEY);
 assert(OPENAI_CHAT_COMPLETION_DEPLOYMENT);
 
-describe("makeFaithfulnessEvaluator", () => {
+describe("makeEvaluateConversationFaithfulness", () => {
   const llamaIndexLlm = new OpenAI({
     azure: {
       apiKey: OPENAI_API_KEY,
@@ -20,7 +20,9 @@ describe("makeFaithfulnessEvaluator", () => {
       deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     },
   });
-  const evaluateFaithfulness = makeFaithfulnessEvaluator({ llamaIndexLlm });
+  const evaluateFaithfulness = makeEvaluateConversationFaithfulness({
+    llamaIndexLlm,
+  });
   const runId = new ObjectId();
   test("should evaluate that response is faithful", async () => {
     const messages = [

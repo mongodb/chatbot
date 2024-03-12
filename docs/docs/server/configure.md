@@ -178,8 +178,6 @@ const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({
   retryDelayMs: 5000,
 });
 
-const dataStreamer = makeDataStreamer();
-
 const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
@@ -224,7 +222,6 @@ const conversations = makeMongoDbConversationsService(
 
 const config: AppConfig = {
   conversationsRouterConfig: {
-    dataStreamer,
     llm,
     conversations,
     generateUserPrompt,

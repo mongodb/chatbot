@@ -96,8 +96,6 @@ export const llm = makeOpenAiChatLlm({
   },
 });
 
-export const dataStreamer = makeDataStreamer();
-
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
@@ -173,7 +171,6 @@ export const createCustomConversationDataWithIpAuthUserAndOrigin: AddCustomDataF
 const isProduction = process.env.NODE_ENV === "production";
 export const config: AppConfig = {
   conversationsRouterConfig: {
-    dataStreamer,
     llm,
     middleware: [
       blockGetRequests,

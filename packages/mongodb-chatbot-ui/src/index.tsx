@@ -33,3 +33,4 @@ export {
   mongoDbVerifyInformationMessage,
   defaultChatbotFatalErrorMessage,
 } from "./ui-text.ts";
+export { PoweredByAtlasVectorSearch } from "./PoweredByAtlasVectorSearch.tsx";

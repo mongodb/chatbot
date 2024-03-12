@@ -10,6 +10,8 @@ import {
   mongodbResponseQualityExamples,
   reportStatsForBinaryEvalRun,
   makeEvaluateConversationFaithfulness,
+  evaluateConversationAverageRetrievalScore,
+  reportAverageScore,
 } from "mongodb-chatbot-eval";
 import { makeMongoDbConversationsService } from "mongodb-chatbot-server";
 import "dotenv/config";
@@ -108,16 +110,28 @@ export default async () => {
             }),
           }),
         },
+        conversationRetrievalScore: {
+          evaluator: evaluateConversationAverageRetrievalScore,
+        },
       },
       report: {
         conversationQualityRun: {
           reporter: reportStatsForBinaryEvalRun,
         },
+        conversationFaithfulnessRun: {
+          reporter: reportStatsForBinaryEvalRun,
+        },
+        conversationRetrievalScoreAvg: {
+          reporter: reportAverageScore,
+        },
         faqConversationQualityRun: {
           reporter: reportStatsForBinaryEvalRun,
         },
-        conversationFaithfulnessRun: {
+        faqConversationFaithfulnessRun: {
           reporter: reportStatsForBinaryEvalRun,
+        },
+        faqConversationRetrievalScoreAvg: {
+          reporter: reportAverageScore,
         },
       },
     },

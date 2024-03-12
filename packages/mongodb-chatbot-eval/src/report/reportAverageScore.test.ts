@@ -52,6 +52,20 @@ describe("reportAverageScore", () => {
       {
         _id: new ObjectId(),
         generatedDataId: new ObjectId(),
+        commandRunMetadataId: commandRunId1,
+        type: "conversation_quality",
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        result: null,
+        createdAt: new Date(),
+        metadata: {
+          reason: "foo",
+          conversationTranscript: "bar",
+        },
+      },
+      {
+        _id: new ObjectId(),
+        generatedDataId: new ObjectId(),
         commandRunMetadataId: commandRunId2,
         type: "conversation_quality",
         result: 1,
@@ -62,6 +76,8 @@ describe("reportAverageScore", () => {
         },
       },
     ] satisfies EvalResult[];
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     await evaluationStore.insertMany(conversationEvals);
   });
   afterAll(async () => {

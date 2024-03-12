@@ -14,6 +14,7 @@ export const reportAverageScore: ReportEvalFunc = async ({
     {
       $match: {
         commandRunMetadataId: evaluationRunId,
+        result: { $type: "number", $gte: 0, $lte: 1 },
       },
     },
     {

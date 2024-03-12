@@ -2,6 +2,7 @@ import { EmbeddedContent, Page } from "mongodb-rag-core";
 import { chunkOpenApiSpecYaml } from "./chunkOpenApiSpecYaml";
 import { chunkMd } from "./chunkMd";
 import { ChunkTransformer } from "./ChunkTransformer";
+import { chunkCode, isSupportedLanguage } from "./chunkCode";
 
 export type ContentChunk = Omit<EmbeddedContent, "embedding" | "updated">;
 
@@ -90,6 +91,11 @@ export const chunkPage: ChunkFunc = async (
   page: Page,
   chunkOptions?: Partial<ChunkOptions>
 ): Promise<ContentChunk[]> => {
+  // Handle code file formats
+  if (isSupportedLanguage(page.format)) {
+    return await chunkCode(page, chunkOptions);
+  }
+  // Handle remaining formats
   switch (page.format) {
     case "openapi-yaml":
       return await chunkOpenApiSpecYaml(page, chunkOptions);

@@ -1,3 +1,5 @@
+import { PageFormat } from "./PageFormat";
+
 /**
   Represents a page from a data source.
  */
@@ -14,6 +16,10 @@ export type Page = {
    */
   body: string;
 
+  /**
+    The file format of the page. This format determines how the page
+    should be chunked and vector-embedded.
+   */
   format: PageFormat;
 
   /**
@@ -34,8 +40,6 @@ export type PageMetadata = {
   tags?: string[];
   [k: string]: unknown;
 };
-
-export type PageFormat = "md" | "txt" | "openapi-yaml";
 
 export type PageAction = "created" | "updated" | "deleted";
 

@@ -11,3 +11,4 @@ export * from "./removeMarkdownImagesAndLinks";
 export * from "./snooty";
 export * from "./mongodb-university";
 export * from "./LangchainDocumentLoaderDataSource";
+export * from "./CodeOnGithubTextDataSource";

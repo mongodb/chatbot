@@ -131,6 +131,7 @@ export const makeGenerateConversationData = function ({
       const fullConversation = await conversations.findById({
         _id: conversationId,
       });
+      console.log(fullConversation);
       assert(fullConversation);
       generatedData.push({
         _id: conversationId,

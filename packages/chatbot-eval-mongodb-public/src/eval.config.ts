@@ -113,6 +113,9 @@ export default async () => {
         conversationQualityRun: {
           reporter: reportStatsForBinaryEvalRun,
         },
+        faqConversationQualityRun: {
+          reporter: reportStatsForBinaryEvalRun,
+        },
         conversationFaithfulnessRun: {
           reporter: reportStatsForBinaryEvalRun,
         },

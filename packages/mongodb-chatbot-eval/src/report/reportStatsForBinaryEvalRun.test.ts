@@ -29,7 +29,7 @@ describe("reportStatsForBinaryEvalRun", () => {
         _id: new ObjectId(),
         generatedDataId: new ObjectId(),
         commandRunMetadataId: commandRunId1,
-        evalName: "conversation_quality",
+        type: "conversation_quality",
         result: 1,
         createdAt: new Date(),
         metadata: {
@@ -41,7 +41,7 @@ describe("reportStatsForBinaryEvalRun", () => {
         _id: new ObjectId(),
         generatedDataId: new ObjectId(),
         commandRunMetadataId: commandRunId1,
-        evalName: "conversation_quality",
+        type: "conversation_quality",
         result: 0,
         createdAt: new Date(),
         metadata: {
@@ -53,7 +53,7 @@ describe("reportStatsForBinaryEvalRun", () => {
         _id: new ObjectId(),
         generatedDataId: new ObjectId(),
         commandRunMetadataId: commandRunId2,
-        evalName: "conversation_quality",
+        type: "conversation_quality",
         result: 1,
         createdAt: new Date(),
         metadata: {

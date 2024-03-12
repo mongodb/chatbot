@@ -10,7 +10,12 @@ export interface EvalResult {
   _id: ObjectId;
   generatedDataId: ObjectId;
   commandRunMetadataId: ObjectId;
-  evalName: string;
+
+  /**
+    Name of the type of evaluation.
+   */
+  type: string;
+
   /**
     Number between 0 and 1, inclusive.
    */

@@ -1,10 +1,10 @@
 import "dotenv/config";
 import { ObjectId } from "mongodb-rag-core";
 import { makeEvaluateConversationFaithfulness } from "./evaluateConversationFaithfulness";
-import { ConversationGeneratedData } from "../generate";
 import { Message } from "mongodb-chatbot-server";
 import { OpenAI } from "llamaindex";
 import assert from "assert";
+import { mockConversationGeneratedDataFromMessages } from "../test/mockConversationGeneratedDataFromMessages";
 
 const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_CHAT_COMPLETION_DEPLOYMENT } =
   process.env;
@@ -47,7 +47,8 @@ describe("makeEvaluateConversationFaithfulness", () => {
         content: "The sky is blue today",
       },
     ] satisfies Message[];
-    const faithfulGeneratedData = makeConversationGenerateData(messages);
+    const faithfulGeneratedData =
+      mockConversationGeneratedDataFromMessages(messages);
 
     const evalResult = await evaluateFaithfulness({
       runId,
@@ -56,7 +57,7 @@ describe("makeEvaluateConversationFaithfulness", () => {
     expect(evalResult).toMatchObject({
       generatedDataId: faithfulGeneratedData._id,
       result: 1,
-      evalName: "conversation_faithfulness",
+      type: "conversation_faithfulness",
       _id: expect.any(ObjectId),
       createdAt: expect.any(Date),
       commandRunMetadataId: runId,
@@ -64,7 +65,6 @@ describe("makeEvaluateConversationFaithfulness", () => {
         contextContent: messages[0]!.contextContent!.map(({ text }) => text),
         userQueryContent: messages[0].content,
         assistantResponseContent: messages[1].content,
-        name: expect.any(String),
       },
     });
   });
@@ -91,7 +91,8 @@ describe("makeEvaluateConversationFaithfulness", () => {
         content: "The sky is red today",
       },
     ] satisfies Message[];
-    const faithfulGeneratedData = makeConversationGenerateData(messages);
+    const faithfulGeneratedData =
+      mockConversationGeneratedDataFromMessages(messages);
 
     const evalResult = await evaluateFaithfulness({
       runId,
@@ -100,7 +101,7 @@ describe("makeEvaluateConversationFaithfulness", () => {
     expect(evalResult).toMatchObject({
       generatedDataId: faithfulGeneratedData._id,
       result: 0,
-      evalName: "conversation_faithfulness",
+      type: "conversation_faithfulness",
       _id: expect.any(ObjectId),
       createdAt: expect.any(Date),
       commandRunMetadataId: runId,
@@ -108,27 +109,7 @@ describe("makeEvaluateConversationFaithfulness", () => {
         contextContent: messages[0]!.contextContent!.map(({ text }) => text),
         userQueryContent: messages[0].content,
         assistantResponseContent: messages[1].content,
-        name: expect.any(String),
       },
     });
   });
 });
-
-function makeConversationGenerateData(
-  messages: Message[]
-): ConversationGeneratedData {
-  return {
-    type: "conversation",
-    data: {
-      _id: new ObjectId(),
-      createdAt: new Date(),
-      messages,
-    },
-    evalData: {
-      name: "sky color test case 1",
-      qualitativeFinalAssistantMessageExpectation: "not relevant for this eval",
-    },
-    _id: new ObjectId(),
-    commandRunId: new ObjectId(),
-  };
-}

@@ -8,7 +8,8 @@ import {
   makeMongoDbEvaluationStore,
   makeMongoDbReportStore,
   mongodbResponseQualityExamples,
-  reportConversationStatsForEvalRun,
+  reportStatsForBinaryEvalRun,
+  makeEvaluateConversationFaithfulness,
 } from "mongodb-chatbot-eval";
 import { makeMongoDbConversationsService } from "mongodb-chatbot-server";
 import "dotenv/config";
@@ -25,9 +26,11 @@ export default async () => {
     OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     OPENAI_ENDPOINT,
     OPENAI_API_KEY,
+    OPENAI_GPT_4_CHAT_COMPLETION_DEPLOYMENT,
   } = assertEnvVars(envVars);
 
   const { OpenAIClient, AzureKeyCredential } = await import("@azure/openai");
+  const { OpenAI: LlamaIndexOpenAiLlm } = await import("llamaindex");
   const miscTestCases = getConversationsTestCasesFromYaml(
     fs.readFileSync(
       path.resolve(__dirname, "..", "testCases", "conversations.yml"),
@@ -94,10 +97,24 @@ export default async () => {
             fewShotExamples: mongodbResponseQualityExamples,
           }),
         },
+        conversationFaithfulness: {
+          evaluator: makeEvaluateConversationFaithfulness({
+            llamaIndexLlm: new LlamaIndexOpenAiLlm({
+              azure: {
+                apiKey: OPENAI_API_KEY,
+                endpoint: OPENAI_ENDPOINT,
+                deploymentName: OPENAI_GPT_4_CHAT_COMPLETION_DEPLOYMENT,
+              },
+            }),
+          }),
+        },
       },
       report: {
         conversationQualityRun: {
-          reporter: reportConversationStatsForEvalRun,
+          reporter: reportStatsForBinaryEvalRun,
+        },
+        conversationFaithfulnessRun: {
+          reporter: reportStatsForBinaryEvalRun,
         },
       },
     },

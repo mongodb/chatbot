@@ -51,6 +51,7 @@ export async function generateEvalsAndMetadata({
       logger.error(
         `Failed to evaluate generated data: ${generation._id.toHexString()}`
       );
+      logger.error(error);
       failedCases.push(generation._id);
     }
   }

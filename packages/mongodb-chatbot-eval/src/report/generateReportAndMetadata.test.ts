@@ -7,6 +7,7 @@ import { generateReportAndMetadata } from "./generateReportAndMetadata";
 import { EvalResult } from "../evaluate/EvaluationStore";
 import { CommandRunMetadata } from "../CommandMetadataStore";
 import e from "express";
+import { Report } from "./ReportStore";
 
 describe("generateReportAndMetadata", () => {
   const metadataStore = makeMockCommandMetadataStore();
@@ -52,7 +53,7 @@ describe("generateReportAndMetadata", () => {
         },
       },
     ] satisfies EvalResult[];
-    evaluationStore.insertMany(evals);
+    await evaluationStore.insertMany(evals);
   });
   it("should generate the report and metadata", async () => {
     const { report, metadata } = await generateReportAndMetadata({
@@ -72,13 +73,13 @@ describe("generateReportAndMetadata", () => {
     } satisfies CommandRunMetadata);
     expect(report).toMatchObject({
       _id: expect.any(ObjectId),
-      reportName: "mock_report",
-      evaluationRunId,
+      name: "mock_report_name",
+      type: "mock_report",
       commandRunMetadataId: metadata._id,
       createdAt: expect.any(Date),
       data: {
         numEvals: 2,
       },
-    });
+    } satisfies Report);
   });
 });

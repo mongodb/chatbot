@@ -7,7 +7,6 @@ import {
   makeMongoDbDatabaseConnection,
 } from "./MongoDbDatabaseConnection";
 import { strict as assert } from "assert";
-import { Collection, Document } from "mongodb";
 
 export function makeMongoDbEmbeddedContentStore({
   connectionUri,
@@ -122,36 +121,4 @@ export function makeMongoDbEmbeddedContentStore({
         .toArray();
     },
   };
-}
-
-export async function getVectorSearchResults(
-  embeddedContentCollection: Collection,
-  vector: number[],
-  k: number,
-  minScore: number,
-  filter: Document
-) {
-  const results = await embeddedContentCollection
-    .aggregate<WithScore<EmbeddedContent>>([
-      {
-        $vectorSearch: {
-          index: "vector_search",
-          queryVector: vector,
-          path: "embedding",
-          limit: k,
-          numCandidates: k * 15,
-          filter,
-        },
-      },
-      {
-        $addFields: {
-          score: {
-            $meta: "vectorSearchScore",
-          },
-        },
-      },
-      { $match: { score: { $gte: minScore } } },
-    ])
-    .toArray();
-  return results;
 }

@@ -31,10 +31,9 @@ To learn more about how you can red team a chatbot, refer to the
 
 ## Automated Evaluation
 
-You can also evaluate your chatbot's responses using a large language model.
+You can also evaluate your chatbot's responses using a variety of automated methods.
+The MongoDB Chatbot Framework comes with an Evaluation CLI that allows you to evaluate
+the performance of your chatbot and its components.
 
-The way that this works is you prompt the large language model to see
-if the chatbot's generated message satisfies an expected answer.
-
-For an example implementation of this, refer to the [`llmQualitativeTests`](https://github.com/mongodb/chatbot/tree/main/packages/chatbot-server-mongodb-public/src/llmQualitativeTests)
-directory in the MongoDB Chatbot Server source code.
+To learn more about how to use the Evaluation CLI,
+refer to the [Evaluation CLI](./eval/index.md) documentation.

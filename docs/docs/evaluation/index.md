@@ -5,6 +5,8 @@
 The Evaluation CLI documentation is under active development
 and will be expanded in the near future.
 
+If you see an issue or have a suggestion, please [file an issue on Github](https://github.com/mongodb/chatbot/issues).
+
 :::
 
 The MongoDB Chatbot Framework comes with an Evaluation CLI that allows you

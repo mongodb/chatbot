@@ -31,6 +31,7 @@ The MongoDB Chatbot Framework has the following core components:
 - [Ingest CLI](./ingest/configure.md): Configurable CLI application that you can use to ingest content into a MongoDB collection for use with Atlas Vector Search.
 - [Chatbot Server](./server/configure.md): Express.js server routes that you can use to build a chatbot application.
 - [Chatbot UI](./ui.md): React.js UI components that you can use to build a chatbot application.
+- [Evaluation CLI](./evaluation/index.md): CLI application that you can use to evaluate the performance of your chatbot and its components.
 
 ## Quick Start
 

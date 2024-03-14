@@ -48,7 +48,7 @@
     "chatbot-server-mongodb-public": "*",
     "dotenv": "^16",
     "llamaindex": "^0.1.21",
-    "mongodb-chatbot-eval": "*",
+    "mongodb-chatbot-evaluation": "*",
     "mongodb-chatbot-server": "*",
     "mongodb-rag-core": "*"
   }

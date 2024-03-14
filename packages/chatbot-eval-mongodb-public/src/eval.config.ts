@@ -10,7 +10,7 @@ import {
   mongodbResponseQualityExamples,
   reportStatsForBinaryEvalRun,
   makeEvaluateConversationFaithfulness,
-} from "mongodb-chatbot-eval";
+} from "mongodb-chatbot-evaluation";
 import { makeMongoDbConversationsService } from "mongodb-chatbot-server";
 import "dotenv/config";
 import fs from "fs";

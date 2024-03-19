@@ -1,6 +1,6 @@
 {
-  "name": "mongodb-chatbot-eval",
-  "version": "0.0.0",
+  "name": "mongodb-chatbot-evaluation",
+  "version": "0.0.1",
   "description": "Evaluate responses from MongoDB chatbot server",
   "license": "Apache-2.0",
   "author": "MongoDB, Inc.",
@@ -15,7 +15,7 @@
     "type": "git",
     "url": "https://github.com/mongodb/chatbot.git"
   },
-  "homepage": "https://mongodb.github.io/chatbot/eval",
+  "homepage": "https://mongodb.github.io/chatbot/evaluation",
   "main": "build/main.js",
   "engines": {
     "node": ">=18",
@@ -33,7 +33,7 @@
     "./core": "./build/core/index.js"
   },
   "bin": {
-    "eval": "./build/main.js"
+    "mongodb-chatbot-evaluation": "./build/main.js"
   },
   "scripts": {
     "build": "tsc -b tsconfig.build.json",

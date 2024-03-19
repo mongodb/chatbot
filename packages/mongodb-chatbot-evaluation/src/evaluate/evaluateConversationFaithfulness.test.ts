@@ -57,7 +57,7 @@ describe("makeEvaluateConversationFaithfulness", () => {
     expect(evalResult).toMatchObject({
       generatedDataId: faithfulGeneratedData._id,
       result: 1,
-      type: "conversation_faithfulness",
+      evalName: "conversation_faithfulness",
       _id: expect.any(ObjectId),
       createdAt: expect.any(Date),
       commandRunMetadataId: runId,
@@ -65,6 +65,7 @@ describe("makeEvaluateConversationFaithfulness", () => {
         contextContent: messages[0]!.contextContent!.map(({ text }) => text),
         userQueryContent: messages[0].content,
         assistantResponseContent: messages[1].content,
+        name: expect.any(String),
       },
     });
   });
@@ -101,7 +102,7 @@ describe("makeEvaluateConversationFaithfulness", () => {
     expect(evalResult).toMatchObject({
       generatedDataId: faithfulGeneratedData._id,
       result: 0,
-      type: "conversation_faithfulness",
+      evalName: "conversation_faithfulness",
       _id: expect.any(ObjectId),
       createdAt: expect.any(Date),
       commandRunMetadataId: runId,

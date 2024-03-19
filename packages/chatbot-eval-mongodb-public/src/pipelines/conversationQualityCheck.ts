@@ -1,4 +1,4 @@
-import { runPipeline } from "mongodb-chatbot-eval";
+import { runPipeline } from "mongodb-chatbot-evaluation";
 import configConstructor from "../eval.config";
 
 runPipeline({

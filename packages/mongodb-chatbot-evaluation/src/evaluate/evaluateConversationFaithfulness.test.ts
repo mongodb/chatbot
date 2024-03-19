@@ -57,7 +57,7 @@ describe("makeEvaluateConversationFaithfulness", () => {
     expect(evalResult).toMatchObject({
       generatedDataId: faithfulGeneratedData._id,
       result: 1,
-      evalName: "conversation_faithfulness",
+      type: "conversation_faithfulness",
       _id: expect.any(ObjectId),
       createdAt: expect.any(Date),
       commandRunMetadataId: runId,
@@ -102,7 +102,7 @@ describe("makeEvaluateConversationFaithfulness", () => {
     expect(evalResult).toMatchObject({
       generatedDataId: faithfulGeneratedData._id,
       result: 0,
-      evalName: "conversation_faithfulness",
+      type: "conversation_faithfulness",
       _id: expect.any(ObjectId),
       createdAt: expect.any(Date),
       commandRunMetadataId: runId,

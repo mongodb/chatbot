@@ -245,60 +245,49 @@ export const Message = ({
       <LGMessage
         baseFontSize={16}
         isSender={info.isSender}
-        messageRatingProps={{
-          className: styles.message_rating,
-          description: "How was the response?",
-          hideThumbsUp: submittedRatingValue === "disliked",
-          hideThumbsDown: submittedRatingValue === "liked",
-          onChange: async (e) => {
-            const value = e.target.value as MessageRatingProps["value"];
-            if (!value) {
-              return;
-            }
-            if (ratingCommentStatus === "submitted") {
-              // Once a user has submitted a comment for their rating we don't want them to be able to change their rating
-              return;
-            }
-            await conversation.rateMessage(
-              messageData.id,
-              value === "liked" ? true : false
-            );
-          },
-          value:
-            messageData.rating === undefined
-              ? undefined
-              : messageData.rating
-              ? "liked"
-              : "disliked",
-        }}
         avatar={<Avatar variant={info.avatarVariant} name={info.senderName} />}
         sourceType={isLoading ? undefined : MessageSourceType.Markdown}
-        componentOverrides={{
-          MessageRating: (props) => {
-            return (
-              <>
-                {showRating ? (
-                  <MessageRatingWithFeedbackComment
-                    {...props}
-                    submit={submitRatingComment}
-                    abandon={abandonRatingComment}
-                    status={ratingCommentStatus}
-                    errorMessage={ratingCommentErrorMessage}
-                    clearErrorMessage={() =>
-                      setRatingCommentErrorMessage(undefined)
-                    }
-                    maxCommentCharacterCount={maxCommentCharacters}
-                  />
-                ) : null}
-              </>
-            );
-          },
-        }}
         markdownProps={markdownProps}
+        messageBody={messageData.content}
       >
-        {isLoading
-          ? ((<LoadingSkeleton />) as unknown as string)
-          : messageData.content}
+        {isLoading ? <LoadingSkeleton /> : null}
+
+        {showRating ? (
+          <MessageRatingWithFeedbackComment
+            submit={submitRatingComment}
+            abandon={abandonRatingComment}
+            status={ratingCommentStatus}
+            errorMessage={ratingCommentErrorMessage}
+            clearErrorMessage={() => setRatingCommentErrorMessage(undefined)}
+            maxCommentCharacterCount={maxCommentCharacters}
+            messageRatingProps={{
+              value:
+                messageData.rating === undefined
+                  ? undefined
+                  : messageData.rating
+                  ? "liked"
+                  : "disliked",
+              className: styles.message_rating,
+              description: "How was the response?",
+              hideThumbsUp: submittedRatingValue === "disliked",
+              hideThumbsDown: submittedRatingValue === "liked",
+              onChange: async (e) => {
+                const value = e.target.value as MessageRatingProps["value"];
+                if (!value) {
+                  return;
+                }
+                if (ratingCommentStatus === "submitted") {
+                  // Once a user has submitted a comment for their rating we don't want them to be able to change their rating
+                  return;
+                }
+                await conversation.rateMessage(
+                  messageData.id,
+                  value === "liked" ? true : false
+                );
+              },
+            }}
+          />
+        ) : null}
       </LGMessage>
       {showSuggestedPrompts && (
         <MessagePrompts
@@ -375,30 +364,29 @@ export const MessagePrompts = ({
   );
 };
 
-export type MessageRatingWithFeedbackCommentProps = MessageRatingProps & {
+export type MessageRatingWithFeedbackCommentProps = {
   submit: (commentText: string) => void | Promise<void>;
   abandon: () => void;
   status: "none" | "submitted" | "abandoned";
   errorMessage?: string;
   clearErrorMessage?: () => void;
   maxCommentCharacterCount?: number;
+  messageRatingProps: MessageRatingProps;
 };
 
 export function MessageRatingWithFeedbackComment(
   props: MessageRatingWithFeedbackCommentProps
 ) {
   const {
-    value,
     submit,
     abandon,
     status,
     errorMessage,
-    clearErrorMessage,
     maxCommentCharacterCount,
-    ...messageRatingProps
+    messageRatingProps,
   } = props;
 
-  const hasRating = value !== undefined;
+  const hasRating = messageRatingProps.value !== undefined;
 
   // TODO: Use this to animate the transition after https://jira.mongodb.org/browse/LG-3965 is merged.
   // const ratingCommentInputVisible = hasRating && status !== "submitted" && status !== "abandoned";
@@ -423,7 +411,7 @@ export function MessageRatingWithFeedbackComment(
         }
       `}
     >
-      <MessageRating value={value} {...messageRatingProps} />
+      <MessageRating {...messageRatingProps} />
       {hasRating && status !== "abandoned" ? (
         <>
           <InlineMessageFeedback
@@ -448,7 +436,7 @@ export function MessageRatingWithFeedbackComment(
               },
               // @ts-expect-error Hacky fix for https://jira.mongodb.org/browse/LG-3964
               label:
-                value === "liked"
+                messageRatingProps.value === "liked"
                   ? "Provide additional feedback here. What did you like about this response?"
                   : "Provide additional feedback here. How can we improve?",
             }}

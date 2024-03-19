@@ -58,28 +58,12 @@ You should also be on a MongoDB corporate network to run the project locally.
 
 Before you begin setting up the project, ask a current project contributor for the following:
 
-1. Artifactory credentials
-2. `.env` file variables for whichever projects you're working on.
+-  The `.env` files for whichever projects you're working on.
    At a minimum, you'll need the `mongodb-rag-core` environment variables, as the other
    projects depend on `mongodb-rag-core`. If you're unsure which projects you need
    to work with, ask a current contributor.
 
-### 2. Add Artifactory credentials
-
-To install all dependencies and build all projects, you must set up your npm config
-to use Artifactory with a specific set of credentials. You should have gotten the credentials
-in the previous step.
-
-In your shell environment configuration (e.g. `.zshrc`, `.bashprofile`, etc),
-add the credentials:
-
-```shell
-# .zshrc
-export LG_ARTIFACTORY_TOKEN=<authToken>
-export LG_ARTIFACTORY_EMAIL=<email>
-```
-
-### 3. Install dependencies and build projects
+### 2. Install dependencies and build projects
 
 Run the following in the root of your project:
 
@@ -89,7 +73,7 @@ npm run build
 npm run bootstrap
 ```
 
-### 4. Add Environment Variables
+### 3. Add Environment Variables
 
 In step 1, you should have gotten the environment variables you need.
 

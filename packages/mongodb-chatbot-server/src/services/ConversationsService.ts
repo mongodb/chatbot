@@ -3,6 +3,7 @@ import {
   ObjectId,
   References,
   VerifiedAnswer,
+  WithScore,
 } from "mongodb-rag-core";
 import { FunctionCall } from "@azure/openai";
 
@@ -96,7 +97,7 @@ export type UserMessage = MessageBase & {
     For example, you might want to assess how faithful the LLM response
     to the found content.
    */
-  contextContent?: Partial<EmbeddedContent>[];
+  contextContent?: Partial<WithScore<EmbeddedContent>>[];
 
   /**
     Whether preprocessor suggested not to answer based on the input.

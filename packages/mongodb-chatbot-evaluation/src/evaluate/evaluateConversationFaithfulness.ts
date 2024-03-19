@@ -81,7 +81,7 @@ export function makeEvaluateConversationFaithfulness({
     return {
       generatedDataId: generatedData._id,
       result: score,
-      evalName: "conversation_faithfulness",
+      type: "conversation_faithfulness",
       _id: new ObjectId(),
       createdAt: new Date(),
       commandRunMetadataId: runId,

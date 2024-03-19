@@ -77,7 +77,7 @@ describe("makeEvaluateConversationQuality", () => {
     expect(evalResult).toMatchObject({
       result: 1,
       generatedDataId: generatedConversationData._id,
-      evalName: "conversation_quality",
+      type: "conversation_quality",
       metadata: {
         reason: expect.any(String),
       },
@@ -100,7 +100,7 @@ describe("makeEvaluateConversationQuality", () => {
     expect(evalResult).toMatchObject({
       result: 0,
       generatedDataId: generatedConversationData._id,
-      evalName: "conversation_quality",
+      type: "conversation_quality",
       metadata: {
         reason: expect.any(String),
       },

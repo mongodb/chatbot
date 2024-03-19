@@ -121,7 +121,11 @@ export const makeStepBackRagGenerateUserPrompt = ({
       role: "user",
       embedding: queryEmbedding,
       content: userMessageText,
-      contextContent: content.map((c) => ({ text: c.text, url: c.url })),
+      contextContent: content.map((c) => ({
+        text: c.text,
+        url: c.url,
+        score: c.score,
+      })),
       customData,
       preprocessedContent: stepBackUserQuery,
     } satisfies UserMessage;

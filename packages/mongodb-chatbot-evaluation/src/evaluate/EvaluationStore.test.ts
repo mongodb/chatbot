@@ -34,7 +34,7 @@ describe("MongoDbReportStore", () => {
       _id: new ObjectId(),
       createdAt: new Date(),
       commandRunMetadataId: new ObjectId(),
-      evalName: "foo",
+      type: "foo",
       result: 0.5,
       generatedDataId: new ObjectId(),
     } satisfies EvalResult;
@@ -46,7 +46,7 @@ describe("MongoDbReportStore", () => {
       _id: new ObjectId(),
       createdAt: new Date(),
       commandRunMetadataId: new ObjectId(),
-      evalName: "foo",
+      type: "foo",
       result: 0.5,
       generatedDataId: new ObjectId(),
     } satisfies EvalResult;
@@ -54,7 +54,7 @@ describe("MongoDbReportStore", () => {
       _id: new ObjectId(),
       createdAt: new Date(),
       commandRunMetadataId: new ObjectId(),
-      evalName: "bar",
+      type: "bar",
       result: 0.7,
       generatedDataId: new ObjectId(),
     } satisfies EvalResult;
@@ -66,12 +66,12 @@ describe("MongoDbReportStore", () => {
       _id: new ObjectId(),
       createdAt: new Date(),
       commandRunMetadataId: new ObjectId(),
-      evalName: "foo",
+      type: "foo",
       result: 0.5,
       generatedDataId: new ObjectId(),
     } satisfies EvalResult;
     await evalStore.insertOne(evalResult);
-    const found = await evalStore.find({ result: 0.5, evalName: "foo" });
+    const found = await evalStore.find({ result: 0.5, type: "foo" });
     expect(found && found[0]).toMatchObject(evalResult);
   });
   it("should aggregate data", async () => {
@@ -79,7 +79,7 @@ describe("MongoDbReportStore", () => {
       _id: new ObjectId(),
       createdAt: new Date(),
       commandRunMetadataId: new ObjectId(),
-      evalName: "foo",
+      type: "foo",
       result: 0.5,
       generatedDataId: new ObjectId(),
     } satisfies EvalResult;
@@ -87,13 +87,13 @@ describe("MongoDbReportStore", () => {
       _id: new ObjectId(),
       createdAt: new Date(),
       commandRunMetadataId: new ObjectId(),
-      evalName: "bar",
+      type: "bar",
       result: 0.123,
       generatedDataId: new ObjectId(),
     } satisfies EvalResult;
     await evalStore.insertMany([evalResult1, evalResult2]);
     const aggregated = await evalStore.aggregate([
-      { $match: { result: 0.5, evalName: "foo" } },
+      { $match: { result: 0.5, type: "foo" } },
     ]);
     expect(aggregated).toHaveLength(1);
     expect(aggregated[0]).toMatchObject(evalResult1);

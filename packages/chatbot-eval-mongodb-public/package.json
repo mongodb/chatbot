@@ -19,6 +19,7 @@
     "generate:faqConversations": "../mongodb-chatbot-eval/build/main.js generate --name faqConversations --config ./build/eval.config.js",
     "report:conversationQualityRun": "../mongodb-chatbot-eval/build/main.js report --name conversationQualityRun --config ./build/eval.config.js",
     "report:conversationFaithfulnessRun": "../mongodb-chatbot-eval/build/main.js report --name conversationFaithfulnessRun --config ./build/eval.config.js",
+    "report:conversationRetrievalScoreAvg": "../mongodb-chatbot-eval/build/main.js report --name conversationRetrievalScoreAvg --config ./build/eval.config.js",
     "eval:conversationQuality": "../mongodb-chatbot-eval/build/main.js evaluate --name conversationQuality --config ./build/eval.config.js",
     "eval:conversationFaithfulness": "../mongodb-chatbot-eval/build/main.js evaluate --name conversationFaithfulness --config ./build/eval.config.js",
     "pipeline:conversationQualityCheck": "node ./build/pipelines/conversationQualityCheck.js",

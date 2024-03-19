@@ -66,13 +66,13 @@ export function makeEvaluateConversationQuality({
       _id: new ObjectId(),
       generatedDataId: generatedData._id,
       commandRunMetadataId: runId,
-      evalName: "conversation_quality",
+      type: "conversation_quality",
       result: meetsChatQualityStandards ? 1 : 0,
       createdAt: new Date(),
       metadata: {
+        testName: name,
         reason,
         conversationTranscript,
-        name,
         qualitativeFinalAssistantMessageExpectation,
       },
     } satisfies EvalResult;

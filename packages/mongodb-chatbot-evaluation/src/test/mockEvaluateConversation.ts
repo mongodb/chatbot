@@ -29,7 +29,7 @@ export const mockEvaluateConversation: EvaluateQualityFunc = async ({
     _id: new ObjectId(),
     generatedDataId: generatedData._id,
     commandRunMetadataId: runId,
-    evalName: "test",
+    type: "test",
     result: meetsChatQualityStandards ? 1 : 0,
     createdAt: new Date(),
     metadata: {

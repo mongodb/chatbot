@@ -20,7 +20,7 @@ describe("generateReportAndMetadata", () => {
         _id: new ObjectId(),
         generatedDataId: new ObjectId(),
         commandRunMetadataId: evaluationRunId,
-        evalName: "conversation_quality",
+        type: "conversation_quality",
         result: 1,
         createdAt: new Date(),
         metadata: {
@@ -32,7 +32,7 @@ describe("generateReportAndMetadata", () => {
         _id: new ObjectId(),
         generatedDataId: new ObjectId(),
         commandRunMetadataId: evaluationRunId,
-        evalName: "conversation_quality",
+        type: "conversation_quality",
         result: 0,
         createdAt: new Date(),
         metadata: {
@@ -44,7 +44,7 @@ describe("generateReportAndMetadata", () => {
         _id: new ObjectId(),
         generatedDataId: new ObjectId(),
         commandRunMetadataId: new ObjectId(), // Some other command run
-        evalName: "conversation_quality",
+        type: "conversation_quality",
         result: 1,
         createdAt: new Date(),
         metadata: {

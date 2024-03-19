@@ -42,14 +42,16 @@ export async function generateEvalsAndMetadata({
     logger.info(
       `Evaluating generated data with _id '${generation._id.toHexString()}' and type '${
         generation.type
-      }'`
+      }' for command '${name}'.`
     );
     try {
       const evalResult = await evaluator({ runId, generatedData: generation });
       evalResults.push(evalResult);
     } catch (error) {
       logger.error(
-        `Failed to evaluate generated data: ${generation._id.toHexString()}`
+        `Failed to evaluate generated data: ${generation._id.toHexString()} and type '${
+          generation.type
+        }' for command '${name}'.`
       );
       logger.error(error);
       failedCases.push(generation._id);

@@ -118,7 +118,7 @@ describe("generateEvalsAndMetadata", () => {
             _id: new ObjectId(),
             generatedDataId: generatedData._id,
             commandRunMetadataId: new ObjectId(),
-            evalName: "test",
+            type: "test",
             result: 1,
             createdAt: new Date(),
             metadata: {
@@ -153,7 +153,7 @@ describe("generateEvalsAndMetadata", () => {
         _id: expect.any(ObjectId),
         commandRunMetadataId: expect.any(ObjectId),
         generatedDataId: expect.any(ObjectId),
-        evalName: baseArgs.name,
+        type: baseArgs.name,
         result: expect.any(Number),
         createdAt: expect.any(Date),
         metadata: {

@@ -5,13 +5,13 @@ import {
   EvalResult,
   makeMongoDbEvaluationStore,
 } from "../evaluate/EvaluationStore";
-import { reportStatsForBinaryEvalRun } from "./reportStatsForBinaryEvalRun";
+import { reportAverageScore } from "./reportAverageScore";
 import { Report } from "./ReportStore";
 
 const { MONGODB_CONNECTION_URI } = process.env;
 assert(MONGODB_CONNECTION_URI, "MONGODB_CONNECTION_URI is required");
 
-describe("reportStatsForBinaryEvalRun", () => {
+describe("reportAverageScore", () => {
   const databaseName = `test-${Date.now()}`;
 
   const evaluationStore = makeMongoDbEvaluationStore({
@@ -52,6 +52,20 @@ describe("reportStatsForBinaryEvalRun", () => {
       {
         _id: new ObjectId(),
         generatedDataId: new ObjectId(),
+        commandRunMetadataId: commandRunId1,
+        type: "conversation_quality",
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        result: null,
+        createdAt: new Date(),
+        metadata: {
+          reason: "foo",
+          conversationTranscript: "bar",
+        },
+      },
+      {
+        _id: new ObjectId(),
+        generatedDataId: new ObjectId(),
         commandRunMetadataId: commandRunId2,
         type: "conversation_quality",
         result: 1,
@@ -62,6 +76,8 @@ describe("reportStatsForBinaryEvalRun", () => {
         },
       },
     ] satisfies EvalResult[];
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     await evaluationStore.insertMany(conversationEvals);
   });
   afterAll(async () => {
@@ -72,20 +88,19 @@ describe("reportStatsForBinaryEvalRun", () => {
 
   it("should capture eval run and calculate pass percentage", async () => {
     const runId = new ObjectId();
-    const report = await reportStatsForBinaryEvalRun({
+    const report = await reportAverageScore({
       evaluationRunId: commandRunId1,
       evaluationStore,
       runId,
-      reportName: "conversation_quality_stats",
+      reportName: "retrieval_stats",
     });
     expect(report).toMatchObject({
       _id: expect.any(ObjectId),
       commandRunMetadataId: runId,
-      name: "conversation_quality_stats",
-      type: "binary_eval_stats",
+      name: "retrieval_stats",
+      type: "average_score",
       data: {
-        passRate: 0.5,
-        // only capture 'commandRunId1' evals that are 'conversation_quality' evals
+        averageScore: 0.5,
         totalTestCount: 2,
       },
       createdAt: expect.any(Date),

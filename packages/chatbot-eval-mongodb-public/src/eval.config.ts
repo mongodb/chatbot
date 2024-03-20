@@ -11,6 +11,8 @@ import {
   reportStatsForBinaryEvalRun,
   makeEvaluateConversationFaithfulness,
   makeGenerateLlmConversationData,
+  evaluateConversationAverageRetrievalScore,
+  reportAverageScore,
 } from "mongodb-chatbot-evaluation";
 import {
   makeLangchainChatLlm,
@@ -149,6 +151,9 @@ export default async () => {
             }),
           }),
         },
+        conversationRetrievalScore: {
+          evaluator: evaluateConversationAverageRetrievalScore,
+        },
       },
       report: {
         conversationQualityRun: {
@@ -162,6 +167,18 @@ export default async () => {
         },
         gpt4_0124_ConversationQualityRun: {
           reporter: reportStatsForBinaryEvalRun,
+        },
+        conversationRetrievalScoreAvg: {
+          reporter: reportAverageScore,
+        },
+        faqConversationQualityRun: {
+          reporter: reportStatsForBinaryEvalRun,
+        },
+        faqConversationFaithfulnessRun: {
+          reporter: reportStatsForBinaryEvalRun,
+        },
+        faqConversationRetrievalScoreAvg: {
+          reporter: reportAverageScore,
         },
       },
     },

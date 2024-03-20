@@ -1,4 +1,5 @@
 export * from "./checkResponseQuality";
+export * from "./evaluateConversationAverageRetrievalScore";
 export * from "./evaluateConversationFaithfulness";
 export * from "./evaluateConversationQuality";
 export * from "./EvaluateQualityFunc";

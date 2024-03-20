@@ -23,8 +23,7 @@ import fs from "fs";
 import path from "path";
 import { MongoClient, assertEnvVars } from "mongodb-rag-core";
 import { envVars } from "./envVars";
-import { ChatOpenAI } from "@langchain/openai";
-
+import { systemPrompt } from "chatbot-server-mongodb-public";
 export default async () => {
   const {
     MONGODB_DATABASE_NAME,
@@ -97,6 +96,7 @@ export default async () => {
           type: "conversation",
           testCases: allTestCases,
           generator: makeGenerateLlmConversationData({
+            systemMessage: systemPrompt.content,
             chatLlm: makeOpenAiChatLlm({
               deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT, // GPT-3.5
               openAiClient: new OpenAIClient(
@@ -105,7 +105,7 @@ export default async () => {
               ),
               openAiLmmConfigOptions: {
                 temperature: 0,
-                maxTokens: 1000,
+                maxTokens: 500,
               },
             }),
           }),
@@ -114,6 +114,7 @@ export default async () => {
           type: "conversation",
           testCases: allTestCases,
           generator: makeGenerateLlmConversationData({
+            systemMessage: systemPrompt.content,
             chatLlm: makeOpenAiChatLlm({
               deployment: OPENAI_GPT_4_CHAT_COMPLETION_DEPLOYMENT,
               openAiClient: new OpenAIClient(
@@ -122,7 +123,7 @@ export default async () => {
               ),
               openAiLmmConfigOptions: {
                 temperature: 0,
-                maxTokens: 1000,
+                maxTokens: 500,
               },
             }),
           }),

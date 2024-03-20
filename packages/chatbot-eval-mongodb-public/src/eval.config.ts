@@ -15,7 +15,6 @@ import {
   reportAverageScore,
 } from "mongodb-chatbot-evaluation";
 import {
-  makeLangchainChatLlm,
   makeMongoDbConversationsService,
   makeOpenAiChatLlm,
 } from "mongodb-chatbot-server";

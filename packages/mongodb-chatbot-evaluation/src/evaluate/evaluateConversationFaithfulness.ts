@@ -48,7 +48,7 @@ export function makeEvaluateConversationFaithfulness({
     } = conversationData;
     const ragUserMessage = messages.find(
       (m) => m.role === "user" && m.contextContent
-    ) as UserMessage;
+    ) as UserMessage | undefined;
     if (!ragUserMessage || !ragUserMessage.contextContent) {
       throw new Error(
         `No user message with contextContent for test case '${name}'.`
@@ -89,6 +89,7 @@ export function makeEvaluateConversationFaithfulness({
         contextContent: texts,
         userQueryContent,
         assistantResponseContent,
+        name,
       },
     } satisfies EvalResult;
   };

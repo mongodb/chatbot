@@ -65,6 +65,7 @@ describe("makeEvaluateConversationFaithfulness", () => {
         contextContent: messages[0]!.contextContent!.map(({ text }) => text),
         userQueryContent: messages[0].content,
         assistantResponseContent: messages[1].content,
+        name: expect.any(String),
       },
     });
   });

@@ -1,0 +1,832 @@
+- name: Search for 'and'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: and
+  expectation: "N/A"
+  links:
+    - reference/operator/query/and
+    - reference/operator/aggregation/and
+    - reference/operator/query/all
+- name: Search for 'or'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: or
+  expectation: "N/A"
+  links:
+    - reference/operator/query/or
+    - reference/operator/aggregation/or
+    - reference/operator/query-logical
+- name: Search for 'in'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: in
+  expectation: "N/A"
+  links:
+    - reference/operator/query/in
+    - reference/operator/aggregation/in
+    - reference/method.db.collection.find
+- name: Search for 'findbyid'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: findbyid
+  expectation: "N/A"
+  links:
+    - reference/command/find
+    - reference/method/db.collection.findOne
+    - reference/method/db.collection.findAndModify
+- name: Search for 'findbyidandupdate'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: findbyidandupdate
+  expectation: "N/A"
+  links:
+    - reference/command/findAndModify
+    - reference/method/db.collection.findAndModify
+    - reference/method/db.collection.findOneAndUpdate
+- name: Search for 'like'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: like
+  expectation: "N/A"
+  links:
+    - reference/operator/query/regex
+    - reference/operator/aggregation/match
+    - atlas-search/morelikethis
+- name: Search for 'not equal'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: not equal
+  expectation: "N/A"
+  links:
+    - reference/operator/query/ne
+    - reference/operator/aggregation/ne
+    - reference/operator/query/not
+- name: Search for 'and operator'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: and operator
+  expectation: "N/A"
+  links:
+    - reference/operator/query/and
+    - reference/operator/aggregation/and
+    - reference/operator/query/all
+- name: Search for 'in operator'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: in operator
+  expectation: "N/A"
+  links:
+    - reference/operator/query/in
+    - reference/operator/aggregation/in
+    - reference/method.db.collection.find
+- name: Search for 'mongodb.conf'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: mongodb.conf
+  expectation: "N/A"
+  links:
+    - reference/configuration-options
+    - administration/configuration
+    - reference/configuration-file-settings-command-line-options-mapping
+- name: Search for 'conf'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: conf
+  expectation: "N/A"
+  links:
+    - reference/configuration-options
+    - administration/configuration
+    - reference/configuration-file-settings-command-line-options-mapping
+- name: Search for 'createcollection'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: createcollection
+  expectation: "N/A"
+  links:
+    - reference/method/db.createCollection
+    - reference/command/create
+    - core/databases-and-collections
+- name: Search for 'not'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: not
+  expectation: "N/A"
+  links:
+    - reference/operator/query/not
+    - reference/operator/aggregation/not
+    - reference/operator/query/regex
+- name: Search for 'get'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: get
+  expectation: "N/A"
+  links:
+    - reference/command/find
+    - tutorial/query-documents
+    - reference/operator/aggregation/getField
+- name: Search for 'aggregate'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: aggregate
+  expectation: "N/A"
+  links:
+    - reference/command/aggregate
+    - aggregation
+    - core/aggregation-pipeline
+- name: Search for '$project'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $project
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/project
+    - core/aggregation-pipeline-optimization
+    - reference/map-reduce-to-aggregation-pipeline
+- name: Search for 'project'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: project
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/project
+    - core/aggregation-pipeline-optimization
+    - reference/map-reduce-to-aggregation-pipeline
+- name: Search for 'group'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: group
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/group
+    - core/aggregation-pipeline
+    - reference/map-reduce-to-aggregation-pipeline
+- name: Search for '$group'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $group
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/group
+    - core/aggregation-pipeline
+    - reference/map-reduce-to-aggregation-pipeline
+- name: Search for 'aggregation'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: aggregation
+  expectation: "N/A"
+  links:
+    - aggregation
+    - core/aggregation-pipeline
+- name: Search for 'projection'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: projection
+  expectation: "N/A"
+  links:
+    - reference/operator/projection
+    - reference/operator/aggregation/project
+    - tutorial/project-fields-from-query-results/
+- name: Search for 'operators'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: operators
+  expectation: "N/A"
+  links:
+    - reference/operator/query
+    - reference/operator/update
+    - reference/operator/aggregation-pipeline
+- name: Search for 'set'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: set
+  expectation: "N/A"
+  links:
+    - reference/operator/update/set
+    - reference/operator/aggregation/set
+    - tutorial/update-documents-with-aggregation-pipeline
+- name: Search for '$set'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $set
+  expectation: "N/A"
+  links:
+    - reference/operator/update/set
+    - reference/operator/aggregation/set
+    - tutorial/update-documents-with-aggregation-pipeline
+- name: Search for 'map'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: map
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/map
+    - tutorial/update-documents-with-aggregation-pipeline
+    - core/aggregation-pipeline
+- name: Search for '$map'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $map
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/map
+    - tutorial/update-documents-with-aggregation-pipeline
+    - core/aggregation-pipeline
+- name: Search for 'limit'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: limit
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/limit
+    - reference/method/cursor.limit/
+    - reference/sql-aggregation-comparison
+- name: Search for '$limit'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $limit
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/limit
+    - reference/method/cursor.limit/
+    - reference/sql-aggregation-comparison
+- name: Search for 'operator'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: operator
+  expectation: "N/A"
+  links:
+    - reference/operator/query
+    - reference/operator/update
+    - reference/operator/aggregation-pipeline
+- name: Search for 'exists'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: exists
+  expectation: "N/A"
+  links:
+    - reference/operator/query/exists
+    - atlas-search/exists
+    - fundamentals/crud/query-document
+- name: Search for '$exists'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $exists
+  expectation: "N/A"
+  links:
+    - reference/operator/query/exists
+    - atlas-search/exists
+    - fundamentals/crud/query-document
+- name: Search for 'exist'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: exist
+  expectation: "N/A"
+  links:
+    - reference/operator/query/exists
+    - atlas-search/exists
+    - fundamentals/crud/query-document
+- name: Search for 'mongoclient'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: mongoclient
+  expectation: "N/A"
+  links:
+    - drivers/kotlin/coroutine/current/fundamentals/connection/mongoclientsettings/
+    - drivers/java/sync/current/fundamentals/connection/mongoclientsettings/
+    - sdk/java/api/io/realm/mongodb/mongo/MongoClient
+- name: Search for 'mongocli'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: mongocli
+  expectation: "N/A"
+  links:
+    - command/mongocli
+    - install
+    - configure
+- name: Search for 'connection'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: connection
+  expectation: "N/A"
+  links:
+    - reference/connection-string
+    - reference/command/serverStatus
+    - reference/command/connectionStatus
+- name: Search for 'contains'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: contains
+  expectation: "N/A"
+  links:
+    - reference/operator/query/in
+    - tutorial/query-arrays
+    - reference/operator/aggregation/regexFindAll
+- name: Search for '$contains'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $contains
+  expectation: "N/A"
+  links:
+    - reference/operator/query/in
+    - tutorial/query-arrays
+    - reference/operator/aggregation/regexFindAll
+- name: Search for 'lt'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: lt
+  expectation: "N/A"
+  links:
+    - reference/operator/query/lt
+    - reference/operator/aggregation/lt
+    - reference/operator/query/lte
+- name: Search for 'if'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: if
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/cond
+    - reference/operator/aggregation/switch
+    - reference/operator/query/expr
+- name: Search for '$if'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $if
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/cond
+    - reference/operator/aggregation/switch
+    - reference/operator/query/expr
+- name: Search for 'order'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: order
+  expectation: "N/A"
+  links:
+    - reference/sql-comparison/
+    - reference/method/cursor.sort
+    - reference/operator/aggregation/sort
+- name: Search for 'max'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: max
+  expectation: "N/A"
+  links:
+    - /operator/update/max
+    - reference/operator/aggregation/max
+    - reference/operator/aggregation/maxN
+- name: Search for 'select'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: select
+  expectation: "N/A"
+  links:
+    - reference/sql-comparison
+    - reference/sql-aggregation-comparison
+    - tutorial/project-fields-from-query-results
+- name: Search for 'condition'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: condition
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/cond
+    - tutorial/query-documents
+    - reference/operator/query/expr
+- name: Search for 'relation'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: relation
+  expectation: "N/A"
+  links:
+    - applications/data-models
+    - introduction
+    - core/data-modeling-introduction
+- name: Search for 'cond'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: cond
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/cond
+    - tutorial/query-documents
+    - reference/operator/query/expr
+- name: Search for 'node'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: node
+  expectation: "N/A"
+  links:
+    - node/current/
+    - node/current/quick-start/
+    - node/current/usage-examples/
+- name: Search for 'node.js driver'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: node.js driver
+  expectation: "N/A"
+  links:
+    - node/current/
+    - node/current/quick-start/
+    - node/current/usage-examples/
+- name: Search for 'nodejs'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: nodejs
+  expectation: "N/A"
+  links:
+    - node/current/
+    - node/current/quick-start/
+    - node/current/usage-examples/
+- name: Search for '$filter'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $filter
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/filter
+    - reference/operator/aggregation
+    - reference/operator/projection/positional
+- name: Search for '$match'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $match
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/match
+    - reference/operator/query/elemMatch
+    - reference/operator/aggregation/regexMatch
+- name: Search for '$push'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $push
+  expectation: "N/A"
+  links:
+    - reference/operator/update/push
+    - reference/operator/aggregation/push
+    - reference/operator/update/position/
+- name: Search for '$regex'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $regex
+  expectation: "N/A"
+  links:
+    - reference/operator/query/regex
+    - atlas/atlas-search/regex
+    - reference/operator/aggregation/regexMatch/
+- name: Search for '$eq'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $eq
+  expectation: "N/A"
+  links:
+    - reference/operator/query/eq
+    - reference/operator/aggregation/eq
+    - reference/operator/query/elemMatch
+- name: Search for '$size'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $size
+  expectation: "N/A"
+  links:
+    - reference/operator/query/size
+    - reference/operator/aggregation/size
+    - tutorial/query-arrays/
+- name: Search for '$sort'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $sort
+  expectation: "N/A"
+  links:
+    - reference/operator/update/sort
+    - reference/operator/aggregation/sort
+    - tutorial/aggregation-with-user-preference-data/
+- name: Search for '$inc'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $inc
+  expectation: "N/A"
+  links:
+    - reference/operator/update/inc
+    - reference/method/db.collection.updateMany
+    - reference/method/db.collection.findAndModify
+- name: Search for 'inc'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: inc
+  expectation: "N/A"
+  links:
+    - reference/operator/update/inc
+    - reference/method/db.collection.updateMany
+    - reference/method/db.collection.findAndModify
+- name: Search for '$pull'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $pull
+  expectation: "N/A"
+  links:
+    - reference/operator/update/pull
+    - reference/operator/update/pullAll
+    - reference/operator/update
+- name: Search for '$reduce'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $reduce
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/reduce
+    - reference/operator/aggregation
+- name: Search for '$all'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $all
+  expectation: "N/A"
+  links:
+    - reference/operator/query/all
+    - reference/operator/aggregation/regexFindAll
+    - reference/operator/update/pullAll
+- name: Search for '$facet'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $facet
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/facet
+    - reference/operator/aggregation/bucket
+    - atlas/atlas-search/facet
+- name: Search for '$add'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $add
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/add
+    - tutorial/update-documents-with-aggregation-pipeline
+    - reference/operator/aggregation/sum
+- name: Search for '$first'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $first
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/first
+    - reference/operator/aggregation/firstN
+    - reference/operator/aggregation/firstN-array-element
+- name: Search for '$count'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $count
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/count
+    - reference/command/count
+    - atlas/atlas-search/counting
+- name: Search for 'indexes'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: indexes
+  expectation: "N/A"
+  links:
+    - core/indexes
+- name: Search for '$addFields'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $addFields
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/addFields
+    - core/aggregation-pipeline-optimization
+    - reference/operator/aggregation-pipeline
+- name: Search for '$ifNull'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $ifNull
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/ifNull
+    - tutorial/query-for-null-fields
+    - reference/operator/query/elemMatch
+- name: Search for 'datetime'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: datetime
+  expectation: "N/A"
+  links:
+    - reference/method/Date
+    - reference/sql-comparison
+    - core/timeseries-collections
+- name: Search for '$avg'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $avg
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/avg
+    - tutorial/update-documents-with-aggregation-pipeline
+    - meta/aggregation-quick-reference
+- name: Search for 'avg'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: avg
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/avg
+    - tutorial/update-documents-with-aggregation-pipeline
+    - meta/aggregation-quick-reference
+- name: Search for '$function'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $function
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/function
+    - tutorial/map-reduce-examples
+    - reference/operator/query/where
+- name: Search for '$lte'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $lte
+  expectation: "N/A"
+  links:
+    - reference/operator/query/lte
+    - reference/operator/aggregation/lte
+    - reference/sql-comparison
+- name: Search for '$month'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $month
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/month
+    - reference/operator/aggregation/dayOfMonth
+    - tutorial/aggregation-with-user-preference-data
+- name: Search for '$root'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $root
+  expectation: "N/A"
+  links:
+    - reference/aggregation-variables
+    - reference/operator/aggregation/replaceRoot
+    - reference/operator/aggregation/sqrt
+- name: Search for '$merge'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: $merge
+  expectation: "N/A"
+  links:
+    - reference/operator/aggregation/merge
+    - atlas/data-federation/supported-unsupported/pipeline/merge
+    - reference/operator/aggregation/mergeObjects

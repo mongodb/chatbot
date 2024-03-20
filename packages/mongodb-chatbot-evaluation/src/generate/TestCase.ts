@@ -18,6 +18,10 @@ export const ConversationTestCaseDataSchema = z.object({
     .min(1),
   tags: z.array(z.string()).optional(),
   skip: z.boolean().optional(),
+  expectedLinks: z
+    .array(z.string())
+    .optional()
+    .describe("Sections of links to relevant sources"),
 });
 
 export type ConversationTestCaseData = z.infer<

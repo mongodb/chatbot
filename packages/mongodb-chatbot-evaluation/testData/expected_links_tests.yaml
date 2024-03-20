@@ -1,0 +1,30 @@
+- name: Search for 'and'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: and
+  expectation: "N/A"
+  expectedLinks:
+    - reference/operator/query/and
+    - reference/operator/aggregation/and
+    - reference/operator/query/all
+- name: Search for 'or'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: or
+  expectation: "N/A"
+  expectedLinks:
+    - reference/operator/query/or
+    - reference/operator/aggregation/or
+    - reference/operator/query-logical
+- name: Search for 'not'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: not
+  expectation: "N/A"
+  # no expected links

@@ -1,5 +1,6 @@
 import { ConversationGeneratedData } from "./GeneratedDataStore";
 import {
+  ChatLlm,
   Conversation,
   Message,
   ObjectId,
@@ -13,8 +14,6 @@ import {
   isConversationTestCase,
 } from "./TestCase";
 import { strict as assert } from "assert";
-import { BaseChatModel } from "@langchain/core/language_models/chat_models";
-import { ChatMessage as LangchainChatMessage } from "@langchain/core/messages";
 
 export interface MakeGenerateLlmConversationDataParams {
   /**
@@ -23,10 +22,9 @@ export interface MakeGenerateLlmConversationDataParams {
   systemMessage?: string;
 
   /**
-    Langchain `ChatModel` instance. For a list of available models,
-    refer to [ChatModel integrations documentation](https://js.langchain.com/docs/modules/model_io/chat/).
+    The large language model to use for generating conversation data.
    */
-  llm: BaseChatModel;
+  chatLlm: ChatLlm;
 
   /**
     Number of milliseconds to sleep between each conversation generation.
@@ -43,7 +41,7 @@ export interface MakeGenerateLlmConversationDataParams {
  */
 export const makeGenerateLlmConversationData = function ({
   systemMessage,
-  llm,
+  chatLlm,
   sleepMs = 0,
 }: MakeGenerateLlmConversationDataParams): GenerateDataFunc {
   return async function ({
@@ -69,7 +67,9 @@ export const makeGenerateLlmConversationData = function ({
         continue;
       }
 
-      const messages = testCase.data.messages as OpenAiChatMessage[];
+      const messages = testCase.data
+        .messages satisfies OpenAiChatMessage[] as OpenAiChatMessage[];
+
       assert(messages.length > 0, "Must contain at least 1 message");
 
       try {
@@ -80,16 +80,10 @@ export const makeGenerateLlmConversationData = function ({
           } satisfies OpenAiChatMessage);
         }
 
-        const langchainMessages = messages.map(messageBaseToLangchainMessage);
-        const response = await llm.invoke(langchainMessages);
-        if (typeof response.content !== "string") {
-          throw new Error(
-            "Response content is not a string. Response content is: " +
-              response.content
-          );
-        }
+        const response = await chatLlm.answerQuestionAwaited({ messages });
+
         messages.push({
-          content: response.content,
+          content: response.content ?? "",
           role: "assistant",
         } satisfies OpenAiChatMessage);
 
@@ -129,12 +123,6 @@ export const makeGenerateLlmConversationData = function ({
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function messageBaseToLangchainMessage(
-  message: OpenAiChatMessage
-): LangchainChatMessage {
-  return new LangchainChatMessage(message.content ?? "", message.role);
 }
 
 function openAiMessageToDbMessage(message: OpenAiChatMessage): Message {

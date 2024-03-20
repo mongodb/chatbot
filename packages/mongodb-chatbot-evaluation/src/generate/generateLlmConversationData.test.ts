@@ -3,13 +3,16 @@ import { makeGenerateLlmConversationData } from "./generateLlmConversationData";
 import { ObjectId } from "mongodb-rag-core";
 import { testCases, triggerErrorTestCases } from "../test/mockTestCases";
 import { ChatOpenAI } from "@langchain/openai";
+import { makeLangchainChatLlm } from "mongodb-chatbot-server";
 
 describe("makeGenerateLlmConversationData", () => {
-  const mockLlm = new FakeListChatModel({
-    responses: ["Stop mocking me!"],
+  const mockChatLlm = makeLangchainChatLlm({
+    chatModel: new FakeListChatModel({
+      responses: ["Stop mocking me!"],
+    }),
   });
   const generateLlmConversationData = makeGenerateLlmConversationData({
-    llm: mockLlm,
+    chatLlm: mockChatLlm,
   });
 
   it("should generate conversation data", async () => {
@@ -34,7 +37,9 @@ describe("makeGenerateLlmConversationData", () => {
       openAIApiKey: "WILL THROW WHEN CALLED!",
     });
     const generateLlmConversationData = makeGenerateLlmConversationData({
-      llm: throwingLlm,
+      chatLlm: makeLangchainChatLlm({
+        chatModel: throwingLlm,
+      }),
     });
     const conversationData = await generateLlmConversationData({
       runId: new ObjectId(),
@@ -47,7 +52,7 @@ describe("makeGenerateLlmConversationData", () => {
     const numSleeps = testCases.length - 1; // sleeps between each test case
     const generateLlmConversationDataWithSleep =
       makeGenerateLlmConversationData({
-        llm: mockLlm,
+        chatLlm: mockChatLlm,
         sleepMs: SLEEP_TIME,
       });
     const start = Date.now();

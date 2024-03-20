@@ -12,6 +12,7 @@ import {
   makeEvaluateConversationFaithfulness,
   evaluateConversationAverageRetrievalScore,
   reportAverageScore,
+  makeEvaluateConversationRelevancy,
 } from "mongodb-chatbot-evaluation";
 import { makeMongoDbConversationsService } from "mongodb-chatbot-server";
 import "dotenv/config";
@@ -33,6 +34,13 @@ export default async () => {
 
   const { OpenAIClient, AzureKeyCredential } = await import("@azure/openai");
   const { OpenAI: LlamaIndexOpenAiLlm } = await import("llamaindex");
+  const llamaIndexEvaluationLlm = new LlamaIndexOpenAiLlm({
+    azure: {
+      apiKey: OPENAI_API_KEY,
+      endpoint: OPENAI_ENDPOINT,
+      deploymentName: OPENAI_GPT_4_CHAT_COMPLETION_DEPLOYMENT,
+    },
+  });
   const miscTestCases = getConversationsTestCasesFromYaml(
     fs.readFileSync(
       path.resolve(__dirname, "..", "testCases", "conversations.yml"),
@@ -101,17 +109,16 @@ export default async () => {
         },
         conversationFaithfulness: {
           evaluator: makeEvaluateConversationFaithfulness({
-            llamaIndexLlm: new LlamaIndexOpenAiLlm({
-              azure: {
-                apiKey: OPENAI_API_KEY,
-                endpoint: OPENAI_ENDPOINT,
-                deploymentName: OPENAI_GPT_4_CHAT_COMPLETION_DEPLOYMENT,
-              },
-            }),
+            llamaIndexLlm: llamaIndexEvaluationLlm,
           }),
         },
         conversationRetrievalScore: {
           evaluator: evaluateConversationAverageRetrievalScore,
+        },
+        conversationAnswerRelevancy: {
+          evaluator: makeEvaluateConversationRelevancy({
+            llamaIndexLlm: llamaIndexEvaluationLlm,
+          }),
         },
       },
       report: {
@@ -124,6 +131,9 @@ export default async () => {
         conversationRetrievalScoreAvg: {
           reporter: reportAverageScore,
         },
+        conversationAnswerRelevancyRun: {
+          reporter: reportStatsForBinaryEvalRun,
+        },
         faqConversationQualityRun: {
           reporter: reportStatsForBinaryEvalRun,
         },
@@ -132,6 +142,9 @@ export default async () => {
         },
         faqConversationRetrievalScoreAvg: {
           reporter: reportAverageScore,
+        },
+        faqConversationAnswerRelevancyRun: {
+          reporter: reportStatsForBinaryEvalRun,
         },
       },
     },

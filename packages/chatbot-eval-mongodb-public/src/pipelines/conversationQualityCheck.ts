@@ -23,5 +23,11 @@ runPipeline({
       genRunId
     );
     await report("conversationRetrievalScoreAvg", retrievalEvalRunId);
+
+    const { _id: relevancyEvalRunId } = await evaluate(
+      "conversationAnswerRelevancy",
+      genRunId
+    );
+    await report("conversationAnswerRelevancyRun", relevancyEvalRunId);
   },
 });

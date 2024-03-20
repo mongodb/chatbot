@@ -17,7 +17,7 @@ const commandModule: CommandModule<
   Record<string, unknown>,
   ImportCommandArgs
 > = {
-  command: "pages <path>",
+  command: "import <path>",
   builder(args) {
     return args.positional("path", {
       description: "Path to the configuration yaml file.",
@@ -28,7 +28,7 @@ const commandModule: CommandModule<
   handler(args) {
     return doImportCommand(args);
   },
-  describe: "Update pages data from sources",
+  describe: "Import verified answers from a yaml file",
 };
 
 export default commandModule;

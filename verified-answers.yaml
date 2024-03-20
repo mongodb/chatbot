@@ -1,0 +1,14 @@
+- questions:
+    - How do I register for Atlas?
+    - Register for Atlas
+    - Sign up for Atlas
+  answer: |
+    To register for Atlas today, [visit our registration page](https://www.mongodb.com/cloud/atlas/register).
+
+    For step-by-step instructions on how to register, [read our tutorial](https://www.mongodb.com/basics/mongodb-atlas-tutorial).
+  author_email: chris.bush@mongodb.com
+  references:
+    - url: https://www.mongodb.com/cloud/atlas/register
+      title: MongoDB Atlas Registration
+    - url: https://www.mongodb.com/basics/mongodb-atlas-tutorial
+      title: MongoDB Atlas Tutorial

@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb-rag-core";
+import { ObjectId, Reference } from "mongodb-rag-core";
 import { ConversationGeneratedData } from "../generate";
 import { checkResponseQuality } from "./checkResponseQuality";
 import { EvaluateQualityFunc } from "./EvaluateQualityFunc";
@@ -41,21 +41,19 @@ export const evaluateExpectedLinks: EvaluateQualityFunc = async function ({
   const finalAssistantMessage = messages[
     messages.length - 1
   ] as AssistantMessage;
+
   assert(
     finalAssistantMessage.role === "assistant",
     `Last message is not assistant message in test case '${name}'.`
-  );
-  assert(
-    finalAssistantMessage.references &&
-      finalAssistantMessage.references.length > 0,
-    `No references in final assistant message in test case '${name}'.`
   );
 
   const expectedLinksMap: Record<
     string,
     { matchingActualLink?: string; includesExpected: boolean }
   > = {};
-  const actualLinks = finalAssistantMessage.references.map((ref) => ref.url);
+  const actualLinks = (finalAssistantMessage.references ?? []).map(
+    (ref: Reference) => ref.url
+  );
   for (const expectedLink of expectedLinks) {
     for (const actualLink of actualLinks) {
       if (actualLink.includes(expectedLink)) {

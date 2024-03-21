@@ -1,3 +1,10 @@
+import { ObjectId } from "mongodb-rag-core";
+import { ConversationGeneratedData } from "../generate";
+import { checkResponseQuality } from "./checkResponseQuality";
+import { EvaluateQualityFunc } from "./EvaluateQualityFunc";
+import { strict as assert } from "assert";
+import { EvalResult } from "./EvaluationStore";
+import { AssistantMessage } from "mongodb-chatbot-server";
 /**
   Evaluates if the final assistant message contains the expected links.
   Skips if no `expectedLinks` in the test case data.
@@ -14,6 +21,72 @@
   and the final assistant message only contains `["link1"]`, the eval `result: .5`.
 
  */
-export function evaluateExpectedLinks() {
-  // TODO: implement
-}
+export const evaluateExpectedLinks: EvaluateQualityFunc = async function ({
+  generatedData,
+  runId,
+}) {
+  assert(
+    generatedData.type === "conversation",
+    "Invalid data type. Expected 'conversation' data."
+  );
+  const conversationData = generatedData as ConversationGeneratedData;
+  const {
+    data: { messages },
+  } = conversationData;
+  const { name, expectedLinks } = conversationData.evalData;
+  assert(
+    expectedLinks && expectedLinks.length > 0,
+    `No expectedLinks in test case '${name}'.`
+  );
+  const finalAssistantMessage = messages[
+    messages.length - 1
+  ] as AssistantMessage;
+  assert(
+    finalAssistantMessage.role === "assistant",
+    `Last message is not assistant message in test case '${name}'.`
+  );
+  assert(
+    finalAssistantMessage.references &&
+      finalAssistantMessage.references.length > 0,
+    `No references in final assistant message in test case '${name}'.`
+  );
+
+  const expectedLinksMap: Record<
+    string,
+    { matchingActualLink?: string; includesExpected: boolean }
+  > = {};
+  const actualLinks = finalAssistantMessage.references.map((ref) => ref.url);
+  for (const expectedLink of expectedLinks) {
+    for (const actualLink of actualLinks) {
+      if (actualLink.includes(expectedLink)) {
+        expectedLinksMap[expectedLink] = {
+          matchingActualLink: actualLink,
+          includesExpected: true,
+        };
+        break;
+      } else {
+        expectedLinksMap[expectedLink] = {
+          includesExpected: false,
+        };
+      }
+    }
+  }
+  const result =
+    Object.values(expectedLinksMap).reduce(
+      (acc, { includesExpected }) => acc + (includesExpected ? 1 : 0),
+      0
+    ) / expectedLinks.length;
+  const evaluation = {
+    _id: new ObjectId(),
+    generatedDataId: generatedData._id,
+    commandRunMetadataId: runId,
+    type: "expected_links",
+    result: result,
+    createdAt: new Date(),
+    metadata: {
+      testName: name,
+      expectedLinksFound: expectedLinksMap,
+    },
+  } satisfies EvalResult;
+  return evaluation;
+};

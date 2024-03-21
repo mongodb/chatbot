@@ -32,6 +32,11 @@ export interface ConversationEvalData extends Record<string, unknown> {
     Description of what the test case assesses.
    */
   name: string;
+
+  /**
+    Link segments expected to be included in the final assistant message.
+   */
+  expectedLinks?: string[];
 }
 
 export interface GeneratedDataStore {

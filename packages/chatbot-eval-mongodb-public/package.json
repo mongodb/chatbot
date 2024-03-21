@@ -23,7 +23,8 @@
     "eval:conversationQuality": "../mongodb-chatbot-eval/build/main.js evaluate --name conversationQuality --config ./build/eval.config.js",
     "eval:conversationFaithfulness": "../mongodb-chatbot-eval/build/main.js evaluate --name conversationFaithfulness --config ./build/eval.config.js",
     "pipeline:conversationQualityCheck": "node ./build/pipelines/conversationQualityCheck.js",
-    "pipeline:faqConversationQualityCheck": "node ./build/pipelines/faqConversationQualityCheck.js"
+    "pipeline:faqConversationQualityCheck": "node ./build/pipelines/faqConversationQualityCheck.js",
+    "pipeline:linkInclusionCheck": "node ./build/pipelines/linkInclusionCheck.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",

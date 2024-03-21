@@ -12,6 +12,7 @@ import {
   makeEvaluateConversationFaithfulness,
   evaluateConversationAverageRetrievalScore,
   reportAverageScore,
+  evaluateExpectedLinks,
 } from "mongodb-chatbot-evaluation";
 import { makeMongoDbConversationsService } from "mongodb-chatbot-server";
 import "dotenv/config";
@@ -42,6 +43,17 @@ export default async () => {
   const faqTestCases = getConversationsTestCasesFromYaml(
     fs.readFileSync(
       path.resolve(__dirname, "..", "testCases", "faq_conversations.yml"),
+      "utf8"
+    )
+  );
+  const linkTestCases = getConversationsTestCasesFromYaml(
+    fs.readFileSync(
+      path.resolve(
+        __dirname,
+        "..",
+        "testCases",
+        "included_links_conversations.yml"
+      ),
       "utf8"
     )
   );
@@ -87,6 +99,17 @@ export default async () => {
             apiBaseUrl: CONVERSATIONS_SERVER_BASE_URL,
           }),
         },
+        linkConversations: {
+          type: "conversation",
+          testCases: linkTestCases,
+          generator: makeGenerateConversationData({
+            conversations,
+            httpHeaders: {
+              Origin: "Testing",
+            },
+            apiBaseUrl: CONVERSATIONS_SERVER_BASE_URL,
+          }),
+        },
       },
       evaluate: {
         conversationQuality: {
@@ -113,6 +136,9 @@ export default async () => {
         conversationRetrievalScore: {
           evaluator: evaluateConversationAverageRetrievalScore,
         },
+        conversationLinkInclusion: {
+          evaluator: evaluateExpectedLinks,
+        },
       },
       report: {
         conversationQualityRun: {
@@ -131,6 +157,9 @@ export default async () => {
           reporter: reportStatsForBinaryEvalRun,
         },
         faqConversationRetrievalScoreAvg: {
+          reporter: reportAverageScore,
+        },
+        linkConversationRun: {
           reporter: reportAverageScore,
         },
       },

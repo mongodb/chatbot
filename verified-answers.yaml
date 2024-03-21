@@ -3,12 +3,12 @@
     - Register for Atlas
     - Sign up for Atlas
   answer: |
-    To register for Atlas today, [visit our registration page](https://www.mongodb.com/cloud/atlas/register?tck=docs-chatbot).
+    To register for Atlas today, [visit our registration page](https://www.mongodb.com/cloud/atlas/register?tck=mongodb_ai_chatbot).
 
-    For step-by-step instructions on how to register, [read our tutorial](https://www.mongodb.com/basics/mongodb-atlas-tutorial?tck=docs-chatbot).
+    For step-by-step instructions on how to register, [read our tutorial](https://www.mongodb.com/basics/mongodb-atlas-tutorial?tck=mongodb_ai_chatbot).
   author_email: chris.bush@mongodb.com
   references:
-    - url: https://www.mongodb.com/cloud/atlas/register?tck=docs-chatbot
+    - url: https://www.mongodb.com/cloud/atlas/register?tck=mongodb_ai_chatbot
       title: MongoDB Atlas Registration
-    - url: https://www.mongodb.com/basics/mongodb-atlas-tutorial?tck=docs-chatbot
+    - url: https://www.mongodb.com/basics/mongodb-atlas-tutorial?tck=mongodb_ai_chatbot
       title: MongoDB Atlas Tutorial

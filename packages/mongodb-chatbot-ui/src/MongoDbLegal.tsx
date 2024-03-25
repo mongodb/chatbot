@@ -2,7 +2,7 @@ import { useLinkData } from "./useLinkData";
 import { addQueryParams } from "./utils";
 import { Body, Link } from "@leafygreen-ui/typography";
 
-export function MongoDbLegalDisclosure() {
+export function MongoDbLegalDisclosureText() {
   const { tck } = useLinkData();
   const TermsOfUse = () => (
     <Link
@@ -27,9 +27,17 @@ export function MongoDbLegalDisclosure() {
   );
 
   return (
-    <Body>
+    <>
       This is a generative AI chatbot. By interacting with it, you agree to
       MongoDB's <TermsOfUse /> and <AcceptableUsePolicy />.
+    </>
+  );
+}
+
+export function MongoDbLegalDisclosure() {
+  return (
+    <Body>
+      <MongoDbLegalDisclosureText />
     </Body>
   );
 }

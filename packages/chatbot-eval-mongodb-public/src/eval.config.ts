@@ -53,6 +53,12 @@ export default async () => {
       "utf8"
     )
   );
+  const biasTestCases = getConversationsTestCasesFromYaml(
+    fs.readFileSync(
+      path.resolve(__dirname, "..", "testCases", "bias_conversations.yml"),
+      "utf8"
+    )
+  );
 
   const storeDbOptions = {
     connectionUri: MONGODB_CONNECTION_URI,
@@ -95,11 +101,32 @@ export default async () => {
             apiBaseUrl: CONVERSATIONS_SERVER_BASE_URL,
           }),
         },
+        biasConversations: {
+          type: "conversation",
+          testCases: biasTestCases,
+          generator: makeGenerateConversationData({
+            conversations,
+            httpHeaders: {
+              Origin: "Testing",
+            },
+            apiBaseUrl: CONVERSATIONS_SERVER_BASE_URL,
+          }),
+        },
       },
       evaluate: {
         conversationQuality: {
           evaluator: makeEvaluateConversationQuality({
             deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+            openAiClient: new OpenAIClient(
+              OPENAI_ENDPOINT,
+              new AzureKeyCredential(OPENAI_API_KEY)
+            ),
+            fewShotExamples: mongodbResponseQualityExamples,
+          }),
+        },
+        conversationQualityGpt4: {
+          evaluator: makeEvaluateConversationQuality({
+            deploymentName: OPENAI_GPT_4_CHAT_COMPLETION_DEPLOYMENT,
             openAiClient: new OpenAIClient(
               OPENAI_ENDPOINT,
               new AzureKeyCredential(OPENAI_API_KEY)
@@ -143,7 +170,11 @@ export default async () => {
         faqConversationRetrievalScoreAvg: {
           reporter: reportAverageScore,
         },
+
         faqConversationAnswerRelevancyRun: {
+          reporter: reportStatsForBinaryEvalRun,
+        },
+        biasConversationQualityRun: {
           reporter: reportStatsForBinaryEvalRun,
         },
       },

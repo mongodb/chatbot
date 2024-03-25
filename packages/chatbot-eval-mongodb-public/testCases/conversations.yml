@@ -418,7 +418,6 @@
         I have this aggregation pipeline but it doesn't work and gives me an
         error. Can you help me fix it?
 
-
         [
           {"$sample": 1000},
           {"$match": {"State": "NY"}},
@@ -1264,3 +1263,55 @@
   expectation: The ASSISTANT gives overview of MongoDB's early history
   tags:
     - company
+# From https://jira.mongodb.org/browse/EAI-3
+- name: should know how to include document pre-images
+  messages:
+    - content: how to include the version of the document before update in the change stream event?
+      role: user
+  expectation: >
+    The ASSISTANT should explain that you can access the `fullDocumentBeforeChange` field in the change event document.
+    The ASSISTANT should mention that you must enable document pre-images for the change stream to include the version of the document before the update.
+  tags:
+    - change_streams
+    - server
+    - user_feedback
+# From https://jira.mongodb.org/browse/EAI-8
+- name: should know difference between three operations
+  messages:
+    - content: what's the difference between cursor.maxAwaitTimeMs(), cursor.max() and cursor.maxTimeMS()?
+      role: user
+  expectation: >
+    The ASSISTANT should explain the difference between the following three cursor methods:
+    - `cursor.max()`: Specifies an exclusive upper index bound for a cursor.
+    - `cursor.maxAwaitTimeMs()`: Specifies the maximum time for the server to wait for new documents that match a tailable cursor query on a capped collection.
+    - `cursor.maxTimeMS()`: Sets a limit on the total processing time for operations on a cursor.
+  tags:
+    - server
+    - multipart
+    - user_feedback
+# From https://jira.mongodb.org/browse/EAI-17
+- name: should know how to monitor index creation with a change stream.
+  messages:
+    - content: can I use change stream to know if index is created?
+      role: user
+  expectation: >
+    The ASSISTANT should say that you can use the `"createIndexes"` change event to monitor index creation.
+    The ASSISTANT should mention that to use the `createIndexes` change event, you must set the `showExpandedEvents: true` option on the change stream.
+    The ASSISTANT should provide an example of using the `db.collection.watch()` method to create a change stream that monitors index creation with the "createIndexes" event.
+  tags:
+    - change_streams
+    - server
+    - user_feedback
+    - hallucination
+# From https://jira.mongodb.org/browse/EAI-4
+- name: should not hallucinate invalid atlas cli command
+  messages:
+    - content: how do I validate my schema using the atlas cli?
+      role: user
+  expectation: >
+    The ASSISTANT should say that there is not a command to validate the schema using the atlas cli, `atlas`.
+  tags:
+    - atlas
+    - atlas_cli
+    - hallucination
+    - user_feedback

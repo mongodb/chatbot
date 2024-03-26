@@ -6,7 +6,8 @@ import {
   makeApp,
   makeMongoDbConversationsService,
 } from "mongodb-chatbot-server";
-import { MONGODB_CONNECTION_URI, config, systemPrompt } from "../config";
+import { systemPrompt } from "../systemPrompt";
+import { MONGODB_CONNECTION_URI, config } from "../config";
 
 let mongoClient: MongoClient | undefined;
 let mongodb: Db | undefined;
@@ -78,9 +79,8 @@ export function cosineSimilarity(a: number[], b: number[]) {
 function dotProduct(a: number[], b: number[]) {
   return a.reduce((acc, cur, i) => acc + cur * b[i], 0);
 }
-
+export { systemPrompt };
 export {
-  systemPrompt,
   generateUserPrompt,
   openAiClient,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,

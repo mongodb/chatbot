@@ -91,22 +91,25 @@ export function useChatbot(props: UseChatbotProps): ChatbotData {
     if (text.replace(/\s/g, "").length === 0) {
       console.error(`Cannot add message with no text`);
       return false;
-    };
+    }
     // Don't let users submit a message if we're already waiting for a reply
     if (awaitingReply) {
       console.error(`Cannot add message while awaiting a reply`);
       return false;
-    };
+    }
     return true;
   }
 
   async function handleSubmit(text: string) {
-    if(!canSubmit(text)) return;
+    if (!canSubmit(text)) return;
     try {
       setInputText("");
       setAwaitingReply(true);
       openChat();
-      await conversation.addMessage("user", text);
+      await conversation.addMessage({
+        role: "user",
+        content: text,
+      });
     } catch (e) {
       console.error(e);
     } finally {

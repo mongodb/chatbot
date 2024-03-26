@@ -138,6 +138,8 @@ export function ModalView(props: ModalViewProps) {
     ? [initialMessage, ...conversation.messages]
     : conversation.messages;
 
+  console.log("messages", messages);
+
   const isEmptyConversation = messages.length === 0;
 
   const ActiveInputBarId = "active-input-bar";

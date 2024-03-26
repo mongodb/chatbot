@@ -10,17 +10,22 @@ import {
   mongodbResponseQualityExamples,
   reportStatsForBinaryEvalRun,
   makeEvaluateConversationFaithfulness,
+  makeGenerateLlmConversationData,
   evaluateConversationAverageRetrievalScore,
   reportAverageScore,
   evaluateExpectedLinks,
+  makeEvaluateConversationRelevancy,
 } from "mongodb-chatbot-evaluation";
-import { makeMongoDbConversationsService } from "mongodb-chatbot-server";
+import {
+  makeMongoDbConversationsService,
+  makeOpenAiChatLlm,
+} from "mongodb-chatbot-server";
 import "dotenv/config";
 import fs from "fs";
 import path from "path";
 import { MongoClient, assertEnvVars } from "mongodb-rag-core";
 import { envVars } from "./envVars";
-
+import { systemPrompt } from "chatbot-server-mongodb-public";
 export default async () => {
   const {
     MONGODB_DATABASE_NAME,
@@ -34,6 +39,13 @@ export default async () => {
 
   const { OpenAIClient, AzureKeyCredential } = await import("@azure/openai");
   const { OpenAI: LlamaIndexOpenAiLlm } = await import("llamaindex");
+  const llamaIndexEvaluationLlm = new LlamaIndexOpenAiLlm({
+    azure: {
+      apiKey: OPENAI_API_KEY,
+      endpoint: OPENAI_ENDPOINT,
+      deploymentName: OPENAI_GPT_4_CHAT_COMPLETION_DEPLOYMENT,
+    },
+  });
   const miscTestCases = getConversationsTestCasesFromYaml(
     fs.readFileSync(
       path.resolve(__dirname, "..", "testCases", "conversations.yml"),
@@ -54,6 +66,13 @@ export default async () => {
         "testCases",
         "included_links_conversations.yml"
       ),
+      "utf8"
+    )
+  );
+  const allTestCases = [...miscTestCases, ...faqTestCases];
+  const biasTestCases = getConversationsTestCasesFromYaml(
+    fs.readFileSync(
+      path.resolve(__dirname, "..", "testCases", "bias_conversations.yml"),
       "utf8"
     )
   );
@@ -79,7 +98,7 @@ export default async () => {
       generate: {
         conversations: {
           type: "conversation",
-          testCases: [...miscTestCases, ...faqTestCases],
+          testCases: allTestCases,
           generator: makeGenerateConversationData({
             conversations,
             httpHeaders: {
@@ -110,6 +129,53 @@ export default async () => {
             apiBaseUrl: CONVERSATIONS_SERVER_BASE_URL,
           }),
         },
+        gpt35_0613_Conversations: {
+          type: "conversation",
+          testCases: allTestCases,
+          generator: makeGenerateLlmConversationData({
+            systemMessage: systemPrompt.content,
+            chatLlm: makeOpenAiChatLlm({
+              deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT, // GPT-3.5
+              openAiClient: new OpenAIClient(
+                OPENAI_ENDPOINT,
+                new AzureKeyCredential(OPENAI_API_KEY)
+              ),
+              openAiLmmConfigOptions: {
+                temperature: 0,
+                maxTokens: 500,
+              },
+            }),
+          }),
+        },
+        gpt4_0124_Conversations: {
+          type: "conversation",
+          testCases: allTestCases,
+          generator: makeGenerateLlmConversationData({
+            systemMessage: systemPrompt.content,
+            chatLlm: makeOpenAiChatLlm({
+              deployment: OPENAI_GPT_4_CHAT_COMPLETION_DEPLOYMENT,
+              openAiClient: new OpenAIClient(
+                OPENAI_ENDPOINT,
+                new AzureKeyCredential(OPENAI_API_KEY)
+              ),
+              openAiLmmConfigOptions: {
+                temperature: 0,
+                maxTokens: 500,
+              },
+            }),
+          }),
+        },
+        biasConversations: {
+          type: "conversation",
+          testCases: biasTestCases,
+          generator: makeGenerateConversationData({
+            conversations,
+            httpHeaders: {
+              Origin: "Testing",
+            },
+            apiBaseUrl: CONVERSATIONS_SERVER_BASE_URL,
+          }),
+        },
       },
       evaluate: {
         conversationQuality: {
@@ -122,15 +188,19 @@ export default async () => {
             fewShotExamples: mongodbResponseQualityExamples,
           }),
         },
+        conversationQualityGpt4: {
+          evaluator: makeEvaluateConversationQuality({
+            deploymentName: OPENAI_GPT_4_CHAT_COMPLETION_DEPLOYMENT,
+            openAiClient: new OpenAIClient(
+              OPENAI_ENDPOINT,
+              new AzureKeyCredential(OPENAI_API_KEY)
+            ),
+            fewShotExamples: mongodbResponseQualityExamples,
+          }),
+        },
         conversationFaithfulness: {
           evaluator: makeEvaluateConversationFaithfulness({
-            llamaIndexLlm: new LlamaIndexOpenAiLlm({
-              azure: {
-                apiKey: OPENAI_API_KEY,
-                endpoint: OPENAI_ENDPOINT,
-                deploymentName: OPENAI_GPT_4_CHAT_COMPLETION_DEPLOYMENT,
-              },
-            }),
+            llamaIndexLlm: llamaIndexEvaluationLlm,
           }),
         },
         conversationRetrievalScore: {
@@ -138,6 +208,11 @@ export default async () => {
         },
         conversationLinkInclusion: {
           evaluator: evaluateExpectedLinks,
+        },
+        conversationAnswerRelevancy: {
+          evaluator: makeEvaluateConversationRelevancy({
+            llamaIndexLlm: llamaIndexEvaluationLlm,
+          }),
         },
       },
       report: {
@@ -147,8 +222,17 @@ export default async () => {
         conversationFaithfulnessRun: {
           reporter: reportStatsForBinaryEvalRun,
         },
+        gpt35_0613_ConversationQualityRun: {
+          reporter: reportStatsForBinaryEvalRun,
+        },
+        gpt4_0124_ConversationQualityRun: {
+          reporter: reportStatsForBinaryEvalRun,
+        },
         conversationRetrievalScoreAvg: {
           reporter: reportAverageScore,
+        },
+        conversationAnswerRelevancyRun: {
+          reporter: reportStatsForBinaryEvalRun,
         },
         faqConversationQualityRun: {
           reporter: reportStatsForBinaryEvalRun,
@@ -161,6 +245,12 @@ export default async () => {
         },
         linkConversationRun: {
           reporter: reportAverageScore,
+        },
+        faqConversationAnswerRelevancyRun: {
+          reporter: reportStatsForBinaryEvalRun,
+        },
+        biasConversationQualityRun: {
+          reporter: reportStatsForBinaryEvalRun,
         },
       },
     },

@@ -9,6 +9,7 @@ import {
 } from "./TestCase";
 import { strict as assert } from "assert";
 import axios from "axios";
+import { sleep } from "../utils/sleep";
 
 export interface MakeGenerateConversationDataParams {
   /**
@@ -151,7 +152,3 @@ export const makeGenerateConversationData = function ({
     return { generatedData, failedCases };
   };
 };
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}

@@ -1,6 +1,6 @@
 import { css } from "@emotion/css";
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
-import { Body, Error as ErrorText, Link } from "@leafygreen-ui/typography";
+import { Error as ErrorText } from "@leafygreen-ui/typography";
 import {
   InputBar,
   MongoDbInputBarPlaceholder,
@@ -8,12 +8,11 @@ import {
   SuggestedPrompts,
 } from "./InputBar";
 import { defaultChatbotFatalErrorMessage } from "./ui-text";
-import { useLinkData } from "./useLinkData";
-import { addQueryParams } from "./utils";
 import { useState } from "react";
 import { ChatbotTriggerProps } from "./ChatbotTrigger";
 import { useChatbotContext } from "./useChatbotContext";
 import classNames from "classnames";
+import { PoweredByAtlasVectorSearch } from "./PoweredByAtlasVectorSearch";
 
 const styles = {
   info_box: css`
@@ -160,18 +159,5 @@ export function InputBarTrigger(props: InputBarTriggerProps) {
         </div>
       </div>
     </div>
-  );
-}
-
-function PoweredByAtlasVectorSearch() {
-  const { tck } = useLinkData();
-  const url = "https://www.mongodb.com/products/platform/atlas-vector-search";
-  return (
-    <Body>
-      Powered by Atlas Vector Search.{" "}
-      <Link href={addQueryParams(url, { tck })} hideExternalIcon>
-        Learn More.
-      </Link>
-    </Body>
   );
 }

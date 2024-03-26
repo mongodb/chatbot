@@ -7,6 +7,8 @@ import {
 import { ModalView, ModalViewProps } from "./ModalView";
 import { MongoDbLegalDisclosure } from "./MongoDbLegal";
 import { mongoDbVerifyInformationMessage } from "./ui-text";
+import { PoweredByAtlasVectorSearch } from "./PoweredByAtlasVectorSearch";
+import { css } from "@emotion/css";
 
 export type DevCenterChatbotProps = DarkModeProps & {
   initialMessageText?: string;
@@ -24,7 +26,17 @@ export function DevCenterChatbot(props: DevCenterChatbotProps) {
       props.initialMessageText ??
       "Hi! I'm the MongoDB AI. What can I help you with today?",
     initialMessageSuggestedPrompts: props.initialMessageSuggestedPrompts ?? [],
-    disclaimer: <MongoDbLegalDisclosure />,
+    disclaimer: (
+      <>
+        <MongoDbLegalDisclosure />
+        <PoweredByAtlasVectorSearch
+          className={css`
+            margin-top: 8px;
+          `}
+          linkStyle="text"
+        />
+      </>
+    ),
     inputBottomText: mongoDbVerifyInformationMessage,
   } satisfies ModalViewProps;
 

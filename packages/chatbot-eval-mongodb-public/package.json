@@ -24,7 +24,9 @@
     "eval:conversationFaithfulness": "../mongodb-chatbot-eval/build/main.js evaluate --name conversationFaithfulness --config ./build/eval.config.js",
     "pipeline:conversationQualityCheck": "node ./build/pipelines/conversationQualityCheck.js",
     "pipeline:faqConversationQualityCheck": "node ./build/pipelines/faqConversationQualityCheck.js",
-    "pipeline:linkInclusionCheck": "node ./build/pipelines/linkInclusionCheck.js"
+    "pipeline:linkInclusionCheck": "node ./build/pipelines/linkInclusionCheck.js",
+    "pipeline:llmConversationQualityCheck": "node ./build/pipelines/llmConversationQualityCheck.js",
+    "pipeline:biasConversationQualityCheck": "node ./build/pipelines/biasConversationQualityCheck.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",

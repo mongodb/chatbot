@@ -16,7 +16,10 @@ export const ConversationContext = createContext<Conversation>({
   addMessage: async () => {
     return;
   },
-  modifyMessage: async () => {
+  setMessageContent: async () => {
+    return;
+  },
+  setMessageMetadata: async () => {
     return;
   },
   deleteMessage: async () => {

@@ -1,7 +1,12 @@
 import { vi } from "vitest";
 import {
+  AssistantMessageMetadata,
   ConversationFetchOptions,
   ConversationService,
+  ConversationStreamEvent,
+  DeltaStreamEvent,
+  MetadataStreamEvent,
+  ReferencesStreamEvent,
   formatReferences,
   getCustomRequestOrigin,
 } from "./conversations";
@@ -39,13 +44,32 @@ function mockFetchResponse<T = unknown>({
 // Mock @microsoft/fetch-event-source for SSE streaming requests
 vi.mock("@microsoft/fetch-event-source");
 declare module "@microsoft/fetch-event-source" {
-  export type MockEvent = {
+  export type MockEvent<Data = unknown> = {
     id?: string;
     type?: string;
-    data: string | Record<string, unknown>;
+    data: Data;
   };
   export function __addMockEvents(...newEvents: MockEvent[]): void;
   export function __clearMockEvents(): void;
+}
+
+function mockFetchEventSourceResponse<Data = unknown>(
+  ...events: FetchEventSource.MockEvent<Data>[]
+) {
+  FetchEventSource.__clearMockEvents();
+  FetchEventSource.__addMockEvents(...events);
+  return events;
+}
+
+function filterMockedConversationEventsData<
+  StreamEvent extends ConversationStreamEvent
+>(
+  events: FetchEventSource.MockEvent<ConversationStreamEvent>[],
+  type: StreamEvent["type"]
+): StreamEvent["data"][] {
+  return events
+    .filter((event) => event.data.type === type)
+    .map((event) => (event.data as StreamEvent).data);
 }
 
 //Tests
@@ -163,7 +187,21 @@ describe("ConversationService", () => {
     const conversationId = "650b4b260f975ef031016c8c";
     const mockStreamedMessageId = "651466eecffc98fe887000da";
 
-    FetchEventSource.__addMockEvents(
+    const mockedEvents = mockFetchEventSourceResponse<ConversationStreamEvent>(
+      {
+        id: undefined,
+        type: undefined,
+        data: {
+          type: "metadata",
+          data: {
+            verifiedAnswer: {
+              _id: "66060bf9888068d1e6163ac4",
+              updated: new Date("2024-03-26T01:22:12.000Z").toISOString(),
+              created: new Date("2024-01-21T00:31:16.000Z").toISOString(),
+            },
+          },
+        },
+      },
       {
         id: undefined,
         type: undefined,
@@ -194,12 +232,13 @@ describe("ConversationService", () => {
       {
         id: undefined,
         type: undefined,
-        data: { type: "finished", data: "651466eecffc98fe887000da" },
+        data: { type: "finished", data: mockStreamedMessageId },
       }
     );
 
-    let streamedTokens: string[] = [];
-    let references: References = [];
+    const streamedMetadata: AssistantMessageMetadata[] = [];
+    const streamedTokens: string[] = [];
+    const streamedReferences: References[] = [];
     let streamedMessageId: string | undefined;
     let finishedStreaming = false;
     await conversationService.addMessageStreaming({
@@ -207,27 +246,38 @@ describe("ConversationService", () => {
       message: "Hello world!",
       maxRetries: 0,
       onResponseDelta: async (data: string) => {
-        streamedTokens = [...streamedTokens, data];
+        streamedTokens.push(data);
       },
       onReferences: async (data: References) => {
-        references = data;
+        streamedReferences.push(data);
       },
       onResponseFinished: async (messageId: string) => {
         streamedMessageId = messageId;
         finishedStreaming = true;
       },
+      onMetadata: async (metadata) => {
+        streamedMetadata.push(metadata);
+      },
     });
     expect(streamedMessageId).toEqual(mockStreamedMessageId);
-    expect(streamedTokens).toEqual([
-      "Once upon",
-      " a time there was a",
-      " very long string.",
-    ]);
-    expect(references).toEqual([
-      { title: "Title 1", url: "https://example.com/1" },
-      { title: "Title 2", url: "https://example.com/2" },
-      { title: "Title 3", url: "https://example.com/3" },
-    ]);
+    expect(streamedTokens).toEqual(
+      filterMockedConversationEventsData<DeltaStreamEvent>(
+        mockedEvents,
+        "delta"
+      )
+    );
+    expect(streamedReferences).toEqual(
+      filterMockedConversationEventsData<ReferencesStreamEvent>(
+        mockedEvents,
+        "references"
+      )
+    );
+    expect(streamedMetadata).toEqual(
+      filterMockedConversationEventsData<MetadataStreamEvent>(
+        mockedEvents,
+        "metadata"
+      )
+    );
     expect(finishedStreaming).toEqual(true);
   });
 
@@ -287,6 +337,7 @@ describe("ConversationService", () => {
       onResponseDelta: vi.fn(),
       onResponseFinished: vi.fn(),
       onReferences: vi.fn(),
+      onMetadata: vi.fn(),
     });
     const addStreamingOptions = getOptions();
     expect(addStreamingOptions.headers?.get("foo")).toBe("bar");

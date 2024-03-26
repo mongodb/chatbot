@@ -24,12 +24,13 @@ export const makeVerifiedAnswerGenerateUserPrompt = ({
 }: MakeVerifiedAnswerGenerateUserPromptParams): GenerateUserPromptFunc => {
   return async (args) => {
     const { userMessageText } = args;
-    const { answer, queryEmbedding } = await findVerifiedAnswer({
-      query: userMessageText,
-    });
+    const { answer: verifiedAnswer, queryEmbedding } = await findVerifiedAnswer(
+      {
+        query: userMessageText,
+      }
+    );
 
-    if (answer !== undefined) {
-      const { answer: content, references, ...additionalInfo } = answer;
+    if (verifiedAnswer !== undefined) {
       return {
         userMessage: {
           embedding: queryEmbedding,
@@ -37,9 +38,15 @@ export const makeVerifiedAnswerGenerateUserPrompt = ({
           role: "user",
         },
         staticResponse: {
-          ...additionalInfo,
-          references,
-          content,
+          metadata: {
+            verifiedAnswer: {
+              _id: verifiedAnswer._id,
+              created: verifiedAnswer.created,
+              updated: verifiedAnswer.updated,
+            },
+          },
+          references: verifiedAnswer.references,
+          content: verifiedAnswer.answer,
           role: "assistant",
         },
       } satisfies GenerateUserPromptFuncReturnValue;

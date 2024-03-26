@@ -14,6 +14,7 @@ import {
   isConversationTestCase,
 } from "./TestCase";
 import { strict as assert } from "assert";
+import { sleep } from "../utils/sleep";
 
 export interface MakeGenerateLlmConversationDataParams {
   /**
@@ -120,10 +121,6 @@ export const makeGenerateLlmConversationData = function ({
     return { generatedData, failedCases };
   };
 };
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 function openAiMessageToDbMessage(message: OpenAiChatMessage): Message {
   const dbMessage = {

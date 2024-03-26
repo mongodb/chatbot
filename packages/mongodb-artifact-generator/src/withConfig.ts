@@ -11,7 +11,7 @@ export const loadConfig = async ({
   config: configPathIn,
 }: LoadConfigArgs): Promise<Config> => {
   const path = Path.resolve(
-    configPathIn === undefined ? "artifact-generator.config.ts" : configPathIn
+    configPathIn === undefined ? "build/standardConfig.js" : configPathIn
   );
 
   const partialConfig = (await import(path)).default as Partial<Config>;
@@ -47,12 +47,9 @@ export const loadConfig = async ({
   return config;
 };
 
-
 type WithConfigAction<T> = (config: ResolvedConfig, args: T) => Promise<void>;
 
-export function createConfiguredAction<T>(
-  action: WithConfigAction<T>
-) {
+export function createConfiguredAction<T>(action: WithConfigAction<T>) {
   return action;
 }
 

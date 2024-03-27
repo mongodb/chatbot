@@ -1,3 +1,3 @@
 module.exports = {
-  "embedded-language-formatting": "off",
+  embeddedLanguageFormatting: "off",
 };

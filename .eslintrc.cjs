@@ -4,7 +4,7 @@ module.exports = {
   },
   root: true,
   parser: "@typescript-eslint/parser",
-  plugins: ["@typescript-eslint", "jest", "jsdoc", "prettier"],
+  plugins: ["@typescript-eslint", "jest", "jsdoc", "prettier", "@stylistic/js"],
   extends: [
     "eslint:recommended",
     "prettier",
@@ -26,6 +26,25 @@ module.exports = {
         varsIgnorePattern: "^_",
         argsIgnorePattern: "^_",
         ignoreRestSiblings: true,
+      },
+    ],
+    "padding-line-between-statements": [
+      "warn",
+      {
+        blankLine: "always",
+        prev: ["function", "class"],
+        next: "*",
+      },
+    ],
+    "@stylistic/js/lines-between-class-members": ["warn", "always"],
+    "@stylistic/js/lines-around-comment": [
+      "warn",
+      {
+        beforeBlockComment: true,
+        allowBlockStart: true,
+        allowArrayStart: true,
+        allowObjectStart: true,
+        allowClassStart: true,
       },
     ],
   },

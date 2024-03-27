@@ -22,7 +22,9 @@
     "build": "npm run clean && tsc -b tsconfig.build.json",
     "postbuild": "cp ./src/MessageAnalysis.d.ts ./build/",
     "clean": "rm -rf ./build",
-    "release": "release-it"
+    "release": "release-it",
+    "lint": "eslint ./src --ext ts,tsx,js,jsx --report-unused-disable-directives",
+    "lint:fix": "npm run lint -- --fix && prettier ./src --check --write"
   },
   "keywords": [],
   "author": "",

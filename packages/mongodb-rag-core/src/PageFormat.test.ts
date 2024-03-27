@@ -31,6 +31,5 @@ describe("PageFormat", () => {
       expect(pageFormat("ts")).toBe("typescript");
       expect(pageFormat("sh")).toBe("shell");
     });
-  })
-
+  });
 });

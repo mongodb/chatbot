@@ -153,9 +153,10 @@ export const action = createConfiguredAction<TranslateCodeCommandArgs>(
 
       logger.logInfo(`Created output:\n\n${transformed}\n`);
 
-
       const inputFileName = path.parse(source).name;
-      const outputFileName = `${outputFilename ?? inputFileName}.translated.${targetFileExtension}`;
+      const outputFileName = `${
+        outputFilename ?? inputFileName
+      }.translated.${targetFileExtension}`;
       const outputFilePath = outputPath
         ? path.join(outputPath, outputFileName)
         : outputFileName;

@@ -111,16 +111,15 @@ export const action = createConfiguredAction<ParseDriversCsvCommandArgs>(
       const nodeRepoBaseUrl =
         "https://github.com/mongodb/docs-node/blob/master/";
 
-
-        type RelevantAssetFields = {
-          nodeAssetName: string;
-          nodeAssetRemotePath: string;
-          nodeAssetPathRelativeToSourceRepo: string;
-          nodeAssetFullPath: string;
-          assetType: string;
-          fileRename?: string;
-        };
-        const relevantAssetFieldsOnly = parsedAndNormalized.map(
+      type RelevantAssetFields = {
+        nodeAssetName: string;
+        nodeAssetRemotePath: string;
+        nodeAssetPathRelativeToSourceRepo: string;
+        nodeAssetFullPath: string;
+        assetType: string;
+        fileRename?: string;
+      };
+      const relevantAssetFieldsOnly = parsedAndNormalized.map(
         ({ nodeAssetName, nodeAssetPath, assetType, fileRename }) => {
           const nodeAssetPathRelativeToSourceRepo = nodeAssetPath.replace(
             nodeRepoBaseUrl,

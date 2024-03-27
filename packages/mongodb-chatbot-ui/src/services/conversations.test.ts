@@ -108,7 +108,9 @@ describe("ConversationService", () => {
         ],
       },
     });
-    const conversation = await conversationService.getConversation(conversationId);
+    const conversation = await conversationService.getConversation(
+      conversationId
+    );
     expect(conversation.conversationId).toEqual(conversationId);
     expect(conversation.messages[0].id).toEqual("65c680decdb62b4c92797324");
     expect(conversation.messages[1].id).toEqual("65c680decdb62b4c92797325");

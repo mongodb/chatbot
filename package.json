@@ -15,6 +15,7 @@
     "build": "lerna run build",
     "test": "lerna run test",
     "lint": "lerna run lint",
+    "lint:fix": "lerna run lint:fix",
     "release:chat-ui": "lerna run release --scope='mongodb-chatbot-ui' && git add ./package-lock.json && git commit --amend --no-edit",
     "scripts:analyzeMessages": "lerna run analyzeMessages --scope='scripts'",
     "scripts:scrubMessages": "lerna run scrubMessages --scope='scripts'",
@@ -26,6 +27,7 @@
     "eval:faqConversationQualityCheckPipeline": "lerna run pipeline:faqConversationQualityCheck --scope='chatbot-eval-mongodb-public'"
   },
   "devDependencies": {
+    "@stylistic/eslint-plugin-js": "^1.7.0",
     "lerna": "^5.6.2"
   }
 }

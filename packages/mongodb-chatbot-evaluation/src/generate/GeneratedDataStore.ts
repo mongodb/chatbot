@@ -26,12 +26,17 @@ export interface ConversationEvalData extends Record<string, unknown> {
     Description of what you want to see from the final assistant message.
     An LLM can use this description to see if the final assistant message meets this expectation.
    */
-  qualitativeFinalAssistantMessageExpectation: string;
+  qualitativeFinalAssistantMessageExpectation?: string;
 
   /**
     Description of what the test case assesses.
    */
   name: string;
+
+  /**
+    Link segments expected to be included in the final assistant message.
+   */
+  expectedLinks?: string[];
 }
 
 export interface GeneratedDataStore {

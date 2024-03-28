@@ -1,10 +1,7 @@
 import { getConversationsTestCasesFromYaml } from "../generate/getConversationsTestCasesFromYaml";
 import path from "path";
 import fs from "fs";
-import {
-  TRIGGER_SERVER_ERROR_MESSAGE,
-  makeMockExpressApp,
-} from "./mockExpressApp";
+import { TRIGGER_SERVER_ERROR_MESSAGE } from "./mockExpressApp";
 import { ConversationTestCase } from "../generate/TestCase";
 
 const testDataBasePath = path.resolve(__dirname, "..", "..", "testData");
@@ -19,6 +16,13 @@ export const testCases = getConversationsTestCasesFromYaml(
 export const improperlyFormattedTestCases = fs.readFileSync(
   path.join(testDataBasePath, "not_conversation_test.yaml"),
   "utf8"
+);
+
+export const expectedLinksTestCases = getConversationsTestCasesFromYaml(
+  fs.readFileSync(
+    path.join(testDataBasePath, "expected_links_tests.yaml"),
+    "utf8"
+  )
 );
 
 /**

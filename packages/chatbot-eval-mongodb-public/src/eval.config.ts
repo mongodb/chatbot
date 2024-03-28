@@ -13,6 +13,7 @@ import {
   makeGenerateLlmConversationData,
   evaluateConversationAverageRetrievalScore,
   reportAverageScore,
+  evaluateExpectedLinks,
   makeEvaluateConversationRelevancy,
 } from "mongodb-chatbot-evaluation";
 import {
@@ -57,6 +58,17 @@ export default async () => {
       "utf8"
     )
   );
+  const linkTestCases = getConversationsTestCasesFromYaml(
+    fs.readFileSync(
+      path.resolve(
+        __dirname,
+        "..",
+        "testCases",
+        "included_links_conversations.yml"
+      ),
+      "utf8"
+    )
+  );
   const allTestCases = [...miscTestCases, ...faqTestCases];
   const biasTestCases = getConversationsTestCasesFromYaml(
     fs.readFileSync(
@@ -98,6 +110,17 @@ export default async () => {
         faqConversations: {
           type: "conversation",
           testCases: faqTestCases,
+          generator: makeGenerateConversationData({
+            conversations,
+            httpHeaders: {
+              Origin: "Testing",
+            },
+            apiBaseUrl: CONVERSATIONS_SERVER_BASE_URL,
+          }),
+        },
+        linkConversations: {
+          type: "conversation",
+          testCases: linkTestCases,
           generator: makeGenerateConversationData({
             conversations,
             httpHeaders: {
@@ -183,6 +206,9 @@ export default async () => {
         conversationRetrievalScore: {
           evaluator: evaluateConversationAverageRetrievalScore,
         },
+        conversationLinkInclusion: {
+          evaluator: evaluateExpectedLinks,
+        },
         conversationAnswerRelevancy: {
           evaluator: makeEvaluateConversationRelevancy({
             llamaIndexLlm: llamaIndexEvaluationLlm,
@@ -217,7 +243,9 @@ export default async () => {
         faqConversationRetrievalScoreAvg: {
           reporter: reportAverageScore,
         },
-
+        linkConversationRun: {
+          reporter: reportAverageScore,
+        },
         faqConversationAnswerRelevancyRun: {
           reporter: reportStatsForBinaryEvalRun,
         },

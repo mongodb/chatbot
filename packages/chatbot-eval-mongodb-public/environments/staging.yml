@@ -36,6 +36,7 @@ cronJobs:
       OPENAI_ENDPOINT: docs-chatbot-staging
       OPENAI_API_KEY: docs-chatbot-staging
       OPENAI_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-staging
+      OPENAI_GPT_4_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-staging
 
     resources:
       # guaranteed amount of resources

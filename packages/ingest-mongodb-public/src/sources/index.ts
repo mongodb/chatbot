@@ -473,7 +473,7 @@ export const sourceConstructors: SourceConstructor[] = [
   pyMongoSourceConstructor,
   mongooseSourceConstructor,
   prismaSourceConstructor,
-  cppSourceConstructor,
+  // cppSourceConstructor,
   mongoDbCorpDataSource,
   practicalAggregationsDataSource,
   javaReactiveStreamsSourceConstructor,

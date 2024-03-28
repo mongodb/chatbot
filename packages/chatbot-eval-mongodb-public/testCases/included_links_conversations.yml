@@ -4,7 +4,6 @@
   messages:
     - role: user
       content: and
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query/and
     - reference/operator/aggregation/and
@@ -15,7 +14,6 @@
   messages:
     - role: user
       content: or
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query/or
     - reference/operator/aggregation/or
@@ -26,7 +24,6 @@
   messages:
     - role: user
       content: in
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query/in
     - reference/operator/aggregation/in
@@ -37,7 +34,6 @@
   messages:
     - role: user
       content: findbyid
-  expectation: "N/A"
   expectedLinks:
     - reference/command/find
     - reference/method/db.collection.findOne
@@ -48,7 +44,6 @@
   messages:
     - role: user
       content: findbyidandupdate
-  expectation: "N/A"
   expectedLinks:
     - reference/command/findAndModify
     - reference/method/db.collection.findAndModify
@@ -59,7 +54,6 @@
   messages:
     - role: user
       content: like
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query/regex
     - reference/operator/aggregation/match
@@ -70,7 +64,6 @@
   messages:
     - role: user
       content: not equal
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query/ne
     - reference/operator/aggregation/ne
@@ -81,7 +74,6 @@
   messages:
     - role: user
       content: and operator
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query/and
     - reference/operator/aggregation/and
@@ -92,7 +84,6 @@
   messages:
     - role: user
       content: in operator
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query/in
     - reference/operator/aggregation/in
@@ -103,7 +94,6 @@
   messages:
     - role: user
       content: mongodb.conf
-  expectation: "N/A"
   expectedLinks:
     - reference/configuration-options
     - administration/configuration
@@ -114,7 +104,6 @@
   messages:
     - role: user
       content: conf
-  expectation: "N/A"
   expectedLinks:
     - reference/configuration-options
     - administration/configuration
@@ -125,7 +114,6 @@
   messages:
     - role: user
       content: createcollection
-  expectation: "N/A"
   expectedLinks:
     - reference/method/db.createCollection
     - reference/command/create
@@ -136,7 +124,6 @@
   messages:
     - role: user
       content: not
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query/not
     - reference/operator/aggregation/not
@@ -147,7 +134,6 @@
   messages:
     - role: user
       content: get
-  expectation: "N/A"
   expectedLinks:
     - reference/command/find
     - tutorial/query-documents
@@ -158,7 +144,6 @@
   messages:
     - role: user
       content: aggregate
-  expectation: "N/A"
   expectedLinks:
     - reference/command/aggregate
     - aggregation
@@ -169,7 +154,6 @@
   messages:
     - role: user
       content: $project
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/project
     - core/aggregation-pipeline-optimization
@@ -180,7 +164,6 @@
   messages:
     - role: user
       content: project
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/project
     - core/aggregation-pipeline-optimization
@@ -191,7 +174,6 @@
   messages:
     - role: user
       content: group
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/group
     - core/aggregation-pipeline
@@ -202,7 +184,6 @@
   messages:
     - role: user
       content: $group
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/group
     - core/aggregation-pipeline
@@ -213,7 +194,6 @@
   messages:
     - role: user
       content: aggregation
-  expectation: "N/A"
   expectedLinks:
     - aggregation
     - core/aggregation-pipeline
@@ -223,7 +203,6 @@
   messages:
     - role: user
       content: projection
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/projection
     - reference/operator/aggregation/project
@@ -234,7 +213,6 @@
   messages:
     - role: user
       content: operators
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query
     - reference/operator/update
@@ -245,7 +223,6 @@
   messages:
     - role: user
       content: set
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/update/set
     - reference/operator/aggregation/set
@@ -256,7 +233,6 @@
   messages:
     - role: user
       content: $set
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/update/set
     - reference/operator/aggregation/set
@@ -267,7 +243,6 @@
   messages:
     - role: user
       content: map
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/map
     - tutorial/update-documents-with-aggregation-pipeline
@@ -278,7 +253,6 @@
   messages:
     - role: user
       content: $map
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/map
     - tutorial/update-documents-with-aggregation-pipeline
@@ -289,7 +263,6 @@
   messages:
     - role: user
       content: limit
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/limit
     - reference/method/cursor.limit/
@@ -300,7 +273,6 @@
   messages:
     - role: user
       content: $limit
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/limit
     - reference/method/cursor.limit/
@@ -311,7 +283,6 @@
   messages:
     - role: user
       content: operator
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query
     - reference/operator/update
@@ -322,7 +293,6 @@
   messages:
     - role: user
       content: exists
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query/exists
     - atlas-search/exists
@@ -333,7 +303,6 @@
   messages:
     - role: user
       content: $exists
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query/exists
     - atlas-search/exists
@@ -344,7 +313,6 @@
   messages:
     - role: user
       content: exist
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query/exists
     - atlas-search/exists
@@ -355,7 +323,6 @@
   messages:
     - role: user
       content: mongoclient
-  expectation: "N/A"
   expectedLinks:
     - drivers/kotlin/coroutine/current/fundamentals/connection/mongoclientsettings/
     - drivers/java/sync/current/fundamentals/connection/mongoclientsettings/
@@ -366,7 +333,6 @@
   messages:
     - role: user
       content: mongocli
-  expectation: "N/A"
   expectedLinks:
     - command/mongocli
     - install
@@ -377,7 +343,6 @@
   messages:
     - role: user
       content: connection
-  expectation: "N/A"
   expectedLinks:
     - reference/connection-string
     - reference/command/serverStatus
@@ -388,7 +353,6 @@
   messages:
     - role: user
       content: contains
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query/in
     - tutorial/query-arrays
@@ -399,7 +363,6 @@
   messages:
     - role: user
       content: $contains
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query/in
     - tutorial/query-arrays
@@ -410,7 +373,6 @@
   messages:
     - role: user
       content: lt
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query/lt
     - reference/operator/aggregation/lt
@@ -421,7 +383,6 @@
   messages:
     - role: user
       content: if
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/cond
     - reference/operator/aggregation/switch
@@ -432,7 +393,6 @@
   messages:
     - role: user
       content: $if
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/cond
     - reference/operator/aggregation/switch
@@ -443,7 +403,6 @@
   messages:
     - role: user
       content: order
-  expectation: "N/A"
   expectedLinks:
     - reference/sql-comparison/
     - reference/method/cursor.sort
@@ -454,7 +413,6 @@
   messages:
     - role: user
       content: max
-  expectation: "N/A"
   expectedLinks:
     - /operator/update/max
     - reference/operator/aggregation/max
@@ -465,7 +423,6 @@
   messages:
     - role: user
       content: select
-  expectation: "N/A"
   expectedLinks:
     - reference/sql-comparison
     - reference/sql-aggregation-comparison
@@ -476,7 +433,6 @@
   messages:
     - role: user
       content: condition
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/cond
     - tutorial/query-documents
@@ -487,7 +443,6 @@
   messages:
     - role: user
       content: relation
-  expectation: "N/A"
   expectedLinks:
     - applications/data-models
     - introduction
@@ -498,7 +453,6 @@
   messages:
     - role: user
       content: cond
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/cond
     - tutorial/query-documents
@@ -509,7 +463,6 @@
   messages:
     - role: user
       content: node
-  expectation: "N/A"
   expectedLinks:
     - node/current/
     - node/current/quick-start/
@@ -520,7 +473,6 @@
   messages:
     - role: user
       content: node.js driver
-  expectation: "N/A"
   expectedLinks:
     - node/current/
     - node/current/quick-start/
@@ -531,7 +483,6 @@
   messages:
     - role: user
       content: nodejs
-  expectation: "N/A"
   expectedLinks:
     - node/current/
     - node/current/quick-start/
@@ -542,7 +493,6 @@
   messages:
     - role: user
       content: $filter
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/filter
     - reference/operator/aggregation
@@ -553,7 +503,6 @@
   messages:
     - role: user
       content: $match
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/match
     - reference/operator/query/elemMatch
@@ -564,7 +513,6 @@
   messages:
     - role: user
       content: $push
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/update/push
     - reference/operator/aggregation/push
@@ -575,7 +523,6 @@
   messages:
     - role: user
       content: $regex
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query/regex
     - atlas/atlas-search/regex
@@ -586,7 +533,6 @@
   messages:
     - role: user
       content: $eq
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query/eq
     - reference/operator/aggregation/eq
@@ -597,7 +543,6 @@
   messages:
     - role: user
       content: $size
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query/size
     - reference/operator/aggregation/size
@@ -608,7 +553,6 @@
   messages:
     - role: user
       content: $sort
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/update/sort
     - reference/operator/aggregation/sort
@@ -619,7 +563,6 @@
   messages:
     - role: user
       content: $inc
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/update/inc
     - reference/method/db.collection.updateMany
@@ -630,7 +573,6 @@
   messages:
     - role: user
       content: inc
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/update/inc
     - reference/method/db.collection.updateMany
@@ -641,7 +583,6 @@
   messages:
     - role: user
       content: $pull
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/update/pull
     - reference/operator/update/pullAll
@@ -652,7 +593,6 @@
   messages:
     - role: user
       content: $reduce
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/reduce
     - reference/operator/aggregation
@@ -662,7 +602,6 @@
   messages:
     - role: user
       content: $all
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query/all
     - reference/operator/aggregation/regexFindAll
@@ -673,7 +612,6 @@
   messages:
     - role: user
       content: $facet
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/facet
     - reference/operator/aggregation/bucket
@@ -684,7 +622,6 @@
   messages:
     - role: user
       content: $add
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/add
     - tutorial/update-documents-with-aggregation-pipeline
@@ -695,7 +632,6 @@
   messages:
     - role: user
       content: $first
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/first
     - reference/operator/aggregation/firstN
@@ -706,7 +642,6 @@
   messages:
     - role: user
       content: $count
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/count
     - reference/command/count
@@ -717,7 +652,6 @@
   messages:
     - role: user
       content: indexes
-  expectation: "N/A"
   expectedLinks:
     - core/indexes
 - name: Search for '$addFields'
@@ -726,7 +660,6 @@
   messages:
     - role: user
       content: $addFields
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/addFields
     - core/aggregation-pipeline-optimization
@@ -737,7 +670,6 @@
   messages:
     - role: user
       content: $ifNull
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/ifNull
     - tutorial/query-for-null-fields
@@ -748,7 +680,6 @@
   messages:
     - role: user
       content: datetime
-  expectation: "N/A"
   expectedLinks:
     - reference/method/Date
     - reference/sql-comparison
@@ -759,7 +690,6 @@
   messages:
     - role: user
       content: $avg
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/avg
     - tutorial/update-documents-with-aggregation-pipeline
@@ -770,7 +700,6 @@
   messages:
     - role: user
       content: avg
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/avg
     - tutorial/update-documents-with-aggregation-pipeline
@@ -781,7 +710,6 @@
   messages:
     - role: user
       content: $function
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/function
     - tutorial/map-reduce-examples
@@ -792,7 +720,6 @@
   messages:
     - role: user
       content: $lte
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/query/lte
     - reference/operator/aggregation/lte
@@ -803,7 +730,6 @@
   messages:
     - role: user
       content: $month
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/month
     - reference/operator/aggregation/dayOfMonth
@@ -814,7 +740,6 @@
   messages:
     - role: user
       content: $root
-  expectation: "N/A"
   expectedLinks:
     - reference/aggregation-variables
     - reference/operator/aggregation/replaceRoot
@@ -825,7 +750,6 @@
   messages:
     - role: user
       content: $merge
-  expectation: "N/A"
   expectedLinks:
     - reference/operator/aggregation/merge
     - atlas/data-federation/supported-unsupported/pipeline/merge

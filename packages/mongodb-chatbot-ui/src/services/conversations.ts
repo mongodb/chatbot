@@ -1,5 +1,5 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import { type References } from "mongodb-rag-core";
+import { VerifiedAnswer, type References } from "mongodb-rag-core";
 import { ConversationState } from "../useConversation";
 import { strict as assert } from "node:assert";
 
@@ -13,6 +13,21 @@ export type MessageData = {
   rating?: boolean;
   references?: References;
   suggestedPrompts?: string[];
+  metadata?: AssistantMessageMetadata;
+};
+
+export type AssistantMessageMetadata = {
+  [k: string]: unknown;
+
+  /**
+    If the message came from the verified answers collection, contains the
+    metadata about the verified answer.
+  */
+  verifiedAnswer?: {
+    _id: VerifiedAnswer["_id"];
+    created: string;
+    updated: string | undefined;
+  };
 };
 
 export function formatReferences(references: References): string {
@@ -221,6 +236,7 @@ export class ConversationService {
     maxRetries = 0,
     onResponseDelta,
     onReferences,
+    onMetadata,
     onResponseFinished,
     signal,
   }: {
@@ -229,6 +245,7 @@ export class ConversationService {
     maxRetries?: number;
     onResponseDelta: (delta: string) => void;
     onReferences: (references: References) => void;
+    onMetadata: (metadata: AssistantMessageMetadata) => void;
     onResponseFinished: (messageId: string) => void;
     signal?: AbortSignal;
   }): Promise<void> {
@@ -240,6 +257,7 @@ export class ConversationService {
     type ConversationStreamEvent =
       | { type: "delta"; data: string }
       | { type: "references"; data: References }
+      | { type: "metadata"; data: AssistantMessageMetadata }
       | { type: "finished"; data: string };
 
     const isConversationStreamEvent = (
@@ -249,6 +267,7 @@ export class ConversationService {
       return (
         (e.type === "delta" && typeof e.data === "string") ||
         (e.type === "references" && typeof e.data === "object") ||
+        (e.type === "metadata" && typeof e.data === "object") ||
         (e.type === "finished" && typeof e.data === "string")
       );
     };
@@ -263,6 +282,9 @@ export class ConversationService {
       openWhenHidden: true,
 
       onmessage(ev) {
+        if (process.env.NODE_ENV === "development") {
+          console.debug("[EventSource]", ev);
+        }
         const event = JSON.parse(ev.data);
         if (!isConversationStreamEvent(event)) {
           throw new Error(`Invalid event received from server: ${ev.data}`);
@@ -275,6 +297,10 @@ export class ConversationService {
           }
           case "references": {
             onReferences(event.data);
+            break;
+          }
+          case "metadata": {
+            onMetadata(event.data);
             break;
           }
           case "finished": {

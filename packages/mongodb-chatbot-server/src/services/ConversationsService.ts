@@ -58,16 +58,23 @@ export type AssistantMessage = MessageBase & {
 
   functionCall?: FunctionCall;
 
-  metadata?: {
-    [k: string]: unknown;
+  metadata?: AssistantMessageMetadata;
+};
 
-    /**
+export type AssistantMessageMetadata = {
+  [k: string]: unknown;
+
+  /**
       If the message came from the verified answers collection, contains the
       metadata about the verified answer.
      */
-    verifiedAnswer?: VerifiedAnswer;
-  };
+  verifiedAnswer?: VerifiedAnswerEventData;
 };
+
+export type VerifiedAnswerEventData = Pick<
+  VerifiedAnswer,
+  "_id" | "created" | "updated"
+>;
 
 export type FunctionMessage = MessageBase & {
   role: "function";

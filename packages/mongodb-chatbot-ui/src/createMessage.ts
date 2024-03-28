@@ -1,4 +1,8 @@
-import { MessageData, Role } from "./services/conversations";
+import {
+  AssistantMessageMetadata,
+  MessageData,
+  Role,
+} from "./services/conversations";
 
 export function createMessageId() {
   const now = Date.now();
@@ -8,12 +12,17 @@ export function createMessageId() {
 
 export default function createMessage(
   role: Role,
-  content: string
+  content: string,
+  metadata?: AssistantMessageMetadata
 ): MessageData {
-  return {
+  const message: MessageData = {
     id: createMessageId(),
     role,
     content,
     createdAt: new Date().toISOString(),
   };
+  if (metadata) {
+    message.metadata = metadata;
+  }
+  return message;
 }

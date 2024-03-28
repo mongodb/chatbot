@@ -240,6 +240,15 @@ export const Message = ({
     setRatingCommentStatus("abandoned");
   }
 
+  const verifiedAnswer = messageData.metadata?.verifiedAnswer;
+  const verified = verifiedAnswer
+    ? {
+        verifiedAnswerId: verifiedAnswer._id,
+        verifier: "MongoDB Staff",
+        verifiedAt: new Date(verifiedAnswer.updated ?? verifiedAnswer.created),
+      }
+    : undefined;
+
   return (
     <Fragment key={messageData.id}>
       <LGMessage
@@ -251,6 +260,15 @@ export const Message = ({
         messageBody={messageData.content}
       >
         {isLoading ? <LoadingSkeleton /> : null}
+
+        {/* TODO: Switch this to use the LGMessage.verified prop in the next release */}
+        {verified
+          ? `Verified${verified.verifier ? " by " + verified.verifier : ""}${
+              verified.verifiedAt
+                ? " on " + verified.verifiedAt.toDateString()
+                : ""
+            }`
+          : null}
 
         {showRating ? (
           <MessageRatingWithFeedbackComment

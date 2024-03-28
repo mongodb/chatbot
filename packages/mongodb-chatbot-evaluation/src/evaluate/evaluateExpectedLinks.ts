@@ -1,6 +1,5 @@
 import { ObjectId, Reference } from "mongodb-rag-core";
 import { ConversationGeneratedData } from "../generate";
-import { checkResponseQuality } from "./checkResponseQuality";
 import { EvaluateQualityFunc } from "./EvaluateQualityFunc";
 import { strict as assert } from "assert";
 import { EvalResult } from "./EvaluationStore";
@@ -47,31 +46,21 @@ export const evaluateExpectedLinks: EvaluateQualityFunc = async function ({
     `Last message is not assistant message in test case '${name}'.`
   );
 
-  const expectedLinksMap: Record<
-    string,
-    { matchingActualLink?: string; includesExpected: boolean }
-  > = {};
+  const expectedLinksMap: ExpectedLinks = {};
   const actualLinks = (finalAssistantMessage.references ?? []).map(
     (ref: Reference) => ref.url
   );
   for (const expectedLink of expectedLinks) {
+    expectedLinksMap[expectedLink] = [];
     for (const actualLink of actualLinks) {
       if (actualLink.includes(expectedLink)) {
-        expectedLinksMap[expectedLink] = {
-          matchingActualLink: actualLink,
-          includesExpected: true,
-        };
-        break;
-      } else {
-        expectedLinksMap[expectedLink] = {
-          includesExpected: false,
-        };
+        expectedLinksMap[expectedLink].push(actualLink);
       }
     }
   }
   const result =
     Object.values(expectedLinksMap).reduce(
-      (acc, { includesExpected }) => acc + (includesExpected ? 1 : 0),
+      (acc, linkArr) => acc + (linkArr.length ? 1 : 0),
       0
     ) / expectedLinks.length;
   const evaluation = {
@@ -88,3 +77,11 @@ export const evaluateExpectedLinks: EvaluateQualityFunc = async function ({
   } satisfies EvalResult;
   return evaluation;
 };
+
+export interface ExpectedLinks {
+  /**
+    The expected link is the key and the value is an array
+    of actual links that match the expected link.
+   */
+  [expectedLink: string]: string[];
+}

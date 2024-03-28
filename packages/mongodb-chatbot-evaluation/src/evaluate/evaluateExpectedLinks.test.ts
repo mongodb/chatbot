@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb-rag-core";
 import { ConversationGeneratedData } from "../generate";
-import { evaluateExpectedLinks } from "./evaluateExpectedLinks";
+import { evaluateExpectedLinks, ExpectedLinks } from "./evaluateExpectedLinks";
 import { EvalResult } from "./EvaluationStore";
 
 const generateConversationData = (expectedLinks?: string[]) =>
@@ -61,15 +61,9 @@ describe("evaluateExpectedLinks", () => {
       metadata: {
         testName: generatedConversationData.evalData.name,
         expectedLinksFound: {
-          bar: {
-            matchingActualLink: "bar",
-            includesExpected: true,
-          },
-          fizz: {
-            matchingActualLink: "fizz_buzz",
-            includesExpected: true,
-          },
-        },
+          bar: ["bar"],
+          fizz: ["fizz_buzz"],
+        } satisfies ExpectedLinks,
       },
     } satisfies EvalResult);
   });
@@ -94,12 +88,8 @@ describe("evaluateExpectedLinks", () => {
       metadata: {
         testName: generatedConversationData.evalData.name,
         expectedLinksFound: {
-          bish: {
-            includesExpected: false,
-          },
-          bash: {
-            includesExpected: false,
-          },
+          bish: [],
+          bash: [],
         },
       },
     } satisfies EvalResult);
@@ -125,14 +115,9 @@ describe("evaluateExpectedLinks", () => {
       metadata: {
         testName: generatedConversationData.evalData.name,
         expectedLinksFound: {
-          buzz: {
-            matchingActualLink: "fizz_buzz",
-            includesExpected: true,
-          },
-          bash: {
-            includesExpected: false,
-          },
-        },
+          buzz: ["fizz_buzz"],
+          bash: [],
+        } satisfies ExpectedLinks,
       },
     } satisfies EvalResult);
   });

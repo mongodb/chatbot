@@ -7,7 +7,12 @@ export interface BaseTestCase {
 
 export const ConversationTestCaseDataSchema = z.object({
   name: z.string(),
-  expectation: z.string(),
+  expectation: z
+    .string()
+    .optional()
+    .describe(
+      "Description of what the test case assesses. Used to evaluate against."
+    ),
   messages: z
     .array(
       z.object({

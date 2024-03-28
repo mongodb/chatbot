@@ -56,6 +56,10 @@ export function makeEvaluateConversationQuality({
     const conversationTranscript = stringifyConversation(messages);
     const { qualitativeFinalAssistantMessageExpectation, name } =
       conversationData.evalData;
+    assert(
+      qualitativeFinalAssistantMessageExpectation,
+      "No expectation provided"
+    );
     const { meetsChatQualityStandards, reason } = await checkResponseQuality({
       deploymentName,
       openAiClient,

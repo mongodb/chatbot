@@ -9,12 +9,9 @@ import { stripIndents } from "common-tags";
 import { makeFindContent } from "../vectorSearch";
 import { makeGenerateChatCompletion } from "../chat";
 import { rewriteAsRst, summarizePage, translatePage } from "../operations";
-import {
-  makeRunLogger,
-  type RunLogger
-} from "../runlogger";
+import { makeRunLogger, type RunLogger } from "../runlogger";
 import { rstDescription, stringifyVectorSearchChunks } from "../prompt";
-import path from "path"
+import path from "path";
 
 let logger: RunLogger;
 

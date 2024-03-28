@@ -35,7 +35,7 @@ export function PoweredByAtlasVectorSearch({
           </>
         );
     }
-  }
+  };
 
   return (
     <Body className={className}>

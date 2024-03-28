@@ -126,4 +126,4 @@ export const rstDescription = html`
 
      * - Charlie
        - March 9, 2014
-`
+`;

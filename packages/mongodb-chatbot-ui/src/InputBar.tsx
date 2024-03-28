@@ -29,11 +29,13 @@ const styles = {
     isError,
   }: StylesProps & { isError: boolean }) => css`
     white-space: nowrap;
-    color: ${isError
-      ? palette.red.base
-      : darkMode
-      ? palette.gray.light2
-      : palette.gray.dark2};
+    color: ${
+      isError
+        ? palette.red.base
+        : darkMode
+        ? palette.gray.light2
+        : palette.gray.dark2
+    };
   `,
 };
 
@@ -79,7 +81,7 @@ export function CharacterCount({
           darkMode,
           isError: current > max,
         }),
-        className,
+        className
       )}
     >
       {`${current} / ${max}`}

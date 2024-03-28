@@ -39,7 +39,8 @@
     "build": "tsc -b tsconfig.build.json",
     "postbuild": "chmod +x build/main.js",
     "watch": "tsc -b -w",
-    "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
+    "lint": "eslint ./src --ext ts --report-unused-disable-directives",
+    "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
     "release": "release-it",
     "test": "jest --forceExit"
   },

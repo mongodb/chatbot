@@ -18,7 +18,8 @@
     "dev": "nodemon src/index.ts",
     "format": "prettier ./src --write",
     "format:check": "prettier ./src --check",
-    "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
+    "lint": "eslint ./src --ext ts,tsx,js,jsx --report-unused-disable-directives",
+    "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
     "start": "pm2-runtime ./build/index.js",
     "test": "jest --forceExit",
     "release": "release-it"

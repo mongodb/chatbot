@@ -4,7 +4,7 @@ module.exports = {
   },
   root: true,
   parser: "@typescript-eslint/parser",
-  plugins: ["@typescript-eslint", "jest", "jsdoc", "prettier"],
+  plugins: ["@typescript-eslint", "jest", "jsdoc", "prettier", "@stylistic/js"],
   extends: [
     "eslint:recommended",
     "prettier",

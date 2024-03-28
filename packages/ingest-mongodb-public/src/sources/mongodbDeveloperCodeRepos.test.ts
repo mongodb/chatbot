@@ -23,7 +23,7 @@ jest.setTimeout(90000);
 describe("mongodbDeveloperCodeRepos", () => {
   describe("smoke tests", () => {
     test("nodeJsQuickstart", async () => {
-      smokeTest(nodeJsQuickstart, "usersCollection.js")
+      smokeTest(nodeJsQuickstart, "usersCollection.js");
     });
 
     test("javaQuickstart", async () => {

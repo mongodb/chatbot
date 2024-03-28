@@ -2,7 +2,9 @@ import { promises as fs } from "fs";
 import path from "path";
 import YAML from "yaml";
 
-export async function readYamlDir(dir: string): Promise<[string, Record<string, unknown>][]> {
+export async function readYamlDir(
+  dir: string
+): Promise<[string, Record<string, unknown>][]> {
   try {
     const files = await fs.readdir(dir);
     const yamlFiles = files.filter(

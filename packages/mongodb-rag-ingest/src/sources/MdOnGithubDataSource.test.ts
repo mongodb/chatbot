@@ -8,78 +8,79 @@ import { Page } from "mongodb-rag-core";
 
 jest.setTimeout(60000);
 
-export function samplePathToPage(pathInRepo: string) {
-  if (pathInRepo.endsWith("_index.md")) {
-    pathInRepo = pathInRepo.replace("_index.md", "index.md");
-  }
-  return pathInRepo
-    .replace(/^docs\/content\/mongocxx-v3/, "https://example/com")
-    .replace(/\.md$/, "/");
-}
-const sampleConf: MakeMdOnGithubDataSourceParams = {
-  name: "sample",
-  repoUrl: "https://github.com/mongodb/mongo-cxx-driver/",
+const baseChatbotRepoConfig: MakeMdOnGithubDataSourceParams = {
+  name: "chatbot",
+  repoUrl: "https://github.com/mongodb/chatbot",
   repoLoaderOptions: {
-    branch: "master",
-    ignoreFiles: [/^(?!^\/docs\/content\/mongocxx-v3\/).*/],
+    branch: "main",
   },
-  pathToPageUrl: samplePathToPage,
-  metadata: {
-    productName: "C++ Driver (mongocxx)",
-  },
-  frontMatter: {
-    process: true,
-    separator: "+++",
-    format: "toml",
-  },
-  extractTitle: (_, frontmatter) => (frontmatter?.title as string) ?? null,
+  pathToPageUrl: (path) => path,
   extractMetadata: () => ({
     foo: "bar",
   }),
 };
+
+const mongodbCorpConfig: MakeMdOnGithubDataSourceParams = {
+  ...baseChatbotRepoConfig,
+  name: "mongodb-corp",
+  frontMatter: {
+    process: true,
+    separator: "---",
+    format: "yaml",
+  },
+  metadata: {
+    productName: "MongoDB Corp",
+  },
+  filter: (path) => path.includes("mongodb-corp"),
+  extractTitle: (_, frontmatter) => (frontmatter?.title as string) ?? null,
+};
+
+const ingestTestDataConfig: MakeMdOnGithubDataSourceParams = {
+  ...baseChatbotRepoConfig,
+  name: "ingest_testData",
+  metadata: {
+    productName: "Ingest Test Data",
+  },
+  filter: (path) => path.includes("ingest/testData"),
+};
+
 describe("MdOnGithubDataSource", () => {
   let pages: Page[];
+  const samplePages: Record<string, Page | undefined> = {};
+  const getSamplePage = (path: string) => {
+    const samplePage = samplePages[path];
+    assert(samplePage);
+    return samplePage;
+  };
   beforeAll(async () => {
-    const dataSource = await makeMdOnGithubDataSource(sampleConf);
+    const dataSource = await makeMdOnGithubDataSource(mongodbCorpConfig);
     pages = await dataSource.fetchPages();
+    samplePages["mongodb-corp/chatbot/overview.md"] = pages.find((page) => {
+      return page.url.includes("mongodb-corp/chatbot/overview.md");
+    });
   });
   it("loads and processes a real repo of markdown files", async () => {
-    const samplePage = pages.find((page) =>
-      page.title?.includes("Installing the mongocxx driver")
-    );
+    const samplePage = getSamplePage("mongodb-corp/chatbot/overview.md");
     assert(samplePage);
-    expect(samplePage?.body).toContain("install");
+    expect(samplePage?.body).toContain(
+      "The MongoDB AI is an advanced LLM-based chatbot"
+    );
   });
   it("processes metadata", () => {
-    const samplePage = pages[0];
+    const samplePage = getSamplePage("mongodb-corp/chatbot/overview.md");
     expect(samplePage.metadata).toHaveProperty("foo", "bar");
-    expect(samplePage.metadata).toHaveProperty(
-      "productName",
-      "C++ Driver (mongocxx)"
-    );
+    expect(samplePage.metadata).toHaveProperty("productName", "MongoDB Corp");
   });
   it("removes frontmatter from page body", () => {
-    const samplePage = pages[0];
-    expect(samplePage.body).not.toContain("+++");
+    const samplePage = getSamplePage("mongodb-corp/chatbot/overview.md");
+    expect(samplePage.body).not.toContain("---");
   });
   it("extracts title from frontmatter", () => {
-    const samplePage = pages[0];
+    const samplePage = getSamplePage("mongodb-corp/chatbot/overview.md");
     expect(samplePage.title).toBeTruthy();
   });
   it("works with .mdx files", async () => {
-    const sampleConf: MakeMdOnGithubDataSourceParams = {
-      name: "sample",
-      repoUrl: "https://github.com/mongodb/chatbot",
-      repoLoaderOptions: {
-        branch: "main",
-      },
-      pathToPageUrl: (path) => path,
-      metadata: {
-        productName: "C++ Driver (mongocxx)",
-      },
-      filter: (path) => path.includes("ingest/testData"),
-    };
-    const dataSource = await makeMdOnGithubDataSource(sampleConf);
+    const dataSource = await makeMdOnGithubDataSource(ingestTestDataConfig);
     const pages = await dataSource.fetchPages();
     expect(pages.length).toBeGreaterThan(1);
     expect(

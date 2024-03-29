@@ -21,7 +21,6 @@ import {
 import { prismaSourceConstructor } from "./prisma";
 import { wiredTigerSourceConstructor } from "./wiredTiger";
 import { pyMongoSourceConstructor } from "./pyMongo";
-import { cppSourceConstructor } from "./cppDriver";
 import { mongooseSourceConstructor } from "./mongoose";
 import { practicalAggregationsDataSource } from "./practicalAggregations";
 
@@ -228,6 +227,12 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
     name: "rust",
     tags: ["docs", "driver", "rust"],
     productName: "Rust Driver",
+  },
+  {
+    type: "snooty",
+    name: "cpp-driver",
+    tags: ["docs", "driver", "cpp", "cxx", "c++"],
+    productName: "C++ Driver",
   },
 ];
 
@@ -473,7 +478,6 @@ export const sourceConstructors: SourceConstructor[] = [
   pyMongoSourceConstructor,
   mongooseSourceConstructor,
   prismaSourceConstructor,
-  cppSourceConstructor,
   mongoDbCorpDataSource,
   practicalAggregationsDataSource,
   javaReactiveStreamsSourceConstructor,

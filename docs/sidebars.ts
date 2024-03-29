@@ -67,7 +67,18 @@ const sidebars: SidebarsConfig = {
       ],
     },
     "ui",
-    "evaluation/index",
+    {
+      type: "category",
+      label: "Evaluation CLI",
+      collapsible: true,
+      collapsed: true,
+      items: [
+        "evaluation/index",
+        "evaluation/command-reference",
+        "evaluation/configuration-reference",
+        "evaluation/pipeline",
+      ],
+    },
     {
       type: "category",
       label: "API Reference",

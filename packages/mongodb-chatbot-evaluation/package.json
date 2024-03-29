@@ -1,6 +1,6 @@
 {
   "name": "mongodb-chatbot-evaluation",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Evaluate responses from MongoDB chatbot server",
   "license": "Apache-2.0",
   "author": "MongoDB, Inc.",

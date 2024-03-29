@@ -15,6 +15,7 @@
     "watch": "tsc -b -w",
     "release": "release-it",
     "lint": "eslint ./src --ext ts --report-unused-disable-directives",
+    "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
     "generate:conversations": "../mongodb-chatbot-eval/build/main.js generate --name conversations --config ./build/eval.config.js",
     "generate:faqConversations": "../mongodb-chatbot-eval/build/main.js generate --name faqConversations --config ./build/eval.config.js",
     "report:conversationQualityRun": "../mongodb-chatbot-eval/build/main.js report --name conversationQualityRun --config ./build/eval.config.js",

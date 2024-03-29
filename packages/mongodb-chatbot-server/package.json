@@ -31,7 +31,8 @@
     "build": "npm run clean && tsc -b tsconfig.build.json",
     "format": "prettier ./src --write",
     "format:check": "prettier ./src --check",
-    "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
+    "lint": "eslint ./src --ext ts,tsx,js,jsx --report-unused-disable-directives",
+    "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
     "test": "jest --forceExit",
     "release": "release-it"
   },

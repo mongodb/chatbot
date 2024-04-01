@@ -280,18 +280,13 @@ export const assignFaqIds = async ({
         const previousFaqsWithoutIds = previousFaqs.filter(
           (q) => q.faqId === undefined
         );
-        await Promise.all(
-          previousFaqsWithoutIds.map(async (q) => {
-            const updateResult = await faqCollection.updateOne(
-              {
-                _id: q._id,
-              },
-              { $set: { faqId } }
-            );
-            console.log(
-              `Backported new ID ${faqId} to ${q._id} (modified ${updateResult.modifiedCount})`
-            );
-          })
+        await faqCollection.bulkWrite(
+          previousFaqsWithoutIds.map((q) => ({
+            updateOne: {
+              filter: { _id: q._id },
+              update: { $set: { faqId } },
+            },
+          }))
         );
       }
       return { ...q, faqId };

@@ -249,8 +249,8 @@ export const assignFaqIds = async ({
   >;
 
   /**
-    If a new faqId is generated because existing entries did not have a faqId,
-    assigns the new faqId to the existing entries. 
+    Assigns the given entry's faqId to all existing similar FAQ entries
+    that do not already have a faqId.
    */
   backportNewIds?: boolean;
 }): Promise<(FaqEntry & { faqId: string })[]> => {

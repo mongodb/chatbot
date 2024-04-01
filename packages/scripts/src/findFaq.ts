@@ -239,11 +239,11 @@ export const makeFaqVectorStoreCollectionWrapper = (
   question.
  */
 export const assignFaqIds = async ({
-  faq,
+  faqEntries,
   faqCollection,
   backportNewIds,
 }: {
-  faq: FaqEntry[];
+  faqEntries: FaqEntry[];
   faqCollection: Collection<
     WithId<FaqEntry & { created: Date; epsilon: number }>
   >;
@@ -257,7 +257,7 @@ export const assignFaqIds = async ({
   const store = makeFaqVectorStoreCollectionWrapper(faqCollection);
 
   return await Promise.all(
-    faq.map(async (q) => {
+    faqEntries.map(async (q) => {
       // See if there already is an ID for this FAQ.
       const previousFaqs = await store.findNearestNeighbors(q.embedding);
       const previousFaqsWithFaqIds = previousFaqs.filter(

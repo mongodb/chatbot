@@ -49,27 +49,27 @@ async function main() {
         epsilon,
       },
     })
-      .then(async (faq) => {
+      .then((faqEntries) => {
         // Associate each question with an ID to track questions across runs of
         // findFaq
         return assignFaqIds({
-          faq,
+          faqEntries,
           faqCollection,
           backportNewIds: true,
         });
       })
-      .then(async (faq) => {
+      .then(async (faqEntries) => {
         // Add info to prepare for database insert
-        return faq.map((q) => ({
+        return faqEntries.map((q) => ({
           ...q,
           epsilon,
           created,
           _id: new ObjectId(),
         }));
       })
-      .then(async (faq) => {
+      .then(async (faqEntries) => {
         // Insert into database
-        const insertResult = await faqCollection.insertMany(faq);
+        const insertResult = await faqCollection.insertMany(faqEntries);
         console.log(`Inserted ${insertResult.insertedCount} FAQ entries.`);
       });
   } finally {

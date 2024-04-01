@@ -1,6 +1,11 @@
 import { ObjectId, WithId, MongoClient } from "mongodb";
 import { assertEnvVars } from "mongodb-rag-core";
 import {
+  OpenAIClient,
+  makeOpenAiChatLlm,
+  AzureKeyCredential,
+} from "mongodb-chatbot-server";
+import {
   findFaq,
   FaqEntry,
   assignFaqIds,
@@ -9,7 +14,13 @@ import {
 
 import "dotenv/config";
 
-const { MONGODB_DATABASE_NAME, MONGODB_CONNECTION_URI } = assertEnvVars({
+const {
+  MONGODB_DATABASE_NAME,
+  MONGODB_CONNECTION_URI,
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_ENDPOINT,
+  OPENAI_API_KEY,
+} = assertEnvVars({
   MONGODB_DATABASE_NAME: "",
   MONGODB_CONNECTION_URI: "",
   OPENAI_ENDPOINT: "",
@@ -33,6 +44,7 @@ async function main() {
   }
 
   const client = await MongoClient.connect(MONGODB_CONNECTION_URI);
+
   try {
     const db = client.db(MONGODB_DATABASE_NAME);
     const faqCollection =
@@ -40,6 +52,15 @@ async function main() {
         "faq"
       );
     const created = new Date();
+
+    const openAiClient = new OpenAIClient(
+      OPENAI_ENDPOINT,
+      new AzureKeyCredential(OPENAI_API_KEY)
+    );
+    const llm = makeOpenAiChatLlm({
+      deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+      openAiClient,
+    });
 
     // Associate each question with an ID to track questions across runs of
     // findFaq

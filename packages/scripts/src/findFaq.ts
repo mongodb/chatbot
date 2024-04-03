@@ -164,10 +164,9 @@ export const findFaq = async ({
       const embeddings = cluster.map(({ embedding }) => embedding);
 
       // Get a random sample of questions to represent the question cluster
-      const [question, ...sampleOriginals] = randomSample(cluster, {
-        size: Math.min(cluster.length, 11),
-        replace: false, // no repeats
-      }).map(({ question }) => question.content);
+      const [question, ...sampleOriginals] = randomlySampleQuestions(
+        cluster.map(({ question }) => question.content)
+      );
 
       return {
         embedding: findCentroid(embeddings),
@@ -318,7 +317,7 @@ export const assignRepresentativeQuestion = async ({
 };
 
 // Make @std-lib/randomSample type-friendly
-const randomSample = <T>(
+export const randomSample = <T>(
   a: ArrayLike<T>,
   options: {
     size?: number;
@@ -326,3 +325,9 @@ const randomSample = <T>(
     replace?: boolean;
   }
 ) => randomSampleImpl(a, options) as T[];
+
+export const randomlySampleQuestions = (questions: string[]) =>
+  randomSample(questions, {
+    size: Math.min(questions.length, 11),
+    replace: false, // no repeats
+  });

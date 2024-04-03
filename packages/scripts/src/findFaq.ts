@@ -240,26 +240,15 @@ export const makeFaqVectorStoreCollectionWrapper = (
  */
 export const assignFaqIds = async ({
   faqEntries,
-  faqCollection,
-  backportNewIds,
+  faqStore,
 }: {
   faqEntries: FaqEntry[];
-  faqCollection: Collection<
-    WithId<FaqEntry & { created: Date; epsilon: number }>
-  >;
-
-  /**
-    Assigns the given entry's faqId to all existing similar FAQ entries
-    that do not already have a faqId.
-   */
-  backportNewIds?: boolean;
+  faqStore: VectorStore<WithId<FaqEntry>>;
 }): Promise<(FaqEntry & { faqId: string })[]> => {
-  const store = makeFaqVectorStoreCollectionWrapper(faqCollection);
-
   return await Promise.all(
     faqEntries.map(async (q) => {
       // See if there already is an ID for this FAQ.
-      const previousFaqs = await store.findNearestNeighbors(q.embedding);
+      const previousFaqs = await faqStore.findNearestNeighbors(q.embedding);
       const previousFaqsWithFaqIds = previousFaqs.filter(
         (q) => q.faqId !== undefined
       );
@@ -276,19 +265,6 @@ export const assignFaqIds = async ({
         } faqId ${faqId} for question category "${q.question}"`
       );
 
-      if (backportNewIds) {
-        const previousFaqsWithoutIds = previousFaqs.filter(
-          (q) => q.faqId === undefined
-        );
-        await faqCollection.bulkWrite(
-          previousFaqsWithoutIds.map((q) => ({
-            updateOne: {
-              filter: { _id: q._id },
-              update: { $set: { faqId } },
-            },
-          }))
-        );
-      }
       return { ...q, faqId };
     })
   );

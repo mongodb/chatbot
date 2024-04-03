@@ -54,8 +54,7 @@ async function main() {
         // findFaq
         return assignFaqIds({
           faqEntries,
-          faqCollection,
-          backportNewIds: true,
+          faqStore: makeFaqVectorStoreCollectionWrapper(faqCollection),
         });
       })
       .then(async (faqEntries) => {

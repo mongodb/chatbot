@@ -2,6 +2,7 @@ import { OpenAiChatMessage } from "./ChatLlm";
 import { makeLangchainChatLlm } from "./LangchainChatLlm";
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { ChatOpenAI } from "@langchain/openai";
+import { ChatAnthropic } from "@langchain/anthropic";
 import { assertEnvVars, CORE_ENV_VARS } from "mongodb-rag-core";
 
 jest.setTimeout(30000);
@@ -52,6 +53,34 @@ describe("LangchainChatLlm", () => {
       azureOpenAIApiDeploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
       azureOpenAIApiInstanceName: getAzureInstanceName(OPENAI_ENDPOINT),
       azureOpenAIApiVersion: OPENAI_CHAT_COMPLETION_MODEL_VERSION,
+    });
+    const azureLangchainChatLlm = makeLangchainChatLlm({
+      chatModel: model,
+    });
+    const { role, content } = await azureLangchainChatLlm.answerQuestionAwaited(
+      {
+        messages,
+      }
+    );
+    expect(role).toBe("assistant");
+    expect(content).toBeTruthy();
+
+    const res = await azureLangchainChatLlm.answerQuestionStream({
+      messages,
+    });
+    let contentStream = "";
+    for await (const event of res) {
+      contentStream += event.choices[0].delta?.content;
+    }
+    expect(contentStream).toBeTruthy();
+  });
+
+  // Skipped because we do not have a MongoDB-org Anthropic subscription
+  it.skip("should work with Anthropic", async () => {
+    const model = new ChatAnthropic({
+      temperature: 0.9,
+      anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+      maxTokens: 1024,
     });
     const azureLangchainChatLlm = makeLangchainChatLlm({
       chatModel: model,

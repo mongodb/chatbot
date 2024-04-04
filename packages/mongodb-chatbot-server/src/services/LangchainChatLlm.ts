@@ -2,7 +2,10 @@ import {
   BaseChatModel,
   BaseChatModelCallOptions,
 } from "@langchain/core/language_models/chat_models";
-import { ChatMessage as LangchainChatMessage } from "@langchain/core/messages";
+import {
+  BaseMessagePromptTemplateLike,
+  ChatPromptTemplate,
+} from "@langchain/core/prompts";
 import { ChatLlm, OpenAiChatMessage } from "./ChatLlm";
 import { AssistantMessage } from "./ConversationsService";
 
@@ -23,10 +26,11 @@ export function makeLangchainChatLlm({
 }: MakeLangchainChatLlmProps): ChatLlm {
   return {
     async answerQuestionAwaited({ messages }) {
-      const res = await chatModel.invoke(
-        messages.map((m) => messageBaseToLangchainMessage(m)),
-        callOptions
+      const prompts = ChatPromptTemplate.fromMessages(
+        messages.map((m) => messageBaseMessagePromptTemplateLike(m))
       );
+      const chain = prompts.pipe(chatModel);
+      const res = await chain.invoke({}, callOptions);
       return {
         role: "assistant",
         content: typeof res.content === "string" ? res.content : "",
@@ -34,10 +38,11 @@ export function makeLangchainChatLlm({
     },
     answerQuestionStream: async ({ messages }) =>
       (async function* () {
-        const stream = await chatModel.stream(
-          messages.map(messageBaseToLangchainMessage),
-          callOptions
+        const prompts = ChatPromptTemplate.fromMessages(
+          messages.map((m) => messageBaseMessagePromptTemplateLike(m))
         );
+        const chain = prompts.pipe(chatModel);
+        const stream = await chain.stream({}, callOptions);
         let index = 0;
         for await (const chunk of stream) {
           index++;
@@ -63,8 +68,8 @@ export function makeLangchainChatLlm({
   };
 }
 
-function messageBaseToLangchainMessage(
+function messageBaseMessagePromptTemplateLike(
   message: OpenAiChatMessage
-): LangchainChatMessage {
-  return new LangchainChatMessage(message.content ?? "", message.role);
+): BaseMessagePromptTemplateLike {
+  return [message.role, message.content ?? ""];
 }

@@ -1,6 +1,11 @@
 import { ObjectId, WithId, MongoClient } from "mongodb";
 import { assertEnvVars } from "mongodb-rag-core";
-import { findFaq, FaqEntry } from "../findFaq";
+import {
+  findFaq,
+  FaqEntry,
+  assignFaqIds,
+  makeFaqVectorStoreCollectionWrapper,
+} from "../findFaq";
 
 import "dotenv/config";
 
@@ -30,26 +35,42 @@ async function main() {
   const client = await MongoClient.connect(MONGODB_CONNECTION_URI);
   try {
     const db = client.db(MONGODB_DATABASE_NAME);
-    const faq = await findFaq({
-      db,
-      clusterizeOptions: {
-        epsilon,
-      },
-    });
     const faqCollection =
       db.collection<WithId<FaqEntry & { created: Date; epsilon: number }>>(
         "faq"
       );
     const created = new Date();
-    const insertResult = await faqCollection.insertMany(
-      faq.map((q) => ({
-        ...q,
+
+    // Associate each question with an ID to track questions across runs of
+    // findFaq
+    await findFaq({
+      db,
+      clusterizeOptions: {
         epsilon,
-        created,
-        _id: new ObjectId(),
-      }))
-    );
-    console.log(`Inserted ${insertResult.insertedCount} FAQ entries.`);
+      },
+    })
+      .then((faqEntries) => {
+        // Associate each question with an ID to track questions across runs of
+        // findFaq
+        return assignFaqIds({
+          faqEntries,
+          faqStore: makeFaqVectorStoreCollectionWrapper(faqCollection),
+        });
+      })
+      .then(async (faqEntries) => {
+        // Add info to prepare for database insert
+        return faqEntries.map((q) => ({
+          ...q,
+          epsilon,
+          created,
+          _id: new ObjectId(),
+        }));
+      })
+      .then(async (faqEntries) => {
+        // Insert into database
+        const insertResult = await faqCollection.insertMany(faqEntries);
+        console.log(`Inserted ${insertResult.insertedCount} FAQ entries.`);
+      });
   } finally {
     await client.close();
   }

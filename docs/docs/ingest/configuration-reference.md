@@ -104,7 +104,7 @@ To learn more about creating a `DataSource`, refer to the [Data Sources](./data-
 
 The [`Embedder`](../reference/core/modules.md#embedder) takes in a string and returns a vector embedding for that string.
 
-To create an `Embedder` that uses the [LangChain `Embeddings` class](foo),
+To create an `Embedder` that uses the [LangChain `Embeddings` class](https://js.langchain.com/docs/integrations/text_embedding),
 you can use the function [`makeLangChainEmbedder()`](../reference/core/modules.md#makelangchainembedder). To see the various embedding models supported by LangChain, refer to the [LangChain text embedding models](https://js.langchain.com/docs/integrations/text_embedding) documentation.
 
 ```ts

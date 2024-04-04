@@ -17,7 +17,6 @@ const {
   MONGODB_DATABASE_NAME,
 } = assertEnvVars(ArtifactGeneratorEnvVars);
 
-
 export const standardConfig = {
   embedder: () =>
     makeOpenAiEmbedder({

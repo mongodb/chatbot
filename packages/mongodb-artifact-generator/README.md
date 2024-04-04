@@ -3,22 +3,14 @@
 The artifact generator CLI helps content creators at MongoDB build faster
 by using generative AI to create and translate content.
 
-## Configuration
+## Set Up
 
-To configure the tool, define a `mongodb-artifact-generator.config.js` file. The default
-export of this file must be a `Config` object. See [Config.ts](./src/Config.ts)
-for details.
-
-## Development
-
-### Set Up
-
-Set up the project monorepo. Refer to the [Contributor Guide](../CONTRIBUTING.md)
-for more info on monorepo setup.
+To use this tool, you must set up the project monorepo. Refer to the
+[Contributor Guide](/CONTRIBUTING.md) for more info on monorepo setup.
 
 Make sure you define `.env` files in both the `mongodb-rag-core` and `mongodb-artifact-generator` projects.
 
-### Build & Run
+## Build & Run
 
 To use the CLI, you first have to build it:
 
@@ -34,6 +26,68 @@ node ./build/main.js
 # Run a specific command
 node ./build/main.js <command> <options>
 ```
+
+You can also link the CLI binary to use `mongodb-ai` in your shell instead of
+invoking the build code directly:
+
+```shell
+# Link the local package
+npm link
+# List all commands
+mongodb-ai
+# Run a specific command
+mongodb-ai <command> <options>
+```
+
+### Configuration
+
+The tool uses a configuration file to determine where to find embedded content,
+how to embed content, and other interfaces.
+
+**For most use cases, you can use the built-in standard configuration file:** [`standardConfig`](/packages/mongodb-artifact-generator/src/standardConfig.ts).
+
+To use a custom configuration, define a new configuration file. The default
+export of this file must be a `Config` object. See [Config.ts](./src/Config.ts)
+for details.
+
+## Usage Examples
+
+### Generate a Docs Page
+
+You can generate a docs page that matches a specific template and description.
+
+For a full list of templates, see the [TDBX Content Types](./context/tdbx-content-types) in the `context` folder.
+
+```shell
+mongodb-ai generateDocsPage \
+  --template="quick-start" \
+  --targetDescription="A guide for brand new programmers on how to get started with MongoDB Atlas. It should include some motivating information and focus on getting the user to an 'aha moment'."
+```
+
+### Translate a Code Example
+
+You can translate a code example from one programming language/framework to another.
+
+```shell
+mongodb-ai translateCode \
+  --source="./code-examples/insertOne.js" \
+  --targetDescription="Rewrite this using Java and the MongoDB Java Reactive Streams Driver." \
+  --targetFileExtension="java" \
+  --outputPath="./java-code-examples"
+```
+
+### Translate a Docs Page
+
+You can translate a MongoDB docs page written in reStructuredText from one
+context (e.g. a specific driver) to another.
+
+```shell
+mongodb-ai translateDocsPage \
+  --source="./docs-node/source/crud/insert.txt" \
+  --targetDescription="Rewrite this using Java and the MongoDB Java Reactive Streams Driver."
+```
+
+## Development
 
 A few things to keep in mind when developing in the `mongodb-artifact-generator` project:
 

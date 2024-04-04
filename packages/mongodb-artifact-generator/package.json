@@ -14,7 +14,7 @@
     "README.md"
   ],
   "bin": {
-    "eai-generator": "./build/main.js"
+    "mongodb-ai": "./build/main.js"
   },
   "scripts": {
     "clean": "rm -rf build",
@@ -22,7 +22,8 @@
     "postbuild": "chmod +x build/main.js",
     "watch": "tsc -b -w",
     "test": "jest --forceExit",
-    "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
+    "lint": "eslint ./src --ext ts,tsx,js,jsx --report-unused-disable-directives",
+    "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
     "parseDriversCsv": "npm run build && node ./build/main.js parseDriversCsv --config='./build/standardConfig.js'"
   },
   "devDependencies": {

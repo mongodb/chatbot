@@ -1,5 +1,5 @@
 import { strict as assert } from "assert";
-import { Db, ObjectId } from "mongodb";
+import { Db, ObjectId, Collection, WithId } from "mongodb";
 
 import {
   Conversation,
@@ -7,6 +7,9 @@ import {
   AssistantMessage,
   FunctionMessage,
   UserMessage,
+  VectorStore,
+  FindNearestNeighborsOptions,
+  WithScore,
 } from "mongodb-chatbot-server";
 import { clusterize, DbscanOptions } from "./clusterize";
 import { findCentroid } from "./findCentroid";
@@ -50,6 +53,11 @@ export type FaqEntry = {
     (a cluster with more objects in it is a more frequently asked question).
    */
   faqScore: number;
+
+  /**
+    An id unique to this category of questions.
+   */
+  faqId?: string;
 };
 
 export const findFaq = async ({
@@ -165,4 +173,99 @@ export const findFaq = async ({
     .sort((a, b) => b.faqScore - a.faqScore);
 
   return faqEntries;
+};
+
+/**
+  Make a wrapper around the given collection that conforms to the VectorStore
+  interface.
+
+  Does not manage the collection - callers are still responsible for closing the
+  client.
+ */
+export const makeFaqVectorStoreCollectionWrapper = (
+  collection: Collection<WithId<FaqEntry & { created: Date; epsilon: number }>>
+): VectorStore<WithId<FaqEntry>> => {
+  return {
+    findNearestNeighbors(vector, options) {
+      const {
+        indexName,
+        path,
+        k,
+        minScore,
+        filter,
+        numCandidates,
+      }: Partial<FindNearestNeighborsOptions> = {
+        // Default options
+        indexName: "vector_index",
+        path: "embedding",
+        k: 10,
+        minScore: 0.95,
+        // User options override
+        ...(options ?? {}),
+      };
+      return collection
+        .aggregate<WithScore<WithId<FaqEntry>>>([
+          {
+            $vectorSearch: {
+              index: indexName,
+              queryVector: vector,
+              path,
+              limit: k,
+              numCandidates: numCandidates ?? k * 15,
+              filter,
+            },
+          },
+          {
+            $addFields: {
+              score: {
+                $meta: "vectorSearchScore",
+              },
+            },
+          },
+          {
+            $match: {
+              score: { $gte: minScore },
+            },
+          },
+        ])
+        .toArray();
+    },
+  };
+};
+
+/**
+  For each given question, finds if any similar messages already have a faqId.
+  If so, adopts the faqId. Otherwise, invents a new faqId for this category of
+  question.
+ */
+export const assignFaqIds = async ({
+  faqEntries,
+  faqStore,
+}: {
+  faqEntries: FaqEntry[];
+  faqStore: VectorStore<WithId<FaqEntry>>;
+}): Promise<(FaqEntry & { faqId: string })[]> => {
+  return await Promise.all(
+    faqEntries.map(async (q) => {
+      // See if there already is an ID for this FAQ.
+      const previousFaqs = await faqStore.findNearestNeighbors(q.embedding);
+      const previousFaqsWithFaqIds = previousFaqs.filter(
+        (q) => q.faqId !== undefined
+      );
+      previousFaqsWithFaqIds.sort((a, b) => b.score - a.score);
+
+      // Use the pre-existing faqId or generate a new one for this category
+      const faqId =
+        previousFaqsWithFaqIds[0]?.faqId ?? ObjectId.generate().toString("hex");
+      console.log(
+        `${
+          previousFaqsWithFaqIds[0]?.faqId === undefined
+            ? "Generated new"
+            : "Reused existing"
+        } faqId ${faqId} for question category "${q.question}"`
+      );
+
+      return { ...q, faqId };
+    })
+  );
 };

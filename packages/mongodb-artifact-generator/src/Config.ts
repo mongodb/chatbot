@@ -1,8 +1,4 @@
-import {
-  Embedder,
-  PageStore,
-  EmbeddedContentStore,
-} from "mongodb-rag-core";
+import { Embedder, PageStore, EmbeddedContentStore } from "mongodb-rag-core";
 
 /**
   The configuration for the artifact generator.

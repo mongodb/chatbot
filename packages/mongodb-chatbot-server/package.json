@@ -31,7 +31,8 @@
     "build": "npm run clean && tsc -b tsconfig.build.json",
     "format": "prettier ./src --write",
     "format:check": "prettier ./src --check",
-    "lint": "eslint ./src --ext js,jsx,ts,tsx --report-unused-disable-directives",
+    "lint": "eslint ./src --ext ts,tsx,js,jsx --report-unused-disable-directives",
+    "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
     "test": "jest --forceExit",
     "release": "release-it"
   },
@@ -61,6 +62,7 @@
     "@babel/core": "^7.22.5",
     "@babel/preset-env": "^7.22.5",
     "@babel/preset-typescript": "^7.22.5",
+    "@langchain/anthropic": "^0.1.9",
     "@types/common-tags": "^1.8.1",
     "@types/connect-timeout": "^0.0.37",
     "@types/cors": "^2.8.13",

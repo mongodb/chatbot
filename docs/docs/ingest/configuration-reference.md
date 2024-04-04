@@ -104,7 +104,27 @@ To learn more about creating a `DataSource`, refer to the [Data Sources](./data-
 
 The [`Embedder`](../reference/core/modules.md#embedder) takes in a string and returns a vector embedding for that string.
 
-To create an `Embedder` that uses the [OpenAI Embeddings API](https://platform.openai.com/docs/guides/embeddings),
+To create an `Embedder` that uses the LangChain `Embeddings` class,
+you can use the function [`makeLangChainEmbedder()`](../reference/core/modules.md#makelangchainembedder). To see the various embedding models supported by LangChain, refer to the [LangChain text embedding models](https://js.langchain.com/docs/integrations/text_embedding) documentation.
+
+```ts
+import { makeLangChainEmbedder } from "mongodb-rag-core";
+import { OpenAIEmbeddings } from "@langchain/openai";
+
+const { OPENAI_API_KEY } = process.env;
+
+const langChainOpenAiEmbeddings = new OpenAIEmbeddings({
+  openAIApiKey: OPENAI_API_KEY,
+  modelName: "text-embedding-3-large",
+  dimensions: 1024,
+});
+
+const embedder = makeLangChainEmbedder({
+  langChainEmbeddings: langChainOpenAiEmbeddings,
+});
+```
+
+To create an `Embedder` that uses the [OpenAI Embeddings API](https://platform.openai.com/docs/guides/embeddings) directly,
 you can use the function [`makeOpenAiEmbedder()`](../reference/core/modules.md#makeopenaiembedder). This function uses the
 `@azure/openai` package to construct the OpenAI client, which supports
 both the Azure OpenAI Service and the Open API.

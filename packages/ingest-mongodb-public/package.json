@@ -15,6 +15,7 @@
     "watch": "tsc -b -w",
     "release": "release-it",
     "lint": "eslint ./src --ext ts --report-unused-disable-directives",
+    "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
     "ingest:all": "ingest all --config ./build/config.js",
     "ingest:k8s": "../../node_modules/mongodb-rag-ingest/build/main.js all --config ./build/config.js",
     "ingest:pages": "ingest pages --config ./build/config.js",

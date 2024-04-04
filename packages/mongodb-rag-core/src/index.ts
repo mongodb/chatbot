@@ -2,6 +2,7 @@ export * from "./CoreEnvVars";
 export * from "./DatabaseConnection";
 export * from "./EmbeddedContent";
 export * from "./Embedder";
+export * from "./LangChainEmbedder";
 export * from "./MongoDbEmbeddedContentStore";
 export * from "./MongoDbVerifiedAnswerStore";
 export * from "./MongoDbPageStore";

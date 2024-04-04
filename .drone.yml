@@ -16,11 +16,10 @@ steps:
   - name: test
     image: node:18
     commands:
-      # - npm ci
-      # - npm run build
-      # - npm run lint
-      # - npm run test
-      - echo "revert before merge"
+      - npm ci
+      - npm run build
+      - npm run lint
+      - npm run test
 
     environment:
       PORT: 3000

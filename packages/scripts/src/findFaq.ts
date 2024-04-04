@@ -25,6 +25,11 @@ export type QuestionAndResponses = {
 
 export type FaqEntry = {
   /**
+    FaqEntry schema version.
+   */
+  schemaVersion: 1;
+
+  /**
     An arbitrarily-selected representative question from the questions array.
    */
   question: string;
@@ -169,6 +174,7 @@ export const findFaq = async ({
       );
 
       return {
+        schemaVersion: 1,
         embedding: findCentroid(embeddings),
         question,
         sampleOriginals,

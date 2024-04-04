@@ -1,8 +1,14 @@
+import { WithId } from "mongodb";
 import { ResponseMessage } from "./findFaq";
 import { UserMessage } from "mongodb-chatbot-server";
 import { FaqEntry, randomlySampleQuestions } from "./findFaq";
 
 export type FaqEntryV0 = {
+  /**
+    FaqEntry schema version.
+   */
+  schemaVersion?: 0;
+
   /**
     An arbitrarily-selected representative question from the questions array.
    */
@@ -49,21 +55,28 @@ const deletedProps: Exclude<keyof FaqEntryV0, keyof FaqEntry>[] = [
 export const upgradeFaqEntries = async ({
   entries,
 }: {
-  entries: FaqEntryV0[];
-}): Promise<FaqEntry[]> => {
-  return entries.map((entry) => {
-    const { questions } = entry;
-    const [question, ...sampleOriginals] = randomlySampleQuestions(
-      questions.map(({ content }) => content)
-    );
-    const upgradedEntry: FaqEntry & Partial<FaqEntryV0> = {
-      ...entry,
-      instanceCount: 10,
-      snapshotTotal: 100,
-      sampleOriginals,
-      question,
-    };
-    deletedProps.forEach((k) => delete upgradedEntry[k]);
-    return upgradedEntry;
-  });
+  entries: WithId<FaqEntryV0>[];
+}): Promise<WithId<FaqEntry>[]> => {
+  return entries
+    .filter(
+      // Only upgrade when schema version is below 1
+      ({ schemaVersion }) => schemaVersion === undefined || schemaVersion < 1
+    )
+    .map((entry) => {
+      const { questions } = entry;
+      const [question, ...sampleOriginals] = randomlySampleQuestions(
+        questions.map(({ content }) => content)
+      );
+      const upgradedEntry: WithId<FaqEntry> &
+        Partial<Omit<WithId<FaqEntryV0>, "schemaVersion">> = {
+        ...entry,
+        schemaVersion: 1,
+        instanceCount: 0, // No real way to restore instanceCount/snapshotTotal from faqScore
+        snapshotTotal: 0,
+        sampleOriginals,
+        question,
+      };
+      deletedProps.forEach((k) => delete upgradedEntry[k]);
+      return upgradedEntry;
+    });
 };

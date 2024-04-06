@@ -11,6 +11,7 @@
     "sampleAndSaveMarkdownPages": "npm run build && node ./build/sampleAndSaveMarkdownPages.js",
     "analyzeMessages": "npm run build && node ./build/analyzeMessages.js",
     "findFaq": "npm run build && node ./build/main/findFaqMain.js",
+    "upgradeFaqEntries": "npm run build && node ./build/main/upgradeFaqEntriesMain.js",
     "createView/messages_by_rating": "npm run build && node ./build/createView/messages_by_rating.js",
     "createView/top_250_references": "npm run build && node ./build/createView/top_250_references.js",
     "createView/scrubbed_messages_by_rating": "npm run build && node ./build/createView/scrubbed_messages_by_rating.js",

@@ -1,7 +1,12 @@
 import { WithId, ObjectId } from "mongodb";
 import { ResponseMessage } from "./findFaq";
 import { UserMessage } from "mongodb-chatbot-server";
-import { FaqEntry, randomlySampleQuestions } from "./findFaq";
+import {
+  FaqEntry as FaqEntryWithoutDate,
+  randomlySampleQuestions,
+} from "./findFaq";
+
+export type FaqEntry = FaqEntryWithoutDate & { created: Date };
 
 export type FaqEntryV0 = {
   /**
@@ -44,6 +49,8 @@ export type FaqEntryV0 = {
     An id unique to this category of questions.
    */
   faqId?: string;
+
+  created: Date;
 };
 
 export type CountUserMessagesFunc = (args: {
@@ -51,65 +58,72 @@ export type CountUserMessagesFunc = (args: {
   to: Date;
 }) => Promise<number>;
 
+export type FindQuestionsFromFaqDateFunc = (
+  date: Date
+) => Promise<{ createdAt: Date }[]>;
+
 const deletedProps: Exclude<keyof FaqEntryV0, keyof FaqEntry>[] = [
   "embeddings",
   "questions",
   "responses",
 ];
 
-export const upgradeFaqEntries = async ({
-  entries,
+export const upgradeFaqEntry = async ({
+  entry,
   countUserMessages,
+  findQuestionsFromFaqDate,
 }: {
-  entries: WithId<FaqEntryV0>[];
+  entry: WithId<FaqEntryV0>;
   countUserMessages: CountUserMessagesFunc;
-}): Promise<WithId<FaqEntry>[]> => {
-  return await Promise.all(
-    entries
-      .filter(
-        // Only upgrade when schema version is below 1
-        ({ schemaVersion }) => schemaVersion === undefined || schemaVersion < 1
-      )
-      .map(async (entry) => {
-        const { questions, faqScore } = entry;
-        const [question, ...sampleOriginals] = randomlySampleQuestions(
-          questions.map(({ content }) => content)
-        );
+  findQuestionsFromFaqDate: FindQuestionsFromFaqDateFunc;
+}): Promise<WithId<FaqEntry> | undefined> => {
+  // Only upgrade when schema version is below 1
+  const { schemaVersion } = entry;
+  if (schemaVersion !== undefined && schemaVersion > 0) {
+    return undefined;
+  }
 
-        const { instanceCount, snapshotTotal } = await reconstructCounts({
-          questions,
-          countUserMessages,
-          faqScore,
-          entryId: entry._id,
-        });
-
-        const upgradedEntry: WithId<FaqEntry> &
-          Partial<Omit<WithId<FaqEntryV0>, "schemaVersion">> = {
-          ...entry,
-          schemaVersion: 1,
-          instanceCount,
-          snapshotTotal,
-          sampleOriginals,
-          question,
-        };
-        deletedProps.forEach((k) => delete upgradedEntry[k]);
-        return upgradedEntry;
-      })
+  const { questions, faqScore, _id: entryId, created: entryCreated } = entry;
+  const [question, ...sampleOriginals] = randomlySampleQuestions(
+    questions.map(({ content }) => content)
   );
+
+  const { instanceCount, snapshotTotal } = await reconstructCounts({
+    countUserMessages,
+    faqScore,
+    entryId,
+    entryCreated,
+    findQuestionsFromFaqDate,
+  });
+
+  const upgradedEntry: WithId<FaqEntry> &
+    Partial<Omit<WithId<FaqEntryV0>, "schemaVersion">> = {
+    ...entry,
+    schemaVersion: 1,
+    instanceCount,
+    snapshotTotal,
+    sampleOriginals,
+    question,
+  };
+  deletedProps.forEach((k) => delete upgradedEntry[k]);
+  return upgradedEntry;
 };
 
 export const reconstructCounts = async ({
   entryId,
-  questions,
+  entryCreated,
   countUserMessages,
   faqScore,
+  findQuestionsFromFaqDate,
 }: {
   entryId: ObjectId;
-  questions: (UserMessage & { createdAt: Date })[];
+  entryCreated: Date;
   countUserMessages: CountUserMessagesFunc;
+  findQuestionsFromFaqDate: FindQuestionsFromFaqDateFunc;
   faqScore: number;
 }) => {
   try {
+    const questions = await findQuestionsFromFaqDate(entryCreated);
     const [minCreatedAt, maxCreatedAt] = questions.reduce(
       (acc, { createdAt }) => {
         const minTime = acc[0].getTime();
@@ -131,6 +145,7 @@ export const reconstructCounts = async ({
     // faqScore = instanceCount / snapshotTotal
     // -> instanceCount = faqScore * snapshotTotal
     const instanceCount = Math.floor(faqScore * snapshotTotal);
+
     return { snapshotTotal, instanceCount };
   } catch (error) {
     console.error(

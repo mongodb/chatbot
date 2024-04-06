@@ -333,7 +333,9 @@ export const randomSample = <T>(
 ) => randomSampleImpl(a, options) as T[];
 
 export const randomlySampleQuestions = (questions: string[]) =>
-  randomSample(questions, {
-    size: Math.min(questions.length, 11),
-    replace: false, // no repeats
-  });
+  questions.length < 11
+    ? [...questions]
+    : randomSample(questions, {
+        size: 11,
+        replace: false, // no repeats
+      });

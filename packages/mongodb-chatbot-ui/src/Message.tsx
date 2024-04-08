@@ -240,6 +240,14 @@ export const Message = ({
     setRatingCommentStatus("abandoned");
   }
 
+  const verifiedAnswer = messageData.metadata?.verifiedAnswer;
+  const verified = verifiedAnswer
+    ? {
+        verifier: "MongoDB Staff",
+        verifiedAt: new Date(verifiedAnswer.updated ?? verifiedAnswer.created),
+      }
+    : undefined;
+
   return (
     <Fragment key={messageData.id}>
       <LGMessage
@@ -249,6 +257,7 @@ export const Message = ({
         sourceType={isLoading ? undefined : MessageSourceType.Markdown}
         markdownProps={markdownProps}
         messageBody={messageData.content}
+        verified={verified}
       >
         {isLoading ? <LoadingSkeleton /> : null}
 

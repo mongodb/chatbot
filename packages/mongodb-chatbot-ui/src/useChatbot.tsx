@@ -106,7 +106,10 @@ export function useChatbot(props: UseChatbotProps): ChatbotData {
       setInputText("");
       setAwaitingReply(true);
       openChat();
-      await conversation.addMessage("user", text);
+      await conversation.addMessage({
+        role: "user",
+        content: text,
+      });
     } catch (e) {
       console.error(e);
     } finally {

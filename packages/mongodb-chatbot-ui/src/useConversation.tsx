@@ -6,6 +6,7 @@ import {
   ConversationService,
   formatReferences,
   ConversationFetchOptions,
+  AssistantMessageMetadata,
 } from "./services/conversations";
 import createMessage, { createMessageId } from "./createMessage";
 import {
@@ -28,8 +29,18 @@ export type ConversationState = {
 type ConversationAction =
   | { type: "setConversation"; conversation: Required<ConversationState> }
   | { type: "setConversationError"; errorMessage: string }
-  | { type: "addMessage"; role: Role; content: string }
-  | { type: "modifyMessage"; messageId: MessageData["id"]; content: string }
+  | {
+      type: "addMessage";
+      role: Role;
+      content: string;
+      metadata?: AssistantMessageMetadata;
+    }
+  | { type: "setMessageContent"; messageId: MessageData["id"]; content: string }
+  | {
+      type: "setMessageMetadata";
+      messageId: MessageData["id"];
+      metadata: AssistantMessageMetadata;
+    }
   | { type: "deleteMessage"; messageId: MessageData["id"] }
   | { type: "rateMessage"; messageId: MessageData["id"]; rating: boolean }
   | { type: "createStreamingResponse"; data: string }
@@ -37,11 +48,24 @@ type ConversationAction =
   | { type: "finishStreamingResponse"; messageId: MessageData["id"] }
   | { type: "cancelStreamingResponse" };
 
+/**
+ * Converts a ConversationAction type to a an object that contains the
+ * action event without its `type` field. This can be used an argument
+ * to the corresponding "actor" function.
+ */
+type ConversationActorArgs<K extends ConversationAction["type"]> = Omit<
+  Extract<ConversationAction, { type: K }>,
+  "type"
+>;
+
 type ConversationActor = {
   createConversation: () => Promise<void>;
   endConversationWithError: (errorMessage: string) => void;
-  addMessage: (role: Role, content: string) => Promise<void>;
-  modifyMessage: (messageId: string, content: string) => Promise<void>;
+  addMessage: (args: ConversationActorArgs<"addMessage">) => Promise<void>;
+  setMessageContent: (messageId: string, content: string) => Promise<void>;
+  setMessageMetadata: (
+    args: ConversationActorArgs<"setMessageMetadata">
+  ) => Promise<void>;
   deleteMessage: (messageId: string) => Promise<void>;
   rateMessage: (messageId: string, rating: boolean) => Promise<void>;
   commentMessage: (messageId: string, comment: string) => Promise<void>;
@@ -94,28 +118,63 @@ function conversationReducer(
       if (!state.conversationId) {
         console.error(`Cannot addMessage without a conversationId`);
       }
-      console.log(`addMessage`, action);
-      const newMessage = createMessage(action.role, action.content);
+      const newMessage = createMessage(
+        action.role,
+        action.content,
+        action.metadata
+      );
       return {
         ...state,
         messages: [...state.messages, newMessage],
       };
     }
-    case "modifyMessage": {
+    case "setMessageContent": {
       if (!state.conversationId) {
-        console.error(`Cannot modifyMessage without a conversationId`);
+        console.error(`Cannot setMessageContent without a conversationId`);
         return state;
       }
       const messageIndex = getMessageIndex(action.messageId);
       if (messageIndex === -1) {
         console.error(
-          `Cannot modifyMessage because message with id ${action.messageId} does not exist`
+          `Cannot setMessageContent because message with id ${action.messageId} does not exist`
         );
         return state;
       }
       const modifiedMessage = {
         ...state.messages[messageIndex],
         content: action.content,
+      };
+      return {
+        ...state,
+        messages: [
+          ...state.messages.slice(0, messageIndex),
+          modifiedMessage,
+          ...state.messages.slice(messageIndex + 1),
+        ],
+      };
+    }
+    case "setMessageMetadata": {
+      if (!state.conversationId) {
+        console.error(`Cannot setMessageMetadata without a conversationId`);
+        return state;
+      }
+      const messageIndex = getMessageIndex(action.messageId);
+      if (messageIndex === -1) {
+        console.error(
+          `Cannot setMessageMetadata because message with id ${action.messageId} does not exist`
+        );
+        return state;
+      }
+      const existingMessage = state.messages[messageIndex];
+      if (existingMessage.role !== "assistant") {
+        console.error(
+          `Cannot setMessageMetadata because message with id ${action.messageId} is not an assistant message`
+        );
+        return state;
+      }
+      const modifiedMessage = {
+        ...existingMessage,
+        metadata: action.metadata,
       };
       return {
         ...state,
@@ -328,7 +387,10 @@ export function useConversation(params: UseConversationParams = {}) {
     }
   };
 
-  const addMessage = async (role: Role, content: string) => {
+  const addMessage: ConversationActor["addMessage"] = async ({
+    role,
+    content,
+  }) => {
     if (!state.conversationId) {
       console.error(`Cannot addMessage without a conversationId`);
       return;
@@ -406,6 +468,12 @@ export function useConversation(params: UseConversationParams = {}) {
           onReferences: async (data: References) => {
             references = data;
           },
+          onMetadata: async (metadata) => {
+            setMessageMetadata({
+              messageId: STREAMING_MESSAGE_ID,
+              metadata,
+            });
+          },
           onResponseFinished: async (messageId: string) => {
             streamedMessageId = messageId;
             finishedStreaming = true;
@@ -426,11 +494,15 @@ export function useConversation(params: UseConversationParams = {}) {
           ? formatReferences(references)
           : "";
         dispatch({ type: "cancelStreamingResponse" });
-        dispatch({
-          type: "addMessage",
-          role: "assistant",
-          content: response.content + referencesContent,
-        });
+        const metadata = response.metadata;
+        if (metadata) {
+          dispatch({
+            type: "addMessage",
+            role: "assistant",
+            content: response.content + referencesContent,
+            metadata,
+          });
+        }
       }
     } catch (error) {
       abortController.abort();
@@ -456,12 +528,23 @@ export function useConversation(params: UseConversationParams = {}) {
     });
   };
 
-  const modifyMessage = async (messageId: string, content: string) => {
+  const setMessageContent = async (messageId: string, content: string) => {
     if (!state.conversationId) {
-      console.error(`Cannot modifyMessage without a conversationId`);
+      console.error(`Cannot setMessageContent without a conversationId`);
       return;
     }
-    dispatch({ type: "modifyMessage", messageId, content });
+    dispatch({ type: "setMessageContent", messageId, content });
+  };
+
+  const setMessageMetadata: ConversationActor["setMessageMetadata"] = async ({
+    messageId,
+    metadata,
+  }) => {
+    if (!state.conversationId) {
+      console.error(`Cannot setMessageMetadata without a conversationId`);
+      return;
+    }
+    dispatch({ type: "setMessageMetadata", messageId, metadata });
   };
 
   const deleteMessage = async (messageId: string) => {
@@ -532,7 +615,8 @@ export function useConversation(params: UseConversationParams = {}) {
     endConversationWithError,
     streamingMessage,
     addMessage,
-    modifyMessage,
+    setMessageContent,
+    setMessageMetadata,
     deleteMessage,
     rateMessage,
     commentMessage,

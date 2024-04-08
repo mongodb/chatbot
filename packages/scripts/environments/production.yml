@@ -47,11 +47,11 @@ cronJobs:
     command: ["npm", "run", "scripts:findFaq"]
     env:
       FROM_DATABASE_NAME: docs-chatbot-prod
-      TO_DATABASE_NAME: analysis
+      TO_DATABASE_NAME: prod-analysis
       TO_FAQ_COLLECTION_NAME: faq
     envSecrets:
-      FROM_CONNECTION_URI: docs-chatbot-prod
-      TO_CONNECTION_URI: analysis
+      FROM_CONNECTION_URI: prod-analysis
+      TO_CONNECTION_URI: prod-analysis
     resources:
       # guaranteed amount of resources
       requests:

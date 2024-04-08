@@ -23,21 +23,15 @@ const {
   TO_FAQ_COLLECTION_NAME: "",
 });
 
-const SNAPSHOT_CACHE_JSON_PATH = "./snapshotCache.json";
-
 type SnapshotCache = {
   questionsFromFaq: Record<string, { createdAt: string }[]>;
   counts: Record<string, number>;
 };
 
 async function main() {
-  const snapshotCache: SnapshotCache = JSON.parse(
-    await fs.readFile(SNAPSHOT_CACHE_JSON_PATH, "utf8")
-  );
-
-  const saveCache = async () => {
-    console.log("Saving cache...");
-    await fs.writeFile(SNAPSHOT_CACHE_JSON_PATH, JSON.stringify(snapshotCache));
+  const snapshotCache: SnapshotCache = {
+    questionsFromFaq: {},
+    counts: {},
   };
 
   const fromClient = await MongoClient.connect(FROM_CONNECTION_URI);
@@ -113,7 +107,6 @@ async function main() {
               )
               .flat(1);
             snapshotCache.questionsFromFaq[utcString] = questions;
-            await saveCache();
             return questions.map(({ createdAt }) => ({
               createdAt: new Date(createdAt),
             }));
@@ -136,7 +129,6 @@ async function main() {
             });
 
             snapshotCache.counts[rangeId] = count;
-            await saveCache();
             return count;
           },
         });

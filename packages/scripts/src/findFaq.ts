@@ -55,6 +55,11 @@ export type FaqEntry = {
   snapshotTotal: number;
 
   /**
+    How many days before snapshotDate 
+   */
+  snapshotWindowDays: number;
+
+  /**
     The relative frequency of this question, which is determined by cluster size
     (a cluster with more objects in it is a more frequently asked question).
    */
@@ -68,9 +73,11 @@ export type FaqEntry = {
 
 export const findFaq = async ({
   db,
+  snapshotWindowDays,
   clusterizeOptions,
 }: {
   db: Db;
+  snapshotWindowDays: number;
   clusterizeOptions?: Partial<DbscanOptions>;
 }): Promise<FaqEntry[]> => {
   const conversationsCollection = db.collection<Conversation>("conversations");
@@ -81,6 +88,9 @@ export const findFaq = async ({
       $match: {
         // Include only conversations that actually had user input
         "messages.role": "user",
+        createdAt: {
+          $gte: new Date(Date.now() - snapshotWindowDays * 24 * 60 * 60 * 1000),
+        },
       },
     },
     {
@@ -180,6 +190,7 @@ export const findFaq = async ({
         sampleOriginals,
         instanceCount: cluster.length,
         snapshotTotal: questions.length,
+        snapshotWindowDays,
         faqScore: cluster.length / questions.length,
       };
     })

@@ -49,6 +49,7 @@ async function main() {
       clusterizeOptions: {
         epsilon,
       },
+      snapshotWindowDays: 5,
     })
       .then((faqEntries) => {
         // Associate each question with an ID to track questions across runs of

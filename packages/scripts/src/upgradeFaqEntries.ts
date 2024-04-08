@@ -88,7 +88,7 @@ export const upgradeFaqEntry = async ({
     questions.map(({ content }) => content)
   );
 
-  const { instanceCount, snapshotTotal } = await reconstructCounts({
+  const snapshotTotal = await findSnapshotTotal({
     countUserMessages,
     faqScore,
     entryId,
@@ -100,20 +100,23 @@ export const upgradeFaqEntry = async ({
     Partial<Omit<WithId<FaqEntryV0>, "schemaVersion">> = {
     ...entry,
     schemaVersion: 1,
-    instanceCount,
+    instanceCount: entry.questions.length,
     snapshotTotal,
     sampleOriginals,
+    snapshotWindowDays: 5,
     question,
   };
   deletedProps.forEach((k) => delete upgradedEntry[k]);
   return upgradedEntry;
 };
 
-export const reconstructCounts = async ({
+/**
+  Finds the total number of user messages at the time of the snapshot.
+ */
+export const findSnapshotTotal = async ({
   entryId,
   entryCreated,
   countUserMessages,
-  faqScore,
   findQuestionsFromFaqDate,
 }: {
   entryId: ObjectId;
@@ -137,20 +140,18 @@ export const reconstructCounts = async ({
       [questions[0].createdAt, questions[0].createdAt]
     );
 
+    // Need to count total user messages from snapshot, because 'questions' only
+    // includes FAQs, not 'noise' questions that couldn't be grouped
     const snapshotTotal = await countUserMessages({
       from: minCreatedAt,
       to: maxCreatedAt,
     });
 
-    // faqScore = instanceCount / snapshotTotal
-    // -> instanceCount = faqScore * snapshotTotal
-    const instanceCount = Math.floor(faqScore * snapshotTotal);
-
-    return { snapshotTotal, instanceCount };
+    return snapshotTotal;
   } catch (error) {
     console.error(
       `Failed to reconstruct counts for ${entryId}: ${(error as Error).message}`
     );
-    return { snapshotTotal: -1, instanceCount: -1 };
+    return -1;
   }
 };

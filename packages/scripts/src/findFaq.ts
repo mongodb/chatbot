@@ -1,5 +1,5 @@
 import { strict as assert } from "assert";
-import { Db, ObjectId, Collection, WithId } from "mongodb";
+import { ObjectId, Collection, WithId } from "mongodb";
 import randomSampleImpl from "@stdlib/random-sample";
 import {
   Conversation,
@@ -72,15 +72,14 @@ export type FaqEntry = {
 };
 
 export const findFaq = async ({
-  db,
+  conversationsCollection,
   snapshotWindowDays,
   clusterizeOptions,
 }: {
-  db: Db;
+  conversationsCollection: Collection<Conversation>;
   snapshotWindowDays: number;
   clusterizeOptions?: Partial<DbscanOptions>;
 }): Promise<FaqEntry[]> => {
-  const conversationsCollection = db.collection<Conversation>("conversations");
   const originalMessages = conversationsCollection.aggregate<
     SomeMessage & { indexInConvo: number; convoId: ObjectId }
   >([

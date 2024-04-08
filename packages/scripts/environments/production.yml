@@ -46,14 +46,12 @@ cronJobs:
     schedule: "0 8 * * *" # every day at 8am UTC
     command: ["npm", "run", "scripts:findFaq"]
     env:
-      MONGODB_DATABASE_NAME: docs-chatbot-prod
-      OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
+      FROM_DATABASE_NAME: docs-chatbot-prod
+      TO_DATABASE_NAME: analysis
+      TO_FAQ_COLLECTION_NAME: faq
     envSecrets:
-      MONGODB_CONNECTION_URI: docs-chatbot-prod
-      OPENAI_ENDPOINT: docs-chatbot-prod
-      OPENAI_API_KEY: docs-chatbot-prod
-      OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-prod
-      OPENAI_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-prod
+      FROM_CONNECTION_URI: docs-chatbot-prod
+      TO_CONNECTION_URI: analysis
     resources:
       # guaranteed amount of resources
       requests:

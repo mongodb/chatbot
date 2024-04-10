@@ -1,6 +1,6 @@
 import { strict as assert } from "assert";
-import { Db, ObjectId, Collection, WithId } from "mongodb";
-
+import { ObjectId, Collection, WithId } from "mongodb";
+import randomSampleImpl from "@stdlib/random-sample";
 import {
   Conversation,
   SomeMessage,
@@ -10,6 +10,7 @@ import {
   VectorStore,
   FindNearestNeighborsOptions,
   WithScore,
+  ChatLlm,
 } from "mongodb-chatbot-server";
 import { clusterize, DbscanOptions } from "./clusterize";
 import { findCentroid } from "./findCentroid";
@@ -24,6 +25,11 @@ export type QuestionAndResponses = {
 
 export type FaqEntry = {
   /**
+    FaqEntry schema version.
+   */
+  schemaVersion: 1;
+
+  /**
     An arbitrarily-selected representative question from the questions array.
    */
   question: string;
@@ -34,19 +40,24 @@ export type FaqEntry = {
   embedding: number[];
 
   /**
-    The original question embeddings.
+    A randomly selected sample of original question user messages.
    */
-  embeddings: number[][];
+  sampleOriginals: string[];
 
   /**
-    The original question user messages.
+    The number of questions in the similarity cluster.
    */
-  questions: UserMessage[];
+  instanceCount: number;
 
   /**
-    The original response(s) to the user message.
+    The total number of questions at the time of this findFaq run.
    */
-  responses: ResponseMessage[][];
+  snapshotTotal: number;
+
+  /**
+    How many days before snapshotDate 
+   */
+  snapshotWindowDays: number;
 
   /**
     The relative frequency of this question, which is determined by cluster size
@@ -61,13 +72,14 @@ export type FaqEntry = {
 };
 
 export const findFaq = async ({
-  db,
+  conversationsCollection,
+  snapshotWindowDays,
   clusterizeOptions,
 }: {
-  db: Db;
+  conversationsCollection: Collection<Conversation>;
+  snapshotWindowDays: number;
   clusterizeOptions?: Partial<DbscanOptions>;
 }): Promise<FaqEntry[]> => {
-  const conversationsCollection = db.collection<Conversation>("conversations");
   const originalMessages = conversationsCollection.aggregate<
     SomeMessage & { indexInConvo: number; convoId: ObjectId }
   >([
@@ -75,6 +87,9 @@ export const findFaq = async ({
       $match: {
         // Include only conversations that actually had user input
         "messages.role": "user",
+        createdAt: {
+          $gte: new Date(Date.now() - snapshotWindowDays * 24 * 60 * 60 * 1000),
+        },
       },
     },
     {
@@ -161,12 +176,20 @@ export const findFaq = async ({
   const faqEntries = clusters
     .map((cluster): FaqEntry => {
       const embeddings = cluster.map(({ embedding }) => embedding);
+
+      // Get a random sample of questions to represent the question cluster
+      const [question, ...sampleOriginals] = randomlySampleQuestions(
+        cluster.map(({ question }) => question.content)
+      );
+
       return {
+        schemaVersion: 1,
         embedding: findCentroid(embeddings),
-        embeddings,
-        question: cluster[0].question.content,
-        questions: cluster.map(({ question }) => question),
-        responses: cluster.map(({ responses }) => responses),
+        question,
+        sampleOriginals,
+        instanceCount: cluster.length,
+        snapshotTotal: questions.length,
+        snapshotWindowDays,
         faqScore: cluster.length / questions.length,
       };
     })
@@ -269,3 +292,60 @@ export const assignFaqIds = async ({
     })
   );
 };
+
+export const assignRepresentativeQuestion = async ({
+  faq,
+  llm,
+}: {
+  faq: FaqEntry[];
+  llm: ChatLlm;
+}): Promise<FaqEntry[]> => {
+  return await Promise.all(
+    faq.map(async (q) => {
+      try {
+        const representativeQuestion = await llm.answerQuestionAwaited({
+          messages: [
+            {
+              role: "user",
+              content: `Generate a single question that captures the gist of the following similar questions. Do not include any personally identifiable information. Use proper grammar.\n\n${q.sampleOriginals
+                .map((content) => `- ${content.replaceAll(/\n/g, "...")}`)
+                .join("\n")}`,
+            },
+          ],
+        });
+        console.log(
+          `Generated representative question: "${q.question}" -> "${representativeQuestion.content}"`
+        );
+        if (representativeQuestion.content === null) {
+          throw new Error("llm returned null!");
+        }
+        return { ...q, question: representativeQuestion.content };
+      } catch (error) {
+        console.warn(
+          `Failed to generate representation question for '${q.question}': ${
+            (error as Error).message
+          }`
+        );
+        return q;
+      }
+    })
+  );
+};
+
+// Make @std-lib/randomSample type-friendly
+export const randomSample = <T>(
+  a: ArrayLike<T>,
+  options: {
+    size?: number;
+    probs?: Array<number>;
+    replace?: boolean;
+  }
+) => randomSampleImpl(a, options) as T[];
+
+export const randomlySampleQuestions = (questions: string[]) =>
+  questions.length < 11
+    ? [...questions]
+    : randomSample(questions, {
+        size: 11,
+        replace: false, // no repeats
+      });

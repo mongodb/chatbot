@@ -11,6 +11,7 @@
     "sampleAndSaveMarkdownPages": "npm run build && node ./build/sampleAndSaveMarkdownPages.js",
     "analyzeMessages": "npm run build && node ./build/analyzeMessages.js",
     "findFaq": "npm run build && node ./build/main/findFaqMain.js",
+    "upgradeFaqEntries": "npm run build && node ./build/main/upgradeFaqEntriesMain.js",
     "createView/messages_by_rating": "npm run build && node ./build/createView/messages_by_rating.js",
     "createView/top_250_references": "npm run build && node ./build/createView/top_250_references.js",
     "createView/scrubbed_messages_by_rating": "npm run build && node ./build/createView/scrubbed_messages_by_rating.js",
@@ -32,6 +33,7 @@
   "dependencies": {
     "@cdxoo/dbscan": "^1.1.1",
     "@release-it/bumper": "^5.1.0",
+    "@stdlib/random-sample": "^0.2.1",
     "csv": "^6.3.1",
     "dotenv": "^16.3.1",
     "mongodb-chatbot-server": "*",

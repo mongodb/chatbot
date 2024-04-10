@@ -20,7 +20,7 @@ import { Conversation } from "./ConversationsService";
 export interface MakeOpenAiChatLlmParams {
   deployment: string;
   openAiClient: OpenAIClient;
-  openAiLmmConfigOptions: GetChatCompletionsOptions;
+  openAiLmmConfigOptions?: GetChatCompletionsOptions;
   tools?: Tool[];
 }
 
@@ -49,7 +49,7 @@ export function makeOpenAiChatLlm({
         deployment,
         messages,
         {
-          ...openAiLmmConfigOptions,
+          ...(openAiLmmConfigOptions ?? {}),
           ...(toolCallOptions ? { functionCall: toolCallOptions } : {}),
           functions: tools?.map((tool) => tool.definition),
         }
@@ -63,7 +63,7 @@ export function makeOpenAiChatLlm({
       const {
         choices: [choice],
       } = await openAiClient.getChatCompletions(deployment, messages, {
-        ...openAiLmmConfigOptions,
+        ...(openAiLmmConfigOptions ?? {}),
         ...(toolCallOptions ? { functionCall: toolCallOptions } : {}),
         functions: tools?.map((tool) => tool.definition),
       });

@@ -1,5 +1,6 @@
 import { ObjectId, WithId, MongoClient } from "mongodb";
 import { assertEnvVars } from "mongodb-rag-core";
+import { Conversation } from "mongodb-chatbot-server";
 import {
   findFaq,
   FaqEntry,
@@ -9,13 +10,18 @@ import {
 
 import "dotenv/config";
 
-const { MONGODB_DATABASE_NAME, MONGODB_CONNECTION_URI } = assertEnvVars({
-  MONGODB_DATABASE_NAME: "",
-  MONGODB_CONNECTION_URI: "",
-  OPENAI_ENDPOINT: "",
-  OPENAI_API_KEY: "",
-  OPENAI_CHAT_COMPLETION_MODEL_VERSION: "",
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
+const {
+  FROM_CONNECTION_URI,
+  FROM_DATABASE_NAME,
+  TO_DATABASE_NAME,
+  TO_CONNECTION_URI,
+  TO_FAQ_COLLECTION_NAME,
+} = assertEnvVars({
+  FROM_CONNECTION_URI: "",
+  FROM_DATABASE_NAME: "",
+  TO_CONNECTION_URI: "",
+  TO_DATABASE_NAME: "",
+  TO_FAQ_COLLECTION_NAME: "",
 });
 
 async function main() {
@@ -32,47 +38,57 @@ async function main() {
     );
   }
 
-  const client = await MongoClient.connect(MONGODB_CONNECTION_URI);
+  const fromClient = await MongoClient.connect(FROM_CONNECTION_URI);
   try {
-    const db = client.db(MONGODB_DATABASE_NAME);
-    const faqCollection =
-      db.collection<WithId<FaqEntry & { created: Date; epsilon: number }>>(
-        "faq"
-      );
-    const created = new Date();
+    const toClient = await MongoClient.connect(TO_CONNECTION_URI);
 
-    // Associate each question with an ID to track questions across runs of
-    // findFaq
-    await findFaq({
-      db,
-      clusterizeOptions: {
-        epsilon,
-      },
-    })
-      .then((faqEntries) => {
-        // Associate each question with an ID to track questions across runs of
-        // findFaq
-        return assignFaqIds({
-          faqEntries,
-          faqStore: makeFaqVectorStoreCollectionWrapper(faqCollection),
-        });
-      })
-      .then(async (faqEntries) => {
-        // Add info to prepare for database insert
-        return faqEntries.map((q) => ({
-          ...q,
+    try {
+      const toDb = toClient.db(TO_DATABASE_NAME);
+      const faqCollection = toDb.collection<
+        WithId<FaqEntry & { created: Date; epsilon: number }>
+      >(TO_FAQ_COLLECTION_NAME);
+      const created = new Date();
+
+      const fromDb = fromClient.db(FROM_DATABASE_NAME);
+      const conversationsCollection =
+        fromDb.collection<Conversation>("conversations");
+
+      // Associate each question with an ID to track questions across runs of
+      // findFaq
+      await findFaq({
+        conversationsCollection,
+        clusterizeOptions: {
           epsilon,
-          created,
-          _id: new ObjectId(),
-        }));
+        },
+        snapshotWindowDays: 5,
       })
-      .then(async (faqEntries) => {
-        // Insert into database
-        const insertResult = await faqCollection.insertMany(faqEntries);
-        console.log(`Inserted ${insertResult.insertedCount} FAQ entries.`);
-      });
+        .then((faqEntries) => {
+          // Associate each question with an ID to track questions across runs of
+          // findFaq
+          return assignFaqIds({
+            faqEntries,
+            faqStore: makeFaqVectorStoreCollectionWrapper(faqCollection),
+          });
+        })
+        .then(async (faqEntries) => {
+          // Add info to prepare for database insert
+          return faqEntries.map((q) => ({
+            ...q,
+            epsilon,
+            created,
+            _id: new ObjectId(),
+          }));
+        })
+        .then(async (faqEntries) => {
+          // Insert into database
+          const insertResult = await faqCollection.insertMany(faqEntries);
+          console.log(`Inserted ${insertResult.insertedCount} FAQ entries.`);
+        });
+    } finally {
+      await toClient.close();
+    }
   } finally {
-    await client.close();
+    await fromClient.close();
   }
 }
 

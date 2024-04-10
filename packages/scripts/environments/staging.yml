@@ -42,28 +42,6 @@ cronJobs:
         cpu: 500m
         memory: 5Gi
 
-  - name: find-faq
-    schedule: "0 8 * * *" # every day at 8am UTC
-    command: ["npm", "run", "scripts:findFaq"]
-    env:
-      MONGODB_DATABASE_NAME: docs-chatbot-staging
-      OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
-    envSecrets:
-      MONGODB_CONNECTION_URI: docs-chatbot-staging
-      OPENAI_ENDPOINT: docs-chatbot-staging
-      OPENAI_API_KEY: docs-chatbot-staging
-      OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-staging
-      OPENAI_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-staging
-    resources:
-      # guaranteed amount of resources
-      requests:
-        cpu: 100m
-        memory: 2Gi
-      # maximum allowed resources
-      limits:
-        cpu: 500m
-        memory: 5Gi
-
   - name: clean-up-test-databases-dev
     schedule: 0 8 * * SUN
     command: ["npm", "run", "scripts:removeTestDatabases"]

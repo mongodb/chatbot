@@ -109,4 +109,15 @@ describe("makeEvaluateConversationQuality", () => {
       commandRunMetadataId: commandRunId,
     } satisfies EvalResult);
   });
+  it("should throw if no 'qualitativeFinalAssistantMessageExpectation'", async () => {
+    expect(async () =>
+      evaluateConversationQuality({
+        runId: commandRunId,
+        generatedData: {
+          ...generatedConversationData,
+          evalData: {},
+        },
+      })
+    ).rejects.toThrow();
+  });
 });

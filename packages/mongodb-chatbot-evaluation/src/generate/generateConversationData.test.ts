@@ -63,4 +63,11 @@ describe("makeGenerateConversationData", () => {
     const end2 = Date.now();
     expect(end2 - start2).toBeLessThan(SLEEP_TIME * numSleeps);
   });
+  it("should include expected links", async () => {
+    const generateWithExpectdLinks = await generateConversationData({
+      runId: new ObjectId(),
+      testCases,
+    });
+    expect(generateWithExpectdLinks.generatedData.length).toBeGreaterThan(0);
+  });
 });

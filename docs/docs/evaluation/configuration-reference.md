@@ -2,7 +2,7 @@
 
 This page contains reference documentation for the configuration options for the MongoDB Chatbot Evaluation CLI.
 
-A Evaluation CLI config files is a CommonJS file that exports a `ConfigConstructor` function as its default export.
+An Evaluation CLI config file is a CommonJS file that exports a `ConfigConstructor` function as its default export.
 
 For an example of setting up a configuration file, refer to the [Configuration](./index.md) documentation.
 
@@ -28,7 +28,7 @@ The [`ConfigConstructor`](../reference/evaluation/modules.md#configconstructor) 
 
 The [`CommandMetadataStore`](../reference/evaluation/interfaces/CommandMetadataStore.md) is an interface to interact with MongoDB collection that tracks metadata of each command run.
 
-To create an `CommandMetadataStore`, use the function [`makeMongoDbCommandMetadataStore()`](../reference/evaluation/modules.md#makemongodbcommandmetadatastore).
+To create a `CommandMetadataStore`, use the function [`makeMongoDbCommandMetadataStore()`](../reference/evaluation/modules.md#makemongodbcommandmetadatastore).
 
 ```ts
 import { makeMongoDbCommandMetadataStore } from "mongodb-chatbot-evaluation";
@@ -43,7 +43,7 @@ const commandMetadataStore = makeMongoDbCommandMetadataStore({
 
 The [`GeneratedDataStore`](../reference/evaluation/interfaces/GeneratedDataStore.md) is an interface to interact with MongoDB collection that stores generated data.
 
-To create an `GeneratedDataStore`, use the function [`makeMongoDbGeneratedDataStore()`](../reference/evaluation/modules.md#makemongodbgenerateddatastore).
+To create a `GeneratedDataStore`, use the function [`makeMongoDbGeneratedDataStore()`](../reference/evaluation/modules.md#makemongodbgenerateddatastore).
 
 ```ts
 import { makeMongoDbGeneratedDataStore } from "mongodb-chatbot-evaluation";
@@ -73,7 +73,7 @@ const evaluationStore = makeMongoDbEvaluationStore({
 
 The [`ReportStore`](../reference/evaluation/interfaces/ReportStore.md) is an interface to interact with MongoDB collection that stores reports.
 
-To create an `ReportStore`, use the function [`makeMongoDbReportStore()`](../reference/evaluation/modules.md#makemongodbreportstore).
+To create a `ReportStore`, use the function [`makeMongoDbReportStore()`](../reference/evaluation/modules.md#makemongodbreportstore).
 
 ```ts
 import { makeMongoDbReportStore } from "mongodb-chatbot-evaluation";
@@ -88,9 +88,43 @@ const reportStore = makeMongoDbReportStore({
 
 You must provide test cases to evaluate the chatbot. Pass the test cases to the `commands.generate` property in the `EvalConfig`.
 
+```typescript
+const testCases: ConversationTestCase[] = [
+  {
+    name: `It understands "why the chicken crossed the road" jokes`,
+    expectation: `
+      The ASSISTANT responds with a completion of the classic chicken crossing the road joke.
+      The joke should be completed in a way that is both humorous and appropriate.
+    `,
+    tags: ["joke"],
+    messages: [
+      { role: "user", content: "Why did the chicken cross the road?" }
+    ]
+  },
+];
+
+const evalConfig: EvalConfig = {
+  // ... other fields,
+  commands: {
+    generate: {
+      myTest: {
+        type: "conversation",
+        // highlight-start
+        testCases: testCases,
+        // highlight-end
+        generator: makeGenerateConversationData({ ... }),
+      },
+    },
+    evaluate: { /* ... */ },
+    report: { /* ... */ },
+  },
+};
+```
+
 The `mongodb-chatbot-evaluation` package includes built-in support for the [`ConversationTestCase`](../reference/evaluation/interfaces/ConversationTestCase.md) type.
 You can use this to evaluate the chatbot's performance on conversation data.
 
+### Load test cases from a file
 You can load `ConversationTestCase` object from a YAML file using the [`getConversationsTestCasesFromYaml()`](../reference/evaluation/modules.md#getconversationstestcasesfromyaml) function.
 
 ```ts

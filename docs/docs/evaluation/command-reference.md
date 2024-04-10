@@ -2,7 +2,7 @@
 
 The MongoDB Chatbot Evaluation CLI has the following commands.
 
-You must first install the CLI before you can run it. See the [installation documentation](./index.md#install).
+You must install the CLI before you can run it. See the [installation documentation](./index.md#install).
 
 For all commands, you can use the `--help` flag to get more information about the command.
 

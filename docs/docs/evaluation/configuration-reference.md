@@ -22,7 +22,7 @@ The [`ConfigConstructor`](../reference/evaluation/modules.md#configconstructor) 
 
 ### `CommandMetadataStore`
 
-The [`CommandMetadataStore`](../reference/evaluation/interfaces/CommandMetadataStore.md) is an interface to interact with MongoDB collection that tracks metadata of each command run.
+The [`CommandMetadataStore`](../reference/evaluation/interfaces/CommandMetadataStore.md) is an interface for storing metadata of each command run.
 
 #### `MongoDBCommandMetadataStore`
 
@@ -40,7 +40,7 @@ const commandMetadataStore = makeMongoDbCommandMetadataStore({
 
 ### `GeneratedDataStore`
 
-The [`GeneratedDataStore`](../reference/evaluation/interfaces/GeneratedDataStore.md) is an interface to interact with MongoDB collection that stores generated data.
+The [`GeneratedDataStore`](../reference/evaluation/interfaces/GeneratedDataStore.md) is an interface for storing and working with generated evaluation data.
 
 #### `MongoDBGeneratedDataStore`
 
@@ -58,7 +58,7 @@ const generatedDataStore = makeMongoDbGeneratedDataStore({
 
 ### `EvaluationStore`
 
-The [`EvaluationStore`](../reference/evaluation/interfaces/EvaluationStore.md) is an interface to interact with MongoDB collection that stores evaluation data.
+The [`EvaluationStore`](../reference/evaluation/interfaces/EvaluationStore.md) is an interface for storing and accessing the results of an evaluation.
 
 #### `MongoDBEvaluationStore`
 
@@ -76,7 +76,7 @@ const evaluationStore = makeMongoDbEvaluationStore({
 
 ### `ReportStore`
 
-The [`ReportStore`](../reference/evaluation/interfaces/ReportStore.md) is an interface to interact with MongoDB collection that stores reports.
+The [`ReportStore`](../reference/evaluation/interfaces/ReportStore.md) is an interface for storing reports on the results of evaluation runs.
 
 #### `MongoDBReportStore`
 

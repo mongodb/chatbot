@@ -15,15 +15,15 @@ The Evaluation CLI works by running a series of commands that generate, evaluate
 
 Here's a high-level overview of the process:
 
-1. **Generate Data**: Generate data for evaluation. You can pull data from test cases files, databases, or APIs. Generated data outputs to a `GeneratedDataStore`.
-2. **Evaluate Data**: Evaluate the generated data. You can evaluate the quality, faithfulness, and other aspects of the data. Evaluation outputs to the `EvaluationStore`.
-3. **Report on Data**: Generate reports on an evaluation run. Reports output to the `ReportStore`.
-
 ```mermaid
 graph LR
   generate[Generate] --> evaluate[Evaluate]
   evaluate --> report[Report]
 ```
+
+1. **Generate Data**: Generate data for evaluation. You can pull data from test cases files, databases, or APIs. Generated data outputs to a `GeneratedDataStore`.
+2. **Evaluate Data**: Evaluate the generated data. You can evaluate the quality, faithfulness, and other aspects of the data. Evaluation outputs to the `EvaluationStore`.
+3. **Report on Data**: Generate reports on an evaluation run. Reports output to the `ReportStore`.
 
 Each of these actions can be run with a command from the CLI.
 For information on the available commands, refer to the [CLI Commands Reference](./command-reference.md) documentation.

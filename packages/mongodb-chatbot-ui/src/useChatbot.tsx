@@ -11,6 +11,7 @@ export type UseChatbotProps = {
   shouldStream?: boolean;
   suggestedPrompts?: string[];
   fetchOptions?: ConversationFetchOptions;
+  closeChatOverride?: () => boolean;
 };
 
 export type ChatbotData = {
@@ -26,6 +27,7 @@ export type ChatbotData = {
   isExperimental: boolean;
   maxInputCharacters?: number;
   maxCommentCharacters?: number;
+  initialOpen?: boolean;
   open: boolean;
   openChat: () => void;
   setInputText: (text: string) => void;
@@ -118,7 +120,7 @@ export function useChatbot(props: UseChatbotProps): ChatbotData {
     awaitingReply,
     canSubmit,
     chatbotName,
-    closeChat,
+    closeChat: props.closeChatOverride ? props.closeChatOverride : closeChat,
     conversation,
     handleSubmit,
     inputBarRef,

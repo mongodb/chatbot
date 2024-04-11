@@ -20,6 +20,8 @@ export type ChatbotProps = {
   tck?: string;
   user?: User;
   fetchOptions?: ConversationFetchOptions;
+  open?: boolean;
+  closeChatOverride?: () => boolean;
 };
 
 export function Chatbot({
@@ -29,6 +31,8 @@ export function Chatbot({
   user,
   name,
   fetchOptions,
+  open,
+  closeChatOverride,
   ...props
 }: ChatbotProps) {
   const { darkMode } = useDarkMode(props.darkMode);
@@ -41,6 +45,9 @@ export function Chatbot({
   const maxCommentCharacters =
     props.maxCommentCharacters ?? DEFAULT_MAX_COMMENT_CHARACTERS;
 
+  console.log("CHATBOT WOOT");
+  console.log(open);
+
   const chatbotData = useChatbot({
     chatbotName: name,
     serverBaseUrl,
@@ -48,7 +55,14 @@ export function Chatbot({
     fetchOptions,
     maxInputCharacters,
     maxCommentCharacters,
+    closeChatOverride,
   });
+
+  const { openChat } = chatbotData;
+
+  if (open) {
+    openChat();
+  }
 
   const tck = props.tck ?? "mongodb_ai_chatbot";
 

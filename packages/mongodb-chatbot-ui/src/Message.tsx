@@ -1,5 +1,5 @@
 import { css } from "@emotion/css";
-import { Body, Link } from "@leafygreen-ui/typography";
+import { Body, Link, Subtitle } from "@leafygreen-ui/typography";
 import { ParagraphSkeleton } from "@leafygreen-ui/skeleton-loader";
 import { Avatar, Variant as AvatarVariant } from "@lg-chat/avatar";
 import {
@@ -29,6 +29,8 @@ import { palette } from "@leafygreen-ui/palette";
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { CharacterCount } from "./InputBar";
 import { useChatbotContext } from "./useChatbotContext";
+import { useLinkData } from "./useLinkData";
+import { addQueryParams } from "./utils";
 
 const TRANSITION_DURATION_MS = 300;
 
@@ -248,6 +250,13 @@ export const Message = ({
       }
     : undefined;
 
+  const { tck } = useLinkData();
+  const messageLinks = messageData.references?.map((reference) => ({
+    href: addQueryParams(reference.url, { tck }),
+    children: reference.title,
+    variant: reference.linkVariant,
+  }));
+
   return (
     <Fragment key={messageData.id}>
       <LGMessage
@@ -258,6 +267,7 @@ export const Message = ({
         markdownProps={markdownProps}
         messageBody={messageData.content}
         verified={verified}
+        links={messageLinks}
       >
         {isLoading ? <LoadingSkeleton /> : null}
 

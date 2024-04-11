@@ -2,11 +2,10 @@ import { useMemo, useReducer } from "react";
 import { type References } from "mongodb-rag-core";
 import {
   MessageData,
-  Role,
   ConversationService,
-  formatReferences,
   ConversationFetchOptions,
   AssistantMessageMetadata,
+  MessageDataReferences,
 } from "./services/conversations";
 import createMessage, { createMessageId } from "./createMessage";
 import {
@@ -15,6 +14,7 @@ import {
   updateArrayElementAt,
   canUseServerSentEvents,
 } from "./utils";
+import { addReferenceLinkVariant } from "./referenceType";
 
 const STREAMING_MESSAGE_ID = "streaming-response";
 
@@ -31,9 +31,15 @@ type ConversationAction =
   | { type: "setConversationError"; errorMessage: string }
   | {
       type: "addMessage";
-      role: Role;
+      role: "assistant";
       content: string;
+      references?: References;
       metadata?: AssistantMessageMetadata;
+    }
+  | {
+      type: "addMessage";
+      role: "user";
+      content: string;
     }
   | { type: "setMessageContent"; messageId: MessageData["id"]; content: string }
   | {
@@ -45,6 +51,10 @@ type ConversationAction =
   | { type: "rateMessage"; messageId: MessageData["id"]; rating: boolean }
   | { type: "createStreamingResponse"; data: string }
   | { type: "appendStreamingResponse"; data: string }
+  | {
+      type: "appendStreamingReferences";
+      data: MessageDataReferences;
+    }
   | { type: "finishStreamingResponse"; messageId: MessageData["id"] }
   | { type: "cancelStreamingResponse" };
 
@@ -118,11 +128,15 @@ function conversationReducer(
       if (!state.conversationId) {
         console.error(`Cannot addMessage without a conversationId`);
       }
-      const newMessage = createMessage(
-        action.role,
-        action.content,
-        action.metadata
-      );
+
+      const { type: _, role, content, ...assistantMessageData } = action;
+
+      const newMessage = createMessage({
+        role: action.role,
+        content: action.content,
+        ...assistantMessageData,
+      });
+
       return {
         ...state,
         messages: [...state.messages, newMessage],
@@ -246,7 +260,10 @@ function conversationReducer(
         return state;
       }
       streamingMessage = {
-        ...createMessage("assistant", action.data),
+        ...createMessage({
+          role: "assistant",
+          content: action.data,
+        }),
         id: STREAMING_MESSAGE_ID,
       };
       return {
@@ -274,6 +291,36 @@ function conversationReducer(
         ...streamingMessage,
         content: streamingMessage.content + action.data,
       };
+      return {
+        ...state,
+        messages: updateArrayElementAt(
+          state.messages,
+          streamingMessageIndex,
+          modifiedMessage
+        ),
+      };
+    }
+    case "appendStreamingReferences": {
+      if (!state.conversationId) {
+        console.error(
+          `Cannot appendStreamingResponse without a conversationId`
+        );
+        return state;
+      }
+      const { streamingMessage, streamingMessageIndex } = getStreamingMessage();
+      if (!streamingMessage) {
+        console.error(
+          `Cannot appendStreamingResponse without a streamingMessage. Make sure to dispatch createStreamingResponse first.`
+        );
+        return state;
+      }
+      const modifiedMessage = {
+        ...streamingMessage,
+        references: [
+          ...(streamingMessage.references ?? []),
+          ...action.data.map((ref) => addReferenceLinkVariant(ref)),
+        ],
+      } satisfies MessageData;
       return {
         ...state,
         messages: updateArrayElementAt(
@@ -436,8 +483,8 @@ export function useConversation(params: UseConversationParams = {}) {
         }
 
         dispatch({
-          type: "appendStreamingResponse",
-          data: formatReferences(references),
+          type: "appendStreamingReferences",
+          data: references,
         });
         references = null;
       }
@@ -489,15 +536,14 @@ export function useConversation(params: UseConversationParams = {}) {
           conversationId: state.conversationId,
           message: content,
         });
-        references = response.references ?? null;
-        const referencesContent = references
-          ? formatReferences(references)
-          : "";
         dispatch({ type: "cancelStreamingResponse" });
         dispatch({
           type: "addMessage",
           role: "assistant",
-          content: response.content + referencesContent,
+          content: response.content,
+          references: response.references?.map((ref) =>
+            addReferenceLinkVariant(ref)
+          ),
           metadata: response.metadata,
         });
       }

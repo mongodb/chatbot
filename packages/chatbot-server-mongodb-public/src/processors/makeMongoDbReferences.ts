@@ -17,12 +17,5 @@ import {
 export const makeMongoDbReferences: MakeReferenceLinksFunc = (
   chunks: EmbeddedContent[]
 ) => {
-  const baseReferences = makeDefaultReferenceLinks(chunks);
-  return baseReferences.map((ref) => {
-    const url = new URL(ref.url);
-    return {
-      url: url.href,
-      title: url.origin + url.pathname,
-    };
-  });
+  return makeDefaultReferenceLinks(chunks);
 };

@@ -494,15 +494,12 @@ export function useConversation(params: UseConversationParams = {}) {
           ? formatReferences(references)
           : "";
         dispatch({ type: "cancelStreamingResponse" });
-        const metadata = response.metadata;
-        if (metadata) {
-          dispatch({
-            type: "addMessage",
-            role: "assistant",
-            content: response.content + referencesContent,
-            metadata,
-          });
-        }
+        dispatch({
+          type: "addMessage",
+          role: "assistant",
+          content: response.content + referencesContent,
+          metadata: response.metadata,
+        });
       }
     } catch (error) {
       abortController.abort();

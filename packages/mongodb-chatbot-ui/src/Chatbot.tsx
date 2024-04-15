@@ -45,9 +45,6 @@ export function Chatbot({
   const maxCommentCharacters =
     props.maxCommentCharacters ?? DEFAULT_MAX_COMMENT_CHARACTERS;
 
-  console.log("CHATBOT WOOT");
-  console.log(open);
-
   const chatbotData = useChatbot({
     chatbotName: name,
     serverBaseUrl,

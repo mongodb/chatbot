@@ -8,6 +8,8 @@ import {
   OpenAIClient,
   AzureKeyCredential,
 } from "mongodb-rag-core";
+import { Octokit } from "@octokit/rest";
+import JiraApi from "jira-client";
 
 const {
   OPENAI_ENDPOINT,
@@ -15,6 +17,9 @@ const {
   OPENAI_EMBEDDING_DEPLOYMENT,
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
+  GITHUB_ACCESS_TOKEN,
+  JIRA_USERNAME,
+  JIRA_PASSWORD,
 } = assertEnvVars(ArtifactGeneratorEnvVars);
 
 export const standardConfig = {
@@ -40,6 +45,21 @@ export const standardConfig = {
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
     }),
+  jiraApi: () => {
+    return new JiraApi({
+      protocol: "https",
+      host: "jira.mongodb.org",
+      apiVersion: "2",
+      strictSSL: true,
+      username: JIRA_USERNAME,
+      password: JIRA_PASSWORD,
+    });
+  },
+  githubApi: async () => {
+    return new Octokit({
+      auth: GITHUB_ACCESS_TOKEN,
+    });
+  },
 } satisfies Config;
 
 export default standardConfig;

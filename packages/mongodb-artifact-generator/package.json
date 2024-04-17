@@ -50,10 +50,12 @@
   },
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.6",
+    "@octokit/rest": "^20.1.0",
+    "@types/jira-client": "^7.1.9",
     "common-tags": "^1.8.2",
     "dotenv": "^16",
     "front-matter": "^4.0.2",
-    "mongodb": "^5.9.2",
+    "jira-client": "^8.2.2",
     "mongodb-rag-core": "^0.1.0",
     "papaparse": "^5.4.1",
     "yaml": "^2.3.1",

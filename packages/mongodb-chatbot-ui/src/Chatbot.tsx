@@ -7,6 +7,7 @@ import { LinkDataProvider } from "./LinkDataProvider";
 import { type User } from "./useUser";
 import { ChatbotProvider } from "./ChatbotProvider";
 import { ConversationFetchOptions } from "./services/conversations";
+import ConversationProvider from "./ConversationProvider";
 
 export type ChatbotProps = {
   children: React.ReactElement | React.ReactElement[];
@@ -56,7 +57,11 @@ export function Chatbot({
     <LeafyGreenProvider darkMode={darkMode}>
       <LinkDataProvider tck={tck}>
         <UserProvider user={user}>
-          <ChatbotProvider {...chatbotData}>{children}</ChatbotProvider>
+          <ChatbotProvider {...chatbotData}>
+            <ConversationProvider conversation={chatbotData.conversation}>
+              {children}
+            </ConversationProvider>
+          </ChatbotProvider>
         </UserProvider>
       </LinkDataProvider>
     </LeafyGreenProvider>

@@ -1,9 +1,5 @@
 import { createContext } from "react";
-import {
-  useConversation,
-  defaultConversationState,
-  Conversation,
-} from "./useConversation";
+import { defaultConversationState, Conversation } from "./useConversation";
 
 export const ConversationContext = createContext<Conversation>({
   ...defaultConversationState,
@@ -38,13 +34,13 @@ export const ConversationContext = createContext<Conversation>({
 
 export default function ConversationProvider({
   children,
+  conversation,
 }: {
   children: React.ReactNode;
+  conversation: Conversation;
 }) {
-  const providerValue = useConversation();
-
   return (
-    <ConversationContext.Provider value={providerValue}>
+    <ConversationContext.Provider value={conversation}>
       {children}
     </ConversationContext.Provider>
   );

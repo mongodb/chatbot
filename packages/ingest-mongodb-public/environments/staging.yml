@@ -76,7 +76,6 @@ cronJobs:
       DEVCENTER_CONNECTION_URI: docs-chatbot-staging
       GITHUB_ACCESS_TOKEN: docs-chatbot-staging
       UNIVERSITY_DATA_API_KEY: docs-chatbot-staging
-      MONGODB_COACH_GTM_DATABASE_NAME: docs-chatbot-staging
       MONGODB_DOT_COM_CONNECTION_URI: docs-chatbot-staging
       MONGODB_DOT_COM_DB_NAME: docs-chatbot-staging
     resources:

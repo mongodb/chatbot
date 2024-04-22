@@ -59,7 +59,7 @@ cronJobs:
         memory: 5Gi
   - name: ingest-content-coach-gtm
     schedule: "0 4 * * *" # every day at 4am UTC (11PM EST)
-    command: ["npm", "run", "ingest:k8s:coachGtm"]
+    command: ["npm", "run", "ingest:k8s:coachGtmPages"]
     env:
       OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
       OPENAI_EMBEDDING_MODEL_VERSION: 2023-03-15-preview

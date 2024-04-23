@@ -59,7 +59,7 @@ export function ModalView(props: ModalViewProps) {
     }
   };
 
-  const chatWndowInputBarId = inputBarId ?? "chatbot-modal-input-bar";
+  const chatWindowInputBarId = inputBarId ?? "chatbot-modal-input-bar";
 
   return (
     <Suspense fallback={null}>
@@ -69,11 +69,11 @@ export function ModalView(props: ModalViewProps) {
           open={open}
           size="large"
           initialFocus={
-            !conversation.error ? `#${chatWndowInputBarId}` : undefined
+            !conversation.error ? `#${chatWindowInputBarId}` : undefined
           }
           shouldClose={shouldClose}
         >
-          <ChatWindow inputBarId={chatWndowInputBarId} {...chatWindowProps} />
+          <ChatWindow inputBarId={chatWindowInputBarId} {...chatWindowProps} />
         </Modal>
       ) : null}
     </Suspense>

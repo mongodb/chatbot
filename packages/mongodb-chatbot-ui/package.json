@@ -26,12 +26,12 @@
     "README.md"
   ],
   "module": "./build/index.js",
-  "main": "./build/cjs/mongodb-chatbot-ui.umd.js",
+  "main": "./build/cjs/mongodb-chatbot-ui.cjs.js",
   "types": "./build/types/index.d.ts",
   "exports": {
     ".": {
       "import": "./build/index.js",
-      "require": "./build/cjs/mongodb-chatbot-ui.umd.js",
+      "require": "./build/cjs/mongodb-chatbot-ui.cjs.js",
       "types": "./build/types/index.d.ts"
     },
     "./*": {

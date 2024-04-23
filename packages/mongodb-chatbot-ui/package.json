@@ -26,21 +26,25 @@
     "README.md"
   ],
   "module": "./build/index.js",
+  "main": "./build/cjs/mongodb-chatbot-ui.cjs.js",
   "types": "./build/types/index.d.ts",
   "exports": {
     ".": {
       "import": "./build/index.js",
+      "require": "./build/cjs/mongodb-chatbot-ui.cjs.js",
       "types": "./build/types/index.d.ts"
     },
     "./*": {
       "import": "./build/*.js",
+      "require": "./build/cjs/*",
       "types": "./build/types/*.d.ts"
     }
   },
   "scripts": {
-    "build": "npm run build:component && if [ \"$ENVIRONMENT\" = \"qa\" ]; then npm run build:static-site:qa && echo \"qa\"; else npm run build:static-site:staging; fi",
+    "build": "npm run build:component && npm run build:component:cjs && if [ \"$ENVIRONMENT\" = \"qa\" ]; then npm run build:static-site:qa && echo \"qa\"; else npm run build:static-site:staging; fi",
     "build:dts": "tsc --project tsconfig.declarations.json",
     "build:component": "tsc && vite build --config vite.config.component.js && npm run build:dts",
+    "build:component:cjs": "tsc && vite build --config vite.config.component.cjs.js",
     "build:static-site:dev": "tsc && VITE_GIT_COMMIT=$(npm run --silent env:get-git-commit) vite build --config vite.config.static-site.js --mode development",
     "build:static-site:staging": "tsc && VITE_GIT_COMMIT=$(npm run --silent env:get-git-commit) vite build --config vite.config.static-site.js --mode staging",
     "build:static-site:qa": "tsc && VITE_GIT_COMMIT=$(npm run --silent env:get-git-commit) vite build --config vite.config.static-site.js --mode qa",

@@ -48,7 +48,7 @@ export function ModalView(props: ModalViewProps) {
   const { darkMode } = useDarkMode(props.darkMode);
   const { className, inputBarId, ...chatWindowProps } = props;
 
-  const { closeChat, open } = useChatbotContext();
+  const { closeChat, open, conversation } = useChatbotContext();
 
   const shouldClose = () => {
     if (props.shouldClose?.() ?? true) {
@@ -59,21 +59,23 @@ export function ModalView(props: ModalViewProps) {
     }
   };
 
-  const chatWndowInputBarId = inputBarId ?? "chatbot-modal-input-bar";
+  const chatWindowInputBarId = inputBarId ?? "chatbot-modal-input-bar";
 
   return (
-    <Modal
-      className={cx(styles.modal_container({ darkMode }), className)}
-      open={open}
-      size="large"
-      initialFocus={`#${chatWndowInputBarId}`}
-      shouldClose={shouldClose}
-    >
-      <Suspense fallback={null}>
-        {open ? (
-          <ChatWindow inputBarId={chatWndowInputBarId} {...chatWindowProps} />
-        ) : null}
-      </Suspense>
-    </Modal>
+    <Suspense fallback={null}>
+      {open ? (
+        <Modal
+          className={cx(styles.modal_container({ darkMode }), className)}
+          open={open}
+          size="large"
+          initialFocus={
+            !conversation.error ? `#${chatWindowInputBarId}` : undefined
+          }
+          shouldClose={shouldClose}
+        >
+          <ChatWindow inputBarId={chatWindowInputBarId} {...chatWindowProps} />
+        </Modal>
+      ) : null}
+    </Suspense>
   );
 }

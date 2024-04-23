@@ -76,7 +76,6 @@ export type Conversation = ConversationState & ConversationActor;
 
 export const defaultConversationState = {
   messages: [],
-  error: "",
   isStreamingMessage: false,
 } satisfies ConversationState;
 

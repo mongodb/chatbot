@@ -168,10 +168,7 @@ export function ChatWindow(props: ChatWindowProps) {
             })}
           </MessageFeed>
         ) : null}
-        <div
-          className={cx(styles.chatbot_input, styles.chatbot_input_area)}
-          id={inputBarId}
-        >
+        <div className={cx(styles.chatbot_input, styles.chatbot_input_area)}>
           {conversation.error ? (
             <ErrorBanner darkMode={darkMode} message={conversation.error} />
           ) : null}

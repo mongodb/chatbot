@@ -20,6 +20,7 @@
     "ingest:k8s": "../../node_modules/mongodb-rag-ingest/build/main.js all --config ./build/config.js",
     "ingest:pages": "ingest pages --config ./build/config.js",
     "ingest:embed": "ingest embed --config ./build/config.js",
+    "ingest:k8s:coachGtmPages": "../../node_modules/mongodb-rag-ingest/build/main.js pages --config ./build/coachGtm.config.js",
     "test": "jest --forceExit"
   },
   "devDependencies": {
@@ -46,6 +47,7 @@
     "@release-it/bumper": "^5.1.0",
     "dotenv": "^16",
     "mongodb-rag-core": "*",
-    "mongodb-rag-ingest": "*"
+    "mongodb-rag-ingest": "*",
+    "striptags": "^3.2.0"
   }
 }

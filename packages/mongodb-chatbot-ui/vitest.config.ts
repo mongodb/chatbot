@@ -26,7 +26,6 @@ const testConfig = defineConfig({
   },
 });
 
-export default mergeConfig(
-  viteConfig,
-  testConfig
+export default defineConfig((configEnv) =>
+  mergeConfig(viteConfig(configEnv), testConfig)
 );

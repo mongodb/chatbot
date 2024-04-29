@@ -67,7 +67,7 @@ interface CustomerPage {
 
 interface DotComCmsComponent {
   key: string;
-  props?: Record<string, any>;
+  props?: Record<string, unknown>;
   content?: string;
   title?: string;
   h1?: string;
@@ -76,7 +76,7 @@ interface DotComCmsComponent {
   h4?: string;
   h5?: string;
   h6?: string;
-  [key: string]: string | Record<string, any> | undefined;
+  [key: string]: string | Record<string, unknown> | undefined;
 }
 
 function parseCustomerPage({
@@ -144,7 +144,6 @@ function makePageBody(input: CustomerPage): string {
     input.body ?? input.components,
     "input must have `body` or `components`"
   );
-  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   const pageBody = input.body
     ? input.body
     : // TODO: see if i can simplify w/o the map..i think can do parseCustomerPageRecursiveHelper(input.components)

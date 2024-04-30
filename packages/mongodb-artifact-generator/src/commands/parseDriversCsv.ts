@@ -172,7 +172,6 @@ export const action = createConfiguredAction<ParseDriversCsvCommandArgs>(
           outputFilename: codeExampleAsset.fileRename,
         });
       }
-
       console.log("done!");
     } finally {
       // await cleanupFindContent();

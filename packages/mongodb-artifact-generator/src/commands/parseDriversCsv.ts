@@ -5,13 +5,11 @@ import {
 } from "../withConfig";
 import { createCommand } from "../createCommand";
 import { makeRunLogger, type RunLogger } from "../runlogger";
-// import { parse as parseCsv } from "csv-parse";
 import { parse as parseCsv } from "papaparse";
 import { promises as fs } from "fs";
 import path from "path";
 
 import { action as translateCodeAction } from "./translateCode";
-// import { action as translateDocsPageAction } from "./translateDocsPage";
 import { ObjectId } from "mongodb";
 
 let logger: RunLogger;
@@ -143,10 +141,7 @@ export const action = createConfiguredAction<ParseDriversCsvCommandArgs>(
         }
       );
 
-      const {
-        Code: codeExampleAssets,
-        // Page: pageAssets
-      } = groupBy(
+      const { Code: codeExampleAssets } = groupBy(
         relevantAssetFieldsOnly.filter((r) => r !== undefined),
         (asset) => asset.assetType
       );

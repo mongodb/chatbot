@@ -44,7 +44,15 @@ export const doImportCommand = async ({ path }: ImportCommandArgs) => {
     OPENAI_EMBEDDING_DEPLOYMENT: deployment,
     OPENAI_ENDPOINT,
     OPENAI_API_KEY,
-  } = assertEnvVars(CORE_ENV_VARS);
+  } = assertEnvVars({
+    MONGODB_DATABASE_NAME: "",
+    MONGODB_CONNECTION_URI: "",
+    OPENAI_EMBEDDING_MODEL: "",
+    OPENAI_EMBEDDING_MODEL_VERSION: "",
+    OPENAI_EMBEDDING_DEPLOYMENT: "",
+    OPENAI_ENDPOINT: "",
+    OPENAI_API_KEY: "",
+  });
   const yaml = await fs.readFile(path, "utf-8");
   const verifiedAnswerSpecs = parseVerifiedAnswerYaml(yaml);
   const openAiClient = new OpenAIClient(

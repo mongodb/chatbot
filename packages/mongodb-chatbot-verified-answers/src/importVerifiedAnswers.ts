@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { Db } from "mongodb";
-import { Embedder, VerifiedAnswer } from "mongodb-rag-core";
+import { Embedder, VerifiedAnswer, Reference } from "mongodb-rag-core";
 import { VerifiedAnswerSpec } from "./parseVerifiedAnswersYaml";
 import deepEqual from "deep-equal";
 
@@ -132,7 +132,7 @@ export const prepareVerifiedAnswers = async ({
           answer,
           author_email,
           hidden,
-          references,
+          references: references.map((r) => r as Reference),
         })
       )
     )

@@ -31,9 +31,13 @@
     - Get started with MongoDB
   references:
     - url: https://mongodb.com/docs/manual/tutorial/getting-started/
+      title: Getting Started with MongoDB
     - url: https://learn.mongodb.com/learn/course/start-here-introduction-to-mongodb/welcome-to-the-introduction-to-mongodb-course/learn
+      title: Welcome to the Introduction to MongoDB Course
     - url: https://mongodb.com/docs/develop-applications
+      title: Develop Applications
     - url: https://mongodb.com/docs/manual/
+      title: MongoDB Manual
 - answer: >-
     To install MongoDB on Windows, you can follow these steps:
 
@@ -59,9 +63,13 @@
     - How do I install MongoDB on Windows?
   references:
     - url: https://mongodb.com/docs/manual/tutorial/install-mongodb-on-windows-unattended/
+      title: Install MongoDB Community on Windows using msiexec.exe
     - url: https://mongodb.com/docs/manual/tutorial/install-mongodb-on-windows/
+      title: Install MongoDB Community Edition on Windows
     - url: https://mongodb.com/docs/manual/tutorial/install-mongodb-enterprise-on-windows/
+      title: Install MongoDB Enterprise Edition on Windows
     - url: https://mongodb.com/docs/manual/installation/
+      title: Install MongoDB
 - answer: >-
     To insert data into MongoDB, you can follow these steps:
 
@@ -69,48 +77,68 @@
       installed in your project. If you're using Node.js, you can install it by
       running the following command in your terminal:
 
+
       ```sh
+
       npm install mongodb
+
       ```
+
 
     2. Import the MongoDB driver: In your Node.js script, import the MongoClient
       module using the `require` statement:
 
+
       ```js
+
       const { MongoClient } = require("mongodb");
+
       ```
+
 
     3. Connect to MongoDB: Create a new MongoClient instance and pass the
       connection string as an argument. Replace `<connection string>` with your
       MongoDB deployment's connection string:
 
+
       ```js
+
       const uri = "<connection string>";
 
       const client = new MongoClient(uri);
 
       await client.connect();
+
       ```
+
 
     4. Access the database and collection: Use the `client.db()` method to
       access a specific database, and the `db.collection()` method to access a
       collection within that database:
 
+
       ```js
+
       const db = client.db("myDatabase");
 
       const collection = db.collection("myCollection");
+
       ```
+
 
     5. Insert documents: Use the `collection.insertOne()` or
       `collection.insertMany()` method to insert one or multiple documents into
       the collection. Pass the document(s) as an argument to the method:
 
+
       ```js
+
       const doc = { name: "John Doe", age: 30 };
 
       const result = await collection.insertOne(doc);
+
       ```
+
 
     6. Handle the result: the `insertOne()` and `insertMany()` methods return a
       result object that contains information about the operation. You can access
@@ -118,7 +146,9 @@
 
       Here's an example of inserting multiple documents into a collection:
 
+
       ```js
+
       const docs = [
         { name: "Alice", age: 25 },
         { name: "Bob", age: 35 },
@@ -128,7 +158,9 @@
       const result = await collection.insertMany(docs);
 
       console.log(result.insertedIds);
+
       ```
+
 
     Please note that the provided instructions are based on version 6.5 of the
     MongoDB Node.js driver. If you are using a different version, please refer
@@ -140,25 +172,37 @@
     - How do I insert data into MongoDB?
   references:
     - url: https://mongodb.com/docs/guides/crud/insert/
+      title: Insert Data into MongoDB
     - url: https://mongodb.com/docs/atlas/tutorial/insert-data-into-your-cluster/
+      title: Insert and View a Document
     - url: https://mongodb.com/docs/drivers/node/current/usage-examples/insertOne/
+      title: Insert a Document
     - url: https://mongodb.com/docs/mongodb-vscode/databases-collections/
+      title: Navigate Your Data
 - answer: >-
     To create a new collection in MongoDB, you can use the
     `db.createCollection()` method. Here is the syntax for creating a
     collection:
 
+
     ```js
+
     db.createCollection("<collectionName>")
+
     ```
+
 
     Replace `<collectionName>` with the desired name for your collection. For
     example, to create a collection named "myCollection", you would run the
     following command:
 
+
     ```js
+
     db.createCollection("myCollection")
+
     ```
+
 
     Please note that if you insert data into a collection that does not exist,
     MongoDB will automatically create the collection for you. The
@@ -172,8 +216,11 @@
     - command to create new collection
   references:
     - url: https://mongodb.com/docs/manual/reference/method/db.createCollection/
+      title: db.createCollection() - MongoDB Manual
     - url: https://mongodb.com/docs/manual/core/databases-and-collections/
+      title: Databases and Collections - MongoDB Manual
     - url: https://mongodb.com/docs/mongodb-vscode/playground-databases/
+      title: Create Databases and Collections - MongoDB for VS Code
 - answer: MongoDB is a document database designed for ease of application
     development and scaling. You can store hierarchical structured data in
     documents, which are similar to JSON objects. MongoDB is available in
@@ -187,10 +234,15 @@
     - What is mongodb?
   references:
     - url: https://www.mongodb.com/docs/manual/introduction/
+      title: Introduction to MongoDB - MongoDB Manual
     - url: https://mongodb.com/docs/manual/
+      title: What is MongoDB? - MongoDB Manual
     - url: https://www.mongodb.com/developer/products/mongodb/everything-you-know-is-wrong
+      title: Everything You Know About MongoDB is Wrong!
     - url: https://www.mongodb.com/why-use-mongodb
+      title: Why Use MongoDB and When to Use It?
     - url: https://mongodb.com/docs/develop-applications"
+      title: Develop Applications - MongoDB Documentation
 - answer: >-
     To update multiple documents in a MongoDB collection, use the `updateMany`
     method. Using the `updateMany` method, you can search for and edit the
@@ -198,14 +250,18 @@
 
     Here's an example that uses the `updateMany()` method in the MongoDB shell:
 
+
     ```
+
     use sample_mflix // Use the sample_mflix database
 
     db.movies.updateMany(
       { rated: "G" }, 
       { $set: { random_review: `After viewing I am ${ 100 * Math.random() }% more satisfied with life.` }
     )
+
     ```
+
 
     This example updates all G-rated movies in the `movies` collection by adding
     a new `random_review` field.
@@ -217,9 +273,13 @@
     - updateMany
   references:
     - url: https://mongodb.com/docs/compass/current/documents/modify-multiple/
+      title: Modify Multiple Documents - MongoDB Compass
     - url: https://mongodb.com/docs/drivers/node/current/usage-examples/updateMany/
+      title: Update Multiple Documents - Node.js Driver
     - url: https://mongodb.com/docs/manual/tutorial/update-documents/
+      title: Update Documents - MongoDB Manual
     - url: https://mongodb.com/docs/drivers/java/sync/current/usage-examples/updateMany/
+      title: Update Multiple Documents - Java Sync Driver
 - answer: >-
     To count the number of documents in a MongoDB collection that match a
     specified query, use the `countDocuments()` method.
@@ -227,11 +287,17 @@
     Here's an example that uses the `countDocuments()` method in the MongoDB
     shell:
 
-    ```
+
+    ```js
+
+
     use sample_mflix // Use the sample_mflix database
 
     db.movies.countDocuments( countries: "Canada" )
+
+
     ```
+
 
     This example counts the number of movies from Canada in the `movies`
     collection.
@@ -243,8 +309,11 @@
     - countDocuments
   references:
     - url: https://mongodb.com/docs/drivers/node/current/usage-examples/count/
+      title: Count Documents - Node.js Driver
     - url: https://mongodb.com/docs/drivers/java/sync/current/usage-examples/count/
+      title: Count Documents - Java Sync Driver
     - url: https://mongodb.com/docs/manual/reference/method/db.collection.countDocuments/
+      title: db.collection.countDocuments() - MongoDB Manual
 - answer: >-
     To query data in MongoDB, you can use CRUD operations or an aggregation
     pipeline. You can return all documents in your collection or specify a
@@ -253,23 +322,31 @@
     To query your data with CRUD operations, use the `find()` method. Here's an
     example that uses the `find()` method in the MongoDB shell: 
 
+
     ```
+
     use sample_mflix  // Use the sample_mflix database
 
     db.movies.find( { rated: "G" } )
+
     ```
+
 
     To query your data with an aggregation pipeline, include the `$match` stage
     in your pipeline. Here's a sample aggregation pipeline that uses the
     `$match` stage in the MongoDB shell: 
 
+
     ```
+
     use sample_mflix  // Uses the sample_mflix database
 
     db.movies.aggregate( 
       { $match: { rated: "G" } }
     )
+
     ```
+
 
     Both examples find all G-rated movies in the `movies` collection.
 
@@ -280,10 +357,15 @@
     - how to query
   references:
     - url: https://www.mongodb.com/docs/manual/tutorial/query-documents/
+      title: Query Documents - MongoDB Manual
     - url: https://www.mongodb.com/docs/manual/reference/method/db.collection.find/
+      title: db.collection.find() - MongoDB Manual
     - url: https://www.mongodb.com/docs/manual/reference/operator/aggregation/match/
+      title: $match (aggregation) - MongoDB Manual
     - url: https://www.mongodb.com/docs/manual/tutorial/query-documents/#std-label-query-documents-atlas-ui
+      title: Query Documents - MongoDB Manual
     - url: https://mongodb.com/docs/guides/crud/read_queries/
+      title: Read Data from MongoDB With Queries - Start with Guides
 - answer: >-
     To remove documents, use the `deleteOne()` or `deleteMany()` method. If you
     use the `deleteMany()` method, you can search for and remove multiple
@@ -293,11 +375,15 @@
 
     Here's an example that uses the `deleteMany()` method in the MongoDB shell: 
 
+
     ``` 
+
     use sample_mflix // Use the sample_mflix database
 
     db.movies.deleteMany( { rated: "R" } )
+
     ```
+
 
     This example removes all R-rated movies in the `movies` collection`.
 
@@ -318,11 +404,15 @@
 
     Here's an example that uses the `deleteOne()` method in the MongoDB shell: 
 
+
     ```
+
     use sample_mflix // Use the sample_mflix database 
 
     db.movies.deleteOne( { title: "Titanic" } )
+
     ```
+
 
     This example removes one document in the `movies` collection that's titled
     `"Titanic"`. If there are multiple movies that are titled `"Titanic"` in the
@@ -351,9 +441,13 @@
     For example, to backup your database using the `mongodump` command-line
     tool, run the following command: 
 
+
     ```
+
     mongodump --uri "mongodb+srv://<username>:<password>@<cluster-url>/test?retryWrites=true&w=majority" --out /path/to/backup/directory
+
     ```
+
 
     The sample command specifies a connection string for the MongoDB instance
     you want to backup and an output directory. Make sure to replace
@@ -426,7 +520,9 @@
       the following command:
 
       ```sh
+
       mongosh "mongodb+srv://mycluster.abcd1.mongodb.net/myFirstDatabase" --apiVersion 1 --username <username> --password <password>
+
       ```
 
       Make sure to replace `<username>`, `<password>` and connection string with
@@ -468,7 +564,9 @@
     Here's an example of how to remove an object from an array in the MongoDB
     shell using the `$pull` operator:
 
+
     ```js
+
     // Assuming you have already connected to a MongoDB database, insert a document that includes a `fruits` array
     db.collection.insertOne( { _id: 1, fruits: [ { name: "apple" }, { name: "banana" }, { name: "orange" } ] } )
 
@@ -480,7 +578,9 @@
 
     // Update the document in the collection
     db.collection.updateOne(condition, update)
+
     ```
+
 
     In this example, we want to remove the object with the name "apple" from the
     "fruits" array. We specify the condition using the `$elemMatch` operator to
@@ -492,13 +592,17 @@
     Alternatively, you can use the `$pop` operator to remove the first or last
     element in an array: 
 
+
     ```js
+
     // Assuming you have already connected to the MongoDB database and inserted a document that includes a `fruits` array
     db.collection.insertOne( { _id: 1, fruits: [ { name: "apple" }, { name: "banana" }, { name: "orange" } ] } )
 
     // Specify which element you want to remove from your array. This example removes the last element. 
     db.collection.updateOne( { _id: 1 }, { $pop: { fruits: 1 } } )
+
     ```
+
 
     I hope this helps! Let me know if you have any more questions.
   author_email: alison.huh@mongodb.com
@@ -538,7 +642,9 @@
     contains an array of the distinct values. Here is the syntax for the
     `distinct` command:
 
+
     ```js
+
     db.runCommand(
        {
          distinct: "<collection>",
@@ -549,7 +655,9 @@
          comment: <any>
        }
     )
+
     ```
+
 
     - `<collection>`: The name of the collection to query for distinct values.
 
@@ -566,9 +674,13 @@
 
     For example, to find the distinct values for the field `sku`, embedded in the `item` field, from the documents whose `dept` is equal to `"A"`, you can use the following command:
 
+
     ```js
+
     db.runCommand({ distinct: "inventory", key: "item.sku", query: { dept: "A" } })
+
     ```
+
 
     This command will return a document with a field named `values` that
     contains the distinct `sku` values.
@@ -590,7 +702,9 @@
 
     Here is the syntax for the `distinct` command:
 
+
     ```js
+
     db.runCommand(
       {
         distinct: "<collection>",
@@ -601,7 +715,9 @@
         comment: <any>
       }
     )
+
     ```
+
 
     - `<collection>`: The name of the collection to query for distinct values.
 
@@ -618,9 +734,13 @@
     For example, to find the distinct values for the field language in the
     persons collection, you can use the following command:
 
+
     ```js
+
     db.runCommand({ distinct: "persons", key: "language" })
+
     ```
+
 
     This command will return a document with a field named `values` that
     contains the distinct `language` values.
@@ -630,7 +750,9 @@
     retrieves a list of distinct values for the language field from the
     `persons` collection:
 
+
     ```js
+
     var pipeline = [
       { $group: { _id: "$language" } },
       { $sort: { _id: 1 } },
@@ -638,7 +760,9 @@
     ];
 
     db.persons.aggregate(pipeline);
+
     ```
+
 
     This pipeline groups the documents by the `language` field, sorts the
     distinct values alphabetically, and projects the result to include only the
@@ -683,7 +807,9 @@
     Here is an example of how to update a document using the `$set` update
     operator in Node.js:
 
+
     ```js
+
     import { MongoClient } from "mongodb";
 
     const uri = "<connection string uri>";
@@ -711,7 +837,9 @@
     }
 
     run().catch(console.dir);
+
     ```
+
 
     In this example, we connect to a MongoDB instance, specify the collection
     and the filter to identify the document to update, and use the `$set` update
@@ -755,9 +883,13 @@
       "myCollection" in the "myDatabase" database, you can use the following
       command:
 
+
       ```sh
+
       mongoimport --db myDatabase --collection myCollection --file 'data.json'
+
       ```
+
 
       Replace `myDatabase` with the name of your target database, `myCollection`
       with the name of your target collection, and `data.json` with the path to
@@ -828,9 +960,13 @@
     Here is an example of how to use the `find()` method with a projection in
     MongoDB:
 
+
     ```js
+
     db.collection.find({}, { field1: 1, field2: 1 })
+
     ```
+
 
     In this example, `db.collection` is the name of your collection, and `{}` is
     an empty query filter, which means it will match all documents in the
@@ -860,7 +996,9 @@
 
     Here is an example of how to find a document by ID using the Node.js driver:
 
+
     ```js
+
     import { MongoClient, ObjectId } from "mongodb";
 
     // Replace the uri string with your MongoDB deployment's connection string.
@@ -886,7 +1024,9 @@
     }
 
     run().catch(console.dir);
+
     ```
+
 
     In this example, you need to replace `<connection string uri>` with your
     MongoDB deployment's connection string, `"yourDatabase"` with the name of
@@ -978,13 +1118,17 @@
     2. Start multiple mongod processes on different ports, each with a different
       dbpath, but using the same replica set name. For example:
 
+
       ```sh
+
       mongod --port 27017 --dbpath /data/db0 --replSet rs0
 
       mongod --port 27018 --dbpath /data/db1 --replSet rs0
 
       mongod --port 27019 --dbpath /data/db2 --replSet rs0
+
       ```
+
 
       This starts each instance as a member of a replica set named `rs0`, each running on a distinct port.
 
@@ -992,15 +1136,21 @@
       (`mongosh`). You can specify the instance by specifying its port number. For
       example:
 
+
       ```sh
+
       mongosh --port 27017
+
       ```
+
 
     4. In the MongoDB shell, use the `rs.initiate()` command to initiate the
       replica set. You can create a replica set configuration object and pass it
       to `rs.initiate()`. For example:
 
+
       ```js
+
       rsconf = {
         _id: "rs0",
         members: [
@@ -1011,16 +1161,22 @@
       }
 
       rs.initiate(rsconf)
+
       ```
+
 
       This initializes the replica set with the specified configuration.
 
     5. You can display the current replica set configuration by issuing the
     `rs.conf()` command in the MongoDB shell. For example:
 
+
       ```js
+
       rs.conf()
+
       ```
+
 
       This will show you the current configuration of the replica set.
 
@@ -1047,10 +1203,14 @@
     You can use the `$and` operator to combine these conditions in a single
     query. Here's the example query:
 
+
     ```js
+
     db.inventory.find({ $and: [ { price: { $ne: 1.99 } }, { price: { $exists:
     true } } ] })
+
     ```
+
 
     This query selects all documents in the `inventory` collection where the
     `price` field value is not equal to `1.99` and the `price` field exists.
@@ -1058,9 +1218,13 @@
     You can rewrite the query with an implicit `AND` operation that combines the
     operator expressions for the `price` field:
 
+
     ```js
+
     db.inventory.find({ price: { $ne: 1.99, $exists: true } })
+
     ```
+
 
     This query achieves the same result.
 
@@ -1082,19 +1246,27 @@
 
     You can use the `$in` operator to achieve this. Here's the example query:
 
+
     ```js
+
     db.inventory.find({ quantity: { $in: [5, 15] } })
+
     ```
+
 
     This query selects all documents in the `inventory` collection where the
     value of the `quantity` field is either 5 or 15.
 
     The result of this query would be the documents that match the condition:
 
+
     ```js
+
     { item: 'Erasers', quantity: 15, tags: [ 'school', 'home' ] },
     { item: 'Books', quantity: 5, tags: [ 'school', 'storage', 'home' ] }
+
     ```
+
 
     I hope this example helps! Let me know if you have any further questions.
   author_email: jeffrey.allen@mongodb.com
@@ -1122,9 +1294,13 @@
 
     Here is an example of connecting to a MongoDB cluster using `mongosh`:
 
+
     ```sh
+
     mongosh --host <hostname> --port <port> --username <username> --password <password> --authenticationDatabase <authDatabase>
+
     ```
+
 
     Replace `<hostname>`, `<port>`, `<username>`, `<password>`, and
     `<authDatabase>` with the appropriate values for your MongoDB deployment.
@@ -1148,7 +1324,9 @@
     Certainly! Here's an example of a MongoDB aggregation pipeline that uses
     `$lookup` and `$match` stages:
 
+
     ```js
+
     db.orders.aggregate([
        {
           $lookup: {
@@ -1164,7 +1342,9 @@
           }
        }
     ])
+
     ```
+
 
     In this example, the pipeline first performs a `$lookup` stage to join the
     `orders` collection with the `restaurants` collection. It matches documents
@@ -1237,7 +1417,9 @@
 
     Here is an example of how to change the password and custom data using the `db.updateUser()` method:
 
+
     ```
+
     use test
 
     db.updateUser(
@@ -1247,7 +1429,9 @@
           customData: { title: "Senior Manager" }
        }
     )
+
     ```
+
 
     When prompted, enter the new password. Make sure to replace `"user123"` with
     your actual username and customize the custom data as needed.
@@ -1375,9 +1559,13 @@
       file into a collection named "myCollection" in a database named
       "myDatabase", you can use the following command:
 
+
       ```sh
+
       mongoimport --db myDatabase --collection myCollection --file data.json
+
       ```
+
 
       Replace `data.json` with the path to your data file.
 

@@ -11,16 +11,18 @@ import striptags from "striptags";
 export function makeMongoDbDotComDataSource({
   connectionUri,
   dbName,
+  limit,
 }: {
   connectionUri: string;
   dbName: string;
+  limit?: number; // for testing
 }): DataSource {
   return {
     name: "mongodb-dot-com",
     async fetchPages() {
       const mongodb = new MongoClient(connectionUri);
       try {
-        const customerPages = await mongodb
+        const query = mongodb
           .db(dbName)
           .collection<CustomerPage>("nodes")
           .find({
@@ -36,8 +38,11 @@ export function makeMongoDbDotComDataSource({
               },
               { components: { $exists: true, $ne: null } },
             ],
-          })
-          .toArray();
+          });
+        if (limit) {
+          query.limit(limit);
+        }
+        const customerPages = await query.toArray();
 
         const parsedCustomerPages = customerPages.map((customerPage) =>
           parseCustomerPage({

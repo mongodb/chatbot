@@ -10,6 +10,7 @@ assert(process.env.MONGODB_DOT_COM_DB_NAME, "Missing MONGODB_DOT_COM_DB_NAME");
 const dotcomDataSource = makeMongoDbDotComDataSource({
   connectionUri: process.env.MONGODB_DOT_COM_CONNECTION_URI,
   dbName: process.env.MONGODB_DOT_COM_DB_NAME,
+  limit: 10,
 });
 describe("MongoDbDotComDataSource", () => {
   it("should fetch pages", async () => {

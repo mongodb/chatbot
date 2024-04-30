@@ -46,7 +46,6 @@ export const chunkOpenApiSpecYaml: ChunkFunc = async function (
   const { paths } = spec;
   if (paths !== undefined) {
     for (const path of Object.keys(paths)) {
-      // const actions = paths[path] as { [key: string]: any };
       const actions = paths[path];
       if (actions === undefined) {
         continue;

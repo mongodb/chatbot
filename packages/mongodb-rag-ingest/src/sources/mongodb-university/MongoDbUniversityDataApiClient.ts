@@ -29,7 +29,7 @@ export interface TiCatalogItem {
    */
   associated_labs: string[];
   // TODO: is this always null?
-  associated_content: null | any;
+  associated_content: null | unknown;
   /**
     Whether or not the catalog item is in development.
    */
@@ -107,12 +107,12 @@ interface VideoCaption {
 
 interface ResponseMetadata {
   count: number;
-  extra: null | any;
+  extra: null | unknown;
   total_count: number;
   has_more: boolean;
   limit: number;
   offset: number;
-  filter: null | any;
+  filter: null | unknown;
 }
 
 interface GetAllCatalogItemsResponseData {

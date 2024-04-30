@@ -11,7 +11,6 @@ export const mockReportEvalFunc: ReportEvalFunc = async ({
   evaluationRunId,
   evaluationStore,
   runId,
-  reportName,
 }) => {
   const filter: MockFindFilter<EvalResult> = (evalRes) =>
     evalRes.commandRunMetadataId.equals(evaluationRunId);

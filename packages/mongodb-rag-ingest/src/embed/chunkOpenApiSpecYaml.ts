@@ -1,5 +1,5 @@
 import SwaggerParser from "@apidevtools/swagger-parser";
-import { Page, updateFrontMatter } from "mongodb-rag-core";
+import { Page, logger, updateFrontMatter } from "mongodb-rag-core";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import yaml from "yaml";
 import GPT3Tokenizer from "gpt3-tokenizer";
@@ -21,7 +21,7 @@ export const chunkOpenApiSpecYaml: ChunkFunc = async function (
   page: Page,
   optionsIn?: Partial<ChunkOptions>
 ): Promise<ContentChunk[]> {
-  const options = {
+  const options: ChunkOptions = {
     ...defaultOpenApiSpecYamlChunkOptions,
     ...optionsIn,
     maxChunkSize:
@@ -46,10 +46,19 @@ export const chunkOpenApiSpecYaml: ChunkFunc = async function (
   const { paths } = spec;
   if (paths !== undefined) {
     for (const path of Object.keys(paths)) {
-      const actions = paths[path] as { [key: string]: any };
+      // const actions = paths[path] as { [key: string]: any };
+      const actions = paths[path];
+      if (actions === undefined) {
+        continue;
+      }
 
       for (const action of Object.keys(actions ?? {})) {
-        const methodBody = actions[action];
+        const resourceName = `${action.trim().toUpperCase()} ${path.trim()}`;
+        const methodBody = actions[action as keyof typeof actions];
+        if (!methodBody) {
+          logger.info(`Skipping ${resourceName} - no method body`);
+          continue;
+        }
         const method = {
           [`${path}`]: {
             [`${action}`]: methodBody,
@@ -60,11 +69,11 @@ export const chunkOpenApiSpecYaml: ChunkFunc = async function (
         chunks.push(
           ...stringChunks.map((stringChunk) => {
             const metadata = {
-              resourceName: `${action.trim().toUpperCase()} ${path.trim()}`,
+              resourceName,
               openApiSpec: true,
               apiName: apiName.trim(),
               baseUrls,
-              specTags: methodBody.tags,
+              specTags: (methodBody as { tags?: string[] }).tags ?? [],
             };
             const text = updateFrontMatter(stringChunk.trim(), metadata);
             const tokenCount = tokenizer.encode(text).bpe.length;
@@ -94,8 +103,9 @@ export const chunkOpenApiSpecYaml: ChunkFunc = async function (
     yaml.stringify(otherSpecInfoToKeep)
   );
   if (options.minChunkSize !== undefined) {
+    const { minChunkSize } = options;
     stringChunks = stringChunks.filter(
-      (chunk) => tokenizer.encode(chunk).bpe.length > options.minChunkSize!
+      (chunk) => tokenizer.encode(chunk).bpe.length > minChunkSize
     );
   }
   chunks.push(

@@ -1,5 +1,3 @@
-import { logger } from "./services/logger";
-
 /**
   This is the definition of the canonical file formats that we support
   for pages. If something is not in this list, we treat it as a "txt"

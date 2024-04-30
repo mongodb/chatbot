@@ -11,7 +11,7 @@ import { promises as fs } from "fs";
 import path from "path";
 
 import { action as translateCodeAction } from "./translateCode";
-import { action as translateDocsPageAction } from "./translateDocsPage";
+// import { action as translateDocsPageAction } from "./translateDocsPage";
 import { ObjectId } from "mongodb";
 
 let logger: RunLogger;
@@ -143,7 +143,10 @@ export const action = createConfiguredAction<ParseDriversCsvCommandArgs>(
         }
       );
 
-      const { Code: codeExampleAssets, Page: pageAssets } = groupBy(
+      const {
+        Code: codeExampleAssets,
+        // Page: pageAssets
+      } = groupBy(
         relevantAssetFieldsOnly.filter((r) => r !== undefined),
         (asset) => asset.assetType
       );
@@ -182,7 +185,7 @@ export const action = createConfiguredAction<ParseDriversCsvCommandArgs>(
   }
 );
 
-function groupBy<T, K extends keyof any>(
+function groupBy<T, K extends string | number>(
   array: T[],
   getKey: (item: T) => K
 ): Record<K, T[]> {

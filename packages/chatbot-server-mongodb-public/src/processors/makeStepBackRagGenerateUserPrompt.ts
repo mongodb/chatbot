@@ -181,7 +181,7 @@ function makeUserContentForLlm({
   userMessageText: string;
   stepBackUserQuery: string;
   messages: Message[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   content: EmbeddedContent[];
   maxContextTokenCount: number;
 }) {

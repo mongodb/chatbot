@@ -2,7 +2,6 @@ import { MongoClient, WithId, AnyBulkWriteOperation } from "mongodb";
 import { assertEnvVars } from "mongodb-rag-core";
 import { upgradeFaqEntry, FaqEntry, FaqEntryV0 } from "../upgradeFaqEntries";
 import { ScrubbedMessage } from "../ScrubbedMessage";
-import { promises as fs } from "fs";
 import "dotenv/config";
 
 const {

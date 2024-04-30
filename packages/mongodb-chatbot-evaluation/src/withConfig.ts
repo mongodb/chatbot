@@ -111,9 +111,3 @@ function checkRequiredProperty<T, K extends keyof T>(
   }
   return value as Exclude<T[K], undefined>;
 }
-
-type Closeable = {
-  close?(): Promise<void>;
-};
-
-type CleanupFunc = () => Promise<void>;

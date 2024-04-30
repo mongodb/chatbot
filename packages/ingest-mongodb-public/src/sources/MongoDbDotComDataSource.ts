@@ -11,11 +11,11 @@ import striptags from "striptags";
 export function makeMongoDbDotComDataSource({
   connectionUri,
   dbName,
-  limit,
+  maxPages,
 }: {
   connectionUri: string;
   dbName: string;
-  limit?: number; // for testing
+  maxPages?: number; // for testing
 }): DataSource {
   return {
     name: "mongodb-dot-com",
@@ -39,8 +39,8 @@ export function makeMongoDbDotComDataSource({
               { components: { $exists: true, $ne: null } },
             ],
           });
-        if (limit) {
-          query.limit(limit);
+        if (maxPages) {
+          query.limit(maxPages);
         }
         const customerPages = await query.toArray();
 

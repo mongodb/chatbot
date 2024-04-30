@@ -45,10 +45,16 @@ async function main() {
         return {
           ...entry,
           references: await Promise.all(
-            references.map(async ({ url }) => {
+            references.map(async ({ url, title }) => {
               return {
                 url,
-                title: (await collection.findOne({ url }))?.metadata?.pageTitle,
+                title:
+                  title ??
+                  (
+                    await collection.findOne({
+                      url: url.replace(/[?#].*$/, ""),
+                    })
+                  )?.metadata?.pageTitle,
               };
             })
           ),

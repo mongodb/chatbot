@@ -4,8 +4,10 @@
     - Sign up for Atlas
     - How do I set up an Atlas account?
     - Create an Atlas account
-  answer: |
-    To register for Atlas today, [visit our registration page](https://www.mongodb.com/cloud/atlas/register?tck=mongodb_ai_chatbot).
+  answer: >
+    To register for Atlas today, [visit our registration
+    page](https://www.mongodb.com/cloud/atlas/register?tck=mongodb_ai_chatbot).
+
 
     For step-by-step instructions on how to register, [read our tutorial](https://www.mongodb.com/basics/mongodb-atlas-tutorial?tck=mongodb_ai_chatbot).
   author_email: chris.bush@mongodb.com
@@ -21,9 +23,7 @@
     install anything for this tutorial. Simply click the Launch button of the
     in-browser Integrated Development Environment to start the tutorial.
 
-
     After completing the tutorial, you can also deploy a free cluster without any installation overhead by following the instructions in the "Getting Started with Atlas" documentation.
-
 
     Let me know if you have any other questions!
   author_email: ian.fogelman@mongodb.com
@@ -52,10 +52,7 @@
       installation. This will install both the MongoDB binaries and the default
       configuration file.
 
-    Please note that these instructions are specific to MongoDB 7.0 Community
-    Edition on Windows. If you are using a different version or edition, please
-    refer to the MongoDB documentation for the appropriate installation
-    instructions.
+    Please note that these instructions are specific to MongoDB 7.0 Community Edition on Windows. If you are using a different version or edition, please refer to the MongoDB documentation for the appropriate installation instructions.
 
     Let me know if you need any further assistance!
   author_email: ian.fogelman@mongodb.com
@@ -162,9 +159,7 @@
       ```
 
 
-    Please note that the provided instructions are based on version 6.5 of the
-    MongoDB Node.js driver. If you are using a different version, please refer
-    to the documentation specific to your version.
+    Please note that the provided instructions are based on version 6.5 of the MongoDB Node.js driver. If you are using a different version, please refer to the documentation specific to your version.
 
     Let me know if you need any further assistance!
   author_email: ian.fogelman@mongodb.com
@@ -192,9 +187,7 @@
     ```
 
 
-    Replace `<collectionName>` with the desired name for your collection. For
-    example, to create a collection named "myCollection", you would run the
-    following command:
+    Replace `<collectionName>` with the desired name for your collection. For example, to create a collection named "myCollection", you would run the following command:
 
 
     ```js
@@ -204,11 +197,7 @@
     ```
 
 
-    Please note that if you insert data into a collection that does not exist,
-    MongoDB will automatically create the collection for you. The
-    `db.createCollection()` method is only necessary if you want to specify
-    additional options for the collection, such as setting a maximum size or
-    defining validation rules.
+    Please note that if you insert data into a collection that does not exist, MongoDB will automatically create the collection for you. The `db.createCollection()` method is only necessary if you want to specify additional options for the collection, such as setting a maximum size or defining validation rules.
 
     Let me know if you need any further assistance!
   author_email: ian.fogelman@mongodb.com
@@ -263,11 +252,9 @@
     ```
 
 
-    This example updates all G-rated movies in the `movies` collection by adding
-    a new `random_review` field.
+    This example updates all G-rated movies in the `movies` collection by adding a new `random_review` field.
 
-    Specific syntax and usage may vary depending on the programming language and
-    driver you use. Let me know if you have any more questions!
+    Specific syntax and usage may vary depending on the programming language and driver you use. Let me know if you have any more questions!
   author_email: alison.huh@mongodb.com
   questions:
     - updateMany
@@ -284,8 +271,7 @@
     To count the number of documents in a MongoDB collection that match a
     specified query, use the `countDocuments()` method.
 
-    Here's an example that uses the `countDocuments()` method in the MongoDB
-    shell:
+    Here's an example that uses the `countDocuments()` method in the MongoDB shell:
 
 
     ```js
@@ -299,11 +285,9 @@
     ```
 
 
-    This example counts the number of movies from Canada in the `movies`
-    collection.
+    This example counts the number of movies from Canada in the `movies` collection.
 
-    Specific syntax and usage may vary depending on the programming language and
-    driver you are using. Let me know if you have any more questions!
+    Specific syntax and usage may vary depending on the programming language and driver you are using. Let me know if you have any more questions!
   author_email: alison.huh@mongodb.com
   questions:
     - countDocuments
@@ -319,8 +303,7 @@
     pipeline. You can return all documents in your collection or specify a
     subset of documents.
 
-    To query your data with CRUD operations, use the `find()` method. Here's an
-    example that uses the `find()` method in the MongoDB shell: 
+    To query your data with CRUD operations, use the `find()` method. Here's an example that uses the `find()` method in the MongoDB shell: 
 
 
     ```
@@ -332,9 +315,7 @@
     ```
 
 
-    To query your data with an aggregation pipeline, include the `$match` stage
-    in your pipeline. Here's a sample aggregation pipeline that uses the
-    `$match` stage in the MongoDB shell: 
+    To query your data with an aggregation pipeline, include the `$match` stage in your pipeline. Here's a sample aggregation pipeline that uses the `$match` stage in the MongoDB shell: 
 
 
     ```
@@ -350,8 +331,7 @@
 
     Both examples find all G-rated movies in the `movies` collection.
 
-    Specific syntax and usage may vary depending on the programming language and
-    driver you are using. Let me know if you have any more questions!
+    Specific syntax and usage may vary depending on the programming language and driver you are using. Let me know if you have any more questions!
   author_email: alison.huh@mongodb.com
   questions:
     - how to query
@@ -387,18 +367,23 @@
 
     This example removes all R-rated movies in the `movies` collection`.
 
-    Specific syntax and usage may vary depending on the programming language and
-    driver you are using. Let me know if you have any more questions!
+    Specific syntax and usage may vary depending on the programming language and driver you are using. Let me know if you have any more questions!
   author_email: alison.huh@mongodb.com
   questions:
     - how to delete data
   references:
     - url: https://www.mongodb.com/docs/manual/reference/command/delete
+      title: delete - MongoDB Manual
     - url: https://www.mongodb.com/docs/manual/tutorial/remove-documents/
+      title: Delete Documents
     - url: https://mongodb.com/docs/guides/crud/delete/
+      title: Delete Data from MongoDB
     - url: https://www.mongodb.com/developer/products/mongodb/cheat-sheet
+      title: MongoDB Cheat Sheet
     - url: https://mongodb.com/docs/drivers/node/current/usage-examples/deleteMany/
+      title: Delete Multiple Documents
     - url: https://mongodb.com/docs/mongodb-vscode/delete-document-playground/
+      title: Delete Documents - MongoDB for VS Code
 - answer: >-
     To remove one document, use the `deleteOne()` method. 
 
@@ -414,32 +399,30 @@
     ```
 
 
-    This example removes one document in the `movies` collection that's titled
-    `"Titanic"`. If there are multiple movies that are titled `"Titanic"` in the
-    collection, MongoDB removes only the first document with the title.
+    This example removes one document in the `movies` collection that's titled `"Titanic"`. If there are multiple movies that are titled `"Titanic"` in the collection, MongoDB removes only the first document with the title.
 
-    Specific syntax and usage may vary depending on the programming language and
-    driver you are using. Let me know if you have any more questions!
+    Specific syntax and usage may vary depending on the programming language and driver you are using. Let me know if you have any more questions!
   author_email: alison.huh@mongodb.com
   questions:
     - delete one document
   references:
     - url: https://www.mongodb.com/docs/manual/tutorial/remove-documents/#delete-only-one-document-that-matches-a-condition
+      title: Delete Documents
     - url: https://mongodb.com/docs/guides/crud/delete/
+      title: Delete Data from MongoDB
     - url: https://www.mongodb.com/developer/products/mongodb/cheat-sheet
+      title: MongoDB Cheat Sheet
     - url: https://mongodb.com/docs/drivers/node/current/usage-examples/deleteOne/
+      title: Delete a Document
     - url: https://mongodb.com/docs/mongodb-vscode/delete-document-playground/
+      title: Delete Documents
 - answer: >-
     To backup a MongoDB database, we recommend using one of the following
     methods: 
 
-    - Back up with Atlas 
-    - Back up with MongoDB Cloud Manager or Ops Manager 
-    - Back up with `mongodump`
-    - Back up with filesystem snapshots
+    - Back up with Atlas  - Back up with MongoDB Cloud Manager or Ops Manager  - Back up with `mongodump` - Back up with filesystem snapshots
 
-    For example, to backup your database using the `mongodump` command-line
-    tool, run the following command: 
+    For example, to backup your database using the `mongodump` command-line tool, run the following command: 
 
 
     ```
@@ -449,16 +432,9 @@
     ```
 
 
-    The sample command specifies a connection string for the MongoDB instance
-    you want to backup and an output directory. Make sure to replace
-    `<username>`, `<password>`, `<cluster-url>`, and `/path/to/backup/directory`
-    with your own MongoDB deployment credentials and desired backup directory.
+    The sample command specifies a connection string for the MongoDB instance you want to backup and an output directory. Make sure to replace `<username>`, `<password>`, `<cluster-url>`, and `/path/to/backup/directory` with your own MongoDB deployment credentials and desired backup directory.
 
-    `mongodump` is suitable for small deployments and seeding data, but it is
-    not recommended for large systems or sharded clusters. For
-    production-quality backup and recovery strategies, we recommend using
-    coordinated backup and restore alternatives such as MongoDB Atlas, MongoDB
-    Cloud Manager, or MongoDB OpsManager.
+    `mongodump` is suitable for small deployments and seeding data, but it is not recommended for large systems or sharded clusters. For production-quality backup and recovery strategies, we recommend using coordinated backup and restore alternatives such as MongoDB Atlas, MongoDB Cloud Manager, or MongoDB OpsManager.
 
     Let me know if you have any more questions!
   author_email: alison.huh@mongodb.com
@@ -466,9 +442,13 @@
     - How do I backup a MongoDB database?
   references:
     - url: https://www.mongodb.com/docs/manual/core/backups/
+      title: MongoDB Backup Methods
     - url: https://www.mongodb.com/docs/atlas/backup-restore-cluster/
+      title: Back Up, Restore, and Archive Data
     - url: https://www.mongodb.com/docs/manual/tutorial/backup-and-restore-tools/
+      title: Back Up and Restore with MongoDB Tools
     - url: https://learn.mongodb.com/learn/course/mongodb-database-administrator-tools/lesson-2-backup-tools/learn
+      title: "MongoDB Database Administrator Tools - Lesson 2: Backup Tools - Learn"
 - answer: >-
     Aggregation in MongoDB refers to the process of performing complex data
     operations on a collection of documents. It involves running all the
@@ -477,21 +457,11 @@
     documents, collect summary data about groups of related documents, and
     perform other advanced data operations.
 
-    The MongoDB Aggregation Framework provides a powerful set of operators and
-    stages that you can use to construct aggregation pipelines. These pipelines
-    consist of multiple stages, where each stage performs a specific operation
-    on the input documents and passes the results to the next stage.
+    The MongoDB Aggregation Framework provides a powerful set of operators and stages that you can use to construct aggregation pipelines. These pipelines consist of multiple stages, where each stage performs a specific operation on the input documents and passes the results to the next stage.
 
-    By using the built-in aggregation operators available in MongoDB, you can
-    perform analytics on your data without having to move it to another
-    platform. This provides a significant advantage in terms of performance and
-    cost, as the data processing is done directly within MongoDB.
+    By using the built-in aggregation operators available in MongoDB, you can perform analytics on your data without having to move it to another platform. This provides a significant advantage in terms of performance and cost, as the data processing is done directly within MongoDB.
 
-    The aggregation framework is conceptually similar to a pipeline in the Unix
-    command line, where documents flow through multiple stages, and each stage
-    performs a specific operation on the data. This allows you to build complex
-    data processing workflows and perform powerful analytics on your MongoDB
-    data.
+    The aggregation framework is conceptually similar to a pipeline in the Unix command line, where documents flow through multiple stages, and each stage performs a specific operation on the data. This allows you to build complex data processing workflows and perform powerful analytics on your MongoDB data.
 
     If you have any more questions, feel free to ask!
   author_email: alison.huh@mongodb.com
@@ -499,9 +469,13 @@
     - What is aggregation in MongoDB?
   references:
     - url: https://www.mongodb.com/docs/atlas/atlas-ui/agg-pipeline/
+      title: Run Aggregation Pipelines
     - url: https://www.mongodb.com/docs/manual/core/aggregation-pipeline/
+      title: Aggregation Pipeline
     - url: https://www.mongodb.com/developer/products/mongodb/introduction-aggregation-framework
+      title: Introduction to the MongoDB Aggregation Framework
     - url: https://www.mongodb.com/docs/atlas/device-sdks/sdk/react-native/app-services/query-mongodb/#aggregation-operations
+      title: Query MongoDB - React Native SDK
 - answer: >-
     The MongoDB Shell is an interactive JavaScript interface that allows you to
     interact with your MongoDB database. You can use it to perform CRUD
@@ -552,54 +526,48 @@
     - mongoshell
   references:
     - url: https://learn.mongodb.com/learn/course/the-mongodb-shell/lesson-1-installing-and-connecting-to-the-mongodb-shell/learn
+      title:
+        "The MongoDB Shell - Lesson 1: Installing and Connecting to the MongoDB
+        Shell - Learn"
     - url: https://www.mongodb.com/developer/products/mongodb/introduction-to-modern-databases-mongodb-academia
+      title: MongoDB Academia - Introduction to Modern Databases
     - url: https://mongodb.com/docs/mongodb-shell/
+      title: Welcome to MongoDB Shell (mongosh)
     - url: https://www.mongodb.com/developer/products/mongodb/schema-design-anti-pattern-massive-number-collections
+      title: Massive Number of Collections
     - url: https://www.mongodb.com/developer/products/mongodb/designing-developing-analyzing-new-mongodb-shell
+      title: Designing, Developing, and Analyzing with the New MongoDB Shell
 - answer: >-
     To remove an object from an array in MongoDB, use the `$pull` operator in an
     update operation. The `$pull` operator removes all elements from an array
     that match a specified condition.
 
-    Here's an example of how to remove an object from an array in the MongoDB
-    shell using the `$pull` operator:
+    Here's an example of how to remove an object from an array in the MongoDB shell using the `$pull` operator:
 
 
     ```js
 
-    // Assuming you have already connected to a MongoDB database, insert a document that includes a `fruits` array
-    db.collection.insertOne( { _id: 1, fruits: [ { name: "apple" }, { name: "banana" }, { name: "orange" } ] } )
+    // Assuming you have already connected to a MongoDB database, insert a document that includes a `fruits` array db.collection.insertOne( { _id: 1, fruits: [ { name: "apple" }, { name: "banana" }, { name: "orange" } ] } )
 
-    // Specify the condition to match the array object you want to remove
-    condition = { "fruits": {"$elemMatch": {"name": "apple"}}}
+    // Specify the condition to match the array object you want to remove condition = { "fruits": {"$elemMatch": {"name": "apple"}}}
 
-    // Use the $pull operator in the update operation
-    update = { "$pull": { "fruits": { "name": "apple" } } }
+    // Use the $pull operator in the update operation update = { "$pull": { "fruits": { "name": "apple" } } }
 
-    // Update the document in the collection
-    db.collection.updateOne(condition, update)
+    // Update the document in the collection db.collection.updateOne(condition, update)
 
     ```
 
 
-    In this example, we want to remove the object with the name "apple" from the
-    "fruits" array. We specify the condition using the `$elemMatch` operator to
-    match the object with the name "apple". Then, we use the `$pull` operator in
-    the update operation to remove the matched object from the array. Please
-    note that you need to replace "fruits" with the actual name of your array
-    and "apple" with the value you want to remove.
+    In this example, we want to remove the object with the name "apple" from the "fruits" array. We specify the condition using the `$elemMatch` operator to match the object with the name "apple". Then, we use the `$pull` operator in the update operation to remove the matched object from the array. Please note that you need to replace "fruits" with the actual name of your array and "apple" with the value you want to remove.
 
-    Alternatively, you can use the `$pop` operator to remove the first or last
-    element in an array: 
+    Alternatively, you can use the `$pop` operator to remove the first or last element in an array: 
 
 
     ```js
 
-    // Assuming you have already connected to the MongoDB database and inserted a document that includes a `fruits` array
-    db.collection.insertOne( { _id: 1, fruits: [ { name: "apple" }, { name: "banana" }, { name: "orange" } ] } )
+    // Assuming you have already connected to the MongoDB database and inserted a document that includes a `fruits` array db.collection.insertOne( { _id: 1, fruits: [ { name: "apple" }, { name: "banana" }, { name: "orange" } ] } )
 
-    // Specify which element you want to remove from your array. This example removes the last element. 
-    db.collection.updateOne( { _id: 1 }, { $pop: { fruits: 1 } } )
+    // Specify which element you want to remove from your array. This example removes the last element.  db.collection.updateOne( { _id: 1 }, { $pop: { fruits: 1 } } )
 
     ```
 
@@ -610,7 +578,9 @@
     - how to remove object in array in mongoDB
   references:
     - url: https://mongodb.com/docs/manual/reference/operator/update/pop/
+      title: $pop
     - url: https://mongodb.com/docs/manual/reference/operator/update/pull/
+      title: $pull
 - answer: >-
     To create a database in MongoDB, you can use the `use` command in the
     MongoDB shell: 
@@ -634,8 +604,11 @@
     - how to create a database
   references:
     - url: https://www.mongodb.com/docs/mongodb-shell/run-commands/#create-a-new-database-and-collection
+      title: Run Commands
     - url: https://www.mongodb.com/docs/atlas/atlas-ui/databases/
+      title: Create, View, and Drop Databases
     - url: https://www.mongodb.com/docs/compass/current/databases/
+      title: Databases
 - answer: >-
     The `distinct` command in MongoDB is used to find the distinct values for a
     specified field across a single collection. It returns a document that
@@ -682,8 +655,7 @@
     ```
 
 
-    This command will return a document with a field named `values` that
-    contains the distinct `sku` values.
+    This command will return a document with a field named `values` that contains the distinct `sku` values.
 
     Let me know if you have any more questions!
   author_email: matt.maville@mongodb.com
@@ -691,14 +663,14 @@
     - distinct
   references:
     - url: https://mongodb.com/docs/manual/reference/command/distinct/
+      title: distinct
     - url: https://mongodb.com/docs/manual/reference/method/db.collection.distinct/
+      title: db.collection.distinct()
 - answer: >+
     To find unique values in your fields in MongoDB, you can use the `distinct`
     command or the aggregation framework.
 
-    The `distinct` command is used to find the distinct values for a specified
-    field across a single collection. It returns a document that contains an
-    array of the distinct values.
+    The `distinct` command is used to find the distinct values for a specified field across a single collection. It returns a document that contains an array of the distinct values.
 
     Here is the syntax for the `distinct` command:
 
@@ -731,8 +703,7 @@
 
     - `<comment>` (optional): Any additional comment.
 
-    For example, to find the distinct values for the field language in the
-    persons collection, you can use the following command:
+    For example, to find the distinct values for the field language in the persons collection, you can use the following command:
 
 
     ```js
@@ -742,13 +713,9 @@
     ```
 
 
-    This command will return a document with a field named `values` that
-    contains the distinct `language` values.
+    This command will return a document with a field named `values` that contains the distinct `language` values.
 
-    Using the aggregation framework: You can also use the aggregation framework
-    to find unique values in your fields. Here is an example pipeline that
-    retrieves a list of distinct values for the language field from the
-    `persons` collection:
+    Using the aggregation framework: You can also use the aggregation framework to find unique values in your fields. Here is an example pipeline that retrieves a list of distinct values for the language field from the `persons` collection:
 
 
     ```js
@@ -764,9 +731,7 @@
     ```
 
 
-    This pipeline groups the documents by the `language` field, sorts the
-    distinct values alphabetically, and projects the result to include only the
-    `language` field.
+    This pipeline groups the documents by the `language` field, sorts the distinct values alphabetically, and projects the result to include only the `language` field.
 
     I hope this helps! Let me know if you have any more questions.
 
@@ -775,21 +740,20 @@
     - how to find unique values in my fields
   references:
     - url: https://www.mongodb.com/docs/manual/reference/command/distinct/
+      title: distinct
     - url: https://www.practical-mongodb-aggregations.com/examples/foundational/distinct-values.html
+      title: Distinct List Of Values
     - url: https://www.practical-mongodb-aggregations.com/guides/advanced-arrays.html
+      title: Advanced Use Of Expressions For Array Processing
 - answer: >-
     The `maxBsonObjectSize` is a configuration parameter in MongoDB that
     determines the maximum size of a BSON document. However, it is not
     recommended to change this value as it is set to a reasonable default value
     and altering it can have unintended consequences.
 
-    In addition, starting from MongoDB version 4.4, the `maxBsonObjectSize`
-    configuration parameter is no longer configurable. It is fixed at 16
-    megabytes, which is the maximum BSON document size.
+    In addition, starting from MongoDB version 4.4, the `maxBsonObjectSize` configuration parameter is no longer configurable. It is fixed at 16 megabytes, which is the maximum BSON document size.
 
-    If you have a specific use case that requires handling larger documents, you
-    can consider using the GridFS API, which allows you to store and retrieve
-    files that exceed the maximum BSON document size.
+    If you have a specific use case that requires handling larger documents, you can consider using the GridFS API, which allows you to store and retrieve files that exceed the maximum BSON document size.
 
     Let me know if there's anything else I can help you with!
   author_email: matt.maville@mongodb.com
@@ -797,15 +761,17 @@
     - how to change maxBsonObjectSize
   references:
     - url: https://www.mongodb.com/docs/manual/reference/limits/#bson-documents
+      title: MongoDB Limits and Thresholds
     - url: https://www.mongodb.com/developer/products/mongodb/under-used-features
+      title: Three Underused MongoDB Features
     - url: https://www.mongodb.com/docs/manual/core/gridfs/
+      title: GridFS
 - answer: >-
     To update a document in MongoDB, you can use the update operators provided
     by MongoDB. The update operators allow you to modify field values in a
     document.
 
-    Here is an example of how to update a document using the `$set` update
-    operator in Node.js:
+    Here is an example of how to update a document using the `$set` update operator in Node.js:
 
 
     ```js
@@ -841,13 +807,9 @@
     ```
 
 
-    In this example, we connect to a MongoDB instance, specify the collection
-    and the filter to identify the document to update, and use the `$set` update
-    operator to set the value of the `plot` field. The `updateOne` method is
-    used to update the first document that matches the filter.
+    In this example, we connect to a MongoDB instance, specify the collection and the filter to identify the document to update, and use the `$set` update operator to set the value of the `plot` field. The `updateOne` method is used to update the first document that matches the filter.
 
-    Please note that you need to replace `<connection string uri>` with the
-    actual connection string for your MongoDB deployment.
+    Please note that you need to replace `<connection string uri>` with the actual connection string for your MongoDB deployment.
 
     Let me know if you need further assistance!
   author_email: matt.maville@mongodb.com
@@ -855,10 +817,15 @@
     - how to update document
   references:
     - url: https://mongodb.com/docs/drivers/node/current/usage-examples/updateOne/
+      title: Update a Document
     - url: https://mongodb.com/docs/manual/tutorial/update-documents/
+      title: Update Documents
     - url: https://www.mongodb.com/developer/languages/javascript/node-crud-tutorial-3-3-2
+      title: MongoDB and Node.js 3.3.2 Tutorial - CRUD Operations
     - url: https://mongodb.com/docs/drivers/node/current/fundamentals/crud/write-operations/modify/
+      title: Modify Documents
     - url: https://www.mongodb.com/developer/languages/javascript/node-crud-tutorial
+      title: MongoDB and Node.js Tutorial - CRUD Operations
 - answer: >-
     To import data into MongoDB, you can use the `mongoimport` command-line tool
     provided by MongoDB. The `mongoimport` tool allows you to import data from
@@ -901,10 +868,7 @@
     5. Wait for the import process to complete. You should see output indicating
       the number of documents imported.
 
-    Please note that the specific command and options may vary depending on your
-    operating system and the version of MongoDB you are using. For more detailed
-    information and examples, you can refer to the MongoDB documentation on how
-    to import data into MongoDB with mongoimport.
+    Please note that the specific command and options may vary depending on your operating system and the version of MongoDB you are using. For more detailed information and examples, you can refer to the MongoDB documentation on how to import data into MongoDB with mongoimport.
 
     Let me know if you need further assistance!
   author_email: matt.maville@mongodb.com
@@ -912,35 +876,25 @@
     - how to import data
   references:
     - url: https://learn.mongodb.com/learn/course/importing-csv-data-into-mongodb/learning-byte/learn
+      title: Importing CSV Data into MongoDB - LEARNING BYTE - Learn
     - url: https://www.mongodb.com/developer/products/mongodb/mongoimport-guide
+      title: How to Import Data into MongoDB with mongoimport
     - url: https://mongodb.com/docs/guides/crud/insert/
+      title: Insert Data into MongoDB
 - answer: >-
     MongoDB provides various operators that can be used in update operations,
     query operations, projection operations, and aggregation operations. These
     operators allow you to perform specific actions on your data.
 
-    For update operations, you can use update operators such as `$set`,
-    `$unset`, `$inc`, `$push`, `$pull`, and many more. These operators are used
-    with methods like `db.collection.updateMany()` and
-    `db.collection.findAndModify()`.
+    For update operations, you can use update operators such as `$set`, `$unset`, `$inc`, `$push`, `$pull`, and many more. These operators are used with methods like `db.collection.updateMany()` and `db.collection.findAndModify()`.
 
-    For query operations, you can use query operators such as `$eq`, `$ne`,
-    `$gt`, `$lt`, `$in`, `$regex`, and many more. These operators are used to
-    filter documents based on specific criteria.
+    For query operations, you can use query operators such as `$eq`, `$ne`, `$gt`, `$lt`, `$in`, `$regex`, and many more. These operators are used to filter documents based on specific criteria.
 
-    For projection operations, you can use projection operators such as
-    `$project`, `$match`, `$group`, `$sort`, `$limit`, and many more. These
-    operators are used to shape the output of your queries.
+    For projection operations, you can use projection operators such as `$project`, `$match`, `$group`, `$sort`, `$limit`, and many more. These operators are used to shape the output of your queries.
 
-    For aggregation operations, you can use aggregation operators such as
-    `$sum`, `$avg`, `$min`, `$max`, `$group`,`$project`, and many more. These
-    operators are used to perform complex data transformations and calculations.
+    For aggregation operations, you can use aggregation operators such as `$sum`, `$avg`, `$min`, `$max`, `$group`,`$project`, and many more. These operators are used to perform complex data transformations and calculations.
 
-    Please note that the specific operators available may vary depending on the
-    version of MongoDB you are using. If you need more detailed information on
-    the operators and their syntax, you can refer to the MongoDB documentation
-    on update operators, query and projection operators, and aggregation
-    operators.
+    Please note that the specific operators available may vary depending on the version of MongoDB you are using. If you need more detailed information on the operators and their syntax, you can refer to the MongoDB documentation on update operators, query and projection operators, and aggregation operators.
 
     Let me know if you have any further questions!
   author_email: matt.maville@mongodb.com
@@ -948,17 +902,20 @@
     - operators in mongodb
   references:
     - url: https://mongodb.com/docs/manual/reference/operator/aggregation/
+      title: Aggregation Operators
     - url: https://mongodb.com/docs/manual/reference/operator/query/
+      title: Query and Projection Operators
     - url: https://mongodb.com/docs/manual/release-notes/6.0/
+      title: Release Notes for MongoDB 6.0
     - url: https://mongodb.com/docs/manual/reference/operator/update/
+      title: Update Operators
 - answer: >-
     To find documents with a projection in MongoDB, you can use the `find()`
     method along with the `projection` parameter. The `projection` parameter
     allows you to specify which fields you want to include or exclude in the
     returned documents.
 
-    Here is an example of how to use the `find()` method with a projection in
-    MongoDB:
+    Here is an example of how to use the `find()` method with a projection in MongoDB:
 
 
     ```js
@@ -968,16 +925,9 @@
     ```
 
 
-    In this example, `db.collection` is the name of your collection, and `{}` is
-    an empty query filter, which means it will match all documents in the
-    collection. The second parameter `{ field1: 1, field2: 1 }` specifies the
-    fields to include in the returned documents. The value `1` indicates that
-    the field should be included, while `0` would exclude the field.
+    In this example, `db.collection` is the name of your collection, and `{}` is an empty query filter, which means it will match all documents in the collection. The second parameter `{ field1: 1, field2: 1 }` specifies the fields to include in the returned documents. The value `1` indicates that the field should be included, while `0` would exclude the field.
 
-    Please note that the specific syntax and available options for projections
-    may vary depending on the version of MongoDB you are using. If you need more
-    detailed information, you can refer to the MongoDB documentation on the
-    `find()` method and projections.
+    Please note that the specific syntax and available options for projections may vary depending on the version of MongoDB you are using. If you need more detailed information, you can refer to the MongoDB documentation on the `find()` method and projections.
 
     Let me know if you have any further questions!
   author_email: matt.maville@mongodb.com
@@ -985,10 +935,15 @@
     - how do I find with a projection
   references:
     - url: https://mongodb.com/docs/manual/reference/method/db.collection.find/
+      title: db.collection.find()
     - url: https://mongodb.com/docs/manual/reference/method/db.collection.findOne/
+      title: db.collection.findOne()
     - url: https://mongodb.com/docs/manual/reference/method/db.collection.findOneAndDelete/
+      title: db.collection.findOneAndDelete()
     - url: https://mongodb.com/docs/manual/reference/method/db.collection.findOneAndReplace/
+      title: db.collection.findOneAndReplace()
     - url: https://mongodb.com/docs/manual/reference/method/db.collection.findOneAndUpdate/
+      title: db.collection.findOneAndUpdate()
 - answer: >-
     To find a document by ID in MongoDB, you can use a query that matches the
     `_id` field with the specified ID value. MongoDB automatically stores each
@@ -1001,8 +956,7 @@
 
     import { MongoClient, ObjectId } from "mongodb";
 
-    // Replace the uri string with your MongoDB deployment's connection string.
-    const uri = "<connection string uri>";
+    // Replace the uri string with your MongoDB deployment's connection string. const uri = "<connection string uri>";
 
     const client = new MongoClient(uri);
 
@@ -1028,14 +982,9 @@
     ```
 
 
-    In this example, you need to replace `<connection string uri>` with your
-    MongoDB deployment's connection string, `"yourDatabase"` with the name of
-    your database, `"yourCollection"` with the name of your collection, and
-    `"yourID"` with the ID value you want to search for.
+    In this example, you need to replace `<connection string uri>` with your MongoDB deployment's connection string, `"yourDatabase"` with the name of your database, `"yourCollection"` with the name of your collection, and `"yourID"` with the ID value you want to search for.
 
-    Please note that the `ObjectId` class is imported from the `mongodb`
-    package, and you need to install it using a package manager like npm or
-    yarn.
+    Please note that the `ObjectId` class is imported from the `mongodb` package, and you need to install it using a package manager like npm or yarn.
 
     Let me know if you have any further questions!
   author_email: matt.maville@mongodb.com
@@ -1043,8 +992,11 @@
     - how can i find a document by id
   references:
     - url: https://mongodb.com/docs/atlas/app-services/functions/mongodb/read/
+      title: Read Data from MongoDB Atlas - Functions
     - url: https://mongodb.com/docs/drivers/node/current/usage-examples/findOne/
+      title: Find a Document
     - url: https://mongodb.com/docs/manual/core/csfle/quick-start/
+      title: Quick Start
 - answer: >-
     A connection string in MongoDB describes the host and options for connecting
     to a MongoDB database. It is used to connect to a MongoDB cluster and work
@@ -1066,10 +1018,7 @@
     - Options: Additional settings such as connection timeout, TLS/SSL,
       connection pooling, and read/write concerns.
 
-    To locate the connection string for an Atlas cluster, you can go to the
-    Atlas dashboard, click on the "Connect" button for your cluster, and select
-    the option to connect your application. The connection string will be
-    provided in the modal box that appears.
+    To locate the connection string for an Atlas cluster, you can go to the Atlas dashboard, click on the "Connect" button for your cluster, and select the option to connect your application. The connection string will be provided in the modal box that appears.
 
     Let me know if you have any further questions!
   author_email: alison.huh@mongodb.com
@@ -1077,8 +1026,13 @@
     - connection string
   references:
     - url: https://learn.mongodb.com/learn/course/connecting-to-a-mongodb-database/lesson-1-using-mongodb-connection-strings/learn
+      title:
+        "Connecting to a MongoDB Database - Lesson 1: Using MongoDB Connection
+        Strings - Learn"
     - url: https://mongodb.com/docs/manual/reference/connection-string/
+      title: Connection Strings
     - url: https://mongodb.com/docs/drivers/csharp/current/fundamentals/connection/connect/
+      title: Connection Guide - MongoDB C# Driver
 - answer: >-
     MongoDB provides the following authentication mechanisms for securing
     connections to the database:
@@ -1097,7 +1051,7 @@
 
     - LDAP Proxy Authentication (Enterprise Edition and MongoDB Atlas only)
 
-    - OpenID Connect Authentication (Enterprise Edition nly)
+    - OpenID Connect Authentication (Enterprise Edition only)
 
     Let me know if you have any further questions!
   author_email: alison.huh@mongodb.com
@@ -1105,10 +1059,15 @@
     - how many authentication methods for MongoDB?
   references:
     - url: https://mongodb.com/docs/ruby-driver/current/reference/authentication/
+      title: Authentication - Ruby Driver
     - url: https://mongodb.com/docs/manual/core/authentication/
+      title: Authentication - MongoDB Manual
     - url: https://mongodb.com/docs/drivers/node/current/fundamentals/authentication/mechanisms/
+      title: Authentication Mechanisms - Node.js Driver
     - url: https://mongodb.com/docs/drivers/node/current/fundamentals/authentication/
+      title: Authentication
     - url: https://mongodb.com/docs/drivers/csharp/current/fundamentals/authentication/
+      title: Authentication Mechanisms - C# Driver
 - answer: >-
     To set up a replica set in MongoDB, you can follow these general steps:
 
@@ -1167,8 +1126,7 @@
 
       This initializes the replica set with the specified configuration.
 
-    5. You can display the current replica set configuration by issuing the
-    `rs.conf()` command in the MongoDB shell. For example:
+    5. You can display the current replica set configuration by issuing the `rs.conf()` command in the MongoDB shell. For example:
 
 
       ```js
@@ -1180,43 +1138,41 @@
 
       This will show you the current configuration of the replica set.
 
-    Please note that these steps are general guidelines and may vary depending
-    on your specific environment and requirements. For more detailed
-    information, you can refer to the MongoDB documentation on deploying a
-    replica set.
+    Please note that these steps are general guidelines and may vary depending on your specific environment and requirements. For more detailed information, you can refer to the MongoDB documentation on deploying a replica set.
   author_email: jeffrey.allen@mongodb.com
   questions:
     - how to setup replica cluster
   references:
     - url: https://pymongo.readthedocs.io/en/stable/examples/high_availability.html
+      title: High Availability and PyMongo
     - url: https://mongodb.com/docs/manual/tutorial/deploy-replica-set/
+      title: Deploy a Replica Set
     - url: https://mongodb.com/docs/manual/tutorial/deploy-replica-set-for-testing/
+      title: Deploy a Replica Set for Testing and Development
     - url: https://learn.mongodb.com/learn/course/replication-in-mongodb/lesson-6-deploying-a-replica-set-in-a-mongodb-deployment/learn
+      title:
+        "Replication in MongoDB - Lesson 6: Deploying a Replica Set in a MongoDB
+        Deployment - Learn"
     - url: https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/
+      title: Convert a Standalone mongod to a Replica Set
 - answer: >-
     Sure! Here's an example of how to use the `$and` operator in MongoDB:
 
-    Suppose you have a collection called `inventory` with documents that have
-    the fields `price` and `qty`. You want to find all documents where the
-    `price` is not equal to `1.99` and the `qty` field exists.
+    Suppose you have a collection called `inventory` with documents that have the fields `price` and `qty`. You want to find all documents where the `price` is not equal to `1.99` and the `qty` field exists.
 
-    You can use the `$and` operator to combine these conditions in a single
-    query. Here's the example query:
+    You can use the `$and` operator to combine these conditions in a single query. Here's the example query:
 
 
     ```js
 
-    db.inventory.find({ $and: [ { price: { $ne: 1.99 } }, { price: { $exists:
-    true } } ] })
+    db.inventory.find({ $and: [ { price: { $ne: 1.99 } }, { price: { $exists: true } } ] })
 
     ```
 
 
-    This query selects all documents in the `inventory` collection where the
-    `price` field value is not equal to `1.99` and the `price` field exists.
+    This query selects all documents in the `inventory` collection where the `price` field value is not equal to `1.99` and the `price` field exists.
 
-    You can rewrite the query with an implicit `AND` operation that combines the
-    operator expressions for the `price` field:
+    You can rewrite the query with an implicit `AND` operation that combines the operator expressions for the `price` field:
 
 
     ```js
@@ -1234,15 +1190,17 @@
     - give me an example of how to use the $and operator
   references:
     - url: https://mongodb.com/docs/manual/reference/operator/query/and/
+      title: $and
     - url: https://mongodb.com/docs/manual/reference/operator/aggregation/and/
+      title: $and (aggregation)
     - url: https://mongodb.com/docs/atlas/atlas-sp/sp-agg-validate/
+      title: $validate - MongoDB Atlas
     - url: https://mongodb.com/docs/manual/tutorial/query-documents/
+      title: Query Documents
 - answer: >-
     Sure! Here's an example of how to use the `$in` operator in MongoDB:
 
-    Suppose you have a collection called `inventory` with documents that have
-    the fields `item` and `quantity`. You want to find all documents where the
-    quantity is either 5 or 15.
+    Suppose you have a collection called `inventory` with documents that have the fields `item` and `quantity`. You want to find all documents where the quantity is either 5 or 15.
 
     You can use the `$in` operator to achieve this. Here's the example query:
 
@@ -1254,16 +1212,14 @@
     ```
 
 
-    This query selects all documents in the `inventory` collection where the
-    value of the `quantity` field is either 5 or 15.
+    This query selects all documents in the `inventory` collection where the value of the `quantity` field is either 5 or 15.
 
     The result of this query would be the documents that match the condition:
 
 
     ```js
 
-    { item: 'Erasers', quantity: 15, tags: [ 'school', 'home' ] },
-    { item: 'Books', quantity: 5, tags: [ 'school', 'storage', 'home' ] }
+    { item: 'Erasers', quantity: 15, tags: [ 'school', 'home' ] }, { item: 'Books', quantity: 5, tags: [ 'school', 'storage', 'home' ] }
 
     ```
 
@@ -1274,9 +1230,15 @@
     - give me an example of how to use the $in operator
   references:
     - url: https://mongodb.com/docs/manual/reference/operator/query/in/
+      title: $in
     - url: https://learn.mongodb.com/learn/course/mongodb-crud-operations-insert-and-find-documents/lesson-2-finding-documents-in-a-mongodb-collection/learn
+      title:
+        "MongoDB CRUD Operations: Insert and Find Documents - Lesson 2: Finding
+        Documents in a MongoDB Collection - Learn"
     - url: https://mongodb.com/docs/manual/reference/operator/aggregation/in/
+      title: $in (aggregation)
     - url: https://mongodb.com/docs/atlas/atlas-search/in/
+      title: in
 - answer: >-
     To connect to MongoDB using mongosh, you can follow these steps:
 
@@ -1302,12 +1264,9 @@
     ```
 
 
-    Replace `<hostname>`, `<port>`, `<username>`, `<password>`, and
-    `<authDatabase>` with the appropriate values for your MongoDB deployment.
+    Replace `<hostname>`, `<port>`, `<username>`, `<password>`, and `<authDatabase>` with the appropriate values for your MongoDB deployment.
 
-    Please note that you need to have `mongosh` installed on your machine before
-    you can use it. You can refer to the MongoDB documentation for detailed
-    instructions on installing `mongosh` for your operating system.
+    Please note that you need to have `mongosh` installed on your machine before you can use it. You can refer to the MongoDB documentation for detailed instructions on installing `mongosh` for your operating system.
 
     Let me know if you have any further questions!
   author_email: jeffrey.allen@mongodb.com
@@ -1315,11 +1274,17 @@
     - how to connect to mongodb through mongosh
   references:
     - url: https://mongodb.com/docs/atlas/includes/steps-fts-divide-results-tutorial-run-query-shell/
+      title: Connect to your cluster in mongosh.
     - url: https://mongodb.com/docs/atlas/includes/steps-avs-rrf-shell-query/
+      title: Connect to your cluster using mongosh.
     - url: https://mongodb.com/docs/atlas/atlas-search/tutorial/multilingual-tutorial/
+      title: How to Run Multilingual Atlas Search Queries
     - url: https://mongodb.com/docs/manual/tutorial/install-mongodb-community-with-docker/
+      title: Install MongoDB Community with Docker
     - url: https://mongodb.com/docs/manual/tutorial/install-mongodb-enterprise-with-docker/
+      title: Install MongoDB Enterprise with Docker
     - url: https://www.mongodb.com/docs/manual/tutorial/create-users/
+      title: Create a User
 - answer: >-
     Certainly! Here's an example of a MongoDB aggregation pipeline that uses
     `$lookup` and `$match` stages:
@@ -1346,27 +1311,22 @@
     ```
 
 
-    In this example, the pipeline first performs a `$lookup` stage to join the
-    `orders` collection with the `restaurants` collection. It matches documents
-    where the `restaurant_name` field in the `orders` collection matches the
-    `name` field in the `restaurants` collection. The matching documents from
-    the `restaurants` collection are then added to an array field called
-    `matches` in the output documents.
+    In this example, the pipeline first performs a `$lookup` stage to join the `orders` collection with the `restaurants` collection. It matches documents where the `restaurant_name` field in the `orders` collection matches the `name` field in the `restaurants` collection. The matching documents from the `restaurants` collection are then added to an array field called `matches` in the output documents.
 
-    The pipeline then proceeds to a `$match` stage to filter the documents based
-    on the `beverages` field in the `matches` array. In this case, it filters
-    for documents where the `beverages` array contains the value "soda".
+    The pipeline then proceeds to a `$match` stage to filter the documents based on the `beverages` field in the `matches` array. In this case, it filters for documents where the `beverages` array contains the value "soda".
 
-    Please note that this is just an example, and you may need to modify the
-    pipeline to suit your specific use case.
+    Please note that this is just an example, and you may need to modify the pipeline to suit your specific use case.
   author_email: jeffrey.allen@mongodb.com
   questions:
     - Can you please give me a mongodb aggregation pipeline which does a $lookup
       and $match
   references:
     - url: https://mongodb.com/docs/manual/reference/operator/aggregation/lookup/
+      title: $lookup (aggregation)
     - url: https://mongodb.com/docs/manual/reference/operator/aggregation/graphLookup/
+      title: $graphLookup (aggregation)
     - url: https://www.mongodb.com/docs/manual/reference/operator/aggregation/match/
+      title: $match (aggregation)
 - answer: >-
     To maximize uptime with MongoDB, you can follow these best practices:
 
@@ -1395,17 +1355,23 @@
       tools like MongoDB Cloud Manager and MongoDB Atlas that offer monitoring and
       alerting capabilities.
 
-    By following these best practices, you can ensure high availability and
-    maximize uptime with MongoDB.
+    By following these best practices, you can ensure high availability and maximize uptime with MongoDB.
   author_email: jeffrey.allen@mongodb.com
   questions:
     - How to maximize uptime with MongoDB?
   references:
     - url: https://learn.mongodb.com/learn/course/self-managed-upgrades-maintenance/lesson-1-zero-downtime-maintenance-with-a-mongodb-deployment/learn
+      title: "Self-Managed Upgrades & Maintenance - Lesson 1:  Zero Downtime
+        Maintenance with a MongoDB Deployment - Learn"
     - url: https://mongodb.com/docs/manual/administration/production-notes/
+      title: Production Notes
     - url: https://learn.mongodb.com/learn/course/mongodb-atlas-upgrades-maintenance/lesson-1-zero-downtime-maintenance-with-atlas/learn
+      title: "MongoDB Atlas Upgrades & Maintenance - Lesson 1: Zero Downtime
+        Maintenance with Atlas - Learn"
     - url: https://www.mongodb.com/developer/products/mongodb/paginations-why-choose-mongodb
+      title: "Paginations 2.0: Why I Would Choose MongoDB"
     - url: https://learn.mongodb.com/learn/course/self-managed-upgrades-maintenance/conclusion/learn
+      title: Self-Managed Upgrades & Maintenance - Conclusion  - Learn
 - answer: >-
     Yes, you can reset a MongoDB database user's password. To reset your
     password, you need to follow these steps:
@@ -1433,11 +1399,9 @@
     ```
 
 
-    When prompted, enter the new password. Make sure to replace `"user123"` with
-    your actual username and customize the custom data as needed.
+    When prompted, enter the new password. Make sure to replace `"user123"` with your actual username and customize the custom data as needed.
 
-    Please note that the provided example assumes you are using the MongoDB
-    shell. If you are using a different MongoDB client, the syntax may vary.
+    Please note that the provided example assumes you are using the MongoDB shell. If you are using a different MongoDB client, the syntax may vary.
 
     Let me know if you need any further assistance!
   author_email: jeffrey.allen@mongodb.com
@@ -1445,8 +1409,13 @@
     - Can i reset my password
   references:
     - url: https://mongodb.com/docs/atlas/security/manage-your-mongodb-atlas-account/
+      title: Manage Your MongoDB Atlas Account
     - url: https://mongodb.com/docs/manual/tutorial/change-own-password-and-custom-data/
+      title: Change Your Password and Custom Data
     - url: https://learn.mongodb.com/learn/course/mongodb-atlas-backup-recovery/lesson-1-back-up-and-recover-an-atlas-free-tier/learn
+      title:
+        "MongoDB Atlas Backup & Recovery - Lesson 1: Back Up and Recover an Atlas
+        Free Tier - Learn"
 - answer: >-
     MongoDB Atlas Search allows you to quickly build fine-grained search
     functionality into your applications. Consider using Atlas Search for the
@@ -1478,17 +1447,19 @@
       This functionality is especially useful for applications that require
       real-time search.
 
-    These are just a few of the benefits of using Atlas Search. To learn more
-    about Atlas Search and how to implement it in your applications, see
-    MongoDB's Atlas Search documentation.
+    These are just a few of the benefits of using Atlas Search. To learn more about Atlas Search and how to implement it in your applications, see MongoDB's Atlas Search documentation.
   author_email: jeffrey.vincent@mongodb.com
   questions:
     - Why should I use Atlas Search?
   references:
     - url: https://www.mongodb.com/developer/products/atlas/atlas-search-soccer
+      title: Atlas Search is a Game Changer!
     - url: https://www.mongodb.com/developer/products/atlas/building-e-commerce-content-catalog-atlas-search
+      title: Building an E-commerce Content Catalog with Atlas Search
     - url: https://www.mongodb.com/developer/products/atlas/atlas-search-java
+      title: Using Atlas Search from Java
     - url: https://learn.mongodb.com/learn/course/mongodb-atlas-search/conclusion/learn
+      title: MongoDB Atlas Search - Conclusion - Learn
 - answer: >-
     MongoDB and Oracle are both popular database management systems, but they
     have some key differences. Here are a few of the main differences between
@@ -1526,20 +1497,22 @@
       around it, while Oracle has a long-standing presence in the enterprise
       market with a wide range of tools and integrations.
 
-    It's important to note that the choice between MongoDB and Oracle depends on
-    specific use cases, requirements, and preferences. Each database has its
-    strengths and weaknesses, and the decision should be based on factors such
-    as data structure, scalability needs, transactional requirements, and
-    development ecosystem.
+    It's important to note that the choice between MongoDB and Oracle depends on specific use cases, requirements, and preferences. Each database has its strengths and weaknesses, and the decision should be based on factors such as data structure, scalability needs, transactional requirements, and development ecosystem.
   author_email: jeffrey.vincent@mongodb.com
   questions:
     - Mongodb vs oracle
   references:
     - url: https://learn.mongodb.com/learn/course/mongodb-for-sql-experts/conclusion/lesson
+      title: MongoDB for SQL Experts - Conclusion - Lesson
     - url: https://learn.mongodb.com/learn/course/mongodb-for-sql-experts/lesson-1-traditional-rdbms-vs-mongodb-databases/learn
+      title: "MongoDB for SQL Experts - Lesson 1: Traditional RDBMS vs. MongoDB
+        Databases - Learn"
     - url: https://www.mongodb.com/developer/products/mongodb/modernizing-rdbms-schemas-mongodb-document
+      title: Modernizing RDBMS Schemas With a MongoDB Document Model
     - url: https://www.mongodb.com/why-use-mongodb
+      title: Why Use MongoDB and When to Use It?
     - url: https://www.mongodb.com/developer/products/mongodb/top-4-reasons-to-use-mongodb
+      title: The Top 4 Reasons Why You Should Use MongoDB
 - answer: >
     To import or migrate data into MongoDB, you can use the `mongoimport`
     command-line tool. `mongoimport` allows you to import data from JSON, CSV,
@@ -1578,14 +1551,16 @@
       refer to the MongoDB documentation on how to import data into MongoDB with
       mongoimport.
 
-    Please note that `mongoimport` is just one of the ways to import data into
-    MongoDB. There are other methods available depending on your specific use
-    case, such as using MongoDB Compass or writing a custom script using a
-    programming language driver.
+    Please note that `mongoimport` is just one of the ways to import data into MongoDB. There are other methods available depending on your specific use case, such as using MongoDB Compass or writing a custom script using a programming language driver.
   author_email: ian.fogelman@mongodb.com
   questions:
     - How do I import or migrate data into MongoDB?
   references:
     - url: https://www.mongodb.com/developer/products/mongodb/mongoimport-guide
+      title: How to Import Data into MongoDB with mongoimport
     - url: https://learn.mongodb.com/learn/course/mongodb-database-administrator-tools/lesson-5-data-import-tools/learn
+      title:
+        "MongoDB Database Administrator Tools - Lesson 5: Data Import Tools -
+        Learn"
     - url: https://learn.mongodb.com/learn/course/importing-csv-data-into-mongodb/learning-byte/learn
+      title: Importing CSV Data into MongoDB - LEARNING BYTE - Learn

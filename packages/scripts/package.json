@@ -19,7 +19,7 @@
     "createView/scrubbed_topics": "npm run build && node ./build/createView/scrubbed_topics.js",
     "removeTestDatabases": "npm run build && node ./build/removeTestDatabases.js",
     "getConversationText": "npm run build && node ./build/getConversationText.js",
-    "findPageTitles": "npm run build && node ./build/findPageTitlesMain.js",
+    "findPageTitles": "npm run build && node ./build/main/findPageTitlesMain.js",
     "test": "jest --forceExit",
     "build": "npm run clean && tsc -b tsconfig.build.json",
     "postbuild": "cp ./src/MessageAnalysis.d.ts ./build/",

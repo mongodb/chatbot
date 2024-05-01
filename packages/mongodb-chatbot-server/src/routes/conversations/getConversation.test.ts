@@ -1,4 +1,4 @@
-import { Db, ObjectId } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core";
 import { ConversationsService } from "../../services";
 import { makeTestApp, makeTestAppConfig } from "../../test/testHelpers";
 import request from "supertest";

@@ -5,7 +5,6 @@ import {
   ChatRequestMessage,
   FunctionDefinition,
 } from "@azure/openai";
-import { strict as assert } from "assert";
 
 const extractMetadataSystemPrompt = {
   role: "system",

@@ -60,7 +60,6 @@ describe("SnootyDataSource", () => {
       const astPages = JSONL.parse<{ type: string; data: { ast: SnootyNode } }>(
         fs.readFileSync(sampleDataPath, "utf8")
       );
-      const baseUrl = "https://mongodb.com/docs/v6.0";
       const pageAst = astPages.filter(
         (entry: { type: string }) => entry.type === "page"
       )[1]?.data.ast;

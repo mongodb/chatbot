@@ -57,10 +57,7 @@ export default createCommand<GenerateDocsPageCommandArgs>({
 });
 
 export const action = createConfiguredAction<GenerateDocsPageCommandArgs>(
-  async (
-    { embeddedContentStore, embedder, pageStore },
-    { targetDescription, template }
-  ) => {
+  async ({ pageStore }, { targetDescription, template }) => {
     logger.logInfo(`Setting up...`);
     const generate = makeGenerateChatCompletion();
     // const { findContent, cleanup: cleanupFindContent } = makeFindContent({

@@ -3,6 +3,7 @@ import { withConfig } from "./withConfig";
 
 describe("withConfig", () => {
   it("loads a config file", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mockExit = jest.fn() as any;
     process.exit = mockExit;
     await withConfig(

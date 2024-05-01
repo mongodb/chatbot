@@ -8,7 +8,7 @@ import {
   ConversationsService,
 } from "../../services/ConversationsService";
 import { Express } from "express";
-import { Db, ObjectId } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { AppConfig } from "../../app";

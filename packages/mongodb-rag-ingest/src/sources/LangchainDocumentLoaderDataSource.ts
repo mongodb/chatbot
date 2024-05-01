@@ -1,7 +1,7 @@
 import { DocumentLoader } from "langchain/document_loaders/base";
 import { Document as LangchainDocument } from "langchain/document";
 import { DataSource } from "./DataSource";
-import { Page, PageMetadata, PageStore } from "mongodb-rag-core";
+import { Page, PageMetadata } from "mongodb-rag-core";
 
 export interface MakeLangChainDocumentLoaderDataSourceParams {
   /**

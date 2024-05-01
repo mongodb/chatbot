@@ -1,7 +1,7 @@
 import { blockGetRequests } from "./blockGetRequests";
 import { NextFunction } from "express";
 
-type FunctionArguments<T> = T extends (...args: infer U) => any ? U : never;
+type FunctionArguments<T> = T extends (...args: infer U) => unknown ? U : never;
 
 describe("blockGetRequests", () => {
   let req: FunctionArguments<typeof blockGetRequests>[0];

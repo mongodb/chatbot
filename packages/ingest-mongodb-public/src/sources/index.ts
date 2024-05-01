@@ -242,13 +242,13 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
   },
   {
     type: "snooty",
-    name: "c-driver",
+    name: "c",
     tags: ["docs", "driver", "c", "libmongoc"],
     productName: "C Driver",
   },
   {
     type: "snooty",
-    name: "scala-driver",
+    name: "scala",
     tags: ["docs", "driver", "scala"],
     productName: "Scala Driver",
   },

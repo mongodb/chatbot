@@ -48,8 +48,11 @@ const styles = {
     border-radius: 24px;
   `,
   message_feed: css`
+    height: 100%;
+    max-height: 70vh;
     & > div {
       box-sizing: border-box;
+      max-height: 70vh;
     }
   `,
   verify_information: css`

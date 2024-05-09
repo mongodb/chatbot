@@ -5,22 +5,34 @@ export type Project = {
   getReleaseArtifacts(version: string): Promise<ReleaseArtifact[]>;
 };
 
-export type ReleaseArtifact =
-  | {
-      type: "git-commit";
-      data: {
-        hash: string;
-        message: string;
-      };
-    }
-  | {
-      type: "git-diff";
-      data: {
-        oldCommit: string;
-        newCommit: string;
-        diff: string;
-      };
-    };
+export type GitCommitArtifact = {
+  type: "git-commit";
+  data: {
+    hash: string;
+    message: string;
+    files: {
+      fileName: string;
+      additions: number;
+      deletions: number;
+      changes: number;
+      hash: string;
+      status: string;
+    }[];
+  };
+};
+
+export type GitDiffArtifact = {
+  type: "git-diff";
+  data: {
+    oldHash: string;
+    newHash: string;
+    fileName: string;
+    diff: string;
+  };
+};
+
+export type ReleaseArtifact = GitCommitArtifact;
+
 // | {
 //     type: "jira-issue";
 //     data: {
@@ -43,10 +55,3 @@ export type ReleaseArtifact =
 //       issues: string[];
 //     };
 //   }
-// | {
-//     type: "confluence-page";
-//     data: {
-//       title: string;
-//       content: string;
-//     };
-//   };

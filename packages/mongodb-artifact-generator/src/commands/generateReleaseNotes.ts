@@ -6,6 +6,8 @@ import {
 import { createCommand } from "../createCommand";
 import { makeGenerateChatCompletion } from "../chat";
 import { makeRunLogger, type RunLogger } from "../runlogger";
+import { getReleaseArtifacts } from "../release-notes/getReleaseArtifacts";
+import { promises as fs } from "fs";
 
 let logger: RunLogger;
 
@@ -59,30 +61,47 @@ export default createCommand<GenerateReleaseNotesCommandArgs>({
 export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
   async (
     //
-    { jiraApi, githubApi },
+    { githubApi },
     { projectDescription }
   ) => {
     logger.logInfo(`Setting up...`);
-    // const generate = makeGenerateChatCompletion();
 
-    const data = await jiraApi?.getIssue("EAI-123");
-    console.log("data", data);
+    if (!githubApi) {
+      throw new Error(
+        "GitHub API is required. Make sure to define it in the config."
+      );
+    }
 
-    const gh = await githubApi?.pulls.get({
-      owner: "mongodb",
-      repo: "chatbot",
-      pull_number: 405,
-    });
-    console.log("gh", Object.keys(gh as any));
-
-    const gh_diff = await githubApi?.pulls.get({
-      owner: "mongodb",
-      repo: "chatbot",
-      pull_number: 405,
-      mediaType: {
-        format: "diff",
+    const releaseArtifacts = await getReleaseArtifacts({
+      github: {
+        githubApi,
+        owner: "mongodb",
+        repo: "mongodb-atlas-cli",
+        version: "atlascli/v1.22.0",
+        previousVersion: "atlascli/v1.21.0",
+        // owner: "mongodb",
+        // repo: "chatbot",
+        // version: "mongodb-chatbot-ui-v0.7.2",
+        // previousVersion: "mongodb-chatbot-ui-v0.7.1",
       },
     });
-    console.log("gh_diff", Object.keys(gh_diff as any));
+
+    logger.appendArtifact(
+      "releaseArtifacts.json",
+      JSON.stringify(releaseArtifacts)
+    );
+
+    // const data = await jiraApi?.getIssue("EAI-123");
+    // console.log("data", data);
+
+    // const gh_diff = await githubApi?.pulls.get({
+    //   owner: "mongodb",
+    //   repo: "chatbot",
+    //   pull_number: 405,
+    //   mediaType: {
+    //     format: "diff",
+    //   },
+    // });
+    // console.log("gh_diff", Object.keys(gh_diff as any));
   }
 );

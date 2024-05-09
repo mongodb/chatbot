@@ -15,6 +15,10 @@ const styles = {
       box-sizing: border-box;
     }
 
+    > div {
+      padding: unset;
+    }
+
     & div[role="dialog"] {
       padding: 0;
       background: ${darkMode ? palette.black : palette.gray.light3};

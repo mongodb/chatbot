@@ -62,7 +62,8 @@ describe("makeEvaluateConversationFaithfulness", () => {
       createdAt: expect.any(Date),
       commandRunMetadataId: runId,
       metadata: {
-        contextContent: messages[0]!.contextContent!.map(({ text }) => text),
+        contextContent:
+          messages[0]?.contextContent?.map(({ text }) => text) ?? "",
         userQueryContent: messages[0].content,
         assistantResponseContent: messages[1].content,
         name: expect.any(String),
@@ -107,7 +108,8 @@ describe("makeEvaluateConversationFaithfulness", () => {
       createdAt: expect.any(Date),
       commandRunMetadataId: runId,
       metadata: {
-        contextContent: messages[0]!.contextContent!.map(({ text }) => text),
+        contextContent:
+          messages[0]?.contextContent?.map(({ text }) => text) ?? "",
         userQueryContent: messages[0].content,
         assistantResponseContent: messages[1].content,
       },

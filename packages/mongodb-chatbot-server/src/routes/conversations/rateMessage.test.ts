@@ -8,7 +8,7 @@ import {
   ConversationsService,
 } from "../../services/ConversationsService";
 import { Express } from "express";
-import { Db, MongoClient, ObjectId } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core";
 import { makeRateMessageRoute } from "./rateMessage";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp, systemPrompt } from "../../test/testHelpers";
@@ -25,13 +25,12 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
   let conversation: Conversation;
   let testMsg: Message;
   let testEndpointUrl: string;
-  let mongodb: Db;
   let ipAddress: string;
   let appConfig: AppConfig;
   let origin: string;
 
   beforeAll(async () => {
-    ({ mongodb, app, ipAddress, appConfig, origin } = await makeTestApp());
+    ({ app, ipAddress, appConfig, origin } = await makeTestApp());
     conversations = appConfig.conversationsRouterConfig.conversations;
 
     app

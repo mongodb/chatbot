@@ -1,4 +1,4 @@
-import { Page, PageMetadata } from "mongodb-rag-core";
+import { PageMetadata } from "mongodb-rag-core";
 import { DataSource } from "../DataSource";
 import { makeUniversityPages } from "./makeUniversityPages";
 import {

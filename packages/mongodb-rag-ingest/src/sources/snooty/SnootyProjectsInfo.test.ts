@@ -23,9 +23,9 @@ describe("SnootyProjectsInfo", () => {
   it("gets project base url", async () => {
     const baseUrl = await projectsInfo?.getBaseUrl({
       projectName: "docs",
-      branchName: "v4.4",
+      branchName: "v6.0",
     });
-    expect(baseUrl).toBe("https://mongodb.com/docs/v4.4");
+    expect(baseUrl).toBe("https://mongodb.com/docs/v6.0");
   });
   it("throws for invalid branch", async () => {
     const baseUrlPromise = projectsInfo?.getBaseUrl({
@@ -37,7 +37,7 @@ describe("SnootyProjectsInfo", () => {
   it("throws for invalid project", async () => {
     const baseUrlPromise = projectsInfo?.getBaseUrl({
       projectName: "not-a-project",
-      branchName: "v4.4",
+      branchName: "v6.0",
     });
     await expect(baseUrlPromise).rejects.toThrow();
   });

@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb-rag-core";
 import { EvalConfig } from "./EvalConfig";
-import { Pipeline, runPipeline } from "./Pipeline";
+import { runPipeline } from "./Pipeline";
 import { mockEvaluateConversation } from "./test/mockEvaluateConversation";
 import { makeMockEvaluationStore } from "./test/mockEvaluationStore";
 import { mockGenerateDataFunc } from "./test/mockGenerateDataFunc";
@@ -21,6 +21,7 @@ describe("runPipeline", () => {
     evaluationStore,
     reportStore,
   ];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mockExit = jest.fn() as any;
   beforeEach(() => {
     for (const store of stores) {

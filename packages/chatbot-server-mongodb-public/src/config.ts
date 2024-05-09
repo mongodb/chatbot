@@ -15,7 +15,6 @@ import {
   CORE_ENV_VARS,
   assertEnvVars,
   makeDefaultFindContent,
-  SystemPrompt,
   requireValidIpAddress,
   requireRequestOrigin,
   AddCustomDataFunc,
@@ -23,7 +22,6 @@ import {
   makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
 } from "mongodb-chatbot-server";
-import { stripIndents } from "common-tags";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import cookieParser from "cookie-parser";
 import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";

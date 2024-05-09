@@ -6,7 +6,6 @@ import { makeMockReportStore } from "../test/mockReportStore";
 import { generateReportAndMetadata } from "./generateReportAndMetadata";
 import { EvalResult } from "../evaluate/EvaluationStore";
 import { CommandRunMetadata } from "../CommandMetadataStore";
-import e from "express";
 import { Report } from "./ReportStore";
 
 describe("generateReportAndMetadata", () => {

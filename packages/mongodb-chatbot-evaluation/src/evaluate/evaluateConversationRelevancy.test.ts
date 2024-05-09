@@ -54,6 +54,7 @@ describe("makeEvaluateConversationRelevancy", () => {
       runId,
       generatedData: faithfulGeneratedData,
     });
+
     expect(evalResult).toMatchObject({
       generatedDataId: faithfulGeneratedData._id,
       result: 1,
@@ -62,7 +63,8 @@ describe("makeEvaluateConversationRelevancy", () => {
       createdAt: expect.any(Date),
       commandRunMetadataId: runId,
       metadata: {
-        contextContent: messages[0]!.contextContent!.map(({ text }) => text),
+        contextContent:
+          messages[0]?.contextContent?.map(({ text }) => text) ?? "",
         userQueryContent: messages[0].content,
         assistantResponseContent: messages[1].content,
       },
@@ -106,7 +108,8 @@ describe("makeEvaluateConversationRelevancy", () => {
       createdAt: expect.any(Date),
       commandRunMetadataId: runId,
       metadata: {
-        contextContent: messages[0]!.contextContent!.map(({ text }) => text),
+        contextContent:
+          messages[0]?.contextContent?.map(({ text }) => text) ?? "",
         userQueryContent: messages[0].content,
         assistantResponseContent: messages[1].content,
       },

@@ -1,6 +1,6 @@
 import { ObjectId, logger } from "mongodb-rag-core";
 import { CommandRunMetadata } from "./CommandMetadataStore";
-import { ConfigConstructor, EvalConfig } from "./EvalConfig";
+import { ConfigConstructor } from "./EvalConfig";
 import { strict as assert } from "assert";
 import { generateDataAndMetadata } from "./generate";
 import { generateEvalsAndMetadata } from "./evaluate/generateEvalsAndMetadata";

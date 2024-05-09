@@ -54,7 +54,7 @@ export interface MakeStepBackUserQueryParams {
   deploymentName: string;
   messages?: Message[];
   userMessageText: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -112,7 +112,7 @@ function generateStepBackUserMessage({
 }: {
   userMessageText: string;
   messages: Message[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   numPrecedingMessagesToInclude?: number;
 }) {
   return {

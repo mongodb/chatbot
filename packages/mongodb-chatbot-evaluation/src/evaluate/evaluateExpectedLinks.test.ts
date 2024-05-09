@@ -124,14 +124,14 @@ describe("evaluateExpectedLinks", () => {
 
   it('should throw an error if generatedData is not of type "conversation"', async () => {
     const generatedConversationData = generateConversationData([]);
-    (generateConversationData as any).type = "not conversation";
+    (generatedConversationData as { type: string }).type = "not conversation";
     const runId = new ObjectId();
     await expect(
       evaluateExpectedLinks({
         generatedData: generatedConversationData,
         runId,
       })
-    ).rejects.toThrow();
+    ).rejects.toThrow("Invalid data type. Expected 'conversation' data.");
   });
 
   it("should throw an error if no expectedLinks are provided in the test case", async () => {

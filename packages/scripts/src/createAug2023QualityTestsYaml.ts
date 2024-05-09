@@ -40,7 +40,7 @@ interface TestCase {
   expectation: string;
 }
 
-function parseCsvToObject(csvFilePath: string) {
+function parseCsvToObject() {
   const input = readFileSync(generalTestsFilePath, "utf8");
   const records: TestCsvRow[] = parse(input, {
     columns: true,
@@ -99,7 +99,7 @@ function writeYamlToFile(yamlString: string, filePath: string) {
 }
 
 async function convertCsvToYamlAndWriteToFile(csvFilePath: string, db: Db) {
-  const csvObjects = parseCsvToObject(csvFilePath);
+  const csvObjects = parseCsvToObject();
   const testCases: TestCase[] = [];
   for (const csvObject of csvObjects) {
     const messages = await getMessagesForTest(

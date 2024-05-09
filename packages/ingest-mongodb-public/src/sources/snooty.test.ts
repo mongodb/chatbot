@@ -1,13 +1,14 @@
 import {
-  snootySourceConstructor,
+  makeSnootyDataSources,
   snootyProjectConfig,
   snootyDataApiBaseUrl,
 } from "./snooty";
 
-// Skipping for now b/c of issue with the "landing" site. UNskip when the issue is resolved.
-describe.skip("Snooty data sources", () => {
-  test.each(snootyProjectConfig)("$name should fetch data", async (project) => {
-    const [source] = await snootySourceConstructor(snootyDataApiBaseUrl, [
+describe("Snooty data sources", () => {
+  // Skip the "landing" site to avoid an issue with the Snooty Data API. Remove this filter when the issue is fixed.
+  const projectConfigs = snootyProjectConfig.filter(p => p.name !== "landing");
+  test.each(projectConfigs)("$name should fetch data", async (project) => {
+    const [source] = await makeSnootyDataSources(snootyDataApiBaseUrl, [
       project,
     ]);
     expect(source.name).toBeDefined();

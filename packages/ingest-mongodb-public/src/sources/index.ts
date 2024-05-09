@@ -22,7 +22,7 @@ import { practicalAggregationsDataSource } from "./practicalAggregations";
 import {
   snootyDataApiBaseUrl,
   snootyProjectConfig,
-  snootySourceConstructor,
+  makeSnootyDataSources,
 } from "./snooty";
 
 /**
@@ -135,7 +135,7 @@ function getTerraformPageUrl(siteBaseUrl: string, path: string) {
   The constructors for the sources used by the docs chatbot.
  */
 export const sourceConstructors: SourceConstructor[] = [
-  () => snootySourceConstructor(snootyDataApiBaseUrl, snootyProjectConfig),
+  () => makeSnootyDataSources(snootyDataApiBaseUrl, snootyProjectConfig),
   () => makeDevCenterDataSource(devCenterProjectConfig),
   mongoDbUniversitySourceConstructor,
   mongooseSourceConstructor,

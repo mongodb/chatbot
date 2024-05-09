@@ -248,7 +248,7 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
 
 export const snootyDataApiBaseUrl = "https://snooty-data-api.mongodb.com/prod/";
 
-export const snootySourceConstructor = (
+export const makeSnootyDataSources = (
   snootyDataApiBaseUrl: string,
   projects: LocallySpecifiedSnootyProjectConfig[]
 ) =>

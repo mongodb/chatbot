@@ -2,14 +2,14 @@ import LeafyGreenProvider, {
   useDarkMode,
 } from "@leafygreen-ui/leafygreen-provider";
 import { UserProvider } from "./UserProvider";
-import { useChatbot } from "./useChatbot";
+import { useChatbot, OpenCloseHandlers } from "./useChatbot";
 import { LinkDataProvider } from "./LinkDataProvider";
 import { type User } from "./useUser";
 import { ChatbotProvider } from "./ChatbotProvider";
 import { ConversationFetchOptions } from "./services/conversations";
 import ConversationProvider from "./ConversationProvider";
 
-export type ChatbotProps = {
+export type ChatbotProps = OpenCloseHandlers & {
   children: React.ReactElement | React.ReactElement[];
   darkMode?: boolean;
   isExperimental?: boolean;
@@ -30,6 +30,8 @@ export function Chatbot({
   user,
   name,
   fetchOptions,
+  onOpen,
+  onClose,
   ...props
 }: ChatbotProps) {
   const { darkMode } = useDarkMode(props.darkMode);
@@ -49,6 +51,8 @@ export function Chatbot({
     fetchOptions,
     maxInputCharacters,
     maxCommentCharacters,
+    onOpen,
+    onClose,
   });
 
   const tck = props.tck ?? "mongodb_ai_chatbot";

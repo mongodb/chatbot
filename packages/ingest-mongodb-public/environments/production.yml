@@ -30,6 +30,7 @@ cronJobs:
       limits:
         cpu: 500m
         memory: 5Gi
+    backoffLimit: 3
 
 # Alerts
 defaultAlerts:

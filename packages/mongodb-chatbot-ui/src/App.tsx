@@ -39,6 +39,12 @@ function App() {
           shouldStream={shouldStream}
           darkMode={darkMode}
           fetchOptions={{ credentials: "include" }}
+          onOpen={() => {
+            console.log("Docs Chatbot opened");
+          }}
+          onClose={() => {
+            console.log("Docs Chatbot closed");
+          }}
         >
           <DocsChatbot suggestedPrompts={SUGGESTED_PROMPTS} />
         </Chatbot>
@@ -47,6 +53,12 @@ function App() {
           shouldStream={shouldStream}
           darkMode={darkMode}
           fetchOptions={{ credentials: "include" }}
+          onOpen={() => {
+            console.log("Dev Center Chatbot opened");
+          }}
+          onClose={() => {
+            console.log("Dev Center Chatbot closed");
+          }}
         >
           <DevCenterChatbot
             initialMessageSuggestedPrompts={SUGGESTED_PROMPTS}

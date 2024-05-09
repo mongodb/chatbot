@@ -2,7 +2,12 @@ import { useRef, useState } from "react";
 import { useConversation } from "./useConversation";
 import { ConversationFetchOptions } from "./services/conversations";
 
-export type UseChatbotProps = {
+export type OpenCloseHandlers = {
+  onOpen?: () => void;
+  onClose?: () => void;
+};
+
+export type UseChatbotProps = OpenCloseHandlers & {
   chatbotName?: string;
   isExperimental?: boolean;
   maxInputCharacters?: number;
@@ -47,6 +52,7 @@ export function useChatbot(props: UseChatbotProps): ChatbotData {
     if (open) {
       return;
     }
+    props.onOpen?.();
     setOpen(true);
     if (!conversation.conversationId) {
       await conversation.createConversation();
@@ -54,6 +60,10 @@ export function useChatbot(props: UseChatbotProps): ChatbotData {
   }
 
   function closeChat() {
+    if (!open) {
+      return false;
+    }
+    props.onClose?.();
     setOpen(false);
     return true;
   }

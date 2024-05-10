@@ -9,7 +9,7 @@ import {
   AzureKeyCredential,
 } from "mongodb-rag-core";
 import { Octokit } from "@octokit/rest";
-// import JiraApi from "jira-client";
+import JiraApi from "jira-client";
 
 const {
   OPENAI_ENDPOINT,
@@ -45,16 +45,16 @@ export const standardConfig = {
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
     }),
-  // jiraApi: () => {
-  //   return new JiraApi({
-  //     protocol: "https",
-  //     host: "jira.mongodb.org",
-  //     apiVersion: "2",
-  //     strictSSL: true,
-  //     username: JIRA_USERNAME,
-  //     password: JIRA_PASSWORD,
-  //   });
-  // },
+  jiraApi: () => {
+    return new JiraApi({
+      protocol: "https",
+      host: "jira.mongodb.org",
+      apiVersion: "2",
+      strictSSL: true,
+      username: JIRA_USERNAME,
+      password: JIRA_PASSWORD,
+    });
+  },
   githubApi: async () => {
     return new Octokit({
       auth: GITHUB_ACCESS_TOKEN,

@@ -31,16 +31,17 @@ export type GitDiffArtifact = {
   };
 };
 
-export type ReleaseArtifact = GitCommitArtifact;
+export type JiraIssueArtifact = {
+  type: "jira-issue";
+  data: {
+    key: string;
+    summary: string;
+    description: string;
+  };
+};
 
-// | {
-//     type: "jira-issue";
-//     data: {
-//       key: string;
-//       summary: string;
-//       description: string;
-//     };
-//   }
+export type ReleaseArtifact = GitCommitArtifact | JiraIssueArtifact;
+
 // | {
 //     type: "jira-release";
 //     data: {

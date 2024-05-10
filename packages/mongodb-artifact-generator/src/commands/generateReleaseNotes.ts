@@ -61,14 +61,19 @@ export default createCommand<GenerateReleaseNotesCommandArgs>({
 export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
   async (
     //
-    { githubApi },
+    { githubApi, jiraApi },
     { projectDescription }
   ) => {
     logger.logInfo(`Setting up...`);
 
     if (!githubApi) {
       throw new Error(
-        "GitHub API is required. Make sure to define it in the config."
+        "githubApi is required. Make sure to define it in the config."
+      );
+    }
+    if (!jiraApi) {
+      throw new Error(
+        "jiraApi is required. Make sure to define it in the config."
       );
     }
 
@@ -83,6 +88,11 @@ export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
         // repo: "chatbot",
         // version: "mongodb-chatbot-ui-v0.7.2",
         // previousVersion: "mongodb-chatbot-ui-v0.7.1",
+      },
+      jira: {
+        jiraApi,
+        // project: "CLOUDP",
+        version: "atlascli-1.22.0",
       },
     });
 

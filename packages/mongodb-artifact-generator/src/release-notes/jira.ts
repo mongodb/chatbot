@@ -1,6 +1,5 @@
 import JiraApi from "jira-client";
 import { JiraIssueArtifact } from "./projects";
-import { splitDiff } from "./splitDiff";
 import { z } from "zod";
 
 export type JiraReleaseArtifacts = {

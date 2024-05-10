@@ -7,22 +7,25 @@ import {
 } from "../chat";
 import { ReleaseArtifact, releaseArtifactIdentifier } from "./projects";
 import { RunLogger } from "../runlogger";
+import { PromisePool } from "@supercharge/promise-pool";
 
 export function safeFileName(fileName: string) {
   return fileName.replace(/[/\\?%*:|"<>]/g, "-");
 }
+
+export type SummarizeReleaseArtifactArgs = {
+  logger?: RunLogger;
+  generate?: GenerateChatCompletion;
+  projectDescription: string;
+  artifact: ReleaseArtifact;
+};
 
 export async function summarizeReleaseArtifact({
   logger,
   generate,
   projectDescription,
   artifact,
-}: {
-  logger?: RunLogger;
-  generate?: GenerateChatCompletion;
-  projectDescription: string;
-  artifact: ReleaseArtifact;
-}) {
+}: SummarizeReleaseArtifactArgs) {
   generate = generate ?? makeGenerateChatCompletion();
   const chatTemplate = [
     systemMessage(stripIndents`
@@ -53,7 +56,9 @@ export async function summarizeReleaseArtifact({
       })
       .join("\n")
   );
-  logger?.logInfo(`[summarizeReleaseArtifact chatTemplate] ${chatTemplate}`);
+  logger?.logInfo(
+    `[summarizeReleaseArtifact chatTemplate] ${JSON.stringify(chatTemplate)}`
+  );
 
   const output = await generate(chatTemplate);
   if (!output) {
@@ -97,7 +102,53 @@ function createUserPromptForReleaseArtifact(artifact: ReleaseArtifact) {
       return `${fm}\n${artifactString}`;
     }
     case "git-diff":
-    case "jira-issue":
       return artifactString;
+    case "jira-issue": {
+      const fm = frontmatter(
+        "Focus on the bug, task, improvement, etc. that the commit applies. Do not mention the issue key, component or other jira-specific information in the summary."
+      );
+      return `${fm}\n${artifactString}`;
+    }
   }
+}
+
+export async function summarizeReleaseArtifacts({
+  logger,
+  generate = makeGenerateChatCompletion(),
+  projectDescription,
+  artifacts,
+  onArtifactSummarized,
+  concurrency = 4,
+}: Omit<SummarizeReleaseArtifactArgs, "artifact"> & {
+  artifacts: ReleaseArtifact[];
+  concurrency?: number;
+  onArtifactSummarized?: (artifact: ReleaseArtifact, summary: string) => void;
+}) {
+  const iOfN = (i: number) => `(${i}/${artifacts.length})`;
+  const errors: Error[] = [];
+  const { results } = await PromisePool.withConcurrency(concurrency)
+    .for(artifacts)
+    .handleError((error, artifact) => {
+      const errMessage = `Error summarizing ${artifact.type}. ${error.name} "" ${error.message}`;
+      console.log(errMessage);
+      logger?.logError(errMessage);
+      errors.push(error);
+    })
+    .process(async (artifact, index) => {
+      console.log(`summarizing ${artifact.type} ${iOfN(index)}`);
+      const summary = await summarizeReleaseArtifact({
+        logger,
+        generate,
+        projectDescription,
+        artifact,
+      });
+      onArtifactSummarized?.(artifact, summary);
+      return summary;
+    });
+  if (errors.length > 0) {
+    logger?.logInfo(
+      `${errors.length} errors occurred while summarizing artifacts.`
+    );
+  }
+  return results;
 }

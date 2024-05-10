@@ -192,7 +192,6 @@ export const flushArtifactsToFile: ArtifactFlushHandler = async (
 ) => {
   await assertFlushDirectory(options);
   for (const artifact of artifacts) {
-    console.log("Writing artifact to file", artifact);
     const filePath = path.join(getFlushDirectoryPath(options), artifact.name);
     await assertDirectory(path.dirname(filePath));
     await fs.writeFile(filePath, ensureFileEndsWithNewline(artifact.content), {
@@ -209,7 +208,6 @@ export const defaultFlushArtifacts: ArtifactFlushHandler = async (
     ...createDefaultFlushOptions(),
     ...optionOverrides,
   };
-  flushArtifactsToConsole(artifacts, options);
   flushArtifactsToFile(artifacts, options);
 };
 

@@ -6,7 +6,7 @@ import {
 import { createCommand } from "../createCommand";
 import { makeRunLogger, type RunLogger } from "../runlogger";
 import { getReleaseArtifacts } from "../release-notes/getReleaseArtifacts";
-import { summarizeReleaseArtifact } from "../release-notes/summarizeReleaseArtifact";
+import { summarizeReleaseArtifacts } from "../release-notes/summarizeReleaseArtifacts";
 import {
   ReleaseArtifact,
   releaseArtifactShortMetadata,
@@ -81,6 +81,9 @@ export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
     const releaseInfoText = await fs.readFile(releaseInfoPath, "utf8");
     const releaseInfo = ReleaseInfo.parse(YAML.parse(releaseInfoText));
 
+    console.log("releaseInfo", releaseInfo);
+    logger.logInfo(`releaseInfo: ${JSON.stringify(releaseInfo)}`);
+
     const releaseArtifacts = await getReleaseArtifacts({
       github: {
         githubApi,
@@ -102,24 +105,15 @@ export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
 
     console.log(`summarizing ${numArtifacts} artifacts`);
 
-    for (const [i, artifact] of Object.entries(releaseArtifacts)) {
-      const iOfN = `(${Number(i) + 1}/${numArtifacts})`;
-      logger.logInfo(`summarizing ${artifact.type} ${iOfN}`);
-      console.log(`summarizing ${artifact.type} ${iOfN}`);
-      try {
-        const summary = await summarizeReleaseArtifact({
-          projectDescription: releaseInfo.projectDescription,
-          artifact,
-          logger,
-        });
-        logger.logInfo(`generated summary for ${artifact.type} ${iOfN}`);
-        console.log(`generated summary for ${artifact.type} ${iOfN}`);
+    await summarizeReleaseArtifacts({
+      logger,
+      projectDescription: releaseInfo.projectDescription,
+      artifacts: releaseArtifacts,
+      concurrency: 10,
+      onArtifactSummarized: (artifact, summary) => {
         summaries.set(artifact, summary);
-      } catch (e) {
-        console.log(`error summarizing ${artifact.type} ${iOfN}\n${e}`);
-        logger.logError(`error summarizing ${artifact.type} ${iOfN}\n${e}`);
-      }
-    }
+      },
+    });
 
     console.log(`generated ${summaries.size} summaries`);
 

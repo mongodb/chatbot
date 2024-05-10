@@ -51,6 +51,7 @@
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.6",
     "@octokit/rest": "^20.1.0",
+    "@supercharge/promise-pool": "^3.2.0",
     "@types/jira-client": "^7.1.9",
     "common-tags": "^1.8.2",
     "dotenv": "^16",

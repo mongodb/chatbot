@@ -1,8 +1,8 @@
-The MongoDB Atlas CLI (Command Line Interface) is a powerful tool designed to
-manage MongoDB Atlas resources directly from the command line. MongoDB Atlas is
-a fully-managed cloud database service that offers MongoDB databases in the
-cloud, ensuring scalable and flexible management of databases without the need
-for manual intervention in terms of hardware and infrastructure management.
+The MongoDB Atlas CLI (Command Line Interface) allows you to manage MongoDB
+Atlas resources directly from the command line. MongoDB Atlas is a fully-managed
+cloud database service that offers MongoDB databases in the cloud, ensuring
+scalable and flexible management of databases without the need for manual
+intervention in terms of hardware and infrastructure management.
 
 The Atlas CLI is particularly useful for developers and system administrators
 who prefer working within a terminal environment or require automation

@@ -1,6 +1,7 @@
 import JiraApi from "jira-client";
 import { JiraIssueArtifact } from "./projects";
 import { splitDiff } from "./splitDiff";
+import { z } from "zod";
 
 export type JiraReleaseArtifacts = {
   /**
@@ -9,21 +10,22 @@ export type JiraReleaseArtifacts = {
   getIssues(): Promise<JiraIssueArtifact[]>;
 };
 
-export type MakeJiraReleaseArtifactsArgs = {
+export const JiraReleaseInfo = z.object({
+  version: z
+    .string()
+    .describe(
+      "The version of the release. This (naïvely) corresponds to a Jira fixVersion."
+    ),
+  project: z.string().optional().describe("The Jira project key."),
+});
+
+export type JiraReleaseInfo = z.infer<typeof JiraReleaseInfo>;
+
+export type MakeJiraReleaseArtifactsArgs = JiraReleaseInfo & {
   /**
    A Jira API client
    */
   jiraApi: JiraApi;
-
-  /**
-   The Jira project key
-   */
-  project?: string;
-
-  /**
-   The version of the release. This (naïvely) corresponds to a Jira fixVersion.
-   */
-  version: string;
 };
 
 export function makeJiraReleaseArtifacts({
@@ -53,8 +55,6 @@ export function makeJiraReleaseArtifacts({
           "project",
         ],
       })) as JiraSearchResponse;
-
-      console.log(`Found ${response.total} issues`);
 
       return response.issues.map((issue) => ({
         type: "jira-issue",

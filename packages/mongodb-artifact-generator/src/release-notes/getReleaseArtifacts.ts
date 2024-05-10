@@ -19,25 +19,25 @@ export async function getReleaseArtifacts({
 }: GetReleaseArtifactsArgs): Promise<ReleaseArtifact[]> {
   const artifacts: ReleaseArtifact[] = [];
 
-  // if (github) {
-  //   const { version, previousVersion, githubApi, owner, repo } = github;
+  if (github) {
+    const { version, previousVersion, githubApi, owner, repo } = github;
 
-  //   const githubReleaseArtifacts = makeGitHubReleaseArtifacts({
-  //     githubApi,
-  //     owner,
-  //     repo,
-  //     version,
-  //     previousVersion,
-  //   });
+    const githubReleaseArtifacts = makeGitHubReleaseArtifacts({
+      githubApi,
+      owner,
+      repo,
+      version,
+      previousVersion,
+    });
 
-  //   const [releaseCommits] = await Promise.all([
-  //     githubReleaseArtifacts.getCommits(),
-  //   ]);
+    const [releaseCommits] = await Promise.all([
+      githubReleaseArtifacts.getCommits(),
+    ]);
 
-  //   console.log(`Found ${releaseCommits.length} commits`);
+    console.log(`Found ${releaseCommits.length} GitHub commits`);
 
-  //   artifacts.push(...releaseCommits);
-  // }
+    artifacts.push(...releaseCommits);
+  }
 
   if (jira) {
     const { version, jiraApi, project } = jira;
@@ -52,7 +52,7 @@ export async function getReleaseArtifacts({
       jiraReleaseArtifacts.getIssues(),
     ]);
 
-    console.log(`Found ${releaseIssues.length} issues`);
+    console.log(`Found ${releaseIssues.length} Jira issues`);
 
     artifacts.push(...releaseIssues);
   }

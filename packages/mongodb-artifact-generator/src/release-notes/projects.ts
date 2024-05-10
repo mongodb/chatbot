@@ -40,7 +40,45 @@ export type JiraIssueArtifact = {
   };
 };
 
-export type ReleaseArtifact = GitCommitArtifact | JiraIssueArtifact;
+export type ReleaseArtifact =
+  | GitCommitArtifact
+  | GitDiffArtifact
+  | JiraIssueArtifact;
+
+export function releaseArtifactIdentifier({ type, data }: ReleaseArtifact) {
+  switch (type) {
+    case "git-commit":
+      return `${type}::${data.hash}`;
+    case "git-diff":
+      return `${type}::${data.fileName}:${data.oldHash}...${data.newHash}`;
+    case "jira-issue":
+      return `${type}::${data.key}`;
+  }
+}
+
+export function releaseArtifactShortMetadata({ type, data }: ReleaseArtifact) {
+  switch (type) {
+    case "git-commit":
+      return {
+        type: type,
+        hash: data.hash,
+        message: data.message,
+      };
+    case "git-diff":
+      return {
+        type: type,
+        oldHash: data.oldHash,
+        newHash: data.newHash,
+        fileName: data.fileName,
+      };
+    case "jira-issue":
+      return {
+        type: type,
+        key: data.key,
+        summary: data.summary,
+      };
+  }
+}
 
 // | {
 //     type: "jira-release";

@@ -3,6 +3,7 @@
 import { Octokit } from "@octokit/rest";
 import { GitCommitArtifact, GitDiffArtifact } from "./projects";
 import { splitDiff } from "./splitDiff";
+import { z } from "zod";
 
 // relevant to a given release.
 export type GitHubReleaseArtifacts = {
@@ -17,31 +18,28 @@ export type GitHubReleaseArtifacts = {
   getDiffs(): Promise<GitDiffArtifact[]>;
 };
 
-export type MakeGitHubReleaseArtifactsArgs = {
+export const GitHubReleaseInfo = z.object({
+  owner: z.string().describe("The owner of the repository."),
+  repo: z.string().describe("The repository name."),
+  version: z
+    .string()
+    .describe(
+      "The version of the release. This (naïvely) corresponds to a git tag."
+    ),
+  previousVersion: z
+    .string()
+    .describe(
+      "The previous version of the release. This (naïvely) corresponds to a git tag."
+    ),
+});
+
+export type GitHubReleaseInfo = z.infer<typeof GitHubReleaseInfo>;
+
+export type MakeGitHubReleaseArtifactsArgs = GitHubReleaseInfo & {
   /**
    A GitHub API client from Octokit
    */
   githubApi: Octokit;
-
-  /**
-   The owner of the repository
-   */
-  owner: string;
-
-  /**
-   The repository name
-   */
-  repo: string;
-
-  /**
-   The version of the release. This (naïvely) corresponds to a git tag.
-   */
-  version: string;
-
-  /**
-   The previous version of the release. This (naïvely) corresponds to a git tag.
-   */
-  previousVersion: string;
 };
 
 export function makeGitHubReleaseArtifacts(
@@ -68,9 +66,6 @@ export function makeGitHubReleaseArtifacts(
           return data;
         })
       );
-
-      console.log("commits[0]", commits[0]);
-      console.log("commits.length", commits.length);
 
       // Convert the commits into artifacts
       return commits.map((commit) => ({

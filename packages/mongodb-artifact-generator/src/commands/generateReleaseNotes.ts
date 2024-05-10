@@ -4,16 +4,22 @@ import {
   withConfigOptions,
 } from "../withConfig";
 import { createCommand } from "../createCommand";
-import { makeGenerateChatCompletion } from "../chat";
 import { makeRunLogger, type RunLogger } from "../runlogger";
 import { getReleaseArtifacts } from "../release-notes/getReleaseArtifacts";
+import { summarizeReleaseArtifact } from "../release-notes/summarizeReleaseArtifact";
+import {
+  ReleaseArtifact,
+  releaseArtifactShortMetadata,
+} from "../release-notes/projects";
 import { promises as fs } from "fs";
+import YAML from "yaml";
+import { ReleaseInfo } from "../release-notes/ReleaseInfo";
 
 let logger: RunLogger;
 
 type GenerateReleaseNotesCommandArgs = {
   runId?: string;
-  projectDescription: string;
+  releaseInfo: string;
 };
 
 export default createCommand<GenerateReleaseNotesCommandArgs>({
@@ -25,23 +31,12 @@ export default createCommand<GenerateReleaseNotesCommandArgs>({
         demandOption: false,
         description: "A (hopefully unique) name for the run.",
       })
-      .option("projectDescription", {
+      .option("releaseInfo", {
         type: "string",
         demandOption: true,
         description:
-          "A text description of the project. This helps contextualize the release notes.",
+          "A path to a YAML file with release information. This file should contain the following keys: `github`, `jira`.",
       });
-    // .option("releaseVersion", {
-    //   type: "string",
-    //   demandOption: true,
-    //   description: "The release to generate release notes for.",
-    // })
-    // .option("previousReleaseVersion", {
-    //   type: "string",
-    //   demandOption: true,
-    //   description:
-    //     "The last release before this release. Sets a lower bound on context for the release notes.",
-    // });
   },
   async handler(args) {
     logger = makeRunLogger({
@@ -49,11 +44,14 @@ export default createCommand<GenerateReleaseNotesCommandArgs>({
       runId: args.runId,
     });
     logger.logInfo(`Running command with args: ${JSON.stringify(args)}`);
-    const result = await withConfig(action, args);
-    logger.logInfo(`Success`);
-    await logger.flushArtifacts();
-    await logger.flushLogs();
-    return result;
+    try {
+      const result = await withConfig(action, args);
+      logger.logInfo(`Success`);
+      return result;
+    } finally {
+      await logger.flushArtifacts();
+      await logger.flushLogs();
+    }
   },
   describe: "TODO",
 });
@@ -62,7 +60,7 @@ export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
   async (
     //
     { githubApi, jiraApi },
-    { projectDescription }
+    { releaseInfo: releaseInfoPath }
   ) => {
     logger.logInfo(`Setting up...`);
 
@@ -77,22 +75,20 @@ export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
       );
     }
 
+    if (!(await fs.lstat(releaseInfoPath)).isFile()) {
+      throw new Error(`releaseInfoPath must be a file: ${releaseInfoPath}`);
+    }
+    const releaseInfoText = await fs.readFile(releaseInfoPath, "utf8");
+    const releaseInfo = ReleaseInfo.parse(YAML.parse(releaseInfoText));
+
     const releaseArtifacts = await getReleaseArtifacts({
       github: {
         githubApi,
-        owner: "mongodb",
-        repo: "mongodb-atlas-cli",
-        version: "atlascli/v1.22.0",
-        previousVersion: "atlascli/v1.21.0",
-        // owner: "mongodb",
-        // repo: "chatbot",
-        // version: "mongodb-chatbot-ui-v0.7.2",
-        // previousVersion: "mongodb-chatbot-ui-v0.7.1",
+        ...releaseInfo.github,
       },
       jira: {
         jiraApi,
-        // project: "CLOUDP",
-        version: "atlascli-1.22.0",
+        ...releaseInfo.jira,
       },
     });
 
@@ -101,17 +97,39 @@ export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
       JSON.stringify(releaseArtifacts)
     );
 
-    // const data = await jiraApi?.getIssue("EAI-123");
-    // console.log("data", data);
+    const numArtifacts = releaseArtifacts.length;
+    const summaries = new Map<ReleaseArtifact, string>();
 
-    // const gh_diff = await githubApi?.pulls.get({
-    //   owner: "mongodb",
-    //   repo: "chatbot",
-    //   pull_number: 405,
-    //   mediaType: {
-    //     format: "diff",
-    //   },
-    // });
-    // console.log("gh_diff", Object.keys(gh_diff as any));
+    console.log(`summarizing ${numArtifacts} artifacts`);
+
+    for (const [i, artifact] of Object.entries(releaseArtifacts)) {
+      const iOfN = `(${Number(i) + 1}/${numArtifacts})`;
+      logger.logInfo(`summarizing ${artifact.type} ${iOfN}`);
+      console.log(`summarizing ${artifact.type} ${iOfN}`);
+      try {
+        const summary = await summarizeReleaseArtifact({
+          projectDescription: releaseInfo.projectDescription,
+          artifact,
+          logger,
+        });
+        logger.logInfo(`generated summary for ${artifact.type} ${iOfN}`);
+        console.log(`generated summary for ${artifact.type} ${iOfN}`);
+        summaries.set(artifact, summary);
+      } catch (e) {
+        console.log(`error summarizing ${artifact.type} ${iOfN}\n${e}`);
+        logger.logError(`error summarizing ${artifact.type} ${iOfN}\n${e}`);
+      }
+    }
+
+    console.log(`generated ${summaries.size} summaries`);
+
+    const summaryFile = JSON.stringify(
+      Array.from(summaries.entries()).map(([artifact, summary]) => [
+        releaseArtifactShortMetadata(artifact),
+        summary,
+      ])
+    );
+
+    logger.appendArtifact("releaseArtifactSummaries.json", summaryFile);
   }
 );

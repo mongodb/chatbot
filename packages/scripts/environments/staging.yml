@@ -19,7 +19,6 @@ cronJobs:
       limits:
         cpu: 500m
         memory: 5Gi
-    backoffLimit: 3
 
   - name: analyze
     schedule: "0 7 * * *" # every day at 7am UTC
@@ -42,7 +41,6 @@ cronJobs:
       limits:
         cpu: 500m
         memory: 5Gi
-    backoffLimit: 3
 
   - name: clean-up-test-databases-dev
     schedule: 0 8 * * SUN
@@ -57,7 +55,6 @@ cronJobs:
       limits:
         cpu: 500m
         memory: 5Gi
-    backoffLimit: 3
 
   - name: clean-up-test-databases-test
     schedule: 0 9 * * SUN
@@ -72,7 +69,6 @@ cronJobs:
       limits:
         cpu: 500m
         memory: 5Gi
-    backoffLimit: 3
 
 # Alerts
 defaultAlerts:

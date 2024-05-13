@@ -25,7 +25,6 @@ cronJobs:
       limits:
         cpu: 500m
         memory: 5Gi
-    backoffLimit: 3
   - name: faq-eval-quality
     schedule: "30 4 * * *" # every day at 4am UTC (11PM EST)
     command: ["npm", "run", "eval:faqConversationQualityCheckPipeline"]
@@ -48,7 +47,6 @@ cronJobs:
       limits:
         cpu: 500m
         memory: 5Gi
-    backoffLimit: 3
 
 # Alerts
 defaultAlerts:

@@ -34,8 +34,6 @@ export async function getReleaseArtifacts({
       githubReleaseArtifacts.getCommits(),
     ]);
 
-    console.log(`Found ${releaseCommits.length} GitHub commits`);
-
     artifacts.push(...releaseCommits);
   }
 
@@ -51,8 +49,6 @@ export async function getReleaseArtifacts({
     const [releaseIssues] = await Promise.all([
       jiraReleaseArtifacts.getIssues(),
     ]);
-
-    console.log(`Found ${releaseIssues.length} Jira issues`);
 
     artifacts.push(...releaseIssues);
   }

@@ -1,5 +1,6 @@
 import { Config } from "./Config";
 import { ArtifactGeneratorEnvVars } from "./ArtifactGeneratorEnvVars";
+import { ReleaseNotesEnvVars } from "./ReleaseNotesEnvVars";
 import {
   assertEnvVars,
   makeOpenAiEmbedder,
@@ -17,10 +18,10 @@ const {
   OPENAI_EMBEDDING_DEPLOYMENT,
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
-  GITHUB_ACCESS_TOKEN,
-  JIRA_USERNAME,
-  JIRA_PASSWORD,
 } = assertEnvVars(ArtifactGeneratorEnvVars);
+
+// Optional env vars (only required for some commands)
+const { GITHUB_ACCESS_TOKEN, JIRA_USERNAME, JIRA_PASSWORD } = process.env;
 
 export const standardConfig = {
   embedder: () =>
@@ -45,21 +46,26 @@ export const standardConfig = {
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
     }),
-  jiraApi: () => {
-    return new JiraApi({
-      protocol: "https",
-      host: "jira.mongodb.org",
-      apiVersion: "2",
-      strictSSL: true,
-      username: JIRA_USERNAME,
-      password: JIRA_PASSWORD,
-    });
-  },
-  githubApi: async () => {
-    return new Octokit({
-      auth: GITHUB_ACCESS_TOKEN,
-    });
-  },
+  jiraApi:
+    JIRA_USERNAME && JIRA_PASSWORD
+      ? () => {
+          return new JiraApi({
+            protocol: "https",
+            host: "jira.mongodb.org",
+            apiVersion: "2",
+            strictSSL: true,
+            username: JIRA_USERNAME,
+            password: JIRA_PASSWORD,
+          });
+        }
+      : undefined,
+  githubApi: GITHUB_ACCESS_TOKEN
+    ? () => {
+        return new Octokit({
+          auth: GITHUB_ACCESS_TOKEN,
+        });
+      }
+    : undefined,
 } satisfies Config;
 
 export default standardConfig;

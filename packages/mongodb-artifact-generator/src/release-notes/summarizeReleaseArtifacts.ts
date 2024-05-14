@@ -8,16 +8,18 @@ import {
 import { ReleaseArtifact, releaseArtifactIdentifier } from "./projects";
 import { RunLogger } from "../runlogger";
 import { PromisePool } from "@supercharge/promise-pool";
-
-export function safeFileName(fileName: string) {
-  return fileName.replace(/[/\\?%*:|"<>]/g, "-");
-}
+import { safeFileName } from "./utils";
 
 export type SummarizeReleaseArtifactArgs = {
   logger?: RunLogger;
   generate?: GenerateChatCompletion;
   projectDescription: string;
   artifact: ReleaseArtifact;
+};
+
+export type ArtifactSummary = {
+  artifact: ReleaseArtifact;
+  summary: string;
 };
 
 export async function summarizeReleaseArtifact({
@@ -97,7 +99,7 @@ function createUserPromptForReleaseArtifact(artifact: ReleaseArtifact) {
   switch (artifact.type) {
     case "git-commit": {
       const fm = frontmatter(
-        "Focus on the changes the commit applies. Do not mention the commit hash or other git-specific information in the summary."
+        "In your summary, focus only on the changes the commit applies. You can use all the provided information for context, but do not mention the commit hash or other git-specific information in the summary."
       );
       return `${fm}\n${artifactString}`;
     }
@@ -105,7 +107,8 @@ function createUserPromptForReleaseArtifact(artifact: ReleaseArtifact) {
       return artifactString;
     case "jira-issue": {
       const fm = frontmatter(
-        "Focus on the bug, task, improvement, etc. that the commit applies. Do not mention the issue key, component or other jira-specific information in the summary."
+        "In your summary, focus on the bug, task, improvement, etc. that the Jira issue describes. You can use all the provided information for context, but do not mention the issue key, component or other jira-specific information in the summary.",
+        "For example, instead of 'this issue has type BUG and key SERVER-123, ...' you could say 'this issue fixes a bug in the server where...'"
       );
       return `${fm}\n${artifactString}`;
     }

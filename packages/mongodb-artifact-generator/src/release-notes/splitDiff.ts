@@ -23,9 +23,12 @@ export function splitDiff(diff: string): SplitDiffResult[] {
         ? filenames[1].trim().replace(/\//g, "_")
         : `file_${index + 1}`;
 
+    if (!part.endsWith("\n")) {
+      part += "\n";
+    }
     return {
       fileName,
-      diff: `diff --git ${part}`,
+      diff: `diff --git${part}`,
     };
   });
 }

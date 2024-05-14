@@ -20,6 +20,7 @@ let logger: RunLogger;
 type GenerateReleaseNotesCommandArgs = {
   runId?: string;
   releaseInfo: string;
+  llmMaxConcurrency: number;
 };
 
 export default createCommand<GenerateReleaseNotesCommandArgs>({
@@ -29,13 +30,20 @@ export default createCommand<GenerateReleaseNotesCommandArgs>({
       .option("runId", {
         type: "string",
         demandOption: false,
-        description: "A (hopefully unique) name for the run.",
+        description:
+          "A unique name for the run. This controls where outputs artifacts and logs are stored.",
+      })
+      .option("llmMaxConcurrency", {
+        type: "number",
+        demandOption: false,
+        default: 10,
+        description:
+          "The maximum number of concurrent requests to the LLM API. Defaults to 10.",
       })
       .option("releaseInfo", {
         type: "string",
         demandOption: true,
-        description:
-          "A path to a YAML file with release information. This file should contain the following keys: `github`, `jira`.",
+        description: "A path to a YAML file with release information.",
       });
   },
   async handler(args) {
@@ -53,14 +61,14 @@ export default createCommand<GenerateReleaseNotesCommandArgs>({
       await logger.flushLogs();
     }
   },
-  describe: "TODO",
+  describe:
+    "[WIP] Generate release notes for a project based on a description & release artifacts.",
 });
 
 export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
   async (
-    //
     { githubApi, jiraApi },
-    { releaseInfo: releaseInfoPath }
+    { releaseInfo: releaseInfoPath, llmMaxConcurrency }
   ) => {
     logger.logInfo(`Setting up...`);
 
@@ -109,7 +117,7 @@ export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
       logger,
       projectDescription: releaseInfo.projectDescription,
       artifacts: releaseArtifacts,
-      concurrency: 10,
+      concurrency: llmMaxConcurrency,
       onArtifactSummarized: (artifact, summary) => {
         summaries.set(artifact, summary);
       },

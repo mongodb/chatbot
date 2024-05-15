@@ -1,4 +1,4 @@
-import { PageStore, PersistedPage } from "mongodb-rag-core";
+import { Page, PageStore, PersistedPage } from "mongodb-rag-core";
 
 export const makeMockPageStore = (): PageStore => {
   let pages: PersistedPage[] = [];
@@ -6,8 +6,9 @@ export const makeMockPageStore = (): PageStore => {
     async loadPages() {
       return pages;
     },
+    listDataSources: jest.fn(),
     async updatePages(args: PersistedPage[]) {
       pages = [...args];
     },
-  };
+  } satisfies PageStore;
 };

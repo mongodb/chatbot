@@ -4,7 +4,12 @@ import {
   MakeMongoDbDatabaseConnectionParams,
   makeMongoDbDatabaseConnection,
 } from "./MongoDbDatabaseConnection";
-import { LoadPagesArgs, PageStore, PersistedPage } from "./Page";
+import {
+  DataSourceOverview,
+  LoadPagesArgs,
+  PageStore,
+  PersistedPage,
+} from "./Page";
 import { Filter } from "mongodb";
 
 export type MongoDbPageStore = DatabaseConnection &
@@ -37,6 +42,10 @@ export function makeMongoDbPageStore({
         ? createQueryFilterFromLoadPagesArgs(args)
         : {};
       return pagesCollection.find(filter).toArray();
+    },
+    // TODO: real implementation
+    async listDataSources(sourceNames): Promise<DataSourceOverview[]> {
+      return [];
     },
     async updatePages(pages) {
       await Promise.all(

@@ -83,6 +83,13 @@ export type LoadPagesArgs<QueryShape = unknown> = {
   urls?: string[];
 };
 
+export interface DataSourceOverview {
+  name: string;
+  description?: string;
+  lastUpdated: number;
+  metadata?: Record<string, unknown>;
+}
+
 /**
   Data store for {@link Page} objects.
  */
@@ -102,6 +109,11 @@ export type PageStore = {
     Updates or adds the given pages in the store.
    */
   updatePages(pages: PersistedPage[]): Promise<void>;
+
+  /**
+    List metadata about the data sources in the store.
+   */
+  listDataSources(sourceNames?: string[]): Promise<DataSourceOverview[]>;
 
   /**
     Close connection to data store.

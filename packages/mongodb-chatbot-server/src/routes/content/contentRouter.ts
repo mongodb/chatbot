@@ -73,6 +73,7 @@ export function makeContentRouter({ contentService }: ContentRouterParams) {
       try {
         const resources = await contentService.getContentResources({
           dataSources: [dataSourceName],
+          
         });
         res.json(resources);
       } catch (error) {

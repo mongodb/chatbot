@@ -22,6 +22,7 @@ import {
   makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
   makeMongoDbPageStore,
+  makeCompletionsRouter,
 } from "mongodb-chatbot-server";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import cookieParser from "cookie-parser";
@@ -168,6 +169,10 @@ export const config: AppConfig = {
       metadataFilters: {},
     }),
   },
+  completionsRouterConfig: {
+    openAiClient,
+    findContent: findContent,
+  },
   conversationsRouterConfig: {
     llm,
     middleware: [
@@ -185,7 +190,7 @@ export const config: AppConfig = {
     maxUserCommentLength: 500,
     conversations,
   },
-  maxRequestTimeoutMs: 30000,
+  maxRequestTimeoutMs: 900000,
   corsOptions: {
     origin: allowedOrigins,
     // Allow cookies from different origins to be sent to the server.

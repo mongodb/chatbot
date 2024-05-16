@@ -22,6 +22,10 @@ import {
   ContentRouterParams,
   makeContentRouter,
 } from "./routes/content/contentRouter";
+import {
+  CompletionRouterParams,
+  makeCompletionsRouter,
+} from "./routes/completions/completionsRouter";
 
 /**
   Configuration for the server Express.js app.
@@ -36,6 +40,8 @@ export interface AppConfig {
     Configuration for the content router.
    */
   contentRouterConfig?: ContentRouterParams;
+
+  completionsRouterConfig?: CompletionRouterParams;
 
   /**
     Maximum time in milliseconds for a request to complete before timing out.
@@ -129,6 +135,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
     apiPrefix = DEFAULT_API_PREFIX,
     serveStaticSite,
     contentRouterConfig,
+    completionsRouterConfig,
   } = config;
   logger.info("Server has the following configuration:");
   logger.info(
@@ -149,6 +156,12 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
   );
   if (contentRouterConfig) {
     app.use(`${apiPrefix}/content`, makeContentRouter(contentRouterConfig));
+  }
+  if (completionsRouterConfig) {
+    app.use(
+      `${apiPrefix}/chat/completions`,
+      makeCompletionsRouter(completionsRouterConfig)
+    );
   }
   app.get("/health", (_req, res) => {
     const data = {

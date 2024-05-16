@@ -1,0 +1,874 @@
+openapi: "3.1.0"
+info:
+  description: |
+    MongoDB Knowledge API following the Common Knowledge API specification.
+  version: 1.0.0
+  title: MongoDB Knowledge API Specification
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: knowledge.mongodb.com/api/v1
+    description: "Production server"
+tags:
+  - name: "Conversations"
+    description: "Conversations APIs"
+  - name: "Answers"
+    description: "Answers APIs"
+  - name: "Content"
+    description: "Content APIs"
+  - name: "Meta"
+    description: "Meta APIs"
+security:
+  # TODO: figure out what to do here
+  - NotPartOfSpec: []
+paths:
+  /openapi:
+    get:
+      operationId: getOpenApi
+      summary: Get Open API specification
+      tags:
+        - Meta
+      description: Get Open API specification for the MongoDB Knowledge API.
+      responses:
+        200:
+          description: The Open API specification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenApiSpec"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+  /conversations/types:
+    get:
+      tags:
+        - Conversations
+      operationId: listConversationTypes
+      summary: List conversation types
+      description: |
+        List different conversation 'personas' types.
+        Each has its own set of data sources, system prompts, etc.
+      responses:
+        200:
+          description: List of conversation types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConversationOverview"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+  /conversations/types/{type}:
+    post:
+      tags:
+        - Conversations
+      operationId: createConversation
+      summary: Create new conversation
+      parameters:
+        - $ref: "#/components/parameters/ConversationType"
+      responses:
+        200:
+          description: The created conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+  /conversations/types/{type}/{conversationId}/messages:
+    post:
+      tags:
+        - Conversations
+      operationId: addMessage
+      summary: Add message to conversation
+      parameters:
+        - $ref: "#/components/parameters/ConversationType"
+        - $ref: "#/components/parameters/ConversationId"
+        - $ref: "#/components/parameters/Stream"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddMessage"
+      responses:
+        200:
+          description: >
+            If you set the query parameter `?stream=false`, the server responds
+            with `application/json`.
+
+            If you set the query parameter `?stream=true`, the server responds
+            with `text/event-stream`. The server returns a [server-sent
+            event](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#event_stream_format)
+            stream.
+
+            (Note that the server does not use [named
+            events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#named_events).)
+
+            The below schema for `text/event-stream` corresponds to contents of
+            the event's `data` field. For example:
+
+            ```txt
+
+            data: {"type": "processing", "data": "Calling tool to get
+            information..."}
+
+            data: {"type": "delta", "data": "Starting "}
+
+            data: {"type": "delta", "data": "to "}
+
+            data: {"type": "delta", "data": "stream "}
+
+            data: {"type": "references", "data": [{"url":
+            "https://mongodb.com/docs/atlas/getting-started", "title": "Get
+            Started with MongoDB Atlas"}]}
+
+            data: {"type": "finished", "data": "someMessageId"}
+            ```
+
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+            text/event-stream:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/MessageResponseStreamEvent"
+                examples:
+                  - summary: Example of a StreamEventDelta
+                    value:
+                      type: delta
+                      data: Updated event information or specific content changes.
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+  /conversations/types/{type}/{conversationId}:
+    get:
+      operationId: getConversation
+      summary: Get a conversation
+      tags:
+        - Conversations
+      parameters:
+        - $ref: "#/components/parameters/ConversationType"
+        - $ref: "#/components/parameters/ConversationId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /conversations/types/{type}/{conversationId}/messages/{messageId}/rating:
+    post:
+      operationId: rateMessage
+      summary: Rate message
+      tags:
+        - Conversations
+      parameters:
+        - $ref: "#/components/parameters/ConversationType"
+        - $ref: "#/components/parameters/ConversationId"
+        - $ref: "#/components/parameters/MessageId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageRating"
+      responses:
+        "204":
+          description: Rating Saved
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /conversations/types/{type}/{conversationId}/messages/{messageId}/comment:
+    post:
+      operationId: commentMessage
+      summary: Add comment to assistant message
+      tags:
+        - Conversations
+      description: >
+        Add a comment to an assistant message that clarifies a thumbs up/down
+        rating.
+
+        You can only rate an an assistant message that has a thumbs up/down
+        rating. You can only rate a message once. The server returns a `400`
+        error response if the message is not from the assistant, is not rated,
+        or has already been rated.
+      parameters:
+        - $ref: "#/components/parameters/ConversationType"
+        - $ref: "#/components/parameters/ConversationId"
+        - $ref: "#/components/parameters/MessageId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageComment"
+      responses:
+        "204":
+          description: Comment Saved
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /answers/types:
+    get:
+      tags:
+        - "Answers"
+      operationId: listAnswerTypes
+      summary: List all answer types
+      responses:
+        200:
+          description: List of answer types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AnswerOverview"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+  /answers/types/{type}/respond:
+    post:
+      tags:
+        - "Answers"
+      operationId: generateAnswer
+      summary: Generate an answer
+      parameters:
+        - $ref: "#/components/parameters/AnswerType"
+        - $ref: "#/components/parameters/Stream"
+      description: 1-off answer to questions.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Message"
+      responses:
+        200:
+          description: The generated answer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+            text/event-stream:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/MessageResponseStreamEvent"
+                examples:
+                  - summary: Example of a StreamEventDelta
+                    value:
+                      type: delta
+                      data: Updated event information or specific content changes.
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+  /content/search:
+    get:
+      tags:
+        - "Content"
+      operationId: search
+      summary: Search for content
+      parameters:
+        - $ref: "#/components/parameters/Query"
+        - $ref: "#/components/parameters/DataSources"
+        - $ref: "#/components/parameters/Format"
+        - $ref: "#/components/parameters/LastUpdated"
+        - $ref: "#/components/parameters/Limit"
+          max: 20
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/ContentTypes"
+      responses:
+        200:
+          description: List of search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContentResource"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+      description: Perform search for related content.
+  /content/data-sources:
+    get:
+      description: list all data sources with metadata
+      operationId: listAllDataSources
+      summary: List all data sources
+      tags:
+        - Content
+      responses:
+        200:
+          description: List of data sources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DataSource"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+  /content/data-sources/{dataSourceName}:
+    get:
+      tags:
+        - Content
+      parameters:
+        - $ref: "#/components/parameters/DataSourceName"
+      description: Get metadata for data source
+      operationId: getDataSourceMetadata
+      summary: Get metadata for a data source
+      responses:
+        200:
+          description: Metadata for the data source
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataSource"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+  /content/data-sources/{dataSourceName}/resources:
+    get:
+      description: Get all resources for a data source
+      parameters:
+        - $ref: "#/components/parameters/DataSourceName"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      operationId: getDataSourceResources
+      tags:
+        - Content
+      summary: Get resources for a data source
+      responses:
+        200:
+          description: List of resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContentResource"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+  /content/resources:
+    get:
+      operationId: getContentResources
+      summary: Get content resources
+      parameters:
+        - $ref: "#/components/parameters/DataSources"
+        - $ref: "#/components/parameters/Format"
+        - $ref: "#/components/parameters/LastUpdated"
+        - $ref: "#/components/parameters/Limit"
+          max: 20
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Uri"
+        - $ref: "#/components/parameters/ContentTypes"
+      description: Get resources that match certain filter criteria. With pagination.
+      tags:
+        - Content
+      responses:
+        200:
+          description: List of resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContentResource"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+  /content/metadata:
+    get:
+      operationId: getContentMetadata
+      summary: Get content metadata
+      description: Lists different arbitrary, application specific content types to help with filtering.
+      tags:
+        - Content
+      responses:
+        200:
+          description: List of content Metadata filters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContentType"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+components:
+  parameters:
+    AnswerType:
+      name: type
+      in: path
+      required: true
+      description: The type of answer to generate
+      schema:
+        type: string
+    ConversationType:
+      name: type
+      in: path
+      required: true
+      description: The type of conversation to generate
+      schema:
+        type: string
+    ConversationId:
+      name: conversationId
+      in: path
+      required: true
+      description: The ID of the conversation
+      schema:
+        type: string
+    MessageId:
+      name: messageId
+      in: path
+      required: true
+      description: The ID of the message
+      schema:
+        type: string
+    DataSourceName:
+      name: dataSourceName
+      in: path
+      required: true
+      description: The name of the data source
+      schema:
+        type: string
+    Query:
+      name: query
+      in: query
+      required: true
+      description: The search query
+      schema:
+        type: string
+    DataSources:
+      name: dataSources
+      in: query
+      required: false
+      description: The data sources to search
+      schema:
+        type: array
+        items:
+          type: string
+    Format:
+      name: format
+      in: query
+      required: false
+      description: The format of the search result
+      schema:
+        type: string
+    LastUpdated:
+      name: lastUpdated
+      in: query
+      required: false
+      description: Include resources updated after the timestamp.
+      schema:
+        type: integer
+        example: 1631535600
+    Limit:
+      name: limit
+      in: query
+      required: false
+      description: The number of results to return
+      schema:
+        type: integer
+        format: int32
+    Offset:
+      name: offset
+      in: query
+      required: false
+      description: The number of results to skip
+      schema:
+        type: integer
+        format: int32
+    Stream:
+      name: stream
+      in: query
+      required: false
+      schema:
+        type: boolean
+        default: false
+      description: >
+        If `true`, the response will be streamed to the client. This is
+        useful for long-running conversations.
+    Uri:
+      name: uri
+      in: query
+      required: false
+      description: The URI of a `ContentResource`
+      schema:
+        type: string
+    ContentTypes:
+      name: contentTypes
+      in: query
+      required: false
+      description: The content types to search. These correspond to the content types returned from `GET /content/metadata`.
+      schema:
+        type: array
+        items:
+          type: object
+          properties:
+            type:
+              type: string
+            value:
+              type: string
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    AddMessage:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          format: markdown
+          description: |
+            Markdown-formatted message from the user.
+    AnswerOverview:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Type of answer
+          example: "technical-content"
+        description:
+          type: string
+          description: Description of the answer type
+          example: "Generates a response based on the technical content."
+        metadata:
+          $ref: "#/components/schemas/ArbitraryMetadata"
+    ArbitraryMetadata:
+      type: object
+      additionalProperties:
+        type: string
+    ContentResource:
+      type: object
+      properties:
+        content:
+          type: string
+          description: The content of the search result
+          examples:
+            - "How to create a MongoDB Atlas cluster"
+            - "https://mongodb.com/docs/some-image.png"
+        dataSource:
+          type: string
+          description: The data source of the search result
+          example: "MongoDB Documentation"
+        uri:
+          type: string
+          description: The URI of the search result data.
+        format:
+          type: string
+          description: The format of the search result
+          examples:
+            - "md"
+            - "txt"
+            - "png"
+        lastUpdated:
+          $ref: "#/components/schemas/Timestamp"
+          description: Last updated date of the search result
+        metadata:
+          $ref: "#/components/schemas/ArbitraryMetadata"
+    ContentType:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the content type
+          examples:
+            - "contentType"
+            - "lastUpdated"
+            - "isLatestVersion"
+        type:
+          type: string
+          description: Type of metadata
+          examples:
+            - "string"
+            - "number"
+            - "boolean"
+        description:
+          type: string
+          description: Description of the content type
+          example: "Technical content for the MongoDB documentation."
+    Conversation:
+      type: object
+      required:
+        - _id
+        - messages
+        - createdAt
+        - type
+      properties:
+        _id:
+          type: string
+          description: The unique identifier for a conversation.
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+        createdAt:
+          type: integer
+          description: Unix timestamp for when the conversation was created.
+        type:
+          type: string
+          description: Type of conversation
+          example: "docs-chatbot"
+    ErrorResponse:
+      type: object
+    Message:
+      type: object
+      required:
+        - id
+        - role
+        - content
+        - createdAt
+      properties:
+        id:
+          type: string
+          description: The unique identifier for a message.
+        role:
+          type: string
+          enum:
+            - user
+            - assistant
+        content:
+          type: string
+          format: markdown
+          description: |
+            Markdown-formatted response to user's chat message in the context
+            of the conversation.
+        rating:
+          type: boolean
+          description: >
+            Set to `true` if the user liked the response, `false` if the user
+            didn't like the response.
+
+            No value if user didn't rate the response.
+
+
+            Note that only messages with `role: "assistant"` can be rated.
+        userComment:
+          type: string
+          description: >
+            Comment from the user clarifying why they liked or disliked
+
+            the message. No value if user didn't comment on the response.
+
+
+            Note that only messages with `role: "assistant"` can be commented
+            on.
+        createdAt:
+          type: integer
+          description: |
+            Unix timestamp for when the message was sent.
+        references:
+          $ref: "#/components/schemas/References"
+    MessageComment:
+      type: object
+      properties:
+        comment:
+          type: string
+          description: |
+            Comment from the user clarifying why they liked or disliked
+            the message.
+    MessageRating:
+      type: object
+      properties:
+        rating:
+          type: boolean
+          description: >
+            Set to `true` if the user liked the message, `false` if the user
+            didn't like the message.
+    References:
+      type: array
+      description: |
+        List of references to external resources that are relevant
+        to the message. For example, if the message is a response to
+        a user's question about how to connect, the list of
+        references could include links to the documentation, dev
+        center articles, or a video lesson on MongoDB University.
+      items:
+        type: object
+        required:
+          - title
+          - url
+        properties:
+          title:
+            type: string
+            description: |
+              Title of the reference. This is what shows up in
+              rendered links. For example, "How to connect to
+              MongoDB Atlas".
+          url:
+            type: string
+            format: uri
+            description: >
+              URL to the reference. For example,
+              "https://mongodb.com/docs/atlas/getting-started".
+    ConversationOverview:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Type of conversation
+          example: "docs-chatbot"
+        description:
+          type: string
+          description: Description of the conversation type
+          example: "Chat with the MongoDB technical documentation."
+        metadata:
+          type: object
+          properties:
+            maxUserMessages:
+              type: integer
+              description: Maximum number of messages a user can send in a conversation
+              example: 50
+            maxUserCharacterInput:
+              type: integer
+              description: Maximum number of characters a user can send in a message
+              example: 500
+    DataSource:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the data source
+          example: "MongoDB Documentation"
+        description:
+          type: string
+          description: Description of the data source
+          example: "Technical documentation for MongoDB products."
+        lastUpdated:
+          type: number
+          description: Last updated date of the data source
+          format: timestamp
+        metadata:
+          $ref: "#/components/schemas/ArbitraryMetadata"
+    OpenApiSpec:
+      type: object
+      description: An Open API specification
+    MessageResponseStreamEvent:
+      oneOf:
+        - $ref: "#/components/schemas/StreamEventDelta"
+        - $ref: "#/components/schemas/StreamEventMetadata"
+        - $ref: "#/components/schemas/StreamEventProcessing"
+        - $ref: "#/components/schemas/StreamEventReferences"
+        - $ref: "#/components/schemas/StreamEventFinished"
+      description: A server-sent event data payload for a streaming message.
+    StreamEventDelta:
+      description: Assistant response text.
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - delta
+        data:
+          description: Piece of content
+          type: string
+    StreamEventProcessing:
+      description: >
+        Message to send while processing a user request.
+
+        For example, you could send a processing message during a long running
+        tool
+
+        call to update the user of what is occurring.
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - processing
+        data:
+          description: Information about processing event.
+          type: string
+    StreamEventReferences:
+      description: References to include with the answer.
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - references
+        data:
+          $ref: "#/components/schemas/References"
+    StreamEventMetadata:
+      description: Any additional metadata with the answer.
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - metadata
+        data:
+          type: object
+          additionalProperties: true
+    StreamEventFinished:
+      description: Last message when streaming has finished.
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - finished
+        data:
+          description: Message ID.
+          type: string
+    Timestamp:
+      type: number
+      format: timestamp
+  securitySchemes:
+    NotPartOfSpec:
+      type: apiKey
+      name: NotPartOfSpec
+      in: header
+      description: Security schema is not part of the base Open Knowledge API specification.

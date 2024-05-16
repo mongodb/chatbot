@@ -13,7 +13,9 @@ export interface ContentService {
   getDataSource(
     params: GetDataSourceParams
   ): Promise<DataSourceOverview | undefined>;
-  getContentResources(params: GeneralParams): Promise<ContentResource[]>;
+  getContentResources(
+    params: GetContentResourcesParams
+  ): Promise<ContentResource[]>;
   getMetadataTypes(): MetadataType[];
 }
 
@@ -71,7 +73,7 @@ export interface MakeContentServiceParams {
   metadataFilters: Record<string, unknown>;
   search: {
     embeddedContentStore: EmbeddedContentStore;
-    emedder: Embedder;
+    embedder: Embedder;
     // TODO: for the real, there'd be more. some kind of preprocessor, for example
     // Also post-processors, etc.
   };
@@ -93,7 +95,7 @@ export const makeContentService = ({
       offset,
     }: SearchParams) => {
       // TODO: preprocess query with LLM/whatever
-      const { embedding: queryEmbedding } = await search.emedder.embed({
+      const { embedding: queryEmbedding } = await search.embedder.embed({
         text: query,
       });
       const queryResults =
@@ -121,6 +123,11 @@ export const makeContentService = ({
         updated: params.lastUpdated,
         sources: params.dataSources,
         urls: params.uris,
+        query: {
+          status: {
+            $ne: "deleted",
+          },
+        },
       });
       return pagesMatchingQuery.map(convertPageToContentResource);
     },

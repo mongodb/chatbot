@@ -21,6 +21,7 @@ import {
   ConversationCustomData,
   makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
+  makeMongoDbPageStore,
 } from "mongodb-chatbot-server";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import cookieParser from "cookie-parser";
@@ -28,6 +29,7 @@ import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagG
 import { blockGetRequests } from "./middleware/blockGetRequests";
 import { getRequestId, logRequest } from "./utils";
 import { systemPrompt } from "./systemPrompt";
+import { makeContentService } from "mongodb-chatbot-server/build/services/ContentService";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -152,6 +154,20 @@ export const createCustomConversationDataWithIpAuthUserAndOrigin: AddCustomDataF
 
 const isProduction = process.env.NODE_ENV === "production";
 export const config: AppConfig = {
+  contentRouterConfig: {
+    contentService: makeContentService({
+      search: {
+        embeddedContentStore,
+        embedder,
+      },
+      pagesStore: makeMongoDbPageStore({
+        connectionUri: MONGODB_CONNECTION_URI,
+        databaseName: MONGODB_DATABASE_NAME,
+      }),
+      embedder,
+      metadataFilters: {},
+    }),
+  },
   conversationsRouterConfig: {
     llm,
     middleware: [

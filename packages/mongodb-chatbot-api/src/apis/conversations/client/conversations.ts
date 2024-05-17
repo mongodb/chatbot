@@ -1,7 +1,7 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { References } from "mongodb-rag-core";
-import { assert, mergeHeaders, createTypeGuard } from "../../utils";
-import { RetriableError } from "../../errors";
+import { assert, mergeHeaders, createTypeGuard } from "../../../utils";
+import { RetriableError } from "../../../errors";
 import {
   AssistantMessage,
   AssistantMessageMetadata,
@@ -9,7 +9,7 @@ import {
   ConversationStreamEvent,
   Message,
 } from "../types";
-import { makeGetEndpointUrl, parseResponse } from "../../utils";
+import { makeGetEndpointUrl, parseResponse } from "../../../utils";
 import { z } from "zod";
 
 export const CUSTOM_REQUEST_ORIGIN_HEADER = "X-Request-Origin";

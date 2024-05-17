@@ -1,5 +1,5 @@
 export * from "./ChatbotApiClient";
 
 // Conversation API
-export * from "../conversations/client";
-export * from "../conversations/types";
+export * from "../apis/conversations/client";
+export * from "../apis/conversations/types";

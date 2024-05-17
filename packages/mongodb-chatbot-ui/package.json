@@ -104,6 +104,7 @@
     "buffer": "^6.0.3",
     "classnames": "^2.5.1",
     "esbuild": "^0.17.19",
+    "mongodb-chatbot-api": "^0.0.0",
     "mongodb-rag-core": "^0.0.5",
     "prettier": "^2.8.8",
     "react-markdown": "^8.0.7",

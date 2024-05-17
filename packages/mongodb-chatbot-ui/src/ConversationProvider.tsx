@@ -9,7 +9,7 @@ export const ConversationContext = createContext<Conversation>({
   endConversationWithError: () => {
     return;
   },
-  addMessage: async () => {
+  addUserMessage: async () => {
     return;
   },
   setMessageContent: async () => {

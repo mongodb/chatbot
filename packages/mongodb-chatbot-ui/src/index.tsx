@@ -27,7 +27,7 @@ export {
 export { ModalView, type ModalViewProps } from "./ModalView.tsx";
 export { type ChatbotViewProps } from "./ChatbotView.tsx";
 export { type DarkModeProps } from "./DarkMode.ts";
-export { type Role, type MessageData } from "./services/conversations.ts";
+export { type Role, type Message } from "mongodb-chatbot-api";
 export { MongoDbLegalDisclosure } from "./MongoDbLegal.tsx";
 export {
   mongoDbVerifyInformationMessage,

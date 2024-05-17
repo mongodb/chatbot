@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useConversation } from "./useConversation";
-import { ConversationFetchOptions } from "./services/conversations";
+import { ConversationActionFetchOptions } from "mongodb-chatbot-api";
 
 export type OpenCloseHandlers = {
   onOpen?: () => void;
@@ -15,7 +15,7 @@ export type UseChatbotProps = OpenCloseHandlers & {
   serverBaseUrl?: string;
   shouldStream?: boolean;
   suggestedPrompts?: string[];
-  fetchOptions?: ConversationFetchOptions;
+  fetchOptions?: ConversationActionFetchOptions;
 };
 
 export type ChatbotData = {
@@ -116,8 +116,7 @@ export function useChatbot(props: UseChatbotProps): ChatbotData {
       setInputText("");
       setAwaitingReply(true);
       openChat();
-      await conversation.addMessage({
-        role: "user",
+      await conversation.addUserMessage({
         content: text,
       });
     } catch (e) {

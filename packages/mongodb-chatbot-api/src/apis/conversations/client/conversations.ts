@@ -1,5 +1,4 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import { References } from "mongodb-rag-core";
 import { assert, mergeHeaders, createTypeGuard } from "../../../utils";
 import { RetriableError } from "../../../errors";
 import {
@@ -8,6 +7,7 @@ import {
   Conversation,
   ConversationStreamEvent,
   Message,
+  type References,
 } from "../types";
 import { makeGetEndpointUrl, parseResponse } from "../../../utils";
 import { z } from "zod";

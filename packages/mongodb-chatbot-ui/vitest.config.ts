@@ -5,6 +5,7 @@ const testConfig = defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    setupFiles: ["./vitest.setup.ts"],
     deps: {
       web: {
         transformGlobPattern: [

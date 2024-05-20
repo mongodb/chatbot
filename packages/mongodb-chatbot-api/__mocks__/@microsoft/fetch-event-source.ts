@@ -23,9 +23,7 @@ let events: EventSourceMessage[] = [];
 
 export function __addMockEvents(...newEvents: MockEvent[]) {
   events = events.concat(
-    newEvents.map((e) =>
-      createEventSourceMessage(e.data, { type: e.type, id: e.id })
-    )
+    newEvents.map((e) => createEventSourceMessage(e.data, { type: e.type, id: e.id }))
   );
 }
 

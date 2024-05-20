@@ -185,54 +185,51 @@ export function ChatWindow(props: ChatWindowProps) {
           {conversation.error ? (
             <ErrorBanner darkMode={darkMode} message={conversation.error} />
           ) : null}
+          <>
+            <InputBar
+              hasError={hasError}
+              shouldRenderGradient={!inputTextError}
+              darkMode={darkMode}
+              ref={inputBarRef}
+              disabled={Boolean(conversation.error?.length)}
+              disableSend={hasError || awaitingReply}
+              onMessageSend={(messageContent) => {
+                const canSubmit =
+                  inputTextError.length === 0 && !conversation.error;
+                if (canSubmit) {
+                  handleSubmit(messageContent);
+                }
+              }}
+              textareaProps={{
+                id: inputBarId,
+                value: inputText,
+                onChange: (e) => {
+                  setInputText(e.target.value);
+                },
+                placeholder: inputPlaceholder,
+              }}
+            />
 
-          {!conversation.error ? (
-            <>
-              <InputBar
-                hasError={hasError}
-                shouldRenderGradient={!inputTextError}
-                darkMode={darkMode}
-                ref={inputBarRef}
-                disabled={Boolean(conversation.error?.length)}
-                disableSend={hasError || awaitingReply}
-                onMessageSend={(messageContent) => {
-                  const canSubmit =
-                    inputTextError.length === 0 && !conversation.error;
-                  if (canSubmit) {
-                    handleSubmit(messageContent);
-                  }
-                }}
-                textareaProps={{
-                  id: inputBarId,
-                  value: inputText,
-                  onChange: (e) => {
-                    setInputText(e.target.value);
-                  },
-                  placeholder: inputPlaceholder,
-                }}
-              />
-
-              <div
-                className={css`
+            <div
+              className={css`
                     display: flex;
                     justify-content: space-between;
                   `}
-              >
-                {inputBottomText ? (
-                  <Body baseFontSize={13} className={styles.verify_information}>
-                    {inputBottomText}
-                  </Body>
-                ) : null}
-                {maxInputCharacters ? (
-                  <CharacterCount
-                    darkMode={darkMode}
-                    current={inputText.length}
-                    max={maxInputCharacters}
-                  />
-                ) : null}
-              </div>
-            </>
-          ) : null}
+            >
+              {inputBottomText ? (
+                <Body baseFontSize={13} className={styles.verify_information}>
+                  {inputBottomText}
+                </Body>
+              ) : null}
+              {maxInputCharacters ? (
+                <CharacterCount
+                  darkMode={darkMode}
+                  current={inputText.length}
+                  max={maxInputCharacters}
+                />
+              ) : null}
+            </div>
+          </>
 
           <ConversationId conversation={conversation} />
         </div>

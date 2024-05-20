@@ -21,7 +21,7 @@ const SUGGESTED_PROMPTS = [
   "Why should I use Atlas Search?",
 ];
 
-function App() {
+export default function App() {
   const [shouldStream, setShouldStream] = useState(canUseServerSentEvents());
   const { contextDarkMode: darkMode = false, setDarkMode } =
     useDarkModeContext();
@@ -32,55 +32,57 @@ function App() {
   };
 
   return (
-    <div className={app_background(darkMode)}>
-      <div className={styles.main_content}>
-        <Chatbot
-          name="MongoDB AI"
-          shouldStream={shouldStream}
-          darkMode={darkMode}
-          fetchOptions={{ credentials: "include" }}
-          onOpen={() => {
-            console.log("Docs Chatbot opened");
-          }}
-          onClose={() => {
-            console.log("Docs Chatbot closed");
-          }}
-        >
-          <DocsChatbot suggestedPrompts={SUGGESTED_PROMPTS} />
-        </Chatbot>
-        <Chatbot
-          name="MongoDB AI"
-          shouldStream={shouldStream}
-          darkMode={darkMode}
-          fetchOptions={{ credentials: "include" }}
-          onOpen={() => {
-            console.log("Dev Center Chatbot opened");
-          }}
-          onClose={() => {
-            console.log("Dev Center Chatbot closed");
-          }}
-        >
-          <DevCenterChatbot
-            initialMessageSuggestedPrompts={SUGGESTED_PROMPTS}
+    <LeafyGreenProvider darkMode={prefersDarkMode()}>
+      <div className={app_background(darkMode)}>
+        <div className={styles.main_content}>
+          <Chatbot
+            name="MongoDB AI"
+            shouldStream={shouldStream}
+            darkMode={darkMode}
+            fetchOptions={{ credentials: "include" }}
+            onOpen={() => {
+              console.log("Docs Chatbot opened");
+            }}
+            onClose={() => {
+              console.log("Docs Chatbot closed");
+            }}
+          >
+            <DocsChatbot suggestedPrompts={SUGGESTED_PROMPTS} />
+          </Chatbot>
+          <Chatbot
+            name="MongoDB AI"
+            shouldStream={shouldStream}
+            darkMode={darkMode}
+            fetchOptions={{ credentials: "include" }}
+            onOpen={() => {
+              console.log("Dev Center Chatbot opened");
+            }}
+            onClose={() => {
+              console.log("Dev Center Chatbot closed");
+            }}
+          >
+            <DevCenterChatbot
+              initialMessageSuggestedPrompts={SUGGESTED_PROMPTS}
+            />
+          </Chatbot>
+        </div>
+        <Controls>
+          <ToggleControl
+            checked={shouldStream}
+            labelId="streaming"
+            text="Stream Responses"
+            toggle={() => setShouldStream((s) => !s)}
           />
-        </Chatbot>
+          <ToggleControl
+            checked={darkMode}
+            labelId="darkMode"
+            text="Dark Mode"
+            toggle={() => setDarkMode(!darkMode)}
+          />
+          <GitCommitLink />
+        </Controls>
       </div>
-      <Controls>
-        <ToggleControl
-          checked={shouldStream}
-          labelId="streaming"
-          text="Stream Responses"
-          toggle={() => setShouldStream((s) => !s)}
-        />
-        <ToggleControl
-          checked={darkMode}
-          labelId="darkMode"
-          text="Dark Mode"
-          toggle={() => setDarkMode(!darkMode)}
-        />
-        <GitCommitLink />
-      </Controls>
-    </div>
+    </LeafyGreenProvider>
   );
 }
 
@@ -145,13 +147,5 @@ function GitCommitLink() {
         <Overline style={{ color }}>{VITE_GIT_COMMIT}</Overline>
       </Link>
     </Overline>
-  );
-}
-
-export default function LGApp() {
-  return (
-    <LeafyGreenProvider darkMode={prefersDarkMode()}>
-      <App />
-    </LeafyGreenProvider>
   );
 }

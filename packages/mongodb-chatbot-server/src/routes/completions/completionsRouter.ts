@@ -30,7 +30,7 @@ export function makeCompletionsRouter({
     const { model, messages } = req.body;
     const genPrompt = makeStepBackRagGenerateUserPrompt({
       openAiClient,
-      deploymentName: model,
+      deploymentName: "docs-chatbot-gpt-35-turbo-0613",
       findContent,
     });
 
@@ -46,14 +46,19 @@ export function makeCompletionsRouter({
       });
       const metaSystemMsg = {
         role: "system",
-        content: prompt.userMessage.content,
+        content: prompt.userMessage.contentForLlm,
       };
+      console.log("metaSystemMsg::", metaSystemMsg);
 
       prompt.userMessage.content;
-      const completion = await openAiClient.getChatCompletions(model, [
-        metaSystemMsg,
-        ...messages,
-      ] as ChatRequestMessage[]);
+      const completion = await openAiClient.getChatCompletions(
+        model,
+        [metaSystemMsg, ...messages] as ChatRequestMessage[],
+        {
+          temperature: 0,
+          maxTokens: 800,
+        }
+      );
       // completion.choices[0].references = [];
 
       res.json(completion);
@@ -110,13 +115,7 @@ export const makeStepBackRagGenerateUserPrompt = ({
     });
     if (metadata.rejectQuery) {
       const { rejectionReason } = metadata;
-      logRequest({
-        reqId,
-        message: `Rejected user message: ${JSON.stringify({
-          userMessageText,
-          rejectionReason,
-        })}`,
-      });
+
       return {
         userMessage: {
           role: "user",
@@ -158,12 +157,7 @@ export const makeStepBackRagGenerateUserPrompt = ({
     const { content, queryEmbedding } = await findContent({
       query: updateFrontMatter(stepBackUserQuery, metadataForQuery),
     });
-    logRequest({
-      reqId,
-      message: `Found ${content.length} results for query: ${content
-        .map((c) => c.text)
-        .join("---")}`,
-    });
+
     const baseUserMessage = {
       role: "user",
       embedding: queryEmbedding,

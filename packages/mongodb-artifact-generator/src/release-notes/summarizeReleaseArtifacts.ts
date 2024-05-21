@@ -33,9 +33,11 @@ export async function summarizeReleaseArtifact({
     systemMessage(stripIndents`
       Your task is to analyze a provided artifact associated with a software release and write a succinct summarized description. Artifacts may include information from task tracking software like Jira, source control information like Git diffs and commit messages, or other sources.
 
-      Your summary should be a brief, high-level description of the artifact's contents and purpose. It should avoid technical details and focus on the artifact's significance and relevance to the project. The goal is to provide a clear, concise overview that can be used to generate a change log entry for the release.
+      Your summary should be a brief, high-level description of the artifact's contents and purpose. The goal is to provide a clear, concise overview that can be used to generate one or more change log entries for the release. Focus on the facts of the changes. Avoid value judgments or subjective language such as how substantial an update was. Do not infer the broader intent behind the changes or speculate on future implications unless specifically mentioned in the artifact.
 
       The user may prepend the artifact with additional style guide information or other metadata. This section is denoted by frontmatter enclosed in triple dashes (---). Do not mention this frontmatter in the summary but do follow its guidance.
+
+      Assume the reader of your summary is familiar with the product's features and use cases.
 
       Limit the summary length to a maximum of 200 words.
 
@@ -99,7 +101,35 @@ function createUserPromptForReleaseArtifact(artifact: ReleaseArtifact) {
   switch (artifact.type) {
     case "git-commit": {
       const fm = frontmatter(
-        "In your summary, focus only on the changes the commit applies. You can use all the provided information for context, but do not mention the commit hash or other git-specific information in the summary."
+        "In your summary, focus only on the changes the commit applies. You can use all the provided information for context, but do not mention the commit hash or other git-specific information in the summary.",
+        `Use concise and precise language that describes the intent and scope of the changes. For example:`,
+        [
+          {
+            Artifact: `{ "type": "git-commit", "hash": "eeee67b680459edf25feed0da0ff446027a5deaa", "message": "Release mongodb-chatbot-ui v0.7.1", files: [...] }`,
+            Summary:
+              "This commit modifies the package version of mongodb-chatbot-ui with a minor version bump to version 0.7.1 and signifies a new release.",
+          },
+          {
+            Artifact: `{ "type": "git-commit", "hash": "660267ae9d9b4355fc0f58c60cc7fc677f939b0c", "message": "build(deps): bump github.com/mongodb/mongodb-atlas-kubernetes/v2 from 2.2.0 to 2.2.1 (#2858)\n\nSigned-off-by: dependabot[bot] <support@github.com>\r\nSigned-off-by: john.anonymous <john.anonymous@mongodb.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\r\nCo-authored-by: john.anonymous <john.anonymous@mongodb.com>", files: [...] }`,
+            Summary:
+              "This commit applies internal upgrades and improvements, including dependency version bumps and minor adjustments to tests and internal implementation details.",
+          },
+          {
+            Artifact: `{ "type": "git-commit", "hash": "5b9efe53fc39e3f69c26946783f92ea2df7669ae", "message": "CLOUDP-245955: Add describe connectedOrgConfigs command (#2890)", files: [...] }`,
+            Summary:
+              "This commit adds a new CLI command: `atlas federatedAuthentication federationSettings connectedOrgConfigs describe`\n\nThe command returns descriptions of the user's Atlas federated authentication connected organization configurations.",
+          },
+        ]
+        // stripIndents`
+        //   Use concise and precise language that describes the intent and scope of the changes. For example:
+
+        //   - Artifact: { "type": "git-commit", "hash": "eeee67b680459edf25feed0da0ff446027a5deaa", "message": "Release mongodb-chatbot-ui v0.7.1", files: [...] },
+        //     Summary: "This commit modifies the package version of mongodb-chatbot-ui with a minor version bump to version 0.7.1 and signifies a new release."
+        //   - Artifact: { "type": "git-commit", "hash": "660267ae9d9b4355fc0f58c60cc7fc677f939b0c", "message": "build(deps): bump github.com/mongodb/mongodb-atlas-kubernetes/v2 from 2.2.0 to 2.2.1 (#2858)\n\nSigned-off-by: dependabot[bot] <support@github.com>\r\nSigned-off-by: john.anonymous <john.anonymous@mongodb.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\r\nCo-authored-by: john.anonymous <john.anonymous@mongodb.com>", files: [...] },
+        //     Summary: "This commit applies internal upgrades and improvements, including dependency version bumps and minor adjustments to tests and internal implementation details."
+        //   - Artifact: { "type": "git-commit", "hash": "5b9efe53fc39e3f69c26946783f92ea2df7669ae", "message": "CLOUDP-245955: Add describe connectedOrgConfigs command (#2890)", files: [...] },
+        //     Summary: "This commit adds a new CLI command: \`atlas federatedAuthentication federationSettings connectedOrgConfigs describe\`\n\nThe command returns descriptions of the user's Atlas federated authentication connected organization configurations."
+        // `
       );
       return `${fm}\n${artifactString}`;
     }
@@ -108,7 +138,24 @@ function createUserPromptForReleaseArtifact(artifact: ReleaseArtifact) {
     case "jira-issue": {
       const fm = frontmatter(
         "In your summary, focus on the bug, task, improvement, etc. that the Jira issue describes. You can use all the provided information for context, but do not mention the issue key, component or other jira-specific information in the summary.",
-        "For example, instead of 'this issue has type BUG and key SERVER-123, ...' you could say 'this issue fixes a bug in the server where...'"
+        `Use concise and precise language that describes the intent and scope of the changes. For example:`,
+        [
+          {
+            Artifact: `{ "type": "jira-issue", "key": "CLOUDP-191365", "summary": "Move CLI release token to a cloud owned account" }`,
+            Summary:
+              "This issue improves the release process of the CLI. Previously, the CLI was released with a token linked to an individual's GitHub account. This issue aims to transition to a more secure and organization-controlled approach by moving the token to a service account, specifically suggesting the use of the mms build account.",
+          },
+          {
+            Artifact: `{ "type": "jira-issue", "key": "CLOUDP-245955", "summary": "[AtlasCLI] Add connectedOrgs config describe" }`,
+            Summary:
+              "This issue represents a new CLI command: `connectedOrgs config describe`. The command allows users to describe their connected organizations' configuration.",
+          },
+          {
+            Artifact: `{ "type": "jira-issue", "key": "CLOUDP-247010", "summary":"AtlasCLI 1.22.0 Release" }`,
+            Summary:
+              "This issue tracks the release of Atlas CLI version 1.22.0.",
+          },
+        ]
       );
       return `${fm}\n${artifactString}`;
     }
@@ -127,7 +174,7 @@ export async function summarizeReleaseArtifacts({
   concurrency?: number;
   onArtifactSummarized?: (artifact: ReleaseArtifact, summary: string) => void;
 }) {
-  const iOfN = (i: number) => `(${i}/${artifacts.length})`;
+  const iOfN = (i: number) => `(${i + 1}/${artifacts.length})`;
   const errors: Error[] = [];
   const { results } = await PromisePool.withConcurrency(concurrency)
     .for(artifacts)

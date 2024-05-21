@@ -37,7 +37,6 @@ export function makeFindContent({
   const findContent: FindContent = async ({ query }) => {
     const { embedding } = await embedder.embed({
       text: query,
-      userIp: "::1",
     });
 
     const embeddedContent = await embeddedContentStore.findNearestNeighbors(

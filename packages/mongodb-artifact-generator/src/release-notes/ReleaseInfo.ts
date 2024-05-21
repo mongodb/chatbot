@@ -4,8 +4,8 @@ import { JiraReleaseInfo } from "./jira";
 import { stripIndents } from "common-tags";
 
 export const ReleaseInfo = z.object({
-  github: GitHubReleaseInfo,
-  jira: JiraReleaseInfo,
+  github: GitHubReleaseInfo.optional(),
+  jira: JiraReleaseInfo.optional(),
   projectDescription: z.string().describe(stripIndents`
     A contextual description of the software project. This should
     describe the purpose, use cases, and goals of the project. In

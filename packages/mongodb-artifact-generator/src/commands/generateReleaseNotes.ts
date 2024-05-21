@@ -93,14 +93,18 @@ export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
     logger.logInfo(`releaseInfo: ${JSON.stringify(releaseInfo)}`);
 
     const releaseArtifacts = await getReleaseArtifacts({
-      github: {
-        githubApi,
-        ...releaseInfo.github,
-      },
-      jira: {
-        jiraApi,
-        ...releaseInfo.jira,
-      },
+      github: releaseInfo.github
+        ? {
+            githubApi,
+            ...releaseInfo.github,
+          }
+        : undefined,
+      jira: releaseInfo.jira
+        ? {
+            jiraApi,
+            ...releaseInfo.jira,
+          }
+        : undefined,
     });
 
     logger.appendArtifact(

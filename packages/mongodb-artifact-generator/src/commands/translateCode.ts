@@ -12,7 +12,7 @@ import { summarize, translate } from "../operations";
 import { makeRunLogger, type RunLogger } from "../runlogger";
 import { stringifyVectorSearchChunks } from "../prompt";
 import path from "path";
-import { ObjectId } from "mongodb";
+import { ObjectId } from "mongodb-rag-core";
 
 let logger: RunLogger;
 

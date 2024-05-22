@@ -1,3 +1,5 @@
+import { Octokit } from "@octokit/rest";
+import JiraApi from "jira-client";
 import { Embedder, PageStore, EmbeddedContentStore } from "mongodb-rag-core";
 
 /**
@@ -25,6 +27,16 @@ export type Config = {
     The store that holds the embedded content and vector embeddings for later vector search.
    */
   embeddedContentStore: Constructor<EmbeddedContentStore>;
+
+  /**
+    The Jira API client.
+   */
+  jiraApi?: Constructor<JiraApi>;
+
+  /**
+    The GitHub API client.
+   */
+  githubApi?: Constructor<Octokit>;
 };
 
 export type Constructor<T> = (() => T) | (() => Promise<T>);

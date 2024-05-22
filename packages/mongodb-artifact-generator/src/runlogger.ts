@@ -1,7 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { z } from "zod";
-import { ObjectId } from "mongodb";
+import { ObjectId } from "mongodb-rag-core";
 
 export type Artifact = z.infer<typeof ArtifactSchema>;
 const ArtifactSchema = z
@@ -192,7 +192,6 @@ export const flushArtifactsToFile: ArtifactFlushHandler = async (
 ) => {
   await assertFlushDirectory(options);
   for (const artifact of artifacts) {
-    console.log("Writing artifact to file", artifact);
     const filePath = path.join(getFlushDirectoryPath(options), artifact.name);
     await assertDirectory(path.dirname(filePath));
     await fs.writeFile(filePath, ensureFileEndsWithNewline(artifact.content), {
@@ -209,7 +208,6 @@ export const defaultFlushArtifacts: ArtifactFlushHandler = async (
     ...createDefaultFlushOptions(),
     ...optionOverrides,
   };
-  flushArtifactsToConsole(artifacts, options);
   flushArtifactsToFile(artifacts, options);
 };
 

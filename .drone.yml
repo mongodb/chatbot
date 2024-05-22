@@ -53,6 +53,10 @@ steps:
         from_secret: mongodb_dot_com_connection_uri
       MONGODB_DOT_COM_DB_NAME:
         from_secret: mongodb_dot_com_db_name
+      JIRA_USERNAME:
+        from_secret: jira_username
+      JIRA_PASSWORD:
+        from_secret: jira_password
 
 # ---
 # Chat Server pipelines

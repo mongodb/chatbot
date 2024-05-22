@@ -8,7 +8,7 @@ import {
 import { ReleaseArtifact, releaseArtifactIdentifier } from "./projects";
 import { RunLogger } from "../runlogger";
 import { PromisePool } from "@supercharge/promise-pool";
-import { safeFileName } from "./utils";
+import { iOfN, safeFileName } from "../utils";
 
 export type SummarizeReleaseArtifactArgs = {
   logger?: RunLogger;
@@ -164,7 +164,6 @@ export async function summarizeReleaseArtifacts({
   concurrency?: number;
   onArtifactSummarized?: (artifact: ReleaseArtifact, summary: string) => void;
 }) {
-  const iOfN = (i: number) => `(${i + 1}/${artifacts.length})`;
   const errors: Error[] = [];
   const { results } = await PromisePool.withConcurrency(concurrency)
     .for(artifacts)
@@ -175,7 +174,9 @@ export async function summarizeReleaseArtifacts({
       errors.push(error);
     })
     .process(async (artifact, index) => {
-      console.log(`summarizing ${artifact.type} ${iOfN(index)}`);
+      console.log(
+        `summarizing ${artifact.type} ${iOfN(index, artifacts.length)}`
+      );
       const summary = await summarizeReleaseArtifact({
         logger,
         generate,

@@ -48,7 +48,7 @@ export async function summarizeReleaseArtifact({
     userMessage(createUserPromptForReleaseArtifact(artifact)),
   ];
   logger?.appendArtifact(
-    `chatTemplates/${safeFileName(releaseArtifactIdentifier(artifact))}`,
+    `chatTemplates/${safeFileName(releaseArtifactIdentifier(artifact))}.txt`,
     chatTemplate
       .map((m) => {
         switch (m.role) {
@@ -120,16 +120,6 @@ function createUserPromptForReleaseArtifact(artifact: ReleaseArtifact) {
               "This commit adds a new CLI command: `atlas federatedAuthentication federationSettings connectedOrgConfigs describe`\n\nThe command returns descriptions of the user's Atlas federated authentication connected organization configurations.",
           },
         ]
-        // stripIndents`
-        //   Use concise and precise language that describes the intent and scope of the changes. For example:
-
-        //   - Artifact: { "type": "git-commit", "hash": "eeee67b680459edf25feed0da0ff446027a5deaa", "message": "Release mongodb-chatbot-ui v0.7.1", files: [...] },
-        //     Summary: "This commit modifies the package version of mongodb-chatbot-ui with a minor version bump to version 0.7.1 and signifies a new release."
-        //   - Artifact: { "type": "git-commit", "hash": "660267ae9d9b4355fc0f58c60cc7fc677f939b0c", "message": "build(deps): bump github.com/mongodb/mongodb-atlas-kubernetes/v2 from 2.2.0 to 2.2.1 (#2858)\n\nSigned-off-by: dependabot[bot] <support@github.com>\r\nSigned-off-by: john.anonymous <john.anonymous@mongodb.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\r\nCo-authored-by: john.anonymous <john.anonymous@mongodb.com>", files: [...] },
-        //     Summary: "This commit applies internal upgrades and improvements, including dependency version bumps and minor adjustments to tests and internal implementation details."
-        //   - Artifact: { "type": "git-commit", "hash": "5b9efe53fc39e3f69c26946783f92ea2df7669ae", "message": "CLOUDP-245955: Add describe connectedOrgConfigs command (#2890)", files: [...] },
-        //     Summary: "This commit adds a new CLI command: \`atlas federatedAuthentication federationSettings connectedOrgConfigs describe\`\n\nThe command returns descriptions of the user's Atlas federated authentication connected organization configurations."
-        // `
       );
       return `${fm}\n${artifactString}`;
     }

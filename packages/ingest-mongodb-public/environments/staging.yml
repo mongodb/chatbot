@@ -70,7 +70,7 @@ cronJobs:
       OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
       MONGODB_COACH_GTM_DATABASE_NAME: coach-gtm
     envSecrets:
-      MONGODB_CONNECTION_URI: docs-chatbot-test
+      MONGODB_CONNECTION_URI: docs-chatbot-staging
       OPENAI_ENDPOINT: docs-chatbot-staging
       OPENAI_API_KEY: docs-chatbot-staging
       OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-staging

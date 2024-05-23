@@ -58,7 +58,7 @@ cronJobs:
       limits:
         cpu: 500m
         memory: 5Gi
-      backoffLimit: 3
+    backoffLimit: 3
   - name: ingest-content-coach-gtm
     schedule: "0 4 * * *" # every day at 4am UTC (11PM EST)
     command: ["npm", "run", "ingest:k8s:coachGtmPages"]

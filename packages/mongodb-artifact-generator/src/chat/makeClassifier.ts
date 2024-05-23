@@ -1,9 +1,6 @@
 import "dotenv/config";
-
-import "dotenv/config";
 import { assertEnvVars } from "mongodb-rag-core";
 import {
-  AzureKeyCredential,
   ChatRequestMessage,
   FunctionDefinition,
   OpenAIClient,
@@ -11,6 +8,12 @@ import {
 import { html, stripIndents } from "common-tags";
 import { z } from "zod";
 import { RunLogger } from "../runlogger";
+
+export type Classifier = ({
+  input,
+}: {
+  input: string;
+}) => Classification | Promise<Classification>;
 
 export interface ClassificationType {
   /**
@@ -54,13 +57,6 @@ export const Classification = z.object({
     ),
 });
 
-const { OPENAI_API_KEY, OPENAI_ENDPOINT, OPENAI_CHAT_COMPLETION_DEPLOYMENT } =
-  assertEnvVars({
-    OPENAI_API_KEY: "",
-    OPENAI_ENDPOINT: "",
-    OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
-  });
-
 export function makeClassifier({
   openAiClient,
   logger,
@@ -80,7 +76,11 @@ export function makeClassifier({
     before determining the classification type..
    */
   chainOfThought?: boolean;
-}) {
+}): Classifier {
+  const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars({
+    OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
+  });
+
   const classificationCategoriesList = classificationTypes
     .map(({ type, description }) => `- ${type}: ${description}`)
     .join("\n");

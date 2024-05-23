@@ -21,8 +21,8 @@ export function groupBy<T>(
 }
 
 /**
- * Removes a string from the start of another string, if it is present.
- * @returns The input string with the start string removed, if it was present
+ Removes a string from the start of another string, if it is present.
+ @returns The input string with the start string removed, if it was present
  */
 export function removeStartOfString(str: string, start: string) {
   if (str.startsWith(start)) {

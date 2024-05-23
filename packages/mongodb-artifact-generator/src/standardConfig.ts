@@ -1,6 +1,5 @@
 import { Config } from "./Config";
 import { ArtifactGeneratorEnvVars } from "./ArtifactGeneratorEnvVars";
-import { ReleaseNotesEnvVars } from "./ReleaseNotesEnvVars";
 import {
   assertEnvVars,
   makeOpenAiEmbedder,

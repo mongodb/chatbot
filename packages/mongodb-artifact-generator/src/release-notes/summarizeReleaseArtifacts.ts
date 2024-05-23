@@ -1,4 +1,4 @@
-import { stripIndents, html } from "common-tags";
+import { stripIndents } from "common-tags";
 import {
   GenerateChatCompletion,
   makeGenerateChatCompletion,

@@ -409,7 +409,22 @@ export function useConversation(params: UseConversationParams = {}) {
     let streamedTokens: string[] = [];
     const streamingIntervalMs = 50;
     const streamingInterval = setInterval(() => {
-      const [nextToken, ...remainingTokens] = bufferedTokens;
+      const [firstToken, ...remainingTokens] = bufferedTokens;
+      let nextToken: string | undefined = firstToken;
+
+      const onlyWhitespaceAndOrHyphenRegex = /^[\s-]*$/;
+      if (
+        onlyWhitespaceAndOrHyphenRegex.test(firstToken) &&
+        remainingTokens.length > 0
+      ) {
+        // Strings like " -" or "  - " can have weird interactions with
+        // other streamed text, e.g. text flash as a heading for one
+        // interval due to being parsed as a "setext heading". If we
+        // detect one, instead of just rendering it we first try to
+        // combine it with the next token.
+        remainingTokens[0] = firstToken + remainingTokens[0];
+        nextToken = undefined;
+      }
 
       bufferedTokens = remainingTokens;
 

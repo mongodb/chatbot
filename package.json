@@ -29,9 +29,5 @@
   "devDependencies": {
     "@stylistic/eslint-plugin-js": "^1.7.0",
     "lerna": "^5.6.2"
-  },
-  "dependencies": {
-    "@lg-chat/message": "^4.2.0",
-    "@lg-chat/rich-links": "^1.0.0"
   }
 }

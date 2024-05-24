@@ -1,5 +1,5 @@
 import { css } from "@emotion/css";
-import { Body, Link, Subtitle } from "@leafygreen-ui/typography";
+import { Body, Link } from "@leafygreen-ui/typography";
 import { ParagraphSkeleton } from "@leafygreen-ui/skeleton-loader";
 import { Avatar, Variant as AvatarVariant } from "@lg-chat/avatar";
 import {

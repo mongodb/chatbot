@@ -55,8 +55,13 @@ export function referenceType(ref: Reference): RichLinkVariant | undefined {
   return undefined;
 }
 
+/**
+  Analyzes a reference link to determine which link variant type to use.
+  @param reference The reference link to analyze.
+  @returns The reference link with the link variant type added.
+ */
 export function addReferenceLinkVariant(
-  ref: Omit<MessageDataReference, "linkVariant">
+  reference: Omit<MessageDataReference, "linkVariant">
 ): MessageDataReference {
-  return { ...ref, linkVariant: referenceType(ref) };
+  return { ...reference, linkVariant: referenceType(reference) };
 }

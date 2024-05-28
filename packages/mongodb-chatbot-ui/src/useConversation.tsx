@@ -541,9 +541,9 @@ export function useConversation(params: UseConversationParams = {}) {
           type: "addMessage",
           role: "assistant",
           content: response.content,
-          references: response.references?.map((ref) =>
-            addReferenceLinkVariant(ref)
-          ),
+          references: response.references?.map((ref) => {
+            return addReferenceLinkVariant(ref);
+          }),
           metadata: response.metadata,
         });
       }

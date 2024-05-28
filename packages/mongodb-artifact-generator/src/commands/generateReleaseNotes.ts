@@ -16,7 +16,10 @@ import YAML from "yaml";
 import { ReleaseInfo } from "../release-notes/ReleaseInfo";
 import { createChangelogs } from "../release-notes/createChangelog";
 import { groupBy } from "../utils";
-import { makeClassifyChangelogs } from "../release-notes/classifyChangelog";
+import {
+  ClassifiedChangelog,
+  makeClassifyChangelogs,
+} from "../release-notes/classifyChangelog";
 
 let logger: RunLogger;
 
@@ -183,6 +186,28 @@ export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
     logger.appendArtifact(
       "classifiedChangelogs.json",
       JSON.stringify(classifiedChangelogs)
+    );
+
+    function createPrintableChangelog(c: ClassifiedChangelog) {
+      return `[${c.audience.type} ${c.scope.type}]: ${c.changelog}`;
+    }
+
+    const externalClassifiedChangelogs = classifiedChangelogs.filter(
+      (c) => c.audience.type !== "internal"
+    );
+
+    logger.appendArtifact(
+      "classifiedChangelogs.external.json",
+      JSON.stringify(externalClassifiedChangelogs)
+    );
+
+    const formattedExternalChangelogs = externalClassifiedChangelogs.map(
+      createPrintableChangelog
+    );
+
+    logger.appendArtifact(
+      "formattedExternalChangelogs.json",
+      JSON.stringify(formattedExternalChangelogs)
     );
   }
 );

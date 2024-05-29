@@ -31,7 +31,7 @@ import { palette } from "@leafygreen-ui/palette";
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { CharacterCount } from "./InputBar";
 import { useChatbotContext } from "./useChatbotContext";
-import disableSetextHeadings from "./disableSetextHeadings";
+import { headingStyle, disableSetextHeadings } from "./markdownHeadingStyle";
 
 const TRANSITION_DURATION_MS = 300;
 
@@ -200,7 +200,7 @@ function getMessageInfo(message: MessageData, user?: User) {
 type RatingCommentStatus = "none" | "submitted" | "abandoned";
 
 const customMarkdownProps = {
-  remarkPlugins: [disableSetextHeadings],
+  remarkPlugins: [headingStyle, disableSetextHeadings],
 };
 
 export function MessageContent({

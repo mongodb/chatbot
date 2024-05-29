@@ -71,25 +71,24 @@ describe("headingStyle plugin", () => {
 });
 
 describe("disableSetextHeadings", () => {
-  it("requires the headingStyle plugin to be run before it", () => {
-    const faultyProcessor = unified()
+  it("implements the headingStyle plugin if it's not explicitly added", () => {
+    const implicitProcessor = unified()
       .use(remarkParse)
       .use(disableSetextHeadings);
-    const correctProcessor = unified()
+
+    const explicitProcessor = unified()
       .use(remarkParse)
       .use(headingStyle)
       .use(disableSetextHeadings);
 
     expect(() => {
-      const tree = faultyProcessor.parse(headingText) as Node;
-      faultyProcessor.runSync(tree);
-    }).toThrow(
-      "Missing headingStyle. The `headingStyle` plugin must be run before `disableSetextHeadings`."
-    );
+      const tree = implicitProcessor.parse(headingText) as Node;
+      implicitProcessor.runSync(tree);
+    }).not.toThrow();
 
     expect(() => {
-      const tree = correctProcessor.parse(headingText) as Node;
-      correctProcessor.runSync(tree);
+      const tree = explicitProcessor.parse(headingText) as Node;
+      explicitProcessor.runSync(tree);
     }).not.toThrow();
   });
 

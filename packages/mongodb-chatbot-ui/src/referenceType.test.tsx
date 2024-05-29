@@ -2,7 +2,7 @@ import { Reference } from "mongodb-rag-core";
 import { referenceType } from "./referenceType";
 
 describe("referenceType", () => {
-  it("maps sourceName to RichLinkVariant", () => {
+  it("maps sourceName to ReferenceVariant", () => {
     expect(
       referenceType({
         url: "https://www.example.com",
@@ -35,7 +35,7 @@ describe("referenceType", () => {
     ).toBe("Learn");
   });
 
-  it("maps tags to RichLinkVariant", () => {
+  it("maps tags to ReferenceVariant", () => {
     expect(
       referenceType({
         url: "https://www.example.com",
@@ -52,7 +52,7 @@ describe("referenceType", () => {
     ).toBe("Video");
   });
 
-  it("maps URLs to RichLinkVariant", () => {
+  it("maps URLs to ReferenceVariant", () => {
     expect(
       referenceType({
         url: "https://www.mongodb.com/docs/foo/bar",

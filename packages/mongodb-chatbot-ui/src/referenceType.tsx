@@ -1,18 +1,16 @@
 import { Reference } from "mongodb-rag-core";
 import { MessageDataReference } from "./services/conversations";
+import { RichLinkVariantName } from "@lg-chat/rich-links";
 
-export type RichLinkVariant =
-  | "Blog"
-  | "Code"
-  | "Book"
-  | "Docs"
-  | "Learn"
-  | "Video"
-  | "Website";
+export type ReferenceVariant = RichLinkVariantName;
 
-export function referenceType(ref: Reference): RichLinkVariant | undefined {
+/**
+  Analyzes a reference link to determine which link variant type to use.
+  @param reference The reference link to analyze.
+  @returns The link variant type to use, or undefined if no variant matches.
+ */
+export function referenceType(ref: Reference): ReferenceVariant | undefined {
   const sourceName = ref.metadata?.sourceName ?? null;
-  const tags = ref.metadata?.tags ?? [];
   if (sourceName) {
     if (/snooty-.+/.test(sourceName)) return "Docs";
     switch (sourceName) {
@@ -36,6 +34,7 @@ export function referenceType(ref: Reference): RichLinkVariant | undefined {
     }
   }
 
+  const tags = ref.metadata?.tags ?? [];
   for (const tag of tags) {
     switch (tag) {
       case "docs":
@@ -56,7 +55,7 @@ export function referenceType(ref: Reference): RichLinkVariant | undefined {
 }
 
 /**
-  Analyzes a reference link to determine which link variant type to use.
+  Adds a link variant type to a given reference link, if applicable.
   @param reference The reference link to analyze.
   @returns The reference link with the link variant type added.
  */

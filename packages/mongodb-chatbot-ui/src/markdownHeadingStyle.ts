@@ -48,15 +48,18 @@ export const headingStyle: Plugin = () => {
  */
 export const disableSetextHeadings: Plugin = () => {
   return (tree: Node) => {
-    visit(tree, "heading", (node: HeadingStyleNode) => {
-      console.log("before", node);
+    visit(tree, "heading", (node: HeadingNode) => {
+      if (!node.data?.headingStyle) {
+        throw new Error(
+          "Missing headingStyle. The `headingStyle` plugin must be run before `disableSetextHeadings`."
+        );
+      }
       if (node.data.headingStyle === "setext") {
         // Convert to paragraph
         (node.type as string) = "paragraph";
         delete (node as Partial<HeadingNode>).depth;
         delete (node as DeepPartial<HeadingNode>).data?.setext;
       }
-      console.log("after", node);
     });
   };
 };

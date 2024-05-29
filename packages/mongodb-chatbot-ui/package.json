@@ -109,6 +109,8 @@
     "react-markdown": "^8.0.7",
     "react-transition-group": "^4.4.5",
     "remark": "^15.0.1",
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.4",
     "unist-util-visit": "^5.0.0"
   },
   "devDependencies": {

@@ -210,6 +210,7 @@ export function MessageContent({
   return (
     <LGMessageContent
       {...props}
+      // @ts-expect-error @lg-chat/lg-markdown is using an older version of unified. The types are not compatible but the plugins work. https://jira.mongodb.org/browse/LG-4310
       markdownProps={{
         ...customMarkdownProps,
         ...userMarkdownProps,

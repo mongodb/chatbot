@@ -21,7 +21,6 @@ steps:
       - npm run build
       - npm run lint
       - npm run test
-
     environment:
       PORT: 3000
       OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
@@ -57,6 +56,15 @@ steps:
         from_secret: jira_username
       JIRA_PASSWORD:
         from_secret: jira_password
+    resources:
+      # guaranteed amount of resources
+      requests:
+        cpu: 100m
+        memory: 1Gi
+      # maximum allowed resources
+      limits:
+        cpu: 500m
+        memory: 5Gi
 
 # ---
 # Chat Server pipelines

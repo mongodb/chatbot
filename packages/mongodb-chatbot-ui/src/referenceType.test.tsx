@@ -1,31 +1,31 @@
 import { Reference } from "mongodb-rag-core";
-import { referenceType } from "./referenceType";
+import { mongodbReferenceType } from "./mongodbReferenceType";
 
-describe("referenceType", () => {
+describe("mongodbReferenceType", () => {
   it("maps sourceName to ReferenceVariant", () => {
     expect(
-      referenceType({
+      mongodbReferenceType({
         url: "https://www.example.com",
         title: "Some Page Title",
         metadata: { sourceName: "c" },
       })
     ).toBe("Docs");
     expect(
-      referenceType({
+      mongodbReferenceType({
         url: "https://www.example.com",
         title: "Aggregate Is The New Find",
         metadata: { sourceName: "practical-aggregations-book" },
       })
     ).toBe("Book");
     expect(
-      referenceType({
+      mongodbReferenceType({
         url: "https://www.example.com",
         title: "Some Page Title",
         metadata: { sourceName: "snooty-docs" },
       })
     ).toBe("Docs");
     expect(
-      referenceType({
+      mongodbReferenceType({
         url: "https://www.example.com",
         title: "Some Page Title",
         metadata: {
@@ -37,14 +37,14 @@ describe("referenceType", () => {
 
   it("maps tags to ReferenceVariant", () => {
     expect(
-      referenceType({
+      mongodbReferenceType({
         url: "https://www.example.com",
         title: "Some Page Title",
         metadata: { tags: ["docs"] },
       })
     ).toBe("Docs");
     expect(
-      referenceType({
+      mongodbReferenceType({
         url: "https://www.example.com",
         title: "Some Page Title",
         metadata: { tags: ["video"] },
@@ -54,13 +54,13 @@ describe("referenceType", () => {
 
   it("maps URLs to ReferenceVariant", () => {
     expect(
-      referenceType({
+      mongodbReferenceType({
         url: "https://www.mongodb.com/docs/foo/bar",
         title: "Some Page Title",
       })
     ).toBe("Docs");
     expect(
-      referenceType({
+      mongodbReferenceType({
         url: "https://learn.mongodb.com/catalog",
         title: "Some Page Title",
       })
@@ -69,28 +69,28 @@ describe("referenceType", () => {
 
   it("returns undefined if no variant matches", () => {
     expect(
-      referenceType({
+      mongodbReferenceType({
         url: "https://www.example.com",
         title: "Some Page Title",
         metadata: { sourceName: "unknown" },
       })
     ).toBe(undefined);
     expect(
-      referenceType({
+      mongodbReferenceType({
         url: "https://www.example.com",
         title: "Some Page Title",
         metadata: { tags: ["unknown"] },
       })
     ).toBe(undefined);
     expect(
-      referenceType({
+      mongodbReferenceType({
         url: "https://www.example.com",
         title: "Some Page Title",
         metadata: {},
       })
     ).toBe(undefined);
     expect(
-      referenceType({
+      mongodbReferenceType({
         url: "https://www.example.com",
         title: "Some Page Title",
       })
@@ -102,14 +102,14 @@ describe("referenceType", () => {
       url: "https://www.example.com",
       title: "Some Page Title",
     };
-    expect(referenceType(base)).toBeUndefined();
+    expect(mongodbReferenceType(base)).toBeUndefined();
     base.metadata = {};
-    expect(referenceType(base)).toBeUndefined();
+    expect(mongodbReferenceType(base)).toBeUndefined();
     base.url = "https://learn.mongodb.com/catalog";
-    expect(referenceType(base)).toBe("Learn");
+    expect(mongodbReferenceType(base)).toBe("Learn");
     base.metadata = { tags: ["video"] };
-    expect(referenceType(base)).toBe("Video");
+    expect(mongodbReferenceType(base)).toBe("Video");
     base.metadata = { sourceName: "snooty-docs" };
-    expect(referenceType(base)).toBe("Docs");
+    expect(mongodbReferenceType(base)).toBe("Docs");
   });
 });

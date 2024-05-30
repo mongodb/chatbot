@@ -9,7 +9,9 @@ export type ReferenceVariant = RichLinkVariantName;
   @param reference The reference link to analyze.
   @returns The link variant type to use, or undefined if no variant matches.
  */
-export function referenceType(ref: Reference): ReferenceVariant | undefined {
+export function mongodbReferenceType(
+  ref: Reference
+): ReferenceVariant | undefined {
   const sourceName = ref.metadata?.sourceName ?? null;
   if (sourceName) {
     if (/snooty-.+/.test(sourceName)) return "Docs";
@@ -62,5 +64,5 @@ export function referenceType(ref: Reference): ReferenceVariant | undefined {
 export function addReferenceLinkVariant(
   reference: Omit<MessageDataReference, "linkVariant">
 ): MessageDataReference {
-  return { ...reference, linkVariant: referenceType(reference) };
+  return { ...reference, linkVariant: mongodbReferenceType(reference) };
 }

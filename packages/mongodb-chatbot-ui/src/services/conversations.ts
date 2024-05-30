@@ -2,7 +2,7 @@ import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { References, VerifiedAnswer, type Reference } from "mongodb-rag-core";
 import { ConversationState } from "../useConversation";
 import { strict as assert } from "node:assert";
-import { ReferenceVariant } from "../referenceType";
+import { ReferenceVariant } from "../mongodbReferenceType";
 
 export type Role = "user" | "assistant";
 

@@ -14,7 +14,7 @@ import {
   updateArrayElementAt,
   canUseServerSentEvents,
 } from "./utils";
-import { addReferenceLinkVariant } from "./referenceType";
+import { addReferenceLinkVariant } from "./mongodbReferenceType";
 
 const STREAMING_MESSAGE_ID = "streaming-response";
 

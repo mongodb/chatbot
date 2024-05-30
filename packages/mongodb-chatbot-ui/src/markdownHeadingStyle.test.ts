@@ -37,10 +37,10 @@ Dolor sit amet.
 consectetur adipiscing elit, sed do eiusmod tempor.
 
 This is an H1 (Setext)
--------
+=======
 
 This is an H2 (Setext)
-=======
+-------
 
 Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
 `;

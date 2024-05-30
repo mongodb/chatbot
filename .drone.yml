@@ -59,11 +59,11 @@ steps:
     resources:
       # guaranteed amount of resources
       requests:
-        cpu: 100m
+        cpu: 0.2
         memory: 1Gi
       # maximum allowed resources
       limits:
-        cpu: 500m
+        cpu: 0.6
         memory: 5Gi
 
 # ---

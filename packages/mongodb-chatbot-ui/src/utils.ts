@@ -80,3 +80,52 @@ export function addQueryParams(
   }
   return urlObj.toString();
 }
+
+// TypeScript utils
+
+/**
+  Flatten an array. Equivalent to Array.prototype.flat()
+
+  @example Flatten<["abc", ["def", ["g", "h"], "i"], "j", [], ["k"]]> => ["abc", "def", "g", "h", "i", "j", "k"]
+ */
+export type Flatten<T extends unknown[]> = T extends [infer Head, ...infer Tail]
+  ? Head extends unknown[]
+    ? [...Flatten<Head>, ...Flatten<Tail>]
+    : [Head, ...Flatten<Tail>]
+  : [];
+
+/**
+  Returns the provided type but with some fields renamed.
+  @example RenameFields<{ id: string, name: string, date: Date }, { name: "username", date: "createdAt" }> => { id: string, username: string, createdAt: Date }
+ */
+export type RenameFields<
+  T extends object,
+  Renames extends Partial<Record<keyof T, string>>
+> = {
+  [K in keyof T as K extends keyof Renames
+    ? Renames[K] extends string
+      ? Renames[K]
+      : K
+    : K]: T[K];
+};
+
+export function renameFields<
+  T extends object,
+  Renames extends Partial<Record<keyof T, string>>
+>(t: T, renames: Renames) {
+  return Object.fromEntries(
+    Object.entries(t).map(([fieldName, value]) => [
+      fieldName in renames ? renames[fieldName as keyof T] : fieldName,
+      value,
+    ])
+  ) as RenameFields<T, Renames>;
+}
+
+export function omit<
+  T extends Record<string, unknown>,
+  OmitFields extends (keyof T)[]
+>(t: T, omitFields: OmitFields) {
+  return Object.fromEntries(
+    Object.entries(t).filter(([fieldName]) => !omitFields.includes(fieldName))
+  ) as Omit<T, OmitFields[number]>;
+}

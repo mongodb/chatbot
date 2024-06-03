@@ -10,6 +10,7 @@ import Toggle from "@leafygreen-ui/toggle";
 import { Chatbot } from "./Chatbot";
 import { DocsChatbot } from "./DocsChatbot";
 import { DevCenterChatbot } from "./DevCenterChatbot";
+import { addReferenceLinkVariant } from "./mongodbReferenceType";
 
 const prefersDarkMode = () =>
   window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
@@ -39,6 +40,7 @@ function App() {
           shouldStream={shouldStream}
           darkMode={darkMode}
           fetchOptions={{ credentials: "include" }}
+          formatReference={addReferenceLinkVariant}
           onOpen={() => {
             console.log("Docs Chatbot opened");
           }}
@@ -53,6 +55,7 @@ function App() {
           shouldStream={shouldStream}
           darkMode={darkMode}
           fetchOptions={{ credentials: "include" }}
+          formatReference={addReferenceLinkVariant}
           onOpen={() => {
             console.log("Dev Center Chatbot opened");
           }}

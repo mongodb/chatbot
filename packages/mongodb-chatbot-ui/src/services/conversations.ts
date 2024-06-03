@@ -284,10 +284,6 @@ export class ConversationService {
       openWhenHidden: true,
 
       onmessage(ev) {
-        // TODO remove this
-        if (process.env.NODE_ENV === "development") {
-          // console.debug("[EventSource]", ev);
-        }
         const event = JSON.parse(ev.data);
         if (!isConversationStreamEvent(event)) {
           throw new Error(`Invalid event received from server: ${ev.data}`);

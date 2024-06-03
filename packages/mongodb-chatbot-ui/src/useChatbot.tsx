@@ -1,33 +1,30 @@
 import { useRef, useState } from "react";
-import { useConversation } from "./useConversation";
-import { ConversationFetchOptions } from "./services/conversations";
+import { useConversation, type UseConversationParams } from "./useConversation";
 
 export type OpenCloseHandlers = {
   onOpen?: () => void;
   onClose?: () => void;
 };
 
-export type UseChatbotProps = OpenCloseHandlers & {
-  chatbotName?: string;
-  isExperimental?: boolean;
-  maxInputCharacters?: number;
-  maxCommentCharacters?: number;
-  serverBaseUrl?: string;
-  shouldStream?: boolean;
-  suggestedPrompts?: string[];
-  fetchOptions?: ConversationFetchOptions;
-};
+export type UseChatbotProps = OpenCloseHandlers &
+  UseConversationParams & {
+    chatbotName?: string;
+    isExperimental?: boolean;
+    maxInputCharacters?: number;
+    maxCommentCharacters?: number;
+  };
 
 export type ChatbotData = {
   awaitingReply: boolean;
   canSubmit: (text: string) => boolean;
-  chatbotName?: string;
+
   closeChat: () => boolean;
   conversation: ReturnType<typeof useConversation>;
   handleSubmit: (text: string) => void | Promise<void>;
   inputBarRef: React.RefObject<HTMLFormElement>;
   inputText: string;
   inputTextError: string;
+  chatbotName?: string;
   isExperimental: boolean;
   maxInputCharacters?: number;
   maxCommentCharacters?: number;
@@ -36,23 +33,25 @@ export type ChatbotData = {
   setInputText: (text: string) => void;
 };
 
-export function useChatbot(props: UseChatbotProps): ChatbotData {
-  const conversation = useConversation({
-    serverBaseUrl: props.serverBaseUrl,
-    shouldStream: props.shouldStream,
-    fetchOptions: props.fetchOptions,
-  });
+export function useChatbot({
+  onOpen,
+  onClose,
+  chatbotName,
+  isExperimental = true,
+  maxInputCharacters,
+  maxCommentCharacters,
+  ...useConversationArgs
+}: UseChatbotProps): ChatbotData {
+  const conversation = useConversation(useConversationArgs);
   const [open, setOpen] = useState(false);
   const [awaitingReply, setAwaitingReply] = useState(false);
   const inputBarRef = useRef<HTMLFormElement>(null);
-  const chatbotName = props.chatbotName;
-  const isExperimental = props.isExperimental ?? true;
 
   async function openChat() {
     if (open) {
       return;
     }
-    props.onOpen?.();
+    onOpen?.();
     setOpen(true);
     if (!conversation.conversationId) {
       await conversation.createConversation();
@@ -63,7 +62,7 @@ export function useChatbot(props: UseChatbotProps): ChatbotData {
     if (!open) {
       return false;
     }
-    props.onClose?.();
+    onClose?.();
     setOpen(false);
     return true;
   }
@@ -75,14 +74,14 @@ export function useChatbot(props: UseChatbotProps): ChatbotData {
   const inputText = inputData.text;
   const inputTextError = inputData.error;
   function setInputText(text: string) {
-    const isValid = props.maxInputCharacters
-      ? text.length <= props.maxInputCharacters
+    const isValid = maxInputCharacters
+      ? text.length <= maxInputCharacters
       : true;
     setInputData({
       text,
       error: isValid
         ? ""
-        : `Input must be less than ${props.maxInputCharacters} characters`,
+        : `Input must be less than ${maxInputCharacters} characters`,
     });
   }
 
@@ -138,8 +137,8 @@ export function useChatbot(props: UseChatbotProps): ChatbotData {
     inputText,
     inputTextError,
     isExperimental,
-    maxInputCharacters: props.maxInputCharacters,
-    maxCommentCharacters: props.maxCommentCharacters,
+    maxInputCharacters,
+    maxCommentCharacters,
     open,
     openChat,
     setInputText,

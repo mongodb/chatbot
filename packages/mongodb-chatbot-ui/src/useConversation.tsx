@@ -1,5 +1,5 @@
 import { useMemo, useReducer } from "react";
-import { type References } from "mongodb-rag-core";
+import { Reference, type References } from "mongodb-rag-core";
 import {
   MessageData,
   ConversationService,
@@ -14,7 +14,6 @@ import {
   updateArrayElementAt,
   canUseServerSentEvents,
 } from "./utils";
-import { addReferenceLinkVariant } from "./mongodbReferenceType";
 
 const STREAMING_MESSAGE_ID = "streaming-response";
 
@@ -129,13 +128,7 @@ function conversationReducer(
         console.error(`Cannot addMessage without a conversationId`);
       }
 
-      const { type: _, role, content, ...assistantMessageData } = action;
-
-      const newMessage = createMessage({
-        role: action.role,
-        content: action.content,
-        ...assistantMessageData,
-      });
+      const newMessage = createMessage(action);
 
       return {
         ...state,
@@ -314,12 +307,10 @@ function conversationReducer(
         );
         return state;
       }
+
       const modifiedMessage = {
         ...streamingMessage,
-        references: [
-          ...(streamingMessage.references ?? []),
-          ...action.data.map((ref) => addReferenceLinkVariant(ref)),
-        ],
+        references: [...(streamingMessage.references ?? []), ...action.data],
       } satisfies MessageData;
       return {
         ...state,
@@ -382,9 +373,14 @@ function conversationReducer(
   }
 }
 
-type UseConversationParams = {
+export type UseConversationParams = {
   serverBaseUrl?: string;
   shouldStream?: boolean;
+  /**
+    A function that formats incoming assistant message reference data before
+    adding it to the message.
+   */
+  formatReference?: (ref: Reference) => Reference;
   fetchOptions?: ConversationFetchOptions;
 };
 
@@ -445,6 +441,11 @@ export function useConversation(params: UseConversationParams = {}) {
 
     const shouldStream =
       canUseServerSentEvents() && (params.shouldStream ?? true);
+
+    const formatReferences = (references?: References) =>
+      references !== undefined && params.formatReference
+        ? references.map(params.formatReference)
+        : references;
 
     // Stream control
     const abortController = new AbortController();
@@ -513,7 +514,10 @@ export function useConversation(params: UseConversationParams = {}) {
             streamedTokens = [...streamedTokens, data];
           },
           onReferences: async (data: References) => {
-            references = data;
+            if (references === null) {
+              references = [];
+            }
+            references.push(...(formatReferences(data) ?? []));
           },
           onMetadata: async (metadata) => {
             setMessageMetadata({
@@ -541,9 +545,7 @@ export function useConversation(params: UseConversationParams = {}) {
           type: "addMessage",
           role: "assistant",
           content: response.content,
-          references: response.references?.map((ref) => {
-            return addReferenceLinkVariant(ref);
-          }),
+          references: formatReferences(response.references),
           metadata: response.metadata,
         });
       }

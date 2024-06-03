@@ -15,6 +15,7 @@ export const Reference = z.object({
       sourceName: z.string().optional(),
       tags: z.array(z.string()).optional(),
     })
+    .passthrough() // We accept additional unknown metadata fields
     .optional(),
 });
 

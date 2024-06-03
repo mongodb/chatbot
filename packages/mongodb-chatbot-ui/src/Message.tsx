@@ -268,6 +268,22 @@ export const Message = ({
         messageBody={messageData.content}
         verified={verified}
         links={messageLinks}
+        componentOverrides={{
+          MessageLinks: ({ headingText = "Related Links", links }) => {
+            return (
+              <>
+                <h3>{headingText}</h3>
+                {links.map(({ href, children }) => {
+                  return (
+                    <div>
+                      <a href={href}>{children}</a>
+                    </div>
+                  );
+                })}
+              </>
+            );
+          },
+        }}
       >
         {isLoading ? <LoadingSkeleton /> : null}
 

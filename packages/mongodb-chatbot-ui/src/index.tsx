@@ -34,3 +34,7 @@ export {
   defaultChatbotFatalErrorMessage,
 } from "./ui-text.ts";
 export { PoweredByAtlasVectorSearch } from "./PoweredByAtlasVectorSearch.tsx";
+export {
+  addReferenceLinkVariant,
+  mongodbReferenceType,
+} from "./mongodbReferenceType.ts";

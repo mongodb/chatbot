@@ -1,5 +1,5 @@
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
-
+import { Embeddings } from "@langchain/core/embeddings";
 export interface BaseMongoDbRadiantParams {
   /**
     The base URL of the Radiant API.
@@ -80,5 +80,5 @@ export function makeRadiantEmbeddingClient({
         cookie,
       },
     },
-  });
+  }) satisfies Embeddings as Embeddings;
 }

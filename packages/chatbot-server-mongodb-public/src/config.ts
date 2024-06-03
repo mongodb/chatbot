@@ -21,6 +21,8 @@ import {
   ConversationCustomData,
   makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
+  makeLangchainChatLlm,
+  makeLangChainEmbedder,
 } from "mongodb-chatbot-server";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import cookieParser from "cookie-parser";
@@ -28,6 +30,10 @@ import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagG
 import { blockGetRequests } from "./middleware/blockGetRequests";
 import { getRequestId, logRequest } from "./utils";
 import { systemPrompt } from "./systemPrompt";
+import {
+  makeRadiantEmbeddingClient,
+  makeRadiantLlmClient,
+} from "./RadiantClients";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -39,7 +45,13 @@ export const {
   OPENAI_EMBEDDING_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-} = assertEnvVars(CORE_ENV_VARS);
+  RADIANT_API_KEY,
+  RADIANT_BASE_URL,
+} = assertEnvVars({
+  ...CORE_ENV_VARS,
+  RADIANT_API_KEY: "",
+  RADIANT_BASE_URL: "",
+});
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
@@ -69,27 +81,30 @@ export const openAiClient = new OpenAIClient(
   new AzureKeyCredential(OPENAI_API_KEY)
 );
 
-export const llm = makeOpenAiChatLlm({
-  openAiClient,
-  deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  openAiLmmConfigOptions: {
+export const langchainLlm = makeRadiantLlmClient({
+  radiantApiKey: RADIANT_API_KEY,
+  radiantBaseUrl: RADIANT_BASE_URL,
+  cookie: process.env.AUTH_COOKIE,
+  openAiClientParams: {
     temperature: 0,
     maxTokens: 500,
   },
 });
-
+export const llm = makeLangchainChatLlm({
+  chatModel: langchainLlm,
+});
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
 });
 
-export const embedder = makeOpenAiEmbedder({
-  openAiClient,
-  deployment: OPENAI_EMBEDDING_DEPLOYMENT,
-  backoffOptions: {
-    numOfAttempts: 3,
-    maxDelay: 5000,
-  },
+const langchainEmbeddings = makeRadiantEmbeddingClient({
+  radiantApiKey: RADIANT_API_KEY,
+  radiantBaseUrl: RADIANT_BASE_URL,
+  cookie: process.env.AUTH_COOKIE,
+});
+export const embedder = makeLangChainEmbedder({
+  langChainEmbeddings: langchainEmbeddings,
 });
 
 export const findContent = makeDefaultFindContent({

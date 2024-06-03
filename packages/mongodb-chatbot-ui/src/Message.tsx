@@ -4,7 +4,9 @@ import { ParagraphSkeleton } from "@leafygreen-ui/skeleton-loader";
 import { Avatar, Variant as AvatarVariant } from "@lg-chat/avatar";
 import {
   Message as LGMessage,
-  MessageProps as LGMessageProps,
+  type MessageProps as LGMessageProps,
+  MessageContent as LGMessageContent,
+  type MessageContentProps,
   MessageSourceType,
 } from "@lg-chat/message";
 import {
@@ -29,6 +31,7 @@ import { palette } from "@leafygreen-ui/palette";
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { CharacterCount } from "./InputBar";
 import { useChatbotContext } from "./useChatbotContext";
+import { headingStyle, disableSetextHeadings } from "./markdownHeadingStyle";
 
 const TRANSITION_DURATION_MS = 300;
 
@@ -196,6 +199,26 @@ function getMessageInfo(message: MessageData, user?: User) {
 
 type RatingCommentStatus = "none" | "submitted" | "abandoned";
 
+const customMarkdownProps = {
+  remarkPlugins: [headingStyle, disableSetextHeadings],
+};
+
+export function MessageContent({
+  markdownProps: userMarkdownProps,
+  ...props
+}: MessageContentProps) {
+  return (
+    <LGMessageContent
+      {...props}
+      // @ts-expect-error @lg-chat/lg-markdown is using an older version of unified. The types are not compatible but the plugins work. https://jira.mongodb.org/browse/LG-4310
+      markdownProps={{
+        ...customMarkdownProps,
+        ...userMarkdownProps,
+      }}
+    />
+  );
+}
+
 export const Message = ({
   messageData,
   suggestedPrompts = [],
@@ -258,6 +281,7 @@ export const Message = ({
         markdownProps={markdownProps}
         messageBody={messageData.content}
         verified={verified}
+        componentOverrides={{ MessageContent }}
       >
         {isLoading ? <LoadingSkeleton /> : null}
 

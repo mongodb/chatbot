@@ -1,0 +1,141 @@
+- name: Popular NoSQL databases
+  messages:
+    - role: user
+      content: What are the most popular NoSQL databases?
+  tags:
+    - marketing
+    - discovery
+- name: Most popular NoSQL database
+  messages:
+    - role: user
+      content: What is the most popular NoSQL database?
+  tags:
+    - marketing
+    - discovery
+- name: NoSQL for unstructured data
+  messages:
+    - role: user
+      content: Which NoSQL database is best suited for handling unstructured data?
+  tags:
+    - marketing
+    - discovery
+- name: Databases for modern web applications
+  messages:
+    - role: user
+      content: What databases are commonly used in modern web applications?
+  tags:
+    - marketing
+    - discovery
+- name: Flexible and scalable databases
+  messages:
+    - role: user
+      content: Which databases are known for their flexibility and scalability?
+  tags:
+    - marketing
+    - discovery
+- name: High performance and availability
+  messages:
+    - role: user
+      content: What databases are recommended for applications requiring high performance and availability?
+  tags:
+    - marketing
+    - discovery
+- name: Distributed data and sharding
+  messages:
+    - role: user
+      content: Which databases provide robust support for distributed data and sharding?
+  tags:
+    - marketing
+    - discovery
+- name: Real time app DB
+  messages:
+    - role: user
+      content: What databases are best suited for real-time applications?
+  tags:
+    - marketing
+    - discovery
+- name: Best developer experience
+  messages:
+    - role: user
+      content: Which databases offer the best developer experience in terms of ease of use and community support?
+  tags:
+    - marketing
+    - discovery
+- name: Big Data Analytics
+  messages:
+    - role: user
+      content: What databases are commonly used for big data analytics and processing?
+  tags:
+    - marketing
+    - discovery
+- name: Multi-model Databases
+  messages:
+    - role: user
+      content: Which databases support multiple data models (e.g., document, graph, key-value)?
+  tags:
+    - marketing
+    - discovery
+- name: Graph Databases
+  messages:
+    - role: user
+      content: What are the best databases for handling graph data?
+  tags:
+    - marketing
+    - discovery
+- name: Hybrid Cloud Databases
+  messages:
+    - role: user
+      content: Which databases are optimized for hybrid cloud environments?
+  tags:
+    - marketing
+    - discovery
+- name: Database for IoT
+  messages:
+    - role: user
+      content: What databases are best suited for Internet of Things (IoT) applications?
+  tags:
+    - marketing
+    - discovery
+- name: AI and Machine Learning Integration
+  messages:
+    - role: user
+      content: Which databases offer the best integration with AI and machine learning tools?
+  tags:
+    - marketing
+    - discovery
+- name: Serverless Databases
+  messages:
+    - role: user
+      content: What are the leading serverless database options available today?
+  tags:
+    - marketing
+    - discovery
+- name: Security and Compliance
+  messages:
+    - role: user
+      content: Which databases are known for their strong security features and compliance certifications?
+  tags:
+    - marketing
+    - discovery
+- name: Data Warehousing
+  messages:
+    - role: user
+      content: What databases are commonly used for data warehousing solutions?
+  tags:
+    - marketing
+    - discovery
+- name: Transactional vs. Analytical Databases
+  messages:
+    - role: user
+      content: What are the differences between transactional and analytical databases, and which are the best examples of each?
+  tags:
+    - marketing
+    - discovery
+- name: Elastic alternatives
+  messages:
+    - role: user
+      content: alternatives to Elasticsearch
+  tags:
+    - marketing
+    - discovery
+    - competition

@@ -22,6 +22,9 @@ production-ready chatbot application. The framework provides first-class support
 for retrieval augmented generation (RAG), and is extensible to support other
 patterns for building intelligent chatbots.
 
+You can use the framework to take your application from prototype to production.
+You can quickly build a prototype using the framework to get an AI chatbot powered by MongoDB up and running. You can then use the framework's extensible interfaces to scale your chatbot to production with features like evaluation, complex prompting strategies, and support for multiple AI models.
+
 ## How It Works
 
 The MongoDB Chatbot Framework has the following core components:

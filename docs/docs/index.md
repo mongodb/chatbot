@@ -30,8 +30,7 @@ refine your application and scale to more users, you can modify the chatbot's
 behavior to meet your needs.
 
 The framework is flexible and customizable. It supports multiple AI models and
-complex prompting strategies. It also includes tools for programmatic testing
-and evaluation of your chatbot's output.
+complex prompting strategies. It also includes tools for programmatic evaluation of your chatbot's AI components.
 
 ## How It Works
 

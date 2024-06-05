@@ -6,6 +6,14 @@ github:
 jira:
   project: "CLOUDP"
   version: "atlascli-1.22.0"
+# github:
+#   owner: "mongodb"
+#   repo: "mongodb-atlas-cli"
+#   version: "atlascli/v1.18.0"
+#   previousVersion: "atlascli/v1.17.0"
+# jira:
+#   project: "CLOUDP"
+#   version: "atlascli-1.18.0"
 projectDescription: >-
   The MongoDB Atlas CLI (Command Line Interface) allows you to manage MongoDB
   Atlas resources directly from the command line. MongoDB Atlas is a fully-managed

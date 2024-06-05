@@ -14,6 +14,12 @@ import {
 import { promises as fs } from "fs";
 import YAML from "yaml";
 import { ReleaseInfo } from "../release-notes/ReleaseInfo";
+import { createChangelogs } from "../release-notes/createChangelog";
+import { groupBy } from "../utils";
+import {
+  ClassifiedChangelog,
+  makeClassifyChangelogs,
+} from "../release-notes/classifyChangelog";
 
 let logger: RunLogger;
 
@@ -67,7 +73,7 @@ export default createCommand<GenerateReleaseNotesCommandArgs>({
 
 export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
   async (
-    { githubApi, jiraApi },
+    { githubApi, jiraApi, openAiClient },
     { releaseInfo: releaseInfoPath, llmMaxConcurrency }
   ) => {
     logger.logInfo(`Setting up...`);
@@ -80,6 +86,11 @@ export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
     if (!jiraApi) {
       throw new Error(
         "jiraApi is required. Make sure to define it in the config."
+      );
+    }
+    if (!openAiClient) {
+      throw new Error(
+        "openAiClient is required. Make sure to define it in the config."
       );
     }
 
@@ -113,10 +124,18 @@ export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
     );
 
     const numArtifacts = releaseArtifacts.length;
-    const summaries = new Map<ReleaseArtifact, string>();
+    const releaseArtifactsByType = groupBy(
+      releaseArtifacts,
+      ({ type }) => type
+    );
+    console.log(`fetched ${numArtifacts} artifacts:`);
+
+    Object.entries(releaseArtifactsByType).forEach(([type, artifacts]) => {
+      console.log(`  ${type}: ${artifacts.length}`);
+    });
 
     console.log(`summarizing ${numArtifacts} artifacts`);
-
+    const summaries = new Map<ReleaseArtifact, string>();
     await summarizeReleaseArtifacts({
       logger,
       projectDescription: releaseInfo.projectDescription,
@@ -129,13 +148,66 @@ export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
 
     console.log(`generated ${summaries.size} summaries`);
 
-    const summaryFile = JSON.stringify(
-      Array.from(summaries.entries()).map(([artifact, summary]) => [
-        releaseArtifactShortMetadata(artifact),
+    const artifactSummaries = Array.from(summaries.entries()).map(
+      ([artifact, summary]) => ({
+        artifact: releaseArtifactShortMetadata(artifact),
         summary,
-      ])
+      })
     );
 
-    logger.appendArtifact("releaseArtifactSummaries.json", summaryFile);
+    logger.appendArtifact(
+      "releaseArtifactSummaries.json",
+      JSON.stringify(artifactSummaries)
+    );
+
+    console.log(
+      `creating changelogs for ${artifactSummaries.length} summaries`
+    );
+
+    const changelogs = await createChangelogs({
+      logger,
+      projectDescription: releaseInfo.projectDescription,
+      artifactSummaries,
+      concurrency: llmMaxConcurrency,
+    });
+
+    logger.appendArtifact("changelogs.json", JSON.stringify(changelogs));
+
+    const classifyChangelogs = makeClassifyChangelogs({
+      openAiClient,
+      logger,
+    });
+
+    const classifiedChangelogs = await classifyChangelogs({
+      changelogs,
+      concurrency: llmMaxConcurrency,
+    });
+
+    logger.appendArtifact(
+      "classifiedChangelogs.json",
+      JSON.stringify(classifiedChangelogs)
+    );
+
+    function createPrintableChangelog(c: ClassifiedChangelog) {
+      return `[${c.audience.type} ${c.scope.type}]: ${c.changelog}`;
+    }
+
+    const externalClassifiedChangelogs = classifiedChangelogs.filter(
+      (c) => c.audience.type !== "internal"
+    );
+
+    logger.appendArtifact(
+      "classifiedChangelogs.external.json",
+      JSON.stringify(externalClassifiedChangelogs)
+    );
+
+    const formattedExternalChangelogs = externalClassifiedChangelogs.map(
+      createPrintableChangelog
+    );
+
+    logger.appendArtifact(
+      "formattedExternalChangelogs.json",
+      JSON.stringify(formattedExternalChangelogs)
+    );
   }
 );

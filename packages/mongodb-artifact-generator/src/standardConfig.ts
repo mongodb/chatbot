@@ -1,6 +1,5 @@
 import { Config } from "./Config";
 import { ArtifactGeneratorEnvVars } from "./ArtifactGeneratorEnvVars";
-import { ReleaseNotesEnvVars } from "./ReleaseNotesEnvVars";
 import {
   assertEnvVars,
   makeOpenAiEmbedder,
@@ -46,6 +45,12 @@ export const standardConfig = {
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
     }),
+  openAiClient: () => {
+    return new OpenAIClient(
+      OPENAI_ENDPOINT,
+      new AzureKeyCredential(OPENAI_API_KEY)
+    );
+  },
   jiraApi:
     JIRA_USERNAME && JIRA_PASSWORD
       ? () => {

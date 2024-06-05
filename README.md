@@ -20,6 +20,12 @@ complex prompting strategies. It also includes tools for programmatic evaluation
 To learn how to use the MongoDB Chatbot Framework, refer to the documentation:
 <https://mongodb.github.io/chatbot/>.
 
+You can also check out the following articles and videos about the framework:
+
+- [[Video] MongoDB Chatbot Framework Learning Byte](https://learn.mongodb.com/courses/mongodb-chatbot-framework)
+- [[Article] Build a Production-Ready, Intelligent Chatbot With the MongoDB Chatbot Framework](https://dev.to/mongodb/build-a-production-ready-intelligent-chatbot-with-the-mongodb-chatbot-framework-4dd)
+- [[Article] Taking RAG to Production with the MongoDB Documentation AI Chatbot](https://www.mongodb.com/developer/products/atlas/taking-rag-to-production-documentation-ai-chatbot/)
+
 ## MongoDB Docs AI Chatbot Implementation
 
 This repo also contains the implementation of the MongoDB Docs Chatbot,

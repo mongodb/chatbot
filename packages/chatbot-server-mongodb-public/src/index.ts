@@ -8,7 +8,7 @@ import {
   CORE_ENV_VARS,
   assertEnvVars,
 } from "mongodb-chatbot-server";
-import https from "https";
+import https, { request, RequestOptions } from "https";
 import http from "http";
 import { URL } from "url";
 
@@ -22,6 +22,7 @@ export const {
   OPENAI_EMBEDDING_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  NODE_ENV,
 } = assertEnvVars(CORE_ENV_VARS);
 import { config, mongodb, embeddedContentStore } from "./config";
 
@@ -29,6 +30,18 @@ const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {
   logger.info("Starting server...");
+
+  // Adds the CorpSecure AUTH_COOKIE to HTTPS requests if it is set.
+  // This should only be used for local development.
+  // This is to allow the chatbot server running locally to access Radiant which is behind CorpSecure.
+  // If the server is running in Kubernetes, the CorpSecure cookie is not needed.
+  // I
+  if (NODE_ENV === "development" && process.env.AUTH_COOKIE !== undefined) {
+    logger.info("Adding cookie to HTTPS requests since AUTH_COOKIE is set");
+    addHeadersToHttpsRequests(new URL(OPENAI_ENDPOINT).hostname, {
+      cookie: process.env.AUTH_COOKIE,
+    });
+  }
   const app = await makeApp(config);
   const server = app.listen(PORT, () => {
     logger.info(`Server listening on port: ${PORT}`);
@@ -53,34 +66,32 @@ try {
   logger.error(`Fatal error: ${e}`);
   process.exit(1);
 }
+
+/**
+  This function appends arbitrary headers to HTTPS requests made to a specific hostname.
+ */
 function addHeadersToHttpsRequests(
   targetHostname: string,
   headers: Record<string, string>
 ) {
-  const originalHttpsRequest = https.request;
+  const originalHttpsRequest = request;
 
-  function requestWrapper(
-    originalRequest: typeof https.request
-  ): typeof https.request {
+  function requestWrapper(originalRequest: typeof request): typeof request {
     const wrappedRequest = function (
-      arg1: string | https.RequestOptions | URL,
-      arg2?: https.RequestOptions | ((res: http.IncomingMessage) => void),
+      arg1: string | RequestOptions | URL,
+      arg2?: RequestOptions | ((res: http.IncomingMessage) => void),
       arg3?: (res: http.IncomingMessage) => void
     ) {
-      let options: https.RequestOptions | undefined;
-      let callback: ((res: http.IncomingMessage) => void) | undefined;
+      let options: RequestOptions | undefined;
 
       if (typeof arg1 === "string" || arg1 instanceof URL) {
         if (typeof arg2 === "function") {
           options = {};
-          callback = arg2;
         } else {
           options = arg2 || {};
-          callback = arg3;
         }
       } else {
         options = arg1;
-        callback = arg2 as ((res: http.IncomingMessage) => void) | undefined;
       }
 
       // Extract hostname from options
@@ -90,6 +101,7 @@ function addHeadersToHttpsRequests(
 
       // Check if the hostname is 'targetHostname' and modify headers
       if (hostname === targetHostname) {
+        logger.log("Adding headers for Request to:", options.path);
         options.headers = options.headers || {};
         for (const [key, value] of Object.entries(headers)) {
           options.headers[key] = value;

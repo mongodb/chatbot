@@ -21,8 +21,6 @@ import {
   ConversationCustomData,
   makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
-  makeLangchainChatLlm,
-  makeLangChainEmbedder,
 } from "mongodb-chatbot-server";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import cookieParser from "cookie-parser";
@@ -30,10 +28,6 @@ import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagG
 import { blockGetRequests } from "./middleware/blockGetRequests";
 import { getRequestId, logRequest } from "./utils";
 import { systemPrompt } from "./systemPrompt";
-import {
-  makeRadiantEmbeddingClient,
-  makeRadiantLlmClient,
-} from "./RadiantClients";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -45,24 +39,18 @@ export const {
   OPENAI_EMBEDDING_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  RADIANT_API_KEY,
-  RADIANT_BASE_URL,
-} = assertEnvVars({
-  ...CORE_ENV_VARS,
-  RADIANT_API_KEY: "",
-  RADIANT_BASE_URL: "",
-});
+} = assertEnvVars(CORE_ENV_VARS);
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
 /**
-  Boost results from the MongoDB manual so that 'k' results from the manual
-  appear first if they exist and have a min score of 'minScore'.
- */
+    Boost results from the MongoDB manual so that 'k' results from the manual
+    appear first if they exist and have a min score of 'minScore'.
+   */
 export const boostManual = makeBoostOnAtlasSearchFilter({
   /**
-    Boosts results that have 3 words or less
-   */
+      Boosts results that have 3 words or less
+     */
   async shouldBoostFunc({ text }: { text: string }) {
     return text.split(" ").filter((s) => s !== " ").length <= 3;
   },
@@ -81,30 +69,27 @@ export const openAiClient = new OpenAIClient(
   new AzureKeyCredential(OPENAI_API_KEY)
 );
 
-export const langchainLlm = makeRadiantLlmClient({
-  radiantApiKey: RADIANT_API_KEY,
-  radiantBaseUrl: RADIANT_BASE_URL,
-  cookie: process.env.AUTH_COOKIE,
-  openAiClientParams: {
+export const llm = makeOpenAiChatLlm({
+  openAiClient,
+  deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  openAiLmmConfigOptions: {
     temperature: 0,
     maxTokens: 500,
   },
 });
-export const llm = makeLangchainChatLlm({
-  chatModel: langchainLlm,
-});
+
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
 });
 
-const langchainEmbeddings = makeRadiantEmbeddingClient({
-  radiantApiKey: RADIANT_API_KEY,
-  radiantBaseUrl: RADIANT_BASE_URL,
-  cookie: process.env.AUTH_COOKIE,
-});
-export const embedder = makeLangChainEmbedder({
-  langChainEmbeddings: langchainEmbeddings,
+export const embedder = makeOpenAiEmbedder({
+  openAiClient,
+  deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+  backoffOptions: {
+    numOfAttempts: 3,
+    maxDelay: 5000,
+  },
 });
 
 export const findContent = makeDefaultFindContent({

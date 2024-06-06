@@ -296,7 +296,6 @@ export async function streamGenerateResponse({
         if (toolReferences) {
           outputReferences.push(...toolReferences);
         }
-        console.log([...llmConversation, ...newMessages]);
         const answerStream = await llm.answerQuestionStream({
           messages: [...llmConversation, ...newMessages],
         });

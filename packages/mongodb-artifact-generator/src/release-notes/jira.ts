@@ -73,10 +73,16 @@ export function makeJiraReleaseArtifacts({
               response.issues.length
             )}`
           );
-          return [
-            issue.key,
-            await getLinkedGitCommits({ jiraApi, issueId: issue.id }),
-          ];
+          const linkedGitCommits = await getLinkedGitCommits({
+            jiraApi,
+            issueId: issue.id,
+          });
+          console.log(
+            "linkedGitCommits",
+            linkedGitCommits.length,
+            linkedGitCommits.join(", ")
+          );
+          return [issue.key, linkedGitCommits];
         });
       if (errors.length > 0) {
         // logger?.logInfo(`${errors.length} errors occurred while fetching git commits.`);
@@ -85,6 +91,7 @@ export function makeJiraReleaseArtifacts({
         );
       }
       const linkedCommitsByIssue = Object.fromEntries(results);
+      console.log("linkedCommitsByIssue", linkedCommitsByIssue);
 
       return response.issues.map((issue) => {
         const linkedGitCommits = linkedCommitsByIssue[issue.key] ?? undefined;

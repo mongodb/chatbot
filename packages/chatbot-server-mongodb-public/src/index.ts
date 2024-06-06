@@ -35,7 +35,6 @@ const startServer = async () => {
   // This should only be used for local development.
   // This is to allow the chatbot server running locally to access Radiant which is behind CorpSecure.
   // If the server is running in Kubernetes, the CorpSecure cookie is not needed.
-  // I
   if (NODE_ENV === "development" && process.env.AUTH_COOKIE !== undefined) {
     logger.info("Adding cookie to HTTPS requests since AUTH_COOKIE is set");
     addHeadersToHttpsRequests(new URL(OPENAI_ENDPOINT).hostname, {

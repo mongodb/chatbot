@@ -44,13 +44,13 @@ export const {
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
 /**
-    Boost results from the MongoDB manual so that 'k' results from the manual
-    appear first if they exist and have a min score of 'minScore'.
-   */
+  Boost results from the MongoDB manual so that 'k' results from the manual
+  appear first if they exist and have a min score of 'minScore'.
+ */
 export const boostManual = makeBoostOnAtlasSearchFilter({
   /**
-      Boosts results that have 3 words or less
-     */
+    Boosts results that have 3 words or less
+   */
   async shouldBoostFunc({ text }: { text: string }) {
     return text.split(" ").filter((s) => s !== " ").length <= 3;
   },

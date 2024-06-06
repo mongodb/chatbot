@@ -8,6 +8,9 @@ import {
   CORE_ENV_VARS,
   assertEnvVars,
 } from "mongodb-chatbot-server";
+import https from "https";
+import http from "http";
+import { URL } from "url";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -49,4 +52,56 @@ try {
 } catch (e) {
   logger.error(`Fatal error: ${e}`);
   process.exit(1);
+}
+function addHeadersToHttpsRequests(
+  targetHostname: string,
+  headers: Record<string, string>
+) {
+  const originalHttpsRequest = https.request;
+
+  function requestWrapper(
+    originalRequest: typeof https.request
+  ): typeof https.request {
+    const wrappedRequest = function (
+      arg1: string | https.RequestOptions | URL,
+      arg2?: https.RequestOptions | ((res: http.IncomingMessage) => void),
+      arg3?: (res: http.IncomingMessage) => void
+    ) {
+      let options: https.RequestOptions | undefined;
+      let callback: ((res: http.IncomingMessage) => void) | undefined;
+
+      if (typeof arg1 === "string" || arg1 instanceof URL) {
+        if (typeof arg2 === "function") {
+          options = {};
+          callback = arg2;
+        } else {
+          options = arg2 || {};
+          callback = arg3;
+        }
+      } else {
+        options = arg1;
+        callback = arg2 as ((res: http.IncomingMessage) => void) | undefined;
+      }
+
+      // Extract hostname from options
+      const hostname =
+        options.hostname ||
+        (typeof arg1 === "string" ? new URL(arg1).hostname : arg1.hostname);
+
+      // Check if the hostname is 'targetHostname' and modify headers
+      if (hostname === targetHostname) {
+        options.headers = options.headers || {};
+        for (const [key, value] of Object.entries(headers)) {
+          options.headers[key] = value;
+        }
+      }
+
+      // Call the original request function with correct parameters
+      return originalRequest(arg1 as any, arg2 as any, arg3);
+    };
+
+    return wrappedRequest;
+  }
+
+  https.request = requestWrapper(originalHttpsRequest);
 }

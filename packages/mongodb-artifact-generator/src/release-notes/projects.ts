@@ -31,12 +31,29 @@ export type GitDiffArtifact = {
   };
 };
 
+export type JiraLinkedGitCommit = {
+  repo: {
+    owner: string;
+    name: string;
+    url: string;
+  };
+  hash: string;
+  message: string;
+};
+
 export type JiraIssueArtifact = {
   type: "jira-issue";
   data: {
     key: string;
     summary: string;
     description: string;
+    components: string[];
+    fixVersions: string[];
+    resolution: string;
+    priority: string;
+    status: string;
+    issuetype: string;
+    linkedGitCommits?: JiraLinkedGitCommit[];
   };
 };
 

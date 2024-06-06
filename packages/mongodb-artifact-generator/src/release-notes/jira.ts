@@ -1,6 +1,8 @@
 import JiraApi from "jira-client";
-import { JiraIssueArtifact } from "./projects";
+import { JiraIssueArtifact, JiraLinkedGitCommit } from "./projects";
 import { z } from "zod";
+import { PromisePool } from "@supercharge/promise-pool";
+import { iOfN } from "../utils";
 
 export type JiraReleaseArtifacts = {
   /**
@@ -55,24 +57,57 @@ export function makeJiraReleaseArtifacts({
         ],
       })) as JiraSearchResponse;
 
-      return response.issues.map((issue) => ({
-        type: "jira-issue",
-        data: {
-          key: issue.key,
-          summary: issue.fields.summary,
-          description: issue.fields.description,
-          components: issue.fields.components.map(
-            (component) => component.name
-          ),
-          fixVersions: issue.fields.fixVersions.map(
-            (fixVersion) => fixVersion.name
-          ),
-          resolution: issue.fields.resolution.name,
-          priority: issue.fields.priority.name,
-          status: issue.fields.status.name,
-          issuetype: issue.fields.issuetype.name,
-        },
-      }));
+      const errors: Error[] = [];
+      const { results } = await PromisePool.withConcurrency(4)
+        .for(response.issues)
+        .handleError((error, issue) => {
+          const errMessage = `Error getting GitHub commits for ${issue.key}. ${error.name} "" ${error.message}`;
+          console.log(errMessage);
+          // logger?.logError(errMessage);
+          errors.push(error);
+        })
+        .process<[string, JiraLinkedGitCommit[]]>(async (issue, index) => {
+          console.log(
+            `fetching git commits for issue ${issue.key} ${iOfN(
+              index,
+              response.issues.length
+            )}`
+          );
+          return [
+            issue.key,
+            await getLinkedGitCommits({ jiraApi, issueId: issue.id }),
+          ];
+        });
+      if (errors.length > 0) {
+        // logger?.logInfo(`${errors.length} errors occurred while fetching git commits.`);
+        console.log(
+          `${errors.length} errors occurred while fetching git commits.`
+        );
+      }
+      const linkedCommitsByIssue = Object.fromEntries(results);
+
+      return response.issues.map((issue) => {
+        const linkedGitCommits = linkedCommitsByIssue[issue.key] ?? undefined;
+        return {
+          type: "jira-issue",
+          data: {
+            key: issue.key,
+            summary: issue.fields.summary,
+            description: issue.fields.description,
+            components: issue.fields.components.map(
+              (component) => component.name
+            ),
+            fixVersions: issue.fields.fixVersions.map(
+              (fixVersion) => fixVersion.name
+            ),
+            resolution: issue.fields.resolution.name,
+            priority: issue.fields.priority.name,
+            status: issue.fields.status.name,
+            issuetype: issue.fields.issuetype.name,
+            linkedGitCommits,
+          },
+        };
+      });
     },
   };
 }
@@ -146,3 +181,50 @@ type JiraIssue = {
     };
   };
 };
+
+export async function getLinkedGitCommits({
+  jiraApi,
+  issueId,
+}: {
+  jiraApi: JiraApi;
+  issueId: string;
+}): Promise<JiraLinkedGitCommit[]> {
+  const { detail } = await jiraApi.getDevStatusDetail(
+    "2537318",
+    "github",
+    "repository"
+  );
+  type Repository = {
+    id: string;
+    url: string;
+    commits: {
+      id: string;
+      message: string;
+    }[];
+  };
+  const repos = detail[0].repositories as Repository[];
+  const commits = repos.flatMap((repo) => {
+    return repo.commits.map((commit) => {
+      return {
+        repo: {
+          url: repo.url,
+        },
+        hash: commit.id,
+        message: commit.message,
+      };
+    });
+  });
+  console.log(`commits for ${issueId}:`, commits);
+  return commits as JiraLinkedGitCommit[];
+  // issueDetails.map((issue) => {
+  //   return {
+  //     repo: {
+  //       owner: linkedCommit.repository.owner,
+  //       name: linkedCommit.repository.name,
+  //       url: linkedCommit.repository.url,
+  //     },
+  //     hash: linkedCommit.hash,
+  //     message: linkedCommit.message,
+  //   };
+  // });
+}

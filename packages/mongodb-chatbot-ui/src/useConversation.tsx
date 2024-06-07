@@ -517,7 +517,8 @@ export function useConversation(params: UseConversationParams = {}) {
             if (references === null) {
               references = [];
             }
-            references.push(...(formatReferences(data) ?? []));
+            const formattedReferences = formatReferences(data) ?? [];
+            references.push(...formattedReferences);
           },
           onMetadata: async (metadata) => {
             setMessageMetadata({

@@ -31,6 +31,7 @@ import { CharacterCount } from "./InputBar";
 import { useChatbotContext } from "./useChatbotContext";
 import { useLinkData } from "./useLinkData";
 import { addQueryParams } from "./utils";
+import { type RichLinkProps } from "@lg-chat/rich-links";
 
 const TRANSITION_DURATION_MS = 300;
 
@@ -251,11 +252,21 @@ export const Message = ({
     : undefined;
 
   const { tck } = useLinkData();
-  const messageLinks = messageData.references?.map((reference) => ({
-    href: addQueryParams(reference.url, { tck }),
-    children: reference.title,
-    variant: reference.linkVariant,
-  }));
+  const messageLinks = messageData.references?.map(
+    (reference): RichLinkProps => {
+      const richLinkProps = {
+        href: addQueryParams(reference.url, { tck }),
+        children: reference.title,
+      };
+      if (reference.linkVariant) {
+        return {
+          ...richLinkProps,
+          variant: reference.linkVariant,
+        };
+      }
+      return richLinkProps;
+    }
+  );
 
   return (
     <Fragment key={messageData.id}>
@@ -268,22 +279,6 @@ export const Message = ({
         messageBody={messageData.content}
         verified={verified}
         links={messageLinks}
-        componentOverrides={{
-          MessageLinks: ({ headingText = "Related Links", links }) => {
-            return (
-              <>
-                <h3>{headingText}</h3>
-                {links.map(({ href, children }) => {
-                  return (
-                    <div>
-                      <a href={href}>{children}</a>
-                    </div>
-                  );
-                })}
-              </>
-            );
-          },
-        }}
       >
         {isLoading ? <LoadingSkeleton /> : null}
 

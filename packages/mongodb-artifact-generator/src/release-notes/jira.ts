@@ -146,14 +146,3 @@ type JiraIssue = {
     };
   };
 };
-
-function convertJiraIssueToArtifact(issue: JiraIssue) {
-  return {
-    type: "jira-issue",
-    data: {
-      key: issue.key,
-      summary: issue.fields.summary,
-      description: issue.fields.description,
-    },
-  };
-}

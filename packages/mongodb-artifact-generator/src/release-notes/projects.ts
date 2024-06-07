@@ -55,6 +55,11 @@ export function releaseArtifactIdentifier({ type, data }: ReleaseArtifact) {
       return `${type}::${data.key}`;
   }
 }
+export function releaseArtifactSummaryIdentifier({
+  type,
+}: ReleaseArtifactSummary["artifact"]) {
+  return `${type}-${Date.now()}`;
+}
 
 export function releaseArtifactShortMetadata({ type, data }: ReleaseArtifact) {
   switch (type) {
@@ -79,6 +84,15 @@ export function releaseArtifactShortMetadata({ type, data }: ReleaseArtifact) {
       };
   }
 }
+
+export type ReleaseArtifactShortMetadata = ReturnType<
+  typeof releaseArtifactShortMetadata
+>;
+
+export type ReleaseArtifactSummary = {
+  artifact: ReleaseArtifactShortMetadata;
+  summary: string;
+};
 
 // | {
 //     type: "jira-release";

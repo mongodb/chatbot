@@ -129,3 +129,13 @@ export function omit<
     Object.entries(t).filter(([fieldName]) => !omitFields.includes(fieldName))
   ) as Omit<T, OmitFields[number]>;
 }
+/**
+ * Like the built-in `Partial` type, but it applies recursively to all nested fields.
+ */
+export type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends (infer U)[]
+    ? DeepPartial<U>[]
+    : T[P] extends object
+    ? DeepPartial<T[P]>
+    : T[P];
+};

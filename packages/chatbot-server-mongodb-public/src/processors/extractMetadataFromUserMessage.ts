@@ -119,9 +119,11 @@ export async function extractMetadataFromUserMessage({
       },
     }
   );
+  console.log("res::", res.choices[0]?.message);
   const metadata = JSON.parse(
     res.choices[0]?.message?.functionCall?.arguments ?? ""
   ) as ExtractMetadataResponse;
+  console.log("metadata::", metadata);
   return metadata;
 }
 

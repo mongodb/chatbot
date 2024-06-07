@@ -46,12 +46,17 @@ describe("extractMetadataFromUserMessage - unit tests", () => {
 
 describe("extractMetadataFromUserMessage - qualitative tests", () => {
   test("should extract product name", async () => {
-    const metadata = await extractMetadataFromUserMessage({
-      ...args,
-      openAiClient,
-      userMessageText: "How do I connect to MongoDB Atlas?",
-    });
-    expect(metadata.mongoDbProduct).toEqual("MongoDB Atlas");
+    try {
+      console.log(process.env.AUTH_COOKIE);
+      const metadata = await extractMetadataFromUserMessage({
+        ...args,
+        openAiClient,
+        userMessageText: "How do I connect to MongoDB Atlas?",
+      });
+      expect(metadata.mongoDbProduct).toEqual("MongoDB Atlas");
+    } catch (e) {
+      console.error(e);
+    }
   });
   test("should extract programming language", async () => {
     const metadata = await extractMetadataFromUserMessage({

@@ -68,9 +68,11 @@ export const openAiClient = new OpenAIClient(
   OPENAI_ENDPOINT,
   new AzureKeyCredential(OPENAI_API_KEY),
   {
-    // Allow insecure connection when in production
+    // Allow insecure connection when in staging/production
     // b/c connecting w/in the same k8s cluster
-    allowInsecureConnection: process.env.NODE_ENV === "production",
+    allowInsecureConnection:
+      process.env.NODE_ENV === "production" ||
+      process.env.NODE_ENV === "staging",
   }
 );
 

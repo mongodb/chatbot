@@ -30,6 +30,7 @@ cronJobs:
       limits:
         cpu: 500m
         memory: 5Gi
+    backoffLimit: 3
   - name: ingest-content-test
     schedule: "0 8 * * *" # every day at 8am UTC (3AM EST)
     command: ["npm", "run", "ingest:k8s"]
@@ -57,6 +58,7 @@ cronJobs:
       limits:
         cpu: 500m
         memory: 5Gi
+    backoffLimit: 3
   - name: ingest-content-coach-gtm
     schedule: "0 4 * * *" # every day at 4am UTC (11PM EST)
     command: ["npm", "run", "ingest:k8s:coachGtmPages"]
@@ -68,7 +70,7 @@ cronJobs:
       OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
       MONGODB_COACH_GTM_DATABASE_NAME: coach-gtm
     envSecrets:
-      MONGODB_CONNECTION_URI: docs-chatbot-test
+      MONGODB_CONNECTION_URI: docs-chatbot-staging
       OPENAI_ENDPOINT: docs-chatbot-staging
       OPENAI_API_KEY: docs-chatbot-staging
       OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-staging
@@ -87,6 +89,7 @@ cronJobs:
       limits:
         cpu: 500m
         memory: 5Gi
+    backoffLimit: 3
 
 # Alerts
 defaultAlerts:

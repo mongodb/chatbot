@@ -1,0 +1,21 @@
+github:
+  owner: mongodb
+  repo: chatbot
+  version: mongodb-chatbot-ui-v0.7.2
+  previousVersion: mongodb-chatbot-ui-v0.7.0
+# jira:
+#   project: EAI
+#   version:
+projectDescription: >-
+  Build full-stack intelligent chatbot applications using MongoDB and Atlas Vector Search.
+
+  The MongoDB Chatbot Framework is a set of libraries that you can use to build a production-ready chatbot application. The framework provides first-class support for retrieval augmented generation (RAG), and is extensible to support other patterns for building intelligent chatbots.
+
+  The MongoDB Chatbot Framework has the following core components:
+
+  - MongoDB Atlas: Database for the application that stores content and conversation. Indexes content using Atlas Vector Search.
+  - Ingest CLI: Configurable CLI application that you can use to ingest content into a MongoDB collection for use with Atlas Vector Search.
+  - Chatbot Server: Express.js server routes that you can use to build a chatbot application.
+  - Chatbot UI: React.js UI components that you can use to build a chatbot application.
+  - Evaluation CLI: CLI application that you can use to evaluate the performance of your chatbot and its components.
+  - Artifact Generator: CLI application that you can use to create or transform artifacts like code snippets and docs pages.

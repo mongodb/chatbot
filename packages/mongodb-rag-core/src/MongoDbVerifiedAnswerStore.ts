@@ -27,7 +27,7 @@ export function makeMongoDbVerifiedAnswerStore({
         path,
         k,
         minScore,
-        filter,
+        filter = {},
         numCandidates,
       }: Partial<FindNearestNeighborsOptions> = {
         // Default options

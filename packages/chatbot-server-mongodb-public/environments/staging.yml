@@ -1,5 +1,8 @@
-service:
-  targetPort: 3000
+services:
+  - name: http
+    ingress: true
+    port: 80
+    targetPort: 3000
 
 env:
   PORT: 3000
@@ -22,7 +25,8 @@ ingress:
   enabled: true
   hosts:
     - chat-server.docs.staging.corp.mongodb.com
-
+mesh:
+  enabled: true
 # Pod resources
 replicaCount: 2
 resources:

@@ -108,7 +108,10 @@
     "prettier": "^2.8.8",
     "react-markdown": "^8.0.7",
     "react-transition-group": "^4.4.5",
-    "stream-browserify": "^3.0.0"
+    "remark": "^15.0.1",
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.4",
+    "unist-util-visit": "^5.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-inject": "^5.0.3",
@@ -122,6 +125,7 @@
     "@types/react": "^18.0.37",
     "@types/react-dom": "^18.0.11",
     "@types/react-transition-group": "^4.4.6",
+    "@types/unist": "^3.0.2",
     "@typescript-eslint/eslint-plugin": "^5.59.0",
     "@typescript-eslint/parser": "^5.59.0",
     "@vitejs/plugin-react": "^4.0.0",

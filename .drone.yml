@@ -148,7 +148,7 @@ steps:
     image: quay.io/mongodb/drone-helm:v3
     settings:
       chart: mongodb/web-app
-      chart_version: 4.12.3
+      chart_version: 4.18.0
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: docs
       release: chat-server-staging
@@ -227,7 +227,7 @@ steps:
     image: quay.io/mongodb/drone-helm:v3
     settings:
       chart: mongodb/web-app
-      chart_version: 4.12.3
+      chart_version: 4.18.0
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: docs
       release: chat-server-qa
@@ -306,7 +306,7 @@ steps:
     image: quay.io/mongodb/drone-helm:v3
     settings:
       chart: mongodb/web-app
-      chart_version: 4.12.3
+      chart_version: 4.18.0
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: docs
       release: chat-server-dev-rel
@@ -385,7 +385,7 @@ steps:
     image: quay.io/mongodb/drone-helm:v3
     settings:
       chart: mongodb/web-app
-      chart_version: 4.12.3
+      chart_version: 4.18.0
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: docs
       release: docs-chat

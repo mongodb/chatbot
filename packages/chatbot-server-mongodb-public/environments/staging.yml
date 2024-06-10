@@ -1,8 +1,5 @@
-services:
-  - name: http
-    ingress: true
-    port: 80
-    targetPort: 3000
+service:
+  targetPort: 3000
 
 env:
   PORT: 3000

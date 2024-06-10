@@ -23,23 +23,12 @@ export const {
   NODE_ENV,
 } = assertEnvVars(CORE_ENV_VARS);
 import { config, mongodb, embeddedContentStore } from "./config";
-import { addHeadersToHttpsRequests } from "./addHeadersToHttpRequests";
 
 const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {
   logger.info("Starting server...");
 
-  // Adds the CorpSecure AUTH_COOKIE to HTTPS requests if it is set.
-  // This should only be used for local development.
-  // This is to allow the chatbot server running locally to access Radiant which is behind CorpSecure.
-  // If the server is running in Kubernetes, the CorpSecure cookie is not needed.
-  if (NODE_ENV === "development" && process.env.AUTH_COOKIE !== undefined) {
-    logger.info("Adding cookie to HTTPS requests since AUTH_COOKIE is set");
-    addHeadersToHttpsRequests(new URL(OPENAI_ENDPOINT).hostname, {
-      cookie: process.env.AUTH_COOKIE,
-    });
-  }
   const app = await makeApp(config);
   const server = app.listen(PORT, () => {
     logger.info(`Server listening on port: ${PORT}`);

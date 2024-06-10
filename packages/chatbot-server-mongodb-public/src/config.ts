@@ -73,6 +73,22 @@ export const openAiClient = new OpenAIClient(
     allowInsecureConnection:
       process.env.NODE_ENV === "production" ||
       process.env.NODE_ENV === "staging",
+    // If connecting to Radiant over the internet,
+    // you must include a MongoDB CorpSecure cookie in the request.
+    additionalPolicies: [
+      {
+        position: "perCall",
+        policy: {
+          name: "add-cookie",
+          sendRequest(request, next) {
+            if (process.env.AUTH_COOKIE) {
+              request.headers.set("Cookie", process.env.AUTH_COOKIE);
+            }
+            return next(request);
+          },
+        },
+      },
+    ],
   }
 );
 

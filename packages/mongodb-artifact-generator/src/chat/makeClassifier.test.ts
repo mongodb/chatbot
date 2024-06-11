@@ -6,8 +6,7 @@ import {
 } from "mongodb-rag-core";
 import { Classification, makeClassifier } from "./makeClassifier";
 
-const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_CHAT_COMPLETION_DEPLOYMENT } =
-  assertEnvVars(CORE_ENV_VARS);
+const { OPENAI_ENDPOINT, OPENAI_API_KEY } = assertEnvVars(CORE_ENV_VARS);
 
 const hotdogInputs = [
   "A New York-style hotdog with sauerkraut and mustard",
@@ -23,7 +22,7 @@ const hotdogClassificationTypes = [
   {
     type: "hotdog",
     description:
-      "A hotdog is a sausage with a uniform interior, with or without casing, often served as a sandwich in the slit of a partially sliced soft roll.",
+      "A hotdog is a sausage (either vienna or frankfurter) with a uniform interior, with or without casing, often served as a sandwich in the slit of a partially sliced soft roll.",
     examples: [
       {
         text: "A top cut bun with a ballpark frank inside",
@@ -44,6 +43,11 @@ const hotdogClassificationTypes = [
         reason: "This is not a hotdog.",
       },
       {
+        text: "A bratwurst in a split top bun",
+        reason:
+          "This resembles a hot dog but the sausage is not vienna or frankfurter.",
+      },
+      {
         text: "MongoDB Atlas",
         reason:
           'While it might make you say "hot dog!", it is, in fact, cloud software and thus not a hotdog.',
@@ -52,7 +56,6 @@ const hotdogClassificationTypes = [
   },
 ];
 
-// const deploymentName = OPENAI_CHAT_COMPLETION_DEPLOYMENT
 const openAiClient = new OpenAIClient(
   OPENAI_ENDPOINT,
   new AzureKeyCredential(OPENAI_API_KEY)
@@ -77,7 +80,7 @@ describe("makeClassifier", () => {
       "not_hotdog",
       "not_hotdog",
       "not_hotdog",
-      "hotdog",
+      "not_hotdog",
       "not_hotdog",
     ]);
   }, 10000);

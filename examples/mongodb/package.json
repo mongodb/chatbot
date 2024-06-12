@@ -1,0 +1,19 @@
+{
+    "name": "mongodb",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "start": "tsc && node dist/examples/mongodb/src/index.js"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@langchain/openai": "^0.1.1",
+        "dotenv": "^16.4.5",
+        "ts-node": "^10.9.2"
+    },
+    "devDependencies": {
+        "@types/node": "^20.12.11"
+    }
+}

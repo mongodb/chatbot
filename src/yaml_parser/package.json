@@ -1,0 +1,19 @@
+{
+    "name": "yaml_parser",
+    "version": "1.0.0",
+    "type": "module",
+    "private": true,
+    "scripts": {
+        "start": "tsc && node dist/examples/yaml_parser/src/LoadYaml.ts"
+    },
+    "author": "Venkatesh Shanbhag",
+    "license": "",
+    "dependencies": {
+        "js-yaml":"^4.1.0",
+        "dotenv": "^16.4.5",
+        "ts-node": "^10.9.2"
+    },
+    "devDependencies": {
+        "@types/node": "^20.12.11"
+    }
+}

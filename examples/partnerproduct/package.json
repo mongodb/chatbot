@@ -1,0 +1,26 @@
+{
+    "name": "simple",
+    "version": "1.0.0",
+    "type": "module",
+    "private": true,
+    "scripts": {
+        "start": "tsc && node dist/examples/partnerproduct/src/index.js '/Users/utsavtalwar/Desktop/Tech-Partner/chatbot/examples/partnerproduct/src/test.yaml'"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@mhoc/axios-digest-auth": "^0.8.0",
+        "axios": "^1.7.2",
+        "axios-digest": "^0.3.0",
+        "dotenv": "^16.4.5",
+        "mongodb-chatbot-ui": "^0.7.2",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "request": "^2.88.2",
+        "ts-node": "^10.9.2"
+    },
+    "devDependencies": {
+        "@types/express": "^4.17.21",
+        "@types/node": "^20.12.11"
+    }
+}

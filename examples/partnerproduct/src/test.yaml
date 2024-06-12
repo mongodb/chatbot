@@ -1,0 +1,28 @@
+ingest:
+  source: 'web'
+  source_path: 'https://en.wikipedia.org/wiki/Tesla,_Inc.'
+embedding:
+  top_k: ''
+  class_name: OpenAIEmbeddings
+  model_name: text-ada-002
+vector_store:
+  connectionString: 'mongodb+srv://venkatesh:ashwin123@freetier.kxcgwh2.mongodb.net/?retryWrites=true&w=majority'
+  dbName: 'maap'
+  collectionName: 'vertexai-test-new-2'
+  embeddingKey: 'embedding'
+  textKey: 'text'
+llms:
+  class_name: OpenAi
+  model_name: 'gpt-4-turbo'
+  temprature: ''
+  top_p: ''
+  top_k: ''
+rag_pipeline:
+- vs: ''
+  embedding: embedding
+- retriver:
+    class_name: multiqueryretriver
+    vs: vs
+    llm: llm
+- chat_engine: llm
+ingest_pipeline: []

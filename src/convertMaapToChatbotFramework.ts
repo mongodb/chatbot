@@ -43,7 +43,7 @@ export function convertBaseModelToChatLlm(baseModel: BaseModel): ChatLlm {
     } satisfies ChatLlm;
 }
 
-export function convertBaseEmbeddingsToEmbeddings(baseEmbeddings: BaseEmbeddings): Embedder {
+export function convertBaseEmbeddingsToEmbedder(baseEmbeddings: BaseEmbeddings): Embedder {
     return {
         async embed({ text }) {
             const embedding = await baseEmbeddings.embedQuery(text);

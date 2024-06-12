@@ -10,28 +10,23 @@ import { ChatLlm, UserMessage } from 'mongodb-chatbot-server';
 import { Embedder } from 'mongodb-chatbot-server';
 import { DataSource } from 'mongodb-rag-ingest/sources';
 
-/**
-  Note: this only takes into account the latest user message
-  because the `BaseModel` implementation maintains conversations
-  in its internal state, which is not compatible with the chatbot framework.
- */
 export function convertBaseModelToChatLlm(baseModel: BaseModel): ChatLlm {
     return {
         async answerQuestionAwaited({ messages }) {
             const systemMessage = messages.find((m) => m.role === 'system');
+            // this only takes into account the latest user message,
+            // which should have previous messages and retrieved context information
+            // all in the `userMessage.contentForLlm` field.
             const userMessage = messages[messages.length - 1] as UserMessage;
-            const context = userMessage.contextContent.map(
-                (c) =>
-                    ({
-                        pageContent: c.text,
-                        metadata: {
-                            id: c.url,
-                            source: c.sourceName,
-                            uniqueLoaderId: 'TODO: what is this?',
-                        },
-                    } satisfies Chunk),
+            const modelResponse = await baseModel.query(
+                systemMessage.content,
+                // User content for LLM if it exists (which it should in the implementation),
+                // otherwise use the original content
+                userMessage.contentForLlm ?? userMessage.content,
+                // we shouldn't need to add context b/c this comes from the UserMessage.contentForLlm
+                // Putting empty array b/c need placeholder
+                [],
             );
-            const modelResponse = await baseModel.query(systemMessage.content, userMessage.content, context);
             return {
                 role: 'assistant',
                 content: modelResponse,

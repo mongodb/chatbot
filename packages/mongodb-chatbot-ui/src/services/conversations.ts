@@ -2,7 +2,6 @@ import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { References, VerifiedAnswer, type Reference } from "mongodb-rag-core";
 import { ConversationState } from "../useConversation";
 import { strict as assert } from "node:assert";
-import { ReferenceVariant } from "../mongodbReferenceType";
 
 export type Role = "user" | "assistant";
 
@@ -12,7 +11,7 @@ export type MessageData = {
   content: string;
   createdAt: string;
   rating?: boolean;
-  references?: (Reference & { linkVariant?: ReferenceVariant })[];
+  references?: Reference[];
   suggestedPrompts?: string[];
   metadata?: AssistantMessageMetadata;
 };

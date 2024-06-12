@@ -32,9 +32,8 @@ import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { CharacterCount } from "./InputBar";
 import { useChatbotContext } from "./useChatbotContext";
 import { useLinkData } from "./useLinkData";
-import { addQueryParams } from "./utils";
-import { type RichLinkProps } from "@lg-chat/rich-links";
 import { headingStyle, disableSetextHeadings } from "./markdownHeadingStyle";
+import { formatReferences } from "./messageLinks";
 
 const TRANSITION_DURATION_MS = 300;
 
@@ -275,21 +274,7 @@ export const Message = ({
     : undefined;
 
   const { tck } = useLinkData();
-  const messageLinks = messageData.references?.map(
-    (reference): RichLinkProps => {
-      const richLinkProps = {
-        href: addQueryParams(reference.url, { tck }),
-        children: reference.title,
-      };
-      if (reference.linkVariant) {
-        return {
-          ...richLinkProps,
-          variant: reference.linkVariant,
-        };
-      }
-      return richLinkProps;
-    }
-  );
+  const messageLinks = formatReferences(messageData.references, { tck });
 
   return (
     <Fragment key={messageData.id}>

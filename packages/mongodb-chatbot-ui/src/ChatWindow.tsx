@@ -13,6 +13,7 @@ import {
   MongoDbInputBarPlaceholder,
 } from "./InputBar";
 import { Message } from "./Message";
+import { Message as LGMessage } from "@lg-chat/message";
 import { MessageData } from "./services/conversations";
 import { defaultChatbotFatalErrorMessage } from "./ui-text";
 import { Conversation } from "./useConversation";
@@ -134,6 +135,19 @@ export function ChatWindow(props: ChatWindowProps) {
                 {disclaimer}
               </DisclaimerText>
             ) : null}
+            <LGMessage
+              messageBody="Welcome to MongoDB AI. How can I help you today?"
+              isSender={false}
+              sourceType="markdown"
+              align="left"
+              links={[
+                {
+                  href: "https://www.mongodb.com",
+                  children: "MongoDB",
+                  variant: "Docs",
+                },
+              ]}
+            />
             {messages.map((message, idx) => {
               const isLoading = conversation.isStreamingMessage
                 ? message.id === conversation.streamingMessage?.id &&

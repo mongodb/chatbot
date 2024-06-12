@@ -12,7 +12,8 @@ export const Reference = z.object({
   title: z.string(),
   metadata: z
     .object({
-      sourceName: z.string().optional(),
+      sourceName: z.string().optional().describe("The name of the source."),
+      sourceType: z.string().optional(),
       tags: z.array(z.string()).optional(),
     })
     .passthrough() // We accept additional unknown metadata fields

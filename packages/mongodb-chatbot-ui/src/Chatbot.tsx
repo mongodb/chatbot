@@ -26,7 +26,6 @@ export function Chatbot({
   fetchOptions,
   onOpen,
   onClose,
-  formatReference,
   ...props
 }: ChatbotProps) {
   const { darkMode } = useDarkMode(props.darkMode);
@@ -44,7 +43,6 @@ export function Chatbot({
     serverBaseUrl,
     shouldStream,
     fetchOptions,
-    formatReference,
     maxInputCharacters,
     maxCommentCharacters,
     onOpen,

@@ -376,11 +376,6 @@ function conversationReducer(
 export type UseConversationParams = {
   serverBaseUrl?: string;
   shouldStream?: boolean;
-  /**
-    A function that formats incoming assistant message reference data before
-    adding it to the message.
-   */
-  formatReference?: (ref: Reference) => Reference;
   fetchOptions?: ConversationFetchOptions;
 };
 
@@ -441,11 +436,6 @@ export function useConversation(params: UseConversationParams = {}) {
 
     const shouldStream =
       canUseServerSentEvents() && (params.shouldStream ?? true);
-
-    const formatReferences = (references?: References) =>
-      references !== undefined && params.formatReference
-        ? references.map(params.formatReference)
-        : references;
 
     // Stream control
     const abortController = new AbortController();
@@ -517,8 +507,7 @@ export function useConversation(params: UseConversationParams = {}) {
             if (references === null) {
               references = [];
             }
-            const formattedReferences = formatReferences(data) ?? [];
-            references.push(...formattedReferences);
+            references.push(...data);
           },
           onMetadata: async (metadata) => {
             setMessageMetadata({
@@ -546,7 +535,7 @@ export function useConversation(params: UseConversationParams = {}) {
           type: "addMessage",
           role: "assistant",
           content: response.content,
-          references: formatReferences(response.references),
+          references: response.references,
           metadata: response.metadata,
         });
       }

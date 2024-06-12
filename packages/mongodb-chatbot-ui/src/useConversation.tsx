@@ -1,5 +1,5 @@
 import { useMemo, useReducer } from "react";
-import { Reference, type References } from "mongodb-rag-core";
+import { type References } from "mongodb-rag-core";
 import {
   MessageData,
   ConversationService,

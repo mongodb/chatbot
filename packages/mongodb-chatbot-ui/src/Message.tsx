@@ -274,7 +274,9 @@ export const Message = ({
     : undefined;
 
   const { tck } = useLinkData();
-  const messageLinks = formatReferences(messageData.references, { tck });
+  const messageLinks = messageData.references
+    ? formatReferences(messageData.references, { tck })
+    : undefined;
 
   return (
     <Fragment key={messageData.id}>

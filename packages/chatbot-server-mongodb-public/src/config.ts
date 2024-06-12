@@ -28,6 +28,7 @@ import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagG
 import { blockGetRequests } from "./middleware/blockGetRequests";
 import { getRequestId, logRequest } from "./utils";
 import { systemPrompt } from "./systemPrompt";
+import { addReferenceSourceType } from "./processors/makeMongoDbReferences";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -117,6 +118,12 @@ export const findVerifiedAnswer = makeDefaultFindVerifiedAnswer({
 
 export const generateUserPrompt = makeVerifiedAnswerGenerateUserPrompt({
   findVerifiedAnswer,
+  onVerifiedAnswerFound: (verifiedAnswer) => {
+    return {
+      ...verifiedAnswer,
+      references: verifiedAnswer.references.map(addReferenceSourceType),
+    };
+  },
   onNoVerifiedAnswerFound: makeStepBackRagGenerateUserPrompt({
     openAiClient,
     deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,

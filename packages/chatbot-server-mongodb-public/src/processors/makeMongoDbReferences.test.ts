@@ -16,6 +16,7 @@ describe("makeMongoDbReferences", () => {
         embedding: [0.1, 0.2, 0.3],
         updated: new Date(),
         metadata: {
+          pageTitle: "Example Blog",
           tags: ["external", "example"],
         },
         chunkIndex: 0,
@@ -28,30 +29,20 @@ describe("makeMongoDbReferences", () => {
         embedding: [0.1, 0.2, 0.3],
         updated: new Date(),
         metadata: {
+          pageTitle: "Example Blog",
           tags: ["external", "example"],
         },
         chunkIndex: 1,
       },
       {
-        url: "https://www.example.com/somepage",
-        sourceName: "example",
-        text: "Lorem ipsum",
-        tokenCount: 5,
-        embedding: [0.1, 0.2, 0.3],
-        updated: new Date(),
-        metadata: {
-          tags: ["external", "example"],
-        },
-        chunkIndex: 0,
-      },
-      {
-        url: "https://www.mongodb.com/somepage",
+        url: "https://www.mongodb.com/love-your-developers",
         sourceName: "mongodb-dotcom",
         text: "Love Your Developers",
         tokenCount: 5,
         embedding: [0.1, 0.2, 0.3],
         updated: new Date(),
         metadata: {
+          pageTitle: "Love Your Developers",
           tags: ["external", "example"],
         },
         chunkIndex: 0,
@@ -61,8 +52,7 @@ describe("makeMongoDbReferences", () => {
     expect(result).toEqual([
       {
         url: "https://www.example.com/blog",
-        // title: "Example Blog",
-        title: "https://www.example.com/blog",
+        title: "Example Blog",
         metadata: {
           sourceName: "example",
           sourceType: "Blog",
@@ -70,12 +60,40 @@ describe("makeMongoDbReferences", () => {
         },
       },
       {
+        url: "https://www.mongodb.com/love-your-developers",
+        title: "Love Your Developers",
+        metadata: {
+          sourceName: "mongodb-dotcom",
+          sourceType: "Website",
+          tags: ["external", "example"],
+        },
+      },
+    ]);
+  });
+
+  it("returns standard references without a sourceType if no sourceType can be determined", () => {
+    const chunks = [
+      {
         url: "https://www.example.com/somepage",
-        // title: "Lorem ipsum",
-        title: "https://www.example.com/somepage",
+        sourceName: "example",
+        text: "Lorem ipsum",
+        tokenCount: 5,
+        embedding: [0.1, 0.2, 0.3],
+        updated: new Date(),
+        metadata: {
+          pageTitle: "Some Page",
+          tags: ["external", "example"],
+        },
+        chunkIndex: 0,
+      },
+    ];
+    const result = makeMongoDbReferences(chunks);
+    expect(result).toEqual([
+      {
+        url: "https://www.example.com/somepage",
+        title: "Some Page",
         metadata: {
           sourceName: "example",
-          // sourceType: "Website",
           tags: ["external", "example"],
         },
       },

@@ -24,7 +24,7 @@ export type FormatReferencesOptions = {
 };
 
 export function formatReferences(
-  references: References = [],
+  references: References,
   { tck }: FormatReferencesOptions = {}
 ): RichLinkProps[] {
   return references.map((reference) => {

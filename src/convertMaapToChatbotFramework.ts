@@ -10,7 +10,8 @@ import { ChatLlm, UserMessage } from 'mongodb-chatbot-server';
 import { Embedder } from 'mongodb-chatbot-server';
 import { DataSource } from 'mongodb-rag-ingest/sources';
 
-export function convertBaseModelToChatLlm(baseModel: BaseModel): ChatLlm {
+export async function convertBaseModelToChatLlm(baseModel: BaseModel): Promise<ChatLlm> {
+    await baseModel.init();
     return {
         async answerQuestionAwaited({ messages }) {
             const systemMessage = messages.find((m) => m.role === 'system');

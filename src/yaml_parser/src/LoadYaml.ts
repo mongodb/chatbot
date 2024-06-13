@@ -50,7 +50,7 @@ export function getEmbeddingModel(){
   const parsedData = getDataFromYamlFile();
   if (parsedData.embedding.class_name === "VertexAI") {
     return new GeckoEmbedding();
-  } else if (parsedData.embedding.class_name === "OpenAi"){
+  } else if (parsedData.embedding.class_name === "OpenAIEmbeddings"){
     return new AdaEmbeddings(); 
   } else {
     return null;

@@ -13,7 +13,7 @@ import path from "path";
 import { loadEnvVars } from "./loadEnvVars.js";
 
 // Load project environment variables
-const dotenvPath = path.join(__dirname, "..", ".env"); // update with real path
+const dotenvPath = "/Users/utsavtalwar/Desktop/Tech-Partner/chatbot/examples/partnerproduct/.env"  //path.join(__dirname, "..", ".env"); // update with real path
 const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -33,9 +33,11 @@ const embeddedContentStore = makeMongoDbEmbeddedContentStore({
 });
 
 // Convert MAAP base embeddings to framework's Embedder
+// console.log(embedding_model)
 const embedder = convertBaseEmbeddingsToEmbedder(embedding_model);
 
 // Convert MAAP base LLM to framework's ChatLlm
+console.log(model)
 const llm = await convertBaseModelToChatLlm(model);
 
   // Find content in the embeddedContentStore using the vector embeddings
@@ -111,7 +113,7 @@ serveStaticSite: true,
 };
 
 // Start the server and clean up resources on SIGINT.
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 9000;
 const startServer = async () => {
 
     logger.info("Starting server...");

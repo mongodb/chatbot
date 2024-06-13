@@ -16,7 +16,8 @@ export class AnyscaleModel extends BaseModel {
     }
 
     override async init(): Promise<void> {
-        this.model = new ChatOpenAI({ temperature: this.temperature, model: this.modelName, apiKey: process.env.ANYSCALE_API_KEY ,configuration:{ baseUrl: process.env.ANYSCALE_BASE_URL} });
+        this.model = new ChatOpenAI({ temperature: this.temperature, model: this.modelName, apiKey: process.env.ANYSCALE_API_KEY ,configuration:{ baseURL: process.env.ANYSCALE_BASE_URL} 
+        });
     }
 
     override async runQuery(

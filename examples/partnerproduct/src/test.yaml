@@ -4,7 +4,7 @@ ingest:
 embedding:
   top_k: ''
   class_name: OpenAIEmbeddings
-  model_name: text-ada-002
+  model_name: text-embedding-ada-002
 vector_store:
   connectionString: 'mongodb+srv://venkatesh:ashwin123@freetier.kxcgwh2.mongodb.net/?retryWrites=true&w=majority'
   dbName: 'maap'

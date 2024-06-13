@@ -16,7 +16,7 @@ function App() {
     <div className="App">
       
       <header className="App-header">
-      <Chatbot darkMode={true} serverBaseUrl="http://localhost:9000/api/v1" shouldStream={true} isExperimental={false}>
+      <Chatbot darkMode={true} serverBaseUrl="http://localhost:9000/api/v1" shouldStream={false} isExperimental={false}>
         <>
           <InputBarTrigger suggestedPrompts={suggestedPrompts} />
           {/* <FloatingActionButtonTrigger text="My MongoDB AI" /> */}

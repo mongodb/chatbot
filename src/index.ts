@@ -63,4 +63,6 @@ export {
     VertexAI,
     Ollama,
 };
-export * from "./convertMaapToChatbotFramework.js"
+export * from './convertMaapToChatbotFramework.js';
+export * from './Rerank.js';
+export * from './PreProcessQuery.js';

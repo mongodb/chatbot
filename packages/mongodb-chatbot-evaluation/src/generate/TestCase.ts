@@ -38,10 +38,43 @@ export interface ConversationTestCase extends BaseTestCase {
   name: "conversation";
 }
 
-export type SomeTestCase = ConversationTestCase | BaseTestCase;
+export const QuizQuestionTestCaseDataSchema = z.object({
+  questionText: z.string(),
+  contentTitle: z.string(),
+  title: z.string(),
+  topicType: z.string(),
+  questionType: z.string(),
+  answers: z.array(
+    z.object({
+      answer: z.string(),
+      isCorrect: z.boolean(),
+      label: z.string(),
+    })
+  ),
+});
+
+export type QuizQuestionTestCaseData = z.infer<
+  typeof QuizQuestionTestCaseDataSchema
+>;
+
+export interface QuizQuestionTestCase extends BaseTestCase {
+  data: QuizQuestionTestCaseData;
+  name: "quiz";
+}
+
+export type SomeTestCase =
+  | QuizQuestionTestCase
+  | ConversationTestCase
+  | BaseTestCase;
 
 export function isConversationTestCase(
   testCase: SomeTestCase
 ): testCase is ConversationTestCase {
   return ConversationTestCaseDataSchema.safeParse(testCase.data).success;
+}
+
+export function isQuizQuestionTestCase(
+  testCase: SomeTestCase
+): testCase is QuizQuestionTestCase {
+  return QuizQuestionTestCaseDataSchema.safeParse(testCase.data).success;
 }

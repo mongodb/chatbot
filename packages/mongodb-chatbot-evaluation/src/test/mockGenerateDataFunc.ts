@@ -3,7 +3,7 @@ import { GenerateDataFunc } from "../generate/GenerateDataFunc";
 import { SomeGeneratedData } from "../generate/GeneratedDataStore";
 import { TRIGGER_SERVER_ERROR_MESSAGE } from "./mockExpressApp";
 import { strict as assert } from "assert";
-import { SomeTestCase } from "../generate/TestCase";
+import { isConversationTestCase, SomeTestCase } from "../generate/TestCase";
 import { Message } from "mongodb-chatbot-server";
 
 export const mockGenerateDataFunc: GenerateDataFunc = async ({
@@ -12,6 +12,7 @@ export const mockGenerateDataFunc: GenerateDataFunc = async ({
 }) => {
   const failedCases: SomeTestCase[] = [];
   const generatedData: SomeGeneratedData[] = testCases
+    .filter((testCase) => isConversationTestCase(testCase))
     .filter((testCase) => {
       assert(Array.isArray(testCase.data.messages), "something is wrong here");
       const isFailed =

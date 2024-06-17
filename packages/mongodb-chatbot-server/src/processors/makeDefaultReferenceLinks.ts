@@ -23,11 +23,9 @@ export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
 
   return uniqueChunks.map((chunk) => {
     const url = new URL(chunk.url).href;
-    const pageTitle = chunk.metadata?.pageTitle
-      ? String(chunk.metadata?.pageTitle)
-      : undefined;
+    const title = chunk.metadata?.pageTitle ?? url;
     return {
-      title: pageTitle ?? url,
+      title,
       url,
       metadata: {
         sourceName: chunk.sourceName,

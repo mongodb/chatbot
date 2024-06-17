@@ -30,6 +30,7 @@ export function Chatbot({
   user,
   name,
   fetchOptions,
+  isExperimental,
   onOpen,
   onClose,
   ...props
@@ -49,6 +50,7 @@ export function Chatbot({
     serverBaseUrl,
     shouldStream,
     fetchOptions,
+    isExperimental,
     maxInputCharacters,
     maxCommentCharacters,
     onOpen,

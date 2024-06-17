@@ -47,7 +47,7 @@ author_email: somebody@example.com
 ```
 
 This definition is split into multiple verified answer documents, one for each
-entry in the `questions` array, and processed into a vector searchable formato.
+entry in the `questions` array, and processed into a vector searchable format.
 In MongoDB, the verified answer document generated from this definition
 resembles the following:
 
@@ -120,7 +120,7 @@ Then add one or more verified answers to the file:
 ### 2. Build and Link the Verified Answers CLI
 
 The framework includes a CLI that can import your verified answers into MongoDB
-in a searchable format. To use it, you must build the executable binary from
+in a searchable format. To use it, you must build the CLI from
 source.
 
 First, define a `.env` file with environment variables for the CLI. Make sure to

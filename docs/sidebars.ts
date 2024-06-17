@@ -1,7 +1,7 @@
 import type { SidebarsConfig } from "@docusaurus/plugin-content-docs";
 
 /**
- * Creating a sidebar enables you to:
+ Creating a sidebar enables you to:
  - create an ordered group of docs
  - render a sidebar for each doc of that group
  - provide next/previous navigation
@@ -59,6 +59,8 @@ const sidebars: SidebarsConfig = {
         "server/tools",
         "server/persist",
         "server/evaluate",
+        "server/verified-answers",
+        "server/find-faqs",
         {
           type: "link",
           label: "OpenAPI Spec",

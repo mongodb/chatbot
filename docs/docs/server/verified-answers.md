@@ -81,7 +81,7 @@ resembles the following:
 
 ## Set Up Verified Answers {#set-up-verified-answers}
 
-:::note[☁️ MongoDB Atlas ☁️]
+:::tip[Use MongoDB Atlas]
 This guide assumes that you use MongoDB Atlas and Atlas Vector Search.
 :::
 
@@ -147,8 +147,11 @@ npm link
 You now have access to the `verified-answers` CLI in your shell.
 
 :::note
-You only need to build the CLI the first time you use it and any time you want
-to apply updates in the future.
+You will need to build the CLI:
+
+- the first time you use it
+- to change an environment variables defined in the `.env` file
+- to apply future feature updates
 :::
 
 ### 3. Import Your Verified Answers
@@ -239,7 +242,9 @@ export const generateRagUserPrompt = makeRagGenerateUserPrompt({
 // A new GenerateUserPrompt func that wraps your existing prompt and adds support for verified answers
 export const generateUserPrompt = makeVerifiedAnswerGenerateUserPrompt({
   findVerifiedAnswer,
+  // highlight-start
   onNoVerifiedAnswerFound: generateRagUserPrompt
+  // highlight-end
 });
 ```
 

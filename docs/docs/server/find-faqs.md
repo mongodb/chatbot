@@ -1,12 +1,18 @@
 # Find Frequently Asked Questions
 
 You can use the "FAQ Finder" tool to analyze historic messages in your database
-and find the most commonly sent questions and prompts.
+and find the most common topics that users have chatted about.
 
 You can use these FAQs to:
 
 - understand how users are interacting with your chatbot
 - define [verified answers](./verified-answers) for the most common requests
+
+:::info
+The framework and this tool refer to these topics as "frequently asked
+questions", but it can handle any user input even if they're not in the form of
+a question.
+:::
 
 ## How It Works
 
@@ -15,8 +21,8 @@ space. Specifically, it runs [DBSCAN](https://en.wikipedia.org/wiki/DBSCAN) on
 the query embeddings your server generates for each incoming user message.
 
 The tool combines messages into semantically similar groups and then sorts the
-groups by size. You can then sample or generate a representative question for
-the entire group.
+groups by size (i.e. number of messages in the group). You can then sample or
+generate a representative question for the entire group.
 
 ## Use the FAQ Finder
 

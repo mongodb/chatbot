@@ -88,7 +88,7 @@ const embeddedContentStore = makeMongoDbEmbeddedContentStore({
 To use the `EmbeddedContentStore` returned by `makeMongoDbEmbeddedContentStore()` in your RAG app,
 you must set up Atlas Vector Search on the `embedded_content` collection in MongoDB.
 For more information on setting up the vector search index on the `embedded_content` collection,
-refer to the [Create Atlas Vector Search Index](../mongodb.md#3-create-atlas-vector-search-index)
+refer to the [Create Atlas Vector Search Index](../mongodb.md#create-vector-search-index)
 documentation.
 
 :::

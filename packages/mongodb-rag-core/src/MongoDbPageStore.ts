@@ -14,7 +14,15 @@ export type MongoDbPageStore = DatabaseConnection &
     loadPages(
       args?: LoadPagesArgs<Filter<PersistedPage>>
     ): Promise<PersistedPage[]>;
+    metadata: {
+      databaseName: string;
+      collectionName: string;
+    };
   };
+
+export type MakeMongoDbPageStoreParams = MakeMongoDbDatabaseConnectionParams & {
+  collectionName?: string;
+};
 
 /**
   Data store for {@link Page} objects using MongoDB.
@@ -22,16 +30,21 @@ export type MongoDbPageStore = DatabaseConnection &
 export function makeMongoDbPageStore({
   connectionUri,
   databaseName,
-}: MakeMongoDbDatabaseConnectionParams): MongoDbPageStore {
+  collectionName = "pages",
+}: MakeMongoDbPageStoreParams): MongoDbPageStore {
   const { db, drop, close } = makeMongoDbDatabaseConnection({
     connectionUri,
     databaseName,
   });
-  const pagesCollection = db.collection<PersistedPage>("pages");
+  const pagesCollection = db.collection<PersistedPage>(collectionName);
   return {
     queryType: "mongodb",
     drop,
     close,
+    metadata: {
+      databaseName,
+      collectionName,
+    },
     async loadPages(args) {
       const filter: Filter<PersistedPage> = args
         ? createQueryFilterFromLoadPagesArgs(args)

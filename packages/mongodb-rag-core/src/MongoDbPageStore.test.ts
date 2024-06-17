@@ -4,6 +4,7 @@ import { PersistedPage } from "./Page";
 import { assertEnvVars } from "./assertEnvVars";
 import { CORE_ENV_VARS } from "./CoreEnvVars";
 import "dotenv/config";
+import { MongoDBCollectionNamespace } from "mongodb";
 
 const { MONGODB_CONNECTION_URI } = assertEnvVars(CORE_ENV_VARS);
 
@@ -204,5 +205,22 @@ describe("MongoDbPageStore", () => {
     expect(sqlQueryPromise).rejects.toThrow(
       "Invalid query - MongoDbPageStore expects a MongoDB query filter. Instead, got: SELECT * FROM pages WHERE url = 'matrix1'"
     );
+  });
+
+  it("has an overridable default collection name", async () => {
+    assert(store);
+
+    expect(store.metadata.collectionName).toBe("pages");
+
+    const storeWithCustomCollectionName = await makeMongoDbPageStore({
+      connectionUri: MONGODB_CONNECTION_URI,
+      databaseName: store.metadata.databaseName,
+      collectionName: "custom-pages",
+    });
+
+    expect(storeWithCustomCollectionName.metadata.collectionName).toBe(
+      "custom-pages"
+    );
+    await storeWithCustomCollectionName.drop();
   });
 });

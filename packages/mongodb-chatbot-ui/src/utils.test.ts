@@ -12,7 +12,7 @@ import {
 const alice = { name: "alice", age: 25, createdAt: new Date("1999-01-01") };
 const bob = { name: "bob", age: 42, createdAt: new Date("1982-05-11") };
 const cathy = { name: "cathy", age: 30, createdAt: new Date("1994-04-22") };
-const people = [{ ...alice }, { ...bob }, { ...cathy }];
+const people = [alice, bob, cathy];
 
 describe("updateArrayElementAt", () => {
   test("immutably updates a specific array element at a given index", () => {

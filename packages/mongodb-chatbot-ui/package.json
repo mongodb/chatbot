@@ -64,8 +64,8 @@
     "build-storybook": "storybook build",
     "release:interactive": "release-it",
     "release": "release-it",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "VITE_GIT_COMMIT=$(npm run --silent env:get-git-commit) vitest run",
+    "test:watch": "VITE_GIT_COMMIT=$(npm run --silent env:get-git-commit) vitest"
   },
   "bundleDependencies": [
     "mongodb-rag-core"
@@ -104,6 +104,7 @@
     "buffer": "^6.0.3",
     "classnames": "^2.5.1",
     "esbuild": "^0.17.19",
+    "mongodb-chatbot-api": "^0.0.0",
     "mongodb-rag-core": "^0.0.5",
     "prettier": "^2.8.8",
     "react-markdown": "^8.0.7",
@@ -122,8 +123,10 @@
     "@storybook/react": "^7.0.20",
     "@storybook/react-vite": "^7.0.20",
     "@storybook/testing-library": "^0.0.14-next.2",
-    "@types/react": "^18.0.37",
-    "@types/react-dom": "^18.0.11",
+    "@testing-library/jest-dom": "^6.4.5",
+    "@testing-library/react": "^15.0.7",
+    "@types/react": "^18.3.2",
+    "@types/react-dom": "^18.3.0",
     "@types/react-transition-group": "^4.4.6",
     "@types/unist": "^3.0.2",
     "@typescript-eslint/eslint-plugin": "^5.59.0",
@@ -134,6 +137,8 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.3.4",
     "eslint-plugin-storybook": "^0.6.12",
+    "event-source-polyfill": "^1.0.31",
+    "eventsource": "^2.0.2",
     "jsdom": "^22.1.0",
     "mocksse": "^1.0.4",
     "node-stdlib-browser": "^1.2.0",

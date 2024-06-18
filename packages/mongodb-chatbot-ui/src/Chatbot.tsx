@@ -6,7 +6,7 @@ import { useChatbot, OpenCloseHandlers } from "./useChatbot";
 import { LinkDataProvider } from "./LinkDataProvider";
 import { type User } from "./useUser";
 import { ChatbotProvider } from "./ChatbotProvider";
-import { ConversationFetchOptions } from "./services/conversations";
+import { ConversationActionFetchOptions } from "mongodb-chatbot-api";
 import ConversationProvider from "./ConversationProvider";
 
 export type ChatbotProps = OpenCloseHandlers & {
@@ -20,7 +20,7 @@ export type ChatbotProps = OpenCloseHandlers & {
   shouldStream?: boolean;
   tck?: string;
   user?: User;
-  fetchOptions?: ConversationFetchOptions;
+  fetchOptions?: ConversationActionFetchOptions;
 };
 
 export function Chatbot({

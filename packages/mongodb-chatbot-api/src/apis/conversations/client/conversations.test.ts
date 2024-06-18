@@ -1,16 +1,18 @@
 import { vi } from "vitest";
 import {
+  ConversationsClient,
+  ConversationsClientFetchOptions,
+  getCustomRequestOrigin,
+  makeConversationsClient,
+} from "./conversations";
+import {
   AssistantMessageMetadata,
-  ConversationFetchOptions,
-  ConversationService,
   ConversationStreamEvent,
   DeltaStreamEvent,
   MetadataStreamEvent,
   ReferencesStreamEvent,
-  formatReferences,
-  getCustomRequestOrigin,
-} from "./conversations";
-import { type References } from "mongodb-rag-core";
+} from "../types";
+import { type References } from "../types";
 import * as FetchEventSource from "@microsoft/fetch-event-source";
 // Mock fetch for regular awaited HTTP requests
 // TODO: make TypeScript compiler ok with this, or skip putting this in the compiled code for staging
@@ -25,9 +27,9 @@ function mockFetchResponse<T = unknown>({
   status?: number;
   data: T;
 }) {
-  let lastRequestOptions: Partial<ConversationFetchOptions>;
+  let lastRequestOptions: Partial<ConversationsClientFetchOptions>;
   (global.fetch as ReturnType<typeof vi.fn>).mockImplementation(
-    async (_url, options: ConversationFetchOptions) => {
+    async (_url, options: ConversationsClientFetchOptions) => {
       // Capture the request options
       lastRequestOptions = options;
 
@@ -61,9 +63,7 @@ function mockFetchEventSourceResponse<Data = unknown>(
   return events;
 }
 
-function filterMockedConversationEventsData<
-  StreamEvent extends ConversationStreamEvent
->(
+function filterMockedConversationEventsData<StreamEvent extends ConversationStreamEvent>(
   events: FetchEventSource.MockEvent<ConversationStreamEvent>[],
   type: StreamEvent["type"]
 ): StreamEvent["data"][] {
@@ -75,21 +75,20 @@ function filterMockedConversationEventsData<
 //Tests
 const serverUrl = "https://example.com/api/v1";
 
-describe("ConversationService", () => {
-  let conversationService: ConversationService;
+describe("ConversationsClient", () => {
+  let ConversationsClient: ConversationsClient;
   beforeEach(() => {
-    conversationService = new ConversationService({
+    ConversationsClient = makeConversationsClient({
       serverUrl,
     });
   });
 
   it("throws if serverUrl is not set", () => {
-    expect(
-      () =>
-        new ConversationService({
-          serverUrl: undefined as unknown as string,
-        })
-    ).toThrow("You must define a serverUrl for the ConversationService");
+    expect(() =>
+      makeConversationsClient({
+        serverUrl: undefined as unknown as string,
+      })
+    ).toThrow("You must define a serverUrl for the ConversationsClient");
   });
 
   it("creates conversations", async () => {
@@ -100,8 +99,8 @@ describe("ConversationService", () => {
         messages: [],
       },
     });
-    const conversation = await conversationService.createConversation();
-    expect(conversation.conversationId).toEqual(conversationId);
+    const conversation = await ConversationsClient.createConversation();
+    expect(conversation._id).toEqual(conversationId);
     expect(conversation.messages).toEqual([]);
   });
 
@@ -132,10 +131,10 @@ describe("ConversationService", () => {
         ],
       },
     });
-    const conversation = await conversationService.getConversation(
-      conversationId
-    );
-    expect(conversation.conversationId).toEqual(conversationId);
+    const conversation = await ConversationsClient.getConversation({
+      conversationId,
+    });
+    expect(conversation._id).toEqual(conversationId);
     expect(conversation.messages[0].id).toEqual("65c680decdb62b4c92797324");
     expect(conversation.messages[1].id).toEqual("65c680decdb62b4c92797325");
     expect(conversation.messages[2]).toBeUndefined();
@@ -147,7 +146,9 @@ describe("ConversationService", () => {
       data: { error: "Invalid conversation ID" },
     });
     expect(async () => {
-      return conversationService.getConversation("not-a-real-conversation-id");
+      return ConversationsClient.getConversation({
+        conversationId: "not-a-real-conversation-id",
+      });
     }).rejects.toThrow("Invalid conversation ID");
   });
 
@@ -158,7 +159,9 @@ describe("ConversationService", () => {
     });
     expect(async () => {
       // Assumes 65c689e3ccdb70bebc178017 is not in the database
-      return conversationService.getConversation("65c689e3ccdb70bebc178017");
+      return ConversationsClient.getConversation({
+        conversationId: "65c689e3ccdb70bebc178017",
+      });
     }).rejects.toThrow("Conversation not found");
   });
 
@@ -176,7 +179,7 @@ describe("ConversationService", () => {
       ],
     };
     mockFetchResponse({ data: mockMessage });
-    const awaitedMessage = await conversationService.addMessage({
+    const awaitedMessage = await ConversationsClient.addMessage({
       conversationId,
       message: "Hello world!",
     });
@@ -241,7 +244,7 @@ describe("ConversationService", () => {
     const streamedReferences: References[] = [];
     let streamedMessageId: string | undefined;
     let finishedStreaming = false;
-    await conversationService.addMessageStreaming({
+    await ConversationsClient.addMessageStreaming({
       conversationId,
       message: "Hello world!",
       maxRetries: 0,
@@ -255,16 +258,13 @@ describe("ConversationService", () => {
         streamedMessageId = messageId;
         finishedStreaming = true;
       },
-      onMetadata: async (metadata) => {
+      onMetadata: async (metadata: AssistantMessageMetadata) => {
         streamedMetadata.push(metadata);
       },
     });
     expect(streamedMessageId).toEqual(mockStreamedMessageId);
     expect(streamedTokens).toEqual(
-      filterMockedConversationEventsData<DeltaStreamEvent>(
-        mockedEvents,
-        "delta"
-      )
+      filterMockedConversationEventsData<DeltaStreamEvent>(mockedEvents, "delta")
     );
     expect(streamedReferences).toEqual(
       filterMockedConversationEventsData<ReferencesStreamEvent>(
@@ -273,10 +273,7 @@ describe("ConversationService", () => {
       )
     );
     expect(streamedMetadata).toEqual(
-      filterMockedConversationEventsData<MetadataStreamEvent>(
-        mockedEvents,
-        "metadata"
-      )
+      filterMockedConversationEventsData<MetadataStreamEvent>(mockedEvents, "metadata")
     );
     expect(finishedStreaming).toEqual(true);
   });
@@ -286,7 +283,7 @@ describe("ConversationService", () => {
     const ratedMessageId = "650b4be0d5a57dd66be2ccb9";
     const rating = true;
     mockFetchResponse({ status: 204, data: undefined });
-    const savedRating = await conversationService.rateMessage({
+    const savedRating = await ConversationsClient.rateMessage({
       conversationId,
       messageId: ratedMessageId,
       rating,
@@ -299,7 +296,7 @@ describe("ConversationService", () => {
     const ratedMessageId = "650b4be0d5a57dd66be2ccb9";
     const comment = "This was a satisfying response.";
     mockFetchResponse({ status: 204, data: undefined });
-    const commentPromise = conversationService.commentMessage({
+    const commentPromise = ConversationsClient.commentMessage({
       conversationId,
       messageId: ratedMessageId,
       comment,
@@ -309,7 +306,7 @@ describe("ConversationService", () => {
 
   it("appends custom fetch options", async () => {
     let getOptions = mockFetchResponse({ data: {} });
-    const conversationService = new ConversationService({
+    const ConversationsClient = makeConversationsClient({
       serverUrl,
       fetchOptions: {
         headers: new Headers({
@@ -318,20 +315,23 @@ describe("ConversationService", () => {
         credentials: "include",
       },
     });
-    await conversationService.createConversation();
+    await ConversationsClient.createConversation();
     const createOptions = getOptions();
+    const createOptionsHeaders = new Headers(createOptions.headers);
 
-    expect(createOptions.headers?.get("foo")).toBe("bar");
-    expect(createOptions.headers?.get("content-type")).toBe("application/json");
+    expect(createOptionsHeaders.get("foo")).toBe("bar");
+    expect(createOptionsHeaders.get("content-type")).toBe("application/json");
     expect(createOptions.credentials).toBe("include");
 
-    await conversationService.addMessage({ conversationId: "", message: "" });
+    await ConversationsClient.addMessage({ conversationId: "", message: "" });
     const addOptions = getOptions();
-    expect(addOptions.headers?.get("foo")).toBe("bar");
-    expect(addOptions.headers?.get("content-type")).toBe("application/json");
+    const addOptionsHeaders = new Headers(addOptions.headers);
+
+    expect(addOptionsHeaders.get("foo")).toBe("bar");
+    expect(addOptionsHeaders.get("content-type")).toBe("application/json");
     expect(addOptions.credentials).toBe("include");
 
-    await conversationService.addMessageStreaming({
+    await ConversationsClient.addMessageStreaming({
       conversationId: "",
       message: "",
       onResponseDelta: vi.fn(),
@@ -340,34 +340,36 @@ describe("ConversationService", () => {
       onMetadata: vi.fn(),
     });
     const addStreamingOptions = getOptions();
-    expect(addStreamingOptions.headers?.get("foo")).toBe("bar");
-    expect(addStreamingOptions.headers?.get("content-type")).toBe(
-      "application/json"
-    );
+    const addStreamingOptionsHeaders = new Headers(addStreamingOptions.headers);
+
+    expect(addStreamingOptionsHeaders.get("foo")).toBe("bar");
+    expect(addStreamingOptionsHeaders.get("content-type")).toBe("application/json");
     expect(addStreamingOptions.credentials).toBe("include");
 
     // Updating the mock fetch to return 204, which is used by the following two calls.
     getOptions = mockFetchResponse({ data: {}, status: 204 });
-    await conversationService.rateMessage({
+    await ConversationsClient.rateMessage({
       conversationId: "a",
       messageId: "b",
       rating: true,
     });
     const ratingOptions = getOptions();
-    expect(ratingOptions.headers?.get("foo")).toBe("bar");
-    expect(ratingOptions.headers?.get("content-type")).toBe("application/json");
+    const ratingOptionsHeaders = new Headers(ratingOptions.headers);
+
+    expect(ratingOptionsHeaders.get("foo")).toBe("bar");
+    expect(ratingOptionsHeaders.get("content-type")).toBe("application/json");
     expect(ratingOptions.credentials).toBe("include");
 
-    await conversationService.commentMessage({
+    await ConversationsClient.commentMessage({
       conversationId: "",
       comment: "",
       messageId: "",
     });
     const commentOptions = getOptions();
-    expect(commentOptions.headers?.get("foo")).toBe("bar");
-    expect(commentOptions.headers?.get("content-type")).toBe(
-      "application/json"
-    );
+    const commentOptionsHeaders = new Headers(commentOptions.headers);
+
+    expect(commentOptionsHeaders.get("foo")).toBe("bar");
+    expect(commentOptionsHeaders.get("content-type")).toBe("application/json");
     expect(commentOptions.credentials).toBe("include");
   });
 
@@ -382,7 +384,7 @@ describe("ConversationService", () => {
     });
 
     expect(async () => {
-      return conversationService.rateMessage({
+      return ConversationsClient.rateMessage({
         conversationId,
         messageId,
         rating: "true" as unknown as boolean,
@@ -396,7 +398,7 @@ describe("ConversationService", () => {
     });
 
     expect(async () => {
-      return conversationService.commentMessage({
+      return ConversationsClient.commentMessage({
         conversationId,
         messageId,
         comment: 42 as unknown as string,
@@ -409,7 +411,7 @@ describe("ConversationService", () => {
       data: { error: invalidConversationIdErrorMessage },
     });
     expect(async () => {
-      return conversationService.rateMessage({
+      return ConversationsClient.rateMessage({
         conversationId: "abcdefg this is not ObjectId",
         messageId,
         rating: true,
@@ -428,43 +430,19 @@ describe("ConversationService", () => {
     });
 
     expect(async () => {
-      return conversationService.addMessage({
+      return ConversationsClient.addMessage({
         conversationId,
         message: "Hello world!",
       });
     }).rejects.toThrow(internalServerErrorMessage);
 
     expect(async () => {
-      return conversationService.rateMessage({
+      return ConversationsClient.rateMessage({
         conversationId,
         messageId,
         rating: true,
       });
     }).rejects.toThrow(internalServerErrorMessage);
-  });
-});
-
-describe("formatReferences", () => {
-  it("returns an empty string if references is empty", () => {
-    expect(formatReferences([])).toEqual("");
-  });
-
-  it("formats a list of reference links into a markdown list", () => {
-    const references = [
-      {
-        title: "Title 1",
-        url: "https://example.com/1",
-      },
-      {
-        title: "Title 2",
-        url: "https://example.com/2",
-      },
-    ];
-    expect(formatReferences(references)).toEqual(
-      "\n\n**Related resources:**\n\n" +
-        "- [Title 1](https://example.com/1)\n\n" +
-        "- [Title 2](https://example.com/2)"
-    );
   });
 });
 
@@ -475,7 +453,7 @@ describe("getCustomRequestOrigin", () => {
     (global as any).window = {
       ...global.window,
       location: {
-        ...global.window.location,
+        ...global.window?.location,
         href: mockWindowLocation,
       },
     };

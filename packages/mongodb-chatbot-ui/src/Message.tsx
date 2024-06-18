@@ -21,7 +21,11 @@ import {
 import { Fragment, useRef, useState } from "react";
 import { CSSTransition } from "react-transition-group";
 import { useUser, User } from "./useUser";
-import { MessageData } from "./services/conversations";
+import {
+  Message as ApiMessageData,
+  AssistantMessage as ApiAssistantMessageData,
+  UserMessage as ApiUserMessageData,
+} from "mongodb-chatbot-api/client";
 import { Conversation } from "./useConversation";
 import { InlineMessageFeedback } from "@lg-chat/message-feedback";
 // @ts-expect-error Typescript imports of icons currently not supported
@@ -32,6 +36,10 @@ import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { CharacterCount } from "./InputBar";
 import { useChatbotContext } from "./useChatbotContext";
 import { headingStyle, disableSetextHeadings } from "./markdownHeadingStyle";
+
+export type MessageData = ApiMessageData;
+export type AssistantMessageData = ApiAssistantMessageData;
+export type UserMessageData = ApiUserMessageData;
 
 const TRANSITION_DURATION_MS = 300;
 
@@ -245,6 +253,11 @@ export const Message = ({
   >(undefined);
 
   async function submitRatingComment(commentText: string) {
+    if (messageData.role !== "assistant") {
+      throw new Error(
+        "You can only submit a rating comment for an assistant message"
+      );
+    }
     if (!commentText) {
       return;
     }
@@ -263,7 +276,9 @@ export const Message = ({
     setRatingCommentStatus("abandoned");
   }
 
-  const verifiedAnswer = messageData.metadata?.verifiedAnswer;
+  const verifiedAnswer = (messageData as AssistantMessageData).metadata
+    ?.verifiedAnswer;
+
   const verified = verifiedAnswer
     ? {
         verifier: "MongoDB Staff",
@@ -285,7 +300,7 @@ export const Message = ({
       >
         {isLoading ? <LoadingSkeleton /> : null}
 
-        {showRating ? (
+        {showRating && messageData.role === "assistant" ? (
           <MessageRatingWithFeedbackComment
             submit={submitRatingComment}
             abandon={abandonRatingComment}

@@ -12,8 +12,6 @@ export function ErrorBanner(props: ErrorBannerProps) {
   return (
     <Banner darkMode={props.darkMode ?? darkMode} variant="danger">
       {message}
-      <br />
-      Reload the page to start a new conversation.
     </Banner>
   );
 }

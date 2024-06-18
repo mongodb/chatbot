@@ -12,8 +12,7 @@ import {
   InputBar,
   MongoDbInputBarPlaceholder,
 } from "./InputBar";
-import { Message } from "./Message";
-import { MessageData } from "./services/conversations";
+import { Message, MessageData, AssistantMessageData } from "./Message";
 import { defaultChatbotFatalErrorMessage } from "./ui-text";
 import { Conversation } from "./useConversation";
 import { type ChatbotViewProps } from "./ChatbotView";
@@ -94,12 +93,13 @@ export function ChatWindow(props: ChatWindowProps) {
     if (!initialMessageText) {
       return null;
     }
-    const data: MessageData = {
+    const data: AssistantMessageData = {
       id: crypto.randomUUID(),
       role: "assistant",
       content: initialMessageText,
-      createdAt: new Date().toLocaleTimeString(),
+      createdAt: new Date().toISOString(),
       suggestedPrompts: initialMessageSuggestedPrompts,
+      references: [],
     };
     return data;
   }, [initialMessageText, initialMessageSuggestedPrompts]);
@@ -142,6 +142,22 @@ export function ChatWindow(props: ChatWindowProps) {
 
               const isInitialMessage = idx === 0;
 
+              const suggestedPromptProps =
+                message.role === "assistant"
+                  ? {
+                      suggestedPrompts: message.suggestedPrompts,
+                      showSuggestedPrompts:
+                        isInitialMessage && conversation.messages.length === 0,
+                      onSuggestedPromptClick: handleSubmit,
+                      canSubmitSuggestedPrompt: canSubmit,
+                    }
+                  : {
+                      suggestedPrompts: undefined,
+                      showSuggestedPrompts: false,
+                      onSuggestedPromptClick: undefined,
+                      canSubmitSuggestedPrompt: () => false,
+                    };
+
               return (
                 <Message
                   key={message.id}
@@ -159,13 +175,7 @@ export function ChatWindow(props: ChatWindowProps) {
                     !isInitialMessage
                   }
                   conversation={conversation}
-                  suggestedPrompts={message.suggestedPrompts}
-                  showSuggestedPrompts={
-                    // For now we'll only show suggested prompts for the initial message and hide them once the user submits anything
-                    isInitialMessage && conversation.messages.length === 0
-                  }
-                  onSuggestedPromptClick={handleSubmit}
-                  canSubmitSuggestedPrompt={canSubmit}
+                  {...suggestedPromptProps}
                 />
               );
             })}
@@ -175,54 +185,51 @@ export function ChatWindow(props: ChatWindowProps) {
           {conversation.error ? (
             <ErrorBanner darkMode={darkMode} message={conversation.error} />
           ) : null}
+          <>
+            <InputBar
+              hasError={hasError}
+              shouldRenderGradient={!inputTextError}
+              darkMode={darkMode}
+              ref={inputBarRef}
+              disabled={Boolean(conversation.error?.length)}
+              disableSend={hasError || awaitingReply}
+              onMessageSend={(messageContent) => {
+                const canSubmit =
+                  inputTextError.length === 0 && !conversation.error;
+                if (canSubmit) {
+                  handleSubmit(messageContent);
+                }
+              }}
+              textareaProps={{
+                id: inputBarId,
+                value: inputText,
+                onChange: (e) => {
+                  setInputText(e.target.value);
+                },
+                placeholder: inputPlaceholder,
+              }}
+            />
 
-          {!conversation.error ? (
-            <>
-              <InputBar
-                hasError={hasError}
-                shouldRenderGradient={!inputTextError}
-                darkMode={darkMode}
-                ref={inputBarRef}
-                disabled={Boolean(conversation.error?.length)}
-                disableSend={hasError || awaitingReply}
-                onMessageSend={(messageContent) => {
-                  const canSubmit =
-                    inputTextError.length === 0 && !conversation.error;
-                  if (canSubmit) {
-                    handleSubmit(messageContent);
-                  }
-                }}
-                textareaProps={{
-                  id: inputBarId,
-                  value: inputText,
-                  onChange: (e) => {
-                    setInputText(e.target.value);
-                  },
-                  placeholder: inputPlaceholder,
-                }}
-              />
-
-              <div
-                className={css`
+            <div
+              className={css`
                     display: flex;
                     justify-content: space-between;
                   `}
-              >
-                {inputBottomText ? (
-                  <Body baseFontSize={13} className={styles.verify_information}>
-                    {inputBottomText}
-                  </Body>
-                ) : null}
-                {maxInputCharacters ? (
-                  <CharacterCount
-                    darkMode={darkMode}
-                    current={inputText.length}
-                    max={maxInputCharacters}
-                  />
-                ) : null}
-              </div>
-            </>
-          ) : null}
+            >
+              {inputBottomText ? (
+                <Body baseFontSize={13} className={styles.verify_information}>
+                  {inputBottomText}
+                </Body>
+              ) : null}
+              {maxInputCharacters ? (
+                <CharacterCount
+                  darkMode={darkMode}
+                  current={inputText.length}
+                  max={maxInputCharacters}
+                />
+              ) : null}
+            </div>
+          </>
 
           <ConversationId conversation={conversation} />
         </div>

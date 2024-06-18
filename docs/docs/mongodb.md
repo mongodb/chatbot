@@ -10,7 +10,7 @@ This page explains how to set up MongoDB Atlas and Atlas Vector Search for use w
 
 To create a MongoDB Atlas cluster, follow the instructions in the [MongoDB Atlas documentation](https://mongodb.com/docs/atlas/getting-started/).
 
-### 2. Create Database
+### 2. Create a MongoDB Database
 
 By convention, we keep all data in the same MongoDB database.
 
@@ -19,7 +19,7 @@ However, you could theoretically use separate databases for collections, if you 
 You can give the database any name you want.
 You pass the name as a variable throughout the RAG framework.
 
-### 3. Create Atlas Vector Search Index (required for RAG)
+### 3. Create an Atlas Vector Search Index (required for RAG) {#create-vector-search-index}
 
 If you're using the Data Ingest CLI and Chatbot server
 to perform retrieval augmented generation (RAG),

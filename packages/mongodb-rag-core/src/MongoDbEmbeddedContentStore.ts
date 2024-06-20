@@ -10,6 +10,10 @@ import { strict as assert } from "assert";
 
 export type MakeMongoDbEmbeddedContentStoreParams =
   MakeMongoDbDatabaseConnectionParams & {
+    /**
+    The name of the collection in the database that stores {@link EmbeddedContent} documents.
+    @default "embedded_content"
+   */
     collectionName?: string;
   };
 

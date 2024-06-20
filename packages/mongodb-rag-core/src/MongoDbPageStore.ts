@@ -21,6 +21,10 @@ export type MongoDbPageStore = DatabaseConnection &
   };
 
 export type MakeMongoDbPageStoreParams = MakeMongoDbDatabaseConnectionParams & {
+  /**
+    The name of the collection in the database that stores {@link PersistedPage} documents.
+    @default "pages"
+   */
   collectionName?: string;
 };
 

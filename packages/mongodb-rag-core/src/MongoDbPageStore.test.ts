@@ -221,6 +221,5 @@ describe("MongoDbPageStore", () => {
     expect(storeWithCustomCollectionName.metadata.collectionName).toBe(
       "custom-pages"
     );
-    await storeWithCustomCollectionName.drop();
   });
 });

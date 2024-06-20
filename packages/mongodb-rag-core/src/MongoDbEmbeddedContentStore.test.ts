@@ -226,6 +226,5 @@ describe("nearest neighbor search", () => {
     expect(storeWithCustomCollectionName.metadata.collectionName).toBe(
       "custom-embedded_content"
     );
-    await storeWithCustomCollectionName.drop();
   });
 });

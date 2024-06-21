@@ -64,7 +64,7 @@ describe("makeMongoDbReferences", () => {
         title: "Love Your Developers",
         metadata: {
           sourceName: "mongodb-dotcom",
-          sourceType: "Website",
+          sourceType: "Blog",
           tags: ["external", "example"],
         },
       },

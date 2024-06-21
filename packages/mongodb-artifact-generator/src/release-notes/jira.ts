@@ -197,7 +197,7 @@ export async function getLinkedGitCommits({
   issueId: string;
 }): Promise<JiraLinkedGitCommit[]> {
   const { detail } = await jiraApi.getDevStatusDetail(
-    "2537318",
+    issueId,
     "github",
     "repository"
   );

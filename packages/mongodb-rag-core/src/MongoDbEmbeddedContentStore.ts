@@ -8,20 +8,41 @@ import {
 } from "./MongoDbDatabaseConnection";
 import { strict as assert } from "assert";
 
+export type MakeMongoDbEmbeddedContentStoreParams =
+  MakeMongoDbDatabaseConnectionParams & {
+    /**
+      The name of the collection in the database that stores {@link EmbeddedContent} documents.
+      @default "embedded_content"
+     */
+    collectionName?: string;
+  };
+
+export type MongoDbEmbeddedContentStore = EmbeddedContentStore &
+  DatabaseConnection & {
+    metadata: {
+      databaseName: string;
+      collectionName: string;
+    };
+  };
+
 export function makeMongoDbEmbeddedContentStore({
   connectionUri,
   databaseName,
-}: MakeMongoDbDatabaseConnectionParams): EmbeddedContentStore &
-  DatabaseConnection {
+  collectionName = "embedded_content",
+}: MakeMongoDbEmbeddedContentStoreParams): MongoDbEmbeddedContentStore {
   const { mongoClient, db, drop, close } = makeMongoDbDatabaseConnection({
     connectionUri,
     databaseName,
   });
   const embeddedContentCollection =
-    db.collection<EmbeddedContent>("embedded_content");
+    db.collection<EmbeddedContent>(collectionName);
   return {
     drop,
     close,
+    metadata: {
+      databaseName,
+      collectionName,
+    },
     async loadEmbeddedContent({ page }) {
       return await embeddedContentCollection.find(pageIdentity(page)).toArray();
     },

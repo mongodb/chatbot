@@ -107,4 +107,13 @@ export type PageStore = {
     Close connection to data store.
    */
   close?: () => Promise<void>;
+
+  /**
+    Additional implementation-specific metadata about the store. This metadata is
+    not directly used by the store itself, but may be useful for testing,
+    debugging, and logging.
+   */
+  metadata?: {
+    [k: string]: unknown;
+  };
 };

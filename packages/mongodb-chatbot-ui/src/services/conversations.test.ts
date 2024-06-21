@@ -7,7 +7,6 @@ import {
   DeltaStreamEvent,
   MetadataStreamEvent,
   ReferencesStreamEvent,
-  formatReferences,
   getCustomRequestOrigin,
 } from "./conversations";
 import { type References } from "mongodb-rag-core";
@@ -441,30 +440,6 @@ describe("ConversationService", () => {
         rating: true,
       });
     }).rejects.toThrow(internalServerErrorMessage);
-  });
-});
-
-describe("formatReferences", () => {
-  it("returns an empty string if references is empty", () => {
-    expect(formatReferences([])).toEqual("");
-  });
-
-  it("formats a list of reference links into a markdown list", () => {
-    const references = [
-      {
-        title: "Title 1",
-        url: "https://example.com/1",
-      },
-      {
-        title: "Title 2",
-        url: "https://example.com/2",
-      },
-    ];
-    expect(formatReferences(references)).toEqual(
-      "\n\n**Related resources:**\n\n" +
-        "- [Title 1](https://example.com/1)\n\n" +
-        "- [Title 2](https://example.com/2)"
-    );
   });
 });
 

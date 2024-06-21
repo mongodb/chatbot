@@ -39,7 +39,11 @@ export interface EmbeddedContent {
     Arbitrary metadata associated with the content. If the content text has
     metadata in Front Matter format, this metadata should match that metadata.
    */
-  metadata?: { tags?: string[]; [k: string]: unknown };
+  metadata?: {
+    pageTitle?: string;
+    tags?: string[];
+    [k: string]: unknown;
+  };
 
   /**
     The order of the chunk if this content was chunked from a larger page.

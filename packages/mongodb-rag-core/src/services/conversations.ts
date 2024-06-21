@@ -10,6 +10,14 @@ export type Reference = z.infer<typeof Reference>;
 export const Reference = z.object({
   url: z.string(),
   title: z.string(),
+  metadata: z
+    .object({
+      sourceName: z.string().optional().describe("The name of the source."),
+      sourceType: z.string().optional(),
+      tags: z.array(z.string()).optional(),
+    })
+    .passthrough() // We accept additional unknown metadata fields
+    .optional(),
 });
 
 export type References = z.infer<typeof References>;

@@ -1,3 +1,4 @@
+import { VerifiedAnswer } from "mongodb-rag-core";
 import { FindVerifiedAnswerFunc } from "./FindVerifiedAnswerFunc";
 import {
   GenerateUserPromptFunc,
@@ -10,6 +11,11 @@ export interface MakeVerifiedAnswerGenerateUserPromptParams {
    */
   findVerifiedAnswer: FindVerifiedAnswerFunc;
 
+  /**
+    Format or modify the verified answer before displaying it to the user.
+   */
+  onVerifiedAnswerFound?: (verifiedAnswer: VerifiedAnswer) => VerifiedAnswer;
+
   onNoVerifiedAnswerFound: GenerateUserPromptFunc;
 }
 
@@ -20,37 +26,40 @@ export interface MakeVerifiedAnswerGenerateUserPromptParams {
  */
 export const makeVerifiedAnswerGenerateUserPrompt = ({
   findVerifiedAnswer,
+  onVerifiedAnswerFound,
   onNoVerifiedAnswerFound,
 }: MakeVerifiedAnswerGenerateUserPromptParams): GenerateUserPromptFunc => {
   return async (args) => {
     const { userMessageText } = args;
-    const { answer: verifiedAnswer, queryEmbedding } = await findVerifiedAnswer(
-      {
+    const { answer: foundVerifiedAnswer, queryEmbedding } =
+      await findVerifiedAnswer({
         query: userMessageText,
-      }
-    );
+      });
 
-    if (verifiedAnswer !== undefined) {
-      return {
-        userMessage: {
-          embedding: queryEmbedding,
-          content: userMessageText,
-          role: "user",
-        },
-        staticResponse: {
-          metadata: {
-            verifiedAnswer: {
-              _id: verifiedAnswer._id,
-              created: verifiedAnswer.created,
-              updated: verifiedAnswer.updated,
-            },
-          },
-          references: verifiedAnswer.references,
-          content: verifiedAnswer.answer,
-          role: "assistant",
-        },
-      } satisfies GenerateUserPromptFuncReturnValue;
+    if (foundVerifiedAnswer === undefined) {
+      return await onNoVerifiedAnswerFound(args);
     }
-    return await onNoVerifiedAnswerFound(args);
+
+    const verifiedAnswer =
+      onVerifiedAnswerFound?.(foundVerifiedAnswer) ?? foundVerifiedAnswer;
+    return {
+      userMessage: {
+        embedding: queryEmbedding,
+        content: userMessageText,
+        role: "user",
+      },
+      staticResponse: {
+        metadata: {
+          verifiedAnswer: {
+            _id: verifiedAnswer._id,
+            created: verifiedAnswer.created,
+            updated: verifiedAnswer.updated,
+          },
+        },
+        references: verifiedAnswer.references,
+        content: verifiedAnswer.answer,
+        role: "assistant",
+      },
+    } satisfies GenerateUserPromptFuncReturnValue;
   };
 };

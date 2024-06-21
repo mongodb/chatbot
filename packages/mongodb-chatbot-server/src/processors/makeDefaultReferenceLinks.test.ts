@@ -54,6 +54,10 @@ describe("makeDefaultReferenceLinks()", () => {
       {
         title: "https://mongodb.com/docs/realm/sdk/node/",
         url: "https://mongodb.com/docs/realm/sdk/node/",
+        metadata: {
+          sourceName: "realm",
+          tags: [],
+        },
       },
     ];
     expect(oneReference).toEqual(expectedOneReference);
@@ -65,6 +69,10 @@ describe("makeDefaultReferenceLinks()", () => {
       {
         title: "title",
         url: "https://mongodb.com/docs/realm/sdk/node/xyz",
+        metadata: {
+          sourceName: "realm",
+          tags: [],
+        },
       },
     ];
     expect(oneReference).toEqual(expectedOneReference);
@@ -76,6 +84,10 @@ describe("makeDefaultReferenceLinks()", () => {
       {
         title: "https://mongodb.com/docs/realm/sdk/node/",
         url: "https://mongodb.com/docs/realm/sdk/node/",
+        metadata: {
+          sourceName: "realm",
+          tags: [],
+        },
       },
     ];
     expect(oneReferenceSamePage).toEqual(expectedOneReferenceSamePage);
@@ -89,10 +101,18 @@ describe("makeDefaultReferenceLinks()", () => {
       {
         title: "https://mongodb.com/docs/realm/sdk/node/",
         url: "https://mongodb.com/docs/realm/sdk/node/",
+        metadata: {
+          sourceName: "realm",
+          tags: [],
+        },
       },
       {
         title: "https://mongodb.com/docs/realm/sdk/node/xyz",
         url: "https://mongodb.com/docs/realm/sdk/node/xyz",
+        metadata: {
+          sourceName: "realm",
+          tags: [],
+        },
       },
     ];
     expect(multipleReferencesDifferentPage).toEqual(
@@ -106,10 +126,18 @@ describe("makeDefaultReferenceLinks()", () => {
       {
         title: "https://mongodb.com/docs/realm/sdk/node/",
         url: "https://mongodb.com/docs/realm/sdk/node/",
+        metadata: {
+          sourceName: "realm",
+          tags: [],
+        },
       },
       {
         title: "https://mongodb.com/docs/realm/sdk/node/xyz",
         url: "https://mongodb.com/docs/realm/sdk/node/xyz",
+        metadata: {
+          sourceName: "realm",
+          tags: [],
+        },
       },
     ];
     expect(multipleSourcesWithSomePageOverlap).toEqual(

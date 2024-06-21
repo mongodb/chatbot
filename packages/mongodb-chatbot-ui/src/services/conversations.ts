@@ -1,5 +1,5 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import { VerifiedAnswer, type References } from "mongodb-rag-core";
+import { References, VerifiedAnswer, type Reference } from "mongodb-rag-core";
 import { ConversationState } from "../useConversation";
 import { strict as assert } from "node:assert";
 
@@ -11,10 +11,14 @@ export type MessageData = {
   content: string;
   createdAt: string;
   rating?: boolean;
-  references?: References;
+  references?: Reference[];
   suggestedPrompts?: string[];
   metadata?: AssistantMessageMetadata;
 };
+
+export type MessageDataReferences = NonNullable<MessageData["references"]>;
+
+export type MessageDataReference = MessageDataReferences[number];
 
 export type AssistantMessageMetadata = {
   [k: string]: unknown;
@@ -29,17 +33,6 @@ export type AssistantMessageMetadata = {
     updated: string | undefined;
   };
 };
-
-export function formatReferences(references: References): string {
-  if (references.length === 0) {
-    return "";
-  }
-  const heading = "\n\n**Related resources:**";
-  const listOfLinks = references.map(
-    (entry) => `- [${entry.title}](${entry.url})`
-  );
-  return [heading, ...listOfLinks].join("\n\n");
-}
 
 export const CUSTOM_REQUEST_ORIGIN_HEADER = "X-Request-Origin";
 
@@ -290,9 +283,6 @@ export class ConversationService {
       openWhenHidden: true,
 
       onmessage(ev) {
-        if (process.env.NODE_ENV === "development") {
-          console.debug("[EventSource]", ev);
-        }
         const event = JSON.parse(ev.data);
         if (!isConversationStreamEvent(event)) {
           throw new Error(`Invalid event received from server: ${ev.data}`);

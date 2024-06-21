@@ -4,7 +4,6 @@ import { PersistedPage } from "./Page";
 import { assertEnvVars } from "./assertEnvVars";
 import { CORE_ENV_VARS } from "./CoreEnvVars";
 import "dotenv/config";
-import { MongoDBCollectionNamespace } from "mongodb";
 
 const { MONGODB_CONNECTION_URI } = assertEnvVars(CORE_ENV_VARS);
 

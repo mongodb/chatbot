@@ -1,7 +1,5 @@
 import { stripIndent } from "common-tags";
 import { strict as assert } from "assert";
-import { DatabaseConnection } from "./DatabaseConnection";
-import { EmbeddedContentStore } from "./EmbeddedContent";
 import { FindNearestNeighborsOptions } from "./VectorStore";
 import {
   type MongoDbEmbeddedContentStore,

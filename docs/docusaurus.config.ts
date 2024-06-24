@@ -83,6 +83,18 @@ const config: Config = {
         out: "reference/evaluation",
       },
     ],
+    [
+      "docusaurus-plugin-typedoc",
+      {
+        id: "ui",
+        entryPoints: ["../packages/mongodb-chatbot-ui/src/index.tsx"],
+        tsconfig: "../packages/mongodb-chatbot-ui/tsconfig.build.json",
+        sidebar: {
+          fullNames: true,
+        },
+        out: "reference/ui",
+      },
+    ],
   ],
   presets: [
     [

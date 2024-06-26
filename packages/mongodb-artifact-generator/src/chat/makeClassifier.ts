@@ -9,11 +9,13 @@ import { html, stripIndents } from "common-tags";
 import { z } from "zod";
 import { RunLogger } from "../runlogger";
 
-export type Classifier = ({
+import { JsonSchema7ObjectType, zodToJsonSchema } from "zod-to-json-schema";
+
+export type Classifier<T extends Classification = Classification> = ({
   input,
 }: {
   input: string;
-}) => Classification | Promise<Classification>;
+}) => T | Promise<T>;
 
 export interface ClassificationType {
   /**
@@ -46,16 +48,61 @@ export interface ClassificationType {
   }[];
 }
 
-export type Classification = z.infer<typeof Classification>;
+export function makeClassificationTypes(
+  classificationTypes: [ClassificationType, ...ClassificationType[]]
+): [ClassificationType, ...ClassificationType[]] {
+  return classificationTypes;
+}
+
+export const makeClassificationSchema = (
+  classificationTypes: [ClassificationType, ...ClassificationType[]]
+) => {
+  const typeNames = classificationTypes.map(({ type }) => type);
+  if (typeNames.length === 0) {
+    throw new Error("No classification types provided");
+  }
+  return z.object({
+    type: z
+      // We do this weird array slice to satisfy TS - enum expects at least one value, i.e. [string, ...string[]]
+      .enum([typeNames[0], ...typeNames.slice(1)])
+      .describe("The classification type for the provided input."),
+    reason: z
+      .string()
+      .optional()
+      .describe(
+        "The reason for the classification. Be concise. Think step by step."
+      ),
+  });
+};
+
+// TODO: Need to make factory functions for these Classification types so that we can pass in the list of allowed types values to set the `"type": z.enum()`
+// export type Classification = z.infer<typeof Classification>;
+
 export const Classification = z.object({
-  type: z.string().describe("The classification type."),
-  reason: z
-    .string()
-    .optional()
-    .describe(
-      "The reason for the classification. Only available if `chainOfThought` was set to `true`."
-    ),
+  type: z.string().describe("The classification type for the provided input."),
+  reason: z.string().optional(),
 });
+
+export type Classification = z.infer<
+  ReturnType<typeof makeClassificationSchema>
+>;
+
+export const makeChainOfThoughtClassificationSchema = (
+  classificationTypes: [ClassificationType, ...ClassificationType[]]
+) => {
+  const BaseSchema = makeClassificationSchema(classificationTypes);
+  return BaseSchema.extend({
+    reason: z
+      .string()
+      .describe(
+        "The reason for the classification. Be concise. Think step by step."
+      ),
+  });
+};
+
+export type ChainOfThoughtClassification = z.infer<
+  ReturnType<typeof makeChainOfThoughtClassificationSchema>
+>;
 
 export function makeClassifier({
   openAiClient,
@@ -67,9 +114,9 @@ export function makeClassifier({
   logger?: RunLogger;
 
   /**
-   A list of valid classification types.
+   A list of valid {@link ClassificationType}.
    */
-  classificationTypes: ClassificationType[];
+  classificationTypes: [ClassificationType, ...ClassificationType[]];
   /**
     If set to `true`, the classification will include a `reason` field
     that performs [chain-of-thought reasoning](https://www.promptingguide.ai/techniques/cot)
@@ -77,6 +124,19 @@ export function makeClassifier({
    */
   chainOfThought?: boolean;
 }): Classifier {
+  const Classification = chainOfThought
+    ? makeChainOfThoughtClassificationSchema(classificationTypes)
+    : makeClassificationSchema(classificationTypes);
+  const ClassificationJsonSchema = zodToJsonSchema(Classification, {
+    name: "Classification",
+    nameStrategy: "title",
+    markdownDescription: true,
+  }) as JsonSchema7ObjectType;
+  // If chainOfThought is false, we don't want the `reason` field in our classification schema
+  if (!chainOfThought) {
+    delete ClassificationJsonSchema.properties.reason;
+  }
+
   const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars({
     OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
   });
@@ -112,33 +172,10 @@ export function makeClassifier({
     Input:
     ${input}
   `;
-  // If chainOfThought is true, add a `reason` field to the classification
-  const chainOfThoughtProp = chainOfThought
-    ? {
-        reason: {
-          type: "string",
-          description:
-            "Reason for classification. Be concise. Think step by step.",
-        },
-      }
-    : {};
-  const required = chainOfThought ? ["type", "reason"] : ["type"];
   const classifyFunc: FunctionDefinition = {
     name: "classify",
     description: "Classify the type of the provided input",
-    parameters: {
-      type: "object",
-      properties: {
-        ...chainOfThoughtProp,
-        type: {
-          type: "string",
-          enum: classificationTypes.map(({ type }) => type),
-          description: "Type of the provided input",
-        },
-      },
-      required,
-      additionalProperties: false,
-    },
+    parameters: ClassificationJsonSchema,
   };
 
   return async function classify({ input }: { input: string }) {

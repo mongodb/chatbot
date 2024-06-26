@@ -4,7 +4,11 @@ import {
   OpenAIClient,
   assertEnvVars,
 } from "mongodb-rag-core";
-import { Classification, makeClassifier } from "./makeClassifier";
+import {
+  Classification,
+  makeClassificationTypes,
+  makeClassifier,
+} from "./makeClassifier";
 
 const { OPENAI_ENDPOINT, OPENAI_API_KEY } = assertEnvVars(CORE_ENV_VARS);
 
@@ -18,7 +22,7 @@ const hotdogInputs = [
   "Mozzarella sticks and marinara in a large hotdog bun",
 ];
 
-const hotdogClassificationTypes = [
+const hotdogClassificationTypes = makeClassificationTypes([
   {
     type: "hotdog",
     description:
@@ -54,7 +58,7 @@ const hotdogClassificationTypes = [
       },
     ],
   },
-];
+]);
 
 const openAiClient = new OpenAIClient(
   OPENAI_ENDPOINT,
@@ -69,19 +73,20 @@ describe("makeClassifier", () => {
       openAiClient,
       classificationTypes: hotdogClassificationTypes,
     });
-    const results: string[] = [];
+    const results: Classification[] = [];
     for (const input of hotdogInputs) {
       const result = await classifyIsHotdog({ input });
-      results.push(result.type);
+      results.push(result);
     }
+    console.log("results 1", results);
     expect(results).toEqual([
-      "hotdog",
-      "hotdog",
-      "not_hotdog",
-      "not_hotdog",
-      "not_hotdog",
-      "not_hotdog",
-      "not_hotdog",
+      { type: "hotdog" },
+      { type: "hotdog" },
+      { type: "not_hotdog" },
+      { type: "not_hotdog" },
+      { type: "not_hotdog" },
+      { type: "not_hotdog" },
+      { type: "not_hotdog" },
     ]);
   }, 10000);
 
@@ -96,6 +101,7 @@ describe("makeClassifier", () => {
       const result = await classifyIsHotdog({ input });
       results.push(result);
     }
+    console.log("results 2", results);
     const resultTypes = results.map((r) => r.type);
     expect(resultTypes).toEqual([
       "hotdog",

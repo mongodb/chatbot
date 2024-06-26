@@ -12,7 +12,7 @@ export type ClassifiedChangelog = {
   changelog: string;
 };
 
-export type MakeClassifyChangelogScope = {
+export type MakeClassifyChangelogArgs = {
   openAiClient: OpenAIClient;
   logger?: RunLogger;
 };
@@ -20,7 +20,7 @@ export type MakeClassifyChangelogScope = {
 export function makeClassifyChangelog({
   openAiClient,
   logger,
-}: MakeClassifyChangelogScope) {
+}: MakeClassifyChangelogArgs) {
   const classifyChangelogAudience = makeClassifyChangelogAudience({
     openAiClient,
     logger,
@@ -49,7 +49,7 @@ export function makeClassifyChangelog({
 export function makeClassifyChangelogs({
   openAiClient,
   logger,
-}: MakeClassifyChangelogScope) {
+}: MakeClassifyChangelogArgs) {
   const classifyChangelog = makeClassifyChangelog({ openAiClient, logger });
 
   return async function classifyChangelogs({

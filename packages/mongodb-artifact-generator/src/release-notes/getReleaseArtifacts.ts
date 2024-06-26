@@ -1,4 +1,9 @@
-import { ReleaseArtifact } from "./projects";
+import {
+  GitCommitArtifact,
+  JiraIssueArtifact,
+  JiraLinkedGitCommit,
+  ReleaseArtifact,
+} from "./projects";
 import {
   type MakeGitHubReleaseArtifactsArgs,
   makeGitHubReleaseArtifacts,
@@ -51,6 +56,58 @@ export async function getReleaseArtifacts({
     ]);
 
     artifacts.push(...releaseIssues);
+  }
+
+  if (jira && github) {
+    // For each jira issue, get its linkedGitCommits and see if we have
+    // artifacts for those. If we have artifacts for those, replace the existing
+    // the jira-issue linkedGitCommit with the full git-commit artifact + remove
+    // the standalone git-commit from the set of artifacts.
+    const jiraIssues = artifacts.filter(
+      (artifact): artifact is JiraIssueArtifact =>
+        artifact.type === "jira-issue"
+    );
+    const gitCommits = artifacts.filter(
+      (artifact): artifact is GitCommitArtifact =>
+        artifact.type === "git-commit"
+    );
+    const linkedGitCommits = jiraIssues
+      .map((issue) => issue.data.linkedGitCommits)
+      .filter(
+        (linkedGitCommits): linkedGitCommits is JiraLinkedGitCommit[] =>
+          linkedGitCommits !== undefined
+      )
+      .flat();
+    const unlinkedGitCommits = gitCommits.filter(
+      (gitCommit) =>
+        !linkedGitCommits.some(
+          (linkedGitCommit) => linkedGitCommit.hash === gitCommit.data.hash
+        )
+    );
+
+    const jiraIssuesWithLinkedCommitArtifacts = jiraIssues.map((issue) => {
+      return {
+        ...issue,
+        linkedGitCommits: issue.data.linkedGitCommits?.map(
+          (linkedGitCommit) => {
+            const fullGitCommit = gitCommits.find(
+              (gitCommit) => gitCommit.data.hash === linkedGitCommit.hash
+            );
+            if (fullGitCommit) {
+              return {
+                ...linkedGitCommit,
+                hash: fullGitCommit.data.hash,
+                message: fullGitCommit.data.message,
+                files: fullGitCommit.data.files,
+              };
+            }
+            return linkedGitCommit;
+          }
+        ),
+      };
+    });
+
+    return [...jiraIssuesWithLinkedCommitArtifacts, ...unlinkedGitCommits];
   }
 
   return artifacts;

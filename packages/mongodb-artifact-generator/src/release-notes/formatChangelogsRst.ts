@@ -1,4 +1,5 @@
 import { ClassifiedChangelog } from "./classifyChangelog";
+import { title as titleCase } from "case";
 
 export function formatChangelogsRst(changelogs: ClassifiedChangelog[]) {
   // Filter out internal changes
@@ -16,7 +17,7 @@ export function formatChangelogsRst(changelogs: ClassifiedChangelog[]) {
   // Format each group
   const formattedChangelogs = Object.entries(groupedChangelogs)
     .map(([scope, changelogs]) => {
-      const formattedScope = `**${scope}**\n`;
+      const formattedScope = `**${titleCase(scope)}**\n`;
       const formattedChangelogs = changelogs.map((c) => {
         return `- ${c.changelog}`;
       });

@@ -37,8 +37,9 @@ export type JiraLinkedGitCommit = {
     name: string;
     url: string;
   };
-  hash: string;
-  message: string;
+  hash: GitCommitArtifact["data"]["hash"];
+  message: GitCommitArtifact["data"]["message"];
+  files?: GitCommitArtifact["data"]["files"];
 };
 
 export type JiraIssueArtifact = {

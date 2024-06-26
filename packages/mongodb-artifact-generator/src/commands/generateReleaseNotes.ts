@@ -20,6 +20,8 @@ import {
   ClassifiedChangelog,
   makeClassifyChangelogs,
 } from "../release-notes/classifyChangelog";
+import { makeDeduplicateChangelogs } from "../release-notes/deduplicateChangelogs";
+import { formatChangelogsRst } from "../release-notes/formatChangelogsRst";
 
 let logger: RunLogger;
 
@@ -71,6 +73,30 @@ export default createCommand<GenerateReleaseNotesCommandArgs>({
     "[WIP] Generate release notes for a project based on a description & release artifacts.",
 });
 
+export type PrintableChangelog<
+  Audience extends string = string,
+  Scope extends string = string
+> = `[${Audience} ${Scope}]: ${string}`;
+function createPrintableChangelog(c: ClassifiedChangelog): PrintableChangelog {
+  return `[${c.audience.type} ${c.scope.type}]: ${c.changelog}`;
+}
+export function parsePrintableChangelog(
+  changelog: PrintableChangelog
+): ClassifiedChangelog {
+  const match = changelog.match(
+    /^\[(?<audience>\w+) (?<scope>\w+)\]: (?<changelog>.+)$/
+  );
+  if (!match || match.groups === undefined) {
+    throw new Error(`Invalid changelog: ${changelog}`);
+  }
+
+  return {
+    audience: { type: match.groups.audience },
+    scope: { type: match.groups.scope },
+    changelog: match.groups.changelog,
+  };
+}
+
 export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
   async (
     { githubApi, jiraApi, openAiClient },
@@ -100,7 +126,6 @@ export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
     const releaseInfoText = await fs.readFile(releaseInfoPath, "utf8");
     const releaseInfo = ReleaseInfo.parse(YAML.parse(releaseInfoText));
 
-    console.log("releaseInfo", releaseInfo);
     logger.logInfo(`releaseInfo: ${JSON.stringify(releaseInfo)}`);
 
     const releaseArtifacts = await getReleaseArtifacts({
@@ -188,10 +213,6 @@ export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
       JSON.stringify(classifiedChangelogs)
     );
 
-    function createPrintableChangelog(c: ClassifiedChangelog) {
-      return `[${c.audience.type} ${c.scope.type}]: ${c.changelog}`;
-    }
-
     const externalClassifiedChangelogs = classifiedChangelogs.filter(
       (c) => c.audience.type !== "internal"
     );
@@ -209,5 +230,28 @@ export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
       "formattedExternalChangelogs.json",
       JSON.stringify(formattedExternalChangelogs)
     );
+
+    console.log(
+      `Deduplicating ${formattedExternalChangelogs.length} changelogs`
+    );
+    const deduplicateChangelogs = makeDeduplicateChangelogs({
+      openAiClient,
+      logger,
+    });
+    const dedupedExternalClassifiedChangelogs = (await deduplicateChangelogs({
+      changelogs: formattedExternalChangelogs,
+    })) as PrintableChangelog[];
+    console.log(
+      `After deduplication, there are ${dedupedExternalClassifiedChangelogs.length} external changelogs`
+    );
+    logger.appendArtifact(
+      "dedupedExternalClassifiedChangelogs.json",
+      JSON.stringify(dedupedExternalClassifiedChangelogs)
+    );
+
+    const changelogReStructuredText = formatChangelogsRst(
+      dedupedExternalClassifiedChangelogs.map((c) => parsePrintableChangelog(c))
+    );
+    logger.appendArtifact("changelog.rst", changelogReStructuredText);
   }
 );

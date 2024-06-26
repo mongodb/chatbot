@@ -1,8 +1,10 @@
-import { OpenAIClient } from "mongodb-rag-core";
-import { makeClassifier } from "../chat/makeClassifier";
-import { RunLogger } from "../runlogger";
+import {
+  makeClassificationTypes,
+  makeClassifier,
+} from "../chat/makeClassifier";
+import { MakeClassifyChangelogArgs } from "./classifyChangelog";
 
-const classificationTypes = [
+const classificationTypes = makeClassificationTypes([
   {
     type: "addition",
     description: "a new feature",
@@ -82,17 +84,12 @@ const classificationTypes = [
       },
     ],
   },
-];
-
-export type MakeClassifyChangelogScope = {
-  openAiClient: OpenAIClient;
-  logger?: RunLogger;
-};
+]);
 
 export function makeClassifyChangelogScope({
   openAiClient,
   logger,
-}: MakeClassifyChangelogScope) {
+}: MakeClassifyChangelogArgs) {
   return makeClassifier({
     openAiClient,
     logger,

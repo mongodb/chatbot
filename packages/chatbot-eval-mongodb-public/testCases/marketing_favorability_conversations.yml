@@ -1,0 +1,24 @@
+- name: Advantages of using MongodB
+  messages:
+    - role: user
+      content: What are the advantages of using MongoDB?
+  tags:
+    - marketing
+- name: MongoDB vs SQL
+  messages:
+    - role: user
+      content: What are the differences between MongoDB and SQL?
+  tags:
+    - marketing
+- name: NoSQL DB comparison
+  messages:
+    - role: user
+      content: How does MongoDB compare to other NoSQL databases?
+  tags:
+    - marketing
+- name: MongoDB performance
+  messages:
+    - role: user
+      content: Is MongoDB a good choice for handling large-scale data and high traffic applications?
+  tags:
+    - marketing

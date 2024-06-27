@@ -76,6 +76,17 @@ export default async () => {
       "utf8"
     )
   );
+  const discoveryTestCases = getConversationsTestCasesFromYaml(
+    fs.readFileSync(
+      path.resolve(
+        __dirname,
+        "..",
+        "testCases",
+        "marketing_discovery_conversations.yml"
+      ),
+      "utf8"
+    )
+  );
 
   const storeDbOptions = {
     connectionUri: MONGODB_CONNECTION_URI,

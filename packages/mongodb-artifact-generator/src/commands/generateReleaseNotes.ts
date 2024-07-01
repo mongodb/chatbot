@@ -16,12 +16,14 @@ import YAML from "yaml";
 import { ReleaseInfo } from "../release-notes/ReleaseInfo";
 import { createChangelogs } from "../release-notes/createChangelog";
 import { groupBy } from "../utils";
-import {
-  ClassifiedChangelog,
-  makeClassifyChangelogs,
-} from "../release-notes/classifyChangelog";
+import { makeClassifyChangelogs } from "../release-notes/classifyChangelog";
 import { makeDeduplicateChangelogs } from "../release-notes/deduplicateChangelogs";
 import { formatChangelogsRst } from "../release-notes/formatChangelogsRst";
+import {
+  PrintableChangelog,
+  createPrintableChangelog,
+  parsePrintableChangelog,
+} from "../release-notes/printableChangelog";
 
 let logger: RunLogger;
 
@@ -72,30 +74,6 @@ export default createCommand<GenerateReleaseNotesCommandArgs>({
   describe:
     "[WIP] Generate release notes for a project based on a description & release artifacts.",
 });
-
-export type PrintableChangelog<
-  Audience extends string = string,
-  Scope extends string = string
-> = `[${Audience} ${Scope}]: ${string}`;
-function createPrintableChangelog(c: ClassifiedChangelog): PrintableChangelog {
-  return `[${c.audience.type} ${c.scope.type}]: ${c.changelog}`;
-}
-export function parsePrintableChangelog(
-  changelog: PrintableChangelog
-): ClassifiedChangelog {
-  const match = changelog.match(
-    /^\[(?<audience>\w+) (?<scope>\w+)\]: (?<changelog>.+)$/
-  );
-  if (!match || match.groups === undefined) {
-    throw new Error(`Invalid changelog: ${changelog}`);
-  }
-
-  return {
-    audience: { type: match.groups.audience },
-    scope: { type: match.groups.scope },
-    changelog: match.groups.changelog,
-  };
-}
 
 export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
   async (
@@ -163,6 +141,7 @@ export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
     const summaries = new Map<ReleaseArtifact, string>();
     await summarizeReleaseArtifacts({
       logger,
+      styleGuide: releaseInfo.styleGuide?.summary,
       projectDescription: releaseInfo.projectDescription,
       artifacts: releaseArtifacts,
       concurrency: llmMaxConcurrency,
@@ -191,6 +170,7 @@ export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
 
     const changelogs = await createChangelogs({
       logger,
+      styleGuide: releaseInfo.styleGuide?.changelog,
       projectDescription: releaseInfo.projectDescription,
       artifactSummaries,
       concurrency: llmMaxConcurrency,

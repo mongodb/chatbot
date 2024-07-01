@@ -77,11 +77,6 @@ export function makeJiraReleaseArtifacts({
             jiraApi,
             issueId: issue.id,
           });
-          console.log(
-            "linkedGitCommits",
-            linkedGitCommits.length,
-            linkedGitCommits.join(", ")
-          );
           return [issue.key, linkedGitCommits];
         });
       if (errors.length > 0) {
@@ -91,7 +86,6 @@ export function makeJiraReleaseArtifacts({
         );
       }
       const linkedCommitsByIssue = Object.fromEntries(results);
-      console.log("linkedCommitsByIssue", linkedCommitsByIssue);
 
       return response.issues.map((issue) => {
         const linkedGitCommits = linkedCommitsByIssue[issue.key] ?? undefined;
@@ -221,17 +215,5 @@ export async function getLinkedGitCommits({
       };
     });
   });
-  console.log(`commits for ${issueId}:`, commits);
   return commits as JiraLinkedGitCommit[];
-  // issueDetails.map((issue) => {
-  //   return {
-  //     repo: {
-  //       owner: linkedCommit.repository.owner,
-  //       name: linkedCommit.repository.name,
-  //       url: linkedCommit.repository.url,
-  //     },
-  //     hash: linkedCommit.hash,
-  //     message: linkedCommit.message,
-  //   };
-  // });
 }

@@ -9,22 +9,20 @@ import { ReleaseArtifact, releaseArtifactIdentifier } from "./projects";
 import { RunLogger } from "../runlogger";
 import { PromisePool } from "@supercharge/promise-pool";
 import { iOfN, safeFileName } from "../utils";
+import { type StyleGuideData } from "./StyleGuide";
 
 export type SummarizeReleaseArtifactArgs = {
   logger?: RunLogger;
+  styleGuide?: StyleGuideData;
   generate?: GenerateChatCompletion;
   projectDescription: string;
   artifact: ReleaseArtifact;
 };
 
-export type ArtifactSummary = {
-  artifact: ReleaseArtifact;
-  summary: string;
-};
-
 export async function summarizeReleaseArtifact({
   logger,
   generate,
+  styleGuide,
   projectDescription,
   artifact,
 }: SummarizeReleaseArtifactArgs) {
@@ -33,13 +31,31 @@ export async function summarizeReleaseArtifact({
     systemMessage(stripIndents`
       Your task is to analyze a provided artifact associated with a software release and write a succinct summarized description. Artifacts may include information from task tracking software like Jira, source control information like Git diffs and commit messages, or other sources.
 
-      Your summary should be a brief, high-level description of the artifact's contents and purpose. The goal is to provide a clear, concise overview that can be used to generate one or more change log entries for the release. Focus on the facts of the changes. Avoid value judgments or subjective language such as how substantial an update was. Do not infer the broader intent behind the changes or speculate on future implications unless specifically mentioned in the artifact.
+      The goal is to provide a clear, concise overview that can be used to generate one or more change log entries for the release. Focus on the facts of the changes. Avoid value judgments or subjective language such as how substantial an update was. Do not infer the broader intent behind the changes or speculate on future implications unless specifically mentioned in the artifact.
 
-      The user may prepend the artifact with additional style guide information or other metadata. This section is denoted by frontmatter enclosed in triple dashes (---). Do not mention this frontmatter in the summary but do follow its guidance.
+      <StyleGuide>
+      The following style guide applies to all summaries.
+      Follow these guidelines to ensure consistency and clarity in your summaries.
+      The user may prepend the artifact with additional style guide information or other metadata.
+      This section is denoted by frontmatter enclosed in triple dashes (---).
+      Do not mention this frontmatter in the summary but do follow its guidance.
+
+      ${
+        styleGuide?.description ??
+        "Your summary should be a brief, high-level description of the artifact's contents and purpose."
+      }
 
       Assume the reader of your summary is familiar with the product's features and use cases.
-
       Limit the summary length to a maximum of 200 words.
+
+      For example, a summary might resemble one of the following:
+
+      ${
+        styleGuide?.examples
+          ?.map((example) => `  <Example>${example}</Example>`)
+          .join("\n") ?? "No examples provided."
+      }
+      </StyleGuide>
 
       <Section description="A description of the software project this release is for">
         ${projectDescription}
@@ -155,6 +171,7 @@ function createUserPromptForReleaseArtifact(artifact: ReleaseArtifact) {
 export async function summarizeReleaseArtifacts({
   logger,
   generate = makeGenerateChatCompletion(),
+  styleGuide,
   projectDescription,
   artifacts,
   onArtifactSummarized,
@@ -179,6 +196,7 @@ export async function summarizeReleaseArtifacts({
       );
       const summary = await summarizeReleaseArtifact({
         logger,
+        styleGuide,
         generate,
         projectDescription,
         artifact,

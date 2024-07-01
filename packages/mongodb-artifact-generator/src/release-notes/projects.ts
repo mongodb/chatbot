@@ -81,25 +81,38 @@ export function releaseArtifactSummaryIdentifier({
 
 export function releaseArtifactShortMetadata({ type, data }: ReleaseArtifact) {
   switch (type) {
-    case "git-commit":
+    case "git-commit": {
       return {
         type: type,
         hash: data.hash,
         message: data.message,
       };
-    case "git-diff":
+    }
+    case "git-diff": {
       return {
         type: type,
         oldHash: data.oldHash,
         newHash: data.newHash,
         fileName: data.fileName,
       };
-    case "jira-issue":
-      return {
+    }
+    case "jira-issue": {
+      const metadata = {
         type: type,
         key: data.key,
         summary: data.summary,
       };
+      if (data.linkedGitCommits?.[0]) {
+        Object.assign(metadata, {
+          linkedGitCommits: data.linkedGitCommits.map((commit) => ({
+            repo: commit.repo,
+            hash: commit.hash,
+            message: commit.message,
+          })),
+        });
+      }
+      return metadata;
+    }
   }
 }
 

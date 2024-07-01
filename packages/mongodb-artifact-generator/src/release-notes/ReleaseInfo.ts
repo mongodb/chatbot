@@ -2,10 +2,12 @@ import { z } from "zod";
 import { GitHubReleaseInfo } from "./github";
 import { JiraReleaseInfo } from "./jira";
 import { stripIndents } from "common-tags";
+import { StyleGuide } from "./StyleGuide";
 
 export const ReleaseInfo = z.object({
   github: GitHubReleaseInfo.optional(),
   jira: JiraReleaseInfo.optional(),
+  styleGuide: StyleGuide.optional(),
   projectDescription: z.string().describe(stripIndents`
     A contextual description of the software project. This should
     describe the purpose, use cases, and goals of the project. In

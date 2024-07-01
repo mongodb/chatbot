@@ -1,3 +1,11 @@
+# github:
+#   owner: "mongodb"
+#   repo: "mongodb-atlas-cli"
+#   version: "atlascli/v1.23.0"
+#   previousVersion: "atlascli/v1.22.0"
+# jira:
+#   project: "CLOUDP"
+#   version: "atlascli-1.23.0"
 github:
   owner: "mongodb"
   repo: "mongodb-atlas-cli"
@@ -14,30 +22,51 @@ jira:
 # jira:
 #   project: "CLOUDP"
 #   version: "atlascli-1.18.0"
+styleGuide:
+  summary:
+    description:
+      A summary is concise and informative, providing a high-level overview of
+      the release artifact. It should highlight key additions, changes, and
+      deletions as well as the goal of those changes, such as adding a command,
+      fixing a bug or deprecating a feature. A summary uses the present tense
+      and defaults to active voice. It uses fully qualified names for any
+      commands, features, or other elements it describes.
+    examples:
+      - "This bumps the version of the Atlas GO SDK to `v20231115012.2.0`. The CLI uses the Go SDK internally to interact with MongoDB Atlas."
+      - "This adds code and test files for the `atlas clusters pause` command, which allows users to pause a running cluster."
+      - "This updates the GitHub Action `crazy-max/ghaction-setup-docker` from version 3.1.0 to 3.2.0. This is used internally for CI/CD."
+  changelog:
+    description:
+      A changelog is a concise and informative list of one or more changes made
+      in a software release. Changelog entries (the items in the list) are
+      categorized by the type of change (addition, change, deprecation, removal,
+      bug fix, or security patch). The text of each entry provides a brief
+      description of the change in the present tense.
+    examples:
+      - Adds the `atlas clusters pause` command.
+      - Adds the `atlas projects update` command.
+      - Adds the `atlas federatedAuthentication federationSettings connectedOrgConfigs delete` command.
+      - Fixes a bug where the `atlas projects list` command returned an error when referencing an older configuration format.
+      - Deprecated the `atlas clusters create` command in favor of `atlas clusters createCluster`.
+      - Fixes an issue with the \`atlas kubernetes config generate\` command.
+      - Adds support for Podman 5.0.0 for local deployments.
+      - Fixes an issue where the Atlas CLI didn't sign Windows binaries.
+      - Adds a CommonJS (CJS) build output for mongodb-chatbot-ui package, allowing it to be used in environments that require CJS modules.
+      - Upgrades CLI Go version to 1.17.
 projectDescription: >-
-  The MongoDB Atlas CLI (Command Line Interface) allows you to manage MongoDB
-  Atlas resources directly from the command line. MongoDB Atlas is a fully-managed
-  cloud database service that offers MongoDB databases in the cloud, ensuring
-  scalable and flexible management of databases without the need for manual
-  intervention in terms of hardware and infrastructure management.
+  The MongoDB Atlas CLI is an administration interface that allows you to manage
+  MongoDB Atlas resources from the command line. It can perform a variety of
+  tasks that would otherwise be managed through the Atlas UI or Admin API. For
+  example, creating and managing database clusters, configuring network access,
+  managing backups, scaling resources according to demand, and more.
 
-  The Atlas CLI is particularly useful for developers and system administrators
-  who prefer working within a terminal environment or require automation
-  capabilities. It allows users to perform a variety of tasks that would typically
-  be managed through the Atlas UI, such as creating and managing database
-  clusters, configuring network access, managing backups, and scaling resources
-  according to demand.
+  You might use Atlas CLI if:
 
-  With the Atlas CLI, users can also automate repetitive tasks through scripting.
-  This is especially beneficial in a DevOps context, where operations like
-  provisioning new databases or updating existing configurations can be integrated
-  into continuous deployment pipelines. The CLI supports multiple commands that
-  mirror the functionality available in the Atlas GUI, ensuring that any task that
-  can be performed in the interface can also be executed from the command line.
+  - You prefer working within a terminal environment
+  - You want to manage MongoDB Atlas resources programmatically
+  - You need to integrate MongoDB Atlas into CI/CD pipelines
 
-  Moreover, the Atlas CLI is part of MongoDB's suite of integration tools, which
-  also includes APIs and other utility tools. It is designed to be intuitive for
-  those familiar with command line operations, providing a seamless experience for
-  managing MongoDB deployments. This tool is essential for those looking to
-  leverage MongoDB Atlas's powerful features in a programmatic way that integrates
-  with existing workflows and systems.
+  The Atlas CLI is built on the Atlas Go SDK, which provides a programmatic
+  interface to the Atlas Admin API. The CLI is open source and available on
+  GitHub. You can install it using Homebrew on macOS or download the binary for
+  your platform from the GitHub releases page.

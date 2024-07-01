@@ -12,11 +12,13 @@ import {
 import { RunLogger } from "../runlogger";
 import { PromisePool } from "@supercharge/promise-pool";
 import { iOfN, removeStartOfString, safeFileName } from "../utils";
+import { type StyleGuideData } from "./StyleGuide";
 
 const NO_CHANGELOG_ENTRY = "<<<NO_CHANGELOG_ENTRY>>>";
 
 export type CreateChangelogArgs = {
   logger?: RunLogger;
+  styleGuide?: StyleGuideData;
   generate?: GenerateChatCompletion;
   projectDescription: string;
   artifactSummary: ReleaseArtifactSummary;
@@ -24,6 +26,7 @@ export type CreateChangelogArgs = {
 
 export async function createChangelog({
   logger,
+  styleGuide,
   generate,
   projectDescription,
   artifactSummary,
@@ -33,19 +36,27 @@ export async function createChangelog({
     systemMessage(stripIndents`
       Your task is to create a thorough changelog for a software release. A changelog is a file which contains a curated, chronologically ordered list of notable changes for each version of a project.
       You will be provided a data set that describes artifacts associated with a release of the software. Based on that data set, you will generate a set of change log entries.
-      A changelog entry is a brief description of the change written in the present tense.
+
+      <StyleGuide>
+      The following style guide applies to all changelogs. Follow these guidelines to ensure consistency and clarity in your changelogs.
+
       Limit each changelog entry length to 1 sentence and a maximum of 30 words.
       If the provided data does not contain any changes, return only and exactly the following text: ${NO_CHANGELOG_ENTRY}
       Format each entry as a markdown unordered list item. For multiple entries, separate each list item with a newline.
 
+      ${
+        styleGuide?.description ??
+        "A changelog entry is a brief description of the change written in the present tense."
+      }
+
       For example, a set of changelog entries might resemble the following:
 
-      - Adds the \`atlas projects update\` command.
-      - Fixes an issue with the \`atlas kubernetes config generate\` command.
-      - Adds support for Podman 5.0.0 for local deployments.
-      - Fixes an issue where the Atlas CLI didn't sign Windows binaries.
-      - Adds a CommonJS (CJS) build output for mongodb-chatbot-ui package, allowing it to be used in environments that require CJS modules.
-      - Upgrades CLI Go version to 1.17.
+      ${
+        styleGuide?.examples
+          ?.map((example) => `  <Example>${example}</Example>`)
+          .join("\n") ?? "No examples provided."
+      }
+      </StyleGuide>
 
       <Section description="A description of the software project this release is for">
         ${projectDescription}
@@ -85,6 +96,7 @@ export async function createChangelog({
 
 export async function createChangelogs({
   logger,
+  styleGuide,
   generate = makeGenerateChatCompletion(),
   projectDescription,
   artifactSummaries,
@@ -111,6 +123,7 @@ export async function createChangelogs({
       );
       const createChangelogResult = await createChangelog({
         logger,
+        styleGuide,
         generate,
         projectDescription,
         artifactSummary,

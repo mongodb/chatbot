@@ -15,7 +15,8 @@
     "watch": "tsc -b -w",
     "release": "release-it",
     "lint": "eslint ./src --ext ts --report-unused-disable-directives",
-    "lint:fix": "npm run lint -- --fix && prettier ./src --check --write"
+    "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
+    "pipeline:quizEval": "node ./build/pipelines/quizEval.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",

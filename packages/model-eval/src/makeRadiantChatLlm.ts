@@ -1,7 +1,7 @@
 import { makeOpenAiChatLlm } from "mongodb-chatbot-server";
 
 export const makeRadiantChatLlm = async ({
-  radiantEndpoint,
+  endpoint,
   apiKey,
   deployment,
   mongoDbAuthCookie,
@@ -9,7 +9,7 @@ export const makeRadiantChatLlm = async ({
     temperature: 0,
   },
 }: {
-  radiantEndpoint: string;
+  endpoint: string;
   apiKey: string;
   deployment: string;
   mongoDbAuthCookie?: string;
@@ -21,32 +21,28 @@ export const makeRadiantChatLlm = async ({
   return makeOpenAiChatLlm({
     deployment,
     openAiLmmConfigOptions: lmmConfigOptions,
-    openAiClient: new OpenAIClient(
-      radiantEndpoint,
-      new AzureKeyCredential(apiKey),
-      {
-        // Allow insecure connection when in staging/production
-        // b/c connecting w/in the same k8s cluster
-        allowInsecureConnection:
-          process.env.NODE_ENV === "production" ||
-          process.env.NODE_ENV === "staging",
-        // If connecting to Radiant over the internet,
-        // you must include a MongoDB CorpSecure cookie in the request.
-        additionalPolicies: [
-          {
-            position: "perCall",
-            policy: {
-              name: "add-cookie",
-              sendRequest(request, next) {
-                if (mongoDbAuthCookie) {
-                  request.headers.set("Cookie", mongoDbAuthCookie);
-                }
-                return next(request);
-              },
+    openAiClient: new OpenAIClient(endpoint, new AzureKeyCredential(apiKey), {
+      // Allow insecure connection when in staging/production
+      // b/c connecting w/in the same k8s cluster
+      allowInsecureConnection:
+        process.env.NODE_ENV === "production" ||
+        process.env.NODE_ENV === "staging",
+      // If connecting to Radiant over the internet,
+      // you must include a MongoDB CorpSecure cookie in the request.
+      additionalPolicies: [
+        {
+          position: "perCall",
+          policy: {
+            name: "add-cookie",
+            sendRequest(request, next) {
+              if (mongoDbAuthCookie) {
+                request.headers.set("Cookie", mongoDbAuthCookie);
+              }
+              return next(request);
             },
           },
-        ],
-      }
-    ),
+        },
+      ],
+    }),
   });
 };

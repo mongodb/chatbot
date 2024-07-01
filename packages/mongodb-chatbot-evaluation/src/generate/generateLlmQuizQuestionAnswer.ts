@@ -14,11 +14,24 @@ import assert from "assert/strict";
 export interface MakeGenerateQuizDataParams {
   /**
     Few-shot examples of quiz questions
+    @example
+    [
+      {
+        questionText: "What's the best Italian food?",
+        answers: [
+          { label: "A", answer: "Tacos", isCorrect: false },
+          { label: "B", answer: "Pizza", isCorrect: true },
+          { label: "C", answer: "Sushi", isCorrect: false },
+          { label: "D", answer: "Enchiladas", isCorrect: false },
+        ],
+      },
+    ]
    */
   quizQuestionExamples?: QuizQuestionTestCaseData[];
 
   /**
     Few words of the subject of the quiz questions. Included in the prompt.
+    @example "Food"
    */
   subject?: string;
 

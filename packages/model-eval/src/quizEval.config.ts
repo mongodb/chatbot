@@ -11,26 +11,12 @@ import {
 import "dotenv/config";
 import { MongoClient, assertEnvVars } from "mongodb-rag-core";
 import { envVars } from "./envVars";
-import { makeChatLlmQuizEvalCommands } from "./makeChatLlmQuizEvalCommands";
-
-const radiantHostedModels: { label: string; radiantModelName: string }[] = [
-  {
-    label: "gpt-4",
-    radiantModelName: "gpt-4-eai-experimentation",
-  },
-  {
-    label: "gpt-4o",
-    radiantModelName: "gpt-4o-eai-experimentation",
-  },
-  {
-    label: "mistral-large",
-    radiantModelName: "Mistral-large-eai",
-  },
-  {
-    label: "gpt-35-turbo",
-    radiantModelName: "gpt-35-turbo-eai-experimentation",
-  },
-];
+import {
+  ChatLlmEvalConfig,
+  makeChatLlmQuizEvalCommands,
+} from "./makeChatLlmQuizEvalCommands";
+import { makeRadiantChatLlm } from "./makeRadiantChatLlm";
+import { radiantModels } from "./radiantModels";
 
 export default async () => {
   const {
@@ -67,6 +53,29 @@ export default async () => {
     data: quizQuestion,
   })) satisfies QuizQuestionTestCase[];
 
+  // TODO: add few shot examples
+  const quizQuestionExamples = [] satisfies QuizQuestionTestCaseData[];
+  const modelsConfig = await Promise.all(
+    radiantModels.map(async (model) => {
+      return {
+        name: model.label,
+        generatorConfig: {
+          subject: "MongoDB",
+          quizQuestionExamples,
+          chatLlm: await makeRadiantChatLlm({
+            apiKey: RADIANT_API_KEY,
+            endpoint: RADIANT_ENDPOINT,
+            deployment: model.radiantModelDeployment,
+            mongoDbAuthCookie: MONGODB_AUTH_COOKIE,
+            lmmConfigOptions: {
+              temperature: 0,
+            },
+          }),
+        },
+      } satisfies ChatLlmEvalConfig;
+    })
+  );
+
   const evalConfig = {
     metadataStore: makeMongoDbCommandMetadataStore(storeDbOptions),
     generatedDataStore: makeMongoDbGeneratedDataStore(storeDbOptions),
@@ -74,8 +83,7 @@ export default async () => {
     reportStore: makeMongoDbReportStore(storeDbOptions),
 
     commands: makeChatLlmQuizEvalCommands({
-      // TODO: config
-      configs: [],
+      configs: modelsConfig,
       quizQuestions: quizQuestionTestCases,
     }),
     async afterAll() {

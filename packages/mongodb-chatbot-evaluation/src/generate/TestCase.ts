@@ -40,10 +40,10 @@ export interface ConversationTestCase extends BaseTestCase {
 
 export const QuizQuestionTestCaseDataSchema = z.object({
   questionText: z.string(),
-  contentTitle: z.string(),
-  title: z.string(),
-  topicType: z.string(),
-  questionType: z.string(),
+  contentTitle: z.string().optional(),
+  title: z.string().optional(),
+  topicType: z.string().optional(),
+  questionType: z.string().optional(),
   answers: z.array(
     z.object({
       answer: z.string(),

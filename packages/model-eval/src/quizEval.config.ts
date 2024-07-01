@@ -13,11 +13,24 @@ import { MongoClient, assertEnvVars } from "mongodb-rag-core";
 import { envVars } from "./envVars";
 import { makeChatLlmQuizEvalCommands } from "./makeChatLlmQuizEvalCommands";
 
-const quizEnvVars = {
-  MONGODB_QUIZ_QUESTIONS_DATABASE_NAME: "",
-  MONGODB_QUIZ_QUESTIONS_CONNECTION_URI: "",
-  MONGODB_QUIZ_QUESTIONS_COLLECTION_NAME: "",
-} as const;
+const radiantHostedModels: { label: string; radiantModelName: string }[] = [
+  {
+    label: "gpt-4",
+    radiantModelName: "gpt-4-eai-experimentation",
+  },
+  {
+    label: "gpt-4o",
+    radiantModelName: "gpt-4o-eai-experimentation",
+  },
+  {
+    label: "mistral-large",
+    radiantModelName: "Mistral-large-eai",
+  },
+  {
+    label: "gpt-35-turbo",
+    radiantModelName: "gpt-35-turbo-eai-experimentation",
+  },
+];
 
 export default async () => {
   const {
@@ -26,7 +39,10 @@ export default async () => {
     MONGODB_QUIZ_QUESTIONS_DATABASE_NAME,
     MONGODB_QUIZ_QUESTIONS_CONNECTION_URI,
     MONGODB_QUIZ_QUESTIONS_COLLECTION_NAME,
-  } = assertEnvVars({ ...envVars, ...quizEnvVars });
+    RADIANT_API_KEY,
+    RADIANT_ENDPOINT,
+    MONGODB_AUTH_COOKIE,
+  } = assertEnvVars(envVars);
 
   const storeDbOptions = {
     connectionUri: MONGODB_CONNECTION_URI,

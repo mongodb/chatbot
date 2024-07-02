@@ -18,6 +18,62 @@ import {
 import { makeRadiantChatLlm } from "./makeRadiantChatLlm";
 import { radiantModels } from "./radiantModels";
 
+// Few-shot examples
+const quizQuestionExamples = [
+  {
+    questionText:
+      "Which of the following are valid data types in MongoDB? (Select all that apply.)",
+    answers: [
+      {
+        label: "A",
+        answer: "String",
+        isCorrect: true,
+      },
+      {
+        label: "B",
+        answer: "Integer",
+        isCorrect: true,
+      },
+      {
+        label: "C",
+        answer: "Boolean",
+        isCorrect: true,
+      },
+      {
+        label: "D",
+        answer: "Money",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    questionText:
+      "What type of data structure does MongoDB use to store data? (Select one.)",
+    answers: [
+      {
+        label: "A",
+        answer: "Tuples",
+        isCorrect: false,
+      },
+      {
+        label: "B",
+        answer: "Tables",
+        isCorrect: false,
+      },
+      {
+        label: "C",
+        answer: "Documents",
+        isCorrect: true,
+      },
+      {
+        label: "D",
+        answer: "Rows",
+        isCorrect: false,
+      },
+    ],
+  },
+] satisfies QuizQuestionTestCaseData[];
+
 export default async () => {
   const {
     MONGODB_DATABASE_NAME,
@@ -53,13 +109,12 @@ export default async () => {
     data: quizQuestion,
   })) satisfies QuizQuestionTestCase[];
 
-  // TODO: add few shot examples
-  const quizQuestionExamples = [] satisfies QuizQuestionTestCaseData[];
   const modelsConfig = await Promise.all(
     radiantModels.map(async (model) => {
       return {
         name: model.label,
         generatorConfig: {
+          modelName: model.label,
           subject: "MongoDB",
           quizQuestionExamples,
           chatLlm: await makeRadiantChatLlm({

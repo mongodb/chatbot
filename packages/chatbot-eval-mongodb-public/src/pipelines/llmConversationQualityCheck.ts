@@ -17,19 +17,21 @@ runPipeline({
      */
     await Promise.allSettled([
       (async () => {
-        const { _id: genRunId } = await generate("gpt35_0613_Conversations");
-        const { _id: evalRunId } = await evaluate(
-          "conversationQuality",
-          genRunId
-        );
+        const {
+          commandRunMetadata: { _id: genRunId },
+        } = await generate("gpt35_0613_Conversations");
+        const {
+          commandRunMetadata: { _id: evalRunId },
+        } = await evaluate("conversationQuality", genRunId);
         await report("gpt35_0613_ConversationQualityRun", evalRunId);
       })(),
       (async () => {
-        const { _id: genRunId } = await generate("gpt4_0124_Conversations");
-        const { _id: evalRunId } = await evaluate(
-          "conversationQuality",
-          genRunId
-        );
+        const {
+          commandRunMetadata: { _id: genRunId },
+        } = await generate("gpt4_0124_Conversations");
+        const {
+          commandRunMetadata: { _id: evalRunId },
+        } = await evaluate("conversationQuality", genRunId);
         await report("gpt4_0124_ConversationQualityRun", evalRunId);
       })(),
     ]);

@@ -73,11 +73,13 @@ const chatLlm = makeLangchainChatLlm({
     responses: [modelAnswer],
   }),
 });
+const modelName = "test";
 describe("generateLlmQuizQuestionAnswer", () => {
   const genQuizQuestions = makeGenerateLlmQuizQuestionAnswer({
     subject,
     quizQuestionExamples,
     chatLlm,
+    modelName,
   });
   const runId = new ObjectId();
   let generated: QuizGeneratedData;
@@ -128,6 +130,7 @@ describe("generateLlmQuizQuestionAnswer", () => {
           role: "user",
           content: expect.any(String),
         },
+        modelName,
       },
     } satisfies Partial<QuizGeneratedData>);
   });
@@ -141,6 +144,7 @@ describe("generateLlmQuizQuestionAnswer", () => {
       subject,
       quizQuestionExamples,
       chatLlm: brokenChatLlm,
+      modelName,
     });
     const { failedCases } = await genQuizQuestions({
       runId,

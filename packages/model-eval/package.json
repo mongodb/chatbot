@@ -1,5 +1,5 @@
 {
-  "name": "chatbot-eval-mongodb-public",
+  "name": "model-eval",
   "version": "0.0.0",
   "description": "CLI app for evaluating MongoDB AI chatbot.",
   "author": "",
@@ -16,7 +16,7 @@
     "release": "release-it",
     "lint": "eslint ./src --ext ts --report-unused-disable-directives",
     "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
-    "pipeline:quizEval": "node ./build/pipelines/quizEval.js"
+    "pipeline:quizEval": "npm run build && node ./build/pipelines/quizEval.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",

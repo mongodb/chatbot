@@ -41,6 +41,11 @@ export interface MakeGenerateQuizDataParams {
   chatLlm: ChatLlm;
 
   /**
+    The name of the language model to use for generating the quiz question answers.
+   */
+  modelName: string;
+
+  /**
     Number of milliseconds to sleep between each conversation generation.
     Helpful for rate limiting.
    */
@@ -61,6 +66,7 @@ export const makeGenerateLlmQuizQuestionAnswer = function ({
   quizQuestionExamples,
   subject,
   chatLlm,
+  modelName,
   sleepMs = 0,
 }: MakeGenerateQuizDataParams): GenerateDataFunc {
   return async function ({
@@ -104,7 +110,8 @@ export const makeGenerateLlmQuizQuestionAnswer = function ({
             modelAnswer: response.content,
           },
           type: "quiz",
-          evalData: { ...testCase.data, prompt },
+          evalData: { ...testCase.data, prompt, modelName },
+          createdAt: new Date(),
         });
       } catch (e) {
         logger.error(

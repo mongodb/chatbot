@@ -38,6 +38,7 @@ describe("MongoDbGeneratedDataStore", () => {
       evalData: {
         fizz: "buzz",
       },
+      createdAt: new Date(),
     } satisfies SomeGeneratedData;
     const inserted = await generatedDataStore.insertOne(generatedData);
     expect(inserted).toBe(true);
@@ -51,6 +52,7 @@ describe("MongoDbGeneratedDataStore", () => {
       evalData: {
         fizz: "buzz",
       },
+      createdAt: new Date(),
     } satisfies SomeGeneratedData;
     const generatedData2 = {
       _id: new ObjectId(),
@@ -60,6 +62,7 @@ describe("MongoDbGeneratedDataStore", () => {
       evalData: {
         buzz: "fizz",
       },
+      createdAt: new Date(),
     } satisfies SomeGeneratedData;
     const inserted = await generatedDataStore.insertMany([
       generatedData1,
@@ -76,6 +79,7 @@ describe("MongoDbGeneratedDataStore", () => {
       evalData: {
         fizz: "buzz",
       },
+      createdAt: new Date(),
     } satisfies SomeGeneratedData;
     await generatedDataStore.insertOne(generatedData);
     const foundData = await generatedDataStore.findById(generatedData._id);
@@ -90,6 +94,7 @@ describe("MongoDbGeneratedDataStore", () => {
       evalData: {
         fizz: "buzz",
       },
+      createdAt: new Date(),
     } satisfies SomeGeneratedData;
     await generatedDataStore.insertOne(generatedData);
     const found = await generatedDataStore.find({ data: "foo" });
@@ -105,6 +110,7 @@ describe("MongoDbGeneratedDataStore", () => {
       evalData: {
         fizz: "buzz",
       },
+      createdAt: new Date(),
     } satisfies SomeGeneratedData;
     await generatedDataStore.insertOne(generatedData);
     const found = await generatedDataStore.findByCommandRunId(commandRunId);

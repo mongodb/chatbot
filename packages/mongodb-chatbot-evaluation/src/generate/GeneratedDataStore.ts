@@ -1,4 +1,4 @@
-import { Conversation, MessageBase, UserMessage } from "mongodb-chatbot-server";
+import { Conversation, MessageBase } from "mongodb-chatbot-server";
 import { Filter, MongoClient, ObjectId } from "mongodb-rag-core";
 import { QuizQuestionTestCaseData } from "./TestCase";
 
@@ -8,6 +8,7 @@ export interface BaseGeneratedData {
   type: string;
   data: unknown;
   evalData?: Record<string, unknown>;
+  createdAt: Date;
 }
 
 export interface ConversationGeneratedData extends BaseGeneratedData {
@@ -21,7 +22,10 @@ export interface QuizGeneratedData extends BaseGeneratedData {
   data: {
     modelAnswer: string;
   };
-  evalData: QuizQuestionTestCaseData & { prompt: MessageBase };
+  evalData: QuizQuestionTestCaseData & {
+    prompt: MessageBase;
+    modelName: string;
+  };
 }
 export type SomeGeneratedData =
   | QuizGeneratedData

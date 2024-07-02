@@ -108,6 +108,7 @@ export const makeGenerateLlmConversationData = function ({
             tags: testCase.data.tags,
             name: testCase.data.name,
           },
+          createdAt: new Date(),
         });
       } catch (e) {
         logger.error(

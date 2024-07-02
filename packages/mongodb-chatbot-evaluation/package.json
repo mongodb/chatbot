@@ -42,7 +42,8 @@
     "lint": "eslint ./src --ext ts --report-unused-disable-directives",
     "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
     "release": "release-it",
-    "test": "jest --forceExit"
+    "test": "jest --forceExit",
+    "shuffle": "node ./build/generate/shuffleQuizData.js"
   },
   "bugs": {
     "url": "https://github.com/mongodb/chatbot/issues"
@@ -64,6 +65,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "dotenv": "^16.4.4"
+    "dotenv": "^16.4.4",
+    "typescript": "^5.4.5"
   }
 }

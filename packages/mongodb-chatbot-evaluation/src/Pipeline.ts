@@ -4,19 +4,21 @@ import { ConfigConstructor } from "./EvalConfig";
 import { strict as assert } from "assert";
 import { generateDataAndMetadata } from "./generate";
 import { generateEvalsAndMetadata } from "./evaluate/generateEvalsAndMetadata";
-import { generateReportAndMetadata } from "./report";
+import { generateReportAndMetadata, Report } from "./report";
 
-type PipelineGenerateFunc = (name: string) => Promise<CommandRunMetadata>;
+type PipelineGenerateFunc = (
+  name: string
+) => Promise<{ commandRunMetadata: CommandRunMetadata }>;
 
 type PipelineEvaluateFunc = (
   name: string,
   generatedDataRunId: ObjectId
-) => Promise<CommandRunMetadata>;
+) => Promise<{ commandRunMetadata: CommandRunMetadata }>;
 
 type PipelineReportFunc = (
   name: string,
   evalResultsRunId: ObjectId
-) => Promise<CommandRunMetadata>;
+) => Promise<{ commandRunMetadata: CommandRunMetadata; report: Report }>;
 
 export type Pipeline = (
   generate: PipelineGenerateFunc,
@@ -80,7 +82,7 @@ export async function runPipeline({
       generatedDataStore: generatedDataStore,
       metadataStore: metadataStore,
     });
-    return metadata;
+    return { commandRunMetadata: metadata };
   };
 
   const evaluateFunc: PipelineEvaluateFunc = async (
@@ -100,7 +102,7 @@ export async function runPipeline({
       evaluationStore: evaluationStore,
       metadataStore: metadataStore,
     });
-    return metadata;
+    return { commandRunMetadata: metadata };
   };
 
   const reportFunc: PipelineReportFunc = async (name, evaluationRunId) => {
@@ -109,7 +111,7 @@ export async function runPipeline({
       `Cannot find report command with the name '${name}'.`
     );
     const { reporter } = commands.report[name];
-    const { metadata } = await generateReportAndMetadata({
+    const { metadata, report } = await generateReportAndMetadata({
       name,
       reportEvalFunc: reporter,
       reportStore: reportStore,
@@ -117,7 +119,7 @@ export async function runPipeline({
       metadataStore: metadataStore,
       evaluationRunId,
     });
-    return metadata;
+    return { commandRunMetadata: metadata, report };
   };
 
   try {

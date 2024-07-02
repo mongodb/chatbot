@@ -145,6 +145,7 @@ export const makeGenerateConversationData = function ({
           name: testCase.data.name,
           expectedLinks: testCase.data.expectedLinks,
         },
+        createdAt: new Date(),
       });
       await sleep(sleepMs);
     }

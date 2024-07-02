@@ -5,5 +5,6 @@ export * from "./evaluateConversationQuality";
 export * from "./evaluateExpectedLinks";
 export * from "./evaluateConversationRelevancy";
 export * from "./EvaluateQualityFunc";
+export * from "./evaluateQuizQuestionAnswerCorrectness";
 export * from "./EvaluationStore";
 export * from "./stringifyConversation";

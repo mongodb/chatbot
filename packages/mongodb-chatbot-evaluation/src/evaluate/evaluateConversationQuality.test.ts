@@ -60,6 +60,7 @@ const generatedConversationData = {
       "The assistant should correctly respond with the user's name.",
     name: "User name",
   },
+  createdAt: new Date(),
 } satisfies ConversationGeneratedData;
 
 describe("makeEvaluateConversationQuality", () => {

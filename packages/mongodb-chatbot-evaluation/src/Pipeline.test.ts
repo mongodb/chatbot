@@ -68,11 +68,12 @@ describe("runPipeline", () => {
     await runPipeline({
       configConstructor,
       pipeline: async (generate, evaluate, report) => {
-        const { _id: genRunId } = await generate("conversations");
-        const { _id: evalRunId } = await evaluate(
-          "conversationQuality",
-          genRunId
-        );
+        const {
+          commandRunMetadata: { _id: genRunId },
+        } = await generate("conversations");
+        const {
+          commandRunMetadata: { _id: evalRunId },
+        } = await evaluate("conversationQuality", genRunId);
         await report("conversationQualityRun", evalRunId);
         theEnd = true;
       },

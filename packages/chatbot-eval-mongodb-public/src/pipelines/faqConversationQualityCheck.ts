@@ -4,29 +4,27 @@ import configConstructor from "../eval.config";
 runPipeline({
   configConstructor,
   pipeline: async (generate, evaluate, report) => {
-    const { _id: genRunId } = await generate("faqConversations");
-    const { _id: qualityEvalRunId } = await evaluate(
-      "conversationQuality",
-      genRunId
-    );
+    const {
+      commandRunMetadata: { _id: genRunId },
+    } = await generate("faqConversations");
+    const {
+      commandRunMetadata: { _id: qualityEvalRunId },
+    } = await evaluate("conversationQuality", genRunId);
     await report("faqConversationQualityRun", qualityEvalRunId);
 
-    const { _id: faithfulnessEvalRunId } = await evaluate(
-      "conversationFaithfulness",
-      genRunId
-    );
+    const {
+      commandRunMetadata: { _id: faithfulnessEvalRunId },
+    } = await evaluate("conversationFaithfulness", genRunId);
     await report("faqConversationFaithfulnessRun", faithfulnessEvalRunId);
 
-    const { _id: retrievalEvalRunId } = await evaluate(
-      "conversationRetrievalScore",
-      genRunId
-    );
+    const {
+      commandRunMetadata: { _id: retrievalEvalRunId },
+    } = await evaluate("conversationRetrievalScore", genRunId);
     await report("faqConversationRetrievalScoreAvg", retrievalEvalRunId);
 
-    const { _id: relevancyEvalRunId } = await evaluate(
-      "faqConversationAnswerRelevancy",
-      genRunId
-    );
+    const {
+      commandRunMetadata: { _id: relevancyEvalRunId },
+    } = await evaluate("faqConversationAnswerRelevancy", genRunId);
     await report("faqConversationAnswerRelevancyRun", relevancyEvalRunId);
   },
 });

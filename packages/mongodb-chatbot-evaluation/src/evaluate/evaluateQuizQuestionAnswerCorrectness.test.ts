@@ -4,6 +4,7 @@ import { QuizGeneratedData } from "../generate";
 
 describe("evaluateQuizQuestionAnswerCorrectness", () => {
   const runId = new ObjectId();
+  const modelName = "model name";
   test("should evaluate that response is correct (1 correct answer)", async () => {
     await evaluateQuizGeneratedData(
       runId,
@@ -126,7 +127,9 @@ async function evaluateQuizGeneratedData(
       title: "title",
       topicType: "topic type",
       answers,
+      modelName: "model name",
     },
+    createdAt: new Date(),
   } satisfies QuizGeneratedData;
   const evalResult = await evaluateQuizQuestionAnswerCorrectness({
     runId,

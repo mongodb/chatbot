@@ -18,5 +18,6 @@ export function mockConversationGeneratedDataFromMessages(
     },
     _id: new ObjectId(),
     commandRunId: new ObjectId(),
+    createdAt: new Date(),
   };
 }

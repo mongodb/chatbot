@@ -5,7 +5,7 @@ import { strict as assert } from "assert";
 import { EvalResult } from "./EvaluationStore";
 
 /**
-  TODO
+  Evaluate if the response to a multiple-choice quiz question is correct.
  */
 export const evaluateQuizQuestionAnswerCorrectness: EvaluateQualityFunc =
   async function ({ runId, generatedData }) {

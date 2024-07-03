@@ -71,7 +71,7 @@ export const makeGenerateLlmConversationData = function ({
     const failedCases: ConversationTestCase[] = [];
     await PromisePool.withConcurrency(concurrency)
       .for(convoTestCases)
-      .process(async (testCase, index, pool) => {
+      .process(async (testCase) => {
         logger.info(`Generating data for test case: '${testCase.data.name}'`);
         if (testCase.data.skip) {
           return;

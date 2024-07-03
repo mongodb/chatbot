@@ -46,7 +46,7 @@ export async function generateEvalsAndMetadata({
   );
   await PromisePool.withConcurrency(concurrency)
     .for(generatedData)
-    .process(async (generation, index, pool) => {
+    .process(async (generation) => {
       logger.info(
         `Evaluating generated data with _id '${generation._id.toHexString()}' and type '${
           generation.type

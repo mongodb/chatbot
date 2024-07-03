@@ -40,6 +40,9 @@ describe("makeGenerateLlmConversationData", () => {
       chatLlm: makeLangchainChatLlm({
         chatModel: throwingLlm,
       }),
+      backOffOptions: {
+        numOfAttempts: 1,
+      },
     });
     const conversationData = await generateLlmConversationData({
       runId: new ObjectId(),

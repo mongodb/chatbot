@@ -63,12 +63,6 @@ export const makeGenerateLlmConversationData = function ({
     jitter: "full",
     numOfAttempts: 5,
     startingDelay: 10000,
-    retry(e, attemptNumber) {
-      logger.error(
-        `Failed to call the LLM. Attempt ${attemptNumber}. Error: ${e}`
-      );
-      return true;
-    },
   },
 }: MakeGenerateLlmConversationDataParams): GenerateDataFunc {
   return async function ({
@@ -118,7 +112,17 @@ export const makeGenerateLlmConversationData = function ({
 
         const response = await backOff(
           () => chatLlm.answerQuestionAwaited({ messages }),
-          backOffOptions
+          {
+            ...backOffOptions,
+            retry:
+              backOffOptions.retry ??
+              function (e, attemptNumber) {
+                logger.error(
+                  `Failed to call the LLM successfully. Attempt ${attemptNumber}/${backOffOptions.numOfAttempts}. Error: ${e}`
+                );
+                return true;
+              },
+          }
         );
 
         messages.push({

@@ -43,9 +43,6 @@ export const makeRadiantChatLlm = async ({
           },
         },
       ],
-      retryOptions: {
-        maxRetries: 5,
-      },
     }),
   });
 };

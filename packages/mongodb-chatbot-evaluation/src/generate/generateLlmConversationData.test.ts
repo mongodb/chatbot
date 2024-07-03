@@ -54,6 +54,7 @@ describe("makeGenerateLlmConversationData", () => {
       makeGenerateLlmConversationData({
         chatLlm: mockChatLlm,
         sleepMs: SLEEP_TIME,
+        concurrency: 1,
       });
     const start = Date.now();
     await generateLlmConversationDataWithSleep({

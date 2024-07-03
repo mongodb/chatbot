@@ -86,13 +86,17 @@ export function makeChatLlmConversationEvalCommands({
 }: MakeChatLlmConversationEvalCommandsParams) {
   const generateConfig = chatLlmConfigs
     .map(({ name, chatLlm }) => {
+      // Create a deep copy of the test cases so there's no concurrent mutation
+      const testCasesDeepCopy = JSON.parse(
+        JSON.stringify(testCases)
+      ) as ConversationTestCase[];
       return {
         [`${name}_discovery_conversations`]: {
           generator: makeGenerateLlmConversationData({
             chatLlm,
-            concurrency: 8,
+            concurrency: 2,
           }),
-          testCases,
+          testCases: testCasesDeepCopy,
           type: "conversation",
         },
       };

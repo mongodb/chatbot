@@ -16,7 +16,8 @@
     "release": "release-it",
     "lint": "eslint ./src --ext ts --report-unused-disable-directives",
     "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
-    "pipeline:quizEval": "npm run build && node ./build/pipelines/quizEval.js"
+    "pipeline:quizEval": "npm run build && node ./build/pipelines/quizEval.js",
+    "pipeline:discoveryEval": "npm run build && node ./build/pipelines/discoveryEval.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",

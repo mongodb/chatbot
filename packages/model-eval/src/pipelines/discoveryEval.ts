@@ -1,5 +1,5 @@
 import { runPipeline } from "mongodb-chatbot-evaluation";
-import configConstructor from "../quizEval.config";
+import configConstructor from "../discovery.config";
 import { radiantModels } from "../radiantModels";
 
 runPipeline({
@@ -9,16 +9,14 @@ runPipeline({
     // Run different model evals in parallel
     await Promise.allSettled(
       radiantModels.map(async (model) => {
+        const name = `${model.label}_discovery_conversations`;
         const {
           commandRunMetadata: { _id: genRunId },
-        } = await generate(model.label);
+        } = await generate(name);
         const {
           commandRunMetadata: { _id: qualityEvalRunId },
-        } = await evaluate("quizQuestionCorrect", genRunId);
-        const { report: reported } = await report(
-          model.label,
-          qualityEvalRunId
-        );
+        } = await evaluate("mentions_mongodb", genRunId);
+        const { report: reported } = await report(name, qualityEvalRunId);
         evalReports[model.label] = reported.data;
       })
     );

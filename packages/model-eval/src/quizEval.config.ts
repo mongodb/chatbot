@@ -12,9 +12,9 @@ import "dotenv/config";
 import { MongoClient, assertEnvVars } from "mongodb-rag-core";
 import { envVars } from "./envVars";
 import {
-  ChatLlmEvalConfig,
+  ChatLlmQuizEvalConfig,
   makeChatLlmQuizEvalCommands,
-} from "./makeChatLlmQuizEvalCommands";
+} from "./makeChatLlmEvalCommands";
 import { makeRadiantChatLlm } from "./makeRadiantChatLlm";
 import { radiantModels } from "./radiantModels";
 
@@ -127,7 +127,7 @@ export default async () => {
             },
           }),
         },
-      } satisfies ChatLlmEvalConfig;
+      } satisfies ChatLlmQuizEvalConfig;
     })
   );
 

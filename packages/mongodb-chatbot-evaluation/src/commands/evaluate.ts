@@ -67,5 +67,6 @@ export const evaluateCommand = async (
     generatedDataStore,
     evaluationStore,
     metadataStore,
+    concurrency: evaluations?.[name]?.concurrency,
   });
 };

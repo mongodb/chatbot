@@ -23,6 +23,8 @@ export interface EvalConfig {
     evaluate?: {
       [k: string]: {
         evaluator: EvaluateQualityFunc;
+        /** How many evals to run at once for a set of generated data. */
+        concurrency?: number;
       };
     };
     report?: {

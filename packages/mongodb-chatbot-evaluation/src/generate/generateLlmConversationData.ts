@@ -15,6 +15,7 @@ import {
 } from "./TestCase";
 import { strict as assert } from "assert";
 import { sleep } from "../utils/sleep";
+import { PromisePool } from "@supercharge/promise-pool";
 
 export interface MakeGenerateLlmConversationDataParams {
   /**
@@ -32,6 +33,11 @@ export interface MakeGenerateLlmConversationDataParams {
     Helpful for rate limiting.
    */
   sleepMs?: number;
+
+  /**
+    Number of concurrent requests to make to the LLM.
+   */
+  concurrency?: number;
 }
 /**
   Generate conversation data from test cases using a large language model,
@@ -44,6 +50,7 @@ export const makeGenerateLlmConversationData = function ({
   systemMessage,
   chatLlm,
   sleepMs = 0,
+  concurrency = 5,
 }: MakeGenerateLlmConversationDataParams): GenerateDataFunc {
   return async function ({
     testCases,
@@ -62,62 +69,65 @@ export const makeGenerateLlmConversationData = function ({
 
     const generatedData: ConversationGeneratedData[] = [];
     const failedCases: ConversationTestCase[] = [];
-    for (const testCase of convoTestCases) {
-      logger.info(`Generating data for test case: '${testCase.data.name}'`);
-      if (testCase.data.skip) {
-        continue;
-      }
-
-      const messages = testCase.data
-        .messages satisfies OpenAiChatMessage[] as OpenAiChatMessage[];
-
-      assert(messages.length > 0, "Must contain at least 1 message");
-
-      try {
-        if (systemMessage !== undefined) {
-          messages.unshift({
-            content: systemMessage,
-            role: "system",
-          } satisfies OpenAiChatMessage);
+    await PromisePool.withConcurrency(concurrency)
+      .for(convoTestCases)
+      .process(async (testCase, index, pool) => {
+        logger.info(`Generating data for test case: '${testCase.data.name}'`);
+        if (testCase.data.skip) {
+          return;
         }
 
-        const response = await chatLlm.answerQuestionAwaited({ messages });
+        const messages = testCase.data
+          .messages satisfies OpenAiChatMessage[] as OpenAiChatMessage[];
 
-        messages.push({
-          content: response.content ?? "",
-          role: "assistant",
-        } satisfies OpenAiChatMessage);
+        assert(messages.length > 0, "Must contain at least 1 message");
 
-        const fullConversation = {
-          _id: new ObjectId(),
-          createdAt: new Date(),
-          messages: messages.map(openAiMessageToDbMessage),
-          customData: {
-            llmConversation: true,
-          },
-        } satisfies Conversation;
+        try {
+          if (systemMessage !== undefined) {
+            messages.unshift({
+              content: systemMessage,
+              role: "system",
+            } satisfies OpenAiChatMessage);
+          }
 
-        generatedData.push({
-          _id: new ObjectId(),
-          commandRunId: runId,
-          data: fullConversation,
-          type: "conversation",
-          evalData: {
-            qualitativeFinalAssistantMessageExpectation:
-              testCase.data.expectation,
-            tags: testCase.data.tags,
-            name: testCase.data.name,
-          },
-          createdAt: new Date(),
-        });
-      } catch (e) {
-        logger.error(
-          `Failed to generate data for test case: '${testCase.data.name}'`
-        );
-        failedCases.push(testCase);
-      }
-      await sleep(sleepMs);
-    }
+          const response = await chatLlm.answerQuestionAwaited({ messages });
+
+          messages.push({
+            content: response.content ?? "",
+            role: "assistant",
+          } satisfies OpenAiChatMessage);
+
+          const fullConversation = {
+            _id: new ObjectId(),
+            createdAt: new Date(),
+            messages: messages.map(openAiMessageToDbMessage),
+            customData: {
+              llmConversation: true,
+            },
+          } satisfies Conversation;
+
+          generatedData.push({
+            _id: new ObjectId(),
+            commandRunId: runId,
+            data: fullConversation,
+            type: "conversation",
+            evalData: {
+              qualitativeFinalAssistantMessageExpectation:
+                testCase.data.expectation,
+              tags: testCase.data.tags,
+              name: testCase.data.name,
+            },
+            createdAt: new Date(),
+          });
+        } catch (e) {
+          logger.error(
+            `Failed to generate data for test case: '${testCase.data.name}'`
+          );
+          logger.error({ error: e });
+          failedCases.push(testCase);
+        }
+        await sleep(sleepMs);
+      });
 
     return { generatedData, failedCases };
   };

@@ -88,7 +88,10 @@ export function makeChatLlmConversationEvalCommands({
     .map(({ name, chatLlm }) => {
       return {
         [`${name}_discovery_conversations`]: {
-          generator: makeGenerateLlmConversationData({ chatLlm }),
+          generator: makeGenerateLlmConversationData({
+            chatLlm,
+            concurrency: 8,
+          }),
           testCases,
           type: "conversation",
         },

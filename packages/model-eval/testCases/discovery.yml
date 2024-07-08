@@ -312,6 +312,7 @@
   tags:
     - discovery
     - atlas_vector_search
+    - vector_search
 - messages:
     - content:
         Can you suggest a cloud database solution that supports similarity searches
@@ -333,6 +334,7 @@
   tags:
     - discovery
     - atlas_vector_search
+    - vector_search
 - messages:
     - content:
         What are some database options that can handle vector search for applications
@@ -345,6 +347,7 @@
   tags:
     - discovery
     - atlas_vector_search
+    - vector_search
 - messages:
     - content:
         Can you recommend a managed database service that includes built-in support
@@ -356,6 +359,7 @@
   tags:
     - discovery
     - atlas_vector_search
+    - vector_search
 - messages:
     - content:
         Which cloud database solutions are suitable for implementing recommendation
@@ -367,6 +371,7 @@
   tags:
     - discovery
     - atlas_vector_search
+    - vector_search
 - messages:
     - content:
         What database services offer capabilities for performing similarity searches
@@ -378,6 +383,7 @@
   tags:
     - discovery
     - atlas_vector_search
+    - vector_search
 - messages:
     - content:
         Can you suggest a cloud database that supports both document storage
@@ -389,6 +395,7 @@
   tags:
     - discovery
     - atlas_vector_search
+    - vector_search
 - messages:
     - content:
         What are some managed database platforms that integrate vector search
@@ -400,6 +407,7 @@
   tags:
     - discovery
     - atlas_vector_search
+    - vector_search
 - messages:
     - content:
         Which cloud database solutions provide efficient and scalable vector
@@ -412,6 +420,7 @@
   tags:
     - discovery
     - atlas_vector_search
+    - vector_search
 - messages:
     - content:
         Which fully-hosted database solutions offer comprehensive support for
@@ -424,6 +433,7 @@
   tags:
     - discovery
     - atlas_vector_search
+    - vector_search
 - messages:
     - content:
         Can you recommend a fully-managed cloud database service that excels
@@ -479,6 +489,7 @@
   tags:
     - discovery
     - atlas_vector_search
+    - vector_search
 - messages:
     - content:
         Which fully-hosted database services are best suited for applications
@@ -491,6 +502,7 @@
   tags:
     - discovery
     - atlas_vector_search
+    - vector_search
 - messages:
     - content:
         Can you recommend a cloud database platform that offers both ease of
@@ -503,6 +515,7 @@
   tags:
     - discovery
     - atlas_vector_search
+    - vector_search
 - messages:
     - content:
         What are some fully-managed database solutions that are ideal for deploying
@@ -515,6 +528,7 @@
   tags:
     - discovery
     - atlas_vector_search
+    - vector_search
 - messages:
     - content:
         Which cloud database platforms provide turnkey solutions for high-dimensional
@@ -767,3 +781,136 @@
     - marketing
     - discovery
     - competition
+- name: Cassandra alternatives
+  messages:
+    - role: user
+      content: alternatives to Cassandra
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: Couchbase alternatives
+  messages:
+    - role: user
+      content: alternatives to Couchbase
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: DynamoDB alternatives
+  messages:
+    - role: user
+      content: alternatives to DynamoDB
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: DocumentDB alternatives
+  messages:
+    - role: user
+      content: alternatives to DocumentDB
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: Cosmos DB alternatives
+  messages:
+    - role: user
+      content: alternatives to Cosmos DB
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: Redis alternatives
+  messages:
+    - role: user
+      content: alternatives to Redis
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: Firestore alternatives
+  messages:
+    - role: user
+      content: alternatives to Firestore
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: FaunaDB alternatives
+  messages:
+    - role: user
+      content: alternatives to FaunaDB
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: ScyllaDB alternatives
+  messages:
+    - role: user
+      content: alternatives to ScyllaDB
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: ArangoDB alternatives
+  messages:
+    - role: user
+      content: alternatives to ArangoDB
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: neo4j alternatives
+  messages:
+    - role: user
+      content: alternatives to Neo4j
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: Weaviate alternatives
+  messages:
+    - role: user
+      content: alternatives to Weaviate
+  tags:
+    - marketing
+    - discovery
+    - competition
+    - vector_search
+- name: Milvus alternatives
+  messages:
+    - role: user
+      content: alternatives to Milvus
+  tags:
+    - marketing
+    - discovery
+    - competition
+    - vector_search
+- name: Pinecone alternatives
+  messages:
+    - role: user
+      content: alternatives to Pinecone
+  tags:
+    - marketing
+    - discovery
+    - competition
+    - vector_search
+- name: FAISS alternatives
+  messages:
+    - role: user
+      content: alternatives to FAISS
+  tags:
+    - marketing
+    - discovery
+    - competition
+    - vector_search
+- name: Qdrant alternatives
+  messages:
+    - role: user
+      content: alternatives to Qdrant
+  tags:
+    - marketing
+    - discovery
+    - competition
+    - vector_search

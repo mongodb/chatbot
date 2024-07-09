@@ -1,6 +1,7 @@
 export * from "./checkResponseQuality";
 export * from "./evaluateConversationAverageRetrievalScore";
 export * from "./evaluateConversationFaithfulness";
+export * from "./evaluateConversationLastMessageIncludesRegex";
 export * from "./evaluateConversationQuality";
 export * from "./evaluateExpectedLinks";
 export * from "./evaluateConversationRelevancy";

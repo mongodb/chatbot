@@ -1,9 +1,5 @@
 import {
   EvalConfig,
-  makeMongoDbCommandMetadataStore,
-  makeMongoDbGeneratedDataStore,
-  makeMongoDbEvaluationStore,
-  makeMongoDbReportStore,
   QuizQuestionTestCaseData,
   QuizQuestionTestCase,
 } from "mongodb-chatbot-evaluation";
@@ -12,11 +8,12 @@ import "dotenv/config";
 import { MongoClient, assertEnvVars } from "mongodb-rag-core";
 import { envVars } from "./envVars";
 import {
-  ChatLlmEvalConfig,
+  ChatLlmQuizEvalConfig,
   makeChatLlmQuizEvalCommands,
 } from "./makeChatLlmQuizEvalCommands";
 import { makeRadiantChatLlm } from "./makeRadiantChatLlm";
 import { radiantModels } from "./radiantModels";
+import { makeBaseConfig } from "./baseConfig";
 
 // Few-shot examples
 const quizQuestionExamples = [
@@ -86,11 +83,6 @@ export default async () => {
     MONGODB_AUTH_COOKIE,
   } = assertEnvVars(envVars);
 
-  const storeDbOptions = {
-    connectionUri: MONGODB_CONNECTION_URI,
-    databaseName: MONGODB_DATABASE_NAME,
-  };
-
   const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
   await mongodb.connect();
 
@@ -127,15 +119,12 @@ export default async () => {
             },
           }),
         },
-      } satisfies ChatLlmEvalConfig;
+      } satisfies ChatLlmQuizEvalConfig;
     })
   );
 
   const evalConfig = {
-    metadataStore: makeMongoDbCommandMetadataStore(storeDbOptions),
-    generatedDataStore: makeMongoDbGeneratedDataStore(storeDbOptions),
-    evaluationStore: makeMongoDbEvaluationStore(storeDbOptions),
-    reportStore: makeMongoDbReportStore(storeDbOptions),
+    ...makeBaseConfig(MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME),
 
     commands: makeChatLlmQuizEvalCommands({
       configs: modelsConfig,

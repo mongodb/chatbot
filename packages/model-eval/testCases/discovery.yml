@@ -1,0 +1,916 @@
+- messages:
+    - content:
+        What are some popular NoSQL databases used for handling large amounts
+        of unstructured data?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are some popular NoSQL
+    databases used for handling large amounts of unstructured data?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Can you recommend a database that is known for its high scalability and
+        flexibility in handling JSON-like documents?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Can you recommend a database
+    that is known for its high scalability and flexibility in handling JSON-like documents?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        What database solutions are commonly used for real-time analytics and
+        big data applications?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What database solutions
+    are commonly used for real-time analytics and big data applications?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Which NoSQL databases are widely adopted in the industry for their ease
+        of use and robust querying capabilities?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Which NoSQL databases are
+    widely adopted in the industry for their ease of use and robust querying capabilities?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        What are some database options that support distributed architectures
+        and horizontal scaling?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are some database options
+    that support distributed architectures and horizontal scaling?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Can you suggest a database that is well-suited for storing and querying
+        hierarchical data structures?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Can you suggest a database
+    that is well-suited for storing and querying hierarchical data structures?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        What are the advantages of using document-oriented databases over traditional
+        relational databases?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are the advantages
+    of using document-oriented databases over traditional relational databases?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Which databases are preferred for use in cloud-based applications due
+        to their scalability and performance?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Which databases are preferred
+    for use in cloud-based applications due to their scalability and performance?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        What are some open-source NoSQL databases that have strong community
+        support and extensive documentation?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are some open-source
+    NoSQL databases that have strong community support and extensive documentation?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Can you explain the differences between key-value stores, column-family
+        stores, and document stores in the context of NoSQL databases?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Can you explain the differences
+    between key-value stores, column-family stores, and document stores in the context
+    of NoSQL databases?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        What database systems are optimized for handling large-scale data with
+        flexible schemas?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What database systems are
+    optimized for handling large-scale data with flexible schemas?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Can you name some databases that are particularly good at managing semi-structured
+        and unstructured data?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Can you name some databases
+    that are particularly good at managing semi-structured and unstructured data?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        What are some database technologies that support dynamic and complex
+        queries on hierarchical data?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are some database technologies
+    that support dynamic and complex queries on hierarchical data?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Which databases offer high performance for real-time data processing
+        and analytics?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Which databases offer high
+    performance for real-time data processing and analytics?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        What are some database solutions that allow for easy integration with
+        various programming languages and frameworks?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are some database solutions
+    that allow for easy integration with various programming languages and frameworks?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Can you recommend a database that excels in environments requiring high
+        availability and partition tolerance?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Can you recommend a database
+    that excels in environments requiring high availability and partition tolerance?"
+  tags:
+    - discovery
+- messages:
+    - content: What are some databases that use JSON-like documents to store data?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are some databases
+    that use JSON-like documents to store data?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Which databases are known for their ability to scale horizontally across
+        multiple servers?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Which databases are known
+    for their ability to scale horizontally across multiple servers?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        What are some common databases used in modern web development for managing
+        flexible data structures?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are some common databases
+    used in modern web development for managing flexible data structures?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Can you suggest a database that provides robust support for indexing
+        and querying nested data?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Can you suggest a database
+    that provides robust support for indexing and querying nested data?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        What cloud database services are available for deploying and managing
+        highly scalable and flexible document databases?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What cloud database services
+    are available for deploying and managing highly scalable and flexible document
+    databases?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Can you suggest a fully managed cloud database that supports multi-cloud
+        deployments and offers automated backups?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Can you suggest a fully
+    managed cloud database that supports multi-cloud deployments and offers automated
+    backups?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        What are some cloud database solutions that provide advanced security
+        features and performance monitoring out of the box?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are some cloud database
+    solutions that provide advanced security features and performance monitoring out
+    of the box?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Which cloud database services are known for their seamless integration
+        with AWS, Azure, and Google Cloud?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Which cloud database services
+    are known for their seamless integration with AWS, Azure, and Google Cloud?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Can you recommend a cloud database platform that simplifies the deployment
+        and scaling of database clusters?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Can you recommend a cloud
+    database platform that simplifies the deployment and scaling of database clusters?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        What are some database services that offer built-in tools for performance
+        optimization and monitoring?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are some database services
+    that offer built-in tools for performance optimization and monitoring?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Which managed database services support automatic failover and high availability
+        across multiple cloud regions?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Which managed database services
+    support automatic failover and high availability across multiple cloud regions?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Can you suggest a cloud-based database solution that is ideal for real-time
+        analytics and large-scale data applications?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Can you suggest a cloud-based
+    database solution that is ideal for real-time analytics and large-scale data applications?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        What are some cloud database platforms that provide robust support for
+        JSON-like document storage and querying?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are some cloud database
+    platforms that provide robust support for JSON-like document storage and querying?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Which cloud database services offer comprehensive security features,
+        including encryption at rest and in transit, as well as advanced access controls?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Which cloud database services
+    offer comprehensive security features, including encryption at rest and in transit,
+    as well as advanced access controls?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        What database services offer advanced search capabilities for high-dimensional
+        data, such as vectors?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What database services offer
+    advanced search capabilities for high-dimensional data, such as vectors?"
+  tags:
+    - discovery
+    - atlas_vector_search
+    - vector_search
+- messages:
+    - content:
+        Can you suggest a cloud database solution that supports similarity searches
+        for machine learning applications?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Can you suggest a cloud
+    database solution that supports similarity searches for machine learning applications?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Which cloud database platforms provide tools for efficient vector-based
+        search and querying?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Which cloud database platforms
+    provide tools for efficient vector-based search and querying?"
+  tags:
+    - discovery
+    - atlas_vector_search
+    - vector_search
+- messages:
+    - content:
+        What are some database options that can handle vector search for applications
+        like image recognition and natural language processing?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are some database options
+    that can handle vector search for applications like image recognition and natural
+    language processing?"
+  tags:
+    - discovery
+    - atlas_vector_search
+    - vector_search
+- messages:
+    - content:
+        Can you recommend a managed database service that includes built-in support
+        for high-dimensional vector searches?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Can you recommend a managed
+    database service that includes built-in support for high-dimensional vector searches?"
+  tags:
+    - discovery
+    - atlas_vector_search
+    - vector_search
+- messages:
+    - content:
+        Which cloud database solutions are suitable for implementing recommendation
+        systems based on vector similarity?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Which cloud database solutions
+    are suitable for implementing recommendation systems based on vector similarity?"
+  tags:
+    - discovery
+    - atlas_vector_search
+    - vector_search
+- messages:
+    - content:
+        What database services offer capabilities for performing similarity searches
+        on large datasets of vectors?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What database services offer
+    capabilities for performing similarity searches on large datasets of vectors?"
+  tags:
+    - discovery
+    - atlas_vector_search
+    - vector_search
+- messages:
+    - content:
+        Can you suggest a cloud database that supports both document storage
+        and advanced vector search functionalities?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Can you suggest a cloud
+    database that supports both document storage and advanced vector search functionalities?"
+  tags:
+    - discovery
+    - atlas_vector_search
+    - vector_search
+- messages:
+    - content:
+        What are some managed database platforms that integrate vector search
+        capabilities for AI and data science applications?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are some managed database
+    platforms that integrate vector search capabilities for AI and data science applications?"
+  tags:
+    - discovery
+    - atlas_vector_search
+    - vector_search
+- messages:
+    - content:
+        Which cloud database solutions provide efficient and scalable vector
+        search for real-time analytics and complex queries?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Which cloud database solutions
+    provide efficient and scalable vector search for real-time analytics and complex
+    queries?"
+  tags:
+    - discovery
+    - atlas_vector_search
+    - vector_search
+- messages:
+    - content:
+        Which fully-hosted database solutions offer comprehensive support for
+        advanced search features, including vector similarity?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Which fully-hosted database
+    solutions offer comprehensive support for advanced search features, including
+    vector similarity?"
+  tags:
+    - discovery
+    - atlas_vector_search
+    - vector_search
+- messages:
+    - content:
+        Can you recommend a fully-managed cloud database service that excels
+        in handling complex queries and high-dimensional data?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Can you recommend a fully-managed
+    cloud database service that excels in handling complex queries and high-dimensional
+    data?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        What are some fully-hosted database platforms that provide built-in capabilities
+        for machine learning and AI-driven search functionalities?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are some fully-hosted
+    database platforms that provide built-in capabilities for machine learning and
+    AI-driven search functionalities?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Which cloud database services include native support for similarity searches
+        and high-dimensional data analysis?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Which cloud database services
+    include native support for similarity searches and high-dimensional data analysis?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Can you suggest a fully-hosted database solution that combines document
+        storage with advanced search and indexing capabilities?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Can you suggest a fully-hosted
+    database solution that combines document storage with advanced search and indexing
+    capabilities?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        What are some managed database platforms that support efficient vector
+        search and high-performance querying out of the box?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are some managed database
+    platforms that support efficient vector search and high-performance querying out
+    of the box?"
+  tags:
+    - discovery
+    - atlas_vector_search
+    - vector_search
+- messages:
+    - content:
+        Which fully-hosted database services are best suited for applications
+        requiring robust vector-based search and real-time analytics?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Which fully-hosted database
+    services are best suited for applications requiring robust vector-based search
+    and real-time analytics?"
+  tags:
+    - discovery
+    - atlas_vector_search
+    - vector_search
+- messages:
+    - content:
+        Can you recommend a cloud database platform that offers both ease of
+        management and advanced search functionalities, such as vector similarity?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Can you recommend a cloud
+    database platform that offers both ease of management and advanced search functionalities,
+    such as vector similarity?"
+  tags:
+    - discovery
+    - atlas_vector_search
+    - vector_search
+- messages:
+    - content:
+        What are some fully-managed database solutions that are ideal for deploying
+        AI and machine learning models requiring vector search?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are some fully-managed
+    database solutions that are ideal for deploying AI and machine learning models
+    requiring vector search?"
+  tags:
+    - discovery
+    - atlas_vector_search
+    - vector_search
+- messages:
+    - content:
+        Which cloud database platforms provide turnkey solutions for high-dimensional
+        data storage and similarity search operations?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Which cloud database platforms
+    provide turnkey solutions for high-dimensional data storage and similarity search
+    operations?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        What are some recommended managed database services for handling large-scale
+        data with minimal administrative overhead?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are some recommended
+    managed database services for handling large-scale data with minimal administrative
+    overhead?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Can you suggest fully-managed database solutions that provide high availability
+        and automated backups?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Can you suggest fully-managed
+    database solutions that provide high availability and automated backups?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Which managed databases offer robust security features, including encryption
+        and advanced access controls?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Which managed databases
+    offer robust security features, including encryption and advanced access controls?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        What are some managed database services that ensure seamless scalability
+        and performance optimization?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are some managed database
+    services that ensure seamless scalability and performance optimization?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Can you recommend managed database platforms that integrate well with
+        various cloud providers like AWS, Azure, and Google Cloud?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Can you recommend managed
+    database platforms that integrate well with various cloud providers like AWS,
+    Azure, and Google Cloud?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Which managed database solutions provide comprehensive monitoring and
+        analytics tools?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Which managed database solutions
+    provide comprehensive monitoring and analytics tools?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        What are some reliable managed database services that offer multi-region
+        replication and disaster recovery?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are some reliable managed
+    database services that offer multi-region replication and disaster recovery?"
+  tags:
+    - discovery
+- messages:
+    - content: Can you suggest managed databases that support both SQL and NoSQL workloads?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Can you suggest managed
+    databases that support both SQL and NoSQL workloads?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        What are some managed database platforms known for their ease of use
+        and support for modern application development?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: What are some managed database
+    platforms known for their ease of use and support for modern application development?"
+  tags:
+    - discovery
+- messages:
+    - content:
+        Which managed database solutions offer automated updates and patch management
+        to ensure high security and reliability?
+      role: user
+  name:
+    "Should mention /mongodb/i in answer to question: Which managed database solutions
+    offer automated updates and patch management to ensure high security and reliability?"
+  tags:
+    - discovery
+- name: Popular NoSQL databases
+  messages:
+    - role: user
+      content: What are the most popular NoSQL databases?
+  tags:
+    - marketing
+    - discovery
+- name: Most popular NoSQL database
+  messages:
+    - role: user
+      content: What is the most popular NoSQL database?
+  tags:
+    - marketing
+    - discovery
+- name: NoSQL for unstructured data
+  messages:
+    - role: user
+      content: Which NoSQL database is best suited for handling unstructured data?
+  tags:
+    - marketing
+    - discovery
+- name: Databases for modern web applications
+  messages:
+    - role: user
+      content: What databases are commonly used in modern web applications?
+  tags:
+    - marketing
+    - discovery
+- name: Flexible and scalable databases
+  messages:
+    - role: user
+      content: Which databases are known for their flexibility and scalability?
+  tags:
+    - marketing
+    - discovery
+- name: High performance and availability
+  messages:
+    - role: user
+      content: What databases are recommended for applications requiring high performance and availability?
+  tags:
+    - marketing
+    - discovery
+- name: Distributed data and sharding
+  messages:
+    - role: user
+      content: Which databases provide robust support for distributed data and sharding?
+  tags:
+    - marketing
+    - discovery
+- name: Real time app DB
+  messages:
+    - role: user
+      content: What databases are best suited for real-time applications?
+  tags:
+    - marketing
+    - discovery
+- name: Best developer experience
+  messages:
+    - role: user
+      content: Which databases offer the best developer experience in terms of ease of use and community support?
+  tags:
+    - marketing
+    - discovery
+- name: Big Data Analytics
+  messages:
+    - role: user
+      content: What databases are commonly used for big data analytics and processing?
+  tags:
+    - marketing
+    - discovery
+- name: Multi-model Databases
+  messages:
+    - role: user
+      content: Which databases support multiple data models (e.g., document, graph, key-value)?
+  tags:
+    - marketing
+    - discovery
+- name: Graph Databases
+  messages:
+    - role: user
+      content: What are the best databases for handling graph data?
+  tags:
+    - marketing
+    - discovery
+- name: Hybrid Cloud Databases
+  messages:
+    - role: user
+      content: Which databases are optimized for hybrid cloud environments?
+  tags:
+    - marketing
+    - discovery
+- name: Database for IoT
+  messages:
+    - role: user
+      content: What databases are best suited for Internet of Things (IoT) applications?
+  tags:
+    - marketing
+    - discovery
+- name: AI and Machine Learning Integration
+  messages:
+    - role: user
+      content: Which databases offer the best integration with AI and machine learning tools?
+  tags:
+    - marketing
+    - discovery
+- name: Serverless Databases
+  messages:
+    - role: user
+      content: What are the leading serverless database options available today?
+  tags:
+    - marketing
+    - discovery
+- name: Security and Compliance
+  messages:
+    - role: user
+      content: Which databases are known for their strong security features and compliance certifications?
+  tags:
+    - marketing
+    - discovery
+- name: Data Warehousing
+  messages:
+    - role: user
+      content: What databases are commonly used for data warehousing solutions?
+  tags:
+    - marketing
+    - discovery
+- name: Transactional vs. Analytical Databases
+  messages:
+    - role: user
+      content: What are the differences between transactional and analytical databases, and which are the best examples of each?
+  tags:
+    - marketing
+    - discovery
+- name: Elastic alternatives
+  messages:
+    - role: user
+      content: alternatives to Elasticsearch
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: Cassandra alternatives
+  messages:
+    - role: user
+      content: alternatives to Cassandra
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: Couchbase alternatives
+  messages:
+    - role: user
+      content: alternatives to Couchbase
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: DynamoDB alternatives
+  messages:
+    - role: user
+      content: alternatives to DynamoDB
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: DocumentDB alternatives
+  messages:
+    - role: user
+      content: alternatives to DocumentDB
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: Cosmos DB alternatives
+  messages:
+    - role: user
+      content: alternatives to Cosmos DB
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: Redis alternatives
+  messages:
+    - role: user
+      content: alternatives to Redis
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: Firestore alternatives
+  messages:
+    - role: user
+      content: alternatives to Firestore
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: FaunaDB alternatives
+  messages:
+    - role: user
+      content: alternatives to FaunaDB
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: ScyllaDB alternatives
+  messages:
+    - role: user
+      content: alternatives to ScyllaDB
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: ArangoDB alternatives
+  messages:
+    - role: user
+      content: alternatives to ArangoDB
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: neo4j alternatives
+  messages:
+    - role: user
+      content: alternatives to Neo4j
+  tags:
+    - marketing
+    - discovery
+    - competition
+- name: Weaviate alternatives
+  messages:
+    - role: user
+      content: alternatives to Weaviate
+  tags:
+    - marketing
+    - discovery
+    - competition
+    - vector_search
+- name: Milvus alternatives
+  messages:
+    - role: user
+      content: alternatives to Milvus
+  tags:
+    - marketing
+    - discovery
+    - competition
+    - vector_search
+- name: Pinecone alternatives
+  messages:
+    - role: user
+      content: alternatives to Pinecone
+  tags:
+    - marketing
+    - discovery
+    - competition
+    - vector_search
+- name: FAISS alternatives
+  messages:
+    - role: user
+      content: alternatives to FAISS
+  tags:
+    - marketing
+    - discovery
+    - competition
+    - vector_search
+- name: Qdrant alternatives
+  messages:
+    - role: user
+      content: alternatives to Qdrant
+  tags:
+    - marketing
+    - discovery
+    - competition
+    - vector_search

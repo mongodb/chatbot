@@ -40,6 +40,9 @@ describe("makeGenerateLlmConversationData", () => {
       chatLlm: makeLangchainChatLlm({
         chatModel: throwingLlm,
       }),
+      backOffOptions: {
+        numOfAttempts: 1,
+      },
     });
     const conversationData = await generateLlmConversationData({
       runId: new ObjectId(),
@@ -54,6 +57,7 @@ describe("makeGenerateLlmConversationData", () => {
       makeGenerateLlmConversationData({
         chatLlm: mockChatLlm,
         sleepMs: SLEEP_TIME,
+        concurrency: 1,
       });
     const start = Date.now();
     await generateLlmConversationDataWithSleep({

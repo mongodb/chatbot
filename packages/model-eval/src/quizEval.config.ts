@@ -10,7 +10,7 @@ import { envVars } from "./envVars";
 import {
   ChatLlmQuizEvalConfig,
   makeChatLlmQuizEvalCommands,
-} from "./makeChatLlmEvalCommands";
+} from "./makeChatLlmQuizEvalCommands";
 import { makeRadiantChatLlm } from "./makeRadiantChatLlm";
 import { radiantModels } from "./radiantModels";
 import { makeBaseConfig } from "./baseConfig";
@@ -82,11 +82,6 @@ export default async () => {
     RADIANT_ENDPOINT,
     MONGODB_AUTH_COOKIE,
   } = assertEnvVars(envVars);
-
-  const storeDbOptions = {
-    connectionUri: MONGODB_CONNECTION_URI,
-    databaseName: MONGODB_DATABASE_NAME,
-  };
 
   const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
   await mongodb.connect();

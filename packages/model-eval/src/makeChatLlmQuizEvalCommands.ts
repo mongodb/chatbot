@@ -6,13 +6,14 @@ import {
   QuizQuestionTestCase,
   reportStatsForBinaryEvalRun,
 } from "mongodb-chatbot-evaluation";
-export interface ChatLlmEvalConfig {
+
+export interface ChatLlmQuizEvalConfig {
   generatorConfig: MakeGenerateQuizDataParams;
   name: string;
 }
 
 interface MakeChatLlmQuizEvalCommandsParams {
-  configs: ChatLlmEvalConfig[];
+  configs: ChatLlmQuizEvalConfig[];
   quizQuestions: QuizQuestionTestCase[];
 }
 

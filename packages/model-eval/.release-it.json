@@ -1,0 +1,24 @@
+{
+  "git": {
+    "commitArgs": ["-a"],
+    "commitMessage": "Release ${npm.name} v${version}",
+    "changelog": "git log --pretty=format:'* %s (%h)' ${latestTag}..HEAD -- .",
+    "tagMatch": "${npm.name}-*",
+    "getLatestTagFromAllRefs": true,
+    "tag": true,
+    "push": true,
+    "pushRepo": "upstream",
+    "tagName": "${npm.name}-v${version}"
+  },
+  "npm": {
+    "publish": false
+  },
+  "github": {
+    "releaseName": "${npm.name}-v${version}",
+    "draft": true,
+    "release": true
+  },
+  "hooks": {
+    "before:init": ["pushd .. && npm run build && popd"]
+  }
+}

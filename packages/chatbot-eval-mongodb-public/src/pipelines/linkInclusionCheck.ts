@@ -4,12 +4,13 @@ import configConstructor from "../eval.config";
 runPipeline({
   configConstructor,
   pipeline: async (generate, evaluate, report) => {
-    const { _id: genRunId } = await generate("linkConversations");
+    const {
+      commandRunMetadata: { _id: genRunId },
+    } = await generate("linkConversations");
 
-    const { _id: qualityEvalRunId } = await evaluate(
-      "conversationLinkInclusion",
-      genRunId
-    );
+    const {
+      commandRunMetadata: { _id: qualityEvalRunId },
+    } = await evaluate("conversationLinkInclusion", genRunId);
     await report("linkConversationRun", qualityEvalRunId);
   },
 });

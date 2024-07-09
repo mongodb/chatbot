@@ -42,6 +42,7 @@ const generateConversationData = (expectedLinks?: string[]) =>
       name: "User name",
       expectedLinks,
     },
+    createdAt: new Date(),
   } satisfies ConversationGeneratedData);
 describe("evaluateExpectedLinks", () => {
   it("should return 1 when all expected links are found in the assistant message", async () => {

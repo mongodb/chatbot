@@ -1,7 +1,7 @@
+import { References } from "mongodb-rag-core";
 import {
   AssistantMessageMetadata,
   MessageData,
-  Role,
 } from "./services/conversations";
 
 export function createMessageId() {
@@ -10,19 +10,23 @@ export function createMessageId() {
   return String(now + nonce);
 }
 
-export default function createMessage(
-  role: Role,
-  content: string,
-  metadata?: AssistantMessageMetadata
-): MessageData {
+export type CreateMessageArgs =
+  | {
+      role: "assistant";
+      content: string;
+      references?: References;
+      metadata?: AssistantMessageMetadata;
+    }
+  | {
+      role: "user";
+      content: string;
+    };
+
+export default function createMessage(args: CreateMessageArgs): MessageData {
   const message: MessageData = {
     id: createMessageId(),
-    role,
-    content,
     createdAt: new Date().toISOString(),
+    ...args,
   };
-  if (metadata) {
-    message.metadata = metadata;
-  }
   return message;
 }

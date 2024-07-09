@@ -328,7 +328,7 @@ async function sendStaticResponse({
       data: apiRes.content,
     });
 
-    if (references) {
+    if (references && references.length > 0) {
       dataStreamer.streamData({
         type: "references",
         data: references,

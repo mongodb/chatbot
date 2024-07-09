@@ -1,5 +1,11 @@
 import { QuizGeneratedData } from "./GeneratedDataStore";
-import { ChatLlm, ObjectId, UserMessage } from "mongodb-chatbot-server";
+import {
+  ChatLlm,
+  Message,
+  ObjectId,
+  SystemMessage,
+  UserMessage,
+} from "mongodb-chatbot-server";
 import { logger } from "mongodb-rag-core";
 import { GenerateDataFunc } from "./GenerateDataFunc";
 import {
@@ -91,7 +97,7 @@ export const makeGenerateLlmQuizQuestionAnswer = function ({
         `Generating data for test case: '${testCase.data.questionText}'`
       );
 
-      const prompt = makeQuizQuestionPrompt({
+      const prompt = makeHelmQuizQuestionPrompt({
         quizQuestionExamples,
         quizQuestion: testCase.data,
         subject,
@@ -126,7 +132,7 @@ export const makeGenerateLlmQuizQuestionAnswer = function ({
   };
 };
 
-function quizQuestionToPrompt(
+export function quizQuestionToHelmPrompt(
   quizQuestion: QuizQuestionTestCaseData,
   includeAnswer: boolean
 ): string {
@@ -134,17 +140,32 @@ function quizQuestionToPrompt(
 ${quizQuestion.answers
   .map((answer) => `${answer.label}. ${answer.answer}`)
   .join("\n")}
-Response:
-${
-  includeAnswer
-    ? quizQuestion.answers.map((answer) => answer.label).join(",")
-    : ""
-}`.trim();
+Response: ${
+    includeAnswer
+      ? quizQuestion.answers
+          .filter((ans) => ans.isCorrect)
+          .map((answer) => answer.label)
+          .join(",")
+      : ""
+  }`;
 }
-function makeQuizQuestionPrompt({
+
+type UserOrSystemMessage = UserMessage | SystemMessage;
+/**
+  Generate prompt for multiple-choice quiz questions using a large language model (LLM).
+
+  This can be useful for evaluating how an LLM performs on the subject matter of the multiple choice questions.
+
+  The prompt is based on this blog post from Hugging Face: https://huggingface.co/blog/open-llm-leaderboard-mmlu
+  It follows the [HELM prompt format](https://huggingface.co/blog/open-llm-leaderboard-mmlu#mmlu-comes-in-all-shapes-and-sizes-looking-at-the-prompts).
+
+  You can optionally include examples for [few-shot prompting](https://www.promptingguide.ai/techniques/fewshot) for consistent model output.
+ */
+export function makeHelmQuizQuestionPrompt({
   quizQuestionExamples,
   quizQuestion,
   subject,
+  messageRole = "user",
 }: {
   /**
     Few-shot examples to show the model how to respond.
@@ -152,25 +173,33 @@ function makeQuizQuestionPrompt({
   quizQuestionExamples?: QuizQuestionTestCaseData[];
   /**
     Few words of the subject of the quiz questions.
+    Included in the prompt
    */
   subject?: string;
   /**
     Quiz question to generate a prompt for.
    */
   quizQuestion: QuizQuestionTestCaseData;
-}): UserMessage {
+  /**
+    Role of the generated message.
+    @default "user"
+   */
+  messageRole?: UserOrSystemMessage["role"];
+}): UserOrSystemMessage {
   const content = `The following are multiple choice questions (with answers)${
     subject ? ` about ${subject}` : ""
   }.
 Only provide the answer the final question using the exact same format as the previous questions. Just provide the letters, e.g. A,B,C,D
 
-${quizQuestionExamples
-  ?.map((example) => quizQuestionToPrompt(example, true))
-  .join("\n\n")}
-
-${quizQuestionToPrompt(quizQuestion, false)}`;
+${
+  quizQuestionExamples
+    ? quizQuestionExamples
+        ?.map((example) => quizQuestionToHelmPrompt(example, true))
+        .join("\n\n") + "\n\n"
+    : ""
+}${quizQuestionToHelmPrompt(quizQuestion, false)}`;
   return {
     content,
-    role: "user",
+    role: messageRole,
   };
 }

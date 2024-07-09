@@ -39,7 +39,11 @@ export interface EmbeddedContent {
     Arbitrary metadata associated with the content. If the content text has
     metadata in Front Matter format, this metadata should match that metadata.
    */
-  metadata?: { tags?: string[]; [k: string]: unknown };
+  metadata?: {
+    pageTitle?: string;
+    tags?: string[];
+    [k: string]: unknown;
+  };
 
   /**
     The order of the chunk if this content was chunked from a larger page.
@@ -80,4 +84,13 @@ export type EmbeddedContentStore = VectorStore<EmbeddedContent> & {
     Close connection to data store.
    */
   close?: () => Promise<void>;
+
+  /**
+    Additional implementation-specific metadata about the store. This metadata is
+    not directly used by the store itself, but may be useful for testing,
+    debugging, and logging.
+   */
+  metadata?: {
+    [k: string]: unknown;
+  };
 };

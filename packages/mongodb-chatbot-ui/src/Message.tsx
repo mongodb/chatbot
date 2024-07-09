@@ -31,7 +31,9 @@ import { palette } from "@leafygreen-ui/palette";
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { CharacterCount } from "./InputBar";
 import { useChatbotContext } from "./useChatbotContext";
+import { useLinkData } from "./useLinkData";
 import { headingStyle, disableSetextHeadings } from "./markdownHeadingStyle";
+import { formatReferences } from "./messageLinks";
 
 const TRANSITION_DURATION_MS = 300;
 
@@ -271,6 +273,11 @@ export const Message = ({
       }
     : undefined;
 
+  const { tck } = useLinkData();
+  const messageLinks = messageData.references
+    ? formatReferences(messageData.references, { tck })
+    : undefined;
+
   return (
     <Fragment key={messageData.id}>
       <LGMessage
@@ -281,6 +288,7 @@ export const Message = ({
         markdownProps={markdownProps}
         messageBody={messageData.content}
         verified={verified}
+        links={messageLinks}
         componentOverrides={{ MessageContent }}
       >
         {isLoading ? <LoadingSkeleton /> : null}

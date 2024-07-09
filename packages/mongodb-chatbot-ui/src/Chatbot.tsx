@@ -2,26 +2,20 @@ import LeafyGreenProvider, {
   useDarkMode,
 } from "@leafygreen-ui/leafygreen-provider";
 import { UserProvider } from "./UserProvider";
-import { useChatbot, OpenCloseHandlers } from "./useChatbot";
+import { useChatbot, OpenCloseHandlers, UseChatbotProps } from "./useChatbot";
 import { LinkDataProvider } from "./LinkDataProvider";
 import { type User } from "./useUser";
 import { ChatbotProvider } from "./ChatbotProvider";
-import { ConversationFetchOptions } from "./services/conversations";
 import ConversationProvider from "./ConversationProvider";
+import { RenameFields } from "./utils";
 
-export type ChatbotProps = OpenCloseHandlers & {
-  children: React.ReactElement | React.ReactElement[];
-  darkMode?: boolean;
-  isExperimental?: boolean;
-  maxInputCharacters?: number;
-  maxCommentCharacters?: number;
-  name?: string;
-  serverBaseUrl?: string;
-  shouldStream?: boolean;
-  tck?: string;
-  user?: User;
-  fetchOptions?: ConversationFetchOptions;
-};
+export type ChatbotProps = OpenCloseHandlers &
+  RenameFields<UseChatbotProps, { chatbotName: "name" }> & {
+    children: React.ReactElement | React.ReactElement[];
+    darkMode?: boolean;
+    tck?: string;
+    user?: User;
+  };
 
 export function Chatbot({
   children,
@@ -30,6 +24,7 @@ export function Chatbot({
   user,
   name,
   fetchOptions,
+  isExperimental,
   onOpen,
   onClose,
   ...props
@@ -49,6 +44,7 @@ export function Chatbot({
     serverBaseUrl,
     shouldStream,
     fetchOptions,
+    isExperimental,
     maxInputCharacters,
     maxCommentCharacters,
     onOpen,

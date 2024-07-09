@@ -1,9 +1,10 @@
 import { stripIndent } from "common-tags";
 import { strict as assert } from "assert";
-import { DatabaseConnection } from "./DatabaseConnection";
-import { EmbeddedContentStore } from "./EmbeddedContent";
 import { FindNearestNeighborsOptions } from "./VectorStore";
-import { makeMongoDbEmbeddedContentStore } from "./MongoDbEmbeddedContentStore";
+import {
+  type MongoDbEmbeddedContentStore,
+  makeMongoDbEmbeddedContentStore,
+} from "./MongoDbEmbeddedContentStore";
 import { assertEnvVars } from "./assertEnvVars";
 import { CORE_ENV_VARS } from "./CoreEnvVars";
 import { makeOpenAiEmbedder } from "./OpenAiEmbedder";
@@ -21,7 +22,7 @@ const {
 } = assertEnvVars(CORE_ENV_VARS);
 
 describe("MongoDbEmbeddedContentStore", () => {
-  let store: (DatabaseConnection & EmbeddedContentStore) | undefined;
+  let store: MongoDbEmbeddedContentStore | undefined;
   beforeEach(async () => {
     // Need to use real Atlas connection in order to run vector searches
     const databaseName = `test-database-${Date.now()}`;
@@ -118,7 +119,7 @@ describe("nearest neighbor search", () => {
     minScore: 0.9,
   };
 
-  let store: (DatabaseConnection & EmbeddedContentStore) | undefined;
+  let store: MongoDbEmbeddedContentStore | undefined;
   beforeEach(async () => {
     // Need to use real Atlas connection in order to run vector searches
     const databaseName = MONGODB_DATABASE_NAME;
@@ -146,7 +147,7 @@ describe("nearest neighbor search", () => {
       findNearestNeighborOptions
     );
     expect(matches).toHaveLength(5);
-  });
+  }, 20000);
   test("Should filter content to only match specific sourceName", async () => {
     assert(store);
     const query = "db.collection.insertOne()";
@@ -165,7 +166,7 @@ describe("nearest neighbor search", () => {
     expect(
       matches.filter((match) => match.sourceName !== "snooty-docs")
     ).toHaveLength(0);
-  });
+  }, 20000);
   test("Should filter content to not match a non-existent source", async () => {
     assert(store);
     const query = "db.collection.insertOne()";
@@ -187,7 +188,7 @@ describe("nearest neighbor search", () => {
       findNearestNeighborOptions
     );
     expect(matches.length).toBeGreaterThan(0);
-  });
+  }, 20000);
 
   it("does not find nearest neighbors for irrelevant query", async () => {
     assert(store);
@@ -205,5 +206,23 @@ describe("nearest neighbor search", () => {
       findNearestNeighborOptions
     );
     expect(matches).toHaveLength(0);
+  });
+
+  it("has an overridable default collection name", async () => {
+    assert(store);
+
+    expect(store.metadata.collectionName).toBe("embedded_content");
+
+    const storeWithCustomCollectionName = await makeMongoDbEmbeddedContentStore(
+      {
+        connectionUri: MONGODB_CONNECTION_URI,
+        databaseName: store.metadata.databaseName,
+        collectionName: "custom-embedded_content",
+      }
+    );
+
+    expect(storeWithCustomCollectionName.metadata.collectionName).toBe(
+      "custom-embedded_content"
+    );
   });
 });

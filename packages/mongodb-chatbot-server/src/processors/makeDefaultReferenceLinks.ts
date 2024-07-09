@@ -22,9 +22,15 @@ export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
   });
 
   return uniqueChunks.map((chunk) => {
+    const url = new URL(chunk.url).href;
+    const title = chunk.metadata?.pageTitle ?? url;
     return {
-      title: (chunk.metadata?.pageTitle as string) ?? chunk.url,
-      url: chunk.url,
+      title,
+      url,
+      metadata: {
+        sourceName: chunk.sourceName,
+        tags: chunk.metadata?.tags ?? [],
+      },
     };
   });
 };

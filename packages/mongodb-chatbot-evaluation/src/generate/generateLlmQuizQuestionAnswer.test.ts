@@ -186,7 +186,17 @@ D. Enchiladas
 Response: B`
     );
   });
-  it("should not include the answer when `includeAnswer: false`", () => {});
+  it("should not include the answer when `includeAnswer: false`", () => {
+    const prompt = quizQuestionToHelmPrompt(testQuestion, false);
+    expect(prompt).toMatch(
+      `What's the best Italian food?
+A. Tacos
+B. Pizza
+C. Sushi
+D. Enchiladas
+Response: `
+    );
+  });
 });
 describe("makeHelmQuizQuestionPrompt", () => {
   it("should generate a prompt", () => {

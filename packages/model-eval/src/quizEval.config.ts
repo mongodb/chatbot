@@ -1,9 +1,5 @@
 import {
   EvalConfig,
-  makeMongoDbCommandMetadataStore,
-  makeMongoDbGeneratedDataStore,
-  makeMongoDbEvaluationStore,
-  makeMongoDbReportStore,
   QuizQuestionTestCaseData,
   QuizQuestionTestCase,
 } from "mongodb-chatbot-evaluation";
@@ -17,6 +13,7 @@ import {
 } from "./makeChatLlmEvalCommands";
 import { makeRadiantChatLlm } from "./makeRadiantChatLlm";
 import { radiantModels } from "./radiantModels";
+import { makeBaseConfig } from "./baseConfig";
 
 // Few-shot examples
 const quizQuestionExamples = [
@@ -132,10 +129,7 @@ export default async () => {
   );
 
   const evalConfig = {
-    metadataStore: makeMongoDbCommandMetadataStore(storeDbOptions),
-    generatedDataStore: makeMongoDbGeneratedDataStore(storeDbOptions),
-    evaluationStore: makeMongoDbEvaluationStore(storeDbOptions),
-    reportStore: makeMongoDbReportStore(storeDbOptions),
+    ...makeBaseConfig(MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME),
 
     commands: makeChatLlmQuizEvalCommands({
       configs: modelsConfig,

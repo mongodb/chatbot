@@ -1,9 +1,5 @@
 import {
   EvalConfig,
-  makeMongoDbCommandMetadataStore,
-  makeMongoDbGeneratedDataStore,
-  makeMongoDbEvaluationStore,
-  makeMongoDbReportStore,
   getConversationsTestCasesFromYaml,
 } from "mongodb-chatbot-evaluation";
 import fs from "fs";
@@ -14,6 +10,7 @@ import { envVars } from "./envVars";
 import { makeChatLlmConversationEvalCommands } from "./makeChatLlmEvalCommands";
 import { makeRadiantChatLlm } from "./makeRadiantChatLlm";
 import { radiantModels } from "./radiantModels";
+import { makeBaseConfig } from "./baseConfig";
 
 export default async () => {
   const {
@@ -56,11 +53,7 @@ export default async () => {
   );
 
   const evalConfig = {
-    metadataStore: makeMongoDbCommandMetadataStore(storeDbOptions),
-    generatedDataStore: makeMongoDbGeneratedDataStore(storeDbOptions),
-    evaluationStore: makeMongoDbEvaluationStore(storeDbOptions),
-    reportStore: makeMongoDbReportStore(storeDbOptions),
-
+    ...makeBaseConfig(MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME),
     commands: makeChatLlmConversationEvalCommands({
       chatLlmConfigs,
       testCases: discoveryConversationTestCases,

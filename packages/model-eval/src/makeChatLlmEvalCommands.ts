@@ -68,10 +68,6 @@ export function makeChatLlmQuizEvalCommands({
   } satisfies EvalConfig["commands"];
   return commands;
 }
-
-export interface ChatLlmConversationsEvalConfig {
-  name: string;
-}
 interface MakeChatLlmConversationEvalCommandsParams {
   chatLlmConfigs: {
     chatLlm: ChatLlm;

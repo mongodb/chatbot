@@ -5,6 +5,11 @@ import { stripIndents } from "common-tags";
 import { StyleGuide } from "./StyleGuide";
 
 export const ReleaseInfo = z.object({
+  version: z.string().describe(stripIndents`
+    The version of the software project that these release notes
+    describe. This should be a version number that is unique to
+    this release and follows the project's versioning scheme.
+  `),
   github: GitHubReleaseInfo.optional(),
   jira: JiraReleaseInfo.optional(),
   styleGuide: StyleGuide.optional(),

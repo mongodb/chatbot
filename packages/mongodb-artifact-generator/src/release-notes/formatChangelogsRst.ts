@@ -1,7 +1,14 @@
+import { stripIndents } from "common-tags";
 import { ClassifiedChangelog } from "./classifyChangelog";
 import { title as titleCase } from "case";
 
-export function formatChangelogsRst(changelogs: ClassifiedChangelog[]) {
+export function formatChangelogsRst({
+  versionName,
+  changelogs,
+}: {
+  versionName: string;
+  changelogs: ClassifiedChangelog[];
+}) {
   // Filter out internal changes
   const externalChangelogs = changelogs.filter(
     (c) => c.audience.type !== "internal"
@@ -25,5 +32,10 @@ export function formatChangelogsRst(changelogs: ClassifiedChangelog[]) {
     })
     .join("\n\n");
 
-  return formattedChangelogs;
+  return stripIndents`
+    ${versionName}
+    ${"~".repeat(versionName.length)}
+
+    ${formattedChangelogs}
+  `;
 }

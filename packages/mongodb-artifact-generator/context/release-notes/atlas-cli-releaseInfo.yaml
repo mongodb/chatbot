@@ -1,11 +1,5 @@
-# github:
-#   owner: "mongodb"
-#   repo: "mongodb-atlas-cli"
-#   version: "atlascli/v1.23.0"
-#   previousVersion: "atlascli/v1.22.0"
-# jira:
-#   project: "CLOUDP"
-#   version: "atlascli-1.23.0"
+product: MongoDB Atlas CLI
+version: v1.22.0
 github:
   owner: "mongodb"
   repo: "mongodb-atlas-cli"
@@ -14,14 +8,6 @@ github:
 jira:
   project: "CLOUDP"
   version: "atlascli-1.22.0"
-# github:
-#   owner: "mongodb"
-#   repo: "mongodb-atlas-cli"
-#   version: "atlascli/v1.18.0"
-#   previousVersion: "atlascli/v1.17.0"
-# jira:
-#   project: "CLOUDP"
-#   version: "atlascli-1.18.0"
 styleGuide:
   summary:
     description:

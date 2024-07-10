@@ -229,9 +229,12 @@ export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
       JSON.stringify(dedupedExternalClassifiedChangelogs)
     );
 
-    const changelogReStructuredText = formatChangelogsRst(
-      dedupedExternalClassifiedChangelogs.map((c) => parsePrintableChangelog(c))
-    );
+    const changelogReStructuredText = formatChangelogsRst({
+      versionName: releaseInfo.version,
+      changelogs: dedupedExternalClassifiedChangelogs.map((c) =>
+        parsePrintableChangelog(c)
+      ),
+    });
     logger.appendArtifact("changelog.rst", changelogReStructuredText);
   }
 );

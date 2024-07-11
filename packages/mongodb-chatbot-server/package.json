@@ -38,7 +38,8 @@
   },
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.5",
-    "@langchain/core": "^0.1.25",
+    "@langchain/core": "^0.2.9",
+    "@langchain/openai": "^0.2.1",
     "common-tags": "^1.8.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
@@ -47,7 +48,7 @@
     "express-slow-down": "^1.6.0",
     "gpt3-tokenizer": "^1.1.5",
     "ip-address": "^8.1.0",
-    "langchain": "^0.1.16",
+    "langchain": "^0.2.9",
     "lodash.clonedeep": "^4.5.0",
     "mongodb-rag-core": "*",
     "openai": "^3.2.1",

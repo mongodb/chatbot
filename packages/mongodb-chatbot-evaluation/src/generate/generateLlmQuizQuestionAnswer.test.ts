@@ -5,7 +5,6 @@ import {
   quizQuestionToHelmPrompt,
 } from "./generateLlmQuizQuestionAnswer";
 import { FakeListChatModel } from "@langchain/core/utils/testing";
-import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { QuizQuestionTestCaseData } from "./TestCase";
 import { QuizGeneratedData } from "./GeneratedDataStore";
 

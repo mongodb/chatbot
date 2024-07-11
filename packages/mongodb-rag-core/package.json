@@ -61,7 +61,7 @@
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.5",
     "@langchain/azure-openai": "^0.0.6",
-    "@langchain/core": "^0.1.53",
+    "@langchain/core": "^0.2.9",
     "common-tags": "^1",
     "dotenv": "^16.3.1",
     "exponential-backoff": "^3.1.1",

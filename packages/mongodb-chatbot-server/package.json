@@ -39,7 +39,6 @@
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.5",
     "@langchain/core": "^0.2.9",
-    "@langchain/openai": "^0.2.1",
     "common-tags": "^1.8.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
@@ -63,7 +62,8 @@
     "@babel/core": "^7.22.5",
     "@babel/preset-env": "^7.22.5",
     "@babel/preset-typescript": "^7.22.5",
-    "@langchain/anthropic": "^0.1.9",
+    "@langchain/anthropic": "^0.2.3",
+    "@langchain/openai": "^0.2.1",
     "@types/common-tags": "^1.8.1",
     "@types/connect-timeout": "^0.0.37",
     "@types/cors": "^2.8.13",

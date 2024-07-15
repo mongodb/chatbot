@@ -35,6 +35,7 @@ export interface PatronusClientParams {
    */
   globalTags?: Record<string, string>;
 }
+
 /**
   Interact with [Patronus AI evaluators](https://docs.patronus.ai/docs/evaluators)
   via [Patronus RESTful API](https://docs.patronus.ai/reference/patronus-ai-api).
@@ -84,7 +85,7 @@ export class PatronusEvaluatorClient {
   async evaluateContextRelevanceV1(
     input: string,
     contexts: string[],
-    tags: Record<string, string>
+    tags?: Record<string, string>
   ) {
     return await this.callEvaluatorApi(
       "retrieval-context-relevance-v1",

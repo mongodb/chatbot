@@ -15,6 +15,9 @@ export const PatronusEvaluationApiResultSchema = z.object({
     pass: z.boolean().nullable(),
   }),
 });
+export type PatronusEvaluationApiResult = z.infer<
+  typeof PatronusEvaluationApiResultSchema
+>;
 
 const PatronusEvaluationApiResponseSchema = z.object({
   results: z.array(PatronusEvaluationApiResultSchema),
@@ -127,7 +130,7 @@ export class PatronusEvaluatorClient {
       contexts?: string[];
     },
     tags?: Record<string, string>
-  ) {
+  ): Promise<PatronusEvaluationApiResult> {
     const res = await axios.post(
       `${this.baseUrl}/evaluate`,
       {
@@ -141,23 +144,25 @@ export class PatronusEvaluatorClient {
         evaluated_model_retrieved_context: data.contexts,
         evaluated_model_output: data.output,
         capture: "all",
-        tags: {
-          ...(this.globalTags ?? {}),
-          ...(tags ?? {}),
-        },
-        confidence_interval_strategy: "generated",
+        tags:
+          this.globalTags || tags
+            ? {
+                ...(this.globalTags ?? {}),
+                ...(tags ?? {}),
+              }
+            : undefined,
       },
       {
         headers: this.headers,
       }
     );
-    console.log(res.data);
+
     const safeRes = PatronusEvaluationApiResponseSchema.parse(res.data);
-    console.log({ safeRes });
     assert(
       safeRes.results.length === 1,
       "There should only be one response object"
     );
+    console.log(safeRes.results[0].evaluation_result);
     return safeRes.results[0];
   }
 }

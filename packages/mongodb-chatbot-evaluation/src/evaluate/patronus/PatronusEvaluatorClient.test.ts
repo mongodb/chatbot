@@ -1,6 +1,7 @@
 import {
   PatronusEvaluatorClient,
   PatronusClientParams,
+  PatronusEvaluationApiResult,
 } from "./PatronusEvaluatorClient";
 import assert from "assert/strict";
 
@@ -13,6 +14,17 @@ const testData = {
   output: "The capital of France is Paris",
   tags: { project: "integration-test-project" },
 };
+
+const expected = {
+  status: "success",
+  evaluation_result: {
+    id: expect.any(String),
+    explanation: expect.any(String),
+    app: expect.any(String),
+    score_normalized: 1,
+    pass: true,
+  },
+} satisfies Partial<PatronusEvaluationApiResult>;
 describe("PatronusEvaluatorClient Integration Tests", () => {
   const apiKey = process.env.PATRONUS_API_KEY;
   assert(apiKey, "Patronus API key must be defined");
@@ -31,7 +43,7 @@ describe("PatronusEvaluatorClient Integration Tests", () => {
   it("should evaluate answer relevance v2", async () => {
     const result = await client.evaluateAnswerRelevanceV2(input, output, tags);
 
-    expect(result).toBeTruthy();
+    expect(result).toMatchObject(expected);
   });
 
   it("should evaluate context relevance v1", async () => {
@@ -41,7 +53,7 @@ describe("PatronusEvaluatorClient Integration Tests", () => {
       tags
     );
 
-    expect(result).toBeTruthy();
+    expect(result).toMatchObject(expected);
   });
 
   it("should evaluate hallucination v2", async () => {
@@ -52,6 +64,6 @@ describe("PatronusEvaluatorClient Integration Tests", () => {
       tags
     );
 
-    expect(result).toBeTruthy();
+    expect(result).toMatchObject(expected);
   });
 });

@@ -25,7 +25,7 @@ const expected = {
     pass: true,
   },
 } satisfies Partial<PatronusEvaluationApiResult>;
-describe("PatronusEvaluatorClient Integration Tests", () => {
+describe.skip("PatronusEvaluatorClient Integration Tests", () => {
   const apiKey = process.env.PATRONUS_API_KEY;
   assert(apiKey, "Patronus API key must be defined");
   const clientParams: PatronusClientParams = {

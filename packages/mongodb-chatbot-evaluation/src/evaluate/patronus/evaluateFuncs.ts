@@ -141,7 +141,7 @@ function getLastUserMessageFromConversation(
     .reverse()
     .find((m) => m.role === "user");
   assert(userMessage, "Conversation must have a UserMessage");
-  return userMessage satisfies UserMessage;
+  return userMessage as UserMessage;
 }
 function getLastAssistantMessageFromConversation(
   conversation: Conversation
@@ -150,13 +150,13 @@ function getLastAssistantMessageFromConversation(
     .reverse()
     .find((m) => m.role === "assistant");
   assert(assistantMessage, "Conversation must have a AssistantMessage");
-  return assistantMessage satisfies AssistantMessage;
+  return assistantMessage as AssistantMessage;
 }
 
 function getContextsFromUserMessage(userMessage: UserMessage) {
   const { data: contexts } = z
     .array(z.string())
     .safeParse(userMessage.contextContent?.map((cc) => cc.text));
-  assert(contexts, "Last user message must have contextContent with text");
-  return contexts;
+  // Return empty array if no context text found
+  return contexts ?? [];
 }

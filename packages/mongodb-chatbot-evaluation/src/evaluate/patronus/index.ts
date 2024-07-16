@@ -1,2 +1,2 @@
 export * from "./PatronusEvaluatorClient";
-export * from "./PatronusEvaluateFuncFactory";
+export * from "./evaluateFuncs";

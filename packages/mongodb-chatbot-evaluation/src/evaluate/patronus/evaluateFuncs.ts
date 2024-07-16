@@ -11,14 +11,14 @@ import {
 } from "./PatronusEvaluatorClient";
 import assert from "assert/strict";
 import { z } from "zod";
-import { SomeGeneratedData } from "../../generate";
+import { QuizGeneratedData, SomeGeneratedData } from "../../generate";
 import { EvalResult } from "../EvaluationStore";
 
 /**
   Evaluates using `retrieval-answer-relevance-v2`.
   Measures whether the model answer is relevant to the user input.
  */
-export function makeEvaluateAnswerRelevanceV2(
+export function makeEvaluateConversationAnswerRelevanceV2(
   patronusEvaluatorClient: PatronusEvaluatorClient,
   tags?: Record<string, string>
 ): EvaluateQualityFunc {
@@ -50,7 +50,7 @@ export function makeEvaluateAnswerRelevanceV2(
   Evaluates using `retrieval-context-relevance-v1`.
   Measures whether the retrieved context is relevant to the user input.
  */
-export function makeEvaluateContextRelevanceV1(
+export function makeEvaluateConversationContextRelevanceV1(
   patronusEvaluatorClient: PatronusEvaluatorClient,
   tags?: Record<string, string>
 ): EvaluateQualityFunc {
@@ -82,7 +82,7 @@ export function makeEvaluateContextRelevanceV1(
   Measures whether the generated model output is faithful to the retrieved context
   (i.e. is there a hallucination in the response).
  */
-export function makeEvaluateHallucinationV2(
+export function makeEvaluateConversationHallucinationV2(
   patronusEvaluatorClient: PatronusEvaluatorClient,
   tags?: Record<string, string>
 ): EvaluateQualityFunc {
@@ -111,6 +111,63 @@ export function makeEvaluateHallucinationV2(
   };
 }
 
+export function makeEvaluateConversationCustomV1(
+  patronusEvaluatorClient: PatronusEvaluatorClient,
+  evaluatorProfile: string,
+  tags?: Record<string, string>
+): EvaluateQualityFunc {
+  return async ({ generatedData, runId }) => {
+    const conversation = getConversationFromGeneratedData(generatedData);
+    const lastUserMessage = getLastUserMessageFromConversation(conversation);
+    const lastAssistantMessage =
+      getLastAssistantMessageFromConversation(conversation);
+
+    const evaluation = await patronusEvaluatorClient.evaluateCustomV1(
+      evaluatorProfile,
+      {
+        input: lastUserMessage.content,
+        output: lastAssistantMessage.content,
+      },
+      {
+        ...(tags ?? {}),
+        runId: runId.toString(),
+      }
+    );
+    return makeEvalResult(
+      runId,
+      generatedData,
+      "patronus-retrieval-custom-v1",
+      evaluation
+    );
+  };
+}
+
+export function makeEvaluateQuizExactMatchV1(
+  patronusEvaluatorClient: PatronusEvaluatorClient,
+  tags?: Record<string, string>
+): EvaluateQualityFunc {
+  return async ({ generatedData, runId }) => {
+    const quizGeneratedData = getQuizGeneratedData(generatedData);
+    const correctAnswer = getCorrectAnswer(quizGeneratedData);
+    const modelAnswer = getModelAnswer(quizGeneratedData);
+
+    const evaluation = await patronusEvaluatorClient.evaluateExactMatch(
+      modelAnswer,
+      correctAnswer,
+      {
+        ...(tags ?? {}),
+        runId: runId.toString(),
+      }
+    );
+    return makeEvalResult(
+      runId,
+      generatedData,
+      "patronus-exact-match",
+      evaluation
+    );
+  };
+}
+
 function makeEvalResult(
   runId: ObjectId,
   generatedData: SomeGeneratedData,
@@ -132,6 +189,25 @@ function makeEvalResult(
 function getConversationFromGeneratedData(generatedData: SomeGeneratedData) {
   assert(generatedData.type === "conversation", "Must be conversation data");
   return generatedData.data as Conversation;
+}
+function getQuizGeneratedData(generatedData: SomeGeneratedData) {
+  assert(generatedData.type === "quiz", "Must be quiz data");
+  return generatedData as QuizGeneratedData;
+}
+
+function getCorrectAnswer(quizGeneratedData: QuizGeneratedData) {
+  return quizGeneratedData.evalData.answers
+    .sort((a, b) => {
+      if (a.label < b.label) return -1;
+      else return 1;
+    })
+    .filter((a) => a.isCorrect)
+    .map((a) => a.label)
+    .join(",");
+}
+
+function getModelAnswer(quizGeneratedData: QuizGeneratedData) {
+  return quizGeneratedData.data.modelAnswer;
 }
 
 function getLastUserMessageFromConversation(

@@ -120,6 +120,26 @@ export class PatronusEvaluatorClient {
   }
 
   /**
+    @param output - What the model outputs.
+    @param goldAnswer - Ideal answer from model.
+    @param tags - Tags to apply to the evaluation run.
+   */
+  async evaluateExactMatch(
+    output: string,
+    goldAnswer: string,
+    tags?: Record<string, string>
+  ) {
+    return await this.callEvaluatorApi(
+      "exact-match",
+      {
+        output,
+        goldAnswer,
+      },
+      tags
+    );
+  }
+
+  /**
     Light wrapper around Patronus API `POST /evaluate` endpoint.
     Includes reasonable defaults selected for reporting.
    */
@@ -129,6 +149,7 @@ export class PatronusEvaluatorClient {
       input?: string;
       output?: string;
       contexts?: string[];
+      goldAnswer?: string;
     },
     tags?: Record<string, string>
   ): Promise<PatronusEvaluationApiResult> {
@@ -143,6 +164,56 @@ export class PatronusEvaluatorClient {
         ],
         evaluated_model_input: data.input,
         evaluated_model_retrieved_context: data.contexts,
+        evaluated_model_output: data.output,
+        evaluated_model_gold_answer: data.goldAnswer,
+        capture: "all",
+        tags:
+          this.globalTags || tags
+            ? {
+                ...(this.globalTags ?? {}),
+                ...(tags ?? {}),
+              }
+            : undefined,
+      },
+      {
+        headers: this.headers,
+      }
+    );
+
+    const safeRes = PatronusEvaluationApiResponseSchema.parse(res.data);
+    assert(
+      safeRes.results.length === 1,
+      "There should only be one response object"
+    );
+    return safeRes.results[0];
+  }
+
+  /**
+    Call custom evaluator API `custom-v1`.
+    Wraps Patronus API `POST /evaluate` endpoint
+    custom evaluator functionality.
+   */
+  async evaluateCustomV1(
+    passCriteria: string,
+    data: {
+      input: string;
+      output: string;
+    },
+    tags?: Record<string, string>
+  ) {
+    const res = await axios.post(
+      `${this.baseUrl}/evaluate`,
+      {
+        evaluators: [
+          {
+            evaluator_id: "custom-v1",
+            explain_strategy: "always",
+            profile_inline: {
+              pass_criteria: passCriteria,
+            },
+          },
+        ],
+        evaluated_model_input: data.input,
         evaluated_model_output: data.output,
         capture: "all",
         tags:
@@ -163,7 +234,6 @@ export class PatronusEvaluatorClient {
       safeRes.results.length === 1,
       "There should only be one response object"
     );
-    console.log(safeRes.results[0].evaluation_result);
     return safeRes.results[0];
   }
 }

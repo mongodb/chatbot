@@ -21,11 +21,11 @@ const expected = {
     id: expect.any(String),
     explanation: expect.any(String),
     app: expect.any(String),
-    score_normalized: 1,
+    score_normalized: expect.any(Number),
     pass: true,
   },
 } satisfies Partial<PatronusEvaluationApiResult>;
-describe.skip("PatronusEvaluatorClient Integration Tests", () => {
+describe("PatronusEvaluatorClient Integration Tests", () => {
   const apiKey = process.env.PATRONUS_API_KEY;
   assert(apiKey, "Patronus API key must be defined");
   const clientParams: PatronusClientParams = {
@@ -62,6 +62,23 @@ describe.skip("PatronusEvaluatorClient Integration Tests", () => {
       output,
       contexts,
       tags
+    );
+
+    expect(result).toMatchObject(expected);
+  });
+  it("should evaluate exact match v1", async () => {
+    const result = await client.evaluateExactMatch(output, output, tags);
+
+    expect(result).toMatchObject(expected);
+  });
+
+  it("should use custom evaluator v1", async () => {
+    const result = await client.evaluateCustomV1(
+      "Knows the capital of France is Paris",
+      {
+        input,
+        output,
+      }
     );
 
     expect(result).toMatchObject(expected);

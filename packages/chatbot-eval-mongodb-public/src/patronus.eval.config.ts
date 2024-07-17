@@ -4,15 +4,18 @@ import {
   makeMongoDbGeneratedDataStore,
   makeMongoDbEvaluationStore,
   makeMongoDbReportStore,
-  makeEvaluateAnswerRelevanceV2,
+  makeEvaluateConversationAnswerRelevanceV2,
   PatronusEvaluatorClient,
-  makeEvaluateContextRelevanceV1,
-  makeEvaluateHallucinationV2,
+  makeEvaluateConversationContextRelevanceV1,
+  makeEvaluateConversationHallucinationV2,
+  makeEvaluateConversationCustomV1,
+  makeEvaluateQuizExactMatchV1,
 } from "mongodb-chatbot-evaluation";
 import "dotenv/config";
 import { MongoClient, assertEnvVars, logger } from "mongodb-rag-core";
 import { envVars } from "./envVars";
 
+const timeTag = { runStamp: Date.now().toString() };
 export default async () => {
   const { MONGODB_DATABASE_NAME, MONGODB_CONNECTION_URI, PATRONUS_API_KEY } =
     assertEnvVars({ ...envVars, PATRONUS_API_KEY: "" });
@@ -27,7 +30,6 @@ export default async () => {
   const patronusClient = new PatronusEvaluatorClient({
     apiKey: PATRONUS_API_KEY,
   });
-  const timeTag = { runStamp: Date.now().toString() };
   logger.info(timeTag);
 
   const gpt35Version = {
@@ -38,6 +40,7 @@ export default async () => {
     version: "gpt-4o",
     ...timeTag,
   };
+  const discoveryEvalCriteria = "Mentions MongoDB in the response.";
   const evalConfig = {
     metadataStore: makeMongoDbCommandMetadataStore(storeDbOptions),
     generatedDataStore: makeMongoDbGeneratedDataStore(storeDbOptions),
@@ -47,44 +50,73 @@ export default async () => {
     commands: {
       evaluate: {
         gpt35_answer_relevance: {
-          evaluator: makeEvaluateAnswerRelevanceV2(
+          evaluator: makeEvaluateConversationAnswerRelevanceV2(
             patronusClient,
             gpt35Version
           ),
           concurrency: 10,
         },
         gpt35_context_relevance: {
-          evaluator: makeEvaluateContextRelevanceV1(
+          evaluator: makeEvaluateConversationContextRelevanceV1(
             patronusClient,
             gpt35Version
           ),
           concurrency: 10,
         },
         gpt35_context_sufficiency: {
-          evaluator: makeEvaluateHallucinationV2(patronusClient, gpt35Version),
+          evaluator: makeEvaluateConversationHallucinationV2(
+            patronusClient,
+            gpt35Version
+          ),
           concurrency: 10,
         },
         gpt4o_answer_relevance: {
-          evaluator: makeEvaluateAnswerRelevanceV2(
+          evaluator: makeEvaluateConversationAnswerRelevanceV2(
             patronusClient,
             gpt4oVersion
           ),
           concurrency: 10,
         },
         gpt4o_context_relevance: {
-          evaluator: makeEvaluateContextRelevanceV1(
+          evaluator: makeEvaluateConversationContextRelevanceV1(
             patronusClient,
             gpt4oVersion
           ),
           concurrency: 10,
         },
         gpt4o_context_sufficiency: {
-          evaluator: makeEvaluateHallucinationV2(patronusClient, gpt4oVersion),
+          evaluator: makeEvaluateConversationHallucinationV2(
+            patronusClient,
+            gpt4oVersion
+          ),
           concurrency: 10,
+        },
+
+        // Discovery evals
+        gpt35_mongodb_discovery: {
+          evaluator: makeEvaluateConversationCustomV1(
+            patronusClient,
+            discoveryEvalCriteria,
+            gpt35Version
+          ),
+        },
+        gpt4o_mongodb_discovery: {
+          evaluator: makeEvaluateConversationCustomV1(
+            patronusClient,
+            discoveryEvalCriteria,
+            gpt4oVersion
+          ),
+        },
+        gpt35_quiz_check: {
+          evaluator: makeEvaluateQuizExactMatchV1(patronusClient, gpt35Version),
+        },
+        gpt4o_quiz_check: {
+          evaluator: makeEvaluateQuizExactMatchV1(patronusClient, gpt4oVersion),
         },
       },
     },
     async afterAll() {
+      logger.info(timeTag);
       await mongodb.close();
     },
   } satisfies EvalConfig;

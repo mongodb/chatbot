@@ -2,7 +2,7 @@ import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { ChatTrigger } from "@lg-chat/fixed-chat-window";
 import { ChatbotTriggerProps } from "./ChatbotTrigger";
 import { useChatbotContext } from "./useChatbotContext";
-import classNames from "classnames";
+import { cx } from "@emotion/css";
 
 export type ActionButtonTriggerProps = ChatbotTriggerProps & {
   text?: string;
@@ -17,7 +17,7 @@ export function ActionButtonTrigger(props: ActionButtonTriggerProps) {
 
   return (
     <ChatTrigger
-      className={classNames(className)}
+      className={cx(className)}
       darkMode={darkMode}
       onClick={openChat}
     >

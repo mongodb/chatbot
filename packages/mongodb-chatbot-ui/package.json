@@ -103,7 +103,6 @@
     "@lg-chat/rich-links": "^1.0.1",
     "@microsoft/fetch-event-source": "^2.0.1",
     "buffer": "^6.0.3",
-    "classnames": "^2.5.1",
     "esbuild": "^0.17.19",
     "mongodb-rag-core": "^0.0.5",
     "prettier": "^2.8.8",

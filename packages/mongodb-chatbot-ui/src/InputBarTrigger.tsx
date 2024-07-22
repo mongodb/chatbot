@@ -3,9 +3,11 @@ import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { Error as ErrorText } from "@leafygreen-ui/typography";
 import { InputBar, SuggestedPrompt, SuggestedPrompts } from "./InputBar";
 import { defaultChatbotFatalErrorMessage } from "./ui-text";
-import { ChatbotTriggerProps } from "./ChatbotTrigger";
 import { PoweredByAtlasVectorSearch } from "./PoweredByAtlasVectorSearch";
-import { useTextInputTrigger } from "./useTextInputTrigger";
+import {
+  type ChatbotTextInputTriggerProps,
+  useTextInputTrigger,
+} from "./useTextInputTrigger";
 
 const styles = {
   info_box: css`
@@ -38,10 +40,8 @@ const styles = {
   `,
 };
 
-export type InputBarTriggerProps = ChatbotTriggerProps & {
+export type InputBarTriggerProps = ChatbotTextInputTriggerProps & {
   bottomContent?: React.ReactNode;
-  fatalErrorMessage?: string;
-  placeholder?: string;
   suggestedPrompts?: string[];
 };
 
@@ -76,16 +76,14 @@ export function InputBarTrigger({
   });
 
   const showSuggestedPrompts =
+    // There are suggested prompts defined
     suggestedPrompts.length > 0 &&
-    inputText.length === 0 &&
+    // There is no conversation history
     conversation.messages.length === 0 &&
+    // The user has not typed anything
+    inputText.length === 0 &&
+    // We're not waiting for the reply to the user's first message
     !awaitingReply;
-  const badgeText =
-    focused || inputText.length > 0
-      ? undefined
-      : isExperimental
-      ? "Experimental"
-      : undefined;
 
   return (
     <div className={cx(styles.chatbot_container, className)}>
@@ -94,7 +92,13 @@ export function InputBarTrigger({
           key={"inputBarTrigger"}
           darkMode={darkMode}
           hasError={hasError ?? false}
-          badgeText={badgeText}
+          badgeText={
+            focused || inputText.length > 0
+              ? undefined
+              : isExperimental
+              ? "Experimental"
+              : undefined
+          }
           dropdownProps={{
             usePortal: false,
           }}

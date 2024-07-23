@@ -94,12 +94,14 @@ const dataset = [
 ];
 
 function makeGeneratedAnswerReturner(outputs: string[]) {
+  // closure over iterator
   let counter = 0;
   return async (_input: string) => {
     counter++;
     return outputs[counter - 1];
   };
 }
+
 Eval("mdb-test", {
   experimentName: "rag-metrics",
   metadata: {

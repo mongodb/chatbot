@@ -50,6 +50,8 @@
   },
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.11",
+    "autoevals": "^0.0.80",
+    "braintrust": "^0.0.145",
     "chatbot-server-mongodb-public": "*",
     "dotenv": "^16",
     "llamaindex": "^0.1.21",

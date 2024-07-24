@@ -159,10 +159,6 @@ export const createCustomConversationDataWithIpAuthUserAndOrigin: AddCustomDataF
     return customData;
   };
 
-// if (!isProduction) {
-
-// }
-
 export const isProduction = process.env.NODE_ENV === "production";
 export const config: AppConfig = {
   conversationsRouterConfig: {

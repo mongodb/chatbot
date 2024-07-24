@@ -1,4 +1,4 @@
-import { assertEnvVars, MongoClient, ObjectId } from "mongodb-rag-core";
+import { assertEnvVars, ObjectId } from "mongodb-rag-core";
 import "dotenv/config";
 import { strict as assert } from "assert";
 import {
@@ -48,7 +48,7 @@ async function main() {
         modelName,
       },
       description: "some description",
-      experimentName: "some experiment name",
+      experimentName: `rag-conversations-${run.model}`,
       metadata: run,
     });
   }

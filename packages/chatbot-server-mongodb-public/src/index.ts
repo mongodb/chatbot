@@ -8,6 +8,8 @@ import {
   CORE_ENV_VARS,
   assertEnvVars,
 } from "mongodb-chatbot-server";
+import express from "express";
+import path from "path";
 
 export const {
   MONGODB_CONNECTION_URI,

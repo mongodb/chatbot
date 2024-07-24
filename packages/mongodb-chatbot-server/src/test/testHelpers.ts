@@ -30,6 +30,11 @@ export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
       ...config.conversationsRouterConfig,
       conversations,
     },
+    async additionalServerLogic(app) {
+      app.get("/hello", (_req, res) => {
+        res.send({ foo: "bar" });
+      });
+    },
     ...(defaultConfigOverrides ?? {}),
   };
   return { appConfig, mongodb, conversations, systemPrompt, mongoClient };

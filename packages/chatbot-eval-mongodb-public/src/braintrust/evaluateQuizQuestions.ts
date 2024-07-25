@@ -2,6 +2,7 @@ import * as braintrust from "braintrust";
 import {
   makeHelmQuizQuestionPrompt,
   QuizGeneratedData,
+  quizQuestionToHelmAnswer,
   quizQuestionToHelmPrompt,
   SomeGeneratedData,
 } from "mongodb-chatbot-evaluation";
@@ -34,20 +35,10 @@ export async function evaluateQuizQuestions({
       console.log(`Running experiment ${index + 1}/${generatedData.length}`);
       await experiment.traced(async (span) => {
         const quizData = getQuizGeneratedData(quizQuestion);
-        const output = quizData.data.modelAnswer;
-        const correctAnswer = quizData.evalData.answers
-          .sort((a, b) => {
-            if (a.label < b.label) {
-              return -1;
-            }
-            if (a.label > b.label) {
-              return 1;
-            }
-            return 0;
-          })
-          .filter((ans) => ans.isCorrect)
-          .map((ans) => ans.label)
-          .join(",");
+        const output = quizData.data.modelAnswer
+          // remove white space (for some reason, llama3-70b prepends '\n')
+          .trim();
+        const correctAnswer = quizQuestionToHelmAnswer(quizData.evalData);
         const CorrectQuizAnswer = output === correctAnswer ? 1 : 0;
 
         span.log({

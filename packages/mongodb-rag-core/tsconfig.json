@@ -3,8 +3,5 @@
   "compilerOptions": {
     "outDir": "./build"
   },
-  "include": [, "../mongodb-chatbot-server/src/processors/makeBoostOnAtlasSearchFilter.test.ts"
-    "./src/**/*.ts",
-    "src/BoostOnAtlasSearchFilter.ts"
-  ]
+  "include": ["./src/**/*.ts"]
 }

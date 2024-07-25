@@ -1,3 +1,4 @@
+export * from "./BoostOnAtlasSearchFilter";
 export * from "./CoreEnvVars";
 export * from "./DatabaseConnection";
 export * from "./DefaultFindContent";

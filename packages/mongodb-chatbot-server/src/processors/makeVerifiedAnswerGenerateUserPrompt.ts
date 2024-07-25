@@ -1,5 +1,4 @@
-import { VerifiedAnswer } from "mongodb-rag-core";
-import { FindVerifiedAnswerFunc } from "./FindVerifiedAnswerFunc";
+import { VerifiedAnswer, FindVerifiedAnswerFunc } from "mongodb-rag-core";
 import {
   GenerateUserPromptFunc,
   GenerateUserPromptFuncReturnValue,

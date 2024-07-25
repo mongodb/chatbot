@@ -1,4 +1,5 @@
-import { WithScore, VerifiedAnswer } from "mongodb-rag-core";
+import { WithScore } from "./VectorStore";
+import { VerifiedAnswer } from "./VerifiedAnswer";
 
 export type FindVerifiedAnswerFuncArgs = {
   query: string;

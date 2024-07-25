@@ -1,9 +1,7 @@
-import {
-  Embedder,
-  FindNearestNeighborsOptions,
-  VerifiedAnswerStore,
-} from "mongodb-rag-core";
+import { Embedder } from "./Embedder";
 import { FindVerifiedAnswerFunc } from "./FindVerifiedAnswerFunc";
+import { FindNearestNeighborsOptions } from "./VectorStore";
+import { VerifiedAnswerStore } from "./VerifiedAnswer";
 
 export type MakeDefaultFindVerifiedAnswerFuncArgs = {
   embedder: Embedder;

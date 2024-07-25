@@ -1,4 +1,5 @@
-import { WithScore, EmbeddedContent } from "mongodb-rag-core";
+import { EmbeddedContent } from "./EmbeddedContent";
+import { WithScore } from "./VectorStore";
 
 export type FindContentFuncArgs = {
   query: string;

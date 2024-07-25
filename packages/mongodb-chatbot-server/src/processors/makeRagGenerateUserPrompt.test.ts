@@ -6,7 +6,7 @@ import {
   includeChunksForMaxTokensPossible,
   makeRagGenerateUserPrompt,
 } from "./makeRagGenerateUserPrompt";
-import { FindContentFunc } from "./FindContentFunc";
+import { FindContentFunc } from "mongodb-rag-core";
 import { QueryPreprocessorFunc } from "./QueryPreprocessorFunc";
 import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
 

@@ -1,10 +1,8 @@
-import {
-  Embedder,
-  EmbeddedContentStore,
-  FindNearestNeighborsOptions,
-} from "mongodb-rag-core";
+import { EmbeddedContentStore } from "./EmbeddedContent";
+import { Embedder } from "./Embedder";
 import { FindContentFunc } from "./FindContentFunc";
 import { SearchBooster } from "./SearchBooster";
+import { FindNearestNeighborsOptions } from "./VectorStore";
 
 export type MakeDefaultFindContentFuncArgs = {
   embedder: Embedder;

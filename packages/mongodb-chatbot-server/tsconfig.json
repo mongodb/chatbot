@@ -2,7 +2,17 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "./build",
-    "lib": ["ES2023"],
+    "lib": ["ES2023"]
   },
-  "include": ["./src/**/*.ts"]
+  "include": [, "../mongodb-rag-core/src/BoostOnAtlasSearchFilter.tsSearchFilter.test.ts"ag-core/src/makeBoostOnAtlasSearchFilter.ts"
+    "./src/**/*.ts",
+    "../mongodb-rag-core/src/SearchBooster.ts",
+    "../mongodb-rag-core/src/FindContentFunc.ts",
+    "../mongodb-rag-core/src/FindVerifiedAnswerFunc.ts",
+    "../mongodb-rag-core/src/BoostOnAtlasSearchFilter.test.ts",
+    "../mongodb-rag-core/src/BoostOnAtlasSearchFilter.ts",
+    "../mongodb-rag-core/src/DefaultFindContent.test.ts",
+    "../mongodb-rag-core/src/DefaultFindContent.ts",
+    "../mongodb-rag-core/src/makeDefaultFindVerifiedAnswer.ts"
+  ]
 }

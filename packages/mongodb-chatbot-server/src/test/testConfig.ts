@@ -14,7 +14,7 @@ import { makeMongoDbConversationsService } from "../services/mongodbConversation
 import { makeOpenAiChatLlm } from "../services/openAiChatLlm";
 import { stripIndents } from "common-tags";
 import { AppConfig } from "../app";
-import { makeBoostOnAtlasSearchFilter } from "../processors/makeBoostOnAtlasSearchFilter";
+import { makeBoostOnAtlasSearchFilter } from "mongodb-rag-core/src/makeBoostOnAtlasSearchFilter";
 import { CORE_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { SystemPrompt } from "../services/ChatLlm";

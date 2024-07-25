@@ -1,10 +1,6 @@
-import {
-  WithScore,
-  EmbeddedContent,
-  FindNearestNeighborsOptions,
-  EmbeddedContentStore,
-} from "mongodb-rag-core";
+import { EmbeddedContentStore, EmbeddedContent } from "./EmbeddedContent";
 import { SearchBooster } from "./SearchBooster";
+import { FindNearestNeighborsOptions, WithScore } from "./VectorStore";
 
 export type WithFilterAndK<T> = T & {
   filter: Record<string, unknown>;

@@ -1,8 +1,5 @@
-import {
-  WithScore,
-  EmbeddedContent,
-  EmbeddedContentStore,
-} from "mongodb-rag-core";
+import { EmbeddedContent, EmbeddedContentStore } from "./EmbeddedContent";
+import { WithScore } from "./VectorStore";
 
 /**
   Modify the vector search results to add, elevate, or mutate search results

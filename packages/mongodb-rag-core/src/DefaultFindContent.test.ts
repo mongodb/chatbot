@@ -1,5 +1,9 @@
-import { embedder, embeddedContentStore } from "../test/testConfig";
-import { makeDefaultFindContent } from "./makeDefaultFindContent";
+// TODO: update these
+import {
+  embedder,
+  embeddedContentStore,
+} from "mongodb-chatbot-server/src/test/testConfig";
+import { makeDefaultFindContent } from "./DefaultFindContent";
 
 describe("makeDefaultFindContent()", () => {
   const findContent = makeDefaultFindContent({

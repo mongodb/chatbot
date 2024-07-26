@@ -1,4 +1,4 @@
-import { Conversation, Message } from "../services";
+import { Conversation, Message } from "mongodb-rag-core";
 
 /**
   Filters which previous conversation messages are sent to the LLM

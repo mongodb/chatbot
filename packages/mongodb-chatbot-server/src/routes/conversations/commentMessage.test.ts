@@ -2,13 +2,13 @@ import { strict as assert } from "assert";
 import request from "supertest";
 import "dotenv/config";
 import {
+  ObjectId,
   Conversation,
   Message,
   AssistantMessage,
   ConversationsService,
-} from "mongodb-rag-core/ConversationsService";
+} from "mongodb-rag-core";
 import { Express } from "express";
-import { ObjectId } from "mongodb-rag-core";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { AppConfig } from "../../app";

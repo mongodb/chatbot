@@ -4,9 +4,5 @@
     "outDir": "./build",
     "lib": ["ES2023"]
   },
-  "include": [, "../mongodb-rag-core/src/LangchainChatLlm.test.ts"
-    "./src/**/*.ts",
-    "../mongodb-rag-core/src/OpenAiChatLlm.test.ts",
-    "../mongodb-rag-core/src/LangchainChatLlm.ts"
-, "../mongodb-rag-core/src/OpenAiChatLlm.ts", "../mongodb-rag-core/src/DataStreamer.test.ts", "../mongodb-rag-core/src/mongodbConversations.test.ts", "../mongodb-rag-core/src/DataStreamer.ts", "../mongodb-rag-core/src/mongodbConversations.ts../mongodb-rag-core/src/ConversationsService.tse.ts"  ]
+  "include": ["./src/**/*.ts"]
 }

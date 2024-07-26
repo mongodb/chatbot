@@ -1,7 +1,17 @@
 import request from "supertest";
 import "dotenv/config";
-import { assertEnvVars, CORE_ENV_VARS, Db, ObjectId } from "mongodb-rag-core";
-import { makeMongoDbConversationsService } from "mongodb-rag-core/mongodbConversations";
+import {
+  assertEnvVars,
+  CORE_ENV_VARS,
+  Db,
+  ObjectId,
+  makeMongoDbConversationsService,
+  ConversationsService,
+  Conversation,
+  defaultConversationConstants,
+  Message,
+  makeOpenAiChatLlm,
+} from "mongodb-rag-core";
 import { Express } from "express";
 import {
   AddMessageRequestBody,
@@ -9,7 +19,6 @@ import {
   DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
-import { makeOpenAiChatLlm } from "mongodb-rag-core/src/OpenAiChatLlm";
 import { stripIndent } from "common-tags";
 import { makeApp, DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
@@ -17,12 +26,7 @@ import { makeTestAppConfig, systemPrompt } from "../../test/testHelpers";
 import { AppConfig } from "../../app";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { strict as assert } from "assert";
-import {
-  ConversationsService,
-  Conversation,
-  defaultConversationConstants,
-  Message,
-} from "../../services";
+
 const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
   assertEnvVars(CORE_ENV_VARS);
 jest.setTimeout(100000);

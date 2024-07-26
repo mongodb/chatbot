@@ -1,11 +1,10 @@
-import { Conversation } from "../../services";
 import {
   areEquivalentIpAddresses,
   convertConversationFromDbToApi,
   convertMessageFromDbToApi,
   isValidIp,
 } from "./utils";
-import { ObjectId } from "mongodb-rag-core";
+import { ObjectId, Conversation } from "mongodb-rag-core";
 
 describe("Conversation routes utils", () => {
   describe("isValidIp()", () => {

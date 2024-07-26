@@ -7,7 +7,7 @@ import {
   ConversationCustomData,
   ConversationsService,
   SystemMessage,
-} from "mongodb-rag-core/ConversationsService";
+} from "mongodb-rag-core";
 import {
   ApiConversation,
   convertConversationFromDbToApi,

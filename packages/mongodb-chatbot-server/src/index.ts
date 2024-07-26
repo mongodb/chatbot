@@ -4,7 +4,6 @@
  */
 export * from "./app";
 export * from "./routes";
-export * from "./services";
 export * from "./processors";
 export * from "./middleware";
 export * from "mongodb-rag-core";

@@ -84,7 +84,7 @@ describe("OpenAiLlm", () => {
       messages: conversation,
     });
     expect(response.role).toBe("assistant");
-    expect(response.content).toBe(expect.any(String));
+    expect(typeof response.content).toBe("string");
   });
 
   test("should answer question in conversation - streamed", async () => {
@@ -105,7 +105,7 @@ describe("OpenAiLlm", () => {
       }
     })();
     expect(count).toBeGreaterThan(10);
-    expect(message).toBe(expect.any(String));
+    expect(typeof message).toBe("string");
   });
 
   test("should call tool", async () => {

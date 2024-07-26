@@ -7,6 +7,7 @@ export * from "./EmbeddedContent";
 export * from "./Embedder";
 export * from "./FindContentFunc";
 export * from "./FindVerifiedAnswerFunc";
+export * from "./ingest";
 export * from "./LangChainEmbedder";
 export * from "./MongoDbEmbeddedContentStore";
 export * from "./MongoDbVerifiedAnswerStore";

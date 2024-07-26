@@ -24,7 +24,14 @@
     "build",
     "README.md"
   ],
-  "main": "./build/index.js",
+  "exports": {
+    ".": "./build/index.js",
+    "./ingest": "./build/ingest/index.js",
+    "./ingest/embed": "./build/embed/index.js",
+    "./ingest/pages": "./build/pages/index.js",
+    "./ingest/sources": "./build/sources/index.js",
+    "./ingest/sources/snooty": "./build/sources/snooty/index.js"
+  },
   "scripts": {
     "clean": "rm -rf build",
     "build": "tsc -b tsconfig.build.json",
@@ -60,16 +67,21 @@
   },
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.5",
-    "@langchain/openai": "^0.2.1",
     "@langchain/core": "^0.2.9",
+    "@langchain/openai": "^0.2.1",
+    "acquit": "^1.3.0",
+    "acquit-require": "^0.1.1",
     "common-tags": "^1",
     "dotenv": "^16.3.1",
     "exponential-backoff": "^3.1.1",
     "front-matter": "^4.0.2",
     "gray-matter": "^4.0.3",
+    "langchain": "^0.2.11",
     "mongodb": "^6.3.0",
     "openai": "^3",
+    "rimraf": "^6.0.1",
     "toml": "^3.0.0",
+    "turndown-plugin-gfm": "^1.0.2",
     "typechat": "^0.0.10",
     "winston": "^3",
     "yaml": "^2.3.1",

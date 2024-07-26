@@ -4,7 +4,7 @@ import {
   ConversationCustomData,
   UserMessage,
   AssistantMessage,
-} from "../services/ConversationsService";
+} from "mongodb-rag-core/ConversationsService";
 
 export type GenerateUserPromptFuncParams = {
   /**

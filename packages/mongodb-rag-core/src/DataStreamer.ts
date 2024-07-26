@@ -1,6 +1,7 @@
 import { Response } from "express";
 import { OpenAiStreamingResponse } from "./ChatLlm";
-import { logger, References } from "mongodb-rag-core";
+import { logger } from "./logger";
+import { References } from "./References";
 
 export function escapeNewlines(str: string): string {
   return str.replaceAll(`\n`, `\\n`);

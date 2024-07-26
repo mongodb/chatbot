@@ -2,7 +2,7 @@ import request from "supertest";
 import "dotenv/config";
 import { AppConfig } from "../../app";
 import { Db, ObjectId } from "mongodb-rag-core";
-import { Conversation } from "../../services/ConversationsService";
+import { Conversation } from "mongodb-rag-core/ConversationsService";
 import { ApiConversation } from "./utils";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp, makeTestAppConfig } from "../../test/testHelpers";

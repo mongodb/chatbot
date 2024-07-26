@@ -6,7 +6,7 @@ import {
   Message,
   AssistantMessage,
   ConversationsService,
-} from "../../services/ConversationsService";
+} from "mongodb-rag-core/ConversationsService";
 import { Express } from "express";
 import { ObjectId } from "mongodb-rag-core";
 import { DEFAULT_API_PREFIX } from "../../app";

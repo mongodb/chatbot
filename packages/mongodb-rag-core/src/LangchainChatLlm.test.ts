@@ -3,7 +3,8 @@ import { makeLangchainChatLlm } from "./LangchainChatLlm";
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatAnthropic } from "@langchain/anthropic";
-import { assertEnvVars, CORE_ENV_VARS } from "mongodb-rag-core";
+import { assertEnvVars } from "./assertEnvVars";
+import { CORE_ENV_VARS } from "./CoreEnvVars";
 
 jest.setTimeout(30000);
 

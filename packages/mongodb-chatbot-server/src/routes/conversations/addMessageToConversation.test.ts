@@ -1,7 +1,7 @@
 import request from "supertest";
 import "dotenv/config";
 import { assertEnvVars, CORE_ENV_VARS, Db, ObjectId } from "mongodb-rag-core";
-import { makeMongoDbConversationsService } from "../../services/mongodbConversations";
+import { makeMongoDbConversationsService } from "mongodb-rag-core/mongodbConversations";
 import { Express } from "express";
 import {
   AddMessageRequestBody,
@@ -9,7 +9,7 @@ import {
   DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
-import { makeOpenAiChatLlm } from "../../services/openAiChatLlm";
+import { makeOpenAiChatLlm } from "mongodb-rag-core/src/OpenAiChatLlm";
 import { stripIndent } from "common-tags";
 import { makeApp, DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";

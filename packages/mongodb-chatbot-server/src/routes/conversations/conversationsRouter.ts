@@ -6,7 +6,7 @@ import { ChatLlm, SystemPrompt } from "../../services/ChatLlm";
 import {
   ConversationCustomData,
   ConversationsService,
-} from "../../services/ConversationsService";
+} from "mongodb-rag-core/ConversationsService";
 import {
   CommentMessageRequest,
   makeCommentMessageRoute,

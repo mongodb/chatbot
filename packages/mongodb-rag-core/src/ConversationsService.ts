@@ -1,11 +1,9 @@
-import {
-  EmbeddedContent,
-  ObjectId,
-  References,
-  VerifiedAnswer,
-  WithScore,
-} from "mongodb-rag-core";
 import { FunctionCall } from "@azure/openai";
+import { ObjectId } from "mongodb";
+import { VerifiedAnswer } from "./VerifiedAnswer";
+import { EmbeddedContent } from "./EmbeddedContent";
+import { References } from "./References";
+import { WithScore } from "./VectorStore";
 
 export type MessageBase = {
   /**

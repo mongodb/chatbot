@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb-rag-core";
-import { ConversationsService } from "../../services/ConversationsService";
+import { ConversationsService } from "mongodb-rag-core/ConversationsService";
 import {
   Request as ExpressRequest,
   Response as ExpressResponse,

@@ -24,7 +24,7 @@ export const createLoggerMessage = ({
 /**
   Returns a reusable global logger instance. If no logger exists yet, then
   a new logger is created
- 
+
   @returns logger
  */
 const initiateLogger = () => {

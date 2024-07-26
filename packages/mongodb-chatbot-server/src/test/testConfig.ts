@@ -14,8 +14,8 @@ import {
   CORE_ENV_VARS,
   assertEnvVars,
 } from "mongodb-rag-core";
-import { makeMongoDbConversationsService } from "../services/mongodbConversations";
-import { makeOpenAiChatLlm } from "../services/openAiChatLlm";
+import { makeMongoDbConversationsService } from "mongodb-rag-core/mongodbConversations";
+import { makeOpenAiChatLlm } from "mongodb-rag-core/src/OpenAiChatLlm";
 import { stripIndents } from "common-tags";
 import { AppConfig } from "../app";
 import {} from "mongodb-rag-core";

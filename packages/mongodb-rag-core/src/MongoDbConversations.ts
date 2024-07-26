@@ -1,4 +1,4 @@
-import { ObjectId, Db } from "mongodb-rag-core";
+import { ObjectId, Db } from "mongodb";
 import {
   ConversationConstants,
   defaultConversationConstants,

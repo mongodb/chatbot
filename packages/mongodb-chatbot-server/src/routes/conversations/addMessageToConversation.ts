@@ -11,8 +11,8 @@ import {
   SomeMessage,
   UserMessage,
   AssistantMessage,
-} from "../../services/ConversationsService";
-import { DataStreamer, makeDataStreamer } from "../../services/dataStreamer";
+} from "mongodb-rag-core/ConversationsService";
+import { DataStreamer, makeDataStreamer } from "mongodb-rag-core/dataStreamer";
 import { ChatLlm, OpenAiChatMessage } from "../../services/ChatLlm";
 import {
   ApiMessage,

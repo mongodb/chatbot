@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { makeMongoDbConversationsService } from "./MongodbConversations";
+import { makeMongoDbConversationsService } from "./MongoDbConversations";
 import { BSON, MongoClient } from "mongodb";
 import {
   Conversation,

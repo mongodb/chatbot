@@ -93,9 +93,7 @@ export function InputBarTrigger({
           darkMode={darkMode}
           hasError={hasError ?? false}
           badgeText={
-            focused || inputText.length > 0
-              ? undefined
-              : isExperimental
+            !focused && inputText.length === 0 && isExperimental
               ? "Experimental"
               : undefined
           }

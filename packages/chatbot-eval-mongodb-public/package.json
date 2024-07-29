@@ -28,6 +28,10 @@
     "pipeline:linkInclusionCheck": "node ./build/pipelines/linkInclusionCheck.js",
     "pipeline:llmConversationQualityCheck": "node ./build/pipelines/llmConversationQualityCheck.js",
     "pipeline:biasConversationQualityCheck": "node ./build/pipelines/biasConversationQualityCheck.js",
+    "pipeline:patronusRagCheck": "node ./build/pipelines/patronusRagCheck.js",
+    "pipeline:patronusDiscoveryCheck": "node ./build/pipelines/patronusDiscoveryCheck.js",
+    "pipeline:patronusQuizCheck": "node ./build/pipelines/patronusQuizCheck.js",
+
     "braintrust:evaluateRagConversationsData": "node ./build/braintrust/evaluateRagConversationsData.js",
     "braintrust:evaluateQuizQuestionsData": "node ./build/braintrust/evaluateQuizQuestionsData.js",
     "braintrust:evaluateLlmDiscoveryData": "node ./build/braintrust/evaluateLlmDiscoveryData.js"

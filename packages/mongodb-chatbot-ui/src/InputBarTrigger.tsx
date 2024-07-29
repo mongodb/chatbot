@@ -1,18 +1,13 @@
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { Error as ErrorText } from "@leafygreen-ui/typography";
-import {
-  InputBar,
-  MongoDbInputBarPlaceholder,
-  SuggestedPrompt,
-  SuggestedPrompts,
-} from "./InputBar";
+import { InputBar, SuggestedPrompt, SuggestedPrompts } from "./InputBar";
 import { defaultChatbotFatalErrorMessage } from "./ui-text";
-import { useState } from "react";
-import { ChatbotTriggerProps } from "./ChatbotTrigger";
-import { useChatbotContext } from "./useChatbotContext";
-import classNames from "classnames";
 import { PoweredByAtlasVectorSearch } from "./PoweredByAtlasVectorSearch";
+import {
+  type ChatbotTextInputTriggerProps,
+  useTextInputTrigger,
+} from "./useTextInputTrigger";
 
 const styles = {
   info_box: css`
@@ -45,59 +40,63 @@ const styles = {
   `,
 };
 
-export type InputBarTriggerProps = ChatbotTriggerProps & {
+export type InputBarTriggerProps = ChatbotTextInputTriggerProps & {
   bottomContent?: React.ReactNode;
-  fatalErrorMessage?: string;
-  placeholder?: string;
   suggestedPrompts?: string[];
 };
 
-export function InputBarTrigger(props: InputBarTriggerProps) {
-  const { darkMode } = useDarkMode(props.darkMode);
+export function InputBarTrigger({
+  className,
+  suggestedPrompts = [],
+  bottomContent,
+  fatalErrorMessage = defaultChatbotFatalErrorMessage,
+  placeholder,
+  darkMode: darkModeProp,
+}: InputBarTriggerProps) {
+  const { darkMode } = useDarkMode(darkModeProp);
+
   const {
-    className,
-    suggestedPrompts = [],
-    bottomContent,
-    fatalErrorMessage = defaultChatbotFatalErrorMessage,
-  } = props;
-  const {
-    openChat,
-    awaitingReply,
-    handleSubmit,
     conversation,
+    isExperimental,
     inputText,
+    inputPlaceholder,
     setInputText,
     inputTextError,
-    isExperimental,
-  } = useChatbotContext();
+    canSubmit,
+    awaitingReply,
+    openChat,
+    focused,
+    setFocused,
+    handleSubmit,
+    hasError,
+    showError,
+  } = useTextInputTrigger({
+    fatalErrorMessage,
+    placeholder,
+  });
 
-  const [focused, setFocused] = useState(false);
-  const canSubmit = inputTextError.length === 0 && !conversation.error;
-  const hasError = inputTextError !== "";
-  const showError = inputTextError !== "" && !open;
   const showSuggestedPrompts =
+    // There are suggested prompts defined
     suggestedPrompts.length > 0 &&
-    inputText.length === 0 &&
+    // There is no conversation history
     conversation.messages.length === 0 &&
+    // The user has not typed anything
+    inputText.length === 0 &&
+    // We're not waiting for the reply to the user's first message
     !awaitingReply;
-  const badgeText =
-    focused || inputText.length > 0
-      ? undefined
-      : isExperimental
-      ? "Experimental"
-      : undefined;
-  const inputPlaceholder = conversation.error
-    ? fatalErrorMessage
-    : props.placeholder ?? MongoDbInputBarPlaceholder();
 
   return (
-    <div className={classNames(styles.chatbot_container, className)}>
+    <div className={cx(styles.chatbot_container, className)}>
       <div className={styles.chatbot_input}>
         <InputBar
           key={"inputBarTrigger"}
           darkMode={darkMode}
           hasError={hasError ?? false}
-          badgeText={badgeText}
+          badgeText={
+            !focused && inputText.length === 0 && isExperimental
+              ? "Experimental"
+              : undefined
+          }
           dropdownProps={{
             usePortal: false,
           }}

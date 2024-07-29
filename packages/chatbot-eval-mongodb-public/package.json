@@ -31,10 +31,10 @@
     "pipeline:patronusRagCheck": "node ./build/pipelines/patronusRagCheck.js",
     "pipeline:patronusDiscoveryCheck": "node ./build/pipelines/patronusDiscoveryCheck.js",
     "pipeline:patronusQuizCheck": "node ./build/pipelines/patronusQuizCheck.js",
-
     "braintrust:evaluateRagConversationsData": "node ./build/braintrust/evaluateRagConversationsData.js",
     "braintrust:evaluateQuizQuestionsData": "node ./build/braintrust/evaluateQuizQuestionsData.js",
-    "braintrust:evaluateLlmDiscoveryData": "node ./build/braintrust/evaluateLlmDiscoveryData.js"
+    "braintrust:evaluateLlmDiscoveryData": "node ./build/braintrust/evaluateLlmDiscoveryData.js",
+    "autoblocks:evaluateRagConversationsData": "node ./build/autoblocks/evaluateRagConversationsData.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",

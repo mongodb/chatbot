@@ -9,13 +9,16 @@ import {
   makeMongoDbEmbeddedContentStore,
   makeOpenAiEmbedder,
   makeMongoDbVerifiedAnswerStore,
+  makeBoostOnAtlasSearchFilter,
+  makeDefaultFindContent,
+  CORE_ENV_VARS,
+  assertEnvVars,
 } from "mongodb-rag-core";
 import { makeMongoDbConversationsService } from "../services/mongodbConversations";
 import { makeOpenAiChatLlm } from "../services/openAiChatLlm";
 import { stripIndents } from "common-tags";
 import { AppConfig } from "../app";
-import { makeBoostOnAtlasSearchFilter } from "../processors/makeBoostOnAtlasSearchFilter";
-import { CORE_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
+import {} from "mongodb-rag-core";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { SystemPrompt } from "../services/ChatLlm";
 import { makePreprocessMongoDbUserQuery } from "./testPreProcessor/makePreprocessMongoDbUserQuery";
@@ -25,7 +28,6 @@ import {
   makeFilterNPreviousMessages,
   makeRagGenerateUserPrompt,
 } from "../processors";
-import { makeDefaultFindContent } from "../processors/makeDefaultFindContent";
 import { makeDefaultReferenceLinks } from "../processors/makeDefaultReferenceLinks";
 import { UserMessage } from "../services";
 

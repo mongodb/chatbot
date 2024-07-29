@@ -1,5 +1,5 @@
 import { EvaluateQualityFunc } from "./EvaluateQualityFunc";
-import { QuizGeneratedData } from "../generate";
+import { QuizGeneratedData, quizQuestionToHelmAnswer } from "../generate";
 import { ObjectId, logger } from "mongodb-chatbot-server";
 import { strict as assert } from "assert";
 import { EvalResult } from "./EvaluationStore";
@@ -16,21 +16,12 @@ export const evaluateQuizQuestionAnswerCorrectness: EvaluateQualityFunc =
     const quizData = generatedData as QuizGeneratedData;
     const {
       data: { modelAnswer },
-      evalData: { questionText, answers },
+      evalData,
     } = quizData;
-    const correctAnswers = answers
-      .filter((a) => a.isCorrect)
-      .map((a) => a.label);
-    let allCorrect = true;
-    for (const answer of correctAnswers) {
-      if (!modelAnswer.includes(answer)) {
-        allCorrect = false;
-        break;
-      }
-    }
+    const allCorrect = modelAnswer === quizQuestionToHelmAnswer(evalData);
 
     logger.info(
-      `The response to '${questionText}' is ${
+      `The response to '${evalData.questionText}' is ${
         allCorrect ? "'correct'" : "'incorrect'"
       }`
     );

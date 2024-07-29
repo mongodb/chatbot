@@ -30,7 +30,11 @@
     "pipeline:biasConversationQualityCheck": "node ./build/pipelines/biasConversationQualityCheck.js",
     "pipeline:patronusRagCheck": "node ./build/pipelines/patronusRagCheck.js",
     "pipeline:patronusDiscoveryCheck": "node ./build/pipelines/patronusDiscoveryCheck.js",
-    "pipeline:patronusQuizCheck": "node ./build/pipelines/patronusQuizCheck.js"
+    "pipeline:patronusQuizCheck": "node ./build/pipelines/patronusQuizCheck.js",
+
+    "braintrust:evaluateRagConversationsData": "node ./build/braintrust/evaluateRagConversationsData.js",
+    "braintrust:evaluateQuizQuestionsData": "node ./build/braintrust/evaluateQuizQuestionsData.js",
+    "braintrust:evaluateLlmDiscoveryData": "node ./build/braintrust/evaluateLlmDiscoveryData.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",
@@ -53,11 +57,15 @@
   },
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.11",
+    "@supercharge/promise-pool": "^3.2.0",
+    "autoevals": "^0.0.81",
+    "braintrust": "^0.0.145",
     "chatbot-server-mongodb-public": "*",
     "dotenv": "^16",
     "llamaindex": "^0.1.21",
     "mongodb-chatbot-evaluation": "*",
     "mongodb-chatbot-server": "*",
-    "mongodb-rag-core": "*"
+    "mongodb-rag-core": "*",
+    "zod": "^3.23.8"
   }
 }

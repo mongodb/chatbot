@@ -1,6 +1,6 @@
-import { ObjectId } from "mongodb-rag-core";
-import { EmbeddedContentStore } from "mongodb-rag-core";
-import { makeBoostOnAtlasSearchFilter } from "./makeBoostOnAtlasSearchFilter";
+import { ObjectId } from "mongodb";
+import { makeBoostOnAtlasSearchFilter } from "./BoostOnAtlasSearchFilter";
+import { EmbeddedContentStore } from "./EmbeddedContent";
 
 describe("makeBoostOnAtlasSearchFilter()", () => {
   const boostManual = makeBoostOnAtlasSearchFilter({

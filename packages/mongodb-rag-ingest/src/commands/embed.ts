@@ -1,5 +1,5 @@
 import { CommandModule } from "yargs";
-import { updateEmbeddedContent } from "../embed/updateEmbeddedContent";
+import { updateEmbeddedContent } from "mongodb-rag-core";
 import {
   ResolvedConfig,
   LoadConfigArgs,

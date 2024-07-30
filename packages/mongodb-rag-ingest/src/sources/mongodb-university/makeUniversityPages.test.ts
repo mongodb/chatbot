@@ -61,12 +61,16 @@ describe("makeUniversityPages()", () => {
     );
     expect(samplePage.metadata).toEqual({
       foo: "bar",
-      tags: ["foo", "bar", "Intro to MongoDB", "University"],
+      tags: ["foo", "bar"],
       courseTitle: "Getting Started with MongoDB Atlas",
       sectionTitle:
         "Lesson 1: Introduction to MongoDB Atlas, the Developer Data Platform",
       lessonTitle: "Learn",
     });
+    // Don't include these tags that are returned by the API
+    const tagsSet = new Set(samplePage.metadata?.tags);
+    expect(tagsSet.has("Intro to MongoDB")).toBe(false);
+    expect(tagsSet.has("University")).toBe(false);
   });
 });
 

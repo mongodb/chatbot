@@ -215,7 +215,7 @@ export const makeFaqVectorStoreCollectionWrapper = (
         path,
         k,
         minScore,
-        filter,
+        filter = {},
         numCandidates,
       }: Partial<FindNearestNeighborsOptions> = {
         // Default options

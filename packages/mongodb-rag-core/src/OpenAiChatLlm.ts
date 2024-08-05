@@ -2,7 +2,6 @@ import {
   ChatRequestAssistantMessage,
   GetChatCompletionsOptions,
 } from "@azure/openai";
-import "dotenv/config";
 import { OpenAIClient } from "@azure/openai";
 import { strict as assert } from "assert";
 import { ChatLlm, LlmAnswerQuestionParams, Tool } from "./ChatLlm";

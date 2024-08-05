@@ -1,15 +1,20 @@
 import "dotenv/config";
-import { makeMongoDbConversationsService } from "./mongodbConversations";
-import { BSON, MongoClient } from "mongodb-rag-core";
-import { systemPrompt } from "../test/testHelpers";
+import { makeMongoDbConversationsService } from "./MongoDbConversations";
+import { BSON, MongoClient } from "mongodb";
 import {
   Conversation,
   UserMessage,
   AssistantMessage,
   AddSomeMessageParams,
+  SystemMessage,
 } from "./ConversationsService";
 
 jest.setTimeout(100000);
+
+const systemPrompt = {
+  role: "system",
+  content: "You shall do as you're told",
+} satisfies SystemMessage;
 
 describe("Conversations Service", () => {
   const { MONGODB_CONNECTION_URI } = process.env;

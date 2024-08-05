@@ -9,8 +9,8 @@ import {
   updateFrontMatter,
   makeTypeChatJsonTranslateFunc,
   AzureOpenAiServiceConfig,
+  Message,
 } from "mongodb-rag-core";
-import { Message } from "../../services/ConversationsService";
 
 /**
   Query preprocessor that uses the Azure OpenAI service to preprocess

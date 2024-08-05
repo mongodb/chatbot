@@ -12,10 +12,10 @@ import {
   FunctionDefinition,
   FunctionName,
 } from "@azure/openai";
-import { Reference } from "mongodb-rag-core";
+import { Reference } from "./References";
 import { Request as ExpressRequest } from "express";
 import { Conversation } from "./ConversationsService";
-import { DataStreamer } from "./dataStreamer";
+import { DataStreamer } from "./DataStreamer";
 export type OpenAiMessageRole = "system" | "assistant" | "user" | "function";
 
 export type OpenAiChatMessage = ChatRequestMessage & {

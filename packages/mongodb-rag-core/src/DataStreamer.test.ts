@@ -1,4 +1,4 @@
-import { makeDataStreamer } from "./dataStreamer";
+import { makeDataStreamer } from "./DataStreamer";
 import type {
   OpenAIChatCompletionWithoutUsage,
   OpenAiStreamingResponse,

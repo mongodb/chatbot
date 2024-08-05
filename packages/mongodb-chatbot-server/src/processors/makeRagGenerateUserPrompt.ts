@@ -2,8 +2,12 @@ import { stripIndents } from "common-tags";
 import { GenerateUserPromptFunc } from "./GenerateUserPromptFunc";
 import { QueryPreprocessorFunc } from "./QueryPreprocessorFunc";
 import { logRequest } from "../utils";
-import { Conversation, UserMessage } from "../services";
-import { EmbeddedContent, FindContentFunc } from "mongodb-rag-core";
+import {
+  Conversation,
+  UserMessage,
+  EmbeddedContent,
+  FindContentFunc,
+} from "mongodb-rag-core";
 import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
 import { makeDefaultReferenceLinks } from "./makeDefaultReferenceLinks";
 

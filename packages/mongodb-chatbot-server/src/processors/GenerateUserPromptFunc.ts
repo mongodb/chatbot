@@ -1,10 +1,10 @@
-import { References } from "mongodb-rag-core";
 import {
+  References,
   Conversation,
   ConversationCustomData,
   UserMessage,
   AssistantMessage,
-} from "../services/ConversationsService";
+} from "mongodb-rag-core";
 
 export type GenerateUserPromptFuncParams = {
   /**

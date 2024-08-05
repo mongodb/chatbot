@@ -1,5 +1,4 @@
-import { ObjectId } from "mongodb-rag-core";
-import { ConversationsService } from "../../services";
+import { ObjectId, ConversationsService } from "mongodb-rag-core";
 import { makeTestApp, makeTestAppConfig } from "../../test/testHelpers";
 import request from "supertest";
 import { AppConfig, DEFAULT_API_PREFIX } from "../../app";

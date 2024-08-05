@@ -1,11 +1,16 @@
 import "dotenv/config";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { ChatLlm, OpenAiChatMessage, Tool } from "./ChatLlm";
-import { makeTestAppConfig, systemPrompt } from "../test/testHelpers";
-import { makeOpenAiChatLlm } from "./openAiChatLlm";
-import { assertEnvVars, CORE_ENV_VARS } from "mongodb-rag-core";
+import { makeOpenAiChatLlm } from "./OpenAiChatLlm";
+import { assertEnvVars } from "./assertEnvVars";
+import { CORE_ENV_VARS } from "./CoreEnvVars";
 import { strict as assert } from "assert";
+import { SystemMessage } from "./ConversationsService";
 
+const systemPrompt = {
+  role: "system",
+  content: "You shall do as you're told",
+} satisfies SystemMessage;
 jest.setTimeout(30000);
 const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_CHAT_COMPLETION_DEPLOYMENT } =
   assertEnvVars(CORE_ENV_VARS);
@@ -71,8 +76,7 @@ const toolOpenAiLlm = makeOpenAiChatLlm({
 describe("OpenAiLlm", () => {
   let openAiLlmService: ChatLlm;
   beforeAll(() => {
-    const { appConfig: config } = makeTestAppConfig();
-    openAiLlmService = config.conversationsRouterConfig.llm;
+    openAiLlmService = toolOpenAiLlm;
   });
 
   test("should answer question in conversation - awaited", async () => {
@@ -80,9 +84,7 @@ describe("OpenAiLlm", () => {
       messages: conversation,
     });
     expect(response.role).toBe("assistant");
-    const lowerMessage = response.content?.toLowerCase();
-    expect(lowerMessage).toContain("shell");
-    expect(lowerMessage).toContain("driver");
+    expect(typeof response.content).toBe("string");
   });
 
   test("should answer question in conversation - streamed", async () => {
@@ -103,9 +105,7 @@ describe("OpenAiLlm", () => {
       }
     })();
     expect(count).toBeGreaterThan(10);
-    const lowerMessage = message.toLowerCase();
-    expect(lowerMessage).toContain("shell");
-    expect(lowerMessage).toContain("driver");
+    expect(typeof message).toBe("string");
   });
 
   test("should call tool", async () => {

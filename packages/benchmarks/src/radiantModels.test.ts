@@ -10,19 +10,22 @@ import { radiantModels } from "./radiantModels";
 describe("Radiant models", () => {
   const { RADIANT_API_KEY, RADIANT_ENDPOINT, MONGODB_AUTH_COOKIE } =
     assertEnvVars(envVars);
-  test.each(radiantModels)("$label should generate data", async (model) => {
-    const chatLlm = await makeRadiantChatLlm({
-      apiKey: RADIANT_API_KEY,
-      endpoint: RADIANT_ENDPOINT,
-      deployment: model.radiantModelDeployment,
-      mongoDbAuthCookie: MONGODB_AUTH_COOKIE,
-      lmmConfigOptions: {
-        temperature: 0,
-      },
-    });
-    const responseMessage = await chatLlm.answerQuestionAwaited({
-      messages: [{ role: "user", content: "Hello" }],
-    });
-    expect(responseMessage.content).toBeInstanceOf(String);
-  });
+  test.each(radiantModels)(
+    "'$label' model should generate data",
+    async (model) => {
+      const chatLlm = await makeRadiantChatLlm({
+        apiKey: RADIANT_API_KEY,
+        endpoint: RADIANT_ENDPOINT,
+        deployment: model.radiantModelDeployment,
+        mongoDbAuthCookie: MONGODB_AUTH_COOKIE,
+        lmmConfigOptions: {
+          temperature: 0,
+        },
+      });
+      const responseMessage = await chatLlm.answerQuestionAwaited({
+        messages: [{ role: "user", content: "Hello" }],
+      });
+      expect(responseMessage.content).toEqual(expect.any(String));
+    }
+  );
 });

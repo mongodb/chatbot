@@ -81,3 +81,15 @@ probes:
 defaultAlerts:
   enabled: true
   email: "chatbot-alerts@mongodb.com"
+
+prometheusRules:
+  - alert: TooManyHttpInternalServerErrors
+    # (Total 500 Requests / Total Requests) > X%
+    expr: ( sum(rate(http_requests_total{namespace="docs",container="docs-chat",code="500"}[1m])) / sum(rate(requests_total{namespace="docs",container="docs-chat"}[1m])) ) * 100 > 2
+    for: 5m
+    labels:
+      severity: critical
+      email: chatbot-alerts@mongodb.com
+    annotations:
+      summary: High HTTP 500 Error rate on {$labels.job}
+      description: Too many HTTP 500 Errors on {$labels.job} in the last 5 minutes

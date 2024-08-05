@@ -13,6 +13,7 @@
     "clean": "rm -rf build",
     "build": "tsc -b",
     "watch": "tsc -b -w",
+    "test": "jest --forceExit",
     "release": "release-it",
     "lint": "eslint ./src --ext ts --report-unused-disable-directives",
     "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",

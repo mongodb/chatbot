@@ -1,7 +1,16 @@
+// {
+//   "extends": "../../tsconfig.json",
+//   "compilerOptions": {
+//     "outDir": "./build"
+//   },
+//   "include": ["./src/**/*.ts"]
+// }
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./build"
+    "outDir": "./build",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext"
   },
   "include": ["./src/**/*.ts"]
 }

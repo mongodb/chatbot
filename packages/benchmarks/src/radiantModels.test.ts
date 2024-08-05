@@ -7,6 +7,9 @@ import { envVars } from "./envVars";
 import { makeRadiantChatLlm } from "./makeRadiantChatLlm";
 import { radiantModels } from "./radiantModels";
 
+jest.setTimeout(60000);
+// NOTE: due to this issue https://github.com/nodejs/node/issues/39964,
+// you must run the tests with a Node version >= 20.0.0
 describe("Radiant models", () => {
   const { RADIANT_API_KEY, RADIANT_ENDPOINT, MONGODB_AUTH_COOKIE } =
     assertEnvVars(envVars);

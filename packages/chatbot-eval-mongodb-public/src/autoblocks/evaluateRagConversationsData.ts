@@ -40,6 +40,7 @@ async function main() {
     const conversationGeneratedData = genData.map((gd) =>
       checkConversationGeneratedData(gd)
     );
+    console.log("starting run", run);
     await evaluateRagConversationsReferenceFree({
       conversationGeneratedData,
       evaluatorConfig: {
@@ -52,6 +53,7 @@ async function main() {
     });
   }
   await generatedDataStore.close();
+  console.log("finished up");
 }
 
 function checkConversationGeneratedData(generatedData?: SomeGeneratedData) {

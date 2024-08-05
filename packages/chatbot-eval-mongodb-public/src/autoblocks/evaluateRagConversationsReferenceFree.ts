@@ -37,7 +37,7 @@ interface MakeAnswerRelevancyParams {
 const makeAutoevalsRagEvaluator = function (
   params: MakeAnswerRelevancyParams
 ): BaseTestEvaluator<RagTestCase, string> {
-  return {
+  const evaluator: BaseTestEvaluator<RagTestCase, string> = {
     id: params.scorer.id,
     maxConcurrency: params.maxConcurrency ?? 1,
     async evaluateTestCase({ testCase, output }): Promise<Evaluation> {
@@ -50,7 +50,8 @@ const makeAutoevalsRagEvaluator = function (
         openAiDefaultHeaders: params.evaluatorConfig.headers,
         model: params.evaluatorConfig.modelName,
       });
-
+      console.log("got results for", testCase.input, "for", params.scorer.id);
+      console.log("results", results);
       const score = results.score ?? 0;
 
       return {
@@ -58,7 +59,9 @@ const makeAutoevalsRagEvaluator = function (
         metadata: params.metadata,
       };
     },
-  } satisfies BaseTestEvaluator<RagTestCase, string>;
+  };
+  Object.setPrototypeOf(evaluator, BaseTestEvaluator.prototype);
+  return evaluator;
 };
 
 export interface EvaluateRagConversationsParams {

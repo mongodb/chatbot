@@ -1,7 +1,7 @@
 {
-  "name": "model-eval",
+  "name": "benchmarks",
   "version": "0.0.0",
-  "description": "CLI app for evaluating MongoDB AI chatbot.",
+  "description": "Benchmarks for evaluating how models perform on MongoDB-related tasks.",
   "author": "",
   "license": "Apache-2.0",
   "keywords": [],

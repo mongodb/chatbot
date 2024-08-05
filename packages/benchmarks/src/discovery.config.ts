@@ -26,7 +26,7 @@ export default async () => {
 
   const discoveryConversationTestCases = getConversationsTestCasesFromYaml(
     fs.readFileSync(
-      path.resolve(__dirname, "..", "testCases", "discovery.yml"),
+      path.resolve(__dirname, "..", "datasets", "discovery.yml"),
       "utf8"
     )
   );

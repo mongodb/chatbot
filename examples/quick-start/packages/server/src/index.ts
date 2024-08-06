@@ -130,7 +130,6 @@ const config: AppConfig = {
     systemPrompt,
   },
   maxRequestTimeoutMs: 30000,
-  serveStaticSite: true,
 };
 
 // Start the server and clean up resources on SIGINT.

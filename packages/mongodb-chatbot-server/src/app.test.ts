@@ -15,13 +15,6 @@ describe("App", () => {
       },
     });
   });
-  test("should server static files", async () => {
-    const { appConfig } = makeTestAppConfig();
-    const app = await makeApp({ ...appConfig, serveStaticSite: true });
-    const response = await request(app).get("/index.html");
-    expect(response.status).toBe(200);
-    expect(response.text).toContain("<!DOCTYPE html>");
-  });
 
   describe("Error handling", () => {
     test("Should return 404 if path is not found", async () => {
@@ -93,6 +86,12 @@ describe("App", () => {
 
       expect(res.header["Access-Control-Allow-Origin"]).toBeUndefined();
       expect(res.status).toBe(200);
+    });
+    test("should include additional routes", async () => {
+      const res = await request(app).get("/hello").send();
+
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({ foo: "bar" });
     });
   });
 });

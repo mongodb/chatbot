@@ -25,7 +25,7 @@ export interface EvaluateRagConversationsParams {
 }
 
 /**
-  Evaluates a {@link ConversationGeneratedData}
+  Evaluates a {@link ConversationGeneratedData} using [Braintrust](https://braintrustdata.com)
   based on the reference-free evaluation metrics from the `autoevals` library:
 
   - {@link Faithfulness}

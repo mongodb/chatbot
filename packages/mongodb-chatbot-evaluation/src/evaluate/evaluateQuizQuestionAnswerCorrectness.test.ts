@@ -119,10 +119,12 @@ async function evaluateQuizGeneratedData(
     evalData: {
       questionText: "question text",
       contentTitle: "content title",
-      prompt: {
-        content: "prompt content",
-        role: "user",
-      },
+      promptMessages: [
+        {
+          content: "prompt content",
+          role: "user",
+        },
+      ],
       questionType: "question type",
       title: "title",
       topicType: "topic type",

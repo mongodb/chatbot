@@ -19,7 +19,10 @@ runPipeline({
           model.label,
           qualityEvalRunId
         );
-        evalReports[model.label] = reported.data;
+        evalReports[model.label] = {
+          ...reported.data,
+          generatedDataRunId: genRunId.toString(),
+        };
       })
     );
     // Log all the outputs

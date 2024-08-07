@@ -69,6 +69,84 @@ const quizQuestionExamples = [
       },
     ],
   },
+  {
+    questionText:
+      "Which command is used to insert a document into a collection in MongoDB? (Select one.)",
+    answers: [
+      {
+        label: "A",
+        answer: "db.collection.insert()",
+        isCorrect: true,
+      },
+      {
+        label: "B",
+        answer: "db.collection.add()",
+        isCorrect: false,
+      },
+      {
+        label: "C",
+        answer: "db.collection.push()",
+        isCorrect: false,
+      },
+      {
+        label: "D",
+        answer: "db.collection.save()",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    questionText:
+      "What is the primary key used in MongoDB documents called? (Select one.)",
+    answers: [
+      {
+        label: "A",
+        answer: "id",
+        isCorrect: false,
+      },
+      {
+        label: "B",
+        answer: "_id",
+        isCorrect: true,
+      },
+      {
+        label: "C",
+        answer: "primary_key",
+        isCorrect: false,
+      },
+      {
+        label: "D",
+        answer: "document_id",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    questionText:
+      "Which of the following is a valid query operator in MongoDB? (Select all that apply.)",
+    answers: [
+      {
+        label: "A",
+        answer: "$eq",
+        isCorrect: true,
+      },
+      {
+        label: "B",
+        answer: "$neq",
+        isCorrect: false,
+      },
+      {
+        label: "C",
+        answer: "$like",
+        isCorrect: false,
+      },
+      {
+        label: "D",
+        answer: "$gt",
+        isCorrect: true,
+      },
+    ],
+  },
 ] satisfies QuizQuestionTestCaseData[];
 
 export default async () => {

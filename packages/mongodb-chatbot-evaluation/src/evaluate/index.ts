@@ -8,4 +8,5 @@ export * from "./evaluateConversationRelevancy";
 export * from "./EvaluateQualityFunc";
 export * from "./evaluateQuizQuestionAnswerCorrectness";
 export * from "./EvaluationStore";
+export * from "./patronus";
 export * from "./stringifyConversation";

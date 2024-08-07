@@ -1,4 +1,8 @@
-import { Conversation, MessageBase } from "mongodb-chatbot-server";
+import {
+  Conversation,
+  MessageBase,
+  OpenAiChatMessage,
+} from "mongodb-chatbot-server";
 import { Filter, MongoClient, ObjectId } from "mongodb-rag-core";
 import { QuizQuestionTestCaseData } from "./TestCase";
 
@@ -23,7 +27,7 @@ export interface QuizGeneratedData extends BaseGeneratedData {
     modelAnswer: string;
   };
   evalData: QuizQuestionTestCaseData & {
-    prompt: MessageBase;
+    promptMessages: OpenAiChatMessage[];
     modelName: string;
   };
 }

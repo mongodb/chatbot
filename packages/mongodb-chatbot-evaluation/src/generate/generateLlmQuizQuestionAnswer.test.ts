@@ -107,17 +107,26 @@ describe("generateLlmQuizQuestionAnswer", () => {
     });
   });
   it("should include subject in the system prompt", async () => {
-    expect(generated.evalData?.prompt.content).toMatch(new RegExp(subject));
+    expect(generated.evalData?.promptMessages[0]?.content).toMatch(
+      new RegExp(subject)
+    );
   });
   it("should include few-shot examples in the system prompt", async () => {
-    expect(generated.evalData?.prompt.content).toMatch(
+    // (1 system prompt)
+    // + (2 for each example, user and assistant messages)
+    // + (1 user message for actual message)
+    const expectedLength = 1 + quizQuestionExamples.length * 2 + 1;
+    expect(generated.evalData?.promptMessages).toHaveLength(expectedLength);
+    expect(generated.evalData?.promptMessages[1].content).toMatch(
       new RegExp(quizQuestionExamples[0].questionText)
     );
   });
   it("should include quiz question in the system prompt", () => {
-    expect(generated.evalData?.prompt.content).toMatch(
-      new RegExp(testQuestion.questionText)
-    );
+    expect(
+      generated.evalData?.promptMessages[
+        generated.evalData?.promptMessages.length - 1
+      ].content
+    ).toMatch(new RegExp(testQuestion.questionText));
   });
   it("should generate data for quiz question", () => {
     expect(generated).toMatchObject({
@@ -129,10 +138,11 @@ describe("generateLlmQuizQuestionAnswer", () => {
       },
       evalData: {
         ...testQuestion,
-        prompt: {
-          role: "user",
-          content: expect.any(String),
-        },
+        promptMessages: makeHelmQuizQuestionPrompt({
+          quizQuestion: testQuestion,
+          quizQuestionExamples,
+          subject,
+        }),
         modelName,
       },
     } satisfies Partial<QuizGeneratedData>);
@@ -202,10 +212,16 @@ describe("makeHelmQuizQuestionPrompt", () => {
     const prompt = makeHelmQuizQuestionPrompt({
       quizQuestion: testQuestion,
     });
-    expect(prompt).toMatchObject({
-      content: expect.any(String),
-      role: "user",
-    });
+    expect(prompt).toMatchObject([
+      {
+        role: "system",
+        content: expect.any(String),
+      },
+      {
+        content: expect.any(String),
+        role: "user",
+      },
+    ]);
   });
   it("should conditionally interpolate the subject", () => {
     const promptWithSubject = makeHelmQuizQuestionPrompt({
@@ -213,7 +229,7 @@ describe("makeHelmQuizQuestionPrompt", () => {
       subject,
     });
     expect(
-      promptWithSubject.content.startsWith(
+      promptWithSubject[0].content?.startsWith(
         `The following are multiple choice questions (with answers) about ${subject}.`
       )
     ).toBe(true);
@@ -222,44 +238,9 @@ describe("makeHelmQuizQuestionPrompt", () => {
       quizQuestion: testQuestion,
     });
     expect(
-      promptWithoutSubject.content.startsWith(
+      promptWithoutSubject[0].content?.startsWith(
         "The following are multiple choice questions (with answers)."
       )
     ).toBe(true);
-  });
-  it("should include the correct role", () => {
-    const userPrompt = makeHelmQuizQuestionPrompt({
-      quizQuestion: testQuestion,
-    });
-    expect(userPrompt.role).toBe("user");
-    const systemPrompt = makeHelmQuizQuestionPrompt({
-      quizQuestion: testQuestion,
-      messageRole: "system",
-    });
-    expect(systemPrompt.role).toBe("system");
-  });
-  it("should correctly interpolate the examples", () => {
-    const promptNoExamples = makeHelmQuizQuestionPrompt({
-      quizQuestion: testQuestion,
-    });
-    console.log(promptNoExamples.content);
-    const noExamplesExpectation = `The following are multiple choice questions (with answers).
-Only provide the answer the final question using the exact same format as the previous questions. Just provide the letters, e.g. A,B,C,D
-
-${quizQuestionToHelmPrompt(testQuestion, false)}`;
-    expect(promptNoExamples.content).toMatch(noExamplesExpectation);
-    const examplesExpectation = `The following are multiple choice questions (with answers).
-Only provide the answer the final question using the exact same format as the previous questions. Just provide the letters, e.g. A,B,C,D
-
-${quizQuestionExamples
-  .map((example) => quizQuestionToHelmPrompt(example, true))
-  .join("\n\n")}
-
-${quizQuestionToHelmPrompt(testQuestion, false)}`;
-    const promptWithExamples = makeHelmQuizQuestionPrompt({
-      quizQuestion: testQuestion,
-      quizQuestionExamples,
-    });
-    expect(promptWithExamples.content).toMatch(examplesExpectation);
   });
 });

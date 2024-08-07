@@ -1,7 +1,7 @@
 {
-  "name": "model-eval",
+  "name": "benchmarks",
   "version": "0.0.0",
-  "description": "CLI app for evaluating MongoDB AI chatbot.",
+  "description": "Benchmarks for evaluating how models perform on MongoDB-related tasks.",
   "author": "",
   "license": "Apache-2.0",
   "keywords": [],
@@ -13,6 +13,7 @@
     "clean": "rm -rf build",
     "build": "tsc -b",
     "watch": "tsc -b -w",
+    "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest",
     "release": "release-it",
     "lint": "eslint ./src --ext ts --report-unused-disable-directives",
     "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",

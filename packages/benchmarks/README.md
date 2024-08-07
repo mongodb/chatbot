@@ -1,6 +1,6 @@
-# External Model Evaluation Suite
+# Benchmarking Suite
 
-This evaluation suite assesses how well popular LLMs perform on MongoDB-related tasks.
+This project contains benchmarks on how well models perform on MongoDB-related tasks.
 
 ## Building the Config
 

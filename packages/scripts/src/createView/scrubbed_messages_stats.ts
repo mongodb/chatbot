@@ -138,8 +138,8 @@ async function createScrubbedMessageStatsViews() {
       {
         $group: {
           _id: {
-            month: {
-              $month: "$createdAt",
+            isoWeek: {
+              $isoWeek: "$createdAt",
             },
             isoYear: {
               $isoWeekYear: "$createdAt",
@@ -157,11 +157,12 @@ async function createScrubbedMessageStatsViews() {
         $project: {
           _id: 0,
           year: "$_id.isoYear",
-          month: "$_id.month",
+          week: "$_id.isoWeek",
           date: {
             $dateFromParts: {
-              year: "$_id.isoYear",
-              month: "$_id.month",
+              isoWeekYear: "$_id.isoYear",
+              isoWeek: "$_id.isoWeek",
+              isoDayOfWeek: 1,
             },
           },
           numMessages: 1,

@@ -65,6 +65,22 @@ cronJobs:
         memory: 5Gi
     backoffLimit: 3
 
+  - name: materialize-scrubbed-message-stats
+    schedule: "0 */2 * * *" # Every 2 hours
+    command: ["npm", "run", "scripts:materializeScrubbedMessagesStats:latest"]
+    env:
+      MONGODB_DATABASE_NAME: docs-chatbot-staging
+    envSecrets:
+      MONGODB_CONNECTION_URI: docs-chatbot-staging
+    resources:
+      requests:
+        cpu: 100m
+        memory: 2Gi
+      limits:
+        cpu: 500m
+        memory: 5Gi
+    backoffLimit: 2
+
 # Alerts
 defaultAlerts:
   enabled: true

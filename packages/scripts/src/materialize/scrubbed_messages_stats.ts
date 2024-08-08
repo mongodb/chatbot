@@ -1,0 +1,308 @@
+import "dotenv/config";
+import { assertEnvVars, MongoClient, Db, Document } from "mongodb-rag-core";
+import { ensureCollectionWithIndex } from "./materialized-view-utils";
+
+export type ScrubbedMessageStatsGranularity = "daily" | "weekly" | "monthly";
+
+type ScrubbedMessageStats<T> = T &
+  Document & {
+    granularity: ScrubbedMessageStatsGranularity;
+    date: Date;
+    numMessages: number;
+    numConversations: number;
+  };
+
+interface MakeCreateStatsMaterializedViewParams {
+  db: Db;
+  statsCollectionName: string;
+}
+
+function makeCreateStatsMaterializedView({
+  db,
+  statsCollectionName = "scrubbed_messages_stats",
+}: MakeCreateStatsMaterializedViewParams) {
+  return async function createStatsMaterializedView<T>({
+    granularity,
+    groupId,
+    dateParts,
+    addFields = {},
+    since,
+  }: {
+    granularity: string;
+    groupId: Document;
+    dateParts: Document;
+    addFields: Document;
+    since?: Date;
+  }) {
+    if (granularity.length === 0) {
+      throw new Error(`Granularity must be a non-empty string`);
+    }
+    try {
+      ensureCollectionWithIndex({
+        db,
+        collectionName: statsCollectionName,
+        indexes: [
+          {
+            spec: {
+              granularity: 1,
+              date: 1,
+            },
+            options: {
+              unique: true,
+            },
+          },
+          {
+            spec: {
+              date: 1,
+              granularity: 1,
+            },
+            options: {
+              unique: true,
+            },
+          },
+        ],
+      });
+      return await db
+        .collection("scrubbed_messages")
+        .aggregate<ScrubbedMessageStats<T>>([
+          {
+            $match: {
+              role: "user",
+              createdAt: since ? { $gte: since } : { $exists: true },
+            },
+          },
+          {
+            $group: {
+              _id: groupId,
+              numMessages: {
+                $sum: 1,
+              },
+              numConversations: {
+                $addToSet: "$conversationId",
+              },
+            },
+          },
+          {
+            $addFields: {
+              numConversations: { $size: "$numConversations" },
+              granularity,
+              date: {
+                $dateFromParts: dateParts,
+              },
+            },
+          },
+          {
+            $addFields: {
+              ...addFields,
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+            },
+          },
+          {
+            $addFields: {
+              _id: {
+                date: "$date",
+                granularity: "$granularity",
+              },
+            },
+          },
+          {
+            $sort: {
+              date: -1,
+            },
+          },
+          {
+            $merge: {
+              into: {
+                db: db.databaseName,
+                coll: statsCollectionName,
+              },
+              on: ["_id"],
+              whenMatched: "replace",
+              whenNotMatched: "insert",
+            },
+          },
+        ])
+        .toArray();
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
+}
+
+export type CreateScrubbedMessageStatsViewsArgs = {
+  /**
+   The granularity of stats to create. Defaults to all available granularities.
+   */
+  granularity?:
+    | ScrubbedMessageStatsGranularity
+    | ScrubbedMessageStatsGranularity[];
+
+  /**
+   The date to start aggregating stats from. Defaults to the start of the current month.
+   */
+  since?: Date;
+
+  /**
+   Optional MongoDB connection string. If not provided, the MONGODB_CONNECTION_URI environment variable will be used.
+   */
+  mongodbConnection?: string;
+
+  /**
+   Optional name for the stats database.
+   */
+  statsDatabaseName?: string;
+
+  /**
+   Optional name for the stats collection.
+   */
+  statsCollectionName?: string;
+};
+
+export async function createScrubbedMessageStatsViews({
+  granularity = ["daily", "weekly", "monthly"],
+  since,
+  mongodbConnection,
+  statsDatabaseName,
+  statsCollectionName = "scrubbed_messages_stats",
+}: CreateScrubbedMessageStatsViewsArgs = {}): Promise<void> {
+  const { MONGODB_DATABASE_NAME, MONGODB_CONNECTION_URI } = assertEnvVars({
+    MONGODB_DATABASE_NAME: "",
+    MONGODB_CONNECTION_URI: "",
+  });
+  if (typeof granularity === "string") {
+    granularity = [granularity];
+  }
+  if (granularity.length === 0) {
+    throw new Error(
+      `No granularity was specified. Either omit the argument or specify at least one granularity.`
+    );
+  }
+  console.log(
+    `Materializing stats for scrubbed messages since ${
+      since ?? "the start of time"
+    } at the folowing granularities: ${granularity.join(", ")}`
+  );
+  const client = await MongoClient.connect(
+    mongodbConnection ?? MONGODB_CONNECTION_URI
+  );
+  try {
+    const db = client.db(statsDatabaseName ?? MONGODB_DATABASE_NAME);
+    const createStatsMaterializedView = makeCreateStatsMaterializedView({
+      db,
+      statsCollectionName,
+    });
+
+    if (granularity.includes("daily")) {
+      const dailyStart = Date.now();
+      console.log("Creating daily stats view");
+      await createStatsMaterializedView<{
+        year: number;
+        dayOfYear: number;
+        month: number;
+        dayOfMonth: number;
+        week: number;
+        dayOfWeek: number;
+      }>({
+        granularity: "daily",
+        since,
+        groupId: {
+          year: {
+            $isoWeekYear: "$createdAt",
+          },
+          day: {
+            $dayOfYear: "$createdAt",
+          },
+        },
+        dateParts: {
+          year: "$_id.year",
+          day: "$_id.day",
+        },
+        addFields: {
+          year: "$_id.year",
+          dayOfYear: "$_id.day",
+          month: {
+            $month: "$date",
+          },
+          dayOfMonth: {
+            $dayOfMonth: "$date",
+          },
+          week: {
+            $week: "$date",
+          },
+          dayOfWeek: {
+            $dayOfWeek: "$date",
+          },
+        },
+      });
+      console.log(`  view materialized in ${Date.now() - dailyStart}ms`);
+    }
+
+    if (granularity.includes("weekly")) {
+      const weeklyStart = Date.now();
+      console.log("Creating weekly stats view");
+      await createStatsMaterializedView<{
+        year: number;
+        week: number;
+      }>({
+        granularity: "weekly",
+        since,
+        groupId: {
+          isoWeekYear: {
+            $isoWeekYear: "$createdAt",
+          },
+          isoWeek: {
+            $isoWeek: "$createdAt",
+          },
+        },
+        dateParts: {
+          isoWeekYear: "$_id.isoWeekYear",
+          isoWeek: "$_id.isoWeek",
+          isoDayOfWeek: 1,
+        },
+        addFields: {
+          year: "$_id.isoWeekYear",
+          week: "$_id.isoWeek",
+        },
+      });
+      console.log(`  view materialized in ${Date.now() - weeklyStart}ms`);
+    }
+
+    if (granularity.includes("monthly")) {
+      const monthlyStart = Date.now();
+      console.log("Creating monthly stats view");
+      await createStatsMaterializedView<{
+        year: number;
+        month: number;
+      }>({
+        granularity: "monthly",
+        since,
+        groupId: {
+          year: {
+            $isoWeekYear: "$createdAt",
+          },
+          month: {
+            $month: "$createdAt",
+          },
+        },
+        dateParts: {
+          year: "$_id.year",
+          month: "$_id.month",
+        },
+        addFields: {
+          year: "$_id.year",
+          month: "$_id.month",
+        },
+      });
+      console.log(`  view materialized in ${Date.now() - monthlyStart}ms`);
+    }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    await client.close();
+  }
+}

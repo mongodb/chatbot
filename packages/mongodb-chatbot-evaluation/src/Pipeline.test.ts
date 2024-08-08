@@ -67,7 +67,8 @@ describe("runPipeline", () => {
 
     await runPipeline({
       configConstructor,
-      pipeline: async (generate, evaluate, report) => {
+      pipeline: async (generate, evaluate, report, config) => {
+        expect(config).toBeDefined();
         const {
           commandRunMetadata: { _id: genRunId },
         } = await generate("conversations");

@@ -34,6 +34,7 @@
     "braintrust:evaluateRagConversationsData": "node ./build/braintrust/evaluateRagConversationsData.js",
     "braintrust:evaluateQuizQuestionsData": "node ./build/braintrust/evaluateQuizQuestionsData.js",
     "braintrust:evaluateLlmDiscoveryData": "node ./build/braintrust/evaluateLlmDiscoveryData.js",
+    "langfuse:evaluateLlmDiscoveryData": "node ./build/langfuse/evaluateLlmDiscoveryData.js",
     "autoblocks:evaluateRagConversationsData": "node ./build/autoblocks/evaluateRagConversationsData.js",
     "autoblocksRunner": "autoblocks testing exec"
   },
@@ -64,6 +65,7 @@
     "braintrust": "^0.0.145",
     "chatbot-server-mongodb-public": "*",
     "dotenv": "^16",
+    "langfuse": "^3.19.0",
     "llamaindex": "^0.1.21",
     "mongodb-chatbot-evaluation": "*",
     "mongodb-chatbot-server": "*",

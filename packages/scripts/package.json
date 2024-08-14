@@ -5,6 +5,7 @@
   "main": "index.js",
   "private": true,
   "scripts": {
+    "analyzeCodeExamplePromptsDataset": "npm run build && node ./build/analyzeCodeExamplePromptsDataset.js",
     "createQualityTestsYaml-aug-2023": "npm run build && node ./build/createAug2023QualityTestsYaml.js",
     "createQualityTestsYaml-sept-2023": "npm run build && node ./build/createSept2023QualityTestsYaml.js",
     "scrubMessages": "npm run build && node ./build/scrubMessages.js",
@@ -36,6 +37,8 @@
     "@release-it/bumper": "^5.1.0",
     "@stdlib/random-sample": "^0.2.1",
     "csv": "^6.3.1",
+    "csv-parse": "^5.5.6",
+    "csv-writer": "^1.6.0",
     "dotenv": "^16.3.1",
     "mongodb-chatbot-server": "*",
     "mongodb-rag-core": "*",

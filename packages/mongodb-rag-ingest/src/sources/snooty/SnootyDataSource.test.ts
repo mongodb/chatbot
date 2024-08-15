@@ -5,6 +5,7 @@ import JSONL from "jsonl-parse-stringify";
 import {
   SnootyNode,
   SnootyProjectConfig,
+  handleMetadata,
   handlePage,
   makeSnootyDataSource,
 } from "./SnootyDataSource";
@@ -128,6 +129,18 @@ describe("SnootyDataSource", () => {
       });
     });
 
+    it("adds metadata to page", async () => {
+      const source = await makeSnootyDataSource({
+        name: `snooty-test`,
+        project,
+        snootyDataApiBaseUrl,
+      });
+      const pages = await source.fetchPages();
+      for (const page of pages) {
+        expect(page.metadata?.siteTitle).toBeDefined();
+      }
+    });
+
     it("handles pages marked 'deleted'", async () => {
       // Use normal sample data (no deletes)
       const source = await makeSnootyDataSource({
@@ -209,5 +222,17 @@ describe("handlePage()", () => {
       },
     });
     expect(result.body).toContain("# $merge (aggregation)");
+  });
+});
+
+describe("handleMetadata()", () => {
+  const sampleMetadata = {
+    title: "Hello World",
+  };
+  it("Should return an object with title", async () => {
+    const result = handleMetadata(sampleMetadata);
+    expect(result).toMatchObject({
+      title: sampleMetadata.title,
+    });
   });
 });

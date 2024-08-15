@@ -140,6 +140,7 @@ Response: ${includeAnswer ? quizQuestionToHelmAnswer(quizQuestion) : ""}`;
 /**
   Accepts a quiz question and formats the correct answer as a string.
   Separates multiple correct answers by commas without spaces.
+  Sorts multiple correct answers in ascending order.
   @example
   A only correct answer -> "A"
   @example

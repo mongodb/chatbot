@@ -26,7 +26,7 @@ runPipeline({
         // Put the evaluations in Braintrust
         const generatedData =
           await config.generatedDataStore.findByCommandRunId(genRunId);
-        assert(generatedData, "Must be generated data");
+        assert(generatedData, `No generated data found for run ${genRunId}`);
         await evaluateRegexMatch({
           generatedData,
           regExp: /mongodb/i,

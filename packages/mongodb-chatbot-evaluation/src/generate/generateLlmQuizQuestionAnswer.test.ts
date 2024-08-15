@@ -123,9 +123,7 @@ describe("generateLlmQuizQuestionAnswer", () => {
   });
   it("should include quiz question in the system prompt", () => {
     expect(
-      generated.evalData?.promptMessages[
-        generated.evalData?.promptMessages.length - 1
-      ].content
+      generated.evalData?.promptMessages.at(-1).content
     ).toMatch(new RegExp(testQuestion.questionText));
   });
   it("should generate data for quiz question", () => {

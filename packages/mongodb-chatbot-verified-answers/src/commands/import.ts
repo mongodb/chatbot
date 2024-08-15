@@ -7,6 +7,8 @@ import {
   makeOpenAiEmbedder,
   OpenAIClient,
   AzureKeyCredential,
+  CORE_CHATBOT_APP_ENV_VARS,
+  CORE_OPENAI_ENV_VARS,
 } from "mongodb-rag-core";
 import { parseVerifiedAnswerYaml } from "../parseVerifiedAnswersYaml";
 import { importVerifiedAnswers } from "../importVerifiedAnswers";
@@ -39,19 +41,16 @@ export const doImportCommand = async ({ path }: ImportCommandArgs) => {
   const {
     MONGODB_DATABASE_NAME,
     MONGODB_CONNECTION_URI,
-    OPENAI_EMBEDDING_MODEL: embeddingModel,
+    OPENAI_EMBEDDING_MODEL_NAME: embeddingModelName,
     OPENAI_EMBEDDING_MODEL_VERSION: embeddingModelVersion,
     OPENAI_EMBEDDING_DEPLOYMENT: deployment,
     OPENAI_ENDPOINT,
     OPENAI_API_KEY,
   } = assertEnvVars({
-    MONGODB_DATABASE_NAME: "",
-    MONGODB_CONNECTION_URI: "",
-    OPENAI_EMBEDDING_MODEL: "",
+    ...CORE_CHATBOT_APP_ENV_VARS,
+    ...CORE_OPENAI_ENV_VARS,
+    OPENAI_EMBEDDING_MODEL_NAME: "",
     OPENAI_EMBEDDING_MODEL_VERSION: "",
-    OPENAI_EMBEDDING_DEPLOYMENT: "",
-    OPENAI_ENDPOINT: "",
-    OPENAI_API_KEY: "",
   });
   const yaml = await fs.readFile(path, "utf-8");
   const verifiedAnswerSpecs = parseVerifiedAnswerYaml(yaml);
@@ -70,7 +69,7 @@ export const doImportCommand = async ({ path }: ImportCommandArgs) => {
       embedder,
       db,
       verifiedAnswerSpecs,
-      embeddingModel,
+      embeddingModelName,
       embeddingModelVersion,
       verifiedAnswersCollectionName: "verified_answers",
     });

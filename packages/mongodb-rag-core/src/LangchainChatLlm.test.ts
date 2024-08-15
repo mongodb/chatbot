@@ -1,10 +1,11 @@
+import "dotenv/config";
 import { OpenAiChatMessage } from "./ChatLlm";
 import { makeLangchainChatLlm } from "./LangchainChatLlm";
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatAnthropic } from "@langchain/anthropic";
 import { assertEnvVars } from "./assertEnvVars";
-import { CORE_ENV_VARS } from "./CoreEnvVars";
+import { CORE_OPENAI_CHAT_COMPLETION_ENV_VARS } from "./CoreEnvVars";
 
 jest.setTimeout(30000);
 
@@ -13,7 +14,7 @@ const {
   OPENAI_API_KEY,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
-} = assertEnvVars(CORE_ENV_VARS);
+} = assertEnvVars(CORE_OPENAI_CHAT_COMPLETION_ENV_VARS);
 
 const fakeResponses = ["I'll callback later.", "You 'console' them!"];
 const makeFakeChat = () =>

@@ -1,8 +1,4 @@
-import {
-  Config,
-  INGEST_ENV_VARS,
-  makeIngestMetaStore,
-} from "mongodb-rag-ingest";
+import { Config, makeIngestMetaStore } from "mongodb-rag-ingest";
 import { standardChunkFrontMatterUpdater } from "mongodb-rag-ingest/embed";
 import {
   assertEnvVars,
@@ -13,6 +9,7 @@ import {
   OpenAIClient,
   AzureKeyCredential,
 } from "mongodb-rag-core";
+import { PUBLIC_INGEST_ENV_VARS } from "./PublicIngestEnvVars";
 import { sourceConstructors } from "./sources";
 
 const {
@@ -21,7 +18,7 @@ const {
   OPENAI_EMBEDDING_DEPLOYMENT,
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
-} = assertEnvVars(INGEST_ENV_VARS);
+} = assertEnvVars(PUBLIC_INGEST_ENV_VARS);
 
 const embedder = makeOpenAiEmbedder({
   openAiClient: new OpenAIClient(

@@ -1,6 +1,9 @@
-import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
-import { assertEnvVars, CORE_ENV_VARS } from "mongodb-rag-core";
 import "dotenv/config";
+import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
+import {
+  assertEnvVars,
+  CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
+} from "mongodb-rag-core";
 import { ChatMessage } from ".";
 
 export type GenerateChatCompletion = (
@@ -9,7 +12,7 @@ export type GenerateChatCompletion = (
 
 export function makeGenerateChatCompletion(): GenerateChatCompletion {
   const { OPENAI_API_KEY, OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
-    assertEnvVars(CORE_ENV_VARS);
+    assertEnvVars(CORE_OPENAI_CHAT_COMPLETION_ENV_VARS);
 
   const openAiClient = new OpenAIClient(
     OPENAI_ENDPOINT,

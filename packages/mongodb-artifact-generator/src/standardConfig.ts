@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { Config } from "./Config";
 import { ArtifactGeneratorEnvVars } from "./ArtifactGeneratorEnvVars";
 import {

@@ -1,9 +1,13 @@
+import "dotenv/config";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { makeDefaultFindContent } from "./DefaultFindContent";
 import { makeMongoDbEmbeddedContentStore } from "./MongoDbEmbeddedContentStore";
 import { makeOpenAiEmbedder } from "./OpenAiEmbedder";
 import { assertEnvVars } from "./assertEnvVars";
-import { CORE_ENV_VARS } from "./CoreEnvVars";
+import {
+  CORE_CHATBOT_APP_ENV_VARS,
+  CORE_OPENAI_EMBEDDING_ENV_VARS,
+} from "./CoreEnvVars";
 
 describe("makeDefaultFindContent()", () => {
   const {
@@ -12,7 +16,10 @@ describe("makeDefaultFindContent()", () => {
     OPENAI_ENDPOINT,
     OPENAI_API_KEY,
     OPENAI_EMBEDDING_DEPLOYMENT,
-  } = assertEnvVars(CORE_ENV_VARS);
+  } = assertEnvVars({
+    ...CORE_CHATBOT_APP_ENV_VARS,
+    ...CORE_OPENAI_EMBEDDING_ENV_VARS,
+  });
   const embeddedContentStore = makeMongoDbEmbeddedContentStore({
     connectionUri: MONGODB_CONNECTION_URI,
     databaseName: MONGODB_DATABASE_NAME,

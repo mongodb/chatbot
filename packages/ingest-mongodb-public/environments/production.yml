@@ -7,8 +7,6 @@ cronJobs:
     schedule: "0 6 * * *" # every day at 6am UTC (1AM EST)
     command: ["npm", "run", "ingest:k8s"]
     env:
-      OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
-      OPENAI_EMBEDDING_MODEL_VERSION: 2023-06-01-preview
       MONGODB_DATABASE_NAME: docs-chatbot-prod
       VECTOR_SEARCH_INDEX_NAME: vector_index
       OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview

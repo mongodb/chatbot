@@ -1,8 +1,9 @@
+import { Config, makeIngestMetaStore } from "mongodb-rag-ingest";
 import {
-  Config,
-  INGEST_ENV_VARS,
-  makeIngestMetaStore,
-} from "mongodb-rag-ingest";
+  PUBLIC_INGEST_COACHGTM_ENV_VARS,
+  PUBLIC_INGEST_ENV_VARS,
+  PUBLIC_INGEST_MONGODB_DOT_COM_ENV_VARS,
+} from "./PublicIngestEnvVars";
 import { standardChunkFrontMatterUpdater } from "mongodb-rag-ingest/embed";
 import {
   assertEnvVars,
@@ -26,10 +27,9 @@ const {
   MONGODB_DOT_COM_CONNECTION_URI,
   MONGODB_DOT_COM_DB_NAME,
 } = assertEnvVars({
-  ...INGEST_ENV_VARS,
-  MONGODB_COACH_GTM_DATABASE_NAME: "",
-  MONGODB_DOT_COM_CONNECTION_URI: "",
-  MONGODB_DOT_COM_DB_NAME: "",
+  ...PUBLIC_INGEST_ENV_VARS,
+  ...PUBLIC_INGEST_MONGODB_DOT_COM_ENV_VARS,
+  ...PUBLIC_INGEST_COACHGTM_ENV_VARS,
 });
 
 const embedder = makeOpenAiEmbedder({

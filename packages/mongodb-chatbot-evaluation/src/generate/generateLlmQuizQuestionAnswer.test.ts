@@ -111,7 +111,7 @@ describe("generateLlmQuizQuestionAnswer", () => {
       new RegExp(subject)
     );
   });
-  it("should include few-shot examples in the system prompt", async () => {
+  it("should include few-shot examples in messages", async () => {
     // (1 system prompt)
     // + (2 for each example, user and assistant messages)
     // + (1 user message for actual message)
@@ -121,10 +121,10 @@ describe("generateLlmQuizQuestionAnswer", () => {
       new RegExp(quizQuestionExamples[0].questionText)
     );
   });
-  it("should include quiz question in the system prompt", () => {
-    expect(
-      generated.evalData?.promptMessages.at(-1).content
-    ).toMatch(new RegExp(testQuestion.questionText));
+  it("should include quiz question in last message to model", () => {
+    expect(generated.evalData?.promptMessages.at(-1)?.content).toMatch(
+      new RegExp(testQuestion.questionText)
+    );
   });
   it("should generate data for quiz question", () => {
     expect(generated).toMatchObject({

@@ -126,6 +126,27 @@ export const makeGenerateLlmQuizQuestionAnswer = function ({
   };
 };
 
+/**
+  Create a HELM-style quiz question prompt string.
+  @example Without answer:
+  ```txt
+  Question: What is the recommended maximum number of collections for an M10 cluster? (Select one.)
+  A. 100,000
+  B. 10,000
+  C. 20,000
+  D. 5,000
+  Response:
+  ```
+  @example With answer:
+  ```txt
+  Question: What is the recommended maximum number of collections for an M10 cluster? (Select one.)
+  A. 100,000
+  B. 10,000
+  C. 20,000
+  D. 5,000
+  Response: B
+  ```
+ */
 export function quizQuestionToHelmPrompt(
   quizQuestion: QuizQuestionTestCaseData,
   includeAnswer: boolean

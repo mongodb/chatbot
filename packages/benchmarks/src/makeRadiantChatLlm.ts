@@ -25,7 +25,7 @@ export const makeRadiantChatLlm = async ({
   const { AzureKeyCredential, OpenAIClient } = await import("@azure/openai");
   return makeOpenAiChatLlm({
     deployment,
-    openAiLmmConfigOptions: { ...lmmConfigOptions },
+    openAiLmmConfigOptions: lmmConfigOptions,
     openAiClient: new OpenAIClient(endpoint, new AzureKeyCredential(apiKey), {
       // Allow insecure connection when in staging/production
       // b/c connecting w/in the same k8s cluster

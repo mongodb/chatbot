@@ -14,7 +14,6 @@ import { snootyAstToMd } from "./snootyAstToMd";
 const SRC_ROOT = Path.resolve(__dirname, "../../");
 
 jest.setTimeout(15000);
-
 describe("SnootyDataSource", () => {
   const project: SnootyProjectConfig = {
     type: "snooty",
@@ -129,20 +128,17 @@ describe("SnootyDataSource", () => {
       });
     });
 
-    it.only("adds metadata to page", async () => {
+    it("adds metadata to page", async () => {
       const source = await makeSnootyDataSource({
         name: `snooty-test`,
         project,
         snootyDataApiBaseUrl,
       });
-      let pages = await source.fetchPages();
-      pages = await source.fetchPages();
-      for(const page of pages) {
-        expect(
-          page.metadata?.siteTitle
-        ).toBeDefined()
+      const pages = await source.fetchPages();
+      for (const page of pages) {
+        expect(page.metadata?.siteTitle).toBeDefined();
       }
-    })
+    });
 
     it("handles pages marked 'deleted'", async () => {
       // Use normal sample data (no deletes)
@@ -180,6 +176,7 @@ describe("SnootyDataSource", () => {
     });
   });
 });
+
 describe("handlePage()", () => {
   it("should correctly parse openapi spec page", async () => {
     const apiSpecPage = JSON.parse(
@@ -230,12 +227,12 @@ describe("handlePage()", () => {
 
 describe("handleMetadata()", () => {
   const sampleMetadata = {
-    title: 'Hello World'
-  }
-  it("Should return an object with title", async() => {
-    const result = handleMetadata(sampleMetadata)
+    title: "Hello World",
+  };
+  it("Should return an object with title", async () => {
+    const result = handleMetadata(sampleMetadata);
     expect(result).toMatchObject({
-      title: sampleMetadata.title
-    })
-  })
-})
+      title: sampleMetadata.title,
+    });
+  });
+});

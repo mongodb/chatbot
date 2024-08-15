@@ -205,9 +205,11 @@ export const makeSnootyDataSource = ({
             case "asset":
               // Nothing to do with assets (images...) for now
               return;
-            case "metadata":
+            case "metadata": {
               const { data } = entry as SnootyMetadataEntry;
               siteTitle = handleMetadata(data).title;
+              return;
+            }
             case "timestamp":
               // Nothing to do with timestamp document for now
               return;

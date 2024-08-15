@@ -1,4 +1,4 @@
-import { startOfMonth } from "../materialize/materialized-view-utils";
+import { startOfMonth } from "../materialize/materializedViewUtils";
 import { createScrubbedMessageStatsViews } from "../materialize/scrubbed_messages_stats";
 
 async function main() {

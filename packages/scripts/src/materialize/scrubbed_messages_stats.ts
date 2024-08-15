@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { assertEnvVars, MongoClient, Db, Document } from "mongodb-rag-core";
-import { ensureCollectionWithIndex } from "./materialized-view-utils";
+import { ensureCollectionWithIndex } from "./materializedViewUtils";
 
 export type ScrubbedMessageStatsGranularity = "daily" | "weekly" | "monthly";
 

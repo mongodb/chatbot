@@ -6,7 +6,7 @@ import {
   startOfMonth,
   startOfWeek,
   startOfDay,
-} from "./materialized-view-utils";
+} from "./materializedViewUtils";
 
 const { MONGODB_CONNECTION_URI } = assertEnvVars({
   MONGODB_CONNECTION_URI: "",

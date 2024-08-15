@@ -69,9 +69,9 @@ cronJobs:
     schedule: "0 */2 * * *" # Every 2 hours
     command: ["npm", "run", "scripts:materializeScrubbedMessagesStats:latest"]
     env:
-      MONGODB_DATABASE_NAME: docs-chatbot-staging
+      MONGODB_DATABASE_NAME: docs-chatbot-prod
     envSecrets:
-      MONGODB_CONNECTION_URI: docs-chatbot-staging
+      MONGODB_CONNECTION_URI: docs-chatbot-prod
     resources:
       requests:
         cpu: 100m

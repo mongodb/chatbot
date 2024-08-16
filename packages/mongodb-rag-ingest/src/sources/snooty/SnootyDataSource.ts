@@ -61,7 +61,7 @@ export type SnootyPageData = {
 };
 
 /**
-  Snooty metadata.
+  A Snooty Data API metadata object. This contains project-level information, such as the site name.
  */
   export type SnootyMetadata = {
     title?: string;

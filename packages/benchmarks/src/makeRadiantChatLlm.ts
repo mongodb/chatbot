@@ -1,4 +1,7 @@
-import { makeOpenAiChatLlm } from "mongodb-chatbot-server";
+import {
+  GetChatCompletionsOptions,
+  makeOpenAiChatLlm,
+} from "mongodb-chatbot-server";
 
 export const makeRadiantChatLlm = async ({
   endpoint,
@@ -7,15 +10,17 @@ export const makeRadiantChatLlm = async ({
   mongoDbAuthCookie,
   lmmConfigOptions = {
     temperature: 0,
+    maxTokens: 2000,
   },
 }: {
   endpoint: string;
   apiKey: string;
   deployment: string;
   mongoDbAuthCookie?: string;
-  lmmConfigOptions: {
-    temperature: number;
-  };
+  lmmConfigOptions: Pick<
+    GetChatCompletionsOptions,
+    "maxTokens" | "temperature"
+  >;
 }) => {
   const { AzureKeyCredential, OpenAIClient } = await import("@azure/openai");
   return makeOpenAiChatLlm({

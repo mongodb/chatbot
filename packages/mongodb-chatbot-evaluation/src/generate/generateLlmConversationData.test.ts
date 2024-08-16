@@ -1,6 +1,6 @@
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { makeGenerateLlmConversationData } from "./generateLlmConversationData";
-import { ObjectId } from "mongodb-rag-core";
+import { MakeLangchainChatLlmProps, ObjectId } from "mongodb-rag-core";
 import { testCases, triggerErrorTestCases } from "../test/mockTestCases";
 import { ChatOpenAI } from "@langchain/openai";
 import { makeLangchainChatLlm } from "mongodb-chatbot-server";
@@ -38,7 +38,8 @@ describe("makeGenerateLlmConversationData", () => {
     });
     const generateLlmConversationData = makeGenerateLlmConversationData({
       chatLlm: makeLangchainChatLlm({
-        chatModel: throwingLlm,
+        chatModel:
+          throwingLlm as unknown as MakeLangchainChatLlmProps["chatModel"],
       }),
       backOffOptions: {
         numOfAttempts: 1,

@@ -41,6 +41,7 @@ export default async () => {
           mongoDbAuthCookie: MONGODB_AUTH_COOKIE,
           lmmConfigOptions: {
             temperature: 0,
+            maxTokens: 2000,
           },
         }),
       };

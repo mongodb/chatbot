@@ -56,7 +56,9 @@ describe("LangchainChatLlm", () => {
       azureOpenAIApiVersion: OPENAI_CHAT_COMPLETION_MODEL_VERSION,
     });
     const azureLangchainChatLlm = makeLangchainChatLlm({
-      chatModel: model,
+      chatModel: model as unknown as Parameters<
+        typeof makeLangchainChatLlm
+      >[0]["chatModel"],
     });
     const { role, content } = await azureLangchainChatLlm.answerQuestionAwaited(
       {

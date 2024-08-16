@@ -1,11 +1,5 @@
 import { QuizGeneratedData } from "./GeneratedDataStore";
-import {
-  ChatLlm,
-  Message,
-  ObjectId,
-  SystemMessage,
-  UserMessage,
-} from "mongodb-chatbot-server";
+import { ChatLlm, ObjectId, OpenAiChatMessage } from "mongodb-chatbot-server";
 import { logger } from "mongodb-rag-core";
 import { GenerateDataFunc } from "./GenerateDataFunc";
 import {
@@ -97,15 +91,15 @@ export const makeGenerateLlmQuizQuestionAnswer = function ({
         `Generating data for test case: '${testCase.data.questionText}'`
       );
 
-      const prompt = makeHelmQuizQuestionPrompt({
-        quizQuestionExamples,
+      const promptMessages = makeHelmQuizQuestionPrompt({
         quizQuestion: testCase.data,
+        quizQuestionExamples,
         subject,
       });
 
       try {
         const response = await chatLlm.answerQuestionAwaited({
-          messages: [prompt],
+          messages: promptMessages,
         });
         assert(response.content, "No response content from LLM");
 
@@ -116,7 +110,7 @@ export const makeGenerateLlmQuizQuestionAnswer = function ({
             modelAnswer: response.content,
           },
           type: "quiz",
-          evalData: { ...testCase.data, prompt, modelName },
+          evalData: { ...testCase.data, promptMessages, modelName },
           createdAt: new Date(),
         });
       } catch (e) {
@@ -132,6 +126,27 @@ export const makeGenerateLlmQuizQuestionAnswer = function ({
   };
 };
 
+/**
+  Create a HELM-style quiz question prompt string.
+  @example Without answer:
+  ```txt
+  Question: What is the recommended maximum number of collections for an M10 cluster? (Select one.)
+  A. 100,000
+  B. 10,000
+  C. 20,000
+  D. 5,000
+  Response:
+  ```
+  @example With answer:
+  ```txt
+  Question: What is the recommended maximum number of collections for an M10 cluster? (Select one.)
+  A. 100,000
+  B. 10,000
+  C. 20,000
+  D. 5,000
+  Response: B
+  ```
+ */
 export function quizQuestionToHelmPrompt(
   quizQuestion: QuizQuestionTestCaseData,
   includeAnswer: boolean
@@ -140,17 +155,31 @@ export function quizQuestionToHelmPrompt(
 ${quizQuestion.answers
   .map((answer) => `${answer.label}. ${answer.answer}`)
   .join("\n")}
-Response: ${
-    includeAnswer
-      ? quizQuestion.answers
-          .filter((ans) => ans.isCorrect)
-          .map((answer) => answer.label)
-          .join(",")
-      : ""
-  }`;
+Response: ${includeAnswer ? quizQuestionToHelmAnswer(quizQuestion) : ""}`;
 }
 
-type UserOrSystemMessage = UserMessage | SystemMessage;
+/**
+  Accepts a quiz question and formats the correct answer as a string.
+  Separates multiple correct answers by commas without spaces.
+  Sorts multiple correct answers in ascending order.
+  @example
+  A only correct answer -> "A"
+  @example
+  B and D correct answers -> "B,D"
+
+ */
+export function quizQuestionToHelmAnswer(
+  quizQuestion: QuizQuestionTestCaseData
+) {
+  return (
+    quizQuestion.answers
+      .filter((ans) => ans.isCorrect)
+      .map((answer) => answer.label)
+      // Sort alphabetical, ascending
+      .sort()
+      .join(",")
+  );
+}
 /**
   Generate prompt for multiple-choice quiz questions using a large language model (LLM).
 
@@ -165,7 +194,6 @@ export function makeHelmQuizQuestionPrompt({
   quizQuestionExamples,
   quizQuestion,
   subject,
-  messageRole = "user",
 }: {
   /**
     Few-shot examples to show the model how to respond.
@@ -180,26 +208,37 @@ export function makeHelmQuizQuestionPrompt({
     Quiz question to generate a prompt for.
    */
   quizQuestion: QuizQuestionTestCaseData;
-  /**
-    Role of the generated message.
-    @default "user"
-   */
-  messageRole?: UserOrSystemMessage["role"];
-}): UserOrSystemMessage {
-  const content = `The following are multiple choice questions (with answers)${
+}): OpenAiChatMessage[] {
+  const promptMessages: OpenAiChatMessage[] = [];
+  const systemPromptContent = `The following are multiple choice questions (with answers)${
     subject ? ` about ${subject}` : ""
   }.
-Only provide the answer the final question using the exact same format as the previous questions. Just provide the letters, e.g. A,B,C,D
-
-${
-  quizQuestionExamples
-    ? quizQuestionExamples
-        ?.map((example) => quizQuestionToHelmPrompt(example, true))
-        .join("\n\n") + "\n\n"
-    : ""
-}${quizQuestionToHelmPrompt(quizQuestion, false)}`;
-  return {
-    content,
-    role: messageRole,
-  };
+Only provide the answer the final question using the exact same format as the previous questions. Just provide the letters, e.g. A,B,C,D`;
+  const systemPrompt = {
+    role: "system",
+    content: systemPromptContent,
+  } satisfies OpenAiChatMessage;
+  const fewShotExamples = quizQuestionExamples?.map(
+    (quizQuestionExample) =>
+      [
+        {
+          role: "user",
+          content: quizQuestionToHelmPrompt(quizQuestionExample, false),
+        },
+        {
+          role: "assistant",
+          content: quizQuestionToHelmAnswer(quizQuestionExample),
+        },
+      ] satisfies OpenAiChatMessage[]
+  );
+  const currentQuestion = {
+    role: "user",
+    content: quizQuestionToHelmPrompt(quizQuestion, false),
+  } satisfies OpenAiChatMessage;
+  promptMessages.push(
+    systemPrompt,
+    ...(fewShotExamples?.flat() ?? []),
+    currentQuestion
+  );
+  return promptMessages;
 }

@@ -207,7 +207,7 @@ export const makeSnootyDataSource = ({
               return;
             case "metadata": {
               const { data } = entry as SnootyMetadataEntry;
-              siteTitle = handleMetadata(data).title;
+              siteTitle = data.title;
               return;
             }
             case "timestamp":
@@ -346,11 +346,3 @@ export const handlePage = async (
     },
   };
 };
-
-export const handleMetadata = (
-  metadata: SnootyMetadata
-): {
-  title: string | undefined
-}  => {
-  return {title: metadata.title }
-}

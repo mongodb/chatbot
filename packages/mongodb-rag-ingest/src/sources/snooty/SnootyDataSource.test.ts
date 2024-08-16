@@ -5,7 +5,6 @@ import JSONL from "jsonl-parse-stringify";
 import {
   SnootyNode,
   SnootyProjectConfig,
-  handleMetadata,
   handlePage,
   makeSnootyDataSource,
 } from "./SnootyDataSource";
@@ -222,17 +221,5 @@ describe("handlePage()", () => {
       },
     });
     expect(result.body).toContain("# $merge (aggregation)");
-  });
-});
-
-describe("handleMetadata()", () => {
-  const sampleMetadata = {
-    title: "Hello World",
-  };
-  it("Should return an object with title", async () => {
-    const result = handleMetadata(sampleMetadata);
-    expect(result).toMatchObject({
-      title: sampleMetadata.title,
-    });
   });
 });

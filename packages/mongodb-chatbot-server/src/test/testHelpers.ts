@@ -30,7 +30,7 @@ export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
       ...config.conversationsRouterConfig,
       conversations,
     },
-    async additionalServerLogic(app) {
+    async expressAppConfig(app) {
       app.get("/hello", (_req, res) => {
         res.send({ foo: "bar" });
       });

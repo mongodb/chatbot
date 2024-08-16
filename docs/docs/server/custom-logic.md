@@ -3,10 +3,24 @@
 The MongoDB Chatbot Server provides a few ways to customize the server to meet
 the needs of your application.
 
-You can add [Express.js middleware](https://expressjs.com/en/guide/using-middleware.html)
-to validate requests or include custom data in requests.
+## App-Level Configuration
 
-You can also add custom data to the persisted conversation.
+You can add custom Express.js routes and application-level logic by including the [`AppConfig.expressAppConfig`](../reference/server/interfaces/AppConfig.md#expressappconfig) function in your app configuration.
+Pass the `AppConfig` object to the [`makeApp`](../reference/server/modules.md#makeapp) function to create the app.
+
+```typescript
+import { makeApp, AppConfig } from "mongodb-chatbot-server";
+
+const appConfig: AppConfig = {
+  // ...other config
+  expressAppConfig: (app) => {
+      app.get("/", (req, res) => res.send({ hello: "world" }))
+  },
+};
+
+const app = await makeApp(appConfig);
+//...
+```
 
 ## Middleware
 

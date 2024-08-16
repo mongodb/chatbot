@@ -53,7 +53,7 @@ export interface AppConfig {
       app.get("/", (req, res) => res.send({ hello: "world" }))
     }
    */
-  additionalServerLogic?: (app: Express) => Promise<void>;
+  expressAppConfig?: (app: Express) => Promise<void>;
 }
 
 /**
@@ -118,7 +118,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
     conversationsRouterConfig,
     corsOptions,
     apiPrefix = DEFAULT_API_PREFIX,
-    additionalServerLogic,
+    expressAppConfig,
   } = config;
   logger.info("Server has the following configuration:");
   logger.info(
@@ -127,7 +127,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
   const app = express();
 
   // Instantiate additional server logic, if it exists.
-  additionalServerLogic && (await additionalServerLogic(app));
+  expressAppConfig && (await expressAppConfig(app));
 
   // MongoDB chatbot server logic
   app.use(makeHandleTimeoutMiddleware(maxRequestTimeoutMs));

@@ -184,7 +184,7 @@ export const config: AppConfig = {
     // Allow cookies from different origins to be sent to the server.
     credentials: true,
   },
-  additionalServerLogic: !isProduction
+  expressAppConfig: !isProduction
     ? async (app) => {
         const staticAssetsPath = path.join(__dirname, "..", "static");
         app.use(express.static(staticAssetsPath));

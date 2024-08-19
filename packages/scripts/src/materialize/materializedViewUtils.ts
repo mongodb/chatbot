@@ -76,7 +76,6 @@ export function startOfWeek(
   date: Date,
   weekStartsOn: "sunday" | "monday" = "sunday"
 ) {
-  // The week starts on Monday
   return new Date(
     Date.UTC(
       date.getFullYear(),

@@ -3,6 +3,7 @@ import {
   IndexSpecification,
   Collection,
   CreateIndexesOptions,
+  MongoClient,
 } from "mongodb-rag-core";
 
 export type IndexDefinition = {
@@ -12,12 +13,14 @@ export type IndexDefinition = {
 };
 
 export type EnsureCollectionWithIndexParams = {
-  db: Db;
+  client: MongoClient;
+  databaseName: string;
   collectionName: string;
 } & ({ index: IndexDefinition } | { indexes: IndexDefinition[] });
 
 export async function ensureCollectionWithIndex({
-  db,
+  client,
+  databaseName,
   collectionName,
   ...indexProps
 }: EnsureCollectionWithIndexParams) {
@@ -25,10 +28,11 @@ export async function ensureCollectionWithIndex({
     collectionName,
     ...indexProps,
   });
+  await client.connect();
+  const db = client.db(databaseName);
   const existingCollections = await db
     .listCollections({ name: collectionName })
     .toArray();
-  console.log("Existing collections:", existingCollections);
   const collectionExists = existingCollections.some(
     (collection) => collection.name === collectionName
   );
@@ -40,7 +44,9 @@ export async function ensureCollectionWithIndex({
   for (const index of indexesToCreate) {
     console.log("Ensuring index:", index);
     await ensureIndex({
-      collection,
+      client,
+      databaseName,
+      collectionName,
       index: index.spec,
       options: index.options,
     });
@@ -49,14 +55,20 @@ export async function ensureCollectionWithIndex({
 }
 
 export async function ensureIndex({
-  collection,
+  client,
+  databaseName,
+  collectionName,
   index,
   options,
 }: {
-  collection: Collection;
+  client: MongoClient;
+  databaseName: string;
+  collectionName: string;
   index: IndexSpecification;
   options?: CreateIndexesOptions;
 }) {
+  await client.connect();
+  const collection = client.db(databaseName).collection(collectionName);
   const existingIndexes = await collection.listIndexes().toArray();
   const indexExists = existingIndexes.some((existingIndex) => {
     return JSON.stringify(existingIndex.key) === JSON.stringify(index);

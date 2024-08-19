@@ -1,23 +1,7 @@
-import {
-  assertEnvVars,
-  BSON,
-  Db,
-  MongoClient,
-  ObjectId,
-} from "mongodb-rag-core";
+import { assertEnvVars, BSON, MongoClient, ObjectId } from "mongodb-rag-core";
 import { promises as fs } from "fs";
 import { createScrubbedMessageStatsViews } from "./scrubbed_messages_stats";
 import path from "path";
-
-async function seedTestDatabase(args: { db: Db; collectionName: string }) {
-  const seedDataFilePath = path.join(
-    __dirname,
-    "testData/scrubbed_messages.json"
-  );
-  const rawSeedData = await fs.readFile(seedDataFilePath, "utf8");
-  const seedData = BSON.EJSON.parse(rawSeedData);
-  await args.db.collection(args.collectionName).insertMany(seedData);
-}
 
 const { MONGODB_CONNECTION_URI } = assertEnvVars({
   MONGODB_CONNECTION_URI: "",
@@ -30,31 +14,41 @@ const scrubbedMessagesCollectionName = `scrubbed_messages`;
 const scrubbedMessagesStatsCollectionName = `scrubbed_messages_stats`;
 describe("Create a materialized view of scrubbed message stats", () => {
   beforeAll(async () => {
+    // Seed the database with test data
     try {
+      const seedDataFilePath = path.join(
+        __dirname,
+        "testData/scrubbed_messages.json"
+      );
+      const rawSeedData = await fs.readFile(seedDataFilePath, "utf8");
+      const seedData = BSON.EJSON.parse(rawSeedData);
       await client.connect();
-      const db = client.db(databaseName);
-      await seedTestDatabase({
-        db,
-        collectionName: scrubbedMessagesCollectionName,
-      });
+      await client
+        .db(databaseName)
+        .collection(scrubbedMessagesCollectionName)
+        .insertMany(seedData);
     } finally {
       await client.close();
     }
-  }, 10000);
-  afterAll(async () => {
+  }, 20000);
+
+  afterEach(async () => {
+    // Drop the stats collection between tests
     try {
       await client.connect();
-      const db = client.db(databaseName);
-      await db.dropDatabase();
+      await client
+        .db(databaseName)
+        .dropCollection(scrubbedMessagesStatsCollectionName);
     } finally {
       await client.close();
     }
   });
-  afterEach(async () => {
+
+  afterAll(async () => {
+    // Drop the test database after all tests
     try {
       await client.connect();
-      const db = client.db(databaseName);
-      await db.collection(scrubbedMessagesStatsCollectionName).drop();
+      await client.db(databaseName).dropDatabase();
     } finally {
       await client.close();
     }
@@ -84,8 +78,11 @@ describe("Create a materialized view of scrubbed message stats", () => {
             },
             granularity: "daily",
           },
-          numMessages: 75,
-          numConversations: 38,
+          numAssistantMessages: 75,
+          numUserMessages: 75,
+          numConversations: 39,
+          numConversationsIncludingEmpty: 54,
+          numEmptyConversations: 15,
           granularity: "daily",
           date: {
             $date: "2024-08-10T00:00:00.000Z",
@@ -104,8 +101,11 @@ describe("Create a materialized view of scrubbed message stats", () => {
             },
             granularity: "daily",
           },
-          numMessages: 86,
-          numConversations: 27,
+          numAssistantMessages: 86,
+          numUserMessages: 86,
+          numConversations: 28,
+          numConversationsIncludingEmpty: 32,
+          numEmptyConversations: 4,
           granularity: "daily",
           date: {
             $date: "2024-08-11T00:00:00.000Z",
@@ -124,8 +124,11 @@ describe("Create a materialized view of scrubbed message stats", () => {
             },
             granularity: "daily",
           },
-          numMessages: 73,
-          numConversations: 45,
+          numUserMessages: 73,
+          numAssistantMessages: 73,
+          numConversations: 46,
+          numConversationsIncludingEmpty: 60,
+          numEmptyConversations: 14,
           granularity: "daily",
           date: {
             $date: "2024-08-12T00:00:00.000Z",
@@ -152,8 +155,11 @@ describe("Create a materialized view of scrubbed message stats", () => {
             },
             granularity: "weekly",
           },
-          numMessages: 161,
-          numConversations: 65,
+          numAssistantMessages: 161,
+          numUserMessages: 161,
+          numConversations: 66,
+          numConversationsIncludingEmpty: 86,
+          numEmptyConversations: 20,
           granularity: "weekly",
           date: {
             $date: "2024-08-05T00:00:00.000Z",
@@ -168,8 +174,11 @@ describe("Create a materialized view of scrubbed message stats", () => {
             },
             granularity: "weekly",
           },
-          numMessages: 73,
-          numConversations: 45,
+          numAssistantMessages: 73,
+          numUserMessages: 73,
+          numConversations: 46,
+          numConversationsIncludingEmpty: 60,
+          numEmptyConversations: 14,
           granularity: "weekly",
           date: {
             $date: "2024-08-12T00:00:00.000Z",
@@ -192,8 +201,11 @@ describe("Create a materialized view of scrubbed message stats", () => {
             },
             granularity: "monthly",
           },
-          numMessages: 234,
-          numConversations: 110,
+          numAssistantMessages: 234,
+          numUserMessages: 234,
+          numConversations: 111,
+          numConversationsIncludingEmpty: 146,
+          numEmptyConversations: 35,
           granularity: "monthly",
           date: {
             $date: "2024-08-01T00:00:00.000Z",
@@ -240,8 +252,11 @@ describe("Create a materialized view of scrubbed message stats", () => {
             },
             granularity: "monthly",
           },
-          numMessages: 234,
-          numConversations: 110,
+          numAssistantMessages: 234,
+          numUserMessages: 234,
+          numConversations: 111,
+          numConversationsIncludingEmpty: 146,
+          numEmptyConversations: 35,
           granularity: "monthly",
           date: {
             $date: "2024-08-01T00:00:00.000Z",
@@ -278,8 +293,11 @@ describe("Create a materialized view of scrubbed message stats", () => {
             },
             granularity: "daily",
           },
-          numMessages: 86,
-          numConversations: 27,
+          numAssistantMessages: 86,
+          numUserMessages: 86,
+          numConversations: 28,
+          numConversationsIncludingEmpty: 32,
+          numEmptyConversations: 4,
           granularity: "daily",
           date: {
             $date: "2024-08-11T00:00:00.000Z",
@@ -298,8 +316,11 @@ describe("Create a materialized view of scrubbed message stats", () => {
             },
             granularity: "daily",
           },
-          numMessages: 73,
-          numConversations: 45,
+          numAssistantMessages: 73,
+          numUserMessages: 73,
+          numConversations: 46,
+          numConversationsIncludingEmpty: 60,
+          numEmptyConversations: 14,
           granularity: "daily",
           date: {
             $date: "2024-08-12T00:00:00.000Z",
@@ -326,8 +347,11 @@ describe("Create a materialized view of scrubbed message stats", () => {
             },
             granularity: "weekly",
           },
-          numMessages: 86,
-          numConversations: 27,
+          numAssistantMessages: 86,
+          numUserMessages: 86,
+          numConversations: 28,
+          numConversationsIncludingEmpty: 32,
+          numEmptyConversations: 4,
           granularity: "weekly",
           date: {
             $date: "2024-08-05T00:00:00.000Z",
@@ -342,8 +366,11 @@ describe("Create a materialized view of scrubbed message stats", () => {
             },
             granularity: "weekly",
           },
-          numMessages: 73,
-          numConversations: 45,
+          numAssistantMessages: 73,
+          numUserMessages: 73,
+          numConversations: 46,
+          numConversationsIncludingEmpty: 60,
+          numEmptyConversations: 14,
           granularity: "weekly",
           date: {
             $date: "2024-08-12T00:00:00.000Z",
@@ -366,8 +393,11 @@ describe("Create a materialized view of scrubbed message stats", () => {
             },
             granularity: "monthly",
           },
-          numMessages: 159,
-          numConversations: 72,
+          numUserMessages: 159,
+          numAssistantMessages: 159,
+          numConversations: 73,
+          numConversationsIncludingEmpty: 92,
+          numEmptyConversations: 19,
           granularity: "monthly",
           date: {
             $date: "2024-08-01T00:00:00.000Z",

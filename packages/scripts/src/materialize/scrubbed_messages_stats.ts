@@ -12,13 +12,17 @@ type ScrubbedMessageStats<T> = T &
     numConversations: number;
   };
 
-interface MakeCreateStatsMaterializedViewParams {
-  db: Db;
-  statsCollectionName: string;
-}
+type MakeCreateStatsMaterializedViewParams = {
+  client: MongoClient;
+  databaseName: string;
+  messagesCollectionName?: string;
+  statsCollectionName?: string;
+};
 
 function makeCreateStatsMaterializedView({
-  db,
+  client,
+  databaseName,
+  messagesCollectionName = "scrubbed_messages",
   statsCollectionName = "scrubbed_messages_stats",
 }: MakeCreateStatsMaterializedViewParams) {
   return async function createStatsMaterializedView<T>({
@@ -38,8 +42,9 @@ function makeCreateStatsMaterializedView({
       throw new Error(`Granularity must be a non-empty string`);
     }
     try {
-      ensureCollectionWithIndex({
-        db,
+      await ensureCollectionWithIndex({
+        client,
+        databaseName,
         collectionName: statsCollectionName,
         indexes: [
           {
@@ -62,32 +67,70 @@ function makeCreateStatsMaterializedView({
           },
         ],
       });
-      return await db
-        .collection("scrubbed_messages")
+      return await client
+        .db(databaseName)
+        .collection(messagesCollectionName)
         .aggregate<ScrubbedMessageStats<T>>([
           {
             $match: {
-              role: "user",
               createdAt: since ? { $gte: since } : { $exists: true },
             },
           },
           {
             $group: {
               _id: groupId,
-              numMessages: {
-                $sum: 1,
+              numUserMessages: {
+                $sum: {
+                  $cond: {
+                    if: { $eq: ["$role", "user"] },
+                    then: 1,
+                    else: 0,
+                  },
+                },
+              },
+              numAssistantMessages: {
+                $sum: {
+                  $cond: {
+                    if: { $eq: ["$role", "assistant"] },
+                    then: 1,
+                    else: 0,
+                  },
+                },
+              },
+              // Add conversationId to set if the message is not a system message
+              numConversationsIncludingEmpty: {
+                $addToSet: "$conversationId",
               },
               numConversations: {
-                $addToSet: "$conversationId",
+                $addToSet: {
+                  $cond: {
+                    if: { $ne: ["$role", "system"] },
+                    then: "$conversationId",
+                    else: null,
+                  },
+                },
               },
             },
           },
           {
             $addFields: {
               numConversations: { $size: "$numConversations" },
+              numConversationsIncludingEmpty: {
+                $size: "$numConversationsIncludingEmpty",
+              },
               granularity,
               date: {
                 $dateFromParts: dateParts,
+              },
+            },
+          },
+          {
+            $addFields: {
+              numEmptyConversations: {
+                $subtract: [
+                  "$numConversationsIncludingEmpty",
+                  "$numConversations",
+                ],
               },
             },
           },
@@ -117,7 +160,7 @@ function makeCreateStatsMaterializedView({
           {
             $merge: {
               into: {
-                db: db.databaseName,
+                db: databaseName,
                 coll: statsCollectionName,
               },
               on: ["_id"],
@@ -191,9 +234,9 @@ export async function createScrubbedMessageStatsViews({
     mongodbConnection ?? MONGODB_CONNECTION_URI
   );
   try {
-    const db = client.db(statsDatabaseName ?? MONGODB_DATABASE_NAME);
     const createStatsMaterializedView = makeCreateStatsMaterializedView({
-      db,
+      client,
+      databaseName: statsDatabaseName ?? MONGODB_DATABASE_NAME,
       statsCollectionName,
     });
 

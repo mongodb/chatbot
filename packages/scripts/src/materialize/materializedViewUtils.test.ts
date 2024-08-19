@@ -34,7 +34,9 @@ describe("MongoDB DDL utils", () => {
       await db.createCollection(collectionName);
       const collection = db.collection(collectionName);
       await ensureIndex({
-        collection,
+        client,
+        databaseName,
+        collectionName,
         index: { foo: 1 },
         options: { unique: true },
       });
@@ -48,12 +50,16 @@ describe("MongoDB DDL utils", () => {
       await db.createCollection(collectionName);
       const collection = db.collection(collectionName);
       await ensureIndex({
-        collection,
+        client,
+        databaseName,
+        collectionName,
         index: { foo: 1 },
         options: { unique: true },
       });
       await ensureIndex({
-        collection,
+        client,
+        databaseName,
+        collectionName,
         index: { foo: 1 },
         options: { unique: true },
       });
@@ -64,26 +70,26 @@ describe("MongoDB DDL utils", () => {
 
   describe("ensureCollectionWithIndex", () => {
     it("creates a collection and a set of indexes if either/both doesn't already exist", async () => {
-      await client.connect();
-      const db = client.db(databaseName);
       await ensureCollectionWithIndex({
-        db,
+        client,
+        databaseName,
         collectionName,
         index: {
           spec: { foo: 1 },
           options: { unique: true },
         },
       });
+      await client.connect();
+      const db = client.db(databaseName);
       const collection = db.collection(collectionName);
       const indexes = await collection.listIndexes().toArray();
       expect(indexes).toHaveLength(2); // Default _id index + foo index
     });
 
     it("allows you to ensure multiple indexes in a single command", async () => {
-      await client.connect();
-      const db = client.db(databaseName);
       await ensureCollectionWithIndex({
-        db,
+        client,
+        databaseName,
         collectionName,
         indexes: [
           {
@@ -96,6 +102,8 @@ describe("MongoDB DDL utils", () => {
           },
         ],
       });
+      await client.connect();
+      const db = client.db(databaseName);
       const collection = db.collection(collectionName);
       const indexes = await collection.listIndexes().toArray();
       expect(indexes).toHaveLength(3); // Default _id index + foo index + bar index

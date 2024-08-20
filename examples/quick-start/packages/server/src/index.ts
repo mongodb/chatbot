@@ -5,7 +5,6 @@ import {
   makeMongoDbConversationsService,
   AppConfig,
   makeOpenAiChatLlm,
-  OpenAiChatMessage,
   SystemPrompt,
   makeDefaultFindContent,
   logger,
@@ -13,6 +12,7 @@ import {
   GenerateUserPromptFunc,
   makeRagGenerateUserPrompt,
   MakeUserMessageFunc,
+  UserMessage,
 } from "mongodb-chatbot-server";
 import { OpenAIClient, OpenAIKeyCredential } from "@azure/openai";
 import path from "path";
@@ -83,7 +83,7 @@ const findContent = makeDefaultFindContent({
 const makeUserMessage: MakeUserMessageFunc = async function ({
   content,
   originalUserMessage,
-}): Promise<OpenAiChatMessage & { role: "user" }> {
+}): Promise<UserMessage> {
   const chunkSeparator = "~~~~~~";
   const context = content.map((c) => c.text).join(`\n${chunkSeparator}\n`);
   const contentForLlm = `Using the following information, answer the user query.

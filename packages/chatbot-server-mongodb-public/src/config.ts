@@ -128,7 +128,9 @@ export const generateUserPrompt = makeVerifiedAnswerGenerateUserPrompt({
   },
   onNoVerifiedAnswerFound: makeStepBackRagGenerateUserPrompt({
     openAiClient,
-    deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    deploymentName:
+      process.env.OPENAI_GPT_35_CHAT_COMPLETION_DEPLOYMENT ??
+      OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     findContent,
     numPrecedingMessagesToInclude: 2,
   }),

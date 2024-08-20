@@ -44,6 +44,22 @@ cronJobs:
         memory: 5Gi
     backoffLimit: 3
 
+  - name: materialize-scrubbed-message-stats
+    schedule: "0 8 * * *"
+    command: ["npm", "run", "scripts:materializeScrubbedMessagesStats:latest"]
+    env:
+      MONGODB_DATABASE_NAME: docs-chatbot-prod
+    envSecrets:
+      MONGODB_CONNECTION_URI: docs-chatbot-prod
+    resources:
+      requests:
+        cpu: 100m
+        memory: 2Gi
+      limits:
+        cpu: 500m
+        memory: 5Gi
+    backoffLimit: 2
+
   - name: find-faq
     schedule: "0 8 * * *" # every day at 8am UTC
     command: ["npm", "run", "scripts:findFaq"]
@@ -64,22 +80,6 @@ cronJobs:
         cpu: 500m
         memory: 5Gi
     backoffLimit: 3
-
-  - name: materialize-scrubbed-message-stats
-    schedule: "0 */2 * * *" # Every 2 hours
-    command: ["npm", "run", "scripts:materializeScrubbedMessagesStats:latest"]
-    env:
-      MONGODB_DATABASE_NAME: docs-chatbot-prod
-    envSecrets:
-      MONGODB_CONNECTION_URI: docs-chatbot-prod
-    resources:
-      requests:
-        cpu: 100m
-        memory: 2Gi
-      limits:
-        cpu: 500m
-        memory: 5Gi
-    backoffLimit: 2
 
 # Alerts
 defaultAlerts:

@@ -1,6 +1,6 @@
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { makeGenerateLlmConversationData } from "./generateLlmConversationData";
-import { MakeLangchainChatLlmProps, ObjectId } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core";
 import { testCases, triggerErrorTestCases } from "../test/mockTestCases";
 import { ChatOpenAI } from "@langchain/openai";
 import { makeLangchainChatLlm } from "mongodb-chatbot-server";

@@ -38,8 +38,7 @@ describe("makeGenerateLlmConversationData", () => {
     });
     const generateLlmConversationData = makeGenerateLlmConversationData({
       chatLlm: makeLangchainChatLlm({
-        chatModel:
-          throwingLlm as unknown as MakeLangchainChatLlmProps["chatModel"],
+        chatModel: throwingLlm,
       }),
       backOffOptions: {
         numOfAttempts: 1,

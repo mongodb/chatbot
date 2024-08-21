@@ -5,20 +5,14 @@ import {
 } from "../withConfig";
 import { createCommand } from "../createCommand";
 import { makeRunLogger, type RunLogger } from "../runlogger";
-import { getReleaseArtifacts } from "../release-notes/getReleaseArtifacts";
-import { summarizeReleaseArtifacts } from "../release-notes/summarizeReleaseArtifacts";
-import {
-  ReleaseArtifact,
-  releaseArtifactShortMetadata,
-} from "../release-notes/projects";
 import { promises as fs } from "fs";
-import { createChangelogs } from "../release-notes/createChangelog";
+import path from "path";
 import { groupBy } from "../utils";
-import {
-  ClassifiedChangelog,
-  makeClassifyChangelogs,
-} from "../release-notes/classifyChangelog";
 import { PromisePool } from "@supercharge/promise-pool";
+import { makeSummarizer, Summary } from "../chat/makeSummarizer";
+import { assertEnvVars } from "mongodb-rag-core";
+import { loadPromptExamplePairFromFile, toBulletPoint } from "../chat/utils";
+import { createRunId } from "../runId";
 
 let logger: RunLogger;
 
@@ -48,7 +42,7 @@ export default createCommand<GenerateJiraPromptResponseCommandArgs>({
   async handler(args) {
     logger = makeRunLogger({
       topic: "GenerateJiraPromptResponse",
-      runId: args.runId,
+      runId: args.runId ?? createRunId(),
     });
     logger.logInfo(`Running command with args: ${JSON.stringify(args)}`);
     try {
@@ -67,6 +61,9 @@ export default createCommand<GenerateJiraPromptResponseCommandArgs>({
 export const action =
   createConfiguredAction<GenerateJiraPromptResponseCommandArgs>(
     async ({ jiraApi, openAiClient }, { llmMaxConcurrency }) => {
+      const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars({
+        OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
+      });
       logger.logInfo(`Setting up...`);
       if (!jiraApi) {
         throw new Error(
@@ -83,12 +80,12 @@ export const action =
         "CDRIVER-1072",
         "CDRIVER-2045",
         "COMPASS-2389",
-        "COMPASS-2437",
-        // "COMPASS-4547",
-        // "COMPASS-4837",
+        // "COMPASS-2437",
+        "COMPASS-4547",
+        "COMPASS-4837",
         // "COMPASS-7283",
-        // "CSHARP-1165",
-        // "CSHARP-1734",
+        "CSHARP-1165",
+        "CSHARP-1734",
         // "CSHARP-1895",
         // "CSHARP-3653",
         // "CSHARP-4058",
@@ -126,21 +123,21 @@ export const action =
         "NODE-5662",
         "PYTHON-1434",
         // "PYTHON-1880",
-        // "PYTHON-3257",
+        "PYTHON-3257",
         // "RUBY-1917",
-        // "RUST-1779",
-        // "RUST-940",
-        // "SERVER-10860",
-        // "SERVER-13520",
-        // "SERVER-1603",
-        // "SERVER-18335",
-        // "SERVER-19470",
-        // "SERVER-19638",
-        // "SERVER-20243",
-        // "SERVER-22056",
-        // "SERVER-25760",
-        // "SERVER-25883",
-        // "SERVER-27369",
+        "RUST-1779",
+        "RUST-940",
+        "SERVER-10860",
+        "SERVER-13520",
+        "SERVER-1603",
+        "SERVER-18335",
+        "SERVER-19470",
+        "SERVER-19638",
+        "SERVER-20243",
+        "SERVER-22056",
+        "SERVER-25760",
+        "SERVER-25883",
+        "SERVER-27369",
         // "SERVER-31340",
         // "SERVER-31478",
         // "SERVER-31598",
@@ -233,13 +230,39 @@ export const action =
       );
 
       // Summarize each issue using a promise pool
-      const summariesByIssueKey = new Map<string, string>();
+      const summarizeJiraIssue = makeSummarizer({
+        openAi: {
+          client: openAiClient,
+          deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+        },
+        logger,
+        directions: [
+          "The task is to summarize the provided Jira issue.",
+          "If there is a notable bug or issue being described, include that in the summary.",
+          "If there are any notable comments, include those in the summary.",
+          "If there are any notable actions that need to be taken to solve, include specific details about those in the summary.",
+        ]
+          .map(toBulletPoint)
+          .join("\n"),
+        examples: await Promise.all([
+          loadPromptExamplePairFromFile(
+            path.join(__dirname, "../jira250/examples/WORKPLACE-119.json")
+          ),
+          loadPromptExamplePairFromFile(
+            path.join(__dirname, "../jira250/examples/ADMIN-10208.json")
+          ),
+        ]),
+      });
+
+      const summariesByIssueKey = new Map<string, Summary>();
       const { errors: summarizeJiraIssueErrors } = await PromisePool.for(
         jiraIssues
       )
-        .withConcurrency(jiraMaxConcurrency)
+        .withConcurrency(llmMaxConcurrency)
         .process(async (issue) => {
-          const summary = await summarizeJiraIssue(issue); // TODO
+          const summary = await summarizeJiraIssue({
+            input: JSON.stringify(issue),
+          });
           summariesByIssueKey.set(issue.key, summary);
         });
       for (const error of summarizeJiraIssueErrors) {
@@ -263,47 +286,49 @@ export const action =
         JSON.stringify(formattedIssuesWithSummaries)
       );
 
-      // Generate a list of N questions/prompts for each issue
-      const promptsByIssueKey = new Map<string, string[]>();
-      const { errors: generatePromptsErrors } = await PromisePool.for(
-        formattedIssuesWithSummaries
-      )
-        .withConcurrency(llmMaxConcurrency)
-        .process(async (issue) => {
-          const prompts = await generatePrompts(issue); // TODO
-          promptsByIssueKey.set(issue.key, prompts);
-        });
-      for (const error of generatePromptsErrors) {
-        logger.logError(`Error generating prompts: ${error.item}`);
-      }
-      const prompts: [issueKey: string, prompt: string][] = [
-        ...promptsByIssueKey.entries(),
-      ].flatMap(([issueKey, prompts]) => {
-        return prompts.map((prompt) => [issueKey, prompt] as [string, string]);
-      });
-      // Have the LLM generate a response to each prompt with the formatted/summarized issue as context
-      const responsesByIssueKey = new Map<
-        string,
-        [prompt: string, response: string][]
-      >();
-      const { errors: generateResponsesErrors } = await PromisePool.for(prompts)
-        .withConcurrency(llmMaxConcurrency)
-        .process(async ([issueKey, prompt]) => {
-          // TODO
-          const response = await generateResponse({
-            prompt,
-            context: formattedIssuesWithSummaries.find(
-              (issue) => issue.key === issueKey
-            ),
-          });
-          if (!responsesByIssueKey.has(issueKey)) {
-            responsesByIssueKey.set(issueKey, []);
-          }
-          responsesByIssueKey.get(issueKey)?.push([prompt, response]);
-        });
-      for (const error of generateResponsesErrors) {
-        logger.logError(`Error generating responses: ${error.item}`);
-      }
+      // TODO below here
+
+      // // Generate a list of N questions/prompts for each issue
+      // const promptsByIssueKey = new Map<string, string[]>();
+      // const { errors: generatePromptsErrors } = await PromisePool.for(
+      //   formattedIssuesWithSummaries
+      // )
+      //   .withConcurrency(llmMaxConcurrency)
+      //   .process(async (issue) => {
+      //     const prompts = await generatePrompts(issue); // TODO
+      //     promptsByIssueKey.set(issue.key, prompts);
+      //   });
+      // for (const error of generatePromptsErrors) {
+      //   logger.logError(`Error generating prompts: ${error.item}`);
+      // }
+      // const prompts: [issueKey: string, prompt: string][] = [
+      //   ...promptsByIssueKey.entries(),
+      // ].flatMap(([issueKey, prompts]) => {
+      //   return prompts.map((prompt) => [issueKey, prompt] as [string, string]);
+      // });
+      // // Have the LLM generate a response to each prompt with the formatted/summarized issue as context
+      // const responsesByIssueKey = new Map<
+      //   string,
+      //   [prompt: string, response: string][]
+      // >();
+      // const { errors: generateResponsesErrors } = await PromisePool.for(prompts)
+      //   .withConcurrency(llmMaxConcurrency)
+      //   .process(async ([issueKey, prompt]) => {
+      //     // TODO
+      //     const response = await generateResponse({
+      //       prompt,
+      //       context: formattedIssuesWithSummaries.find(
+      //         (issue) => issue.key === issueKey
+      //       ),
+      //     });
+      //     if (!responsesByIssueKey.has(issueKey)) {
+      //       responsesByIssueKey.set(issueKey, []);
+      //     }
+      //     responsesByIssueKey.get(issueKey)?.push([prompt, response]);
+      //   });
+      // for (const error of generateResponsesErrors) {
+      //   logger.logError(`Error generating responses: ${error.item}`);
+      // }
 
       // Evaluate the response for adherence to information in the Jira issue
     }

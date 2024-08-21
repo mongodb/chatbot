@@ -8,7 +8,7 @@ import {
   UserMessage,
   updateFrontMatter,
 } from "mongodb-chatbot-server";
-import { extractMetadataFromUserMessage } from "./extractMetadataFromUserMessage";
+import { extractMetadataFromUserMessage } from "./extractMongoDbMetadataFromUserMessage";
 import { makeStepBackUserQuery } from "./makeStepBackUserQuery";
 import { stripIndents } from "common-tags";
 import { strict as assert } from "assert";

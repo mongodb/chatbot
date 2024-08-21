@@ -12,7 +12,6 @@ import {
   GenerateUserPromptFunc,
   makeRagGenerateUserPrompt,
   MakeUserMessageFunc,
-  UserMessage,
 } from "mongodb-chatbot-server";
 import { OpenAIClient, OpenAIKeyCredential } from "@azure/openai";
 import path from "path";

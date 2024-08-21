@@ -30,8 +30,10 @@ export const ExtractMongoDbMetadataFunctionSchema = z.object({
     .string()
     .describe(
       `One or more MongoDB products present in the content. Order by relevancy. Include "Driver" if the user is asking about a programming language with a MongoDB driver.
-    Example values: "MongoDB Atlas", "Atlas Charts", "Atlas Search", "Atlas CLI", "Aggregation Framework", "MongoDB Server", "Compass", "MongoDB Connector for BI", "Realm SDK", "Driver", "Atlas App Services", "Atlas Vector Search", "Atlas Stream Processing", "Atlas Triggers", "Atlas Device Sync", "Atlas Data API", "MongoDB Ops Manager", "MongoDB Cloud Manager" ...other MongoDB products`
+    Example values: "MongoDB Atlas", "Atlas Charts", "Atlas Search", "Atlas CLI", "Aggregation Framework", "MongoDB Server", "Compass", "MongoDB Connector for BI", "Realm SDK", "Driver", "Atlas App Services", "Atlas Vector Search", "Atlas Stream Processing", "Atlas Triggers", "Atlas Device Sync", "Atlas Data API", "MongoDB Ops Manager", "MongoDB Cloud Manager" ...other MongoDB products.
+    If the product is ambiguous, say "MongoDB".`
     )
+    .default("MongoDB")
     .optional(),
 });
 

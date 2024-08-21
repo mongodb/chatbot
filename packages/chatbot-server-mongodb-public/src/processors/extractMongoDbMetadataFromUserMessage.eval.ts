@@ -1,4 +1,11 @@
-import { ExtractMongoDbMetadataFunction } from "./extractMongoDbMetadataFromUserMessage";
+import OpenAI from "openai";
+import {
+  extractMongoDbMetadataFromUserMessage,
+  ExtractMongoDbMetadataFunction,
+} from "./extractMongoDbMetadataFromUserMessage";
+import { strict as assert } from "assert";
+import { Eval } from "braintrust";
+import { Scorer } from "autoevals";
 type ExtractMongoDbMetadataEvalCaseTag =
   | "atlas"
   | "atlas_search"
@@ -52,7 +59,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     name: "should know atlas billing",
     input: "how do I see my bill in atlas",
     expected: {
-      mongoDbProduct: "Atlas",
+      mongoDbProduct: "MongoDB Atlas",
     } as ExtractMongoDbMetadataFunction,
     tags: ["atlas"],
   },
@@ -85,3 +92,52 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     tags: ["indexes"],
   },
 ];
+const ProductNameCorrect: Scorer<
+  Awaited<ReturnType<typeof extractMongoDbMetadataFromUserMessage>>,
+  unknown
+> = (args) => {
+  return {
+    name: "ProductNameCorrect",
+    score: args.expected?.mongoDbProduct === args.output.mongoDbProduct ? 1 : 0,
+  };
+};
+const ProgrammingLanguageCorrect: Scorer<
+  Awaited<ReturnType<typeof extractMongoDbMetadataFromUserMessage>>,
+  unknown
+> = (args) => {
+  return {
+    name: "ProgrammingLanguageCorrect",
+    score:
+      args.expected?.programmingLanguage === args.output.programmingLanguage
+        ? 1
+        : 0,
+  };
+};
+const openAiClient = new OpenAI({ apiKey: process.env.OPENAI_OPENAI_API_KEY });
+const model = "gpt-4o-mini";
+assert(model, "OPENAI_CHAT_COMPLETION_DEPLOYMENT must be set");
+Eval("extract-mongodb-metadata", {
+  data: evalCases,
+  experimentName: model,
+  metadata: {
+    description:
+      "Evaluates whether the MongoDB user message guardrail is working correctly.",
+    model,
+  },
+  maxConcurrency: 3,
+  timeout: 20000,
+  async task(input) {
+    try {
+      return await extractMongoDbMetadataFromUserMessage({
+        openAiClient,
+        model,
+        userMessageText: input,
+      });
+    } catch (error) {
+      console.log(`Error evaluating input: ${input}`);
+      console.log(error);
+      throw error;
+    }
+  },
+  scores: [ProductNameCorrect, ProgrammingLanguageCorrect],
+});

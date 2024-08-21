@@ -242,7 +242,6 @@ async function evaluateModel(model: string) {
         console.log(error);
         throw error;
       }
-      // return null;
     },
     scores: [exactMatch, sufficientReasoning],
   });

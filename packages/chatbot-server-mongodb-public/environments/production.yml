@@ -17,7 +17,7 @@ envSecrets:
   OPENAI_API_KEY: docs-chatbot-prod
   OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-prod
   OPENAI_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-prod
-  OPENAI_GPT_35_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-staging
+  OPENAI_GPT_35_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-prod
 
 ingress:
   enabled: true

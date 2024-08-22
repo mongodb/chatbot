@@ -21,6 +21,8 @@ const {
   VECTOR_SEARCH_INDEX_NAME,
 } = assertEnvVars(CORE_ENV_VARS);
 
+jest.setTimeout(30000);
+
 describe("MongoDbEmbeddedContentStore", () => {
   let store: MongoDbEmbeddedContentStore | undefined;
   beforeEach(async () => {

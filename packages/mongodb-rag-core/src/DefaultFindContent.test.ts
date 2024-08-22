@@ -5,6 +5,8 @@ import { makeOpenAiEmbedder } from "./OpenAiEmbedder";
 import { assertEnvVars } from "./assertEnvVars";
 import { CORE_ENV_VARS } from "./CoreEnvVars";
 import "dotenv/config";
+
+jest.setTimeout(30000);
 describe("makeDefaultFindContent()", () => {
   const {
     MONGODB_CONNECTION_URI,

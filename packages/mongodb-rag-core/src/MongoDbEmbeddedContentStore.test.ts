@@ -149,7 +149,7 @@ describe("nearest neighbor search", () => {
       findNearestNeighborOptions
     );
     expect(matches).toHaveLength(5);
-  }, 20000);
+  });
   test("Should filter content to only match specific sourceName", async () => {
     assert(store);
     const query = "db.collection.insertOne()";
@@ -168,7 +168,7 @@ describe("nearest neighbor search", () => {
     expect(
       matches.filter((match) => match.sourceName !== "snooty-docs")
     ).toHaveLength(0);
-  }, 20000);
+  });
   test("Should filter content to not match a non-existent source", async () => {
     assert(store);
     const query = "db.collection.insertOne()";
@@ -190,7 +190,7 @@ describe("nearest neighbor search", () => {
       findNearestNeighborOptions
     );
     expect(matches.length).toBeGreaterThan(0);
-  }, 20000);
+  });
 
   it("does not find nearest neighbors for irrelevant embedding", async () => {
     assert(store);

@@ -16,6 +16,7 @@ export const ExtractMongoDbMetadataFunctionSchema = z.object({
       "kotlin",
       "c",
       "dart",
+      "go",
       "php",
       "rust",
       "scala",
@@ -23,14 +24,14 @@ export const ExtractMongoDbMetadataFunctionSchema = z.object({
     ])
     .default("javascript")
     .describe(
-      'Programming languages present in the content ordered by relevancy. If no programming language is present and the user is asking for a code example, include "javascript".'
+      'Programming languages present in the content ordered by relevancy. If no programming language is present and a code example would answer the question, include "javascript".'
     )
     .optional(),
   mongoDbProduct: z
     .string()
     .describe(
       `One or more MongoDB products present in the content. Order by relevancy. Include "Driver" if the user is asking about a programming language with a MongoDB driver.
-    Example values: "MongoDB Atlas", "Atlas Charts", "Atlas Search", "Atlas CLI", "Aggregation Framework", "MongoDB Server", "Compass", "MongoDB Connector for BI", "Realm SDK", "Driver", "Atlas App Services", "Atlas Vector Search", "Atlas Stream Processing", "Atlas Triggers", "Atlas Device Sync", "Atlas Data API", "MongoDB Ops Manager", "MongoDB Cloud Manager" ...other MongoDB products.
+    Example values: "MongoDB Atlas", "Atlas Charts", "Atlas Search", "Atlas CLI", "Aggregation Framework", "MongoDB Server", "Compass", "MongoDB Connector for BI", "Realm SDK", "Driver", "Atlas App Services", "Atlas Vector Search", "Atlas Stream Processing", "Atlas Triggers", "Atlas Device Sync", "Atlas Data API", "MongoDB Ops Manager", "MongoDB Cloud Manager", "GridFS" ...other MongoDB products.
     If the product is ambiguous, say "MongoDB".`
     )
     .default("MongoDB")
@@ -124,6 +125,21 @@ const fewShotExamples: ChatCompletionMessageParam[] = [
       arguments: JSON.stringify({
         programmingLanguage: "java",
         mongoDbProduct: "Driver",
+      } satisfies ExtractMongoDbMetadataFunction),
+    },
+  },
+  // Example 6
+  {
+    role: "user",
+    content: "$lookup",
+  },
+  {
+    role: "assistant",
+    content: null,
+    function_call: {
+      name,
+      arguments: JSON.stringify({
+        mongoDbProduct: "Aggregation Framework",
       } satisfies ExtractMongoDbMetadataFunction),
     },
   },

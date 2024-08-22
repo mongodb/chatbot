@@ -4,7 +4,7 @@ import { makeMongoDbEmbeddedContentStore } from "./MongoDbEmbeddedContentStore";
 import { makeOpenAiEmbedder } from "./OpenAiEmbedder";
 import { assertEnvVars } from "./assertEnvVars";
 import { CORE_ENV_VARS } from "./CoreEnvVars";
-
+import "dotenv/config";
 describe("makeDefaultFindContent()", () => {
   const {
     MONGODB_CONNECTION_URI,
@@ -27,8 +27,8 @@ describe("makeDefaultFindContent()", () => {
     openAiClient,
     deployment: OPENAI_EMBEDDING_DEPLOYMENT,
     backoffOptions: {
-      numOfAttempts: 3,
-      maxDelay: 5000,
+      numOfAttempts: 1,
+      maxDelay: 500,
     },
   });
 

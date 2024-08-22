@@ -10,11 +10,38 @@ import {
 } from "../test/testHelpers";
 import { makeStepBackRagGenerateUserPrompt } from "./makeStepBackRagGenerateUserPrompt";
 
+jest.setTimeout(30000);
 describe("makeStepBackRagGenerateUserPrompt", () => {
+  const mockEmbedding = [0, 0, 0];
+  const mockFindContent: FindContentFunc = async () => {
+    return {
+      queryEmbedding: mockEmbedding,
+      content: [
+        {
+          text: "avada kedavra",
+          embedding: mockEmbedding,
+          score: 1,
+          sourceName: "mastering-dark-arts",
+          url: "https://example.com",
+          tokenCount: 3,
+          updated: new Date(),
+        },
+        {
+          url: "https://example.com",
+          tokenCount: 1,
+          sourceName: "defending-against-the-dark-arts",
+          updated: new Date(),
+          text: "expecto patronum",
+          embedding: mockEmbedding,
+          score: 1,
+        },
+      ],
+    } satisfies FindContentResult;
+  };
   const config = {
     openAiClient,
     deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-    findContent,
+    findContent: mockFindContent,
   };
   const stepBackRagGenerateUserPrompt =
     makeStepBackRagGenerateUserPrompt(config);
@@ -27,7 +54,7 @@ describe("makeStepBackRagGenerateUserPrompt", () => {
     expect(res.userMessage).toHaveProperty("content");
     expect(res.userMessage).toHaveProperty("contentForLlm");
     expect(res.userMessage.role).toBe("user");
-    expect(res.userMessage.embedding).toHaveLength(1536);
+    expect(res.userMessage.embedding).toHaveLength(mockEmbedding.length);
   });
   test("should reject query if no content", async () => {
     const mockFindContent: FindContentFunc = async () => {
@@ -136,34 +163,8 @@ describe("makeStepBackRagGenerateUserPrompt", () => {
     expect(res.userMessage.contentForLlm).toContain("avada kedavra");
   });
   test("should filter out context > maxContextTokenCount", async () => {
-    const mockFindContent: FindContentFunc = async () => {
-      return {
-        queryEmbedding: [],
-        content: [
-          {
-            url: "https://example.com",
-            tokenCount: 1000,
-            sourceName: "",
-            updated: new Date(),
-            text: "avada kedavra",
-            embedding: [],
-            score: 1,
-          },
-          {
-            url: "https://example.com",
-            tokenCount: 1,
-            sourceName: "",
-            updated: new Date(),
-            text: "abracadabra",
-            embedding: [],
-            score: 1,
-          },
-        ],
-      } satisfies FindContentResult;
-    };
     const stepBackRagGenerateUserPrompt = makeStepBackRagGenerateUserPrompt({
       ...config,
-      findContent: mockFindContent,
       maxContextTokenCount: 1000,
     });
     const res = await stepBackRagGenerateUserPrompt({

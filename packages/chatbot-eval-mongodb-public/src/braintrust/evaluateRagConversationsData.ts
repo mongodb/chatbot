@@ -11,25 +11,25 @@ import { evaluateRagConversationsReferenceFree } from "./evaluateRagConversation
 const runs = [
   // {
   //   model: "gpt-35",
-  //   generatedDataRunId: new Object("669019be0aae97ffdafcd0ff").toString(),
+  //   generatedDataRunId: new ObjectId("669019be0aae97ffdafcd0ff").toString(),
   // },
   // {
   //   model: "gpt-4o",
-  //   generatedDataRunId: new Object("66901df714b4b4953729c844").toString(),
+  //   generatedDataRunId: new ObjectId("66901df714b4b4953729c844").toString(),
   // },
   // {
   //   model: "gpt-4o-mini",
-  //   generatedDataRunId: new Object("66c35ec36e955a072a6f8784").toString(),
+  //   generatedDataRunId: new ObjectId("66c35ec36e955a072a6f8784").toString(),
   // },
   //   {
   //     model: "gpt-35-preprocessor-gpt4o-mini-responder",
-  //     generatedDataRunId: new Object("66c37e6c97b47998dd59e87e").toString(),
+  //     generatedDataRunId: new ObjectId("66c37e6c97b47998dd59e87e").toString(),
   //     description: `Uses GPT-3.5 for pre-processsing tasks: metadata extraction, user input guardrail, and query rewriting.
   // Uses GPT-4o mini for the main responder.`,
   //   },
   {
     model: "gpt-35-preprocessor-gpt4o-responder",
-    generatedDataRunId: new Object("66cc95022525d293a0ef4cc3").toString(),
+    generatedDataRunId: new ObjectId("66cc95022525d293a0ef4cc3").toString(),
     description: `Uses GPT-3.5 for pre-processsing tasks: metadata extraction, user input guardrail, and query rewriting.
 Uses GPT-4o for the main responder. Also updated system prompt to include fewer non-answers.`,
   },

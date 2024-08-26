@@ -1,39 +1,22 @@
+import { makeMockOpenAIToolCall } from "../test/mockOpenAi";
 import { makeStepBackUserQuery } from "./makeStepBackUserQuery";
 import { OpenAI } from "openai";
 
 jest.mock("openai", () => {
-  return {
-    OpenAI: jest.fn().mockImplementation(() => {
-      return {
-        chat: {
-          completions: {
-            create: jest.fn().mockResolvedValue({
-              choices: [
-                {
-                  message: {
-                    function_call: {
-                      arguments: JSON.stringify({
-                        transformedUserQuery: "foo",
-                      }),
-                    },
-                  },
-                },
-              ],
-            }),
-          },
-        },
-      };
-    }),
-  };
+  return makeMockOpenAIToolCall({
+    transformedUserQuery: "foo",
+  });
 });
-const args: Parameters<typeof makeStepBackUserQuery>[0] = {
-  openAiClient: new OpenAI({ apiKey: "nope" }),
-  model: "best-model-ever",
-  userMessageText: "hi",
-};
 
 describe("makeStepBackUserQuery", () => {
+  const args: Parameters<typeof makeStepBackUserQuery>[0] = {
+    openAiClient: new OpenAI({ apiKey: "fake-api-key" }),
+    model: "best-model-ever",
+    userMessageText: "hi",
+  };
   test("should return step back user query", async () => {
-    expect(await makeStepBackUserQuery(args)).toEqual("foo");
+    expect(await makeStepBackUserQuery(args)).toEqual({
+      transformedUserQuery: "foo",
+    });
   });
 });

@@ -78,7 +78,6 @@ export function makeNShotUserMessageExtractorFunction<
         function: { name: toolDefinition.function.name },
         type: "function",
       },
-      // response_format: zodResponseFormat(schema, toolDefinition.function.name),
       stream: false,
     });
     const metadata = schema.parse(

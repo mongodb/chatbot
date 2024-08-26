@@ -38,7 +38,7 @@ const llm = makeOpenAiChatLlm({
   deployment: OPENAI_CHAT_COMPLETION_MODEL,
   openAiLmmConfigOptions: {
     temperature: 0,
-    maxTokens: 500,
+    maxTokens: 4096,
   },
 });
 
@@ -123,6 +123,7 @@ const conversations = makeMongoDbConversationsService(
 // Create the MongoDB Chatbot Server Express.js app configuration
 const config: AppConfig = {
   conversationsRouterConfig: {
+    maxInputLengthCharacters: 4096,
     llm,
     conversations,
     generateUserPrompt,

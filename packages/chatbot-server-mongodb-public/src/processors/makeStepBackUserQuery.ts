@@ -17,6 +17,7 @@ const description = "Create a user query using the 'step back' method.";
 const systemPrompt = `Your purpose is to generate a search query for a given user input.
 You are doing this for MongoDB, and all queries relate to MongoDB products.
 When constructing the query, take a "step back" to generate a more general search query that finds the data relevant to the user query if relevant.
+If the user query is already a "good" search query, do not modify it.
 You should also transform the user query into a fully formed question, if relevant.`;
 
 const fewShotExamples: ChatCompletionMessageParam[] = [
@@ -126,6 +127,40 @@ const fewShotExamples: ChatCompletionMessageParam[] = [
       arguments: JSON.stringify({
         transformedUserQuery:
           "What is the $match stage in a MongoDB aggregation pipeline?",
+      } satisfies StepBackUserQueryMongoDbFunction),
+    },
+  },
+  // Example 7
+  {
+    role: "user",
+    content: updateFrontMatter("How to connect to a MongoDB Atlas cluster?", {
+      mongoDbProduct: "MongoDB Atlas",
+    }),
+  },
+  {
+    role: "assistant",
+    content: null,
+    function_call: {
+      name,
+      arguments: JSON.stringify({
+        transformedUserQuery: "How to connect to a MongoDB Atlas cluster?",
+      } satisfies StepBackUserQueryMongoDbFunction),
+    },
+  },
+  // Example 8
+  {
+    role: "user",
+    content: updateFrontMatter("connect to a mongodb atlas cluster", {
+      mongoDbProduct: "MongoDB Atlas",
+    }),
+  },
+  {
+    role: "assistant",
+    content: null,
+    function_call: {
+      name,
+      arguments: JSON.stringify({
+        transformedUserQuery: "How to connect to a MongoDB Atlas cluster?",
       } satisfies StepBackUserQueryMongoDbFunction),
     },
   },

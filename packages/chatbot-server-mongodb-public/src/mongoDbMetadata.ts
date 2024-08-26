@@ -168,6 +168,15 @@ export const mongoDbTopics = [
   {
     id: "security",
   },
+  {
+    id: "sharding",
+  },
+  {
+    id: "replication",
+  },
+  {
+    id: "performance",
+  },
 ] as const satisfies MongoDbTopic[];
 
 // Helpers for constructing the `MongoDbTag` union type

@@ -39,6 +39,7 @@ export const {
   VECTOR_SEARCH_INDEX_NAME,
   OPENAI_ENDPOINT,
   OPENAI_API_KEY,
+  OPENAI_API_VERSION,
   OPENAI_EMBEDDING_DEPLOYMENT,
   OPENAI_EMBEDDING_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
@@ -47,6 +48,7 @@ export const {
 } = assertEnvVars({
   ...CORE_ENV_VARS,
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: "",
+  OPENAI_API_VERSION: "",
 });
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
@@ -126,6 +128,7 @@ export const findVerifiedAnswer = makeDefaultFindVerifiedAnswer({
 export const preprocessorOpenAiClient = new AzureOpenAI({
   apiKey: OPENAI_API_KEY,
   endpoint: OPENAI_ENDPOINT,
+  apiVersion: OPENAI_API_VERSION,
 });
 
 export const generateUserPrompt = makeVerifiedAnswerGenerateUserPrompt({

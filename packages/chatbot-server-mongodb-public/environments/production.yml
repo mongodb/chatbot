@@ -11,6 +11,7 @@ env:
   ALLOWED_ORIGINS: https://mongodb.com,https://www.mongodb.com
   NODE_ENV: production
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: gpt-4o-mini
+  OPENAI_API_VERSION: "2024-06-01"
 
 envSecrets:
   MONGODB_CONNECTION_URI: docs-chatbot-prod

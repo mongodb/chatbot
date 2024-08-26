@@ -8,18 +8,22 @@ import { AzureOpenAI } from "openai";
 import { Message, ObjectId, updateFrontMatter } from "mongodb-chatbot-server";
 import { assertEnvVars } from "mongodb-chatbot-server";
 import { evalEnvVars } from "../evalEnvVars";
+import { MongoDbTag } from "../mongoDbMetadata";
 
 const {
   JUDGE_OPENAI_API_KEY,
   JUDGE_EMBEDDING_MODEL,
   OPENAI_API_KEY,
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_ENDPOINT,
+  OPENAI_API_VERSION,
 } = assertEnvVars({
   ...evalEnvVars,
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
+  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: "",
   OPENAI_API_KEY: "",
+  OPENAI_ENDPOINT: "",
+  OPENAI_API_VERSION: "",
 });
-type StepBackUserQueryMongoDbFunctionTag = "aggregation" | "atlas";
 interface ExtractMongoDbMetadataEvalCase {
   name: string;
   input: {
@@ -27,7 +31,7 @@ interface ExtractMongoDbMetadataEvalCase {
     userMessageText: string;
   };
   expected: StepBackUserQueryMongoDbFunction;
-  tags?: StepBackUserQueryMongoDbFunctionTag[];
+  tags?: MongoDbTag[];
 }
 
 const evalCases: ExtractMongoDbMetadataEvalCase[] = [
@@ -85,31 +89,88 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     } satisfies StepBackUserQueryMongoDbFunction,
     tags: ["atlas"],
   },
+  {
+    name: "should step back when query about specific data",
+    input: {
+      userMessageText: updateFrontMatter("create an index on the email field", {
+        mongoDbProduct: "Index Management",
+      }),
+    },
+    expected: {
+      transformedUserQuery:
+        "How to create an index on a specific field in MongoDB?",
+    } satisfies StepBackUserQueryMongoDbFunction,
+    tags: ["indexes"],
+  },
+  {
+    name: "should recognize when query doesn't need step back.",
+    input: {
+      userMessageText: updateFrontMatter(
+        "What are MongoDB's replica set election protocols?",
+        {
+          mongoDbProduct: "Replication",
+        }
+      ),
+    },
+    expected: {
+      transformedUserQuery:
+        "What are MongoDB's replica set election protocols?",
+    } satisfies StepBackUserQueryMongoDbFunction,
+    tags: ["replication"],
+  },
+  {
+    name: "Steps back when query involves MongoDB Atlas configuration",
+    input: {
+      userMessageText: updateFrontMatter(
+        "How do I set up multi-region clusters in MongoDB Atlas?",
+        {
+          mongoDbProduct: "MongoDB Atlas",
+        }
+      ),
+    },
+    expected: {
+      transformedUserQuery:
+        "How to configure multi-region clusters in MongoDB Atlas?",
+    } satisfies StepBackUserQueryMongoDbFunction,
+    tags: ["atlas"],
+  },
+  {
+    name: "Handles abstract query related to MongoDB performance tuning",
+    input: {
+      userMessageText: updateFrontMatter(
+        "improve MongoDB query performance with indexes",
+        {
+          mongoDbProduct: "Performance Tuning",
+        }
+      ),
+    },
+    expected: {
+      transformedUserQuery:
+        "How can I use indexes to optimize MongoDB query performance?",
+    } satisfies StepBackUserQueryMongoDbFunction,
+    tags: ["performance", "indexes"],
+  },
 ];
 
 const QuerySimilarity: Scorer<
   Awaited<ReturnType<typeof makeStepBackUserQuery>>,
   unknown
 > = async (args) => {
-  // return await EmbeddingSimilarity({
-  //   openAiApiKey: JUDGE_OPENAI_API_KEY,
-  //   expected: args.expected?.transformedUserQuery,
-  //   output: args.output.transformedUserQuery,
-  //   model: JUDGE_EMBEDDING_MODEL,
-  // });
-  return {
-    name: "QuerySimilarity",
-    score:
-      args.expected?.transformedUserQuery === args.output.transformedUserQuery
-        ? 1
-        : 0,
-  };
+  return await EmbeddingSimilarity({
+    openAiApiKey: JUDGE_OPENAI_API_KEY,
+    expected: args.expected?.transformedUserQuery,
+    output: args.output.transformedUserQuery,
+    model: JUDGE_EMBEDDING_MODEL,
+  });
 };
 
-const model = "docs-chatbot-llm-gpt-35";
-// const model = OPENAI_CHAT_COMPLETION_DEPLOYMENT;
+// const model = "docs-chatbot-llm-gpt-35";
+// const model = "gpt-4o";
+const model = OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT;
 const openAiClient = new AzureOpenAI({
   apiKey: OPENAI_API_KEY,
+  endpoint: OPENAI_ENDPOINT,
+  apiVersion: OPENAI_API_VERSION,
 });
 
 Eval("step-back-user-query", {

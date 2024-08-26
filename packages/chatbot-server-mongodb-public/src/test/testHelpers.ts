@@ -7,11 +7,7 @@ import {
   makeMongoDbConversationsService,
 } from "mongodb-chatbot-server";
 import { systemPrompt } from "../systemPrompt";
-import {
-  MONGODB_CONNECTION_URI,
-  config,
-  preprocessorOpenAiClient,
-} from "../config";
+import { MONGODB_CONNECTION_URI, config } from "../config";
 
 let mongoClient: MongoClient | undefined;
 let mongodb: Db | undefined;
@@ -90,6 +86,7 @@ export {
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_EMBEDDING_DEPLOYMENT,
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_API_VERSION,
   findContent,
   preprocessorOpenAiClient,
 } from "../config";

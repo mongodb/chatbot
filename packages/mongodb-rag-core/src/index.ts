@@ -22,7 +22,6 @@ export * from "./OpenAiEmbedder";
 export * from "./Page";
 export * from "./PageFormat";
 export * from "./References";
-export * from "./TypeChatJsonTranslateFunc";
 export * from "./VectorStore";
 export * from "./VerifiedAnswer";
 export * from "./SearchBooster";

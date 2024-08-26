@@ -10,14 +10,14 @@ env:
   OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
   ALLOWED_ORIGINS: https://knowledge.staging.corp.mongodb.com,https://docs-mongodborg-staging.corp.mongodb.com,https://mongodbcom-cdn.website.staging.corp.mongodb.com,https://docs-mongodb-org-stg.s3.us-east-2.amazonaws.com
   NODE_ENV: staging
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT: gpt-4o
+  OPENAI_GPT_35_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-gpt-35-turbo-0613
+  OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-embedding-ada-002
 
 envSecrets:
   MONGODB_CONNECTION_URI: docs-chatbot-staging
   OPENAI_ENDPOINT: docs-chatbot-staging
   OPENAI_API_KEY: docs-chatbot-staging
-  OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-staging
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-staging
-  OPENAI_GPT_35_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-staging
 
 ingress:
   enabled: true

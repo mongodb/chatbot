@@ -8,12 +8,13 @@ import {
   UserMessage,
   updateFrontMatter,
 } from "mongodb-chatbot-server";
-import { extractMetadataFromUserMessage } from "./extractMongoDbMetadataFromUserMessage";
 import { makeStepBackUserQuery } from "./makeStepBackUserQuery";
 import { stripIndents } from "common-tags";
 import { strict as assert } from "assert";
 import { logRequest } from "../utils";
 import { makeMongoDbReferences } from "./makeMongoDbReferences";
+import { extractMongoDbMetadataFromUserMessage } from "./extractMongoDbMetadataFromUserMessage";
+import { userMessageMongoDbGuardrail } from "./userMessageMongoDbGuardrail";
 interface MakeStepBackGenerateUserPromptProps {
   openAiClient: OpenAIClient;
   deploymentName: string;
@@ -55,19 +56,28 @@ export const makeStepBackRagGenerateUserPrompt = ({
       numPrecedingMessagesToInclude === 0
         ? []
         : messages.slice(-numPrecedingMessagesToInclude);
-    const metadata = await extractMetadataFromUserMessage({
-      openAiClient,
-      deploymentName,
-      userMessageText,
-      messages: precedingMessagesToInclude,
-    });
-    if (metadata.rejectQuery) {
-      const { rejectionReason } = metadata;
+    // Run both at once to save time
+    const [metadata, guardrailResult] = await Promise.all([
+      extractMongoDbMetadataFromUserMessage({
+        openAiClient,
+        model: deploymentName,
+        userMessageText,
+        messages: precedingMessagesToInclude,
+      }),
+      userMessageMongoDbGuardrail({
+        userMessageText,
+        openAiClient,
+        model: deploymentName,
+        messages: precedingMessagesToInclude,
+      }),
+    ]);
+    if (guardrailResult.rejectMessage) {
+      const { reasoning } = guardrailResult;
       logRequest({
         reqId,
         message: `Rejected user message: ${JSON.stringify({
           userMessageText,
-          rejectionReason,
+          reasoning,
         })}`,
       });
       return {
@@ -76,7 +86,7 @@ export const makeStepBackRagGenerateUserPrompt = ({
           content: userMessageText,
           rejectQuery: true,
           customData: {
-            rejectionReason,
+            rejectionReason: reasoning,
           },
         } satisfies UserMessage,
         rejectQuery: true,
@@ -92,8 +102,8 @@ export const makeStepBackRagGenerateUserPrompt = ({
     if (metadata.programmingLanguage) {
       metadataForQuery.programmingLanguage = metadata.programmingLanguage;
     }
-    if (metadata.mongoDbProductName) {
-      metadataForQuery.mongoDbProductName = metadata.mongoDbProductName;
+    if (metadata.mongoDbProduct) {
+      metadataForQuery.mongoDbProductName = metadata.mongoDbProduct;
     }
 
     const stepBackUserQuery = await makeStepBackUserQuery({

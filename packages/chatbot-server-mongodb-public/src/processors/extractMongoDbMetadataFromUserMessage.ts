@@ -1,40 +1,27 @@
 import { z } from "zod";
 import { makeNShotUserMessageExtractorFunction } from "./makeNShotUserMessageFunction";
 import { ChatCompletionMessageParam } from "openai/resources";
+import {
+  mongoDbProducts,
+  MongoDBProgrammingLanguagesSchema,
+} from "../mongoDbMetadata";
 
 export const ExtractMongoDbMetadataFunctionSchema = z.object({
-  programmingLanguage: z
-    .enum([
-      "shell",
-      "javascript",
-      "typescript",
-      "python",
-      "java",
-      "csharp",
-      "cpp",
-      "ruby",
-      "kotlin",
-      "c",
-      "dart",
-      "go",
-      "php",
-      "rust",
-      "scala",
-      "swift",
-    ])
-    .default("javascript")
+  programmingLanguage: MongoDBProgrammingLanguagesSchema.default("javascript")
     .describe(
-      'Programming languages present in the content ordered by relevancy. If no programming language is present and a code example would answer the question, include "javascript".'
+      'Programming language present in the content. If no programming language is present and a code example would answer the question, include "javascript".'
     )
     .optional(),
   mongoDbProduct: z
     .string()
     .describe(
       `One or more MongoDB products present in the content. Order by relevancy. Include "Driver" if the user is asking about a programming language with a MongoDB driver.
-    Example values: "MongoDB Atlas", "Atlas Charts", "Atlas Search", "Atlas CLI", "Aggregation Framework", "MongoDB Server", "Compass", "MongoDB Connector for BI", "Realm SDK", "Driver", "Atlas App Services", "Atlas Vector Search", "Atlas Stream Processing", "Atlas Triggers", "Atlas Device Sync", "Atlas Data API", "MongoDB Ops Manager", "MongoDB Cloud Manager", "GridFS" ...other MongoDB products.
-    If the product is ambiguous, say "MongoDB".`
+    Example values: ${mongoDbProducts
+      .map((p) => `"${p.name}"`)
+      .join(", ")} ...other MongoDB products.
+    If the product is ambiguous, say "MongoDB Server".`
     )
-    .default("MongoDB")
+    .default("MongoDBServer ")
     .optional(),
 });
 

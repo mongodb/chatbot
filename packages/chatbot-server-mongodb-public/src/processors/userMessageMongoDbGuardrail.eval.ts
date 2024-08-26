@@ -7,14 +7,19 @@ import { Eval } from "braintrust";
 import { Scorer, LLMClassifierFromTemplate } from "autoevals";
 import OpenAI from "openai";
 import { strict as assert } from "assert";
-
+import { MongoDbTag } from "../mongoDbMetadata";
+import { assertEnvVars } from "mongodb-chatbot-server";
+import { evalEnvVars } from "../evalEnvVars";
 type MongoDbGuardrailEvalCaseTag = "irrelevant" | "inappropriate" | "valid";
 interface MongoDbGuardrailEvalCase {
   name: string;
   input: string;
   expected: UserMessageMongoDbGuardrailFunction;
-  tags?: MongoDbGuardrailEvalCaseTag[];
+  tags?: (MongoDbTag | MongoDbGuardrailEvalCaseTag)[];
 }
+
+const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, JUDGE_LLM, JUDGE_OPENAI_API_KEY } =
+  assertEnvVars({ ...evalEnvVars, OPENAI_CHAT_COMPLETION_DEPLOYMENT: "" });
 
 const evalCases: MongoDbGuardrailEvalCase[] = [
   {
@@ -188,7 +193,7 @@ const sufficientReasoning: Scorer<
   Awaited<ReturnType<typeof userMessageMongoDbGuardrail>>,
   { input: string }
 > = async (args) => {
-  const judgeModel = "gpt-4o";
+  const judgeModel = JUDGE_LLM;
   const hasSufficientReasoning = LLMClassifierFromTemplate<{ input: string }>({
     name: "SufficientReasoning",
     choiceScores: {
@@ -208,7 +213,7 @@ Reference: {{expected}}
     useCoT: true,
   });
   const res = await hasSufficientReasoning({
-    openAiApiKey: process.env.OPENAI_OPENAI_API_KEY,
+    openAiApiKey: JUDGE_OPENAI_API_KEY,
     input: args.input,
     output: JSON.stringify(args.output),
     expected: JSON.stringify(args.expected),
@@ -219,10 +224,9 @@ Reference: {{expected}}
   return res;
 };
 
-const openAiClient = new OpenAI({ apiKey: process.env.OPENAI_OPENAI_API_KEY });
+const openAiClient = new OpenAI({ apiKey: JUDGE_OPENAI_API_KEY });
 
-const model = process.env.OPENAI_CHAT_COMPLETION_DEPLOYMENT;
-assert(model, "OPENAI_CHAT_COMPLETION_DEPLOYMENT must be set");
+const model = OPENAI_CHAT_COMPLETION_DEPLOYMENT;
 
 Eval("user-message-guardrail", {
   data: evalCases,

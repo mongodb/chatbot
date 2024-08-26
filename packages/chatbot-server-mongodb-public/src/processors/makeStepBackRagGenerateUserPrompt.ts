@@ -4,7 +4,6 @@ import {
   GenerateUserPromptFunc,
   GenerateUserPromptFuncReturnValue,
   Message,
-  OpenAIClient,
   UserMessage,
   updateFrontMatter,
 } from "mongodb-chatbot-server";
@@ -15,9 +14,10 @@ import { logRequest } from "../utils";
 import { makeMongoDbReferences } from "./makeMongoDbReferences";
 import { extractMongoDbMetadataFromUserMessage } from "./extractMongoDbMetadataFromUserMessage";
 import { userMessageMongoDbGuardrail } from "./userMessageMongoDbGuardrail";
+import OpenAI from "openai";
 interface MakeStepBackGenerateUserPromptProps {
-  openAiClient: OpenAIClient;
-  deploymentName: string;
+  openAiClient: OpenAI;
+  model: string;
   numPrecedingMessagesToInclude?: number;
   findContent: FindContentFunc;
   maxContextTokenCount?: number;
@@ -30,7 +30,7 @@ interface MakeStepBackGenerateUserPromptProps {
  */
 export const makeStepBackRagGenerateUserPrompt = ({
   openAiClient,
-  deploymentName,
+  model,
   numPrecedingMessagesToInclude = 0,
   findContent,
   maxContextTokenCount = 1800,
@@ -60,14 +60,14 @@ export const makeStepBackRagGenerateUserPrompt = ({
     const [metadata, guardrailResult] = await Promise.all([
       extractMongoDbMetadataFromUserMessage({
         openAiClient,
-        model: deploymentName,
+        model,
         userMessageText,
         messages: precedingMessagesToInclude,
       }),
       userMessageMongoDbGuardrail({
         userMessageText,
         openAiClient,
-        model: deploymentName,
+        model,
         messages: precedingMessagesToInclude,
       }),
     ]);
@@ -106,20 +106,19 @@ export const makeStepBackRagGenerateUserPrompt = ({
       metadataForQuery.mongoDbProductName = metadata.mongoDbProduct;
     }
 
-    const stepBackUserQuery = await makeStepBackUserQuery({
+    const { transformedUserQuery } = await makeStepBackUserQuery({
       openAiClient,
-      deploymentName,
+      model,
       messages: precedingMessagesToInclude,
-      userMessageText,
-      metadata: metadataForQuery,
+      userMessageText: updateFrontMatter(userMessageText, metadataForQuery),
     });
     logRequest({
       reqId,
-      message: `Step back query: ${stepBackUserQuery}`,
+      message: `Step back query: ${transformedUserQuery}`,
     });
 
     const { content, queryEmbedding } = await findContent({
-      query: updateFrontMatter(stepBackUserQuery, metadataForQuery),
+      query: updateFrontMatter(transformedUserQuery, metadataForQuery),
     });
     logRequest({
       reqId,
@@ -137,7 +136,7 @@ export const makeStepBackRagGenerateUserPrompt = ({
         score: c.score,
       })),
       customData,
-      preprocessedContent: stepBackUserQuery,
+      preprocessedContent: transformedUserQuery,
     } satisfies UserMessage;
     if (content.length === 0) {
       return {
@@ -157,7 +156,7 @@ export const makeStepBackRagGenerateUserPrompt = ({
       ...baseUserMessage,
       contentForLlm: makeUserContentForLlm({
         userMessageText,
-        stepBackUserQuery,
+        stepBackUserQuery: transformedUserQuery,
         messages: precedingMessagesToInclude,
         metadata,
         content,

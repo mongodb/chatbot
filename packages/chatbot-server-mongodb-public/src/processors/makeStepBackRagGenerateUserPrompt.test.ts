@@ -4,16 +4,16 @@ import {
   ObjectId,
 } from "mongodb-chatbot-server";
 import {
-  openAiClient,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   findContent,
+  preprocessorOpenAiClient,
 } from "../test/testHelpers";
 import { makeStepBackRagGenerateUserPrompt } from "./makeStepBackRagGenerateUserPrompt";
 
 describe("makeStepBackRagGenerateUserPrompt", () => {
   const config = {
-    openAiClient,
-    deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    openAiClient: preprocessorOpenAiClient,
+    model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     findContent,
   };
   const stepBackRagGenerateUserPrompt =

@@ -1,127 +1,146 @@
-import { stripIndents } from "common-tags";
-import { Message } from "mongodb-chatbot-server";
-import {
-  OpenAIClient,
-  FunctionDefinition,
-  ChatRequestMessage,
-} from "@azure/openai";
+import { z } from "zod";
+import { makeNShotUserMessageExtractorFunction } from "./makeNShotUserMessageFunction";
+import { ChatCompletionMessageParam } from "openai/resources";
+import { updateFrontMatter } from "mongodb-chatbot-server";
 
-const systemMessage = {
-  role: "system",
-  content: stripIndents`Your purpose is to generate a search query for a given user input.
-    You are doing this for MongoDB, and all queries relate to MongoDB products.
-    When constructing the query, take a "step back" to generate a more general search query that finds the data relevant to the user query if relevant.
-    You should also transform the user query into a fully formed question, if relevant.
+export const StepBackUserQueryMongoDbFunctionSchema = z.object({
+  transformedUserQuery: z.string().describe("Transformed user query"),
+});
 
-    Examples of taking a step back when relevant:
-    Original user input: aggregate filter where flowerType is rose
-    Step back user query: How do I filter by specific field value in a MongoDB aggregation pipeline?
+export type StepBackUserQueryMongoDbFunction = z.infer<
+  typeof StepBackUserQueryMongoDbFunctionSchema
+>;
 
-    Original user input: How long does it take to import 2GB of data?
-    Step back user query: What affects the rate of data import in MongoDB?
+const name = "step_back_user_query";
+const description = "Create a user query using the 'step back' method.";
 
-    Original user input: how to display the first five
-    Step back user query: How do I limit the number of results in a MongoDB query?
+const systemPrompt = `Your purpose is to generate a search query for a given user input.
+You are doing this for MongoDB, and all queries relate to MongoDB products.
+When constructing the query, take a "step back" to generate a more general search query that finds the data relevant to the user query if relevant.
+You should also transform the user query into a fully formed question, if relevant.`;
 
-    Original user input: find documents python code example
-    Step back user query: Code example of how to find documents using the Python driver.
-
-    Examples of not taking a step back when query is general enough:
-    Original user input: aggregate
-    Step back user query: Overview of aggregation in MongoDB
-
-    Original user input: $match
-    Step back user query: What is the $match stage in a MongoDB aggregation pipeline?`,
-} satisfies ChatRequestMessage;
-
-const stepBackUserQueryFunc: FunctionDefinition = {
-  name: "step_back_user_query",
-  description: "Create a user query using the 'step back' method.",
-  parameters: {
-    type: "object",
-    properties: {
-      transformedUserQuery: {
-        type: "string",
-        description: "Transformed user query",
-      },
-    },
-    required: ["transformedUserQuery"],
+const fewShotExamples: ChatCompletionMessageParam[] = [
+  // Example 1
+  {
+    role: "user",
+    content: updateFrontMatter("aggregate filter where flowerType is rose", {
+      programmingLanguage: "javascript",
+      mongoDbProduct: "Aggregation Framework",
+    }),
   },
-};
-
-export interface MakeStepBackUserQueryParams {
-  openAiClient: OpenAIClient;
-  deploymentName: string;
-  messages?: Message[];
-  userMessageText: string;
-  metadata?: Record<string, unknown>;
-}
+  {
+    role: "assistant",
+    content: null,
+    function_call: {
+      name,
+      arguments: JSON.stringify({
+        transformedUserQuery:
+          "How do I filter by specific field value in a MongoDB aggregation pipeline?",
+      } satisfies StepBackUserQueryMongoDbFunction),
+    },
+  },
+  // Example 2
+  {
+    role: "user",
+    content: updateFrontMatter("How long does it take to import 2GB of data?", {
+      mongoDbProduct: "MongoDB Atlas",
+    }),
+  },
+  {
+    role: "assistant",
+    content: null,
+    function_call: {
+      name,
+      arguments: JSON.stringify({
+        transformedUserQuery:
+          "What affects the rate of data import in MongoDB?",
+      } satisfies StepBackUserQueryMongoDbFunction),
+    },
+  },
+  // Example 3
+  {
+    role: "user",
+    content: updateFrontMatter("how to display the first five", {
+      mongoDbProduct: "Driver",
+    }),
+  },
+  {
+    role: "assistant",
+    content: null,
+    function_call: {
+      name,
+      arguments: JSON.stringify({
+        transformedUserQuery:
+          "How do I limit the number of results in a MongoDB query?",
+      } satisfies StepBackUserQueryMongoDbFunction),
+    },
+  },
+  // Example 4
+  {
+    role: "user",
+    content: updateFrontMatter("find documents python code example", {
+      programmingLanguage: "python",
+      mongoDbProduct: "Driver",
+    }),
+  },
+  {
+    role: "assistant",
+    content: null,
+    function_call: {
+      name,
+      arguments: JSON.stringify({
+        transformedUserQuery:
+          "Code example of how to find documents using the Python driver.",
+      } satisfies StepBackUserQueryMongoDbFunction),
+    },
+  },
+  // Example 5
+  {
+    role: "user",
+    content: updateFrontMatter("aggregate", {
+      mongoDbProduct: "Aggregation Framework",
+    }),
+  },
+  {
+    role: "assistant",
+    content: null,
+    function_call: {
+      name,
+      arguments: JSON.stringify({
+        transformedUserQuery: "Aggregation in MongoDB",
+      } satisfies StepBackUserQueryMongoDbFunction),
+    },
+  },
+  // Example 6
+  {
+    role: "user",
+    content: updateFrontMatter("$match", {
+      mongoDbProduct: "Aggregation Framework",
+    }),
+  },
+  {
+    role: "assistant",
+    content: null,
+    function_call: {
+      name,
+      arguments: JSON.stringify({
+        transformedUserQuery:
+          "What is the $match stage in a MongoDB aggregation pipeline?",
+      } satisfies StepBackUserQueryMongoDbFunction),
+    },
+  },
+];
 
 /**
-  Generate user query using the ["step back" method of prompt engineering](https://arxiv.org/abs/2310.06117).
+  Generate search query using the ["step back" method of prompt engineering](https://arxiv.org/abs/2310.06117).
  */
-export async function makeStepBackUserQuery({
-  openAiClient,
-  deploymentName,
-  messages = [],
-  userMessageText,
-  metadata,
-}: MakeStepBackUserQueryParams) {
-  const userMessage = generateStepBackUserMessage({
-    userMessageText,
-    messages,
-    metadata,
+export const makeStepBackUserQuery =
+  makeNShotUserMessageExtractorFunction<StepBackUserQueryMongoDbFunction>({
+    llmFunction: {
+      name,
+      description,
+      schema: StepBackUserQueryMongoDbFunctionSchema,
+    },
+    systemPrompt,
+    fewShotExamples,
   });
-
-  const result = await openAiClient.getChatCompletions(
-    deploymentName,
-    [systemMessage, userMessage],
-    {
-      functions: [stepBackUserQueryFunc],
-      functionCall: {
-        name: stepBackUserQueryFunc.name,
-      },
-      temperature: 0,
-    }
-  );
-  const stepBackUserQueryResponse = result.choices[0].message;
-  if (!stepBackUserQueryResponse) {
-    throw new Error("No response from OpenAI");
-  }
-  const args = stepBackUserQueryResponse.functionCall?.arguments;
-  if (
-    !args ||
-    stepBackUserQueryResponse.functionCall?.name !== stepBackUserQueryFunc.name
-  ) {
-    throw new Error("Invalid response from OpenAI: " + JSON.stringify(result));
-  }
-  const { transformedUserQuery } = JSON.parse(
-    args
-  ) as StepBackUserQueryResponse;
-  return transformedUserQuery;
-}
-
-interface StepBackUserQueryResponse {
-  transformedUserQuery: string;
-}
-
-function generateStepBackUserMessage({
-  userMessageText,
-  messages,
-  metadata,
-}: {
-  userMessageText: string;
-  messages: Message[];
-  metadata?: Record<string, unknown>;
-  numPrecedingMessagesToInclude?: number;
-}) {
-  return {
-    role: "user",
-    content: stripIndents`Previous messages:
-      ${messages
-        .map((message) => message.role.toUpperCase() + ": " + message.content)
-        .join("\n")}
-      ${metadata ? "Metadata: " + JSON.stringify(metadata) : ""}
-      Original user input: ${userMessageText}`,
-  } satisfies ChatRequestMessage;
-}

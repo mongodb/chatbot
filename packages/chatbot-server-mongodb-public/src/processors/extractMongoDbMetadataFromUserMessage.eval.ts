@@ -1,36 +1,25 @@
-import OpenAI from "openai";
+import { AzureOpenAI } from "openai";
 import {
   extractMongoDbMetadataFromUserMessage,
   ExtractMongoDbMetadataFunction,
 } from "./extractMongoDbMetadataFromUserMessage";
-import { strict as assert } from "assert";
 import { Eval } from "braintrust";
 import { Scorer } from "autoevals";
+import { MongoDbTag } from "../mongoDbMetadata";
+import { assertEnvVars } from "mongodb-chatbot-server";
+import { OPENAI_CHAT_COMPLETION_DEPLOYMENT } from "..";
 
-type ExtractMongoDbMetadataEvalCaseTag =
-  | "aggregation"
-  | "analytics"
-  | "atlas"
-  | "atlas_search"
-  | "atlas_vector_search"
-  | "change_streams"
-  | "csharp"
-  | "driver"
-  | "go"
-  | "gridfs"
-  | "indexes"
-  | "java"
-  | "javascript"
-  | "multi_cloud"
-  | "pymongo"
-  | "python"
-  | "server";
+const { OPENAI_ENDPOINT, OPENAI_API_KEY } = assertEnvVars({
+  OPENAI_ENDPOINT: "",
+  OPENAI_API_KEY: "",
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
+});
 
 interface ExtractMongoDbMetadataEvalCase {
   name: string;
   input: string;
   expected: ExtractMongoDbMetadataFunction;
-  tags?: ExtractMongoDbMetadataEvalCaseTag[];
+  tags?: MongoDbTag[];
 }
 
 const evalCases: ExtractMongoDbMetadataEvalCase[] = [
@@ -56,7 +45,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
       programmingLanguage: "python",
       mongoDbProduct: "Driver",
     } satisfies ExtractMongoDbMetadataFunction,
-    tags: ["pymongo", "driver", "python"],
+    tags: ["driver", "python"],
   },
   {
     name: "should identify MongoDB Atlas",
@@ -169,7 +158,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
       programmingLanguage: "python",
       mongoDbProduct: "Aggregation Framework",
     } satisfies ExtractMongoDbMetadataFunction,
-    tags: ["pymongo", "python", "aggregation"],
+    tags: ["driver", "python", "aggregation"],
   },
   {
     name: "should detect use of Node.js for MongoDB",
@@ -219,9 +208,11 @@ const ProgrammingLanguageCorrect: Scorer<
         : 0,
   };
 };
-const openAiClient = new OpenAI({ apiKey: process.env.OPENAI_OPENAI_API_KEY });
-const model = "gpt-4o-mini";
-assert(model, "OPENAI_CHAT_COMPLETION_DEPLOYMENT must be set");
+const openAiClient = new AzureOpenAI({
+  apiKey: OPENAI_API_KEY,
+  endpoint: OPENAI_ENDPOINT,
+});
+const model = OPENAI_CHAT_COMPLETION_DEPLOYMENT;
 Eval("extract-mongodb-metadata", {
   data: evalCases,
   experimentName: model,

@@ -1,6 +1,6 @@
 {
   "name": "chatbot-server-mongodb-public",
-  "version": "0.5.0",
+  "version": "0.6.1",
   "license": "Apache-2.0",
   "description": "Chatbot server for the MongoDB Docs AI chatbot.",
   "author": "MongoDB, Inc.",

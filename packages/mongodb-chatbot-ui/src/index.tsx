@@ -32,10 +32,33 @@ export {
 export { ModalView, type ModalViewProps } from "./ModalView.tsx";
 export { type ChatbotViewProps } from "./ChatbotView.tsx";
 export { type DarkModeProps } from "./DarkMode.ts";
-export { type Role, type MessageData } from "./services/conversations.ts";
-export { MongoDbLegalDisclosure } from "./MongoDbLegal.tsx";
+export {
+  type Role,
+  type MessageData,
+  type MessageDataReferences,
+  type MessageDataReference,
+  type AssistantMessageMetadata,
+  type DeltaStreamEvent,
+  type ReferencesStreamEvent,
+  type MetadataStreamEvent,
+  type FinishedStreamEvent,
+  type ConversationStreamEvent,
+  type ConversationFetchOptions,
+  type ConversationServiceConfig,
+  RetriableError,
+  TimeoutError,
+  ConversationService,
+} from "./services/conversations.ts";
+export {
+  MongoDbLegalDisclosure,
+  MongoDbLegalDisclosureText,
+} from "./MongoDbLegal.tsx";
 export {
   mongoDbVerifyInformationMessage,
   defaultChatbotFatalErrorMessage,
 } from "./ui-text.ts";
-export { PoweredByAtlasVectorSearch } from "./PoweredByAtlasVectorSearch.tsx";
+export {
+  PoweredByAtlasVectorSearch,
+  type PoweredByAtlasVectorSearchProps,
+} from "./PoweredByAtlasVectorSearch.tsx";
+export { ChatWindow, type ChatWindowProps } from "./ChatWindow.tsx";

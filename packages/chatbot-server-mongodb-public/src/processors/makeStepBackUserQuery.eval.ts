@@ -91,15 +91,23 @@ const QuerySimilarity: Scorer<
   Awaited<ReturnType<typeof makeStepBackUserQuery>>,
   unknown
 > = async (args) => {
-  return await EmbeddingSimilarity({
-    openAiApiKey: JUDGE_OPENAI_API_KEY,
-    expected: args.expected?.transformedUserQuery,
-    output: args.output.transformedUserQuery,
-    model: JUDGE_EMBEDDING_MODEL,
-  });
+  // return await EmbeddingSimilarity({
+  //   openAiApiKey: JUDGE_OPENAI_API_KEY,
+  //   expected: args.expected?.transformedUserQuery,
+  //   output: args.output.transformedUserQuery,
+  //   model: JUDGE_EMBEDDING_MODEL,
+  // });
+  return {
+    name: "QuerySimilarity",
+    score:
+      args.expected?.transformedUserQuery === args.output.transformedUserQuery
+        ? 1
+        : 0,
+  };
 };
 
-const model = OPENAI_CHAT_COMPLETION_DEPLOYMENT;
+const model = "docs-chatbot-llm-gpt-35";
+// const model = OPENAI_CHAT_COMPLETION_DEPLOYMENT;
 const openAiClient = new AzureOpenAI({
   apiKey: OPENAI_API_KEY,
 });

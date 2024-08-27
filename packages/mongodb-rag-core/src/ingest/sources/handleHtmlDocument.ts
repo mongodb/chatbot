@@ -1,7 +1,7 @@
 import TurndownService from "turndown";
 import * as turndownPluginGfm from "turndown-plugin-gfm";
 import { JSDOM } from "jsdom";
-import { logger } from "../../services/logger";
+import { logger } from "../../logger";
 import { PageMetadata, Page } from "../../Page";
 export type HandleHtmlPageFuncOptions = {
   /** Returns an array of DOM elements to be removed from the parsed document. */

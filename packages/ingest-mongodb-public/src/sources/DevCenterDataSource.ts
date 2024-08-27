@@ -1,12 +1,12 @@
 import { strict as assert } from "assert";
 import { convert } from "html-to-text";
-import { removeMarkdownImagesAndLinks } from "./removeMarkdownImagesAndLinks";
-import { DataSource } from "./DataSource";
-import { ProjectBase } from "./ProjectBase";
+import { removeMarkdownImagesAndLinks } from "mongodb-rag-core/ingest";
+import { DataSource } from "mongodb-rag-core/ingest";
+import { ProjectBase } from "mongodb-rag-core/ingest";
 import { MongoClient } from "mongodb";
-import { assertEnvVars } from "../../assertEnvVars";
-import { Page } from "../../Page";
-import { logger } from "../../services/logger";
+import { assertEnvVars } from "mongodb-rag-core";
+import { Page } from "mongodb-rag-core";
+import { logger } from "mongodb-rag-core";
 
 export type DevCenterProjectConfig = ProjectBase & {
   type: "devcenter";

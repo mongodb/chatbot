@@ -1,7 +1,7 @@
 import { getChangedPages } from "./getChangedPages";
 import { DataSource } from "../sources/DataSource";
 import { PageStore, Page } from "../../Page";
-import { logger } from "../../services/logger";
+import { logger } from "../../logger";
 
 /**
   Fetches pages from data sources and stores those that have changed in the data

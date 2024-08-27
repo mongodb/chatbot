@@ -5,8 +5,7 @@ import {
   Branch,
   LocallySpecifiedSnootyProjectConfig,
 } from "./SnootyDataSource";
-import { filterFulfilled } from "../../../arrayFilters";
-import { logger } from "../../../services/logger";
+import { filterFulfilled, logger } from "mongodb-rag-core";
 
 /** Schema for API response from https://snooty-data-api.mongodb.com/prod/projects */
 export type GetSnootyProjectsResponse = {

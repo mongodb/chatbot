@@ -1,6 +1,6 @@
 import deepEqual from "deep-equal";
 import { PersistedPage, Page } from "../../Page";
-import { logger } from "../../services/logger";
+import { logger } from "../../logger";
 
 /**
   Given sets of old and new pages, returns the pages that need to be created,

@@ -9,8 +9,8 @@ import {
   SomeTokenizer,
 } from "./chunkPage";
 import { Page } from "../../Page";
-import { logger } from "../../services/logger";
 import { updateFrontMatter } from "../../updateFrontMatter";
+import { logger } from "../../logger";
 
 export const defaultOpenApiSpecYamlChunkOptions: ChunkOptions = {
   maxChunkSize: 1250,

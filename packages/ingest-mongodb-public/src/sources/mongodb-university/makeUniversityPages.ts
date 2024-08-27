@@ -1,4 +1,4 @@
-import { PageMetadata, Page } from "../../../Page";
+import { PageMetadata, Page } from "mongodb-rag-core";
 import {
   TiCatalogItem,
   UniversityVideo,

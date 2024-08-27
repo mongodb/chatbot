@@ -4,8 +4,8 @@ import { snootyAstToMd } from "./snooty/snootyAstToMd";
 import {
   MakeGitHubDataSourceArgs,
   makeGitHubDataSource,
-} from "./GitHubDataSource";
-import { extractMarkdownH1 } from "./extractMarkdownH1";
+} from "mongodb-rag-core/ingest";
+import { extractMarkdownH1 } from "mongodb-rag-core/ingest";
 
 /**
   Loads an rST docs site from a GitHub repo.

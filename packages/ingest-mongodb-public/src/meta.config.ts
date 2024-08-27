@@ -13,7 +13,7 @@ import {
   AzureKeyCredential,
 } from "mongodb-rag-core";
 import { snootyDataApiBaseUrl } from "./sources/snooty";
-import { makeSnootyDataSource } from "mongodb-rag-ingest/sources/snooty";
+import { makeSnootyDataSource } from "./sources/snooty/SnootyDataSource";
 
 const {
   OPENAI_ENDPOINT,

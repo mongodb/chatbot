@@ -3,7 +3,7 @@ import { chunkPage, ChunkFunc, ChunkOptions } from "./chunkPage";
 import { EmbeddedContentStore, EmbeddedContent } from "../../EmbeddedContent";
 import { Embedder } from "../../Embedder";
 import { PageStore, PersistedPage } from "../../Page";
-import { logger } from "../../services/logger";
+import { logger } from "../../logger";
 
 /**
   (Re-)embeddedContent the pages in the page store that have changed since the given date

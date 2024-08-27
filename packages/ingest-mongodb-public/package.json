@@ -47,6 +47,7 @@
   "dependencies": {
     "@release-it/bumper": "^5.1.0",
     "dotenv": "^16",
+    "langchain": "^0.2.17",
     "mongodb-rag-core": "*",
     "mongodb-rag-ingest": "*",
     "striptags": "^3.2.0"

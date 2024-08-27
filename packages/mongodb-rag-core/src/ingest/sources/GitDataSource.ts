@@ -6,7 +6,7 @@ import { rimrafSync } from "rimraf";
 import { DataSource } from "./DataSource";
 import { filterDefined, filterFulfilled } from "../../arrayFilters";
 import { Page, PageMetadata } from "../../Page";
-import { logger } from "../../services/logger";
+import { logger } from "../../logger";
 
 /**
   Function to convert a file in the repo into a `Page` or `Page[]`.

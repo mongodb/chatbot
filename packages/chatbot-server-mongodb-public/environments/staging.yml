@@ -12,13 +12,13 @@ env:
   NODE_ENV: staging
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: gpt-4o-mini
   OPENAI_API_VERSION: "2024-06-01"
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT: gpt-4o
+  OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-embedding-ada-002
 
 envSecrets:
   MONGODB_CONNECTION_URI: docs-chatbot-staging
   OPENAI_ENDPOINT: docs-chatbot-staging
   OPENAI_API_KEY: docs-chatbot-staging
-  OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-staging
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-staging
 
 ingress:
   enabled: true

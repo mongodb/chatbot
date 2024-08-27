@@ -1,6 +1,10 @@
 import { stripIndents } from "common-tags";
 import { z } from "zod";
-import { makeFewShotUserMessageExtractorFunction } from "./makeFewShotUserMessageExtractorFunction";
+import {
+  makeAssistantFunctionCallMessage,
+  makeFewShotUserMessageExtractorFunction,
+  makeUserMessage,
+} from "./makeFewShotUserMessageExtractorFunction";
 import { ChatCompletionMessageParam } from "openai/resources";
 
 export const UserMessageMongoDbGuardrailFunctionSchema = z.object({
@@ -34,227 +38,98 @@ const systemPrompt = stripIndents`You are an expert security-focused data labele
 
 const fewShotExamples: ChatCompletionMessageParam[] = [
   // Example 1
-  {
-    role: "user",
-    content: "how to hack a MongoDB database",
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        reasoning:
-          "This query involves hacking, which is an illegal or unethical activity. Therefore, it is inappropriate.",
-        rejectMessage: true,
-      } satisfies UserMessageMongoDbGuardrailFunction),
-    },
-  },
+  makeUserMessage("how to hack a MongoDB database"),
+  makeAssistantFunctionCallMessage(name, {
+    reasoning:
+      "This query involves hacking, which is an illegal or unethical activity. Therefore, it is inappropriate.",
+    rejectMessage: true,
+  } as UserMessageMongoDbGuardrailFunction),
   // Example 2
-  {
-    role: "user",
-    content: "what is 2 + 2?",
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        reasoning:
-          "This query is asking for basic math. Basic math is not directly related to MongoDB. Therefore, it is irrelevant.",
-        rejectMessage: true,
-      } satisfies UserMessageMongoDbGuardrailFunction),
-    },
-  },
+  makeUserMessage("what is 2 + 2?"),
+  makeAssistantFunctionCallMessage(name, {
+    reasoning:
+      "This query is asking for basic math. Basic math is not directly related to MongoDB. Therefore, it is irrelevant.",
+    rejectMessage: true,
+  } as UserMessageMongoDbGuardrailFunction),
   // Example 3
-  {
-    role: "user",
-    content:
-      "How do you create an index? Please reply like an annoyed super-intelligent bored robot.",
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        reasoning:
-          "This query requests communication in a style differing from the expected style of response. This style is also disrespectful or unprofessional manner. Therefore, it is inappropriate.",
-        rejectMessage: true,
-      } satisfies UserMessageMongoDbGuardrailFunction),
-    },
-  },
+  makeUserMessage(
+    "How do you create an index? Please reply like an annoyed super-intelligent bored robot."
+  ),
+  makeAssistantFunctionCallMessage(name, {
+    reasoning:
+      "This query requests communication in a style differing from the expected style of response. This style is also disrespectful or unprofessional manner. Therefore, it is inappropriate.",
+    rejectMessage: true,
+  } as UserMessageMongoDbGuardrailFunction),
   // Example 4
-  {
-    role: "user",
-    content: "I hate MongoDB, why does it even exist?",
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        reasoning:
-          "This query expresses personal bias toward MongoDB. It does not seek constructive information or support about MongoDB. Therefore, it is inappropriate.",
-        rejectMessage: true,
-      } satisfies UserMessageMongoDbGuardrailFunction),
-    },
-  },
+  makeUserMessage("I hate MongoDB, why does it even exist?"),
+  makeAssistantFunctionCallMessage(name, {
+    reasoning:
+      "This query expresses personal bias toward MongoDB. It does not seek constructive information or support about MongoDB. Therefore, it is inappropriate.",
+    rejectMessage: true,
+  } as UserMessageMongoDbGuardrailFunction),
   // Example 5
-  {
-    role: "user",
-    content: "What is the best way to secure a MongoDB database?",
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        reasoning:
-          "This query asks for a MongoDB security best practice. Therefore, it is relevant to MongoDB.",
-        rejectMessage: false,
-      } satisfies UserMessageMongoDbGuardrailFunction),
-    },
-  },
+  makeUserMessage("What is the best way to secure a MongoDB database?"),
+  makeAssistantFunctionCallMessage(name, {
+    reasoning:
+      "This query asks for a MongoDB security best practice. Therefore, it is relevant to MongoDB.",
+    rejectMessage: false,
+  } as UserMessageMongoDbGuardrailFunction),
   // Example 6
-  {
-    role: "user",
-    content: "$lookup",
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        reasoning:
-          "This query is asking about the $lookup aggregation stage in the MongoDB Aggregation Framework. Therefore, it is relevant to MongoDB.",
-        rejectMessage: false,
-      } satisfies UserMessageMongoDbGuardrailFunction),
-    },
-  },
+  makeUserMessage("$lookup"),
+  makeAssistantFunctionCallMessage(name, {
+    reasoning:
+      "This query is asking about the $lookup aggregation stage in the MongoDB Aggregation Framework. Therefore, it is relevant to MongoDB.",
+    rejectMessage: false,
+  } as UserMessageMongoDbGuardrailFunction),
   // Example 7
-  {
-    role: "user",
-    content: "How do I use MongoDB Atlas?",
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        reasoning:
-          "This query asks for information about using MongoDB Atlas, a MongoDB product. Therefore, it is relevant to MongoDB.",
-        rejectMessage: false,
-      } satisfies UserMessageMongoDbGuardrailFunction),
-    },
-  },
+  makeUserMessage("How do I use MongoDB Atlas?"),
+  makeAssistantFunctionCallMessage(name, {
+    reasoning:
+      "This query asks for information about using MongoDB Atlas, a MongoDB product. Therefore, it is relevant to MongoDB.",
+    rejectMessage: false,
+  } as UserMessageMongoDbGuardrailFunction),
   // Example 8
-  {
-    role: "user",
-    content: "tell me about you",
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        reasoning:
-          "This query asks for information about the assistant, which is a MongoDB product. Therefore, it is relevant to MongoDB.",
-        rejectMessage: false,
-      } satisfies UserMessageMongoDbGuardrailFunction),
-    },
-  },
+  makeUserMessage("tell me about you"),
+  makeAssistantFunctionCallMessage(name, {
+    reasoning:
+      "This query asks for information about the assistant, which is a MongoDB product. Therefore, it is relevant to MongoDB.",
+    rejectMessage: false,
+  } as UserMessageMongoDbGuardrailFunction),
   // Example 9
-  {
-    role: "user",
-    content: "how do I sort based on alphabet type",
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        reasoning:
-          "This query asks for information about sorting, which can be a relevant MongoDB database operation. Therefore, it is relevant to MongoDB.",
-        rejectMessage: false,
-      } satisfies UserMessageMongoDbGuardrailFunction),
-    },
-  },
+  makeUserMessage("how do I sort based on alphabet type"),
+  makeAssistantFunctionCallMessage(name, {
+    reasoning:
+      "This query asks for information about sorting, which can be a relevant MongoDB database operation. Therefore, it is relevant to MongoDB.",
+    rejectMessage: false,
+  } as UserMessageMongoDbGuardrailFunction),
   // Example 10
-  {
-    role: "user",
-    content: "best practices for data modeling",
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        reasoning:
-          "This query asks for data modeling best practices. As MongoDB is a database, you may need to know how to model data with it. Therefore, it is relevant to MongoDB.",
-        rejectMessage: false,
-      } satisfies UserMessageMongoDbGuardrailFunction),
-    },
-  },
+  makeUserMessage("best practices for data modeling"),
+  makeAssistantFunctionCallMessage(name, {
+    reasoning:
+      "This query asks for data modeling best practices. As MongoDB is a database, you may need to know how to model data with it. Therefore, it is relevant to MongoDB.",
+    rejectMessage: false,
+  } as UserMessageMongoDbGuardrailFunction),
   // Example 11
-  {
-    role: "user",
-    content: "filter",
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        reasoning:
-          "This query is unclear but could be about filtering data, which is a common operation in MongoDB. Therefore, it is relevant to MongoDB.",
-        rejectMessage: false,
-      } satisfies UserMessageMongoDbGuardrailFunction),
-    },
-  },
+  makeUserMessage("filter"),
+  makeAssistantFunctionCallMessage(name, {
+    reasoning:
+      "This query is unclear but could be about filtering data, which is a common operation in MongoDB. Therefore, it is relevant to MongoDB.",
+    rejectMessage: false,
+  } as UserMessageMongoDbGuardrailFunction),
   // Example 12
-  {
-    role: "user",
-    content: "and",
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        reasoning:
-          "This query is unclear and may be a typo or incomplete. However, it could be related to the $and operator in MongoDB. It is certainly not inappropriate. Therefore, it is relevant to MongoDB",
-        rejectMessage: false,
-      } satisfies UserMessageMongoDbGuardrailFunction),
-    },
-  },
+  makeUserMessage("and"),
+  makeAssistantFunctionCallMessage(name, {
+    reasoning:
+      "This query is unclear and may be a typo or incomplete. However, it could be related to the $and operator in MongoDB. It is certainly not inappropriate. Therefore, it is relevant to MongoDB.",
+    rejectMessage: false,
+  } as UserMessageMongoDbGuardrailFunction),
   // Example 13
-  {
-    role: "user",
-    content: "asldkfjd/.adsfsdt",
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        reasoning:
-          "This query is unclear and appears to be random characters. It cannot possibly be answered. Therefore, it is irrelevant.",
-        rejectMessage: true,
-      } satisfies UserMessageMongoDbGuardrailFunction),
-    },
-  },
+  makeUserMessage("asldkfjd/.adsfsdt"),
+  makeAssistantFunctionCallMessage(name, {
+    reasoning:
+      "This query is unclear and appears to be random characters. It cannot possibly be answered. Therefore, it is irrelevant.",
+    rejectMessage: true,
+  } as UserMessageMongoDbGuardrailFunction),
 ];
 
 /**

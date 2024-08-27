@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { makeFewShotUserMessageExtractorFunction } from "./makeFewShotUserMessageExtractorFunction";
+import {
+  makeAssistantFunctionCallMessage,
+  makeFewShotUserMessageExtractorFunction,
+  makeUserMessage,
+} from "./makeFewShotUserMessageExtractorFunction";
 import { ChatCompletionMessageParam } from "openai/resources";
 import { updateFrontMatter } from "mongodb-chatbot-server";
 
@@ -22,148 +26,83 @@ You should also transform the user query into a fully formed question, if releva
 
 const fewShotExamples: ChatCompletionMessageParam[] = [
   // Example 1
-  {
-    role: "user",
-    content: updateFrontMatter("aggregate filter where flowerType is rose", {
+  makeUserMessage(
+    updateFrontMatter("aggregate filter where flowerType is rose", {
       programmingLanguage: "javascript",
       mongoDbProduct: "Aggregation Framework",
-    }),
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        transformedUserQuery:
-          "How do I filter by specific field value in a MongoDB aggregation pipeline?",
-      } satisfies StepBackUserQueryMongoDbFunction),
-    },
-  },
+    })
+  ),
+  makeAssistantFunctionCallMessage(name, {
+    transformedUserQuery:
+      "How do I filter by specific field value in a MongoDB aggregation pipeline?",
+  } satisfies StepBackUserQueryMongoDbFunction),
   // Example 2
-  {
-    role: "user",
-    content: updateFrontMatter("How long does it take to import 2GB of data?", {
+  makeUserMessage(
+    updateFrontMatter("How long does it take to import 2GB of data?", {
       mongoDbProduct: "MongoDB Atlas",
-    }),
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        transformedUserQuery:
-          "What affects the rate of data import in MongoDB?",
-      } satisfies StepBackUserQueryMongoDbFunction),
-    },
-  },
+    })
+  ),
+  makeAssistantFunctionCallMessage(name, {
+    transformedUserQuery: "What affects the rate of data import in MongoDB?",
+  } satisfies StepBackUserQueryMongoDbFunction),
   // Example 3
-  {
-    role: "user",
-    content: updateFrontMatter("how to display the first five", {
+  makeUserMessage(
+    updateFrontMatter("how to display the first five", {
       mongoDbProduct: "Driver",
-    }),
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        transformedUserQuery:
-          "How do I limit the number of results in a MongoDB query?",
-      } satisfies StepBackUserQueryMongoDbFunction),
-    },
-  },
+    })
+  ),
+  makeAssistantFunctionCallMessage(name, {
+    transformedUserQuery:
+      "How do I limit the number of results in a MongoDB query?",
+  } satisfies StepBackUserQueryMongoDbFunction),
   // Example 4
-  {
-    role: "user",
-    content: updateFrontMatter("find documents python code example", {
+  makeUserMessage(
+    updateFrontMatter("find documents python code example", {
       programmingLanguage: "python",
       mongoDbProduct: "Driver",
-    }),
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        transformedUserQuery:
-          "Code example of how to find documents using the Python driver.",
-      } satisfies StepBackUserQueryMongoDbFunction),
-    },
-  },
+    })
+  ),
+  makeAssistantFunctionCallMessage(name, {
+    transformedUserQuery:
+      "Code example of how to find documents using the Python driver.",
+  } satisfies StepBackUserQueryMongoDbFunction),
   // Example 5
-  {
-    role: "user",
-    content: updateFrontMatter("aggregate", {
+  makeUserMessage(
+    updateFrontMatter("aggregate", {
       mongoDbProduct: "Aggregation Framework",
-    }),
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        transformedUserQuery: "Aggregation in MongoDB",
-      } satisfies StepBackUserQueryMongoDbFunction),
-    },
-  },
+    })
+  ),
+  makeAssistantFunctionCallMessage(name, {
+    transformedUserQuery: "Aggregation in MongoDB",
+  } satisfies StepBackUserQueryMongoDbFunction),
   // Example 6
-  {
-    role: "user",
-    content: updateFrontMatter("$match", {
+  makeUserMessage(
+    updateFrontMatter("$match", {
       mongoDbProduct: "Aggregation Framework",
-    }),
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        transformedUserQuery:
-          "What is the $match stage in a MongoDB aggregation pipeline?",
-      } satisfies StepBackUserQueryMongoDbFunction),
-    },
-  },
+    })
+  ),
+  makeAssistantFunctionCallMessage(name, {
+    transformedUserQuery:
+      "What is the $match stage in a MongoDB aggregation pipeline?",
+  } satisfies StepBackUserQueryMongoDbFunction),
   // Example 7
-  {
-    role: "user",
-    content: updateFrontMatter("How to connect to a MongoDB Atlas cluster?", {
+  makeUserMessage(
+    updateFrontMatter("How to connect to a MongoDB Atlas cluster?", {
       mongoDbProduct: "MongoDB Atlas",
-    }),
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        transformedUserQuery: "How to connect to a MongoDB Atlas cluster?",
-      } satisfies StepBackUserQueryMongoDbFunction),
-    },
-  },
+    })
+  ),
+  makeAssistantFunctionCallMessage(name, {
+    transformedUserQuery: "How to connect to a MongoDB Atlas cluster?",
+  } satisfies StepBackUserQueryMongoDbFunction),
   // Example 8
-  {
-    role: "user",
-    content: updateFrontMatter("connect to a mongodb atlas cluster", {
+  makeUserMessage(
+    updateFrontMatter("How to create a new cluster atlas", {
       mongoDbProduct: "MongoDB Atlas",
-    }),
-  },
-  {
-    role: "assistant",
-    content: null,
-    function_call: {
-      name,
-      arguments: JSON.stringify({
-        transformedUserQuery: "How to connect to a MongoDB Atlas cluster?",
-      } satisfies StepBackUserQueryMongoDbFunction),
-    },
-  },
+    })
+  ),
+  makeAssistantFunctionCallMessage(name, {
+    transformedUserQuery: "How to create a new cluster in MongoDB Atlas?",
+  } satisfies StepBackUserQueryMongoDbFunction),
 ];
 
 /**

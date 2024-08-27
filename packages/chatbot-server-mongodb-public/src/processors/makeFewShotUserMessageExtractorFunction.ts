@@ -24,7 +24,6 @@ export interface MakeFewShotUserMessageExtractorFunctionParams {
 export function makeFewShotUserMessageExtractorFunction<
   SchemaType extends Record<string, unknown> = Record<string, unknown>
 >({
-  // function,
   llmFunction: { name, description, schema },
   systemPrompt,
   fewShotExamples,
@@ -80,9 +79,30 @@ export function makeFewShotUserMessageExtractorFunction<
     });
     const metadata = schema.parse(
       JSON.parse(
-        res.choices[0]?.message?.tool_calls?.[0]?.function.arguments ?? ""
+        res.choices[0]?.message?.tool_calls?.[0]?.function.arguments ?? "{}"
       )
     ) as SchemaType;
     return metadata;
   };
+}
+
+export function makeUserMessage(content: string) {
+  return {
+    role: "user",
+    content,
+  } satisfies ChatCompletionMessageParam;
+}
+
+export function makeAssistantFunctionCallMessage(
+  name: string,
+  args: Record<string, unknown>
+) {
+  return {
+    role: "assistant",
+    content: null,
+    function_call: {
+      name,
+      arguments: JSON.stringify(args),
+    },
+  } satisfies ChatCompletionMessageParam;
 }

@@ -1,6 +1,5 @@
 import { makeMockOpenAIToolCall } from "../test/mockOpenAi";
 import { userMessageMongoDbGuardrail } from "./userMessageMongoDbGuardrail";
-import { UserMessageMongoDbGuardrailFunction } from "./userMessageMongoDbGuardrail";
 import { OpenAI } from "openai";
 
 jest.mock("openai", () => {

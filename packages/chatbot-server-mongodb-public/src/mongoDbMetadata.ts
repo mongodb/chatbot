@@ -1,5 +1,5 @@
-import { id } from "common-tags";
 import { z } from "zod";
+import { strict as assert } from "assert";
 
 export const MongoDbProductSchema = z.object({
   id: z.string().describe("Unique identifier for the product"),
@@ -129,27 +129,80 @@ export const mongoDbProducts = [
   },
 ] as const satisfies MongoDbProduct[];
 
-export const MongoDBProgrammingLanguagesSchema = z.enum([
-  "shell",
-  "javascript",
-  "typescript",
-  "python",
-  "java",
-  "csharp",
-  "cpp",
-  "ruby",
-  "kotlin",
-  "c",
-  "dart",
-  "go",
-  "php",
-  "rust",
-  "scala",
-  "swift",
-]);
-export type MongoDbProgrammingLanguages = z.infer<
-  typeof MongoDBProgrammingLanguagesSchema
+export const MongoDBProgrammingLanguageSchema = z.object({
+  id: z.string().describe("Unique identifier for the topic"),
+  name: z.string().describe("Human-friendly name of the topic").optional(),
+  description: z.string().optional().describe("Brief description of the topic"),
+});
+export type MongoDbProgrammingLanguage = z.infer<
+  typeof MongoDBProgrammingLanguageSchema
 >;
+
+export const mongoDbProgrammingLanguages = [
+  {
+    id: "shell",
+  },
+  {
+    id: "javascript",
+    name: "JavaScript",
+  },
+  {
+    id: "typescript",
+    name: "TypeScript",
+  },
+  {
+    id: "python",
+    name: "Python",
+  },
+  {
+    id: "java",
+    name: "Java",
+  },
+  {
+    id: "csharp",
+    name: "C#",
+  },
+  {
+    id: "cpp",
+    name: "C++",
+  },
+  {
+    id: "ruby",
+    name: "Ruby",
+  },
+  {
+    id: "kotlin",
+    name: "Kotlin",
+  },
+  {
+    id: "c",
+    name: "C",
+  },
+  {
+    id: "dart",
+    name: "Dart",
+  },
+  {
+    id: "go",
+    name: "Go",
+  },
+  {
+    id: "php",
+    name: "PHP",
+  },
+  {
+    id: "rust",
+    name: "Rust",
+  },
+  {
+    id: "scala",
+    name: "Scala",
+  },
+  {
+    id: "swift",
+    name: "Swift",
+  },
+] as const satisfies MongoDbProgrammingLanguage[];
 
 export const MongoDbTopicSchema = z.object({
   id: z.string().describe("Unique identifier for the topic"),
@@ -182,11 +235,14 @@ export const mongoDbTopics = [
 // Helpers for constructing the `MongoDbTag` union type
 const mongoDbProductIds = mongoDbProducts.map((product) => product.id);
 const mongoDbTopicIds = mongoDbTopics.map((topic) => topic.id);
+export const mongoDbProgrammingLanguageIds = mongoDbProgrammingLanguages.map(
+  (language) => language.id
+);
 
 /**
   All possible MongoDB tags. Useful for tagging evaluations.
   */
 export type MongoDbTag =
-  | MongoDbProgrammingLanguages
+  | (typeof mongoDbProgrammingLanguageIds)[number]
   | (typeof mongoDbProductIds)[number]
   | (typeof mongoDbTopicIds)[number];

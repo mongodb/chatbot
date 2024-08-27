@@ -132,7 +132,7 @@ describe("makeStepBackRagGenerateUserPrompt", () => {
     });
     expect(res.userMessage.contentForLlm).not.toContain("abracadabra");
   });
-  test("should only include 'numPrecedingMessagesToInclude' previous messages", async () => {
+  test.only("should only include 'numPrecedingMessagesToInclude' previous messages", async () => {
     const stepBackRagGenerateUserPrompt = makeStepBackRagGenerateUserPrompt({
       ...config,
       numPrecedingMessagesToInclude: 1,

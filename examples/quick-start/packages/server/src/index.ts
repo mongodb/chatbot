@@ -5,7 +5,6 @@ import {
   makeMongoDbConversationsService,
   AppConfig,
   makeOpenAiChatLlm,
-  OpenAiChatMessage,
   SystemPrompt,
   makeDefaultFindContent,
   logger,
@@ -83,7 +82,7 @@ const findContent = makeDefaultFindContent({
 const makeUserMessage: MakeUserMessageFunc = async function ({
   content,
   originalUserMessage,
-}): Promise<OpenAiChatMessage & { role: "user" }> {
+}) {
   const chunkSeparator = "~~~~~~";
   const context = content.map((c) => c.text).join(`\n${chunkSeparator}\n`);
   const contentForLlm = `Using the following information, answer the user query.
@@ -130,7 +129,6 @@ const config: AppConfig = {
     systemPrompt,
   },
   maxRequestTimeoutMs: 30000,
-  serveStaticSite: true,
 };
 
 // Start the server and clean up resources on SIGINT.

@@ -16,7 +16,6 @@ import { ObjectId, logger } from "mongodb-rag-core";
 import { getRequestId, logRequest, sendErrorResponse } from "./utils";
 import { CorsOptions } from "cors";
 import cloneDeep from "lodash.clonedeep";
-import path from "path";
 
 /**
   Configuration for the server Express.js app.
@@ -44,15 +43,16 @@ export interface AppConfig {
   apiPrefix?: string;
 
   /**
-    Whether to serve a static site from the root path (`GET https://my-site.com/`).
-    Defaults to false.
-    This is useful for demo and testing purposes.
-
-    You should probably not include this in your production server.
-    You can control including this in dev/test/staging but not production
-    with an environment variable.
+    Additional server logic using the server's `Express` app object.
+    Can do things like add additional, routes, global middleware, etc.
+    Runs immediately after the app is instantiated,
+    before additional routes and middleware are added.
+    @example
+    (app)=> {
+      app.get("/", (req, res) => res.send({ hello: "world" }))
+    }
    */
-  serveStaticSite?: boolean;
+  expressAppConfig?: (app: Express) => Promise<void>;
 }
 
 /**
@@ -117,25 +117,28 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
     conversationsRouterConfig,
     corsOptions,
     apiPrefix = DEFAULT_API_PREFIX,
-    serveStaticSite,
+    expressAppConfig,
   } = config;
   logger.info("Server has the following configuration:");
   logger.info(
     stringifyFunctions(cloneDeep(config) as unknown as Record<string, unknown>)
   );
   const app = express();
+
+  // Instantiate additional server logic, if it exists.
+  expressAppConfig && (await expressAppConfig(app));
+
+  // MongoDB chatbot server logic
   app.use(makeHandleTimeoutMiddleware(maxRequestTimeoutMs));
   app.set("trust proxy", true);
   app.use(cors(corsOptions));
   app.use(express.json());
   app.use(reqHandler);
-  if (serveStaticSite) {
-    app.use("/", express.static(path.join(__dirname, "..", "static")));
-  }
   app.use(
     `${apiPrefix}/conversations`,
     makeConversationsRouter(conversationsRouterConfig)
   );
+
   app.get("/health", (_req, res) => {
     const data = {
       uptime: process.uptime(),

@@ -43,7 +43,7 @@ export function getCustomRequestOrigin() {
   return undefined;
 }
 
-class RetriableError<Data extends object = object> extends Error {
+export class RetriableError<Data extends object = object> extends Error {
   retryAfter: number;
   data?: Data;
 

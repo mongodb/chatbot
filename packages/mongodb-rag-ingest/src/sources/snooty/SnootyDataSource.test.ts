@@ -128,6 +128,18 @@ describe("SnootyDataSource", () => {
       });
     });
 
+    it("adds metadata to page", async () => {
+      const source = await makeSnootyDataSource({
+        name: `snooty-test`,
+        project,
+        snootyDataApiBaseUrl,
+      });
+      const pages = await source.fetchPages();
+      for (const page of pages) {
+        expect(page.metadata?.siteTitle).toBeDefined();
+      }
+    });
+
     it("handles pages marked 'deleted'", async () => {
       // Use normal sample data (no deletes)
       const source = await makeSnootyDataSource({

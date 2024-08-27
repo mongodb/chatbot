@@ -44,6 +44,22 @@ cronJobs:
         memory: 5Gi
     backoffLimit: 3
 
+  - name: materialize-scrubbed-message-stats
+    schedule: "0 8 * * *" # every day at 8am UTC
+    command: ["npm", "run", "scripts:materializeScrubbedMessagesStats:latest"]
+    env:
+      MONGODB_DATABASE_NAME: docs-chatbot-staging
+    envSecrets:
+      MONGODB_CONNECTION_URI: docs-chatbot-staging
+    resources:
+      requests:
+        cpu: 100m
+        memory: 2Gi
+      limits:
+        cpu: 500m
+        memory: 5Gi
+    backoffLimit: 2
+
   - name: clean-up-test-databases-dev
     schedule: 0 8 * * SUN
     command: ["npm", "run", "scripts:removeTestDatabases"]

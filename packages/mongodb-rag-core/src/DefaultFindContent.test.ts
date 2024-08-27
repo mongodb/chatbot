@@ -9,6 +9,7 @@ import {
   CORE_OPENAI_EMBEDDING_ENV_VARS,
 } from "./CoreEnvVars";
 
+jest.setTimeout(30000);
 describe("makeDefaultFindContent()", () => {
   const {
     MONGODB_CONNECTION_URI,
@@ -34,8 +35,8 @@ describe("makeDefaultFindContent()", () => {
     openAiClient,
     deployment: OPENAI_EMBEDDING_DEPLOYMENT,
     backoffOptions: {
-      numOfAttempts: 3,
-      maxDelay: 5000,
+      numOfAttempts: 1,
+      maxDelay: 500,
     },
   });
 

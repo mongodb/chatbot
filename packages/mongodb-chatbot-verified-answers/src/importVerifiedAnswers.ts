@@ -19,14 +19,14 @@ export const importVerifiedAnswers = async ({
   verifiedAnswerSpecs,
   db,
   embedder,
-  embeddingModel,
+  embeddingModelName,
   embeddingModelVersion,
   verifiedAnswersCollectionName,
 }: {
   verifiedAnswerSpecs: VerifiedAnswerSpec[];
   db: Db;
   embedder: Embedder;
-  embeddingModel: string;
+  embeddingModelName: string;
   embeddingModelVersion: string;
   verifiedAnswersCollectionName: string;
 }) => {
@@ -41,7 +41,7 @@ export const importVerifiedAnswers = async ({
     storedAnswers,
     verifiedAnswerSpecs,
     embedder,
-    embeddingModel,
+    embeddingModelName,
     embeddingModelVersion,
   });
 
@@ -99,13 +99,13 @@ export const prepareVerifiedAnswers = async ({
   verifiedAnswerSpecs,
   storedAnswers: storedAnswersIn,
   embedder,
-  embeddingModel,
+  embeddingModelName,
   embeddingModelVersion,
 }: {
   verifiedAnswerSpecs: VerifiedAnswerSpec[];
   storedAnswers: VerifiedAnswer[];
   embedder: Embedder;
-  embeddingModel: string;
+  embeddingModelName: string;
   embeddingModelVersion: string;
 }): Promise<{ idsToDelete: string[]; answersToUpsert: VerifiedAnswer[] }> => {
   // Make a lookup table of _id -> stored answer
@@ -203,7 +203,7 @@ export const prepareVerifiedAnswers = async ({
             ...verifiedAnswer,
             question: {
               embedding,
-              embedding_model: embeddingModel,
+              embedding_model: embeddingModelName,
               embedding_model_version: embeddingModelVersion,
               text: question,
             },

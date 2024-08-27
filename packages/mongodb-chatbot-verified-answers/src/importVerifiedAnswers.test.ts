@@ -32,11 +32,11 @@ const embedder: Embedder = {
     embedding: doEmbed(text),
   }),
 };
-const embeddingModel = "mock-hash";
+const embeddingModelName = "mock-hash";
 const embeddingModelVersion = "1.0";
 const mockPrepareVerifiedAnswersArgs = {
   embedder,
-  embeddingModel,
+  embeddingModelName,
   embeddingModelVersion,
 };
 
@@ -49,7 +49,7 @@ const makeMockVerifiedAnswer = (
     _id: makeQuestionId(question),
     question: {
       embedding: doEmbed(question),
-      embedding_model: embeddingModel,
+      embedding_model: embeddingModelName,
       embedding_model_version: embeddingModelVersion,
       text: question,
     },

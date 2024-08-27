@@ -1,5 +1,8 @@
 import "dotenv/config";
-import { assertEnvVars } from "mongodb-rag-core";
+import {
+  assertEnvVars,
+  CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
+} from "mongodb-rag-core";
 import {
   ChatRequestMessage,
   FunctionDefinition,
@@ -77,9 +80,9 @@ export function makeClassifier({
    */
   chainOfThought?: boolean;
 }): Classifier {
-  const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars({
-    OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
-  });
+  const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars(
+    CORE_OPENAI_CHAT_COMPLETION_ENV_VARS
+  );
 
   const classificationCategoriesList = classificationTypes
     .map(({ type, description }) => `- ${type}: ${description}`)

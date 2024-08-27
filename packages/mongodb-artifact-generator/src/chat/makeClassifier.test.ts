@@ -1,12 +1,14 @@
 import {
   AzureKeyCredential,
-  CORE_ENV_VARS,
+  CORE_OPENAI_CONNECTION_ENV_VARS,
   OpenAIClient,
   assertEnvVars,
 } from "mongodb-rag-core";
 import { Classification, makeClassifier } from "./makeClassifier";
 
-const { OPENAI_ENDPOINT, OPENAI_API_KEY } = assertEnvVars(CORE_ENV_VARS);
+const { OPENAI_ENDPOINT, OPENAI_API_KEY } = assertEnvVars(
+  CORE_OPENAI_CONNECTION_ENV_VARS
+);
 
 const hotdogInputs = [
   "A New York-style hotdog with sauerkraut and mustard",

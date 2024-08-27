@@ -3,9 +3,5 @@
   "compilerOptions": {
     "outDir": "./build"
   },
-  "include": [
-    "./src/**/*.ts",
-    "../ingest-mongodb-public/src/sources/chunkOpenApiSpecYaml.test.ts",
-    "../ingest-mongodb-public/src/sources/chunkOpenApiSpecYaml.ts"
-  ]
+  "include": ["./src/**/*.ts"]
 }

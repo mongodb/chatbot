@@ -1,4 +1,3 @@
-import { AzureOpenAI } from "openai";
 import {
   extractMongoDbMetadataFromUserMessage,
   ExtractMongoDbMetadataFunction,
@@ -6,14 +5,10 @@ import {
 import { Eval } from "braintrust";
 import { Scorer } from "autoevals";
 import { MongoDbTag } from "../mongoDbMetadata";
-import { assertEnvVars } from "mongodb-chatbot-server";
-import { OPENAI_CHAT_COMPLETION_DEPLOYMENT } from "..";
-
-const { OPENAI_ENDPOINT, OPENAI_API_KEY } = assertEnvVars({
-  OPENAI_ENDPOINT: "",
-  OPENAI_API_KEY: "",
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
-});
+import {
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  openAiClient,
+} from "../test/evalHelpers";
 
 interface ExtractMongoDbMetadataEvalCase {
   name: string;
@@ -208,10 +203,7 @@ const ProgrammingLanguageCorrect: Scorer<
         : 0,
   };
 };
-const openAiClient = new AzureOpenAI({
-  apiKey: OPENAI_API_KEY,
-  endpoint: OPENAI_ENDPOINT,
-});
+
 const model = OPENAI_CHAT_COMPLETION_DEPLOYMENT;
 Eval("extract-mongodb-metadata", {
   data: evalCases,

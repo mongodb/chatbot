@@ -4,26 +4,15 @@ import {
   makeStepBackUserQuery,
   StepBackUserQueryMongoDbFunction,
 } from "./makeStepBackUserQuery";
-import { AzureOpenAI } from "openai";
 import { Message, ObjectId, updateFrontMatter } from "mongodb-chatbot-server";
-import { assertEnvVars } from "mongodb-chatbot-server";
-import { evalEnvVars } from "../evalEnvVars";
 import { MongoDbTag } from "../mongoDbMetadata";
-
-const {
+import {
+  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
   JUDGE_OPENAI_API_KEY,
   JUDGE_EMBEDDING_MODEL,
-  OPENAI_API_KEY,
-  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
-  OPENAI_ENDPOINT,
-  OPENAI_API_VERSION,
-} = assertEnvVars({
-  ...evalEnvVars,
-  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: "",
-  OPENAI_API_KEY: "",
-  OPENAI_ENDPOINT: "",
-  OPENAI_API_VERSION: "",
-});
+  openAiClient,
+} from "../test/evalHelpers";
+
 interface ExtractMongoDbMetadataEvalCase {
   name: string;
   input: {
@@ -165,11 +154,6 @@ const QuerySimilarity: Scorer<
 };
 
 const model = OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT;
-const openAiClient = new AzureOpenAI({
-  apiKey: OPENAI_API_KEY,
-  endpoint: OPENAI_ENDPOINT,
-  apiVersion: OPENAI_API_VERSION,
-});
 
 Eval("step-back-user-query", {
   data: evalCases,

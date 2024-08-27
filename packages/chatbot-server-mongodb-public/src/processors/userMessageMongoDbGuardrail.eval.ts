@@ -6,10 +6,13 @@ import {
 import { Eval } from "braintrust";
 import { Scorer, LLMClassifierFromTemplate } from "autoevals";
 import OpenAI from "openai";
-import { strict as assert } from "assert";
 import { MongoDbTag } from "../mongoDbMetadata";
-import { assertEnvVars } from "mongodb-chatbot-server";
-import { evalEnvVars } from "../evalEnvVars";
+import {
+  JUDGE_LLM,
+  JUDGE_OPENAI_API_KEY,
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  openAiClient,
+} from "../test/evalHelpers";
 type MongoDbGuardrailEvalCaseTag = "irrelevant" | "inappropriate" | "valid";
 interface MongoDbGuardrailEvalCase {
   name: string;
@@ -17,9 +20,6 @@ interface MongoDbGuardrailEvalCase {
   expected: UserMessageMongoDbGuardrailFunction;
   tags?: (MongoDbTag | MongoDbGuardrailEvalCaseTag)[];
 }
-
-const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, JUDGE_LLM, JUDGE_OPENAI_API_KEY } =
-  assertEnvVars({ ...evalEnvVars, OPENAI_CHAT_COMPLETION_DEPLOYMENT: "" });
 
 const evalCases: MongoDbGuardrailEvalCase[] = [
   {
@@ -223,8 +223,6 @@ Reference: {{expected}}
 
   return res;
 };
-
-const openAiClient = new OpenAI({ apiKey: JUDGE_OPENAI_API_KEY });
 
 const model = OPENAI_CHAT_COMPLETION_DEPLOYMENT;
 

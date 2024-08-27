@@ -24,6 +24,7 @@
     "build",
     "README.md"
   ],
+  "main": "./build/index.js",
   "exports": {
     ".": "./build/index.js",
     "./embed": "./build/embed/index.js",

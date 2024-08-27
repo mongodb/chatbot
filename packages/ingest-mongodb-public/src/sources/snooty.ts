@@ -1,7 +1,5 @@
-import {
-  LocallySpecifiedSnootyProjectConfig,
-  prepareSnootySources,
-} from "mongodb-rag-ingest/sources/snooty";
+import { LocallySpecifiedSnootyProjectConfig } from "./snooty/SnootyDataSource";
+import { prepareSnootySources } from "./snooty/SnootyProjectsInfo";
 
 export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
   {

@@ -1,6 +1,7 @@
-import { ChatRequestMessage } from "mongodb-rag-core";
 import { promises as fs } from "fs";
-import { z, ZodObject, ZodRawShape, ZodString } from "zod";
+import { ChatRequestMessage } from "mongodb-rag-core";
+import { z, ZodTypeAny } from "zod";
+import { fromError } from "zod-validation-error";
 
 export function formatMessagesForArtifact(messages: ChatRequestMessage[]) {
   const tagsByRole = {
@@ -22,33 +23,13 @@ export function formatMessagesForArtifact(messages: ChatRequestMessage[]) {
     });
 }
 
-// export type PromptExamplePair = z.infer<typeof PromptExamplePair>;
-// export const PromptExamplePair = z.tuple([z.string(), z.string()]);
-
-// export async function loadPromptExamplePairFromFile(
-//   path: string
-// ): Promise<PromptExamplePair> {
-//   const fileDataRaw = await fs.readFile(path, "utf-8");
-//   const [input, output] = JSON.parse(fileDataRaw);
-//   return PromptExamplePair.parse([
-//     JSON.stringify(input),
-//     JSON.stringify(output),
-//   ]);
-// }
-
-// export function formatFewShotExamples(args: {
-//   examples: PromptExamplePair[];
-//   functionName: string;
-// }) {
-//   return args.examples.flatMap(([input, output]) => [
-//     { role: "user", content: input },
-//     {
-//       role: "assistant",
-//       content: null,
-//       functionCall: { name: args.functionName, arguments: output },
-//     },
-//   ]) satisfies ChatRequestMessage[];
-// }
+export async function loadPromptExamplePairFromFile(
+  path: string
+): Promise<PromptExamplePair> {
+  const fileDataRaw = await fs.readFile(path, "utf-8");
+  const [input, output] = JSON.parse(fileDataRaw);
+  return PromptExamplePair.parse([JSON.stringify(input), output]);
+}
 
 export function toBulletPoint(text: string) {
   return `* ${text}`;
@@ -59,22 +40,44 @@ export const PromptExamplePair = z.tuple([z.string(), z.unknown()]);
 
 export function formatFewShotExamples(args: {
   examples: PromptExamplePair[];
-  responseSchema?: ZodObject<ZodRawShape>;
+  responseSchema?: ZodTypeAny;
   functionName: string;
 }) {
-  return args.examples.flatMap(([input, output]) => [
-    { role: "user", content: input },
-    {
-      role: "assistant",
-      content: null,
-      functionCall: {
-        name: args.functionName,
-        arguments: JSON.stringify(
-          args.responseSchema ? args.responseSchema.parse(output) : output
-        ),
-      },
-    },
-  ]) satisfies ChatRequestMessage[];
+  return args.examples.flatMap(([input, output], exampleIndex) => {
+    try {
+      const parsedOutput = args.responseSchema
+        ? args.responseSchema.parse(output)
+        : output;
+
+      return [
+        { role: "user", content: input },
+        {
+          role: "assistant",
+          content: null,
+          functionCall: {
+            name: args.functionName,
+            arguments: JSON.stringify(parsedOutput),
+          },
+        },
+      ];
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        throw new Error(
+          [
+            `message: Error parsing few shot example at position ${exampleIndex}`,
+            `error: ${fromError(error)}`,
+            "given: |",
+            ...input.split("\n").map((line) => `\t${line}`),
+            "expected: |",
+            ...JSON.stringify(output, null, 2)
+              .split("\n")
+              .map((line) => `\t${line}`),
+          ].join("\n")
+        );
+      }
+      throw error;
+    }
+  }) satisfies ChatRequestMessage[];
 }
 
 export const UserMessageMongoDbGuardrailFunctionSchema = z.object({

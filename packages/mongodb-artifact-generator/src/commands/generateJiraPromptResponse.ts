@@ -260,13 +260,16 @@ export const action =
       )
         .withConcurrency(llmMaxConcurrency)
         .process(async (issue) => {
+          console.log("summarizing issue", issue.key);
           const summary = await summarizeJiraIssue({
             input: JSON.stringify(issue),
           });
+          console.log("summarized issue", issue.key, summary);
           summariesByIssueKey.set(issue.key, summary);
         });
       for (const error of summarizeJiraIssueErrors) {
         logger.logError(`Error summarizing issue: ${error.item}`);
+        console.log("Error summarizing issue", error.raw);
       }
 
       logger.appendArtifact(

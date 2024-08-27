@@ -72,12 +72,17 @@ export function makeSummarizer({
     const messages = [
       {
         role: "system",
-        content: stripIndents`
-          Your task is to summarize a provided input. This information will be used to drive a generative process, so precision and correctness are incredibly important.
-          ${directions ?? ""}
-        `,
+        content:
+          `Your task is to summarize a provided input. This information will be used to drive a generative process, so precision and correctness are incredibly important.` +
+          directions
+            ? `\n\n${directions}`
+            : "",
       },
-      ...formatFewShotExamples({ examples }),
+      ...formatFewShotExamples({
+        examples,
+        functionName: summarizeTool.name,
+        responseSchema: Summary,
+      }),
       {
         role: "user",
         content: input,

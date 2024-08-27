@@ -164,8 +164,6 @@ const QuerySimilarity: Scorer<
   });
 };
 
-// const model = "docs-chatbot-llm-gpt-35";
-// const model = "gpt-4o";
 const model = OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT;
 const openAiClient = new AzureOpenAI({
   apiKey: OPENAI_API_KEY,

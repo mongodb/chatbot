@@ -1,20 +1,22 @@
 import { strict as assert } from "assert";
-import { Page, extractFrontMatter } from "mongodb-rag-core";
 import {
   DataSource,
-  makeDevCenterDataSource,
-  DevCenterProjectConfig,
-  makeGitDataSource,
-  HandleHtmlPageFuncOptions,
-  handleHtmlDocument,
   MakeMdOnGithubDataSourceParams,
+  Page,
+  extractFrontMatter,
+  makeGitDataSource,
   makeMdOnGithubDataSource,
   removeMarkdownImagesAndLinks,
+} from "mongodb-rag-core";
+import {
+  makeDevCenterDataSource,
+  DevCenterProjectConfig,
+} from "./DevCenterDataSource";
+import {
   MakeMongoDbUniversityDataSourceParams,
   makeMongoDbUniversityDataSource,
   filterOnlyPublicActiveTiCatalogItems,
-} from "mongodb-rag-ingest/sources";
-import { prepareSnootySources } from "mongodb-rag-ingest/sources/snooty";
+} from "./mongodb-university";
 import { prismaSourceConstructor } from "./prisma";
 import { wiredTigerSourceConstructor } from "./wiredTiger";
 import { mongooseSourceConstructor } from "./mongoose";

@@ -10,6 +10,7 @@ export * from "./EmbeddedContent";
 export * from "./Embedder";
 export * from "./FindContentFunc";
 export * from "./FindVerifiedAnswerFunc";
+export * from "./ingest";
 export * from "./LangchainChatLlm";
 export * from "./LangChainEmbedder";
 export * from "./logger";

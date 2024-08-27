@@ -3,7 +3,6 @@ import {
   INGEST_ENV_VARS,
   makeIngestMetaStore,
 } from "mongodb-rag-ingest";
-import { standardChunkFrontMatterUpdater } from "mongodb-rag-ingest/embed";
 import {
   assertEnvVars,
   makeOpenAiEmbedder,
@@ -12,6 +11,7 @@ import {
   filterFulfilled,
   OpenAIClient,
   AzureKeyCredential,
+  standardChunkFrontMatterUpdater,
 } from "mongodb-rag-core";
 import { sourceConstructors } from "./sources";
 import { makeMongoDbDotComDataSource } from "./sources/MongoDbDotComDataSource";

@@ -3,8 +3,8 @@ import {
   makeOpenAiEmbedder,
   makeMongoDbEmbeddedContentStore,
   makeMongoDbPageStore,
+  standardChunkFrontMatterUpdater,
 } from "mongodb-rag-core";
-import { standardChunkFrontMatterUpdater } from "mongodb-rag-ingest/embed";
 import path from "path";
 import { loadEnvVars } from "./loadEnvVars";
 import { mongoDbChatbotFrameworkDocsDataSourceConstructor } from "./mongodbChatbotFrameworkDataSource";

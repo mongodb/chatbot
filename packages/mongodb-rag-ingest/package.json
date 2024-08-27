@@ -24,14 +24,7 @@
     "build",
     "README.md"
   ],
-  "exports": {
-    ".": "./build/index.js",
-    "./embed": "./build/embed/index.js",
-    "./pages": "./build/pages/index.js",
-    "./sources": "./build/sources/index.js",
-    "./sources/snooty": "./build/sources/snooty/index.js",
-    "./core": "./build/core/index.js"
-  },
+  "main": "./build/index.js",
   "bin": {
     "ingest": "./build/main.js"
   },

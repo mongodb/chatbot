@@ -3,7 +3,6 @@ import {
   INGEST_ENV_VARS,
   makeIngestMetaStore,
 } from "mongodb-rag-ingest";
-import { standardChunkFrontMatterUpdater } from "mongodb-rag-ingest/embed";
 import {
   assertEnvVars,
   makeOpenAiEmbedder,
@@ -11,9 +10,10 @@ import {
   makeMongoDbPageStore,
   OpenAIClient,
   AzureKeyCredential,
+  standardChunkFrontMatterUpdater,
 } from "mongodb-rag-core";
 import { snootyDataApiBaseUrl } from "./sources/snooty";
-import { makeSnootyDataSource } from "mongodb-rag-ingest/sources/snooty";
+import { makeSnootyDataSource } from "./sources/snooty/SnootyDataSource";
 
 const {
   OPENAI_ENDPOINT,

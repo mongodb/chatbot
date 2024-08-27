@@ -25,13 +25,6 @@
     "README.md"
   ],
   "main": "./build/index.js",
-  "exports": {
-    ".": "./build/index.js",
-    "./ingest": "./build/ingest/index.js",
-    "./ingest/embed": "./build/embed/index.js",
-    "./ingest/pages": "./build/pages/index.js",
-    "./ingest/sources": "./build/sources/index.js"
-  },
   "scripts": {
     "clean": "rm -rf build",
     "build": "tsc -b tsconfig.build.json",

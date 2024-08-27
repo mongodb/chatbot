@@ -10,9 +10,6 @@
     "npm": ">=8"
   },
   "main": "./build/index.js",
-  "exports": {
-    ".": "./build/lib.js"
-  },
   "scripts": {
     "build": "rm -rf ./build/ && tsc -b tsconfig.build.json",
     "dev": "nodemon src/index.ts",

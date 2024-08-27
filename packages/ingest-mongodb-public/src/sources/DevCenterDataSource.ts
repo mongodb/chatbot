@@ -1,8 +1,8 @@
 import { strict as assert } from "assert";
 import { convert } from "html-to-text";
-import { removeMarkdownImagesAndLinks } from "mongodb-rag-core/ingest";
-import { DataSource } from "mongodb-rag-core/ingest";
-import { ProjectBase } from "mongodb-rag-core/ingest";
+import { removeMarkdownImagesAndLinks } from "mongodb-rag-core";
+import { DataSource } from "mongodb-rag-core";
+import { ProjectBase } from "mongodb-rag-core";
 import { MongoClient } from "mongodb";
 import { assertEnvVars } from "mongodb-rag-core";
 import { Page } from "mongodb-rag-core";

@@ -1,4 +1,4 @@
-import { makeMdOnGithubDataSource } from "mongodb-rag-ingest/sources";
+import { makeMdOnGithubDataSource } from "mongodb-rag-ingest";
 
 /**
   This is necessary for the Prisma source because the Prisma docs

@@ -71,7 +71,12 @@ Example configuration file:
 
 ```ts
 // ingest.config.ts
-import { makeIngestMetaStore, type Config } from "mongodb-rag-ingest";
+import {
+  makeIngestMetaStore,
+  type Config,
+  type DataSource
+  standardChunkFrontMatterUpdater
+} from "mongodb-rag-ingest";
 import {
   makeOpenAiEmbedder,
   OpenAIClient,
@@ -79,8 +84,6 @@ import {
   makeMongoDbEmbeddedContentStore,
   makeMongoDbPageStore,
 } from "mongodb-rag-core";
-import { standardChunkFrontMatterUpdater } from "mongodb-rag-ingest/embed";
-import { type DataSource } from "mongodb-rag-ingest/sources";
 const {
   MONGODB_DOT_COM_CONNECTION_URI,
   MONGODB_DOT_COM_DB_NAME,

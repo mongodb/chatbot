@@ -1,8 +1,8 @@
 import { createInterface } from "readline";
 import fetch from "node-fetch";
-import { DataSource } from "mongodb-rag-core/ingest";
+import { DataSource } from "mongodb-rag-core";
 import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
-import { ProjectBase } from "mongodb-rag-core/ingest";
+import { ProjectBase } from "mongodb-rag-core";
 import {
   getTitleFromSnootyOpenApiSpecAst,
   snootyAstToOpenApiSpec,

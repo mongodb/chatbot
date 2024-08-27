@@ -132,8 +132,10 @@ The embedding then has the semantic meaning of both the chunk content and metada
 Here's how you can add the `standardChunkFrontMatterUpdater()` function to your configuration:
 
 ```ts
-import { standardChunkFrontMatterUpdater } from "mongodb-rag-ingest/embed";
-import { ChunkOptions } from "mongodb-rag-ingest/embed";
+import {
+  standardChunkFrontMatterUpdater,
+  ChunkOptions
+} from "mongodb-rag-ingest";
 
 const chunkOptions: ChunkOptions = {
   transform: standardChunkFrontMatterUpdater,

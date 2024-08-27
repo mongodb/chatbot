@@ -1,11 +1,14 @@
 import { makeMockOpenAIToolCall } from "../test/mockOpenAi";
-import { extractMongoDbMetadataFromUserMessage } from "./extractMongoDbMetadataFromUserMessage";
+import {
+  extractMongoDbMetadataFromUserMessage,
+  ExtractMongoDbMetadataFunction,
+} from "./extractMongoDbMetadataFromUserMessage";
 import { OpenAI } from "openai";
 
 jest.mock("openai", () => {
   return makeMockOpenAIToolCall({
-    productName: "foo",
-  });
+    mongoDbProduct: "Aggregation Framework",
+  } satisfies ExtractMongoDbMetadataFunction);
 });
 
 describe("extractMongoDbMetadataFromUserMessage", () => {
@@ -18,7 +21,7 @@ describe("extractMongoDbMetadataFromUserMessage", () => {
     const res = await extractMongoDbMetadataFromUserMessage(args);
     console.log(res);
     expect(res).toEqual({
-      productName: "foo",
+      mongoDbProduct: "Aggregation Framework",
     });
   });
 });

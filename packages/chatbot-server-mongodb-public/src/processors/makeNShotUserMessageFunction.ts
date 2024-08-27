@@ -3,8 +3,6 @@ import { ZodObject, ZodRawShape } from "zod";
 import { stripIndents } from "common-tags";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { OpenAI } from "openai";
-import { zodResponseFormat } from "openai/helpers/zod";
-
 import {
   ChatCompletionMessageParam,
   ChatCompletionTool,

@@ -3,14 +3,10 @@ import { userMessageMongoDbGuardrail } from "./userMessageMongoDbGuardrail";
 import { UserMessageMongoDbGuardrailFunction } from "./userMessageMongoDbGuardrail";
 import { OpenAI } from "openai";
 
-const mockRes = {
-  reasoning: "foo",
-  rejectMessage: false,
-} satisfies UserMessageMongoDbGuardrailFunction;
-
-beforeAll(() => {
-  jest.mock("openai", () => {
-    return makeMockOpenAIToolCall(mockRes);
+jest.mock("openai", () => {
+  return makeMockOpenAIToolCall({
+    reasoning: "foo",
+    rejectMessage: false,
   });
 });
 
@@ -21,6 +17,9 @@ describe("userMessageMongoDbGuardrail", () => {
     userMessageText: "hi",
   };
   test("should return metadata", async () => {
-    expect(await userMessageMongoDbGuardrail(args)).toEqual(mockRes);
+    expect(await userMessageMongoDbGuardrail(args)).toEqual({
+      reasoning: "foo",
+      rejectMessage: false,
+    });
   });
 });

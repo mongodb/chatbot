@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { makeNShotUserMessageExtractorFunction } from "./makeNShotUserMessageFunction";
+import { makeFewShotUserMessageExtractorFunction } from "./makeNShotUserMessageFunction";
 import { ChatCompletionMessageParam } from "openai/resources";
 import { updateFrontMatter } from "mongodb-chatbot-server";
 
@@ -170,7 +170,7 @@ const fewShotExamples: ChatCompletionMessageParam[] = [
   Generate search query using the ["step back" method of prompt engineering](https://arxiv.org/abs/2310.06117).
  */
 export const makeStepBackUserQuery =
-  makeNShotUserMessageExtractorFunction<StepBackUserQueryMongoDbFunction>({
+  makeFewShotUserMessageExtractorFunction<StepBackUserQueryMongoDbFunction>({
     llmFunction: {
       name,
       description,

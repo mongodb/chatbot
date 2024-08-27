@@ -8,7 +8,7 @@ import {
   ChatCompletionTool,
 } from "openai/resources";
 
-export interface MakeNShotUserMessageExtractorFunctionParams {
+export interface MakeFewShotUserMessageExtractorFunctionParams {
   llmFunction: {
     name: string;
     description: string;
@@ -21,14 +21,14 @@ export interface MakeNShotUserMessageExtractorFunctionParams {
 /**
   Function to create LLM-based function that extract metadata from a user message in the conversation.
  */
-export function makeNShotUserMessageExtractorFunction<
+export function makeFewShotUserMessageExtractorFunction<
   SchemaType extends Record<string, unknown> = Record<string, unknown>
 >({
   // function,
   llmFunction: { name, description, schema },
   systemPrompt,
   fewShotExamples,
-}: MakeNShotUserMessageExtractorFunctionParams) {
+}: MakeFewShotUserMessageExtractorFunctionParams) {
   const systemPromptMessage = {
     role: "system",
     content: systemPrompt,

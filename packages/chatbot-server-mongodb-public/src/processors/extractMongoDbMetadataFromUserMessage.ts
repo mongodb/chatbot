@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { makeNShotUserMessageExtractorFunction } from "./makeNShotUserMessageFunction";
+import { makeFewShotUserMessageExtractorFunction } from "./makeFewShotUserMessageFunction";
 import { ChatCompletionMessageParam } from "openai/resources";
 import {
   mongoDbProducts,
@@ -138,7 +138,7 @@ const fewShotExamples: ChatCompletionMessageParam[] = [
  */
 
 export const extractMongoDbMetadataFromUserMessage =
-  makeNShotUserMessageExtractorFunction<ExtractMongoDbMetadataFunction>({
+  makeFewShotUserMessageExtractorFunction<ExtractMongoDbMetadataFunction>({
     llmFunction: {
       name,
       description,

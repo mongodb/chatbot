@@ -9,7 +9,7 @@
     "node": ">=18",
     "npm": ">=8"
   },
-  "main": "./build/index.js",
+  "main": "./build/lib.js",
   "scripts": {
     "build": "rm -rf ./build/ && tsc -b tsconfig.build.json",
     "dev": "nodemon src/index.ts",

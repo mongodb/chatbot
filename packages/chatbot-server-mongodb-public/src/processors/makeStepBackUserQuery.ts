@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { makeFewShotUserMessageExtractorFunction } from "./makeNShotUserMessageFunction";
+import { makeFewShotUserMessageExtractorFunction } from "./makeFewShotUserMessageExtractorFunction";
 import { ChatCompletionMessageParam } from "openai/resources";
 import { updateFrontMatter } from "mongodb-chatbot-server";
 

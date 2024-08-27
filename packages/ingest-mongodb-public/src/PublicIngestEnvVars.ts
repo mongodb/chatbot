@@ -2,7 +2,7 @@ import {
   CORE_CHATBOT_APP_ENV_VARS,
   CORE_OPENAI_EMBEDDING_ENV_VARS,
 } from "mongodb-rag-core";
-import { INGEST_MDBU_ENV_VARS } from "mongodb-rag-ingest";
+import { INGEST_ENV_VARS } from "mongodb-rag-ingest";
 
 export const PUBLIC_INGEST_MONGODB_DOT_COM_ENV_VARS = {
   MONGODB_DOT_COM_CONNECTION_URI: "",
@@ -20,5 +20,5 @@ export const PUBLIC_INGEST_MONGODB_DOCS_META_ENV_VARS = {
 export const PUBLIC_INGEST_ENV_VARS = {
   ...CORE_CHATBOT_APP_ENV_VARS,
   ...CORE_OPENAI_EMBEDDING_ENV_VARS,
-  ...INGEST_MDBU_ENV_VARS,
+  ...INGEST_ENV_VARS,
 };

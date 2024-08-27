@@ -7,10 +7,10 @@ import {
   ChunkOptions,
   ContentChunk,
   SomeTokenizer,
-} from "./chunkPage";
-import { Page } from "../../Page";
-import { updateFrontMatter } from "../../updateFrontMatter";
-import { logger } from "../../logger";
+  Page,
+  updateFrontMatter,
+  logger,
+} from "mongodb-rag-core";
 
 export const defaultOpenApiSpecYamlChunkOptions: ChunkOptions = {
   maxChunkSize: 1250,

@@ -1,7 +1,7 @@
 import { EmbeddedContentStore, EmbeddedContent, Page } from "mongodb-rag-core";
 import { updateEmbeddedContent } from "./updateEmbeddedContent";
 import { persistPages } from "../pages";
-import { makeMockPageStore } from "../test/MockPageStore";
+import { makeMockPageStore } from "../../test/MockPageStore";
 
 export const makeMockEmbeddedContentStore = (): EmbeddedContentStore => {
   const content: Map<string /* page url */, EmbeddedContent[]> = new Map();

@@ -6,7 +6,7 @@ import {
   snootyAstToOpenApiSpec,
 } from "./snootyAstToOpenApiSpec";
 
-const SRC_ROOT = Path.resolve(__dirname, "../../");
+const SRC_ROOT = Path.resolve(__dirname, "..", "..", "..", "../../");
 
 jest.setTimeout(30000);
 import { SnootyPageEntry } from "./SnootyDataSource";
@@ -20,7 +20,12 @@ const textSpecPage: SnootyPageEntry = JSON.parse(
 );
 const remoteSpecPage: SnootyPageEntry = JSON.parse(
   readFileSync(
-    Path.resolve(SRC_ROOT, "../testData/remoteOpenApiSpecPage.json"),
+    Path.resolve(
+      "..",
+      "..",
+      SRC_ROOT,
+      "../testData/remoteOpenApiSpecPage.json"
+    ),
     {
       encoding: "utf-8",
     }

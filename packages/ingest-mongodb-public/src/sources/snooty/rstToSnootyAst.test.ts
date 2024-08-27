@@ -3,19 +3,29 @@ import * as Path from "path";
 import { rstToSnootyAst } from "./rstToSnootyAst";
 import { snootyAstToMd } from "./snootyAstToMd";
 
-const SRC_ROOT = Path.resolve(__dirname, "../../");
+const SRC_ROOT = Path.resolve(__dirname, "..", "..", "..", "../../");
 
 describe("rstToSnootyAst", () => {
   it("matches real Snooty AST", () => {
     const sampleRealSnootyAst = JSON.parse(
       fs.readFileSync(
-        Path.resolve(SRC_ROOT, "../testData/samplePageWithCodeExamples.json"),
+        Path.resolve(
+          "..",
+          "..",
+          SRC_ROOT,
+          "../testData/samplePageWithCodeExamples.json"
+        ),
         "utf-8"
       )
     ).data.ast;
 
     const sampleRst = fs.readFileSync(
-      Path.resolve(SRC_ROOT, "../testData/samplePageWithCodeExamples.rst"),
+      Path.resolve(
+        "..",
+        "..",
+        SRC_ROOT,
+        "../testData/samplePageWithCodeExamples.rst"
+      ),
       "utf-8"
     );
 

@@ -10,7 +10,7 @@ import {
 
 import "dotenv/config";
 
-const SRC_ROOT = Path.resolve(__dirname, "..");
+const SRC_ROOT = Path.resolve(__dirname, "..", "..", "..", "..");
 
 jest.setTimeout(600000);
 

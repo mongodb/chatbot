@@ -2,13 +2,18 @@ import Path from "path";
 import fs from "fs";
 import { renderSnootyTable } from "./renderSnootyTable";
 
-const SRC_ROOT = Path.resolve(__dirname, "../../");
+const SRC_ROOT = Path.resolve(__dirname, "..", "..", "..", "../../");
 
 describe("renderSnootyTable", () => {
   it("renders HTML tables", () => {
     const sampleTableAst = JSON.parse(
       fs.readFileSync(
-        Path.resolve(SRC_ROOT, "../testData/sampleSnootyTable.json"),
+        Path.resolve(
+          "..",
+          "..",
+          SRC_ROOT,
+          "../testData/sampleSnootyTable.json"
+        ),
         {
           encoding: "utf-8",
         }
@@ -101,7 +106,12 @@ Stop and fail the aggregation operation. Any changes to the output collection fr
   it("renders HTML tables with multiple header rows", () => {
     const ast = JSON.parse(
       fs.readFileSync(
-        Path.resolve(SRC_ROOT, "../testData/sampleSnootyMultiHeaderTable.json"),
+        Path.resolve(
+          "..",
+          "..",
+          SRC_ROOT,
+          "../testData/sampleSnootyMultiHeaderTable.json"
+        ),
         "utf-8"
       )
     );

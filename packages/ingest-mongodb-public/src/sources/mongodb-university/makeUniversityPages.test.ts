@@ -9,18 +9,28 @@ import {
   UniversityVideo,
 } from "./MongoDbUniversityDataApiClient";
 
-const SRC_ROOT = Path.resolve(__dirname, "../..");
+const SRC_ROOT = Path.resolve(__dirname, "..", "..", "..", "../..");
 
 describe("makeUniversityPages()", () => {
   const videos = JSON.parse(
     fs.readFileSync(
-      Path.resolve(SRC_ROOT, "../testData/sampleUniversityVideos.json"),
+      Path.resolve(
+        "..",
+        "..",
+        SRC_ROOT,
+        "../testData/sampleUniversityVideos.json"
+      ),
       "utf-8"
     )
   ) as UniversityVideo[];
   const tiCatalogItems = JSON.parse(
     fs.readFileSync(
-      Path.resolve(SRC_ROOT, "../testData/sampleUniversityCatalog.json"),
+      Path.resolve(
+        "..",
+        "..",
+        SRC_ROOT,
+        "../testData/sampleUniversityCatalog.json"
+      ),
       "utf-8"
     )
   ) as TiCatalogItem[];
@@ -77,11 +87,21 @@ describe("makeUniversityPages()", () => {
 describe("convertVideoTranscriptFromSrtToTxt()", () => {
   it("should convert an SRT transcript to plain text", () => {
     const srtTranscript = fs.readFileSync(
-      Path.resolve(SRC_ROOT, "../testData/sampleUniversityVideoTranscript.srt"),
+      Path.resolve(
+        "..",
+        "..",
+        SRC_ROOT,
+        "../testData/sampleUniversityVideoTranscript.srt"
+      ),
       "utf-8"
     );
     const txtTranscript = fs.readFileSync(
-      Path.resolve(SRC_ROOT, "../testData/sampleUniversityVideoTranscript.txt"),
+      Path.resolve(
+        "..",
+        "..",
+        SRC_ROOT,
+        "../testData/sampleUniversityVideoTranscript.txt"
+      ),
       "utf-8"
     );
     const convertedTranscript =

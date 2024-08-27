@@ -1,4 +1,4 @@
-import { chunkOpenApiSpecYaml } from "./chunkOpenApiSpecYaml";
+import { chunkOpenApiSpecYaml } from "../../../../ingest-mongodb-public/src/sources/chunkOpenApiSpecYaml";
 import { chunkMd } from "./chunkMd";
 import { ChunkTransformer } from "./ChunkTransformer";
 import { chunkCode, isSupportedLanguage } from "./chunkCode";

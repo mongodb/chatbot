@@ -4,7 +4,7 @@ import path from "path";
 import { Page } from "../../Page";
 import { pageFormat } from "../../PageFormat";
 
-const PROJECT_ROOT_DIR = path.resolve(__dirname, "../../");
+const PROJECT_ROOT_DIR = path.resolve(__dirname, "..", "..", "..", "..", "../");
 
 const createTestCodePage = async (filePath: string): Promise<Page> => {
   const code = await fs.readFile(

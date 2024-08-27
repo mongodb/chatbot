@@ -4,7 +4,7 @@ import { chunkPage } from "./chunkPage";
 import { standardChunkFrontMatterUpdater } from "./ChunkTransformer";
 import { Page } from "../../Page";
 
-const SRC_ROOT = Path.resolve(__dirname, "..");
+const SRC_ROOT = Path.resolve(__dirname, "..", "..", "..", "..");
 
 describe("chunkPage", () => {
   const page: Page = {

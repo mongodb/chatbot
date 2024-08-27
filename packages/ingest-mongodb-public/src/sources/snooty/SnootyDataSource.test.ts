@@ -10,7 +10,7 @@ import {
 } from "./SnootyDataSource";
 import { snootyAstToMd } from "./snootyAstToMd";
 
-const SRC_ROOT = Path.resolve(__dirname, "../../");
+const SRC_ROOT = Path.resolve(__dirname, "..", "..", "..", "../../");
 
 jest.setTimeout(15000);
 
@@ -180,7 +180,12 @@ describe("handlePage()", () => {
   it("should correctly parse openapi spec page", async () => {
     const apiSpecPage = JSON.parse(
       fs.readFileSync(
-        Path.resolve(SRC_ROOT, "../testData/localOpenApiSpecPage.json"),
+        Path.resolve(
+          "..",
+          "..",
+          SRC_ROOT,
+          "../testData/localOpenApiSpecPage.json"
+        ),
         "utf-8"
       )
     );

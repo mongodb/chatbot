@@ -5,7 +5,7 @@ import { Page } from "../../Page";
 import { DocumentLoader } from "langchain/document_loaders/base";
 import { Document } from "langchain/document";
 
-const SRC_ROOT = Path.resolve(__dirname, "../../");
+const SRC_ROOT = Path.resolve(__dirname, "..", "..", "..", "../../");
 const docPath = Path.resolve(SRC_ROOT, "testData/sampleMdxFile.mdx");
 
 const mockDocumentLoader: DocumentLoader = {

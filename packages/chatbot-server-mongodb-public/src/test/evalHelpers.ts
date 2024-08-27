@@ -1,5 +1,5 @@
 import { assertEnvVars } from "mongodb-chatbot-server";
-import { evalEnvVars } from "../evalEnvVars";
+import { EVAL_ENV_VARS } from "../EvalEnvVars";
 import { AzureOpenAI } from "openai";
 
 export const {
@@ -12,7 +12,7 @@ export const {
   OPENAI_API_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
 } = assertEnvVars({
-  ...evalEnvVars,
+  ...EVAL_ENV_VARS,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: "",
   OPENAI_API_KEY: "",

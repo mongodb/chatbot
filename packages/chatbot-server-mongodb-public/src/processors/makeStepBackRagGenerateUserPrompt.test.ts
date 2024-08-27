@@ -5,6 +5,7 @@ import {
 } from "mongodb-chatbot-server";
 import {
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
   preprocessorOpenAiClient,
 } from "../test/testHelpers";
 import { makeStepBackRagGenerateUserPrompt } from "./makeStepBackRagGenerateUserPrompt";
@@ -39,7 +40,7 @@ describe("makeStepBackRagGenerateUserPrompt", () => {
   };
   const config = {
     openAiClient: preprocessorOpenAiClient,
-    model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    model: OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
     findContent: mockFindContent,
   };
   const stepBackRagGenerateUserPrompt =
@@ -158,6 +159,7 @@ describe("makeStepBackRagGenerateUserPrompt", () => {
         ],
       },
     });
+    console.log("RES::", res);
     expect(res.userMessage.contentForLlm).not.toContain("abracadabra");
     expect(res.userMessage.contentForLlm).toContain("avada kedavra");
   });

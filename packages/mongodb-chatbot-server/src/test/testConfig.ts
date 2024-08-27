@@ -13,14 +13,15 @@ import {
   makeDefaultFindContent,
   CORE_ENV_VARS,
   assertEnvVars,
+  makeMongoDbConversationsService,
+  ChatLlm,
+  makeOpenAiChatLlm,
+  SystemPrompt,
+  UserMessage,
 } from "mongodb-rag-core";
-import { makeMongoDbConversationsService } from "../services/mongodbConversations";
-import { makeOpenAiChatLlm } from "../services/openAiChatLlm";
 import { stripIndents } from "common-tags";
 import { AppConfig } from "../app";
-import {} from "mongodb-rag-core";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
-import { SystemPrompt } from "../services/ChatLlm";
 import { makePreprocessMongoDbUserQuery } from "./testPreProcessor/makePreprocessMongoDbUserQuery";
 import {
   MakeUserMessageFunc,
@@ -29,7 +30,6 @@ import {
   makeRagGenerateUserPrompt,
 } from "../processors";
 import { makeDefaultReferenceLinks } from "../processors/makeDefaultReferenceLinks";
-import { UserMessage } from "../services";
 
 export const {
   MONGODB_CONNECTION_URI,

@@ -1,5 +1,4 @@
-import { css } from "@emotion/css";
-import classNames from "classnames";
+import { css, cx } from "@emotion/css";
 import {
   ActionButtonTrigger,
   type ActionButtonTriggerProps,
@@ -30,7 +29,7 @@ export function FloatingActionButtonTrigger({
 }: FloatingActionButtonTriggerProps) {
   return (
     <ActionButtonTrigger
-      className={classNames(styles.chat_trigger, className)}
+      className={cx(styles.chat_trigger, className)}
       {...props}
     />
   );

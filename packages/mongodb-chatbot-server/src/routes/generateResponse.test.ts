@@ -15,7 +15,7 @@ import {
   OpenAiChatMessage,
   ProcessingStreamEvent,
   makeDataStreamer,
-} from "../services";
+} from "mongodb-rag-core";
 import { strict as assert } from "assert";
 import { createResponse } from "node-mocks-http";
 import { Response as ExpressResponse } from "express";

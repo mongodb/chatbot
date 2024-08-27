@@ -78,7 +78,11 @@ function makeCatalogItemPages({
           body,
           metadata: {
             ...(metadata ?? {}),
-            tags: [...(metadata?.tags ?? []), ...catalogItem.tags],
+            // We choose to not include tags returned by the API (i.e.
+            // `catalogItem.tags`) here and instead only use tags we specify in
+            // our config. The API tags may contain internal or customer-specific
+            // data that we don't want to include in the embeddings.
+            tags: metadata?.tags ?? [],
             courseTitle,
             sectionTitle,
             lessonTitle,

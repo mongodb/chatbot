@@ -6,9 +6,9 @@ import {
   Message,
   AssistantMessage,
   ConversationsService,
-} from "../../services/ConversationsService";
+  ObjectId,
+} from "mongodb-rag-core";
 import { Express } from "express";
-import { ObjectId } from "mongodb-rag-core";
 import { makeRateMessageRoute } from "./rateMessage";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp, systemPrompt } from "../../test/testHelpers";

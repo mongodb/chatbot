@@ -1,7 +1,7 @@
 import { Request } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 import { createRequest, createResponse } from "node-mocks-http";
-import { ConversationsService } from "../services";
+import { ConversationsService } from "mongodb-rag-core";
 import {
   ConversationsRouterLocals,
   ConversationsRouterResponse,

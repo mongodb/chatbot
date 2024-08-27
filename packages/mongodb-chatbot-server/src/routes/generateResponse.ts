@@ -1,7 +1,5 @@
-import { References } from "mongodb-rag-core";
-import { ChatCompletionRequestMessageFunctionCall } from "openai";
-import { Request as ExpressRequest } from "express";
 import {
+  References,
   ChatLlm,
   SomeMessage,
   DataStreamer,
@@ -9,7 +7,9 @@ import {
   escapeNewlines,
   OpenAiChatMessage,
   AssistantMessage,
-} from "../services";
+} from "mongodb-rag-core";
+import { ChatCompletionRequestMessageFunctionCall } from "openai";
+import { Request as ExpressRequest } from "express";
 import { logRequest } from "../utils";
 import { strict as assert } from "assert";
 

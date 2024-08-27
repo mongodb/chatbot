@@ -2,11 +2,12 @@ import { Request, Router, RequestHandler, Response } from "express";
 import { rateLimit, Options as RateLimitOptions } from "express-rate-limit";
 import slowDown, { Options as SlowDownOptions } from "express-slow-down";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
-import { ChatLlm, SystemPrompt } from "../../services/ChatLlm";
 import {
+  ChatLlm,
+  SystemPrompt,
   ConversationCustomData,
   ConversationsService,
-} from "../../services/ConversationsService";
+} from "mongodb-rag-core";
 import {
   CommentMessageRequest,
   makeCommentMessageRoute,

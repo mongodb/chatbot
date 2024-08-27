@@ -1,4 +1,4 @@
-import { Message } from "../services";
+import { Message } from "mongodb-rag-core";
 
 export type QueryProcessorFuncParams = {
   query: string;

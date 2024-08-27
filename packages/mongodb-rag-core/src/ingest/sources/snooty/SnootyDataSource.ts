@@ -26,6 +26,14 @@ export type SnootyPageEntry = SnootyManifestEntry & {
 };
 
 /**
+  Represents metadata in a Snooty manifest file.
+ */
+  export type SnootyMetadataEntry = SnootyManifestEntry & {
+    type: "metadata";
+    data: {title?: string};
+  };
+
+/**
   A node in the Snooty AST.
  */
 export type SnootyNode = {
@@ -53,6 +61,13 @@ export type SnootyPageData = {
   tags?: string[];
   deleted: boolean;
 };
+
+/**
+  A Snooty Data API metadata object. This contains project-level information, such as the site name.
+ */
+  export type SnootyMetadata = {
+    title?: string;
+  };
 
 export type SnootyProjectConfig = ProjectBase & {
   type: "snooty";
@@ -153,6 +168,7 @@ export const makeSnootyDataSource = ({
       const stream = createInterface(body);
       const linePromises: Promise<void>[] = [];
       const pages: Page[] = [];
+      let siteTitle: string | undefined = undefined
       await new Promise<void>((resolve, reject) => {
         stream.on("line", async (line) => {
           const entry = JSON.parse(line) as SnootyManifestEntry;
@@ -191,9 +207,11 @@ export const makeSnootyDataSource = ({
             case "asset":
               // Nothing to do with assets (images...) for now
               return;
-            case "metadata":
-              // Nothing to do with metadata document for now
+            case "metadata": {
+              const { data } = entry as SnootyMetadataEntry;
+              siteTitle = data.title;
               return;
+            }
             case "timestamp":
               // Nothing to do with timestamp document for now
               return;
@@ -212,6 +230,13 @@ export const makeSnootyDataSource = ({
         });
       });
       await Promise.allSettled(linePromises);
+      // add metadata to all the pages
+      for(const page of pages){
+        if (!page.metadata) {
+          page.metadata = {}
+        }
+        page.metadata.siteTitle = siteTitle 
+      }
       return pages;
     },
   };

@@ -1,8 +1,11 @@
 import { strict as assert } from "assert";
-import { MongoClient, Db } from "mongodb-rag-core";
+import {
+  MongoClient,
+  Db,
+  makeMongoDbConversationsService,
+} from "mongodb-rag-core";
 import { AppConfig, makeApp } from "../app";
 import { MONGODB_CONNECTION_URI, config, systemPrompt } from "./testConfig";
-import { makeMongoDbConversationsService } from "../services/mongodbConversations";
 
 let mongoClient: MongoClient | undefined;
 let mongodb: Db | undefined;
@@ -29,6 +32,11 @@ export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
     conversationsRouterConfig: {
       ...config.conversationsRouterConfig,
       conversations,
+    },
+    async expressAppConfig(app) {
+      app.get("/hello", (_req, res) => {
+        res.send({ foo: "bar" });
+      });
     },
     ...(defaultConfigOverrides ?? {}),
   };

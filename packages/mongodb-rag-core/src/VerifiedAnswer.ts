@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Reference } from "./services/conversations";
+import { Reference } from "./References";
 import { VectorStore } from "./VectorStore";
 
 export const Question = z.object({

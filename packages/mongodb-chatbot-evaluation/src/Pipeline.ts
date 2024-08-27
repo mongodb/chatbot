@@ -1,6 +1,6 @@
 import { ObjectId, logger } from "mongodb-rag-core";
 import { CommandRunMetadata } from "./CommandMetadataStore";
-import { ConfigConstructor } from "./EvalConfig";
+import { ConfigConstructor, EvalConfig } from "./EvalConfig";
 import { strict as assert } from "assert";
 import { generateDataAndMetadata } from "./generate";
 import { generateEvalsAndMetadata } from "./evaluate/generateEvalsAndMetadata";
@@ -23,7 +23,8 @@ type PipelineReportFunc = (
 export type Pipeline = (
   generate: PipelineGenerateFunc,
   evaluate: PipelineEvaluateFunc,
-  report: PipelineReportFunc
+  report: PipelineReportFunc,
+  config: EvalConfig
 ) => Promise<void>;
 
 interface RunPipelineParams {
@@ -124,7 +125,7 @@ export async function runPipeline({
 
   try {
     logger.info("Running pipeline actions.");
-    await pipeline(generateFunc, evaluateFunc, reportFunc);
+    await pipeline(generateFunc, evaluateFunc, reportFunc, config);
   } catch (err) {
     logger.error("Error running pipeline actions.");
     logger.error(err);

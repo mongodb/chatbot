@@ -29,6 +29,8 @@ import { blockGetRequests } from "./middleware/blockGetRequests";
 import { getRequestId, logRequest } from "./utils";
 import { systemPrompt } from "./systemPrompt";
 import { addReferenceSourceType } from "./processors/makeMongoDbReferences";
+import path from "path";
+import express from "express";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -126,7 +128,9 @@ export const generateUserPrompt = makeVerifiedAnswerGenerateUserPrompt({
   },
   onNoVerifiedAnswerFound: makeStepBackRagGenerateUserPrompt({
     openAiClient,
-    deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    deploymentName:
+      process.env.OPENAI_GPT_35_CHAT_COMPLETION_DEPLOYMENT ??
+      OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     findContent,
     numPrecedingMessagesToInclude: 2,
   }),
@@ -157,7 +161,7 @@ export const createCustomConversationDataWithIpAuthUserAndOrigin: AddCustomDataF
     return customData;
   };
 
-const isProduction = process.env.NODE_ENV === "production";
+export const isProduction = process.env.NODE_ENV === "production";
 export const config: AppConfig = {
   conversationsRouterConfig: {
     llm,
@@ -182,5 +186,10 @@ export const config: AppConfig = {
     // Allow cookies from different origins to be sent to the server.
     credentials: true,
   },
-  serveStaticSite: !isProduction,
+  expressAppConfig: !isProduction
+    ? async (app) => {
+        const staticAssetsPath = path.join(__dirname, "..", "static");
+        app.use(express.static(staticAssetsPath));
+      }
+    : undefined,
 };

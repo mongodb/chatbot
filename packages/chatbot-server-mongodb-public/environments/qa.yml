@@ -10,13 +10,13 @@ env:
   OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
   ENVIRONMENT: qa
   NODE_ENV: qa
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT: gpt-4o
+  OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-embedding-ada-002
 
 envSecrets:
   MONGODB_CONNECTION_URI: docs-chatbot-staging
   OPENAI_ENDPOINT: docs-chatbot-staging
   OPENAI_API_KEY: docs-chatbot-staging
-  OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-staging
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-staging
 
 ingress:
   enabled: true

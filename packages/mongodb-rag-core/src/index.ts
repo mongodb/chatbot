@@ -1,6 +1,9 @@
 export * from "./BoostOnAtlasSearchFilter";
+export * from "./ChatLlm";
+export * from "./ConversationsService";
 export * from "./CoreEnvVars";
 export * from "./DatabaseConnection";
+export * from "./DataStreamer";
 export * from "./DefaultFindContent";
 export * from "./DefaultFindVerifiedAnswer";
 export * from "./EmbeddedContent";
@@ -8,13 +11,18 @@ export * from "./Embedder";
 export * from "./FindContentFunc";
 export * from "./FindVerifiedAnswerFunc";
 export * from "./ingest";
+export * from "./LangchainChatLlm";
 export * from "./LangChainEmbedder";
+export * from "./logger";
+export * from "./MongoDbConversations";
 export * from "./MongoDbEmbeddedContentStore";
 export * from "./MongoDbVerifiedAnswerStore";
 export * from "./MongoDbPageStore";
+export * from "./OpenAiChatLlm";
 export * from "./OpenAiEmbedder";
 export * from "./Page";
 export * from "./PageFormat";
+export * from "./References";
 export * from "./TypeChatJsonTranslateFunc";
 export * from "./VectorStore";
 export * from "./VerifiedAnswer";
@@ -23,8 +31,6 @@ export * from "./arrayFilters";
 export * from "./assertEnvVars";
 export * from "./extractFrontMatter";
 export * from "./removeFrontMatter";
-export * from "./services/conversations";
-export * from "./services/logger";
 export * from "./updateFrontMatter";
 
 // Everyone share the same mongodb driver version

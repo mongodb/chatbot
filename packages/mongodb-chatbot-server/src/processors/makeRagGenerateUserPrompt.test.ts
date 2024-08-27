@@ -1,12 +1,11 @@
 import "dotenv/config";
-import { EmbeddedContent } from "mongodb-rag-core";
+import { EmbeddedContent, FindContentFunc } from "mongodb-rag-core";
 import {
   MakeRagGenerateUserPromptParams,
   MakeUserMessageFunc,
   includeChunksForMaxTokensPossible,
   makeRagGenerateUserPrompt,
 } from "./makeRagGenerateUserPrompt";
-import { FindContentFunc } from "mongodb-rag-core";
 import { QueryPreprocessorFunc } from "./QueryPreprocessorFunc";
 import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
 

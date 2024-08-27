@@ -132,7 +132,7 @@ describe("makeStepBackRagGenerateUserPrompt", () => {
     });
     expect(res.userMessage.contentForLlm).not.toContain("abracadabra");
   });
-  test.only("should only include 'numPrecedingMessagesToInclude' previous messages", async () => {
+  test("should only include 'numPrecedingMessagesToInclude' previous messages", async () => {
     const stepBackRagGenerateUserPrompt = makeStepBackRagGenerateUserPrompt({
       ...config,
       numPrecedingMessagesToInclude: 1,
@@ -159,7 +159,6 @@ describe("makeStepBackRagGenerateUserPrompt", () => {
         ],
       },
     });
-    console.log("RES::", res);
     expect(res.userMessage.contentForLlm).not.toContain("abracadabra");
     expect(res.userMessage.contentForLlm).toContain("avada kedavra");
   });

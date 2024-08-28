@@ -86,7 +86,7 @@ const fewShotExamples: ChatCompletionMessageParam[] = [
  */
 
 export const extractMongoDbMetadataFromUserMessage =
-  makeFewShotUserMessageExtractorFunction<ExtractMongoDbMetadataFunction>({
+  makeFewShotUserMessageExtractorFunction({
     llmFunction: {
       name,
       description,

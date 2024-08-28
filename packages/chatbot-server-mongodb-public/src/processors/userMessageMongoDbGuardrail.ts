@@ -136,7 +136,7 @@ const fewShotExamples: ChatCompletionMessageParam[] = [
   Identify whether a user message is relevant to MongoDB and explains why.
  */
 export const userMessageMongoDbGuardrail =
-  makeFewShotUserMessageExtractorFunction<UserMessageMongoDbGuardrailFunction>({
+  makeFewShotUserMessageExtractorFunction({
     llmFunction: {
       name,
       description,

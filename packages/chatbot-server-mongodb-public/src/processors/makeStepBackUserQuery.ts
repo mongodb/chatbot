@@ -108,13 +108,12 @@ const fewShotExamples: ChatCompletionMessageParam[] = [
 /**
   Generate search query using the ["step back" method of prompt engineering](https://arxiv.org/abs/2310.06117).
  */
-export const makeStepBackUserQuery =
-  makeFewShotUserMessageExtractorFunction<StepBackUserQueryMongoDbFunction>({
-    llmFunction: {
-      name,
-      description,
-      schema: StepBackUserQueryMongoDbFunctionSchema,
-    },
-    systemPrompt,
-    fewShotExamples,
-  });
+export const makeStepBackUserQuery = makeFewShotUserMessageExtractorFunction({
+  llmFunction: {
+    name,
+    description,
+    schema: StepBackUserQueryMongoDbFunctionSchema,
+  },
+  systemPrompt,
+  fewShotExamples,
+});

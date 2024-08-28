@@ -1,5 +1,5 @@
 import { Message } from "mongodb-chatbot-server";
-import { ZodObject, ZodRawShape } from "zod";
+import { z, ZodObject, ZodRawShape } from "zod";
 import { stripIndents } from "common-tags";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { OpenAI } from "openai";
@@ -8,11 +8,13 @@ import {
   ChatCompletionTool,
 } from "openai/resources";
 
-export interface MakeFewShotUserMessageExtractorFunctionParams {
+export interface MakeFewShotUserMessageExtractorFunctionParams<
+  T extends ZodObject<ZodRawShape>
+> {
   llmFunction: {
     name: string;
     description: string;
-    schema: ZodObject<ZodRawShape>;
+    schema: T;
   };
   systemPrompt: string;
   fewShotExamples: ChatCompletionMessageParam[];
@@ -22,12 +24,12 @@ export interface MakeFewShotUserMessageExtractorFunctionParams {
   Function to create LLM-based function that extract metadata from a user message in the conversation.
  */
 export function makeFewShotUserMessageExtractorFunction<
-  SchemaType extends Record<string, unknown> = Record<string, unknown>
+  T extends ZodObject<ZodRawShape>
 >({
   llmFunction: { name, description, schema },
   systemPrompt,
   fewShotExamples,
-}: MakeFewShotUserMessageExtractorFunctionParams) {
+}: MakeFewShotUserMessageExtractorFunctionParams<T>) {
   const systemPromptMessage = {
     role: "system",
     content: systemPrompt,
@@ -43,7 +45,7 @@ export function makeFewShotUserMessageExtractorFunction<
       }),
     },
   };
-  return async function ({
+  return async function fewShotUserMessageExtractorFunction({
     openAiClient,
     model,
     userMessageText,
@@ -53,7 +55,7 @@ export function makeFewShotUserMessageExtractorFunction<
     model: string;
     userMessageText: string;
     messages?: Message[];
-  }) {
+  }): Promise<z.infer<T>> {
     const userMessage = {
       role: "user",
       content: stripIndents`${
@@ -81,7 +83,7 @@ export function makeFewShotUserMessageExtractorFunction<
       JSON.parse(
         res.choices[0]?.message?.tool_calls?.[0]?.function.arguments ?? "{}"
       )
-    ) as SchemaType;
+    );
     return metadata;
   };
 }

@@ -57,7 +57,7 @@
     "dotenv": "^16.4.5",
     "front-matter": "^4.0.2",
     "jira-client": "^8.2.2",
-    "mongodb-rag-core": "^0.3.0",
+    "mongodb-rag-core": "*",
     "papaparse": "^5.4.1",
     "yaml": "^2.3.1",
     "yargs": "^17",

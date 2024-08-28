@@ -4,19 +4,20 @@ import {
   GenerateUserPromptFunc,
   GenerateUserPromptFuncReturnValue,
   Message,
-  OpenAIClient,
   UserMessage,
   updateFrontMatter,
 } from "mongodb-chatbot-server";
-import { extractMetadataFromUserMessage } from "./extractMetadataFromUserMessage";
 import { makeStepBackUserQuery } from "./makeStepBackUserQuery";
 import { stripIndents } from "common-tags";
 import { strict as assert } from "assert";
 import { logRequest } from "../utils";
 import { makeMongoDbReferences } from "./makeMongoDbReferences";
+import { extractMongoDbMetadataFromUserMessage } from "./extractMongoDbMetadataFromUserMessage";
+import { userMessageMongoDbGuardrail } from "./userMessageMongoDbGuardrail";
+import OpenAI from "openai";
 interface MakeStepBackGenerateUserPromptProps {
-  openAiClient: OpenAIClient;
-  deploymentName: string;
+  openAiClient: OpenAI;
+  model: string;
   numPrecedingMessagesToInclude?: number;
   findContent: FindContentFunc;
   maxContextTokenCount?: number;
@@ -29,7 +30,7 @@ interface MakeStepBackGenerateUserPromptProps {
  */
 export const makeStepBackRagGenerateUserPrompt = ({
   openAiClient,
-  deploymentName,
+  model,
   numPrecedingMessagesToInclude = 0,
   findContent,
   maxContextTokenCount = 1800,
@@ -55,19 +56,28 @@ export const makeStepBackRagGenerateUserPrompt = ({
       numPrecedingMessagesToInclude === 0
         ? []
         : messages.slice(-numPrecedingMessagesToInclude);
-    const metadata = await extractMetadataFromUserMessage({
-      openAiClient,
-      deploymentName,
-      userMessageText,
-      messages: precedingMessagesToInclude,
-    });
-    if (metadata.rejectQuery) {
-      const { rejectionReason } = metadata;
+    // Run both at once to save time
+    const [metadata, guardrailResult] = await Promise.all([
+      extractMongoDbMetadataFromUserMessage({
+        openAiClient,
+        model,
+        userMessageText,
+        messages: precedingMessagesToInclude,
+      }),
+      userMessageMongoDbGuardrail({
+        userMessageText,
+        openAiClient,
+        model,
+        messages: precedingMessagesToInclude,
+      }),
+    ]);
+    if (guardrailResult.rejectMessage) {
+      const { reasoning } = guardrailResult;
       logRequest({
         reqId,
         message: `Rejected user message: ${JSON.stringify({
           userMessageText,
-          rejectionReason,
+          reasoning,
         })}`,
       });
       return {
@@ -76,7 +86,7 @@ export const makeStepBackRagGenerateUserPrompt = ({
           content: userMessageText,
           rejectQuery: true,
           customData: {
-            rejectionReason,
+            rejectionReason: reasoning,
           },
         } satisfies UserMessage,
         rejectQuery: true,
@@ -92,24 +102,23 @@ export const makeStepBackRagGenerateUserPrompt = ({
     if (metadata.programmingLanguage) {
       metadataForQuery.programmingLanguage = metadata.programmingLanguage;
     }
-    if (metadata.mongoDbProductName) {
-      metadataForQuery.mongoDbProductName = metadata.mongoDbProductName;
+    if (metadata.mongoDbProduct) {
+      metadataForQuery.mongoDbProductName = metadata.mongoDbProduct;
     }
 
-    const stepBackUserQuery = await makeStepBackUserQuery({
+    const { transformedUserQuery } = await makeStepBackUserQuery({
       openAiClient,
-      deploymentName,
+      model,
       messages: precedingMessagesToInclude,
-      userMessageText,
-      metadata: metadataForQuery,
+      userMessageText: updateFrontMatter(userMessageText, metadataForQuery),
     });
     logRequest({
       reqId,
-      message: `Step back query: ${stepBackUserQuery}`,
+      message: `Step back query: ${transformedUserQuery}`,
     });
 
     const { content, queryEmbedding } = await findContent({
-      query: updateFrontMatter(stepBackUserQuery, metadataForQuery),
+      query: updateFrontMatter(transformedUserQuery, metadataForQuery),
     });
     logRequest({
       reqId,
@@ -127,7 +136,7 @@ export const makeStepBackRagGenerateUserPrompt = ({
         score: c.score,
       })),
       customData,
-      preprocessedContent: stepBackUserQuery,
+      preprocessedContent: transformedUserQuery,
     } satisfies UserMessage;
     if (content.length === 0) {
       return {
@@ -147,7 +156,7 @@ export const makeStepBackRagGenerateUserPrompt = ({
       ...baseUserMessage,
       contentForLlm: makeUserContentForLlm({
         userMessageText,
-        stepBackUserQuery,
+        stepBackUserQuery: transformedUserQuery,
         messages: precedingMessagesToInclude,
         metadata,
         content,
@@ -205,7 +214,7 @@ function makeUserContentForLlm({
     })
     .map((c) => c.text)
     .reverse()
-    .join("---");
+    .join("\n---\n");
   return `Use the following information to respond to the "User message". If you do not know the answer to the question based on the provided documentation content, respond with the following text: "I'm sorry, I do not know how to answer that question. Please try to rephrase your query." NEVER include Markdown links in the answer.
 ${
   previousConversationMessages.length > 0

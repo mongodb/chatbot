@@ -4,9 +4,9 @@ import {
   ObjectId,
 } from "mongodb-chatbot-server";
 import {
-  openAiClient,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  findContent,
+  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
+  preprocessorOpenAiClient,
 } from "../test/testHelpers";
 import { makeStepBackRagGenerateUserPrompt } from "./makeStepBackRagGenerateUserPrompt";
 
@@ -39,8 +39,8 @@ describe("makeStepBackRagGenerateUserPrompt", () => {
     } satisfies FindContentResult;
   };
   const config = {
-    openAiClient,
-    deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    openAiClient: preprocessorOpenAiClient,
+    model: OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
     findContent: mockFindContent,
   };
   const stepBackRagGenerateUserPrompt =

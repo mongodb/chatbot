@@ -1,45 +1,22 @@
-import { OpenAIClient } from "@azure/openai";
+import { makeMockOpenAIToolCall } from "../test/mockOpenAi";
 import { makeStepBackUserQuery } from "./makeStepBackUserQuery";
-import {
-  openAiClient,
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  cosineSimilarity,
-} from "../test/testHelpers";
-import { embedder } from "../config";
-import { ObjectId } from "mongodb-chatbot-server";
+import { OpenAI } from "openai";
 
-const args: Parameters<typeof makeStepBackUserQuery>[0] = {
-  openAiClient,
-  deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  userMessageText: "hi",
-};
+jest.mock("openai", () => {
+  return makeMockOpenAIToolCall({
+    transformedUserQuery: "foo",
+  });
+});
 
-const mockOpenAIClient = {
-  async getChatCompletions() {
-    return {
-      choices: [
-        {
-          message: {
-            functionCall: {
-              name: "step_back_user_query",
-              arguments: JSON.stringify({
-                transformedUserQuery: "foo",
-              }),
-            },
-          },
-        },
-      ],
-    };
-  },
-};
-
-describe("makeStepBackUserQuery - unit tests", () => {
+describe("makeStepBackUserQuery", () => {
+  const args: Parameters<typeof makeStepBackUserQuery>[0] = {
+    openAiClient: new OpenAI({ apiKey: "fake-api-key" }),
+    model: "best-model-ever",
+    userMessageText: "hi",
+  };
   test("should return step back user query", async () => {
-    expect(
-      await makeStepBackUserQuery({
-        ...args,
-        openAiClient: mockOpenAIClient as unknown as OpenAIClient,
-      })
-    ).toEqual("foo");
+    expect(await makeStepBackUserQuery(args)).toEqual({
+      transformedUserQuery: "foo",
+    });
   });
 });

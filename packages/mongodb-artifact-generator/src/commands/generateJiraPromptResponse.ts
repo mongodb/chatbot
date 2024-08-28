@@ -5,16 +5,52 @@ import {
 } from "../withConfig";
 import { createCommand } from "../createCommand";
 import { makeRunLogger, type RunLogger } from "../runlogger";
-import { promises as fs } from "fs";
+// import { promises as fs } from "fs";
 import path from "path";
-import { groupBy } from "../utils";
 import { PromisePool } from "@supercharge/promise-pool";
 import { makeSummarizer, Summary } from "../chat/makeSummarizer";
 import { assertEnvVars } from "mongodb-rag-core";
-import { loadPromptExamplePairFromFile, toBulletPoint } from "../chat/utils";
+import { asBulletPoints, loadPromptExamplePairFromFile } from "../chat/utils";
 import { createRunId } from "../runId";
+import { makeGeneratePrompts } from "../chat/makeGeneratePrompts";
+import { makeGenerateResponse } from "../chat/makeGenerateResponse";
+import { GENERATOR_LLM_ENV_VARS } from "../ArtifactGeneratorEnvVars";
+import { z } from "zod";
+
+const { GENERATOR_LLM_MAX_CONCURRENCY, OPENAI_CHAT_COMPLETION_DEPLOYMENT } =
+  assertEnvVars({
+    ...GENERATOR_LLM_ENV_VARS,
+    OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
+  });
 
 let logger: RunLogger;
+
+export interface JiraComment {
+  id: string;
+  body: string;
+  author: {
+    emailAddress: string;
+    displayName: string;
+  };
+  created: string;
+  updated: string;
+}
+
+export interface FormattedJiraIssue {
+  key: string;
+  projectName: string;
+  summary: string;
+  status: string;
+  created: string;
+  updated: string;
+  description: string;
+  comments: JiraComment[];
+}
+
+export type FormattedJiraIssueWithSummary = {
+  issue: FormattedJiraIssue;
+  summary: Summary;
+};
 
 type GenerateJiraPromptResponseCommandArgs = {
   runId?: string;
@@ -34,7 +70,10 @@ export default createCommand<GenerateJiraPromptResponseCommandArgs>({
       .option("llmMaxConcurrency", {
         type: "number",
         demandOption: false,
-        default: 10,
+        default: z.coerce
+          .number()
+          .default(10)
+          .parse(GENERATOR_LLM_MAX_CONCURRENCY),
         description:
           "The maximum number of concurrent requests to the LLM API. Defaults to 10.",
       });
@@ -61,10 +100,8 @@ export default createCommand<GenerateJiraPromptResponseCommandArgs>({
 export const action =
   createConfiguredAction<GenerateJiraPromptResponseCommandArgs>(
     async ({ jiraApi, openAiClient }, { llmMaxConcurrency }) => {
-      const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars({
-        OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
-      });
       logger.logInfo(`Setting up...`);
+      console.log("llmMaxConcurrency", llmMaxConcurrency);
       if (!jiraApi) {
         throw new Error(
           "jiraApi is required. Make sure to define it in the config."
@@ -125,19 +162,19 @@ export const action =
         // "PYTHON-1880",
         "PYTHON-3257",
         // "RUBY-1917",
-        "RUST-1779",
-        "RUST-940",
-        "SERVER-10860",
-        "SERVER-13520",
-        "SERVER-1603",
-        "SERVER-18335",
-        "SERVER-19470",
-        "SERVER-19638",
-        "SERVER-20243",
-        "SERVER-22056",
-        "SERVER-25760",
-        "SERVER-25883",
-        "SERVER-27369",
+        // "RUST-1779",
+        // "RUST-940",
+        // "SERVER-10860",
+        // "SERVER-13520",
+        // "SERVER-1603",
+        // "SERVER-18335",
+        // "SERVER-19470",
+        // "SERVER-19638",
+        // "SERVER-20243",
+        // "SERVER-22056",
+        // "SERVER-25760",
+        // "SERVER-25883",
+        // "SERVER-27369",
         // "SERVER-31340",
         // "SERVER-31478",
         // "SERVER-31598",
@@ -158,17 +195,6 @@ export const action =
 
       logger.appendArtifact("jiraIssues.raw.json", JSON.stringify(jiraIssues));
 
-      interface JiraComment {
-        id: string;
-        body: string;
-        author: {
-          emailAddress: string;
-          displayName: string;
-        };
-        created: string;
-        updated: string;
-      }
-
       interface RawJiraIssue {
         key: string;
         fields: {
@@ -188,16 +214,6 @@ export const action =
         };
       }
 
-      interface FormattedJiraIssue {
-        key: string;
-        projectName: string;
-        summary: string;
-        status: string;
-        created: string;
-        updated: string;
-        description: string;
-        comments: JiraComment[];
-      }
       const formattedJiraIssues = (jiraIssues as RawJiraIssue[]).map(
         (issue) => {
           return {
@@ -236,14 +252,12 @@ export const action =
           deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
         },
         logger,
-        directions: [
+        directions: asBulletPoints(
           "The task is to summarize the provided Jira issue.",
           "If there is a notable bug or issue being described, include that in the summary.",
           "If there are any notable comments, include those in the summary.",
-          "If there are any notable actions that need to be taken to solve, include specific details about those in the summary.",
-        ]
-          .map(toBulletPoint)
-          .join("\n"),
+          "If there are any notable actions that need to be taken to solve, include specific details about those in the summary."
+        ),
         examples: await Promise.all([
           loadPromptExamplePairFromFile(
             path.join(__dirname, "../jira250/examples/WORKPLACE-119.json")
@@ -260,7 +274,6 @@ export const action =
       )
         .withConcurrency(llmMaxConcurrency)
         .process(async (issue) => {
-          console.log("summarizing issue", issue.key);
           const summary = await summarizeJiraIssue({
             input: JSON.stringify(issue),
           });
@@ -279,11 +292,15 @@ export const action =
 
       // Append summaries to formatted issues
       const formattedIssuesWithSummaries = formattedJiraIssues.map((issue) => {
+        const summary = summariesByIssueKey.get(issue.key);
+        if (!summary) {
+          throw new Error(`No summary found for issue ${issue.key}`);
+        }
         return {
-          ...issue,
-          summary: summariesByIssueKey.get(issue.key),
+          issue,
+          summary,
         };
-      });
+      }) satisfies FormattedJiraIssueWithSummary[];
       logger.appendArtifact(
         "jiraIssues.formattedWithSummaries.json",
         JSON.stringify(formattedIssuesWithSummaries)
@@ -292,46 +309,111 @@ export const action =
       // TODO below here
 
       // // Generate a list of N questions/prompts for each issue
-      // const promptsByIssueKey = new Map<string, string[]>();
-      // const { errors: generatePromptsErrors } = await PromisePool.for(
-      //   formattedIssuesWithSummaries
-      // )
-      //   .withConcurrency(llmMaxConcurrency)
-      //   .process(async (issue) => {
-      //     const prompts = await generatePrompts(issue); // TODO
-      //     promptsByIssueKey.set(issue.key, prompts);
-      //   });
-      // for (const error of generatePromptsErrors) {
-      //   logger.logError(`Error generating prompts: ${error.item}`);
-      // }
-      // const prompts: [issueKey: string, prompt: string][] = [
-      //   ...promptsByIssueKey.entries(),
-      // ].flatMap(([issueKey, prompts]) => {
-      //   return prompts.map((prompt) => [issueKey, prompt] as [string, string]);
-      // });
+      const promptsByIssueKey = new Map<string, string[]>();
+      const generatePrompts = makeGeneratePrompts({
+        openAi: {
+          client: openAiClient,
+          deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+        },
+        logger,
+        directions: asBulletPoints(
+          "Assume the prompter is not familiar with or looking for the provided Jira issue specifically.",
+          "Assume the prompter is looking for a specific piece of information about the topic or bug discussed in the Jira issue.",
+          "The prompt should be a question that can be answered with the information in the Jira issue but not about the issue itself.",
+          "If the Jira issue is for a specific language, framework, platform, driver, etc., indicate that in the prompt."
+        ),
+      });
+      const { errors: generatePromptsErrors } = await PromisePool.for(
+        formattedIssuesWithSummaries
+      )
+        .withConcurrency(llmMaxConcurrency)
+        .process(async ({ issue, summary }) => {
+          const { prompts } = await generatePrompts({ issue, summary });
+          console.log("generated prompts for issue", issue.key, summary);
+          promptsByIssueKey.set(issue.key, prompts);
+        });
+      for (const error of generatePromptsErrors) {
+        logger.logError(`Error generating prompts: ${error.item}`);
+      }
+      const generatedPrompts: [issueKey: string, prompt: string][] = [
+        ...promptsByIssueKey.entries(),
+      ].flatMap(([issueKey, prompts]) => {
+        return prompts.map((prompt) => [issueKey, prompt] as [string, string]);
+      });
+      logger.appendArtifact(
+        "generatedPrompts.json",
+        JSON.stringify(generatedPrompts)
+      );
       // // Have the LLM generate a response to each prompt with the formatted/summarized issue as context
-      // const responsesByIssueKey = new Map<
-      //   string,
-      //   [prompt: string, response: string][]
-      // >();
-      // const { errors: generateResponsesErrors } = await PromisePool.for(prompts)
-      //   .withConcurrency(llmMaxConcurrency)
-      //   .process(async ([issueKey, prompt]) => {
-      //     // TODO
-      //     const response = await generateResponse({
-      //       prompt,
-      //       context: formattedIssuesWithSummaries.find(
-      //         (issue) => issue.key === issueKey
-      //       ),
-      //     });
-      //     if (!responsesByIssueKey.has(issueKey)) {
-      //       responsesByIssueKey.set(issueKey, []);
-      //     }
-      //     responsesByIssueKey.get(issueKey)?.push([prompt, response]);
-      //   });
-      // for (const error of generateResponsesErrors) {
-      //   logger.logError(`Error generating responses: ${error.item}`);
-      // }
+      const responsesByIssueKey = new Map<
+        string,
+        [prompt: string, response: string][]
+      >();
+
+      const generateResponse = makeGenerateResponse({
+        openAi: {
+          client: openAiClient,
+          deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+        },
+        logger,
+        directions: asBulletPoints(
+          "The response should be as accurate as possible based on the information in the Jira issue.",
+          "You may use your knowledge of the topic to provide a more detailed response. However, avoid answering the main request with information that is not in the Jira issue."
+        ),
+      });
+
+      // TODO - get the input format correct. We want the full formatted jira issue + summary + generated prompt.
+      const prompts = generatedPrompts.map(([issueKey, prompt]) => {
+        const summary = summariesByIssueKey.get(issueKey);
+        if (!summary) {
+          throw new Error(`No summary found for key ${issueKey}`);
+        }
+        const issue = formattedJiraIssues.find(
+          (issue) => issue.key === issueKey
+        );
+        if (!issue) {
+          throw new Error(`No issue data found for key ${issueKey}`);
+        }
+        return {
+          summary,
+          issue,
+          prompt,
+        };
+      });
+      let numGeneratedResponses = 0;
+      const { errors: generateResponsesErrors } = await PromisePool.for(prompts)
+        .withConcurrency(llmMaxConcurrency)
+        .process(async ({ summary, issue, prompt }, i) => {
+          const { response } = await generateResponse({
+            summary,
+            issue,
+            prompt,
+          });
+          console.log(
+            `generated response ${++numGeneratedResponses}/${prompts.length}`
+          );
+          if (!responsesByIssueKey.has(issue.key)) {
+            responsesByIssueKey.set(issue.key, []);
+          }
+          responsesByIssueKey.get(issue.key)?.push([prompt, response]);
+        });
+      for (const error of generateResponsesErrors) {
+        logger.logError(`Error generating responses: ${error.item}`);
+      }
+      const generatedResponses = [...responsesByIssueKey.entries()].flatMap(
+        ([issueKey, responses]) => {
+          return responses.map(([prompt, response]) => ({
+            issueKey,
+            prompt,
+            response,
+          }));
+        }
+      );
+
+      logger.appendArtifact(
+        "generatedResponses.json",
+        JSON.stringify(generatedResponses)
+      );
 
       // Evaluate the response for adherence to information in the Jira issue
     }

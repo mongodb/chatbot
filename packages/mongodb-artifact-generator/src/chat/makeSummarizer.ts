@@ -8,6 +8,7 @@ import { stripIndents } from "common-tags";
 import { z } from "zod";
 import { RunLogger } from "../runlogger";
 import {
+  asJsonSchema,
   formatFewShotExamples,
   formatMessagesForArtifact,
   PromptExamplePair,
@@ -19,47 +20,31 @@ export type Summarizer = (args: {
 
 export type Summary = z.infer<typeof Summary>;
 export const Summary = z.object({
-  topics: z.array(z.string()),
-  description: z.string(),
+  topics: z
+    .array(
+      z
+        .string()
+        .describe(
+          "The name of a topic in the input. This could be a product name, a feature, or any other relevant noun mentioned in the input." +
+            "\nExamples:\n" +
+            ["MongoDB Atlas", "Atlas Search", "Architecture", "Atlas SQL"].join(
+              "\n- "
+            )
+        )
+    )
+    .describe("A list of topics mentioned in the input."),
+  description: z
+    .string()
+    .describe("A summarized text description of the input."),
 });
 
 const summarizeTool: FunctionDefinition = {
   name: "summarize",
   description: "A structured summary of the provided input",
-  parameters: {
-    type: "object",
-    properties: {
-      topics: {
-        type: "array",
-        description: "A list of topics mentioned in the input.",
-        items: {
-          type: "string",
-          description:
-            "The name of a topic in the input. This could be a product name, a feature, or any other relevant noun mentioned in the input.",
-          examples: [
-            "MongoDB Atlas",
-            "Atlas Search",
-            "Architecture",
-            "Atlas SQL",
-          ],
-        },
-      },
-      description: {
-        type: "string",
-        description: "A summarized text description of the input.",
-      },
-    },
-    required: ["topics", "description"],
-    additionalProperties: false,
-  },
+  parameters: asJsonSchema(Summary),
 };
 
-export function makeSummarizer({
-  openAi,
-  logger,
-  directions = "",
-  examples = [],
-}: {
+export type MakeSummarizerArgs = {
   openAi: {
     client: OpenAIClient;
     deployment: string;
@@ -67,16 +52,22 @@ export function makeSummarizer({
   logger?: RunLogger;
   directions?: string;
   examples?: PromptExamplePair[];
-}): Summarizer {
+};
+
+export function makeSummarizer({
+  openAi,
+  logger,
+  directions = "",
+  examples = [],
+}: MakeSummarizerArgs): Summarizer {
   return async function summarize({ input }: { input: string }) {
     const messages = [
       {
         role: "system",
-        content:
-          `Your task is to summarize a provided input. This information will be used to drive a generative process, so precision and correctness are incredibly important.` +
-          directions
-            ? `\n\n${directions}`
-            : "",
+        content: [
+          `Your task is to summarize a provided input. This information will be used to drive a generative process, so precision and correctness are incredibly important.`,
+          directions ?? "",
+        ].join("\n"),
       },
       ...formatFewShotExamples({
         examples,

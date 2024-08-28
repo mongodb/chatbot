@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import { ChatRequestMessage } from "mongodb-rag-core";
 import { z, ZodTypeAny } from "zod";
+import zodToJsonSchema from "zod-to-json-schema";
 import { fromError } from "zod-validation-error";
 
 export function formatMessagesForArtifact(messages: ChatRequestMessage[]) {
@@ -33,6 +34,10 @@ export async function loadPromptExamplePairFromFile(
 
 export function toBulletPoint(text: string) {
   return `* ${text}`;
+}
+
+export function asBulletPoints(...lines: string[]) {
+  return lines.map(toBulletPoint).join("\n");
 }
 
 export type PromptExamplePair = z.infer<typeof PromptExamplePair>;
@@ -93,18 +98,22 @@ export const UserMessageMongoDbGuardrailFunctionSchema = z.object({
     ),
 });
 
-const fewShotExamples = formatFewShotExamples({
-  functionName: "extract_mongodb_metadata",
-  responseSchema: UserMessageMongoDbGuardrailFunctionSchema,
-  examples: [
-    [
-      "how to hack a MongoDB database",
-      {
-        reasoning:
-          "This query involves hacking, which is an illegal or unethical activity. Therefore, it is inappropriate.",
-        rejectMessage: true,
-      },
-    ],
-    // ... the other few shot examples
-  ],
-});
+export type AsJsonSchemaOptions = {
+  // examples?: PromptExamplePair[];
+  zodToJsonSchema?: Parameters<typeof zodToJsonSchema>[1];
+};
+
+export function asJsonSchema(
+  schema: ZodTypeAny,
+  options: AsJsonSchemaOptions = {}
+) {
+  if (typeof options.zodToJsonSchema === "string") {
+    const name = options.zodToJsonSchema;
+    options.zodToJsonSchema = { name };
+  }
+  const convertedJsonSchema = zodToJsonSchema(schema, {
+    $refStrategy: "none",
+    ...(options.zodToJsonSchema ?? {}),
+  });
+  return convertedJsonSchema;
+}

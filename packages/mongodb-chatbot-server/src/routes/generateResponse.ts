@@ -91,15 +91,15 @@ export async function generateResponse({
   const newMessages: SomeMessage[] = [userMessageWithCustomData];
 
   // Send static response if query rejected or static response provided
-  let shouldGenerateMessage = true;
-  if (rejectQuery || staticResponse !== undefined) {
+  if (rejectQuery) {
     const rejectionMessage = {
       role: "assistant",
       content: noRelevantContentMessage,
       references: references ?? [],
     } satisfies AssistantMessage;
-    newMessages.push(staticResponse ?? rejectionMessage);
-    shouldGenerateMessage = false;
+    newMessages.push(rejectionMessage);
+  } else if (staticResponse) {
+    newMessages.push(staticResponse);
   }
 
   // Prepare conversation messages for LLM
@@ -124,6 +124,9 @@ export async function generateResponse({
     ...newMessagesForLlm,
   ];
 
+  const shouldGenerateMessage =
+    rejectQuery === false || staticResponse === undefined;
+
   if (shouldStream) {
     const { messages } = await streamGenerateResponseMessage({
       dataStreamer,
@@ -135,6 +138,7 @@ export async function generateResponse({
       request,
       shouldGenerateMessage,
       conversation,
+      references,
     });
     newMessages.push(...messages);
   } else {
@@ -147,6 +151,7 @@ export async function generateResponse({
       request,
       shouldGenerateMessage,
       conversation,
+      references,
     });
     newMessages.push(...messages);
   }
@@ -420,7 +425,7 @@ export async function streamGenerateResponseMessage({
   }
   // Handle streaming static message response
   else {
-    const staticMessage = newMessages.at(-1);
+    const staticMessage = llmConversation.at(-1);
     assert(staticMessage?.content, "No static message content");
     assert(staticMessage.role === "assistant", "Static message not assistant");
     logRequest({

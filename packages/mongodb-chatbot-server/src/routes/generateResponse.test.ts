@@ -190,7 +190,16 @@ describe("generateResponse", () => {
     conversation,
     dataStreamer,
     latestMessageText: "hello",
-  };
+    async generateUserPrompt({ userMessageText }) {
+      return {
+        references,
+        userMessage: {
+          role: "user",
+          content: userMessageText,
+        },
+      };
+    },
+  } satisfies Omit<GenerateResponseParams, "shouldStream">;
   let res: ReturnType<typeof createResponse> & ExpressResponse;
   beforeEach(() => {
     res = createResponse({
@@ -302,7 +311,7 @@ describe("awaitGenerateResponseMessage", () => {
   });
 });
 
-describe("awaitGenerateResponseMessage", () => {
+describe("streamGenerateResponseMessage", () => {
   let res: ReturnType<typeof createResponse> & ExpressResponse;
   beforeEach(() => {
     res = createResponse({
@@ -326,10 +335,12 @@ describe("awaitGenerateResponseMessage", () => {
     noRelevantContentMessage,
     conversation,
     dataStreamer,
+    shouldGenerateMessage: true,
   } satisfies StreamGenerateResponseParams;
 
   it("should generate assistant response if no tools", async () => {
-    const { messages } = await awaitGenerateResponseMessage(baseArgs);
+    const { messages } = await streamGenerateResponseMessage(baseArgs);
+    console.log({ messages });
     expect(messages).toHaveLength(1);
     expect(messages[0]).toMatchObject(mockAssistantMessage);
     const data = res._getData();
@@ -340,7 +351,7 @@ describe("awaitGenerateResponseMessage", () => {
     }
   });
   it("should pass through references with final assistant message", async () => {
-    const { messages } = await awaitGenerateResponseMessage(baseArgs);
+    const { messages } = await streamGenerateResponseMessage(baseArgs);
     expect(
       (messages[messages.length - 1] as AssistantMessage).references
     ).toMatchObject(references);
@@ -350,7 +361,7 @@ describe("awaitGenerateResponseMessage", () => {
     );
   });
   it("should call tool before responding", async () => {
-    const { messages } = await awaitGenerateResponseMessage({
+    const { messages } = await streamGenerateResponseMessage({
       ...baseArgs,
       llmConversation: [{ role: "user", content: testFuncName }],
     });
@@ -373,7 +384,7 @@ describe("awaitGenerateResponseMessage", () => {
     );
   });
   it("should pass references from a tool call", async () => {
-    const { messages } = await awaitGenerateResponseMessage({
+    const { messages } = await streamGenerateResponseMessage({
       ...baseArgs,
       llmConversation: [{ role: "user", content: testFuncName }],
     });
@@ -393,7 +404,7 @@ describe("awaitGenerateResponseMessage", () => {
   });
 
   it("should reject input in a tool call", async () => {
-    const { messages } = await awaitGenerateResponseMessage({
+    const { messages } = await streamGenerateResponseMessage({
       ...baseArgs,
       llmConversation: [
         {
@@ -418,7 +429,7 @@ describe("awaitGenerateResponseMessage", () => {
     );
   });
   it("should only send vector search results and references if LLM not working", async () => {
-    const { messages } = await awaitGenerateResponseMessage({
+    const { messages } = await streamGenerateResponseMessage({
       ...baseArgs,
       llmConversation: [
         {

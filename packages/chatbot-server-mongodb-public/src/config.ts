@@ -31,6 +31,7 @@ import { systemPrompt } from "./systemPrompt";
 import { addReferenceSourceType } from "./processors/makeMongoDbReferences";
 import path from "path";
 import express from "express";
+import { AzureOpenAI } from "openai";
 
 export const {
   MONGODB_CONNECTION_URI,
@@ -38,11 +39,16 @@ export const {
   VECTOR_SEARCH_INDEX_NAME,
   OPENAI_ENDPOINT,
   OPENAI_API_KEY,
+  OPENAI_API_VERSION,
   OPENAI_EMBEDDING_DEPLOYMENT,
-  OPENAI_EMBEDDING_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-} = assertEnvVars(CORE_ENV_VARS);
+  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
+} = assertEnvVars({
+  ...CORE_ENV_VARS,
+  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: "",
+  OPENAI_API_VERSION: "",
+});
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
@@ -118,6 +124,12 @@ export const findVerifiedAnswer = makeDefaultFindVerifiedAnswer({
   store: verifiedAnswerStore,
 });
 
+export const preprocessorOpenAiClient = new AzureOpenAI({
+  apiKey: OPENAI_API_KEY,
+  endpoint: OPENAI_ENDPOINT,
+  apiVersion: OPENAI_API_VERSION,
+});
+
 export const generateUserPrompt = makeVerifiedAnswerGenerateUserPrompt({
   findVerifiedAnswer,
   onVerifiedAnswerFound: (verifiedAnswer) => {
@@ -127,10 +139,8 @@ export const generateUserPrompt = makeVerifiedAnswerGenerateUserPrompt({
     };
   },
   onNoVerifiedAnswerFound: makeStepBackRagGenerateUserPrompt({
-    openAiClient,
-    deploymentName:
-      process.env.OPENAI_GPT_35_CHAT_COMPLETION_DEPLOYMENT ??
-      OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    openAiClient: preprocessorOpenAiClient,
+    model: OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
     findContent,
     numPrecedingMessagesToInclude: 2,
   }),

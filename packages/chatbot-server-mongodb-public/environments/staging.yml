@@ -3,15 +3,14 @@ service:
 
 env:
   PORT: 3000
-  OPENAI_EMBEDDING_MODEL: text-embedding-ada-002
-  OPENAI_EMBEDDING_MODEL_VERSION: 2023-03-15-preview
   MONGODB_DATABASE_NAME: docs-chatbot-staging
   VECTOR_SEARCH_INDEX_NAME: vector_index
   OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
-  ALLOWED_ORIGINS: https://knowledge.staging.corp.mongodb.com,https://docs-mongodborg-staging.corp.mongodb.com,https://mongodbcom-cdn.website.staging.corp.mongodb.com,https://docs-mongodb-org-stg.s3.us-east-2.amazonaws.com
+  ALLOWED_ORIGINS: https://knowledge.staging.corp.mongodb.com,https://docs-mongodborg-staging.corp.mongodb.com,https://mongodbcom-cdn.website.staging.corp.mongodb.com,https://docs-mongodb-org-stg.s3.us-east-2.amazonaws.com,https://learn-staging.mongodb.com,https://mongodbcom-cdn.staging.corp.mongodb.com
   NODE_ENV: staging
+  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: gpt-4o-mini
+  OPENAI_API_VERSION: "2024-06-01"
   OPENAI_CHAT_COMPLETION_DEPLOYMENT: gpt-4o
-  OPENAI_GPT_35_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-gpt-35-turbo-0613
   OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-embedding-ada-002
 
 envSecrets:
@@ -82,3 +81,15 @@ probes:
 defaultAlerts:
   enabled: true
   email: "chatbot-alerts@mongodb.com"
+
+prometheusRules:
+  - alert: TooManyHttpInternalServerErrors
+    # (Total 500 Requests / Total Requests) > X%
+    expr: ( sum(rate(http_requests_total{namespace="docs",container="docs-chat",code="500"}[1m])) / sum(rate(requests_total{namespace="docs",container="docs-chat"}[1m])) ) * 100 > 2
+    for: 5m
+    labels:
+      severity: critical
+      email: chatbot-alerts@mongodb.com
+    annotations:
+      summary: High HTTP 500 Error rate on {$labels.job}
+      description: Too many HTTP 500 Errors on {$labels.job} in the last 5 minutes

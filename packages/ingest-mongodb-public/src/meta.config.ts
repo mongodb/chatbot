@@ -14,6 +14,10 @@ import {
 } from "mongodb-rag-core";
 import { snootyDataApiBaseUrl } from "./sources/snooty";
 import { makeSnootyDataSource } from "mongodb-rag-ingest/sources/snooty";
+import {
+  PUBLIC_INGEST_ENV_VARS,
+  PUBLIC_INGEST_MONGODB_DOCS_META_ENV_VARS,
+} from "./PublicIngestEnvVars";
 
 const {
   OPENAI_ENDPOINT,
@@ -21,7 +25,10 @@ const {
   OPENAI_EMBEDDING_DEPLOYMENT,
   MONGODB_CONNECTION_URI,
   MONGODB_META_DATABASE_NAME,
-} = assertEnvVars({ ...INGEST_ENV_VARS, MONGODB_META_DATABASE_NAME: "" });
+} = assertEnvVars({
+  ...PUBLIC_INGEST_ENV_VARS,
+  ...PUBLIC_INGEST_MONGODB_DOCS_META_ENV_VARS,
+});
 
 const embedder = makeOpenAiEmbedder({
   openAiClient: new OpenAIClient(

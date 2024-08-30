@@ -1,6 +1,6 @@
 {
   "name": "mongodb-rag-core",
-  "version": "0.3.1",
+  "version": "0.4.1",
   "description": "Common elements used by MongoDB Chatbot Framework components.",
   "author": "MongoDB, Inc.",
   "license": "Apache-2.0",
@@ -60,8 +60,9 @@
   },
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.5",
-    "@langchain/core": "^0.2.9",
-    "@langchain/openai": "^0.2.1",
+    "@langchain/anthropic": "^0.2.15",
+    "@langchain/core": "^0.2.27",
+    "@langchain/openai": "^0.2.7",
     "common-tags": "^1",
     "dotenv": "^16.3.1",
     "exponential-backoff": "^3.1.1",

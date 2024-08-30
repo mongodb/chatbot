@@ -85,5 +85,8 @@ export {
   openAiClient,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_EMBEDDING_DEPLOYMENT,
+  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_API_VERSION,
   findContent,
+  preprocessorOpenAiClient,
 } from "../config";

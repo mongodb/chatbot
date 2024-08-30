@@ -124,8 +124,7 @@ export async function generateResponse({
     ...newMessagesForLlm,
   ];
 
-  const shouldGenerateMessage =
-    rejectQuery === false || staticResponse === undefined;
+  const shouldGenerateMessage = !rejectQuery && !staticResponse;
 
   if (shouldStream) {
     const { messages } = await streamGenerateResponseMessage({

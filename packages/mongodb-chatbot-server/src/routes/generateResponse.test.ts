@@ -231,6 +231,53 @@ describe("generateResponse", () => {
     const data = res._getData();
     expect(data).toBe("");
   });
+  it("should send a static message", async () => {
+    const userMessage = {
+      role: "user",
+      content: "bad!",
+    } satisfies OpenAiChatMessage;
+    const staticResponse = {
+      role: "assistant",
+      content: "static response",
+    } satisfies OpenAiChatMessage;
+    const { messages } = await generateResponse({
+      ...baseArgs,
+      shouldStream: false,
+      async generateUserPrompt() {
+        return {
+          userMessage,
+          staticResponse,
+        };
+      },
+    });
+    expect(messages).toMatchObject([userMessage, staticResponse]);
+  });
+  it("should reject query", async () => {
+    const userMessage = {
+      role: "user",
+      content: "bad!",
+    } satisfies OpenAiChatMessage;
+    const { messages } = await generateResponse({
+      ...baseArgs,
+      shouldStream: false,
+      async generateUserPrompt() {
+        return {
+          userMessage,
+          rejectQuery: true,
+        };
+      },
+    });
+    expect(messages).toMatchObject([
+      {
+        role: "user",
+        content: "bad!",
+      },
+      {
+        role: "assistant",
+        content: noRelevantContentMessage,
+      },
+    ]);
+  });
 });
 
 describe("awaitGenerateResponseMessage", () => {
@@ -340,7 +387,6 @@ describe("streamGenerateResponseMessage", () => {
 
   it("should generate assistant response if no tools", async () => {
     const { messages } = await streamGenerateResponseMessage(baseArgs);
-    console.log({ messages });
     expect(messages).toHaveLength(1);
     expect(messages[0]).toMatchObject(mockAssistantMessage);
     const data = res._getData();

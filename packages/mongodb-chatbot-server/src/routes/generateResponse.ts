@@ -9,6 +9,7 @@ import {
   AssistantMessage,
   UserMessage,
   ConversationCustomData,
+  makeDataStreamer,
 } from "mongodb-rag-core";
 import { ChatCompletionRequestMessageFunctionCall } from "openai";
 import { Request as ExpressRequest } from "express";
@@ -22,7 +23,7 @@ export interface GenerateResponseParams {
   llm: ChatLlm;
   latestMessageText: string;
   customData?: ConversationCustomData;
-  dataStreamer: DataStreamer;
+  dataStreamer?: DataStreamer;
   generateUserPrompt?: GenerateUserPromptFunc;
   filterPreviousMessages?: FilterPreviousMessages;
   reqId: string;
@@ -127,6 +128,7 @@ export async function generateResponse({
   const shouldGenerateMessage = !rejectQuery && !staticResponse;
 
   if (shouldStream) {
+    assert(dataStreamer, "Data streamer required for streaming");
     const { messages } = await streamGenerateResponseMessage({
       dataStreamer,
       reqId,
@@ -268,7 +270,8 @@ export async function awaitGenerateResponseMessage({
   return { messages: newMessages };
 }
 
-export type StreamGenerateResponseParams = BaseGenerateResponseMessageParams;
+export type StreamGenerateResponseParams = BaseGenerateResponseMessageParams &
+  Required<Pick<GenerateResponseParams, "dataStreamer">>;
 
 export async function streamGenerateResponseMessage({
   dataStreamer,
@@ -282,7 +285,7 @@ export async function streamGenerateResponseMessage({
   request,
   metadata,
   shouldGenerateMessage,
-}: BaseGenerateResponseMessageParams): Promise<GenerateResponseReturnValue> {
+}: StreamGenerateResponseParams): Promise<GenerateResponseReturnValue> {
   const newMessages: SomeMessage[] = [];
   const outputReferences: References = [];
 

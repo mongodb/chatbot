@@ -260,10 +260,10 @@ export async function awaitGenerateResponseMessage({
       } satisfies AssistantMessage;
       newMessages.push(llmNotWorkingResponse);
     }
-    assert(newMessages.length > 0);
-    // Add references to the last assistant message
-    (newMessages[newMessages.length - 1] as AssistantMessage).references =
-      outputReferences;
+  }
+  // Add references to the last assistant message
+  if (newMessages.at(-1)?.role === "assistant" && outputReferences.length > 0) {
+    (newMessages.at(-1) as AssistantMessage).references = outputReferences;
   }
   return { messages: newMessages };
 }
@@ -438,16 +438,15 @@ export async function streamGenerateResponseMessage({
     });
   }
 
-  // Stream back references
-  dataStreamer.streamData({
-    type: "references",
-    data: outputReferences,
-  });
-
-  assert(newMessages.length > 0);
   // Add references to the last assistant message
-  (newMessages[newMessages.length - 1] as AssistantMessage).references =
-    outputReferences;
+  if (newMessages.at(-1)?.role === "assistant" && outputReferences.length > 0) {
+    (newMessages.at(-1) as AssistantMessage).references = outputReferences;
+    // Stream back references
+    dataStreamer.streamData({
+      type: "references",
+      data: outputReferences,
+    });
+  }
 
   return { messages: newMessages };
 }

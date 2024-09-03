@@ -136,7 +136,6 @@ export function makeAddMessageToConversationRoute({
           message: `Too many messages. You cannot send more than ${maxUserMessagesInConversation} messages in this conversation.`,
         });
       }
-      const metadata = {};
 
       // --- DETERMINE IF SHOULD STREAM ---
       const shouldStream = Boolean(stream);
@@ -160,7 +159,6 @@ export function makeAddMessageToConversationRoute({
           conversations.conversationConstants.LLM_NOT_WORKING,
         noRelevantContentMessage:
           conversations.conversationConstants.NO_RELEVANT_CONTENT,
-        metadata,
       });
 
       // --- SAVE QUESTION & RESPONSE ---

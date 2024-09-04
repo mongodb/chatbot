@@ -72,8 +72,9 @@ export const boostManual = makeBoostOnAtlasSearchFilter({
   totalMaxK: 5,
 });
 
-export const openAiClient = wrapOpenAI(
-  new OpenAIClient(OPENAI_ENDPOINT, new AzureKeyCredential(OPENAI_API_KEY))
+export const openAiClient = new OpenAIClient(
+  OPENAI_ENDPOINT,
+  new AzureKeyCredential(OPENAI_API_KEY)
 );
 
 export const llm = makeOpenAiChatLlm({
@@ -83,6 +84,10 @@ export const llm = makeOpenAiChatLlm({
     temperature: 0,
     maxTokens: 500,
   },
+});
+
+llm.answerQuestionAwaited = wrapTraced(llm.answerQuestionAwaited, {
+  name: "answerQuestionAwaited",
 });
 
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
@@ -98,6 +103,7 @@ export const embedder = makeOpenAiEmbedder({
     maxDelay: 5000,
   },
 });
+embedder.embed = wrapTraced(embedder.embed, { name: "embed" });
 
 export const findContent = wrapTraced(
   makeDefaultFindContent({

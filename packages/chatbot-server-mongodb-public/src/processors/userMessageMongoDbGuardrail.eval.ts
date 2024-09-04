@@ -5,11 +5,12 @@ import {
 } from "./userMessageMongoDbGuardrail";
 import { Eval } from "braintrust";
 import { Scorer, LLMClassifierFromTemplate } from "autoevals";
-import OpenAI from "openai";
 import { MongoDbTag } from "../mongoDbMetadata";
 import {
   JUDGE_LLM,
-  JUDGE_OPENAI_API_KEY,
+  OPENAI_API_KEY,
+  OPENAI_ENDPOINT,
+  OPENAI_API_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   openAiClient,
 } from "../test/evalHelpers";
@@ -213,12 +214,16 @@ Reference: {{expected}}
     useCoT: true,
   });
   const res = await hasSufficientReasoning({
-    openAiApiKey: JUDGE_OPENAI_API_KEY,
     input: args.input,
     output: JSON.stringify(args.output),
     expected: JSON.stringify(args.expected),
     temperature: 0,
     maxTokens: 500,
+    azureOpenAi: {
+      apiKey: OPENAI_API_KEY,
+      apiVersion: OPENAI_API_VERSION,
+      endpoint: OPENAI_ENDPOINT,
+    },
   });
 
   return res;

@@ -48,7 +48,7 @@
     "@types/jest": "^29.5.2",
     "@typescript-eslint/eslint-plugin": "^5.58.0",
     "@typescript-eslint/parser": "^5.58.0",
-    "autoevals": "^0.0.87",
+    "autoevals": "^0.0.89",
     "babel-jest": "^29.5.0",
     "braintrust": "^0.0.157",
     "eslint": "^8.38.0",

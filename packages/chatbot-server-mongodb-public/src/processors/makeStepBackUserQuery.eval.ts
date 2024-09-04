@@ -8,7 +8,9 @@ import { Message, ObjectId, updateFrontMatter } from "mongodb-chatbot-server";
 import { MongoDbTag } from "../mongoDbMetadata";
 import {
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
-  JUDGE_OPENAI_API_KEY,
+  OPENAI_API_KEY,
+  OPENAI_ENDPOINT,
+  OPENAI_API_VERSION,
   JUDGE_EMBEDDING_MODEL,
   openAiClient,
 } from "../test/evalHelpers";
@@ -146,10 +148,14 @@ const QuerySimilarity: Scorer<
   unknown
 > = async (args) => {
   return await EmbeddingSimilarity({
-    openAiApiKey: JUDGE_OPENAI_API_KEY,
     expected: args.expected?.transformedUserQuery,
     output: args.output.transformedUserQuery,
     model: JUDGE_EMBEDDING_MODEL,
+    azureOpenAi: {
+      apiKey: OPENAI_API_KEY,
+      apiVersion: OPENAI_API_VERSION,
+      endpoint: OPENAI_ENDPOINT,
+    },
   });
 };
 

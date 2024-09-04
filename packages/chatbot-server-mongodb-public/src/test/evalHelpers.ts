@@ -1,8 +1,6 @@
 import {
   assertEnvVars,
   AssistantMessage,
-  Conversation,
-  Message,
   SomeMessage,
   UserMessage,
 } from "mongodb-chatbot-server";
@@ -12,7 +10,6 @@ import { z } from "zod";
 import { strict as assert } from "assert";
 
 export const {
-  JUDGE_OPENAI_API_KEY,
   JUDGE_EMBEDDING_MODEL,
   JUDGE_LLM,
   OPENAI_API_KEY,

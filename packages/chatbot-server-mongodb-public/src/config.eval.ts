@@ -13,22 +13,17 @@ import {
   getContextsFromUserMessage,
   getLastAssistantMessageFromMessages,
   getLastUserMessageFromMessages,
+  JUDGE_EMBEDDING_MODEL,
+  JUDGE_LLM,
+  OPENAI_API_KEY,
+  OPENAI_API_VERSION,
+  OPENAI_ENDPOINT,
 } from "./test/evalHelpers";
 import { AnswerRelevancy, ContextRelevancy, Faithfulness } from "autoevals";
-import {
-  assertEnvVars,
-  CORE_OPENAI_CONNECTION_ENV_VARS,
-} from "mongodb-chatbot-server";
-import { EVAL_ENV_VARS } from "./EvalEnvVars";
 import fs from "fs";
 import path from "path";
 import { getConversationsEvalCasesFromYaml } from "./test/getConversationEvalCasesFromYaml";
 import { strict as assert } from "assert";
-const { JUDGE_LLM, OPENAI_API_KEY, OPENAI_API_VERSION, OPENAI_ENDPOINT } =
-  assertEnvVars({
-    ...EVAL_ENV_VARS,
-    ...CORE_OPENAI_CONNECTION_ENV_VARS,
-  });
 
 interface ConversationEvalCaseInput {
   previousConversation: Conversation;
@@ -91,6 +86,7 @@ function getConversationRagasConfig(
 
 const judgeModelConfig = {
   model: JUDGE_LLM,
+  embeddingModel: JUDGE_EMBEDDING_MODEL,
   azureOpenAi: {
     apiKey: OPENAI_API_KEY,
     apiVersion: OPENAI_API_VERSION,
@@ -102,9 +98,13 @@ const ConversationFaithfulness: ConversationEvalScorer = async (args) => {
   return Faithfulness(getConversationRagasConfig(args, judgeModelConfig));
 };
 
-const ConversationAnswerRelevancy: ConversationEvalScorer = async (args) => {
-  return AnswerRelevancy(getConversationRagasConfig(args, judgeModelConfig));
-};
+// Commenting out until this PR is merged and released https://github.com/braintrustdata/autoevals/pull/94
+// const ConversationAnswerRelevancy: ConversationEvalScorer = async (args) => {
+//   return AnswerRelevancy({
+//     ...getConversationRagasConfig(args, judgeModelConfig),
+//     embeddingModel: JUDGE_EMBEDDING_MODEL,
+//   });
+// };
 
 const ConversationContextRelevancy: ConversationEvalScorer = async (args) => {
   return ContextRelevancy(getConversationRagasConfig(args, judgeModelConfig));
@@ -112,7 +112,7 @@ const ConversationContextRelevancy: ConversationEvalScorer = async (args) => {
 
 Eval("mongodb-chatbot-conversations", {
   data: async () => {
-    const basePath = path.resolve(__dirname, "..", "..", "evalCases");
+    const basePath = path.resolve(__dirname, "..", "evalCases");
     const miscCases = getConversationsEvalCasesFromYaml(
       fs.readFileSync(path.resolve(basePath, "conversations.yml"), "utf8")
     );
@@ -157,25 +157,29 @@ Eval("mongodb-chatbot-conversations", {
     description: "Evaluates how well the MongoDB AI Chatbot RAG pipeline works",
   },
   maxConcurrency: 5,
-  timeout: 30000,
+  // timeout: 90000,
   async task(input): Promise<ConversationTaskOutput> {
     try {
-      const generated = await traced(async () =>
-        generateResponse({
-          conversation: input.previousConversation,
-          latestMessageText: input.latestMessageText,
-          llm: config.conversationsRouterConfig.llm,
-          llmNotWorkingMessage:
-            conversations.conversationConstants.LLM_NOT_WORKING,
-          noRelevantContentMessage:
-            conversations.conversationConstants.NO_RELEVANT_CONTENT,
-          reqId: input.latestMessageText,
-          shouldStream: false,
-          generateUserPrompt:
-            config.conversationsRouterConfig.generateUserPrompt,
-          filterPreviousMessages:
-            config.conversationsRouterConfig.filterPreviousMessages,
-        })
+      const generated = await traced(
+        async () =>
+          generateResponse({
+            conversation: input.previousConversation,
+            latestMessageText: input.latestMessageText,
+            llm: config.conversationsRouterConfig.llm,
+            llmNotWorkingMessage:
+              conversations.conversationConstants.LLM_NOT_WORKING,
+            noRelevantContentMessage:
+              conversations.conversationConstants.NO_RELEVANT_CONTENT,
+            reqId: input.latestMessageText,
+            shouldStream: false,
+            generateUserPrompt:
+              config.conversationsRouterConfig.generateUserPrompt,
+            filterPreviousMessages:
+              config.conversationsRouterConfig.filterPreviousMessages,
+          }),
+        {
+          name: "generateResponse",
+        }
       );
       const userMessage = getLastUserMessageFromMessages(generated.messages);
       const finalAssistantMessage = getLastAssistantMessageFromMessages(
@@ -197,7 +201,7 @@ Eval("mongodb-chatbot-conversations", {
     AllowedQuery,
     RetrievedContext,
     ConversationFaithfulness,
-    ConversationAnswerRelevancy,
+    // ConversationAnswerRelevancy,
     ConversationContextRelevancy,
   ],
 });

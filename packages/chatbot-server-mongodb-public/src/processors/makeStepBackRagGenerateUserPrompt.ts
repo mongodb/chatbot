@@ -55,7 +55,9 @@ export const makeStepBackRagGenerateUserPrompt = ({
     const precedingMessagesToInclude =
       numPrecedingMessagesToInclude === 0
         ? []
-        : messages.slice(-numPrecedingMessagesToInclude);
+        : messages
+            .filter((m) => m.role !== "system")
+            .slice(-numPrecedingMessagesToInclude);
     // Run both at once to save time
     const [metadata, guardrailResult] = await Promise.all([
       extractMongoDbMetadataFromUserMessage({

@@ -53,7 +53,7 @@ const RetrievedContext: ConversationEvalScorer = async (args) => {
   args.output.context;
   return {
     name: "RetrievedContext",
-    score: args.output.context ? 1 : 0,
+    score: args.output.context?.length ? 1 : 0,
   };
 };
 

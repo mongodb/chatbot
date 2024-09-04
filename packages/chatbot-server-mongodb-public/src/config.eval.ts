@@ -156,7 +156,7 @@ Eval("mongodb-chatbot-conversations", {
   metadata: {
     description: "Evaluates how well the MongoDB AI Chatbot RAG pipeline works",
   },
-  maxConcurrency: 5,
+  maxConcurrency: 2,
   // timeout: 90000,
   async task(input): Promise<ConversationTaskOutput> {
     try {

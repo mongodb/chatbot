@@ -83,4 +83,4 @@ export function createTestOriginUrl(path: string) {
   return new URL(path, TEST_ORIGIN);
 }
 
-export { systemPrompt, generateUserPrompt } from "./testConfig";
+export { systemPrompt } from "./testConfig";

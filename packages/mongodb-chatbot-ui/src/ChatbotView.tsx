@@ -1,3 +1,4 @@
+import { References } from "mongodb-rag-core";
 import { DarkModeProps } from "./DarkMode";
 
 export type ChatbotViewProps = DarkModeProps & {
@@ -5,6 +6,7 @@ export type ChatbotViewProps = DarkModeProps & {
   disclaimer?: React.ReactNode;
   disclaimerHeading?: string;
   fatalErrorMessage?: string;
+  initialMessageReferences?: References;
   initialMessageSuggestedPrompts?: string[];
   initialMessageText?: string;
   inputBarId?: string;

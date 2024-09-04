@@ -70,6 +70,7 @@ export function ChatWindow(props: ChatWindowProps) {
     disclaimerHeading,
     fatalErrorMessage = defaultChatbotFatalErrorMessage,
     initialMessageText,
+    initialMessageReferences,
     initialMessageSuggestedPrompts,
     inputBarId = "chatbot-input-bar",
     inputBottomText,
@@ -100,9 +101,14 @@ export function ChatWindow(props: ChatWindowProps) {
       content: initialMessageText,
       createdAt: new Date().toLocaleTimeString(),
       suggestedPrompts: initialMessageSuggestedPrompts,
+      references: initialMessageReferences,
     };
     return data;
-  }, [initialMessageText, initialMessageSuggestedPrompts]);
+  }, [
+    initialMessageText,
+    initialMessageReferences,
+    initialMessageSuggestedPrompts,
+  ]);
 
   const messages = initialMessage
     ? [initialMessage, ...conversation.messages]

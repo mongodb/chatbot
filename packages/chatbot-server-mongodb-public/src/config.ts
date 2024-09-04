@@ -143,7 +143,7 @@ export const generateUserPrompt = makeVerifiedAnswerGenerateUserPrompt({
     openAiClient: preprocessorOpenAiClient,
     model: OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
     findContent,
-    numPrecedingMessagesToInclude: 5,
+    numPrecedingMessagesToInclude: 6,
   }),
 });
 

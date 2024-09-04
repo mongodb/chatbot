@@ -197,7 +197,6 @@ function makeUserContentForLlm({
   maxContextTokenCount: number;
 }) {
   const previousConversationMessages = messages
-    .filter((message) => message.role !== "system")
     .map((message) => message.role.toUpperCase() + ": " + message.content)
     .join("\n");
   const relevantMetadata = JSON.stringify({

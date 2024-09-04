@@ -226,6 +226,18 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
     tags: ["docs", "driver", "python", "pymongo-arrow"],
     productName: "PyMongo Arrow",
   },
+  {
+    type: "snooty",
+    name: "ops-manager",
+    tags: ["docs", "ops-manager"],
+    productName: "MongoDB Ops Manager",
+  },
+  {
+    type: "snooty",
+    name: "cloud-manager",
+    tags: ["docs", "cloud-manager"],
+    productName: "MongoDB Cloud Manager",
+  },
 ];
 
 export const snootyDataApiBaseUrl = "https://snooty-data-api.mongodb.com/prod/";

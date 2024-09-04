@@ -1,0 +1,73 @@
+- messages:
+    - content: Is there a way to generate an OpsManager alert for replica sets with an even number of nodes?
+      role: user
+  name: "Should explain that Ops Manager does not provide a built-in alert condition specifically for detecting replica sets with an even number of voting members. However, the user can create a custom alert condition to monitor the number of voting members in a replica set."
+  tags:
+    - ops-manager
+    - cloud-manager
+
+- messages:
+    - content: Can I reset my password?
+      role: user
+  name: "Should mention editing the password in the /profile/i section of the user's account settings."
+  tags:
+    - ops-manager
+    - cloud-manager
+
+- messages:
+    - content: How do I add a user to my organization or project?
+      role: user
+    - content: |
+        For instructions on adding users to your organization or project, see [Ops Manager Access](https://www.mongodb.com/docs/ops-manager/current/tutorial/manage-users/).
+      role: assistant
+  name: "TODO"
+  tags:
+    - ops-manager
+    - cloud-manager
+
+- messages:
+    - content: Can I configure multiple Google Authenticator apps to use the same account?
+      role: user
+  name: Should explain that the user can configure multiple Google Authenticator apps to use the same account by selecting the /Can't scan the barcode\?/i option during the procedure to Configure Two-Factor Authentication.
+  tags:
+    - ops-manager
+    - cloud-manager
+
+- messages:
+    - content: How do I delete my Ops Manager project?
+      role: user
+    - content: |
+        A user with the Project Owner access for the projects can close a project.
+
+        You can delete a project from the project's Settings page. For details, see Delete One Project.
+
+        The operation cannot be undone.
+      role: assistant
+  name: Should explain that a user with the /Project Owner/i access for the projects can close a project.
+  tags:
+    - ops-manager
+    - cloud-manager
+
+- messages:
+    - content: How does Ops Manager manage MongoDB deployments?
+      role: user
+  name: Should mention /agent[s]?/i that follow /plan[s]?/i when describing how Ops Manager manages MongoDB deployments.
+  tags:
+    - ops-manager
+    - cloud-manager
+
+- messages:
+    - content: How does Ops Manager perform maintenance on cluster nodes?
+      role: user
+  name: Should mention /rolling restart[s]?/i when describing how Ops Manager performs maintenance on cluster nodes.
+  tags:
+    - ops-manager
+    - cloud-manager
+
+- messages:
+    - content: When was the MongoDB Agent in Ops Manager launched?
+      role: user
+  name: Should mention that the MongoDB Agent in Ops Manager was launched at the end of May 2019.
+  tags:
+    - ops-manager
+    - cloud-manager

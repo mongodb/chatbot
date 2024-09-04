@@ -1,4 +1,4 @@
-import { Eval, EvalCase, EvalScorerArgs } from "braintrust";
+import { Eval, EvalCase, traced, EvalScorer } from "braintrust";
 import { MongoDbTag } from "./mongoDbMetadata";
 import { config, conversations } from "./config";
 import { systemPrompt } from "./systemPrompt";
@@ -15,18 +15,20 @@ import {
   getLastUserMessageFromMessages,
 } from "./test/evalHelpers";
 import { AnswerRelevancy, ContextRelevancy, Faithfulness } from "autoevals";
-import { assertEnvVars } from "mongodb-chatbot-server";
+import {
+  assertEnvVars,
+  CORE_OPENAI_CONNECTION_ENV_VARS,
+} from "mongodb-chatbot-server";
 import { EVAL_ENV_VARS } from "./EvalEnvVars";
 import fs from "fs";
 import path from "path";
 import { getConversationsEvalCasesFromYaml } from "./test/getConversationEvalCasesFromYaml";
 import { strict as assert } from "assert";
-const {
-  JUDGE_LLM,
-  JUDGE_OPENAI_API_KEY,
-  JUDGE_OPENAI_API_VERSION,
-  JUDGE_OPENAI_BASE_URL,
-} = assertEnvVars(EVAL_ENV_VARS);
+const { JUDGE_LLM, OPENAI_API_KEY, OPENAI_API_VERSION, OPENAI_ENDPOINT } =
+  assertEnvVars({
+    ...EVAL_ENV_VARS,
+    ...CORE_OPENAI_CONNECTION_ENV_VARS,
+  });
 
 interface ConversationEvalCaseInput {
   previousConversation: Conversation;
@@ -45,14 +47,14 @@ interface ConversationTaskOutput {
   allowedQuery: boolean;
 }
 
-type ConversationEvalScorerArgs = EvalScorerArgs<
+type ConversationEvalScorer = EvalScorer<
   ConversationEvalCaseInput,
   ConversationTaskOutput,
   unknown
 >;
 
 // -- Evaluation metrics --
-const RetrievedContext = async (args: ConversationEvalScorerArgs) => {
+const RetrievedContext: ConversationEvalScorer = async (args) => {
   args.output.context;
   return {
     name: "RetrievedContext",
@@ -60,7 +62,7 @@ const RetrievedContext = async (args: ConversationEvalScorerArgs) => {
   };
 };
 
-const AllowedQuery = async (args: ConversationEvalScorerArgs) => {
+const AllowedQuery: ConversationEvalScorer = async (args) => {
   return {
     name: "AllowedQuery",
     score: args.output.allowedQuery ? 1 : 0,
@@ -68,7 +70,7 @@ const AllowedQuery = async (args: ConversationEvalScorerArgs) => {
 };
 
 function getConversationRagasConfig(
-  scorerArgs: ConversationEvalScorerArgs,
+  scorerArgs: Parameters<ConversationEvalScorer>[0],
   judgeModelConfig: {
     model: string;
     azureOpenAi: {
@@ -90,27 +92,24 @@ function getConversationRagasConfig(
 const judgeModelConfig = {
   model: JUDGE_LLM,
   azureOpenAi: {
-    apiKey: JUDGE_OPENAI_API_KEY,
-    apiVersion: JUDGE_OPENAI_API_VERSION,
-    endpoint: JUDGE_OPENAI_BASE_URL,
+    apiKey: OPENAI_API_KEY,
+    apiVersion: OPENAI_API_VERSION,
+    endpoint: OPENAI_ENDPOINT,
   },
 };
 
-const ConversationFaithfulness = async (args: ConversationEvalScorerArgs) => {
+const ConversationFaithfulness: ConversationEvalScorer = async (args) => {
   return Faithfulness(getConversationRagasConfig(args, judgeModelConfig));
 };
 
-const ConversationAnswerRelevancy = async (
-  args: ConversationEvalScorerArgs
-) => {
+const ConversationAnswerRelevancy: ConversationEvalScorer = async (args) => {
   return AnswerRelevancy(getConversationRagasConfig(args, judgeModelConfig));
 };
 
-const ConversationContextRelevancy = async (
-  args: ConversationEvalScorerArgs
-) => {
+const ConversationContextRelevancy: ConversationEvalScorer = async (args) => {
   return ContextRelevancy(getConversationRagasConfig(args, judgeModelConfig));
 };
+
 Eval("mongodb-chatbot-conversations", {
   data: async () => {
     const basePath = path.resolve(__dirname, "..", "..", "evalCases");
@@ -161,20 +160,23 @@ Eval("mongodb-chatbot-conversations", {
   timeout: 30000,
   async task(input): Promise<ConversationTaskOutput> {
     try {
-      const generated = await generateResponse({
-        conversation: input.previousConversation,
-        latestMessageText: input.latestMessageText,
-        llm: config.conversationsRouterConfig.llm,
-        llmNotWorkingMessage:
-          conversations.conversationConstants.LLM_NOT_WORKING,
-        noRelevantContentMessage:
-          conversations.conversationConstants.NO_RELEVANT_CONTENT,
-        reqId: input.latestMessageText,
-        shouldStream: false,
-        generateUserPrompt: config.conversationsRouterConfig.generateUserPrompt,
-        filterPreviousMessages:
-          config.conversationsRouterConfig.filterPreviousMessages,
-      });
+      const generated = await traced(async () =>
+        generateResponse({
+          conversation: input.previousConversation,
+          latestMessageText: input.latestMessageText,
+          llm: config.conversationsRouterConfig.llm,
+          llmNotWorkingMessage:
+            conversations.conversationConstants.LLM_NOT_WORKING,
+          noRelevantContentMessage:
+            conversations.conversationConstants.NO_RELEVANT_CONTENT,
+          reqId: input.latestMessageText,
+          shouldStream: false,
+          generateUserPrompt:
+            config.conversationsRouterConfig.generateUserPrompt,
+          filterPreviousMessages:
+            config.conversationsRouterConfig.filterPreviousMessages,
+        })
+      );
       const userMessage = getLastUserMessageFromMessages(generated.messages);
       const finalAssistantMessage = getLastAssistantMessageFromMessages(
         generated.messages

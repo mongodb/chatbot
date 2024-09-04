@@ -32,7 +32,7 @@ import { addReferenceSourceType } from "./processors/makeMongoDbReferences";
 import path from "path";
 import express from "express";
 import { AzureOpenAI } from "openai";
-
+import { wrapOpenAI, wrapTraced } from "braintrust";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -47,7 +47,6 @@ export const {
 } = assertEnvVars({
   ...CORE_ENV_VARS,
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: "",
-  OPENAI_API_VERSION: "",
 });
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
@@ -73,9 +72,8 @@ export const boostManual = makeBoostOnAtlasSearchFilter({
   totalMaxK: 5,
 });
 
-export const openAiClient = new OpenAIClient(
-  OPENAI_ENDPOINT,
-  new AzureKeyCredential(OPENAI_API_KEY)
+export const openAiClient = wrapOpenAI(
+  new OpenAIClient(OPENAI_ENDPOINT, new AzureKeyCredential(OPENAI_API_KEY))
 );
 
 export const llm = makeOpenAiChatLlm({
@@ -101,17 +99,22 @@ export const embedder = makeOpenAiEmbedder({
   },
 });
 
-export const findContent = makeDefaultFindContent({
-  embedder,
-  store: embeddedContentStore,
-  findNearestNeighborsOptions: {
-    k: 5,
-    path: "embedding",
-    indexName: VECTOR_SEARCH_INDEX_NAME,
-    minScore: 0.9,
-  },
-  searchBoosters: [boostManual],
-});
+export const findContent = wrapTraced(
+  makeDefaultFindContent({
+    embedder,
+    store: embeddedContentStore,
+    findNearestNeighborsOptions: {
+      k: 5,
+      path: "embedding",
+      indexName: VECTOR_SEARCH_INDEX_NAME,
+      minScore: 0.9,
+    },
+    searchBoosters: [boostManual],
+  }),
+  {
+    name: "findContent",
+  }
+);
 
 export const verifiedAnswerStore = makeMongoDbVerifiedAnswerStore({
   connectionUri: MONGODB_CONNECTION_URI,
@@ -119,16 +122,21 @@ export const verifiedAnswerStore = makeMongoDbVerifiedAnswerStore({
   collectionName: "verified_answers",
 });
 
-export const findVerifiedAnswer = makeDefaultFindVerifiedAnswer({
-  embedder,
-  store: verifiedAnswerStore,
-});
+export const findVerifiedAnswer = wrapTraced(
+  makeDefaultFindVerifiedAnswer({
+    embedder,
+    store: verifiedAnswerStore,
+  }),
+  { name: "findVerifiedAnswer" }
+);
 
-export const preprocessorOpenAiClient = new AzureOpenAI({
-  apiKey: OPENAI_API_KEY,
-  endpoint: OPENAI_ENDPOINT,
-  apiVersion: OPENAI_API_VERSION,
-});
+export const preprocessorOpenAiClient = wrapOpenAI(
+  new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  })
+);
 
 export const generateUserPrompt = makeVerifiedAnswerGenerateUserPrompt({
   findVerifiedAnswer,

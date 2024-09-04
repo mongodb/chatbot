@@ -45,6 +45,7 @@ function App() {
           onClose={() => {
             console.log("Docs Chatbot closed");
           }}
+          maxInputCharacters={3000}
         >
           <DocsChatbot suggestedPrompts={SUGGESTED_PROMPTS} />
         </Chatbot>

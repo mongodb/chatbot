@@ -9,10 +9,12 @@ import { MongoDbLegalDisclosure } from "./MongoDbLegal";
 import { mongoDbVerifyInformationMessage } from "./ui-text";
 import { PoweredByAtlasVectorSearch } from "./PoweredByAtlasVectorSearch";
 import { css } from "@emotion/css";
+import { References } from "mongodb-rag-core";
 
 export type DevCenterChatbotProps = DarkModeProps & {
   initialMessageText?: string;
   initialMessageSuggestedPrompts?: string[];
+  initialMessageReferences?: References;
 };
 
 export function DevCenterChatbot(props: DevCenterChatbotProps) {
@@ -25,6 +27,7 @@ export function DevCenterChatbot(props: DevCenterChatbotProps) {
     initialMessageText:
       props.initialMessageText ??
       "Hi! I'm the MongoDB AI. What can I help you with today?",
+    initialMessageReferences: props.initialMessageReferences,
     initialMessageSuggestedPrompts: props.initialMessageSuggestedPrompts ?? [],
     disclaimer: (
       <>

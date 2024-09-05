@@ -21,6 +21,30 @@ const SUGGESTED_PROMPTS = [
   "Why should I use Atlas Search?",
 ];
 
+const initialMessageReferences = [
+  {
+    url: "https://docs.mongodb.com/",
+    title: "MongoDB Documentation",
+    metadata: {
+      sourceType: "Docs",
+    },
+  },
+  {
+    url: "https://university.mongodb.com/",
+    title: "MongoDB University",
+    metadata: {
+      sourceType: "Learn",
+    },
+  },
+  {
+    url: "https://developer.mongodb.com/",
+    title: "MongoDB Developer Hub",
+    metadata: {
+      sourceType: "Website",
+    },
+  },
+];
+
 function App() {
   const [shouldStream, setShouldStream] = useState(canUseServerSentEvents());
   const { contextDarkMode: darkMode = false, setDarkMode } =
@@ -45,6 +69,7 @@ function App() {
           onClose={() => {
             console.log("Docs Chatbot closed");
           }}
+          maxInputCharacters={3000}
         >
           <DocsChatbot suggestedPrompts={SUGGESTED_PROMPTS} />
         </Chatbot>
@@ -62,6 +87,7 @@ function App() {
         >
           <DevCenterChatbot
             initialMessageSuggestedPrompts={SUGGESTED_PROMPTS}
+            initialMessageReferences={initialMessageReferences}
           />
         </Chatbot>
       </div>

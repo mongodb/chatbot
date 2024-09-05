@@ -6,7 +6,7 @@ import { Eval } from "braintrust";
 import { Scorer } from "autoevals";
 import { MongoDbTag } from "../mongoDbMetadata";
 import {
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
   openAiClient,
 } from "../test/evalHelpers";
 
@@ -204,7 +204,7 @@ const ProgrammingLanguageCorrect: Scorer<
   };
 };
 
-const model = OPENAI_CHAT_COMPLETION_DEPLOYMENT;
+const model = OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT;
 Eval("extract-mongodb-metadata", {
   data: evalCases,
   experimentName: model,

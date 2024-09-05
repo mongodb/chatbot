@@ -21,6 +21,7 @@ import {
   ConversationCustomData,
   makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
+  makeFilterNPreviousMessages,
 } from "mongodb-chatbot-server";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import cookieParser from "cookie-parser";
@@ -156,7 +157,7 @@ export const generateUserPrompt = makeVerifiedAnswerGenerateUserPrompt({
     openAiClient: preprocessorOpenAiClient,
     model: OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
     findContent,
-    numPrecedingMessagesToInclude: 2,
+    numPrecedingMessagesToInclude: 6,
   }),
 });
 
@@ -202,6 +203,7 @@ export const config: AppConfig = {
     maxUserMessagesInConversation: 50,
     maxUserCommentLength: 500,
     conversations,
+    maxInputLengthCharacters: 3000,
   },
   maxRequestTimeoutMs: 30000,
   corsOptions: {

@@ -55,7 +55,9 @@ export const makeStepBackRagGenerateUserPrompt = ({
     const precedingMessagesToInclude =
       numPrecedingMessagesToInclude === 0
         ? []
-        : messages.slice(-numPrecedingMessagesToInclude);
+        : messages
+            .filter((m) => m.role !== "system")
+            .slice(-numPrecedingMessagesToInclude);
     // Run both at once to save time
     const [metadata, guardrailResult] = await Promise.all([
       extractMongoDbMetadataFromUserMessage({
@@ -195,7 +197,6 @@ function makeUserContentForLlm({
   maxContextTokenCount: number;
 }) {
   const previousConversationMessages = messages
-    .filter((message) => message.role !== "system")
     .map((message) => message.role.toUpperCase() + ": " + message.content)
     .join("\n");
   const relevantMetadata = JSON.stringify({

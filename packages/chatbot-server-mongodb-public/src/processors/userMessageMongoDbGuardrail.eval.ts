@@ -10,7 +10,7 @@ import { MongoDbTag } from "../mongoDbMetadata";
 import {
   JUDGE_LLM,
   JUDGE_OPENAI_API_KEY,
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
   openAiClient,
 } from "../test/evalHelpers";
 type MongoDbGuardrailEvalCaseTag = "irrelevant" | "inappropriate" | "valid";
@@ -224,7 +224,7 @@ Reference: {{expected}}
   return res;
 };
 
-const model = OPENAI_CHAT_COMPLETION_DEPLOYMENT;
+const model = OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT;
 
 Eval("user-message-guardrail", {
   data: evalCases,

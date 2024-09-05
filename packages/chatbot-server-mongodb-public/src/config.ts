@@ -21,6 +21,7 @@ import {
   ConversationCustomData,
   makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
+  makeFilterNPreviousMessages,
 } from "mongodb-chatbot-server";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import cookieParser from "cookie-parser";
@@ -142,7 +143,7 @@ export const generateUserPrompt = makeVerifiedAnswerGenerateUserPrompt({
     openAiClient: preprocessorOpenAiClient,
     model: OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
     findContent,
-    numPrecedingMessagesToInclude: 2,
+    numPrecedingMessagesToInclude: 6,
   }),
 });
 

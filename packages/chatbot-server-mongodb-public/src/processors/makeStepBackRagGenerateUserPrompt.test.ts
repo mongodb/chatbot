@@ -4,7 +4,6 @@ import {
   ObjectId,
 } from "mongodb-chatbot-server";
 import {
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
   preprocessorOpenAiClient,
 } from "../test/testHelpers";

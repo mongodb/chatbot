@@ -110,7 +110,8 @@ export async function generateResponse({
       : conversation.messages
   ).map(convertConversationMessageToLlmMessage);
   const newMessagesForLlm = newMessages.map((m) => {
-    // Use transformed content if it exists for user message,
+    // Use transformed content if it exists for user message
+    // (e.g. from a custom user prompt, query preprocessor, etc),
     // otherwise use original content.
     if (m.role === "user") {
       return {

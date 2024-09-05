@@ -48,6 +48,22 @@ function MyApp() {
           disclaimer={<MongoDbLegalDisclosure />}
           initialMessageText="Welcome to my MongoDB AI Assistant. What can I help you with?"
           initialMessageSuggestedPrompts={suggestedPrompts}
+          initialMessageReferences={[
+            {
+              url: "https://example.com/some-link",
+              title: "Example reference link",
+              metadata: {
+                sourceType: "Article",
+              },
+            },
+            {
+              url: "https://example.com/another-link",
+              title: "Another reference link",
+              metadata: {
+                sourceType: "Docs",
+              },
+            },
+          ]}
           inputBottomText={mongoDbVerifyInformationMessage}
         />
       </Chatbot>

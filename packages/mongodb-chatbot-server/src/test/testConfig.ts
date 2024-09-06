@@ -14,6 +14,7 @@ import {
   CORE_ENV_VARS,
   assertEnvVars,
   makeMongoDbConversationsService,
+  ChatLlm,
   makeOpenAiChatLlm,
   SystemPrompt,
   UserMessage,
@@ -21,11 +22,12 @@ import {
 import { stripIndents } from "common-tags";
 import { AppConfig } from "../app";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
+import { makePreprocessMongoDbUserQuery } from "./testPreProcessor/makePreprocessMongoDbUserQuery";
 import {
-  GenerateUserPromptFunc,
   MakeUserMessageFunc,
   MakeUserMessageFuncParams,
   makeFilterNPreviousMessages,
+  makeRagGenerateUserPrompt,
 } from "../processors";
 import { makeDefaultReferenceLinks } from "../processors/makeDefaultReferenceLinks";
 
@@ -91,6 +93,17 @@ export const embedder = makeOpenAiEmbedder({
   },
 });
 
+const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({
+  azureOpenAiServiceConfig: {
+    apiKey: OPENAI_API_KEY,
+    baseUrl: OPENAI_ENDPOINT,
+    deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    version: OPENAI_CHAT_COMPLETION_MODEL_VERSION,
+  },
+  numRetries: 0,
+  retryDelayMs: 5000,
+});
+
 export const findContent = makeDefaultFindContent({
   embedder,
   store: embeddedContentStore,
@@ -128,34 +141,12 @@ ${preprocessedUserMessage ?? originalUserMessage}
   };
 };
 
-export const REJECT_QUERY_CONTENT = "REJECT_QUERY";
-export const NO_VECTOR_CONTENT = "NO_VECTOR_CONTENT";
-export const fakeGenerateUserPrompt: GenerateUserPromptFunc = async (args) => {
-  const noVectorContent = args.userMessageText === NO_VECTOR_CONTENT;
-  return {
-    userMessage: {
-      role: "user",
-      content: args.userMessageText,
-    },
-    references: noVectorContent
-      ? []
-      : [
-          {
-            url: "https://mongodb.com/docs/manual/reference/operator/query/eq/?tck=docs-chatbot",
-            title: "$eq",
-          },
-        ],
-    rejectQuery: args.userMessageText === REJECT_QUERY_CONTENT,
-    staticResponse: noVectorContent
-      ? {
-          content: conversations.conversationConstants.NO_RELEVANT_CONTENT,
-          role: "assistant",
-          references: [],
-        }
-      : undefined,
-  };
-};
-
+export const generateUserPrompt = makeRagGenerateUserPrompt({
+  findContent,
+  queryPreprocessor: mongoDbUserQueryPreprocessor,
+  makeReferenceLinks: makeMongoDbReferences,
+  makeUserMessage,
+});
 export const systemPrompt: SystemPrompt = {
   role: "system",
   content: stripIndents`You are expert MongoDB documentation chatbot.
@@ -221,7 +212,7 @@ export const config: AppConfig = {
   conversationsRouterConfig: {
     llm,
     conversations,
-    generateUserPrompt: fakeGenerateUserPrompt,
+    generateUserPrompt,
     filterPreviousMessages: filterPrevious12Messages,
     systemPrompt,
   },

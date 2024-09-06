@@ -83,7 +83,7 @@ export const llm = makeOpenAiChatLlm({
   deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   openAiLmmConfigOptions: {
     temperature: 0,
-    maxTokens: 500,
+    maxTokens: 1000,
   },
 });
 

@@ -1,15 +1,9 @@
-import {
-  assertEnvVars,
-  AssistantMessage,
-  SomeMessage,
-  UserMessage,
-} from "mongodb-chatbot-server";
+import { assertEnvVars } from "mongodb-chatbot-server";
 import { EVAL_ENV_VARS } from "../EvalEnvVars";
 import { AzureOpenAI } from "openai";
-import { z } from "zod";
-import { strict as assert } from "assert";
 
 export const {
+  JUDGE_OPENAI_API_KEY,
   JUDGE_EMBEDDING_MODEL,
   JUDGE_LLM,
   OPENAI_API_KEY,
@@ -31,28 +25,3 @@ export const openAiClient = new AzureOpenAI({
   endpoint: OPENAI_ENDPOINT,
   apiVersion: OPENAI_API_VERSION,
 });
-
-export function getLastUserMessageFromMessages(
-  messages: SomeMessage[]
-): UserMessage {
-  const userMessage = [...messages].reverse().find((m) => m.role === "user");
-  assert(userMessage, "Conversation must have a UserMessage");
-  return userMessage as UserMessage;
-}
-export function getLastAssistantMessageFromMessages(
-  messages: SomeMessage[]
-): AssistantMessage {
-  const assistantMessage = [...messages]
-    .reverse()
-    .find((m) => m.role === "assistant");
-  assert(assistantMessage, "Conversation must have a AssistantMessage");
-  return assistantMessage as AssistantMessage;
-}
-
-export function getContextsFromUserMessage(userMessage: UserMessage) {
-  const { data: contexts } = z
-    .array(z.string())
-    .safeParse(userMessage.contextContent?.map((cc) => cc.text));
-  // Return empty array if no context text found
-  return contexts ?? [];
-}

@@ -38,7 +38,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     input: "pymongo insert data",
     expected: {
       programmingLanguage: "python",
-      mongoDbProduct: "Driver",
+      mongoDbProduct: "Drivers",
     } satisfies ExtractMongoDbMetadataFunction,
     tags: ["driver", "python"],
   },
@@ -71,7 +71,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     input:
       "how to open a change stream watch on a database and filter the stream",
     expected: {
-      mongoDbProduct: "Driver",
+      mongoDbProduct: "Drivers",
       programmingLanguage: "javascript",
     } satisfies ExtractMongoDbMetadataFunction,
     tags: ["change_streams"],
@@ -81,7 +81,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     input:
       "how to open a change stream watch on a database and filter the stream pymongo",
     expected: {
-      mongoDbProduct: "Driver",
+      mongoDbProduct: "Drivers",
       programmingLanguage: "python",
     } satisfies ExtractMongoDbMetadataFunction,
     tags: ["change_streams"],
@@ -91,7 +91,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     input:
       "How do I choose the order of fields when creating a compound index?",
     expected: {
-      mongoDbProduct: "MongoDB",
+      mongoDbProduct: "MongoDB Server",
       programmingLanguage: "javascript",
     } satisfies ExtractMongoDbMetadataFunction,
     tags: ["indexes"],
@@ -108,7 +108,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     name: "should recognize MongoDB for analytics",
     input: "How do I run real-time analytics on my data?",
     expected: {
-      mongoDbProduct: "MongoDB",
+      mongoDbProduct: "MongoDB Server",
     } satisfies ExtractMongoDbMetadataFunction,
     tags: ["analytics"],
   },
@@ -116,7 +116,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     name: "should detect transaction management topic",
     input: "How do I manage multi-document transactions?",
     expected: {
-      mongoDbProduct: "MongoDB",
+      mongoDbProduct: "MongoDB Server",
     } satisfies ExtractMongoDbMetadataFunction,
     tags: ["server"],
   },
@@ -133,7 +133,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     input: "How do I connect to MongoDB using the Java driver?",
     expected: {
       programmingLanguage: "java",
-      mongoDbProduct: "Driver",
+      mongoDbProduct: "Drivers",
     } satisfies ExtractMongoDbMetadataFunction,
     tags: ["driver", "java"],
   },
@@ -142,7 +142,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     input: "How do I query a collection using LINQ in C#?",
     expected: {
       programmingLanguage: "csharp",
-      mongoDbProduct: "Driver",
+      mongoDbProduct: "Drivers",
     } satisfies ExtractMongoDbMetadataFunction,
     tags: ["driver", "csharp"],
   },
@@ -160,7 +160,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     input: "How do I handle MongoDB connections in Node.js?",
     expected: {
       programmingLanguage: "javascript",
-      mongoDbProduct: "Driver",
+      mongoDbProduct: "Drivers",
     } satisfies ExtractMongoDbMetadataFunction,
     tags: ["driver", "javascript"],
   },
@@ -169,7 +169,7 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     input: "How do I insert multiple documents with the MongoDB Go driver?",
     expected: {
       programmingLanguage: "go",
-      mongoDbProduct: "Driver",
+      mongoDbProduct: "Drivers",
     } satisfies ExtractMongoDbMetadataFunction,
     tags: ["driver", "go"],
   },

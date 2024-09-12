@@ -247,26 +247,6 @@ export const mongoDbProducts = [
     parentProductId: "atlas",
   },
   {
-    id: "realm_sdk",
-    name: "Realm SDK",
-  },
-  {
-    id: "atlas_app_services",
-    name: "Atlas App Services",
-    parentProductId: "atlas",
-  },
-  {
-    id: "atlas_device_sync",
-    name: "Atlas Device Sync",
-    parentProductId: "atlas",
-  },
-  {
-    id: "atlas_data_api",
-    name: "Atlas Data API",
-    parentProductId: "atlas",
-    description: "HTTPS API for querying MongoDB Atlas data",
-  },
-  {
     id: "mongodb_ops_manager",
     name: "MongoDB Ops Manager",
     description: "On-prem management tool for MongoDB",

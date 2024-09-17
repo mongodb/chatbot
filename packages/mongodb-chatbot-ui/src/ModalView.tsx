@@ -53,7 +53,8 @@ export function ModalView(props: ModalViewProps) {
   const { darkMode } = useDarkMode(props.darkMode);
   const { className, inputBarId, ...chatWindowProps } = props;
 
-  const { closeChat, open, openChat, conversation } = useChatbotContext();
+  const { closeChat, open, openChat, conversation, shouldUseHotkey } =
+    useChatbotContext();
 
   const shouldClose = () => {
     if (props.shouldClose?.() ?? true) {
@@ -71,7 +72,7 @@ export function ModalView(props: ModalViewProps) {
         openChat();
       }
     },
-    { enabled: !!props.shouldRenderHotkeyIndicator && !open }
+    { enabled: !!shouldUseHotkey && !open }
   );
 
   const chatWindowInputBarId = inputBarId ?? "chatbot-modal-input-bar";

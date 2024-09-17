@@ -46,6 +46,7 @@ export function useTextInputTrigger({
     handleSubmit,
     conversation,
     isExperimental,
+    shouldUseHotkey
   } = useChatbotContext();
 
   const [focused, setFocused] = useState(false);
@@ -73,5 +74,6 @@ export function useTextInputTrigger({
     handleSubmit,
     hasError,
     showError,
+    shouldUseHotkey
   };
 }

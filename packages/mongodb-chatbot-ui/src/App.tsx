@@ -84,6 +84,7 @@ function App() {
           onClose={() => {
             console.log("Dev Center Chatbot closed");
           }}
+          shouldUseHotkey
         >
           <DevCenterChatbot
             initialMessageSuggestedPrompts={SUGGESTED_PROMPTS}

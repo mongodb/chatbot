@@ -25,6 +25,7 @@ export function Chatbot({
   name,
   fetchOptions,
   isExperimental,
+  shouldUseHotkey,
   onOpen,
   onClose,
   ...props
@@ -49,6 +50,7 @@ export function Chatbot({
     maxCommentCharacters,
     onOpen,
     onClose,
+    shouldUseHotkey,
   });
 
   const tck = props.tck ?? "mongodb_ai_chatbot";

@@ -70,6 +70,7 @@ export function InputBarTrigger({
     handleSubmit,
     hasError,
     showError,
+    shouldUseHotkey,
   } = useTextInputTrigger({
     fatalErrorMessage,
     placeholder,
@@ -135,6 +136,7 @@ export function InputBarTrigger({
           onBlur={() => {
             setFocused(false);
           }}
+          shouldRenderHotkeyIndicator={shouldUseHotkey}
         >
           {showSuggestedPrompts ? (
             <SuggestedPrompts label="SUGGESTED AI PROMPTS">

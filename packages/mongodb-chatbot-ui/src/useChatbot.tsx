@@ -10,6 +10,7 @@ export type UseChatbotProps = OpenCloseHandlers &
   UseConversationParams & {
     chatbotName?: string;
     isExperimental?: boolean;
+    shouldUseHotkey?: boolean;
     maxInputCharacters?: number;
     maxCommentCharacters?: number;
   };
@@ -31,6 +32,7 @@ export type ChatbotData = {
   open: boolean;
   openChat: () => void;
   setInputText: (text: string) => void;
+  shouldUseHotkey: boolean;
 };
 
 export function useChatbot({
@@ -40,6 +42,7 @@ export function useChatbot({
   isExperimental = true,
   maxInputCharacters,
   maxCommentCharacters,
+  shouldUseHotkey = false,
   ...useConversationArgs
 }: UseChatbotProps): ChatbotData {
   const conversation = useConversation(useConversationArgs);
@@ -142,5 +145,6 @@ export function useChatbot({
     open,
     openChat,
     setInputText,
+    shouldUseHotkey,
   };
 }

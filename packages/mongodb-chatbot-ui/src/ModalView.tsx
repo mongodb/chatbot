@@ -2,6 +2,7 @@ import { css, cx } from "@emotion/css";
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import Modal, { ModalProps } from "@leafygreen-ui/modal";
 import { palette } from "@leafygreen-ui/palette";
+import { useEventListener } from "@leafygreen-ui/hooks";
 import { Suspense, lazy } from "react";
 import { type StylesProps } from "./utils";
 import { type ChatbotViewProps } from "./ChatbotView";
@@ -52,7 +53,7 @@ export function ModalView(props: ModalViewProps) {
   const { darkMode } = useDarkMode(props.darkMode);
   const { className, inputBarId, ...chatWindowProps } = props;
 
-  const { closeChat, open, conversation } = useChatbotContext();
+  const { closeChat, open, openChat, conversation } = useChatbotContext();
 
   const shouldClose = () => {
     if (props.shouldClose?.() ?? true) {
@@ -62,6 +63,16 @@ export function ModalView(props: ModalViewProps) {
       return false;
     }
   };
+
+  useEventListener(
+    "keydown",
+    (e: KeyboardEvent) => {
+      if (!e.repeat && e.key === "/") {
+        openChat();
+      }
+    },
+    { enabled: !!props.shouldRenderHotkeyIndicator && !open }
+  );
 
   const chatWindowInputBarId = inputBarId ?? "chatbot-modal-input-bar";
 

@@ -6,11 +6,10 @@ import {
   loadBraintrustMetadata,
 } from "./loadBraintrustDatasets";
 
+const { BRAINTRUST_API_KEY, BRAINTRUST_TEXT_TO_DRIVER_PROJECT_NAME } =
+  assertEnvVars(TEXT_TO_DRIVER_ENV_VARS);
 // Skipping tests b/c no Braintrust key in the CI.
 describe.skip("loadBraintrustMetadata", () => {
-  const { BRAINTRUST_API_KEY, BRAINTRUST_TEXT_TO_DRIVER_PROJECT_NAME } =
-    assertEnvVars(TEXT_TO_DRIVER_ENV_VARS);
-  // TODO
   it("should load the braintrust metadata", async () => {
     const md = await loadBraintrustMetadata({
       apiKey: BRAINTRUST_API_KEY,
@@ -21,8 +20,6 @@ describe.skip("loadBraintrustMetadata", () => {
 });
 
 describe.skip("loadBraintrustDbDocuments", () => {
-  const { BRAINTRUST_API_KEY, BRAINTRUST_TEXT_TO_DRIVER_PROJECT_NAME } =
-    assertEnvVars(TEXT_TO_DRIVER_ENV_VARS);
   it("should load the braintrust db documents", async () => {
     const docs = await loadBraintrustDbDocuments({
       apiKey: BRAINTRUST_API_KEY,

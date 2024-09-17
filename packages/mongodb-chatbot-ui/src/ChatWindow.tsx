@@ -74,7 +74,7 @@ export function ChatWindow(props: ChatWindowProps) {
     initialMessageSuggestedPrompts,
     inputBarId = "chatbot-input-bar",
     inputBottomText,
-    shouldUseHotkey,
+    shouldUseSlashHotkey,
     windowTitle,
   } = props;
 
@@ -192,7 +192,7 @@ export function ChatWindow(props: ChatWindowProps) {
                 ref={inputBarRef}
                 disabled={Boolean(conversation.error?.length)}
                 disableSend={hasError || awaitingReply}
-                shouldRenderHotkeyIndicator={shouldUseHotkey}
+                shouldRenderHotkeyIndicator={shouldUseSlashHotkey}
                 onMessageSend={(messageContent) => {
                   const canSubmit =
                     inputTextError.length === 0 && !conversation.error;

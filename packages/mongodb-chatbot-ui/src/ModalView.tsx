@@ -71,7 +71,7 @@ export function ModalView(props: ModalViewProps) {
         openChat();
       }
     },
-    { enabled: !!props.shouldUseHotkey && !open }
+    { enabled: !!props.shouldUseSlashHotkey && !open }
   );
 
   const chatWindowInputBarId = inputBarId ?? "chatbot-modal-input-bar";

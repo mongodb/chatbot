@@ -40,7 +40,7 @@ export function DevCenterChatbot(props: DevCenterChatbotProps) {
         />
       </>
     ),
-    shouldRenderHotkeyIndicator: true,
+    shouldUseHotkey: true,
     inputBottomText: mongoDbVerifyInformationMessage,
   } satisfies ModalViewProps;
 

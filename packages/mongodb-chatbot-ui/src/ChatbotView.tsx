@@ -12,6 +12,6 @@ export type ChatbotViewProps = DarkModeProps & {
   inputBarId?: string;
   inputBarPlaceholder?: string;
   inputBottomText?: string;
-  shouldRenderHotkeyIndicator?: boolean;
+  shouldUseHotkey?: boolean;
   windowTitle?: string;
 };

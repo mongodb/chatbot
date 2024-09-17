@@ -49,6 +49,7 @@
     "dotenv": "^16",
     "mongodb-chatbot-evaluation": "*",
     "mongodb-chatbot-server": "*",
-    "mongodb-rag-core": "*"
+    "mongodb-rag-core": "*",
+    "openai": "^4.61.1"
   }
 }

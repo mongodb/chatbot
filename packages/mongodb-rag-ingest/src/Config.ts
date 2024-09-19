@@ -52,10 +52,25 @@ export type Config = {
   concurrencyOptions?: Constructor<ConcurrencyOptions>;
 };
 
+
+  /**
+    Options for concurrency. 
+    Set the number of tasks to process concurrently in the promise pool.
+    If not specified, tasks will be run sequentially.
+   */
 export interface ConcurrencyOptions {
-  embed: {
+  /**
+    Options for concurrency when embedding content. Set the number of tasks to process concurrently.
+   */
+  embed?: {
     processPages: number,
     createChunks: number,
+  },
+  /**
+    Options for concurrency for pages. Set the number of tasks to process concurrently.
+   */
+  pages?: {
+    processDataSources: number,
   }
 }
 

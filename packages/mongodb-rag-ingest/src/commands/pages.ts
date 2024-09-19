@@ -29,7 +29,7 @@ type PagesCommandArgs = {
 };
 
 export const doPagesCommand = async (
-  { pageStore, dataSources }: ResolvedConfig,
+  { pageStore, dataSources, concurrencyOptions }: ResolvedConfig,
   { source }: PagesCommandArgs
 ) => {
   const requestedSources = new Set(Array.isArray(source) ? source : [source]);
@@ -50,13 +50,6 @@ export const doPagesCommand = async (
   logger.info(
     `Loaded sources:\n${sources.map(({ name }) => `- ${name}`).join("\n")}`
   );
-
-  const concurrencyOptions: ConcurrencyOptions = {
-    embed: {
-      processPages: 10,
-      createChunks: 5
-    }
-  }
 
   await updatePages({
     sources,

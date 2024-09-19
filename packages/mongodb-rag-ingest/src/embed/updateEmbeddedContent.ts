@@ -42,7 +42,7 @@ export const updateEmbeddedContent = async ({
     }`
   );
   await PromisePool
-    .withConcurrency(concurrencyOptions?.embed.processPages || 1)
+    .withConcurrency(concurrencyOptions?.embed?.processPages || 1)
     .for(changedPages)
     .process(async (page, index, pool) => {
       switch (page.action) {
@@ -137,7 +137,7 @@ export const updateEmbeddedContentForPage = async ({
   const embeddedContent: EmbeddedContent[] = [];
 
   await PromisePool
-    .withConcurrency(concurrencyOptions?.embed.createChunks || 1)
+    .withConcurrency(concurrencyOptions?.embed?.createChunks || 1)
     .for(contentChunks)
     .process(async (chunk, index, pool) => {
       logger.info(

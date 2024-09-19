@@ -3,6 +3,7 @@ import { logger } from "mongodb-rag-core";
 import { updatePages } from "../pages/updatePages";
 import { LoadConfigArgs } from "../withConfig";
 import { withConfig, withConfigOptions, ResolvedConfig } from "../withConfig";
+import { ConcurrencyOptions } from "../Config";
 
 const commandModule: CommandModule<
   Record<string, unknown>,
@@ -50,8 +51,16 @@ export const doPagesCommand = async (
     `Loaded sources:\n${sources.map(({ name }) => `- ${name}`).join("\n")}`
   );
 
+  const concurrencyOptions: ConcurrencyOptions = {
+    embed: {
+      processPages: 10,
+      createChunks: 5
+    }
+  }
+
   await updatePages({
     sources,
     pageStore,
+    concurrencyOptions
   });
 };

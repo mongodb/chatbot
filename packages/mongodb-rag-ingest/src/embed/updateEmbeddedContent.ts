@@ -8,6 +8,8 @@ import {
 } from "mongodb-rag-core";
 import { createHash } from "crypto";
 import { chunkPage, ChunkFunc, ChunkOptions } from "./chunkPage";
+import { PromisePool } from "@supercharge/promise-pool";
+import { ConcurrencyOptions } from "../Config";
 
 /**
   (Re-)embeddedContent the pages in the page store that have changed since the given date
@@ -20,6 +22,7 @@ export const updateEmbeddedContent = async ({
   sourceNames,
   embedder,
   chunkOptions,
+  concurrencyOptions,
 }: {
   since: Date;
   embeddedContentStore: EmbeddedContentStore;
@@ -27,6 +30,7 @@ export const updateEmbeddedContent = async ({
   embedder: Embedder;
   chunkOptions?: Partial<ChunkOptions>;
   sourceNames?: string[];
+  concurrencyOptions?: ConcurrencyOptions;
 }): Promise<void> => {
   const changedPages = await pageStore.loadPages({
     updated: since,
@@ -37,26 +41,29 @@ export const updateEmbeddedContent = async ({
       sourceNames ? ` in sources: ${sourceNames.join(", ")}` : ""
     }`
   );
-  for (const page of changedPages) {
-    switch (page.action) {
-      case "deleted":
-        logger.info(
-          `Deleting embedded content for ${page.sourceName}: ${page.url}`
-        );
-        await embeddedContentStore.deleteEmbeddedContent({
-          page,
-        });
-        break;
-      case "created": // fallthrough
-      case "updated":
-        await updateEmbeddedContentForPage({
-          store: embeddedContentStore,
-          page,
-          chunkOptions,
-          embedder,
-        });
-    }
-  }
+  await PromisePool
+    .withConcurrency(concurrencyOptions?.embed.processPages || 1)
+    .for(changedPages)
+    .process(async (page, index, pool) => {
+      switch (page.action) {
+        case "deleted":
+          logger.info(
+            `Deleting embedded content for ${page.sourceName}: ${page.url}`
+          );
+          await embeddedContentStore.deleteEmbeddedContent({
+            page,
+          });
+          break;
+        case "created": // fallthrough
+        case "updated":
+          await updateEmbeddedContentForPage({
+            store: embeddedContentStore,
+            page,
+            chunkOptions,
+            embedder,
+          });
+        }
+    })
 };
 
 const chunkAlgoHashes = new Map<string, string>();
@@ -79,11 +86,13 @@ export const updateEmbeddedContentForPage = async ({
   store,
   embedder,
   chunkOptions,
+  concurrencyOptions,
 }: {
   page: PersistedPage;
   store: EmbeddedContentStore;
   embedder: Embedder;
   chunkOptions?: Partial<ChunkOptions>;
+  concurrencyOptions?: ConcurrencyOptions;
 }): Promise<void> => {
   const contentChunks = await chunkPage(page, chunkOptions);
 
@@ -127,25 +136,25 @@ export const updateEmbeddedContentForPage = async ({
 
   const embeddedContent: EmbeddedContent[] = [];
 
-  // Process sequentially because we're likely to hit rate limits before any
-  // other performance bottleneck
-  for (let i = 0; i < contentChunks.length; ++i) {
-    const chunk = contentChunks[i];
-    logger.info(
-      `Vectorizing chunk ${i + 1}/${contentChunks.length} for ${
-        page.sourceName
-      }: ${page.url}`
-    );
-    const { embedding } = await embedder.embed({
-      text: chunk.text,
-    });
-    embeddedContent.push({
-      ...chunk,
-      embedding,
-      updated: new Date(),
-      chunkAlgoHash,
-    });
-  }
+  await PromisePool
+    .withConcurrency(concurrencyOptions?.embed.createChunks || 1)
+    .for(contentChunks)
+    .process(async (chunk, index, pool) => {
+      logger.info(
+        `Vectorizing chunk ${index + 1}/${contentChunks.length} for ${
+          page.sourceName
+        }: ${page.url}`
+      );
+      const { embedding } = await embedder.embed({
+        text: chunk.text,
+      });
+      embeddedContent.push({
+        ...chunk,
+        embedding,
+        updated: new Date(),
+        chunkAlgoHash,
+      });
+    })
 
   await store.updateEmbeddedContent({
     page,

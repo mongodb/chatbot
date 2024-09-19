@@ -45,6 +45,19 @@ export type Config = {
     Options for the chunker.
    */
   chunkOptions?: Constructor<Partial<ChunkOptions>>;
+
+  /**
+    Options for concurrency.
+   */
+  concurrencyOptions?: Constructor<ConcurrencyOptions>;
 };
+
+export interface ConcurrencyOptions {
+  embed: {
+    processPages: number,
+    createChunks: number,
+  }
+}
+
 
 export type Constructor<T> = (() => T) | (() => Promise<T>);

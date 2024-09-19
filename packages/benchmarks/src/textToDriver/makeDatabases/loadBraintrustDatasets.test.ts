@@ -1,13 +1,13 @@
 import "dotenv/config";
 import { assertEnvVars } from "mongodb-rag-core";
-import { TEXT_TO_DRIVER_ENV_VARS } from "../TextToDriverEnvVars";
+import { BRAINTRUST_ENV_VARS } from "../TextToDriverEnvVars";
 import {
   loadBraintrustDbDocuments,
   loadBraintrustMetadata,
 } from "./loadBraintrustDatasets";
 
 const { BRAINTRUST_API_KEY, BRAINTRUST_TEXT_TO_DRIVER_PROJECT_NAME } =
-  assertEnvVars(TEXT_TO_DRIVER_ENV_VARS);
+  assertEnvVars(BRAINTRUST_ENV_VARS);
 // Skipping tests b/c no Braintrust key in the CI.
 describe.skip("loadBraintrustMetadata", () => {
   it("should load the braintrust metadata", async () => {

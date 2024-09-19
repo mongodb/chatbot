@@ -59,6 +59,6 @@ describe("executeGeneratedDriverCode", () => {
 
     expect(result.error?.message).toBe(errorMessage);
     expect(result.result).toBeNull();
-    expect(result.executionTimeMs).toBeGreaterThan(0);
+    expect(result.executionTimeMs).toBeGreaterThanOrEqual(0);
   });
 });

@@ -55,22 +55,34 @@ export type Config = {
 
   /**
     Options for concurrency. 
-    Set the number of tasks to process concurrently in the promise pool.
+    Set the number of concurrent promises to execute for the given tasks.
     If not specified, tasks will be run sequentially.
    */
 export interface ConcurrencyOptions {
   /**
-    Options for concurrency when embedding content. Set the number of tasks to process concurrently.
+    Options for concurrency when chunking and embedding content
+    with the `embed` command.
    */
   embed?: {
-    processPages: number,
-    createChunks: number,
+    /**
+      Number of pages to chunk and embed concurrently.
+     */
+    processPages?: number,
+    /**
+      Maximum number of chunks per page to generate chunks for concurrently.
+      This includes the creation of the chunk embeddings and any chunk preprocessing.
+     */
+    createChunks?: number,
   },
   /**
-    Options for concurrency for pages. Set the number of tasks to process concurrently.
+    Options for concurrency when ingesting
+    with the `pages` command.
    */
   pages?: {
-    processDataSources: number,
+    /**
+      Number of data sources to process concurrently.
+     */
+    processDataSources?: number,
   }
 }
 

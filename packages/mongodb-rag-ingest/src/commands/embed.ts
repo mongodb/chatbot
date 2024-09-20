@@ -65,6 +65,6 @@ export const doEmbedCommand = async (
     embeddedContentStore,
     embedder,
     chunkOptions,
-    concurrencyOptions,
+    embedConcurrencyOptions: concurrencyOptions?.embed,
   });
 };

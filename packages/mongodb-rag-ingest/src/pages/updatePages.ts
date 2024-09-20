@@ -10,14 +10,14 @@ import { ConcurrencyOptions } from "../Config";
 export const updatePages = async ({
   sources,
   pageStore,
-  concurrencyOptions,
+  pageConcurrencyOptions,
 }: {
   sources: DataSource[];
   pageStore: PageStore;
-  concurrencyOptions?: ConcurrencyOptions
+  pageConcurrencyOptions?: ConcurrencyOptions["pages"]
 }): Promise<void> => {
   await PromisePool
-    .withConcurrency(concurrencyOptions?.pages?.processDataSources || 1)
+    .withConcurrency(pageConcurrencyOptions?.processDataSources || 1)
     .for(sources)
     .process(async (source, index, pool) => {
       logger.info(`Fetching pages for ${source.name}`);

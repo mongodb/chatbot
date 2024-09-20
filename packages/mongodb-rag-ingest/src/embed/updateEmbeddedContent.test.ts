@@ -107,11 +107,9 @@ describe("updateEmbeddedContent", () => {
       embeddedContentStore,
       pageStore,
       since,
-      concurrencyOptions: {
-        embed: {
-          processPages: 10,
-          createChunks: 5
-        }
+      embedConcurrencyOptions: {
+        processPages: 10,
+        createChunks: 5
       }
     });
 
@@ -133,11 +131,9 @@ describe("updateEmbeddedContent", () => {
         // Changing options impacts the chunkAlgoHash
         chunkOverlap: 2,
       },
-      concurrencyOptions: {
-        embed: {
-          processPages: 10,
-          createChunks: 5
-        }
+      embedConcurrencyOptions: {
+        processPages: 10,
+        createChunks: 5
       }
     });
     const embeddedContent2 = await embeddedContentStore.loadEmbeddedContent({

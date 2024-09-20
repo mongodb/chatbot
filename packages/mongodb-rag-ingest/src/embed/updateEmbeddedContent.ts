@@ -22,7 +22,7 @@ export const updateEmbeddedContent = async ({
   sourceNames,
   embedder,
   chunkOptions,
-  concurrencyOptions,
+  embedConcurrencyOptions,
 }: {
   since: Date;
   embeddedContentStore: EmbeddedContentStore;
@@ -30,7 +30,7 @@ export const updateEmbeddedContent = async ({
   embedder: Embedder;
   chunkOptions?: Partial<ChunkOptions>;
   sourceNames?: string[];
-  concurrencyOptions?: ConcurrencyOptions;
+  embedConcurrencyOptions?: ConcurrencyOptions["embed"];
 }): Promise<void> => {
   const changedPages = await pageStore.loadPages({
     updated: since,
@@ -42,7 +42,7 @@ export const updateEmbeddedContent = async ({
     }`
   );
   await PromisePool
-    .withConcurrency(concurrencyOptions?.embed?.processPages || 1)
+    .withConcurrency(embedConcurrencyOptions?.processPages || 1)
     .for(changedPages)
     .process(async (page, index, pool) => {
       switch (page.action) {
@@ -86,13 +86,13 @@ export const updateEmbeddedContentForPage = async ({
   store,
   embedder,
   chunkOptions,
-  concurrencyOptions,
+  embedConcurrencyOptions,
 }: {
   page: PersistedPage;
   store: EmbeddedContentStore;
   embedder: Embedder;
   chunkOptions?: Partial<ChunkOptions>;
-  concurrencyOptions?: ConcurrencyOptions;
+  embedConcurrencyOptions?: ConcurrencyOptions["embed"];
 }): Promise<void> => {
   const contentChunks = await chunkPage(page, chunkOptions);
 
@@ -137,7 +137,7 @@ export const updateEmbeddedContentForPage = async ({
   const embeddedContent: EmbeddedContent[] = [];
 
   await PromisePool
-    .withConcurrency(concurrencyOptions?.embed?.createChunks || 1)
+    .withConcurrency(embedConcurrencyOptions?.createChunks || 1)
     .for(contentChunks)
     .process(async (chunk, index, pool) => {
       logger.info(

@@ -1,4 +1,5 @@
 import { Document, MongoClient } from "mongodb-rag-core";
+import vm from "vm";
 
 export interface ExecuteGeneratedDriverCodeParams {
   /**
@@ -58,11 +59,11 @@ export async function executeGeneratedDriverCode(
 
   const startTime = Date.now();
 
+  // Wrap the generated code in an async IIFE to guarantee that it returns a Promise
+  const promiseCode = `(async () => { return ${generatedDriverCode} })()`;
+
   try {
-    // Wrap the generated code in an async IIFE to guarantee that it returns a Promise
-    const result = await eval(
-      `(async () => { return ${generatedDriverCode} })()`
-    );
+    const result = await vm.runInNewContext(promiseCode, { database });
 
     const endTime = Date.now();
 

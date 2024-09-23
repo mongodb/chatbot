@@ -1,6 +1,7 @@
 import { isRichLinkVariantName, type RichLinkProps } from "@lg-chat/rich-links";
 import { References } from "mongodb-rag-core";
 import { addQueryParams } from "./utils";
+import { MessageData } from "./services/conversations";
 
 export type FormatReferencesOptions = {
   tck?: string;
@@ -24,4 +25,13 @@ export function formatReferences(
     }
     return richLinkProps;
   });
+}
+
+export function getMessageLinks(
+  messageData: MessageData,
+  options: { tck?: string } = {}
+): RichLinkProps[] | undefined {
+  return messageData.references && messageData.references.length > 0
+    ? formatReferences(messageData.references, { tck: options.tck })
+    : undefined;
 }

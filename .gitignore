@@ -11,4 +11,4 @@ node_modules
 
 .vscode
 build/
-.ipynb_checkpoints
+.ipynb_checkpoints/

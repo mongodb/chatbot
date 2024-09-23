@@ -26,12 +26,6 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
   },
   {
     type: "snooty",
-    name: "atlas-app-services",
-    tags: ["atlas", "docs", "app-services"],
-    productName: "Atlas App Services",
-  },
-  {
-    type: "snooty",
     name: "atlas-cli",
     tags: ["atlas", "docs", "cli", "atlas-cli"],
     productName: "Atlas CLI",
@@ -77,12 +71,6 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
     name: "entity-framework",
     tags: ["docs", "driver", "csharp", "entity-framework"],
     productName: "MongoDB Entity Framework Provider",
-  },
-  {
-    type: "snooty",
-    name: "datalake",
-    tags: ["datalake", "docs", "atlas"],
-    productName: "Atlas Data Lake",
   },
   {
     type: "snooty",
@@ -166,12 +154,6 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
     name: "laravel",
     tags: ["docs", "driver", "php", "laravel"],
     productName: "Laravel MongoDB",
-  },
-  {
-    type: "snooty",
-    name: "realm",
-    tags: ["docs", "realm", "mobile", "sdk"],
-    productName: "Realm SDKs",
   },
   {
     type: "snooty",

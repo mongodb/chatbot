@@ -1,23 +1,6 @@
-import {
-  type RichLinkProps,
-  type RichLinkVariantName,
-} from "@lg-chat/rich-links";
+import { isRichLinkVariantName, type RichLinkProps } from "@lg-chat/rich-links";
 import { References } from "mongodb-rag-core";
 import { addQueryParams } from "./utils";
-
-const richLinkVariantNames = [
-  "Blog",
-  "Book",
-  "Code",
-  "Docs",
-  "Learn",
-  "Video",
-  "Website",
-];
-
-export function isRichLinkVariantName(str: string): str is RichLinkVariantName {
-  return richLinkVariantNames.includes(str);
-}
 
 export type FormatReferencesOptions = {
   tck?: string;

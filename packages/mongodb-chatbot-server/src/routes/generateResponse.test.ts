@@ -231,6 +231,36 @@ describe("generateResponse", () => {
     const data = res._getData();
     expect(data).toBe("");
   });
+  it("should stream metadata", async () => {
+    const metadata = { foo: "bar", baz: 42 };
+    const staticResponse = {
+      role: "assistant",
+      content: "static response",
+      metadata,
+    } satisfies AssistantMessage;
+
+    await generateResponse({
+      ...baseArgs,
+      shouldStream: true,
+      async generateUserPrompt() {
+        return {
+          userMessage: {
+            role: "user",
+            content: "test metadata",
+          },
+          staticResponse,
+        };
+      },
+    });
+
+    const data = res._getData();
+
+    // The metadata should be streamed before the assistant response
+    const expectedMetadataEvent = `data: {"type":"metadata","data":${JSON.stringify(
+      metadata
+    )}}\n\n`;
+    expect(data).toContain(expectedMetadataEvent);
+  });
   it("should send a static message", async () => {
     const userMessage = {
       role: "user",
@@ -498,5 +528,19 @@ describe("streamGenerateResponseMessage", () => {
     expect(data).toContain(
       `data: {"type":"references","data":${JSON.stringify(references)}}`
     );
+  });
+  it("should stream metadata", async () => {
+    const metadata = { foo: "bar", baz: 42 };
+    await streamGenerateResponseMessage({
+      ...baseArgs,
+      metadata,
+    });
+    const data = res._getData();
+
+    // The metadata should be streamed before the assistant response
+    const expectedMetadataEvent = `data: {"type":"metadata","data":${JSON.stringify(
+      metadata
+    )}}`;
+    expect(data).toContain(expectedMetadataEvent);
   });
 });

@@ -9,7 +9,6 @@ import {
   AssistantMessage,
   UserMessage,
   ConversationCustomData,
-  makeDataStreamer,
 } from "mongodb-rag-core";
 import { ChatCompletionRequestMessageFunctionCall } from "openai";
 import { Request as ExpressRequest } from "express";
@@ -31,11 +30,6 @@ export interface GenerateResponseParams {
   noRelevantContentMessage: string;
   conversation: Conversation;
   request?: ExpressRequest;
-
-  /**
-    Arbitrary data about the message to stream before the generated response.
-   */
-  metadata?: Record<string, unknown>;
 }
 
 interface GenerateResponseReturnValue {
@@ -91,6 +85,8 @@ export async function generateResponse({
     : userMessage;
   const newMessages: SomeMessage[] = [userMessageWithCustomData];
 
+  // Metadata for streaming
+  let streamingResponseMetadata: Record<string, unknown> | undefined;
   // Send static response if query rejected or static response provided
   if (rejectQuery) {
     const rejectionMessage = {
@@ -101,6 +97,8 @@ export async function generateResponse({
     newMessages.push(rejectionMessage);
   } else if (staticResponse) {
     newMessages.push(staticResponse);
+    // Need to specify response metadata for streaming
+    streamingResponseMetadata = staticResponse.metadata;
   }
 
   // Prepare conversation messages for LLM
@@ -141,6 +139,7 @@ export async function generateResponse({
       shouldGenerateMessage,
       conversation,
       references,
+      metadata: streamingResponseMetadata,
     });
     newMessages.push(...messages);
   } else {
@@ -272,7 +271,12 @@ export async function awaitGenerateResponseMessage({
 }
 
 export type StreamGenerateResponseParams = BaseGenerateResponseMessageParams &
-  Required<Pick<GenerateResponseParams, "dataStreamer">>;
+  Required<Pick<GenerateResponseParams, "dataStreamer">> & {
+    /**
+      Arbitrary data about the message to stream before the generated response.
+    */
+    metadata?: Record<string, unknown>;
+  };
 
 export async function streamGenerateResponseMessage({
   dataStreamer,

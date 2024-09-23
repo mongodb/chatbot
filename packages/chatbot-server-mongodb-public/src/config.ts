@@ -21,7 +21,6 @@ import {
   ConversationCustomData,
   makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
-  makeFilterNPreviousMessages,
 } from "mongodb-chatbot-server";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import cookieParser from "cookie-parser";
@@ -192,7 +191,7 @@ export const config: AppConfig = {
     conversations,
     maxInputLengthCharacters: 3000,
   },
-  maxRequestTimeoutMs: 30000,
+  maxRequestTimeoutMs: 60000,
   corsOptions: {
     origin: allowedOrigins,
     // Allow cookies from different origins to be sent to the server.

@@ -83,18 +83,17 @@ export const genericFewShotExamples: FewShotExample[] = [
   },
 ] as const;
 
-export const LANGUAGE_CUSTOM_PROMPTS = {
-  NODE: {
-    systemPrompts: {
-      simple: `${promptUtils.basePrompt}
+export const NODE_JS_PROMPTS = {
+  systemPrompts: {
+    simple: `${promptUtils.basePrompt}
 
 ${promptUtils.abstractExampleOutput}`,
-      chainOfThought: `${promptUtils.basePrompt}
+    chainOfThought: `${promptUtils.basePrompt}
 
 ${chainOfThoughtSystemPromptContent}
 
 ${promptUtils.chainOfThoughtAbstractExampleOutput}`,
-      genericFewShot: `${promptUtils.basePrompt}
+    genericFewShot: `${promptUtils.basePrompt}
 
 ${promptUtils.abstractExampleOutput}
 
@@ -106,7 +105,7 @@ ${genericFewShotExamples
 Output: ${ex.output.content}`
   )
   .join("\n\n")}`,
-      genericFewShotChainOfThought: `${promptUtils.basePrompt}
+    genericFewShotChainOfThought: `${promptUtils.basePrompt}
 
 ${chainOfThoughtSystemPromptContent}
 
@@ -122,6 +121,5 @@ Output:
 ${ex.output.content}`
   )
   .join("\n\n")}`,
-    },
   },
 };

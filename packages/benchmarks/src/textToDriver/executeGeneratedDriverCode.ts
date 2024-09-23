@@ -38,7 +38,7 @@ export interface ExecuteGeneratedDriverCodeResult {
   Execute the generated driver code using the provided MongoDB client instance.
 
   This function expects that the generated driver code
-  uses the `database` variable to access the MongoDB database.
+  uses the `database` variable of type `Db` to access the MongoDB database.
   If you do not provide a `database` variable in the generated driver code,
   this function will not work as expected.
 

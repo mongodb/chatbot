@@ -2,17 +2,22 @@ import {
   ChatRequestAssistantMessage,
   GetChatCompletionsOptions,
 } from "@azure/openai";
-import { OpenAIClient } from "@azure/openai";
+// import { OpenAIClient } from "@azure/openai";
+import { AzureOpenAI } from "openai";
 import { strict as assert } from "assert";
 import { ChatLlm, LlmAnswerQuestionParams, Tool } from "./ChatLlm";
+import { ChatCompletionCreateParamsBase } from "openai/resources/chat/completions";
 
 /**
   Configuration for the {@link makeOpenAiChatLlm} function.
  */
 export interface MakeOpenAiChatLlmParams {
   deployment: string;
-  openAiClient: OpenAIClient;
-  openAiLmmConfigOptions?: GetChatCompletionsOptions;
+  openAiClient: AzureOpenAI;
+  openAiLmmConfigOptions?: Omit<
+    ChatCompletionCreateParamsBase,
+    "stream" | "deployment" | "messages"
+  >;
   tools?: Tool[];
 }
 
@@ -37,15 +42,16 @@ export function makeOpenAiChatLlm({
       messages,
       toolCallOptions,
     }: LlmAnswerQuestionParams) {
-      const completionStream = await openAiClient.streamChatCompletions(
+      const completionStream = await openAiClient.chat.completions.create({
+        stream: true,
         deployment,
         messages,
-        {
+        ...{
           ...(openAiLmmConfigOptions ?? {}),
           ...(toolCallOptions ? { functionCall: toolCallOptions } : {}),
           functions: tools?.map((tool) => tool.definition),
-        }
-      );
+        },
+      });
       return completionStream;
     },
     async answerQuestionAwaited({

@@ -1,13 +1,13 @@
-import Path from "path";
 import { strict as assert } from "assert";
-import { promises as fs } from "fs";
 import {
-  makeTypeChatJsonTranslateFunc,
   assertEnvVars,
+  makeAnalyzer,
   MongoClient,
   Db,
   ObjectId,
+  AzureKeyCredential,
 } from "mongodb-rag-core";
+import { AzureOpenAI } from "openai";
 import {
   Conversation,
   Message,
@@ -34,18 +34,30 @@ const {
 });
 
 async function main() {
-  const client = await MongoClient.connect(MONGODB_CONNECTION_URI);
+  const mongoClient = await MongoClient.connect(MONGODB_CONNECTION_URI);
+  const openAiClient = new AzureOpenAI({
+    apiVersion: OPENAI_CHAT_COMPLETION_MODEL_VERSION,
+    deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    endpoint: OPENAI_ENDPOINT,
+    apiKey: new AzureKeyCredential(OPENAI_API_KEY).key,
+  });
   try {
-    const db = client.db(MONGODB_DATABASE_NAME);
-    await analyzeMessages({ db });
+    const db = mongoClient.db(MONGODB_DATABASE_NAME);
+    await analyzeMessages({ db, openAiClient });
   } finally {
-    await client.close();
+    await mongoClient.close();
   }
 }
 
 main();
 
-const analyzeMessages = async ({ db }: { db: Db }) => {
+const analyzeMessages = async ({
+  db,
+  openAiClient,
+}: {
+  db: Db;
+  openAiClient: AzureOpenAI;
+}) => {
   const conversationsCollection = db.collection<Conversation>("conversations");
   const originalMessages = conversationsCollection.aggregate<
     Message & { indexInConvo: number; convoId: ObjectId }
@@ -106,7 +118,10 @@ const analyzeMessages = async ({ db }: { db: Db }) => {
     { $sort: { convoId: 1, createdAt: 1 } },
   ]);
 
-  const analyze = await makeAnalyzer();
+  const analyze = makeAnalyzer({
+    openAiClient,
+    zodSchema: MessageAnalysis,
+  });
   const scrubbedCollection = db.collection<Conversation>("scrubbed_messages");
 
   let lastUserMessage:
@@ -172,25 +187,3 @@ const analyzeMessages = async ({ db }: { db: Db }) => {
 
 const daysBeforeDate = (days: number, date = new Date()) =>
   new Date(new Date(date).setDate(date.getDate() - days));
-
-const makeAnalyzer = async () => {
-  const schemaName = "MessageAnalysis";
-  const schema = await fs.readFile(
-    Path.join(__dirname, `${schemaName}.d.ts`),
-    "utf8"
-  );
-
-  const translate = makeTypeChatJsonTranslateFunc<MessageAnalysis>({
-    azureOpenAiServiceConfig: {
-      apiKey: OPENAI_API_KEY,
-      baseUrl: OPENAI_ENDPOINT,
-      deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-      version: OPENAI_CHAT_COMPLETION_MODEL_VERSION,
-    },
-    schemaName,
-    schema,
-    numRetries: 5,
-  });
-
-  return translate;
-};

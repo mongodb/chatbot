@@ -54,13 +54,12 @@ export async function executeGeneratedDriverCode(
   executionTimeMs: number;
 }> {
   const { generatedDriverCode, mongoClient, databaseName } = params;
-  // While the database variable looks unused, it is actually used in the generated code
   const database = mongoClient.db(databaseName);
-
-  const startTime = Date.now();
 
   // Wrap the generated code in an async IIFE to guarantee that it returns a Promise
   const promiseCode = `(async () => { return ${generatedDriverCode} })()`;
+  
+  const startTime = Date.now();
 
   try {
     const result = await vm.runInNewContext(promiseCode, { database });

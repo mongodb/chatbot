@@ -29,6 +29,7 @@ export {
   ActionButtonTrigger,
   type ActionButtonTriggerProps,
 } from "./ActionButtonTrigger.tsx";
+export { getMessageLinks, formatReferences } from "./messageLinks.ts";
 export { ModalView, type ModalViewProps } from "./ModalView.tsx";
 export { type ChatbotViewProps } from "./ChatbotView.tsx";
 export { type DarkModeProps } from "./DarkMode.ts";

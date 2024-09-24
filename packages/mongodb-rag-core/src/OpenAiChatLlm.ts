@@ -60,10 +60,14 @@ export function makeOpenAiChatLlm({
     }: LlmAnswerQuestionParams) {
       const {
         choices: [choice],
-      } = await openAiClient.getChatCompletions(deployment, messages, {
-        ...(openAiLmmConfigOptions ?? {}),
-        ...(toolCallOptions ? { functionCall: toolCallOptions } : {}),
-        functions: tools?.map((tool) => tool.definition),
+      } = await openAiClient.chat.completions.create({
+        stream: false,
+        messages,
+        // ...{
+        //   ...(openAiLmmConfigOptions ?? {}),
+        //   ...(toolCallOptions ? { functionCall: toolCallOptions } : {}),
+        //   functions: tools?.map((tool) => tool.definition),
+        // },
       });
       const { message } = choice;
       if (!message) {

@@ -16,6 +16,7 @@ import { Reference } from "./References";
 import { Request as ExpressRequest } from "express";
 import { Conversation } from "./ConversationsService";
 import { DataStreamer } from "./DataStreamer";
+import { ChatCompletionMessageParam } from "openai/resources";
 export type OpenAiMessageRole = "system" | "assistant" | "user" | "function";
 
 export type OpenAiChatMessage = ChatRequestMessage & {
@@ -37,7 +38,7 @@ export type SystemPrompt = OpenAiChatMessage & {
 };
 
 export interface LlmAnswerQuestionParams {
-  messages: OpenAiChatMessage[];
+  messages: ChatCompletionMessageParam[];
   toolCallOptions?: ToolCallDirective;
 }
 /**

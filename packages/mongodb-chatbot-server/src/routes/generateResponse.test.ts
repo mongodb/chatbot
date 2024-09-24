@@ -255,7 +255,6 @@ describe("generateResponse", () => {
 
     const data = res._getData();
 
-    // The metadata should be streamed before the assistant response
     const expectedMetadataEvent = `data: {"type":"metadata","data":${JSON.stringify(
       metadata
     )}}\n\n`;
@@ -537,7 +536,6 @@ describe("streamGenerateResponseMessage", () => {
     });
     const data = res._getData();
 
-    // The metadata should be streamed before the assistant response
     const expectedMetadataEvent = `data: {"type":"metadata","data":${JSON.stringify(
       metadata
     )}}`;

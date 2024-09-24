@@ -5,6 +5,9 @@ export interface ExtractSampleDocumentsParams {
   mongoClient: MongoClient;
   collectionName: string;
   databaseName: string;
+  /**
+    Number of documents to include in the sample.
+   */
   limit?: number;
 }
 export const MUST_HAVE_AT_LEAST_ONE_EXAMPLE_DOCUMENT_ERROR =

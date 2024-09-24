@@ -1,4 +1,11 @@
 import { Eval, EvalTask, initDataset } from "braintrust";
+import {
+  GenerateDriverCodeParams,
+  makeGenerateDriverCode,
+  MakeGenerateDriverCodeParams,
+} from "./generateDriverCode/makeGenerateDriverCode";
+import { MongoClient } from "mongodb-rag-core";
+import OpenAI from "openai";
 
 export interface MakeEvalParams {
   projectName: string;
@@ -6,8 +13,8 @@ export interface MakeEvalParams {
   timeout?: number;
   experimentName: string;
   metadata?: Record<string, unknown>;
-  // TODO: apply typing
-  modelName: string;
+  openAiClient: OpenAI;
+  llmOptions: GenerateDriverCodeParams["llmOptions"];
   dataset: {
     name: string;
     version?: string;
@@ -16,13 +23,13 @@ export interface MakeEvalParams {
 export async function runTextToDriverEval({
   projectName,
   experimentName,
-  modelName,
+  openAiClient,
+  llmOptions,
   metadata,
   maxConcurrency = 3,
   timeout = 30000,
   dataset,
 }: MakeEvalParams) {
-  const task = makeTextToDriverTask({ modelName });
   return Eval(projectName, {
     maxConcurrency,
     experimentName,
@@ -36,16 +43,38 @@ export async function runTextToDriverEval({
       project: projectName,
       version: dataset.version,
     }),
-    // Definitely language specific
-    task,
+    // TODO: make this a separate tested function
+    async task(input, hooks) {
+      const generateCode = await makeGenerateDriverCode(generatePromptConfig);
+
+      const output = await generateCode({
+        openAiClient,
+        llmOptions,
+        userPrompt,
+      });
+      return {};
+    },
   });
 }
 
-export interface MakeTextToDriverTaskParams {
-  modelName: string;
+export interface GParams {
+  generatePromptConfig: MakeGenerateDriverCodeParams;
+  openAiClient: OpenAI;
+  llmOptions: GenerateDriverCodeParams["llmOptions"];
+  userPrompt: string;
 }
-export function makeTextToDriverTask(params: MakeTextToDriverTaskParams) {
-  return (input: string) => {
-    return input;
-  };
+export async function generateDatabaseQuery({
+  openAiClient,
+  generatePromptConfig,
+  userPrompt,
+  llmOptions,
+}: MakeTextToDriverTaskParams) {
+  const generateCode = await makeGenerateDriverCode(generatePromptConfig);
+
+  const output = await generateCode({
+    openAiClient,
+    llmOptions,
+    userPrompt,
+  });
+  return output;
 }

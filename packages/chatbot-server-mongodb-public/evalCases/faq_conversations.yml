@@ -1,0 +1,583 @@
+# suggested prompts
+- name: Should get started with MongoDB
+  expectation: ASSISTANT provides actionable information to get started with MongoDB. Could be a tutorial or guide.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: Get started with MongoDB
+- name: Should know how to deploy a free cluster in Atlas
+  expectation: "ASSISTANT provides clear direction on how to deploy a free cluster in Atlas. Uses at least one of the following: Atlas UI, Atlas API, Atlas CLI."
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: How do I deploy a free cluster in Atlas?
+- name: Should know how to import or migrate data into MongoDB
+  expectation: ASSISTANT explains that can use mongoimport. Shows how to use mongoimport including example resembling 'mongoimport --db myDatabase --collection myCollection --file data.json'
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: How do I import or migrate data into MongoDB?
+- name: Should explain how to use Atlas Search
+  expectation: |
+    ASSISTANT explains benefits of Atlas Search, including:
+    - integration with Atlas
+    - complex search queries
+    - scalable
+    - easy to use
+
+    The response must include at least one of these benefits, but does not need to include all of them.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: Why should I use Atlas Search?
+# End suggested prompts
+- name: Should explain how to install MongoDB
+  expectation: ASSISTANT rovides instructions on a way to install mongodb.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: How do I install MongoDB?
+- name: Should explain hwo to install MongoDB on Ubuntu
+  expectation: ASSISTANT provides Ubuntu-specific instructions on how to install mongodb. Include specific install instructions, such as using the tool `dpkg`
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: How do I install MongoDB on ubuntu?
+- name: Should explain how to install MongoDB on Windows
+  expectation: ASSISTANT provides Windows-specific instructions on how to install mongodb. Include specific install instructions, such as using the `.msi` installer.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: How do I install MongoDB on Windows?
+- name: Should explain hwo to install MongoDB on Mac
+  expectation: ASSISTANT provides Mac-specific instructions on how to install mongodb. Include specific install instructions, such as using the Homebrew with the commands `brew tap mongodb/brew` and `brew install mongodb-community@7.0`.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: How do I install MongoDB on Mac?
+- name: Should know how to use with nodejs mongodb driver
+  expectation: |
+    ASSISTANT provides clear information on getting started with the MongoDB Node.js driver.
+    Answer includes:
+    1. Installing `mongodb` package with `npm install mongodb`.
+    2. Connection to database using the `MongoClient` class.
+    3. Basic querying or inserting data operation.
+  tags:
+    - faq
+    - javascript
+    - driver
+  messages:
+    - role: user
+      content: How do I use MongoDB with the nodejs driver?
+- name: Should know how connect to MongoDB using Mongoose?
+  expectation: ASSISTANT should explain that you can use the mongoose.connect() method.
+  tags:
+    - faq
+    - mongoose
+    - javascript
+  messages:
+    - role: user
+      content: How do I connect to MongoDB using Mongoose?
+- name: Should know how to connect to MongoDB with a connection string
+  expectation: ASSISTANT provides example of connecting to MongoDB using a connection string. Use either mongosh or Node.js driver.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: |
+        MONGO_URI=mongodb+srv://testUser:sdagfjlfh@cluster0.v9iuxyr.mongodb.net/some_collection
+        connect to database with this connection string
+- name: Should know how to insert data
+  expectation: ASSISTANT explains how to insert data into a MongoDB collection. Include the `insertOne` AND/OR `insertMany` methods.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: How do I insert data into MongoDB?
+- name: Should know how to insert data given a collection and specific documents
+  expectation: |
+    ASSISTANT shows how to insert data into a MongoDB collection.
+    The response meets the following criteria:
+    1. Collection called `students`.
+    2. Adds TWO documents that include the fields: `name`, `address`, and `grade`.
+    Example documents:
+    ```json
+    {
+      "name": "John Doe",
+      "address": "123 Main St",
+      "grade": "A"
+    }
+    {
+      "name": "Jane Doe",
+      "address": "456 Elm St",
+      "grade": "B"
+    }
+    ```
+    3. Inserts the data with the either the insertOne OR insertMany command.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: |
+        create a collection students and insert two documents. in documents include: name, address, grade
+- name: Should know how to create a new collection
+  expectation: ASSISTANT shows how to use the db.createCollection() method to create a new collection in MongoDB.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: command to create new collection
+- name: Should know about itself
+  expectation: ASSISTANT explains that it is a MongoDB AI Chatbot. It's goal is to help users with MongoDB related questions.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: tell me about you
+- name: Should explain what MongoDB is
+  expectation: ASSISTANT explains MongoDB is a document database. Mentions MongoDB Atlas and MongoDB Community.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: What is mongodb?
+- name: Should know how to update many documents
+  expectation: |
+    ASSISTANT provides information on how to update multiple documents in a MongoDB collection with the updateMany methods.
+    provide API example such as:
+
+    ```javascript
+    db.collection.updateMany(
+      <filter>,
+      <update>,
+      {
+        upsert: <boolean>,
+        writeConcern: <document>,
+        collation: <document>,
+        arrayFilters: [ <filterdocument1>, ... ],
+        hint:  <document|string>        // Available starting in MongoDB 4.2.1
+      }
+    )
+    ```
+
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: updateMany
+- name: Should know how to count documents
+  expectation: |
+    ASSISTANT explains countDocuments() is a Node.js method that returns the count of documents in a collection for a query.
+    Include a code example of the countDocuments() method.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: countDocuments
+- name: Should know "how to query"
+  expectation: |
+    ASSISTANT explains that you can use the following 2 methods to query data:
+    1. find()
+    2. aggregate()
+    Shows a code example of how to use the find() AND/OR aggregate() method(s).
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to query
+- name: should know how to delete data
+  expectation: |
+    ASSISTANT explains that to delete data in MongoDB, you can use the deleteOne() or deleteMany() methods.
+    Shows code example of how to use the deleteOne() AND/OR deleteMany() method(s).
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to delete data
+- name: should know how to delete one document
+  expectation: |
+    ASSISTANT mentions you can use the deleteOne() method to delete a document.
+    Includes a code example of how to use the deleteOne() method.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: delete one document
+- name: should know how to back up database
+  expectation: |
+    ASSISTANT mentions to backup a MongoDB database, you can use `mongodump`. Show example mongodump command like `mongodump --db=myDatabase --collection=myCollection`.  `
+    Also note that you can use products like MongoDB Atlas and MongoDB OpsManager for backups.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: How do I backup a MongoDB database?
+- name: should know what the aggregation framework is
+  expectation: |
+    ASSISTANT explains aggregation in MongoDB refers to the process of running all documents in a collection through a series of stages called an aggregation pipeline. The aggregation pipeline allows you to filter and transform documents, collect summary data about groups of related documents, and perform other complex data operations.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: What is aggregation in MongoDB?
+- name: should know what the mongoshell is
+  expectation: ASSISTANT mentions that the MongoDB Shell, mongosh, is a JavaScript and Node.js REPL (Read Eval Print Loop) environment for interacting with MongoDB deployments in Atlas, locally, or on another remote host.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: mongoshell
+- name: Should know how to connect from Python
+  expectation: |
+    ASSISTANT shows code example of connecting to mongodb using python. Example includes something resembling the following:
+    ```python
+    from pymongo import MongoClient
+
+    client = MongoClient("mongodb+srv://<username>:<password>@<cluster-url>")
+    # ...maybe other code...
+    ```
+  tags:
+    - faq
+    - python
+  messages:
+    - role: user
+      content: can you give me an example of connecting to a db using python
+- name: Should know how to remove element from an array
+  expectation: |
+    ASSISTANT states that you can use a $pull operator in an update operation.
+    Include a code example roughly resembling the following:
+
+    ```javascript
+    db.collection.updateMany(
+      { },
+      { $pull: { arrayField: { fieldToMatch: valueToMatch } } }
+    )
+    ```
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to remove object in array in mongoDB
+- name: should know how to create a database
+  expectation: |
+    ASSISTANT states that you don't need to explicitly create a database. When you use the database for the first time it's created.
+    Includes code example of how to use a database without creating it.
+    Uses the mongoshell `use` command. Eg `use myNewDB`
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to create a database
+- name: should know how to find distinct values
+  expectation: |
+    ASSISTANT should state the `distinct` command in MongoDB is used to return the distinct values for a specified field in a collection.
+    Includes a code example of how to use the distinct command. Code example includes the `db.collection.distinct()` method.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: distinct
+- name: should know to use distinct for 'unique' values
+  expectation: |
+    ASSISTANT should state the `distinct` command in MongoDB is used to return the unique values for a specified field in a collection.
+    Includes a code example of how to use the distinct command. Code example includes the `db.collection.distinct()` method.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to find unique values in my fields
+- name: Should know about Atlas Vector Search
+  expectation: ASSISTANT explains vector search is a capability that allows you to find related objects that have a semantic similarity. It enables searching for data based on meaning rather than just keywords present in the dataset. MongoDB provides Atlas Vector Search, which is a fully managed service that simplifies the process of effectively indexing high-dimensional vector data within MongoDB and performing fast vector similarity searches.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: vector search
+- name: Should know that you cannot change maxBsonObjectSize
+  expectation: |
+    ASSISTANT explains that you cannot change the maxBsonObjectSize. It is a hard limit in MongoDB.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to change maxBsonObjectSize
+- name: Should know how to update a document
+  expectation: |
+    ASSISTANT explains that to update a document in MongoDB, you can use the updateOne() method or the updateMany() method.
+    Provides code example of how to use the updateOne() AND/OR updateMany() method(s).
+
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: update document
+- name: Should know how to import data into a database
+  expectation: |
+    ASSISTANT says that to populate a MongoDB database, you can use the mongoimport tool. 
+    Provides code example of how to use the mongoimport tool. Code example roughly resembling the following:
+    ```bash
+    mongoimport --uri <connection-string> --collection <collection-name> --file <path-to-file>
+    ```
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to import data
+- name: Should know how to create a cluster
+  expectation: |
+    ASSISTANT should explain how to create a cluster in MongoDB Atlas.
+    Use the Atlas UI, Atlas API, or Atlas CLI.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: create a cluster
+- name: Should know about various operators
+  expectation: |
+    ASSISTANT explains Operators in MongoDB are used to perform various operations on data, such as querying, filtering, and manipulating documents.
+    Mentions examples of operators such as $eq, $ne, $gt, $lt, $in, $and, $or, $regex.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: operators in mongodb
+- name: Should know how to do a projection
+  expectation: |
+    The ASSISTANT explains that to find documents with a projection in MongoDB, you can use the find() method along with the projection parameter. The projection parameter allows you to specify which fields you want to include or exclude in the returned documents.
+    Include code example of how to use the find() method with the projection parameter, such as:
+    ```javascript
+    db.collection.find({}, { field1: 1, field2: 1, _id: 0 })
+    ```
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how do I find with a projection
+- name: should find document by id
+  expectation: |
+    The ASSISTANT explains that to find a document by ID in MongoDB, you can use a query that matches the _id field with the specified ID value.
+    Include code example of how to use the find() method with the _id field, such as:
+    ```javascript
+    const query = { _id: id };
+    const document = await collection.findOne(query);
+    ```
+    The code example can either be JavaScript or mongoshell.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how can i find a document by id
+- name: should know about connection string
+  expectation: |
+    ASSISTANT explains that a connection string in MongoDB is a string that describes the host and options for connecting to a MongoDB database. It is used to connect to a MongoDB cluster and work with the data.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: connection string
+- name: Should know about authentication methods
+  expectation: |
+    The ASSISTANT explains that MongoDB supports several authentication methods including:
+
+    - SCRAM-SHA-256
+    - SCRAM-SHA-1
+    - MONGODB-AWS
+    - X.509
+    - Kerberos (GSSAPI/SSPI) (Enterprise Edition only)
+    - LDAP (PLAIN) (Enterprise Edition only)
+    - LDAP Proxy Authentication (Enterprise Edition and MongoDB Atlas)
+    - OpenID Connect Authentication (Enterprise Edition only)
+
+    The ASSISTANT notes that the availability of these authentication mechanisms may vary depending on the version and edition of MongoDB being used.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how many authentication methods for MongoDB?
+- name: Show know how to setup replica cluster
+  expectation: |
+    The ASSISTANT provides an explanation resembling the following:
+    To set up a replica set in MongoDB, you can follow these general steps:
+
+    Install MongoDB on each system that will be part of your replica set. You can refer to the MongoDB installation tutorials for detailed instructions.
+
+
+    Start multiple mongod processes on different ports, each with a different dbpath, but using the same replica set name. For example:
+
+    mongod --port 27017 --dbpath /data/db0 --replSet rs0
+    mongod --port 27018 --dbpath /data/db1 --replSet rs0
+    mongod --port 27019 --dbpath /data/db2 --replSet rs0
+
+    This starts each instance as a member of a replica set named rs0, each running on a distinct port.
+
+
+    Connect to one of the mongod instances through the MongoDB shell (mongosh). You can specify the instance by specifying its port number. For example:
+
+    mongosh --port 27017
+
+
+    In the MongoDB shell, use the rs.initiate() command to initiate the replica set. You can create a replica set configuration object and pass it to rs.initiate(). For example:
+
+    rsconf = {
+      _id: "rs0",
+      members: [
+        { _id: 0, host: "localhost:27017" },
+        { _id: 1, host: "localhost:27018" },
+        { _id: 2, host: "localhost:27019" }
+      ]
+    }
+    rs.initiate(rsconf)
+
+    This initializes the replica set with the specified configuration.
+
+
+    You can display the current replica set configuration by issuing the rs.conf() command in the MongoDB shell. For example:
+
+    rs.conf()
+
+    This will show you the current configuration of the replica set.
+
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to setup replica cluster
+- name: Should know how to use the $and operator
+  expectation: |
+    The ASSISTANT should provide an example of how to use the $and operator in MongoDB.
+    The ASSISTANT explains that the $and operator performs a logical AND operation on an array of two or more expressions and selects the documents that satisfy all the expressions in the array.
+    Includes code example of using $and in a query, such as:
+    ```javascript
+    db.collection.find({ $and: [ { field1: value1 }, { field2: value2 } ] })
+    ```
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: give me an example of how to use the $and operator
+- name: Should know how to use the $in operator
+  expectation: |
+    The ASSISTANT should provide an example of how to use the $in operator in MongoDB.
+    The ASSISTANT explains that the $in operator selects the documents where the value of a field equals any value in the specified array.
+    Includes code example of using $in in a query, such as:
+    ```javascript
+    db.collection.find({ field: { $in: [value1, value2, value3] } })
+    ```
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: give me an example of how to use the $in operator
+- name: should find with filter on specific date
+  expectation: |
+    The ASSISTANT explains that to find documents in a specific date range you can use the $gte (greater than or equal to) and $lte (less than or equal to) operators.
+    Includes code example of using $gte and $lte for dates in a query, such as:
+    ```javascript
+    const now = new Date();
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+    const cursor = await db.collection.find({
+      createdDate: { $gte: ninetyDaysAgo, $lte: now }
+    })
+    // ...
+    ```
+    Note that the example should use the `createdDate` field on the collection.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: OK, now I have a date field, I only want to show createdDate values between now and 90 days ago.
+- name: should know difference between monogdb and oracle
+  expectation: |
+    The ASSISTANT should provide a comparison between MongoDB and Oracle.
+    The ASSISTANT should include some (but not necessarily all) of the following comparisons:
+    - Data Model: MongoDB is a NoSQL database that uses a flexible document model, while Oracle is a relational database that uses tables with rows and columns. In MongoDB, data is stored in JSON-like documents, which allows for more flexible and dynamic schemas.
+    - Scalability: MongoDB is designed to scale horizontally, meaning it can distribute data across multiple servers to handle large amounts of traffic and data. Oracle, on the other hand, is typically scaled vertically, meaning it relies on more powerful hardware to handle increased workloads.
+    - Query Language: MongoDB uses a query language called MongoDB Query Language (MQL), which is similar to SQL but has some differences. Oracle, on the other hand, uses SQL (Structured Query Language), which is a standard language for relational databases.
+    - Schema Flexibility: MongoDB allows for dynamic schemas, meaning that documents within a collection can have different structures and fields. Oracle, being a relational database, requires a predefined schema with a fixed structure.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: Mongodb vs oracle
+- name: Should know how to connect to mongodb though mongosh
+  expectation: |
+    The ASSISTANT should explain that you can connect to MongoDB from mongosh using the command `mongosh <args>`.
+    The assistant includes an example of a correct way to connect to MongoDB such as one of the following:
+
+    - `mongosh "mongodb+srv://<username>:<password>@<cluster-url>/<database-name>"`
+    - `mongosh --port 27017`
+
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to connect to mongodb through mongosh
+- name: Should know how to open a change stream watch on a database and filter the stream
+  expectation: |
+    TODO
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: how to open a change stream watch on a database and filter the stream
+- name: Should know how to limit number of documents for a specific query
+  expectation: |
+    The ASSISTANT states that to limit the number of results in a MongoDB find query, you can use the limit() method.
+    The assistant includes a code example such as: `db.collection.find().limit(1000)`
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: i have around 20 lac documents in a collection and i want to examined first 1k documents only in a find query, how can i do this?
+- name: Should know the latest version of MongoDB
+  expectation: |
+    The ASSISTANT should know that the latest version of MongoDB is v7.0.
+    The ASSISTANT should provide the version number in the response.
+    The ASSISTANT may direct the user to the official MongoDB documentation for the latest version.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: what is the latest version of MongoDB
+- name: Should know how to do an aggregation pipeline with $lookup and $match
+  expectation: |
+    The ASSISTANT should provide an example of how to use the $lookup and $match stages in a MongoDB aggregation pipeline.
+  tags:
+    - faq
+    - aggregation
+  messages:
+    - role: user
+      content: Can you please give me a mongodb aggregation pipeline which does a $lookup and $match
+- name: Should know how to maximize uptime with MongoDB
+  expectation: |
+    The ASSISTANT provides the some of the following advice (at least 2 of the below items) to maximize uptime with MongoDB:
+    - Use Replica Sets
+    - Monitor Your Deployment
+    - Perform Regular Maintenance
+    - Implement Backup and Disaster Recovery
+
+    Include at least 2 of the above methods.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: How to maximize uptime with MongoDB?
+- name: Should ask for clarification question if the user asks about resetting password
+  expectation: |
+    The ASSISTANT either:
+    1. Asks for clarification on the application the user is asking about.
+    2. Provides instructions for one or a variety of different applications the user would reset a password for, such as MongoDB Atlas or a specific cluster.
+  tags:
+    - faq
+  messages:
+    - role: user
+      content: Can i reset my password

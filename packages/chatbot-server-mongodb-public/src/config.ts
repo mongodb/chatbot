@@ -32,7 +32,7 @@ import { addReferenceSourceType } from "./processors/makeMongoDbReferences";
 import path from "path";
 import express from "express";
 import { AzureOpenAI } from "openai";
-
+import { wrapOpenAI, wrapTraced } from "braintrust";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -47,7 +47,6 @@ export const {
 } = assertEnvVars({
   ...CORE_ENV_VARS,
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: "",
-  OPENAI_API_VERSION: "",
 });
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
@@ -87,6 +86,10 @@ export const llm = makeOpenAiChatLlm({
   },
 });
 
+llm.answerQuestionAwaited = wrapTraced(llm.answerQuestionAwaited, {
+  name: "answerQuestionAwaited",
+});
+
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
@@ -100,18 +103,24 @@ export const embedder = makeOpenAiEmbedder({
     maxDelay: 5000,
   },
 });
+embedder.embed = wrapTraced(embedder.embed, { name: "embed" });
 
-export const findContent = makeDefaultFindContent({
-  embedder,
-  store: embeddedContentStore,
-  findNearestNeighborsOptions: {
-    k: 5,
-    path: "embedding",
-    indexName: VECTOR_SEARCH_INDEX_NAME,
-    minScore: 0.9,
-  },
-  searchBoosters: [boostManual],
-});
+export const findContent = wrapTraced(
+  makeDefaultFindContent({
+    embedder,
+    store: embeddedContentStore,
+    findNearestNeighborsOptions: {
+      k: 5,
+      path: "embedding",
+      indexName: VECTOR_SEARCH_INDEX_NAME,
+      minScore: 0.9,
+    },
+    searchBoosters: [boostManual],
+  }),
+  {
+    name: "findContent",
+  }
+);
 
 export const verifiedAnswerStore = makeMongoDbVerifiedAnswerStore({
   connectionUri: MONGODB_CONNECTION_URI,
@@ -119,16 +128,21 @@ export const verifiedAnswerStore = makeMongoDbVerifiedAnswerStore({
   collectionName: "verified_answers",
 });
 
-export const findVerifiedAnswer = makeDefaultFindVerifiedAnswer({
-  embedder,
-  store: verifiedAnswerStore,
-});
+export const findVerifiedAnswer = wrapTraced(
+  makeDefaultFindVerifiedAnswer({
+    embedder,
+    store: verifiedAnswerStore,
+  }),
+  { name: "findVerifiedAnswer" }
+);
 
-export const preprocessorOpenAiClient = new AzureOpenAI({
-  apiKey: OPENAI_API_KEY,
-  endpoint: OPENAI_ENDPOINT,
-  apiVersion: OPENAI_API_VERSION,
-});
+export const preprocessorOpenAiClient = wrapOpenAI(
+  new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  })
+);
 
 export const generateUserPrompt = makeVerifiedAnswerGenerateUserPrompt({
   findVerifiedAnswer,
@@ -170,7 +184,6 @@ export const createCustomConversationDataWithIpAuthUserAndOrigin: AddCustomDataF
     });
     return customData;
   };
-
 export const isProduction = process.env.NODE_ENV === "production";
 export const config: AppConfig = {
   conversationsRouterConfig: {

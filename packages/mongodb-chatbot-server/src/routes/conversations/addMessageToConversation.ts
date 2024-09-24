@@ -139,106 +139,46 @@ export function makeAddMessageToConversationRoute({
 
       // --- DETERMINE IF SHOULD STREAM ---
       const shouldStream = Boolean(stream);
+      if (shouldStream) {
+        dataStreamer.connect(res);
+      }
 
-      // --- GENERATE USER MESSAGE ---
-      const { userMessage, references, staticResponse, rejectQuery } =
-        await (generateUserPrompt
-          ? generateUserPrompt({
-              userMessageText: latestMessageText,
-              conversation,
-              reqId,
-              customData,
-            })
-          : {
-              userMessage: {
-                role: "user",
-                content: latestMessageText,
-                customData,
-              } satisfies UserMessage,
-            });
-      // Add request custom data to user message.
-      const userMessageWithCustomData = customData
-        ? {
-            ...userMessage,
-            // Override request custom data fields with user message custom data fields.
-            customData: { ...customData, ...(userMessage.customData ?? {}) },
-          }
-        : userMessage;
-      const newMessages: SomeMessage[] = [userMessageWithCustomData];
-      if (rejectQuery || staticResponse !== undefined) {
-        const rejectionMessage = {
-          role: "assistant",
-          content: conversations.conversationConstants.NO_RELEVANT_CONTENT,
-          references: references ?? [],
-        } satisfies AssistantMessage;
-        const messages = [...newMessages, staticResponse ?? rejectionMessage];
-        sendStaticResponse({
-          conversations,
-          conversation,
-          shouldStream,
-          dataStreamer,
-          res,
-          messages,
-        });
+      // --- GENERATE RESPONSE  ---
+      // TODO: make sure we are returning the new user message too
+      const { messages } = await generateResponse({
+        llm,
+        conversation,
+        latestMessageText,
+        generateUserPrompt,
+        filterPreviousMessages,
+        customData,
+        dataStreamer,
+        shouldStream,
+        reqId,
+        llmNotWorkingMessage:
+          conversations.conversationConstants.LLM_NOT_WORKING,
+        noRelevantContentMessage:
+          conversations.conversationConstants.NO_RELEVANT_CONTENT,
+      });
+
+      // --- SAVE QUESTION & RESPONSE ---
+      const dbNewMessages = await addMessagesToDatabase({
+        conversations,
+        conversation,
+        messages,
+      });
+      const dbAssistantMessage = dbNewMessages[dbNewMessages.length - 1];
+
+      assert(dbAssistantMessage !== undefined, "No assistant message found");
+      const apiRes = convertMessageFromDbToApi(dbAssistantMessage);
+
+      if (!shouldStream) {
+        return res.status(200).json(apiRes);
       } else {
-        const llmConversation = [
-          ...(await filterPreviousMessages(conversation)).map(
-            convertConversationMessageToLlmMessage
-          ),
-          ...newMessages.map((m) => {
-            // Use transformed content if it exists for user message,
-            // otherwise use original content.
-            if (m.role === "user") {
-              return {
-                content: m.contentForLlm ?? m.content,
-                role: "user",
-              } satisfies OpenAiChatMessage;
-            }
-            return convertConversationMessageToLlmMessage(m);
-          }),
-        ];
-
-        // --- GENERATE RESPONSE ---
-        if (shouldStream) {
-          dataStreamer.connect(res);
-        }
-
-        const { messages: generatedMessages } = await generateResponse({
-          shouldStream,
-          llm,
-          llmConversation,
-          dataStreamer,
-          references,
-          reqId,
-          llmNotWorkingMessage:
-            conversations.conversationConstants.LLM_NOT_WORKING,
-          noRelevantContentMessage:
-            conversations.conversationConstants.NO_RELEVANT_CONTENT,
-          request: req,
+        dataStreamer.streamData({
+          type: "finished",
+          data: apiRes.id,
         });
-
-        // --- SAVE QUESTION & RESPONSE ---
-        const dbNewMessages = await addMessagesToDatabase({
-          conversations,
-          conversation,
-          messages: [
-            ...newMessages,
-            ...generatedMessages.map((m) => convertMessageFromLlmToDb(m)),
-          ],
-        });
-        const dbAssistantMessage = dbNewMessages[dbNewMessages.length - 1];
-
-        assert(dbAssistantMessage !== undefined, "No assistant message found");
-        const apiRes = convertMessageFromDbToApi(dbAssistantMessage);
-
-        if (!shouldStream) {
-          return res.status(200).json(apiRes);
-        } else {
-          dataStreamer.streamData({
-            type: "finished",
-            data: apiRes.id,
-          });
-        }
       }
     } catch (error) {
       const { httpStatus, message } =
@@ -287,99 +227,6 @@ async function getCustomData({
   }
 }
 
-async function sendStaticResponse({
-  conversations,
-  conversation,
-  messages,
-  shouldStream,
-  dataStreamer,
-  res,
-}: {
-  conversations: ConversationsService;
-  conversation: Conversation;
-  messages: SomeMessage[];
-  shouldStream: boolean;
-  dataStreamer: DataStreamer;
-  res: ExpressResponse<ApiMessage>;
-}) {
-  const dbMessages = await addMessagesToDatabase({
-    conversations,
-    conversation,
-    messages,
-  });
-  const assistantMessage = dbMessages.pop();
-  assert(
-    assistantMessage !== undefined && assistantMessage.role === "assistant",
-    "No assistant message found"
-  );
-  const apiRes = convertMessageFromDbToApi(assistantMessage);
-  if (shouldStream) {
-    const { metadata, references } = apiRes;
-
-    dataStreamer.connect(res);
-
-    if (metadata) {
-      dataStreamer.streamData({
-        type: "metadata",
-        data: metadata,
-      });
-    }
-
-    dataStreamer.streamData({
-      type: "delta",
-      data: apiRes.content,
-    });
-
-    if (references && references.length > 0) {
-      dataStreamer.streamData({
-        type: "references",
-        data: references,
-      });
-    }
-
-    dataStreamer.streamData({
-      type: "finished",
-      data: apiRes.id,
-    });
-    dataStreamer.disconnect();
-    return;
-  } else {
-    return res.status(200).json(apiRes);
-  }
-}
-
-function convertConversationMessageToLlmMessage(
-  message: SomeMessage
-): OpenAiChatMessage {
-  const { content, role } = message;
-  if (role === "system") {
-    return {
-      content: content,
-      role: "system",
-    } satisfies OpenAiChatMessage;
-  }
-  if (role === "function") {
-    return {
-      content: content,
-      role: "function",
-      name: message.name,
-    } satisfies OpenAiChatMessage;
-  }
-  if (role === "user") {
-    return {
-      content: content,
-      role: "user",
-    } satisfies OpenAiChatMessage;
-  }
-  if (role === "assistant") {
-    return {
-      content: content,
-      role: "assistant",
-      ...(message.functionCall ? { functionCall: message.functionCall } : {}),
-    } satisfies OpenAiChatMessage;
-  }
-  throw new Error(`Invalid message role: ${role}`);
-}
 interface AddMessagesToDatabaseParams {
   conversation: Conversation;
   conversations: ConversationsService;

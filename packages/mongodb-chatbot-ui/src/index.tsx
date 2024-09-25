@@ -21,6 +21,7 @@ export {
   InputBarTrigger,
   type InputBarTriggerProps,
 } from "./InputBarTrigger.tsx";
+export { HotkeyTrigger, type HotkeyTriggerProps } from "./HotkeyTrigger.tsx";
 export {
   FloatingActionButtonTrigger,
   type FloatingActionButtonTriggerProps,

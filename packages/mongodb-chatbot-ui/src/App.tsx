@@ -10,6 +10,7 @@ import Toggle from "@leafygreen-ui/toggle";
 import { Chatbot } from "./Chatbot";
 import { DocsChatbot } from "./DocsChatbot";
 import { DevCenterChatbot } from "./DevCenterChatbot";
+import { HotkeyTrigger } from "./HotkeyTrigger";
 
 const prefersDarkMode = () =>
   window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
@@ -59,7 +60,7 @@ function App() {
     <div className={app_background(darkMode)}>
       <div className={styles.main_content}>
         <Chatbot
-          name="MongoDB AI"
+          name="MongoDB AI (Docs)"
           shouldStream={shouldStream}
           darkMode={darkMode}
           fetchOptions={{ credentials: "include" }}
@@ -72,9 +73,10 @@ function App() {
           maxInputCharacters={3000}
         >
           <DocsChatbot suggestedPrompts={SUGGESTED_PROMPTS} />
+          <HotkeyTrigger onKey="?" />
         </Chatbot>
         <Chatbot
-          name="MongoDB AI"
+          name="MongoDB AI (Dev Center)"
           shouldStream={shouldStream}
           darkMode={darkMode}
           fetchOptions={{ credentials: "include" }}
@@ -89,6 +91,7 @@ function App() {
             initialMessageSuggestedPrompts={SUGGESTED_PROMPTS}
             initialMessageReferences={initialMessageReferences}
           />
+          <HotkeyTrigger onKey="/" />
         </Chatbot>
       </div>
       <Controls>

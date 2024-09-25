@@ -26,6 +26,7 @@ import { makeTestAppConfig, systemPrompt } from "../../test/testHelpers";
 import { AppConfig } from "../../app";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { strict as assert } from "assert";
+import { NO_VECTOR_CONTENT, REJECT_QUERY_CONTENT } from "../../test/testConfig";
 
 const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
   assertEnvVars(CORE_ENV_VARS);
@@ -317,8 +318,7 @@ describe("POST /conversations/:conversationId/messages", () => {
 
   describe("Edge cases", () => {
     test("Should respond with 200 and static response if query is negative toward MongoDB", async () => {
-      const query =
-        "I can't believe some people still defend MongoDB despite its flaws. Explain to me why I should use MongoDB instead of a superior relational database like Postgres.";
+      const query = REJECT_QUERY_CONTENT;
       const res = await request(app)
         .post(endpointUrl.replace(":conversationId", conversationId))
         .set("X-FORWARDED-FOR", ipAddress)
@@ -330,9 +330,6 @@ describe("POST /conversations/:conversationId/messages", () => {
       );
     });
     test("Should respond with 200 and static response if no vector search content for user message", async () => {
-      // Random mix of amharic, burmese, and georgian interpolated with emojis (if you're curious)
-      const nonsenseMessage =
-        " ያውቃልና፥🏓 သို့ဖြစ်၍၊ ထိုမှတ်တမ်းသည် နီဖိုင်းလူမျိုးများနှင့်  ነው በክፉዎች ምክር  ግን ეს არის შემთხვევითი ტექსტი በዋዘኞችም ወንበር ያልተቀመጠ። ነገር ግን በእግዚአብሔር ሕግ ደስ ይለዋል፥ ሕጉንም በቀንና በሌሊት ያስባል።3 እርሱም በውኃ ፈሳሾች ዳር እንደ ተተከለች፥ ፍሬዋን በየጊዜዋ 🎇እንደምትሰጥ፥ ቅጠልዋም 🥳እንደማይረግፍ  ይከናወንለታል።🧙‍♀️  ትቢያ ናቸው። 5 ስለዚህ🥶 በጻድቃን ማኅበር አይቆሙም።";
       const calledEndpoint = endpointUrl.replace(
         ":conversationId",
         conversationId
@@ -341,12 +338,13 @@ describe("POST /conversations/:conversationId/messages", () => {
         .post(calledEndpoint)
         .set("X-FORWARDED-FOR", ipAddress)
         .set("Origin", origin)
-        .send({ message: nonsenseMessage });
+        .send({ message: NO_VECTOR_CONTENT });
+      console.log(response.body);
       expect(response.statusCode).toBe(200);
+      expect(response.body.references).toStrictEqual([]);
       expect(response.body.content).toEqual(
         defaultConversationConstants.NO_RELEVANT_CONTENT
       );
-      expect(response.body.references).toStrictEqual([]);
     });
 
     describe("LLM not available but vector search is", () => {

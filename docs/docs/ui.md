@@ -108,6 +108,14 @@ The `<InputBarTrigger />` component opens a view component (like `<ModalView />`
 | `suggestedPrompts`  | `string[]?`  | A list of suggested prompts that appear in the input bar dropdown menu.                        | If no prompts are specified, the dropdown is not shown.                         |
 | `placeholder`       | `string?`    | The placeholder text shown when the input bar is empty.                                        | If not specified, the input bar uses default placeholders.                      |
 
+### `HotkeyTrigger`
+
+The `<HotkeyTrigger />` component opens a view component (like `<ModalView />`) when the presses a specific key on their keyboard. It accepts the following props:
+
+| Prop    | Type     | Description                                                                                                                                 | Default                                |
+| ------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| `onKey` | `string` | The key to listen for. This matches the value of [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key). |                                        |
+
 ### `ModalView`
 
 The `<ModalView />` component renders a chat message feed in a modal window. It accepts the following props:

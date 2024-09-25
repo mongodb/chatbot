@@ -5,11 +5,11 @@ import {
   loadBraintrustDbDocuments,
   loadBraintrustMetadata,
 } from "./loadBraintrustDatasets";
-
+jest.setTimeout(60000);
 const { BRAINTRUST_API_KEY, BRAINTRUST_TEXT_TO_DRIVER_PROJECT_NAME } =
   assertEnvVars(BRAINTRUST_ENV_VARS);
 // Skipping tests b/c no Braintrust key in the CI.
-describe.skip("loadBraintrustMetadata", () => {
+describe("loadBraintrustMetadata", () => {
   it("should load the braintrust metadata", async () => {
     const md = await loadBraintrustMetadata({
       apiKey: BRAINTRUST_API_KEY,
@@ -19,7 +19,7 @@ describe.skip("loadBraintrustMetadata", () => {
   });
 });
 
-describe.skip("loadBraintrustDbDocuments", () => {
+describe("loadBraintrustDbDocuments", () => {
   it("should load the braintrust db documents", async () => {
     const docs = await loadBraintrustDbDocuments({
       apiKey: BRAINTRUST_API_KEY,

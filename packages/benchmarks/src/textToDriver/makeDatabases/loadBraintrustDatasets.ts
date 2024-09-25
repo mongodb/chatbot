@@ -1,12 +1,8 @@
 import { initDataset } from "braintrust";
-import { EJSON } from "bson";
-import {
-  CollationOptions,
-  CreateIndexesOptions,
-  Document,
-  IndexDirection,
-  IndexSpecification,
-} from "mongodb-rag-core";
+import { z } from "zod";
+import { Document, BSON } from "mongodb-rag-core";
+
+const { EJSON } = BSON;
 
 interface LoadBraintrustDatasetParams {
   apiKey: string;
@@ -14,6 +10,43 @@ interface LoadBraintrustDatasetParams {
   datasetName?: string;
 }
 
+const DatabaseMetadataDatasetEntrySchema = z.object({
+  input: z.object({
+    dataset: z.string(),
+    databaseName: z.string(),
+    collections: z.array(
+      z.object({
+        collectionName: z.string(),
+        indexes: z.array(z.record(z.unknown())),
+      })
+    ),
+  }),
+});
+
+export type DatabaseMetadataDatasetEntry = z.infer<
+  typeof DatabaseMetadataDatasetEntrySchema
+>;
+
+const IndexDirectionSchema = z.union([z.literal(1), z.literal(-1)]);
+
+const CollectionMetadataIndexSchema = z.object({
+  key: z.record(IndexDirectionSchema),
+  v: z.number().optional(),
+  name: z.string().optional(),
+});
+const CollectionMetadataSchema = z.object({
+  collectionName: z.string(),
+  indexes: z.array(CollectionMetadataIndexSchema),
+});
+
+export type CollectionMetadata = z.infer<typeof CollectionMetadataSchema>;
+
+const DatabaseMetadataSchema = z.object({
+  databaseName: z.string(),
+  collections: z.array(CollectionMetadataSchema),
+});
+
+export type DatabaseMetadata = z.infer<typeof DatabaseMetadataSchema>;
 export async function loadBraintrustMetadata({
   apiKey,
   projectName,
@@ -23,49 +56,42 @@ export async function loadBraintrustMetadata({
     apiKey,
     dataset: datasetName,
   });
-  const metadata: DatabaseMetadata[] =
-    // TODO: why do i have to cast this as unknown?
-    (
-      (await dataset.fetchedData()) as unknown as DatabaseMetadataDatasetEntry[]
-    ).map(
-      (m) =>
-        ({
-          databaseName: m.input.databaseName,
-          collections: m.input.collections.map((c) => ({
-            collectionName: c.collectionName,
-            indexes: c.indexes.map((idx) =>
-              EJSON.deserialize(idx)
-            ) as unknown as CollectionMetadata["indexes"],
-          })),
-        } satisfies DatabaseMetadata)
+  const metadata: DatabaseMetadata[] = (await dataset.fetchedData())
+    .map((d) => DatabaseMetadataDatasetEntrySchema.parse(d))
+    .map((m) =>
+      DatabaseMetadataSchema.parse({
+        databaseName: m.input.databaseName,
+        collections: m.input.collections.map((c) => ({
+          collectionName: c.collectionName,
+          indexes: c.indexes.map((idx) => EJSON.deserialize(idx)),
+        })),
+      })
     );
   return metadata;
 }
 
-export interface DatabaseMetadataDatasetEntry {
-  input: {
-    dataset: string;
-    databaseName: string;
-    collections: {
-      collectionName: string;
-      indexes: Record<string, unknown>[];
-    }[];
-  };
-}
+const DbDocumentDatasetRecordSchema = z.object({
+  input: z.object({
+    databaseName: z.string(),
+    collectionName: z.string(),
+    datasetName: z.string(),
+    ejson: z.record(z.unknown()),
+  }),
+});
+export type DbDocumentDatasetRecord = z.infer<
+  typeof DbDocumentDatasetRecordSchema
+>;
 
-export interface DatabaseMetadata {
+type EnsureConformsTo<T extends U, U> = T;
+const MdbDocumentSchema = z.record(z.any());
+export type MdbDocument = EnsureConformsTo<
+  Document,
+  z.infer<typeof MdbDocumentSchema>
+>;
+export interface DbDocument {
   databaseName: string;
-  collections: CollectionMetadata[];
-}
-
-export interface CollectionMetadata {
   collectionName: string;
-  indexes: {
-    v: CreateIndexesOptions["version"];
-    key: Map<string, IndexDirection>;
-    name: CreateIndexesOptions["name"];
-    // collation?: CollationOptions;
-  }[];
+  document: MdbDocument;
 }
 
 export async function loadBraintrustDbDocuments({
@@ -77,32 +103,15 @@ export async function loadBraintrustDbDocuments({
     apiKey,
     dataset: datasetName,
   });
-  const dbDocuments: DbDocument[] =
-    // TODO: why do i have to cast this as unknown?
-    ((await dataset.fetchedData()) as unknown as DbDocumentDatasetRecord[]).map(
-      ({ input }) => {
-        return {
-          databaseName: input.databaseName,
-          collectionName: input.collectionName,
-          document: EJSON.deserialize(input.ejson) as unknown as Document,
-        } satisfies DbDocument;
-      }
-    );
+  const dbDocuments: DbDocument[] = (await dataset.fetchedData())
+    .map((d) => DbDocumentDatasetRecordSchema.parse(d))
+    .map(({ input }) => {
+      return {
+        databaseName: input.databaseName,
+        collectionName: input.collectionName,
+        document: MdbDocumentSchema.parse(EJSON.deserialize(input.ejson)),
+      } satisfies DbDocument;
+    });
 
   return dbDocuments;
-}
-
-export interface DbDocumentDatasetRecord {
-  input: {
-    databaseName: string;
-    collectionName: string;
-    datasetName: string;
-    ejson: Record<string, unknown>;
-  };
-}
-
-export interface DbDocument {
-  databaseName: string;
-  collectionName: string;
-  document: Document;
 }

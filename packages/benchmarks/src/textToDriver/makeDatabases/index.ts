@@ -8,6 +8,7 @@ import { applyCollectionIndexes } from "./applyCollectionIndexes";
 import { insertCollectionDocuments } from "./insertCollectionDocuments";
 import { assertEnvVars } from "mongodb-rag-core";
 import { TEXT_TO_DRIVER_ENV_VARS } from "../TextToDriverEnvVars";
+
 async function main() {
   const {
     BRAINTRUST_API_KEY,

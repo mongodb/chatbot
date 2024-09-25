@@ -47,10 +47,10 @@
     "@langchain/openai": "^0.2.6",
     "@supercharge/promise-pool": "^3.2.0",
     "braintrust": "^0.0.150",
-    "bson": "^6.8.0",
     "dotenv": "^16",
     "mongodb-chatbot-evaluation": "*",
     "mongodb-chatbot-server": "*",
-    "mongodb-rag-core": "*"
+    "mongodb-rag-core": "*",
+    "zod": "^3.23.8"
   }
 }

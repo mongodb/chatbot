@@ -6,14 +6,24 @@ import {
 } from "./generateDriverCode/makeGenerateDriverCode";
 import { MongoClient } from "mongodb-rag-core";
 import OpenAI from "openai";
+import { loadBraintrustEvalCases } from "./loadBraintrustDatasets";
+import {
+  TextToDriverExpected,
+  TextToDriverInput,
+  TextToDriverMetadata,
+  TextToDriverOutput,
+} from "./evalTypes";
+import { executeGeneratedDriverCode } from "./executeGeneratedDriverCode";
 
 export interface MakeEvalParams {
+  apiKey: string;
   projectName: string;
   maxConcurrency?: number;
   timeout?: number;
   experimentName: string;
   metadata?: Record<string, unknown>;
   openAiClient: OpenAI;
+  promptConfig: MakeGenerateDriverCodeParams;
   llmOptions: GenerateDriverCodeParams["llmOptions"];
   dataset: {
     name: string;
@@ -21,39 +31,56 @@ export interface MakeEvalParams {
   };
 }
 export async function runTextToDriverEval({
+  apiKey,
   projectName,
   experimentName,
   openAiClient,
+  promptConfig,
   llmOptions,
   metadata,
   maxConcurrency = 3,
   timeout = 30000,
   dataset,
 }: MakeEvalParams) {
-  return Eval(projectName, {
+  return Eval<
+    TextToDriverInput,
+    TextToDriverOutput,
+    TextToDriverExpected,
+    TextToDriverMetadata
+  >(projectName, {
     maxConcurrency,
     experimentName,
     timeout,
     metadata,
-    // TODO: add when PR ready...
-    // Maybe will be language specific?
-    scores: [],
-    data: initDataset({
-      dataset: dataset.name,
-      project: projectName,
-      version: dataset.version,
+    data: loadBraintrustEvalCases({
+      apiKey,
+      projectName,
+      datasetName: dataset.name,
     }),
+
     // TODO: make this a separate tested function
-    async task(input, hooks) {
-      const generateCode = await makeGenerateDriverCode(generatePromptConfig);
+    async task(input) {
+      const generateCode = await makeGenerateDriverCode(promptConfig);
 
       const output = await generateCode({
         openAiClient,
         llmOptions,
-        userPrompt,
+        userPrompt: input.nl_query,
       });
-      return {};
+      const execution = await executeGeneratedDriverCode({
+        generatedDriverCode: output,
+        databaseName: input.database_name,
+        mongoClient: promptConfig.sampleGenerationConfig.mongoClient,
+      });
+
+      return {
+        generatedCode: output,
+        execution,
+      };
     },
+    // TODO: add when PR ready...
+    // Maybe will be language specific?
+    scores: [],
   });
 }
 

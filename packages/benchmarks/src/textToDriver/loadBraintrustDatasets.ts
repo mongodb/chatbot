@@ -1,6 +1,7 @@
 import { initDataset } from "braintrust";
 import { z } from "zod";
 import { Document, BSON } from "mongodb-rag-core";
+import { TextToDriverEvalCase, TextToDriverEvalCaseSchema } from "./evalTypes";
 
 const { EJSON } = BSON;
 
@@ -47,6 +48,15 @@ const DatabaseMetadataSchema = z.object({
 });
 
 export type DatabaseMetadata = z.infer<typeof DatabaseMetadataSchema>;
+
+/**
+  Load metadata about the databases and collections in the Braintrust project.
+
+  Includes:
+
+  - database and collection names
+  - collection indexes
+ */
 export async function loadBraintrustMetadata({
   apiKey,
   projectName,
@@ -82,18 +92,18 @@ export type DbDocumentDatasetRecord = z.infer<
   typeof DbDocumentDatasetRecordSchema
 >;
 
-type EnsureConformsTo<T extends U, U> = T;
-const MdbDocumentSchema = z.record(z.any());
-export type MdbDocument = EnsureConformsTo<
-  Document,
-  z.infer<typeof MdbDocumentSchema>
->;
+const MdbDocumentSchema: z.ZodSchema<Document> = z.record(z.any());
+export type MdbDocument = z.infer<typeof MdbDocumentSchema>;
+
 export interface DbDocument {
   databaseName: string;
   collectionName: string;
   document: MdbDocument;
 }
 
+/**
+  Loads the database documents from Braintrust.
+ */
 export async function loadBraintrustDbDocuments({
   apiKey,
   projectName,
@@ -114,4 +124,24 @@ export async function loadBraintrustDbDocuments({
     });
 
   return dbDocuments;
+}
+
+/**
+  Load the evaluation cases for the text-to-driver task from Braintrust.
+ */
+export async function loadBraintrustEvalCases({
+  apiKey,
+  projectName,
+  datasetName = "text-to-query-results",
+}: LoadBraintrustDatasetParams): Promise<TextToDriverEvalCase[]> {
+  const dataset = initDataset(projectName, {
+    apiKey,
+    dataset: datasetName,
+  });
+
+  const evalCases = (await dataset.fetchedData()).map((d) =>
+    TextToDriverEvalCaseSchema.parse(d)
+  );
+
+  return evalCases;
 }

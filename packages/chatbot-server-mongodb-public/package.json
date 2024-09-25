@@ -41,7 +41,7 @@
     "@babel/core": "^7.22.5",
     "@babel/preset-env": "^7.22.5",
     "@babel/preset-typescript": "^7.22.5",
-    "@lg-chat/rich-links": "^1.0.1",
+    "@lg-chat/rich-links": "^1.2.0",
     "@types/common-tags": "^1.8.1",
     "@types/cookie-parser": "^1.4.6",
     "@types/express": "^4.17.21",

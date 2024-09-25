@@ -100,7 +100,7 @@
     "@lg-chat/message-feedback": "^2.1.0",
     "@lg-chat/message-prompts": "^2.0.2",
     "@lg-chat/message-rating": "^2.0.2",
-    "@lg-chat/rich-links": "^1.0.1",
+    "@lg-chat/rich-links": "^1.2.0",
     "@microsoft/fetch-event-source": "^2.0.1",
     "buffer": "^6.0.3",
     "esbuild": "^0.17.19",

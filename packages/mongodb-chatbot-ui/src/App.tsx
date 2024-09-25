@@ -40,7 +40,7 @@ const initialMessageReferences = [
     url: "https://developer.mongodb.com/",
     title: "MongoDB Developer Hub",
     metadata: {
-      sourceType: "Website",
+      sourceType: "Article",
     },
   },
 ];

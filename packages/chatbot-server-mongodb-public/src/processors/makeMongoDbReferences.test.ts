@@ -47,6 +47,19 @@ describe("makeMongoDbReferences", () => {
         },
         chunkIndex: 0,
       },
+      {
+        url: "https://www.mongodb.com/developer/products/mongodb/best-practices-flask-mongodb",
+        sourceName: "devcenter",
+        text: "In this article, we will be going through some of the best practices for getting started with Flask...",
+        tokenCount: 222,
+        embedding: [0.31, 0.32, 0.33],
+        updated: new Date(),
+        metadata: {
+          pageTitle: "Best Practices for Using Flask and MongoDB",
+          tags: ["devcenter", "example", "python", "flask"],
+        },
+        chunkIndex: 0,
+      },
     ];
     const result = makeMongoDbReferences(chunks);
     expect(result).toEqual([
@@ -64,8 +77,17 @@ describe("makeMongoDbReferences", () => {
         title: "Love Your Developers",
         metadata: {
           sourceName: "mongodb-dotcom",
-          sourceType: "Blog",
+          sourceType: "Article",
           tags: ["external", "example"],
+        },
+      },
+      {
+        url: "https://www.mongodb.com/developer/products/mongodb/best-practices-flask-mongodb",
+        title: "Best Practices for Using Flask and MongoDB",
+        metadata: {
+          sourceName: "devcenter",
+          sourceType: "Article",
+          tags: ["devcenter", "example", "python", "flask"],
         },
       },
     ]);

@@ -33,7 +33,7 @@ import { CharacterCount } from "./InputBar";
 import { useChatbotContext } from "./useChatbotContext";
 import { useLinkData } from "./useLinkData";
 import { headingStyle, disableSetextHeadings } from "./markdownHeadingStyle";
-import { formatReferences } from "./messageLinks";
+import { getMessageLinks } from "./messageLinks";
 
 const TRANSITION_DURATION_MS = 300;
 
@@ -274,10 +274,7 @@ export const Message = ({
     : undefined;
 
   const { tck } = useLinkData();
-  const messageLinks =
-    messageData.references && messageData.references.length > 0
-      ? formatReferences(messageData.references, { tck })
-      : undefined;
+  const messageLinks = getMessageLinks(messageData, { tck });
 
   return (
     <Fragment key={messageData.id}>

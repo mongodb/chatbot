@@ -27,6 +27,7 @@ export function Chatbot({
   isExperimental,
   onOpen,
   onClose,
+  sortMessageReferences,
   ...props
 }: ChatbotProps) {
   const { darkMode } = useDarkMode(props.darkMode);
@@ -49,6 +50,7 @@ export function Chatbot({
     maxCommentCharacters,
     onOpen,
     onClose,
+    sortMessageReferences,
   });
 
   const tck = props.tck ?? "mongodb_ai_chatbot";

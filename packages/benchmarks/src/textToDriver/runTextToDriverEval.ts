@@ -57,7 +57,7 @@ export async function runTextToDriverEval({
   });
 }
 
-export interface GParams {
+export interface GenerateDatabaseQueryParams {
   generatePromptConfig: MakeGenerateDriverCodeParams;
   openAiClient: OpenAI;
   llmOptions: GenerateDriverCodeParams["llmOptions"];
@@ -68,7 +68,7 @@ export async function generateDatabaseQuery({
   generatePromptConfig,
   userPrompt,
   llmOptions,
-}: MakeTextToDriverTaskParams) {
+}: GenerateDatabaseQueryParams) {
   const generateCode = await makeGenerateDriverCode(generatePromptConfig);
 
   const output = await generateCode({

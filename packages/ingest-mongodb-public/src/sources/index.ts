@@ -80,6 +80,40 @@ const mongoDbCorpDataSource = async () => {
   return await makeMdOnGithubDataSource(mongoDbCorpDataSourceConfig);
 };
 
+export const mongoDbUniMetadataDataSourceConfig: MakeMdOnGithubDataSourceParams =
+  {
+    name: "university-meta",
+    repoUrl: "https://github.com/mongodb/chatbot/",
+    repoLoaderOptions: {
+      branch: "main",
+      ignoreFiles: [
+        /^(?!^\/university-meta\/).*/,
+        /^(university-meta\/README\.md)$/,
+      ],
+    },
+    pathToPageUrl(_, frontMatter) {
+      if (!frontMatter?.url) {
+        throw new Error("frontMatter.url must be specified");
+      }
+      return frontMatter?.url as string;
+    },
+    extractMetadata(_, frontMatter) {
+      if (!frontMatter) {
+        throw new Error("frontMatter must be specified");
+      }
+      const frontMatterCopy = { ...frontMatter };
+      delete frontMatterCopy.url;
+      return frontMatterCopy;
+    },
+    extractTitle: (_, frontmatter) => (frontmatter?.title as string) ?? null,
+    metadata: {
+      siteTitle: "MongoDB University",
+    },
+  };
+const mongoDbUniMetadataSource = async () => {
+  return await makeMdOnGithubDataSource(mongoDbUniMetadataDataSourceConfig);
+};
+
 export const terraformProviderSourceConstructor = async () => {
   const siteBaseUrl =
     "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs";
@@ -141,6 +175,7 @@ export const sourceConstructors: SourceConstructor[] = [
   mongooseSourceConstructor,
   prismaSourceConstructor,
   mongoDbCorpDataSource,
+  mongoDbUniMetadataSource,
   practicalAggregationsDataSource,
   terraformProviderSourceConstructor,
   wiredTigerSourceConstructor,

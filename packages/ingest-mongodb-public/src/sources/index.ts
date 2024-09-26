@@ -85,7 +85,8 @@ export const mongoDbUniMetadataDataSourceConfig: MakeMdOnGithubDataSourceParams 
     name: "university-meta",
     repoUrl: "https://github.com/mongodb/chatbot/",
     repoLoaderOptions: {
-      branch: "main",
+      // TODO: udpate to "main" before the branch is merged
+      branch: "EAI-547",
       ignoreFiles: [
         /^(?!^\/university-meta\/).*/,
         /^(university-meta\/README\.md)$/,

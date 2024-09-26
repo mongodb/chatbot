@@ -87,10 +87,7 @@ export const mongoDbUniMetadataDataSourceConfig: MakeMdOnGithubDataSourceParams 
     repoLoaderOptions: {
       // TODO: udpate to "main" before the branch is merged
       branch: "EAI-547",
-      ignoreFiles: [
-        /^(?!^\/university-meta\/).*/,
-        /^(university-meta\/README\.md)$/,
-      ],
+      ignoreFiles: [/^(?!^\/mongodb-uni\/).*/, /^(mongodb-uni\/README\.md)$/],
     },
     pathToPageUrl(_, frontMatter) {
       if (!frontMatter?.url) {

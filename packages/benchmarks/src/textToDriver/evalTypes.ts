@@ -6,7 +6,7 @@ export const TextToDriverInputSchema = z.object({
   nl_query: z.string().describe(`Natural language query for the database.
 
 @example "get the total number of books by each author"`),
-  database_name: z.string().describe(`The name of the dataset.
+  dataset_name: z.string().describe(`The name of the dataset.
 
 @example "book-store-recommended"`),
 });

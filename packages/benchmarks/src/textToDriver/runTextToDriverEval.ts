@@ -1,18 +1,22 @@
-import { Eval, EvalTask, initDataset } from "braintrust";
+import { Eval, traced, wrapTraced } from "braintrust";
 import {
   GenerateDriverCodeParams,
   makeGenerateDriverCode,
   MakeGenerateDriverCodeParams,
 } from "./generateDriverCode/makeGenerateDriverCode";
-import { MongoClient } from "mongodb-rag-core";
 import OpenAI from "openai";
-import { loadBraintrustEvalCases } from "./loadBraintrustDatasets";
+import {
+  loadBraintrustEvalCases,
+  loadBraintrustMetadata,
+} from "./loadBraintrustDatasets";
 import {
   TextToDriverExpected,
   TextToDriverInput,
   TextToDriverMetadata,
   TextToDriverOutput,
 } from "./evalTypes";
+import { SuccessfulExecution } from "./evaluationMetrics";
+import { strict as assert } from "assert";
 import { executeGeneratedDriverCode } from "./executeGeneratedDriverCode";
 
 export interface MakeEvalParams {
@@ -23,7 +27,11 @@ export interface MakeEvalParams {
   experimentName: string;
   metadata?: Record<string, unknown>;
   openAiClient: OpenAI;
-  promptConfig: MakeGenerateDriverCodeParams;
+  promptConfig: Pick<MakeGenerateDriverCodeParams, "sampleGenerationConfig"> & {
+    customInstructions: MakeGenerateDriverCodeParams["promptGenerationConfig"]["customInstructions"];
+    fewShotExamples?: MakeGenerateDriverCodeParams["promptGenerationConfig"]["fewShotExamples"];
+    generateCollectionSchemas: MakeGenerateDriverCodeParams["promptGenerationConfig"]["mongoDb"]["generateCollectionSchemas"];
+  };
   llmOptions: GenerateDriverCodeParams["llmOptions"];
   dataset: {
     name: string;
@@ -42,6 +50,10 @@ export async function runTextToDriverEval({
   timeout = 30000,
   dataset,
 }: MakeEvalParams) {
+  const dbMetadatas = await loadBraintrustMetadata({
+    apiKey,
+    projectName,
+  });
   return Eval<
     TextToDriverInput,
     TextToDriverOutput,
@@ -60,17 +72,67 @@ export async function runTextToDriverEval({
 
     // TODO: make this a separate tested function
     async task(input) {
-      const generateCode = await makeGenerateDriverCode(promptConfig);
+      const metadata = dbMetadatas.find(
+        (metadata) => metadata.databaseName === input.dataset_name
+      );
+      assert(
+        metadata,
+        `DB Metadata not found for database ${input.dataset_name}`
+      );
+      assert(
+        metadata.collections.length,
+        `No collections for database ${metadata.databaseName}`
+      );
 
-      const output = await generateCode({
-        openAiClient,
-        llmOptions,
-        userPrompt: input.nl_query,
-      });
-      const execution = await executeGeneratedDriverCode({
-        generatedDriverCode: output,
-        databaseName: input.database_name,
-        mongoClient: promptConfig.sampleGenerationConfig.mongoClient,
+      const generateCode = await traced(
+        async () =>
+          makeGenerateDriverCode({
+            sampleGenerationConfig: promptConfig.sampleGenerationConfig,
+            promptGenerationConfig: {
+              customInstructions: promptConfig.customInstructions,
+              fewShotExamples: promptConfig.fewShotExamples,
+              mongoDb: {
+                generateCollectionSchemas:
+                  promptConfig.generateCollectionSchemas,
+                databaseName: metadata.databaseName,
+                collections:
+                  metadata.collections as MakeGenerateDriverCodeParams["promptGenerationConfig"]["mongoDb"]["collections"],
+              },
+            },
+          }),
+        {
+          name: "makeGenerateDriverCode",
+        }
+      );
+
+      const output = await traced(
+        async () =>
+          generateCode({
+            openAiClient,
+            llmOptions,
+            userPrompt: input.nl_query,
+          }),
+        {
+          name: "generateDriverCode",
+        }
+      );
+
+      const execution = await traced(
+        async () =>
+          executeGeneratedDriverCode({
+            generatedDriverCode: output,
+            databaseName: metadata.databaseName,
+            mongoClient: promptConfig.sampleGenerationConfig.mongoClient,
+          }),
+        {
+          name: "executeGeneratedDriverCode",
+        }
+      );
+      console.log({
+        datasetName: input.dataset_name,
+        query: input.nl_query,
+        output,
+        executionOutput: execution,
       });
 
       return {
@@ -78,30 +140,7 @@ export async function runTextToDriverEval({
         execution,
       };
     },
-    // TODO: add when PR ready...
-    // Maybe will be language specific?
-    scores: [],
+    // (EAI-536)TODO: Add fuzzy match metric
+    scores: [SuccessfulExecution],
   });
-}
-
-export interface GenerateDatabaseQueryParams {
-  generatePromptConfig: MakeGenerateDriverCodeParams;
-  openAiClient: OpenAI;
-  llmOptions: GenerateDriverCodeParams["llmOptions"];
-  userPrompt: string;
-}
-export async function generateDatabaseQuery({
-  openAiClient,
-  generatePromptConfig,
-  userPrompt,
-  llmOptions,
-}: GenerateDatabaseQueryParams) {
-  const generateCode = await makeGenerateDriverCode(generatePromptConfig);
-
-  const output = await generateCode({
-    openAiClient,
-    llmOptions,
-    userPrompt,
-  });
-  return output;
 }

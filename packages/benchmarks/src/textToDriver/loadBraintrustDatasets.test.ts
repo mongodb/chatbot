@@ -32,12 +32,13 @@ describe.skip("loadBraintrustDbDocuments", () => {
   });
 });
 
-describe.skip("loadBraintrustEvalCases", () => {
+describe("loadBraintrustEvalCases", () => {
   it("should load the braintrust eval cases", async () => {
     const cases = await loadBraintrustEvalCases({
       apiKey: BRAINTRUST_API_KEY,
       projectName: BRAINTRUST_TEXT_TO_DRIVER_PROJECT_NAME,
     });
+    console.log(cases.length);
     expect(cases.length).toBeGreaterThan(0);
   });
 });

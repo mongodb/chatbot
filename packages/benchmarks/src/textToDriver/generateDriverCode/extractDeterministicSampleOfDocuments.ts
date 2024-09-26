@@ -21,6 +21,7 @@ export async function extractDeterministicSampleOfDocuments({
   databaseName,
   limit = 5,
 }: ExtractSampleDocumentsParams) {
+  await mongoClient.connect();
   const collection = mongoClient.db(databaseName).collection(collectionName);
   const documents = await collection
     .aggregate([

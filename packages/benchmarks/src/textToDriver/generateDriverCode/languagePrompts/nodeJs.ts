@@ -2,7 +2,8 @@ import { FewShotExample } from "./FewShotExample";
 export const promptUtils = {
   basePrompt: `Complete the MongoDB Query Language Node.js driver query only and with no explanation. The output must be executable code.
 
-Generate the query using a \`Db\` object named \`database\` and return static data (not a \`Cursor\` object).`,
+Generate the query using a \`Db\` object named \`database\` and return static data (not a \`Cursor\` object).
+Do not wrap your output in a code block. Only include the executable code.`,
   abstractExampleOutput: `Example outputs:
 1. database.collection("<collection name>").find({/* some query */}).toArray()
 2. database.collection("<collection name>").find({/* some query */}).count()
@@ -83,28 +84,28 @@ export const genericFewShotExamples: FewShotExample[] = [
   },
 ] as const;
 
-export const NODE_JS_PROMPTS = {
+export const NODE_JS_PROMPTS: Record<string, Record<string, string>> = {
   systemPrompts: {
-    simple: `${promptUtils.basePrompt}
+    //     simple: `${promptUtils.basePrompt}
 
-${promptUtils.abstractExampleOutput}`,
-    chainOfThought: `${promptUtils.basePrompt}
+    // ${promptUtils.abstractExampleOutput}`,
+    // chainOfThought: `${promptUtils.basePrompt}
 
-${chainOfThoughtSystemPromptContent}
+    // ${chainOfThoughtSystemPromptContent}
 
-${promptUtils.chainOfThoughtAbstractExampleOutput}`,
-    genericFewShot: `${promptUtils.basePrompt}
+    // ${promptUtils.chainOfThoughtAbstractExampleOutput}`,
+    // genericFewShot: `${promptUtils.basePrompt}
 
-${promptUtils.abstractExampleOutput}
+    // ${promptUtils.abstractExampleOutput}
 
-A few example input and outputs:
+    // A few example input and outputs:
 
-${genericFewShotExamples
-  .map(
-    (ex) => `Input: ${ex.input}
-Output: ${ex.output.content}`
-  )
-  .join("\n\n")}`,
+    // ${genericFewShotExamples
+    //   .map(
+    //     (ex) => `Input: ${ex.input}
+    // Output: ${ex.output.content}`
+    //   )
+    //   .join("\n\n")}`,
     genericFewShotChainOfThought: `${promptUtils.basePrompt}
 
 ${chainOfThoughtSystemPromptContent}

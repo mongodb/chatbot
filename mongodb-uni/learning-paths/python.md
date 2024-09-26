@@ -6,6 +6,8 @@ metadata:
   tags:
     - developer
     - python
+  programmingLanguage: python
+  description: Learn the basics of building modern applications with Python, using MongoDB as your database.
 ---
 
 # MongoDB Python Developer Path

@@ -29,13 +29,13 @@ Learn all about Atlas Vector Search as you build a semantic search feature. Leve
 
 [View Details](https://learn.mongodb.com/courses/using-vector-search-for-semantic-search)
 
-## Using Atlas Vector Search with RAG
+## Using Atlas Vector Search for RAG Applications
 
 3 hours
 
 Learn how to implement Retrieval Augmented Generation or RAG with MongoDB in your application. Learn what retrieval augmented generation is and set it up using the MongoDB Python driver.
 
-[View Details](https://learn.mongodb.com/courses/using-atlas-vector-search-with-rag)
+[View Details](https://learn.mongodb.com/courses/using-atlas-vector-search-for-rag-applications)
 
 ## Managing Atlas Vector Search Indexes
 

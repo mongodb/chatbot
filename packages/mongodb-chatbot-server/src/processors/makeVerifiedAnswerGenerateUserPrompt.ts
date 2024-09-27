@@ -47,6 +47,7 @@ export const makeVerifiedAnswerGenerateUserPrompt = ({
         content: userMessageText,
         role: "user",
       },
+      references: verifiedAnswer.references,
       staticResponse: {
         metadata: {
           verifiedAnswer: {

@@ -435,6 +435,28 @@ describe("streamGenerateResponseMessage", () => {
       `data: {"type":"references","data":${JSON.stringify(references)}}`
     );
   });
+  it("should stream references if shouldGenerateMessage is true", async () => {
+    await streamGenerateResponseMessage(baseArgs);
+    const data = res._getData();
+
+    expect(data).toContain(
+      `{"type":"references","data":${JSON.stringify(references)}}`
+    );
+  });
+  it("should stream references if shouldGenerateMessage is false", async () => {
+    await streamGenerateResponseMessage({
+      ...baseArgs,
+      shouldGenerateMessage: false,
+      llmConversation: [
+        { role: "user", content: "hello" },
+        { role: "assistant", content: "hi" },
+      ],
+    });
+    const data = res._getData();
+    expect(data).toContain(
+      `{"type":"references","data":${JSON.stringify(references)}}`
+    );
+  });
   it("should call tool before responding", async () => {
     const { messages } = await streamGenerateResponseMessage({
       ...baseArgs,

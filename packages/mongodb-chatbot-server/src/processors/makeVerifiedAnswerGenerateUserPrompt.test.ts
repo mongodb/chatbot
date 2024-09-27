@@ -4,6 +4,12 @@ import { VerifiedAnswer, WithScore } from "mongodb-rag-core";
 describe("makeVerifiedAnswerGenerateUserPrompt", () => {
   it("uses verified answer if available, onNoVerifiedAnswerFound otherwise", async () => {
     const MAGIC_VERIFIABLE = "VERIFIABLE";
+    const references = [
+      {
+        title: "title",
+        url: "url",
+      },
+    ];
     const generatePrompt = makeVerifiedAnswerGenerateUserPrompt({
       findVerifiedAnswer: async ({ query }) => {
         return {
@@ -12,7 +18,19 @@ describe("makeVerifiedAnswerGenerateUserPrompt", () => {
             query === MAGIC_VERIFIABLE
               ? ({
                   answer: "verified answer",
-                } as unknown as WithScore<VerifiedAnswer>)
+                  _id: "123",
+                  author_email: "example@mongodb.com",
+                  created: new Date(),
+                  references,
+                  question: {
+                    text: "question",
+                    embedding: [1, 2, 3],
+                    embedding_model: "model",
+                    embedding_model_version: "version",
+                  },
+                  updated: new Date(),
+                  score: 1,
+                } satisfies WithScore<VerifiedAnswer>)
               : undefined,
         };
       },
@@ -42,6 +60,8 @@ describe("makeVerifiedAnswerGenerateUserPrompt", () => {
       userMessageText: MAGIC_VERIFIABLE,
     });
     expect(answer.staticResponse).toBeDefined();
+    expect(answer.references).toHaveLength(1);
+    expect(answer.references).toMatchObject(references);
     expect(answer.staticResponse?.content).toBe("verified answer");
     expect(answer.userMessage.content).toBe(MAGIC_VERIFIABLE); // onNoVerifiedAnswerFound not called
   });

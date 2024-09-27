@@ -449,6 +449,8 @@ export async function streamGenerateResponseMessage({
   // Add references to the last assistant message
   if (newMessages.at(-1)?.role === "assistant" && outputReferences.length > 0) {
     (newMessages.at(-1) as AssistantMessage).references = outputReferences;
+  }
+  if (outputReferences.length > 0) {
     // Stream back references
     dataStreamer.streamData({
       type: "references",

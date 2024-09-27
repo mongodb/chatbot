@@ -3,7 +3,6 @@ import { References } from "mongodb-rag-core";
 import {
   isReferenceToDomain,
   makePrioritizeReferenceDomain,
-  normalizedHostname,
   SortReferences,
 } from "./sortReferences";
 import { addQueryParams, getCurrentPageUrl } from "./utils";

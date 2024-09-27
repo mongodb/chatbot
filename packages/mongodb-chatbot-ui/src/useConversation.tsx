@@ -1,5 +1,5 @@
 import { useMemo, useReducer } from "react";
-import { SortReferences, type References } from "mongodb-rag-core";
+import { type References } from "mongodb-rag-core";
 import {
   MessageData,
   ConversationService,
@@ -14,6 +14,7 @@ import {
   canUseServerSentEvents,
 } from "./utils";
 import { makePrioritizeCurrentMongoDbReferenceDomain } from "./messageLinks";
+import { SortReferences } from "./sortReferences";
 
 const STREAMING_MESSAGE_ID = "streaming-response";
 

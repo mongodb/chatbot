@@ -89,6 +89,7 @@ function App() {
           }}
           sortMessageReferences={makePrioritizeReferenceDomain([
             "https://mongodb.com/developer",
+            "https://www.mongodb.com/developer",
           ])}
         >
           <DevCenterChatbot

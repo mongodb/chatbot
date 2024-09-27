@@ -76,8 +76,6 @@ export function mongodbReferenceType(
         return "Book";
       case "devcenter":
         return "Article";
-      case "mongodb-corp":
-        return "Website";
     }
   }
 

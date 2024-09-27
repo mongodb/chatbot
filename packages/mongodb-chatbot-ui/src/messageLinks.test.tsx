@@ -84,7 +84,7 @@ describe("makePrioritizeCurrentMongoDbReferenceDomain", () => {
     });
     const prioritizeCurrentMongoDbReferenceDomain =
       makePrioritizeCurrentMongoDbReferenceDomain();
-    const sortedReferences = testReferences.toSorted(
+    const sortedReferences = [...testReferences].sort(
       prioritizeCurrentMongoDbReferenceDomain
     );
     expect(sortedReferences.map((r) => r.url)).toEqual([
@@ -102,7 +102,7 @@ describe("makePrioritizeCurrentMongoDbReferenceDomain", () => {
     });
     const prioritizeCurrentMongoDbReferenceDomain =
       makePrioritizeCurrentMongoDbReferenceDomain();
-    const sortedReferences = testReferences.toSorted(
+    const sortedReferences = [...testReferences].sort(
       prioritizeCurrentMongoDbReferenceDomain
     );
     expect(sortedReferences.map((r) => r.url)).toEqual([
@@ -118,7 +118,7 @@ describe("makePrioritizeCurrentMongoDbReferenceDomain", () => {
     vi.stubGlobal("window", undefined);
     const prioritizeCurrentMongoDbReferenceDomain =
       makePrioritizeCurrentMongoDbReferenceDomain();
-    const sortedReferences = testReferences.toSorted(
+    const sortedReferences = [...testReferences].sort(
       prioritizeCurrentMongoDbReferenceDomain
     );
     expect(sortedReferences.map((r) => r.url)).toEqual([

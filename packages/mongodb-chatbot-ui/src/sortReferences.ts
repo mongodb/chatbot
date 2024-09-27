@@ -19,11 +19,11 @@ export function makePrioritizeReferenceDomain(
   return function prioritizeReferenceDomain(l, r) {
     // Determine the priority level for left and right URLs
     const lPriority = priorityDomains.findIndex((priorityDomain) =>
-      isReferenceToDomain(l, priorityDomain)
+      isReferenceToDomain(new URL(l.url), priorityDomain)
     );
 
     const rPriority = priorityDomains.findIndex((priorityDomain) =>
-      isReferenceToDomain(r, priorityDomain)
+      isReferenceToDomain(new URL(r.url), priorityDomain)
     );
 
     // Both URLs match the same priority level
@@ -46,23 +46,14 @@ export function makePrioritizeReferenceDomain(
 }
 
 /**
- * Get the hostname of a URL, normalized to omit the "www." prefix if it is present
- */
-export function normalizedHostname(url: URL): string {
-  return url.hostname.replace(/^www\./, "");
-}
-
-/**
- * Determine if a reference is to a specific domain
+ * Determine if a reference is to a specific domain/path.
  */
 export function isReferenceToDomain(
-  reference: Reference,
-  domain: ReferenceDomain
+  referenceUrl: URL,
+  domainUrl: URL
 ): boolean {
-  const referenceUrl = new URL(reference.url);
-  const domainUrl = new URL(domain);
   return (
-    normalizedHostname(referenceUrl) === normalizedHostname(domainUrl) &&
+    referenceUrl.hostname === domainUrl.hostname &&
     referenceUrl.pathname.startsWith(domainUrl.pathname)
   );
 }

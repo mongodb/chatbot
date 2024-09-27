@@ -49,6 +49,7 @@ describe("formatReferences", () => {
       {
         href: "https://mongodb.com/developer/products/atlas/foobar",
         children: "Some MongoDB Developer Center Article",
+        variant: "Article",
       },
       {
         href: "https://mongodb.com/docs/manual",

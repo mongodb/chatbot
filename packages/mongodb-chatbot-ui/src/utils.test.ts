@@ -5,6 +5,7 @@ import {
   countRegexMatches,
   canUseServerSentEvents,
   addQueryParams,
+  getCurrentPageUrl,
   renameFields,
   omit,
 } from "./utils";
@@ -72,6 +73,26 @@ describe("addQueryParams", () => {
     const newUrl = addQueryParams(baseUrl, { newParam: "value" });
     expect(newUrl).toBe(
       "https://example.com/path/to/resource?existingParam=1&anotherParam=true&newParam=value"
+    );
+  });
+});
+
+describe("getCurrentPageUrl", () => {
+  beforeEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  test("returns undefined on the server", () => {
+    vi.stubGlobal("window", undefined);
+    expect(getCurrentPageUrl()).toBeUndefined();
+  });
+
+  test("returns the current page URL in the browser", () => {
+    vi.stubGlobal("location", {
+      href: "https://example.com/path/to/resource",
+    });
+    expect(getCurrentPageUrl()?.href).toBe(
+      "https://example.com/path/to/resource"
     );
   });
 });

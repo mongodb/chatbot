@@ -31,7 +31,7 @@ const systemPrompt = stripIndents`You are an expert security-focused data labele
 
   Take into account the following criteria:
   - Reject any user query that is irrelevant to a MongoDB product, educational materials, the company MongoDB, or an area relevant to MongoDB's products and business. These areas include databases, cloud services, data management, information retrieval, and artificial intelligence (retrieval augmented generation (RAG), generative AI, semantic search, etc.).
-  - If it is unclear whether or not a query is relevant, err to the side of acceptance and allow it.
+  - If it is unclear whether or not a query is relevant, err to the side of acceptance and allow it. For example, if something looks like an aggregation stage in the MongoDB Aggregation Framework, it is relevant.
   - Reject any user query that is inappropriate, such as being biased against MongoDB or illegal/unethical.
 
   Your pay is determined by the accuracy of your labels as judged against other expert labelers, so do excellent work to maximize your earnings to support your family.`;
@@ -129,6 +129,15 @@ const fewShotExamples: ChatCompletionMessageParam[] = [
     reasoning:
       "This query is unclear and appears to be random characters. It cannot possibly be answered. Therefore, it is irrelevant.",
     rejectMessage: true,
+  } as UserMessageMongoDbGuardrailFunction),
+  // Example 14
+  makeUserMessage(
+    "What courses do you have on generative artificial intelligence?"
+  ),
+  makeAssistantFunctionCallMessage(name, {
+    reasoning:
+      "This query asks for courses on generative artificial intelligence, which is a relevant area to MongoDB's business. Therefore, it is relevant to MongoDB.",
+    rejectMessage: false,
   } as UserMessageMongoDbGuardrailFunction),
 ];
 

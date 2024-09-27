@@ -1,11 +1,10 @@
 import { useMemo, useReducer } from "react";
-import { type References } from "mongodb-rag-core";
+import { SortReferences, type References } from "mongodb-rag-core";
 import {
   MessageData,
   ConversationService,
   ConversationFetchOptions,
   AssistantMessageMetadata,
-  MessageDataReferences,
 } from "./services/conversations";
 import createMessage, { createMessageId } from "./createMessage";
 import {
@@ -14,6 +13,7 @@ import {
   updateArrayElementAt,
   canUseServerSentEvents,
 } from "./utils";
+import { makePrioritizeCurrentMongoDbReferenceDomain } from "./messageLinks";
 
 const STREAMING_MESSAGE_ID = "streaming-response";
 
@@ -52,7 +52,7 @@ type ConversationAction =
   | { type: "appendStreamingResponse"; data: string }
   | {
       type: "appendStreamingReferences";
-      data: MessageDataReferences;
+      data: References;
     }
   | { type: "finishStreamingResponse"; messageId: MessageData["id"] }
   | { type: "cancelStreamingResponse" };
@@ -376,6 +376,7 @@ function conversationReducer(
 export type UseConversationParams = {
   serverBaseUrl?: string;
   shouldStream?: boolean;
+  sortMessageReferences?: SortReferences;
   fetchOptions?: ConversationFetchOptions;
 };
 
@@ -397,6 +398,13 @@ export function useConversation(params: UseConversationParams = {}) {
     }
     _dispatch(...args);
   };
+
+  // Use a custom sort function if provided. If undefined and we're on a
+  // well-known MongoDB domain, then prioritize links to the current domain.
+  // Otherwise leave everything as is.
+  const sortMessageReferences =
+    params.sortMessageReferences ??
+    makePrioritizeCurrentMongoDbReferenceDomain();
 
   const setConversation = (conversation: Required<ConversationState>) => {
     dispatch({ type: "setConversation", conversation });
@@ -475,7 +483,7 @@ export function useConversation(params: UseConversationParams = {}) {
 
         dispatch({
           type: "appendStreamingReferences",
-          data: references,
+          data: references.sort(sortMessageReferences),
         });
         references = null;
       }
@@ -535,7 +543,7 @@ export function useConversation(params: UseConversationParams = {}) {
           type: "addMessage",
           role: "assistant",
           content: response.content,
-          references: response.references,
+          references: response.references?.sort(sortMessageReferences),
           metadata: response.metadata,
         });
       }

@@ -134,9 +134,7 @@ export const updateEmbeddedContentForPage = async ({
     } embedded content for ${page.sourceName}:${page.url}`
   );
 
-  const embeddedContent: EmbeddedContent[] = [];
-
-  await PromisePool
+  const { results: embeddedContent } = await PromisePool
     .withConcurrency(embedConcurrencyOptions?.createChunks || 1)
     .for(contentChunks)
     .process(async (chunk, index, pool) => {
@@ -148,12 +146,12 @@ export const updateEmbeddedContentForPage = async ({
       const { embedding } = await embedder.embed({
         text: chunk.text,
       });
-      embeddedContent.push({
+      return {
         ...chunk,
         embedding,
         updated: new Date(),
         chunkAlgoHash,
-      });
+      };
     })
 
   await store.updateEmbeddedContent({

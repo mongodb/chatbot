@@ -1328,7 +1328,7 @@
     - alerts
 - name: should understand OM/CM user account settings
   messages:
-    - content: Can I reset my password?
+    - content: Can I reset my password in ops manager?
       role: user
   expectation: >
     The ASSISTANT should suggest editing the password in the profile section of the user's account settings.

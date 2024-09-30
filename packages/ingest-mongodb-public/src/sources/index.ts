@@ -136,12 +136,12 @@ function getTerraformPageUrl(siteBaseUrl: string, path: string) {
  */
 export const sourceConstructors: SourceConstructor[] = [
   () => makeSnootyDataSources(snootyDataApiBaseUrl, snootyProjectConfig),
-  () => makeDevCenterDataSource(devCenterProjectConfig),
-  mongoDbUniversitySourceConstructor,
-  mongooseSourceConstructor,
-  prismaSourceConstructor,
-  mongoDbCorpDataSource,
-  practicalAggregationsDataSource,
-  terraformProviderSourceConstructor,
-  wiredTigerSourceConstructor,
+  // () => makeDevCenterDataSource(devCenterProjectConfig),
+  // mongoDbUniversitySourceConstructor,
+  // mongooseSourceConstructor,
+  // prismaSourceConstructor,
+  // mongoDbCorpDataSource,
+  // practicalAggregationsDataSource,
+  // terraformProviderSourceConstructor,
+  // wiredTigerSourceConstructor,
 ];

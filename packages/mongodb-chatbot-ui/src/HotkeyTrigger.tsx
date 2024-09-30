@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useChatbotContext } from "./useChatbotContext";
+import { useHotkeyContext } from "./HotkeyContext";
 
 export type HotkeyTriggerProps = {
   onKey: string;
@@ -7,8 +8,12 @@ export type HotkeyTriggerProps = {
 
 export function HotkeyTrigger({ onKey }: HotkeyTriggerProps) {
   const { openChat } = useChatbotContext();
+  const hotkeyContext = useHotkeyContext();
 
   useEffect(() => {
+    hotkeyContext.setHotkey(onKey);
+    console.log("setting hotkey to", onKey);
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === onKey) {
         openChat();
@@ -21,8 +26,9 @@ export function HotkeyTrigger({ onKey }: HotkeyTriggerProps) {
     // Remove event listener when component unmounts
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
+      hotkeyContext.setHotkey(null);
     };
-  }, [onKey, openChat]);
+  }, [hotkeyContext, onKey, openChat]);
 
   // This component doesn't render anything
   return null;

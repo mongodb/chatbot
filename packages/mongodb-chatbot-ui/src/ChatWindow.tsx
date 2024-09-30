@@ -18,6 +18,7 @@ import { defaultChatbotFatalErrorMessage } from "./ui-text";
 import { Conversation } from "./useConversation";
 import { type ChatbotViewProps } from "./ChatbotView";
 import { useChatbotContext } from "./useChatbotContext";
+import { useHotkeyContext } from "./HotkeyContext";
 
 const styles = {
   chatbot_input: css`
@@ -118,6 +119,9 @@ export function ChatWindow(props: ChatWindowProps) {
 
   const hasError = inputTextError !== "";
 
+  const hotkeyContext = useHotkeyContext();
+  console.log("hotkeyContext", hotkeyContext);
+
   const inputPlaceholder = conversation.error
     ? fatalErrorMessage
     : props.inputBarPlaceholder ?? MongoDbInputBarPlaceholder();
@@ -191,6 +195,7 @@ export function ChatWindow(props: ChatWindowProps) {
                 ref={inputBarRef}
                 disabled={Boolean(conversation.error?.length)}
                 disableSend={hasError || awaitingReply}
+                shouldRenderHotkeyIndicator={hotkeyContext.hotkey !== null}
                 onMessageSend={(messageContent) => {
                   const canSubmit =
                     inputTextError.length === 0 && !conversation.error;

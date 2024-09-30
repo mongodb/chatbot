@@ -23,6 +23,9 @@ const SUGGESTED_PROMPTS = [
   "Why should I use Atlas Search?",
 ];
 
+const serverBaseUrl =
+  import.meta.env.VITE_SERVER_BASE_URL ?? "http://localhost:3000/api/v1";
+
 const initialMessageReferences = [
   {
     url: "https://docs.mongodb.com/",
@@ -62,6 +65,7 @@ function App() {
       <div className={styles.main_content}>
         <Chatbot
           name="MongoDB AI (Docs)"
+          serverBaseUrl={serverBaseUrl}
           shouldStream={shouldStream}
           darkMode={darkMode}
           fetchOptions={{ credentials: "include" }}
@@ -78,6 +82,7 @@ function App() {
         </Chatbot>
         <Chatbot
           name="MongoDB AI (Dev Center)"
+          serverBaseUrl={serverBaseUrl}
           shouldStream={shouldStream}
           darkMode={darkMode}
           fetchOptions={{ credentials: "include" }}

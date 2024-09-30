@@ -375,16 +375,16 @@ function conversationReducer(
 }
 
 export type UseConversationParams = {
-  serverBaseUrl?: string;
+  serverBaseUrl: string;
   shouldStream?: boolean;
   sortMessageReferences?: SortReferences;
   fetchOptions?: ConversationFetchOptions;
 };
 
-export function useConversation(params: UseConversationParams = {}) {
+export function useConversation(params: UseConversationParams) {
   const conversationService = useMemo(() => {
     return new ConversationService({
-      serverUrl: params.serverBaseUrl ?? import.meta.env.VITE_SERVER_BASE_URL,
+      serverUrl: params.serverBaseUrl,
       fetchOptions: params.fetchOptions,
     });
   }, [params.serverBaseUrl, params.fetchOptions]);

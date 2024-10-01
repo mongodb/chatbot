@@ -6,7 +6,7 @@ export type HotkeyTriggerProps = {
 };
 
 export function HotkeyTrigger({ onKey }: HotkeyTriggerProps) {
-  const { openChat } = useChatbotContext();
+  const { open, openChat } = useChatbotContext();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -15,14 +15,14 @@ export function HotkeyTrigger({ onKey }: HotkeyTriggerProps) {
       }
     };
 
-    // Add event listener when component mounts
-    window.addEventListener("keydown", handleKeyDown);
+    if (!open) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
 
-    // Remove event listener when component unmounts
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [onKey, openChat]);
+  }, [onKey, open, openChat]);
 
   // This component doesn't render anything
   return null;

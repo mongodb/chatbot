@@ -218,6 +218,7 @@ components:
       type: object
       required:
         - id
+        - conversationId
         - role
         - content
         - createdAt
@@ -225,6 +226,9 @@ components:
         id:
           type: string
           description: The unique identifier for a message.
+        conversationId:
+          type: string
+          description: The unique identifier for a conversation.
         role:
           type: string
           enum: [user, assistant]
@@ -284,6 +288,7 @@ components:
         - $ref: "#/components/schemas/StreamEventProcessing"
         - $ref: "#/components/schemas/StreamEventReferences"
         - $ref: "#/components/schemas/StreamEventFinished"
+        - $ref: "#/components/schemas/StreamEventConversationId"
       description: A server-sent event data payload for a streaming message.
     StreamEventDelta:
       description: Assistant response text.
@@ -336,6 +341,16 @@ components:
           enum: [finished]
         data:
           description: Message ID.
+          type: string
+    StreamEventConversationId:
+      description: Conversation ID for the message.
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [conversationId]
+        data:
+          description: Conversation ID.
           type: string
     MessageComment:
       type: object

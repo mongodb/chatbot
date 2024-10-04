@@ -1,5 +1,4 @@
 import { TextToDriverEvalScorer } from "./evalTypes";
-// import { fuzzyMatch } from "./fuzzyMatch";
 
 /**
   Check if the generated query successfully executed.
@@ -21,5 +20,22 @@ export const SuccessfulExecution: TextToDriverEvalScorer = async ({
           },
         }
       : {}),
+  };
+};
+
+/**
+  Measure how long the query takes to execute in minutes.
+
+  Note: Measuring in minutes because
+  Braintrust throws an error if the score > 1.
+ */
+export const QueryExecutionTimeMinutes: TextToDriverEvalScorer = async ({
+  output,
+}) => {
+  const executionTimeMinutes = output.execution.executionTimeMs / 1000 / 60;
+
+  return {
+    name: "QueryExecutionTimeMinutes",
+    score: executionTimeMinutes,
   };
 };

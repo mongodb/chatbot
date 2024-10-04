@@ -188,11 +188,18 @@ export function makeAddMessageToConversationRoute({
       const dbAssistantMessage = dbNewMessages[dbNewMessages.length - 1];
 
       assert(dbAssistantMessage !== undefined, "No assistant message found");
-      const apiRes = convertMessageFromDbToApi(dbAssistantMessage);
+      const apiRes = convertMessageFromDbToApi(
+        dbAssistantMessage,
+        conversation._id
+      );
 
       if (!shouldStream) {
         return res.status(200).json(apiRes);
       } else {
+        dataStreamer.streamData({
+          type: "conversationId",
+          data: conversation._id.toString(),
+        });
         dataStreamer.streamData({
           type: "finished",
           data: apiRes.id,

@@ -1,6 +1,6 @@
 import { isIP } from "net";
 import { Address6 } from "ip-address";
-import { Conversation, Message, References } from "mongodb-rag-core";
+import { Conversation, Message, ObjectId, References } from "mongodb-rag-core";
 import { z } from "zod";
 
 export type ApiMessage = z.infer<typeof ApiMessage>;
@@ -21,10 +21,14 @@ export const ApiConversation = z.object({
   createdAt: z.number(),
 });
 
-export function convertMessageFromDbToApi(message: Message): ApiMessage {
+export function convertMessageFromDbToApi(
+  message: Message,
+  conversationId: ObjectId
+): ApiMessage {
   const { id, createdAt, role, content } = message;
   const apiMessage = {
     id: id.toString(),
+    conversationId: conversationId.toString(),
     role,
     content,
     createdAt: createdAt.getTime(),
@@ -71,7 +75,7 @@ export function convertConversationFromDbToApi(
     createdAt: conversation.createdAt.getTime(),
     messages: conversation.messages
       .filter(isMessageAllowedInApiResponse)
-      .map(convertMessageFromDbToApi),
+      .map((message) => convertMessageFromDbToApi(message, conversation._id)),
   };
 }
 

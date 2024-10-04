@@ -17,6 +17,7 @@ import {
   AddMessageRequestBody,
   DEFAULT_MAX_INPUT_LENGTH,
   DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION,
+  makeAddMessageToConversationRoute,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
 import { stripIndent } from "common-tags";
@@ -27,6 +28,7 @@ import { AppConfig } from "../../app";
 import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { strict as assert } from "assert";
 import { NO_VECTOR_CONTENT, REJECT_QUERY_CONTENT } from "../../test/testConfig";
+import { add } from "winston";
 
 const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
   assertEnvVars(CORE_ENV_VARS);
@@ -401,7 +403,19 @@ describe("POST /conversations/:conversationId/messages", () => {
   });
 
   describe("create conversation with 'null' conversationId", () => {
-    // TODO
+    const mockCustomDataFunction = jest.fn();
+
+    test("should create a new conversation with 'null' value for addMessageToConversation if configured", async () => {
+      const route = await makeAddMessageToConversationRoute({
+        ...appConfig.conversationsRouterConfig,
+        createConversation: {
+          createOnNullConversationId: true,
+          initialMessages: [systemPrompt],
+          addCustomData: mockCustomDataFunction,
+        },
+      });
+      // TODO
+    });
   });
 });
 

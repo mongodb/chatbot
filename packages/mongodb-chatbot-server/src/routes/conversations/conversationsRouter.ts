@@ -195,7 +195,7 @@ export interface ConversationsRouterParams {
     Whether to create a new conversation if the message ID is "null"
     on the addMessageToConversation route.
    */
-  createConversationOnNullMessageId: boolean;
+  createConversationOnNullMessageId?: boolean;
 }
 
 export const rateLimitResponse = {
@@ -322,11 +322,13 @@ export function makeConversationsRouter({
     addMessageToConversationCustomData,
     generateUserPrompt,
     filterPreviousMessages,
-    createConversation: {
-      createOnNullConversationId: createConversationOnNullMessageId,
-      addCustomData: createConversationCustomData,
-      initialMessages: [systemPrompt],
-    },
+    createConversation: createConversationOnNullMessageId
+      ? {
+          createOnNullConversationId: createConversationOnNullMessageId,
+          addCustomData: createConversationCustomData,
+          initialMessages: [systemPrompt],
+        }
+      : undefined,
   });
   conversationsRouter.post(
     "/:conversationId/messages",

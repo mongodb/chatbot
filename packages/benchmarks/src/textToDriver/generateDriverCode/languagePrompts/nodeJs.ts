@@ -86,26 +86,26 @@ export const genericFewShotExamples: FewShotExample[] = [
 
 export const NODE_JS_PROMPTS: Record<string, Record<string, string>> = {
   systemPrompts: {
-    //     simple: `${promptUtils.basePrompt}
+    simple: `${promptUtils.basePrompt}
 
-    // ${promptUtils.abstractExampleOutput}`,
-    // chainOfThought: `${promptUtils.basePrompt}
+${promptUtils.abstractExampleOutput}`,
+    chainOfThought: `${promptUtils.basePrompt}
 
-    // ${chainOfThoughtSystemPromptContent}
+${chainOfThoughtSystemPromptContent}
 
-    // ${promptUtils.chainOfThoughtAbstractExampleOutput}`,
-    // genericFewShot: `${promptUtils.basePrompt}
+${promptUtils.chainOfThoughtAbstractExampleOutput}`,
+    genericFewShot: `${promptUtils.basePrompt}
 
-    // ${promptUtils.abstractExampleOutput}
+    ${promptUtils.abstractExampleOutput}
 
-    // A few example input and outputs:
+    A few example input and outputs:
 
-    // ${genericFewShotExamples
-    //   .map(
-    //     (ex) => `Input: ${ex.input}
-    // Output: ${ex.output.content}`
-    //   )
-    //   .join("\n\n")}`,
+    ${genericFewShotExamples
+      .map(
+        (ex) => `Input: ${ex.input}
+    Output: ${ex.output.content}`
+      )
+      .join("\n\n")}`,
     genericFewShotChainOfThought: `${promptUtils.basePrompt}
 
 ${chainOfThoughtSystemPromptContent}

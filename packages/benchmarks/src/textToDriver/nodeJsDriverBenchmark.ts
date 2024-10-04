@@ -104,11 +104,10 @@ async function main() {
             modelInfo,
             generateCollectionSchemas: true,
           },
-          // TODO: add back in...
-          // {
-          //   modelInfo,
-          //   generateCollectionSchemas: false,
-          // },
+          {
+            modelInfo,
+            generateCollectionSchemas: false,
+          },
         ])
         .flat()
         .map(async ({ modelInfo, generateCollectionSchemas }) => {

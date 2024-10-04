@@ -1,4 +1,4 @@
-import { Eval, traced, wrapTraced } from "braintrust";
+import { Eval, traced } from "braintrust";
 import {
   GenerateDriverCodeParams,
   makeGenerateDriverCode,
@@ -70,7 +70,6 @@ export async function runTextToDriverEval({
       datasetName: dataset.name,
     }),
 
-    // TODO: make this a separate tested function
     async task(input) {
       const metadata = dbMetadatas.find(
         (metadata) => metadata.databaseName === input.dataset_name
@@ -128,12 +127,6 @@ export async function runTextToDriverEval({
           name: "executeGeneratedDriverCode",
         }
       );
-      console.log({
-        datasetName: input.dataset_name,
-        query: input.nl_query,
-        output,
-        executionOutput: execution,
-      });
 
       return {
         generatedCode: output,

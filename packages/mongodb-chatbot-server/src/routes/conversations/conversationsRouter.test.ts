@@ -200,6 +200,9 @@ describe("Conversations Router", () => {
     await createConversationReq({ app, origin });
     expect(called).toBe(true);
   });
+  it("should create a new conversation with 'null' value for addMessageToConversation if configured", async () => {
+    // TODO: implement
+  });
 
   // Helpers
   /**

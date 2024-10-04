@@ -399,6 +399,10 @@ describe("POST /conversations/:conversationId/messages", () => {
       });
     });
   });
+
+  describe("create conversation with 'null' conversationId", () => {
+    // TODO
+  });
 });
 
 async function createNewConversation(

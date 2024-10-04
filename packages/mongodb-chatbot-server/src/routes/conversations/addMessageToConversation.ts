@@ -9,12 +9,8 @@ import {
   ConversationsService,
   Conversation,
   SomeMessage,
-  UserMessage,
-  AssistantMessage,
-  DataStreamer,
   makeDataStreamer,
   ChatLlm,
-  OpenAiChatMessage,
 } from "mongodb-rag-core";
 import {
   ApiMessage,
@@ -32,10 +28,7 @@ import {
 import { GenerateUserPromptFunc } from "../../processors/GenerateUserPromptFunc";
 import { FilterPreviousMessages } from "../../processors/FilterPreviousMessages";
 import { filterOnlySystemPrompt } from "../../processors/filterOnlySystemPrompt";
-import {
-  convertMessageFromLlmToDb,
-  generateResponse,
-} from "../generateResponse";
+import { generateResponse } from "../generateResponse";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 3000; // magic number for max input size for LLM
 export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for max messages in a conversation
@@ -70,6 +63,26 @@ export interface AddMessageToConversationRouteParams {
   maxInputLengthCharacters?: number;
   maxUserMessagesInConversation?: number;
   addMessageToConversationCustomData?: AddCustomDataFunc;
+  /**
+    If present, the route will create a new conversation
+    when given the `conversationIdPathParam` in the URL.
+   */
+  createConversation?: {
+    /**
+      Create a new conversation when the `conversationId` is the string "null".
+     */
+    createOnNullConversationId: boolean;
+    /**
+      The custom data to add to the new conversation
+      when it is created.
+     */
+    addCustomData?: AddCustomDataFunc;
+    /**
+      The initial messages to add to the new conversation
+      when it is created.
+     */
+    initialMessages?: SomeMessage[];
+  };
 }
 
 export function makeAddMessageToConversationRoute({
@@ -80,6 +93,7 @@ export function makeAddMessageToConversationRoute({
   maxUserMessagesInConversation = DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION,
   filterPreviousMessages = filterOnlySystemPrompt,
   addMessageToConversationCustomData,
+  createConversation,
 }: AddMessageToConversationRouteParams) {
   return async (
     req: ExpressRequest<AddMessageRequest["params"]>,
@@ -122,6 +136,10 @@ export function makeAddMessageToConversationRoute({
       const conversation = await loadConversation({
         conversationIdString,
         conversations,
+        createConversation,
+        reqId,
+        req,
+        res,
       });
 
       // --- MAX CONVERSATION LENGTH CHECK ---
@@ -249,10 +267,35 @@ async function addMessagesToDatabase({
 const loadConversation = async ({
   conversationIdString,
   conversations,
+  createConversation,
+  reqId,
+  req,
+  res,
 }: {
   conversationIdString: string;
   conversations: ConversationsService;
+  createConversation?: AddMessageToConversationRouteParams["createConversation"];
+  reqId: string;
+  req: ExpressRequest;
+  res: ExpressResponse<ApiMessage, ConversationsRouterLocals>;
 }) => {
+  // Create a new conversation if the conversationId is "null"
+  // and the route is configured to do so
+  if (
+    createConversation?.createOnNullConversationId === true &&
+    conversationIdString === "null"
+  ) {
+    logRequest({
+      reqId,
+      message: stripIndents`Creating new conversation`,
+    });
+    return await conversations.create({
+      initialMessages: createConversation.initialMessages,
+      customData: createConversation.addCustomData
+        ? await createConversation.addCustomData(req, res)
+        : undefined,
+    });
+  }
   const conversationId = toObjectId(conversationIdString);
   const conversation = await conversations.findById({
     _id: conversationId,

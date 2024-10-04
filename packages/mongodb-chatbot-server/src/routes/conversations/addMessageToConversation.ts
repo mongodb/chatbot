@@ -4,7 +4,7 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { ObjectId } from "mongodb-rag-core";
+import { ObjectId, SystemMessage } from "mongodb-rag-core";
 import {
   ConversationsService,
   Conversation,
@@ -78,10 +78,10 @@ export interface AddMessageToConversationRouteParams {
      */
     addCustomData?: AddCustomDataFunc;
     /**
-      The initial messages to add to the new conversation
+      The system message to add to the new conversation
       when it is created.
      */
-    initialMessages?: SomeMessage[];
+    systemMessage?: SystemMessage;
   };
 }
 
@@ -297,7 +297,9 @@ const loadConversation = async ({
       message: stripIndents`Creating new conversation`,
     });
     return await conversations.create({
-      initialMessages: createConversation.initialMessages,
+      initialMessages: createConversation.systemMessage
+        ? [createConversation.systemMessage]
+        : undefined,
       customData: createConversation.addCustomData
         ? await createConversation.addCustomData(req, res)
         : undefined,

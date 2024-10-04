@@ -328,7 +328,7 @@ export function makeConversationsRouter({
       ? {
           createOnNullConversationId: createConversationOnNullMessageId,
           addCustomData: createConversationCustomData,
-          initialMessages: [systemPrompt],
+          systemMessage: systemPrompt,
         }
       : undefined,
   });

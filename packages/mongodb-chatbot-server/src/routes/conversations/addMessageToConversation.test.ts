@@ -410,7 +410,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         ...appConfig.conversationsRouterConfig,
         createConversation: {
           createOnNullConversationId: true,
-          initialMessages: [systemPrompt],
+          systemMessage: systemPrompt,
           addCustomData: mockCustomDataFunction,
         },
       });

@@ -203,7 +203,6 @@ export const config: AppConfig = {
     maxUserCommentLength: 500,
     conversations,
     maxInputLengthCharacters: 3000,
-    createConversationOnNullMessageId: true,
   },
   maxRequestTimeoutMs: 60000,
   corsOptions: {

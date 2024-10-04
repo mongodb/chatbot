@@ -194,6 +194,8 @@ export interface ConversationsRouterParams {
   /**
     Whether to create a new conversation if the message ID is "null"
     on the addMessageToConversation route.
+
+    @default true
    */
   createConversationOnNullMessageId?: boolean;
 }
@@ -234,7 +236,7 @@ export function makeConversationsRouter({
   createConversationCustomData = addOriginAndIpToCustomData,
   addMessageToConversationCustomData = addOriginToCustomData,
   maxUserCommentLength,
-  createConversationOnNullMessageId,
+  createConversationOnNullMessageId = true,
 }: ConversationsRouterParams) {
   const conversationsRouter = Router();
   // Set the customData and conversations on the response locals

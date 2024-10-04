@@ -85,8 +85,8 @@ describe("SuccessfulExecution", () => {
     });
     expect(result).toEqual({
       name: "SuccessfulExecution",
-      score: 1,
-      metadata: error,
+      score: 0,
+      metadata: { error },
     });
   });
 });
@@ -108,7 +108,7 @@ describe("QueryExecutionTimeMinutes", () => {
     });
     expect(result).toEqual({
       name: "QueryExecutionTimeMinutes",
-      score: output.execution.executionTimeMs / 60,
+      score: output.execution.executionTimeMs / 1000 / 60,
     });
   });
 });

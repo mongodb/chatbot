@@ -120,7 +120,6 @@ export function ChatWindow(props: ChatWindowProps) {
   const hasError = inputTextError !== "";
 
   const hotkeyContext = useHotkeyContext();
-  console.log("hotkeyContext", hotkeyContext);
 
   const inputPlaceholder = conversation.error
     ? fatalErrorMessage

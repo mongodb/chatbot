@@ -54,7 +54,6 @@ export const InputBar = forwardRef<HTMLFormElement, InputBarProps>(
         )}
         shouldRenderGradient={!hasError}
         {...props}
-        shouldRenderHotkeyIndicator={true}
       >
         {children}
       </LGInputBar>

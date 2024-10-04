@@ -12,7 +12,6 @@ export function HotkeyTrigger({ onKey }: HotkeyTriggerProps) {
 
   useEffect(() => {
     hotkeyContext.setHotkey(onKey);
-    console.log("setting hotkey to", onKey);
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === onKey) {

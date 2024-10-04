@@ -100,12 +100,12 @@ ${promptUtils.chainOfThoughtAbstractExampleOutput}`,
 
     A few example input and outputs:
 
-    ${genericFewShotExamples
-      .map(
-        (ex) => `Input: ${ex.input}
-    Output: ${ex.output.content}`
-      )
-      .join("\n\n")}`,
+${genericFewShotExamples
+  .map(
+    (ex) => `Input: ${ex.input}
+Output: ${ex.output.content}`
+  )
+  .join("\n\n")}`,
     genericFewShotChainOfThought: `${promptUtils.basePrompt}
 
 ${chainOfThoughtSystemPromptContent}

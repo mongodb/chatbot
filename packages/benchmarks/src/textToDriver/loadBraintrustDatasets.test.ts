@@ -32,7 +32,7 @@ describe.skip("loadBraintrustDbDocuments", () => {
   });
 });
 
-describe("loadBraintrustEvalCases", () => {
+describe.skip("loadBraintrustEvalCases", () => {
   it("should load the braintrust eval cases", async () => {
     const cases = await loadBraintrustEvalCases({
       apiKey: BRAINTRUST_API_KEY,

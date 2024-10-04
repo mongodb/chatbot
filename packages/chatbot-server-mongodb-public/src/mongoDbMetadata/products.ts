@@ -11,7 +11,7 @@ export const MongoDbProductSchema = z.object({
   programmingLanguage: z
     .enum(mongoDbProgrammingLanguageIds)
     .optional()
-    .describe("Programming language"),
+    .describe("The programming language used to interact with the product"),
   parentProductId: z.string().optional().describe("`id` of the parent product"),
 });
 export type MongoDbProduct = z.infer<typeof MongoDbProductSchema>;

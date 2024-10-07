@@ -17,7 +17,8 @@ steps:
   - name: test
     image: node:20
     commands:
-      - apt-get install -y libssl-dev
+      - wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+      - dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
       - npm ci
       - npm run build
       - npm run lint

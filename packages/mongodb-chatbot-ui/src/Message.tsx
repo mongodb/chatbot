@@ -85,7 +85,6 @@ const styles = {
     & h1, & h2, & h3 {
       & +ol, & +ul {
         margin-top: 0;
-        /* background-color: ${palette.blue.dark2}; */
       }
     }
 

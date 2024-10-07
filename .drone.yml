@@ -17,7 +17,7 @@ steps:
   - name: test
     image: node:20
     commands:
-      - sudo apt-get install -y libssl-dev
+      - apt-get install -y libssl-dev
       - npm ci
       - npm run build
       - npm run lint

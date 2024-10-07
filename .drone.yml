@@ -15,8 +15,9 @@ trigger:
 
 steps:
   - name: test
-    image: node:20
+    image: node:18
     commands:
+      # Getting libssl to use mongodb-memory-server per https://github.com/typegoose/mongodb-memory-server/issues/480#issuecomment-1488548395
       - wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
       - dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
       - npm ci

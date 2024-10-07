@@ -15,7 +15,7 @@ trigger:
 
 steps:
   - name: test
-    image: node:20
+    image: node:20-alpine
     commands:
       - npm ci
       - npm run build

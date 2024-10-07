@@ -174,6 +174,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       expect(res.text).toContain(`data: {"type":"delta","data":"`);
       expect(res.text).toContain(`data: {"type":"references","data":[{`);
       expect(res.text).toContain(`data: {"type":"finished","data":"`);
+      expect(res.text).toContain(`data: {"type":"conversationId","data":"`);
     });
     it("should stream two requests concurrently", async () => {
       const newConvoId1 = await createNewConversation(app, ipAddress);

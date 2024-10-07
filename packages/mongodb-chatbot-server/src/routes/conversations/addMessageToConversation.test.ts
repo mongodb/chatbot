@@ -403,18 +403,36 @@ describe("POST /conversations/:conversationId/messages", () => {
   });
 
   describe("create conversation with 'null' conversationId", () => {
+    // TODO
     const mockCustomDataFunction = jest.fn();
 
     test("should create a new conversation with 'null' value for addMessageToConversation if configured", async () => {
-      const route = await makeAddMessageToConversationRoute({
-        ...appConfig.conversationsRouterConfig,
-        createConversation: {
-          createOnNullConversationId: true,
-          systemMessage: systemPrompt,
-          addCustomData: mockCustomDataFunction,
-        },
+      const res = await request(app)
+        .post(DEFAULT_API_PREFIX + `/conversations/null/messages`)
+        .send({
+          message: "hello",
+        });
+      console.log(res.body);
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toMatchObject({
+        // content is some string
+        content: expect.any(String),
       });
-      // TODO
+    });
+  });
+  describe("create converastion with 'null' conversationId", () => {
+    test("should create a new conversation with 'null' value for addMessageToConversation if configured", async () => {
+      const res = await request(app)
+        .post(DEFAULT_API_PREFIX + `/conversations/null/messages`)
+        .send({
+          message: "hello",
+        });
+      console.log(res.body);
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toMatchObject({
+        // content is some string
+        content: expect.any(String),
+      });
     });
   });
 });

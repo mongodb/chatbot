@@ -5,21 +5,24 @@ import {
   makeMongoDbConversationsService,
 } from "mongodb-rag-core";
 import { AppConfig, makeApp } from "../app";
-import { MONGODB_CONNECTION_URI, config, systemPrompt } from "./testConfig";
+import { config, systemPrompt } from "./testConfig";
+import { MongoMemoryServer } from "mongodb-memory-server";
 
 let mongoClient: MongoClient | undefined;
 let mongodb: Db | undefined;
-let testDbName: string | undefined;
-
+let mongod: MongoMemoryServer | undefined;
 beforeAll(async () => {
-  testDbName = `conversations-test-${Date.now()}`;
-  mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
+  mongod = await MongoMemoryServer.create();
+  const uri = mongod.getUri();
+  const testDbName = `conversations-test-${Date.now()}`;
+  mongoClient = new MongoClient(uri);
   mongodb = mongoClient.db(testDbName);
 });
 
 afterAll(async () => {
   await mongodb?.dropDatabase();
   await mongoClient?.close();
+  await mongod?.stop();
 });
 
 export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {

@@ -17,6 +17,7 @@ import {
   makeOpenAiChatLlm,
   SystemPrompt,
   UserMessage,
+  defaultConversationConstants,
 } from "mongodb-rag-core";
 import { stripIndents } from "common-tags";
 import { AppConfig } from "../app";
@@ -80,6 +81,11 @@ export const verifiedAnswerStore = makeMongoDbVerifiedAnswerStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
   collectionName: "verified_answers",
+});
+
+afterAll(async () => {
+  await embeddedContentStore.close();
+  await verifiedAnswerStore.close();
 });
 
 export const embedder = makeOpenAiEmbedder({
@@ -148,7 +154,7 @@ export const fakeGenerateUserPrompt: GenerateUserPromptFunc = async (args) => {
     rejectQuery: args.userMessageText === REJECT_QUERY_CONTENT,
     staticResponse: noVectorContent
       ? {
-          content: conversations.conversationConstants.NO_RELEVANT_CONTENT,
+          content: defaultConversationConstants.NO_RELEVANT_CONTENT,
           role: "assistant",
           references: [],
         }
@@ -187,12 +193,6 @@ export const llm = makeOpenAiChatLlm({
   },
 });
 
-export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
-
-export const conversations = makeMongoDbConversationsService(
-  mongodb.db(MONGODB_DATABASE_NAME)
-);
-
 /**
   MongoDB Chatbot implementation of {@link MakeReferenceLinksFunc}.
   Returns references that look like:
@@ -217,10 +217,14 @@ export function makeMongoDbReferences(chunks: EmbeddedContent[]) {
 
 export const filterPrevious12Messages = makeFilterNPreviousMessages(12);
 
-export const config: AppConfig = {
+export const config: Omit<AppConfig, "conversationsRouterConfig"> & {
+  conversationsRouterConfig: Omit<
+    AppConfig["conversationsRouterConfig"],
+    "conversations"
+  >;
+} = {
   conversationsRouterConfig: {
     llm,
-    conversations,
     generateUserPrompt: fakeGenerateUserPrompt,
     filterPreviousMessages: filterPrevious12Messages,
     systemPrompt,

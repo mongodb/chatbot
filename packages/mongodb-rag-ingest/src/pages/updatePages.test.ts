@@ -1,6 +1,7 @@
 import { Page, PersistedPage } from "mongodb-rag-core";
-import { persistPages } from "./updatePages";
+import { updatePages, persistPages } from "./updatePages";
 import { makeMockPageStore } from "../test/MockPageStore";
+import { DataSource } from "../sources/DataSource";
 
 const examplePage: Page = {
   title: "Example",
@@ -64,5 +65,69 @@ describe("persistPages", () => {
       url: v2Url,
       action: "created",
     });
+  });
+});
+
+describe("updatePages", () => {
+  it("fetches pages from data sources concurrently", async () => {
+    const pageStore = makeMockPageStore();
+
+    const source1: DataSource = {
+      name: "source1",
+      fetchPages: jest.fn().mockImplementation(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50)); // Simulate async delay
+        return [examplePage];
+      }),
+    } as unknown as DataSource;
+
+    const source2: DataSource = {
+      name: "source2",
+      fetchPages: jest.fn().mockImplementation(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50)); // Simulate async delay
+        return [examplePage];
+      }),
+    } as unknown as DataSource;
+    
+    const sources = [source1, source2];
+    
+    const startTimes: number[] = [];
+    const endTimes: number[] = [];
+
+    const originalDateNow = Date.now;
+    let currentFakeTime = originalDateNow();
+
+    jest.spyOn(global.Date, 'now').mockImplementation(() => currentFakeTime);
+
+    sources.forEach((source) => {
+      jest.spyOn(source, 'fetchPages').mockImplementationOnce(async () => {
+        const startTime = Date.now();
+        startTimes.push(startTime);
+        await new Promise((resolve) => setTimeout(resolve, 50)); // Simulate async delay
+        currentFakeTime += 50; // Simulate time passage
+        const endTime = Date.now();
+        endTimes.push(endTime);
+        return [examplePage];
+      });
+    });
+
+    await updatePages({
+      sources,
+      pageStore,
+      pageConcurrencyOptions: { processDataSources: 2 },
+    });
+
+    const executionPairs = startTimes.map((startTime, i) => ({
+      startTime,
+      endTime: endTimes[i],
+    }));
+
+    // Ensure some overlaps indicating concurrency
+    expect(executionPairs.some((pair, i, pairs) =>
+      pairs.some((otherPair, j) =>
+        i !== j &&
+        pair.startTime < otherPair.endTime &&
+        otherPair.startTime < pair.endTime
+      ))
+    ).toBe(true);
   });
 });

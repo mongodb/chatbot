@@ -97,49 +97,63 @@ describe("Data Conversion Functions", () => {
         functionResultMessage,
         assistantMessage,
       ] = exampleConversationInDatabase.messages;
+      const convoId = new ObjectId();
 
-      expect(convertMessageFromDbToApi(systemMessage)).toEqual({
+      expect(convertMessageFromDbToApi(systemMessage, convoId)).toEqual({
         id: "65ca766ab564b694eba8c330",
+        conversationId: convoId.toString(),
         role: "system",
         content:
           "You are an expert conversationalist! You can chat about anything with anyone.",
         createdAt: 1704067201000,
       });
 
-      expect(convertMessageFromDbToApi(userMessage)).toEqual({
+      expect(convertMessageFromDbToApi(userMessage, convoId)).toEqual({
         id: "65ca76775a57e51c3b4c286d",
+        conversationId: convoId.toString(),
         role: "user",
         content:
           "Hello! I'm looking for a new book to read. I like fantasy and science fiction novels. Can you recommend one?",
         createdAt: 1704067242000,
       });
 
-      expect(convertMessageFromDbToApi(functionCallMessage)).toEqual({
+      expect(convertMessageFromDbToApi(functionCallMessage, convoId)).toEqual({
         id: "65ca767e30116ce068e17bb5",
+        conversationId: convoId.toString(),
         role: "assistant",
         content: "",
         createdAt: 1704067245000,
       });
 
-      expect(convertMessageFromDbToApi(functionResultMessage)).toEqual({
-        id: "65ca768341f9ea61d048aaa8",
-        role: "function",
-        content: JSON.stringify([
-          { title: "The Way of Kings", author: "Brandon Sanderson" },
-          { title: "Neuromancer", author: "William Gibson" },
-          { title: "Snow Crash", author: "Neal Stephenson" },
-        ]),
-        createdAt: 1704067247000,
-      });
+      expect(convertMessageFromDbToApi(functionResultMessage, convoId)).toEqual(
+        {
+          id: "65ca768341f9ea61d048aaa8",
+          conversationId: convoId.toString(),
+          role: "function",
+          content: JSON.stringify([
+            { title: "The Way of Kings", author: "Brandon Sanderson" },
+            { title: "Neuromancer", author: "William Gibson" },
+            { title: "Snow Crash", author: "Neal Stephenson" },
+          ]),
+          createdAt: 1704067247000,
+        }
+      );
 
-      expect(convertMessageFromDbToApi(assistantMessage)).toEqual({
+      expect(convertMessageFromDbToApi(assistantMessage, convoId)).toEqual({
         id: "65ca76874e1df9cf2742bf86",
+        conversationId: convoId.toString(),
         role: "assistant",
         content: `I recommend "The Way of Kings" by Brandon Sanderson. You may also enjoy "Neuromancer" by William Gibson or "Snow Crash" by Neal Stephenson.`,
         createdAt: 1704067252000,
         rating: undefined,
         references: undefined,
       });
+    });
+    test("do not include conversationId if not provided", () => {
+      const message = exampleConversationInDatabase.messages[0];
+      expect(convertMessageFromDbToApi(message)).not.toHaveProperty(
+        "conversationId"
+      );
     });
   });
 

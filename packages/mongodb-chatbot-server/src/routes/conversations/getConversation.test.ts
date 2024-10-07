@@ -8,8 +8,9 @@ const CONVERSATIONS_API_V1_PREFIX = DEFAULT_API_PREFIX + "/conversations";
 describe("GET /conversations/:conversationId", () => {
   let appConfig: AppConfig;
   let conversations: ConversationsService;
-  beforeAll(() => {
-    ({ appConfig, conversations } = makeTestAppConfig());
+  beforeAll(async () => {
+    ({ appConfig } = await makeTestAppConfig());
+    conversations = appConfig.conversationsRouterConfig.conversations;
   });
 
   it("should return 400 when the conversation ID is invalid", async () => {

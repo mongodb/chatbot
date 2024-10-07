@@ -17,8 +17,8 @@ describe("Conversations Router", () => {
     DEFAULT_API_PREFIX + "/conversations/:conversationId/messages";
 
   let appConfig: AppConfig;
-  beforeAll(() => {
-    ({ appConfig } = makeTestAppConfig());
+  beforeAll(async () => {
+    ({ appConfig } = await makeTestAppConfig());
   });
   test("Should apply conversation router rate limit", async () => {
     const { app, origin } = await makeTestApp({

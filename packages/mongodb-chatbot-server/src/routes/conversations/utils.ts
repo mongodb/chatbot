@@ -23,12 +23,12 @@ export const ApiConversation = z.object({
 
 export function convertMessageFromDbToApi(
   message: Message,
-  conversationId: ObjectId
+  conversationId?: ObjectId
 ): ApiMessage {
   const { id, createdAt, role, content } = message;
   const apiMessage = {
     id: id.toString(),
-    conversationId: conversationId.toString(),
+    ...(conversationId ? { conversationId: conversationId.toString() } : {}),
     role,
     content,
     createdAt: createdAt.getTime(),
@@ -75,7 +75,7 @@ export function convertConversationFromDbToApi(
     createdAt: conversation.createdAt.getTime(),
     messages: conversation.messages
       .filter(isMessageAllowedInApiResponse)
-      .map((message) => convertMessageFromDbToApi(message, conversation._id)),
+      .map((message) => convertMessageFromDbToApi(message)),
   };
 }
 

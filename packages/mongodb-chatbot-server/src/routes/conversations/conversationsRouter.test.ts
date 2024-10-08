@@ -9,6 +9,7 @@ import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { makeTestAppConfig } from "../../test/testHelpers";
 import { ObjectId } from "mongodb-rag-core";
+import exp from "constants";
 
 jest.setTimeout(60000);
 describe("Conversations Router", () => {
@@ -201,7 +202,34 @@ describe("Conversations Router", () => {
     expect(called).toBe(true);
   });
   it("should create a new conversation with 'null' value for addMessageToConversation if configured", async () => {
-    // TODO: implement
+    const { app, origin } = await makeTestApp({
+      conversationsRouterConfig: {
+        ...appConfig.conversationsRouterConfig,
+        createConversationOnNullMessageId: true,
+      },
+    });
+    const res = await createConversationMessageReq({
+      app,
+      origin,
+      conversationId: "null",
+      message: "what is the current version of mongodb server?",
+    });
+    expect(res.status).toBe(200);
+  });
+  it("should not create a new conversation with 'null' value for addMessageToConversation if not configured", async () => {
+    const { app, origin } = await makeTestApp({
+      conversationsRouterConfig: {
+        ...appConfig.conversationsRouterConfig,
+        createConversationOnNullMessageId: false,
+      },
+    });
+    const res = await createConversationMessageReq({
+      app,
+      origin,
+      conversationId: "null",
+      message: "what is the current version of mongodb server?",
+    });
+    expect(res.status).toBe(400);
   });
 
   // Helpers

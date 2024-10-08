@@ -217,7 +217,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         });
       expect(res.statusCode).toEqual(400);
       expect(res.body).toStrictEqual({
-        error: `Invalid ObjectId string: ${notAValidId}`,
+        error: `Invalid conversationId: ${notAValidId}`,
       });
     });
 

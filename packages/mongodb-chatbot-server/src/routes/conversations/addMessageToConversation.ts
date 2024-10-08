@@ -305,7 +305,17 @@ const loadConversation = async ({
         : undefined,
     });
   }
-  const conversationId = toObjectId(conversationIdString);
+
+  // Throw if the conversationId is not a valid ObjectId
+  const conversationId = ObjectId.isValid(conversationIdString)
+    ? ObjectId.createFromHexString(conversationIdString)
+    : (() => {
+        throw makeRequestError({
+          httpStatus: 400,
+          message: `Invalid conversationId: ${conversationIdString}`,
+        });
+      })();
+
   const conversation = await conversations.findById({
     _id: conversationId,
   });
@@ -316,15 +326,4 @@ const loadConversation = async ({
     });
   }
   return conversation;
-};
-
-const toObjectId = (id: string) => {
-  try {
-    return new ObjectId(id);
-  } catch (error) {
-    throw makeRequestError({
-      httpStatus: 400,
-      message: `Invalid ObjectId string: ${id}`,
-    });
-  }
 };

@@ -1,5 +1,9 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import { References, VerifiedAnswer } from "mongodb-rag-core";
+import {
+  ConversationIdStreamEvent,
+  References,
+  VerifiedAnswer,
+} from "mongodb-rag-core";
 import { ConversationState } from "../useConversation";
 import { strict as assert } from "node:assert";
 
@@ -265,7 +269,7 @@ export class ConversationService {
         (e.type === "delta" && typeof e.data === "string") ||
         (e.type === "references" && typeof e.data === "object") ||
         (e.type === "metadata" && typeof e.data === "object") ||
-        (e.type === "finished" && typeof e.data === "string")
+        (e.type === "finished" && typeof e.data === "string") ||
       );
     };
 

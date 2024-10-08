@@ -174,7 +174,9 @@ describe("POST /conversations/:conversationId/messages", () => {
       expect(res.text).toContain(`data: {"type":"delta","data":"`);
       expect(res.text).toContain(`data: {"type":"references","data":[{`);
       expect(res.text).toContain(`data: {"type":"finished","data":"`);
-      expect(res.text).toContain(`data: {"type":"conversationId","data":"`);
+      expect(res.text).toContain(
+        `data: {"type":"metadata","data":{"conversationId":"${conversationId}"}}`
+      );
     });
     it("should stream two requests concurrently", async () => {
       const newConvoId1 = await createNewConversation(app, ipAddress);
@@ -424,14 +426,18 @@ describe("POST /conversations/:conversationId/messages", () => {
       expect(res.statusCode).toEqual(200);
       expect(res.body).toMatchObject({
         content: expect.any(String),
-        conversationId: expect.any(String),
+        metadata: {
+          conversationId: expect.any(String),
+        },
         role: "assistant",
       });
       expect(mockCustomDataFunction).toHaveBeenCalled();
       const conversation = await conversations.findById({
-        _id: ObjectId.createFromHexString(res.body.conversationId),
+        _id: ObjectId.createFromHexString(res.body.metadata.conversationId),
       });
-      expect(conversation?._id.toString()).toEqual(res.body.conversationId);
+      expect(conversation?._id.toString()).toEqual(
+        res.body.metadata.conversationId
+      );
       expect(conversation?.messages).toHaveLength(3);
       expect(conversation?.messages[0]).toMatchObject(systemPrompt);
     });

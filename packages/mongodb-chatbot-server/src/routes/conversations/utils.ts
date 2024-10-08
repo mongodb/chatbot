@@ -28,19 +28,24 @@ export function convertMessageFromDbToApi(
   const { id, createdAt, role, content } = message;
   const apiMessage = {
     id: id.toString(),
-    ...(conversationId ? { conversationId: conversationId.toString() } : {}),
     role,
     content,
     createdAt: createdAt.getTime(),
   };
   if (role === "assistant") {
-    const { rating, references, metadata } = message;
-    return {
+    const { rating, references, metadata = {} } = message;
+    if (conversationId) {
+      metadata.conversationId = conversationId?.toString();
+    }
+    const augmentedApiMessage: ApiMessage = {
       ...apiMessage,
       rating,
       references,
-      metadata,
     };
+    if (Object.keys(metadata).length > 0) {
+      augmentedApiMessage.metadata = metadata;
+    }
+    return augmentedApiMessage;
   }
   return apiMessage;
 }

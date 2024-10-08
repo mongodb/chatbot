@@ -197,8 +197,8 @@ export function makeAddMessageToConversationRoute({
         return res.status(200).json(apiRes);
       } else {
         dataStreamer.streamData({
-          type: "conversationId",
-          data: conversation._id.toString(),
+          type: "metadata",
+          data: { conversationId: conversation._id.toString() },
         });
         dataStreamer.streamData({
           type: "finished",

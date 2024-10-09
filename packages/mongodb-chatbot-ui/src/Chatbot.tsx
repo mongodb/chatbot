@@ -8,6 +8,7 @@ import { type User } from "./useUser";
 import { ChatbotProvider } from "./ChatbotProvider";
 import ConversationProvider from "./ConversationProvider";
 import { RenameFields } from "./utils";
+import { HotkeyContextProvider } from "./HotkeyContext";
 
 export type ChatbotProps = OpenCloseHandlers &
   RenameFields<UseChatbotProps, { chatbotName: "name" }> & {
@@ -60,9 +61,11 @@ export function Chatbot({
       <LinkDataProvider tck={tck}>
         <UserProvider user={user}>
           <ChatbotProvider {...chatbotData}>
-            <ConversationProvider conversation={chatbotData.conversation}>
-              {children}
-            </ConversationProvider>
+            <HotkeyContextProvider>
+              <ConversationProvider conversation={chatbotData.conversation}>
+                {children}
+              </ConversationProvider>
+            </HotkeyContextProvider>
           </ChatbotProvider>
         </UserProvider>
       </LinkDataProvider>

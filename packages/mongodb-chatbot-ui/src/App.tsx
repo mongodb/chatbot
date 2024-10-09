@@ -78,7 +78,6 @@ function App() {
           maxInputCharacters={3000}
         >
           <DocsChatbot suggestedPrompts={SUGGESTED_PROMPTS} />
-          <HotkeyTrigger onKey="?" />
         </Chatbot>
         <Chatbot
           name="MongoDB AI (Dev Center)"

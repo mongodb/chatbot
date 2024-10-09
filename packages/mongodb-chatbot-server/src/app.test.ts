@@ -7,7 +7,7 @@ import { makeTestAppConfig } from "./test/testHelpers";
 describe("App", () => {
   let app: Express;
   beforeAll(async () => {
-    const { appConfig } = makeTestAppConfig();
+    const { appConfig } = await makeTestAppConfig();
     app = await makeApp({
       ...appConfig,
       corsOptions: {

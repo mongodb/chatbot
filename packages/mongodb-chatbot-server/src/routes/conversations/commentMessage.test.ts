@@ -12,7 +12,7 @@ import { Express } from "express";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { AppConfig } from "../../app";
-import { systemPrompt, config as testConfig } from "../../test/testConfig";
+import { systemPrompt, makeDefaultConfig } from "../../test/testConfig";
 
 jest.setTimeout(100000);
 
@@ -273,6 +273,7 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
   });
 
   it("Should enforce maximum comment length (if configured)", async () => {
+    const testConfig = await makeDefaultConfig();
     const { app, ipAddress, appConfig, origin } = await makeTestApp({
       ...testConfig,
       conversationsRouterConfig: {

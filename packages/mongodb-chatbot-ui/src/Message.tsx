@@ -76,6 +76,10 @@ const styles = {
 
     & li {
       white-space: normal;
+      margin-top: -1rem;
+      & ol li, & ul li {
+        margin-top: 0.5rem;
+      }
     }
 
     & ol, & ul {

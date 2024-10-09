@@ -54,6 +54,6 @@ export const doPagesCommand = async (
   await updatePages({
     sources,
     pageStore,
-    pageConcurrencyOptions: concurrencyOptions?.pages
+    concurrencyOptions: concurrencyOptions?.pages
   });
 };

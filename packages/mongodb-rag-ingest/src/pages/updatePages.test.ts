@@ -113,7 +113,7 @@ describe("updatePages", () => {
     await updatePages({
       sources,
       pageStore,
-      pageConcurrencyOptions: { processDataSources: 2 },
+      concurrencyOptions: { processDataSources: 2 },
     });
 
     const executionPairs = startTimes.map((startTime, i) => ({

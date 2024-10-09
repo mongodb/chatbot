@@ -11,6 +11,20 @@ import { chunkPage, ChunkFunc, ChunkOptions } from "./chunkPage";
 import { PromisePool } from "@supercharge/promise-pool";
 import { ConcurrencyOptions } from "../Config";
 
+
+export interface EmbedConcurrencyOptions {  
+ 
+  /**  
+    Number of pages to chunk and embed concurrently.  
+   */  
+  processPages?: number,  
+  /**  
+    Maximum number of chunks per page to generate chunks for concurrently.  
+    This includes the creation of the chunk embeddings and any chunk preprocessing.  
+   */  
+  createChunks?: number,  
+}  
+
 /**
   (Re-)embeddedContent the pages in the page store that have changed since the given date
   and stores the embeddedContent in the embeddedContent store.
@@ -22,7 +36,7 @@ export const updateEmbeddedContent = async ({
   sourceNames,
   embedder,
   chunkOptions,
-  embedConcurrencyOptions,
+  concurrencyOptions,
 }: {
   since: Date;
   embeddedContentStore: EmbeddedContentStore;
@@ -30,7 +44,7 @@ export const updateEmbeddedContent = async ({
   embedder: Embedder;
   chunkOptions?: Partial<ChunkOptions>;
   sourceNames?: string[];
-  embedConcurrencyOptions?: ConcurrencyOptions["embed"];
+  concurrencyOptions?: EmbedConcurrencyOptions;
 }): Promise<void> => {
   const changedPages = await pageStore.loadPages({
     updated: since,
@@ -42,7 +56,7 @@ export const updateEmbeddedContent = async ({
     }`
   );
   await PromisePool
-    .withConcurrency(embedConcurrencyOptions?.processPages || 1)
+    .withConcurrency(concurrencyOptions?.processPages ?? 1)
     .for(changedPages)
     .process(async (page, index, pool) => {
       switch (page.action) {
@@ -135,7 +149,7 @@ export const updateEmbeddedContentForPage = async ({
   );
 
   const { results: embeddedContent } = await PromisePool
-    .withConcurrency(embedConcurrencyOptions?.createChunks || 1)
+    .withConcurrency(embedConcurrencyOptions?.createChunks ?? 1)
     .for(contentChunks)
     .process(async (chunk, index, pool) => {
       logger.info(

@@ -107,7 +107,7 @@ describe("updateEmbeddedContent", () => {
       embeddedContentStore,
       pageStore,
       since,
-      embedConcurrencyOptions: {
+      concurrencyOptions: {
         processPages: 10,
         createChunks: 5
       }
@@ -131,7 +131,7 @@ describe("updateEmbeddedContent", () => {
         // Changing options impacts the chunkAlgoHash
         chunkOverlap: 2,
       },
-      embedConcurrencyOptions: {
+      concurrencyOptions: {
         processPages: 10,
         createChunks: 5
       }
@@ -189,7 +189,7 @@ describe("updateEmbeddedContent", () => {
       embeddedContentStore,
       pageStore,
       since,
-      embedConcurrencyOptions: { processPages: 2, createChunks: 2 },
+      concurrencyOptions: { processPages: 2, createChunks: 2 },
     });
 
     const executionPairs = startTimes.map((startTime, i) => ({

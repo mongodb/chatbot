@@ -2,6 +2,8 @@ import { Embedder, PageStore, EmbeddedContentStore } from "mongodb-rag-core";
 import { DataSource } from "./sources/DataSource";
 import { ChunkOptions } from "./embed/chunkPage";
 import { IngestMetaStore } from "./IngestMetaStore";
+import { EmbedConcurrencyOptions } from "./embed";
+import { PageConcurrencyOptions } from "./pages";
 
 /**
   The configuration for ingest.
@@ -64,31 +66,13 @@ export interface ConcurrencyOptions {
     Options for concurrency when chunking and embedding content
     with the `embed` command.
    */
-  embed?: {
- 
-    /**
-      Number of pages to chunk and embed concurrently.
-     */
-    processPages?: number,
-
-    /**
-      Maximum number of chunks per page to generate chunks for concurrently.
-      This includes the creation of the chunk embeddings and any chunk preprocessing.
-     */
-    createChunks?: number,
-  },
+  embed?: EmbedConcurrencyOptions,
 
   /**
     Options for concurrency when ingesting
     with the `pages` command.
    */
-  pages?: {
-
-    /**
-      Number of data sources to process concurrently.
-     */
-    processDataSources?: number,
-  }
+  pages?: PageConcurrencyOptions
 }
 
 

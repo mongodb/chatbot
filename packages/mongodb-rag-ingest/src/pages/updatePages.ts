@@ -3,6 +3,15 @@ import { getChangedPages } from "./getChangedPages";
 import { DataSource } from "../sources/DataSource";
 import { PromisePool } from "@supercharge/promise-pool";
 import { ConcurrencyOptions } from "../Config";
+
+export interface PageConcurrencyOptions {  
+
+  /**
+    Number of data sources to process concurrently.
+    */
+  processDataSources?: number,
+}  
+
 /**
   Fetches pages from data sources and stores those that have changed in the data
   store.
@@ -10,14 +19,14 @@ import { ConcurrencyOptions } from "../Config";
 export const updatePages = async ({
   sources,
   pageStore,
-  pageConcurrencyOptions,
+  concurrencyOptions,
 }: {
   sources: DataSource[];
   pageStore: PageStore;
-  pageConcurrencyOptions?: ConcurrencyOptions["pages"]
+  concurrencyOptions?: PageConcurrencyOptions
 }): Promise<void> => {
   await PromisePool
-    .withConcurrency(pageConcurrencyOptions?.processDataSources || 1)
+    .withConcurrency(concurrencyOptions?.processDataSources ?? 1)
     .for(sources)
     .process(async (source, index, pool) => {
       logger.info(`Fetching pages for ${source.name}`);

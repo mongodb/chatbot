@@ -96,9 +96,9 @@ ${chainOfThoughtSystemPromptContent}
 ${promptUtils.chainOfThoughtAbstractExampleOutput}`,
     genericFewShot: `${promptUtils.basePrompt}
 
-    ${promptUtils.abstractExampleOutput}
+${promptUtils.abstractExampleOutput}
 
-    A few example input and outputs:
+A few example input and outputs:
 
 ${genericFewShotExamples
   .map(

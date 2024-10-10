@@ -10,10 +10,10 @@ export function chatMessage<T extends ChatMessage>(t: T) {
 export const systemMessage = (content: string) =>
   chatMessage({ role: "system", content });
 
-export const userMessage = (content: string) =>
-  chatMessage({ role: "user", content });
+export const userMessage = (content: string | object) =>
+  chatMessage({ role: "user", content: JSON.stringify(content) });
 
-export const assistantMessage = (content: string) =>
-  chatMessage({ role: "assistant", content });
+export const assistantMessage = (content: string | object) =>
+  chatMessage({ role: "assistant", content: JSON.stringify(content) });
 
 export * from "./makeGenerateChatCompletion";

@@ -119,45 +119,42 @@ Eval("mongodb-chatbot-conversations", {
     const faqCases = getConversationsEvalCasesFromYaml(
       fs.readFileSync(path.resolve(basePath, "faq_conversations.yml"), "utf8")
     );
-    return [...miscCases, ...faqCases]
-      .filter((evalCase) => evalCase.tags?.includes("ops-manager"))
-      .map((evalCase) => {
-        const prevConversationMessages = evalCase.messages.slice(0, -1).map(
-          (m) =>
-            ({
-              content: m.content,
-              role: m.role,
-              id: new ObjectId(),
-              createdAt: new Date(),
-            } satisfies Message)
-        );
-        prevConversationMessages.unshift({
-          ...systemPrompt,
-          id: new ObjectId(),
-          createdAt: new Date(),
-        } satisfies Message);
-        const latestMessageText = evalCase.messages.at(-1)?.content;
-        assert(latestMessageText, "No latest message text found");
-        return {
-          name: evalCase.name,
-          tags: evalCase.tags as MongoDbTag[],
-          input: {
-            latestMessageText,
-            previousConversation: {
-              messages: prevConversationMessages,
-              _id: new ObjectId(),
-              createdAt: new Date(),
-            },
+    return [...miscCases, ...faqCases].map((evalCase) => {
+      const prevConversationMessages = evalCase.messages.slice(0, -1).map(
+        (m) =>
+          ({
+            content: m.content,
+            role: m.role,
+            id: new ObjectId(),
+            createdAt: new Date(),
+          } satisfies Message)
+      );
+      prevConversationMessages.unshift({
+        ...systemPrompt,
+        id: new ObjectId(),
+        createdAt: new Date(),
+      } satisfies Message);
+      const latestMessageText = evalCase.messages.at(-1)?.content;
+      assert(latestMessageText, "No latest message text found");
+      return {
+        name: evalCase.name,
+        tags: evalCase.tags as MongoDbTag[],
+        input: {
+          latestMessageText,
+          previousConversation: {
+            messages: prevConversationMessages,
+            _id: new ObjectId(),
+            createdAt: new Date(),
           },
-          expected: null,
-          metadata: null,
-        } satisfies ConversationEvalCase;
-      });
+        },
+        expected: null,
+        metadata: null,
+      } satisfies ConversationEvalCase;
+    });
   },
-  experimentName: "mongodb-chatbot-omcm-latest",
+  experimentName: "mongodb-chatbot-latest",
   metadata: {
-    description:
-      "Evaluates how well the MongoDB AI Chatbot RAG pipeline works for Ops/Cloud Manager questions",
+    description: "Evaluates how well the MongoDB AI Chatbot RAG pipeline works",
   },
   maxConcurrency: 2,
   async task(input): Promise<ConversationTaskOutput> {

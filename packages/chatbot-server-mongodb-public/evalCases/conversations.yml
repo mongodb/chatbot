@@ -1318,7 +1318,7 @@
 # Ops Manager / Cloud Manager FAQ
 - name: should understand OM/CM alerts
   messages:
-    - content: Is there a way to generate an OpsManager alert for replica sets with an even number of nodes?
+    - content: Is there a way to generate an Ops Manager alert for replica sets with an even number of nodes?
       role: user
   expectation: >
     The ASSISTANT should say that Ops Manager does not provide a built-in alert condition specifically for detecting replica sets with an even number of voting members. However, the user can create a custom alert condition to monitor the number of voting members in a replica set.
@@ -1337,7 +1337,7 @@
     - cloud-manager
 - name: should understand OM/CM organization & project user management
   messages:
-    - content: How do I add a user to my organization or project?
+    - content: How do I add a user to my organization or project in ops manager?
       role: user
   expectation: >
     The ASSISTANT should mention user invitations, emails, and required

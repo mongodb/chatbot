@@ -20,7 +20,8 @@
     "pipeline:quizEval": "npm run build && node ./build/pipelines/quizEval.js",
     "pipeline:quizEvalToBraintrust": "npm run build && node ./build/pipelines/quizEvalToBraintrust.js",
     "pipeline:discoveryEval": "npm run build && node ./build/pipelines/discoveryEval.js",
-    "pipeline:discoveryEvalToBraintrust": "npm run build && node ./build/pipelines/discoveryEvalToBraintrust.js"
+    "pipeline:discoveryEvalToBraintrust": "npm run build && node ./build/pipelines/discoveryEvalToBraintrust.js",
+    "textToDriver:makeDatabases": "npm run build && node ./build/textToDriver/makeDatabases/index.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",
@@ -52,6 +53,7 @@
     "mongodb-chatbot-evaluation": "*",
     "mongodb-chatbot-server": "*",
     "mongodb-rag-core": "*",
+    "zod": "^3.23.8",
     "mongodb-schema": "^12.2.0",
     "openai": "^4.61.1"
   }

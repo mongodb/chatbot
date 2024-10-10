@@ -76,6 +76,10 @@ type ConversationActor = {
   setMessageMetadata: (
     args: ConversationActorArgs<"setMessageMetadata">
   ) => Promise<void>;
+  updateMessageMetadata: (args: {
+    messageId: string;
+    metadata: AssistantMessageMetadata;
+  }) => Promise<void>;
   deleteMessage: (messageId: string) => Promise<void>;
   rateMessage: (messageId: string, rating: boolean) => Promise<void>;
   commentMessage: (messageId: string, comment: string) => Promise<void>;
@@ -519,7 +523,7 @@ export function useConversation(params: UseConversationParams) {
             references.push(...data);
           },
           onMetadata: async (metadata) => {
-            setMessageMetadata({
+            updateMessageMetadata({
               messageId: STREAMING_MESSAGE_ID,
               metadata,
             });
@@ -591,6 +595,22 @@ export function useConversation(params: UseConversationParams) {
     dispatch({ type: "setMessageMetadata", messageId, metadata });
   };
 
+  const updateMessageMetadata: ConversationActor["updateMessageMetadata"] =
+    async ({ messageId, metadata }) => {
+      if (!state.conversationId) {
+        console.error(`Cannot updateMessageMetadata without a conversationId`);
+        return;
+      }
+      dispatch({
+        type: "setMessageMetadata",
+        messageId,
+        metadata: {
+          ...state.messages.find((m) => m.id === messageId)?.metadata,
+          ...metadata,
+        },
+      });
+    };
+
   const deleteMessage = async (messageId: string) => {
     if (!state.conversationId) {
       console.error(`Cannot deleteMessage without a conversationId`);
@@ -661,6 +681,7 @@ export function useConversation(params: UseConversationParams) {
     addMessage,
     setMessageContent,
     setMessageMetadata,
+    updateMessageMetadata,
     deleteMessage,
     rateMessage,
     commentMessage,

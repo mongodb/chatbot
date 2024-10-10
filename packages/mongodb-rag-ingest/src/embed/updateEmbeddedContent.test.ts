@@ -1,5 +1,5 @@
-import { EmbeddedContentStore, EmbeddedContent, Page, Embedder } from "mongodb-rag-core";
-import { updateEmbeddedContent } from "./updateEmbeddedContent";
+import { EmbeddedContentStore, EmbeddedContent, Page, PersistedPage, Embedder } from "mongodb-rag-core";
+import { updateEmbeddedContent, updateEmbeddedContentForPage } from "./updateEmbeddedContent";
 import { persistPages } from "../pages";
 import { makeMockPageStore } from "../test/MockPageStore";
 
@@ -107,10 +107,6 @@ describe("updateEmbeddedContent", () => {
       embeddedContentStore,
       pageStore,
       since,
-      concurrencyOptions: {
-        processPages: 10,
-        createChunks: 5
-      }
     });
 
     const embeddedContent = await embeddedContentStore.loadEmbeddedContent({
@@ -131,10 +127,6 @@ describe("updateEmbeddedContent", () => {
         // Changing options impacts the chunkAlgoHash
         chunkOverlap: 2,
       },
-      concurrencyOptions: {
-        processPages: 10,
-        createChunks: 5
-      }
     });
     const embeddedContent2 = await embeddedContentStore.loadEmbeddedContent({
       page: examplePage,
@@ -145,6 +137,63 @@ describe("updateEmbeddedContent", () => {
       // function changes
       "2cbfe9901657ca15260fe7f58c3132ac1ebd0d610896082ca1aaad0335f2e3f1"
     );
+  });
+  it("processes chunks concurrently within a page", async () => {
+    const embeddedContentStore = makeMockEmbeddedContentStore();
+    const page: PersistedPage = { ...examplePage, updated: new Date(), action: 'updated' };
+
+    // Spy and mock chunkPage
+    const chunkPageSpy = jest.spyOn(require('./chunkPage'), 'chunkPage').mockResolvedValue([
+      { text: 'chunk1' },
+      { text: 'chunk2' },
+      { text: 'chunk3' },
+    ]);
+
+    const startTimes: number[] = [];
+    const endTimes: number[] = [];
+
+    const mockEmbedder: jest.Mocked<Embedder> = {
+      embed: jest.fn().mockImplementation(async (param) => {
+        const startTime = Date.now();
+        startTimes.push(startTime);
+        await new Promise((resolve) => setTimeout(resolve, 50)); // Simulate delay
+        const endTime = Date.now();
+        endTimes.push(endTime);
+        return { embedding: [1, 2, 3] };
+      }),
+    } as unknown as jest.Mocked<Embedder>;
+
+    await updateEmbeddedContentForPage({
+      embedder: mockEmbedder,
+      store: embeddedContentStore,
+      page,
+      concurrencyOptions: { createChunks: 2 },
+    });
+
+    // Restore chunkPage functionality to avoid affecting other tests
+    chunkPageSpy.mockRestore();
+
+    const embeddedContent = await embeddedContentStore.loadEmbeddedContent({
+      page: examplePage,
+    });
+
+    expect(embeddedContent).toHaveLength(3);
+    const executionPairs = startTimes.map((startTime, i) => ({
+      startTime,
+      endTime: endTimes[i],
+    }));
+
+    // Ensure some overlaps indicating concurrency
+    expect(
+      executionPairs.some((pair, i, pairs) =>
+        pairs.some(
+          (otherPair, j) =>
+            i !== j &&
+            pair.startTime < otherPair.endTime &&
+            otherPair.startTime < pair.endTime,
+        ),
+      ),
+    ).toBe(true);
   });
   it("processes pages concurrently", async () => {
     const pageStore = makeMockPageStore();
@@ -167,17 +216,11 @@ describe("updateEmbeddedContent", () => {
     const startTimes: number[] = [];
     const endTimes: number[] = [];
 
-    const originalDateNow = Date.now;
-    let currentFakeTime = originalDateNow();
-
-    jest.spyOn(global.Date, 'now').mockImplementation(() => currentFakeTime);
-
     const mockEmbedder: jest.Mocked<Embedder> = {
       embed: jest.fn().mockImplementation(async (param) => {
         const startTime = Date.now();
         startTimes.push(startTime);
-        await new Promise((resolve) => setTimeout(resolve, Math.random() * 100)); // Random delay to simulate processing
-        currentFakeTime += 50; // Simulate time passage
+        await new Promise((resolve) => setTimeout(resolve, 50));
         const endTime = Date.now();
         endTimes.push(endTime);
         return { embedding: [1, 2, 3] };

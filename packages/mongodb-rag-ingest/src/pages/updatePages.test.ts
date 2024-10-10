@@ -93,17 +93,12 @@ describe("updatePages", () => {
     const startTimes: number[] = [];
     const endTimes: number[] = [];
 
-    const originalDateNow = Date.now;
-    let currentFakeTime = originalDateNow();
-
-    jest.spyOn(global.Date, 'now').mockImplementation(() => currentFakeTime);
 
     sources.forEach((source) => {
       jest.spyOn(source, 'fetchPages').mockImplementationOnce(async () => {
         const startTime = Date.now();
         startTimes.push(startTime);
         await new Promise((resolve) => setTimeout(resolve, 50)); // Simulate async delay
-        currentFakeTime += 50; // Simulate time passage
         const endTime = Date.now();
         endTimes.push(endTime);
         return [examplePage];

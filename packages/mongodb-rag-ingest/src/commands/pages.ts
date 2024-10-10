@@ -3,6 +3,7 @@ import { logger } from "mongodb-rag-core";
 import { updatePages } from "../pages/updatePages";
 import { LoadConfigArgs } from "../withConfig";
 import { withConfig, withConfigOptions, ResolvedConfig } from "../withConfig";
+import { ConcurrencyOptions } from "../Config";
 
 const commandModule: CommandModule<
   Record<string, unknown>,
@@ -28,7 +29,7 @@ type PagesCommandArgs = {
 };
 
 export const doPagesCommand = async (
-  { pageStore, dataSources }: ResolvedConfig,
+  { pageStore, dataSources, concurrencyOptions}: ResolvedConfig,
   { source }: PagesCommandArgs
 ) => {
   const requestedSources = new Set(Array.isArray(source) ? source : [source]);
@@ -53,5 +54,6 @@ export const doPagesCommand = async (
   await updatePages({
     sources,
     pageStore,
+    concurrencyOptions: concurrencyOptions?.pages
   });
 };

@@ -5,7 +5,6 @@ import {
   TextToDriverMetadata,
   TextToDriverOutput,
 } from "./evalTypes";
-// evaluationMetrics.test.ts
 import {
   QueryRunTimeMs,
   GenerationLength,
@@ -106,12 +105,12 @@ describe("CorrectOutput", () => {
 
     const result = await CorrectOutput(mockArgs);
 
-    expect(result).toEqual([
+    expect(result).toMatchObject([
       {
         name: "SuccessfulExecution",
         score: 0,
         metadata: {
-          error: "Execution failed",
+          error: { message: "Execution failed" },
         },
       },
       {

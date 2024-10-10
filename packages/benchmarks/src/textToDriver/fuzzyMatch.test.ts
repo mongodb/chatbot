@@ -237,21 +237,7 @@ describe("fuzzyMatch()", () => {
 });
 
 describe("fuzzyMatch() with Aggregations", () => {
-  test("should throw an error if aggregation returns multiple documents", () => {
-    const mongoDbOutput = [{ count: 1 }, { count: 2 }];
-
-    const expected = JSON.stringify([{ count: 1 }]);
-
-    expect(() => {
-      fuzzyMatch({
-        mongoDbOutput,
-        expected,
-        isAggregation: true,
-      });
-    }).toThrow(ERRORS.SINGLE_ITEM_ARRAY);
-  });
-
-  test("should return true for matching aggregation with a single document", () => {
+  test("should return true for exact matching aggregation with a single document", () => {
     const mongoDbOutput = [{ count: 10 }];
     const expected = JSON.stringify([{ count: 10 }]);
 
@@ -263,30 +249,46 @@ describe("fuzzyMatch() with Aggregations", () => {
 
     expect(result).toBe(true);
   });
+  test("should return true for fuzzy match aggregation with multiple documents", () => {
+    const mongoDbOutput = [{ count: 1 }, { count: 2 }];
+
+    const expected = JSON.stringify([{ OTHER: 1 }, { OTHER: 2 }]);
+
+    expect(
+      fuzzyMatch({
+        mongoDbOutput,
+        expected,
+        isAggregation: true,
+      })
+    ).toBe(true);
+  });
 
   test("should return true when scalar aggregation result matches with allowed tolerance", () => {
-    const mongoDbOutput = { count: 10.01 };
+    const allowedNumberDifference = 0.05;
+
+    const mongoDbOutput = { count: 10 + allowedNumberDifference / 2 };
     const expected = JSON.stringify([{ count: 10 }]);
 
     const result = fuzzyMatch({
       mongoDbOutput,
       expected,
       isAggregation: true,
-      allowedNumberDifference: 0.05,
+      allowedNumberDifference,
     });
 
     expect(result).toBe(true);
   });
 
   test("should return false when scalar aggregation result exceeds allowed tolerance", () => {
-    const mongoDbOutput = { count: 11 };
+    const allowedNumberDifference = 0.05;
+    const mongoDbOutput = { count: 11 + allowedNumberDifference * 2 };
     const expected = JSON.stringify([{ count: 10 }]);
 
     const result = fuzzyMatch({
       mongoDbOutput,
       expected,
       isAggregation: true,
-      allowedNumberDifference: 0.5,
+      allowedNumberDifference,
     });
 
     expect(result).toBe(false);
@@ -304,6 +306,18 @@ describe("fuzzyMatch() with Aggregations", () => {
 
     expect(result).toBe(true);
   });
+  test("should return false when aggregation result is a scalar and does not match", () => {
+    const mongoDbOutput = 50;
+    const expected = JSON.stringify([{ "count(*)": 100 }]);
+
+    const result = fuzzyMatch({
+      mongoDbOutput,
+      expected,
+      isAggregation: true,
+    });
+
+    expect(result).toBe(false);
+  });
 
   test("should return true when aggregation output has extra keys", () => {
     const mongoDbOutput = [{ count: 10, extra: "ignore" }];
@@ -318,7 +332,7 @@ describe("fuzzyMatch() with Aggregations", () => {
     expect(result).toBe(true);
   });
 
-  test("should return false when aggregation output has mismatched keys", () => {
+  test("should return true when aggregation output has mismatched keys", () => {
     const mongoDbOutput = [{ total: 10 }];
     const expected = JSON.stringify([{ count: 10 }]);
 
@@ -328,20 +342,7 @@ describe("fuzzyMatch() with Aggregations", () => {
       isAggregation: true,
     });
 
-    expect(result).toBe(false);
-  });
-
-  test("should return false for scalar mismatch in aggregation result", () => {
-    const mongoDbOutput = 50;
-    const expected = JSON.stringify([{ total: 100 }]);
-
-    const result = fuzzyMatch({
-      mongoDbOutput,
-      expected,
-      isAggregation: true,
-    });
-
-    expect(result).toBe(false);
+    expect(result).toBe(true);
   });
 
   test("should handle nested objects in aggregation results", () => {

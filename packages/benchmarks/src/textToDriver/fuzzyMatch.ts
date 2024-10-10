@@ -14,8 +14,12 @@ export interface FuzzyMatchParams {
   orderMatters?: boolean;
   /**
     If true, the output is an aggregation operation.
-    Handled differently.
-    The fuzzy matcher only handles aggregations that return a single document.
+    Handled differently in the following ways:
+
+    1. If MongoDB operation returns a scalar value,
+       the truth must be a single object that contains that scalar value as the value of ones of its keys.
+    2. If MongoDB operation returns a single object or an array of objects,
+       check that the scalar _values_ of objects are the same as the expected values.
     @default false
    */
   isAggregation?: boolean;
@@ -32,7 +36,7 @@ export const ERRORS = {
     "Expected value and output value must both be a single document arrays",
 };
 
-export const fuzzyMatchScalarKey = "__output__";
+export const fuzzyMatchSyntheticKey = "__output__";
 
 export function fuzzyMatch({
   mongoDbOutput,
@@ -53,6 +57,7 @@ export function fuzzyMatch({
     return fuzzyMatchAggregation(
       expectedEjson,
       outputEjson,
+      orderMatters,
       allowedNumberDifference
     );
   }
@@ -65,55 +70,46 @@ export function fuzzyMatch({
       allowedNumberDifference
     );
   }
-  // TODO: handle other types
   return null;
 }
 
 export function fuzzyMatchAggregation(
   truthArray: Record<string, unknown>[],
   testInput: MongoDbOutput,
+  nestedArrayOrderMatters: boolean,
   allowedNumberDifference = 0.01
 ): boolean {
   const testIsArray = Array.isArray(testInput);
-  assert(
-    truthArray.length === 1 &&
-      // Output must be a single document array
-      // or not an array at all
-      (testIsArray ? testInput.length === 1 : true),
-    ERRORS.SINGLE_ITEM_ARRAY
-  );
   const testToEvaluate = testIsArray
     ? testInput[0]
     : typeof testInput === "object"
     ? testInput
     : {
-        [fuzzyMatchScalarKey]: testInput,
+        [fuzzyMatchSyntheticKey]: testInput,
       };
   const truthToEvaluate = truthArray[0];
 
-  // When the output is a scalar, the truth must be a scalar
-  // However due to the way the data is structured,
-  // the truth is always an object, like { "count(*)": 11 }.
-  // So we need to check if the output is a scalar and the truth is an object.
-  if (testToEvaluate[fuzzyMatchScalarKey] !== undefined) {
-    const aggregationTruthKeys = Object.keys(truthToEvaluate);
-    if (aggregationTruthKeys.length === 1) {
-      return fuzzyMatchObjects(
-        {
-          [fuzzyMatchScalarKey]: truthToEvaluate[aggregationTruthKeys[0]],
-        },
-        testToEvaluate,
-        false,
+  const truthValues = Object.values(truthToEvaluate);
+  const testValues = Object.values(testToEvaluate);
+
+  // There should never be more truth values than test values
+  if (truthValues.length > testValues.length) {
+    return false;
+  }
+  for (const truthValue of truthValues) {
+    const found = testValues.find((testValue) =>
+      fuzzyMatchObjects(
+        { [fuzzyMatchSyntheticKey]: truthValue },
+        { [fuzzyMatchSyntheticKey]: testValue },
+        nestedArrayOrderMatters,
         allowedNumberDifference
-      );
+      )
+    );
+    if (!found) {
+      return false;
     }
   }
-  return fuzzyMatchObjects(
-    truthToEvaluate,
-    testToEvaluate,
-    false,
-    allowedNumberDifference
-  );
+  return true;
 }
 
 /**

@@ -133,7 +133,7 @@ export async function loadBraintrustDbDocuments({
 export async function loadBraintrustEvalCases({
   apiKey,
   projectName,
-  datasetName = "text-to-query-results",
+  datasetName,
 }: LoadBraintrustDatasetParams): Promise<TextToDriverEvalCase[]> {
   const dataset = initDataset(projectName, {
     apiKey,

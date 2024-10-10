@@ -95,6 +95,7 @@ export async function makeGenerateDriverCode({
       messages: [...promptMessages, { role: "user", content: userPrompt }],
       stream: false,
     });
+    assert(content !== null, "Expected content in response");
     return content;
   };
 }

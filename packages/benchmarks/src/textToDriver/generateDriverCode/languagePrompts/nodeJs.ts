@@ -2,7 +2,8 @@ import { FewShotExample } from "./FewShotExample";
 export const promptUtils = {
   basePrompt: `Complete the MongoDB Query Language Node.js driver query only and with no explanation. The output must be executable code.
 
-Generate the query using a \`Db\` object named \`database\` and return static data (not a \`Cursor\` object).`,
+Generate the query using a \`Db\` object named \`database\` and return static data (not a \`Cursor\` object).
+Do not wrap your output in a code block. Only include the executable code.`,
   abstractExampleOutput: `Example outputs:
 1. database.collection("<collection name>").find({/* some query */}).toArray()
 2. database.collection("<collection name>").find({/* some query */}).count()
@@ -83,7 +84,7 @@ export const genericFewShotExamples: FewShotExample[] = [
   },
 ] as const;
 
-export const NODE_JS_PROMPTS = {
+export const NODE_JS_PROMPTS: Record<string, Record<string, string>> = {
   systemPrompts: {
     simple: `${promptUtils.basePrompt}
 

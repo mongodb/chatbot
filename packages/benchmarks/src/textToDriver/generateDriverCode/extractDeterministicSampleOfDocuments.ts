@@ -5,6 +5,9 @@ export interface ExtractSampleDocumentsParams {
   mongoClient: MongoClient;
   collectionName: string;
   databaseName: string;
+  /**
+    Number of documents to include in the sample.
+   */
   limit?: number;
 }
 export const MUST_HAVE_AT_LEAST_ONE_EXAMPLE_DOCUMENT_ERROR =
@@ -18,6 +21,7 @@ export async function extractDeterministicSampleOfDocuments({
   databaseName,
   limit = 5,
 }: ExtractSampleDocumentsParams) {
+  await mongoClient.connect();
   const collection = mongoClient.db(databaseName).collection(collectionName);
   const documents = await collection
     .aggregate([

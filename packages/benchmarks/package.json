@@ -21,7 +21,8 @@
     "pipeline:quizEvalToBraintrust": "npm run build && node ./build/pipelines/quizEvalToBraintrust.js",
     "pipeline:discoveryEval": "npm run build && node ./build/pipelines/discoveryEval.js",
     "pipeline:discoveryEvalToBraintrust": "npm run build && node ./build/pipelines/discoveryEvalToBraintrust.js",
-    "textToDriver:makeDatabases": "npm run build && node ./build/textToDriver/makeDatabases/index.js"
+    "textToDriver:makeDatabases": "npm run build && node ./build/textToDriver/makeDatabases/index.js",
+    "benchmark:TextToNodeJsDriver": "npm run build && node ./build/textToDriver/nodeJsDriverBenchmark.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",
@@ -47,13 +48,13 @@
     "@azure/openai": "^1.0.0-beta.11",
     "@langchain/openai": "^0.2.6",
     "@supercharge/promise-pool": "^3.2.0",
-    "braintrust": "^0.0.150",
+    "braintrust": "^0.0.159",
     "dotenv": "^16",
     "mongodb-chatbot-evaluation": "*",
     "mongodb-chatbot-server": "*",
     "mongodb-rag-core": "*",
-    "zod": "^3.23.8",
     "mongodb-schema": "^12.2.0",
-    "openai": "^4.61.1"
+    "openai": "^4.61.1",
+    "zod": "^3.23.8"
   }
 }

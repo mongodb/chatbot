@@ -3,7 +3,7 @@ import "dotenv/config";
 import {
   loadBraintrustDbDocuments,
   loadBraintrustMetadata,
-} from "./loadBraintrustDatasets";
+} from "../loadBraintrustDatasets";
 import { applyCollectionIndexes } from "./applyCollectionIndexes";
 import { insertCollectionDocuments } from "./insertCollectionDocuments";
 import { assertEnvVars } from "mongodb-rag-core";

@@ -1349,7 +1349,7 @@
     - cloud-manager
 - name: should understand OM/CM one-time passcodes
   messages:
-    - content: Can I configure multiple Google Authenticator apps to use the same account?
+    - content: Can I configure multiple Google Authenticator apps to use the same account in ops manager?
       role: user
   expectation: >
     The ASSISTANT should say that the user can configure multiple Google Authenticator apps to use the same account by selecting the /Can't scan the barcode\?/i option during the procedure to Configure Two-Factor Authentication.

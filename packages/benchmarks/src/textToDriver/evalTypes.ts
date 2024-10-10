@@ -83,7 +83,6 @@ export const TextToDriverEvalCaseSchema: z.ZodSchema<
   input: TextToDriverInputSchema,
   expected: TextToDriverExpectedSchema,
   metadata: TextToDriverMetadataSchema,
-  // tags: z.array(z.string()).optional().nullable(),
 });
 
 /**

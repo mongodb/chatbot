@@ -10,6 +10,7 @@ cronJobs:
       MONGODB_DATABASE_NAME: docs-chatbot-prod
       VECTOR_SEARCH_INDEX_NAME: vector_index
       OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
+      OPENAI_API_VERSION: "2024-06-01"
     envSecrets:
       MONGODB_CONNECTION_URI: docs-chatbot-prod
       OPENAI_ENDPOINT: docs-chatbot-prod

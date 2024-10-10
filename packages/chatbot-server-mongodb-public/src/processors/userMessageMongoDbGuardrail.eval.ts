@@ -176,6 +176,86 @@ const evalCases: MongoDbGuardrailEvalCase[] = [
     },
     tags: ["inappropriate"],
   },
+  {
+    name: "Should answer general question about retrieval augmented generation with 'RAG' acronym",
+    input: "what is rag?",
+    expected: {
+      rejectMessage: false,
+      reasoning:
+        "This query asks for information about RAG (Retrieval-Augmented Generation), a technique used in AI engineering. It is a relevant question and should not be rejected.",
+    },
+    tags: ["valid"],
+  },
+  {
+    name: "Should answer general question about retrieval augmented generation",
+    input: "retrieval augmented generation",
+    expected: {
+      rejectMessage: false,
+      reasoning:
+        "This query mentions retrieval augmented generation, a technique used in AI engineering. It is a relevant topic and should not be rejected.",
+    },
+    tags: ["valid"],
+  },
+  {
+    name: "Should answer question about vector search",
+    input: "what courses do you have on vector search?",
+    expected: {
+      rejectMessage: false,
+      reasoning:
+        "This query asks about courses on vector search, which is a relevant topic in the field of information retrieval. Therefore, it is relevant and should not be rejected.",
+    },
+    tags: ["valid"],
+  },
+  {
+    name: "should accept courses on gen ai",
+    input: "what courses do you have on genai?",
+    expected: {
+      rejectMessage: false,
+      reasoning:
+        "This query asks about courses on generative AI, which is a relevant topic in the field of artificial intelligence. Therefore, it is relevant and should not be rejected.",
+    },
+    tags: ["valid"],
+  },
+  {
+    name: "should accept courses on generative artificial intelligence",
+    input: "what courses do you have on generative artificial intelligence?",
+    expected: {
+      rejectMessage: false,
+      reasoning:
+        "This query asks about courses on generative AI, which is a relevant topic in the field of artificial intelligence. Therefore, it is relevant and should not be rejected.",
+    },
+    tags: ["valid"],
+  },
+  {
+    name: "Should accept question about AI",
+    input: "what courses do you have on ai?",
+    expected: {
+      rejectMessage: false,
+      reasoning:
+        "This query asks about courses on artificial intelligence, which is a relevant topic. Therefore, it is relevant and should not be rejected.",
+    },
+    tags: ["valid"],
+  },
+  {
+    name: "should answer mongodb corporate info about leadership",
+    input: "Who is the CEO of MongoDB?",
+    expected: {
+      rejectMessage: false,
+      reasoning:
+        "This query asks for information about MongoDB's corporate leadership, specifically the CEO. It is a relevant question and should not be rejected.",
+    },
+    tags: ["valid"],
+  },
+  {
+    name: "should answer mongodb corporate info about headquarters",
+    input: "Where is MongoDB headquartered?",
+    expected: {
+      rejectMessage: false,
+      reasoning:
+        "This query asks for information about MongoDB's headquarters. It is a relevant question and should not be rejected.",
+    },
+    tags: ["valid"],
+  },
 ];
 
 // Simple string based matcher

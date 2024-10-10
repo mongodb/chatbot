@@ -5,7 +5,6 @@ import {
   ConversationService,
   ConversationFetchOptions,
   AssistantMessageMetadata,
-  MessageDataReferences,
 } from "./services/conversations";
 import createMessage, { createMessageId } from "./createMessage";
 import {
@@ -14,6 +13,8 @@ import {
   updateArrayElementAt,
   canUseServerSentEvents,
 } from "./utils";
+import { makePrioritizeCurrentMongoDbReferenceDomain } from "./messageLinks";
+import { SortReferences } from "./sortReferences";
 
 const STREAMING_MESSAGE_ID = "streaming-response";
 
@@ -52,7 +53,7 @@ type ConversationAction =
   | { type: "appendStreamingResponse"; data: string }
   | {
       type: "appendStreamingReferences";
-      data: MessageDataReferences;
+      data: References;
     }
   | { type: "finishStreamingResponse"; messageId: MessageData["id"] }
   | { type: "cancelStreamingResponse" };
@@ -374,15 +375,16 @@ function conversationReducer(
 }
 
 export type UseConversationParams = {
-  serverBaseUrl?: string;
+  serverBaseUrl: string;
   shouldStream?: boolean;
+  sortMessageReferences?: SortReferences;
   fetchOptions?: ConversationFetchOptions;
 };
 
-export function useConversation(params: UseConversationParams = {}) {
+export function useConversation(params: UseConversationParams) {
   const conversationService = useMemo(() => {
     return new ConversationService({
-      serverUrl: params.serverBaseUrl ?? import.meta.env.VITE_SERVER_BASE_URL,
+      serverUrl: params.serverBaseUrl,
       fetchOptions: params.fetchOptions,
     });
   }, [params.serverBaseUrl, params.fetchOptions]);
@@ -397,6 +399,13 @@ export function useConversation(params: UseConversationParams = {}) {
     }
     _dispatch(...args);
   };
+
+  // Use a custom sort function if provided. If undefined and we're on a
+  // well-known MongoDB domain, then prioritize links to the current domain.
+  // Otherwise leave everything as is.
+  const sortMessageReferences =
+    params.sortMessageReferences ??
+    makePrioritizeCurrentMongoDbReferenceDomain();
 
   const setConversation = (conversation: Required<ConversationState>) => {
     dispatch({ type: "setConversation", conversation });
@@ -475,7 +484,7 @@ export function useConversation(params: UseConversationParams = {}) {
 
         dispatch({
           type: "appendStreamingReferences",
-          data: references,
+          data: references.sort(sortMessageReferences),
         });
         references = null;
       }
@@ -535,7 +544,7 @@ export function useConversation(params: UseConversationParams = {}) {
           type: "addMessage",
           role: "assistant",
           content: response.content,
-          references: response.references,
+          references: response.references?.sort(sortMessageReferences),
           metadata: response.metadata,
         });
       }

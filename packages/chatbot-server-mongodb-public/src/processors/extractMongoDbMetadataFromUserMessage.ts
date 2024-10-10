@@ -6,30 +6,27 @@ import {
 } from "./makeFewShotUserMessageExtractorFunction";
 import { ChatCompletionMessageParam } from "openai/resources";
 import {
+  mongoDbProductNames,
   mongoDbProducts,
   mongoDbProgrammingLanguageIds,
 } from "../mongoDbMetadata";
 
 export const ExtractMongoDbMetadataFunctionSchema = z.object({
   programmingLanguage: z
-    // Need to cast as string array with at least one element
-    // to satisfy zod's type checking.
-    .enum(mongoDbProgrammingLanguageIds as [string, ...string[]])
+    .enum(mongoDbProgrammingLanguageIds)
     .default("javascript")
     .describe(
       'Programming language present in the content. If no programming language is present and a code example would answer the question, include "javascript".'
     )
     .optional(),
   mongoDbProduct: z
-    .string()
+    .enum(mongoDbProductNames)
     .describe(
-      `One or more MongoDB products present in the content. Order by relevancy. Include "Driver" if the user is asking about a programming language with a MongoDB driver.
-    Example values: ${mongoDbProducts
-      .map((p) => `"${p.name}"`)
-      .join(", ")} ...other MongoDB products.
-    If the product is ambiguous, say "MongoDB Server".`
+      `Most important MongoDB products present in the content.
+Include "Driver" if the user is asking about a programming language with a MongoDB driver.
+If the product is ambiguous, say "MongoDB Server".`
     )
-    .default("MongoDBServer ")
+    .default("MongoDB Server")
     .optional(),
 });
 
@@ -65,13 +62,13 @@ const fewShotExamples: ChatCompletionMessageParam[] = [
   makeUserMessage("pymongo insert data"),
   makeAssistantFunctionCallMessage(name, {
     programmingLanguage: "python",
-    mongoDbProduct: "Driver",
+    mongoDbProduct: "Drivers",
   } satisfies ExtractMongoDbMetadataFunction),
   // Example 5
   makeUserMessage("How do I create an index in MongoDB using the Java driver?"),
   makeAssistantFunctionCallMessage(name, {
     programmingLanguage: "java",
-    mongoDbProduct: "Driver",
+    mongoDbProduct: "Drivers",
   } satisfies ExtractMongoDbMetadataFunction),
   // Example 6
   makeUserMessage("$lookup"),

@@ -37,8 +37,6 @@ export { type DarkModeProps } from "./DarkMode.ts";
 export {
   type Role,
   type MessageData,
-  type MessageDataReferences,
-  type MessageDataReference,
   type AssistantMessageMetadata,
   type DeltaStreamEvent,
   type ReferencesStreamEvent,

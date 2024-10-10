@@ -11,6 +11,7 @@ import { Chatbot } from "./Chatbot";
 import { DocsChatbot } from "./DocsChatbot";
 import { DevCenterChatbot } from "./DevCenterChatbot";
 import { HotkeyTrigger } from "./HotkeyTrigger";
+import { makePrioritizeReferenceDomain } from "./sortReferences";
 
 const prefersDarkMode = () =>
   window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
@@ -21,6 +22,9 @@ const SUGGESTED_PROMPTS = [
   "How do I get started with MongoDB?",
   "Why should I use Atlas Search?",
 ];
+
+const serverBaseUrl =
+  import.meta.env.VITE_SERVER_BASE_URL ?? "http://localhost:3000/api/v1";
 
 const initialMessageReferences = [
   {
@@ -61,6 +65,7 @@ function App() {
       <div className={styles.main_content}>
         <Chatbot
           name="MongoDB AI (Docs)"
+          serverBaseUrl={serverBaseUrl}
           shouldStream={shouldStream}
           darkMode={darkMode}
           fetchOptions={{ credentials: "include" }}
@@ -73,10 +78,10 @@ function App() {
           maxInputCharacters={3000}
         >
           <DocsChatbot suggestedPrompts={SUGGESTED_PROMPTS} />
-          <HotkeyTrigger onKey="?" />
         </Chatbot>
         <Chatbot
           name="MongoDB AI (Dev Center)"
+          serverBaseUrl={serverBaseUrl}
           shouldStream={shouldStream}
           darkMode={darkMode}
           fetchOptions={{ credentials: "include" }}
@@ -86,6 +91,10 @@ function App() {
           onClose={() => {
             console.log("Dev Center Chatbot closed");
           }}
+          sortMessageReferences={makePrioritizeReferenceDomain([
+            "https://mongodb.com/developer",
+            "https://www.mongodb.com/developer",
+          ])}
         >
           <DevCenterChatbot
             initialMessageSuggestedPrompts={SUGGESTED_PROMPTS}

@@ -1,6 +1,11 @@
 import { isRichLinkVariantName, type RichLinkProps } from "@lg-chat/rich-links";
 import { References } from "mongodb-rag-core";
-import { addQueryParams } from "./utils";
+import {
+  isReferenceToDomain,
+  makePrioritizeReferenceDomain,
+  SortReferences,
+} from "./sortReferences";
+import { addQueryParams, getCurrentPageUrl } from "./utils";
 import { MessageData } from "./services/conversations";
 
 export type FormatReferencesOptions = {
@@ -34,4 +39,25 @@ export function getMessageLinks(
   return messageData.references && messageData.references.length > 0
     ? formatReferences(messageData.references, { tck: options.tck })
     : undefined;
+}
+
+export function makePrioritizeCurrentMongoDbReferenceDomain(): SortReferences {
+  const currentDomain = getCurrentPageUrl();
+  if (!currentDomain) {
+    // If we can't determine the current domain (e.g. on the server) then the sort is a no-op
+    return () => 0;
+  }
+  const prioritizableDomains = [
+    new URL("https://mongodb.com/docs"),
+    new URL("https://www.mongodb.com/docs"),
+    new URL("https://mongodb.com/developer"),
+    new URL("https://www.mongodb.com/developer"),
+    new URL("https://learn.mongodb.com"),
+    new URL("https://mongodb.com"),
+    new URL("https://www.mongodb.com"),
+  ];
+  const applicableDomains = prioritizableDomains.filter((prioritizableDomain) =>
+    isReferenceToDomain(currentDomain, prioritizableDomain)
+  );
+  return makePrioritizeReferenceDomain(applicableDomains);
 }

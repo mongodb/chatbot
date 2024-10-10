@@ -30,6 +30,21 @@ export const ConversationContext = createContext<Conversation>({
   switchConversation: async () => {
     return;
   },
+  createStreamingResponse: async () => {
+    return;
+  },
+  appendStreamingResponse: async () => {
+    return;
+  },
+  appendStreamingReferences: async () => {
+    return;
+  },
+  finishStreamingResponse: async () => {
+    return;
+  },
+  cancelStreamingResponse: async () => {
+    return;
+  },
 });
 
 export default function ConversationProvider({

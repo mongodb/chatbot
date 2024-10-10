@@ -1,4 +1,4 @@
-import { useMemo, useReducer } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { type References } from "mongodb-rag-core";
 import {
   MessageData,
@@ -71,7 +71,16 @@ type ConversationActorArgs<K extends ConversationAction["type"]> = Omit<
 type ConversationActor = {
   createConversation: () => Promise<void>;
   endConversationWithError: (errorMessage: string) => void;
-  addMessage: (args: ConversationActorArgs<"addMessage">) => Promise<void>;
+  addMessage: (
+    args:
+      | { role: "user"; content: string }
+      | {
+          role: "assistant";
+          content: string;
+          references?: References;
+          metadata?: AssistantMessageMetadata;
+        }
+  ) => Promise<void>;
   setMessageContent: (messageId: string, content: string) => Promise<void>;
   setMessageMetadata: (
     args: ConversationActorArgs<"setMessageMetadata">
@@ -80,6 +89,13 @@ type ConversationActor = {
   rateMessage: (messageId: string, rating: boolean) => Promise<void>;
   commentMessage: (messageId: string, comment: string) => Promise<void>;
   switchConversation: (conversationId: string) => Promise<void>;
+
+  // Streaming State
+  createStreamingResponse: (data: string) => void;
+  appendStreamingResponse: (data: string) => void;
+  appendStreamingReferences: (references: References) => void;
+  finishStreamingResponse: (messageId: string) => void;
+  cancelStreamingResponse: () => void;
 };
 
 export type Conversation = ConversationState & ConversationActor;
@@ -90,288 +106,437 @@ export const defaultConversationState = {
   isStreamingMessage: false,
 } satisfies ConversationState;
 
-function conversationReducer(
-  state: ConversationState,
-  action: ConversationAction
-): ConversationState {
-  function getMessageIndex(messageId: MessageData["id"]) {
-    const messageIndex = state.messages.findIndex(
-      (message) => message.id === messageId
-    );
-    return messageIndex;
-  }
-  function getStreamingMessage() {
-    const streamingMessageIndex = getMessageIndex(STREAMING_MESSAGE_ID);
-    const streamingMessage =
-      streamingMessageIndex === -1
-        ? null
-        : state.messages[streamingMessageIndex];
-    return {
-      streamingMessageIndex,
-      streamingMessage,
-    };
-  }
-  switch (action.type) {
-    case "setConversation": {
-      return {
-        ...action.conversation,
+function getMessageIndex(
+  messages: MessageData[],
+  messageId: MessageData["id"]
+) {
+  const messageIndex = messages.findIndex(
+    (message) => message.id === messageId
+  );
+  return messageIndex;
+}
+function getStreamingMessage(messages: MessageData[]) {
+  const streamingMessageIndex = getMessageIndex(messages, STREAMING_MESSAGE_ID);
+  const streamingMessage =
+    streamingMessageIndex === -1 ? null : messages[streamingMessageIndex];
+  return {
+    streamingMessageIndex,
+    streamingMessage,
+  };
+}
+
+function useConversationState(conversationService: ConversationService): {
+  state: ConversationState;
+  actions: ConversationActor;
+} {
+  const [state, setState] = useState<ConversationState>({
+    conversationId: undefined,
+    messages: [],
+    error: undefined,
+    isStreamingMessage: false,
+    streamingMessage: undefined,
+  });
+
+  const setConversation = useCallback(
+    (conversation: Required<ConversationState>) => {
+      setState((_) => conversation);
+    },
+    []
+  );
+
+  const endConversationWithError = useCallback((errorMessage: string) => {
+    setState((prevState) => ({
+      ...prevState,
+      error: errorMessage,
+    }));
+  }, []);
+
+  const createConversation = useCallback(async () => {
+    try {
+      const conversation = await conversationService.createConversation();
+      setConversation({
+        ...conversation,
         error: "",
-      };
+      });
+    } catch (error) {
+      const errorMessage =
+        typeof error === "string"
+          ? error
+          : error instanceof Error
+          ? error.message
+          : "Failed to create conversation.";
+      console.error(errorMessage);
+      endConversationWithError(errorMessage);
     }
-    case "setConversationError": {
-      return {
-        ...state,
-        error: action.errorMessage,
-      };
-    }
-    case "addMessage": {
-      if (!state.conversationId) {
-        console.error(`Cannot addMessage without a conversationId`);
-      }
+  }, [conversationService, setConversation, endConversationWithError]);
 
-      const newMessage = createMessage(action);
-
-      return {
-        ...state,
-        messages: [...state.messages, newMessage],
-      };
-    }
-    case "setMessageContent": {
-      if (!state.conversationId) {
-        console.error(`Cannot setMessageContent without a conversationId`);
-        return state;
-      }
-      const messageIndex = getMessageIndex(action.messageId);
-      if (messageIndex === -1) {
-        console.error(
-          `Cannot setMessageContent because message with id ${action.messageId} does not exist`
-        );
-        return state;
-      }
-      const modifiedMessage = {
-        ...state.messages[messageIndex],
-        content: action.content,
-      };
-      return {
-        ...state,
+  const addMessage = useCallback<ConversationActor["addMessage"]>(
+    async ({ role, content }) => {
+      setState((prevState) => ({
+        ...prevState,
         messages: [
-          ...state.messages.slice(0, messageIndex),
-          modifiedMessage,
-          ...state.messages.slice(messageIndex + 1),
+          ...prevState.messages,
+          createMessage({
+            role,
+            content,
+          }),
         ],
-      };
-    }
-    case "setMessageMetadata": {
-      if (!state.conversationId) {
+      }));
+    },
+    []
+  );
+
+  const setMessageContent = useCallback(
+    async (messageId: string, content: string) => {
+      setState((prevState) => {
+        if (!prevState.conversationId) {
+          console.error(`Cannot setMessageContent without a conversationId`);
+          return prevState;
+        }
+        const messageIndex = getMessageIndex(prevState.messages, messageId);
+        if (messageIndex === -1) {
+          console.error(
+            `Cannot setMessageContent because message with id ${messageId} does not exist`
+          );
+          return prevState;
+        }
+        return {
+          ...prevState,
+          messages: [
+            ...prevState.messages.slice(0, messageIndex),
+            {
+              ...prevState.messages[messageIndex],
+              content,
+            },
+            ...prevState.messages.slice(messageIndex + 1),
+          ],
+        };
+      });
+    },
+    []
+  );
+
+  const setMessageMetadata = useCallback<
+    ConversationActor["setMessageMetadata"]
+  >(async ({ messageId, metadata }) => {
+    setState((prevState) => {
+      if (!prevState.conversationId) {
         console.error(`Cannot setMessageMetadata without a conversationId`);
-        return state;
+        return prevState;
       }
-      const messageIndex = getMessageIndex(action.messageId);
+      const messageIndex = getMessageIndex(prevState.messages, messageId);
       if (messageIndex === -1) {
         console.error(
-          `Cannot setMessageMetadata because message with id ${action.messageId} does not exist`
+          `Cannot setMessageMetadata because message with id ${messageId} does not exist`
         );
-        return state;
+        return prevState;
       }
-      const existingMessage = state.messages[messageIndex];
+      const existingMessage = prevState.messages[messageIndex];
       if (existingMessage.role !== "assistant") {
         console.error(
-          `Cannot setMessageMetadata because message with id ${action.messageId} is not an assistant message`
+          `Cannot setMessageMetadata because message with id ${messageId} is not an assistant message`
         );
-        return state;
-      }
-      const modifiedMessage = {
-        ...existingMessage,
-        metadata: action.metadata,
-      };
-      return {
-        ...state,
-        messages: [
-          ...state.messages.slice(0, messageIndex),
-          modifiedMessage,
-          ...state.messages.slice(messageIndex + 1),
-        ],
-      };
-    }
-    case "deleteMessage": {
-      if (!state.conversationId) {
-        console.error(`Cannot deleteMessage without a conversationId`);
-        return state;
-      }
-      const messageIndex = getMessageIndex(action.messageId);
-      if (messageIndex === -1) {
-        console.error(
-          `Cannot deleteMessage because message with id ${action.messageId} does not exist`
-        );
-        return state;
+        return prevState;
       }
       return {
-        ...state,
+        ...prevState,
         messages: [
-          ...state.messages.slice(0, messageIndex),
-          ...state.messages.slice(messageIndex + 1),
+          ...prevState.messages.slice(0, messageIndex),
+          {
+            ...existingMessage,
+            metadata,
+          },
+          ...prevState.messages.slice(messageIndex + 1),
         ],
       };
-    }
-    case "rateMessage": {
-      if (!state.conversationId) {
-        console.error(`Cannot rateMessage without a conversationId`);
-        return state;
-      }
-      const messageIndex = getMessageIndex(action.messageId);
-      if (messageIndex === -1) {
-        console.error(
-          `Cannot rateMessage because message with id ${action.messageId} does not exist`
-        );
-        return state;
-      }
+    });
+  }, []);
 
-      const ratedMessage = {
-        ...state.messages[messageIndex],
-        rating: action.rating,
-      };
-      return {
-        ...state,
-        messages: [
-          ...state.messages.slice(0, messageIndex),
-          ratedMessage,
-          ...state.messages.slice(messageIndex + 1),
-        ],
-      };
-    }
-    case "createStreamingResponse": {
-      if (!state.conversationId) {
+  const createStreamingResponse = useCallback((data: string) => {
+    setState((prevState) => {
+      if (!prevState.conversationId) {
         console.error(
           `Cannot createStreamingResponse without a conversationId`
         );
-        return state;
+        return prevState;
       }
-      let { streamingMessage } = getStreamingMessage();
+      let { streamingMessage } = getStreamingMessage(prevState.messages);
       if (streamingMessage) {
         console.error(
           `Cannot createStreamingResponse because a streamingMessage already exists`
         );
-        return state;
+        return prevState;
       }
       streamingMessage = {
         ...createMessage({
           role: "assistant",
-          content: action.data,
+          content: data,
         }),
         id: STREAMING_MESSAGE_ID,
       };
       return {
-        ...state,
+        ...prevState,
         isStreamingMessage: true,
         streamingMessage,
-        messages: [...state.messages, streamingMessage],
+        messages: [...prevState.messages, streamingMessage],
       };
-    }
-    case "appendStreamingResponse": {
-      if (!state.conversationId) {
+    });
+  }, []);
+
+  const appendStreamingResponse = useCallback((data: string) => {
+    setState((prevState) => {
+      if (!prevState.conversationId) {
         console.error(
           `Cannot appendStreamingResponse without a conversationId`
         );
-        return state;
+        return prevState;
       }
-      const { streamingMessage, streamingMessageIndex } = getStreamingMessage();
+      const { streamingMessage, streamingMessageIndex } = getStreamingMessage(
+        prevState.messages
+      );
       if (!streamingMessage) {
         console.error(
-          `Cannot appendStreamingResponse without a streamingMessage. Make sure to dispatch createStreamingResponse first.`
+          `Cannot appendStreamingResponse without a streamingMessage. Make sure to call createStreamingResponse first.`
         );
-        return state;
+        return prevState;
       }
-      const modifiedMessage = {
-        ...streamingMessage,
-        content: streamingMessage.content + action.data,
-      };
       return {
-        ...state,
+        ...prevState,
         messages: updateArrayElementAt(
-          state.messages,
+          prevState.messages,
           streamingMessageIndex,
-          modifiedMessage
+          {
+            ...streamingMessage,
+            content: streamingMessage.content + data,
+          }
         ),
       };
-    }
-    case "appendStreamingReferences": {
-      if (!state.conversationId) {
+    });
+  }, []);
+
+  const appendStreamingReferences = useCallback((data: References) => {
+    setState((prevState) => {
+      if (!prevState.conversationId) {
         console.error(
-          `Cannot appendStreamingResponse without a conversationId`
+          `Cannot appendStreamingReferences without a conversationId`
         );
-        return state;
+        return prevState;
       }
-      const { streamingMessage, streamingMessageIndex } = getStreamingMessage();
+      const { streamingMessage, streamingMessageIndex } = getStreamingMessage(
+        prevState.messages
+      );
       if (!streamingMessage) {
         console.error(
-          `Cannot appendStreamingResponse without a streamingMessage. Make sure to dispatch createStreamingResponse first.`
+          `Cannot appendStreamingReferences without a streamingMessage. Make sure to call createStreamingResponse first.`
         );
-        return state;
+        return prevState;
       }
 
-      const modifiedMessage = {
-        ...streamingMessage,
-        references: [...(streamingMessage.references ?? []), ...action.data],
-      } satisfies MessageData;
       return {
-        ...state,
+        ...prevState,
         messages: updateArrayElementAt(
-          state.messages,
+          prevState.messages,
           streamingMessageIndex,
-          modifiedMessage
+          {
+            ...streamingMessage,
+            references: [...(streamingMessage.references ?? []), ...data],
+          }
         ),
       };
-    }
-    case "finishStreamingResponse": {
-      const { streamingMessage, streamingMessageIndex } = getStreamingMessage();
+    });
+  }, []);
+
+  const finishStreamingResponse = useCallback((messageId: string) => {
+    setState((prevState) => {
+      if (!prevState.conversationId) {
+        console.error(
+          `Cannot finishStreamingResponse without a conversationId`
+        );
+        return prevState;
+      }
+      const { streamingMessage, streamingMessageIndex } = getStreamingMessage(
+        prevState.messages
+      );
       if (!streamingMessage) {
         console.error(
           `Cannot finishStreamingResponse without a streamingMessage`
         );
-        return state;
+        return prevState;
       }
-      const finalMessage = {
-        ...streamingMessage,
-        id: action.messageId,
-      };
-
       return {
-        ...state,
+        ...prevState,
         isStreamingMessage: false,
         streamingMessage: undefined,
         messages: updateArrayElementAt(
-          state.messages,
+          prevState.messages,
           streamingMessageIndex,
-          finalMessage
+          {
+            ...streamingMessage,
+            id: messageId ?? createMessageId(),
+          }
         ),
       };
-    }
-    case "cancelStreamingResponse": {
-      const { streamingMessage, streamingMessageIndex } = getStreamingMessage();
+    });
+  }, []);
+
+  const cancelStreamingResponse = useCallback(() => {
+    setState((prevState) => {
+      if (!prevState.conversationId) {
+        console.error(
+          `Cannot cancelStreamingResponse without a conversationId`
+        );
+        return prevState;
+      }
+      const { streamingMessage, streamingMessageIndex } = getStreamingMessage(
+        prevState.messages
+      );
       if (!streamingMessage) {
         console.error(
           `Cannot cancelStreamingResponse without a streamingMessage`
         );
-        return state;
+        return prevState;
       }
-
-      const messages = removeArrayElementAt(
-        state.messages,
-        streamingMessageIndex
-      );
-
       return {
-        ...state,
+        ...prevState,
         isStreamingMessage: false,
         streamingMessage: undefined,
-        messages,
+        messages: removeArrayElementAt(
+          prevState.messages,
+          streamingMessageIndex
+        ),
       };
-    }
-    default: {
-      console.error("Unhandled action", action);
-      throw new Error(`Unhandled action type`);
-    }
-  }
+    });
+  }, []);
+
+  const deleteMessage = useCallback(async (messageId: string) => {
+    setState((prevState) => {
+      if (!prevState.conversationId) {
+        console.error(`Cannot deleteMessage without a conversationId`);
+        return prevState;
+      }
+      const messageIndex = getMessageIndex(prevState.messages, messageId);
+      if (messageIndex === -1) {
+        console.error(
+          `Cannot deleteMessage because message with id ${messageId} does not exist`
+        );
+        return prevState;
+      }
+      return {
+        ...prevState,
+        messages: removeArrayElementAt(prevState.messages, messageIndex),
+      };
+    });
+  }, []);
+
+  const rateMessage = useCallback(
+    async (messageId: string, rating: boolean) => {
+      setState((prevState) => {
+        if (!prevState.conversationId) {
+          console.error(`Cannot rateMessage without a conversationId`);
+          return prevState;
+        }
+        const messageIndex = getMessageIndex(prevState.messages, messageId);
+        if (messageIndex === -1) {
+          console.error(
+            `Cannot rateMessage because message with id ${messageId} does not exist`
+          );
+          return prevState;
+        }
+        const ratedMessage = {
+          ...prevState.messages[messageIndex],
+          rating,
+        };
+        return {
+          ...prevState,
+          messages: updateArrayElementAt(
+            prevState.messages,
+            messageIndex,
+            ratedMessage
+          ),
+        };
+      });
+    },
+    []
+  );
+
+  const commentMessage = useCallback(
+    async (messageId: string, comment: string) => {
+      setState((prevState) => {
+        if (!prevState.conversationId) {
+          console.error(`Cannot commentMessage without a conversationId`);
+          return prevState;
+        }
+        const messageIndex = getMessageIndex(prevState.messages, messageId);
+        if (messageIndex === -1) {
+          console.error(
+            `Cannot commentMessage because message with id ${messageId} does not exist`
+          );
+          return prevState;
+        }
+        const commentedMessage = {
+          ...prevState.messages[messageIndex],
+          comment,
+        };
+        return {
+          ...prevState,
+          messages: updateArrayElementAt(
+            prevState.messages,
+            messageIndex,
+            commentedMessage
+          ),
+        };
+      });
+    },
+    []
+  );
+
+  /**
+   * Switch to a different, existing conversation.
+   */
+  const switchConversation = useCallback(
+    async (conversationId: string) => {
+      try {
+        const conversation = await conversationService.getConversation(
+          conversationId
+        );
+        setConversation({
+          ...conversation,
+          error: "",
+        });
+      } catch (error) {
+        const errorMessage =
+          typeof error === "string"
+            ? error
+            : error instanceof Error
+            ? error.message
+            : "Failed to switch conversation.";
+        console.error(errorMessage);
+        // Rethrow the error so that we can handle it in the UI
+        throw error;
+      }
+    },
+    [conversationService, setConversation]
+  );
+
+  return {
+    state,
+    actions: {
+      createConversation,
+      endConversationWithError,
+      addMessage,
+      setMessageContent,
+      setMessageMetadata,
+      deleteMessage,
+      rateMessage,
+      commentMessage,
+      switchConversation,
+      createStreamingResponse,
+      appendStreamingResponse,
+      appendStreamingReferences,
+      finishStreamingResponse,
+      cancelStreamingResponse,
+    },
+  };
 }
 
 export type UseConversationParams = {
@@ -389,16 +554,7 @@ export function useConversation(params: UseConversationParams) {
     });
   }, [params.serverBaseUrl, params.fetchOptions]);
 
-  const [state, _dispatch] = useReducer(
-    conversationReducer,
-    defaultConversationState
-  );
-  const dispatch = (...args: Parameters<typeof _dispatch>) => {
-    if (import.meta.env.MODE !== "production") {
-      console.log(`dispatch`, ...args);
-    }
-    _dispatch(...args);
-  };
+  const { state, actions } = useConversationState(conversationService);
 
   // Use a custom sort function if provided. If undefined and we're on a
   // well-known MongoDB domain, then prioritize links to the current domain.
@@ -407,263 +563,153 @@ export function useConversation(params: UseConversationParams) {
     params.sortMessageReferences ??
     makePrioritizeCurrentMongoDbReferenceDomain();
 
-  const setConversation = (conversation: Required<ConversationState>) => {
-    dispatch({ type: "setConversation", conversation });
-  };
-
-  const endConversationWithError = (errorMessage: string) => {
-    dispatch({ type: "setConversationError", errorMessage });
-  };
-
-  const createConversation = async () => {
-    try {
-      const conversation = await conversationService.createConversation();
-      setConversation({
-        ...conversation,
-        error: "",
-      });
-    } catch (error) {
-      const errorMessage =
-        typeof error === "string"
-          ? error
-          : error instanceof Error
-          ? error.message
-          : "Failed to create conversation.";
-      console.error(errorMessage);
-      endConversationWithError(errorMessage);
-    }
-  };
-
-  const addMessage: ConversationActor["addMessage"] = async ({
-    role,
-    content,
-  }) => {
-    if (!state.conversationId) {
-      console.error(`Cannot addMessage without a conversationId`);
-      return;
-    }
-
-    const shouldStream =
-      canUseServerSentEvents() && (params.shouldStream ?? true);
-
-    // Stream control
-    const abortController = new AbortController();
-    let finishedStreaming = false;
-    let finishedBuffering = !shouldStream;
-    let streamedMessageId: string | null = null;
-    let references: References | null = null;
-    let bufferedTokens: string[] = [];
-    let streamedTokens: string[] = [];
-    const streamingIntervalMs = 50;
-    const streamingInterval = setInterval(() => {
-      const [nextToken, ...remainingTokens] = bufferedTokens;
-
-      bufferedTokens = remainingTokens;
-
-      if (nextToken) {
-        dispatch({ type: "appendStreamingResponse", data: nextToken });
+  const addMessage = useCallback<ConversationActor["addMessage"]>(
+    async ({ role, content }) => {
+      if (!state.conversationId) {
+        console.error(`Cannot addMessage without a conversationId`);
+        return;
       }
 
-      const allBufferedTokensDispatched =
-        finishedStreaming && bufferedTokens.length === 0;
+      const shouldStream =
+        canUseServerSentEvents() && (params.shouldStream ?? true);
 
-      if (references && allBufferedTokensDispatched) {
-        // Count the number of markdown code fences in the response. If
-        // it's odd, the streaming message stopped in the middle of a
-        // code block and we need to escape from it.
-        const numCodeFences = countRegexMatches(
-          /```/g,
-          streamedTokens.join("")
-        );
-        if (numCodeFences % 2 !== 0) {
-          dispatch({
-            type: "appendStreamingResponse",
-            data: "\n```\n\n",
-          });
+      // Stream control
+      const abortController = new AbortController();
+      let finishedStreaming = false;
+      let finishedBuffering = !shouldStream;
+      let streamedMessageId: string | null = null;
+      let references: References | null = null;
+      let bufferedTokens: string[] = [];
+      let streamedTokens: string[] = [];
+      const streamingIntervalMs = 50;
+      const streamingInterval = setInterval(() => {
+        const [nextToken, ...remainingTokens] = bufferedTokens;
+
+        bufferedTokens = remainingTokens;
+
+        if (nextToken) {
+          actions.appendStreamingResponse(nextToken);
         }
 
-        dispatch({
-          type: "appendStreamingReferences",
-          data: references.sort(sortMessageReferences),
-        });
-        references = null;
-      }
-      if (!finishedBuffering && allBufferedTokensDispatched) {
-        if (!streamedMessageId) {
-          streamedMessageId = createMessageId();
+        const allBufferedTokensDispatched =
+          finishedStreaming && bufferedTokens.length === 0;
+
+        if (references && allBufferedTokensDispatched) {
+          // Count the number of markdown code fences in the response. If
+          // it's odd, the streaming message stopped in the middle of a
+          // code block and we need to escape from it.
+          const numCodeFences = countRegexMatches(
+            /```/g,
+            streamedTokens.join("")
+          );
+          if (numCodeFences % 2 !== 0) {
+            actions.appendStreamingResponse("\n```\n\n");
+          }
+          actions.appendStreamingReferences(
+            references.sort(sortMessageReferences)
+          );
+          references = null;
         }
-        dispatch({
-          type: "finishStreamingResponse",
-          messageId: streamedMessageId,
-        });
-        finishedBuffering = true;
-      }
-    }, streamingIntervalMs);
-
-    try {
-      dispatch({ type: "addMessage", role, content });
-      if (shouldStream) {
-        dispatch({ type: "createStreamingResponse", data: "" });
-        await conversationService.addMessageStreaming({
-          conversationId: state.conversationId,
-          message: content,
-          maxRetries: 0,
-          onResponseDelta: async (data: string) => {
-            bufferedTokens = [...bufferedTokens, data];
-            streamedTokens = [...streamedTokens, data];
-          },
-          onReferences: async (data: References) => {
-            if (references === null) {
-              references = [];
-            }
-            references.push(...data);
-          },
-          onMetadata: async (metadata) => {
-            setMessageMetadata({
-              messageId: STREAMING_MESSAGE_ID,
-              metadata,
-            });
-          },
-          onResponseFinished: async (messageId: string) => {
-            streamedMessageId = messageId;
-            finishedStreaming = true;
-          },
-          signal: abortController.signal,
-        });
-      } else {
-        // We start a streaming response to indicate the loading state
-        // but we'll never append to it since the response message comes
-        // in all at once.
-        dispatch({ type: "createStreamingResponse", data: "" });
-        const response = await conversationService.addMessage({
-          conversationId: state.conversationId,
-          message: content,
-        });
-        dispatch({ type: "cancelStreamingResponse" });
-        dispatch({
-          type: "addMessage",
-          role: "assistant",
-          content: response.content,
-          references: response.references?.sort(sortMessageReferences),
-          metadata: response.metadata,
-        });
-      }
-    } catch (error) {
-      abortController.abort();
-      console.error(`Failed to add message: ${error}`);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      dispatch({ type: "cancelStreamingResponse" });
-      clearInterval(streamingInterval);
-
-      endConversationWithError(errorMessage);
-      throw error;
-    }
-
-    let cleanupInterval: ReturnType<typeof setInterval> | undefined;
-    return new Promise<void>((resolve) => {
-      cleanupInterval = setInterval(() => {
-        if (finishedBuffering) {
-          clearInterval(streamingInterval);
-          clearInterval(cleanupInterval);
-          resolve();
+        if (!finishedBuffering && allBufferedTokensDispatched) {
+          if (!streamedMessageId) {
+            streamedMessageId = createMessageId();
+          }
+          actions.finishStreamingResponse(streamedMessageId);
+          finishedBuffering = true;
         }
       }, streamingIntervalMs);
-    });
-  };
 
-  const setMessageContent = async (messageId: string, content: string) => {
-    if (!state.conversationId) {
-      console.error(`Cannot setMessageContent without a conversationId`);
-      return;
-    }
-    dispatch({ type: "setMessageContent", messageId, content });
-  };
+      try {
+        await actions.addMessage({ role, content });
+        if (shouldStream) {
+          actions.createStreamingResponse("");
+          await conversationService.addMessageStreaming({
+            conversationId: state.conversationId,
+            message: content,
+            maxRetries: 0,
+            onResponseDelta: async (data: string) => {
+              bufferedTokens = [...bufferedTokens, data];
+              streamedTokens = [...streamedTokens, data];
+            },
+            onReferences: async (data: References) => {
+              if (references === null) {
+                references = [];
+              }
+              references.push(...data);
+            },
+            onMetadata: async (metadata) => {
+              actions.setMessageMetadata({
+                messageId: STREAMING_MESSAGE_ID,
+                metadata,
+              });
+            },
+            onResponseFinished: async (messageId: string) => {
+              streamedMessageId = messageId;
+              finishedStreaming = true;
+            },
+            signal: abortController.signal,
+          });
+        } else {
+          // We start a streaming response to indicate the loading state
+          // but we'll never append to it since the response message comes
+          // in all at once.
+          actions.createStreamingResponse("");
+          const response = await conversationService.addMessage({
+            conversationId: state.conversationId,
+            message: content,
+          });
+          actions.cancelStreamingResponse();
+          actions.addMessage({
+            role: "assistant",
+            content: response.content,
+            references: response.references?.sort(sortMessageReferences),
+            metadata: response.metadata,
+          });
+        }
+      } catch (error) {
+        abortController.abort();
+        console.error(`Failed to add message: ${error}`);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        actions.cancelStreamingResponse();
+        clearInterval(streamingInterval);
 
-  const setMessageMetadata: ConversationActor["setMessageMetadata"] = async ({
-    messageId,
-    metadata,
-  }) => {
-    if (!state.conversationId) {
-      console.error(`Cannot setMessageMetadata without a conversationId`);
-      return;
-    }
-    dispatch({ type: "setMessageMetadata", messageId, metadata });
-  };
+        actions.endConversationWithError(errorMessage);
+        throw error;
+      }
 
-  const deleteMessage = async (messageId: string) => {
-    if (!state.conversationId) {
-      console.error(`Cannot deleteMessage without a conversationId`);
-      return;
-    }
-    dispatch({ type: "deleteMessage", messageId });
-  };
-
-  const rateMessage = async (messageId: string, rating: boolean) => {
-    if (!state.conversationId) {
-      console.error(`Cannot rateMessage without a conversationId`);
-      return;
-    }
-    await conversationService.rateMessage({
-      conversationId: state.conversationId,
-      messageId,
-      rating,
-    });
-    dispatch({ type: "rateMessage", messageId, rating });
-  };
-
-  const commentMessage = async (messageId: string, comment: string) => {
-    if (!state.conversationId) {
-      console.error(`Cannot commentMessage without a conversationId`);
-      return;
-    }
-    await conversationService.commentMessage({
-      conversationId: state.conversationId,
-      messageId,
-      comment,
-    });
-  };
+      let cleanupInterval: ReturnType<typeof setInterval> | undefined;
+      return new Promise<void>((resolve) => {
+        cleanupInterval = setInterval(() => {
+          if (finishedBuffering) {
+            clearInterval(streamingInterval);
+            clearInterval(cleanupInterval);
+            resolve();
+          }
+        }, streamingIntervalMs);
+      });
+    },
+    [
+      params.shouldStream,
+      conversationService,
+      state.conversationId,
+      actions,
+      sortMessageReferences,
+    ]
+  );
 
   const streamingMessage = state.messages.find(
     (m) => m.id === STREAMING_MESSAGE_ID
   );
 
-  /**
-   * Switch to a different, existing conversation.
-   */
-  const switchConversation = async (conversationId: string) => {
-    try {
-      const conversation = await conversationService.getConversation(
-        conversationId
-      );
-      setConversation({
-        ...conversation,
-        error: "",
-      });
-    } catch (error) {
-      const errorMessage =
-        typeof error === "string"
-          ? error
-          : error instanceof Error
-          ? error.message
-          : "Failed to switch conversation.";
-      console.error(errorMessage);
-      // Rethrow the error so that we can handle it in the UI
-      throw error;
-    }
-  };
-
-  return {
-    ...state,
-    createConversation,
-    endConversationWithError,
-    streamingMessage,
-    addMessage,
-    setMessageContent,
-    setMessageMetadata,
-    deleteMessage,
-    rateMessage,
-    commentMessage,
-    switchConversation,
-  } satisfies Conversation;
+  return useMemo(
+    () =>
+      ({
+        ...state,
+        ...actions,
+        addMessage,
+        streamingMessage,
+      } satisfies Conversation),
+    [state, actions, addMessage, streamingMessage]
+  );
 }

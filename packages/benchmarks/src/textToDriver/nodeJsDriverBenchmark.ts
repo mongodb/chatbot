@@ -2,7 +2,7 @@ import { runTextToDriverEval } from "./runTextToDriverEval";
 import { radiantModels } from "../radiantModels";
 import { assertEnvVars, MongoClient } from "mongodb-rag-core";
 import { NODE_JS_PROMPTS } from "./generateDriverCode/languagePrompts/nodeJs";
-import OpenAI, { AzureOpenAI } from "openai";
+import OpenAI from "openai";
 import { TEXT_TO_DRIVER_ENV_VARS } from "./TextToDriverEnvVars";
 import { RADIANT_ENV_VARS } from "../envVars";
 import { wrapOpenAI } from "braintrust";
@@ -96,70 +96,6 @@ async function main() {
             }
           );
       });
-
-    await Promise.allSettled(
-      radiantModels
-        .map((modelInfo) => [
-          {
-            modelInfo,
-            generateCollectionSchemas: true,
-          },
-          {
-            modelInfo,
-            generateCollectionSchemas: false,
-          },
-        ])
-        .flat()
-        .map(async ({ modelInfo, generateCollectionSchemas }) => {
-          const modelEvalPromises = Object.entries(prompts).map(
-            async ([promptType, prompt]) => {
-              return runTextToDriverEval({
-                dataset: {
-                  name: datasetName,
-                },
-                experimentName: `${modelInfo.label}-${promptType}-${
-                  generateCollectionSchemas ? "with" : "without"
-                }-collection-schemas`,
-                metadata: {
-                  ...modelInfo,
-                  promptStrategy: promptType,
-                  generateCollectionSchemas,
-                  sampleDocumentLimit: SAMPLE_DOCUMENT_LIMIT,
-                },
-                llmOptions: {
-                  model: modelInfo.radiantModelDeployment,
-                  temperature: 0.0,
-                  max_tokens: 1000,
-                },
-                projectName,
-                apiKey: BRAINTRUST_API_KEY,
-                openAiClient: wrapOpenAI(
-                  new OpenAI({
-                    baseURL: RADIANT_ENDPOINT,
-                    apiKey: RADIANT_API_KEY,
-                    defaultHeaders: {
-                      Cookie: MONGODB_AUTH_COOKIE,
-                    },
-                  })
-                ),
-                maxConcurrency,
-                timeout,
-                promptConfig: {
-                  customInstructions: prompt,
-                  generateCollectionSchemas,
-                  sampleGenerationConfig: {
-                    mongoClient,
-                    limit: SAMPLE_DOCUMENT_LIMIT,
-                  },
-                },
-              });
-            }
-          );
-          for (const modelEvalPromise of modelEvalPromises) {
-            await modelEvalPromise;
-          }
-        })
-    );
   } finally {
     await mongoClient.close();
   }

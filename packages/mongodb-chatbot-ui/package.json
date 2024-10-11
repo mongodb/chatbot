@@ -122,6 +122,9 @@
     "@storybook/react": "^7.0.20",
     "@storybook/react-vite": "^7.0.20",
     "@storybook/testing-library": "^0.0.14-next.2",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.2",
+    "@testing-library/react": "^16.0.1",
     "@types/react": "^18.0.37",
     "@types/react-dom": "^18.0.11",
     "@types/react-transition-group": "^4.4.6",
@@ -150,6 +153,7 @@
     "vite": "^4.4.7",
     "vite-plugin-libcss": "^1.1.0",
     "vite-plugin-node-polyfills": "^0.9.0",
-    "vitest": "^0.34.4"
+    "vitest": "^2.1.4",
+    "vitest-fetch-mock": "^0.4.1"
   }
 }

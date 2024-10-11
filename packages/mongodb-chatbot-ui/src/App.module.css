@@ -16,11 +16,19 @@ body {
 .background_light {
   /* palette.gray.light3 */
   background: #f9fbfa;
+
+  & h1 {
+    color: #001e2b;
+  }
 }
 
 .background_dark {
   /* palette.black */
   background: #001e2b;
+
+  & h1 {
+    color: #f9fbfa;
+  }
 }
 
 .controls_container {

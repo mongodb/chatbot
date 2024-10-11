@@ -50,7 +50,7 @@ const initialMessageReferences = [
   },
 ];
 
-function App() {
+export function App() {
   const [shouldStream, setShouldStream] = useState(canUseServerSentEvents());
   const { contextDarkMode: darkMode = false, setDarkMode } =
     useDarkModeContext();
@@ -62,6 +62,7 @@ function App() {
 
   return (
     <div className={app_background(darkMode)}>
+      <h1>MongoDB AI Chatbot Test App</h1>
       <div className={styles.main_content}>
         <Chatbot
           name="MongoDB AI (Docs)"

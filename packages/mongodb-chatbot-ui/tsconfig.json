@@ -4,6 +4,8 @@
     "outDir": "./build",
     "module": "ESNext",
 
+    "lib": ["ES2021", "DOM", "DOM.Iterable"],
+
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -18,7 +20,9 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
-    "noImplicitThis": true
+    "noImplicitThis": true,
+
+    "types": ["vitest/globals", "@testing-library/jest-dom"]
   },
-  "include": ["./src/**/*.ts", "./src/**/*.tsx"]
+  "include": ["./src/**/*.ts", "./src/**/*.tsx", "./vitest.setup.ts"],
 }

@@ -2,29 +2,19 @@ import { TextToDriverEvalScorer } from "./evalTypes";
 import { fuzzyMatch } from "./fuzzyMatch";
 
 /**
-  Check if the generated query successfully executed
-  and matches the expected output using fuzzy matching.
-
+  Check if the generated query successfully executed.
   Note that if the query isn't valid, then the "SuccessfulExecution"
   metric will always fail.
  */
-export const CorrectOutput: TextToDriverEvalScorer = async ({
+export const SuccessfulExecution: TextToDriverEvalScorer = async ({
+  output,
   expected,
   metadata,
-  output,
 }) => {
   const noOutput = output.execution.result === null;
-
   const successfulExecution = {
     name: "SuccessfulExecution",
     score: noOutput ? 0 : 1,
-    ...(output.execution.error
-      ? {
-          metadata: {
-            error: output.execution.error,
-          },
-        }
-      : {}),
   };
 
   const correctOutputFuzzy: ReturnType<TextToDriverEvalScorer> = {
@@ -39,7 +29,7 @@ export const CorrectOutput: TextToDriverEvalScorer = async ({
             expected: expected,
             orderMatters: metadata.sql.query.includes("ORDER BY"),
             isAggregation:
-              metadata.sql.tags.subcategories.includes("AGGREGATION"),
+              metadata.sql.tags?.subcategories.includes("AGGREGATION") ?? false,
           })
         : null;
     if (isFuzzyMatch !== null) {
@@ -75,5 +65,22 @@ export const GenerationLength: TextToDriverEvalScorer = ({ output }) => {
   return {
     name: "GenerationLength",
     score: output.generatedCode.length,
+  };
+};
+
+/**
+  Measure how long the query takes to execute in minutes.
+
+  Note: Measuring in minutes because
+  Braintrust throws an error if the score > 1.
+ */
+export const QueryExecutionTimeMinutes: TextToDriverEvalScorer = async ({
+  output,
+}) => {
+  const executionTimeMinutes = output.execution.executionTimeMs / 1000 / 60;
+
+  return {
+    name: "QueryExecutionTimeMinutes",
+    score: executionTimeMinutes,
   };
 };

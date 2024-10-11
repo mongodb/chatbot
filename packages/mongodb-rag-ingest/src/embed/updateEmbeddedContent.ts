@@ -11,19 +11,17 @@ import { chunkPage, ChunkFunc, ChunkOptions } from "./chunkPage";
 import { PromisePool } from "@supercharge/promise-pool";
 import { ConcurrencyOptions } from "../Config";
 
-
-export interface EmbedConcurrencyOptions {  
- 
+export interface EmbedConcurrencyOptions {
   /**  
     Number of pages to chunk and embed concurrently.  
-   */  
-  processPages?: number,  
+   */
+  processPages?: number;
   /**  
     Maximum number of chunks per page to generate chunks for concurrently.  
     This includes the creation of the chunk embeddings and any chunk preprocessing.  
-   */  
-  createChunks?: number,  
-}  
+   */
+  createChunks?: number;
+}
 
 /**
   (Re-)embeddedContent the pages in the page store that have changed since the given date
@@ -55,8 +53,7 @@ export const updateEmbeddedContent = async ({
       sourceNames ? ` in sources: ${sourceNames.join(", ")}` : ""
     }`
   );
-  await PromisePool
-    .withConcurrency(concurrencyOptions?.processPages ?? 1)
+  await PromisePool.withConcurrency(concurrencyOptions?.processPages ?? 1)
     .for(changedPages)
     .process(async (page, index, pool) => {
       switch (page.action) {
@@ -75,10 +72,10 @@ export const updateEmbeddedContent = async ({
             page,
             chunkOptions,
             embedder,
-            concurrencyOptions
+            concurrencyOptions,
           });
-        }
-    })
+      }
+    });
 };
 
 const chunkAlgoHashes = new Map<string, string>();
@@ -149,8 +146,9 @@ export const updateEmbeddedContentForPage = async ({
     } embedded content for ${page.sourceName}:${page.url}`
   );
 
-  const { results: embeddedContent } = await PromisePool
-    .withConcurrency(concurrencyOptions?.createChunks ?? 1)
+  const { results: embeddedContent } = await PromisePool.withConcurrency(
+    concurrencyOptions?.createChunks ?? 1
+  )
     .for(contentChunks)
     .process(async (chunk, index, pool) => {
       logger.info(
@@ -167,7 +165,7 @@ export const updateEmbeddedContentForPage = async ({
         updated: new Date(),
         chunkAlgoHash,
       };
-    })
+    });
 
   await store.updateEmbeddedContent({
     page,

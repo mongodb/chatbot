@@ -87,15 +87,14 @@ describe("updatePages", () => {
         return [examplePage];
       }),
     } as unknown as DataSource;
-    
+
     const sources = [source1, source2];
-    
+
     const startTimes: number[] = [];
     const endTimes: number[] = [];
 
-
     sources.forEach((source) => {
-      jest.spyOn(source, 'fetchPages').mockImplementationOnce(async () => {
+      jest.spyOn(source, "fetchPages").mockImplementationOnce(async () => {
         const startTime = Date.now();
         startTimes.push(startTime);
         await new Promise((resolve) => setTimeout(resolve, 50)); // Simulate async delay
@@ -117,12 +116,15 @@ describe("updatePages", () => {
     }));
 
     // Ensure some overlaps indicating concurrency
-    expect(executionPairs.some((pair, i, pairs) =>
-      pairs.some((otherPair, j) =>
-        i !== j &&
-        pair.startTime < otherPair.endTime &&
-        otherPair.startTime < pair.endTime
-      ))
+    expect(
+      executionPairs.some((pair, i, pairs) =>
+        pairs.some(
+          (otherPair, j) =>
+            i !== j &&
+            pair.startTime < otherPair.endTime &&
+            otherPair.startTime < pair.endTime
+        )
+      )
     ).toBe(true);
   });
 });

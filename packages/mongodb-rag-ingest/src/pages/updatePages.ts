@@ -2,15 +2,13 @@ import { logger, Page, PageStore } from "mongodb-rag-core";
 import { getChangedPages } from "./getChangedPages";
 import { DataSource } from "../sources/DataSource";
 import { PromisePool } from "@supercharge/promise-pool";
-import { ConcurrencyOptions } from "../Config";
 
-export interface PageConcurrencyOptions {  
-
+export interface PageConcurrencyOptions {
   /**
     Number of data sources to process concurrently.
     */
-  processDataSources?: number,
-}  
+  processDataSources?: number;
+}
 
 /**
   Fetches pages from data sources and stores those that have changed in the data
@@ -23,10 +21,9 @@ export const updatePages = async ({
 }: {
   sources: DataSource[];
   pageStore: PageStore;
-  concurrencyOptions?: PageConcurrencyOptions
+  concurrencyOptions?: PageConcurrencyOptions;
 }): Promise<void> => {
-  await PromisePool
-    .withConcurrency(concurrencyOptions?.processDataSources ?? 1)
+  await PromisePool.withConcurrency(concurrencyOptions?.processDataSources ?? 1)
     .for(sources)
     .process(async (source, index, pool) => {
       logger.info(`Fetching pages for ${source.name}`);
@@ -44,7 +41,7 @@ export const updatePages = async ({
         store: pageStore,
         sourceName: source.name,
       });
-    })
+    });
 };
 
 /**

@@ -42,7 +42,13 @@ const commandModule: CommandModule<
 export default commandModule;
 
 export const doEmbedCommand = async (
-  { pageStore, embeddedContentStore, embedder, chunkOptions, concurrencyOptions }: ResolvedConfig,
+  {
+    pageStore,
+    embeddedContentStore,
+    embedder,
+    chunkOptions,
+    concurrencyOptions,
+  }: ResolvedConfig,
   {
     since,
     source,

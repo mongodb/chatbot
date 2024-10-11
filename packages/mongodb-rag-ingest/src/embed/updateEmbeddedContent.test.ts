@@ -1,7 +1,17 @@
-import { EmbeddedContentStore, EmbeddedContent, Page, PersistedPage, Embedder } from "mongodb-rag-core";
-import { updateEmbeddedContent, updateEmbeddedContentForPage } from "./updateEmbeddedContent";
+import {
+  EmbeddedContentStore,
+  EmbeddedContent,
+  Embedder,
+  Page,
+  PersistedPage,
+} from "mongodb-rag-core";
+import {
+  updateEmbeddedContent,
+  updateEmbeddedContentForPage,
+} from "./updateEmbeddedContent";
 import { persistPages } from "../pages";
 import { makeMockPageStore } from "../test/MockPageStore";
+import * as chunkPageModule from "./chunkPage";
 
 export const makeMockEmbeddedContentStore = (): EmbeddedContentStore => {
   const content: Map<string /* page url */, EmbeddedContent[]> = new Map();
@@ -140,14 +150,35 @@ describe("updateEmbeddedContent", () => {
   });
   it("processes chunks concurrently within a page", async () => {
     const embeddedContentStore = makeMockEmbeddedContentStore();
-    const page: PersistedPage = { ...examplePage, updated: new Date(), action: 'updated' };
+    const page: PersistedPage = {
+      ...examplePage,
+      updated: new Date(),
+      action: "updated",
+    };
 
     // Spy and mock chunkPage
-    const chunkPageSpy = jest.spyOn(require('./chunkPage'), 'chunkPage').mockResolvedValue([
-      { text: 'chunk1' },
-      { text: 'chunk2' },
-      { text: 'chunk3' },
-    ]);
+    const chunkPageSpy = jest
+      .spyOn(chunkPageModule, "chunkPage")
+      .mockResolvedValue([
+        {
+          text: "chunk1",
+          url: "",
+          sourceName: "",
+          tokenCount: 0,
+        },
+        {
+          text: "chunk2",
+          url: "",
+          sourceName: "",
+          tokenCount: 0,
+        },
+        {
+          text: "chunk3",
+          url: "",
+          sourceName: "",
+          tokenCount: 0,
+        },
+      ]);
 
     const startTimes: number[] = [];
     const endTimes: number[] = [];
@@ -190,17 +221,17 @@ describe("updateEmbeddedContent", () => {
           (otherPair, j) =>
             i !== j &&
             pair.startTime < otherPair.endTime &&
-            otherPair.startTime < pair.endTime,
-        ),
-      ),
+            otherPair.startTime < pair.endTime
+        )
+      )
     ).toBe(true);
   });
   it("processes pages concurrently", async () => {
     const pageStore = makeMockPageStore();
     const concurrentPages: Page[] = [
-      { ...examplePage, url: 'https://example.com/test1'},
-      { ...examplePage, url: 'https://example.com/test2'},
-      { ...examplePage, url: 'https://example.com/test3'}
+      { ...examplePage, url: "https://example.com/test1" },
+      { ...examplePage, url: "https://example.com/test2" },
+      { ...examplePage, url: "https://example.com/test3" },
     ];
 
     await persistPages({
@@ -241,12 +272,15 @@ describe("updateEmbeddedContent", () => {
     }));
 
     // Ensure some overlaps indicating concurrency
-    expect(executionPairs.some((pair, i, pairs) =>
-      pairs.some((otherPair, j) =>
-        i !== j &&
-        pair.startTime < otherPair.endTime &&
-        otherPair.startTime < pair.endTime
-      ))
+    expect(
+      executionPairs.some((pair, i, pairs) =>
+        pairs.some(
+          (otherPair, j) =>
+            i !== j &&
+            pair.startTime < otherPair.endTime &&
+            otherPair.startTime < pair.endTime
+        )
+      )
     ).toBe(true);
   });
 });

@@ -54,26 +54,23 @@ export type Config = {
   concurrencyOptions?: Constructor<ConcurrencyOptions>;
 };
 
-
-  /**
+/**
     Options for concurrency. 
     Set the number of concurrent promises to execute for the given tasks.
     If not specified, tasks will be run sequentially.
    */
 export interface ConcurrencyOptions {
-
   /**
     Options for concurrency when chunking and embedding content
     with the `embed` command.
    */
-  embed?: EmbedConcurrencyOptions,
+  embed?: EmbedConcurrencyOptions;
 
   /**
     Options for concurrency when ingesting
     with the `pages` command.
    */
-  pages?: PageConcurrencyOptions
+  pages?: PageConcurrencyOptions;
 }
-
 
 export type Constructor<T> = (() => T) | (() => Promise<T>);

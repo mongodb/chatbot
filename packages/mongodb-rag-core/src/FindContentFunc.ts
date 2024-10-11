@@ -83,6 +83,9 @@ export function makeFindContentFuncWithPreAndPostProcessing<
       metadataOut = { ...metadataOut, ...(postProcessorMetadata ?? {}) };
     }
 
-    return result;
+    return {
+      ...result,
+      metadata: { ...(result.metadata ?? {}), ...metadataOut },
+    };
   };
 }

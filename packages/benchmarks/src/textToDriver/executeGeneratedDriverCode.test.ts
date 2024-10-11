@@ -45,6 +45,34 @@ describe("executeGeneratedDriverCode", () => {
     expect(result.error).toBeUndefined();
     expect(result.executionTimeMs).toBeGreaterThan(0);
   });
+  it("should execute generated driver code with inline comments", async () => {
+    const generatedDriverCode = `// hey there
+database.collection("${collectionName}").find({ name: "Alice" }).toArray()`;
+    const result = await executeGeneratedDriverCode({
+      mongoClient,
+      generatedDriverCode,
+      databaseName,
+    });
+
+    expect(result.result).toMatchObject([{ name: "Alice", age: 30 }]);
+    expect(result.error).toBeUndefined();
+    expect(result.executionTimeMs).toBeGreaterThan(0);
+  });
+  it("should execute generated driver code with block comments", async () => {
+    const generatedDriverCode = `/*
+  hey there
+*/
+database.collection("${collectionName}").find({ name: "Alice" }).toArray()`;
+    const result = await executeGeneratedDriverCode({
+      mongoClient,
+      generatedDriverCode,
+      databaseName,
+    });
+
+    expect(result.result).toMatchObject([{ name: "Alice", age: 30 }]);
+    expect(result.error).toBeUndefined();
+    expect(result.executionTimeMs).toBeGreaterThan(0);
+  });
   it("should return an error if an error occurs during execution", async () => {
     const errorMessage = "An error occurred";
     // Note: wrapping with IFEE b/c we must use eval()

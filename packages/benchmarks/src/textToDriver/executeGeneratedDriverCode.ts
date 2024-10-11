@@ -57,8 +57,10 @@ export async function executeGeneratedDriverCode(
   const database = mongoClient.db(databaseName);
 
   // Wrap the generated code in an async IIFE to guarantee that it returns a Promise
-  const promiseCode = `(async () => { return ${generatedDriverCode} })()`;
-  
+  const promiseCode = `(async () => (
+  ${generatedDriverCode}
+))()`;
+
   const startTime = Date.now();
 
   try {

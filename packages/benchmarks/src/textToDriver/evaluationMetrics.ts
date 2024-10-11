@@ -59,16 +59,6 @@ export const QueryRunTimeMs: TextToDriverEvalScorer = ({ output }) => {
 };
 
 /**
-  Number of characters in the generated driver code.
- */
-export const GenerationLength: TextToDriverEvalScorer = ({ output }) => {
-  return {
-    name: "GenerationLength",
-    score: output.generatedCode.length,
-  };
-};
-
-/**
   Measure how long the query takes to execute in minutes.
 
   Note: Measuring in minutes because

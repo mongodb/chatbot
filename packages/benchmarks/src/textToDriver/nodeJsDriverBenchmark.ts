@@ -21,8 +21,7 @@ async function main() {
   } = assertEnvVars({ ...TEXT_TO_DRIVER_ENV_VARS, ...RADIANT_ENV_VARS });
   const projectName = BRAINTRUST_TEXT_TO_DRIVER_PROJECT_NAME;
   const datasetName = "text-to-query-results";
-  const maxConcurrency = 3;
-  const timeout = 60000;
+  const DEFAULT_MAX_CONCURRENCY = 3;
 
   const prompts = NODE_JS_PROMPTS.systemPrompts;
   const mongoClient = new MongoClient(MONGODB_TEXT_TO_DRIVER_CONNECTION_URI);
@@ -47,52 +46,61 @@ async function main() {
     });
     // Process models in parallel
     await PromisePool.for(modelExperiments)
-      .withConcurrency(4)
+      .withConcurrency(1)
       .process(async (modelInfos) => {
         await PromisePool.for(modelInfos)
           .withConcurrency(1)
           .process(
             async ({ modelInfo, promptType, generateCollectionSchemas }) => {
-              runTextToDriverEval({
-                dataset: {
-                  name: datasetName,
-                },
-                experimentName: `${modelInfo.label}-${promptType}-${
-                  generateCollectionSchemas ? "with" : "without"
-                }-collection-schemas`,
-                metadata: {
-                  ...modelInfo,
-                  promptStrategy: promptType,
-                  generateCollectionSchemas,
-                  sampleDocumentLimit: SAMPLE_DOCUMENT_LIMIT,
-                },
-                llmOptions: {
-                  model: modelInfo.radiantModelDeployment,
-                  temperature: 0.0,
-                  max_tokens: 1000,
-                },
-                projectName,
-                apiKey: BRAINTRUST_API_KEY,
-                openAiClient: wrapOpenAI(
-                  new OpenAI({
-                    baseURL: RADIANT_ENDPOINT,
-                    apiKey: RADIANT_API_KEY,
-                    defaultHeaders: {
-                      Cookie: MONGODB_AUTH_COOKIE,
-                    },
-                  })
-                ),
-                maxConcurrency,
-                timeout,
-                promptConfig: {
-                  customInstructions: prompts[promptType],
-                  generateCollectionSchemas,
-                  sampleGenerationConfig: {
-                    mongoClient,
-                    limit: SAMPLE_DOCUMENT_LIMIT,
+              const experimentName = `${modelInfo.label}-${promptType}-${
+                generateCollectionSchemas ? "with" : "without"
+              }-collection-schemas`;
+              console.log(`Running experiment: ${experimentName}`);
+              try {
+                await runTextToDriverEval({
+                  dataset: {
+                    name: datasetName,
                   },
-                },
-              });
+                  experimentName,
+                  metadata: {
+                    ...modelInfo,
+                    promptStrategy: promptType,
+                    generateCollectionSchemas,
+                    sampleDocumentLimit: SAMPLE_DOCUMENT_LIMIT,
+                  },
+                  llmOptions: {
+                    model: modelInfo.radiantModelDeployment,
+                    temperature: 0.0,
+                    max_tokens: 1000,
+                  },
+
+                  projectName,
+                  apiKey: BRAINTRUST_API_KEY,
+                  openAiClient: wrapOpenAI(
+                    new OpenAI({
+                      baseURL: RADIANT_ENDPOINT,
+                      apiKey: RADIANT_API_KEY,
+                      defaultHeaders: {
+                        Cookie: MONGODB_AUTH_COOKIE,
+                      },
+                    })
+                  ),
+                  maxConcurrency:
+                    modelInfo.maxConcurrency ?? DEFAULT_MAX_CONCURRENCY,
+                  sleepBeforeMs: modelInfo.sleepBeforeMs,
+                  promptConfig: {
+                    customInstructions: prompts[promptType],
+                    generateCollectionSchemas,
+                    sampleGenerationConfig: {
+                      mongoClient,
+                      limit: SAMPLE_DOCUMENT_LIMIT,
+                    },
+                  },
+                });
+              } catch (err) {
+                console.error("Error running Braintrust");
+                console.error(err);
+              }
             }
           );
       });

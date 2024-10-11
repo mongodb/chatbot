@@ -15,7 +15,10 @@ import {
   TextToDriverMetadata,
   TextToDriverOutput,
 } from "./evalTypes";
-import { SuccessfulExecution } from "./evaluationMetrics";
+import {
+  QueryExecutionTimeMinutes,
+  SuccessfulExecution,
+} from "./evaluationMetrics";
 import { strict as assert } from "assert";
 import { executeGeneratedDriverCode } from "./executeGeneratedDriverCode";
 
@@ -37,6 +40,7 @@ export interface MakeEvalParams {
     name: string;
     version?: string;
   };
+  sleepBeforeMs?: number;
 }
 export async function runTextToDriverEval({
   apiKey,
@@ -47,7 +51,8 @@ export async function runTextToDriverEval({
   llmOptions,
   metadata,
   maxConcurrency = 3,
-  timeout = 30000,
+  timeout,
+  sleepBeforeMs = 0,
   dataset,
 }: MakeEvalParams) {
   const dbMetadatas = await loadBraintrustMetadata({
@@ -71,69 +76,92 @@ export async function runTextToDriverEval({
     }),
 
     async task(input) {
-      const metadata = dbMetadatas.find(
-        (metadata) => metadata.databaseName === input.dataset_name
-      );
-      assert(
-        metadata,
-        `DB Metadata not found for database ${input.dataset_name}`
-      );
-      assert(
-        metadata.collections.length,
-        `No collections for database ${metadata.databaseName}`
-      );
+      try {
+        await sleep(sleepBeforeMs);
+        const metadata = dbMetadatas.find(
+          (metadata) => metadata.databaseName === input.dataset_name
+        );
+        assert(
+          metadata,
+          `DB Metadata not found for database ${input.dataset_name}`
+        );
+        assert(
+          metadata.collections.length,
+          `No collections for database ${metadata.databaseName}`
+        );
 
-      const generateCode = await traced(
-        async () =>
-          makeGenerateDriverCode({
-            sampleGenerationConfig: promptConfig.sampleGenerationConfig,
-            promptGenerationConfig: {
-              customInstructions: promptConfig.customInstructions,
-              fewShotExamples: promptConfig.fewShotExamples,
-              mongoDb: {
-                generateCollectionSchemas:
-                  promptConfig.generateCollectionSchemas,
-                databaseName: metadata.databaseName,
-                collections:
-                  metadata.collections as MakeGenerateDriverCodeParams["promptGenerationConfig"]["mongoDb"]["collections"],
+        const generateCode = await traced(
+          async () =>
+            makeGenerateDriverCode({
+              sampleGenerationConfig: promptConfig.sampleGenerationConfig,
+              promptGenerationConfig: {
+                customInstructions: promptConfig.customInstructions,
+                fewShotExamples: promptConfig.fewShotExamples,
+                mongoDb: {
+                  generateCollectionSchemas:
+                    promptConfig.generateCollectionSchemas,
+                  databaseName: metadata.databaseName,
+                  collections:
+                    metadata.collections as MakeGenerateDriverCodeParams["promptGenerationConfig"]["mongoDb"]["collections"],
+                },
               },
+            }),
+          {
+            name: "makeGenerateDriverCode",
+          }
+        );
+
+        const output = await traced(
+          async () =>
+            generateCode({
+              openAiClient,
+              llmOptions,
+              userPrompt: input.nl_query,
+            }),
+          {
+            name: "generateDriverCode",
+          }
+        );
+
+        const execution = await traced(
+          async () =>
+            executeGeneratedDriverCode({
+              generatedDriverCode: output,
+              databaseName: metadata.databaseName,
+              mongoClient: promptConfig.sampleGenerationConfig.mongoClient,
+            }),
+          {
+            name: "executeGeneratedDriverCode",
+          }
+        );
+
+        return {
+          generatedCode: output,
+          execution,
+        };
+      } catch (error: unknown) {
+        console.log(`Error evaluating input: ${input}`);
+        console.log(error);
+        return {
+          generatedCode: "",
+          execution: {
+            error: {
+              message:
+                typeof error === "object" && error !== null
+                  ? (error as { message: string }).message
+                  : "Unknown error",
             },
-          }),
-        {
-          name: "makeGenerateDriverCode",
-        }
-      );
-
-      const output = await traced(
-        async () =>
-          generateCode({
-            openAiClient,
-            llmOptions,
-            userPrompt: input.nl_query,
-          }),
-        {
-          name: "generateDriverCode",
-        }
-      );
-
-      const execution = await traced(
-        async () =>
-          executeGeneratedDriverCode({
-            generatedDriverCode: output,
-            databaseName: metadata.databaseName,
-            mongoClient: promptConfig.sampleGenerationConfig.mongoClient,
-          }),
-        {
-          name: "executeGeneratedDriverCode",
-        }
-      );
-
-      return {
-        generatedCode: output,
-        execution,
-      };
+            executionTimeMs: 0,
+            result: null,
+          },
+        };
+      }
     },
-    // (EAI-536)TODO: Add fuzzy match metric
-    scores: [SuccessfulExecution],
+
+    scores: [SuccessfulExecution, QueryExecutionTimeMinutes],
   });
+}
+
+async function sleep(timeMs: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, timeMs));
 }

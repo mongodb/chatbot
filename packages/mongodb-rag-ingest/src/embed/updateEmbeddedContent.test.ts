@@ -11,7 +11,6 @@ import {
 } from "./updateEmbeddedContent";
 import { persistPages } from "../pages";
 import { makeMockPageStore } from "../test/MockPageStore";
-import * as chunkPageModule from "./chunkPage";
 
 export const makeMockEmbeddedContentStore = (): EmbeddedContentStore => {
   const content: Map<string /* page url */, EmbeddedContent[]> = new Map();
@@ -148,6 +147,32 @@ describe("updateEmbeddedContent", () => {
       "2cbfe9901657ca15260fe7f58c3132ac1ebd0d610896082ca1aaad0335f2e3f1"
     );
   });
+});
+
+describe("updateEmbeddedContent handles concurrency", () => {
+  let chunkPageSpy: jest.SpyInstance;
+  let mockEmbedder: jest.Mocked<Embedder>;
+  const startTimes: number[] = [];
+  const endTimes: number[] = [];
+
+  beforeEach(() => {
+    chunkPageSpy = jest.spyOn(require("./chunkPage"), "chunkPage");
+    mockEmbedder = {
+      embed: jest.fn().mockImplementation(async (param) => {
+        const startTime = Date.now();
+        startTimes.push(startTime);
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        const endTime = Date.now();
+        endTimes.push(endTime);
+        return { embedding: [1, 2, 3] };
+      }),
+    } as unknown as jest.Mocked<Embedder>;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("processes chunks concurrently within a page", async () => {
     const embeddedContentStore = makeMockEmbeddedContentStore();
     const page: PersistedPage = {
@@ -156,43 +181,26 @@ describe("updateEmbeddedContent", () => {
       action: "updated",
     };
 
-    // Spy and mock chunkPage
-    const chunkPageSpy = jest
-      .spyOn(chunkPageModule, "chunkPage")
-      .mockResolvedValue([
-        {
-          text: "chunk1",
-          url: "",
-          sourceName: "",
-          tokenCount: 0,
-        },
-        {
-          text: "chunk2",
-          url: "",
-          sourceName: "",
-          tokenCount: 0,
-        },
-        {
-          text: "chunk3",
-          url: "",
-          sourceName: "",
-          tokenCount: 0,
-        },
-      ]);
-
-    const startTimes: number[] = [];
-    const endTimes: number[] = [];
-
-    const mockEmbedder: jest.Mocked<Embedder> = {
-      embed: jest.fn().mockImplementation(async (param) => {
-        const startTime = Date.now();
-        startTimes.push(startTime);
-        await new Promise((resolve) => setTimeout(resolve, 50)); // Simulate delay
-        const endTime = Date.now();
-        endTimes.push(endTime);
-        return { embedding: [1, 2, 3] };
-      }),
-    } as unknown as jest.Mocked<Embedder>;
+    chunkPageSpy.mockResolvedValue([
+      {
+        text: "chunk1",
+        url: "",
+        sourceName: "",
+        tokenCount: 0,
+      },
+      {
+        text: "chunk2",
+        url: "",
+        sourceName: "",
+        tokenCount: 0,
+      },
+      {
+        text: "chunk3",
+        url: "",
+        sourceName: "",
+        tokenCount: 0,
+      },
+    ]);
 
     await updateEmbeddedContentForPage({
       embedder: mockEmbedder,
@@ -243,20 +251,6 @@ describe("updateEmbeddedContent", () => {
     const embeddedContentStore = makeMockEmbeddedContentStore();
 
     const since = new Date("2000-01-01");
-
-    const startTimes: number[] = [];
-    const endTimes: number[] = [];
-
-    const mockEmbedder: jest.Mocked<Embedder> = {
-      embed: jest.fn().mockImplementation(async (param) => {
-        const startTime = Date.now();
-        startTimes.push(startTime);
-        await new Promise((resolve) => setTimeout(resolve, 50));
-        const endTime = Date.now();
-        endTimes.push(endTime);
-        return { embedding: [1, 2, 3] };
-      }),
-    } as unknown as jest.Mocked<Embedder>;
 
     await updateEmbeddedContent({
       embedder: mockEmbedder,

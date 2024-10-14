@@ -11,6 +11,7 @@ import {
 } from "./updateEmbeddedContent";
 import { persistPages } from "../pages";
 import { makeMockPageStore } from "../test/MockPageStore";
+import * as chunkPageModule from "./chunkPage";
 
 export const makeMockEmbeddedContentStore = (): EmbeddedContentStore => {
   const content: Map<string /* page url */, EmbeddedContent[]> = new Map();
@@ -165,7 +166,7 @@ describe("updateEmbeddedContent", () => {
 
     let chunkPageSpy: jest.SpyInstance;
     beforeEach(() => {
-      chunkPageSpy = jest.spyOn(require("./chunkPage"), "chunkPage");
+      chunkPageSpy = jest.spyOn(chunkPageModule, "chunkPage");
       chunkPageSpy.mockResolvedValue([
         {
           text: "chunk1",

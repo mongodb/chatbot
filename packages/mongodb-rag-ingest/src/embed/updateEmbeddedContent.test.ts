@@ -147,17 +147,12 @@ describe("updateEmbeddedContent", () => {
       "2cbfe9901657ca15260fe7f58c3132ac1ebd0d610896082ca1aaad0335f2e3f1"
     );
   });
-});
 
-describe("updateEmbeddedContent handles concurrency", () => {
-  let chunkPageSpy: jest.SpyInstance;
-  let mockEmbedder: jest.Mocked<Embedder>;
-  const startTimes: number[] = [];
-  const endTimes: number[] = [];
+  describe("updateEmbeddedContent handles concurrency", () => {
+    const startTimes: number[] = [];
+    const endTimes: number[] = [];
 
-  beforeEach(() => {
-    chunkPageSpy = jest.spyOn(require("./chunkPage"), "chunkPage");
-    mockEmbedder = {
+    const mockEmbedder: jest.Mocked<Embedder> = {
       embed: jest.fn().mockImplementation(async (param) => {
         const startTime = Date.now();
         startTimes.push(startTime);
@@ -166,115 +161,116 @@ describe("updateEmbeddedContent handles concurrency", () => {
         endTimes.push(endTime);
         return { embedding: [1, 2, 3] };
       }),
-    } as unknown as jest.Mocked<Embedder>;
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it("processes chunks concurrently within a page", async () => {
-    const embeddedContentStore = makeMockEmbeddedContentStore();
-    const page: PersistedPage = {
-      ...examplePage,
-      updated: new Date(),
-      action: "updated",
     };
 
-    chunkPageSpy.mockResolvedValue([
-      {
-        text: "chunk1",
-        url: "",
-        sourceName: "",
-        tokenCount: 0,
-      },
-      {
-        text: "chunk2",
-        url: "",
-        sourceName: "",
-        tokenCount: 0,
-      },
-      {
-        text: "chunk3",
-        url: "",
-        sourceName: "",
-        tokenCount: 0,
-      },
-    ]);
-
-    await updateEmbeddedContentForPage({
-      embedder: mockEmbedder,
-      store: embeddedContentStore,
-      page,
-      concurrencyOptions: { createChunks: 2 },
+    let chunkPageSpy: jest.SpyInstance;
+    beforeEach(() => {
+      chunkPageSpy = jest.spyOn(require("./chunkPage"), "chunkPage");
+      chunkPageSpy.mockResolvedValue([
+        {
+          text: "chunk1",
+          url: "",
+          sourceName: "",
+          tokenCount: 0,
+        },
+        {
+          text: "chunk2",
+          url: "",
+          sourceName: "",
+          tokenCount: 0,
+        },
+        {
+          text: "chunk3",
+          url: "",
+          sourceName: "",
+          tokenCount: 0,
+        },
+      ]);
     });
 
-    // Restore chunkPage functionality to avoid affecting other tests
-    chunkPageSpy.mockRestore();
-
-    const embeddedContent = await embeddedContentStore.loadEmbeddedContent({
-      page: examplePage,
+    afterEach(() => {
+      jest.restoreAllMocks();
     });
 
-    expect(embeddedContent).toHaveLength(3);
-    const executionPairs = startTimes.map((startTime, i) => ({
-      startTime,
-      endTime: endTimes[i],
-    }));
+    it("processes chunks concurrently within a page", async () => {
+      const embeddedContentStore = makeMockEmbeddedContentStore();
+      const page: PersistedPage = {
+        ...examplePage,
+        updated: new Date(),
+        action: "updated",
+      };
 
-    // Ensure some overlaps indicating concurrency
-    expect(
-      executionPairs.some((pair, i, pairs) =>
-        pairs.some(
-          (otherPair, j) =>
-            i !== j &&
-            pair.startTime < otherPair.endTime &&
-            otherPair.startTime < pair.endTime
+      await updateEmbeddedContentForPage({
+        embedder: mockEmbedder,
+        store: embeddedContentStore,
+        page,
+        concurrencyOptions: { createChunks: 2 },
+      });
+
+      const embeddedContent = await embeddedContentStore.loadEmbeddedContent({
+        page: examplePage,
+      });
+
+      expect(embeddedContent).toHaveLength(3);
+      const executionPairs = startTimes.map((startTime, i) => ({
+        startTime,
+        endTime: endTimes[i],
+      }));
+
+      // Ensure some overlaps indicating concurrency
+      expect(
+        executionPairs.some((pair, i, pairs) =>
+          pairs.some(
+            (otherPair, j) =>
+              i !== j &&
+              pair.startTime < otherPair.endTime &&
+              otherPair.startTime < pair.endTime
+          )
         )
-      )
-    ).toBe(true);
-  });
-  it("processes pages concurrently", async () => {
-    const pageStore = makeMockPageStore();
-    const concurrentPages: Page[] = [
-      { ...examplePage, url: "https://example.com/test1" },
-      { ...examplePage, url: "https://example.com/test2" },
-      { ...examplePage, url: "https://example.com/test3" },
-    ];
-
-    await persistPages({
-      pages: concurrentPages,
-      store: pageStore,
-      sourceName: "test",
+      ).toBe(true);
     });
+    it("processes pages concurrently", async () => {
+      const pageStore = makeMockPageStore();
+      const concurrentPages: Page[] = [
+        { ...examplePage, url: "https://example.com/test1" },
+        { ...examplePage, url: "https://example.com/test2" },
+        { ...examplePage, url: "https://example.com/test3" },
+      ];
 
-    const embeddedContentStore = makeMockEmbeddedContentStore();
+      await persistPages({
+        pages: concurrentPages,
+        store: pageStore,
+        sourceName: "test",
+      });
 
-    const since = new Date("2000-01-01");
+      const embeddedContentStore = makeMockEmbeddedContentStore();
 
-    await updateEmbeddedContent({
-      embedder: mockEmbedder,
-      embeddedContentStore,
-      pageStore,
-      since,
-      concurrencyOptions: { processPages: 2, createChunks: 2 },
-    });
+      const since = new Date("2000-01-01");
 
-    const executionPairs = startTimes.map((startTime, i) => ({
-      startTime,
-      endTime: endTimes[i],
-    }));
+      await updateEmbeddedContent({
+        embedder: mockEmbedder,
+        embeddedContentStore,
+        pageStore,
+        since,
+        concurrencyOptions: { processPages: 2, createChunks: 2 },
+      });
 
-    // Ensure some overlaps indicating concurrency
-    expect(
-      executionPairs.some((pair, i, pairs) =>
-        pairs.some(
-          (otherPair, j) =>
-            i !== j &&
-            pair.startTime < otherPair.endTime &&
-            otherPair.startTime < pair.endTime
+      const executionPairs = startTimes.map((startTime, i) => ({
+        startTime,
+        endTime: endTimes[i],
+      }));
+
+      // Ensure some overlaps indicating concurrency
+      expect(
+        executionPairs.some((pair, i, pairs) =>
+          pairs.some(
+            (otherPair, j) =>
+              i !== j &&
+              pair.startTime < otherPair.endTime &&
+              otherPair.startTime < pair.endTime
+          )
         )
-      )
-    ).toBe(true);
+      ).toBe(true);
+    });
   });
 });

@@ -68,6 +68,43 @@ export interface ModelConfig {
  */
 export const models: ModelConfig[] = [
   {
+    label: "gpt-4o",
+    deployment: "gpt-4o",
+    developer: "OpenAI",
+    maxConcurrency: 1,
+    provider: "azure_openai",
+    metadata: {
+      modelVersion: "2024-08-06",
+      rateLimitTpm: 110000,
+    },
+    authorized: true,
+  },
+  {
+    label: "gpt-4o-mini",
+    deployment: "gpt-4o-mini",
+    developer: "OpenAI",
+    maxConcurrency: 5,
+    provider: "azure_openai",
+    metadata: {
+      modelVersion: "2024-07-18",
+      rateLimitTpm: 4070000,
+    },
+    authorized: true,
+  },
+  {
+    label: "gpt-35-turbo-16k",
+    deployment: "gpt-35-turbo-16k",
+    developer: "OpenAI",
+    maxConcurrency: 1,
+    provider: "azure_openai",
+    metadata: {
+      rateLimitTpm: 70000,
+      modelVersion: "0613",
+    },
+    sleepBeforeMs: 5000,
+    authorized: true,
+  },
+  {
     label: "claude-3-sonnet",
     deployment: "anthropic.claude-3-sonnet-20240229-v1:0",
     developer: "Anthropic",
@@ -175,42 +212,5 @@ export const models: ModelConfig[] = [
     provider: "braintrust",
     systemMessageAsUserMessage: true,
     authorized: false,
-  },
-  {
-    label: "gpt-4o",
-    deployment: "gpt-4o",
-    developer: "OpenAI",
-    maxConcurrency: 1,
-    provider: "azure_openai",
-    metadata: {
-      modelVersion: "2024-08-06",
-      rateLimitTpm: 110000,
-    },
-    authorized: true,
-  },
-  {
-    label: "gpt-4o-mini",
-    deployment: "gpt-4o-mini",
-    developer: "OpenAI",
-    maxConcurrency: 5,
-    provider: "azure_openai",
-    metadata: {
-      modelVersion: "2024-07-18",
-      rateLimitTpm: 4070000,
-    },
-    authorized: true,
-  },
-  {
-    label: "gpt-35-turbo-16k",
-    deployment: "gpt-35-turbo-16k",
-    developer: "OpenAI",
-    maxConcurrency: 1,
-    provider: "azure_openai",
-    metadata: {
-      rateLimitTpm: 70000,
-      modelVersion: "0613",
-    },
-    sleepBeforeMs: 5000,
-    authorized: true,
   },
 ];

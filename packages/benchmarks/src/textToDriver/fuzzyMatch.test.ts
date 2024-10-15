@@ -113,6 +113,40 @@ describe("fuzzyMatch()", () => {
 
     expect(result).toBe(true);
   });
+  test("should return true when objects have extra keys - 2", () => {
+    const mongoDbOutput = [
+      {
+        _id: "66867fa4a4ef8f1ce22fb1ad",
+        Name: "Adjuntas",
+        Asian: 0,
+        Black: 3.1,
+        White: 93.1,
+        City_ID: 1,
+        Hispanic: 99.6,
+        County_ID: 1,
+        Amerindian: 0.3,
+        Multiracial: 3.4,
+      },
+      {
+        _id: "66867fa4a4ef8f1ce22fb1ae",
+        Name: "Aguada",
+        Asian: 0.1,
+        Black: 5.3,
+        White: 86.6,
+        City_ID: 2,
+        Hispanic: 99.4,
+        County_ID: 1,
+        Amerindian: 0.3,
+        Multiracial: 7.7,
+      },
+    ];
+
+    const expected = JSON.stringify([{ Name: "Adjuntas" }, { Name: "Aguada" }]);
+
+    const result = fuzzyMatch({ mongoDbOutput, expected, orderMatters: false });
+
+    expect(result).toBe(true);
+  });
 
   test("should return true for nested arrays and objects that match", () => {
     const mongoDbOutput = [
@@ -415,6 +449,30 @@ describe("fuzzyMatch() with Aggregations", () => {
         _id: "6684f86294b83277ad66390d",
         Name: "Ray Ferris",
         eventCount: 1,
+      },
+    ];
+    const result = fuzzyMatch({
+      mongoDbOutput,
+      expected,
+      isAggregation: true,
+      orderMatters: false,
+    });
+
+    expect(result).toBe(true);
+  });
+  test("should return true when mixed types in aggregation results match - 2 ", () => {
+    const expected = JSON.stringify([
+      { "count(*)": 4, Sex: "M" },
+      { "count(*)": 3, Sex: "F" },
+    ]);
+    const mongoDbOutput = [
+      {
+        _id: "F",
+        count: 3,
+      },
+      {
+        _id: "M",
+        count: 4,
       },
     ];
     const result = fuzzyMatch({

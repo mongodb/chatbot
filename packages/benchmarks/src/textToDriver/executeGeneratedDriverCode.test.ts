@@ -89,4 +89,20 @@ database.collection("${collectionName}").find({ name: "Alice" }).toArray()`;
     expect(result.result).toBeNull();
     expect(result.executionTimeMs).toBeGreaterThanOrEqual(0);
   });
+  it("should execute code in markdown code block", async () => {
+    const generatedDriverCode = `
+\`\`\`js
+database.collection("${collectionName}").find({ name: "Alice" }).toArray()
+\`\`\`
+    `;
+    const result = await executeGeneratedDriverCode({
+      mongoClient,
+      generatedDriverCode,
+      databaseName,
+    });
+
+    expect(result.result).toMatchObject([{ name: "Alice", age: 30 }]);
+    expect(result.error).toBeUndefined();
+    expect(result.executionTimeMs).toBeGreaterThan(0);
+  });
 });

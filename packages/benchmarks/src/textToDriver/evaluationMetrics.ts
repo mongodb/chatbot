@@ -27,9 +27,8 @@ export const SuccessfulExecution: TextToDriverEvalScorer = async ({
         ? fuzzyMatch({
             mongoDbOutput: output.execution.result,
             expected: expected,
-            orderMatters: metadata.sql.query.includes("ORDER BY"),
-            isAggregation:
-              metadata.sql.tags?.subcategories.includes("AGGREGATION") ?? false,
+            orderMatters: metadata.orderMatters,
+            isAggregation: metadata.isAggregation,
           })
         : 0;
     correctOutputFuzzy.score = isFuzzyMatch ? 1 : 0;

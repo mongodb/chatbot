@@ -213,4 +213,4 @@ export const models: ModelConfig[] = [
     systemMessageAsUserMessage: true,
     authorized: false,
   },
-];
+] as const;

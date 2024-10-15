@@ -63,7 +63,7 @@ async function main() {
     await sleep(500);
     const modelExperiments = models
       // TODO: update filter as necessary for experiments
-      .filter((m) => m.label === "llama-3-70b")
+      .filter((m) => m.label === "gpt-4o-mini")
       .map((modelInfo) => {
         const modelExperiments = [];
         for (const promptType of Object.keys(prompts)) {
@@ -87,7 +87,7 @@ async function main() {
             async ({ modelInfo, promptType, generateCollectionSchemas }) => {
               const experimentName = `${modelInfo.label}-${promptType}-${
                 generateCollectionSchemas ? "with" : "without"
-              }-collection-schemas`;
+              }-collection-schemas-vNext`;
               console.log(`Running experiment: ${experimentName}`);
               try {
                 await runTextToDriverEval({

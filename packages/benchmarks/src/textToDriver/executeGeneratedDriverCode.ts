@@ -1,5 +1,6 @@
 import { Document, MongoClient } from "mongodb-rag-core";
 import vm from "vm";
+import { extractCodeFromMarkdown } from "./extractCodeFromMarkdown";
 
 export interface ExecuteGeneratedDriverCodeParams {
   /**
@@ -58,7 +59,7 @@ export async function executeGeneratedDriverCode(
 
   // Wrap the generated code in an async IIFE to guarantee that it returns a Promise
   const promiseCode = `(async () => (
-  ${generatedDriverCode}
+  ${extractCodeFromMarkdown(generatedDriverCode)}
 ))()`;
 
   const startTime = Date.now();

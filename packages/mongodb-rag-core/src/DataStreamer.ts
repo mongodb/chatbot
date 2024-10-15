@@ -91,6 +91,14 @@ export type FinishedStreamEvent = StreamEvent & {
 };
 
 /**
+  Event when server streams the conversation ID to the client.
+ */
+export type ConversationIdStreamEvent = StreamEvent & {
+  type: "conversationId";
+  data: string;
+};
+
+/**
   The event types streamed from the chat server to the client.
  */
 export type SomeStreamEvent =
@@ -98,7 +106,8 @@ export type SomeStreamEvent =
   | MetadataStreamEvent
   | ProcessingStreamEvent
   | ReferencesStreamEvent
-  | FinishedStreamEvent;
+  | FinishedStreamEvent
+  | ConversationIdStreamEvent;
 
 /**
   Service that streams data to the client.

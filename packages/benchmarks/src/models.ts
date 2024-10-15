@@ -56,6 +56,11 @@ export interface ModelConfig {
     ```
    */
   systemMessageAsUserMessage?: boolean;
+
+  /**
+    Whether the model is officially authorized by MongoDB.
+   */
+  authorized?: boolean;
 }
 
 /**
@@ -63,25 +68,12 @@ export interface ModelConfig {
  */
 export const models: ModelConfig[] = [
   {
-    label: "gpt-35-turbo",
-    deployment: "gpt-35-turbo-16k",
-    developer: "OpenAI",
-    maxConcurrency: 1,
-    provider: "radiant",
-  },
-  {
-    label: "gpt-4",
-    deployment: "gpt-4-eai-experimentation",
-    developer: "OpenAI",
-    maxConcurrency: 1,
-    provider: "radiant",
-  },
-  {
     label: "claude-3-sonnet",
     deployment: "anthropic.claude-3-sonnet-20240229-v1:0",
     developer: "Anthropic",
     maxConcurrency: 1,
     provider: "radiant",
+    authorized: true,
   },
   {
     label: "claude-3-haiku",
@@ -89,6 +81,7 @@ export const models: ModelConfig[] = [
     developer: "Anthropic",
     maxConcurrency: 1,
     provider: "radiant",
+    authorized: true,
   },
   {
     label: "claude-35-sonnet",
@@ -96,6 +89,7 @@ export const models: ModelConfig[] = [
     developer: "Anthropic",
     maxConcurrency: 1,
     provider: "radiant",
+    authorized: true,
   },
   {
     label: "llama-3-70b",
@@ -103,6 +97,7 @@ export const models: ModelConfig[] = [
     developer: "Meta",
     maxConcurrency: 1,
     provider: "radiant",
+    authorized: true,
   },
   {
     label: "gemini-1.5-pro-preview",
@@ -111,6 +106,7 @@ export const models: ModelConfig[] = [
     maxConcurrency: 1,
     provider: "radiant",
     systemMessageAsUserMessage: true,
+    authorized: true,
   },
   {
     label: "gemini-1.0-pro",
@@ -119,6 +115,7 @@ export const models: ModelConfig[] = [
     maxConcurrency: 1,
     provider: "radiant",
     systemMessageAsUserMessage: true,
+    authorized: true,
   },
   {
     label: "gemini-1.0-pro-vision",
@@ -127,6 +124,7 @@ export const models: ModelConfig[] = [
     maxConcurrency: 1,
     provider: "radiant",
     systemMessageAsUserMessage: true,
+    authorized: true,
   },
   {
     label: "mistral-large-2",
@@ -134,6 +132,7 @@ export const models: ModelConfig[] = [
     developer: "Mistral",
     maxConcurrency: 1,
     provider: "radiant",
+    authorized: true,
   },
   {
     label: "llama-3.1-70b",
@@ -144,6 +143,7 @@ export const models: ModelConfig[] = [
     metadata: {
       modelHost: "Fireworks",
     },
+    authorized: false,
   },
   {
     label: "llama-3.2-90b",
@@ -154,6 +154,7 @@ export const models: ModelConfig[] = [
     metadata: {
       modelHost: "Fireworks",
     },
+    authorized: false,
   },
   {
     label: "llama-3.1-405b",
@@ -164,6 +165,7 @@ export const models: ModelConfig[] = [
     metadata: {
       modelHost: "Fireworks",
     },
+    authorized: false,
   },
   {
     label: "gemini-1.5-flash-8b",
@@ -172,6 +174,7 @@ export const models: ModelConfig[] = [
     maxConcurrency: 3,
     provider: "braintrust",
     systemMessageAsUserMessage: true,
+    authorized: false,
   },
   {
     label: "gpt-4o",
@@ -183,6 +186,7 @@ export const models: ModelConfig[] = [
       modelVersion: "2024-08-06",
       rateLimitTpm: 110000,
     },
+    authorized: true,
   },
   {
     label: "gpt-4o-mini",
@@ -194,6 +198,7 @@ export const models: ModelConfig[] = [
       modelVersion: "2024-07-18",
       rateLimitTpm: 4070000,
     },
+    authorized: true,
   },
   {
     label: "gpt-35-turbo-16k",
@@ -206,5 +211,6 @@ export const models: ModelConfig[] = [
       modelVersion: "0613",
     },
     sleepBeforeMs: 5000,
+    authorized: true,
   },
 ];

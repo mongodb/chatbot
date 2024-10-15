@@ -75,7 +75,7 @@ export async function runTextToDriverEval({
       datasetName: dataset.name,
     }),
 
-    async task(input) {
+    async task(input, hooks) {
       try {
         await sleep(sleepBeforeMs);
         const metadata = dbMetadatas.find(
@@ -134,6 +134,11 @@ export async function runTextToDriverEval({
             name: "executeGeneratedDriverCode",
           }
         );
+        hooks.span.setAttributes({
+          spanAttributes: {
+            ExecutionTimeMs: execution.executionTimeMs,
+          },
+        });
 
         return {
           generatedCode: output,

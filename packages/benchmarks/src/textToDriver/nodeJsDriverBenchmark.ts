@@ -81,7 +81,11 @@ async function main() {
     await PromisePool.for(modelExperiments)
       .withConcurrency(3)
       .process(async (modelInfos) => {
-        await PromisePool.for(modelInfos)
+        await PromisePool.for(
+          modelInfos.filter(
+            (m) => m.promptType === "genericFewShotChainOfThought"
+          )
+        )
           .withConcurrency(1)
           .process(
             async ({ modelInfo, promptType, generateCollectionSchemas }) => {

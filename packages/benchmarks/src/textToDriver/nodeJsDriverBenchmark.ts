@@ -6,7 +6,6 @@ import {
   MongoClient,
 } from "mongodb-rag-core";
 import { NODE_JS_PROMPTS } from "./generateDriverCode/languagePrompts/nodeJs";
-import OpenAI from "openai";
 import { TEXT_TO_DRIVER_ENV_VARS } from "./TextToDriverEnvVars";
 import { BRAINTRUST_ENV_VARS, RADIANT_ENV_VARS } from "../envVars";
 import { wrapOpenAI } from "braintrust";
@@ -62,8 +61,10 @@ async function main() {
     await mongoClient.connect();
     await sleep(500);
     const modelExperiments = models
-      // TODO: update filter as necessary for experiments
-      .filter((m) => m.label === "gpt-4o-mini")
+
+      .filter((m) => m.authorized === true)
+      // NOTE: ignoring Google models for now b/c of issues with Radiant
+      .filter((m) => m.developer !== "Google")
       .map((modelInfo) => {
         const modelExperiments = [];
         for (const promptType of Object.keys(prompts)) {
@@ -81,17 +82,13 @@ async function main() {
     await PromisePool.for(modelExperiments)
       .withConcurrency(3)
       .process(async (modelInfos) => {
-        await PromisePool.for(
-          modelInfos.filter(
-            (m) => m.promptType === "genericFewShotChainOfThought"
-          )
-        )
+        await PromisePool.for(modelInfos)
           .withConcurrency(1)
           .process(
             async ({ modelInfo, promptType, generateCollectionSchemas }) => {
               const experimentName = `${modelInfo.label}-${promptType}-${
                 generateCollectionSchemas ? "with" : "without"
-              }-collection-schemas-vNext`;
+              }-collection-schemas${process.env.OFFICIAL ? "-official" : ""}`;
               console.log(`Running experiment: ${experimentName}`);
               try {
                 await runTextToDriverEval({

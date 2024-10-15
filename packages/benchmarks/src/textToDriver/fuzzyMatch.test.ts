@@ -400,4 +400,30 @@ describe("fuzzyMatch() with Aggregations", () => {
 
     expect(result).toBe(false);
   });
+  test("should return true when mixed types in aggregation results match", () => {
+    const expected = JSON.stringify([
+      { Name: "Ray Ferris", "COUNT(*)": 1 },
+      { Name: "Jackie Waring", "COUNT(*)": 2 },
+    ]);
+    const mongoDbOutput = [
+      {
+        _id: "6684f86294b83277ad66390b",
+        Name: "Jackie Waring",
+        eventCount: 2,
+      },
+      {
+        _id: "6684f86294b83277ad66390d",
+        Name: "Ray Ferris",
+        eventCount: 1,
+      },
+    ];
+    const result = fuzzyMatch({
+      mongoDbOutput,
+      expected,
+      isAggregation: true,
+      orderMatters: false,
+    });
+
+    expect(result).toBe(true);
+  });
 });

@@ -19,7 +19,7 @@ export const SuccessfulExecution: TextToDriverEvalScorer = async ({
 
   const correctOutputFuzzy: ReturnType<TextToDriverEvalScorer> = {
     name: "CorrectOutputFuzzy",
-    score: null,
+    score: 0,
   };
   try {
     const isFuzzyMatch =
@@ -31,10 +31,9 @@ export const SuccessfulExecution: TextToDriverEvalScorer = async ({
             isAggregation:
               metadata.sql.tags?.subcategories.includes("AGGREGATION") ?? false,
           })
-        : null;
-    if (isFuzzyMatch !== null) {
-      correctOutputFuzzy.score = isFuzzyMatch ? 1 : 0;
-    } else {
+        : 0;
+    correctOutputFuzzy.score = isFuzzyMatch ? 1 : 0;
+    if (isFuzzyMatch === 0) {
       correctOutputFuzzy.metadata = {
         error: "Fuzzy match failed",
       };

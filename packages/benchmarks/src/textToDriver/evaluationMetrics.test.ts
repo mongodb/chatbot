@@ -46,7 +46,7 @@ describe("SuccessfulExecution", () => {
       {
         metadata: { error: "Fuzzy match failed" },
         name: "CorrectOutputFuzzy",
-        score: null,
+        score: 0,
       },
     ]);
   });
@@ -117,7 +117,7 @@ describe("SuccessfulExecution", () => {
       {
         metadata: { error: "Fuzzy match failed" },
         name: "CorrectOutputFuzzy",
-        score: null,
+        score: 0,
       },
     ]);
   });

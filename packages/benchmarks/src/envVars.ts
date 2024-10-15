@@ -5,6 +5,11 @@ export const RADIANT_ENV_VARS = {
   OPENAI_API_VERSION: "",
 };
 
+export const BRAINTRUST_ENV_VARS = {
+  BRAINTRUST_API_KEY: "",
+  BRAINTRUST_ENDPOINT: "",
+};
+
 export const envVars = {
   MONGODB_DATABASE_NAME: "",
   MONGODB_CONNECTION_URI: "",

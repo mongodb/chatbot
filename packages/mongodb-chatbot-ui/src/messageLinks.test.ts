@@ -1,5 +1,9 @@
 import { References } from "mongodb-rag-core";
-import { formatReferences, getMessageLinks } from "./messageLinks";
+import {
+  formatReferences,
+  getMessageLinks,
+  makePrioritizeCurrentMongoDbReferenceDomain,
+} from "./messageLinks";
 import { MessageData } from "./services/conversations";
 
 const testReferences = [
@@ -104,6 +108,64 @@ describe("getMessageLinks", () => {
         href: "https://www.example.com",
         children: "Example",
       },
+    ]);
+  });
+});
+
+describe("makePrioritizeCurrentMongoDbReferenceDomain", () => {
+  beforeEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  test("returns a sort function that automatically prioritizes the current MongoDB domain", () => {
+    vi.stubGlobal("location", {
+      href: "https://mongodb.com/docs",
+    });
+    const prioritizeCurrentMongoDbReferenceDomain =
+      makePrioritizeCurrentMongoDbReferenceDomain();
+    const sortedReferences = [...testReferences].sort(
+      prioritizeCurrentMongoDbReferenceDomain
+    );
+    expect(sortedReferences.map((r) => r.url)).toEqual([
+      "https://mongodb.com/docs/manual",
+      "https://mongodb.com/docs/atlas",
+      "https://mongodb.com/developer/products/atlas/foobar",
+      "https://www.example123.com",
+      "https://www.example.com",
+    ]);
+  });
+
+  test("doesn't prioritize any domain when the current domain isn't a well-known MongoDB domain", () => {
+    vi.stubGlobal("location", {
+      href: "https://www.example.com",
+    });
+    const prioritizeCurrentMongoDbReferenceDomain =
+      makePrioritizeCurrentMongoDbReferenceDomain();
+    const sortedReferences = [...testReferences].sort(
+      prioritizeCurrentMongoDbReferenceDomain
+    );
+    expect(sortedReferences.map((r) => r.url)).toEqual([
+      "https://mongodb.com/developer/products/atlas/foobar",
+      "https://mongodb.com/docs/manual",
+      "https://www.example123.com",
+      "https://mongodb.com/docs/atlas",
+      "https://www.example.com",
+    ]);
+  });
+
+  test("returns a no-op sort function when the current domain can't be determined", () => {
+    vi.stubGlobal("window", undefined);
+    const prioritizeCurrentMongoDbReferenceDomain =
+      makePrioritizeCurrentMongoDbReferenceDomain();
+    const sortedReferences = [...testReferences].sort(
+      prioritizeCurrentMongoDbReferenceDomain
+    );
+    expect(sortedReferences.map((r) => r.url)).toEqual([
+      "https://mongodb.com/developer/products/atlas/foobar",
+      "https://mongodb.com/docs/manual",
+      "https://www.example123.com",
+      "https://mongodb.com/docs/atlas",
+      "https://www.example.com",
     ]);
   });
 });

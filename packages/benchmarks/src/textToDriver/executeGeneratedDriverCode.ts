@@ -59,7 +59,7 @@ export async function executeGeneratedDriverCode(
 
   // Wrap the generated code in an async IIFE to guarantee that it returns a Promise
   const promiseCode = `(async () => (
-  ${extractCodeFromMarkdown(generatedDriverCode)}
+  ${removeTrailingSemiColon(extractCodeFromMarkdown(generatedDriverCode))}
 ))()`;
 
   const startTime = Date.now();
@@ -83,4 +83,8 @@ export async function executeGeneratedDriverCode(
       executionTimeMs: endTime - startTime,
     };
   }
+}
+
+function removeTrailingSemiColon(code: string): string {
+  return code.replace(/;$/, "");
 }

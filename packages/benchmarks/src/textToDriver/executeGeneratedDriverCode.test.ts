@@ -105,4 +105,16 @@ database.collection("${collectionName}").find({ name: "Alice" }).toArray()
     expect(result.error).toBeUndefined();
     expect(result.executionTimeMs).toBeGreaterThan(0);
   });
+  it("should execute code with trailing semicolon", async () => {
+    const generatedDriverCode = `database.collection("${collectionName}").find({ name: "Alice" }).toArray();`;
+    const result = await executeGeneratedDriverCode({
+      mongoClient,
+      generatedDriverCode,
+      databaseName,
+    });
+
+    expect(result.result).toMatchObject([{ name: "Alice", age: 30 }]);
+    expect(result.error).toBeUndefined();
+    expect(result.executionTimeMs).toBeGreaterThan(0);
+  });
 });

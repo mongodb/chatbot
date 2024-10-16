@@ -49,7 +49,7 @@
     "@azure/openai": "^1.0.0-beta.11",
     "@langchain/openai": "^0.2.6",
     "@supercharge/promise-pool": "^3.2.0",
-    "braintrust": "^0.0.159",
+    "braintrust": "^0.0.164",
     "dotenv": "^16",
     "mongodb-chatbot-evaluation": "*",
     "mongodb-chatbot-server": "*",

@@ -93,7 +93,6 @@ export async function makeGenerateDriverCode({
     } = await openAiClient.chat.completions.create({
       ...llmOptions,
       messages: [...promptMessages, { role: "user", content: userPrompt }],
-      stream: false,
     });
     assert(content !== null, "Expected content in response");
     return content;

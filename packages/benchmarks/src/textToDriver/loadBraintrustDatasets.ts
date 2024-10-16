@@ -140,9 +140,23 @@ export async function loadBraintrustEvalCases({
     dataset: datasetName,
   });
 
-  const evalCases = (await dataset.fetchedData()).map((d) =>
-    TextToDriverEvalCaseSchema.parse(d)
-  );
+  const evalCases = (await dataset.fetchedData()).map((d) => {
+    const evalCase = TextToDriverEvalCaseSchema.parse(d);
+    const tags: string[] = [];
+    if (evalCase.metadata.sql.tags?.category) {
+      tags.push(evalCase.metadata.sql.tags.category);
+    }
+    if (evalCase.metadata.sql.tags?.subcategories) {
+      tags.push(...evalCase.metadata.sql.tags.subcategories);
+    }
+    evalCase.tags = tags;
+    evalCase.metadata.orderMatters =
+      evalCase.metadata.sql.query.includes("ORDER BY") ?? false;
+    evalCase.metadata.isAggregation =
+      evalCase.metadata.sql.tags?.subcategories.includes("AGGREGATION") ??
+      false;
+    return evalCase;
+  });
 
   return evalCases;
 }

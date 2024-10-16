@@ -28,7 +28,7 @@ type PagesCommandArgs = {
 };
 
 export const doPagesCommand = async (
-  { pageStore, dataSources }: ResolvedConfig,
+  { pageStore, dataSources, concurrencyOptions }: ResolvedConfig,
   { source }: PagesCommandArgs
 ) => {
   const requestedSources = new Set(Array.isArray(source) ? source : [source]);
@@ -53,5 +53,6 @@ export const doPagesCommand = async (
   await updatePages({
     sources,
     pageStore,
+    concurrencyOptions: concurrencyOptions?.pages,
   });
 };

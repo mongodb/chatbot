@@ -2,6 +2,8 @@ import { Embedder, PageStore, EmbeddedContentStore } from "mongodb-rag-core";
 import { DataSource } from "./sources/DataSource";
 import { ChunkOptions } from "./embed/chunkPage";
 import { IngestMetaStore } from "./IngestMetaStore";
+import { EmbedConcurrencyOptions } from "./embed";
+import { PageConcurrencyOptions } from "./pages";
 
 /**
   The configuration for ingest.
@@ -45,6 +47,30 @@ export type Config = {
     Options for the chunker.
    */
   chunkOptions?: Constructor<Partial<ChunkOptions>>;
+
+  /**
+    Options for concurrency.
+   */
+  concurrencyOptions?: Constructor<ConcurrencyOptions>;
 };
+
+/**
+    Options for concurrency. 
+    Set the number of concurrent promises to execute for the given tasks.
+    If not specified, tasks will be run sequentially.
+   */
+export interface ConcurrencyOptions {
+  /**
+    Options for concurrency when chunking and embedding content
+    with the `embed` command.
+   */
+  embed?: EmbedConcurrencyOptions;
+
+  /**
+    Options for concurrency when ingesting
+    with the `pages` command.
+   */
+  pages?: PageConcurrencyOptions;
+}
 
 export type Constructor<T> = (() => T) | (() => Promise<T>);

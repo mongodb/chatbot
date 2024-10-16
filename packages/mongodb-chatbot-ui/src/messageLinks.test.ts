@@ -5,6 +5,7 @@ import {
   makePrioritizeCurrentMongoDbReferenceDomain,
 } from "./messageLinks";
 import { MessageData } from "./services/conversations";
+import { vi } from "vitest";
 
 const testReferences = [
   {

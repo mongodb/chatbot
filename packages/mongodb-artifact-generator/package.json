@@ -61,6 +61,8 @@
     "papaparse": "^5.4.1",
     "yaml": "^2.3.1",
     "yargs": "^17",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "zod-to-json-schema": "^3.23.2",
+    "zod-validation-error": "^3.3.1"
   }
 }

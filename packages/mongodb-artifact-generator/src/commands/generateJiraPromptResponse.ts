@@ -55,7 +55,13 @@ export type FormattedJiraIssueWithSummary = {
 type GenerateJiraPromptResponseCommandArgs = {
   runId?: string;
   llmMaxConcurrency: number;
+  maxInputLength?: number;
+  issuesFilePath?: string;
+  issue?: string | string[];
 };
+
+const issueKeysSchema = z.array(z.string());
+type IssueKeys = z.infer<typeof issueKeysSchema>;
 
 export default createCommand<GenerateJiraPromptResponseCommandArgs>({
   command: "generateJiraPromptResponse",
@@ -76,6 +82,23 @@ export default createCommand<GenerateJiraPromptResponseCommandArgs>({
           .parse(GENERATOR_LLM_MAX_CONCURRENCY),
         description:
           "The maximum number of concurrent requests to the LLM API. Defaults to 10. Can be specified in the config file as GENERATOR_LLM_MAX_CONCURRENCY.",
+      })
+      .option("maxInputLength", {
+        type: "number",
+        demandOption: false,
+        description:
+          "The maximum number of issues to process in this run. Any additional issues are skipped.",
+      })
+      .option("issuesFilePath", {
+        type: "string",
+        demandOption: false,
+        description:
+          "Path to a JSON file containing an array of issue key strings to process.",
+      })
+      .option("issue", {
+        type: "string",
+        demandOption: false,
+        description: "A single issue key to process.",
       });
   },
   async handler(args) {
@@ -101,7 +124,10 @@ export default createCommand<GenerateJiraPromptResponseCommandArgs>({
 
 export const action =
   createConfiguredAction<GenerateJiraPromptResponseCommandArgs>(
-    async ({ jiraApi, openAiClient }, { llmMaxConcurrency }) => {
+    async (
+      { jiraApi, openAiClient },
+      { llmMaxConcurrency, maxInputLength, issuesFilePath, issue }
+    ) => {
       logger.logInfo(`Setting up...`);
       if (!jiraApi) {
         throw new Error(
@@ -114,30 +140,41 @@ export const action =
         );
       }
 
-      const topIssueKeys = z
-        .array(z.string())
-        .parse(
-          JSON.parse(
-            await fs.readFile(
-              path.join(__dirname, "../jiraPromptResponse/topIssues.json"),
-              "utf-8"
-            )
+      // Determine which Jira issues to process
+      const issueKeys: string[] = [];
+      if (issue) {
+        issueKeys.push(
+          ...issueKeysSchema.parse(Array.isArray(issue) ? issue : [issue])
+        );
+      }
+      if (issuesFilePath) {
+        issueKeys.push(
+          ...issueKeysSchema.parse(
+            JSON.parse(await fs.readFile(issuesFilePath, "utf-8"))
           )
-        )
-        .slice(0, 6); // TODO: Remove slice before merge. This helps make the run faster for testing.
-
-      // Get each issue using a promise pool
-      const jiraMaxConcurrency = 12;
-      const { results: jiraIssues, errors: getJiraIssuesErrors } =
-        await PromisePool.for(topIssueKeys)
-          .withConcurrency(jiraMaxConcurrency)
-          .process(async (issueKey) => {
-            return await jiraApi.getIssue(issueKey);
-          });
-      for (const error of getJiraIssuesErrors) {
-        logger.logError(`Error fetching issue: ${error.item}`);
+        );
+      }
+      if (issueKeys.length === 0) {
+        throw new Error("No issues provided.");
       }
 
+      // Fetch Jira issues
+      const jiraMaxConcurrency = 12;
+      const { results: jiraIssues } = await PromisePool.for(
+        issueKeys.slice(0, maxInputLength)
+      )
+        .withConcurrency(jiraMaxConcurrency)
+        .handleError((error, issueKey) => {
+          const parsedErrorMessage = JSON.parse(error.message);
+          const logErrorMessage =
+            parsedErrorMessage?.errorMessages?.[0] ?? "Something went wrong.";
+          logger.logError(
+            `Error fetching issue: ${issueKey} - ${logErrorMessage}`
+          );
+        })
+        .process(async (issueKey) => {
+          return await jiraApi.getIssue(issueKey);
+        });
       logger.appendArtifact("jiraIssues.raw.json", JSON.stringify(jiraIssues));
 
       interface RawJiraIssue {

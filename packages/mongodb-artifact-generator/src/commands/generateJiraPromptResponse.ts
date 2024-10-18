@@ -203,6 +203,7 @@ export const action =
       const issueKeys = [...inputIssueKeys];
 
       // Fetch Jira issues
+      console.log("Fetching Jira issues...");
       const { results: jiraIssues } = await PromisePool.for(
         issueKeys.slice(0, args.maxInputLength)
       )
@@ -220,6 +221,8 @@ export const action =
         });
       logger.appendArtifact("jiraIssues.raw.json", JSON.stringify(jiraIssues));
 
+      // Format Jira issues
+      console.log("Formatting Jira issues...");
       const formattedJiraIssues = z
         .array(RawJiraIssueSchema)
         .parse(jiraIssues)
@@ -281,22 +284,22 @@ export const action =
         ]),
       });
 
+      console.log(`Summarizing ${jiraIssues.length} Jira issues...`);
       const summariesByIssueKey = new Map<string, Summary>();
-      const { errors: summarizeJiraIssueErrors } = await PromisePool.for(
-        jiraIssues
-      )
+      await PromisePool.for(jiraIssues)
         .withConcurrency(llmMaxConcurrency)
+        .handleError((error, issue) => {
+          logger.logError(
+            `Error summarizing issue ${issue.key}: ${JSON.stringify(error)}`
+          );
+        })
         .process(async (issue) => {
           const summary = await summarizeJiraIssue({
             input: JSON.stringify(issue),
           });
-          console.log("summarized issue", issue.key, summary);
+          logger.logInfo(`summarized issue ${issue.key}: ${summary}`);
           summariesByIssueKey.set(issue.key, summary);
         });
-      for (const error of summarizeJiraIssueErrors) {
-        logger.logError(`Error summarizing issue: ${error.item}`);
-        console.log("Error summarizing issue", error.raw);
-      }
 
       logger.appendArtifact(
         "summaries.json",
@@ -335,6 +338,7 @@ export const action =
           "Do not reference hypothetical or speculative information."
         ),
       });
+      console.log("Generating prompts...");
       await PromisePool.for(formattedIssuesWithSummaries)
         .withConcurrency(llmMaxConcurrency)
         .handleError((error, { issue }) => {
@@ -347,9 +351,10 @@ export const action =
         .process(async ({ issue, summary }) => {
           const { prompts } = await generatePrompts({ issue, summary });
           console.log(
-            `generated ${prompts.length} prompts for issue`,
-            issue.key,
-            prompts
+            `  generated ${prompts.length} prompts for issue ${issue.key}`
+          );
+          logger.logInfo(
+            `generated ${prompts.length} prompts for issue ${issue.key}`
           );
           promptsByIssueKey.set(issue.key, prompts);
         });
@@ -401,9 +406,18 @@ export const action =
           prompt,
         };
       });
+
+      console.log("Generating responses...");
       let numGeneratedResponses = 0;
-      const { errors: generateResponsesErrors } = await PromisePool.for(prompts)
+      await PromisePool.for(prompts)
         .withConcurrency(llmMaxConcurrency)
+        .handleError((error, { issue }) => {
+          logger.logError(
+            `Error generating response for ${issue.key}: ${JSON.stringify(
+              error
+            )}`
+          );
+        })
         .process(async ({ summary, issue, prompt }, i) => {
           const { response } = await generateResponse({
             summary,
@@ -411,21 +425,18 @@ export const action =
             prompt,
           });
           console.log(
-            `generated response ${++numGeneratedResponses}/${prompts.length}`
+            `  generated response ${++numGeneratedResponses}/${
+              prompts.length
+            } for issue ${issue.key}`
+          );
+          logger.logInfo(
+            `generated response ${numGeneratedResponses}/${prompts.length} for issue ${issue.key}`
           );
           if (!responsesByIssueKey.has(issue.key)) {
             responsesByIssueKey.set(issue.key, []);
           }
           responsesByIssueKey.get(issue.key)?.push([prompt, response]);
         });
-      for (const error of generateResponsesErrors) {
-        const { issue } = error.item;
-        logger.logError(
-          `Error generating responses for ${issue.key}: ${JSON.stringify(
-            error
-          )}`
-        );
-      }
       const generatedResponses = [...responsesByIssueKey.entries()].flatMap(
         ([issueKey, responses]) => {
           return responses.map(([prompt, response]) => ({

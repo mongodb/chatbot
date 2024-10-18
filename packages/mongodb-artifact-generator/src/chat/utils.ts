@@ -85,19 +85,6 @@ export function formatFewShotExamples(args: {
   }) satisfies ChatRequestMessage[];
 }
 
-export const UserMessageMongoDbGuardrailFunctionSchema = z.object({
-  reasoning: z
-    .string()
-    .describe(
-      "Reason for whether to reject the user query. Be concise. Think step by step. "
-    ),
-  rejectMessage: z
-    .boolean()
-    .describe(
-      "Set to true if the user query should be rejected. Set to false if the user query should be accepted."
-    ),
-});
-
 export type AsJsonSchemaOptions = {
   // examples?: PromptExamplePair[];
   zodToJsonSchema?: Parameters<typeof zodToJsonSchema>[1];

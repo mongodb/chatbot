@@ -16,7 +16,7 @@ import { stripIndents } from "common-tags";
 
 export type GeneratedPrompts = z.infer<typeof GeneratedPrompts>;
 export const GeneratedPrompts = z.object({
-  prompts: z.array(z.string()),
+  prompts: z.array(z.string()).min(1).max(4),
 });
 
 const generatePromptsTool: FunctionDefinition = {

@@ -13,55 +13,81 @@ import { asBulletPoints, loadPromptExamplePairFromFile } from "../chat/utils";
 import { createRunId } from "../runId";
 import { makeGeneratePrompts } from "../chat/makeGeneratePrompts";
 import { makeGenerateResponse } from "../chat/makeGenerateResponse";
-import { GENERATOR_LLM_ENV_VARS } from "../ArtifactGeneratorEnvVars";
 import { promises as fs } from "fs";
 import { z } from "zod";
 
-const { GENERATOR_LLM_MAX_CONCURRENCY, OPENAI_CHAT_COMPLETION_DEPLOYMENT } =
-  assertEnvVars({
-    ...GENERATOR_LLM_ENV_VARS,
-    OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
-  });
+const DEFAULT_JIRA_API_MAX_CONCURRENCY = 12;
+
+const DEFAULT_LLM_MAX_CONCURRENCY = 8;
+
+const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars({
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
+});
 
 let logger: RunLogger;
 
-export interface JiraComment {
-  id: string;
-  body: string;
-  author: {
-    emailAddress: string;
-    displayName: string;
-  };
-  created: string;
-  updated: string;
-}
+export const JiraCommentSchema = z.object({
+  id: z.string(),
+  body: z.string(),
+  author: z.object({
+    emailAddress: z.string(),
+    displayName: z.string(),
+  }),
+  created: z.string(),
+  updated: z.string(),
+});
+export type JiraComment = z.infer<typeof JiraCommentSchema>;
 
-export interface FormattedJiraIssue {
-  key: string;
-  projectName: string;
-  summary: string;
-  status: string;
-  created: string;
-  updated: string;
-  description: string;
-  comments: JiraComment[];
-}
+const RawJiraIssueSchema = z.object({
+  key: z.string(),
+  fields: z.object({
+    project: z.object({
+      name: z.string(),
+    }),
+    summary: z.string(),
+    status: z.object({
+      name: z.string(),
+    }),
+    created: z.string(),
+    updated: z.string(),
+    description: z.string(),
+    comment: z.object({
+      comments: z.array(JiraCommentSchema),
+    }),
+  }),
+});
 
-export type FormattedJiraIssueWithSummary = {
-  issue: FormattedJiraIssue;
-  summary: Summary;
-};
+export type RawJiraIssue = z.infer<typeof RawJiraIssueSchema>;
+
+export const FormattedJiraIssueSchema = z.object({
+  key: z.string(),
+  projectName: z.string(),
+  summary: z.string(),
+  status: z.string(),
+  created: z.string(),
+  updated: z.string(),
+  description: z.string(),
+  comments: z.array(JiraCommentSchema),
+});
+export type FormattedJiraIssue = z.infer<typeof FormattedJiraIssueSchema>;
+
+export const FormattedJiraIssueWithSummarySchema = z.object({
+  issue: FormattedJiraIssueSchema,
+  summary: Summary,
+});
+
+export type FormattedJiraIssueWithSummary = z.infer<
+  typeof FormattedJiraIssueWithSummarySchema
+>;
 
 type GenerateJiraPromptResponseCommandArgs = {
   runId?: string;
-  llmMaxConcurrency: number;
+  jiraApiMaxConcurrency?: number;
+  llmMaxConcurrency?: number;
   maxInputLength?: number;
   issuesFilePath?: string;
   issue?: string | string[];
 };
-
-const issueKeysSchema = z.array(z.string());
-type IssueKeys = z.infer<typeof issueKeysSchema>;
 
 export default createCommand<GenerateJiraPromptResponseCommandArgs>({
   command: "generateJiraPromptResponse",
@@ -73,15 +99,17 @@ export default createCommand<GenerateJiraPromptResponseCommandArgs>({
         description:
           "A unique name for the run. This controls where outputs artifacts and logs are stored.",
       })
+      .option("jiraApiMaxConcurrency", {
+        type: "number",
+        demandOption: false,
+        description:
+          "The maximum number of concurrent requests to the Jira API. Can be specified in the config file as `jiraApiMaxConcurrency`.",
+      })
       .option("llmMaxConcurrency", {
         type: "number",
         demandOption: false,
-        default: z.coerce
-          .number()
-          .default(10)
-          .parse(GENERATOR_LLM_MAX_CONCURRENCY),
         description:
-          "The maximum number of concurrent requests to the LLM API. Defaults to 10. Can be specified in the config file as GENERATOR_LLM_MAX_CONCURRENCY.",
+          "The maximum number of concurrent requests to the LLM API. Can be specified in the config file as `llmMaxConcurrency`.",
       })
       .option("maxInputLength", {
         type: "number",
@@ -124,11 +152,10 @@ export default createCommand<GenerateJiraPromptResponseCommandArgs>({
 
 export const action =
   createConfiguredAction<GenerateJiraPromptResponseCommandArgs>(
-    async (
-      { jiraApi, openAiClient },
-      { llmMaxConcurrency, maxInputLength, issuesFilePath, issue }
-    ) => {
+    async (config, args) => {
       logger.logInfo(`Setting up...`);
+
+      const { jiraApi, openAiClient } = config;
       if (!jiraApi) {
         throw new Error(
           "jiraApi is required. Make sure to define it in the config."
@@ -140,30 +167,46 @@ export const action =
         );
       }
 
+      const jiraApiMaxConcurrency =
+        args.jiraApiMaxConcurrency ??
+        config.jiraApiMaxConcurrency ??
+        DEFAULT_JIRA_API_MAX_CONCURRENCY;
+
+      const llmMaxConcurrency =
+        args.jiraApiMaxConcurrency ??
+        config.jiraApiMaxConcurrency ??
+        DEFAULT_LLM_MAX_CONCURRENCY;
+
       // Determine which Jira issues to process
-      const issueKeys: string[] = [];
-      if (issue) {
-        issueKeys.push(
-          ...issueKeysSchema.parse(Array.isArray(issue) ? issue : [issue])
+      const inputIssueKeys = new Set<string>();
+      const addInputIssueKeys = (issueKeys: unknown) => {
+        z.array(z.string())
+          .parse(issueKeys)
+          .forEach((issueKey) => {
+            inputIssueKeys.add(issueKey);
+          });
+      };
+
+      if (args.issue) {
+        addInputIssueKeys(
+          Array.isArray(args.issue) ? args.issue : [args.issue]
         );
       }
-      if (issuesFilePath) {
-        issueKeys.push(
-          ...issueKeysSchema.parse(
-            JSON.parse(await fs.readFile(issuesFilePath, "utf-8"))
-          )
+      if (args.issuesFilePath) {
+        addInputIssueKeys(
+          JSON.parse(await fs.readFile(args.issuesFilePath, "utf-8"))
         );
       }
-      if (issueKeys.length === 0) {
+      if (inputIssueKeys.size === 0) {
         throw new Error("No issues provided.");
       }
+      const issueKeys = [...inputIssueKeys];
 
       // Fetch Jira issues
-      const jiraMaxConcurrency = 12;
       const { results: jiraIssues } = await PromisePool.for(
-        issueKeys.slice(0, maxInputLength)
+        issueKeys.slice(0, args.maxInputLength)
       )
-        .withConcurrency(jiraMaxConcurrency)
+        .withConcurrency(jiraApiMaxConcurrency)
         .handleError((error, issueKey) => {
           const parsedErrorMessage = JSON.parse(error.message);
           const logErrorMessage =
@@ -177,28 +220,11 @@ export const action =
         });
       logger.appendArtifact("jiraIssues.raw.json", JSON.stringify(jiraIssues));
 
-      interface RawJiraIssue {
-        key: string;
-        fields: {
-          project: {
-            name: string;
-          };
-          summary: string;
-          status: {
-            name: string;
-          };
-          created: string;
-          updated: string;
-          description: string;
-          comment: {
-            comments: JiraComment[];
-          };
-        };
-      }
-
-      const formattedJiraIssues = (jiraIssues as RawJiraIssue[]).map(
-        (issue) => {
-          return {
+      const formattedJiraIssues = z
+        .array(RawJiraIssueSchema)
+        .parse(jiraIssues)
+        .map((issue) => {
+          return FormattedJiraIssueSchema.parse({
             key: issue.key,
             projectName: issue.fields.project.name,
             summary: issue.fields.summary,
@@ -218,9 +244,8 @@ export const action =
                 updated: comment.updated,
               };
             }),
-          } satisfies FormattedJiraIssue;
-        }
-      );
+          });
+        });
 
       logger.appendArtifact(
         "jiraIssues.formatted.json",
@@ -310,18 +335,24 @@ export const action =
           "Do not reference hypothetical or speculative information."
         ),
       });
-      const { errors: generatePromptsErrors } = await PromisePool.for(
-        formattedIssuesWithSummaries
-      )
+      await PromisePool.for(formattedIssuesWithSummaries)
         .withConcurrency(llmMaxConcurrency)
+        .handleError((error, { issue }) => {
+          logger.logError(
+            `Error generating prompts for ${issue.key}: ${JSON.stringify(
+              error
+            )}`
+          );
+        })
         .process(async ({ issue, summary }) => {
           const { prompts } = await generatePrompts({ issue, summary });
-          console.log("generated prompts for issue", issue.key, summary);
+          console.log(
+            `generated ${prompts.length} prompts for issue`,
+            issue.key,
+            prompts
+          );
           promptsByIssueKey.set(issue.key, prompts);
         });
-      for (const error of generatePromptsErrors) {
-        logger.logError(`Error generating prompts: ${error.item}`);
-      }
       const generatedPrompts: [issueKey: string, prompt: string][] = [
         ...promptsByIssueKey.entries(),
       ].flatMap(([issueKey, prompts]) => {

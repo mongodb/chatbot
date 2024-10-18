@@ -1,0 +1,470 @@
+[
+  {
+    "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+    "id": "108475",
+    "self": "https://jira.mongodb.org/rest/agile/1.0/issue/108475",
+    "key": "WORKPLACE-119",
+    "fields": {
+      "customfield_14150": {
+        "self": "https://jira.mongodb.org/rest/api/2/customFieldOption/19783",
+        "value": "New York City",
+        "id": "19783",
+        "disabled": false
+      },
+      "fixVersions": [],
+      "resolution": {
+        "self": "https://jira.mongodb.org/rest/api/2/resolution/9",
+        "id": "9",
+        "description": "GreenHopper Managed Resolution. Grab-bag resolution for other things (e.g.: re-directing users to google groups)",
+        "name": "Done"
+      },
+      "lastViewed": null,
+      "priority": {
+        "self": "https://jira.mongodb.org/rest/api/2/priority/4",
+        "iconUrl": "https://jira.mongodb.org/images/icons/priorities/minor.svg",
+        "name": "Minor - P4",
+        "id": "4"
+      },
+      "labels": [],
+      "aggregatetimeoriginalestimate": null,
+      "timeestimate": null,
+      "versions": [],
+      "issuelinks": [],
+      "assignee": null,
+      "status": {
+        "self": "https://jira.mongodb.org/rest/api/2/status/6",
+        "description": "The issue is considered finished, the resolution is correct. Issues which are closed can be reopened.",
+        "iconUrl": "https://jira.mongodb.org/images/icons/statuses/closed.png",
+        "name": "Closed",
+        "id": "6",
+        "statusCategory": {
+          "self": "https://jira.mongodb.org/rest/api/2/statuscategory/3",
+          "id": 3,
+          "key": "done",
+          "colorName": "success",
+          "name": "Done"
+        }
+      },
+      "components": [
+        {
+          "self": "https://jira.mongodb.org/rest/api/2/component/11842",
+          "id": "11842",
+          "name": "New York Office"
+        }
+      ],
+      "customfield_10051": [
+        "akshay@mongodb.com(akshay)",
+        "carol.huang@10gen.com(carol.huang@10gen.com)",
+        "isabelle.davis(isabelle.davis)",
+        "jmikola@mongodb.com(jmikola@gmail.com)",
+        "kym.ganade(kym@10gen.com)"
+      ],
+      "aggregatetimeestimate": null,
+      "creator": {
+        "self": "https://jira.mongodb.org/rest/api/2/user?username=jmikola%40mongodb.com",
+        "name": "jmikola@mongodb.com",
+        "key": "jmikola@gmail.com",
+        "emailAddress": "jmikola@mongodb.com",
+        "avatarUrls": {
+          "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=jmikola%40gmail.com&avatarId=11105",
+          "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=jmikola%40gmail.com&avatarId=11105",
+          "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=jmikola%40gmail.com&avatarId=11105",
+          "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=jmikola%40gmail.com&avatarId=11105"
+        },
+        "displayName": "Jeremy Mikola",
+        "active": true,
+        "timeZone": "America/New_York"
+      },
+      "subtasks": [],
+      "reporter": {
+        "self": "https://jira.mongodb.org/rest/api/2/user?username=jmikola%40mongodb.com",
+        "name": "jmikola@mongodb.com",
+        "key": "jmikola@gmail.com",
+        "emailAddress": "jmikola@mongodb.com",
+        "avatarUrls": {
+          "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=jmikola%40gmail.com&avatarId=11105",
+          "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=jmikola%40gmail.com&avatarId=11105",
+          "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=jmikola%40gmail.com&avatarId=11105",
+          "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=jmikola%40gmail.com&avatarId=11105"
+        },
+        "displayName": "Jeremy Mikola",
+        "active": true,
+        "timeZone": "America/New_York"
+      },
+      "customfield_15850": "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@27f7a1d5[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5b14819e[byInstanceType={},overall=PullRequestOverallBean{stateCount=0, state='OPEN', details=PullRequestOverallDetails{openCount=0, mergedCount=0, declinedCount=0}}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2513a91f[byInstanceType={},overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@5af4c452[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>]], review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3075b425[byInstanceType={},overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@dc905a0[dueDate=<null>,overDue=false,state=<null>,stateCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>]], deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@352a1e57[byInstanceType={},overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@49809af4[showProjects=false,successfulCount=0,topEnvironments=[],count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>]], repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@54c9db7d[byInstanceType={},overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@11e82041[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>]], branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@74555c8d[byInstanceType={},overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@394f3fc9[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>]]},configErrors=[],errors=[]], devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
+      "aggregateprogress": { "progress": 0, "total": 0 },
+      "progress": { "progress": 0, "total": 0 },
+      "votes": {
+        "self": "https://jira.mongodb.org/rest/api/2/issue/WORKPLACE-119/votes",
+        "votes": 10,
+        "hasVoted": false
+      },
+      "worklog": { "startAt": 0, "maxResults": 20, "total": 0, "worklogs": [] },
+      "archivedby": null,
+      "issuetype": {
+        "self": "https://jira.mongodb.org/rest/api/2/issuetype/4",
+        "id": "4",
+        "description": "An improvement or enhancement to an existing feature or task.",
+        "iconUrl": "https://jira.mongodb.org/secure/viewavatar?size=xsmall&avatarId=14710&avatarType=issuetype",
+        "name": "Improvement",
+        "subtask": false,
+        "avatarId": 14710
+      },
+      "timespent": null,
+      "project": {
+        "self": "https://jira.mongodb.org/rest/api/2/project/11281",
+        "id": "11281",
+        "key": "WORKPLACE",
+        "name": "Workplace & Real Estate",
+        "projectTypeKey": "service_desk",
+        "avatarUrls": {
+          "48x48": "https://jira.mongodb.org/secure/projectavatar?pid=11281&avatarId=17807",
+          "24x24": "https://jira.mongodb.org/secure/projectavatar?size=small&pid=11281&avatarId=17807",
+          "16x16": "https://jira.mongodb.org/secure/projectavatar?size=xsmall&pid=11281&avatarId=17807",
+          "32x32": "https://jira.mongodb.org/secure/projectavatar?size=medium&pid=11281&avatarId=17807"
+        },
+        "projectCategory": {
+          "self": "https://jira.mongodb.org/rest/api/2/projectCategory/12111",
+          "id": "12111",
+          "description": "",
+          "name": "FinOps"
+        }
+      },
+      "resolutiondate": "2014-03-20T17:21:15.000+0000",
+      "workratio": -1,
+      "watches": {
+        "self": "https://jira.mongodb.org/rest/api/2/issue/WORKPLACE-119/watchers",
+        "watchCount": 10,
+        "isWatching": false
+      },
+      "created": "2014-01-30T22:22:56.000+0000",
+      "updated": "2020-06-01T02:23:47.000+0000",
+      "timeoriginalestimate": null,
+      "description": "!stall-gap.jpg!\n\nThere is a noticeable gap between the stall panels and the tile wall in the men's room (as illustrated in the left-most portion of the diagram). In the past, some resourceful individuals have hung tissue paper to cover the gap. Unfortunately, that is not a sustainable solution and the janitors tend to remove it (as illustrated in the right-most portion of the diagram).\n\nA somewhat related issue is the stability of the stall door locks. Specifically on the pair of stalls nearest the exit. Oftentimes, when someone enters or leaves an adjacent stall, a door lock will come loose. If the stall panels end up being realigned, it might be reasonable to also re-calibrate the door locks so they are not prone to becoming unlocked position so easily. ([~akshay] may be able to attest to this issue). Do let me know if I should open a separate issue for that, or if we should make it a sub-task of this issue.\n\nThank you,",
+      "timetracking": {},
+      "attachment": [
+        {
+          "self": "https://jira.mongodb.org/rest/api/2/attachment/37000",
+          "id": "37000",
+          "filename": "stall-gap.jpg",
+          "author": {
+            "self": "https://jira.mongodb.org/rest/api/2/user?username=jmikola%40mongodb.com",
+            "name": "jmikola@mongodb.com",
+            "key": "jmikola@gmail.com",
+            "emailAddress": "jmikola@mongodb.com",
+            "avatarUrls": {
+              "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=jmikola%40gmail.com&avatarId=11105",
+              "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=jmikola%40gmail.com&avatarId=11105",
+              "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=jmikola%40gmail.com&avatarId=11105",
+              "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=jmikola%40gmail.com&avatarId=11105"
+            },
+            "displayName": "Jeremy Mikola",
+            "active": true,
+            "timeZone": "America/New_York"
+          },
+          "created": "2014-01-30T22:22:56.000+0000",
+          "size": 144169,
+          "mimeType": "image/jpeg",
+          "content": "https://jira.mongodb.org/secure/attachment/37000/stall-gap.jpg",
+          "thumbnail": "https://jira.mongodb.org/secure/thumbnail/37000/_thumb_37000.png"
+        }
+      ],
+      "flagged": false,
+      "summary": "Significant stall panel gap in the men's room",
+      "customfield_11452": {
+        "id": "34",
+        "name": "Time to first response",
+        "_links": {
+          "self": "https://jira.mongodb.org/rest/servicedeskapi/request/108475/sla/34"
+        },
+        "completedCycles": []
+      },
+      "customfield_11451": {
+        "id": "33",
+        "name": "Time to resolution",
+        "_links": {
+          "self": "https://jira.mongodb.org/rest/servicedeskapi/request/108475/sla/33"
+        },
+        "completedCycles": []
+      },
+      "environment": "Men's room",
+      "duedate": null,
+      "comment": {
+        "comments": [
+          {
+            "self": "https://jira.mongodb.org/rest/api/2/issue/108475/comment/491172",
+            "id": "491172",
+            "author": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=carol.huang%4010gen.com",
+              "name": "carol.huang@10gen.com",
+              "key": "carol.huang@10gen.com",
+              "emailAddress": "?",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?avatarId=10123",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&avatarId=10123",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&avatarId=10123",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&avatarId=10123"
+              },
+              "displayName": "carol.huang@10gen.com",
+              "active": false,
+              "timeZone": "UTC"
+            },
+            "body": "The gap is also an issue in the women's restroom, for the record. ",
+            "updateAuthor": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=carol.huang%4010gen.com",
+              "name": "carol.huang@10gen.com",
+              "key": "carol.huang@10gen.com",
+              "emailAddress": "?",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?avatarId=10123",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&avatarId=10123",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&avatarId=10123",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&avatarId=10123"
+              },
+              "displayName": "carol.huang@10gen.com",
+              "active": false,
+              "timeZone": "UTC"
+            },
+            "created": "2014-01-30T22:24:55.000+0000",
+            "updated": "2014-01-30T22:24:55.000+0000"
+          },
+          {
+            "self": "https://jira.mongodb.org/rest/api/2/issue/108475/comment/491173",
+            "id": "491173",
+            "author": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=jmikola%40mongodb.com",
+              "name": "jmikola@mongodb.com",
+              "key": "jmikola@gmail.com",
+              "emailAddress": "jmikola@mongodb.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=jmikola%40gmail.com&avatarId=11105",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=jmikola%40gmail.com&avatarId=11105",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=jmikola%40gmail.com&avatarId=11105",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=jmikola%40gmail.com&avatarId=11105"
+              },
+              "displayName": "Jeremy Mikola",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "body": "[~carol.huang@10gen.com]: Thank you for coming forward. I've heard rumors but this is the first confirmation I've had.",
+            "updateAuthor": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=jmikola%40mongodb.com",
+              "name": "jmikola@mongodb.com",
+              "key": "jmikola@gmail.com",
+              "emailAddress": "jmikola@mongodb.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=jmikola%40gmail.com&avatarId=11105",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=jmikola%40gmail.com&avatarId=11105",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=jmikola%40gmail.com&avatarId=11105",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=jmikola%40gmail.com&avatarId=11105"
+              },
+              "displayName": "Jeremy Mikola",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "created": "2014-01-30T22:26:53.000+0000",
+            "updated": "2014-01-30T22:26:53.000+0000"
+          },
+          {
+            "self": "https://jira.mongodb.org/rest/api/2/issue/108475/comment/491176",
+            "id": "491176",
+            "author": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=akshay%40mongodb.com",
+              "name": "akshay@mongodb.com",
+              "key": "akshay",
+              "emailAddress": "akshay@mongodb.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=akshay&avatarId=11409",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=akshay&avatarId=11409",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=akshay&avatarId=11409",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=akshay&avatarId=11409"
+              },
+              "displayName": "Akshay Kumar",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "body": "ProTip: Use the Westin across the street.",
+            "updateAuthor": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=akshay%40mongodb.com",
+              "name": "akshay@mongodb.com",
+              "key": "akshay",
+              "emailAddress": "akshay@mongodb.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=akshay&avatarId=11409",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=akshay&avatarId=11409",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=akshay&avatarId=11409",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=akshay&avatarId=11409"
+              },
+              "displayName": "Akshay Kumar",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "created": "2014-01-30T22:31:38.000+0000",
+            "updated": "2014-01-30T22:31:38.000+0000"
+          },
+          {
+            "self": "https://jira.mongodb.org/rest/api/2/issue/108475/comment/491185",
+            "id": "491185",
+            "author": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=isabelle.davis",
+              "name": "isabelle.davis",
+              "key": "isabelle.davis",
+              "emailAddress": "isabelle@10gen.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=isabelle.davis&avatarId=12232",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=isabelle.davis&avatarId=12232",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=isabelle.davis&avatarId=12232",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=isabelle.davis&avatarId=12232"
+              },
+              "displayName": "Isabelle Davis",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "body": "The building is aware. ",
+            "updateAuthor": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=isabelle.davis",
+              "name": "isabelle.davis",
+              "key": "isabelle.davis",
+              "emailAddress": "isabelle@10gen.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=isabelle.davis&avatarId=12232",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=isabelle.davis&avatarId=12232",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=isabelle.davis&avatarId=12232",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=isabelle.davis&avatarId=12232"
+              },
+              "displayName": "Isabelle Davis",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "created": "2014-01-30T22:40:53.000+0000",
+            "updated": "2014-01-30T22:40:53.000+0000"
+          },
+          {
+            "self": "https://jira.mongodb.org/rest/api/2/issue/108475/comment/518934",
+            "id": "518934",
+            "author": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=akshay%40mongodb.com",
+              "name": "akshay@mongodb.com",
+              "key": "akshay",
+              "emailAddress": "akshay@mongodb.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=akshay&avatarId=11409",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=akshay&avatarId=11409",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=akshay&avatarId=11409",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=akshay&avatarId=11409"
+              },
+              "displayName": "Akshay Kumar",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "body": "This looks like it has been resolved!",
+            "updateAuthor": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=akshay%40mongodb.com",
+              "name": "akshay@mongodb.com",
+              "key": "akshay",
+              "emailAddress": "akshay@mongodb.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=akshay&avatarId=11409",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=akshay&avatarId=11409",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=akshay&avatarId=11409",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=akshay&avatarId=11409"
+              },
+              "displayName": "Akshay Kumar",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "created": "2014-03-19T00:43:05.000+0000",
+            "updated": "2014-03-19T00:43:05.000+0000"
+          },
+          {
+            "self": "https://jira.mongodb.org/rest/api/2/issue/108475/comment/518985",
+            "id": "518985",
+            "author": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=jmikola%40mongodb.com",
+              "name": "jmikola@mongodb.com",
+              "key": "jmikola@gmail.com",
+              "emailAddress": "jmikola@mongodb.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=jmikola%40gmail.com&avatarId=11105",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=jmikola%40gmail.com&avatarId=11105",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=jmikola%40gmail.com&avatarId=11105",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=jmikola%40gmail.com&avatarId=11105"
+              },
+              "displayName": "Jeremy Mikola",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "body": "Quite masterfully, I might add. Good work team!",
+            "updateAuthor": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=jmikola%40mongodb.com",
+              "name": "jmikola@mongodb.com",
+              "key": "jmikola@gmail.com",
+              "emailAddress": "jmikola@mongodb.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=jmikola%40gmail.com&avatarId=11105",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=jmikola%40gmail.com&avatarId=11105",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=jmikola%40gmail.com&avatarId=11105",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=jmikola%40gmail.com&avatarId=11105"
+              },
+              "displayName": "Jeremy Mikola",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "created": "2014-03-19T04:54:25.000+0000",
+            "updated": "2014-03-19T04:54:25.000+0000"
+          },
+          {
+            "self": "https://jira.mongodb.org/rest/api/2/issue/108475/comment/520128",
+            "id": "520128",
+            "author": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=kym.ganade",
+              "name": "kym.ganade",
+              "key": "kym@10gen.com",
+              "emailAddress": "kym@10gen.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?avatarId=10122",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&avatarId=10122",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&avatarId=10122",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&avatarId=10122"
+              },
+              "displayName": "Kym Ganade [X]",
+              "active": true,
+              "timeZone": "America/Havana"
+            },
+            "body": "Panels Have been added",
+            "updateAuthor": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=kym.ganade",
+              "name": "kym.ganade",
+              "key": "kym@10gen.com",
+              "emailAddress": "kym@10gen.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?avatarId=10122",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&avatarId=10122",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&avatarId=10122",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&avatarId=10122"
+              },
+              "displayName": "Kym Ganade [X]",
+              "active": true,
+              "timeZone": "America/Havana"
+            },
+            "created": "2014-03-20T17:21:15.000+0000",
+            "updated": "2014-03-20T17:21:15.000+0000"
+          }
+        ],
+        "maxResults": 7,
+        "total": 7,
+        "startAt": 0
+      }
+    }
+  },
+  {
+    "topics": [
+      "stall panel gap",
+      "men's restroom",
+      "women's restroom",
+      "New York office",
+      "stall door locks"
+    ],
+    "description": "This was filed to alert the workplace team of a significant gap between the stall panels and the tile wall in the men's room at the New York office. The issue also mentions the instability of the stall door locks, particularly those nearest the exit. A commenter confirmed that the gap is also present in the women's restroom. The issue was resolved by adding panels."
+  }
+]

@@ -1,0 +1,400 @@
+[
+  {
+    "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+    "id": "108475",
+    "self": "https://jira.mongodb.org/rest/agile/1.0/issue/108475",
+    "key": "ADMIN-10208",
+    "fields": {
+      "customfield_14150": {
+        "self": "https://jira.mongodb.org/rest/api/2/customFieldOption/19783",
+        "value": "New York City",
+        "id": "19783",
+        "disabled": false
+      },
+      "fixVersions": [],
+      "resolution": {
+        "self": "https://jira.mongodb.org/rest/api/2/resolution/9",
+        "id": "9",
+        "description": "GreenHopper Managed Resolution. Grab-bag resolution for other things (e.g.: re-directing users to google groups)",
+        "name": "Done"
+      },
+      "lastViewed": null,
+      "priority": {
+        "self": "https://jira.mongodb.org/rest/api/2/priority/4",
+        "iconUrl": "https://jira.mongodb.org/images/icons/priorities/minor.svg",
+        "name": "Minor - P4",
+        "id": "4"
+      },
+      "labels": [],
+      "aggregatetimeoriginalestimate": null,
+      "timeestimate": null,
+      "versions": [],
+      "issuelinks": [],
+      "assignee": null,
+      "status": {
+        "self": "https://jira.mongodb.org/rest/api/2/status/6",
+        "description": "The issue is considered finished, the resolution is correct. Issues which are closed can be reopened.",
+        "iconUrl": "https://jira.mongodb.org/images/icons/statuses/closed.png",
+        "name": "Closed",
+        "id": "6",
+        "statusCategory": {
+          "self": "https://jira.mongodb.org/rest/api/2/statuscategory/3",
+          "id": 3,
+          "key": "done",
+          "colorName": "success",
+          "name": "Done"
+        }
+      },
+      "components": [
+        {
+          "self": "https://jira.mongodb.org/rest/api/2/component/11842",
+          "id": "11842",
+          "name": "CLI"
+        }
+      ],
+      "customfield_10051": [
+        "jimbob@gmail.com(jimbob)",
+        "somebody.person@10gen.com(somebody.person@10gen.com)",
+        "excellent.sme@mongodb.com(excellent.sme@mongodb.com)"
+      ],
+      "aggregatetimeestimate": null,
+      "creator": {
+        "self": "https://jira.mongodb.org/rest/api/2/user?username=jimbob%40gmail.com",
+        "name": "jimbob@gmail.com",
+        "key": "jimbob@gmail.com",
+        "emailAddress": "jimbob@gmail.com",
+        "avatarUrls": {
+          "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=jimbob%40gmail.com&avatarId=11105",
+          "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=jimbob%40gmail.com&avatarId=11105",
+          "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=jimbob%40gmail.com&avatarId=11105",
+          "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=jimbob%40gmail.com&avatarId=11105"
+        },
+        "displayName": "jimbob",
+        "active": true,
+        "timeZone": "America/New_York"
+      },
+      "subtasks": [],
+      "reporter": {
+        "self": "https://jira.mongodb.org/rest/api/2/user?username=jimbob%40gmail.com",
+        "name": "jimbob@gmail.com",
+        "key": "jimbob@gmail.com",
+        "emailAddress": "jimbob@gmail.com",
+        "avatarUrls": {
+          "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=jimbob%40gmail.com&avatarId=11105",
+          "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=jimbob%40gmail.com&avatarId=11105",
+          "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=jimbob%40gmail.com&avatarId=11105",
+          "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=jimbob%40gmail.com&avatarId=11105"
+        },
+        "displayName": "jimbob",
+        "active": true,
+        "timeZone": "America/New_York"
+      },
+      "customfield_15850": "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@27f7a1d5[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5b14819e[byInstanceType={},overall=PullRequestOverallBean{stateCount=0, state='OPEN', details=PullRequestOverallDetails{openCount=0, mergedCount=0, declinedCount=0}}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2513a91f[byInstanceType={},overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@5af4c452[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>]], review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3075b425[byInstanceType={},overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@dc905a0[dueDate=<null>,overDue=false,state=<null>,stateCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>]], deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@352a1e57[byInstanceType={},overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@49809af4[showProjects=false,successfulCount=0,topEnvironments=[],count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>]], repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@54c9db7d[byInstanceType={},overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@11e82041[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>]], branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@74555c8d[byInstanceType={},overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@394f3fc9[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>]]},configErrors=[],errors=[]], devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
+      "aggregateprogress": { "progress": 0, "total": 0 },
+      "progress": { "progress": 0, "total": 0 },
+      "votes": {
+        "self": "https://jira.mongodb.org/rest/api/2/issue/ADMIN-10208/votes",
+        "votes": 10,
+        "hasVoted": false
+      },
+      "worklog": { "startAt": 0, "maxResults": 20, "total": 0, "worklogs": [] },
+      "archivedby": null,
+      "issuetype": {
+        "self": "https://jira.mongodb.org/rest/api/2/issuetype/4",
+        "id": "4",
+        "description": "An improvement or enhancement to an existing feature or task.",
+        "iconUrl": "https://jira.mongodb.org/secure/viewavatar?size=xsmall&avatarId=14710&avatarType=issuetype",
+        "name": "Improvement",
+        "subtask": false,
+        "avatarId": 14710
+      },
+      "timespent": null,
+      "project": {
+        "self": "https://jira.mongodb.org/rest/api/2/project/11281",
+        "id": "11281",
+        "key": "ADMIN",
+        "name": "Admin Server",
+        "projectTypeKey": "service_desk",
+        "avatarUrls": {
+          "48x48": "https://jira.mongodb.org/secure/projectavatar?pid=11281&avatarId=17807",
+          "24x24": "https://jira.mongodb.org/secure/projectavatar?size=small&pid=11281&avatarId=17807",
+          "16x16": "https://jira.mongodb.org/secure/projectavatar?size=xsmall&pid=11281&avatarId=17807",
+          "32x32": "https://jira.mongodb.org/secure/projectavatar?size=medium&pid=11281&avatarId=17807"
+        },
+        "projectCategory": {
+          "self": "https://jira.mongodb.org/rest/api/2/projectCategory/12111",
+          "id": "12111",
+          "description": "",
+          "name": "FinOps"
+        }
+      },
+      "resolutiondate": "2014-03-20T17:21:15.000+0000",
+      "workratio": -1,
+      "watches": {
+        "self": "https://jira.mongodb.org/rest/api/2/issue/ADMIN-10208/watchers",
+        "watchCount": 10,
+        "isWatching": false
+      },
+      "created": "2018-01-30T22:22:56.000+0000",
+      "updated": "2024-06-01T02:23:47.000+0000",
+      "timeoriginalestimate": null,
+      "summary": "Server is returning error when creating a new user",
+      "description": "The server is returning an error when creating a new user. The error message is: \"Error: User already exists.\". This is a problem because we need to be able to create new users. I don't think this user actually exists!",
+      "timetracking": {},
+      "attachment": [],
+      "flagged": false,
+      "customfield_11452": {
+        "id": "34",
+        "name": "Time to first response",
+        "_links": {
+          "self": "https://jira.mongodb.org/rest/servicedeskapi/request/108475/sla/34"
+        },
+        "completedCycles": []
+      },
+      "customfield_11451": {
+        "id": "33",
+        "name": "Time to resolution",
+        "_links": {
+          "self": "https://jira.mongodb.org/rest/servicedeskapi/request/108475/sla/33"
+        },
+        "completedCycles": []
+      },
+      "environment": "Men's room",
+      "duedate": null,
+      "comment": {
+        "comments": [
+          {
+            "self": "https://jira.mongodb.org/rest/api/2/issue/108475/comment/491172",
+            "id": "491172",
+            "author": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=somebody.person%4010gen.com",
+              "name": "somebody.person@10gen.com",
+              "key": "somebody.person@10gen.com",
+              "emailAddress": "somebody.person@10gen.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?avatarId=10123",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&avatarId=10123",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&avatarId=10123",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&avatarId=10123"
+              },
+              "displayName": "somebody.person@10gen.com",
+              "active": false,
+              "timeZone": "UTC"
+            },
+            "body": "This happens in the UI sometimes too",
+            "updateAuthor": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=somebody.person%4010gen.com",
+              "name": "somebody.person@10gen.com",
+              "key": "somebody.person@10gen.com",
+              "emailAddress": "?",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?avatarId=10123",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&avatarId=10123",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&avatarId=10123",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&avatarId=10123"
+              },
+              "displayName": "somebody.person@10gen.com",
+              "active": false,
+              "timeZone": "UTC"
+            },
+            "created": "2014-01-30T22:24:55.000+0000",
+            "updated": "2014-01-30T22:24:55.000+0000"
+          },
+          {
+            "self": "https://jira.mongodb.org/rest/api/2/issue/108475/comment/491173",
+            "id": "491173",
+            "author": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=triager%40mongodb.com",
+              "name": "triager@mongodb.com",
+              "key": "triager@gmail.com",
+              "emailAddress": "jimbob@gmail.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=triager%40gmail.com&avatarId=11105",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=triager%40gmail.com&avatarId=11105",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=triager%40gmail.com&avatarId=11105",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=triager%40gmail.com&avatarId=11105"
+              },
+              "displayName": "jimbob",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "body": "[~somebody.person@10gen.com]: That's weird. I wonder if it's related to the issue we had with the server last week. Do you have a reproduction case? cc [~excellent.sme@mongodb.com] any ideas?",
+            "updateAuthor": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=triager%40mongodb.com",
+              "name": "triager@mongodb.com",
+              "key": "triager@gmail.com",
+              "emailAddress": "triager@mongodb.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=triager%40gmail.com&avatarId=11105",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=triager%40gmail.com&avatarId=11105",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=triager%40gmail.com&avatarId=11105",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=triager%40gmail.com&avatarId=11105"
+              },
+              "displayName": "Triager",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "created": "2014-01-30T22:26:53.000+0000",
+            "updated": "2014-01-30T22:26:53.000+0000"
+          },
+          {
+            "self": "https://jira.mongodb.org/rest/api/2/issue/108475/comment/491176",
+            "id": "491176",
+            "author": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=somebody.person%40mongodb.com",
+              "name": "somebody.person@mongodb.com",
+              "key": "somebody.person",
+              "emailAddress": "somebody.person@mongodb.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=somebody.person&avatarId=11409",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=somebody.person&avatarId=11409",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=somebody.person&avatarId=11409",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=somebody.person&avatarId=11409"
+              },
+              "displayName": "somebody.person",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "body": "Maybe a caching thing? A repro case would help.",
+            "updateAuthor": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=somebody.person%40mongodb.com",
+              "name": "somebody.person@mongodb.com",
+              "key": "somebody.person",
+              "emailAddress": "somebody.person@mongodb.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=somebody.person&avatarId=11409",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=somebody.person&avatarId=11409",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=somebody.person&avatarId=11409",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=somebody.person&avatarId=11409"
+              },
+              "displayName": "somebody.person",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "created": "2014-01-30T22:31:38.000+0000",
+            "updated": "2014-01-30T22:31:38.000+0000"
+          },
+          {
+            "self": "https://jira.mongodb.org/rest/api/2/issue/108475/comment/518934",
+            "id": "518934",
+            "author": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=excellent.sme%40mongodb.com",
+              "name": "excellent.sme@mongodb.com",
+              "key": "excellent.sme",
+              "emailAddress": "excellent.sme@mongodb.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=excellent.sme&avatarId=11409",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=excellent.sme&avatarId=11409",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=excellent.sme&avatarId=11409",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=excellent.sme&avatarId=11409"
+              },
+              "displayName": "excellent.sme",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "body": "This could definitely be a cache thing - I ran into this on my test rig just now. Try running admin local cache delete and see if that helps.",
+            "updateAuthor": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=excellent.sme%40mongodb.com",
+              "name": "excellent.sme@mongodb.com",
+              "key": "excellent.sme",
+              "emailAddress": "excellent.sme@mongodb.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=excellent.sme&avatarId=11409",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=excellent.sme&avatarId=11409",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=excellent.sme&avatarId=11409",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=excellent.sme&avatarId=11409"
+              },
+              "displayName": "excellent.sme",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "created": "2014-03-19T00:43:05.000+0000",
+            "updated": "2014-03-19T00:43:05.000+0000"
+          },
+          {
+            "self": "https://jira.mongodb.org/rest/api/2/issue/108475/comment/518985",
+            "id": "518985",
+            "author": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=somebody.person%40mongodb.com",
+              "name": "somebody.person@mongodb.com",
+              "key": "somebody.person@gmail.com",
+              "emailAddress": "somebody.person@mongodb.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=somebody.person%40gmail.com&avatarId=11105",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=somebody.person%40gmail.com&avatarId=11105",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=somebody.person%40gmail.com&avatarId=11105",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=somebody.person%40gmail.com&avatarId=11105"
+              },
+              "displayName": "somebody.person%40mongodb.com",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "body": "Nice! Please let us know if that works [~somebody.person@40gmail.com]",
+            "updateAuthor": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=somebody.person%40mongodb.com",
+              "name": "somebody.person@mongodb.com",
+              "key": "somebody.person@gmail.com",
+              "emailAddress": "somebody.person@mongodb.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=somebody.person%40gmail.com&avatarId=11105",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=somebody.person%40gmail.com&avatarId=11105",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=somebody.person%40gmail.com&avatarId=11105",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=somebody.person%40gmail.com&avatarId=11105"
+              },
+              "displayName": "somebody.person%40mongodb.com",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "created": "2014-03-19T04:54:25.000+0000",
+            "updated": "2014-03-19T04:54:25.000+0000"
+          },
+
+          {
+            "self": "https://jira.mongodb.org/rest/api/2/issue/108475/comment/518985",
+            "id": "518985",
+            "author": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=jimbob%40gmail.com",
+              "name": "jimbob@gmail.com",
+              "key": "jimbob@gmail.com",
+              "emailAddress": "jimbob@gmail.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=jimbob%40gmail.com&avatarId=11105",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=jimbob%40gmail.com&avatarId=11105",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=jimbob%40gmail.com&avatarId=11105",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=jimbob%40gmail.com&avatarId=11105"
+              },
+              "displayName": "jimbob",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "body": "Yes that solved it thanks!",
+            "updateAuthor": {
+              "self": "https://jira.mongodb.org/rest/api/2/user?username=jimbob%40gmail.com",
+              "name": "jimbob@gmail.com",
+              "key": "jimbob@gmail.com",
+              "emailAddress": "jimbob@gmail.com",
+              "avatarUrls": {
+                "48x48": "https://jira.mongodb.org/secure/useravatar?ownerId=jimbob%40gmail.com&avatarId=11105",
+                "24x24": "https://jira.mongodb.org/secure/useravatar?size=small&ownerId=jimbob%40gmail.com&avatarId=11105",
+                "16x16": "https://jira.mongodb.org/secure/useravatar?size=xsmall&ownerId=jimbob%40gmail.com&avatarId=11105",
+                "32x32": "https://jira.mongodb.org/secure/useravatar?size=medium&ownerId=jimbob%40gmail.com&avatarId=11105"
+              },
+              "displayName": "jimbob",
+              "active": true,
+              "timeZone": "America/New_York"
+            },
+            "created": "2014-03-19T04:54:25.000+0000",
+            "updated": "2014-03-19T04:54:25.000+0000"
+          }
+        ],
+        "maxResults": 7,
+        "total": 7,
+        "startAt": 0
+      }
+    }
+  },
+  {
+    "topics": ["server error", "user creation", "cache issue", "Admin Server"],
+    "description": "The issue reports a server error when creating a new user, with the message 'Error: User already exists.' The reporter believes the user does not actually exist. Comments suggest it might be a caching issue. The solution, confirmed to work by the reporter, involves clearing the cache by running `admin local cache delete`."
+  }
+]

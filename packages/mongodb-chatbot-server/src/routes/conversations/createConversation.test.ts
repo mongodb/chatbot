@@ -10,8 +10,8 @@ const CONVERSATIONS_API_V1_PREFIX = DEFAULT_API_PREFIX + "/conversations";
 describe("POST /conversations", () => {
   let appConfig: AppConfig;
   let mongodb: Db;
-  beforeAll(() => {
-    ({ appConfig, mongodb } = makeTestAppConfig());
+  beforeAll(async () => {
+    ({ appConfig, mongodb } = await makeTestAppConfig());
   });
 
   it("should respond 200 and create a conversation", async () => {

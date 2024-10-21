@@ -28,8 +28,7 @@ export interface TiCatalogItem {
     IDs of labs associated with the catalog item.
    */
   associated_labs: string[];
-  // TODO: is this always null?
-  associated_content: null | unknown;
+  associated_content?: string[] | null;
   /**
     Whether or not the catalog item is in development.
    */
@@ -40,6 +39,8 @@ export interface TiCatalogItem {
     about the sections and lessons.
    */
   sections: TiCatalogSection[];
+  description?: string;
+  duration?: string;
 }
 
 type TiCatalogLearningFormat =

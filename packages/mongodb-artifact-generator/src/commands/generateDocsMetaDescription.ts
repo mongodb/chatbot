@@ -28,7 +28,7 @@ export default createCommand<GenerateDocsMetaDescriptionCommandArgs>({
           "A unique name for the run. This controls where outputs artifacts and logs are stored.",
       })
       .option("url", {
-        type: "array",
+        type: "string",
         demandOption: true,
         description:
           "The URL of the page to generate a meta description for. It must be a valid URL that exists in the EAI knowledge base.",
@@ -113,7 +113,7 @@ export const action =
           results.set(page.url, metaDescription);
           logger.appendArtifact(
             `${urlToFilename(page.url)}.json`,
-            JSON.stringify(metaDescription)
+            metaDescription
           );
           logger.logInfo(
             `Generated meta description for page ${page.url}: ${metaDescription}`

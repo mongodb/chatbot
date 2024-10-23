@@ -5,7 +5,10 @@ import {
 } from "mongodb-rag-core";
 import { RunLogger } from "../runlogger";
 import { stripIndents } from "common-tags";
+import { readdirSync, readFileSync } from "fs";
+import path from "path";
 import { assistantMessage, systemMessage, userMessage } from "../chat";
+import { z } from "zod";
 
 export type MetaDescription = string;
 
@@ -33,18 +36,27 @@ const systemPrompt = stripIndents`
   Respond only with the generated description.
 `;
 
-const fewShotExamples = [
-  userMessage({
-    url: "Generate a meta description for a page about the $lookup stage",
-    text: "The user is asking for a meta description.",
-  }),
-  assistantMessage(""),
-];
-
 export function makeGenerateMetaDescription({
   openAiClient,
   logger,
 }: MakeGenerateMetaDescription) {
+  const fewShotExamplesDir = "./src/docs-meta-descriptions/examples";
+  const fewShotExamples = readdirSync(fewShotExamplesDir)
+    .filter((fileName) => path.extname(fileName) === ".json")
+    .flatMap((fileName) => {
+      const file = readFileSync(
+        path.join(fewShotExamplesDir, fileName),
+        "utf-8"
+      );
+      const example = z
+        .object({
+          content: z.string(),
+          output: z.string(),
+        })
+        .parse(JSON.parse(file));
+      return [userMessage(example.content), assistantMessage(example.output)];
+    });
+  console.log("fewShotExamples", fewShotExamples);
   return async function generateMetaDescription({
     url,
     text,
@@ -57,11 +69,7 @@ export function makeGenerateMetaDescription({
     );
     const result = await openAiClient.getChatCompletions(
       OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-      [
-        systemMessage(systemPrompt),
-        ...fewShotExamples,
-        userMessage({ url, text }),
-      ],
+      [systemMessage(systemPrompt), ...fewShotExamples, userMessage(text)],
       {
         temperature: 0,
         maxTokens: 300,

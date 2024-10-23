@@ -57,14 +57,18 @@ async function main() {
 
   const SAMPLE_DOCUMENT_LIMIT = 2;
 
+  const { RUN_ID } = process.env;
+
   try {
     await mongoClient.connect();
     await sleep(500);
     const modelExperiments = models
 
       .filter((m) => m.authorized === true)
-      // NOTE: ignoring Google models for now b/c of issues with Radiant
+      // // NOTE: ignoring Google models for now b/c of issues with Radiant
       .filter((m) => m.developer !== "Google")
+      // TODO: sequentially work thru the models
+      .filter((m) => m.label.includes("llama"))
       .map((modelInfo) => {
         const modelExperiments = [];
         for (const promptType of Object.keys(prompts)) {
@@ -82,13 +86,13 @@ async function main() {
     await PromisePool.for(modelExperiments)
       .withConcurrency(3)
       .process(async (modelInfos) => {
-        await PromisePool.for(modelInfos)
+        await PromisePool.for(modelInfos.slice(4))
           .withConcurrency(1)
           .process(
             async ({ modelInfo, promptType, generateCollectionSchemas }) => {
               const experimentName = `${modelInfo.label}-${promptType}-${
                 generateCollectionSchemas ? "with" : "without"
-              }-collection-schemas${process.env.OFFICIAL ? "-official" : ""}`;
+              }-collection-schemas${RUN_ID ? `-${RUN_ID}` : ""}`;
               console.log(`Running experiment: ${experimentName}`);
               try {
                 await runTextToDriverEval({
@@ -101,6 +105,7 @@ async function main() {
                     promptStrategy: promptType,
                     generateCollectionSchemas,
                     sampleDocumentLimit: SAMPLE_DOCUMENT_LIMIT,
+                    RUN_ID,
                   },
                   llmOptions: {
                     model: modelInfo.deployment,

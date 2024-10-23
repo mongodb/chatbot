@@ -116,7 +116,7 @@ export const models: ModelConfig[] = [
     label: "claude-3-haiku",
     deployment: "anthropic.claude-3-haiku-20240307-v1:0",
     developer: "Anthropic",
-    maxConcurrency: 1,
+    maxConcurrency: 3,
     provider: "radiant",
     authorized: true,
   },

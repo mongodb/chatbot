@@ -22,8 +22,7 @@
     "pipeline:discoveryEval": "npm run build && node ./build/pipelines/discoveryEval.js",
     "pipeline:discoveryEvalToBraintrust": "npm run build && node ./build/pipelines/discoveryEvalToBraintrust.js",
     "textToDriver:makeDatabases": "npm run build && node ./build/textToDriver/makeDatabases/index.js",
-    "benchmark:TextToNodeJsDriver": "npm run build && node ./build/textToDriver/nodeJsDriverBenchmark.js",
-    "benchmark:TextToNodeJsDriver:official": "npm run build && OFFICIAL='true' node ./build/textToDriver/nodeJsDriverBenchmark.js"
+    "benchmark:TextToNodeJsDriver": "npm run build && node ./build/textToDriver/nodeJsDriverBenchmark.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",

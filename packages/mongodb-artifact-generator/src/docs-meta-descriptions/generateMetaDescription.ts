@@ -20,7 +20,7 @@ export type MakeGenerateMetaDescription = {
 const systemPrompt = stripIndents`
   Your task is to generate a concise, informative description that accurately reflects the content of a given text page.
 
-  This brief summary will be used as a meta description for the page across various services, including search engines and AI systems.
+  This brief summary will be used as a meta description for the page across various services, including search engines.
 
   The meta description should conform to the following style guide:
 
@@ -50,13 +50,18 @@ export function makeGenerateMetaDescription({
       );
       const example = z
         .object({
-          content: z.string(),
+          input: z.object({
+            url: z.string(),
+            text: z.string(),
+          }),
           output: z.string(),
         })
         .parse(JSON.parse(file));
-      return [userMessage(example.content), assistantMessage(example.output)];
+      return [
+        userMessage(JSON.stringify(example.input)),
+        assistantMessage(example.output),
+      ];
     });
-  console.log("fewShotExamples", fewShotExamples);
   return async function generateMetaDescription({
     url,
     text,
@@ -69,7 +74,11 @@ export function makeGenerateMetaDescription({
     );
     const result = await openAiClient.getChatCompletions(
       OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-      [systemMessage(systemPrompt), ...fewShotExamples, userMessage(text)],
+      [
+        systemMessage(systemPrompt),
+        ...fewShotExamples,
+        userMessage(JSON.stringify({ url, text })),
+      ],
       {
         temperature: 0,
         maxTokens: 300,

@@ -32,7 +32,8 @@ export default createCommand<GenerateDocsMetaDescriptionCommandArgs>({
         demandOption: true,
         description:
           "The URL of the page to generate a meta description for. It must be a valid URL that exists in the EAI knowledge base.",
-        coerce: (urls: string[]) => {
+        coerce: (url: string | string[]) => {
+          const urls = Array.isArray(url) ? url : [url];
           return urls.map((url) => {
             try {
               return new URL(url);
@@ -84,9 +85,10 @@ export const action =
       }
 
       logger.logInfo(`Loading ${urls.length} pages from the page store...`);
-      logger.logInfo(urls.map((url) => url.href).join("\n"));
+      const hrefs = urls.map((url) => url.href);
+      logger.logInfo(hrefs.join("\n"));
       const pages = await pageStore.loadPages({
-        urls: urls.map((url) => url.href),
+        urls: hrefs,
       });
       logger.logInfo(`Loaded ${pages.length} pages.`);
 
@@ -130,7 +132,7 @@ export const action =
       logger.appendArtifact("metaDescriptions.json", json);
 
       const csv = [["url", "metaDescription"], ...Array.from(results.entries())]
-        .map((row) => row.join(","))
+        .map(([k, v]) => [k, v.includes(",") ? `"${v}"` : v].join(","))
         .join("\n");
 
       logger.appendArtifact("metaDescriptions.csv", csv);

@@ -126,7 +126,7 @@ def is_chain_of_thought_prompt(prompt: str) -> bool:
 
 
 def is_few_shot_prompt(prompt: str) -> bool:
-    return "fewShot" in prompt
+    return "genericFewShot" in prompt
 
 
 def validate_and_convert(data_dicts: List[Dict[str, any]]) -> List[ExperimentDataCsvOut]:

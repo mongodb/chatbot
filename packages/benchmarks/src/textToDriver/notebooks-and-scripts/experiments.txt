@@ -910,3 +910,115 @@ Ben Perlmutter
 EAI-539 ad4e74a
 {"label":"mistral-large-2","RUN_ID":"officialV2","provider":"radiant","developer":"Mistral","authorized":true,"deployment":"mistral.mistral-large-2402-v1:0","maxConcurrency":1,"promptStrategy":"simple","sampleDocumentLimit":2,"generateCollectionSchemas":true}
 ad575012-b6f0-48b1-98c9-541fcf951910
+llama-3-70b-genericFewShotChainOfThought-without-collection-schemas-officialV2
+38.98%
+80.79%
+0.05%
+4.6s
+4.6s
+2333.31
+167.80
+2501.11
+Avatar
+Ben Perlmutter
+8m ago
+177
+EAI-539 73f0acc
+{"label":"llama-3-70b","RUN_ID":"officialV2","provider":"radiant","developer":"Meta","authorized":true,"deployment":"meta.llama3-70b-instruct-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShotChainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+fcce7dcf-bb48-47c2-a15d-2d2731a8911f
+llama-3-70b-genericFewShotChainOfThought-with-collection-schemas-officialV2
+36.16%
+69.49%
+0.04%
+3.8s
+3.8s
+3958.22
+90.87
+4049.09
+Avatar
+Ben Perlmutter
+21m ago
+177
+EAI-539 73f0acc
+{"label":"llama-3-70b","RUN_ID":"officialV2","provider":"radiant","developer":"Meta","authorized":true,"deployment":"meta.llama3-70b-instruct-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShotChainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+ee13761e-f0e4-4bcb-8c45-f01fcba13e56
+llama-3-70b-genericFewShot-without-collection-schemas-officialV2
+40.68%
+81.36%
+0.05%
+3s
+3s
+1854.31
+99.36
+1953.67
+Avatar
+Ben Perlmutter
+33m ago
+177
+EAI-539 ad4e74a
+{"label":"llama-3-70b","RUN_ID":"officialV2","provider":"radiant","developer":"Meta","authorized":true,"deployment":"meta.llama3-70b-instruct-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShot","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+a401ff77-b034-4250-addd-36c51fbeccbc
+llama-3-70b-genericFewShot-with-collection-schemas-officialV2
+40.11%
+66.10%
+0.04%
+2.7s
+2.6s
+3598.29
+40.40
+3638.69
+Avatar
+Ben Perlmutter
+42m ago
+177
+EAI-539 ad4e74a
+{"label":"llama-3-70b","RUN_ID":"officialV2","provider":"radiant","developer":"Meta","authorized":true,"deployment":"meta.llama3-70b-instruct-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShot","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+25e4b7df-fc22-4778-9a6a-13d2b6666cca
+llama-3-70b-chainOfThought-with-collection-schemas-officialV2
+36.16%
+60.45%
+0.08%
+13.7s
+13.6s
+3728.58
+67.45
+3796.02
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"llama-3-70b","RUN_ID":"officialV2","provider":"radiant","developer":"Meta","authorized":true,"deployment":"meta.llama3-70b-instruct-v1:0","maxConcurrency":1,"promptStrategy":"chainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+9413db34-d8f1-46c1-825f-9a77305e8254
+llama-3-70b-simple-without-collection-schemas-officialV2
+37.85%
+79.66%
+0.09%
+7.2s
+7.1s
+1540.31
+109.22
+1649.53
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"llama-3-70b","RUN_ID":"officialV2","provider":"radiant","developer":"Meta","authorized":true,"deployment":"meta.llama3-70b-instruct-v1:0","maxConcurrency":1,"promptStrategy":"simple","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+fc955ab0-d8df-4a15-aedd-eef7cae144a5
+llama-3-70b-simple-with-collection-schemas-officialV2
+38.42%
+65.54%
+0.06%
+8.9s
+8.7s
+3683.49
+51.72
+3735.21
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"llama-3-70b","RUN_ID":"officialV2","provider":"radiant","developer":"Meta","authorized":true,"deployment":"meta.llama3-70b-instruct-v1:0","maxConcurrency":1,"promptStrategy":"simple","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+8fe493fb-51be-48f1-91cc-a156ef0ac789

@@ -123,4 +123,4 @@ ${ex.output.content}`
   )
   .join("\n\n")}`,
   },
-};
+} as const;

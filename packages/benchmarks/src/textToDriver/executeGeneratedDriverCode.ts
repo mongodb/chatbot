@@ -1,5 +1,6 @@
 import { Document, MongoClient } from "mongodb-rag-core";
 import vm from "vm";
+import { extractCodeFromMarkdown } from "./extractCodeFromMarkdown";
 
 export interface ExecuteGeneratedDriverCodeParams {
   /**
@@ -57,8 +58,10 @@ export async function executeGeneratedDriverCode(
   const database = mongoClient.db(databaseName);
 
   // Wrap the generated code in an async IIFE to guarantee that it returns a Promise
-  const promiseCode = `(async () => { return ${generatedDriverCode} })()`;
-  
+  const promiseCode = `(async () => (
+  ${removeTrailingSemiColon(extractCodeFromMarkdown(generatedDriverCode))}
+))()`;
+
   const startTime = Date.now();
 
   try {
@@ -80,4 +83,8 @@ export async function executeGeneratedDriverCode(
       executionTimeMs: endTime - startTime,
     };
   }
+}
+
+function removeTrailingSemiColon(code: string): string {
+  return code.replace(/;$/, "");
 }

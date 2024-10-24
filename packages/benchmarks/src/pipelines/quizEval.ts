@@ -1,6 +1,6 @@
 import { runPipeline } from "mongodb-chatbot-evaluation";
 import configConstructor from "../quizEval.config";
-import { radiantModels } from "../radiantModels";
+import { models } from "../models";
 
 runPipeline({
   configConstructor,
@@ -8,7 +8,7 @@ runPipeline({
     const evalReports: { [label: string]: Record<string, unknown> } = {};
     // Run different model evals in parallel
     await Promise.allSettled(
-      radiantModels.map(async (model) => {
+      models.map(async (model) => {
         const {
           commandRunMetadata: { _id: genRunId },
         } = await generate(model.label);

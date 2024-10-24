@@ -80,35 +80,46 @@ export function fuzzyMatchAggregation(
   allowedNumberDifference = 0.01
 ): boolean {
   const testIsArray = Array.isArray(testInput);
-  const testToEvaluate = testIsArray
-    ? testInput[0]
-    : typeof testInput === "object"
-    ? testInput
-    : {
+  let testArray: Record<string, unknown>[];
+
+  if (testIsArray) {
+    // If testInput is an array of arrays, keep it as is to avoid flattening
+    testArray = testInput as Record<string, unknown>[];
+  } else if (typeof testInput === "object") {
+    testArray = [testInput as Record<string, unknown>];
+  } else {
+    testArray = [
+      {
         [fuzzyMatchSyntheticKey]: testInput,
-      };
-  const truthToEvaluate = truthArray[0];
-
-  const truthValues = Object.values(truthToEvaluate);
-  const testValues = Object.values(testToEvaluate);
-
-  // There should never be more truth values than test values
-  if (truthValues.length > testValues.length) {
-    return false;
+      },
+    ];
   }
-  for (const truthValue of truthValues) {
-    const found = testValues.find((testValue) =>
-      fuzzyMatchObjects(
-        { [fuzzyMatchSyntheticKey]: truthValue },
-        { [fuzzyMatchSyntheticKey]: testValue },
+
+  // Since order doesn't matter, we need to find a matching object for each object in truthArray
+  // Create a copy of testArray to keep track of unmatched objects
+  const testArrayCopy = [...testArray];
+
+  for (const truthObj of truthArray) {
+    // Try to find a matching object in testArrayCopy
+    const matchIndex = testArrayCopy.findIndex((testObj) =>
+      fuzzyMatchObjectsIgnoreKeys(
+        truthObj,
+        testObj,
         nestedArrayOrderMatters,
         allowedNumberDifference
       )
     );
-    if (!found) {
+
+    if (matchIndex === -1) {
+      // No matching object found
       return false;
+    } else {
+      // Remove the matched object to prevent duplicate matching
+      testArrayCopy.splice(matchIndex, 1);
     }
   }
+
+  // All objects matched
   return true;
 }
 
@@ -226,5 +237,95 @@ function fuzzyMatchObjects(
     }
   }
 
+  return true;
+}
+
+/**
+  Compares two objects by their values, ignoring keys.
+ */
+function fuzzyMatchObjectsIgnoreKeys(
+  truthObject: Record<string, unknown>,
+  testObject: Record<string, unknown>,
+  nestedArrayOrderMatters?: boolean,
+  allowedNumberDifference = 0.01
+): boolean {
+  const truthValues = Object.values(truthObject);
+  const testValues = Object.values(testObject);
+
+  // If more truth values than test values, the objects can't match
+  if (truthValues.length > testValues.length) return false;
+
+  // Compare values regardless of order
+  const testValuesCopy = [...testValues];
+
+  for (const truthValue of truthValues) {
+    const matchIndex = testValuesCopy.findIndex((testValue) =>
+      fuzzyMatchValues(
+        truthValue,
+        testValue,
+        nestedArrayOrderMatters,
+        allowedNumberDifference
+      )
+    );
+
+    if (matchIndex === -1) {
+      // No matching value found
+      return false;
+    } else {
+      // Remove the matched value to prevent duplicate matching
+      testValuesCopy.splice(matchIndex, 1);
+    }
+  }
+
+  // All values matched
+  return true;
+}
+
+/**
+  Fuzzy comparison function for values.
+ */
+function fuzzyMatchValues(
+  truthVal: unknown,
+  testVal: unknown,
+  nestedArrayOrderMatters?: boolean,
+  allowedNumberDifference = 0.01
+): boolean {
+  // Fuzzy conditions:
+  // - If values are numbers, allow a small difference
+  if (typeof truthVal === "number" && typeof testVal === "number") {
+    const difference = Math.abs(truthVal - testVal);
+    if (difference > allowedNumberDifference) return false;
+  }
+  // If values are arrays, recursively call fuzzyMatchArrays
+  else if (Array.isArray(truthVal) && Array.isArray(testVal)) {
+    if (
+      fuzzyMatchArrays(
+        truthVal as Array<Record<string, unknown>>,
+        testVal as Array<Record<string, unknown>>,
+        nestedArrayOrderMatters,
+        allowedNumberDifference
+      ) === false
+    )
+      return false;
+  }
+  // Handle null values explicitly
+  else if (truthVal === null) {
+    if (testVal !== null) return false;
+  }
+  // Nested objects
+  else if (typeof truthVal === "object" && typeof testVal === "object") {
+    if (
+      fuzzyMatchObjects(
+        truthVal as Record<string, unknown>,
+        testVal as Record<string, unknown>,
+        nestedArrayOrderMatters,
+        allowedNumberDifference
+      ) === false
+    )
+      return false;
+  } else {
+    // For other types, use strict equality
+    if (truthVal !== testVal) return false;
+  }
   return true;
 }

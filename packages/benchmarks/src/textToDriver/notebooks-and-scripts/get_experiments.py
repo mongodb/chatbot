@@ -122,11 +122,11 @@ def duration_to_float(duration_str: str) -> float:
 
 
 def is_chain_of_thought_prompt(prompt: str) -> bool:
-    return "chainOfThought" in prompt
+    return "chainOfThought".lower() in prompt.lower()
 
 
 def is_few_shot_prompt(prompt: str) -> bool:
-    return "genericFewShot" in prompt
+    return "genericFewShot".lower() in prompt.lower()
 
 
 def validate_and_convert(data_dicts: List[Dict[str, any]]) -> List[ExperimentDataCsvOut]:

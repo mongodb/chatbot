@@ -1,6 +1,5 @@
 import { CommandModule } from "yargs";
-import { logger } from "mongodb-rag-core";
-import { updatePages } from "mongodb-rag-core/src/pageStore/updatePages";
+import { logger, updatePages } from "mongodb-rag-core";
 import { LoadConfigArgs } from "../withConfig";
 import { withConfig, withConfigOptions, ResolvedConfig } from "../withConfig";
 

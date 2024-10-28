@@ -35,7 +35,7 @@ export const netlifyMongodbNextjsAiChatbot = async () => {
     repoUrl:
       "https://github.com/mongodb-developer/netlify-mongodb-nextjs-ai-chatbot",
     repoLoaderOptions: {
-      branch: "master",
+      branch: "main",
     },
     metadata: {
       productName: "MongoDB Developer Code Examples",

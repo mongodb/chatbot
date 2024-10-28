@@ -41,6 +41,7 @@ export interface TiCatalogItem {
   sections: TiCatalogSection[];
   description?: string;
   duration?: string;
+  nested_content?: TiCatalogItem[];
 }
 
 type TiCatalogLearningFormat =

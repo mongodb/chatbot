@@ -13,7 +13,7 @@ describe("makeMarkdownFiles", () => {
 
   const tiCatalogItems = JSON.parse(
     fs.readFileSync(
-      Path.resolve(SRC_ROOT, "../testData/sampleUniversityLearningPathAndContent.json"),
+      Path.resolve(SRC_ROOT, "../testData/sampleUniversityCourseWithNestedContent.json"),
       "utf-8"
     )
   ) as TiCatalogItem[];

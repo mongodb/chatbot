@@ -123,10 +123,9 @@ describe("nearest neighbor search", () => {
   let store: MongoDbEmbeddedContentStore | undefined;
   beforeEach(async () => {
     // Need to use real Atlas connection in order to run vector searches
-    const databaseName = MONGODB_DATABASE_NAME;
     store = makeMongoDbEmbeddedContentStore({
       connectionUri: MONGODB_CONNECTION_URI,
-      databaseName,
+      databaseName: MONGODB_DATABASE_NAME,
     });
   });
 
@@ -142,6 +141,7 @@ describe("nearest neighbor search", () => {
     const { embedding } = await embedder.embed({
       text: query,
     });
+    console.log(embedding.length);
 
     const matches = await store.findNearestNeighbors(
       embedding,

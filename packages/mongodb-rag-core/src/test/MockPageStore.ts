@@ -1,4 +1,4 @@
-import { PageStore, PersistedPage } from "mongodb-rag-core";
+import { PageStore, PersistedPage } from "../pageStore";
 
 export const makeMockPageStore = (): PageStore => {
   let pages: PersistedPage[] = [];

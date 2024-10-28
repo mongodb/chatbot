@@ -24,7 +24,6 @@ export * from "./DataStreamer";
 export * from "./logger";
 export * from "./conversations/MongoDbConversations";
 export * from "./References";
-export * from "./TypeChatJsonTranslateFunc";
 export * from "./VectorStore";
 export * from "./arrayFilters";
 export * from "./assertEnvVars";

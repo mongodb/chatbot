@@ -1,5 +1,5 @@
 import { updatePages, persistPages } from "./updatePages";
-import { makeMockPageStore } from "../../../mongodb-rag-ingest/src/test/MockPageStore";
+import { makeMockPageStore } from "../test/MockPageStore";
 import { DataSource } from "../dataSources";
 import { Page, PersistedPage } from "./Page";
 

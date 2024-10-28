@@ -4,7 +4,7 @@ import {
   makeMongoDbEmbeddedContentStore,
   makeMongoDbPageStore,
 } from "mongodb-rag-core";
-import { standardChunkFrontMatterUpdater } from "mongodb-rag-ingest/embed";
+import { standardChunkFrontMatterUpdater } from "mongodb-rag-ingest/core";
 import path from "path";
 import { loadEnvVars } from "./loadEnvVars";
 import { mongoDbChatbotFrameworkDocsDataSourceConstructor } from "./mongodbChatbotFrameworkDataSource";

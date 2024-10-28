@@ -3,7 +3,7 @@ import {
   updateEmbeddedContentForPage,
 } from "./updateEmbeddedContent";
 import { persistPages } from "../pageStore";
-import { makeMockPageStore } from "../../../mongodb-rag-ingest/src/test/MockPageStore";
+import { makeMockPageStore } from "../test/MockPageStore";
 import * as chunkPageModule from "../chunk/chunkPage";
 import { EmbeddedContentStore, EmbeddedContent } from "./EmbeddedContent";
 import { Embedder } from "../embed";

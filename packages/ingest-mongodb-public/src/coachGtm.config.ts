@@ -4,7 +4,7 @@ import {
   PUBLIC_INGEST_ENV_VARS,
   PUBLIC_INGEST_MONGODB_DOT_COM_ENV_VARS,
 } from "./PublicIngestEnvVars";
-import { standardChunkFrontMatterUpdater } from "mongodb-rag-ingest/embed";
+import { standardChunkFrontMatterUpdater } from "mongodb-rag-ingest/core";
 import {
   assertEnvVars,
   makeOpenAiEmbedder,

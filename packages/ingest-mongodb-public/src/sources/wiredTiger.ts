@@ -2,7 +2,7 @@ import {
   HandleHtmlPageFuncOptions,
   handleHtmlDocument,
   makeGitDataSource,
-} from "mongodb-rag-ingest/sources";
+} from "mongodb-rag-ingest/core";
 
 const removeElements = (domDoc: Document) => [
   ...Array.from(domDoc.querySelectorAll("head")),

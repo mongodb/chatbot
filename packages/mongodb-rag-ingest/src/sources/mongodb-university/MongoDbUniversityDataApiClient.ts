@@ -28,6 +28,11 @@ export interface TiCatalogItem {
     IDs of labs associated with the catalog item.
    */
   associated_labs: string[];
+  /*
+    IDs of content associated with the catalog item. 
+    This is used for Learning Paths and Courses. Other learning formats 
+    do not have associated content.
+   */
   associated_content?: string[] | null;
   /**
     Whether or not the catalog item is in development.
@@ -39,8 +44,19 @@ export interface TiCatalogItem {
     about the sections and lessons.
    */
   sections: TiCatalogSection[];
+  /**
+    Description of the course topics covered.
+  */
   description?: string;
+  /**
+    Approximate time it takes to complete the course.
+   */
   duration?: string;
+  /**
+    Nested content for the catalog item. This is used for
+    Learning Paths and Courses, which are made up of multiple items such as
+    Units and Learning Bytes.
+   */
   nested_content?: TiCatalogItem[];
 }
 

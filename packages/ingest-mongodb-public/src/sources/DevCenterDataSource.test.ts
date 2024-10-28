@@ -7,9 +7,9 @@ import {
 } from "./DevCenterDataSource";
 import { assertEnvVars } from "mongodb-rag-core";
 import { INGEST_DEVCENTER_ENV_VARS } from "../PublicIngestEnvVars";
+import "dotenv/config";
 
 const { DEVCENTER_CONNECTION_URI } = assertEnvVars(INGEST_DEVCENTER_ENV_VARS);
-import "dotenv/config";
 
 const SRC_ROOT = Path.resolve(__dirname, "../");
 

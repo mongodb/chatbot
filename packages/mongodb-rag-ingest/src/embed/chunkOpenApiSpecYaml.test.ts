@@ -1,26 +1,29 @@
 import fs from "fs";
 import Path from "path";
 import GPT3Tokenizer from "gpt3-tokenizer";
-import { handlePage } from "../sources/snooty/SnootyDataSource";
 import { chunkOpenApiSpecYaml } from "./chunkOpenApiSpecYaml";
+import { Page } from "mongodb-rag-core";
+import yaml from "yaml";
 
 const SRC_ROOT = Path.resolve(__dirname, "..");
 
 describe("chunkRedocOpenApiSpecYaml()", () => {
   jest.setTimeout(60000);
-  it("chunks a local Redoc OpenAPI spec", async () => {
-    const apiSpecPage = JSON.parse(
+  it("chunks a Redoc OpenAPI spec", async () => {
+    const apiSpec = JSON.parse(
       fs.readFileSync(
-        Path.resolve(SRC_ROOT, "../testData/localOpenApiSpecPage.json"),
+        Path.resolve(SRC_ROOT, "../testData/openApiSpec.json"),
         "utf-8"
       )
     );
-    const result = await handlePage(apiSpecPage.data, {
+    const page: Page = {
       sourceName: "sample-source",
-      baseUrl: "https://example.com",
-      tags: ["a"],
-    });
-    const chunks = await chunkOpenApiSpecYaml(result, {
+      url: "https://example.com",
+      title: "Sample OpenAPI Spec",
+      body: yaml.stringify(apiSpec),
+      format: "openapi-yaml",
+    };
+    const chunks = await chunkOpenApiSpecYaml(page, {
       maxChunkSize: 1250,
       chunkOverlap: 0,
       tokenizer: new GPT3Tokenizer({ type: "gpt3" }),
@@ -41,24 +44,5 @@ baseUrls:
     description: Find a single document that matches a query.
     x-codeSamples:`;
     expect(chunks[0].text).toContain(chunkTextExpected2);
-  });
-  test("chunks a remote Redoc OpenAPI spec", async () => {
-    const apiSpecPage = JSON.parse(
-      fs.readFileSync(
-        Path.resolve(SRC_ROOT, "../testData/remoteOpenApiSpecPage.json"),
-        "utf-8"
-      )
-    );
-    const result = await handlePage(apiSpecPage.data, {
-      sourceName: "sample-source",
-      baseUrl: "https://example.com",
-      tags: ["a"],
-    });
-    const chunks = await chunkOpenApiSpecYaml(result, {
-      maxChunkSize: 1250,
-      chunkOverlap: 0,
-      tokenizer: new GPT3Tokenizer({ type: "gpt3" }),
-    });
-    expect(chunks.length).toBeGreaterThan(0);
   });
 });

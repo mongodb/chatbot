@@ -1,13 +1,7 @@
 import Path from "path";
 import { strict as assert } from "assert";
 import { promises as fs } from "fs";
-import {
-  makeTypeChatJsonTranslateFunc,
-  assertEnvVars,
-  MongoClient,
-  Db,
-  ObjectId,
-} from "mongodb-rag-core";
+import { assertEnvVars, MongoClient, Db, ObjectId } from "mongodb-rag-core";
 import {
   Conversation,
   Message,
@@ -16,6 +10,7 @@ import {
 import { MessageAnalysis } from "./MessageAnalysis";
 
 import "dotenv/config";
+import { makeTypeChatJsonTranslateFunc } from "./TypeChatJsonTranslateFunc";
 
 const {
   MONGODB_DATABASE_NAME,

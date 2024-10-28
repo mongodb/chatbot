@@ -3,7 +3,7 @@
   pages from the mongodb.com CMS.
   Note: doesn't include mongodb.com/docs/* pages.
  */
-import { type DataSource } from "mongodb-rag-ingest/core";
+import { type DataSource } from "mongodb-rag-core";
 import { type Page, MongoClient, type ObjectId } from "mongodb-rag-core";
 import { strict as assert } from "assert";
 import striptags from "striptags";

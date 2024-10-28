@@ -1,5 +1,5 @@
 import { Config, makeIngestMetaStore } from "mongodb-rag-ingest";
-import { standardChunkFrontMatterUpdater } from "mongodb-rag-ingest/core";
+import { standardChunkFrontMatterUpdater } from "mongodb-rag-core";
 import {
   assertEnvVars,
   makeOpenAiEmbedder,

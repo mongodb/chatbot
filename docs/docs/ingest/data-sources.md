@@ -75,7 +75,7 @@ Here's an example implementation:
 import {
   makeGitDataSource,
   handleHtmlDocument,
-} from "mongodb-rag-ingest/core";
+} from "mongodb-rag-core";
 export const javaReactiveStreamsSourceConstructor = async () => {
   return await makeGitDataSource({
     name: "java-reactive-streams",
@@ -125,7 +125,7 @@ function to make this easier for Markdown-formatted text.
 You can import the `removeMarkdownImagesAndLinks()` function from the `mongodb-rag-ingest` package.
 
 ```ts
-import { removeMarkdownImagesAndLinks } from "mongodb-rag-ingest/core";
+import { removeMarkdownImagesAndLinks } from "mongodb-rag-core";
 ```
 
 To learn more about why you might want to strip out images and links,
@@ -141,7 +141,7 @@ before converting the document to Markdown.
 You can import the `handleHtmlDocument()` function from the `mongodb-rag-ingest` package.
 
 ```ts
-import { handleHtmlDocument } from "mongodb-rag-ingest/core";
+import { handleHtmlDocument } from "mongodb-rag-core";
 ```
 
 You can see `handleHtmlDocument()` [used in the MongoDB Docs AI Chatbot configuration](https://github.com/mongodb/chatbot/blob/6ab06a24ae085d0db650bc4883ce1278728e3131/ingest-mongodb-public/src/sources.ts#L258).

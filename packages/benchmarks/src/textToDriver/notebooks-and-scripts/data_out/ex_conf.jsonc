@@ -1,0 +1,1187 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "cinema_recommended",
+    "type": "MYSQL",
+    "lastModified": "2024-07-03T06:52:08.924768Z",
+    "schemasId": "7969350d96044e6c9c760b7dcf3e81cd",
+    "content": {
+      "settings": {
+        "viewMode": null,
+        "shouldRecommendSchema": false,
+        "casing": "CAMEL_CASE",
+        "codegen": null,
+        "keyHandling": "GENERATED"
+      },
+      "collections": {
+        "3f3c3562-7476-4a6f-accb-e12767ce7936": {
+          "name": "cinema",
+          "type": "REGULAR",
+          "timeSeriesOptions": null
+        },
+        "7163d06f-e74e-4d74-a81e-fc12bddad40c": {
+          "name": "film",
+          "type": "REGULAR",
+          "timeSeriesOptions": null
+        }
+      },
+      "mappings": {
+        "d9b5a455-4d3e-4e2e-9823-b434abcfa796": {
+          "settings": {
+            "type": "EMBEDDED_DOCUMENT_ARRAY",
+            "notes": null,
+            "embeddedPath": "schedule",
+            "primitive": null,
+            "arrayConditions": null,
+            "foreignKeyName": "schedule_FK_0_0",
+            "ruleFilter": null
+          },
+          "fields": {
+            "Cinema_ID": {
+              "target": {
+                "name": "Cinema_ID",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Cinema_ID",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Film_ID": {
+              "target": {
+                "name": "Film_ID",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Film_ID",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Price": {
+              "target": {
+                "name": "Price",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "DOUBLE"
+              },
+              "source": {
+                "name": "Price",
+                "databaseSpecificType": "FLOAT",
+                "isPrimaryKey": false
+              }
+            },
+            "Show_times_per_day": {
+              "target": {
+                "name": "Show_times_per_day",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Show_times_per_day",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Date": {
+              "target": {
+                "name": "Date",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "STRING"
+              },
+              "source": {
+                "name": "Date",
+                "databaseSpecificType": "TEXT",
+                "isPrimaryKey": false
+              }
+            }
+          },
+          "calculatedFields": {},
+          "collectionId": "3f3c3562-7476-4a6f-accb-e12767ce7936",
+          "table": "database.cinema.schedule"
+        },
+        "bfdc0747-e055-4725-8cc4-e4c191a75dd9": {
+          "settings": {
+            "type": "EMBEDDED_DOCUMENT_ARRAY",
+            "notes": null,
+            "embeddedPath": "schedule",
+            "primitive": null,
+            "arrayConditions": null,
+            "foreignKeyName": "schedule_FK_1_0",
+            "ruleFilter": null
+          },
+          "fields": {
+            "Cinema_ID": {
+              "target": {
+                "name": "Cinema_ID",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Cinema_ID",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Film_ID": {
+              "target": {
+                "name": "Film_ID",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Film_ID",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Price": {
+              "target": {
+                "name": "Price",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "DOUBLE"
+              },
+              "source": {
+                "name": "Price",
+                "databaseSpecificType": "FLOAT",
+                "isPrimaryKey": false
+              }
+            },
+            "Show_times_per_day": {
+              "target": {
+                "name": "Show_times_per_day",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Show_times_per_day",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Date": {
+              "target": {
+                "name": "Date",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "STRING"
+              },
+              "source": {
+                "name": "Date",
+                "databaseSpecificType": "TEXT",
+                "isPrimaryKey": false
+              }
+            }
+          },
+          "calculatedFields": {},
+          "collectionId": "7163d06f-e74e-4d74-a81e-fc12bddad40c",
+          "table": "database.cinema.schedule"
+        },
+        "2d51e1b7-2abf-4776-a9f1-f57d7f03912e": {
+          "settings": {
+            "type": "NEW_DOCUMENT",
+            "notes": null,
+            "embeddedPath": null,
+            "primitive": null,
+            "arrayConditions": null,
+            "foreignKeyName": null,
+            "ruleFilter": null
+          },
+          "fields": {
+            "Film_ID": {
+              "target": {
+                "name": "Film_ID",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Film_ID",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Directed_by": {
+              "target": {
+                "name": "Directed_by",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "STRING"
+              },
+              "source": {
+                "name": "Directed_by",
+                "databaseSpecificType": "TEXT",
+                "isPrimaryKey": false
+              }
+            },
+            "Production_code": {
+              "target": {
+                "name": "Production_code",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "STRING"
+              },
+              "source": {
+                "name": "Production_code",
+                "databaseSpecificType": "TEXT",
+                "isPrimaryKey": false
+              }
+            },
+            "Title": {
+              "target": {
+                "name": "Title",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "STRING"
+              },
+              "source": {
+                "name": "Title",
+                "databaseSpecificType": "TEXT",
+                "isPrimaryKey": false
+              }
+            },
+            "Original_air_date": {
+              "target": {
+                "name": "Original_air_date",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "STRING"
+              },
+              "source": {
+                "name": "Original_air_date",
+                "databaseSpecificType": "TEXT",
+                "isPrimaryKey": false
+              }
+            },
+            "Number_in_season": {
+              "target": {
+                "name": "Number_in_season",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Number_in_season",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Rank_in_series": {
+              "target": {
+                "name": "Rank_in_series",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Rank_in_series",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            }
+          },
+          "calculatedFields": {},
+          "collectionId": "7163d06f-e74e-4d74-a81e-fc12bddad40c",
+          "table": "database.cinema.film"
+        },
+        "f09b5d66-5c46-4dfe-91ef-c4f0abebbbee": {
+          "settings": {
+            "type": "NEW_DOCUMENT",
+            "notes": null,
+            "embeddedPath": null,
+            "primitive": null,
+            "arrayConditions": null,
+            "foreignKeyName": null,
+            "ruleFilter": null
+          },
+          "fields": {
+            "Cinema_ID": {
+              "target": {
+                "name": "Cinema_ID",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Cinema_ID",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Capacity": {
+              "target": {
+                "name": "Capacity",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Capacity",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Openning_year": {
+              "target": {
+                "name": "Openning_year",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Openning_year",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Name": {
+              "target": {
+                "name": "Name",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "STRING"
+              },
+              "source": {
+                "name": "Name",
+                "databaseSpecificType": "TEXT",
+                "isPrimaryKey": false
+              }
+            },
+            "Location": {
+              "target": {
+                "name": "Location",
+                "included": true,
+                "isNullExcluded": false,
+                "type": "STRING"
+              },
+              "source": {
+                "name": "Location",
+                "databaseSpecificType": "TEXT",
+                "isPrimaryKey": false
+              }
+            }
+          },
+          "calculatedFields": {},
+          "collectionId": "3f3c3562-7476-4a6f-accb-e12767ce7936",
+          "table": "database.cinema.cinema"
+        }
+      },
+      "relationships": {
+        "tables": {
+          "database.cinema.schedule": {
+            "mappings": [
+              "bfdc0747-e055-4725-8cc4-e4c191a75dd9",
+              "d9b5a455-4d3e-4e2e-9823-b434abcfa796"
+            ]
+          },
+          "database.cinema.film": {
+            "mappings": ["2d51e1b7-2abf-4776-a9f1-f57d7f03912e"]
+          },
+          "database.cinema.cinema": {
+            "mappings": ["f09b5d66-5c46-4dfe-91ef-c4f0abebbbee"]
+          }
+        },
+        "collections": {
+          "3f3c3562-7476-4a6f-accb-e12767ce7936": {
+            "mappings": [
+              "f09b5d66-5c46-4dfe-91ef-c4f0abebbbee",
+              "d9b5a455-4d3e-4e2e-9823-b434abcfa796"
+            ]
+          },
+          "7163d06f-e74e-4d74-a81e-fc12bddad40c": {
+            "mappings": [
+              "2d51e1b7-2abf-4776-a9f1-f57d7f03912e",
+              "bfdc0747-e055-4725-8cc4-e4c191a75dd9"
+            ]
+          }
+        },
+        "mappings": {
+          "d9b5a455-4d3e-4e2e-9823-b434abcfa796": { "children": [] },
+          "bfdc0747-e055-4725-8cc4-e4c191a75dd9": { "children": [] },
+          "2d51e1b7-2abf-4776-a9f1-f57d7f03912e": {
+            "children": ["bfdc0747-e055-4725-8cc4-e4c191a75dd9"]
+          },
+          "f09b5d66-5c46-4dfe-91ef-c4f0abebbbee": {
+            "children": ["d9b5a455-4d3e-4e2e-9823-b434abcfa796"]
+          }
+        }
+      },
+      "diagrams": {
+        "activeTab": "af05b24f-f80b-4b82-a509-98bb99c171ab",
+        "tabs": [
+          {
+            "id": "af05b24f-f80b-4b82-a509-98bb99c171ab",
+            "name": "Main Diagram",
+            "notes": null,
+            "relational": { "nodes": [], "edges": [] },
+            "collection": { "nodes": [], "edges": [] }
+          }
+        ]
+      },
+      "tables": {
+        "database.cinema.schedule": {
+          "path": {
+            "database": "database",
+            "schema": "cinema",
+            "table": "schedule"
+          }
+        },
+        "database.cinema.cinema": {
+          "path": {
+            "database": "database",
+            "schema": "cinema",
+            "table": "cinema"
+          }
+        },
+        "database.cinema.film": {
+          "path": {
+            "database": "database",
+            "schema": "cinema",
+            "table": "film"
+          }
+        }
+      }
+    },
+    "connectionDetails": {
+      "jdbc": {
+        "id": null,
+        "type": "MYSQL",
+        "url": "jdbc:mysql://127.0.0.1:33066/cinema?sslMode=preferred",
+        "user": "root",
+        "password": null,
+        "isManualUri": null,
+        "host": null,
+        "port": null,
+        "database": null,
+        "oracleIdentifier": null,
+        "mssqlAuthentication": null,
+        "useSSL": null,
+        "trustServerCertificate": null,
+        "mysqlSSLMode": null,
+        "postgresSSLMode": null,
+        "savePassword": null
+      },
+      "mongodb": null,
+      "ddl": null
+    },
+    "isSampleProject": null,
+    "id": "7011f2a732a44928800d32e5f6b1344b"
+  },
+  "schema": {
+    "id": "7969350d96044e6c9c760b7dcf3e81cd",
+    "full": {
+      "databases": {
+        "database": {
+          "schemas": {
+            "cinema": {
+              "tables": {
+                "schedule": {
+                  "type": "TABLE",
+                  "size": -1,
+                  "columns": {
+                    "Cinema_ID": {
+                      "type": {
+                        "databaseSpecificType": "INT",
+                        "precision": 10,
+                        "scale": 0
+                      },
+                      "ordinalPosition": 1,
+                      "primaryKey": { "name": "PRIMARY" },
+                      "foreignKey": {
+                        "name": "schedule_FK_0_0",
+                        "schema": "cinema",
+                        "table": "cinema",
+                        "column": "Cinema_ID",
+                        "cardinality": "ZERO_TO_MANY",
+                        "synthetic": null
+                      },
+                      "nullable": false,
+                      "autoIncremented": false,
+                      "generated": false,
+                      "hidden": false,
+                      "indexed": true,
+                      "uniqueIndexed": true
+                    },
+                    "Film_ID": {
+                      "type": {
+                        "databaseSpecificType": "INT",
+                        "precision": 10,
+                        "scale": 0
+                      },
+                      "ordinalPosition": 2,
+                      "primaryKey": { "name": "PRIMARY" },
+                      "foreignKey": {
+                        "name": "schedule_FK_1_0",
+                        "schema": "cinema",
+                        "table": "film",
+                        "column": "Film_ID",
+                        "cardinality": "ZERO_TO_MANY",
+                        "synthetic": null
+                      },
+                      "nullable": false,
+                      "autoIncremented": false,
+                      "generated": false,
+                      "hidden": false,
+                      "indexed": true,
+                      "uniqueIndexed": true
+                    },
+                    "Price": {
+                      "type": {
+                        "databaseSpecificType": "FLOAT",
+                        "precision": 12,
+                        "scale": 0
+                      },
+                      "ordinalPosition": 5,
+                      "primaryKey": null,
+                      "foreignKey": null,
+                      "nullable": true,
+                      "autoIncremented": false,
+                      "generated": false,
+                      "hidden": false,
+                      "indexed": false,
+                      "uniqueIndexed": false
+                    },
+                    "Show_times_per_day": {
+                      "type": {
+                        "databaseSpecificType": "INT",
+                        "precision": 10,
+                        "scale": 0
+                      },
+                      "ordinalPosition": 4,
+                      "primaryKey": null,
+                      "foreignKey": null,
+                      "nullable": true,
+                      "autoIncremented": false,
+                      "generated": false,
+                      "hidden": false,
+                      "indexed": false,
+                      "uniqueIndexed": false
+                    },
+                    "Date": {
+                      "type": {
+                        "databaseSpecificType": "TEXT",
+                        "precision": 65535,
+                        "scale": 0
+                      },
+                      "ordinalPosition": 3,
+                      "primaryKey": null,
+                      "foreignKey": null,
+                      "nullable": true,
+                      "autoIncremented": false,
+                      "generated": false,
+                      "hidden": false,
+                      "indexed": false,
+                      "uniqueIndexed": false
+                    }
+                  },
+                  "uniqueIndexes": { "PRIMARY": ["Cinema_ID", "Film_ID"] },
+                  "filter": null
+                },
+                "cinema": {
+                  "type": "TABLE",
+                  "size": -1,
+                  "columns": {
+                    "Cinema_ID": {
+                      "type": {
+                        "databaseSpecificType": "INT",
+                        "precision": 10,
+                        "scale": 0
+                      },
+                      "ordinalPosition": 1,
+                      "primaryKey": { "name": "PRIMARY" },
+                      "foreignKey": null,
+                      "nullable": false,
+                      "autoIncremented": true,
+                      "generated": false,
+                      "hidden": false,
+                      "indexed": true,
+                      "uniqueIndexed": true
+                    },
+                    "Capacity": {
+                      "type": {
+                        "databaseSpecificType": "INT",
+                        "precision": 10,
+                        "scale": 0
+                      },
+                      "ordinalPosition": 4,
+                      "primaryKey": null,
+                      "foreignKey": null,
+                      "nullable": true,
+                      "autoIncremented": false,
+                      "generated": false,
+                      "hidden": false,
+                      "indexed": false,
+                      "uniqueIndexed": false
+                    },
+                    "Openning_year": {
+                      "type": {
+                        "databaseSpecificType": "INT",
+                        "precision": 10,
+                        "scale": 0
+                      },
+                      "ordinalPosition": 3,
+                      "primaryKey": null,
+                      "foreignKey": null,
+                      "nullable": true,
+                      "autoIncremented": false,
+                      "generated": false,
+                      "hidden": false,
+                      "indexed": false,
+                      "uniqueIndexed": false
+                    },
+                    "Name": {
+                      "type": {
+                        "databaseSpecificType": "TEXT",
+                        "precision": 65535,
+                        "scale": 0
+                      },
+                      "ordinalPosition": 2,
+                      "primaryKey": null,
+                      "foreignKey": null,
+                      "nullable": true,
+                      "autoIncremented": false,
+                      "generated": false,
+                      "hidden": false,
+                      "indexed": false,
+                      "uniqueIndexed": false
+                    },
+                    "Location": {
+                      "type": {
+                        "databaseSpecificType": "TEXT",
+                        "precision": 65535,
+                        "scale": 0
+                      },
+                      "ordinalPosition": 5,
+                      "primaryKey": null,
+                      "foreignKey": null,
+                      "nullable": true,
+                      "autoIncremented": false,
+                      "generated": false,
+                      "hidden": false,
+                      "indexed": false,
+                      "uniqueIndexed": false
+                    }
+                  },
+                  "uniqueIndexes": { "PRIMARY": ["Cinema_ID"] },
+                  "filter": null
+                },
+                "film": {
+                  "type": "TABLE",
+                  "size": -1,
+                  "columns": {
+                    "Film_ID": {
+                      "type": {
+                        "databaseSpecificType": "INT",
+                        "precision": 10,
+                        "scale": 0
+                      },
+                      "ordinalPosition": 1,
+                      "primaryKey": { "name": "PRIMARY" },
+                      "foreignKey": null,
+                      "nullable": false,
+                      "autoIncremented": true,
+                      "generated": false,
+                      "hidden": false,
+                      "indexed": true,
+                      "uniqueIndexed": true
+                    },
+                    "Directed_by": {
+                      "type": {
+                        "databaseSpecificType": "TEXT",
+                        "precision": 65535,
+                        "scale": 0
+                      },
+                      "ordinalPosition": 5,
+                      "primaryKey": null,
+                      "foreignKey": null,
+                      "nullable": true,
+                      "autoIncremented": false,
+                      "generated": false,
+                      "hidden": false,
+                      "indexed": false,
+                      "uniqueIndexed": false
+                    },
+                    "Production_code": {
+                      "type": {
+                        "databaseSpecificType": "TEXT",
+                        "precision": 65535,
+                        "scale": 0
+                      },
+                      "ordinalPosition": 7,
+                      "primaryKey": null,
+                      "foreignKey": null,
+                      "nullable": true,
+                      "autoIncremented": false,
+                      "generated": false,
+                      "hidden": false,
+                      "indexed": false,
+                      "uniqueIndexed": false
+                    },
+                    "Title": {
+                      "type": {
+                        "databaseSpecificType": "TEXT",
+                        "precision": 65535,
+                        "scale": 0
+                      },
+                      "ordinalPosition": 4,
+                      "primaryKey": null,
+                      "foreignKey": null,
+                      "nullable": true,
+                      "autoIncremented": false,
+                      "generated": false,
+                      "hidden": false,
+                      "indexed": false,
+                      "uniqueIndexed": false
+                    },
+                    "Original_air_date": {
+                      "type": {
+                        "databaseSpecificType": "TEXT",
+                        "precision": 65535,
+                        "scale": 0
+                      },
+                      "ordinalPosition": 6,
+                      "primaryKey": null,
+                      "foreignKey": null,
+                      "nullable": true,
+                      "autoIncremented": false,
+                      "generated": false,
+                      "hidden": false,
+                      "indexed": false,
+                      "uniqueIndexed": false
+                    },
+                    "Number_in_season": {
+                      "type": {
+                        "databaseSpecificType": "INT",
+                        "precision": 10,
+                        "scale": 0
+                      },
+                      "ordinalPosition": 3,
+                      "primaryKey": null,
+                      "foreignKey": null,
+                      "nullable": true,
+                      "autoIncremented": false,
+                      "generated": false,
+                      "hidden": false,
+                      "indexed": false,
+                      "uniqueIndexed": false
+                    },
+                    "Rank_in_series": {
+                      "type": {
+                        "databaseSpecificType": "INT",
+                        "precision": 10,
+                        "scale": 0
+                      },
+                      "ordinalPosition": 2,
+                      "primaryKey": null,
+                      "foreignKey": null,
+                      "nullable": true,
+                      "autoIncremented": false,
+                      "generated": false,
+                      "hidden": false,
+                      "indexed": false,
+                      "uniqueIndexed": false
+                    }
+                  },
+                  "uniqueIndexes": { "PRIMARY": ["Film_ID"] },
+                  "filter": null
+                }
+              },
+              "views": {},
+              "routines": {},
+              "triggers": {}
+            }
+          }
+        }
+      },
+      "metadata": { "databaseType": "MYSQL", "databaseVersion": "8.3.0" }
+    },
+    "imported": {
+      "collections": {
+        "3f3c3562-7476-4a6f-accb-e12767ce7936": {
+          "name": "cinema",
+          "type": "REGULAR",
+          "timeSeriesOptions": null
+        },
+        "7163d06f-e74e-4d74-a81e-fc12bddad40c": {
+          "name": "film",
+          "type": "REGULAR",
+          "timeSeriesOptions": null
+        }
+      },
+      "mappings": {
+        "d9b5a455-4d3e-4e2e-9823-b434abcfa796": {
+          "settings": {
+            "type": "EMBEDDED_DOCUMENT_ARRAY",
+            "notes": null,
+            "embeddedPath": "schedule",
+            "primitive": null,
+            "arrayConditions": null,
+            "foreignKeyName": "schedule_FK_0_0",
+            "ruleFilter": null
+          },
+          "collectionId": "3f3c3562-7476-4a6f-accb-e12767ce7936",
+          "path": {
+            "database": "database",
+            "schema": "cinema",
+            "table": "schedule"
+          },
+          "fields": {
+            "Cinema_ID": {
+              "target": {
+                "name": "Cinema_ID",
+                "included": true,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Cinema_ID",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Film_ID": {
+              "target": {
+                "name": "Film_ID",
+                "included": true,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Film_ID",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Price": {
+              "target": { "name": "Price", "included": true, "type": "DOUBLE" },
+              "source": {
+                "name": "Price",
+                "databaseSpecificType": "FLOAT",
+                "isPrimaryKey": false
+              }
+            },
+            "Show_times_per_day": {
+              "target": {
+                "name": "Show_times_per_day",
+                "included": true,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Show_times_per_day",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Date": {
+              "target": { "name": "Date", "included": true, "type": "STRING" },
+              "source": {
+                "name": "Date",
+                "databaseSpecificType": "TEXT",
+                "isPrimaryKey": false
+              }
+            }
+          },
+          "table": "database.cinema.schedule"
+        },
+        "bfdc0747-e055-4725-8cc4-e4c191a75dd9": {
+          "settings": {
+            "type": "EMBEDDED_DOCUMENT_ARRAY",
+            "notes": null,
+            "embeddedPath": "schedule",
+            "primitive": null,
+            "arrayConditions": null,
+            "foreignKeyName": "schedule_FK_1_0",
+            "ruleFilter": null
+          },
+          "collectionId": "7163d06f-e74e-4d74-a81e-fc12bddad40c",
+          "path": {
+            "database": "database",
+            "schema": "cinema",
+            "table": "schedule"
+          },
+          "fields": {
+            "Cinema_ID": {
+              "target": {
+                "name": "Cinema_ID",
+                "included": true,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Cinema_ID",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Film_ID": {
+              "target": {
+                "name": "Film_ID",
+                "included": true,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Film_ID",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Price": {
+              "target": { "name": "Price", "included": true, "type": "DOUBLE" },
+              "source": {
+                "name": "Price",
+                "databaseSpecificType": "FLOAT",
+                "isPrimaryKey": false
+              }
+            },
+            "Show_times_per_day": {
+              "target": {
+                "name": "Show_times_per_day",
+                "included": true,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Show_times_per_day",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Date": {
+              "target": { "name": "Date", "included": true, "type": "STRING" },
+              "source": {
+                "name": "Date",
+                "databaseSpecificType": "TEXT",
+                "isPrimaryKey": false
+              }
+            }
+          },
+          "table": "database.cinema.schedule"
+        },
+        "2d51e1b7-2abf-4776-a9f1-f57d7f03912e": {
+          "settings": {
+            "type": "NEW_DOCUMENT",
+            "notes": null,
+            "embeddedPath": null,
+            "primitive": null,
+            "arrayConditions": null,
+            "foreignKeyName": null,
+            "ruleFilter": null
+          },
+          "collectionId": "7163d06f-e74e-4d74-a81e-fc12bddad40c",
+          "path": {
+            "database": "database",
+            "schema": "cinema",
+            "table": "film"
+          },
+          "fields": {
+            "Film_ID": {
+              "target": {
+                "name": "Film_ID",
+                "included": true,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Film_ID",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Directed_by": {
+              "target": {
+                "name": "Directed_by",
+                "included": true,
+                "type": "STRING"
+              },
+              "source": {
+                "name": "Directed_by",
+                "databaseSpecificType": "TEXT",
+                "isPrimaryKey": false
+              }
+            },
+            "Production_code": {
+              "target": {
+                "name": "Production_code",
+                "included": true,
+                "type": "STRING"
+              },
+              "source": {
+                "name": "Production_code",
+                "databaseSpecificType": "TEXT",
+                "isPrimaryKey": false
+              }
+            },
+            "Title": {
+              "target": { "name": "Title", "included": true, "type": "STRING" },
+              "source": {
+                "name": "Title",
+                "databaseSpecificType": "TEXT",
+                "isPrimaryKey": false
+              }
+            },
+            "Original_air_date": {
+              "target": {
+                "name": "Original_air_date",
+                "included": true,
+                "type": "STRING"
+              },
+              "source": {
+                "name": "Original_air_date",
+                "databaseSpecificType": "TEXT",
+                "isPrimaryKey": false
+              }
+            },
+            "Number_in_season": {
+              "target": {
+                "name": "Number_in_season",
+                "included": true,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Number_in_season",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Rank_in_series": {
+              "target": {
+                "name": "Rank_in_series",
+                "included": true,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Rank_in_series",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            }
+          },
+          "table": "database.cinema.film"
+        },
+        "f09b5d66-5c46-4dfe-91ef-c4f0abebbbee": {
+          "settings": {
+            "type": "NEW_DOCUMENT",
+            "notes": null,
+            "embeddedPath": null,
+            "primitive": null,
+            "arrayConditions": null,
+            "foreignKeyName": null,
+            "ruleFilter": null
+          },
+          "collectionId": "3f3c3562-7476-4a6f-accb-e12767ce7936",
+          "path": {
+            "database": "database",
+            "schema": "cinema",
+            "table": "cinema"
+          },
+          "fields": {
+            "Cinema_ID": {
+              "target": {
+                "name": "Cinema_ID",
+                "included": true,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Cinema_ID",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Capacity": {
+              "target": {
+                "name": "Capacity",
+                "included": true,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Capacity",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Openning_year": {
+              "target": {
+                "name": "Openning_year",
+                "included": true,
+                "type": "INTEGER"
+              },
+              "source": {
+                "name": "Openning_year",
+                "databaseSpecificType": "INT",
+                "isPrimaryKey": false
+              }
+            },
+            "Name": {
+              "target": { "name": "Name", "included": true, "type": "STRING" },
+              "source": {
+                "name": "Name",
+                "databaseSpecificType": "TEXT",
+                "isPrimaryKey": false
+              }
+            },
+            "Location": {
+              "target": {
+                "name": "Location",
+                "included": true,
+                "type": "STRING"
+              },
+              "source": {
+                "name": "Location",
+                "databaseSpecificType": "TEXT",
+                "isPrimaryKey": false
+              }
+            }
+          },
+          "table": "database.cinema.cinema"
+        }
+      },
+      "relationships": {
+        "tables": {
+          "database.cinema.schedule": {
+            "mappings": [
+              "bfdc0747-e055-4725-8cc4-e4c191a75dd9",
+              "d9b5a455-4d3e-4e2e-9823-b434abcfa796"
+            ]
+          },
+          "database.cinema.film": {
+            "mappings": ["2d51e1b7-2abf-4776-a9f1-f57d7f03912e"]
+          },
+          "database.cinema.cinema": {
+            "mappings": ["f09b5d66-5c46-4dfe-91ef-c4f0abebbbee"]
+          }
+        },
+        "collections": {
+          "3f3c3562-7476-4a6f-accb-e12767ce7936": {
+            "mappings": [
+              "f09b5d66-5c46-4dfe-91ef-c4f0abebbbee",
+              "d9b5a455-4d3e-4e2e-9823-b434abcfa796"
+            ]
+          },
+          "7163d06f-e74e-4d74-a81e-fc12bddad40c": {
+            "mappings": [
+              "2d51e1b7-2abf-4776-a9f1-f57d7f03912e",
+              "bfdc0747-e055-4725-8cc4-e4c191a75dd9"
+            ]
+          }
+        },
+        "mappings": {
+          "d9b5a455-4d3e-4e2e-9823-b434abcfa796": { "children": [] },
+          "bfdc0747-e055-4725-8cc4-e4c191a75dd9": { "children": [] },
+          "2d51e1b7-2abf-4776-a9f1-f57d7f03912e": {
+            "children": ["bfdc0747-e055-4725-8cc4-e4c191a75dd9"]
+          },
+          "f09b5d66-5c46-4dfe-91ef-c4f0abebbbee": {
+            "children": ["d9b5a455-4d3e-4e2e-9823-b434abcfa796"]
+          }
+        }
+      }
+    }
+  },
+  "queries": []
+}

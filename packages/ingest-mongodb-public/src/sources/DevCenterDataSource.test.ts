@@ -1,4 +1,3 @@
-import { strict as assert } from "assert";
 import Path from "path";
 import fs from "fs";
 import {
@@ -6,7 +5,10 @@ import {
   makeDevCenterDataSource,
   makeDevCenterPage,
 } from "./DevCenterDataSource";
+import { assertEnvVars } from "mongodb-rag-core";
+import { INGEST_DEVCENTER_ENV_VARS } from "../PublicIngestEnvVars";
 
+const { DEVCENTER_CONNECTION_URI } = assertEnvVars(INGEST_DEVCENTER_ENV_VARS);
 import "dotenv/config";
 
 const SRC_ROOT = Path.resolve(__dirname, "../");
@@ -21,18 +23,14 @@ const devCenterDoc = JSON.parse(
 );
 describe("DevCenterDataSource", () => {
   jest.setTimeout(90000);
-  const { DEVCENTER_CONNECTION_URI } = process.env;
   it("loads pages from dev center", async () => {
-    assert(
-      DEVCENTER_CONNECTION_URI !== undefined,
-      "env var DEVCENTER_CONNECTION_URI not defined. Did you copy .env.example to .env and fill it in?"
-    );
     const source = await makeDevCenterDataSource({
       type: "devcenter",
       name: "devcenter",
       collectionName: "search_content_prod",
       databaseName: "devcenter",
       baseUrl: "https://example.com/developer",
+      connectionUri: DEVCENTER_CONNECTION_URI,
     });
 
     const pages = await source.fetchPages();

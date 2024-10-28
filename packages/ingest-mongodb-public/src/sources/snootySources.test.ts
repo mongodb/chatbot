@@ -1,8 +1,8 @@
 import {
-  makeSnootyDataSources,
   snootyProjectConfig,
+  makeSnootyDataSources,
   snootyDataApiBaseUrl,
-} from "./snooty";
+} from "./snootySources";
 
 describe("Snooty data sources", () => {
   test.each(snootyProjectConfig)("$name should fetch data", async (project) => {

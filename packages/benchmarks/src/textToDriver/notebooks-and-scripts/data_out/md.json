@@ -1,0 +1,28 @@
+{
+  "indexes": [
+    {
+      "v": { "$numberInt": "2" },
+      "key": { "_id": { "$numberInt": "1" } },
+      "name": "_id_"
+    },
+    {
+      "v": { "$numberInt": "2" },
+      "key": {
+        "Cinema_ID": { "$numberInt": "1" },
+        "Capacity": { "$numberInt": "1" },
+        "Openning_year": { "$numberInt": "1" },
+        "Name": { "$numberInt": "1" },
+        "Location": { "$numberInt": "1" }
+      },
+      "name": "Cinema_ID_1_Capacity_1_Openning_year_1_Name_1_Location_1"
+    },
+    {
+      "v": { "$numberInt": "2" },
+      "key": { "Cinema_ID": { "$numberInt": "1" } },
+      "name": "Cinema_ID_1"
+    }
+  ],
+  "uuid": "05cdc148db51403da27018559f7cb9cd",
+  "collectionName": "cinema",
+  "type": "collection"
+}

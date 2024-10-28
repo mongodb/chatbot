@@ -24,9 +24,7 @@
     "build",
     "README.md"
   ],
-  "exports": {
-    ".": "./build/index.js"
-  },
+  "main": "./build/index.js",
   "bin": {
     "ingest": "./build/main.js"
   },

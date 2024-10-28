@@ -1,9 +1,8 @@
 import { createInterface } from "readline";
 import { Page, PageFormat, logger } from "mongodb-rag-core";
 import fetch from "node-fetch";
-import { DataSource } from "../DataSource";
+import { DataSource, ProjectBase } from "mongodb-rag-ingest/sources";
 import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
-import { ProjectBase } from "../ProjectBase";
 import {
   getTitleFromSnootyOpenApiSpecAst,
   snootyAstToOpenApiSpec,
@@ -26,10 +25,10 @@ export type SnootyPageEntry = SnootyManifestEntry & {
 /**
   Represents metadata in a Snooty manifest file.
  */
-  export type SnootyMetadataEntry = SnootyManifestEntry & {
-    type: "metadata";
-    data: {title?: string};
-  };
+export type SnootyMetadataEntry = SnootyManifestEntry & {
+  type: "metadata";
+  data: { title?: string };
+};
 
 /**
   A node in the Snooty AST.
@@ -63,9 +62,9 @@ export type SnootyPageData = {
 /**
   A Snooty Data API metadata object. This contains project-level information, such as the site name.
  */
-  export type SnootyMetadata = {
-    title?: string;
-  };
+export type SnootyMetadata = {
+  title?: string;
+};
 
 export type SnootyProjectConfig = ProjectBase & {
   type: "snooty";
@@ -166,7 +165,7 @@ export const makeSnootyDataSource = ({
       const stream = createInterface(body);
       const linePromises: Promise<void>[] = [];
       const pages: Page[] = [];
-      let siteTitle: string | undefined = undefined
+      let siteTitle: string | undefined = undefined;
       await new Promise<void>((resolve, reject) => {
         stream.on("line", async (line) => {
           const entry = JSON.parse(line) as SnootyManifestEntry;
@@ -229,11 +228,11 @@ export const makeSnootyDataSource = ({
       });
       await Promise.allSettled(linePromises);
       // add metadata to all the pages
-      for(const page of pages){
+      for (const page of pages) {
         if (!page.metadata) {
-          page.metadata = {}
+          page.metadata = {};
         }
-        page.metadata.siteTitle = siteTitle 
+        page.metadata.siteTitle = siteTitle;
       }
       return pages;
     },

@@ -1,17 +1,18 @@
-import { MongoClient } from "mongodb-rag-core";
+import { logger, MongoClient, Page } from "mongodb-rag-core";
 import { strict as assert } from "assert";
 import { convert } from "html-to-text";
-import { Page, assertEnvVars, logger } from "mongodb-rag-core";
-import { INGEST_ENV_VARS } from "../IngestEnvVars";
-import { removeMarkdownImagesAndLinks } from "./removeMarkdownImagesAndLinks";
-import { DataSource } from "./DataSource";
-import { ProjectBase } from "./ProjectBase";
+import {
+  DataSource,
+  ProjectBase,
+  removeMarkdownImagesAndLinks,
+} from "mongodb-rag-ingest/sources";
 
 export type DevCenterProjectConfig = ProjectBase & {
   type: "devcenter";
   databaseName: string;
   collectionName: string;
   baseUrl: string;
+  connectionUri: string;
 };
 
 // This type is based on what's in the DevCenter search_content_prod collection
@@ -34,13 +35,12 @@ export const makeDevCenterDataSource = async ({
   databaseName,
   collectionName,
   baseUrl,
+  connectionUri,
 }: DevCenterProjectConfig): Promise<DataSource> => {
-  const { DEVCENTER_CONNECTION_URI } = assertEnvVars(INGEST_ENV_VARS);
-
   return {
     name,
     async fetchPages() {
-      const client = await new MongoClient(DEVCENTER_CONNECTION_URI).connect();
+      const client = await new MongoClient(connectionUri).connect();
       try {
         const db = client.db(databaseName);
         const collection = db.collection<DevCenterEntry>(collectionName);

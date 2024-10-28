@@ -49,7 +49,7 @@ export const leafsteroids = async () => {
     name: "mongodb-developer-leafsteroids",
     repoUrl: "https://github.com/mongodb-developer/leafsteroids",
     repoLoaderOptions: {
-      branch: "master",
+      branch: "main",
     },
     metadata: {
       productName: "MongoDB Developer Code Examples",
@@ -78,7 +78,7 @@ export const mongoRx = async () => {
     name: "mongodb-developer-mongorx",
     repoUrl: "https://github.com/mongodb-developer/mongorx",
     repoLoaderOptions: {
-      branch: "master",
+      branch: "main",
       ignoreFiles: [/\.browserslistrc/],
     },
     metadata: {

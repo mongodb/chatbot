@@ -2,7 +2,7 @@ import { makeDataStreamer } from "./DataStreamer";
 import type {
   OpenAIChatCompletionWithoutUsage,
   OpenAiStreamingResponse,
-} from "./ChatLlm";
+} from "./chatLlm";
 import { createResponse } from "node-mocks-http";
 import { EventEmitter } from "events";
 import { Response } from "express";

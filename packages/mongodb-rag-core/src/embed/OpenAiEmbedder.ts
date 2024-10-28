@@ -1,6 +1,6 @@
 import { OpenAIClient } from "@azure/openai";
-import { Embedder } from "./embed/Embedder";
-import { logger } from "./logger";
+import { Embedder } from "./Embedder";
+import { logger } from "../logger";
 import { stripIndent } from "common-tags";
 import { backOff, BackoffOptions } from "exponential-backoff";
 

@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { OpenAiStreamingResponse } from "./ChatLlm";
+import { OpenAiStreamingResponse } from "./chatLlm";
 import { logger } from "./logger";
 import { References } from "./References";
 

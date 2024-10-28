@@ -1,2 +1,2 @@
-export * from "./getChangedPages";
-export * from "./updatePages";
+export * from "mongodb-rag-core/src/pageStore/getChangedPages";
+export * from "mongodb-rag-core/src/pageStore/updatePages";

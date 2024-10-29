@@ -45,6 +45,7 @@ export type Config = {
 
   /**
     The maximum number of concurrent requests to make to the Jira API.
+    @default 12
    */
   jiraApiMaxConcurrency?: number;
 
@@ -55,6 +56,7 @@ export type Config = {
 
   /**
    The maximum number of concurrent requests to make to an LLM generator.
+   @default 8
    */
   llmMaxConcurrency?: number;
 };

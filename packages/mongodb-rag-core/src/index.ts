@@ -28,6 +28,7 @@ export * from "./VectorStore";
 export * from "./arrayFilters";
 export * from "./assertEnvVars";
 
-// Everyone share the same mongodb driver version
+// Everyone share the same versions of these packages
 export * from "mongodb";
 export * from "@azure/openai";
+export * from "./langchain";

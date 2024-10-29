@@ -27,6 +27,8 @@
   "devDependencies": {
     "@babel/preset-typescript": "^7",
     "@babel/types": "^7.22.5",
+    "@types/encodeurl": "^1.0.2",
+    "@types/html-to-text": "^9.0.4",
     "@types/jest": "^29.5.2",
     "@types/node": "^12",
     "@types/node-fetch": "^2.6.4",

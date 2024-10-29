@@ -45,6 +45,27 @@ function makeCatalogItemPages({
 }): Page[] {
   const pages: Page[] = [];
   for (const catalogItem of tiCatalogItems) {
+    /** Create page for higher level courses.
+     * Higher level courses are Leanring Paths and Courses that have nested content.
+     * Nested content is made up of other TiCatalogItems such as Units and Learning Bytes.
+     * Note: Higher level courses do not have videos, but their nested content does.
+    */
+    if (catalogItem.learning_format === "Learning Path" || catalogItem.learning_format === "Course") {
+      const page: Page = {
+        sourceName,
+        url: `https://learn.mongodb.com/learning-paths/${catalogItem.slug}`,
+        title: catalogItem.name,
+        format: "md",
+        body: generateMarkdown({ tiCatalogItem: catalogItem }),
+        metadata: {
+          ...(metadata ?? {}),
+          tags: metadata?.tags ?? [],
+          learning_format: catalogItem.learning_format,
+        },
+      }
+      pages.push(page);
+      continue;
+    }
     for (const section of catalogItem.sections ?? []) {
       for (const lesson of section.lessons ?? []) {
         // Don't create a page for lessons without videos.
@@ -180,4 +201,27 @@ export function convertVideoTranscriptFromSrtToTxt(transcript: string): string {
     .map((line) => line.trim())
     .join(" ")
     .trim();
+}
+
+/**
+  Helper function to create Markdown content for MongoDB University Learning Paths and Courses
+  based on titles, duration, and descriptions.
+ */
+export function generateMarkdown({
+  tiCatalogItem
+}: {
+  tiCatalogItem: TiCatalogItem;
+}): string {
+  const { name, description, nested_content } = tiCatalogItem;
+  const title = `# ${name}`;
+  const markdownContent = [title, description, `\n`];
+  if (nested_content) {
+    for (const nested of nested_content) {
+      const { name, duration, description, slug } = nested;
+      const title = `#### ${name}`;
+      const link = `[View Details] (https://learn.mongodb.com/courses/${slug})`;
+      markdownContent.push(title, duration, description, link, `\n`);
+    }
+  }
+  return markdownContent.join('\n');
 }

@@ -12,7 +12,6 @@ import {
   removeMarkdownImagesAndLinks,
   MakeMongoDbUniversityDataSourceParams,
   makeMongoDbUniversityDataSource,
-  filterOnlyPublicActiveTiCatalogItems,
 } from "mongodb-rag-ingest/sources";
 import { prepareSnootySources } from "mongodb-rag-ingest/sources/snooty";
 import { prismaSourceConstructor } from "./prisma";
@@ -45,7 +44,7 @@ const mongoDbUniversitySourceConstructor = async () => {
     sourceName: "mongodb-university",
     baseUrl: "https://api.learn.mongodb.com/rest/catalog",
     apiKey: universityDataApiKey,
-    tiCatalogFilterFunc: filterOnlyPublicActiveTiCatalogItems,
+    public_only: true,
     metadata: {
       tags: ["transcript"],
     },

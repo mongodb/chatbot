@@ -1,6 +1,5 @@
 import "dotenv/config";
 import {
-  filterOnlyPublicActiveTiCatalogItems,
   makeMongoDbUniversityDataSource,
 } from "./MongoDbUniversityDataSource";
 jest.setTimeout(100000);
@@ -14,7 +13,7 @@ describe("makeMongoDBUniversityDataSource()", () => {
       sourceName: "testSource",
       baseUrl,
       apiKey,
-      tiCatalogFilterFunc: () => true,
+      public_only: true,
     });
     expect(dataSource.name).toBe("testSource");
   });
@@ -23,7 +22,7 @@ describe("makeMongoDBUniversityDataSource()", () => {
       sourceName: "testSource",
       baseUrl,
       apiKey,
-      tiCatalogFilterFunc: () => true,
+      public_only: true
     });
     const pages = await dataSource.fetchPages();
     expect(pages.length).toBeGreaterThan(0);
@@ -33,28 +32,17 @@ describe("makeMongoDBUniversityDataSource()", () => {
       sourceName: "testSource",
       baseUrl,
       apiKey,
-      tiCatalogFilterFunc: filterOnlyPublicActiveTiCatalogItems,
+      public_only: true
     });
     const pages = await dataSource.fetchPages();
     expect(pages.length).toBeGreaterThan(0);
-  });
-  it("should not fetch any pages for a data source with a filter that doesn't match", async () => {
-    const dataSource = makeMongoDbUniversityDataSource({
-      sourceName: "testSource",
-      baseUrl,
-      apiKey,
-      tiCatalogFilterFunc: (item) =>
-        item.microsites.includes("DefinitelyNotARealMicrosite👽🧙🏓👾"),
-    });
-    const pages = await dataSource.fetchPages();
-    expect(pages).toHaveLength(0);
   });
   it("should add metadata to each page in data source", async () => {
     const dataSource = makeMongoDbUniversityDataSource({
       sourceName: "testSource",
       baseUrl,
       apiKey,
-      tiCatalogFilterFunc: filterOnlyPublicActiveTiCatalogItems,
+      public_only: true,
       metadata: {
         foo: "bar",
       },

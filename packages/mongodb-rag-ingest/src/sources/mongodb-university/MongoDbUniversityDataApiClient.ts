@@ -133,7 +133,7 @@ interface ResponseMetadata {
   filter: null | unknown;
 }
 
-interface GetAllCatalogItemsResponseData {
+interface GetCatalogItemsResponseData {
   data: TiCatalogItem[];
   metadata: ResponseMetadata;
 }
@@ -153,7 +153,7 @@ export interface MongoDbUniversityDataApiClient {
     Load all the catalog items from the MongoDB University
     Data API.
    */
-  getAllCatalogItems(): Promise<GetAllCatalogItemsResponseData>;
+  getCatalogItems(): Promise<GetCatalogItemsResponseData>;
   /**
     Load all the videos from the MongoDB University Data API.
    */
@@ -175,12 +175,25 @@ export function makeMongoDbUniversityDataApiClient({
   };
 
   return {
-    async getAllCatalogItems() {
-      const response = await fetch(`${baseUrl}/ti`, {
-        headers,
+    async getCatalogItems(
+      { public_only, learning_formats, nest_associated_content }: 
+      { public_only?: boolean; learning_formats?: string[]; nest_associated_content?: boolean; } = {})
+    {
+      const search_params = new URLSearchParams();
+      if (public_only !== undefined) {
+        search_params.append("public_only", public_only.toString());
+      }
+      if (learning_formats) {
+        learning_formats.forEach((format) => search_params.append("learning_formats", format));
+      }
+      if (nest_associated_content !== undefined) {
+        search_params.append("nest_associated_content", nest_associated_content.toString());
+      }
+      const response = await fetch(`${baseUrl}/ti?${search_params}`, {
+      headers,
       });
       const json = await response.json();
-      return json as GetAllCatalogItemsResponseData;
+      return json as GetCatalogItemsResponseData;
     },
     async getAllVideos() {
       let offset = 0;

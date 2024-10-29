@@ -5,7 +5,7 @@ import {
   withConfig,
   withConfigOptions,
 } from "../withConfig";
-import { updateEmbeddedContent } from "../core";
+import { updateEmbeddedContent } from "mongodb-rag-core";
 
 type EmbeddedContentCommandArgs = {
   since: string;

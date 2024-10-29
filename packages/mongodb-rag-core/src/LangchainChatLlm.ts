@@ -48,16 +48,16 @@ export function makeLangchainChatLlm({
           index++;
           yield {
             id: index.toString(),
-            created: new Date(),
+            created: Date.now(),
             choices: [
               {
-                finishReason: null,
+                finish_reason: null,
                 index: index,
                 delta: {
                   role: "assistant",
                   content:
                     typeof chunk.content === "string" ? chunk.content : "",
-                  toolCalls: [],
+                  tool_calls: [],
                 },
               },
             ],

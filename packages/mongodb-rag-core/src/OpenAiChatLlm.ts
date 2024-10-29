@@ -1,8 +1,4 @@
-import {
-  ChatRequestAssistantMessage,
-  GetChatCompletionsOptions,
-} from "@azure/openai";
-import { OpenAIClient } from "@azure/openai";
+import OpenAI from "openai";
 import { strict as assert } from "assert";
 import { ChatLlm, LlmAnswerQuestionParams, Tool } from "./ChatLlm";
 
@@ -11,8 +7,11 @@ import { ChatLlm, LlmAnswerQuestionParams, Tool } from "./ChatLlm";
  */
 export interface MakeOpenAiChatLlmParams {
   deployment: string;
-  openAiClient: OpenAIClient;
-  openAiLmmConfigOptions?: GetChatCompletionsOptions;
+  openAiClient: OpenAI;
+  openAiLmmConfigOptions?: Omit<
+    OpenAI.ChatCompletionCreateParams,
+    "model" | "messages"
+  >;
   tools?: Tool[];
 }
 
@@ -37,15 +36,14 @@ export function makeOpenAiChatLlm({
       messages,
       toolCallOptions,
     }: LlmAnswerQuestionParams) {
-      const completionStream = await openAiClient.streamChatCompletions(
-        deployment,
+      const completionStream = await openAiClient.chat.completions.create({
+        model: deployment,
         messages,
-        {
-          ...(openAiLmmConfigOptions ?? {}),
-          ...(toolCallOptions ? { functionCall: toolCallOptions } : {}),
-          functions: tools?.map((tool) => tool.definition),
-        }
-      );
+        ...(openAiLmmConfigOptions ?? {}),
+        ...(toolCallOptions ? { function_call: toolCallOptions } : {}),
+        functions: tools?.map((tool) => tool.definition),
+        stream: true,
+      });
       return completionStream;
     },
     async answerQuestionAwaited({
@@ -54,34 +52,41 @@ export function makeOpenAiChatLlm({
     }: LlmAnswerQuestionParams) {
       const {
         choices: [choice],
-      } = await openAiClient.getChatCompletions(deployment, messages, {
+      } = await openAiClient.chat.completions.create({
+        model: deployment,
+        messages,
         ...(openAiLmmConfigOptions ?? {}),
-        ...(toolCallOptions ? { functionCall: toolCallOptions } : {}),
+        ...(toolCallOptions ? { function_call: toolCallOptions } : {}),
         functions: tools?.map((tool) => tool.definition),
+        stream: false,
       });
       const { message } = choice;
       if (!message) {
         throw new Error("No message returned from OpenAI");
       }
-      return message as ChatRequestAssistantMessage;
+      return message;
     },
     async callTool({ messages, conversation, dataStreamer, request }) {
       const lastMessage = messages[messages.length - 1];
       // Only call tool if the message is an assistant message with a function call.
       assert(
         lastMessage.role === "assistant" &&
-          lastMessage.functionCall !== undefined,
+          lastMessage.function_call !== undefined,
         `Message must be a tool call`
       );
       assert(
-        Object.keys(toolDict).includes(lastMessage.functionCall.name),
+        lastMessage.function_call !== null,
+        `Function call must be defined`
+      );
+      assert(
+        Object.keys(toolDict).includes(lastMessage.function_call.name),
         `Tool not found`
       );
 
-      const { functionCall } = lastMessage;
-      const tool = toolDict[functionCall.name];
+      const { function_call } = lastMessage;
+      const tool = toolDict[function_call.name];
       const toolResponse = await tool.call({
-        functionArgs: JSON.parse(functionCall.arguments),
+        functionArgs: JSON.parse(function_call.arguments),
         conversation,
         dataStreamer,
         request,

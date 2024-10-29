@@ -4,21 +4,14 @@
   from that. This interface could still work with non OpenAI providers if they
   implement the same interface.
  */
-import {
-  ChatCompletions,
-  ChatRequestAssistantMessage,
-  ChatRequestMessage,
-  FunctionCallPreset,
-  FunctionDefinition,
-  FunctionName,
-} from "@azure/openai";
 import { Reference } from "./References";
 import { Request as ExpressRequest } from "express";
 import { Conversation } from "./ConversationsService";
 import { DataStreamer } from "./DataStreamer";
+import OpenAI from "openai";
 export type OpenAiMessageRole = "system" | "assistant" | "user" | "function";
 
-export type OpenAiChatMessage = ChatRequestMessage & {
+export type OpenAiChatMessage = OpenAI.ChatCompletionMessageParam & {
   /**
     The role of the message in the context of the conversation.
    */
@@ -47,7 +40,7 @@ export interface Tool {
   /**
     Function definition for the LLM to invoke.
    */
-  definition: FunctionDefinition;
+  definition: OpenAI.FunctionDefinition;
 
   /**
     Call the function based on the arguments in the {@link Tool.definition}.
@@ -82,11 +75,16 @@ export interface ToolCallParams {
   request?: ExpressRequest;
 }
 
-export type OpenAIChatCompletionWithoutUsage = Omit<ChatCompletions, "usage">;
+export type OpenAIChatCompletionWithoutUsage = Omit<
+  OpenAI.ChatCompletion,
+  "usage"
+>;
 
-export type OpenAiStreamingResponse =
-  AsyncIterable<OpenAIChatCompletionWithoutUsage>;
-export type OpenAiAwaitedResponse = ChatRequestAssistantMessage;
+export type OpenAiStreamingResponse = AsyncIterable<
+  Omit<OpenAI.ChatCompletionChunk, "model" | "object">
+>;
+export type OpenAiAwaitedResponse = Partial<OpenAI.ChatCompletionMessage> &
+  Pick<OpenAI.ChatCompletionMessage, "content" | "role">;
 
 export interface CallToolResponse {
   /**
@@ -107,7 +105,7 @@ export interface CallToolResponse {
   references?: Reference[];
 }
 
-export type ToolCallDirective = FunctionCallPreset | FunctionName;
+export type ToolCallDirective = OpenAI.ChatCompletionFunctionCallOption;
 
 /**
   Parameters for invoking a tool call from the LLM.

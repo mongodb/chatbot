@@ -34,4 +34,4 @@ export * from "./updateFrontMatter";
 
 // Everyone share the same mongodb driver version
 export * from "mongodb";
-export * from "@azure/openai";
+export * from "openai";

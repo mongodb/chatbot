@@ -1,5 +1,4 @@
 import "dotenv/config";
-import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { makeDefaultFindContent } from "./DefaultFindContent";
 import { makeMongoDbEmbeddedContentStore } from "./MongoDbEmbeddedContentStore";
 import { makeOpenAiEmbedder } from "./OpenAiEmbedder";
@@ -8,6 +7,7 @@ import {
   CORE_CHATBOT_APP_ENV_VARS,
   CORE_OPENAI_EMBEDDING_ENV_VARS,
 } from "./CoreEnvVars";
+import { AzureOpenAI } from "openai";
 
 jest.setTimeout(30000);
 describe("makeDefaultFindContent()", () => {
@@ -17,6 +17,7 @@ describe("makeDefaultFindContent()", () => {
     OPENAI_ENDPOINT,
     OPENAI_API_KEY,
     OPENAI_EMBEDDING_DEPLOYMENT,
+    OPENAI_API_VERSION,
   } = assertEnvVars({
     ...CORE_CHATBOT_APP_ENV_VARS,
     ...CORE_OPENAI_EMBEDDING_ENV_VARS,
@@ -26,10 +27,11 @@ describe("makeDefaultFindContent()", () => {
     databaseName: MONGODB_DATABASE_NAME,
   });
 
-  const openAiClient = new OpenAIClient(
-    OPENAI_ENDPOINT,
-    new AzureKeyCredential(OPENAI_API_KEY)
-  );
+  const openAiClient = new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  });
 
   const embedder = makeOpenAiEmbedder({
     openAiClient,

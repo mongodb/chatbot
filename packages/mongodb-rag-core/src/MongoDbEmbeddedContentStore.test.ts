@@ -1,4 +1,3 @@
-import { stripIndent } from "common-tags";
 import { strict as assert } from "assert";
 import { FindNearestNeighborsOptions } from "./VectorStore";
 import {
@@ -10,7 +9,7 @@ import { CORE_ENV_VARS } from "./CoreEnvVars";
 import { makeOpenAiEmbedder } from "./OpenAiEmbedder";
 import "dotenv/config";
 import { PersistedPage } from "./Page";
-import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
+import { AzureOpenAI } from "openai";
 
 const {
   MONGODB_CONNECTION_URI,
@@ -19,6 +18,7 @@ const {
   OPENAI_API_KEY,
   OPENAI_EMBEDDING_DEPLOYMENT,
   VECTOR_SEARCH_INDEX_NAME,
+  OPENAI_API_VERSION,
 } = assertEnvVars(CORE_ENV_VARS);
 
 jest.setTimeout(30000);
@@ -107,10 +107,11 @@ describe("MongoDbEmbeddedContentStore", () => {
 
 describe("nearest neighbor search", () => {
   const embedder = makeOpenAiEmbedder({
-    openAiClient: new OpenAIClient(
-      OPENAI_ENDPOINT,
-      new AzureKeyCredential(OPENAI_API_KEY)
-    ),
+    openAiClient: new AzureOpenAI({
+      apiKey: OPENAI_API_KEY,
+      endpoint: OPENAI_ENDPOINT,
+      apiVersion: OPENAI_API_VERSION,
+    }),
     deployment: OPENAI_EMBEDDING_DEPLOYMENT,
   });
 

@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
+import { AzureOpenAI } from "openai";
 import { ChatLlm, OpenAiChatMessage, Tool } from "./ChatLlm";
 import { makeOpenAiChatLlm } from "./OpenAiChatLlm";
 import { assertEnvVars } from "./assertEnvVars";
@@ -12,8 +12,12 @@ const systemPrompt = {
   content: "You shall do as you're told",
 } satisfies SystemMessage;
 jest.setTimeout(30000);
-const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_CHAT_COMPLETION_DEPLOYMENT } =
-  assertEnvVars(CORE_ENV_VARS);
+const {
+  OPENAI_ENDPOINT,
+  OPENAI_API_KEY,
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_API_VERSION,
+} = assertEnvVars(CORE_ENV_VARS);
 
 const conversation = [
   systemPrompt,
@@ -58,17 +62,18 @@ const testTools = [
   },
 ] satisfies Tool[];
 
-const openAiClient = new OpenAIClient(
-  OPENAI_ENDPOINT,
-  new AzureKeyCredential(OPENAI_API_KEY)
-);
+const openAiClient = new AzureOpenAI({
+  apiKey: OPENAI_API_KEY,
+  endpoint: OPENAI_ENDPOINT,
+  apiVersion: OPENAI_API_VERSION,
+});
 const toolOpenAiLlm = makeOpenAiChatLlm({
   openAiClient,
   deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   openAiLmmConfigOptions: {
     temperature: 0,
-    maxTokens: 500,
-    functionCall: "none",
+    max_tokens: 500,
+    function_call: "none",
   },
   tools: testTools,
 });
@@ -121,12 +126,13 @@ describe("OpenAiLlm", () => {
       },
     });
     assert(
-      response.role === "assistant" && response.functionCall !== undefined
+      response.role === "assistant" && response.function_call !== undefined
     );
     const toolResponse = await toolOpenAiLlm.callTool({ messages: [response] });
     expect(response.role).toBe("assistant");
-    expect(response.functionCall.name).toBe("test_tool");
-    expect(JSON.parse(response.functionCall.arguments)).toStrictEqual({
+    expect(response.function_call?.name).toBe("test_tool");
+    expect(response.function_call?.arguments).toBeTruthy();
+    expect(JSON.parse(response.function_call!.arguments)).toStrictEqual({
       test: "test",
     });
     expect(toolResponse).toStrictEqual({
@@ -150,7 +156,7 @@ describe("OpenAiLlm", () => {
         messages: [
           {
             role: "assistant",
-            functionCall: {
+            function_call: {
               name: "not_a_tool",
               arguments: JSON.stringify({
                 test: "test",

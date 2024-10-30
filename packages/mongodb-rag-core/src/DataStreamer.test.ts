@@ -1,6 +1,8 @@
 import { DataStreamer, makeDataStreamer } from "./DataStreamer";
-import type { OpenAiStreamingResponse } from "./ChatLlm";
 import { OpenAI } from "openai";
+import type {
+  OpenAiStreamingResponse,
+} from "./chatLlm";
 import { createResponse } from "node-mocks-http";
 import { EventEmitter } from "events";
 import { Response } from "express";

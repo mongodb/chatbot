@@ -1,9 +1,13 @@
-import { Embedder, PageStore, EmbeddedContentStore } from "mongodb-rag-core";
-import { DataSource } from "./sources/DataSource";
-import { ChunkOptions } from "./embed/chunkPage";
+import {
+  Embedder,
+  PageStore,
+  EmbeddedContentStore,
+  ChunkOptions,
+  DataSource,
+  EmbedConcurrencyOptions,
+  PageConcurrencyOptions,
+} from "mongodb-rag-core";
 import { IngestMetaStore } from "./IngestMetaStore";
-import { EmbedConcurrencyOptions } from "./embed";
-import { PageConcurrencyOptions } from "./pages";
 
 /**
   The configuration for ingest.

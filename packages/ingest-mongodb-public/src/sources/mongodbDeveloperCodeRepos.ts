@@ -1,4 +1,4 @@
-import { makeCodeOnGithubTextDataSource } from "mongodb-rag-ingest/sources";
+import { makeCodeOnGithubTextDataSource } from "mongodb-rag-core";
 
 export const nodeJsQuickstart = async () => {
   return await makeCodeOnGithubTextDataSource({

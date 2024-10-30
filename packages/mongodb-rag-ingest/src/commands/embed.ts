@@ -1,11 +1,11 @@
 import { CommandModule } from "yargs";
-import { updateEmbeddedContent } from "../embed/updateEmbeddedContent";
 import {
   ResolvedConfig,
   LoadConfigArgs,
   withConfig,
   withConfigOptions,
 } from "../withConfig";
+import { updateEmbeddedContent } from "mongodb-rag-core";
 
 type EmbeddedContentCommandArgs = {
   since: string;

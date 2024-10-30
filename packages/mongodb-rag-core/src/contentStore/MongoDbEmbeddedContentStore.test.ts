@@ -143,7 +143,6 @@ describe("nearest neighbor search", () => {
     const { embedding } = await embedder.embed({
       text: query,
     });
-    console.log(embedding.length);
 
     const matches = await store.findNearestNeighbors(
       embedding,

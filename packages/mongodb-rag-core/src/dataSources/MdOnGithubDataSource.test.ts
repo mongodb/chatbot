@@ -5,6 +5,7 @@ import {
 import "dotenv/config";
 import { strict as assert } from "assert";
 import { Page } from "../contentStore";
+import Path from "path";
 
 jest.setTimeout(60000);
 
@@ -35,13 +36,13 @@ const mongodbCorpConfig: MakeMdOnGithubDataSourceParams = {
   extractTitle: (_, frontmatter) => (frontmatter?.title as string) ?? null,
 };
 
-const ingestTestDataConfig: MakeMdOnGithubDataSourceParams = {
+const testDataConfig: MakeMdOnGithubDataSourceParams = {
   ...baseChatbotRepoConfig,
   name: "ingest_testData",
   metadata: {
     productName: "Ingest Test Data",
   },
-  filter: (path) => path.includes("ingest/testData"),
+  filter: (path) => path.includes(Path.join("mongodb-rag-core", "testData")),
 };
 
 describe("MdOnGithubDataSource", () => {
@@ -80,9 +81,9 @@ describe("MdOnGithubDataSource", () => {
     expect(samplePage.title).toBeTruthy();
   });
   it("works with .mdx files", async () => {
-    const dataSource = await makeMdOnGithubDataSource(ingestTestDataConfig);
+    const dataSource = await makeMdOnGithubDataSource(testDataConfig);
     const pages = await dataSource.fetchPages();
-    expect(pages.length).toBeGreaterThan(1);
+    expect(pages.length).toBeGreaterThanOrEqual(1);
     expect(
       pages.find((page) => page.url.includes("sampleMdxFile"))
     ).toBeTruthy();

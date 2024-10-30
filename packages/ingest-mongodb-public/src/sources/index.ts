@@ -44,7 +44,7 @@ const mongoDbUniversitySourceConstructor = async () => {
     sourceName: "mongodb-university",
     baseUrl: "https://api.learn.mongodb.com/rest/catalog",
     apiKey: universityDataApiKey,
-    public_only: true,
+    publicOnly: true,
     metadata: {
       tags: ["transcript"],
     },

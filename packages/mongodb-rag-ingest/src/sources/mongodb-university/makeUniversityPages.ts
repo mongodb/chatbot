@@ -45,24 +45,29 @@ function makeCatalogItemPages({
 }): Page[] {
   const pages: Page[] = [];
   for (const catalogItem of tiCatalogItems) {
-    /** Create page for higher level courses.
+    /* Create page for higher level courses.
      * Higher level courses are Leanring Paths and Courses that have nested content.
      * Nested content is made up of other TiCatalogItems such as Units and Learning Bytes.
      * Note: Higher level courses do not have videos, but their nested content does.
-    */
-    if (catalogItem.learning_format === "Learning Path" || catalogItem.learning_format === "Course") {
+     */
+    if (
+      catalogItem.learning_format === "Learning Path" ||
+      catalogItem.learning_format === "Course"
+    ) {
       const page: Page = {
         sourceName,
         url: `https://learn.mongodb.com/learning-paths/${catalogItem.slug}`,
         title: catalogItem.name,
         format: "md",
-        body: generateMarkdown({ tiCatalogItem: catalogItem }),
+        body: generateContentDescriptionMarkdown({
+          tiCatalogItem: catalogItem,
+        }),
         metadata: {
           ...(metadata ?? {}),
           tags: metadata?.tags ?? [],
           learning_format: catalogItem.learning_format,
         },
-      }
+      };
       pages.push(page);
       continue;
     }
@@ -207,21 +212,22 @@ export function convertVideoTranscriptFromSrtToTxt(transcript: string): string {
   Helper function to create Markdown content for MongoDB University Learning Paths and Courses
   based on titles, duration, and descriptions.
  */
-export function generateMarkdown({
-  tiCatalogItem
+export function generateContentDescriptionMarkdown({
+  tiCatalogItem,
 }: {
   tiCatalogItem: TiCatalogItem;
 }): string {
   const { name, description, nested_content } = tiCatalogItem;
+  console.log({ name, description, nested_content });
   const title = `# ${name}`;
   const markdownContent = [title, description, `\n`];
   if (nested_content) {
     for (const nested of nested_content) {
       const { name, duration, description, slug } = nested;
-      const title = `#### ${name}`;
-      const link = `[View Details] (https://learn.mongodb.com/courses/${slug})`;
+      const title = `## ${name}`;
+      const link = `[View Details](https://learn.mongodb.com/courses/${slug})`;
       markdownContent.push(title, duration, description, link, `\n`);
     }
   }
-  return markdownContent.join('\n');
+  return markdownContent.join("\n");
 }

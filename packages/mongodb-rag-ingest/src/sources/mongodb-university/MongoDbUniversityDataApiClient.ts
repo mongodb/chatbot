@@ -175,22 +175,32 @@ export function makeMongoDbUniversityDataApiClient({
   };
 
   return {
-    async getCatalogItems(
-      { public_only, learning_formats, nest_associated_content }: 
-      { public_only?: boolean; learning_formats?: string[]; nest_associated_content?: boolean; } = {})
-    {
+    async getCatalogItems({
+      publicOnly,
+      learningFormats,
+      nestAssociatedContent,
+    }: {
+      publicOnly?: boolean;
+      learningFormats?: string[];
+      nestAssociatedContent?: boolean;
+    } = {}) {
       const search_params = new URLSearchParams();
-      if (public_only !== undefined) {
-        search_params.append("public_only", public_only.toString());
+      if (publicOnly !== undefined) {
+        search_params.append("public_only", publicOnly.toString());
       }
-      if (learning_formats) {
-        learning_formats.forEach((format) => search_params.append("learning_formats", format));
+      if (learningFormats) {
+        learningFormats.forEach((format) =>
+          search_params.append("learning_formats", format)
+        );
       }
-      if (nest_associated_content !== undefined) {
-        search_params.append("nest_associated_content", nest_associated_content.toString());
+      if (nestAssociatedContent !== undefined) {
+        search_params.append(
+          "nest_associated_content",
+          nestAssociatedContent.toString()
+        );
       }
       const response = await fetch(`${baseUrl}/ti?${search_params}`, {
-      headers,
+        headers,
       });
       const json = await response.json();
       return json as GetCatalogItemsResponseData;

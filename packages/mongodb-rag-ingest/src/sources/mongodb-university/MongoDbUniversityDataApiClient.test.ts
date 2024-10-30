@@ -1,4 +1,7 @@
-import { makeMongoDbUniversityDataApiClient, TiCatalogItem } from "./MongoDbUniversityDataApiClient";
+import {
+  makeMongoDbUniversityDataApiClient,
+  TiCatalogItem,
+} from "./MongoDbUniversityDataApiClient";
 import "dotenv/config";
 jest.setTimeout(100000);
 const baseUrl = "https://api.learn.mongodb.com/rest/catalog";
@@ -25,21 +28,25 @@ describe("makeMongoDbUniversityDataApiClient()", () => {
     it("getCatalogItems should accept query params", async () => {
       const tiCatalogItems =
         await mongodbUniversityDataApiClient.getCatalogItems({
-          public_only: true,
-          learning_formats: ["Learning Path", "Course"],
-          nest_associated_content: true,
+          publicOnly: true,
+          learningFormats: ["Learning Path", "Course"],
+          nestAssociatedContent: true,
         });
       expect(tiCatalogItems.data).toBeDefined();
-      expect(tiCatalogItems.data[0]['status']).toBe('published');
-      expect(tiCatalogItems.data[0]['legacy']).toBe(false);
-      expect(tiCatalogItems.data[0]['in_development']).toBe(false);
-      expect(tiCatalogItems.data[0]['microsites']).toContain('University');
-      expect(["Learning Path", "Course"]).toContain(tiCatalogItems.data[0]['learning_format']);
-      const nestedContent = tiCatalogItems.data[0]['nested_content'] as TiCatalogItem[];
+      expect(tiCatalogItems.data[0]["status"]).toBe("published");
+      expect(tiCatalogItems.data[0]["legacy"]).toBe(false);
+      expect(tiCatalogItems.data[0]["in_development"]).toBe(false);
+      expect(tiCatalogItems.data[0]["microsites"]).toContain("University");
+      expect(["Learning Path", "Course"]).toContain(
+        tiCatalogItems.data[0]["learning_format"]
+      );
+      const nestedContent = tiCatalogItems.data[0][
+        "nested_content"
+      ] as TiCatalogItem[];
       expect(nestedContent).toBeDefined();
       expect(nestedContent!.length).toBeGreaterThan(0);
     });
-  })
+  });
   it("should load all the videos from the MongoDB University Data API", async () => {
     const allVideos = await mongodbUniversityDataApiClient.getAllVideos();
     expect(allVideos.data).toBeDefined();

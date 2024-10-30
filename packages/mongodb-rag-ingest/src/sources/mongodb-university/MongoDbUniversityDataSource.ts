@@ -39,7 +39,7 @@ export interface MakeMongoDbUniversityDataSourceParams {
     > You should include *only* this content or a subset of it
     > in externally facing applications.
    */
-  public_only: boolean;
+  publicOnly: boolean;
 
   /**
       Metadata for the MongoDB University Data API source.
@@ -63,11 +63,10 @@ export function makeMongoDbUniversityDataSource(
         baseUrl: params.baseUrl,
         apiKey: params.apiKey,
       });
-      const { data: tiCatalogItems } =
-        await uniDataApiClient.getCatalogItems({
-          public_only: params.public_only,
-          nest_associated_content: true,
-        });
+      const { data: tiCatalogItems } = await uniDataApiClient.getCatalogItems({
+        publicOnly: params.publicOnly,
+        nestAssociatedContent: true,
+      });
       const { data: videos } = await uniDataApiClient.getAllVideos();
       const universityPages = makeUniversityPages({
         sourceName: params.sourceName,

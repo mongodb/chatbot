@@ -1,7 +1,5 @@
 import "dotenv/config";
-import {
-  makeMongoDbUniversityDataSource,
-} from "./MongoDbUniversityDataSource";
+import { makeMongoDbUniversityDataSource } from "./MongoDbUniversityDataSource";
 jest.setTimeout(100000);
 
 const baseUrl = "https://api.learn.mongodb.com/rest/catalog";
@@ -13,7 +11,7 @@ describe("makeMongoDBUniversityDataSource()", () => {
       sourceName: "testSource",
       baseUrl,
       apiKey,
-      public_only: true,
+      publicOnly: true,
     });
     expect(dataSource.name).toBe("testSource");
   });
@@ -22,7 +20,7 @@ describe("makeMongoDBUniversityDataSource()", () => {
       sourceName: "testSource",
       baseUrl,
       apiKey,
-      public_only: true
+      publicOnly: true,
     });
     const pages = await dataSource.fetchPages();
     expect(pages.length).toBeGreaterThan(0);
@@ -32,7 +30,7 @@ describe("makeMongoDBUniversityDataSource()", () => {
       sourceName: "testSource",
       baseUrl,
       apiKey,
-      public_only: true
+      publicOnly: true,
     });
     const pages = await dataSource.fetchPages();
     expect(pages.length).toBeGreaterThan(0);
@@ -42,7 +40,7 @@ describe("makeMongoDBUniversityDataSource()", () => {
       sourceName: "testSource",
       baseUrl,
       apiKey,
-      public_only: true,
+      publicOnly: true,
       metadata: {
         foo: "bar",
       },

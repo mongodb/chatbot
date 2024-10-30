@@ -23,13 +23,15 @@ const {
 // Optional env vars (only required for some commands)
 const { GITHUB_ACCESS_TOKEN, JIRA_USERNAME, JIRA_PASSWORD } = process.env;
 
+export const openAiClient = new OpenAIClient(
+  OPENAI_ENDPOINT,
+  new AzureKeyCredential(OPENAI_API_KEY)
+);
+
 export const standardConfig = {
   embedder: () =>
     makeOpenAiEmbedder({
-      openAiClient: new OpenAIClient(
-        OPENAI_ENDPOINT,
-        new AzureKeyCredential(OPENAI_API_KEY)
-      ),
+      openAiClient,
       deployment: OPENAI_EMBEDDING_DEPLOYMENT,
       backoffOptions: {
         numOfAttempts: 25,

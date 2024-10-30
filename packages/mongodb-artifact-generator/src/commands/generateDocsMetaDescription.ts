@@ -6,8 +6,11 @@ import {
 import { createCommand } from "../createCommand";
 import { makeRunLogger, type RunLogger } from "../runlogger";
 import PromisePool from "@supercharge/promise-pool";
-import { makeGenerateMetaDescription } from "../docs-meta-descriptions/generateMetaDescription";
 import { urlToFilename } from "../utils";
+import {
+  DocsMetadata,
+  makeGenerateDocsMetadata,
+} from "../docs-metadata/generateMetadata";
 
 let logger: RunLogger;
 
@@ -46,9 +49,9 @@ export default createCommand<GenerateDocsMetaDescriptionCommandArgs>({
       .option("llmMaxConcurrency", {
         type: "number",
         demandOption: false,
-        default: 10,
+        default: 5,
         description:
-          "The maximum number of concurrent requests to the LLM API. Defaults to 10.",
+          "The maximum number of concurrent requests to the LLM API.",
       });
   },
   async handler(args) {
@@ -92,12 +95,12 @@ export const action =
       });
       logger.logInfo(`Loaded ${pages.length} pages.`);
 
-      const generateMetaDescription = makeGenerateMetaDescription({
+      const generateDocsMetadata = makeGenerateDocsMetadata({
         openAiClient,
         logger,
       });
 
-      const results = new Map<string, string>();
+      const results = new Map<string, DocsMetadata["description"]>();
       await PromisePool.for(pages)
         .withConcurrency(llmMaxConcurrency)
         .handleError((error, page) => {
@@ -108,17 +111,17 @@ export const action =
         .process(async (page) => {
           logger.logInfo(`Generating meta description for page ${page.url}...`);
           const text = page.body;
-          const metaDescription = await generateMetaDescription({
+          const metadata = await generateDocsMetadata({
             text,
             url: page.url,
           });
-          results.set(page.url, metaDescription);
+          results.set(page.url, metadata.description);
           logger.appendArtifact(
             `${urlToFilename(page.url)}.json`,
-            metaDescription
+            metadata.description
           );
           logger.logInfo(
-            `Generated meta description for page ${page.url}: ${metaDescription}`
+            `Generated meta description for page ${page.url}: ${metadata.description}`
           );
         });
 

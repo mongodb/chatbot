@@ -9,8 +9,7 @@ import { readdirSync, readFileSync } from "fs";
 import path from "path";
 import { assistantMessage, systemMessage, userMessage } from "../chat";
 import { z } from "zod";
-
-export type MetaDescription = string;
+import { DocsMetadata } from "./generateMetadata";
 
 export type MakeGenerateMetaDescription = {
   openAiClient: OpenAIClient;
@@ -40,7 +39,7 @@ export function makeGenerateMetaDescription({
   openAiClient,
   logger,
 }: MakeGenerateMetaDescription) {
-  const fewShotExamplesDir = "./src/docs-meta-descriptions/examples";
+  const fewShotExamplesDir = "./src/docs-metadata/examples";
   const fewShotExamples = readdirSync(fewShotExamplesDir)
     .filter((fileName) => path.extname(fileName) === ".json")
     .flatMap((fileName) => {
@@ -68,7 +67,7 @@ export function makeGenerateMetaDescription({
   }: {
     url: string;
     text: string;
-  }): Promise<MetaDescription> {
+  }): Promise<DocsMetadata["description"]> {
     const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars(
       CORE_OPENAI_CHAT_COMPLETION_ENV_VARS
     );

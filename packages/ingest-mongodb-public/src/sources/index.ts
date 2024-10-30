@@ -2,27 +2,35 @@ import { strict as assert } from "assert";
 import { Page, extractFrontMatter } from "mongodb-rag-core";
 import {
   DataSource,
-  makeDevCenterDataSource,
-  DevCenterProjectConfig,
   makeGitDataSource,
-  HandleHtmlPageFuncOptions,
-  handleHtmlDocument,
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
   removeMarkdownImagesAndLinks,
-  MakeMongoDbUniversityDataSourceParams,
-  makeMongoDbUniversityDataSource,
-} from "mongodb-rag-ingest/sources";
-import { prepareSnootySources } from "mongodb-rag-ingest/sources/snooty";
+} from "mongodb-rag-core";
 import { prismaSourceConstructor } from "./prisma";
 import { wiredTigerSourceConstructor } from "./wiredTiger";
 import { mongooseSourceConstructor } from "./mongoose";
 import { practicalAggregationsDataSource } from "./practicalAggregations";
 import {
+  makeSnootyDataSources,
   snootyDataApiBaseUrl,
   snootyProjectConfig,
-  makeSnootyDataSources,
-} from "./snooty";
+} from "./snootySources";
+
+import { assertEnvVars } from "mongodb-rag-core";
+import { PUBLIC_INGEST_ENV_VARS } from "../PublicIngestEnvVars";
+import {
+  DevCenterProjectConfig,
+  makeDevCenterDataSource,
+} from "./DevCenterDataSource";
+import {
+  MakeMongoDbUniversityDataSourceParams,
+  filterOnlyPublicActiveTiCatalogItems,
+  makeMongoDbUniversityDataSource,
+} from "./mongodb-university";
+const { DEVCENTER_CONNECTION_URI, UNIVERSITY_DATA_API_KEY } = assertEnvVars(
+  PUBLIC_INGEST_ENV_VARS
+);
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -35,10 +43,11 @@ export const devCenterProjectConfig: DevCenterProjectConfig = {
   collectionName: "search_content_prod",
   databaseName: "devcenter",
   baseUrl: "https://www.mongodb.com/developer",
+  connectionUri: DEVCENTER_CONNECTION_URI,
 };
 
 const mongoDbUniversitySourceConstructor = async () => {
-  const universityDataApiKey = process.env.UNIVERSITY_DATA_API_KEY;
+  const universityDataApiKey = UNIVERSITY_DATA_API_KEY;
   assert(!!universityDataApiKey, "UNIVERSITY_DATA_API_KEY required");
   const universityConfig: MakeMongoDbUniversityDataSourceParams = {
     sourceName: "mongodb-university",

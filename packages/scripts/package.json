@@ -42,6 +42,7 @@
     "dotenv": "^16.3.1",
     "mongodb-chatbot-server": "*",
     "mongodb-rag-core": "*",
+    "typechat": "^0.1.1",
     "yaml": "^2.3.4"
   },
   "devDependencies": {

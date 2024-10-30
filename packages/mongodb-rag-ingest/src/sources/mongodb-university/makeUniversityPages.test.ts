@@ -137,7 +137,6 @@ Learn how to write Atlas Search queries using features such as the compound oper
       )
     ) as TiCatalogItem;
     const markdown = generateContentDescriptionMarkdown({ tiCatalogItem });
-    console.log(markdown);
     expect(markdown).toEqual(expected_markdown);
   });
 });

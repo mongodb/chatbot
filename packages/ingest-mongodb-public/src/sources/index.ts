@@ -25,7 +25,6 @@ import {
 } from "./DevCenterDataSource";
 import {
   MakeMongoDbUniversityDataSourceParams,
-  filterOnlyPublicActiveTiCatalogItems,
   makeMongoDbUniversityDataSource,
 } from "./mongodb-university";
 const { DEVCENTER_CONNECTION_URI, UNIVERSITY_DATA_API_KEY } = assertEnvVars(

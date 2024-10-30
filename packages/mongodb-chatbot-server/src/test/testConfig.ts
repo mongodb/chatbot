@@ -17,10 +17,10 @@ import {
   makeOpenAiChatLlm,
   SystemPrompt,
   UserMessage,
+  OpenAI,
 } from "mongodb-rag-core";
 import { stripIndents } from "common-tags";
 import { AppConfig } from "../app";
-import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import {
   GenerateUserPromptFunc,
   MakeUserMessageFunc,
@@ -38,6 +38,7 @@ export const {
   OPENAI_EMBEDDING_DEPLOYMENT,
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_API_VERSION,
 } = assertEnvVars(CORE_ENV_VARS);
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
@@ -66,10 +67,11 @@ export const boostManual = makeBoostOnAtlasSearchFilter({
   totalMaxK: 5,
 });
 
-export const openAiClient = new OpenAIClient(
-  OPENAI_ENDPOINT,
-  new AzureKeyCredential(OPENAI_API_KEY)
-);
+export const openAiClient = new OpenAI.AzureOpenAI({
+  apiKey: OPENAI_API_KEY,
+  endpoint: OPENAI_ENDPOINT,
+  apiVersion: OPENAI_API_VERSION,
+});
 
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
@@ -183,7 +185,7 @@ export const llm = makeOpenAiChatLlm({
   deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   openAiLmmConfigOptions: {
     temperature: 0,
-    maxTokens: 500,
+    max_tokens: 500,
   },
 });
 

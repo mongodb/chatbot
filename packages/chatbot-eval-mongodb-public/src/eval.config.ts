@@ -38,7 +38,6 @@ export default async () => {
     OPENAI_GPT_4_CHAT_COMPLETION_DEPLOYMENT,
   } = assertEnvVars(envVars);
 
-  const { OpenAIClient, AzureKeyCredential } = await import("@azure/openai");
   const { OpenAI: LlamaIndexOpenAiLlm } = await import("llamaindex");
   const llamaIndexEvaluationLlm = new LlamaIndexOpenAiLlm({
     azure: {
@@ -184,20 +183,22 @@ export default async () => {
         conversationQuality: {
           evaluator: makeEvaluateConversationQuality({
             deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-            openAiClient: new OpenAIClient(
-              OPENAI_ENDPOINT,
-              new AzureKeyCredential(OPENAI_API_KEY)
-            ),
+            openAiClient: new OpenAI.AzureOpenAI({
+              endpoint: OPENAI_ENDPOINT,
+              apiKey: OPENAI_API_KEY,
+              apiVersion: OPENAI_API_VERSION,
+            }),
             fewShotExamples: mongodbResponseQualityExamples,
           }),
         },
         conversationQualityGpt4: {
           evaluator: makeEvaluateConversationQuality({
             deploymentName: OPENAI_GPT_4_CHAT_COMPLETION_DEPLOYMENT,
-            openAiClient: new OpenAIClient(
-              OPENAI_ENDPOINT,
-              new AzureKeyCredential(OPENAI_API_KEY)
-            ),
+            openAiClient: new OpenAI.AzureOpenAI({
+              endpoint: OPENAI_ENDPOINT,
+              apiKey: OPENAI_API_KEY,
+              apiVersion: OPENAI_API_VERSION,
+            }),
             fewShotExamples: mongodbResponseQualityExamples,
           }),
         },

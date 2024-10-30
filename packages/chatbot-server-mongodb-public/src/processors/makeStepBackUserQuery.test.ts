@@ -1,6 +1,6 @@
 import { makeMockOpenAIToolCall } from "../test/mockOpenAi";
 import { makeStepBackUserQuery } from "./makeStepBackUserQuery";
-import { OpenAI } from "openai";
+import { OpenAI } from "mongodb-chatbot-server";
 
 jest.mock("openai", () => {
   return makeMockOpenAIToolCall({
@@ -10,7 +10,7 @@ jest.mock("openai", () => {
 
 describe("makeStepBackUserQuery", () => {
   const args: Parameters<typeof makeStepBackUserQuery>[0] = {
-    openAiClient: new OpenAI({ apiKey: "fake-api-key" }),
+    openAiClient: new OpenAI.OpenAI({ apiKey: "fake-api-key" }),
     model: "best-model-ever",
     userMessageText: "hi",
   };

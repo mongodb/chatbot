@@ -30,6 +30,5 @@ export * from "./assertEnvVars";
 
 // Everyone share the same versions of these packages
 export * from "mongodb";
-export * from "openai";
-export * from "@azure/openai";
+export * as OpenAI from "openai";
 export * from "./langchain";

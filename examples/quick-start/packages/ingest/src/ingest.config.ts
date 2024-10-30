@@ -8,6 +8,7 @@ import { standardChunkFrontMatterUpdater } from "mongodb-rag-core";
 import path from "path";
 import { loadEnvVars } from "./loadEnvVars";
 import { mongoDbChatbotFrameworkDocsDataSourceConstructor } from "./mongodbChatbotFrameworkDataSource";
+import { OpenAI } from "mongodb-rag-core";
 
 // Load project environment variables
 const dotenvPath = path.join(__dirname, "..", "..", "..", ".env"); // .env at project root
@@ -20,11 +21,8 @@ const {
 
 export default {
   embedder: async () => {
-    // Use dynamic import because `@azure/openai` is a ESM package
-    // and this file is a CommonJS module.
-    const { OpenAIClient, OpenAIKeyCredential } = await import("@azure/openai");
     return makeOpenAiEmbedder({
-      openAiClient: new OpenAIClient(new OpenAIKeyCredential(OPENAI_API_KEY)),
+      openAiClient: new OpenAI.OpenAI({ apiKey: OPENAI_API_KEY }),
       deployment: OPENAI_EMBEDDING_MODEL,
       backoffOptions: {
         numOfAttempts: 25,

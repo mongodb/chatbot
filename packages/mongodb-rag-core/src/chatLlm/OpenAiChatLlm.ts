@@ -16,8 +16,7 @@ export interface MakeOpenAiChatLlmParams {
 }
 
 /**
-  Construct the {@link ChatLlm} service using the [OpenAI ChatGPT API](https://learn.microsoft.com/en-us/azure/ai-services/openai/chatgpt-quickstart?tabs=command-line&pivots=programming-language-studio).
-  The `ChatLlm` wraps the [@azure/openai](https://www.npmjs.com/package/@azure/openai) package.
+  Construct the {@link ChatLlm} service using the [OpenAI client](https://www.npmjs.com/package/openai).
  */
 export function makeOpenAiChatLlm({
   deployment,

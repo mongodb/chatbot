@@ -11,8 +11,7 @@ import {
   makeMongoDbEmbeddedContentStore,
   makeMongoDbPageStore,
   filterFulfilled,
-  OpenAIClient,
-  AzureKeyCredential,
+  OpenAI,
 } from "mongodb-rag-core";
 import { sourceConstructors } from "./sources";
 import { makeMongoDbDotComDataSource } from "./sources/MongoDbDotComDataSource";
@@ -22,6 +21,7 @@ const {
   OPENAI_ENDPOINT,
   OPENAI_API_KEY,
   OPENAI_EMBEDDING_DEPLOYMENT,
+  OPENAI_API_VERSION,
   MONGODB_CONNECTION_URI,
   MONGODB_COACH_GTM_DATABASE_NAME,
   MONGODB_DOT_COM_CONNECTION_URI,
@@ -33,10 +33,11 @@ const {
 });
 
 const embedder = makeOpenAiEmbedder({
-  openAiClient: new OpenAIClient(
-    OPENAI_ENDPOINT,
-    new AzureKeyCredential(OPENAI_API_KEY)
-  ),
+  openAiClient: new OpenAI.AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  }),
   deployment: OPENAI_EMBEDDING_DEPLOYMENT,
   backoffOptions: {
     numOfAttempts: 25,

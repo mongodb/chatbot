@@ -25,7 +25,6 @@
     "release": "release-it"
   },
   "dependencies": {
-    "@azure/openai": "^1.0.0-beta.5",
     "common-tags": "^1.8.2",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.3",

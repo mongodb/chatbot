@@ -1,4 +1,4 @@
-import { Embedder } from "./Embedder";
+import { Embedder } from "./embed/Embedder";
 import { Embeddings } from "@langchain/core/embeddings";
 export type MakeLangChainEmbedderParams = {
   /**

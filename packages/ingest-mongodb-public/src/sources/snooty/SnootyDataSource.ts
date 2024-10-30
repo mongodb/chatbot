@@ -1,7 +1,7 @@
 import { createInterface } from "readline";
 import { Page, PageFormat, logger } from "mongodb-rag-core";
 import fetch from "node-fetch";
-import { DataSource, ProjectBase } from "mongodb-rag-ingest/sources";
+import { DataSource, ProjectBase } from "mongodb-rag-core";
 import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
 import {
   getTitleFromSnootyOpenApiSpecAst,

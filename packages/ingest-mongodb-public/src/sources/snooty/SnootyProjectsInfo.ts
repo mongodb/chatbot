@@ -36,7 +36,8 @@ export const makeSnootyProjectsInfo = async ({
   snootyDataApiBaseUrl: string;
 }): Promise<SnootyProjectsInfo & { _data: typeof data }> => {
   const response = await fetch(new URL("projects", snootyDataApiBaseUrl));
-  const { data }: GetSnootyProjectsResponse = await response.json();
+  const { data } =
+    (await response.json()) as unknown as GetSnootyProjectsResponse;
 
   // Fix Snooty API data
   data.forEach((project) => {

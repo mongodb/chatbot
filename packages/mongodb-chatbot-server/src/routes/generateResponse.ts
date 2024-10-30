@@ -1,6 +1,5 @@
 import {
   References,
-  type ChatLlm,
   SomeMessage,
   DataStreamer,
   Conversation,
@@ -9,7 +8,7 @@ import {
   AssistantMessage,
   UserMessage,
   ConversationCustomData,
-  OpenAI,
+  ChatLlm,
 } from "mongodb-rag-core";
 import { Request as ExpressRequest } from "express";
 import { logRequest } from "../utils";
@@ -233,8 +232,8 @@ export async function awaitGenerateResponseMessage({
             role: "assistant",
             content: noRelevantContentMessage,
           });
-        } // Otherwise respond with LLM again
-        else {
+        } else {
+          // Otherwise respond with LLM again
           const answer = await llm.answerQuestionAwaited({
             messages: [...llmConversation, ...newMessages],
             // Only allow 1 tool call per user message.
@@ -262,8 +261,12 @@ export async function awaitGenerateResponseMessage({
       newMessages.push(llmNotWorkingResponse);
     }
   }
-  // Add references to the last assistant message
-  if (newMessages.at(-1)?.role === "assistant" && outputReferences.length > 0) {
+  // Add references to the last assistant message (excluding function calls)
+  if (
+    newMessages.at(-1)?.role === "assistant" &&
+    !(newMessages.at(-1) as AssistantMessage).functionCall &&
+    outputReferences.length > 0
+  ) {
     (newMessages.at(-1) as AssistantMessage).references = outputReferences;
   }
   return { messages: newMessages };
@@ -457,16 +460,21 @@ export async function streamGenerateResponseMessage({
     });
   }
 
-  return { messages: newMessages };
+  return { messages: newMessages.map(convertMessageFromLlmToDb) };
 }
 
 export function convertMessageFromLlmToDb(
   message: OpenAiChatMessage
 ): SomeMessage {
-  return {
+  const dbMessage = {
     ...message,
     content: message?.content ?? "",
   };
+  if (message.role === "assistant" && message.function_call) {
+    (dbMessage as AssistantMessage).functionCall = message.function_call;
+  }
+
+  return dbMessage;
 }
 
 function convertConversationMessageToLlmMessage(

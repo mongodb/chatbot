@@ -4,10 +4,9 @@ import {
   makeFewShotUserMessageExtractorFunction,
   makeUserMessage,
 } from "./makeFewShotUserMessageExtractorFunction";
-import { ChatCompletionMessageParam } from "openai/resources";
+import { OpenAI } from "mongodb-chatbot-server";
 import {
   mongoDbProductNames,
-  mongoDbProducts,
   mongoDbProgrammingLanguageIds,
 } from "../mongoDbMetadata";
 
@@ -41,7 +40,7 @@ const systemPrompt = `You are an expert data labeler employed by MongoDB.
 You must label metadata about the user query based on its context in the conversation.
 Your pay is determined by the accuracy of your labels as judged against other expert labelers, so do excellent work to maximize your earnings to support your family.`;
 
-const fewShotExamples: ChatCompletionMessageParam[] = [
+const fewShotExamples: OpenAI.default.Chat.ChatCompletionMessageParam[] = [
   // Example 1
   makeUserMessage("aggregate data"),
   makeAssistantFunctionCallMessage(name, {

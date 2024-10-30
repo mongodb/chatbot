@@ -4,7 +4,7 @@ import { ChunkOptions, ChunkFunc, chunkPage } from "../chunk";
 import { EmbeddedContentStore } from "./EmbeddedContent";
 import { Embedder } from "../embed";
 import { logger } from "../logger";
-import { PageStore, PersistedPage } from "../pageStore";
+import { PageStore, PersistedPage } from ".";
 
 export interface EmbedConcurrencyOptions {
   /**

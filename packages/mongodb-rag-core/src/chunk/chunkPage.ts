@@ -3,7 +3,7 @@ import { chunkMd } from "./chunkMd";
 import { ChunkTransformer } from "./ChunkTransformer";
 import { chunkCode, isSupportedLanguage } from "./chunkCode";
 import { EmbeddedContent } from "../contentStore";
-import { Page } from "../pageStore";
+import { Page } from "../contentStore";
 
 export type ContentChunk = Omit<EmbeddedContent, "embedding" | "updated">;
 

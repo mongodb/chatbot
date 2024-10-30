@@ -1,6 +1,6 @@
 import {
   References,
-  ChatLlm,
+  type ChatLlm,
   SomeMessage,
   DataStreamer,
   Conversation,

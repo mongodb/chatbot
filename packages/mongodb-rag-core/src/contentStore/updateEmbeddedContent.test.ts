@@ -2,12 +2,12 @@ import {
   updateEmbeddedContent,
   updateEmbeddedContentForPage,
 } from "./updateEmbeddedContent";
-import { persistPages } from "../pageStore";
+import { persistPages } from ".";
 import { makeMockPageStore } from "../test/MockPageStore";
 import * as chunkPageModule from "../chunk/chunkPage";
 import { EmbeddedContentStore, EmbeddedContent } from "./EmbeddedContent";
 import { Embedder } from "../embed";
-import { Page, PersistedPage } from "../pageStore";
+import { Page, PersistedPage } from ".";
 
 export const makeMockEmbeddedContentStore = (): EmbeddedContentStore => {
   const content: Map<string /* page url */, EmbeddedContent[]> = new Map();

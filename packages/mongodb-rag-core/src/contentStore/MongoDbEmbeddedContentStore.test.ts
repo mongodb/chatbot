@@ -5,7 +5,7 @@ import { assertEnvVars } from "../assertEnvVars";
 import { CORE_ENV_VARS } from "../CoreEnvVars";
 import { makeOpenAiEmbedder } from "../embed";
 import "dotenv/config";
-import { PersistedPage } from "../pageStore";
+import { PersistedPage } from ".";
 import {
   MongoDbEmbeddedContentStore,
   makeMongoDbEmbeddedContentStore,

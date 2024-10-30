@@ -21,8 +21,8 @@ import {
   ConversationCustomData,
   makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
+  OpenAI,
 } from "mongodb-chatbot-server";
-import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import cookieParser from "cookie-parser";
 import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";
 import { blockGetRequests } from "./middleware/blockGetRequests";
@@ -31,7 +31,6 @@ import { systemPrompt } from "./systemPrompt";
 import { addReferenceSourceType } from "./processors/makeMongoDbReferences";
 import path from "path";
 import express from "express";
-import { AzureOpenAI } from "openai";
 import { wrapOpenAI, wrapTraced } from "braintrust";
 export const {
   MONGODB_CONNECTION_URI,
@@ -72,17 +71,18 @@ export const boostManual = makeBoostOnAtlasSearchFilter({
   totalMaxK: 5,
 });
 
-export const openAiClient = new OpenAIClient(
-  OPENAI_ENDPOINT,
-  new AzureKeyCredential(OPENAI_API_KEY)
-);
+export const openAiClient = new OpenAI.AzureOpenAI({
+  apiKey: OPENAI_API_KEY,
+  endpoint: OPENAI_ENDPOINT,
+  apiVersion: OPENAI_API_VERSION,
+});
 
 export const llm = makeOpenAiChatLlm({
   openAiClient,
   deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   openAiLmmConfigOptions: {
     temperature: 0,
-    maxTokens: 1000,
+    max_tokens: 1000,
   },
 });
 
@@ -137,7 +137,7 @@ export const findVerifiedAnswer = wrapTraced(
 );
 
 export const preprocessorOpenAiClient = wrapOpenAI(
-  new AzureOpenAI({
+  new OpenAI.AzureOpenAI({
     apiKey: OPENAI_API_KEY,
     endpoint: OPENAI_ENDPOINT,
     apiVersion: OPENAI_API_VERSION,

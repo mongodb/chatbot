@@ -4,7 +4,7 @@ import {
 } from "./MdOnGithubDataSource";
 import "dotenv/config";
 import { strict as assert } from "assert";
-import { Page } from "../pageStore";
+import { Page } from "../contentStore";
 
 jest.setTimeout(60000);
 

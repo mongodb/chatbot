@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { OpenAiStreamingResponse } from "./chatLlm";
+import { OpenAiStreamingResponse } from "./llm";
 import { References } from "./References";
 
 export function escapeNewlines(str: string): string {

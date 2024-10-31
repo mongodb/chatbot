@@ -1,7 +1,6 @@
 import { makeMockOpenAIToolCall } from "../test/mockOpenAi";
 import { makeStepBackUserQuery } from "./makeStepBackUserQuery";
 import { OpenAI } from "mongodb-chatbot-server";
-// Mock the specific module
 jest.mock("mongodb-chatbot-server", () =>
   makeMockOpenAIToolCall({ transformedUserQuery: "foo" })
 );

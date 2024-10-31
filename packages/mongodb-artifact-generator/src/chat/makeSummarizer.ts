@@ -1,9 +1,5 @@
 import "dotenv/config";
-import {
-  ChatRequestMessage,
-  FunctionDefinition,
-  OpenAIClient,
-} from "@azure/openai";
+import { OpenAI } from "mongodb-rag-core";
 import { stripIndents } from "common-tags";
 import { z } from "zod";
 import { RunLogger } from "../runlogger";
@@ -38,7 +34,7 @@ export const Summary = z.object({
     .describe("A summarized text description of the input."),
 });
 
-const summarizeTool: FunctionDefinition = {
+const summarizeTool: OpenAI.default.FunctionDefinition = {
   name: "summarize",
   description: "A structured summary of the provided input",
   parameters: asJsonSchema(Summary),
@@ -46,8 +42,8 @@ const summarizeTool: FunctionDefinition = {
 
 export type MakeSummarizerArgs = {
   openAi: {
-    client: OpenAIClient;
-    deployment: string;
+    client: OpenAI.OpenAI;
+    model: string;
   };
   logger?: RunLogger;
   directions?: string;
@@ -78,27 +74,28 @@ export function makeSummarizer({
         role: "user",
         content: input,
       },
-    ] satisfies ChatRequestMessage[];
-    const result = await openAi.client.getChatCompletions(
-      openAi.deployment,
+    ] satisfies OpenAI.default.ChatCompletionMessageParam[];
+    const result = await openAi.client.chat.completions.create({
+      model: openAi.model,
       messages,
-      {
-        temperature: 0,
-        maxTokens: 1500,
-        functions: [summarizeTool],
-        functionCall: {
-          name: summarizeTool.name,
-        },
-      }
-    );
+      temperature: 0,
+      max_tokens: 1500,
+      functions: [summarizeTool],
+      function_call: {
+        name: summarizeTool.name,
+      },
+    });
     const response = result.choices[0].message;
     if (response === undefined) {
       throw new Error("No response from OpenAI");
     }
-    if (response.functionCall === undefined) {
+    if (
+      response.function_call === undefined ||
+      response.function_call === null
+    ) {
       throw new Error("No function call in response from OpenAI");
     }
-    const summary = Summary.parse(JSON.parse(response.functionCall.arguments));
+    const summary = Summary.parse(JSON.parse(response.function_call.arguments));
 
     logger?.appendArtifact(
       `chatTemplates/summarizer-${Date.now()}.json`,

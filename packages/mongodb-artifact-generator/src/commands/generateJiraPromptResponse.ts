@@ -259,7 +259,7 @@ export const action =
       const summarizeJiraIssue = makeSummarizer({
         openAi: {
           client: openAiClient,
-          deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+          model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
         },
         logger,
         directions: asBulletPoints(
@@ -327,7 +327,7 @@ export const action =
       const generatePrompts = makeGeneratePrompts({
         openAi: {
           client: openAiClient,
-          deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+          model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
         },
         logger,
         directions: asBulletPoints(
@@ -377,7 +377,7 @@ export const action =
       const generateResponse = makeGenerateResponse({
         openAi: {
           client: openAiClient,
-          deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+          model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
         },
         logger,
         directions: asBulletPoints(

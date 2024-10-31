@@ -4,10 +4,9 @@ import {
   CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
   OpenAI,
 } from "mongodb-rag-core";
-import { ChatMessage } from ".";
 
 export type GenerateChatCompletion = (
-  messages: ChatMessage[]
+  messages: OpenAI.default.ChatCompletionMessageParam[]
 ) => Promise<string | undefined>;
 
 export function makeGenerateChatCompletion(): GenerateChatCompletion {

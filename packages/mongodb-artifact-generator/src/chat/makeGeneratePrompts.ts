@@ -1,8 +1,4 @@
-import {
-  ChatRequestMessage,
-  FunctionDefinition,
-  OpenAIClient,
-} from "mongodb-rag-core";
+import { OpenAI } from "mongodb-rag-core";
 import { FormattedJiraIssueWithSummary } from "../commands/generateJiraPromptResponse";
 import { RunLogger } from "../runlogger";
 import {
@@ -19,7 +15,7 @@ export const GeneratedPrompts = z.object({
   prompts: z.array(z.string()).min(1).max(4),
 });
 
-const generatePromptsTool: FunctionDefinition = {
+const generatePromptsTool: OpenAI.default.FunctionDefinition = {
   name: "generatePrompts",
   description:
     "A list of generated example prompts that would elicit a given response.",
@@ -28,8 +24,8 @@ const generatePromptsTool: FunctionDefinition = {
 
 export type MakeGeneratePromptsArgs = {
   openAi: {
-    client: OpenAIClient;
-    deployment: string;
+    client: OpenAI.OpenAI;
+    model: string;
   };
   logger?: RunLogger;
   directions?: string;
@@ -65,28 +61,29 @@ export function makeGeneratePrompts({
         role: "user",
         content: JSON.stringify({ issue, summary }),
       },
-    ] satisfies ChatRequestMessage[];
-    const result = await openAi.client.getChatCompletions(
-      openAi.deployment,
+    ] satisfies OpenAI.default.ChatCompletionMessageParam[];
+    const result = await openAi.client.chat.completions.create({
+      model: openAi.model,
       messages,
-      {
-        temperature: 0,
-        maxTokens: 1500,
-        functions: [generatePromptsTool],
-        functionCall: {
-          name: generatePromptsTool.name,
-        },
-      }
-    );
+      temperature: 0,
+      max_tokens: 1500,
+      functions: [generatePromptsTool],
+      function_call: {
+        name: generatePromptsTool.name,
+      },
+    });
     const response = result.choices[0].message;
     if (response === undefined) {
       throw new Error("No response from OpenAI");
     }
-    if (response.functionCall === undefined) {
+    if (
+      response.function_call === undefined ||
+      response.function_call === null
+    ) {
       throw new Error("No function call in response from OpenAI");
     }
     const generatedPrompts = GeneratedPrompts.parse(
-      JSON.parse(response.functionCall.arguments)
+      JSON.parse(response.function_call.arguments)
     );
 
     logger?.appendArtifact(

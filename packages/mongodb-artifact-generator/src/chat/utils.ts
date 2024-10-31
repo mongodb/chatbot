@@ -1,24 +1,30 @@
 import { promises as fs } from "fs";
-import { ChatRequestMessage } from "mongodb-rag-core";
+import { OpenAI } from "mongodb-rag-core";
 import { z, ZodTypeAny } from "zod";
 import zodToJsonSchema from "zod-to-json-schema";
 import { fromError } from "zod-validation-error";
+import { assistantMessage, userMessage } from ".";
 
-export function formatMessagesForArtifact(messages: ChatRequestMessage[]) {
+export function formatMessagesForArtifact(
+  messages: OpenAI.default.ChatCompletionMessageParam[]
+) {
   const tagsByRole = {
     system: "SystemMessage",
     user: "UserMessage",
     assistant: "AssistantMessage",
+    tool: "ToolMessage",
+    function: "FunctionMessage",
   };
   return messages
     .filter((message) => message.role in tagsByRole)
     .map((message) => {
       const tag = tagsByRole[message.role as keyof typeof tagsByRole];
       const isFunctionCall =
-        message.role === "assistant" && message.functionCall;
+        message.role === "assistant" &&
+        (message.function_call ?? undefined) !== undefined;
       const content = !isFunctionCall
         ? message.content
-        : `Function Call:\n${JSON.stringify(message.functionCall)}`;
+        : `Function Call:\n${JSON.stringify(message.function_call)}`;
 
       return `<${tag}>\n${content}\n</${tag}>`;
     });
@@ -47,7 +53,7 @@ export function formatFewShotExamples(args: {
   examples: PromptExamplePair[];
   responseSchema?: ZodTypeAny;
   functionName: string;
-}) {
+}): OpenAI.default.ChatCompletionMessageParam[] {
   return args.examples.flatMap(([input, output], exampleIndex) => {
     try {
       const parsedOutput = args.responseSchema
@@ -55,15 +61,16 @@ export function formatFewShotExamples(args: {
         : output;
 
       return [
-        { role: "user", content: input },
-        {
-          role: "assistant",
+        userMessage({
+          content: input,
+        }),
+        assistantMessage({
           content: null,
-          functionCall: {
+          function_call: {
             name: args.functionName,
             arguments: JSON.stringify(parsedOutput),
           },
-        },
+        }),
       ];
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -82,7 +89,7 @@ export function formatFewShotExamples(args: {
       }
       throw error;
     }
-  }) satisfies ChatRequestMessage[];
+  });
 }
 
 export type AsJsonSchemaOptions = {

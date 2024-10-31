@@ -1,6 +1,6 @@
 {
   "name": "mongodb-chatbot-ui",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "UI React components for the MongoDB Chatbot Framework",
   "author": "MongoDB, Inc.",
   "license": "Apache-2.0",
@@ -93,7 +93,7 @@
     "@lg-chat/chat-disclaimer": "^3.0.2",
     "@lg-chat/chat-window": "^2.0.1",
     "@lg-chat/fixed-chat-window": "^2.0.3",
-    "@lg-chat/input-bar": "^4.0.3",
+    "@lg-chat/input-bar": "^5.1.0",
     "@lg-chat/leafygreen-chat-provider": "^2.0.0",
     "@lg-chat/message": "^4.2.1",
     "@lg-chat/message-feed": "^3.0.1",

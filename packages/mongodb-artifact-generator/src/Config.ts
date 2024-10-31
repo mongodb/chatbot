@@ -4,7 +4,7 @@ import {
   Embedder,
   PageStore,
   EmbeddedContentStore,
-  OpenAIClient,
+  OpenAI,
 } from "mongodb-rag-core";
 
 /**
@@ -36,7 +36,7 @@ export type Config = {
   /**
     The OpenAI API client.
    */
-  openAiClient?: Constructor<OpenAIClient>;
+  openAiClient?: Constructor<OpenAI.OpenAI>;
 
   /**
     The Jira API client.

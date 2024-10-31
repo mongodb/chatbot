@@ -1315,3 +1315,78 @@
     - atlas_cli
     - hallucination
     - user_feedback
+# Ops Manager / Cloud Manager FAQ
+- name: should understand OM/CM alerts
+  messages:
+    - content: Is there a way to generate an Ops Manager alert for replica sets with an even number of nodes?
+      role: user
+  expectation: >
+    The ASSISTANT should say that Ops Manager does not provide a built-in alert condition specifically for detecting replica sets with an even number of voting members. However, the user can create a custom alert condition to monitor the number of voting members in a replica set.
+  tags:
+    - ops-manager
+    - cloud-manager
+    - alerts
+- name: should understand OM/CM user account settings
+  messages:
+    - content: Can I reset my password in ops manager?
+      role: user
+  expectation: >
+    The ASSISTANT should suggest editing the password in the profile section of the user's account settings.
+  tags:
+    - ops-manager
+    - cloud-manager
+- name: should understand OM/CM organization & project user management
+  messages:
+    - content: How do I add a user to my organization or project in ops manager?
+      role: user
+  expectation: >
+    The ASSISTANT should mention user invitations, emails, and required
+    permissions. It should note that the inviter must have the Project Owner
+    role for project invitations or the Organization Owner role for organization
+    invitations.
+  tags:
+    - ops-manager
+    - cloud-manager
+- name: should understand OM/CM one-time passcodes
+  messages:
+    - content: Can I configure multiple Google Authenticator apps to use the same account in ops manager?
+      role: user
+  expectation: >
+    The ASSISTANT should say that the user can configure multiple Google Authenticator apps to use the same account by selecting the /Can't scan the barcode\?/i option during the procedure to Configure Two-Factor Authentication.
+  tags:
+    - ops-manager
+    - cloud-manager
+- name: should understand OM/CM project administration
+  messages:
+    - content: How do I delete my Ops Manager project?
+      role: user
+    - content: |
+        A user with the Project Owner access for the projects can close a project.
+
+        You can delete a project from the project's Settings page. For details, see Delete One Project.
+
+        The operation cannot be undone.
+      role: assistant
+  expectation: >
+    The ASSISTANT should say that a user with the Project Owner role can delete a project from the Projects list in the Ops Manager UI.
+  tags:
+    - ops-manager
+    - cloud-manager
+- name: should understand OM/CM agents and plans
+  messages:
+    - content: How does Ops Manager manage MongoDB deployments?
+      role: user
+  expectation: >
+    The ASSISTANT should describe how Ops Manager uses automation agents that follow plans to manage MongoDB deployments.
+  tags:
+    - ops-manager
+    - cloud-manager
+- name: should understand OM/CM maintenance processes
+  messages:
+    - content: How does Ops Manager perform maintenance on cluster nodes?
+      role: user
+  expectation: >
+    The ASSISTANT should say that Ops Manager uses rolling restarts to perform maintenance on cluster nodes.
+  tags:
+    - ops-manager
+    - cloud-manager

@@ -1,4 +1,4 @@
-import { ObjectId, References } from "mongodb-rag-core";
+import { ObjectId, OpenAI, References } from "mongodb-rag-core";
 import {
   AwaitGenerateResponseParams,
   GenerateResponseParams,
@@ -25,21 +25,23 @@ const testFuncName = "test_func";
 const mockFunctionInvocation = {
   role: "assistant",
   content: "",
-  functionCall: {
+  function_call: {
     arguments: JSON.stringify({ foo: "bar" }),
     name: testFuncName,
   },
-} satisfies AssistantMessage;
+  refusal: null,
+} satisfies OpenAI.default.ChatCompletionMessage;
 
 const mockReject = "mock_reject";
 const mockRejectFunctionInvocation = {
   role: "assistant",
   content: "",
-  functionCall: {
+  function_call: {
     arguments: JSON.stringify({ fizz: "buzz" }),
     name: mockReject,
   },
-} satisfies AssistantMessage;
+  refusal: null,
+} satisfies OpenAI.default.ChatCompletionMessage;
 
 const mockReferences: References = [
   { url: "https://example.com/ref", title: "Some title" },
@@ -85,16 +87,16 @@ const mockChatLlm: ChatLlm = {
       if (latestMessage.content === testFuncName) {
         yield {
           id: count.toString(), // Unique ID for each item
-          created: new Date(),
+          created: Date.now(),
           choices: [
             {
               index: 0,
-              finishReason: "[STOP]",
+              finish_reason: "stop",
               delta: {
                 role: "assistant",
                 content: "",
                 toolCalls: [],
-                functionCall: mockFunctionInvocation.functionCall,
+                function_call: mockFunctionInvocation.function_call,
               },
             },
           ],
@@ -105,16 +107,16 @@ const mockChatLlm: ChatLlm = {
       if (latestMessage.content === mockReject) {
         yield {
           id: count.toString(), // Unique ID for each item
-          created: new Date(),
+          created: Date.now(),
           choices: [
             {
               index: 0,
-              finishReason: "[STOP]",
+              finish_reason: "stop",
               delta: {
                 role: "assistant",
                 content: "",
                 toolCalls: [],
-                functionCall: mockRejectFunctionInvocation.functionCall,
+                function_call: mockRejectFunctionInvocation.function_call,
               },
             },
           ],
@@ -128,11 +130,11 @@ const mockChatLlm: ChatLlm = {
       while (count < mockAssistantMessageContent.length) {
         yield {
           id: count.toString(), // Unique ID for each item
-          created: new Date(),
+          created: Date.now(),
           choices: [
             {
               index: 0,
-              finishReason: "[STOP]",
+              finish_reason: "stop",
               delta: {
                 role: "assistant",
                 content: mockAssistantMessageContent[count],

@@ -3,9 +3,9 @@ import {
   extractMongoDbMetadataFromUserMessage,
   ExtractMongoDbMetadataFunction,
 } from "./extractMongoDbMetadataFromUserMessage";
-import { OpenAI } from "openai";
+import { OpenAI } from "mongodb-chatbot-server";
 
-jest.mock("openai", () => {
+jest.mock("mongodb-chatbot-server", () => {
   return makeMockOpenAIToolCall({
     mongoDbProduct: "Aggregation Framework",
   } satisfies ExtractMongoDbMetadataFunction);
@@ -13,13 +13,12 @@ jest.mock("openai", () => {
 
 describe("extractMongoDbMetadataFromUserMessage", () => {
   const args: Parameters<typeof extractMongoDbMetadataFromUserMessage>[0] = {
-    openAiClient: new OpenAI({ apiKey: "fake-api-key" }),
+    openAiClient: new OpenAI.OpenAI({ apiKey: "fake-api-key" }),
     model: "best-model-eva",
     userMessageText: "hi",
   };
   test("should return metadata", async () => {
     const res = await extractMongoDbMetadataFromUserMessage(args);
-    console.log(res);
     expect(res).toEqual({
       mongoDbProduct: "Aggregation Framework",
     });

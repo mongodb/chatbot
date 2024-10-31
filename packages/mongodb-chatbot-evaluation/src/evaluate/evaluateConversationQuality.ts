@@ -5,12 +5,12 @@ import {
   ResponseQualityExample,
   checkResponseQuality,
 } from "./checkResponseQuality";
-import { ObjectId, OpenAIClient } from "mongodb-rag-core";
+import { ObjectId, OpenAI } from "mongodb-rag-core";
 import { EvalResult } from "./EvaluationStore";
 import { stringifyConversation } from "./stringifyConversation";
 
 export interface EvaluateConversationQualityParams {
-  openAiClient: OpenAIClient;
+  openAiClient: OpenAI.OpenAI;
 
   /**
     The name of the OpenAI ChatGPT API deployment to use.

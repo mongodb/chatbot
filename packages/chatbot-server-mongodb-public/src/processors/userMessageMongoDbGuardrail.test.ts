@@ -1,8 +1,8 @@
 import { makeMockOpenAIToolCall } from "../test/mockOpenAi";
 import { userMessageMongoDbGuardrail } from "./userMessageMongoDbGuardrail";
-import { OpenAI } from "openai";
+import { OpenAI } from "mongodb-chatbot-server";
 
-jest.mock("openai", () => {
+jest.mock("mongodb-chatbot-server", () => {
   return makeMockOpenAIToolCall({
     reasoning: "foo",
     rejectMessage: false,
@@ -11,7 +11,7 @@ jest.mock("openai", () => {
 
 describe("userMessageMongoDbGuardrail", () => {
   const args = {
-    openAiClient: new OpenAI({ apiKey: "fake-api-key" }),
+    openAiClient: new OpenAI.OpenAI({ apiKey: "fake-api-key" }),
     model: "best-model-eva",
     userMessageText: "hi",
   };

@@ -1,11 +1,11 @@
 import { CommandModule } from "yargs";
-import { updateEmbeddedContent } from "../embed/updateEmbeddedContent";
 import {
   ResolvedConfig,
   LoadConfigArgs,
   withConfig,
   withConfigOptions,
 } from "../withConfig";
+import { updateEmbeddedContent } from "mongodb-rag-core";
 
 type EmbeddedContentCommandArgs = {
   since: string;
@@ -42,7 +42,13 @@ const commandModule: CommandModule<
 export default commandModule;
 
 export const doEmbedCommand = async (
-  { pageStore, embeddedContentStore, embedder, chunkOptions }: ResolvedConfig,
+  {
+    pageStore,
+    embeddedContentStore,
+    embedder,
+    chunkOptions,
+    concurrencyOptions,
+  }: ResolvedConfig,
   {
     since,
     source,
@@ -65,5 +71,6 @@ export const doEmbedCommand = async (
     embeddedContentStore,
     embedder,
     chunkOptions,
+    concurrencyOptions: concurrencyOptions?.embed,
   });
 };

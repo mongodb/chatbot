@@ -4,8 +4,7 @@ import {
   makeFewShotUserMessageExtractorFunction,
   makeUserMessage,
 } from "./makeFewShotUserMessageExtractorFunction";
-import { ChatCompletionMessageParam } from "openai/resources";
-import { updateFrontMatter } from "mongodb-chatbot-server";
+import { updateFrontMatter, OpenAI } from "mongodb-chatbot-server";
 
 export const StepBackUserQueryMongoDbFunctionSchema = z.object({
   transformedUserQuery: z.string().describe("Transformed user query"),
@@ -24,7 +23,7 @@ When constructing the query, take a "step back" to generate a more general searc
 If the user query is already a "good" search query, do not modify it.
 You should also transform the user query into a fully formed question, if relevant.`;
 
-const fewShotExamples: ChatCompletionMessageParam[] = [
+const fewShotExamples: OpenAI.default.ChatCompletionMessageParam[] = [
   // Example 1
   makeUserMessage(
     updateFrontMatter("aggregate filter where flowerType is rose", {

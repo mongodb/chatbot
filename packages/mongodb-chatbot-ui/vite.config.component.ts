@@ -77,6 +77,7 @@ export default ({ mode }) => {
                 FloatingActionButtonTrigger: resolvePath(
                   "src/FloatingActionButtonTrigger.tsx"
                 ),
+                HotkeyTrigger: resolvePath("src/HotkeyTrigger.tsx"),
                 InputBarTrigger: resolvePath("src/InputBarTrigger.tsx"),
                 // Chatbot Views
                 ChatWindow: resolvePath("src/ChatWindow.tsx"),

@@ -11,6 +11,7 @@ import {
   defaultConversationConstants,
   Message,
   makeOpenAiChatLlm,
+  OpenAI,
 } from "mongodb-rag-core";
 import { Express } from "express";
 import {
@@ -24,7 +25,6 @@ import { makeApp, DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { makeTestAppConfig, systemPrompt } from "../../test/testHelpers";
 import { AppConfig } from "../../app";
-import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { strict as assert } from "assert";
 import { NO_VECTOR_CONTENT, REJECT_QUERY_CONTENT } from "../../test/testConfig";
 
@@ -348,16 +348,15 @@ describe("POST /conversations/:conversationId/messages", () => {
     });
 
     describe("LLM not available but vector search is", () => {
-      const openAiClient = new OpenAIClient(
-        OPENAI_ENDPOINT,
-        new AzureKeyCredential("definitelyNotARealApiKey")
-      );
+      const openAiClient = new OpenAI.OpenAI({
+        apiKey: "definitelyNotARealApiKey",
+      });
       const brokenLlmService = makeOpenAiChatLlm({
         openAiClient,
         deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
         openAiLmmConfigOptions: {
           temperature: 0,
-          maxTokens: 500,
+          max_tokens: 500,
         },
       });
 

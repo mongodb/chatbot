@@ -19,15 +19,12 @@ export type MakeClassifyChangelogScope = {
 
 export function makeClassifyChangelog({
   openAiClient,
-  logger,
 }: MakeClassifyChangelogScope) {
   const classifyChangelogAudience = makeClassifyChangelogAudience({
     openAiClient,
-    logger,
   });
   const classifyChangelogScope = makeClassifyChangelogScope({
     openAiClient,
-    logger,
   });
 
   return async function classifyChangelog({

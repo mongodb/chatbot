@@ -1,9 +1,6 @@
-import {
-  AzureKeyCredential,
-  CORE_OPENAI_CONNECTION_ENV_VARS,
-  OpenAIClient,
-  assertEnvVars,
-} from "mongodb-rag-core";
+import { OpenAIClient, AzureKeyCredential } from "@azure/openai";
+import { assertEnvVars } from "./assertEnvVars";
+import { CORE_OPENAI_CONNECTION_ENV_VARS } from "./CoreEnvVars";
 import { Classification, makeClassifier } from "./makeClassifier";
 
 const { OPENAI_ENDPOINT, OPENAI_API_KEY } = assertEnvVars(

@@ -1,8 +1,3 @@
-import "dotenv/config";
-import {
-  assertEnvVars,
-  CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
-} from "mongodb-rag-core";
 import {
   ChatRequestMessage,
   FunctionDefinition,
@@ -10,7 +5,8 @@ import {
 } from "@azure/openai";
 import { html, stripIndents } from "common-tags";
 import { z } from "zod";
-import { RunLogger } from "../runlogger";
+import { assertEnvVars } from "./assertEnvVars";
+import { CORE_OPENAI_CHAT_COMPLETION_ENV_VARS } from "./CoreEnvVars";
 
 export type Classifier = ({
   input,
@@ -62,12 +58,10 @@ export const Classification = z.object({
 
 export function makeClassifier({
   openAiClient,
-  logger,
   classificationTypes,
   chainOfThought = false,
 }: {
   openAiClient: OpenAIClient;
-  logger?: RunLogger;
 
   /**
    A list of valid classification types.
@@ -173,19 +167,6 @@ export function makeClassifier({
     const classification = Classification.parse(
       JSON.parse(response.functionCall.arguments)
     );
-
-    logger?.appendArtifact(
-      `chatTemplates/classifier-${Date.now()}.json`,
-      stripIndents`
-        <SystemMessage>
-          ${messages[0].content}
-        </SystemMessage>
-        <Classification>
-          ${JSON.stringify(classification)}
-        </Classification>
-      `
-    );
-
     return classification;
   };
 }

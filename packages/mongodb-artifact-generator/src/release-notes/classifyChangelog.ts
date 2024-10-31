@@ -4,7 +4,7 @@ import { makeClassifyChangelogAudience } from "./classifyChangelogAudience";
 import { makeClassifyChangelogScope } from "./classifyChangelogScope";
 import { iOfN } from "../utils";
 import { RunLogger } from "../runlogger";
-import { Classification } from "../chat/makeClassifier";
+import { Classification } from "mongodb-rag-core";
 
 export type ClassifiedChangelog = {
   audience: Classification;

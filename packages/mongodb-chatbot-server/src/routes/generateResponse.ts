@@ -1,6 +1,5 @@
 import {
   References,
-  ChatLlm,
   SomeMessage,
   DataStreamer,
   Conversation,
@@ -9,8 +8,8 @@ import {
   AssistantMessage,
   UserMessage,
   ConversationCustomData,
+  ChatLlm,
 } from "mongodb-rag-core";
-import { ChatCompletionRequestMessageFunctionCall } from "openai";
 import { Request as ExpressRequest } from "express";
 import { logRequest } from "../utils";
 import { strict as assert } from "assert";
@@ -203,7 +202,7 @@ export async function awaitGenerateResponseMessage({
       newMessages.push(convertMessageFromLlmToDb(answer));
 
       // LLM responds with tool call
-      if (answer?.functionCall) {
+      if (answer?.function_call) {
         assert(
           llm.callTool,
           "You must implement the callTool() method on your ChatLlm to access this code."
@@ -233,12 +232,11 @@ export async function awaitGenerateResponseMessage({
             role: "assistant",
             content: noRelevantContentMessage,
           });
-        } // Otherwise respond with LLM again
-        else {
+        } else {
+          // Otherwise respond with LLM again
           const answer = await llm.answerQuestionAwaited({
             messages: [...llmConversation, ...newMessages],
             // Only allow 1 tool call per user message.
-            toolCallOptions: "none",
           });
           newMessages.push(convertMessageFromLlmToDb(answer));
         }
@@ -263,8 +261,12 @@ export async function awaitGenerateResponseMessage({
       newMessages.push(llmNotWorkingResponse);
     }
   }
-  // Add references to the last assistant message
-  if (newMessages.at(-1)?.role === "assistant" && outputReferences.length > 0) {
+  // Add references to the last assistant message (excluding function calls)
+  if (
+    newMessages.at(-1)?.role === "assistant" &&
+    !(newMessages.at(-1) as AssistantMessage).functionCall &&
+    outputReferences.length > 0
+  ) {
     (newMessages.at(-1) as AssistantMessage).references = outputReferences;
   }
   return { messages: newMessages };
@@ -313,7 +315,7 @@ export async function streamGenerateResponseMessage({
       const functionCallContent = {
         name: "",
         arguments: "",
-      } satisfies ChatCompletionRequestMessageFunctionCall;
+      };
 
       for await (const event of answerStream) {
         if (event.choices.length === 0) {
@@ -332,22 +334,22 @@ export async function streamGenerateResponseMessage({
           initialAssistantMessage.content += content;
         }
         // Tool call
-        else if (choice.delta?.functionCall) {
-          if (choice.delta?.functionCall.name) {
+        else if (choice.delta?.function_call) {
+          if (choice.delta?.function_call.name) {
             functionCallContent.name += escapeNewlines(
-              choice.delta?.functionCall.name ?? ""
+              choice.delta?.function_call.name ?? ""
             );
           }
-          if (choice.delta?.functionCall.arguments) {
+          if (choice.delta?.function_call.arguments) {
             functionCallContent.arguments += escapeNewlines(
-              choice.delta?.functionCall.arguments ?? ""
+              choice.delta?.function_call.arguments ?? ""
             );
           }
-        } else if (choice.message) {
+        } else if (choice.delta) {
           logRequest({
             reqId,
             message: `Unexpected message in stream: no delta. Message: ${JSON.stringify(
-              choice.message
+              choice.delta.content
             )}`,
             type: "warn",
           });
@@ -458,16 +460,21 @@ export async function streamGenerateResponseMessage({
     });
   }
 
-  return { messages: newMessages };
+  return { messages: newMessages.map(convertMessageFromLlmToDb) };
 }
 
 export function convertMessageFromLlmToDb(
   message: OpenAiChatMessage
 ): SomeMessage {
-  return {
+  const dbMessage = {
     ...message,
     content: message?.content ?? "",
   };
+  if (message.role === "assistant" && message.function_call) {
+    (dbMessage as AssistantMessage).functionCall = message.function_call;
+  }
+
+  return dbMessage;
 }
 
 function convertConversationMessageToLlmMessage(
@@ -497,7 +504,7 @@ function convertConversationMessageToLlmMessage(
     return {
       content: content,
       role: "assistant",
-      ...(message.functionCall ? { functionCall: message.functionCall } : {}),
+      ...(message.functionCall ? { function_call: message.functionCall } : {}),
     } satisfies OpenAiChatMessage;
   }
   throw new Error(`Invalid message role: ${role}`);

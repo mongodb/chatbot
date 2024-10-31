@@ -1,4 +1,4 @@
-import { makeAcquitRequireMdOnGithubDataSource } from "mongodb-rag-ingest/sources";
+import { makeAcquitRequireMdOnGithubDataSource } from "mongodb-rag-core";
 
 export const mongooseSourceConstructor = async () => {
   const repoUrl = "https://github.com/Automattic/mongoose";

@@ -23,7 +23,7 @@ import {
 import "dotenv/config";
 import fs from "fs";
 import path from "path";
-import { MongoClient, assertEnvVars } from "mongodb-rag-core";
+import { MongoClient, OpenAI, assertEnvVars } from "mongodb-rag-core";
 import { envVars } from "./envVars";
 import { systemPrompt } from "chatbot-server-mongodb-public";
 export default async () => {
@@ -34,10 +34,10 @@ export default async () => {
     OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     OPENAI_ENDPOINT,
     OPENAI_API_KEY,
+    OPENAI_API_VERSION,
     OPENAI_GPT_4_CHAT_COMPLETION_DEPLOYMENT,
   } = assertEnvVars(envVars);
 
-  const { OpenAIClient, AzureKeyCredential } = await import("@azure/openai");
   const { OpenAI: LlamaIndexOpenAiLlm } = await import("llamaindex");
   const llamaIndexEvaluationLlm = new LlamaIndexOpenAiLlm({
     azure: {
@@ -136,13 +136,14 @@ export default async () => {
             systemMessage: systemPrompt.content,
             chatLlm: makeOpenAiChatLlm({
               deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT, // GPT-3.5
-              openAiClient: new OpenAIClient(
-                OPENAI_ENDPOINT,
-                new AzureKeyCredential(OPENAI_API_KEY)
-              ),
+              openAiClient: new OpenAI.AzureOpenAI({
+                endpoint: OPENAI_ENDPOINT,
+                apiKey: OPENAI_API_KEY,
+                apiVersion: OPENAI_API_VERSION,
+              }),
               openAiLmmConfigOptions: {
                 temperature: 0,
-                maxTokens: 500,
+                max_tokens: 500,
               },
             }),
           }),
@@ -154,13 +155,14 @@ export default async () => {
             systemMessage: systemPrompt.content,
             chatLlm: makeOpenAiChatLlm({
               deployment: OPENAI_GPT_4_CHAT_COMPLETION_DEPLOYMENT,
-              openAiClient: new OpenAIClient(
-                OPENAI_ENDPOINT,
-                new AzureKeyCredential(OPENAI_API_KEY)
-              ),
+              openAiClient: new OpenAI.AzureOpenAI({
+                endpoint: OPENAI_ENDPOINT,
+                apiKey: OPENAI_API_KEY,
+                apiVersion: OPENAI_API_VERSION,
+              }),
               openAiLmmConfigOptions: {
                 temperature: 0,
-                maxTokens: 500,
+                max_tokens: 500,
               },
             }),
           }),
@@ -181,20 +183,22 @@ export default async () => {
         conversationQuality: {
           evaluator: makeEvaluateConversationQuality({
             deploymentName: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-            openAiClient: new OpenAIClient(
-              OPENAI_ENDPOINT,
-              new AzureKeyCredential(OPENAI_API_KEY)
-            ),
+            openAiClient: new OpenAI.AzureOpenAI({
+              endpoint: OPENAI_ENDPOINT,
+              apiKey: OPENAI_API_KEY,
+              apiVersion: OPENAI_API_VERSION,
+            }),
             fewShotExamples: mongodbResponseQualityExamples,
           }),
         },
         conversationQualityGpt4: {
           evaluator: makeEvaluateConversationQuality({
             deploymentName: OPENAI_GPT_4_CHAT_COMPLETION_DEPLOYMENT,
-            openAiClient: new OpenAIClient(
-              OPENAI_ENDPOINT,
-              new AzureKeyCredential(OPENAI_API_KEY)
-            ),
+            openAiClient: new OpenAI.AzureOpenAI({
+              endpoint: OPENAI_ENDPOINT,
+              apiKey: OPENAI_API_KEY,
+              apiVersion: OPENAI_API_VERSION,
+            }),
             fewShotExamples: mongodbResponseQualityExamples,
           }),
         },

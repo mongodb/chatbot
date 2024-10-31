@@ -1,12 +1,11 @@
 import {
-  AzureKeyCredential,
   CORE_OPENAI_CONNECTION_ENV_VARS,
-  OpenAIClient,
+  OpenAI,
   assertEnvVars,
 } from "mongodb-rag-core";
 import { Classification, makeClassifier } from "./makeClassifier";
 
-const { OPENAI_ENDPOINT, OPENAI_API_KEY } = assertEnvVars(
+const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_API_VERSION } = assertEnvVars(
   CORE_OPENAI_CONNECTION_ENV_VARS
 );
 
@@ -58,10 +57,11 @@ const hotdogClassificationTypes = [
   },
 ];
 
-const openAiClient = new OpenAIClient(
-  OPENAI_ENDPOINT,
-  new AzureKeyCredential(OPENAI_API_KEY)
-);
+const openAiClient = new OpenAI.AzureOpenAI({
+  apiKey: OPENAI_API_KEY,
+  endpoint: OPENAI_ENDPOINT,
+  apiVersion: OPENAI_API_VERSION,
+});
 
 jest.setTimeout(10000);
 

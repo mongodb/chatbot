@@ -1,8 +1,6 @@
-import { makeDataStreamer } from "./DataStreamer";
-import type {
-  OpenAIChatCompletionWithoutUsage,
-  OpenAiStreamingResponse,
-} from "./ChatLlm";
+import { DataStreamer, makeDataStreamer } from "./DataStreamer";
+import { OpenAI } from "openai";
+import type { OpenAiStreamingResponse } from "./llm";
 import { createResponse } from "node-mocks-http";
 import { EventEmitter } from "events";
 import { Response } from "express";
@@ -58,25 +56,22 @@ describe("Data Streaming", () => {
   });
 
   it("Streams events from an AsyncIterable to the client", async () => {
-    const stream = {
+    const stream: Parameters<DataStreamer["stream"]>[0]["stream"] = {
       [Symbol.asyncIterator]() {
         let current = 0;
-        const completions = [
-          createChatCompletionWithDelta("Once upon"),
-          createChatCompletionWithDelta(" a time there was a"),
-          createChatCompletionWithDelta(" very long string."),
-        ];
+        const msgs = ["Once upon", " a time there was a", " very long string."];
+        const completions = msgs.map(createChatCompletionWithDelta);
         return {
           async next() {
             if (current < completions.length) {
               return { done: false, value: completions[current++] };
             } else {
-              return { done: true };
+              return { done: true, value: "" };
             }
           },
         };
       },
-    } as AsyncIterable<OpenAIChatCompletionWithoutUsage>;
+    };
 
     const streamedText = await dataStreamer.stream({ stream });
     expect(streamedText).toBe("Once upon a time there was a very long string.");
@@ -109,31 +104,21 @@ describe("Data Streaming", () => {
   });
 });
 
-function createChatCompletionWithDelta(deltaText: string) {
+function createChatCompletionWithDelta(
+  deltaText: string,
+  i: number
+): Omit<OpenAI.ChatCompletionChunk, "object" | "model"> {
   return {
-    id: Date.now().toString(),
-    created: Date.now() / 1000,
+    id: "test",
+    created: Date.now(),
     choices: [
-      createChatCoice({
-        index: 0,
-        delta: true,
-        message: {
+      {
+        index: i,
+        delta: {
           content: deltaText,
         },
-      }),
+        finish_reason: null,
+      },
     ],
-  };
-}
-
-function createChatCoice(data: {
-  index: number;
-  delta: boolean;
-  message: { role?: "assistant" | "user"; content: string };
-}) {
-  return {
-    index: data.index,
-    finishReason: null,
-    delta: data.delta ? data.message : undefined,
-    message: data.delta ? undefined : data.message,
   };
 }

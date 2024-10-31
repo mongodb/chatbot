@@ -1,12 +1,19 @@
-import { makeLangchainChatLlm, ObjectId } from "mongodb-chatbot-server";
+import {
+  makeLangchainChatLlm,
+  ObjectId,
+  langchain,
+} from "mongodb-chatbot-server";
 import {
   makeGenerateLlmQuizQuestionAnswer,
   makeHelmQuizQuestionPrompt,
   quizQuestionToHelmPrompt,
 } from "./generateLlmQuizQuestionAnswer";
-import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { QuizQuestionTestCaseData } from "./TestCase";
 import { QuizGeneratedData } from "./GeneratedDataStore";
+
+const {
+  testing: { FakeListChatModel },
+} = langchain;
 
 const subject = "Food";
 const quizQuestionExamples = [

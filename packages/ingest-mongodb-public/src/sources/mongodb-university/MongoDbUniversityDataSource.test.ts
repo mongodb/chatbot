@@ -11,7 +11,7 @@ describe("makeMongoDBUniversityDataSource()", () => {
       sourceName: "testSource",
       baseUrl,
       apiKey,
-      publicOnly: true,
+      ti: { publicOnly: true },
     });
     expect(dataSource.name).toBe("testSource");
   });
@@ -20,7 +20,7 @@ describe("makeMongoDBUniversityDataSource()", () => {
       sourceName: "testSource",
       baseUrl,
       apiKey,
-      publicOnly: true,
+      ti: { publicOnly: true },
     });
     const pages = await dataSource.fetchPages();
     expect(pages.length).toBeGreaterThan(0);
@@ -30,7 +30,7 @@ describe("makeMongoDBUniversityDataSource()", () => {
       sourceName: "testSource",
       baseUrl,
       apiKey,
-      publicOnly: true,
+      ti: { publicOnly: true },
     });
     const pages = await dataSource.fetchPages();
     expect(pages.length).toBeGreaterThan(0);
@@ -40,7 +40,7 @@ describe("makeMongoDBUniversityDataSource()", () => {
       sourceName: "testSource",
       baseUrl,
       apiKey,
-      publicOnly: true,
+      ti: { publicOnly: true },
       metadata: {
         foo: "bar",
       },

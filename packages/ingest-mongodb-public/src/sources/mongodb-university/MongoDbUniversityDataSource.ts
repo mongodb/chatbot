@@ -1,9 +1,6 @@
 import { PageMetadata, DataSource } from "mongodb-rag-core";
 import { makeUniversityPages } from "./makeUniversityPages";
-import {
-  TiCatalogItem,
-  makeMongoDbUniversityDataApiClient,
-} from "./MongoDbUniversityDataApiClient";
+import { makeMongoDbUniversityDataApiClient } from "./MongoDbUniversityDataApiClient";
 
 /**
   Parameters for constructing a MongoDB University Data API source.
@@ -26,19 +23,32 @@ export interface MakeMongoDbUniversityDataSourceParams {
   apiKey: string;
 
   /**
-    Filter parameter for filtering out items from the MongoDB University
-    catalog. For example, you may want to only ingest items that are
-    in public content.
-
-    To only ingest public, published, and non-legacy
-    MongoDB University content, set public_pnly to `true`
-
-    > ⚠️ **Important** ⚠️
-    >
-    > You should include *only* this content or a subset of it
-    > in externally facing applications.
+   Filter parameters for University's /catalog/ti endpoint 
+   of the MongoDB University Data API.
    */
-  publicOnly: boolean;
+  ti: {
+    /**
+      Filter parameter for filtering out items from the MongoDB University
+      catalog. For example, you may want to only ingest items that are
+      in public content.
+  
+      To only ingest public, published, and non-legacy
+      MongoDB University content, set public_pnly to `true`
+  
+      > ⚠️ **Important** ⚠️
+      >
+      > You should include *only* this content or a subset of it
+      > in externally facing applications.
+     */
+    publicOnly: boolean;
+
+    /**
+     Whether to nest associated content in the catalog items.
+     If true, content with associated content (such as Learning Paths and Courses)
+     will have a nested_content field of type TiCatalogItems[].
+    */
+    nestAssociatedContent?: boolean;
+  };
 
   /**
       Metadata for the MongoDB University Data API source.
@@ -63,8 +73,8 @@ export function makeMongoDbUniversityDataSource(
         apiKey: params.apiKey,
       });
       const { data: tiCatalogItems } = await uniDataApiClient.getCatalogItems({
-        publicOnly: params.publicOnly,
-        nestAssociatedContent: true,
+        publicOnly: params.ti.publicOnly,
+        nestAssociatedContent: params.ti.nestAssociatedContent,
       });
       const { data: videos } = await uniDataApiClient.getAllVideos();
       const universityPages = makeUniversityPages({

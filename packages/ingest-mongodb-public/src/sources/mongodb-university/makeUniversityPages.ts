@@ -218,7 +218,6 @@ export function generateContentDescriptionMarkdown({
   tiCatalogItem: TiCatalogItem;
 }): string {
   const { name, description, nested_content } = tiCatalogItem;
-  console.log({ name, description, nested_content });
   const title = `# ${name}`;
   const markdownContent = [title, description, `\n`];
   if (nested_content) {

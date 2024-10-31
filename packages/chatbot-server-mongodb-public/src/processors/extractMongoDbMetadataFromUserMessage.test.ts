@@ -13,7 +13,7 @@ jest.mock("mongodb-chatbot-server", () => {
 
 describe("extractMongoDbMetadataFromUserMessage", () => {
   const args: Parameters<typeof extractMongoDbMetadataFromUserMessage>[0] = {
-    openAiClient: new OpenAI.OpenAI({ apiKey: "fake-api-key" }),
+    openAiClient: new OpenAI({ apiKey: "fake-api-key" }),
     model: "best-model-eva",
     userMessageText: "hi",
   };

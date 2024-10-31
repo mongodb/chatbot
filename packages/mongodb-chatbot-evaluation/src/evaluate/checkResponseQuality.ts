@@ -1,16 +1,16 @@
 import { stripIndents } from "common-tags";
-import { OpenAI } from "mongodb-chatbot-server";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 export interface CheckResponseQualityParams {
   received: string;
   expectedOutputDescription: string;
-  openAiClient: OpenAI.OpenAI;
+  openAiClient: OpenAI;
   deploymentName: string;
   fewShotExamples?: ResponseQualityExample[];
 }
 
 export interface ResponseQualityExample {
-  messages: OpenAI.default.ChatCompletionMessageParam[];
+  messages: OpenAI.ChatCompletionMessageParam[];
   expectation: string;
   llmOutput: CheckResponseQuality;
 }
@@ -49,7 +49,7 @@ ${
 }`,
     },
     { role: "user", content: userMessageContent },
-  ] satisfies OpenAI.default.ChatCompletionMessageParam[];
+  ] satisfies OpenAI.ChatCompletionMessageParam[];
   const res = await openAiClient.chat.completions.create({
     model: deploymentName,
     messages,
@@ -104,7 +104,7 @@ OUTPUT:
   );
 }
 
-const checkResponseQualityOpenAiFunction: OpenAI.default.FunctionDefinition = {
+const checkResponseQualityOpenAiFunction: OpenAI.FunctionDefinition = {
   name: "checkResponseQuality",
   description: "Check if the response meets the chat quality standards.",
   parameters: {

@@ -2,8 +2,8 @@ import "dotenv/config";
 import {
   assertEnvVars,
   CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
-  OpenAI,
 } from "mongodb-rag-core";
+import { OpenAI } from "mongodb-rag-core/openai";
 import { html, stripIndents } from "common-tags";
 import { z } from "zod";
 import { RunLogger } from "../runlogger";
@@ -62,7 +62,7 @@ export function makeClassifier({
   classificationTypes,
   chainOfThought = false,
 }: {
-  openAiClient: OpenAI.OpenAI;
+  openAiClient: OpenAI;
   logger?: RunLogger;
 
   /**
@@ -122,7 +122,7 @@ export function makeClassifier({
       }
     : {};
   const required = chainOfThought ? ["type", "reason"] : ["type"];
-  const classifyFunc: OpenAI.default.FunctionDefinition = {
+  const classifyFunc: OpenAI.FunctionDefinition = {
     name: "classify",
     description: "Classify the type of the provided input",
     parameters: {
@@ -146,7 +146,7 @@ export function makeClassifier({
         role: "system",
         content: makeSystemPrompt(input),
       },
-    ] satisfies OpenAI.default.ChatCompletionMessageParam[];
+    ] satisfies OpenAI.ChatCompletionMessageParam[];
     const result = await openAiClient.chat.completions.create({
       model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
       messages,

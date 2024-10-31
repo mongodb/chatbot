@@ -5,7 +5,6 @@
 import "dotenv/config";
 import {
   EmbeddedContent,
-  MongoClient,
   makeMongoDbEmbeddedContentStore,
   makeOpenAiEmbedder,
   makeMongoDbVerifiedAnswerStore,
@@ -17,8 +16,10 @@ import {
   makeOpenAiChatLlm,
   SystemPrompt,
   UserMessage,
-  OpenAI,
+  SearchBooster,
 } from "mongodb-rag-core";
+import { MongoClient } from "mongodb-rag-core/mongodb";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { stripIndents } from "common-tags";
 import { AppConfig } from "../app";
 import {
@@ -47,7 +48,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
   Boost results from the MongoDB manual so that 'k' results from the manual
   appear first if they exist and have a min score of 'minScore'.
  */
-export const boostManual = makeBoostOnAtlasSearchFilter({
+export const boostManual: SearchBooster = makeBoostOnAtlasSearchFilter({
   /**
     Boosts results that have 3 words or less
    */
@@ -67,7 +68,7 @@ export const boostManual = makeBoostOnAtlasSearchFilter({
   totalMaxK: 5,
 });
 
-export const openAiClient = new OpenAI.AzureOpenAI({
+export const openAiClient = new AzureOpenAI({
   apiKey: OPENAI_API_KEY,
   endpoint: OPENAI_ENDPOINT,
   apiVersion: OPENAI_API_VERSION,

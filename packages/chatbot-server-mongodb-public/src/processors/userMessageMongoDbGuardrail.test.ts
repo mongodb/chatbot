@@ -11,7 +11,7 @@ jest.mock("mongodb-chatbot-server", () => {
 
 describe("userMessageMongoDbGuardrail", () => {
   const args = {
-    openAiClient: new OpenAI.OpenAI({ apiKey: "fake-api-key" }),
+    openAiClient: new OpenAI({ apiKey: "fake-api-key" }),
     model: "best-model-eva",
     userMessageText: "hi",
   };

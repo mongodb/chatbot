@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { makeMockEvaluationStore } from "../test/mockEvaluationStore";
 import { makeMockCommandMetadataStore } from "../test/mockMetadataStore";
 import { mockReportEvalFunc } from "../test/mockReportFunc";

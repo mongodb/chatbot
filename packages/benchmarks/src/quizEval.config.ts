@@ -5,7 +5,8 @@ import {
 } from "mongodb-chatbot-evaluation";
 
 import "dotenv/config";
-import { MongoClient, assertEnvVars } from "mongodb-rag-core";
+import { assertEnvVars } from "mongodb-rag-core";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 import { envVars } from "./envVars";
 import {
   ChatLlmQuizEvalConfig,

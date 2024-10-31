@@ -1,5 +1,6 @@
-import { ObjectId, Conversation, Message } from "mongodb-rag-core";
+import { Conversation, Message } from "mongodb-rag-core";
 import { filterOnlySystemPrompt } from "./filterOnlySystemPrompt";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 
 const mockConversationBase: Conversation = {
   _id: new ObjectId(),

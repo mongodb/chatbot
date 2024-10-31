@@ -7,7 +7,7 @@ jest.mock("mongodb-chatbot-server", () =>
 
 describe("makeStepBackUserQuery", () => {
   const args: Parameters<typeof makeStepBackUserQuery>[0] = {
-    openAiClient: new OpenAI.OpenAI({ apiKey: "fake-api-key" }),
+    openAiClient: new OpenAI({ apiKey: "fake-api-key" }),
     model: "best-model-ever",
     userMessageText: "hi",
   };

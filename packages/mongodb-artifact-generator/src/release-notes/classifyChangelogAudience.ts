@@ -1,4 +1,4 @@
-import { OpenAIClient } from "mongodb-rag-core";
+import { OpenAI } from "mongodb-rag-core";
 import { makeClassifier } from "../chat/makeClassifier";
 import { RunLogger } from "../runlogger";
 
@@ -40,7 +40,7 @@ const classificationTypes = [
 ];
 
 export type MakeClassifyChangelogAudienceArgs = {
-  openAiClient: OpenAIClient;
+  openAiClient: OpenAI.OpenAI;
   logger?: RunLogger;
 };
 

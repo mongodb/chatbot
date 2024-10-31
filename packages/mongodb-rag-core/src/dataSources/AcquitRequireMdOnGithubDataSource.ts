@@ -8,7 +8,7 @@ import acquit from "acquit";
 import { removeMarkdownImagesAndLinks } from "./removeMarkdownImagesAndLinks";
 import { extractMarkdownH1 } from "./extractMarkdownH1";
 import { logger } from "../logger";
-import { PageMetadata, Page } from "../pageStore";
+import { PageMetadata, Page } from "../contentStore";
 
 /**
   Loads an MD/Acquit docs site from a GitHub repo.

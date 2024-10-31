@@ -1,7 +1,7 @@
 import { JSDOM } from "jsdom";
 import fs from "fs";
 import Path from "path";
-import { Page } from "../pageStore";
+import { Page } from "../contentStore";
 import {
   HandleHtmlPageFuncOptions,
   extractHtmlH1,

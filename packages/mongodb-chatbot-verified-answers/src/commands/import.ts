@@ -3,10 +3,8 @@ import { promises as fs } from "fs";
 import { MongoClient } from "mongodb";
 import {
   assertEnvVars,
-  CORE_ENV_VARS,
   makeOpenAiEmbedder,
-  OpenAIClient,
-  AzureKeyCredential,
+  OpenAI,
   CORE_CHATBOT_APP_ENV_VARS,
   CORE_OPENAI_ENV_VARS,
 } from "mongodb-rag-core";
@@ -46,6 +44,7 @@ export const doImportCommand = async ({ path }: ImportCommandArgs) => {
     OPENAI_EMBEDDING_DEPLOYMENT: deployment,
     OPENAI_ENDPOINT,
     OPENAI_API_KEY,
+    OPENAI_API_VERSION,
   } = assertEnvVars({
     ...CORE_CHATBOT_APP_ENV_VARS,
     ...CORE_OPENAI_ENV_VARS,
@@ -54,10 +53,11 @@ export const doImportCommand = async ({ path }: ImportCommandArgs) => {
   });
   const yaml = await fs.readFile(path, "utf-8");
   const verifiedAnswerSpecs = parseVerifiedAnswerYaml(yaml);
-  const openAiClient = new OpenAIClient(
-    OPENAI_ENDPOINT,
-    new AzureKeyCredential(OPENAI_API_KEY)
-  );
+  const openAiClient = new OpenAI.AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  });
   const embedder = makeOpenAiEmbedder({
     deployment,
     openAiClient,

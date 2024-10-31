@@ -1,9 +1,9 @@
-import { FunctionCall } from "@azure/openai";
 import { ObjectId } from "mongodb";
 import { EmbeddedContent } from "../contentStore";
 import { References } from "../References";
 import { WithScore } from "../VectorStore";
 import { VerifiedAnswer } from "../verifiedAnswers";
+import { OpenAI } from "openai";
 
 export type MessageBase = {
   /**
@@ -54,7 +54,7 @@ export type AssistantMessage = MessageBase & {
    */
   references?: References;
 
-  functionCall?: FunctionCall;
+  functionCall?: OpenAI.ChatCompletionMessage.FunctionCall;
 
   metadata?: AssistantMessageMetadata;
 };

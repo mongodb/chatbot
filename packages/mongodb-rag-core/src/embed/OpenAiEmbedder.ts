@@ -1,4 +1,4 @@
-import { OpenAIClient } from "@azure/openai";
+import OpenAI from "openai";
 import { Embedder } from "./Embedder";
 import { logger } from "../logger";
 import { stripIndent } from "common-tags";
@@ -18,7 +18,7 @@ export type MakeOpenAiEmbedderArgs = {
   /**
     The OpenAI client.
    */
-  openAiClient: OpenAIClient;
+  openAiClient: OpenAI;
 };
 
 /**
@@ -40,7 +40,10 @@ export const makeOpenAiEmbedder = ({
     async embed({ text }) {
       return backOff(
         async () => {
-          const response = await openAiClient.getEmbeddings(deployment, [text]);
+          const response = await openAiClient.embeddings.create({
+            model: deployment,
+            input: [text],
+          });
           return { embedding: response.data[0].embedding };
         },
         {

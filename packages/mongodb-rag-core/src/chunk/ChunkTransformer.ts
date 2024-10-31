@@ -1,7 +1,7 @@
 import { strict as assert } from "assert";
 import frontmatter from "front-matter";
 import { ContentChunk } from "./chunkPage";
-import { Page } from "../pageStore/Page";
+import { Page } from "../contentStore/Page";
 import { updateFrontMatter } from "../frontMatter/updateFrontMatter";
 
 export type ChunkTransformer = (

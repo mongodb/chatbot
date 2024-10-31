@@ -1,14 +1,22 @@
-import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import { makeEvaluateConversationQuality } from "./evaluateConversationQuality";
 import { strict as assert } from "assert";
 import "dotenv/config";
-import { ObjectId } from "mongodb-rag-core";
+import {
+  assertEnvVars,
+  CORE_ENV_VARS,
+  ObjectId,
+  OpenAI,
+} from "mongodb-rag-core";
 import { ConversationGeneratedData } from "../generate";
 import { EvalResult } from "./EvaluationStore";
 import { mongodbResponseQualityExamples } from "./checkResponseQuality";
 
-const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_CHAT_COMPLETION_DEPLOYMENT } =
-  process.env;
+const {
+  OPENAI_ENDPOINT,
+  OPENAI_API_KEY,
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_API_VERSION,
+} = assertEnvVars(CORE_ENV_VARS);
 assert(OPENAI_ENDPOINT);
 assert(OPENAI_API_KEY);
 assert(OPENAI_CHAT_COMPLETION_DEPLOYMENT);
@@ -16,10 +24,11 @@ assert(OPENAI_CHAT_COMPLETION_DEPLOYMENT);
 jest.setTimeout(10000);
 
 const deploymentName = OPENAI_CHAT_COMPLETION_DEPLOYMENT;
-const openAiClient = new OpenAIClient(
-  OPENAI_ENDPOINT,
-  new AzureKeyCredential(OPENAI_API_KEY)
-);
+const openAiClient = new OpenAI.AzureOpenAI({
+  apiKey: OPENAI_API_KEY,
+  endpoint: OPENAI_ENDPOINT,
+  apiVersion: OPENAI_API_VERSION,
+});
 
 const generatedConversationData = {
   _id: new ObjectId(),

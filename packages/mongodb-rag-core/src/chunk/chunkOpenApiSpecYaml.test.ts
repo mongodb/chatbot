@@ -2,7 +2,7 @@ import fs from "fs";
 import Path from "path";
 import GPT3Tokenizer from "gpt3-tokenizer";
 import { chunkOpenApiSpecYaml } from "./chunkOpenApiSpecYaml";
-import { Page } from "../pageStore";
+import { Page } from "../contentStore";
 import yaml from "yaml";
 
 const SRC_ROOT = Path.resolve(__dirname, "..");

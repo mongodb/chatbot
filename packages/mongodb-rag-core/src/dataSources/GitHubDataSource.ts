@@ -1,6 +1,6 @@
 import { Document } from "langchain/document";
 import { GithubRepoLoaderParams } from "@langchain/community/document_loaders/web/github";
-import { Page } from "../pageStore";
+import { Page } from "../contentStore";
 import { DataSource } from "./DataSource";
 import { MakeGitDataSourceParams, makeGitDataSource } from "./GitDataSource";
 

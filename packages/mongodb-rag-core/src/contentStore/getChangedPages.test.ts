@@ -1,4 +1,4 @@
-import { Page, PageAction } from "mongodb-rag-core";
+import { Page, PageAction } from "./Page";
 import { getChangedPages } from "./getChangedPages";
 
 describe("getChangedPages", () => {

@@ -2,7 +2,7 @@ import { makeMockOpenAIToolCall } from "../test/mockOpenAi";
 import { userMessageMongoDbGuardrail } from "./userMessageMongoDbGuardrail";
 import { OpenAI } from "mongodb-chatbot-server";
 
-jest.mock("openai", () => {
+jest.mock("mongodb-chatbot-server", () => {
   return makeMockOpenAIToolCall({
     reasoning: "foo",
     rejectMessage: false,

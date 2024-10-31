@@ -5,7 +5,7 @@ import {
 } from "./extractMongoDbMetadataFromUserMessage";
 import { OpenAI } from "mongodb-chatbot-server";
 
-jest.mock("openai", () => {
+jest.mock("mongodb-chatbot-server", () => {
   return makeMockOpenAIToolCall({
     mongoDbProduct: "Aggregation Framework",
   } satisfies ExtractMongoDbMetadataFunction);

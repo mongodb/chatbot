@@ -1,12 +1,10 @@
 import { makeMockOpenAIToolCall } from "../test/mockOpenAi";
 import { makeStepBackUserQuery } from "./makeStepBackUserQuery";
 import { OpenAI } from "mongodb-chatbot-server";
-
-jest.mock("openai", () => {
-  return makeMockOpenAIToolCall({
-    transformedUserQuery: "foo",
-  });
-});
+// Mock the specific module
+jest.mock("mongodb-chatbot-server", () =>
+  makeMockOpenAIToolCall({ transformedUserQuery: "foo" })
+);
 
 describe("makeStepBackUserQuery", () => {
   const args: Parameters<typeof makeStepBackUserQuery>[0] = {
@@ -14,6 +12,7 @@ describe("makeStepBackUserQuery", () => {
     model: "best-model-ever",
     userMessageText: "hi",
   };
+
   test("should return step back user query", async () => {
     expect(await makeStepBackUserQuery(args)).toEqual({
       transformedUserQuery: "foo",

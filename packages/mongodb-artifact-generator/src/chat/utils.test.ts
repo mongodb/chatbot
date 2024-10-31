@@ -16,7 +16,7 @@ describe("formatFewShotExamples", () => {
       {
         role: "assistant",
         content: null,
-        functionCall: {
+        function_call: {
           name: "test-few-shot-function",
           arguments: JSON.stringify("output1"),
         },
@@ -25,7 +25,7 @@ describe("formatFewShotExamples", () => {
       {
         role: "assistant",
         content: null,
-        functionCall: {
+        function_call: {
           name: "test-few-shot-function",
           arguments: JSON.stringify("output2"),
         },
@@ -47,7 +47,7 @@ describe("formatFewShotExamples", () => {
       {
         role: "assistant",
         content: null,
-        functionCall: {
+        function_call: {
           name: "test-few-shot-function",
           arguments: JSON.stringify({ key: "value1" }),
         },
@@ -56,7 +56,7 @@ describe("formatFewShotExamples", () => {
       {
         role: "assistant",
         content: null,
-        functionCall: {
+        function_call: {
           name: "test-few-shot-function",
           arguments: JSON.stringify({ key: "value2" }),
         },

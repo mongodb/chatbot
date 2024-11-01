@@ -1,4 +1,4 @@
-import { OpenAIClient } from "mongodb-rag-core";
+import { OpenAI } from "mongodb-rag-core";
 import { RunLogger } from "../runlogger";
 import { makeGenerateMetaDescription } from "./generateMetaDescription";
 
@@ -10,7 +10,7 @@ export function makeGenerateDocsMetadata({
   openAiClient,
   logger,
 }: {
-  openAiClient: OpenAIClient;
+  openAiClient: OpenAI.OpenAI;
   logger?: RunLogger;
 }) {
   const generateMetaDescription = makeGenerateMetaDescription({

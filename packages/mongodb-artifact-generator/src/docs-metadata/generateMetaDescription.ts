@@ -1,7 +1,7 @@
 import {
   assertEnvVars,
   CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
-  OpenAIClient,
+  OpenAI,
 } from "mongodb-rag-core";
 import { RunLogger } from "../runlogger";
 import { stripIndents } from "common-tags";
@@ -12,7 +12,7 @@ import { z } from "zod";
 import { DocsMetadata } from "./generateMetadata";
 
 export type MakeGenerateMetaDescription = {
-  openAiClient: OpenAIClient;
+  openAiClient: OpenAI.OpenAI;
   logger?: RunLogger;
 };
 
@@ -71,18 +71,16 @@ export function makeGenerateMetaDescription({
     const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars(
       CORE_OPENAI_CHAT_COMPLETION_ENV_VARS
     );
-    const result = await openAiClient.getChatCompletions(
-      OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-      [
+    const result = await openAiClient.chat.completions.create({
+      model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+      messages: [
         systemMessage(systemPrompt),
         ...fewShotExamples,
         userMessage(JSON.stringify({ url, text })),
       ],
-      {
-        temperature: 0,
-        maxTokens: 300,
-      }
-    );
+      temperature: 0,
+      max_tokens: 300,
+    });
     const response = result.choices[0].message?.content;
     if (!response) {
       throw new Error("No response from OpenAI");

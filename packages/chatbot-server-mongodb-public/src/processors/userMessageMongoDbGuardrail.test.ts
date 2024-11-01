@@ -1,6 +1,6 @@
 import { makeMockOpenAIToolCall } from "../test/mockOpenAi";
 import { userMessageMongoDbGuardrail } from "./userMessageMongoDbGuardrail";
-import { OpenAI } from "mongodb-chatbot-server";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 jest.mock("mongodb-chatbot-server", () => {
   return makeMockOpenAIToolCall({

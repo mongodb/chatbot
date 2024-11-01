@@ -1,8 +1,5 @@
-import {
-  FindContentFunc,
-  FindContentResult,
-  ObjectId,
-} from "mongodb-chatbot-server";
+import { FindContentFunc, FindContentResult } from "mongodb-chatbot-server";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
   preprocessorOpenAiClient,

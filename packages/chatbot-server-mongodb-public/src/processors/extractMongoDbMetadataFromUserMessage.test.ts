@@ -3,7 +3,7 @@ import {
   extractMongoDbMetadataFromUserMessage,
   ExtractMongoDbMetadataFunction,
 } from "./extractMongoDbMetadataFromUserMessage";
-import { OpenAI } from "mongodb-chatbot-server";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 jest.mock("mongodb-chatbot-server", () => {
   return makeMockOpenAIToolCall({

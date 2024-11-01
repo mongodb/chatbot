@@ -37,7 +37,6 @@ const systemPrompt = stripIndents`
 
 export function makeGenerateMetaDescription({
   openAiClient,
-  logger,
 }: MakeGenerateMetaDescription) {
   const fewShotExamplesDir = "./src/docs-metadata/examples";
   const fewShotExamples = readdirSync(fewShotExamplesDir)

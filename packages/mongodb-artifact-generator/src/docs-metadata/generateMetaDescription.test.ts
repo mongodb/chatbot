@@ -1,19 +1,17 @@
-import {
-  assertEnvVars,
-  AzureKeyCredential,
-  OpenAIClient,
-} from "mongodb-rag-core";
+import { assertEnvVars, OpenAI } from "mongodb-rag-core";
 import { makeGenerateMetaDescription } from "./generateMetaDescription";
 
-const { OPENAI_ENDPOINT, OPENAI_API_KEY } = assertEnvVars({
+const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_API_VERSION } = assertEnvVars({
   OPENAI_ENDPOINT: "",
   OPENAI_API_KEY: "",
+  OPENAI_API_VERSION: "",
 });
 
-const openAiClient = new OpenAIClient(
-  OPENAI_ENDPOINT,
-  new AzureKeyCredential(OPENAI_API_KEY)
-);
+const openAiClient = new OpenAI.AzureOpenAI({
+  apiKey: OPENAI_API_KEY,
+  endpoint: OPENAI_ENDPOINT,
+  apiVersion: OPENAI_API_VERSION,
+});
 
 describe("generateMetaDescription", () => {
   it("should generate a meta description", async () => {

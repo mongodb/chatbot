@@ -7,7 +7,7 @@ export type MockFetchResultArgs<T> = {
 };
 
 /**
- * Mock the next global.fetch result.
+  Mock the next global.fetch result.
  */
 export function mockNextFetchResult<T>({
   ok = true,

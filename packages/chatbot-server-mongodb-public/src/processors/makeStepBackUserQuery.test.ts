@@ -1,7 +1,7 @@
 import { makeMockOpenAIToolCall } from "../test/mockOpenAi";
 import { makeStepBackUserQuery } from "./makeStepBackUserQuery";
 import { OpenAI } from "mongodb-rag-core/openai";
-jest.mock("mongodb-chatbot-server", () =>
+jest.mock("mongodb-rag-core/openai", () =>
   makeMockOpenAIToolCall({ transformedUserQuery: "foo" })
 );
 

@@ -209,10 +209,6 @@ function conversationReducer(
         );
         return state;
       }
-      console.log(`Deleting message with id ${action.messageId}`, [
-        ...state.messages.slice(0, messageIndex),
-        ...state.messages.slice(messageIndex + 1),
-      ]);
       return {
         ...state,
         messages: [

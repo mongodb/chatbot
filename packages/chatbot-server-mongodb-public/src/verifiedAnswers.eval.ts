@@ -1,10 +1,7 @@
 import { Eval, EvalCase, EvalScorer } from "braintrust";
 import { MongoDbTag } from "./mongoDbMetadata";
 import { findVerifiedAnswer, verifiedAnswerConfig } from "./config";
-import {
-  FindVerifiedAnswerResult,
-  VerifiedAnswer,
-} from "mongodb-chatbot-server";
+import { FindVerifiedAnswerResult } from "mongodb-chatbot-server";
 import { VerfiedAnswerSpec } from "mongodb-chatbot-verified-answers";
 
 interface VerifiedAnswersEvalCaseInput {
@@ -23,7 +20,7 @@ interface VerifiedAnswersEvalCaseMetadata extends Record<string, unknown> {
   description?: string;
 }
 
-type VerifiedAnswerTag = "perturbation";
+type VerifiedAnswerTag = "perturbation" | "should_match" | "should_not_match";
 
 type MongoDbVerifiedAnswerTag = MongoDbTag | VerifiedAnswerTag;
 
@@ -59,7 +56,79 @@ const verifiedAnswerEvalCases: VerifiedAnswersEvalCase[] = [
     tags: ["aggregation", "perturbation"],
     verifiedAnswerIndex,
   }),
+  makeVerifiedAnswerEvalCase({
+    inputQuery: "agg framework",
+    similarVerifiedAnswerQuery: "aggregation framework",
+    tags: ["aggregation", "perturbation", "should_match"],
+    verifiedAnswerIndex,
+  }),
+  makeVerifiedAnswerEvalCase({
+    inputQuery: "what's the process to insert data into MongoDB",
+    similarVerifiedAnswerQuery: "How do I insert data into MongoDB?",
+    verifiedAnswerIndex,
+    tags: ["perturbation", "should_match"],
+  }),
+  makeVerifiedAnswerEvalCase({
+    inputQuery: "How can I insert data into MongoDB?",
+    similarVerifiedAnswerQuery: "How do I insert data into MongoDB?",
+    verifiedAnswerIndex,
+    tags: ["perturbation", "should_match"],
+  }),
+  makeVerifiedAnswerEvalCase({
+    inputQuery: "How can I insert data into MongoDB?",
+    similarVerifiedAnswerQuery: "insert data into mongodb",
+    verifiedAnswerIndex,
+    tags: ["perturbation", "should_match"],
+  }),
+  makeVerifiedAnswerEvalCase({
+    inputQuery: "password reset",
+    similarVerifiedAnswerQuery: "Can i reset my password",
+    verifiedAnswerIndex,
+    tags: ["perturbation", "iam", "should_match"],
+  }),
+  makeVerifiedAnswerEvalCase({
+    inputQuery: "reset my password",
+    similarVerifiedAnswerQuery: "Can i reset my password",
+    verifiedAnswerIndex,
+    tags: ["perturbation", "iam", "should_match"],
+  }),
+  makeVerifiedAnswerEvalCase({
+    inputQuery: "reset database password",
+    similarVerifiedAnswerQuery: "Can i reset my password",
+    verifiedAnswerIndex,
+    tags: ["perturbation", "iam", "should_match"],
+  }),
+  makeVerifiedAnswerEvalCase({
+    inputQuery: "reset database password",
+    similarVerifiedAnswerQuery: "Can i reset my password",
+    verifiedAnswerIndex,
+    tags: ["perturbation", "iam", "should_match"],
+  }),
+  makeVerifiedAnswerEvalCase({
+    inputQuery: "connect to stream process",
+    verifiedAnswerIndex,
+    tags: ["atlas_stream_processing", "should_not_match"],
+  }),
+  makeVerifiedAnswerEvalCase({
+    inputQuery: "connect to database kotlin",
+    verifiedAnswerIndex,
+    tags: ["driver", "kotlin", "should_not_match"],
+  }),
+  makeVerifiedAnswerEvalCase({
+    inputQuery: "connect to database with Kotlin coroutine driver",
+    verifiedAnswerIndex,
+    tags: ["driver", "kotlin", "kotlin_coroutine_driver", "should_not_match"],
+  }),
+  // 👇 From EAI-580 👇
+  makeVerifiedAnswerEvalCase({
+    inputQuery: "how do I set up billing alerts in Atlas",
+    // No similar verified answer
+    tags: ["billing", "should_not_match"],
+    verifiedAnswerIndex,
+  }),
 ];
+
+// Helper function to create a verified answer eval case
 function makeVerifiedAnswerEvalCase(args: {
   inputQuery: string;
   similarVerifiedAnswerQuery?: string;
@@ -91,6 +160,7 @@ function makeVerifiedAnswerEvalCase(args: {
 const MatchesSomeVerifiedAnswer: VerifiedAnswersEvalCaseScorer = (args) => {
   return {
     name: "MatchesSomeVerifiedAnswer",
+    score: args.output.answer ? 1 : 0,
   };
 };
 
@@ -129,7 +199,7 @@ Eval<
   VerifiedAnswersEvalCaseExpected,
   VerifiedAnswersEvalCaseMetadata
 >("mongodb-chatbot-verified-answers", {
-  experimentName: "mongodb-chatbot-latest",
+  experimentName: `mongodb-chatbot-latest-${verifiedAnswerConfig.embeddingModel}-minScore-${verifiedAnswerConfig.findNearestNeighborsOptions.minScore}`,
   metadata: {
     description:
       "Evaluates if gets the correct verified answers for a given query",

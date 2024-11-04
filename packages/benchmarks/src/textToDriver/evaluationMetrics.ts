@@ -19,7 +19,7 @@ export const SuccessfulExecution: TextToDriverEvalScorer = async ({
 
   const correctOutputFuzzy: ReturnType<TextToDriverEvalScorer> = {
     name: "CorrectOutputFuzzy",
-    score: null,
+    score: 0,
   };
   try {
     const isFuzzyMatch =
@@ -27,14 +27,12 @@ export const SuccessfulExecution: TextToDriverEvalScorer = async ({
         ? fuzzyMatch({
             mongoDbOutput: output.execution.result,
             expected: expected,
-            orderMatters: metadata.sql.query.includes("ORDER BY"),
-            isAggregation:
-              metadata.sql.tags?.subcategories.includes("AGGREGATION") ?? false,
+            orderMatters: metadata.orderMatters,
+            isAggregation: metadata.isAggregation,
           })
-        : null;
-    if (isFuzzyMatch !== null) {
-      correctOutputFuzzy.score = isFuzzyMatch ? 1 : 0;
-    } else {
+        : 0;
+    correctOutputFuzzy.score = isFuzzyMatch ? 1 : 0;
+    if (isFuzzyMatch === 0) {
       correctOutputFuzzy.metadata = {
         error: "Fuzzy match failed",
       };

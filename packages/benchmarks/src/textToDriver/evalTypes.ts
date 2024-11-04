@@ -63,6 +63,14 @@ Taken from Spider SQL dataset.
   app_mod_case_id: z.number().optional()
     .describe(`ID of the evaluation case from the App Modernization dataset.
 @example 1`),
+  orderMatters: z
+    .boolean()
+    .optional()
+    .describe(`If true, the order of elements in arrays matters.`),
+  isAggregation: z
+    .boolean()
+    .optional()
+    .describe(`If true, the output is an aggregation operation.`),
 });
 
 /**

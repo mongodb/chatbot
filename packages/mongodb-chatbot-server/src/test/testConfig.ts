@@ -48,7 +48,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
   Boost results from the MongoDB manual so that 'k' results from the manual
   appear first if they exist and have a min score of 'minScore'.
  */
-export const boostManual: SearchBooster = makeBoostOnAtlasSearchFilter({
+export const boostManual = makeBoostOnAtlasSearchFilter({
   /**
     Boosts results that have 3 words or less
    */

@@ -67,8 +67,6 @@ async function main() {
       .filter((m) => m.authorized === true)
       // // NOTE: ignoring Google models for now b/c of issues with Radiant
       .filter((m) => m.developer !== "Google")
-      // TODO: sequentially work thru the models
-      .filter((m) => m.label.includes("llama"))
       .map((modelInfo) => {
         const modelExperiments = [];
         for (const promptType of Object.keys(prompts)) {

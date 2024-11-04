@@ -56,14 +56,14 @@ export function makeOpenAiClientFactory({
         throw new Error(`Unsupported provider: ${modelConfig.provider}`);
       }
       if (modelConfig.systemMessageAsUserMessage) {
-        openAiClient = wrapOpenAiClientWithSystemMessage(openAiClient);
+        openAiClient = imitateSystemMessagesWithUserMessages(openAiClient);
       }
       return openAiClient;
     },
   };
 }
 
-function wrapOpenAiClientWithSystemMessage(openAiClient: OpenAI): OpenAI {
+function imitateSystemMessagesWithUserMessages(openAiClient: OpenAI): OpenAI {
   // Preserve the original `.create()` method with binding
   const originalCreate = openAiClient.chat.completions.create.bind(
     openAiClient.chat.completions

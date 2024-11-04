@@ -13,7 +13,7 @@ import {
   makeChatLlmQuizEvalCommands,
 } from "./makeChatLlmQuizEvalCommands";
 import { makeRadiantChatLlm } from "./makeRadiantChatLlm";
-import { radiantModels } from "./radiantModels";
+import { models } from "./models";
 import { makeBaseConfig } from "./baseConfig";
 
 // Few-shot examples
@@ -181,7 +181,7 @@ export default async () => {
   })) satisfies QuizQuestionTestCase[];
 
   const modelsConfig = await Promise.all(
-    radiantModels.map(async (model) => {
+    models.map(async (model) => {
       return {
         name: model.label,
         generatorConfig: {
@@ -191,7 +191,7 @@ export default async () => {
           chatLlm: await makeRadiantChatLlm({
             apiKey: RADIANT_API_KEY,
             endpoint: RADIANT_ENDPOINT,
-            deployment: model.radiantModelDeployment,
+            deployment: model.deployment,
             mongoDbAuthCookie: MONGODB_AUTH_COOKIE,
             lmmConfigOptions: {
               temperature: 0,

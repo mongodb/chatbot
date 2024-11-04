@@ -1,0 +1,1024 @@
+Experiment name
+CorrectOutputFuzzy
+SuccessfulExecution
+QueryExecutionTimeMinutes
+Duration
+LLM duration
+Prompt tokens
+Completion tokens
+Total tokens
+Avatar
+Name
+Date
+Examples
+Source
+Metadata
+ID
+claude-3-haiku-genericFewShotChainOfThought-without-collection-schemas-officialV2
+46.33%
+82.49%
+0.06%
+2.4s
+2.3s
+2754.58
+139.48
+2894.06
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"claude-3-haiku","RUN_ID":"officialV2","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-haiku-20240307-v1:0","maxConcurrency":3,"promptStrategy":"genericFewShotChainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+66cfa5fd-71ad-4aba-a747-be72b1b45e3b
+claude-3-haiku-genericFewShotChainOfThought-with-collection-schemas-officialV2
+47.46%
+79.66%
+0.06%
+2.5s
+2.4s
+9283.49
+120.27
+9403.76
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"claude-3-haiku","RUN_ID":"officialV2","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-haiku-20240307-v1:0","maxConcurrency":3,"promptStrategy":"genericFewShotChainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+bb5e0fd6-1d33-4b09-8516-001d8814de37
+claude-3-haiku-genericFewShot-without-collection-schemas-officialV2
+46.89%
+85.88%
+0.05%
+1.9s
+1.9s
+2187.58
+116.89
+2304.47
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"claude-3-haiku","RUN_ID":"officialV2","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-haiku-20240307-v1:0","maxConcurrency":3,"promptStrategy":"genericFewShot","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+3d1c5f65-26af-48b9-9ef4-d212be9b86fb
+claude-3-haiku-genericFewShot-with-collection-schemas-officialV2
+47.46%
+85.88%
+0.04%
+2.3s
+2.3s
+8716.49
+114.96
+8831.45
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"claude-3-haiku","RUN_ID":"officialV2","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-haiku-20240307-v1:0","maxConcurrency":3,"promptStrategy":"genericFewShot","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+f95b1440-184a-4e1d-8d2c-7ece4694eade
+claude-3-haiku-chainOfThought-without-collection-schemas-officialV2
+42.37%
+78.53%
+0.07%
+2s
+1.9s
+1889.58
+126.64
+2016.23
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"claude-3-haiku","RUN_ID":"officialV2","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-haiku-20240307-v1:0","maxConcurrency":3,"promptStrategy":"chainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+3aef2974-e433-4f24-95aa-a5322262be56
+claude-3-haiku-chainOfThought-with-collection-schemas-officialV2
+45.76%
+82.49%
+0.05%
+2.5s
+2.4s
+8418.49
+128.84
+8547.33
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"claude-3-haiku","RUN_ID":"officialV2","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-haiku-20240307-v1:0","maxConcurrency":3,"promptStrategy":"chainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+be713a83-411b-466e-ba0d-35aa55243c6c
+claude-3-haiku-simple-without-collection-schemas-officialV2
+47.46%
+81.36%
+0.06%
+2.1s
+2s
+1825.58
+129.50
+1955.08
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"claude-3-haiku","RUN_ID":"officialV2","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-haiku-20240307-v1:0","maxConcurrency":3,"promptStrategy":"simple","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+8dfca8f3-c230-4090-a250-12406d2f448f
+claude-3-haiku-simple-with-collection-schemas-officialV2
+44.07%
+82.49%
+0.05%
+2.6s
+2.5s
+8354.49
+128.97
+8483.46
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"claude-3-haiku","RUN_ID":"officialV2","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-haiku-20240307-v1:0","maxConcurrency":3,"promptStrategy":"simple","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+84ae4738-7f47-4974-9278-651539aaaa14
+claude-3-sonnet-genericFewShotChainOfThought-without-collection-schemas
+36.16%
+81.92%
+0.09%
+8.3s
+8.2s
+2754.58
+251.71
+3006.29
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"claude-3-sonnet","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-sonnet-20240229-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShotChainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+d87e598b-b920-4004-beb3-5cd1147f2357
+claude-3-sonnet-genericFewShotChainOfThought-with-collection-schemas
+36.16%
+77.40%
+0.07%
+11.9s
+11.8s
+9283.49
+242.40
+9525.89
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"claude-3-sonnet","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-sonnet-20240229-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShotChainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+12b99d00-220c-4907-8b28-4021f358bfac
+claude-3-sonnet-genericFewShot-without-collection-schemas
+46.89%
+90.40%
+0.08%
+5.3s
+5.2s
+2187.58
+139.24
+2326.82
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"claude-3-sonnet","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-sonnet-20240229-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShot","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+0812d011-8c73-4f6e-894e-e176c9c71502
+claude-3-sonnet-genericFewShot-with-collection-schemas
+41.81%
+77.40%
+0.08%
+8.5s
+8.4s
+8716.49
+172.62
+8889.11
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"claude-3-sonnet","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-sonnet-20240229-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShot","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+7bb5cdeb-f354-4a95-83cf-e552a35bb6d5
+claude-3-sonnet-chainOfThought-without-collection-schemas
+46.33%
+79.66%
+0.09%
+6.8s
+6.6s
+1889.58
+242.58
+2132.16
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"claude-3-sonnet","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-sonnet-20240229-v1:0","maxConcurrency":1,"promptStrategy":"chainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+d2222d3f-335a-44ed-9a1e-249743f92e5d
+claude-3-sonnet-chainOfThought-with-collection-schemas
+36.72%
+64.97%
+0.06%
+9.1s
+9s
+8418.49
+251.59
+8670.08
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"claude-3-sonnet","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-sonnet-20240229-v1:0","maxConcurrency":1,"promptStrategy":"chainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+ffa04fae-1263-48e2-909f-a18410a0c4fb
+claude-3-sonnet-simple-without-collection-schemas
+46.89%
+90.40%
+0.10%
+5.2s
+5.1s
+1825.58
+147.99
+1973.57
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"claude-3-sonnet","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-sonnet-20240229-v1:0","maxConcurrency":1,"promptStrategy":"simple","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+c5905564-4573-4494-862a-36fbd855acd2
+claude-3-sonnet-simple-with-collection-schemas
+44.63%
+79.66%
+0.08%
+7.2s
+7.1s
+8354.49
+139.24
+8493.73
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"claude-3-sonnet","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-sonnet-20240229-v1:0","maxConcurrency":1,"promptStrategy":"simple","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+8354fa8b-32ab-428e-97e0-19c847d0670b
+claude-35-sonnet-genericFewShotChainOfThought-without-collection-schemas
+52.54%
+92.66%
+0.08%
+7.9s
+7.8s
+2741.83
+245.82
+2987.66
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"claude-35-sonnet","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-5-sonnet-20240620-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShotChainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+83c70087-30d3-4337-b5b5-1b57f8a30eef
+claude-35-sonnet-genericFewShotChainOfThought-with-collection-schemas
+50.28%
+93.79%
+0.08%
+8.1s
+8s
+9283.49
+237.40
+9520.89
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"claude-35-sonnet","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-5-sonnet-20240620-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShotChainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+37f130e2-84f1-41fe-8cad-9c777dd9810e
+claude-35-sonnet-genericFewShot-without-collection-schemas-8a14ef91
+51.98%
+97.74%
+0.10%
+5s
+4.9s
+2187.58
+141.07
+2328.66
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"claude-35-sonnet","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-5-sonnet-20240620-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShot","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+909bd257-2884-40e9-9a63-0df134b5c63e
+claude-35-sonnet-genericFewShot-with-collection-schemas-e7b73bc0
+49.72%
+94.35%
+0.09%
+5.3s
+5.2s
+8716.49
+141.28
+8857.77
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"claude-35-sonnet","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-5-sonnet-20240620-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShot","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+8977b254-4d80-4212-b898-260b50db9140
+claude-35-sonnet-chainOfThought-without-collection-schemas
+48.02%
+89.83%
+0.08%
+8.2s
+8.1s
+1889.58
+242.08
+2131.66
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"claude-35-sonnet","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-5-sonnet-20240620-v1:0","maxConcurrency":1,"promptStrategy":"chainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+8a65e19d-35fb-4df4-ad9b-1c347009bd8f
+claude-35-sonnet-chainOfThought-with-collection-schemas
+47.46%
+94.92%
+0.10%
+8.9s
+8.8s
+8418.49
+238.50
+8656.99
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"claude-35-sonnet","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-5-sonnet-20240620-v1:0","maxConcurrency":1,"promptStrategy":"chainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+dfd2c01f-4dff-440a-a0ef-ccc939e7b278
+claude-35-sonnet-simple-without-collection-schemas
+50.28%
+97.74%
+0.10%
+5.9s
+5.8s
+1825.58
+144.82
+1970.41
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"claude-35-sonnet","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-5-sonnet-20240620-v1:0","maxConcurrency":1,"promptStrategy":"simple","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+8c35e7c2-4adb-4014-96b5-0f89e2ba09ba
+claude-35-sonnet-simple-with-collection-schemas
+46.33%
+85.31%
+0.08%
+6.4s
+6.3s
+8354.49
+149.99
+8504.48
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"claude-35-sonnet","provider":"radiant","developer":"Anthropic","authorized":true,"deployment":"anthropic.claude-3-5-sonnet-20240620-v1:0","maxConcurrency":1,"promptStrategy":"simple","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+0086ee49-f1b5-45f5-87cf-7577d62a770b
+gpt-35-turbo-16k-genericFewShotChainOfThought-without-collection-schemas-officialV2
+36.16%
+89.83%
+0.04%
+7.7s
+2.6s
+2330.41
+165.19
+2495.60
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-35-turbo-16k","RUN_ID":"officialV2","metadata":{"modelVersion":"0613","rateLimitTpm":70000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-35-turbo-16k","sleepBeforeMs":5000,"maxConcurrency":1,"promptStrategy":"genericFewShotChainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+a52157ef-481c-488f-a539-540e5947d37d
+gpt-35-turbo-16k-genericFewShotChainOfThought-with-collection-schemas-officialV2
+32.77%
+89.83%
+0.04%
+10s
+3.4s
+7150.68
+161.66
+7312.34
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-35-turbo-16k","RUN_ID":"officialV2","metadata":{"modelVersion":"0613","rateLimitTpm":70000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-35-turbo-16k","sleepBeforeMs":5000,"maxConcurrency":1,"promptStrategy":"genericFewShotChainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+3a889621-c4ea-4eb9-92c7-bfed1b3d6bbf
+gpt-35-turbo-16k-genericFewShot-without-collection-schemas-officialV2
+45.20%
+92.66%
+0.19%
+6.8s
+1.5s
+1851.41
+85.76
+1937.18
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-35-turbo-16k","RUN_ID":"officialV2","metadata":{"modelVersion":"0613","rateLimitTpm":70000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-35-turbo-16k","sleepBeforeMs":5000,"maxConcurrency":1,"promptStrategy":"genericFewShot","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+1c5fa9df-003f-47e5-b8c0-51f06f3fceca
+gpt-35-turbo-16k-genericFewShot-with-collection-schemas-officialV2
+44.07%
+90.40%
+0.04%
+7s
+1.9s
+6679.80
+89.11
+6768.92
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-35-turbo-16k","RUN_ID":"officialV2","metadata":{"modelVersion":"0613","rateLimitTpm":70000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-35-turbo-16k","sleepBeforeMs":5000,"maxConcurrency":1,"promptStrategy":"genericFewShot","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+b17b16a7-1078-4e6e-b6a4-79b1cbffb2ec
+gpt-35-turbo-16k-chainOfThought-without-collection-schemas-officialV2
+42.37%
+93.22%
+0.04%
+6.9s
+1.8s
+1594.41
+102.64
+1697.06
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-35-turbo-16k","RUN_ID":"officialV2","metadata":{"modelVersion":"0613","rateLimitTpm":70000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-35-turbo-16k","sleepBeforeMs":5000,"maxConcurrency":1,"promptStrategy":"chainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+a32c609d-e276-4786-b332-c45f56c06f5c
+gpt-35-turbo-16k-chainOfThought-with-collection-schemas-officialV2
+44.07%
+92.09%
+0.04%
+7.2s
+2.1s
+6427.16
+98.16
+6525.32
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-35-turbo-16k","RUN_ID":"officialV2","metadata":{"modelVersion":"0613","rateLimitTpm":70000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-35-turbo-16k","sleepBeforeMs":5000,"maxConcurrency":1,"promptStrategy":"chainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+9cec28d6-d02d-405a-92cc-51aab144b105
+gpt-35-turbo-16k-simple-without-collection-schemas-officialV2
+42.94%
+92.09%
+0.05%
+6.8s
+1.8s
+1537.41
+96.79
+1634.20
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-35-turbo-16k","RUN_ID":"officialV2","metadata":{"modelVersion":"0613","rateLimitTpm":70000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-35-turbo-16k","sleepBeforeMs":5000,"maxConcurrency":1,"promptStrategy":"simple","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+41005835-519c-43a9-9168-2ad721d67124
+gpt-35-turbo-16k-simple-with-collection-schemas-officialV2
+44.07%
+90.96%
+0.05%
+7.2s
+2.1s
+6371.12
+96.49
+6467.62
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-35-turbo-16k","RUN_ID":"officialV2","metadata":{"modelVersion":"0613","rateLimitTpm":70000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-35-turbo-16k","sleepBeforeMs":5000,"maxConcurrency":1,"promptStrategy":"simple","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+a7982e0c-57bf-43de-9a35-be553494b576
+gpt-4o-genericFewShotChainOfThought-without-collection-schemas-officialV2
+50.28%
+90.96%
+0.04%
+3.6s
+3.5s
+2348.51
+184.44
+2532.94
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-4o","RUN_ID":"officialV2","metadata":{"modelVersion":"2024-08-06","rateLimitTpm":110000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-4o","maxConcurrency":1,"promptStrategy":"genericFewShotChainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+132ca4e7-3395-470a-9a29-059d10ed8d98
+gpt-4o-genericFewShotChainOfThought-with-collection-schemas-officialV2
+48.59%
+89.83%
+0.05%
+4.1s
+4.1s
+7610.88
+185.95
+7796.82
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-4o","RUN_ID":"officialV2","metadata":{"modelVersion":"2024-08-06","rateLimitTpm":110000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-4o","maxConcurrency":1,"promptStrategy":"genericFewShotChainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+9ada6785-51c8-4874-850e-e7be29ccff52
+gpt-4o-genericFewShot-without-collection-schemas-officialV2
+49.15%
+95.48%
+0.05%
+2.1s
+2s
+1871.51
+94.66
+1966.16
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-4o","RUN_ID":"officialV2","metadata":{"modelVersion":"2024-08-06","rateLimitTpm":110000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-4o","maxConcurrency":1,"promptStrategy":"genericFewShot","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+a2dbf450-ba3a-409f-924d-8be24db32983
+gpt-4o-genericFewShot-with-collection-schemas-officialV2
+49.15%
+97.74%
+0.04%
+3.7s
+3.7s
+7133.88
+94.64
+7228.51
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-4o","RUN_ID":"officialV2","metadata":{"modelVersion":"2024-08-06","rateLimitTpm":110000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-4o","maxConcurrency":1,"promptStrategy":"genericFewShot","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+59d07492-90fa-4ba5-9050-b3e5dca55cd2
+gpt-4o-chainOfThought-without-collection-schemas-officialV2
+48.02%
+88.70%
+0.05%
+3.1s
+3.1s
+1597.25
+137.68
+1734.93
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-4o","RUN_ID":"officialV2","metadata":{"modelVersion":"2024-08-06","rateLimitTpm":110000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-4o","maxConcurrency":1,"promptStrategy":"chainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+f5704f2c-4464-46ee-8f0d-1be120abba7a
+gpt-4o-chainOfThought-with-collection-schemas-officialV2
+48.02%
+87.57%
+0.06%
+3.8s
+3.7s
+6865.88
+142.10
+7007.98
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-4o","RUN_ID":"officialV2","metadata":{"modelVersion":"2024-08-06","rateLimitTpm":110000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-4o","maxConcurrency":1,"promptStrategy":"chainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+ea258ca8-d31b-486b-b087-dac3e33f613e
+gpt-4o-simple-without-collection-schemas-officialV2
+50.28%
+94.35%
+0.05%
+2.1s
+2s
+1549.51
+102.36
+1651.86
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-4o","RUN_ID":"officialV2","metadata":{"modelVersion":"2024-08-06","rateLimitTpm":110000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-4o","maxConcurrency":1,"promptStrategy":"simple","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+a78e736c-2e42-44e6-a9aa-72e5da12c589
+gpt-4o-simple-with-collection-schemas-officialV2
+48.02%
+94.92%
+0.06%
+3.7s
+3.6s
+6811.88
+101.12
+6913.00
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-4o","RUN_ID":"officialV2","metadata":{"modelVersion":"2024-08-06","rateLimitTpm":110000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-4o","maxConcurrency":1,"promptStrategy":"simple","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+c9deab2f-befd-4ffb-a260-bf6bbddd7d04
+gpt-4o-mini-genericFewShotChainOfThought-without-collection-schemas-officialV2
+48.59%
+94.92%
+0.06%
+1.6s
+1.6s
+2348.51
+155.98
+2504.49
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-4o-mini","RUN_ID":"officialV2","metadata":{"modelVersion":"2024-07-18","rateLimitTpm":4070000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-4o-mini","maxConcurrency":5,"promptStrategy":"genericFewShotChainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+23ba84ee-9ef8-46d1-b5bd-366f8e91c183
+gpt-4o-mini-genericFewShotChainOfThought-with-collection-schemas-officialV2
+49.72%
+96.05%
+0.06%
+1.8s
+1.7s
+7610.88
+161.05
+7771.92
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-4o-mini","RUN_ID":"officialV2","metadata":{"modelVersion":"2024-07-18","rateLimitTpm":4070000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-4o-mini","maxConcurrency":5,"promptStrategy":"genericFewShotChainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+634151b2-b79d-415d-9887-ca2ef64de37b
+gpt-4o-mini-genericFewShot-without-collection-schemas-officialV2
+49.15%
+93.79%
+0.06%
+1s
+0.9s
+1871.51
+85.13
+1956.64
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-4o-mini","RUN_ID":"officialV2","metadata":{"modelVersion":"2024-07-18","rateLimitTpm":4070000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-4o-mini","maxConcurrency":5,"promptStrategy":"genericFewShot","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+00d2f67b-749b-4bd9-a00f-170216608cb9
+gpt-4o-mini-genericFewShot-with-collection-schemas-officialV2
+49.15%
+97.18%
+0.06%
+1.3s
+1.2s
+7133.88
+83.43
+7217.31
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-4o-mini","RUN_ID":"officialV2","metadata":{"modelVersion":"2024-07-18","rateLimitTpm":4070000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-4o-mini","maxConcurrency":5,"promptStrategy":"genericFewShot","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+d60f40b6-5c41-4671-8f77-1935d94e90f9
+gpt-4o-mini-chainOfThought-without-collection-schemas-officialV2
+47.46%
+93.22%
+0.05%
+1.1s
+1.1s
+1603.51
+103.33
+1706.84
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-4o-mini","RUN_ID":"officialV2","metadata":{"modelVersion":"2024-07-18","rateLimitTpm":4070000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-4o-mini","maxConcurrency":5,"promptStrategy":"chainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+813ea9b8-52bf-4145-a300-7e0f05aee64c
+gpt-4o-mini-chainOfThought-with-collection-schemas-officialV2
+51.98%
+96.05%
+0.07%
+1.5s
+1.4s
+6865.88
+104.34
+6970.22
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-4o-mini","RUN_ID":"officialV2","metadata":{"modelVersion":"2024-07-18","rateLimitTpm":4070000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-4o-mini","maxConcurrency":5,"promptStrategy":"chainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+0a9e30cd-9dd9-47b6-914d-5cd85f0b0d0b
+gpt-4o-mini-simple-without-collection-schemas-officialV2
+49.15%
+90.96%
+0.05%
+1.2s
+1.1s
+1549.51
+88.16
+1637.67
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-4o-mini","RUN_ID":"officialV2","metadata":{"modelVersion":"2024-07-18","rateLimitTpm":4070000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-4o-mini","maxConcurrency":5,"promptStrategy":"simple","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+6a55a5db-613b-42ef-8854-478a47aa0128
+gpt-4o-mini-simple-with-collection-schemas-officialV2
+49.15%
+96.61%
+0.06%
+1.4s
+1.3s
+6811.88
+89.55
+6901.43
+Avatar
+Ben Perlmutter
+Oct 16
+177
+EAI-539 ad4e74a
+{"label":"gpt-4o-mini","RUN_ID":"officialV2","metadata":{"modelVersion":"2024-07-18","rateLimitTpm":4070000},"provider":"azure_openai","developer":"OpenAI","authorized":true,"deployment":"gpt-4o-mini","maxConcurrency":5,"promptStrategy":"simple","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+b59b2a45-206c-4890-ad68-f9d1f08d02b9
+mistral-large-2-genericFewShotChainOfThought-without-collection-schemas-officialV2
+37.29%
+83.62%
+0.07%
+6.4s
+6.3s
+2989.59
+233.32
+3222.92
+Avatar
+Ben Perlmutter
+32m ago
+177
+EAI-539 ad4e74a
+{"label":"mistral-large-2","RUN_ID":"officialV2","provider":"radiant","developer":"Mistral","authorized":true,"deployment":"mistral.mistral-large-2402-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShotChainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+14243841-3bda-40c6-8058-d85d9142af5e
+mistral-large-2-genericFewShotChainOfThought-with-collection-schemas-officialV2
+38.98%
+83.05%
+0.12%
+10.7s
+10.6s
+9745.54
+229.65
+9975.19
+Avatar
+Ben Perlmutter
+51m ago
+177
+EAI-539 ad4e74a
+{"label":"mistral-large-2","RUN_ID":"officialV2","provider":"radiant","developer":"Mistral","authorized":true,"deployment":"mistral.mistral-large-2402-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShotChainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+0a18d579-4463-4e9c-ac95-127b07ce4c09
+mistral-large-2-genericFewShot-without-collection-schemas-officialV2
+40.68%
+84.18%
+0.07%
+3.8s
+3.7s
+2433.59
+126.47
+2560.07
+Avatar
+Ben Perlmutter
+1h ago
+177
+EAI-539 ad4e74a
+{"label":"mistral-large-2","RUN_ID":"officialV2","provider":"radiant","developer":"Mistral","authorized":true,"deployment":"mistral.mistral-large-2402-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShot","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+fb642861-b704-4257-a8aa-2c143de949f5
+mistral-large-2-genericFewShot-with-collection-schemas-officialV2-f70c12e2
+40.68%
+85.31%
+0.04%
+7.5s
+7.5s
+9189.54
+146.50
+9336.05
+Avatar
+Ben Perlmutter
+4h ago
+177
+EAI-539 ad4e74a
+{"label":"mistral-large-2","RUN_ID":"officialV2","provider":"radiant","developer":"Mistral","authorized":true,"deployment":"mistral.mistral-large-2402-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShot","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+9b3e7cfa-d976-49fb-8e3e-56d61851e6b1
+mistral-large-2-chainOfThought-without-collection-schemas-officialV2
+40.68%
+82.49%
+0.09%
+6.4s
+6.3s
+2127.59
+241.75
+2369.34
+Avatar
+Ben Perlmutter
+22h ago
+177
+EAI-539 ad4e74a
+{"label":"mistral-large-2","RUN_ID":"officialV2","provider":"radiant","developer":"Mistral","authorized":true,"deployment":"mistral.mistral-large-2402-v1:0","maxConcurrency":1,"promptStrategy":"chainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+67b36200-77b4-44b5-8f9b-78209593ae4f
+mistral-large-2-chainOfThought-with-collection-schemas-officialV2
+44.63%
+84.75%
+0.08%
+11.3s
+11.2s
+8883.54
+252.05
+9135.59
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"mistral-large-2","RUN_ID":"officialV2","provider":"radiant","developer":"Mistral","authorized":true,"deployment":"mistral.mistral-large-2402-v1:0","maxConcurrency":1,"promptStrategy":"chainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+760b5d73-7993-4937-a10d-04c12a099401
+mistral-large-2-simple-without-collection-schemas-officialV2
+45.76%
+88.70%
+0.09%
+6.8s
+6.7s
+2063.59
+148.14
+2211.73
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"mistral-large-2","RUN_ID":"officialV2","provider":"radiant","developer":"Mistral","authorized":true,"deployment":"mistral.mistral-large-2402-v1:0","maxConcurrency":1,"promptStrategy":"simple","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+27f73ebb-052a-43ab-96de-0c94816686d4
+mistral-large-2-simple-with-collection-schemas-officialV2
+39.55%
+83.62%
+0.10%
+9.8s
+9.7s
+8819.54
+171.19
+8990.73
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"mistral-large-2","RUN_ID":"officialV2","provider":"radiant","developer":"Mistral","authorized":true,"deployment":"mistral.mistral-large-2402-v1:0","maxConcurrency":1,"promptStrategy":"simple","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+ad575012-b6f0-48b1-98c9-541fcf951910
+llama-3-70b-genericFewShotChainOfThought-without-collection-schemas-officialV2
+38.98%
+80.79%
+0.05%
+4.6s
+4.6s
+2333.31
+167.80
+2501.11
+Avatar
+Ben Perlmutter
+8m ago
+177
+EAI-539 73f0acc
+{"label":"llama-3-70b","RUN_ID":"officialV2","provider":"radiant","developer":"Meta","authorized":true,"deployment":"meta.llama3-70b-instruct-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShotChainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+fcce7dcf-bb48-47c2-a15d-2d2731a8911f
+llama-3-70b-genericFewShotChainOfThought-with-collection-schemas-officialV2
+36.16%
+69.49%
+0.04%
+3.8s
+3.8s
+3958.22
+90.87
+4049.09
+Avatar
+Ben Perlmutter
+21m ago
+177
+EAI-539 73f0acc
+{"label":"llama-3-70b","RUN_ID":"officialV2","provider":"radiant","developer":"Meta","authorized":true,"deployment":"meta.llama3-70b-instruct-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShotChainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+ee13761e-f0e4-4bcb-8c45-f01fcba13e56
+llama-3-70b-genericFewShot-without-collection-schemas-officialV2
+40.68%
+81.36%
+0.05%
+3s
+3s
+1854.31
+99.36
+1953.67
+Avatar
+Ben Perlmutter
+33m ago
+177
+EAI-539 ad4e74a
+{"label":"llama-3-70b","RUN_ID":"officialV2","provider":"radiant","developer":"Meta","authorized":true,"deployment":"meta.llama3-70b-instruct-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShot","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+a401ff77-b034-4250-addd-36c51fbeccbc
+llama-3-70b-genericFewShot-with-collection-schemas-officialV2
+40.11%
+66.10%
+0.04%
+2.7s
+2.6s
+3598.29
+40.40
+3638.69
+Avatar
+Ben Perlmutter
+42m ago
+177
+EAI-539 ad4e74a
+{"label":"llama-3-70b","RUN_ID":"officialV2","provider":"radiant","developer":"Meta","authorized":true,"deployment":"meta.llama3-70b-instruct-v1:0","maxConcurrency":1,"promptStrategy":"genericFewShot","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+25e4b7df-fc22-4778-9a6a-13d2b6666cca
+llama-3-70b-chainOfThought-with-collection-schemas-officialV2
+36.16%
+60.45%
+0.08%
+13.7s
+13.6s
+3728.58
+67.45
+3796.02
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"llama-3-70b","RUN_ID":"officialV2","provider":"radiant","developer":"Meta","authorized":true,"deployment":"meta.llama3-70b-instruct-v1:0","maxConcurrency":1,"promptStrategy":"chainOfThought","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+9413db34-d8f1-46c1-825f-9a77305e8254
+llama-3-70b-simple-without-collection-schemas-officialV2
+37.85%
+79.66%
+0.09%
+7.2s
+7.1s
+1540.31
+109.22
+1649.53
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"llama-3-70b","RUN_ID":"officialV2","provider":"radiant","developer":"Meta","authorized":true,"deployment":"meta.llama3-70b-instruct-v1:0","maxConcurrency":1,"promptStrategy":"simple","sampleDocumentLimit":2,"generateCollectionSchemas":false}
+fc955ab0-d8df-4a15-aedd-eef7cae144a5
+llama-3-70b-simple-with-collection-schemas-officialV2
+38.42%
+65.54%
+0.06%
+8.9s
+8.7s
+3683.49
+51.72
+3735.21
+Avatar
+Ben Perlmutter
+1d ago
+177
+EAI-539 ad4e74a
+{"label":"llama-3-70b","RUN_ID":"officialV2","provider":"radiant","developer":"Meta","authorized":true,"deployment":"meta.llama3-70b-instruct-v1:0","maxConcurrency":1,"promptStrategy":"simple","sampleDocumentLimit":2,"generateCollectionSchemas":true}
+8fe493fb-51be-48f1-91cc-a156ef0ac789

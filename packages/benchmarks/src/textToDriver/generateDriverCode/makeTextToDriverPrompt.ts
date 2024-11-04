@@ -1,5 +1,5 @@
 import { Document, IndexDescription } from "mongodb-rag-core/mongodb";
-import { OpenAI } from "openai";
+import { OpenAI } from "mongodb-rag-core/openai";
 import { parseSchema } from "mongodb-schema";
 import { strict as assert } from "assert";
 

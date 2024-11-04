@@ -12,7 +12,7 @@ import {
 import { OpenAI } from "mongodb-rag-core/openai";
 
 // Mock external dependencies
-jest.mock("openai");
+jest.mock("mongodb-rag-core/openai");
 const MockedOpenAI = OpenAI as jest.MockedClass<typeof OpenAI>;
 
 describe("makeGenerateDriverCode", () => {

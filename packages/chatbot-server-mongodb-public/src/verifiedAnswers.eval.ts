@@ -227,30 +227,27 @@ function findExactVerifiedAnswer(
 ): string | undefined {
   return verifiedAnswerIndex[query];
 }
-async function main() {
-  await Eval<
-    VerifiedAnswersEvalCaseInput,
-    VerifiedAnswersTaskOutput,
-    VerifiedAnswersEvalCaseExpected,
-    VerifiedAnswersEvalCaseMetadata
-  >("mongodb-chatbot-verified-answers", {
-    experimentName: `mongodb-chatbot-latest-${verifiedAnswerConfig.embeddingModel}-minScore-${verifiedAnswerConfig.findNearestNeighborsOptions.minScore}`,
-    metadata: {
-      description:
-        "Evaluates if gets the correct verified answers for a given query",
-      verifiedAnswerConfig: verifiedAnswerConfig,
-    },
-    async data() {
-      return verifiedAnswerEvalCases;
-    },
-    maxConcurrency: 5,
-    async task(input) {
-      const verifiedAnswer = await findVerifiedAnswer(input);
-      return {
-        answer: verifiedAnswer?.answer,
-      };
-    },
-    scores: [MatchesSomeVerifiedAnswer, MatchesExpectedOutput, SearchScore],
-  });
-}
-main();
+Eval<
+  VerifiedAnswersEvalCaseInput,
+  VerifiedAnswersTaskOutput,
+  VerifiedAnswersEvalCaseExpected,
+  VerifiedAnswersEvalCaseMetadata
+>("mongodb-chatbot-verified-answers", {
+  experimentName: `mongodb-chatbot-latest-${verifiedAnswerConfig.embeddingModel}-minScore-${verifiedAnswerConfig.findNearestNeighborsOptions.minScore}`,
+  metadata: {
+    description:
+      "Evaluates if gets the correct verified answers for a given query",
+    verifiedAnswerConfig: verifiedAnswerConfig,
+  },
+  async data() {
+    return verifiedAnswerEvalCases;
+  },
+  maxConcurrency: 5,
+  async task(input) {
+    const verifiedAnswer = await findVerifiedAnswer(input);
+    return {
+      answer: verifiedAnswer?.answer,
+    };
+  },
+  scores: [MatchesSomeVerifiedAnswer, MatchesExpectedOutput, SearchScore],
+});

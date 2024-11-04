@@ -1,4 +1,4 @@
-import { Document } from "mongodb-rag-core";
+import { Document } from "mongodb-rag-core/mongodb";
 import { EJSON } from "bson";
 import { strict as assert } from "assert";
 

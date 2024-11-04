@@ -1,5 +1,5 @@
 import { strict as assert } from "assert";
-import { MongoClient } from "mongodb-rag-core";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 
 export interface ExtractSampleDocumentsParams {
   mongoClient: MongoClient;

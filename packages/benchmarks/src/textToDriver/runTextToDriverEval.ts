@@ -4,7 +4,7 @@ import {
   makeGenerateDriverCode,
   MakeGenerateDriverCodeParams,
 } from "./generateDriverCode/makeGenerateDriverCode";
-import OpenAI from "openai";
+import { OpenAI } from "mongodb-rag-core/openai";
 import {
   loadBraintrustEvalCases,
   loadBraintrustMetadata,

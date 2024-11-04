@@ -1,4 +1,9 @@
-import { MongoClient, Db, Collection, Document } from "mongodb-rag-core";
+import {
+  MongoClient,
+  Db,
+  Collection,
+  Document,
+} from "mongodb-rag-core/mongodb";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { executeGeneratedDriverCode } from "./executeGeneratedDriverCode";
 describe("executeGeneratedDriverCode", () => {

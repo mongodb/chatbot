@@ -1,6 +1,6 @@
 import { initDataset } from "braintrust";
 import { z } from "zod";
-import { Document, BSON } from "mongodb-rag-core";
+import { Document, BSON } from "mongodb-rag-core/mongodb";
 import { TextToDriverEvalCase, TextToDriverEvalCaseSchema } from "./evalTypes";
 import "dotenv/config";
 

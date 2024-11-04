@@ -1,12 +1,6 @@
-import OpenAI, { AzureOpenAI } from "openai";
+import { OpenAI, AzureOpenAI } from "mongodb-rag-core/openai";
 import { ModelConfig } from "./models";
 import { strict as assert } from "assert";
-import { APIPromise } from "openai/core.mjs";
-import {
-  ChatCompletion,
-  ChatCompletionChunk,
-} from "openai/resources/index.mjs";
-import { Stream } from "stream";
 interface BaseModelProviderConfig {
   apiKey: string;
   endpoint: string;

@@ -1,4 +1,4 @@
-import { MongoClient } from "mongodb-rag-core";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 import "dotenv/config";
 import {
   loadBraintrustDbDocuments,

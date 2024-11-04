@@ -1,4 +1,4 @@
-import { Document, MongoClient } from "mongodb-rag-core";
+import { Document, MongoClient } from "mongodb-rag-core/mongodb";
 import vm from "vm";
 import { extractCodeFromMarkdown } from "./extractCodeFromMarkdown";
 

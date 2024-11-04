@@ -3,8 +3,8 @@ import { models } from "../models";
 import {
   assertEnvVars,
   CORE_OPENAI_CONNECTION_ENV_VARS,
-  MongoClient,
 } from "mongodb-rag-core";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 import { NODE_JS_PROMPTS } from "./generateDriverCode/languagePrompts/nodeJs";
 import { TEXT_TO_DRIVER_ENV_VARS } from "./TextToDriverEnvVars";
 import { BRAINTRUST_ENV_VARS, RADIANT_ENV_VARS } from "../envVars";

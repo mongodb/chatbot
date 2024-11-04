@@ -1,4 +1,4 @@
-import { MongoClient, Document } from "mongodb-rag-core";
+import { MongoClient, Document } from "mongodb-rag-core/mongodb";
 
 export async function insertCollectionDocuments({
   client,

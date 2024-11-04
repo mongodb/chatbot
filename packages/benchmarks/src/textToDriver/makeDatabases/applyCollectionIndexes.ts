@@ -1,4 +1,4 @@
-import { MongoClient, IndexDescription } from "mongodb-rag-core";
+import { MongoClient, IndexDescription } from "mongodb-rag-core/mongodb";
 export async function applyCollectionIndexes({
   client,
   collectionName,

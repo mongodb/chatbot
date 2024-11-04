@@ -8,8 +8,8 @@ import {
   ExtractSampleDocumentsParams,
 } from "./extractDeterministicSampleOfDocuments";
 import { strict as assert } from "assert";
-import { Document } from "mongodb-rag-core";
-import OpenAI from "openai";
+import { Document } from "mongodb-rag-core/mongodb";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 type ChatCompletionCreateParamsNonStreaming =
   OpenAI.Chat.ChatCompletionCreateParamsNonStreaming;

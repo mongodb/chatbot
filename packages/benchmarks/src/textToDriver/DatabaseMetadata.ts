@@ -1,4 +1,4 @@
-import { CreateIndexesOptions, IndexDirection } from "mongodb-rag-core";
+import { CreateIndexesOptions, IndexDirection } from "mongodb-rag-core/mongodb";
 
 export interface DatabaseMetadata {
   databaseName: string;

@@ -10,7 +10,7 @@ import {
 import { BRAINTRUST_ENV_VARS, envVars } from "./envVars";
 import { models } from "./models";
 import { makeOpenAiClientFactory } from "./makeOpenAiClientFactory";
-import OpenAI from "openai";
+import { OpenAI } from "mongodb-rag-core/openai";
 import "dotenv/config";
 
 jest.setTimeout(60000);

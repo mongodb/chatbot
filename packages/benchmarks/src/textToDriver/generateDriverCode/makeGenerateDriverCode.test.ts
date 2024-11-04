@@ -1,10 +1,15 @@
 import { MongoMemoryServer } from "mongodb-memory-server";
-import { MongoClient, Db, Collection, Document } from "mongodb-rag-core";
+import {
+  MongoClient,
+  Db,
+  Collection,
+  Document,
+} from "mongodb-rag-core/mongodb";
 import {
   makeGenerateDriverCode,
   MakeGenerateDriverCodeParams,
 } from "./makeGenerateDriverCode";
-import OpenAI from "openai";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 // Mock external dependencies
 jest.mock("openai");

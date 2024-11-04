@@ -1,10 +1,9 @@
-import { MongoClient, UUID } from "mongodb-rag-core";
+import { MongoClient, UUID, ObjectId } from "mongodb-rag-core/mongodb";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import {
   extractDeterministicSampleOfDocuments,
   MUST_HAVE_AT_LEAST_ONE_EXAMPLE_DOCUMENT_ERROR,
 } from "./extractDeterministicSampleOfDocuments";
-import { ObjectId } from "mongodb-rag-core";
 
 describe("extractDeterministicSampleOfDocuments", () => {
   let mongod: MongoMemoryServer;

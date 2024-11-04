@@ -2,9 +2,6 @@
 import parseSchema from "mongodb-schema";
 import {
   ChatCompletionMessageParam,
-  CollectionInfo,
-  COLLECTIONS_REQUIRED_ERROR,
-  EXAMPLE_DOCUMENTS_REQUIRED_ERROR,
   makeTextToDriverPrompt,
   TextToDriverPromptParams,
 } from "./makeTextToDriverPrompt"; // Adjust the path accordingly

@@ -30,7 +30,7 @@ const {
 
 // Create the OpenAI client
 // for interacting with the OpenAI API (ChatGPT API and Embedding API)
-const openAiClient = new OpenAI.OpenAI({ apiKey: OPENAI_API_KEY });
+const openAiClient = new OpenAI({ apiKey: OPENAI_API_KEY });
 
 // Chatbot LLM for responding to the user's query.
 const llm = makeOpenAiChatLlm({

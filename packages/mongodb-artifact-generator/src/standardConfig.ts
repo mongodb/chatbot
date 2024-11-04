@@ -6,10 +6,10 @@ import {
   makeOpenAiEmbedder,
   makeMongoDbEmbeddedContentStore,
   makeMongoDbPageStore,
-  OpenAI,
 } from "mongodb-rag-core";
 import { Octokit } from "@octokit/rest";
 import JiraApi from "jira-client";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
 
 const {
   OPENAI_ENDPOINT,
@@ -26,7 +26,7 @@ const { GITHUB_ACCESS_TOKEN, JIRA_USERNAME, JIRA_PASSWORD } = process.env;
 export const standardConfig = {
   embedder: () =>
     makeOpenAiEmbedder({
-      openAiClient: new OpenAI.AzureOpenAI({
+      openAiClient: new AzureOpenAI({
         apiKey: OPENAI_API_KEY,
         endpoint: OPENAI_ENDPOINT,
         apiVersion: OPENAI_API_VERSION,
@@ -48,7 +48,7 @@ export const standardConfig = {
       databaseName: MONGODB_DATABASE_NAME,
     }),
   openAiClient: () => {
-    return new OpenAI.AzureOpenAI({
+    return new AzureOpenAI({
       apiKey: OPENAI_API_KEY,
       endpoint: OPENAI_ENDPOINT,
       apiVersion: OPENAI_API_VERSION,

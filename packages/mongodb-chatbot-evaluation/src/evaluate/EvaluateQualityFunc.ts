@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { SomeGeneratedData } from "../generate/GeneratedDataStore";
 import { EvalResult } from "./EvaluationStore";
 

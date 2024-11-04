@@ -12,7 +12,8 @@ import {
   ConversationsRouterParams,
   makeConversationsRouter,
 } from "./routes/conversations/conversationsRouter";
-import { ObjectId, logger } from "mongodb-rag-core";
+import { logger } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { getRequestId, logRequest, sendErrorResponse } from "./utils";
 import { CorsOptions } from "cors";
 import cloneDeep from "lodash.clonedeep";

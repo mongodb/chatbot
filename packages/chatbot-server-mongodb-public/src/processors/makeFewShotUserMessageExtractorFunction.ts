@@ -2,8 +2,7 @@ import { Message } from "mongodb-chatbot-server";
 import { z, ZodObject, ZodRawShape } from "zod";
 import { stripIndents } from "common-tags";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import { OpenAI } from "mongodb-chatbot-server";
-
+import { OpenAI } from "mongodb-rag-core/openai";
 export interface MakeFewShotUserMessageExtractorFunctionParams<
   T extends ZodObject<ZodRawShape>
 > {
@@ -13,7 +12,7 @@ export interface MakeFewShotUserMessageExtractorFunctionParams<
     schema: T;
   };
   systemPrompt: string;
-  fewShotExamples: OpenAI.default.ChatCompletionMessageParam[];
+  fewShotExamples: OpenAI.ChatCompletionMessageParam[];
 }
 
 /**
@@ -29,9 +28,9 @@ export function makeFewShotUserMessageExtractorFunction<
   const systemPromptMessage = {
     role: "system",
     content: systemPrompt,
-  } satisfies OpenAI.default.ChatCompletionMessageParam;
+  } satisfies OpenAI.ChatCompletionMessageParam;
 
-  const toolDefinition: OpenAI.default.ChatCompletionTool = {
+  const toolDefinition: OpenAI.ChatCompletionTool = {
     type: "function",
     function: {
       name,
@@ -47,7 +46,7 @@ export function makeFewShotUserMessageExtractorFunction<
     userMessageText,
     messages = [],
   }: {
-    openAiClient: OpenAI.OpenAI;
+    openAiClient: OpenAI;
     model: string;
     userMessageText: string;
     messages?: Message[];
@@ -63,7 +62,7 @@ export function makeFewShotUserMessageExtractorFunction<
       }
 
     Original user message: ${userMessageText}`.trim(),
-    } satisfies OpenAI.default.ChatCompletionMessageParam;
+    } satisfies OpenAI.ChatCompletionMessageParam;
     const res = await openAiClient.chat.completions.create({
       messages: [systemPromptMessage, ...fewShotExamples, userMessage],
       temperature: 0,
@@ -88,7 +87,7 @@ export function makeUserMessage(content: string) {
   return {
     role: "user",
     content,
-  } satisfies OpenAI.default.ChatCompletionMessageParam;
+  } satisfies OpenAI.ChatCompletionMessageParam;
 }
 
 export function makeAssistantFunctionCallMessage(
@@ -102,5 +101,5 @@ export function makeAssistantFunctionCallMessage(
       name,
       arguments: JSON.stringify(args),
     },
-  } satisfies OpenAI.default.ChatCompletionMessageParam;
+  } satisfies OpenAI.ChatCompletionMessageParam;
 }

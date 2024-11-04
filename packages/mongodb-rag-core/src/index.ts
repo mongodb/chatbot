@@ -26,8 +26,3 @@ export * from "./References";
 export * from "./VectorStore";
 export * from "./arrayFilters";
 export * from "./assertEnvVars";
-
-// Everyone share the same versions of these packages
-export * from "mongodb";
-export * as OpenAI from "openai";
-export * from "./langchain";

@@ -5,7 +5,6 @@
 import "dotenv/config";
 import {
   EmbeddedContent,
-  MongoClient,
   makeMongoDbEmbeddedContentStore,
   makeOpenAiEmbedder,
   makeMongoDbVerifiedAnswerStore,
@@ -17,8 +16,10 @@ import {
   makeOpenAiChatLlm,
   SystemPrompt,
   UserMessage,
-  OpenAI,
+  SearchBooster,
 } from "mongodb-rag-core";
+import { MongoClient } from "mongodb-rag-core/mongodb";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { stripIndents } from "common-tags";
 import { AppConfig } from "../app";
 import {
@@ -67,7 +68,7 @@ export const boostManual = makeBoostOnAtlasSearchFilter({
   totalMaxK: 5,
 });
 
-export const openAiClient = new OpenAI.AzureOpenAI({
+export const openAiClient = new AzureOpenAI({
   apiKey: OPENAI_API_KEY,
   endpoint: OPENAI_ENDPOINT,
   apiVersion: OPENAI_API_VERSION,

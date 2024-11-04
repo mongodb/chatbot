@@ -1,4 +1,5 @@
-import { ObjectId, EmbeddedContent } from "mongodb-rag-core";
+import { EmbeddedContent } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { makeDefaultReferenceLinks } from "./makeDefaultReferenceLinks";
 
 describe("makeDefaultReferenceLinks()", () => {

@@ -1,5 +1,6 @@
 import "dotenv/config";
-import { assertEnvVars, MongoClient, ObjectId } from "mongodb-rag-core";
+import { assertEnvVars } from "mongodb-rag-core";
+import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
 import {
   ensureCollectionWithIndex,
   ensureIndex,

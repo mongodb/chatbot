@@ -25,6 +25,12 @@
     "README.md"
   ],
   "main": "./build/index.js",
+  "exports": {
+    ".": "./build/index.js",
+    "./langchain": "./build/langchain.js",
+    "./mongodb": "./build/mongodb.js",
+    "./openai": "./build/openai.js"
+  },
   "scripts": {
     "clean": "rm -rf build",
     "build": "tsc -b tsconfig.build.json",

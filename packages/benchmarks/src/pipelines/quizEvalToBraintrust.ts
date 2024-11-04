@@ -3,7 +3,7 @@ import configConstructor from "../quizEval.config";
 import { radiantModels } from "../radiantModels";
 import { evaluateQuizQuestions } from "../braintrust/evaluateQuizQuestions";
 import { strict as assert } from "assert";
-import { assertEnvVars, ObjectId } from "mongodb-rag-core";
+import { assertEnvVars } from "mongodb-rag-core";
 
 runPipeline({
   configConstructor,

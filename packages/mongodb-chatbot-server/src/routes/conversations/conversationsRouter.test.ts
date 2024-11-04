@@ -8,7 +8,7 @@ import {
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { makeTestAppConfig } from "../../test/testHelpers";
-import { ObjectId } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 
 jest.setTimeout(60000);
 describe("Conversations Router", () => {

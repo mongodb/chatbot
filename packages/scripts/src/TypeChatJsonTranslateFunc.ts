@@ -1,4 +1,5 @@
 import { createAzureOpenAILanguageModel, createJsonTranslator } from "typechat";
+import { createTypeScriptJsonValidator } from "typechat/ts";
 import { backOff } from "exponential-backoff";
 
 export interface AzureOpenAiServiceConfig {
@@ -48,13 +49,12 @@ export function makeTypeChatJsonTranslateFunc<SchemaType extends object>({
     apiKey,
     `${baseUrl}openai/deployments/${deployment}/chat/completions?api-version=${version}`
   );
-
-  // LLM function
-  const translator = createJsonTranslator<SchemaType>(
-    model,
+  const validator = createTypeScriptJsonValidator<SchemaType>(
     schema,
     schemaName
   );
+  // LLM function
+  const translator = createJsonTranslator<SchemaType>(model, validator);
 
   return async (prompt: string) => {
     const response = await backOff(() => translator.translate(prompt), {

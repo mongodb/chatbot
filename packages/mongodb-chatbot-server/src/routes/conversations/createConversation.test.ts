@@ -1,10 +1,11 @@
 import request from "supertest";
 import "dotenv/config";
 import { AppConfig } from "../../app";
-import { Db, ObjectId, Conversation } from "mongodb-rag-core";
+import { Conversation } from "mongodb-rag-core";
 import { ApiConversation } from "./utils";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp, makeTestAppConfig } from "../../test/testHelpers";
+import { Db, ObjectId } from "mongodb-rag-core/mongodb";
 
 const CONVERSATIONS_API_V1_PREFIX = DEFAULT_API_PREFIX + "/conversations";
 describe("POST /conversations", () => {

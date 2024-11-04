@@ -4,7 +4,6 @@
  */
 import "dotenv/config";
 import {
-  MongoClient,
   makeMongoDbEmbeddedContentStore,
   makeMongoDbVerifiedAnswerStore,
   makeOpenAiEmbedder,
@@ -21,7 +20,6 @@ import {
   ConversationCustomData,
   makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
-  OpenAI,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";
@@ -32,6 +30,8 @@ import { addReferenceSourceType } from "./processors/makeMongoDbReferences";
 import path from "path";
 import express from "express";
 import { wrapOpenAI, wrapTraced } from "braintrust";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -71,7 +71,7 @@ export const boostManual = makeBoostOnAtlasSearchFilter({
   totalMaxK: 5,
 });
 
-export const openAiClient = new OpenAI.AzureOpenAI({
+export const openAiClient = new AzureOpenAI({
   apiKey: OPENAI_API_KEY,
   endpoint: OPENAI_ENDPOINT,
   apiVersion: OPENAI_API_VERSION,
@@ -146,7 +146,7 @@ export const findVerifiedAnswer = wrapTraced(
 );
 
 export const preprocessorOpenAiClient = wrapOpenAI(
-  new OpenAI.AzureOpenAI({
+  new AzureOpenAI({
     apiKey: OPENAI_API_KEY,
     endpoint: OPENAI_ENDPOINT,
     apiVersion: OPENAI_API_VERSION,

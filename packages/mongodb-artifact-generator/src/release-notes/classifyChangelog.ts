@@ -1,4 +1,4 @@
-import { OpenAI } from "mongodb-rag-core";
+import { OpenAI } from "mongodb-rag-core/openai";
 import { PromisePool } from "@supercharge/promise-pool";
 import { makeClassifyChangelogAudience } from "./classifyChangelogAudience";
 import { makeClassifyChangelogScope } from "./classifyChangelogScope";
@@ -13,7 +13,7 @@ export type ClassifiedChangelog = {
 };
 
 export type MakeClassifyChangelogScope = {
-  openAiClient: OpenAI.OpenAI;
+  openAiClient: OpenAI;
   logger?: RunLogger;
 };
 

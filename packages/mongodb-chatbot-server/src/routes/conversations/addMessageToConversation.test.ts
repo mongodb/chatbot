@@ -3,15 +3,12 @@ import "dotenv/config";
 import {
   assertEnvVars,
   CORE_ENV_VARS,
-  Db,
-  ObjectId,
   makeMongoDbConversationsService,
   ConversationsService,
   Conversation,
   defaultConversationConstants,
   Message,
   makeOpenAiChatLlm,
-  OpenAI,
 } from "mongodb-rag-core";
 import { Express } from "express";
 import {
@@ -27,6 +24,8 @@ import { makeTestAppConfig, systemPrompt } from "../../test/testHelpers";
 import { AppConfig } from "../../app";
 import { strict as assert } from "assert";
 import { NO_VECTOR_CONTENT, REJECT_QUERY_CONTENT } from "../../test/testConfig";
+import { OpenAI } from "mongodb-rag-core/openai";
+import { Db, ObjectId } from "mongodb-rag-core/mongodb";
 
 const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
   assertEnvVars(CORE_ENV_VARS);
@@ -348,7 +347,7 @@ describe("POST /conversations/:conversationId/messages", () => {
     });
 
     describe("LLM not available but vector search is", () => {
-      const openAiClient = new OpenAI.OpenAI({
+      const openAiClient = new OpenAI({
         apiKey: "definitelyNotARealApiKey",
       });
       const brokenLlmService = makeOpenAiChatLlm({

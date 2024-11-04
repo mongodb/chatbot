@@ -5,8 +5,8 @@ import {
   makeOpenAiEmbedder,
   makeMongoDbEmbeddedContentStore,
   makeMongoDbPageStore,
-  OpenAI,
 } from "mongodb-rag-core";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { makeSnootyDataSource } from "./sources/snooty";
 import {
   PUBLIC_INGEST_ENV_VARS,
@@ -27,7 +27,7 @@ const {
 });
 
 const embedder = makeOpenAiEmbedder({
-  openAiClient: new OpenAI.AzureOpenAI({
+  openAiClient: new AzureOpenAI({
     apiKey: OPENAI_API_KEY,
     endpoint: OPENAI_ENDPOINT,
     apiVersion: OPENAI_API_VERSION,

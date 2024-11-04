@@ -1,11 +1,10 @@
 import { strict as assert } from "assert";
 import {
-  MongoClient,
-  Db,
   AppConfig,
   makeApp,
   makeMongoDbConversationsService,
 } from "mongodb-chatbot-server";
+import { MongoClient, Db } from "mongodb-rag-core/mongodb";
 import { systemPrompt } from "../systemPrompt";
 import { MONGODB_CONNECTION_URI, config } from "../config";
 

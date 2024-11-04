@@ -1,8 +1,5 @@
-import {
-  ConversationsService,
-  Message,
-  ObjectId,
-} from "mongodb-chatbot-server";
+import { ConversationsService, Message } from "mongodb-chatbot-server";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import express from "express";
 
 export const TRIGGER_SERVER_ERROR_MESSAGE = "THROW_ON_ME";

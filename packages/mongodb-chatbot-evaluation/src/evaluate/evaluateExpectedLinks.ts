@@ -1,4 +1,5 @@
-import { ObjectId, Reference } from "mongodb-rag-core";
+import { Reference } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { ConversationGeneratedData } from "../generate";
 import { EvaluateQualityFunc } from "./EvaluateQualityFunc";
 import { strict as assert } from "assert";

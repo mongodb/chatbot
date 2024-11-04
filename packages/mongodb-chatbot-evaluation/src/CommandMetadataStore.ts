@@ -1,4 +1,4 @@
-import { MongoClient, ObjectId } from "mongodb-rag-core";
+import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
 
 export interface CommandRunMetadata {
   _id: ObjectId;

@@ -4,7 +4,8 @@ import {
   checkResponseQuality,
   mongodbResponseQualityExamples,
 } from "./checkResponseQuality";
-import { assertEnvVars, CORE_ENV_VARS, OpenAI } from "mongodb-rag-core";
+import { assertEnvVars, CORE_ENV_VARS } from "mongodb-rag-core";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
 
 const {
   OPENAI_ENDPOINT,
@@ -16,7 +17,7 @@ const {
 jest.setTimeout(10000);
 describe("checkResponseQuality()", () => {
   const deploymentName = OPENAI_CHAT_COMPLETION_DEPLOYMENT;
-  const openAiClient = new OpenAI.AzureOpenAI({
+  const openAiClient = new AzureOpenAI({
     apiKey: OPENAI_API_KEY,
     endpoint: OPENAI_ENDPOINT,
     apiVersion: OPENAI_API_VERSION,

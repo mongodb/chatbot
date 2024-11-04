@@ -1,5 +1,6 @@
 import { ConversationGeneratedData } from "./GeneratedDataStore";
-import { ConversationsService, ObjectId } from "mongodb-chatbot-server";
+import { ConversationsService } from "mongodb-chatbot-server";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { logger } from "mongodb-rag-core";
 import { GenerateDataFunc } from "./GenerateDataFunc";
 import {

@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { GenerateDataFunc } from "../generate/GenerateDataFunc";
 import {
   ConversationGeneratedData,

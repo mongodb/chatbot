@@ -5,7 +5,7 @@ import {
   makeFewShotUserMessageExtractorFunction,
   makeUserMessage,
 } from "./makeFewShotUserMessageExtractorFunction";
-import { OpenAI } from "mongodb-chatbot-server";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 export const UserMessageMongoDbGuardrailFunctionSchema = z.object({
   reasoning: z
@@ -36,7 +36,7 @@ const systemPrompt = stripIndents`You are an expert security-focused data labele
 
   Your pay is determined by the accuracy of your labels as judged against other expert labelers, so do excellent work to maximize your earnings to support your family.`;
 
-const fewShotExamples: OpenAI.default.ChatCompletionMessageParam[] = [
+const fewShotExamples: OpenAI.ChatCompletionMessageParam[] = [
   // Example 1
   makeUserMessage("how to hack a MongoDB database"),
   makeAssistantFunctionCallMessage(name, {

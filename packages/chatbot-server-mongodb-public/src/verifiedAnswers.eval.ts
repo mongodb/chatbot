@@ -2,7 +2,12 @@ import { Eval, EvalCase, EvalScorer } from "braintrust";
 import { MongoDbTag } from "./mongoDbMetadata";
 import { findVerifiedAnswer, verifiedAnswerConfig } from "./config";
 import { FindVerifiedAnswerResult } from "mongodb-chatbot-server";
-import { VerfiedAnswerSpec } from "mongodb-chatbot-verified-answers";
+import {
+  parseVerifiedAnswerYaml,
+  VerifiedAnswerSpec,
+} from "mongodb-chatbot-verified-answers";
+import path from "path";
+import "dotenv/config";
 
 interface VerifiedAnswersEvalCaseInput {
   query: string;
@@ -45,10 +50,17 @@ type VerifiedAnswersEvalCaseScorer = EvalScorer<
   VerifiedAnswersEvalCaseMetadata
 >;
 
-// load verified answers from the yaml file
-const verifiedAnswerSpecs = [];
-// create the index of VAs
+const verifiedAnswersPath = path.resolve(
+  __dirname,
+  "..",
+  "..",
+  "..",
+  "verifiedAnswers.yaml"
+);
+console.log(verifiedAnswersPath);
+const verifiedAnswerSpecs = parseVerifiedAnswerYaml(verifiedAnswersPath);
 const verifiedAnswerIndex = makeVerifiedAnswerIndex(verifiedAnswerSpecs);
+
 const verifiedAnswerEvalCases: VerifiedAnswersEvalCase[] = [
   makeVerifiedAnswerEvalCase({
     inputQuery: "what is the aggregation framework",
@@ -193,33 +205,6 @@ const SearchScore: VerifiedAnswersEvalCaseScorer = (args) => {
   };
 };
 
-Eval<
-  VerifiedAnswersEvalCaseInput,
-  VerifiedAnswersTaskOutput,
-  VerifiedAnswersEvalCaseExpected,
-  VerifiedAnswersEvalCaseMetadata
->("mongodb-chatbot-verified-answers", {
-  experimentName: `mongodb-chatbot-latest-${verifiedAnswerConfig.embeddingModel}-minScore-${verifiedAnswerConfig.findNearestNeighborsOptions.minScore}`,
-  metadata: {
-    description:
-      "Evaluates if gets the correct verified answers for a given query",
-    verifiedAnswerConfig: verifiedAnswerConfig,
-  },
-  async data() {
-    // load verified answers from the yaml file
-    // create the index of VAs
-    return [];
-  },
-  maxConcurrency: 5,
-  async task(input) {
-    const verifiedAnswer = await findVerifiedAnswer(input);
-    return {
-      answer: verifiedAnswer?.answer,
-    };
-  },
-  scores: [MatchesSomeVerifiedAnswer, MatchesExpectedOutput, SearchScore],
-});
-
 type VerifiedAnswerIndex = Record<string, string>;
 /**
   Construct index of all verified answer for faster look up
@@ -242,3 +227,30 @@ function findExactVerifiedAnswer(
 ): string | undefined {
   return verifiedAnswerIndex[query];
 }
+async function main() {
+  await Eval<
+    VerifiedAnswersEvalCaseInput,
+    VerifiedAnswersTaskOutput,
+    VerifiedAnswersEvalCaseExpected,
+    VerifiedAnswersEvalCaseMetadata
+  >("mongodb-chatbot-verified-answers", {
+    experimentName: `mongodb-chatbot-latest-${verifiedAnswerConfig.embeddingModel}-minScore-${verifiedAnswerConfig.findNearestNeighborsOptions.minScore}`,
+    metadata: {
+      description:
+        "Evaluates if gets the correct verified answers for a given query",
+      verifiedAnswerConfig: verifiedAnswerConfig,
+    },
+    async data() {
+      return verifiedAnswerEvalCases;
+    },
+    maxConcurrency: 5,
+    async task(input) {
+      const verifiedAnswer = await findVerifiedAnswer(input);
+      return {
+        answer: verifiedAnswer?.answer,
+      };
+    },
+    scores: [MatchesSomeVerifiedAnswer, MatchesExpectedOutput, SearchScore],
+  });
+}
+main();

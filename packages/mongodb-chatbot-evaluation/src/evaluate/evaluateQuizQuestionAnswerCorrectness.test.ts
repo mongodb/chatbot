@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { evaluateQuizQuestionAnswerCorrectness } from "./evaluateQuizQuestionAnswerCorrectness";
 import { QuizGeneratedData } from "../generate";
 

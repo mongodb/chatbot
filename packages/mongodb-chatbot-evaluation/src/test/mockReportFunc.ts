@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { Report, ReportEvalFunc } from "../report";
 import { MockFindFilter } from "./MockFindFilter";
 import { EvalResult } from "../evaluate";

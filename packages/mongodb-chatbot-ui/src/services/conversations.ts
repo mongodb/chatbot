@@ -1,5 +1,5 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import { References, VerifiedAnswer, type Reference } from "mongodb-rag-core";
+import { References, VerifiedAnswer } from "mongodb-rag-core";
 import { ConversationState } from "../useConversation";
 import { strict as assert } from "node:assert";
 
@@ -11,14 +11,10 @@ export type MessageData = {
   content: string;
   createdAt: string;
   rating?: boolean;
-  references?: Reference[];
+  references?: References;
   suggestedPrompts?: string[];
   metadata?: AssistantMessageMetadata;
 };
-
-export type MessageDataReferences = NonNullable<MessageData["references"]>;
-
-export type MessageDataReference = MessageDataReferences[number];
 
 export type AssistantMessageMetadata = {
   [k: string]: unknown;

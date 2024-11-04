@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { Db } from "mongodb";
+import { Db } from "mongodb-rag-core/mongodb";
 import { Embedder, VerifiedAnswer } from "mongodb-rag-core";
 import { VerifiedAnswerSpec } from "./parseVerifiedAnswersYaml";
 import deepEqual from "deep-equal";

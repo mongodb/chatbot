@@ -2,28 +2,35 @@ import { strict as assert } from "assert";
 import { Page, extractFrontMatter } from "mongodb-rag-core";
 import {
   DataSource,
-  makeDevCenterDataSource,
-  DevCenterProjectConfig,
   makeGitDataSource,
-  HandleHtmlPageFuncOptions,
-  handleHtmlDocument,
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
   removeMarkdownImagesAndLinks,
-  MakeMongoDbUniversityDataSourceParams,
-  makeMongoDbUniversityDataSource,
-  filterOnlyPublicActiveTiCatalogItems,
-} from "mongodb-rag-ingest/sources";
-import { prepareSnootySources } from "mongodb-rag-ingest/sources/snooty";
+} from "mongodb-rag-core";
 import { prismaSourceConstructor } from "./prisma";
 import { wiredTigerSourceConstructor } from "./wiredTiger";
 import { mongooseSourceConstructor } from "./mongoose";
 import { practicalAggregationsDataSource } from "./practicalAggregations";
 import {
+  makeSnootyDataSources,
   snootyDataApiBaseUrl,
   snootyProjectConfig,
-  makeSnootyDataSources,
-} from "./snooty";
+} from "./snootySources";
+
+import { assertEnvVars } from "mongodb-rag-core";
+import { PUBLIC_INGEST_ENV_VARS } from "../PublicIngestEnvVars";
+import {
+  DevCenterProjectConfig,
+  makeDevCenterDataSource,
+} from "./DevCenterDataSource";
+import {
+  MakeMongoDbUniversityDataSourceParams,
+  filterOnlyPublicActiveTiCatalogItems,
+  makeMongoDbUniversityDataSource,
+} from "./mongodb-university";
+const { DEVCENTER_CONNECTION_URI, UNIVERSITY_DATA_API_KEY } = assertEnvVars(
+  PUBLIC_INGEST_ENV_VARS
+);
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -36,10 +43,11 @@ export const devCenterProjectConfig: DevCenterProjectConfig = {
   collectionName: "search_content_prod",
   databaseName: "devcenter",
   baseUrl: "https://www.mongodb.com/developer",
+  connectionUri: DEVCENTER_CONNECTION_URI,
 };
 
 const mongoDbUniversitySourceConstructor = async () => {
-  const universityDataApiKey = process.env.UNIVERSITY_DATA_API_KEY;
+  const universityDataApiKey = UNIVERSITY_DATA_API_KEY;
   assert(!!universityDataApiKey, "UNIVERSITY_DATA_API_KEY required");
   const universityConfig: MakeMongoDbUniversityDataSourceParams = {
     sourceName: "mongodb-university",
@@ -78,6 +86,37 @@ export const mongoDbCorpDataSourceConfig: MakeMdOnGithubDataSourceParams = {
 };
 const mongoDbCorpDataSource = async () => {
   return await makeMdOnGithubDataSource(mongoDbCorpDataSourceConfig);
+};
+
+export const mongoDbUniMetadataDataSourceConfig: MakeMdOnGithubDataSourceParams =
+  {
+    name: "university-meta",
+    repoUrl: "https://github.com/mongodb/chatbot/",
+    repoLoaderOptions: {
+      branch: "main",
+      ignoreFiles: [/^(?!^\/mongodb-uni\/).*/, /^(mongodb-uni\/README\.md)$/],
+    },
+    pathToPageUrl(_, frontMatter) {
+      if (!frontMatter?.url) {
+        throw new Error("frontMatter.url must be specified");
+      }
+      return frontMatter?.url as string;
+    },
+    extractMetadata(_, frontMatter) {
+      if (!frontMatter) {
+        throw new Error("frontMatter must be specified");
+      }
+      const frontMatterCopy = { ...frontMatter };
+      delete frontMatterCopy.url;
+      return frontMatterCopy;
+    },
+    extractTitle: (_, frontmatter) => (frontmatter?.title as string) ?? null,
+    metadata: {
+      siteTitle: "MongoDB University",
+    },
+  };
+const mongoDbUniMetadataSource = async () => {
+  return await makeMdOnGithubDataSource(mongoDbUniMetadataDataSourceConfig);
 };
 
 export const terraformProviderSourceConstructor = async () => {
@@ -141,6 +180,7 @@ export const sourceConstructors: SourceConstructor[] = [
   mongooseSourceConstructor,
   prismaSourceConstructor,
   mongoDbCorpDataSource,
+  mongoDbUniMetadataSource,
   practicalAggregationsDataSource,
   terraformProviderSourceConstructor,
   wiredTigerSourceConstructor,

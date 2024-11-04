@@ -2,12 +2,7 @@ import { Message } from "mongodb-chatbot-server";
 import { z, ZodObject, ZodRawShape } from "zod";
 import { stripIndents } from "common-tags";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import { OpenAI } from "openai";
-import {
-  ChatCompletionMessageParam,
-  ChatCompletionTool,
-} from "openai/resources";
-
+import { OpenAI } from "mongodb-rag-core/openai";
 export interface MakeFewShotUserMessageExtractorFunctionParams<
   T extends ZodObject<ZodRawShape>
 > {
@@ -17,7 +12,7 @@ export interface MakeFewShotUserMessageExtractorFunctionParams<
     schema: T;
   };
   systemPrompt: string;
-  fewShotExamples: ChatCompletionMessageParam[];
+  fewShotExamples: OpenAI.ChatCompletionMessageParam[];
 }
 
 /**
@@ -33,9 +28,9 @@ export function makeFewShotUserMessageExtractorFunction<
   const systemPromptMessage = {
     role: "system",
     content: systemPrompt,
-  } satisfies ChatCompletionMessageParam;
+  } satisfies OpenAI.ChatCompletionMessageParam;
 
-  const toolDefinition: ChatCompletionTool = {
+  const toolDefinition: OpenAI.ChatCompletionTool = {
     type: "function",
     function: {
       name,
@@ -67,7 +62,7 @@ export function makeFewShotUserMessageExtractorFunction<
       }
 
     Original user message: ${userMessageText}`.trim(),
-    } satisfies ChatCompletionMessageParam;
+    } satisfies OpenAI.ChatCompletionMessageParam;
     const res = await openAiClient.chat.completions.create({
       messages: [systemPromptMessage, ...fewShotExamples, userMessage],
       temperature: 0,
@@ -92,7 +87,7 @@ export function makeUserMessage(content: string) {
   return {
     role: "user",
     content,
-  } satisfies ChatCompletionMessageParam;
+  } satisfies OpenAI.ChatCompletionMessageParam;
 }
 
 export function makeAssistantFunctionCallMessage(
@@ -106,5 +101,5 @@ export function makeAssistantFunctionCallMessage(
       name,
       arguments: JSON.stringify(args),
     },
-  } satisfies ChatCompletionMessageParam;
+  } satisfies OpenAI.ChatCompletionMessageParam;
 }

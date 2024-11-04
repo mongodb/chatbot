@@ -1,7 +1,8 @@
-import { assertEnvVars, BSON, MongoClient, ObjectId } from "mongodb-rag-core";
+import { BSON, MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
 import { promises as fs } from "fs";
 import { createScrubbedMessageStatsViews } from "./scrubbed_messages_stats";
 import path from "path";
+import { assertEnvVars } from "mongodb-rag-core";
 
 const { MONGODB_CONNECTION_URI } = assertEnvVars({
   MONGODB_CONNECTION_URI: "",

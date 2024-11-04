@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { ObjectId } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { Message } from "mongodb-chatbot-server";
 import { evaluateConversationAverageRetrievalScore } from "./evaluateConversationAverageRetrievalScore";
 import { mockConversationGeneratedDataFromMessages } from "../test/mockConversationGeneratedDataFromMessages";

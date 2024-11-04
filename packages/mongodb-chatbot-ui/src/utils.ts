@@ -81,6 +81,16 @@ export function addQueryParams(
   return urlObj.toString();
 }
 
+/**
+ * In a browser environment, returns the current page URL. If `window` is not available (e.g. in a Node.js environment), returns `undefined`.
+ */
+export function getCurrentPageUrl() {
+  if (typeof window === "undefined") {
+    return undefined;
+  }
+  return new URL(window.location.href);
+}
+
 // TypeScript utils
 
 /**

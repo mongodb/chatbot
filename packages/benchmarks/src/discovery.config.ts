@@ -5,7 +5,8 @@ import {
 import fs from "fs";
 import path from "path";
 import "dotenv/config";
-import { MongoClient, assertEnvVars } from "mongodb-rag-core";
+import { assertEnvVars } from "mongodb-rag-core";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 import { envVars } from "./envVars";
 import { makeChatLlmConversationEvalCommands } from "./makeChatLlmConversationEvalCommands";
 import { makeRadiantChatLlm } from "./makeRadiantChatLlm";
@@ -41,7 +42,7 @@ export default async () => {
           mongoDbAuthCookie: MONGODB_AUTH_COOKIE,
           lmmConfigOptions: {
             temperature: 0,
-            maxTokens: 2000,
+            max_tokens: 2000,
           },
         }),
       };

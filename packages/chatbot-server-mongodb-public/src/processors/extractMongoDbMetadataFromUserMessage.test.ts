@@ -3,9 +3,9 @@ import {
   extractMongoDbMetadataFromUserMessage,
   ExtractMongoDbMetadataFunction,
 } from "./extractMongoDbMetadataFromUserMessage";
-import { OpenAI } from "openai";
+import { OpenAI } from "mongodb-rag-core/openai";
 
-jest.mock("openai", () => {
+jest.mock("mongodb-rag-core/openai", () => {
   return makeMockOpenAIToolCall({
     mongoDbProduct: "Aggregation Framework",
   } satisfies ExtractMongoDbMetadataFunction);
@@ -19,7 +19,6 @@ describe("extractMongoDbMetadataFromUserMessage", () => {
   };
   test("should return metadata", async () => {
     const res = await extractMongoDbMetadataFromUserMessage(args);
-    console.log(res);
     expect(res).toEqual({
       mongoDbProduct: "Aggregation Framework",
     });

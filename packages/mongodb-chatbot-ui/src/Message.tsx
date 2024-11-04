@@ -33,7 +33,7 @@ import { CharacterCount } from "./InputBar";
 import { useChatbotContext } from "./useChatbotContext";
 import { useLinkData } from "./useLinkData";
 import { headingStyle, disableSetextHeadings } from "./markdownHeadingStyle";
-import { formatReferences } from "./messageLinks";
+import { getMessageLinks } from "./messageLinks";
 
 const TRANSITION_DURATION_MS = 300;
 
@@ -74,42 +74,26 @@ const styles = {
     display: flex;
     flex-direction: column;
 
-    & * {
-      line-height: 28px;
-    }
-
-    & p {
-      font-weight: 400;
-    }
-
-    & a {
-      font-weight: 400;
-    }
-
     & li {
       white-space: normal;
-      margin-top: -1.5rem;
+      margin-top: -1rem;
+      & ol li, & ul li {
+        margin-top: 0.5rem;
+      }
+    }
 
-      & li {
+    & ol, & ul {
+      overflow-wrap: anywhere;
+    }
+
+    & h1, & h2, & h3 {
+      & +ol, & +ul {
         margin-top: 0;
       }
     }
 
-    & code {
-      white-space: pre-wrap;
-    }
-  `,
-  // End hacky fix
-  markdown_list: css`
-    overflow-wrap: anywhere;
-    margin-bottom: -1.5rem;
-
-    & ul {
-      margin-bottom: 0;
-    }
-
-    & ol {
-      margin-bottom: 0;
+    & p+h1, & p+h2, & p+h3 {
+      margin-top: 1rem;
     }
   `,
   loading_skeleton: css`
@@ -153,14 +137,14 @@ const markdownProps = {
     },
     ol: ({ children, ordered, ...props }) => {
       return (
-        <Body as="ol" className={styles.markdown_list} {...props}>
+        <Body as="ol" {...props}>
           {children}
         </Body>
       );
     },
     ul: ({ children, ordered, ...props }) => {
       return (
-        <Body className={styles.markdown_list} as="ul" {...props}>
+        <Body as="ul" {...props}>
           {children}
         </Body>
       );
@@ -274,10 +258,7 @@ export const Message = ({
     : undefined;
 
   const { tck } = useLinkData();
-  const messageLinks =
-    messageData.references && messageData.references.length > 0
-      ? formatReferences(messageData.references, { tck })
-      : undefined;
+  const messageLinks = getMessageLinks(messageData, { tck });
 
   return (
     <Fragment key={messageData.id}>

@@ -79,8 +79,8 @@ import {
   makeMongoDbEmbeddedContentStore,
   makeMongoDbPageStore,
 } from "mongodb-rag-core";
-import { standardChunkFrontMatterUpdater } from "mongodb-rag-ingest/embed";
-import { type DataSource } from "mongodb-rag-ingest/sources";
+import { standardChunkFrontMatterUpdater } from "mongodb-rag-core";
+import { type DataSource } from "mongodb-rag-core";
 const {
   MONGODB_DOT_COM_CONNECTION_URI,
   MONGODB_DOT_COM_DB_NAME,

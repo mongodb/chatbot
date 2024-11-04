@@ -4,32 +4,28 @@ import {
   makeFewShotUserMessageExtractorFunction,
   makeUserMessage,
 } from "./makeFewShotUserMessageExtractorFunction";
-import { ChatCompletionMessageParam } from "openai/resources";
+import { OpenAI } from "mongodb-rag-core/openai";
 import {
-  mongoDbProducts,
+  mongoDbProductNames,
   mongoDbProgrammingLanguageIds,
 } from "../mongoDbMetadata";
 
 export const ExtractMongoDbMetadataFunctionSchema = z.object({
   programmingLanguage: z
-    // Need to cast as string array with at least one element
-    // to satisfy zod's type checking.
-    .enum(mongoDbProgrammingLanguageIds as [string, ...string[]])
+    .enum(mongoDbProgrammingLanguageIds)
     .default("javascript")
     .describe(
       'Programming language present in the content. If no programming language is present and a code example would answer the question, include "javascript".'
     )
     .optional(),
   mongoDbProduct: z
-    .string()
+    .enum(mongoDbProductNames)
     .describe(
-      `One or more MongoDB products present in the content. Order by relevancy. Include "Driver" if the user is asking about a programming language with a MongoDB driver.
-    Example values: ${mongoDbProducts
-      .map((p) => `"${p.name}"`)
-      .join(", ")} ...other MongoDB products.
-    If the product is ambiguous, say "MongoDB Server".`
+      `Most important MongoDB products present in the content.
+Include "Driver" if the user is asking about a programming language with a MongoDB driver.
+If the product is ambiguous, say "MongoDB Server".`
     )
-    .default("MongoDBServer ")
+    .default("MongoDB Server")
     .optional(),
 });
 
@@ -44,7 +40,7 @@ const systemPrompt = `You are an expert data labeler employed by MongoDB.
 You must label metadata about the user query based on its context in the conversation.
 Your pay is determined by the accuracy of your labels as judged against other expert labelers, so do excellent work to maximize your earnings to support your family.`;
 
-const fewShotExamples: ChatCompletionMessageParam[] = [
+const fewShotExamples: OpenAI.Chat.ChatCompletionMessageParam[] = [
   // Example 1
   makeUserMessage("aggregate data"),
   makeAssistantFunctionCallMessage(name, {
@@ -65,13 +61,13 @@ const fewShotExamples: ChatCompletionMessageParam[] = [
   makeUserMessage("pymongo insert data"),
   makeAssistantFunctionCallMessage(name, {
     programmingLanguage: "python",
-    mongoDbProduct: "Driver",
+    mongoDbProduct: "Drivers",
   } satisfies ExtractMongoDbMetadataFunction),
   // Example 5
   makeUserMessage("How do I create an index in MongoDB using the Java driver?"),
   makeAssistantFunctionCallMessage(name, {
     programmingLanguage: "java",
-    mongoDbProduct: "Driver",
+    mongoDbProduct: "Drivers",
   } satisfies ExtractMongoDbMetadataFunction),
   // Example 6
   makeUserMessage("$lookup"),

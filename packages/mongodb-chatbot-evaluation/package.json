@@ -42,16 +42,13 @@
     "lint": "eslint ./src --ext ts --report-unused-disable-directives",
     "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
     "release": "release-it",
-    "test": "jest --forceExit",
+    "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --forceExit",
     "shuffle": "node ./build/generate/shuffleQuizData.js"
   },
   "bugs": {
     "url": "https://github.com/mongodb/chatbot/issues"
   },
   "dependencies": {
-    "@azure/openai": "^1.0.0-beta.11",
-    "@langchain/core": "^0.2.27",
-    "@langchain/openai": "^0.2.1",
     "@supercharge/promise-pool": "^3.2.0",
     "axios": "^1.6.7",
     "common-tags": "^1.8.2",

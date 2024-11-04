@@ -3,10 +3,11 @@
   pages from the mongodb.com CMS.
   Note: doesn't include mongodb.com/docs/* pages.
  */
-import { type DataSource } from "mongodb-rag-ingest/sources";
-import { type Page, MongoClient, type ObjectId } from "mongodb-rag-core";
+import { DataSource } from "mongodb-rag-core";
+import { Page } from "mongodb-rag-core";
 import { strict as assert } from "assert";
 import striptags from "striptags";
+import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
 
 export function makeMongoDbDotComDataSource({
   connectionUri,

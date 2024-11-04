@@ -4,7 +4,7 @@ import {
   convertCommandRunMetadataToJson,
   makeMongoDbCommandMetadataStore,
 } from "./CommandMetadataStore";
-import { Db, MongoClient, ObjectId } from "mongodb-rag-core";
+import { Db, MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
 import { strict as assert } from "assert";
 
 describe("MongoDbCommandMetadataStore", () => {

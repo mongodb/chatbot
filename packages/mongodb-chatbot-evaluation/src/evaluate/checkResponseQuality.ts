@@ -1,20 +1,16 @@
 import { stripIndents } from "common-tags";
-import {
-  FunctionDefinition,
-  OpenAIClient,
-  OpenAiChatMessage,
-} from "mongodb-chatbot-server";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 export interface CheckResponseQualityParams {
   received: string;
   expectedOutputDescription: string;
-  openAiClient: OpenAIClient;
+  openAiClient: OpenAI;
   deploymentName: string;
   fewShotExamples?: ResponseQualityExample[];
 }
 
 export interface ResponseQualityExample {
-  messages: OpenAiChatMessage[];
+  messages: OpenAI.ChatCompletionMessageParam[];
   expectation: string;
   llmOutput: CheckResponseQuality;
 }
@@ -53,17 +49,20 @@ ${
 }`,
     },
     { role: "user", content: userMessageContent },
-  ] satisfies OpenAiChatMessage[];
-  const res = await openAiClient.getChatCompletions(deploymentName, messages, {
+  ] satisfies OpenAI.ChatCompletionMessageParam[];
+  const res = await openAiClient.chat.completions.create({
+    model: deploymentName,
+    messages,
     functions: [checkResponseQualityOpenAiFunction],
-    functionCall: { name: "checkResponseQuality" },
+    function_call: { name: "checkResponseQuality" },
     temperature: 0,
+    stream: false,
   });
-  if (typeof res.choices[0].message?.functionCall?.arguments !== "string") {
+  if (typeof res.choices[0].message?.function_call?.arguments !== "string") {
     throw new Error("No function call in response");
   }
   const functionOutput = JSON.parse(
-    res.choices[0].message?.functionCall.arguments
+    res.choices[0].message?.function_call.arguments
   ) as CheckResponseQuality;
 
   if (typeof functionOutput.meetsChatQualityStandards !== "boolean") {
@@ -105,7 +104,7 @@ OUTPUT:
   );
 }
 
-const checkResponseQualityOpenAiFunction: FunctionDefinition = {
+const checkResponseQualityOpenAiFunction: OpenAI.FunctionDefinition = {
   name: "checkResponseQuality",
   description: "Check if the response meets the chat quality standards.",
   parameters: {

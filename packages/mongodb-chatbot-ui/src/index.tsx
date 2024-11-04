@@ -21,6 +21,7 @@ export {
   InputBarTrigger,
   type InputBarTriggerProps,
 } from "./InputBarTrigger.tsx";
+export { HotkeyTrigger, type HotkeyTriggerProps } from "./HotkeyTrigger.tsx";
 export {
   FloatingActionButtonTrigger,
   type FloatingActionButtonTriggerProps,
@@ -29,14 +30,13 @@ export {
   ActionButtonTrigger,
   type ActionButtonTriggerProps,
 } from "./ActionButtonTrigger.tsx";
+export { getMessageLinks, formatReferences } from "./messageLinks.ts";
 export { ModalView, type ModalViewProps } from "./ModalView.tsx";
 export { type ChatbotViewProps } from "./ChatbotView.tsx";
 export { type DarkModeProps } from "./DarkMode.ts";
 export {
   type Role,
   type MessageData,
-  type MessageDataReferences,
-  type MessageDataReference,
   type AssistantMessageMetadata,
   type DeltaStreamEvent,
   type ReferencesStreamEvent,

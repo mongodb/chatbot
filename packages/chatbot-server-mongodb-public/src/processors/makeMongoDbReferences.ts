@@ -75,8 +75,7 @@ export function mongodbReferenceType(
       case "practical-aggregations-book":
         return "Book";
       case "devcenter":
-      case "mongodb-corp":
-        return "Website";
+        return "Article";
     }
   }
 
@@ -95,7 +94,7 @@ export function mongodbReferenceType(
   if (/learn\.mongodb\.com/.test(ref.url)) return "Learn";
   if (/docs/.test(ref.url)) return "Docs";
   if (/blog/.test(ref.url)) return "Blog";
-  if (/developer/.test(ref.url)) return "Blog";
+  if (/developer/.test(ref.url)) return "Article";
   if (/mongodb\.com/.test(ref.url)) return "Website";
 
   return undefined;

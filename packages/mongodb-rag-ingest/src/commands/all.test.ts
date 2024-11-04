@@ -2,13 +2,13 @@ import {
   PageStore,
   EmbeddedContentStore,
   assertEnvVars,
+  DataSource,
 } from "mongodb-rag-core";
-import { MongoClient } from "mongodb-rag-core";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 import "dotenv/config";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
 import { doAllCommand } from "./all";
 import { makeIngestMetaStore } from "../IngestMetaStore";
-import { DataSource } from "../sources/DataSource";
 
 import "dotenv/config";
 

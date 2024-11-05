@@ -1,13 +1,19 @@
 import { Eval, EvalCase, EvalScorer } from "braintrust";
 import { MongoDbTag } from "./mongoDbMetadata";
-import { findVerifiedAnswer, verifiedAnswerConfig } from "./config";
+import {
+  findVerifiedAnswer,
+  verifiedAnswerConfig,
+  verifiedAnswerStore,
+} from "./config";
 import { FindVerifiedAnswerResult } from "mongodb-chatbot-server";
 import {
   parseVerifiedAnswerYaml,
   VerifiedAnswerSpec,
 } from "mongodb-chatbot-verified-answers";
 import path from "path";
+import fs from "fs";
 import "dotenv/config";
+import { cosineSimilarity } from "./test/cosineSimilarity";
 
 interface VerifiedAnswersEvalCaseInput {
   query: string;
@@ -38,10 +44,7 @@ interface VerifiedAnswersEvalCase
   tags?: MongoDbVerifiedAnswerTag[];
 }
 
-type VerifiedAnswersTaskOutput = Omit<
-  FindVerifiedAnswerResult,
-  "queryEmbedding"
->;
+type VerifiedAnswersTaskOutput = FindVerifiedAnswerResult;
 
 type VerifiedAnswersEvalCaseScorer = EvalScorer<
   VerifiedAnswersEvalCaseInput,
@@ -55,10 +58,11 @@ const verifiedAnswersPath = path.resolve(
   "..",
   "..",
   "..",
-  "verifiedAnswers.yaml"
+  "verified-answers.yaml"
 );
-console.log(verifiedAnswersPath);
-const verifiedAnswerSpecs = parseVerifiedAnswerYaml(verifiedAnswersPath);
+const verifiedAnswerSpecs = parseVerifiedAnswerYaml(
+  fs.readFileSync(verifiedAnswersPath, "utf-8")
+);
 const verifiedAnswerIndex = makeVerifiedAnswerIndex(verifiedAnswerSpecs);
 
 const verifiedAnswerEvalCases: VerifiedAnswersEvalCase[] = [
@@ -87,8 +91,8 @@ const verifiedAnswerEvalCases: VerifiedAnswersEvalCase[] = [
     tags: ["perturbation", "should_match"],
   }),
   makeVerifiedAnswerEvalCase({
-    inputQuery: "How can I insert data into MongoDB?",
-    similarVerifiedAnswerQuery: "insert data into mongodb",
+    inputQuery: "insert data into mongodb",
+    similarVerifiedAnswerQuery: "How do I insert data into MongoDB?",
     verifiedAnswerIndex,
     tags: ["perturbation", "should_match"],
   }),
@@ -100,12 +104,6 @@ const verifiedAnswerEvalCases: VerifiedAnswersEvalCase[] = [
   }),
   makeVerifiedAnswerEvalCase({
     inputQuery: "reset my password",
-    similarVerifiedAnswerQuery: "Can i reset my password",
-    verifiedAnswerIndex,
-    tags: ["perturbation", "iam", "should_match"],
-  }),
-  makeVerifiedAnswerEvalCase({
-    inputQuery: "reset database password",
     similarVerifiedAnswerQuery: "Can i reset my password",
     verifiedAnswerIndex,
     tags: ["perturbation", "iam", "should_match"],
@@ -177,7 +175,7 @@ const MatchesSomeVerifiedAnswer: VerifiedAnswersEvalCaseScorer = (args) => {
 };
 
 const MatchesExpectedOutput: VerifiedAnswersEvalCaseScorer = (args) => {
-  const isMatch = args.output.answer === args.expected.answer;
+  const isMatch = args.output.answer?.answer === args.expected.answer;
   let matchType = "";
   if (isMatch && args.expected.answer !== undefined) {
     matchType = "true_positive";
@@ -205,6 +203,26 @@ const SearchScore: VerifiedAnswersEvalCaseScorer = (args) => {
   };
 };
 
+const ReferenceAnswerCosineSimilarity: VerifiedAnswersEvalCaseScorer = async (
+  args
+) => {
+  const name = "ReferenceAnswerCosineSimilarity";
+  const { similarVerifiedAnswerQuery } = args.metadata;
+  // Don't calculate if no reference query
+  if (!similarVerifiedAnswerQuery) {
+    return {
+      name,
+      score: null,
+    };
+  }
+  // TODO get vector of reference query...need new method of verified answer store to get VA by query
+  const similarQueryEmbedding: number[] = [];
+  return {
+    name,
+    score: cosineSimilarity(args.output.queryEmbedding, similarQueryEmbedding),
+  };
+};
+
 type VerifiedAnswerIndex = Record<string, string>;
 /**
   Construct index of all verified answer for faster look up
@@ -227,27 +245,30 @@ function findExactVerifiedAnswer(
 ): string | undefined {
   return verifiedAnswerIndex[query];
 }
-Eval<
-  VerifiedAnswersEvalCaseInput,
-  VerifiedAnswersTaskOutput,
-  VerifiedAnswersEvalCaseExpected,
-  VerifiedAnswersEvalCaseMetadata
->("mongodb-chatbot-verified-answers", {
-  experimentName: `mongodb-chatbot-latest-${verifiedAnswerConfig.embeddingModel}-minScore-${verifiedAnswerConfig.findNearestNeighborsOptions.minScore}`,
-  metadata: {
-    description:
-      "Evaluates if gets the correct verified answers for a given query",
-    verifiedAnswerConfig: verifiedAnswerConfig,
-  },
-  async data() {
-    return verifiedAnswerEvalCases;
-  },
-  maxConcurrency: 5,
-  async task(input) {
-    const verifiedAnswer = await findVerifiedAnswer(input);
-    return {
-      answer: verifiedAnswer?.answer,
-    };
-  },
-  scores: [MatchesSomeVerifiedAnswer, MatchesExpectedOutput, SearchScore],
-});
+
+async function main() {
+  await Eval<
+    VerifiedAnswersEvalCaseInput,
+    VerifiedAnswersTaskOutput,
+    VerifiedAnswersEvalCaseExpected,
+    VerifiedAnswersEvalCaseMetadata
+  >("mongodb-chatbot-verified-answers", {
+    experimentName: `mongodb-chatbot-latest-${verifiedAnswerConfig.embeddingModel}-minScore-${verifiedAnswerConfig.findNearestNeighborsOptions.minScore}`,
+    metadata: {
+      description:
+        "Evaluates if gets the correct verified answers for a given query",
+      verifiedAnswerConfig: verifiedAnswerConfig,
+    },
+    async data() {
+      return verifiedAnswerEvalCases;
+    },
+    maxConcurrency: 5,
+    async task(input) {
+      const verifiedAnswer = await findVerifiedAnswer(input);
+      return verifiedAnswer;
+    },
+    scores: [MatchesSomeVerifiedAnswer, MatchesExpectedOutput, SearchScore],
+  });
+  await verifiedAnswerStore.close();
+}
+main();

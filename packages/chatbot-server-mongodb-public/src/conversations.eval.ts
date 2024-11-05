@@ -7,8 +7,8 @@ import {
   generateResponse,
   logger,
   Message,
-  ObjectId,
 } from "mongodb-chatbot-server";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   getContextsFromUserMessage,
   getLastAssistantMessageFromMessages,

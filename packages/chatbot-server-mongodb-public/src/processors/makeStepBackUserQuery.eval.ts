@@ -13,7 +13,7 @@ import {
   OPENAI_API_VERSION,
   JUDGE_EMBEDDING_MODEL,
   openAiClient,
-} from "../test/evalHelpers";
+} from "../eval/evalHelpers";
 
 interface ExtractMongoDbMetadataEvalCase {
   name: string;

@@ -1,4 +1,5 @@
-import { PageMetadata, DataSource } from "mongodb-rag-core";
+import { PageMetadata } from "mongodb-rag-core";
+import { DataSource } from "mongodb-rag-core/dataSources";
 import { makeUniversityPages } from "./makeUniversityPages";
 import {
   TiCatalogItem,

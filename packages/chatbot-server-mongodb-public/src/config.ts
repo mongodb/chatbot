@@ -98,7 +98,7 @@ export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
 export const verifiedAnswerConfig = {
   embeddingModel: OPENAI_EMBEDDING_DEPLOYMENT,
   findNearestNeighborsOptions: {
-    minScore: 0.95,
+    minScore: 0.96,
   },
 };
 

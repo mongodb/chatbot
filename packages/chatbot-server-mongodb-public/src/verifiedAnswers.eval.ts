@@ -14,6 +14,7 @@ import path from "path";
 import fs from "fs";
 import "dotenv/config";
 import { cosineSimilarity } from "./test/cosineSimilarity";
+import { strict as assert } from "assert";
 
 interface VerifiedAnswersEvalCaseInput {
   query: string;
@@ -68,13 +69,13 @@ const verifiedAnswerIndex = makeVerifiedAnswerIndex(verifiedAnswerSpecs);
 const verifiedAnswerEvalCases: VerifiedAnswersEvalCase[] = [
   makeVerifiedAnswerEvalCase({
     inputQuery: "what is the aggregation framework",
-    similarVerifiedAnswerQuery: "aggregation framework",
+    similarVerifiedAnswerQuery: "What is aggregation in MongoDB?",
     tags: ["aggregation", "perturbation"],
     verifiedAnswerIndex,
   }),
   makeVerifiedAnswerEvalCase({
     inputQuery: "agg framework",
-    similarVerifiedAnswerQuery: "aggregation framework",
+    similarVerifiedAnswerQuery: "What is aggregation in MongoDB?",
     tags: ["aggregation", "perturbation", "should_match"],
     verifiedAnswerIndex,
   }),
@@ -132,6 +133,12 @@ const verifiedAnswerEvalCases: VerifiedAnswersEvalCase[] = [
   // 👇 From EAI-580 👇
   makeVerifiedAnswerEvalCase({
     inputQuery: "how do I set up billing alerts in Atlas",
+    // No similar verified answer
+    tags: ["billing", "should_not_match"],
+    verifiedAnswerIndex,
+  }),
+  makeVerifiedAnswerEvalCase({
+    inputQuery: "how do I set up billing alerts in Atlas?",
     // No similar verified answer
     tags: ["billing", "should_not_match"],
     verifiedAnswerIndex,
@@ -203,23 +210,32 @@ const SearchScore: VerifiedAnswersEvalCaseScorer = (args) => {
   };
 };
 
+// BUG: Getting Mongo connection closed errors on this scorer with the clean up.
 const ReferenceAnswerCosineSimilarity: VerifiedAnswersEvalCaseScorer = async (
   args
 ) => {
   const name = "ReferenceAnswerCosineSimilarity";
   const { similarVerifiedAnswerQuery } = args.metadata;
-  // Don't calculate if no reference query
+
   if (!similarVerifiedAnswerQuery) {
     return {
       name,
       score: null,
     };
   }
-  // TODO get vector of reference query...need new method of verified answer store to get VA by query
-  const similarQueryEmbedding: number[] = [];
+  const [verifiedAnswer] = await verifiedAnswerStore.find({
+    "question.text": similarVerifiedAnswerQuery,
+  });
+  assert(
+    verifiedAnswer,
+    `No verified answer found for query: ${similarVerifiedAnswerQuery}`
+  );
   return {
     name,
-    score: cosineSimilarity(args.output.queryEmbedding, similarQueryEmbedding),
+    score: cosineSimilarity(
+      args.output.queryEmbedding,
+      verifiedAnswer.question.embedding
+    ),
   };
 };
 
@@ -246,29 +262,30 @@ function findExactVerifiedAnswer(
   return verifiedAnswerIndex[query];
 }
 
-async function main() {
-  await Eval<
-    VerifiedAnswersEvalCaseInput,
-    VerifiedAnswersTaskOutput,
-    VerifiedAnswersEvalCaseExpected,
-    VerifiedAnswersEvalCaseMetadata
-  >("mongodb-chatbot-verified-answers", {
-    experimentName: `mongodb-chatbot-latest-${verifiedAnswerConfig.embeddingModel}-minScore-${verifiedAnswerConfig.findNearestNeighborsOptions.minScore}`,
-    metadata: {
-      description:
-        "Evaluates if gets the correct verified answers for a given query",
-      verifiedAnswerConfig: verifiedAnswerConfig,
-    },
-    async data() {
-      return verifiedAnswerEvalCases;
-    },
-    maxConcurrency: 5,
-    async task(input) {
-      const verifiedAnswer = await findVerifiedAnswer(input);
-      return verifiedAnswer;
-    },
-    scores: [MatchesSomeVerifiedAnswer, MatchesExpectedOutput, SearchScore],
-  });
-  await verifiedAnswerStore.close();
-}
-main();
+Eval<
+  VerifiedAnswersEvalCaseInput,
+  VerifiedAnswersTaskOutput,
+  VerifiedAnswersEvalCaseExpected,
+  VerifiedAnswersEvalCaseMetadata
+>("mongodb-chatbot-verified-answers", {
+  experimentName: `mongodb-chatbot-latest-${verifiedAnswerConfig.embeddingModel}-minScore-${verifiedAnswerConfig.findNearestNeighborsOptions.minScore}`,
+  metadata: {
+    description:
+      "Evaluates if gets the correct verified answers for a given query",
+    verifiedAnswerConfig: verifiedAnswerConfig,
+  },
+  async data() {
+    return verifiedAnswerEvalCases;
+  },
+  maxConcurrency: 5,
+  async task(input) {
+    const verifiedAnswer = await findVerifiedAnswer(input);
+    return verifiedAnswer;
+  },
+  scores: [
+    MatchesSomeVerifiedAnswer,
+    MatchesExpectedOutput,
+    ReferenceAnswerCosineSimilarity,
+    SearchScore,
+  ],
+});

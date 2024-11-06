@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { ReportEvalFunc, ReportEvalFuncParams } from "./ReportEvalFunc";
 import { strict as assert } from "assert";
 import { Report } from "./ReportStore";

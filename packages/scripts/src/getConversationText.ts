@@ -1,4 +1,5 @@
-import { assertEnvVars, MongoClient, BSON } from "mongodb-rag-core";
+import { assertEnvVars } from "mongodb-rag-core";
+import { MongoClient, BSON } from "mongodb-rag-core/mongodb";
 import { Conversation } from "mongodb-chatbot-server";
 
 import "dotenv/config";

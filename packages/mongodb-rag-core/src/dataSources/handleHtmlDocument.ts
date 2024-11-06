@@ -1,4 +1,4 @@
-import { Page, PageMetadata } from "../pageStore";
+import { Page, PageMetadata } from "../contentStore";
 import { logger } from "../logger";
 import TurndownService from "turndown";
 import * as turndownPluginGfm from "turndown-plugin-gfm";

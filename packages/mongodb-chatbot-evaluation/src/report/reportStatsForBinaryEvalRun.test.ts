@@ -1,4 +1,4 @@
-import { MongoClient, ObjectId } from "mongodb-rag-core";
+import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
 import "dotenv/config";
 import { strict as assert } from "assert";
 import {

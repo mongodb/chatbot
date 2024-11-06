@@ -9,7 +9,7 @@ import {
   SomeTokenizer,
 } from "./chunkPage";
 import { logger } from "../logger";
-import { Page } from "../pageStore/Page";
+import { Page } from "../contentStore/Page";
 import { updateFrontMatter } from "../frontMatter/updateFrontMatter";
 
 export const defaultOpenApiSpecYamlChunkOptions: ChunkOptions = {

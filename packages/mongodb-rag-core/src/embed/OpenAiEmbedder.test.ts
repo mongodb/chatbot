@@ -1,16 +1,21 @@
 import "dotenv/config";
 import { makeOpenAiEmbedder } from "./OpenAiEmbedder";
-import { OpenAIClient, AzureKeyCredential } from "@azure/openai";
+import { AzureOpenAI } from "openai";
 import { assertEnvVars } from "../assertEnvVars";
 import { CORE_ENV_VARS } from "../CoreEnvVars";
 
 describe("OpenAiEmbedFunc", () => {
-  const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_EMBEDDING_DEPLOYMENT } =
-    assertEnvVars(CORE_ENV_VARS);
-  const openAiClient = new OpenAIClient(
+  const {
     OPENAI_ENDPOINT,
-    new AzureKeyCredential(OPENAI_API_KEY)
-  );
+    OPENAI_API_KEY,
+    OPENAI_EMBEDDING_DEPLOYMENT,
+    OPENAI_API_VERSION,
+  } = assertEnvVars(CORE_ENV_VARS);
+  const openAiClient = new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  });
   const embedder = makeOpenAiEmbedder({
     deployment: OPENAI_EMBEDDING_DEPLOYMENT,
     openAiClient,
@@ -26,10 +31,7 @@ describe("OpenAiEmbedFunc", () => {
   test("Should return an error if the input too large", async () => {
     const input = "Hello world! ".repeat(8192);
     const embedder = makeOpenAiEmbedder({
-      openAiClient: new OpenAIClient(
-        OPENAI_ENDPOINT,
-        new AzureKeyCredential(OPENAI_API_KEY)
-      ),
+      openAiClient,
       deployment: OPENAI_EMBEDDING_DEPLOYMENT,
       backoffOptions: {
         numOfAttempts: 1,
@@ -44,10 +46,11 @@ describe("OpenAiEmbedFunc", () => {
     let serverHitCount = 0;
     const fakeDeployment = "test";
 
-    const fakeClient = new OpenAIClient(
-      OPENAI_ENDPOINT,
-      new AzureKeyCredential("not-a-real-key")
-    );
+    const fakeClient = new AzureOpenAI({
+      apiKey: "not-a-real-key",
+      endpoint: OPENAI_ENDPOINT,
+      apiVersion: "not-a-real-version",
+    });
     // Mock the getEmbeddings function to throw an error that resembles an axios error
     // to be caught by the retry logic.
     const mockGetEmbeddings = jest.fn().mockImplementation(async () => {
@@ -57,7 +60,7 @@ describe("OpenAiEmbedFunc", () => {
         message: "Fake error",
       };
     });
-    fakeClient.getEmbeddings = mockGetEmbeddings;
+    fakeClient.embeddings.create = mockGetEmbeddings;
     const embedder = makeOpenAiEmbedder({
       openAiClient: fakeClient,
       deployment: fakeDeployment,

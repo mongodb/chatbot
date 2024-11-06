@@ -1,5 +1,6 @@
 import { QuizGeneratedData } from "./GeneratedDataStore";
-import { ChatLlm, ObjectId, OpenAiChatMessage } from "mongodb-chatbot-server";
+import { ChatLlm, OpenAiChatMessage } from "mongodb-chatbot-server";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { logger } from "mongodb-rag-core";
 import { GenerateDataFunc } from "./GenerateDataFunc";
 import {

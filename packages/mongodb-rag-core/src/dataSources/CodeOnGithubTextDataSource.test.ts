@@ -4,7 +4,7 @@ import {
   pageBlobUrl,
 } from "./CodeOnGithubTextDataSource";
 import "dotenv/config";
-import { Page } from "../pageStore";
+import { Page } from "../contentStore";
 import { DataSource } from "./DataSource";
 
 jest.setTimeout(60000);

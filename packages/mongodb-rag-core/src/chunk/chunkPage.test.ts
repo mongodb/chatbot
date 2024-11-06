@@ -2,7 +2,7 @@ import fs from "fs";
 import Path from "path";
 import { chunkPage } from "./chunkPage";
 import { standardChunkFrontMatterUpdater } from "./ChunkTransformer";
-import { Page } from "../pageStore";
+import { Page } from "../contentStore";
 
 const SRC_ROOT = Path.resolve(__dirname, "..");
 

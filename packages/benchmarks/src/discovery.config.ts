@@ -5,11 +5,12 @@ import {
 import fs from "fs";
 import path from "path";
 import "dotenv/config";
-import { MongoClient, assertEnvVars } from "mongodb-rag-core";
+import { assertEnvVars } from "mongodb-rag-core";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 import { envVars } from "./envVars";
 import { makeChatLlmConversationEvalCommands } from "./makeChatLlmConversationEvalCommands";
 import { makeRadiantChatLlm } from "./makeRadiantChatLlm";
-import { radiantModels } from "./radiantModels";
+import { models } from "./models";
 import { makeBaseConfig } from "./baseConfig";
 
 export default async () => {
@@ -31,17 +32,17 @@ export default async () => {
     )
   );
   const chatLlmConfigs = await Promise.all(
-    radiantModels.map(async (model) => {
+    models.map(async (model) => {
       return {
         name: model.label,
         chatLlm: await makeRadiantChatLlm({
           apiKey: RADIANT_API_KEY,
           endpoint: RADIANT_ENDPOINT,
-          deployment: model.radiantModelDeployment,
+          deployment: model.deployment,
           mongoDbAuthCookie: MONGODB_AUTH_COOKIE,
           lmmConfigOptions: {
             temperature: 0,
-            maxTokens: 2000,
+            max_tokens: 2000,
           },
         }),
       };

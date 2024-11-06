@@ -1,4 +1,4 @@
-import { Page, PageMetadata, pageFormat } from "../pageStore";
+import { Page, PageMetadata, pageFormat } from "../contentStore";
 import {
   MakeGitHubDataSourceArgs,
   makeGitHubDataSource,

@@ -4,8 +4,8 @@ import {
 } from "langchain/text_splitter";
 import GPT3Tokenizer from "gpt3-tokenizer";
 import { ChunkOptions, ContentChunk, ChunkFunc } from "./chunkPage";
-import { Page } from "../pageStore";
-import { PageFormat } from "../pageStore";
+import { Page } from "../contentStore";
+import { PageFormat } from "../contentStore";
 
 const defaultCodeChunkOptions: ChunkOptions = {
   maxChunkSize: 600, // max chunk size of 600 tokens gets avg ~400 tokens/chunk

@@ -21,7 +21,7 @@
     "build": "tsc -b tsconfig.build.json",
     "postbuild": "chmod +x build/main.js",
     "watch": "tsc -b -w",
-    "test": "jest --forceExit",
+    "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --forceExit",
     "lint": "eslint ./src --ext ts,tsx,js,jsx --report-unused-disable-directives",
     "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
     "parseDriversCsv": "npm run build && node ./build/main.js parseDriversCsv --config='./build/standardConfig.js'"
@@ -49,7 +49,6 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@azure/openai": "^1.0.0-beta.6",
     "@octokit/rest": "^20.1.0",
     "@supercharge/promise-pool": "^3.2.0",
     "@types/jira-client": "^7.1.9",

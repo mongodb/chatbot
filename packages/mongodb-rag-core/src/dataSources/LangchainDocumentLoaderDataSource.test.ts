@@ -1,7 +1,7 @@
 import { makeLangChainDocumentLoaderDataSource } from "./LangchainDocumentLoaderDataSource";
 import Path from "path";
 import fs from "fs";
-import { Page } from "../pageStore";
+import { Page } from "../contentStore";
 import { DocumentLoader } from "langchain/document_loaders/base";
 import { Document } from "langchain/document";
 

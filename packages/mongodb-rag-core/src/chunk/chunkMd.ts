@@ -2,7 +2,7 @@ import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import GPT3Tokenizer from "gpt3-tokenizer";
 import { ChunkOptions, ContentChunk, ChunkFunc } from "./chunkPage";
 import { extractFrontMatter } from "../frontMatter";
-import { Page } from "../pageStore";
+import { Page } from "../contentStore";
 
 const defaultMdChunkOptions: ChunkOptions = {
   maxChunkSize: 600, // max chunk size of 600 tokens gets avg ~400 tokens/chunk

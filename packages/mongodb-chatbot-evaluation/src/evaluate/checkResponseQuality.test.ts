@@ -4,22 +4,25 @@ import {
   checkResponseQuality,
   mongodbResponseQualityExamples,
 } from "./checkResponseQuality";
-import { OpenAIClient, AzureKeyCredential } from "@azure/openai";
-import { strict as assert } from "assert";
+import { assertEnvVars, CORE_ENV_VARS } from "mongodb-rag-core";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
 
-const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_CHAT_COMPLETION_DEPLOYMENT } =
-  process.env;
-assert(OPENAI_ENDPOINT);
-assert(OPENAI_API_KEY);
-assert(OPENAI_CHAT_COMPLETION_DEPLOYMENT);
+const {
+  OPENAI_ENDPOINT,
+  OPENAI_API_KEY,
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_API_VERSION,
+} = assertEnvVars(CORE_ENV_VARS);
 
 jest.setTimeout(10000);
 describe("checkResponseQuality()", () => {
   const deploymentName = OPENAI_CHAT_COMPLETION_DEPLOYMENT;
-  const openAiClient = new OpenAIClient(
-    OPENAI_ENDPOINT,
-    new AzureKeyCredential(OPENAI_API_KEY)
-  );
+  const openAiClient = new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  });
+
   const baseArgs = {
     openAiClient,
     deploymentName,

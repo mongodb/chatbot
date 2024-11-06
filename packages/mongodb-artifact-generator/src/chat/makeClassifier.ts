@@ -3,11 +3,7 @@ import {
   assertEnvVars,
   CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
 } from "mongodb-rag-core";
-import {
-  ChatRequestMessage,
-  FunctionDefinition,
-  OpenAIClient,
-} from "@azure/openai";
+import { OpenAI } from "mongodb-rag-core/openai";
 import { html, stripIndents } from "common-tags";
 import { z } from "zod";
 import { RunLogger } from "../runlogger";
@@ -66,7 +62,7 @@ export function makeClassifier({
   classificationTypes,
   chainOfThought = false,
 }: {
-  openAiClient: OpenAIClient;
+  openAiClient: OpenAI;
   logger?: RunLogger;
 
   /**
@@ -126,7 +122,7 @@ export function makeClassifier({
       }
     : {};
   const required = chainOfThought ? ["type", "reason"] : ["type"];
-  const classifyFunc: FunctionDefinition = {
+  const classifyFunc: OpenAI.FunctionDefinition = {
     name: "classify",
     description: "Classify the type of the provided input",
     parameters: {
@@ -150,28 +146,29 @@ export function makeClassifier({
         role: "system",
         content: makeSystemPrompt(input),
       },
-    ] satisfies ChatRequestMessage[];
-    const result = await openAiClient.getChatCompletions(
-      OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    ] satisfies OpenAI.ChatCompletionMessageParam[];
+    const result = await openAiClient.chat.completions.create({
+      model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
       messages,
-      {
-        temperature: 0,
-        maxTokens: 300,
-        functions: [classifyFunc],
-        functionCall: {
-          name: classifyFunc.name,
-        },
-      }
-    );
+      temperature: 0,
+      max_tokens: 300,
+      functions: [classifyFunc],
+      function_call: {
+        name: classifyFunc.name,
+      },
+    });
     const response = result.choices[0].message;
     if (response === undefined) {
       throw new Error("No response from OpenAI");
     }
-    if (response.functionCall === undefined) {
+    if (
+      response.function_call === undefined ||
+      response.function_call === null
+    ) {
       throw new Error("No function call in response from OpenAI");
     }
     const classification = Classification.parse(
-      JSON.parse(response.functionCall.arguments)
+      JSON.parse(response.function_call.arguments)
     );
 
     logger?.appendArtifact(

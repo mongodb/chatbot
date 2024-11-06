@@ -1,7 +1,7 @@
 import { DocumentLoader } from "langchain/document_loaders/base";
 import { Document as LangchainDocument } from "langchain/document";
 import { DataSource } from "./DataSource";
-import { Page, PageMetadata } from "../pageStore";
+import { Page, PageMetadata } from "../contentStore";
 
 export interface MakeLangChainDocumentLoaderDataSourceParams {
   /**

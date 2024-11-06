@@ -1,6 +1,5 @@
 import { Response } from "express";
-import { OpenAiStreamingResponse } from "./chatLlm";
-import { logger } from "./logger";
+import { OpenAiStreamingResponse } from "./llm";
 import { References } from "./References";
 
 export function escapeNewlines(str: string): string {
@@ -183,12 +182,6 @@ export function makeDataStreamer(): DataStreamer {
             data: content,
           });
           streamedData += content;
-        } else if (choice.message) {
-          logger.warn(
-            `Unexpected message in stream: no delta. Message: ${JSON.stringify(
-              choice.message
-            )}`
-          );
         }
       }
       return streamedData;

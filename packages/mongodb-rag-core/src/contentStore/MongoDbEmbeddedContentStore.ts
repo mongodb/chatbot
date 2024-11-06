@@ -1,4 +1,4 @@
-import { pageIdentity } from "../pageStore";
+import { pageIdentity } from ".";
 import { DatabaseConnection } from "../DatabaseConnection";
 import { EmbeddedContent, EmbeddedContentStore } from "./EmbeddedContent";
 import { FindNearestNeighborsOptions, WithScore } from "../VectorStore";

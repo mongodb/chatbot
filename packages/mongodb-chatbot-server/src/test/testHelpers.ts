@@ -1,9 +1,6 @@
 import { strict as assert } from "assert";
-import {
-  MongoClient,
-  Db,
-  makeMongoDbConversationsService,
-} from "mongodb-rag-core";
+import { makeMongoDbConversationsService } from "mongodb-rag-core";
+import { MongoClient, Db } from "mongodb-rag-core/mongodb";
 import { AppConfig, makeApp } from "../app";
 import { MONGODB_CONNECTION_URI, config, systemPrompt } from "./testConfig";
 

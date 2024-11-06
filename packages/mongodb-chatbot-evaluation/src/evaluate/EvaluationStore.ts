@@ -4,7 +4,7 @@ import {
   Filter,
   MongoClient,
   ObjectId,
-} from "mongodb-rag-core";
+} from "mongodb-rag-core/mongodb";
 
 export interface EvalResult {
   _id: ObjectId;

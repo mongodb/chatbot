@@ -1,7 +1,7 @@
 import { chunkCode } from "./chunkCode";
 import { promises as fs } from "fs";
 import path from "path";
-import { Page, pageFormat } from "../pageStore";
+import { Page, pageFormat } from "../contentStore";
 
 const PROJECT_ROOT_DIR = path.resolve(__dirname, "../../");
 

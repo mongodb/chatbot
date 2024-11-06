@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { ConversationGeneratedData } from "../generate";
 import { EvalResult } from "./EvaluationStore";
 import { makeEvaluateConversationLastMessageIncludesRegex } from "./evaluateConversationLastMessageIncludesRegex";

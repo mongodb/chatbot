@@ -6,25 +6,26 @@ import {
   makeMongoDbEmbeddedContentStore,
   makeMongoDbPageStore,
   filterFulfilled,
-  OpenAIClient,
-  AzureKeyCredential,
 } from "mongodb-rag-core";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { PUBLIC_INGEST_ENV_VARS } from "./PublicIngestEnvVars";
 import { sourceConstructors } from "./sources";
 
 const {
   OPENAI_ENDPOINT,
   OPENAI_API_KEY,
+  OPENAI_API_VERSION,
   OPENAI_EMBEDDING_DEPLOYMENT,
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
 } = assertEnvVars(PUBLIC_INGEST_ENV_VARS);
 
 const embedder = makeOpenAiEmbedder({
-  openAiClient: new OpenAIClient(
-    OPENAI_ENDPOINT,
-    new AzureKeyCredential(OPENAI_API_KEY)
-  ),
+  openAiClient: new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  }),
   deployment: OPENAI_EMBEDDING_DEPLOYMENT,
   backoffOptions: {
     numOfAttempts: 25,

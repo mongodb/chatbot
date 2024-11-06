@@ -1,6 +1,7 @@
 import { EvaluateQualityFunc } from "./EvaluateQualityFunc";
 import { ConversationGeneratedData } from "../generate";
-import { ObjectId, UserMessage, logger } from "mongodb-chatbot-server";
+import { UserMessage, logger } from "mongodb-chatbot-server";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { strict as assert } from "assert";
 import { EvalResult } from "./EvaluationStore";
 

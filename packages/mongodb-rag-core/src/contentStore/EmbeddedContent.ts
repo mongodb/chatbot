@@ -1,4 +1,4 @@
-import { Page } from "../pageStore";
+import { Page } from ".";
 import { VectorStore } from "../VectorStore";
 
 /**

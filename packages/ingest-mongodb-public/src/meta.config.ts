@@ -5,9 +5,8 @@ import {
   makeOpenAiEmbedder,
   makeMongoDbEmbeddedContentStore,
   makeMongoDbPageStore,
-  OpenAIClient,
-  AzureKeyCredential,
 } from "mongodb-rag-core";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { makeSnootyDataSource } from "./sources/snooty";
 import {
   PUBLIC_INGEST_ENV_VARS,
@@ -18,6 +17,7 @@ import { snootyDataApiBaseUrl } from "./sources/snootySources";
 const {
   OPENAI_ENDPOINT,
   OPENAI_API_KEY,
+  OPENAI_API_VERSION,
   OPENAI_EMBEDDING_DEPLOYMENT,
   MONGODB_CONNECTION_URI,
   MONGODB_META_DATABASE_NAME,
@@ -27,10 +27,11 @@ const {
 });
 
 const embedder = makeOpenAiEmbedder({
-  openAiClient: new OpenAIClient(
-    OPENAI_ENDPOINT,
-    new AzureKeyCredential(OPENAI_API_KEY)
-  ),
+  openAiClient: new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  }),
   deployment: OPENAI_EMBEDDING_DEPLOYMENT,
   backoffOptions: {
     numOfAttempts: 25,

@@ -1,7 +1,5 @@
-import {
-  GetChatCompletionsOptions,
-  makeOpenAiChatLlm,
-} from "mongodb-chatbot-server";
+import { makeOpenAiChatLlm } from "mongodb-rag-core";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 export const makeRadiantChatLlm = async ({
   endpoint,
@@ -10,7 +8,7 @@ export const makeRadiantChatLlm = async ({
   mongoDbAuthCookie,
   lmmConfigOptions = {
     temperature: 0,
-    maxTokens: 2000,
+    max_tokens: 2000,
   },
 }: {
   endpoint: string;
@@ -18,36 +16,21 @@ export const makeRadiantChatLlm = async ({
   deployment: string;
   mongoDbAuthCookie?: string;
   lmmConfigOptions: Pick<
-    GetChatCompletionsOptions,
-    "maxTokens" | "temperature"
+    OpenAI.Chat.ChatCompletionCreateParams,
+    "max_tokens" | "temperature"
   >;
 }) => {
-  const { AzureKeyCredential, OpenAIClient } = await import("@azure/openai");
   return makeOpenAiChatLlm({
     deployment,
     openAiLmmConfigOptions: lmmConfigOptions,
-    openAiClient: new OpenAIClient(endpoint, new AzureKeyCredential(apiKey), {
-      // Allow insecure connection when in staging/production
-      // b/c connecting w/in the same k8s cluster
-      allowInsecureConnection:
-        process.env.NODE_ENV === "production" ||
-        process.env.NODE_ENV === "staging",
-      // If connecting to Radiant over the internet,
-      // you must include a MongoDB CorpSecure cookie in the request.
-      additionalPolicies: [
-        {
-          position: "perCall",
-          policy: {
-            name: "add-cookie",
-            sendRequest(request, next) {
-              if (mongoDbAuthCookie) {
-                request.headers.set("Cookie", mongoDbAuthCookie);
-              }
-              return next(request);
-            },
-          },
-        },
-      ],
+    openAiClient: new OpenAI({
+      apiKey,
+      baseURL: endpoint,
+      defaultHeaders: mongoDbAuthCookie
+        ? {
+            Cookie: mongoDbAuthCookie,
+          }
+        : undefined,
     }),
   });
 };

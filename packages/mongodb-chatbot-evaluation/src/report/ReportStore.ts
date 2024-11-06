@@ -1,4 +1,4 @@
-import { Filter, MongoClient, ObjectId } from "mongodb-rag-core";
+import { Filter, MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
 
 export interface Report {
   _id: ObjectId;

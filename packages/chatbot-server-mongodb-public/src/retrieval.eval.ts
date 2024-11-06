@@ -47,7 +47,12 @@ type RetrievalEvalScorer = EvalScorer<
   RetrievalEvalCaseExpected
 >;
 
-const K = 5;
+// Uses same K in evals as in retrieval config.
+// This is because we always return all results to the user in the chatbot.
+// If we were to use the retrieval system in a different context where
+// we only return the top results of a larger query,
+// we could readdress this.
+const { k } = retrievalConfig.findNearestNeighborsOptions;
 
 const simpleConversationEvalTask: EvalTask<
   RetrievalEvalCaseInput,
@@ -91,10 +96,10 @@ const BinaryNdcgAtK: RetrievalEvalScorer = async (args) => {
     args.expected.links,
     args.output.results.map((r) => r.url),
     fuzzyLinkMatch,
-    K
+    k
   );
   return {
-    name: `BinaryNDCG@${K}`,
+    name: `BinaryNDCG@${k}`,
     score: score,
   };
 };
@@ -104,10 +109,10 @@ const F1AtK: RetrievalEvalScorer = async (args) => {
     args.expected.links,
     args.output.results.map((r) => r.url),
     fuzzyLinkMatch,
-    K
+    k
   );
   return {
-    name: `F1@${K}`,
+    name: `F1@${k}`,
     score: score,
   };
 };
@@ -117,10 +122,10 @@ const AveragePrecisionAtK: RetrievalEvalScorer = async (args) => {
     args.expected.links,
     args.output.results.map((r) => r.url),
     fuzzyLinkMatch,
-    K
+    k
   );
   return {
-    name: `AveragePrecision@${K}`,
+    name: `AveragePrecision@${k}`,
     score: score,
   };
 };
@@ -130,10 +135,10 @@ const PrecisionAtK: RetrievalEvalScorer = async (args) => {
     args.expected.links,
     args.output.results.map((r) => r.url),
     fuzzyLinkMatch,
-    K
+    k
   );
   return {
-    name: `Precision@${K}`,
+    name: `Precision@${k}`,
     score: score,
   };
 };
@@ -143,16 +148,15 @@ const RecallAtK: RetrievalEvalScorer = async (args) => {
     args.expected.links,
     args.output.results.map((r) => r.url),
     fuzzyLinkMatch,
-    K
+    k
   );
   return {
-    name: `Recall@${K}`,
+    name: `Recall@${k}`,
     score: score,
   };
 };
 
 const RetrievedLengthOverK: RetrievalEvalScorer = async (args) => {
-  const { k } = retrievalConfig.findNearestNeighborsOptions;
   return {
     name: `RetrievedAmountOver${k}`,
     score: args.output.results.length / k,
@@ -160,11 +164,11 @@ const RetrievedLengthOverK: RetrievalEvalScorer = async (args) => {
 };
 
 Eval("mongodb-chatbot-retrieval", {
-  experimentName: `mongodb-chatbot-retrieval-latest?model=${retrievalConfig.model}&@K=${K}&minScore=${retrievalConfig.findNearestNeighborsOptions.minScore}`,
+  experimentName: `mongodb-chatbot-retrieval-latest?model=${retrievalConfig.model}&@K=${k}&minScore=${retrievalConfig.findNearestNeighborsOptions.minScore}`,
   metadata: {
     description: "Evaluates quality of chatbot retrieval system",
     retrievalConfig,
-    K,
+    k,
   },
   maxConcurrency: 5,
   data: getConversationRetrievalEvalData,

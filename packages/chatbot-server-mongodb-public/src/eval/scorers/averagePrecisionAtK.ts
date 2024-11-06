@@ -1,32 +1,43 @@
+import { MatchFunc } from "./MatchFunc";
+import { Primitive } from "./Primitive";
+
 /**
   Calculate Average Precision (AP) for a single query.
   Average Precision is the average of the precision scores at each rank where a relevant item appears.
   @param relevantItems - List of relevant items
   @param retrievedItems - List of retrieved items
+  @param matchFunc - Function to compare items for equality
   @param k - Value of k (top-k results to consider)
   @returns Average Precision (AP)
  */
-export function averagePrecisionAtK<T>(
+export function averagePrecisionAtK<T extends Primitive>(
   relevantItems: T[],
   retrievedItems: T[],
+  matchFunc: MatchFunc<T>,
   k: number
 ): number {
-  let numRelevantRetrieved = 0; // Tracks how many relevant items have been retrieved
-  let precisionSum = 0; // Sum of precision scores at each relevant item rank
+  let numRelevantRetrieved = 0;
+  let precisionSum = 0;
+  const retrievedRelevantItems = new Set<T>();
 
-  const limit = Math.min(k, retrievedItems.length); // Ensure we don't exceed the retrieved items or k
+  const limit = Math.min(k, retrievedItems.length);
 
-  // Iterate through the top k retrieved items
   for (let i = 0; i < limit; i++) {
     const item = retrievedItems[i];
 
-    // If the item is relevant, update the relevant count and add the precision at this rank
-    if (relevantItems.includes(item)) {
-      numRelevantRetrieved++;
-      precisionSum += numRelevantRetrieved / (i + 1); // Precision at rank (i + 1 because it's 1-based)
+    // Find the matching relevant item
+    const relevantItem = relevantItems.find((relevantItem) =>
+      matchFunc(relevantItem, item)
+    );
+
+    if (relevantItem) {
+      if (!retrievedRelevantItems.has(relevantItem)) {
+        retrievedRelevantItems.add(relevantItem);
+        numRelevantRetrieved++;
+        precisionSum += numRelevantRetrieved / (i + 1);
+      }
     }
   }
 
-  // Return the average precision, or 0 if there are no relevant items
   return relevantItems.length === 0 ? 0 : precisionSum / relevantItems.length;
 }

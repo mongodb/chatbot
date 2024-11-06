@@ -6,7 +6,13 @@ import { strict as assert } from "assert";
 import { averagePrecisionAtK } from "./eval/scorers/averagePrecisionAtK";
 import { getConversationsEvalCasesFromYaml } from "./eval/getConversationEvalCasesFromYaml";
 import { ExtractMongoDbMetadataFunction } from "./processors/extractMongoDbMetadataFromUserMessage";
-import { findContent } from "./config";
+import { findContent, retrievalConfig } from "./config";
+import { fuzzyLinkMatch } from "./eval/scorers/fuzzyLinkMatch";
+import { binaryNdcgAtK } from "./eval/scorers/binaryNdcgAtK";
+import { f1AtK } from "./eval/scorers/f1AtK";
+import { precisionAtK } from "./eval/scorers/precisionAtK";
+import { recallAtK } from "./eval/scorers/recallAtK";
+import "dotenv/config";
 
 interface RetrievalEvalCaseInput {
   query: string;
@@ -80,40 +86,95 @@ async function getConversationRetrievalEvalData() {
   });
 }
 
-// -- Evaluation metrics --
-/*
-  TODO: add metrics for:
-  - [ ] F1 score
-  - [ ] Recall@K
-  - [ ] Precision@K
-  - [ ] Reciprocal Rank
-  - [ ] Avg search score
-  - [x] Avg precision@K (Defined below as example)
- */
-const AveragePrecisionAtK: RetrievalEvalScorer = async (args) => {
-  const score = averagePrecisionAtK(
+const BinaryNdcgAtK: RetrievalEvalScorer = async (args) => {
+  const score = binaryNdcgAtK(
     args.expected.links,
     args.output.results.map((r) => r.url),
+    fuzzyLinkMatch,
     K
   );
   return {
-    name: "AveragePrecisionAtK",
+    name: `BinaryNDCG@${K}`,
     score: score,
   };
 };
 
+const F1AtK: RetrievalEvalScorer = async (args) => {
+  const score = f1AtK(
+    args.expected.links,
+    args.output.results.map((r) => r.url),
+    fuzzyLinkMatch,
+    K
+  );
+  return {
+    name: `F1@${K}`,
+    score: score,
+  };
+};
+
+const AveragePrecisionAtK: RetrievalEvalScorer = async (args) => {
+  const score = averagePrecisionAtK(
+    args.expected.links,
+    args.output.results.map((r) => r.url),
+    fuzzyLinkMatch,
+    K
+  );
+  return {
+    name: `AveragePrecision@${K}`,
+    score: score,
+  };
+};
+
+const PrecisionAtK: RetrievalEvalScorer = async (args) => {
+  const score = precisionAtK(
+    args.expected.links,
+    args.output.results.map((r) => r.url),
+    fuzzyLinkMatch,
+    K
+  );
+  return {
+    name: `Precision@${K}`,
+    score: score,
+  };
+};
+
+const RecallAtK: RetrievalEvalScorer = async (args) => {
+  const score = recallAtK(
+    args.expected.links,
+    args.output.results.map((r) => r.url),
+    fuzzyLinkMatch,
+    K
+  );
+  return {
+    name: `Recall@${K}`,
+    score: score,
+  };
+};
+
+const RetrievedLengthOverK: RetrievalEvalScorer = async (args) => {
+  const { k } = retrievalConfig.findNearestNeighborsOptions;
+  return {
+    name: `RetrievedAmountOver${k}`,
+    score: args.output.results.length / k,
+  };
+};
+
 Eval("mongodb-chatbot-retrieval", {
-  experimentName: `mongodb-chatbot-retrieval-latest-@${K}`,
+  experimentName: `mongodb-chatbot-retrieval-latest?model=${retrievalConfig.model}&@K=${K}&minScore=${retrievalConfig.findNearestNeighborsOptions.minScore}`,
   metadata: {
     description: "Evaluates quality of chatbot retrieval system",
-    embeddingModel: "TODO: add dynamically",
+    retrievalConfig,
     K,
   },
   maxConcurrency: 5,
   data: getConversationRetrievalEvalData,
   task: simpleConversationEvalTask,
   scores: [
+    BinaryNdcgAtK,
+    F1AtK,
+    RetrievedLengthOverK,
     AveragePrecisionAtK,
-    // TODO: add other metrics here too
+    PrecisionAtK,
+    RecallAtK,
   ],
 });

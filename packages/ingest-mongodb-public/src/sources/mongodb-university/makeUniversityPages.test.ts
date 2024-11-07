@@ -4,6 +4,7 @@ import {
   convertVideoTranscriptFromSrtToTxt,
   generateContentDescriptionMarkdown,
   makeUniversityPages,
+  UNI_BASE_URL,
 } from "./makeUniversityPages";
 import {
   TiCatalogItem,
@@ -49,7 +50,7 @@ describe("makeUniversityPages()", () => {
     });
     const samplePage = pages[0];
     expect(samplePage.url).toBe(
-      "https://learn.mongodb.com/learn/course/getting-started-with-mongodb-atlas/lesson-1-introduction-to-mongodb-atlas-the-developer-data-platform/learn"
+      `${UNI_BASE_URL}/learn/course/getting-started-with-mongodb-atlas/lesson-1-introduction-to-mongodb-atlas-the-developer-data-platform/learn`
     );
     expect(samplePage.title).toBe(
       "Getting Started with MongoDB Atlas - Lesson 1: Introduction to MongoDB Atlas, the Developer Data Platform - Learn"
@@ -94,7 +95,7 @@ describe("convertVideoTranscriptFromSrtToTxt()", () => {
 describe("generateContentDescriptionMarkdown()", () => {
   const expected_markdown = `# Atlas Search
 
-This course is designed to help you use Atlas Search in your applications for a seamless full-text search experience. You'll learn how to write Atlas Search queries and manage search indexes by using the Atlas UI, CLI, and MongoDB Shell. Then you'll build on this foundation by writing advanced search queries that use the compound operator, nesting, and features such as fuzzy search and autocomplete. 
+This course is designed to help you use Atlas Search in your applications for a seamless full-text search experience. You’ll learn how to write Atlas Search queries and manage search indexes by using the Atlas UI, CLI, and MongoDB Shell. Then you’ll build on this foundation by writing advanced search queries that use the compound operator, nesting, and features such as fuzzy search and autocomplete. 
 
 
 ## Managing Atlas Search Indexes

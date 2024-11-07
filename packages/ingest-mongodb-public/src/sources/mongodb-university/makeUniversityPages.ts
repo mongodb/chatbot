@@ -4,6 +4,8 @@ import {
   UniversityVideo,
 } from "./MongoDbUniversityDataApiClient";
 
+export const UNI_BASE_URL = "https://learn.mongodb.com";
+
 /**
   Helper function to create {@link Page} objects
   for MongoDB University content.
@@ -56,7 +58,7 @@ function makeCatalogItemPages({
     ) {
       const page: Page = {
         sourceName,
-        url: `https://learn.mongodb.com/learning-paths/${catalogItem.slug}`,
+        url: `${UNI_BASE_URL}/learning-paths/${catalogItem.slug}`,
         title: catalogItem.name,
         format: "md",
         body: generateContentDescriptionMarkdown({
@@ -189,7 +191,7 @@ function makeUniversityPageUrl({
   sectionSlug: string;
   lessonSlug: string;
 }) {
-  return `https://learn.mongodb.com/learn/course/${catalogItemSlug}/${sectionSlug}/${lessonSlug}`;
+  return `${UNI_BASE_URL}/learn/course/${catalogItemSlug}/${sectionSlug}/${lessonSlug}`;
 }
 
 /**
@@ -224,7 +226,7 @@ export function generateContentDescriptionMarkdown({
     for (const nested of nested_content) {
       const { name, duration, description, slug } = nested;
       const title = `## ${name}`;
-      const link = `[View Details](https://learn.mongodb.com/courses/${slug})`;
+      const link = `[View Details](${UNI_BASE_URL}/courses/${slug})`;
       markdownContent += title + "\n\n" + duration + "\n\n" + description + "\n\n"+  link + "\n\n\n";
     }
   }

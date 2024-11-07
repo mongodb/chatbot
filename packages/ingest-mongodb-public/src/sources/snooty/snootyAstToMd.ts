@@ -149,7 +149,8 @@ const renderDirective = (
         .map((child) => renderAst(child, { parentHeadingLevel }))
         .join("")}\n\n</Tab>\n\n`;
     }
-    case "tabs" || "tabs-drivers":
+    case "tabs":
+    case "tabs-drivers":
       return `\n\n<Tabs>\n\n${node.children
         .map((child) => renderAst(child, { parentHeadingLevel }))
         .join("")}\n\n</Tabs>\n\n`;

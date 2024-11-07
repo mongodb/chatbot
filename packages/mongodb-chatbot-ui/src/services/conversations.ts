@@ -1,7 +1,6 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { References, VerifiedAnswer } from "mongodb-rag-core";
 import { ConversationState } from "../useConversation";
-import { strict as assert } from "node:assert";
 
 export type Role = "user" | "assistant";
 
@@ -101,10 +100,11 @@ export class ConversationService {
   private fetchOptions: ConversationFetchOptions & { headers: Headers };
 
   constructor(config: ConversationServiceConfig) {
-    assert(
-      config.serverUrl,
-      "You must define a serverUrl for the ConversationService"
-    );
+    if (!config.serverUrl) {
+      throw new Error(
+        "You must define a serverUrl for the ConversationService"
+      );
+    }
     this.serverUrl = config.serverUrl.startsWith("/")
       ? new URL(
           config.serverUrl,

@@ -279,7 +279,7 @@ export const assignFaqIds = async ({
 
       // Use the pre-existing faqId or generate a new one for this category
       const faqId =
-        previousFaqsWithFaqIds[0]?.faqId ?? ObjectId.generate().toString("hex");
+        previousFaqsWithFaqIds[0]?.faqId ?? new ObjectId().toHexString();
       console.log(
         `${
           previousFaqsWithFaqIds[0]?.faqId === undefined

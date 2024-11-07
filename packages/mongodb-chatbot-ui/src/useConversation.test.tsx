@@ -1,7 +1,7 @@
 import { vi } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { useConversation, type UseConversationParams } from "./useConversation";
-import { ObjectId } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { mockNextFetchResult } from "./test-utils";
 
 const baseUseConversationParams = {

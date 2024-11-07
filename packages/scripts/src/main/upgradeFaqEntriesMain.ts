@@ -71,7 +71,7 @@ async function main() {
       const write = async () => {
         const bulkWriteResult = await toCollection.bulkWrite(bulk);
         console.log(
-          `Modified ${bulkWriteResult.nModified}, upserted ${bulkWriteResult.nUpserted}.`
+          `Modified ${bulkWriteResult.modifiedCount}, upserted ${bulkWriteResult.upsertedCount}.`
         );
       };
       for await (const entry of entries) {

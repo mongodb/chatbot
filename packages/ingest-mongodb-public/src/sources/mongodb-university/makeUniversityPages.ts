@@ -66,8 +66,8 @@ function makeCatalogItemPages({
         }),
         metadata: {
           ...(metadata ?? {}),
-          tags: metadata?.tags ?? [],
-          learning_format: catalogItem.learning_format,
+          tags: [...(metadata?.tags ?? []), "landing page"],
+          learningFormat: catalogItem.learning_format,
         },
       };
       pages.push(page);
@@ -110,7 +110,7 @@ function makeCatalogItemPages({
             // `catalogItem.tags`) here and instead only use tags we specify in
             // our config. The API tags may contain internal or customer-specific
             // data that we don't want to include in the embeddings.
-            tags: metadata?.tags ?? [],
+            tags: [...(metadata?.tags ?? []), "transcript"],
             courseTitle,
             sectionTitle,
             lessonTitle,
@@ -221,14 +221,14 @@ export function generateContentDescriptionMarkdown({
 }): string {
   const { name, description, nested_content } = tiCatalogItem;
   const title = `# ${name}`;
-  let markdownContent = title + "\n\n" + description + "\n\n\n";
+  let markdownContent = title + "\n\n" + description + "\n\n";
   if (nested_content) {
     for (const nested of nested_content) {
       const { name, duration, description, slug } = nested;
       const title = `## ${name}`;
       const link = `[View Details](${UNI_BASE_URL}/courses/${slug})`;
-      markdownContent += title + "\n\n" + duration + "\n\n" + description + "\n\n"+  link + "\n\n\n";
+      markdownContent += title + "\n\n" + duration + "\n\n" + description + "\n\n"+  link + "\n\n";
     }
   }
-  return markdownContent.slice(0, -3); // Remove the last 3 newlines
+  return markdownContent.slice(0, -2); // Remove the last 2 newlines
 }

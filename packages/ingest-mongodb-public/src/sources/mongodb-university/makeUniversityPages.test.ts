@@ -97,7 +97,6 @@ describe("generateContentDescriptionMarkdown()", () => {
 
 This course is designed to help you use Atlas Search in your applications for a seamless full-text search experience. You’ll learn how to write Atlas Search queries and manage search indexes by using the Atlas UI, CLI, and MongoDB Shell. Then you’ll build on this foundation by writing advanced search queries that use the compound operator, nesting, and features such as fuzzy search and autocomplete. 
 
-
 ## Managing Atlas Search Indexes
 
 45 Minutes
@@ -105,7 +104,6 @@ This course is designed to help you use Atlas Search in your applications for a 
 Learn how to manage Atlas Search indexes with the Atlas UI, Atlas CLI, and MongoDB Shell.
 
 [View Details](https://learn.mongodb.com/courses/managing-atlas-search-indexes)
-
 
 ## Autocomplete with Atlas Search
 
@@ -115,7 +113,6 @@ Learn how to enhance user experience by adding the autocomplete functionality to
 
 [View Details](https://learn.mongodb.com/courses/autocomplete-with-atlas-search)
 
-
 ## Introduction to Atlas Search
 
 2.25 Hours
@@ -124,7 +121,6 @@ Learn how to use Atlas Search to build search functionality for your application
 
 [View Details](https://learn.mongodb.com/courses/introduction-to-atlas-search)
 
-
 ## Analyzers in Atlas Search
 
 1.75 Hours
@@ -132,7 +128,6 @@ Learn how to use Atlas Search to build search functionality for your application
 Learn all about analyzers in Atlas Search and the crucial role they play in making search results relevant and accurate.  
 
 [View Details](https://learn.mongodb.com/courses/analyzers-in-atlas-search)
-
 
 ## Advanced Queries with Atlas Search
 

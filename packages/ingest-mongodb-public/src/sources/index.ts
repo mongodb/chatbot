@@ -56,9 +56,6 @@ const mongoDbUniversitySourceConstructor = async () => {
       publicOnly: true,
       nestAssociatedContent: true,
     },
-    metadata: {
-      tags: ["transcript"],
-    },
   };
   return makeMongoDbUniversityDataSource(universityConfig);
 };

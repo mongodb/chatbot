@@ -6,8 +6,8 @@ import {
   Message,
   AssistantMessage,
   ConversationsService,
-  ObjectId,
 } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { Express } from "express";
 import { makeRateMessageRoute } from "./rateMessage";
 import { DEFAULT_API_PREFIX } from "../../app";

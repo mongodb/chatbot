@@ -6,8 +6,8 @@ import {
   makeMongoDbEmbeddedContentStore,
   makeMongoDbPageStore,
   filterFulfilled,
-  OpenAI,
 } from "mongodb-rag-core";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { PUBLIC_INGEST_ENV_VARS } from "./PublicIngestEnvVars";
 import { sourceConstructors } from "./sources";
 
@@ -21,7 +21,7 @@ const {
 } = assertEnvVars(PUBLIC_INGEST_ENV_VARS);
 
 const embedder = makeOpenAiEmbedder({
-  openAiClient: new OpenAI.AzureOpenAI({
+  openAiClient: new AzureOpenAI({
     apiKey: OPENAI_API_KEY,
     endpoint: OPENAI_ENDPOINT,
     apiVersion: OPENAI_API_VERSION,

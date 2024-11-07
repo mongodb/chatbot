@@ -2,8 +2,8 @@ import "dotenv/config";
 import {
   assertEnvVars,
   CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
-  OpenAI,
 } from "mongodb-rag-core";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { ChatMessage } from ".";
 
 export type GenerateChatCompletion = (
@@ -17,7 +17,7 @@ export function makeGenerateChatCompletion(): GenerateChatCompletion {
     OPENAI_ENDPOINT,
     OPENAI_API_VERSION,
   } = assertEnvVars(CORE_OPENAI_CHAT_COMPLETION_ENV_VARS);
-  const openAiClient = new OpenAI.AzureOpenAI({
+  const openAiClient = new AzureOpenAI({
     apiKey: OPENAI_API_KEY,
     endpoint: OPENAI_ENDPOINT,
     apiVersion: OPENAI_API_VERSION,

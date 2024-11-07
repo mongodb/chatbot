@@ -1,13 +1,13 @@
 import { CommandModule } from "yargs";
 import { promises as fs } from "fs";
-import { MongoClient } from "mongodb";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
   assertEnvVars,
   makeOpenAiEmbedder,
-  OpenAI,
   CORE_CHATBOT_APP_ENV_VARS,
   CORE_OPENAI_ENV_VARS,
 } from "mongodb-rag-core";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { parseVerifiedAnswerYaml } from "../parseVerifiedAnswersYaml";
 import { importVerifiedAnswers } from "../importVerifiedAnswers";
 
@@ -53,7 +53,7 @@ export const doImportCommand = async ({ path }: ImportCommandArgs) => {
   });
   const yaml = await fs.readFile(path, "utf-8");
   const verifiedAnswerSpecs = parseVerifiedAnswerYaml(yaml);
-  const openAiClient = new OpenAI.AzureOpenAI({
+  const openAiClient = new AzureOpenAI({
     apiKey: OPENAI_API_KEY,
     endpoint: OPENAI_ENDPOINT,
     apiVersion: OPENAI_API_VERSION,

@@ -1,11 +1,7 @@
 import { Octokit } from "@octokit/rest";
 import JiraApi from "jira-client";
-import {
-  Embedder,
-  PageStore,
-  EmbeddedContentStore,
-  OpenAI,
-} from "mongodb-rag-core";
+import { Embedder, PageStore, EmbeddedContentStore } from "mongodb-rag-core";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 /**
   The configuration for the artifact generator.
@@ -36,7 +32,7 @@ export type Config = {
   /**
     The OpenAI API client.
    */
-  openAiClient?: Constructor<OpenAI.OpenAI>;
+  openAiClient?: Constructor<OpenAI>;
 
   /**
     The Jira API client.

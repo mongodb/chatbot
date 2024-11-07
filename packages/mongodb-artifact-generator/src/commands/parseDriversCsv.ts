@@ -10,7 +10,7 @@ import { promises as fs } from "fs";
 import path from "path";
 
 import { action as translateCodeAction } from "./translateCode";
-import { ObjectId } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 
 let logger: RunLogger;
 

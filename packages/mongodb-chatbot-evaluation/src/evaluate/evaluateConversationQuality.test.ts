@@ -1,15 +1,12 @@
 import { makeEvaluateConversationQuality } from "./evaluateConversationQuality";
 import { strict as assert } from "assert";
 import "dotenv/config";
-import {
-  assertEnvVars,
-  CORE_ENV_VARS,
-  ObjectId,
-  OpenAI,
-} from "mongodb-rag-core";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { ConversationGeneratedData } from "../generate";
 import { EvalResult } from "./EvaluationStore";
 import { mongodbResponseQualityExamples } from "./checkResponseQuality";
+import { assertEnvVars, CORE_ENV_VARS } from "mongodb-rag-core";
 
 const {
   OPENAI_ENDPOINT,
@@ -24,7 +21,7 @@ assert(OPENAI_CHAT_COMPLETION_DEPLOYMENT);
 jest.setTimeout(10000);
 
 const deploymentName = OPENAI_CHAT_COMPLETION_DEPLOYMENT;
-const openAiClient = new OpenAI.AzureOpenAI({
+const openAiClient = new AzureOpenAI({
   apiKey: OPENAI_API_KEY,
   endpoint: OPENAI_ENDPOINT,
   apiVersion: OPENAI_API_VERSION,

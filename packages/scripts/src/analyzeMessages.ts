@@ -1,7 +1,8 @@
 import Path from "path";
 import { strict as assert } from "assert";
 import { promises as fs } from "fs";
-import { assertEnvVars, MongoClient, Db, ObjectId } from "mongodb-rag-core";
+import { assertEnvVars } from "mongodb-rag-core";
+import { MongoClient, Db, ObjectId } from "mongodb-rag-core/mongodb";
 import {
   Conversation,
   Message,

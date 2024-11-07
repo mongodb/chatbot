@@ -1,4 +1,5 @@
-import { ObjectId, Conversation, Message } from "mongodb-rag-core";
+import { Conversation, Message } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { makeFilterNPreviousMessages } from "./makeFilterNPreviousMessages";
 
 const mockConversationBase: Conversation = {

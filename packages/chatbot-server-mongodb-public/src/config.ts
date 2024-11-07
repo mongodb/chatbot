@@ -101,10 +101,19 @@ export const verifiedAnswerConfig = {
     minScore: 0.96,
   },
 };
+export const retrievalConfig = {
+  model: OPENAI_EMBEDDING_DEPLOYMENT,
+  findNearestNeighborsOptions: {
+    k: 5,
+    path: "embedding",
+    indexName: VECTOR_SEARCH_INDEX_NAME,
+    minScore: 0.9,
+  },
+};
 
 export const embedder = makeOpenAiEmbedder({
   openAiClient,
-  deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+  deployment: retrievalConfig.model,
   backoffOptions: {
     numOfAttempts: 3,
     maxDelay: 5000,
@@ -116,12 +125,7 @@ export const findContent = wrapTraced(
   makeDefaultFindContent({
     embedder,
     store: embeddedContentStore,
-    findNearestNeighborsOptions: {
-      k: 5,
-      path: "embedding",
-      indexName: VECTOR_SEARCH_INDEX_NAME,
-      minScore: 0.9,
-    },
+    findNearestNeighborsOptions: retrievalConfig.findNearestNeighborsOptions,
     searchBoosters: [boostManual],
   }),
   {

@@ -8,7 +8,7 @@ import { MongoDbTag } from "../mongoDbMetadata";
 import {
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
   openAiClient,
-} from "../test/evalHelpers";
+} from "../eval/evalHelpers";
 
 interface ExtractMongoDbMetadataEvalCase {
   name: string;

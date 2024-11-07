@@ -18,11 +18,11 @@ import {
   OPENAI_API_KEY,
   OPENAI_API_VERSION,
   OPENAI_ENDPOINT,
-} from "./test/evalHelpers";
+} from "./eval/evalHelpers";
 import { AnswerRelevancy, ContextRelevancy, Faithfulness } from "autoevals";
 import fs from "fs";
 import path from "path";
-import { getConversationsEvalCasesFromYaml } from "./test/getConversationEvalCasesFromYaml";
+import { getConversationsEvalCasesFromYaml } from "./eval/getConversationEvalCasesFromYaml";
 import { strict as assert } from "assert";
 
 interface ConversationEvalCaseInput {

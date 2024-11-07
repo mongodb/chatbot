@@ -32,7 +32,7 @@ describe("requireRequestOrigin", () => {
     req.params = baseReq.params;
     req.query = baseReq.query;
     req.headers = baseReq.headers;
-    req.ip = baseReq.ip;
+    (req as { ip: string }).ip = baseReq.ip; // Cast to get around Request.ip being readonly
 
     await middleware(req, res, next);
 
@@ -55,7 +55,7 @@ describe("requireRequestOrigin", () => {
       ...baseReq.headers,
       origin: "http://localhost:5173",
     });
-    req.ip = baseReq.ip;
+    (req as { ip: string }).ip = baseReq.ip; // Cast to get around Request.ip being readonly
 
     await middleware(req, res, next);
 
@@ -75,7 +75,7 @@ describe("requireRequestOrigin", () => {
       ...baseReq.headers,
       "X-Request-Origin": "http://localhost:5173/foo/bar",
     });
-    req.ip = baseReq.ip;
+    (req as { ip: string }).ip = baseReq.ip; // Cast to get around Request.ip being readonly
 
     await middleware(req, res, next);
 
@@ -98,7 +98,7 @@ describe("requireRequestOrigin", () => {
       origin: "http://localhost:5173",
       "x-request-origin": "http://localhost:5173/foo/bar",
     };
-    req.ip = baseReq.ip;
+    (req as { ip: string }).ip = baseReq.ip; // Cast to get around Request.ip being readonly
 
     await middleware(req, res, next);
 

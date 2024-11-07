@@ -23,7 +23,7 @@ describe("requireValidIpAddress", () => {
     req.params = baseReq.params;
     req.query = baseReq.query;
     req.headers = baseReq.headers;
-    req.ip = undefined;
+    (req as { ip?: string }).ip = undefined;
 
     await middleware(req, res, next);
 
@@ -44,7 +44,7 @@ describe("requireValidIpAddress", () => {
     req.params = baseReq.params;
     req.query = baseReq.query;
     req.headers = baseReq.headers;
-    req.ip = invalidIpAddress;
+    (req as { ip: string }).ip = invalidIpAddress; // Cast to get around Request.ip being readonly
 
     await middleware(req, res, next);
 
@@ -64,7 +64,7 @@ describe("requireValidIpAddress", () => {
     req.params = baseReq.params;
     req.query = baseReq.query;
     req.headers = baseReq.headers;
-    req.ip = baseReq.ip;
+    (req as { ip: string }).ip = baseReq.ip; // Cast to get around Request.ip being readonly
 
     await middleware(req, res, next);
 

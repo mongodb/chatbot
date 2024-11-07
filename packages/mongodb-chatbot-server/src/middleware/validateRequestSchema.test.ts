@@ -33,7 +33,7 @@ describe("validateRequestSchema", () => {
     req.params = { conversationId: "conversation-1234" };
     req.query = { stream: "true" };
     req.headers = { "req-id": "request-1234" };
-    req.ip = "127.0.0.1";
+    (req as { ip: string }).ip = "127.0.0.1"; // Cast to get around Request.ip being readonly
 
     await middleware(req, res, next);
     expect(next).toHaveBeenCalledTimes(1);

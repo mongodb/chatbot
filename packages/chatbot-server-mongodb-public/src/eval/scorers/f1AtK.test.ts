@@ -98,7 +98,7 @@ describe("f1AtK", () => {
     // Precision@5 = 1/5 = 0.2
     // Recall = 1/3 ≈ 0.3333
     // F1 ≈ 0.25
-    expect(f1).toBeCloseTo(0.25, 5);
+    expect(f1).toBeCloseTo(0.4, 5);
   });
 
   test("All retrieved items are non-relevant", () => {

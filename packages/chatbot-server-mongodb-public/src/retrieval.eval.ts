@@ -168,7 +168,6 @@ Eval("mongodb-chatbot-retrieval", {
   metadata: {
     description: "Evaluates quality of chatbot retrieval system",
     retrievalConfig,
-    k,
   },
   maxConcurrency: 5,
   data: getConversationRetrievalEvalData,

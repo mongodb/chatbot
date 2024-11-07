@@ -6,6 +6,7 @@ import {
   makeUserMessage,
 } from "./makeFewShotUserMessageExtractorFunction";
 import { OpenAI } from "mongodb-rag-core/openai";
+import { wrapTraced } from "braintrust";
 
 export const UserMessageMongoDbGuardrailFunctionSchema = z.object({
   reasoning: z
@@ -144,7 +145,7 @@ const fewShotExamples: OpenAI.ChatCompletionMessageParam[] = [
 /**
   Identify whether a user message is relevant to MongoDB and explains why.
  */
-export const userMessageMongoDbGuardrail =
+export const userMessageMongoDbGuardrail = wrapTraced(
   makeFewShotUserMessageExtractorFunction({
     llmFunction: {
       name,
@@ -153,4 +154,8 @@ export const userMessageMongoDbGuardrail =
     },
     systemPrompt,
     fewShotExamples,
-  });
+  }),
+  {
+    name: "userMessageMongoDbGuardrail",
+  }
+);

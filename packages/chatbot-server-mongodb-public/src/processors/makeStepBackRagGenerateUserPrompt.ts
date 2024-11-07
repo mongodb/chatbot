@@ -15,6 +15,9 @@ import { logRequest } from "../utils";
 import { makeMongoDbReferences } from "./makeMongoDbReferences";
 import { extractMongoDbMetadataFromUserMessage } from "./extractMongoDbMetadataFromUserMessage";
 import { userMessageMongoDbGuardrail } from "./userMessageMongoDbGuardrail";
+import { traced, wrapTraced } from "braintrust";
+import { retrieveRelevantContent } from "./retrieveRelevantContent";
+
 interface MakeStepBackGenerateUserPromptProps {
   openAiClient: OpenAI;
   model: string;
@@ -108,20 +111,16 @@ export const makeStepBackRagGenerateUserPrompt = ({
       metadataForQuery.mongoDbProductName = metadata.mongoDbProduct;
     }
 
-    const { transformedUserQuery } = await makeStepBackUserQuery({
-      openAiClient,
-      model,
-      messages: precedingMessagesToInclude,
-      userMessageText: updateFrontMatter(userMessageText, metadataForQuery),
-    });
-    logRequest({
-      reqId,
-      message: `Step back query: ${transformedUserQuery}`,
-    });
+    const { transformedUserQuery, content, queryEmbedding, searchQuery } =
+      await retrieveRelevantContent({
+        findContent,
+        metadataForQuery,
+        model,
+        openAiClient,
+        precedingMessagesToInclude,
+        userMessageText,
+      });
 
-    const { content, queryEmbedding } = await findContent({
-      query: updateFrontMatter(transformedUserQuery, metadataForQuery),
-    });
     logRequest({
       reqId,
       message: `Found ${content.length} results for query: ${content
@@ -137,8 +136,12 @@ export const makeStepBackRagGenerateUserPrompt = ({
         url: c.url,
         score: c.score,
       })),
-      customData,
-      preprocessedContent: transformedUserQuery,
+      customData: {
+        ...customData,
+        ...metadata,
+        searchQuery,
+        transformedUserQuery,
+      },
     } satisfies UserMessage;
     if (content.length === 0) {
       return {

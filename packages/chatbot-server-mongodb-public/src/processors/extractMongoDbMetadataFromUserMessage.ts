@@ -9,6 +9,7 @@ import {
   mongoDbProductNames,
   mongoDbProgrammingLanguageIds,
 } from "../mongoDbMetadata";
+import { wrapTraced } from "braintrust";
 
 export const ExtractMongoDbMetadataFunctionSchema = z.object({
   programmingLanguage: z
@@ -81,7 +82,7 @@ const fewShotExamples: OpenAI.Chat.ChatCompletionMessageParam[] = [
   from a user message in the conversation.
  */
 
-export const extractMongoDbMetadataFromUserMessage =
+export const extractMongoDbMetadataFromUserMessage = wrapTraced(
   makeFewShotUserMessageExtractorFunction({
     llmFunction: {
       name,
@@ -90,4 +91,8 @@ export const extractMongoDbMetadataFromUserMessage =
     },
     systemPrompt,
     fewShotExamples,
-  });
+  }),
+  {
+    name: "extractMongoDbMetadataFromUserMessage",
+  }
+);

@@ -14,7 +14,7 @@ export const loadConfig = async ({
     configPathIn === undefined ? "eval.config.cjs" : configPathIn
   );
 
-  const partialConfigConstructor = (await import(path))
+  const partialConfigConstructor = (await import(path)).default
     .default as () => Promise<Partial<EvalConfig>>;
   const partialConfig = await partialConfigConstructor();
 

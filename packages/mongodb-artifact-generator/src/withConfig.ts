@@ -14,7 +14,7 @@ export const loadConfig = async ({
     configPathIn === undefined ? "build/standardConfig.js" : configPathIn
   );
 
-  const partialConfig = (await import(path)).default as Partial<Config>;
+  const partialConfig = (await import(path)).default.default as Partial<Config>;
 
   const missingProperties: string[] = [];
   const config: Config = {

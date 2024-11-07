@@ -13,8 +13,10 @@ export const loadConfig = async ({
   const path = Path.resolve(
     configPathIn === undefined ? "ingest.config.cjs" : configPathIn
   );
+  console.log(path);
 
-  const partialConfig = (await import(path)).default as Partial<Config>;
+  const partialConfig = (await import(path)).default.default as Partial<Config>;
+  console.log(partialConfig);
 
   const missingProperties: string[] = [];
   const config: Config = {

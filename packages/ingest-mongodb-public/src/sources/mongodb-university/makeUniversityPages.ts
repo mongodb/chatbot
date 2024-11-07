@@ -227,7 +227,15 @@ export function generateContentDescriptionMarkdown({
       const { name, duration, description, slug } = nested;
       const title = `## ${name}`;
       const link = `[View Details](${UNI_BASE_URL}/courses/${slug})`;
-      markdownContent += title + "\n\n" + duration + "\n\n" + description + "\n\n"+  link + "\n\n";
+      markdownContent +=
+        title +
+        "\n\n" +
+        duration +
+        "\n\n" +
+        description +
+        "\n\n" +
+        link +
+        "\n\n";
     }
   }
   return markdownContent.slice(0, -2); // Remove the last 2 newlines

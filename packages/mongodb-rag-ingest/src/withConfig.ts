@@ -15,8 +15,8 @@ export const loadConfig = async ({
   );
 
   const maybePartialConfig = (await import(path)).default;
-  const partialConfig = (maybePartialConfig?.default ??
-    maybePartialConfig.default) as Partial<Config>;
+  const partialConfig = (maybePartialConfig.default ??
+    maybePartialConfig) as Partial<Config>;
 
   const missingProperties: string[] = [];
   const config: Config = {

@@ -219,14 +219,14 @@ export function generateContentDescriptionMarkdown({
 }): string {
   const { name, description, nested_content } = tiCatalogItem;
   const title = `# ${name}`;
-  const markdownContent = [title, description, `\n`];
+  let markdownContent = title + "\n\n" + description + "\n\n\n";
   if (nested_content) {
     for (const nested of nested_content) {
       const { name, duration, description, slug } = nested;
       const title = `## ${name}`;
       const link = `[View Details](https://learn.mongodb.com/courses/${slug})`;
-      markdownContent.push(title, duration, description, link, `\n`);
+      markdownContent += title + "\n\n" + duration + "\n\n" + description + "\n\n"+  link + "\n\n\n";
     }
   }
-  return markdownContent.join("\n");
+  return markdownContent.slice(0, -3); // Remove the last 3 newlines
 }

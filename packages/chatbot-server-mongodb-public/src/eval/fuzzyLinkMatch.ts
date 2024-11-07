@@ -1,7 +1,8 @@
 /**
   Performs a case-insensitive, partial match
-  of the `expected` link or link fragment
-  within the `actual` link or link fragment.
+  that the `expected` link or link fragment
+  ends with the `actual` link or link fragment.
+  Removes trailing `/` from paths.
   Checks based solely on path, ignoring domain, query, and fragment.
 
   If either input is not a valid URL,
@@ -13,15 +14,17 @@
   @returns `true` if the `expected` link or link fragment is found within `actual`, `false` otherwise.
  */
 export function fuzzyLinkMatch(expected: string, actual: string) {
-  return getPath(actual)
-    .toLowerCase()
-    .includes(getPath(expected).toLowerCase());
+  return getCleanPath(actual).endsWith(getCleanPath(expected));
 }
 
-function getPath(maybeUrl: string) {
+function cleanPath(path: string) {
+  return path.toLowerCase().replace(/\/$/, "");
+}
+
+function getCleanPath(maybeUrl: string) {
   try {
     const url = new URL(maybeUrl);
-    return url.pathname;
+    return cleanPath(url.pathname);
   } catch (error) {
     // If it's not a valid URL, return the input string as is
     return maybeUrl;

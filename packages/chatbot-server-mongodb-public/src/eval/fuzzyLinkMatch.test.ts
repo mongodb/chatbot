@@ -1,60 +1,60 @@
-import { fuzzyLinkMatch } from "./scorers/fuzzyLinkMatch";
+// src/eval/scorers/fuzzyLinkMatch.test.ts
+
+import { fuzzyLinkMatch } from "./fuzzyLinkMatch";
 
 describe("fuzzyLinkMatch", () => {
-  test("matches exact paths", () => {
-    expect(fuzzyLinkMatch("/path/to/resource", "/path/to/resource")).toBe(true);
+  test("exact path match between different domains", () => {
+    const expected = "https://example.com/path/to/resource";
+    const actual = "https://anotherdomain.com/path/to/resource";
+    expect(fuzzyLinkMatch(expected, actual)).toBe(true);
   });
 
-  test("matches partial path within another path", () => {
-    expect(fuzzyLinkMatch("/path", "/path/to/resource")).toBe(true);
+  test("case-insensitive path match", () => {
+    const expected = "https://example.com/Path/To/Resource";
+    const actual = "https://anotherdomain.com/path/to/resource";
+    expect(fuzzyLinkMatch(expected, actual)).toBe(true);
   });
 
-  test("is case-insensitive for paths", () => {
-    expect(fuzzyLinkMatch("/PATH/TO/RESOURCE", "/path/to/resource")).toBe(true);
+  test("partial match of expected path within actual path", () => {
+    const expected = "/path";
+    const actual = "https://anotherdomain.com/path/to/resource";
+    expect(fuzzyLinkMatch(expected, actual)).toBe(false);
   });
 
-  test("ignores query parameters", () => {
-    expect(
-      fuzzyLinkMatch("/path/to/resource", "/path/to/resource?query=123")
-    ).toBe(true);
+  test("no match when expected path is part of a different segment", () => {
+    const expected = "/path";
+    const actual = "https://example.com/otherpath/to/resource";
+    expect(fuzzyLinkMatch(expected, actual)).toBe(false);
   });
 
-  test("ignores fragments in URLs", () => {
-    expect(
-      fuzzyLinkMatch("/path/to/resource", "/path/to/resource#section")
-    ).toBe(true);
+  test("ignores query parameters and fragments in actual URL", () => {
+    const expected = "https://example.com/path/to/resource";
+    const actual =
+      "https://anotherdomain.com/path/to/resource?query=123#section";
+    expect(fuzzyLinkMatch(expected, actual)).toBe(true);
   });
 
-  test("matches path even if domain is different", () => {
-    expect(
-      fuzzyLinkMatch(
-        "/path/to/resource",
-        "https://example.com/path/to/resource"
-      )
-    ).toBe(true);
+  test("no match between unrelated plain strings", () => {
+    const expected = "unrelated";
+    const actual = "notMatching";
+    expect(fuzzyLinkMatch(expected, actual)).toBe(false);
   });
 
-  test("treats non-URL strings as plain strings", () => {
-    expect(
-      fuzzyLinkMatch("non-url-string", "this is a non-url-string example")
-    ).toBe(true);
+  test("expected path is empty string", () => {
+    const expected = "";
+    const actual = "/path/to/resource";
+    expect(fuzzyLinkMatch(expected, actual)).toBe(true); // Every string includes an empty string
   });
 
-  test("handles non-URL strings in both arguments", () => {
-    expect(fuzzyLinkMatch("example", "this is an example string")).toBe(true);
+  test("expected path does not exist in actual path", () => {
+    const expected = "/nonexistent";
+    const actual = "https://anotherdomain.com/path/to/resource";
+    expect(fuzzyLinkMatch(expected, actual)).toBe(false);
   });
 
-  test("returns false if expected path is not found in actual path", () => {
-    expect(fuzzyLinkMatch("/notfound", "/path/to/resource")).toBe(false);
-  });
-
-  test("returns false for non-matching plain strings", () => {
-    expect(fuzzyLinkMatch("missing", "this string does not contain it")).toBe(
-      false
-    );
-  });
-
-  test("returns false if expected is partially matched within a larger word", () => {
-    expect(fuzzyLinkMatch("/path", "/anotherpath/to/resource")).toBe(false);
+  test("expected path doesn't end in '/' but actual path does", () => {
+    const expected = "/path";
+    const actual = "https://anotherdomain.com/path/";
+    expect(fuzzyLinkMatch(expected, actual)).toBe(true);
   });
 });

@@ -13,7 +13,7 @@ import {
   OPENAI_API_VERSION,
   OPENAI_ENDPOINT,
   openAiClient,
-} from "../test/evalHelpers";
+} from "../eval/evalHelpers";
 type MongoDbGuardrailEvalCaseTag = "irrelevant" | "inappropriate" | "valid";
 interface MongoDbGuardrailEvalCase {
   name: string;

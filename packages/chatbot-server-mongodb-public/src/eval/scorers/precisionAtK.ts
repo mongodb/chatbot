@@ -19,9 +19,11 @@ export function precisionAtK<T extends Primitive>(
   k = 5
 ): number {
   // Handle division by zero when k is zero
-  if (k === 0) {
+  if (k === 0 || retrievedItems.length === 0) {
     return 0;
   }
+
+  const limit = Math.min(k, retrievedItems.length);
 
   // Ensure k is not greater than the number of retrieved items
   const topKRetrieved = retrievedItems.slice(0, k);
@@ -40,7 +42,7 @@ export function precisionAtK<T extends Primitive>(
   });
 
   // Calculate precision@k
-  const precision = matchedRelevantItems.size / k;
+  const precision = matchedRelevantItems.size / limit;
 
   return precision;
 }

@@ -86,7 +86,7 @@ describe("precisionAtK", () => {
     const k = 5;
 
     const precision = precisionAtK(relevantItems, retrievedItems, matchFunc, k);
-    expect(precision).toBeCloseTo(0.2, 5);
+    expect(precision).toBeCloseTo(0.5, 5);
   });
 
   test("Retrieved items contain duplicates", () => {

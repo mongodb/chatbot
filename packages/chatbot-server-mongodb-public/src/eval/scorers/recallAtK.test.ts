@@ -65,8 +65,9 @@ describe("recallAtK", () => {
     const retrievedItems = testItems.slice(0, 3);
     const k = 0;
 
-    const recall = recallAtK(relevantItems, retrievedItems, matchFunc, k);
-    expect(recall).toBe(0);
+    expect(() =>
+      recallAtK(relevantItems, retrievedItems, matchFunc, k)
+    ).toThrow();
   });
 
   test("No relevant items in the list", () => {

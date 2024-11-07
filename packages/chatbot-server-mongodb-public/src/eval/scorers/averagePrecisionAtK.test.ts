@@ -75,8 +75,9 @@ describe("averagePrecisionAtK", () => {
     const retrievedItems = testItems.slice(0, 3);
     const k = 0;
 
-    const ap = averagePrecisionAtK(relevantItems, retrievedItems, matchFunc, k);
-    expect(ap).toBe(0);
+    expect(() =>
+      averagePrecisionAtK(relevantItems, retrievedItems, matchFunc, k)
+    ).toThrow();
   });
 
   test("No relevant items in the list", () => {

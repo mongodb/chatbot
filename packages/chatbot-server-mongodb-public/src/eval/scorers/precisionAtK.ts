@@ -1,6 +1,6 @@
+import { assertKIsValid } from "./assertKIsValid";
 import { MatchFunc } from "./MatchFunc";
 import { Primitive } from "./Primitive";
-
 /**
   Calculate Precision@K.
   Assesses the proportion of relevant items in the top-k retrievals.
@@ -18,8 +18,9 @@ export function precisionAtK<T extends Primitive>(
   matchFunc: MatchFunc<T>,
   k = 5
 ): number {
-  // Handle division by zero when k is zero
-  if (k === 0 || retrievedItems.length === 0) {
+  assertKIsValid(k);
+
+  if (retrievedItems.length === 0) {
     return 0;
   }
 

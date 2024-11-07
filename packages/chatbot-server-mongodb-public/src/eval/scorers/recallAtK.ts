@@ -1,3 +1,4 @@
+import { assertKIsValid } from "./assertKIsValid";
 import { MatchFunc } from "./MatchFunc";
 import { Primitive } from "./Primitive";
 
@@ -16,6 +17,8 @@ export function recallAtK<T extends Primitive>(
   matchFunc: MatchFunc<T>,
   k: number
 ): number {
+  assertKIsValid(k);
+
   // Handle division-by-zero by returning 0 if there are no relevant items
   if (relevantItems.length === 0) {
     return 0;

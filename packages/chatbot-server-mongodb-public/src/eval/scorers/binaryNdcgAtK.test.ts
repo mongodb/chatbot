@@ -107,8 +107,9 @@ describe("binaryNdcgAtK", () => {
     const retrievedItems = testItems.slice(0, 3);
     const k = 0;
 
-    const ndcg = binaryNdcgAtK(relevantItems, retrievedItems, matchFunc, k);
-    expect(ndcg).toBe(0); // With k=0, no items are considered, so NDCG is 0
+    expect(() =>
+      binaryNdcgAtK(relevantItems, retrievedItems, matchFunc, k)
+    ).toThrow();
   });
 
   test("No relevant items in the list", () => {

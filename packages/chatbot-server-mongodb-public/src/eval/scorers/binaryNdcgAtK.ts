@@ -1,3 +1,4 @@
+import { assertKIsValid } from "./assertKIsValid";
 import { MatchFunc } from "./MatchFunc";
 import { Primitive } from "./Primitive";
 
@@ -19,6 +20,8 @@ export function binaryNdcgAtK<T extends Primitive>(
   matchFunc: MatchFunc<T>,
   k: number
 ): number {
+  assertKIsValid(k);
+
   const limit = Math.min(k, retrievedItems.length);
   const matchedRelevantItems = new Set<T>();
   const relevanceScores = [];

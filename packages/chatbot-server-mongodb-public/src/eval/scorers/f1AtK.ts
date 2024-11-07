@@ -1,3 +1,4 @@
+import { assertKIsValid } from "./assertKIsValid";
 import { MatchFunc } from "./MatchFunc";
 import { precisionAtK } from "./precisionAtK";
 import { Primitive } from "./Primitive";
@@ -19,6 +20,8 @@ export function f1AtK<T extends Primitive>(
   matchFunc: MatchFunc<T>,
   k = 5
 ): number {
+  assertKIsValid(k);
+
   // Calculate precision@k using the existing function
   const precision = precisionAtK(relevantItems, retrievedItems, matchFunc, k);
 

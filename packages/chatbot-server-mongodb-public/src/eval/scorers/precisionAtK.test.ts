@@ -58,8 +58,9 @@ describe("precisionAtK", () => {
     const retrievedItems = testItems.slice(0, 3);
     const k = 0;
 
-    const precision = precisionAtK(relevantItems, retrievedItems, matchFunc, k);
-    expect(precision).toBe(0);
+    expect(() =>
+      precisionAtK(relevantItems, retrievedItems, matchFunc, k)
+    ).toThrow();
   });
 
   test("No relevant items in the list", () => {

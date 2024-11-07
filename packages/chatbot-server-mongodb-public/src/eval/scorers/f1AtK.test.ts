@@ -67,8 +67,7 @@ describe("f1AtK", () => {
     const retrievedItems = testItems.slice(0, 3);
     const k = 0;
 
-    const f1 = f1AtK(relevantItems, retrievedItems, matchFunc, k);
-    expect(f1).toBe(0); // No items retrieved, so F1 should be 0
+    expect(() => f1AtK(relevantItems, retrievedItems, matchFunc, k)).toThrow();
   });
 
   test("No relevant items in the list", () => {

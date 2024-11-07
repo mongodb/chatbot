@@ -1,3 +1,4 @@
+import { assertKIsValid } from "./assertKIsValid";
 import { MatchFunc } from "./MatchFunc";
 import { Primitive } from "./Primitive";
 
@@ -16,6 +17,8 @@ export function averagePrecisionAtK<T extends Primitive>(
   matchFunc: MatchFunc<T>,
   k: number
 ): number {
+  assertKIsValid(k);
+
   let numRelevantRetrieved = 0;
   let precisionSum = 0;
   const retrievedRelevantItems = new Set<T>();

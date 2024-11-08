@@ -1,4 +1,4 @@
-import { OpenAI } from "mongodb-rag-core";
+import { OpenAI } from "mongodb-rag-core/openai";
 import { FormattedJiraIssueWithSummary } from "../commands/generateJiraPromptResponse";
 import { RunLogger } from "../runlogger";
 import {
@@ -15,7 +15,7 @@ export const GeneratedPrompts = z.object({
   prompts: z.array(z.string()).min(1).max(4),
 });
 
-const generatePromptsTool: OpenAI.default.FunctionDefinition = {
+const generatePromptsTool: OpenAI.FunctionDefinition = {
   name: "generatePrompts",
   description:
     "A list of generated example prompts that would elicit a given response.",
@@ -24,7 +24,7 @@ const generatePromptsTool: OpenAI.default.FunctionDefinition = {
 
 export type MakeGeneratePromptsArgs = {
   openAi: {
-    client: OpenAI.OpenAI;
+    client: OpenAI;
     model: string;
   };
   logger?: RunLogger;
@@ -61,7 +61,7 @@ export function makeGeneratePrompts({
         role: "user",
         content: JSON.stringify({ issue, summary }),
       },
-    ] satisfies OpenAI.default.ChatCompletionMessageParam[];
+    ] satisfies OpenAI.ChatCompletionMessageParam[];
     const result = await openAi.client.chat.completions.create({
       model: openAi.model,
       messages,

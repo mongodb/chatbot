@@ -1,12 +1,12 @@
 import { promises as fs } from "fs";
-import { OpenAI } from "mongodb-rag-core";
+import { OpenAI } from "mongodb-rag-core/openai";
 import { z, ZodTypeAny } from "zod";
 import zodToJsonSchema from "zod-to-json-schema";
 import { fromError } from "zod-validation-error";
 import { assistantMessage, userMessage } from ".";
 
 export function formatMessagesForArtifact(
-  messages: OpenAI.default.ChatCompletionMessageParam[]
+  messages: OpenAI.ChatCompletionMessageParam[]
 ) {
   const tagsByRole = {
     system: "SystemMessage",
@@ -53,7 +53,7 @@ export function formatFewShotExamples(args: {
   examples: PromptExamplePair[];
   responseSchema?: ZodTypeAny;
   functionName: string;
-}): OpenAI.default.ChatCompletionMessageParam[] {
+}): OpenAI.ChatCompletionMessageParam[] {
   return args.examples.flatMap(([input, output], exampleIndex) => {
     try {
       const parsedOutput = args.responseSchema

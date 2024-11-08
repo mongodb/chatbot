@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { OpenAI } from "mongodb-rag-core";
+import { OpenAI } from "mongodb-rag-core/openai";
 import { stripIndents } from "common-tags";
 import { z } from "zod";
 import { RunLogger } from "../runlogger";
@@ -34,7 +34,7 @@ export const Summary = z.object({
     .describe("A summarized text description of the input."),
 });
 
-const summarizeTool: OpenAI.default.FunctionDefinition = {
+const summarizeTool: OpenAI.FunctionDefinition = {
   name: "summarize",
   description: "A structured summary of the provided input",
   parameters: asJsonSchema(Summary),
@@ -42,7 +42,7 @@ const summarizeTool: OpenAI.default.FunctionDefinition = {
 
 export type MakeSummarizerArgs = {
   openAi: {
-    client: OpenAI.OpenAI;
+    client: OpenAI;
     model: string;
   };
   logger?: RunLogger;
@@ -74,7 +74,7 @@ export function makeSummarizer({
         role: "user",
         content: input,
       },
-    ] satisfies OpenAI.default.ChatCompletionMessageParam[];
+    ] satisfies OpenAI.ChatCompletionMessageParam[];
     const result = await openAi.client.chat.completions.create({
       model: openAi.model,
       messages,

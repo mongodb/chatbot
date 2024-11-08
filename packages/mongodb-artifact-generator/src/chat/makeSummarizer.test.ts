@@ -1,30 +1,29 @@
-import {
-  AzureKeyCredential,
-  CORE_ENV_VARS,
-  OpenAIClient,
-  assertEnvVars,
-} from "mongodb-rag-core";
-import { Summary, makeSummarizer } from "./makeSummarizer";
+import { CORE_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
+import { makeSummarizer } from "./makeSummarizer";
 import { PromptExamplePair } from "./utils";
 
-const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT, OPENAI_API_KEY } =
-  assertEnvVars(CORE_ENV_VARS);
-
-const openAiClient = new OpenAIClient(
+const {
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_ENDPOINT,
-  new AzureKeyCredential(OPENAI_API_KEY)
-);
+  OPENAI_API_KEY,
+  OPENAI_API_VERSION,
+} = assertEnvVars(CORE_ENV_VARS);
 
-const openAi = {
-  client: openAiClient,
-  deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-};
+const openAiClient = new AzureOpenAI({
+  apiKey: OPENAI_API_KEY,
+  endpoint: OPENAI_ENDPOINT,
+  apiVersion: OPENAI_API_VERSION,
+});
 
 // TODO: Convert this into a .eval file
 describe.skip("makeSummarizer", () => {
   it("creates a summarizer for content", async () => {
     const summarizePoem = makeSummarizer({
-      openAi,
+      openAi: {
+        client: openAiClient,
+        model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+      },
       directions: "The provided content will be a poem.",
       examples: [
         [

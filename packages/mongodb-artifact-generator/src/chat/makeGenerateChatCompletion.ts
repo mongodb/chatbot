@@ -3,11 +3,10 @@ import {
   assertEnvVars,
   CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
 } from "mongodb-rag-core";
-import { AzureOpenAI } from "mongodb-rag-core/openai";
-import { ChatMessage } from ".";
+import { OpenAI, AzureOpenAI } from "mongodb-rag-core/openai";
 
 export type GenerateChatCompletion = (
-  messages: ChatMessage[]
+  messages: OpenAI.ChatCompletionMessageParam[]
 ) => Promise<string | undefined>;
 
 export function makeGenerateChatCompletion(): GenerateChatCompletion {

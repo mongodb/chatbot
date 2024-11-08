@@ -6,8 +6,6 @@ export * from "./contentStore";
 export * as ContentStore from "./contentStore";
 export * from "./conversations";
 export * as Conversations from "./conversations";
-// export * from "./dataSources";
-// export * as DataSources from "./dataSources";
 export * from "./embed";
 export * as Embed from "./embed";
 export * from "./findContent";

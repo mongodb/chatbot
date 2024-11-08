@@ -78,6 +78,7 @@ const simpleConversationEvalTask: EvalTask<
     findContent,
     metadataForQuery,
   });
+
   return {
     results: results.content.map((c) => ({
       url: c.url,
@@ -185,6 +186,15 @@ const RetrievedLengthOverK: RetrievalEvalScorer = async (args) => {
   };
 };
 
+const AvgSearchScore: RetrievalEvalScorer = async (args) => {
+  return {
+    name: "AvgSearchScore",
+    score:
+      args.output.results.reduce((acc, r) => acc + r.score, 0) /
+      args.output.results.length,
+  };
+};
+
 Eval("mongodb-chatbot-retrieval", {
   experimentName: `mongodb-chatbot-retrieval-latest?model=${retrievalConfig.embeddingModel}&@K=${k}&minScore=${retrievalConfig.findNearestNeighborsOptions.minScore}`,
   metadata: {
@@ -197,6 +207,7 @@ Eval("mongodb-chatbot-retrieval", {
   scores: [
     BinaryNdcgAtK,
     F1AtK,
+    AvgSearchScore,
     RetrievedLengthOverK,
     AveragePrecisionAtK,
     PrecisionAtK,

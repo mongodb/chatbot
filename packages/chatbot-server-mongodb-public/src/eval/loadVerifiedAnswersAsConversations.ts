@@ -2,15 +2,12 @@ import {
   parseVerifiedAnswerYaml,
   VerifiedAnswerSpec,
 } from "mongodb-chatbot-verified-answers";
-import fs from "fs";
-import { Conversation } from "mongodb-rag-core";
-import { ObjectId } from "mongodb-rag-core/mongodb";
+import { ConversationEvalCase } from "./getConversationEvalCasesFromYaml";
 
 export function loadVerifiedAnswersAsConversations(
-  verifiedAnswersYamlPath: string
-): Conversation[] {
-  const yamlStr = fs.readFileSync(verifiedAnswersYamlPath, "utf8");
-  const verifiedAnswerSpecs = parseVerifiedAnswerYaml(yamlStr);
+  verifiedAnswersYaml: string
+): ConversationEvalCase[] {
+  const verifiedAnswerSpecs = parseVerifiedAnswerYaml(verifiedAnswersYaml);
 
   return verifiedAnswerSpecs.flatMap(getConversationFromVerifiedAnswerSpec);
 }
@@ -18,29 +15,25 @@ export function loadVerifiedAnswersAsConversations(
 function getConversationFromVerifiedAnswerSpec(
   verifiedAnswerSpec: VerifiedAnswerSpec
 ) {
-  const conversations: Conversation[] = [];
+  const conversations: ConversationEvalCase[] = [];
   for (const question of verifiedAnswerSpec.questions) {
-    const conversation: Conversation = {
-      createdAt: new Date(),
-      _id: new ObjectId(),
+    const conversationEvalCase: ConversationEvalCase = {
+      name: `Verified Answer: ${question}`,
+      tags: ["verified_answer"],
       messages: [
         {
-          createdAt: new Date(),
-          id: new ObjectId(),
           role: "user",
           content: question,
         },
         {
-          createdAt: new Date(),
-          id: new ObjectId(),
           role: "assistant",
           content: verifiedAnswerSpec.answer,
-          references: verifiedAnswerSpec.references,
         },
       ],
+      expectedLinks: verifiedAnswerSpec.references.map((r) => r.url),
     };
 
-    conversations.push(conversation);
+    conversations.push(conversationEvalCase);
   }
   return conversations;
 }

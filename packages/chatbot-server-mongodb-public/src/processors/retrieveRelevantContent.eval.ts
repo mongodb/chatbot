@@ -21,6 +21,7 @@ import {
   ExtractMongoDbMetadataFunction,
 } from "./extractMongoDbMetadataFromUserMessage";
 import { retrieveRelevantContent } from "./retrieveRelevantContent";
+import { loadVerifiedAnswersAsConversations } from "../eval/loadVerifiedAnswersAsConversations";
 
 interface RetrievalEvalCaseInput {
   query: string;
@@ -99,19 +100,43 @@ async function getConversationRetrievalEvalData() {
       "utf8"
     )
   );
-  return includedLinksConversations.map((evalCase) => {
-    const latestMessageText = evalCase.messages.at(-1)?.content;
-    assert(latestMessageText, "No latest message text found");
-    assert(evalCase.expectedLinks, "No expected links found");
-    return {
-      tags: evalCase.tags as MongoDbTag[],
-      input: {
-        query: latestMessageText,
-      },
-      expected: { links: evalCase.expectedLinks },
-      metadata: null,
-    } satisfies RetrievalEvalCase;
-  });
+  const repoRoot = path.resolve(__dirname, "..", "..", "..", "..");
+  const verifiedAnswersConversationsYaml = fs.readFileSync(
+    path.resolve(repoRoot, "verified-answers.yaml"),
+    "utf8"
+  );
+  const verifiedAnswersConversations = loadVerifiedAnswersAsConversations(
+    verifiedAnswersConversationsYaml
+  );
+  return includedLinksConversations
+    .map((evalCase) => {
+      const latestMessageText = evalCase.messages.at(-1)?.content;
+      assert(latestMessageText, "No latest message text found");
+      assert(evalCase.expectedLinks, "No expected links found");
+      return {
+        tags: evalCase.tags as MongoDbTag[],
+        input: {
+          query: latestMessageText,
+        },
+        expected: { links: evalCase.expectedLinks },
+        metadata: null,
+      } satisfies RetrievalEvalCase;
+    })
+    .concat(
+      verifiedAnswersConversations.map((evalCase) => {
+        const latestMessageText = evalCase.messages.at(0)?.content;
+        assert(latestMessageText, "No latest message text found");
+        assert(evalCase.expectedLinks, "No expected links found");
+        return {
+          tags: evalCase.tags as MongoDbTag[],
+          input: {
+            query: latestMessageText,
+          },
+          expected: { links: evalCase.expectedLinks },
+          metadata: null,
+        } satisfies RetrievalEvalCase;
+      })
+    );
 }
 
 const BinaryNdcgAtK: RetrievalEvalScorer = async (args) => {

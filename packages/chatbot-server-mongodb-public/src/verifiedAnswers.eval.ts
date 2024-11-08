@@ -177,16 +177,10 @@ const MatchesSomeVerifiedAnswer: VerifiedAnswersEvalCaseScorer = (args) => {
 
 const MatchesExpectedOutput: VerifiedAnswersEvalCaseScorer = (args) => {
   const isMatch = args.output.answer?.answer === args.expected.answer;
-  let matchType = "";
-  if (isMatch && args.expected.answer !== undefined) {
-    matchType = "true_positive";
-  } else if (isMatch && args.expected.answer === undefined) {
-    matchType = "true_negative";
-  } else if (!isMatch && args.expected.answer !== undefined) {
-    matchType = "false_positive";
-  } else if (!isMatch && args.expected.answer === undefined) {
-    matchType = "false_negative";
-  }
+  const matchType = [
+    isMatch ? "true" : "false",
+    args.expected.answer === undefined ? "negative" : "positive",
+  ].join("_");
 
   return {
     name: "MatchesExpectedOutput",

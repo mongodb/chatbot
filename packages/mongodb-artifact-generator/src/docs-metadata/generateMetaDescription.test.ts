@@ -2,10 +2,16 @@ import { assertEnvVars } from "mongodb-rag-core";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { makeGenerateMetaDescription } from "./generateMetaDescription";
 
-const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_API_VERSION } = assertEnvVars({
+const {
+  OPENAI_ENDPOINT,
+  OPENAI_API_KEY,
+  OPENAI_API_VERSION,
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+} = assertEnvVars({
   OPENAI_ENDPOINT: "",
   OPENAI_API_KEY: "",
   OPENAI_API_VERSION: "",
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
 });
 
 const openAiClient = new AzureOpenAI({
@@ -16,6 +22,11 @@ const openAiClient = new AzureOpenAI({
 
 describe("generateMetaDescription", () => {
   it("should generate a meta description", async () => {
+    console.log("generateMetaDescription", {
+      endpoint: OPENAI_ENDPOINT,
+      apiVersion: OPENAI_API_VERSION,
+      model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+    });
     const generateMetaDescription = makeGenerateMetaDescription({
       openAiClient,
     });

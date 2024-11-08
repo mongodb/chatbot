@@ -1,12 +1,17 @@
 import { pageIdentity } from ".";
 import { DatabaseConnection } from "../DatabaseConnection";
 import { EmbeddedContent, EmbeddedContentStore } from "./EmbeddedContent";
-import { FindNearestNeighborsOptions, WithScore } from "../VectorStore";
+import {
+  FindNearestNeighborsOptions,
+  WithFullTextSearch,
+  WithScore,
+} from "../VectorStore";
 import {
   MakeMongoDbDatabaseConnectionParams,
   makeMongoDbDatabaseConnection,
 } from "../MongoDbDatabaseConnection";
 import { strict as assert } from "assert";
+import { text } from "express";
 
 export type MakeMongoDbEmbeddedContentStoreParams =
   MakeMongoDbDatabaseConnectionParams & {
@@ -17,7 +22,11 @@ export type MakeMongoDbEmbeddedContentStoreParams =
     collectionName?: string;
   };
 
-export type MongoDbEmbeddedContentStore = EmbeddedContentStore &
+export type MongoDbEmbeddedContentStore = WithFullTextSearch<
+  EmbeddedContentStore,
+  // TODO: how to remove
+  EmbeddedContent
+> &
   DatabaseConnection & {
     metadata: {
       databaseName: string;
@@ -138,6 +147,63 @@ export function makeMongoDbEmbeddedContentStore({
             },
           },
           { $match: { score: { $gte: minScore } } },
+        ])
+        .toArray();
+    },
+    async fullTextSearch({ query, filter, options }) {
+      return embeddedContentCollection
+        .aggregate<WithScore<EmbeddedContent>>([
+          {
+            $search: {
+              index: options.indexName,
+              text: {
+                query,
+                path: {
+                  wildcard: "*",
+                },
+              },
+              // filter,
+            },
+          },
+          {
+            $limit: options.limit,
+          },
+          {
+            $project: {
+              _id: 0,
+              metadata: 1,
+              url: 1,
+              text: 1,
+              dataSource: 1,
+              score: 1,
+              maxScore: 1,
+              normalizedScore: 1,
+            },
+          },
+          {
+            $addFields: {
+              rawScore: {
+                $meta: "searchScore",
+              },
+            },
+          },
+          {
+            $setWindowFields: {
+              output: {
+                maxScore: {
+                  $max: "$rawScore",
+                },
+              },
+            },
+          },
+          {
+            $addFields: {
+              score: {
+                $divide: ["$rawScore", "$maxScore"],
+              },
+            },
+          },
+          { $match: { score: { $gte: options.minScore } } },
         ])
         .toArray();
     },

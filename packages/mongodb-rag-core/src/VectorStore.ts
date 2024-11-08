@@ -13,6 +13,19 @@ export type VectorStore<T> = {
   close?(): Promise<void>;
 };
 
+export type WithFullTextSearch<T extends VectorStore<U>, U> = T & {
+  fullTextSearch(args: {
+    query: string;
+    filter?: Record<string, unknown>;
+    options: {
+      indexName: string;
+      minScore: number;
+      path: string;
+      limit: number;
+    };
+  }): Promise<WithScore<U>[]>;
+};
+
 export type WithScore<T> = T & { score: number };
 
 /**

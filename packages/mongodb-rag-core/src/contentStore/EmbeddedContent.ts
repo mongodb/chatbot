@@ -1,5 +1,5 @@
 import { Page } from ".";
-import { VectorStore } from "../VectorStore";
+import { VectorStore, WithScore } from "../VectorStore";
 
 /**
   The embedded content of a chunk of text stored in the database.

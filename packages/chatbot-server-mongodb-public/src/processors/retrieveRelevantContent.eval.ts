@@ -7,6 +7,7 @@ import {
   retrievalConfig,
   findContent,
   preprocessorOpenAiClient,
+  embeddedContentStore,
 } from "../config";
 import { fuzzyLinkMatch } from "../eval/fuzzyLinkMatch";
 import { getConversationsEvalCasesFromYaml } from "../eval/getConversationEvalCasesFromYaml";
@@ -21,6 +22,8 @@ import {
   ExtractMongoDbMetadataFunction,
 } from "./extractMongoDbMetadataFromUserMessage";
 import { retrieveRelevantContent } from "./retrieveRelevantContent";
+import { makeFtsFindContent, updateFrontMatter } from "mongodb-rag-core";
+import { makeStepBackUserQuery } from "./makeStepBackUserQuery";
 
 interface RetrievalEvalCaseInput {
   query: string;
@@ -62,6 +65,10 @@ type RetrievalEvalScorer = EvalScorer<
 // we could readdress this.
 const { k } = retrievalConfig.findNearestNeighborsOptions;
 
+const fstFindContent = makeFtsFindContent({
+  store: embeddedContentStore,
+});
+
 const simpleConversationEvalTask: EvalTask<
   RetrievalEvalCaseInput,
   RetrievalTaskOutput
@@ -71,23 +78,36 @@ const simpleConversationEvalTask: EvalTask<
     model: retrievalConfig.preprocessorLlm,
     userMessageText: data.query,
   });
-  const results = await retrieveRelevantContent({
-    userMessageText: data.query,
-    model: retrievalConfig.preprocessorLlm,
+  const rewrittenQuery = await makeStepBackUserQuery({
     openAiClient: preprocessorOpenAiClient,
-    findContent,
-    metadataForQuery,
+    model: retrievalConfig.preprocessorLlm,
+    userMessageText: updateFrontMatter(data.query, metadataForQuery),
+    messages: [],
   });
+  const searchString = updateFrontMatter(
+    rewrittenQuery.transformedUserQuery,
+    metadataForQuery
+  );
+  // const results = await retrieveRelevantContent({
+  //   userMessageText: data.query,
+  //   model: retrievalConfig.preprocessorLlm,
+  //   openAiClient: preprocessorOpenAiClient,
+  //   findContent,
+  //   metadataForQuery,
+  // });
 
+  const results = await fstFindContent({
+    query: searchString,
+  });
   return {
     results: results.content.map((c) => ({
       url: c.url,
       content: c.text,
       score: c.score,
     })),
-    extractedMetadata: metadataForQuery,
-    rewrittenQuery: results.transformedUserQuery,
-    searchString: results.searchQuery,
+    // extractedMetadata: metadataForQuery,
+    // rewrittenQuery: results.transformedUserQuery,
+    // searchString: results.searchQuery,
   };
 };
 
@@ -196,7 +216,7 @@ const AvgSearchScore: RetrievalEvalScorer = async (args) => {
 };
 
 Eval("mongodb-chatbot-retrieval", {
-  experimentName: `mongodb-chatbot-retrieval-latest?model=${retrievalConfig.embeddingModel}&@K=${k}&minScore=${retrievalConfig.findNearestNeighborsOptions.minScore}`,
+  experimentName: `mongodb-chatbot-retrieval-fst?@K=${k}`,
   metadata: {
     description: "Evaluates quality of chatbot retrieval system",
     retrievalConfig,

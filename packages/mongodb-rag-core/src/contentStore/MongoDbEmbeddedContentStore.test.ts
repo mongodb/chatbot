@@ -21,7 +21,7 @@ const {
   OPENAI_API_VERSION,
 } = assertEnvVars(CORE_ENV_VARS);
 
-jest.setTimeout(30000);
+jest.setTimeout(60000);
 
 describe("MongoDbEmbeddedContentStore", () => {
   let store: MongoDbEmbeddedContentStore | undefined;
@@ -219,5 +219,29 @@ describe("nearest neighbor search", () => {
     expect(storeWithCustomCollectionName.metadata.collectionName).toBe(
       "custom-embedded_content"
     );
+  });
+});
+
+describe("full text search", () => {
+  let store: MongoDbEmbeddedContentStore | undefined;
+  beforeEach(async () => {
+    // Need to use real Atlas connection in order to run vector searches
+    store = makeMongoDbEmbeddedContentStore({
+      connectionUri: MONGODB_CONNECTION_URI,
+      databaseName: MONGODB_DATABASE_NAME,
+    });
+  });
+  it("performs full text search", async () => {
+    assert(store);
+    const res = await store.fullTextSearch({
+      query: "what is mongodb atlas vector search?",
+      options: {
+        indexName: "default",
+        limit: 10,
+        path: "text",
+        minScore: 0,
+      },
+    });
+    console.log(res);
   });
 });

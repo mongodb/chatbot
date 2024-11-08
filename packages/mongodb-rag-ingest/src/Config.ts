@@ -3,10 +3,10 @@ import {
   PageStore,
   EmbeddedContentStore,
   ChunkOptions,
-  DataSource,
   EmbedConcurrencyOptions,
   PageConcurrencyOptions,
 } from "mongodb-rag-core";
+import { DataSource } from "mongodb-rag-core/dataSources";
 import { IngestMetaStore } from "./IngestMetaStore";
 
 /**

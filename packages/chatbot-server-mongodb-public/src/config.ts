@@ -95,6 +95,12 @@ export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   databaseName: MONGODB_DATABASE_NAME,
 });
 
+export const verifiedAnswerConfig = {
+  embeddingModel: OPENAI_EMBEDDING_DEPLOYMENT,
+  findNearestNeighborsOptions: {
+    minScore: 0.96,
+  },
+};
 export const retrievalConfig = {
   model: OPENAI_EMBEDDING_DEPLOYMENT,
   findNearestNeighborsOptions: {
@@ -137,6 +143,8 @@ export const findVerifiedAnswer = wrapTraced(
   makeDefaultFindVerifiedAnswer({
     embedder,
     store: verifiedAnswerStore,
+    findNearestNeighborsOptions:
+      verifiedAnswerConfig.findNearestNeighborsOptions,
   }),
   { name: "findVerifiedAnswer" }
 );

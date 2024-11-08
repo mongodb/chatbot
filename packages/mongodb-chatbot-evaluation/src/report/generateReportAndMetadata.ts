@@ -1,4 +1,5 @@
-import { ObjectId, logger } from "mongodb-rag-core";
+import { logger } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   CommandMetadataStore,
   CommandRunMetadata,

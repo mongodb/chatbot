@@ -6,7 +6,7 @@ import {
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
   removeMarkdownImagesAndLinks,
-} from "mongodb-rag-core";
+} from "mongodb-rag-core/dataSources";
 import { prismaSourceConstructor } from "./prisma";
 import { wiredTigerSourceConstructor } from "./wiredTiger";
 import { mongooseSourceConstructor } from "./mongoose";

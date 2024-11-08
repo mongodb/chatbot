@@ -2,7 +2,7 @@ import { CommandModule } from "yargs";
 import { LoadConfigArgs, withConfig, withConfigOptions } from "../withConfig";
 import { EvalConfig } from "../EvalConfig";
 import { generateEvalsAndMetadata } from "../evaluate/generateEvalsAndMetadata";
-import { ObjectId } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 
 interface EvaluateCommandArgs {
   name: string;

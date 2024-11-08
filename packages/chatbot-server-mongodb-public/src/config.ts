@@ -4,7 +4,6 @@
  */
 import "dotenv/config";
 import {
-  MongoClient,
   makeMongoDbEmbeddedContentStore,
   makeMongoDbVerifiedAnswerStore,
   makeOpenAiEmbedder,
@@ -21,7 +20,6 @@ import {
   ConversationCustomData,
   makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
-  OpenAI,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";
@@ -32,6 +30,8 @@ import { addReferenceSourceType } from "./processors/makeMongoDbReferences";
 import path from "path";
 import express from "express";
 import { wrapOpenAI, wrapTraced } from "braintrust";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -71,7 +71,7 @@ export const boostManual = makeBoostOnAtlasSearchFilter({
   totalMaxK: 5,
 });
 
-export const openAiClient = new OpenAI.AzureOpenAI({
+export const openAiClient = new AzureOpenAI({
   apiKey: OPENAI_API_KEY,
   endpoint: OPENAI_ENDPOINT,
   apiVersion: OPENAI_API_VERSION,
@@ -95,9 +95,25 @@ export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   databaseName: MONGODB_DATABASE_NAME,
 });
 
+export const verifiedAnswerConfig = {
+  embeddingModel: OPENAI_EMBEDDING_DEPLOYMENT,
+  findNearestNeighborsOptions: {
+    minScore: 0.96,
+  },
+};
+export const retrievalConfig = {
+  model: OPENAI_EMBEDDING_DEPLOYMENT,
+  findNearestNeighborsOptions: {
+    k: 5,
+    path: "embedding",
+    indexName: VECTOR_SEARCH_INDEX_NAME,
+    minScore: 0.9,
+  },
+};
+
 export const embedder = makeOpenAiEmbedder({
   openAiClient,
-  deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+  deployment: retrievalConfig.model,
   backoffOptions: {
     numOfAttempts: 3,
     maxDelay: 5000,
@@ -109,12 +125,7 @@ export const findContent = wrapTraced(
   makeDefaultFindContent({
     embedder,
     store: embeddedContentStore,
-    findNearestNeighborsOptions: {
-      k: 5,
-      path: "embedding",
-      indexName: VECTOR_SEARCH_INDEX_NAME,
-      minScore: 0.9,
-    },
+    findNearestNeighborsOptions: retrievalConfig.findNearestNeighborsOptions,
     searchBoosters: [boostManual],
   }),
   {
@@ -132,12 +143,14 @@ export const findVerifiedAnswer = wrapTraced(
   makeDefaultFindVerifiedAnswer({
     embedder,
     store: verifiedAnswerStore,
+    findNearestNeighborsOptions:
+      verifiedAnswerConfig.findNearestNeighborsOptions,
   }),
   { name: "findVerifiedAnswer" }
 );
 
 export const preprocessorOpenAiClient = wrapOpenAI(
-  new OpenAI.AzureOpenAI({
+  new AzureOpenAI({
     apiKey: OPENAI_API_KEY,
     endpoint: OPENAI_ENDPOINT,
     apiVersion: OPENAI_API_VERSION,

@@ -2,14 +2,13 @@ import {
   PageStore,
   EmbeddedContentStore,
   assertEnvVars,
-  DataSource,
 } from "mongodb-rag-core";
-import { MongoClient } from "mongodb-rag-core";
+import { DataSource } from "mongodb-rag-core/dataSources";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 import "dotenv/config";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
 import { doAllCommand } from "./all";
 import { makeIngestMetaStore } from "../IngestMetaStore";
-
 import "dotenv/config";
 
 jest.setTimeout(1000000);

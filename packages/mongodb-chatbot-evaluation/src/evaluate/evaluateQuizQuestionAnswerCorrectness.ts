@@ -1,6 +1,7 @@
 import { EvaluateQualityFunc } from "./EvaluateQualityFunc";
 import { QuizGeneratedData, quizQuestionToHelmAnswer } from "../generate";
-import { ObjectId, logger } from "mongodb-chatbot-server";
+import { logger } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { strict as assert } from "assert";
 import { EvalResult } from "./EvaluationStore";
 

@@ -5,6 +5,7 @@ import {
   MakeMongoDbDatabaseConnectionParams,
   makeMongoDbDatabaseConnection,
 } from "../MongoDbDatabaseConnection";
+import { Filter } from "mongodb";
 
 export function makeMongoDbVerifiedAnswerStore({
   connectionUri,
@@ -21,6 +22,9 @@ export function makeMongoDbVerifiedAnswerStore({
   return {
     drop,
     close,
+    async find(query: Filter<VerifiedAnswer>) {
+      return collection.find(query).toArray();
+    },
     async findNearestNeighbors(vector, options) {
       const {
         indexName,

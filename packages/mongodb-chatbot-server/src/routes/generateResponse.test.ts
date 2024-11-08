@@ -1,4 +1,6 @@
-import { ObjectId, OpenAI, References } from "mongodb-rag-core";
+import { References } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
+import { OpenAI } from "mongodb-rag-core/openai";
 import {
   AwaitGenerateResponseParams,
   GenerateResponseParams,
@@ -30,7 +32,7 @@ const mockFunctionInvocation = {
     name: testFuncName,
   },
   refusal: null,
-} satisfies OpenAI.default.ChatCompletionMessage;
+} satisfies OpenAI.ChatCompletionMessage;
 
 const mockReject = "mock_reject";
 const mockRejectFunctionInvocation = {
@@ -41,7 +43,7 @@ const mockRejectFunctionInvocation = {
     name: mockReject,
   },
   refusal: null,
-} satisfies OpenAI.default.ChatCompletionMessage;
+} satisfies OpenAI.ChatCompletionMessage;
 
 const mockReferences: References = [
   { url: "https://example.com/ref", title: "Some title" },

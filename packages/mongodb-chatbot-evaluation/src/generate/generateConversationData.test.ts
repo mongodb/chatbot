@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb-chatbot-server";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { makeGenerateConversationData } from "./generateConversationData";
 import { makeMockConversations } from "../test/mockConversations";
 import { makeMockExpressApp } from "../test/mockExpressApp";

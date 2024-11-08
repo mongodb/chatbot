@@ -28,4 +28,10 @@ export const mongoDbTopics = [
   {
     id: "indexes",
   },
+  {
+    id: "billing",
+  },
+  {
+    id: "iam",
+  },
 ] as const satisfies MongoDbTopic[];

@@ -2,7 +2,7 @@ import { CommandModule } from "yargs";
 import { LoadConfigArgs, withConfig, withConfigOptions } from "../withConfig";
 import { EvalConfig } from "../EvalConfig";
 import { generateReportAndMetadata } from "../report/generateReportAndMetadata";
-import { ObjectId } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 
 interface ReportCommandArgs {
   name: string;

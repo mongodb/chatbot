@@ -42,7 +42,7 @@
     "lint": "eslint ./src --ext ts --report-unused-disable-directives",
     "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
     "release": "release-it",
-    "test": "jest --forceExit",
+    "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --forceExit",
     "shuffle": "node ./build/generate/shuffleQuizData.js"
   },
   "bugs": {

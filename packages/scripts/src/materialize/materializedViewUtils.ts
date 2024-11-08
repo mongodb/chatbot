@@ -1,10 +1,8 @@
 import {
-  Db,
   IndexSpecification,
-  Collection,
   CreateIndexesOptions,
   MongoClient,
-} from "mongodb-rag-core";
+} from "mongodb-rag-core/mongodb";
 
 export type IndexDefinition = {
   spec: IndexSpecification;

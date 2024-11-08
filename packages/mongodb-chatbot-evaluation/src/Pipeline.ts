@@ -1,4 +1,5 @@
-import { ObjectId, logger } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
+import { logger } from "mongodb-rag-core";
 import { CommandRunMetadata } from "./CommandMetadataStore";
 import { ConfigConstructor, EvalConfig } from "./EvalConfig";
 import { strict as assert } from "assert";

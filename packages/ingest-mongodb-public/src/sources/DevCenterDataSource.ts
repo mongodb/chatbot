@@ -1,11 +1,12 @@
-import { logger, MongoClient, Page } from "mongodb-rag-core";
+import { logger, Page } from "mongodb-rag-core";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 import { strict as assert } from "assert";
 import { convert } from "html-to-text";
 import {
   DataSource,
   ProjectBase,
   removeMarkdownImagesAndLinks,
-} from "mongodb-rag-core";
+} from "mongodb-rag-core/dataSources";
 
 export type DevCenterProjectConfig = ProjectBase & {
   type: "devcenter";

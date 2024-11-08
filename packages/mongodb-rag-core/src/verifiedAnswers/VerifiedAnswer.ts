@@ -47,4 +47,8 @@ export const VerifiedAnswer = z.object({
 });
 
 export type VerifiedAnswer = z.infer<typeof VerifiedAnswer>;
-export type VerifiedAnswerStore = VectorStore<VerifiedAnswer>;
+export type VerifiedAnswerStore = VectorStore<VerifiedAnswer> & {
+  find<FindArgs extends Record<string, unknown>>(
+    args: FindArgs
+  ): Promise<VerifiedAnswer[]>;
+};

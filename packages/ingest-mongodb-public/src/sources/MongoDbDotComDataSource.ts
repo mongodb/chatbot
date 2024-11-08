@@ -3,7 +3,7 @@
   pages from the mongodb.com CMS.
   Note: doesn't include mongodb.com/docs/* pages.
  */
-import { DataSource } from "mongodb-rag-core";
+import { DataSource } from "mongodb-rag-core/dataSources";
 import { Page } from "mongodb-rag-core";
 import { strict as assert } from "assert";
 import striptags from "striptags";

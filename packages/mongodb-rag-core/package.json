@@ -29,7 +29,8 @@
     ".": "./build/index.js",
     "./langchain": "./build/langchain.js",
     "./mongodb": "./build/mongodb.js",
-    "./openai": "./build/openai.js"
+    "./openai": "./build/openai.js",
+    "./dataSources": "./build/dataSources/index.js"
   },
   "scripts": {
     "clean": "rm -rf build",

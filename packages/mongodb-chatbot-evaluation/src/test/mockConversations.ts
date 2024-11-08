@@ -4,7 +4,7 @@ import {
   Message,
   MessageBase,
 } from "mongodb-chatbot-server";
-import { ObjectId } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 
 const createMockConvo = (initialMessages: MessageBase[]) =>
   ({

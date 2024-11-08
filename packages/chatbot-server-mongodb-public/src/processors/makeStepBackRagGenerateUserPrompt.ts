@@ -6,8 +6,8 @@ import {
   Message,
   UserMessage,
   updateFrontMatter,
-  OpenAI,
 } from "mongodb-chatbot-server";
+import { OpenAI } from "mongodb-rag-core/openai";
 import { makeStepBackUserQuery } from "./makeStepBackUserQuery";
 import { stripIndents } from "common-tags";
 import { strict as assert } from "assert";
@@ -16,7 +16,7 @@ import { makeMongoDbReferences } from "./makeMongoDbReferences";
 import { extractMongoDbMetadataFromUserMessage } from "./extractMongoDbMetadataFromUserMessage";
 import { userMessageMongoDbGuardrail } from "./userMessageMongoDbGuardrail";
 interface MakeStepBackGenerateUserPromptProps {
-  openAiClient: OpenAI.OpenAI;
+  openAiClient: OpenAI;
   model: string;
   numPrecedingMessagesToInclude?: number;
   findContent: FindContentFunc;

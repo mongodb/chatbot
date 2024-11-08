@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { EvalConfig } from "./EvalConfig";
 import { runPipeline } from "./Pipeline";
 import { mockEvaluateConversation } from "./test/mockEvaluateConversation";

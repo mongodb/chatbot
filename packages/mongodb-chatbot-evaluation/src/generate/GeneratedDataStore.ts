@@ -3,7 +3,7 @@ import {
   MessageBase,
   OpenAiChatMessage,
 } from "mongodb-chatbot-server";
-import { Filter, MongoClient, ObjectId } from "mongodb-rag-core";
+import { Filter, MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
 import { QuizQuestionTestCaseData } from "./TestCase";
 
 export interface BaseGeneratedData {

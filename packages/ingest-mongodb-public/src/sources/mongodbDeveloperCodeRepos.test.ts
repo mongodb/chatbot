@@ -1,4 +1,4 @@
-import { DataSource } from "mongodb-rag-core";
+import { DataSource } from "mongodb-rag-core/dataSources";
 import {
   nodeJsQuickstart,
   javaQuickstart,

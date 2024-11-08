@@ -8,7 +8,7 @@ import { standardChunkFrontMatterUpdater } from "mongodb-rag-core";
 import path from "path";
 import { loadEnvVars } from "./loadEnvVars";
 import { mongoDbChatbotFrameworkDocsDataSourceConstructor } from "./mongodbChatbotFrameworkDataSource";
-import { OpenAI } from "mongodb-rag-core";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 // Load project environment variables
 const dotenvPath = path.join(__dirname, "..", "..", "..", ".env"); // .env at project root
@@ -22,7 +22,7 @@ const {
 export default {
   embedder: async () => {
     return makeOpenAiEmbedder({
-      openAiClient: new OpenAI.OpenAI({ apiKey: OPENAI_API_KEY }),
+      openAiClient: new OpenAI({ apiKey: OPENAI_API_KEY }),
       deployment: OPENAI_EMBEDDING_MODEL,
       backoffOptions: {
         numOfAttempts: 25,

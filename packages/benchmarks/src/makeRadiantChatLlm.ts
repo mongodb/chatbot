@@ -1,4 +1,5 @@
-import { OpenAI, makeOpenAiChatLlm } from "mongodb-rag-core";
+import { makeOpenAiChatLlm } from "mongodb-rag-core";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 export const makeRadiantChatLlm = async ({
   endpoint,
@@ -15,14 +16,14 @@ export const makeRadiantChatLlm = async ({
   deployment: string;
   mongoDbAuthCookie?: string;
   lmmConfigOptions: Pick<
-    OpenAI.default.Chat.ChatCompletionCreateParams,
+    OpenAI.Chat.ChatCompletionCreateParams,
     "max_tokens" | "temperature"
   >;
 }) => {
   return makeOpenAiChatLlm({
     deployment,
     openAiLmmConfigOptions: lmmConfigOptions,
-    openAiClient: new OpenAI.OpenAI({
+    openAiClient: new OpenAI({
       apiKey,
       baseURL: endpoint,
       defaultHeaders: mongoDbAuthCookie

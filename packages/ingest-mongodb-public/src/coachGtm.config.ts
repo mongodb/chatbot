@@ -11,8 +11,8 @@ import {
   makeMongoDbEmbeddedContentStore,
   makeMongoDbPageStore,
   filterFulfilled,
-  OpenAI,
 } from "mongodb-rag-core";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { sourceConstructors } from "./sources";
 import { makeMongoDbDotComDataSource } from "./sources/MongoDbDotComDataSource";
 import "dotenv/config";
@@ -33,7 +33,7 @@ const {
 });
 
 const embedder = makeOpenAiEmbedder({
-  openAiClient: new OpenAI.AzureOpenAI({
+  openAiClient: new AzureOpenAI({
     apiKey: OPENAI_API_KEY,
     endpoint: OPENAI_ENDPOINT,
     apiVersion: OPENAI_API_VERSION,

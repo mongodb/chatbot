@@ -5,14 +5,15 @@ import {
 } from "mongodb-chatbot-evaluation";
 
 import "dotenv/config";
-import { MongoClient, assertEnvVars } from "mongodb-rag-core";
+import { assertEnvVars } from "mongodb-rag-core";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 import { envVars } from "./envVars";
 import {
   ChatLlmQuizEvalConfig,
   makeChatLlmQuizEvalCommands,
 } from "./makeChatLlmQuizEvalCommands";
 import { makeRadiantChatLlm } from "./makeRadiantChatLlm";
-import { radiantModels } from "./radiantModels";
+import { models } from "./models";
 import { makeBaseConfig } from "./baseConfig";
 
 // Few-shot examples
@@ -180,7 +181,7 @@ export default async () => {
   })) satisfies QuizQuestionTestCase[];
 
   const modelsConfig = await Promise.all(
-    radiantModels.map(async (model) => {
+    models.map(async (model) => {
       return {
         name: model.label,
         generatorConfig: {
@@ -190,7 +191,7 @@ export default async () => {
           chatLlm: await makeRadiantChatLlm({
             apiKey: RADIANT_API_KEY,
             endpoint: RADIANT_ENDPOINT,
-            deployment: model.radiantModelDeployment,
+            deployment: model.deployment,
             mongoDbAuthCookie: MONGODB_AUTH_COOKIE,
             lmmConfigOptions: {
               temperature: 0,

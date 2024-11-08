@@ -1,8 +1,8 @@
 import {
   assertEnvVars,
   CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
-  OpenAI,
 } from "mongodb-rag-core";
+import { OpenAI } from "mongodb-rag-core/openai";
 import { RunLogger } from "../runlogger";
 import { stripIndents } from "common-tags";
 import { readdirSync, readFileSync } from "fs";
@@ -12,7 +12,7 @@ import { z } from "zod";
 import { DocsMetadata } from "./generateMetadata";
 
 export type MakeGenerateMetaDescription = {
-  openAiClient: OpenAI.OpenAI;
+  openAiClient: OpenAI;
   logger?: RunLogger;
 };
 

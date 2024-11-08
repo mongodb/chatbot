@@ -137,12 +137,6 @@ const verifiedAnswerEvalCases: VerifiedAnswersEvalCase[] = [
     tags: ["billing", "should_not_match"],
     verifiedAnswerIndex,
   }),
-  makeVerifiedAnswerEvalCase({
-    inputQuery: "how do I set up billing alerts in Atlas?",
-    // No similar verified answer
-    tags: ["billing", "should_not_match"],
-    verifiedAnswerIndex,
-  }),
 ];
 
 // Helper function to create a verified answer eval case

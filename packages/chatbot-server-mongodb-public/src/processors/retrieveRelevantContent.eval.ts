@@ -16,9 +16,12 @@ import { f1AtK } from "../eval/scorers/f1AtK";
 import { precisionAtK } from "../eval/scorers/precisionAtK";
 import { recallAtK } from "../eval/scorers/recallAtK";
 import { MongoDbTag } from "../mongoDbMetadata";
-import { ExtractMongoDbMetadataFunction } from "./extractMongoDbMetadataFromUserMessage";
+import {
+  extractMongoDbMetadataFromUserMessage,
+  ExtractMongoDbMetadataFunction,
+} from "./extractMongoDbMetadataFromUserMessage";
 import { retrieveRelevantContent } from "./retrieveRelevantContent";
-console.log("bt api key", process.env.BRAINRUST_API_KEY);
+
 interface RetrievalEvalCaseInput {
   query: string;
 }
@@ -63,13 +66,17 @@ const simpleConversationEvalTask: EvalTask<
   RetrievalEvalCaseInput,
   RetrievalTaskOutput
 > = async function (data) {
+  const metadataForQuery = await extractMongoDbMetadataFromUserMessage({
+    openAiClient: preprocessorOpenAiClient,
+    model: retrievalConfig.preprocessorLlm,
+    userMessageText: data.query,
+  });
   const results = await retrieveRelevantContent({
     userMessageText: data.query,
     model: retrievalConfig.preprocessorLlm,
     openAiClient: preprocessorOpenAiClient,
     findContent,
-    // TODO: update later
-    metadataForQuery: undefined,
+    metadataForQuery,
   });
   return {
     results: results.content.map((c) => ({
@@ -77,11 +84,14 @@ const simpleConversationEvalTask: EvalTask<
       content: c.text,
       score: c.score,
     })),
+    extractedMetadata: metadataForQuery,
+    rewrittenQuery: results.transformedUserQuery,
+    searchString: results.searchQuery,
   };
 };
 
 async function getConversationRetrievalEvalData() {
-  const basePath = path.resolve(__dirname, "..", "evalCases");
+  const basePath = path.resolve(__dirname, "..", "..", "evalCases");
   const includedLinksConversations = getConversationsEvalCasesFromYaml(
     fs.readFileSync(
       path.resolve(basePath, "included_links_conversations.yml"),
@@ -181,7 +191,6 @@ Eval("mongodb-chatbot-retrieval", {
     description: "Evaluates quality of chatbot retrieval system",
     retrievalConfig,
   },
-
   maxConcurrency: 5,
   data: getConversationRetrievalEvalData,
   task: simpleConversationEvalTask,

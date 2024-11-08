@@ -108,17 +108,12 @@ const fewShotExamples: OpenAI.ChatCompletionMessageParam[] = [
 /**
   Generate search query using the ["step back" method of prompt engineering](https://arxiv.org/abs/2310.06117).
  */
-export const makeStepBackUserQuery = wrapTraced(
-  makeFewShotUserMessageExtractorFunction({
-    llmFunction: {
-      name,
-      description,
-      schema: StepBackUserQueryMongoDbFunctionSchema,
-    },
-    systemPrompt,
-    fewShotExamples,
-  }),
-  {
-    name: "makeStepBackUserQuery",
-  }
-);
+export const makeStepBackUserQuery = makeFewShotUserMessageExtractorFunction({
+  llmFunction: {
+    name,
+    description,
+    schema: StepBackUserQueryMongoDbFunctionSchema,
+  },
+  systemPrompt,
+  fewShotExamples,
+});

@@ -82,7 +82,7 @@ const fewShotExamples: OpenAI.Chat.ChatCompletionMessageParam[] = [
   from a user message in the conversation.
  */
 
-export const extractMongoDbMetadataFromUserMessage = wrapTraced(
+export const extractMongoDbMetadataFromUserMessage =
   makeFewShotUserMessageExtractorFunction({
     llmFunction: {
       name,
@@ -91,8 +91,4 @@ export const extractMongoDbMetadataFromUserMessage = wrapTraced(
     },
     systemPrompt,
     fewShotExamples,
-  }),
-  {
-    name: "extractMongoDbMetadataFromUserMessage",
-  }
-);
+  });

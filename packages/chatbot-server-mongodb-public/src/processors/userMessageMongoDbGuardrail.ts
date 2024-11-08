@@ -145,7 +145,7 @@ const fewShotExamples: OpenAI.ChatCompletionMessageParam[] = [
 /**
   Identify whether a user message is relevant to MongoDB and explains why.
  */
-export const userMessageMongoDbGuardrail = wrapTraced(
+export const userMessageMongoDbGuardrail =
   makeFewShotUserMessageExtractorFunction({
     llmFunction: {
       name,
@@ -154,8 +154,4 @@ export const userMessageMongoDbGuardrail = wrapTraced(
     },
     systemPrompt,
     fewShotExamples,
-  }),
-  {
-    name: "userMessageMongoDbGuardrail",
-  }
-);
+  });

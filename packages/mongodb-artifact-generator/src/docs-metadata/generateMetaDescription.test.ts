@@ -20,13 +20,15 @@ const openAiClient = new AzureOpenAI({
   apiVersion: OPENAI_API_VERSION,
 });
 
+const openAiConfigStuff = {
+  endpoint: [...OPENAI_ENDPOINT].join(""),
+  apiVersion: [...OPENAI_API_VERSION].join(""),
+  model: [...OPENAI_CHAT_COMPLETION_DEPLOYMENT].join(""),
+};
+
 describe("generateMetaDescription", () => {
   it("should generate a meta description", async () => {
-    console.log("generateMetaDescription", {
-      endpoint: OPENAI_ENDPOINT,
-      apiVersion: OPENAI_API_VERSION,
-      model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-    });
+    console.log("generateMetaDescription", openAiConfigStuff);
     const generateMetaDescription = makeGenerateMetaDescription({
       openAiClient,
     });

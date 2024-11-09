@@ -67,11 +67,11 @@ export function makeGenerateMetaDescription({
     url: string;
     text: string;
   }): Promise<DocsMetadata["description"]> {
-    // const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars(
-    //   CORE_OPENAI_CHAT_COMPLETION_ENV_VARS
-    // );
+    const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars(
+      CORE_OPENAI_CHAT_COMPLETION_ENV_VARS
+    );
     const result = await openAiClient.chat.completions.create({
-      model: "gpt-4o", //OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+      model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
       messages: [
         systemMessage(systemPrompt),
         ...fewShotExamples,

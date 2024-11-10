@@ -43,23 +43,6 @@ type FromEnvironmentErrors = {
   optional: z.ZodIssue[];
 };
 
-function foo<X extends Record<string, string>>(x: X): boolean {
-  return true;
-}
-
-const y: ValuesFromEnvironment<{
-  required: ["REQUIRED_ONE", "REQUIRED_TWO"];
-  optional: {
-    OPTIONAL_ONE: "default1";
-    OPTIONAL_TWO: "default2";
-  };
-}> = {
-  REQUIRED_ONE: "foo",
-  REQUIRED_TWO: "bar",
-  OPTIONAL_ONE: "default1",
-  OPTIONAL_TWO: "default2",
-};
-
 function formatFromEnvironmentErrorMessage(
   errors: FromEnvironmentErrors
 ): string {

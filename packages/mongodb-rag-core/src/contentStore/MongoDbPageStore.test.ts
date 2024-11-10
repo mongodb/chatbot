@@ -1,11 +1,12 @@
 import { strict as assert } from "assert";
 import { MongoDbPageStore, makeMongoDbPageStore } from "./MongoDbPageStore";
 import { PersistedPage } from "./Page";
-import { assertEnvVars } from "../assertEnvVars";
-import { CORE_ENV_VARS } from "../CoreEnvVars";
+import { fromEnvironment } from "../environment";
 import "dotenv/config";
 
-const { MONGODB_CONNECTION_URI } = assertEnvVars(CORE_ENV_VARS);
+const { MONGODB_CONNECTION_URI } = fromEnvironment({
+  required: ["MONGODB_CONNECTION_URI"],
+});
 
 const moviePages: PersistedPage[] = [
   {

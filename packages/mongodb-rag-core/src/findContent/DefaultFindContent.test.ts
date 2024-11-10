@@ -2,7 +2,7 @@ import "dotenv/config";
 import { makeDefaultFindContent } from "./DefaultFindContent";
 import { makeMongoDbEmbeddedContentStore } from "../contentStore";
 import { makeOpenAiEmbedder } from "../embed";
-import { assertEnvVars } from "../assertEnvVars";
+import { fromEnvironment } from "../environment";
 import {
   CORE_CHATBOT_APP_ENV_VARS,
   CORE_OPENAI_EMBEDDING_ENV_VARS,
@@ -18,9 +18,11 @@ describe("makeDefaultFindContent()", () => {
     OPENAI_API_KEY,
     OPENAI_EMBEDDING_DEPLOYMENT,
     OPENAI_API_VERSION,
-  } = assertEnvVars({
-    ...CORE_CHATBOT_APP_ENV_VARS,
-    ...CORE_OPENAI_EMBEDDING_ENV_VARS,
+  } = fromEnvironment({
+    required: Object.keys({
+      ...CORE_CHATBOT_APP_ENV_VARS,
+      ...CORE_OPENAI_EMBEDDING_ENV_VARS,
+    }),
   });
   const embeddedContentStore = makeMongoDbEmbeddedContentStore({
     connectionUri: MONGODB_CONNECTION_URI,

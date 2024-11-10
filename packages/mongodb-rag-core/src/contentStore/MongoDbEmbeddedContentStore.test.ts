@@ -1,8 +1,6 @@
 import { strict as assert } from "assert";
 import { AzureOpenAI } from "openai";
 import { FindNearestNeighborsOptions } from "../VectorStore";
-import { assertEnvVars } from "../assertEnvVars";
-import { CORE_ENV_VARS } from "../CoreEnvVars";
 import { makeOpenAiEmbedder } from "../embed";
 import "dotenv/config";
 import { PersistedPage } from ".";
@@ -10,6 +8,7 @@ import {
   MongoDbEmbeddedContentStore,
   makeMongoDbEmbeddedContentStore,
 } from "./MongoDbEmbeddedContentStore";
+import { fromEnvironment } from "../environment";
 
 const {
   MONGODB_CONNECTION_URI,
@@ -19,7 +18,17 @@ const {
   OPENAI_EMBEDDING_DEPLOYMENT,
   VECTOR_SEARCH_INDEX_NAME,
   OPENAI_API_VERSION,
-} = assertEnvVars(CORE_ENV_VARS);
+} = fromEnvironment({
+  required: [
+    "MONGODB_CONNECTION_URI",
+    "MONGODB_DATABASE_NAME",
+    "OPENAI_ENDPOINT",
+    "OPENAI_API_KEY",
+    "OPENAI_EMBEDDING_DEPLOYMENT",
+    "VECTOR_SEARCH_INDEX_NAME",
+    "OPENAI_API_VERSION",
+  ],
+});
 
 jest.setTimeout(30000);
 

@@ -74,7 +74,8 @@ export function makeMongoDbUniversityDataSource(
       });
       const { data: tiCatalogItems } = await uniDataApiClient.getCatalogItems({
         publicOnly: params.tiCatalogItemsConfig?.publicOnly,
-        nestAssociatedContent: params.tiCatalogItemsConfig?.nestAssociatedContent,
+        nestAssociatedContent:
+          params.tiCatalogItemsConfig?.nestAssociatedContent,
       });
       const { data: videos } = await uniDataApiClient.getAllVideos();
       const universityPages = makeUniversityPages({

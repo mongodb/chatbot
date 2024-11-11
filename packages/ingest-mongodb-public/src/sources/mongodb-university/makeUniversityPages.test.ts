@@ -62,9 +62,18 @@ describe("makeUniversityPages()", () => {
       /^\d+\n\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}\n/gm
     );
     expect(samplePage.metadata).toHaveProperty("foo", "bar");
-    expect(samplePage.metadata).toHaveProperty("tags", expect.arrayContaining(["foo", "bar"]));
-    expect(samplePage.metadata).toHaveProperty("courseTitle", "Getting Started with MongoDB Atlas");
-    expect(samplePage.metadata).toHaveProperty("sectionTitle", "Lesson 1: Introduction to MongoDB Atlas, the Developer Data Platform",);
+    expect(samplePage.metadata).toHaveProperty(
+      "tags",
+      expect.arrayContaining(["foo", "bar"])
+    );
+    expect(samplePage.metadata).toHaveProperty(
+      "courseTitle",
+      "Getting Started with MongoDB Atlas"
+    );
+    expect(samplePage.metadata).toHaveProperty(
+      "sectionTitle",
+      "Lesson 1: Introduction to MongoDB Atlas, the Developer Data Platform"
+    );
     expect(samplePage.metadata).toHaveProperty("lessonTitle", "Learn");
     // Don't include these tags that are returned by the API
     const tagsSet = new Set(samplePage.metadata?.tags);

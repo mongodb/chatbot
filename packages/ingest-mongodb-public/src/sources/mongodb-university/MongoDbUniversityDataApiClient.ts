@@ -178,7 +178,7 @@ export function makeMongoDbUniversityDataApiClient({
     async getCatalogItems({
       publicOnly = true,
       learningFormats,
-      nestAssociatedContent=true,
+      nestAssociatedContent = true,
     }: {
       publicOnly?: boolean;
       learningFormats?: string[];
@@ -186,7 +186,7 @@ export function makeMongoDbUniversityDataApiClient({
     } = {}) {
       const search_params = new URLSearchParams([
         ["public_only", publicOnly.toString()],
-        ["nest_associated_content", nestAssociatedContent.toString()]
+        ["nest_associated_content", nestAssociatedContent.toString()],
       ]);
       if (learningFormats) {
         learningFormats.forEach((format) =>

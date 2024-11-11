@@ -6,7 +6,7 @@ import {
 } from "./makeFewShotUserMessageExtractorFunction";
 import { updateFrontMatter } from "mongodb-chatbot-server";
 import { OpenAI } from "mongodb-rag-core/openai";
-import { wrapTraced } from "braintrust";
+
 export const StepBackUserQueryMongoDbFunctionSchema = z.object({
   transformedUserQuery: z.string().describe("Transformed user query"),
 });

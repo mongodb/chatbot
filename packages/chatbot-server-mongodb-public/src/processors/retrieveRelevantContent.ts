@@ -1,4 +1,3 @@
-import { wrapTraced } from "braintrust";
 import { makeStepBackUserQuery } from "./makeStepBackUserQuery";
 import { FindContentFunc, Message } from "mongodb-rag-core";
 import { updateFrontMatter } from "mongodb-rag-core";

@@ -6,7 +6,6 @@ import {
   makeUserMessage,
 } from "./makeFewShotUserMessageExtractorFunction";
 import { OpenAI } from "mongodb-rag-core/openai";
-import { wrapTraced } from "braintrust";
 
 export const UserMessageMongoDbGuardrailFunctionSchema = z.object({
   reasoning: z

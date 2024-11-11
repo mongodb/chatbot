@@ -9,7 +9,6 @@ import {
   mongoDbProductNames,
   mongoDbProgrammingLanguageIds,
 } from "../mongoDbMetadata";
-import { wrapTraced } from "braintrust";
 
 export const ExtractMongoDbMetadataFunctionSchema = z.object({
   programmingLanguage: z

@@ -1,0 +1,22 @@
+{
+  "name": "codemods",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "codemod": "jscodeshift -t",
+    "codemod:replace-assertEnvVars": "npm run codemod -- ./build/replace-assertEnvVars.js"
+  },
+  "keywords": [],
+  "author": "Nick Larew",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "jscodeshift": "^17.1.1"
+  },
+  "devDependencies": {
+    "@types/jscodeshift": "^0.12.0",
+    "typescript": "^5.6.3"
+  }
+}

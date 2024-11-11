@@ -1,18 +1,26 @@
+import "dotenv/config";
 import { Eval, EvalCase, EvalScorer, EvalTask } from "braintrust";
-import { MongoDbTag } from "./mongoDbMetadata";
 import fs from "fs";
 import path from "path";
 import { strict as assert } from "assert";
-import { averagePrecisionAtK } from "./eval/scorers/averagePrecisionAtK";
-import { getConversationsEvalCasesFromYaml } from "./eval/getConversationEvalCasesFromYaml";
-import { ExtractMongoDbMetadataFunction } from "./processors/extractMongoDbMetadataFromUserMessage";
-import { findContent, retrievalConfig } from "./config";
-import { fuzzyLinkMatch } from "./eval/fuzzyLinkMatch";
-import { binaryNdcgAtK } from "./eval/scorers/binaryNdcgAtK";
-import { f1AtK } from "./eval/scorers/f1AtK";
-import { precisionAtK } from "./eval/scorers/precisionAtK";
-import { recallAtK } from "./eval/scorers/recallAtK";
-import "dotenv/config";
+import {
+  retrievalConfig,
+  findContent,
+  preprocessorOpenAiClient,
+} from "../config";
+import { fuzzyLinkMatch } from "../eval/fuzzyLinkMatch";
+import { getConversationsEvalCasesFromYaml } from "../eval/getConversationEvalCasesFromYaml";
+import { averagePrecisionAtK } from "../eval/scorers/averagePrecisionAtK";
+import { binaryNdcgAtK } from "../eval/scorers/binaryNdcgAtK";
+import { f1AtK } from "../eval/scorers/f1AtK";
+import { precisionAtK } from "../eval/scorers/precisionAtK";
+import { recallAtK } from "../eval/scorers/recallAtK";
+import { MongoDbTag } from "../mongoDbMetadata";
+import {
+  extractMongoDbMetadataFromUserMessage,
+  ExtractMongoDbMetadataFunction,
+} from "./extractMongoDbMetadataFromUserMessage";
+import { retrieveRelevantContent } from "./retrieveRelevantContent";
 
 interface RetrievalEvalCaseInput {
   query: string;
@@ -58,18 +66,33 @@ const simpleConversationEvalTask: EvalTask<
   RetrievalEvalCaseInput,
   RetrievalTaskOutput
 > = async function (data) {
-  const results = await findContent({ query: data.query });
+  const metadataForQuery = await extractMongoDbMetadataFromUserMessage({
+    openAiClient: preprocessorOpenAiClient,
+    model: retrievalConfig.preprocessorLlm,
+    userMessageText: data.query,
+  });
+  const results = await retrieveRelevantContent({
+    userMessageText: data.query,
+    model: retrievalConfig.preprocessorLlm,
+    openAiClient: preprocessorOpenAiClient,
+    findContent,
+    metadataForQuery,
+  });
+
   return {
     results: results.content.map((c) => ({
       url: c.url,
       content: c.text,
       score: c.score,
     })),
+    extractedMetadata: metadataForQuery,
+    rewrittenQuery: results.transformedUserQuery,
+    searchString: results.searchQuery,
   };
 };
 
 async function getConversationRetrievalEvalData() {
-  const basePath = path.resolve(__dirname, "..", "evalCases");
+  const basePath = path.resolve(__dirname, "..", "..", "evalCases");
   const includedLinksConversations = getConversationsEvalCasesFromYaml(
     fs.readFileSync(
       path.resolve(basePath, "included_links_conversations.yml"),
@@ -163,8 +186,17 @@ const RetrievedLengthOverK: RetrievalEvalScorer = async (args) => {
   };
 };
 
+const AvgSearchScore: RetrievalEvalScorer = async (args) => {
+  return {
+    name: "AvgSearchScore",
+    score:
+      args.output.results.reduce((acc, r) => acc + r.score, 0) /
+      args.output.results.length,
+  };
+};
+
 Eval("mongodb-chatbot-retrieval", {
-  experimentName: `mongodb-chatbot-retrieval-latest?model=${retrievalConfig.model}&@K=${k}&minScore=${retrievalConfig.findNearestNeighborsOptions.minScore}`,
+  experimentName: `mongodb-chatbot-retrieval-latest?model=${retrievalConfig.embeddingModel}&@K=${k}&minScore=${retrievalConfig.findNearestNeighborsOptions.minScore}`,
   metadata: {
     description: "Evaluates quality of chatbot retrieval system",
     retrievalConfig,
@@ -175,6 +207,7 @@ Eval("mongodb-chatbot-retrieval", {
   scores: [
     BinaryNdcgAtK,
     F1AtK,
+    AvgSearchScore,
     RetrievedLengthOverK,
     AveragePrecisionAtK,
     PrecisionAtK,

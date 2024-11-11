@@ -126,7 +126,12 @@ export const findContent = wrapTraced(
   makeDefaultFindContent({
     embedder,
     store: embeddedContentStore,
-    findNearestNeighborsOptions: retrievalConfig.findNearestNeighborsOptions,
+    findNearestNeighborsOptions: {
+      ...retrievalConfig.findNearestNeighborsOptions,
+      filter: {
+        sourceName: "snooty-docs",
+      },
+    },
     searchBoosters: [boostManual],
   }),
   {

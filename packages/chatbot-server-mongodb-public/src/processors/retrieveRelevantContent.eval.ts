@@ -63,7 +63,7 @@ type RetrievalEvalScorer = EvalScorer<
 // we could readdress this.
 const { k } = retrievalConfig.findNearestNeighborsOptions;
 
-const simpleConversationEvalTask: EvalTask<
+const retrieveRelevantContentEvalTask: EvalTask<
   RetrievalEvalCaseInput,
   RetrievalTaskOutput
 > = async function (data) {
@@ -108,35 +108,34 @@ async function getConversationRetrievalEvalData() {
   const verifiedAnswersConversations = loadVerifiedAnswersAsConversations(
     verifiedAnswersConversationsYaml
   );
-  return includedLinksConversations
-    .map((evalCase) => {
-      const latestMessageText = evalCase.messages.at(-1)?.content;
-      assert(latestMessageText, "No latest message text found");
-      assert(evalCase.expectedLinks, "No expected links found");
-      return {
-        tags: evalCase.tags as MongoDbTag[],
-        input: {
-          query: latestMessageText,
-        },
-        expected: { links: evalCase.expectedLinks },
-        metadata: null,
-      } satisfies RetrievalEvalCase;
-    })
-    .concat(
-      verifiedAnswersConversations.map((evalCase) => {
-        const latestMessageText = evalCase.messages.at(0)?.content;
-        assert(latestMessageText, "No latest message text found");
-        assert(evalCase.expectedLinks, "No expected links found");
-        return {
-          tags: evalCase.tags as MongoDbTag[],
-          input: {
-            query: latestMessageText,
-          },
-          expected: { links: evalCase.expectedLinks },
-          metadata: null,
-        } satisfies RetrievalEvalCase;
-      })
-    );
+  return includedLinksConversations.map((evalCase) => {
+    const latestMessageText = evalCase.messages.at(-1)?.content;
+    assert(latestMessageText, "No latest message text found");
+    assert(evalCase.expectedLinks, "No expected links found");
+    return {
+      tags: evalCase.tags as MongoDbTag[],
+      input: {
+        query: latestMessageText,
+      },
+      expected: { links: evalCase.expectedLinks },
+      metadata: null,
+    } satisfies RetrievalEvalCase;
+  });
+  // .concat(
+  //   verifiedAnswersConversations.map((evalCase) => {
+  //     const latestMessageText = evalCase.messages.at(0)?.content;
+  //     assert(latestMessageText, "No latest message text found");
+  //     assert(evalCase.expectedLinks, "No expected links found");
+  //     return {
+  //       tags: evalCase.tags as MongoDbTag[],
+  //       input: {
+  //         query: latestMessageText,
+  //       },
+  //       expected: { links: evalCase.expectedLinks },
+  //       metadata: null,
+  //     } satisfies RetrievalEvalCase;
+  //   })
+  // );
 }
 
 const BinaryNdcgAtK: RetrievalEvalScorer = async (args) => {
@@ -221,14 +220,14 @@ const AvgSearchScore: RetrievalEvalScorer = async (args) => {
 };
 
 Eval("mongodb-chatbot-retrieval", {
-  experimentName: `mongodb-chatbot-retrieval-latest?model=${retrievalConfig.embeddingModel}&@K=${k}&minScore=${retrievalConfig.findNearestNeighborsOptions.minScore}`,
+  experimentName: `mongodb-chatbot-retrieval-manual-only?model=${retrievalConfig.embeddingModel}&@K=${k}&minScore=${retrievalConfig.findNearestNeighborsOptions.minScore}`,
   metadata: {
     description: "Evaluates quality of chatbot retrieval system",
     retrievalConfig,
   },
   maxConcurrency: 5,
   data: getConversationRetrievalEvalData,
-  task: simpleConversationEvalTask,
+  task: retrieveRelevantContentEvalTask,
   scores: [
     BinaryNdcgAtK,
     F1AtK,

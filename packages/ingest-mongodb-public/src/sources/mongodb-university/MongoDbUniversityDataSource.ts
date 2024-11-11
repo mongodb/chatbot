@@ -26,7 +26,7 @@ export interface MakeMongoDbUniversityDataSourceParams {
    Filter parameters for University's /catalog/ti endpoint 
    of the MongoDB University Data API.
    */
-  ti: {
+  tiCatalogItemsConfig?: {
     /**
       Filter parameter for filtering out items from the MongoDB University
       catalog. For example, you may want to only ingest items that are
@@ -40,7 +40,7 @@ export interface MakeMongoDbUniversityDataSourceParams {
       > You should include *only* this content or a subset of it
       > in externally facing applications.
      */
-    publicOnly: boolean;
+    publicOnly?: boolean;
 
     /**
      Whether to nest associated content in the catalog items.
@@ -73,8 +73,8 @@ export function makeMongoDbUniversityDataSource(
         apiKey: params.apiKey,
       });
       const { data: tiCatalogItems } = await uniDataApiClient.getCatalogItems({
-        publicOnly: params.ti.publicOnly,
-        nestAssociatedContent: params.ti.nestAssociatedContent,
+        publicOnly: params.tiCatalogItemsConfig?.publicOnly,
+        nestAssociatedContent: params.tiCatalogItemsConfig?.nestAssociatedContent,
       });
       const { data: videos } = await uniDataApiClient.getAllVideos();
       const universityPages = makeUniversityPages({

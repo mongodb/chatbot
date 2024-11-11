@@ -176,27 +176,21 @@ export function makeMongoDbUniversityDataApiClient({
 
   return {
     async getCatalogItems({
-      publicOnly,
+      publicOnly = true,
       learningFormats,
-      nestAssociatedContent,
+      nestAssociatedContent=true,
     }: {
       publicOnly?: boolean;
       learningFormats?: string[];
       nestAssociatedContent?: boolean;
     } = {}) {
-      const search_params = new URLSearchParams();
-      if (publicOnly !== undefined) {
-        search_params.append("public_only", publicOnly.toString());
-      }
+      const search_params = new URLSearchParams([
+        ["public_only", publicOnly.toString()],
+        ["nest_associated_content", nestAssociatedContent.toString()]
+      ]);
       if (learningFormats) {
         learningFormats.forEach((format) =>
           search_params.append("learning_formats", format)
-        );
-      }
-      if (nestAssociatedContent !== undefined) {
-        search_params.append(
-          "nest_associated_content",
-          nestAssociatedContent.toString()
         );
       }
       const response = await fetch(`${baseUrl}/ti?${search_params}`, {

@@ -35,8 +35,9 @@ type OptionalValuesFromEnvironment<
   ? Record<string, never>
   : { [K in keyof Optionals]: string };
 
-export type ValuesFromEnvironment<T extends EnvironmentConfig<string, string>> =
-  RequiredValuesFromEnvironment<T> & OptionalValuesFromEnvironment<T>;
+export type ValuesFromEnvironment<
+  T extends EnvironmentConfig<string, string | undefined>
+> = RequiredValuesFromEnvironment<T> & OptionalValuesFromEnvironment<T>;
 
 type FromEnvironmentErrors = {
   required: z.ZodIssue[];
@@ -95,7 +96,7 @@ function formatFromEnvironmentErrorMessage(
 
 export function fromEnvironment<
   RequiredKeys extends string,
-  OptionalKeys extends string
+  OptionalKeys extends string | undefined
 >(
   config: EnvironmentConfig<RequiredKeys, OptionalKeys>
 ): ValuesFromEnvironment<typeof config> {

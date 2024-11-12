@@ -18,6 +18,20 @@ const transform: Transform = (fileInfo: FileInfo, api: API) => {
   const j = api.jscodeshift;
   const root = j(fileInfo.source);
 
+  // Find all instances of assertEnvVars in the file
+  const assertEnvVarsCallExpressions = root.find(j.CallExpression, {
+    callee: {
+      type: "Identifier",
+      name: "assertEnvVars",
+    },
+  });
+
+  // If there are no assertEnvVars calls, then there is nothing to replace and
+  // we can return the original source
+  if (assertEnvVarsCallExpressions.length === 0) {
+    return fileInfo.source;
+  }
+
   // Find existing imports from core
   let coreImport = findCoreImport(root);
   const coreIsImported = coreImport.length > 0;
@@ -68,32 +82,25 @@ const transform: Transform = (fileInfo: FileInfo, api: API) => {
     });
 
   // Replace assertEnvVars function calls
-  root
-    .find(j.CallExpression, {
-      callee: {
-        type: "Identifier",
-        name: "assertEnvVars",
-      },
-    })
-    .forEach((path) => {
-      const originalArg = path.node.arguments[0];
+  assertEnvVarsCallExpressions.forEach((path) => {
+    const originalArg = path.node.arguments[0];
 
-      // Create the new fromEnvironment call
-      const newCall = j.callExpression(j.identifier("fromEnvironment"), [
-        j.objectExpression([
-          j.property(
-            "init",
-            j.identifier("required"),
-            j.callExpression(
-              j.memberExpression(j.identifier("Object"), j.identifier("keys")),
-              [originalArg]
-            )
-          ),
-        ]),
-      ]);
+    // Create the new fromEnvironment call
+    const newCall = j.callExpression(j.identifier("fromEnvironment"), [
+      j.objectExpression([
+        j.property(
+          "init",
+          j.identifier("required"),
+          j.callExpression(
+            j.memberExpression(j.identifier("Object"), j.identifier("keys")),
+            [originalArg]
+          )
+        ),
+      ]),
+    ]);
 
-      j(path).replaceWith(newCall);
-    });
+    j(path).replaceWith(newCall);
+  });
 
   return root.toSource();
 };

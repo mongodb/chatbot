@@ -23,32 +23,57 @@ export function binaryNdcgAtK<T extends Primitive>(
   assertKIsValid(k);
 
   const limit = Math.min(k, retrievedItems.length);
-  const matchedRelevantItems = new Set<T>();
-  const relevanceScores = [];
 
-  for (let i = 0; i < limit; i++) {
-    const item = retrievedItems[i];
-    const isRelevant = relevantItems.some(
-      (relevantItem) =>
-        matchFunc(relevantItem, item) && !matchedRelevantItems.has(relevantItem)
-    );
-    if (isRelevant) {
-      matchedRelevantItems.add(item);
-      relevanceScores.push(1);
-    } else {
-      relevanceScores.push(0);
-    }
-  }
+  const deduplicatedRetrievedItems = removeDuplicates(retrievedItems, limit);
+
+  const relevanceScores = calculateRelevanceScores(
+    deduplicatedRetrievedItems,
+    relevantItems,
+    matchFunc
+  );
 
   // Use the ndcg function to calculate NDCG
-  return ndcg(relevanceScores);
+  return ndcg(relevanceScores, relevantItems.length, k);
 }
+
+function removeDuplicates<T extends Primitive>(
+  items: T[],
+  limit: number
+): (T | null)[] {
+  const itemsInLimit = items.slice(0, limit);
+  const seen = new Set<T>();
+  return itemsInLimit.map((item) => {
+    if (seen.has(item)) {
+      return null;
+    } else {
+      seen.add(item);
+      return item;
+    }
+  });
+}
+
+function calculateRelevanceScores<T extends Primitive>(
+  retrievedItems: (T | null)[],
+  relevantItems: T[],
+  matchFunc: MatchFunc<T>
+): number[] {
+  return retrievedItems.map((item) => {
+    // handle duplicate items
+    if (item === null) {
+      return 0;
+    }
+    return relevantItems.some((relevantItem) => matchFunc(relevantItem, item))
+      ? 1
+      : 0;
+  });
+}
+
 /**
   Normalized Discounted Cumulative Gain (NDCG)
  */
-function ndcg(scores: number[]) {
-  const actualDcg = dcg(scores);
-  const idealDcg = dcg(ideal(scores));
+export function ndcg(realScores: number[], idealNum: number, k: number) {
+  const actualDcg = dcg(realScores);
+  const idealDcg = dcg(ideal(idealNum, k));
   return idealDcg === 0 ? 0 : actualDcg / idealDcg;
 }
 
@@ -56,6 +81,6 @@ function dcg(scores: number[]) {
   return scores.reduce((sum, gain, i) => sum + gain / Math.log2(i + 2), 0);
 }
 
-function ideal(scores: number[]) {
-  return scores.slice().sort((a, b) => b - a);
+function ideal(n: number, k: number) {
+  return Array.from({ length: k }, (_, i) => (i < n ? 1 : 0));
 }

@@ -23,7 +23,8 @@
     "start": "pm2-runtime ./build/index.js",
     "test": "jest --forceExit",
     "release": "release-it",
-    "evaluate": "braintrust eval"
+    "evaluate": "braintrust eval",
+    "vaToConvo": "npm run build && node ./build/processors/vaToConvo.js"
   },
   "dependencies": {
     "common-tags": "^1.8.2",

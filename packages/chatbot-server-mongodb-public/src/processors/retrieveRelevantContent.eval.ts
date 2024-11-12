@@ -62,7 +62,7 @@ type RetrievalEvalScorer = EvalScorer<
 // we could readdress this.
 const { k } = retrievalConfig.findNearestNeighborsOptions;
 
-const simpleConversationEvalTask: EvalTask<
+const retrieveRelevantContentEvalTask: EvalTask<
   RetrievalEvalCaseInput,
   RetrievalTaskOutput
 > = async function (data) {
@@ -203,7 +203,7 @@ Eval("mongodb-chatbot-retrieval", {
   },
   maxConcurrency: 5,
   data: getConversationRetrievalEvalData,
-  task: simpleConversationEvalTask,
+  task: retrieveRelevantContentEvalTask,
   scores: [
     BinaryNdcgAtK,
     F1AtK,

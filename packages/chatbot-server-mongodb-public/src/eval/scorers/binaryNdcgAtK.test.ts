@@ -210,7 +210,6 @@ describe("binaryNdcgAtK", () => {
       0 +
       0;
     const expectedNdcg = dcg / idealDcg;
-    console.log("expectedNdcg", expectedNdcg);
     expect(ndcg).toBeCloseTo(expectedNdcg, 3);
   });
 

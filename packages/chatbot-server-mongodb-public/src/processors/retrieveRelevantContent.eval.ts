@@ -99,7 +99,6 @@ async function getConversationRetrievalEvalData() {
       "utf8"
     )
   );
-
   return includedLinksConversations.map((evalCase) => {
     const latestMessageText = evalCase.messages.at(-1)?.content;
     assert(latestMessageText, "No latest message text found");

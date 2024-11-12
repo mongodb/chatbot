@@ -28,8 +28,12 @@ export interface TiCatalogItem {
     IDs of labs associated with the catalog item.
    */
   associated_labs: string[];
-  // TODO: is this always null?
-  associated_content: null | unknown;
+  /*
+    IDs of content associated with the catalog item. 
+    This is used for Learning Paths and Courses. Other learning formats 
+    do not have associated content.
+   */
+  associated_content?: string[] | null;
   /**
     Whether or not the catalog item is in development.
    */
@@ -40,6 +44,20 @@ export interface TiCatalogItem {
     about the sections and lessons.
    */
   sections: TiCatalogSection[];
+  /**
+    Description of the course topics covered.
+  */
+  description?: string;
+  /**
+    Approximate time it takes to complete the course.
+   */
+  duration?: string;
+  /**
+    Nested content for the catalog item. This is used for
+    Learning Paths and Courses, which are made up of multiple items such as
+    Units and Learning Bytes.
+   */
+  nested_content?: TiCatalogItem[];
 }
 
 type TiCatalogLearningFormat =
@@ -115,7 +133,7 @@ interface ResponseMetadata {
   filter: null | unknown;
 }
 
-interface GetAllCatalogItemsResponseData {
+interface GetCatalogItemsResponseData {
   data: TiCatalogItem[];
   metadata: ResponseMetadata;
 }
@@ -135,7 +153,7 @@ export interface MongoDbUniversityDataApiClient {
     Load all the catalog items from the MongoDB University
     Data API.
    */
-  getAllCatalogItems(): Promise<GetAllCatalogItemsResponseData>;
+  getCatalogItems(): Promise<GetCatalogItemsResponseData>;
   /**
     Load all the videos from the MongoDB University Data API.
    */
@@ -157,12 +175,29 @@ export function makeMongoDbUniversityDataApiClient({
   };
 
   return {
-    async getAllCatalogItems() {
-      const response = await fetch(`${baseUrl}/ti`, {
+    async getCatalogItems({
+      publicOnly = true,
+      learningFormats,
+      nestAssociatedContent = true,
+    }: {
+      publicOnly?: boolean;
+      learningFormats?: string[];
+      nestAssociatedContent?: boolean;
+    } = {}) {
+      const search_params = new URLSearchParams([
+        ["public_only", publicOnly.toString()],
+        ["nest_associated_content", nestAssociatedContent.toString()],
+      ]);
+      if (learningFormats) {
+        learningFormats.forEach((format) =>
+          search_params.append("learning_formats", format)
+        );
+      }
+      const response = await fetch(`${baseUrl}/ti?${search_params}`, {
         headers,
       });
       const json = await response.json();
-      return json as GetAllCatalogItemsResponseData;
+      return json as GetCatalogItemsResponseData;
     },
     async getAllVideos() {
       let offset = 0;

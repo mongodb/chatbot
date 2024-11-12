@@ -1,7 +1,4 @@
-// ndcgAtK.test.ts
-
-import { fuzzyLinkMatch } from "../fuzzyLinkMatch";
-import { binaryNdcgAtK, ndcg } from "./binaryNdcgAtK";
+import { binaryNdcgAtK } from "./binaryNdcgAtK";
 import { MatchFunc } from "./MatchFunc";
 
 describe("binaryNdcgAtK", () => {
@@ -190,16 +187,26 @@ describe("binaryNdcgAtK", () => {
       testItems[3],
       testItems[2],
       testItems[4],
-      testItems[3],
+      testItems[2],
     ];
     const k = 5;
 
     const ndcg = binaryNdcgAtK(relevantItems, retrievedItems, matchFunc, k);
 
-    // Relevance scores: [0, 0, 1, 0, 1]
-
-    expect(ndcg).toBeGreaterThan(0);
-    expect(ndcg).toBeLessThan(1);
+    // Actual DCG:
+    // Relevance scores: [0, 0, 1, 0, 0]
+    const dcg = 0 + 0 + 1 / Math.log2(3 + 1) + 0 + 0;
+    // Ideal DCG:
+    // Ideal relevance scores: [1, 1, 1, 0, 0]
+    const idealDcg =
+      1 / Math.log2(1 + 1) +
+      1 / Math.log2(2 + 1) +
+      1 / Math.log2(3 + 1) +
+      0 +
+      0;
+    const expectedNdcg = dcg / idealDcg;
+    console.log("expectedNdcg", expectedNdcg);
+    expect(ndcg).toBeCloseTo(expectedNdcg, 3);
   });
 
   test("fewer retrieved relevant than total relevant", () => {

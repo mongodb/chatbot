@@ -102,7 +102,8 @@ export const verifiedAnswerConfig = {
   },
 };
 export const retrievalConfig = {
-  model: OPENAI_EMBEDDING_DEPLOYMENT,
+  preprocessorLlm: OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
+  embeddingModel: OPENAI_EMBEDDING_DEPLOYMENT,
   findNearestNeighborsOptions: {
     k: 5,
     path: "embedding",
@@ -113,7 +114,7 @@ export const retrievalConfig = {
 
 export const embedder = makeOpenAiEmbedder({
   openAiClient,
-  deployment: retrievalConfig.model,
+  deployment: retrievalConfig.embeddingModel,
   backoffOptions: {
     numOfAttempts: 3,
     maxDelay: 5000,
@@ -157,21 +158,29 @@ export const preprocessorOpenAiClient = wrapOpenAI(
   })
 );
 
-export const generateUserPrompt = makeVerifiedAnswerGenerateUserPrompt({
-  findVerifiedAnswer,
-  onVerifiedAnswerFound: (verifiedAnswer) => {
-    return {
-      ...verifiedAnswer,
-      references: verifiedAnswer.references.map(addReferenceSourceType),
-    };
-  },
-  onNoVerifiedAnswerFound: makeStepBackRagGenerateUserPrompt({
-    openAiClient: preprocessorOpenAiClient,
-    model: OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
-    findContent,
-    numPrecedingMessagesToInclude: 6,
+export const generateUserPrompt = wrapTraced(
+  makeVerifiedAnswerGenerateUserPrompt({
+    findVerifiedAnswer,
+    onVerifiedAnswerFound: (verifiedAnswer) => {
+      return {
+        ...verifiedAnswer,
+        references: verifiedAnswer.references.map(addReferenceSourceType),
+      };
+    },
+    onNoVerifiedAnswerFound: wrapTraced(
+      makeStepBackRagGenerateUserPrompt({
+        openAiClient: preprocessorOpenAiClient,
+        model: retrievalConfig.preprocessorLlm,
+        findContent,
+        numPrecedingMessagesToInclude: 6,
+      }),
+      { name: "makeStepBackRagGenerateUserPrompt" }
+    ),
   }),
-});
+  {
+    name: "generateUserPrompt",
+  }
+);
 
 export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 

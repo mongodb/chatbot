@@ -22,11 +22,13 @@ function cleanPath(path: string) {
 }
 
 function getCleanPath(maybeUrl: string) {
+  let out = "";
   try {
     const url = new URL(maybeUrl);
-    return cleanPath(url.pathname);
+    out = cleanPath(url.pathname);
   } catch (error) {
     // If it's not a valid URL, return the input string as is
-    return maybeUrl;
+    out = cleanPath(maybeUrl);
   }
+  return out;
 }

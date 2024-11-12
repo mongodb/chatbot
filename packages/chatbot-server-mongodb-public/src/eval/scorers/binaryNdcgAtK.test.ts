@@ -1,6 +1,7 @@
 // ndcgAtK.test.ts
 
-import { binaryNdcgAtK } from "./binaryNdcgAtK";
+import { fuzzyLinkMatch } from "../fuzzyLinkMatch";
+import { binaryNdcgAtK, ndcg } from "./binaryNdcgAtK";
 import { MatchFunc } from "./MatchFunc";
 
 describe("binaryNdcgAtK", () => {
@@ -183,8 +184,14 @@ describe("binaryNdcgAtK", () => {
   });
 
   test("Retrieved items with non-relevant duplicates", () => {
-    const relevantItems = ["item1", "item2", "item3"];
-    const retrievedItems = ["item4", "item4", "item2", "item5", "item3"];
+    const relevantItems = [testItems[0], testItems[1], testItems[2]];
+    const retrievedItems = [
+      testItems[3],
+      testItems[3],
+      testItems[2],
+      testItems[4],
+      testItems[3],
+    ];
     const k = 5;
 
     const ndcg = binaryNdcgAtK(relevantItems, retrievedItems, matchFunc, k);
@@ -193,5 +200,30 @@ describe("binaryNdcgAtK", () => {
 
     expect(ndcg).toBeGreaterThan(0);
     expect(ndcg).toBeLessThan(1);
+  });
+
+  test("fewer retrieved relevant than total relevant", () => {
+    const relevantItems = testItems.slice(0, 5);
+    const retrievedItems = testItems.slice(0, 2);
+    const k = 5;
+
+    const ndcg = binaryNdcgAtK(relevantItems, retrievedItems, matchFunc, k);
+
+    // Relevance scores: [1, 1, 0, 0, 0]
+    // DCG calculation:
+    const dcg = 1 / Math.log2(1 + 1) + 1 / Math.log2(2 + 1);
+
+    // Ideal DCG:
+    // Ideal relevance scores: [1, 1, 1, 1, 1]
+    const idealDcg =
+      1 / Math.log2(1 + 1) +
+      1 / Math.log2(2 + 1) +
+      1 / Math.log2(3 + 1) +
+      1 / Math.log2(4 + 1) +
+      1 / Math.log2(5 + 1);
+
+    const ndcgExpected = dcg / idealDcg;
+
+    expect(ndcg).toBeCloseTo(ndcgExpected, 3);
   });
 });

@@ -52,7 +52,7 @@ const mongoDbUniversitySourceConstructor = async () => {
     sourceName: "mongodb-university",
     baseUrl: "https://api.learn.mongodb.com/rest/catalog",
     apiKey: universityDataApiKey,
-    tiCatalogItemsConfig: {
+    tiCatalogItems: {
       publicOnly: true,
       nestAssociatedContent: true,
     },

@@ -25,7 +25,7 @@ describe("binaryNdcgAtK", () => {
     expect(ndcg).toBe(0); // NDCG should be 0 when no relevant items are retrieved
   });
 
-  test("Some relevant items retrieved in correct order", () => {
+  test("All relevant items retrieved, non-ideal order", () => {
     const relevantItems = testItems.slice(0, 3);
     const retrievedItems = [
       testItems[0],
@@ -61,7 +61,7 @@ describe("binaryNdcgAtK", () => {
     expect(ndcg).toBeCloseTo(ndcgExpected, 3);
   });
 
-  test("Some relevant items retrieved in wrong order", () => {
+  test("All relevant items retrieved", () => {
     const relevantItems = testItems.slice(0, 3);
     const retrievedItems = [
       testItems[2],
@@ -100,7 +100,7 @@ describe("binaryNdcgAtK", () => {
     expect(ndcg).toBeLessThan(1);
   });
 
-  test("k is zero", () => {
+  test("k is not positive integer", () => {
     const relevantItems = testItems.slice(0, 3);
     const retrievedItems = testItems.slice(0, 3);
     const k = 0;
@@ -138,8 +138,13 @@ describe("binaryNdcgAtK", () => {
 
     // NDCG should be calculated based on available retrieved items
 
-    expect(ndcg).toBeGreaterThan(0);
-    expect(ndcg).toBeLessThanOrEqual(1);
+    // Relevance scores: [1, 0]
+    const dcg = 1 / Math.log2(1 + 1) + 0 + 0;
+    // Ideal DCG: [1, 1, 0]
+    const idealDcg =
+      1 / Math.log2(1 + 1) + 1 / Math.log2(2 + 1) + 1 / Math.log2(3 + 1);
+    const expectedNdcg = dcg / idealDcg;
+    expect(ndcg).toBeCloseTo(expectedNdcg, 3);
   });
 
   test("Retrieved items contain duplicates", () => {
@@ -209,7 +214,7 @@ describe("binaryNdcgAtK", () => {
     expect(ndcg).toBeCloseTo(expectedNdcg, 3);
   });
 
-  test("fewer retrieved relevant than total relevant", () => {
+  test("Fewer retrieved relevant than total relevant", () => {
     const relevantItems = testItems.slice(0, 5);
     const retrievedItems = testItems.slice(0, 2);
     const k = 5;

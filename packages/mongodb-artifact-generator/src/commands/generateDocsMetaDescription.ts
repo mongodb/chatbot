@@ -91,7 +91,10 @@ export const action =
       const hrefs = urls.map((url) => url.href);
       logger.logInfo(hrefs.join("\n"));
       const pages = await pageStore.loadPages({
-        urls: hrefs,
+        query: {
+          url: { $in: hrefs },
+          sourceName: /^snooty/,
+        },
       });
       logger.logInfo(`Loaded ${pages.length} pages.`);
 
@@ -117,8 +120,12 @@ export const action =
           });
           results.set(page.url, metadata.description);
           logger.appendArtifact(
-            `${urlToFilename(page.url)}.json`,
-            metadata.description
+            `generateDocsMetadata/${urlToFilename(page.url)}.json`,
+            JSON.stringify({
+              url: page.url,
+              metadata,
+              text,
+            })
           );
           logger.logInfo(
             `Generated meta description for page ${page.url}: ${metadata.description}`

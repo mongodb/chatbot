@@ -26,11 +26,15 @@ const systemPrompt = stripIndents`
   - The meta description should be one single sentence
     - no character limit
     - roughly 150 characters is a good target length
+  - The meta description should focus on the page's primary content
+    - Avoid mentioning secondary information from admonitions, notes, tips, warnings, etc.
+    - Avoid specific facts or details, like a specific version number, unless it's the primary focus of the page
   - The meta description should start with a verb
   - The meta description should not repeat the page title verbatim
-  - The meta description should not repeat low value or assumed terms like
+  - The meta description should not repeat low value or assumed terms. For example:
     - Don't mention "MongoDB" in the description of a MongoDB docs page.
     - Don't mention "documentation" in the description of a docs page.
+  - If a page is a landing/welcome page or is primarily a list of links to other page, the meta description should mention the type of listed items
 
   Respond only with the generated description.
 `;

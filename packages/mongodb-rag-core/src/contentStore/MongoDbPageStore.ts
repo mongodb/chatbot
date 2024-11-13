@@ -74,6 +74,9 @@ export function makeMongoDbPageStore({
         })
       );
     },
+    async deletePages(args) {
+      // TODO: add implementation.
+    },
   };
 }
 

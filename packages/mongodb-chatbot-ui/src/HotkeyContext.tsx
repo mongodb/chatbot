@@ -30,6 +30,7 @@ export function HotkeyContextProvider({
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useHotkeyContext() {
   return useContext(HotkeyContext);
 }

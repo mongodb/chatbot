@@ -1,3 +1,8 @@
+// TODO: support deleting pages
+// to elegantly refactor, i think we should shift the current logic from
+// `ingest pages --source <name>` to `ingest pages update --source <name>`.
+// then we can add a new command `ingest pages delete --source <name>  --permanent <boolean>` to delete pages from a source.
+// see https://chatgpt.com/share/6734f1c9-9be4-8010-a2e1-317c9cd8baec
 import { CommandModule } from "yargs";
 import { logger, updatePages } from "mongodb-rag-core";
 import { LoadConfigArgs } from "../withConfig";

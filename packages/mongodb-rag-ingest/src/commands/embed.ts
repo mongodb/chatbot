@@ -1,3 +1,8 @@
+/**
+  TODO: See note at top of `commands/pages.ts` file.
+  I think you can refactor to `ingest embed update --source <name> --since <time>`
+  and then add a new command `ingest embed delete --source <name>`
+ */
 import { CommandModule } from "yargs";
 import {
   ResolvedConfig,

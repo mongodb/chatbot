@@ -246,7 +246,9 @@ export const getMetadataFromSnootyAst = (
     const metaEntries = Object.entries(metaNode.options);
     for (const [key, value] of metaEntries) {
       if (key === "keywords" && value) {
-        acc[createKeyName(key, keyPrefix)] = value.split(",");
+        acc[createKeyName(key, keyPrefix)] = value
+          .split(",")
+          .map((s) => s.trim());
       } else if (key === "description" && value) {
         acc[createKeyName(key, keyPrefix)] = value;
       }

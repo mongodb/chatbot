@@ -2,7 +2,11 @@ import { createInterface } from "readline";
 import { Page, PageFormat, logger } from "mongodb-rag-core";
 import fetch from "node-fetch";
 import { DataSource, ProjectBase } from "mongodb-rag-core/dataSources";
-import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
+import {
+  snootyAstToMd,
+  getTitleFromSnootyAst,
+  getMetadataFromSnootyAst,
+} from "./snootyAstToMd";
 import {
   getTitleFromSnootyOpenApiSpecAst,
   snootyAstToOpenApiSpec,
@@ -47,6 +51,35 @@ export type SnootyTextNode = SnootyNode & {
   type: "text";
   children: never;
   value: string;
+};
+
+export type SnootyFacetNode = SnootyNode & {
+  type: "directive";
+  name: "facet";
+  children: never;
+  options?: {
+    name: string;
+    values: string;
+  };
+};
+
+export type SnootyMetaNode = SnootyNode & {
+  type: "directive";
+  name: "meta";
+  children: never;
+  options?: {
+    /**
+      List of relevant keywords for the page, comma separated.
+      @example "code example, node.js, analyze, array"
+     */
+    keywords?: string;
+
+    /**
+      High-level description of the page.
+     */
+    description: string;
+    [key: string]: string | undefined;
+  };
 };
 
 /**
@@ -328,6 +361,7 @@ export const handlePage = async (
     body = snootyAstToMd(page.ast);
     title = getTitleFromSnootyAst(page.ast);
   }
+  const metadata = getMetadataFromSnootyAst(page.ast);
 
   return {
     url: new URL(pagePath, baseUrl.replace(/\/?$/, "/")).href.replace(
@@ -339,6 +373,7 @@ export const handlePage = async (
     body,
     format,
     metadata: {
+      ...metadata,
       tags,
       productName,
       version,

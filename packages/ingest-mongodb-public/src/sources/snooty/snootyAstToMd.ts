@@ -1,4 +1,9 @@
-import { SnootyNode, SnootyTextNode } from "./SnootyDataSource";
+import {
+  SnootyFacetNode,
+  SnootyMetaNode,
+  SnootyNode,
+  SnootyTextNode,
+} from "./SnootyDataSource";
 import { strict as assert } from "assert";
 import { renderSnootyTable } from "./renderSnootyTable";
 
@@ -203,4 +208,52 @@ export const getTitleFromSnootyAst = (node: SnootyNode): string | undefined => {
     ({ type }) => type === "text"
   ) as SnootyTextNode[];
   return textNodes.map(({ value }) => value).join("");
+};
+
+export const getMetadataFromSnootyAst = (
+  node: SnootyNode
+): Record<string, unknown> => {
+  const facetAndMetaNodes = findAll(
+    node,
+    ({ name }) => name === "facet" || name === "meta"
+  ) as (SnootyFacetNode | SnootyMetaNode)[];
+
+  const facetNodes = facetAndMetaNodes.filter(
+    (n) => n.name === "facet"
+  ) as SnootyFacetNode[];
+  const metaNodes = facetAndMetaNodes.filter(
+    (n) => n.name === "meta"
+  ) as SnootyMetaNode[];
+
+  const facets = facetNodes.reduce((acc, facetNode) => {
+    if (!facetNode.options) {
+      return acc;
+    }
+    const { name, values } = facetNode.options;
+    if (!name || !values) {
+      return acc;
+    }
+    acc[name] = values;
+    return acc;
+  }, {} as Record<string, string>);
+
+  const meta = metaNodes.reduce((acc, metaNode) => {
+    if (!metaNode.options) {
+      return acc;
+    }
+    const metaEntries = Object.entries(metaNode.options);
+    for (const [key, value] of metaEntries) {
+      if (key === "keywords" && value) {
+        acc[key] = value.split(",");
+      } else if (key === "description" && value) {
+        acc[key] = value;
+      }
+    }
+
+    return acc;
+  }, {} as Record<string, string | string[]>);
+  return {
+    ...facets,
+    ...meta,
+  };
 };

@@ -31,6 +31,7 @@ describe("MongoDbEmbeddedContentStore", () => {
     store = makeMongoDbEmbeddedContentStore({
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName,
+      embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
     });
   });
 
@@ -105,6 +106,8 @@ describe("MongoDbEmbeddedContentStore", () => {
   });
 });
 
+// TODO: support the embeddings field in the EmbeddedContent interface
+
 describe("nearest neighbor search", () => {
   const embedder = makeOpenAiEmbedder({
     openAiClient: new AzureOpenAI({
@@ -128,6 +131,7 @@ describe("nearest neighbor search", () => {
     store = makeMongoDbEmbeddedContentStore({
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
+      embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
     });
   });
 
@@ -213,6 +217,7 @@ describe("nearest neighbor search", () => {
         connectionUri: MONGODB_CONNECTION_URI,
         databaseName: store.metadata.databaseName,
         collectionName: "custom-embedded_content",
+        embeddingName: "ada-02",
       }
     );
 

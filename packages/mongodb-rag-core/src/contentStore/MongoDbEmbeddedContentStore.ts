@@ -7,6 +7,8 @@ import {
   makeMongoDbDatabaseConnection,
 } from "../MongoDbDatabaseConnection";
 import { strict as assert } from "assert";
+import e from "express";
+import { Document } from "mongodb";
 
 export type MakeMongoDbEmbeddedContentStoreParams =
   MakeMongoDbDatabaseConnectionParams & {
@@ -15,6 +17,12 @@ export type MakeMongoDbEmbeddedContentStoreParams =
       @default "embedded_content"
      */
     collectionName?: string;
+
+    /**
+      Embedding field name. If not provided,
+      the default {@link EmbeddedContent.embedding} field is used.
+     */
+    embeddingName: string;
   };
 
 export type MongoDbEmbeddedContentStore = EmbeddedContentStore &
@@ -29,6 +37,7 @@ export function makeMongoDbEmbeddedContentStore({
   connectionUri,
   databaseName,
   collectionName = "embedded_content",
+  embeddingName,
 }: MakeMongoDbEmbeddedContentStoreParams): MongoDbEmbeddedContentStore {
   const { mongoClient, db, drop, close } = makeMongoDbDatabaseConnection({
     connectionUri,
@@ -36,12 +45,15 @@ export function makeMongoDbEmbeddedContentStore({
   });
   const embeddedContentCollection =
     db.collection<EmbeddedContent>(collectionName);
+  const embeddingPath = `embeddings.${embeddingName}`;
+
   return {
     drop,
     close,
     metadata: {
       databaseName,
       collectionName,
+      embeddingName,
     },
     async loadEmbeddedContent({ page }) {
       return await embeddedContentCollection.find(pageIdentity(page)).toArray();
@@ -112,7 +124,7 @@ export function makeMongoDbEmbeddedContentStore({
       }: Partial<FindNearestNeighborsOptions> = {
         // Default options
         indexName: "vector_index",
-        path: "embedding",
+        path: embeddingPath,
         k: 3,
         minScore: 0.9,
         // User options override

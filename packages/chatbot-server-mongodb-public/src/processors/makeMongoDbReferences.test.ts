@@ -1,4 +1,4 @@
-import { Reference } from "mongodb-rag-core";
+import { EmbeddedContent, Reference } from "mongodb-rag-core";
 import {
   makeMongoDbReferences,
   addReferenceSourceType,
@@ -60,7 +60,7 @@ describe("makeMongoDbReferences", () => {
         },
         chunkIndex: 0,
       },
-    ];
+    ] satisfies EmbeddedContent[];
     const result = makeMongoDbReferences(chunks);
     expect(result).toEqual([
       {

@@ -225,6 +225,8 @@ export const getMetadataFromSnootyAst = (
     (n) => n.name === "meta"
   ) as SnootyMetaNode[];
 
+  const keyPrefix = "page";
+
   const facets = facetNodes.reduce((acc, facetNode) => {
     if (!facetNode.options) {
       return acc;
@@ -233,7 +235,7 @@ export const getMetadataFromSnootyAst = (
     if (!name || !values) {
       return acc;
     }
-    acc[name] = values;
+    acc[createKeyName(name, keyPrefix)] = values;
     return acc;
   }, {} as Record<string, string>);
 
@@ -244,9 +246,9 @@ export const getMetadataFromSnootyAst = (
     const metaEntries = Object.entries(metaNode.options);
     for (const [key, value] of metaEntries) {
       if (key === "keywords" && value) {
-        acc[key] = value.split(",");
+        acc[createKeyName(key, keyPrefix)] = value.split(",");
       } else if (key === "description" && value) {
-        acc[key] = value;
+        acc[createKeyName(key, keyPrefix)] = value;
       }
     }
 
@@ -257,3 +259,7 @@ export const getMetadataFromSnootyAst = (
     ...meta,
   };
 };
+
+function createKeyName(key: string, prefix = "") {
+  return prefix + key.charAt(0).toUpperCase() + key.slice(1);
+}

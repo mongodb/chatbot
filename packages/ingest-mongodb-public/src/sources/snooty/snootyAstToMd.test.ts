@@ -317,20 +317,20 @@ describe("getMetadataFromSnootyAst", () => {
   it("extracts meta directives", () => {
     const metadata = getMetadataFromSnootyAst(sampleMetadataPage.data.ast);
     expect(metadata).toMatchObject({
-      description: expect.any(String),
+      pageDescription: expect.any(String),
     });
   });
   it("extracts meta.keyword directives as string[]", () => {
     const metadata = getMetadataFromSnootyAst(sampleMetadataPage.data.ast);
     expect(metadata).toMatchObject({
-      keywords: expect.arrayContaining([expect.any(String)]),
+      pageKeywords: expect.arrayContaining([expect.any(String)]),
     });
   });
   it("extracts facet directives", () => {
     const metadata = getMetadataFromSnootyAst(sampleMetadataPage.data.ast);
     expect(metadata).toMatchObject({
-      genre: "tutorial",
-      foo: "bar",
+      pageGenre: "tutorial",
+      pageFoo: "bar",
     });
   });
 });

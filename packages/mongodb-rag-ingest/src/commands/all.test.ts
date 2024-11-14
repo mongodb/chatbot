@@ -46,6 +46,9 @@ describe("allCommand", () => {
     async updatePages() {
       return;
     },
+    async deletePages() {
+      return;
+    }
   };
 
   let databaseName: string;

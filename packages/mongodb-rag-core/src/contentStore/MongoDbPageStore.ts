@@ -4,7 +4,7 @@ import {
   MakeMongoDbDatabaseConnectionParams,
   makeMongoDbDatabaseConnection,
 } from "../MongoDbDatabaseConnection";
-import { LoadPagesArgs, PageStore, PersistedPage } from "./Page";
+import { DeletePagesArgs, LoadPagesArgs, PageStore, PersistedPage } from "./Page";
 import { Filter } from "mongodb";
 
 export type MongoDbPageStore = DatabaseConnection &
@@ -74,8 +74,31 @@ export function makeMongoDbPageStore({
         })
       );
     },
-    async deletePages(args) {
-      // TODO: add implementation.
+    async deletePages(args: DeletePagesArgs) {
+      if (args.permanent) {
+        const result = await pagesCollection.deleteMany(args.filter);
+        if (!result.acknowledged) {
+          throw new Error(`Permanent-delete pages not acknowledged!`);
+        }
+        if (!result.deletedCount) {
+          throw new Error(
+            `Pages matching filter ${JSON.stringify(args.filter)} not permanently deleted!`
+          );
+        }
+      }
+      else {
+        const result = await pagesCollection.updateMany(args.filter, {
+          $set: { action: "deleted" },
+        });
+        if (!result.acknowledged) {
+          throw new Error(`Soft-delete pages not acknowledged!`);
+        }
+        if (!result.modifiedCount && !result.upsertedCount) {
+          throw new Error(
+            `Pages matching filter ${JSON.stringify(args.filter)} not marked for deletion!`
+          );
+        }
+      }
     },
   };
 }

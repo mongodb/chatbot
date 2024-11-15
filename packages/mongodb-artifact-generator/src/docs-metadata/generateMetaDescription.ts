@@ -60,8 +60,8 @@ export function makeGenerateMetaDescription({
         })
         .parse(JSON.parse(file));
       return [
-        userMessage(JSON.stringify(example.input)),
-        assistantMessage(example.output),
+        userMessage({ content: JSON.stringify(example.input) }),
+        assistantMessage({ content: example.output }),
       ];
     });
   return async function generateMetaDescription({
@@ -77,9 +77,9 @@ export function makeGenerateMetaDescription({
     const result = await openAiClient.chat.completions.create({
       model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
       messages: [
-        systemMessage(systemPrompt),
+        systemMessage({ content: systemPrompt }),
         ...fewShotExamples,
-        userMessage(JSON.stringify({ url, text })),
+        userMessage({ content: JSON.stringify({ url, text }) }),
       ],
       temperature: 0,
       max_tokens: 300,

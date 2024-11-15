@@ -51,6 +51,7 @@ export const standardConfig = {
     makeMongoDbEmbeddedContentStore({
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_COACH_GTM_DATABASE_NAME,
+      embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
     }),
   pageStore: () =>
     makeMongoDbPageStore({

@@ -93,6 +93,7 @@ llm.answerQuestionAwaited = wrapTraced(llm.answerQuestionAwaited, {
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
+  embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
 });
 
 export const verifiedAnswerConfig = {

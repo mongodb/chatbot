@@ -109,6 +109,11 @@ export type PageStore = {
   close?: () => Promise<void>;
 
   /**
+    Initialize the store.
+   */
+  init?: () => Promise<void>;
+
+  /**
     Additional implementation-specific metadata about the store. This metadata is
     not directly used by the store itself, but may be useful for testing,
     debugging, and logging.

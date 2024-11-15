@@ -7,8 +7,6 @@ import {
   makeMongoDbDatabaseConnection,
 } from "../MongoDbDatabaseConnection";
 import { strict as assert } from "assert";
-import e from "express";
-import { Document } from "mongodb";
 
 export type MakeMongoDbEmbeddedContentStoreParams =
   MakeMongoDbDatabaseConnectionParams & {
@@ -17,12 +15,35 @@ export type MakeMongoDbEmbeddedContentStoreParams =
       @default "embedded_content"
      */
     collectionName?: string;
-
-    /**
-      Embedding field name. If not provided,
-      the default {@link EmbeddedContent.embedding} field is used.
-     */
-    embeddingName: string;
+    searchIndexConfig: {
+      /**
+        Name of the search index to use for nearest-neighbor search.
+        @default "vector_index"
+       */
+      name?: string;
+      /**
+        Embedding field name. Stored in the `EmbeddedContent.embeddings[embeddingName]` field.
+       */
+      embeddingName: string;
+      /**
+        Number of dimensions in the embedding field to index.
+        Only used in index creation.
+        @default 1536
+       */
+      numDimensions?: number;
+      /**
+        Atlas Vector Search filters to apply to the index creation.
+        Only used in index creation.
+        @default
+        ```js
+        [{ type: "filter", path: "sourceName" }]
+        ```
+       */
+      filters?: {
+        type: "filter";
+        path: string;
+      }[];
+    };
   };
 
 export type MongoDbEmbeddedContentStore = EmbeddedContentStore &
@@ -30,14 +51,27 @@ export type MongoDbEmbeddedContentStore = EmbeddedContentStore &
     metadata: {
       databaseName: string;
       collectionName: string;
+      embeddingPath: string;
+      embeddingName: string;
     };
+    init(): Promise<void>;
   };
 
 export function makeMongoDbEmbeddedContentStore({
   connectionUri,
   databaseName,
+  searchIndexConfig: {
+    embeddingName,
+    numDimensions = 1536,
+    filters = [
+      {
+        type: "filter",
+        path: "sourceName",
+      },
+    ],
+    name = "vector_index",
+  },
   collectionName = "embedded_content",
-  embeddingName,
 }: MakeMongoDbEmbeddedContentStoreParams): MongoDbEmbeddedContentStore {
   const { mongoClient, db, drop, close } = makeMongoDbDatabaseConnection({
     connectionUri,
@@ -54,6 +88,7 @@ export function makeMongoDbEmbeddedContentStore({
       databaseName,
       collectionName,
       embeddingName,
+      embeddingPath,
     },
     async loadEmbeddedContent({ page }) {
       return await embeddedContentCollection.find(pageIdentity(page)).toArray();
@@ -123,7 +158,7 @@ export function makeMongoDbEmbeddedContentStore({
         numCandidates,
       }: Partial<FindNearestNeighborsOptions> = {
         // Default options
-        indexName: "vector_index",
+        indexName: name,
         path: embeddingPath,
         k: 3,
         minScore: 0.9,
@@ -152,6 +187,25 @@ export function makeMongoDbEmbeddedContentStore({
           { $match: { score: { $gte: minScore } } },
         ])
         .toArray();
+    },
+    async init() {
+      await embeddedContentCollection.createIndex({ sourceName: 1, url: 1 });
+      await embeddedContentCollection.createSearchIndexes([
+        {
+          name: "vector_index",
+          definition: {
+            fields: [
+              {
+                numDimensions,
+                path: embeddingPath,
+                similarity: "cosine",
+                type: "vector",
+              },
+              ...filters,
+            ],
+          },
+        },
+      ]);
     },
   };
 }

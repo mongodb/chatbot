@@ -94,4 +94,9 @@ export type EmbeddedContentStore = VectorStore<EmbeddedContent> & {
     embeddingName: string;
     [k: string]: unknown;
   };
+
+  /**
+    Initialize the store.
+   */
+  init?: () => Promise<void>;
 };

@@ -66,6 +66,8 @@ export const withConfig = async <T>(
   const config = await loadConfig(args);
   const [resolvedConfig, cleanup] = await resolveConfig(config);
   try {
+    await resolvedConfig.embeddedContentStore?.init();
+    await resolvedConfig.pageStore?.init();
     return await action(resolvedConfig, args);
   } finally {
     await Promise.all(

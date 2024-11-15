@@ -40,6 +40,7 @@ export const standardConfig = {
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
       embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
+      collectionName: process.env.MONGODB_EMBEDDED_CONTENT_COLLECTION_NAME,
     }),
   pageStore: () =>
     makeMongoDbPageStore({
@@ -54,6 +55,11 @@ export const standardConfig = {
     }),
   chunkOptions: () => ({
     transform: standardChunkFrontMatterUpdater,
+  }),
+  concurrencyOptions: () => ({
+    embed: {
+      createChunks: 5,
+    },
   }),
   dataSources: async () => {
     return filterFulfilled(

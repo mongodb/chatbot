@@ -74,6 +74,10 @@ export function makeMongoDbPageStore({
         })
       );
     },
+    async init() {
+      await pagesCollection.createIndex({ url: 1 });
+      await pagesCollection.createIndex({ sourceName: 1 });
+    },
   };
 }
 

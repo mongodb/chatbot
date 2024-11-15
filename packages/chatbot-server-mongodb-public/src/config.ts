@@ -10,7 +10,6 @@ import {
   makeMongoDbConversationsService,
   makeOpenAiChatLlm,
   AppConfig,
-  makeBoostOnAtlasSearchFilter,
   CORE_ENV_VARS,
   assertEnvVars,
   makeDefaultFindContent,
@@ -50,27 +49,6 @@ export const {
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
-/**
-  Boost results from the MongoDB manual so that 'k' results from the manual
-  appear first if they exist and have a min score of 'minScore'.
- */
-export const boostManual = makeBoostOnAtlasSearchFilter({
-  /**
-    Boosts results that have 3 words or less
-   */
-  async shouldBoostFunc({ text }: { text: string }) {
-    return text.split(" ").filter((s) => s !== " ").length <= 3;
-  },
-  findNearestNeighborsOptions: {
-    filter: {
-      sourceName: "snooty-docs",
-    },
-    k: 2,
-    minScore: 0.88,
-  },
-  totalMaxK: 5,
-});
-
 export const openAiClient = new AzureOpenAI({
   apiKey: OPENAI_API_KEY,
   endpoint: OPENAI_ENDPOINT,
@@ -93,7 +71,10 @@ llm.answerQuestionAwaited = wrapTraced(llm.answerQuestionAwaited, {
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
-  embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
+  searchIndexConfig: {
+    embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
+  },
+  collectionName: process.env.MONGODB_EMBEDDED_CONTENT_COLLECTION_NAME,
 });
 
 export const verifiedAnswerConfig = {
@@ -107,9 +88,9 @@ export const retrievalConfig = {
   embeddingModel: OPENAI_EMBEDDING_DEPLOYMENT,
   findNearestNeighborsOptions: {
     k: 5,
-    path: "embedding",
+    path: embeddedContentStore.metadata.embeddingPath,
     indexName: VECTOR_SEARCH_INDEX_NAME,
-    minScore: 0.9,
+    minScore: 0.75,
   },
 };
 
@@ -128,7 +109,6 @@ export const findContent = wrapTraced(
     embedder,
     store: embeddedContentStore,
     findNearestNeighborsOptions: retrievalConfig.findNearestNeighborsOptions,
-    searchBoosters: [boostManual],
   }),
   {
     name: "findContent",

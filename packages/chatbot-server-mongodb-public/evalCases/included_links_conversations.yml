@@ -761,9 +761,9 @@
     - role: user
       content: Get started with MongoDB
   expectedLinks:
-    - https://mongodb.com/docs/manual/tutorial/getting-started/
+    - https://mongodb.com/docs/current/tutorial/getting-started/
     - https://mongodb.com/docs/develop-applications
-    - https://mongodb.com/docs/manual/
+    - https://mongodb.com/docs/current/
 - name: "Verified Answer: How do I install MongoDB on Windows?"
   tags:
     - verified_answer
@@ -771,10 +771,10 @@
     - role: user
       content: How do I install MongoDB on Windows?
   expectedLinks:
-    - https://mongodb.com/docs/manual/tutorial/install-mongodb-on-windows-unattended/
-    - https://mongodb.com/docs/manual/tutorial/install-mongodb-on-windows/
-    - https://mongodb.com/docs/manual/tutorial/install-mongodb-enterprise-on-windows/
-    - https://mongodb.com/docs/manual/installation/
+    - https://mongodb.com/docs/current/tutorial/install-mongodb-on-windows-unattended/
+    - https://mongodb.com/docs/current/tutorial/install-mongodb-on-windows/
+    - https://mongodb.com/docs/current/tutorial/install-mongodb-enterprise-on-windows/
+    - https://mongodb.com/docs/current/installation/
 - name: "Verified Answer: How do I insert data into MongoDB?"
   tags:
     - verified_answer
@@ -791,8 +791,8 @@
     - role: user
       content: command to create new collection
   expectedLinks:
-    - https://mongodb.com/docs/manual/reference/method/db.createCollection/
-    - https://mongodb.com/docs/manual/core/databases-and-collections/
+    - https://mongodb.com/docs/current/reference/method/db.createCollection/
+    - https://mongodb.com/docs/current/core/databases-and-collections/
 - name: "Verified Answer: What is mongodb?"
   tags:
     - verified_answer
@@ -800,8 +800,8 @@
     - role: user
       content: What is mongodb?
   expectedLinks:
-    - https://www.mongodb.com/docs/manual/introduction/
-    - https://mongodb.com/docs/manual/
+    - https://www.mongodb.com/docs/current/introduction/
+    - https://mongodb.com/docs/current/
 - name: "Verified Answer: updateMany"
   tags:
     - verified_answer
@@ -809,7 +809,7 @@
     - role: user
       content: updateMany
   expectedLinks:
-    - https://mongodb.com/docs/manual/tutorial/update-documents/
+    - https://mongodb.com/docs/current/tutorial/update-documents/
     - https://mongodb.com/docs/drivers/node/current/usage-examples/updateMany/
 - name: "Verified Answer: countDocuments"
   tags:
@@ -819,7 +819,7 @@
       content: countDocuments
   expectedLinks:
     - https://mongodb.com/docs/drivers/node/current/usage-examples/count/
-    - https://mongodb.com/docs/manual/reference/method/db.collection.countDocuments/
+    - https://mongodb.com/docs/current/reference/method/db.collection.countDocuments/
 - name: "Verified Answer: how to query"
   tags:
     - verified_answer
@@ -827,8 +827,8 @@
     - role: user
       content: how to query
   expectedLinks:
-    - https://www.mongodb.com/docs/manual/tutorial/query-documents/
-    - https://www.mongodb.com/docs/manual/reference/method/db.collection.find/
+    - https://www.mongodb.com/docs/current/tutorial/query-documents/
+    - https://www.mongodb.com/docs/current/reference/method/db.collection.find/
     - https://mongodb.com/docs/guides/crud/read_queries/
 - name: "Verified Answer: how to delete data"
   tags:
@@ -837,8 +837,8 @@
     - role: user
       content: how to delete data
   expectedLinks:
-    - https://www.mongodb.com/docs/manual/reference/command/delete
-    - https://www.mongodb.com/docs/manual/tutorial/remove-documents/
+    - https://www.mongodb.com/docs/current/reference/command/delete
+    - https://www.mongodb.com/docs/current/tutorial/remove-documents/
     - https://mongodb.com/docs/guides/crud/delete/
 - name: "Verified Answer: delete one document"
   tags:
@@ -847,7 +847,7 @@
     - role: user
       content: delete one document
   expectedLinks:
-    - https://www.mongodb.com/docs/manual/tutorial/remove-documents/
+    - https://www.mongodb.com/docs/current/tutorial/remove-documents/
     - https://mongodb.com/docs/guides/crud/delete/
     - https://mongodb.com/docs/drivers/node/current/usage-examples/deleteOne/
 - name: "Verified Answer: How do I backup a MongoDB database?"
@@ -857,9 +857,9 @@
     - role: user
       content: How do I backup a MongoDB database?
   expectedLinks:
-    - https://www.mongodb.com/docs/manual/core/backups/
+    - https://www.mongodb.com/docs/current/core/backups/
     - https://www.mongodb.com/docs/atlas/backup-restore-cluster/
-    - https://www.mongodb.com/docs/manual/tutorial/backup-and-restore-tools/
+    - https://www.mongodb.com/docs/current/tutorial/backup-and-restore-tools/
 - name: "Verified Answer: What is aggregation in MongoDB?"
   tags:
     - verified_answer
@@ -868,7 +868,7 @@
       content: What is aggregation in MongoDB?
   expectedLinks:
     - https://www.mongodb.com/docs/atlas/atlas-ui/agg-pipeline/
-    - https://www.mongodb.com/docs/manual/core/aggregation-pipeline/
+    - https://www.mongodb.com/docs/current/core/aggregation-pipeline/
     - https://www.mongodb.com/developer/products/mongodb/introduction-aggregation-framework
 - name: "Verified Answer: aggregation framework"
   tags:
@@ -878,7 +878,7 @@
       content: aggregation framework
   expectedLinks:
     - https://www.mongodb.com/docs/atlas/atlas-ui/agg-pipeline/
-    - https://www.mongodb.com/docs/manual/core/aggregation-pipeline/
+    - https://www.mongodb.com/docs/current/core/aggregation-pipeline/
     - https://www.mongodb.com/developer/products/mongodb/introduction-aggregation-framework
 - name: "Verified Answer: mongoshell"
   tags:
@@ -895,8 +895,8 @@
     - role: user
       content: how to remove object in array in mongoDB
   expectedLinks:
-    - https://mongodb.com/docs/manual/reference/operator/update/pop/
-    - https://mongodb.com/docs/manual/reference/operator/update/pull/
+    - https://mongodb.com/docs/current/reference/operator/update/pop/
+    - https://mongodb.com/docs/current/reference/operator/update/pull/
 - name: "Verified Answer: distinct"
   tags:
     - verified_answer
@@ -904,8 +904,8 @@
     - role: user
       content: distinct
   expectedLinks:
-    - https://mongodb.com/docs/manual/reference/command/distinct/
-    - https://mongodb.com/docs/manual/reference/method/db.collection.distinct/
+    - https://mongodb.com/docs/current/reference/command/distinct/
+    - https://mongodb.com/docs/current/reference/method/db.collection.distinct/
 - name: "Verified Answer: how to find unique values in my fields"
   tags:
     - verified_answer
@@ -913,8 +913,8 @@
     - role: user
       content: how to find unique values in my fields
   expectedLinks:
-    - https://www.mongodb.com/docs/manual/reference/command/distinct/
-    - https://mongodb.com/docs/manual/reference/method/db.collection.distinct/
+    - https://www.mongodb.com/docs/current/reference/command/distinct/
+    - https://mongodb.com/docs/current/reference/method/db.collection.distinct/
 - name: "Verified Answer: how to change maxBsonObjectSize"
   tags:
     - verified_answer
@@ -922,7 +922,7 @@
     - role: user
       content: how to change maxBsonObjectSize
   expectedLinks:
-    - https://www.mongodb.com/docs/manual/reference/limits
+    - https://www.mongodb.com/docs/current/reference/limits
 - name: "Verified Answer: how to update document"
   tags:
     - verified_answer
@@ -931,7 +931,7 @@
       content: how to update document
   expectedLinks:
     - https://mongodb.com/docs/drivers/node/current/usage-examples/updateOne/
-    - https://mongodb.com/docs/manual/tutorial/update-documents/
+    - https://mongodb.com/docs/current/tutorial/update-documents/
     - https://mongodb.com/docs/drivers/node/current/fundamentals/crud/write-operations/modify/
 - name: "Verified Answer: how to import data"
   tags:
@@ -949,10 +949,10 @@
     - role: user
       content: operators in mongodb
   expectedLinks:
-    - https://mongodb.com/docs/manual/reference/operator/aggregation/
-    - https://mongodb.com/docs/manual/reference/operator/query/
-    - https://mongodb.com/docs/manual/release-notes/6.0/
-    - https://mongodb.com/docs/manual/reference/operator/update/
+    - https://mongodb.com/docs/current/reference/operator/aggregation/
+    - https://mongodb.com/docs/current/reference/operator/query/
+    - https://mongodb.com/docs/current/release-notes/6.0/
+    - https://mongodb.com/docs/current/reference/operator/update/
 - name: "Verified Answer: how do I find with a projection"
   tags:
     - verified_answer
@@ -960,8 +960,8 @@
     - role: user
       content: how do I find with a projection
   expectedLinks:
-    - https://mongodb.com/docs/manual/reference/method/db.collection.find/
-    - https://mongodb.com/docs/manual/reference/method/db.collection.findOne/
+    - https://mongodb.com/docs/current/reference/method/db.collection.find/
+    - https://mongodb.com/docs/current/reference/method/db.collection.findOne/
 - name: "Verified Answer: how can i find a document by id"
   tags:
     - verified_answer
@@ -977,7 +977,7 @@
     - role: user
       content: connection string
   expectedLinks:
-    - https://mongodb.com/docs/manual/reference/connection-string/
+    - https://mongodb.com/docs/current/reference/connection-string/
 - name: "Verified Answer: how many authentication methods for MongoDB?"
   tags:
     - verified_answer
@@ -985,7 +985,7 @@
     - role: user
       content: how many authentication methods for MongoDB?
   expectedLinks:
-    - https://mongodb.com/docs/manual/core/authentication/
+    - https://mongodb.com/docs/current/core/authentication/
     - https://mongodb.com/docs/drivers/node/current/fundamentals/authentication/mechanisms/
     - https://mongodb.com/docs/drivers/node/current/fundamentals/authentication/
 - name: "Verified Answer: how to setup replica cluster"
@@ -995,7 +995,7 @@
     - role: user
       content: how to setup replica cluster
   expectedLinks:
-    - https://mongodb.com/docs/manual/tutorial/deploy-replica-set/
+    - https://mongodb.com/docs/current/tutorial/deploy-replica-set/
 - name: "Verified Answer: give me an example of how to use the $and operator"
   tags:
     - verified_answer
@@ -1003,8 +1003,8 @@
     - role: user
       content: give me an example of how to use the $and operator
   expectedLinks:
-    - https://mongodb.com/docs/manual/reference/operator/query/and/
-    - https://mongodb.com/docs/manual/reference/operator/aggregation/and/
+    - https://mongodb.com/docs/current/reference/operator/query/and/
+    - https://mongodb.com/docs/current/reference/operator/aggregation/and/
 
 - name: "Verified Answer: give me an example of how to use the $in operator"
   tags:
@@ -1013,8 +1013,8 @@
     - role: user
       content: give me an example of how to use the $in operator
   expectedLinks:
-    - https://mongodb.com/docs/manual/reference/operator/query/in/
-    - https://mongodb.com/docs/manual/reference/operator/aggregation/in/
+    - https://mongodb.com/docs/current/reference/operator/query/in/
+    - https://mongodb.com/docs/current/reference/operator/aggregation/in/
     - https://mongodb.com/docs/atlas/atlas-search/in/
 - name: "Verified Answer: Can you please give me a mongodb aggregation pipeline
     which does a $lookup and $match"
@@ -1026,9 +1026,9 @@
         Can you please give me a mongodb aggregation pipeline which does a
         $lookup and $match
   expectedLinks:
-    - https://mongodb.com/docs/manual/reference/operator/aggregation/lookup/
-    - https://mongodb.com/docs/manual/reference/operator/aggregation/graphLookup/
-    - https://www.mongodb.com/docs/manual/reference/operator/aggregation/match/
+    - https://mongodb.com/docs/current/reference/operator/aggregation/lookup/
+    - https://mongodb.com/docs/current/reference/operator/aggregation/graphLookup/
+    - https://www.mongodb.com/docs/current/reference/operator/aggregation/match/
 - name: "Verified Answer: Can i reset my password"
   tags:
     - verified_answer
@@ -1037,7 +1037,7 @@
       content: Can i reset my password
   expectedLinks:
     - https://mongodb.com/docs/atlas/security/manage-your-mongodb-atlas-account/
-    - https://mongodb.com/docs/manual/tutorial/change-own-password-and-custom-data/
+    - https://mongodb.com/docs/current/tutorial/change-own-password-and-custom-data/
 - name: "Verified Answer: Password reset"
   tags:
     - verified_answer
@@ -1046,7 +1046,7 @@
       content: Password reset
   expectedLinks:
     - https://mongodb.com/docs/atlas/security/manage-your-mongodb-atlas-account/
-    - https://mongodb.com/docs/manual/tutorial/change-own-password-and-custom-data/
+    - https://mongodb.com/docs/current/tutorial/change-own-password-and-custom-data/
 - name: "Verified Answer: How do I import or migrate data into MongoDB?"
   tags:
     - verified_answer

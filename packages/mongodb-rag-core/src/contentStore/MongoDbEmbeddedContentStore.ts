@@ -15,7 +15,7 @@ export type MakeMongoDbEmbeddedContentStoreParams =
       @default "embedded_content"
      */
     collectionName?: string;
-    searchIndexConfig: {
+    searchIndex: {
       /**
         Name of the search index to use for nearest-neighbor search.
         @default "vector_index"
@@ -60,7 +60,7 @@ export type MongoDbEmbeddedContentStore = EmbeddedContentStore &
 export function makeMongoDbEmbeddedContentStore({
   connectionUri,
   databaseName,
-  searchIndexConfig: {
+  searchIndex: {
     embeddingName,
     numDimensions = 1536,
     filters = [

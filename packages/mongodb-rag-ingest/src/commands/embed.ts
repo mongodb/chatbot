@@ -1,8 +1,3 @@
-/**
-  TODO: See note at top of `commands/pages.ts` file.
-  I think you can refactor to `ingest embed update --source <name> --since <time>`
-  and then add a new command `ingest embed delete --source <name>`
- */
 import { CommandModule } from "yargs";
 import {
   ResolvedConfig,
@@ -10,10 +5,10 @@ import {
   withConfig,
   withConfigOptions,
 } from "../withConfig";
-import { updateEmbeddedContent } from "mongodb-rag-core";
+import { logger, updateEmbeddedContent } from "mongodb-rag-core";
 
 type EmbeddedContentCommandArgs = {
-  since: string;
+  since?: string;
   source?: string | string[];
 };
 
@@ -21,27 +16,48 @@ const commandModule: CommandModule<
   unknown,
   LoadConfigArgs & EmbeddedContentCommandArgs
 > = {
-  command: "embed",
+  command: "embed <action>",
+  describe: "Manage embedded content (update or delete)",
   builder(args) {
-    return withConfigOptions(args)
-      .string("since")
-      .option("source", {
-        string: true,
-        description:
-          "A source name to load. If unspecified, loads all sources.",
+    return args
+      .command({
+        command: "update",
+        describe: "Update embedded content data",
+        builder: (updateArgs) =>
+          withConfigOptions(updateArgs)
+            .string("since")
+            .option("source", {
+              string: true,
+              description:
+                "A source name to load. If unspecified, loads all sources.",
+            })
+            .demandOption("since", "Please provide a 'since' date for the update"),
+        handler: ({ since: sinceString, source, ...updateArgs }) => {
+          if (isNaN(Date.parse(sinceString))) {
+            throw new Error(
+              `The value for 'since' (${sinceString}) must be a valid JavaScript date string.`
+            );
+          }
+          const since = new Date(sinceString);
+          withConfig(doEmbedCommand, { ...updateArgs, since, source });
+        },
       })
-      .demandOption("since");
+      .command({
+        command: "delete",
+        describe: "Delete embedded content data",
+        builder: (deleteArgs) =>
+          withConfigOptions(deleteArgs).option("source", {
+            string: true,
+            description:
+              "A source name to delete. If unspecified, deletes all sources.",
+          }),
+        handler: (deleteArgs) => withConfig(doDeleteEmbeddingsCommand, deleteArgs),
+      })
+      .demandCommand(1, "Please specify an action for 'ingest embed' (e.g., 'update' or 'delete')");
   },
-  async handler({ since: sinceString, source, ...args }) {
-    if (isNaN(Date.parse(sinceString))) {
-      throw new Error(
-        `The value for 'since' (${sinceString}) must be a valid JavaScript date string.`
-      );
-    }
-    const since = new Date(sinceString);
-    return withConfig(doEmbedCommand, { ...args, since, source });
+  handler: (args) => {
+    console.error('Specify an action for "embed" command (e.g., "delete" or "update")');
   },
-  describe: "Update embedded content data from pages",
 };
 
 export default commandModule;
@@ -77,5 +93,25 @@ export const doEmbedCommand = async (
     embedder,
     chunkOptions,
     concurrencyOptions: concurrencyOptions?.embed,
+  });
+};
+
+export const doDeleteEmbeddingsCommand = async (
+  {
+    embeddedContentStore,
+  }: ResolvedConfig,
+  { source }: { source?: string | string[] }
+) => {
+  const sourceNames =
+  source === undefined
+    ? undefined
+    : Array.isArray(source)
+    ? source
+    : [source];
+  logger.info(
+    `Embeddings to be deleted:\n${sourceNames?.map((name) => `- ${name}`).join("\n")}`
+  );
+  await embeddedContentStore.deleteEmbeddedContent({
+    dataSources: sourceNames,
   });
 };

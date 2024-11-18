@@ -68,11 +68,11 @@ export type EmbeddedContentStore = VectorStore<EmbeddedContent> & {
   loadEmbeddedContent(args: { page: Page }): Promise<EmbeddedContent[]>;
 
   /**
-    Delete all embedded content for the given page.
+    Delete all embedded content for the given page or data sources.
    */
   deleteEmbeddedContent(args: {
     page?: Page;
-    dataSource?: string;
+    dataSources?: string[];
   }): Promise<void>;
 
   /**

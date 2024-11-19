@@ -189,23 +189,25 @@ export function makeMongoDbEmbeddedContentStore({
         .toArray();
     },
     async init() {
-      await embeddedContentCollection.createIndex({ sourceName: 1, url: 1 });
-      await embeddedContentCollection.createSearchIndexes([
-        {
-          name: "vector_index",
-          definition: {
-            fields: [
-              {
-                numDimensions,
-                path: embeddingPath,
-                similarity: "cosine",
-                type: "vector",
-              },
-              ...filters,
-            ],
-          },
+      await embeddedContentCollection.createIndex({ sourceName: 1 });
+      await embeddedContentCollection.createIndex({ url: 1 });
+
+      const searchIndex = {
+        name,
+        type: "vectorSearch",
+        definition: {
+          fields: [
+            {
+              numDimensions,
+              path: embeddingPath,
+              similarity: "cosine",
+              type: "vector",
+            },
+            ...filters,
+          ],
         },
-      ]);
+      };
+      await embeddedContentCollection.createSearchIndex(searchIndex);
     },
   };
 }

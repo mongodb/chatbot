@@ -42,6 +42,10 @@ export const standardConfig = {
       collectionName: process.env.MONGODB_EMBEDDED_CONTENT_COLLECTION_NAME,
       searchIndex: {
         embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
+        numDimensions: process.env.EMBEDDING_NUM_DIMENSIONS
+          ? parseInt(process.env.EMBEDDING_NUM_DIMENSIONS)
+          : undefined,
+        name: OPENAI_EMBEDDING_DEPLOYMENT,
       },
     }),
   pageStore: () =>

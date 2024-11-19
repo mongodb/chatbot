@@ -10,6 +10,8 @@ import {
   MongoDbEmbeddedContentStore,
   makeMongoDbEmbeddedContentStore,
 } from "./MongoDbEmbeddedContentStore";
+import { MongoMemoryServer } from "mongodb-memory-server";
+import { MongoClient } from "mongodb";
 
 const {
   MONGODB_CONNECTION_URI,
@@ -25,13 +27,15 @@ jest.setTimeout(30000);
 
 describe("MongoDbEmbeddedContentStore", () => {
   let store: MongoDbEmbeddedContentStore | undefined;
+  const mongod = new MongoMemoryServer();
+  const uri = mongod.getUri();
   beforeEach(async () => {
-    // Need to use real Atlas connection in order to run vector searches
-    const databaseName = `test-database-${Date.now()}`;
     store = makeMongoDbEmbeddedContentStore({
-      connectionUri: MONGODB_CONNECTION_URI,
-      databaseName,
-      embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
+      connectionUri: uri,
+      databaseName: "test-database",
+      searchIndex: {
+        embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
+      },
     });
   });
 
@@ -39,6 +43,7 @@ describe("MongoDbEmbeddedContentStore", () => {
     assert(store);
     await store.drop();
     await store.close();
+    await mongod.stop();
   });
 
   it("handles embedded content", async () => {
@@ -63,7 +68,9 @@ describe("MongoDbEmbeddedContentStore", () => {
       page,
       embeddedContent: [
         {
-          embedding: [],
+          embeddings: {
+            [store.metadata.embeddingName]: new Array(1536).fill(0.1),
+          },
           sourceName: page.sourceName,
           text: "foo",
           url: page.url,
@@ -104,6 +111,26 @@ describe("MongoDbEmbeddedContentStore", () => {
     await store.deleteEmbeddedContent({ page });
     expect(await store.loadEmbeddedContent({ page })).toStrictEqual([]);
   });
+  it("has an overridable default collection name", async () => {
+    assert(store);
+
+    expect(store.metadata.collectionName).toBe("embedded_content");
+
+    const storeWithCustomCollectionName = await makeMongoDbEmbeddedContentStore(
+      {
+        connectionUri: MONGODB_CONNECTION_URI,
+        databaseName: store.metadata.databaseName,
+        collectionName: "custom-embedded_content",
+        searchIndex: {
+          embeddingName: "ada-02",
+        },
+      }
+    );
+
+    expect(storeWithCustomCollectionName.metadata.collectionName).toBe(
+      "custom-embedded_content"
+    );
+  });
 });
 
 // TODO: support the embeddings field in the EmbeddedContent interface
@@ -131,7 +158,9 @@ describe("nearest neighbor search", () => {
     store = makeMongoDbEmbeddedContentStore({
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
-      embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
+      searchIndex: {
+        embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
+      },
     });
   });
 
@@ -206,23 +235,38 @@ describe("nearest neighbor search", () => {
     );
     expect(matches).toHaveLength(0);
   });
+});
 
-  it("has an overridable default collection name", async () => {
+describe("index creation", async () => {
+  let store: MongoDbEmbeddedContentStore | undefined;
+  let mongoClient: MongoClient | undefined;
+  beforeEach(async () => {
+    // Need to use real Atlas connection in order to run vector searches
+    store = makeMongoDbEmbeddedContentStore({
+      connectionUri: MONGODB_CONNECTION_URI,
+      databaseName: MONGODB_DATABASE_NAME,
+      searchIndex: {
+        embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
+        filters: [{ type: "filter", path: "sourceName" }],
+        name: VECTOR_SEARCH_INDEX_NAME,
+      },
+    });
+    mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
+  });
+
+  afterEach(async () => {
     assert(store);
+    assert(mongoClient);
+    await store.close();
+    await mongoClient.close();
+  });
+  // TODO: init tests
+  it("creates default indexes", async () => {
+    assert(store);
+    await store.init();
+  });
 
-    expect(store.metadata.collectionName).toBe("embedded_content");
-
-    const storeWithCustomCollectionName = await makeMongoDbEmbeddedContentStore(
-      {
-        connectionUri: MONGODB_CONNECTION_URI,
-        databaseName: store.metadata.databaseName,
-        collectionName: "custom-embedded_content",
-        embeddingName: "ada-02",
-      }
-    );
-
-    expect(storeWithCustomCollectionName.metadata.collectionName).toBe(
-      "custom-embedded_content"
-    );
+  it("creates custom indexes", async () => {
+    assert(store);
   });
 });

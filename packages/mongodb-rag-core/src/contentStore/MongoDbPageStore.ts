@@ -18,6 +18,7 @@ export type MongoDbPageStore = DatabaseConnection &
       databaseName: string;
       collectionName: string;
     };
+    init(): Promise<void>;
   };
 
 export type MakeMongoDbPageStoreParams = MakeMongoDbDatabaseConnectionParams & {

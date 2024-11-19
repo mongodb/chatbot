@@ -10,7 +10,7 @@ import {
   MongoDbEmbeddedContentStore,
   makeMongoDbEmbeddedContentStore,
 } from "./MongoDbEmbeddedContentStore";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import { MongoMemoryReplSet } from "mongodb-memory-server";
 import { MongoClient } from "mongodb";
 import { EmbeddedContent } from "./EmbeddedContent";
 
@@ -22,15 +22,16 @@ const {
   OPENAI_EMBEDDING_DEPLOYMENT,
   VECTOR_SEARCH_INDEX_NAME,
   OPENAI_API_VERSION,
+  MONGODB_EMBEDDED_CONTENT_COLLECTION_NAME,
 } = assertEnvVars(CORE_ENV_VARS);
 
 jest.setTimeout(30000);
 
 describe("MongoDbEmbeddedContentStore", () => {
   let store: MongoDbEmbeddedContentStore | undefined;
-  let mongod: MongoMemoryServer | undefined;
+  let mongod: MongoMemoryReplSet | undefined;
   beforeEach(async () => {
-    mongod = await MongoMemoryServer.create();
+    mongod = await MongoMemoryReplSet.create();
     const uri = mongod.getUri();
     store = makeMongoDbEmbeddedContentStore({
       connectionUri: uri,
@@ -83,7 +84,9 @@ describe("MongoDbEmbeddedContentStore", () => {
 
     expect(await store.loadEmbeddedContent({ page })).toMatchObject([
       {
-        embedding: [],
+        embeddings: {
+          [store.metadata.embeddingName]: expect.any(Array),
+        },
         sourceName: "source1",
         text: "foo",
         url: "/x/y/z",
@@ -134,8 +137,6 @@ describe("MongoDbEmbeddedContentStore", () => {
   });
 });
 
-// TODO: support the embeddings field in the EmbeddedContent interface
-
 describe("nearest neighbor search", () => {
   const embedder = makeOpenAiEmbedder({
     openAiClient: new AzureOpenAI({
@@ -148,9 +149,8 @@ describe("nearest neighbor search", () => {
 
   const findNearestNeighborOptions: Partial<FindNearestNeighborsOptions> = {
     k: 5,
-    path: "embedding",
     indexName: VECTOR_SEARCH_INDEX_NAME,
-    minScore: 0.9,
+    minScore: 0.7,
   };
 
   let store: MongoDbEmbeddedContentStore | undefined;
@@ -162,6 +162,7 @@ describe("nearest neighbor search", () => {
       searchIndex: {
         embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
       },
+      collectionName: MONGODB_EMBEDDED_CONTENT_COLLECTION_NAME,
     });
   });
 
@@ -229,7 +230,7 @@ describe("nearest neighbor search", () => {
   it("does not find nearest neighbors for irrelevant embedding", async () => {
     assert(store);
 
-    const meaninglessEmbedding = new Array(1536).fill(0.1);
+    const meaninglessEmbedding = new Array(1536).fill(0.0001);
     const matches = await store.findNearestNeighbors(
       meaninglessEmbedding,
       findNearestNeighborOptions

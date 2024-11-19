@@ -22,7 +22,6 @@ const {
   OPENAI_EMBEDDING_DEPLOYMENT,
   VECTOR_SEARCH_INDEX_NAME,
   OPENAI_API_VERSION,
-  MONGODB_EMBEDDED_CONTENT_COLLECTION_NAME,
 } = assertEnvVars(CORE_ENV_VARS);
 
 jest.setTimeout(30000);
@@ -162,7 +161,6 @@ describe("nearest neighbor search", () => {
       searchIndex: {
         embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
       },
-      collectionName: MONGODB_EMBEDDED_CONTENT_COLLECTION_NAME,
     });
   });
 

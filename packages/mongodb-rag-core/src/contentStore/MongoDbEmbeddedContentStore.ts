@@ -55,7 +55,6 @@ export function makeMongoDbEmbeddedContentStore({
       if (!deleteResult.acknowledged) {
         throw new Error("EmbeddedContent deletion not acknowledged!");
       }
-      console.log(`Deleted ${deleteResult.deletedCount} embeddings.`);
     },
 
     async updateEmbeddedContent({ page, embeddedContent }) {

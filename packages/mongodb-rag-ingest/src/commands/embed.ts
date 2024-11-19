@@ -17,7 +17,7 @@ const commandModule: CommandModule<
   LoadConfigArgs & EmbeddedContentCommandArgs
 > = {
   command: "embed <action>",
-  describe: "Manage embedded content (update or delete)",
+  describe: "Manage embedded content",
   builder(args) {
     return args
       .command({

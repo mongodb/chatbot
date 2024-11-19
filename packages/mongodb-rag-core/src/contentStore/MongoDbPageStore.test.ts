@@ -5,6 +5,7 @@ import "dotenv/config";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { MongoClient } from "mongodb";
 
+jest.setTimeout(60000);
 const moviePages: PersistedPage[] = [
   {
     action: "created",

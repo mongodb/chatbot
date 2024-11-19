@@ -7,6 +7,7 @@ import {
   makeMongoDbDatabaseConnection,
 } from "../MongoDbDatabaseConnection";
 import { strict as assert } from "assert";
+import { MongoServerError } from "mongodb";
 
 export type MakeMongoDbEmbeddedContentStoreParams =
   MakeMongoDbDatabaseConnectionParams & {
@@ -192,22 +193,33 @@ export function makeMongoDbEmbeddedContentStore({
       await embeddedContentCollection.createIndex({ sourceName: 1 });
       await embeddedContentCollection.createIndex({ url: 1 });
 
-      const searchIndex = {
-        name,
-        type: "vectorSearch",
-        definition: {
-          fields: [
-            {
-              numDimensions,
-              path: embeddingPath,
-              similarity: "cosine",
-              type: "vector",
-            },
-            ...filters,
-          ],
-        },
-      };
-      await embeddedContentCollection.createSearchIndex(searchIndex);
+      try {
+        const searchIndex = {
+          name,
+          type: "vectorSearch",
+          definition: {
+            fields: [
+              {
+                numDimensions,
+                path: embeddingPath,
+                similarity: "cosine",
+                type: "vector",
+              },
+              ...filters,
+            ],
+          },
+        };
+        await embeddedContentCollection.createSearchIndex(searchIndex);
+      } catch (error: unknown) {
+        if (error instanceof MongoServerError) {
+          assert(
+            error.codeName === "IndexAlreadyExists",
+            `An unexpected MongoError occurred: ${error.name}`
+          );
+        } else {
+          throw error;
+        }
+      }
     },
   };
 }

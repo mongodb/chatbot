@@ -12,6 +12,7 @@ import {
 } from "./MongoDbEmbeddedContentStore";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { MongoClient } from "mongodb";
+import { EmbeddedContent } from "./EmbeddedContent";
 
 const {
   MONGODB_CONNECTION_URI,
@@ -27,9 +28,10 @@ jest.setTimeout(30000);
 
 describe("MongoDbEmbeddedContentStore", () => {
   let store: MongoDbEmbeddedContentStore | undefined;
-  const mongod = new MongoMemoryServer();
-  const uri = mongod.getUri();
+  let mongod: MongoMemoryServer | undefined;
   beforeEach(async () => {
+    mongod = await MongoMemoryServer.create();
+    const uri = mongod.getUri();
     store = makeMongoDbEmbeddedContentStore({
       connectionUri: uri,
       databaseName: "test-database",
@@ -40,10 +42,9 @@ describe("MongoDbEmbeddedContentStore", () => {
   });
 
   afterEach(async () => {
-    assert(store);
-    await store.drop();
-    await store.close();
-    await mongod.stop();
+    await store?.drop();
+    await store?.close();
+    await mongod?.stop();
   });
 
   it("handles embedded content", async () => {
@@ -237,7 +238,7 @@ describe("nearest neighbor search", () => {
   });
 });
 
-describe("index creation", async () => {
+describe("initialized DB", () => {
   let store: MongoDbEmbeddedContentStore | undefined;
   let mongoClient: MongoClient | undefined;
   beforeEach(async () => {
@@ -260,13 +261,23 @@ describe("index creation", async () => {
     await store.close();
     await mongoClient.close();
   });
-  // TODO: init tests
-  it("creates default indexes", async () => {
+  it("creates indexes", async () => {
     assert(store);
     await store.init();
-  });
 
-  it("creates custom indexes", async () => {
-    assert(store);
+    const coll = mongoClient
+      ?.db(store.metadata.databaseName)
+      .collection<EmbeddedContent>(store.metadata.collectionName);
+    const indexes = await coll?.listIndexes().toArray();
+    expect(indexes?.some((el) => el.name === "_id_")).toBe(true);
+    expect(indexes?.some((el) => el.name === "sourceName_1")).toBe(true);
+    expect(indexes?.some((el) => el.name === "url_1")).toBe(true);
+
+    const vectorIndexes = await coll?.listSearchIndexes().toArray();
+    expect(
+      vectorIndexes?.some(
+        (vi) => (vi as unknown as { type: string }).type === "vectorSearch"
+      )
+    ).toBe(true);
   });
 });

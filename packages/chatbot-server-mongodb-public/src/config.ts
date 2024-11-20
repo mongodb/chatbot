@@ -75,7 +75,6 @@ export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   searchIndex: {
     embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   },
-  collectionName: process.env.MONGODB_EMBEDDED_CONTENT_COLLECTION_NAME,
 });
 
 export const verifiedAnswerConfig = {

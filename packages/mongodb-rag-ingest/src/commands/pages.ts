@@ -99,9 +99,9 @@ export const doDeleteCommand = async (
   );
   if (invalidSources.length) {
     throw new Error(
-      `Delete failed becuase you have requested the following invalid sources be deleted:\n${invalidSources
+      `Delete failed because the following invalid sources were requested to be deleted:\n${invalidSources
         .map((source) => `- ${source}`)
-        .join("\n")} \nAvailable sources:\n${dataSources
+        .join("\n")}\nRemove invalid sources from the list and try again.\nAvailable sources:\n${dataSources
         .map(({ name }) => `- ${name}`)
         .join("\n")}`
     );

@@ -31,7 +31,10 @@ const commandModule: CommandModule<
               description:
                 "A source name to load. If unspecified, loads all sources.",
             })
-            .demandOption("since", "Please provide a 'since' date for the update"),
+            .demandOption(
+              "since",
+              "Please provide a 'since' date for the update"
+            ),
         handler: ({ since: sinceString, source, ...updateArgs }) => {
           if (isNaN(Date.parse(sinceString))) {
             throw new Error(
@@ -51,12 +54,18 @@ const commandModule: CommandModule<
             description:
               "A source name to delete. If unspecified, deletes all sources.",
           }),
-        handler: (deleteArgs) => withConfig(doDeleteEmbeddingsCommand, deleteArgs),
+        handler: (deleteArgs) =>
+          withConfig(doDeleteEmbeddingsCommand, deleteArgs),
       })
-      .demandCommand(1, "Please specify an action for 'ingest embed' (e.g., 'update' or 'delete')");
+      .demandCommand(
+        1,
+        "Please specify an action for 'ingest embed' (e.g., 'update' or 'delete')"
+      );
   },
   handler: (args) => {
-    console.error('Specify an action for "embed" command (e.g., "delete" or "update")');
+    console.error(
+      'Specify an action for "embed" command (e.g., "delete" or "update")'
+    );
   },
 };
 
@@ -97,19 +106,19 @@ export const doEmbedCommand = async (
 };
 
 export const doDeleteEmbeddingsCommand = async (
-  {
-    embeddedContentStore,
-  }: ResolvedConfig,
+  { embeddedContentStore }: ResolvedConfig,
   { source }: { source?: string | string[] }
 ) => {
   const sourceNames =
-  source === undefined
-    ? undefined
-    : Array.isArray(source)
-    ? source
-    : [source];
+    source === undefined
+      ? undefined
+      : Array.isArray(source)
+      ? source
+      : [source];
   logger.info(
-    `Embeddings to be deleted:\n${sourceNames?.map((name) => `- ${name}`).join("\n")}`
+    `Embeddings to be deleted:\n${sourceNames
+      ?.map((name) => `- ${name}`)
+      .join("\n")}`
   );
   await embeddedContentStore.deleteEmbeddedContent({
     dataSources: sourceNames,

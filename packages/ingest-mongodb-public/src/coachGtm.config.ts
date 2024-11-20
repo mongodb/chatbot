@@ -20,7 +20,7 @@ import "dotenv/config";
 const {
   OPENAI_ENDPOINT,
   OPENAI_API_KEY,
-  OPENAI_EMBEDDING_DEPLOYMENT,
+  OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   OPENAI_API_VERSION,
   MONGODB_CONNECTION_URI,
   MONGODB_COACH_GTM_DATABASE_NAME,
@@ -38,7 +38,7 @@ const embedder = makeOpenAiEmbedder({
     endpoint: OPENAI_ENDPOINT,
     apiVersion: OPENAI_API_VERSION,
   }),
-  deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+  deployment: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   backoffOptions: {
     numOfAttempts: 25,
     startingDelay: 1000,
@@ -52,7 +52,7 @@ export const standardConfig = {
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_COACH_GTM_DATABASE_NAME,
       searchIndex: {
-        embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
+        embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
       },
     }),
   pageStore: () =>

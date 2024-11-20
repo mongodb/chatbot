@@ -15,7 +15,7 @@ const {
   OPENAI_ENDPOINT,
   OPENAI_API_KEY,
   OPENAI_API_VERSION,
-  OPENAI_EMBEDDING_DEPLOYMENT,
+  OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
 } = assertEnvVars(PUBLIC_INGEST_ENV_VARS);
@@ -26,7 +26,7 @@ const embedder = makeOpenAiEmbedder({
     endpoint: OPENAI_ENDPOINT,
     apiVersion: OPENAI_API_VERSION,
   }),
-  deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+  deployment: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   backoffOptions: {
     numOfAttempts: 25,
     startingDelay: 1000,
@@ -41,11 +41,8 @@ export const standardConfig = {
       databaseName: MONGODB_DATABASE_NAME,
       collectionName: process.env.MONGODB_EMBEDDED_CONTENT_COLLECTION_NAME,
       searchIndex: {
-        embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
-        numDimensions: process.env.EMBEDDING_NUM_DIMENSIONS
-          ? parseInt(process.env.EMBEDDING_NUM_DIMENSIONS)
-          : undefined,
-        name: OPENAI_EMBEDDING_DEPLOYMENT,
+        embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
+        name: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
       },
     }),
   pageStore: () =>

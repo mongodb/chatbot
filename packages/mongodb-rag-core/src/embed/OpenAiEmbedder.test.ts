@@ -8,7 +8,7 @@ describe("OpenAiEmbedFunc", () => {
   const {
     OPENAI_ENDPOINT,
     OPENAI_API_KEY,
-    OPENAI_EMBEDDING_DEPLOYMENT,
+    OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
     OPENAI_API_VERSION,
   } = assertEnvVars(CORE_ENV_VARS);
   const openAiClient = new AzureOpenAI({
@@ -17,7 +17,7 @@ describe("OpenAiEmbedFunc", () => {
     apiVersion: OPENAI_API_VERSION,
   });
   const embedder = makeOpenAiEmbedder({
-    deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+    deployment: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
     openAiClient,
   });
 
@@ -32,7 +32,7 @@ describe("OpenAiEmbedFunc", () => {
     const input = "Hello world! ".repeat(8192);
     const embedder = makeOpenAiEmbedder({
       openAiClient,
-      deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+      deployment: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
       backoffOptions: {
         numOfAttempts: 1,
       },

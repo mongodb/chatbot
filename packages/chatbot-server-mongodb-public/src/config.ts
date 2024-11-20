@@ -38,7 +38,8 @@ export const {
   OPENAI_ENDPOINT,
   OPENAI_API_KEY,
   OPENAI_API_VERSION,
-  OPENAI_EMBEDDING_DEPLOYMENT,
+  OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
+  OPENAI_VERIFIED_ANSWER_EMBEDDING_DEPLOYMENT,
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
@@ -72,20 +73,20 @@ export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
   searchIndex: {
-    embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
+    embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   },
   collectionName: process.env.MONGODB_EMBEDDED_CONTENT_COLLECTION_NAME,
 });
 
 export const verifiedAnswerConfig = {
-  embeddingModel: OPENAI_EMBEDDING_DEPLOYMENT,
+  embeddingModel: OPENAI_VERIFIED_ANSWER_EMBEDDING_DEPLOYMENT,
   findNearestNeighborsOptions: {
     minScore: 0.96,
   },
 };
 export const retrievalConfig = {
   preprocessorLlm: OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
-  embeddingModel: OPENAI_EMBEDDING_DEPLOYMENT,
+  embeddingModel: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   findNearestNeighborsOptions: {
     k: 5,
     path: embeddedContentStore.metadata.embeddingPath,

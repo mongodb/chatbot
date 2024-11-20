@@ -19,7 +19,7 @@ const {
   MONGODB_DATABASE_NAME,
   OPENAI_ENDPOINT,
   OPENAI_API_KEY,
-  OPENAI_EMBEDDING_DEPLOYMENT,
+  OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   VECTOR_SEARCH_INDEX_NAME,
   OPENAI_API_VERSION,
 } = assertEnvVars(CORE_ENV_VARS);
@@ -36,7 +36,7 @@ describe("MongoDbEmbeddedContentStore", () => {
       connectionUri: uri,
       databaseName: "test-database",
       searchIndex: {
-        embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
+        embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
       },
     });
   });
@@ -143,7 +143,7 @@ describe("nearest neighbor search", () => {
       endpoint: OPENAI_ENDPOINT,
       apiVersion: OPENAI_API_VERSION,
     }),
-    deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+    deployment: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   });
 
   const findNearestNeighborOptions: Partial<FindNearestNeighborsOptions> = {
@@ -159,7 +159,7 @@ describe("nearest neighbor search", () => {
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
       searchIndex: {
-        embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
+        embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
       },
     });
   });
@@ -246,7 +246,7 @@ describe("initialized DB", () => {
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
       searchIndex: {
-        embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
+        embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
         filters: [{ type: "filter", path: "sourceName" }],
         name: VECTOR_SEARCH_INDEX_NAME,
       },

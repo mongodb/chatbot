@@ -32,7 +32,6 @@ steps:
       OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: gpt-4o-mini
       OPENAI_API_VERSION: "2024-06-01"
       BRAINTRUST_TEXT_TO_DRIVER_PROJECT_NAME: "text-to-node-js-driver-benchmark"
-      MONGODB_EMBEDDED_CONTENT_COLLECTION_NAME: "embedded_content_text-embedding-3-small"
       # Setting this placeholder to make test suite pass in the CI
       BRAINTRUST_API_KEY: "PLACEHOLDER_UNTIL_OFFICIAL VENDOR"
       MONGODB_CONNECTION_URI:
@@ -41,8 +40,8 @@ steps:
         from_secret: openai_endpoint
       OPENAI_API_KEY:
         from_secret: openai_api_key
-      OPENAI_EMBEDDING_DEPLOYMENT:
-        from_secret: openai_embedding_deployment
+      OPENAI_VERIFIED_ANSWER_EMBEDDING_DEPLOYMENT: docs-chatbot-embedding-ada-002
+      OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT: text-embedding-3-small
       OPENAI_CHAT_COMPLETION_DEPLOYMENT:
         from_secret: openai_chat_completion_deployment
       DEVCENTER_CONNECTION_URI:

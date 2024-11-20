@@ -11,11 +11,12 @@ cronJobs:
       VECTOR_SEARCH_INDEX_NAME: vector_index
       OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
       OPENAI_API_VERSION: "2024-06-01"
+      OPENAI_VERIFIED_ANSWER_EMBEDDING_DEPLOYMENT: "docs-chatbot-embedding-ada-002"
+      OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT: "text-embedding-3-small"
     envSecrets:
       MONGODB_CONNECTION_URI: docs-chatbot-prod
       OPENAI_ENDPOINT: docs-chatbot-prod
       OPENAI_API_KEY: docs-chatbot-prod
-      OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-prod
       OPENAI_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-prod
       DEVCENTER_CONNECTION_URI: docs-chatbot-prod
       GITHUB_ACCESS_TOKEN: docs-chatbot-prod

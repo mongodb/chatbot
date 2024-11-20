@@ -18,6 +18,7 @@ describe("makeDefaultFindContent()", () => {
     OPENAI_API_KEY,
     OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
     OPENAI_API_VERSION,
+    VECTOR_SEARCH_INDEX_NAME,
   } = assertEnvVars({
     ...CORE_CHATBOT_APP_ENV_VARS,
     ...CORE_OPENAI_RETRIEVAL_ENV_VARS,
@@ -27,6 +28,7 @@ describe("makeDefaultFindContent()", () => {
     databaseName: MONGODB_DATABASE_NAME,
     searchIndex: {
       embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
+      name: VECTOR_SEARCH_INDEX_NAME,
     },
   });
 
@@ -45,11 +47,14 @@ describe("makeDefaultFindContent()", () => {
     },
   });
 
-  const findContent = makeDefaultFindContent({
-    embedder,
-    store: embeddedContentStore,
-  });
   test("Should return content for relevant text", async () => {
+    const findContent = makeDefaultFindContent({
+      embedder,
+      store: embeddedContentStore,
+      findNearestNeighborsOptions: {
+        minScore: 0.1, // low min, definitely does not have answers
+      },
+    });
     const query = "MongoDB Atlas";
     const { content } = await findContent({
       query,
@@ -58,6 +63,13 @@ describe("makeDefaultFindContent()", () => {
     expect(content.length).toBeGreaterThan(0);
   });
   test("Should not return content for irrelevant text", async () => {
+    const findContent = makeDefaultFindContent({
+      embedder,
+      store: embeddedContentStore,
+      findNearestNeighborsOptions: {
+        minScore: 0.99, // high min, definitely does not have answers
+      },
+    });
     const query =
       "asdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjasdlfkjafdshgjfkhfdugytfasfghjkujufgjdfhstgragtyjuikolaf;ldkgsdjfnh;ks'l;addfsghjklafjklsgfjgreaj;agre;jlg;ljewrqjknerqnkjkgn;jwr;lwreg";
     const { content } = await findContent({

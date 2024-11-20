@@ -162,7 +162,7 @@ export function makeMongoDbEmbeddedContentStore({
         indexName: name,
         path: embeddingPath,
         k: 3,
-        minScore: 0.9,
+        minScore: 0,
         // User options override
         ...(options ?? {}),
       };

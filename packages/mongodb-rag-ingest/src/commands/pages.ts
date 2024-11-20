@@ -13,19 +13,23 @@ const commandModule: CommandModule<
       .command({
         command: "update",
         describe: "Update pages data from sources",
-        builder: (updateArgs) => withConfigOptions(updateArgs).option("source", {
-          string: true,
-          description: "A source name to load. If unspecified, loads all sources.",
-        }),
+        builder: (updateArgs) =>
+          withConfigOptions(updateArgs).option("source", {
+            string: true,
+            description:
+              "A source name to load. If unspecified, loads all sources.",
+          }),
         handler: (updateArgs) => withConfig(doPagesCommand, updateArgs),
       })
       .command({
         command: "delete [permanent]",
         describe: "Delete pages data from database",
-        builder: (deleteArgs) => withConfigOptions(deleteArgs).option("source", {
-          string: true,
-          description: "A source name to delete. If unspecified, deletes all sources. Deletion can be permanant or soft, where the page is marked deleted but not removed from the collection.",
-        }),
+        builder: (deleteArgs) =>
+          withConfigOptions(deleteArgs).option("source", {
+            string: true,
+            description:
+              "A source name to delete. If unspecified, deletes all sources. Deletion can be permanant or soft, where the page is marked deleted but not removed from the collection.",
+          }),
         handler: (deleteArgs) => withConfig(doDeleteCommand, deleteArgs),
       })
       .demandCommand(1, "Specify an action for 'pages' command");
@@ -77,26 +81,38 @@ export const doDeleteCommand = async (
   { pageStore, dataSources }: ResolvedConfig,
   { source, permanent }: PagesCommandArgs
 ) => {
+  if (source === undefined) {
+    logger.info(
+      `All sources to be ${
+        permanent ? "permanently deleted" : "marked for deletion"
+      }`
+    );
+    await pageStore.deletePages({ permanent: permanent });
+    return;
+  }
   const sourcesToDelete = new Set(Array.isArray(source) ? source : [source]);
-
-  const sources =
-    source === undefined
-      ? dataSources
-      : dataSources.filter(({ name }) => sourcesToDelete.has(name));
-
-  if (sources.length === 0) {
+  const validSources = dataSources
+    .filter(({ name }) => sourcesToDelete.has(name))
+    .map(({ name }) => name);
+  const invalidSources = Array.from(sourcesToDelete).filter(
+    (source) => !validSources.includes(source)
+  );
+  if (invalidSources.length) {
     throw new Error(
-      `Request at least one valid source. Available sources:\n${dataSources
+      `Delete failed becuase you have requested the following invalid sources be deleted:\n${invalidSources
+        .map((source) => `- ${source}`)
+        .join("\n")} \nAvailable sources:\n${dataSources
         .map(({ name }) => `- ${name}`)
         .join("\n")}`
     );
   }
   logger.info(
-    `Sources to be ${permanent ? "permanently deleted" : "marked for deletion"}:\n${sources.map(({ name }) => `- ${name}`).join("\n")}`
+    `Sources to be ${
+      permanent ? "permanently deleted" : "marked for deletion"
+    }:\n${validSources.map((source) => `- ${source}`).join("\n")}`
   );
-  const sourcesToDeleteArray = Array.from(sourcesToDelete);
-  const deleteFilter = {
-    sourceName: {$in: sourcesToDeleteArray},
-  };
-  await pageStore.deletePages({filter: deleteFilter, permanent: permanent});
+  await pageStore.deletePages({
+    dataSources: validSources,
+    permanent: permanent,
+  });
 };

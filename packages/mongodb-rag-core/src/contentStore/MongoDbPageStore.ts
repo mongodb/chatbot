@@ -74,20 +74,23 @@ export function makeMongoDbPageStore({
         })
       );
     },
-    async deletePages(args: DeletePagesArgs) {
-      if (args.permanent) {
-        const result = await pagesCollection.deleteMany(args.filter);
+    async deletePages({dataSources, permanent=false}: DeletePagesArgs) {
+      const filter = {
+        ...(dataSources ? { sourceName: { $in: dataSources } } : undefined),
+      }
+      if (permanent) {
+        const result = await pagesCollection.deleteMany(filter);
         if (!result.acknowledged) {
           throw new Error(`Permanent-delete pages not acknowledged!`);
         }
         if (!result.deletedCount) {
           throw new Error(
-            `Pages matching filter ${JSON.stringify(args.filter)} not permanently deleted!`
+            `Pages matching filter ${JSON.stringify(filter)} not permanently deleted!`
           );
         }
       }
       else {
-        const result = await pagesCollection.updateMany(args.filter, {
+        const result = await pagesCollection.updateMany(filter, {
           $set: { action: "deleted" },
         });
         if (!result.acknowledged) {
@@ -95,7 +98,7 @@ export function makeMongoDbPageStore({
         }
         if (!result.modifiedCount && !result.upsertedCount) {
           throw new Error(
-            `Pages matching filter ${JSON.stringify(args.filter)} not marked for deletion!`
+            `Pages matching filter ${JSON.stringify(filter)} not marked for deletion!`
           );
         }
       }

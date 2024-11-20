@@ -85,12 +85,9 @@ export type LoadPagesArgs<QueryShape = unknown> = {
 
 export type DeletePagesArgs = {
     /**
-     Specifies deletion criteria using MQL query operators.
-     To delete all documents in the collection, pass in an empty document ({ }).
+    The names of the sources to delete pages from.
     */
-    filter: {
-      [key: string]: any;
-    };
+    dataSources?: string[];
     /**
     Permanently remove pages from the data store,
     rather than marking them as `"deleted"`.

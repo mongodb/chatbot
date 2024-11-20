@@ -6,6 +6,9 @@ import {
 } from "./makeMongoDbReferences";
 
 describe("makeMongoDbReferences", () => {
+  const embeddings = {
+    modelName: [0.1, 0.2, 0.3],
+  };
   it("returns standard references with sourceType metadata", () => {
     const chunks = [
       {
@@ -13,7 +16,7 @@ describe("makeMongoDbReferences", () => {
         sourceName: "example",
         text: "# Example Blog\n\nThis is my example blog.\n\n",
         tokenCount: 4,
-        embedding: [0.1, 0.2, 0.3],
+        embeddings,
         updated: new Date(),
         metadata: {
           pageTitle: "Example Blog",
@@ -26,7 +29,7 @@ describe("makeMongoDbReferences", () => {
         sourceName: "example",
         text: "It is a very cool blog.",
         tokenCount: 12,
-        embedding: [0.1, 0.2, 0.3],
+        embeddings,
         updated: new Date(),
         metadata: {
           pageTitle: "Example Blog",
@@ -39,7 +42,7 @@ describe("makeMongoDbReferences", () => {
         sourceName: "mongodb-dotcom",
         text: "Love Your Developers",
         tokenCount: 5,
-        embedding: [0.1, 0.2, 0.3],
+        embeddings,
         updated: new Date(),
         metadata: {
           pageTitle: "Love Your Developers",
@@ -52,7 +55,9 @@ describe("makeMongoDbReferences", () => {
         sourceName: "devcenter",
         text: "In this article, we will be going through some of the best practices for getting started with Flask...",
         tokenCount: 222,
-        embedding: [0.31, 0.32, 0.33],
+        embeddings: {
+          embeddingName: [0.31, 0.32, 0.33],
+        },
         updated: new Date(),
         metadata: {
           pageTitle: "Best Practices for Using Flask and MongoDB",
@@ -100,7 +105,7 @@ describe("makeMongoDbReferences", () => {
         sourceName: "example",
         text: "Lorem ipsum",
         tokenCount: 5,
-        embedding: [0.1, 0.2, 0.3],
+        embeddings,
         updated: new Date(),
         metadata: {
           pageTitle: "Some Page",

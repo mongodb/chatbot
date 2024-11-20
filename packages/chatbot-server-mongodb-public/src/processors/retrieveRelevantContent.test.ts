@@ -15,7 +15,7 @@ describe("retrieveRelevantContent", () => {
   const fakeEmbedding = [1, 2, 3];
 
   const fakeContentBase = {
-    embedding: fakeEmbedding,
+    embeddings: { modelName: fakeEmbedding },
     score: 1,
     url: "url",
     tokenCount: 3,

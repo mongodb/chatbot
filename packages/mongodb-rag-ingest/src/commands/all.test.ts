@@ -38,6 +38,9 @@ describe("allCommand", () => {
     async updateEmbeddedContent() {
       return;
     },
+    metadata: {
+      embeddingName: "embeddedName",
+    },
   };
   const mockPageStore: PageStore = {
     async loadPages() {

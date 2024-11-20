@@ -50,10 +50,4 @@ export type FindNearestNeighborsOptions = {
     Search filter expression.
    */
   filter: Record<string, unknown>;
-
-  /**
-    Whether to include the embeddings in the results.
-    They can be large and are often not needed.
-   */
-  includeEmbeddings?: boolean;
 };

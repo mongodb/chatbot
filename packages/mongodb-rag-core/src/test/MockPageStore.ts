@@ -9,7 +9,7 @@ export const makeMockPageStore = (): PageStore => {
     async updatePages(args: PersistedPage[]) {
       pages = [...args];
     },
-    async deletePages(args: DeletePagesArgs) {
+    async deletePages(_args: DeletePagesArgs) {
       return;
     },
   };

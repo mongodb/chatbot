@@ -4,7 +4,12 @@ import {
   MakeMongoDbDatabaseConnectionParams,
   makeMongoDbDatabaseConnection,
 } from "../MongoDbDatabaseConnection";
-import { DeletePagesArgs, LoadPagesArgs, PageStore, PersistedPage } from "./Page";
+import {
+  DeletePagesArgs,
+  LoadPagesArgs,
+  PageStore,
+  PersistedPage,
+} from "./Page";
 import { Filter } from "mongodb";
 
 export type MongoDbPageStore = DatabaseConnection &
@@ -74,10 +79,10 @@ export function makeMongoDbPageStore({
         })
       );
     },
-    async deletePages({dataSources, permanent=false}: DeletePagesArgs) {
+    async deletePages({ dataSources, permanent = false }: DeletePagesArgs) {
       const filter = {
         ...(dataSources ? { sourceName: { $in: dataSources } } : undefined),
-      }
+      };
       if (permanent) {
         const result = await pagesCollection.deleteMany(filter);
         if (!result.acknowledged) {
@@ -85,11 +90,12 @@ export function makeMongoDbPageStore({
         }
         if (!result.deletedCount) {
           throw new Error(
-            `Pages matching filter ${JSON.stringify(filter)} not permanently deleted!`
+            `Pages matching filter ${JSON.stringify(
+              filter
+            )} not permanently deleted!`
           );
         }
-      }
-      else {
+      } else {
         const result = await pagesCollection.updateMany(filter, {
           $set: { action: "deleted" },
         });
@@ -98,7 +104,9 @@ export function makeMongoDbPageStore({
         }
         if (!result.modifiedCount && !result.upsertedCount) {
           throw new Error(
-            `Pages matching filter ${JSON.stringify(filter)} not marked for deletion!`
+            `Pages matching filter ${JSON.stringify(
+              filter
+            )} not marked for deletion!`
           );
         }
       }

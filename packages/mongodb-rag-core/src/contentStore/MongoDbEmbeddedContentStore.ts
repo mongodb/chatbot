@@ -50,7 +50,7 @@ export function makeMongoDbEmbeddedContentStore({
     async deleteEmbeddedContent({ page, dataSources }) {
       const deleteResult = await embeddedContentCollection.deleteMany({
         ...(page ? pageIdentity(page) : undefined),
-        ...(dataSources ? {sourceName: {'$in': dataSources}} : undefined),
+        ...(dataSources ? { sourceName: { $in: dataSources } } : undefined),
       });
       if (!deleteResult.acknowledged) {
         throw new Error("EmbeddedContent deletion not acknowledged!");

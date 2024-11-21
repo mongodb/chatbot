@@ -84,16 +84,16 @@ export type LoadPagesArgs<QueryShape = unknown> = {
 };
 
 export type DeletePagesArgs = {
-    /**
+  /**
     The names of the sources to delete pages from.
     */
-    dataSources?: string[];
-    /**
+  dataSources?: string[];
+  /**
     Permanently remove pages from the data store,
     rather than marking them as `"deleted"`.
    */
-    permanent?: boolean;
-  };
+  permanent?: boolean;
+};
 
 /**
   Data store for {@link Page} objects.

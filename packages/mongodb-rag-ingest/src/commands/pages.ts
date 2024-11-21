@@ -25,11 +25,17 @@ const commandModule: CommandModule<
         command: "delete [permanent]",
         describe: "Delete pages data from database",
         builder: (deleteArgs) =>
-          withConfigOptions(deleteArgs).option("source", {
-            string: true,
-            description:
-              "A source name to delete. If unspecified, deletes all sources. Deletion can be permanant or soft, where the page is marked deleted but not removed from the collection.",
-          }),
+          withConfigOptions(deleteArgs)
+            .option("source", {
+              string: true,
+              description:
+                "A source name to delete. If unspecified, deletes all sources.",
+            })
+            .option("permanent", {
+              boolean: true,
+              description:
+                "If true, permanently deletes the pages. If false or unspecified, marks the pages as deleted without removing them from the collection.",
+            }),
         handler: (deleteArgs) => withConfig(doDeleteCommand, deleteArgs),
       })
       .demandCommand(1, "Specify an action for 'pages' command");
@@ -101,7 +107,9 @@ export const doDeleteCommand = async (
     throw new Error(
       `Delete failed because the following invalid sources were requested to be deleted:\n${invalidSources
         .map((source) => `- ${source}`)
-        .join("\n")}\nRemove invalid sources from the list and try again.\nAvailable sources:\n${dataSources
+        .join(
+          "\n"
+        )}\nRemove invalid sources from the list and try again.\nAvailable sources:\n${dataSources
         .map(({ name }) => `- ${name}`)
         .join("\n")}`
     );

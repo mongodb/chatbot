@@ -41,7 +41,7 @@ const commandModule: CommandModule<
       .demandCommand(1, "Specify an action for 'pages' command");
   },
   describe: "Manage pages data from sources",
-  handler: (args) => {
+  handler: (_args) => {
     console.error('Specify an action for "pages" command');
   },
 };

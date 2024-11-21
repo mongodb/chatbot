@@ -58,7 +58,7 @@ const commandModule: CommandModule<
           withConfig(doDeleteEmbeddingsCommand, deleteArgs),
       });
   },
-  handler: (args) => {
+  handler: (_args) => {
     console.error('Specify an action for "embed" command');
   },
 };

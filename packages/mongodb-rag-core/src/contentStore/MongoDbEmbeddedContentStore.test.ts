@@ -7,12 +7,14 @@ import { makeOpenAiEmbedder } from "../embed";
 import "dotenv/config";
 import { PersistedPage } from ".";
 import {
+  MakeMongoDbEmbeddedContentStoreParams,
   MongoDbEmbeddedContentStore,
   makeMongoDbEmbeddedContentStore,
 } from "./MongoDbEmbeddedContentStore";
 import { MongoMemoryReplSet } from "mongodb-memory-server";
 import { MongoClient } from "mongodb";
 import { EmbeddedContent } from "./EmbeddedContent";
+import { url } from "inspector";
 
 const {
   MONGODB_CONNECTION_URI,
@@ -22,6 +24,7 @@ const {
   OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   VECTOR_SEARCH_INDEX_NAME,
   OPENAI_API_VERSION,
+  FTS_INDEX_NAME,
 } = assertEnvVars(CORE_ENV_VARS);
 
 jest.setTimeout(30000);
@@ -136,16 +139,16 @@ describe("MongoDbEmbeddedContentStore", () => {
   });
 });
 
-describe("nearest neighbor search", () => {
-  const embedder = makeOpenAiEmbedder({
-    openAiClient: new AzureOpenAI({
-      apiKey: OPENAI_API_KEY,
-      endpoint: OPENAI_ENDPOINT,
-      apiVersion: OPENAI_API_VERSION,
-    }),
-    deployment: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
-  });
+const embedder = makeOpenAiEmbedder({
+  openAiClient: new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  }),
+  deployment: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
+});
 
+describe("nearest neighbor search", () => {
   const findNearestNeighborOptions: Partial<FindNearestNeighborsOptions> = {
     k: 5,
     indexName: VECTOR_SEARCH_INDEX_NAME,
@@ -237,7 +240,63 @@ describe("nearest neighbor search", () => {
   });
 });
 
-describe("initialized DB", () => {
+describe("hybrid search", () => {
+  let store: MongoDbEmbeddedContentStore | undefined;
+  beforeEach(async () => {
+    // Need to use real Atlas connection in order to run vector searches
+    store = makeMongoDbEmbeddedContentStore({
+      connectionUri: MONGODB_CONNECTION_URI,
+      databaseName: MONGODB_DATABASE_NAME,
+      searchIndex: {
+        embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
+        name: VECTOR_SEARCH_INDEX_NAME,
+        fullText: {
+          name: FTS_INDEX_NAME,
+        },
+      },
+    });
+  });
+
+  afterEach(async () => {
+    assert(store);
+    await store.close();
+  });
+
+  it("successfully performs RRF hybrid search", async () => {
+    assert(store);
+
+    const query = "What is the $and operator for MongoDB?";
+    const { embedding } = await embedder.embed({
+      text: query,
+    });
+
+    const vsWeight = 0.5;
+    const ftsWeight = 0.5;
+    const matches = await store.hybridSearchRrf({
+      fts: {
+        indexName: FTS_INDEX_NAME,
+        limit: 10,
+        query,
+        weight: vsWeight,
+        path: store.metadata.ftsPath,
+      },
+      vectorSearch: {
+        embedding,
+        embeddingPath: store.metadata.embeddingPath,
+        weight: ftsWeight,
+        options: {
+          indexName: VECTOR_SEARCH_INDEX_NAME,
+          minScore: 0.7,
+          k: 25,
+        },
+      },
+      limit: 5,
+    });
+    expect(matches).toHaveLength(5);
+  });
+});
+
+describe("initializes DB", () => {
   let store: MongoDbEmbeddedContentStore | undefined;
   let mongoClient: MongoClient | undefined;
   beforeEach(async () => {
@@ -272,10 +331,17 @@ describe("initialized DB", () => {
     expect(indexes?.some((el) => el.name === "sourceName_1")).toBe(true);
     expect(indexes?.some((el) => el.name === "url_1")).toBe(true);
 
-    const vectorIndexes = await coll?.listSearchIndexes().toArray();
+    const searchIndexes = await coll?.listSearchIndexes().toArray();
+    // Has VS index
     expect(
-      vectorIndexes?.some(
+      searchIndexes?.some(
         (vi) => (vi as unknown as { type: string }).type === "vectorSearch"
+      )
+    ).toBe(true);
+    // Has FTS index
+    expect(
+      searchIndexes?.some(
+        (vi) => (vi as unknown as { type: string }).type === "search"
       )
     ).toBe(true);
   });

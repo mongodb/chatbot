@@ -55,31 +55,46 @@ describe("MongoDbEmbeddedContentStore", () => {
       url: "/x/y/z",
     };
 
-    const embeddedContent = await store.loadEmbeddedContent({ page });
-    expect(embeddedContent).toStrictEqual([]);
+    const anotherPage: PersistedPage = {
+      action: "created",
+      body: "bar",
+      format: "md",
+      sourceName: "another-source",
+      metadata: {
+        tags: [],
+      },
+      updated: new Date(),
+      url: "/a/b/c",
+    };
 
-    await store.updateEmbeddedContent({
-      page,
-      embeddedContent: [
+    const pages = [page, anotherPage];
+    for (const page of pages) {
+      const embeddedContent = await store.loadEmbeddedContent({ page });
+      expect(embeddedContent).toStrictEqual([]);
+
+      await store.updateEmbeddedContent({
+        page,
+        embeddedContent: [
+          {
+            embedding: [],
+            sourceName: page.sourceName,
+            text: page.body,
+            url: page.url,
+            tokenCount: 0,
+            updated: new Date(),
+          },
+        ],
+      });
+
+      expect(await store.loadEmbeddedContent({ page })).toMatchObject([
         {
           embedding: [],
           sourceName: page.sourceName,
-          text: "foo",
+          text: page.body,
           url: page.url,
-          tokenCount: 0,
-          updated: new Date(),
         },
-      ],
-    });
-
-    expect(await store.loadEmbeddedContent({ page })).toMatchObject([
-      {
-        embedding: [],
-        sourceName: "source1",
-        text: "foo",
-        url: "/x/y/z",
-      },
-    ]);
+      ]);
+    }
 
     // Won't find embedded content for some other page
     expect(
@@ -102,6 +117,14 @@ describe("MongoDbEmbeddedContentStore", () => {
     // Deletes embedded content for page
     await store.deleteEmbeddedContent({ page });
     expect(await store.loadEmbeddedContent({ page })).toStrictEqual([]);
+
+    // Deletes embedded content for datasources
+    await store.deleteEmbeddedContent({
+      dataSources: [anotherPage.sourceName],
+    });
+    expect(
+      await store.loadEmbeddedContent({ page: anotherPage })
+    ).toStrictEqual([]);
   });
 });
 

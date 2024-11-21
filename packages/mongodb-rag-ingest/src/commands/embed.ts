@@ -56,16 +56,10 @@ const commandModule: CommandModule<
           }),
         handler: (deleteArgs) =>
           withConfig(doDeleteEmbeddingsCommand, deleteArgs),
-      })
-      .demandCommand(
-        1,
-        "Please specify an action for 'ingest embed' (e.g., 'update' or 'delete')"
-      );
+      });
   },
   handler: (args) => {
-    console.error(
-      'Specify an action for "embed" command (e.g., "delete" or "update")'
-    );
+    console.error('Specify an action for "embed" command');
   },
 };
 

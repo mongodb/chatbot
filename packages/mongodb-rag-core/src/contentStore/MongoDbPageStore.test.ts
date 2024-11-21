@@ -221,4 +221,52 @@ describe("MongoDbPageStore", () => {
       "custom-pages"
     );
   });
+
+  describe("deletePages", () => {
+    it("marks all pages as deleted", async () => {
+      assert(store);
+      await store.updatePages(moviePages);
+      let pages = await store.loadPages();
+      expect(pages.length).toBe(5);
+
+      await store.deletePages({});
+
+      pages = await store.loadPages();
+      const pagesMarkedDeleted = pages.filter(
+        ({ action }) => action === "deleted"
+      );
+      expect(pagesMarkedDeleted.length).toBe(5);
+    });
+
+    it("permanently deletes pages", async () => {
+      assert(store);
+      await store.updatePages(moviePages);
+      let pages = await store.loadPages();
+      expect(pages.length).toBe(5);
+
+      await store.deletePages({ permanent: true });
+
+      pages = await store.loadPages();
+      expect(pages.length).toBe(0);
+    });
+
+    it("deletes pages of a specific dataSource", async () => {
+      assert(store);
+      const moviePagesWithSource = moviePages.map((page, index) => ({
+        ...page,
+        sourceName: `source-${index}`,
+      }));
+      await store.updatePages(moviePagesWithSource);
+      let pages = await store.loadPages();
+      expect(pages.length).toBe(5);
+
+      await store.deletePages({
+        dataSources: ["source-1", "source-2"],
+        permanent: true,
+      });
+
+      pages = await store.loadPages();
+      expect(pages.length).toBe(3);
+    });
+  });
 });

@@ -23,8 +23,8 @@ export const makeRrfFindContent = ({
   embedder,
   store,
   config,
-}: MakeRrfFindContentParams): FindContentFunc => {
-  return async ({ query }) => {
+}: MakeRrfFindContentParams) => {
+  return async ({ query, ftsQuery }: { query: string; ftsQuery?: string }) => {
     const { embedding } = await embedder.embed({
       text: query,
     });
@@ -33,7 +33,7 @@ export const makeRrfFindContent = ({
       ...config,
       fts: {
         ...config.fts,
-        query,
+        query: ftsQuery ?? query,
         path: store.metadata.ftsPath,
       },
       vectorSearch: {

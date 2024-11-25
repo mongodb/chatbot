@@ -59,7 +59,7 @@ const commandModule: CommandModule<
       });
   },
   handler: (_args) => {
-    console.error('Specify an action for "embed" command');
+    logger.error('Specify an action for "embed" command');
   },
 };
 

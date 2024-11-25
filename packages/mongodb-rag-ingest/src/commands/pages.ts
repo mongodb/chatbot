@@ -8,6 +8,7 @@ const commandModule: CommandModule<
   LoadConfigArgs & PagesCommandArgs
 > = {
   command: "pages <action>",
+  describe: "Manage pages data from sources",
   builder(args) {
     return args
       .command({
@@ -40,9 +41,8 @@ const commandModule: CommandModule<
       })
       .demandCommand(1, "Specify an action for 'pages' command");
   },
-  describe: "Manage pages data from sources",
   handler: (_args) => {
-    console.error('Specify an action for "pages" command');
+    logger.error('Specify an action for "pages" command');
   },
 };
 

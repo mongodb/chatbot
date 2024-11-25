@@ -14,7 +14,10 @@ import {
 import { MongoMemoryReplSet } from "mongodb-memory-server";
 import { MongoClient } from "mongodb";
 import { EmbeddedContent } from "./EmbeddedContent";
+<<<<<<< HEAD
 import { url } from "inspector";
+=======
+>>>>>>> upstream/main
 
 const {
   MONGODB_CONNECTION_URI,
@@ -137,6 +140,7 @@ describe("MongoDbEmbeddedContentStore", () => {
       "custom-embedded_content"
     );
   });
+<<<<<<< HEAD
 });
 
 const embedder = makeOpenAiEmbedder({
@@ -149,6 +153,20 @@ const embedder = makeOpenAiEmbedder({
 });
 
 describe("nearest neighbor search", () => {
+=======
+});
+
+describe("nearest neighbor search", () => {
+  const embedder = makeOpenAiEmbedder({
+    openAiClient: new AzureOpenAI({
+      apiKey: OPENAI_API_KEY,
+      endpoint: OPENAI_ENDPOINT,
+      apiVersion: OPENAI_API_VERSION,
+    }),
+    deployment: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
+  });
+
+>>>>>>> upstream/main
   const findNearestNeighborOptions: Partial<FindNearestNeighborsOptions> = {
     k: 5,
     indexName: VECTOR_SEARCH_INDEX_NAME,
@@ -240,8 +258,14 @@ describe("nearest neighbor search", () => {
   });
 });
 
+<<<<<<< HEAD
 describe("hybrid search", () => {
   let store: MongoDbEmbeddedContentStore | undefined;
+=======
+describe("initialized DB", () => {
+  let store: MongoDbEmbeddedContentStore | undefined;
+  let mongoClient: MongoClient | undefined;
+>>>>>>> upstream/main
   beforeEach(async () => {
     // Need to use real Atlas connection in order to run vector searches
     store = makeMongoDbEmbeddedContentStore({
@@ -249,6 +273,7 @@ describe("hybrid search", () => {
       databaseName: MONGODB_DATABASE_NAME,
       searchIndex: {
         embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
+<<<<<<< HEAD
         name: VECTOR_SEARCH_INDEX_NAME,
         fullText: {
           name: FTS_INDEX_NAME,
@@ -263,8 +288,26 @@ describe("hybrid search", () => {
   });
 
   it("successfully performs RRF hybrid search", async () => {
-    assert(store);
+=======
+        filters: [{ type: "filter", path: "sourceName" }],
+        name: VECTOR_SEARCH_INDEX_NAME,
+      },
+    });
+    mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
+  });
 
+  afterEach(async () => {
+>>>>>>> upstream/main
+    assert(store);
+    assert(mongoClient);
+    await store.close();
+    await mongoClient.close();
+  });
+  it("creates indexes", async () => {
+    assert(store);
+    await store.init();
+
+<<<<<<< HEAD
     const query = "What is the $and operator for MongoDB?";
     const { embedding } = await embedder.embed({
       text: query,
@@ -344,5 +387,21 @@ describe("initializes DB", () => {
         (vi) => (vi as unknown as { type: string }).type === "search"
       )
     ).toBe(true);
+=======
+    const coll = mongoClient
+      ?.db(store.metadata.databaseName)
+      .collection<EmbeddedContent>(store.metadata.collectionName);
+    const indexes = await coll?.listIndexes().toArray();
+    expect(indexes?.some((el) => el.name === "_id_")).toBe(true);
+    expect(indexes?.some((el) => el.name === "sourceName_1")).toBe(true);
+    expect(indexes?.some((el) => el.name === "url_1")).toBe(true);
+
+    const vectorIndexes = await coll?.listSearchIndexes().toArray();
+    expect(
+      vectorIndexes?.some(
+        (vi) => (vi as unknown as { type: string }).type === "vectorSearch"
+      )
+    ).toBe(true);
+>>>>>>> upstream/main
   });
 });

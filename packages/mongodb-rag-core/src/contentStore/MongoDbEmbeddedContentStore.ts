@@ -231,7 +231,6 @@ export function makeMongoDbEmbeddedContentStore({
         });
       }
     },
-  };
 }
 
 async function tryToMakeSearchIndex<T extends Document>(

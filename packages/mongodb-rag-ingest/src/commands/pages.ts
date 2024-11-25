@@ -74,7 +74,6 @@ export const doUpdatePagesCommand = async (
   logger.info(
     `Loaded sources:\n${sources.map(({ name }) => `- ${name}`).join("\n")}`
   );
-
   await updatePages({
     sources,
     pageStore,

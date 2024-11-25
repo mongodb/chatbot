@@ -43,7 +43,6 @@ describe("makeMongoDBUniversityDataSource()", () => {
     });
     const pages = await dataSource.fetchPages();
     const samplePage1 = pages[0];
-    console.log("num pgs", pages.length);
     expect(samplePage1.metadata).toHaveProperty("foo", "bar");
     const samplePage2 = pages[1];
     expect(samplePage2.metadata).toHaveProperty("foo", "bar");

@@ -36,7 +36,7 @@ export const {
   VECTOR_SEARCH_INDEX_NAME,
   OPENAI_ENDPOINT,
   OPENAI_API_KEY,
-  OPENAI_EMBEDDING_DEPLOYMENT,
+  OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_API_VERSION,
@@ -77,6 +77,9 @@ export const openAiClient = new AzureOpenAI({
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
+  searchIndex: {
+    embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
+  },
 });
 
 export const verifiedAnswerStore = makeMongoDbVerifiedAnswerStore({
@@ -87,7 +90,7 @@ export const verifiedAnswerStore = makeMongoDbVerifiedAnswerStore({
 
 export const embedder = makeOpenAiEmbedder({
   openAiClient,
-  deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+  deployment: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   backoffOptions: {
     numOfAttempts: 3,
     maxDelay: 5000,

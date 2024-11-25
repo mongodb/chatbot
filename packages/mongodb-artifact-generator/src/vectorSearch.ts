@@ -1,9 +1,9 @@
 import {
-  WithScore,
   EmbeddedContent,
   Embedder,
   EmbeddedContentStore,
   FindNearestNeighborsOptions,
+  WithScore,
 } from "mongodb-rag-core";
 
 export type FindContentArgs = {

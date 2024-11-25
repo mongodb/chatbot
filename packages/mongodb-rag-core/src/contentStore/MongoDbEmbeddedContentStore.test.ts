@@ -10,13 +10,16 @@ import {
   MongoDbEmbeddedContentStore,
   makeMongoDbEmbeddedContentStore,
 } from "./MongoDbEmbeddedContentStore";
+import { MongoMemoryReplSet } from "mongodb-memory-server";
+import { MongoClient } from "mongodb";
+import { EmbeddedContent } from "./EmbeddedContent";
 
 const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
   OPENAI_ENDPOINT,
   OPENAI_API_KEY,
-  OPENAI_EMBEDDING_DEPLOYMENT,
+  OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   VECTOR_SEARCH_INDEX_NAME,
   OPENAI_API_VERSION,
 } = assertEnvVars(CORE_ENV_VARS);
@@ -25,19 +28,23 @@ jest.setTimeout(30000);
 
 describe("MongoDbEmbeddedContentStore", () => {
   let store: MongoDbEmbeddedContentStore | undefined;
+  let mongod: MongoMemoryReplSet | undefined;
   beforeEach(async () => {
-    // Need to use real Atlas connection in order to run vector searches
-    const databaseName = `test-database-${Date.now()}`;
+    mongod = await MongoMemoryReplSet.create();
+    const uri = mongod.getUri();
     store = makeMongoDbEmbeddedContentStore({
-      connectionUri: MONGODB_CONNECTION_URI,
-      databaseName,
+      connectionUri: uri,
+      databaseName: "test-database",
+      searchIndex: {
+        embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
+      },
     });
   });
 
   afterEach(async () => {
-    assert(store);
-    await store.drop();
-    await store.close();
+    await store?.drop();
+    await store?.close();
+    await mongod?.stop();
   });
 
   it("handles embedded content", async () => {
@@ -76,7 +83,9 @@ describe("MongoDbEmbeddedContentStore", () => {
         page,
         embeddedContent: [
           {
-            embedding: [],
+            embeddings: {
+            [store.metadata.embeddingName]: new Array(1536).fill(0.1),
+          },
             sourceName: page.sourceName,
             text: page.body,
             url: page.url,
@@ -88,7 +97,9 @@ describe("MongoDbEmbeddedContentStore", () => {
 
       expect(await store.loadEmbeddedContent({ page })).toMatchObject([
         {
-          embedding: [],
+          embeddings: {
+          [store.metadata.embeddingName]: expect.any(Array),
+        },
           sourceName: page.sourceName,
           text: page.body,
           url: page.url,
@@ -126,6 +137,46 @@ describe("MongoDbEmbeddedContentStore", () => {
       await store.loadEmbeddedContent({ page: anotherPage })
     ).toStrictEqual([]);
   });
+  it("has an overridable default collection name", async () => {
+    assert(store);
+
+    expect(store.metadata.collectionName).toBe("embedded_content");
+
+    const storeWithCustomCollectionName = await makeMongoDbEmbeddedContentStore(
+      {
+        connectionUri: MONGODB_CONNECTION_URI,
+        databaseName: store.metadata.databaseName,
+        collectionName: "custom-embedded_content",
+        searchIndex: {
+          embeddingName: "ada-02",
+        },
+      }
+    );
+
+    expect(storeWithCustomCollectionName.metadata.collectionName).toBe(
+      "custom-embedded_content"
+    );
+  });
+  it("has an overridable default collection name", async () => {
+    assert(store);
+
+    expect(store.metadata.collectionName).toBe("embedded_content");
+
+    const storeWithCustomCollectionName = await makeMongoDbEmbeddedContentStore(
+      {
+        connectionUri: MONGODB_CONNECTION_URI,
+        databaseName: store.metadata.databaseName,
+        collectionName: "custom-embedded_content",
+        searchIndex: {
+          embeddingName: "ada-02",
+        },
+      }
+    );
+
+    expect(storeWithCustomCollectionName.metadata.collectionName).toBe(
+      "custom-embedded_content"
+    );
+  });
 });
 
 describe("nearest neighbor search", () => {
@@ -135,14 +186,13 @@ describe("nearest neighbor search", () => {
       endpoint: OPENAI_ENDPOINT,
       apiVersion: OPENAI_API_VERSION,
     }),
-    deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+    deployment: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   });
 
   const findNearestNeighborOptions: Partial<FindNearestNeighborsOptions> = {
     k: 5,
-    path: "embedding",
     indexName: VECTOR_SEARCH_INDEX_NAME,
-    minScore: 0.9,
+    minScore: 0.7,
   };
 
   let store: MongoDbEmbeddedContentStore | undefined;
@@ -151,6 +201,9 @@ describe("nearest neighbor search", () => {
     store = makeMongoDbEmbeddedContentStore({
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
+      searchIndex: {
+        embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
+      },
     });
   });
 
@@ -218,29 +271,55 @@ describe("nearest neighbor search", () => {
   it("does not find nearest neighbors for irrelevant embedding", async () => {
     assert(store);
 
-    const meaninglessEmbedding = new Array(1536).fill(0.1);
+    const meaninglessEmbedding = new Array(1536).fill(0.0001);
     const matches = await store.findNearestNeighbors(
       meaninglessEmbedding,
       findNearestNeighborOptions
     );
     expect(matches).toHaveLength(0);
   });
+});
 
-  it("has an overridable default collection name", async () => {
+describe("initialized DB", () => {
+  let store: MongoDbEmbeddedContentStore | undefined;
+  let mongoClient: MongoClient | undefined;
+  beforeEach(async () => {
+    // Need to use real Atlas connection in order to run vector searches
+    store = makeMongoDbEmbeddedContentStore({
+      connectionUri: MONGODB_CONNECTION_URI,
+      databaseName: MONGODB_DATABASE_NAME,
+      searchIndex: {
+        embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
+        filters: [{ type: "filter", path: "sourceName" }],
+        name: VECTOR_SEARCH_INDEX_NAME,
+      },
+    });
+    mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
+  });
+
+  afterEach(async () => {
     assert(store);
+    assert(mongoClient);
+    await store.close();
+    await mongoClient.close();
+  });
+  it("creates indexes", async () => {
+    assert(store);
+    await store.init();
 
-    expect(store.metadata.collectionName).toBe("embedded_content");
+    const coll = mongoClient
+      ?.db(store.metadata.databaseName)
+      .collection<EmbeddedContent>(store.metadata.collectionName);
+    const indexes = await coll?.listIndexes().toArray();
+    expect(indexes?.some((el) => el.name === "_id_")).toBe(true);
+    expect(indexes?.some((el) => el.name === "sourceName_1")).toBe(true);
+    expect(indexes?.some((el) => el.name === "url_1")).toBe(true);
 
-    const storeWithCustomCollectionName = await makeMongoDbEmbeddedContentStore(
-      {
-        connectionUri: MONGODB_CONNECTION_URI,
-        databaseName: store.metadata.databaseName,
-        collectionName: "custom-embedded_content",
-      }
-    );
-
-    expect(storeWithCustomCollectionName.metadata.collectionName).toBe(
-      "custom-embedded_content"
-    );
+    const vectorIndexes = await coll?.listSearchIndexes().toArray();
+    expect(
+      vectorIndexes?.some(
+        (vi) => (vi as unknown as { type: string }).type === "vectorSearch"
+      )
+    ).toBe(true);
   });
 });

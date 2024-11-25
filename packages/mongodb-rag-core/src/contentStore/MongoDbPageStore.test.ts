@@ -1,12 +1,11 @@
 import { strict as assert } from "assert";
 import { MongoDbPageStore, makeMongoDbPageStore } from "./MongoDbPageStore";
 import { PersistedPage } from "./Page";
-import { assertEnvVars } from "../assertEnvVars";
-import { CORE_ENV_VARS } from "../CoreEnvVars";
 import "dotenv/config";
+import { MongoMemoryServer } from "mongodb-memory-server";
+import { MongoClient } from "mongodb";
 
-const { MONGODB_CONNECTION_URI } = assertEnvVars(CORE_ENV_VARS);
-
+jest.setTimeout(60000);
 const moviePages: PersistedPage[] = [
   {
     action: "created",
@@ -69,12 +68,15 @@ const pageUrls = (pages: PersistedPage[]) => pages.map(({ url }) => url);
 
 describe("MongoDbPageStore", () => {
   let store: MongoDbPageStore | undefined;
+  let mongoServer: MongoMemoryServer;
+  let uri: string;
   beforeEach(async () => {
-    // Need to use real Atlas connection in order to run vector searches
-    const databaseName = `test-database-${Date.now()}`;
+    mongoServer = await MongoMemoryServer.create();
+    uri = mongoServer.getUri();
+
     store = await makeMongoDbPageStore({
-      connectionUri: MONGODB_CONNECTION_URI,
-      databaseName,
+      connectionUri: uri,
+      databaseName: "test-database",
     });
   });
 
@@ -82,6 +84,7 @@ describe("MongoDbPageStore", () => {
     assert(store);
     await store.drop();
     await store.close();
+    await mongoServer.stop();
   });
 
   it("handles pages", async () => {
@@ -212,7 +215,7 @@ describe("MongoDbPageStore", () => {
     expect(store.metadata.collectionName).toBe("pages");
 
     const storeWithCustomCollectionName = await makeMongoDbPageStore({
-      connectionUri: MONGODB_CONNECTION_URI,
+      connectionUri: uri,
       databaseName: store.metadata.databaseName,
       collectionName: "custom-pages",
     });
@@ -220,6 +223,26 @@ describe("MongoDbPageStore", () => {
     expect(storeWithCustomCollectionName.metadata.collectionName).toBe(
       "custom-pages"
     );
+  });
+
+  it("initialized the store with indexes", async () => {
+    assert(store);
+    const mongoClient = new MongoClient(uri);
+    try {
+      await store.init();
+      const db = mongoClient.db(store.metadata.databaseName);
+      const indexes = await db
+        .collection(store.metadata.collectionName)
+        .listIndexes()
+        .toArray();
+      expect(indexes).toMatchObject([
+        { v: 2, key: { _id: 1 }, name: "_id_" },
+        { v: 2, key: { url: 1 }, name: "url_1" },
+        { v: 2, key: { sourceName: 1 }, name: "sourceName_1" },
+      ]);
+    } finally {
+      await mongoClient.close();
+    }
   });
 
   describe("deletePages", () => {

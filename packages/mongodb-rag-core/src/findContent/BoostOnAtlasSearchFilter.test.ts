@@ -34,12 +34,15 @@ describe("makeBoostOnAtlasSearchFilter()", () => {
     });
   });
   describe("SearchBooster.boost()", () => {
+    const embeddingName = "useless-embedding-model";
     const sharedResult = {
       _id: new ObjectId(),
       url: "https://mongodb.com/docs",
       text: "blah blah blah",
       tokenCount: 100,
-      embedding: [0.1, 0.2, 0.3],
+      embeddings: {
+        [embeddingName]: [0.1, 0.2, 0.3],
+      },
       updated: new Date(),
       sourceName: "snooty-docs", // only important value
       score: 0.98,
@@ -51,7 +54,9 @@ describe("makeBoostOnAtlasSearchFilter()", () => {
         url: "https://mongodb.com/docs",
         text: "lorem ipsum",
         tokenCount: 100,
-        embedding: [0.1, 0.2, 0.3],
+        embeddings: {
+          [embeddingName]: [0.1, 0.2, 0.3],
+        },
         updated: new Date(),
         sourceName: "snooty-docs", // only important value
         score: 0.91,
@@ -64,6 +69,9 @@ describe("makeBoostOnAtlasSearchFilter()", () => {
       async findNearestNeighbors() {
         return mockBoostedResults;
       },
+      metadata: {
+        embeddingName,
+      },
     };
     const existingResults = [
       {
@@ -71,7 +79,9 @@ describe("makeBoostOnAtlasSearchFilter()", () => {
         url: "https://mongodb.com/docs/",
         text: "foo bar baz",
         tokenCount: 100,
-        embedding: [0.1, 0.2, 0.3],
+        embeddings: {
+          [embeddingName]: [0.1, 0.2, 0.3],
+        },
         updated: new Date(),
         sourceName: "not-snooty-docs", // only important value
         score: 0.99,
@@ -82,7 +92,9 @@ describe("makeBoostOnAtlasSearchFilter()", () => {
         url: "https://mongodb.com/docs/",
         text: "four score and seven years ago",
         tokenCount: 100,
-        embedding: [0.1, 0.2, 0.3],
+        embeddings: {
+          [embeddingName]: [0.1, 0.2, 0.3],
+        },
         updated: new Date(),
         sourceName: "not-snooty-docs", // only important value
         score: 0.955,
@@ -92,7 +104,9 @@ describe("makeBoostOnAtlasSearchFilter()", () => {
         url: "https://mongodb.com/docs/",
         text: "one small step for man, one giant leap for mankind",
         tokenCount: 100,
-        embedding: [0.1, 0.2, 0.3],
+        embeddings: {
+          [embeddingName]: [0.1, 0.2, 0.3],
+        },
         updated: new Date(),
         sourceName: "not-snooty-docs", // only important value
         score: 0.95,

@@ -5,7 +5,7 @@ import { chunkCode, isSupportedLanguage } from "./chunkCode";
 import { EmbeddedContent } from "../contentStore";
 import { Page } from "../contentStore";
 
-export type ContentChunk = Omit<EmbeddedContent, "embedding" | "updated">;
+export type ContentChunk = Omit<EmbeddedContent, "embeddings" | "updated">;
 
 /**
   A ChunkFunc is a function that takes a page and returns it in chunks.

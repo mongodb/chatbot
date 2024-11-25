@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 import { PromisePool } from "@supercharge/promise-pool";
 import { ChunkOptions, ChunkFunc, chunkPage } from "../chunk";
-import { EmbeddedContentStore } from "./EmbeddedContent";
+import { EmbeddedContent, EmbeddedContentStore } from "./EmbeddedContent";
 import { Embedder } from "../embed";
 import { logger } from "../logger";
 import { PageStore, PersistedPage } from ".";
@@ -156,7 +156,9 @@ export const updateEmbeddedContentForPage = async ({
       });
       return {
         ...chunk,
-        embedding,
+        embeddings: {
+          [store.metadata.embeddingName]: embedding,
+        },
         updated: new Date(),
         chunkAlgoHash,
       };

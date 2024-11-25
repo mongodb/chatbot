@@ -18,6 +18,7 @@ export type MongoDbPageStore = DatabaseConnection &
       databaseName: string;
       collectionName: string;
     };
+    init(): Promise<void>;
   };
 
 export type MakeMongoDbPageStoreParams = MakeMongoDbDatabaseConnectionParams & {
@@ -73,6 +74,10 @@ export function makeMongoDbPageStore({
           }
         })
       );
+    },
+    async init() {
+      await pagesCollection.createIndex({ url: 1 });
+      await pagesCollection.createIndex({ sourceName: 1 });
     },
   };
 }

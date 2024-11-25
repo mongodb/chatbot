@@ -40,8 +40,8 @@ steps:
         from_secret: openai_endpoint
       OPENAI_API_KEY:
         from_secret: openai_api_key
-      OPENAI_EMBEDDING_DEPLOYMENT:
-        from_secret: openai_embedding_deployment
+      OPENAI_VERIFIED_ANSWER_EMBEDDING_DEPLOYMENT: docs-chatbot-embedding-ada-002
+      OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT: text-embedding-3-small
       OPENAI_CHAT_COMPLETION_DEPLOYMENT:
         from_secret: openai_chat_completion_deployment
       DEVCENTER_CONNECTION_URI:

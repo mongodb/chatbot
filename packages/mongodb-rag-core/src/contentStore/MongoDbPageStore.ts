@@ -88,13 +88,6 @@ export function makeMongoDbPageStore({
         if (!result.acknowledged) {
           throw new Error(`Permanent-delete pages not acknowledged!`);
         }
-        if (!result.deletedCount) {
-          throw new Error(
-            `Pages matching filter ${JSON.stringify(
-              filter
-            )} not permanently deleted!`
-          );
-        }
       } else {
         const result = await pagesCollection.updateMany(filter, {
           $set: { action: "deleted" },

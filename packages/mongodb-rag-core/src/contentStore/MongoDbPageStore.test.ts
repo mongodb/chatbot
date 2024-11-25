@@ -232,11 +232,6 @@ describe("MongoDbPageStore", () => {
       await store.updatePages(moviePagesWithSource);
     });
 
-    afterEach(async () => {
-      assert(store);
-      await store.deletePages({ permanent: true });
-    });
-
     it("marks all pages as deleted", async () => {
       assert(store);
       await store.deletePages({});

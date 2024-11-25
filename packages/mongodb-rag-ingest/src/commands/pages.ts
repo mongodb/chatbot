@@ -5,7 +5,7 @@ import { withConfig, withConfigOptions, ResolvedConfig } from "../withConfig";
 
 const commandModule: CommandModule<
   Record<string, unknown>,
-  LoadConfigArgs & PagesCommandArgs
+  LoadConfigArgs
 > = {
   command: "pages <action>",
   describe: "Manage pages data from sources",
@@ -20,7 +20,7 @@ const commandModule: CommandModule<
             description:
               "A source name to load. If unspecified, loads all sources.",
           }),
-        handler: (updateArgs) => withConfig(doPagesCommand, updateArgs),
+        handler: (updateArgs) => withConfig(doUpdatePagesCommand, updateArgs),
       })
       .command({
         command: "delete [permanent]",
@@ -48,14 +48,13 @@ const commandModule: CommandModule<
 
 export default commandModule;
 
-type PagesCommandArgs = {
+type UpdatePagesCommandArgs = {
   source?: string | string[];
-  permanent?: boolean;
 };
 
-export const doPagesCommand = async (
+export const doUpdatePagesCommand = async (
   { pageStore, dataSources, concurrencyOptions }: ResolvedConfig,
-  { source }: PagesCommandArgs
+  { source }: UpdatePagesCommandArgs
 ) => {
   const requestedSources = new Set(Array.isArray(source) ? source : [source]);
 
@@ -83,9 +82,14 @@ export const doPagesCommand = async (
   });
 };
 
+type DeletePagesCommandArgs = {
+  source?: string | string[];
+  permanent?: boolean;
+};
+
 export const doDeleteCommand = async (
   { pageStore, dataSources }: ResolvedConfig,
-  { source, permanent }: PagesCommandArgs
+  { source, permanent }: DeletePagesCommandArgs
 ) => {
   if (source === undefined) {
     logger.info(

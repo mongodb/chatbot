@@ -7,14 +7,9 @@ import {
 } from "../withConfig";
 import { logger, updateEmbeddedContent } from "mongodb-rag-core";
 
-type EmbeddedContentCommandArgs = {
-  since?: string;
-  source?: string | string[];
-};
-
 const commandModule: CommandModule<
   unknown,
-  LoadConfigArgs & EmbeddedContentCommandArgs
+  LoadConfigArgs
 > = {
   command: "embed <action>",
   describe: "Manage embedded content",
@@ -42,7 +37,7 @@ const commandModule: CommandModule<
             );
           }
           const since = new Date(sinceString);
-          withConfig(doEmbedCommand, { ...updateArgs, since, source });
+          withConfig(doUpdateEmbedCommand, { ...updateArgs, since, source });
         },
       })
       .command({
@@ -55,7 +50,7 @@ const commandModule: CommandModule<
               "A source name to delete. If unspecified, deletes all sources.",
           }),
         handler: (deleteArgs) =>
-          withConfig(doDeleteEmbeddingsCommand, deleteArgs),
+          withConfig(doDeleteEmbedCommand, deleteArgs),
       });
   },
   handler: (_args) => {
@@ -65,7 +60,12 @@ const commandModule: CommandModule<
 
 export default commandModule;
 
-export const doEmbedCommand = async (
+type UpdateEmbedCommandArgs = {
+  since: Date;
+  source?: string | string[];
+};
+
+export const doUpdateEmbedCommand = async (
   {
     pageStore,
     embeddedContentStore,
@@ -76,10 +76,7 @@ export const doEmbedCommand = async (
   {
     since,
     source,
-  }: {
-    since: Date;
-    source?: string | string[];
-  }
+  }: UpdateEmbedCommandArgs
 ) => {
   const sourceNames =
     source === undefined
@@ -99,9 +96,13 @@ export const doEmbedCommand = async (
   });
 };
 
-export const doDeleteEmbeddingsCommand = async (
+type DeleteEmbedCommandArgs = {
+  source?: string | string[];
+};
+
+export const doDeleteEmbedCommand = async (
   { embeddedContentStore }: ResolvedConfig,
-  { source }: { source?: string | string[] }
+  { source }: DeleteEmbedCommandArgs
 ) => {
   const sourceNames =
     source === undefined

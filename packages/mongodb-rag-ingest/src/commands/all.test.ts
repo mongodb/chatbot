@@ -88,7 +88,7 @@ describe("allCommand", () => {
           dataSources,
         },
         {
-          async doPagesCommand() {
+          async doUpdatePagesCommand() {
             return;
           },
         }
@@ -123,7 +123,7 @@ describe("allCommand", () => {
             dataSources,
           },
           {
-            async doPagesCommand() {
+            async doUpdatePagesCommand() {
               // Sudden failure!
               throw new Error("Fail!");
             },

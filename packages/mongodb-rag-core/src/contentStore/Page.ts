@@ -83,6 +83,18 @@ export type LoadPagesArgs<QueryShape = unknown> = {
   urls?: string[];
 };
 
+export type DeletePagesArgs = {
+  /**
+    The names of the sources to delete pages from.
+    */
+  dataSources?: string[];
+  /**
+    Permanently remove pages from the data store,
+    rather than marking them as `"deleted"`.
+   */
+  permanent?: boolean;
+};
+
 /**
   Data store for {@link Page} objects.
  */
@@ -102,6 +114,11 @@ export type PageStore = {
     Updates or adds the given pages in the store.
    */
   updatePages(pages: PersistedPage[]): Promise<void>;
+
+  /**
+    Deletes pages from the store.
+   */
+  deletePages(args?: DeletePagesArgs): Promise<void>;
 
   /**
     Close connection to data store.

@@ -1,7 +1,7 @@
 import { CommandModule } from "yargs";
 import { logger } from "mongodb-rag-core";
-import { doPagesCommand as standardDoPagesCommand } from "./pages";
-import { doEmbedCommand } from "./embed";
+import { doUpdatePagesCommand as standarddoUpdatePagesCommand } from "./pages";
+import { doUpdateEmbedCommand } from "./embed";
 import {
   ResolvedConfig,
   LoadConfigArgs,
@@ -17,7 +17,7 @@ const commandModule: CommandModule<unknown, LoadConfigArgs> = {
   async handler(args) {
     return withConfig(doAllCommand, {
       ...args,
-      doPagesCommand: standardDoPagesCommand,
+      doUpdatePagesCommand: standarddoUpdatePagesCommand,
     });
   },
   describe: "Run 'pages' and 'embed' since last successful run",
@@ -28,11 +28,11 @@ export default commandModule;
 export const doAllCommand = async (
   config: ResolvedConfig,
   {
-    doPagesCommand,
+    doUpdatePagesCommand,
   }: {
     // Mockable for unit test - otherwise will actually load pages from all
     // sources, waste time
-    doPagesCommand: typeof standardDoPagesCommand;
+    doUpdatePagesCommand: typeof standarddoUpdatePagesCommand;
   }
 ) => {
   const { ingestMetaStore } = config;
@@ -42,9 +42,9 @@ export const doAllCommand = async (
 
   logger.info(`Last successful run date: ${lastSuccessfulRunDate}`);
 
-  await doPagesCommand(config, {});
+  await doUpdatePagesCommand(config, {});
 
-  await doEmbedCommand(config, {
+  await doUpdateEmbedCommand(config, {
     since: lastSuccessfulRunDate ?? new Date("2023-01-01"),
   });
 

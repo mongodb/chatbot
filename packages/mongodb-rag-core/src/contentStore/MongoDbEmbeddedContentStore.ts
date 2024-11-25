@@ -95,10 +95,11 @@ export function makeMongoDbEmbeddedContentStore({
       return await embeddedContentCollection.find(pageIdentity(page)).toArray();
     },
 
-    async deleteEmbeddedContent({ page }) {
-      const deleteResult = await embeddedContentCollection.deleteMany(
-        pageIdentity(page)
-      );
+    async deleteEmbeddedContent({ page, dataSources }) {
+      const deleteResult = await embeddedContentCollection.deleteMany({
+        ...(page ? pageIdentity(page) : undefined),
+        ...(dataSources ? { sourceName: { $in: dataSources } } : undefined),
+      });
       if (!deleteResult.acknowledged) {
         throw new Error("EmbeddedContent deletion not acknowledged!");
       }

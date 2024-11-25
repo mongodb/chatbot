@@ -1,4 +1,4 @@
-import { PageStore, PersistedPage, DeletePagesArgs } from "../contentStore";
+import { PageStore, PersistedPage } from "../contentStore";
 
 export const makeMockPageStore = (): PageStore => {
   let pages: PersistedPage[] = [];
@@ -9,7 +9,7 @@ export const makeMockPageStore = (): PageStore => {
     async updatePages(args: PersistedPage[]) {
       pages = [...args];
     },
-    async deletePages(_args: DeletePagesArgs) {
+    async deletePages(_args) {
       return;
     },
   };

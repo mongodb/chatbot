@@ -82,8 +82,10 @@ export default ({ mode }) => {
                 // Chatbot Views
                 ChatWindow: resolvePath("src/ChatWindow.tsx"),
                 ChatMessageFeed: resolvePath("src/ChatMessageFeed.tsx"),
-                MessageRating: resolvePath("src/MessageRating.tsx"),
                 ModalView: resolvePath("src/ModalView.tsx"),
+                // Message Components
+                MessagePrompts: resolvePath("src/MessagePrompts.tsx"),
+                MessageRating: resolvePath("src/MessageRating.tsx"),
                 // UI Copy
                 MongoDbLegal: resolvePath("src/MongoDbLegal.tsx"),
                 PoweredByAtlasVectorSearch: resolvePath(

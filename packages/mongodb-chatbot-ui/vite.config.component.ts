@@ -84,6 +84,7 @@ export default ({ mode }) => {
                 ChatMessageFeed: resolvePath("src/ChatMessageFeed.tsx"),
                 ModalView: resolvePath("src/ModalView.tsx"),
                 // Message Components
+                MessageContent: resolvePath("src/MessageContent.tsx"),
                 MessagePrompts: resolvePath("src/MessagePrompts.tsx"),
                 MessageRating: resolvePath("src/MessageRating.tsx"),
                 // UI Copy

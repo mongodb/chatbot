@@ -1,14 +1,8 @@
 import { css } from "@emotion/css";
-import { Body, Link } from "@leafygreen-ui/typography";
 import { ParagraphSkeleton } from "@leafygreen-ui/skeleton-loader";
 import { Avatar, Variant as AvatarVariant } from "@lg-chat/avatar";
-import {
-  Message as LGMessage,
-  type MessageProps as LGMessageProps,
-  MessageContent as LGMessageContent,
-  type MessageContentProps,
-  MessageSourceType,
-} from "@lg-chat/message";
+import { MessageContent } from "./MessageContent";
+import { Message as LGMessage, MessageSourceType } from "@lg-chat/message";
 import {
   type MessageRatingProps,
   type MessageRatingValue,
@@ -19,7 +13,6 @@ import { MessageData } from "./services/conversations";
 import { Conversation } from "./useConversation";
 import { useChatbotContext } from "./useChatbotContext";
 import { useLinkData } from "./useLinkData";
-import { headingStyle, disableSetextHeadings } from "./markdownHeadingStyle";
 import { getMessageLinks } from "./messageLinks";
 import { type RatingCommentStatus } from "./MessageRating";
 
@@ -31,83 +24,19 @@ const MessagePrompts = lazy(async () => ({
   default: (await import("./MessagePrompts")).MessagePrompts,
 }));
 
-const styles = {
-  // This is a hacky fix for weird white-space issues in LG Chat.
-  markdown_container: css`
-    display: flex;
-    flex-direction: column;
-
-    & li {
-      white-space: normal;
-      margin-top: -1rem;
-      & ol li, & ul li {
-        margin-top: 0.5rem;
-      }
-    }
-
-    & ol, & ul {
-      overflow-wrap: anywhere;
-    }
-
-    & h1, & h2, & h3 {
-      & +ol, & +ul {
-        margin-top: 0;
-      }
-    }
-
-    & p+h1, & p+h2, & p+h3 {
-      margin-top: 1rem;
-    }
-  `,
-  loading_skeleton: css`
-    width: 100%;
-    min-width: 120px;
-
-    & > div {
-      width: 100%;
-    }
-  `,
-};
-
-const markdownProps = {
-  className: styles.markdown_container,
-  components: {
-    a: ({ children, href }) => {
-      return (
-        <Link hideExternalIcon href={href}>
-          {children}
-        </Link>
-      );
-    },
-    p: ({ children, ...props }) => {
-      return <Body {...props}>{children}</Body>;
-    },
-    ol: ({ children, ordered, ...props }) => {
-      return (
-        <Body as="ol" {...props}>
-          {children}
-        </Body>
-      );
-    },
-    ul: ({ children, ordered, ...props }) => {
-      return (
-        <Body as="ul" {...props}>
-          {children}
-        </Body>
-      );
-    },
-    li: ({ children, ordered, node, ...props }) => {
-      return (
-        <Body as="li" {...props}>
-          {children}
-        </Body>
-      );
-    },
-  },
-} satisfies LGMessageProps["markdownProps"];
-
 const LoadingSkeleton = () => {
-  return <ParagraphSkeleton className={styles.loading_skeleton} />;
+  return (
+    <ParagraphSkeleton
+      className={css`
+        width: 100%;
+        min-width: 120px;
+
+        & > div {
+          width: 100%;
+        }
+      `}
+    />
+  );
 };
 
 export type MessageProps = {
@@ -128,26 +57,6 @@ function getMessageInfo(message: MessageData, user?: User) {
     avatarVariant:
       message.role === "user" ? AvatarVariant.User : AvatarVariant.Mongo,
   };
-}
-
-const customMarkdownProps = {
-  remarkPlugins: [headingStyle, disableSetextHeadings],
-};
-
-export function MessageContent({
-  markdownProps: userMarkdownProps,
-  ...props
-}: MessageContentProps) {
-  return (
-    <LGMessageContent
-      {...props}
-      // @ts-expect-error @lg-chat/lg-markdown is using an older version of unified. The types are not compatible but the plugins work. https://jira.mongodb.org/browse/LG-4310
-      markdownProps={{
-        ...customMarkdownProps,
-        ...userMarkdownProps,
-      }}
-    />
-  );
 }
 
 export const Message = ({
@@ -212,7 +121,6 @@ export const Message = ({
         isSender={info.isSender}
         avatar={<Avatar variant={info.avatarVariant} name={info.senderName} />}
         sourceType={isLoading ? undefined : MessageSourceType.Markdown}
-        markdownProps={markdownProps}
         messageBody={messageData.content}
         verified={verified}
         links={messageLinks}

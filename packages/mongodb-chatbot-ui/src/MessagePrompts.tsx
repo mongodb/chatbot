@@ -1,9 +1,35 @@
+import { css } from "@emotion/css";
 import {
   MessagePrompts as LGMessagePrompts,
   MessagePrompt,
 } from "@lg-chat/message-prompts";
 import { useRef, useState } from "react";
 import { CSSTransition } from "react-transition-group";
+
+const PROMPT_TRANSITION_DURATION_MS = 400;
+const styles = {
+  message_prompts: css`
+    margin-left: 70px;
+    @media screen and (max-width: 804px) {
+      margin-left: 50px;
+    }
+
+    transition: opacity ${PROMPT_TRANSITION_DURATION_MS}ms ease-in;
+
+    &-enter {
+      opacity: 0;
+    }
+    &-enter-active {
+      opacity: 1;
+    }
+    &-exit {
+      opacity: 1;
+    }
+    &-exit-active {
+      opacity: 0;
+    }
+  `,
+};
 
 export type MessagePromptsProps = {
   prompts: string[];
@@ -43,13 +69,13 @@ export const MessagePrompts = ({
     // click handler.
     setTimeout(() => {
       onPromptClick(prompt);
-    }, TRANSITION_DURATION_MS);
+    }, PROMPT_TRANSITION_DURATION_MS);
   };
 
   return (
     <CSSTransition
       in={selectedPromptIndex === undefined}
-      timeout={TRANSITION_DURATION_MS}
+      timeout={PROMPT_TRANSITION_DURATION_MS}
       nodeRef={nodeRef}
       classNames={styles.message_prompts}
     >

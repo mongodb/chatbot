@@ -31,40 +31,7 @@ const MessagePrompts = lazy(async () => ({
   default: (await import("./MessagePrompts")).MessagePrompts,
 }));
 
-const TRANSITION_DURATION_MS = 300;
-
 const styles = {
-  message_prompts: css`
-    margin-left: 70px;
-    @media screen and (max-width: 804px) {
-      margin-left: 50px;
-    }
-
-    transition: opacity ${TRANSITION_DURATION_MS}ms ease-in;
-
-    &-enter {
-      opacity: 0;
-    }
-    &-enter-active {
-      opacity: 1;
-    }
-    &-exit {
-      opacity: 1;
-    }
-    &-exit-active {
-      opacity: 0;
-    }
-  `,
-  message_rating: css`
-    margin-top: 0.5rem;
-
-    // Ensure that the rating icons are properly center aligned. The
-    // docs site has a global label style that adds a margin here
-    // without this style.
-    & label {
-      margin: 0;
-    }
-  `,
   // This is a hacky fix for weird white-space issues in LG Chat.
   markdown_container: css`
     display: flex;
@@ -98,22 +65,6 @@ const styles = {
 
     & > div {
       width: 100%;
-    }
-  `,
-  message_rating_comment: css`
-    transition: opacity ${TRANSITION_DURATION_MS}ms ease-in;
-
-    &-enter {
-      opacity: 0;
-    }
-    &-enter-active {
-      opacity: 1;
-    }
-    &-exit {
-      opacity: 1;
-    }
-    &-exit-active {
-      opacity: 0;
     }
   `,
 };
@@ -285,7 +236,6 @@ export const Message = ({
                     : messageData.rating
                     ? "liked"
                     : "disliked",
-                className: styles.message_rating,
                 description: "How was the response?",
                 hideThumbsUp: submittedRatingValue === "disliked",
                 hideThumbsDown: submittedRatingValue === "liked",

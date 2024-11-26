@@ -17,53 +17,7 @@ import { useChatbotContext } from "./useChatbotContext";
 import { useHotkeyContext } from "./HotkeyContext";
 import { ChatMessageFeed } from "./ChatMessageFeed";
 import { MessageData } from "./services/conversations";
-
-const styles = {
-  chatbot_input: css`
-    position: relative;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-top: 1rem;
-    padding-left: 32px;
-    padding-right: 32px;
-    padding-top: 0.5rem;
-    padding-bottom: 1rem;
-  `,
-  chat_window: css`
-    border-radius: 24px;
-  `,
-  conversation_id: css`
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-  `,
-  disclaimer_text: css`
-    text-align: center;
-    margin-top: 16px;
-    margin-bottom: 32px;
-  `,
-  message_feed: css`
-    height: 100%;
-    max-height: 70vh;
-    & > div {
-      box-sizing: border-box;
-      max-height: 70vh;
-    }
-  `,
-  message_feed_loader: css`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    width: 100%;
-    padding-top: 1.5rem;
-  `,
-  verify_information: css`
-    text-align: center;
-  `,
-};
+import { DarkModeProps } from "./DarkMode";
 
 export type ChatWindowProps = ChatbotViewProps;
 
@@ -73,7 +27,7 @@ export function ChatWindow(props: ChatWindowProps) {
     className,
     disclaimer,
     disclaimerHeading,
-    fatalErrorMessage = defaultChatbotFatalErrorMessage,
+    fatalErrorMessage,
     initialMessageText,
     initialMessageReferences,
     initialMessageSuggestedPrompts,
@@ -82,22 +36,7 @@ export function ChatWindow(props: ChatWindowProps) {
     windowTitle,
   } = props;
 
-  const {
-    awaitingReply,
-    chatbotName,
-    conversation,
-    handleSubmit,
-    inputBarRef,
-    inputText,
-    inputTextError,
-    isExperimental,
-    maxInputCharacters,
-    setInputText,
-  } = useChatbotContext();
-
-  const hasError = inputTextError !== "";
-
-  const hotkeyContext = useHotkeyContext();
+  const { chatbotName, isExperimental } = useChatbotContext();
 
   const initialMessage: MessageData | null = useMemo(() => {
     if (!initialMessageText) {
@@ -118,14 +57,10 @@ export function ChatWindow(props: ChatWindowProps) {
     initialMessageSuggestedPrompts,
   ]);
 
-  const inputPlaceholder = conversation.error
-    ? fatalErrorMessage
-    : props.inputBarPlaceholder ?? MongoDbInputBarPlaceholder();
-
   return (
     <LeafyGreenChatProvider>
       <LGChatWindow
-        className={cx(styles.chat_window, className)}
+        className={cx(css`border-radius: 24px;`, className)}
         badgeText={isExperimental ? "Experimental" : undefined}
         title={windowTitle ?? chatbotName ?? ""}
         darkMode={darkMode}
@@ -138,70 +73,133 @@ export function ChatWindow(props: ChatWindowProps) {
             initialMessage={initialMessage}
           />
         </Suspense>
-        <div className={styles.chatbot_input}>
-          {conversation.error ? (
-            <ErrorBanner darkMode={darkMode} message={conversation.error} />
-          ) : null}
-
-          {!conversation.error ? (
-            <>
-              <InputBar
-                hasError={hasError}
-                shouldRenderGradient={!inputTextError}
-                darkMode={darkMode}
-                ref={inputBarRef}
-                disabled={Boolean(conversation.error?.length)}
-                disableSend={hasError || awaitingReply}
-                shouldRenderHotkeyIndicator={hotkeyContext.hotkey !== null}
-                onMessageSend={(messageContent) => {
-                  const canSubmit =
-                    inputTextError.length === 0 && !conversation.error;
-                  if (canSubmit) {
-                    handleSubmit(messageContent);
-                  }
-                }}
-                textareaProps={{
-                  id: inputBarId,
-                  value: inputText,
-                  onChange: (e) => {
-                    setInputText(e.target.value);
-                  },
-                  placeholder: inputPlaceholder,
-                }}
-              />
-
-              <div
-                className={css`
-                    display: flex;
-                    justify-content: space-between;
-                  `}
-              >
-                {inputBottomText ? (
-                  <Body baseFontSize={13} className={styles.verify_information}>
-                    {inputBottomText}
-                  </Body>
-                ) : null}
-                {maxInputCharacters ? (
-                  <CharacterCount
-                    darkMode={darkMode}
-                    current={inputText.length}
-                    max={maxInputCharacters}
-                  />
-                ) : null}
-              </div>
-            </>
-          ) : null}
-
-          <ConversationId conversation={conversation} />
-        </div>
+        <ChatInput
+          id={inputBarId}
+          fatalErrorMessage={fatalErrorMessage}
+          darkMode={darkMode}
+          bottomText={inputBottomText}
+          placeholder={props.inputBarPlaceholder}
+        />
       </LGChatWindow>
     </LeafyGreenChatProvider>
   );
 }
 
+type ChatInputProps = DarkModeProps & {
+  fatalErrorMessage?: ChatWindowProps["fatalErrorMessage"];
+  id?: ChatWindowProps["inputBarId"];
+  bottomText?: ChatWindowProps["inputBottomText"];
+  placeholder?: ChatWindowProps["inputBarPlaceholder"];
+};
+
+function ChatInput({
+  darkMode: darkModeProp,
+  fatalErrorMessage = defaultChatbotFatalErrorMessage,
+  id = "chatbot-input-bar",
+  bottomText,
+  placeholder = MongoDbInputBarPlaceholder(),
+}: ChatInputProps) {
+  const { darkMode } = useDarkMode(darkModeProp);
+  const {
+    awaitingReply,
+    conversation,
+    handleSubmit,
+    inputBarRef,
+    inputText,
+    inputTextError,
+    maxInputCharacters,
+    setInputText,
+  } = useChatbotContext();
+
+  const hasError = inputTextError !== "";
+
+  const hotkeyContext = useHotkeyContext();
+
+  return (
+    <div
+      className={css`
+        position: relative;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        padding-left: 32px;
+        padding-right: 32px;
+        padding-top: 0.5rem;
+        padding-bottom: 1rem;
+      `}
+    >
+      {conversation.error ? (
+        <ErrorBanner darkMode={darkMode} message={conversation.error} />
+      ) : (
+        <>
+          <InputBar
+            hasError={hasError}
+            shouldRenderGradient={!inputTextError}
+            darkMode={darkMode}
+            ref={inputBarRef}
+            disabled={Boolean(conversation.error?.length)}
+            disableSend={hasError || awaitingReply}
+            shouldRenderHotkeyIndicator={hotkeyContext.hotkey !== null}
+            onMessageSend={(messageContent) => {
+              const canSubmit =
+                inputTextError.length === 0 && !conversation.error;
+              if (canSubmit) {
+                handleSubmit(messageContent);
+              }
+            }}
+            textareaProps={{
+              id,
+              value: inputText,
+              onChange: (e) => {
+                setInputText(e.target.value);
+              },
+              placeholder: conversation.error ? fatalErrorMessage : placeholder,
+            }}
+          />
+
+          <div
+            className={css`
+              display: flex;
+              justify-content: space-between;
+            `}
+          >
+            {bottomText ? (
+              <Body
+                baseFontSize={13}
+                className={css`
+                  text-align: center;
+                `}
+              >
+                {bottomText}
+              </Body>
+            ) : null}
+            {maxInputCharacters ? (
+              <CharacterCount
+                darkMode={darkMode}
+                current={inputText.length}
+                max={maxInputCharacters}
+              />
+            ) : null}
+          </div>
+        </>
+      )}
+
+      <ConversationId conversation={conversation} />
+    </div>
+  );
+}
+
 function ConversationId({ conversation }: { conversation: Conversation }) {
   return import.meta.env.VITE_QA === "true" ? (
-    <div className={styles.conversation_id}>
+    <div
+      className={css`
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+    `}
+    >
       <Body>
         Conversation ID: <InlineCode>{conversation.conversationId}</InlineCode>
       </Body>

@@ -67,9 +67,6 @@ export function MessageRatingWithFeedbackComment(
         <>
           <InlineMessageFeedback
             ref={ratingCommentRef}
-            // TODO: A custom className depends on https://jira.mongodb.org/browse/LG-3965
-            // Once merged, we can use this className to animate a fade out animation with CSSTransition
-            // className={styles.message_rating_comment}
             cancelButtonText="Cancel"
             onCancel={() => abandon()}
             submitButtonText="Submit"

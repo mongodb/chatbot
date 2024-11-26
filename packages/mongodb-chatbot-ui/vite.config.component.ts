@@ -1,5 +1,5 @@
 import path from "path";
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig, loadEnv, PluginOption } from "vite";
 import react from "@vitejs/plugin-react";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import { visualizer } from "rollup-plugin-visualizer";
@@ -39,7 +39,7 @@ export default ({ mode }) => {
         protocolImports: true,
       }),
       react(),
-      visualizer(),
+      visualizer() as PluginOption,
     ],
     optimizeDeps: {
       esbuildOptions: {
@@ -81,6 +81,8 @@ export default ({ mode }) => {
                 InputBarTrigger: resolvePath("src/InputBarTrigger.tsx"),
                 // Chatbot Views
                 ChatWindow: resolvePath("src/ChatWindow.tsx"),
+                ChatMessageFeed: resolvePath("src/ChatMessageFeed.tsx"),
+                MessageRating: resolvePath("src/MessageRating.tsx"),
                 ModalView: resolvePath("src/ModalView.tsx"),
                 // UI Copy
                 MongoDbLegal: resolvePath("src/MongoDbLegal.tsx"),

@@ -1,24 +1,22 @@
 import { css, cx } from "@emotion/css";
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { Body, InlineCode } from "@leafygreen-ui/typography";
-import { DisclaimerText } from "@lg-chat/chat-disclaimer";
 import { ChatWindow as LGChatWindow } from "@lg-chat/chat-window";
 import { LeafyGreenChatProvider } from "@lg-chat/leafygreen-chat-provider";
-import { MessageFeed } from "@lg-chat/message-feed";
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import { ErrorBanner } from "./Banner";
 import {
   CharacterCount,
   InputBar,
   MongoDbInputBarPlaceholder,
 } from "./InputBar";
-import { Message } from "./Message";
-import { MessageData } from "./services/conversations";
 import { defaultChatbotFatalErrorMessage } from "./ui-text";
 import { Conversation } from "./useConversation";
 import { type ChatbotViewProps } from "./ChatbotView";
 import { useChatbotContext } from "./useChatbotContext";
 import { useHotkeyContext } from "./HotkeyContext";
+import { ChatMessageFeed } from "./ChatMessageFeed";
+import { MessageData } from "./services/conversations";
 
 const styles = {
   chatbot_input: css`
@@ -28,12 +26,13 @@ const styles = {
     flex-direction: column;
     gap: 0.5rem;
     margin-top: 1rem;
-  `,
-  chatbot_input_area: css`
     padding-left: 32px;
     padding-right: 32px;
     padding-top: 0.5rem;
     padding-bottom: 1rem;
+  `,
+  chat_window: css`
+    border-radius: 24px;
   `,
   conversation_id: css`
     display: flex;
@@ -45,9 +44,6 @@ const styles = {
     margin-top: 16px;
     margin-bottom: 32px;
   `,
-  chat_window: css`
-    border-radius: 24px;
-  `,
   message_feed: css`
     height: 100%;
     max-height: 70vh;
@@ -55,6 +51,14 @@ const styles = {
       box-sizing: border-box;
       max-height: 70vh;
     }
+  `,
+  message_feed_loader: css`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    padding-top: 1.5rem;
   `,
   verify_information: css`
     text-align: center;
@@ -80,7 +84,6 @@ export function ChatWindow(props: ChatWindowProps) {
 
   const {
     awaitingReply,
-    canSubmit,
     chatbotName,
     conversation,
     handleSubmit,
@@ -91,6 +94,10 @@ export function ChatWindow(props: ChatWindowProps) {
     maxInputCharacters,
     setInputText,
   } = useChatbotContext();
+
+  const hasError = inputTextError !== "";
+
+  const hotkeyContext = useHotkeyContext();
 
   const initialMessage: MessageData | null = useMemo(() => {
     if (!initialMessageText) {
@@ -111,16 +118,6 @@ export function ChatWindow(props: ChatWindowProps) {
     initialMessageSuggestedPrompts,
   ]);
 
-  const messages = initialMessage
-    ? [initialMessage, ...conversation.messages]
-    : conversation.messages;
-
-  const isEmptyConversation = messages.length === 0;
-
-  const hasError = inputTextError !== "";
-
-  const hotkeyContext = useHotkeyContext();
-
   const inputPlaceholder = conversation.error
     ? fatalErrorMessage
     : props.inputBarPlaceholder ?? MongoDbInputBarPlaceholder();
@@ -133,54 +130,15 @@ export function ChatWindow(props: ChatWindowProps) {
         title={windowTitle ?? chatbotName ?? ""}
         darkMode={darkMode}
       >
-        {!isEmptyConversation ? (
-          <MessageFeed darkMode={darkMode} className={styles.message_feed}>
-            {disclaimer ? (
-              <DisclaimerText
-                title={disclaimerHeading ?? "Terms of Use"}
-                className={styles.disclaimer_text}
-              >
-                {disclaimer}
-              </DisclaimerText>
-            ) : null}
-            {messages.map((message, idx) => {
-              const isLoading = conversation.isStreamingMessage
-                ? message.id === conversation.streamingMessage?.id &&
-                  conversation.streamingMessage?.content === ""
-                : false;
-
-              const isInitialMessage = idx === 0;
-
-              return (
-                <Message
-                  key={message.id}
-                  messageData={message}
-                  isLoading={isLoading}
-                  showRating={
-                    // Users can rate assistant messages that have started streaming
-                    message.role === "assistant" &&
-                    !isLoading &&
-                    !(
-                      awaitingReply &&
-                      conversation.streamingMessage?.id === message.id
-                    ) &&
-                    // We don't want users to rate the initial message (and they can't because it's not in the database)
-                    !isInitialMessage
-                  }
-                  conversation={conversation}
-                  suggestedPrompts={message.suggestedPrompts}
-                  showSuggestedPrompts={
-                    // For now we'll only show suggested prompts for the initial message and hide them once the user submits anything
-                    isInitialMessage && conversation.messages.length === 0
-                  }
-                  onSuggestedPromptClick={handleSubmit}
-                  canSubmitSuggestedPrompt={canSubmit}
-                />
-              );
-            })}
-          </MessageFeed>
-        ) : null}
-        <div className={cx(styles.chatbot_input, styles.chatbot_input_area)}>
+        <Suspense fallback={null}>
+          <ChatMessageFeed
+            darkMode={darkMode}
+            disclaimer={disclaimer}
+            disclaimerHeading={disclaimerHeading}
+            initialMessage={initialMessage}
+          />
+        </Suspense>
+        <div className={styles.chatbot_input}>
           {conversation.error ? (
             <ErrorBanner darkMode={darkMode} message={conversation.error} />
           ) : null}

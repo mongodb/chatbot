@@ -14,26 +14,23 @@ import {
   MessagePrompt,
 } from "@lg-chat/message-prompts";
 import {
-  MessageRating,
   type MessageRatingProps,
   type MessageRatingValue,
 } from "@lg-chat/message-rating";
-import { Fragment, useRef, useState } from "react";
+import { Fragment, lazy, Suspense, useRef, useState } from "react";
 import { CSSTransition } from "react-transition-group";
 import { useUser, User } from "./useUser";
 import { MessageData } from "./services/conversations";
 import { Conversation } from "./useConversation";
-import { InlineMessageFeedback } from "@lg-chat/message-feedback";
-// @ts-expect-error Typescript imports of icons currently not supported
-import WarningIcon from "@leafygreen-ui/icon/dist/Warning";
-import { spacing } from "@leafygreen-ui/tokens";
-import { palette } from "@leafygreen-ui/palette";
-import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
-import { CharacterCount } from "./InputBar";
 import { useChatbotContext } from "./useChatbotContext";
 import { useLinkData } from "./useLinkData";
 import { headingStyle, disableSetextHeadings } from "./markdownHeadingStyle";
 import { getMessageLinks } from "./messageLinks";
+import { type RatingCommentStatus } from "./MessageRating";
+
+const MessageRatingWithFeedbackComment = lazy(async () => ({
+  default: (await import("./MessageRating")).MessageRatingWithFeedbackComment,
+}));
 
 const TRANSITION_DURATION_MS = 300;
 
@@ -183,8 +180,6 @@ function getMessageInfo(message: MessageData, user?: User) {
   };
 }
 
-type RatingCommentStatus = "none" | "submitted" | "abandoned";
-
 const customMarkdownProps = {
   remarkPlugins: [headingStyle, disableSetextHeadings],
 };
@@ -275,48 +270,50 @@ export const Message = ({
       >
         {isLoading ? <LoadingSkeleton /> : null}
 
-        {showRating ? (
-          <MessageRatingWithFeedbackComment
-            submit={submitRatingComment}
-            abandon={abandonRatingComment}
-            status={ratingCommentStatus}
-            errorMessage={ratingCommentErrorMessage}
-            clearErrorMessage={() => setRatingCommentErrorMessage(undefined)}
-            maxCommentCharacterCount={maxCommentCharacters}
-            messageRatingProps={{
-              value:
-                messageData.rating === undefined
-                  ? undefined
-                  : messageData.rating
-                  ? "liked"
-                  : "disliked",
-              className: styles.message_rating,
-              description: "How was the response?",
-              hideThumbsUp: submittedRatingValue === "disliked",
-              hideThumbsDown: submittedRatingValue === "liked",
-              onChange: async (e) => {
-                const value = e.target.value as MessageRatingProps["value"];
-                if (!value) {
-                  return;
-                }
-                if (ratingCommentStatus === "submitted") {
-                  // Once a user has submitted a comment for their rating we don't want them to be able to change their rating
-                  return;
-                }
-                await conversation.rateMessage(
-                  messageData.id,
-                  value === "liked" ? true : false
-                );
-              },
-            }}
-          />
-        ) : null}
+        <Suspense fallback={null}>
+          {showRating ? (
+            <MessageRatingWithFeedbackComment
+              submit={submitRatingComment}
+              abandon={abandonRatingComment}
+              status={ratingCommentStatus}
+              errorMessage={ratingCommentErrorMessage}
+              clearErrorMessage={() => setRatingCommentErrorMessage(undefined)}
+              maxCommentCharacterCount={maxCommentCharacters}
+              messageRatingProps={{
+                value:
+                  messageData.rating === undefined
+                    ? undefined
+                    : messageData.rating
+                    ? "liked"
+                    : "disliked",
+                className: styles.message_rating,
+                description: "How was the response?",
+                hideThumbsUp: submittedRatingValue === "disliked",
+                hideThumbsDown: submittedRatingValue === "liked",
+                onChange: async (e) => {
+                  const value = e.target.value as MessageRatingProps["value"];
+                  if (!value) {
+                    return;
+                  }
+                  if (ratingCommentStatus === "submitted") {
+                    // Once a user has submitted a comment for their rating we don't want them to be able to change their rating
+                    return;
+                  }
+                  await conversation.rateMessage(
+                    messageData.id,
+                    value === "liked" ? true : false
+                  );
+                },
+              }}
+            />
+          ) : null}
+        </Suspense>
       </LGMessage>
       {showSuggestedPrompts && (
         <MessagePrompts
-          messagePrompts={suggestedPrompts}
-          messagePromptsOnClick={(prompt) => onSuggestedPromptClick?.(prompt)}
-          canSubmitSuggestedPrompt={canSubmitSuggestedPrompt}
+          prompts={suggestedPrompts}
+          onPromptClick={(prompt) => onSuggestedPromptClick?.(prompt)}
+          canSubmit={canSubmitSuggestedPrompt}
         />
       )}
     </Fragment>
@@ -324,18 +321,19 @@ export const Message = ({
 };
 
 export type MessagePromptsProps = {
-  messagePrompts: string[];
-  messagePromptsOnClick: (prompt: string) => void;
-  canSubmitSuggestedPrompt: (prompt: string) => boolean;
+  prompts: string[];
+  onPromptClick: (prompt: string) => void;
+  canSubmit: (prompt: string) => boolean;
 };
 
 export const MessagePrompts = ({
-  messagePrompts,
-  messagePromptsOnClick,
-  canSubmitSuggestedPrompt,
+  prompts,
+  onPromptClick,
+  canSubmit,
 }: MessagePromptsProps) => {
-  const [selectedSuggestedPromptIndex, setSelectedSuggestedPromptIndex] =
-    useState<number | undefined>(undefined);
+  const [selectedPromptIndex, setSelectedPromptIndex] = useState<
+    number | undefined
+  >(undefined);
   const nodeRef = useRef(null);
 
   // This ref is used to prevent the user from clicking a suggested
@@ -345,7 +343,7 @@ export const MessagePrompts = ({
   const suggestedPromptClickedRef = useRef(false);
   const onPromptSelected = (prompt: string, idx: number) => {
     // Don't do anything if the prompt is not selectable.
-    if (!canSubmitSuggestedPrompt(prompt)) {
+    if (!canSubmit(prompt)) {
       return;
     }
     // Check the ref to prevent the prompt from being clicked multiple
@@ -355,30 +353,30 @@ export const MessagePrompts = ({
       return;
     }
     suggestedPromptClickedRef.current = true;
-    setSelectedSuggestedPromptIndex(idx);
+    setSelectedPromptIndex(idx);
     // Wait for the prompts to fully animate out before calling the
     // click handler.
     setTimeout(() => {
-      messagePromptsOnClick(prompt);
+      onPromptClick(prompt);
     }, TRANSITION_DURATION_MS);
   };
 
   return (
     <CSSTransition
-      in={selectedSuggestedPromptIndex === undefined}
+      in={selectedPromptIndex === undefined}
       timeout={TRANSITION_DURATION_MS}
       nodeRef={nodeRef}
       classNames={styles.message_prompts}
     >
       <div className={styles.message_prompts} ref={nodeRef}>
         <LGMessagePrompts label="Suggested Prompts">
-          {messagePrompts.map((suggestedPrompt, idx) => (
+          {prompts.map((prompt, idx) => (
             <MessagePrompt
-              key={suggestedPrompt}
-              onClick={() => onPromptSelected(suggestedPrompt, idx)}
-              selected={idx === selectedSuggestedPromptIndex}
+              key={prompt}
+              onClick={() => onPromptSelected(prompt, idx)}
+              selected={idx === selectedPromptIndex}
             >
-              {suggestedPrompt}
+              {prompt}
             </MessagePrompt>
           ))}
         </LGMessagePrompts>
@@ -386,150 +384,3 @@ export const MessagePrompts = ({
     </CSSTransition>
   );
 };
-
-export type MessageRatingWithFeedbackCommentProps = {
-  submit: (commentText: string) => void | Promise<void>;
-  abandon: () => void;
-  status: "none" | "submitted" | "abandoned";
-  errorMessage?: string;
-  clearErrorMessage?: () => void;
-  maxCommentCharacterCount?: number;
-  messageRatingProps: MessageRatingProps;
-};
-
-export function MessageRatingWithFeedbackComment(
-  props: MessageRatingWithFeedbackCommentProps
-) {
-  const {
-    submit,
-    abandon,
-    status,
-    errorMessage,
-    maxCommentCharacterCount,
-    messageRatingProps,
-  } = props;
-
-  const hasRating = messageRatingProps.value !== undefined;
-
-  // TODO: Use this to animate the transition after https://jira.mongodb.org/browse/LG-3965 is merged.
-  // const ratingCommentInputVisible = hasRating && status !== "submitted" && status !== "abandoned";
-
-  const ratingCommentRef = useRef(null);
-
-  const isSubmitted = status === "submitted";
-
-  const [characterCount, setCharacterCount] = useState(0);
-
-  const characterCountExceeded = maxCommentCharacterCount
-    ? characterCount > maxCommentCharacterCount
-    : false;
-
-  return (
-    <div
-      // TODO: This css is a hacky fix until https://jira.mongodb.org/browse/LG-3965 is merged
-      // Once merged we can apply this margin directly to InlineMesssageFeedback
-      className={css`
-        & > div + div {
-          margin-top: 0.5rem;
-        }
-      `}
-    >
-      <MessageRating {...messageRatingProps} />
-      {hasRating && status !== "abandoned" ? (
-        <>
-          <InlineMessageFeedback
-            ref={ratingCommentRef}
-            // TODO: A custom className depends on https://jira.mongodb.org/browse/LG-3965
-            // Once merged, we can use this className to animate a fade out animation with CSSTransition
-            // className={styles.message_rating_comment}
-            cancelButtonText="Cancel"
-            onCancel={() => abandon()}
-            submitButtonText="Submit"
-            onSubmit={async (e) => {
-              const form = e.target as HTMLFormElement;
-              const textarea = form.querySelector("textarea");
-              if (!characterCountExceeded) {
-                await submit(textarea?.value ?? "");
-              }
-            }}
-            textareaProps={{
-              onChange: (e) => {
-                const textarea = e.target as HTMLTextAreaElement;
-                setCharacterCount(textarea.value.length);
-              },
-              // @ts-expect-error Hacky fix for https://jira.mongodb.org/browse/LG-3964
-              label:
-                messageRatingProps.value === "liked"
-                  ? "Provide additional feedback here. What did you like about this response?"
-                  : "Provide additional feedback here. How can we improve?",
-            }}
-            isSubmitted={isSubmitted}
-            submittedMessage="Submitted! Thank you for your feedback."
-            // TODO: we need to define textAreaProps.label instead of the regular label prop until https://jira.mongodb.org/browse/LG-3964 is merged
-            // label={
-            //   value === "liked"
-            //     ? "Provide additional feedback here. What did you like about this response?"
-            //     : "Provide additional feedback here. How can we improve?"
-            // }
-          />
-
-          {maxCommentCharacterCount && status !== "submitted" ? (
-            <div
-              className={css`
-                margin-top: -2rem !important;
-                display: flex;
-                flex-direction: row;
-                gap: 0.5rem;
-              `}
-            >
-              <CharacterCount
-                current={characterCount}
-                max={maxCommentCharacterCount}
-              />
-              {characterCountExceeded ? (
-                <Body
-                  className={css`
-                    color: ${palette.red.base};
-                  `}
-                >
-                  {`Message must contain ${maxCommentCharacterCount} characters or fewer`}
-                </Body>
-              ) : null}
-            </div>
-          ) : null}
-
-          {errorMessage ? (
-            <InlineMessageFeedbackErrorState errorMessage={errorMessage} />
-          ) : null}
-        </>
-      ) : null}
-    </div>
-  );
-}
-
-// TODO: replace this with built-in error state after https://jira.mongodb.org/browse/LG-3966 is merged.
-function InlineMessageFeedbackErrorState({
-  errorMessage,
-}: {
-  errorMessage: string;
-}) {
-  const { darkMode } = useDarkMode();
-  return (
-    <div
-      className={css`
-        display: flex;
-        gap: ${spacing[1]}px;
-        align-items: center;
-      `}
-    >
-      <WarningIcon color={palette.red.base} />
-      <Body
-        className={css`
-          color: ${darkMode ? palette.gray.light1 : palette.gray.dark2};
-        `}
-      >
-        {errorMessage}
-      </Body>
-    </div>
-  );
-}

@@ -3,18 +3,95 @@ import { References, VerifiedAnswer } from "mongodb-rag-core";
 import { ConversationState } from "../useConversation";
 import { strict as assert } from "node:assert";
 
-export type Role = "user" | "assistant";
+export const possibleRoles = ["user", "assistant"] as const;
+export type Role = (typeof possibleRoles)[number];
 
-export type MessageData = {
+export type SomeMessageData = {
   id: string;
   role: Role;
   content: string;
   createdAt: string;
+};
+
+function isSomeMessageData(data: unknown): data is SomeMessageData {
+  if (typeof data !== "object" || data === null) {
+    return false;
+  }
+  const messageData = data as SomeMessageData;
+  return (
+    possibleRoles.includes(messageData.role) &&
+    typeof messageData.id === "string" &&
+    typeof messageData.content === "string" &&
+    typeof messageData.createdAt === "string"
+  );
+}
+
+export type UserMessageData = SomeMessageData & {
+  role: "user";
+};
+
+export function isUserMessageData(data: unknown): data is UserMessageData {
+  return isSomeMessageData(data) && data.role === "user";
+}
+
+export function asUserMessageData(data: SomeMessageData): UserMessageData {
+  if (!isUserMessageData(data)) {
+    throw new Error("Invalid user message data");
+  }
+  return data;
+}
+
+export type AssistantMessageData = SomeMessageData & {
+  role: "assistant";
   rating?: boolean;
   references?: References;
   suggestedPrompts?: string[];
   metadata?: AssistantMessageMetadata;
 };
+
+export function isAssistantMessageData(
+  data: unknown
+): data is AssistantMessageData {
+  if (!isSomeMessageData(data) || data.role !== "assistant") {
+    return false;
+  }
+  const messageData = data as AssistantMessageData;
+  return (
+    // Message.rating
+    (messageData.rating === undefined ||
+      typeof messageData.rating === "boolean") &&
+    // Message.references
+    (messageData.references === undefined ||
+      (Array.isArray(messageData.references) &&
+        messageData.references.every(
+          (reference) =>
+            typeof reference === "object" &&
+            reference !== null &&
+            typeof reference.url === "string" &&
+            typeof reference.title === "string"
+        ))) &&
+    // Message.suggestedPrompts
+    (messageData.suggestedPrompts === undefined ||
+      (Array.isArray(messageData.suggestedPrompts) &&
+        messageData.suggestedPrompts.every(
+          (prompt) => typeof prompt === "string"
+        ))) &&
+    // Message.metadata
+    (messageData.metadata === undefined ||
+      typeof messageData.metadata === "object")
+  );
+}
+
+export function asAssistantMessageData(
+  data: SomeMessageData
+): AssistantMessageData {
+  if (!isAssistantMessageData(data)) {
+    throw new Error("Invalid assistant message data");
+  }
+  return data;
+}
+
+export type MessageData = UserMessageData | AssistantMessageData;
 
 export type AssistantMessageMetadata = {
   [k: string]: unknown;
@@ -207,7 +284,7 @@ export class ConversationService {
   }: {
     conversationId: string;
     message: string;
-  }): Promise<MessageData> {
+  }): Promise<AssistantMessageData> {
     const path = `/conversations/${conversationId}/messages`;
     const resp = await fetch(this.getUrl(path), {
       ...this.fetchOptions,

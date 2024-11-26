@@ -5,8 +5,14 @@ import {
   ConversationService,
   ConversationFetchOptions,
   AssistantMessageMetadata,
+  AssistantMessageData,
+  isAssistantMessageData,
 } from "./services/conversations";
-import createMessage, { createMessageId } from "./createMessage";
+import {
+  createAssistantMessage,
+  createMessageId,
+  createUserMessage,
+} from "./createMessage";
 import {
   countRegexMatches,
   removeArrayElementAt,
@@ -49,6 +55,7 @@ type ConversationAction =
     }
   | { type: "deleteMessage"; messageId: MessageData["id"] }
   | { type: "rateMessage"; messageId: MessageData["id"]; rating: boolean }
+  | { type: "commentMessage"; messageId: MessageData["id"]; comment: string }
   | { type: "createStreamingResponse"; data: string }
   | { type: "appendStreamingResponse"; data: string }
   | {
@@ -110,10 +117,15 @@ function conversationReducer(
       streamingMessageIndex === -1
         ? null
         : state.messages[streamingMessageIndex];
-    return {
-      streamingMessageIndex,
-      streamingMessage,
-    };
+    return isAssistantMessageData(streamingMessage)
+      ? {
+          streamingMessageIndex,
+          streamingMessage,
+        }
+      : {
+          streamingMessageIndex: -1,
+          streamingMessage: undefined,
+        };
   }
   switch (action.type) {
     case "setConversation": {
@@ -133,12 +145,22 @@ function conversationReducer(
         console.error(`Cannot addMessage without a conversationId`);
       }
 
-      const newMessage = createMessage(action);
-
-      return {
-        ...state,
-        messages: [...state.messages, newMessage],
-      };
+      const { type, ...actionData } = action;
+      switch (actionData.role) {
+        case "user":
+          return {
+            ...state,
+            messages: [...state.messages, createUserMessage(actionData)],
+          };
+        case "assistant":
+          return {
+            ...state,
+            messages: [...state.messages, createAssistantMessage(actionData)],
+          };
+        default:
+          // This should never happen but it makes the type checker happy
+          return state;
+      }
     }
     case "setMessageContent": {
       if (!state.conversationId) {
@@ -258,7 +280,7 @@ function conversationReducer(
         return state;
       }
       streamingMessage = {
-        ...createMessage({
+        ...createAssistantMessage({
           role: "assistant",
           content: action.data,
         }),
@@ -316,7 +338,7 @@ function conversationReducer(
       const modifiedMessage = {
         ...streamingMessage,
         references: [...(streamingMessage.references ?? []), ...action.data],
-      } satisfies MessageData;
+      } satisfies AssistantMessageData;
       return {
         ...state,
         messages: updateArrayElementAt(
@@ -601,11 +623,24 @@ export function useConversation(params: UseConversationParams) {
         console.error(`Cannot updateMessageMetadata without a conversationId`);
         return;
       }
+      const existingMessage = state.messages.find((m) => m.id === messageId);
+      if (!existingMessage) {
+        console.error(
+          `Cannot updateMessageMetadata because message with id ${messageId} does not exist`
+        );
+        return;
+      }
+      if (!isAssistantMessageData(existingMessage)) {
+        console.error(
+          `Cannot updateMessageMetadata because message with id ${messageId} is not an assistant message`
+        );
+        return;
+      }
       dispatch({
         type: "setMessageMetadata",
         messageId,
         metadata: {
-          ...state.messages.find((m) => m.id === messageId)?.metadata,
+          ...existingMessage.metadata,
           ...metadata,
         },
       });

@@ -3,18 +3,14 @@ import { ParagraphSkeleton } from "@leafygreen-ui/skeleton-loader";
 import { Avatar, Variant as AvatarVariant } from "@lg-chat/avatar";
 import { MessageContent } from "./MessageContent";
 import { Message as LGMessage, MessageSourceType } from "@lg-chat/message";
-import {
-  type MessageRatingProps,
-  type MessageRatingValue,
-} from "@lg-chat/message-rating";
+import { type MessageRatingProps } from "@lg-chat/message-rating";
 import { Fragment, lazy, Suspense, useState } from "react";
-import { useUser, User } from "./useUser";
-import { MessageData } from "./services/conversations";
-import { Conversation } from "./useConversation";
+import { useUser } from "./useUser";
 import { useChatbotContext } from "./useChatbotContext";
 import { useLinkData } from "./useLinkData";
 import { getMessageLinks } from "./messageLinks";
-import { type RatingCommentStatus } from "./MessageRating";
+import { RatingValue, type RatingCommentStatus } from "./MessageRating";
+import { AssistantMessageData } from "./services/conversations";
 
 const MessageRatingWithFeedbackComment = lazy(async () => ({
   default: (await import("./MessageRating")).MessageRatingWithFeedbackComment,
@@ -39,89 +35,118 @@ const LoadingSkeleton = () => {
   );
 };
 
-export type MessageProps = {
-  messageData: MessageData;
-  suggestedPrompts?: string[];
-  showSuggestedPrompts?: boolean;
-  onSuggestedPromptClick?: (prompt: string) => void;
-  canSubmitSuggestedPrompt?: (prompt: string) => boolean;
-  isLoading: boolean;
-  showRating: boolean;
-  conversation: Conversation;
+export type SomeMessageProps = {
+  className?: string;
+  content: string;
+  id: string;
 };
 
-function getMessageInfo(message: MessageData, user?: User) {
-  return {
-    isSender: message.role === "user",
-    senderName: message.role === "user" ? user?.name : "Mongo",
-    avatarVariant:
-      message.role === "user" ? AvatarVariant.User : AvatarVariant.Mongo,
-  };
+export type UserMessageProps = SomeMessageProps;
+
+export function UserMessage({ className, content }: UserMessageProps) {
+  const user = useUser();
+  return (
+    <LGMessage
+      className={className}
+      isSender
+      avatar={<Avatar variant={AvatarVariant.User} name={user?.name} />}
+      sourceType={MessageSourceType.Markdown}
+      messageBody={content}
+    />
+  );
 }
 
-export const Message = ({
-  messageData,
-  suggestedPrompts = [],
-  showSuggestedPrompts = true,
-  canSubmitSuggestedPrompt = () => true,
-  onSuggestedPromptClick,
+export type AssistantMessageProps = SomeMessageProps & {
+  isLoading: boolean;
+  rating?: {
+    value?: RatingValue;
+    comment?: string;
+  };
+  references?: AssistantMessageData["references"];
+  suggestedPrompts?: {
+    prompts: string[];
+    onClick: (prompt: string) => void;
+    canSubmit: (prompt: string) => boolean;
+  };
+  verified?: {
+    verifier: string;
+    verifiedAt: Date;
+  };
+};
+
+export function AssistantMessage({
+  id: messageId,
+  content,
   isLoading,
-  showRating,
-  conversation,
-}: MessageProps) => {
-  const { maxCommentCharacters } = useChatbotContext();
-  const user = useUser();
-  const info = getMessageInfo(messageData, user);
+  rating,
+  references,
+  suggestedPrompts,
+  verified,
+}: AssistantMessageProps) {
+  const { chatbotName, conversation, maxCommentCharacters } =
+    useChatbotContext();
 
-  const [ratingCommentStatus, setRatingCommentStatus] =
-    useState<RatingCommentStatus>("none");
-
-  const [ratingCommentErrorMessage, setRatingCommentErrorMessage] = useState<
-    string | undefined
+  const [submittedRating, setSubmittedRating] = useState<
+    RatingValue | undefined
   >();
 
-  const [submittedRatingValue, setSubmittedRatingValue] = useState<
-    MessageRatingValue | undefined
-  >(undefined);
+  const [userComment, setUserComment] = useState<{
+    status: RatingCommentStatus;
+    text?: string;
+    errorMessage?: string;
+  }>({
+    status: "none",
+  });
+  // const setUserCommentText = (text: string) => {
+  //   setUserComment((prev) => ({ ...prev, text }));
+  // };
+  const setUserCommentError = (errorMessage?: string) => {
+    setUserComment((prev) => ({ ...prev, errorMessage }));
+  };
 
-  async function submitRatingComment(commentText: string) {
-    if (!commentText) {
+  function abandonUserComment() {
+    setUserComment({
+      status: "abandoned",
+      text: undefined,
+      errorMessage: undefined,
+    });
+  }
+
+  async function submitUserComment() {
+    if (!userComment.text) {
+      // The user can't submit an empty comment
+      return;
+    }
+    if (rating?.value === undefined) {
+      // The user can't submit a comment without first submitting a rating
       return;
     }
     try {
-      await conversation.commentMessage(messageData.id, commentText);
-      setRatingCommentStatus("submitted");
-      setSubmittedRatingValue(messageData.rating ? "liked" : "disliked");
-      setRatingCommentErrorMessage(undefined);
+      await conversation.commentMessage(messageId, userComment.text);
+      setUserComment({
+        ...userComment,
+        status: "submitted",
+        errorMessage: undefined,
+      });
+      setSubmittedRating(rating.value);
     } catch (err) {
-      setRatingCommentErrorMessage(
-        "Oops, there was an issue submitting the response to the server. Please try again."
+      setUserCommentError(
+        "There was an issue submitting the response to the server. Please try again."
       );
     }
   }
-  function abandonRatingComment() {
-    setRatingCommentStatus("abandoned");
-  }
-
-  const verifiedAnswer = messageData.metadata?.verifiedAnswer;
-  const verified = verifiedAnswer
-    ? {
-        verifier: "MongoDB Staff",
-        verifiedAt: new Date(verifiedAnswer.updated ?? verifiedAnswer.created),
-      }
-    : undefined;
 
   const { tck } = useLinkData();
-  const messageLinks = getMessageLinks(messageData, { tck });
+  const messageLinks = getMessageLinks(references, { tck });
 
   return (
-    <Fragment key={messageData.id}>
+    <Fragment key={messageId}>
       <LGMessage
         baseFontSize={16}
-        isSender={info.isSender}
-        avatar={<Avatar variant={info.avatarVariant} name={info.senderName} />}
-        sourceType={isLoading ? undefined : MessageSourceType.Markdown}
-        messageBody={messageData.content}
+        isSender={false}
+        avatar={<Avatar variant={AvatarVariant.Mongo} name={chatbotName} />}
+        sourceType={MessageSourceType.Markdown}
+        messageBody={content}
         verified={verified}
         links={messageLinks}
         componentOverrides={{ MessageContent }}
@@ -129,35 +154,30 @@ export const Message = ({
         {isLoading ? <LoadingSkeleton /> : null}
 
         <Suspense fallback={null}>
-          {showRating ? (
+          {rating ? (
             <MessageRatingWithFeedbackComment
-              submit={submitRatingComment}
-              abandon={abandonRatingComment}
-              status={ratingCommentStatus}
-              errorMessage={ratingCommentErrorMessage}
-              clearErrorMessage={() => setRatingCommentErrorMessage(undefined)}
+              submit={submitUserComment}
+              abandon={abandonUserComment}
+              status={userComment.status}
+              errorMessage={userComment.errorMessage}
+              clearErrorMessage={() => setUserCommentError(undefined)}
               maxCommentCharacterCount={maxCommentCharacters}
               messageRatingProps={{
-                value:
-                  messageData.rating === undefined
-                    ? undefined
-                    : messageData.rating
-                    ? "liked"
-                    : "disliked",
+                value: rating.value,
                 description: "How was the response?",
-                hideThumbsUp: submittedRatingValue === "disliked",
-                hideThumbsDown: submittedRatingValue === "liked",
+                hideThumbsUp: submittedRating === "disliked",
+                hideThumbsDown: submittedRating === "liked",
                 onChange: async (e) => {
                   const value = e.target.value as MessageRatingProps["value"];
                   if (!value) {
                     return;
                   }
-                  if (ratingCommentStatus === "submitted") {
+                  if (userComment.status === "submitted") {
                     // Once a user has submitted a comment for their rating we don't want them to be able to change their rating
                     return;
                   }
                   await conversation.rateMessage(
-                    messageData.id,
+                    messageId,
                     value === "liked" ? true : false
                   );
                 },
@@ -167,14 +187,27 @@ export const Message = ({
         </Suspense>
       </LGMessage>
       <Suspense fallback={null}>
-        {showSuggestedPrompts && (
+        {suggestedPrompts ? (
           <MessagePrompts
-            prompts={suggestedPrompts}
-            onPromptClick={(prompt) => onSuggestedPromptClick?.(prompt)}
-            canSubmit={canSubmitSuggestedPrompt}
+            prompts={suggestedPrompts.prompts}
+            onPromptClick={(prompt) => suggestedPrompts.onClick?.(prompt)}
+            canSubmit={suggestedPrompts.canSubmit}
           />
-        )}
+        ) : null}
       </Suspense>
     </Fragment>
   );
-};
+}
+
+export function Message(
+  props:
+    | ({ role: "user" } & UserMessageProps)
+    | ({ role: "assistant" } & AssistantMessageProps)
+) {
+  switch (props.role) {
+    case "user":
+      return <UserMessage {...props} />;
+    case "assistant":
+      return <AssistantMessage {...props} />;
+  }
+}

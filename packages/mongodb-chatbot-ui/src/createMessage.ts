@@ -1,7 +1,9 @@
 import { References } from "mongodb-rag-core";
 import {
+  AssistantMessageData,
   AssistantMessageMetadata,
-  MessageData,
+  Role,
+  UserMessageData,
 } from "./services/conversations";
 
 export function createMessageId() {
@@ -10,23 +12,52 @@ export function createMessageId() {
   return String(now + nonce);
 }
 
-export type CreateMessageArgs =
-  | {
-      role: "assistant";
-      content: string;
-      references?: References;
-      metadata?: AssistantMessageMetadata;
-    }
-  | {
-      role: "user";
-      content: string;
-    };
+export type CreateSomeMessageArgs = {
+  role: Role;
+  content: string;
+};
 
-export default function createMessage(args: CreateMessageArgs): MessageData {
-  const message: MessageData = {
+export type CreateUserMessageArgs = CreateSomeMessageArgs & {
+  role: "user";
+};
+
+export type CreateAssistantMessageArgs = CreateSomeMessageArgs & {
+  role: "assistant";
+  references?: References;
+  metadata?: AssistantMessageMetadata;
+};
+
+export type CreateMessageArgs =
+  | CreateUserMessageArgs
+  | CreateAssistantMessageArgs;
+
+export function createUserMessage(
+  args: CreateUserMessageArgs
+): UserMessageData {
+  return {
     id: createMessageId(),
     createdAt: new Date().toISOString(),
     ...args,
   };
-  return message;
+}
+
+export function createAssistantMessage(
+  args: CreateAssistantMessageArgs
+): AssistantMessageData {
+  return {
+    id: createMessageId(),
+    createdAt: new Date().toISOString(),
+    ...args,
+  };
+}
+
+export default function createMessage(
+  args: CreateMessageArgs
+): UserMessageData | AssistantMessageData {
+  switch (args.role) {
+    case "user":
+      return createUserMessage(args);
+    case "assistant":
+      return createAssistantMessage(args);
+  }
 }

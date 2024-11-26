@@ -6,7 +6,7 @@ import {
   SortReferences,
 } from "./sortReferences";
 import { addQueryParams, getCurrentPageUrl } from "./utils";
-import { MessageData } from "./services/conversations";
+import { AssistantMessageData } from "./services/conversations";
 
 export type FormatReferencesOptions = {
   tck?: string;
@@ -33,11 +33,11 @@ export function formatReferences(
 }
 
 export function getMessageLinks(
-  messageData: MessageData,
+  references: AssistantMessageData["references"],
   options: { tck?: string } = {}
 ): RichLinkProps[] | undefined {
-  return messageData.references && messageData.references.length > 0
-    ? formatReferences(messageData.references, { tck: options.tck })
+  return references && references.length > 0
+    ? formatReferences(references, { tck: options.tck })
     : undefined;
 }
 

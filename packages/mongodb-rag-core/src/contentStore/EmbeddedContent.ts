@@ -75,6 +75,7 @@ export type EmbeddedContentStore = VectorStore<EmbeddedContent> & {
   deleteEmbeddedContent(args: {
     page?: Page;
     dataSources?: string[];
+    inverse?: boolean;
   }): Promise<void>;
 
   /**

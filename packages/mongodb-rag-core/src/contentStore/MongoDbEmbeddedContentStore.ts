@@ -45,10 +45,7 @@ export type MakeMongoDbEmbeddedContentStoreParams =
         [{ type: "filter", path: "sourceName" }]
         ```
        */
-      filters?: {
-        type: "filter";
-        path: string;
-      }[];
+      filters?: AtlasVectorSearchFilter[];
 
       /**
         Config for full text search.
@@ -59,10 +56,23 @@ export type MakeMongoDbEmbeddedContentStoreParams =
           @default "default"
          */
         name?: string;
-        // TODO: anything else?
+        /**
+          Atlas Search mappings for the full text index.
+         */
+        additionalFieldMappings?: Document;
       };
     };
   };
+
+export interface AtlasVectorSearchFilter {
+  type: "filter";
+  path: string;
+}
+
+export type WithHybridScores<T> = T & {
+  vs_score: number;
+  fts_score: number;
+};
 
 export type MongoDbEmbeddedContentStore = EmbeddedContentStore &
   DatabaseConnection & {
@@ -74,9 +84,16 @@ export type MongoDbEmbeddedContentStore = EmbeddedContentStore &
       ftsPath: string;
     };
     init(): Promise<void>;
-    hybridSearchRrf(params: RrfConfig): Promise<WithScore<EmbeddedContent>[]>;
+    hybridSearchRrf(
+      params: RrfConfig
+    ): Promise<WithHybridScores<WithScore<EmbeddedContent>>[]>;
+    hybridSearchRsf(
+      params: HybridSearchConfig
+    ): Promise<WithHybridScores<WithScore<EmbeddedContent>>[]>;
+    fullTextSearch(fts: FtsConfig): Promise<WithScore<EmbeddedContent>[]>;
   };
 
+const ftsIndexedPath = "text";
 export function makeMongoDbEmbeddedContentStore({
   connectionUri,
   databaseName,
@@ -90,7 +107,14 @@ export function makeMongoDbEmbeddedContentStore({
       },
     ],
     name = "vector_index",
-    fullText,
+    fullText = {
+      name: "fts",
+      additionalFieldMappings: {
+        sourceName: {
+          type: "token",
+        },
+      },
+    },
   },
   collectionName = "embedded_content",
 }: MakeMongoDbEmbeddedContentStoreParams): MongoDbEmbeddedContentStore {
@@ -102,7 +126,6 @@ export function makeMongoDbEmbeddedContentStore({
     db.collection<EmbeddedContent>(collectionName);
   const embeddingPath = `embeddings.${embeddingName}`;
 
-  const ftsIndexedPath = "text";
   return {
     drop,
     close,
@@ -181,7 +204,7 @@ export function makeMongoDbEmbeddedContentStore({
 
     async hybridSearchRrf({ vectorSearch, fts, k, limit }) {
       return embeddedContentCollection
-        .aggregate<WithScore<EmbeddedContent>>(
+        .aggregate<WithHybridScores<WithScore<EmbeddedContent>>>(
           makeReciprocalRankFusionSearchAggStages({
             collectionName,
             limit,
@@ -190,6 +213,24 @@ export function makeMongoDbEmbeddedContentStore({
             vectorSearch,
           })
         )
+        .toArray();
+    },
+
+    async hybridSearchRsf({ vectorSearch, fts, limit }) {
+      return embeddedContentCollection
+        .aggregate<WithHybridScores<WithScore<EmbeddedContent>>>(
+          makeRelativeScoreFusionSearchAggStages({
+            collectionName,
+            limit,
+            fts,
+            vectorSearch,
+          })
+        )
+        .toArray();
+    },
+    async fullTextSearch(fts) {
+      return embeddedContentCollection
+        .aggregate<WithScore<EmbeddedContent>>(makeFtsAggStages(fts))
         .toArray();
     },
     async init() {
@@ -212,7 +253,6 @@ export function makeMongoDbEmbeddedContentStore({
         },
       });
       if (fullText) {
-        // TODO: do i need to apply same filters as for VS?
         await tryToMakeSearchIndex(embeddedContentCollection, {
           name: fullText.name ?? "default",
           type: "search",
@@ -225,12 +265,14 @@ export function makeMongoDbEmbeddedContentStore({
                     type: "string",
                   },
                 ],
+                ...fullText.additionalFieldMappings,
               },
             },
           },
         });
       }
     },
+  };
 }
 
 async function tryToMakeSearchIndex<T extends Document>(
@@ -265,7 +307,8 @@ const embeddedContentProjection = {
 function makeVectorSearchAggStages(
   vector: number[],
   embeddingPath: string,
-  options?: Partial<FindNearestNeighborsOptions>
+  options?: Partial<FindNearestNeighborsOptions>,
+  pathOut?: string
 ) {
   const defaultOptions = {
     indexName: "vector_index",
@@ -280,6 +323,7 @@ function makeVectorSearchAggStages(
     // Override default options
     ...options,
   };
+  const scorePath = pathOut ?? "score";
   const pipeline = [
     {
       $vectorSearch: {
@@ -293,25 +337,18 @@ function makeVectorSearchAggStages(
     },
     {
       $addFields: {
-        score: {
+        [scorePath]: {
           $meta: "vectorSearchScore",
         },
       },
     },
-    { $match: { score: { $gte: usedOptions.minScore } } },
+    { $match: { [scorePath]: { $gte: usedOptions.minScore } } },
   ];
 
   return pipeline;
 }
 
-interface RrfVectorSearchConfig {
-  /**
-    How much to weigh VS results.
-
-    @example .5
-   */
-  weight: number;
-
+interface VectorSearchConfig {
   /**
     Embedding to perform vector search on.
    */
@@ -324,57 +361,116 @@ interface RrfVectorSearchConfig {
   options: Partial<FindNearestNeighborsOptions>;
 }
 
-interface RrfFtsConfig {
+type WithWeight<T> = T & {
+  /**
+    How much to weigh search results.
+
+    @example .5
+   */
+  weight: number;
+};
+interface FtsConfig {
   /**
     FTS index name.
    */
   indexName: string;
 
   /**
-    How much to weigh FTS results.
-
-    @example .5
-   */
-  weight: number;
-
-  /**
-    Query to perform FTS on.
+    Query to perform FTS 'text' query on.
    */
   query: string;
 
   /**
-    Path to field for FTS.
+    Additional query elements merged with the FTS 'text' query.
+    Filters, etc.
    */
-  path: string;
-
+  additionalQueryElements?: Document;
   /**
     Maximum number of results to include.
    */
   limit: number;
 }
 
-export interface RrfConfig {
-  vectorSearch: RrfVectorSearchConfig;
-  fts: RrfFtsConfig;
+export interface HybridSearchConfig {
+  vectorSearch: WithWeight<VectorSearchConfig>;
+  fts: WithWeight<FtsConfig>;
   /**
     Maximum number of results to include.
    */
   limit: number;
+}
 
+export type RrfConfig = HybridSearchConfig & {
   /**
     Constant used in the denominator of the RRF calculation.
     @default
     60 // this is standard practice
    */
   k?: number;
-}
+};
 
-type MakeReciprocalRankFusionSearchAggStages = RrfConfig & {
+interface CollectionNameConfig {
   /**
     Collection on which to perform the aggregation
    */
   collectionName: string;
-};
+}
+
+type MakeReciprocalRankFusionSearchAggStages = RrfConfig & CollectionNameConfig;
+
+type MakeRelativeScoreFusionSearchAggStages = HybridSearchConfig &
+  CollectionNameConfig;
+
+function makeRelativeScoreFusionSearchAggStages(
+  params: MakeRelativeScoreFusionSearchAggStages
+) {
+  const vsScoreKey = "vs_score";
+  const ftsScoreKey = "fts_score";
+  const agg = [
+    ...makeVectorSearchAggStages(
+      params.vectorSearch.embedding,
+      params.vectorSearch.embeddingPath,
+      params.vectorSearch.options,
+      vsScoreKey
+    ),
+    makeNormalizeScoreAggStage(vsScoreKey),
+    {
+      $unionWith: {
+        coll: params.collectionName,
+        pipeline: [
+          // This is the FTS
+          ...makeFtsAggStages(params.fts, ftsScoreKey),
+          makeNormalizeScoreAggStage(ftsScoreKey),
+        ],
+      },
+    },
+    // Merge the results into single docs
+    ...mergeAndSortResultsV2(
+      vsScoreKey,
+      ftsScoreKey,
+      params.limit,
+      params.vectorSearch.weight,
+      params.fts.weight
+    ),
+  ];
+  return agg;
+}
+/**
+  Normalize with:
+  1/ sum(1, exp(-1 * fts_score))
+ */
+function makeNormalizeScoreAggStage(scoreKey: string) {
+  return {
+    $addFields: {
+      [scoreKey]: {
+        $divide: [
+          1,
+          { $sum: [1, { $exp: { $multiply: [-1, `$${scoreKey}`] } }] },
+        ],
+      },
+    },
+  };
+}
 
 /**
   Hybrid search (VS and FTS) using reciprocal rank fusion.
@@ -422,12 +518,72 @@ function makeReciprocalRankFusionSearchAggStages(
       },
     },
     // Merge the results into a single doc
-    // TODO: this feels vaguely wrong..confirm
+    ...mergeAndSortResults(vsScoreKey, ftsScoreKey, params.limit),
+  ];
+}
+
+function mergeAndSortResultsV2(
+  vsScoreKey: string,
+  ftsScoreKey: string,
+  limit: number,
+  vsWeight: number,
+  ftsWeight: number
+) {
+  return [
     {
       $group: {
         _id: "$_id",
-        vs_score: { $max: "$vs_score" },
-        fts_score: { $max: "$fts_score" },
+        firstDoc: { $first: "$$ROOT" },
+        [vsScoreKey]: { $max: { $ifNull: [`$${vsScoreKey}`, 0] } },
+        [ftsScoreKey]: { $max: { $ifNull: [`$${ftsScoreKey}`, 0] } },
+      },
+    },
+    {
+      $replaceRoot: {
+        newRoot: {
+          $mergeObjects: [
+            "$firstDoc",
+            {
+              [vsScoreKey]: `$${vsScoreKey}`,
+              [ftsScoreKey]: `$${ftsScoreKey}`,
+            },
+          ],
+        },
+      },
+    },
+    // // Creates new score field that adds FTS score with VS score
+    {
+      $project: {
+        ...embeddedContentProjection,
+        score: {
+          $add: [
+            { $multiply: [vsWeight, `$${vsScoreKey}`] },
+            { $multiply: [ftsWeight, `$${ftsScoreKey}`] },
+          ],
+        },
+
+        [vsScoreKey]: 1,
+        [ftsScoreKey]: 1,
+      },
+    },
+    // Sorts from high to low
+    { $sort: { score: -1 } },
+    // Limits results to max number of results.
+    { $limit: limit },
+  ];
+}
+
+function mergeAndSortResults(
+  vsScoreKey: string,
+  ftsScoreKey: string,
+  limit: number
+) {
+  return [
+    {
+      $group: {
+        _id: "$_id",
+        [vsScoreKey]: { $max: `$${vsScoreKey}` },
+        [ftsScoreKey]: { $max: `$${ftsScoreKey}` },
         ...makeFirstProjection(embeddedContentProjection, ["_id"]),
       },
     },
@@ -452,7 +608,7 @@ function makeReciprocalRankFusionSearchAggStages(
     // Sorts from high to low
     { $sort: { score: -1 } },
     // Limits results to max number of results.
-    { $limit: params.limit },
+    { $limit: limit },
   ];
 }
 
@@ -473,24 +629,46 @@ function projectFromEmbeddedDoc(
   return project;
 }
 
-function makeFtsAggStages({
-  indexName,
-  query,
-  path,
-  limit,
-}: {
-  indexName: string;
-  query: string;
-  path: string;
-  limit: number;
-}) {
+function makeFtsAggStages(
+  {
+    indexName,
+    query,
+    limit,
+    additionalQueryElements,
+  }: {
+    indexName: string;
+    query: string;
+    limit: number;
+    additionalQueryElements?: Document;
+  },
+  scoreOut?: string
+) {
+  const scorePath = scoreOut ?? "fts_score";
+  const ftsQueryDoc = {
+    text: {
+      query,
+      path: ftsIndexedPath,
+    },
+  };
+  const searchOperations = additionalQueryElements
+    ? {
+        compound: {
+          should: [ftsQueryDoc],
+          ...additionalQueryElements,
+        },
+      }
+    : ftsQueryDoc;
   return [
     {
       $search: {
         index: indexName,
-        phrase: {
-          query,
-          path,
+        ...searchOperations,
+      },
+    },
+    {
+      $addFields: {
+        [scorePath]: {
+          $meta: "searchScore",
         },
       },
     },
@@ -518,6 +696,7 @@ function makeFirstProjection<T>(
   }
   return firsts;
 }
+
 // Type guard to ensure `key` is a valid key of `projection`
 function isKeyofProjection<T>(
   projection: MdbProjection<T>,

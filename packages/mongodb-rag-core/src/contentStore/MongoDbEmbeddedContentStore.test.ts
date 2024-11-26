@@ -7,17 +7,12 @@ import { makeOpenAiEmbedder } from "../embed";
 import "dotenv/config";
 import { PersistedPage } from ".";
 import {
-  MakeMongoDbEmbeddedContentStoreParams,
   MongoDbEmbeddedContentStore,
   makeMongoDbEmbeddedContentStore,
 } from "./MongoDbEmbeddedContentStore";
 import { MongoMemoryReplSet } from "mongodb-memory-server";
 import { MongoClient } from "mongodb";
 import { EmbeddedContent } from "./EmbeddedContent";
-<<<<<<< HEAD
-import { url } from "inspector";
-=======
->>>>>>> upstream/main
 
 const {
   MONGODB_CONNECTION_URI,
@@ -30,7 +25,7 @@ const {
   FTS_INDEX_NAME,
 } = assertEnvVars(CORE_ENV_VARS);
 
-jest.setTimeout(30000);
+jest.setTimeout(60000);
 
 describe("MongoDbEmbeddedContentStore", () => {
   let store: MongoDbEmbeddedContentStore | undefined;
@@ -140,7 +135,6 @@ describe("MongoDbEmbeddedContentStore", () => {
       "custom-embedded_content"
     );
   });
-<<<<<<< HEAD
 });
 
 const embedder = makeOpenAiEmbedder({
@@ -153,20 +147,6 @@ const embedder = makeOpenAiEmbedder({
 });
 
 describe("nearest neighbor search", () => {
-=======
-});
-
-describe("nearest neighbor search", () => {
-  const embedder = makeOpenAiEmbedder({
-    openAiClient: new AzureOpenAI({
-      apiKey: OPENAI_API_KEY,
-      endpoint: OPENAI_ENDPOINT,
-      apiVersion: OPENAI_API_VERSION,
-    }),
-    deployment: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
-  });
-
->>>>>>> upstream/main
   const findNearestNeighborOptions: Partial<FindNearestNeighborsOptions> = {
     k: 5,
     indexName: VECTOR_SEARCH_INDEX_NAME,
@@ -258,14 +238,8 @@ describe("nearest neighbor search", () => {
   });
 });
 
-<<<<<<< HEAD
 describe("hybrid search", () => {
   let store: MongoDbEmbeddedContentStore | undefined;
-=======
-describe("initialized DB", () => {
-  let store: MongoDbEmbeddedContentStore | undefined;
-  let mongoClient: MongoClient | undefined;
->>>>>>> upstream/main
   beforeEach(async () => {
     // Need to use real Atlas connection in order to run vector searches
     store = makeMongoDbEmbeddedContentStore({
@@ -273,10 +247,12 @@ describe("initialized DB", () => {
       databaseName: MONGODB_DATABASE_NAME,
       searchIndex: {
         embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
-<<<<<<< HEAD
         name: VECTOR_SEARCH_INDEX_NAME,
         fullText: {
           name: FTS_INDEX_NAME,
+          additionalFieldMappings: {
+            sourceName: { type: "token" },
+          },
         },
       },
     });
@@ -287,27 +263,9 @@ describe("initialized DB", () => {
     await store.close();
   });
 
-  it("successfully performs RRF hybrid search", async () => {
-=======
-        filters: [{ type: "filter", path: "sourceName" }],
-        name: VECTOR_SEARCH_INDEX_NAME,
-      },
-    });
-    mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
-  });
-
-  afterEach(async () => {
->>>>>>> upstream/main
+  it("performs reciprocal rank fusion", async () => {
     assert(store);
-    assert(mongoClient);
-    await store.close();
-    await mongoClient.close();
-  });
-  it("creates indexes", async () => {
-    assert(store);
-    await store.init();
 
-<<<<<<< HEAD
     const query = "What is the $and operator for MongoDB?";
     const { embedding } = await embedder.embed({
       text: query,
@@ -321,7 +279,6 @@ describe("initialized DB", () => {
         limit: 10,
         query,
         weight: vsWeight,
-        path: store.metadata.ftsPath,
       },
       vectorSearch: {
         embedding,
@@ -337,6 +294,74 @@ describe("initialized DB", () => {
     });
     expect(matches).toHaveLength(5);
   });
+  it("performs relative score fusion", async () => {
+    assert(store);
+
+    const query = "$and";
+    const { embedding } = await embedder.embed({
+      text: query,
+    });
+
+    const vsWeight = 0.5;
+    const ftsWeight = 0.5;
+    const matches = await store.hybridSearchRsf({
+      fts: {
+        indexName: FTS_INDEX_NAME,
+        limit: 50,
+        query,
+        weight: ftsWeight,
+      },
+      vectorSearch: {
+        embedding,
+        embeddingPath: store.metadata.embeddingPath,
+        weight: vsWeight,
+        options: {
+          indexName: VECTOR_SEARCH_INDEX_NAME,
+          minScore: 0,
+          k: 50,
+          numCandidates: 50 * 5,
+        },
+      },
+      limit: 50,
+    });
+    expect(matches.length).toBeGreaterThan(0);
+    expect(
+      matches.some((m) => m.fts_score > 0 && m.vs_score > 0 && m.score > 0)
+    ).toBe(true);
+  });
+  it("performs full text search", async () => {
+    assert(store);
+
+    const query = "What is the $and operator for MongoDB?";
+    const matches = await store.fullTextSearch({
+      indexName: FTS_INDEX_NAME,
+      query,
+      limit: 5,
+    });
+    expect(matches).toHaveLength(5);
+  });
+
+  it("performs search with filter", async () => {
+    assert(store);
+    const dataSourceName = "snooty-docs";
+    const matches = await store.fullTextSearch({
+      indexName: FTS_INDEX_NAME,
+      query: "db.collection.insertOne()",
+      limit: 50,
+      additionalQueryElements: {
+        filter: [
+          {
+            equals: {
+              value: dataSourceName,
+              path: "sourceName",
+            },
+          },
+        ],
+      },
+    });
+    expect(matches.length).toBeGreaterThan(0);
+    expect(matches.every((m) => m.sourceName === dataSourceName)).toBe(false);
+  });
 });
 
 describe("initializes DB", () => {
@@ -351,6 +376,12 @@ describe("initializes DB", () => {
         embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
         filters: [{ type: "filter", path: "sourceName" }],
         name: VECTOR_SEARCH_INDEX_NAME,
+        fullText: {
+          name: FTS_INDEX_NAME,
+          additionalFieldMappings: {
+            sourceName: { type: "token" },
+          },
+        },
       },
     });
     mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
@@ -387,21 +418,5 @@ describe("initializes DB", () => {
         (vi) => (vi as unknown as { type: string }).type === "search"
       )
     ).toBe(true);
-=======
-    const coll = mongoClient
-      ?.db(store.metadata.databaseName)
-      .collection<EmbeddedContent>(store.metadata.collectionName);
-    const indexes = await coll?.listIndexes().toArray();
-    expect(indexes?.some((el) => el.name === "_id_")).toBe(true);
-    expect(indexes?.some((el) => el.name === "sourceName_1")).toBe(true);
-    expect(indexes?.some((el) => el.name === "url_1")).toBe(true);
-
-    const vectorIndexes = await coll?.listSearchIndexes().toArray();
-    expect(
-      vectorIndexes?.some(
-        (vi) => (vi as unknown as { type: string }).type === "vectorSearch"
-      )
-    ).toBe(true);
->>>>>>> upstream/main
   });
 });

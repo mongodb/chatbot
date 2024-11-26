@@ -1,29 +1,27 @@
-import { MongoDbEmbeddedContentStore, RrfConfig } from "../contentStore";
+import { MongoDbEmbeddedContentStore } from "../contentStore";
 import { Embedder } from "../embed";
 import { HybridSearchConfigParams } from "./HybridSearchConfigParams";
 
-export type MakeRrfFindContentParams = {
+export type MakeRsfFindContentParams = {
   embedder: Embedder;
   store: MongoDbEmbeddedContentStore;
-  config: HybridSearchConfigParams & {
-    k?: RrfConfig["k"];
-  };
+  config: HybridSearchConfigParams;
 };
 
 /**
-  Find content using hybrid search  with Atlas Vector Search, FTS, and **reciprocal rank fusion**.
+  Find content using hybrid search  with Atlas Vector Search, FTS, and **relative score fusion**.
  */
-export const makeRrfFindContent = ({
+export const makeRsfFindContent = ({
   embedder,
   store,
   config,
-}: MakeRrfFindContentParams) => {
+}: MakeRsfFindContentParams) => {
   return async ({ query, ftsQuery }: { query: string; ftsQuery?: string }) => {
     const { embedding } = await embedder.embed({
       text: query,
     });
 
-    const content = await store.hybridSearchRrf({
+    const content = await store.hybridSearchRsf({
       ...config,
       fts: {
         ...config.fts,

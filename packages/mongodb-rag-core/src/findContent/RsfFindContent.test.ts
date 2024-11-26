@@ -7,10 +7,10 @@ import {
   CORE_OPENAI_RETRIEVAL_ENV_VARS,
 } from "../CoreEnvVars";
 import { AzureOpenAI } from "openai";
-import { MakeRrfFindContentParams, makeRrfFindContent } from "./RrfFindContent";
+import { makeRsfFindContent, MakeRsfFindContentParams } from "./RsfFindContent";
 
 jest.setTimeout(30000);
-describe("makeRrfFindContent()", () => {
+describe("makeRsfFindContent()", () => {
   const {
     MONGODB_CONNECTION_URI,
     MONGODB_DATABASE_NAME,
@@ -70,10 +70,10 @@ describe("makeRrfFindContent()", () => {
         },
       },
     },
-  } satisfies MakeRrfFindContentParams;
+  } satisfies MakeRsfFindContentParams;
 
   test("Should return content for relevant text", async () => {
-    const findContent = makeRrfFindContent(baseConfig);
+    const findContent = makeRsfFindContent(baseConfig);
     const query = "MongoDB Atlas";
     const { content } = await findContent({
       query,
@@ -82,7 +82,7 @@ describe("makeRrfFindContent()", () => {
     expect(content.length).toBeGreaterThan(0);
   });
   test("Should not return content for irrelevant text", async () => {
-    const findContent = makeRrfFindContent({
+    const findContent = makeRsfFindContent({
       ...baseConfig,
       config: {
         ...baseConfig.config,

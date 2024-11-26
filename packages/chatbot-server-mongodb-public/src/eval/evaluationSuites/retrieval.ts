@@ -49,13 +49,11 @@ export type RetrievalEvalScorer = EvalScorer<
   RetrievalEvalCaseExpected
 >;
 
-export async function getConversationRetrievalEvalData() {
-  const basePath = path.resolve(__dirname, "..", "..", "..", "..", "evalCases");
+export async function getConversationRetrievalEvalData(filePath: string) {
+  const basePath = path.resolve(__dirname, "..", "..", "evalCases");
+  const o = path.resolve(basePath, "included_links_conversations.yml");
   const includedLinksConversations = getConversationsEvalCasesFromYaml(
-    fs.readFileSync(
-      path.resolve(basePath, "included_links_conversations.yml"),
-      "utf8"
-    )
+    fs.readFileSync(filePath, "utf8")
   );
   return includedLinksConversations.map((evalCase) => {
     const latestMessageText = evalCase.messages.at(-1)?.content;
@@ -161,7 +159,7 @@ export interface MakeRetrievalEvalParams {
   metadata?: Record<string, unknown>;
   k: number;
   maxConcurrency?: number;
-  data?: () => Promise<RetrievalEvalCase[]>;
+  data: () => Promise<RetrievalEvalCase[]>;
   task: RetrievalEvalTask;
   additionalScorers?: RetrievalEvalScorer[];
 }
@@ -172,7 +170,7 @@ export function runRetrievalEval({
   k,
   task,
   maxConcurrency = 5,
-  data = getConversationRetrievalEvalData,
+  data,
   additionalScorers = [],
 }: MakeRetrievalEvalParams) {
   return Eval("mongodb-chatbot-retrieval", {

@@ -4,4 +4,5 @@ export * from "./FindContentFunc";
 export * from "./TextSearchFindContent";
 export * from "./HybridSearchConfigParams";
 export * from "./RrfFindContent";
+export * from "./RsfFindContent";
 export * from "./SearchBooster";

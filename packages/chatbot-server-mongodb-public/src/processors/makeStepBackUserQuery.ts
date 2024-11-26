@@ -23,6 +23,7 @@ You are doing this for MongoDB, and all queries relate to MongoDB products.
 When constructing the query, take a "step back" to generate a more general search query that finds the data relevant to the user query if relevant.
 If the user query is already a "good" search query, do not modify it.
 For one word queries like "or", "and", "exists", if the query corresponds to a MongoDB operation, transform it into a fully formed question. Ex: 'what is the $or operator in MongoDB?'
+Mention relevant MongoDB methods and operations.
 You should also transform the user query into a fully formed question, if relevant.`;
 
 const fewShotExamples: OpenAI.ChatCompletionMessageParam[] = [
@@ -35,7 +36,7 @@ const fewShotExamples: OpenAI.ChatCompletionMessageParam[] = [
   ),
   makeAssistantFunctionCallMessage(name, {
     transformedUserQuery:
-      "How do I filter by specific field value in a MongoDB aggregation pipeline?",
+      "How do I filter by specific field value in a MongoDB aggregation pipeline with collection.aggregate({$match?: <condition>})?",
   } satisfies StepBackUserQueryMongoDbFunction),
   // Example 2
   makeUserMessage(
@@ -65,7 +66,7 @@ const fewShotExamples: OpenAI.ChatCompletionMessageParam[] = [
   ),
   makeAssistantFunctionCallMessage(name, {
     transformedUserQuery:
-      "Code example of how to find documents using the Python driver.",
+      "Code example of how to find documents using the Python driver using collection.find()",
   } satisfies StepBackUserQueryMongoDbFunction),
   // Example 5
   makeUserMessage(

@@ -1,0 +1,218 @@
+[
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["max", "maximum"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["bool", "boolean"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["int", "integer"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["db", "database"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["download", "descargar"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["js", "javascript"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["config", "configuration"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["many", "multiple"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["admin", "administration"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["k8s", "kubernetes"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["expr", "expression"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["trunc", "truncate"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["cond", "conditional"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["concat", "concatenate"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["admin", "administration"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["equivalent", "equal"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["operator", "$"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["$inc", "$incr"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["one-to-one", "1:1"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["one-to-many", "1:many"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["node", "nodejs", "node.js"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["mvcc", "multiversion concurrency control"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["sqrt", "square root"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["regex", "regular expression", "$regex"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["fsynclock", "fsync lock"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["fsyncunlock", "fsync unlock"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["maxofflinetime", "maximum offline time"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["atlas search", "full text search"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["atlas vector search", "vector search", "semantic search"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["iam", "identify and access management"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["fim", "federated identity management"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["sso", "single sign-on"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["iot", "internet of things"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["python async", "motor"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["readonly", "read only"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["wiredTiger", "wired tiger"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["golang", "go driver", "go"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["connection URI", "connection string"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["nin", "not in"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["jwt", "JSON Web Token"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["scram", "salted challenge response authentication mechanism"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["gte", "greater than or equal to"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["CAFile", "certificate authority file"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["crl", "certificate revocation list"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["gcp", "Google Cloud Platform"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["collMod", "modify collection"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["featureCompatibilityVersion", "fcv"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["datetime", "date()"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["cpp", "c++"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["csharp", "c#"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["dotnet", ".NET"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["ts", "typescript"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["collstats", "collection statistics"]
+  },
+  {
+    "mappingType": "equivalent",
+    "synonyms": ["stats", "statistics"]
+  }
+]

@@ -2,12 +2,12 @@ import "dotenv/config";
 import {
   CORE_ENV_VARS,
   makeMongoDbEmbeddedContentStore,
-  makeRrfFindContent,
   assertEnvVars,
-  MakeRrfFindContentParams,
+  MakeRsfFindContentParams,
   FindContentFunc,
   Message,
   updateFrontMatter,
+  makeRsfFindContent,
 } from "mongodb-rag-core";
 import {
   retrievalConfig,
@@ -42,6 +42,9 @@ const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   },
 });
 
+// Set min score for calibration w/ RSF scoring
+retrievalConfig.findNearestNeighborsOptions.minScore = 0.6;
+
 // Uses same K in evals as in retrieval config.
 // This is because we always return all results to the user in the chatbot.
 // If we were to use the retrieval system in a different context where
@@ -49,27 +52,27 @@ const embeddedContentStore = makeMongoDbEmbeddedContentStore({
 // we could readdress this.
 const { k } = retrievalConfig.findNearestNeighborsOptions;
 
-const rrfFindContentConfig = {
+const rsfFindContentConfig = {
   embedder,
   store: embeddedContentStore,
   config: {
     vectorSearch: {
-      weight: 0.85,
+      weight: 0.9,
       options: {
         ...retrievalConfig.findNearestNeighborsOptions,
-        k: retrievalConfig.findNearestNeighborsOptions.k * 10,
-        numCandidates: retrievalConfig.findNearestNeighborsOptions.k * 50,
+        k: retrievalConfig.findNearestNeighborsOptions.k,
+        numCandidates: retrievalConfig.findNearestNeighborsOptions.k * 5,
       },
     },
     fts: {
       indexName: FTS_INDEX_NAME,
-      weight: 0.15,
-      limit: retrievalConfig.findNearestNeighborsOptions.k * 20,
+      weight: 0.1,
+      limit: retrievalConfig.findNearestNeighborsOptions.k * 2,
     },
     limit: retrievalConfig.findNearestNeighborsOptions.k,
   },
-} satisfies MakeRrfFindContentParams;
-const rrfFindContent = makeRrfFindContent(rrfFindContentConfig);
+} satisfies MakeRsfFindContentParams;
+const rsfFindContent = makeRsfFindContent(rsfFindContentConfig);
 
 const retrieveRelevantContentEvalTask: RetrievalEvalTask = async function (
   data
@@ -78,7 +81,7 @@ const retrieveRelevantContentEvalTask: RetrievalEvalTask = async function (
     userMessageText: data.query,
     model: retrievalConfig.preprocessorLlm,
     openAiClient: preprocessorOpenAiClient,
-    findContent: rrfFindContent,
+    findContent: rsfFindContent,
   });
 
   return {
@@ -123,7 +126,7 @@ async function retrieveRelevantContent({
     ? updateFrontMatter(transformedUserQuery, metadataForQuery)
     : transformedUserQuery;
 
-  const { content, queryEmbedding } = await rrfFindContent({
+  const { content, queryEmbedding } = await rsfFindContent({
     query: vectorSearchQuery,
     ftsQuery: vectorSearchQuery,
   });
@@ -138,13 +141,13 @@ async function retrieveRelevantContent({
 }
 
 runRetrievalEval({
-  experimentName: `mongodb-chatbot-retrieval-RRF?ftsWeight=${rrfFindContentConfig.config.vectorSearch.weight}&ftsWeight=${rrfFindContentConfig.config.fts.weight}&model=${retrievalConfig.embeddingModel}&@K=${k}&minScore=${retrievalConfig.findNearestNeighborsOptions.minScore}`,
+  experimentName: `mongodb-chatbot-retrieval-RSF?vsWeight=${rsfFindContentConfig.config.vectorSearch.weight}&ftsWeight=${rsfFindContentConfig.config.fts.weight}&model=${retrievalConfig.embeddingModel}&@K=${k}&minScore=${retrievalConfig.findNearestNeighborsOptions.minScore}`,
   metadata: {
     description: "Evaluates quality of chatbot retrieval system.",
-    retrievalConfig: rrfFindContentConfig,
+    retrievalConfig: rsfFindContentConfig,
   },
-  data: () => getConversationRetrievalEvalData(getPath()),
   task: retrieveRelevantContentEvalTask,
-  maxConcurrency: 15,
   k,
+  data: () => getConversationRetrievalEvalData(getPath()),
+  maxConcurrency: 10,
 });

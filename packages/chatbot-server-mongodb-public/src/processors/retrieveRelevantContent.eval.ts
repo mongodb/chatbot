@@ -7,9 +7,11 @@ import {
 import { extractMongoDbMetadataFromUserMessage } from "./extractMongoDbMetadataFromUserMessage";
 import { retrieveRelevantContent } from "./retrieveRelevantContent";
 import {
+  getConversationRetrievalEvalData,
   RetrievalEvalTask,
   runRetrievalEval,
 } from "../eval/evaluationSuites/retrieval";
+import path from "path";
 
 // Uses same K in evals as in retrieval config.
 // This is because we always return all results to the user in the chatbot.
@@ -52,6 +54,17 @@ runRetrievalEval({
     description: "Evaluates quality of chatbot retrieval system",
     retrievalConfig,
   },
+  data: () =>
+    getConversationRetrievalEvalData(
+      path.resolve(
+        __dirname,
+        "..",
+        "..",
+        "evalCases",
+        "included_links_conversations.yml"
+      )
+    ),
   task: retrieveRelevantContentEvalTask,
+  maxConcurrency: 15,
   k,
 });

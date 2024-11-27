@@ -94,7 +94,7 @@ export type DeletePagesArgs = {
    */
   permanent?: boolean;
   /**
-   * If true, delete pages that do NOT match the query.
+   If true, delete pages that do NOT match the query.
    */
   inverse?: boolean;
 };

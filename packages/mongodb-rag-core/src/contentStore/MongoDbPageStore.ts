@@ -80,9 +80,15 @@ export function makeMongoDbPageStore({
         })
       );
     },
-    async deletePages({ dataSources, permanent = false, inverse = false }: DeletePagesArgs) {
+    async deletePages({
+      dataSources,
+      permanent = false,
+      inverse = false,
+    }: DeletePagesArgs) {
       const filter = {
-        ...(dataSources ? { sourceName: { [inverse ? '$nin' : '$in']: dataSources } } : undefined),
+        ...(dataSources
+          ? { sourceName: { [inverse ? "$nin" : "$in"]: dataSources } }
+          : undefined),
       };
       if (permanent) {
         const result = await pagesCollection.deleteMany(filter);

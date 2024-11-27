@@ -39,7 +39,7 @@ describe("allCommand", () => {
     embedStore = makeMongoDbEmbeddedContentStore({
       connectionUri: uri,
       databaseName,
-      searchIndex: {embeddingName: 'test-embedding'},
+      searchIndex: { embeddingName: "test-embedding" },
     });
     pageStore = makeMongoDbPageStore({
       connectionUri: uri,
@@ -48,7 +48,7 @@ describe("allCommand", () => {
   });
 
   afterEach(async () => {
-    assert(pageStore)
+    assert(pageStore);
     if (pageStore.close) {
       await pageStore?.close();
     }
@@ -146,16 +146,23 @@ describe("allCommand", () => {
     ];
 
     // Insert mock pages and embedded content
-    await mongoClient?.db(databaseName).collection('pages').insertMany([
-      { id: "page1", sourceName: "source1", content: "content1" },
-      { id: "page2", sourceName: "source2", content: "content2" },
-      { id: "page3", sourceName: "source3", content: "content3" },
-    ])
-    await mongoClient?.db(databaseName).collection('embedded_content').insertMany([
-      { id: "embed1", sourceName: "source1", embedding: [1, 2, 3] },
-      { id: "embed2", sourceName: "source2", embedding: [4, 5, 6] },
-      { id: "embed3", sourceName: "source3", embedding: [7, 8, 9] },
-    ]);
+    assert(mongoClient)
+    await mongoClient
+      .db(databaseName)
+      .collection("pages")
+      .insertMany([
+        { id: "page1", sourceName: "source1", content: "content1" },
+        { id: "page2", sourceName: "source2", content: "content2" },
+        { id: "page3", sourceName: "source3", content: "content3" },
+      ]);
+    await mongoClient
+      ?.db(databaseName)
+      .collection("embedded_content")
+      .insertMany([
+        { id: "embed1", sourceName: "source1", embedding: [1, 2, 3] },
+        { id: "embed2", sourceName: "source2", embedding: [4, 5, 6] },
+        { id: "embed3", sourceName: "source3", embedding: [7, 8, 9] },
+      ]);
 
     try {
       await doAllCommand(
@@ -173,8 +180,16 @@ describe("allCommand", () => {
         }
       );
 
-      const remainingPages = await mongoClient?.db(databaseName).collection('pages').find().toArray()
-      const remainingEmbeddings = await mongoClient?.db(databaseName).collection('embedded_content').find().toArray()
+      const remainingPages = await mongoClient
+        .db(databaseName)
+        .collection("pages")
+        .find()
+        .toArray();
+      const remainingEmbeddings = await mongoClient
+        .db(databaseName)
+        .collection("embedded_content")
+        .find()
+        .toArray();
 
       expect(remainingPages).toBeDefined();
       expect(remainingPages).toHaveLength(2);
@@ -185,9 +200,9 @@ describe("allCommand", () => {
       expect(remainingEmbeddings).toHaveLength(2);
       expect(remainingEmbeddings![0].id).toBe("embed1");
       expect(remainingEmbeddings![1].id).toBe("embed2");
-
     } finally {
       await ingestMetaStore.close();
+      await mongoClient.close();
     }
   });
 });

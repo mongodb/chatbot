@@ -1,15 +1,17 @@
 import {
   PageStore,
-  EmbeddedContentStore,
-  assertEnvVars,
+  makeMongoDbPageStore,
+  MongoDbEmbeddedContentStore,
+  makeMongoDbEmbeddedContentStore,
 } from "mongodb-rag-core";
 import { DataSource } from "mongodb-rag-core/dataSources";
-import { MongoClient } from "mongodb-rag-core/mongodb";
+import { MongoMemoryReplSet } from "mongodb-memory-server";
 import "dotenv/config";
-import { INGEST_ENV_VARS } from "../IngestEnvVars";
 import { doAllCommand } from "./all";
 import { makeIngestMetaStore } from "../IngestMetaStore";
 import "dotenv/config";
+import { strict as assert } from "assert";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 
 jest.setTimeout(1000000);
 
@@ -22,59 +24,46 @@ describe("allCommand", () => {
     },
   };
 
-  const { MONGODB_CONNECTION_URI: connectionUri } =
-    assertEnvVars(INGEST_ENV_VARS);
-
-  const mockEmbeddedContentStore: EmbeddedContentStore = {
-    async deleteEmbeddedContent() {
-      return;
-    },
-    async findNearestNeighbors() {
-      return [];
-    },
-    async loadEmbeddedContent() {
-      return [];
-    },
-    async updateEmbeddedContent() {
-      return;
-    },
-    metadata: {
-      embeddingName: "embeddedName",
-    },
-  };
-  const mockPageStore: PageStore = {
-    async loadPages() {
-      return [];
-    },
-    async updatePages() {
-      return;
-    },
-    async deletePages() {
-      return;
-    },
-  };
-
+  let mongod: MongoMemoryReplSet | undefined;
+  let mongoClient: MongoClient | undefined;
+  let pageStore: PageStore;
+  let embedStore: MongoDbEmbeddedContentStore;
+  let uri: string;
   let databaseName: string;
 
   beforeEach(async () => {
-    databaseName = `test-all-command-${Date.now()}-${Math.floor(
-      Math.random() * 10000000
-    )}`;
+    databaseName = "test-all-command";
+    mongod = await MongoMemoryReplSet.create();
+    uri = mongod.getUri();
+    mongoClient = new MongoClient(uri);
+    embedStore = makeMongoDbEmbeddedContentStore({
+      connectionUri: uri,
+      databaseName,
+      searchIndex: {embeddingName: 'test-embedding'},
+    });
+    pageStore = makeMongoDbPageStore({
+      connectionUri: uri,
+      databaseName,
+    });
   });
 
   afterEach(async () => {
-    const client = await MongoClient.connect(connectionUri);
-    try {
-      const db = client.db(databaseName);
-      await db.dropDatabase();
-    } finally {
-      await client.close();
+    assert(pageStore)
+    if (pageStore.close) {
+      await pageStore?.close();
+    }
+    if (embedStore) {
+      await embedStore.drop();
+      await embedStore.close();
+    }
+    if (mongod) {
+      await mongod.stop();
     }
   });
 
   it("updates the metadata with the last successful timestamp", async () => {
     const ingestMetaStore = makeIngestMetaStore({
-      connectionUri,
+      connectionUri: uri,
       databaseName,
       entryId: "all",
     });
@@ -84,8 +73,8 @@ describe("allCommand", () => {
       expect(lastSuccessfulRunDate).toBeNull();
       await doAllCommand(
         {
-          pageStore: mockPageStore,
-          embeddedContentStore: mockEmbeddedContentStore,
+          pageStore: pageStore,
+          embeddedContentStore: embedStore,
           ingestMetaStore,
           embedder,
           dataSources,
@@ -108,7 +97,7 @@ describe("allCommand", () => {
 
   it("does not update the metadata with the last successful timestamp on failure", async () => {
     const ingestMetaStore = makeIngestMetaStore({
-      connectionUri,
+      connectionUri: uri,
       databaseName,
       entryId: "all",
     });
@@ -119,8 +108,8 @@ describe("allCommand", () => {
       try {
         await doAllCommand(
           {
-            pageStore: mockPageStore,
-            embeddedContentStore: mockEmbeddedContentStore,
+            pageStore: pageStore,
+            embeddedContentStore: embedStore,
             ingestMetaStore,
             embedder,
             dataSources,
@@ -138,6 +127,65 @@ describe("allCommand", () => {
       lastSuccessfulRunDate = await ingestMetaStore.loadLastSuccessfulRunDate();
       // Not updated because run failed
       expect(lastSuccessfulRunDate).toBeNull();
+    } finally {
+      await ingestMetaStore.close();
+    }
+  });
+
+  it("cleans up pages and embedded content that are no longer in the data sources", async () => {
+    const ingestMetaStore = makeIngestMetaStore({
+      connectionUri: uri,
+      databaseName,
+      entryId: "all",
+    });
+
+    // Mock data sources
+    const mockDataSources: DataSource[] = [
+      { name: "source1", fetchPages: () => Promise.resolve([]) },
+      { name: "source2", fetchPages: () => Promise.resolve([]) },
+    ];
+
+    // Insert mock pages and embedded content
+    await mongoClient?.db(databaseName).collection('pages').insertMany([
+      { id: "page1", sourceName: "source1", content: "content1" },
+      { id: "page2", sourceName: "source2", content: "content2" },
+      { id: "page3", sourceName: "source3", content: "content3" },
+    ])
+    await mongoClient?.db(databaseName).collection('embedded_content').insertMany([
+      { id: "embed1", sourceName: "source1", embedding: [1, 2, 3] },
+      { id: "embed2", sourceName: "source2", embedding: [4, 5, 6] },
+      { id: "embed3", sourceName: "source3", embedding: [7, 8, 9] },
+    ]);
+
+    try {
+      await doAllCommand(
+        {
+          pageStore: pageStore,
+          embeddedContentStore: embedStore,
+          ingestMetaStore,
+          embedder,
+          dataSources: mockDataSources,
+        },
+        {
+          async doUpdatePagesCommand() {
+            return;
+          },
+        }
+      );
+
+      const remainingPages = await mongoClient?.db(databaseName).collection('pages').find().toArray()
+      const remainingEmbeddings = await mongoClient?.db(databaseName).collection('embedded_content').find().toArray()
+
+      expect(remainingPages).toBeDefined();
+      expect(remainingPages).toHaveLength(2);
+      expect(remainingPages![0].id).toBe("page1");
+      expect(remainingPages![1].id).toBe("page2");
+
+      expect(remainingEmbeddings).toBeDefined();
+      expect(remainingEmbeddings).toHaveLength(2);
+      expect(remainingEmbeddings![0].id).toBe("embed1");
+      expect(remainingEmbeddings![1].id).toBe("embed2");
+
     } finally {
       await ingestMetaStore.close();
     }

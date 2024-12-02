@@ -380,11 +380,18 @@ interface FtsConfig {
    */
   query: string;
 
+  // TODO: remove before merge
+  originalQuery?: string;
+  metadata?: {
+    productName?: string;
+    programmingLanguage?: string;
+  };
+
   /**
     Additional query elements merged with the FTS 'text' query.
     Filters, etc.
    */
-  additionalQueryElements?: Document;
+  additionalQueryElements?: Document & { should?: Document[] };
   /**
     Maximum number of results to include.
    */
@@ -635,12 +642,9 @@ function makeFtsAggStages(
     query,
     limit,
     additionalQueryElements,
-  }: {
-    indexName: string;
-    query: string;
-    limit: number;
-    additionalQueryElements?: Document;
-  },
+    originalQuery,
+    metadata,
+  }: FtsConfig,
   scoreOut?: string
 ) {
   const scorePath = scoreOut ?? "fts_score";
@@ -653,8 +657,39 @@ function makeFtsAggStages(
   const searchOperations = additionalQueryElements
     ? {
         compound: {
-          should: [ftsQueryDoc],
           ...additionalQueryElements,
+          should: [
+            // ftsQueryDoc,
+            {
+              text: {
+                query,
+                path: "metadata.pageTitle",
+              },
+            },
+            {
+              text: {
+                query: originalQuery ?? query,
+                path: "url",
+                score: {
+                  boost: {
+                    value: 2,
+                  },
+                },
+              },
+            },
+            {
+              text: {
+                query: metadata?.productName ?? query,
+                path: "metadata.productName",
+              },
+            },
+            {
+              text: {
+                query: metadata?.productName ?? query,
+                path: "metadata.siteTitle",
+              },
+            },
+          ],
         },
       }
     : ftsQueryDoc;

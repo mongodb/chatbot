@@ -65,6 +65,7 @@ const rrfFindContentConfig = {
       indexName: FTS_INDEX_NAME,
       weight: 0.15,
       limit: retrievalConfig.findNearestNeighborsOptions.k * 20,
+      // additionalQueryElements: {},
     },
     limit: retrievalConfig.findNearestNeighborsOptions.k,
   },

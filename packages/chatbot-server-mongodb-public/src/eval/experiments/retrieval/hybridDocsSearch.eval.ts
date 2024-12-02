@@ -1,15 +1,16 @@
 import "dotenv/config";
 import {
-  CORE_ENV_VARS,
-  makeMongoDbEmbeddedContentStore,
-  makeTextSearchFindContent,
-  assertEnvVars,
   FindContentFunc,
+  makeDefaultFindContent,
   Message,
   updateFrontMatter,
-  MakeTextSearchFindContentParams,
 } from "mongodb-rag-core";
-import { retrievalConfig, preprocessorOpenAiClient } from "../../../config";
+import {
+  retrievalConfig,
+  preprocessorOpenAiClient,
+  embedder,
+  embeddedContentStore,
+} from "../../../config";
 import { extractMongoDbMetadataFromUserMessage } from "../../../processors/extractMongoDbMetadataFromUserMessage";
 import {
   getConversationRetrievalEvalData,
@@ -19,24 +20,8 @@ import {
 import { makeStepBackUserQuery } from "../../../processors/makeStepBackUserQuery";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { getPath } from "./evalCasePath";
-
-const {
-  MONGODB_CONNECTION_URI,
-  MONGODB_DATABASE_NAME,
-  OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
-  FTS_INDEX_NAME,
-} = assertEnvVars(CORE_ENV_VARS);
-
-const embeddedContentStore = makeMongoDbEmbeddedContentStore({
-  connectionUri: MONGODB_CONNECTION_URI,
-  databaseName: MONGODB_DATABASE_NAME,
-  searchIndex: {
-    embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
-    fullText: {
-      name: FTS_INDEX_NAME,
-    },
-  },
-});
+import { searchMongoDbDocs } from "../../../processors/searchMongoDbDocs";
+import { augmentSearchWithDocsRrf } from "../../../processors/augmentSearchWithDocsRrf";
 
 // Uses same K in evals as in retrieval config.
 // This is because we always return all results to the user in the chatbot.
@@ -45,20 +30,20 @@ const embeddedContentStore = makeMongoDbEmbeddedContentStore({
 // we could readdress this.
 const { k } = retrievalConfig.findNearestNeighborsOptions;
 
-const ftsFindContentConfig = {
-  store: embeddedContentStore,
-  config: {
-    fts: {
-      indexName: FTS_INDEX_NAME,
-      weight: 0.15,
-      limit: retrievalConfig.findNearestNeighborsOptions.k * 20,
-      // additionalQueryElements: {},
-    },
-    limit: retrievalConfig.findNearestNeighborsOptions.k,
-  },
-} satisfies MakeTextSearchFindContentParams;
-const ftsFindContent = makeTextSearchFindContent(ftsFindContentConfig);
+const hybridConfig = {
+  vsWeight: 0.5,
+  ftsWeight: 0.5,
+};
 
+const findContent = makeDefaultFindContent({
+  embedder,
+  store: embeddedContentStore,
+  findNearestNeighborsOptions: {
+    ...retrievalConfig.findNearestNeighborsOptions,
+    k: retrievalConfig.findNearestNeighborsOptions.k * 10,
+    numCandidates: retrievalConfig.findNearestNeighborsOptions.k * 50,
+  },
+});
 const retrieveRelevantContentEvalTask: RetrievalEvalTask = async function (
   data
 ) {
@@ -66,18 +51,18 @@ const retrieveRelevantContentEvalTask: RetrievalEvalTask = async function (
     userMessageText: data.query,
     model: retrievalConfig.preprocessorLlm,
     openAiClient: preprocessorOpenAiClient,
-    findContent: ftsFindContent,
+    findContent: findContent,
   });
 
   return {
-    extractedMetadata: results.metadataForQuery,
-    rewrittenQuery: results.transformedUserQuery,
-    searchString: results.searchQuery,
     results: results.content.map((c) => ({
       url: c.url,
       content: c.text,
       score: c.score,
     })),
+    extractedMetadata: results.metadataForQuery,
+    rewrittenQuery: results.transformedUserQuery,
+    searchString: results.searchQuery,
   };
 };
 
@@ -91,7 +76,7 @@ async function retrieveRelevantContent({
   model: string;
   precedingMessagesToInclude?: Message[];
   userMessageText: string;
-  findContent: typeof ftsFindContent;
+  findContent: FindContentFunc;
 }) {
   const metadataForQuery = await extractMongoDbMetadataFromUserMessage({
     openAiClient: preprocessorOpenAiClient,
@@ -111,14 +96,24 @@ async function retrieveRelevantContent({
     ? updateFrontMatter(transformedUserQuery, metadataForQuery)
     : transformedUserQuery;
 
-  const { content } = await ftsFindContent({
+  const { content, queryEmbedding } = await findContent({
     query: vectorSearchQuery,
-    originalQuery: userMessageText,
-    metadata: metadataForQuery,
   });
-
+  const mongodbResults = await searchMongoDbDocs(userMessageText);
+  const augmentedResults = await augmentSearchWithDocsRrf({
+    searchResults: {
+      content,
+      weight: hybridConfig.vsWeight,
+    },
+    docsSearchResults: {
+      content: mongodbResults.results,
+      weight: hybridConfig.ftsWeight,
+    },
+    k,
+  });
   return {
-    content,
+    content: augmentedResults,
+    queryEmbedding,
     transformedUserQuery,
     searchQuery: vectorSearchQuery,
     metadataForQuery,
@@ -126,13 +121,13 @@ async function retrieveRelevantContent({
 }
 
 runRetrievalEval({
-  experimentName: `mongodb-chatbot-retrieval-FTS`,
+  experimentName: `mongodb-chatbot-retrieval-hybrid-docs?vsWeight=${hybridConfig.vsWeight}&ftsWeight=${hybridConfig.ftsWeight}&model=${retrievalConfig.embeddingModel}&@K=${k}&minScore=${retrievalConfig.findNearestNeighborsOptions.minScore}`,
   metadata: {
     description: "Evaluates quality of chatbot retrieval system.",
-    retrievalConfig: ftsFindContent,
+    retrievalConfig: hybridConfig,
   },
   data: () => getConversationRetrievalEvalData(getPath()),
   task: retrieveRelevantContentEvalTask,
-  maxConcurrency: 20,
+  maxConcurrency: 15,
   k,
 });

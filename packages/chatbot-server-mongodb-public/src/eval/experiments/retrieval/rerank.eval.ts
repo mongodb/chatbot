@@ -2,12 +2,11 @@ import "dotenv/config";
 import {
   CORE_ENV_VARS,
   makeMongoDbEmbeddedContentStore,
-  makeRrfFindContent,
   assertEnvVars,
-  MakeRrfFindContentParams,
   FindContentFunc,
   Message,
   updateFrontMatter,
+  makeDefaultFindContent,
 } from "mongodb-rag-core";
 import {
   retrievalConfig,
@@ -16,12 +15,14 @@ import {
 } from "../../../config";
 import { extractMongoDbMetadataFromUserMessage } from "../../../processors/extractMongoDbMetadataFromUserMessage";
 import {
+  getConversationRetrievalEvalData,
   RetrievalEvalTask,
   runRetrievalEval,
 } from "../../evaluationSuites/retrieval";
 import { makeStepBackUserQuery } from "../../../processors/makeStepBackUserQuery";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { CohereClientV2 } from "cohere-ai";
+import { getPath } from "./evalCasePath";
 
 const cohereClient = new CohereClientV2({
   token: process.env.COHERE_API_KEY!,
@@ -52,28 +53,14 @@ const embeddedContentStore = makeMongoDbEmbeddedContentStore({
 // we could readdress this.
 // const { k } = retrievalConfig.findNearestNeighborsOptions;
 const k = 5;
-
-const rrfFindContentConfig = {
+const findContent = makeDefaultFindContent({
   embedder,
   store: embeddedContentStore,
-  config: {
-    vectorSearch: {
-      weight: 0.85,
-      options: {
-        ...retrievalConfig.findNearestNeighborsOptions,
-        k: retrievalConfig.findNearestNeighborsOptions.k * 10,
-        numCandidates: retrievalConfig.findNearestNeighborsOptions.k * 50,
-      },
-    },
-    fts: {
-      indexName: FTS_INDEX_NAME,
-      weight: 0.15,
-      limit: retrievalConfig.findNearestNeighborsOptions.k * 20,
-    },
-    limit: retrievalConfig.findNearestNeighborsOptions.k,
+  findNearestNeighborsOptions: {
+    k: retrievalConfig.findNearestNeighborsOptions.k * 3,
+    numCandidates: retrievalConfig.findNearestNeighborsOptions.k * 30,
   },
-} satisfies MakeRrfFindContentParams;
-const rrfFindContent = makeRrfFindContent(rrfFindContentConfig);
+});
 
 const rerankModel = "rerank-english-v3.0";
 
@@ -84,7 +71,7 @@ const retrieveRelevantContentEvalTask: RetrievalEvalTask = async function (
     userMessageText: data.query,
     model: retrievalConfig.preprocessorLlm,
     openAiClient: preprocessorOpenAiClient,
-    findContent: rrfFindContent,
+    findContent: findContent,
   });
 
   const rerankedResults = await cohereClient.rerank({
@@ -145,9 +132,8 @@ async function retrieveRelevantContent({
     ? updateFrontMatter(transformedUserQuery, metadataForQuery)
     : transformedUserQuery;
 
-  const { content, queryEmbedding } = await rrfFindContent({
+  const { content, queryEmbedding } = await findContent({
     query: vectorSearchQuery,
-    ftsQuery: vectorSearchQuery,
   });
 
   return {
@@ -160,10 +146,11 @@ async function retrieveRelevantContent({
 }
 
 runRetrievalEval({
-  experimentName: `mongodb-chatbot-retrieval-RRF-rerank?rerankModel=${rerankModel}&ftsWeight=${rrfFindContentConfig.config.vectorSearch.weight}&ftsWeight=${rrfFindContentConfig.config.fts.weight}&model=${retrievalConfig.embeddingModel}&@K=${k}&minScore=${retrievalConfig.findNearestNeighborsOptions.minScore}`,
+  experimentName: `mongodb-chatbot-retrieval-rerank?rerankModel=${rerankModel}&minScore=${retrievalConfig.findNearestNeighborsOptions.minScore}`,
+  data: () => getConversationRetrievalEvalData(getPath()),
   metadata: {
     description: "Evaluates quality of chatbot retrieval system.",
-    retrievalConfig: rrfFindContentConfig,
+    retrievalConfig: retrievalConfig,
   },
   task: retrieveRelevantContentEvalTask,
   k,

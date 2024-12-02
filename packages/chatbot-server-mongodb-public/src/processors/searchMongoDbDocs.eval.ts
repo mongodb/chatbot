@@ -1,17 +1,17 @@
 import "dotenv/config";
-import {
-  retrievalConfig,
-  preprocessorOpenAiClient,
-  findContent,
-} from "../config";
-import { extractMongoDbMetadataFromUserMessage } from "./extractMongoDbMetadataFromUserMessage";
-import { retrieveRelevantContent } from "./retrieveRelevantContent";
+import { preprocessorOpenAiClient, retrievalConfig } from "../config";
+
 import {
   getConversationRetrievalEvalData,
   RetrievalEvalTask,
   runRetrievalEval,
 } from "../eval/evaluationSuites/retrieval";
 import path from "path";
+import { searchMongoDbDocs } from "./searchMongoDbDocs";
+import { withRrfScore } from "./withRrfScore";
+import { makeStepBackUserQuery } from "./makeStepBackUserQuery";
+import { extractMongoDbMetadataFromUserMessage } from "./extractMongoDbMetadataFromUserMessage";
+import { updateFrontMatter } from "mongodb-rag-core";
 
 // Uses same K in evals as in retrieval config.
 // This is because we always return all results to the user in the chatbot.
@@ -23,33 +23,31 @@ const { k } = retrievalConfig.findNearestNeighborsOptions;
 const retrieveRelevantContentEvalTask: RetrievalEvalTask = async function (
   data
 ) {
-  const metadataForQuery = await extractMongoDbMetadataFromUserMessage({
+  const metadata = await extractMongoDbMetadataFromUserMessage({
     openAiClient: preprocessorOpenAiClient,
     model: retrievalConfig.preprocessorLlm,
     userMessageText: data.query,
   });
-  const results = await retrieveRelevantContent({
-    userMessageText: data.query,
-    model: retrievalConfig.preprocessorLlm,
+  const { transformedUserQuery } = await makeStepBackUserQuery({
     openAiClient: preprocessorOpenAiClient,
-    findContent,
-    metadataForQuery,
+    model: retrievalConfig.preprocessorLlm,
+    userMessageText: updateFrontMatter(data.query, metadata),
   });
+  const { results } = await searchMongoDbDocs(
+    updateFrontMatter(transformedUserQuery, metadata)
+  );
 
   return {
-    results: results.content.map((c) => ({
-      url: c.url,
-      content: c.text,
+    results: withRrfScore(results).map((c) => ({
+      content: c.preview ?? "placeholder",
       score: c.score,
+      url: c.url ?? "placeholder",
     })),
-    extractedMetadata: metadataForQuery,
-    rewrittenQuery: results.transformedUserQuery,
-    searchString: results.searchQuery,
   };
 };
 
 runRetrievalEval({
-  experimentName: `mongodb-chatbot-retrieval-latest?model=${retrievalConfig.embeddingModel}&@K=${k}&minScore=${retrievalConfig.findNearestNeighborsOptions.minScore}`,
+  experimentName: `mongodb-chatbot-retrieval-docs-search`,
   metadata: {
     description: "Evaluates quality of chatbot retrieval system",
     retrievalConfig,

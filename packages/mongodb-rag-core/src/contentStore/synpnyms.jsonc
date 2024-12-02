@@ -1,3 +1,5 @@
+// synpnyms used inthe `synonyms` collection in the FTS index
+// taken and lightly adapted from the DOP version in https://github.com/mongodb/docs-search-transport/blob/aac37af50da0999254d0fbeb3da6f8ff40095108/resources/synonyms.csv
 [
   {
     "mappingType": "equivalent",

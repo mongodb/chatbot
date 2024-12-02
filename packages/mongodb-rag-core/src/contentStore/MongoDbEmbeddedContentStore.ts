@@ -654,12 +654,13 @@ function makeFtsAggStages(
       path: ftsIndexedPath,
     },
   };
+  // NOTE: here i was hacking around a bunch with different query options. none yielded meaningful performance improvements.
   const searchOperations = additionalQueryElements
     ? {
         compound: {
           ...additionalQueryElements,
           should: [
-            // ftsQueryDoc,
+            ftsQueryDoc,
             {
               text: {
                 query,

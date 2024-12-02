@@ -1,0 +1,44 @@
+// Here's teh search index used for FTS
+{
+  "mappings": {
+    "dynamic": false,
+    "fields": {
+      "text": [
+        {
+          "type": "string"
+        }
+      ],
+      "sourceName": {
+        "type": "token"
+      },
+      "url": {
+        "type": "string",
+        "analyzer": "lucene.simple"
+      },
+      "metadata.siteTitle": [
+        {
+          "type": "string"
+        }
+      ],
+      "metadata.pageTitle": [
+        {
+          "type": "string"
+        }
+      ],
+      "metadata.productName": [
+        {
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "synonyms": [
+    {
+      "name": "synonyms",
+      "analyzer": "lucene.standard",
+      "source": {
+        "collection": "synonyms"
+      }
+    }
+  ]
+}

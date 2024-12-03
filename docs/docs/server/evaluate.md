@@ -31,9 +31,15 @@ To learn more about how you can red team a chatbot, refer to the
 
 ## Automated Evaluation
 
-You can evaluate your chatbot's responses using a variety of automated methods.
-The MongoDB Chatbot Framework comes with an Evaluation CLI that allows you to evaluate
-the performance of your chatbot and its components.
+You can evaluate your chatbot's responses using a variety of automated methods and tools.
 
-To learn more about how to use the Evaluation CLI,
-refer to the [Evaluation CLI](./evaluation/index.md) documentation.
+On the team that builds the MongoDB Chatbot Framework, we use [Braintrust](braintrust.dev) as our automated evaluation tool.
+You can search in the project's repository for `**.eval.ts` files to see how we use Braintrust for evaluation.
+
+:::note[Deprecated Evaluation CLI]
+
+The MongoDB Chatbot Framework used to have an evaluation CLI that you could use to evaluate your chatbot's responses.
+
+We have deprecated this CLI in favor of using Braintrust for evaluation.
+
+:::

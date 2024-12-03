@@ -2,7 +2,7 @@ import { initDataset } from "braintrust";
 import { QuizQuestionDataSchema } from "./QuizQuestionData";
 import { z } from "zod";
 import { QuizQuestionEvalCase } from "./QuizQuestionEval";
-import { quizQuestionToHelmAnswer } from "mongodb-chatbot-evaluation";
+import { quizQuestionToHelmAnswer } from "./makeHelmQuizQuestionPrompt";
 export interface GetQuizQuestionEvalCasesFromBraintrustParams {
   projectName: string;
   datasetName: string;

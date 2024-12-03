@@ -22,6 +22,7 @@
     "pipeline:discoveryEval": "npm run build && node ./build/pipelines/discoveryEval.js",
     "pipeline:discoveryEvalToBraintrust": "npm run build && node ./build/pipelines/discoveryEvalToBraintrust.js",
     "textToDriver:makeDatabases": "npm run build && node ./build/textToDriver/makeDatabases/index.js",
+    "benchmark:MongoDbDiscovery": "npm run build && node ./build/discovery/mongoDbDiscoveryBenchmark.js",
     "benchmark:TextToNodeJsDriver": "npm run build && node ./build/textToDriver/nodeJsDriverBenchmark.js"
   },
   "devDependencies": {
@@ -46,7 +47,7 @@
   },
   "dependencies": {
     "@supercharge/promise-pool": "^3.2.0",
-    "braintrust": "^0.0.164",
+    "braintrust": "^0.0.175",
     "dotenv": "^16",
     "mongodb-chatbot-evaluation": "*",
     "mongodb-chatbot-server": "*",

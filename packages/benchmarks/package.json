@@ -17,12 +17,9 @@
     "release": "release-it",
     "lint": "eslint ./src --ext ts --report-unused-disable-directives",
     "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
-    "pipeline:quizEval": "npm run build && node ./build/pipelines/quizEval.js",
-    "pipeline:quizEvalToBraintrust": "npm run build && node ./build/pipelines/quizEvalToBraintrust.js",
-    "pipeline:discoveryEval": "npm run build && node ./build/pipelines/discoveryEval.js",
-    "pipeline:discoveryEvalToBraintrust": "npm run build && node ./build/pipelines/discoveryEvalToBraintrust.js",
     "textToDriver:makeDatabases": "npm run build && node ./build/textToDriver/makeDatabases/index.js",
     "benchmark:MongoDbDiscovery": "npm run build && node ./build/discovery/mongoDbDiscoveryBenchmark.js",
+    "benchmark:MongoDbUniversityQuizQuestion": "npm run build && node ./build/quizQuestions/mongoDbUniversityQuizQuestionBenchmark.js",
     "benchmark:TextToNodeJsDriver": "npm run build && node ./build/textToDriver/nodeJsDriverBenchmark.js"
   },
   "devDependencies": {

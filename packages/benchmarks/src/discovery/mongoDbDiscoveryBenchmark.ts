@@ -6,16 +6,13 @@ import {
 import path from "path";
 import "dotenv/config";
 import { BRAINTRUST_ENV_VARS, RADIANT_ENV_VARS } from "../envVars";
-import { wrapOpenAI } from "braintrust";
 import PromisePool from "@supercharge/promise-pool";
 import { makeOpenAiClientFactory } from "../makeOpenAiClientFactory";
 import {
   getDiscoveryConversationEvalDataFromYamlFile,
   runDiscoveryEval,
 } from "./DiscoveryEval";
-async function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+
 async function main() {
   const {
     BRAINTRUST_API_KEY,
@@ -56,11 +53,10 @@ async function main() {
   const maxTokensOut = [100, 500, 1000];
   const iterations = 5;
   const projectName = "discovery-benchmark";
-  await sleep(500);
   const modelExperiments = models
 
     .filter((m) => m.authorized === true)
-    // // NOTE: ignoring Google models for now b/c of issues with Radiant
+    // TODO: remove this filter once done testing
     .filter((m) => m.label === "gpt-4o-mini")
     .map((modelInfo) => {
       const modelExperiments = [];
@@ -92,9 +88,7 @@ async function main() {
               projectName,
               model: modelInfo.deployment,
               matchRegExp: /mongodb/i,
-              openaiClient: wrapOpenAI(
-                openAiClientFactory.makeOpenAiClient(modelInfo)
-              ),
+              openaiClient: openAiClientFactory.makeOpenAiClient(modelInfo),
               experimentName,
               additionalMetadata: {
                 ...modelInfo,

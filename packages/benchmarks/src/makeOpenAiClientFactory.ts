@@ -1,6 +1,7 @@
 import { OpenAI, AzureOpenAI } from "mongodb-rag-core/openai";
 import { ModelConfig } from "./models";
 import { strict as assert } from "assert";
+import { wrapOpenAI } from "braintrust";
 interface BaseModelProviderConfig {
   apiKey: string;
   endpoint: string;
@@ -52,7 +53,7 @@ export function makeOpenAiClientFactory({
       if (modelConfig.systemMessageAsUserMessage) {
         openAiClient = imitateSystemMessagesWithUserMessages(openAiClient);
       }
-      return openAiClient;
+      return wrapOpenAI(openAiClient);
     },
   };
 }

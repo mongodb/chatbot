@@ -29,7 +29,8 @@
     ".": "./build/index.js",
     "./langchain": "./build/langchain.js",
     "./mongodb": "./build/mongodb.js",
-    "./openai": "./build/openai.js"
+    "./openai": "./build/openai.js",
+    "./dataSources": "./build/dataSources/index.js"
   },
   "scripts": {
     "clean": "rm -rf build",
@@ -59,7 +60,7 @@
     "eslint-plugin-tsdoc": "^0.2.14",
     "express": "^4.19.2",
     "jest": "^29",
-    "mongodb-memory-server": "^8",
+    "mongodb-memory-server": "^10.1.2",
     "node-mocks-http": "^1.16.1",
     "prettier": "^2",
     "release-it": "^16.2.1",

@@ -40,9 +40,21 @@ export type Config = {
   jiraApi?: Constructor<JiraApi>;
 
   /**
+    The maximum number of concurrent requests to make to the Jira API.
+    @default 12
+   */
+  jiraApiMaxConcurrency?: number;
+
+  /**
     The GitHub API client.
    */
   githubApi?: Constructor<Octokit>;
+
+  /**
+   The maximum number of concurrent requests to make to an LLM generator.
+   @default 8
+   */
+  llmMaxConcurrency?: number;
 };
 
 export type Constructor<T> = (() => T) | (() => Promise<T>);

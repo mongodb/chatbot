@@ -4,7 +4,12 @@ import {
   MakeMongoDbDatabaseConnectionParams,
   makeMongoDbDatabaseConnection,
 } from "../MongoDbDatabaseConnection";
-import { LoadPagesArgs, PageStore, PersistedPage } from "./Page";
+import {
+  DeletePagesArgs,
+  LoadPagesArgs,
+  PageStore,
+  PersistedPage,
+} from "./Page";
 import { Filter } from "mongodb";
 
 export type MongoDbPageStore = DatabaseConnection &
@@ -18,6 +23,7 @@ export type MongoDbPageStore = DatabaseConnection &
       databaseName: string;
       collectionName: string;
     };
+    init(): Promise<void>;
   };
 
 export type MakeMongoDbPageStoreParams = MakeMongoDbDatabaseConnectionParams & {
@@ -73,6 +79,35 @@ export function makeMongoDbPageStore({
           }
         })
       );
+    },
+    async deletePages({ dataSources, permanent = false }: DeletePagesArgs) {
+      const filter = {
+        ...(dataSources ? { sourceName: { $in: dataSources } } : undefined),
+      };
+      if (permanent) {
+        const result = await pagesCollection.deleteMany(filter);
+        if (!result.acknowledged) {
+          throw new Error(`Permanent-delete pages not acknowledged!`);
+        }
+      } else {
+        const result = await pagesCollection.updateMany(filter, {
+          $set: { action: "deleted" },
+        });
+        if (!result.acknowledged) {
+          throw new Error(`Soft-delete pages not acknowledged!`);
+        }
+        if (!result.modifiedCount && !result.upsertedCount) {
+          throw new Error(
+            `Pages matching filter ${JSON.stringify(
+              filter
+            )} not marked for deletion!`
+          );
+        }
+      }
+    },
+    async init() {
+      await pagesCollection.createIndex({ url: 1 });
+      await pagesCollection.createIndex({ sourceName: 1 });
     },
   };
 }

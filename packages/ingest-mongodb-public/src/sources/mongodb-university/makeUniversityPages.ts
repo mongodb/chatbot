@@ -4,6 +4,8 @@ import {
   UniversityVideo,
 } from "./MongoDbUniversityDataApiClient";
 
+export const UNI_BASE_URL = "https://learn.mongodb.com";
+
 /**
   Helper function to create {@link Page} objects
   for MongoDB University content.
@@ -45,6 +47,32 @@ function makeCatalogItemPages({
 }): Page[] {
   const pages: Page[] = [];
   for (const catalogItem of tiCatalogItems) {
+    /* Create page for higher level courses.
+     * Higher level courses are Leanring Paths and Courses that have nested content.
+     * Nested content is made up of other TiCatalogItems such as Units and Learning Bytes.
+     * Note: Higher level courses do not have videos, but their nested content does.
+     */
+    if (
+      catalogItem.learning_format === "Learning Path" ||
+      catalogItem.learning_format === "Course"
+    ) {
+      const page: Page = {
+        sourceName,
+        url: `${UNI_BASE_URL}/learning-paths/${catalogItem.slug}`,
+        title: catalogItem.name,
+        format: "md",
+        body: generateContentDescriptionMarkdown({
+          tiCatalogItem: catalogItem,
+        }),
+        metadata: {
+          ...(metadata ?? {}),
+          tags: [...(metadata?.tags ?? []), "landing page"],
+          learningFormat: catalogItem.learning_format,
+        },
+      };
+      pages.push(page);
+      continue;
+    }
     for (const section of catalogItem.sections ?? []) {
       for (const lesson of section.lessons ?? []) {
         // Don't create a page for lessons without videos.
@@ -82,7 +110,7 @@ function makeCatalogItemPages({
             // `catalogItem.tags`) here and instead only use tags we specify in
             // our config. The API tags may contain internal or customer-specific
             // data that we don't want to include in the embeddings.
-            tags: metadata?.tags ?? [],
+            tags: [...(metadata?.tags ?? []), "transcript"],
             courseTitle,
             sectionTitle,
             lessonTitle,
@@ -163,7 +191,7 @@ function makeUniversityPageUrl({
   sectionSlug: string;
   lessonSlug: string;
 }) {
-  return `https://learn.mongodb.com/learn/course/${catalogItemSlug}/${sectionSlug}/${lessonSlug}`;
+  return `${UNI_BASE_URL}/learn/course/${catalogItemSlug}/${sectionSlug}/${lessonSlug}`;
 }
 
 /**
@@ -180,4 +208,35 @@ export function convertVideoTranscriptFromSrtToTxt(transcript: string): string {
     .map((line) => line.trim())
     .join(" ")
     .trim();
+}
+
+/**
+  Helper function to create Markdown content for MongoDB University Learning Paths and Courses
+  based on titles, duration, and descriptions.
+ */
+export function generateContentDescriptionMarkdown({
+  tiCatalogItem,
+}: {
+  tiCatalogItem: TiCatalogItem;
+}): string {
+  const { name, description, nested_content } = tiCatalogItem;
+  const title = `# ${name}`;
+  let markdownContent = title + "\n\n" + description + "\n\n";
+  if (nested_content) {
+    for (const nested of nested_content) {
+      const { name, duration, description, slug } = nested;
+      const title = `## ${name}`;
+      const link = `[View Details](${UNI_BASE_URL}/courses/${slug})`;
+      markdownContent +=
+        title +
+        "\n\n" +
+        duration +
+        "\n\n" +
+        description +
+        "\n\n" +
+        link +
+        "\n\n";
+    }
+  }
+  return markdownContent.slice(0, -2); // Remove the last 2 newlines
 }

@@ -1,0 +1,7 @@
+{
+  "input": {
+    "url": "https://mongodb.com/docs/atlas/push-logs/",
+    "text": "# Push Logs to AWS S3 bucket\n\nYou can continually push logs from `mongod`, `mongos`, and audit logs to an AWS S3 bucket. Atlas exports logs every 5 minutes.\n\n## Prerequisites\n\nYou will need\n\n- an AWS account with permissions to manage IAM roles.\n\n- an existing AWS S3 bucket.\n\n## Procedure\n\nTo continually push logs to an AWS S3 bucket, follow these steps.\n\n### In Atlas, go to the Advanced page for your project.\n\n- If it's not already displayed, select the organization that contains your project from the  Organizations menu in the navigation bar.\n\n- If it's not already displayed, select your project from the Projects menu in the navigation bar.\n\n- In the sidebar, click Advanced under the Security heading.\n\n  The Advanced page displays.\n\n### Toggle the button next to Push-Based Log Export to ON.\n\n### Click Connect to S3.\n\n### Follow the instructions in the Atlas UI.\n\nYou will be prompted to either a) create a new AWS role, or b) use one already attached to Atlas.\n\n## Limitations\n\n- You can't specify which logs to send. Atlas sends all `mongod`, `mongos`, and audit logs.\n\n- Push-based log export doesn't support Bring Your Own Key (BYOK).\n\n"
+  },
+  "output": "Learn how to copy audit logs and server logs from `mongod` or `mongos` to an AWS S3 bucket."
+}

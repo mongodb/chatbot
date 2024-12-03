@@ -12,16 +12,20 @@ export async function summarize({
 }) {
   generate = generate ?? makeGenerateChatCompletion();
   const analyzeCodeChat = [
-    systemMessage(stripIndents`
+    systemMessage({
+      content: stripIndents`
         Your task is to analyze a provided code snippet and write a succinct
         description of the code's purpose as well as its style and other
         notable choices. Limit your response to 100 words.
-      `),
-    userMessage(html`
+      `,
+    }),
+    userMessage({
+      content: html`
         Analyze the following code snippet and describe its purpose:
 
         ${sourceCode}
-      `),
+      `,
+    }),
   ];
 
   const analyzeCodeOutput = await generate(analyzeCodeChat);
@@ -40,16 +44,20 @@ export async function summarizePage({
 }) {
   generate = generate ?? makeGenerateChatCompletion();
   const analyzeCodeChat = [
-    systemMessage(stripIndents`
-      Your task is to analyze a provided documentation page and write a succinct
-      description of the content as well as its style and other notable choices.
-      Limit your response to 100 words.
-    `),
-    userMessage(html`
-      Analyze the following page and describe its contents:
+    systemMessage({
+      content: stripIndents`
+        Your task is to analyze a provided documentation page and write a succinct
+        description of the content as well as its style and other notable choices.
+        Limit your response to 100 words.
+      `,
+    }),
+    userMessage({
+      content: html`
+        Analyze the following page and describe its contents:
 
-      ${sourcePage}
-    `),
+        ${sourcePage}
+      `,
+    }),
   ];
 
   const analyzeCodeOutput = await generate(analyzeCodeChat);
@@ -74,39 +82,43 @@ export async function translate({
 }) {
   generate = generate ?? makeGenerateChatCompletion();
   const translateCodeChat = [
-    systemMessage(stripIndents`
-      You transform source code files from one programming language into another programming language.
+    systemMessage({
+      content: stripIndents`
+        You transform source code files from one programming language into another programming language.
 
-      Assume the provided code is correct.
+        Assume the provided code is correct.
 
-      Use idiomatic code and style conventions in the tranformed output.
+        Use idiomatic code and style conventions in the tranformed output.
 
-      Output only the transformed code with no additional text.
-    `),
-    userMessage(html`
-      ${
-        !searchResults
-          ? ""
-          : html`
-        Here is some helpful context for the page you will be translating:
+        Output only the transformed code with no additional text.
+      `,
+    }),
+    userMessage({
+      content: html`
+        ${
+          !searchResults
+            ? ""
+            : html`
+                Here is some helpful context for the page you will be translating:
 
-        ${searchResults}
+                ${searchResults}
 
-      `
-      }
-      This is a description of the original source code file:
+              `
+        }
+        This is a description of the original source code file:
 
-      ${sourceDescription}
+        ${sourceDescription}
 
-      The desired output has the following description:
+        The desired output has the following description:
 
-      ${targetDescription}
+        ${targetDescription}
 
-      Here is the source code file to translate:
+        Here is the source code file to translate:
 
-      ${sourceCode}
+        ${sourceCode}
 
-      Now translate to the desired output. Return only the transformed code with no additional text.`),
+        Now translate to the desired output. Return only the transformed code with no additional text.`,
+    }),
   ];
 
   const output = await generate(translateCodeChat);
@@ -131,38 +143,42 @@ export async function translatePage({
 }) {
   generate = generate ?? makeGenerateChatCompletion();
   const translateCodeChat = [
-    systemMessage(stripIndents`
-      You transform technical documentation pages based on a user's requests. The user will provide the content to transform and a description of the desired output.
+    systemMessage({
+      content: stripIndents`
+        You transform technical documentation pages based on a user's requests. The user will provide the content to transform and a description of the desired output.
 
-      For example, you might translate a documentation page from one programming language to another, or from one platform to another.
+        For example, you might translate a documentation page from one programming language to another, or from one platform to another.
 
-      Assume the provided information is correct and do your best to completely and accurately represent all of relevant provided information in your output.
+        Assume the provided information is correct and do your best to completely and accurately represent all of relevant provided information in your output.
 
-      Use idiomatic suggestions and style conventions in the tranformed output.
-    `),
-    userMessage(html`
-      ${
-        !searchResults
-          ? ""
-          : html`
-        Here is some helpful context for the page you will be translating:
+        Use idiomatic suggestions and style conventions in the tranformed output.
+      `,
+    }),
+    userMessage({
+      content: html`
+        ${
+          !searchResults
+            ? ""
+            : html`
+          Here is some helpful context for the page you will be translating:
 
-        ${searchResults}
+          ${searchResults}
 
-      `
-      }
-      This is a description of the original page:
+        `
+        }
+        This is a description of the original page:
 
-      ${sourceDescription}
+        ${sourceDescription}
 
-      The desired output has the following description:
+        The desired output has the following description:
 
-      ${targetDescription}
+        ${targetDescription}
 
-      Now translate the following original page text to match desired output. Return only the translated page with no additional text.
+        Now translate the following original page text to match desired output. Return only the translated page with no additional text.
 
-      ${sourcePage}
-    `),
+        ${sourcePage}
+      `,
+    }),
   ];
 
   const output = await generate(translateCodeChat);
@@ -185,30 +201,34 @@ export async function bluehawkify({
 }) {
   generate = generate ?? makeGenerateChatCompletion();
   const bluehawkifyChat = [
-    systemMessage(stripIndents`
-      You transform source code files into unit test files that ensure the behavior of the provided source code.
-      The unit test files should include the provided source code rather than importing from another file or otherwise obfuscating the source code.
-      Assume the provided code is correct.
-      Use idiomatic code and style conventions in the test code.
-      Output only the test file code with no additional text.
-    `),
-    userMessage(html`
-      Adapt the following code snippet into a file that tests the provided source code. Make sure to import the necessary dependencies and declare any necessary types, classes, structs, etc.
+    systemMessage({
+      content: stripIndents`
+        You transform source code files into unit test files that ensure the behavior of the provided source code.
+        The unit test files should include the provided source code rather than importing from another file or otherwise obfuscating the source code.
+        Assume the provided code is correct.
+        Use idiomatic code and style conventions in the test code.
+        Output only the test file code with no additional text.
+      `,
+    }),
+    userMessage({
+      content: html`
+        Adapt the following code snippet into a file that tests the provided source code. Make sure to import the necessary dependencies and declare any necessary types, classes, structs, etc.
 
-      The source code snippet has the following description:
+        The source code snippet has the following description:
 
-      ${sourceDescription}
+        ${sourceDescription}
 
-      The desired output has the following description:
+        The desired output has the following description:
 
-      ${targetDescription}
+        ${targetDescription}
 
-      Here is the source code snippet:
+        Here is the source code snippet:
 
-      ${sourceCode}
+        ${sourceCode}
 
-      Now generate the desired output. Return only the code with no additional text.,
-    `),
+        Now generate the desired output. Return only the code with no additional text.,
+      `,
+    }),
   ];
 
   const output = await generate(bluehawkifyChat);
@@ -229,28 +249,32 @@ export async function generatePage({
 }) {
   generate = generate ?? makeGenerateChatCompletion();
   const translateCodeChat = [
-    systemMessage(stripIndents`
-      Generate a new MongoDB documentation page based on the provided description.
-    `),
-    userMessage(html`
-      ${
-        !searchResults
-          ? ""
-          : html`
-        Here is some helpful context for the page you will be creating:
+    systemMessage({
+      content: stripIndents`
+        Generate a new MongoDB documentation page based on the provided description.
+      `,
+    }),
+    userMessage({
+      content: html`
+        ${
+          !searchResults
+            ? ""
+            : html`
+          Here is some helpful context for the page you will be creating:
 
-        ${searchResults}
-      `
-      }
+          ${searchResults}
+        `
+        }
 
-      The desired output has the following description:
+        The desired output has the following description:
 
-      ${targetDescription}
+        ${targetDescription}
 
-      Here is a template
+        Here is a template
 
-      Now create the documentation page matching the desired output. Return only the translated page with no additional text.
-    `),
+        Now create the documentation page matching the desired output. Return only the translated page with no additional text.
+      `,
+    }),
   ];
 
   const output = await generate(translateCodeChat);

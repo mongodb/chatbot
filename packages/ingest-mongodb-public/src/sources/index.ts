@@ -6,7 +6,7 @@ import {
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
   removeMarkdownImagesAndLinks,
-} from "mongodb-rag-core";
+} from "mongodb-rag-core/dataSources";
 import { prismaSourceConstructor } from "./prisma";
 import { wiredTigerSourceConstructor } from "./wiredTiger";
 import { mongooseSourceConstructor } from "./mongoose";
@@ -25,7 +25,6 @@ import {
 } from "./DevCenterDataSource";
 import {
   MakeMongoDbUniversityDataSourceParams,
-  filterOnlyPublicActiveTiCatalogItems,
   makeMongoDbUniversityDataSource,
 } from "./mongodb-university";
 const { DEVCENTER_CONNECTION_URI, UNIVERSITY_DATA_API_KEY } = assertEnvVars(
@@ -53,9 +52,9 @@ const mongoDbUniversitySourceConstructor = async () => {
     sourceName: "mongodb-university",
     baseUrl: "https://api.learn.mongodb.com/rest/catalog",
     apiKey: universityDataApiKey,
-    tiCatalogFilterFunc: filterOnlyPublicActiveTiCatalogItems,
-    metadata: {
-      tags: ["transcript"],
+    tiCatalogItems: {
+      publicOnly: true,
+      nestAssociatedContent: true,
     },
   };
   return makeMongoDbUniversityDataSource(universityConfig);

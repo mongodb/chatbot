@@ -6,7 +6,7 @@ import {
   DataSource,
   ProjectBase,
   removeMarkdownImagesAndLinks,
-} from "mongodb-rag-core";
+} from "mongodb-rag-core/dataSources";
 
 export type DevCenterProjectConfig = ProjectBase & {
   type: "devcenter";

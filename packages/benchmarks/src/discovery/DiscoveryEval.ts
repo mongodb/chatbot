@@ -1,16 +1,42 @@
 import { strict as assert } from "assert";
 import { Eval, EvalCase, EvalScorer, EvalTask } from "braintrust";
 import { OpenAI } from "mongodb-rag-core/openai";
+import fs from "fs";
+import { getConversationsEvalCasesFromYaml } from "mongodb-rag-core/eval";
 
 export interface DiscoveryEvalCaseInput {
   content: string;
 }
 
-export type DiscoveryTag = "top_search_term";
+export type DiscoveryTag =
+  | "discovery"
+  | "marketing"
+  | "atlas_vector_search"
+  | "competition"
+  | "vector_search";
 
 export interface DiscoveryEvalCase
-  extends EvalCase<DiscoveryEvalCaseInput, unknown, unknown> {
+  extends EvalCase<DiscoveryEvalCaseInput, void, void> {
   tags?: DiscoveryTag[];
+}
+
+export function getDiscoveryConversationEvalDataFromYamlFile(
+  filePath: string
+): DiscoveryEvalCase[] {
+  const conversations = getConversationsEvalCasesFromYaml(
+    fs.readFileSync(filePath, "utf8")
+  );
+  return conversations.map((evalCase) => {
+    const latestMessageText =
+      evalCase.messages[evalCase.messages.length - 1].content;
+    assert(latestMessageText, "No latest message text found");
+    return {
+      tags: evalCase.tags as DiscoveryTag[],
+      input: {
+        content: latestMessageText,
+      },
+    };
+  });
 }
 
 export interface DiscoveryTaskOutput {

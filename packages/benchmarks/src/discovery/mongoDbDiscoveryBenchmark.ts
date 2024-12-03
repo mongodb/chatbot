@@ -3,14 +3,16 @@ import {
   assertEnvVars,
   CORE_OPENAI_CONNECTION_ENV_VARS,
 } from "mongodb-rag-core";
-
+import path from "path";
+import "dotenv/config";
 import { BRAINTRUST_ENV_VARS, RADIANT_ENV_VARS } from "../envVars";
 import { wrapOpenAI } from "braintrust";
 import PromisePool from "@supercharge/promise-pool";
 import { makeOpenAiClientFactory } from "../makeOpenAiClientFactory";
-import { runDiscoveryEval } from "./DiscoveryEval";
-import { getConversationsTestCasesFromYaml } from "../getConversationsTestCasesFromYaml";
-import fs from "fs";
+import {
+  getDiscoveryConversationEvalDataFromYamlFile,
+  runDiscoveryEval,
+} from "./DiscoveryEval";
 async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -30,7 +32,7 @@ async function main() {
     ...CORE_OPENAI_CONNECTION_ENV_VARS,
   });
 
-  const DEFAULT_MAX_CONCURRENCY = 3;
+  const DEFAULT_MAX_CONCURRENCY = 10;
   const openAiClientFactory = makeOpenAiClientFactory({
     azure: {
       apiKey: OPENAI_API_KEY,
@@ -59,7 +61,7 @@ async function main() {
 
     .filter((m) => m.authorized === true)
     // // NOTE: ignoring Google models for now b/c of issues with Radiant
-    .filter((m) => m.developer !== "Google")
+    .filter((m) => m.label === "gpt-4o-mini")
     .map((modelInfo) => {
       const modelExperiments = [];
       for (const temperature of temperatures) {
@@ -103,9 +105,8 @@ async function main() {
               maxConcurrency:
                 modelInfo.maxConcurrency ?? DEFAULT_MAX_CONCURRENCY,
               iterations: temperature === 0 ? 1 : numTrials,
-              // TODO: work on the data loader...
-              data: getConversationsTestCasesFromYaml(
-                fs.readFileSync("TODO: add")
+              data: getDiscoveryConversationEvalDataFromYamlFile(
+                path.resolve(__dirname, "..", "..", "datasets", "discovery.yml")
               ),
             });
           } catch (err) {

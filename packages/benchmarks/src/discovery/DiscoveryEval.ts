@@ -68,6 +68,7 @@ function makeDiscoveryTask({
         messages: [{ role: "user", content: input.content }],
         stream: false,
         ...llmOptions,
+        seed: 42, // Deterministically sample from the model, so same output every time
       });
       const { content } = res.choices[0].message;
       assert(content, "No content found in response");
@@ -86,11 +87,7 @@ export type DiscoveryEvalScorer = EvalScorer<
   void
 >;
 
-/**
-  Create a scorer that checks if the output strings matches a regular expression.
-  The score is the fraction of outputs that match the regular expression.
- */
-export function makeMatchScorer(matchRegExp: RegExp): DiscoveryEvalScorer {
+export function makeMatchScorers(matchRegExp: RegExp): DiscoveryEvalScorer {
   return (args) => {
     const matches: boolean[] = [];
     for (const content of args.output.content) {
@@ -98,13 +95,25 @@ export function makeMatchScorer(matchRegExp: RegExp): DiscoveryEvalScorer {
     }
     const score =
       matches.reduce((acc, match) => acc + (match ? 1 : 0), 0) / matches.length;
-    return {
-      name: `Matches_${matchRegExp.source}`,
-      score,
-      metadata: {
-        matches,
+    return [
+      {
+        name: `Matches_${matchRegExp.source}`,
+        score,
+        metadata: {
+          matches,
+          description: "Fraction of outputs that match the regular expression",
+        },
       },
-    };
+      {
+        name: `SomeMatches_${matchRegExp.source}`,
+        score: score > 0 ? 1 : 0,
+        metadata: {
+          matches,
+          description:
+            "Whether at least one output matches the regular expression",
+        },
+      },
+    ];
   };
 }
 
@@ -114,6 +123,7 @@ type DiscoveryLlmOptions = Pick<
 >;
 
 export interface MakeDiscoveryEvalParams {
+  projectName: string;
   data: DiscoveryEvalCase[];
   openaiClient: OpenAI;
   matchRegExp: RegExp;
@@ -126,6 +136,7 @@ export interface MakeDiscoveryEvalParams {
 }
 
 export function runDiscoveryEval({
+  projectName,
   data,
   openaiClient,
   matchRegExp,
@@ -136,20 +147,18 @@ export function runDiscoveryEval({
   iterations = 1,
   maxConcurrency,
 }: MakeDiscoveryEvalParams) {
-  return Eval<DiscoveryEvalCaseInput, DiscoveryTaskOutput>(
-    "discovery-benchmark",
-    {
-      data,
-      experimentName,
-      maxConcurrency,
-      metadata: {
-        model,
-        llmOptions,
-        matchRegExp: matchRegExp.toString(),
-        ...additionalMetadata,
-      },
-      task: makeDiscoveryTask({ openaiClient, llmOptions, model, iterations }),
-      scores: [makeMatchScorer(matchRegExp)],
-    }
-  );
+  return Eval<DiscoveryEvalCaseInput, DiscoveryTaskOutput>(projectName, {
+    data,
+    experimentName,
+    maxConcurrency,
+    metadata: {
+      model,
+      llmOptions,
+      iterations,
+      matchRegExp: matchRegExp.toString(),
+      ...additionalMetadata,
+    },
+    task: makeDiscoveryTask({ openaiClient, llmOptions, model, iterations }),
+    scores: [makeMatchScorers(matchRegExp)],
+  });
 }

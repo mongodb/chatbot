@@ -54,8 +54,8 @@ async function main() {
 
   const temperatures = [0.0, 0.5, 1.0];
   const maxTokensOut = [100, 500, 1000];
-  const numTrials = 5;
-
+  const iterations = 5;
+  const projectName = "discovery-benchmark";
   await sleep(500);
   const modelExperiments = models
 
@@ -82,13 +82,14 @@ async function main() {
       await PromisePool.for(modelInfos)
         .withConcurrency(1)
         .process(async ({ modelInfo, temperature, maxTokens }) => {
-          let experimentName = `${modelInfo.label}?temperature=${temperature}&maxTokens=${maxTokens}`;
+          let experimentName = `${modelInfo.label}?temperature=${temperature}&maxTokens=${maxTokens}&iterations=${iterations}`;
           if (RUN_ID) {
             experimentName += `&runId=${RUN_ID}`;
           }
           console.log(`Running experiment: ${experimentName}`);
           try {
             await runDiscoveryEval({
+              projectName,
               model: modelInfo.deployment,
               matchRegExp: /mongodb/i,
               openaiClient: wrapOpenAI(
@@ -104,7 +105,7 @@ async function main() {
               },
               maxConcurrency:
                 modelInfo.maxConcurrency ?? DEFAULT_MAX_CONCURRENCY,
-              iterations: temperature === 0 ? 1 : numTrials,
+              iterations: temperature === 0 ? 1 : iterations,
               data: getDiscoveryConversationEvalDataFromYamlFile(
                 path.resolve(__dirname, "..", "..", "datasets", "discovery.yml")
               ),

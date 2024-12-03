@@ -5,7 +5,7 @@ import path from "path";
 import fs from "fs";
 import { strict as assert } from "assert";
 import { getConversationsEvalCasesFromYaml } from "../getConversationEvalCasesFromYaml";
-import { fuzzyLinkMatch } from "../fuzzyLinkMatch";
+import { fuzzyLinkMatch } from "../../processors/fuzzyLinkMatch";
 import { averagePrecisionAtK } from "../scorers/averagePrecisionAtK";
 import { binaryNdcgAtK } from "../scorers/binaryNdcgAtK";
 import { f1AtK } from "../scorers/f1AtK";

@@ -18,7 +18,7 @@ import path from "path";
 // If we were to use the retrieval system in a different context where
 // we only return the top results of a larger query,
 // we could readdress this.
-const { k } = retrievalConfig.findNearestNeighborsOptions;
+const { k } = retrievalConfig;
 
 const retrieveRelevantContentEvalTask: RetrievalEvalTask = async function (
   data
@@ -34,6 +34,7 @@ const retrieveRelevantContentEvalTask: RetrievalEvalTask = async function (
     openAiClient: preprocessorOpenAiClient,
     findContent,
     metadataForQuery,
+    k,
   });
 
   return {

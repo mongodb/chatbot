@@ -19,6 +19,7 @@ import {
   ConversationCustomData,
   makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
+  FindNearestNeighborsOptions,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";
@@ -83,11 +84,16 @@ export const verifiedAnswerConfig = {
     minScore: 0.96,
   },
 };
+
+export const k = 5;
+
 export const retrievalConfig = {
   preprocessorLlm: OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
   embeddingModel: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
+  k,
   findNearestNeighborsOptions: {
-    k: 5,
+    k: k * 10,
+    numCandidates: k * 50,
     path: embeddedContentStore.metadata.embeddingPath,
     indexName: VECTOR_SEARCH_INDEX_NAME,
     minScore: 0.75,

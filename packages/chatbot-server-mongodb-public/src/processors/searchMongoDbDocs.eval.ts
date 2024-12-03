@@ -8,10 +8,10 @@ import {
 } from "../eval/evaluationSuites/retrieval";
 import path from "path";
 import { searchMongoDbDocs } from "./searchMongoDbDocs";
-import { withRrfScore } from "./withRrfScore";
 import { makeStepBackUserQuery } from "./makeStepBackUserQuery";
 import { extractMongoDbMetadataFromUserMessage } from "./extractMongoDbMetadataFromUserMessage";
 import { updateFrontMatter } from "mongodb-rag-core";
+import { withRrfScore } from "./augmentSearchWithDocsRrf";
 
 // Uses same K in evals as in retrieval config.
 // This is because we always return all results to the user in the chatbot.

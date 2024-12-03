@@ -53,7 +53,9 @@ export const sendErrorResponse = ({
     message: stripIndent`Responding with ${httpStatus} status and error message: ${errorMessage}.
     ${errorDetails ? `Error details: ${errorDetails}` : ""}`,
   });
-  return res.status(httpStatus).json({ error: errorMessage });
+  if (!res.writableEnded) {
+    return res.status(httpStatus).json({ error: errorMessage });
+  }
 };
 
 export function retryAsyncOperation<T>(

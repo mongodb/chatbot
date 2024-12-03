@@ -1,6 +1,7 @@
 import { Response } from "express";
 import { OpenAiStreamingResponse } from "./llm";
 import { References } from "./References";
+import { logger } from "./logger";
 
 export function escapeNewlines(str: string): string {
   return str.replaceAll(`\n`, `\\n`);
@@ -135,11 +136,10 @@ export function makeDataStreamer(): DataStreamer {
         throw new Error("Tried to connect SSE, but it was already connected.");
       }
       sse = makeServerSentEventDispatcher<SomeStreamEvent>(res);
-      // If the client closes the connection, stop sending events
       res.on("close", () => {
-        if (this.connected) {
-          this.disconnect();
-        }
+        logger.info(
+          "Client closed the streaming connection before the stream was finished."
+        );
       });
       sse.connect();
       connected = true;
@@ -160,6 +160,7 @@ export function makeDataStreamer(): DataStreamer {
       Streams single item of data in an event stream.
      */
     streamData(data: SomeStreamEvent) {
+      console.log(`streamData: ${JSON.stringify(data)}`);
       if (!this.connected) {
         throw new Error(
           `Tried to stream data, but there's no SSE connection. Call DataStreamer.connect() first.`

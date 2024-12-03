@@ -29,10 +29,10 @@ export function quizQuestionToHelmPrompt(
   includeAnswer: boolean
 ): string {
   return `Question: ${quizQuestion.questionText}
-  ${quizQuestion.answers
-    .map((answer) => `${answer.label}. ${answer.answer}`)
-    .join("\n")}
-  Response: ${includeAnswer ? quizQuestionToHelmAnswer(quizQuestion) : ""}`;
+${quizQuestion.answers
+  .map((answer) => `${answer.label}. ${answer.answer}`)
+  .join("\n")}
+Response: ${includeAnswer ? quizQuestionToHelmAnswer(quizQuestion) : ""}`;
 }
 
 /**
@@ -90,7 +90,7 @@ export function makeHelmQuizQuestionPrompt({
   const systemPromptContent = `The following are multiple choice questions (with answers)${
     subject ? ` about ${subject}` : ""
   }.
-  Only provide the answer the final question using the exact same format as the previous questions. Just provide the letters, e.g. A,B,C,D`;
+Only provide the answer the final question using the exact same format as the previous questions. Just provide the letters, e.g. A,B,C,D`;
   const systemPrompt = {
     role: "system",
     content: systemPromptContent,

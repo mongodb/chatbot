@@ -3,13 +3,14 @@ export type ModelDeveloper =
   | "Anthropic"
   | "Meta"
   | "Google"
-  | "Mistral";
+  | "Mistral"
+  | "Amazon";
 
 export type ModelProvider =
   | "radiant"
   | "braintrust"
   | "azure_openai"
-  | "anthropic_aws_bedrock"
+  | "aws_bedrock"
   | "gcp_vertex_ai";
 
 export interface ModelConfig {
@@ -134,6 +135,14 @@ export const models: ModelConfig[] = [
     authorized: true,
   },
   {
+    label: "claude-35-sonnet-v2",
+    deployment: "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+    developer: "Anthropic",
+    maxConcurrency: 1,
+    provider: "aws_bedrock",
+    authorized: true,
+  },
+  {
     label: "claude-35-haiku",
     deployment: "us.anthropic.claude-3-5-haiku-20241022-v1:0",
     developer: "Anthropic",
@@ -146,39 +155,56 @@ export const models: ModelConfig[] = [
     deployment: "meta.llama3-70b-instruct-v1:0",
     developer: "Meta",
     maxConcurrency: 1,
-    provider: "radiant",
+    provider: "aws_bedrock",
     authorized: true,
   },
+  // TODO: is this bedrock?
   {
     label: "mistral-large-2",
     deployment: "mistral.mistral-large-2402-v1:0",
     developer: "Mistral",
     maxConcurrency: 1,
-    provider: "radiant",
+    provider: "aws_bedrock",
     authorized: true,
   },
   {
     label: "llama-3.1-70b",
-    deployment: "accounts/fireworks/models/llama-v3p1-70b-instruct",
+    deployment: "us.meta.llama3-1-70b-instruct-v1:0",
     developer: "Meta",
     maxConcurrency: 1,
-    provider: "braintrust",
-    metadata: {
-      modelHost: "Fireworks",
-    },
-    authorized: false,
+    provider: "aws_bedrock",
+    authorized: true,
   },
   {
     label: "llama-3.2-90b",
-    deployment: "accounts/fireworks/models/llama-v3p2-90b-vision-instruct",
+    deployment: "us.meta.llama3-2-90b-instruct-v1:0",
     developer: "Meta",
     maxConcurrency: 1,
-    provider: "braintrust",
-    metadata: {
-      modelHost: "Fireworks",
-    },
-    authorized: false,
+    provider: "aws_bedrock",
+    authorized: true,
   },
+  {
+    label: "nova-lite-v1:0",
+    deployment: "amazon.nova-lite-v1:0",
+    developer: "Amazon",
+    provider: "aws_bedrock",
+    authorized: true,
+  },
+  {
+    label: "nova-micro-v1:0",
+    deployment: "amazon.nova-micro-v1:0",
+    developer: "Amazon",
+    provider: "aws_bedrock",
+    authorized: true,
+  },
+  {
+    label: "nova-pro-v1:0",
+    deployment: "amazon.nova-pro-v1:0",
+    developer: "Amazon",
+    provider: "aws_bedrock",
+    authorized: true,
+  },
+  // Note: not available in Bedrock (yet?)
   {
     label: "llama-3.1-405b",
     deployment: "accounts/fireworks/models/llama-v3p1-405b-instruct",

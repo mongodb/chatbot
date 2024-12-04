@@ -2,7 +2,9 @@ import { OpenAI, AzureOpenAI } from "mongodb-rag-core/openai";
 import { AnthropicBedrock } from "@anthropic-ai/bedrock-sdk";
 import {
   BedrockRuntimeClient,
-  InvokeModelCommand,
+  ConversationRole,
+  ConverseCommand,
+  Message,
 } from "@aws-sdk/client-bedrock-runtime";
 import { ModelConfig } from "./models";
 import { strict as assert } from "assert";
@@ -61,10 +63,9 @@ export function makeOpenAiClientFactory({
           apiKey: vertexAi.apiKey,
           baseURL: vertexAi.endpoint,
         });
-      } else if (modelConfig.provider === "anthropic_aws_bedrock") {
-        openAiClient = anthropicBedrockChatCompletionClient(
-        bedrock
-        );
+      } else if (modelConfig.provider === "aws_bedrock") {
+        assert(bedrock, "AWS Bedrock config must be provided");
+        openAiClient = bedrockChatCompletionClient(bedrock);
       } else {
         throw new Error(`Unsupported provider: ${modelConfig.provider}`);
       }
@@ -76,10 +77,11 @@ export function makeOpenAiClientFactory({
   };
 }
 
-function bedrockChatCompletion
-
-function anthropicBedrockChatCompletionClient(bedrock: AnthropicBedrock) {
+function bedrockChatCompletionClient(
+  bedrock: NonNullable<MakeOpenAiClientFactoryParams["bedrock"]>
+) {
   const openAiClient = new OpenAI();
+  const bedrockClient = new BedrockRuntimeClient(bedrock);
   const bedrockChatCompletionCreate = async function (
     body: Parameters<typeof openAiClient.chat.completions.create>[0]
   ) {
@@ -89,28 +91,41 @@ function anthropicBedrockChatCompletionClient(bedrock: AnthropicBedrock) {
       body.tool_choice === undefined,
       "tool_choice not supported for Anthropic"
     );
+
     const extractedSystemPrompt = body.messages.find((m) => m.role === "system")
-      ?.content as string;
-    const res = await bedrock.messages.create({
-      model: body.model,
-      messages: body.messages.filter(
-        (m) => m.role !== "system"
-      ) as (typeof bedrock.messages.create.arguments)["messages"],
-      stream: false,
-      max_tokens: body.max_tokens ?? 1000,
-      temperature: body.temperature === null ? undefined : body.temperature,
-      system: extractedSystemPrompt,
+      ?.content as string | undefined;
+
+    const filteredMessages = body.messages.filter(
+      (m) => m.role === "user" || m.role === "assistant"
+    );
+
+    const input = new ConverseCommand({
+      modelId: body.model,
+      messages: filteredMessages.map((m) => ({
+        role: m.role as ConversationRole,
+        content: [{ text: m.content as string }],
+      })),
+      system: extractedSystemPrompt
+        ? [{ text: extractedSystemPrompt }]
+        : undefined,
+      inferenceConfig: {
+        maxTokens: body.max_tokens !== null ? body.max_tokens : 1000,
+        temperature: body.temperature !== null ? body.temperature : undefined,
+        topP: body.top_p !== null ? body.top_p : undefined,
+      },
     });
-    const content = res.content[0].type === "text" ? res.content[0].text : null;
-    if (content === null) {
-      throw new Error("Unexpected values");
-    }
+    const res = await bedrockClient.send(input);
+    const responseText = res.output?.message?.content?.[0].text;
+    assert(responseText, "No content found in response");
+    const responseRole = res?.output?.message?.role;
+    assert(responseRole, "No role found in response");
+
     return {
       choices: [
         {
           message: {
-            role: res.role,
-            content,
+            role: responseRole,
+            content: responseText,
           },
         },
       ],

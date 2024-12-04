@@ -108,10 +108,12 @@ describe("AWS Bedrock models", () => {
       } = assertEnvVars(AWS_BEDROCK_ENV_VARS);
       const openAiClientFactory = makeOpenAiClientFactory({
         bedrock: {
-          awsAccessKey: AWS_ACCESS_KEY_ID,
-          awsRegion: AWS_REGION,
-          awsSecretKey: AWS_SECRET_ACCESS_KEY,
-          awsSessionToken: AWS_SESSION_TOKEN,
+          region: AWS_REGION,
+          credentials: {
+            accessKeyId: AWS_ACCESS_KEY_ID,
+            secretAccessKey: AWS_SECRET_ACCESS_KEY,
+            sessionToken: AWS_SESSION_TOKEN,
+          },
         },
       });
       const openAiClient = openAiClientFactory.makeOpenAiClient(model);

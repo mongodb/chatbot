@@ -77,7 +77,7 @@ describe.skip("Azure OpenAI models", () => {
     }
   );
 });
-describe("GCP Vertex AI models", () => {
+describe.skip("GCP Vertex AI models", () => {
   test.each(models.filter((m) => m.provider === "gcp_vertex_ai"))(
     "'$label' model should generate data",
     async (model) => {

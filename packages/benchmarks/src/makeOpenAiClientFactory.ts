@@ -1,10 +1,8 @@
 import { OpenAI, AzureOpenAI } from "mongodb-rag-core/openai";
-import { AnthropicBedrock } from "@anthropic-ai/bedrock-sdk";
 import {
   BedrockRuntimeClient,
   ConversationRole,
   ConverseCommand,
-  Message,
 } from "@aws-sdk/client-bedrock-runtime";
 import { ModelConfig } from "./models";
 import { strict as assert } from "assert";

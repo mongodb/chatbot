@@ -6,8 +6,6 @@ import { ChatOpenAI } from "@langchain/openai";
 import { ChatAnthropic } from "@langchain/anthropic";
 import { assertEnvVars } from "../assertEnvVars";
 import { CORE_OPENAI_CHAT_COMPLETION_ENV_VARS } from "../CoreEnvVars";
-import { BedrockChat } from "@langchain/community/chat_models/bedrock";
-import { response } from "express";
 
 jest.setTimeout(30000);
 
@@ -119,52 +117,3 @@ function getAzureInstanceName(azureDeploymenUrl: string) {
   const subdomain = hostname.split(".")[0];
   return subdomain;
 }
-
-describe("supports AWS bedrock", () => {
-  it("should call bedrock chat model", async () => {
-    const models = [
-      {
-        name: "Claude 3.5 Haiku",
-        modelId: "us.anthropic.claude-3-5-haiku-20241022-v1:0",
-      },
-      {
-        name: "Claude 3.5 Sonnet v2",
-        modelId: "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
-      },
-      {
-        name: "Llama 3.1 70b",
-        modelId: "us.meta.llama3-1-70b-instruct-v1:0",
-      },
-      {
-        name: "Llama 3.2 11b",
-        modelId: "us.meta.llama3-2-11b-instruct-v1:0",
-      },
-      {
-        name: "Llama 3.2 1b",
-        modelId: "us.meta.llama3-2-1b-instruct-v1:0",
-      },
-      // {
-      //   name: "Llama 3.2 90b",
-      //   modelId: "meta.llama3-2-90b-instruct-v1:0",
-      // },
-    ];
-    const results = [];
-    for (const { name, modelId } of models) {
-      const llm = new BedrockChat({
-        model: modelId,
-        region: process.env.AWS_REGION!,
-        credentials: {
-          accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-          sessionToken: process.env.AWS_SESSION_TOKEN!,
-        },
-      });
-      const aiMsg = await llm.invoke([
-        ["human", "Solve the Riemann's hypothesis please."],
-      ]);
-      console.log(name, ":", aiMsg.content);
-      results.push({ name, modelId, response: aiMsg.content });
-    }
-    console.log(results);
-  });
-});

@@ -4,7 +4,12 @@ import {
   CORE_OPENAI_CONNECTION_ENV_VARS,
 } from "mongodb-rag-core";
 import "dotenv/config";
-import { BRAINTRUST_ENV_VARS, RADIANT_ENV_VARS } from "../envVars";
+import {
+  AWS_BEDROCK_ENV_VARS,
+  BRAINTRUST_ENV_VARS,
+  GCP_VERTEX_AI_ENV_VARS,
+  RADIANT_ENV_VARS,
+} from "../envVars";
 import PromisePool from "@supercharge/promise-pool";
 import { makeOpenAiClientFactory } from "../makeOpenAiClientFactory";
 import { runQuizQuestionEval } from "./QuizQuestionEval";
@@ -21,10 +26,18 @@ async function main() {
     OPENAI_API_KEY,
     OPENAI_ENDPOINT,
     OPENAI_API_VERSION,
+    AWS_ACCESS_KEY_ID,
+    AWS_REGION,
+    AWS_SECRET_ACCESS_KEY,
+    AWS_SESSION_TOKEN,
+    GCP_API_KEY,
+    GCP_OPENAI_ENDPOINT,
   } = assertEnvVars({
     ...RADIANT_ENV_VARS,
     ...BRAINTRUST_ENV_VARS,
     ...CORE_OPENAI_CONNECTION_ENV_VARS,
+    ...AWS_BEDROCK_ENV_VARS,
+    ...GCP_VERTEX_AI_ENV_VARS,
   });
 
   const DEFAULT_MAX_CONCURRENCY = 15;
@@ -44,6 +57,18 @@ async function main() {
       apiKey: BRAINTRUST_API_KEY,
       endpoint: BRAINTRUST_ENDPOINT,
     },
+    vertexAi: {
+      apiKey: GCP_API_KEY,
+      endpoint: GCP_OPENAI_ENDPOINT,
+    },
+    bedrock: {
+      region: AWS_REGION,
+      credentials: {
+        accessKeyId: AWS_ACCESS_KEY_ID,
+        secretAccessKey: AWS_SECRET_ACCESS_KEY,
+        sessionToken: AWS_SESSION_TOKEN,
+      },
+    },
   });
 
   const { RUN_ID } = process.env;
@@ -56,10 +81,7 @@ async function main() {
     datasetName,
   });
 
-  const modelExperiments = models
-    .filter((m) => m.authorized === true)
-    // TODO: remove filter once done testing
-    .filter((m) => m.label === "gpt-4o-mini");
+  const modelExperiments = models.filter((m) => m.authorized === true);
 
   // Process models in parallel
   await PromisePool.for(modelExperiments)
@@ -80,7 +102,6 @@ async function main() {
           additionalMetadata: {
             ...modelInfo,
           },
-
           maxConcurrency: modelInfo.maxConcurrency ?? DEFAULT_MAX_CONCURRENCY,
           data,
           promptOptions: {

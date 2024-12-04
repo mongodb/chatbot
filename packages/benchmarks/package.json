@@ -45,6 +45,8 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@anthropic-ai/bedrock-sdk": "^0.11.2",
+    "@aws-sdk/client-bedrock-runtime": "^3.705.0",
     "@supercharge/promise-pool": "^3.2.0",
     "braintrust": "^0.0.164",
     "dotenv": "^16",

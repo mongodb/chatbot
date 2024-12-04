@@ -1,4 +1,9 @@
 import { OpenAI, AzureOpenAI } from "mongodb-rag-core/openai";
+import { AnthropicBedrock } from "@anthropic-ai/bedrock-sdk";
+import {
+  BedrockRuntimeClient,
+  InvokeModelCommand,
+} from "@aws-sdk/client-bedrock-runtime";
 import { ModelConfig } from "./models";
 import { strict as assert } from "assert";
 interface BaseModelProviderConfig {
@@ -15,6 +20,7 @@ interface MakeOpenAiClientFactoryParams {
     authCookie: string;
   };
   vertexAi?: BaseModelProviderConfig;
+  bedrock?: ConstructorParameters<typeof BedrockRuntimeClient>[0];
 }
 
 export function makeOpenAiClientFactory({
@@ -22,6 +28,7 @@ export function makeOpenAiClientFactory({
   braintrust,
   radiant,
   vertexAi,
+  bedrock,
 }: MakeOpenAiClientFactoryParams) {
   return {
     makeOpenAiClient(modelConfig: ModelConfig) {
@@ -54,6 +61,10 @@ export function makeOpenAiClientFactory({
           apiKey: vertexAi.apiKey,
           baseURL: vertexAi.endpoint,
         });
+      } else if (modelConfig.provider === "anthropic_aws_bedrock") {
+        openAiClient = anthropicBedrockChatCompletionClient(
+        bedrock
+        );
       } else {
         throw new Error(`Unsupported provider: ${modelConfig.provider}`);
       }
@@ -63,6 +74,56 @@ export function makeOpenAiClientFactory({
       return openAiClient;
     },
   };
+}
+
+function bedrockChatCompletion
+
+function anthropicBedrockChatCompletionClient(bedrock: AnthropicBedrock) {
+  const openAiClient = new OpenAI();
+  const bedrockChatCompletionCreate = async function (
+    body: Parameters<typeof openAiClient.chat.completions.create>[0]
+  ) {
+    assert(body.stream !== true, "stream=true not supported for Anthropic");
+    assert(body.tools === undefined, "tools not supported for Anthropic");
+    assert(
+      body.tool_choice === undefined,
+      "tool_choice not supported for Anthropic"
+    );
+    const extractedSystemPrompt = body.messages.find((m) => m.role === "system")
+      ?.content as string;
+    const res = await bedrock.messages.create({
+      model: body.model,
+      messages: body.messages.filter(
+        (m) => m.role !== "system"
+      ) as (typeof bedrock.messages.create.arguments)["messages"],
+      stream: false,
+      max_tokens: body.max_tokens ?? 1000,
+      temperature: body.temperature === null ? undefined : body.temperature,
+      system: extractedSystemPrompt,
+    });
+    const content = res.content[0].type === "text" ? res.content[0].text : null;
+    if (content === null) {
+      throw new Error("Unexpected values");
+    }
+    return {
+      choices: [
+        {
+          message: {
+            role: res.role,
+            content,
+          },
+        },
+      ],
+    } as unknown as Awaited<
+      ReturnType<typeof openAiClient.chat.completions.create>
+    >;
+  };
+
+  // Override the `.create()` method with minimal type casting
+  openAiClient.chat.completions.create =
+    bedrockChatCompletionCreate as typeof openAiClient.chat.completions.create;
+
+  return openAiClient;
 }
 
 function imitateSystemMessagesWithUserMessages(openAiClient: OpenAI): OpenAI {

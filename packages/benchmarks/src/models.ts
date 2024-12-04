@@ -9,6 +9,7 @@ export type ModelProvider =
   | "radiant"
   | "braintrust"
   | "azure_openai"
+  | "anthropic_aws_bedrock"
   | "gcp_vertex_ai";
 
 export interface ModelConfig {
@@ -110,26 +111,34 @@ export const models: ModelConfig[] = [
   },
   {
     label: "claude-3-sonnet",
-    deployment: "anthropic.claude-3-sonnet-20240229-v1:0",
+    deployment: "us.anthropic.claude-3-sonnet-20240229-v1:0",
     developer: "Anthropic",
     maxConcurrency: 1,
-    provider: "radiant",
+    provider: "aws_bedrock",
     authorized: true,
   },
   {
     label: "claude-3-haiku",
-    deployment: "anthropic.claude-3-haiku-20240307-v1:0",
+    deployment: "us.anthropic.claude-3-haiku-20240307-v1:0",
     developer: "Anthropic",
     maxConcurrency: 3,
-    provider: "radiant",
+    provider: "aws_bedrock",
     authorized: true,
   },
   {
     label: "claude-35-sonnet",
-    deployment: "anthropic.claude-3-5-sonnet-20240620-v1:0",
+    deployment: "us.anthropic.claude-3-5-sonnet-20240620-v1:0",
     developer: "Anthropic",
     maxConcurrency: 1,
-    provider: "radiant",
+    provider: "aws_bedrock",
+    authorized: true,
+  },
+  {
+    label: "claude-35-haiku",
+    deployment: "us.anthropic.claude-3-5-haiku-20241022-v1:0",
+    developer: "Anthropic",
+    maxConcurrency: 1,
+    provider: "aws_bedrock",
     authorized: true,
   },
   {

@@ -8,6 +8,7 @@ import {
   CORE_OPENAI_CONNECTION_ENV_VARS,
 } from "mongodb-rag-core";
 import {
+  AWS_BEDROCK_ENV_VARS,
   BRAINTRUST_ENV_VARS,
   envVars,
   GCP_VERTEX_AI_ENV_VARS,
@@ -88,6 +89,29 @@ describe.skip("GCP Vertex AI models", () => {
         vertexAi: {
           apiKey: GCP_API_KEY,
           endpoint: GCP_OPENAI_ENDPOINT,
+        },
+      });
+      const openAiClient = openAiClientFactory.makeOpenAiClient(model);
+      await expectModelResponse(openAiClient, model.deployment);
+    }
+  );
+});
+describe("AWS Bedrock models", () => {
+  test.each(models.filter((m) => m.provider === "aws_bedrock"))(
+    "'$label' model should generate data",
+    async (model) => {
+      const {
+        AWS_ACCESS_KEY_ID,
+        AWS_REGION,
+        AWS_SECRET_ACCESS_KEY,
+        AWS_SESSION_TOKEN,
+      } = assertEnvVars(AWS_BEDROCK_ENV_VARS);
+      const openAiClientFactory = makeOpenAiClientFactory({
+        bedrock: {
+          awsAccessKey: AWS_ACCESS_KEY_ID,
+          awsRegion: AWS_REGION,
+          awsSecretKey: AWS_SECRET_ACCESS_KEY,
+          awsSessionToken: AWS_SESSION_TOKEN,
         },
       });
       const openAiClient = openAiClientFactory.makeOpenAiClient(model);

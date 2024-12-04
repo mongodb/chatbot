@@ -965,31 +965,3 @@ steps:
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
----
-kind: pipeline
-type: kubernetes
-name: publish-mongodb-chatbot-evaluation
-depends_on: ["test-all"]
-
-trigger:
-  event:
-    - tag
-  ref:
-    include:
-      - refs/tags/mongodb-chatbot-evaluation-v*
-
-steps:
-  - name: build package
-    image: node:18
-    commands:
-      - npm install lerna
-      - npm run bootstrap
-      - npm run build
-      - cd packages/mongodb-chatbot-evaluation && npm publish
-    environment:
-      LG_ARTIFACTORY_TOKEN:
-        from_secret: lg_artifactory_token
-      LG_ARTIFACTORY_EMAIL:
-        from_secret: lg_artifactory_email
-      MONGODB_EAI_NPM_TOKEN:
-        from_secret: mongodb_ai_npm_token

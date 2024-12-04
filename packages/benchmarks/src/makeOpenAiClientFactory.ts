@@ -14,12 +14,14 @@ interface MakeOpenAiClientFactoryParams {
   radiant?: BaseModelProviderConfig & {
     authCookie: string;
   };
+  vertexAi?: BaseModelProviderConfig;
 }
 
 export function makeOpenAiClientFactory({
   azure,
   braintrust,
   radiant,
+  vertexAi,
 }: MakeOpenAiClientFactoryParams) {
   return {
     makeOpenAiClient(modelConfig: ModelConfig) {
@@ -45,6 +47,12 @@ export function makeOpenAiClientFactory({
           defaultHeaders: {
             Cookie: radiant.authCookie,
           },
+        });
+      } else if (modelConfig.provider === "gcp_vertex_ai") {
+        assert(vertexAi, "GCP Vertex AI config must be provided");
+        openAiClient = new OpenAI({
+          apiKey: vertexAi.apiKey,
+          baseURL: vertexAi.endpoint,
         });
       } else {
         throw new Error(`Unsupported provider: ${modelConfig.provider}`);

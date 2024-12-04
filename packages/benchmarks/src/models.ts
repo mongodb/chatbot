@@ -158,7 +158,6 @@ export const models: ModelConfig[] = [
     provider: "aws_bedrock",
     authorized: true,
   },
-  // TODO: is this bedrock?
   {
     label: "mistral-large-2",
     deployment: "mistral.mistral-large-2402-v1:0",

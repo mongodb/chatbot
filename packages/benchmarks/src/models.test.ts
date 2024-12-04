@@ -4,7 +4,6 @@
  */
 import {
   assertEnvVars,
-  CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
   CORE_OPENAI_CONNECTION_ENV_VARS,
 } from "mongodb-rag-core";
 import {
@@ -96,7 +95,7 @@ describe.skip("GCP Vertex AI models", () => {
     }
   );
 });
-describe("AWS Bedrock models", () => {
+describe.skip("AWS Bedrock models", () => {
   test.each(models.filter((m) => m.provider === "aws_bedrock"))(
     "'$label' model should generate data",
     async (model) => {

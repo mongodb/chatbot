@@ -132,7 +132,6 @@ function bedrockChatCompletionClient(
     >;
   };
 
-  // Override the `.create()` method with minimal type casting
   openAiClient.chat.completions.create =
     bedrockChatCompletionCreate as typeof openAiClient.chat.completions.create;
 

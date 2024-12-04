@@ -5,7 +5,11 @@ export type ModelDeveloper =
   | "Google"
   | "Mistral";
 
-export type ModelProvider = "radiant" | "braintrust" | "azure_openai";
+export type ModelProvider =
+  | "radiant"
+  | "braintrust"
+  | "azure_openai"
+  | "gcp_vertex_ai";
 
 export interface ModelConfig {
   /**
@@ -137,33 +141,6 @@ export const models: ModelConfig[] = [
     authorized: true,
   },
   {
-    label: "gemini-1.5-pro-preview",
-    deployment: "gemini-1.5-pro-preview-0409",
-    developer: "Google",
-    maxConcurrency: 1,
-    provider: "radiant",
-    systemMessageAsUserMessage: true,
-    authorized: true,
-  },
-  {
-    label: "gemini-1.0-pro",
-    deployment: "gemini-1.0-pro-001",
-    developer: "Google",
-    maxConcurrency: 1,
-    provider: "radiant",
-    systemMessageAsUserMessage: true,
-    authorized: true,
-  },
-  {
-    label: "gemini-1.0-pro-vision",
-    deployment: "gemini-1.0-pro-vision-001",
-    developer: "Google",
-    maxConcurrency: 1,
-    provider: "radiant",
-    systemMessageAsUserMessage: true,
-    authorized: true,
-  },
-  {
     label: "mistral-large-2",
     deployment: "mistral.mistral-large-2402-v1:0",
     developer: "Mistral",
@@ -205,12 +182,28 @@ export const models: ModelConfig[] = [
     authorized: false,
   },
   {
-    label: "gemini-1.5-flash-8b",
-    deployment: "gemini-1.5-flash-8b",
+    label: "gemini-1.5-flash-002",
+    deployment: "google/gemini-1.5-flash-002",
     developer: "Google",
     maxConcurrency: 3,
-    provider: "braintrust",
-    systemMessageAsUserMessage: true,
-    authorized: false,
+    provider: "gcp_vertex_ai",
+    systemMessageAsUserMessage: false,
+    authorized: true,
+  },
+  {
+    label: "gemini-1.5-pro-002",
+    deployment: "google/gemini-1.5-pro-002",
+    developer: "Google",
+    provider: "gcp_vertex_ai",
+    systemMessageAsUserMessage: false,
+    authorized: true,
+  },
+  {
+    label: "gemini-1.0-pro-002",
+    deployment: "google/gemini-1.0-pro-002",
+    developer: "Google",
+    provider: "gcp_vertex_ai",
+    systemMessageAsUserMessage: false,
+    authorized: true,
   },
 ] as const;

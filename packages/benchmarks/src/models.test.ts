@@ -7,7 +7,11 @@ import {
   CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
   CORE_OPENAI_CONNECTION_ENV_VARS,
 } from "mongodb-rag-core";
-import { BRAINTRUST_ENV_VARS, envVars } from "./envVars";
+import {
+  BRAINTRUST_ENV_VARS,
+  envVars,
+  GCP_VERTEX_AI_ENV_VARS,
+} from "./envVars";
 import { models } from "./models";
 import { makeOpenAiClientFactory } from "./makeOpenAiClientFactory";
 import { OpenAI } from "mongodb-rag-core/openai";
@@ -66,6 +70,24 @@ describe.skip("Azure OpenAI models", () => {
           apiKey: OPENAI_API_KEY,
           endpoint: OPENAI_ENDPOINT,
           apiVersion: OPENAI_API_VERSION,
+        },
+      });
+      const openAiClient = openAiClientFactory.makeOpenAiClient(model);
+      await expectModelResponse(openAiClient, model.deployment);
+    }
+  );
+});
+describe.skip("GCP Vertex AI models", () => {
+  test.each(models.filter((m) => m.provider === "gcp_vertex_ai"))(
+    "'$label' model should generate data",
+    async (model) => {
+      const { GCP_API_KEY, GCP_OPENAI_ENDPOINT } = assertEnvVars(
+        GCP_VERTEX_AI_ENV_VARS
+      );
+      const openAiClientFactory = makeOpenAiClientFactory({
+        vertexAi: {
+          apiKey: GCP_API_KEY,
+          endpoint: GCP_OPENAI_ENDPOINT,
         },
       });
       const openAiClient = openAiClientFactory.makeOpenAiClient(model);

@@ -33,7 +33,6 @@ general, we publish these as reusable packages on npm.
 
 - `mongodb-chatbot-server`: Express.js server that performs chat functionality. RESTful API.
 - `mongodb-chatbot-ui`: React component for interfacing with the `mongodb-chatbot-server`. Built with Leafygreen and vite.
-- `mongodb-chatbot-evaluation`: A framework for generating, evaluating, and reporting on test suites
 - `mongodb-chatbot-verified-answers`: A CLI and framework for ingesting & managing verified chatbot answers.
 
 ### MongoDB AI Chatbot

@@ -8,7 +8,6 @@ import { MongoClient } from "mongodb-rag-core/mongodb";
 import { NODE_JS_PROMPTS } from "./generateDriverCode/languagePrompts/nodeJs";
 import { TEXT_TO_DRIVER_ENV_VARS } from "./TextToDriverEnvVars";
 import { BRAINTRUST_ENV_VARS, RADIANT_ENV_VARS } from "../envVars";
-import { wrapOpenAI } from "braintrust";
 import PromisePool from "@supercharge/promise-pool";
 import { makeOpenAiClientFactory } from "../makeOpenAiClientFactory";
 async function sleep(ms: number) {
@@ -113,9 +112,7 @@ async function main() {
 
                   projectName,
                   apiKey: BRAINTRUST_API_KEY,
-                  openAiClient: wrapOpenAI(
-                    openAiClientFactory.makeOpenAiClient(modelInfo)
-                  ),
+                  openAiClient: openAiClientFactory.makeOpenAiClient(modelInfo),
                   maxConcurrency:
                     modelInfo.maxConcurrency ?? DEFAULT_MAX_CONCURRENCY,
                   sleepBeforeMs: modelInfo.sleepBeforeMs,

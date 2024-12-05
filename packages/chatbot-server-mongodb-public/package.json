@@ -30,7 +30,6 @@
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "mongodb-chatbot-evaluation": "*",
     "mongodb-chatbot-server": "*",
     "mongodb-chatbot-verified-answers": "*",
     "mongodb-rag-core": "*",

@@ -56,10 +56,7 @@ async function main() {
     datasetName,
   });
 
-  const modelExperiments = models
-    .filter((m) => m.authorized === true)
-    // TODO: remove filter once done testing
-    .filter((m) => m.label === "gpt-4o-mini");
+  const modelExperiments = models.filter((m) => m.authorized === true);
 
   // Process models in parallel
   await PromisePool.for(modelExperiments)

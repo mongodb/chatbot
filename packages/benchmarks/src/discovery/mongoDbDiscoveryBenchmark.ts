@@ -56,8 +56,6 @@ async function main() {
   const modelExperiments = models
 
     .filter((m) => m.authorized === true)
-    // TODO: remove this filter once done testing
-    .filter((m) => m.label === "gpt-4o-mini")
     .map((modelInfo) => {
       const modelExperiments = [];
       for (const temperature of temperatures) {

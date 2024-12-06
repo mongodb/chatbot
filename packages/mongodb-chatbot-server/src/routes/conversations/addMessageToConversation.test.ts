@@ -9,12 +9,14 @@ import {
   defaultConversationConstants,
   Message,
   makeOpenAiChatLlm,
+  SomeMessage,
 } from "mongodb-rag-core";
 import { Express } from "express";
 import {
   AddMessageRequestBody,
   DEFAULT_MAX_INPUT_LENGTH,
   DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION,
+  makeAddMessageToConversationRoute,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
 import { stripIndent } from "common-tags";
@@ -37,9 +39,14 @@ describe("POST /conversations/:conversationId/messages", () => {
   let conversations: ConversationsService;
   let app: Express;
   let appConfig: AppConfig;
+  const mockCustomDataFunction = jest.fn();
 
   beforeAll(async () => {
-    ({ ipAddress, origin, mongodb, app, appConfig } = await makeTestApp());
+    ({ ipAddress, origin, app, appConfig, mongodb } = await makeTestApp({
+      conversationsRouterConfig: {
+        createConversationCustomData: mockCustomDataFunction,
+      },
+    }));
     ({
       conversationsRouterConfig: { conversations },
     } = appConfig);
@@ -166,6 +173,9 @@ describe("POST /conversations/:conversationId/messages", () => {
       expect(res.text).toContain(`data: {"type":"delta","data":"`);
       expect(res.text).toContain(`data: {"type":"references","data":[{`);
       expect(res.text).toContain(`data: {"type":"finished","data":"`);
+      expect(res.text).toContain(
+        `data: {"type":"metadata","data":{"conversationId":"${conversationId}"}}`
+      );
     });
     it("should stream two requests concurrently", async () => {
       const newConvoId1 = await createNewConversation(app, ipAddress);
@@ -208,7 +218,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         });
       expect(res.statusCode).toEqual(400);
       expect(res.body).toStrictEqual({
-        error: `Invalid ObjectId string: ${notAValidId}`,
+        error: `Invalid conversationId: ${notAValidId}`,
       });
     });
 
@@ -249,16 +259,21 @@ describe("POST /conversations/:conversationId/messages", () => {
     test("Should respond 400 if number of messages in conversation exceeds limit", async () => {
       const { _id } = await conversations.create();
       // Init conversation with max length
-      for await (const i of Array(DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION)) {
-        await conversations.addConversationMessage({
-          conversationId: _id,
-          message: {
+      const messages = Array.from(
+        {
+          length: DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION,
+        },
+        (_, i) => {
+          return {
             content: `message ${i}`,
             role: "user",
-            embedding: [1, 2, 3],
-          },
-        });
-      }
+          } satisfies SomeMessage;
+        }
+      );
+      await conversations.addManyConversationMessages({
+        conversationId: _id,
+        messages,
+      });
 
       const res = await request(app)
         .post(endpointUrl.replace(":conversationId", _id.toString()))
@@ -338,7 +353,6 @@ describe("POST /conversations/:conversationId/messages", () => {
         .set("X-FORWARDED-FOR", ipAddress)
         .set("Origin", origin)
         .send({ message: NO_VECTOR_CONTENT });
-      console.log(response.body);
       expect(response.statusCode).toBe(200);
       expect(response.body.references).toStrictEqual([]);
       expect(response.body.content).toEqual(
@@ -364,7 +378,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         app: Express;
       let testMongo: Db;
       beforeEach(async () => {
-        const { mongodb, appConfig } = makeTestAppConfig();
+        const { mongodb, appConfig } = await makeTestAppConfig();
         testMongo = mongodb;
         ({ app } = await makeTestApp({
           ...appConfig,
@@ -394,6 +408,53 @@ describe("POST /conversations/:conversationId/messages", () => {
           defaultConversationConstants.LLM_NOT_WORKING
         );
         expect(response.body.references.length).toBeGreaterThan(0);
+      });
+    });
+  });
+
+  describe("create conversation with 'null' conversationId", () => {
+    test("should create a new conversation with 'null' value for addMessageToConversation if configured", async () => {
+      const res = await request(app)
+        .post(DEFAULT_API_PREFIX + `/conversations/null/messages`)
+        .set("X-FORWARDED-FOR", ipAddress)
+        .set("Origin", origin)
+        .send({
+          message: "hello",
+        });
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toMatchObject({
+        content: expect.any(String),
+        metadata: {
+          conversationId: expect.any(String),
+        },
+        role: "assistant",
+      });
+      expect(mockCustomDataFunction).toHaveBeenCalled();
+      const conversation = await conversations.findById({
+        _id: ObjectId.createFromHexString(res.body.metadata.conversationId),
+      });
+      expect(conversation?._id.toString()).toEqual(
+        res.body.metadata.conversationId
+      );
+      expect(conversation?.messages).toHaveLength(3);
+      expect(conversation?.messages[0]).toMatchObject(systemPrompt);
+    });
+    test("should not create a new conversation with 'null' value for addMessageToConversation if NOT configured", async () => {
+      const { app: appWithoutCustomData } = await makeTestApp({
+        conversationsRouterConfig: {
+          createConversationOnNullMessageId: false,
+        },
+      });
+      const res = await request(appWithoutCustomData)
+        .post(DEFAULT_API_PREFIX + `/conversations/null/messages`)
+        .set("X-FORWARDED-FOR", ipAddress)
+        .set("Origin", origin)
+        .send({
+          message: "hello",
+        });
+      expect(res.statusCode).toEqual(400);
+      expect(res.body).toMatchObject({
+        error: expect.any(String),
       });
     });
   });

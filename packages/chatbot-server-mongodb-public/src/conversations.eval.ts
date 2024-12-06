@@ -1,4 +1,5 @@
 import { Eval, EvalCase, traced, EvalScorer } from "braintrust";
+import { getConversationsEvalCasesFromYaml } from "mongodb-rag-core/eval";
 import { MongoDbTag } from "./mongoDbMetadata";
 import { config, conversations } from "./config";
 import { systemPrompt } from "./systemPrompt";
@@ -22,7 +23,6 @@ import {
 import { AnswerRelevancy, ContextRelevancy, Faithfulness } from "autoevals";
 import fs from "fs";
 import path from "path";
-import { getConversationsEvalCasesFromYaml } from "./eval/getConversationEvalCasesFromYaml";
 import { strict as assert } from "assert";
 
 interface ConversationEvalCaseInput {

@@ -4,7 +4,8 @@ import {
   makeStepBackUserQuery,
   StepBackUserQueryMongoDbFunction,
 } from "./makeStepBackUserQuery";
-import { Message, ObjectId, updateFrontMatter } from "mongodb-chatbot-server";
+import { Message, updateFrontMatter } from "mongodb-chatbot-server";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { MongoDbTag } from "../mongoDbMetadata";
 import {
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
@@ -13,7 +14,7 @@ import {
   OPENAI_API_VERSION,
   JUDGE_EMBEDDING_MODEL,
   openAiClient,
-} from "../test/evalHelpers";
+} from "../eval/evalHelpers";
 
 interface ExtractMongoDbMetadataEvalCase {
   name: string;

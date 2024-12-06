@@ -1,4 +1,5 @@
 import { Eval, EvalCase, traced, EvalScorer } from "braintrust";
+import { getConversationsEvalCasesFromYaml } from "mongodb-rag-core/eval";
 import { MongoDbTag } from "./mongoDbMetadata";
 import { config, conversations } from "./config";
 import { systemPrompt } from "./systemPrompt";
@@ -7,8 +8,8 @@ import {
   generateResponse,
   logger,
   Message,
-  ObjectId,
 } from "mongodb-chatbot-server";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   getContextsFromUserMessage,
   getLastAssistantMessageFromMessages,
@@ -18,11 +19,10 @@ import {
   OPENAI_API_KEY,
   OPENAI_API_VERSION,
   OPENAI_ENDPOINT,
-} from "./test/evalHelpers";
+} from "./eval/evalHelpers";
 import { AnswerRelevancy, ContextRelevancy, Faithfulness } from "autoevals";
 import fs from "fs";
 import path from "path";
-import { getConversationsEvalCasesFromYaml } from "./test/getConversationEvalCasesFromYaml";
 import { strict as assert } from "assert";
 
 interface ConversationEvalCaseInput {

@@ -1,11 +1,7 @@
 import { Octokit } from "@octokit/rest";
 import JiraApi from "jira-client";
-import {
-  Embedder,
-  PageStore,
-  EmbeddedContentStore,
-  OpenAIClient,
-} from "mongodb-rag-core";
+import { Embedder, PageStore, EmbeddedContentStore } from "mongodb-rag-core";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 /**
   The configuration for the artifact generator.
@@ -36,7 +32,7 @@ export type Config = {
   /**
     The OpenAI API client.
    */
-  openAiClient?: Constructor<OpenAIClient>;
+  openAiClient?: Constructor<OpenAI>;
 
   /**
     The Jira API client.
@@ -44,9 +40,21 @@ export type Config = {
   jiraApi?: Constructor<JiraApi>;
 
   /**
+    The maximum number of concurrent requests to make to the Jira API.
+    @default 12
+   */
+  jiraApiMaxConcurrency?: number;
+
+  /**
     The GitHub API client.
    */
   githubApi?: Constructor<Octokit>;
+
+  /**
+   The maximum number of concurrent requests to make to an LLM generator.
+   @default 8
+   */
+  llmMaxConcurrency?: number;
 };
 
 export type Constructor<T> = (() => T) | (() => Promise<T>);

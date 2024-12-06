@@ -31,7 +31,8 @@ cronJobs:
       MONGODB_CONNECTION_URI: docs-chatbot-staging
       OPENAI_ENDPOINT: docs-chatbot-staging
       OPENAI_API_KEY: docs-chatbot-staging
-      OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-staging
+      OPENAI_VERIFIED_ANSWER_EMBEDDING_DEPLOYMENT: "docs-chatbot-embedding-ada-002"
+      OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT: "text-embedding-3-small"
       OPENAI_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-staging
     resources:
       # guaranteed amount of resources

@@ -3,13 +3,12 @@ import {
   EmbeddedContentStore,
   assertEnvVars,
 } from "mongodb-rag-core";
-import { MongoClient } from "mongodb-rag-core";
+import { DataSource } from "mongodb-rag-core/dataSources";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 import "dotenv/config";
 import { INGEST_ENV_VARS } from "../IngestEnvVars";
 import { doAllCommand } from "./all";
 import { makeIngestMetaStore } from "../IngestMetaStore";
-import { DataSource } from "../sources/DataSource";
-
 import "dotenv/config";
 
 jest.setTimeout(1000000);
@@ -39,12 +38,18 @@ describe("allCommand", () => {
     async updateEmbeddedContent() {
       return;
     },
+    metadata: {
+      embeddingName: "embeddedName",
+    },
   };
   const mockPageStore: PageStore = {
     async loadPages() {
       return [];
     },
     async updatePages() {
+      return;
+    },
+    async deletePages() {
       return;
     },
   };
@@ -86,7 +91,7 @@ describe("allCommand", () => {
           dataSources,
         },
         {
-          async doPagesCommand() {
+          async doUpdatePagesCommand() {
             return;
           },
         }
@@ -121,7 +126,7 @@ describe("allCommand", () => {
             dataSources,
           },
           {
-            async doPagesCommand() {
+            async doUpdatePagesCommand() {
               // Sudden failure!
               throw new Error("Fail!");
             },

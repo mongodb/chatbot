@@ -4,8 +4,8 @@ import {
   makeFewShotUserMessageExtractorFunction,
   makeUserMessage,
 } from "./makeFewShotUserMessageExtractorFunction";
-import { ChatCompletionMessageParam } from "openai/resources";
 import { updateFrontMatter } from "mongodb-chatbot-server";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 export const StepBackUserQueryMongoDbFunctionSchema = z.object({
   transformedUserQuery: z.string().describe("Transformed user query"),
@@ -22,9 +22,10 @@ const systemPrompt = `Your purpose is to generate a search query for a given use
 You are doing this for MongoDB, and all queries relate to MongoDB products.
 When constructing the query, take a "step back" to generate a more general search query that finds the data relevant to the user query if relevant.
 If the user query is already a "good" search query, do not modify it.
+For one word queries like "or", "and", "exists", if the query corresponds to a MongoDB operation, transform it into a fully formed question. Ex: 'what is the $or operator in MongoDB?'
 You should also transform the user query into a fully formed question, if relevant.`;
 
-const fewShotExamples: ChatCompletionMessageParam[] = [
+const fewShotExamples: OpenAI.ChatCompletionMessageParam[] = [
   // Example 1
   makeUserMessage(
     updateFrontMatter("aggregate filter where flowerType is rose", {

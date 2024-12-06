@@ -1,8 +1,5 @@
-import {
-  FindContentFunc,
-  FindContentResult,
-  ObjectId,
-} from "mongodb-chatbot-server";
+import { FindContentFunc, FindContentResult } from "mongodb-chatbot-server";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
   preprocessorOpenAiClient,
@@ -11,14 +8,14 @@ import { makeStepBackRagGenerateUserPrompt } from "./makeStepBackRagGenerateUser
 
 jest.setTimeout(30000);
 describe("makeStepBackRagGenerateUserPrompt", () => {
-  const mockEmbedding = [0, 0, 0];
+  const embeddings = { modelName: [0, 0, 0] };
   const mockFindContent: FindContentFunc = async () => {
     return {
-      queryEmbedding: mockEmbedding,
+      queryEmbedding: embeddings.modelName,
       content: [
         {
           text: "avada kedavra",
-          embedding: mockEmbedding,
+          embeddings,
           score: 1,
           sourceName: "mastering-dark-arts",
           url: "https://example.com",
@@ -31,7 +28,7 @@ describe("makeStepBackRagGenerateUserPrompt", () => {
           sourceName: "defending-against-the-dark-arts",
           updated: new Date(),
           text: "expecto patronum",
-          embedding: mockEmbedding,
+          embeddings,
           score: 1,
         },
       ],
@@ -53,7 +50,7 @@ describe("makeStepBackRagGenerateUserPrompt", () => {
     expect(res.userMessage).toHaveProperty("content");
     expect(res.userMessage).toHaveProperty("contentForLlm");
     expect(res.userMessage.role).toBe("user");
-    expect(res.userMessage.embedding).toHaveLength(mockEmbedding.length);
+    expect(res.userMessage.embedding).toHaveLength(embeddings.modelName.length);
   });
   test("should reject query if no content", async () => {
     const mockFindContent: FindContentFunc = async () => {

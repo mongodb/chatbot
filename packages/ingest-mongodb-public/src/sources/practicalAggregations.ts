@@ -1,7 +1,7 @@
 import {
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
-} from "mongodb-rag-ingest/sources";
+} from "mongodb-rag-core/dataSources";
 
 export const practicalAggregationsConfig: MakeMdOnGithubDataSourceParams = {
   name: "practical-aggregations-book",

@@ -1,14 +1,18 @@
-import { ObjectId, EmbeddedContent } from "mongodb-rag-core";
+import { EmbeddedContent } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { makeDefaultReferenceLinks } from "./makeDefaultReferenceLinks";
 
 describe("makeDefaultReferenceLinks()", () => {
+  const embeddings = {
+    modelName: [0.1, 0.2, 0.3],
+  };
   // Chunk 1 and 2 are the same page. Chunk 3 is a different page.
   const chunk1 = {
     _id: new ObjectId(),
     url: "https://mongodb.com/docs/realm/sdk/node/",
     text: "blah blah blah",
     tokenCount: 100,
-    embedding: [0.1, 0.2, 0.3],
+    embeddings,
     updated: new Date(),
     sourceName: "realm",
   };
@@ -17,7 +21,7 @@ describe("makeDefaultReferenceLinks()", () => {
     url: "https://mongodb.com/docs/realm/sdk/node/",
     text: "blah blah blah",
     tokenCount: 100,
-    embedding: [0.1, 0.2, 0.3],
+    embeddings,
     updated: new Date(),
     sourceName: "realm",
   };
@@ -26,7 +30,7 @@ describe("makeDefaultReferenceLinks()", () => {
     url: "https://mongodb.com/docs/realm/sdk/node/xyz",
     text: "blah blah blah",
     tokenCount: 100,
-    embedding: [0.1, 0.2, 0.3],
+    embeddings,
     updated: new Date(),
     sourceName: "realm",
   };
@@ -38,7 +42,7 @@ describe("makeDefaultReferenceLinks()", () => {
       pageTitle: "title",
     },
     tokenCount: 100,
-    embedding: [0.1, 0.2, 0.3],
+    embeddings,
     updated: new Date(),
     sourceName: "realm",
   };

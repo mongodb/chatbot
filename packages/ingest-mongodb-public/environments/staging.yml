@@ -11,7 +11,8 @@ cronJobs:
       VECTOR_SEARCH_INDEX_NAME: vector_index
       OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
       OPENAI_API_VERSION: "2024-06-01"
-      OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-embedding-ada-002
+      OPENAI_VERIFIED_ANSWER_EMBEDDING_DEPLOYMENT: "docs-chatbot-embedding-ada-002"
+      OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT: "text-embedding-3-small"
     envSecrets:
       MONGODB_CONNECTION_URI: docs-chatbot-staging
       OPENAI_ENDPOINT: docs-chatbot-staging
@@ -38,7 +39,8 @@ cronJobs:
       VECTOR_SEARCH_INDEX_NAME: vector_index
       OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
       OPENAI_API_VERSION: "2024-06-01"
-      OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-embedding-ada-002
+      OPENAI_VERIFIED_ANSWER_EMBEDDING_DEPLOYMENT: "docs-chatbot-embedding-ada-002"
+      OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT: "text-embedding-3-small"
     envSecrets:
       MONGODB_CONNECTION_URI: docs-chatbot-test
       OPENAI_ENDPOINT: docs-chatbot-staging
@@ -66,7 +68,8 @@ cronJobs:
       OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
       MONGODB_COACH_GTM_DATABASE_NAME: coach-gtm
       OPENAI_API_VERSION: "2024-06-01"
-      OPENAI_EMBEDDING_DEPLOYMENT: docs-chatbot-embedding-ada-002
+      OPENAI_VERIFIED_ANSWER_EMBEDDING_DEPLOYMENT: "docs-chatbot-embedding-ada-002"
+      OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT: "text-embedding-3-small"
     envSecrets:
       MONGODB_CONNECTION_URI: docs-chatbot-staging
       OPENAI_ENDPOINT: docs-chatbot-staging

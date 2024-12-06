@@ -6,16 +6,16 @@ import {
   makeOpenAiEmbedder,
   makeMongoDbEmbeddedContentStore,
   makeMongoDbPageStore,
-  OpenAIClient,
-  AzureKeyCredential,
 } from "mongodb-rag-core";
 import { Octokit } from "@octokit/rest";
 import JiraApi from "jira-client";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
 
 const {
   OPENAI_ENDPOINT,
   OPENAI_API_KEY,
-  OPENAI_EMBEDDING_DEPLOYMENT,
+  OPENAI_API_VERSION,
+  OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
 } = assertEnvVars(ArtifactGeneratorEnvVars);
@@ -26,11 +26,12 @@ const { GITHUB_ACCESS_TOKEN, JIRA_USERNAME, JIRA_PASSWORD } = process.env;
 export const standardConfig = {
   embedder: () =>
     makeOpenAiEmbedder({
-      openAiClient: new OpenAIClient(
-        OPENAI_ENDPOINT,
-        new AzureKeyCredential(OPENAI_API_KEY)
-      ),
-      deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+      openAiClient: new AzureOpenAI({
+        apiKey: OPENAI_API_KEY,
+        endpoint: OPENAI_ENDPOINT,
+        apiVersion: OPENAI_API_VERSION,
+      }),
+      deployment: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
       backoffOptions: {
         numOfAttempts: 25,
         startingDelay: 1000,
@@ -40,6 +41,9 @@ export const standardConfig = {
     makeMongoDbEmbeddedContentStore({
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
+      searchIndex: {
+        embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
+      },
     }),
   pageStore: () =>
     makeMongoDbPageStore({
@@ -47,10 +51,11 @@ export const standardConfig = {
       databaseName: MONGODB_DATABASE_NAME,
     }),
   openAiClient: () => {
-    return new OpenAIClient(
-      OPENAI_ENDPOINT,
-      new AzureKeyCredential(OPENAI_API_KEY)
-    );
+    return new AzureOpenAI({
+      apiKey: OPENAI_API_KEY,
+      endpoint: OPENAI_ENDPOINT,
+      apiVersion: OPENAI_API_VERSION,
+    });
   },
   jiraApi:
     JIRA_USERNAME && JIRA_PASSWORD

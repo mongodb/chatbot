@@ -467,6 +467,7 @@
   author_email: alison.huh@mongodb.com
   questions:
     - What is aggregation in MongoDB?
+    - aggregation framework
   references:
     - url: https://www.mongodb.com/docs/atlas/atlas-ui/agg-pipeline/
       title: Run Aggregation Pipelines
@@ -1407,6 +1408,7 @@
   author_email: jeffrey.allen@mongodb.com
   questions:
     - Can i reset my password
+    - Password reset
   references:
     - url: https://mongodb.com/docs/atlas/security/manage-your-mongodb-atlas-account/
       title: Manage Your MongoDB Atlas Account

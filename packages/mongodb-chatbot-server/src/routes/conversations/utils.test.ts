@@ -5,7 +5,8 @@ import {
   convertMessageFromDbToApi,
   isValidIp,
 } from "./utils";
-import { ObjectId, Conversation } from "mongodb-rag-core";
+import { Conversation } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 
 describe("Conversation routes utils", () => {
   describe("isValidIp()", () => {

@@ -30,3 +30,18 @@ export function removeStartOfString(str: string, start: string) {
   }
   return str;
 }
+
+/**
+ Converts a URL to a valid filename.
+ */
+export function urlToFilename(
+  input: string | URL,
+  options: { separator?: string; maxLength?: number } = {}
+) {
+  const { separator = "_", maxLength = 120 } = options;
+  const url = new URL(input);
+  return (url.hostname + url.pathname) // remove protocol, query string, and fragment
+    .replace(/[^a-zA-Z0-9]$/g, "") // remove trailing non-alphanumeric characters
+    .replace(/[^a-zA-Z0-9]/g, separator) // replace non-alphanumeric characters with separator
+    .substring(0, maxLength); // truncate to maxLength
+}

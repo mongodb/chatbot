@@ -30,22 +30,24 @@ export async function summarizeReleaseArtifact({
 }: SummarizeReleaseArtifactArgs) {
   generate = generate ?? makeGenerateChatCompletion();
   const chatTemplate = [
-    systemMessage(stripIndents`
-      Your task is to analyze a provided artifact associated with a software release and write a succinct summarized description. Artifacts may include information from task tracking software like Jira, source control information like Git diffs and commit messages, or other sources.
+    systemMessage({
+      content: stripIndents`
+        Your task is to analyze a provided artifact associated with a software release and write a succinct summarized description. Artifacts may include information from task tracking software like Jira, source control information like Git diffs and commit messages, or other sources.
 
-      Your summary should be a brief, high-level description of the artifact's contents and purpose. The goal is to provide a clear, concise overview that can be used to generate one or more change log entries for the release. Focus on the facts of the changes. Avoid value judgments or subjective language such as how substantial an update was. Do not infer the broader intent behind the changes or speculate on future implications unless specifically mentioned in the artifact.
+        Your summary should be a brief, high-level description of the artifact's contents and purpose. The goal is to provide a clear, concise overview that can be used to generate one or more change log entries for the release. Focus on the facts of the changes. Avoid value judgments or subjective language such as how substantial an update was. Do not infer the broader intent behind the changes or speculate on future implications unless specifically mentioned in the artifact.
 
-      The user may prepend the artifact with additional style guide information or other metadata. This section is denoted by frontmatter enclosed in triple dashes (---). Do not mention this frontmatter in the summary but do follow its guidance.
+        The user may prepend the artifact with additional style guide information or other metadata. This section is denoted by frontmatter enclosed in triple dashes (---). Do not mention this frontmatter in the summary but do follow its guidance.
 
-      Assume the reader of your summary is familiar with the product's features and use cases.
+        Assume the reader of your summary is familiar with the product's features and use cases.
 
-      Limit the summary length to a maximum of 200 words.
+        Limit the summary length to a maximum of 200 words.
 
-      <Section description="A description of the software project this release is for">
-        ${projectDescription}
-      </Section>
-    `),
-    userMessage(createUserPromptForReleaseArtifact(artifact)),
+        <Section description="A description of the software project this release is for">
+          ${projectDescription}
+        </Section>
+      `,
+    }),
+    userMessage({ content: createUserPromptForReleaseArtifact(artifact) }),
   ];
   logger?.appendArtifact(
     `chatTemplates/${safeFileName(releaseArtifactIdentifier(artifact))}.txt`,

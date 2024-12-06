@@ -1,7 +1,8 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { z } from "zod";
-import { ObjectId } from "mongodb-rag-core";
+import { createRunId } from "./runId";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 
 export type Artifact = z.infer<typeof ArtifactSchema>;
 const ArtifactSchema = z
@@ -63,7 +64,7 @@ export class RunLogger {
   topic: string;
 
   constructor(args: RunLoggerArgs) {
-    this.#runId = args.runId ?? new ObjectId().toHexString();
+    this.#runId = args.runId ?? createRunId();
     this.topic = args.topic;
   }
 

@@ -4,7 +4,8 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { ObjectId, SystemMessage } from "mongodb-rag-core";
+import { SystemMessage } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   ConversationsService,
   Conversation,

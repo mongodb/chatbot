@@ -37,7 +37,6 @@
     "release": "release-it"
   },
   "dependencies": {
-    "@azure/openai": "^1.0.0-beta.5",
     "@langchain/core": "^0.2.9",
     "common-tags": "^1.8.2",
     "cors": "^2.8.5",

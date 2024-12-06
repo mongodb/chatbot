@@ -17,10 +17,10 @@
     "release": "release-it",
     "lint": "eslint ./src --ext ts --report-unused-disable-directives",
     "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
-    "pipeline:quizEval": "npm run build && node ./build/pipelines/quizEval.js",
-    "pipeline:quizEvalToBraintrust": "npm run build && node ./build/pipelines/quizEvalToBraintrust.js",
-    "pipeline:discoveryEval": "npm run build && node ./build/pipelines/discoveryEval.js",
-    "pipeline:discoveryEvalToBraintrust": "npm run build && node ./build/pipelines/discoveryEvalToBraintrust.js"
+    "textToDriver:makeDatabases": "npm run build && node ./build/textToDriver/makeDatabases/index.js",
+    "benchmark:MongoDbDiscovery": "npm run build && node ./build/discovery/mongoDbDiscoveryBenchmark.js",
+    "benchmark:MongoDbUniversityQuizQuestion": "npm run build && node ./build/quizQuestions/mongoDbUniversityQuizQuestionBenchmark.js",
+    "benchmark:TextToNodeJsDriver": "npm run build && node ./build/textToDriver/nodeJsDriverBenchmark.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",
@@ -36,19 +36,19 @@
     "eslint-plugin-prettier": "^4",
     "eslint-plugin-tsdoc": "^0.2.14",
     "jest": "^29.5.0",
+    "mongodb-memory-server": "^10.0.0",
     "prettier": "^2",
     "release-it": "^16.1.5",
     "ts-jest": "^29.1.0",
     "typescript": "^5"
   },
   "dependencies": {
-    "@azure/openai": "^1.0.0-beta.11",
-    "@langchain/openai": "^0.2.6",
     "@supercharge/promise-pool": "^3.2.0",
-    "braintrust": "^0.0.150",
+    "braintrust": "^0.0.175",
     "dotenv": "^16",
-    "mongodb-chatbot-evaluation": "*",
     "mongodb-chatbot-server": "*",
-    "mongodb-rag-core": "*"
+    "mongodb-rag-core": "*",
+    "mongodb-schema": "^12.2.0",
+    "zod": "^3.23.8"
   }
 }

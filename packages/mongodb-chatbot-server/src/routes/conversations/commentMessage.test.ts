@@ -2,7 +2,6 @@ import { strict as assert } from "assert";
 import request from "supertest";
 import "dotenv/config";
 import {
-  ObjectId,
   Conversation,
   Message,
   AssistantMessage,
@@ -12,7 +11,8 @@ import { Express } from "express";
 import { DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
 import { AppConfig } from "../../app";
-import { systemPrompt, makeDefaultConfig } from "../../test/testConfig";
+import { makeDefaultConfig, systemPrompt } from "../../test/testConfig";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 
 jest.setTimeout(100000);
 

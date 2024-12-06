@@ -1,8 +1,8 @@
 import { makeMockOpenAIToolCall } from "../test/mockOpenAi";
 import { userMessageMongoDbGuardrail } from "./userMessageMongoDbGuardrail";
-import { OpenAI } from "openai";
+import { OpenAI } from "mongodb-rag-core/openai";
 
-jest.mock("openai", () => {
+jest.mock("mongodb-rag-core/openai", () => {
   return makeMockOpenAIToolCall({
     reasoning: "foo",
     rejectMessage: false,

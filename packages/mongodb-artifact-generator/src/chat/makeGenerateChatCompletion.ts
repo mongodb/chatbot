@@ -1,32 +1,34 @@
 import "dotenv/config";
-import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
 import {
   assertEnvVars,
   CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
 } from "mongodb-rag-core";
-import { ChatMessage } from ".";
+import { OpenAI, AzureOpenAI } from "mongodb-rag-core/openai";
 
 export type GenerateChatCompletion = (
-  messages: ChatMessage[]
+  messages: OpenAI.ChatCompletionMessageParam[]
 ) => Promise<string | undefined>;
 
 export function makeGenerateChatCompletion(): GenerateChatCompletion {
-  const { OPENAI_API_KEY, OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
-    assertEnvVars(CORE_OPENAI_CHAT_COMPLETION_ENV_VARS);
-
-  const openAiClient = new OpenAIClient(
+  const {
+    OPENAI_API_KEY,
+    OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     OPENAI_ENDPOINT,
-    new AzureKeyCredential(OPENAI_API_KEY)
-  );
-
+    OPENAI_API_VERSION,
+  } = assertEnvVars(CORE_OPENAI_CHAT_COMPLETION_ENV_VARS);
+  const openAiClient = new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  });
   return async (messages) => {
     try {
       const {
         choices: [{ message }],
-      } = await openAiClient.getChatCompletions(
-        OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-        messages
-      );
+      } = await openAiClient.chat.completions.create({
+        model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+        messages,
+      });
       return message?.content ?? undefined;
     } catch (err) {
       console.error(`Error generating chat completion`, err);

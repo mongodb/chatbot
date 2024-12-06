@@ -9,12 +9,15 @@ import {
 import { QueryPreprocessorFunc } from "./QueryPreprocessorFunc";
 import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
 
+const embeddings = {
+  modelName: [0.1, 0.2, 0.3],
+};
 const mockContent = [
   {
     url: "https://mongodb.com/docs/realm/sdk/node/",
     text: "foo foo foo",
     tokenCount: 3,
-    embedding: [0.1, 0.2, 0.3],
+    embeddings,
     sourceName: "realm",
     updated: new Date(),
     score: 0.1,
@@ -23,7 +26,7 @@ const mockContent = [
     url: "https://mongodb.com/docs/realm/sdk/java/",
     text: "bar bar bar",
     tokenCount: 3,
-    embedding: [0.1, 0.2, 0.3],
+    embeddings,
     sourceName: "realm",
     updated: new Date(),
     score: 0.2,
@@ -32,7 +35,7 @@ const mockContent = [
     url: "https://mongodb.com/docs/realm/sdk/flutter/",
     text: "baz baz baz",
     tokenCount: 3,
-    embedding: [0.1, 0.2, 0.3],
+    embeddings,
     sourceName: "realm",
     updated: new Date(),
     score: 0.3,
@@ -187,7 +190,7 @@ describe("includeChunksForMaxTokensPossible()", () => {
       url: "https://mongodb.com/docs/realm/sdk/node/",
       text: "foo foo foo",
       tokenCount: 100,
-      embedding: [0.1, 0.2, 0.3],
+      embeddings,
       sourceName: "realm",
       updated: new Date(),
     },
@@ -195,7 +198,7 @@ describe("includeChunksForMaxTokensPossible()", () => {
       url: "https://mongodb.com/docs/realm/sdk/node/",
       text: "bar bar bar",
       tokenCount: 100,
-      embedding: [0.1, 0.2, 0.3],
+      embeddings,
       sourceName: "realm",
       updated: new Date(),
     },
@@ -203,7 +206,7 @@ describe("includeChunksForMaxTokensPossible()", () => {
       url: "https://mongodb.com/docs/realm/sdk/node/",
       text: "baz baz baz",
       tokenCount: 100,
-      embedding: [0.1, 0.2, 0.3],
+      embeddings,
       sourceName: "realm",
       updated: new Date(),
     },

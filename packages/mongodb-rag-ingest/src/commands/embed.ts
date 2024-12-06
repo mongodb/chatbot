@@ -1,55 +1,82 @@
 import { CommandModule } from "yargs";
-import { updateEmbeddedContent } from "../embed/updateEmbeddedContent";
 import {
   ResolvedConfig,
   LoadConfigArgs,
   withConfig,
   withConfigOptions,
 } from "../withConfig";
-
-type EmbeddedContentCommandArgs = {
-  since: string;
-  source?: string | string[];
-};
+import { logger, updateEmbeddedContent } from "mongodb-rag-core";
 
 const commandModule: CommandModule<
   unknown,
-  LoadConfigArgs & EmbeddedContentCommandArgs
+  LoadConfigArgs
 > = {
-  command: "embed",
+  command: "embed <action>",
+  describe: "Manage embedded content",
   builder(args) {
-    return withConfigOptions(args)
-      .string("since")
-      .option("source", {
-        string: true,
-        description:
-          "A source name to load. If unspecified, loads all sources.",
+    return args
+      .command({
+        command: "update",
+        describe: "Update embedded content data",
+        builder: (updateArgs) =>
+          withConfigOptions(updateArgs)
+            .string("since")
+            .option("source", {
+              string: true,
+              description:
+                "A source name to load. If unspecified, loads all sources.",
+            })
+            .demandOption(
+              "since",
+              "Please provide a 'since' date for the update"
+            ),
+        handler: ({ since: sinceString, source, ...updateArgs }) => {
+          if (isNaN(Date.parse(sinceString))) {
+            throw new Error(
+              `The value for 'since' (${sinceString}) must be a valid JavaScript date string.`
+            );
+          }
+          const since = new Date(sinceString);
+          withConfig(doUpdateEmbedCommand, { ...updateArgs, since, source });
+        },
       })
-      .demandOption("since");
+      .command({
+        command: "delete",
+        describe: "Delete embedded content data",
+        builder: (deleteArgs) =>
+          withConfigOptions(deleteArgs).option("source", {
+            string: true,
+            description:
+              "A source name to delete. If unspecified, deletes all sources.",
+          }),
+        handler: (deleteArgs) =>
+          withConfig(doDeleteEmbedCommand, deleteArgs),
+      });
   },
-  async handler({ since: sinceString, source, ...args }) {
-    if (isNaN(Date.parse(sinceString))) {
-      throw new Error(
-        `The value for 'since' (${sinceString}) must be a valid JavaScript date string.`
-      );
-    }
-    const since = new Date(sinceString);
-    return withConfig(doEmbedCommand, { ...args, since, source });
+  handler: (_args) => {
+    logger.error('Specify an action for "embed" command');
   },
-  describe: "Update embedded content data from pages",
 };
 
 export default commandModule;
 
-export const doEmbedCommand = async (
-  { pageStore, embeddedContentStore, embedder, chunkOptions }: ResolvedConfig,
+type UpdateEmbedCommandArgs = {
+  since: Date;
+  source?: string | string[];
+};
+
+export const doUpdateEmbedCommand = async (
+  {
+    pageStore,
+    embeddedContentStore,
+    embedder,
+    chunkOptions,
+    concurrencyOptions,
+  }: ResolvedConfig,
   {
     since,
     source,
-  }: {
-    since: Date;
-    source?: string | string[];
-  }
+  }: UpdateEmbedCommandArgs
 ) => {
   const sourceNames =
     source === undefined
@@ -65,5 +92,30 @@ export const doEmbedCommand = async (
     embeddedContentStore,
     embedder,
     chunkOptions,
+    concurrencyOptions: concurrencyOptions?.embed,
+  });
+};
+
+type DeleteEmbedCommandArgs = {
+  source?: string | string[];
+};
+
+export const doDeleteEmbedCommand = async (
+  { embeddedContentStore }: ResolvedConfig,
+  { source }: DeleteEmbedCommandArgs
+) => {
+  const sourceNames =
+    source === undefined
+      ? undefined
+      : Array.isArray(source)
+      ? source
+      : [source];
+  logger.info(
+    `Embeddings to be deleted:\n${sourceNames
+      ?.map((name) => `- ${name}`)
+      .join("\n")}`
+  );
+  await embeddedContentStore.deleteEmbeddedContent({
+    dataSources: sourceNames,
   });
 };

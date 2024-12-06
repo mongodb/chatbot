@@ -1,28 +1,24 @@
-import {
-  Config,
-  INGEST_ENV_VARS,
-  makeIngestMetaStore,
-} from "mongodb-rag-ingest";
-import { standardChunkFrontMatterUpdater } from "mongodb-rag-ingest/embed";
+import { Config, makeIngestMetaStore } from "mongodb-rag-ingest";
+import { standardChunkFrontMatterUpdater } from "mongodb-rag-core";
 import {
   assertEnvVars,
   makeOpenAiEmbedder,
   makeMongoDbEmbeddedContentStore,
   makeMongoDbPageStore,
-  OpenAIClient,
-  AzureKeyCredential,
 } from "mongodb-rag-core";
-import { snootyDataApiBaseUrl } from "./sources/snooty";
-import { makeSnootyDataSource } from "mongodb-rag-ingest/sources/snooty";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
+import { makeSnootyDataSource } from "./sources/snooty";
 import {
   PUBLIC_INGEST_ENV_VARS,
   PUBLIC_INGEST_MONGODB_DOCS_META_ENV_VARS,
 } from "./PublicIngestEnvVars";
+import { snootyDataApiBaseUrl } from "./sources/snootySources";
 
 const {
   OPENAI_ENDPOINT,
   OPENAI_API_KEY,
-  OPENAI_EMBEDDING_DEPLOYMENT,
+  OPENAI_API_VERSION,
+  OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   MONGODB_CONNECTION_URI,
   MONGODB_META_DATABASE_NAME,
 } = assertEnvVars({
@@ -31,11 +27,12 @@ const {
 });
 
 const embedder = makeOpenAiEmbedder({
-  openAiClient: new OpenAIClient(
-    OPENAI_ENDPOINT,
-    new AzureKeyCredential(OPENAI_API_KEY)
-  ),
-  deployment: OPENAI_EMBEDDING_DEPLOYMENT,
+  openAiClient: new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  }),
+  deployment: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   backoffOptions: {
     numOfAttempts: 25,
     startingDelay: 1000,
@@ -54,6 +51,9 @@ export const standardConfig = {
     makeMongoDbEmbeddedContentStore({
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_META_DATABASE_NAME,
+      searchIndex: {
+        embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
+      },
     }),
   pageStore: () =>
     makeMongoDbPageStore({

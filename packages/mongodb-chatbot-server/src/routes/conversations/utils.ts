@@ -1,6 +1,7 @@
 import { isIP } from "net";
 import { Address6 } from "ip-address";
-import { Conversation, Message, ObjectId, References } from "mongodb-rag-core";
+import { Conversation, Message, References } from "mongodb-rag-core";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { z } from "zod";
 
 export type ApiMessage = z.infer<typeof ApiMessage>;

@@ -299,7 +299,6 @@ export class ConversationService {
 
       onmessage(ev) {
         const event = JSON.parse(ev.data);
-        console.log("onmessage", event);
         if (!isSomeStreamEvent(event)) {
           if (!isProductionBuild()) {
             console.error(

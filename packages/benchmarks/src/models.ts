@@ -146,7 +146,7 @@ export const models: ModelConfig[] = [
     label: "claude-35-haiku",
     deployment: "us.anthropic.claude-3-5-haiku-20241022-v1:0",
     developer: "Anthropic",
-    maxConcurrency: 1,
+    maxConcurrency: 5,
     provider: "aws_bedrock",
     authorized: true,
   },
@@ -187,6 +187,7 @@ export const models: ModelConfig[] = [
     deployment: "amazon.nova-lite-v1:0",
     developer: "Amazon",
     provider: "aws_bedrock",
+    maxConcurrency: 3,
     authorized: true,
   },
   {
@@ -194,6 +195,7 @@ export const models: ModelConfig[] = [
     deployment: "amazon.nova-micro-v1:0",
     developer: "Amazon",
     provider: "aws_bedrock",
+    maxConcurrency: 3,
     authorized: true,
   },
   {
@@ -201,6 +203,7 @@ export const models: ModelConfig[] = [
     deployment: "amazon.nova-pro-v1:0",
     developer: "Amazon",
     provider: "aws_bedrock",
+    maxConcurrency: 1,
     authorized: true,
   },
   // Note: not available in Bedrock (yet?)
@@ -229,6 +232,7 @@ export const models: ModelConfig[] = [
     deployment: "google/gemini-1.5-pro-002",
     developer: "Google",
     provider: "gcp_vertex_ai",
+    maxConcurrency: 1,
     systemMessageAsUserMessage: false,
     authorized: true,
   },
@@ -237,6 +241,7 @@ export const models: ModelConfig[] = [
     deployment: "google/gemini-1.0-pro-002",
     developer: "Google",
     provider: "gcp_vertex_ai",
+    maxConcurrency: 1,
     systemMessageAsUserMessage: false,
     authorized: true,
   },

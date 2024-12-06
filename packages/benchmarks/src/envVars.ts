@@ -15,6 +15,13 @@ export const GCP_VERTEX_AI_ENV_VARS = {
   GCP_API_KEY: "",
 };
 
+export const AWS_BEDROCK_ENV_VARS = {
+  AWS_REGION: "",
+  AWS_ACCESS_KEY_ID: "",
+  AWS_SECRET_ACCESS_KEY: "",
+  AWS_SESSION_TOKEN: "",
+};
+
 export const envVars = {
   MONGODB_DATABASE_NAME: "",
   MONGODB_CONNECTION_URI: "",
@@ -22,5 +29,6 @@ export const envVars = {
   MONGODB_QUIZ_QUESTIONS_CONNECTION_URI: "",
   MONGODB_QUIZ_QUESTIONS_COLLECTION_NAME: "",
   ...GCP_VERTEX_AI_ENV_VARS,
+  ...AWS_BEDROCK_ENV_VARS,
   ...RADIANT_ENV_VARS,
 };

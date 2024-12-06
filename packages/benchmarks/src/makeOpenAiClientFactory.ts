@@ -158,7 +158,7 @@ function bedrockChatCompletionClient(
   openAiClient.chat.completions.create =
     bedrockChatCompletionCreate as typeof openAiClient.chat.completions.create;
 
-  return openAiClient as OpenAI;
+  return openAiClient;
 }
 
 function imitateSystemMessagesWithUserMessages(openAiClient: OpenAI): OpenAI {

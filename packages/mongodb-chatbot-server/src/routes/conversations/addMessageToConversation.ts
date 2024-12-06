@@ -4,17 +4,14 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
+import { SystemMessage } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   ConversationsService,
   Conversation,
   SomeMessage,
-  UserMessage,
-  AssistantMessage,
-  DataStreamer,
   makeDataStreamer,
   ChatLlm,
-  OpenAiChatMessage,
 } from "mongodb-rag-core";
 import {
   ApiMessage,
@@ -32,10 +29,7 @@ import {
 import { GenerateUserPromptFunc } from "../../processors/GenerateUserPromptFunc";
 import { FilterPreviousMessages } from "../../processors/FilterPreviousMessages";
 import { filterOnlySystemPrompt } from "../../processors/filterOnlySystemPrompt";
-import {
-  convertMessageFromLlmToDb,
-  generateResponse,
-} from "../generateResponse";
+import { generateResponse } from "../generateResponse";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 3000; // magic number for max input size for LLM
 export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for max messages in a conversation
@@ -70,6 +64,26 @@ export interface AddMessageToConversationRouteParams {
   maxInputLengthCharacters?: number;
   maxUserMessagesInConversation?: number;
   addMessageToConversationCustomData?: AddCustomDataFunc;
+  /**
+    If present, the route will create a new conversation
+    when given the `conversationIdPathParam` in the URL.
+   */
+  createConversation?: {
+    /**
+      Create a new conversation when the `conversationId` is the string "null".
+     */
+    createOnNullConversationId: boolean;
+    /**
+      The custom data to add to the new conversation
+      when it is created.
+     */
+    addCustomData?: AddCustomDataFunc;
+    /**
+      The system message to add to the new conversation
+      when it is created.
+     */
+    systemMessage?: SystemMessage;
+  };
 }
 
 export function makeAddMessageToConversationRoute({
@@ -80,6 +94,7 @@ export function makeAddMessageToConversationRoute({
   maxUserMessagesInConversation = DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION,
   filterPreviousMessages = filterOnlySystemPrompt,
   addMessageToConversationCustomData,
+  createConversation,
 }: AddMessageToConversationRouteParams) {
   return async (
     req: ExpressRequest<AddMessageRequest["params"]>,
@@ -122,6 +137,10 @@ export function makeAddMessageToConversationRoute({
       const conversation = await loadConversation({
         conversationIdString,
         conversations,
+        createConversation,
+        reqId,
+        req,
+        res,
       });
 
       // --- MAX CONVERSATION LENGTH CHECK ---
@@ -170,11 +189,18 @@ export function makeAddMessageToConversationRoute({
       const dbAssistantMessage = dbNewMessages[dbNewMessages.length - 1];
 
       assert(dbAssistantMessage !== undefined, "No assistant message found");
-      const apiRes = convertMessageFromDbToApi(dbAssistantMessage);
+      const apiRes = convertMessageFromDbToApi(
+        dbAssistantMessage,
+        conversation._id
+      );
 
       if (!shouldStream) {
         return res.status(200).json(apiRes);
       } else {
+        dataStreamer.streamData({
+          type: "metadata",
+          data: { conversationId: conversation._id.toString() },
+        });
         dataStreamer.streamData({
           type: "finished",
           data: apiRes.id,
@@ -249,11 +275,48 @@ async function addMessagesToDatabase({
 const loadConversation = async ({
   conversationIdString,
   conversations,
+  createConversation,
+  reqId,
+  req,
+  res,
 }: {
   conversationIdString: string;
   conversations: ConversationsService;
+  createConversation?: AddMessageToConversationRouteParams["createConversation"];
+  reqId: string;
+  req: ExpressRequest;
+  res: ExpressResponse<ApiMessage, ConversationsRouterLocals>;
 }) => {
-  const conversationId = toObjectId(conversationIdString);
+  // Create a new conversation if the conversationId is "null"
+  // and the route is configured to do so
+  if (
+    createConversation?.createOnNullConversationId === true &&
+    conversationIdString === "null"
+  ) {
+    logRequest({
+      reqId,
+      message: stripIndents`Creating new conversation`,
+    });
+    return await conversations.create({
+      initialMessages: createConversation.systemMessage
+        ? [createConversation.systemMessage]
+        : undefined,
+      customData: createConversation.addCustomData
+        ? await createConversation.addCustomData(req, res)
+        : undefined,
+    });
+  }
+
+  // Throw if the conversationId is not a valid ObjectId
+  const conversationId = ObjectId.isValid(conversationIdString)
+    ? ObjectId.createFromHexString(conversationIdString)
+    : (() => {
+        throw makeRequestError({
+          httpStatus: 400,
+          message: `Invalid conversationId: ${conversationIdString}`,
+        });
+      })();
+
   const conversation = await conversations.findById({
     _id: conversationId,
   });
@@ -264,15 +327,4 @@ const loadConversation = async ({
     });
   }
   return conversation;
-};
-
-const toObjectId = (id: string) => {
-  try {
-    return new ObjectId(id);
-  } catch (error) {
-    throw makeRequestError({
-      httpStatus: 400,
-      message: `Invalid ObjectId string: ${id}`,
-    });
-  }
 };

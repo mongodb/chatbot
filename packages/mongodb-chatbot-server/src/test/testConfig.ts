@@ -16,9 +16,9 @@ import {
   makeOpenAiChatLlm,
   SystemPrompt,
   UserMessage,
-  SearchBooster,
+  defaultConversationConstants,
 } from "mongodb-rag-core";
-import { MongoClient } from "mongodb-rag-core/mongodb";
+import { MongoClient, Db } from "mongodb-rag-core/mongodb";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { stripIndents } from "common-tags";
 import { AppConfig } from "../app";
@@ -29,7 +29,26 @@ import {
   makeFilterNPreviousMessages,
 } from "../processors";
 import { makeDefaultReferenceLinks } from "../processors/makeDefaultReferenceLinks";
+import { MongoMemoryServer } from "mongodb-memory-server";
 
+let mongoClient: MongoClient | undefined;
+export let memoryDb: Db;
+let mongod: MongoMemoryServer | undefined;
+beforeAll(async () => {
+  mongod = await MongoMemoryServer.create();
+  const uri = mongod.getUri();
+  const testDbName = `conversations-test-${Date.now()}`;
+  mongoClient = new MongoClient(uri);
+  memoryDb = mongoClient.db(testDbName);
+});
+
+afterAll(async () => {
+  await memoryDb?.dropDatabase();
+  await mongoClient?.close();
+  await mongod?.stop();
+  await embeddedContentStore.close();
+  await verifiedAnswerStore.close();
+});
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -154,7 +173,7 @@ export const fakeGenerateUserPrompt: GenerateUserPromptFunc = async (args) => {
     rejectQuery: args.userMessageText === REJECT_QUERY_CONTENT,
     staticResponse: noVectorContent
       ? {
-          content: conversations.conversationConstants.NO_RELEVANT_CONTENT,
+          content: defaultConversationConstants.NO_RELEVANT_CONTENT,
           role: "assistant",
           references: [],
         }
@@ -193,12 +212,6 @@ export const llm = makeOpenAiChatLlm({
   },
 });
 
-export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
-
-export const conversations = makeMongoDbConversationsService(
-  mongodb.db(MONGODB_DATABASE_NAME)
-);
-
 /**
   MongoDB Chatbot implementation of {@link MakeReferenceLinksFunc}.
   Returns references that look like:
@@ -223,16 +236,19 @@ export function makeMongoDbReferences(chunks: EmbeddedContent[]) {
 
 export const filterPrevious12Messages = makeFilterNPreviousMessages(12);
 
-export const config: AppConfig = {
-  conversationsRouterConfig: {
-    llm,
-    conversations,
-    generateUserPrompt: fakeGenerateUserPrompt,
-    filterPreviousMessages: filterPrevious12Messages,
-    systemPrompt,
-  },
-  maxRequestTimeoutMs: 30000,
-  corsOptions: {
-    origin: allowedOrigins,
-  },
-};
+export async function makeDefaultConfig(): Promise<AppConfig> {
+  const conversations = makeMongoDbConversationsService(memoryDb);
+  return {
+    conversationsRouterConfig: {
+      llm,
+      generateUserPrompt: fakeGenerateUserPrompt,
+      filterPreviousMessages: filterPrevious12Messages,
+      systemPrompt,
+      conversations,
+    },
+    maxRequestTimeoutMs: 30000,
+    corsOptions: {
+      origin: allowedOrigins,
+    },
+  };
+}

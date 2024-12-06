@@ -190,6 +190,14 @@ export interface ConversationsRouterParams {
     If not specified, user comments may be of any length.
    */
   maxUserCommentLength?: number;
+
+  /**
+    Whether to create a new conversation if the message ID is "null"
+    on the addMessageToConversation route.
+
+    @default true
+   */
+  createConversationOnNullMessageId?: boolean;
 }
 
 export const rateLimitResponse = {
@@ -228,6 +236,7 @@ export function makeConversationsRouter({
   createConversationCustomData = addOriginAndIpToCustomData,
   addMessageToConversationCustomData = addOriginToCustomData,
   maxUserCommentLength,
+  createConversationOnNullMessageId = true,
 }: ConversationsRouterParams) {
   const conversationsRouter = Router();
   // Set the customData and conversations on the response locals
@@ -315,6 +324,13 @@ export function makeConversationsRouter({
     addMessageToConversationCustomData,
     generateUserPrompt,
     filterPreviousMessages,
+    createConversation: createConversationOnNullMessageId
+      ? {
+          createOnNullConversationId: createConversationOnNullMessageId,
+          addCustomData: createConversationCustomData,
+          systemMessage: systemPrompt,
+        }
+      : undefined,
   });
   conversationsRouter.post(
     "/:conversationId/messages",

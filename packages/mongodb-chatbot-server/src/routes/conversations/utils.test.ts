@@ -1,3 +1,4 @@
+import { strict as assert } from "assert";
 import {
   areEquivalentIpAddresses,
   convertConversationFromDbToApi,
@@ -98,6 +99,7 @@ describe("Data Conversion Functions", () => {
         functionResultMessage,
         assistantMessage,
       ] = exampleConversationInDatabase.messages;
+      const convoId = new ObjectId();
 
       expect(convertMessageFromDbToApi(systemMessage)).toEqual({
         id: "65ca766ab564b694eba8c330",
@@ -140,6 +142,32 @@ describe("Data Conversion Functions", () => {
         createdAt: 1704067252000,
         rating: undefined,
         references: undefined,
+      });
+    });
+    test("do not include conversationId if not provided", () => {
+      const message = exampleConversationInDatabase.messages[0];
+      expect(convertMessageFromDbToApi(message)).not.toMatchObject({
+        metadata: { conversationId: expect.any(String) },
+      });
+    });
+    test("include conversationId in assistant message if provided", () => {
+      const message = exampleConversationInDatabase.messages.find(
+        (m) => m.role === "assistant"
+      );
+      assert(message);
+      const convoId = new ObjectId();
+      expect(convertMessageFromDbToApi(message, convoId)).toMatchObject({
+        metadata: { conversationId: convoId.toString() },
+      });
+    });
+    test("don't include conversationId in non-assistant messages", () => {
+      const message = exampleConversationInDatabase.messages.find(
+        (m) => m.role !== "assistant"
+      );
+      assert(message);
+      const convoId = new ObjectId();
+      expect(convertMessageFromDbToApi(message, convoId)).not.toMatchObject({
+        metadata: { conversationId: expect.any(String) },
       });
     });
   });

@@ -291,7 +291,7 @@ describe("ConversationService", () => {
         {
           id: undefined,
           type: undefined,
-          data: { type: "unknown", data: "Hello world!" },
+          data: { type: "unknown123", data: "Hello world!" },
         },
         {
           id: undefined,
@@ -304,7 +304,7 @@ describe("ConversationService", () => {
         {
           id: undefined,
           type: undefined,
-          data: { type: "unknown", data: null },
+          data: { type: "unknownABC", data: null },
         },
         {
           id: undefined,

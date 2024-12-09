@@ -7,7 +7,7 @@ cronJobs:
     schedule: "0 4 * * *" # every day at 4am UTC (11PM EST)
     command: ["npm", "run", "ingest:k8s:coachGtmPages"]
     env:
-      MONGODB_DATABASE_NAME: docs-chatbot-test
+      MONGODB_DATABASE_NAME: docs-chatbot-staging
       VECTOR_SEARCH_INDEX_NAME: vector_index
       OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
       MONGODB_COACH_GTM_DATABASE_NAME: coach-gtm

@@ -580,7 +580,7 @@ steps:
       chart_version: 1.10.0
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: docs
-      release: ingest-coach-gtm
+      release: ingest-coach-gtm-staging
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-coach-gtm-staging,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-ingest-coach-gtm
       values_files:
         - packages/ingest-mongodb-public/environments/coachGtm.staging.yml

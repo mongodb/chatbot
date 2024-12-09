@@ -1,44 +1,34 @@
 import { strict as assert } from "assert";
-import { makeMongoDbConversationsService } from "mongodb-rag-core";
-import { MongoClient, Db } from "mongodb-rag-core/mongodb";
 import { AppConfig, makeApp } from "../app";
-import { MONGODB_CONNECTION_URI, config, systemPrompt } from "./testConfig";
+import { makeDefaultConfig, memoryDb, systemPrompt } from "./testConfig";
 
-let mongoClient: MongoClient | undefined;
-let mongodb: Db | undefined;
-let testDbName: string | undefined;
-
-beforeAll(async () => {
-  testDbName = `conversations-test-${Date.now()}`;
-  mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
-  mongodb = mongoClient.db(testDbName);
-});
-
-afterAll(async () => {
-  await mongodb?.dropDatabase();
-  await mongoClient?.close();
-});
-
-export function makeTestAppConfig(defaultConfigOverrides?: Partial<AppConfig>) {
-  assert(mongodb !== undefined);
-  assert(mongoClient !== undefined);
-
-  const conversations = makeMongoDbConversationsService(mongodb);
+export async function makeTestAppConfig(
+  defaultConfigOverrides?: PartialAppConfig
+) {
+  const config = await makeDefaultConfig();
   const appConfig: AppConfig = {
     ...config,
-    conversationsRouterConfig: {
-      ...config.conversationsRouterConfig,
-      conversations,
-    },
+    ...(defaultConfigOverrides ?? {}),
     async expressAppConfig(app) {
       app.get("/hello", (_req, res) => {
         res.send({ foo: "bar" });
       });
     },
-    ...(defaultConfigOverrides ?? {}),
+    conversationsRouterConfig: {
+      ...config.conversationsRouterConfig,
+      ...(defaultConfigOverrides?.conversationsRouterConfig ?? {}),
+    },
   };
-  return { appConfig, mongodb, conversations, systemPrompt, mongoClient };
+  assert(memoryDb, "memoryDb must be defined");
+  return { appConfig, systemPrompt, mongodb: memoryDb };
 }
+
+export type PartialAppConfig = Omit<
+  Partial<AppConfig>,
+  "conversationsRouterConfig"
+> & {
+  conversationsRouterConfig?: Partial<AppConfig["conversationsRouterConfig"]>;
+};
 
 export const TEST_ORIGIN = "http://localhost:5173";
 
@@ -47,12 +37,12 @@ export const TEST_ORIGIN = "http://localhost:5173";
   before `beforeAll()`.
   @param defaultConfigOverrides - optional overrides for default app config
  */
-export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
+export async function makeTestApp(defaultConfigOverrides?: PartialAppConfig) {
   // ip address for local host
   const ipAddress = "127.0.0.1";
   const origin = TEST_ORIGIN;
 
-  const { appConfig, systemPrompt, mongodb, conversations } = makeTestAppConfig(
+  const { appConfig, systemPrompt, mongodb } = await makeTestAppConfig(
     defaultConfigOverrides
   );
   const app = await makeApp(appConfig);
@@ -62,7 +52,7 @@ export async function makeTestApp(defaultConfigOverrides?: Partial<AppConfig>) {
     origin,
     appConfig,
     app,
-    conversations,
+    conversations: appConfig.conversationsRouterConfig.conversations,
     mongodb,
     systemPrompt,
   };

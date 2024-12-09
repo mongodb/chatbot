@@ -41,7 +41,7 @@ export const doImportCommand = async ({ path }: ImportCommandArgs) => {
     MONGODB_CONNECTION_URI,
     OPENAI_EMBEDDING_MODEL_NAME: embeddingModelName,
     OPENAI_EMBEDDING_MODEL_VERSION: embeddingModelVersion,
-    OPENAI_EMBEDDING_DEPLOYMENT: deployment,
+    OPENAI_VERIFIED_ANSWER_EMBEDDING_DEPLOYMENT: deployment,
     OPENAI_ENDPOINT,
     OPENAI_API_KEY,
     OPENAI_API_VERSION,

@@ -1,4 +1,8 @@
-import { MongoClient, WithId, AnyBulkWriteOperation } from "mongodb";
+import {
+  MongoClient,
+  WithId,
+  AnyBulkWriteOperation,
+} from "mongodb-rag-core/mongodb";
 import { assertEnvVars } from "mongodb-rag-core";
 import { upgradeFaqEntry, FaqEntry, FaqEntryV0 } from "../upgradeFaqEntries";
 import { ScrubbedMessage } from "../ScrubbedMessage";
@@ -71,7 +75,7 @@ async function main() {
       const write = async () => {
         const bulkWriteResult = await toCollection.bulkWrite(bulk);
         console.log(
-          `Modified ${bulkWriteResult.nModified}, upserted ${bulkWriteResult.nUpserted}.`
+          `Modified ${bulkWriteResult.modifiedCount}, upserted ${bulkWriteResult.upsertedCount}.`
         );
       };
       for await (const entry of entries) {

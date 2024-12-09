@@ -2,6 +2,7 @@ import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { References, VerifiedAnswer } from "mongodb-rag-core";
 import { ConversationState } from "../useConversation";
 import { strict as assert } from "node:assert";
+import { isProductionBuild } from "../utils";
 
 export type Role = "user" | "assistant";
 
@@ -66,6 +67,13 @@ export class TimeoutError<Data extends object = object> extends Error {
   }
 }
 
+export type UnknownStreamEvent = { type: string; data: unknown };
+
+function isSomeStreamEvent(event: object): event is UnknownStreamEvent {
+  const e = event as UnknownStreamEvent;
+  return typeof e.type === "string" && typeof e.data !== "undefined";
+}
+
 export type DeltaStreamEvent = { type: "delta"; data: string };
 export type ReferencesStreamEvent = { type: "references"; data: References };
 export type MetadataStreamEvent = {
@@ -79,6 +87,29 @@ export type ConversationStreamEvent =
   | ReferencesStreamEvent
   | MetadataStreamEvent
   | FinishedStreamEvent;
+
+const isConversationStreamEventType = (
+  type: string
+): type is ConversationStreamEvent["type"] => {
+  return (
+    type === "delta" ||
+    type === "references" ||
+    type === "metadata" ||
+    type === "finished"
+  );
+};
+
+const isConversationStreamEvent = (
+  event: object
+): event is ConversationStreamEvent => {
+  const e = event as ConversationStreamEvent;
+  return (
+    (e.type === "delta" && typeof e.data === "string") ||
+    (e.type === "references" && typeof e.data === "object") ||
+    (e.type === "metadata" && typeof e.data === "object") ||
+    (e.type === "finished" && typeof e.data === "string")
+  );
+};
 
 /**
   Options to include with every fetch request made by the ConversationService.
@@ -257,18 +288,6 @@ export class ConversationService {
     let retryCount = 0;
     let moreToStream = true;
 
-    const isConversationStreamEvent = (
-      event: object
-    ): event is ConversationStreamEvent => {
-      const e = event as ConversationStreamEvent;
-      return (
-        (e.type === "delta" && typeof e.data === "string") ||
-        (e.type === "references" && typeof e.data === "object") ||
-        (e.type === "metadata" && typeof e.data === "object") ||
-        (e.type === "finished" && typeof e.data === "string")
-      );
-    };
-
     await fetchEventSource(this.getUrl(path, { stream: "true" }), {
       ...this.fetchOptions,
       // Need to convert Headers to plain object for fetchEventSource
@@ -280,8 +299,27 @@ export class ConversationService {
 
       onmessage(ev) {
         const event = JSON.parse(ev.data);
+        if (!isSomeStreamEvent(event)) {
+          if (!isProductionBuild()) {
+            console.error(
+              `Received an unknown event: ${JSON.stringify(event)}`
+            );
+          }
+          return;
+        }
+        if (!isConversationStreamEventType(event.type)) {
+          if (!isProductionBuild()) {
+            console.error(`Received an unknown event type: ${event.type}`);
+          }
+          return;
+        }
         if (!isConversationStreamEvent(event)) {
-          throw new Error(`Invalid event received from server: ${ev.data}`);
+          if (!isProductionBuild()) {
+            console.error(
+              `Received an invalid conversation event: ${JSON.stringify(event)}`
+            );
+          }
+          return;
         }
         switch (event.type) {
           case "delta": {

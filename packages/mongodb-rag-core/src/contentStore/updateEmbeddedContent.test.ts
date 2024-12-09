@@ -13,7 +13,9 @@ export const makeMockEmbeddedContentStore = (): EmbeddedContentStore => {
   const content: Map<string /* page url */, EmbeddedContent[]> = new Map();
   return {
     async deleteEmbeddedContent({ page }) {
-      content.set(page.url, []);
+      if (page) {
+        content.set(page.url, []);
+      }
     },
     async findNearestNeighbors() {
       return [];
@@ -23,6 +25,9 @@ export const makeMockEmbeddedContentStore = (): EmbeddedContentStore => {
     },
     async updateEmbeddedContent({ embeddedContent, page }) {
       content.set(page.url, [...embeddedContent]);
+    },
+    metadata: {
+      embeddingName: "test",
     },
   };
 };

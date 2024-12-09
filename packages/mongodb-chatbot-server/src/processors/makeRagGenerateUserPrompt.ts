@@ -121,7 +121,7 @@ export function makeRagGenerateUserPrompt({
       reqId,
       message: stripIndents`Chunks found: ${JSON.stringify(
         content.map(
-          ({ embedding, chunkAlgoHash, ...wantedProperties }) =>
+          ({ chunkAlgoHash, embeddings, ...wantedProperties }) =>
             wantedProperties
         )
       )}`,

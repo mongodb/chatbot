@@ -26,9 +26,11 @@ export interface EmbeddedContent {
   tokenCount: number;
 
   /**
-    The vector embedding of the text.
+    The vector embeddings of the text.
    */
-  embedding: number[];
+  embeddings: {
+    [k: string]: number[];
+  };
 
   /**
     The date the content was last updated.
@@ -68,9 +70,12 @@ export type EmbeddedContentStore = VectorStore<EmbeddedContent> & {
   loadEmbeddedContent(args: { page: Page }): Promise<EmbeddedContent[]>;
 
   /**
-    Delete all embedded content for the given page.
+    Delete all embedded content for the given page and/or data sources.
    */
-  deleteEmbeddedContent(args: { page: Page }): Promise<void>;
+  deleteEmbeddedContent(args: {
+    page?: Page;
+    dataSources?: string[];
+  }): Promise<void>;
 
   /**
     Replace all embedded content for the given page with the given embedded content.
@@ -86,11 +91,15 @@ export type EmbeddedContentStore = VectorStore<EmbeddedContent> & {
   close?: () => Promise<void>;
 
   /**
-    Additional implementation-specific metadata about the store. This metadata is
-    not directly used by the store itself, but may be useful for testing,
-    debugging, and logging.
+    Additional implementation-specific metadata about the store.
    */
-  metadata?: {
+  metadata: {
+    embeddingName: string;
     [k: string]: unknown;
   };
+
+  /**
+    Initialize the store.
+   */
+  init?: () => Promise<void>;
 };

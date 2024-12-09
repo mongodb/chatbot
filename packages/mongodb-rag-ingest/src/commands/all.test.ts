@@ -38,12 +38,18 @@ describe("allCommand", () => {
     async updateEmbeddedContent() {
       return;
     },
+    metadata: {
+      embeddingName: "embeddedName",
+    },
   };
   const mockPageStore: PageStore = {
     async loadPages() {
       return [];
     },
     async updatePages() {
+      return;
+    },
+    async deletePages() {
       return;
     },
   };
@@ -85,7 +91,7 @@ describe("allCommand", () => {
           dataSources,
         },
         {
-          async doPagesCommand() {
+          async doUpdatePagesCommand() {
             return;
           },
         }
@@ -120,7 +126,7 @@ describe("allCommand", () => {
             dataSources,
           },
           {
-            async doPagesCommand() {
+            async doUpdatePagesCommand() {
               // Sudden failure!
               throw new Error("Fail!");
             },

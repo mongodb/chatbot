@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { startTransition, useRef, useState } from "react";
 import { useConversation, type UseConversationParams } from "./useConversation";
 
 export type OpenCloseHandlers = {
@@ -52,10 +52,17 @@ export function useChatbot({
       return;
     }
     onOpen?.();
-    setOpen(true);
+    let prom: Promise<void> | undefined;
     if (!conversation.conversationId) {
-      await conversation.createConversation();
+      prom = conversation.createConversation();
     }
+    startTransition(() => {
+      prom
+        ? prom.then(() => {
+            setOpen(true);
+          })
+        : setOpen(true);
+    });
   }
 
   function closeChat() {

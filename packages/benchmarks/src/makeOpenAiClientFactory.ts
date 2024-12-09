@@ -148,9 +148,6 @@ function bedrockChatCompletionClient(
           },
         ],
       } satisfies OpenAI.Chat.Completions.ChatCompletion;
-      // as unknown as Awaited<
-      //   ReturnType<typeof openAiClient.chat.completions.create>
-      // >;
     },
     { name: "bedrockChatCompletionCreate" }
   );

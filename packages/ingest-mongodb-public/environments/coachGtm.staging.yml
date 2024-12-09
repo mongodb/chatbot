@@ -38,5 +38,5 @@ cronJobs:
 # Alerts
 defaultAlerts:
   enabled: true
-  # email us and sergio's team 
+  # email us and sergio's team
   email: "chatbot-alerts@mongodb.com,sit@mongodb.com"

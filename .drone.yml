@@ -17,11 +17,10 @@ steps:
   - name: test
     image: node:18
     commands:
-      # - npm ci
-      # - npm run build
-      # - npm run lint
-      # - npm run test
-      - echo "skipping tests"
+      - npm ci
+      - npm run build
+      - npm run lint
+      - npm run test
 
     environment:
       PORT: 3000
@@ -502,8 +501,7 @@ name: staging-build-ingest-coach-gtm
 
 trigger:
   branch:
-    # - main
-    - EAI-368
+    - main
   event:
     - push
   paths:
@@ -568,8 +566,7 @@ trigger:
       - package.json
 
   branch:
-    # - main
-    - EAI-368
+    - main
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion

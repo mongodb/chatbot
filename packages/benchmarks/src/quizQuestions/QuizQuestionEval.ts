@@ -74,7 +74,11 @@ export const CorrectQuizAnswer: QuizQuestionEvalScorer = function (args) {
 };
 
 function normalizeAnswer(answer: string) {
-  return answer.trim().toUpperCase();
+  return answer
+    .split(",")
+    .map((el) => el.trim())
+    .join(",")
+    .toUpperCase();
 }
 
 type QuizQuestionLlmOptions = Pick<

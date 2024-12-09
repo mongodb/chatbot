@@ -1,51 +1,15 @@
 import { models } from "../models";
-import {
-  assertEnvVars,
-  CORE_OPENAI_CONNECTION_ENV_VARS,
-} from "mongodb-rag-core";
 import path from "path";
 import "dotenv/config";
-import { BRAINTRUST_ENV_VARS, RADIANT_ENV_VARS } from "../envVars";
 import PromisePool from "@supercharge/promise-pool";
-import { makeOpenAiClientFactory } from "../makeOpenAiClientFactory";
 import {
   getDiscoveryConversationEvalDataFromYamlFile,
   runDiscoveryEval,
 } from "./DiscoveryEval";
+import { openAiClientFactory } from "../openAiClients";
 
 async function main() {
-  const {
-    BRAINTRUST_API_KEY,
-    BRAINTRUST_ENDPOINT,
-    RADIANT_API_KEY,
-    RADIANT_ENDPOINT,
-    MONGODB_AUTH_COOKIE,
-    OPENAI_API_KEY,
-    OPENAI_ENDPOINT,
-    OPENAI_API_VERSION,
-  } = assertEnvVars({
-    ...RADIANT_ENV_VARS,
-    ...BRAINTRUST_ENV_VARS,
-    ...CORE_OPENAI_CONNECTION_ENV_VARS,
-  });
-
   const DEFAULT_MAX_CONCURRENCY = 10;
-  const openAiClientFactory = makeOpenAiClientFactory({
-    azure: {
-      apiKey: OPENAI_API_KEY,
-      apiVersion: OPENAI_API_VERSION,
-      endpoint: OPENAI_ENDPOINT,
-    },
-    radiant: {
-      apiKey: RADIANT_API_KEY,
-      endpoint: RADIANT_ENDPOINT,
-      authCookie: MONGODB_AUTH_COOKIE,
-    },
-    braintrust: {
-      apiKey: BRAINTRUST_API_KEY,
-      endpoint: BRAINTRUST_ENDPOINT,
-    },
-  });
 
   const { RUN_ID } = process.env;
 

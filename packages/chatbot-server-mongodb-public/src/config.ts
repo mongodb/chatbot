@@ -121,9 +121,21 @@ export const verifiedAnswerStore = makeMongoDbVerifiedAnswerStore({
   collectionName: "verified_answers",
 });
 
+const verifiedAnswersEmbedder = makeOpenAiEmbedder({
+  openAiClient,
+  deployment: verifiedAnswerConfig.embeddingModel,
+  backoffOptions: {
+    numOfAttempts: 3,
+    maxDelay: 5000,
+  },
+});
+verifiedAnswersEmbedder.embed = wrapTraced(verifiedAnswersEmbedder.embed, {
+  name: "embedVerifiedAnswers",
+});
+
 export const findVerifiedAnswer = wrapTraced(
   makeDefaultFindVerifiedAnswer({
-    embedder,
+    embedder: verifiedAnswersEmbedder,
     store: verifiedAnswerStore,
     findNearestNeighborsOptions:
       verifiedAnswerConfig.findNearestNeighborsOptions,

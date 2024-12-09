@@ -236,6 +236,12 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
     tags: ["docs", "cloud-manager"],
     productName: "MongoDB Cloud Manager",
   },
+  {
+    type: "snooty",
+    name: "intellij",
+    tags: ["docs", "intellij", "plugin"],
+    productName: "MongoDB IntelliJ Plugin",
+  },
 ];
 
 export const snootyDataApiBaseUrl = "https://snooty-data-api.mongodb.com/prod/";

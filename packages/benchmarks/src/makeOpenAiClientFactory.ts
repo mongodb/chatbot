@@ -1,6 +1,12 @@
 import { OpenAI, AzureOpenAI } from "mongodb-rag-core/openai";
+import {
+  BedrockRuntimeClient,
+  ConversationRole,
+  ConverseCommand,
+} from "@aws-sdk/client-bedrock-runtime";
 import { ModelConfig } from "./models";
 import { strict as assert } from "assert";
+import { wrapOpenAI } from "braintrust";
 interface BaseModelProviderConfig {
   apiKey: string;
   endpoint: string;
@@ -14,12 +20,16 @@ interface MakeOpenAiClientFactoryParams {
   radiant?: BaseModelProviderConfig & {
     authCookie: string;
   };
+  vertexAi?: BaseModelProviderConfig;
+  bedrock?: ConstructorParameters<typeof BedrockRuntimeClient>[0];
 }
 
 export function makeOpenAiClientFactory({
   azure,
   braintrust,
   radiant,
+  vertexAi,
+  bedrock,
 }: MakeOpenAiClientFactoryParams) {
   return {
     makeOpenAiClient(modelConfig: ModelConfig) {
@@ -46,15 +56,87 @@ export function makeOpenAiClientFactory({
             Cookie: radiant.authCookie,
           },
         });
+      } else if (modelConfig.provider === "gcp_vertex_ai") {
+        assert(vertexAi, "GCP Vertex AI config must be provided");
+        openAiClient = new OpenAI({
+          apiKey: vertexAi.apiKey,
+          baseURL: vertexAi.endpoint,
+        });
+      } else if (modelConfig.provider === "aws_bedrock") {
+        assert(bedrock, "AWS Bedrock config must be provided");
+        openAiClient = bedrockChatCompletionClient(bedrock);
       } else {
         throw new Error(`Unsupported provider: ${modelConfig.provider}`);
       }
       if (modelConfig.systemMessageAsUserMessage) {
         openAiClient = imitateSystemMessagesWithUserMessages(openAiClient);
       }
-      return openAiClient;
+      return wrapOpenAI(openAiClient);
     },
   };
+}
+
+function bedrockChatCompletionClient(
+  bedrock: NonNullable<MakeOpenAiClientFactoryParams["bedrock"]>
+) {
+  const openAiClient = new OpenAI();
+  const bedrockClient = new BedrockRuntimeClient(bedrock);
+  const bedrockChatCompletionCreate = async function (
+    body: Parameters<typeof openAiClient.chat.completions.create>[0]
+  ) {
+    assert(body.stream !== true, "stream=true not supported for Anthropic");
+    assert(body.tools === undefined, "tools not supported for Anthropic");
+    assert(
+      body.tool_choice === undefined,
+      "tool_choice not supported for Anthropic"
+    );
+
+    const extractedSystemPrompt = body.messages.find((m) => m.role === "system")
+      ?.content as string | undefined;
+
+    const filteredMessages = body.messages.filter(
+      (m) => m.role === "user" || m.role === "assistant"
+    );
+
+    const input = new ConverseCommand({
+      modelId: body.model,
+      messages: filteredMessages.map((m) => ({
+        role: m.role as ConversationRole,
+        content: [{ text: m.content as string }],
+      })),
+      system: extractedSystemPrompt
+        ? [{ text: extractedSystemPrompt }]
+        : undefined,
+      inferenceConfig: {
+        maxTokens: body.max_tokens !== null ? body.max_tokens : 1000,
+        temperature: body.temperature !== null ? body.temperature : undefined,
+        topP: body.top_p !== null ? body.top_p : undefined,
+      },
+    });
+    const res = await bedrockClient.send(input);
+    const responseText = res.output?.message?.content?.[0].text;
+    assert(responseText, "No content found in response");
+    const responseRole = res?.output?.message?.role;
+    assert(responseRole, "No role found in response");
+
+    return {
+      choices: [
+        {
+          message: {
+            role: responseRole,
+            content: responseText,
+          },
+        },
+      ],
+    } as unknown as Awaited<
+      ReturnType<typeof openAiClient.chat.completions.create>
+    >;
+  };
+
+  openAiClient.chat.completions.create =
+    bedrockChatCompletionCreate as typeof openAiClient.chat.completions.create;
+
+  return openAiClient;
 }
 
 function imitateSystemMessagesWithUserMessages(openAiClient: OpenAI): OpenAI {

@@ -34,21 +34,7 @@ export { getMessageLinks, formatReferences } from "./messageLinks.ts";
 export { ModalView, type ModalViewProps } from "./ModalView.tsx";
 export { type ChatbotViewProps } from "./ChatbotView.tsx";
 export { type DarkModeProps } from "./DarkMode.ts";
-export {
-  type Role,
-  type MessageData,
-  type AssistantMessageMetadata,
-  type DeltaStreamEvent,
-  type ReferencesStreamEvent,
-  type MetadataStreamEvent,
-  type FinishedStreamEvent,
-  type SomeStreamEvent,
-  type ConversationFetchOptions,
-  type ConversationServiceConfig,
-  RetriableError,
-  TimeoutError,
-  ConversationService,
-} from "./services/conversations.ts";
+export * from "./services/conversations/index.ts";
 export {
   MongoDbLegalDisclosure,
   MongoDbLegalDisclosureText,

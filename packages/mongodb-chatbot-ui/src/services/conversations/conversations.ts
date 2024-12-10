@@ -1,31 +1,9 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import {
-  References,
-  VerifiedAnswer,
-  isSomeStreamEvent,
-  isSomeStreamEventType,
-} from "mongodb-rag-core";
-import { ConversationState } from "../useConversation";
+import { References, VerifiedAnswer } from "mongodb-rag-core";
+import { isSomeStreamEvent, isSomeStreamEventType } from "./streamEvents";
+import { ConversationState } from "../../useConversation";
 import { strict as assert } from "node:assert";
-import { isProductionBuild } from "../utils";
-
-export {
-  type UnknownStreamEvent,
-  UnknownStreamEventSchema,
-  type DeltaStreamEvent,
-  DeltaStreamEventSchema,
-  type ProcessingStreamEvent,
-  ProcessingStreamEventSchema,
-  type ReferencesStreamEvent,
-  ReferencesStreamEventSchema,
-  type MetadataStreamEvent,
-  MetadataStreamEventSchema,
-  type FinishedStreamEvent,
-  FinishedStreamEventSchema,
-  type SomeStreamEvent,
-  SomeStreamEventSchema,
-  isSomeStreamEvent,
-} from "mongodb-rag-core";
+import { isProductionBuild } from "../../utils";
 
 export type Role = "user" | "assistant";
 

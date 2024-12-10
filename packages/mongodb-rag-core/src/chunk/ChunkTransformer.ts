@@ -106,8 +106,16 @@ export const standardMetadataGetter: ChunkMetadataGetter<{
     metadata["codeBlockLanguages"] = specifiedLanguages;
   }
 
-  return { ...(page.metadata ?? {}), ...metadata };
+  return { ...getPageChunkMetadata(page.metadata), ...metadata };
 };
+
+function getPageChunkMetadata(pageMetadata: Page["metadata"]) {
+  if (pageMetadata !== undefined) {
+    const { page, ...copy } = pageMetadata;
+    return copy;
+  }
+  return undefined;
+}
 
 export const standardChunkFrontMatterUpdater = makeChunkFrontMatterUpdater(
   standardMetadataGetter

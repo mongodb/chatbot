@@ -1,6 +1,10 @@
 import Path from "path";
 import fs from "fs";
-import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
+import {
+  snootyAstToMd,
+  getTitleFromSnootyAst,
+  getMetadataFromSnootyAst,
+} from "./snootyAstToMd";
 import { SnootyNode } from "./SnootyDataSource";
 import { rstToSnootyAst } from "./rstToSnootyAst";
 
@@ -298,5 +302,50 @@ describe("getTitleFromSnootyAst", () => {
     expect(getTitleFromSnootyAst(sampleAst)).toBe(
       "What is MongoDB Atlas Search?"
     );
+  });
+});
+
+describe("getMetadataFromSnootyAst", () => {
+  const sampleMetadataPage = JSON.parse(
+    fs.readFileSync(
+      Path.resolve(SRC_ROOT, "../testData/samplePageWithMetadata.json"),
+      {
+        encoding: "utf-8",
+      }
+    )
+  );
+  it("extracts meta directives", () => {
+    const { metadata } = getMetadataFromSnootyAst(sampleMetadataPage.data.ast);
+    expect(metadata).toMatchObject({
+      description: expect.any(String),
+    });
+  });
+  it("extracts meta.keyword directives as string[]", () => {
+    const { metadata } = getMetadataFromSnootyAst(sampleMetadataPage.data.ast);
+    expect(metadata).toMatchObject({
+      keywords: expect.arrayContaining([expect.any(String)]),
+    });
+  });
+  it("extracts facet directives", () => {
+    const { metadata } = getMetadataFromSnootyAst(sampleMetadataPage.data.ast);
+    expect(metadata).toMatchObject({
+      genre: "tutorial",
+      foo: "bar",
+    });
+  });
+
+  it("doesn't extract noindex if not present", () => {
+    const { noIndex } = getMetadataFromSnootyAst(sampleMetadataPage.data.ast);
+    expect(noIndex).toBe(false);
+  });
+
+  it("extracts noindex if present", () => {
+    const sampleMetadataPage = JSON.parse(
+      fs.readFileSync(Path.resolve(SRC_ROOT, "../testData/noindex.json"), {
+        encoding: "utf-8",
+      })
+    );
+    const { noIndex } = getMetadataFromSnootyAst(sampleMetadataPage.data.ast);
+    expect(noIndex).toBe(true);
   });
 });

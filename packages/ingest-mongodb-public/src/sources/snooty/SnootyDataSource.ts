@@ -2,7 +2,11 @@ import { createInterface } from "readline";
 import { Page, PageFormat, logger } from "mongodb-rag-core";
 import fetch from "node-fetch";
 import { DataSource, ProjectBase } from "mongodb-rag-core/dataSources";
-import { snootyAstToMd, getTitleFromSnootyAst } from "./snootyAstToMd";
+import {
+  snootyAstToMd,
+  getTitleFromSnootyAst,
+  getMetadataFromSnootyAst,
+} from "./snootyAstToMd";
 import {
   getTitleFromSnootyOpenApiSpecAst,
   snootyAstToOpenApiSpec,
@@ -47,6 +51,41 @@ export type SnootyTextNode = SnootyNode & {
   type: "text";
   children: never;
   value: string;
+};
+
+export type SnootyFacetNode = SnootyNode & {
+  type: "directive";
+  name: "facet";
+  children: never;
+  options?: {
+    name: string;
+    values: string;
+  };
+};
+
+export type SnootyMetaNode = SnootyNode & {
+  type: "directive";
+  name: "meta";
+  children: never;
+  options?: {
+    /**
+      List of relevant keywords for the page, comma separated.
+      @example "code example, node.js, analyze, array"
+     */
+    keywords?: string;
+
+    /**
+      High-level description of the page.
+     */
+    description: string;
+    [key: string]: string | undefined;
+
+    /**
+      Robots meta tag value for the page.
+      @example "noindex, nofollow"
+     */
+    robots?: string;
+  };
 };
 
 /**
@@ -188,7 +227,9 @@ export const makeSnootyDataSource = ({
                       productName,
                       version,
                     });
-                    pages.push(page);
+                    if (page !== undefined) {
+                      pages.push(page);
+                    }
                   } catch (error) {
                     // Log the error and discard this document, but don't break the
                     // overall fetchPages() call.
@@ -300,7 +341,7 @@ export const handlePage = async (
     productName?: string;
     version?: string;
   }
-): Promise<Page> => {
+): Promise<Page | undefined> => {
   // Strip first three path segments - according to Snooty team, they'll always
   // be ${property}/docsworker-xlarge/${branch}
   const pagePath = page.page_id
@@ -328,6 +369,12 @@ export const handlePage = async (
     body = snootyAstToMd(page.ast);
     title = getTitleFromSnootyAst(page.ast);
   }
+  const { metadata: pageMetadata, noIndex } = getMetadataFromSnootyAst(
+    page.ast
+  );
+  if (noIndex) {
+    return;
+  }
 
   return {
     url: new URL(pagePath, baseUrl.replace(/\/?$/, "/")).href.replace(
@@ -339,6 +386,7 @@ export const handlePage = async (
     body,
     format,
     metadata: {
+      page: pageMetadata,
       tags,
       productName,
       version,

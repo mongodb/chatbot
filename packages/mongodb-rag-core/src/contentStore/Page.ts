@@ -38,6 +38,10 @@ export type PageMetadata = {
     Arbitrary tags.
    */
   tags?: string[];
+  /**
+    Page-level metadata. Should not be chunked.
+   */
+  page?: Record<string, unknown>;
   [k: string]: unknown;
 };
 

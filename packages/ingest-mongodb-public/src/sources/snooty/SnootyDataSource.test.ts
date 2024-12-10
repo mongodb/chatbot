@@ -1,4 +1,5 @@
 import nock from "nock";
+import { Readable } from "stream";
 import fs from "fs";
 import Path from "path";
 import JSONL from "jsonl-parse-stringify";
@@ -174,8 +175,43 @@ describe("SnootyDataSource", () => {
         )
       ).toBeUndefined();
     });
+
+    it("skips noindex page", async () => {
+      // Use normal sample data (no deletes)
+      const source = await makeSnootyDataSource({
+        name: `snooty-test`,
+        project,
+        snootyDataApiBaseUrl,
+      });
+      nock.cleanAll();
+      baseMock
+        .get(`/projects/${project.name}/${project.currentBranch}/documents`)
+        .reply(200, () => {
+          const noIndexAst = jsonLify(
+            Path.resolve(SRC_ROOT, "../testData/noindex.json")
+          );
+
+          const astWithIndex = jsonLify(
+            Path.resolve(SRC_ROOT, "../testData/samplePage.json")
+          );
+
+          const stream = new Readable();
+          stream.push(noIndexAst + "\n");
+          stream.push(astWithIndex + "\n");
+          stream.push(null); // End the stream
+          return stream;
+        });
+
+      const pages = await source.fetchPages();
+      // only captures the astWithIndex page, not the noIndexAst page
+      expect(pages).toHaveLength(1);
+    });
   });
 });
+
+function jsonLify(path: string) {
+  return JSON.stringify(JSON.parse(fs.readFileSync(path, "utf-8")));
+}
 describe("handlePage()", () => {
   it("should correctly parse openapi spec page", async () => {
     const apiSpecPage = JSON.parse(
@@ -220,6 +256,6 @@ describe("handlePage()", () => {
         version: "1.0",
       },
     });
-    expect(result.body).toContain("# $merge (aggregation)");
+    expect(result?.body).toContain("# $merge (aggregation)");
   });
 });

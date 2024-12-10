@@ -211,9 +211,7 @@ export const getTitleFromSnootyAst = (node: SnootyNode): string | undefined => {
   return textNodes.map(({ value }) => value).join("");
 };
 
-export const getMetadataFromSnootyAst = (
-  node: SnootyNode
-): Record<string, unknown> => {
+export const getMetadataFromSnootyAst = (node: SnootyNode) => {
   const facetAndMetaNodes = findAll(
     node,
     ({ name }) => name === "facet" || name === "meta"
@@ -238,6 +236,7 @@ export const getMetadataFromSnootyAst = (
     return acc;
   }, {} as Record<string, string>);
 
+  let noIndex = false;
   const meta = metaNodes.reduce((acc, metaNode) => {
     if (!metaNode.options) {
       return acc;
@@ -248,13 +247,18 @@ export const getMetadataFromSnootyAst = (
         acc[key] = value.split(",").map((s) => s.trim());
       } else if (key === "description" && value) {
         acc[key] = value;
+      } else if (key === "robots" && value) {
+        noIndex = value.includes("noindex");
       }
     }
 
     return acc;
   }, {} as Record<string, string | string[]>);
   return {
-    ...facets,
-    ...meta,
+    metadata: {
+      ...facets,
+      ...meta,
+    },
+    noIndex,
   };
 };

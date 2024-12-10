@@ -3,14 +3,13 @@ import {
   AssistantMessageMetadata,
   ConversationFetchOptions,
   ConversationService,
-  ConversationStreamEvent,
   DeltaStreamEvent,
   MetadataStreamEvent,
   ReferencesStreamEvent,
   UnknownStreamEvent,
   getCustomRequestOrigin,
 } from "./conversations";
-import { type References } from "mongodb-rag-core";
+import { SomeStreamEvent, type References } from "mongodb-rag-core";
 import * as FetchEventSource from "@microsoft/fetch-event-source";
 // Mock fetch for regular awaited HTTP requests
 // TODO: make TypeScript compiler ok with this, or skip putting this in the compiled code for staging
@@ -62,9 +61,9 @@ function mockFetchEventSourceResponse<Data = unknown>(
 }
 
 function filterMockedConversationEventsData<
-  StreamEvent extends ConversationStreamEvent
+  StreamEvent extends SomeStreamEvent
 >(
-  events: FetchEventSource.MockEvent<ConversationStreamEvent>[],
+  events: FetchEventSource.MockEvent<SomeStreamEvent>[],
   type: StreamEvent["type"]
 ): StreamEvent["data"][] {
   return events
@@ -187,7 +186,7 @@ describe("ConversationService", () => {
     const conversationId = "650b4b260f975ef031016c8c";
     const mockStreamedMessageId = "651466eecffc98fe887000da";
 
-    const mockedEvents = mockFetchEventSourceResponse<ConversationStreamEvent>(
+    const mockedEvents = mockFetchEventSourceResponse<SomeStreamEvent>(
       {
         id: undefined,
         type: undefined,
@@ -200,6 +199,14 @@ describe("ConversationService", () => {
               created: new Date("2024-01-21T00:31:16.000Z").toISOString(),
             },
           },
+        },
+      },
+      {
+        id: undefined,
+        type: undefined,
+        data: {
+          type: "metadata",
+          data: { conversationId },
         },
       },
       {
@@ -239,6 +246,7 @@ describe("ConversationService", () => {
     const streamedMetadata: AssistantMessageMetadata[] = [];
     const streamedTokens: string[] = [];
     const streamedReferences: References[] = [];
+    let streamedConversationId: string | undefined;
     let streamedMessageId: string | undefined;
     let finishedStreaming = false;
     await conversationService.addMessageStreaming({
@@ -257,8 +265,12 @@ describe("ConversationService", () => {
       },
       onMetadata: async (metadata) => {
         streamedMetadata.push(metadata);
+        if (metadata.conversationId) {
+          streamedConversationId = metadata.conversationId;
+        }
       },
     });
+    expect(streamedConversationId).toEqual(conversationId);
     expect(streamedMessageId).toEqual(mockStreamedMessageId);
     expect(streamedTokens).toEqual(
       filterMockedConversationEventsData<DeltaStreamEvent>(
@@ -283,9 +295,7 @@ describe("ConversationService", () => {
 
   it("gracefully handles unknown stream event types", async () => {
     const conversationId = "650b4b260f975ef031016c8d";
-    type PotentiallyUnknownStreamEvent =
-      | ConversationStreamEvent
-      | UnknownStreamEvent;
+    type PotentiallyUnknownStreamEvent = SomeStreamEvent | UnknownStreamEvent;
     const mockedEvents =
       mockFetchEventSourceResponse<PotentiallyUnknownStreamEvent>(
         {
@@ -358,7 +368,7 @@ describe("ConversationService", () => {
     });
 
     const filterableMockedEvents =
-      mockedEvents as FetchEventSource.MockEvent<ConversationStreamEvent>[];
+      mockedEvents as FetchEventSource.MockEvent<SomeStreamEvent>[];
 
     expect(deltas).toEqual(
       filterMockedConversationEventsData<DeltaStreamEvent>(

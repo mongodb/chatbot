@@ -1,8 +1,31 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import { References, VerifiedAnswer } from "mongodb-rag-core";
+import {
+  References,
+  VerifiedAnswer,
+  isSomeStreamEvent,
+  isSomeStreamEventType,
+} from "mongodb-rag-core";
 import { ConversationState } from "../useConversation";
 import { strict as assert } from "node:assert";
 import { isProductionBuild } from "../utils";
+
+export {
+  type UnknownStreamEvent,
+  UnknownStreamEventSchema,
+  type DeltaStreamEvent,
+  DeltaStreamEventSchema,
+  type ProcessingStreamEvent,
+  ProcessingStreamEventSchema,
+  type ReferencesStreamEvent,
+  ReferencesStreamEventSchema,
+  type MetadataStreamEvent,
+  MetadataStreamEventSchema,
+  type FinishedStreamEvent,
+  FinishedStreamEventSchema,
+  type SomeStreamEvent,
+  SomeStreamEventSchema,
+  isSomeStreamEvent,
+} from "mongodb-rag-core";
 
 export type Role = "user" | "assistant";
 
@@ -19,6 +42,12 @@ export type MessageData = {
 
 export type AssistantMessageMetadata = {
   [k: string]: unknown;
+
+  /**
+    If the message required a conversation to be created (i.e. it wasn't added
+    to an existing one), this contains the id of the new conversation.
+  */
+  conversationId?: string;
 
   /**
     If the message came from the verified answers collection, contains the
@@ -66,50 +95,6 @@ export class TimeoutError<Data extends object = object> extends Error {
     this.message = message;
   }
 }
-
-export type UnknownStreamEvent = { type: string; data: unknown };
-
-function isSomeStreamEvent(event: object): event is UnknownStreamEvent {
-  const e = event as UnknownStreamEvent;
-  return typeof e.type === "string" && typeof e.data !== "undefined";
-}
-
-export type DeltaStreamEvent = { type: "delta"; data: string };
-export type ReferencesStreamEvent = { type: "references"; data: References };
-export type MetadataStreamEvent = {
-  type: "metadata";
-  data: AssistantMessageMetadata;
-};
-export type FinishedStreamEvent = { type: "finished"; data: string };
-
-export type ConversationStreamEvent =
-  | DeltaStreamEvent
-  | ReferencesStreamEvent
-  | MetadataStreamEvent
-  | FinishedStreamEvent;
-
-const isConversationStreamEventType = (
-  type: string
-): type is ConversationStreamEvent["type"] => {
-  return (
-    type === "delta" ||
-    type === "references" ||
-    type === "metadata" ||
-    type === "finished"
-  );
-};
-
-const isConversationStreamEvent = (
-  event: object
-): event is ConversationStreamEvent => {
-  const e = event as ConversationStreamEvent;
-  return (
-    (e.type === "delta" && typeof e.data === "string") ||
-    (e.type === "references" && typeof e.data === "object") ||
-    (e.type === "metadata" && typeof e.data === "object") ||
-    (e.type === "finished" && typeof e.data === "string")
-  );
-};
 
 /**
   Options to include with every fetch request made by the ConversationService.
@@ -236,10 +221,10 @@ export class ConversationService {
     conversationId,
     message,
   }: {
-    conversationId: string;
+    conversationId?: string;
     message: string;
   }): Promise<MessageData> {
-    const path = `/conversations/${conversationId}/messages`;
+    const path = `/conversations/${conversationId ?? "null"}/messages`;
     const resp = await fetch(this.getUrl(path), {
       ...this.fetchOptions,
       method: "POST",
@@ -268,22 +253,25 @@ export class ConversationService {
     conversationId,
     message,
     maxRetries = 0,
-    onResponseDelta,
-    onReferences,
     onMetadata,
+    onReferences,
+    onResponseDelta,
     onResponseFinished,
     signal,
   }: {
-    conversationId: string;
+    conversationId?: string;
     message: string;
     maxRetries?: number;
-    onResponseDelta: (delta: string) => void;
-    onReferences: (references: References) => void;
     onMetadata: (metadata: AssistantMessageMetadata) => void;
+    onReferences: (references: References) => void;
+    onResponseDelta: (delta: string) => void;
     onResponseFinished: (messageId: string) => void;
     signal?: AbortSignal;
   }): Promise<void> {
-    const path = `/conversations/${conversationId}/messages`;
+    // If the user provides a conversationId, we'll use that. Otherwise, we'll
+    // let the server create a new conversation and return its id as a
+    // conversationId event.
+    const path = `/conversations/${conversationId ?? "null"}/messages`;
 
     let retryCount = 0;
     let moreToStream = true;
@@ -307,13 +295,13 @@ export class ConversationService {
           }
           return;
         }
-        if (!isConversationStreamEventType(event.type)) {
+        if (!isSomeStreamEventType(event.type)) {
           if (!isProductionBuild()) {
             console.error(`Received an unknown event type: ${event.type}`);
           }
           return;
         }
-        if (!isConversationStreamEvent(event)) {
+        if (!isSomeStreamEvent(event)) {
           if (!isProductionBuild()) {
             console.error(
               `Received an invalid conversation event: ${JSON.stringify(event)}`
@@ -337,8 +325,11 @@ export class ConversationService {
           }
           case "finished": {
             moreToStream = false;
-            const messageId = event.data;
-            onResponseFinished(messageId);
+            onResponseFinished(event.data);
+            break;
+          }
+          case "processing": {
+            // Processing a tool call. For now, we don't do anything on the client side.
             break;
           }
         }

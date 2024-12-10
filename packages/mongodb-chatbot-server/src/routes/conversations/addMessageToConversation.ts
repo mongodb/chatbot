@@ -16,7 +16,7 @@ import {
 import {
   ApiMessage,
   RequestError,
-  convertMessageFromDbToApi,
+  convertAssistantMessageFromDbToApi,
   makeRequestError,
 } from "./utils";
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
@@ -189,10 +189,10 @@ export function makeAddMessageToConversationRoute({
       const dbAssistantMessage = dbNewMessages[dbNewMessages.length - 1];
 
       assert(dbAssistantMessage !== undefined, "No assistant message found");
-      const apiRes = convertMessageFromDbToApi(
-        dbAssistantMessage,
-        conversation._id
-      );
+      const apiRes = convertAssistantMessageFromDbToApi({
+        message: dbAssistantMessage,
+        conversationId: conversation._id,
+      });
 
       if (!shouldStream) {
         return res.status(200).json(apiRes);

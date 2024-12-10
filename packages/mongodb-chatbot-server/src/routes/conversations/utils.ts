@@ -1,54 +1,148 @@
 import { isIP } from "net";
 import { Address6 } from "ip-address";
-import { Conversation, Message, References } from "mongodb-rag-core";
+import {
+  AssistantMessage,
+  Conversation,
+  Message,
+  References,
+} from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { z } from "zod";
 
-export type ApiMessage = z.infer<typeof ApiMessage>;
-export const ApiMessage = z.object({
+export const BaseApiMessageSchema = z.object({
   id: z.string(),
   role: z.enum(["system", "assistant", "user", "function"]),
   content: z.string(),
-  rating: z.boolean().optional(),
   createdAt: z.number(),
+});
+export type BaseApiMessage = z.infer<typeof BaseApiMessageSchema>;
+export function convertBaseMessageFromDbToApi({
+  message,
+}: {
+  message: Message;
+}): BaseApiMessage {
+  const { id, createdAt, role, content } = message;
+  return BaseApiMessageSchema.parse({
+    id: id.toString(),
+    role,
+    content,
+    createdAt: createdAt.getTime(),
+  });
+}
+
+export const SystemApiMessageSchema = BaseApiMessageSchema.extend({
+  role: z.literal("system"),
+});
+export type SystemApiMessage = z.infer<typeof SystemApiMessageSchema>;
+export function convertSystemMessageFromDbToApi({
+  message,
+}: {
+  message: Message;
+}): SystemApiMessage {
+  return SystemApiMessageSchema.parse(
+    convertBaseMessageFromDbToApi({ message })
+  );
+}
+
+export const UserApiMessageSchema = BaseApiMessageSchema.extend({
+  role: z.literal("user"),
+});
+export type UserApiMessage = z.infer<typeof UserApiMessageSchema>;
+export function convertUserMessageFromDbToApi({
+  message,
+}: {
+  message: Message;
+}): UserApiMessage {
+  return UserApiMessageSchema.parse(convertBaseMessageFromDbToApi({ message }));
+}
+
+export const AssistantApiMessageSchema = BaseApiMessageSchema.extend({
+  conversationId: z.string().optional(),
+  role: z.literal("assistant"),
+  rating: z.boolean().optional(),
   references: References.optional(),
   metadata: z.record(z.unknown()).optional(),
 });
+export type AssistantApiMessage = z.infer<typeof AssistantApiMessageSchema>;
+export function convertAssistantMessageFromDbToApi({
+  message,
+  conversationId,
+}: {
+  message: Message;
+  conversationId?: ObjectId;
+}): AssistantApiMessage {
+  const baseMessage = convertBaseMessageFromDbToApi({
+    message,
+  }) as AssistantApiMessage;
+  const { rating, references, metadata = {} } = message as AssistantMessage;
 
-export type ApiConversation = z.infer<typeof ApiConversation>;
-export const ApiConversation = z.object({
+  // Conditionally add rating, references, metadata, and conversationId only if they exist
+  if (rating !== undefined) {
+    baseMessage.rating = rating;
+  }
+  if (references !== undefined) {
+    baseMessage.references = references;
+  }
+  if (conversationId !== undefined) {
+    metadata.conversationId = conversationId.toHexString();
+  }
+  if (Object.keys(metadata).length > 0) {
+    baseMessage.metadata = metadata;
+  }
+
+  return AssistantApiMessageSchema.parse(baseMessage);
+}
+
+export const FunctionApiMessageSchema = BaseApiMessageSchema.extend({
+  role: z.literal("function"),
+});
+export type FunctionApiMessage = z.infer<typeof FunctionApiMessageSchema>;
+export function convertFunctionMessageFromDbToApi({
+  message,
+}: {
+  message: Message;
+}): FunctionApiMessage {
+  return FunctionApiMessageSchema.parse(
+    convertBaseMessageFromDbToApi({ message })
+  );
+}
+
+export const ApiMessageSchema = z.union([
+  SystemApiMessageSchema,
+  UserApiMessageSchema,
+  AssistantApiMessageSchema,
+  FunctionApiMessageSchema,
+]);
+export type ApiMessage = z.infer<typeof ApiMessageSchema>;
+
+export type ApiConversation = z.infer<typeof ApiConversationSchema>;
+export const ApiConversationSchema = z.object({
   _id: z.string(),
-  messages: z.array(ApiMessage),
+  messages: z.array(ApiMessageSchema),
   createdAt: z.number(),
 });
 
 export function convertMessageFromDbToApi(
   message: Message,
   conversationId?: ObjectId
-): ApiMessage {
-  const { id, createdAt, role, content } = message;
-  const apiMessage = {
-    id: id.toString(),
-    role,
-    content,
-    createdAt: createdAt.getTime(),
-  };
-  if (role === "assistant") {
-    const { rating, references, metadata = {} } = message;
-    if (conversationId) {
-      metadata.conversationId = conversationId?.toString();
+) {
+  switch (message.role) {
+    case "system": {
+      return convertSystemMessageFromDbToApi({ message });
     }
-    const augmentedApiMessage: ApiMessage = {
-      ...apiMessage,
-      rating,
-      references,
-    };
-    if (Object.keys(metadata).length > 0) {
-      augmentedApiMessage.metadata = metadata;
+    case "user": {
+      return convertUserMessageFromDbToApi({ message });
     }
-    return augmentedApiMessage;
+    case "assistant": {
+      return convertAssistantMessageFromDbToApi({ message, conversationId });
+    }
+    case "function": {
+      return convertFunctionMessageFromDbToApi({ message });
+    }
+    default: {
+      return convertBaseMessageFromDbToApi({ message });
+    }
   }
-  return apiMessage;
 }
 
 function assertNever(x: never): never {

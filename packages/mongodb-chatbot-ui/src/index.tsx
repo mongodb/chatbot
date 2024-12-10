@@ -42,7 +42,7 @@ export {
   type ReferencesStreamEvent,
   type MetadataStreamEvent,
   type FinishedStreamEvent,
-  type ConversationStreamEvent,
+  type SomeStreamEvent,
   type ConversationFetchOptions,
   type ConversationServiceConfig,
   RetriableError,

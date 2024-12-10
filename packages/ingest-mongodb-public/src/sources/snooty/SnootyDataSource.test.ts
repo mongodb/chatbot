@@ -57,7 +57,7 @@ describe("SnootyDataSource", () => {
       });
 
       const pages = await source.fetchPages();
-      expect(pages.length).toBe(12);
+      expect(pages).toHaveLength(11);
       const astPages = JSONL.parse<{ type: string; data: { ast: SnootyNode } }>(
         fs.readFileSync(sampleDataPath, "utf8")
       );
@@ -83,7 +83,7 @@ describe("SnootyDataSource", () => {
         snootyDataApiBaseUrl,
       });
       const pages = await source.fetchPages();
-      expect(pages.length).toBe(12);
+      expect(pages.length).toBe(11);
       expect(pages[0]).toMatchObject({
         format: "md",
         sourceName: "snooty-docs",
@@ -177,14 +177,15 @@ describe("SnootyDataSource", () => {
     });
 
     it("skips noindex page", async () => {
+      const mockUrl = "https://example.com";
+      const noIndexMock = nock(mockUrl);
       // Use normal sample data (no deletes)
       const source = await makeSnootyDataSource({
         name: `snooty-test`,
         project,
-        snootyDataApiBaseUrl,
+        snootyDataApiBaseUrl: mockUrl,
       });
-      nock.cleanAll();
-      baseMock
+      noIndexMock
         .get(`/projects/${project.name}/${project.currentBranch}/documents`)
         .reply(200, () => {
           const noIndexAst = jsonLify(
@@ -205,6 +206,7 @@ describe("SnootyDataSource", () => {
       const pages = await source.fetchPages();
       // only captures the astWithIndex page, not the noIndexAst page
       expect(pages).toHaveLength(1);
+      noIndexMock.done();
     });
   });
 });

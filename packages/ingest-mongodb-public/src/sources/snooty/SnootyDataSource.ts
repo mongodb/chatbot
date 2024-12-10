@@ -361,7 +361,7 @@ export const handlePage = async (
     body = snootyAstToMd(page.ast);
     title = getTitleFromSnootyAst(page.ast);
   }
-  const metadata = getMetadataFromSnootyAst(page.ast);
+  const pageMetadata = getMetadataFromSnootyAst(page.ast);
 
   return {
     url: new URL(pagePath, baseUrl.replace(/\/?$/, "/")).href.replace(
@@ -373,7 +373,7 @@ export const handlePage = async (
     body,
     format,
     metadata: {
-      ...metadata,
+      page: pageMetadata,
       tags,
       productName,
       version,

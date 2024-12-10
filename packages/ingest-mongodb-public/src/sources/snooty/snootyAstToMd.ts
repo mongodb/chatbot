@@ -154,7 +154,8 @@ const renderDirective = (
         .map((child) => renderAst(child, { parentHeadingLevel }))
         .join("")}\n\n</Tab>\n\n`;
     }
-    case "tabs" || "tabs-drivers":
+    case "tabs":
+    case "tabs-drivers":
       return `\n\n<Tabs>\n\n${node.children
         .map((child) => renderAst(child, { parentHeadingLevel }))
         .join("")}\n\n</Tabs>\n\n`;
@@ -225,8 +226,6 @@ export const getMetadataFromSnootyAst = (
     (n) => n.name === "meta"
   ) as SnootyMetaNode[];
 
-  const keyPrefix = "page";
-
   const facets = facetNodes.reduce((acc, facetNode) => {
     if (!facetNode.options) {
       return acc;
@@ -235,7 +234,7 @@ export const getMetadataFromSnootyAst = (
     if (!name || !values) {
       return acc;
     }
-    acc[createKeyName(name, keyPrefix)] = values;
+    acc[name] = values;
     return acc;
   }, {} as Record<string, string>);
 
@@ -246,11 +245,9 @@ export const getMetadataFromSnootyAst = (
     const metaEntries = Object.entries(metaNode.options);
     for (const [key, value] of metaEntries) {
       if (key === "keywords" && value) {
-        acc[createKeyName(key, keyPrefix)] = value
-          .split(",")
-          .map((s) => s.trim());
+        acc[key] = value.split(",").map((s) => s.trim());
       } else if (key === "description" && value) {
-        acc[createKeyName(key, keyPrefix)] = value;
+        acc[key] = value;
       }
     }
 
@@ -261,7 +258,3 @@ export const getMetadataFromSnootyAst = (
     ...meta,
   };
 };
-
-function createKeyName(key: string, prefix = "") {
-  return prefix + key.charAt(0).toUpperCase() + key.slice(1);
-}

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Reference } from "../References";
+import { ReferenceSchema } from "../References";
 import { VectorStore } from "../VectorStore";
 
 export const Question = z.object({
@@ -35,7 +35,7 @@ export const VerifiedAnswer = z.object({
     .describe("The email address of the author or source of the answer."),
   hidden: z.boolean().optional(),
   references: z
-    .array(Reference)
+    .array(ReferenceSchema)
     .describe(
       "Reference links with additional information related to the answer."
     ),

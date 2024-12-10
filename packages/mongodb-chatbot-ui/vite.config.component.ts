@@ -39,7 +39,7 @@ export default ({ mode }) => {
         protocolImports: true,
       }),
       react(),
-      // visualizer() as PluginOption,
+      visualizer() as PluginOption,
     ],
     optimizeDeps: {
       esbuildOptions: {

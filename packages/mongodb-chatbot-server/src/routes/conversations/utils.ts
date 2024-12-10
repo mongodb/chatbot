@@ -4,7 +4,7 @@ import {
   AssistantMessage,
   Conversation,
   Message,
-  References,
+  ReferencesSchema,
 } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { z } from "zod";
@@ -60,7 +60,7 @@ export const AssistantApiMessageSchema = BaseApiMessageSchema.extend({
   conversationId: z.string().optional(),
   role: z.literal("assistant"),
   rating: z.boolean().optional(),
-  references: References.optional(),
+  references: ReferencesSchema.optional(),
   metadata: z.record(z.unknown()).optional(),
 });
 export type AssistantApiMessage = z.infer<typeof AssistantApiMessageSchema>;

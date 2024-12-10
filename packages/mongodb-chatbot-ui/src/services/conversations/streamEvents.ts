@@ -1,5 +1,20 @@
 import { z } from "zod";
-import { References } from "mongodb-rag-core";
+// import { ReferencesSchema } from "mongodb-rag-core";
+
+const ReferenceSchema = z.object({
+  url: z.string(),
+  title: z.string(),
+  metadata: z
+    .object({
+      sourceName: z.string().optional().describe("The name of the source."),
+      sourceType: z.string().optional(),
+      tags: z.array(z.string()).optional(),
+    })
+    .passthrough() // We accept additional unknown metadata fields
+    .optional(),
+});
+
+const ReferencesSchema = z.array(ReferenceSchema);
 
 export type UnknownStreamEvent = z.infer<typeof UnknownStreamEventSchema>;
 export const UnknownStreamEventSchema = z.object({
@@ -22,7 +37,7 @@ export const ProcessingStreamEventSchema = UnknownStreamEventSchema.extend({
 export type ReferencesStreamEvent = z.infer<typeof ReferencesStreamEventSchema>;
 export const ReferencesStreamEventSchema = UnknownStreamEventSchema.extend({
   type: z.literal("references"),
-  data: References,
+  data: ReferencesSchema,
 });
 
 export type MetadataStreamEvent = z.infer<typeof MetadataStreamEventSchema>;

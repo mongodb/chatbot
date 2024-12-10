@@ -1,3 +1,7 @@
+import { ReferencesSchema } from "mongodb-rag-core";
+
+ReferencesSchema.safeParse([{ url: "abc", title: "def" }]);
+
 /* eslint-disable react-refresh/only-export-components */
 export { Chatbot as default, type ChatbotProps } from "./Chatbot.tsx";
 // Pre-defined Chatbot use cases

@@ -56,4 +56,10 @@ export default {
 
     return [mongodbChatbotFrameworkSource];
   },
+  concurrencyOptions: () => ({
+    embed: {
+      createChunks: 5,
+      processPages: 2,
+    },
+  }),
 } satisfies Config;

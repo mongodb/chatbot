@@ -3,6 +3,8 @@ import {
   makeMongoDbPageStore,
   MongoDbEmbeddedContentStore,
   makeMongoDbEmbeddedContentStore,
+  updatePages,
+  updateEmbeddedContent,
 } from "mongodb-rag-core";
 import { DataSource } from "mongodb-rag-core/dataSources";
 import { MongoMemoryReplSet } from "mongodb-memory-server";
@@ -12,6 +14,7 @@ import { makeIngestMetaStore } from "../IngestMetaStore";
 import "dotenv/config";
 import { strict as assert } from "assert";
 import { MongoClient } from "mongodb-rag-core/mongodb";
+import { doUpdatePagesCommand } from "./pages";
 
 jest.setTimeout(1000000);
 
@@ -132,74 +135,105 @@ describe("allCommand", () => {
     }
   });
 
-  it("cleans up pages and embedded content that are no longer in the data sources", async () => {
+  it("deletes pages and embedded content that are no longer in the data sources", async () => {
     const ingestMetaStore = makeIngestMetaStore({
       connectionUri: uri,
       databaseName,
       entryId: "all",
     });
+    assert(mongoClient);
 
     // Mock data sources
     const mockDataSources: DataSource[] = [
-      { name: "source1", fetchPages: () => Promise.resolve([]) },
-      { name: "source2", fetchPages: () => Promise.resolve([]) },
+      {
+        name: "source1",
+        fetchPages: async () => [
+          {
+            url: "test1.com",
+            format: "html",
+            sourceName: "source1",
+            body: "hello source 1",
+          },
+        ],
+      },
+      {
+        name: "source2",
+        fetchPages: async () => [
+          {
+            url: "test2.com",
+            format: "html",
+            sourceName: "source2",
+            body: "hello source 1",
+          },
+        ],
+      },
     ];
-
-    // Insert mock pages and embedded content
-    assert(mongoClient)
-    await mongoClient
-      .db(databaseName)
-      .collection("pages")
-      .insertMany([
-        { id: "page1", sourceName: "source1", content: "content1" },
-        { id: "page2", sourceName: "source2", content: "content2" },
-        { id: "page3", sourceName: "source3", content: "content3" },
-      ]);
-    await mongoClient
-      ?.db(databaseName)
-      .collection("embedded_content")
-      .insertMany([
-        { id: "embed1", sourceName: "source1", embedding: [1, 2, 3] },
-        { id: "embed2", sourceName: "source2", embedding: [4, 5, 6] },
-        { id: "embed3", sourceName: "source3", embedding: [7, 8, 9] },
-      ]);
+    const mockDataSourceNames = mockDataSources.map(
+      (dataSource) => dataSource.name
+    );
 
     try {
+      // Start Setup
+      // create pages and verify that they have been created
+      await updatePages({ sources: mockDataSources, pageStore });
+      const pages = await pageStore.loadPages();
+      assert(pages.length == 2);
+      // create embeddings for the pages and verify that they have been created
+      await updateEmbeddedContent({
+        since: new Date(0),
+        embeddedContentStore: embedStore,
+        pageStore,
+        sourceNames: mockDataSourceNames,
+        embedder,
+      });
+      let page1Embedding = await embedStore.loadEmbeddedContent({
+        page: pages[0],
+      });
+      let page2Embedding = await embedStore.loadEmbeddedContent({
+        page: pages[1],
+      });
+      assert(page1Embedding.length);
+      assert(page2Embedding.length);
+      // End Setup
+
+      // run the all command with only one data source and verify that the page and embedding from the other data source are deleted
+      const remainingDataSources = mockDataSources.slice(0, 1);
+      const remainingDataSourcesNames = remainingDataSources.map(
+        (dataSource) => dataSource.name
+      );
       await doAllCommand(
         {
           pageStore: pageStore,
           embeddedContentStore: embedStore,
           ingestMetaStore,
           embedder,
-          dataSources: mockDataSources,
+          dataSources: remainingDataSources,
         },
         {
           async doUpdatePagesCommand() {
-            return;
+            await doUpdatePagesCommand(
+              {
+                pageStore,
+                dataSources: remainingDataSources,
+                ingestMetaStore,
+                embeddedContentStore: embedStore,
+                embedder,
+              },
+              { source: remainingDataSourcesNames }
+            );
           },
         }
       );
 
-      const remainingPages = await mongoClient
-        .db(databaseName)
-        .collection("pages")
-        .find()
-        .toArray();
-      const remainingEmbeddings = await mongoClient
-        .db(databaseName)
-        .collection("embedded_content")
-        .find()
-        .toArray();
+      const remainingPages = await pageStore.loadPages();
+      expect(remainingPages).toHaveLength(1);
+      expect(remainingPages![0].sourceName).toBe(remainingDataSourcesNames[0]);
 
-      expect(remainingPages).toBeDefined();
-      expect(remainingPages).toHaveLength(2);
-      expect(remainingPages![0].id).toBe("page1");
-      expect(remainingPages![1].id).toBe("page2");
-
-      expect(remainingEmbeddings).toBeDefined();
-      expect(remainingEmbeddings).toHaveLength(2);
-      expect(remainingEmbeddings![0].id).toBe("embed1");
-      expect(remainingEmbeddings![1].id).toBe("embed2");
+      page1Embedding = await embedStore.loadEmbeddedContent({ page: pages[0] });
+      page2Embedding = await embedStore.loadEmbeddedContent({ page: pages[1] });
+      expect(page1Embedding).toBeDefined();
+      expect(page1Embedding[0].sourceName).toBe(remainingDataSourcesNames[0]);
+      expect(page2Embedding).toEqual([]);
     } finally {
       await ingestMetaStore.close();
       await mongoClient.close();

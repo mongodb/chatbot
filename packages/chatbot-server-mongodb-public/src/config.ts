@@ -50,11 +50,13 @@ export const {
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
-export const openAiClient = new AzureOpenAI({
-  apiKey: OPENAI_API_KEY,
-  endpoint: OPENAI_ENDPOINT,
-  apiVersion: OPENAI_API_VERSION,
-});
+export const openAiClient = wrapOpenAI(
+  new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  })
+);
 
 export const llm = makeOpenAiChatLlm({
   openAiClient,

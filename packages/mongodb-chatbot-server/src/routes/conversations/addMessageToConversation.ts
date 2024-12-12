@@ -4,7 +4,12 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { SystemMessage } from "mongodb-rag-core";
+import {
+  AssistantMessage,
+  SystemMessage,
+  UserMessage,
+  VerifiedAnswer,
+} from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   ConversationsService,
@@ -30,6 +35,7 @@ import { GenerateUserPromptFunc } from "../../processors/GenerateUserPromptFunc"
 import { FilterPreviousMessages } from "../../processors/FilterPreviousMessages";
 import { filterOnlySystemPrompt } from "../../processors/filterOnlySystemPrompt";
 import { generateResponse } from "../generateResponse";
+import { braintrustLogger, traced } from "mongodb-rag-core/braintrust";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 3000; // magic number for max input size for LLM
 export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for max messages in a conversation
@@ -162,29 +168,52 @@ export function makeAddMessageToConversationRoute({
         dataStreamer.connect(res);
       }
 
-      // --- GENERATE RESPONSE  ---
-      // TODO: make sure we are returning the new user message too
-      const { messages } = await generateResponse({
-        llm,
-        conversation,
-        latestMessageText,
-        generateUserPrompt,
-        filterPreviousMessages,
-        customData,
-        dataStreamer,
-        shouldStream,
-        reqId,
-        llmNotWorkingMessage:
-          conversations.conversationConstants.LLM_NOT_WORKING,
-        noRelevantContentMessage:
-          conversations.conversationConstants.NO_RELEVANT_CONTENT,
+      const assistantResponseMessageId = new ObjectId();
+      const { messages } = await braintrustLogger.traced(
+        async () => {
+          // --- GENERATE RESPONSE  ---
+          return await generateResponse({
+            llm,
+            conversation,
+            latestMessageText,
+            generateUserPrompt,
+            filterPreviousMessages,
+            customData,
+            dataStreamer,
+            shouldStream,
+            reqId,
+            llmNotWorkingMessage:
+              conversations.conversationConstants.LLM_NOT_WORKING,
+            noRelevantContentMessage:
+              conversations.conversationConstants.NO_RELEVANT_CONTENT,
+          });
+        },
+        {
+          name: "generateResponse",
+          spanAttributes: {
+            conversationId: conversation._id.toString(),
+            reqId,
+          },
+          event: {
+            id: assistantResponseMessageId.toHexString(),
+          },
+        }
+      );
+      const tracingData = extractTracingData(messages);
+      braintrustLogger.updateSpan({
+        id: assistantResponseMessageId.toHexString(),
+        tags: tracingData?.tags,
+        scores: {
+          RejectedQuery: tracingData?.rejectQuery === true ? 1 : null,
+          VerifiedAnswer: tracingData?.isVerifiedAnswer === true ? 1 : null,
+        },
       });
-
       // --- SAVE QUESTION & RESPONSE ---
       const dbNewMessages = await addMessagesToDatabase({
         conversations,
         conversation,
         messages,
+        assistantResponseMessageId,
       });
       const dbAssistantMessage = dbNewMessages[dbNewMessages.length - 1];
 
@@ -257,13 +286,21 @@ interface AddMessagesToDatabaseParams {
   conversation: Conversation;
   conversations: ConversationsService;
   messages: SomeMessage[];
+  assistantResponseMessageId: ObjectId;
 }
 
 async function addMessagesToDatabase({
   conversation,
   conversations,
   messages,
+  assistantResponseMessageId,
 }: AddMessagesToDatabaseParams) {
+  (
+    messages as Parameters<
+      typeof conversations.addManyConversationMessages
+    >[0]["messages"]
+  )[messages.length - 1].id = assistantResponseMessageId;
+
   const conversationId = conversation._id;
   const dbMessages = await conversations.addManyConversationMessages({
     conversationId,
@@ -328,3 +365,46 @@ const loadConversation = async ({
   }
   return conversation;
 };
+
+function extractTracingData(messages: SomeMessage[]) {
+  const latestUserMessage = messages.findLast(
+    (message) => message.role === "user"
+  ) as UserMessage | undefined;
+  if (latestUserMessage) {
+    const tags = [];
+
+    const rejectQuery = latestUserMessage.rejectQuery;
+    if (rejectQuery === true) {
+      tags.push("rejected_query");
+    }
+    const programmingLanguage = latestUserMessage.customData
+      ?.programmingLanguage as string | undefined;
+    const mongoDbProduct = latestUserMessage.customData?.mongoDbProduct as
+      | string
+      | undefined;
+    if (programmingLanguage) {
+      tags.push(tagify(programmingLanguage));
+    }
+    if (mongoDbProduct) {
+      tags.push(tagify(mongoDbProduct));
+    }
+
+    const latestAssistantMessage = messages.findLast(
+      (message) => message.role === "assistant"
+    ) as AssistantMessage | undefined;
+
+    const isVerifiedAnswer = !!latestAssistantMessage?.metadata?.verifiedAnswer;
+    if (isVerifiedAnswer) {
+      tags.push("verified_answer");
+    }
+    return {
+      tags,
+      rejectQuery,
+      isVerifiedAnswer,
+    };
+  }
+}
+
+function tagify(s: string) {
+  return s.replaceAll(/ /g, "_").toLowerCase();
+}

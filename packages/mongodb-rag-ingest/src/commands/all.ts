@@ -56,7 +56,7 @@ export const doAllCommand = async (
   });
   await config.embeddedContentStore.deleteEmbeddedContent({
     dataSources: config.dataSources.map(({ name }) => name),
-    inverse: true,
+    inverseDataSources: true,
   });
 
   logger.info(`Updating last successful run date`);

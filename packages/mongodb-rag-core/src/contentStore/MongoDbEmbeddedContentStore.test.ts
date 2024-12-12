@@ -255,7 +255,7 @@ describe("MongoDbEmbeddedContentStore", () => {
 
       await store.deleteEmbeddedContent({
         dataSources: [page.sourceName],
-        inverse: true,
+        inverseDataSources: true,
       });
 
       expect(

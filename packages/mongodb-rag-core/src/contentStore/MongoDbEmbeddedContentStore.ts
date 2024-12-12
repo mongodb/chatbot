@@ -95,11 +95,19 @@ export function makeMongoDbEmbeddedContentStore({
       return await embeddedContentCollection.find(pageIdentity(page)).toArray();
     },
 
-    async deleteEmbeddedContent({ page, dataSources, inverse = false }) {
+    async deleteEmbeddedContent({
+      page,
+      dataSources,
+      inverseDataSources = false,
+    }) {
       const deleteResult = await embeddedContentCollection.deleteMany({
         ...(page ? pageIdentity(page) : undefined),
         ...(dataSources
-          ? { sourceName: { [inverse ? "$nin" : "$in"]: dataSources } }
+          ? {
+              sourceName: {
+                [inverseDataSources ? "$nin" : "$in"]: dataSources,
+              },
+            }
           : undefined),
       });
       if (!deleteResult.acknowledged) {

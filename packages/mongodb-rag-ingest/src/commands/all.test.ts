@@ -5,6 +5,7 @@ import {
   makeMongoDbEmbeddedContentStore,
   updatePages,
   updateEmbeddedContent,
+  MongoDbPageStore,
 } from "mongodb-rag-core";
 import { DataSource } from "mongodb-rag-core/dataSources";
 import { MongoMemoryReplSet } from "mongodb-memory-server";
@@ -29,7 +30,7 @@ describe("allCommand", () => {
 
   let mongod: MongoMemoryReplSet | undefined;
   let mongoClient: MongoClient | undefined;
-  let pageStore: PageStore;
+  let pageStore: MongoDbPageStore;
   let embedStore: MongoDbEmbeddedContentStore;
   let uri: string;
   let databaseName: string;
@@ -53,6 +54,7 @@ describe("allCommand", () => {
   afterEach(async () => {
     assert(pageStore);
     if (pageStore.close) {
+      await pageStore?.drop();
       await pageStore?.close();
     }
     if (embedStore) {
@@ -225,9 +227,19 @@ describe("allCommand", () => {
         }
       );
 
-      const remainingPages = await pageStore.loadPages();
-      expect(remainingPages).toHaveLength(1);
-      expect(remainingPages![0].sourceName).toBe(remainingDataSourcesNames[0]);
+      const [page1, page2] = await pageStore.loadPages();
+      expect(page1).toEqual(
+        expect.objectContaining({
+          url: "test1.com",
+          action: "created",
+        })
+      );
+      expect(page2).toEqual(
+        expect.objectContaining({
+          url: "test2.com",
+          action: "deleted",
+        })
+      );
 
       page1Embedding = await embedStore.loadEmbeddedContent({ page: pages[0] });
       page2Embedding = await embedStore.loadEmbeddedContent({ page: pages[1] });

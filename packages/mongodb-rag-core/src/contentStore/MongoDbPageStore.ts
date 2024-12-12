@@ -102,13 +102,6 @@ export function makeMongoDbPageStore({
         if (!result.acknowledged) {
           throw new Error(`Soft-delete pages not acknowledged!`);
         }
-        if (!result.modifiedCount && !result.upsertedCount) {
-          throw new Error(
-            `Pages matching filter ${JSON.stringify(
-              filter
-            )} not marked for deletion!`
-          );
-        }
       }
     },
     async init() {

@@ -12,18 +12,19 @@ import {
 const commandModule: CommandModule<unknown, LoadConfigArgs> = {
   command: "all [permanentlyDeletePages]",
   builder(args) {
-    return withConfigOptions(args)
-      .option("permanentDeletePages", {
-        boolean: true,
-        description:
-          "If true, permanently deletes the pages associated with a data source that is not on the list of valid data sources. If false or unspecified, marks the pages as deleted without removing them from the collection.",
-      });
+    return withConfigOptions(args).option("permanentDeletePages", {
+      boolean: true,
+      description:
+        "If true, permanently deletes the pages associated with a data source that is not on the list of valid data sources. If false or unspecified, marks the pages as deleted without removing them from the collection.",
+    });
   },
   async handler(args) {
     return withConfig(doAllCommand, {
       ...args,
       doUpdatePagesCommand: standarddoUpdatePagesCommand,
-      permanentlyDeletePages: args.permanentlyDeletePages as boolean | undefined,
+      permanentlyDeletePages: args.permanentlyDeletePages as
+        | boolean
+        | undefined,
     });
   },
   describe: "Run 'pages' and 'embed' since last successful run",

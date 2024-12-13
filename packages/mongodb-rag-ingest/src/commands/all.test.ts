@@ -1,15 +1,21 @@
 import {
-  PageStore,
-  EmbeddedContentStore,
-  assertEnvVars,
+  makeMongoDbPageStore,
+  MongoDbEmbeddedContentStore,
+  makeMongoDbEmbeddedContentStore,
+  updatePages,
+  updateEmbeddedContent,
+  MongoDbPageStore,
+  PersistedPage,
 } from "mongodb-rag-core";
 import { DataSource } from "mongodb-rag-core/dataSources";
-import { MongoClient } from "mongodb-rag-core/mongodb";
+import { MongoMemoryReplSet } from "mongodb-memory-server";
 import "dotenv/config";
-import { INGEST_ENV_VARS } from "../IngestEnvVars";
 import { doAllCommand } from "./all";
-import { makeIngestMetaStore } from "../IngestMetaStore";
+import { IngestMetaStore, makeIngestMetaStore } from "../IngestMetaStore";
 import "dotenv/config";
+import { strict as assert } from "assert";
+import { MongoClient } from "mongodb-rag-core/mongodb";
+import { doUpdatePagesCommand } from "./pages";
 
 jest.setTimeout(1000000);
 
@@ -22,124 +28,194 @@ describe("allCommand", () => {
     },
   };
 
-  const { MONGODB_CONNECTION_URI: connectionUri } =
-    assertEnvVars(INGEST_ENV_VARS);
-
-  const mockEmbeddedContentStore: EmbeddedContentStore = {
-    async deleteEmbeddedContent() {
-      return;
-    },
-    async findNearestNeighbors() {
-      return [];
-    },
-    async loadEmbeddedContent() {
-      return [];
-    },
-    async updateEmbeddedContent() {
-      return;
-    },
-    metadata: {
-      embeddingName: "embeddedName",
-    },
-  };
-  const mockPageStore: PageStore = {
-    async loadPages() {
-      return [];
-    },
-    async updatePages() {
-      return;
-    },
-    async deletePages() {
-      return;
-    },
-  };
-
+  let mongod: MongoMemoryReplSet | undefined;
+  let pageStore: MongoDbPageStore;
+  let embedStore: MongoDbEmbeddedContentStore;
+  let ingestMetaStore: IngestMetaStore;
+  let uri: string;
   let databaseName: string;
+  let page1Embedding, page2Embedding;
+  let pages: PersistedPage[] = [];
+
+  const mockDataSources: DataSource[] = [
+    {
+      name: "source1",
+      fetchPages: async () => [
+        {
+          url: "test1.com",
+          format: "html",
+          sourceName: "source1",
+          body: "hello source 1",
+        },
+      ],
+    },
+    {
+      name: "source2",
+      fetchPages: async () => [
+        {
+          url: "test2.com",
+          format: "html",
+          sourceName: "source2",
+          body: "hello source 1",
+        },
+      ],
+    },
+  ];
+  const mockDataSourceNames = mockDataSources.map(
+    (dataSource) => dataSource.name
+  );
 
   beforeEach(async () => {
-    databaseName = `test-all-command-${Date.now()}-${Math.floor(
-      Math.random() * 10000000
-    )}`;
-  });
-
-  afterEach(async () => {
-    const client = await MongoClient.connect(connectionUri);
-    try {
-      const db = client.db(databaseName);
-      await db.dropDatabase();
-    } finally {
-      await client.close();
-    }
-  });
-
-  it("updates the metadata with the last successful timestamp", async () => {
-    const ingestMetaStore = makeIngestMetaStore({
-      connectionUri,
+    databaseName = "test-all-command";
+    mongod = await MongoMemoryReplSet.create();
+    uri = mongod.getUri();
+    embedStore = makeMongoDbEmbeddedContentStore({
+      connectionUri: uri,
+      databaseName,
+      searchIndex: { embeddingName: "test-embedding" },
+    });
+    pageStore = makeMongoDbPageStore({
+      connectionUri: uri,
+      databaseName,
+    });
+    ingestMetaStore = makeIngestMetaStore({
+      connectionUri: uri,
       databaseName,
       entryId: "all",
     });
+    // create pages and verify that they have been created
+    await updatePages({ sources: mockDataSources, pageStore });
+    pages = await pageStore.loadPages();
+    assert(pages.length == 2);
+    // create embeddings for the pages and verify that they have been created
+    await updateEmbeddedContent({
+      since: new Date(0),
+      embeddedContentStore: embedStore,
+      pageStore,
+      sourceNames: mockDataSourceNames,
+      embedder,
+    });
+    page1Embedding = await embedStore.loadEmbeddedContent({
+      page: pages[0],
+    });
+    page2Embedding = await embedStore.loadEmbeddedContent({
+      page: pages[1],
+    });
+    assert(page1Embedding.length);
+    assert(page2Embedding.length);
+  });
+
+  afterEach(async () => {
+    await pageStore?.drop();
+    await pageStore?.close();
+    await embedStore.drop();
+    await embedStore.close();
+    assert(mongod);
+    await mongod.stop();
+  });
+
+  it("updates the metadata with the last successful timestamp", async () => {
+    let lastSuccessfulRunDate =
+      await ingestMetaStore.loadLastSuccessfulRunDate();
+    expect(lastSuccessfulRunDate).toBeNull();
+    await doAllCommand(
+      {
+        pageStore,
+        embeddedContentStore: embedStore,
+        ingestMetaStore,
+        embedder,
+        dataSources,
+      },
+      {
+        async doUpdatePagesCommand() {
+          return;
+        },
+      }
+    );
+    lastSuccessfulRunDate = await ingestMetaStore.loadLastSuccessfulRunDate();
+    expect(lastSuccessfulRunDate?.getTime()).toBeGreaterThan(Date.now() - 5000);
+    expect(lastSuccessfulRunDate?.getTime()).toBeLessThanOrEqual(Date.now());
+  });
+
+  it("does not update the metadata with the last successful timestamp on failure", async () => {
+    let lastSuccessfulRunDate =
+      await ingestMetaStore.loadLastSuccessfulRunDate();
+    expect(lastSuccessfulRunDate).toBeNull();
     try {
-      let lastSuccessfulRunDate =
-        await ingestMetaStore.loadLastSuccessfulRunDate();
-      expect(lastSuccessfulRunDate).toBeNull();
       await doAllCommand(
         {
-          pageStore: mockPageStore,
-          embeddedContentStore: mockEmbeddedContentStore,
+          pageStore,
+          embeddedContentStore: embedStore,
           ingestMetaStore,
           embedder,
           dataSources,
         },
         {
           async doUpdatePagesCommand() {
-            return;
+            // Sudden failure!
+            throw new Error("Fail!");
           },
         }
       );
-      lastSuccessfulRunDate = await ingestMetaStore.loadLastSuccessfulRunDate();
-      expect(lastSuccessfulRunDate?.getTime()).toBeGreaterThan(
-        Date.now() - 5000
-      );
-      expect(lastSuccessfulRunDate?.getTime()).toBeLessThanOrEqual(Date.now());
-    } finally {
-      await ingestMetaStore.close();
+    } catch (e: unknown) {
+      expect((e as { message: string }).message).toBe("Fail!");
     }
+    lastSuccessfulRunDate = await ingestMetaStore.loadLastSuccessfulRunDate();
+    // Not updated because run failed
+    expect(lastSuccessfulRunDate).toBeNull();
   });
 
-  it("does not update the metadata with the last successful timestamp on failure", async () => {
-    const ingestMetaStore = makeIngestMetaStore({
-      connectionUri,
-      databaseName,
-      entryId: "all",
-    });
-    try {
-      let lastSuccessfulRunDate =
-        await ingestMetaStore.loadLastSuccessfulRunDate();
-      expect(lastSuccessfulRunDate).toBeNull();
-      try {
-        await doAllCommand(
-          {
-            pageStore: mockPageStore,
-            embeddedContentStore: mockEmbeddedContentStore,
-            ingestMetaStore,
-            embedder,
-            dataSources,
-          },
-          {
-            async doUpdatePagesCommand() {
-              // Sudden failure!
-              throw new Error("Fail!");
+  it("deletes pages and embedded content that are no longer in the data sources", async () => {
+    // run the all command with only one data source and verify that the page and embedding from the other data source are deleted
+    const remainingDataSources = mockDataSources.slice(0, 1);
+    const remainingDataSourcesNames = remainingDataSources.map(
+      (dataSource) => dataSource.name
+    );
+    await doAllCommand(
+      {
+        pageStore,
+        embeddedContentStore: embedStore,
+        ingestMetaStore,
+        embedder,
+        dataSources: remainingDataSources,
+      },
+      {
+        async doUpdatePagesCommand() {
+          await doUpdatePagesCommand(
+            {
+              pageStore,
+              dataSources: remainingDataSources,
+              ingestMetaStore,
+              embeddedContentStore: embedStore,
+              embedder,
             },
-          }
-        );
-      } catch (e: unknown) {
-        expect((e as { message: string }).message).toBe("Fail!");
+            { source: remainingDataSourcesNames }
+          );
+        },
       }
-      lastSuccessfulRunDate = await ingestMetaStore.loadLastSuccessfulRunDate();
-      // Not updated because run failed
-      expect(lastSuccessfulRunDate).toBeNull();
-    } finally {
-      await ingestMetaStore.close();
-    }
+    );
+
+    const [page1, page2] = await pageStore.loadPages();
+    expect(page1).toMatchObject({
+      url: "test1.com",
+      sourceName: "source1",
+      action: "created",
+    });
+    expect(page2).toMatchObject({
+      url: "test2.com",
+      sourceName: "source2",
+      action: "deleted",
+    });
+    page1Embedding = await embedStore.loadEmbeddedContent({ page: pages[0] });
+    page2Embedding = await embedStore.loadEmbeddedContent({ page: pages[1] });
+    expect(page1Embedding).toBeDefined();
+    expect(page1Embedding[0].sourceName).toBe(remainingDataSourcesNames[0]);
+    expect(page1Embedding).toMatchObject([
+      {
+        url: "test1.com",
+        sourceName: "source1",
+      },
+    ]);
+    expect(page2Embedding).toEqual([]);
   });
 });

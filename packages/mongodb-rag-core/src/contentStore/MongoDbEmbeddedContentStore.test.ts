@@ -224,7 +224,7 @@ describe("MongoDbEmbeddedContentStore", () => {
       }
     });
 
-    it("handles deleting embedded content for a page", async () => {
+    it("deletes embedded content for a page", async () => {
       assert(store);
 
       await store.deleteEmbeddedContent({ page });
@@ -235,7 +235,7 @@ describe("MongoDbEmbeddedContentStore", () => {
         (await store.loadEmbeddedContent({ page: anotherPage })).length
       ).toBe(1);
     });
-    it("handles deleting embedded content for data sources specified", async () => {
+    it("deletes embedded content for data sources specified", async () => {
       assert(store);
 
       await store.deleteEmbeddedContent({ dataSources: [page.sourceName] });
@@ -250,7 +250,7 @@ describe("MongoDbEmbeddedContentStore", () => {
         anotherPage.sourceName
       );
     });
-    it("handles deleting embedded content for all data sources NOT specified", async () => {
+    it("deletes embedded content for all data sources NOT specified", async () => {
       assert(store);
 
       await store.deleteEmbeddedContent({

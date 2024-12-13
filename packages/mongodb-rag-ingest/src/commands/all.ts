@@ -10,7 +10,7 @@ import {
 } from "../withConfig";
 
 const commandModule: CommandModule<unknown, LoadConfigArgs> = {
-  command: "all [permanentlyDeletePages]",
+  command: "all",
   builder(args) {
     return withConfigOptions(args).option("permanentDeletePages", {
       boolean: true,

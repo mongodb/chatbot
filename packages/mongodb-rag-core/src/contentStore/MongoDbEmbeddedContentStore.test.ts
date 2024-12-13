@@ -160,37 +160,34 @@ describe("MongoDbEmbeddedContentStore", () => {
     );
   });
   describe("deleteEmbeddedContent", () => {
-    let page: PersistedPage;
-    let anotherPage: PersistedPage;
     let embeddedContent;
+    const page: PersistedPage = {
+      action: "created",
+      body: "foo",
+      format: "md",
+      sourceName: "source1",
+      metadata: {
+        tags: [],
+      },
+      updated: new Date(),
+      url: "/x/y/z",
+    };
+
+    const anotherPage: PersistedPage = {
+      action: "created",
+      body: "bar",
+      format: "md",
+      sourceName: "another-source",
+      metadata: {
+        tags: [],
+      },
+      updated: new Date(),
+      url: "/a/b/c",
+    };
+
+    const pages = [page, anotherPage];
     beforeEach(async () => {
       assert(store);
-
-      page = {
-        action: "created",
-        body: "foo",
-        format: "md",
-        sourceName: "source1",
-        metadata: {
-          tags: [],
-        },
-        updated: new Date(),
-        url: "/x/y/z",
-      };
-
-      anotherPage = {
-        action: "created",
-        body: "bar",
-        format: "md",
-        sourceName: "another-source",
-        metadata: {
-          tags: [],
-        },
-        updated: new Date(),
-        url: "/a/b/c",
-      };
-
-      const pages = [page, anotherPage];
       for (const page of pages) {
         embeddedContent = await store.loadEmbeddedContent({ page });
         expect(embeddedContent).toStrictEqual([]);
@@ -223,7 +220,6 @@ describe("MongoDbEmbeddedContentStore", () => {
         ]);
       }
     });
-
     it("deletes embedded content for a page", async () => {
       assert(store);
 

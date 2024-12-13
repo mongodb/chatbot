@@ -70,7 +70,7 @@ export type DeleteEmbeddedContentArgs = {
     */
   dataSources?: string[];
   /**
-   If true, delete pages that do NOT match the query.
+   If true, delete pages that do NOT match the data sources in the query.
    */
   inverseDataSources?: boolean;
 };

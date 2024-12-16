@@ -8,7 +8,7 @@ import { canUseServerSentEvents } from "./utils";
 import { Overline, Link } from "@leafygreen-ui/typography";
 import Toggle from "@leafygreen-ui/toggle";
 import { Chatbot } from "./Chatbot";
-import { DocsChatbot } from "./DocsChatbot";
+// import { DocsChatbot } from "./DocsChatbot";
 import { DevCenterChatbot } from "./DevCenterChatbot";
 import { HotkeyTrigger } from "./HotkeyTrigger";
 import { makePrioritizeReferenceDomain } from "./sortReferences";
@@ -63,7 +63,7 @@ function App() {
   return (
     <div className={app_background(darkMode)}>
       <div className={styles.main_content}>
-        <Chatbot
+        {/* <Chatbot
           name="MongoDB AI (Docs)"
           serverBaseUrl={serverBaseUrl}
           shouldStream={shouldStream}
@@ -78,7 +78,7 @@ function App() {
           maxInputCharacters={3000}
         >
           <DocsChatbot suggestedPrompts={SUGGESTED_PROMPTS} />
-        </Chatbot>
+        </Chatbot> */}
         <Chatbot
           name="MongoDB AI (Dev Center)"
           serverBaseUrl={serverBaseUrl}

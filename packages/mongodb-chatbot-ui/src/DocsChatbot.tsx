@@ -1,9 +1,14 @@
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import { DarkModeProps } from "./DarkMode";
 import { InputBarTrigger, InputBarTriggerProps } from "./InputBarTrigger";
-import { ModalView, ModalViewProps } from "./ModalView";
+import { type ModalViewProps } from "./ModalView";
 import { MongoDbLegalDisclosure } from "./MongoDbLegal";
 import { mongoDbVerifyInformationMessage } from "./ui-text";
+import { lazy, Suspense } from "react";
+
+const ModalView = lazy(() =>
+  import("./ModalView").then((m) => ({ default: m.ModalView }))
+);
 
 export type DocsChatbotProps = DarkModeProps & {
   suggestedPrompts?: string[];
@@ -25,7 +30,9 @@ export function DocsChatbot(props: DocsChatbotProps) {
   return (
     <>
       <InputBarTrigger {...triggerProps} />
-      <ModalView {...viewProps} />
+      <Suspense fallback={null}>
+        <ModalView {...viewProps} />
+      </Suspense>
     </>
   );
 }

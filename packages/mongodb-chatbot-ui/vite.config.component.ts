@@ -69,8 +69,8 @@ export default ({ mode }) => {
                 // Chatbot Context Provider & Hooks
                 Chatbot: resolvePath("src/Chatbot.tsx"),
                 useChatbotContext: resolvePath("src/useChatbotContext.tsx"),
-                useConversationContext: resolvePath(
-                  "src/useConversationContext.tsx"
+                useConversationStoreContext: resolvePath(
+                  "src/useConversationStoreContext.tsx"
                 ),
                 // Chatbot Triggers
                 ActionButtonTrigger: resolvePath("src/ActionButtonTrigger.tsx"),

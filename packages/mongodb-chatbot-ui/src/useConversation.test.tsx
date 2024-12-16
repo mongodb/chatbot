@@ -27,20 +27,13 @@ describe("useConversation", () => {
     expect(conversation).toBeDefined();
     expect(conversation.conversationId).toBeUndefined();
     expect(conversation.messages).toEqual([]);
-    expect(conversation.error).toEqual("");
-    expect(conversation.isStreamingMessage).toBe(false);
-    expect(conversation.streamingMessage).toBe(undefined);
+    expect(conversation.error).toBeUndefined();
     // Methods
     expect(conversation.createConversation).toBeDefined();
-    expect(conversation.endConversationWithError).toBeDefined();
-    expect(conversation.addMessage).toBeDefined();
-    expect(conversation.setMessageContent).toBeDefined();
-    expect(conversation.setMessageMetadata).toBeDefined();
-    expect(conversation.updateMessageMetadata).toBeDefined();
-    expect(conversation.deleteMessage).toBeDefined();
+    expect(conversation.switchConversation).toBeDefined();
+    expect(conversation.submit).toBeDefined();
     expect(conversation.rateMessage).toBeDefined();
     expect(conversation.commentMessage).toBeDefined();
-    expect(conversation.switchConversation).toBeDefined();
   });
 
   it("creates a new conversation", async () => {
@@ -60,7 +53,7 @@ describe("useConversation", () => {
     });
     await waitFor(() => {
       expect(result.current.conversationId).not.toBeUndefined();
-      expect(result.current.error).toBe("");
+      expect(result.current.error).toBeUndefined();
       expect(result.current.messages).toEqual([]);
     });
   });
@@ -147,7 +140,7 @@ describe("useConversation", () => {
       },
     });
     await act(async () => {
-      await result.current.addMessage({ role: "user", content: userMessage });
+      await result.current.submit(userMessage);
     });
     await waitFor(() => {
       expect(result.current.messages).toHaveLength(2);
@@ -189,10 +182,7 @@ describe("useConversation", () => {
       },
     });
     await act(async () => {
-      await result.current.addMessage({
-        role: "user",
-        content: "Hello from the user",
-      });
+      await result.current.submit("Hello from the user");
     });
     await waitFor(() => {
       expect(result.current.messages).toHaveLength(2);
@@ -230,128 +220,6 @@ describe("useConversation", () => {
     await waitFor(() => {
       expect(result.current.messages[0].rating).toBe(undefined);
       expect(result.current.messages[1].rating).toBe(false);
-    });
-  });
-
-  it("updates message content & metadata", async () => {
-    const { result } = renderHook(() =>
-      useConversation(baseUseConversationParams)
-    );
-
-    const mockInitialConversation = {
-      _id: new ObjectId().toHexString(),
-      createdAt: Date.now(),
-      messages: [
-        {
-          id: new ObjectId().toHexString(),
-          role: "user",
-          content: "Hello from the user",
-          createdAt: Date.now(),
-        },
-        {
-          id: new ObjectId().toHexString(),
-          role: "assistant",
-          content: "Hello from the assistant",
-          createdAt: Date.now(),
-        },
-      ],
-    };
-    mockNextFetchResult({
-      json: mockInitialConversation,
-    });
-    await act(async () => {
-      await result.current.createConversation();
-    });
-    await waitFor(() => {
-      expect(result.current.conversationId).toBe(mockInitialConversation._id);
-    });
-
-    const userMessageId = mockInitialConversation.messages[0].id;
-    const asstMessageId = mockInitialConversation.messages[1].id;
-
-    // Update user message content
-    mockNextFetchResult({
-      status: 204,
-      json: {},
-    });
-    await act(async () => {
-      result.current.setMessageContent(userMessageId, "Updated user message");
-    });
-    await waitFor(() => {
-      expect(result.current.messages[0].content).toBe("Updated user message");
-    });
-
-    // Update assistant message metadata
-    mockNextFetchResult({
-      status: 204,
-      json: {},
-    });
-    await act(async () => {
-      result.current.updateMessageMetadata({
-        messageId: asstMessageId,
-        metadata: {
-          testField: "Updated value",
-        },
-      });
-    });
-    await waitFor(() => {
-      expect(result.current.messages[1].metadata).toEqual({
-        testField: "Updated value",
-      });
-    });
-  });
-
-  it("deletes a message", async () => {
-    const { result } = renderHook(() =>
-      useConversation(baseUseConversationParams)
-    );
-
-    const mockInitialConversation = {
-      _id: new ObjectId().toHexString(),
-      createdAt: Date.now(),
-      messages: [
-        {
-          id: new ObjectId().toHexString(),
-          role: "user",
-          content: "Hello from the user",
-          createdAt: Date.now(),
-        },
-        {
-          id: new ObjectId().toHexString(),
-          role: "assistant",
-          content: "Hello from the assistant",
-          createdAt: Date.now(),
-        },
-      ],
-    };
-    mockNextFetchResult({
-      json: mockInitialConversation,
-    });
-    await act(async () => {
-      await result.current.createConversation();
-    });
-    await waitFor(() => {
-      expect(result.current.conversationId).toBe(mockInitialConversation._id);
-      expect(result.current.messages).toHaveLength(2);
-      expect(result.current.messages[0].role).toBe("user");
-      expect(result.current.messages[1].role).toBe("assistant");
-    });
-
-    // Delete user message
-    await act(async () => {
-      result.current.deleteMessage(mockInitialConversation.messages[0].id);
-    });
-    await waitFor(() => {
-      expect(result.current.messages).toHaveLength(1);
-      expect(result.current.messages[0].role).toBe("assistant");
-    });
-
-    // Delete assistant message
-    await act(async () => {
-      result.current.deleteMessage(mockInitialConversation.messages[1].id);
-    });
-    await waitFor(() => {
-      expect(result.current.messages).toHaveLength(0);
     });
   });
 });

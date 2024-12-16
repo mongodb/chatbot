@@ -6,7 +6,7 @@ import { useChatbot, OpenCloseHandlers, UseChatbotProps } from "./useChatbot";
 import { LinkDataProvider } from "./LinkDataProvider";
 import { type User } from "./useUser";
 import { ChatbotProvider } from "./ChatbotProvider";
-import ConversationProvider from "./ConversationProvider";
+import { ConversationStoreProvider } from "./ConversationStoreProvider";
 import { RenameFields } from "./utils";
 import { HotkeyContextProvider } from "./HotkeyContext";
 
@@ -58,17 +58,15 @@ export function Chatbot({
 
   return (
     <LeafyGreenProvider darkMode={darkMode}>
-      <LinkDataProvider tck={tck}>
-        <UserProvider user={user}>
-          <ChatbotProvider {...chatbotData}>
-            <HotkeyContextProvider>
-              <ConversationProvider conversation={chatbotData.conversation}>
-                {children}
-              </ConversationProvider>
-            </HotkeyContextProvider>
-          </ChatbotProvider>
-        </UserProvider>
-      </LinkDataProvider>
+      <ConversationStoreProvider>
+        <LinkDataProvider tck={tck}>
+          <UserProvider user={user}>
+            <ChatbotProvider {...chatbotData}>
+              <HotkeyContextProvider>{children}</HotkeyContextProvider>
+            </ChatbotProvider>
+          </UserProvider>
+        </LinkDataProvider>
+      </ConversationStoreProvider>
     </LeafyGreenProvider>
   );
 }

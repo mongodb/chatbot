@@ -77,12 +77,7 @@ export function ModalView(props: ModalViewProps) {
           }
           shouldClose={shouldClose}
         >
-          <Suspense fallback={null}>
-            <ChatWindow
-              inputBarId={chatWindowInputBarId}
-              {...chatWindowProps}
-            />
-          </Suspense>
+          <ChatWindow inputBarId={chatWindowInputBarId} {...chatWindowProps} />
         </Modal>
       ) : null}
     </Suspense>

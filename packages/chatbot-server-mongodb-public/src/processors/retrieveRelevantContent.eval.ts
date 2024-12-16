@@ -1,5 +1,10 @@
 import "dotenv/config";
-import { Eval, EvalCase, EvalScorer, EvalTask } from "braintrust";
+import {
+  Eval,
+  EvalCase,
+  EvalScorer,
+  EvalTask,
+} from "mongodb-rag-core/braintrust";
 import fs from "fs";
 import path from "path";
 import { strict as assert } from "assert";

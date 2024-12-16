@@ -1,5 +1,10 @@
 import { strict as assert } from "assert";
-import { Eval, EvalCase, EvalScorer, EvalTask } from "braintrust";
+import {
+  Eval,
+  EvalCase,
+  EvalScorer,
+  EvalTask,
+} from "mongodb-rag-core/braintrust";
 import { OpenAI } from "mongodb-rag-core/openai";
 import fs from "fs";
 import { getConversationsEvalCasesFromYaml } from "mongodb-rag-core/eval";

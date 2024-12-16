@@ -19,6 +19,8 @@ import {
 } from "./createConversation";
 import {
   AddMessageRequest,
+  AddMessageToConversationRouteParams,
+  AddMessageToConversationUpdateTraceFunc,
   makeAddMessageToConversationRoute,
 } from "./addMessageToConversation";
 import { requireRequestOrigin } from "../../middleware/requireRequestOrigin";
@@ -185,6 +187,8 @@ export interface ConversationsRouterParams {
    */
   addMessageToConversationCustomData?: AddCustomDataFunc;
 
+  addMessageToConversationUpdateTrace?: AddMessageToConversationRouteParams["updateTrace"];
+
   /**
     Maximum number of characters allowed in a user's comment on an assistant {@link Message}.
     If not specified, user comments may be of any length.
@@ -235,6 +239,7 @@ export function makeConversationsRouter({
   middleware = [requireValidIpAddress(), requireRequestOrigin()],
   createConversationCustomData = addOriginAndIpToCustomData,
   addMessageToConversationCustomData = addOriginToCustomData,
+  addMessageToConversationUpdateTrace,
   maxUserCommentLength,
   createConversationOnNullMessageId = true,
 }: ConversationsRouterParams) {
@@ -331,6 +336,7 @@ export function makeConversationsRouter({
           systemMessage: systemPrompt,
         }
       : undefined,
+    updateTrace: addMessageToConversationUpdateTrace,
   });
   conversationsRouter.post(
     "/:conversationId/messages",

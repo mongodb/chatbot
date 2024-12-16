@@ -4,12 +4,7 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import {
-  AssistantMessage,
-  SystemMessage,
-  UserMessage,
-  VerifiedAnswer,
-} from "mongodb-rag-core";
+import { AssistantMessage, SystemMessage, UserMessage } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   ConversationsService,
@@ -34,8 +29,8 @@ import {
 import { GenerateUserPromptFunc } from "../../processors/GenerateUserPromptFunc";
 import { FilterPreviousMessages } from "../../processors/FilterPreviousMessages";
 import { filterOnlySystemPrompt } from "../../processors/filterOnlySystemPrompt";
-import { generateResponse } from "../generateResponse";
-import { braintrustLogger, traced } from "mongodb-rag-core/braintrust";
+import { generateResponse, GenerateResponseParams } from "../generateResponse";
+import { braintrustLogger, wrapTraced } from "mongodb-rag-core/braintrust";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 3000; // magic number for max input size for LLM
 export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for max messages in a conversation
@@ -59,6 +54,17 @@ export const AddMessageRequest = SomeExpressRequest.merge(
     body: AddMessageRequestBody,
   })
 );
+
+export type AddMessageToConversationUpdateTraceFuncParams = {
+  traceId: string;
+  logger: typeof braintrustLogger;
+  previousConversation: Conversation;
+  addedMessages: SomeMessage[];
+};
+
+export type AddMessageToConversationUpdateTraceFunc = (
+  params: AddMessageToConversationUpdateTraceFuncParams
+) => Promise<void>;
 
 export type AddMessageRequest = z.infer<typeof AddMessageRequest>;
 
@@ -90,7 +96,24 @@ export interface AddMessageToConversationRouteParams {
      */
     systemMessage?: SystemMessage;
   };
+
+  /**
+    Custom function to update the Braintrust tracing
+    after the response has been sent to the user.
+    Can add additional tags, scores, etc.
+   */
+  updateTrace?: AddMessageToConversationUpdateTraceFunc;
 }
+
+type MakeTracedResponseParams = Pick<
+  GenerateResponseParams,
+  | "latestMessageText"
+  | "customData"
+  | "dataStreamer"
+  | "shouldStream"
+  | "reqId"
+  | "conversation"
+>;
 
 export function makeAddMessageToConversationRoute({
   conversations,
@@ -101,7 +124,61 @@ export function makeAddMessageToConversationRoute({
   filterPreviousMessages = filterOnlySystemPrompt,
   addMessageToConversationCustomData,
   createConversation,
+  updateTrace,
 }: AddMessageToConversationRouteParams) {
+  const generateResponseTraced = function ({
+    latestMessageText,
+    customData,
+    dataStreamer,
+    shouldStream,
+    reqId,
+    conversation,
+    traceId,
+  }: MakeTracedResponseParams & { traceId: string }) {
+    const tracedFunc = wrapTraced(
+      ({
+        latestMessageText,
+        customData,
+        dataStreamer,
+        shouldStream,
+        reqId,
+        conversation,
+      }: MakeTracedResponseParams) => {
+        return generateResponse({
+          latestMessageText,
+          customData,
+          dataStreamer,
+          shouldStream,
+          reqId,
+          llm,
+          conversation,
+          generateUserPrompt,
+          filterPreviousMessages,
+          llmNotWorkingMessage:
+            conversations.conversationConstants.LLM_NOT_WORKING,
+          noRelevantContentMessage:
+            conversations.conversationConstants.NO_RELEVANT_CONTENT,
+        });
+      },
+      {
+        name: "generateResponse",
+        event: {
+          id: traceId,
+          metadata: {
+            conversationId: conversation._id.toHexString(),
+          },
+        },
+      }
+    );
+    return tracedFunc({
+      latestMessageText,
+      customData,
+      dataStreamer,
+      shouldStream,
+      reqId,
+      conversation,
+    });
+  };
   return async (
     req: ExpressRequest<AddMessageRequest["params"]>,
     res: ExpressResponse<ApiMessage, ConversationsRouterLocals>
@@ -169,45 +246,17 @@ export function makeAddMessageToConversationRoute({
       }
 
       const assistantResponseMessageId = new ObjectId();
-      const { messages } = await braintrustLogger.traced(
-        async () => {
-          // --- GENERATE RESPONSE  ---
-          return await generateResponse({
-            llm,
-            conversation,
-            latestMessageText,
-            generateUserPrompt,
-            filterPreviousMessages,
-            customData,
-            dataStreamer,
-            shouldStream,
-            reqId,
-            llmNotWorkingMessage:
-              conversations.conversationConstants.LLM_NOT_WORKING,
-            noRelevantContentMessage:
-              conversations.conversationConstants.NO_RELEVANT_CONTENT,
-          });
-        },
-        {
-          name: "generateResponse",
-          spanAttributes: {
-            conversationId: conversation._id.toString(),
-            reqId,
-          },
-          event: {
-            id: assistantResponseMessageId.toHexString(),
-          },
-        }
-      );
-      const tracingData = extractTracingData(messages);
-      braintrustLogger.updateSpan({
-        id: assistantResponseMessageId.toHexString(),
-        tags: tracingData?.tags,
-        scores: {
-          RejectedQuery: tracingData?.rejectQuery === true ? 1 : null,
-          VerifiedAnswer: tracingData?.isVerifiedAnswer === true ? 1 : null,
-        },
+
+      const { messages } = await generateResponseTraced({
+        conversation,
+        latestMessageText,
+        customData,
+        dataStreamer,
+        shouldStream,
+        reqId,
+        traceId: assistantResponseMessageId.toHexString(),
       });
+
       // --- SAVE QUESTION & RESPONSE ---
       const dbNewMessages = await addMessagesToDatabase({
         conversations,
@@ -234,6 +283,18 @@ export function makeAddMessageToConversationRoute({
           type: "finished",
           data: apiRes.id,
         });
+        if (dataStreamer.connected) {
+          dataStreamer.disconnect();
+        }
+
+        if (updateTrace) {
+          await updateTrace({
+            traceId: assistantResponseMessageId.toHexString(),
+            logger: braintrustLogger,
+            previousConversation: conversation,
+            addedMessages: messages,
+          });
+        }
       }
     } catch (error) {
       const { httpStatus, message } =
@@ -365,46 +426,3 @@ const loadConversation = async ({
   }
   return conversation;
 };
-
-function extractTracingData(messages: SomeMessage[]) {
-  const latestUserMessage = messages.findLast(
-    (message) => message.role === "user"
-  ) as UserMessage | undefined;
-  if (latestUserMessage) {
-    const tags = [];
-
-    const rejectQuery = latestUserMessage.rejectQuery;
-    if (rejectQuery === true) {
-      tags.push("rejected_query");
-    }
-    const programmingLanguage = latestUserMessage.customData
-      ?.programmingLanguage as string | undefined;
-    const mongoDbProduct = latestUserMessage.customData?.mongoDbProduct as
-      | string
-      | undefined;
-    if (programmingLanguage) {
-      tags.push(tagify(programmingLanguage));
-    }
-    if (mongoDbProduct) {
-      tags.push(tagify(mongoDbProduct));
-    }
-
-    const latestAssistantMessage = messages.findLast(
-      (message) => message.role === "assistant"
-    ) as AssistantMessage | undefined;
-
-    const isVerifiedAnswer = !!latestAssistantMessage?.metadata?.verifiedAnswer;
-    if (isVerifiedAnswer) {
-      tags.push("verified_answer");
-    }
-    return {
-      tags,
-      rejectQuery,
-      isVerifiedAnswer,
-    };
-  }
-}
-
-function tagify(s: string) {
-  return s.replaceAll(/ /g, "_").toLowerCase();
-}

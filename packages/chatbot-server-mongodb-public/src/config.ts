@@ -31,6 +31,7 @@ import express from "express";
 import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
+import { makeAddMessageToConversationUpdateTrace } from "./tracing";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -214,6 +215,10 @@ export const config: AppConfig = {
     createConversationCustomData: !isProduction
       ? createCustomConversationDataWithIpAuthUserAndOrigin
       : undefined,
+    addMessageToConversationUpdateTrace:
+      makeAddMessageToConversationUpdateTrace(
+        retrievalConfig.findNearestNeighborsOptions.k
+      ),
     generateUserPrompt,
     systemPrompt,
     maxUserMessagesInConversation: 50,

@@ -18,6 +18,21 @@ export interface EmbedConcurrencyOptions {
   createChunks?: number;
 }
 
+const chunkAlgoHashes = new Map<string, string>();
+
+const getHashForFunc = (f: ChunkFunc, o?: Partial<ChunkOptions>): string => {
+  const data = JSON.stringify(o ?? {}) + f.toString();
+  const existingHash = chunkAlgoHashes.get(data);
+  if (existingHash) {
+    return existingHash;
+  }
+  const hash = createHash("sha256");
+  hash.update(data);
+  const digest = hash.digest("hex");
+  chunkAlgoHashes.set(data, digest);
+  return digest;
+};
+
 /**
   (Re-)embeddedContent the pages in the page store that have changed since the given date
   and stores the embeddedContent in the embeddedContent store.
@@ -48,6 +63,23 @@ export const updateEmbeddedContent = async ({
       sourceNames ? ` in sources: ${sourceNames.join(", ")}` : ""
     }`
   );
+  // find changed chunkingHashes 
+  const allPages = await pageStore.loadPages({sources: sourceNames});
+  for (const page of allPages) {
+    const existingContent = await embeddedContentStore.loadEmbeddedContent({
+      page,
+    });
+    const chunkAlgoHash = getHashForFunc(chunkPage, chunkOptions);
+    if (existingContent[0].chunkAlgoHash !== chunkAlgoHash) {
+      logger.info(
+        `Chunking algorithm has changed for ${page.sourceName}: ${page.url}. Deleting existing embedded content to force an update.`
+      );
+      await embeddedContentStore.deleteEmbeddedContent({
+        page,
+      });
+    }
+  }
+
   await PromisePool.withConcurrency(concurrencyOptions?.processPages ?? 1)
     .for(changedPages)
     .process(async (page, index, pool) => {
@@ -71,21 +103,6 @@ export const updateEmbeddedContent = async ({
           });
       }
     });
-};
-
-const chunkAlgoHashes = new Map<string, string>();
-
-const getHashForFunc = (f: ChunkFunc, o?: Partial<ChunkOptions>): string => {
-  const data = JSON.stringify(o ?? {}) + f.toString();
-  const existingHash = chunkAlgoHashes.get(data);
-  if (existingHash) {
-    return existingHash;
-  }
-  const hash = createHash("sha256");
-  hash.update(data);
-  const digest = hash.digest("hex");
-  chunkAlgoHashes.set(data, digest);
-  return digest;
 };
 
 export const updateEmbeddedContentForPage = async ({

@@ -63,22 +63,17 @@ export const updateEmbeddedContent = async ({
       sourceNames ? ` in sources: ${sourceNames.join(", ")}` : ""
     }`
   );
-  // find changed chunkingHashes 
+  // find pages with changed chunkingHashes
   const allPages = await pageStore.loadPages({sources: sourceNames});
-  for (const page of allPages) {
+  const pagesWithChangedChunking = allPages.filter(async (page) => {
     const existingContent = await embeddedContentStore.loadEmbeddedContent({
       page,
     });
     const chunkAlgoHash = getHashForFunc(chunkPage, chunkOptions);
-    if (existingContent[0].chunkAlgoHash !== chunkAlgoHash) {
-      logger.info(
-        `Chunking algorithm has changed for ${page.sourceName}: ${page.url}. Deleting existing embedded content to force an update.`
-      );
-      await embeddedContentStore.deleteEmbeddedContent({
-        page,
-      });
-    }
-  }
+    return existingContent[0].chunkAlgoHash !== chunkAlgoHash
+  });
+
+  changedPages.push(...pagesWithChangedChunking);
 
   await PromisePool.withConcurrency(concurrencyOptions?.processPages ?? 1)
     .for(changedPages)

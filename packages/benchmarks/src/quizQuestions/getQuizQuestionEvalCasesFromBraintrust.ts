@@ -1,4 +1,4 @@
-import { initDataset } from "braintrust";
+import { initDataset } from "mongodb-rag-core/braintrust";
 import { QuizQuestionDataSchema } from "./QuizQuestionData";
 import { z } from "zod";
 import { QuizQuestionEvalCase } from "./QuizQuestionEval";

@@ -1,4 +1,4 @@
-import { Page } from ".";
+import { Page, PersistedPage } from ".";
 import { VectorStore } from "../VectorStore";
 
 /**
@@ -83,6 +83,16 @@ export type EmbeddedContentStore = VectorStore<EmbeddedContent> & {
     Load the embedded content for the given page.
    */
   loadEmbeddedContent(args: { page: Page }): Promise<EmbeddedContent[]>;
+
+  /**
+    Get the Pages of the  embedded content that meets the filter requirements.
+   */
+  getPagesFromEmbeddedContent(args: {
+    dataSources?: string[];
+    updated: Date;
+    chunkAlgoHash: string;
+    inverseChunkAlgoHash?: boolean;
+  }): Promise<PersistedPage[]>;
 
   /**
     Delete all embedded content for the given page and/or data sources.

@@ -26,6 +26,9 @@ export const makeMockEmbeddedContentStore = (): EmbeddedContentStore => {
     async updateEmbeddedContent({ embeddedContent, page }) {
       content.set(page.url, [...embeddedContent]);
     },
+    async getPagesFromEmbeddedContent(args) {
+      return [];
+    },
     metadata: {
       embeddingName: "test",
     },

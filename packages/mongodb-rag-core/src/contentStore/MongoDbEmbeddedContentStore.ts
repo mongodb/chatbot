@@ -1,4 +1,4 @@
-import { pageIdentity } from ".";
+import { pageIdentity, PersistedPage } from ".";
 import { DatabaseConnection } from "../DatabaseConnection";
 import { EmbeddedContent, EmbeddedContentStore } from "./EmbeddedContent";
 import { FindNearestNeighborsOptions, WithScore } from "../VectorStore";
@@ -93,6 +93,72 @@ export function makeMongoDbEmbeddedContentStore({
     },
     async loadEmbeddedContent({ page }) {
       return await embeddedContentCollection.find(pageIdentity(page)).toArray();
+    },
+
+    async getPagesFromEmbeddedContent({
+      dataSources,
+      updated,
+      chunkAlgoHash,
+      inverseChunkAlgoHash = false,
+    }): Promise<PersistedPage[]> {
+      const pipeline = [
+        {
+          $match: {
+            ...(dataSources ? { sourceName: { $in: dataSources } } : undefined),
+            updated: {
+              $gte: updated,
+            },
+            chunkAlgoHash: inverseChunkAlgoHash
+              ? { $ne: chunkAlgoHash }
+              : chunkAlgoHash,
+          },
+        },
+        {
+          $lookup: {
+            from: "pages",
+            let: {
+              url: "$url",
+              sourceName: "$sourceName",
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      {
+                        $eq: ["$url", "$$url"],
+                      },
+                      {
+                        $eq: ["$sourceName", "$$sourceName"],
+                      },
+                    ],
+                  },
+                },
+              },
+            ],
+            as: "pages",
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            pages: 1,
+          },
+        },
+        {
+          $unwind: {
+            path: "$pages",
+          },
+        },
+        {
+          $replaceRoot: {
+            newRoot: "$pages",
+          },
+        },
+      ];
+      return await embeddedContentCollection
+        .aggregate<PersistedPage>(pipeline)
+        .toArray();
     },
 
     async deleteEmbeddedContent({

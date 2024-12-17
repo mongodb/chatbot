@@ -34,8 +34,8 @@ const getHashForFunc = (f: ChunkFunc, o?: Partial<ChunkOptions>): string => {
 };
 
 /**
-  (Re-)embeddedContent the pages in the page store that have changed since the given date
-  and stores the embeddedContent in the embeddedContent store.
+  (Re-)embeddedContent the pages in the page store that have changed (copy change, or chunking algothrim change) 
+  since the given date and stores the embeddedContent in the embeddedContent store.
  */
 export const updateEmbeddedContent = async ({
   since,
@@ -54,27 +54,36 @@ export const updateEmbeddedContent = async ({
   sourceNames?: string[];
   concurrencyOptions?: EmbedConcurrencyOptions;
 }): Promise<void> => {
-  const changedPages = await pageStore.loadPages({
+  // find all pages with changed content
+  const pagesWithChangedContent = await pageStore.loadPages({
     updated: since,
     sources: sourceNames,
   });
   logger.info(
-    `Found ${changedPages.length} changed pages since ${since}${
+    `Found ${pagesWithChangedContent.length} changed pages since ${since}${
       sourceNames ? ` in sources: ${sourceNames.join(", ")}` : ""
     }`
   );
-  // find pages with changed chunkingHashes
-  const allPages = await pageStore.loadPages({sources: sourceNames});
-  const pagesWithChangedChunking = allPages.filter(async (page) => {
-    const existingContent = await embeddedContentStore.loadEmbeddedContent({
-      page,
+  // find all pages with embeddings created using chunkingHashes different from the current chunkingHash
+  const chunkAlgoHash = getHashForFunc(chunkPage, chunkOptions);
+  const pagesWithChangedChunking =
+    await embeddedContentStore.getPagesFromEmbeddedContent({
+      dataSources: sourceNames,
+      updated: since,
+      chunkAlgoHash,
+      inverseChunkAlgoHash: true,
     });
-    const chunkAlgoHash = getHashForFunc(chunkPage, chunkOptions);
-    return existingContent[0].chunkAlgoHash !== chunkAlgoHash
-  });
-
-  changedPages.push(...pagesWithChangedChunking);
-
+  logger.info(
+    `Found ${
+      pagesWithChangedChunking.length
+    } pages with changed chunkingHashes since ${since}${
+      sourceNames ? ` in sources: ${sourceNames.join(", ")}` : ""
+    }`
+  );
+  const changedPages = [
+    ...pagesWithChangedContent,
+    ...pagesWithChangedChunking,
+  ];
   await PromisePool.withConcurrency(concurrencyOptions?.processPages ?? 1)
     .for(changedPages)
     .process(async (page, index, pool) => {

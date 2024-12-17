@@ -15,10 +15,9 @@ import {
   type ConversationState,
   STREAMING_MESSAGE_ID,
 } from "./conversationStore";
-import { useConversationStoreContext } from "./useConversationStoreContext";
-import { useStore } from "zustand";
+import { useConversationStateContext } from "./useConversationStateContext";
 
-export type ConversationApi = {
+export type ConversationMethods = {
   createConversation: () => Promise<void>;
   switchConversation: (conversationId: string) => Promise<void>;
   submit: (content: string) => Promise<void>;
@@ -27,11 +26,7 @@ export type ConversationApi = {
   commentMessage: (messageId: string, comment: string) => Promise<void>;
 };
 
-export type Conversation = ConversationState & ConversationApi;
-
-// export type Conversation = ConversationState & {
-//   api: ConversationApi;
-// };
+export type Conversation = ConversationState & ConversationMethods;
 
 export type UseConversationParams = {
   serverBaseUrl: string;
@@ -41,8 +36,7 @@ export type UseConversationParams = {
 };
 
 export function useConversation(params: UseConversationParams) {
-  const conversationStore = useConversationStoreContext();
-  const state = useStore(conversationStore);
+  const state = useConversationStateContext();
   const conversationService = useMemo(() => {
     return new ConversationService({
       serverUrl: params.serverBaseUrl,
@@ -62,19 +56,12 @@ export function useConversation(params: UseConversationParams) {
   };
 
   const createConversation = async () => {
-    console.log("Creating conversation");
     try {
       const conversation = await conversationService.createConversation();
-      console.log("Created conversation", conversation);
-      console.log("About to call state.api.intitialize with", {
-        conversationId: conversation._id,
-        messages: conversation.messages.map(createMessage),
-      });
       state.api.initialize({
         conversationId: conversation._id,
         messages: conversation.messages.map(createMessage),
       });
-      console.log("state.conversationId", state.conversationId);
     } catch (error) {
       const errorMessage =
         typeof error === "string"

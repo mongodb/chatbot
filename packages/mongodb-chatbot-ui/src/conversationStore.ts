@@ -47,18 +47,13 @@ function getStreamingMessage(messages: MessageData[]) {
 
 export type ConversationStore = ReturnType<typeof makeConversationStore>;
 
-export const makeConversationStore = (name?: string) => {
-  console.log("Creating conversation store", name);
+export const makeConversationStore = (name = "default") => {
   return createStore(
     combine(initialConversationState, (set) => ({
+      name,
       api: {
         initialize: (initialState: ConversationState) => {
-          console.log(
-            "Initializing conversation store with state",
-            initialState
-          );
           set(initialState);
-          console.log("Initialized conversation store with new state");
         },
         setConversationError: (errorMessage: string) => {
           set((prevState) => ({

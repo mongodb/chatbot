@@ -30,9 +30,7 @@ export function DocsChatbot(props: DocsChatbotProps) {
   return (
     <>
       <InputBarTrigger {...triggerProps} />
-      <Suspense fallback={null}>
-        <ModalView {...viewProps} />
-      </Suspense>
+      <ModalView {...viewProps} />
     </>
   );
 }

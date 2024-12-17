@@ -6,7 +6,7 @@ import { useChatbot, OpenCloseHandlers, UseChatbotProps } from "./useChatbot";
 import { LinkDataProvider } from "./LinkDataProvider";
 import { type User } from "./useUser";
 import { ChatbotProvider } from "./ChatbotProvider";
-import { ConversationStoreProvider } from "./ConversationStoreProvider";
+import { ConversationStateProvider } from "./ConversationStateProvider";
 import { RenameFields } from "./utils";
 import { HotkeyContextProvider } from "./HotkeyContext";
 
@@ -41,32 +41,57 @@ export function Chatbot({
   const maxCommentCharacters =
     props.maxCommentCharacters ?? DEFAULT_MAX_COMMENT_CHARACTERS;
 
-  const chatbotData = useChatbot({
-    chatbotName: name,
-    serverBaseUrl,
-    shouldStream,
-    fetchOptions,
-    isExperimental,
-    maxInputCharacters,
-    maxCommentCharacters,
-    onOpen,
-    onClose,
-    sortMessageReferences,
-  });
-
   const tck = props.tck ?? "mongodb_ai_chatbot";
 
   return (
     <LeafyGreenProvider darkMode={darkMode}>
-      <ConversationStoreProvider>
+      <ConversationStateProvider>
         <LinkDataProvider tck={tck}>
           <UserProvider user={user}>
-            <ChatbotProvider {...chatbotData}>
-              <HotkeyContextProvider>{children}</HotkeyContextProvider>
-            </ChatbotProvider>
+            <InnerChatbot
+              fetchOptions={fetchOptions}
+              isExperimental={isExperimental}
+              maxCommentCharacters={maxCommentCharacters}
+              maxInputCharacters={maxInputCharacters}
+              name={name}
+              onOpen={onOpen}
+              onClose={onClose}
+              serverBaseUrl={serverBaseUrl}
+              shouldStream={shouldStream}
+              sortMessageReferences={sortMessageReferences}
+            >
+              {children}
+            </InnerChatbot>
           </UserProvider>
         </LinkDataProvider>
-      </ConversationStoreProvider>
+      </ConversationStateProvider>
     </LeafyGreenProvider>
+  );
+}
+
+type InnerChatbotProps = Pick<
+  ChatbotProps,
+  | "children"
+  | "fetchOptions"
+  | "isExperimental"
+  | "maxCommentCharacters"
+  | "maxInputCharacters"
+  | "name"
+  | "onOpen"
+  | "onClose"
+  | "serverBaseUrl"
+  | "shouldStream"
+  | "sortMessageReferences"
+>;
+
+function InnerChatbot({ children, ...props }: InnerChatbotProps) {
+  const chatbotData = useChatbot({
+    ...props,
+  });
+
+  return (
+    <ChatbotProvider {...chatbotData}>
+      <HotkeyContextProvider>{children}</HotkeyContextProvider>
+    </ChatbotProvider>
   );
 }

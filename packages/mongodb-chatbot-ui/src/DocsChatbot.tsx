@@ -4,7 +4,7 @@ import { InputBarTrigger, InputBarTriggerProps } from "./InputBarTrigger";
 import { type ModalViewProps } from "./ModalView";
 import { MongoDbLegalDisclosure } from "./MongoDbLegal";
 import { mongoDbVerifyInformationMessage } from "./ui-text";
-import { lazy, Suspense } from "react";
+import { lazy } from "react";
 
 const ModalView = lazy(() =>
   import("./ModalView").then((m) => ({ default: m.ModalView }))

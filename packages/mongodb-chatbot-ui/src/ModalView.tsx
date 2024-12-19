@@ -65,6 +65,8 @@ export function ModalView(props: ModalViewProps) {
 
   const chatWindowInputBarId = inputBarId ?? "chatbot-modal-input-bar";
 
+  console.log("chatWindowInputBarId", chatWindowInputBarId);
+
   return (
     <Suspense fallback={null}>
       {open ? (
@@ -77,12 +79,7 @@ export function ModalView(props: ModalViewProps) {
           }
           shouldClose={shouldClose}
         >
-          <Suspense fallback={null}>
-            <ChatWindow
-              inputBarId={chatWindowInputBarId}
-              {...chatWindowProps}
-            />
-          </Suspense>
+          <ChatWindow inputBarId={chatWindowInputBarId} {...chatWindowProps} />
         </Modal>
       ) : null}
     </Suspense>

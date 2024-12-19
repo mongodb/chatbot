@@ -12,19 +12,21 @@ export function createMessageId() {
 
 export type CreateMessageArgs =
   | {
+      id?: string;
       role: "assistant";
       content: string;
       references?: References;
       metadata?: AssistantMessageMetadata;
     }
   | {
+      id?: string;
       role: "user";
       content: string;
     };
 
 export default function createMessage(args: CreateMessageArgs): MessageData {
   const message: MessageData = {
-    id: createMessageId(),
+    id: args.id ?? createMessageId(),
     createdAt: new Date().toISOString(),
     ...args,
   };

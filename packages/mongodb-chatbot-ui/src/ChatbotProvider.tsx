@@ -9,10 +9,10 @@ export type ChatbotProviderProps = ChatbotData & {
 
 export function ChatbotProvider({
   children,
-  ...linkData
+  ...chatbotData
 }: ChatbotProviderProps) {
   return (
-    <ChatbotContext.Provider value={linkData}>
+    <ChatbotContext.Provider value={chatbotData}>
       {children}
     </ChatbotContext.Provider>
   );

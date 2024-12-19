@@ -3,11 +3,18 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { useConversation, type UseConversationParams } from "./useConversation";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { mockNextFetchResult } from "./test-utils";
+import { ConversationStateProvider } from "./ConversationStateProvider";
 
 const baseUseConversationParams = {
   serverBaseUrl: "http://localhost:3000/api/v1",
   shouldStream: false,
 } satisfies UseConversationParams;
+
+function renderUseConversation(options: UseConversationParams) {
+  return renderHook(() => useConversation(options), {
+    wrapper: ConversationStateProvider,
+  });
+}
 
 describe("useConversation", () => {
   beforeEach(() => {
@@ -21,7 +28,7 @@ describe("useConversation", () => {
   it("returns the conversation state & methods to interact with it", () => {
     const {
       result: { current: conversation },
-    } = renderHook(() => useConversation(baseUseConversationParams));
+    } = renderUseConversation(baseUseConversationParams);
 
     // Default state
     expect(conversation).toBeDefined();
@@ -37,9 +44,7 @@ describe("useConversation", () => {
   });
 
   it("creates a new conversation", async () => {
-    const { result } = renderHook(() =>
-      useConversation(baseUseConversationParams)
-    );
+    const { result } = renderUseConversation(baseUseConversationParams);
 
     mockNextFetchResult({
       json: {
@@ -59,9 +64,7 @@ describe("useConversation", () => {
   });
 
   it("switches to new and existing conversations", async () => {
-    const { result } = renderHook(() =>
-      useConversation(baseUseConversationParams)
-    );
+    const { result } = renderUseConversation(baseUseConversationParams);
 
     const firstConversation = {
       _id: new ObjectId().toHexString(),
@@ -110,9 +113,7 @@ describe("useConversation", () => {
   });
 
   it("adds a new user message + assistant response to the conversation", async () => {
-    const { result } = renderHook(() =>
-      useConversation(baseUseConversationParams)
-    );
+    const { result } = renderUseConversation(baseUseConversationParams);
 
     // Create a new conversation
     mockNextFetchResult({
@@ -153,9 +154,7 @@ describe("useConversation", () => {
   });
 
   it("rates an assistant message", async () => {
-    const { result } = renderHook(() =>
-      useConversation(baseUseConversationParams)
-    );
+    const { result } = renderUseConversation(baseUseConversationParams);
 
     // Create a new conversation
     mockNextFetchResult({

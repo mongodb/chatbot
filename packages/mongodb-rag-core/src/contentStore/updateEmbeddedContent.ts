@@ -103,6 +103,7 @@ export const updateEmbeddedContent = async ({
             chunkOptions,
             embedder,
             concurrencyOptions,
+            chunkAlgoHash,
           });
       }
     });
@@ -114,12 +115,14 @@ export const updateEmbeddedContentForPage = async ({
   embedder,
   chunkOptions,
   concurrencyOptions,
+  chunkAlgoHash,
 }: {
   page: PersistedPage;
   store: EmbeddedContentStore;
   embedder: Embedder;
   chunkOptions?: Partial<ChunkOptions>;
   concurrencyOptions?: EmbedConcurrencyOptions;
+  chunkAlgoHash: string;
 }): Promise<void> => {
   const contentChunks = await chunkPage(page, chunkOptions);
 
@@ -142,7 +145,6 @@ export const updateEmbeddedContentForPage = async ({
   const existingContent = await store.loadEmbeddedContent({
     page,
   });
-  const chunkAlgoHash = getHashForFunc(chunkPage, chunkOptions);
   if (
     existingContent.length &&
     existingContent[0].updated > page.updated &&

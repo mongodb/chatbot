@@ -214,6 +214,7 @@ describe("updateEmbeddedContent", () => {
         store: embeddedContentStore,
         page,
         concurrencyOptions: { createChunks: 2 },
+        chunkAlgoHash: "testchunkalgohash",
       });
 
       const embeddedContent = await embeddedContentStore.loadEmbeddedContent({

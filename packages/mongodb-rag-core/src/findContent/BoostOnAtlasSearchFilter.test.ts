@@ -69,6 +69,9 @@ describe("makeBoostOnAtlasSearchFilter()", () => {
       async findNearestNeighbors() {
         return mockBoostedResults;
       },
+      async getPagesFromEmbeddedContent(args) {
+        return [];
+      },
       metadata: {
         embeddingName,
       },

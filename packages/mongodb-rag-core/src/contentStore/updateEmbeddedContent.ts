@@ -18,9 +18,8 @@ export interface EmbedConcurrencyOptions {
   createChunks?: number;
 }
 
-const chunkAlgoHashes = new Map<string, string>();
 
-const getHashForFunc = (f: ChunkFunc, o?: Partial<ChunkOptions>): string => {
+const getHashForFunc = (chunkAlgoHashes: Map<string, string>, f: ChunkFunc, o?: Partial<ChunkOptions>): string => {
   const data = JSON.stringify(o ?? {}) + f.toString();
   const existingHash = chunkAlgoHashes.get(data);
   if (existingHash) {
@@ -65,7 +64,8 @@ export const updateEmbeddedContent = async ({
     }`
   );
   // find all pages with embeddings created using chunkingHashes different from the current chunkingHash
-  const chunkAlgoHash = getHashForFunc(chunkPage, chunkOptions);
+  const chunkAlgoHashes = new Map<string, string>();
+  const chunkAlgoHash = getHashForFunc(chunkAlgoHashes, chunkPage, chunkOptions);
   const pagesWithChangedChunking =
     await embeddedContentStore.getPagesFromEmbeddedContent({
       dataSources: sourceNames,

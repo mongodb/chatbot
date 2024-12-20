@@ -364,6 +364,15 @@ describe("updateEmbeddedContent", () => {
     assert(page2Embedding.length);
   });
 
+  afterEach(async () => {
+    await pageStore.drop();
+    await pageStore.close();
+    await embedStore.drop();
+    await embedStore.close();
+    await mongoClient.close();
+    await mongod?.stop();
+  });
+
   it("updates embedded content for pages that have been updated after the 'since' date provided", async () => {
     // Modify dates of pages and embedded content for testing
     const sinceDate = new Date("2024-01-01")

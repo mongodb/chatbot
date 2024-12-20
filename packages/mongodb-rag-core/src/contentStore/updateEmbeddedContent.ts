@@ -69,7 +69,6 @@ export const updateEmbeddedContent = async ({
   const pagesWithChangedChunking =
     await embeddedContentStore.getPagesFromEmbeddedContent({
       dataSources: sourceNames,
-      updated: since,
       chunkAlgoHash,
       inverseChunkAlgoHash: true,
     });

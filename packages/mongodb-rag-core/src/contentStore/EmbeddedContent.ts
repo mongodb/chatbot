@@ -89,7 +89,6 @@ export type EmbeddedContentStore = VectorStore<EmbeddedContent> & {
    */
   getPagesFromEmbeddedContent(args: {
     dataSources?: string[];
-    updated: Date;
     chunkAlgoHash: string;
     inverseChunkAlgoHash?: boolean;
   }): Promise<PersistedPage[]>;

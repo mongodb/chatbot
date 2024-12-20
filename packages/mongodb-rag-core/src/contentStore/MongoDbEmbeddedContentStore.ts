@@ -97,7 +97,6 @@ export function makeMongoDbEmbeddedContentStore({
 
     async getPagesFromEmbeddedContent({
       dataSources,
-      updated,
       chunkAlgoHash,
       inverseChunkAlgoHash = false,
     }): Promise<PersistedPage[]> {
@@ -105,9 +104,6 @@ export function makeMongoDbEmbeddedContentStore({
         {
           $match: {
             ...(dataSources ? { sourceName: { $in: dataSources } } : undefined),
-            updated: {
-              $gte: updated,
-            },
             chunkAlgoHash: inverseChunkAlgoHash
               ? { $ne: chunkAlgoHash }
               : chunkAlgoHash,

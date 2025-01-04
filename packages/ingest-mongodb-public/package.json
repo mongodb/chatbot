@@ -5,7 +5,6 @@
   "author": "",
   "license": "Apache-2.0",
   "keywords": [],
-  "main": "build/config.js",
   "engines": {
     "node": ">=18",
     "npm": ">=8"

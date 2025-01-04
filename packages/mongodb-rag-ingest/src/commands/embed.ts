@@ -16,6 +16,13 @@ const commandModule: CommandModule<
   builder(args) {
     return args
       .command({
+        command: "init",
+        describe: "Initialize embedded content store",
+        builder: (updateArgs) =>
+          withConfigOptions(updateArgs),
+        handler: (updateArgs) => withConfig(doInitEmbedCommand, updateArgs),
+      })
+      .command({
         command: "update",
         describe: "Update embedded content data",
         builder: (updateArgs) =>
@@ -59,6 +66,12 @@ const commandModule: CommandModule<
 };
 
 export default commandModule;
+
+export const doInitEmbedCommand = async ({ embeddedContentStore }: ResolvedConfig) => {
+  if (embeddedContentStore) {
+    await embeddedContentStore?.init?.();
+  }
+};
 
 type UpdateEmbedCommandArgs = {
   since: Date;

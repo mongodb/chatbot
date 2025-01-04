@@ -12,6 +12,13 @@ const commandModule: CommandModule<
   builder(args) {
     return args
       .command({
+        command: "init",
+        describe: "Initialize page store",
+        builder: (updateArgs) =>
+          withConfigOptions(updateArgs),
+        handler: (updateArgs) => withConfig(doInitPagesCommand, updateArgs),
+      })
+      .command({
         command: "update",
         describe: "Update pages data from sources",
         builder: (updateArgs) =>
@@ -47,6 +54,12 @@ const commandModule: CommandModule<
 };
 
 export default commandModule;
+
+export const doInitPagesCommand = async ({ pageStore }: ResolvedConfig) => {
+  if (pageStore) {
+    await pageStore?.init?.();
+  }
+};
 
 type UpdatePagesCommandArgs = {
   source?: string | string[];

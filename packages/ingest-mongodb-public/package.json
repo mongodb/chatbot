@@ -5,6 +5,7 @@
   "author": "",
   "license": "Apache-2.0",
   "keywords": [],
+  "main": "build/config.js",
   "engines": {
     "node": ">=18",
     "npm": ">=8"
@@ -18,8 +19,8 @@
     "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
     "ingest:all": "ingest all --config ./build/config.js",
     "ingest:k8s": "../../node_modules/mongodb-rag-ingest/build/main.js all --config ./build/config.js",
-    "ingest:pages": "ingest pages update --config ./build/config.js",
-    "ingest:embed": "ingest embed update --config ./build/config.js",
+    "ingest:pages": "ingest pages --config ./build/config.js",
+    "ingest:embed": "ingest embed --config ./build/config.js",
     "ingest:pages:meta": "ingest pages update --config ./build/meta.config.js",
     "ingest:k8s:coachGtmPages": "../../node_modules/mongodb-rag-ingest/build/main.js pages update --config ./build/coachGtm.config.js",
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --forceExit"

@@ -30,27 +30,28 @@ export async function getReleaseArtifacts({
       previousVersion,
     });
 
-    const [releaseCommits] = await Promise.all([
+    const [releaseCommits, jiraIssueKeys] = await Promise.all([
       githubReleaseArtifacts.getCommits(),
+      githubReleaseArtifacts.getJiraIssueKeys(),
     ]);
 
-    artifacts.push(...releaseCommits);
-  }
+    if (releaseCommits) {
+      artifacts.push(...releaseCommits);
+    }
 
-  if (jira) {
-    const { version, jiraApi, project } = jira;
+    // If we have Jira configuration, fetch the issues using the keys from commits
+    if (jira) {
+      const { jiraApi, project } = jira;
 
-    const jiraReleaseArtifacts = makeJiraReleaseArtifacts({
-      jiraApi,
-      project,
-      version,
-    });
+      const jiraReleaseArtifacts = makeJiraReleaseArtifacts({
+        jiraApi,
+        project,
+        issueKeys: jiraIssueKeys,
+      });
 
-    const [releaseIssues] = await Promise.all([
-      jiraReleaseArtifacts.getIssues(),
-    ]);
-
-    artifacts.push(...releaseIssues);
+      const jiraIssues = await jiraReleaseArtifacts.getIssues();
+      artifacts.push(...jiraIssues);
+    }
   }
 
   return artifacts;

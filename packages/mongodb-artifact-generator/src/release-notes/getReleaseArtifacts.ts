@@ -41,11 +41,12 @@ export async function getReleaseArtifacts({
 
     // If we have Jira configuration, fetch the issues using the keys from commits
     if (jira) {
-      const { jiraApi, project } = jira;
+      const { version, jiraApi, project } = jira;
 
       const jiraReleaseArtifacts = makeJiraReleaseArtifacts({
         jiraApi,
         project,
+        version,
         issueKeys: jiraIssueKeys,
       });
 

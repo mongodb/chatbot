@@ -10,6 +10,7 @@ export type JiraReleaseArtifacts = {
 };
 
 export const JiraReleaseInfo = z.object({
+  version: z.string().optional().describe("The version of the release. This (naïvely) corresponds to a Jira fixVersion."),
   issueKeys: z.array(z.string()).optional().describe("Array of Jira issue keys (e.g., MIG-xxxx). If not provided, will be extracted from commit messages."),
   project: z.string().optional().describe("The Jira project key."),
 });
@@ -26,23 +27,27 @@ export type MakeJiraReleaseArtifactsArgs = JiraReleaseInfo & {
 export function makeJiraReleaseArtifacts({
   jiraApi,
   project,
+  version,
   issueKeys = [], // Provide empty array as default value
 }: MakeJiraReleaseArtifactsArgs): JiraReleaseArtifacts {
   return {
     getIssues: async () => {
-      // If no issue keys provided, return empty array
-      if (issueKeys.length === 0) {
-        return [];
+      const queryParts: string[] = [];
+
+      if (issueKeys.length > 0) {
+        // Fetch the issues by their keys
+        queryParts.push(`issue IN (${issueKeys.join(',')})`);
+      } else {
+        // Fetch the issues relevant to the given version
+        queryParts.push(`fixVersion = ${version}`);
       }
 
-      // Fetch the issues by their keys
-      const queryParts = [`issue IN (${issueKeys.join(',')})`];
       if (project) {
         queryParts.push(`project = ${project}`);
       }
       const jqlQuery = queryParts.join(" AND ");
       console.log(`Fetching Jira issues with query: ${jqlQuery}`);
-      
+        
       let fetchedIssues: JiraIssue[] = [];
       let currentPageIndex = 0;
       let totalMatchingIssues = 0;
@@ -51,6 +56,7 @@ export function makeJiraReleaseArtifacts({
         const response = (await jiraApi.searchJira(jqlQuery, {
           expand: ["customfield_15650"],
           fields: [
+            "fixVersions",
             "components",
             "resolution",
             "priority",
@@ -71,7 +77,11 @@ export function makeJiraReleaseArtifacts({
         console.log(`Fetched ${response.issues.length} issues (${fetchedIssues.length}/${totalMatchingIssues} total)`);
       } while (fetchedIssues.length < totalMatchingIssues);
 
-      console.log(`Found ${fetchedIssues.length} issues out of ${issueKeys.length} requested`);
+      console.log(`Found ${fetchedIssues.length} issues`);
+      if (issueKeys.length > 0) {
+        console.log(`out of ${issueKeys.length} requested`)
+      }
+      
       if (fetchedIssues.length < issueKeys.length) {
         const foundKeys = fetchedIssues.map(issue => issue.key);
         const missingKeys = issueKeys.filter(key => !foundKeys.includes(key));
@@ -91,7 +101,9 @@ export function makeJiraReleaseArtifacts({
             components: issue.fields.components?.map(
               (component) => component.name
             ) ?? [],
-            fixVersions: [], // No longer using fixVersions
+            fixVersions: issue.fields.fixVersions.map(
+              (fixVersion) => fixVersion.name
+            ),
             resolution: issue.fields.resolution?.name ?? 'Unresolved',
             priority: issue.fields.priority?.name ?? 'None',
             status: issue.fields.status?.name ?? 'Unknown',
@@ -117,6 +129,14 @@ type JiraIssue = {
   self: string;
   key: string;
   fields: {
+    fixVersions: {
+      self: string;
+      id: string;
+      name: string;
+      archived: boolean;
+      released: boolean;
+      releaseDate?: string;
+    }[];
     components: {
       self: string;
       id: string;

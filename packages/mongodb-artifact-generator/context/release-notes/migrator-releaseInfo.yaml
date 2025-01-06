@@ -5,6 +5,7 @@ github:
   previousVersion: "1.10.0"
 jira:
   project: "MIG"
+  version: "1.11.0"
 projectDescription: >-
   MongoDB Relational Migrator is a tool to help you migrate relational workloads to
   MongoDB. Relational Migrator allows you to:

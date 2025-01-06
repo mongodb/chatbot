@@ -23,12 +23,12 @@ export const getChangedPages = async ({
   const newPages = new Map(newPagesIn.map((page) => [page.url, page]));
 
   logger.info(
-    `After de-duplication based on page URL, there are ${oldPages.size} pages currently in the store and ${newPages.size} pages from the data source(s) to be processed.`
+    `After de-duplication based on page URL, there are ${oldPages.size} pages currently in the store and ${newPages.size} pages from the data source to be processed.`
   );
 
   // Perform set difference to find deleted, created, and changed pages.
   logger.info(
-    "Comparing pages currently in the store against pages from the data source(s) to determine which pages need to be created, updated, or deleted..."
+    "Comparing pages currently in the store against pages from the data source to determine which pages need to be created, updated, or deleted..."
   );
   // deleted = elements in old but not in new
   const deleted = [...oldPages]

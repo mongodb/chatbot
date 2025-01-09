@@ -30,9 +30,17 @@ export async function getReleaseArtifacts({
       previousVersion,
     });
 
+    const getJiraIssueKeys = async () => {
+      if (jira?.project) {
+        return githubReleaseArtifacts.getJiraIssueKeys(jira.project);
+      } else {
+        return [];
+      }
+    };
+
     const [releaseCommits, jiraIssueKeys] = await Promise.all([
       githubReleaseArtifacts.getCommits(),
-      githubReleaseArtifacts.getJiraIssueKeys(),
+      getJiraIssueKeys(),
     ]);
 
     if (releaseCommits) {

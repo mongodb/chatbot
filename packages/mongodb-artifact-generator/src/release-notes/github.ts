@@ -20,7 +20,7 @@ export type GitHubReleaseArtifacts = {
   /**
    Fetches the Jira Issue Keys mentioned in the message of commits between the previous version and the current version.
    */
-  getJiraIssueKeys(): Promise<string[]>;
+  getJiraIssueKeys(jiraProject: string): Promise<string[]>;
 };
 
 export const GitHubReleaseInfo = z.object({
@@ -59,9 +59,18 @@ async function withRateLimit<T>(
   try {
     return await operation();
   } catch (error: any) {
-    if (error?.status === 403 && error?.response?.headers?.['retry-after'] && retryCount < 3) {
-      const retryAfter = parseInt(error.response.headers['retry-after'], 10) || 1;
-      console.log(`Rate limited. Waiting ${retryAfter} seconds before retry ${retryCount + 1}/3...`);
+    if (
+      error?.status === 403 &&
+      error?.response?.headers?.["retry-after"] &&
+      retryCount < 3
+    ) {
+      const retryAfter =
+        parseInt(error.response.headers["retry-after"], 10) || 1;
+      console.log(
+        `Rate limited. Waiting ${retryAfter} seconds before retry ${
+          retryCount + 1
+        }/3...`
+      );
       await delay(retryAfter * 1000);
       return withRateLimit(operation, retryCount + 1);
     }
@@ -69,15 +78,9 @@ async function withRateLimit<T>(
   }
 }
 
-function extractJiraIssueKeys(message: string): string[] {
-  const regex = /MIG-\d+/g;
+function extractJiraIssueKeys(jiraProject: string, message: string): string[] {
+  const regex = new RegExp(`${jiraProject}-\\d+`, "gi");
   const matches = message.match(regex) || [];
-  
-  // Log each Jira issue key found
-  matches.forEach(match => {
-    console.log(`Found Jira issue key: ${match}`);
-  });
-  
   return matches;
 }
 
@@ -86,7 +89,7 @@ export function makeGitHubReleaseArtifacts(
 ): GitHubReleaseArtifacts {
   // Helper function to fetch the comparison between two versions
   const fetchVersionComparison = async () => {
-    return withRateLimit(() => 
+    return withRateLimit(() =>
       args.githubApi.repos.compareCommitsWithBasehead({
         owner: args.owner,
         repo: args.repo,
@@ -96,12 +99,16 @@ export function makeGitHubReleaseArtifacts(
   };
 
   // Cache the version comparison to avoid duplicate API calls
-  let versionComparisonPromise: Promise<Awaited<ReturnType<typeof args.githubApi.repos.compareCommitsWithBasehead>>['data']> | null = null;
-  
+  let versionComparisonPromise: Promise<
+    Awaited<
+      ReturnType<typeof args.githubApi.repos.compareCommitsWithBasehead>
+    >["data"]
+  > | null = null;
+
   // Cache for detailed commit information to avoid rate limiting
   const commitDetailPromises = new Map<
-    string, 
-    Promise<Awaited<ReturnType<typeof args.githubApi.repos.getCommit>>['data']>
+    string,
+    Promise<Awaited<ReturnType<typeof args.githubApi.repos.getCommit>>["data"]>
   >();
 
   // Helper function to fetch detailed commit information with rate limiting
@@ -114,7 +121,10 @@ export function makeGitHubReleaseArtifacts(
           ref: commitSha,
         })
       );
-      commitDetailPromises.set(commitSha, commitPromise.then(response => response.data));
+      commitDetailPromises.set(
+        commitSha,
+        commitPromise.then((response) => response.data)
+      );
     }
     return commitDetailPromises.get(commitSha)!;
   };
@@ -122,21 +132,23 @@ export function makeGitHubReleaseArtifacts(
   return {
     getCommits: async () => {
       // Use cached version comparison if available
-      versionComparisonPromise = versionComparisonPromise || fetchVersionComparison().then(response => response.data);
+      versionComparisonPromise =
+        versionComparisonPromise ||
+        fetchVersionComparison().then((response) => response.data);
       const versionData = await versionComparisonPromise;
 
       // Get detailed information for each commit using cache
       // Process commits in batches determined by the batchSize defined below
       const batchSize = 5;
       const detailedCommits = [];
-      
+
       for (let i = 0; i < versionData.commits.length; i += batchSize) {
         const batch = versionData.commits.slice(i, i + batchSize);
         const batchResults = await Promise.all(
-          batch.map(commit => fetchCommitDetails(commit.sha))
+          batch.map((commit) => fetchCommitDetails(commit.sha))
         );
         detailedCommits.push(...batchResults);
-        
+
         // Add a small delay between batches if there are more to process
         if (i + batchSize < versionData.commits.length) {
           await delay(1000); // 1 second delay between batches
@@ -197,16 +209,20 @@ export function makeGitHubReleaseArtifacts(
 
       return artifacts;
     },
-    getJiraIssueKeys: async () => {
+    getJiraIssueKeys: async (jiraProject) => {
       // Use cached version comparison if available
-      versionComparisonPromise = versionComparisonPromise || fetchVersionComparison().then(response => response.data);
+      versionComparisonPromise =
+        versionComparisonPromise ||
+        fetchVersionComparison().then((response) => response.data);
       const versionData = await versionComparisonPromise;
 
       const jiraIssues = versionData.commits
-        .map(commit => extractJiraIssueKeys(commit.commit.message))
+        .map((commit) =>
+          extractJiraIssueKeys(jiraProject, commit.commit.message)
+        )
         .flat();
 
       return [...new Set(jiraIssues)];
-    }
+    },
   };
 }

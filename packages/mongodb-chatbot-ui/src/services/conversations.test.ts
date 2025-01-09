@@ -10,7 +10,7 @@ import {
   UnknownStreamEvent,
   getCustomRequestOrigin,
 } from "./conversations";
-import { type References } from "mongodb-rag-core";
+import { type References } from "../references";
 import * as FetchEventSource from "@microsoft/fetch-event-source";
 // Mock fetch for regular awaited HTTP requests
 // TODO: make TypeScript compiler ok with this, or skip putting this in the compiled code for staging

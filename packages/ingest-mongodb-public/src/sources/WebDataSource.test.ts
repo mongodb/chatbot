@@ -1,6 +1,7 @@
 import * as Puppeteer from "puppeteer";
 import { makePuppeteer, scrapePage } from "./WebDataSource";
 import fs from "fs";
+import path from "path";
 jest.setTimeout(60000);
 
 const testPages = [
@@ -45,13 +46,18 @@ const testPages = [
     url: "https://www.mongodb.com/solutions/solutions-library/ai-powered-call-centers",
   },
 ];
+
 describe("scrapePage", () => {
   let puppeteerPage: Puppeteer.Page;
   let browser: Puppeteer.Browser;
+  const pathOut = path.join("testOutput");
   beforeAll(async () => {
     const { page: p, browser: b } = await makePuppeteer();
     puppeteerPage = p;
     browser = b;
+    if (!fs.existsSync(pathOut)) {
+      fs.mkdirSync(pathOut);
+    }
   });
   afterAll(async () => {
     await browser.close();
@@ -61,7 +67,6 @@ describe("scrapePage", () => {
       url: url,
       puppeteerPage,
     });
-    console.log("title:", page.title);
-    fs.writeFileSync(`${name}.md`, page.body);
+    fs.writeFileSync(path.join(pathOut, `${name}.md`), page.body);
   });
 });

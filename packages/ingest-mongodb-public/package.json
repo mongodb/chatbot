@@ -48,16 +48,22 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@mozilla/readability": "^0.5.0",
+    "cheerio": "^1.0.0",
     "common-tags": "^1.8.2",
     "docdoctor": "^0.1.2",
     "dotenv": "^16",
     "encodeurl": "^2.0.0",
     "html-to-text": "^9.0.5",
+    "jsdom": "^25.0.1",
     "jsonl-parse-stringify": "^1.0.3",
     "mongodb-rag-core": "*",
     "mongodb-rag-ingest": "*",
     "node-fetch": "^2.7.0",
+    "puppeteer": "^19.11.1",
     "striptags": "^3.2.0",
+    "turndown": "^7.2.0",
+    "turndown-plugin-gfm": "^1.0.2",
     "yaml": "^2.6.0"
   }
 }

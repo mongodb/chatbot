@@ -84,17 +84,28 @@ function removeHtmlElements($: cheerio.CheerioAPI) {
   $("script").remove(); // remove all scripts
   $("style").remove();
   $("header").remove(); // Remove header
+  $("#onetrust-consent-sdk").remove(); // Remove privacy + consent stuff
+  $(".resource-grid").remove(); // remove resource grids which aren't rendered well to Markdown
   $(".z-\\[9999\\]").remove(); // Remove banner
   $(".pencil-banner-no-underline").remove(); // Remove banner
+  $(".CodeMirror-linenumber").remove(); // Remove number line from code blocks
   $("footer").remove(); // Remove footer
   $("nav").remove(); // Remove nav
   return $.html();
 }
 
-function cleanMarkdown(markdown: string) {
-  return markdown;
-  // Remove trailing newlines at end of links
-  // .replace(/\]\(.*?\)\n\n/g, (match) => match.replace(/\n\n/g, ""))
+function getTitle(
+  $body: cheerio.CheerioAPI,
+  $head: cheerio.CheerioAPI
+): string | undefined {
+  const bodyTitle = $body("h1").first().text();
+  if (bodyTitle.length > 0) {
+    return bodyTitle;
+  }
+  const headTitle = $head("title").first().text();
+  if (headTitle.length > 0) {
+    return headTitle;
+  }
 }
 
 async function getContent(
@@ -114,12 +125,10 @@ async function getContent(
 
   const markdown = mongoDbDotcomTurndownService.turndown(cleanedHtml);
 
-  const cleanedMarkdown = cleanMarkdown(markdown);
-
-  const title = $body("h1").first().text();
+  const title = getTitle($body, $head);
 
   return {
-    body: cleanedMarkdown,
+    body: markdown,
     metadata,
     title,
   };

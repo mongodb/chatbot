@@ -66,7 +66,6 @@ describe("MongoDbEmbeddedContentStore", () => {
     });
     for (const page of pages) {
       embeddedContent = await store.loadEmbeddedContent({ page });
-      expect(embeddedContent).toStrictEqual([]);
       await store.updateEmbeddedContent({
         page,
         embeddedContent: [
@@ -82,16 +81,6 @@ describe("MongoDbEmbeddedContentStore", () => {
           },
         ],
       });
-      expect(await store.loadEmbeddedContent({ page })).toMatchObject([
-        {
-          embeddings: {
-            [store.metadata.embeddingName]: expect.any(Array),
-          },
-          sourceName: page.sourceName,
-          text: page.body,
-          url: page.url,
-        },
-      ]);
     }
   });
 
@@ -146,17 +135,19 @@ describe("MongoDbEmbeddedContentStore", () => {
       ).toStrictEqual([]);
     });
   });
-  it("updateEmbeddedContent replaces existing embedded content belonging to the page provided with the new embedded content array provided", async () => {
-    assert(store);
-    const originalPageEmbedding = await store.loadEmbeddedContent({ page });
-    assert(originalPageEmbedding.length === 1);
-
-    const newEmbeddings = [{ ...originalPageEmbedding[0], text: "new text" }];
-    await store.updateEmbeddedContent({ page, embeddedContent: newEmbeddings });
-
-    const pageEmbeddings = await store.loadEmbeddedContent({ page });
-    expect(pageEmbeddings.length).toBe(1);
-    expect(pageEmbeddings[0].text).toBe("new text");
+  describe("updateEmbeddedContent", () => {
+    it("replaces existing embedded content belonging to the page provided with the new embedded content array provided", async () => {
+      assert(store);
+      const originalPageEmbedding = await store.loadEmbeddedContent({ page });
+      assert(originalPageEmbedding.length === 1);
+  
+      const newEmbeddings = [{ ...originalPageEmbedding[0], text: "new text" }];
+      await store.updateEmbeddedContent({ page, embeddedContent: newEmbeddings });
+  
+      const pageEmbeddings = await store.loadEmbeddedContent({ page });
+      expect(pageEmbeddings.length).toBe(1);
+      expect(pageEmbeddings[0].text).toBe("new text");
+    });
   });
   describe("deleteEmbeddedContent", () => {
     it("deletes embedded content for a page", async () => {

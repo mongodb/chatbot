@@ -65,7 +65,7 @@ export const persistPages = async ({
   });
 
   logger.info(
-    `${deleted.length} deleted / ${created.length} created / ${updated.length} updated`
+    `${sourceName}: ${deleted.length} deleted / ${created.length} created / ${updated.length} updated`
   );
   await store.updatePages([...deleted, ...created, ...updated]);
 };

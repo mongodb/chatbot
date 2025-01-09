@@ -7,9 +7,11 @@ import * as turndownPluginGfm from "turndown-plugin-gfm";
 function makeTurndownService({
   baseUrl,
   includeImages,
+  includeLinks,
 }: {
   baseUrl: string;
   includeImages?: boolean;
+  includeLinks?: boolean;
 }) {
   // Turndown with correct options
   const turndownService = new TurndownService({
@@ -24,6 +26,10 @@ function makeTurndownService({
     filter: ["a"], // Matches anchor tags
     replacement: (content, node) => {
       const element = node as Element;
+      const trimmedContent = content.trim();
+      if (!includeLinks) {
+        return trimmedContent;
+      }
       let href = element.getAttribute("href");
       if (!href) {
         return content.trim(); // No href, return trimmed content
@@ -33,7 +39,7 @@ function makeTurndownService({
       }
 
       // Trim whitespace at the beginning and end of the content and construct the Markdown link
-      return `[${content.trim()}](${href.trim()})`;
+      return `[${trimmedContent}](${href.trim()})`;
     },
   });
 

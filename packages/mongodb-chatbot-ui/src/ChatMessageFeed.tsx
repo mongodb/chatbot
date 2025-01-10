@@ -94,12 +94,7 @@ export function ChatMessageFeed(props: ChatMessageFeedProps) {
               !isInitialMessage;
 
             const rating = (
-              showRating
-                ? {
-                    value: mapRatingBooleanToValue(message.rating),
-                    // comment: "",
-                  }
-                : undefined
+              showRating ? mapRatingBooleanToValue(message.rating) : undefined
             ) satisfies AssistantMessageProps["rating"];
 
             const suggestedPrompts = (

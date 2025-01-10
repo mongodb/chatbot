@@ -60,10 +60,7 @@ export function UserMessage({ className, content }: UserMessageProps) {
 
 export type AssistantMessageProps = SomeMessageProps & {
   isLoading: boolean;
-  rating?: {
-    value?: RatingValue;
-    comment?: string;
-  };
+  rating?: RatingValue;
   references?: AssistantMessageData["references"];
   suggestedPrompts?: {
     prompts: string[];

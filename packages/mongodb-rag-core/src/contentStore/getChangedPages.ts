@@ -15,7 +15,7 @@ export const getChangedPages = async ({
   // prior deletion
   oldPages: Omit<PersistedPage, "updated">[];
   newPages: Page[];
-  sourceName: string;
+  sourceName?: string;
 }): Promise<{
   deleted: PersistedPage[];
   created: PersistedPage[];

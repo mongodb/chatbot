@@ -4,7 +4,12 @@ import {
   MakeMongoDbDatabaseConnectionParams,
   makeMongoDbDatabaseConnection,
 } from "../MongoDbDatabaseConnection";
-import { LoadPagesArgs, PageStore, PersistedPage } from "./Page";
+import {
+  DeletePagesArgs,
+  LoadPagesArgs,
+  PageStore,
+  PersistedPage,
+} from "./Page";
 import { Filter } from "mongodb";
 
 export type MongoDbPageStore = DatabaseConnection &
@@ -74,6 +79,30 @@ export function makeMongoDbPageStore({
           }
         })
       );
+    },
+    async deletePages({
+      dataSources,
+      permanent = false,
+      inverse = false,
+    }: DeletePagesArgs) {
+      const filter = {
+        ...(dataSources
+          ? { sourceName: { [inverse ? "$nin" : "$in"]: dataSources } }
+          : undefined),
+      };
+      if (permanent) {
+        const result = await pagesCollection.deleteMany(filter);
+        if (!result.acknowledged) {
+          throw new Error(`Permanent-delete pages not acknowledged!`);
+        }
+      } else {
+        const result = await pagesCollection.updateMany(filter, {
+          $set: { action: "deleted" },
+        });
+        if (!result.acknowledged) {
+          throw new Error(`Soft-delete pages not acknowledged!`);
+        }
+      }
     },
     async init() {
       await pagesCollection.createIndex({ url: 1 });

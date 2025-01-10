@@ -1,4 +1,5 @@
 import nock from "nock";
+import { Readable } from "stream";
 import fs from "fs";
 import Path from "path";
 import JSONL from "jsonl-parse-stringify";
@@ -56,7 +57,7 @@ describe("SnootyDataSource", () => {
       });
 
       const pages = await source.fetchPages();
-      expect(pages.length).toBe(12);
+      expect(pages).toHaveLength(11);
       const astPages = JSONL.parse<{ type: string; data: { ast: SnootyNode } }>(
         fs.readFileSync(sampleDataPath, "utf8")
       );
@@ -82,7 +83,7 @@ describe("SnootyDataSource", () => {
         snootyDataApiBaseUrl,
       });
       const pages = await source.fetchPages();
-      expect(pages.length).toBe(12);
+      expect(pages.length).toBe(11);
       expect(pages[0]).toMatchObject({
         format: "md",
         sourceName: "snooty-docs",
@@ -174,8 +175,45 @@ describe("SnootyDataSource", () => {
         )
       ).toBeUndefined();
     });
+
+    it("skips noindex page", async () => {
+      const mockUrl = "https://example.com";
+      const noIndexMock = nock(mockUrl);
+      // Use normal sample data (no deletes)
+      const source = await makeSnootyDataSource({
+        name: `snooty-test`,
+        project,
+        snootyDataApiBaseUrl: mockUrl,
+      });
+      noIndexMock
+        .get(`/projects/${project.name}/${project.currentBranch}/documents`)
+        .reply(200, () => {
+          const noIndexAst = jsonLify(
+            Path.resolve(SRC_ROOT, "../testData/noindex.json")
+          );
+
+          const astWithIndex = jsonLify(
+            Path.resolve(SRC_ROOT, "../testData/samplePage.json")
+          );
+
+          const stream = new Readable();
+          stream.push(noIndexAst + "\n");
+          stream.push(astWithIndex + "\n");
+          stream.push(null); // End the stream
+          return stream;
+        });
+
+      const pages = await source.fetchPages();
+      // only captures the astWithIndex page, not the noIndexAst page
+      expect(pages).toHaveLength(1);
+      noIndexMock.done();
+    });
   });
 });
+
+function jsonLify(path: string) {
+  return JSON.stringify(JSON.parse(fs.readFileSync(path, "utf-8")));
+}
 describe("handlePage()", () => {
   it("should correctly parse openapi spec page", async () => {
     const apiSpecPage = JSON.parse(
@@ -220,6 +258,6 @@ describe("handlePage()", () => {
         version: "1.0",
       },
     });
-    expect(result.body).toContain("# $merge (aggregation)");
+    expect(result?.body).toContain("# $merge (aggregation)");
   });
 });

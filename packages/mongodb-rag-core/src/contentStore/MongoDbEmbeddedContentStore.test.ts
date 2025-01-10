@@ -62,35 +62,50 @@ describe("MongoDbEmbeddedContentStore", () => {
       url: "/x/y/z",
     };
 
-    const embeddedContent = await store.loadEmbeddedContent({ page });
-    expect(embeddedContent).toStrictEqual([]);
+    const anotherPage: PersistedPage = {
+      action: "created",
+      body: "bar",
+      format: "md",
+      sourceName: "another-source",
+      metadata: {
+        tags: [],
+      },
+      updated: new Date(),
+      url: "/a/b/c",
+    };
 
-    await store.updateEmbeddedContent({
-      page,
-      embeddedContent: [
+    const pages = [page, anotherPage];
+    for (const page of pages) {
+      const embeddedContent = await store.loadEmbeddedContent({ page });
+      expect(embeddedContent).toStrictEqual([]);
+
+      await store.updateEmbeddedContent({
+        page,
+        embeddedContent: [
+          {
+            embeddings: {
+              [store.metadata.embeddingName]: new Array(1536).fill(0.1),
+            },
+            sourceName: page.sourceName,
+            text: page.body,
+            url: page.url,
+            tokenCount: 0,
+            updated: new Date(),
+          },
+        ],
+      });
+
+      expect(await store.loadEmbeddedContent({ page })).toMatchObject([
         {
           embeddings: {
-            [store.metadata.embeddingName]: new Array(1536).fill(0.1),
+            [store.metadata.embeddingName]: expect.any(Array),
           },
           sourceName: page.sourceName,
-          text: "foo",
+          text: page.body,
           url: page.url,
-          tokenCount: 0,
-          updated: new Date(),
         },
-      ],
-    });
-
-    expect(await store.loadEmbeddedContent({ page })).toMatchObject([
-      {
-        embeddings: {
-          [store.metadata.embeddingName]: expect.any(Array),
-        },
-        sourceName: "source1",
-        text: "foo",
-        url: "/x/y/z",
-      },
-    ]);
+      ]);
+    }
 
     // Won't find embedded content for some other page
     expect(
@@ -103,16 +118,6 @@ describe("MongoDbEmbeddedContentStore", () => {
         page: { ...page, url: page.url + "/" },
       })
     ).toStrictEqual([]);
-
-    // Won't delete some other page's embedded content
-    await store.deleteEmbeddedContent({
-      page: { ...page, sourceName: "source2" },
-    });
-    expect((await store.loadEmbeddedContent({ page })).length).toBe(1);
-
-    // Deletes embedded content for page
-    await store.deleteEmbeddedContent({ page });
-    expect(await store.loadEmbeddedContent({ page })).toStrictEqual([]);
   });
   it("has an overridable default collection name", async () => {
     assert(store);
@@ -133,6 +138,132 @@ describe("MongoDbEmbeddedContentStore", () => {
     expect(storeWithCustomCollectionName.metadata.collectionName).toBe(
       "custom-embedded_content"
     );
+  });
+  it("has an overridable default collection name", async () => {
+    assert(store);
+
+    expect(store.metadata.collectionName).toBe("embedded_content");
+
+    const storeWithCustomCollectionName = await makeMongoDbEmbeddedContentStore(
+      {
+        connectionUri: MONGODB_CONNECTION_URI,
+        databaseName: store.metadata.databaseName,
+        collectionName: "custom-embedded_content",
+        searchIndex: {
+          embeddingName: "ada-02",
+        },
+      }
+    );
+
+    expect(storeWithCustomCollectionName.metadata.collectionName).toBe(
+      "custom-embedded_content"
+    );
+  });
+  describe("deleteEmbeddedContent", () => {
+    let embeddedContent;
+    const page: PersistedPage = {
+      action: "created",
+      body: "foo",
+      format: "md",
+      sourceName: "source1",
+      metadata: {
+        tags: [],
+      },
+      updated: new Date(),
+      url: "/x/y/z",
+    };
+
+    const anotherPage: PersistedPage = {
+      action: "created",
+      body: "bar",
+      format: "md",
+      sourceName: "another-source",
+      metadata: {
+        tags: [],
+      },
+      updated: new Date(),
+      url: "/a/b/c",
+    };
+
+    const pages = [page, anotherPage];
+    beforeEach(async () => {
+      assert(store);
+      for (const page of pages) {
+        embeddedContent = await store.loadEmbeddedContent({ page });
+        expect(embeddedContent).toStrictEqual([]);
+
+        await store.updateEmbeddedContent({
+          page,
+          embeddedContent: [
+            {
+              embeddings: {
+                [store.metadata.embeddingName]: new Array(1536).fill(0.1),
+              },
+              sourceName: page.sourceName,
+              text: page.body,
+              url: page.url,
+              tokenCount: 0,
+              updated: new Date(),
+            },
+          ],
+        });
+
+        expect(await store.loadEmbeddedContent({ page })).toMatchObject([
+          {
+            embeddings: {
+              [store.metadata.embeddingName]: expect.any(Array),
+            },
+            sourceName: page.sourceName,
+            text: page.body,
+            url: page.url,
+          },
+        ]);
+      }
+    });
+    it("deletes embedded content for a page", async () => {
+      assert(store);
+
+      await store.deleteEmbeddedContent({ page });
+
+      expect(await store.loadEmbeddedContent({ page })).toStrictEqual([]);
+      // Won't delete another page's embedded content
+      expect(
+        (await store.loadEmbeddedContent({ page: anotherPage })).length
+      ).toBe(1);
+    });
+    it("deletes embedded content for data sources specified", async () => {
+      assert(store);
+
+      await store.deleteEmbeddedContent({ dataSources: [page.sourceName] });
+
+      expect(await store.loadEmbeddedContent({ page })).toStrictEqual([]);
+      // Won't delete embedded content of another data source
+      const remainingEmbeddedContent = await store.loadEmbeddedContent({
+        page: anotherPage,
+      });
+      expect(remainingEmbeddedContent.length).toBe(1);
+      expect(remainingEmbeddedContent[0].sourceName).toBe(
+        anotherPage.sourceName
+      );
+    });
+    it("deletes embedded content for all data sources NOT specified", async () => {
+      assert(store);
+
+      await store.deleteEmbeddedContent({
+        dataSources: [page.sourceName],
+        inverseDataSources: true,
+      });
+
+      expect(
+        await store.loadEmbeddedContent({ page: anotherPage })
+      ).toStrictEqual([]);
+      // Won't delete embedded content for provided data source
+      const remainingEmbeddedContent = await store.loadEmbeddedContent({
+        page,
+      });
+      expect(remainingEmbeddedContent.length).toBe(1);
+      expect(remainingEmbeddedContent[0].sourceName).toBe(page.sourceName);
+    });
   });
 });
 

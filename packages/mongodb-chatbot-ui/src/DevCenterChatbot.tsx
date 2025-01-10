@@ -9,7 +9,8 @@ import { MongoDbLegalDisclosure } from "./MongoDbLegal";
 import { mongoDbVerifyInformationMessage } from "./ui-text";
 import { PoweredByAtlasVectorSearch } from "./PoweredByAtlasVectorSearch";
 import { css } from "@emotion/css";
-import { References } from "mongodb-rag-core";
+import { References } from "./references";
+import { Suspense } from "react";
 
 export type DevCenterChatbotProps = DarkModeProps & {
   initialMessageText?: string;
@@ -46,7 +47,9 @@ export function DevCenterChatbot(props: DevCenterChatbotProps) {
   return (
     <>
       <FloatingActionButtonTrigger {...triggerProps} />
-      <ModalView {...viewProps} />
+      <Suspense fallback={null}>
+        <ModalView {...viewProps} />
+      </Suspense>
     </>
   );
 }

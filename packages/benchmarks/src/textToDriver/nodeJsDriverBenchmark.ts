@@ -1,16 +1,12 @@
 import { runTextToDriverEval } from "./runTextToDriverEval";
 import { models } from "../models";
-import {
-  assertEnvVars,
-  CORE_OPENAI_CONNECTION_ENV_VARS,
-} from "mongodb-rag-core";
+import { assertEnvVars } from "mongodb-rag-core";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import { NODE_JS_PROMPTS } from "./generateDriverCode/languagePrompts/nodeJs";
 import { TEXT_TO_DRIVER_ENV_VARS } from "./TextToDriverEnvVars";
-import { BRAINTRUST_ENV_VARS, RADIANT_ENV_VARS } from "../envVars";
-import { wrapOpenAI } from "braintrust";
+import { BRAINTRUST_ENV_VARS } from "../envVars";
 import PromisePool from "@supercharge/promise-pool";
-import { makeOpenAiClientFactory } from "../makeOpenAiClientFactory";
+import { openAiClientFactory } from "../openAiClients";
 async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -18,39 +14,14 @@ async function main() {
   const {
     BRAINTRUST_API_KEY,
     BRAINTRUST_TEXT_TO_DRIVER_PROJECT_NAME,
-    BRAINTRUST_ENDPOINT,
     MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
-    RADIANT_API_KEY,
-    RADIANT_ENDPOINT,
-    MONGODB_AUTH_COOKIE,
-    OPENAI_API_KEY,
-    OPENAI_ENDPOINT,
-    OPENAI_API_VERSION,
   } = assertEnvVars({
     ...TEXT_TO_DRIVER_ENV_VARS,
-    ...RADIANT_ENV_VARS,
     ...BRAINTRUST_ENV_VARS,
-    ...CORE_OPENAI_CONNECTION_ENV_VARS,
   });
   const projectName = BRAINTRUST_TEXT_TO_DRIVER_PROJECT_NAME;
   const datasetName = "text-to-query-results";
   const DEFAULT_MAX_CONCURRENCY = 3;
-  const openAiClientFactory = makeOpenAiClientFactory({
-    azure: {
-      apiKey: OPENAI_API_KEY,
-      apiVersion: OPENAI_API_VERSION,
-      endpoint: OPENAI_ENDPOINT,
-    },
-    radiant: {
-      apiKey: RADIANT_API_KEY,
-      endpoint: RADIANT_ENDPOINT,
-      authCookie: MONGODB_AUTH_COOKIE,
-    },
-    braintrust: {
-      apiKey: BRAINTRUST_API_KEY,
-      endpoint: BRAINTRUST_ENDPOINT,
-    },
-  });
 
   const prompts = NODE_JS_PROMPTS.systemPrompts;
   const mongoClient = new MongoClient(MONGODB_TEXT_TO_DRIVER_CONNECTION_URI);
@@ -113,9 +84,7 @@ async function main() {
 
                   projectName,
                   apiKey: BRAINTRUST_API_KEY,
-                  openAiClient: wrapOpenAI(
-                    openAiClientFactory.makeOpenAiClient(modelInfo)
-                  ),
+                  openAiClient: openAiClientFactory.makeOpenAiClient(modelInfo),
                   maxConcurrency:
                     modelInfo.maxConcurrency ?? DEFAULT_MAX_CONCURRENCY,
                   sleepBeforeMs: modelInfo.sleepBeforeMs,

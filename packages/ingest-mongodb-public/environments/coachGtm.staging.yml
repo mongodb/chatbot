@@ -1,0 +1,42 @@
+image:
+  repository: node
+  tag: 18
+
+cronJobs:
+  - name: ingest-content-coach-gtm
+    schedule: "0 4 * * *" # every day at 4am UTC (11PM EST)
+    command: ["npm", "run", "ingest:k8s:coachGtmPages"]
+    env:
+      MONGODB_DATABASE_NAME: docs-chatbot-staging
+      VECTOR_SEARCH_INDEX_NAME: vector_index
+      OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
+      MONGODB_COACH_GTM_DATABASE_NAME: coach-gtm
+      OPENAI_API_VERSION: "2024-06-01"
+      OPENAI_VERIFIED_ANSWER_EMBEDDING_DEPLOYMENT: "docs-chatbot-embedding-ada-002"
+      OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT: "text-embedding-3-small"
+    envSecrets:
+      MONGODB_CONNECTION_URI: docs-chatbot-staging
+      OPENAI_ENDPOINT: docs-chatbot-staging
+      OPENAI_API_KEY: docs-chatbot-staging
+      OPENAI_CHAT_COMPLETION_DEPLOYMENT: docs-chatbot-staging
+      DEVCENTER_CONNECTION_URI: docs-chatbot-staging
+      GITHUB_ACCESS_TOKEN: docs-chatbot-staging
+      UNIVERSITY_DATA_API_KEY: docs-chatbot-staging
+      MONGODB_DOT_COM_CONNECTION_URI: docs-chatbot-staging
+      MONGODB_DOT_COM_DB_NAME: docs-chatbot-staging
+    resources:
+      # guaranteed amount of resources
+      requests:
+        cpu: 100m
+        memory: 2Gi
+      # maximum allowed resources
+      limits:
+        cpu: 500m
+        memory: 5Gi
+    backoffLimit: 3
+
+# Alerts
+defaultAlerts:
+  enabled: true
+  # email us and sergio's team
+  email: "chatbot-alerts@mongodb.com,sit@mongodb.com"

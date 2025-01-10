@@ -12,12 +12,14 @@ import { getMessageLinks } from "./messageLinks";
 import { RatingValue, type RatingCommentStatus } from "./MessageRating";
 import { AssistantMessageData } from "./services/conversations";
 
+const MessageRatingPromise = import("./MessageRating");
 const MessageRatingWithFeedbackComment = lazy(async () => ({
-  default: (await import("./MessageRating")).MessageRatingWithFeedbackComment,
+  default: (await MessageRatingPromise).MessageRatingWithFeedbackComment,
 }));
 
+const MessagePromptsPromise = import("./MessagePrompts");
 const MessagePrompts = lazy(async () => ({
-  default: (await import("./MessagePrompts")).MessagePrompts,
+  default: (await MessagePromptsPromise).MessagePrompts,
 }));
 
 const LoadingSkeleton = () => {
@@ -97,9 +99,9 @@ export function AssistantMessage({
   }>({
     status: "none",
   });
-  // const setUserCommentText = (text: string) => {
-  //   setUserComment((prev) => ({ ...prev, text }));
-  // };
+  const setUserCommentText = (text: string) => {
+    setUserComment((prev) => ({ ...prev, text }));
+  };
   const setUserCommentError = (errorMessage?: string) => {
     setUserComment((prev) => ({ ...prev, errorMessage }));
   };
@@ -162,6 +164,7 @@ export function AssistantMessage({
               errorMessage={userComment.errorMessage}
               clearErrorMessage={() => setUserCommentError(undefined)}
               maxCommentCharacterCount={maxCommentCharacters}
+              onCommentChange={setUserCommentText}
               messageRatingProps={{
                 value: rating.value,
                 description: "How was the response?",

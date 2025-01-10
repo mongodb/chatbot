@@ -9,7 +9,7 @@ import {
   preprocessorOpenAiClient,
 } from "../config";
 import { fuzzyLinkMatch } from "../eval/fuzzyLinkMatch";
-import { getConversationsEvalCasesFromYaml } from "../eval/getConversationEvalCasesFromYaml";
+import { getConversationsEvalCasesFromYaml } from "mongodb-rag-core/eval";
 import { averagePrecisionAtK } from "../eval/scorers/averagePrecisionAtK";
 import { binaryNdcgAtK } from "../eval/scorers/binaryNdcgAtK";
 import { f1AtK } from "../eval/scorers/f1AtK";

@@ -60,6 +60,21 @@ export interface EmbeddedContent {
   chunkAlgoHash?: string;
 }
 
+export type DeleteEmbeddedContentArgs = {
+  /**
+    The page for which to delete embedded content.
+    */
+  page?: Page;
+  /**
+    The names of the data sources for which to delete embedded content.
+    */
+  dataSources?: string[];
+  /**
+   If true, delete pages that do NOT match the data sources in the query.
+   */
+  inverseDataSources?: boolean;
+};
+
 /**
   Data store of the embedded content.
  */
@@ -70,9 +85,9 @@ export type EmbeddedContentStore = VectorStore<EmbeddedContent> & {
   loadEmbeddedContent(args: { page: Page }): Promise<EmbeddedContent[]>;
 
   /**
-    Delete all embedded content for the given page.
+    Delete all embedded content for the given page and/or data sources.
    */
-  deleteEmbeddedContent(args: { page: Page }): Promise<void>;
+  deleteEmbeddedContent(args: DeleteEmbeddedContentArgs): Promise<void>;
 
   /**
     Replace all embedded content for the given page with the given embedded content.

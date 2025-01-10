@@ -2,9 +2,9 @@ import { css, cx } from "@emotion/css";
 import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 import Modal, { ModalProps } from "@leafygreen-ui/modal";
 import { palette } from "@leafygreen-ui/palette";
-import { Suspense, lazy } from "react";
 import { type StylesProps } from "./utils";
 import { type ChatbotViewProps } from "./ChatbotView";
+import { ChatWindow } from "./ChatWindow";
 import { useChatbotContext } from "./useChatbotContext";
 
 const styles = {
@@ -40,10 +40,6 @@ const styles = {
   `,
 };
 
-const ChatWindow = lazy(() =>
-  import("./ChatWindow").then((module) => ({ default: module.ChatWindow }))
-);
-
 export type ModalViewProps = ChatbotViewProps & {
   shouldClose?: ModalProps["shouldClose"];
 };
@@ -65,21 +61,17 @@ export function ModalView(props: ModalViewProps) {
 
   const chatWindowInputBarId = inputBarId ?? "chatbot-modal-input-bar";
 
-  return (
-    <Suspense fallback={null}>
-      {open ? (
-        <Modal
-          className={cx(styles.modal_container({ darkMode }), className)}
-          open={open}
-          size="large"
-          initialFocus={
-            !conversation.error ? `#${chatWindowInputBarId}` : undefined
-          }
-          shouldClose={shouldClose}
-        >
-          <ChatWindow inputBarId={chatWindowInputBarId} {...chatWindowProps} />
-        </Modal>
-      ) : null}
-    </Suspense>
-  );
+  return open ? (
+    <Modal
+      className={cx(styles.modal_container({ darkMode }), className)}
+      open={open}
+      size="large"
+      initialFocus={
+        !conversation.error ? `#${chatWindowInputBarId}` : undefined
+      }
+      shouldClose={shouldClose}
+    >
+      <ChatWindow inputBarId={chatWindowInputBarId} {...chatWindowProps} />
+    </Modal>
+  ) : null;
 }

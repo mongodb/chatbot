@@ -14,6 +14,7 @@ const styles = {
       margin-left: 50px;
     }
 
+
     transition: opacity ${PROMPT_TRANSITION_DURATION_MS}ms ease-in;
 
     &-enter {
@@ -47,11 +48,14 @@ export const MessagePrompts = ({
   >(undefined);
   const nodeRef = useRef(null);
 
+  console.log("selectedPromptIndex", selectedPromptIndex);
+
   // This ref is used to prevent the user from clicking a suggested
   // prompt multiple times. We use a ref instead of state to ensure that
   // the prompt is only selected and sent to the server once regardless
   // of where we are in the React render cycle.
   const suggestedPromptClickedRef = useRef(false);
+  const [showPrompts, setShowPrompts] = useState(true);
   const onPromptSelected = (prompt: string, idx: number) => {
     // Don't do anything if the prompt is not selectable.
     if (!canSubmit(prompt)) {
@@ -69,9 +73,13 @@ export const MessagePrompts = ({
     // click handler.
     setTimeout(() => {
       onPromptClick(prompt);
+      setShowPrompts(false);
     }, PROMPT_TRANSITION_DURATION_MS);
   };
 
+  if (!showPrompts) {
+    return null;
+  }
   return (
     <CSSTransition
       in={selectedPromptIndex === undefined}

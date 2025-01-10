@@ -1,4 +1,9 @@
-import { SnootyNode, SnootyTextNode } from "./SnootyDataSource";
+import {
+  SnootyFacetNode,
+  SnootyMetaNode,
+  SnootyNode,
+  SnootyTextNode,
+} from "./SnootyDataSource";
 import { strict as assert } from "assert";
 import { renderSnootyTable } from "./renderSnootyTable";
 
@@ -149,7 +154,8 @@ const renderDirective = (
         .map((child) => renderAst(child, { parentHeadingLevel }))
         .join("")}\n\n</Tab>\n\n`;
     }
-    case "tabs" || "tabs-drivers":
+    case "tabs":
+    case "tabs-drivers":
       return `\n\n<Tabs>\n\n${node.children
         .map((child) => renderAst(child, { parentHeadingLevel }))
         .join("")}\n\n</Tabs>\n\n`;
@@ -203,4 +209,56 @@ export const getTitleFromSnootyAst = (node: SnootyNode): string | undefined => {
     ({ type }) => type === "text"
   ) as SnootyTextNode[];
   return textNodes.map(({ value }) => value).join("");
+};
+
+export const getMetadataFromSnootyAst = (node: SnootyNode) => {
+  const facetAndMetaNodes = findAll(
+    node,
+    ({ name }) => name === "facet" || name === "meta"
+  ) as (SnootyFacetNode | SnootyMetaNode)[];
+
+  const facetNodes = facetAndMetaNodes.filter(
+    (n) => n.name === "facet"
+  ) as SnootyFacetNode[];
+  const metaNodes = facetAndMetaNodes.filter(
+    (n) => n.name === "meta"
+  ) as SnootyMetaNode[];
+
+  const facets = facetNodes.reduce((acc, facetNode) => {
+    if (!facetNode.options) {
+      return acc;
+    }
+    const { name, values } = facetNode.options;
+    if (!name || !values) {
+      return acc;
+    }
+    acc[name] = values;
+    return acc;
+  }, {} as Record<string, string>);
+
+  let noIndex = false;
+  const meta = metaNodes.reduce((acc, metaNode) => {
+    if (!metaNode.options) {
+      return acc;
+    }
+    const metaEntries = Object.entries(metaNode.options);
+    for (const [key, value] of metaEntries) {
+      if (key === "keywords" && value) {
+        acc[key] = value.split(",").map((s) => s.trim());
+      } else if (key === "description" && value) {
+        acc[key] = value;
+      } else if (key === "robots" && value) {
+        noIndex = value.includes("noindex");
+      }
+    }
+
+    return acc;
+  }, {} as Record<string, string | string[]>);
+  return {
+    metadata: {
+      ...facets,
+      ...meta,
+    },
+    noIndex,
+  };
 };

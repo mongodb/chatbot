@@ -1,5 +1,4 @@
 import { useMemo, useReducer } from "react";
-import { type References } from "mongodb-rag-core";
 import {
   MessageData,
   ConversationService,
@@ -18,9 +17,10 @@ import {
   removeArrayElementAt,
   updateArrayElementAt,
   canUseServerSentEvents,
+  isProductionBuild,
 } from "./utils";
 import { makePrioritizeCurrentMongoDbReferenceDomain } from "./messageLinks";
-import { SortReferences } from "./sortReferences";
+import { type References, SortReferences } from "./references";
 
 const STREAMING_MESSAGE_ID = "streaming-response";
 
@@ -420,7 +420,7 @@ export function useConversation(params: UseConversationParams) {
     defaultConversationState
   );
   const dispatch = (...args: Parameters<typeof _dispatch>) => {
-    if (import.meta.env.MODE !== "production") {
+    if (!isProductionBuild()) {
       console.log(`dispatch`, ...args);
     }
     _dispatch(...args);
@@ -668,6 +668,7 @@ export function useConversation(params: UseConversationParams) {
   };
 
   const commentMessage = async (messageId: string, comment: string) => {
+    console.log(`commentMessage`, { messageId, comment });
     if (!state.conversationId) {
       console.error(`Cannot commentMessage without a conversationId`);
       return;

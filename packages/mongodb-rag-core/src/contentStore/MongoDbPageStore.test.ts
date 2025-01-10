@@ -224,6 +224,7 @@ describe("MongoDbPageStore", () => {
       "custom-pages"
     );
   });
+
   it("initialized the store with indexes", async () => {
     assert(store);
     const mongoClient = new MongoClient(uri);
@@ -242,5 +243,64 @@ describe("MongoDbPageStore", () => {
     } finally {
       await mongoClient.close();
     }
+  });
+
+  describe("deletePages", () => {
+    beforeEach(async () => {
+      assert(store);
+      const moviePagesWithSource = moviePages.map((page, index) => ({
+        ...page,
+        sourceName: `source-${index}`,
+      }));
+      await store.updatePages(moviePagesWithSource);
+    });
+
+    it("marks all pages as deleted", async () => {
+      assert(store);
+      await store.deletePages({});
+
+      const pages = await store.loadPages();
+      const pagesMarkedDeleted = pages.filter(
+        ({ action }) => action === "deleted"
+      );
+      expect(pagesMarkedDeleted.length).toBe(5);
+    });
+
+    it("permanently deletes pages", async () => {
+      assert(store);
+      await store.deletePages({ permanent: true });
+
+      const pages = await store.loadPages();
+      expect(pages.length).toBe(0);
+    });
+
+    it("deletes pages of a specific dataSource", async () => {
+      assert(store);
+      await store.deletePages({
+        dataSources: ["source-1", "source-2"],
+        permanent: true,
+      });
+
+      const pages = await store.loadPages();
+      expect(pages.length).toBe(3);
+    });
+
+    it("deletes pages belonging to all dataSources NOT listed", async () => {
+      assert(store);
+      await store.deletePages({
+        dataSources: ["source-1", "source-2"],
+        permanent: true,
+        inverse: true,
+      });
+
+      const pages = await store.loadPages();
+      const pageDataSources = pages.map(({ sourceName }) => sourceName);
+      expect(pages.length).toBe(2);
+      expect(pageDataSources).toContain("source-1");
+      expect(pageDataSources).toContain("source-2");
+      expect(pageDataSources).not.toContain("source-0");
+      expect(pageDataSources).not.toContain("source-3");
+      expect(pageDataSources).not.toContain("source-4");
+    });
   });
 });

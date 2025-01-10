@@ -9,8 +9,10 @@ import { DarkModeProps } from "./DarkMode";
 import { mapRatingBooleanToValue } from "./MessageRating";
 import { AssistantMessageProps } from "./Message";
 
+const MessagePromise = import("./Message");
+
 const Message = lazy(async () => ({
-  default: (await import("./Message")).Message,
+  default: (await MessagePromise).Message,
 }));
 
 const styles = {

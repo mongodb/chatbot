@@ -30,7 +30,8 @@
     "./langchain": "./build/langchain.js",
     "./mongodb": "./build/mongodb.js",
     "./openai": "./build/openai.js",
-    "./dataSources": "./build/dataSources/index.js"
+    "./dataSources": "./build/dataSources/index.js",
+    "./eval": "./build/eval/index.js"
   },
   "scripts": {
     "clean": "rm -rf build",

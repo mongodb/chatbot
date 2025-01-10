@@ -7,9 +7,10 @@ import {
   DeltaStreamEvent,
   MetadataStreamEvent,
   ReferencesStreamEvent,
+  UnknownStreamEvent,
   getCustomRequestOrigin,
 } from "./conversations";
-import { type References } from "mongodb-rag-core";
+import { type References } from "../references";
 import * as FetchEventSource from "@microsoft/fetch-event-source";
 // Mock fetch for regular awaited HTTP requests
 // TODO: make TypeScript compiler ok with this, or skip putting this in the compiled code for staging
@@ -277,6 +278,110 @@ describe("ConversationService", () => {
         "metadata"
       )
     );
+    expect(finishedStreaming).toEqual(true);
+  });
+
+  it("gracefully handles unknown stream event types", async () => {
+    const conversationId = "650b4b260f975ef031016c8d";
+    type PotentiallyUnknownStreamEvent =
+      | ConversationStreamEvent
+      | UnknownStreamEvent;
+    const mockedEvents =
+      mockFetchEventSourceResponse<PotentiallyUnknownStreamEvent>(
+        {
+          id: undefined,
+          type: undefined,
+          data: { type: "unknown123", data: "Hello world!" },
+        },
+        {
+          id: undefined,
+          type: undefined,
+          data: {
+            type: "delta",
+            data: "Once upon a time there was a very long string.",
+          },
+        },
+        {
+          id: undefined,
+          type: undefined,
+          data: { type: "unknownABC", data: null },
+        },
+        {
+          id: undefined,
+          type: undefined,
+          data: {
+            type: "references",
+            data: [
+              { title: "Title 1", url: "https://example.com/1" },
+              { title: "Title 2", url: "https://example.com/2" },
+            ],
+          },
+        },
+        {
+          id: undefined,
+          type: undefined,
+          data: { type: "unknown", data: 42 },
+        },
+        {
+          id: undefined,
+          type: undefined,
+          data: { type: "finished", data: "650b4be0d5a57dd66be2ccb9" },
+        }
+      );
+
+    const deltas: string[] = [];
+    const references: References[] = [];
+    const metadatas: AssistantMessageMetadata[] = [];
+    let streamedMessageId: string | undefined;
+    let finishedStreaming = false;
+    await conversationService.addMessageStreaming({
+      conversationId,
+      message: "Hello world!",
+      maxRetries: 0,
+      onResponseDelta: async (data: string) => {
+        console.log("onResponseDelta", data);
+        deltas.push(data);
+      },
+      onResponseFinished: async (messageId: string) => {
+        console.log("onResponseFinished", messageId);
+        streamedMessageId = messageId;
+        finishedStreaming = true;
+      },
+      onReferences: async (refs) => {
+        console.log("onReferences", refs);
+        references.push(refs);
+      },
+      onMetadata: async (metadata) => {
+        console.log("onMetadata", metadata);
+        metadatas.push(metadata);
+      },
+    });
+
+    const filterableMockedEvents =
+      mockedEvents as FetchEventSource.MockEvent<ConversationStreamEvent>[];
+
+    expect(deltas).toEqual(
+      filterMockedConversationEventsData<DeltaStreamEvent>(
+        filterableMockedEvents,
+        "delta"
+      )
+    );
+
+    expect(references).toEqual(
+      filterMockedConversationEventsData<ReferencesStreamEvent>(
+        filterableMockedEvents,
+        "references"
+      )
+    );
+
+    expect(metadatas).toEqual(
+      filterMockedConversationEventsData<MetadataStreamEvent>(
+        filterableMockedEvents,
+        "metadata"
+      )
+    );
+
+    expect(streamedMessageId).toEqual("650b4be0d5a57dd66be2ccb9");
     expect(finishedStreaming).toEqual(true);
   });
 

@@ -149,3 +149,7 @@ export type DeepPartial<T> = {
     ? DeepPartial<T[P]>
     : T[P];
 };
+
+export function isProductionBuild() {
+  return import.meta.env.MODE === "production";
+}

@@ -1,6 +1,6 @@
 {
   "name": "mongodb-chatbot-ui",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "description": "UI React components for the MongoDB Chatbot Framework",
   "author": "MongoDB, Inc.",
   "license": "Apache-2.0",
@@ -67,9 +67,6 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "bundleDependencies": [
-    "mongodb-rag-core"
-  ],
   "dependencies": {
     "@emotion/css": "^11.11.2",
     "@leafygreen-ui/badge": "^8.1.2",
@@ -101,9 +98,9 @@
     "@lg-chat/message-rating": "^2.0.2",
     "@lg-chat/rich-links": "^1.2.0",
     "@microsoft/fetch-event-source": "^2.0.1",
+    "bson": "^5.5.1",
     "buffer": "^6.0.3",
     "esbuild": "^0.17.19",
-    "mongodb-rag-core": "^0.0.5",
     "prettier": "^2.8.8",
     "react-markdown": "^8.0.7",
     "react-transition-group": "^4.4.5",
@@ -137,7 +134,6 @@
     "eslint-plugin-react-refresh": "^0.3.4",
     "eslint-plugin-storybook": "^0.6.12",
     "jsdom": "^22.1.0",
-    "mocksse": "^1.0.4",
     "node-stdlib-browser": "^1.2.0",
     "postcss": "^8.4.27",
     "prop-types": "^15.8.1",

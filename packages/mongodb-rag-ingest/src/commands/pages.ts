@@ -56,9 +56,10 @@ const commandModule: CommandModule<
 export default commandModule;
 
 export const doInitPagesCommand = async ({ pageStore }: ResolvedConfig) => {
-  if (pageStore) {
-    await pageStore?.init?.();
+  if (!pageStore) {
+    throw new Error(`Failed to initialize page store.`);
   }
+  await pageStore.init?.();
 };
 
 type UpdatePagesCommandArgs = {

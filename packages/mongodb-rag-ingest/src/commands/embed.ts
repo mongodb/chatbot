@@ -68,9 +68,10 @@ const commandModule: CommandModule<
 export default commandModule;
 
 export const doInitEmbedCommand = async ({ embeddedContentStore }: ResolvedConfig) => {
-  if (embeddedContentStore) {
-    await embeddedContentStore?.init?.();
+  if (!embeddedContentStore) {
+    throw new Error(`Failed to initialize embedded content store.`);
   }
+  await embeddedContentStore.init?.();
 };
 
 type UpdateEmbedCommandArgs = {

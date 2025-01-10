@@ -284,5 +284,23 @@ describe("MongoDbPageStore", () => {
       const pages = await store.loadPages();
       expect(pages.length).toBe(3);
     });
+
+    it("deletes pages belonging to all dataSources NOT listed", async () => {
+      assert(store);
+      await store.deletePages({
+        dataSources: ["source-1", "source-2"],
+        permanent: true,
+        inverse: true,
+      });
+
+      const pages = await store.loadPages();
+      const pageDataSources = pages.map(({ sourceName }) => sourceName);
+      expect(pages.length).toBe(2);
+      expect(pageDataSources).toContain("source-1");
+      expect(pageDataSources).toContain("source-2");
+      expect(pageDataSources).not.toContain("source-0");
+      expect(pageDataSources).not.toContain("source-3");
+      expect(pageDataSources).not.toContain("source-4");
+    });
   });
 });

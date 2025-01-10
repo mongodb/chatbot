@@ -67,9 +67,6 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "bundleDependencies": [
-    "mongodb-rag-core"
-  ],
   "dependencies": {
     "@emotion/css": "^11.11.2",
     "@leafygreen-ui/badge": "^8.1.2",
@@ -101,9 +98,9 @@
     "@lg-chat/message-rating": "^2.0.2",
     "@lg-chat/rich-links": "^1.2.0",
     "@microsoft/fetch-event-source": "^2.0.1",
+    "bson": "^5.5.1",
     "buffer": "^6.0.3",
     "esbuild": "^0.17.19",
-    "mongodb-rag-core": "^0.0.5",
     "prettier": "^2.8.8",
     "react-markdown": "^8.0.7",
     "react-transition-group": "^4.4.5",

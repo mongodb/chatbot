@@ -1,4 +1,4 @@
-import { References } from "mongodb-rag-core";
+import { References } from "./references";
 import {
   formatReferences,
   getMessageLinks,

@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { type References } from "mongodb-rag-core";
 import {
   ConversationService,
   ConversationFetchOptions,
@@ -9,7 +8,7 @@ import {
 import createMessage, { createMessageId } from "./createMessage";
 import { countRegexMatches, canUseServerSentEvents } from "./utils";
 import { makePrioritizeCurrentMongoDbReferenceDomain } from "./messageLinks";
-import { SortReferences } from "./sortReferences";
+import { type References, SortReferences } from "./references";
 
 import {
   type ConversationState,

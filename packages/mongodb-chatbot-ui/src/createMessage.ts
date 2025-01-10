@@ -1,4 +1,4 @@
-import { References } from "mongodb-rag-core";
+import { type References } from "./references";
 import {
   AssistantMessageMetadata,
   MessageData,

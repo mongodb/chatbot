@@ -1,5 +1,6 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import { References, VerifiedAnswer } from "mongodb-rag-core";
+import { type VerifiedAnswer } from "../verifiedAnswer";
+import { type References } from "../references";
 import { ConversationState } from "../useConversation";
 import { strict as assert } from "node:assert";
 import { isProductionBuild } from "../utils";

@@ -11,7 +11,7 @@ import { Chatbot } from "./Chatbot";
 import { DocsChatbot } from "./DocsChatbot";
 import { DevCenterChatbot } from "./DevCenterChatbot";
 import { HotkeyTrigger } from "./HotkeyTrigger";
-import { makePrioritizeReferenceDomain } from "./sortReferences";
+import { makePrioritizeReferenceDomain } from "./references";
 
 const prefersDarkMode = () =>
   window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;

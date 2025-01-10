@@ -9,7 +9,7 @@ import { MongoDbLegalDisclosure } from "./MongoDbLegal";
 import { mongoDbVerifyInformationMessage } from "./ui-text";
 import { PoweredByAtlasVectorSearch } from "./PoweredByAtlasVectorSearch";
 import { css } from "@emotion/css";
-import { References } from "mongodb-rag-core";
+import { References } from "./references";
 
 export type DevCenterChatbotProps = DarkModeProps & {
   initialMessageText?: string;

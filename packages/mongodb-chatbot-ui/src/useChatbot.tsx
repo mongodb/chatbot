@@ -17,7 +17,6 @@ export type UseChatbotProps = OpenCloseHandlers &
 export type ChatbotData = {
   awaitingReply: boolean;
   canSubmit: (text: string) => boolean;
-
   closeChat: () => boolean;
   conversation: ReturnType<typeof useConversation>;
   handleSubmit: (text: string) => void | Promise<void>;
@@ -52,16 +51,14 @@ export function useChatbot({
       return;
     }
     onOpen?.();
-    let prom: Promise<void> | undefined;
-    if (!conversation.conversationId) {
-      prom = conversation.createConversation();
-    }
     startTransition(() => {
-      prom
-        ? prom.then(() => {
-            setOpen(true);
-          })
-        : setOpen(true);
+      if (!conversation.conversationId) {
+        conversation.createConversation().then(() => {
+          setOpen(true);
+        });
+      } else {
+        setOpen(true);
+      }
     });
   }
 
@@ -122,10 +119,7 @@ export function useChatbot({
       setInputText("");
       setAwaitingReply(true);
       openChat();
-      await conversation.addMessage({
-        role: "user",
-        content: text,
-      });
+      await conversation.submit(text);
     } catch (e) {
       console.error(e);
     } finally {

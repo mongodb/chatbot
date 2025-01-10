@@ -59,10 +59,10 @@ export function ChatMessageFeed(props: ChatMessageFeedProps) {
         </DisclaimerText>
       ) : null}
       {messages.map((message, idx) => {
-        const isLoading = conversation.isStreamingMessage
-          ? message.id === conversation.streamingMessage?.id &&
-            conversation.streamingMessage?.content === ""
-          : false;
+        const isLoading =
+          message.id === conversation.streamingMessageId &&
+          conversation.getMessage(conversation.streamingMessageId ?? "")
+            ?.content === "";
 
         const isInitialMessage = idx === 0;
 
@@ -76,8 +76,7 @@ export function ChatMessageFeed(props: ChatMessageFeedProps) {
               message.role === "assistant" &&
               !isLoading &&
               !(
-                awaitingReply &&
-                conversation.streamingMessage?.id === message.id
+                awaitingReply && conversation.streamingMessageId === message.id
               ) &&
               // We don't want users to rate the initial message (and they can't because it's not in the database)
               !isInitialMessage

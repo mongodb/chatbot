@@ -1,7 +1,6 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { type VerifiedAnswer } from "../verifiedAnswer";
 import { type References } from "../references";
-import { ConversationState } from "../useConversation";
 import { strict as assert } from "node:assert";
 import { isProductionBuild } from "../utils";
 
@@ -31,6 +30,35 @@ export type AssistantMessageMetadata = {
     updated: string | undefined;
   };
 };
+
+export type ConversationData = {
+  _id: string;
+  messages: MessageData[];
+  createdAt: number;
+};
+
+function asConversationData(data: Record<string, unknown>): ConversationData {
+  if (!(typeof data._id === "string")) {
+    throw new Error("Invalid conversation data: _id must be a string");
+  }
+  if (!Array.isArray(data.messages)) {
+    throw new Error("Invalid conversation data: messages must be an array");
+  }
+  if (
+    !(typeof data.createdAt === "number") ||
+    new Date(data.createdAt).getTime() !== data.createdAt
+  ) {
+    throw new Error(
+      `Invalid conversation data: createdAt must be a valid datetime number. Got ${data.createdAt}`
+    );
+  }
+
+  return {
+    _id: data._id,
+    messages: data.messages,
+    createdAt: data.createdAt,
+  } satisfies ConversationData;
+}
 
 export const CUSTOM_REQUEST_ORIGIN_HEADER = "X-Request-Origin";
 
@@ -192,7 +220,7 @@ export class ConversationService {
     return `${url}?${queryString}`;
   }
 
-  async createConversation(): Promise<Required<ConversationState>> {
+  async createConversation(): Promise<ConversationData> {
     const path = `/conversations`;
     const resp = await fetch(this.getUrl(path), {
       ...this.fetchOptions,
@@ -209,28 +237,20 @@ export class ConversationService {
     if (resp.status >= 500) {
       throw new Error(`Server error: ${conversation.error}`);
     }
-    return {
-      ...conversation,
-      conversationId: conversation._id,
-    };
+    return asConversationData(conversation);
   }
 
-  async getConversation(
-    conversationId: string
-  ): Promise<Required<ConversationState>> {
+  async getConversation(conversationId: string): Promise<ConversationData> {
     const path = `/conversations/${conversationId}`;
     const resp = await fetch(this.getUrl(path), this.fetchOptions);
-    const conversation = await resp.json();
     if (resp.status === 404) {
       throw new Error(`Conversation not found: ${conversationId}`);
     }
+    const conversation = await resp.json();
     if (resp.status !== 200) {
       throw new Error(`Failed to fetch conversation: ${conversation.error}`);
     }
-    return {
-      ...conversation,
-      conversationId: conversation._id,
-    };
+    return asConversationData(conversation);
   }
 
   async addMessage({

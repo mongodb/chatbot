@@ -15,10 +15,23 @@ import { CharacterCount } from "./InputBar";
 
 export type RatingCommentStatus = "none" | "submitted" | "abandoned";
 
+export type RatingValue = "liked" | "disliked";
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function mapRatingBooleanToValue(
+  rating?: boolean
+): RatingValue | undefined {
+  if (rating === undefined) {
+    return undefined;
+  }
+  return rating ? "liked" : "disliked";
+}
+
 export type MessageRatingWithFeedbackCommentProps = {
   submit: (commentText: string) => void | Promise<void>;
   abandon: () => void;
   status: RatingCommentStatus;
+  onCommentChange: (commentText: string) => void;
   errorMessage?: string;
   clearErrorMessage?: () => void;
   maxCommentCharacterCount?: number;
@@ -32,6 +45,7 @@ export function MessageRatingWithFeedbackComment(
     submit,
     abandon,
     status,
+    onCommentChange,
     errorMessage,
     maxCommentCharacterCount,
     messageRatingProps,
@@ -81,6 +95,7 @@ export function MessageRatingWithFeedbackComment(
               onChange: (e) => {
                 const textarea = e.target as HTMLTextAreaElement;
                 setCharacterCount(textarea.value.length);
+                onCommentChange(textarea.value);
               },
               // @ts-expect-error Hacky fix for https://jira.mongodb.org/browse/LG-3964
               label:

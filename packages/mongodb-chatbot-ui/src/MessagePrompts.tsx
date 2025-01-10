@@ -14,6 +14,7 @@ const styles = {
       margin-left: 50px;
     }
 
+
     transition: opacity ${PROMPT_TRANSITION_DURATION_MS}ms ease-in;
 
     &-enter {
@@ -52,6 +53,7 @@ export const MessagePrompts = ({
   // the prompt is only selected and sent to the server once regardless
   // of where we are in the React render cycle.
   const suggestedPromptClickedRef = useRef(false);
+  const [showPrompts, setShowPrompts] = useState(true);
   const onPromptSelected = (prompt: string, idx: number) => {
     // Don't do anything if the prompt is not selectable.
     if (!canSubmit(prompt)) {
@@ -69,9 +71,13 @@ export const MessagePrompts = ({
     // click handler.
     setTimeout(() => {
       onPromptClick(prompt);
+      setShowPrompts(false);
     }, PROMPT_TRANSITION_DURATION_MS);
   };
 
+  if (!showPrompts) {
+    return null;
+  }
   return (
     <CSSTransition
       in={selectedPromptIndex === undefined}

@@ -6,9 +6,13 @@ import { MessageData } from "./services/conversations";
 import { useChatbotContext } from "./useChatbotContext";
 import { lazy } from "react";
 import { DarkModeProps } from "./DarkMode";
+import { mapRatingBooleanToValue } from "./MessageRating";
+import { AssistantMessageProps } from "./Message";
+
+const MessagePromise = import("./Message");
 
 const Message = lazy(async () => ({
-  default: (await import("./Message")).Message,
+  default: (await MessagePromise).Message,
 }));
 
 const styles = {
@@ -59,39 +63,78 @@ export function ChatMessageFeed(props: ChatMessageFeedProps) {
         </DisclaimerText>
       ) : null}
       {messages.map((message, idx) => {
-        const isLoading = conversation.isStreamingMessage
-          ? message.id === conversation.streamingMessage?.id &&
-            conversation.streamingMessage?.content === ""
-          : false;
+        switch (message.role) {
+          case "user": {
+            return (
+              <Message
+                key={message.id}
+                id={message.id}
+                role="user"
+                content={message.content}
+              />
+            );
+          }
+          case "assistant": {
+            const isLoading = conversation.isStreamingMessage
+              ? message.id === conversation.streamingMessage?.id &&
+                conversation.streamingMessage?.content === ""
+              : false;
 
-        const isInitialMessage = idx === 0;
+            const isInitialMessage = idx === 0;
 
-        return (
-          <Message
-            key={message.id}
-            messageData={message}
-            isLoading={isLoading}
-            showRating={
-              // Users can rate assistant messages that have started streaming
-              message.role === "assistant" &&
-              !isLoading &&
-              !(
-                awaitingReply &&
-                conversation.streamingMessage?.id === message.id
-              ) &&
-              // We don't want users to rate the initial message (and they can't because it's not in the database)
-              !isInitialMessage
-            }
-            conversation={conversation}
-            suggestedPrompts={message.suggestedPrompts}
-            showSuggestedPrompts={
-              // For now we'll only show suggested prompts for the initial message and hide them once the user submits anything
-              isInitialMessage && conversation.messages.length === 0
-            }
-            onSuggestedPromptClick={handleSubmit}
-            canSubmitSuggestedPrompt={canSubmit}
-          />
-        );
+            const rating = {
+              value: mapRatingBooleanToValue(message.rating),
+              // hidden: !showRating,
+              hidden:
+                // You can only rate an assistant message...
+                message.role !== "assistant" ||
+                // ...if it's not loading...
+                isLoading ||
+                // ...and if it's not currently streaming in...
+                (awaitingReply &&
+                  conversation.streamingMessage?.id === message.id) ||
+                // ...and it's not the initial message (which doesn't exist in the database)
+                isInitialMessage,
+            };
+
+            const suggestedPrompts = (
+              message.suggestedPrompts !== undefined &&
+              message.suggestedPrompts.length > 0
+                ? {
+                    prompts: message.suggestedPrompts,
+                    onClick: handleSubmit,
+                    canSubmit,
+                  }
+                : undefined
+            ) satisfies AssistantMessageProps["suggestedPrompts"];
+
+            const verified = (
+              message.metadata?.verifiedAnswer
+                ? {
+                    verifier: "MongoDB Staff",
+                    verifiedAt: new Date(
+                      message.metadata?.verifiedAnswer.created ??
+                        message.metadata?.verifiedAnswer.updated
+                    ),
+                  }
+                : undefined
+            ) as AssistantMessageProps["verified"];
+
+            return (
+              <Message
+                key={message.id}
+                id={message.id}
+                role="assistant"
+                content={message.content}
+                isLoading={isLoading}
+                rating={rating}
+                references={message.references}
+                suggestedPrompts={suggestedPrompts}
+                verified={verified}
+              />
+            );
+          }
+        }
       })}
     </MessageFeed>
   );

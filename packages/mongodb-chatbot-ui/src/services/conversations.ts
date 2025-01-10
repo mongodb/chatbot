@@ -1,36 +1,59 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import { type VerifiedAnswer } from "../verifiedAnswer";
-import { type References } from "../references";
+import { References } from "../references";
 import { ConversationState } from "../useConversation";
 import { strict as assert } from "node:assert";
 import { isProductionBuild } from "../utils";
+import { z } from "zod";
 
-export type Role = "user" | "assistant";
+export const SomeMessageDataSchema = z.object({
+  id: z.string(),
+  role: z.enum(["user", "assistant"]),
+  content: z.string(),
+  createdAt: z.string(),
+});
+export type SomeMessageData = z.infer<typeof SomeMessageDataSchema>;
+export type Role = SomeMessageData["role"];
 
-export type MessageData = {
-  id: string;
-  role: Role;
-  content: string;
-  createdAt: string;
-  rating?: boolean;
-  references?: References;
-  suggestedPrompts?: string[];
-  metadata?: AssistantMessageMetadata;
-};
+export const UserMessageDataSchema = SomeMessageDataSchema.extend({
+  role: z.literal("user"),
+});
+export type UserMessageData = z.infer<typeof UserMessageDataSchema>;
 
-export type AssistantMessageMetadata = {
-  [k: string]: unknown;
+export const AssistantMessageMetadataSchema = z
+  .object({
+    verifiedAnswer: z
+      .object({
+        _id: z.string(),
+        created: z.string(),
+        updated: z.string().optional(),
+      })
+      .optional()
+      .describe(
+        "If the message came from the verified answers collection, this contains metadata about the verified answer."
+      ),
+  })
+  .passthrough();
+export type AssistantMessageMetadata = z.infer<
+  typeof AssistantMessageMetadataSchema
+>;
 
-  /**
-    If the message came from the verified answers collection, contains the
-    metadata about the verified answer.
-  */
-  verifiedAnswer?: {
-    _id: VerifiedAnswer["_id"];
-    created: string;
-    updated: string | undefined;
-  };
-};
+export const AssistantMessageDataSchema = SomeMessageDataSchema.extend({
+  role: z.literal("assistant"),
+  rating: z.boolean().optional(),
+  references: References.optional(),
+  suggestedPrompts: z.array(z.string()).optional(),
+  metadata: AssistantMessageMetadataSchema.optional(),
+});
+
+export type AssistantMessageData = z.infer<typeof AssistantMessageDataSchema>;
+
+export function isAssistantMessageData(
+  data: unknown
+): data is AssistantMessageData {
+  return AssistantMessageDataSchema.safeParse(data).success;
+}
+
+export type MessageData = UserMessageData | AssistantMessageData;
 
 export const CUSTOM_REQUEST_ORIGIN_HEADER = "X-Request-Origin";
 
@@ -239,7 +262,7 @@ export class ConversationService {
   }: {
     conversationId: string;
     message: string;
-  }): Promise<MessageData> {
+  }): Promise<AssistantMessageData> {
     const path = `/conversations/${conversationId}/messages`;
     const resp = await fetch(this.getUrl(path), {
       ...this.fetchOptions,

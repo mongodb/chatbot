@@ -84,7 +84,7 @@ describe("getMessageLinks", () => {
       content: "Here are some links",
       references: testReferences,
     } satisfies MessageData;
-    const richLinkProps = getMessageLinks(messageData);
+    const richLinkProps = getMessageLinks(messageData.references);
     expect(richLinkProps).toEqual([
       {
         href: "https://mongodb.com/developer/products/atlas/foobar",

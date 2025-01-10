@@ -16,7 +16,7 @@ import { type ChatbotViewProps } from "./ChatbotView";
 import { useChatbotContext } from "./useChatbotContext";
 import { useHotkeyContext } from "./HotkeyContext";
 import { ChatMessageFeed } from "./ChatMessageFeed";
-import { MessageData } from "./services/conversations";
+import { AssistantMessageData, MessageData } from "./services/conversations";
 import { DarkModeProps } from "./DarkMode";
 
 export type ChatWindowProps = ChatbotViewProps;
@@ -42,7 +42,7 @@ export function ChatWindow(props: ChatWindowProps) {
     if (!initialMessageText) {
       return null;
     }
-    const data: MessageData = {
+    const data: AssistantMessageData = {
       id: crypto.randomUUID(),
       role: "assistant",
       content: initialMessageText,

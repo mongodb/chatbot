@@ -48,8 +48,6 @@ export const MessagePrompts = ({
   >(undefined);
   const nodeRef = useRef(null);
 
-  console.log("selectedPromptIndex", selectedPromptIndex);
-
   // This ref is used to prevent the user from clicking a suggested
   // prompt multiple times. We use a ref instead of state to ensure that
   // the prompt is only selected and sent to the server once regardless

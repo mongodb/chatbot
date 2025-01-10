@@ -82,20 +82,20 @@ export function ChatMessageFeed(props: ChatMessageFeedProps) {
 
             const isInitialMessage = idx === 0;
 
-            const showRating =
-              // Users can rate assistant messages that have started streaming
-              message.role === "assistant" &&
-              !isLoading &&
-              !(
-                awaitingReply &&
-                conversation.streamingMessage?.id === message.id
-              ) &&
-              // We don't want users to rate the initial message (and they can't because it's not in the database)
-              !isInitialMessage;
-
-            const rating = (
-              showRating ? mapRatingBooleanToValue(message.rating) : undefined
-            ) satisfies AssistantMessageProps["rating"];
+            const rating = {
+              value: mapRatingBooleanToValue(message.rating),
+              // hidden: !showRating,
+              hidden:
+                // You can only rate an assistant message...
+                message.role !== "assistant" ||
+                // ...if it's not loading...
+                isLoading ||
+                // ...and if it's not currently streaming in...
+                (awaitingReply &&
+                  conversation.streamingMessage?.id === message.id) ||
+                // ...and it's not the initial message (which doesn't exist in the database)
+                isInitialMessage,
+            };
 
             const suggestedPrompts = (
               message.suggestedPrompts !== undefined &&

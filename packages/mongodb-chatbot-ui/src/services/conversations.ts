@@ -1,113 +1,59 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import { type VerifiedAnswer } from "../verifiedAnswer";
-import { type References } from "../references";
+import { References } from "../references";
 import { ConversationState } from "../useConversation";
 import { strict as assert } from "node:assert";
 import { isProductionBuild } from "../utils";
+import { z } from "zod";
 
-export const possibleRoles = ["user", "assistant"] as const;
-export type Role = (typeof possibleRoles)[number];
+export const SomeMessageDataSchema = z.object({
+  id: z.string(),
+  role: z.enum(["user", "assistant"]),
+  content: z.string(),
+  createdAt: z.string(),
+});
+export type SomeMessageData = z.infer<typeof SomeMessageDataSchema>;
+export type Role = SomeMessageData["role"];
 
-export type SomeMessageData = {
-  id: string;
-  role: Role;
-  content: string;
-  createdAt: string;
-};
+export const UserMessageDataSchema = SomeMessageDataSchema.extend({
+  role: z.literal("user"),
+});
+export type UserMessageData = z.infer<typeof UserMessageDataSchema>;
 
-function isSomeMessageData(data: unknown): data is SomeMessageData {
-  if (typeof data !== "object" || data === null) {
-    return false;
-  }
-  const messageData = data as SomeMessageData;
-  return (
-    possibleRoles.includes(messageData.role) &&
-    typeof messageData.id === "string" &&
-    typeof messageData.content === "string" &&
-    typeof messageData.createdAt === "string"
-  );
-}
+export const AssistantMessageMetadataSchema = z
+  .object({
+    verifiedAnswer: z
+      .object({
+        _id: z.string(),
+        created: z.string(),
+        updated: z.string().optional(),
+      })
+      .optional()
+      .describe(
+        "If the message came from the verified answers collection, this contains metadata about the verified answer."
+      ),
+  })
+  .passthrough();
+export type AssistantMessageMetadata = z.infer<
+  typeof AssistantMessageMetadataSchema
+>;
 
-export type UserMessageData = SomeMessageData & {
-  role: "user";
-};
+export const AssistantMessageDataSchema = SomeMessageDataSchema.extend({
+  role: z.literal("assistant"),
+  rating: z.boolean().optional(),
+  references: References.optional(),
+  suggestedPrompts: z.array(z.string()).optional(),
+  metadata: AssistantMessageMetadataSchema.optional(),
+});
 
-export function isUserMessageData(data: unknown): data is UserMessageData {
-  return isSomeMessageData(data) && data.role === "user";
-}
-
-export function asUserMessageData(data: SomeMessageData): UserMessageData {
-  if (!isUserMessageData(data)) {
-    throw new Error("Invalid user message data");
-  }
-  return data;
-}
-
-export type AssistantMessageData = SomeMessageData & {
-  role: "assistant";
-  rating?: boolean;
-  references?: References;
-  suggestedPrompts?: string[];
-  metadata?: AssistantMessageMetadata;
-};
+export type AssistantMessageData = z.infer<typeof AssistantMessageDataSchema>;
 
 export function isAssistantMessageData(
   data: unknown
 ): data is AssistantMessageData {
-  if (!isSomeMessageData(data) || data.role !== "assistant") {
-    return false;
-  }
-  const messageData = data as AssistantMessageData;
-  return (
-    // Message.rating
-    (messageData.rating === undefined ||
-      typeof messageData.rating === "boolean") &&
-    // Message.references
-    (messageData.references === undefined ||
-      (Array.isArray(messageData.references) &&
-        messageData.references.every(
-          (reference) =>
-            typeof reference === "object" &&
-            reference !== null &&
-            typeof reference.url === "string" &&
-            typeof reference.title === "string"
-        ))) &&
-    // Message.suggestedPrompts
-    (messageData.suggestedPrompts === undefined ||
-      (Array.isArray(messageData.suggestedPrompts) &&
-        messageData.suggestedPrompts.every(
-          (prompt) => typeof prompt === "string"
-        ))) &&
-    // Message.metadata
-    (messageData.metadata === undefined ||
-      typeof messageData.metadata === "object")
-  );
-}
-
-export function asAssistantMessageData(
-  data: SomeMessageData
-): AssistantMessageData {
-  if (!isAssistantMessageData(data)) {
-    throw new Error("Invalid assistant message data");
-  }
-  return data;
+  return AssistantMessageDataSchema.safeParse(data).success;
 }
 
 export type MessageData = UserMessageData | AssistantMessageData;
-
-export type AssistantMessageMetadata = {
-  [k: string]: unknown;
-
-  /**
-    If the message came from the verified answers collection, contains the
-    metadata about the verified answer.
-  */
-  verifiedAnswer?: {
-    _id: VerifiedAnswer["_id"];
-    created: string;
-    updated: string | undefined;
-  };
-};
 
 export const CUSTOM_REQUEST_ORIGIN_HEADER = "X-Request-Origin";
 

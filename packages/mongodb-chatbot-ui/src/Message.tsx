@@ -60,7 +60,10 @@ export function UserMessage({ className, content }: UserMessageProps) {
 
 export type AssistantMessageProps = SomeMessageProps & {
   isLoading: boolean;
-  rating?: RatingValue;
+  rating: {
+    value?: RatingValue;
+    hidden: boolean;
+  };
   references?: AssistantMessageData["references"];
   suggestedPrompts?: {
     prompts: string[];
@@ -116,7 +119,7 @@ export function AssistantMessage({
       // The user can't submit an empty comment
       return;
     }
-    if (rating?.value === undefined) {
+    if (rating.value === undefined) {
       // The user can't submit a comment without first submitting a rating
       return;
     }
@@ -153,7 +156,7 @@ export function AssistantMessage({
         {isLoading ? <LoadingSkeleton /> : null}
 
         <Suspense fallback={null}>
-          {rating ? (
+          {!rating.hidden ? (
             <MessageRatingWithFeedbackComment
               submit={submitUserComment}
               abandon={abandonUserComment}

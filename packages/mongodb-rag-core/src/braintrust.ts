@@ -14,5 +14,5 @@ export * from "braintrust";
  */
 export const braintrustLogger = initLogger({
   projectName: process.env.BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
-  apiKey: process.env.BRAINTRUST_API_KEY,
+  apiKey: process.env.BRAINTRUST_TRACING_API_KEY,
 });

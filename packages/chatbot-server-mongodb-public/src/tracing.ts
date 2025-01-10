@@ -1,5 +1,5 @@
 import { AppConfig } from "mongodb-chatbot-server";
-import { SomeMessage, UserMessage, AssistantMessage } from "mongodb-rag-core";
+import { SomeMessage, UserMessage } from "mongodb-rag-core";
 import { llmDoesNotKnowMessage } from "./systemPrompt";
 
 export const makeAddMessageToConversationUpdateTrace: (
@@ -24,7 +24,7 @@ export const makeAddMessageToConversationUpdateTrace: (
     });
   };
 
-function extractTracingData(messages: SomeMessage[]) {
+export function extractTracingData(messages: SomeMessage[]) {
   const latestUserMessage = messages.findLast(
     (message) => message.role === "user"
   ) as UserMessage | undefined;

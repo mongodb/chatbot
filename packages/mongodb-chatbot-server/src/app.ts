@@ -127,7 +127,7 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
   );
 
   // Initialize the Braintrust logger if it exists
-  if (process.env.BRAINTRUST_API_KEY !== undefined) {
+  if (process.env.BRAINTRUST_TRACING_API_KEY !== undefined) {
     const braintrustLoggerId = await braintrustLogger.id;
     logger.info(`Using Braintrust logger with ID: ${braintrustLoggerId}`);
   } else {

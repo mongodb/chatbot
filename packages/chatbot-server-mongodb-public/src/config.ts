@@ -28,7 +28,7 @@ import { systemPrompt } from "./systemPrompt";
 import { addReferenceSourceType } from "./processors/makeMongoDbReferences";
 import path from "path";
 import express from "express";
-import { wrapOpenAI, wrapTraced } from "braintrust";
+import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 export const {

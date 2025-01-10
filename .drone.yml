@@ -32,8 +32,9 @@ steps:
       OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: gpt-4o-mini
       OPENAI_API_VERSION: "2024-06-01"
       BRAINTRUST_TEXT_TO_DRIVER_PROJECT_NAME: "text-to-node-js-driver-benchmark"
-      # Setting this placeholder to make test suite pass in the CI
-      BRAINTRUST_API_KEY: "PLACEHOLDER_UNTIL_OFFICIAL VENDOR"
+      BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME: "chatbot-tracing-test"
+      BRAINTRUST_API_KEY:
+        from_secret: braintrust_api_key
       MONGODB_CONNECTION_URI:
         from_secret: mongodb_connection_uri
       OPENAI_ENDPOINT:

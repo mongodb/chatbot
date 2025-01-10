@@ -7,12 +7,12 @@ export * from "braintrust";
 
   ```ts
   {
-    projectName: process.env.BRAINTRUST_PROJECT_NAME,
+    projectName: process.env.BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
     apiKey: process.env.BRAINTRUST_API_KEY,
   }
   ```
  */
 export const braintrustLogger = initLogger({
-  projectName: process.env.BRAINTRUST_PROJECT_NAME,
+  projectName: process.env.BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
   apiKey: process.env.BRAINTRUST_API_KEY,
 });

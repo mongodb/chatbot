@@ -5,7 +5,7 @@ import {
 } from "./services/conversations";
 import { combine } from "zustand/middleware";
 import createMessage, { CreateMessageArgs } from "./createMessage";
-import { References } from "mongodb-rag-core";
+import { References } from "./references";
 import { removeArrayElementAt } from "./utils";
 
 export type ConversationState = {

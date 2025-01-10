@@ -47,10 +47,13 @@ function extractTracingData(messages: SomeMessage[]) {
   }
 
   const numRetrievedChunks = latestUserMessage?.contextContent?.length ?? 0;
+  if (numRetrievedChunks === 0) {
+    tags.push("no_retrieved_content");
+  }
 
   const latestAssistantMessage = messages.findLast(
     (message) => message.role === "assistant"
-  ) as AssistantMessage | undefined;
+  );
 
   const isVerifiedAnswer =
     latestAssistantMessage?.metadata?.verifiedAnswer !== undefined
@@ -66,6 +69,7 @@ function extractTracingData(messages: SomeMessage[]) {
   if (llmDoesNotKnow) {
     tags.push("llm_does_not_know");
   }
+
   return {
     tags,
     rejectQuery,

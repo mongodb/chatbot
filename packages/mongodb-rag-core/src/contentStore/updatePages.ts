@@ -62,6 +62,7 @@ export const persistPages = async ({
   const { created, updated, deleted } = await getChangedPages({
     oldPages,
     newPages: pages,
+    sourceName,
   });
 
   logger.info(

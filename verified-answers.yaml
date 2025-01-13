@@ -1586,3 +1586,147 @@
       title: "Building GenAI Applications with MongoDB Learning Badge Path"
     - url: https://learn.mongodb.com/learn/learning-path/atlas-vector-search
       title: "Atlas Vector Search Learning Path"
+- answer: >-
+    Our student benefits, including free certification, are available through the GitHub Student Developer Pack. 
+    To be eligible for free certification, students must: 
+    1. Be enrolled in the [GitHub Student Developer Pack](https://education.github.com/pack)
+    2. Verify their student status by entering their GitHub information at [mongodb.com/students](http://mongodb.com/students)
+    3. Complete and pass all courses associated with a [MongoDB University learning path](https://learn.mongodb.com/pages/certification-learning-paths)
+    For more information on our student benefits, please review the [Student Resource Guide](https://drive.google.com/file/d/1chxgN-5pi1LXXmZSvhXXr8bBWlWfba2j/view) or take a look at the FAQ section on [MongoDB for Students](https://www.mongodb.com/students).
+  author_email: aiyana.mcconnell@mongodb.com
+  questions:
+    - How do I get free certification through MongoDB for Students?
+  references:
+    - url: https://education.github.com/pack
+      title: "GitHub Student Developer Pack"
+    - url: http://mongodb.com/students
+      title: "MongoDB Student Pack"
+    - url: https://learn.mongodb.com/pages/certification-learning-paths
+      title: "Create a Multi-Cloud Cluster with MongoDB Atlas"
+    - url: (https://drive.google.com/file/d/1chxgN-5pi1LXXmZSvhXXr8bBWlWfba2j/view
+      title: "MongoDB for Students Resource Guide"
+- answer: >-
+    Please allow our team 2-3 business days to process your application. MongoDB operates Monday-Friday 8am-5pm Eastern Standard Time and is not open on weekends or US holidays. 
+
+    Our team responds to all free certification voucher applications. If you did not receive an email with your free certification voucher, then you received an email explaining why your application was rejected and what steps you need to take to receive your free voucher. 
+
+    Please be sure to check your spam folder for an email containing your voucher or containing instructions on how to receive your voucher.
+
+    If you haven’t received an email with your free certification voucher, the issue is usually one of the following:
+    - We were unable to find a MongoDB University account associated with the email address provided in the application. Because of this, we were unable to verify that you have completed a MongoDB University learning path.
+    - The GitHub username provided in the application does not match any successful verifications from mongodb.com/students. Because of this, we are unable to verify whether you have active GitHub Student Developer Pack benefits. You also may have provided us with the wrong GitHub username or not yet entered your GitHub credentials at mongodb.com/students. 
+    - You did not complete a MongoDB University learning path. Students must complete a MongoDB University learning path to be eligible for a free certification voucher through MongoDB for Students.
+  author_email: aiyana.mcconnell@mongodb.com
+  questions:
+    - I submitted an application for a free certification voucher through MongoDB for Students and I haven’t received a voucher yet.
+  references:
+    - url: http://mongodb.com/students
+      title: "MongoDB Student Pack"
+    - url: https://education.github.com/pack
+      title: "GitHub Student Developer Pack"
+    - url: https://learn.mongodb.com/pages/certification-learning-paths
+      title: "Create a Multi-Cloud Cluster with MongoDB Atlas"
+    - url: (https://drive.google.com/file/d/1chxgN-5pi1LXXmZSvhXXr8bBWlWfba2j/view
+      title: "MongoDB for Students Resource Guide"
+- answer: >-
+    Our student benefits, including free certification and $50 in Atlas credits, are available through the GitHub Student Developer Pack. If you are already successfully registered for the GitHub Student Developer Pack, you can access MongoDB student benefits by entering your GitHub credentials at mongodb.com/students. 
+
+    If you have questions regarding MongoDB student benefits, please review the information in our Student Resource Guide and FAQ section on mongodb.com/students. If you have questions regarding the GitHub Student Developer Pack, please contact GitHub support.
+  author_email: aiyana.mcconnell@mongodb.com
+  questions:
+    - How do I receive benefits through MongoDB for Students?
+  references:
+    - url: http://mongodb.com/students
+      title: "MongoDB Student Pack"
+    - url: https://education.github.com/pack
+      title: "GitHub Student Developer Pack"
+    - url: https://learn.mongodb.com/pages/certification-learning-paths
+      title: "Create a Multi-Cloud Cluster with MongoDB Atlas"
+    - url: (https://drive.google.com/file/d/1chxgN-5pi1LXXmZSvhXXr8bBWlWfba2j/view
+      title: "MongoDB for Students Resource Guide"
+- answer: >-
+    MongoDB offers a variety of free resources specifically curated to support educators in equipping students with modern database knowledge. 
+
+    Through the [MongoDB for Educators](http://mongodb.com/academia) program, verified professors, teachers and other educators can access a range of valuable materials and benefits at including: 
+    - Slide-based lecture materials to seamlessly integrate MongoDB into your existing curriculum
+    - $500 in MongoDB Atlas credits to support hands-on learning with our cloud-hosted database platform. 
+    - Stay current with industry standards and showcase your dedication to ongoing professional development with MongoDB certification. 
+
+    All of our educator resources are completely free and signing up for MongoDB for Educators only takes a few minutes. To learn more or to register for the program, go to [mongodb.com/academia](http://mongodb.com/academia). 
+  author_email: aiyana.mcconnell@mongodb.com
+  questions:
+    - I'm an educator and I'm interested in teaching MongoDB to my students/in my classes.
+    - I'm a professor and I'm interested in teaching MongoDB to my students/in my classes.
+    - I'm a teacher and I'm interested in teaching MongoDB to my students/in my classes.
+    - I'm an instructor and I'm interested in teaching MongoDB to my students/in my classes.
+  references:
+    - url: http://mongodb.com/academia
+      title: "MongoDB for Educators"
+    - url: https://drive.google.com/file/d/1W_i_DkOeROY9raLesiEbS5PCasLAvlRb/view?usp=sharing
+      title: "How to Register for MongoDB for Educators"
+- answer: >-
+    MongoDB Certification Exams cost $150 USD
+
+    Students and Educators can get a free exam by completing a Learning Path through the student and educator programs.
+  author_email: carol.dibert@mongodb.com
+  questions:
+    - How much is a MongoDB Certification?
+    - How much does a MongoDB Certification cost?
+  references:
+    - url: https://learn.mongodb.com/pages/certification-program
+      title: "MongoDB Certification Program"
+    - url: http://mongodb.com/students
+      title: "MongoDB Student Pack"
+    - url: http://mongodb.com/academia
+      title: "MongoDB for Educators"
+- answer: >-
+    To reschedule your exam, simply navigate to your learner dashboard at learn.mongodb.com and select the "Manage" button for the exam you wish to reschedule. You will be taken to our proctoring partner's site where you can reschedule to a date/time that works better for you.
+  author_email: carol.dibert@mongodb.com
+  questions:
+    - How do I reschedule my certification exam?
+  references:
+    - url: https://learn.mongodb.com/
+      title: "MongoDB University"
+- answer: >-
+    To prepare for any of the MongoDB Certification Exams, we recommend you navigate to the exam of your choice from our certification landing page. Each exam page contains a exam details, a study guide, and a set of practice questions.  author_email: carol.dibert@mongodb.com
+  questions:
+    - How do I prepare for a MongoDB Certification Exam?
+  references:
+    - url: https://learn.mongodb.com/pages/certification-program
+      title: "MongoDB Certification Program"
+- answer: >-
+    If you need extra time for your certificaiton due to a learning disability or because English is a second language for you, please purchase and schedule your exam and then send a support ticket to [certification@mongodb.com](mailto:certification@mongodb.com) requesting extra time. 
+  questions:
+    - How do I request extended time for my certification exam?
+  references:
+    - url: mailto:certification@mongodb.com
+      title: "Send an email to the certification team"
+- answer: >-
+    If you require a refund for your MongoDB Certification Exam, please submit your request to [certification@mongodb.com](mailto:certification@mongodb.com) and our support team will do their best to accommodate you.
+  questions:
+    - How do I request a refund for my certification exam?
+  references:
+    - url: mailto:certification@mongodb.com
+      title: "Send an email to the certification team"
+- answer: >-
+    To register for your exam, log into your learner account on [learn.mongodb.com](learn.mongodb.com) and simply select the exam from the certification page, register, complete the transaction process. Note: If you are using a coupon, please enter the code at checkout.
+
+    Once you’ve registered and completed the transaction process, you’ll be sent to our online proctoring partner, Examity, to complete your tester profile and schedule your exam. Our exams are offered 24hrs a day, 7days a week.
+  questions:
+    - How do I register for a certification exam?
+- answer: >-
+    MongoDB Learning Badges are a new type of free credential offered through MongoDB University. Unlike high-stakes certifications, which cover a large breadth and depth of subjects, these badges are focused on specific topics, making them easier and quicker to earn.
+  questions:
+    - Where do I learn about MongoDB Learning Badges?
+  references:
+    - url: https://learn.mongodb.com/pages/learner-badges
+      title: "MongoDB Learning Badges"
+- answer: >-
+    MongoDB Learning Badges are non-proctored tests that allow you to prove your knowledge on shorter, more targeted topics regardless of your role. MongoDB Certifications are proctored exams that are specific to job roles and cover a large breadth and depth.
+  questions:
+    - What is the difference between a MongoDB Learning Badge and a MongoDB Certification?
+  references:
+    - url: https://learn.mongodb.com/pages/learner-badges
+      title: "MongoDB Learning Badges"
+    - url: https://learn.mongodb.com/pages/certification-program
+      title: "MongoDB Certification Program"

@@ -103,13 +103,12 @@ const ConversationFaithfulness: ConversationEvalScorer = async (args) => {
   return Faithfulness(getConversationRagasConfig(args, judgeModelConfig));
 };
 
-// Commenting out until this PR is merged and released https://github.com/braintrustdata/autoevals/pull/94
-// const ConversationAnswerRelevancy: ConversationEvalScorer = async (args) => {
-//   return AnswerRelevancy({
-//     ...getConversationRagasConfig(args, judgeModelConfig),
-//     embeddingModel: JUDGE_EMBEDDING_MODEL,
-//   });
-// };
+const ConversationAnswerRelevancy: ConversationEvalScorer = async (args) => {
+  return AnswerRelevancy({
+    ...getConversationRagasConfig(args, judgeModelConfig),
+    embeddingModel: JUDGE_EMBEDDING_MODEL,
+  });
+};
 
 const ConversationContextRelevancy: ConversationEvalScorer = async (args) => {
   return ContextRelevancy(getConversationRagasConfig(args, judgeModelConfig));
@@ -205,7 +204,7 @@ Eval("mongodb-chatbot-conversations", {
     AllowedQuery,
     RetrievedContext,
     ConversationFaithfulness,
-    // ConversationAnswerRelevancy,
+    ConversationAnswerRelevancy,
     ConversationContextRelevancy,
   ],
 });

@@ -1689,6 +1689,7 @@
       title: "MongoDB University"
 - answer: >-
     To prepare for any of the MongoDB Certification Exams, we recommend you navigate to the exam of your choice from our certification landing page. Each exam page contains a exam details, a study guide, and a set of practice questions.  author_email: carol.dibert@mongodb.com
+  author_email: carol.dibert@mongodb.com
   questions:
     - How do I prepare for a MongoDB Certification Exam?
   references:
@@ -1696,6 +1697,7 @@
       title: "MongoDB Certification Program"
 - answer: >-
     If you need extra time for your certificaiton due to a learning disability or because English is a second language for you, please purchase and schedule your exam and then send a support ticket to [certification@mongodb.com](mailto:certification@mongodb.com) requesting extra time. 
+  author_email: carol.dibert@mongodb.com
   questions:
     - How do I request extended time for my certification exam?
   references:
@@ -1703,6 +1705,7 @@
       title: "Send an email to the certification team"
 - answer: >-
     If you require a refund for your MongoDB Certification Exam, please submit your request to [certification@mongodb.com](mailto:certification@mongodb.com) and our support team will do their best to accommodate you.
+  author_email: carol.dibert@mongodb.com
   questions:
     - How do I request a refund for my certification exam?
   references:
@@ -1712,10 +1715,15 @@
     To register for your exam, log into your learner account on [learn.mongodb.com](learn.mongodb.com) and simply select the exam from the certification page, register, complete the transaction process. Note: If you are using a coupon, please enter the code at checkout.
 
     Once you’ve registered and completed the transaction process, you’ll be sent to our online proctoring partner, Examity, to complete your tester profile and schedule your exam. Our exams are offered 24hrs a day, 7days a week.
+  author_email: carol.dibert@mongodb.com
   questions:
     - How do I register for a certification exam?
+  references:
+    - url: https://learn.mongodb.com/
+      title: "MongoDB Certification Program"
 - answer: >-
     MongoDB Learning Badges are a new type of free credential offered through MongoDB University. Unlike high-stakes certifications, which cover a large breadth and depth of subjects, these badges are focused on specific topics, making them easier and quicker to earn.
+  author_email: carol.dibert@mongodb.com
   questions:
     - Where do I learn about MongoDB Learning Badges?
   references:
@@ -1723,6 +1731,7 @@
       title: "MongoDB Learning Badges"
 - answer: >-
     MongoDB Learning Badges are non-proctored tests that allow you to prove your knowledge on shorter, more targeted topics regardless of your role. MongoDB Certifications are proctored exams that are specific to job roles and cover a large breadth and depth.
+  author_email: carol.dibert@mongodb.com
   questions:
     - What is the difference between a MongoDB Learning Badge and a MongoDB Certification?
   references:

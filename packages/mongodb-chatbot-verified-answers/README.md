@@ -13,6 +13,6 @@ Enter the mongodb-chatbot-verified-answers directory with `cd packages/mongodb-c
 Run `npm run upload -- import <path to verified-answers.yaml>`.
 
 If successful, you will see a success message that looks like:
-```
+
+```sh
 { failed: 0, updated: 0, created: 18, deleted: 0 }
-```

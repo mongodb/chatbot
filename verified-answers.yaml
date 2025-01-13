@@ -1655,7 +1655,10 @@
     All of our educator resources are completely free and signing up for MongoDB for Educators only takes a few minutes. To learn more or to register for the program, go to [mongodb.com/academia](http://mongodb.com/academia). 
   author_email: aiyana.mcconnell@mongodb.com
   questions:
-    - I'm an educator/professor/teacher/instructor and I'm interested in teaching MongoDB to my students/in my classes.
+    - I'm an educator and I'm interested in teaching MongoDB to my students/in my classes.
+    - I'm a professor and I'm interested in teaching MongoDB to my students/in my classes.
+    - I'm a teacher and I'm interested in teaching MongoDB to my students/in my classes.
+    - I'm an instructor and I'm interested in teaching MongoDB to my students/in my classes.
   references:
     - url: http://mongodb.com/academia
       title: "MongoDB for Educators"
@@ -1668,6 +1671,7 @@
   author_email: carol.dibert@mongodb.com
   questions:
     - How much is a MongoDB Certification?
+    - How much does a MongoDB Certification cost?
   references:
     - url: https://learn.mongodb.com/pages/certification-program
       title: "MongoDB Certification Program"
@@ -1718,7 +1722,7 @@
     - url: https://learn.mongodb.com/pages/learner-badges
       title: "MongoDB Learning Badges"
 - answer: >-
-    MongoDB Learning Badges are non-proctored tests that allow you to prove your knowledge on shorter, more targeted topics regardless of your role. MongoDB Certifications are proctored exams that are specific to job roles and cover a much larger breadth and depth.
+    MongoDB Learning Badges are non-proctored tests that allow you to prove your knowledge on shorter, more targeted topics regardless of your role. MongoDB Certifications are proctored exams that are specific to job roles and cover a large breadth and depth.
   questions:
     - What is the difference between a MongoDB Learning Badge and a MongoDB Certification?
   references:

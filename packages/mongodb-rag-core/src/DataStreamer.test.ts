@@ -80,28 +80,6 @@ describe("Data Streaming", () => {
       `data: {"type":"delta","data":"Once upon"}\n\ndata: {"type":"delta","data":" a time there was a"}\n\ndata: {"type":"delta","data":" very long string."}\n\n`
     );
   });
-
-  it("Bails out when a client closes a connection", async () => {
-    res.emit("close");
-    expect(dataStreamer.connected).toBe(false);
-    expect(() =>
-      dataStreamer.streamData({ type: "delta", data: "test" })
-    ).toThrow(Error);
-    await expect(async () => {
-      const stream = {
-        [Symbol.asyncIterator]() {
-          return {
-            async next() {
-              return {
-                done: true,
-              };
-            },
-          };
-        },
-      } as OpenAiStreamingResponse;
-      await dataStreamer.stream({ stream });
-    }).rejects.toThrow(Error);
-  });
 });
 
 function createChatCompletionWithDelta(

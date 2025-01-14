@@ -160,7 +160,6 @@ export function makeDataStreamer(): DataStreamer {
       Streams single item of data in an event stream.
      */
     streamData(data: SomeStreamEvent) {
-      console.log(`streamData: ${JSON.stringify(data)}`);
       if (!this.connected) {
         throw new Error(
           `Tried to stream data, but there's no SSE connection. Call DataStreamer.connect() first.`

@@ -31,7 +31,10 @@ import express from "express";
 import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
-import { makeAddMessageToConversationUpdateTrace } from "./tracing";
+import {
+  makeAddMessageToConversationUpdateTrace,
+  makeCommentMessageUpdateTrace,
+} from "./tracing";
 import { TRACING_ENV_VARS } from "./EnvVars";
 export const {
   MONGODB_CONNECTION_URI,
@@ -208,6 +211,18 @@ export const createCustomConversationDataWithIpAuthUserAndOrigin: AddCustomDataF
   };
 export const isProduction = process.env.NODE_ENV === "production";
 
+const llmAsAJudgeConfig = {
+  judgeModel: JUDGE_LLM,
+  judgeEmbeddingModel: JUDGE_EMBEDDING_MODEL,
+  openAiConfig: {
+    azureOpenAi: {
+      apiKey: OPENAI_API_KEY,
+      endpoint: OPENAI_ENDPOINT,
+      apiVersion: OPENAI_API_VERSION,
+    },
+  },
+};
+
 export const config: AppConfig = {
   conversationsRouterConfig: {
     llm,
@@ -223,19 +238,9 @@ export const config: AppConfig = {
     addMessageToConversationUpdateTrace:
       makeAddMessageToConversationUpdateTrace(
         retrievalConfig.findNearestNeighborsOptions.k,
-        {
-          percentToJudge: isProduction ? 0.1 : 1,
-          judgeModel: JUDGE_LLM,
-          judgeEmbeddingModel: JUDGE_EMBEDDING_MODEL,
-          openAiConfig: {
-            azureOpenAi: {
-              apiKey: OPENAI_API_KEY,
-              endpoint: OPENAI_ENDPOINT,
-              apiVersion: OPENAI_API_VERSION,
-            },
-          },
-        }
+        { ...llmAsAJudgeConfig, percentToJudge: isProduction ? 0.1 : 1 }
       ),
+    commentMessageUpdateTrace: makeCommentMessageUpdateTrace(llmAsAJudgeConfig),
     generateUserPrompt,
     systemPrompt,
     maxUserMessagesInConversation: 50,

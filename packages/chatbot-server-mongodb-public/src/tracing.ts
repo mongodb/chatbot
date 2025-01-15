@@ -8,7 +8,12 @@ import { ObjectId } from "mongodb-rag-core/mongodb";
 
 export const makeAddMessageToConversationUpdateTrace: (
   k: number,
-  llmAsAJudge?: LlmAsAJudge
+  llmAsAJudge?: LlmAsAJudge & {
+    /**
+    Percent of numbers to judge. Between 0 and 1.
+   */
+    percentToJudge: number;
+  }
 ) => UpdateTraceFunc = (k, llmAsAJudge) => {
   validatePercentToJudge(llmAsAJudge?.percentToJudge);
 
@@ -141,10 +146,6 @@ function getTracingScores(
 }
 
 interface LlmAsAJudge {
-  /**
-    Percent of numbers to judge. Between 0 and 1.
-   */
-  percentToJudge: number;
   judgeModel: string;
   judgeEmbeddingModel: string;
   openAiConfig: Pick<

@@ -62,6 +62,8 @@ steps:
         from_secret: jira_username
       JIRA_PASSWORD:
         from_secret: jira_password
+      JUDGE_EMBEDDING_MODEL: "text-embedding-3-small"
+      JUDGE_LLM: "gpt-4o-mini"
 
 # ---
 # Chat Server pipelines

@@ -3,6 +3,7 @@ import { SomeMessage, UserMessage } from "mongodb-rag-core";
 import { llmDoesNotKnowMessage } from "./systemPrompt";
 import { strict as assert } from "assert";
 import { ContextRelevancy, AnswerRelevancy, Faithfulness } from "autoevals";
+import { traced } from "mongodb-rag-core/braintrust";
 
 export const makeAddMessageToConversationUpdateTrace: (
   k: number,
@@ -130,51 +131,86 @@ interface LlmAsAJudge {
     | "openAiOrganizationId"
   >;
 }
+const nullScore = {
+  score: null,
+};
+
 export async function getLlmAsAJudgeScores(
   {
     judgeModel,
     openAiConfig,
     judgeEmbeddingModel,
   }: Omit<LlmAsAJudge, "percentToJudge">,
-  tracingData: Pick<
-    ReturnType<typeof extractTracingData>,
-    "latestAssistantMessage" | "latestUserMessage"
-  >
+  tracingData: ReturnType<typeof extractTracingData>
 ) {
-  // Return if we don't have the necessary data
-  if (!tracingData.latestUserMessage || !tracingData.latestAssistantMessage) {
+  // Return if we don't have the necessary data to judge
+  if (
+    tracingData.isVerifiedAnswer ||
+    tracingData.rejectQuery ||
+    tracingData.numRetrievedChunks === 0 ||
+    tracingData.llmDoesNotKnow ||
+    !tracingData.latestUserMessage ||
+    !tracingData.latestAssistantMessage
+  ) {
     return;
   }
   const input = tracingData.latestUserMessage.content;
   const output = tracingData.latestAssistantMessage.content;
   const context = tracingData.latestUserMessage.contextContent
     ?.map((c) => c.text)
-    .filter((c) => typeof c === "string");
+    // Have to do this type casting to make it compile. Unclear why.
+    .filter((c) => typeof c === "string") as string[] | undefined;
 
-  const [faithfulness, answerRelevancy, contextRelevancy] = await Promise.all([
-    Faithfulness({
-      input,
-      output,
-      context,
-      model: judgeModel,
-      ...openAiConfig,
-    }),
-    AnswerRelevancy({
-      input,
-      output,
-      context,
-      model: judgeModel,
-      embeddingModel: judgeEmbeddingModel,
-      ...openAiConfig,
-    }),
-    ContextRelevancy({
-      input,
-      output,
-      context,
-      model: judgeModel,
-      ...openAiConfig,
-    }),
-  ]);
+  const [faithfulness, answerRelevancy, contextRelevancy] = context
+    ? await traced(
+        async () =>
+          Promise.all([
+            traced(
+              async () =>
+                Faithfulness({
+                  input,
+                  output,
+                  context,
+                  model: judgeModel,
+                  ...openAiConfig,
+                }),
+              {
+                name: "Faithfulness",
+              }
+            ),
+            traced(
+              async () =>
+                AnswerRelevancy({
+                  input,
+                  output,
+                  context,
+                  model: judgeModel,
+                  embeddingModel: judgeEmbeddingModel,
+                  ...openAiConfig,
+                }),
+              {
+                name: "AnswerRelevancy",
+              }
+            ),
+            traced(
+              async () =>
+                ContextRelevancy({
+                  input,
+                  output,
+                  context,
+                  model: judgeModel,
+                  ...openAiConfig,
+                }),
+              {
+                name: "ContextRelevancy",
+              }
+            ),
+          ]),
+        {
+          name: "LlmAsAJudge",
+        }
+      )
+    : [nullScore, nullScore, nullScore];
 
   return {
     Faithfulness: faithfulness.score,

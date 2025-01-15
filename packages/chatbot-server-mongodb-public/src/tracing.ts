@@ -10,10 +10,7 @@ import { ObjectId } from "mongodb-rag-core/mongodb";
 export const makeAddMessageToConversationUpdateTrace: (
   k: number,
   llmAsAJudge?: LlmAsAJudge
-) => AppConfig["conversationsRouterConfig"]["addMessageToConversationUpdateTrace"] = (
-  k,
-  llmAsAJudge
-) => {
+) => UpdateTraceFunc = (k, llmAsAJudge) => {
   validatePercentToJudge(llmAsAJudge?.percentToJudge);
 
   return async function ({ traceId, conversation, logger }) {

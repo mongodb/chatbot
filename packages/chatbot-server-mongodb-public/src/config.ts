@@ -34,7 +34,7 @@ import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
   makeAddMessageToConversationUpdateTrace,
   makeCommentMessageUpdateTrace,
-} from "./tracing";
+} from "./tracing/routesUpdateTraceHandlers";
 import { TRACING_ENV_VARS } from "./EnvVars";
 export const {
   MONGODB_CONNECTION_URI,

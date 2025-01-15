@@ -9,6 +9,7 @@ import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import { braintrustLogger } from "mongodb-rag-core/braintrust";
+import { UpdateTraceFunc } from "./UpdateTraceFunc";
 
 export type RateMessageRequest = z.infer<typeof RateMessageRequest>;
 
@@ -29,10 +30,12 @@ export const RateMessageRequest = SomeExpressRequest.merge(
 
 export interface RateMessageRouteParams {
   conversations: ConversationsService;
+  updateTrace?: UpdateTraceFunc;
 }
 
 export function makeRateMessageRoute({
   conversations,
+  updateTrace,
 }: RateMessageRouteParams) {
   return async (
     req: ExpressRequest,
@@ -109,12 +112,20 @@ export function makeRateMessageRoute({
           reqId,
           message: `Rated message ${messageIdStr} in conversation ${conversationIdStr} with rating ${rating}`,
         });
+        const traceId = messageId.toHexString();
         braintrustLogger.logFeedback({
-          id: messageId.toHexString(),
+          id: traceId,
           scores: {
             UserRating: rating === true ? 1 : 0,
           },
         });
+        if (updateTrace) {
+          await updateTrace({
+            conversation: conversationInDb,
+            logger: braintrustLogger,
+            traceId,
+          });
+        }
         return;
       } else {
         return sendErrorResponse({

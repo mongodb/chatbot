@@ -1,9 +1,11 @@
 import { AppConfig } from "mongodb-chatbot-server";
-import { SomeMessage, UserMessage } from "mongodb-rag-core";
+import { AssistantMessage, Message, UserMessage } from "mongodb-rag-core";
 import { llmDoesNotKnowMessage } from "./systemPrompt";
 import { strict as assert } from "assert";
 import { ContextRelevancy, AnswerRelevancy, Faithfulness } from "autoevals";
 import { traced } from "mongodb-rag-core/braintrust";
+import { UpdateTraceFunc } from "mongodb-chatbot-server/build/routes/conversations/UpdateTraceFunc";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 
 export const makeAddMessageToConversationUpdateTrace: (
   k: number,
@@ -14,8 +16,11 @@ export const makeAddMessageToConversationUpdateTrace: (
 ) => {
   validatePercentToJudge(llmAsAJudge?.percentToJudge);
 
-  return async function ({ traceId, addedMessages, logger }) {
-    const tracingData = extractTracingData(addedMessages);
+  return async function ({ traceId, conversation, logger }) {
+    const tracingData = extractTracingData(
+      conversation.messages,
+      ObjectId.createFromHexString(traceId)
+    );
     const shouldJudge =
       typeof llmAsAJudge?.percentToJudge === "number" &&
       Math.random() < llmAsAJudge.percentToJudge;
@@ -33,6 +38,23 @@ export const makeAddMessageToConversationUpdateTrace: (
   };
 };
 
+export function makeCommentMessageUpdateTrace(
+  llmAsAJudge: LlmAsAJudge
+): UpdateTraceFunc {
+  return async function ({ traceId, conversation, logger }) {
+    logger.updateSpan({
+      id: traceId,
+      scores: await getLlmAsAJudgeScores(
+        llmAsAJudge,
+        extractTracingData(
+          conversation.messages,
+          ObjectId.createFromHexString(traceId)
+        )
+      ),
+    });
+  };
+}
+
 function validatePercentToJudge(percentToJudge?: number) {
   if (percentToJudge !== undefined) {
     assert(
@@ -42,10 +64,22 @@ function validatePercentToJudge(percentToJudge?: number) {
   }
 }
 
-export function extractTracingData(messages: SomeMessage[]) {
-  const latestUserMessage = messages.findLast(
-    (message) => message.role === "user"
-  ) as UserMessage | undefined;
+export function extractTracingData(
+  messages: Message[],
+  userMessageId: ObjectId
+) {
+  const latestUserMessageIdx = messages.findLastIndex(
+    (message) => message.role === "user" && message.id.equals(userMessageId)
+  );
+  const latestUserMessage = messages[latestUserMessageIdx] as
+    | UserMessage
+    | undefined;
+  const latestAssistantMessage = messages
+    .slice(latestUserMessageIdx)
+    .find(
+      (message) => message.role === "assistant" && message.content !== undefined
+    ) as AssistantMessage | undefined;
+
   const tags = [];
 
   const rejectQuery = latestUserMessage?.rejectQuery;
@@ -68,10 +102,6 @@ export function extractTracingData(messages: SomeMessage[]) {
   if (numRetrievedChunks === 0) {
     tags.push("no_retrieved_content");
   }
-
-  const latestAssistantMessage = messages.findLast(
-    (message) => message.role === "assistant"
-  );
 
   const isVerifiedAnswer =
     latestAssistantMessage?.metadata?.verifiedAnswer !== undefined

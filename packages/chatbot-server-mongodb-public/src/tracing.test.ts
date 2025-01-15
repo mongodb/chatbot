@@ -1,6 +1,7 @@
-import { SomeMessage } from "mongodb-rag-core";
+import { Message } from "mongodb-rag-core";
 import { extractTracingData, getLlmAsAJudgeScores } from "./tracing";
 import { llmDoesNotKnowMessage } from "./systemPrompt";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 
 // Mock LLM-as-a-judge scorers
 jest.mock("autoevals", () => ({
@@ -20,49 +21,61 @@ afterEach(() => {
 });
 
 describe("extractTracingData", () => {
+  const msgId = new ObjectId();
+  const baseUserMessage: Message = {
+    role: "user",
+    content: "foo",
+    createdAt: new Date(),
+    id: msgId,
+  };
+  const baseAssistantMessage: Message = {
+    role: "assistant",
+    content: "foo",
+    createdAt: new Date(),
+    id: new ObjectId(),
+  };
   test("should reject query", () => {
-    const messages: SomeMessage[] = [
+    const messages: Message[] = [
       {
-        role: "user",
+        ...baseUserMessage,
         rejectQuery: true,
-        content: "",
       },
+      baseAssistantMessage,
     ];
-    const tracingData = extractTracingData(messages);
+    const tracingData = extractTracingData(messages, msgId);
     expect(tracingData.rejectQuery).toBe(true);
     expect(tracingData.tags.includes("rejected_query")).toBe(true);
   });
   test("should extract metadata", () => {
-    const messages: SomeMessage[] = [
+    const messages: Message[] = [
       {
-        role: "user",
-        content: "",
+        ...baseUserMessage,
         customData: {
           programmingLanguage: "javascript",
           mongoDbProduct: "MongoDB Atlas",
         },
       },
+      baseAssistantMessage,
     ];
-    const tracingData = extractTracingData(messages);
+    const tracingData = extractTracingData(messages, msgId);
     expect(tracingData.tags.includes("javascript")).toBe(true);
     expect(tracingData.tags.includes("mongodb_atlas")).toBe(true);
   });
   test("should get number of retrieved chunks", () => {
-    const messagesNoContext: SomeMessage[] = [
+    const messagesNoContext: Message[] = [
       {
-        role: "user",
-        content: "",
+        ...baseUserMessage,
         contextContent: [],
       },
+      baseAssistantMessage,
     ];
-    const tracingData = extractTracingData(messagesNoContext);
+    const tracingData = extractTracingData(messagesNoContext, msgId);
     expect(tracingData.numRetrievedChunks).toBe(0);
     expect(tracingData.tags.includes("no_retrieved_content")).toBe(true);
 
-    const messagesWithContext: SomeMessage[] = [
+    const messagesWithContext: Message[] = [
       {
-        role: "user",
-        content: "",
+        ...baseUserMessage,
         contextContent: [
           {
             text: "",
@@ -72,18 +85,22 @@ describe("extractTracingData", () => {
           },
         ],
       },
+      baseAssistantMessage,
     ];
-    const tracingDataWithContext = extractTracingData(messagesWithContext);
+    const tracingDataWithContext = extractTracingData(
+      messagesWithContext,
+      msgId
+    );
     expect(tracingDataWithContext.numRetrievedChunks).toBe(2);
     expect(tracingDataWithContext.tags.includes("no_retrieved_content")).toBe(
       false
     );
   });
   test("should capture verified answer", () => {
-    const messagesNoContext: SomeMessage[] = [
+    const messagesNoContext: Message[] = [
+      baseUserMessage,
       {
-        role: "assistant",
-        content: "",
+        ...baseAssistantMessage,
         metadata: {
           verifiedAnswer: {
             _id: "123",
@@ -92,18 +109,19 @@ describe("extractTracingData", () => {
         },
       },
     ];
-    const tracingData = extractTracingData(messagesNoContext);
+    const tracingData = extractTracingData(messagesNoContext, msgId);
     expect(tracingData.isVerifiedAnswer).toBe(true);
     expect(tracingData.tags.includes("verified_answer")).toBe(true);
   });
   test("should capture LLM does not know", () => {
-    const messagesNoContext: SomeMessage[] = [
+    const messagesNoContext: Message[] = [
+      baseUserMessage,
       {
-        role: "assistant",
+        ...baseAssistantMessage,
         content: llmDoesNotKnowMessage,
       },
     ];
-    const tracingData = extractTracingData(messagesNoContext);
+    const tracingData = extractTracingData(messagesNoContext, msgId);
     expect(tracingData.llmDoesNotKnow).toBe(true);
     expect(tracingData.tags.includes("llm_does_not_know")).toBe(true);
   });

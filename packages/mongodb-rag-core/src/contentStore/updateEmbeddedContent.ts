@@ -66,16 +66,22 @@ export const updateEmbeddedContent = async ({
   // find all pages with embeddings created using chunkingHashes different from the current chunkingHash
   const chunkAlgoHashes = new Map<string, string>();
   const chunkAlgoHash = getHashForFunc(chunkAlgoHashes, chunkPage, chunkOptions);
-  const pagesWithChangedChunking =
-    await embeddedContentStore.getPagesFromEmbeddedContent({
-      dataSources: sourceNames,
-      chunkAlgoHash,
-      inverseChunkAlgoHash: true,
-    });
+  const dataSourcesWithChangedChunking = await embeddedContentStore.getDataSources({
+    chunkAlgoHash: {$ne: chunkAlgoHash},
+    // run on specific source names if specified, run on all if not
+    ...(sourceNames ? {"sourceName": {
+      "$in": sourceNames
+    }}: undefined)
+  })
+  // find all pages with changed chunking, ignoring since date because
+  // we want to re-chunk all pages with the new chunkAlgoHash, even if there were no other changes to the page
+  const pagesWithChangedChunking = await pageStore.loadPages({
+    sources: dataSourcesWithChangedChunking
+  })
   logger.info(
     `Found ${
       pagesWithChangedChunking.length
-    } pages with changed chunkingHashes since ${since}${
+    } pages with changed chunkingHashes ${
       sourceNames ? ` in sources: ${sourceNames.join(", ")}` : ""
     }`
   );

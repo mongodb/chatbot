@@ -85,15 +85,6 @@ export type EmbeddedContentStore = VectorStore<EmbeddedContent> & {
   loadEmbeddedContent(args: { page: Page }): Promise<EmbeddedContent[]>;
 
   /**
-    Get the Pages of the  embedded content that meets the filter requirements.
-   */
-  getPagesFromEmbeddedContent(args: {
-    dataSources?: string[];
-    chunkAlgoHash: string;
-    inverseChunkAlgoHash?: boolean;
-  }): Promise<PersistedPage[]>;
-
-  /**
     Delete all embedded content for the given page and/or data sources.
    */
   deleteEmbeddedContent(args: DeleteEmbeddedContentArgs): Promise<void>;
@@ -123,4 +114,9 @@ export type EmbeddedContentStore = VectorStore<EmbeddedContent> & {
     Initialize the store.
    */
   init?: () => Promise<void>;
+
+  /**
+   Get the data sources that match the given query. 
+   */
+  getDataSources(matchQuery: any): Promise<string[]>
 };

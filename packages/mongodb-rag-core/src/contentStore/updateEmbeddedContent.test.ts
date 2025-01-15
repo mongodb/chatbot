@@ -30,11 +30,11 @@ export const makeMockEmbeddedContentStore = (): EmbeddedContentStore => {
     async updateEmbeddedContent({ embeddedContent, page }) {
       content.set(page.url, [...embeddedContent]);
     },
-    async getPagesFromEmbeddedContent(args) {
-      return [];
-    },
     metadata: {
       embeddingName: "test",
+    },
+    async getDataSources(matchQuery: any): Promise<string[]> {
+      return [];
     },
   };
 };
@@ -285,7 +285,7 @@ describe("updateEmbeddedContent", () => {
   });
 });
 
-
+// These tests use "mongodb-memory-server", not mockEmbeddedContentStore 
 describe("updateEmbeddedContent", () => {
   let mongod: MongoMemoryReplSet | undefined;
   let pageStore: MongoDbPageStore;
@@ -330,6 +330,7 @@ describe("updateEmbeddedContent", () => {
   );
 
   beforeEach(async () => {
+    // setup mongo client, page store, and embedded content store
     databaseName = "test-all-command";
     mongod = await MongoMemoryReplSet.create();
     uri = mongod.getUri();
@@ -435,6 +436,36 @@ describe("updateEmbeddedContent", () => {
     assert(updatedPage1Embedding.length);
     assert(updatedPage2Embedding.length);
     expect(updatedPage1Embedding[0].chunkAlgoHash).toBe(page1Embedding[0].chunkAlgoHash);
+    expect(updatedPage2Embedding[0].chunkAlgoHash).not.toBe(page2Embedding[0].chunkAlgoHash);
+  });
+  it("use a new chunking algo on data sources, some of which have pages that have been updated", async () => {
+    // SETUP: Modify dates of pages and embedded content for this test case
+    const sinceDate = new Date("2024-01-01")
+    const afterSinceDate = new Date("2025-01-01")
+    await mongoClient.db(databaseName).collection('pages').updateOne({...pages[0]}, { $set: { updated: afterSinceDate }});
+    await mongoClient.db(databaseName).collection('embedded_content').updateOne({sourceName: mockDataSourceNames[0]}, { $set: { updated: afterSinceDate } });
+    const originalPage1Embedding = await embedStore.loadEmbeddedContent({
+      page: pages[0],
+    });
+    // END SETUP
+    await updateEmbeddedContent({
+      since: sinceDate,
+      embeddedContentStore: embedStore,
+      pageStore,
+      sourceNames: mockDataSourceNames,
+      embedder,
+      chunkOptions: { chunkOverlap: 2 },
+    });
+    const updatedPage1Embedding = await embedStore.loadEmbeddedContent({
+      page: pages[0],
+    });
+    const updatedPage2Embedding = await embedStore.loadEmbeddedContent({
+      page: pages[1],
+    });
+    assert(updatedPage1Embedding.length);
+    assert(updatedPage2Embedding.length);
+    // both pages should be updated
+    expect(updatedPage1Embedding[0].chunkAlgoHash).not.toBe(originalPage1Embedding[0].chunkAlgoHash);
     expect(updatedPage2Embedding[0].chunkAlgoHash).not.toBe(page2Embedding[0].chunkAlgoHash);
   });
 });

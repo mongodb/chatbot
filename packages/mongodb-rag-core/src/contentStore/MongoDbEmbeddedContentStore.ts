@@ -95,68 +95,6 @@ export function makeMongoDbEmbeddedContentStore({
       return await embeddedContentCollection.find(pageIdentity(page)).toArray();
     },
 
-    async getPagesFromEmbeddedContent({
-      dataSources,
-      chunkAlgoHash,
-      inverseChunkAlgoHash = false,
-    }): Promise<PersistedPage[]> {
-      const pipeline = [
-        {
-          $match: {
-            ...(dataSources ? { sourceName: { $in: dataSources } } : undefined),
-            chunkAlgoHash: inverseChunkAlgoHash
-              ? { $ne: chunkAlgoHash }
-              : chunkAlgoHash,
-          },
-        },
-        {
-          $lookup: {
-            from: "pages",
-            let: {
-              url: "$url",
-              sourceName: "$sourceName",
-            },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $and: [
-                      {
-                        $eq: ["$url", "$$url"],
-                      },
-                      {
-                        $eq: ["$sourceName", "$$sourceName"],
-                      },
-                    ],
-                  },
-                },
-              },
-            ],
-            as: "pages",
-          },
-        },
-        {
-          $project: {
-            _id: 0,
-            pages: 1,
-          },
-        },
-        {
-          $unwind: {
-            path: "$pages",
-          },
-        },
-        {
-          $replaceRoot: {
-            newRoot: "$pages",
-          },
-        },
-      ];
-      return await embeddedContentCollection
-        .aggregate<PersistedPage>(pipeline)
-        .toArray();
-    },
-
     async deleteEmbeddedContent({
       page,
       dataSources,
@@ -294,5 +232,20 @@ export function makeMongoDbEmbeddedContentStore({
         }
       }
     },
+
+    async getDataSources(matchQuery: any): Promise<string[]> {
+      const result = await embeddedContentCollection.aggregate([
+        { $match: matchQuery },
+        { 
+          $group: { 
+            _id: null,
+            uniqueSources: { $addToSet: "$sourceName" }
+          } 
+        },
+        { $project: { _id: 0, uniqueSources: 1 } }
+      ]).toArray();
+      const uniqueSources = result.length > 0 ? result[0].uniqueSources : [];
+      return uniqueSources;
+    }
   };
 }

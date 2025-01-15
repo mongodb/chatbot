@@ -1,4 +1,3 @@
-import { AppConfig } from "mongodb-chatbot-server";
 import { AssistantMessage, Message, UserMessage } from "mongodb-rag-core";
 import { llmDoesNotKnowMessage } from "./systemPrompt";
 import { strict as assert } from "assert";

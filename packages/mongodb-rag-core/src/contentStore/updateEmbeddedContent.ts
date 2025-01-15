@@ -18,8 +18,11 @@ export interface EmbedConcurrencyOptions {
   createChunks?: number;
 }
 
-
-const getHashForFunc = (chunkAlgoHashes: Map<string, string>, f: ChunkFunc, o?: Partial<ChunkOptions>): string => {
+const getHashForFunc = (
+  chunkAlgoHashes: Map<string, string>,
+  f: ChunkFunc,
+  o?: Partial<ChunkOptions>
+): string => {
   const data = JSON.stringify(o ?? {}) + f.toString();
   const existingHash = chunkAlgoHashes.get(data);
   if (existingHash) {
@@ -65,19 +68,28 @@ export const updateEmbeddedContent = async ({
   );
   // find all pages with embeddings created using chunkingHashes different from the current chunkingHash
   const chunkAlgoHashes = new Map<string, string>();
-  const chunkAlgoHash = getHashForFunc(chunkAlgoHashes, chunkPage, chunkOptions);
-  const dataSourcesWithChangedChunking = await embeddedContentStore.getDataSources({
-    chunkAlgoHash: {$ne: chunkAlgoHash},
-    // run on specific source names if specified, run on all if not
-    ...(sourceNames ? {"sourceName": {
-      "$in": sourceNames
-    }}: undefined)
-  })
+  const chunkAlgoHash = getHashForFunc(
+    chunkAlgoHashes,
+    chunkPage,
+    chunkOptions
+  );
+  const dataSourcesWithChangedChunking =
+    await embeddedContentStore.getDataSources({
+      chunkAlgoHash: { $ne: chunkAlgoHash },
+      // run on specific source names if specified, run on all if not
+      ...(sourceNames
+        ? {
+            sourceName: {
+              $in: sourceNames,
+            },
+          }
+        : undefined),
+    });
   // find all pages with changed chunking, ignoring since date because
   // we want to re-chunk all pages with the new chunkAlgoHash, even if there were no other changes to the page
   const pagesWithChangedChunking = await pageStore.loadPages({
-    sources: dataSourcesWithChangedChunking
-  })
+    sources: dataSourcesWithChangedChunking,
+  });
   logger.info(
     `Found ${
       pagesWithChangedChunking.length

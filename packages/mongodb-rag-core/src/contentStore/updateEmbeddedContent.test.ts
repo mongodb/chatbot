@@ -2,7 +2,15 @@ import {
   updateEmbeddedContent,
   updateEmbeddedContentForPage,
 } from "./updateEmbeddedContent";
-import { makeMongoDbEmbeddedContentStore, makeMongoDbPageStore, MongoDbEmbeddedContentStore, MongoDbPageStore, PageStore, persistPages, updatePages } from ".";
+import {
+  makeMongoDbEmbeddedContentStore,
+  makeMongoDbPageStore,
+  MongoDbEmbeddedContentStore,
+  MongoDbPageStore,
+  PageStore,
+  persistPages,
+  updatePages,
+} from ".";
 import { makeMockPageStore } from "../test/MockPageStore";
 import * as chunkPageModule from "../chunk/chunkPage";
 import { EmbeddedContentStore, EmbeddedContent } from "./EmbeddedContent";
@@ -285,7 +293,7 @@ describe("updateEmbeddedContent", () => {
   });
 });
 
-// These tests use "mongodb-memory-server", not mockEmbeddedContentStore 
+// These tests use "mongodb-memory-server", not mockEmbeddedContentStore
 describe("updateEmbeddedContent", () => {
   let mongod: MongoMemoryReplSet | undefined;
   let pageStore: MongoDbPageStore;
@@ -293,9 +301,9 @@ describe("updateEmbeddedContent", () => {
   let uri: string;
   let databaseName: string;
   let mongoClient: MongoClient;
-  let page1Embedding: EmbeddedContent[], page2Embedding: EmbeddedContent[]
+  let page1Embedding: EmbeddedContent[], page2Embedding: EmbeddedContent[];
   let pages: PersistedPage[] = [];
-  
+
   const embedder = {
     async embed() {
       return { embedding: [1, 2, 3] };
@@ -377,15 +385,33 @@ describe("updateEmbeddedContent", () => {
 
   it("updates embedded content for pages that have been updated after the 'since' date provided", async () => {
     // Modify dates of pages and embedded content for testing
-    const sinceDate = new Date("2024-01-01")
-    const beforeSinceDate = new Date("2023-01-01")
-    const afterSinceDate = new Date("2025-01-01")
+    const sinceDate = new Date("2024-01-01");
+    const beforeSinceDate = new Date("2023-01-01");
+    const afterSinceDate = new Date("2025-01-01");
     // set pages[0] to be last updated before sinceDate (should not be modified)
-    await mongoClient.db(databaseName).collection('pages').updateOne({...pages[0]}, { $set: { updated: beforeSinceDate } });
-    await mongoClient.db(databaseName).collection('embedded_content').updateOne({sourceName: mockDataSourceNames[0]}, { $set: { updated: beforeSinceDate } });
+    await mongoClient
+      .db(databaseName)
+      .collection("pages")
+      .updateOne({ ...pages[0] }, { $set: { updated: beforeSinceDate } });
+    await mongoClient
+      .db(databaseName)
+      .collection("embedded_content")
+      .updateOne(
+        { sourceName: mockDataSourceNames[0] },
+        { $set: { updated: beforeSinceDate } }
+      );
     // set pages[1] to be last updated after sinceDate (should be re-chunked)
-    await mongoClient.db(databaseName).collection('pages').updateOne({...pages[1]}, { $set: { updated: afterSinceDate } });
-    await mongoClient.db(databaseName).collection('embedded_content').updateOne({sourceName: mockDataSourceNames[1]}, { $set: { updated: afterSinceDate } });
+    await mongoClient
+      .db(databaseName)
+      .collection("pages")
+      .updateOne({ ...pages[1] }, { $set: { updated: afterSinceDate } });
+    await mongoClient
+      .db(databaseName)
+      .collection("embedded_content")
+      .updateOne(
+        { sourceName: mockDataSourceNames[1] },
+        { $set: { updated: afterSinceDate } }
+      );
     const originalPage1Embedding = await embedStore.loadEmbeddedContent({
       page: pages[0],
     });
@@ -407,8 +433,12 @@ describe("updateEmbeddedContent", () => {
     });
     assert(updatedPage1Embedding.length);
     assert(updatedPage2Embedding.length);
-    expect(updatedPage1Embedding[0].updated.getTime()).toBe(originalPage1Embedding[0].updated.getTime());
-    expect(updatedPage2Embedding[0].updated.getTime()).not.toBe(originalPage2Embedding[0].updated.getTime());
+    expect(updatedPage1Embedding[0].updated.getTime()).toBe(
+      originalPage1Embedding[0].updated.getTime()
+    );
+    expect(updatedPage2Embedding[0].updated.getTime()).not.toBe(
+      originalPage2Embedding[0].updated.getTime()
+    );
   });
   it("updates embedded content when page has not changed, but chunk algo has, ignoring since date", async () => {
     // change the chunking algo for the second page, but not the first
@@ -435,15 +465,28 @@ describe("updateEmbeddedContent", () => {
     });
     assert(updatedPage1Embedding.length);
     assert(updatedPage2Embedding.length);
-    expect(updatedPage1Embedding[0].chunkAlgoHash).toBe(page1Embedding[0].chunkAlgoHash);
-    expect(updatedPage2Embedding[0].chunkAlgoHash).not.toBe(page2Embedding[0].chunkAlgoHash);
+    expect(updatedPage1Embedding[0].chunkAlgoHash).toBe(
+      page1Embedding[0].chunkAlgoHash
+    );
+    expect(updatedPage2Embedding[0].chunkAlgoHash).not.toBe(
+      page2Embedding[0].chunkAlgoHash
+    );
   });
   it("use a new chunking algo on data sources, some of which have pages that have been updated", async () => {
     // SETUP: Modify dates of pages and embedded content for this test case
-    const sinceDate = new Date("2024-01-01")
-    const afterSinceDate = new Date("2025-01-01")
-    await mongoClient.db(databaseName).collection('pages').updateOne({...pages[0]}, { $set: { updated: afterSinceDate }});
-    await mongoClient.db(databaseName).collection('embedded_content').updateOne({sourceName: mockDataSourceNames[0]}, { $set: { updated: afterSinceDate } });
+    const sinceDate = new Date("2024-01-01");
+    const afterSinceDate = new Date("2025-01-01");
+    await mongoClient
+      .db(databaseName)
+      .collection("pages")
+      .updateOne({ ...pages[0] }, { $set: { updated: afterSinceDate } });
+    await mongoClient
+      .db(databaseName)
+      .collection("embedded_content")
+      .updateOne(
+        { sourceName: mockDataSourceNames[0] },
+        { $set: { updated: afterSinceDate } }
+      );
     const originalPage1Embedding = await embedStore.loadEmbeddedContent({
       page: pages[0],
     });
@@ -465,7 +508,11 @@ describe("updateEmbeddedContent", () => {
     assert(updatedPage1Embedding.length);
     assert(updatedPage2Embedding.length);
     // both pages should be updated
-    expect(updatedPage1Embedding[0].chunkAlgoHash).not.toBe(originalPage1Embedding[0].chunkAlgoHash);
-    expect(updatedPage2Embedding[0].chunkAlgoHash).not.toBe(page2Embedding[0].chunkAlgoHash);
+    expect(updatedPage1Embedding[0].chunkAlgoHash).not.toBe(
+      originalPage1Embedding[0].chunkAlgoHash
+    );
+    expect(updatedPage2Embedding[0].chunkAlgoHash).not.toBe(
+      page2Embedding[0].chunkAlgoHash
+    );
   });
 });

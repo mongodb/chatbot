@@ -118,5 +118,5 @@ export type EmbeddedContentStore = VectorStore<EmbeddedContent> & {
   /**
    Get the data sources that match the given query. 
    */
-  getDataSources(matchQuery: any): Promise<string[]>
+  getDataSources(matchQuery: any): Promise<string[]>;
 };

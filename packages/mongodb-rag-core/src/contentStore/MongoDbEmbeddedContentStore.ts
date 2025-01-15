@@ -234,18 +234,20 @@ export function makeMongoDbEmbeddedContentStore({
     },
 
     async getDataSources(matchQuery: any): Promise<string[]> {
-      const result = await embeddedContentCollection.aggregate([
-        { $match: matchQuery },
-        { 
-          $group: { 
-            _id: null,
-            uniqueSources: { $addToSet: "$sourceName" }
-          } 
-        },
-        { $project: { _id: 0, uniqueSources: 1 } }
-      ]).toArray();
+      const result = await embeddedContentCollection
+        .aggregate([
+          { $match: matchQuery },
+          {
+            $group: {
+              _id: null,
+              uniqueSources: { $addToSet: "$sourceName" },
+            },
+          },
+          { $project: { _id: 0, uniqueSources: 1 } },
+        ])
+        .toArray();
       const uniqueSources = result.length > 0 ? result[0].uniqueSources : [];
       return uniqueSources;
-    }
+    },
   };
 }

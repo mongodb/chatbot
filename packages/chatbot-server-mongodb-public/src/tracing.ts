@@ -12,20 +12,16 @@ export const makeAddMessageToConversationUpdateTrace: (
   k,
   llmAsAJudge
 ) => {
-  validatePercentToJudge(llmAsAJudge?.percentToJudge);
-
   return async function ({ traceId, addedMessages, logger }) {
     const tracingData = extractTracingData(addedMessages);
-    const shouldJudge =
-      typeof llmAsAJudge?.percentToJudge === "number" &&
-      Math.random() < llmAsAJudge.percentToJudge;
+    const judges = shouldJudge(llmAsAJudge?.percentToJudge);
 
     logger.updateSpan({
       id: traceId,
       tags: tracingData.tags,
       scores: {
         ...getTracingScores(tracingData, k),
-        ...(shouldJudge
+        ...(judges && llmAsAJudge
           ? await getLlmAsAJudgeScores(llmAsAJudge, tracingData)
           : undefined),
       },
@@ -33,13 +29,15 @@ export const makeAddMessageToConversationUpdateTrace: (
   };
 };
 
-function validatePercentToJudge(percentToJudge?: number) {
-  if (percentToJudge !== undefined) {
-    assert(
-      percentToJudge >= 0 && percentToJudge <= 1,
-      `percentToJudge must be between 0 and 1. Received: ${percentToJudge}`
-    );
+function shouldJudge(percentToJudge: number | undefined): boolean {
+  if (percentToJudge === undefined) {
+    return false;
   }
+  assert(
+    percentToJudge >= 0 && percentToJudge <= 1,
+    `percentToJudge must be between 0 and 1. Received: ${percentToJudge}`
+  );
+  return Math.random() < percentToJudge;
 }
 
 export function extractTracingData(messages: SomeMessage[]) {
@@ -158,8 +156,7 @@ export async function getLlmAsAJudgeScores(
   const output = tracingData.latestAssistantMessage.content;
   const context = tracingData.latestUserMessage.contextContent
     ?.map((c) => c.text)
-    // Have to do this type casting to make it compile. Unclear why.
-    .filter((c) => typeof c === "string") as string[] | undefined;
+    .filter((value): value is string => typeof value === "string");
 
   const [faithfulness, answerRelevancy, contextRelevancy] = context
     ? await traced(

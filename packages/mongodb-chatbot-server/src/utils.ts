@@ -10,13 +10,13 @@ import { stripIndent } from "common-tags";
   a truthy string.
   @param req
  */
-export const getRequestId = (req: ExpressRequest) => {
+export function getRequestId<T extends ExpressRequest>(req: T) {
   const reqId = req.header("req-id");
   if (!reqId) {
     return "";
   }
   return reqId;
-};
+}
 
 export interface LogRequestParams {
   reqId: string;

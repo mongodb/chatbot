@@ -1,382 +1,31 @@
-import { useMemo, useReducer } from "react";
+import { useMemo } from "react";
 import {
-  MessageData,
   ConversationService,
   ConversationFetchOptions,
   AssistantMessageMetadata,
+  MessageData,
 } from "./services/conversations";
 import createMessage, { createMessageId } from "./createMessage";
-import {
-  countRegexMatches,
-  removeArrayElementAt,
-  updateArrayElementAt,
-  canUseServerSentEvents,
-  isProductionBuild,
-} from "./utils";
+import { countRegexMatches, canUseServerSentEvents } from "./utils";
 import { makePrioritizeCurrentMongoDbReferenceDomain } from "./messageLinks";
 import { type References, SortReferences } from "./references";
 
-const STREAMING_MESSAGE_ID = "streaming-response";
+import {
+  type ConversationState,
+  STREAMING_MESSAGE_ID,
+} from "./conversationStore";
+import { useConversationStateContext } from "./useConversationStateContext";
 
-export type ConversationState = {
-  conversationId?: string;
-  messages: MessageData[];
-  error?: string;
-  isStreamingMessage: boolean;
-  streamingMessage?: MessageData;
-};
-
-type ConversationAction =
-  | { type: "setConversation"; conversation: Required<ConversationState> }
-  | { type: "setConversationError"; errorMessage: string }
-  | {
-      type: "addMessage";
-      role: "assistant";
-      content: string;
-      references?: References;
-      metadata?: AssistantMessageMetadata;
-    }
-  | {
-      type: "addMessage";
-      role: "user";
-      content: string;
-    }
-  | { type: "setMessageContent"; messageId: MessageData["id"]; content: string }
-  | {
-      type: "setMessageMetadata";
-      messageId: MessageData["id"];
-      metadata: AssistantMessageMetadata;
-    }
-  | { type: "deleteMessage"; messageId: MessageData["id"] }
-  | { type: "rateMessage"; messageId: MessageData["id"]; rating: boolean }
-  | { type: "createStreamingResponse"; data: string }
-  | { type: "appendStreamingResponse"; data: string }
-  | {
-      type: "appendStreamingReferences";
-      data: References;
-    }
-  | { type: "finishStreamingResponse"; messageId: MessageData["id"] }
-  | { type: "cancelStreamingResponse" };
-
-/**
- * Converts a ConversationAction type to a an object that contains the
- * action event without its `type` field. This can be used an argument
- * to the corresponding "actor" function.
- */
-type ConversationActorArgs<K extends ConversationAction["type"]> = Omit<
-  Extract<ConversationAction, { type: K }>,
-  "type"
->;
-
-type ConversationActor = {
+export type ConversationMethods = {
   createConversation: () => Promise<void>;
-  endConversationWithError: (errorMessage: string) => void;
-  addMessage: (args: ConversationActorArgs<"addMessage">) => Promise<void>;
-  setMessageContent: (messageId: string, content: string) => Promise<void>;
-  setMessageMetadata: (
-    args: ConversationActorArgs<"setMessageMetadata">
-  ) => Promise<void>;
-  updateMessageMetadata: (args: {
-    messageId: string;
-    metadata: AssistantMessageMetadata;
-  }) => Promise<void>;
-  deleteMessage: (messageId: string) => Promise<void>;
+  switchConversation: (conversationId: string) => Promise<void>;
+  submit: (content: string) => Promise<void>;
+  getMessage: (messageId: string) => MessageData | undefined;
   rateMessage: (messageId: string, rating: boolean) => Promise<void>;
   commentMessage: (messageId: string, comment: string) => Promise<void>;
-  switchConversation: (conversationId: string) => Promise<void>;
 };
 
-export type Conversation = ConversationState & ConversationActor;
-
-export const defaultConversationState = {
-  messages: [],
-  error: "",
-  isStreamingMessage: false,
-} satisfies ConversationState;
-
-function conversationReducer(
-  state: ConversationState,
-  action: ConversationAction
-): ConversationState {
-  function getMessageIndex(messageId: MessageData["id"]) {
-    const messageIndex = state.messages.findIndex(
-      (message) => message.id === messageId
-    );
-    return messageIndex;
-  }
-  function getStreamingMessage() {
-    const streamingMessageIndex = getMessageIndex(STREAMING_MESSAGE_ID);
-    const streamingMessage =
-      streamingMessageIndex === -1
-        ? null
-        : state.messages[streamingMessageIndex];
-    return {
-      streamingMessageIndex,
-      streamingMessage,
-    };
-  }
-  switch (action.type) {
-    case "setConversation": {
-      return {
-        ...action.conversation,
-        error: "",
-      };
-    }
-    case "setConversationError": {
-      return {
-        ...state,
-        error: action.errorMessage,
-      };
-    }
-    case "addMessage": {
-      if (!state.conversationId) {
-        console.error(`Cannot addMessage without a conversationId`);
-      }
-
-      const newMessage = createMessage(action);
-
-      return {
-        ...state,
-        messages: [...state.messages, newMessage],
-      };
-    }
-    case "setMessageContent": {
-      if (!state.conversationId) {
-        console.error(`Cannot setMessageContent without a conversationId`);
-        return state;
-      }
-      const messageIndex = getMessageIndex(action.messageId);
-      if (messageIndex === -1) {
-        console.error(
-          `Cannot setMessageContent because message with id ${action.messageId} does not exist`
-        );
-        return state;
-      }
-      const modifiedMessage = {
-        ...state.messages[messageIndex],
-        content: action.content,
-      };
-      return {
-        ...state,
-        messages: [
-          ...state.messages.slice(0, messageIndex),
-          modifiedMessage,
-          ...state.messages.slice(messageIndex + 1),
-        ],
-      };
-    }
-    case "setMessageMetadata": {
-      if (!state.conversationId) {
-        console.error(`Cannot setMessageMetadata without a conversationId`);
-        return state;
-      }
-      const messageIndex = getMessageIndex(action.messageId);
-      if (messageIndex === -1) {
-        console.error(
-          `Cannot setMessageMetadata because message with id ${action.messageId} does not exist`
-        );
-        return state;
-      }
-      const existingMessage = state.messages[messageIndex];
-      if (existingMessage.role !== "assistant") {
-        console.error(
-          `Cannot setMessageMetadata because message with id ${action.messageId} is not an assistant message`
-        );
-        return state;
-      }
-      const modifiedMessage = {
-        ...existingMessage,
-        metadata: action.metadata,
-      };
-      return {
-        ...state,
-        messages: [
-          ...state.messages.slice(0, messageIndex),
-          modifiedMessage,
-          ...state.messages.slice(messageIndex + 1),
-        ],
-      };
-    }
-    case "deleteMessage": {
-      if (!state.conversationId) {
-        console.error(`Cannot deleteMessage without a conversationId`);
-        return state;
-      }
-      const messageIndex = getMessageIndex(action.messageId);
-      if (messageIndex === -1) {
-        console.error(
-          `Cannot deleteMessage because message with id ${action.messageId} does not exist`
-        );
-        return state;
-      }
-      return {
-        ...state,
-        messages: [
-          ...state.messages.slice(0, messageIndex),
-          ...state.messages.slice(messageIndex + 1),
-        ],
-      };
-    }
-    case "rateMessage": {
-      if (!state.conversationId) {
-        console.error(`Cannot rateMessage without a conversationId`);
-        return state;
-      }
-      const messageIndex = getMessageIndex(action.messageId);
-      if (messageIndex === -1) {
-        console.error(
-          `Cannot rateMessage because message with id ${action.messageId} does not exist`
-        );
-        return state;
-      }
-
-      const ratedMessage = {
-        ...state.messages[messageIndex],
-        rating: action.rating,
-      };
-      return {
-        ...state,
-        messages: [
-          ...state.messages.slice(0, messageIndex),
-          ratedMessage,
-          ...state.messages.slice(messageIndex + 1),
-        ],
-      };
-    }
-    case "createStreamingResponse": {
-      if (!state.conversationId) {
-        console.error(
-          `Cannot createStreamingResponse without a conversationId`
-        );
-        return state;
-      }
-      let { streamingMessage } = getStreamingMessage();
-      if (streamingMessage) {
-        console.error(
-          `Cannot createStreamingResponse because a streamingMessage already exists`
-        );
-        return state;
-      }
-      streamingMessage = {
-        ...createMessage({
-          role: "assistant",
-          content: action.data,
-        }),
-        id: STREAMING_MESSAGE_ID,
-      };
-      return {
-        ...state,
-        isStreamingMessage: true,
-        streamingMessage,
-        messages: [...state.messages, streamingMessage],
-      };
-    }
-    case "appendStreamingResponse": {
-      if (!state.conversationId) {
-        console.error(
-          `Cannot appendStreamingResponse without a conversationId`
-        );
-        return state;
-      }
-      const { streamingMessage, streamingMessageIndex } = getStreamingMessage();
-      if (!streamingMessage) {
-        console.error(
-          `Cannot appendStreamingResponse without a streamingMessage. Make sure to dispatch createStreamingResponse first.`
-        );
-        return state;
-      }
-      const modifiedMessage = {
-        ...streamingMessage,
-        content: streamingMessage.content + action.data,
-      };
-      return {
-        ...state,
-        messages: updateArrayElementAt(
-          state.messages,
-          streamingMessageIndex,
-          modifiedMessage
-        ),
-      };
-    }
-    case "appendStreamingReferences": {
-      if (!state.conversationId) {
-        console.error(
-          `Cannot appendStreamingResponse without a conversationId`
-        );
-        return state;
-      }
-      const { streamingMessage, streamingMessageIndex } = getStreamingMessage();
-      if (!streamingMessage) {
-        console.error(
-          `Cannot appendStreamingResponse without a streamingMessage. Make sure to dispatch createStreamingResponse first.`
-        );
-        return state;
-      }
-
-      const modifiedMessage = {
-        ...streamingMessage,
-        references: [...(streamingMessage.references ?? []), ...action.data],
-      } satisfies MessageData;
-      return {
-        ...state,
-        messages: updateArrayElementAt(
-          state.messages,
-          streamingMessageIndex,
-          modifiedMessage
-        ),
-      };
-    }
-    case "finishStreamingResponse": {
-      const { streamingMessage, streamingMessageIndex } = getStreamingMessage();
-      if (!streamingMessage) {
-        console.error(
-          `Cannot finishStreamingResponse without a streamingMessage`
-        );
-        return state;
-      }
-      const finalMessage = {
-        ...streamingMessage,
-        id: action.messageId,
-      };
-
-      return {
-        ...state,
-        isStreamingMessage: false,
-        streamingMessage: undefined,
-        messages: updateArrayElementAt(
-          state.messages,
-          streamingMessageIndex,
-          finalMessage
-        ),
-      };
-    }
-    case "cancelStreamingResponse": {
-      const { streamingMessage, streamingMessageIndex } = getStreamingMessage();
-      if (!streamingMessage) {
-        console.error(
-          `Cannot cancelStreamingResponse without a streamingMessage`
-        );
-        return state;
-      }
-
-      const messages = removeArrayElementAt(
-        state.messages,
-        streamingMessageIndex
-      );
-
-      return {
-        ...state,
-        isStreamingMessage: false,
-        streamingMessage: undefined,
-        messages,
-      };
-    }
-    default: {
-      console.error("Unhandled action", action);
-      throw new Error(`Unhandled action type`);
-    }
-  }
-}
+export type Conversation = ConversationState & ConversationMethods;
 
 export type UseConversationParams = {
   serverBaseUrl: string;
@@ -386,23 +35,13 @@ export type UseConversationParams = {
 };
 
 export function useConversation(params: UseConversationParams) {
+  const state = useConversationStateContext();
   const conversationService = useMemo(() => {
     return new ConversationService({
       serverUrl: params.serverBaseUrl,
       fetchOptions: params.fetchOptions,
     });
   }, [params.serverBaseUrl, params.fetchOptions]);
-
-  const [state, _dispatch] = useReducer(
-    conversationReducer,
-    defaultConversationState
-  );
-  const dispatch = (...args: Parameters<typeof _dispatch>) => {
-    if (!isProductionBuild()) {
-      console.log(`dispatch`, ...args);
-    }
-    _dispatch(...args);
-  };
 
   // Use a custom sort function if provided. If undefined and we're on a
   // well-known MongoDB domain, then prioritize links to the current domain.
@@ -411,20 +50,16 @@ export function useConversation(params: UseConversationParams) {
     params.sortMessageReferences ??
     makePrioritizeCurrentMongoDbReferenceDomain();
 
-  const setConversation = (conversation: Required<ConversationState>) => {
-    dispatch({ type: "setConversation", conversation });
-  };
-
   const endConversationWithError = (errorMessage: string) => {
-    dispatch({ type: "setConversationError", errorMessage });
+    state.api.setConversationError(errorMessage);
   };
 
   const createConversation = async () => {
     try {
       const conversation = await conversationService.createConversation();
-      setConversation({
-        ...conversation,
-        error: "",
+      state.api.initialize({
+        conversationId: conversation._id,
+        messages: conversation.messages.map(createMessage),
       });
     } catch (error) {
       const errorMessage =
@@ -438,10 +73,7 @@ export function useConversation(params: UseConversationParams) {
     }
   };
 
-  const addMessage: ConversationActor["addMessage"] = async ({
-    role,
-    content,
-  }) => {
+  const submit = async (content: string) => {
     if (!state.conversationId) {
       console.error(`Cannot addMessage without a conversationId`);
       return;
@@ -465,7 +97,7 @@ export function useConversation(params: UseConversationParams) {
       bufferedTokens = remainingTokens;
 
       if (nextToken) {
-        dispatch({ type: "appendStreamingResponse", data: nextToken });
+        state.api.appendStreamingResponse(nextToken);
       }
 
       const allBufferedTokensDispatched =
@@ -480,34 +112,30 @@ export function useConversation(params: UseConversationParams) {
           streamedTokens.join("")
         );
         if (numCodeFences % 2 !== 0) {
-          dispatch({
-            type: "appendStreamingResponse",
-            data: "\n```\n\n",
-          });
+          state.api.appendStreamingResponse("\n```\n\n");
         }
 
-        dispatch({
-          type: "appendStreamingReferences",
-          data: references.sort(sortMessageReferences),
-        });
+        state.api.appendStreamingReferences(
+          references.sort(sortMessageReferences)
+        );
         references = null;
       }
       if (!finishedBuffering && allBufferedTokensDispatched) {
         if (!streamedMessageId) {
           streamedMessageId = createMessageId();
         }
-        dispatch({
-          type: "finishStreamingResponse",
-          messageId: streamedMessageId,
-        });
+        state.api.finishStreamingResponse(streamedMessageId);
         finishedBuffering = true;
       }
     }, streamingIntervalMs);
 
     try {
-      dispatch({ type: "addMessage", role, content });
+      state.api.addMessage({
+        role: "user",
+        content,
+      });
       if (shouldStream) {
-        dispatch({ type: "createStreamingResponse", data: "" });
+        state.api.createStreamingResponse();
         await conversationService.addMessageStreaming({
           conversationId: state.conversationId,
           message: content,
@@ -523,10 +151,10 @@ export function useConversation(params: UseConversationParams) {
             references.push(...data);
           },
           onMetadata: async (metadata) => {
-            updateMessageMetadata({
-              messageId: STREAMING_MESSAGE_ID,
-              metadata,
-            });
+            state.api.updateMessageMetadata(
+              STREAMING_MESSAGE_ID,
+              (m) => ({ ...m, ...metadata } as AssistantMessageMetadata)
+            );
           },
           onResponseFinished: async (messageId: string) => {
             streamedMessageId = messageId;
@@ -538,28 +166,21 @@ export function useConversation(params: UseConversationParams) {
         // We start a streaming response to indicate the loading state
         // but we'll never append to it since the response message comes
         // in all at once.
-        dispatch({ type: "createStreamingResponse", data: "" });
+        state.api.createStreamingResponse();
         const response = await conversationService.addMessage({
           conversationId: state.conversationId,
           message: content,
         });
-        dispatch({ type: "cancelStreamingResponse" });
-        dispatch({
-          type: "addMessage",
-          role: "assistant",
-          content: response.content,
-          references: response.references?.sort(sortMessageReferences),
-          metadata: response.metadata,
-        });
+        state.api.cancelStreamingResponse();
+        state.api.addMessage(response);
       }
     } catch (error) {
       abortController.abort();
       console.error(`Failed to add message: ${error}`);
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      dispatch({ type: "cancelStreamingResponse" });
+      state.api.cancelStreamingResponse();
       clearInterval(streamingInterval);
-
       endConversationWithError(errorMessage);
       throw error;
     }
@@ -576,47 +197,8 @@ export function useConversation(params: UseConversationParams) {
     });
   };
 
-  const setMessageContent = async (messageId: string, content: string) => {
-    if (!state.conversationId) {
-      console.error(`Cannot setMessageContent without a conversationId`);
-      return;
-    }
-    dispatch({ type: "setMessageContent", messageId, content });
-  };
-
-  const setMessageMetadata: ConversationActor["setMessageMetadata"] = async ({
-    messageId,
-    metadata,
-  }) => {
-    if (!state.conversationId) {
-      console.error(`Cannot setMessageMetadata without a conversationId`);
-      return;
-    }
-    dispatch({ type: "setMessageMetadata", messageId, metadata });
-  };
-
-  const updateMessageMetadata: ConversationActor["updateMessageMetadata"] =
-    async ({ messageId, metadata }) => {
-      if (!state.conversationId) {
-        console.error(`Cannot updateMessageMetadata without a conversationId`);
-        return;
-      }
-      dispatch({
-        type: "setMessageMetadata",
-        messageId,
-        metadata: {
-          ...state.messages.find((m) => m.id === messageId)?.metadata,
-          ...metadata,
-        },
-      });
-    };
-
-  const deleteMessage = async (messageId: string) => {
-    if (!state.conversationId) {
-      console.error(`Cannot deleteMessage without a conversationId`);
-      return;
-    }
-    dispatch({ type: "deleteMessage", messageId });
+  const getMessage = (messageId: string) => {
+    return state.messages.find((message) => message.id === messageId);
   };
 
   const rateMessage = async (messageId: string, rating: boolean) => {
@@ -629,7 +211,7 @@ export function useConversation(params: UseConversationParams) {
       messageId,
       rating,
     });
-    dispatch({ type: "rateMessage", messageId, rating });
+    state.api.rateMessage(messageId, rating);
   };
 
   const commentMessage = async (messageId: string, comment: string) => {
@@ -644,10 +226,6 @@ export function useConversation(params: UseConversationParams) {
     });
   };
 
-  const streamingMessage = state.messages.find(
-    (m) => m.id === STREAMING_MESSAGE_ID
-  );
-
   /**
    * Switch to a different, existing conversation.
    */
@@ -656,9 +234,9 @@ export function useConversation(params: UseConversationParams) {
       const conversation = await conversationService.getConversation(
         conversationId
       );
-      setConversation({
-        ...conversation,
-        error: "",
+      state.api.initialize({
+        conversationId: conversation._id,
+        messages: conversation.messages.map(createMessage),
       });
     } catch (error) {
       const errorMessage =
@@ -674,15 +252,13 @@ export function useConversation(params: UseConversationParams) {
   };
 
   return {
-    ...state,
+    conversationId: state.conversationId,
+    messages: state.messages,
+    error: state.error,
+    streamingMessageId: state.streamingMessageId,
     createConversation,
-    endConversationWithError,
-    streamingMessage,
-    addMessage,
-    setMessageContent,
-    setMessageMetadata,
-    updateMessageMetadata,
-    deleteMessage,
+    submit,
+    getMessage,
     rateMessage,
     commentMessage,
     switchConversation,

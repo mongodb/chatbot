@@ -34,6 +34,7 @@ import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
   makeAddMessageToConversationUpdateTrace,
   makeCommentMessageUpdateTrace,
+  makeRateMessageUpdateTrace,
 } from "./tracing/routesUpdateTraceHandlers";
 import { TRACING_ENV_VARS } from "./EnvVars";
 export const {
@@ -240,7 +241,11 @@ export const config: AppConfig = {
         retrievalConfig.findNearestNeighborsOptions.k,
         { ...llmAsAJudgeConfig, percentToJudge: isProduction ? 0.1 : 1 }
       ),
-    commentMessageUpdateTrace: makeCommentMessageUpdateTrace(llmAsAJudgeConfig),
+    rateMessageUpdateTrace: makeRateMessageUpdateTrace(llmAsAJudgeConfig),
+    commentMessageUpdateTrace: makeCommentMessageUpdateTrace(
+      openAiClient,
+      JUDGE_LLM
+    ),
     generateUserPrompt,
     systemPrompt,
     maxUserMessagesInConversation: 50,

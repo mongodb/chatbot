@@ -33,14 +33,14 @@ export async function getLlmAsAJudgeScores(
     tracingData.rejectQuery ||
     tracingData.numRetrievedChunks === 0 ||
     tracingData.llmDoesNotKnow ||
-    !tracingData.latestUserMessage ||
-    !tracingData.latestAssistantMessage
+    !tracingData.userMessage ||
+    !tracingData.assistantMessage
   ) {
     return;
   }
-  const input = tracingData.latestUserMessage.content;
-  const output = tracingData.latestAssistantMessage.content;
-  const context = tracingData.latestUserMessage.contextContent
+  const input = tracingData.userMessage.content;
+  const output = tracingData.assistantMessage.content;
+  const context = tracingData.userMessage.contextContent
     ?.map((c) => c.text)
     // Have to do this type casting to make it compile. Unclear why.
     .filter((c) => typeof c === "string") as string[] | undefined;

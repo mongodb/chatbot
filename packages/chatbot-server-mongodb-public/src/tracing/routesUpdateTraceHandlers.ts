@@ -3,6 +3,8 @@ import { UpdateTraceFunc } from "mongodb-chatbot-server/build/routes/conversatio
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { extractTracingData } from "./extractTracingData";
 import { LlmAsAJudge, getLlmAsAJudgeScores } from "./getLlmAsAJudgeScores";
+import { OpenAI } from "mongodb-rag-core/openai";
+import { judgeMongoDbChatbotCommentSentiment } from "./mongoDbChatbotCommentSentiment";
 
 export const makeAddMessageToConversationUpdateTrace: (
   k: number,
@@ -24,6 +26,8 @@ export const makeAddMessageToConversationUpdateTrace: (
       typeof llmAsAJudge?.percentToJudge === "number" &&
       Math.random() < llmAsAJudge.percentToJudge;
 
+    console.log("traceId", traceId);
+    console.log({ tracingData });
     logger.updateSpan({
       id: traceId,
       tags: tracingData.tags,
@@ -52,7 +56,7 @@ function getTracingScores(
   };
 }
 
-export function makeCommentMessageUpdateTrace(
+export function makeRateMessageUpdateTrace(
   llmAsAJudge: LlmAsAJudge
 ): UpdateTraceFunc {
   return async function ({ traceId, conversation, logger }) {
@@ -65,6 +69,27 @@ export function makeCommentMessageUpdateTrace(
           ObjectId.createFromHexString(traceId)
         )
       ),
+    });
+  };
+}
+
+export function makeCommentMessageUpdateTrace(
+  openAiClient: OpenAI,
+  judgeLlm: string
+): UpdateTraceFunc {
+  return async function ({ traceId, conversation, logger }) {
+    logger.updateSpan({
+      id: traceId,
+      scores: {
+        CommentSentiment: (
+          await judgeMongoDbChatbotCommentSentiment({
+            judgeLlm,
+            openAiClient,
+            messages: conversation.messages,
+            messageWithCommentId: ObjectId.createFromHexString(traceId),
+          })
+        ).score,
+      },
     });
   };
 }

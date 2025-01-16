@@ -1,9 +1,10 @@
 import { Message } from "mongodb-rag-core";
-import { EvalScorer } from "mongodb-rag-core/braintrust";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
+import { strict as assert } from "assert";
+import { wrapTraced } from "mongodb-rag-core/braintrust";
 
 export interface CommentSentimentParams {
   openAiClient: OpenAI;
@@ -19,7 +20,7 @@ const Sentiment = z.object({
   sentiment: z.enum(["positive", "neutral", "negative"]),
 });
 
-type Sentiment = z.infer<typeof Sentiment>;
+export type Sentiment = z.infer<typeof Sentiment>;
 
 const commentSentimentToolDefinition: OpenAI.ChatCompletionTool = {
   type: "function",
@@ -39,41 +40,44 @@ The chatbot you are analyzing answers questions about MongoDB's products and ser
 You are given a snippet of a conversation between a user and the chatbot with some metadata about the conversation, including user ratings on messages and the relevant message with comment.`,
 } satisfies OpenAI.Chat.Completions.ChatCompletionSystemMessageParam;
 
-export async function judgeMongoDbChatbotCommentSentiment({
-  openAiClient,
-  judgeLlm,
-  messages,
-  messageWithCommentId,
-}: CommentSentimentParams): Promise<
-  ReturnType<EvalScorer<void, void, void, void>>
-> {
-  const userMessage = makeUserMessage(messages, messageWithCommentId);
-
-  const messagesForLlm = [systemMessage, userMessage];
-
-  const { sentiment, reasoning } = await getSentiment(
+export const judgeMongoDbChatbotCommentSentiment = wrapTraced(
+  async function ({
     openAiClient,
     judgeLlm,
-    messagesForLlm
-  );
+    messages,
+    messageWithCommentId,
+  }: CommentSentimentParams) {
+    const userMessage = makeUserMessage(messages, messageWithCommentId);
 
-  const SENTIMENT_SCORES = {
-    positive: 1,
-    negative: 0,
-    neutral: 0.5,
-  } as const;
+    const messagesForLlm = [systemMessage, userMessage];
 
-  const score = SENTIMENT_SCORES[sentiment];
+    const { sentiment, reasoning } = await getSentiment(
+      openAiClient,
+      judgeLlm,
+      messagesForLlm
+    );
 
-  return {
-    name: "CommentSentiment",
-    score,
-    metadata: {
-      reasoning,
-      sentiment,
-    },
-  };
-}
+    const SENTIMENT_SCORES = {
+      positive: 1,
+      negative: 0,
+      neutral: 0.5,
+    } as const;
+
+    const score = SENTIMENT_SCORES[sentiment];
+
+    return {
+      name: "CommentSentiment",
+      score,
+      metadata: {
+        reasoning,
+        sentiment,
+      },
+    };
+  },
+  {
+    name: "JudgeMongoDbChatbotCommentSentiment",
+  }
+);
 
 async function getSentiment(
   openAiClient: OpenAI,
@@ -101,8 +105,15 @@ function makeUserMessage(
   messages: Message[],
   messageWithCommentId: ObjectId
 ): OpenAI.Chat.Completions.ChatCompletionUserMessageParam {
-  const commentIdx = messages.findLastIndex((message) =>
-    message.id.equals(messageWithCommentId)
+  const commentIdx = messages.findLastIndex(
+    (message) =>
+      message.id.equals(messageWithCommentId) &&
+      message.role === "assistant" &&
+      message.userComment !== undefined
+  );
+  assert(
+    commentIdx !== -1,
+    `Comment with ID ${messageWithCommentId.toHexString()} not found in messages with a comment.`
   );
   const sampleMessagesStartIndex = Math.max(0, commentIdx - 5);
   const sampleMessagesEndIndex = Math.min(messages.length - 1, commentIdx + 2);

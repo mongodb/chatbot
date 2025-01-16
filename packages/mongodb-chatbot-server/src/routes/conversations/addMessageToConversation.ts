@@ -156,6 +156,7 @@ export function makeAddMessageToConversationRoute({
           id: traceId,
           metadata: {
             conversationId: conversation._id.toHexString(),
+            traceId,
           },
         },
       }
@@ -278,11 +279,21 @@ export function makeAddMessageToConversationRoute({
         }
 
         if (updateTrace) {
-          await updateTrace({
-            traceId: assistantResponseMessageId.toHexString(),
-            logger: braintrustLogger,
-            conversation,
+          console.log("Updating trace");
+          const conversationForTrace = await conversations.findById({
+            _id: conversation._id,
           });
+          if (conversationForTrace !== null) {
+            console.log(
+              "updating trace",
+              assistantResponseMessageId.toHexString()
+            );
+            await updateTrace({
+              traceId: assistantResponseMessageId.toHexString(),
+              logger: braintrustLogger,
+              conversation: conversationForTrace,
+            });
+          }
         }
       }
     } catch (error) {

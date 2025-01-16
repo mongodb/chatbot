@@ -1,32 +1,33 @@
 import { Message, UserMessage, AssistantMessage } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { llmDoesNotKnowMessage } from "../systemPrompt";
+import { strict as assert } from "assert";
 
 export function extractTracingData(
   messages: Message[],
-  userMessageId: ObjectId
+  tracingMessageId: ObjectId
 ) {
-  const latestUserMessageIdx = messages.findLastIndex(
-    (message) => message.role === "user" && message.id.equals(userMessageId)
+  const relevantAssistantMessageIdx = messages.findLastIndex(
+    (message) => message.role === "user" && message.id.equals(tracingMessageId)
   );
-  const latestUserMessage = messages[latestUserMessageIdx] as
-    | UserMessage
-    | undefined;
-  const latestAssistantMessage = messages
-    .slice(latestUserMessageIdx)
-    .find(
-      (message) => message.role === "assistant" && message.content !== undefined
-    ) as AssistantMessage | undefined;
+  assert(relevantAssistantMessageIdx !== -1, "Tracing message not found");
 
+  const relevantAssistantMessage = messages[relevantAssistantMessageIdx] as
+    | AssistantMessage
+    | undefined;
+  const precedingUserMessage = messages
+    .slice(0, relevantAssistantMessageIdx)
+    .findLast((m) => m.role === "user") as UserMessage | undefined;
+  console.log(relevantAssistantMessage);
   const tags = [];
 
-  const rejectQuery = latestUserMessage?.rejectQuery;
+  const rejectQuery = precedingUserMessage?.rejectQuery;
   if (rejectQuery === true) {
     tags.push("rejected_query");
   }
-  const programmingLanguage = latestUserMessage?.customData
+  const programmingLanguage = precedingUserMessage?.customData
     ?.programmingLanguage as string | undefined;
-  const mongoDbProduct = latestUserMessage?.customData?.mongoDbProduct as
+  const mongoDbProduct = precedingUserMessage?.customData?.mongoDbProduct as
     | string
     | undefined;
   if (programmingLanguage) {
@@ -36,20 +37,20 @@ export function extractTracingData(
     tags.push(tagify(mongoDbProduct));
   }
 
-  const numRetrievedChunks = latestUserMessage?.contextContent?.length ?? 0;
+  const numRetrievedChunks = precedingUserMessage?.contextContent?.length ?? 0;
   if (numRetrievedChunks === 0) {
     tags.push("no_retrieved_content");
   }
 
   const isVerifiedAnswer =
-    latestAssistantMessage?.metadata?.verifiedAnswer !== undefined
+    relevantAssistantMessage?.metadata?.verifiedAnswer !== undefined
       ? true
       : undefined;
   if (isVerifiedAnswer) {
     tags.push("verified_answer");
   }
 
-  const llmDoesNotKnow = latestAssistantMessage?.content.includes(
+  const llmDoesNotKnow = relevantAssistantMessage?.content.includes(
     llmDoesNotKnowMessage
   );
   if (llmDoesNotKnow) {
@@ -62,8 +63,8 @@ export function extractTracingData(
     isVerifiedAnswer,
     llmDoesNotKnow,
     numRetrievedChunks,
-    latestUserMessage,
-    latestAssistantMessage,
+    userMessage: precedingUserMessage,
+    assistantMessage: relevantAssistantMessage,
   };
 }
 

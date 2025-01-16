@@ -8,6 +8,7 @@ import {
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
+import { braintrustLogger } from "mongodb-rag-core/braintrust";
 
 export type CommentMessageRequest = z.infer<typeof CommentMessageRequest>;
 
@@ -141,6 +142,13 @@ export function makeCommentMessageRoute({
         logRequest({
           reqId,
           message: `Added a user comment to ${messageIdStr} in conversation ${conversationIdStr}: "${comment}"`,
+        });
+        braintrustLogger.logFeedback({
+          id: messageId.toHexString(),
+          comment,
+          scores: {
+            HasComment: 1,
+          },
         });
         return;
       } catch (err) {

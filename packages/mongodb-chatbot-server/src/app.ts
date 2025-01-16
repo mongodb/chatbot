@@ -17,6 +17,7 @@ import { ObjectId } from "mongodb-rag-core/mongodb";
 import { getRequestId, logRequest, sendErrorResponse } from "./utils";
 import { CorsOptions } from "cors";
 import cloneDeep from "lodash.clonedeep";
+import { braintrustLogger } from "mongodb-rag-core/braintrust";
 
 /**
   Configuration for the server Express.js app.
@@ -124,6 +125,15 @@ export const makeApp = async (config: AppConfig): Promise<Express> => {
   logger.info(
     stringifyFunctions(cloneDeep(config) as unknown as Record<string, unknown>)
   );
+
+  // Initialize the Braintrust logger if it exists
+  if (process.env.BRAINTRUST_TRACING_API_KEY !== undefined) {
+    const braintrustLoggerId = await braintrustLogger.id;
+    logger.info(`Using Braintrust logger with ID: ${braintrustLoggerId}`);
+  } else {
+    logger.info("Braintrust logger not initialized");
+  }
+
   const app = express();
 
   // Instantiate additional server logic, if it exists.

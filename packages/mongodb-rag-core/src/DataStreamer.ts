@@ -137,9 +137,7 @@ export function makeDataStreamer(): DataStreamer {
       }
       sse = makeServerSentEventDispatcher<SomeStreamEvent>(res);
       res.on("close", () => {
-        logger.info(
-          "Client closed the streaming connection before the stream was finished."
-        );
+        logger.info("SSE connection was closed.");
       });
       sse.connect();
       connected = true;

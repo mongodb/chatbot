@@ -41,14 +41,17 @@ const classificationTypes = [
 
 export type MakeClassifyChangelogAudienceArgs = {
   openAiClient: OpenAI;
+  model: string;
   logger?: RunLogger;
 };
 
 export function makeClassifyChangelogAudience({
   openAiClient,
+  model,
 }: MakeClassifyChangelogAudienceArgs) {
   return makeClassifierWithLogger({
     openAiClient,
+    model,
     classificationTypes,
     chainOfThought: true,
   });

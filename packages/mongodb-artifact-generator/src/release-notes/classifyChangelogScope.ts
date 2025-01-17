@@ -86,11 +86,13 @@ const classificationTypes = [
 
 export type MakeClassifyChangelogScope = {
   openAiClient: OpenAI;
+  model: string;
   logger?: RunLogger;
 };
 
 export function makeClassifyChangelogScope({
   openAiClient,
+  model,
   logger,
 }: MakeClassifyChangelogScope) {
   return makeClassifierWithLogger({
@@ -98,5 +100,6 @@ export function makeClassifyChangelogScope({
     logger,
     classificationTypes,
     chainOfThought: true,
+    model,
   });
 }

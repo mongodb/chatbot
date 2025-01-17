@@ -14,19 +14,23 @@ export type ClassifiedChangelog = {
 
 export type MakeClassifyChangelogScope = {
   openAiClient: OpenAI;
+  model: string;
   logger?: RunLogger;
 };
 
 export function makeClassifyChangelog({
   openAiClient,
+  model,
   logger,
 }: MakeClassifyChangelogScope) {
   const classifyChangelogAudience = makeClassifyChangelogAudience({
     openAiClient,
+    model,
     logger,
   });
   const classifyChangelogScope = makeClassifyChangelogScope({
     openAiClient,
+    model,
     logger,
   });
 

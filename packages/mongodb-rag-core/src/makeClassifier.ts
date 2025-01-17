@@ -3,8 +3,6 @@ import "dotenv/config";
 import { OpenAI } from "./openai";
 import { html, stripIndents } from "common-tags";
 import { z } from "zod";
-import { assertEnvVars } from "./assertEnvVars";
-import { CORE_OPENAI_CHAT_COMPLETION_ENV_VARS } from "./CoreEnvVars";
 
 export type Classifier = ({ input }: { input: string }) => Promise<{
   classification: Classification;
@@ -55,10 +53,12 @@ export const Classification = z.object({
 
 export function makeClassifier({
   openAiClient,
+  model,
   classificationTypes,
   chainOfThought = false,
 }: {
   openAiClient: OpenAI;
+  model: string;
 
   /**
    A list of valid classification types.
@@ -71,10 +71,6 @@ export function makeClassifier({
    */
   chainOfThought?: boolean;
 }): Classifier {
-  const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars(
-    CORE_OPENAI_CHAT_COMPLETION_ENV_VARS
-  );
-
   const classificationCategoriesList = classificationTypes
     .map(({ type, description }) => `- ${type}: ${description}`)
     .join("\n");
@@ -143,7 +139,7 @@ export function makeClassifier({
       },
     ] satisfies OpenAI.ChatCompletionMessageParam[];
     const result = await openAiClient.chat.completions.create({
-      model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+      model,
       messages,
       temperature: 0,
       max_tokens: 300,

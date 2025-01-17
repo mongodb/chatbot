@@ -3,7 +3,7 @@
  */
 import { ClassificationType, makeClassifier } from "mongodb-rag-core";
 
-const classificationTypes: ClassificationType[] = [
+const classificationTypes = [
   {
     type: "api_method_signature",
     description:
@@ -36,24 +36,28 @@ db.collection.insertOne(
     type: "return_example",
     description:
       "A JSON blob, example document, or other return object type demonstrating what a user might expect from executing a piece of code",
+    // TODO: add other examples
     examples: [],
   },
   {
     type: "example_configuration_object",
     description:
       "Example object, often represented in YAML or JSON, enumerating parameters and their types",
+    // TODO: add other examples
     examples: [],
   },
   {
     type: "usage_example",
     description:
       "A longer code snippet that establishes parameters, performs basic set-up code, and includes the larger context to demonstrate how to accomplish a task",
+    // TODO: add other examples
     examples: [],
   },
   {
     type: "sample_application",
     description:
       "Runnable applications that connect more discrete pieces of code, and may include error handling, framework integrations, or User Interface elements",
+    // TODO: add other examples
     examples: [],
   },
   // Note: adding this b/c there will certainly be types of code examples that don't cleanly fit into these buckets.
@@ -63,4 +67,16 @@ db.collection.insertOne(
     description:
       "Unknown classification type. The code example doesn't easily fit into any of the other categories.",
   },
-];
+] as const satisfies ClassificationType[];
+
+export type CodeExampleClassification =
+  (typeof classificationTypes)[number]["type"];
+
+export const makeClassifyCodeExampleDocsTeam = (
+  args: Pick<Parameters<typeof makeClassifier>[0], "openAiClient">
+) =>
+  makeClassifier({
+    classificationTypes,
+    chainOfThought: true,
+    openAiClient: args.openAiClient,
+  });

@@ -1,9 +1,7 @@
-import {
-  CORE_OPENAI_CONNECTION_ENV_VARS,
-  assertEnvVars,
-} from "mongodb-rag-core";
+import { assertEnvVars } from "./assertEnvVars";
+import { CORE_OPENAI_CONNECTION_ENV_VARS } from "./CoreEnvVars";
 import { Classification, makeClassifier } from "./makeClassifier";
-import { AzureOpenAI } from "mongodb-rag-core/openai";
+import { AzureOpenAI } from "./openai";
 
 const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_API_VERSION } = assertEnvVars(
   CORE_OPENAI_CONNECTION_ENV_VARS
@@ -74,7 +72,7 @@ describe("makeClassifier", () => {
     const results: string[] = [];
     for (const input of hotdogInputs) {
       const result = await classifyIsHotdog({ input });
-      results.push(result.type);
+      results.push(result.classification.type);
     }
     expect(results).toEqual([
       "hotdog",
@@ -96,7 +94,7 @@ describe("makeClassifier", () => {
     const results: Classification[] = [];
     for (const input of hotdogInputs) {
       const result = await classifyIsHotdog({ input });
-      results.push(result);
+      results.push(result.classification);
     }
     const resultTypes = results.map((r) => r.type);
     expect(resultTypes).toEqual([

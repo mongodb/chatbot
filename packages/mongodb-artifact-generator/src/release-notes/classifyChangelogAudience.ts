@@ -1,5 +1,5 @@
 import { OpenAI } from "mongodb-rag-core/openai";
-import { makeClassifier } from "../chat/makeClassifier";
+import { makeClassifierWithLogger } from "../chat/makeClassifierWithLogger";
 import { RunLogger } from "../runlogger";
 
 const classificationTypes = [
@@ -47,7 +47,7 @@ export type MakeClassifyChangelogAudienceArgs = {
 export function makeClassifyChangelogAudience({
   openAiClient,
 }: MakeClassifyChangelogAudienceArgs) {
-  return makeClassifier({
+  return makeClassifierWithLogger({
     openAiClient,
     classificationTypes,
     chainOfThought: true,

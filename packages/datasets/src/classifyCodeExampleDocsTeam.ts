@@ -72,11 +72,13 @@ db.collection.insertOne(
 export type CodeExampleClassification =
   (typeof classificationTypes)[number]["type"];
 
-export const makeClassifyCodeExampleDocsTeam = (
-  args: Pick<Parameters<typeof makeClassifier>[0], "openAiClient">
-) =>
+export const makeClassifyCodeExampleDocsTeam = ({
+  openAiClient,
+  model,
+}: Pick<Parameters<typeof makeClassifier>[0], "openAiClient" | "model">) =>
   makeClassifier({
     classificationTypes,
     chainOfThought: true,
-    openAiClient: args.openAiClient,
+    openAiClient,
+    model,
   });

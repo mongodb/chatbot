@@ -31,7 +31,7 @@ import { FilterPreviousMessages } from "../../processors/FilterPreviousMessages"
 import { filterOnlySystemPrompt } from "../../processors/filterOnlySystemPrompt";
 import { generateResponse, GenerateResponseParams } from "../generateResponse";
 import { braintrustLogger, wrapTraced } from "mongodb-rag-core/braintrust";
-import { UpdateTraceFunc } from "./UpdateTraceFunc";
+import { UpdateTraceFunc, updateTraceIfExists } from "./UpdateTraceFunc";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 3000; // magic number for max input size for LLM
 export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for max messages in a conversation
@@ -277,13 +277,12 @@ export function makeAddMessageToConversationRoute({
           dataStreamer.disconnect();
         }
 
-        if (updateTrace) {
-          await updateTrace({
-            traceId: assistantResponseMessageId.toHexString(),
-            logger: braintrustLogger,
-            conversation,
-          });
-        }
+        await updateTraceIfExists({
+          updateTrace,
+          conversations,
+          conversationId: conversation._id,
+          assistantResponseMessageId: dbAssistantMessage.id,
+        });
       }
     } catch (error) {
       const { httpStatus, message } =

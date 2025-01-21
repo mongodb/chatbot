@@ -26,13 +26,13 @@ describe("extractTracingData", () => {
     role: "user",
     content: "foo",
     createdAt: new Date(),
-    id: msgId,
+    id: new ObjectId(),
   };
   const baseAssistantMessage: Message = {
     role: "assistant",
     content: "foo",
     createdAt: new Date(),
-    id: new ObjectId(),
+    id: msgId,
   };
   test("should reject query", () => {
     const messages: Message[] = [
@@ -143,6 +143,8 @@ describe("getLlmAsAJudgeScores", () => {
     latestAssistantMessage: {
       role: "assistant",
       content: "foo",
+      id: new ObjectId(),
+      createdAt: new Date(),
     },
     latestUserMessage: {
       role: "user",
@@ -152,6 +154,8 @@ describe("getLlmAsAJudgeScores", () => {
           text: "foo",
         },
       ],
+      id: new ObjectId(),
+      createdAt: new Date(),
     },
     tags: [],
     isVerifiedAnswer: false,

@@ -1,4 +1,10 @@
-import { AssistantMessage, Message, UserMessage } from "mongodb-rag-core";
+import {
+  AssistantMessage,
+  DbMessage,
+  Message,
+  MessageBase,
+  UserMessage,
+} from "mongodb-rag-core";
 import { llmDoesNotKnowMessage } from "./systemPrompt";
 import { strict as assert } from "assert";
 import { ContextRelevancy, AnswerRelevancy, Faithfulness } from "autoevals";
@@ -16,6 +22,10 @@ export const makeAddMessageToConversationUpdateTrace: (
   }
 ) => UpdateTraceFunc = (k, llmAsAJudge) => {
   return async function ({ traceId, conversation, logger }) {
+    console.log(
+      "num msgs",
+      conversation.messages.map((m) => m.role).join(", ")
+    );
     const tracingData = extractTracingData(
       conversation.messages,
       ObjectId.createFromHexString(traceId)
@@ -65,29 +75,30 @@ function shouldJudge(percentToJudge: number | undefined): boolean {
 
 export function extractTracingData(
   messages: Message[],
-  userMessageId: ObjectId
+  assistantMessageId: ObjectId
 ) {
-  const latestUserMessageIdx = messages.findLastIndex(
-    (message) => message.role === "user" && message.id.equals(userMessageId)
+  const evalAssistantMessageIdx = messages.findLastIndex(
+    (message) =>
+      message.role === "assistant" && message.id.equals(assistantMessageId)
   );
-  const latestUserMessage = messages[latestUserMessageIdx] as
-    | UserMessage
+  assert(evalAssistantMessageIdx !== -1, "Assistant message not found");
+  const evalAssistantMessage = messages[evalAssistantMessageIdx] as
+    | DbMessage<AssistantMessage>
     | undefined;
-  const latestAssistantMessage = messages
-    .slice(latestUserMessageIdx)
-    .find(
-      (message) => message.role === "assistant" && message.content !== undefined
-    ) as AssistantMessage | undefined;
+
+  const previousUserMessage = messages
+    .slice(0, evalAssistantMessageIdx)
+    .findLast((m): m is DbMessage<UserMessage> => m.role === "user");
 
   const tags = [];
 
-  const rejectQuery = latestUserMessage?.rejectQuery;
+  const rejectQuery = previousUserMessage?.rejectQuery;
   if (rejectQuery === true) {
     tags.push("rejected_query");
   }
-  const programmingLanguage = latestUserMessage?.customData
+  const programmingLanguage = previousUserMessage?.customData
     ?.programmingLanguage as string | undefined;
-  const mongoDbProduct = latestUserMessage?.customData?.mongoDbProduct as
+  const mongoDbProduct = previousUserMessage?.customData?.mongoDbProduct as
     | string
     | undefined;
   if (programmingLanguage) {
@@ -97,20 +108,20 @@ export function extractTracingData(
     tags.push(tagify(mongoDbProduct));
   }
 
-  const numRetrievedChunks = latestUserMessage?.contextContent?.length ?? 0;
+  const numRetrievedChunks = previousUserMessage?.contextContent?.length ?? 0;
   if (numRetrievedChunks === 0) {
     tags.push("no_retrieved_content");
   }
 
   const isVerifiedAnswer =
-    latestAssistantMessage?.metadata?.verifiedAnswer !== undefined
+    evalAssistantMessage?.metadata?.verifiedAnswer !== undefined
       ? true
       : undefined;
   if (isVerifiedAnswer) {
     tags.push("verified_answer");
   }
 
-  const llmDoesNotKnow = latestAssistantMessage?.content.includes(
+  const llmDoesNotKnow = evalAssistantMessage?.content.includes(
     llmDoesNotKnowMessage
   );
   if (llmDoesNotKnow) {
@@ -123,8 +134,8 @@ export function extractTracingData(
     isVerifiedAnswer,
     llmDoesNotKnow,
     numRetrievedChunks,
-    latestUserMessage,
-    latestAssistantMessage,
+    latestUserMessage: previousUserMessage,
+    latestAssistantMessage: evalAssistantMessage,
   };
 }
 

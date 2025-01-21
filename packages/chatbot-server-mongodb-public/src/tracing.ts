@@ -45,7 +45,7 @@ export const makeAddMessageToConversationUpdateTrace: (
   };
 };
 
-export function makeCommentMessageUpdateTrace(
+export function makeRateMessageUpdateTrace(
   llmAsAJudge: LlmAsAJudge
 ): UpdateTraceFunc {
   return async function ({ traceId, conversation, logger }) {

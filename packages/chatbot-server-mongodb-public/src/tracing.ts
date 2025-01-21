@@ -22,10 +22,6 @@ export const makeAddMessageToConversationUpdateTrace: (
   }
 ) => UpdateTraceFunc = (k, llmAsAJudge) => {
   return async function ({ traceId, conversation, logger }) {
-    console.log(
-      "num msgs",
-      conversation.messages.map((m) => m.role).join(", ")
-    );
     const tracingData = extractTracingData(
       conversation.messages,
       ObjectId.createFromHexString(traceId)

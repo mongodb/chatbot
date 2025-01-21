@@ -330,7 +330,4 @@ describe("POST /conversations/:conversationId/messages/:messageId/comment", () =
       error: `Comment must contain 500 characters or fewer`,
     });
   });
-  it("should run custom tracing", async () => {
-    throw new Error("Not implemented");
-  });
 });

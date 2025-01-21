@@ -375,8 +375,8 @@ describe("updateEmbeddedContent", () => {
   });
 
   afterEach(async () => {
-    await pageStore.drop();
-    await pageStore.close();
+    await pageStore?.drop();
+    await pageStore?.close();
     await embedStore.drop();
     await embedStore.close();
     await mongoClient.close();

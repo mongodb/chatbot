@@ -64,11 +64,12 @@ describe("allCommand", () => {
   const mockDataSourceNames = mockDataSources.map(
     (dataSource) => dataSource.name
   );
-
-  beforeEach(async () => {
+  beforeAll(async () => {
     databaseName = "test-all-command";
     mongod = await MongoMemoryReplSet.create();
     uri = mongod.getUri();
+  });
+  beforeEach(async () => {
     embedStore = makeMongoDbEmbeddedContentStore({
       connectionUri: uri,
       databaseName,
@@ -110,6 +111,8 @@ describe("allCommand", () => {
     await pageStore?.close();
     await embedStore.drop();
     await embedStore.close();
+  });
+  afterAll(async () => {
     assert(mongod);
     await mongod.stop();
   });

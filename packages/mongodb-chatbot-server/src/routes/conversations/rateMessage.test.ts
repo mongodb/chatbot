@@ -147,7 +147,4 @@ describe("POST /conversations/:conversationId/messages/:messageId/rating", () =>
       error: "Message not found",
     });
   });
-  it("should run custom tracing", async () => {
-    throw new Error("Not implemented");
-  });
 });

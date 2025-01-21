@@ -14,6 +14,8 @@ env:
   OPENAI_VERIFIED_ANSWER_EMBEDDING_DEPLOYMENT: "docs-chatbot-embedding-ada-002"
   OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT: "text-embedding-3-small"
   BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME: "chatbot-responses-staging"
+  JUDGE_LLM: "gpt-4o-mini"
+  JUDGE_EMBEDDING_MODEL: "text-embedding-3-small"
 
 envSecrets:
   MONGODB_CONNECTION_URI: docs-chatbot-staging

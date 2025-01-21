@@ -32,6 +32,7 @@ import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import { makeAddMessageToConversationUpdateTrace } from "./tracing";
+import { TRACING_ENV_VARS } from "./EnvVars";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -44,9 +45,12 @@ export const {
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
+  JUDGE_EMBEDDING_MODEL,
+  JUDGE_LLM,
 } = assertEnvVars({
   ...CORE_ENV_VARS,
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: "",
+  ...TRACING_ENV_VARS,
 });
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
@@ -203,6 +207,7 @@ export const createCustomConversationDataWithIpAuthUserAndOrigin: AddCustomDataF
     return customData;
   };
 export const isProduction = process.env.NODE_ENV === "production";
+
 export const config: AppConfig = {
   conversationsRouterConfig: {
     llm,
@@ -217,7 +222,19 @@ export const config: AppConfig = {
       : undefined,
     addMessageToConversationUpdateTrace:
       makeAddMessageToConversationUpdateTrace(
-        retrievalConfig.findNearestNeighborsOptions.k
+        retrievalConfig.findNearestNeighborsOptions.k,
+        {
+          percentToJudge: isProduction ? 0.1 : 1,
+          judgeModel: JUDGE_LLM,
+          judgeEmbeddingModel: JUDGE_EMBEDDING_MODEL,
+          openAiConfig: {
+            azureOpenAi: {
+              apiKey: OPENAI_API_KEY,
+              endpoint: OPENAI_ENDPOINT,
+              apiVersion: OPENAI_API_VERSION,
+            },
+          },
+        }
       ),
     generateUserPrompt,
     systemPrompt,

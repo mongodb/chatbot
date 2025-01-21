@@ -4,7 +4,7 @@ import {
   SomeMessage,
   UserMessage,
 } from "mongodb-chatbot-server";
-import { EVAL_ENV_VARS } from "../EvalEnvVars";
+import { EVAL_ENV_VARS } from "../EnvVars";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { z } from "zod";
 import { strict as assert } from "assert";

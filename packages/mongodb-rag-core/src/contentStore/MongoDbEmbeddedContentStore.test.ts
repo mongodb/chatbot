@@ -29,9 +29,12 @@ jest.setTimeout(30000);
 describe("MongoDbEmbeddedContentStore", () => {
   let store: MongoDbEmbeddedContentStore | undefined;
   let mongod: MongoMemoryReplSet | undefined;
-  beforeEach(async () => {
+  let uri: string;
+  beforeAll(async () => {
     mongod = await MongoMemoryReplSet.create();
-    const uri = mongod.getUri();
+    uri = mongod.getUri();
+  });
+  beforeEach(async () => {
     store = makeMongoDbEmbeddedContentStore({
       connectionUri: uri,
       databaseName: "test-database",
@@ -43,6 +46,8 @@ describe("MongoDbEmbeddedContentStore", () => {
 
   afterEach(async () => {
     await store?.drop();
+  });
+  afterAll(async () => {
     await store?.close();
     await mongod?.stop();
   });

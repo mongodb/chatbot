@@ -70,10 +70,11 @@ describe("MongoDbPageStore", () => {
   let store: MongoDbPageStore | undefined;
   let mongoServer: MongoMemoryServer;
   let uri: string;
-  beforeEach(async () => {
+  beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     uri = mongoServer.getUri();
-
+  });
+  beforeEach(async () => {
     store = await makeMongoDbPageStore({
       connectionUri: uri,
       databaseName: "test-database",
@@ -84,6 +85,8 @@ describe("MongoDbPageStore", () => {
     assert(store);
     await store.drop();
     await store.close();
+  });
+  afterAll(async () => {
     await mongoServer.stop();
   });
 

@@ -336,13 +336,14 @@ describe("updateEmbeddedContent", () => {
   const mockDataSourceNames = mockDataSources.map(
     (dataSource) => dataSource.name
   );
-
-  beforeEach(async () => {
-    // setup mongo client, page store, and embedded content store
-    databaseName = "test-all-command";
+  beforeAll(async () => {
     mongod = await MongoMemoryReplSet.create();
     uri = mongod.getUri();
     mongoClient = await MongoClient.connect(mongod.getUri(), {});
+  });
+  beforeEach(async () => {
+    // setup mongo client, page store, and embedded content store
+    databaseName = "test-all-command";
     embedStore = makeMongoDbEmbeddedContentStore({
       connectionUri: uri,
       databaseName,
@@ -376,8 +377,10 @@ describe("updateEmbeddedContent", () => {
 
   afterEach(async () => {
     await pageStore?.drop();
-    await pageStore?.close();
     await embedStore.drop();
+  });
+  afterAll(async () => {
+    await pageStore?.close();
     await embedStore.close();
     await mongoClient.close();
     await mongod?.stop();

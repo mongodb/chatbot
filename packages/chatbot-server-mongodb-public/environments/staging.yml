@@ -17,11 +17,11 @@ env:
   JUDGE_LLM: "gpt-4o-mini"
   JUDGE_EMBEDDING_MODEL: "text-embedding-3-small"
 
-  envSecrets:
-    MONGODB_CONNECTION_URI: docs-chatbot-staging
-    OPENAI_ENDPOINT: docs-chatbot-staging
-    OPENAI_API_KEY: docs-chatbot-staging
-    BRAINTRUST_TRACING_API_KEY: docs-chatbot-staging
+envSecrets:
+  MONGODB_CONNECTION_URI: docs-chatbot-staging
+  OPENAI_ENDPOINT: docs-chatbot-staging
+  OPENAI_API_KEY: docs-chatbot-staging
+  BRAINTRUST_TRACING_API_KEY: docs-chatbot-staging
 
 ingress:
   enabled: true

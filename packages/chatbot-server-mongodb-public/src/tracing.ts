@@ -3,7 +3,7 @@ import { llmDoesNotKnowMessage } from "./systemPrompt";
 import { strict as assert } from "assert";
 import { ContextRelevancy, AnswerRelevancy, Faithfulness } from "autoevals";
 import { traced } from "mongodb-rag-core/braintrust";
-import { UpdateTraceFunc } from "mongodb-chatbot-server/build/routes/conversations/UpdateTraceFunc";
+import { UpdateTraceFunc } from "mongodb-chatbot-server";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 
 export const makeAddMessageToConversationUpdateTrace: (

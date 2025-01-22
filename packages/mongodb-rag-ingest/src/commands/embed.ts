@@ -7,14 +7,17 @@ import {
 } from "../withConfig";
 import { logger, updateEmbeddedContent } from "mongodb-rag-core";
 
-const commandModule: CommandModule<
-  unknown,
-  LoadConfigArgs
-> = {
+const commandModule: CommandModule<unknown, LoadConfigArgs> = {
   command: "embed <action>",
   describe: "Manage embedded content",
   builder(args) {
     return args
+      .command({
+        command: "init",
+        describe: "Initialize embedded content store",
+        builder: (updateArgs) => withConfigOptions(updateArgs),
+        handler: (updateArgs) => withConfig(doInitEmbedCommand, updateArgs),
+      })
       .command({
         command: "update",
         describe: "Update embedded content data",
@@ -49,8 +52,7 @@ const commandModule: CommandModule<
             description:
               "A source name to delete. If unspecified, deletes all sources.",
           }),
-        handler: (deleteArgs) =>
-          withConfig(doDeleteEmbedCommand, deleteArgs),
+        handler: (deleteArgs) => withConfig(doDeleteEmbedCommand, deleteArgs),
       });
   },
   handler: (_args) => {
@@ -59,6 +61,15 @@ const commandModule: CommandModule<
 };
 
 export default commandModule;
+
+export const doInitEmbedCommand = async ({
+  embeddedContentStore,
+}: ResolvedConfig) => {
+  if (!embeddedContentStore) {
+    throw new Error(`Failed to initialize embedded content store.`);
+  }
+  await embeddedContentStore.init?.();
+};
 
 type UpdateEmbedCommandArgs = {
   since: Date;
@@ -73,10 +84,7 @@ export const doUpdateEmbedCommand = async (
     chunkOptions,
     concurrencyOptions,
   }: ResolvedConfig,
-  {
-    since,
-    source,
-  }: UpdateEmbedCommandArgs
+  { since, source }: UpdateEmbedCommandArgs
 ) => {
   const sourceNames =
     source === undefined

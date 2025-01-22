@@ -3,14 +3,17 @@ import { logger, updatePages } from "mongodb-rag-core";
 import { LoadConfigArgs } from "../withConfig";
 import { withConfig, withConfigOptions, ResolvedConfig } from "../withConfig";
 
-const commandModule: CommandModule<
-  Record<string, unknown>,
-  LoadConfigArgs
-> = {
+const commandModule: CommandModule<Record<string, unknown>, LoadConfigArgs> = {
   command: "pages <action>",
   describe: "Manage pages data from sources",
   builder(args) {
     return args
+      .command({
+        command: "init",
+        describe: "Initialize page store",
+        builder: (updateArgs) => withConfigOptions(updateArgs),
+        handler: (updateArgs) => withConfig(doInitPagesCommand, updateArgs),
+      })
       .command({
         command: "update",
         describe: "Update pages data from sources",
@@ -47,6 +50,13 @@ const commandModule: CommandModule<
 };
 
 export default commandModule;
+
+export const doInitPagesCommand = async ({ pageStore }: ResolvedConfig) => {
+  if (!pageStore) {
+    throw new Error(`Failed to initialize page store.`);
+  }
+  await pageStore.init?.();
+};
 
 type UpdatePagesCommandArgs = {
   source?: string | string[];

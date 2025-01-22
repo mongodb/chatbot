@@ -10,7 +10,7 @@ import {
   UnknownStreamEvent,
   getCustomRequestOrigin,
 } from "./conversations";
-import { type References } from "mongodb-rag-core";
+import { type References } from "../references";
 import * as FetchEventSource from "@microsoft/fetch-event-source";
 // Mock fetch for regular awaited HTTP requests
 // TODO: make TypeScript compiler ok with this, or skip putting this in the compiled code for staging
@@ -98,10 +98,11 @@ describe("ConversationService", () => {
       data: {
         _id: conversationId,
         messages: [],
+        createdAt: new Date().getTime(),
       },
     });
     const conversation = await conversationService.createConversation();
-    expect(conversation.conversationId).toEqual(conversationId);
+    expect(conversation._id).toEqual(conversationId);
     expect(conversation.messages).toEqual([]);
   });
 
@@ -115,14 +116,14 @@ describe("ConversationService", () => {
             id: "65c680decdb62b4c92797324",
             role: "user",
             content: "Hello world!",
-            createdAt: new Date().toISOString(),
+            createdAt: new Date().getTime(),
             references: [],
           },
           {
             id: "65c680decdb62b4c92797325",
             role: "assistant",
             content: "I'm sorry, I don't know how to help with that.",
-            createdAt: new Date().toISOString(),
+            createdAt: new Date().getTime(),
             references: [
               { title: "Title 1", url: "https://example.com/1" },
               { title: "Title 2", url: "https://example.com/2" },
@@ -130,12 +131,13 @@ describe("ConversationService", () => {
             ],
           },
         ],
+        createdAt: new Date().getTime(),
       },
     });
     const conversation = await conversationService.getConversation(
       conversationId
     );
-    expect(conversation.conversationId).toEqual(conversationId);
+    expect(conversation._id).toEqual(conversationId);
     expect(conversation.messages[0].id).toEqual("65c680decdb62b4c92797324");
     expect(conversation.messages[1].id).toEqual("65c680decdb62b4c92797325");
     expect(conversation.messages[2]).toBeUndefined();
@@ -168,7 +170,7 @@ describe("ConversationService", () => {
       id: "650b4be0d5a57dd66be2ccb8",
       role: "assistant",
       content: "I'm sorry, I don't know how to help with that.",
-      createdAt: new Date().toISOString(),
+      createdAt: new Date().getTime(),
       references: [
         { title: "Title 1", url: "https://example.com/1" },
         { title: "Title 2", url: "https://example.com/2" },
@@ -412,7 +414,6 @@ describe("ConversationService", () => {
   });
 
   it("appends custom fetch options", async () => {
-    let getOptions = mockFetchResponse({ data: {} });
     const conversationService = new ConversationService({
       serverUrl,
       fetchOptions: {
@@ -420,6 +421,13 @@ describe("ConversationService", () => {
           foo: "bar",
         }),
         credentials: "include",
+      },
+    });
+    let getOptions = mockFetchResponse({
+      data: {
+        _id: "650b4b260f975ef031016c8d",
+        messages: [],
+        createdAt: new Date().getTime(),
       },
     });
     await conversationService.createConversation();

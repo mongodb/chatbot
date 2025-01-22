@@ -1,8 +1,8 @@
-import { References } from "mongodb-rag-core";
 import {
+  type References,
   isReferenceToDomain,
   makePrioritizeReferenceDomain,
-} from "./sortReferences";
+} from "./references";
 
 const testReferences = [
   {

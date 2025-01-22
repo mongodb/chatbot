@@ -54,9 +54,12 @@ describe("MongoDbEmbeddedContentStore", () => {
     url: "/a/b/c",
   };
   const pages = [page, anotherPage];
-  beforeEach(async () => {
+  let uri: string;
+  beforeAll(async () => {
     mongod = await MongoMemoryReplSet.create();
-    const uri = mongod.getUri();
+    uri = mongod.getUri();
+  });
+  beforeEach(async () => {
     store = makeMongoDbEmbeddedContentStore({
       connectionUri: uri,
       databaseName: "test-database",
@@ -85,9 +88,10 @@ describe("MongoDbEmbeddedContentStore", () => {
   });
 
   afterEach(async () => {
-    assert(store);
-    await store.drop();
-    await store.close();
+    await store?.drop();
+  });
+  afterAll(async () => {
+    await store?.close();
     await mongod?.stop();
   });
 

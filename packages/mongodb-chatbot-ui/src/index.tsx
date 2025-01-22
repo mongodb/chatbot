@@ -4,11 +4,7 @@ export { Chatbot as default, type ChatbotProps } from "./Chatbot.tsx";
 export { DocsChatbot } from "./DocsChatbot.tsx";
 export { DevCenterChatbot } from "./DevCenterChatbot.tsx";
 // Building blocks for a custom Chatbot UI
-export {
-  useConversation,
-  type ConversationState,
-  type Conversation,
-} from "./useConversation.tsx";
+export { useConversation, type Conversation } from "./useConversation.tsx";
 export { useChatbot } from "./useChatbot.tsx";
 export { useChatbotContext } from "./useChatbotContext.tsx";
 export {

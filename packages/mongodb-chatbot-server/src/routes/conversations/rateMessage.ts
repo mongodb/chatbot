@@ -8,6 +8,7 @@ import {
 import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
+import { braintrustLogger } from "mongodb-rag-core/braintrust";
 
 export type RateMessageRequest = z.infer<typeof RateMessageRequest>;
 
@@ -107,6 +108,12 @@ export function makeRateMessageRoute({
         logRequest({
           reqId,
           message: `Rated message ${messageIdStr} in conversation ${conversationIdStr} with rating ${rating}`,
+        });
+        braintrustLogger.logFeedback({
+          id: messageId.toHexString(),
+          scores: {
+            UserRating: rating === true ? 1 : 0,
+          },
         });
         return;
       } else {

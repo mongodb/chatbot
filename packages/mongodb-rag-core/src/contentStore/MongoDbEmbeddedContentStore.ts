@@ -1,6 +1,6 @@
 import { pageIdentity, PersistedPage } from ".";
 import { DatabaseConnection } from "../DatabaseConnection";
-import { EmbeddedContent, EmbeddedContentStore } from "./EmbeddedContent";
+import { EmbeddedContent, EmbeddedContentStore, GetSourcesMatchParams } from "./EmbeddedContent";
 import { FindNearestNeighborsOptions, WithScore } from "../VectorStore";
 import {
   MakeMongoDbDatabaseConnectionParams,
@@ -57,6 +57,27 @@ export type MongoDbEmbeddedContentStore = EmbeddedContentStore &
     };
     init(): Promise<void>;
   };
+
+function makeMatchQuery ({sourceNames, chunkAlgoHash}: GetSourcesMatchParams) {
+  let operator = '';
+  if(chunkAlgoHash.operation === 'equals'){
+    operator = '$eq'
+  } 
+  if(chunkAlgoHash.operation === 'notEquals'){
+    operator = '$ne'
+  } 
+  return ({
+    chunkAlgoHash: { [operator]: chunkAlgoHash.hashValue },
+    // run on specific source names if specified, run on all if not
+    ...(sourceNames
+      ? {
+          sourceName: {
+            $in: sourceNames,
+          },
+        }
+      : undefined),
+  });
+}
 
 export function makeMongoDbEmbeddedContentStore({
   connectionUri,
@@ -233,10 +254,10 @@ export function makeMongoDbEmbeddedContentStore({
       }
     },
 
-    async getDataSources(matchQuery: any): Promise<string[]> {
+    async getDataSources(matchQuery: GetSourcesMatchParams): Promise<string[]> {
       const result = await embeddedContentCollection
         .aggregate([
-          { $match: matchQuery },
+          { $match: makeMatchQuery(matchQuery) },
           {
             $group: {
               _id: null,

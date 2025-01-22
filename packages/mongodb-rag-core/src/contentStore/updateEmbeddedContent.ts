@@ -75,15 +75,11 @@ export const updateEmbeddedContent = async ({
   );
   const dataSourcesWithChangedChunking =
     await embeddedContentStore.getDataSources({
-      chunkAlgoHash: { $ne: chunkAlgoHash },
-      // run on specific source names if specified, run on all if not
-      ...(sourceNames
-        ? {
-            sourceName: {
-              $in: sourceNames,
-            },
-          }
-        : undefined),
+      chunkAlgoHash: { 
+        hashValue: chunkAlgoHash,
+        operation: "notEquals"
+      },
+      sourceNames
     });
   // find all pages with changed chunking, ignoring since date because
   // we want to re-chunk all pages with the new chunkAlgoHash, even if there were no other changes to the page

@@ -75,6 +75,14 @@ export type DeleteEmbeddedContentArgs = {
   inverseDataSources?: boolean;
 };
 
+export interface GetSourcesMatchParams {
+  sourceNames?: string[];
+  chunkAlgoHash: {
+    hashValue: string;
+    operation: "equals" | "notEquals"
+  }
+}
+
 /**
   Data store of the embedded content.
  */
@@ -118,5 +126,5 @@ export type EmbeddedContentStore = VectorStore<EmbeddedContent> & {
   /**
    Get the data sources that match the given query. 
    */
-  getDataSources(matchQuery: any): Promise<string[]>;
+  getDataSources(matchQuery: GetSourcesMatchParams): Promise<string[]>;
 };

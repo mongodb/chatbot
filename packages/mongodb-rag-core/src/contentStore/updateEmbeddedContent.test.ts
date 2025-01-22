@@ -7,13 +7,12 @@ import {
   makeMongoDbPageStore,
   MongoDbEmbeddedContentStore,
   MongoDbPageStore,
-  PageStore,
   persistPages,
   updatePages,
 } from ".";
 import { makeMockPageStore } from "../test/MockPageStore";
 import * as chunkPageModule from "../chunk/chunkPage";
-import { EmbeddedContentStore, EmbeddedContent } from "./EmbeddedContent";
+import { EmbeddedContentStore, EmbeddedContent, GetSourcesMatchParams } from "./EmbeddedContent";
 import { Embedder } from "../embed";
 import { Page, PersistedPage } from ".";
 import { strict as assert } from "assert";
@@ -41,7 +40,7 @@ export const makeMockEmbeddedContentStore = (): EmbeddedContentStore => {
     metadata: {
       embeddingName: "test",
     },
-    async getDataSources(matchQuery: any): Promise<string[]> {
+    async getDataSources(matchQuery: GetSourcesMatchParams): Promise<string[]> {
       return [];
     },
   };
@@ -328,7 +327,7 @@ describe("updateEmbeddedContent", () => {
           url: "test2.com",
           format: "html",
           sourceName: "source2",
-          body: "hello source 1",
+          body: "hello source 2",
         },
       ],
     },

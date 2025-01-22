@@ -115,7 +115,7 @@ describe("MongoDbEmbeddedContentStore", () => {
     it("loads embedded content belonging to the page provided", async () => {
       assert(store);
       const pageEmbeddings = await store.loadEmbeddedContent({ page });
-      const anotherPageEmbeddings = await store?.loadEmbeddedContent({
+      const anotherPageEmbeddings = await store.loadEmbeddedContent({
         page: anotherPage,
       });
       expect(pageEmbeddings[0].sourceName).toBe(page.sourceName);

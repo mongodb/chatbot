@@ -79,8 +79,8 @@ export interface GetSourcesMatchParams {
   sourceNames?: string[];
   chunkAlgoHash: {
     hashValue: string;
-    operation: "equals" | "notEquals"
-  }
+    operation: "equals" | "notEquals";
+  };
 }
 
 /**

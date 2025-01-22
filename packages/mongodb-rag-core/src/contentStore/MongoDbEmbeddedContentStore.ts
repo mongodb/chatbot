@@ -1,6 +1,10 @@
 import { pageIdentity, PersistedPage } from ".";
 import { DatabaseConnection } from "../DatabaseConnection";
-import { EmbeddedContent, EmbeddedContentStore, GetSourcesMatchParams } from "./EmbeddedContent";
+import {
+  EmbeddedContent,
+  EmbeddedContentStore,
+  GetSourcesMatchParams,
+} from "./EmbeddedContent";
 import { FindNearestNeighborsOptions, WithScore } from "../VectorStore";
 import {
   MakeMongoDbDatabaseConnectionParams,
@@ -58,15 +62,15 @@ export type MongoDbEmbeddedContentStore = EmbeddedContentStore &
     init(): Promise<void>;
   };
 
-function makeMatchQuery ({sourceNames, chunkAlgoHash}: GetSourcesMatchParams) {
-  let operator = '';
-  if(chunkAlgoHash.operation === 'equals'){
-    operator = '$eq'
-  } 
-  if(chunkAlgoHash.operation === 'notEquals'){
-    operator = '$ne'
-  } 
-  return ({
+function makeMatchQuery({ sourceNames, chunkAlgoHash }: GetSourcesMatchParams) {
+  let operator = "";
+  if (chunkAlgoHash.operation === "equals") {
+    operator = "$eq";
+  }
+  if (chunkAlgoHash.operation === "notEquals") {
+    operator = "$ne";
+  }
+  return {
     chunkAlgoHash: { [operator]: chunkAlgoHash.hashValue },
     // run on specific source names if specified, run on all if not
     ...(sourceNames
@@ -76,7 +80,7 @@ function makeMatchQuery ({sourceNames, chunkAlgoHash}: GetSourcesMatchParams) {
           },
         }
       : undefined),
-  });
+  };
 }
 
 export function makeMongoDbEmbeddedContentStore({

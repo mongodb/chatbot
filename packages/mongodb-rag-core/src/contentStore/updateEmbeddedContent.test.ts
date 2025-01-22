@@ -12,7 +12,11 @@ import {
 } from ".";
 import { makeMockPageStore } from "../test/MockPageStore";
 import * as chunkPageModule from "../chunk/chunkPage";
-import { EmbeddedContentStore, EmbeddedContent, GetSourcesMatchParams } from "./EmbeddedContent";
+import {
+  EmbeddedContentStore,
+  EmbeddedContent,
+  GetSourcesMatchParams,
+} from "./EmbeddedContent";
 import { Embedder } from "../embed";
 import { Page, PersistedPage } from ".";
 import { strict as assert } from "assert";
@@ -376,12 +380,12 @@ describe("updateEmbeddedContent", () => {
 
   afterEach(async () => {
     await pageStore?.drop();
-    await embedStore.drop();
+    await embedStore?.drop();
   });
   afterAll(async () => {
     await pageStore?.close();
-    await embedStore.close();
-    await mongoClient.close();
+    await embedStore?.close();
+    await mongoClient?.close();
     await mongod?.stop();
   });
 

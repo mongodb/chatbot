@@ -124,10 +124,7 @@ export type SomeMessage =
   | SystemMessage
   | FunctionMessage;
 
-/**
-  Message stored in the database.
-*/
-export type Message = SomeMessage & {
+export type DbMessage<SomeMessage> = SomeMessage & {
   /**
       Unique identifier for the message.
      */
@@ -138,6 +135,11 @@ export type Message = SomeMessage & {
      */
   createdAt: Date;
 };
+
+/**
+  Message stored in the database.
+*/
+export type Message = DbMessage<SomeMessage>;
 
 export type ConversationCustomData = Record<string, unknown> | undefined;
 

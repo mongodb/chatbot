@@ -1,8 +1,6 @@
 # Ingestion Guide
 
-This document discusses how to ingest new content to the MongoDB Education Chatbot.
-
-This document is primarily intended for members of the Education AI team to think through adding new data sources.
+This document discusses how to ingest new content to the MongoDB Education Chatbot. This document is intended for members of the Education AI team.
 
 ## Existing Content
 
@@ -19,7 +17,9 @@ All data sources for ingested content can be found here <https://github.com/mong
 
 People from across the organization occasionally ask us to ingest new content to the chatbot. 
 
-Often you need to do more than simply 'ingest' the content to effectively achieve the goals of the person who wants to ingest. Generally you should understand:
+Sometimes it can be enough to just add the data, like if its a new Snooty technical documention data source.
+
+However, often you need to do more than simply 'ingest' the content to effectively achieve the goals of the person who wants to ingest. This is particularly the case if the data to ingest is a new type of content. For instance, when we first ingested MDB University transcripts or the mongodb.com marketing site, it required some additional attention.
 
 Meeting with the person requesting the ingestion is the best way to get this information and reach alignment.
 
@@ -47,7 +47,7 @@ If there's any complexity regarding the ingestion, you should create an evaluati
 
 The requestor can create the example dataset in a Google Sheet following the [template of this sheet of evaluation questions for ingesting website content](https://docs.google.com/spreadsheets/d/1khZ9jwgffIUb-bDXqnem5o1Xq3RZ1sz8_JXFc3o9GCE/edit?pli=1&gid=0#gid=0).
 
-The single most important part of the evaluation dataset is the queries. These should be well thought through and broadly representative of what a user might ask. The provided links are also very useful, as they help us coorelate the answers back to specific pieces of content.
+The single most important part of the evaluation dataset is the queries. These should be well thought through and broadly representative of what a user might ask. The provided links are also very useful, as they help us coorelate the answers back to specific pieces of content. The sample answer is useful for understanding the intent of the query and can be used as a 'reference answer' in LLM-as-a-judge evaluations.
 
 #### 4. Are there any specific questions that you want the chatbot to answer with pre-written answers?
 

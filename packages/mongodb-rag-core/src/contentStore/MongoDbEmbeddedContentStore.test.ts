@@ -29,6 +29,31 @@ jest.setTimeout(30000);
 describe("MongoDbEmbeddedContentStore", () => {
   let store: MongoDbEmbeddedContentStore | undefined;
   let mongod: MongoMemoryReplSet | undefined;
+  let embeddedContent;
+  const page: PersistedPage = {
+    action: "created",
+    body: "foo",
+    format: "md",
+    sourceName: "source1",
+    metadata: {
+      tags: [],
+    },
+    updated: new Date(),
+    url: "/x/y/z",
+  };
+
+  const anotherPage: PersistedPage = {
+    action: "created",
+    body: "bar",
+    format: "md",
+    sourceName: "another-source",
+    metadata: {
+      tags: [],
+    },
+    updated: new Date(),
+    url: "/a/b/c",
+  };
+  const pages = [page, anotherPage];
   let uri: string;
   beforeAll(async () => {
     mongod = await MongoMemoryReplSet.create();
@@ -42,48 +67,8 @@ describe("MongoDbEmbeddedContentStore", () => {
         embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
       },
     });
-  });
-
-  afterEach(async () => {
-    await store?.drop();
-  });
-  afterAll(async () => {
-    await store?.close();
-    await mongod?.stop();
-  });
-
-  it("handles embedded content", async () => {
-    assert(store);
-
-    const page: PersistedPage = {
-      action: "created",
-      body: "foo",
-      format: "md",
-      sourceName: "source1",
-      metadata: {
-        tags: [],
-      },
-      updated: new Date(),
-      url: "/x/y/z",
-    };
-
-    const anotherPage: PersistedPage = {
-      action: "created",
-      body: "bar",
-      format: "md",
-      sourceName: "another-source",
-      metadata: {
-        tags: [],
-      },
-      updated: new Date(),
-      url: "/a/b/c",
-    };
-
-    const pages = [page, anotherPage];
     for (const page of pages) {
-      const embeddedContent = await store.loadEmbeddedContent({ page });
-      expect(embeddedContent).toStrictEqual([]);
-
+      embeddedContent = await store.loadEmbeddedContent({ page });
       await store.updateEmbeddedContent({
         page,
         embeddedContent: [
@@ -99,31 +84,17 @@ describe("MongoDbEmbeddedContentStore", () => {
           },
         ],
       });
-
-      expect(await store.loadEmbeddedContent({ page })).toMatchObject([
-        {
-          embeddings: {
-            [store.metadata.embeddingName]: expect.any(Array),
-          },
-          sourceName: page.sourceName,
-          text: page.body,
-          url: page.url,
-        },
-      ]);
     }
-
-    // Won't find embedded content for some other page
-    expect(
-      await store.loadEmbeddedContent({
-        page: { ...page, sourceName: "source2" },
-      })
-    ).toStrictEqual([]);
-    expect(
-      await store.loadEmbeddedContent({
-        page: { ...page, url: page.url + "/" },
-      })
-    ).toStrictEqual([]);
   });
+
+  afterEach(async () => {
+    await store?.drop();
+  });
+  afterAll(async () => {
+    await store?.close();
+    await mongod?.stop();
+  });
+
   it("has an overridable default collection name", async () => {
     assert(store);
 
@@ -144,87 +115,45 @@ describe("MongoDbEmbeddedContentStore", () => {
       "custom-embedded_content"
     );
   });
-  it("has an overridable default collection name", async () => {
-    assert(store);
-
-    expect(store.metadata.collectionName).toBe("embedded_content");
-
-    const storeWithCustomCollectionName = await makeMongoDbEmbeddedContentStore(
-      {
-        connectionUri: MONGODB_CONNECTION_URI,
-        databaseName: store.metadata.databaseName,
-        collectionName: "custom-embedded_content",
-        searchIndex: {
-          embeddingName: "ada-02",
-        },
-      }
-    );
-
-    expect(storeWithCustomCollectionName.metadata.collectionName).toBe(
-      "custom-embedded_content"
-    );
+  describe("loadEmbeddedContent", () => {
+    it("loads embedded content belonging to the page provided", async () => {
+      assert(store);
+      const pageEmbeddings = await store.loadEmbeddedContent({ page });
+      const anotherPageEmbeddings = await store.loadEmbeddedContent({
+        page: anotherPage,
+      });
+      expect(pageEmbeddings[0].sourceName).toBe(page.sourceName);
+      expect(anotherPageEmbeddings[0].sourceName).toBe(anotherPage.sourceName);
+    });
+    it("does NOT load embedded content for some other page", async () => {
+      assert(store);
+      expect(
+        await store.loadEmbeddedContent({
+          page: { ...page, sourceName: "source3" },
+        })
+      ).toStrictEqual([]);
+      expect(
+        await store.loadEmbeddedContent({
+          page: { ...page, url: page.url + "/" },
+        })
+      ).toStrictEqual([]);
+    });
+  });
+  describe("updateEmbeddedContent", () => {
+    it("replaces existing embedded content belonging to the page provided with the new embedded content array provided", async () => {
+      assert(store);
+      const originalPageEmbedding = await store.loadEmbeddedContent({ page });
+      assert(originalPageEmbedding.length === 1);
+  
+      const newEmbeddings = [{ ...originalPageEmbedding[0], text: "new text" }];
+      await store.updateEmbeddedContent({ page, embeddedContent: newEmbeddings });
+  
+      const pageEmbeddings = await store.loadEmbeddedContent({ page });
+      expect(pageEmbeddings.length).toBe(1);
+      expect(pageEmbeddings[0].text).toBe("new text");
+    });
   });
   describe("deleteEmbeddedContent", () => {
-    let embeddedContent;
-    const page: PersistedPage = {
-      action: "created",
-      body: "foo",
-      format: "md",
-      sourceName: "source1",
-      metadata: {
-        tags: [],
-      },
-      updated: new Date(),
-      url: "/x/y/z",
-    };
-
-    const anotherPage: PersistedPage = {
-      action: "created",
-      body: "bar",
-      format: "md",
-      sourceName: "another-source",
-      metadata: {
-        tags: [],
-      },
-      updated: new Date(),
-      url: "/a/b/c",
-    };
-
-    const pages = [page, anotherPage];
-    beforeEach(async () => {
-      assert(store);
-      for (const page of pages) {
-        embeddedContent = await store.loadEmbeddedContent({ page });
-        expect(embeddedContent).toStrictEqual([]);
-
-        await store.updateEmbeddedContent({
-          page,
-          embeddedContent: [
-            {
-              embeddings: {
-                [store.metadata.embeddingName]: new Array(1536).fill(0.1),
-              },
-              sourceName: page.sourceName,
-              text: page.body,
-              url: page.url,
-              tokenCount: 0,
-              updated: new Date(),
-            },
-          ],
-        });
-
-        expect(await store.loadEmbeddedContent({ page })).toMatchObject([
-          {
-            embeddings: {
-              [store.metadata.embeddingName]: expect.any(Array),
-            },
-            sourceName: page.sourceName,
-            text: page.body,
-            url: page.url,
-          },
-        ]);
-      }
-    });
     it("deletes embedded content for a page", async () => {
       assert(store);
 

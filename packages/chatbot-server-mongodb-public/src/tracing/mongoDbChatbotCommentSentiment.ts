@@ -3,8 +3,8 @@ import { ObjectId } from "mongodb-rag-core/mongodb";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import { strict as assert } from "assert";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
+import { extractSampleMessages } from "./extractSampleMessages";
 
 export interface CommentSentimentParams {
   judgeLlm: string;
@@ -104,31 +104,16 @@ function makeUserMessage(
   messages: Message[],
   messageWithCommentId: ObjectId
 ): OpenAI.Chat.Completions.ChatCompletionUserMessageParam {
-  const commentIdx = messages.findLastIndex(
-    (message) => message.id.equals(messageWithCommentId)
-    // &&
-    //   message.role === "assistant" &&
-    //   message.userComment !== undefined
-  );
-  assert(
-    commentIdx !== -1,
-    `Comment for message with ID ${messageWithCommentId.toHexString()} not found in messages with a comment.`
-  );
-  const sampleMessagesStartIndex = Math.max(0, commentIdx - 5);
-  const sampleMessagesEndIndex = Math.min(messages.length, commentIdx + 2);
-  const sampleMessages = messages.slice(
-    sampleMessagesStartIndex,
-    sampleMessagesEndIndex
-  );
-  const sampleMessagesTargetCommentIdx = sampleMessages.findIndex((message) =>
-    message.id.equals(messageWithCommentId)
-  );
+  const { sampleMessages, targetMessageIndex } = extractSampleMessages({
+    messages,
+    targetMessageId: messageWithCommentId,
+  });
   let transcript = "Conversation Transcript:\n\n";
   sampleMessages.forEach((message, i) => {
     transcript += `${formatRole(message.role)}:\n ${message.content}\n`;
     if (message.role === "assistant" && typeof message.rating === "boolean") {
       transcript += `\nUser rating: ${message.rating}\n`;
-      if (i === sampleMessagesTargetCommentIdx) {
+      if (i === targetMessageIndex) {
         transcript += `User comment to analyze: ${message.userComment}\n`;
       }
     }
@@ -139,6 +124,7 @@ function makeUserMessage(
     content: transcript,
   };
 }
+
 function formatRole(role: string): string {
   if (role.length === 0) return role;
   // Capitalize first letter

@@ -5,6 +5,7 @@ import { extractTracingData } from "./extractTracingData";
 import { LlmAsAJudge, getLlmAsAJudgeScores } from "./getLlmAsAJudgeScores";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { makeJudgeMongoDbChatbotCommentSentiment } from "./mongoDbChatbotCommentSentiment";
+import { postCommentToSlack } from "./postCommentToSlack";
 
 export const makeAddMessageToConversationUpdateTrace: (
   k: number,
@@ -73,7 +74,11 @@ export function makeRateMessageUpdateTrace(
 
 export function makeCommentMessageUpdateTrace(
   openAiClient: OpenAI,
-  judgeLlm: string
+  judgeLlm: string,
+  slack?: {
+    token: string;
+    conversationId: string;
+  }
 ): UpdateTraceFunc {
   const judgeMongoDbChatbotCommentSentiment =
     makeJudgeMongoDbChatbotCommentSentiment(openAiClient);
@@ -90,6 +95,14 @@ export function makeCommentMessageUpdateTrace(
         ).score,
       },
     });
+    if (slack !== undefined) {
+      postCommentToSlack({
+        slackToken: slack.token,
+        slackConversationId: slack.conversationId,
+        conversation,
+        messageWithCommentId: ObjectId.createFromHexString(traceId),
+      });
+    }
   };
 }
 

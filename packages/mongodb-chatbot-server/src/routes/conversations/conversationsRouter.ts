@@ -20,7 +20,6 @@ import {
 import {
   AddMessageRequest,
   AddMessageToConversationRouteParams,
-  AddMessageToConversationUpdateTraceFunc,
   makeAddMessageToConversationRoute,
 } from "./addMessageToConversation";
 import { requireRequestOrigin } from "../../middleware/requireRequestOrigin";
@@ -34,6 +33,7 @@ import {
   GetConversationRequest,
   makeGetConversationRoute,
 } from "./getConversation";
+import { UpdateTraceFunc } from "./UpdateTraceFunc";
 
 /**
   Configuration for rate limiting on the /conversations/* routes.
@@ -189,6 +189,9 @@ export interface ConversationsRouterParams {
 
   addMessageToConversationUpdateTrace?: AddMessageToConversationRouteParams["updateTrace"];
 
+  rateMessageUpdateTrace?: UpdateTraceFunc;
+  commentMessageUpdateTrace?: UpdateTraceFunc;
+
   /**
     Maximum number of characters allowed in a user's comment on an assistant {@link Message}.
     If not specified, user comments may be of any length.
@@ -240,6 +243,8 @@ export function makeConversationsRouter({
   createConversationCustomData = addOriginAndIpToCustomData,
   addMessageToConversationCustomData = addOriginToCustomData,
   addMessageToConversationUpdateTrace,
+  rateMessageUpdateTrace,
+  commentMessageUpdateTrace,
   maxUserCommentLength,
   createConversationOnNullMessageId = true,
 }: ConversationsRouterParams) {
@@ -357,7 +362,7 @@ export function makeConversationsRouter({
   conversationsRouter.post(
     "/:conversationId/messages/:messageId/rating",
     validateRequestSchema(RateMessageRequest),
-    makeRateMessageRoute({ conversations })
+    makeRateMessageRoute({ conversations, updateTrace: rateMessageUpdateTrace })
   );
 
   // Comment on a message.
@@ -367,6 +372,7 @@ export function makeConversationsRouter({
     makeCommentMessageRoute({
       conversations,
       maxCommentLength: maxUserCommentLength,
+      updateTrace: commentMessageUpdateTrace,
     })
   );
 

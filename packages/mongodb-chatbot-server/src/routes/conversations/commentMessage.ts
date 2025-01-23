@@ -9,6 +9,7 @@ import { getRequestId, logRequest, sendErrorResponse } from "../../utils";
 import { z } from "zod";
 import { SomeExpressRequest } from "../../middleware/validateRequestSchema";
 import { braintrustLogger } from "mongodb-rag-core/braintrust";
+import { UpdateTraceFunc, updateTraceIfExists } from "./UpdateTraceFunc";
 
 export type CommentMessageRequest = z.infer<typeof CommentMessageRequest>;
 
@@ -30,11 +31,13 @@ export const CommentMessageRequest = SomeExpressRequest.merge(
 export interface CommentMessageRouteParams {
   conversations: ConversationsService;
   maxCommentLength?: number;
+  updateTrace?: UpdateTraceFunc;
 }
 
 export function makeCommentMessageRoute({
   conversations,
   maxCommentLength,
+  updateTrace,
 }: CommentMessageRouteParams) {
   return async (
     req: ExpressRequest,
@@ -143,12 +146,19 @@ export function makeCommentMessageRoute({
           reqId,
           message: `Added a user comment to ${messageIdStr} in conversation ${conversationIdStr}: "${comment}"`,
         });
+        const traceId = messageId.toHexString();
         braintrustLogger.logFeedback({
-          id: messageId.toHexString(),
+          id: traceId,
           comment,
           scores: {
             HasComment: 1,
           },
+        });
+        await updateTraceIfExists({
+          updateTrace,
+          conversations,
+          conversationId,
+          assistantResponseMessageId: messageId,
         });
         return;
       } catch (err) {

@@ -1,19 +1,31 @@
-import { AppConfig } from "mongodb-chatbot-server";
-import { SomeMessage, UserMessage } from "mongodb-rag-core";
+import {
+  AssistantMessage,
+  DbMessage,
+  Message,
+  MessageBase,
+  UserMessage,
+} from "mongodb-rag-core";
 import { llmDoesNotKnowMessage } from "./systemPrompt";
 import { strict as assert } from "assert";
 import { ContextRelevancy, AnswerRelevancy, Faithfulness } from "autoevals";
 import { traced } from "mongodb-rag-core/braintrust";
+import { UpdateTraceFunc } from "mongodb-chatbot-server";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 
 export const makeAddMessageToConversationUpdateTrace: (
   k: number,
-  llmAsAJudge?: LlmAsAJudge
-) => AppConfig["conversationsRouterConfig"]["addMessageToConversationUpdateTrace"] = (
-  k,
-  llmAsAJudge
-) => {
-  return async function ({ traceId, addedMessages, logger }) {
-    const tracingData = extractTracingData(addedMessages);
+  llmAsAJudge?: LlmAsAJudge & {
+    /**
+    Percent of numbers to judge. Between 0 and 1.
+   */
+    percentToJudge: number;
+  }
+) => UpdateTraceFunc = (k, llmAsAJudge) => {
+  return async function ({ traceId, conversation, logger }) {
+    const tracingData = extractTracingData(
+      conversation.messages,
+      ObjectId.createFromHexString(traceId)
+    );
     const judges = shouldJudge(llmAsAJudge?.percentToJudge);
 
     logger.updateSpan({
@@ -29,6 +41,23 @@ export const makeAddMessageToConversationUpdateTrace: (
   };
 };
 
+export function makeRateMessageUpdateTrace(
+  llmAsAJudge: LlmAsAJudge
+): UpdateTraceFunc {
+  return async function ({ traceId, conversation, logger }) {
+    logger.updateSpan({
+      id: traceId,
+      scores: await getLlmAsAJudgeScores(
+        llmAsAJudge,
+        extractTracingData(
+          conversation.messages,
+          ObjectId.createFromHexString(traceId)
+        )
+      ),
+    });
+  };
+}
+
 function shouldJudge(percentToJudge: number | undefined): boolean {
   if (percentToJudge === undefined) {
     return false;
@@ -40,19 +69,32 @@ function shouldJudge(percentToJudge: number | undefined): boolean {
   return Math.random() < percentToJudge;
 }
 
-export function extractTracingData(messages: SomeMessage[]) {
-  const latestUserMessage = messages.findLast(
-    (message) => message.role === "user"
-  ) as UserMessage | undefined;
+export function extractTracingData(
+  messages: Message[],
+  assistantMessageId: ObjectId
+) {
+  const evalAssistantMessageIdx = messages.findLastIndex(
+    (message) =>
+      message.role === "assistant" && message.id.equals(assistantMessageId)
+  );
+  assert(evalAssistantMessageIdx !== -1, "Assistant message not found");
+  const evalAssistantMessage = messages[evalAssistantMessageIdx] as
+    | DbMessage<AssistantMessage>
+    | undefined;
+
+  const previousUserMessage = messages
+    .slice(0, evalAssistantMessageIdx)
+    .findLast((m): m is DbMessage<UserMessage> => m.role === "user");
+
   const tags = [];
 
-  const rejectQuery = latestUserMessage?.rejectQuery;
+  const rejectQuery = previousUserMessage?.rejectQuery;
   if (rejectQuery === true) {
     tags.push("rejected_query");
   }
-  const programmingLanguage = latestUserMessage?.customData
+  const programmingLanguage = previousUserMessage?.customData
     ?.programmingLanguage as string | undefined;
-  const mongoDbProduct = latestUserMessage?.customData?.mongoDbProduct as
+  const mongoDbProduct = previousUserMessage?.customData?.mongoDbProduct as
     | string
     | undefined;
   if (programmingLanguage) {
@@ -62,24 +104,20 @@ export function extractTracingData(messages: SomeMessage[]) {
     tags.push(tagify(mongoDbProduct));
   }
 
-  const numRetrievedChunks = latestUserMessage?.contextContent?.length ?? 0;
+  const numRetrievedChunks = previousUserMessage?.contextContent?.length ?? 0;
   if (numRetrievedChunks === 0) {
     tags.push("no_retrieved_content");
   }
 
-  const latestAssistantMessage = messages.findLast(
-    (message) => message.role === "assistant"
-  );
-
   const isVerifiedAnswer =
-    latestAssistantMessage?.metadata?.verifiedAnswer !== undefined
+    evalAssistantMessage?.metadata?.verifiedAnswer !== undefined
       ? true
       : undefined;
   if (isVerifiedAnswer) {
     tags.push("verified_answer");
   }
 
-  const llmDoesNotKnow = latestAssistantMessage?.content.includes(
+  const llmDoesNotKnow = evalAssistantMessage?.content.includes(
     llmDoesNotKnowMessage
   );
   if (llmDoesNotKnow) {
@@ -92,8 +130,8 @@ export function extractTracingData(messages: SomeMessage[]) {
     isVerifiedAnswer,
     llmDoesNotKnow,
     numRetrievedChunks,
-    latestUserMessage,
-    latestAssistantMessage,
+    latestUserMessage: previousUserMessage,
+    latestAssistantMessage: evalAssistantMessage,
   };
 }
 
@@ -113,10 +151,6 @@ function getTracingScores(
 }
 
 interface LlmAsAJudge {
-  /**
-    Percent of numbers to judge. Between 0 and 1.
-   */
-  percentToJudge: number;
   judgeModel: string;
   judgeEmbeddingModel: string;
   openAiConfig: Pick<

@@ -342,7 +342,8 @@ describe("updateEmbeddedContent", () => {
   beforeAll(async () => {
     mongod = await MongoMemoryReplSet.create();
     uri = mongod.getUri();
-    mongoClient = await MongoClient.connect(mongod.getUri(), {});
+    mongoClient = new MongoClient(uri);
+    await mongoClient.connect();
   });
   beforeEach(async () => {
     // setup mongo client, page store, and embedded content store

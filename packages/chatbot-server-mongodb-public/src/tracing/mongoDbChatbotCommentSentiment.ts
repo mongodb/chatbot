@@ -124,7 +124,6 @@ function makeUserMessage(
     content: transcript,
   };
 }
-
 function formatRole(role: string): string {
   if (role.length === 0) return role;
   // Capitalize first letter

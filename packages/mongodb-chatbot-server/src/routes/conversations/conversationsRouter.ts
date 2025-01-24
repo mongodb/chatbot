@@ -1,4 +1,5 @@
-import { Request, Router, RequestHandler, Response } from "express";
+import { Request, RequestHandler, Response } from "express";
+import Router from "express-promise-router";
 import { rateLimit, Options as RateLimitOptions } from "express-rate-limit";
 import slowDown, { Options as SlowDownOptions } from "express-slow-down";
 import validateRequestSchema from "../../middleware/validateRequestSchema";

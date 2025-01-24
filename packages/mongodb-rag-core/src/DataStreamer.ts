@@ -1,6 +1,7 @@
 import { Response } from "express";
 import { OpenAiStreamingResponse } from "./llm";
 import { References } from "./References";
+import { logger } from "./logger";
 
 export function escapeNewlines(str: string): string {
   return str.replaceAll(`\n`, `\\n`);
@@ -135,11 +136,8 @@ export function makeDataStreamer(): DataStreamer {
         throw new Error("Tried to connect SSE, but it was already connected.");
       }
       sse = makeServerSentEventDispatcher<SomeStreamEvent>(res);
-      // If the client closes the connection, stop sending events
       res.on("close", () => {
-        if (this.connected) {
-          this.disconnect();
-        }
+        logger.info("SSE connection was closed.");
       });
       sse.connect();
       connected = true;

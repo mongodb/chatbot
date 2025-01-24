@@ -64,7 +64,6 @@ const evaluateScorer = function makeTracedScorer(
   );
 };
 
-// TODO: apply above function constructor to all the stuff in the Promise.all()
 const makeEvaluateWithLlmAsAJudge = (
   openAiConfig: LlmAsAJudge["openAiConfig"]
 ) =>
@@ -147,8 +146,7 @@ export async function getLlmAsAJudgeScores(
   const output = tracingData.assistantMessage.content;
   const context = tracingData.userMessage.contextContent
     ?.map((c) => c.text)
-    // Have to do this type casting to make it compile. Unclear why.
-    .filter((c) => typeof c === "string") as string[] | undefined;
+    .filter((value): value is string => typeof value === "string");
 
   const evaluateWithLlmAsAJudge = makeEvaluateWithLlmAsAJudge(openAiConfig);
 

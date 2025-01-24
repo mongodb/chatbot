@@ -31,11 +31,12 @@ import express from "express";
 import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
+import { TRACING_ENV_VARS } from "./EnvVars";
 import {
   makeAddMessageToConversationUpdateTrace,
+  makeCommentMessageUpdateTrace,
   makeRateMessageUpdateTrace,
-} from "./tracing";
-import { TRACING_ENV_VARS } from "./EnvVars";
+} from "./tracing/routesUpdateTraceHandlers";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -241,6 +242,10 @@ export const config: AppConfig = {
         { ...llmAsAJudgeConfig, percentToJudge: isProduction ? 0.1 : 1 }
       ),
     rateMessageUpdateTrace: makeRateMessageUpdateTrace(llmAsAJudgeConfig),
+    commentMessageUpdateTrace: makeCommentMessageUpdateTrace(
+      openAiClient,
+      JUDGE_LLM
+    ),
     generateUserPrompt,
     systemPrompt,
     maxUserMessagesInConversation: 50,

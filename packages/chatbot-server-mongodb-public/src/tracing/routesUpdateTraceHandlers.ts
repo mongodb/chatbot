@@ -78,6 +78,7 @@ export function makeCommentMessageUpdateTrace(
   slack?: {
     token: string;
     conversationId: string;
+    llmAsAJudge: LlmAsAJudge;
   }
 ): UpdateTraceFunc {
   const judgeMongoDbChatbotCommentSentiment =
@@ -101,6 +102,7 @@ export function makeCommentMessageUpdateTrace(
         slackConversationId: slack.conversationId,
         conversation,
         messageWithCommentId: ObjectId.createFromHexString(traceId),
+        llmAsAJudge: slack.llmAsAJudge,
       });
     }
   };

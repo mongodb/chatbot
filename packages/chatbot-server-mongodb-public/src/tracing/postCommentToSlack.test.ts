@@ -1,8 +1,7 @@
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { postCommentToSlack } from "./postCommentToSlack";
 import "dotenv/config";
-// TODO: how to test this?
-describe("postCommentToSlack", () => {
+describe.skip("postCommentToSlack", () => {
   it("should post message to slack", async () => {
     const id = new ObjectId();
     await postCommentToSlack({
@@ -25,10 +24,27 @@ describe("postCommentToSlack", () => {
             userComment: "good",
             id,
             createdAt: new Date(),
+            references: [
+              {
+                title: "title",
+                url: "https://example.com",
+              },
+            ],
           },
         ],
       },
       messageWithCommentId: id,
+      llmAsAJudge: {
+        judgeEmbeddingModel: process.env.JUDGE_EMBEDDING_MODEL!,
+        judgeModel: process.env.JUDGE_LLM!,
+        openAiConfig: {
+          azureOpenAi: {
+            apiKey: process.env.OPENAI_API_KEY!,
+            endpoint: process.env.OPENAI_ENDPOINT!,
+            apiVersion: process.env.OPENAI_API_VERSION!,
+          },
+        },
+      },
     });
   });
 });

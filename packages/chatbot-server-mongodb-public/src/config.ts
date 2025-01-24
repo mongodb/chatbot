@@ -252,6 +252,7 @@ export const config: AppConfig = {
         ? {
             token: SLACK_BOT_TOKEN,
             conversationId: SLACK_COMMENT_CONVERSATION_ID,
+            llmAsAJudge: llmAsAJudgeConfig,
           }
         : undefined
     ),

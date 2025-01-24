@@ -5,34 +5,47 @@ import { Blocks, Message as BuilderMessage, Md } from "slack-block-builder";
 import { extractTracingData } from "./extractTracingData";
 import { strict as assert } from "assert";
 import slackify from "slackify-markdown";
+import { getLlmAsAJudgeScores, LlmAsAJudge } from "./getLlmAsAJudgeScores";
 
 export interface PostCommentToSlackParams {
   slackToken: string;
   slackConversationId: string;
   conversation: Conversation;
   messageWithCommentId: ObjectId;
+  llmAsAJudge: LlmAsAJudge;
 }
 export async function postCommentToSlack({
   slackToken,
   slackConversationId,
   conversation,
   messageWithCommentId,
+  llmAsAJudge,
 }: PostCommentToSlackParams) {
   const client = new WebClient(slackToken);
-  const builder = makeSlackMessageText(
+  const builder = await makeSlackMessageText(
     conversation,
     messageWithCommentId,
-    slackConversationId
+    slackConversationId,
+    llmAsAJudge
   );
-  const res = await client.chat.postMessage(builder);
+  const res = await client.chat.postMessage({
+    ...builder,
+    unfurl_links: false,
+    unfurl_media: false,
+  });
   return res;
 }
 
-function makeSlackMessageText(
+async function makeSlackMessageText(
   conversation: Conversation,
   messageWithCommentId: ObjectId,
-  slackConversationId: string
+  slackConversationId: string,
+  llmAsAJudge: LlmAsAJudge
 ) {
+  const tracingData = extractTracingData(
+    conversation.messages,
+    messageWithCommentId
+  );
   const {
     isVerifiedAnswer,
     llmDoesNotKnow,
@@ -41,13 +54,16 @@ function makeSlackMessageText(
     numRetrievedChunks,
     assistantMessage,
     userMessage,
-  } = extractTracingData(conversation.messages, messageWithCommentId);
+  } = tracingData;
 
   assert(assistantMessage, "Assistant message not found");
   assert(userMessage, "User message not found");
   const { rating, userComment } = extractFeedback(assistantMessage);
   assert(rating, "Rating not found");
   assert(userComment, "User comment not found");
+
+  const scores = await getLlmAsAJudgeScores(llmAsAJudge, tracingData);
+
   const feedbackMd = `${Md.bold(
     rating === true ? "👍 Positive Feedback" : "👎 Negative Feedback"
   )}
@@ -65,6 +81,17 @@ ${`${Md.blockquote(Md.bold(Md.emoji("robot_face") + ` Assistant`))}`}
 
 ${slackify(fixNewLines(assistantMessage.content))}`;
 
+  const referencesMd =
+    Md.bold("References:") +
+    "\n" +
+    (assistantMessage.references && assistantMessage?.references.length > 0
+      ? `${assistantMessage.references
+          .map((ref) => {
+            return `${Md.listBullet(Md.link(ref.url, ref.title))}`;
+          })
+          .join("\n")}`
+      : "No References");
+
   const messageMetadataMd = `${Md.bold("Metadata:")}
 
 ${Md.listBullet(`Verified Answer: ${isVerifiedAnswer ? "Yes" : "No"}`)}
@@ -76,7 +103,20 @@ ${Md.listBullet(`Tags: ${tags.map(Md.codeInline).join(", ")}`)}`;
   const idMetadataMd = `Conversation ID: ${Md.codeInline(
     conversation._id.toHexString()
   )}
-Message ID: ${Md.codeInline(messageWithCommentId.toHexString())}`;
+Message ID/ Braintrust Trace ID: ${Md.codeInline(
+    messageWithCommentId.toHexString()
+  )}`;
+
+  const scoresMd = `${Md.bold("Scores:")}
+${
+  scores
+    ? Object.entries(scores)
+        .map(([label, score]) => {
+          return `${Md.listBullet(`${Md.bold(label)}: ${score}`)}`;
+        })
+        .join("\n")
+    : "No LLM-as-Judge Scores"
+}`;
 
   return BuilderMessage({
     channel: slackConversationId,
@@ -86,6 +126,9 @@ Message ID: ${Md.codeInline(messageWithCommentId.toHexString())}`;
       Blocks.Section({ text: feedbackMd }),
       Blocks.Divider(),
       Blocks.Section({ text: messagesMd }),
+      Blocks.Section({ text: referencesMd }),
+      Blocks.Divider(),
+      Blocks.Section({ text: scoresMd }),
       Blocks.Divider(),
       Blocks.Section({ text: messageMetadataMd }),
       Blocks.Divider(),

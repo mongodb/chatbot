@@ -29,9 +29,9 @@ In the meeting cover the following questions:
 
 #### 1. What is the goal for ingesting the content? 
 
-Get a baseline understanding of not just _what_ they want ingested but _why_. This can help guide the rest of the converastion.
+Get a baseline understanding of not just _what_ they want ingested but _why_. This can help guide the rest of the conversation.
 
-Also, sometimes we do not need to ingest additional content to achieve a specific goal.
+Also, sometimes we do not need to ingest additional content to achieve a specific goal. For example, some requests might be better served by modifying the assistant prompt or adding a guardrail.
 
 #### 2. Where's the content located?
 
@@ -55,7 +55,7 @@ See if there are any pre-written question/answer/link sets that they want to inc
 
 Generally, verified answers should be used sparingly. Ideally, the chatbot can just answer using RAG. Verified answers are more of a 'patch'.
 
-You can add verified answer in the [verified-answers.yaml](https://github.com/mongodb/chatbot/blob/main/verified-answers.yaml) file.
+You can add verified answers in the [verified-answers.yaml](https://github.com/mongodb/chatbot/blob/main/verified-answers.yaml) file. Then, use the [verified answers upload](https://github.com/mongodb/chatbot/tree/main/packages/mongodb-chatbot-verified-answers) script to add them to dev/staging/prod.
 
 ## Data Ingestion Checklist
 

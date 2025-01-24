@@ -1,4 +1,4 @@
-import { Message } from "mongodb-rag-core";
+import { AssistantMessage, DbMessage, Message } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { z } from "zod";
@@ -105,10 +105,8 @@ function makeUserMessage(
   messageWithCommentId: ObjectId
 ): OpenAI.Chat.Completions.ChatCompletionUserMessageParam {
   const commentIdx = messages.findLastIndex(
-    (message) => message.id.equals(messageWithCommentId)
-    // &&
-    //   message.role === "assistant" &&
-    //   message.userComment !== undefined
+    (message): message is DbMessage<AssistantMessage> =>
+      message.id.equals(messageWithCommentId) && "userComment" in message
   );
   assert(
     commentIdx !== -1,

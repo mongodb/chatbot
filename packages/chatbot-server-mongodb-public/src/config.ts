@@ -224,6 +224,8 @@ const llmAsAJudgeConfig = {
   },
 };
 
+const { SLACK_BOT_TOKEN, SLACK_COMMENT_CONVERSATION_ID } = process.env;
+
 export const config: AppConfig = {
   conversationsRouterConfig: {
     llm,
@@ -244,7 +246,15 @@ export const config: AppConfig = {
     rateMessageUpdateTrace: makeRateMessageUpdateTrace(llmAsAJudgeConfig),
     commentMessageUpdateTrace: makeCommentMessageUpdateTrace(
       openAiClient,
-      JUDGE_LLM
+      JUDGE_LLM,
+      SLACK_BOT_TOKEN !== undefined &&
+        SLACK_COMMENT_CONVERSATION_ID !== undefined
+        ? {
+            token: SLACK_BOT_TOKEN,
+            conversationId: SLACK_COMMENT_CONVERSATION_ID,
+            llmAsAJudge: llmAsAJudgeConfig,
+          }
+        : undefined
     ),
     generateUserPrompt,
     systemPrompt,

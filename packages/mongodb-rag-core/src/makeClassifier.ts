@@ -1,18 +1,13 @@
 import "dotenv/config";
-import {
-  assertEnvVars,
-  CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
-} from "mongodb-rag-core";
-import { OpenAI } from "mongodb-rag-core/openai";
+
+import { OpenAI } from "./openai";
 import { html, stripIndents } from "common-tags";
 import { z } from "zod";
-import { RunLogger } from "../runlogger";
 
-export type Classifier = ({
-  input,
-}: {
-  input: string;
-}) => Classification | Promise<Classification>;
+export type Classifier = ({ input }: { input: string }) => Promise<{
+  classification: Classification;
+  inputMessages: OpenAI.ChatCompletionMessageParam[];
+}>;
 
 export interface ClassificationType {
   /**
@@ -58,12 +53,12 @@ export const Classification = z.object({
 
 export function makeClassifier({
   openAiClient,
-  logger,
+  model,
   classificationTypes,
   chainOfThought = false,
 }: {
   openAiClient: OpenAI;
-  logger?: RunLogger;
+  model: string;
 
   /**
    A list of valid classification types.
@@ -76,10 +71,6 @@ export function makeClassifier({
    */
   chainOfThought?: boolean;
 }): Classifier {
-  const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars(
-    CORE_OPENAI_CHAT_COMPLETION_ENV_VARS
-  );
-
   const classificationCategoriesList = classificationTypes
     .map(({ type, description }) => `- ${type}: ${description}`)
     .join("\n");
@@ -148,41 +139,35 @@ export function makeClassifier({
       },
     ] satisfies OpenAI.ChatCompletionMessageParam[];
     const result = await openAiClient.chat.completions.create({
-      model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+      model,
       messages,
       temperature: 0,
       max_tokens: 300,
-      functions: [classifyFunc],
-      function_call: {
-        name: classifyFunc.name,
+      tools: [
+        {
+          type: "function",
+          function: classifyFunc,
+        },
+      ],
+      tool_choice: {
+        type: "function",
+        function: {
+          name: classifyFunc.name,
+        },
       },
+      stream: false,
     });
     const response = result.choices[0].message;
     if (response === undefined) {
       throw new Error("No response from OpenAI");
     }
-    if (
-      response.function_call === undefined ||
-      response.function_call === null
-    ) {
+    if (response.tool_calls === undefined || response.tool_calls === null) {
       throw new Error("No function call in response from OpenAI");
     }
     const classification = Classification.parse(
-      JSON.parse(response.function_call.arguments)
+      JSON.parse(response.tool_calls[0].function.arguments)
     );
 
-    logger?.appendArtifact(
-      `chatTemplates/classifier-${Date.now()}.json`,
-      stripIndents`
-        <SystemMessage>
-          ${messages[0].content}
-        </SystemMessage>
-        <Classification>
-          ${JSON.stringify(classification)}
-        </Classification>
-      `
-    );
-
-    return classification;
+    return { classification, inputMessages: messages };
   };
 }

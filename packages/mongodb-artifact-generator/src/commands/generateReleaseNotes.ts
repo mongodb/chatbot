@@ -20,6 +20,7 @@ import {
   ClassifiedChangelog,
   makeClassifyChangelogs,
 } from "../release-notes/classifyChangelog";
+import { assertEnvVars } from "mongodb-rag-core";
 
 let logger: RunLogger;
 
@@ -29,6 +30,9 @@ type GenerateReleaseNotesCommandArgs = {
   llmMaxConcurrency: number;
 };
 
+const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars({
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
+});
 export default createCommand<GenerateReleaseNotesCommandArgs>({
   command: "generateReleaseNotes",
   builder(args) {
@@ -175,6 +179,7 @@ export const action = createConfiguredAction<GenerateReleaseNotesCommandArgs>(
 
     const classifyChangelogs = makeClassifyChangelogs({
       openAiClient,
+      model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
       logger,
     });
 

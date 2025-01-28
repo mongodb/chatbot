@@ -6,7 +6,7 @@ import {
 import { combine } from "zustand/middleware";
 import createMessage, { CreateMessageArgs } from "./createMessage";
 import { References } from "./references";
-import { removeArrayElementAt } from "./utils";
+import { nonProd, removeArrayElementAt } from "./utils";
 
 export type ConversationState = {
   conversationId?: string;
@@ -49,11 +49,31 @@ export type ConversationStore = ReturnType<typeof makeConversationStore>;
 
 export const makeConversationStore = (name = "default") => {
   return createStore(
-    combine(initialConversationState, (set) => ({
+    combine(initialConversationState, (set, get) => ({
       name,
       api: {
         initialize: (initialState: ConversationState) => {
           set(initialState);
+        },
+        setConversationId: (conversationId: string) => {
+          if (conversationId === "") {
+            nonProd(() => {
+              console.warn("Attempted to set an empty conversation ID");
+            });
+            return;
+          }
+          if (get().conversationId) {
+            nonProd(() => {
+              console.warn(
+                "Attempted to set a conversation ID when one is already set"
+              );
+            });
+            return;
+          }
+          set((prevState) => ({
+            ...prevState,
+            conversationId,
+          }));
         },
         setConversationError: (errorMessage: string) => {
           set((prevState) => ({

@@ -125,9 +125,6 @@ export function InputBarTrigger({
             if (conversation.messages.length > 0) {
               openChat();
             }
-            if (!conversation.conversationId) {
-              await conversation.createConversation();
-            }
           }}
           onFocus={() => {
             setFocused(true);

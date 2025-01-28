@@ -21,6 +21,13 @@ export type AssistantMessageMetadata = {
   [k: string]: unknown;
 
   /**
+    The conversation ID that this message is part of. If you add a message
+    without specifying a conversation ID, which creates a new conversation, this
+    field contains the ID of the new conversation.
+  */
+  conversationId?: string;
+
+  /**
     If the message came from the verified answers collection, contains the
     metadata about the verified answer.
   */

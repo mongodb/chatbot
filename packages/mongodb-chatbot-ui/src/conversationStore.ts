@@ -49,11 +49,27 @@ export type ConversationStore = ReturnType<typeof makeConversationStore>;
 
 export const makeConversationStore = (name = "default") => {
   return createStore(
-    combine(initialConversationState, (set) => ({
+    combine(initialConversationState, (set, get) => ({
       name,
       api: {
         initialize: (initialState: ConversationState) => {
           set(initialState);
+        },
+        setConversationId: (conversationId: string) => {
+          if (conversationId === "") {
+            console.warn("Attempted to set an empty conversation ID");
+            return;
+          }
+          if (get().conversationId) {
+            console.warn(
+              "Attempted to set a conversation ID when one is already set"
+            );
+            return;
+          }
+          set((prevState) => ({
+            ...prevState,
+            conversationId,
+          }));
         },
         setConversationError: (errorMessage: string) => {
           set((prevState) => ({

@@ -16,6 +16,7 @@ env:
   JUDGE_LLM: "gpt-4o-mini"
   JUDGE_EMBEDDING_MODEL: "text-embedding-3-small"
   # TODO:(EAI-644) add prod tracing
+  # SLACK_COMMENT_CONVERSATION_ID: "C07A68V63EH"
   # BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME: "chatbot-responses-prod"
 
 envSecrets:
@@ -24,6 +25,7 @@ envSecrets:
   OPENAI_API_KEY: docs-chatbot-prod
   # TODO:(EAI-644) add prod tracing
   # BRAINTRUST_TRACING_API_KEY: docs-chatbot-prod
+  # SLACK_BOT_TOKEN: docs-chatbot-prod
 
 ingress:
   enabled: true

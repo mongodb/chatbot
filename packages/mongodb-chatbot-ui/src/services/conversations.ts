@@ -2,7 +2,7 @@ import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { type VerifiedAnswer } from "../verifiedAnswer";
 import { type References } from "../references";
 import { strict as assert } from "node:assert";
-import { isProductionBuild } from "../utils";
+import { nonProd } from "../utils";
 
 export type Role = "user" | "assistant";
 
@@ -328,25 +328,25 @@ export class ConversationService {
       onmessage(ev) {
         const event = JSON.parse(ev.data);
         if (!isSomeStreamEvent(event)) {
-          if (!isProductionBuild()) {
+          nonProd(() => {
             console.error(
               `Received an unknown event: ${JSON.stringify(event)}`
             );
-          }
+          });
           return;
         }
         if (!isConversationStreamEventType(event.type)) {
-          if (!isProductionBuild()) {
+          nonProd(() => {
             console.error(`Received an unknown event type: ${event.type}`);
-          }
+          });
           return;
         }
         if (!isConversationStreamEvent(event)) {
-          if (!isProductionBuild()) {
+          nonProd(() => {
             console.error(
               `Received an invalid conversation event: ${JSON.stringify(event)}`
             );
-          }
+          });
           return;
         }
         switch (event.type) {

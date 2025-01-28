@@ -20,6 +20,7 @@ export * from "./DatabaseConnection";
 export * from "./DataStreamer";
 export * from "./logger";
 export * from "./conversations/MongoDbConversations";
+export * from "./makeClassifier";
 export * from "./References";
 export * from "./VectorStore";
 export * from "./arrayFilters";

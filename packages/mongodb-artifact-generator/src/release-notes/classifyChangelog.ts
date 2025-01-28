@@ -57,8 +57,13 @@ export function makeClassifyChangelog({
 export function makeClassifyChangelogs({
   openAiClient,
   logger,
+  model,
 }: MakeClassifyChangelogScope) {
-  const classifyChangelog = makeClassifyChangelog({ openAiClient, logger });
+  const classifyChangelog = makeClassifyChangelog({
+    openAiClient,
+    logger,
+    model,
+  });
 
   return async function classifyChangelogs({
     changelogs,

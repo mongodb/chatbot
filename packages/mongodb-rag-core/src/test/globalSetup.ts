@@ -1,12 +1,7 @@
 import { MongoMemoryServer, MongoMemoryReplSet } from "mongodb-memory-server";
 import { IP, REPLICA_SET_PORT, SERVER_PORT } from "./constants";
 
-declare global {
-  var __MONGO_MEMORY_SERVER_INSTANCE: MongoMemoryServer;
-  var __MONGO_MEMORY_REPLICA_SET: MongoMemoryReplSet;
-}
-
-module.exports = async function () {
+export default async function () {
   try {
     const mongoMemoryServerInstance = await MongoMemoryServer.create({
       instance: {
@@ -14,7 +9,8 @@ module.exports = async function () {
         ip: IP,
       },
     });
-    global.__MONGO_MEMORY_SERVER_INSTANCE = mongoMemoryServerInstance;
+    (global as any).__MONGO_MEMORY_SERVER_INSTANCE = mongoMemoryServerInstance;
+
     const mongoMemoryServerReplicaSet = await MongoMemoryReplSet.create({
       instanceOpts: [
         {
@@ -25,9 +21,11 @@ module.exports = async function () {
         ip: IP,
       },
     });
-    global.__MONGO_MEMORY_REPLICA_SET = mongoMemoryServerReplicaSet;
+    (global as any).__MONGO_MEMORY_REPLICA_SET = mongoMemoryServerReplicaSet;
   } catch (error) {
     console.error("Error in global setup:", error);
     throw error;
   }
-};
+}
+
+export {};

@@ -1,5 +1,5 @@
 module.exports = async function () {
-  try {    
+  try {
     if (global.__MONGO_MEMORY_SERVER_INSTANCE) {
       await global.__MONGO_MEMORY_SERVER_INSTANCE.stop();
     }
@@ -7,7 +7,7 @@ module.exports = async function () {
       await global.__MONGO_MEMORY_REPLICA_SET.stop();
     }
   } catch (error) {
-    console.error('Error in global teardown:', error);
+    console.error("Error in global teardown:", error);
     throw error;
   }
 };

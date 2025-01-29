@@ -136,10 +136,13 @@ describe("MongoDbEmbeddedContentStore", () => {
       assert(store);
       const originalPageEmbedding = await store.loadEmbeddedContent({ page });
       assert(originalPageEmbedding.length === 1);
-  
+
       const newEmbeddings = [{ ...originalPageEmbedding[0], text: "new text" }];
-      await store.updateEmbeddedContent({ page, embeddedContent: newEmbeddings });
-  
+      await store.updateEmbeddedContent({
+        page,
+        embeddedContent: newEmbeddings,
+      });
+
       const pageEmbeddings = await store.loadEmbeddedContent({ page });
       expect(pageEmbeddings.length).toBe(1);
       expect(pageEmbeddings[0].text).toBe("new text");

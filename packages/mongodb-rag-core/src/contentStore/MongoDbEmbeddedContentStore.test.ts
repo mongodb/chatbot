@@ -10,9 +10,9 @@ import {
   MongoDbEmbeddedContentStore,
   makeMongoDbEmbeddedContentStore,
 } from "./MongoDbEmbeddedContentStore";
-import { MongoMemoryReplSet } from "mongodb-memory-server";
 import { MongoClient } from "mongodb";
 import { EmbeddedContent } from "./EmbeddedContent";
+import { MONGO_MEMORY_REPLICA_SET_URI } from "../test/constants";
 
 const {
   MONGODB_CONNECTION_URI,
@@ -28,7 +28,6 @@ jest.setTimeout(30000);
 
 describe("MongoDbEmbeddedContentStore", () => {
   let store: MongoDbEmbeddedContentStore | undefined;
-  let mongod: MongoMemoryReplSet | undefined;
   let embeddedContent;
   const page: PersistedPage = {
     action: "created",
@@ -41,7 +40,6 @@ describe("MongoDbEmbeddedContentStore", () => {
     updated: new Date(),
     url: "/x/y/z",
   };
-
   const anotherPage: PersistedPage = {
     action: "created",
     body: "bar",
@@ -54,11 +52,8 @@ describe("MongoDbEmbeddedContentStore", () => {
     url: "/a/b/c",
   };
   const pages = [page, anotherPage];
-  let uri: string;
-  beforeAll(async () => {
-    mongod = await MongoMemoryReplSet.create();
-    uri = mongod.getUri();
-  });
+  const uri = MONGO_MEMORY_REPLICA_SET_URI;
+
   beforeEach(async () => {
     store = makeMongoDbEmbeddedContentStore({
       connectionUri: uri,
@@ -89,10 +84,7 @@ describe("MongoDbEmbeddedContentStore", () => {
 
   afterEach(async () => {
     await store?.drop();
-  });
-  afterAll(async () => {
     await store?.close();
-    await mongod?.stop();
   });
 
   it("has an overridable default collection name", async () => {

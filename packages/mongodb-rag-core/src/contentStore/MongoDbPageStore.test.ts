@@ -2,8 +2,8 @@ import { strict as assert } from "assert";
 import { MongoDbPageStore, makeMongoDbPageStore } from "./MongoDbPageStore";
 import { PersistedPage } from "./Page";
 import "dotenv/config";
-import { MongoMemoryServer } from "mongodb-memory-server";
 import { MongoClient } from "mongodb";
+import { MONGO_MEMORY_SERVER_URI } from "../test/constants";
 
 jest.setTimeout(60000);
 const moviePages: PersistedPage[] = [
@@ -65,29 +65,19 @@ const moviePages: PersistedPage[] = [
 ];
 
 const pageUrls = (pages: PersistedPage[]) => pages.map(({ url }) => url);
+const uri = MONGO_MEMORY_SERVER_URI;
 
 describe("MongoDbPageStore", () => {
   let store: MongoDbPageStore | undefined;
-  let mongoServer: MongoMemoryServer;
-  let uri: string;
-  beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    uri = mongoServer.getUri();
-  });
   beforeEach(async () => {
     store = await makeMongoDbPageStore({
       connectionUri: uri,
       databaseName: "test-database",
     });
   });
-
   afterEach(async () => {
-    assert(store);
-    await store.drop();
-    await store.close();
-  });
-  afterAll(async () => {
-    await mongoServer.stop();
+    await store?.drop();
+    await store?.close();
   });
 
   it("handles pages", async () => {

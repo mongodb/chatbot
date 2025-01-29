@@ -54,7 +54,7 @@ describe("MongoDbEmbeddedContentStore", () => {
   const pages = [page, anotherPage];
   const uri = MONGO_MEMORY_REPLICA_SET_URI;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     store = makeMongoDbEmbeddedContentStore({
       connectionUri: uri,
       databaseName: "test-database",
@@ -62,9 +62,11 @@ describe("MongoDbEmbeddedContentStore", () => {
         embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
       },
     });
+  });
+  beforeEach(async () => {
     for (const page of pages) {
-      embeddedContent = await store.loadEmbeddedContent({ page });
-      await store.updateEmbeddedContent({
+      embeddedContent = await store?.loadEmbeddedContent({ page });
+      await store?.updateEmbeddedContent({
         page,
         embeddedContent: [
           {
@@ -84,6 +86,8 @@ describe("MongoDbEmbeddedContentStore", () => {
 
   afterEach(async () => {
     await store?.drop();
+  });
+  afterAll(async () => {
     await store?.close();
   });
 

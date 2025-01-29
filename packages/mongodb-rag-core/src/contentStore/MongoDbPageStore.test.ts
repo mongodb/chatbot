@@ -69,7 +69,7 @@ const uri = MONGO_MEMORY_SERVER_URI;
 
 describe("MongoDbPageStore", () => {
   let store: MongoDbPageStore | undefined;
-  beforeEach(async () => {
+  beforeAll(async () => {
     store = await makeMongoDbPageStore({
       connectionUri: uri,
       databaseName: "test-database",
@@ -77,6 +77,8 @@ describe("MongoDbPageStore", () => {
   });
   afterEach(async () => {
     await store?.drop();
+  });
+  afterAll(async () => {
     await store?.close();
   });
 

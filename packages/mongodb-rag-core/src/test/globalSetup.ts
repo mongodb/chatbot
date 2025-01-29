@@ -27,5 +27,3 @@ export default async function () {
     throw error;
   }
 }
-
-export {};

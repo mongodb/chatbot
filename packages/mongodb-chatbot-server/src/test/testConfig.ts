@@ -29,14 +29,13 @@ import {
   makeFilterNPreviousMessages,
 } from "../processors";
 import { makeDefaultReferenceLinks } from "../processors/makeDefaultReferenceLinks";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import { MONGO_MEMORY_SERVER_URI } from "./constants";
+
 
 let mongoClient: MongoClient | undefined;
 export let memoryDb: Db;
-let mongod: MongoMemoryServer | undefined;
+const uri = MONGO_MEMORY_SERVER_URI
 beforeAll(async () => {
-  mongod = await MongoMemoryServer.create();
-  const uri = mongod.getUri();
   const testDbName = `conversations-test-${Date.now()}`;
   mongoClient = new MongoClient(uri);
   memoryDb = mongoClient.db(testDbName);
@@ -45,7 +44,6 @@ beforeAll(async () => {
 afterAll(async () => {
   await memoryDb?.dropDatabase();
   await mongoClient?.close();
-  await mongod?.stop();
   await embeddedContentStore.close();
   await verifiedAnswerStore.close();
 });

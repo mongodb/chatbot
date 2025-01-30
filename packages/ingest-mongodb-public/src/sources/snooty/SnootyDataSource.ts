@@ -11,6 +11,7 @@ import {
   getTitleFromSnootyOpenApiSpecAst,
   snootyAstToOpenApiSpec,
 } from "./snootyAstToOpenApiSpec";
+import { truncateEmbeddings } from "./truncateEmbeddings";
 
 // These types are what's in the snooty manifest jsonl file.
 export type SnootyManifestEntry = {
@@ -383,7 +384,7 @@ export const handlePage = async (
     ),
     sourceName,
     title,
-    body,
+    body: truncateEmbeddings(body),
     format,
     metadata: {
       page: pageMetadata,

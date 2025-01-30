@@ -1,4 +1,3 @@
-import { MongoMemoryServer } from "mongodb-memory-server";
 import {
   MongoClient,
   Db,
@@ -10,6 +9,7 @@ import {
   MakeGenerateDriverCodeParams,
 } from "./makeGenerateDriverCode";
 import { OpenAI } from "mongodb-rag-core/openai";
+import { MONGO_MEMORY_SERVER_URI } from "../../test/constants";
 
 // Mock external dependencies
 jest.mock("mongodb-rag-core/openai");
@@ -17,7 +17,6 @@ const MockedOpenAI = OpenAI as jest.MockedClass<typeof OpenAI>;
 
 describe("makeGenerateDriverCode", () => {
   jest.setTimeout(60000);
-  let mongoServer: MongoMemoryServer;
   let mongoClient: MongoClient;
   let db: Db;
   let collection: Collection<Document>;
@@ -26,8 +25,7 @@ describe("makeGenerateDriverCode", () => {
 
   beforeAll(async () => {
     // Start in-memory MongoDB instance
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
+    const uri = MONGO_MEMORY_SERVER_URI;
 
     mongoClient = new MongoClient(uri);
     await mongoClient.connect();
@@ -44,7 +42,6 @@ describe("makeGenerateDriverCode", () => {
   afterAll(async () => {
     // Clean up
     await mongoClient.close();
-    await mongoServer.stop();
   });
 
   beforeEach(() => {

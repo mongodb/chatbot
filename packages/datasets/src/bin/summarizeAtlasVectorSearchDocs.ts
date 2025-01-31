@@ -1,7 +1,6 @@
 import {
   assertEnvVars,
   CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
-  CORE_OPENAI_ENV_VARS,
   makeMongoDbPageStore,
 } from "mongodb-rag-core";
 import { synthesizePages } from "../synthesizePages.js";
@@ -34,12 +33,9 @@ const urls: string[] = [
   "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/",
   "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/",
   "https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/",
-  // TODO: add integrations
   "https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/",
   "https://mongodb.com/docs/atlas/atlas-vector-search/tune-vector-search/",
   "https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/",
-
-  /// TODO:... continue
 ];
 export async function main() {
   console.log("starting script");

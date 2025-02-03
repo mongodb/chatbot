@@ -30,6 +30,7 @@ import {
 const { DEVCENTER_CONNECTION_URI, UNIVERSITY_DATA_API_KEY } = assertEnvVars(
   PUBLIC_INGEST_ENV_VARS
 );
+import { makeWebDataSource } from "./WebDataSource";
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -169,6 +170,10 @@ function getTerraformPageUrl(siteBaseUrl: string, path: string) {
   }
 }
 
+const webDataSourceConstructor = async () => {
+  return makeWebDataSource({});
+};
+
 /**
   The constructors for the sources used by the docs chatbot.
  */
@@ -183,4 +188,5 @@ export const sourceConstructors: SourceConstructor[] = [
   practicalAggregationsDataSource,
   terraformProviderSourceConstructor,
   wiredTigerSourceConstructor,
+  webDataSourceConstructor
 ];

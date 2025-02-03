@@ -1,8 +1,92 @@
 import { Page } from "mongodb-rag-core";
+import { DataSource } from "mongodb-rag-core/dataSources";
 import * as cheerio from "cheerio";
 import puppeteer, { Page as PuppeteerPage } from "puppeteer";
 import TurndownService from "turndown";
 import * as turndownPluginGfm from "turndown-plugin-gfm";
+import xml2js from "xml2js";
+
+// CONSTANTS
+const sitemapURL = "https://www.mongodb.com/sitemap-pages.xml";
+// urls of the directories where we want every single page
+const directoryUrls = [
+  "https://www.mongodb.com/solutions/customer-case-studies",
+  "https://www.mongodb.com/solutions/solutions-library/",
+];
+const solutionsUrls = [
+  "https://www.mongodb.com/solutions/use-cases/artificial-intelligence",
+  "https://www.mongodb.com/solutions/use-cases/payments",
+  "https://www.mongodb.com/solutions/use-cases/serverless",
+  "https://www.mongodb.com/solutions/use-cases/gaming",
+  "https://www.mongodb.com/solutions/industries/financial-services",
+  "https://www.mongodb.com/solutions/industries/telecommunications",
+  "https://www.mongodb.com/solutions/industries/healthcare",
+  "https://www.mongodb.com/solutions/industries/retail",
+  "https://www.mongodb.com/solutions/industries/public-sector",
+  "https://www.mongodb.com/solutions/industries/manufacturing",
+  "https://www.mongodb.com/solutions/industries/insurance",
+  "https://www.mongodb.com/solutions/developer-data-platform",
+  "https://www.mongodb.com/solutions/startups",
+  "https://www.mongodb.com/solutions/customer-case-studies",
+]
+
+export function makeWebDataSource({
+  maxPages,
+}: {
+  maxPages?: number; // for testing
+}): DataSource {
+  return {
+    name: "mongodb-web",
+    async fetchPages() {
+      let browser;
+      try {
+        const { page: puppeteerPage, browser: b } = await makePuppeteer();
+        browser = b;
+        // Use the sitemap to get the urls belonging to the directories we want every page from
+        const completeDirectoryUrls = await getCompleteDirectoriesFromSitemap(
+          sitemapURL
+        );
+        // Get urls from the list provided by web team
+        const individualUrls = [...solutionsUrls];
+        const urls = [...completeDirectoryUrls, ...individualUrls];
+        const pages: Page[] = [];
+        for await (const [index, url] of urls.entries()) {
+          if (maxPages && index >= maxPages) {
+            break;
+          }
+          pages.push(
+            await scrapePage({
+              url,
+              puppeteerPage,
+            })
+          ); 
+        }
+        return pages;
+      } finally {
+        await browser?.close();
+      }
+    },
+  };
+}
+
+export async function getUrlsFromSitemap(
+  sitemapURL: string
+): Promise<string[]> {
+  const response = await fetch(sitemapURL);
+  const sitemap = await response.text();
+  const parser = new xml2js.Parser();
+  const parsedXML = await parser.parseStringPromise(sitemap);
+  return parsedXML.urlset.url.map((url: { loc: string[] }) => url.loc[0]);
+}
+
+export async function getCompleteDirectoriesFromSitemap(
+  sitemapURL: string
+): Promise<string[]> {
+  const sitemapUrls = await getUrlsFromSitemap(sitemapURL);
+  return sitemapUrls.filter((url) =>
+    directoryUrls.some((directoryUrl) => url.startsWith(directoryUrl))
+  );
+}
 
 function makeTurndownService({
   baseUrl,
@@ -144,6 +228,7 @@ export const makePuppeteer = async () => {
   const browser = await puppeteer.launch({
     args: ["--no-sandbox"],
     headless: "new",
+    executablePath: "/opt/homebrew/bin/chromium",
   });
   const page = await browser.newPage();
   return { page, browser };

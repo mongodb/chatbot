@@ -1,5 +1,10 @@
 import * as Puppeteer from "puppeteer";
-import { makePuppeteer, scrapePage } from "./WebDataSource";
+import {
+  getUrlsFromSitemap,
+  makePuppeteer,
+  makeWebDataSource,
+  scrapePage,
+} from "./WebDataSource";
 import fs from "fs";
 import path from "path";
 jest.setTimeout(60000);
@@ -68,5 +73,23 @@ describe("scrapePage", () => {
       puppeteerPage,
     });
     fs.writeFileSync(path.join(pathOut, `${name}.md`), page.body);
+  });
+});
+
+describe("getUrlsFromSitemap", () => {
+  const sitemapURL = "https://www.mongodb.com/sitemap-pages.xml";
+  it("should get urls from sitemap", async () => {
+    const urls = await getUrlsFromSitemap(sitemapURL);
+    expect(urls.length).toBeGreaterThan(0);
+    expect(urls[0]).toContain("https://www.mongodb.com");
+  });
+});
+
+describe("WebDataSource", () => {
+  it("loads pages from sitemap", async () => {
+    const maxPages = 10;
+    const source = await makeWebDataSource({ maxPages });
+    const pages = await source.fetchPages();
+    expect(pages.length).toBe(maxPages);
   });
 });

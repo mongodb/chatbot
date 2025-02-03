@@ -63,5 +63,19 @@ export async function getReleaseArtifacts({
     }
   }
 
+  // If we have Jira configuration, fetch the issues using the keys from commits
+  if (jira) {
+    const { version, jiraApi, project } = jira;
+
+    const jiraReleaseArtifacts = makeJiraReleaseArtifacts({
+      jiraApi,
+      project,
+      version,
+    });
+
+    const jiraIssues = await jiraReleaseArtifacts.getIssues();
+    artifacts.push(...jiraIssues);
+  }
+
   return artifacts;
 }

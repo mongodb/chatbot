@@ -10,11 +10,8 @@ export type JiraReleaseArtifacts = {
 };
 
 export const JiraReleaseInfo = z.object({
-  version: z
-    .string()
-    .describe(
-      "The version of the release. This (naïvely) corresponds to a Jira fixVersion."
-    ),
+  version: z.string().optional().describe("The version of the release. This (naïvely) corresponds to a Jira fixVersion."),
+  issueKeys: z.array(z.string()).optional().describe("Array of Jira issue keys (e.g., MIG-xxxx). If not provided, will be extracted from commit messages."),
   project: z.string().optional().describe("The Jira project key."),
 });
 
@@ -31,48 +28,89 @@ export function makeJiraReleaseArtifacts({
   jiraApi,
   project,
   version,
+  issueKeys = [], // Provide empty array as default value
 }: MakeJiraReleaseArtifactsArgs): JiraReleaseArtifacts {
   return {
     getIssues: async () => {
-      // Fetch the issues relevant to the given version
-      const queryParts = [`fixVersion = ${version}`];
+      const queryParts: string[] = [];
+
+      if (issueKeys.length > 0) {
+        // Fetch the issues by their keys
+        queryParts.push(`issue IN (${issueKeys.join(',')})`);
+      } else {
+        // Fetch the issues relevant to the given version
+        queryParts.push(`fixVersion = ${version}`);
+      }
+
       if (project) {
         queryParts.push(`project = ${project}`);
       }
       const jqlQuery = queryParts.join(" AND ");
-      const response = (await jiraApi.searchJira(jqlQuery, {
-        expand: ["customfield_15650"],
-        fields: [
-          "fixVersions",
-          "components",
-          "resolution",
-          "priority",
-          "summary",
-          "description",
-          "status",
-          "issuetype",
-          "project",
-        ],
-      })) as JiraSearchResponse;
+      console.log(`Fetching Jira issues with query: ${jqlQuery}`);
+        
+      let fetchedIssues: JiraIssue[] = [];
+      let currentPageIndex = 0;
+      let totalMatchingIssues = 0;
+      
+      do {
+        const response = (await jiraApi.searchJira(jqlQuery, {
+          expand: ["customfield_15650"],
+          fields: [
+            "fixVersions",
+            "components",
+            "resolution",
+            "priority",
+            "summary",
+            "description",
+            "status",
+            "issuetype",
+            "project",
+          ],
+          startAt: currentPageIndex,
+          maxResults: 100, // Increase from default 50 to 100 to reduce number of API calls
+        })) as JiraSearchResponse;
 
-      return response.issues.map((issue) => ({
-        type: "jira-issue",
-        data: {
-          key: issue.key,
-          summary: issue.fields.summary,
-          description: issue.fields.description,
-          components: issue.fields.components.map(
-            (component) => component.name
-          ),
-          fixVersions: issue.fields.fixVersions.map(
-            (fixVersion) => fixVersion.name
-          ),
-          resolution: issue.fields.resolution.name,
-          priority: issue.fields.priority.name,
-          status: issue.fields.status.name,
-          issuetype: issue.fields.issuetype.name,
-        },
-      }));
+        fetchedIssues = fetchedIssues.concat(response.issues);
+        totalMatchingIssues = response.total;
+        currentPageIndex += response.maxResults;
+        
+        console.log(`Fetched ${response.issues.length} issues (${fetchedIssues.length}/${totalMatchingIssues} total)`);
+      } while (fetchedIssues.length < totalMatchingIssues);
+
+      console.log(`Found ${fetchedIssues.length} issues`);
+      if (issueKeys.length > 0) {
+        console.log(`out of ${issueKeys.length} requested`)
+      }
+      
+      if (fetchedIssues.length < issueKeys.length) {
+        const foundKeys = fetchedIssues.map(issue => issue.key);
+        const missingKeys = issueKeys.filter(key => !foundKeys.includes(key));
+        console.log(`Missing Jira issues: ${missingKeys.join(', ')}`);
+      }
+
+      return fetchedIssues.map((issue) => {
+        console.log(`Processing issue ${issue.key}:`);
+        console.log(`- Resolution: ${issue.fields.resolution ? issue.fields.resolution.name : 'null'}`);
+        
+        return {
+          type: "jira-issue",
+          data: {
+            key: issue.key,
+            summary: issue.fields.summary,
+            description: issue.fields.description,
+            components: issue.fields.components?.map(
+              (component) => component.name
+            ) ?? [],
+            fixVersions: issue.fields.fixVersions.map(
+              (fixVersion) => fixVersion.name
+            ),
+            resolution: issue.fields.resolution?.name ?? 'Unresolved',
+            priority: issue.fields.priority?.name ?? 'None',
+            status: issue.fields.status?.name ?? 'Unknown',
+            issuetype: issue.fields.issuetype?.name ?? 'Unknown',
+          },
+        };
+      });
     },
   };
 }

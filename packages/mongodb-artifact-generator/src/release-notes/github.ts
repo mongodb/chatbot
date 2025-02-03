@@ -16,6 +16,11 @@ export type GitHubReleaseArtifacts = {
    Fetches the diffs between the previous version and the current version.
    */
   getDiffs(): Promise<GitDiffArtifact[]>;
+
+  /**
+   Fetches the Jira Issue Keys mentioned in the message of commits between the previous version and the current version.
+   */
+  getJiraIssueKeys(jiraProject: string): Promise<string[]>;
 };
 
 export const GitHubReleaseInfo = z.object({
@@ -42,33 +47,116 @@ export type MakeGitHubReleaseArtifactsArgs = GitHubReleaseInfo & {
   githubApi: Octokit;
 };
 
+function delay(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+// Simple rate limit handler with retries
+async function withRateLimit<T>(
+  operation: () => Promise<T>,
+  retryCount = 0
+): Promise<T> {
+  try {
+    return await operation();
+  } catch (error: any) {
+    if (
+      error?.status === 403 &&
+      error?.response?.headers?.["retry-after"] &&
+      retryCount < 3
+    ) {
+      const retryAfter =
+        parseInt(error.response.headers["retry-after"], 10) || 1;
+      console.log(
+        `Rate limited. Waiting ${retryAfter} seconds before retry ${
+          retryCount + 1
+        }/3...`
+      );
+      await delay(retryAfter * 1000);
+      return withRateLimit(operation, retryCount + 1);
+    }
+    throw error;
+  }
+}
+
+function extractJiraIssueKeys(jiraProject: string, message: string): string[] {
+  const regex = new RegExp(`${jiraProject}-\\d+`, "gi");
+  const matches = message.match(regex) || [];
+  return matches;
+}
+
 export function makeGitHubReleaseArtifacts(
   args: MakeGitHubReleaseArtifactsArgs
 ): GitHubReleaseArtifacts {
-  return {
-    getCommits: async () => {
-      // Fetch the commits between the previous version and the current version
-      const { data } = await args.githubApi.repos.compareCommitsWithBasehead({
+  // Helper function to fetch the comparison between two versions
+  const fetchVersionComparison = async () => {
+    return withRateLimit(() =>
+      args.githubApi.repos.compareCommitsWithBasehead({
         owner: args.owner,
         repo: args.repo,
         basehead: `${args.previousVersion}...${args.version}`,
-      });
+      })
+    );
+  };
 
-      // Get details for each commit
-      const commits = await Promise.all(
-        data.commits.map(async (commit) => {
-          const { data } = await args.githubApi.repos.getCommit({
-            owner: args.owner,
-            repo: args.repo,
-            ref: commit.sha,
-          });
+  // Cache the version comparison to avoid duplicate API calls
+  let versionComparisonPromise: Promise<
+    Awaited<
+      ReturnType<typeof args.githubApi.repos.compareCommitsWithBasehead>
+    >["data"]
+  > | null = null;
 
-          return data;
+  // Cache for detailed commit information to avoid rate limiting
+  const commitDetailPromises = new Map<
+    string,
+    Promise<Awaited<ReturnType<typeof args.githubApi.repos.getCommit>>["data"]>
+  >();
+
+  // Helper function to fetch detailed commit information with rate limiting
+  const fetchCommitDetails = async (commitSha: string) => {
+    if (!commitDetailPromises.has(commitSha)) {
+      const commitPromise = withRateLimit(() =>
+        args.githubApi.repos.getCommit({
+          owner: args.owner,
+          repo: args.repo,
+          ref: commitSha,
         })
       );
+      commitDetailPromises.set(
+        commitSha,
+        commitPromise.then((response) => response.data)
+      );
+    }
+    return commitDetailPromises.get(commitSha)!;
+  };
+
+  return {
+    getCommits: async () => {
+      // Use cached version comparison if available
+      versionComparisonPromise =
+        versionComparisonPromise ||
+        fetchVersionComparison().then((response) => response.data);
+      const versionData = await versionComparisonPromise;
+
+      // Get detailed information for each commit using cache
+      // Process commits in batches determined by the batchSize defined below
+      const batchSize = 5;
+      const detailedCommits = [];
+
+      for (let i = 0; i < versionData.commits.length; i += batchSize) {
+        const batch = versionData.commits.slice(i, i + batchSize);
+        const batchResults = await Promise.all(
+          batch.map((commit) => fetchCommitDetails(commit.sha))
+        );
+        detailedCommits.push(...batchResults);
+
+        // Add a small delay between batches if there are more to process
+        if (i + batchSize < versionData.commits.length) {
+          await delay(1000); // 1 second delay between batches
+        }
+      }
 
       // Convert the commits into artifacts
-      return commits.map((commit) => ({
+      return detailedCommits.map((commit) => ({
         type: "git-commit",
         data: {
           hash: commit.sha,
@@ -90,14 +178,16 @@ export function makeGitHubReleaseArtifacts(
     },
     getDiffs: async () => {
       // Fetch the diffs between the previous version and the current version
-      const { data } = await args.githubApi.repos.compareCommitsWithBasehead({
-        owner: args.owner,
-        repo: args.repo,
-        basehead: `${args.previousVersion}...${args.version}`,
-        headers: {
-          accept: "application/vnd.github.v3.diff",
-        },
-      });
+      const { data } = await withRateLimit(() =>
+        args.githubApi.repos.compareCommitsWithBasehead({
+          owner: args.owner,
+          repo: args.repo,
+          basehead: `${args.previousVersion}...${args.version}`,
+          headers: {
+            accept: "application/vnd.github.v3.diff",
+          },
+        })
+      );
 
       // Octokit doesn't have typings for the diff response. When you
       // pass the diff header, the response body is a string (i.e. the
@@ -118,6 +208,21 @@ export function makeGitHubReleaseArtifacts(
       );
 
       return artifacts;
+    },
+    getJiraIssueKeys: async (jiraProject) => {
+      // Use cached version comparison if available
+      versionComparisonPromise =
+        versionComparisonPromise ||
+        fetchVersionComparison().then((response) => response.data);
+      const versionData = await versionComparisonPromise;
+
+      const jiraIssues = versionData.commits
+        .map((commit) =>
+          extractJiraIssueKeys(jiraProject, commit.commit.message)
+        )
+        .flat();
+
+      return [...new Set(jiraIssues)];
     },
   };
 }

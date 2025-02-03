@@ -124,10 +124,7 @@ export type SomeMessage =
   | SystemMessage
   | FunctionMessage;
 
-/**
-  Message stored in the database.
-*/
-export type Message = SomeMessage & {
+export type DbMessage<SomeMessage> = SomeMessage & {
   /**
       Unique identifier for the message.
      */
@@ -138,6 +135,11 @@ export type Message = SomeMessage & {
      */
   createdAt: Date;
 };
+
+/**
+  Message stored in the database.
+*/
+export type Message = DbMessage<SomeMessage>;
 
 export type ConversationCustomData = Record<string, unknown> | undefined;
 
@@ -166,29 +168,32 @@ export type CreateConversationParams = {
   customData?: ConversationCustomData;
 };
 
-export type AddSystemMessageParams = Omit<SystemMessage, "id" | "createdAt">;
+export type AddMessageParams<T extends SomeMessage> = Omit<T, "createdAt"> & {
+  id?: ObjectId;
+};
 
-export type AddUserMessageParams = Omit<UserMessage, "id" | "createdAt"> & {
+type WithCustomData<T extends Record<string, unknown>> = T & {
   customData?: Record<string, unknown>;
 };
 
-export type AddFunctionMessageParams = Omit<
-  FunctionMessage,
-  "id" | "createdAt"
-> & {
-  customData?: Record<string, unknown>;
-};
+export type AddSystemMessageParams = AddMessageParams<SystemMessage>;
 
-export type AddAssistantMessageParams = Omit<
-  AssistantMessage,
-  "id" | "createdAt"
+export type AddUserMessageParams = AddMessageParams<
+  WithCustomData<UserMessage>
 >;
 
-export type AddSomeMessageParams =
+export type AddFunctionMessageParams = AddMessageParams<
+  WithCustomData<FunctionMessage>
+>;
+
+export type AddAssistantMessageParams = AddMessageParams<AssistantMessage>;
+
+export type AddSomeMessageParams = (
   | AddSystemMessageParams
   | AddUserMessageParams
   | AddAssistantMessageParams
-  | AddFunctionMessageParams;
+  | AddFunctionMessageParams
+) & { id?: ObjectId };
 
 export type AddConversationMessageParams = {
   conversationId: ObjectId;

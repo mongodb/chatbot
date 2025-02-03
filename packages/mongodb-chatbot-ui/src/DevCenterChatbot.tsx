@@ -4,18 +4,23 @@ import {
   FloatingActionButtonTrigger,
   type FloatingActionButtonTriggerProps,
 } from "./FloatingActionButtonTrigger";
-import { ModalView, ModalViewProps } from "./ModalView";
+import { type ModalViewProps } from "./ModalView";
 import { MongoDbLegalDisclosure } from "./MongoDbLegal";
 import { mongoDbVerifyInformationMessage } from "./ui-text";
 import { PoweredByAtlasVectorSearch } from "./PoweredByAtlasVectorSearch";
 import { css } from "@emotion/css";
-import { References } from "mongodb-rag-core";
+import { lazy, Suspense } from "react";
+import { References } from "./references";
 
 export type DevCenterChatbotProps = DarkModeProps & {
   initialMessageText?: string;
   initialMessageSuggestedPrompts?: string[];
   initialMessageReferences?: References;
 };
+
+const ModalView = lazy(() =>
+  import("./ModalView").then((m) => ({ default: m.ModalView }))
+);
 
 export function DevCenterChatbot(props: DevCenterChatbotProps) {
   const { darkMode } = useDarkMode(props.darkMode);
@@ -46,7 +51,9 @@ export function DevCenterChatbot(props: DevCenterChatbotProps) {
   return (
     <>
       <FloatingActionButtonTrigger {...triggerProps} />
-      <ModalView {...viewProps} />
+      <Suspense fallback={null}>
+        <ModalView {...viewProps} />
+      </Suspense>
     </>
   );
 }

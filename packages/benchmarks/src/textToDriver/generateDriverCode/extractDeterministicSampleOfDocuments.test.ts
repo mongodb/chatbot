@@ -1,12 +1,11 @@
 import { MongoClient, UUID, ObjectId } from "mongodb-rag-core/mongodb";
-import { MongoMemoryServer } from "mongodb-memory-server";
 import {
   extractDeterministicSampleOfDocuments,
   MUST_HAVE_AT_LEAST_ONE_EXAMPLE_DOCUMENT_ERROR,
 } from "./extractDeterministicSampleOfDocuments";
+import { MONGO_MEMORY_SERVER_URI } from "../../test/constants";
 
 describe("extractDeterministicSampleOfDocuments", () => {
-  let mongod: MongoMemoryServer;
   let mongoClient: MongoClient;
   const dbName = "testdb";
   const collectionName = "testCollection";
@@ -14,8 +13,7 @@ describe("extractDeterministicSampleOfDocuments", () => {
 
   beforeAll(async () => {
     // Start the in-memory MongoDB server
-    mongod = await MongoMemoryServer.create();
-    const uri = mongod.getUri();
+    const uri = MONGO_MEMORY_SERVER_URI;
 
     // Create a new MongoClient connected to the in-memory MongoDB
     mongoClient = new MongoClient(uri);
@@ -24,7 +22,6 @@ describe("extractDeterministicSampleOfDocuments", () => {
 
   afterAll(async () => {
     await mongoClient.close();
-    await mongod.stop();
   });
 
   afterEach(async () => {

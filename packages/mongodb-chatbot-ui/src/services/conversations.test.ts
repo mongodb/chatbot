@@ -10,7 +10,7 @@ import {
   UnknownStreamEvent,
   getCustomRequestOrigin,
 } from "./conversations";
-import { type References } from "mongodb-rag-core";
+import { type References } from "../references";
 import * as FetchEventSource from "@microsoft/fetch-event-source";
 // Mock fetch for regular awaited HTTP requests
 // TODO: make TypeScript compiler ok with this, or skip putting this in the compiled code for staging
@@ -98,10 +98,11 @@ describe("ConversationService", () => {
       data: {
         _id: conversationId,
         messages: [],
+        createdAt: new Date().getTime(),
       },
     });
     const conversation = await conversationService.createConversation();
-    expect(conversation.conversationId).toEqual(conversationId);
+    expect(conversation._id).toEqual(conversationId);
     expect(conversation.messages).toEqual([]);
   });
 
@@ -115,14 +116,14 @@ describe("ConversationService", () => {
             id: "65c680decdb62b4c92797324",
             role: "user",
             content: "Hello world!",
-            createdAt: new Date().toISOString(),
+            createdAt: new Date().getTime(),
             references: [],
           },
           {
             id: "65c680decdb62b4c92797325",
             role: "assistant",
             content: "I'm sorry, I don't know how to help with that.",
-            createdAt: new Date().toISOString(),
+            createdAt: new Date().getTime(),
             references: [
               { title: "Title 1", url: "https://example.com/1" },
               { title: "Title 2", url: "https://example.com/2" },
@@ -130,12 +131,13 @@ describe("ConversationService", () => {
             ],
           },
         ],
+        createdAt: new Date().getTime(),
       },
     });
     const conversation = await conversationService.getConversation(
       conversationId
     );
-    expect(conversation.conversationId).toEqual(conversationId);
+    expect(conversation._id).toEqual(conversationId);
     expect(conversation.messages[0].id).toEqual("65c680decdb62b4c92797324");
     expect(conversation.messages[1].id).toEqual("65c680decdb62b4c92797325");
     expect(conversation.messages[2]).toBeUndefined();
@@ -162,123 +164,265 @@ describe("ConversationService", () => {
     }).rejects.toThrow("Conversation not found");
   });
 
-  it("adds messages w/ an awaited response", async () => {
-    const conversationId = "650b4b260f975ef031016c8b";
-    const mockMessage = {
-      id: "650b4be0d5a57dd66be2ccb8",
-      role: "assistant",
-      content: "I'm sorry, I don't know how to help with that.",
-      createdAt: new Date().toISOString(),
-      references: [
-        { title: "Title 1", url: "https://example.com/1" },
-        { title: "Title 2", url: "https://example.com/2" },
-        { title: "Title 3", url: "https://example.com/3" },
-      ],
-    };
-    mockFetchResponse({ data: mockMessage });
-    const awaitedMessage = await conversationService.addMessage({
-      conversationId,
-      message: "Hello world!",
+  describe("addMessage (awaited)", () => {
+    it("adds messages to an existing conversation", async () => {
+      const conversationId = "650b4b260f975ef031016c8b";
+      const mockMessage = {
+        id: "650b4be0d5a57dd66be2ccb8",
+        role: "assistant",
+        content: "I'm sorry, I don't know how to help with that.",
+        createdAt: new Date().getTime(),
+        references: [
+          { title: "Title 1", url: "https://example.com/1" },
+          { title: "Title 2", url: "https://example.com/2" },
+          { title: "Title 3", url: "https://example.com/3" },
+        ],
+      };
+      mockFetchResponse({ data: mockMessage });
+      const awaitedMessage = await conversationService.addMessage({
+        conversationId,
+        message: "Hello world!",
+      });
+      expect(awaitedMessage).toEqual(mockMessage);
     });
-    expect(awaitedMessage).toEqual(mockMessage);
+
+    it("creates a new conversation when provided a null conversation ID", async () => {
+      const mockMessage = {
+        id: "650b4be0d5a57dd66be2ccb9",
+        role: "assistant",
+        content: "I'm sorry, I don't know how to help with that.",
+        createdAt: new Date().getTime(),
+        references: [
+          { title: "Title 1", url: "https://example.com/1" },
+          { title: "Title 2", url: "https://example.com/2" },
+          { title: "Title 3", url: "https://example.com/3" },
+        ],
+      };
+      mockFetchResponse({
+        data: { ...mockMessage, metadata: { conversationId: "asdf" } },
+      });
+      const awaitedMessage = await conversationService.addMessage({
+        conversationId: "null",
+        message: "Hello world!",
+      });
+      expect(awaitedMessage.content).toEqual(mockMessage.content);
+      expect(awaitedMessage.references).toEqual(mockMessage.references);
+      expect(awaitedMessage.metadata?.conversationId).toBeDefined();
+    });
   });
 
-  it("adds messages w/ a streamed response", async () => {
-    const conversationId = "650b4b260f975ef031016c8c";
-    const mockStreamedMessageId = "651466eecffc98fe887000da";
+  describe("addMessage (streaming)", () => {
+    it("adds messages to an existing conversation", async () => {
+      const conversationId = "650b4b260f975ef031016c8c";
+      const mockStreamedMessageId = "651466eecffc98fe887000da";
 
-    const mockedEvents = mockFetchEventSourceResponse<ConversationStreamEvent>(
-      {
-        id: undefined,
-        type: undefined,
-        data: {
-          type: "metadata",
-          data: {
-            verifiedAnswer: {
-              _id: "66060bf9888068d1e6163ac4",
-              updated: new Date("2024-03-26T01:22:12.000Z").toISOString(),
-              created: new Date("2024-01-21T00:31:16.000Z").toISOString(),
+      const mockedEvents =
+        mockFetchEventSourceResponse<ConversationStreamEvent>(
+          {
+            id: undefined,
+            type: undefined,
+            data: {
+              type: "metadata",
+              data: {
+                verifiedAnswer: {
+                  _id: "66060bf9888068d1e6163ac4",
+                  updated: new Date("2024-03-26T01:22:12.000Z").toISOString(),
+                  created: new Date("2024-01-21T00:31:16.000Z").toISOString(),
+                },
+              },
             },
           },
-        },
-      },
-      {
-        id: undefined,
-        type: undefined,
-        data: { type: "delta", data: "Once upon" },
-      },
-      {
-        id: undefined,
-        type: undefined,
-        data: { type: "delta", data: " a time there was a" },
-      },
-      {
-        id: undefined,
-        type: undefined,
-        data: { type: "delta", data: " very long string." },
-      },
-      {
-        id: undefined,
-        type: undefined,
-        data: {
-          type: "references",
-          data: [
-            { title: "Title 1", url: "https://example.com/1" },
-            { title: "Title 2", url: "https://example.com/2" },
-            { title: "Title 3", url: "https://example.com/3" },
-          ],
-        },
-      },
-      {
-        id: undefined,
-        type: undefined,
-        data: { type: "finished", data: mockStreamedMessageId },
-      }
-    );
+          {
+            id: undefined,
+            type: undefined,
+            data: { type: "delta", data: "Once upon" },
+          },
+          {
+            id: undefined,
+            type: undefined,
+            data: { type: "delta", data: " a time there was a" },
+          },
+          {
+            id: undefined,
+            type: undefined,
+            data: { type: "delta", data: " very long string." },
+          },
+          {
+            id: undefined,
+            type: undefined,
+            data: {
+              type: "references",
+              data: [
+                { title: "Title 1", url: "https://example.com/1" },
+                { title: "Title 2", url: "https://example.com/2" },
+                { title: "Title 3", url: "https://example.com/3" },
+              ],
+            },
+          },
+          {
+            id: undefined,
+            type: undefined,
+            data: { type: "finished", data: mockStreamedMessageId },
+          }
+        );
 
-    const streamedMetadata: AssistantMessageMetadata[] = [];
-    const streamedTokens: string[] = [];
-    const streamedReferences: References[] = [];
-    let streamedMessageId: string | undefined;
-    let finishedStreaming = false;
-    await conversationService.addMessageStreaming({
-      conversationId,
-      message: "Hello world!",
-      maxRetries: 0,
-      onResponseDelta: async (data: string) => {
-        streamedTokens.push(data);
-      },
-      onReferences: async (data: References) => {
-        streamedReferences.push(data);
-      },
-      onResponseFinished: async (messageId: string) => {
-        streamedMessageId = messageId;
-        finishedStreaming = true;
-      },
-      onMetadata: async (metadata) => {
-        streamedMetadata.push(metadata);
-      },
+      const streamedMetadata: AssistantMessageMetadata[] = [];
+      const streamedTokens: string[] = [];
+      const streamedReferences: References[] = [];
+      let streamedMessageId: string | undefined;
+      let finishedStreaming = false;
+      await conversationService.addMessageStreaming({
+        conversationId,
+        message: "Hello world!",
+        maxRetries: 0,
+        onResponseDelta: async (data: string) => {
+          streamedTokens.push(data);
+        },
+        onReferences: async (data: References) => {
+          streamedReferences.push(data);
+        },
+        onResponseFinished: async (messageId: string) => {
+          streamedMessageId = messageId;
+          finishedStreaming = true;
+        },
+        onMetadata: async (metadata) => {
+          streamedMetadata.push(metadata);
+        },
+      });
+      expect(streamedMessageId).toEqual(mockStreamedMessageId);
+      expect(streamedTokens).toEqual(
+        filterMockedConversationEventsData<DeltaStreamEvent>(
+          mockedEvents,
+          "delta"
+        )
+      );
+      expect(streamedReferences).toEqual(
+        filterMockedConversationEventsData<ReferencesStreamEvent>(
+          mockedEvents,
+          "references"
+        )
+      );
+      expect(streamedMetadata).toEqual(
+        filterMockedConversationEventsData<MetadataStreamEvent>(
+          mockedEvents,
+          "metadata"
+        )
+      );
+      expect(finishedStreaming).toEqual(true);
     });
-    expect(streamedMessageId).toEqual(mockStreamedMessageId);
-    expect(streamedTokens).toEqual(
-      filterMockedConversationEventsData<DeltaStreamEvent>(
-        mockedEvents,
-        "delta"
-      )
-    );
-    expect(streamedReferences).toEqual(
-      filterMockedConversationEventsData<ReferencesStreamEvent>(
-        mockedEvents,
-        "references"
-      )
-    );
-    expect(streamedMetadata).toEqual(
-      filterMockedConversationEventsData<MetadataStreamEvent>(
-        mockedEvents,
-        "metadata"
-      )
-    );
-    expect(finishedStreaming).toEqual(true);
+
+    it("creates a new conversation when provided a null conversation ID", async () => {
+      const mockStreamedMessageId = "651466eecffc98fe887000db";
+
+      const mockedEvents =
+        mockFetchEventSourceResponse<ConversationStreamEvent>(
+          {
+            id: undefined,
+            type: undefined,
+            data: {
+              type: "metadata",
+              data: {
+                verifiedAnswer: {
+                  _id: "66060bf9888068d1e6163ac5",
+                  updated: new Date("2024-03-26T01:22:12.000Z").toISOString(),
+                  created: new Date("2024-01-21T00:31:16.000Z").toISOString(),
+                },
+              },
+            },
+          },
+          {
+            id: undefined,
+            type: undefined,
+            data: {
+              type: "metadata",
+              data: {
+                conversationId: "66060bf9888068d1e6163ac5",
+              },
+            },
+          },
+          {
+            id: undefined,
+            type: undefined,
+            data: { type: "delta", data: "Once upon" },
+          },
+          {
+            id: undefined,
+            type: undefined,
+            data: { type: "delta", data: " a time there was a" },
+          },
+          {
+            id: undefined,
+            type: undefined,
+            data: { type: "delta", data: " very long string." },
+          },
+          {
+            id: undefined,
+            type: undefined,
+            data: {
+              type: "references",
+              data: [
+                { title: "Title 1", url: "https://example.com/1" },
+                { title: "Title 2", url: "https://example.com/2" },
+                { title: "Title 3", url: "https://example.com/3" },
+              ],
+            },
+          },
+          {
+            id: undefined,
+            type: undefined,
+            data: { type: "finished", data: mockStreamedMessageId },
+          }
+        );
+
+      const streamedMetadata: AssistantMessageMetadata[] = [];
+      const streamedTokens: string[] = [];
+      const streamedReferences: References[] = [];
+      let streamedConversationId: string | undefined;
+      let streamedMessageId: string | undefined;
+      let finishedStreaming = false;
+      await conversationService.addMessageStreaming({
+        conversationId: "null",
+        message: "Hello world!",
+        maxRetries: 0,
+        onMetadata: async (metadata) => {
+          streamedMetadata.push(metadata);
+          if (metadata.conversationId) {
+            streamedConversationId = metadata.conversationId;
+          }
+        },
+        onResponseDelta: async (data: string) => {
+          streamedTokens.push(data);
+        },
+        onReferences: async (data: References) => {
+          streamedReferences.push(data);
+        },
+        onResponseFinished: async (messageId: string) => {
+          streamedMessageId = messageId;
+          finishedStreaming = true;
+        },
+      });
+      expect(streamedMessageId).toEqual(mockStreamedMessageId);
+      expect(streamedTokens).toEqual(
+        filterMockedConversationEventsData<DeltaStreamEvent>(
+          mockedEvents,
+          "delta"
+        )
+      );
+      expect(streamedReferences).toEqual(
+        filterMockedConversationEventsData<ReferencesStreamEvent>(
+          mockedEvents,
+          "references"
+        )
+      );
+      expect(streamedMetadata).toEqual(
+        filterMockedConversationEventsData<MetadataStreamEvent>(
+          mockedEvents,
+          "metadata"
+        )
+      );
+      expect(streamedConversationId).toBeDefined();
+      expect(finishedStreaming).toEqual(true);
+    });
   });
 
   it("gracefully handles unknown stream event types", async () => {
@@ -412,7 +556,6 @@ describe("ConversationService", () => {
   });
 
   it("appends custom fetch options", async () => {
-    let getOptions = mockFetchResponse({ data: {} });
     const conversationService = new ConversationService({
       serverUrl,
       fetchOptions: {
@@ -420,6 +563,13 @@ describe("ConversationService", () => {
           foo: "bar",
         }),
         credentials: "include",
+      },
+    });
+    let getOptions = mockFetchResponse({
+      data: {
+        _id: "650b4b260f975ef031016c8d",
+        messages: [],
+        createdAt: new Date().getTime(),
       },
     });
     await conversationService.createConversation();

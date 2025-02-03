@@ -29,7 +29,7 @@ export const updatePages = async ({
     .process(async (source, index, pool) => {
       logger.info(`Fetching pages for ${source.name}`);
       const pages = await source.fetchPages();
-      logger.info(`${source.name} returned ${pages.length} pages`);
+      logger.info(`${source.name} returned ${pages.length} pages to process`);
       if (pages.length === 0) {
         // If a flaky data source returns no pages, we would mark all pages in
         // that source as deleted. This is probably not wanted.
@@ -58,15 +58,15 @@ export const persistPages = async ({
   sourceName: string;
 }): Promise<void> => {
   const oldPages = await store.loadPages({ sources: [sourceName] });
-  logger.info(`${sourceName} had ${oldPages.length} in the store`);
-
+  logger.info(`${sourceName} had ${oldPages.length} in the store already`);
   const { created, updated, deleted } = await getChangedPages({
     oldPages,
     newPages: pages,
+    sourceName,
   });
 
   logger.info(
-    `${deleted.length} deleted / ${created.length} created / ${updated.length} updated`
+    `${sourceName}: ${deleted.length} deleted / ${created.length} created / ${updated.length} updated`
   );
   await store.updatePages([...deleted, ...created, ...updated]);
 };

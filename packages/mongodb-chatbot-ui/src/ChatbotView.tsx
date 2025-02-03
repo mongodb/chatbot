@@ -1,4 +1,4 @@
-import { References } from "mongodb-rag-core";
+import { References } from "./references";
 import { ChatMessageFeedProps } from "./ChatMessageFeed";
 import { DarkModeProps } from "./DarkMode";
 

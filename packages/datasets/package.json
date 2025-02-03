@@ -1,0 +1,58 @@
+{
+  "name": "datasets",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=18",
+    "npm": ">=8"
+  },
+  "scripts": {
+    "clean": "rm -rf build",
+    "build": "tsc -b",
+    "watch": "tsc -b -w",
+    "release": "release-it",
+    "test": "echo \"No test specified\" && exit 0",
+    "lint": "eslint ./src --ext ts --report-unused-disable-directives",
+    "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
+    "extractCodeExamples": "npm run build && node ./build/bin/extractCodeExamples.js",
+    "genSampleOfCodeExamplesWithPrompts": "npm run build && node ./build/bin/genSampleOfCodeExamplesWithPrompts.js",
+    "genDriversCodeExamplesWithPrompts": "npm run build && node ./build/bin/genDriversCodeExamplesWithPrompts.js",
+    "genRustDriverCodeExamplesWithPrompts": "npm run build && node ./build/bin/genRustDriverCodeExamplesWithPrompts.js",
+    "genAtlasSearchCodeExamplesWithPrompts": "npm run build && node ./build/bin/genAtlasSearchCodeExamplesWithPrompts.js",
+    "genManualCodeExamplesWithPrompts": "npm run build && node ./build/bin/genManualCodeExamplesWithPrompts.js",
+    "updateCodeExampleHeadings": "npm run build && node ./build/bin/updateCodeExampleHeadings.js",
+    "genAllCodeExamplesWithPrompts": "npm run build && node ./build/bin/genAllCodeExamplesWithPrompts.js",
+    "genAdditionalCodeExamplesWithPrompts": "npm run build && node ./build/bin/genAdditionalCodeExamplesWithPrompts.js",
+    "filterCodeExamplesForExport": "npm run build && node ./build/bin/filterCodeExamplesForExport.js",
+    "convertCodeExamplePromptYamlToCsv": "npm run build && node ./build/bin/convertCodeExamplePromptYamlToCsv.js",
+    "filterCodeExamplesForSmallExport": "npm run build && node ./build/bin/filterCodeExamplesForSmallExport.js",
+    "countUsableExamples": "npm run build && node ./build/bin/countUsableExamples.js",
+    "classifyCodeExamplesForUsefulness": "npm run build && node ./build/bin/classifyCodeExamplesForUsefulness.js",
+    "convertCodeExamplePromptYamlToCsvUsefulOnly": "npm run build && node ./build/bin/convertCodeExamplePromptYamlToCsvUsefulOnly.js",
+    "countExamplesByLength": "npm run build && node ./build/bin/countExamplesByLength.js"
+  },
+  "dependencies": {
+    "@azure/openai": "^1.0.0-beta.12",
+    "@supercharge/promise-pool": "^3.2.0",
+    "@types/unist": "^3.0.2",
+    "csv": "^6.3.9",
+    "llamaindex": "^0.2.9",
+    "lodash.samplesize": "^4.2.0",
+    "mongodb-rag-core": "*",
+    "remark-gfm": "^4.0.0",
+    "remark-parse": "^11.0.0",
+    "tslib": "~2.6",
+    "unified": "^11.0.4",
+    "unist-util-visit": "^5.0.0",
+    "unist-util-visit-parents": "^6.0.1",
+    "yaml": "^2.4.1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/lodash.samplesize": "^4.2.9"
+  }
+}

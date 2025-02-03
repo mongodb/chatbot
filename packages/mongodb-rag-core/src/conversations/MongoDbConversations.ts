@@ -164,9 +164,9 @@ export function makeMongoDbConversationsService(
 
 export function createMessage(messageParams: AddSomeMessageParams) {
   const message = {
-    id: new ObjectId(),
-    createdAt: new Date(),
     ...messageParams,
+    createdAt: new Date(),
+    id: messageParams.id ?? new ObjectId(),
   } satisfies Message;
 
   // Remove undefined customData so that it's

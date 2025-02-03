@@ -28,9 +28,15 @@ import { systemPrompt } from "./systemPrompt";
 import { addReferenceSourceType } from "./processors/makeMongoDbReferences";
 import path from "path";
 import express from "express";
-import { wrapOpenAI, wrapTraced } from "braintrust";
+import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
+import { TRACING_ENV_VARS } from "./EnvVars";
+import {
+  makeAddMessageToConversationUpdateTrace,
+  makeCommentMessageUpdateTrace,
+  makeRateMessageUpdateTrace,
+} from "./tracing/routesUpdateTraceHandlers";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -43,18 +49,23 @@ export const {
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
+  JUDGE_EMBEDDING_MODEL,
+  JUDGE_LLM,
 } = assertEnvVars({
   ...CORE_ENV_VARS,
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: "",
+  ...TRACING_ENV_VARS,
 });
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
-export const openAiClient = new AzureOpenAI({
-  apiKey: OPENAI_API_KEY,
-  endpoint: OPENAI_ENDPOINT,
-  apiVersion: OPENAI_API_VERSION,
-});
+export const openAiClient = wrapOpenAI(
+  new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  })
+);
 
 export const llm = makeOpenAiChatLlm({
   openAiClient,
@@ -200,6 +211,21 @@ export const createCustomConversationDataWithIpAuthUserAndOrigin: AddCustomDataF
     return customData;
   };
 export const isProduction = process.env.NODE_ENV === "production";
+
+const llmAsAJudgeConfig = {
+  judgeModel: JUDGE_LLM,
+  judgeEmbeddingModel: JUDGE_EMBEDDING_MODEL,
+  openAiConfig: {
+    azureOpenAi: {
+      apiKey: OPENAI_API_KEY,
+      endpoint: OPENAI_ENDPOINT,
+      apiVersion: OPENAI_API_VERSION,
+    },
+  },
+};
+
+const { SLACK_BOT_TOKEN, SLACK_COMMENT_CONVERSATION_ID } = process.env;
+
 export const config: AppConfig = {
   conversationsRouterConfig: {
     llm,
@@ -212,6 +238,24 @@ export const config: AppConfig = {
     createConversationCustomData: !isProduction
       ? createCustomConversationDataWithIpAuthUserAndOrigin
       : undefined,
+    addMessageToConversationUpdateTrace:
+      makeAddMessageToConversationUpdateTrace(
+        retrievalConfig.findNearestNeighborsOptions.k,
+        { ...llmAsAJudgeConfig, percentToJudge: isProduction ? 0.1 : 1 }
+      ),
+    rateMessageUpdateTrace: makeRateMessageUpdateTrace(llmAsAJudgeConfig),
+    commentMessageUpdateTrace: makeCommentMessageUpdateTrace(
+      openAiClient,
+      JUDGE_LLM,
+      SLACK_BOT_TOKEN !== undefined &&
+        SLACK_COMMENT_CONVERSATION_ID !== undefined
+        ? {
+            token: SLACK_BOT_TOKEN,
+            conversationId: SLACK_COMMENT_CONVERSATION_ID,
+            llmAsAJudge: llmAsAJudgeConfig,
+          }
+        : undefined
+    ),
     generateUserPrompt,
     systemPrompt,
     maxUserMessagesInConversation: 50,

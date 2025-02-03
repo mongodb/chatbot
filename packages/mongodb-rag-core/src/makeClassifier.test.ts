@@ -1,13 +1,14 @@
-import {
-  CORE_OPENAI_CONNECTION_ENV_VARS,
-  assertEnvVars,
-} from "mongodb-rag-core";
+import { assertEnvVars } from "./assertEnvVars";
+import { CORE_OPENAI_CHAT_COMPLETION_ENV_VARS } from "./CoreEnvVars";
 import { Classification, makeClassifier } from "./makeClassifier";
-import { AzureOpenAI } from "mongodb-rag-core/openai";
+import { AzureOpenAI } from "./openai";
 
-const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_API_VERSION } = assertEnvVars(
-  CORE_OPENAI_CONNECTION_ENV_VARS
-);
+const {
+  OPENAI_ENDPOINT,
+  OPENAI_API_KEY,
+  OPENAI_API_VERSION,
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+} = assertEnvVars(CORE_OPENAI_CHAT_COMPLETION_ENV_VARS);
 
 const hotdogInputs = [
   "A New York-style hotdog with sauerkraut and mustard",
@@ -70,11 +71,12 @@ describe("makeClassifier", () => {
     const classifyIsHotdog = makeClassifier({
       openAiClient,
       classificationTypes: hotdogClassificationTypes,
+      model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     });
     const results: string[] = [];
     for (const input of hotdogInputs) {
       const result = await classifyIsHotdog({ input });
-      results.push(result.type);
+      results.push(result.classification.type);
     }
     expect(results).toEqual([
       "hotdog",
@@ -92,11 +94,12 @@ describe("makeClassifier", () => {
       openAiClient,
       classificationTypes: hotdogClassificationTypes,
       chainOfThought: true,
+      model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     });
     const results: Classification[] = [];
     for (const input of hotdogInputs) {
       const result = await classifyIsHotdog({ input });
-      results.push(result);
+      results.push(result.classification);
     }
     const resultTypes = results.map((r) => r.type);
     expect(resultTypes).toEqual([

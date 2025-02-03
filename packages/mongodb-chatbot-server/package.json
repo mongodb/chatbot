@@ -1,6 +1,6 @@
 {
   "name": "mongodb-chatbot-server",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "license": "Apache-2.0",
   "description": "A chatbot server for retrieval augmented generation (RAG).",
   "author": "MongoDB, Inc.",
@@ -42,6 +42,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "express-promise-router": "^4.1.1",
     "express-rate-limit": "^6.10.0",
     "express-slow-down": "^1.6.0",
     "gpt3-tokenizer": "^1.1.5",

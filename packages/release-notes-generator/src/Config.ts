@@ -4,97 +4,77 @@ import {
   type ClassifiedChange,
   type ChangelogClassification,
 } from "./Change";
-import { type Logger, type LogLevel, logLevelSchema } from "./logger";
+import { loggerSchema } from "./logger";
 import { z } from "zod";
-
-export type VersionRange = {
-  current: string;
-  previous: string;
-};
 
 export const versionRangeSchema = z.object({
   current: z.string(),
   previous: z.string(),
 });
 
-/**
- A function that fetches artifacts for a release.
- */
-export type FetchArtifacts = (version: VersionRange) => Promise<SomeArtifact[]>;
+export type VersionRange = z.infer<typeof versionRangeSchema>;
 
-/**
- A function that summarizes a given release artifact.
- */
-export type SummarizeArtifact = (artifact: SomeArtifact) => Promise<string>;
-
-/**
- A function that summarizes a given release artifact.
- */
-export type ExtractChanges = (artifact: SomeArtifact) => Promise<Change[]>;
-
-/**
- A function that summarizes a given release artifact.
- */
-export type ClassifyChange = (
-  change: Change
-) => Promise<ChangelogClassification>;
-
-/**
- A function that includes (i.e. returns true) or excludes (returns false) changes from the changelog based on their classification or other metadata.
- */
-export type FilterChange = (change: ClassifiedChange) => boolean;
-
-export type Config = {
+export const configSchema = z.object({
   /**
    The name of the project.
    */
-  projectName: string;
-  fetchArtifacts: FetchArtifacts;
-  summarizeArtifact: SummarizeArtifact;
-  extractChanges: ExtractChanges;
-  classifyChange: ClassifyChange;
-  filterChange: FilterChange;
-  /**
-   Logger instance for recording progress and debugging information
-   */
-  logger?: Logger;
-};
-
-export const configSchema = z.object({
   projectName: z.string(),
+  /**
+   A function that fetches artifacts for a release.
+   */
   fetchArtifacts: z
     .function()
     .args(versionRangeSchema)
-    .returns(z.promise(z.array(z.any()))),
-  summarizeArtifact: z.function().args(z.any()).returns(z.promise(z.string())),
+    .returns(z.promise(z.array(z.custom<SomeArtifact>()))),
+  /**
+   A function that summarizes a given release artifact.
+   */
+  summarizeArtifact: z
+    .function()
+    .args(z.custom<SomeArtifact>())
+    .returns(z.promise(z.string())),
+  /**
+   A function that extracts changes from a given release artifact.
+   */
   extractChanges: z
     .function()
-    .args(z.any())
-    .returns(z.promise(z.array(z.any()))),
-  classifyChange: z.function().args(z.any()).returns(z.promise(z.any())),
-  filterChange: z.function().args(z.any()).returns(z.boolean()),
-  logger: z
-    .object({
-      log: z
-        .function()
-        .args(logLevelSchema, z.string(), z.unknown().optional())
-        .returns(z.promise(z.void())),
-      getOutputPath: z
-        .function()
-        .args()
-        .returns(z.string().or(z.undefined()))
-        .optional(),
-    })
-    .optional(),
+    .args(z.custom<SomeArtifact>())
+    .returns(z.promise(z.array(z.custom<Change>()))),
+  /**
+   A function that classifies a change.
+   */
+  classifyChange: z
+    .function()
+    .args(z.custom<Change>())
+    .returns(z.promise(z.custom<ChangelogClassification>())),
+  /**
+   A function that includes (i.e. returns true) or excludes (returns false) changes
+   from the changelog based on their classification or other metadata.
+   */
+  filterChange: z
+    .function()
+    .args(z.custom<ClassifiedChange>())
+    .returns(z.boolean()),
+  /**
+   Logger instance for recording progress and debugging information
+   */
+  logger: loggerSchema.optional(),
 });
 
+export type Config = z.infer<typeof configSchema>;
+
+// If you need individual function types, derive them from the schema
+export type FetchArtifacts = Config["fetchArtifacts"];
+export type SummarizeArtifact = Config["summarizeArtifact"];
+export type ExtractChanges = Config["extractChanges"];
+export type ClassifyChange = Config["classifyChange"];
+export type FilterChange = Config["filterChange"];
+
 export function createChangelogConfig(config: Config): Config {
-  // Validate the config at creation time
   return configSchema.parse(config);
 }
 
 export async function loadConfig(path: string): Promise<Config> {
   const { default: configModule } = await import(path);
-  // Validate the loaded config
   return configSchema.parse(configModule.default);
 }

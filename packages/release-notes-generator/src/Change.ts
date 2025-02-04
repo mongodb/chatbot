@@ -1,18 +1,34 @@
-import { Artifact } from "./Artifact";
+import { type Artifact } from "./Artifact";
+import { z } from "zod";
 
-export type Change = {
-  description: string;
-  sourceIdentifier?: string;
-};
+export const changeSchema = z.object({
+  description: z.string(),
+  sourceIdentifier: z.string().optional(),
+});
 
-export type ChangelogClassification = {
-  audience: "internal" | "external";
-  type: "added" | "updated" | "fixed" | "deprecated" | "removed" | "security";
-};
+export type Change = z.infer<typeof changeSchema>;
 
-export type ClassifiedChange = Change & {
-  classification: ChangelogClassification;
-};
+export const changelogClassificationSchema = z.object({
+  audience: z.enum(["internal", "external"]),
+  type: z.enum([
+    "added",
+    "updated",
+    "fixed",
+    "deprecated",
+    "removed",
+    "security",
+  ]),
+});
+
+export type ChangelogClassification = z.infer<
+  typeof changelogClassificationSchema
+>;
+
+export const classifiedChangeSchema = changeSchema.extend({
+  classification: changelogClassificationSchema,
+});
+
+export type ClassifiedChange = z.infer<typeof classifiedChangeSchema>;
 
 export function artifactWithChanges<A extends Artifact<string, unknown>>(
   artifact: A,
@@ -28,8 +44,8 @@ export function changeWithClassification(
   change: Change,
   classification: ChangelogClassification
 ): ClassifiedChange {
-  return {
+  return classifiedChangeSchema.parse({
     ...change,
     classification,
-  };
+  });
 }

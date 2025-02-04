@@ -2,27 +2,35 @@ import * as fs from "fs";
 import * as path from "path";
 import { z } from "zod";
 
-export type LogLevel = "debug" | "info" | "warn" | "error";
-
 export const logLevelSchema = z.enum(["debug", "info", "warn", "error"]);
+export type LogLevel = z.infer<typeof logLevelSchema>;
 
-export type LogMessage = {
-  level: LogLevel;
-  message: string;
-  data?: unknown;
-  timestamp: Date;
-};
+export const logMessageSchema = z.object({
+  level: logLevelSchema,
+  message: z.string(),
+  data: z.unknown().optional(),
+  timestamp: z.date(),
+});
+export type LogMessage = z.infer<typeof logMessageSchema>;
 
-export type Logger = {
+export const loggerSchema = z.object({
   /**
    Log a message with optional data. If outputPath is provided, will also write to file.
    */
-  log: (level: LogLevel, message: string, data?: unknown) => Promise<void>;
+  log: z
+    .function()
+    .args(logLevelSchema, z.string(), z.unknown().optional())
+    .returns(z.promise(z.void())),
   /**
    Get the current log file path if one is configured
    */
-  getOutputPath?: () => string | undefined;
-};
+  getOutputPath: z
+    .function()
+    .args()
+    .returns(z.string().or(z.undefined()))
+    .optional(),
+});
+export type Logger = z.infer<typeof loggerSchema>;
 
 export function createConsoleLogger(): Logger {
   return {
@@ -59,9 +67,9 @@ export function createFileLogger(outputPath: string): Logger {
       const timestamp = new Date();
       const logMessage = {
         level,
-        timestamp,
         message,
         data,
+        timestamp,
       };
       await fs.promises.appendFile(
         outputPath,

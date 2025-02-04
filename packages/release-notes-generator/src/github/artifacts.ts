@@ -1,32 +1,45 @@
-import { makeArtifact, type Artifact } from "../Artifact";
+import { makeArtifact, createArtifactSchema } from "../Artifact";
+import { z } from "zod";
 
-export type GitCommit = {
-  hash: string;
-  title: string;
-  message: string;
-  files: {
-    fileName: string;
-    additions: number;
-    deletions: number;
-    changes: number;
-    hash: string;
-    status: string;
-  }[];
-};
+export const gitCommitSchema = z.object({
+  hash: z.string(),
+  title: z.string(),
+  message: z.string(),
+  files: z.array(
+    z.object({
+      fileName: z.string(),
+      additions: z.number(),
+      deletions: z.number(),
+      changes: z.number(),
+      hash: z.string(),
+      status: z.string(),
+    })
+  ),
+});
 
-export type GitCommitArtifact = Artifact<"git-commit", GitCommit>;
+export type GitCommit = z.infer<typeof gitCommitSchema>;
+
+export const gitCommitArtifactSchema = createArtifactSchema(
+  z.literal("git-commit"),
+  gitCommitSchema
+);
+
+export type GitCommitArtifact = z.infer<typeof gitCommitArtifactSchema>;
 
 export function makeGitCommitArtifact(args: {
   id: string;
   data: GitCommit;
   summary?: string;
 }): GitCommitArtifact {
-  return makeArtifact({
-    id: args.id,
-    type: "git-commit",
-    data: args.data,
-    summary: args.summary,
-  });
+  return makeArtifact(
+    {
+      id: args.id,
+      type: "git-commit",
+      data: args.data,
+      summary: args.summary,
+    },
+    gitCommitArtifactSchema
+  );
 }
 
 export function getGitCommitIdentifier(artifact: GitCommitArtifact): string {

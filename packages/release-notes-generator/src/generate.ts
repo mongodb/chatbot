@@ -1,31 +1,33 @@
-import { type Artifact } from "./Artifact";
-import {
-  artifactWithChanges,
-  ClassifiedChange,
-  type SomeClassification,
-} from "./Change";
+import { type Artifact, getArtifactIdentifier } from "./Artifact";
+import { artifactWithChanges, type ClassifiedChange } from "./Change";
 import { type Config, type VersionRange } from "./config";
 
-export async function generate<Classification extends SomeClassification>(
-  config: Config<Classification>,
-  version: VersionRange
-) {
-  console.log("Generating release notes for", config.projectName);
+export async function generate(config: Config, version: VersionRange) {
+  console.log(
+    `Generating release notes for ${config.projectName} @ ${version.current}`
+  );
 
   // Fetch all artifacts for the given version
   const fetchedArtifacts = await config.fetchArtifacts(version);
-  const classifiedArtifacts: Artifact<string, unknown, Classification>[] = [];
+  const classifiedArtifacts: Artifact<string, unknown>[] = [];
   for (const artifact of fetchedArtifacts) {
-    const artifactIdentifier = artifact.identifier() as string;
+    const artifactIdentifier = getArtifactIdentifier(artifact);
     // Summarize the artifact
     const summary = await config.summarizeArtifact(artifact);
-    artifact.summary = summary;
+    const artifactWithSummary: Artifact<string, unknown> = {
+      id: artifact.id,
+      type: artifact.type,
+      data: artifact.data,
+      changes: artifact.changes,
+      metadata: artifact.metadata,
+      summary,
+    };
 
     // Extract changes from the artifact
-    const changes = await config.extractChanges(artifact);
+    const changes = await config.extractChanges(artifactWithSummary);
 
     // Classify each change
-    const classifiedChanges: ClassifiedChange<Classification>[] = [];
+    const classifiedChanges: ClassifiedChange[] = [];
     for (const change of changes) {
       const classification = await config.classifyChange(change);
       classifiedChanges.push({
@@ -33,11 +35,8 @@ export async function generate<Classification extends SomeClassification>(
         classification,
         sourceIdentifier: artifactIdentifier,
       });
-      const updatedArtifact = artifactWithChanges<
-        Classification,
-        Artifact<string, unknown, Classification>
-      >(
-        artifact as Artifact<string, unknown, Classification>,
+      const updatedArtifact = artifactWithChanges(
+        artifactWithSummary,
         classifiedChanges
       );
       classifiedArtifacts.push(updatedArtifact);

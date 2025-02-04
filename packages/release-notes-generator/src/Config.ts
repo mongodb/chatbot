@@ -1,9 +1,8 @@
 import { type SomeArtifact } from "./Artifact";
 import {
-  type ChangelogClassification,
   type Change,
   type ClassifiedChange,
-  type SomeClassification,
+  type ChangelogClassification,
 } from "./Change";
 
 export type VersionRange = {
@@ -29,20 +28,16 @@ export type ExtractChanges = (artifact: SomeArtifact) => Promise<Change[]>;
 /**
  A function that summarizes a given release artifact.
  */
-export type ClassifyChange<Classification extends SomeClassification> = (
+export type ClassifyChange = (
   change: Change
-) => Promise<Classification>;
+) => Promise<ChangelogClassification>;
 
 /**
  A function that includes (i.e. returns true) or excludes (returns false) changes from the changelog based on their classification or other metadata.
  */
-export type FilterChange<Classification extends SomeClassification> = (
-  change: ClassifiedChange<Classification>
-) => boolean;
+export type FilterChange = (change: ClassifiedChange) => boolean;
 
-export type Config<
-  Classification extends SomeClassification = Record<string, unknown>
-> = {
+export type Config = {
   /**
    The name of the project.
    */
@@ -50,24 +45,15 @@ export type Config<
   fetchArtifacts: FetchArtifacts;
   summarizeArtifact: SummarizeArtifact;
   extractChanges: ExtractChanges;
-  classifyChange: ClassifyChange<Classification>;
-  filterChange: FilterChange<Classification>;
+  classifyChange: ClassifyChange;
+  filterChange: FilterChange;
 };
 
-export function createConfig<
-  Classification extends SomeClassification = Record<string, unknown>
->(config: Config<Classification>): Config<Classification> {
+export function createChangelogConfig(config: Config): Config {
   return config;
 }
 
-export function createChangelogConfig(
-  config: Config<ChangelogClassification>
-): Config<ChangelogClassification> {
-  return createConfig<ChangelogClassification>(config);
-}
-
-export async function loadConfig<C extends Config>(path: string): Promise<C> {
-  const { default: module } = await import(path);
-  const config = module.default as C;
-  return config;
+export async function loadConfig(path: string): Promise<Config> {
+  const { default: configModule } = await import(path);
+  return configModule.default;
 }

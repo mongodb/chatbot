@@ -1,5 +1,8 @@
 import { createChangelogConfig } from "./config";
-import { GitCommitArtifact } from "./github/artifacts";
+import {
+  makeGitCommitArtifact,
+  type GitCommitArtifact,
+} from "./github/artifacts";
 
 export default createChangelogConfig({
   projectName: "MongoDB Atlas CLI",
@@ -8,9 +11,8 @@ export default createChangelogConfig({
     // const jiraArtifacts = await fetchJiraArtifacts(version);
     // return [...githubArtifacts, ...jiraArtifacts];
     const githubArtifacts: GitCommitArtifact[] = [
-      new GitCommitArtifact({
+      makeGitCommitArtifact({
         id: "123456",
-        type: "git-commit",
         data: {
           title: "Fix a bug",
           hash: "123456",
@@ -34,9 +36,9 @@ export default createChangelogConfig({
     // TODO: Implement this with AI
     switch (artifact.type) {
       case "git-commit":
-        return `This is a git commit with identifier: ${artifact.identifier()}`;
+        return `This is a git commit with identifier: ${artifact.type}::${artifact.id}`;
       case "jira-issue":
-        return `This is a Jira issue with identifier: ${artifact.identifier()}`;
+        return `This is a Jira issue with identifier: ${artifact.type}::${artifact.id}`;
       default:
         throw new Error(`Unknown artifact type: ${artifact.type}`);
     }

@@ -5,34 +5,29 @@ export type Change = {
   sourceIdentifier?: string;
 };
 
-export type SomeClassification = Record<string, unknown>;
-
 export type ChangelogClassification = {
   audience: "internal" | "external";
   type: "added" | "updated" | "fixed" | "deprecated" | "removed" | "security";
 };
 
-export type ClassifiedChange<Classification extends SomeClassification> =
-  Change & {
-    classification: Classification;
-  };
+export type ClassifiedChange = Change & {
+  classification: ChangelogClassification;
+};
 
-export function artifactWithChanges<
-  C extends SomeClassification,
-  A extends Artifact<string, unknown, C>
->(artifact: A, changes: ClassifiedChange<C>[]) {
+export function artifactWithChanges<A extends Artifact<string, unknown>>(
+  artifact: A,
+  changes: ClassifiedChange[]
+) {
   return {
     ...artifact,
     changes,
   };
 }
 
-export function changeWithClassification<
-  Classification extends SomeClassification
->(
+export function changeWithClassification(
   change: Change,
-  classification: Classification
-): ClassifiedChange<Classification> {
+  classification: ChangelogClassification
+): ClassifiedChange {
   return {
     ...change,
     classification,

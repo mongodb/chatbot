@@ -1,5 +1,4 @@
-import { Artifact, ArtifactConstructorArgs } from "../Artifact";
-import { SomeClassification } from "../Change";
+import { makeArtifact, type Artifact } from "../Artifact";
 
 export type GitCommit = {
   hash: string;
@@ -15,26 +14,31 @@ export type GitCommit = {
   }[];
 };
 
-export class GitCommitArtifact extends Artifact<
-  "git-commit",
-  GitCommit,
-  SomeClassification
-> {
-  constructor(
-    args: ArtifactConstructorArgs<"git-commit", GitCommit, SomeClassification>
-  ) {
-    super(args);
-  }
+export type GitCommitArtifact = Artifact<"git-commit", GitCommit>;
 
-  identifier(): string {
-    return `${this.type}::${this.data.hash}`;
-  }
+export function makeGitCommitArtifact(args: {
+  id: string;
+  data: GitCommit;
+  summary?: string;
+}): GitCommitArtifact {
+  return makeArtifact({
+    id: args.id,
+    type: "git-commit",
+    data: args.data,
+    summary: args.summary,
+  });
+}
 
-  condensed() {
-    return {
-      ...super.condensed(),
-      hash: this.data.hash,
-      title: this.data.title,
-    };
-  }
+export function getGitCommitIdentifier(artifact: GitCommitArtifact): string {
+  return `${artifact.type}::${artifact.data.hash}`;
+}
+
+export function getCondensedGitCommit(artifact: GitCommitArtifact) {
+  return {
+    id: artifact.id,
+    type: artifact.type,
+    summary: artifact.summary ?? "No summary provided",
+    hash: artifact.data.hash,
+    title: artifact.data.title,
+  };
 }

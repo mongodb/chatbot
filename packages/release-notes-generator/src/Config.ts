@@ -4,11 +4,18 @@ import {
   type ClassifiedChange,
   type ChangelogClassification,
 } from "./Change";
+import { type Logger, type LogLevel, logLevelSchema } from "./logger";
+import { z } from "zod";
 
 export type VersionRange = {
   current: string;
   previous: string;
 };
+
+export const versionRangeSchema = z.object({
+  current: z.string(),
+  previous: z.string(),
+});
 
 /**
  A function that fetches artifacts for a release.
@@ -47,13 +54,47 @@ export type Config = {
   extractChanges: ExtractChanges;
   classifyChange: ClassifyChange;
   filterChange: FilterChange;
+  /**
+   Logger instance for recording progress and debugging information
+   */
+  logger?: Logger;
 };
 
+export const configSchema = z.object({
+  projectName: z.string(),
+  fetchArtifacts: z
+    .function()
+    .args(versionRangeSchema)
+    .returns(z.promise(z.array(z.any()))),
+  summarizeArtifact: z.function().args(z.any()).returns(z.promise(z.string())),
+  extractChanges: z
+    .function()
+    .args(z.any())
+    .returns(z.promise(z.array(z.any()))),
+  classifyChange: z.function().args(z.any()).returns(z.promise(z.any())),
+  filterChange: z.function().args(z.any()).returns(z.boolean()),
+  logger: z
+    .object({
+      log: z
+        .function()
+        .args(logLevelSchema, z.string(), z.unknown().optional())
+        .returns(z.promise(z.void())),
+      getOutputPath: z
+        .function()
+        .args()
+        .returns(z.string().or(z.undefined()))
+        .optional(),
+    })
+    .optional(),
+});
+
 export function createChangelogConfig(config: Config): Config {
-  return config;
+  // Validate the config at creation time
+  return configSchema.parse(config);
 }
 
 export async function loadConfig(path: string): Promise<Config> {
   const { default: configModule } = await import(path);
-  return configModule.default;
+  // Validate the loaded config
+  return configSchema.parse(configModule.default);
 }

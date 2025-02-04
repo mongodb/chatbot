@@ -3,15 +3,22 @@ import { artifactWithChanges, type ClassifiedChange } from "./Change";
 import { type Config, type VersionRange } from "./config";
 
 export async function generate(config: Config, version: VersionRange) {
-  console.log(
-    `Generating release notes for ${config.projectName} @ ${version.current}`
-  );
+  const logger = config.logger;
+  await logger?.log("info", "Generating release notes", {
+    projectName: config.projectName,
+    version: version.current,
+    previousVersion: version.previous,
+  });
 
   // Fetch all artifacts for the given version
   const fetchedArtifacts = await config.fetchArtifacts(version);
+  await logger?.log("debug", "Fetched artifacts", fetchedArtifacts);
+
   const classifiedArtifacts: Artifact<string, unknown>[] = [];
   for (const artifact of fetchedArtifacts) {
     const artifactIdentifier = getArtifactIdentifier(artifact);
+    await logger?.log("debug", `Processing artifact`, { artifactIdentifier });
+
     // Summarize the artifact
     const summary = await config.summarizeArtifact(artifact);
     const artifactWithSummary: Artifact<string, unknown> = {
@@ -25,6 +32,11 @@ export async function generate(config: Config, version: VersionRange) {
 
     // Extract changes from the artifact
     const changes = await config.extractChanges(artifactWithSummary);
+    await logger?.log(
+      "debug",
+      `Extracted ${changes.length} changes from ${artifactIdentifier}`,
+      changes
+    );
 
     // Classify each change
     const classifiedChanges: ClassifiedChange[] = [];
@@ -41,15 +53,30 @@ export async function generate(config: Config, version: VersionRange) {
       );
       classifiedArtifacts.push(updatedArtifact);
     }
+    await logger?.log(
+      "debug",
+      `Classified ${classifiedChanges.length} changes from ${artifactIdentifier}`,
+      classifiedChanges
+    );
   }
 
   const classifiedChanges = classifiedArtifacts.flatMap(
     (artifact) => artifact.changes
   );
-  console.log("Classified changes:", classifiedChanges);
+  await logger?.log(
+    "info",
+    `Found ${classifiedChanges.length} total changes`,
+    classifiedChanges
+  );
 
   const filteredChanges = classifiedChanges.filter((change) =>
     config.filterChange(change)
   );
-  console.log("Filtered changes:", filteredChanges);
+  await logger?.log(
+    "info",
+    `Filtered to ${filteredChanges.length} changes`,
+    filteredChanges
+  );
+
+  return filteredChanges;
 }

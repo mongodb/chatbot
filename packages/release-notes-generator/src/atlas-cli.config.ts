@@ -3,9 +3,26 @@ import {
   makeGitCommitArtifact,
   type GitCommitArtifact,
 } from "./github/artifacts";
+import {
+  createMultiLogger,
+  createConsoleLogger,
+  createFileLogger,
+} from "./logger";
+import * as path from "path";
+
+// Create a timestamp for the log filename
+const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+const logFilename = `atlas-cli-release-notes-${timestamp}.jsonl`;
+
+// Create a logger that writes to both console and file
+const logger = createMultiLogger([
+  createConsoleLogger(),
+  createFileLogger(path.join("logs", logFilename)),
+]);
 
 export default createChangelogConfig({
   projectName: "MongoDB Atlas CLI",
+  logger,
   fetchArtifacts: async (_version) => {
     // const githubArtifacts = await fetchGithubArtifacts(version);
     // const jiraArtifacts = await fetchJiraArtifacts(version);

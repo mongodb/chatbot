@@ -1,4 +1,4 @@
-import { loadConfig } from "./Config";
+import { loadConfig } from "./config";
 import { generate } from "./generate";
 
 async function main() {

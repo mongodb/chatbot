@@ -4,7 +4,7 @@ import {
   ClassifiedChange,
   type SomeClassification,
 } from "./Change";
-import { type Config, type VersionRange } from "./Config";
+import { type Config, type VersionRange } from "./config";
 
 export async function generate<Classification extends SomeClassification>(
   config: Config<Classification>,

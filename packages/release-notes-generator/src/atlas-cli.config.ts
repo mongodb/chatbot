@@ -1,4 +1,4 @@
-import { createChangelogConfig } from "./Config";
+import { createChangelogConfig } from "./config";
 import { GitCommitArtifact } from "./github/artifacts";
 
 export default createChangelogConfig({

@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "target": "ES2022",
+    "outDir": "./build",
+    "resolveJsonModule": true,
+  },
+  "include": ["./src/**/*.ts", "./src/**/*.json"],
+}

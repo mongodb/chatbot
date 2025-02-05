@@ -40,7 +40,7 @@ use the [`makeLangchainDocumentLoaderDataSource`](../reference/core/modules/data
 Here's an example implementation:
 
 ```ts
-import { makeLangChainDocumentLoaderDataSource } from "./LangchainDocumentLoaderDataSource";
+import { makeLangChainDocumentLoaderDataSource } from "mongodb-rag-core/dataSources";
 import { TextLoader } from "langchain/document_loaders/fs/text";
 
 // Langchain document loader
@@ -75,7 +75,8 @@ Here's an example implementation:
 import {
   makeGitDataSource,
   handleHtmlDocument,
-} from "mongodb-rag-core";
+} from "mongodb-rag-core/dataSources";
+
 export const javaReactiveStreamsSourceConstructor = async () => {
   return await makeGitDataSource({
     name: "java-reactive-streams",
@@ -141,7 +142,7 @@ before converting the document to Markdown.
 You can import the `handleHtmlDocument()` function from the `mongodb-rag-ingest` package.
 
 ```ts
-import { handleHtmlDocument } from "mongodb-rag-core";
+import { handleHtmlDocument } from "mongodb-rag-core/dataSources";
 ```
 
 You can see `handleHtmlDocument()` [used in the MongoDB Docs AI Chatbot configuration](https://github.com/mongodb/chatbot/blob/6ab06a24ae085d0db650bc4883ce1278728e3131/ingest-mongodb-public/src/sources.ts#L258).

@@ -155,7 +155,7 @@ import {
   SystemPrompt,
   ConversationsRouterParams,
 } from "mongodb-chatbot-server";
-import { MongoClient } from "mongodb";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 
 // System prompt for chatbot
 const systemPrompt: SystemPrompt = {

@@ -16,7 +16,7 @@ All conversations are stored in the database's `conversations` collection.
 Add the `ConversationsService` to the [`ConversationsRouterParams.conversations`](../reference/server/interfaces/ConversationsRouterParams.md#conversations) property.
 
 ```ts
-import { MongoClient } from "mongodb";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
   makeMongoDbConversationsService,
   SystemPrompt,

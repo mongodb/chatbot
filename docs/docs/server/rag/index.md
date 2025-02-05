@@ -46,8 +46,7 @@ import {
 } from "mongodb-chatbot-server";
 import { stripIndents } from "common-tags";
 import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
-import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
-// ...other imports
+import { AzureOpenAI } from "mongodb-rag-core/openai";
 
 // Make preprocessor
 const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({
@@ -64,6 +63,9 @@ const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
+  searchIndex: {
+    embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
+  }
 });
 export const embedder = makeOpenAiEmbedder({
   openAiClient,

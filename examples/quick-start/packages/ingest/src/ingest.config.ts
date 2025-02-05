@@ -34,6 +34,9 @@ export default {
     makeMongoDbEmbeddedContentStore({
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
+      searchIndex: {
+        embeddingName: OPENAI_EMBEDDING_MODEL,
+      },
     }),
   pageStore: () =>
     makeMongoDbPageStore({
@@ -46,9 +49,6 @@ export default {
       databaseName: MONGODB_DATABASE_NAME,
       entryId: "all",
     }),
-  chunkOptions: () => ({
-    transform: standardChunkFrontMatterUpdater,
-  }),
   // Add data sources here
   dataSources: async () => {
     const mongodbChatbotFrameworkSource =
@@ -56,10 +56,4 @@ export default {
 
     return [mongodbChatbotFrameworkSource];
   },
-  concurrencyOptions: () => ({
-    embed: {
-      createChunks: 5,
-      processPages: 2,
-    },
-  }),
 } satisfies Config;

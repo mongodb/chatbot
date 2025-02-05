@@ -4,7 +4,7 @@
 import {
   MakeMdOnGithubDataSourceParams,
   makeMdOnGithubDataSource,
-} from "mongodb-rag-core";
+} from "mongodb-rag-core/dataSources";
 
 const mongodbChatbotFrameworkDocsConfig: MakeMdOnGithubDataSourceParams = {
   name: "mongodb-rag-framework",

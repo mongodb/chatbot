@@ -109,6 +109,9 @@ export default {
     makeMongoDbEmbeddedContentStore({
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
+      searchIndex: {
+        embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
+      }
     }),
   pageStore: () =>
     makeMongoDbPageStore({

@@ -8,7 +8,7 @@ You can add the information that you retrieve using the [MongoDB RAG Ingest CLI]
 
 ## The `FindContentFunc` Function
 
-To perform semantic search, you must implement a [`FindContentFunc`](../../reference/server/modules.md#findcontentfunc) function. To see the default implementation
+To perform semantic search, you must implement a [`FindContentFunc`](../../reference/core/namespaces/FindContent.md#findcontentfunc) function. To see the default implementation
 using Atlas Vector Search, refer to the following
 [Find Content with Atlas Vector Search](#find-content-with-atlas-vector-search) section.
 
@@ -27,11 +27,11 @@ const ragGenerateUserPrompt = makeRagGenerateUserPrompt({
 ## Find Content with Atlas Vector Search
 
 To use the MongoDB Chatbot Server with Atlas Vector Search for semantic search,
-you can use the [`makeDefaultFindContentFunc()`](../../reference/server/modules.md#makedefaultfindcontentfunc).
+you can use the [`makeDefaultFindContentFunc()`](../../reference/core/namespaces/FindContent.md#makedefaultfindcontent).
 
-This function retrieves data from an [`EmbeddedContentStore`](../../reference/core/modules.md#embeddedcontentstore). To learn more about how to add data to an `EmbeddedContentStore`, refer to the [Ingest CLI documentation](../../ingest/configure.md).
+This function retrieves data from an [`EmbeddedContentStore`](../../reference/core/modules/index.md#embeddedcontentstore). To learn more about how to add data to an `EmbeddedContentStore`, refer to the [Ingest CLI documentation](../../ingest/configure.md).
 
-Pass a [`MakeDefaultFindContentFuncArgs`](../../reference/server/modules.md#makedefaultfindcontentfuncargs) object to the `makeDefaultFindContentFunc()` function.
+Pass a [`MakeDefaultFindContentFuncArgs`](../../reference/core/namespaces/FindContent.md#makedefaultfindcontentfuncargs) object to the `makeDefaultFindContentFunc()` function.
 
 ```ts
 import { makeRagGenerateUserPrompt } from "mongodb-chatbot-server";
@@ -79,7 +79,7 @@ const ragGenerateUserPrompt = makeRagGenerateUserPrompt({
 ### Boost Results
 
 You can modify the results returned by the default find content function with
-[`SearchBooster`](../../reference/server/interfaces/SearchBooster.md) objects.
+[`SearchBooster`](../../reference/core/modules/index.md#searchbooster) objects.
 `SearchBooster`s mutate the results returned by the default find content function.
 
 You could use a `SearchBooster` to do things like:

@@ -109,7 +109,7 @@ you can use the function [`makeLangChainEmbedder()`](../reference/core/namespace
 
 ```ts
 import { makeLangChainEmbedder } from "mongodb-rag-core";
-import { OpenAIEmbeddings } from "@langchain/openai";
+import { OpenAIEmbeddings } from "mongodb-rag-core/langchain";
 
 const { OPENAI_API_KEY } = process.env;
 
@@ -143,14 +143,20 @@ import {
   OpenAIClient,
   AzureKeyCredential,
 } from "mongodb-rag-core";
-const { OPENAI_ENDPOINT, OPENAI_API_KEY, OPENAI_EMBEDDING_DEPLOYMENT } =
-  process.env;
+import { AzureOpenAI } from "mongodb-rag-core/openai";
+
+const { 
+  OPENAI_ENDPOINT,
+  OPENAI_API_KEY,
+  OPENAI_EMBEDDING_DEPLOYMENT,
+  OPENAI_API_VERSION } = process.env;
 
 const embedder = makeOpenAiEmbedder({
-  openAiClient: new OpenAIClient(
-    OPENAI_ENDPOINT,
-    new AzureKeyCredential(OPENAI_API_KEY)
-  ),
+  openAiClient: new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  }),
   deployment: OPENAI_EMBEDDING_DEPLOYMENT,
   backoffOptions: {
     numOfAttempts: 25,

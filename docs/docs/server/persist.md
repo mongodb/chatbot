@@ -1,19 +1,17 @@
 # Persist Conversation Data
 
 The MongoDB Chatbot Server persists and retrieves conversation data data using the
-[`ConversationsService`](../reference/server//interfaces/ConversationsService.md) interface.
+[`ConversationsService`](../reference/core/interfaces/Conversations.ConversationsService.md) interface.
 
 ## Store Data in MongoDB
 
 By default, the MongoDB Chatbot Server uses MongoDB to persist conversation data.
 
-Use the [`makeMongoDbConversationsService()`](../reference/server/modules.md#makemongodbconversationsservice) function to create a `ConversationsService`
+Use the [`makeMongoDbConversationsService()`](../reference/core/modules/index.md#makemongodbconversationsservice) function to create a `ConversationsService`
 that stores data in MongoDB.
 
-When you create a `ConversationService` with MongoDB, pass a MongoDB database and the chatbot's [`SystemPrompt`](../reference/server/modules.md#systemprompt).
+When you create a `ConversationService` with MongoDB, pass a MongoDB database.
 All conversations are stored in the database's `conversations` collection.
-The `SystemPrompt` is the first message in all conversations. For more information
-on the `SystemPrompt`, refer to the [System Prompt Engineering](./llm.md#system-prompt) guide.
 
 Add the `ConversationsService` to the [`ConversationsRouterParams.conversations`](../reference/server/interfaces/ConversationsRouterParams.md#conversations) property.
 
@@ -31,7 +29,6 @@ const systemPrompt: SystemPrompt = {
 const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 const conversations = makeMongoDbConversationsService(
   mongodb.db(MONGODB_DATABASE_NAME),
-  systemPrompt
 );
 
 const appConfig: AppConfig = {
@@ -44,7 +41,7 @@ const appConfig: AppConfig = {
 ```
 
 Every conversation is stored in a MongoDB collection with the name `conversations`
-in a document with the schema [`Conversations`](../reference/server/interfaces/Conversation.md).
+in a document with the schema [`Conversation`](../reference/core/interfaces/Conversations.Conversation.md).
 
 :::note[Alternate Databases]
 

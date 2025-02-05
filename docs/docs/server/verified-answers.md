@@ -202,7 +202,7 @@ You set up verified answers in the server configuration file.
 
 First, connect your app to the stored verified answers by implementing the
 `VerifiedAnswerStore` interface. For most cases you can use the built-in
-[`makeMongoDbVerifiedAnswerStore()`](../reference/core/modules.md#makemongodbverifiedanswerstore)
+[`makeMongoDbVerifiedAnswerStore()`](../reference/core/modules/index.md#makemongodbverifiedanswerstore)
 constructor.
 
 Make sure to provide a connection string and the name of the database and

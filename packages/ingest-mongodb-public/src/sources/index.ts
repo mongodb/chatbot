@@ -188,5 +188,5 @@ export const sourceConstructors: SourceConstructor[] = [
   practicalAggregationsDataSource,
   terraformProviderSourceConstructor,
   wiredTigerSourceConstructor,
-  webDataSourceConstructor
+  webDataSourceConstructor,
 ];

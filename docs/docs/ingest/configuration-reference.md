@@ -21,7 +21,7 @@ This page links to the key reference documentation for configuring the Ingest CL
 
 ## `Config`
 
-The [`Config`](../reference/ingest/modules/index.md#config) type is the root configuration type for the Ingest CLI.
+The [`Config`](../reference/ingest/modules.md#config) type is the root configuration type for the Ingest CLI.
 
 ## `IngestMetaStore`
 
@@ -97,15 +97,15 @@ documentation.
 
 Add data sources for the Ingest CLI to pull content from.
 
-Your [`DataSource`](../reference/ingest/modules/sources#datasource) implementations depend on where the content is coming from.
+Your [`DataSource`](../reference/core/modules/dataSources.md#datasource) implementations depend on where the content is coming from.
 To learn more about creating a `DataSource`, refer to the [Data Sources](./data-sources.md) documentation.
 
 ## `Embedder`
 
-The [`Embedder`](../reference/core/modules.md#embedder) takes in a string and returns a vector embedding for that string.
+The [`Embedder`](../reference/core/namespaces/Embed.md#embedder) takes in a string and returns a vector embedding for that string.
 
 To create an `Embedder` that uses the LangChain `Embeddings` class,
-you can use the function [`makeLangChainEmbedder()`](../reference/core/modules.md#makelangchainembedder). To see the various embedding models supported by LangChain, refer to the [LangChain text embedding models](https://js.langchain.com/docs/integrations/text_embedding) documentation.
+you can use the function [`makeLangChainEmbedder()`](../reference/core/namespaces/Embed.md#makelangchainembedder). To see the various embedding models supported by LangChain, refer to the [LangChain text embedding models](https://js.langchain.com/docs/integrations/text_embedding) documentation.
 
 ```ts
 import { makeLangChainEmbedder } from "mongodb-rag-core";
@@ -125,9 +125,9 @@ const embedder = makeLangChainEmbedder({
 ```
 
 To create an `Embedder` that uses the [OpenAI Embeddings API](https://platform.openai.com/docs/guides/embeddings) directly,
-you can use the function [`makeOpenAiEmbedder()`](../reference/core/modules.md#makeopenaiembedder). This function uses the
-`@azure/openai` package to construct the OpenAI client, which supports
-both the Azure OpenAI Service and the Open API.
+you can use the function [`makeOpenAiEmbedder()`](../reference/core/namespaces/Embed.md#makeopenaiembedder). This function uses the
+`openai` package to construct the OpenAI client, which supports
+both the Azure OpenAI Service and the OpenAI API.
 
 The `makeOpenAiEmbedder()` function also supports configuring exponential backoff
 with the `backoffOptions` argument. This wraps the `exponential-backoff` package.
@@ -161,7 +161,7 @@ const embedder = makeOpenAiEmbedder({
 
 ## `ChunkOptions`
 
-Use the [`ChunkOptions`](../reference/ingest/modules/embed.md#chunkoptions)
+Use the [`ChunkOptions`](../reference/core/namespaces/Chunk.md#chunkoptions)
 to configure how the Ingest CLI chunks content when converting `Page` documents
 to `EmbeddedContent`.
 

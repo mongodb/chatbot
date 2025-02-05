@@ -17,7 +17,7 @@ npm install mongodb-rag-ingest mongodb-rag-core
 The MongoDB Ingest CLI uses a [CommonJS](https://en.wikipedia.org/wiki/CommonJS)
 JavaScript configuration file to determine how to ingest content.
 
-Every configuration file must export a [`Config`](../reference/ingest/modules/index.md#config) object as its default export.
+Every configuration file must export a [`Config`](../reference/ingest/modules.md#config) object as its default export.
 
 You must either:
 

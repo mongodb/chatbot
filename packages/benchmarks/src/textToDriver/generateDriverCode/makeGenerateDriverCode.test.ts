@@ -20,7 +20,7 @@ describe("makeGenerateDriverCode", () => {
   let mongoClient: MongoClient;
   let db: Db;
   let collection: Collection<Document>;
-  const databaseName = "testdb";
+  const databaseName = "makeGenerateDriverCode";
   const collectionName = "testCollection";
 
   beforeAll(async () => {

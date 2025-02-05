@@ -12,7 +12,7 @@ describe("executeGeneratedDriverCode", () => {
   let mongoClient: MongoClient;
   let db: Db;
   let collection: Collection<Document>;
-  const databaseName = "testdb";
+  const databaseName = "executeGeneratedDriverCode";
   const collectionName = "testCollection";
 
   beforeAll(async () => {

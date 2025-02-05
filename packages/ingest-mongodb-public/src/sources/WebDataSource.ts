@@ -6,7 +6,7 @@ import TurndownService from "turndown";
 import * as turndownPluginGfm from "turndown-plugin-gfm";
 import xml2js from "xml2js";
 
-// CONSTANTS
+// TODO: move to constants file
 const sitemapURL = "https://www.mongodb.com/sitemap-pages.xml";
 // urls of the directories where we want every single page
 const directoryUrls = [

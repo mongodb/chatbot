@@ -5,7 +5,7 @@ import { type Config, type VersionRange } from "./config";
 export async function generate(config: Config, version: VersionRange) {
   const logger = config.logger;
   await logger?.log("info", "Generating release notes", {
-    projectName: config.projectName,
+    project: config.project,
     version: version.current,
     previousVersion: version.previous,
   });

@@ -14,11 +14,24 @@ export const versionRangeSchema = z.object({
 
 export type VersionRange = z.infer<typeof versionRangeSchema>;
 
+export const projectInfoSchema = z.object({
+  /**
+   The name of the project
+   */
+  name: z.string(),
+  /**
+   A description of what the project does and its purpose
+   */
+  description: z.string(),
+});
+
+export type ProjectInfo = z.infer<typeof projectInfoSchema>;
+
 export const configSchema = z.object({
   /**
-   The name of the project.
+   Information about the project
    */
-  projectName: z.string(),
+  project: projectInfoSchema,
   /**
    A function that fetches artifacts for a release.
    */

@@ -21,7 +21,23 @@ const logger = createMultiLogger([
 ]);
 
 export default createChangelogConfig({
-  projectName: "MongoDB Atlas CLI",
+  project: {
+    name: "MongoDB Atlas CLI",
+    description: `The MongoDB Atlas CLI (atlas) allows you to manage your MongoDB Atlas
+database deployments from the command line. It provides a complete set of
+functionality to:
+
+- Create and manage database deployments
+- Configure database users and network access
+- Load sample data and run performance tests
+- Monitor deployment metrics and logs
+- Manage backups and restore points
+- And much more...
+
+The Atlas CLI is designed for both interactive use and automation through
+scripts and CI/CD pipelines. It provides a consistent interface to Atlas
+across all supported platforms and environments.`,
+  },
   logger,
   fetchArtifacts: async (_version) => {
     // const githubArtifacts = await fetchGithubArtifacts(version);
@@ -87,52 +103,3 @@ export default createChangelogConfig({
     return change.classification.audience === "external";
   },
 });
-
-// github:
-//   owner: "mongodb-ets"
-//   repo: "migrator"
-//   version: "1.11.0"
-//   previousVersion: "1.10.0"
-// jira:
-//   project: "MIG"
-//   version: "1.11.0"
-// projectDescription: >-
-//   MongoDB Relational Migrator is a tool to help you migrate relational workloads to
-//   MongoDB. Relational Migrator allows you to:
-
-//   - design an effective MongoDB schema derived from an existing relational schema
-//   - migrate data from Oracle, SQL Server, MySQL, PostgreSQL, or Sybase ASE to MongoDB,
-//     while transforming to the target schema
-//   - generate code artifacts to reduce the time required to update application code
-
-//   Relational Migrator addresses common migration and data modeling challenges,
-//   de-risking an organization's transition to MongoDB while helping them take full
-//   advantage of the document model. Relational Migrator is therefore designed for use
-//   by personnel put in charge by their organisation to carry out the transition from
-//   relational databases to MongoDB.
-
-//   Relational Migrator analyzes an existing relational schema and gives recommendations
-//   for mapping to a new MongoDB schema. The visual interface is used to consolidate a
-//   large number of tables into a smaller number of collections by using embedded
-//   documents and arrays.
-
-//   Snapshots or continuous sync jobs can be created to migrate data from an existing
-//   relational database to a target MongoDB cluster based on the new schema mapping.
-//   After migrating, data validation can be conducted right from Relational Migrator.
-
-//   Relational Migrator also assists with writing new code or updating existing code to
-//   work with MongoDB. Generate Java, JavaScript, and C# code from the new data model,
-//   and convert existing SQL queries, triggers, and stored procedures to MongoDB Query
-//   API syntax.
-
-//   The application is a React + Spring Boot web application, deployed as a fat Spring
-//   Boot JAR file that contains the compiled frontend artifacts and serves them as
-//   static resources. The Spring Boot application contains an embedded Tomcat server
-//   which also serves the REST API requests coming from the frontend.
-
-//   The following is a partial list of internal dependies used by the project. Any
-//   upgrades or changes to these are not user facing and should not be included in
-//   external release notes:
-
-//   - @sentry/react
-//   - Debezium JDBC connector

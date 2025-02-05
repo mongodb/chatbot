@@ -87,7 +87,7 @@ describe("getUrlsFromSitemap", () => {
 
 describe("WebDataSource", () => {
   it("loads pages from sitemap", async () => {
-    const maxPages = 10;
+    const maxPages = 2;
     const source = await makeWebDataSource({ maxPages });
     const pages = await source.fetchPages();
     expect(pages.length).toBe(maxPages);

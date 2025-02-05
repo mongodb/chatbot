@@ -19,7 +19,6 @@
     "ingest:all": "ingest all --config ./build/config.js",
     "ingest:k8s": "../../node_modules/mongodb-rag-ingest/build/main.js all --config ./build/config.js",
     "ingest:pages": "ingest pages init --config ./build/config.js && ingest pages update --config ./build/config.js",
-    "ingest:help": "../../node_modules/mongodb-rag-ingest/build/main.js --help",
     "ingest:embed": "ingest embed init --config ./build/config.js && ingest embed update --config ./build/config.js",
     "ingest:pages:meta": "ingest pages update --config ./build/meta.config.js",
     "ingest:k8s:coachGtmPages": "../../node_modules/mongodb-rag-ingest/build/main.js pages update --config ./build/coachGtm.config.js",

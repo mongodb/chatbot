@@ -38,7 +38,18 @@ paths:
     post:
       operationId: addMessage
       summary: Add message to the conversation
-      description: Add a message to the conversation and get a response back from chatbot.
+      description: >
+        Add a message to the conversation and get a response back from chatbot.
+
+
+        You can configure your server to create new conversations
+
+        when you set the conversation ID to `null`.
+
+        If you do this, the server creates a new conversation
+
+        and returns the conversation ID in the response's
+        `metadata.conversationId` field.
       parameters:
         - $ref: '#/components/parameters/conversationId'
         - name: stream
@@ -242,6 +253,7 @@ components:
       type: object
       required:
         - id
+        - conversationId
         - role
         - content
         - createdAt
@@ -249,6 +261,9 @@ components:
         id:
           type: string
           description: The unique identifier for a message.
+        conversationId:
+          type: string
+          description: The unique identifier for a conversation.
         role:
           type: string
           enum:

@@ -87,9 +87,34 @@ describe("getUrlsFromSitemap", () => {
 
 describe("WebDataSource", () => {
   it("loads pages from sitemap", async () => {
-    const maxPages = 2;
-    const source = await makeWebDataSource({ maxPages });
+    const getUrlsFromSitemapMock = jest.fn().mockResolvedValue([
+      "https://www.mongodb.com/solutions/customer-case-studies/toyota-connected",
+      "https://www.mongodb.com/solutions/customer-case-studies/wells-fargo",
+    ]);
+    const source = await makeWebDataSource({ 
+      name: "mongodb-dot-com",
+      individualUrls: [
+        "https://www.mongodb.com/atlas",
+        "https://www.mongodb.com/products",
+      ],
+      sitemap: {
+        sitemapUrl: "https://www.mongodb.com/sitemap-pages.xml",
+        directories: [
+          "https://www.mongodb.com/solutions/customer-case-studies",
+        ],
+        getUrlsFromSitemap: getUrlsFromSitemapMock,
+        directoryFilter: (sitemapUrls, directories) => {
+          return sitemapUrls.filter((url) =>
+            directories.some((directoryUrl) => url.startsWith(directoryUrl))
+          );
+        }
+      }
+     });
     const pages = await source.fetchPages();
-    expect(pages.length).toBe(maxPages);
+    expect(pages.length).toBe(4);
+    expect(pages[0].url).toBe("https://www.mongodb.com/solutions/customer-case-studies/toyota-connected");
+    expect(pages[1].url).toBe("https://www.mongodb.com/solutions/customer-case-studies/wells-fargo");
+    expect(pages[2].url).toBe("https://www.mongodb.com/atlas");
+    expect(pages[3].url).toBe("https://www.mongodb.com/products");
   });
 });

@@ -6,7 +6,17 @@ import TurndownService from "turndown";
 import * as turndownPluginGfm from "turndown-plugin-gfm";
 import xml2js from "xml2js";
 
-// TODO: move to constants file
+interface MongoDbDotComWebDataSourceParams {
+  name: string;
+  individualUrls?: string[];
+  sitemap?: {
+    sitemapUrl: string;
+    directories: string[];
+    getUrlsFromSitemap: (sitemapURL: string) => Promise<string[]>;
+    // function to select only relevant pages from the sitemap entries.
+    directoryFilter: (sitemapUrls: string[], directories: string[]) => string[];
+  }
+}
 const sitemapURL = "https://www.mongodb.com/sitemap-pages.xml";
 // urls of the directories where we want every single page
 const directoryUrls = [
@@ -120,29 +130,60 @@ const individualUrls = [
   "https://www.mongodb.com/resources/basics/databases/cloud-databases/free-cloud-database",
 ];
 
+interface MongoDbDotComWebDataSourceParams {
+  name: string;
+  individualUrls?: string[];
+  sitemap?: {
+    sitemapUrl: string;
+    directories: string[];
+    getUrlsFromSitemap: (sitemapURL: string) => Promise<string[]>;
+    // function to select only relevant pages from the sitemap entries.
+    directoryFilter: (sitemapUrls: string[], directories: string[]) => string[];
+  }
+}
+
+export async function getUrlsFromSitemap(
+  sitemapURL: string
+): Promise<string[]> {
+  const response = await fetch(sitemapURL);
+  const sitemap = await response.text();
+  const parser = new xml2js.Parser();
+  const parsedXML = await parser.parseStringPromise(sitemap);
+  return parsedXML.urlset.url.map((url: { loc: string[] }) => url.loc[0]);
+}
+
+export const makeWebDataSourceConfig: MongoDbDotComWebDataSourceParams = {
+  name: "mongodb-dot-com",
+  individualUrls,
+  sitemap: {
+    sitemapUrl: "https://www.mongodb.com/sitemap-pages.xml",
+    directories: directoryUrls,
+    getUrlsFromSitemap: getUrlsFromSitemap,
+    directoryFilter: (sitemapUrls, directories) => {
+      return sitemapUrls.filter((url) =>
+        directories.some((directoryUrl) => url.startsWith(directoryUrl))
+      );
+    }
+  }
+};
+
 export function makeWebDataSource({
-  maxPages,
-}: {
-  maxPages?: number; // for testing
-}): DataSource {
+  name,
+  individualUrls,
+  sitemap
+}: MongoDbDotComWebDataSourceParams): DataSource {
   return {
-    name: "mongodb-web",
+    name,
     async fetchPages() {
       let browser;
       try {
         const { page: puppeteerPage, browser: b } = await makePuppeteer();
         browser = b;
-        // Use the sitemap to get the urls belonging to the directories we want every page from
-        const completeDirectoryUrls = await getCompleteDirectoriesFromSitemap(
-          sitemapURL
-        );
-        // Get urls from the list provided by web team
-        const urls = [...completeDirectoryUrls, ...individualUrls];
+        const urlsFromSitemap = sitemap ? await sitemap.getUrlsFromSitemap(sitemap.sitemapUrl) : [];
+        const directoryUrls = sitemap ? sitemap.directoryFilter(urlsFromSitemap, sitemap.directories) : [];
+        const urls = [...directoryUrls, ...(individualUrls ?? [])];
         const pages: Page[] = [];
         for await (const [index, url] of urls.entries()) {
-          if (maxPages && index >= maxPages) {
-            break;
-          }
           pages.push(
             await scrapePage({
               url,
@@ -156,25 +197,6 @@ export function makeWebDataSource({
       }
     },
   };
-}
-
-export async function getUrlsFromSitemap(
-  sitemapURL: string
-): Promise<string[]> {
-  const response = await fetch(sitemapURL);
-  const sitemap = await response.text();
-  const parser = new xml2js.Parser();
-  const parsedXML = await parser.parseStringPromise(sitemap);
-  return parsedXML.urlset.url.map((url: { loc: string[] }) => url.loc[0]);
-}
-
-export async function getCompleteDirectoriesFromSitemap(
-  sitemapURL: string
-): Promise<string[]> {
-  const sitemapUrls = await getUrlsFromSitemap(sitemapURL);
-  return sitemapUrls.filter((url) =>
-    directoryUrls.some((directoryUrl) => url.startsWith(directoryUrl))
-  );
 }
 
 function makeTurndownService({

@@ -26,7 +26,7 @@ const app = await makeApp(appConfig);
 
 You can configure the server to run custom middleware, [`ConversationsMiddleware`](../reference/server/modules.md#conversationsmiddleware).
 The `ConversationsMiddleware` include a custom [`Response.locals`](https://expressjs.com/en/api.html#res.locals) object
-that you can use to access the app's [`ConversationsService`](../reference/server/interfaces/ConversationsService.md) with the `conversationsService` property
+that you can use to access the app's [`ConversationsService`](../reference/core/interfaces/Conversations.ConversationsService.md) with the `conversationsService` property
 and a `customData` object, where you can store arbitrary data.
 
 Add multiple middleware to the server via the [`ConversationRouterParams.middleware`](../reference/server/interfaces/ConversationsRouterParams.md#middleware)
@@ -151,7 +151,7 @@ const addOriginAndIpToCustomData: AddCustomDataFunc = async (req, res) =>
 
 ### Add Custom Data to Conversation
 
-You can add custom data to the [`Conversation.customData`](../reference/server/interfaces/Conversation.md#customdata)
+You can add custom data to the [`Conversation.customData`](../reference/core/interfaces/Conversations.Conversation.md#customdata)
 property persisted in the database.
 
 To add custom data to the conversation, set the [`ConversationsRouterParams.createConversationCustomData`](../reference/server/interfaces/ConversationsRouterParams.md#createConversationCustomData)
@@ -192,7 +192,7 @@ This creates a `Conversation` in the database with the following schema:
 
 ### Add Custom Data to Messages
 
-You can add custom data to the [`Conversation.messages[].customData`](../reference/server/modules.md#message)
+You can add custom data to the [`Conversation.messages[].customData`](../reference/core/interfaces/Conversations.Conversation.md#messages)
 property persisted in the database.
 
 To add custom data to the conversation, set the [`ConversationsRouterParams.addMessageToConversationCustomData`](../reference/server/interfaces/ConversationsRouterParams.md#addMessageToConversationCustomData)

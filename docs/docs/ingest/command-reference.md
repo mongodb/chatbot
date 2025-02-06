@@ -6,42 +6,11 @@ You must first install the CLI before you can run it. See the [installation inst
 
 For all commands, you can use the `--help` flag to get more information about the command.
 
-## `pages`
-
-Update `pages` data from [data sources](data-sources.md).
-
-Options:
-
-```txt
-  --version  Show version number                                       [boolean]
-  --help     Show help                                                 [boolean]
-  --config   Path to config JS file.                                    [string]
-  --source   A source name to load. If unspecified, loads all sources.  [string]
 ```
+ingest <command>
 
-## `embed`
-
-Update `embedded_content` data from the `pages` data.
-
-Options:
-
-```txt
-  --version  Show version number                                       [boolean]
-  --help     Show help                                                 [boolean]
-  --config   Path to config JS file.                                    [string]
-  --source   A source name to load. If unspecified, loads all sources.  [string]
-  --since                                                    [string] [required]
-```
-
-## `all`
-
-Run 'pages' and 'embed' for all data sources since last successful run of `all` command.
-On the first run, it will run for all data sources.
-
-Options:
-
-```txt
-  --version  Show version number                                       [boolean]
-  --help     Show help                                                 [boolean]
-  --config   Path to config JS file.                                    [string]
+Commands:
+  ingest all             Run 'pages' and 'embed' since last successful run
+  ingest embed <action>  Manage embedded content
+  ingest pages <action>  Manage pages data from sources
 ```

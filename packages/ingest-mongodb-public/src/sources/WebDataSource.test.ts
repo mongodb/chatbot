@@ -68,11 +68,11 @@ describe("scrapePage", () => {
     await browser.close();
   });
   test.each(testPages)("$# $name", async ({ url, name }) => {
-    const page = await scrapePage({
+    const { page } = await scrapePage({
       url: url,
       puppeteerPage,
     });
-    fs.writeFileSync(path.join(pathOut, `${name}.md`), page.body);
+    fs.writeFileSync(path.join(pathOut, `${name}.md`), page?.body);
   });
 });
 
@@ -87,11 +87,14 @@ describe("getUrlsFromSitemap", () => {
 
 describe("WebDataSource", () => {
   it("loads pages from sitemap", async () => {
-    const getUrlsFromSitemapMock = jest.fn().mockResolvedValue([
-      "https://www.mongodb.com/solutions/customer-case-studies/toyota-connected",
-      "https://www.mongodb.com/solutions/customer-case-studies/wells-fargo",
-    ]);
-    const source = await makeWebDataSource({ 
+    const getUrlsFromSitemapMock = jest
+      .fn()
+      .mockResolvedValue([
+        "https://www.mongodb.com/solutions/customer-case-studies/toyota-connected",
+        "https://www.mongodb.com/solutions/customer-case-studies/wells-fargo",
+      ]);
+    // mock the pages you are consuming by downloading the html (use test directory)
+    const source = await makeWebDataSource({
       name: "mongodb-dot-com",
       individualUrls: [
         "https://www.mongodb.com/atlas",
@@ -107,14 +110,32 @@ describe("WebDataSource", () => {
           return sitemapUrls.filter((url) =>
             directories.some((directoryUrl) => url.startsWith(directoryUrl))
           );
-        }
-      }
-     });
+        },
+      },
+    });
     const pages = await source.fetchPages();
     expect(pages.length).toBe(4);
-    expect(pages[0].url).toBe("https://www.mongodb.com/solutions/customer-case-studies/toyota-connected");
-    expect(pages[1].url).toBe("https://www.mongodb.com/solutions/customer-case-studies/wells-fargo");
+    expect(pages[0].url).toBe(
+      "https://www.mongodb.com/solutions/customer-case-studies/toyota-connected"
+    );
+    expect(pages[1].url).toBe(
+      "https://www.mongodb.com/solutions/customer-case-studies/wells-fargo"
+    );
     expect(pages[2].url).toBe("https://www.mongodb.com/atlas");
     expect(pages[3].url).toBe("https://www.mongodb.com/products");
+  });
+  it("handles broken links that lead to a 404", async () => {
+    const source = await makeWebDataSource({
+      name: "mongodb-dot-com",
+      individualUrls: [
+        "https://www.mongodb.com/atlas",
+        "https://www.mongodb.com/not-a-real-page",
+        "https://www.mongodb.com/products",
+      ],
+    });
+    const pages = await source.fetchPages();
+    expect(pages.length).toBe(2);
+    expect(pages[0].url).toBe("https://www.mongodb.com/atlas");
+    expect(pages[1].url).toBe("https://www.mongodb.com/products");
   });
 });

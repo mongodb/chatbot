@@ -1,4 +1,4 @@
-import { Page } from "mongodb-rag-core";
+import { logger, Page } from "mongodb-rag-core";
 import { DataSource } from "mongodb-rag-core/dataSources";
 import * as cheerio from "cheerio";
 import puppeteer, { Page as PuppeteerPage } from "puppeteer";
@@ -6,17 +6,6 @@ import TurndownService from "turndown";
 import * as turndownPluginGfm from "turndown-plugin-gfm";
 import xml2js from "xml2js";
 
-interface MongoDbDotComWebDataSourceParams {
-  name: string;
-  individualUrls?: string[];
-  sitemap?: {
-    sitemapUrl: string;
-    directories: string[];
-    getUrlsFromSitemap: (sitemapURL: string) => Promise<string[]>;
-    // function to select only relevant pages from the sitemap entries.
-    directoryFilter: (sitemapUrls: string[], directories: string[]) => string[];
-  }
-}
 const sitemapURL = "https://www.mongodb.com/sitemap-pages.xml";
 // urls of the directories where we want every single page
 const directoryUrls = [
@@ -139,19 +128,10 @@ interface MongoDbDotComWebDataSourceParams {
     getUrlsFromSitemap: (sitemapURL: string) => Promise<string[]>;
     // function to select only relevant pages from the sitemap entries.
     directoryFilter: (sitemapUrls: string[], directories: string[]) => string[];
-  }
+  };
 }
 
-export async function getUrlsFromSitemap(
-  sitemapURL: string
-): Promise<string[]> {
-  const response = await fetch(sitemapURL);
-  const sitemap = await response.text();
-  const parser = new xml2js.Parser();
-  const parsedXML = await parser.parseStringPromise(sitemap);
-  return parsedXML.urlset.url.map((url: { loc: string[] }) => url.loc[0]);
-}
-
+// TODO: move out of this file
 export const makeWebDataSourceConfig: MongoDbDotComWebDataSourceParams = {
   name: "mongodb-dot-com",
   individualUrls,
@@ -163,14 +143,24 @@ export const makeWebDataSourceConfig: MongoDbDotComWebDataSourceParams = {
       return sitemapUrls.filter((url) =>
         directories.some((directoryUrl) => url.startsWith(directoryUrl))
       );
-    }
-  }
+    },
+  },
 };
+
+export async function getUrlsFromSitemap(
+  sitemapURL: string
+): Promise<string[]> {
+  const response = await fetch(sitemapURL);
+  const sitemap = await response.text();
+  const parser = new xml2js.Parser();
+  const parsedXML = await parser.parseStringPromise(sitemap);
+  return parsedXML.urlset.url.map((url: { loc: string[] }) => url.loc[0]);
+}
 
 export function makeWebDataSource({
   name,
   individualUrls,
-  sitemap
+  sitemap,
 }: MongoDbDotComWebDataSourceParams): DataSource {
   return {
     name,
@@ -179,18 +169,28 @@ export function makeWebDataSource({
       try {
         const { page: puppeteerPage, browser: b } = await makePuppeteer();
         browser = b;
-        const urlsFromSitemap = sitemap ? await sitemap.getUrlsFromSitemap(sitemap.sitemapUrl) : [];
-        const directoryUrls = sitemap ? sitemap.directoryFilter(urlsFromSitemap, sitemap.directories) : [];
+        const urlsFromSitemap = sitemap
+          ? await sitemap.getUrlsFromSitemap(sitemap.sitemapUrl)
+          : [];
+        const directoryUrls = sitemap
+          ? sitemap.directoryFilter(urlsFromSitemap, sitemap.directories)
+          : [];
         const urls = [...directoryUrls, ...(individualUrls ?? [])];
         const pages: Page[] = [];
-        for await (const [index, url] of urls.entries()) {
-          pages.push(
-            await scrapePage({
-              url,
-              puppeteerPage,
-            })
-          );
+        const errors: string[] = [];
+        for await (const url of urls) {
+          const { page, error } = await scrapePage({
+            url,
+            puppeteerPage,
+          });
+          if (page) {
+            pages.push(page);
+          }
+          if (error) {
+            errors.push(error);
+          }
         }
+        logger.error(errors);
         return pages;
       } finally {
         await browser?.close();
@@ -351,24 +351,28 @@ export async function scrapePage({
 }: {
   puppeteerPage: PuppeteerPage;
   url: string;
-}): Promise<Page> {
+}): Promise<{ page: Page | null; error: string | null }> {
   // TODO: when productionizing, don't re-instantiate the browser on every call
-
+  let page: Page | null = null;
+  let error: string | null = null;
   try {
-    await puppeteerPage.goto(url, {
+    const response = await puppeteerPage.goto(url, {
       waitUntil: "networkidle0",
     });
-  } catch (error) {
-    console.log(`failed to open the page: ${url} with the error: ${error}`);
+    if (response?.status() === 404) {
+      throw new Error(`404`);
+    }
+    const content = await getContent(puppeteerPage);
+
+    page = {
+      url,
+      format: "md",
+      // TODO: hoist to dataSource param
+      sourceName: "mongodb-dot-com",
+      ...content,
+    };
+  } catch (err) {
+    error = `failed to open the page: ${url} with the error: ${err}`;
   }
-
-  const content = await getContent(puppeteerPage);
-
-  return {
-    url,
-    format: "md",
-    // TODO: hoist to dataSource param
-    sourceName: "mongodb-dot-com",
-    ...content,
-  };
+  return { page, error };
 }

@@ -74,6 +74,14 @@ describe("scrapePage", () => {
     });
     fs.writeFileSync(path.join(pathOut, `${name}.md`), page?.body);
   });
+  it("handles broken links that lead to a 404", async () => {
+    const { page, error } = await scrapePage({
+      url: "https://www.mongodb.com/not-a-real-page",
+      puppeteerPage,
+    });
+    expect(page).toBeNull();
+    expect(error).toEqual(expect.stringContaining("404"));
+  });
 });
 
 describe("getUrlsFromSitemap", () => {
@@ -124,7 +132,7 @@ describe("WebDataSource", () => {
     expect(pages[2].url).toBe("https://www.mongodb.com/atlas");
     expect(pages[3].url).toBe("https://www.mongodb.com/products");
   });
-  it("handles broken links that lead to a 404", async () => {
+  it("handles list that includes broken links", async () => {
     const source = await makeWebDataSource({
       name: "mongodb-dot-com",
       individualUrls: [

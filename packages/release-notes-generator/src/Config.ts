@@ -1,9 +1,9 @@
-import { type SomeArtifact } from "./Artifact";
+import { type SomeArtifact } from "./artifact";
 import {
   type Change,
   type ClassifiedChange,
   type ChangelogClassification,
-} from "./Change";
+} from "./change";
 import { loggerSchema } from "./logger";
 import { z } from "zod";
 
@@ -83,11 +83,15 @@ export type ExtractChanges = Config["extractChanges"];
 export type ClassifyChange = Config["classifyChange"];
 export type FilterChange = Config["filterChange"];
 
-export function createChangelogConfig(config: Config): Config {
+export function createConfig(config: Config): Partial<Config> {
+  return configSchema.partial().parse(config);
+}
+
+export function validateConfig(config: unknown): Config {
   return configSchema.parse(config);
 }
 
-export async function loadConfig(path: string): Promise<Config> {
+export async function loadConfigFile(path: string): Promise<Config> {
   const { default: configModule } = await import(path);
-  return configSchema.parse(configModule.default);
+  return validateConfig(configModule.default);
 }

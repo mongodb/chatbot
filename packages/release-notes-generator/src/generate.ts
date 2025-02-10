@@ -1,5 +1,5 @@
-import { type Artifact, getArtifactIdentifier } from "./Artifact";
-import { artifactWithChanges, type ClassifiedChange } from "./Change";
+import { type Artifact, getArtifactIdentifier } from "./artifact";
+import { artifactWithChanges, type ClassifiedChange } from "./change";
 import { type Config, type VersionRange } from "./config";
 
 export async function generate(config: Config, version: VersionRange) {

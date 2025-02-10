@@ -1,4 +1,4 @@
-import { type ClassifiedChange, classifiedChangeSchema } from "./Change";
+import { type ClassifiedChange, classifiedChangeSchema } from "./change";
 import { z } from "zod";
 
 export type ArtifactArgs<T extends string, D> = {

@@ -1,4 +1,4 @@
-import { makeArtifact, createArtifactSchema } from "../Artifact";
+import { makeArtifact, createArtifactSchema } from "../artifact";
 import { z } from "zod";
 
 export const gitCommitSchema = z.object({

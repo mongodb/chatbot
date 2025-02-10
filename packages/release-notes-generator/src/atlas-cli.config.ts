@@ -1,4 +1,4 @@
-import { createChangelogConfig } from "./config";
+import { createConfig } from "./config";
 import {
   makeGitCommitArtifact,
   type GitCommitArtifact,
@@ -20,7 +20,7 @@ const logger = createMultiLogger([
   createFileLogger(path.join("logs", logFilename)),
 ]);
 
-export default createChangelogConfig({
+export default createConfig({
   project: {
     name: "MongoDB Atlas CLI",
     description: `The MongoDB Atlas CLI (atlas) allows you to manage your MongoDB Atlas

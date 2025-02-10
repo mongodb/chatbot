@@ -59,8 +59,8 @@ async function makeSlackMessageText(
   assert(assistantMessage, "Assistant message not found");
   assert(userMessage, "User message not found");
   const { rating, userComment } = extractFeedback(assistantMessage);
-  assert(rating, "Rating not found");
-  assert(userComment, "User comment not found");
+  assert(rating !== undefined, "Rating not found");
+  assert(userComment !== undefined, "User comment not found");
 
   const scores = await getLlmAsAJudgeScores(llmAsAJudge, tracingData);
 

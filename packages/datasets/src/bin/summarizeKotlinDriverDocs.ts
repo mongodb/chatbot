@@ -126,7 +126,7 @@ export async function main() {
     }),
     urls,
   });
-  const fileName = "atlasVectorSearchSummary.md";
+  const fileName = "kotlinDriverSummary.md";
   console.log("writing summary to file", fileName);
   fs.writeFileSync(fileName, summary, "utf-8");
   await pageStore.close();

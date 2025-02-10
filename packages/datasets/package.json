@@ -32,7 +32,8 @@
     "convertCodeExamplePromptYamlToCsvUsefulOnly": "npm run build && node ./build/bin/convertCodeExamplePromptYamlToCsvUsefulOnly.js",
     "countExamplesByLength": "npm run build && node ./build/bin/countExamplesByLength.js",
     "summarizeAtlasVectorSearchDocs": "npm run build && node ./build/bin/summarizeAtlasVectorSearchDocs.js",
-    "summarizeKotlinDriverDocs": "npm run build && node ./build/bin/summarizeKotlinDriverDocs.js"
+    "summarizeKotlinDriverDocs": "npm run build && node ./build/bin/summarizeKotlinDriverDocs.js",
+    "summarizePracticalAggregationsBook": "npm run build && node ./build/bin/summarizePracticalAggregationsBook.js"
   },
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.12",

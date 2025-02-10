@@ -20,7 +20,8 @@
     "textToDriver:makeDatabases": "npm run build && node ./build/textToDriver/makeDatabases/index.js",
     "benchmark:MongoDbDiscovery": "npm run build && node ./build/discovery/mongoDbDiscoveryBenchmark.js",
     "benchmark:MongoDbUniversityQuizQuestion": "npm run build && node ./build/quizQuestions/mongoDbUniversityQuizQuestionBenchmark.js",
-    "benchmark:TextToNodeJsDriver": "npm run build && node ./build/textToDriver/nodeJsDriverBenchmark.js"
+    "benchmark:TextToNodeJsDriver": "npm run build && node ./build/textToDriver/nodeJsDriverBenchmark.js",
+    "benchmark:nodeJsDriverBenchmarkScratchpad": "npm run build && node ./build/textToDriver/nodeJsDriverBenchmarkScratchpad.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",

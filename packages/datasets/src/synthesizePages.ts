@@ -70,7 +70,7 @@ export async function synthesizePages({
   }
   const starter = `You are an expert on ${topic}. Base your answers on the following content:\n\n`;
   return summaries.reduce((acc, curr) => {
-    return acc.concat(`Page Url: ${curr.url}\n${curr.summary}\n\n`);
+    return acc.concat(`---\npage_url: ${curr.url}\n---\n${curr.summary}\n\n`);
   }, starter);
 }
 
@@ -88,6 +88,11 @@ A few things to keep in mind:
 2. This compressed text will be used as part of a guide given to LLMs to use to help them generate code related to this product. 
 3. An LLM is the main consumer of the compressed text, not a human.
 4. Be mindful to compress the text as much as reasonably possible while still preserving the important information.
+
+Notes on formatting:
+1. Format text in Github Flavored Markdown.
+2. Use code blocks as relevant (e.g. \`\`\`python\ncode\n\`\`\`).
+3. Include a H1 title for each page. (e.g. # My Page Title)
 
 Text to compress in the following message.
 `;
@@ -110,8 +115,8 @@ async function summarizeContent(
         content,
       },
     ],
-    max_tokens: 4000,
-    temperature: 0.0,
+    max_completion_tokens: 4000,
+    // temperature: 0.0,
     stream: false,
   });
 

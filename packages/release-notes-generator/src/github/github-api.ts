@@ -1,7 +1,8 @@
 import { Octokit } from "@octokit/rest";
-import {
+import type {
   GitCommitArtifact,
-  GitDiffArtifact,
+  GitDiffArtifact} from "./artifacts";
+import {
   makeGitCommitArtifact,
   makeGitDiffArtifact,
 } from "./artifacts";

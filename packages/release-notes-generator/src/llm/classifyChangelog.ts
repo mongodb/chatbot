@@ -1,10 +1,10 @@
-import { AzureOpenAI } from "mongodb-rag-core/openai";
+import type { AzureOpenAI } from "mongodb-rag-core/openai";
 import { PromisePool } from "@supercharge/promise-pool";
 import { makeClassifyChangelogAudience } from "./classifyChangelogAudience";
 import { makeClassifyChangelogScope } from "./classifyChangelogScope";
 import { iOfN } from "../utils";
-import { Logger } from "../logger";
-import { Classification } from "mongodb-rag-core";
+import type { Logger } from "../logger";
+import type { Classification } from "mongodb-rag-core";
 import {
   ChangelogClassification,
   changelogClassificationSchema,

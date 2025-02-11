@@ -1,5 +1,5 @@
-import { type AzureOpenAI } from "mongodb-rag-core/openai";
-import { type Logger } from "../logger";
+import type { AzureOpenAI } from "mongodb-rag-core/openai";
+import type { Logger } from "../logger";
 import { makeClassifierWithLogging } from "./makeClassifierWithLogging";
 
 const classificationTypes = [

@@ -1,7 +1,7 @@
 import JiraApi from "jira-client";
-import { type JiraIssueArtifact } from "../llm/projects";
+import type { JiraIssueArtifact } from "../llm/projects";
 import { z } from "zod";
-import { type Logger } from "../logger";
+import type { Logger } from "../logger";
 import { makeJiraIssueArtifact } from "./artifacts";
 
 export type MakeJiraApiClientArgs = {

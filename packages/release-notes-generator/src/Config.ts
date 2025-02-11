@@ -1,8 +1,8 @@
-import { type SomeArtifact } from "./artifact";
-import {
-  type Change,
-  type ClassifiedChange,
-  type ChangelogClassification,
+import type { SomeArtifact } from "./artifact";
+import type {
+  Change,
+  ClassifiedChange,
+  ChangelogClassification,
 } from "./change";
 import { loggerSchema } from "./logger";
 import { z } from "zod";

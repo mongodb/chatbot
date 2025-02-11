@@ -1,10 +1,10 @@
-import { type OpenAI } from "mongodb-rag-core/openai";
+import type { OpenAI } from "mongodb-rag-core/openai";
 import {
   makeClassifier,
   type Classifier,
   type ClassificationType,
 } from "mongodb-rag-core";
-import { type Logger } from "../logger";
+import type { Logger } from "../logger";
 
 export type MakeClassifierWithLoggingArgs = {
   openAiClient: OpenAI;

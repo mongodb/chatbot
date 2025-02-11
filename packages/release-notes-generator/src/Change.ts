@@ -1,4 +1,4 @@
-import { type Artifact } from "./artifact";
+import type { Artifact } from "./artifact";
 import { z } from "zod";
 
 export const changeSchema = z.object({

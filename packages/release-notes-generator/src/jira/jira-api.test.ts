@@ -1,4 +1,4 @@
-import JiraApi from "jira-client";
+import type JiraApi from "jira-client";
 import { makeJiraReleaseArtifacts } from "./jira-api";
 import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
 

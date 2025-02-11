@@ -1,12 +1,13 @@
 import { stripIndents } from "common-tags";
+import type {
+  GenerateChatCompletion} from "../openai-api";
 import {
-  GenerateChatCompletion,
   systemMessage,
   userMessage,
 } from "../openai-api";
-import { Logger } from "../logger";
+import type { Logger } from "../logger";
 import { PromisePool } from "@supercharge/promise-pool";
-import { SomeArtifact } from "../artifact";
+import type { SomeArtifact } from "../artifact";
 
 export type MakeSummarizeReleaseArtifactArgs = {
   logger?: Logger;

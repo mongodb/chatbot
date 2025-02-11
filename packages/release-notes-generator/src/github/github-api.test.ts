@@ -1,6 +1,6 @@
-import { Octokit } from "@octokit/rest";
+import type { Octokit } from "@octokit/rest";
 import { makeGitHubReleaseArtifacts } from "./github-api";
-import { GitCommitArtifact, GitDiffArtifact } from "./artifacts";
+import type { GitCommitArtifact, GitDiffArtifact } from "./artifacts";
 import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
 
 // Mock data
@@ -97,7 +97,7 @@ describe("makeGitHubReleaseArtifacts", () => {
 
     expect(commits).toHaveLength(2);
     expect(commits[0].type).toBe("git-commit");
-    const firstCommit = commits[0] as GitCommitArtifact;
+    const firstCommit = commits[0];
     expect(firstCommit.data.hash).toBe("abc123");
     expect(firstCommit.data.message).toBe("feat: Add new feature JIRA-123");
     expect(firstCommit.data.files).toHaveLength(1);
@@ -122,7 +122,7 @@ describe("makeGitHubReleaseArtifacts", () => {
 
     expect(diffs).toHaveLength(1);
     expect(diffs[0].type).toBe("git-diff");
-    const firstDiff = diffs[0] as GitDiffArtifact;
+    const firstDiff = diffs[0];
     expect(firstDiff.data.fileName).toBe("src/test.ts");
     expect(firstDiff.data.diff).toContain("Some test content");
   });

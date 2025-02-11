@@ -13,9 +13,8 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "lintx": "eslint \"src/**/*.{ts,tsx}\" --max-warnings 0",
     "lint": "eslint --max-warnings 0",
-    "lint:help": "eslint --help",
+    "lint:fix": "npm run lint -- --fix",
     "test": "vitest"
   },
   "keywords": [],

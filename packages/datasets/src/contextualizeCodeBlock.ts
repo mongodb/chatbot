@@ -1,5 +1,5 @@
+import { PersistedPage } from "mongodb-rag-core";
 import { AstExtractedCodeblock } from "./AstExtractedCodeBlock.js";
-import { PersistedPage } from "./PersistedPage.js";
 import yaml from "yaml";
 
 export const START_SNIPPET = "<TARGET_SNIPPET_START>";

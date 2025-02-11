@@ -3,12 +3,12 @@
  */
 import { Code, Heading, Node, Text } from "mdast";
 import { SKIP, visit } from "unist-util-visit";
-import { PersistedPage } from "./PersistedPage.js";
 import { AstExtractedCodeblock } from "./AstExtractedCodeBlock.js";
 import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
 import { unified } from "unified";
 import { Parent } from "unist";
+import { PersistedPage } from "mongodb-rag-core";
 
 export function makePageParser() {
   return unified().use(remarkParse).use(remarkGfm);

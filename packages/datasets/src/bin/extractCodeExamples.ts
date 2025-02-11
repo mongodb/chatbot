@@ -1,10 +1,10 @@
 import fs from "fs";
 import path from "path";
-import { PersistedPage } from "../PersistedPage.js";
 import {
   extractCodeBlocksWithHeadings,
   makePageParser,
 } from "../extractPageElements.js";
+import { PersistedPage } from "mongodb-rag-core";
 async function main(): Promise<void> {
   const basePath = path.resolve("data");
   const pathIn = path.resolve(

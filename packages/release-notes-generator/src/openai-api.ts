@@ -36,19 +36,30 @@ export const assistantMessage = (
 ): OpenAI.ChatCompletionAssistantMessageParam =>
   chatMessage({ role: "assistant", ...args });
 
-// TODO - left off here. We need to define this and then use it in createChangelogEntry (and maybe other spots???)
+export type MakeGenerateChatCompletionArgs = {
+  openAiClient: AzureOpenAI;
+  model: string;
+};
+
+export type GenerateChatCompletionArgs = {
+  messages: OpenAI.ChatCompletionMessageParam[];
+};
+
 export function makeGenerateChatCompletion({
   openAiClient,
-}: {
-  openAiClient: AzureOpenAI;
-}) {
-  const generateChatCompletion = async (args: {
-    messages: OpenAI.ChatCompletionMessageParam[];
-    model: string;
-  }) => {
-    const completion = await openAiClient.chat.completions.create(args);
+  model,
+}: MakeGenerateChatCompletionArgs) {
+  return async function generateChatCompletion({
+    messages,
+  }: GenerateChatCompletionArgs) {
+    const completion = await openAiClient.chat.completions.create({
+      model,
+      messages,
+    });
     return completion.choices[0].message.content;
   };
-
-  return generateChatCompletion;
 }
+
+export type GenerateChatCompletion = ReturnType<
+  typeof makeGenerateChatCompletion
+>;

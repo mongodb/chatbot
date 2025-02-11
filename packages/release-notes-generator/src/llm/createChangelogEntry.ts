@@ -1,15 +1,19 @@
 import { stripIndents } from "common-tags";
-import { systemMessage, userMessage } from "../openai-api";
+import {
+  GenerateChatCompletion,
+  systemMessage,
+  userMessage,
+} from "../openai-api";
 import { Logger } from "../logger";
 import { PromisePool } from "@supercharge/promise-pool";
-import { iOfN, removeStartOfString, safeFileName } from "../utils";
-import { Artifact, SomeArtifact } from "../artifact";
+import { removeStartOfString } from "../utils";
+import { SomeArtifact } from "../artifact";
 
 const NO_CHANGELOG_ENTRY_SYMBOL = "<<<NO_CHANGELOG_ENTRY>>>";
 
 export type CreateChangelogArgs = {
   logger?: Logger;
-  generate?: GenerateChatCompletion;
+  generate: GenerateChatCompletion;
   projectDescription: string;
   artifact: SomeArtifact;
 };
@@ -84,7 +88,7 @@ export async function createChangelogEntry({
     summary: artifact.summary,
   };
   logger?.log("info", "Generating changelog for artifact", artifactInfo);
-  const output = await generate(chatTemplate);
+  const output = await generate({ messages: chatTemplate });
   if (!output) {
     const errorMessage = `"Failed to generate changelog for artifact"`;
     logger?.log("error", errorMessage, artifactInfo);
@@ -95,7 +99,7 @@ export async function createChangelogEntry({
 
 export async function createChangelogEntries({
   logger,
-  generate = makeGenerateChatCompletion(),
+  generate,
   projectDescription,
   artifacts,
   concurrency = 4,

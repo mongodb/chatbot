@@ -1,11 +1,6 @@
 import { Octokit } from "@octokit/rest";
-import type {
-  GitCommitArtifact,
-  GitDiffArtifact} from "./artifacts";
-import {
-  makeGitCommitArtifact,
-  makeGitDiffArtifact,
-} from "./artifacts";
+import type { GitCommitArtifact, GitDiffArtifact } from "./artifacts";
+import { makeGitCommitArtifact, makeGitDiffArtifact } from "./artifacts";
 import { splitDiff } from "./splitDiff";
 import { z } from "zod";
 
@@ -13,7 +8,9 @@ export type MakeGitHubApiClientArgs = {
   authToken: string;
 };
 
-export const makeGitHubApiClient = ({ authToken }: MakeGitHubApiClientArgs) => {
+export const makeGitHubApiClient = ({
+  authToken,
+}: MakeGitHubApiClientArgs): Octokit => {
   return new Octokit({
     auth: authToken,
   });
@@ -125,7 +122,9 @@ export function makeGitHubReleaseArtifacts(
       ? args.githubApi
       : makeGitHubApiClient(args.githubApiClientArgs);
   // Helper function to fetch the comparison between two versions
-  const fetchVersionComparison = async () => {
+  const fetchVersionComparison = async (): ReturnType<
+    typeof githubApi.repos.compareCommitsWithBasehead
+  > => {
     return withRateLimit(() =>
       githubApi.repos.compareCommitsWithBasehead({
         owner: args.owner,
@@ -149,7 +148,11 @@ export function makeGitHubReleaseArtifacts(
   >();
 
   // Helper function to fetch detailed commit information with rate limiting
-  const fetchCommitDetails = async (commitSha: string) => {
+  const fetchCommitDetails = async (
+    commitSha: string
+  ): Promise<
+    Awaited<ReturnType<typeof githubApi.repos.getCommit>>["data"] | undefined
+  > => {
     if (!commitDetailPromises.has(commitSha)) {
       const commitPromise = withRateLimit(() =>
         githubApi.repos.getCommit({

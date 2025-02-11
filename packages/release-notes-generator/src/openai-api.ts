@@ -10,14 +10,16 @@ export const makeAzureOpenAiClient = ({
   apiKey,
   endpoint,
   apiVersion,
-}: MakeAzureOpenAiClientArgs) =>
+}: MakeAzureOpenAiClientArgs): AzureOpenAI =>
   new AzureOpenAI({
     apiKey,
     endpoint,
     apiVersion,
   });
 
-export function chatMessage<T extends OpenAI.ChatCompletionMessageParam>(t: T) {
+export function chatMessage<T extends OpenAI.ChatCompletionMessageParam>(
+  t: T
+): T {
   return t;
 }
 

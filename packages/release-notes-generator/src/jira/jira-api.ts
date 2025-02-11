@@ -1,8 +1,7 @@
 import JiraApi from "jira-client";
-import type { JiraIssueArtifact } from "../llm/projects";
 import { z } from "zod";
 import type { Logger } from "../logger";
-import { makeJiraIssueArtifact } from "./artifacts";
+import { makeJiraIssueArtifact, type JiraIssueArtifact } from "./artifacts";
 
 export type MakeJiraApiClientArgs = {
   username: string;
@@ -12,7 +11,7 @@ export type MakeJiraApiClientArgs = {
 export const makeJiraApiClient = ({
   username,
   password,
-}: MakeJiraApiClientArgs) => {
+}: MakeJiraApiClientArgs): JiraApi => {
   return new JiraApi({
     protocol: "https",
     host: "jira.mongodb.org",
@@ -107,7 +106,7 @@ export function makeJiraReleaseArtifacts({
         throw new Error("No JQL query provided");
       }
 
-      logger?.log("info", "Fetching Jira issues", { jqlQuery });
+      void logger?.log("info", "Fetching Jira issues", { jqlQuery });
 
       const fetchedIssues: JiraIssue[] = [];
 
@@ -136,7 +135,7 @@ export function makeJiraReleaseArtifacts({
 
         fetchedIssues.push(...response.issues);
 
-        logger?.log("info", "Fetched page of Jira issues", {
+        void logger?.log("info", "Fetched page of Jira issues", {
           page: Math.floor(startAt / maxResults) + 1,
           fetchedCount: fetchedIssues.length,
           totalCount: response.total,
@@ -150,7 +149,7 @@ export function makeJiraReleaseArtifacts({
         startAt += maxResults;
       }
 
-      logger?.log("info", "Completed fetching Jira issues", {
+      void logger?.log("info", "Completed fetching Jira issues", {
         issueKeys: fetchedIssues.map((issue) => issue.key),
       });
       return fetchedIssues.map((issue) => {

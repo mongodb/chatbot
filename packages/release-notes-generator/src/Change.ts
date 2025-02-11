@@ -1,4 +1,4 @@
-import type { Artifact } from "./artifact";
+import type { SomeArtifact } from "./artifact";
 import { z } from "zod";
 
 export const changeSchema = z.object({
@@ -30,10 +30,10 @@ export const classifiedChangeSchema = changeSchema.extend({
 
 export type ClassifiedChange = z.infer<typeof classifiedChangeSchema>;
 
-export function artifactWithChanges<A extends Artifact<string, unknown>>(
+export function artifactWithChanges<A extends SomeArtifact>(
   artifact: A,
   changes: ClassifiedChange[]
-) {
+): SomeArtifact & { changes: ClassifiedChange[] } {
   return {
     ...artifact,
     changes,

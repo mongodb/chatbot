@@ -92,7 +92,6 @@ export function validateConfig(config: unknown): Config {
 }
 
 export async function loadConfigFile(path: string): Promise<Config> {
-  const { default: configModule } = await import(path);
-  console.log("configModule.default", configModule.default);
-  return validateConfig(configModule.default);
+  const { default: configModule } = (await import(path)) as { default: Config };
+  return validateConfig(configModule);
 }

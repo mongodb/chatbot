@@ -20,7 +20,7 @@ export const loggerSchema = z.object({
   log: z
     .function()
     .args(logLevelSchema, z.string(), z.unknown().optional())
-    .returns(z.promise(z.void())),
+    .returns(z.void().or(z.promise(z.void()))),
   /**
    Get the current log file path if one is configured
    */
@@ -34,7 +34,7 @@ export type Logger = z.infer<typeof loggerSchema>;
 
 export function createConsoleLogger(): Logger {
   return {
-    log: async (level: LogLevel, message: string, data?: unknown) => {
+    log: (level: LogLevel, message: string, data?: unknown) => {
       const timestamp = new Date();
       const logMessage = `[${timestamp.toISOString()}] ${level.toUpperCase()}: ${message}`;
       switch (level) {

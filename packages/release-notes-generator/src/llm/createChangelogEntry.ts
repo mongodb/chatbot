@@ -1,10 +1,6 @@
 import { stripIndents } from "common-tags";
-import type {
-  GenerateChatCompletion} from "../openai-api";
-import {
-  systemMessage,
-  userMessage,
-} from "../openai-api";
+import type { GenerateChatCompletion } from "../openai-api";
+import { systemMessage, userMessage } from "../openai-api";
 import type { Logger } from "../logger";
 import { PromisePool } from "@supercharge/promise-pool";
 import { removeStartOfString } from "../utils";
@@ -32,7 +28,7 @@ export function makeCreateChangelogEntry({
   }: CreateChangelogEntryArgs) {
     if (!artifact.summary) {
       const errorMessage = `Artifact must have a summary`;
-      logger?.log("error", errorMessage, {
+      void logger?.log("error", errorMessage, {
         type: artifact.type,
         id: artifact.id,
       });
@@ -93,11 +89,11 @@ export function makeCreateChangelogEntry({
       id: artifact.id,
       summary: artifact.summary,
     };
-    logger?.log("info", "Generating changelog for artifact", artifactInfo);
+    void logger?.log("info", "Generating changelog for artifact", artifactInfo);
     const output = await generate({ messages: chatTemplate });
     if (!output) {
       const errorMessage = `"Failed to generate changelog for artifact"`;
-      logger?.log("error", errorMessage, artifactInfo);
+      void logger?.log("error", errorMessage, artifactInfo);
       throw new Error(errorMessage);
     }
     return output.split("\n");
@@ -109,7 +105,7 @@ export type CreateChangelogEntriesArgs = {
   concurrency?: number;
 };
 
-export async function makeCreateChangelogEntries({
+export function makeCreateChangelogEntries({
   logger,
   generate,
   projectDescription,
@@ -135,9 +131,13 @@ export async function makeCreateChangelogEntries({
         });
       });
     if (errors.length > 0) {
-      logger?.log("info", `Failed to generate ${errors.length} changelogs.`, {
-        errors,
-      });
+      void logger?.log(
+        "info",
+        `Failed to generate ${errors.length} changelogs.`,
+        {
+          errors,
+        }
+      );
     }
     return results
       .flat()

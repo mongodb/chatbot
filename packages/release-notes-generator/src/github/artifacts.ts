@@ -46,7 +46,17 @@ export function getGitCommitIdentifier(artifact: GitCommitArtifact): string {
   return `${artifact.type}::${artifact.data.hash}`;
 }
 
-export function getCondensedGitCommit(artifact: GitCommitArtifact) {
+export type CondensedGitCommit = {
+  id: string;
+  type: string;
+  summary: string;
+  hash: string;
+  title: string;
+};
+
+export function getCondensedGitCommit(
+  artifact: GitCommitArtifact
+): CondensedGitCommit {
   return {
     id: artifact.id,
     type: artifact.type,
@@ -92,7 +102,18 @@ export function getGitDiffIdentifier(artifact: GitDiffArtifact): string {
   return `${artifact.type}::${artifact.data.fileName}`;
 }
 
-export function getCondensedGitDiff(artifact: GitDiffArtifact) {
+export type CondensedGitDiff = {
+  id: string;
+  type: string;
+  summary: string;
+  fileName: string;
+  oldHash: string;
+  newHash: string;
+};
+
+export function getCondensedGitDiff(
+  artifact: GitDiffArtifact
+): CondensedGitDiff {
   return {
     id: artifact.id,
     type: artifact.type,

@@ -3,8 +3,9 @@ import { generate } from "./generate";
 
 import config from "./atlas-cli.config";
 import { validateConfig } from "./config";
+import type { ClassifiedChange } from "./change";
 
-async function main() {
+async function main(): Promise<ClassifiedChange[]> {
   // const config = await loadConfigFile("./atlas-cli.config.js");
   return await generate(validateConfig(config), {
     current: "1.11.0",

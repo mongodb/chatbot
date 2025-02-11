@@ -1,8 +1,8 @@
-export function safeFileName(fileName: string) {
+export function safeFileName(fileName: string): string {
   return fileName.replace(/[/\\?%*:|"<>]/g, "-");
 }
 
-export function iOfN(i: number, n: number) {
+export function iOfN(i: number, n: number): string {
   return `(${i + 1}/${n})`;
 }
 
@@ -24,7 +24,7 @@ export function groupBy<T>(
  Removes a string from the start of another string, if it is present.
  @returns The input string with the start string removed, if it was present
  */
-export function removeStartOfString(str: string, start: string) {
+export function removeStartOfString(str: string, start: string): string {
   if (str.startsWith(start)) {
     return str.substring(start.length);
   }
@@ -37,7 +37,7 @@ export function removeStartOfString(str: string, start: string) {
 export function urlToFilename(
   input: string | URL,
   options: { separator?: string; maxLength?: number } = {}
-) {
+): string {
   const { separator = "_", maxLength = 120 } = options;
   const url = new URL(input);
   return (url.hostname + url.pathname) // remove protocol, query string, and fragment
@@ -49,6 +49,6 @@ export function urlToFilename(
 /**
  Returns a timestamp in the format YYYY-MM-DD-HH-MM-SS
  */
-export function currentTimestamp() {
+export function currentTimestamp(): string {
   return new Date().toISOString().replace(/[:.]/g, "-");
 }

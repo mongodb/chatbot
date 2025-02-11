@@ -1,10 +1,6 @@
 import { stripIndents } from "common-tags";
-import type {
-  GenerateChatCompletion} from "../openai-api";
-import {
-  systemMessage,
-  userMessage,
-} from "../openai-api";
+import type { GenerateChatCompletion } from "../openai-api";
+import { systemMessage, userMessage } from "../openai-api";
 import type { Logger } from "../logger";
 import { PromisePool } from "@supercharge/promise-pool";
 import type { SomeArtifact } from "../artifact";
@@ -64,7 +60,7 @@ export function makeSummarizeReleaseArtifact({
       userMessage({ content: createUserPromptForReleaseArtifact(artifact) }),
     ];
 
-    logger?.log("info", "Summarizing release artifact", {
+    void logger?.log("info", "Summarizing release artifact", {
       type: artifact.type,
       id: artifact.id,
     });
@@ -78,7 +74,7 @@ export function makeSummarizeReleaseArtifact({
 
 function frontmatter(
   ...objs: (string | unknown[] | Record<string, unknown>)[]
-) {
+): string {
   const tokens = ["---"];
   for (const [i, obj] of Object.entries(objs)) {
     if (Number(i) > 0) tokens.push("\n");
@@ -90,10 +86,7 @@ function frontmatter(
       });
     } else {
       Object.entries(obj).forEach(([key, value]) => {
-        if (typeof value === "object") {
-          value = JSON.stringify(value);
-        }
-        tokens.push(`${key}: ${value}`);
+        tokens.push(`${key}: ${JSON.stringify(value)}`);
       });
     }
   }
@@ -101,7 +94,7 @@ function frontmatter(
   return tokens.join("\n");
 }
 
-function createUserPromptForReleaseArtifact(artifact: SomeArtifact) {
+function createUserPromptForReleaseArtifact(artifact: SomeArtifact): string {
   const artifactString = JSON.stringify(artifact);
   switch (artifact.type) {
     case "git-commit": {
@@ -164,7 +157,7 @@ export type SummarizeReleaseArtifactsArgs = {
   concurrency?: number;
 };
 
-export async function makeSummarizeReleaseArtifacts({
+export function makeSummarizeReleaseArtifacts({
   logger,
   generate,
   projectDescription,
@@ -183,7 +176,7 @@ export async function makeSummarizeReleaseArtifacts({
     const { results } = await PromisePool.withConcurrency(concurrency)
       .for(artifacts)
       .handleError((error, artifact) => {
-        logger?.log("error", "Error summarizing artifact", {
+        void logger?.log("error", "Error summarizing artifact", {
           type: artifact.type,
           id: artifact.id,
           error: {
@@ -200,7 +193,7 @@ export async function makeSummarizeReleaseArtifacts({
         return artifact;
       });
     if (errors.length > 0) {
-      logger?.log(
+      void logger?.log(
         "info",
         `${errors.length} errors occurred while summarizing artifacts.`,
         {

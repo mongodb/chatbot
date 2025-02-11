@@ -1,6 +1,7 @@
 import type { AzureOpenAI } from "mongodb-rag-core/openai";
 import type { Logger } from "../logger";
 import { makeClassifierWithLogging } from "./makeClassifierWithLogging";
+import type { Classifier } from "mongodb-rag-core";
 
 const classificationTypes = [
   {
@@ -94,7 +95,7 @@ export function makeClassifyChangelogScope({
   openAiClient,
   model,
   logger,
-}: MakeClassifyChangelogScopeArgs) {
+}: MakeClassifyChangelogScopeArgs): Classifier {
   return makeClassifierWithLogging({
     openAiClient,
     model,

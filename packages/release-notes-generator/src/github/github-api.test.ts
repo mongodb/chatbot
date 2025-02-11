@@ -1,6 +1,5 @@
 import type { Octokit } from "@octokit/rest";
 import { makeGitHubReleaseArtifacts } from "./github-api";
-import type { GitCommitArtifact, GitDiffArtifact } from "./artifacts";
 import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
 
 // Mock data

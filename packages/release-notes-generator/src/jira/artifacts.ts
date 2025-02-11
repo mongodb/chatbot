@@ -42,7 +42,18 @@ export function getJiraIssueIdentifier(artifact: JiraIssueArtifact): string {
   return `${artifact.type}::${artifact.data.key}`;
 }
 
-export function getCondensedJiraIssue(artifact: JiraIssueArtifact) {
+export type CondensedJiraIssue = {
+  id: string;
+  type: string;
+  summary: string;
+  key: string;
+  status: string;
+  issuetype: string;
+};
+
+export function getCondensedJiraIssue(
+  artifact: JiraIssueArtifact
+): CondensedJiraIssue {
   return {
     id: artifact.id,
     type: artifact.type,

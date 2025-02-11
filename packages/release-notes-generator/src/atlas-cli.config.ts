@@ -92,6 +92,7 @@ export default createConfig({
     // const githubArtifacts = await fetchGithubArtifacts(version);
     // const jiraArtifacts = await fetchJiraArtifacts(version);
     // return [...githubArtifacts, ...jiraArtifacts];
+    await Promise.resolve();
     const githubArtifacts: GitCommitArtifact[] = [
       makeGitCommitArtifact({
         id: "123456",

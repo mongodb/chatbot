@@ -2,7 +2,10 @@ import { type Artifact, getArtifactIdentifier } from "./artifact";
 import { artifactWithChanges, type ClassifiedChange } from "./change";
 import type { Config, VersionRange } from "./config";
 
-export async function generate(config: Config, version: VersionRange) {
+export async function generate(
+  config: Config,
+  version: VersionRange
+): Promise<ClassifiedChange[]> {
   const logger = config.logger;
   await logger?.log("info", "Generating release notes", {
     project: config.project,

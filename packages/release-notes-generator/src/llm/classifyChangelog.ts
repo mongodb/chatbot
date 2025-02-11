@@ -5,10 +5,6 @@ import { makeClassifyChangelogScope } from "./classifyChangelogScope";
 import { iOfN } from "../utils";
 import type { Logger } from "../logger";
 import type { Classification } from "mongodb-rag-core";
-import {
-  ChangelogClassification,
-  changelogClassificationSchema,
-} from "../change";
 
 export type ClassifiedChangelog = {
   audience: Classification;
@@ -80,7 +76,7 @@ export function makeClassifyChangelogs({
     const { results: classifiedChangelogs } = await PromisePool.for(changelogs)
       .withConcurrency(concurrency)
       .handleError((error, changelog) => {
-        logger?.log("error", "Error classifying changelog", {
+        void logger?.log("error", "Error classifying changelog", {
           errorMessage: error.message,
           changelog,
         });

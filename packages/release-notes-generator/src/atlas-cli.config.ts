@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { createConfig } from "./config";
 import {
   makeGitCommitArtifact,
@@ -9,21 +10,50 @@ import {
   createFileLogger,
 } from "./logger";
 import * as path from "path";
-
-// Create a timestamp for the log filename
-const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-const logFilename = `atlas-cli-release-notes-${timestamp}.jsonl`;
+import {
+  assertEnvVars,
+  CORE_OPENAI_CONNECTION_ENV_VARS,
+} from "mongodb-rag-core";
+import {
+  makeAzureOpenAiClient,
+  makeGenerateChatCompletion,
+} from "./openai-api";
+import { currentTimestamp } from "./utils";
+import { makeSummarizeReleaseArtifact } from "./llm/summarizeReleaseArtifacts";
+import { makeCreateChangelogEntry } from "./llm/createChangelogEntry";
+import { makeClassifyChangelog } from "./llm/classifyChangelog";
+import { changelogClassificationSchema } from "./change";
 
 // Create a logger that writes to both console and file
 const logger = createMultiLogger([
   createConsoleLogger(),
-  createFileLogger(path.join("logs", logFilename)),
+  createFileLogger(
+    path.join("logs", `atlas-cli-release-notes-${currentTimestamp()}.jsonl`)
+  ),
 ]);
 
-export default createConfig({
-  project: {
-    name: "MongoDB Atlas CLI",
-    description: `The MongoDB Atlas CLI (atlas) allows you to manage your MongoDB Atlas
+const { OPENAI_API_KEY, OPENAI_ENDPOINT, OPENAI_API_VERSION } = assertEnvVars(
+  CORE_OPENAI_CONNECTION_ENV_VARS
+);
+
+const openAiClient = makeAzureOpenAiClient({
+  apiKey: OPENAI_API_KEY,
+  endpoint: OPENAI_ENDPOINT,
+  apiVersion: OPENAI_API_VERSION,
+});
+
+const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars({
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
+});
+
+const generateChatCompletion = makeGenerateChatCompletion({
+  openAiClient,
+  model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+});
+
+const project = {
+  name: "MongoDB Atlas CLI",
+  description: `The MongoDB Atlas CLI (atlas) allows you to manage your MongoDB Atlas
 database deployments from the command line. It provides a complete set of
 functionality to:
 
@@ -37,7 +67,26 @@ functionality to:
 The Atlas CLI is designed for both interactive use and automation through
 scripts and CI/CD pipelines. It provides a consistent interface to Atlas
 across all supported platforms and environments.`,
-  },
+};
+
+const summarizeReleaseArtifact = makeSummarizeReleaseArtifact({
+  generate: generateChatCompletion,
+  projectDescription: project.description,
+});
+
+const createChangelogEntry = makeCreateChangelogEntry({
+  generate: generateChatCompletion,
+  projectDescription: project.description,
+});
+
+const classifyChangelog = makeClassifyChangelog({
+  openAiClient,
+  model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  logger,
+});
+
+export default createConfig({
+  project,
   logger,
   fetchArtifacts: async (_version) => {
     // const githubArtifacts = await fetchGithubArtifacts(version);
@@ -66,38 +115,23 @@ across all supported platforms and environments.`,
     return [...githubArtifacts];
   },
   summarizeArtifact: async (artifact) => {
-    // TODO: Implement this with AI
-    switch (artifact.type) {
-      case "git-commit":
-        return `This is a git commit with identifier: ${artifact.type}::${artifact.id}`;
-      case "jira-issue":
-        return `This is a Jira issue with identifier: ${artifact.type}::${artifact.id}`;
-      default:
-        throw new Error(`Unknown artifact type: ${artifact.type}`);
-    }
+    return summarizeReleaseArtifact({ artifact });
   },
-  extractChanges: async (_artifact) => {
-    return [
-      {
-        description:
-          "Fixes a bug where whizbanging before cobbling would cause a crash",
-      },
-      {
-        description:
-          "Adds a new feature that lets you cobble the sprockets in parallel",
-      },
-    ];
+  extractChanges: async (artifact) => {
+    const changes = await createChangelogEntry({ artifact });
+    return changes.map((change) => ({
+      description: change,
+      sourceIdentifier: artifact.id,
+    }));
   },
   classifyChange: async (change) => {
-    const changeType = change.description.includes("Fix")
-      ? "fixed"
-      : change.description.includes("Add")
-      ? "added"
-      : "updated";
-    return {
-      audience: "external",
-      type: changeType,
-    };
+    const classifiedChangelog = await classifyChangelog({
+      changelog: change.description,
+    });
+    return changelogClassificationSchema.parse({
+      audience: classifiedChangelog.audience.type,
+      scope: classifiedChangelog.scope.type,
+    });
   },
   filterChange: (change) => {
     return change.classification.audience === "external";

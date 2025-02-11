@@ -5,6 +5,10 @@ import { makeClassifyChangelogScope } from "./classifyChangelogScope";
 import { iOfN } from "../utils";
 import { Logger } from "../logger";
 import { Classification } from "mongodb-rag-core";
+import {
+  ChangelogClassification,
+  changelogClassificationSchema,
+} from "../change";
 
 export type ClassifiedChangelog = {
   audience: Classification;

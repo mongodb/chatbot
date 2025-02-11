@@ -10,7 +10,7 @@ export type Change = z.infer<typeof changeSchema>;
 
 export const changelogClassificationSchema = z.object({
   audience: z.enum(["internal", "external"]),
-  type: z.enum([
+  scope: z.enum([
     "added",
     "updated",
     "fixed",

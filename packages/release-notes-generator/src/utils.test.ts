@@ -1,4 +1,5 @@
 import {
+  currentTimestamp,
   groupBy,
   removeStartOfString,
   safeFileName,
@@ -66,5 +67,13 @@ describe("urlToFilename", () => {
         maxLength: 10,
       })
     ).toBe("example__c");
+  });
+});
+
+describe("currentTimestamp", () => {
+  it("returns a timestamp in the format YYYY-MM-DD-HH-MM-SS", () => {
+    expect(currentTimestamp()).toMatch(
+      /^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z$/
+    );
   });
 });

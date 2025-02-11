@@ -45,3 +45,10 @@ export function urlToFilename(
     .replace(/[^a-zA-Z0-9]/g, separator) // replace non-alphanumeric characters with separator
     .substring(0, maxLength); // truncate to maxLength
 }
+
+/**
+ Returns a timestamp in the format YYYY-MM-DD-HH-MM-SS
+ */
+export function currentTimestamp() {
+  return new Date().toISOString().replace(/[:.]/g, "-");
+}

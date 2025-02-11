@@ -11,30 +11,35 @@ import { SomeArtifact } from "../artifact";
 
 const NO_CHANGELOG_ENTRY_SYMBOL = "<<<NO_CHANGELOG_ENTRY>>>";
 
-export type CreateChangelogArgs = {
+export type MakeCreateChangelogEntryArgs = {
   logger?: Logger;
   generate: GenerateChatCompletion;
   projectDescription: string;
+};
+
+export type CreateChangelogEntryArgs = {
   artifact: SomeArtifact;
 };
 
-export async function createChangelogEntry({
+export function makeCreateChangelogEntry({
   logger,
   generate,
   projectDescription,
-  artifact,
-}: CreateChangelogArgs) {
-  if (!artifact.summary) {
-    const errorMessage = `Artifact must have a summary`;
-    logger?.log("error", errorMessage, {
-      type: artifact.type,
-      id: artifact.id,
-    });
-    throw new Error(errorMessage);
-  }
-  const chatTemplate = [
-    systemMessage({
-      content: stripIndents`
+}: MakeCreateChangelogEntryArgs) {
+  return async function createChangelogEntry({
+    artifact,
+  }: CreateChangelogEntryArgs) {
+    if (!artifact.summary) {
+      const errorMessage = `Artifact must have a summary`;
+      logger?.log("error", errorMessage, {
+        type: artifact.type,
+        id: artifact.id,
+      });
+      throw new Error(errorMessage);
+    }
+    const chatTemplate = [
+      systemMessage({
+        content: stripIndents`
         You are an expert technical writer and engineer writing a changelog for a given software project.
 
         <Task>
@@ -69,9 +74,9 @@ export async function createChangelogEntry({
         ${projectDescription}
         </Project Description>
       `,
-    }),
-    userMessage({
-      content: stripIndents`
+      }),
+      userMessage({
+        content: stripIndents`
         <Summary>
         ${artifact.summary}
         </Summary>
@@ -79,57 +84,63 @@ export async function createChangelogEntry({
         ${JSON.stringify(artifact)}
         </Artifact>
       `,
-    }),
-  ];
+      }),
+    ];
 
-  const artifactInfo = {
-    type: artifact.type,
-    id: artifact.id,
-    summary: artifact.summary,
+    const artifactInfo = {
+      type: artifact.type,
+      id: artifact.id,
+      summary: artifact.summary,
+    };
+    logger?.log("info", "Generating changelog for artifact", artifactInfo);
+    const output = await generate({ messages: chatTemplate });
+    if (!output) {
+      const errorMessage = `"Failed to generate changelog for artifact"`;
+      logger?.log("error", errorMessage, artifactInfo);
+      throw new Error(errorMessage);
+    }
+    return output.split("\n");
   };
-  logger?.log("info", "Generating changelog for artifact", artifactInfo);
-  const output = await generate({ messages: chatTemplate });
-  if (!output) {
-    const errorMessage = `"Failed to generate changelog for artifact"`;
-    logger?.log("error", errorMessage, artifactInfo);
-    throw new Error(errorMessage);
-  }
-  return output;
 }
 
-export async function createChangelogEntries({
+export type CreateChangelogEntriesArgs = {
+  artifacts: CreateChangelogEntryArgs["artifact"][];
+  concurrency?: number;
+};
+
+export async function makeCreateChangelogEntries({
   logger,
   generate,
   projectDescription,
-  artifacts,
-  concurrency = 4,
-}: Omit<CreateChangelogArgs, "artifact"> & {
-  artifacts: CreateChangelogArgs["artifact"][];
-  concurrency?: number;
-}) {
-  const errors: Error[] = [];
-  const { results } = await PromisePool.withConcurrency(concurrency)
-    .for(artifacts)
-    .handleError((error) => {
-      errors.push(error);
-    })
-    .process(async (artifact) => {
-      const createChangelogEntryResult = await createChangelogEntry({
-        logger,
-        generate,
-        projectDescription,
-        artifact,
+}: MakeCreateChangelogEntryArgs) {
+  const createChangelogEntry = makeCreateChangelogEntry({
+    logger,
+    generate,
+    projectDescription,
+  });
+  return async function createChangelogEntries({
+    artifacts,
+    concurrency = 4,
+  }: CreateChangelogEntriesArgs) {
+    const errors: Error[] = [];
+    const { results } = await PromisePool.withConcurrency(concurrency)
+      .for(artifacts)
+      .handleError((error) => {
+        errors.push(error);
+      })
+      .process(async (artifact) => {
+        return await createChangelogEntry({
+          artifact,
+        });
       });
-      const changelogs = createChangelogEntryResult.split("\n");
-      return changelogs;
-    });
-  if (errors.length > 0) {
-    logger?.log("info", `Failed to generate ${errors.length} changelogs.`, {
-      errors,
-    });
-  }
-  return results
-    .flat()
-    .filter((c) => c !== NO_CHANGELOG_ENTRY_SYMBOL)
-    .map((changelog) => removeStartOfString(changelog, "- "));
+    if (errors.length > 0) {
+      logger?.log("info", `Failed to generate ${errors.length} changelogs.`, {
+        errors,
+      });
+    }
+    return results
+      .flat()
+      .filter((c) => c !== NO_CHANGELOG_ENTRY_SYMBOL)
+      .map((changelog) => removeStartOfString(changelog, "- "));
+  };
 }

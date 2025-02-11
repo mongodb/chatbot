@@ -13,6 +13,9 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "lintx": "eslint \"src/**/*.{ts,tsx}\" --max-warnings 0",
+    "lint": "eslint --max-warnings 0",
+    "lint:help": "eslint --help",
     "test": "vitest"
   },
   "keywords": [],
@@ -21,6 +24,14 @@
   "description": "",
   "devDependencies": {
     "@types/node": "^22.13.0",
+    "@typescript-eslint/eslint-plugin": "^8.24.0",
+    "@typescript-eslint/parser": "^8.24.0",
+    "eslint": "^9.20.1",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-import-resolver-typescript": "^3.7.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jsdoc": "^50.6.3",
+    "globals": "^15.14.0",
     "tsup": "^8.0.2",
     "vitest": "^3.0.5"
   },

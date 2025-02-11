@@ -1,10 +1,12 @@
 import * as Puppeteer from "puppeteer";
+import { makePuppeteer, makeWebDataSource, scrapePage } from "./WebDataSource";
 import {
   getUrlsFromSitemap,
-  makePuppeteer,
-  makeWebDataSource,
-  scrapePage,
-} from "./WebDataSource";
+  makeWebDataSources,
+  prepareWebSources,
+  rawWebSources,
+  WebSource,
+} from "./webSources";
 import fs from "fs";
 import path from "path";
 jest.setTimeout(60000);
@@ -69,6 +71,7 @@ describe("scrapePage", () => {
   });
   test.each(testPages)("$# $name", async ({ url, name }) => {
     const { page } = await scrapePage({
+      sourceName: name,
       url: url,
       puppeteerPage,
     });
@@ -76,6 +79,7 @@ describe("scrapePage", () => {
   });
   it("handles broken links that lead to a 404", async () => {
     const { page, error } = await scrapePage({
+      sourceName: "not-a-real-source",
       url: "https://www.mongodb.com/not-a-real-page",
       puppeteerPage,
     });
@@ -93,57 +97,89 @@ describe("getUrlsFromSitemap", () => {
   });
 });
 
+const company = [
+  "https://www.mongodb.com/company",
+  "https://www.mongodb.com/company/our-story",
+  "https://www.mongodb.com/company/leadership-principles",
+  "https://www.mongodb.com/company/values",
+  "https://www.mongodb.com/company/careers",
+];
+
+const services = [
+  "https://www.mongodb.com/services/consulting",
+  "https://www.mongodb.com/services/consulting/flex-consulting",
+  "https://www.mongodb.com/services/training",
+  "https://www.mongodb.com/services/consulting/ai-accelerator",
+  "https://www.mongodb.com/services/consulting/major-version-upgrade",
+];
+const webSources: WebSource[] = [
+  {
+    name: "company",
+    urls: company,
+  },
+  {
+    name: "services",
+    urls: services,
+  },
+];
+
 describe("WebDataSource", () => {
-  it("loads pages from sitemap", async () => {
-    const getUrlsFromSitemapMock = jest
-      .fn()
-      .mockResolvedValue([
-        "https://www.mongodb.com/solutions/customer-case-studies/toyota-connected",
-        "https://www.mongodb.com/solutions/customer-case-studies/wells-fargo",
-      ]);
-    // mock the pages you are consuming by downloading the html (use test directory)
-    const source = await makeWebDataSource({
-      name: "mongodb-dot-com",
-      individualUrls: [
-        "https://www.mongodb.com/atlas",
-        "https://www.mongodb.com/products",
-      ],
-      sitemap: {
-        sitemapUrl: "https://www.mongodb.com/sitemap-pages.xml",
-        directories: [
-          "https://www.mongodb.com/solutions/customer-case-studies",
-        ],
-        getUrlsFromSitemap: getUrlsFromSitemapMock,
-        directoryFilter: (sitemapUrls, directories) => {
-          return sitemapUrls.filter((url) =>
-            directories.some((directoryUrl) => url.startsWith(directoryUrl))
-          );
-        },
-      },
-    });
-    const pages = await source.fetchPages();
-    expect(pages.length).toBe(4);
-    expect(pages[0].url).toBe(
-      "https://www.mongodb.com/solutions/customer-case-studies/toyota-connected"
-    );
-    expect(pages[1].url).toBe(
-      "https://www.mongodb.com/solutions/customer-case-studies/wells-fargo"
-    );
-    expect(pages[2].url).toBe("https://www.mongodb.com/atlas");
-    expect(pages[3].url).toBe("https://www.mongodb.com/products");
+  let puppeteerPage: Puppeteer.Page;
+  let puppeteerBrowser: Puppeteer.Browser;
+  beforeAll(async () => {
+    const { page, browser } = await makePuppeteer();
+    puppeteerBrowser = browser;
+    puppeteerPage = page;
+  });
+  afterAll(async () => {
+    await puppeteerBrowser?.close();
   });
   it("handles list that includes broken links", async () => {
     const source = await makeWebDataSource({
       name: "mongodb-dot-com",
-      individualUrls: [
+      urls: [
         "https://www.mongodb.com/atlas",
         "https://www.mongodb.com/not-a-real-page",
         "https://www.mongodb.com/products",
       ],
+      puppeteerPage,
     });
     const pages = await source.fetchPages();
     expect(pages.length).toBe(2);
     expect(pages[0].url).toBe("https://www.mongodb.com/atlas");
     expect(pages[1].url).toBe("https://www.mongodb.com/products");
   });
+  it("processes data sources", async () => {
+    const source = await makeWebDataSource({
+      ...webSources[0],
+      puppeteerPage,
+    });
+    const pages = await source.fetchPages();
+    expect(pages.length).toBe(webSources[0].urls.length);
+    expect(pages[0].url).toBe(webSources[0].urls[0]);
+    expect(pages[1].url).toBe(webSources[0].urls[1]);
+  });
 });
+describe("prepareWebSources", () => {
+  it("processes raw web sources that may be directories into uniform web sources", async () => {
+    const webSources = await prepareWebSources({
+      rawWebSources,
+      sitemapUrl: "https://www.mongodb.com/sitemap-pages.xml",
+      getUrls: () =>
+        getUrlsFromSitemap("https://www.mongodb.com/sitemap-pages.xml"),
+    });
+    expect(webSources.length).toBe(rawWebSources.length);
+  });
+});
+describe("makeWebDataSources", () => {
+  it("processes multiple data sources", async () => {
+    const sources = await makeWebDataSources(webSources);
+    await sources.forEach(async (source, index) => {
+      const pages = await source.fetchPages();
+      expect(pages.length).toBe(webSources[index].urls.length);
+      expect(pages[0].url).toBe(webSources[index].urls[0]);
+    });
+  });
+});
+
+// TODO: set up test data, fake html pages

@@ -30,7 +30,13 @@ import {
 const { DEVCENTER_CONNECTION_URI, UNIVERSITY_DATA_API_KEY } = assertEnvVars(
   PUBLIC_INGEST_ENV_VARS
 );
-import { makeWebDataSource, makeWebDataSourceConfig } from "./WebDataSource";
+import {
+  getUrlsFromSitemap,
+  makeWebDataSources,
+  prepareWebSources,
+  rawWebSources,
+  sitemapURL,
+} from "./mongodb-dot-com/webSources";
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -171,7 +177,12 @@ function getTerraformPageUrl(siteBaseUrl: string, path: string) {
 }
 
 const webDataSourceConstructor = async () => {
-  return makeWebDataSource(makeWebDataSourceConfig);
+  const webSources = await prepareWebSources({
+    rawWebSources,
+    sitemapUrl: sitemapURL,
+    getUrls: () => getUrlsFromSitemap(sitemapURL),
+  });
+  return await makeWebDataSources(webSources);
 };
 
 /**

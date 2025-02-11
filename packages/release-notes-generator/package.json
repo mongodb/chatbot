@@ -1,16 +1,31 @@
 {
   "name": "release-notes-generator",
   "version": "1.0.0",
-  "main": "index.js",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest"
   },
   "keywords": [],
   "author": "Nick Larew",
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "@types/node": "^22.13.0"
+    "@types/node": "^22.13.0",
+    "tsup": "^8.0.2",
+    "vitest": "^3.0.5"
+  },
+  "dependencies": {
+    "@supercharge/promise-pool": "^3.2.0",
+    "common-tags": "^1.8.2"
   }
 }

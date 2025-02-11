@@ -55,3 +55,50 @@ export function getCondensedGitCommit(artifact: GitCommitArtifact) {
     title: artifact.data.title,
   };
 }
+
+export const gitDiffSchema = z.object({
+  oldHash: z.string(),
+  newHash: z.string(),
+  fileName: z.string(),
+  diff: z.string(),
+});
+
+export type GitDiff = z.infer<typeof gitDiffSchema>;
+
+export const gitDiffArtifactSchema = createArtifactSchema(
+  z.literal("git-diff"),
+  gitDiffSchema
+);
+
+export type GitDiffArtifact = z.infer<typeof gitDiffArtifactSchema>;
+
+export function makeGitDiffArtifact(args: {
+  id: string;
+  data: GitDiff;
+  summary?: string;
+}): GitDiffArtifact {
+  return makeArtifact(
+    {
+      id: args.id,
+      type: "git-diff",
+      data: args.data,
+      summary: args.summary,
+    },
+    gitDiffArtifactSchema
+  );
+}
+
+export function getGitDiffIdentifier(artifact: GitDiffArtifact): string {
+  return `${artifact.type}::${artifact.data.fileName}`;
+}
+
+export function getCondensedGitDiff(artifact: GitDiffArtifact) {
+  return {
+    id: artifact.id,
+    type: artifact.type,
+    summary: artifact.summary ?? "No summary provided",
+    fileName: artifact.data.fileName,
+    oldHash: artifact.data.oldHash,
+    newHash: artifact.data.newHash,
+  };
+}

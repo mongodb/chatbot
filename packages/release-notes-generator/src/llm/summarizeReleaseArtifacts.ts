@@ -1,76 +1,78 @@
 import { stripIndents } from "common-tags";
 import {
   GenerateChatCompletion,
-  makeGenerateChatCompletion,
   systemMessage,
   userMessage,
-} from "../chat";
-import { ReleaseArtifact, releaseArtifactIdentifier } from "./projects";
+} from "../openai-api";
 import { Logger } from "../logger";
 import { PromisePool } from "@supercharge/promise-pool";
-import { iOfN, safeFileName } from "../utils";
+import { SomeArtifact } from "../artifact";
+
+export type MakeSummarizeReleaseArtifactArgs = {
+  logger?: Logger;
+  generate: GenerateChatCompletion;
+  projectDescription: string;
+};
 
 export type SummarizeReleaseArtifactArgs = {
-  logger?: Logger;
-  generate?: GenerateChatCompletion;
-  projectDescription: string;
-  artifact: ReleaseArtifact;
+  artifact: SomeArtifact;
 };
 
-export type ArtifactSummary = {
-  artifact: ReleaseArtifact;
-  summary: string;
-};
-
-export async function summarizeReleaseArtifact({
+export function makeSummarizeReleaseArtifact({
   logger,
   generate,
   projectDescription,
-  artifact,
-}: SummarizeReleaseArtifactArgs) {
-  generate = generate ?? makeGenerateChatCompletion();
-  const chatTemplate = [
-    systemMessage({
-      content: stripIndents`
-        Your task is to analyze a provided artifact associated with a software release and write a succinct summarized description. Artifacts may include information from task tracking software like Jira, source control information like Git diffs and commit messages, or other sources.
+}: MakeSummarizeReleaseArtifactArgs) {
+  return async function summarizeReleaseArtifact({
+    artifact,
+  }: SummarizeReleaseArtifactArgs) {
+    const chatTemplate = [
+      systemMessage({
+        content: stripIndents`
+          You are an expert technical writer and engineer working on a given software project.
 
-        Your summary should be a brief, high-level description of the artifact's contents and purpose. The goal is to provide a clear, concise overview that can be used to generate one or more change log entries for the release. Focus on the facts of the changes. Avoid value judgments or subjective language such as how substantial an update was. Do not infer the broader intent behind the changes or speculate on future implications unless specifically mentioned in the artifact.
+          <Task>
+          You will analyze a provided artifact associated with a software release and write a succinct summarized description.
+          Artifacts may include information from task tracking software like Jira, source control information like Git diffs and commit messages, or other sources.
+          Your summary will be used to generate one or more change log entries for the release.
+          </Task>
 
-        The user may prepend the artifact with additional style guide information or other metadata. This section is denoted by frontmatter enclosed in triple dashes (---). Do not mention this frontmatter in the summary but do follow its guidance.
+          <Style Guide>
+          - Write a brief, high-level description of the artifact's contents and purpose
+          - Focus on the facts of the changes
+          - Avoid value judgments or subjective language (e.g., how substantial an update was)
+          - Do not infer the broader intent behind the changes
+          - Do not speculate on future implications unless specifically mentioned in the artifact
+          - Assume the reader is familiar with the product's features and use cases
+          - Limit the summary length to a maximum of 200 words
+          - Follow any guidance provided in the frontmatter (denoted by triple dashes ---) but do not mention the frontmatter itself
 
-        Assume the reader of your summary is familiar with the product's features and use cases.
+          Example summaries:
+          1. "This change adds a new CLI command 'atlas kubernetes config generate' that generates configuration files for Kubernetes deployments. The command supports specifying namespaces and includes validation for required parameters."
+          2. "This update modifies the authentication flow to use token-based authentication instead of password-based authentication. The change affects all API endpoints and includes updates to error handling for invalid tokens."
+          3. "This change fixes a bug where the CLI would fail to properly escape special characters in project names when making API requests. The fix adds proper URL encoding for project name parameters."
+          </Style Guide>
 
-        Limit the summary length to a maximum of 200 words.
+          <Project Description>
+          The software project you will analyze has the following description:
 
-        <Section description="A description of the software project this release is for">
           ${projectDescription}
-        </Section>
-      `,
-    }),
-    userMessage({ content: createUserPromptForReleaseArtifact(artifact) }),
-  ];
-  logger?.appendArtifact(
-    `chatTemplates/${safeFileName(releaseArtifactIdentifier(artifact))}.txt`,
-    chatTemplate
-      .map((m) => {
-        switch (m.role) {
-          case "system":
-            return `<SystemMessage>\n${m.content}\n</SystemMessage>`;
-          case "user":
-            return `<UserMessage>\n${m.content}\n</UserMessage>`;
-        }
-      })
-      .join("\n")
-  );
-  logger?.logInfo(
-    `[summarizeReleaseArtifact chatTemplate] ${JSON.stringify(chatTemplate)}`
-  );
+          </Project Description>
+        `,
+      }),
+      userMessage({ content: createUserPromptForReleaseArtifact(artifact) }),
+    ];
 
-  const output = await generate(chatTemplate);
-  if (!output) {
-    throw new Error("Something went wrong while generating the summary ☹️");
-  }
-  return output;
+    logger?.log("info", "Summarizing release artifact", {
+      type: artifact.type,
+      id: artifact.id,
+    });
+    const output = await generate({ messages: chatTemplate });
+    if (!output) {
+      throw new Error("Something went wrong while generating the summary ☹️");
+    }
+    return output;
+  };
 }
 
 function frontmatter(
@@ -98,7 +100,7 @@ function frontmatter(
   return tokens.join("\n");
 }
 
-function createUserPromptForReleaseArtifact(artifact: ReleaseArtifact) {
+function createUserPromptForReleaseArtifact(artifact: SomeArtifact) {
   const artifactString = JSON.stringify(artifact);
   switch (artifact.type) {
     case "git-commit": {
@@ -151,47 +153,60 @@ function createUserPromptForReleaseArtifact(artifact: ReleaseArtifact) {
       );
       return `${fm}\n${artifactString}`;
     }
+    default:
+      throw new Error(`Unsupported artifact type: ${artifact.type}`);
   }
 }
 
-export async function summarizeReleaseArtifacts({
-  logger,
-  generate = makeGenerateChatCompletion(),
-  projectDescription,
-  artifacts,
-  onArtifactSummarized,
-  concurrency = 4,
-}: Omit<SummarizeReleaseArtifactArgs, "artifact"> & {
-  artifacts: ReleaseArtifact[];
+export type SummarizeReleaseArtifactsArgs = {
+  artifacts: SummarizeReleaseArtifactArgs["artifact"][];
   concurrency?: number;
-  onArtifactSummarized?: (artifact: ReleaseArtifact, summary: string) => void;
-}) {
-  const errors: Error[] = [];
-  const { results } = await PromisePool.withConcurrency(concurrency)
-    .for(artifacts)
-    .handleError((error, artifact) => {
-      const errMessage = `Error summarizing ${artifact.type}. ${error.name} "" ${error.message}`;
-      console.log(errMessage);
-      logger?.logError(errMessage);
-      errors.push(error);
-    })
-    .process(async (artifact, index) => {
-      console.log(
-        `summarizing ${artifact.type} ${iOfN(index, artifacts.length)}`
-      );
-      const summary = await summarizeReleaseArtifact({
-        logger,
-        generate,
-        projectDescription,
-        artifact,
+};
+
+export async function makeSummarizeReleaseArtifacts({
+  logger,
+  generate,
+  projectDescription,
+}: MakeSummarizeReleaseArtifactArgs) {
+  const summarizeReleaseArtifact = makeSummarizeReleaseArtifact({
+    logger,
+    generate,
+    projectDescription,
+  });
+
+  return async function summarizeReleaseArtifacts({
+    artifacts,
+    concurrency = 4,
+  }: SummarizeReleaseArtifactsArgs) {
+    const errors: Error[] = [];
+    const { results } = await PromisePool.withConcurrency(concurrency)
+      .for(artifacts)
+      .handleError((error, artifact) => {
+        logger?.log("error", "Error summarizing artifact", {
+          type: artifact.type,
+          id: artifact.id,
+          error: {
+            name: error.name,
+            message: error.message,
+          },
+        });
+        errors.push(error);
+      })
+      .process(async (artifact) => {
+        artifact.summary = await summarizeReleaseArtifact({
+          artifact,
+        });
+        return artifact;
       });
-      onArtifactSummarized?.(artifact, summary);
-      return summary;
-    });
-  if (errors.length > 0) {
-    logger?.logInfo(
-      `${errors.length} errors occurred while summarizing artifacts.`
-    );
-  }
-  return results;
+    if (errors.length > 0) {
+      logger?.log(
+        "info",
+        `${errors.length} errors occurred while summarizing artifacts.`,
+        {
+          errors,
+        }
+      );
+    }
+    return results;
+  };
 }

@@ -70,20 +70,18 @@ describe("scrapePage", () => {
     await browser.close();
   });
   test.each(testPages)("$# $name", async ({ url, name }) => {
-    const { page } = await scrapePage({
-      sourceName: name,
+    const { content } = await scrapePage({
       url: url,
       puppeteerPage,
     });
-    fs.writeFileSync(path.join(pathOut, `${name}.md`), page?.body);
+    fs.writeFileSync(path.join(pathOut, `${name}.md`), content?.body);
   });
   it("handles broken links that lead to a 404", async () => {
-    const { page, error } = await scrapePage({
-      sourceName: "not-a-real-source",
+    const { content, error } = await scrapePage({
       url: "https://www.mongodb.com/not-a-real-page",
       puppeteerPage,
     });
-    expect(page).toBeNull();
+    expect(content).toBeNull();
     expect(error).toEqual(expect.stringContaining("404"));
   });
 });
@@ -97,29 +95,32 @@ describe("getUrlsFromSitemap", () => {
   });
 });
 
-const company = [
-  "https://www.mongodb.com/company",
-  "https://www.mongodb.com/company/our-story",
-  "https://www.mongodb.com/company/leadership-principles",
-  "https://www.mongodb.com/company/values",
-  "https://www.mongodb.com/company/careers",
-];
-
-const services = [
-  "https://www.mongodb.com/services/consulting",
-  "https://www.mongodb.com/services/consulting/flex-consulting",
-  "https://www.mongodb.com/services/training",
-  "https://www.mongodb.com/services/consulting/ai-accelerator",
-  "https://www.mongodb.com/services/consulting/major-version-upgrade",
-];
 const webSources: WebSource[] = [
   {
     name: "company",
-    urls: company,
+    urls: [
+      "https://www.mongodb.com/company",
+      "https://www.mongodb.com/company/our-story",
+      "https://www.mongodb.com/company/leadership-principles",
+      "https://www.mongodb.com/company/values",
+      "https://www.mongodb.com/company/careers",
+    ],
+    staticMetadata: {
+      type: "Company",
+    },
   },
   {
     name: "services",
-    urls: services,
+    urls: [
+      "https://www.mongodb.com/services/consulting",
+      "https://www.mongodb.com/services/consulting/flex-consulting",
+      "https://www.mongodb.com/services/training",
+      "https://www.mongodb.com/services/consulting/ai-accelerator",
+      "https://www.mongodb.com/services/consulting/major-version-upgrade",
+    ],
+    staticMetadata: {
+      type: "Services",
+    },
   },
 ];
 
@@ -157,7 +158,9 @@ describe("WebDataSource", () => {
     const pages = await source.fetchPages();
     expect(pages.length).toBe(webSources[0].urls.length);
     expect(pages[0].url).toBe(webSources[0].urls[0]);
-    expect(pages[1].url).toBe(webSources[0].urls[1]);
+    expect(pages[0].metadata?.type ?? {}).toBe(
+      webSources[0].staticMetadata?.type
+    );
   });
 });
 describe("prepareWebSources", () => {
@@ -174,7 +177,7 @@ describe("prepareWebSources", () => {
 describe("makeWebDataSources", () => {
   it("processes multiple data sources", async () => {
     const sources = await makeWebDataSources(webSources);
-    await sources.forEach(async (source, index) => {
+    sources.forEach(async (source, index) => {
       const pages = await source.fetchPages();
       expect(pages.length).toBe(webSources[index].urls.length);
       expect(pages[0].url).toBe(webSources[index].urls[0]);

@@ -4,43 +4,43 @@ import * as cheerio from "cheerio";
 import puppeteer, { Page as PuppeteerPage, Browser } from "puppeteer";
 import TurndownService from "turndown";
 import * as turndownPluginGfm from "turndown-plugin-gfm";
+import { WebSource } from "./webSources";
 
-interface WebDataSourceParams {
-  name: string;
-  urls: string[];
+interface WebDataSourceParams extends WebSource {
   puppeteerPage: PuppeteerPage;
 }
 
 export function makeWebDataSource({
   name,
   urls,
+  staticMetadata,
   puppeteerPage,
 }: WebDataSourceParams): DataSource {
   return {
     name,
     async fetchPages() {
-      try {
-        const pages: Page[] = [];
-        const errors: string[] = [];
-        for await (const url of urls) {
-          const { page, error } = await scrapePage({
-            sourceName: name,
+      const pages: Page[] = [];
+      const errors: string[] = [];
+      for await (const url of urls) {
+        const { content, error } = await scrapePage({
+          url,
+          puppeteerPage,
+        });
+        if (content) {
+          pages.push({
             url,
-            puppeteerPage,
+            format: "md",
+            sourceName: name,
+            ...content,
+            metadata: { ...content.metadata, ...staticMetadata },
           });
-          if (page) {
-            pages.push(page);
-          }
-          if (error) {
-            errors.push(error);
-          }
         }
-        logger.error(errors);
-        return pages;
-      } catch (err) {
-        logger.error(err);
-        return [];
+        if (error) {
+          errors.push(error);
+        }
       }
+      logger.error(errors);
+      return pages;
     },
   };
 }
@@ -191,17 +191,17 @@ export const makePuppeteer = async () => {
   return { page, browser };
 };
 
+type PageContent = Pick<Page, "body" | "metadata" | "title">;
+
 export async function scrapePage({
-  sourceName,
   puppeteerPage,
   url,
 }: {
-  sourceName: string;
   puppeteerPage: PuppeteerPage;
   url: string;
-}): Promise<{ page: Page | null; error: string | null }> {
+}): Promise<{ content: PageContent | null; error: string | null }> {
   // TODO: when productionizing, don't re-instantiate the browser on every call
-  let page: Page | null = null;
+  let content: PageContent | null = null;
   let error: string | null = null;
   try {
     const response = await puppeteerPage.goto(url, {
@@ -210,16 +210,9 @@ export async function scrapePage({
     if (response?.status() === 404) {
       throw new Error(`404`);
     }
-    const content = await getContent(puppeteerPage);
-
-    page = {
-      url,
-      format: "md",
-      sourceName,
-      ...content,
-    };
+    content = await getContent(puppeteerPage);
   } catch (err) {
     error = `failed to open the page: ${url} with the error: ${err}`;
   }
-  return { page, error };
+  return { content, error };
 }

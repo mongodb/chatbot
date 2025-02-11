@@ -8,16 +8,23 @@ type RawWebSource = {
   name: string;
   urls?: string[];
   directoryUrl?: string;
+  staticMetadata?: Record<string, string>;
 };
 
 export const rawWebSources: RawWebSource[] = [
   {
     name: "customer-case-studies",
     directoryUrl: "https://www.mongodb.com/solutions/customer-case-studies",
+    staticMetadata: {
+      type: "Customer Case Study",
+    },
   },
   {
     name: "solutions-library",
     directoryUrl: "https://www.mongodb.com/solutions/solutions-library",
+    staticMetadata: {
+      type: "Solutions Library",
+    },
   },
   {
     name: "company",
@@ -28,6 +35,9 @@ export const rawWebSources: RawWebSource[] = [
       "https://www.mongodb.com/company/values",
       "https://www.mongodb.com/company/careers",
     ],
+    staticMetadata: {
+      type: "Company",
+    },
   },
   {
     name: "services",
@@ -38,6 +48,9 @@ export const rawWebSources: RawWebSource[] = [
       "https://www.mongodb.com/services/consulting/ai-accelerator",
       "https://www.mongodb.com/services/consulting/major-version-upgrade",
     ],
+    staticMetadata: {
+      type: "Services",
+    },
   },
   // TODO: add more web sources here
 ];
@@ -55,6 +68,7 @@ export async function getUrlsFromSitemap(
 export type WebSource = {
   name: string;
   urls: string[];
+  staticMetadata?: Record<string, string>;
 };
 
 type PrepareWebSourcesParams = {
@@ -77,17 +91,16 @@ export const prepareWebSources = async ({
   let urlsFromSitemap: string[] = [];
   const webSources: WebSource[] = [];
   for (const rawWebSource of rawWebSources) {
-    const nameWithPrefix = `web-${rawWebSource.name}`;
     if (rawWebSource.urls && rawWebSource.directoryUrl) {
       throw new Error("Cannot have both urls and directoryUrl");
     } else if (rawWebSource.urls) {
-      webSources.push({ ...(rawWebSource as WebSource), name: nameWithPrefix });
+      webSources.push(rawWebSource as WebSource);
     } else if (rawWebSource.directoryUrl) {
       if (urlsFromSitemap.length === 0) {
         urlsFromSitemap = await getUrls(sitemapUrl);
       }
       webSources.push({
-        name: nameWithPrefix,
+        ...rawWebSource,
         urls: urlsFromSitemap.filter((url) => url.includes(rawWebSource.name)),
       });
     }
@@ -99,7 +112,7 @@ export const makePuppeteer = async () => {
   const browser = await puppeteer.launch({
     args: ["--no-sandbox"],
     headless: "new",
-    executablePath: "/opt/homebrew/bin/chromium",
+    executablePath: "/opt/homebrew/bin/chromium", // TODO
   });
   const page = await browser.newPage();
   return { page, browser };
@@ -112,14 +125,13 @@ export const makeWebDataSources = async (webSources: WebSource[]) => {
     const { page: puppeteerPage, browser } = await makePuppeteer();
     puppeteerBrowser = browser;
     return webSources.map((webSource) => {
-      const sourceName = webSource.name;
       return makeWebDataSource({
-        name: sourceName,
-        urls: webSource.urls,
+        ...webSource,
         puppeteerPage,
       });
     });
   } finally {
     puppeteerBrowser?.close();
   }
+  // TODO: check if page can be closed
 };

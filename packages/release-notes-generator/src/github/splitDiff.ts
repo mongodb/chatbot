@@ -19,9 +19,7 @@ export function splitDiff(diff: string): SplitDiffResult[] {
     const filenames = filenameLine.split(" b/"); // Split on ' b/' to get the new filename
 
     const fileName =
-      filenames.length > 1
-        ? filenames[1].trim().replace(/\//g, "_")
-        : `file_${index + 1}`;
+      filenames.length > 1 ? filenames[1].trim() : `file_${index + 1}`;
 
     if (!part.endsWith("\n")) {
       part += "\n";

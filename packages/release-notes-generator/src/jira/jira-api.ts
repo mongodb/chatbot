@@ -2,6 +2,7 @@ import JiraApi from "jira-client";
 import { type JiraIssueArtifact } from "../llm/projects";
 import { z } from "zod";
 import { type Logger } from "../logger";
+import { makeJiraIssueArtifact } from "./artifacts";
 
 export type MakeJiraApiClientArgs = {
   username: string;
@@ -106,13 +107,16 @@ export function makeJiraReleaseArtifacts({
         throw new Error("No JQL query provided");
       }
 
-      logger?.log("info", `Fetching Jira issues with query: ${jqlQuery}`);
+      logger?.log("info", "Fetching Jira issues", { jqlQuery });
 
-      let fetchedIssues: JiraIssue[] = [];
-      let currentPageIndex = 0;
-      let totalMatchingIssues = 0;
+      const fetchedIssues: JiraIssue[] = [];
 
-      do {
+      // These variables + the while loop are used to handle pagination
+      const maxResults = 100; // Maximum results per page
+      let startAt = 0; // The starting index of the issues to fetch
+      let moreToFetch = true;
+
+      while (moreToFetch) {
         const response = (await jiraApi.searchJira(jqlQuery, {
           expand: ["customfield_15650"],
           fields: [
@@ -126,40 +130,32 @@ export function makeJiraReleaseArtifacts({
             "issuetype",
             "project",
           ],
-          startAt: currentPageIndex,
-          maxResults: 100, // Increase from default 50 to 100 to reduce number of API calls
+          startAt,
+          maxResults,
         })) as JiraSearchResponse;
 
-        fetchedIssues = fetchedIssues.concat(response.issues);
-        totalMatchingIssues = response.total;
-        currentPageIndex += response.maxResults;
+        fetchedIssues.push(...response.issues);
 
-        console.log(
-          `Fetched ${response.issues.length} issues (${fetchedIssues.length}/${totalMatchingIssues} total)`
-        );
-      } while (fetchedIssues.length < totalMatchingIssues);
+        logger?.log("info", "Fetched page of Jira issues", {
+          page: Math.floor(startAt / maxResults) + 1,
+          fetchedCount: fetchedIssues.length,
+          totalCount: response.total,
+        });
 
-      console.log(`Found ${fetchedIssues.length} issues`);
-      if (issueKeys.length > 0) {
-        console.log(`out of ${issueKeys.length} requested`);
+        if (fetchedIssues.length >= response.total) {
+          moreToFetch = false;
+          break;
+        }
+
+        startAt += maxResults;
       }
 
-      if (fetchedIssues.length < issueKeys.length) {
-        const foundKeys = fetchedIssues.map((issue) => issue.key);
-        const missingKeys = issueKeys.filter((key) => !foundKeys.includes(key));
-        console.log(`Missing Jira issues: ${missingKeys.join(", ")}`);
-      }
-
+      logger?.log("info", "Completed fetching Jira issues", {
+        issueKeys: fetchedIssues.map((issue) => issue.key),
+      });
       return fetchedIssues.map((issue) => {
-        console.log(`Processing issue ${issue.key}:`);
-        console.log(
-          `- Resolution: ${
-            issue.fields.resolution ? issue.fields.resolution.name : "null"
-          }`
-        );
-
-        return {
-          type: "jira-issue",
+        return makeJiraIssueArtifact({
+          id: issue.key,
           data: {
             key: issue.key,
             summary: issue.fields.summary,
@@ -174,7 +170,7 @@ export function makeJiraReleaseArtifacts({
             status: issue.fields.status?.name ?? "Unknown",
             issuetype: issue.fields.issuetype?.name ?? "Unknown",
           },
-        };
+        });
       });
     },
   };
@@ -221,9 +217,6 @@ type JiraIssue = {
     };
     summary: string;
     description: string;
-    // assignee: {
-    //   name: string;
-    // };
     status: {
       self: string;
       description: string;

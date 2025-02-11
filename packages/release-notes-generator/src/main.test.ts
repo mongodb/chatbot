@@ -15,7 +15,6 @@ async function main() {
 describe("generateChangelogs", () => {
   it("should generate changelogs", async () => {
     const changes = await main();
-    console.log(changes);
     expect(changes).toBeDefined();
   });
 });

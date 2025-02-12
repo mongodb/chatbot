@@ -5,28 +5,34 @@ type PageDatasetEntry = Pick<
   "url" | "body" | "metadata" | "title" | "sourceName" | "updated" | "format"
 >;
 
+/**
+  @param pageStore - datastore for pages
+  @param dataSourceRegex - regular expression to filter pages by dataSource
+  @param forbiddenUrls - set of urls to exclude from the dataset
+ */
 export async function loadPagesDataset(
   pageStore: MongoDbPageStore,
-  dataSources: string[],
-  forbiddenUrls: Set<string>
+  dataSourceRegex: RegExp,
+  forbiddenUrls: string[]
 ): Promise<PageDatasetEntry[]> {
-  const pages = await pageStore.loadPages({
-    query: {
-      dataSources,
-      url: { $nin: Array.from(forbiddenUrls) },
-      action: { $ne: "deleted" },
+  return pageStore.aggregatePages<PageDatasetEntry>([
+    {
+      $match: {
+        dataSource: { $regex: dataSourceRegex },
+        url: { $nin: forbiddenUrls },
+        action: { $ne: "deleted" },
+      },
     },
-  });
-  const pagesToExport = pages.map((page) => {
-    return {
-      url: page.url,
-      body: page.body,
-      title: page.title,
-      format: page.format,
-      metadata: page.metadata,
-      sourceName: page.sourceName,
-      updated: page.updated,
-    } satisfies PageDatasetEntry;
-  });
-  return pagesToExport;
+    {
+      $project: {
+        url: 1,
+        body: 1,
+        title: 1,
+        format: 1,
+        metadata: 1,
+        sourceName: 1,
+        updated: 1,
+      },
+    },
+  ]);
 }

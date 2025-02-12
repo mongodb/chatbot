@@ -23,7 +23,7 @@ export async function appendLlmMetadata({
   }
 
   const createQuestionsFromText = makeCreatePromptsFromText();
-  const classifyCodeExample = makeClassifyCodeExample();
+  const classifyCodeExample = await makeClassifyCodeExample();
 
   const codeBlocksWithPrompts: AugmentedAstExtractedCodeblock[] = [];
 

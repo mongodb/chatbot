@@ -10,7 +10,7 @@ import {
   PageStore,
   PersistedPage,
 } from "./Page";
-import { Filter } from "mongodb";
+import { Filter, Document } from "mongodb";
 
 export type MongoDbPageStore = DatabaseConnection &
   // We omit loadPages so that the generic override below works
@@ -19,6 +19,9 @@ export type MongoDbPageStore = DatabaseConnection &
     loadPages(
       args?: LoadPagesArgs<Filter<PersistedPage>>
     ): Promise<PersistedPage[]>;
+    aggregatePages<T extends Document = Document>(
+      pipeline: Document[]
+    ): Promise<T[]>;
     metadata: {
       databaseName: string;
       collectionName: string;
@@ -60,6 +63,11 @@ export function makeMongoDbPageStore({
         ? createQueryFilterFromLoadPagesArgs(args)
         : {};
       return pagesCollection.find(filter).toArray();
+    },
+    async aggregatePages<T extends Document = Document>(
+      pipeline: Document[]
+    ): Promise<T[]> {
+      return pagesCollection.aggregate<T>(pipeline).toArray();
     },
     async updatePages(pages) {
       await Promise.all(

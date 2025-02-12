@@ -2,11 +2,10 @@ import { assertEnvVars } from "mongodb-rag-core";
 import { uploadDatasetToHuggingFace } from "./uploadDatasetToHuggingFace";
 import { HUGGINGFACE } from "./EnvVars";
 
-const { HUGGINGFACE_ACCESS_TOKEN } = assertEnvVars(HUGGINGFACE);
-
 describe.skip("UploadDatasetToHuggingFaceParams", () => {
   jest.setTimeout(60000);
   it("should upload data to a HF repository", async () => {
+    const { HUGGINGFACE_ACCESS_TOKEN } = assertEnvVars(HUGGINGFACE);
     await uploadDatasetToHuggingFace({
       hf: {
         repoName: "bpmutter/test_integration",

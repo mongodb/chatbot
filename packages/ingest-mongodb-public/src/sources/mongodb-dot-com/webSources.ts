@@ -4,27 +4,29 @@ import xml2js from "xml2js";
 export const sitemapURL = "https://www.mongodb.com/sitemap-pages.xml";
 
 export type RawWebSource = {
+  /**
+   The name of the web source.
+   */
   name: string;
-  urls?: string[];
-  directoryUrl?: string;
+
+  /**
+   An array of URLs associated with the web source.
+   */
+  urls: string[];
+
+  /**
+   An optional array of directory URLs associated with the web source.
+   All URLs in the directory are part of the web source.
+   */
+  directoryUrls?: string[];
+
+  /**
+   Optional additional metadata determined by the web source.
+   */
   staticMetadata?: Record<string, string>;
 };
 
 export const rawWebSources: RawWebSource[] = [
-  {
-    name: "customer-case-studies",
-    directoryUrl: "https://www.mongodb.com/solutions/customer-case-studies",
-    staticMetadata: {
-      type: "Customer Case Study",
-    },
-  },
-  {
-    name: "solutions-library",
-    directoryUrl: "https://www.mongodb.com/solutions/solutions-library",
-    staticMetadata: {
-      type: "Solutions Library",
-    },
-  },
   {
     name: "company",
     urls: [
@@ -51,6 +53,122 @@ export const rawWebSources: RawWebSource[] = [
       type: "Services",
     },
   },
+  {
+    name: "products",
+    urls: [
+      "https://www.mongodb.com/products",
+      "https://www.mongodb.com/products/self-managed/enterprise-advanced",
+      "https://www.mongodb.com/products/tools/atlas-cli",
+      "https://www.mongodb.com/products/tools",
+      "https://www.mongodb.com/products/updates/version-release",
+      "https://www.mongodb.com/products/platform/atlas-database",
+      "https://www.mongodb.com/products/platform/atlas-search",
+      "https://www.mongodb.com/products/platform/atlas-vector-search",
+      "https://www.mongodb.com/products/platform/atlas-stream-processing",
+      "https://www.mongodb.com/products/platform/atlas-vector-search/features",
+      "https://www.mongodb.com/products/platform/atlas-vector-search/getting-started",
+      "https://www.mongodb.com/products/tools/compass",
+      "https://www.mongodb.com/products/platform/trust",
+      "https://www.mongodb.com/products/capabilities/security",
+      "https://www.mongodb.com/products/capabilities/security/encryption",
+      "https://www.mongodb.com/products/platform/atlas-for-government",
+      "https://www.mongodb.com/products/platform/atlas-cloud-providers/aws",
+      "https://www.mongodb.com/products/platform/atlas-cloud-providers/azure",
+      "https://www.mongodb.com/products/platform/atlas-cloud-providers/google-cloud",
+      "https://www.mongodb.com/products/integrations/kubernetes/atlas-kubernetes-operator",
+      "https://www.mongodb.com/products/platform/atlas-online-archive",
+      "https://www.mongodb.com/products/integrations/hashicorp-terraform",
+      "https://www.mongodb.com/products/platform/atlas-charts",
+      "https://www.mongodb.com/products/platform/cloud-backup",
+    ],
+    staticMetadata: {
+      type: "Products",
+    },
+  },
+  {
+    name: "solutions",
+    directoryUrls: [
+      "https://www.mongodb.com/solutions/customer-case-studies",
+      "https://www.mongodb.com/solutions/solutions-library",
+    ],
+    urls: [
+      "https://www.mongodb.com/solutions/use-cases/artificial-intelligence",
+      "https://www.mongodb.com/solutions/use-cases/payments",
+      "https://www.mongodb.com/solutions/use-cases/serverless",
+      "https://www.mongodb.com/solutions/use-cases/gaming",
+      "https://www.mongodb.com/solutions/industries/financial-services",
+      "https://www.mongodb.com/solutions/industries/telecommunications",
+      "https://www.mongodb.com/solutions/industries/healthcare",
+      "https://www.mongodb.com/solutions/industries/retail",
+      "https://www.mongodb.com/solutions/industries/public-sector",
+      "https://www.mongodb.com/solutions/industries/manufacturing",
+      "https://www.mongodb.com/solutions/industries/insurance",
+      "https://www.mongodb.com/solutions/developer-data-platform",
+      "https://www.mongodb.com/solutions/startups",
+    ],
+    staticMetadata: {
+      type: "Solutions",
+    },
+  },
+  {
+    name: "resources",
+    urls: [
+      "https://www.mongodb.com/resources/basics/databases/nosql-explained/",
+      "https://www.mongodb.com/resources/basics/databases/acid-transactions/",
+      "https://www.mongodb.com/resources/basics/databases/nosql-explained/nosql-vs-sql/",
+      "https://www.mongodb.com/resources/basics/json-and-bson/",
+      "https://www.mongodb.com/resources/basics/databases/cloud-databases/free-cloud-database/",
+      "https://www.mongodb.com/resources/basics/full-stack-development/",
+      "https://www.mongodb.com/resources/basics/databases/what-is-an-object-oriented-database/",
+      "https://www.mongodb.com/resources/basics/cloud-explained/iot-architecture/",
+      "https://www.mongodb.com/resources/basics/databases/key-value-database/",
+      "https://www.mongodb.com/resources/basics/databases/in-memory-database/",
+      "https://www.mongodb.com/resources/basics/data-engineering/",
+      "https://www.mongodb.com/resources/basics/fuzzy-match/",
+      "https://www.mongodb.com/resources/basics/vector-stores/",
+      "https://www.mongodb.com/resources/basics/artificial-intelligence/ai-stack/",
+      "https://www.mongodb.com/resources/basics/databases/database-hosting/",
+      "https://www.mongodb.com/resources/basics/hierarchical-navigable-small-world",
+      "https://www.mongodb.com/resources/basics/artificial-intelligence/generative-ai-use-cases",
+      "https://www.mongodb.com/resources/basics/artificial-intelligence/ai-agents",
+      "https://www.mongodb.com/resources/basics/vector-index",
+      "https://www.mongodb.com/resources/basics/prompt-engineering",
+      "https://www.mongodb.com/resources/basics/predictive-ai",
+      "https://www.mongodb.com/resources/basics/reinforcement-learning",
+      "https://www.mongodb.com/resources/basics/artificial-intelligence/machine-learning-healthcare",
+      "https://www.mongodb.com/resources/basics/named-entity-recognition",
+      "https://www.mongodb.com/resources/basics/langchain",
+      "https://www.mongodb.com/resources/basics/quantum-machine-learning",
+      "https://www.mongodb.com/resources/basics/ann-search",
+      "https://www.mongodb.com/resources/basics/vector-embeddings",
+      "https://www.mongodb.com/resources/basics/self-supervised-learning",
+      "https://www.mongodb.com/resources/basics/vector-search",
+      "https://www.mongodb.com/resources/basics/unified-modeling-language",
+      "https://www.mongodb.com/resources/basics/ai-hallucinations",
+      "https://www.mongodb.com/resources/basics/ai-in-finance",
+      "https://www.mongodb.com/resources/basics/what-is-stream-processing",
+      "https://www.mongodb.com/resources/basics/cognitive-search",
+      "https://www.mongodb.com/resources/basics/foundation-models",
+      "https://www.mongodb.com/resources/basics/ai-stack",
+      "https://www.mongodb.com/resources/products/compatibilities/kubernetes",
+      "https://www.mongodb.com/resources/products/capabilities/stored-procedures",
+      "https://www.mongodb.com/resources/basics/cloud-explained/iaas-infrastructure-as-a-service",
+      "https://www.mongodb.com/resources/basics/databases/cloud-databases/cloud-migration",
+      "https://www.mongodb.com/resources/basics/unstructured-data/tools",
+      "https://www.mongodb.com/resources/basics/system-of-insight",
+      "https://www.mongodb.com/resources/basics/databases/middleware",
+      "https://www.mongodb.com/resources/basics/disaster-recovery",
+      "https://www.mongodb.com/resources/basics/cloud-explained/business-intelligence-bi-tools",
+      "https://www.mongodb.com/resources/basics/observability",
+      "https://www.mongodb.com/resources/basics/role-based-access-control",
+      "https://www.mongodb.com/resources/basics/real-time-payments",
+      "https://www.mongodb.com/resources/basics/databases/cloud-databases/free-cloud-database",
+    ],
+    staticMetadata: {
+      type: "Resources",
+    },
+  },
+
   // TODO: add more web sources here
 ];
 
@@ -75,7 +193,10 @@ type PrepareWebSourcesParams = {
   sitemapUrls: string[];
 };
 
-/*
+/**
+ Processes raw web sources
+ For web sources that have directories listed, all URLs within the directory are added to the web source urls list.
+ The sitemapUrls are used to find the URLs in the directory.
  */
 export const prepareWebSources = async ({
   rawWebSources,
@@ -83,16 +204,21 @@ export const prepareWebSources = async ({
 }: PrepareWebSourcesParams): Promise<WebSource[]> => {
   const webSources: WebSource[] = [];
   for (const rawWebSource of rawWebSources) {
-    if (rawWebSource.urls && rawWebSource.directoryUrl) {
-      throw new Error("Cannot have both urls and directoryUrl");
-    } else if (rawWebSource.urls) {
-      webSources.push(rawWebSource as WebSource);
-    } else if (rawWebSource.directoryUrl) {
-      webSources.push({
-        ...rawWebSource,
-        urls: sitemapUrls.filter((url) => url.includes(rawWebSource.name)),
-      });
+    const { name, staticMetadata } = rawWebSource;
+    let urls = rawWebSource.urls || [];
+    if (rawWebSource.directoryUrls?.length) {
+      for (const directoryUrl of rawWebSource.directoryUrls) {
+        urls = [
+          ...urls,
+          ...sitemapUrls.filter((url) => url.includes(directoryUrl)),
+        ];
+      }
     }
+    webSources.push({
+      name,
+      staticMetadata,
+      urls,
+    });
   }
   return webSources;
 };

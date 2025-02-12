@@ -98,7 +98,11 @@ describe("prepareWebSources", () => {
   const mockRawWebSources: RawWebSource[] = [
     {
       name: "directory-web-source",
-      directoryUrl: "https://www.mongodb.com/directory-web-source",
+      urls: [],
+      directoryUrls: [
+        "https://www.mongodb.com/directory-web-source",
+        "https://www.mongodb.com/another-directory-web-source",
+      ],
       staticMetadata: {
         type: "Directory Web Source",
       },
@@ -118,8 +122,10 @@ describe("prepareWebSources", () => {
   const mockSitemapUrls = [
     "https://www.mongodb.com/directory-web-source/one",
     "https://www.mongodb.com/directory-web-source/two",
+    "https://www.mongodb.com/another-directory-web-source/one",
+    "https://www.mongodb.com/another-directory-web-source/two",
   ];
-  it("processes raw web sources that may be directories into uniform web sources", async () => {
+  it("processes raw web sources that have directories listed", async () => {
     const webSources = await prepareWebSources({
       rawWebSources: mockRawWebSources,
       sitemapUrls: mockSitemapUrls,

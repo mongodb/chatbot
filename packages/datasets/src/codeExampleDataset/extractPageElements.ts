@@ -7,7 +7,6 @@ import { Parent } from "unist";
 import { PersistedPage } from "mongodb-rag-core";
 
 // Import ESM modules dynamically
-
 export async function makePageParser() {
   const { default: remarkGfm } = await import("remark-gfm");
   const { default: remarkParse } = await import("remark-parse");

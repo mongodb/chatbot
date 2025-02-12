@@ -1,18 +1,8 @@
-import "dotenv/config";
-import { OpenAI, AzureOpenAI } from "mongodb-rag-core/openai";
+import { OpenAI } from "mongodb-rag-core/openai";
 import {
   AugmentedAstExtractedCodeblock,
   CodeExampleUtility,
 } from "./AstExtractedCodeBlock";
-import { assertEnvVars } from "mongodb-rag-core";
-import { OPENAI_ENV_VARS } from "./EnvVars";
-
-const {
-  OPENAI_API_KEY,
-  OPENAI_ENDPOINT,
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  OPENAI_API_VERSION,
-} = assertEnvVars(OPENAI_ENV_VARS);
 
 const classifyCodeExampleFunc: OpenAI.FunctionDefinition = {
   name: "classify_code_example",
@@ -339,14 +329,13 @@ const systemMessage = {
   content: systemPrompt,
 } satisfies OpenAI.Chat.ChatCompletionSystemMessageParam;
 
-export function makeClassifyIsUsefulCodeBlockForTraining() {
-  const openAiClient = new AzureOpenAI({
-    apiKey: OPENAI_API_KEY,
-    endpoint: OPENAI_ENDPOINT,
-    apiVersion: OPENAI_API_VERSION,
-    maxRetries: 5,
-  });
-
+export function makeClassifyIsUsefulCodeBlockForTraining({
+  openAiClient,
+  model,
+}: {
+  openAiClient: OpenAI;
+  model: string;
+}) {
   return async function classifyCodeExample({
     codeExample,
   }: {
@@ -359,7 +348,7 @@ ${codeExample.code}
 \`\`\``,
     } satisfies OpenAI.Chat.ChatCompletionUserMessageParam;
     const result = await openAiClient.chat.completions.create({
-      model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+      model,
       messages: [systemMessage, ...fewShotExamples, userMessage],
       temperature: 0,
       max_tokens: 500,

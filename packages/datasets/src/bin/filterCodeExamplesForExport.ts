@@ -6,7 +6,7 @@ import path from "path";
 import { AugmentedAstExtractedCodeblock } from "../AstExtractedCodeBlock.js";
 import "dotenv/config";
 import yaml from "yaml";
-import { forbiddenUrls } from "../forbiddenUrls.js";
+import { forbiddenUrls } from "../mongoDbDatasetConstants.js";
 
 async function main(): Promise<void> {
   const basePath = path.resolve("data");

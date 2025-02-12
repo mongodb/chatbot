@@ -15,3 +15,8 @@ export const forbiddenUrls = new Set([
   "https://mongodb.com/docs/manual/core/replica-set-elections/",
   "https://mongodb.com/docs/manual/core/replica-set-rollbacks/",
 ]);
+
+/**
+  The {@link PersistedPage.sourceName} for public datasets should contain `snooty` (Docs) or `devcenter` (Developer Center).
+ */
+export const publicDatasetSourceName = /snooty|devcenter/;

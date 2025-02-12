@@ -1,14 +1,16 @@
 import "dotenv/config";
-import {
-  AzureKeyCredential,
-  FunctionDefinition,
-  OpenAIClient,
-} from "@azure/openai";
 import { strict as assert } from "assert";
 import { START_SNIPPET, END_SNIPPET } from "./contextualizeCodeBlock.js";
+import { OpenAI, AzureOpenAI } from "mongodb-rag-core/openai";
+import { assertEnvVars } from "mongodb-rag-core";
+import { OPENAI_ENV_VARS } from "./EnvVars.js";
 
-const { OPENAI_API_KEY, OPENAI_ENDPOINT, OPENAI_CHAT_COMPLETION_DEPLOYMENT } =
-  process.env;
+const {
+  OPENAI_API_KEY,
+  OPENAI_API_VERSION,
+  OPENAI_ENDPOINT,
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+} = assertEnvVars(OPENAI_ENV_VARS);
 
 const classificationTypes: ClassificationType[] = [
   {
@@ -140,7 +142,7 @@ ${classificationTypes
 Code snippet with context:
 ${contextStr}`;
 
-const classifyCodeExampleFunc: FunctionDefinition = {
+const classifyCodeExampleFunc: OpenAI.FunctionDefinition = {
   name: "classify_code_example",
   description: "Classify the type of code example",
   parameters: {
@@ -164,39 +166,33 @@ export function makeClassifyCodeExample() {
     OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     "OPENAI_CHAT_COMPLETION_DEPLOYMENT is required"
   );
-  const openAiClient = new OpenAIClient(
-    OPENAI_ENDPOINT,
-    new AzureKeyCredential(OPENAI_API_KEY),
-    {
-      retryOptions: { maxRetries: 5 },
-    }
-  );
+  const openAiClient = new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  });
   return async function classifyCodeExample({
     text,
   }: {
     text: string;
   }): Promise<string> {
-    const messages = [
-      {
-        role: "system",
-        content: makeSystemPrompt(text),
-      },
-    ];
-    const result = await openAiClient.getChatCompletions(
-      OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-      messages,
-
-      {
-        temperature: 0,
-        maxTokens: 300,
-        functions: [classifyCodeExampleFunc],
-        functionCall: {
-          name: classifyCodeExampleFunc.name,
+    const result = await openAiClient.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: makeSystemPrompt(text),
         },
-      }
-    );
+      ],
+      model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+      temperature: 0,
+      max_tokens: 300,
+      functions: [classifyCodeExampleFunc],
+      function_call: {
+        name: classifyCodeExampleFunc.name,
+      },
+    });
     const classificationType = JSON.parse(
-      result?.choices?.[0].message?.functionCall?.arguments ?? ""
+      result?.choices?.[0].message?.function_call?.arguments ?? ""
     ).type as string;
     return classificationType;
   };

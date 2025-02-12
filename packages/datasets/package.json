@@ -29,10 +29,12 @@
     "countUsableExamples": "npm run build && node ./build/bin/countUsableExamples.js",
     "classifyCodeExamplesForUsefulness": "npm run build && node ./build/bin/classifyCodeExamplesForUsefulness.js",
     "convertCodeExamplePromptYamlToCsvUsefulOnly": "npm run build && node ./build/bin/convertCodeExamplePromptYamlToCsvUsefulOnly.js",
-    "countExamplesByLength": "npm run build && node ./build/bin/countExamplesByLength.js"
+    "countExamplesByLength": "npm run build && node ./build/bin/countExamplesByLength.js",
+    "uploadContentDatasetToHuggingFace": "npm run build && node ./build/bin/huggingFace/uploadContentDatasetToHuggingFace.js"
   },
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.12",
+    "@huggingface/hub": "^1.0.1",
     "@supercharge/promise-pool": "^3.2.0",
     "@types/unist": "^3.0.2",
     "csv": "^6.3.9",

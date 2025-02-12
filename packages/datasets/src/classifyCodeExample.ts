@@ -1,5 +1,9 @@
 import "dotenv/config";
-
+import {
+  AzureKeyCredential,
+  FunctionDefinition,
+  OpenAIClient,
+} from "@azure/openai";
 import { strict as assert } from "assert";
 import { START_SNIPPET, END_SNIPPET } from "./contextualizeCodeBlock.js";
 
@@ -136,33 +140,30 @@ ${classificationTypes
 Code snippet with context:
 ${contextStr}`;
 
-export async function makeClassifyCodeExample() {
+const classifyCodeExampleFunc: FunctionDefinition = {
+  name: "classify_code_example",
+  description: "Classify the type of code example",
+  parameters: {
+    type: "object",
+    properties: {
+      type: {
+        type: "string",
+        enum: classificationTypes.map(({ type }) => type),
+        description: "Type of code example",
+      },
+    },
+    required: ["type"],
+    additionalProperties: false,
+  },
+};
+
+export function makeClassifyCodeExample() {
   assert(OPENAI_API_KEY, "OPENAI_API_KEY is required");
   assert(OPENAI_ENDPOINT, "OPENAI_ENDPOINT is required");
   assert(
     OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     "OPENAI_CHAT_COMPLETION_DEPLOYMENT is required"
   );
-
-  const { AzureKeyCredential, OpenAIClient } = await import("@azure/openai");
-
-  const classifyCodeExampleFunc = {
-    name: "classify_code_example",
-    description: "Classify the type of code example",
-    parameters: {
-      type: "object",
-      properties: {
-        type: {
-          type: "string",
-          enum: classificationTypes.map(({ type }) => type),
-          description: "Type of code example",
-        },
-      },
-      required: ["type"],
-      additionalProperties: false,
-    },
-  };
-
   const openAiClient = new OpenAIClient(
     OPENAI_ENDPOINT,
     new AzureKeyCredential(OPENAI_API_KEY),

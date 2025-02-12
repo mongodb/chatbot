@@ -18,7 +18,7 @@ export async function loadPagesDataset(
   return pageStore.aggregatePages<PageDatasetEntry>([
     {
       $match: {
-        dataSource: { $regex: dataSourceRegex },
+        sourceName: { $regex: dataSourceRegex },
         url: { $nin: forbiddenUrls },
         action: { $ne: "deleted" },
       },

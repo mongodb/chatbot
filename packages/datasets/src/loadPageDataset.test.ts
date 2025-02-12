@@ -1,20 +1,12 @@
-// TODO: ...
-import { MongoMemoryServer } from "mongodb-memory-server";
-import { MongoClient, Db, Collection } from "mongodb";
 import {
   makeMongoDbPageStore,
   PersistedPage,
   MongoDbPageStore,
 } from "mongodb-rag-core";
 import { loadPagesDataset } from "./loadPageDataset";
-
+import { MONGO_MEMORY_SERVER_URI } from "./test/constants";
 describe("loadPagesDataset", () => {
-  let mongoServer: MongoMemoryServer;
-  let connectionUri: string;
-  let client: MongoClient;
-  let db: Db;
   let pageStore: MongoDbPageStore;
-  let pagesCollection: Collection<PersistedPage>;
 
   // Create some sample pages
   const samplePages: PersistedPage[] = [
@@ -65,28 +57,19 @@ describe("loadPagesDataset", () => {
   ];
 
   beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    connectionUri = mongoServer.getUri();
-    client = await MongoClient.connect(connectionUri);
-    db = client.db("testdb");
-
     // Create the MongoDbPageStore
     pageStore = makeMongoDbPageStore({
-      connectionUri,
+      connectionUri: MONGO_MEMORY_SERVER_URI,
       databaseName: "testdb",
       collectionName: "pages",
     });
 
-    // Grab a reference to the underlying collection
-    pagesCollection = db.collection<PersistedPage>("pages");
-
-    // Populate the database with our sample pages
-    await pagesCollection.insertMany(samplePages);
+    await pageStore.updatePages(samplePages);
   });
 
   afterAll(async () => {
-    await client.close();
-    await mongoServer.stop();
+    await pageStore.drop();
+    await pageStore.close();
   });
 
   it("should only return pages matching a regex", async () => {
@@ -94,7 +77,9 @@ describe("loadPagesDataset", () => {
     // page1 should be returned, page2 as well if not forbidden & not deleted, page3 is deleted.
     // page4 is filtered out because dataSource doesn't match.
     expect(dataset.map((p) => p.url)).toContain("https://example.com/page1");
-    expect(dataset.map((p) => p.url)).toContain("https://example.com/page2");
+    expect(dataset.map((p) => p.url)).not.toContain(
+      "https://example.com/page2"
+    );
     expect(dataset.map((p) => p.url)).not.toContain(
       "https://example.com/page3"
     );
@@ -106,7 +91,7 @@ describe("loadPagesDataset", () => {
   it("should exclude forbidden urls", async () => {
     const dataset = await loadPagesDataset(
       pageStore,
-      /foo/,
+      /SourceA|SourceB/,
       // forbid page2's URL
       [samplePages[1].url]
     );

@@ -2,9 +2,8 @@ import * as Puppeteer from "puppeteer";
 import { makePuppeteer, makeWebDataSource, scrapePage } from "./WebDataSource";
 import {
   getUrlsFromSitemap,
-  makeWebDataSources,
   prepareWebSources,
-  rawWebSources,
+  RawWebSource,
   WebSource,
 } from "./webSources";
 import fs from "fs";
@@ -95,6 +94,44 @@ describe("getUrlsFromSitemap", () => {
   });
 });
 
+describe("prepareWebSources", () => {
+  const mockRawWebSources: RawWebSource[] = [
+    {
+      name: "directory-web-source",
+      directoryUrl: "https://www.mongodb.com/directory-web-source",
+      staticMetadata: {
+        type: "Directory Web Source",
+      },
+    },
+    {
+      name: "url-web-source",
+      urls: [
+        "https://www.mongodb.com/url-web-source/one",
+        "https://www.mongodb.com/url-web-source/two",
+        "https://www.mongodb.com/url-web-source/three",
+      ],
+      staticMetadata: {
+        type: "Url web source",
+      },
+    },
+  ];
+  const mockSitemapUrls = [
+    "https://www.mongodb.com/directory-web-source/one",
+    "https://www.mongodb.com/directory-web-source/two",
+  ];
+  it("processes raw web sources that may be directories into uniform web sources", async () => {
+    const webSources = await prepareWebSources({
+      rawWebSources: mockRawWebSources,
+      sitemapUrls: mockSitemapUrls,
+    });
+    expect(webSources.length).toBe(mockRawWebSources.length);
+    expect(webSources[0].name).toBe(mockRawWebSources[0].name);
+    expect(webSources[0].urls.length).toBe(mockSitemapUrls.length);
+    expect(webSources[1].name).toBe(mockRawWebSources[1].name);
+    expect(webSources[1].urls.length).toBe(mockRawWebSources[1].urls?.length);
+  });
+});
+
 const webSources: WebSource[] = [
   {
     name: "company",
@@ -125,16 +162,6 @@ const webSources: WebSource[] = [
 ];
 
 describe("WebDataSource", () => {
-  let puppeteerPage: Puppeteer.Page;
-  let puppeteerBrowser: Puppeteer.Browser;
-  beforeAll(async () => {
-    const { page, browser } = await makePuppeteer();
-    puppeteerBrowser = browser;
-    puppeteerPage = page;
-  });
-  afterAll(async () => {
-    await puppeteerBrowser?.close();
-  });
   it("handles list that includes broken links", async () => {
     const source = await makeWebDataSource({
       name: "mongodb-dot-com",
@@ -143,17 +170,17 @@ describe("WebDataSource", () => {
         "https://www.mongodb.com/not-a-real-page",
         "https://www.mongodb.com/products",
       ],
-      puppeteerPage,
+      makePuppeteer,
     });
     const pages = await source.fetchPages();
     expect(pages.length).toBe(2);
     expect(pages[0].url).toBe("https://www.mongodb.com/atlas");
     expect(pages[1].url).toBe("https://www.mongodb.com/products");
   });
-  it("processes data sources", async () => {
+  it("processes data source", async () => {
     const source = await makeWebDataSource({
       ...webSources[0],
-      puppeteerPage,
+      makePuppeteer,
     });
     const pages = await source.fetchPages();
     expect(pages.length).toBe(webSources[0].urls.length);
@@ -161,27 +188,6 @@ describe("WebDataSource", () => {
     expect(pages[0].metadata?.type ?? {}).toBe(
       webSources[0].staticMetadata?.type
     );
-  });
-});
-describe("prepareWebSources", () => {
-  it("processes raw web sources that may be directories into uniform web sources", async () => {
-    const webSources = await prepareWebSources({
-      rawWebSources,
-      sitemapUrl: "https://www.mongodb.com/sitemap-pages.xml",
-      getUrls: () =>
-        getUrlsFromSitemap("https://www.mongodb.com/sitemap-pages.xml"),
-    });
-    expect(webSources.length).toBe(rawWebSources.length);
-  });
-});
-describe("makeWebDataSources", () => {
-  it("processes multiple data sources", async () => {
-    const sources = await makeWebDataSources(webSources);
-    sources.forEach(async (source, index) => {
-      const pages = await source.fetchPages();
-      expect(pages.length).toBe(webSources[index].urls.length);
-      expect(pages[0].url).toBe(webSources[index].urls[0]);
-    });
   });
 });
 

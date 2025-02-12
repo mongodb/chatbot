@@ -1,10 +1,9 @@
-import puppeteer, { Browser } from "puppeteer";
+import puppeteer from "puppeteer";
 import xml2js from "xml2js";
-import { makeWebDataSource } from "./WebDataSource";
 
 export const sitemapURL = "https://www.mongodb.com/sitemap-pages.xml";
 
-type RawWebSource = {
+export type RawWebSource = {
   name: string;
   urls?: string[];
   directoryUrl?: string;
@@ -73,22 +72,15 @@ export type WebSource = {
 
 type PrepareWebSourcesParams = {
   rawWebSources: RawWebSource[];
-  sitemapUrl: string;
-  getUrls: (sitemapURL: string) => Promise<string[]>;
+  sitemapUrls: string[];
 };
 
 /*
-  Prepare web sources by:
-    1. prefixing "web-" to source names
-    2. if the source is a directory and not a list of urls, 
-    use the sitemap to get the urls for the entire directory
-*/
+ */
 export const prepareWebSources = async ({
   rawWebSources,
-  sitemapUrl,
-  getUrls,
+  sitemapUrls,
 }: PrepareWebSourcesParams): Promise<WebSource[]> => {
-  let urlsFromSitemap: string[] = [];
   const webSources: WebSource[] = [];
   for (const rawWebSource of rawWebSources) {
     if (rawWebSource.urls && rawWebSource.directoryUrl) {
@@ -96,12 +88,9 @@ export const prepareWebSources = async ({
     } else if (rawWebSource.urls) {
       webSources.push(rawWebSource as WebSource);
     } else if (rawWebSource.directoryUrl) {
-      if (urlsFromSitemap.length === 0) {
-        urlsFromSitemap = await getUrls(sitemapUrl);
-      }
       webSources.push({
         ...rawWebSource,
-        urls: urlsFromSitemap.filter((url) => url.includes(rawWebSource.name)),
+        urls: sitemapUrls.filter((url) => url.includes(rawWebSource.name)),
       });
     }
   }
@@ -116,22 +105,4 @@ export const makePuppeteer = async () => {
   });
   const page = await browser.newPage();
   return { page, browser };
-};
-
-// Create a data source for each web source
-export const makeWebDataSources = async (webSources: WebSource[]) => {
-  let puppeteerBrowser: Browser | undefined;
-  try {
-    const { page: puppeteerPage, browser } = await makePuppeteer();
-    puppeteerBrowser = browser;
-    return webSources.map((webSource) => {
-      return makeWebDataSource({
-        ...webSource,
-        puppeteerPage,
-      });
-    });
-  } finally {
-    puppeteerBrowser?.close();
-  }
-  // TODO: check if page can be closed
 };

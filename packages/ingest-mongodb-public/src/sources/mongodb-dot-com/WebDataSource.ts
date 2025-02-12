@@ -7,18 +7,19 @@ import * as turndownPluginGfm from "turndown-plugin-gfm";
 import { WebSource } from "./webSources";
 
 interface WebDataSourceParams extends WebSource {
-  puppeteerPage: PuppeteerPage;
+  makePuppeteer: () => Promise<{ page: PuppeteerPage; browser: Browser }>;
 }
 
 export function makeWebDataSource({
   name,
   urls,
   staticMetadata,
-  puppeteerPage,
+  makePuppeteer,
 }: WebDataSourceParams): DataSource {
   return {
     name,
     async fetchPages() {
+      const { page: puppeteerPage, browser } = await makePuppeteer();
       const pages: Page[] = [];
       const errors: string[] = [];
       for await (const url of urls) {
@@ -40,6 +41,7 @@ export function makeWebDataSource({
         }
       }
       logger.error(errors);
+      browser.close();
       return pages;
     },
   };

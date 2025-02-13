@@ -66,7 +66,7 @@ describe("scrapePage", () => {
     }
   });
   afterAll(async () => {
-    await browser.close();
+    await browser?.close();
   });
   test.each(testPages)("$# $name", async ({ url, name }) => {
     const { content } = await scrapePage({

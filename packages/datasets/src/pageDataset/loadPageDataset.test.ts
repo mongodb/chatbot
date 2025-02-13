@@ -122,4 +122,27 @@ describe("loadPagesDataset", () => {
       expect(pageKeys).not.toContain("action");
     }
   });
+  it("should only return pages updated since a given date", async () => {
+    const everythingSince = new Date(samplePages[0].updated.getTime() - 1000);
+    const allDataset = await loadPagesDataset(
+      pageStore,
+      /.*/,
+      [],
+      everythingSince
+    );
+    expect(allDataset).toHaveLength(
+      samplePages.filter((p) => p.action !== "deleted").length
+    );
+
+    const nothingSince = new Date(
+      samplePages[samplePages.length - 1].updated.getTime() + 1000
+    );
+    const nothingDataset = await loadPagesDataset(
+      pageStore,
+      /.*/,
+      [],
+      nothingSince
+    );
+    expect(nothingDataset).toHaveLength(0);
+  });
 });

@@ -1,4 +1,3 @@
-import { PersistedPage } from "mongodb-rag-core";
 import { OpenAI } from "mongodb-rag-core/openai";
 import langMap from "lang-map";
 import {
@@ -8,6 +7,7 @@ import {
 import { AstExtractedCodeblock } from "./AstExtractedCodeBlock";
 import { makeClassifyIsUsefulCodeBlockForTraining } from "./classifyIsUsefulCodeBlockForTraining";
 import { makeCreatePromptsFromText } from "./createPromptsFromText";
+import { PageDatasetEntry } from "../pageDataset/loadPageDataset";
 
 export interface CodeExampleDatasetEntry {
   /**
@@ -87,7 +87,7 @@ export async function makeCreateCodeExampleDatasetEntry({
     page,
     codeBlock,
   }: {
-    page: PersistedPage;
+    page: PageDatasetEntry;
     codeBlock: AstExtractedCodeblock;
   }): Promise<CodeExampleDatasetEntry> {
     // Concurrent LLM API calls

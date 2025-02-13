@@ -1,6 +1,6 @@
 import { MongoDbPageStore, PersistedPage } from "mongodb-rag-core";
 
-type PageDatasetEntry = Pick<
+export type PageDatasetEntry = Pick<
   PersistedPage,
   "url" | "body" | "metadata" | "title" | "sourceName" | "updated" | "format"
 >;
@@ -13,7 +13,8 @@ type PageDatasetEntry = Pick<
 export async function loadPagesDataset(
   pageStore: MongoDbPageStore,
   dataSourceRegex: RegExp,
-  forbiddenUrls: string[]
+  forbiddenUrls: string[],
+  updatedSince?: Date
 ): Promise<PageDatasetEntry[]> {
   return pageStore.aggregatePages<PageDatasetEntry>([
     {
@@ -21,6 +22,7 @@ export async function loadPagesDataset(
         sourceName: { $regex: dataSourceRegex },
         url: { $nin: forbiddenUrls },
         action: { $ne: "deleted" },
+        ...(updatedSince && { updated: { $gt: updatedSince } }),
       },
     },
     {

@@ -48,6 +48,7 @@ export const rawWebSources: RawWebSource[] = [
       "https://www.mongodb.com/services/training",
       "https://www.mongodb.com/services/consulting/ai-accelerator",
       "https://www.mongodb.com/services/consulting/major-version-upgrade",
+      "https://www.mongodb.com/services/consulting/ai-applications-program",
     ],
     staticMetadata: {
       type: "Services",
@@ -166,6 +167,18 @@ export const rawWebSources: RawWebSource[] = [
     ],
     staticMetadata: {
       type: "Resources",
+    },
+  },
+  {
+    name: "web-misc",
+    urls: [
+      "https://www.mongodb.com/partners",
+      "https://www.mongodb.com/partners/partner-program",
+      "https://www.mongodb.com/part",
+      "https://www.mongodb.com/pricing",
+    ],
+    staticMetadata: {
+      type: "Miscellaneous Web",
     },
   },
 

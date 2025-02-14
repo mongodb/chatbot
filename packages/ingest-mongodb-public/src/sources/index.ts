@@ -184,7 +184,7 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
     rawWebSources,
     sitemapUrls,
   });
-
+  
   return await Promise.all(
     webSources.map(async (webSource) => {
       return await makeWebDataSource({
@@ -194,6 +194,7 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
             args: ["--no-sandbox"],
             headless: "new",
             // executablePath: "/opt/homebrew/bin/chromium"
+            executablePath: "/usr/bin/chromium-browser"
             });
           const page = await browser.newPage();
           return { page, browser };

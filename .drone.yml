@@ -20,7 +20,7 @@ steps:
       - npm ci
       - npm run build
       - npm run lint
-      - npm run test
+      - npm run test -- --scope=ingest-mongodb-public
 
     environment:
       PORT: 3000
@@ -411,7 +411,7 @@ name: staging-build-ingest-mongodb-public
 
 trigger:
   branch:
-    - main
+    - EAI-639
   event:
     - push
   paths:

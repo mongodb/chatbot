@@ -40,7 +40,7 @@ export function makeWebDataSource({
           errors.push(error);
         }
       }
-      logger.error(errors);
+      if (errors.length) logger.error(errors);
       await browser.close();
       return pages;
     },

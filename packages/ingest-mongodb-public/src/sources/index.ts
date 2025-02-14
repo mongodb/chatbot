@@ -35,8 +35,8 @@ import {
   getUrlsFromSitemap,
   prepareWebSources,
   rawWebSources,
-} from "./mongodb-dot-com/webSources";
-import { makeWebDataSource } from "./mongodb-dot-com/WebDataSource";
+} from "./mongodbDotCom/webSources";
+import { makeWebDataSource } from "./mongodbDotCom/WebDataSource";
 
 /**
   Async constructor for specific data sources -- parameters baked in.

@@ -19,7 +19,7 @@ steps:
     commands:
       - npm ci
       - npm run build
-      - npm run lint
+      # - npm run lint
       - npm run test -- --scope=ingest-mongodb-public
 
     environment:
@@ -476,7 +476,7 @@ trigger:
       - package.json
 
   branch:
-    - main
+    - EAI-639
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion

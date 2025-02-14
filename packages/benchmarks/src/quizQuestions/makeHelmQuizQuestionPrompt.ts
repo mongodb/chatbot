@@ -95,19 +95,33 @@ Only provide the answer the final question using the exact same format as the pr
     role: "system",
     content: systemPromptContent,
   } satisfies ChatMessage;
-  const fewShotExamples = quizQuestionExamples?.map(
-    (quizQuestionExample) =>
-      [
-        {
-          role: "user",
-          content: quizQuestionToHelmPrompt(quizQuestionExample, false),
-        },
-        {
-          role: "assistant",
-          content: quizQuestionToHelmAnswer(quizQuestionExample),
-        },
-      ] satisfies ChatMessage[]
-  );
+  const fewShotExamples = quizQuestionExamples
+    ?.filter((quizQuestionExample) => {
+      // if single correct, only include examples with one correct answer
+      if (quizQuestionExample.questionType === "singleCorrect") {
+        return (
+          quizQuestionExample.answers?.filter((answer) => answer.isCorrect)
+            .length === 1
+        );
+      }
+
+      // if multiple correct, include all examples
+      return true;
+    })
+    ?.map(
+      (quizQuestionExample) =>
+        [
+          {
+            role: "user",
+            content: quizQuestionToHelmPrompt(quizQuestionExample, false),
+          },
+          {
+            role: "assistant",
+            content: quizQuestionToHelmAnswer(quizQuestionExample),
+          },
+        ] satisfies ChatMessage[]
+    );
+
   const currentQuestion = {
     role: "user",
     content: quizQuestionToHelmPrompt(quizQuestion, false),

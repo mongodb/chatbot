@@ -9,8 +9,8 @@ const subject = "food";
 const testQuestion = {
   contentTitle: "Best foods",
   title: "Best foods",
-  topicType: "food",
-  questionType: "multiple_choice",
+  topicType: "quiz",
+  questionType: "multipleCorrect",
   questionText: "What's the best Italian food?",
   answers: [
     {
@@ -106,5 +106,11 @@ describe("makeHelmQuizQuestionPrompt", () => {
         "The following are multiple choice questions (with answers)."
       )
     ).toBe(true);
+  });
+  it("should include few-shot examples", () => {
+    // todo
+  });
+  it("should only include examples with one correct answer for topicType=singleCorrect questions", () => {
+    // todo
   });
 });

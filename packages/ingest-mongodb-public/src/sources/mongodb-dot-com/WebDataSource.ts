@@ -196,7 +196,7 @@ async function scrapePage({
   let content: PageContent | null = null;
   let error: string | null = null;
   try {
-    const response = await puppeteerPage.goto(url, {
+    const response = await puppeteerPage.goto(`${url}?optimizely_x=0`, {
       waitUntil: "networkidle0",
     });
     if (response?.status() === 404) {

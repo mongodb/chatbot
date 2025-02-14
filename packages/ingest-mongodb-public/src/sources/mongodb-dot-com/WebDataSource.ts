@@ -196,7 +196,9 @@ async function scrapePage({
   let content: PageContent | null = null;
   let error: string | null = null;
   try {
-    const response = await puppeteerPage.goto(`${url}?optimizely_x=0`, {
+    const urlObj = new URL(url);
+    urlObj.searchParams.set("optimizely_x", "0");
+    const response = await puppeteerPage.goto(urlObj.toString(), {
       waitUntil: "networkidle0",
     });
     if (response?.status() === 404) {

@@ -9,11 +9,13 @@ import { PersistedPage, Page } from "./Page";
 export const getChangedPages = async ({
   oldPages: oldPagesIn,
   newPages: newPagesIn,
+  sourceName,
 }: {
   // Need to know the 'action' of the old pages in order to restore in case of
   // prior deletion
   oldPages: Omit<PersistedPage, "updated">[];
   newPages: Page[];
+  sourceName?: string;
 }): Promise<{
   deleted: PersistedPage[];
   created: PersistedPage[];
@@ -23,11 +25,13 @@ export const getChangedPages = async ({
   const newPages = new Map(newPagesIn.map((page) => [page.url, page]));
 
   logger.info(
-    `After de-duplication based on page URL, have ${oldPages.size} unique old / ${newPages.size} unique new pages`
+    `After de-duplication based on page URL, there are ${oldPages.size} pages currently in the store and ${newPages.size} pages from the data source ${sourceName} to be processed.`
   );
 
   // Perform set difference to find deleted, created, and changed pages.
-
+  logger.info(
+    `Comparing pages currently in the store against pages from the data source ${sourceName} to determine which pages need to be created, updated, or deleted...`
+  );
   // deleted = elements in old but not in new
   const deleted = [...oldPages]
     .filter(([url, { action }]) => {
@@ -64,7 +68,7 @@ export const getChangedPages = async ({
       })
     );
 
-  // updated = elements in both old and new
+  // updated = elements in both old and new (that have the same url, but different content)
   const updated = [...newPages]
     .filter(([url, page]) => {
       const oldPage = oldPages.get(url);

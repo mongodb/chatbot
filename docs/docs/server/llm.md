@@ -5,7 +5,7 @@ to chat with a large language model (LLM).
 
 ## Configure the `ChatLlm`
 
-The [`ChatLlm`](../reference/server/interfaces/ChatLlm.md) is the interface
+The [`ChatLlm`](../reference/core/interfaces/Llm.ChatLlm.md) is the interface
 between the chatbot server and the LLM.
 
 The MongoDB Chatbot Server comes with an implementation of the `ChatLlm`,
@@ -31,14 +31,11 @@ The following are useful things to keep in mind when using an LLM:
 
 ### Use OpenAI API
 
-You can use the [`makeOpenAiChatLlm()`](../reference/server/modules.md#makeopenaichatllm)
+You can use the [`makeOpenAiChatLlm()`](../reference/core/namespaces/Llm.md#makeopenaichatllm)
 constructor function to create a `ChatLlm` that uses an OpenAI model like GPT-3.5.
 
 `makeOpenAiChatLlm()` supports both the OpenAI API and Azure OpenAI Service.
-It wraps the `@azure/openai` package, which supports both of these services.
-
-To use the `@azure/openai` package with the OpenAI API,
-refer to [this documentation](https://www.npmjs.com/package/@azure/openai#using-an-api-key-from-openai).
+It wraps the `openai` package, which supports both of these services.
 
 The following is an example implementation of `makeOpenAiChatLlm()`:
 
@@ -63,7 +60,7 @@ export const llm = makeOpenAiChatLlm({
 
 ### Use Langchain `ChatModel`
 
-You can use the [`makeLangchainChatLlm()`](../reference/server/modules.md#makelangchainchatllm) constructor function to create a `ChatLlm` that uses a Langchain `ChatModel`. For more information on available `ChatModel` implementations, refer to the [Chat Models](https://js.langchain.com/docs/integrations/chat/) in the Langchain documentation.
+You can use the [`makeLangchainChatLlm()`](../reference/core/namespaces/Llm.md#makelangchainchatllm) constructor function to create a `ChatLlm` that uses a Langchain `ChatModel`. For more information on available `ChatModel` implementations, refer to the [Chat Models](https://js.langchain.com/docs/integrations/chat/) in the Langchain documentation.
 
 The following is an example implementation of using `makeLangchainChatLlm()` to
 use Anthropic's Claude family of models:
@@ -158,7 +155,7 @@ import {
   SystemPrompt,
   ConversationsRouterParams,
 } from "mongodb-chatbot-server";
-import { MongoClient } from "mongodb";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 
 // System prompt for chatbot
 const systemPrompt: SystemPrompt = {

@@ -36,7 +36,8 @@
     "lint": "eslint ./src --ext ts,tsx,js,jsx --report-unused-disable-directives",
     "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
     "docs": "npx typedoc --excludePrivate --exclude '**/*.test.ts' --out docs src",
-    "release": "release-it"
+    "release": "release-it",
+    "upload": "node ./build/main.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",

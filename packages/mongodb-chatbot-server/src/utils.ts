@@ -10,13 +10,13 @@ import { stripIndent } from "common-tags";
   a truthy string.
   @param req
  */
-export const getRequestId = (req: ExpressRequest) => {
+export function getRequestId<T extends ExpressRequest>(req: T) {
   const reqId = req.header("req-id");
   if (!reqId) {
     return "";
   }
   return reqId;
-};
+}
 
 export interface LogRequestParams {
   reqId: string;
@@ -53,7 +53,9 @@ export const sendErrorResponse = ({
     message: stripIndent`Responding with ${httpStatus} status and error message: ${errorMessage}.
     ${errorDetails ? `Error details: ${errorDetails}` : ""}`,
   });
-  return res.status(httpStatus).json({ error: errorMessage });
+  if (!res.writableEnded) {
+    return res.status(httpStatus).json({ error: errorMessage });
+  }
 };
 
 export function retryAsyncOperation<T>(

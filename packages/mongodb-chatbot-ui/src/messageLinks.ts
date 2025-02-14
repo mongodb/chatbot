@@ -1,10 +1,10 @@
 import { isRichLinkVariantName, type RichLinkProps } from "@lg-chat/rich-links";
-import { References } from "mongodb-rag-core";
 import {
   isReferenceToDomain,
   makePrioritizeReferenceDomain,
+  type References,
   SortReferences,
-} from "./sortReferences";
+} from "./references";
 import { addQueryParams, getCurrentPageUrl } from "./utils";
 import { MessageData } from "./services/conversations";
 

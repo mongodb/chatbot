@@ -153,3 +153,12 @@ export type DeepPartial<T> = {
 export function isProductionBuild() {
   return import.meta.env.MODE === "production";
 }
+
+/**
+  A function that only runs if we're not in a production build.
+ */
+export function nonProd(fn: () => void): void {
+  if (!isProductionBuild()) {
+    fn();
+  }
+}

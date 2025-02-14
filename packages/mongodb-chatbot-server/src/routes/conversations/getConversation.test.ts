@@ -6,6 +6,8 @@ import { AppConfig, DEFAULT_API_PREFIX } from "../../app";
 import { ApiConversation } from "./utils";
 const CONVERSATIONS_API_V1_PREFIX = DEFAULT_API_PREFIX + "/conversations";
 
+jest.setTimeout(30000);
+
 describe("GET /conversations/:conversationId", () => {
   let appConfig: AppConfig;
   let conversations: ConversationsService;

@@ -28,7 +28,7 @@ graph TD
 
 ## Define a Tool
 
-To make a tool, define an object that implements the [`Tool`](../reference/server/interfaces/Tool.md) interface.
+To make a tool, define an object that implements the [`Tool`](../reference/core/interfaces/Llm.Tool.md) interface.
 
 A tool must include a `definition` property that is a function definition for the LLM to invoke. This must be JSON schema that corresponds to the [OpenAI function definition format](https://platform.openai.com/docs/assistants/tools/function-calling).
 The tool responds LLM-generated arguments that correspond to this JSON schema.
@@ -41,6 +41,7 @@ and whether the user query should be rejected.
 // weatherTool.ts
 
 import { Tool } from "mongodb-chatbot-server";
+
 export const weatherTool: Tool = {
   definition: {
     name: "getCurrentWeather",
@@ -73,9 +74,9 @@ export const weatherTool: Tool = {
 
 ## Give Tools to the ChatLLM
 
-To give the chatbot access to the tool, you must provide the [`ChatLlm`](../reference/server/interfaces/ChatLlm.md) with the tool.
+To give the chatbot access to the tool, you must provide the [`ChatLlm`](../reference/core/interfaces/Llm.ChatLlm.md) with the tool.
 
-The [`makeOpenAiChatLlm()`](../reference/server/modules.md#makeopenaichatllm)
+The [`makeOpenAiChatLlm()`](../reference/core/namespaces/Llm.md#makeopenaichatllm)
 function, which you can use to instantiate a client for an OpenAI model, takes a `tools` argument.
 Provide an array of tools to the `tools` argument.
 
@@ -84,10 +85,12 @@ Provide an array of tools to the `tools` argument.
 import { makeOpenAiChatLlm, OpenAiChatMessage } from "mongodb-chatbot-server";
 import { weatherTool } from "./weatherTool";
 
-export const openAiClient = new OpenAIClient(
-  OPENAI_ENDPOINT,
-  new AzureKeyCredential(OPENAI_API_KEY)
-);
+export const openAiClient = new AzureOpenAI({
+  apiKey: OPENAI_API_KEY,
+  endpoint: OPENAI_ENDPOINT,
+  apiVersion: OPENAI_API_VERSION,
+});
+ 
 
 export const weatherChatLlm = makeOpenAiChatLlm({
   openAiClient,

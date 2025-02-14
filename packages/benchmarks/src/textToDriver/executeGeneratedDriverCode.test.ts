@@ -4,21 +4,20 @@ import {
   Collection,
   Document,
 } from "mongodb-rag-core/mongodb";
-import { MongoMemoryServer } from "mongodb-memory-server";
 import { executeGeneratedDriverCode } from "./executeGeneratedDriverCode";
+import { MONGO_MEMORY_SERVER_URI } from "../test/constants";
+
 describe("executeGeneratedDriverCode", () => {
   jest.setTimeout(60000);
-  let mongoServer: MongoMemoryServer;
   let mongoClient: MongoClient;
   let db: Db;
   let collection: Collection<Document>;
-  const databaseName = "testdb";
+  const databaseName = "executeGeneratedDriverCode";
   const collectionName = "testCollection";
 
   beforeAll(async () => {
     // Start in-memory MongoDB instance
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
+    const uri = MONGO_MEMORY_SERVER_URI;
 
     mongoClient = new MongoClient(uri);
     await mongoClient.connect();
@@ -35,7 +34,6 @@ describe("executeGeneratedDriverCode", () => {
   afterAll(async () => {
     // Clean up
     await mongoClient.close();
-    await mongoServer.stop();
   });
 
   it("should execute generated driver code", async () => {

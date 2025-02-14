@@ -1,6 +1,6 @@
 {
   "name": "chatbot-server-mongodb-public",
-  "version": "0.13.1",
+  "version": "0.15.1",
   "license": "Apache-2.0",
   "description": "Chatbot server for the MongoDB Docs AI chatbot.",
   "author": "MongoDB, Inc.",
@@ -26,6 +26,7 @@
     "evaluate": "braintrust eval"
   },
   "dependencies": {
+    "@slack/web-api": "^7.8.0",
     "common-tags": "^1.8.2",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.3",
@@ -34,6 +35,8 @@
     "mongodb-chatbot-verified-answers": "*",
     "mongodb-rag-core": "*",
     "pm2": "^5.3.0",
+    "slack-block-builder": "^2.8.0",
+    "slackify-markdown": "^4.4.0",
     "zod": "^3.23.8",
     "zod-to-json-schema": "^3.23.2"
   },
@@ -50,7 +53,6 @@
     "@typescript-eslint/parser": "^5.58.0",
     "autoevals": "^0.0.92",
     "babel-jest": "^29.5.0",
-    "braintrust": "^0.0.167",
     "eslint": "^8.38.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-jest": "^27.2.1",

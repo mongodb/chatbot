@@ -66,12 +66,6 @@ export const withConfig = async <T>(
   const config = await loadConfig(args);
   const [resolvedConfig, cleanup] = await resolveConfig(config);
   try {
-    // TODO: after merge of EAI-482, create separate commands for the init() calls.
-    // e.g. `ingest pages init` and `ingest embed init`
-    // will make sense after that PR b/c that refactors current `pages` and `embed`
-    // commands to have sub-actions, e.g. `pages update` and `pages delete`
-    await resolvedConfig?.embeddedContentStore?.init?.();
-    await resolvedConfig?.pageStore?.init?.();
     return await action(resolvedConfig, args);
   } finally {
     await Promise.all(

@@ -4,7 +4,12 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { SystemMessage } from "mongodb-rag-core";
+import {
+  DbMessage,
+  FunctionMessage,
+  Message,
+  SystemMessage,
+} from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   ConversationsService,
@@ -29,7 +34,9 @@ import {
 import { GenerateUserPromptFunc } from "../../processors/GenerateUserPromptFunc";
 import { FilterPreviousMessages } from "../../processors/FilterPreviousMessages";
 import { filterOnlySystemPrompt } from "../../processors/filterOnlySystemPrompt";
-import { generateResponse } from "../generateResponse";
+import { generateResponse, GenerateResponseParams } from "../generateResponse";
+import { wrapTraced } from "mongodb-rag-core/braintrust";
+import { UpdateTraceFunc, updateTraceIfExists } from "./UpdateTraceFunc";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 3000; // magic number for max input size for LLM
 export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for max messages in a conversation
@@ -84,7 +91,24 @@ export interface AddMessageToConversationRouteParams {
      */
     systemMessage?: SystemMessage;
   };
+
+  /**
+    Custom function to update the Braintrust tracing
+    after the response has been sent to the user.
+    Can add additional tags, scores, etc.
+   */
+  updateTrace?: UpdateTraceFunc;
 }
+
+type MakeTracedResponseParams = Pick<
+  GenerateResponseParams,
+  | "latestMessageText"
+  | "customData"
+  | "dataStreamer"
+  | "shouldStream"
+  | "reqId"
+  | "conversation"
+>;
 
 export function makeAddMessageToConversationRoute({
   conversations,
@@ -95,7 +119,61 @@ export function makeAddMessageToConversationRoute({
   filterPreviousMessages = filterOnlySystemPrompt,
   addMessageToConversationCustomData,
   createConversation,
+  updateTrace,
 }: AddMessageToConversationRouteParams) {
+  const generateResponseTraced = function ({
+    latestMessageText,
+    customData,
+    dataStreamer,
+    shouldStream,
+    reqId,
+    conversation,
+    traceId,
+  }: MakeTracedResponseParams & { traceId: string }) {
+    const tracedFunc = wrapTraced(
+      ({
+        latestMessageText,
+        customData,
+        dataStreamer,
+        shouldStream,
+        reqId,
+        conversation,
+      }: MakeTracedResponseParams) => {
+        return generateResponse({
+          latestMessageText,
+          customData,
+          dataStreamer,
+          shouldStream,
+          reqId,
+          llm,
+          conversation,
+          generateUserPrompt,
+          filterPreviousMessages,
+          llmNotWorkingMessage:
+            conversations.conversationConstants.LLM_NOT_WORKING,
+          noRelevantContentMessage:
+            conversations.conversationConstants.NO_RELEVANT_CONTENT,
+        });
+      },
+      {
+        name: "generateResponse",
+        event: {
+          id: traceId,
+          metadata: {
+            conversationId: conversation._id.toHexString(),
+          },
+        },
+      }
+    );
+    return tracedFunc({
+      latestMessageText,
+      customData,
+      dataStreamer,
+      shouldStream,
+      reqId,
+      conversation,
+    });
+  };
   return async (
     req: ExpressRequest<AddMessageRequest["params"]>,
     res: ExpressResponse<ApiMessage, ConversationsRouterLocals>
@@ -162,22 +240,44 @@ export function makeAddMessageToConversationRoute({
         dataStreamer.connect(res);
       }
 
-      // --- GENERATE RESPONSE  ---
-      // TODO: make sure we are returning the new user message too
-      const { messages } = await generateResponse({
-        llm,
-        conversation,
+      const assistantResponseMessageId = new ObjectId();
+
+      // Only include the necessary message info for the conversastion.
+      // This sends less data to Braintrust speeding up tracing
+      // and also being more readable in the Braintrust UI.
+      const traceConversation: Conversation = {
+        ...conversation,
+        messages: conversation.messages.map((message) => {
+          const baseFields = {
+            content: message.content,
+            id: message.id,
+            createdAt: message.createdAt,
+            metadata: message.metadata,
+          };
+
+          if (message.role === "function") {
+            return {
+              role: "function",
+              name: message.name,
+              ...baseFields,
+            } satisfies DbMessage<FunctionMessage>;
+          } else {
+            return { ...baseFields, role: message.role } satisfies Exclude<
+              Message,
+              FunctionMessage
+            >;
+          }
+        }),
+      };
+
+      const { messages } = await generateResponseTraced({
+        conversation: traceConversation,
         latestMessageText,
-        generateUserPrompt,
-        filterPreviousMessages,
         customData,
         dataStreamer,
         shouldStream,
         reqId,
-        llmNotWorkingMessage:
-          conversations.conversationConstants.LLM_NOT_WORKING,
-        noRelevantContentMessage:
-          conversations.conversationConstants.NO_RELEVANT_CONTENT,
+        traceId: assistantResponseMessageId.toHexString(),
       });
 
       // --- SAVE QUESTION & RESPONSE ---
@@ -185,6 +285,7 @@ export function makeAddMessageToConversationRoute({
         conversations,
         conversation,
         messages,
+        assistantResponseMessageId,
       });
       const dbAssistantMessage = dbNewMessages[dbNewMessages.length - 1];
 
@@ -204,6 +305,16 @@ export function makeAddMessageToConversationRoute({
         dataStreamer.streamData({
           type: "finished",
           data: apiRes.id,
+        });
+        if (dataStreamer.connected) {
+          dataStreamer.disconnect();
+        }
+
+        await updateTraceIfExists({
+          updateTrace,
+          conversations,
+          conversationId: conversation._id,
+          assistantResponseMessageId: dbAssistantMessage.id,
         });
       }
     } catch (error) {
@@ -257,13 +368,21 @@ interface AddMessagesToDatabaseParams {
   conversation: Conversation;
   conversations: ConversationsService;
   messages: SomeMessage[];
+  assistantResponseMessageId: ObjectId;
 }
 
 async function addMessagesToDatabase({
   conversation,
   conversations,
   messages,
+  assistantResponseMessageId,
 }: AddMessagesToDatabaseParams) {
+  (
+    messages as Parameters<
+      typeof conversations.addManyConversationMessages
+    >[0]["messages"]
+  )[messages.length - 1].id = assistantResponseMessageId;
+
   const conversationId = conversation._id;
   const dbMessages = await conversations.addManyConversationMessages({
     conversationId,

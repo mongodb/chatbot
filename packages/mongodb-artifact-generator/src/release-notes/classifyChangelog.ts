@@ -4,7 +4,7 @@ import { makeClassifyChangelogAudience } from "./classifyChangelogAudience";
 import { makeClassifyChangelogScope } from "./classifyChangelogScope";
 import { iOfN } from "../utils";
 import { RunLogger } from "../runlogger";
-import { Classification } from "../chat/makeClassifier";
+import { Classification } from "mongodb-rag-core";
 
 export type ClassifiedChangelog = {
   audience: Classification;
@@ -14,19 +14,23 @@ export type ClassifiedChangelog = {
 
 export type MakeClassifyChangelogScope = {
   openAiClient: OpenAI;
+  model: string;
   logger?: RunLogger;
 };
 
 export function makeClassifyChangelog({
   openAiClient,
+  model,
   logger,
 }: MakeClassifyChangelogScope) {
   const classifyChangelogAudience = makeClassifyChangelogAudience({
     openAiClient,
+    model,
     logger,
   });
   const classifyChangelogScope = makeClassifyChangelogScope({
     openAiClient,
+    model,
     logger,
   });
 
@@ -35,8 +39,12 @@ export function makeClassifyChangelog({
   }: {
     changelog: string;
   }): Promise<ClassifiedChangelog> {
-    const audience = await classifyChangelogAudience({ input: changelog });
-    const scope = await classifyChangelogScope({ input: changelog });
+    const { classification: audience } = await classifyChangelogAudience({
+      input: changelog,
+    });
+    const { classification: scope } = await classifyChangelogScope({
+      input: changelog,
+    });
 
     return {
       audience,
@@ -49,8 +57,13 @@ export function makeClassifyChangelog({
 export function makeClassifyChangelogs({
   openAiClient,
   logger,
+  model,
 }: MakeClassifyChangelogScope) {
-  const classifyChangelog = makeClassifyChangelog({ openAiClient, logger });
+  const classifyChangelog = makeClassifyChangelog({
+    openAiClient,
+    logger,
+    model,
+  });
 
   return async function classifyChangelogs({
     changelogs,

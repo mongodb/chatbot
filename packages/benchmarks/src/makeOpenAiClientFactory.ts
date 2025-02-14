@@ -6,7 +6,7 @@ import {
 } from "@aws-sdk/client-bedrock-runtime";
 import { ModelConfig } from "./models";
 import { strict as assert } from "assert";
-import { wrapOpenAI, wrapTraced } from "braintrust";
+import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
 interface BaseModelProviderConfig {
   apiKey: string;
   endpoint: string;

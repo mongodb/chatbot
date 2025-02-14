@@ -35,7 +35,6 @@ import {
   makePuppeteer,
   prepareWebSources,
   rawWebSources,
-  sitemapURL,
 } from "./mongodb-dot-com/webSources";
 import { makeWebDataSource } from "./mongodb-dot-com/WebDataSource";
 
@@ -178,7 +177,7 @@ function getTerraformPageUrl(siteBaseUrl: string, path: string) {
 }
 
 const webDataSourceConstructor = async (): Promise<DataSource[]> => {
-  const sitemapUrls = await getUrlsFromSitemap(sitemapURL);
+  const sitemapUrls = await getUrlsFromSitemap("https://www.mongodb.com/sitemap-pages.xml");
   const webSources = await prepareWebSources({
     rawWebSources,
     sitemapUrls,

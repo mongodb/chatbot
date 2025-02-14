@@ -1,8 +1,6 @@
 import puppeteer from "puppeteer";
 import xml2js from "xml2js";
 
-export const sitemapURL = "https://www.mongodb.com/sitemap-pages.xml";
-
 export type RawWebSource = {
   /**
    The name of the web source.

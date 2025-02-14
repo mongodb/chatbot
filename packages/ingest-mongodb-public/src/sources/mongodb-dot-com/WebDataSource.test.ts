@@ -82,7 +82,7 @@ describe("WebDataSource", () => {
   const mockPuppeteer = {
     page: {
       goto: jest.fn().mockImplementation((url) => {
-        if (url === "https://www.mongodb.com/not-a-real-page") {
+        if (url.includes("not-a-real-page")) {
           return { status: () => 404 };
         }
         return { status: () => 200 };

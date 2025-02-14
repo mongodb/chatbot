@@ -15,12 +15,10 @@ RUN apk add --no-cache \
 # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
-# Puppeteer v13.5.0 works with Chromium 100.
-RUN npm install puppeteer@13.5.0
-
 WORKDIR /bin
 COPY . ./
 RUN npm install lerna
+RUN npm install puppeteer
 RUN npm run bootstrap -- --scope='{mongodb-rag-core,mongodb-rag-ingest,ingest-mongodb-public}'
 RUN npm run build -- --scope='{mongodb-rag-core,mongodb-rag-ingest,ingest-mongodb-public}'
 

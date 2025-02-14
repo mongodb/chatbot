@@ -41,7 +41,7 @@ export function makeWebDataSource({
         }
       }
       logger.error(errors);
-      browser.close();
+      await browser.close();
       return pages;
     },
   };

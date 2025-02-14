@@ -1,96 +1,36 @@
 import * as Puppeteer from "puppeteer";
-import { makePuppeteer, makeWebDataSource, scrapePage } from "./WebDataSource";
+import { makeWebDataSource } from "./WebDataSource";
 import {
   getUrlsFromSitemap,
   prepareWebSources,
   RawWebSource,
-  WebSource,
 } from "./webSources";
 import fs from "fs";
 import path from "path";
 jest.setTimeout(60000);
 
-const testPages = [
-  {
-    name: "company",
-    url: "https://www.mongodb.com/company",
-  },
-  {
-    name: "version",
-    url: "https://www.mongodb.com/products/updates/version-release",
-  },
-  {
-    name: "enterprise-advanced",
-    url: "https://www.mongodb.com/products/self-managed/enterprise-advanced",
-  },
-  {
-    name: "leadership",
-    url: "https://www.mongodb.com/leadership",
-  },
-  {
-    name: "customer-case-studies-landing",
-    url: "https://www.mongodb.com/solutions/customer-case-studies",
-  },
-  {
-    name: "customer-case-study-novo-nordisk",
-    url: "https://www.mongodb.com/solutions/customer-case-studies/novo-nordisk",
-  },
-  {
-    name: "no-sql-explained",
-    url: "https://www.mongodb.com/resources/basics/databases/nosql-explained/",
-  },
-  {
-    name: "database-architecture",
-    url: "https://www.mongodb.com/resources/basics/databases/database-architecture/",
-  },
-  {
-    name: "solutions-library-landing",
-    url: "https://www.mongodb.com/solutions/solutions-library/",
-  },
-  {
-    name: "solutions-library-ai-powered-call-centers",
-    url: "https://www.mongodb.com/solutions/solutions-library/ai-powered-call-centers",
-  },
-];
+global.fetch = jest.fn();
 
-describe("scrapePage", () => {
-  let puppeteerPage: Puppeteer.Page;
-  let browser: Puppeteer.Browser;
-  const pathOut = path.join("testOutput");
-  beforeAll(async () => {
-    const { page: p, browser: b } = await makePuppeteer();
-    puppeteerPage = p;
-    browser = b;
-    if (!fs.existsSync(pathOut)) {
-      fs.mkdirSync(pathOut);
-    }
-  });
-  afterAll(async () => {
-    await browser?.close();
-  });
-  test.each(testPages)("$# $name", async ({ url, name }) => {
-    const { content } = await scrapePage({
-      url: url,
-      puppeteerPage,
-    });
-    fs.writeFileSync(path.join(pathOut, `${name}.md`), content?.body);
-  });
-  it("handles broken links that lead to a 404", async () => {
-    const { content, error } = await scrapePage({
-      url: "https://www.mongodb.com/not-a-real-page",
-      puppeteerPage,
-    });
-    expect(content).toBeNull();
-    expect(error).toEqual(expect.stringContaining("404"));
-  });
-});
+const SRC_ROOT = path.resolve(__dirname, "../../");
 
 describe("getUrlsFromSitemap", () => {
-  const sitemapURL = "https://www.mongodb.com/sitemap-pages.xml";
-  it("should get urls from sitemap", async () => {
-    const urls = await getUrlsFromSitemap(sitemapURL);
+  it("should return an array of URLs from the sitemap", async () => {
+    const sitemapPath = path.resolve(SRC_ROOT, "../testData/sitemap-pages.xml");
+    const sitemapXML = fs.readFileSync(sitemapPath, "utf8");
+    (global.fetch as jest.Mock).mockResolvedValue({
+      text: jest.fn().mockResolvedValue(sitemapXML),
+    });
+    const urls = await getUrlsFromSitemap("http://example.com/sitemap.xml");
+    expect(urls).toBeInstanceOf(Array);
     expect(urls.length).toBeGreaterThan(0);
-    expect(urls[0]).toContain("https://www.mongodb.com");
+    expect(typeof urls[0]).toBe("string");
+    expect(urls).toStrictEqual([
+      "https://www.mongodb.com/blog/post/supercharge-ai-data-management-knowledge-graphs",
+      "https://www.mongodb.com/blog/post/reintroducing-versioned-mongodb-atlas-administration-api",
+      "https://www.mongodb.com/blog/post/building-gen-ai-mongodb-ai-partners-january-2025",
+      "https://www.mongodb.com/blog/post/mongodb-empowers-isvs-to-drive-saas-innovation-india",
+      "https://www.mongodb.com/blog/post/simplify-security-at-scale-resource-policies-mongodb-atlas",
+    ]);
   });
 });
 
@@ -125,76 +65,83 @@ describe("prepareWebSources", () => {
     "https://www.mongodb.com/another-directory-web-source/one",
     "https://www.mongodb.com/another-directory-web-source/two",
   ];
-  it("processes raw web sources that have directories listed", async () => {
+  it("processes raw web sources that have directories listed to create a url list", async () => {
     const webSources = await prepareWebSources({
       rawWebSources: mockRawWebSources,
       sitemapUrls: mockSitemapUrls,
     });
-    expect(webSources.length).toBe(mockRawWebSources.length);
-    expect(webSources[0].name).toBe(mockRawWebSources[0].name);
-    expect(webSources[0].urls.length).toBe(mockSitemapUrls.length);
-    expect(webSources[1].name).toBe(mockRawWebSources[1].name);
-    expect(webSources[1].urls.length).toBe(mockRawWebSources[1].urls?.length);
+    expect(webSources.length).toBe(2);
+    const [directoryWebSource, urlWebSource] = webSources;
+    expect(directoryWebSource.urls.length).toBe(4);
+    expect(directoryWebSource.urls).toStrictEqual(mockSitemapUrls);
+    expect(urlWebSource.urls).toStrictEqual(mockRawWebSources[1].urls);
   });
 });
-
-const webSources: WebSource[] = [
-  {
-    name: "company",
-    urls: [
-      "https://www.mongodb.com/company",
-      "https://www.mongodb.com/company/our-story",
-      "https://www.mongodb.com/company/leadership-principles",
-      "https://www.mongodb.com/company/values",
-      "https://www.mongodb.com/company/careers",
-    ],
-    staticMetadata: {
-      type: "Company",
-    },
-  },
-  {
-    name: "services",
-    urls: [
-      "https://www.mongodb.com/services/consulting",
-      "https://www.mongodb.com/services/consulting/flex-consulting",
-      "https://www.mongodb.com/services/training",
-      "https://www.mongodb.com/services/consulting/ai-accelerator",
-      "https://www.mongodb.com/services/consulting/major-version-upgrade",
-    ],
-    staticMetadata: {
-      type: "Services",
-    },
-  },
-];
 
 describe("WebDataSource", () => {
-  it("handles list that includes broken links", async () => {
+  const mockPuppeteer = {
+    page: {
+      goto: jest.fn().mockImplementation((url) => {
+        if (url === "https://www.mongodb.com/not-a-real-page") {
+          return { status: () => 404 };
+        }
+        return { status: () => 200 };
+      }),
+      evaluate: jest.fn().mockImplementation(() => {
+        const html = fs.readFileSync(
+          path.resolve(SRC_ROOT, "../testData/mongodbdotcom-company-page.html"),
+          "utf-8"
+        );
+        return {
+          bodyInnerHtml: html,
+          headInnerHtml: html,
+        };
+      }),
+    } as unknown as Puppeteer.Page,
+    browser: {
+      close: jest.fn(),
+    } as unknown as Puppeteer.Browser,
+  };
+
+  const makeMockPuppeteer = async () => mockPuppeteer;
+
+  it("handles empty urls list", async () => {
+    const source = await makeWebDataSource({
+      name: "empty-source",
+      urls: [],
+      makePuppeteer: makeMockPuppeteer,
+    });
+    const pages = await source.fetchPages();
+    expect(pages.length).toBe(0);
+  });
+  it("handles invalid urls", async () => {
     const source = await makeWebDataSource({
       name: "mongodb-dot-com",
-      urls: [
-        "https://www.mongodb.com/atlas",
-        "https://www.mongodb.com/not-a-real-page",
-        "https://www.mongodb.com/products",
-      ],
-      makePuppeteer,
+      urls: ["https://www.mongodb.com/not-a-real-page"],
+      makePuppeteer: makeMockPuppeteer,
     });
     const pages = await source.fetchPages();
-    expect(pages.length).toBe(2);
-    expect(pages[0].url).toBe("https://www.mongodb.com/atlas");
-    expect(pages[1].url).toBe("https://www.mongodb.com/products");
+    expect(pages.length).toBe(0);
   });
-  it("processes data source", async () => {
+  it("handles valid urls", async () => {
     const source = await makeWebDataSource({
-      ...webSources[0],
-      makePuppeteer,
+      name: "valid-source",
+      urls: ["https://www.mongodb.com/company"],
+      makePuppeteer: makeMockPuppeteer,
     });
     const pages = await source.fetchPages();
-    expect(pages.length).toBe(webSources[0].urls.length);
-    expect(pages[0].url).toBe(webSources[0].urls[0]);
-    expect(pages[0].metadata?.type ?? {}).toBe(
-      webSources[0].staticMetadata?.type
-    );
+    expect(pages.length).toBe(1);
+    expect(pages[0]).toMatchObject({
+      url: "https://www.mongodb.com/company",
+      metadata: {
+        description:
+          "MongoDB empowers innovators with our developer data platform and integrated services. MongoDB enables development teams to meet the diverse needs of modern apps. ",
+        contentType: "website",
+        siteTitle: "MongoDB",
+      },
+      title: "About MongoDB",
+      sourceName: "valid-source",
+      format: "md",
+    });
   });
 });
-
-// TODO: set up test data, fake html pages

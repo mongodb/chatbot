@@ -179,8 +179,7 @@ export const rawWebSources: RawWebSource[] = [
       type: "Miscellaneous Web",
     },
   },
-
-  // TODO: add more web sources here
+  // add more web sources here
 ];
 
 export async function getUrlsFromSitemap(
@@ -232,14 +231,4 @@ export const prepareWebSources = async ({
     });
   }
   return webSources;
-};
-
-export const makePuppeteer = async () => {
-  const browser = await puppeteer.launch({
-    args: ["--no-sandbox"],
-    headless: "new",
-    executablePath: "/opt/homebrew/bin/chromium", // TODO
-  });
-  const page = await browser.newPage();
-  return { page, browser };
 };

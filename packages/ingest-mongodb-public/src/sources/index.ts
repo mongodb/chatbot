@@ -1,5 +1,6 @@
 import { strict as assert } from "assert";
 import { Page, extractFrontMatter } from "mongodb-rag-core";
+import puppeteer from "puppeteer";
 import {
   DataSource,
   makeGitDataSource,
@@ -32,7 +33,6 @@ const { DEVCENTER_CONNECTION_URI, UNIVERSITY_DATA_API_KEY } = assertEnvVars(
 );
 import {
   getUrlsFromSitemap,
-  makePuppeteer,
   prepareWebSources,
   rawWebSources,
 } from "./mongodb-dot-com/webSources";
@@ -177,7 +177,9 @@ function getTerraformPageUrl(siteBaseUrl: string, path: string) {
 }
 
 const webDataSourceConstructor = async (): Promise<DataSource[]> => {
-  const sitemapUrls = await getUrlsFromSitemap("https://www.mongodb.com/sitemap-pages.xml");
+  const sitemapUrls = await getUrlsFromSitemap(
+    "https://www.mongodb.com/sitemap-pages.xml"
+  );
   const webSources = await prepareWebSources({
     rawWebSources,
     sitemapUrls,
@@ -186,7 +188,15 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
     webSources.map(async (webSource) => {
       return await makeWebDataSource({
         ...webSource,
-        makePuppeteer: makePuppeteer,
+        makePuppeteer: async () => {
+          const browser = await puppeteer.launch({
+            args: ["--no-sandbox"],
+            headless: "new",
+            executablePath: "/opt/homebrew/bin/chromium",
+          });
+          const page = await browser.newPage();
+          return { page, browser };
+        },
       });
     })
   );

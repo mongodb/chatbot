@@ -1,7 +1,7 @@
 import { logger, Page } from "mongodb-rag-core";
 import { DataSource } from "mongodb-rag-core/dataSources";
 import * as cheerio from "cheerio";
-import puppeteer, { Page as PuppeteerPage, Browser } from "puppeteer";
+import { Page as PuppeteerPage, Browser } from "puppeteer";
 import TurndownService from "turndown";
 import * as turndownPluginGfm from "turndown-plugin-gfm";
 import { WebSource } from "./webSources";
@@ -183,19 +183,9 @@ async function getContent(
   };
 }
 
-export const makePuppeteer = async () => {
-  const browser = await puppeteer.launch({
-    args: ["--no-sandbox"],
-    headless: "new",
-    executablePath: "/opt/homebrew/bin/chromium",
-  });
-  const page = await browser.newPage();
-  return { page, browser };
-};
-
 type PageContent = Pick<Page, "body" | "metadata" | "title">;
 
-export async function scrapePage({
+async function scrapePage({
   puppeteerPage,
   url,
 }: {

@@ -189,11 +189,11 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
       return await makeWebDataSource({
         ...webSource,
         makePuppeteer: async () => {
-          const browser = await puppeteer.launch({
+            const browser = await puppeteer.launch({
             args: ["--no-sandbox"],
             headless: "new",
-            executablePath: "/opt/homebrew/bin/chromium",
-          });
+            // executablePath: "/opt/homebrew/bin/chromium"
+            });
           const page = await browser.newPage();
           return { page, browser };
         },

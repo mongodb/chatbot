@@ -19,30 +19,35 @@ export function makeWebDataSource({
   return {
     name,
     async fetchPages() {
-      const { page: puppeteerPage, browser } = await makePuppeteer();
-      const pages: Page[] = [];
-      const errors: string[] = [];
-      for await (const url of urls) {
-        const { content, error } = await scrapePage({
-          url,
-          puppeteerPage,
-        });
-        if (content) {
-          pages.push({
+      try {
+        const { page: puppeteerPage, browser } = await makePuppeteer();
+        const pages: Page[] = [];
+        const errors: string[] = [];
+        for await (const url of urls) {
+          const { content, error } = await scrapePage({
             url,
-            format: "md",
-            sourceName: name,
-            ...content,
-            metadata: { ...content.metadata, ...staticMetadata },
+            puppeteerPage,
           });
+          if (content) {
+            pages.push({
+              url,
+              format: "md",
+              sourceName: name,
+              ...content,
+              metadata: { ...content.metadata, ...staticMetadata },
+            });
+          }
+          if (error) {
+            errors.push(error);
+          }
         }
-        if (error) {
-          errors.push(error);
-        }
+        if (errors.length) logger.error(errors);
+        await browser.close();
+        return pages;
+      } catch (err) {
+        logger.error(`Failed to fetch pages for source: ${name}`, err);
+        return [];
       }
-      if (errors.length) logger.error(errors);
-      await browser.close();
-      return pages;
     },
   };
 }

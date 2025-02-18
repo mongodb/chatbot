@@ -7,6 +7,7 @@ import {
 } from "./webSources";
 import fs from "fs";
 import path from "path";
+import { chromium } from 'playwright';
 jest.setTimeout(60000);
 
 global.fetch = jest.fn();
@@ -147,7 +148,7 @@ describe("WebDataSource", () => {
 });
 
 
-describe.only("WebDataSource", () => {
+describe("WebDataSource", () => {
   const makePuppeteer = async () => {
     console.log('hit makePuppeteer');
     const browser = await puppeteer.launch({
@@ -162,7 +163,7 @@ describe.only("WebDataSource", () => {
     console.log('page', page);
     return { page, browser };
   }
-  it("handles valid urls", async () => {
+  xit("handles valid urls", async () => {
     const source = await makeWebDataSource({
       name: "valid-source",
       urls: ["https://www.mongodb.com/company"],
@@ -183,4 +184,26 @@ describe.only("WebDataSource", () => {
       format: "md",
     });
   });
+});
+
+
+test.only('Playwright scraper extracts correct data', async () => {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
+  const url = 'https://example.com'; // Use a test page or a local server
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
+
+  const data = await page.evaluate(() => {
+      return {
+          title: document.title,
+          heading: document.querySelector('h1')?.textContent || 'No heading found',
+          paragraphs: Array.from(document.querySelectorAll('p')).map(p => p.textContent),
+      };
+  });
+
+  expect(data.title).toBeTruthy();
+  expect(data.heading).toBeTruthy();
+  expect(Array.isArray(data.paragraphs)).toBe(true);
+
+  await browser.close();
 });

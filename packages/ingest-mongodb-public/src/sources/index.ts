@@ -197,8 +197,8 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
             // executablePath: "/opt/homebrew/bin/chromium"
             // executablePath: "/usr/bin/chromium-browser"
             });
-          const page = await browser.newPage();
           console.log('browser', browser);
+          const page = await browser.newPage();
           console.log('page', page);
           return { page, browser };
         },

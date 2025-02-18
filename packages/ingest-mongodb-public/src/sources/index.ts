@@ -211,15 +211,15 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
   The constructors for the sources used by the docs chatbot.
  */
 export const sourceConstructors: SourceConstructor[] = [
-  // () => makeSnootyDataSources(snootyDataApiBaseUrl, snootyProjectConfig),
-  // () => makeDevCenterDataSource(devCenterProjectConfig),
-  // mongoDbUniversitySourceConstructor,
-  // mongooseSourceConstructor,
-  // prismaSourceConstructor,
-  // mongoDbCorpDataSource,
-  // mongoDbUniMetadataSource,
-  // practicalAggregationsDataSource,
-  // terraformProviderSourceConstructor,
-  // wiredTigerSourceConstructor,
-  webDataSourceConstructor,
+  () => makeSnootyDataSources(snootyDataApiBaseUrl, snootyProjectConfig),
+  () => makeDevCenterDataSource(devCenterProjectConfig),
+  mongoDbUniversitySourceConstructor,
+  mongooseSourceConstructor,
+  prismaSourceConstructor,
+  mongoDbCorpDataSource,
+  mongoDbUniMetadataSource,
+  practicalAggregationsDataSource,
+  terraformProviderSourceConstructor,
+  wiredTigerSourceConstructor,
+  // webDataSourceConstructor,
 ];

@@ -8,20 +8,20 @@ import type { SomeArtifact } from "../artifact";
 export type MakeSummarizeReleaseArtifactArgs = {
   logger?: Logger;
   generate: GenerateChatCompletion;
-  projectDescription: string;
 };
 
 export type SummarizeReleaseArtifactArgs = {
   artifact: SomeArtifact;
+  projectDescription: string;
 };
 
 export function makeSummarizeReleaseArtifact({
   logger,
   generate,
-  projectDescription,
 }: MakeSummarizeReleaseArtifactArgs) {
   return async function summarizeReleaseArtifact({
     artifact,
+    projectDescription,
   }: SummarizeReleaseArtifactArgs) {
     const chatTemplate = [
       systemMessage({
@@ -152,7 +152,10 @@ function createUserPromptForReleaseArtifact(artifact: SomeArtifact): string {
   }
 }
 
-export type SummarizeReleaseArtifactsArgs = {
+export type SummarizeReleaseArtifactsArgs = Omit<
+  SummarizeReleaseArtifactArgs,
+  "artifact"
+> & {
   artifacts: SummarizeReleaseArtifactArgs["artifact"][];
   concurrency?: number;
 };
@@ -160,17 +163,16 @@ export type SummarizeReleaseArtifactsArgs = {
 export function makeSummarizeReleaseArtifacts({
   logger,
   generate,
-  projectDescription,
 }: MakeSummarizeReleaseArtifactArgs) {
   const summarizeReleaseArtifact = makeSummarizeReleaseArtifact({
     logger,
     generate,
-    projectDescription,
   });
 
   return async function summarizeReleaseArtifacts({
     artifacts,
     concurrency = 4,
+    projectDescription,
   }: SummarizeReleaseArtifactsArgs) {
     const errors: Error[] = [];
     const { results } = await PromisePool.withConcurrency(concurrency)
@@ -189,6 +191,7 @@ export function makeSummarizeReleaseArtifacts({
       .process(async (artifact) => {
         artifact.summary = await summarizeReleaseArtifact({
           artifact,
+          projectDescription,
         });
         return artifact;
       });

@@ -23,7 +23,10 @@ export async function generate(
     await logger?.log("debug", `Processing artifact`, { artifactIdentifier });
 
     // Summarize the artifact
-    const summary = await config.summarizeArtifact(artifact);
+    const summary = await config.summarizeArtifact({
+      project: config.project,
+      artifact,
+    });
     const artifactWithSummary: Artifact<string, unknown> = {
       id: artifact.id,
       type: artifact.type,
@@ -34,7 +37,10 @@ export async function generate(
     };
 
     // Extract changes from the artifact
-    const changes = await config.extractChanges(artifactWithSummary);
+    const changes = await config.extractChanges({
+      project: config.project,
+      artifact: artifactWithSummary,
+    });
     await logger?.log(
       "debug",
       `Extracted ${changes.length} changes from ${artifactIdentifier}`,

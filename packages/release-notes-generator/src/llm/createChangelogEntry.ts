@@ -11,20 +11,20 @@ const NO_CHANGELOG_ENTRY_SYMBOL = "<<<NO_CHANGELOG_ENTRY>>>";
 export type MakeCreateChangelogEntryArgs = {
   logger?: Logger;
   generate: GenerateChatCompletion;
-  projectDescription: string;
 };
 
 export type CreateChangelogEntryArgs = {
   artifact: SomeArtifact;
+  projectDescription: string;
 };
 
 export function makeCreateChangelogEntry({
   logger,
   generate,
-  projectDescription,
 }: MakeCreateChangelogEntryArgs) {
   return async function createChangelogEntry({
     artifact,
+    projectDescription,
   }: CreateChangelogEntryArgs) {
     if (!artifact.summary) {
       const errorMessage = `Artifact must have a summary`;
@@ -54,15 +54,15 @@ export function makeCreateChangelogEntry({
 
         For example, a changelog entry might resemble any of the following:
 
-        - Adds the atlas projects update command.
-        - Adds support for Podman 5.0.0 for local deployments.
-        - Adds a CommonJS (CJS) build output.
-        - Fixes an issue where the \`atlas kubernetes config generate\` command failed to include the specified namespace.
-        - Fixes an issue where the Atlas CLI didn't sign Windows binaries.
-        - Upgrades the version of Go to 1.17.
-        - Deprecates the \`atlas projects create\` command.
-        - Removes the \`atlas projects update\` command.
-        - Removes the unused \`normalize.css\` file
+        Adds the \`atlas projects update\` command.
+        Adds support for Podman 5.0.0 for local deployments.
+        Adds a CommonJS (CJS) build output.
+        Fixes an issue where the \`atlas kubernetes config generate\` command failed to include the specified namespace.
+        Fixes an issue where the Atlas CLI didn't sign Windows binaries.
+        Upgrades the version of Go to 1.17.
+        Deprecates the \`atlas projects create\` command.
+        Removes the \`atlas projects update\` command.
+        Removes the unused \`normalize.css\` file
         </Style Guide>
 
         <Project Description>

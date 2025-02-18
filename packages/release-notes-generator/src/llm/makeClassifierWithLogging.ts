@@ -21,7 +21,7 @@ export function makeClassifierWithLogging({
   classificationTypes,
   chainOfThought = false,
 }: MakeClassifierWithLoggingArgs): Classifier {
-  const classifier = makeClassifier({
+  const classify = makeClassifier({
     openAiClient,
     model,
     classificationTypes,
@@ -31,7 +31,7 @@ export function makeClassifierWithLogging({
   return async function classifyWithLogging({ input }: { input: string }) {
     await logger?.log("debug", "Classifying input", { input });
 
-    const result = await classifier({ input });
+    const result = await classify({ input });
 
     await logger?.log("debug", "Classification result", {
       input,

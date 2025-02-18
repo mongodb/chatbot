@@ -1,8 +1,8 @@
 import type { SomeArtifact } from "./artifact";
-import type {
-  Change,
-  ClassifiedChange,
-  ChangelogClassification,
+import {
+  changeSchema,
+  classifiedChangeSchema,
+  changelogClassificationSchema,
 } from "./change";
 import { loggerSchema } from "./logger";
 import { z } from "zod";
@@ -44,30 +44,37 @@ export const configSchema = z.object({
    */
   summarizeArtifact: z
     .function()
-    .args(z.custom<SomeArtifact>())
+    .args(
+      z.object({
+        project: projectInfoSchema,
+        artifact: z.custom<SomeArtifact>(),
+      })
+    )
     .returns(z.promise(z.string())),
   /**
    A function that extracts changes from a given release artifact.
    */
   extractChanges: z
     .function()
-    .args(z.custom<SomeArtifact>())
-    .returns(z.promise(z.array(z.custom<Change>()))),
+    .args(
+      z.object({
+        project: projectInfoSchema,
+        artifact: z.custom<SomeArtifact>(),
+      })
+    )
+    .returns(z.promise(z.array(changeSchema))),
   /**
    A function that classifies a change.
    */
   classifyChange: z
     .function()
-    .args(z.custom<Change>())
-    .returns(z.promise(z.custom<ChangelogClassification>())),
+    .args(changeSchema)
+    .returns(z.promise(changelogClassificationSchema)),
   /**
    A function that includes (i.e. returns true) or excludes (returns false) changes
    from the changelog based on their classification or other metadata.
    */
-  filterChange: z
-    .function()
-    .args(z.custom<ClassifiedChange>())
-    .returns(z.boolean()),
+  filterChange: z.function().args(classifiedChangeSchema).returns(z.boolean()),
   /**
    Logger instance for recording progress and debugging information
    */

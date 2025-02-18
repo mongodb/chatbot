@@ -86,7 +86,8 @@ async function withRateLimit<T>(
   retryCount = 0
 ): Promise<T> {
   try {
-    return await operation();
+    const result = await operation();
+    return result;
   } catch (error: unknown) {
     const gitHubError = error as GitHubError;
     if (
@@ -96,11 +97,6 @@ async function withRateLimit<T>(
     ) {
       const retryAfter =
         parseInt(gitHubError.response.headers["retry-after"], 10) || 1;
-      console.log(
-        `Rate limited. Waiting ${retryAfter} seconds before retry ${
-          retryCount + 1
-        }/3...`
-      );
       await delay(retryAfter * 1000);
       return withRateLimit(operation, retryCount + 1);
     }
@@ -170,7 +166,7 @@ export function makeGitHubReleaseArtifacts(
   };
 
   return {
-    getCommits: async () => {
+    getCommits: async (): Promise<GitCommitArtifact[]> => {
       // Use cached version comparison if available
       versionComparisonPromise =
         versionComparisonPromise ||
@@ -222,7 +218,7 @@ export function makeGitHubReleaseArtifacts(
         })
       );
     },
-    getDiffs: async () => {
+    getDiffs: async (): Promise<GitDiffArtifact[]> => {
       // Fetch the diffs between the previous version and the current version
       const { data } = await withRateLimit(() =>
         githubApi.repos.compareCommitsWithBasehead({
@@ -254,7 +250,7 @@ export function makeGitHubReleaseArtifacts(
 
       return artifacts;
     },
-    getJiraIssueKeys: async (jiraProject) => {
+    getJiraIssueKeys: async (jiraProject): Promise<string[]> => {
       // Use cached version comparison if available
       versionComparisonPromise =
         versionComparisonPromise ||

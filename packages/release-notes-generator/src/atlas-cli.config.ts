@@ -1,9 +1,6 @@
 import "dotenv/config";
 import { createConfig } from "./config";
-import {
-  makeGitCommitArtifact,
-  type GitCommitArtifact,
-} from "./github/artifacts";
+import type { SomeArtifact } from "./artifact";
 import {
   createMultiLogger,
   createConsoleLogger,
@@ -23,6 +20,27 @@ import { makeSummarizeReleaseArtifact } from "./llm/summarizeReleaseArtifacts";
 import { makeCreateChangelogEntry } from "./llm/createChangelogEntry";
 import { makeClassifyChangelog } from "./llm/classifyChangelog";
 import { changelogClassificationSchema } from "./change";
+import {
+  makeGitHubApiClient,
+  makeGitHubReleaseArtifacts,
+} from "./github/github-api";
+import { makeJiraApiClient, makeJiraReleaseArtifacts } from "./jira/jira-api";
+
+const {
+  OPENAI_API_KEY,
+  OPENAI_ENDPOINT,
+  OPENAI_API_VERSION,
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  GITHUB_ACCESS_TOKEN,
+  JIRA_USERNAME,
+  JIRA_PASSWORD,
+} = assertEnvVars({
+  ...CORE_OPENAI_CONNECTION_ENV_VARS,
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
+  GITHUB_ACCESS_TOKEN: "",
+  JIRA_USERNAME: "",
+  JIRA_PASSWORD: "",
+});
 
 // Create a logger that writes to both console and file
 const logger = createMultiLogger([
@@ -32,18 +50,10 @@ const logger = createMultiLogger([
   ),
 ]);
 
-const { OPENAI_API_KEY, OPENAI_ENDPOINT, OPENAI_API_VERSION } = assertEnvVars(
-  CORE_OPENAI_CONNECTION_ENV_VARS
-);
-
 const openAiClient = makeAzureOpenAiClient({
   apiKey: OPENAI_API_KEY,
   endpoint: OPENAI_ENDPOINT,
   apiVersion: OPENAI_API_VERSION,
-});
-
-const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars({
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
 });
 
 const generateChatCompletion = makeGenerateChatCompletion({
@@ -51,9 +61,33 @@ const generateChatCompletion = makeGenerateChatCompletion({
   model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
 });
 
-const project = {
-  name: "MongoDB Atlas CLI",
-  description: `The MongoDB Atlas CLI (atlas) allows you to manage your MongoDB Atlas
+const summarizeReleaseArtifact = makeSummarizeReleaseArtifact({
+  generate: generateChatCompletion,
+});
+
+const createChangelogEntry = makeCreateChangelogEntry({
+  generate: generateChatCompletion,
+});
+
+const classifyChangelog = makeClassifyChangelog({
+  openAiClient,
+  model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  logger,
+});
+
+function formatVersionGitHub(version: string): string {
+  return `atlascli/v${version}`;
+}
+
+function formatVersionJira(version: string): string {
+  return `atlascli-${version}`;
+}
+
+export default createConfig({
+  logger,
+  project: {
+    name: "MongoDB Atlas CLI",
+    description: `The MongoDB Atlas CLI (atlas) allows you to manage your MongoDB Atlas
 database deployments from the command line. It provides a complete set of
 functionality to:
 
@@ -67,59 +101,40 @@ functionality to:
 The Atlas CLI is designed for both interactive use and automation through
 scripts and CI/CD pipelines. It provides a consistent interface to Atlas
 across all supported platforms and environments.`,
-};
-
-const summarizeReleaseArtifact = makeSummarizeReleaseArtifact({
-  generate: generateChatCompletion,
-  projectDescription: project.description,
-});
-
-const createChangelogEntry = makeCreateChangelogEntry({
-  generate: generateChatCompletion,
-  projectDescription: project.description,
-});
-
-const classifyChangelog = makeClassifyChangelog({
-  openAiClient,
-  model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  logger,
-});
-
-export default createConfig({
-  project,
-  logger,
-  fetchArtifacts: async (_version) => {
-    // const githubArtifacts = await fetchGithubArtifacts(version);
-    // const jiraArtifacts = await fetchJiraArtifacts(version);
-    // return [...githubArtifacts, ...jiraArtifacts];
-    await Promise.resolve();
-    const githubArtifacts: GitCommitArtifact[] = [
-      makeGitCommitArtifact({
-        id: "123456",
-        data: {
-          title: "Fix a bug",
-          hash: "123456",
-          message: "Fix a bug in the CLI",
-          files: [
-            {
-              fileName: "src/index.ts",
-              additions: 1,
-              deletions: 1,
-              changes: 2,
-              hash: "123456",
-              status: "modified",
-            },
-          ],
-        },
+  },
+  fetchArtifacts: async (version): Promise<SomeArtifact[]> => {
+    const github = makeGitHubReleaseArtifacts({
+      githubApi: makeGitHubApiClient({
+        authToken: GITHUB_ACCESS_TOKEN,
       }),
-    ];
-    return [...githubArtifacts];
+      owner: "mongodb",
+      repo: "mongodb-atlas-cli",
+      version: formatVersionGitHub(version.current),
+      previousVersion: formatVersionGitHub(version.previous),
+    });
+    const jira = makeJiraReleaseArtifacts({
+      jiraApi: makeJiraApiClient({
+        username: JIRA_USERNAME,
+        password: JIRA_PASSWORD,
+      }),
+      version: formatVersionJira(version.current),
+    });
+
+    const commits = await github.getCommits();
+    const issues = await jira.getIssues();
+    return Array<SomeArtifact>().concat(commits, issues);
   },
-  summarizeArtifact: async (artifact) => {
-    return summarizeReleaseArtifact({ artifact });
+  summarizeArtifact: async ({ project, artifact }) => {
+    return summarizeReleaseArtifact({
+      artifact,
+      projectDescription: project.description,
+    });
   },
-  extractChanges: async (artifact) => {
-    const changes = await createChangelogEntry({ artifact });
+  extractChanges: async ({ project, artifact }) => {
+    const changes = await createChangelogEntry({
+      artifact,
+      projectDescription: project.description,
+    });
     return changes.map((change) => ({
       description: change,
       sourceIdentifier: artifact.id,

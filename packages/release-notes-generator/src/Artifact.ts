@@ -61,10 +61,20 @@ export function makeArtifact<T extends string, D>(
   args: ArtifactArgs<T, D>,
   schema: ReturnType<typeof createArtifactSchema<T, D>>
 ): Artifact<T, D> {
-  const validatedArgs = createArtifactArgsSchema(
+  const validatedArgsResult = createArtifactArgsSchema(
     schema.shape.type,
     schema.shape.data
-  ).parse(args);
+  ).safeParse(args);
+
+  if (!validatedArgsResult.success) {
+    throw new Error(
+      `Failed to validate artifact arguments:\n${validatedArgsResult.error.errors
+        .map((e) => `${e.path.join(".")}: ${e.message}`)
+        .join("\n")}`
+    );
+  }
+
+  const validatedArgs = validatedArgsResult.data;
 
   const artifact = {
     id: validatedArgs.id,
@@ -75,7 +85,16 @@ export function makeArtifact<T extends string, D>(
     metadata: validatedArgs.metadata,
   };
 
-  return schema.parse(artifact) as Artifact<T, D>;
+  const artifactResult = schema.safeParse(artifact);
+  if (!artifactResult.success) {
+    throw new Error(
+      `Failed to validate artifact:\n${artifactResult.error.errors
+        .map((e) => `${e.path.join(".")}: ${e.message}`)
+        .join("\n")}`
+    );
+  }
+
+  return artifactResult.data as Artifact<T, D>;
 }
 
 export function getArtifactIdentifier<T extends string, D>(

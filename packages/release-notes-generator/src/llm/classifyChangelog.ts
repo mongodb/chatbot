@@ -75,17 +75,16 @@ export function makeClassifyChangelogs({
     const errors: Error[] = [];
     const { results: classifiedChangelogs } = await PromisePool.for(changelogs)
       .withConcurrency(concurrency)
-      .handleError((error, changelog) => {
-        void logger?.log("error", "Error classifying changelog", {
+      .handleError((error, changeDescription) => {
+        void logger?.log("error", "Error classifying change", {
           errorMessage: error.message,
-          changelog,
+          changeDescription,
         });
         errors.push(error);
       })
-      .process(async (changelog, index) => {
-        console.log(`classifying changelog ${iOfN(index, changelogs.length)}`);
+      .process(async (changeDescription, index) => {
         const summary = await classifyChangelog({
-          changelog,
+          changelog: changeDescription,
         });
         return summary;
       });

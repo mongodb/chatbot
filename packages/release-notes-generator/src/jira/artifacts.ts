@@ -4,13 +4,15 @@ import { z } from "zod";
 export const jiraIssueSchema = z.object({
   key: z.string(),
   summary: z.string(),
-  description: z.string(),
+  description: z.string().or(z.null()),
   components: z.array(z.string()),
   fixVersions: z.array(z.string()),
   resolution: z.string(),
   priority: z.string(),
   status: z.string(),
   issuetype: z.string(),
+  releaseNotes: z.string().or(z.null()),
+  docsChangesDescription: z.string().or(z.null()),
 });
 
 export type JiraIssue = z.infer<typeof jiraIssueSchema>;

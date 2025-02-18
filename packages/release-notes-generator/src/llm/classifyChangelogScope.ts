@@ -5,7 +5,7 @@ import type { Classifier } from "mongodb-rag-core";
 
 const classificationTypes = [
   {
-    type: "addition",
+    type: "added",
     description: "a new feature",
     examples: [
       {
@@ -25,7 +25,7 @@ const classificationTypes = [
     ],
   },
   {
-    type: "change",
+    type: "updated",
     description: "a change in existing functionality",
     examples: [
       {
@@ -36,7 +36,7 @@ const classificationTypes = [
     ],
   },
   {
-    type: "deprecation",
+    type: "deprecated",
     description: "a soon-to-be removed feature",
     examples: [
       {
@@ -47,7 +47,7 @@ const classificationTypes = [
     ],
   },
   {
-    type: "removal",
+    type: "removed",
     description: "a now removed feature",
     examples: [
       {
@@ -58,7 +58,7 @@ const classificationTypes = [
     ],
   },
   {
-    type: "fix",
+    type: "fixed",
     description: "a bug fix",
     examples: [
       {

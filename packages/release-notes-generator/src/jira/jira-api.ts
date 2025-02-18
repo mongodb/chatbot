@@ -74,7 +74,7 @@ export function makeJiraReleaseArtifacts({
   // Otherwise, extract the query
 
   return {
-    getIssues: async () => {
+    getIssues: async (): Promise<JiraIssueArtifact[]> => {
       const queryParts: string[] = [];
 
       let jqlQuery: string;
@@ -114,10 +114,8 @@ export function makeJiraReleaseArtifacts({
       const maxResults = 100; // Maximum results per page
       let startAt = 0; // The starting index of the issues to fetch
       let moreToFetch = true;
-
       while (moreToFetch) {
         const response = (await jiraApi.searchJira(jqlQuery, {
-          expand: ["customfield_15650"],
           fields: [
             "fixVersions",
             "components",
@@ -128,6 +126,8 @@ export function makeJiraReleaseArtifacts({
             "status",
             "issuetype",
             "project",
+            "customfield_15150", // Release Notes
+            "customfield_14266", // Docs Changes Description
           ],
           startAt,
           maxResults,
@@ -168,6 +168,8 @@ export function makeJiraReleaseArtifacts({
             priority: issue.fields.priority?.name ?? "None",
             status: issue.fields.status?.name ?? "Unknown",
             issuetype: issue.fields.issuetype?.name ?? "Unknown",
+            releaseNotes: issue.fields.customfield_15150 ?? null,
+            docsChangesDescription: issue.fields.customfield_14266 ?? null,
           },
         });
       });
@@ -239,5 +241,7 @@ type JiraIssue = {
       name: string;
       projectTypeKey: string;
     };
+    customfield_15150: string | null; // Release Notes
+    customfield_14266: string | null; // Docs Changes Description
   };
 };

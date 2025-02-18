@@ -159,7 +159,7 @@ describe.only("WebDataSource", () => {
       });
     console.log('browser', browser);
     const page = await browser.newPage();
-    console.log('page > ', page);
+    console.log('page', page);
     return { page, browser };
   }
   it("handles valid urls", async () => {

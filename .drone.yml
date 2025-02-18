@@ -18,7 +18,7 @@ steps:
     image: node:18
     commands:
       - npm ci
-      # - npx playwright install-deps chromium # Required to run web scraping in docker
+      - npx playwright install-deps chromium # Required to run web scraping in docker
       - node node_modules/puppeteer/install.js
       - npm run build -- --scope='{mongodb-rag-core,mongodb-rag-ingest,ingest-mongodb-public}'
       # - npm run lint

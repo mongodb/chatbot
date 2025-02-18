@@ -19,7 +19,7 @@ steps:
     commands:
       - npm ci
       - npx playwright install-deps chromium
-      - which chromium
+      # - which chromium
       - npm run build -- --scope='{mongodb-rag-core,mongodb-rag-ingest,ingest-mongodb-public}'
       # - npm run lint
       - npm run test -- --scope=ingest-mongodb-public

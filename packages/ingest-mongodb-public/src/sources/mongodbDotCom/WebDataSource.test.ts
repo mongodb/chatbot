@@ -190,7 +190,7 @@ describe("WebDataSource", () => {
 test.only('Playwright scraper extracts correct data', async () => {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
-  const url = 'https://mongodb.com/comoany'; 
+  const url = 'https://mongodb.com/company'; 
   await page.goto(url, { waitUntil: 'domcontentloaded' });
 
   const data = await page.evaluate(() => {
@@ -201,6 +201,6 @@ test.only('Playwright scraper extracts correct data', async () => {
   });
 
   expect(data.title).toBeTruthy();
-  expect(data.title).toBe('MongoDB');
+  expect(data.title).toBe('About MongoDB | MongoDB');
   await browser.close();
 });

@@ -48,7 +48,7 @@ export function makeWebDataSource({
         return pages;
       } catch (err) {
         logger.error(`Failed to fetch pages for source: ${name}`, err);
-        return [];
+        throw err;
       }
     },
   };

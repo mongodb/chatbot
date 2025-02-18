@@ -147,12 +147,13 @@ describe("WebDataSource", () => {
 });
 
 
-describe("WebDataSource", () => {
+describe.only("WebDataSource", () => {
   const makePuppeteer = async () => {
     console.log('hit makePuppeteer');
     const browser = await puppeteer.launch({
       args: ["--no-sandbox"],
       headless: "new",
+      dumpio: true,
       // executablePath: "/opt/homebrew/bin/chromium"
       // executablePath: "/usr/bin/chromium-browser"
       });

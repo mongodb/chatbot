@@ -147,8 +147,7 @@ describe("WebDataSource", () => {
 });
 
 
-describe.only("WebDataSource", () => {
-
+describe("WebDataSource", () => {
   const makePuppeteer = async () => {
     console.log('hit makePuppeteer');
     const browser = await puppeteer.launch({

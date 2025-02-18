@@ -98,7 +98,7 @@ Only provide the answer the final question using the exact same format as the pr
   const fewShotExamples = quizQuestionExamples
     ?.filter((quizQuestionExample) => {
       // if single correct, only include examples with one correct answer
-      if (quizQuestionExample.questionType === "singleCorrect") {
+      if (quizQuestion.questionType === "singleCorrect") {
         return (
           quizQuestionExample.answers?.filter((answer) => answer.isCorrect)
             .length === 1

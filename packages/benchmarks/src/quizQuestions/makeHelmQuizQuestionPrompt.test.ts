@@ -25,6 +25,36 @@ const testQuestion = {
     },
     {
       answer: "Sushi",
+      isCorrect: true,
+      label: "C",
+    },
+    {
+      answer: "Enchiladas",
+      isCorrect: false,
+      label: "D",
+    },
+  ],
+} satisfies QuizQuestionData;
+
+const testQuestionSingleCorrect = {
+  contentTitle: "Best foods",
+  title: "Best foods",
+  topicType: "quiz",
+  questionType: "singleCorrect",
+  questionText: "What's the best Italian food?",
+  answers: [
+    {
+      answer: "Tacos",
+      isCorrect: false,
+      label: "A",
+    },
+    {
+      answer: "Pizza",
+      isCorrect: true,
+      label: "B",
+    },
+    {
+      answer: "Sushi",
       isCorrect: false,
       label: "C",
     },
@@ -108,9 +138,66 @@ describe("makeHelmQuizQuestionPrompt", () => {
     ).toBe(true);
   });
   it("should include few-shot examples", () => {
-    // todo
+    const prompt = makeHelmQuizQuestionPrompt({
+      quizQuestion: testQuestion,
+      quizQuestionExamples: [testQuestion],
+      subject,
+    });
+    expect(prompt).toMatchObject([
+      {
+        role: "system",
+        content: expect.any(String),
+      },
+      {
+        content: expect.any(String),
+        role: "user",
+      },
+      {
+        content: expect.any(String),
+        role: "assistant",
+      },
+      {
+        content: expect.any(String),
+        role: "user",
+      },
+    ]);
   });
   it("should only include examples with one correct answer for topicType=singleCorrect questions", () => {
-    // todo
+    const prompt = makeHelmQuizQuestionPrompt({
+      quizQuestion: testQuestionSingleCorrect,
+      quizQuestionExamples: [
+        {
+          ...testQuestion,
+          answers: [
+            ...testQuestion.answers,
+            {
+              answer: "Pasta",
+              isCorrect: true,
+              label: "E",
+            },
+          ],
+        },
+        testQuestionSingleCorrect,
+      ],
+      subject,
+    });
+    expect(prompt).toMatchObject([
+      {
+        role: "system",
+        content: expect.any(String),
+      },
+      {
+        content: expect.any(String),
+        role: "user",
+      },
+      {
+        content: expect.any(String),
+        role: "assistant",
+      },
+      {
+        content: expect.any(String),
+        role: "user",
+      },
+    ]);
   });
 });

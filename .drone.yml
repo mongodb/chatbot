@@ -19,7 +19,8 @@ steps:
     commands:
       - npm ci
       - npx playwright install-deps chromium # Required to run web scraping in docker
-      - node node_modules/puppeteer/install.js
+      # - node node_modules/puppeteer/install.js
+      - npm install puppeteer
       - npm run build -- --scope='{mongodb-rag-core,mongodb-rag-ingest,ingest-mongodb-public}'
       # - npm run lint
       - npm run test -- --scope=ingest-mongodb-public

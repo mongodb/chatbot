@@ -413,7 +413,7 @@ name: staging-build-ingest-mongodb-public
 
 trigger:
   branch:
-    - EAI-639
+    - EAI-639-playwright
   event:
     - push
   paths:
@@ -478,7 +478,7 @@ trigger:
       - package.json
 
   branch:
-    - EAI-639
+    - EAI-639-playwright
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion

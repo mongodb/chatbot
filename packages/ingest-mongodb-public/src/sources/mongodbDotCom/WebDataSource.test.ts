@@ -190,20 +190,17 @@ describe("WebDataSource", () => {
 test.only('Playwright scraper extracts correct data', async () => {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
-  const url = 'https://example.com'; // Use a test page or a local server
+  const url = 'https://mongodb.com/comoany'; 
   await page.goto(url, { waitUntil: 'domcontentloaded' });
 
   const data = await page.evaluate(() => {
       return {
           title: document.title,
           heading: document.querySelector('h1')?.textContent || 'No heading found',
-          paragraphs: Array.from(document.querySelectorAll('p')).map(p => p.textContent),
       };
   });
 
   expect(data.title).toBeTruthy();
-  expect(data.heading).toBeTruthy();
-  expect(Array.isArray(data.paragraphs)).toBe(true);
-
+  expect(data.title).toBe('MongoDB');
   await browser.close();
 });

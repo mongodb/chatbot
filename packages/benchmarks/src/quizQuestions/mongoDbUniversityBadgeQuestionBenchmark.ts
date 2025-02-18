@@ -23,21 +23,11 @@ async function main() {
     // Filter to only look at 'badge' questions here
     .filter((d) => d.tags?.includes("badge"));
 
-  const modelsToEvaluate = [
-    "gpt-4o",
-    "claude-35-sonnet-v2",
-    "llama-3.1-70b",
-    "nova-pro-v1:0",
-    "mistral-large-2",
-    "gemini-2-flash",
-  ];
-  const modelExperiments = models.filter((m) =>
-    modelsToEvaluate.includes(m.label)
-  );
+  const modelExperiments = models.filter((m) => m.authorized === true);
 
   // Process models in parallel
   await PromisePool.for(modelExperiments)
-    .withConcurrency(modelsToEvaluate.length)
+    .withConcurrency(6)
 
     .process(async (modelInfo) => {
       let experimentName = modelInfo.label + "-badge";

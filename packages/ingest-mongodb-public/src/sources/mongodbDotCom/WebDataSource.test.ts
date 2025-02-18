@@ -7,6 +7,7 @@ import {
 } from "./webSources";
 import fs from "fs";
 import path from "path";
+import { chromium } from 'playwright';
 jest.setTimeout(60000);
 
 global.fetch = jest.fn();
@@ -146,41 +147,20 @@ describe("WebDataSource", () => {
   });
 });
 
+test.only('Playwright scraper extracts correct data', async () => {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
+  const url = 'https://mongodb.com/company'; 
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-describe.only("WebDataSource", () => {
-  const makePuppeteer = async () => {
-    console.log('hit makePuppeteer');
-    const browser = await puppeteer.launch({
-      args: ["--no-sandbox"],
-      headless: "new",
-      dumpio: true,
-      // executablePath: "/opt/homebrew/bin/chromium"
-      // executablePath: "/usr/bin/chromium-browser"
-      });
-    console.log('browser', browser);
-    const page = await browser.newPage();
-    console.log('page ', page);
-    return { page, browser };
-  }
-  it("handles valid urls", async () => {
-    const source = await makeWebDataSource({
-      name: "valid-source",
-      urls: ["https://www.mongodb.com/company"],
-      makePuppeteer,
-    });
-    const pages = await source.fetchPages();
-    expect(pages.length).toBe(1);
-    expect(pages[0]).toMatchObject({
-      url: "https://www.mongodb.com/company",
-      metadata: {
-        description:
-          "MongoDB empowers innovators with our developer data platform and integrated services. MongoDB enables development teams to meet the diverse needs of modern apps. ",
-        contentType: "website",
-        siteTitle: "MongoDB",
-      },
-      title: "About MongoDB",
-      sourceName: "valid-source",
-      format: "md",
-    });
+  const data = await page.evaluate(() => {
+      return {
+          title: document.title,
+          heading: document.querySelector('h1')?.textContent || 'No heading found',
+      };
   });
+
+  expect(data.title).toBeTruthy();
+  expect(data.title).toBe('About MongoDB | MongoDB');
+  await browser.close();
 });

@@ -1,16 +1,15 @@
-import { generate } from "./generate";
-import type { Change, ClassifiedChange } from "./change";
-import type {
-  ExtractChanges,
-  FetchArtifacts,
-  ProjectInfo,
-  SummarizeArtifact,
-} from "./config";
-
-import config from "./atlas-cli.config";
-import { validateConfig } from "./config";
 import { stripIndents } from "common-tags";
 import { vi } from "vitest";
+import { generate } from "./generate";
+import type { Change, ClassifiedChange } from "./change";
+import {
+  type ExtractChanges,
+  type FetchArtifacts,
+  type ProjectInfo,
+  type SummarizeArtifact,
+  validateConfig,
+} from "./config";
+import config from "./atlas-cli.config";
 
 const mockProjectInfo: ProjectInfo = {
   name: "Release Notes Generator Test Project",

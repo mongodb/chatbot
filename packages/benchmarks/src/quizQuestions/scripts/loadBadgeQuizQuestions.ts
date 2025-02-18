@@ -24,7 +24,7 @@ const parseCSV = async (filePath: string): Promise<QuizQuestionData[]> => {
           const questionData: QuizQuestionData = QuizQuestionDataSchema.parse({
             questionText: row["Question Text"],
             title: row["Assessment"],
-            topicType: "quiz", // Defaulting topic type
+            topicType: "badge", // Defaulting topic type
             questionType: "singleCorrect", // Assuming single correct answer
             answers,
             explanation: row["Reference"],

@@ -20,6 +20,8 @@
     "textToDriver:makeDatabases": "npm run build && node ./build/textToDriver/makeDatabases/index.js",
     "benchmark:MongoDbDiscovery": "npm run build && node ./build/discovery/mongoDbDiscoveryBenchmark.js",
     "benchmark:MongoDbUniversityQuizQuestion": "npm run build && node ./build/quizQuestions/mongoDbUniversityQuizQuestionBenchmark.js",
+    "benchmark:MongodbUniversityAllQuestionBenchmark": "npm run build && node ./build/quizQuestions/mongodbUniversityAllQuestionBenchmark.js",
+    "benchmark:MongoDbUniversityBadgeQuestionBenchmark": "npm run build && node ./build/quizQuestions/mongoDbUniversityBadgeQuestionBenchmark.js",
     "benchmark:TextToNodeJsDriver": "npm run build && node ./build/textToDriver/nodeJsDriverBenchmark.js"
   },
   "devDependencies": {

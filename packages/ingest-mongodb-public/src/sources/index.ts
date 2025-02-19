@@ -201,7 +201,12 @@ const makePuppeteer = async () => {
 };
 
 const makePlaywright = async () => {
-  const browser = await chromium.launch({ headless: true });
+  const browserPath = chromium.executablePath();
+  console.log(`Using Chromium executable at: ${browserPath}`);
+  const browser = await chromium.launch({
+    headless: true,
+    executablePath: browserPath
+  });
   console.log('playwright browser', browser);
   const page = await browser.newPage();
   console.log('playwright page', page);

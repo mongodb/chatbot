@@ -1,17 +1,16 @@
 import { logger, Page } from "mongodb-rag-core";
 import { DataSource } from "mongodb-rag-core/dataSources";
 import * as cheerio from "cheerio";
-// import { Page as PuppeteerPage, Browser } from "puppeteer";
 import {
   Page as PlaywrightPage,
   Browser as PlaywrightBrowser,
+  chromium,
 } from "playwright";
 import TurndownService from "turndown";
 import * as turndownPluginGfm from "turndown-plugin-gfm";
 import { WebSource } from "./webSources";
 
 interface WebDataSourceParams extends WebSource {
-  // makePuppeteer: () => Promise<{ page: PuppeteerPage; browser: Browser }>;
   makePlaywright: () => Promise<{
     page: PlaywrightPage;
     browser: PlaywrightBrowser;
@@ -22,17 +21,12 @@ export function makeWebDataSource({
   name,
   urls,
   staticMetadata,
-  // makePuppeteer,
-  makePlaywright,
 }: WebDataSourceParams): DataSource {
   return {
     name,
     async fetchPages() {
       try {
-        const { page: browserPage, browser } = await makePlaywright();
-        // const { page: playWrightPage, browser } = await makePlaywright();
-        logger.info(`puppeteer page: ${JSON.stringify(browserPage)}`);
-        logger.info(`puppeteer browser: ${JSON.stringify(browser)}`);
+        const { page: browserPage, browser } = await makeBrowser();
         const pages: Page[] = [];
         const errors: string[] = [];
         for await (const url of urls) {
@@ -210,16 +204,17 @@ async function scrapePage({
   // puppeteerPage: PlaywrightPage;
   url: string;
 }): Promise<{ content: PageContent | null; error: string | null }> {
-  logger.info(`scraping page: ${url}`);
+  logger.info(`Scraping page: ${url}`);
   let content: PageContent | null = null;
   let error: string | null = null;
   try {
     const urlObj = new URL(url);
     urlObj.searchParams.set("optimizely_x", "0");
     const response = await browserPage.goto(urlObj.toString(), {
-      // waitUntil: "networkidle0",
       waitUntil: "domcontentloaded",
     });
+    // TODO: what if other non-200 status?
+    // consider changing to status !== 200 or 200 and other 'OK' statuses...
     if (response?.status() === 404) {
       throw new Error(`404`);
     }
@@ -228,4 +223,14 @@ async function scrapePage({
     error = `failed to open the page: ${url} with the error: ${err}`;
   }
   return { content, error };
+}
+
+export async function makeBrowser() {
+  const browserPath = chromium.executablePath();
+  const browser = await chromium.launch({
+    headless: true,
+    executablePath: browserPath,
+  });
+  const page = await browser.newPage();
+  return { page, browser };
 }

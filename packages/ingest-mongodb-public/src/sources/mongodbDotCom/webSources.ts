@@ -1,4 +1,3 @@
-import puppeteer from "puppeteer";
 import xml2js from "xml2js";
 
 export type RawWebSource = {

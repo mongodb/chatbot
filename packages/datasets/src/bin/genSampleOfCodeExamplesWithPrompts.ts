@@ -3,12 +3,12 @@
  */
 import fs from "fs";
 import path from "path";
-import { PersistedPage } from "../PersistedPage.js";
 import { AstExtractedCodeblock } from "../AstExtractedCodeBlock.js";
 import "dotenv/config";
 import sampleSize from "lodash.samplesize";
 import yaml from "yaml";
 import { appendLlmMetadata } from "../appendLlmMetadata.js";
+import { PersistedPage } from "mongodb-rag-core";
 
 async function main(): Promise<void> {
   const basePath = path.resolve("data");

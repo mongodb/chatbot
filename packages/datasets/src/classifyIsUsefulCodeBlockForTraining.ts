@@ -1,20 +1,22 @@
 import "dotenv/config";
-import {
-  AzureKeyCredential,
-  ChatResponseMessage,
-  FunctionDefinition,
-  OpenAIClient,
-} from "@azure/openai";
-import { strict as assert } from "assert";
+import { OpenAI, AzureOpenAI } from "mongodb-rag-core/openai";
 import {
   AugmentedAstExtractedCodeblock,
   CodeExampleUtility,
-} from "./AstExtractedCodeBlock.js";
+} from "./AstExtractedCodeBlock";
+import {
+  assertEnvVars,
+  CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
+} from "mongodb-rag-core";
 
-const { OPENAI_API_KEY, OPENAI_ENDPOINT, OPENAI_GPT_4o_COMPLETION_DEPLOYMENT } =
-  process.env;
+const {
+  OPENAI_API_KEY,
+  OPENAI_ENDPOINT,
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_API_VERSION,
+} = assertEnvVars(CORE_OPENAI_CHAT_COMPLETION_ENV_VARS);
 
-const classifyCodeExampleFunc: FunctionDefinition = {
+const classifyCodeExampleFunc: OpenAI.FunctionDefinition = {
   name: "classify_code_example",
   description: "Classify whether code example useful for training an LLM",
   parameters: {
@@ -40,7 +42,7 @@ function makeUserMessage(
     AugmentedAstExtractedCodeblock,
     "code" | "programmingLanguage" | "prompts"
   >
-): ChatResponseMessage {
+): OpenAI.Chat.ChatCompletionUserMessageParam {
   return {
     role: "user",
     content: JSON.stringify(
@@ -53,24 +55,24 @@ ${codeExample.code}
       null,
       2
     ),
-  } satisfies ChatResponseMessage;
+  };
 }
 
 function makeAssistantFunctionCallMessage(
   usefulnessReasoning: string,
   isUseful: boolean
-): ChatResponseMessage {
+): OpenAI.Chat.ChatCompletionAssistantMessageParam {
   return {
     role: "assistant",
     content: "",
-    functionCall: {
+    function_call: {
       name: classifyCodeExampleFunc.name,
       arguments: JSON.stringify({ usefulnessReasoning, isUseful }, null, 2),
     },
-  } satisfies ChatResponseMessage;
+  };
 }
 
-const fewShotExamples: ChatResponseMessage[] = [
+const fewShotExamples: OpenAI.Chat.ChatCompletionMessageParam[] = [
   // Example 1
   makeUserMessage({
     prompts: [
@@ -337,22 +339,16 @@ Since this information will be used to train an LLM, precision is incredibly imp
 const systemMessage = {
   role: "system",
   content: systemPrompt,
-} satisfies ChatResponseMessage;
+} satisfies OpenAI.Chat.ChatCompletionSystemMessageParam;
 
 export function makeClassifyIsUsefulCodeBlockForTraining() {
-  assert(OPENAI_API_KEY, "OPENAI_API_KEY is required");
-  assert(OPENAI_ENDPOINT, "OPENAI_ENDPOINT is required");
-  assert(
-    OPENAI_GPT_4o_COMPLETION_DEPLOYMENT,
-    "OPENAI_GPT_4o_COMPLETION_DEPLOYMENT is required"
-  );
-  const openAiClient = new OpenAIClient(
-    OPENAI_ENDPOINT,
-    new AzureKeyCredential(OPENAI_API_KEY),
-    {
-      retryOptions: { maxRetries: 5 },
-    }
-  );
+  const openAiClient = new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+    maxRetries: 5,
+  });
+
   return async function classifyCodeExample({
     codeExample,
   }: {
@@ -363,22 +359,19 @@ export function makeClassifyIsUsefulCodeBlockForTraining() {
       content: `\`\`\`${codeExample.programmingLanguage ?? ""}
 ${codeExample.code}
 \`\`\``,
-    } satisfies ChatResponseMessage;
-    const messages = [systemMessage, ...fewShotExamples, userMessage];
-    const result = await openAiClient.getChatCompletions(
-      OPENAI_GPT_4o_COMPLETION_DEPLOYMENT,
-      messages,
-      {
-        temperature: 0,
-        maxTokens: 500,
-        functions: [classifyCodeExampleFunc],
-        functionCall: {
-          name: classifyCodeExampleFunc.name,
-        },
-      }
-    );
+    } satisfies OpenAI.Chat.ChatCompletionUserMessageParam;
+    const result = await openAiClient.chat.completions.create({
+      model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+      messages: [systemMessage, ...fewShotExamples, userMessage],
+      temperature: 0,
+      max_tokens: 500,
+      functions: [classifyCodeExampleFunc],
+      function_call: {
+        name: classifyCodeExampleFunc.name,
+      },
+    });
     const utility = JSON.parse(
-      result.choices[0].message?.functionCall?.arguments ?? ""
+      result.choices[0].message?.function_call?.arguments ?? ""
     ) as CodeExampleUtility;
     return utility;
   };

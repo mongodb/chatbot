@@ -1,4 +1,3 @@
-import { PersistedPage } from "./PersistedPage.js";
 import {
   AstExtractedCodeblock,
   AugmentedAstExtractedCodeblock,
@@ -7,6 +6,7 @@ import "dotenv/config";
 import { makeCreatePromptsFromText } from "./createPromptsFromText.js";
 import { contextualizeCodeBlock } from "./contextualizeCodeBlock.js";
 import { makeClassifyCodeExample } from "./classifyCodeExample.js";
+import { PersistedPage } from "mongodb-rag-core";
 
 export async function appendLlmMetadata({
   pages,
@@ -23,7 +23,7 @@ export async function appendLlmMetadata({
   }
 
   const createQuestionsFromText = makeCreatePromptsFromText();
-  const classifyCodeExample = makeClassifyCodeExample();
+  const classifyCodeExample = await makeClassifyCodeExample();
 
   const codeBlocksWithPrompts: AugmentedAstExtractedCodeblock[] = [];
 

@@ -1,14 +1,17 @@
-import {
-  AzureKeyCredential,
-  FunctionDefinition,
-  OpenAIClient,
-} from "@azure/openai";
+import { AzureOpenAI, OpenAI } from "mongodb-rag-core/openai";
 import "dotenv/config";
-import { strict as assert } from "assert";
 import { END_SNIPPET, START_SNIPPET } from "./contextualizeCodeBlock.js";
+import {
+  assertEnvVars,
+  CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
+} from "mongodb-rag-core";
 
-const { OPENAI_API_KEY, OPENAI_ENDPOINT, OPENAI_CHAT_COMPLETION_DEPLOYMENT } =
-  process.env;
+const {
+  OPENAI_API_KEY,
+  OPENAI_ENDPOINT,
+  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_API_VERSION,
+} = assertEnvVars(CORE_OPENAI_CHAT_COMPLETION_ENV_VARS);
 
 export const makePrompt = (
   contextStr: string,
@@ -75,19 +78,12 @@ Code snippet with context:
 ${contextStr}`;
 
 export function makeCreatePromptsFromText() {
-  assert(OPENAI_API_KEY, "OPENAI_API_KEY is required");
-  assert(OPENAI_ENDPOINT, "OPENAI_ENDPOINT is required");
-  assert(
-    OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-    "OPENAI_CHAT_COMPLETION_DEPLOYMENT is required"
-  );
-  const openAiClient = new OpenAIClient(
-    OPENAI_ENDPOINT,
-    new AzureKeyCredential(OPENAI_API_KEY),
-    {
-      retryOptions: { maxRetries: 5 },
-    }
-  );
+  const openAiClient = new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+    maxRetries: 5,
+  });
   return async ({
     text,
     numQuestions = 3,
@@ -95,26 +91,29 @@ export function makeCreatePromptsFromText() {
     text: string;
     numQuestions?: number;
   }) => {
-    const result = await openAiClient.getChatCompletions(
-      OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-      [{ role: "system", content: makePrompt(text, numQuestions) }],
-      {
-        temperature: 0,
-        maxTokens: 300,
-        functions: [createQuestionsFromTextFunctionDefinition],
-        functionCall: {
-          name: createQuestionsFromTextFunctionDefinition.name,
+    const result = await openAiClient.chat.completions.create({
+      model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+      messages: [
+        {
+          role: "system",
+          content: makePrompt(text, numQuestions),
         },
-      }
-    );
+      ],
+      max_tokens: 300,
+      temperature: 0,
+      functions: [createQuestionsFromTextFunctionDefinition],
+      function_call: {
+        name: createQuestionsFromTextFunctionDefinition.name,
+      },
+    });
     const prompts = JSON.parse(
-      result?.choices?.[0].message?.functionCall?.arguments ?? ""
+      result?.choices?.[0].message?.function_call?.arguments ?? ""
     ).prompts as string[];
     return prompts;
   };
 }
 
-const createQuestionsFromTextFunctionDefinition: FunctionDefinition = {
+const createQuestionsFromTextFunctionDefinition: OpenAI.FunctionDefinition = {
   name: "create_prompts_from_text",
   description: "Create list of prompts from text",
   parameters: {

@@ -7,7 +7,7 @@ describe.skip("UploadDatasetToHuggingFaceParams", () => {
   it("should upload data to a HF repository", async () => {
     const { HUGGINGFACE_ACCESS_TOKEN } = assertEnvVars(HUGGINGFACE);
     await uploadDatasetToHuggingFace({
-      hf: {
+      huggingFace: {
         repoName: "bpmutter/test_integration",
         accessToken: HUGGINGFACE_ACCESS_TOKEN,
       },

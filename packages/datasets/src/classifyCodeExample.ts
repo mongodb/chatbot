@@ -2,15 +2,17 @@ import "dotenv/config";
 import { strict as assert } from "assert";
 import { START_SNIPPET, END_SNIPPET } from "./contextualizeCodeBlock.js";
 import { OpenAI, AzureOpenAI } from "mongodb-rag-core/openai";
-import { assertEnvVars } from "mongodb-rag-core";
-import { OPENAI_ENV_VARS } from "./EnvVars.js";
+import {
+  assertEnvVars,
+  CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
+} from "mongodb-rag-core";
 
 const {
   OPENAI_API_KEY,
   OPENAI_API_VERSION,
   OPENAI_ENDPOINT,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-} = assertEnvVars(OPENAI_ENV_VARS);
+} = assertEnvVars(CORE_OPENAI_CHAT_COMPLETION_ENV_VARS);
 
 const classificationTypes: ClassificationType[] = [
   {

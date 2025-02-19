@@ -5,16 +5,23 @@ type PageDatasetEntry = Pick<
   "url" | "body" | "metadata" | "title" | "sourceName" | "updated" | "format"
 >;
 
-/**
-  @param pageStore - datastore for pages
-  @param dataSourceRegex - regular expression to filter pages by dataSource
-  @param forbiddenUrls - set of urls to exclude from the dataset
- */
-export async function loadPagesDataset(
-  pageStore: MongoDbPageStore,
-  dataSourceRegex: RegExp,
-  forbiddenUrls: string[]
-): Promise<PageDatasetEntry[]> {
+export interface LoadPagesDatasetParams {
+  pageStore: MongoDbPageStore;
+  /**
+    Regular expression to filter pages by `Page.dataSource`
+   */
+  dataSourceRegex: RegExp;
+  /**
+    Set of urls to exclude from the dataset
+   */
+  forbiddenUrls: string[];
+}
+
+export async function loadPagesDataset({
+  pageStore,
+  dataSourceRegex,
+  forbiddenUrls,
+}: LoadPagesDatasetParams): Promise<PageDatasetEntry[]> {
   return pageStore.aggregatePages<PageDatasetEntry>([
     {
       $match: {

@@ -2,7 +2,7 @@ import { uploadFiles } from "@huggingface/hub";
 import { logger } from "mongodb-rag-core";
 
 export interface UploadDatasetToHuggingFaceParams {
-  hf: {
+  huggingFace: {
     /**
       Must be a dataset repository.
 
@@ -24,14 +24,14 @@ export interface UploadDatasetToHuggingFaceParams {
 export async function uploadDatasetToHuggingFace(
   params: UploadDatasetToHuggingFaceParams
 ) {
-  const { hf, data, commit } = params;
+  const { huggingFace, data, commit } = params;
   const commitOutput = await uploadFiles({
     files: data,
     repo: {
       type: "dataset",
-      name: hf.repoName,
+      name: huggingFace.repoName,
     },
-    accessToken: hf.accessToken,
+    accessToken: huggingFace.accessToken,
     commitTitle: commit?.title,
     commitDescription: commit?.description,
   });

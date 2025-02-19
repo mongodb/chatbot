@@ -1,15 +1,17 @@
 import { AzureOpenAI, OpenAI } from "mongodb-rag-core/openai";
 import "dotenv/config";
 import { END_SNIPPET, START_SNIPPET } from "./contextualizeCodeBlock.js";
-import { assertEnvVars } from "mongodb-rag-core";
-import { OPENAI_ENV_VARS } from "./EnvVars.js";
+import {
+  assertEnvVars,
+  CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
+} from "mongodb-rag-core";
 
 const {
   OPENAI_API_KEY,
   OPENAI_ENDPOINT,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_API_VERSION,
-} = assertEnvVars(OPENAI_ENV_VARS);
+} = assertEnvVars(CORE_OPENAI_CHAT_COMPLETION_ENV_VARS);
 
 export const makePrompt = (
   contextStr: string,

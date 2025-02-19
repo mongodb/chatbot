@@ -4,15 +4,17 @@ import {
   AugmentedAstExtractedCodeblock,
   CodeExampleUtility,
 } from "./AstExtractedCodeBlock";
-import { assertEnvVars } from "mongodb-rag-core";
-import { OPENAI_ENV_VARS } from "./EnvVars";
+import {
+  assertEnvVars,
+  CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
+} from "mongodb-rag-core";
 
 const {
   OPENAI_API_KEY,
   OPENAI_ENDPOINT,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_API_VERSION,
-} = assertEnvVars(OPENAI_ENV_VARS);
+} = assertEnvVars(CORE_OPENAI_CHAT_COMPLETION_ENV_VARS);
 
 const classifyCodeExampleFunc: OpenAI.FunctionDefinition = {
   name: "classify_code_example",

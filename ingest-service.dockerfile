@@ -11,7 +11,7 @@ RUN npm run bootstrap -- --scope='{mongodb-rag-core,mongodb-rag-ingest,ingest-mo
 RUN npm run build -- --scope='{mongodb-rag-core,mongodb-rag-ingest,ingest-mongodb-public}'
 
 # Add git for GitDataSource
-RUN apk add --no-cache git
+RUN apt-get update && apt-get install -y git
 
 ENV NODE_ENV=production
 

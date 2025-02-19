@@ -210,7 +210,6 @@ async function scrapePage({
   // puppeteerPage: PlaywrightPage;
   url: string;
 }): Promise<{ content: PageContent | null; error: string | null }> {
-  // TODO: when productionizing, don't re-instantiate the browser on every call
   logger.info(`scraping page: ${url}`);
   let content: PageContent | null = null;
   let error: string | null = null;

@@ -10,7 +10,12 @@ RUN apk add --no-cache \
       harfbuzz \
       ca-certificates \
       ttf-freefont \
-      nodejs
+      nodejs \
+      wget \
+      bash \
+      libstdc++ \
+      udev \
+      ttf-opensans
 
 # If running Docker >= 1.13.0 use docker run's --init arg to reap zombie processes, otherwise
 # uncomment the following lines to have `dumb-init` as PID 1

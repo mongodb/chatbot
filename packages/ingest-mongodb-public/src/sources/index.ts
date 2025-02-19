@@ -209,7 +209,7 @@ const makePlaywright = async () => {
   });
   console.log('playwright browser', browser);
   const page = await browser.newPage();
-  console.log('playwright page ', page);
+  console.log('playwright page >', page);
   return { page, browser };
 };
   

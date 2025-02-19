@@ -14,7 +14,8 @@ COPY . ./
 RUN npm install lerna
 
 # Required to run web scraping
-RUN npx playwright install-deps chromium
+# RUN npx playwright install-deps chromium
+RUN npx playwright install --with-deps
 
 RUN npm run bootstrap -- --scope='{mongodb-rag-core,mongodb-rag-ingest,ingest-mongodb-public}'
 RUN npm run build -- --scope='{mongodb-rag-core,mongodb-rag-ingest,ingest-mongodb-public}'

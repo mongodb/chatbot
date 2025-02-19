@@ -10,6 +10,7 @@
     "npm": ">=8"
   },
   "scripts": {
+    "preinstall": "npx playwright install chromium --with-deps",
     "clean": "rm -rf build",
     "build": "tsc -b",
     "watch": "tsc -b -w",
@@ -60,7 +61,6 @@
     "mongodb-rag-core": "*",
     "mongodb-rag-ingest": "*",
     "node-fetch": "^2.7.0",
-    "puppeteer": "^19.11.1",
     "striptags": "^3.2.0",
     "turndown": "^7.2.0",
     "turndown-plugin-gfm": "^1.0.2",

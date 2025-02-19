@@ -1,38 +1,27 @@
 import { logger, Page } from "mongodb-rag-core";
 import { DataSource } from "mongodb-rag-core/dataSources";
 import * as cheerio from "cheerio";
-import { Page as PuppeteerPage, Browser } from "puppeteer";
-// import { Page as PlaywrightPage, Browser as PlaywrightBrowser } from "playwright";
+import { Page as PlaywrightPage, chromium } from "playwright";
 import TurndownService from "turndown";
 import * as turndownPluginGfm from "turndown-plugin-gfm";
 import { WebSource } from "./webSources";
-
-interface WebDataSourceParams extends WebSource {
-  makePuppeteer: () => Promise<{ page: PuppeteerPage; browser: Browser }>;
-  // makePlaywright: () => Promise<{ page: PlaywrightPage; browser: PlaywrightBrowser }>;
-}
 
 export function makeWebDataSource({
   name,
   urls,
   staticMetadata,
-  makePuppeteer,
-  // makePlaywright,
-}: WebDataSourceParams): DataSource {
+}: WebSource): DataSource {
   return {
     name,
     async fetchPages() {
       try {
-        const { page: puppeteerPage, browser } = await makePuppeteer();
-        // const { page: playWrightPage, browser } = await makePlaywright();
-        logger.info(`puppeteer page: ${JSON.stringify(puppeteerPage)}`);
-        logger.info(`puppeteer browser: ${JSON.stringify(browser)}`);
+        const { page: browserPage, browser } = await makeBrowser();
         const pages: Page[] = [];
         const errors: string[] = [];
         for await (const url of urls) {
           const { content, error } = await scrapePage({
             url,
-            puppeteerPage,
+            browserPage,
           });
           if (content) {
             pages.push({
@@ -169,7 +158,7 @@ function getTitle(
 }
 
 async function getContent(
-  page: PuppeteerPage
+  page: PlaywrightPage
 ): Promise<Pick<Page, "body" | "metadata" | "title">> {
   const { bodyInnerHtml, headInnerHtml } = await page.evaluate(() => ({
     bodyInnerHtml: document.body.innerHTML,
@@ -197,30 +186,40 @@ async function getContent(
 type PageContent = Pick<Page, "body" | "metadata" | "title">;
 
 async function scrapePage({
-  puppeteerPage,
+  browserPage,
   url,
 }: {
-  puppeteerPage: PuppeteerPage;
+  browserPage: PlaywrightPage;
   // puppeteerPage: PlaywrightPage;
   url: string;
 }): Promise<{ content: PageContent | null; error: string | null }> {
-  // TODO: when productionizing, don't re-instantiate the browser on every call
-  logger.info(`scraping page: ${url}`);
+  logger.info(`Scraping page: ${url}`);
   let content: PageContent | null = null;
   let error: string | null = null;
   try {
     const urlObj = new URL(url);
     urlObj.searchParams.set("optimizely_x", "0");
-    const response = await puppeteerPage.goto(urlObj.toString(), {
-      // waitUntil: "networkidle0",
-      waitUntil: 'domcontentloaded' 
+    const response = await browserPage.goto(urlObj.toString(), {
+      waitUntil: "domcontentloaded",
     });
+    // TODO: what if other non-200 status?
+    // consider changing to status !== 200 or 200 and other 'OK' statuses...
     if (response?.status() === 404) {
       throw new Error(`404`);
     }
-    content = await getContent(puppeteerPage);
+    content = await getContent(browserPage);
   } catch (err) {
     error = `failed to open the page: ${url} with the error: ${err}`;
   }
   return { content, error };
+}
+
+export async function makeBrowser() {
+  const browserPath = chromium.executablePath();
+  const browser = await chromium.launch({
+    headless: true,
+    executablePath: browserPath,
+  });
+  const page = await browser.newPage();
+  return { page, browser };
 }

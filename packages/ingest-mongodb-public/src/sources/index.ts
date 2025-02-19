@@ -1,6 +1,5 @@
 import { strict as assert } from "assert";
 import { Page, extractFrontMatter } from "mongodb-rag-core";
-import puppeteer from "puppeteer";
 import {
   DataSource,
   makeGitDataSource,
@@ -37,7 +36,6 @@ import {
   rawWebSources,
 } from "./mongodbDotCom/webSources";
 import { makeWebDataSource } from "./mongodbDotCom/WebDataSource";
-import { chromium } from 'playwright';
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -186,59 +184,22 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
     sitemapUrls,
   });
 
-const makePuppeteer = async () => {
-  console.log('hit makePuppeteer:');
-  const browser = await puppeteer.launch({
-    dumpio: true,
-    args: ["--no-sandbox"],
-    // args: ["--no-sandbox", "--disable-gpu"],
-    headless: "new",
-    // executablePath: "/opt/homebrew/bin/chromium"
-    // executablePath: "/usr/bin/chromium-browser"
-    });
-  console.log('browser ', browser);
-  const page = await browser.newPage();
-  console.log('page', page);
-  return { page, browser };
-};
-
-const makePlaywright = async () => {
-  const browserPath = chromium.executablePath();
-  console.log(`Using Chromium executable at: ${browserPath}`);
-  const browser = await chromium.launch({
-    headless: true,
-    executablePath: browserPath
-  });
-  console.log('playwright browser', browser);
-  const page = await browser.newPage();
-  console.log('playwright page', page);
-  return { page, browser };
-};
-  
-  return await Promise.all(
-    webSources.map(async (webSource) => {
-      return await makeWebDataSource({
-        ...webSource,
-        makePuppeteer: makePuppeteer,
-        // makePlaywright: makePlaywright,
-      });
-    })
-  );
+  return await Promise.all(webSources.map(makeWebDataSource));
 };
 
 /**
   The constructors for the sources used by the docs chatbot.
  */
 export const sourceConstructors: SourceConstructor[] = [
-  // () => makeSnootyDataSources(snootyDataApiBaseUrl, snootyProjectConfig),
-  // () => makeDevCenterDataSource(devCenterProjectConfig),
-  // mongoDbUniversitySourceConstructor,
-  // mongooseSourceConstructor,
-  // prismaSourceConstructor,
-  // mongoDbCorpDataSource,
-  // mongoDbUniMetadataSource,
-  // practicalAggregationsDataSource,
-  // terraformProviderSourceConstructor,
-  // wiredTigerSourceConstructor,
   webDataSourceConstructor,
+  () => makeSnootyDataSources(snootyDataApiBaseUrl, snootyProjectConfig),
+  () => makeDevCenterDataSource(devCenterProjectConfig),
+  mongoDbUniversitySourceConstructor,
+  mongooseSourceConstructor,
+  prismaSourceConstructor,
+  mongoDbCorpDataSource,
+  mongoDbUniMetadataSource,
+  practicalAggregationsDataSource,
+  terraformProviderSourceConstructor,
+  wiredTigerSourceConstructor,
 ];

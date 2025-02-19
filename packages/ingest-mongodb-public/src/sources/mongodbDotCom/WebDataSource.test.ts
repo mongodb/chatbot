@@ -1,4 +1,3 @@
-import puppeteer, * as Puppeteer from "puppeteer";
 import { makeWebDataSource } from "./WebDataSource";
 import {
   getUrlsFromSitemap,
@@ -7,7 +6,7 @@ import {
 } from "./webSources";
 import fs from "fs";
 import path from "path";
-import { chromium } from 'playwright';
+import { chromium } from "playwright";
 jest.setTimeout(60000);
 
 global.fetch = jest.fn();
@@ -79,23 +78,28 @@ describe("prepareWebSources", () => {
   });
 });
 
-test.only('Playwright scraper extracts correct data', async () => {
+describe.skip("makeWebDataSource", () => {
+  // TODO: add tests for this...
+});
+
+// Skipping this test because it requires a browser to be installed
+test.skip("Scraper extracts correct data", async () => {
   const executablePath = chromium.executablePath();
-  console.log('>>>> executablePath:', executablePath);
-  const browser = await chromium.launch({ 
+  console.log(">>>> executablePath:", executablePath);
+  const browser = await chromium.launch({
     headless: true,
-    executablePath: executablePath
+    executablePath: executablePath,
   });
   const page = await browser.newPage();
-  const url = 'https://mongodb.com/company'; 
-  await page.goto(url, { waitUntil: 'domcontentloaded' });
+  const url = "https://mongodb.com/company";
+  await page.goto(url, { waitUntil: "domcontentloaded" });
 
   const data = await page.evaluate(() => {
-      return {
-          title: document.title,
-          heading: document.querySelector('h1')?.textContent || 'No heading found',
-      };
+    return {
+      title: document.title,
+      heading: document.querySelector("h1")?.textContent || "No heading found",
+    };
   });
-  expect(data.title).toBe('About MongoDB | MongoDB');
+  expect(data.title).toBe("About MongoDB | MongoDB");
   await browser.close();
 });

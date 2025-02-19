@@ -199,7 +199,7 @@ const makePuppeteer = async () => {
     // executablePath: "/opt/homebrew/bin/chromium"
     // executablePath: "/usr/bin/chromium-browser"
     });
-  console.log('browser', browser);
+  console.log('browser ', browser);
   const page = await browser.newPage();
   console.log('page', page);
   return { page, browser };

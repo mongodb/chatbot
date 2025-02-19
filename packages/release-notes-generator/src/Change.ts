@@ -32,7 +32,7 @@ export type ClassifiedChange = z.infer<typeof classifiedChangeSchema>;
 
 export function artifactWithChanges<A extends SomeArtifact>(
   artifact: A,
-  changes: ClassifiedChange[]
+  changes: ClassifiedChange[],
 ): SomeArtifact & { changes: ClassifiedChange[] } {
   return {
     ...artifact,
@@ -42,7 +42,7 @@ export function artifactWithChanges<A extends SomeArtifact>(
 
 export function changeWithClassification(
   change: Change,
-  classification: ChangelogClassification
+  classification: ChangelogClassification,
 ): ClassifiedChange {
   return classifiedChangeSchema.parse({
     ...change,

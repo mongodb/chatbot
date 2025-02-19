@@ -48,7 +48,7 @@ export const configSchema = z.object({
       z.object({
         project: projectInfoSchema,
         artifact: z.custom<SomeArtifact>(),
-      })
+      }),
     )
     .returns(z.promise(z.string())),
   /**
@@ -60,7 +60,7 @@ export const configSchema = z.object({
       z.object({
         project: projectInfoSchema,
         artifact: z.custom<SomeArtifact>(),
-      })
+      }),
     )
     .returns(z.promise(z.array(changeSchema))),
   /**

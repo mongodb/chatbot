@@ -13,7 +13,7 @@ export const gitCommitSchema = z.object({
       changes: z.number(),
       hash: z.string(),
       status: z.string(),
-    })
+    }),
   ),
 });
 
@@ -21,7 +21,7 @@ export type GitCommit = z.infer<typeof gitCommitSchema>;
 
 export const gitCommitArtifactSchema = createArtifactSchema(
   z.literal("git-commit"),
-  gitCommitSchema
+  gitCommitSchema,
 );
 
 export type GitCommitArtifact = z.infer<typeof gitCommitArtifactSchema>;
@@ -38,7 +38,7 @@ export function makeGitCommitArtifact(args: {
       data: args.data,
       summary: args.summary,
     },
-    gitCommitArtifactSchema
+    gitCommitArtifactSchema,
   );
 }
 
@@ -55,7 +55,7 @@ export type CondensedGitCommit = {
 };
 
 export function getCondensedGitCommit(
-  artifact: GitCommitArtifact
+  artifact: GitCommitArtifact,
 ): CondensedGitCommit {
   return {
     id: artifact.id,
@@ -77,7 +77,7 @@ export type GitDiff = z.infer<typeof gitDiffSchema>;
 
 export const gitDiffArtifactSchema = createArtifactSchema(
   z.literal("git-diff"),
-  gitDiffSchema
+  gitDiffSchema,
 );
 
 export type GitDiffArtifact = z.infer<typeof gitDiffArtifactSchema>;
@@ -94,7 +94,7 @@ export function makeGitDiffArtifact(args: {
       data: args.data,
       summary: args.summary,
     },
-    gitDiffArtifactSchema
+    gitDiffArtifactSchema,
   );
 }
 
@@ -112,7 +112,7 @@ export type CondensedGitDiff = {
 };
 
 export function getCondensedGitDiff(
-  artifact: GitDiffArtifact
+  artifact: GitDiffArtifact,
 ): CondensedGitDiff {
   return {
     id: artifact.id,

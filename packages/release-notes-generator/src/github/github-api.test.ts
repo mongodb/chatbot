@@ -72,7 +72,7 @@ describe("makeGitHubReleaseArtifacts", () => {
   it("fetches and processes commits correctly", async () => {
     // Setup mocks
     mockGithubApi.repos.compareCommitsWithBasehead.mockResolvedValueOnce(
-      mockComparisonResponse
+      mockComparisonResponse,
     );
     mockGithubApi.repos.getCommit
       .mockResolvedValueOnce(mockCommitResponse)
@@ -106,7 +106,7 @@ describe("makeGitHubReleaseArtifacts", () => {
   it("fetches and processes diffs correctly", async () => {
     // Setup mock
     mockGithubApi.repos.compareCommitsWithBasehead.mockResolvedValueOnce(
-      mockDiffResponse
+      mockDiffResponse,
     );
 
     const gitHubReleaseArtifacts = makeGitHubReleaseArtifacts({
@@ -129,7 +129,7 @@ describe("makeGitHubReleaseArtifacts", () => {
   it("extracts Jira issue keys correctly", async () => {
     // Setup mock
     mockGithubApi.repos.compareCommitsWithBasehead.mockResolvedValueOnce(
-      mockComparisonResponse
+      mockComparisonResponse,
     );
 
     const gitHubReleaseArtifacts = makeGitHubReleaseArtifacts({

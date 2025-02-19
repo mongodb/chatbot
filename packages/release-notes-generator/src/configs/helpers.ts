@@ -24,7 +24,7 @@ export type MakeStandardConfigMethodsArgs = {
 };
 
 export function makeStandardConfigMethods(
-  args: MakeStandardConfigMethodsArgs
+  args: MakeStandardConfigMethodsArgs,
 ): Pick<
   ConfigInput,
   | "logger"

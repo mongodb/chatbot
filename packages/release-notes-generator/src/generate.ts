@@ -5,7 +5,7 @@ import { PromisePool } from "@supercharge/promise-pool";
 
 export async function generate(
   config: Config,
-  version: VersionRange
+  version: VersionRange,
 ): Promise<ClassifiedChange[]> {
   const logger = config.logger;
   await logger?.log("info", "Generating release notes", {
@@ -19,7 +19,7 @@ export async function generate(
   await logger?.log("debug", "Fetched artifacts", fetchedArtifacts);
 
   const { results: classifiedArtifacts } = await PromisePool.withConcurrency(
-    config.llmMaxConcurrency
+    config.llmMaxConcurrency,
   )
     .for(fetchedArtifacts)
     .handleError((error, artifact) => {
@@ -68,7 +68,7 @@ export async function generate(
       void logger?.log(
         "debug",
         `Extracted ${changes.length} changes from ${artifactIdentifier}`,
-        changes
+        changes,
       );
 
       // Classify each change
@@ -86,27 +86,27 @@ export async function generate(
       }
       const updatedArtifact = artifactWithChanges(
         artifactWithSummary,
-        classifiedChanges
+        classifiedChanges,
       );
       void logger?.log(
         "debug",
         `Classified ${classifiedChanges.length} changes from ${artifactIdentifier}`,
-        { classifiedChanges }
+        { classifiedChanges },
       );
       return updatedArtifact;
     });
 
   const allClassifiedChanges = classifiedArtifacts.flatMap(
-    (artifact) => artifact.changes
+    (artifact) => artifact.changes,
   );
   void logger?.log(
     "info",
     `Found ${allClassifiedChanges.length} total changes`,
-    allClassifiedChanges
+    allClassifiedChanges,
   );
 
   const filteredChanges = allClassifiedChanges.filter((change) =>
-    config.filterChange(change)
+    config.filterChange(change),
   );
   void logger?.log("info", `Filtered to ${filteredChanges.length} changes`, {
     filteredChanges,

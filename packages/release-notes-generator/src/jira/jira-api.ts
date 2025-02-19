@@ -33,13 +33,13 @@ export const JiraReleaseInfoSchema = z.object({
     .string()
     .optional()
     .describe(
-      "The version of the release. This (naïvely) corresponds to a Jira fixVersion."
+      "The version of the release. This (naïvely) corresponds to a Jira fixVersion.",
     ),
   issueKeys: z
     .array(z.string())
     .optional()
     .describe(
-      "Array of Jira issue keys (e.g., MIG-xxxx). If not provided, will be extracted from commit messages."
+      "Array of Jira issue keys (e.g., MIG-xxxx). If not provided, will be extracted from commit messages.",
     ),
   project: z.string().optional().describe("The Jira project key."),
 });
@@ -143,7 +143,7 @@ export function makeJiraReleaseArtifacts({
             components:
               issue.fields.components?.map((component) => component.name) ?? [],
             fixVersions: issue.fields.fixVersions.map(
-              (fixVersion) => fixVersion.name
+              (fixVersion) => fixVersion.name,
             ),
             resolution: issue.fields.resolution?.name ?? "Unresolved",
             priority: issue.fields.priority?.name ?? "None",

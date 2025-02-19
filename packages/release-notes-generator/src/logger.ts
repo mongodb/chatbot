@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { z } from "zod";
-import { currentTimestamp } from "./utils";
+import { currentTimestamp, safeFileName } from "./utils";
 
 export const logLevelSchema = z.enum(["debug", "info", "warn", "error"]);
 export type LogLevel = z.infer<typeof logLevelSchema>;
@@ -23,9 +23,25 @@ export const loggerSchema = z.object({
     .args(logLevelSchema, z.string(), z.unknown().optional())
     .returns(z.void().or(z.promise(z.void()))),
   /**
+   Get the current log file directory if one is configured
+   */
+  getLogFileDir: z
+    .function()
+    .args()
+    .returns(z.string().or(z.undefined()))
+    .optional(),
+  /**
+   Get the current log file name if one is configured
+   */
+  getLogFileName: z
+    .function()
+    .args()
+    .returns(z.string().or(z.undefined()))
+    .optional(),
+  /**
    Get the current log file path if one is configured
    */
-  getOutputPath: z
+  getLogFilePath: z
     .function()
     .args()
     .returns(z.string().or(z.undefined()))
@@ -56,9 +72,26 @@ export function createConsoleLogger(): Logger {
   };
 }
 
-export function createFileLogger(outputPath: string): Logger {
+export type FileLoggerArgs = {
+  namespace: string;
+  outputDir: string;
+};
+
+export function createFileLogger(args: FileLoggerArgs): Logger {
+  if (args.namespace.length === 0) {
+    throw new Error("File logger namespace cannot be an empty string");
+  }
+  if (args.outputDir.length === 0) {
+    throw new Error("File logger output directory cannot be an empty string");
+  }
+
+  const filePath = path.join(
+    args.outputDir,
+    safeFileName(`${args.namespace}-${currentTimestamp()}.jsonl`),
+  );
+
   // Ensure directory exists
-  const dir = path.dirname(outputPath);
+  const dir = path.dirname(filePath);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -73,12 +106,14 @@ export function createFileLogger(outputPath: string): Logger {
         timestamp,
       };
       await fs.promises.appendFile(
-        outputPath,
+        filePath,
         JSON.stringify(logMessage) + "\n",
-        "utf8"
+        "utf8",
       );
     },
-    getOutputPath: () => outputPath,
+    getLogFilePath: () => filePath,
+    getLogFileDir: () => dir,
+    getLogFileName: () => path.basename(filePath),
   };
 }
 
@@ -86,34 +121,37 @@ export function createMultiLogger(loggers: Logger[]): Logger {
   return {
     log: async (level: LogLevel, message: string, data?: unknown) => {
       await Promise.all(
-        loggers.map((logger) => logger.log(level, message, data))
+        loggers.map((logger) => logger.log(level, message, data)),
       );
     },
-    getOutputPath: () => {
+    getLogFilePath: () => {
       for (const logger of loggers) {
-        const path = logger.getOutputPath?.();
+        const path = logger.getLogFilePath?.();
         if (path) return path;
       }
       return undefined;
     },
+    getLogFileDir: () => {
+      for (const logger of loggers) {
+        const dir = logger.getLogFileDir?.();
+        if (dir) return dir;
+      }
+      return undefined;
+    },
+    getLogFileName: () => {
+      for (const logger of loggers) {
+        const name = logger.getLogFileName?.();
+        if (name) return name;
+      }
+    },
   };
 }
 
-export function createConsoleAndFileLogger(args: {
-  namespace: string;
-  outputDir: string;
-}): Logger {
-  if (args.namespace.length === 0) {
-    throw new Error("File logger namespace cannot be an empty string");
-  }
-  if (args.outputDir.length === 0) {
-    throw new Error("File logger output directory cannot be an empty string");
-  }
-
-  const filePath = path.join(
-    args.outputDir,
-    `${args.namespace}-${currentTimestamp()}.jsonl`
-  );
-
-  return createMultiLogger([createConsoleLogger(), createFileLogger(filePath)]);
+export function createConsoleAndFileLogger(
+  fileLoggerArgs: FileLoggerArgs,
+): Logger {
+  return createMultiLogger([
+    createConsoleLogger(),
+    createFileLogger(fileLoggerArgs),
+  ]);
 }

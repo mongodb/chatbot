@@ -26,12 +26,12 @@ describe("splitDiff", () => {
 
     expect(diffParts[0].fileName).toEqual("file1");
     expect(diffParts[0].diff).toEqual(
-      `diff --git a/file1 b/file1\nindex 0000000..1111111 100644\n--- a/file1\n+++ b/file1\n@@ -1,2 +1,2 @@\n-foo\n+bar\n+baz\n`
+      `diff --git a/file1 b/file1\nindex 0000000..1111111 100644\n--- a/file1\n+++ b/file1\n@@ -1,2 +1,2 @@\n-foo\n+bar\n+baz\n`,
     );
 
     expect(diffParts[1].fileName).toEqual("file2");
     expect(diffParts[1].diff).toEqual(
-      `diff --git a/file2 b/file2\nindex 222222..333333 100644\n--- a/file2\n+++ b/file2\n@@ -1,2 +1,2 @@\n-hello, world\n+wassup, world\n`
+      `diff --git a/file2 b/file2\nindex 222222..333333 100644\n--- a/file2\n+++ b/file2\n@@ -1,2 +1,2 @@\n-hello, world\n+wassup, world\n`,
     );
   });
 });

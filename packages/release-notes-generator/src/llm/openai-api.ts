@@ -18,23 +18,23 @@ export const makeAzureOpenAiClient = ({
   });
 
 export function chatMessage<T extends OpenAI.ChatCompletionMessageParam>(
-  t: T
+  t: T,
 ): T {
   return t;
 }
 
 export const systemMessage = (
-  args: Omit<OpenAI.ChatCompletionSystemMessageParam, "role">
+  args: Omit<OpenAI.ChatCompletionSystemMessageParam, "role">,
 ): OpenAI.ChatCompletionSystemMessageParam =>
   chatMessage({ role: "system", ...args });
 
 export const userMessage = (
-  args: Omit<OpenAI.ChatCompletionUserMessageParam, "role">
+  args: Omit<OpenAI.ChatCompletionUserMessageParam, "role">,
 ): OpenAI.ChatCompletionUserMessageParam =>
   chatMessage({ role: "user", ...args });
 
 export const assistantMessage = (
-  args: Omit<OpenAI.ChatCompletionAssistantMessageParam, "role">
+  args: Omit<OpenAI.ChatCompletionAssistantMessageParam, "role">,
 ): OpenAI.ChatCompletionAssistantMessageParam =>
   chatMessage({ role: "assistant", ...args });
 

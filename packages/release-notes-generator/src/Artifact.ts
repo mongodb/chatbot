@@ -27,7 +27,7 @@ export type Artifact<T extends string, D> = {
 
 export const createArtifactArgsSchema = <T extends string, D>(
   typeSchema: z.ZodLiteral<T>,
-  dataSchema: z.ZodType<D>
+  dataSchema: z.ZodType<D>,
 ) =>
   z.object({
     id: z.string(),
@@ -40,7 +40,7 @@ export const createArtifactArgsSchema = <T extends string, D>(
 
 export const createArtifactSchema = <T extends string, D>(
   typeSchema: z.ZodLiteral<T>,
-  dataSchema: z.ZodType<D>
+  dataSchema: z.ZodType<D>,
 ) =>
   z.object({
     /** A unique identifier for the artifact. */
@@ -59,18 +59,18 @@ export const createArtifactSchema = <T extends string, D>(
 
 export function makeArtifact<T extends string, D>(
   args: ArtifactArgs<T, D>,
-  schema: ReturnType<typeof createArtifactSchema<T, D>>
+  schema: ReturnType<typeof createArtifactSchema<T, D>>,
 ): Artifact<T, D> {
   const validatedArgsResult = createArtifactArgsSchema(
     schema.shape.type,
-    schema.shape.data
+    schema.shape.data,
   ).safeParse(args);
 
   if (!validatedArgsResult.success) {
     throw new Error(
       `Failed to validate artifact arguments:\n${validatedArgsResult.error.errors
         .map((e) => `${e.path.join(".")}: ${e.message}`)
-        .join("\n")}`
+        .join("\n")}`,
     );
   }
 
@@ -90,7 +90,7 @@ export function makeArtifact<T extends string, D>(
     throw new Error(
       `Failed to validate artifact:\n${artifactResult.error.errors
         .map((e) => `${e.path.join(".")}: ${e.message}`)
-        .join("\n")}`
+        .join("\n")}`,
     );
   }
 
@@ -98,13 +98,13 @@ export function makeArtifact<T extends string, D>(
 }
 
 export function getArtifactIdentifier<T extends string, D>(
-  artifact: Artifact<T, D>
+  artifact: Artifact<T, D>,
 ): string {
   return `${artifact.type}::${artifact.id}`;
 }
 
 export function getCondensedArtifact<T extends string, D>(
-  artifact: Artifact<T, D>
+  artifact: Artifact<T, D>,
 ): Required<Pick<Artifact<T, D>, "id" | "type" | "summary">> &
   Record<string, unknown> {
   return {
@@ -122,7 +122,7 @@ export const artifactGroupDataSchema = z.object({
 
 export const artifactGroupSchema = createArtifactSchema(
   z.literal("group"),
-  artifactGroupDataSchema
+  artifactGroupDataSchema,
 );
 
 export type ArtifactGroup = Artifact<"group", { artifacts: SomeArtifact[] }>;
@@ -137,7 +137,7 @@ export function makeArtifactGroup(args: {
       type: "group",
       data: { artifacts: args.artifacts },
     },
-    artifactGroupSchema
+    artifactGroupSchema,
   );
 }
 

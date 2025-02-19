@@ -40,12 +40,12 @@ export const GitHubReleaseInfo = z.object({
   version: z
     .string()
     .describe(
-      "The version of the release. This (naïvely) corresponds to a git tag."
+      "The version of the release. This (naïvely) corresponds to a git tag.",
     ),
   previousVersion: z
     .string()
     .describe(
-      "The previous version of the release. This (naïvely) corresponds to a git tag."
+      "The previous version of the release. This (naïvely) corresponds to a git tag.",
     ),
 });
 
@@ -83,7 +83,7 @@ type GitHubError = {
 // Simple rate limit handler with retries
 async function withRateLimit<T>(
   operation: () => Promise<T>,
-  retryCount = 0
+  retryCount = 0,
 ): Promise<T> {
   try {
     const result = await operation();
@@ -111,7 +111,7 @@ function extractJiraIssueKeys(jiraProject: string, message: string): string[] {
 }
 
 export function makeGitHubReleaseArtifacts(
-  args: MakeGitHubReleaseArtifactsArgs
+  args: MakeGitHubReleaseArtifactsArgs,
 ): GitHubReleaseArtifacts {
   const githubApi =
     "githubApi" in args
@@ -126,7 +126,7 @@ export function makeGitHubReleaseArtifacts(
         owner: args.owner,
         repo: args.repo,
         basehead: `${args.previousVersion}...${args.version}`,
-      })
+      }),
     );
   };
 
@@ -145,7 +145,7 @@ export function makeGitHubReleaseArtifacts(
 
   // Helper function to fetch detailed commit information with rate limiting
   const fetchCommitDetails = async (
-    commitSha: string
+    commitSha: string,
   ): Promise<
     Awaited<ReturnType<typeof githubApi.repos.getCommit>>["data"] | undefined
   > => {
@@ -155,11 +155,11 @@ export function makeGitHubReleaseArtifacts(
           owner: args.owner,
           repo: args.repo,
           ref: commitSha,
-        })
+        }),
       );
       commitDetailPromises.set(
         commitSha,
-        commitPromise.then((response) => response.data)
+        commitPromise.then((response) => response.data),
       );
     }
     return commitDetailPromises.get(commitSha);
@@ -181,10 +181,10 @@ export function makeGitHubReleaseArtifacts(
       for (let i = 0; i < versionData.commits.length; i += batchSize) {
         const batch = versionData.commits.slice(i, i + batchSize);
         const batchResults = await Promise.all(
-          batch.map((commit) => fetchCommitDetails(commit.sha))
+          batch.map((commit) => fetchCommitDetails(commit.sha)),
         );
         const filteredBatchResults = batchResults.filter(
-          (commit) => commit !== undefined
+          (commit) => commit !== undefined,
         );
         detailedCommits.push(...filteredBatchResults);
 
@@ -215,7 +215,7 @@ export function makeGitHubReleaseArtifacts(
                 };
               }) ?? [],
           },
-        })
+        }),
       );
     },
     getDiffs: async (): Promise<GitDiffArtifact[]> => {
@@ -228,7 +228,7 @@ export function makeGitHubReleaseArtifacts(
           headers: {
             accept: "application/vnd.github.v3.diff",
           },
-        })
+        }),
       );
 
       // Octokit doesn't have typings for the diff response. When you
@@ -245,7 +245,7 @@ export function makeGitHubReleaseArtifacts(
             fileName,
             diff,
           },
-        })
+        }),
       );
 
       return artifacts;
@@ -259,7 +259,7 @@ export function makeGitHubReleaseArtifacts(
 
       const jiraIssues = versionData.commits
         .map((commit) =>
-          extractJiraIssueKeys(jiraProject, commit.commit.message)
+          extractJiraIssueKeys(jiraProject, commit.commit.message),
         )
         .flat();
 

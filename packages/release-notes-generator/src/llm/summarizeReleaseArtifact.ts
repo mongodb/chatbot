@@ -109,7 +109,7 @@ function createUserPromptForReleaseArtifact(artifact: SomeArtifact): string {
             Summary:
               "This commit adds a new CLI command: `atlas federatedAuthentication federationSettings connectedOrgConfigs describe`. The command returns a description of a connected organization's federated authentication configuration.",
           },
-        ]
+        ],
       );
       return `${fm}\n${artifactString}`;
     }
@@ -135,7 +135,7 @@ function createUserPromptForReleaseArtifact(artifact: SomeArtifact): string {
             Summary:
               "This issue tracks the release of Atlas CLI version 1.22.0 within MongoDB Engineering.",
           },
-        ]
+        ],
       );
       return `${fm}\n${artifactString}`;
     }

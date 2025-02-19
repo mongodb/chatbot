@@ -19,7 +19,7 @@ export type JiraIssue = z.infer<typeof jiraIssueSchema>;
 
 export const jiraIssueArtifactSchema = createArtifactSchema(
   z.literal("jira-issue"),
-  jiraIssueSchema
+  jiraIssueSchema,
 );
 
 export type JiraIssueArtifact = z.infer<typeof jiraIssueArtifactSchema>;
@@ -36,7 +36,7 @@ export function makeJiraIssueArtifact(args: {
       data: args.data,
       summary: args.summary,
     },
-    jiraIssueArtifactSchema
+    jiraIssueArtifactSchema,
   );
 }
 
@@ -54,7 +54,7 @@ export type CondensedJiraIssue = {
 };
 
 export function getCondensedJiraIssue(
-  artifact: JiraIssueArtifact
+  artifact: JiraIssueArtifact,
 ): CondensedJiraIssue {
   return {
     id: artifact.id,

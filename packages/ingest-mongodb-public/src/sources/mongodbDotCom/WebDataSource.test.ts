@@ -6,14 +6,17 @@ import {
 } from "./webSources";
 import fs from "fs";
 import path from "path";
-import { chromium } from "playwright";
 jest.setTimeout(60000);
-
-global.fetch = jest.fn();
 
 const SRC_ROOT = path.resolve(__dirname, "../../");
 
 describe("getUrlsFromSitemap", () => {
+  beforeAll(() => {
+    global.fetch = jest.fn();
+  });
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
   it("should return an array of URLs from the sitemap", async () => {
     const sitemapPath = path.resolve(SRC_ROOT, "../testData/sitemap-pages.xml");
     const sitemapXML = fs.readFileSync(sitemapPath, "utf8");
@@ -78,28 +81,64 @@ describe("prepareWebSources", () => {
   });
 });
 
-describe.skip("makeWebDataSource", () => {
-  // TODO: add tests for this...
-});
-
-// Skipping this test because it requires a browser to be installed
-test.skip("Scraper extracts correct data", async () => {
-  const executablePath = chromium.executablePath();
-  console.log(">>>> executablePath:", executablePath);
-  const browser = await chromium.launch({
-    headless: true,
-    executablePath: executablePath,
-  });
-  const page = await browser.newPage();
-  const url = "https://mongodb.com/company";
-  await page.goto(url, { waitUntil: "domcontentloaded" });
-
-  const data = await page.evaluate(() => {
-    return {
-      title: document.title,
-      heading: document.querySelector("h1")?.textContent || "No heading found",
+describe("WebDataSource", () => {
+  const mockMakeBrowser = async () => {
+    const browser = {
+      newPage: jest.fn().mockResolvedValue({
+        goto: jest.fn(),
+        evaluate: jest.fn(),
+      }),
+      close: jest.fn(),
     };
+    const page = await browser.newPage();
+    return { page, browser };
+  };
+
+  beforeAll(() => {
+    jest.mock("./WebDataSource", () => ({
+      ...jest.requireActual("./WebDataSource"),
+      makeBrowser: jest.fn(mockMakeBrowser),
+    }));
   });
-  expect(data.title).toBe("About MongoDB | MongoDB");
-  await browser.close();
+
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
+
+  it("handles empty urls list", async () => {
+    const source = await makeWebDataSource({
+      name: "empty-source",
+      urls: [],
+    });
+    const pages = await source.fetchPages();
+    expect(pages.length).toBe(0);
+  });
+  it("handles invalid urls", async () => {
+    const source = await makeWebDataSource({
+      name: "mongodb-dot-com",
+      urls: ["https://www.mongodb.com/not-a-real-page"],
+    });
+    const pages = await source.fetchPages();
+    expect(pages.length).toBe(0);
+  });
+  it("handles valid urls", async () => {
+    const source = await makeWebDataSource({
+      name: "valid-source",
+      urls: ["https://www.mongodb.com/company"],
+    });
+    const pages = await source.fetchPages();
+    expect(pages.length).toBe(1);
+    expect(pages[0]).toMatchObject({
+      url: "https://www.mongodb.com/company",
+      metadata: {
+        description:
+          "MongoDB empowers innovators with our developer data platform and integrated services. MongoDB enables development teams to meet the diverse needs of modern apps. ",
+        contentType: "website",
+        siteTitle: "MongoDB",
+      },
+      title: "About MongoDB",
+      sourceName: "valid-source",
+      format: "md",
+    });
+  });
 });

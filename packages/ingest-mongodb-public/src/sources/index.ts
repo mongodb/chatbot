@@ -202,7 +202,9 @@ const makePuppeteer = async () => {
 
 const makePlaywright = async () => {
   const browser = await chromium.launch({ headless: true });
+  console.log('playwright browser', browser);
   const page = await browser.newPage();
+  console.log('playwright page', page);
   return { page, browser };
 };
   

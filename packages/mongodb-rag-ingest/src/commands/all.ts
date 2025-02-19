@@ -51,9 +51,9 @@ export const doAllCommand = async (
 
   await doUpdatePagesCommand(config, {});
 
-  await doUpdateEmbedCommand(config, {
-    since: lastSuccessfulRunDate ?? new Date("2023-01-01"),
-  });
+  // await doUpdateEmbedCommand(config, {
+  //   since: lastSuccessfulRunDate ?? new Date("2023-01-01"),
+  // });
 
   // cleanup - delete pages and embedded content that are no longer in the data sources
   // await config.pageStore.deletePages({

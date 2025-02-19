@@ -5,7 +5,7 @@ import {
   assertEnvVars,
   CORE_OPENAI_CONNECTION_ENV_VARS,
 } from "mongodb-rag-core";
-import { makeStandardConfigMethods } from "../configHelper";
+import { makeStandardConfigMethods } from "./helpers";
 import {
   makeGitHubApiClient,
   makeGitHubReleaseArtifacts,
@@ -79,8 +79,9 @@ export default createConfig({
       version: `atlascli-${version.current}`,
     });
 
-    const commits = await github.getCommits();
-    const issues = await jira.getIssues();
-    return Array<SomeArtifact>().concat(commits, issues);
+    return Array<SomeArtifact>().concat(
+      await github.getCommits(),
+      await jira.getIssues(),
+    );
   },
 });

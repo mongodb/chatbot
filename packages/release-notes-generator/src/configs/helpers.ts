@@ -1,14 +1,14 @@
 import "dotenv/config";
-import type { ConfigInput } from "./config";
-import { createConsoleAndFileLogger } from "./logger";
+import type { ConfigInput } from "../config";
+import { createConsoleAndFileLogger } from "../logger";
 import {
   makeAzureOpenAiClient,
   makeGenerateChatCompletion,
-} from "./llm/openai-api";
-import { makeSummarizeReleaseArtifact } from "./llm/summarizeReleaseArtifact";
-import { makeCreateChangelogEntry } from "./llm/createChangelogEntry";
-import { makeClassifyChangelog } from "./llm/classifyChangelog";
-import { changelogClassificationSchema } from "./change";
+} from "../llm/openai-api";
+import { makeSummarizeReleaseArtifact } from "../llm/summarizeReleaseArtifact";
+import { makeCreateChangelogEntry } from "../llm/createChangelogEntry";
+import { makeClassifyChangelog } from "../llm/classifyChangelog";
+import { changelogClassificationSchema } from "../change";
 
 export type MakeStandardConfigMethodsArgs = {
   azureOpenAi: {
@@ -50,7 +50,6 @@ export function makeStandardConfigMethods(
   const classifyChangelog = makeClassifyChangelog({
     openAiClient,
     model: args.azureOpenAi.chatCompletionDeployment,
-    logger,
   });
   return {
     logger,

@@ -1,13 +1,11 @@
 import { stripIndents } from "common-tags";
 import type { GenerateChatCompletion } from "./openai-api";
 import { systemMessage, userMessage } from "./openai-api";
-import type { Logger } from "../logger";
 import type { SomeArtifact } from "../artifact";
 
 const NO_CHANGELOG_ENTRY_SYMBOL = "<<<NO_CHANGELOG_ENTRY>>>";
 
 export type MakeCreateChangelogEntryArgs = {
-  logger?: Logger;
   generate: GenerateChatCompletion;
 };
 
@@ -17,7 +15,6 @@ export type CreateChangelogEntryArgs = {
 };
 
 export function makeCreateChangelogEntry({
-  logger,
   generate,
 }: MakeCreateChangelogEntryArgs) {
   return async function createChangelogEntry({
@@ -26,10 +23,6 @@ export function makeCreateChangelogEntry({
   }: CreateChangelogEntryArgs) {
     if (!artifact.summary) {
       const errorMessage = `Artifact must have a summary`;
-      void logger?.log("error", errorMessage, {
-        type: artifact.type,
-        id: artifact.id,
-      });
       throw new Error(errorMessage);
     }
     const chatTemplate = [
@@ -81,17 +74,9 @@ export function makeCreateChangelogEntry({
       `,
       }),
     ];
-
-    const artifactInfo = {
-      type: artifact.type,
-      id: artifact.id,
-      summary: artifact.summary,
-    };
-    void logger?.log("info", "Generating changelog for artifact", artifactInfo);
     const output = await generate({ messages: chatTemplate });
     if (!output) {
       const errorMessage = `"Failed to generate changelog for artifact"`;
-      void logger?.log("error", errorMessage, artifactInfo);
       throw new Error(errorMessage);
     }
     return output.split("\n");

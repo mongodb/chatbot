@@ -1,6 +1,5 @@
 import JiraApi from "jira-client";
 import { z } from "zod";
-import type { Logger } from "../logger";
 import { makeJiraIssueArtifact, type JiraIssueArtifact } from "./artifacts";
 
 export type MakeJiraApiClientArgs = {
@@ -58,16 +57,10 @@ export type MakeJiraReleaseArtifactsArgs = (JiraReleaseInfo | JiraQuery) & {
    A Jira API client
    */
   jiraApi: JiraApi;
-
-  /**
-   A logger
-   */
-  logger?: Logger;
 };
 
 export function makeJiraReleaseArtifacts({
   jiraApi,
-  logger,
   ...args
 }: MakeJiraReleaseArtifactsArgs): JiraReleaseArtifacts {
   // If args is a JiraReleaseInfo, extract the version and issueKeys
@@ -106,8 +99,6 @@ export function makeJiraReleaseArtifacts({
         throw new Error("No JQL query provided");
       }
 
-      void logger?.log("info", "Fetching Jira issues", { jqlQuery });
-
       const fetchedIssues: JiraIssue[] = [];
 
       // These variables + the while loop are used to handle pagination
@@ -135,12 +126,6 @@ export function makeJiraReleaseArtifacts({
 
         fetchedIssues.push(...response.issues);
 
-        void logger?.log("info", "Fetched page of Jira issues", {
-          page: Math.floor(startAt / maxResults) + 1,
-          fetchedCount: fetchedIssues.length,
-          totalCount: response.total,
-        });
-
         if (fetchedIssues.length >= response.total) {
           moreToFetch = false;
           break;
@@ -148,10 +133,6 @@ export function makeJiraReleaseArtifacts({
 
         startAt += maxResults;
       }
-
-      void logger?.log("info", "Completed fetching Jira issues", {
-        issueKeys: fetchedIssues.map((issue) => issue.key),
-      });
       return fetchedIssues.map((issue) => {
         return makeJiraIssueArtifact({
           id: issue.key,

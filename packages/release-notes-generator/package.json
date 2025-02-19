@@ -15,11 +15,23 @@
         "types": "./dist/cjs/index.d.ts",
         "default": "./dist/cjs/index.js"
       }
+    },
+    "./configs": {
+      "import": {
+        "types": "./dist/esm/configs/index.d.ts",
+        "default": "./dist/esm/configs/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/configs/index.d.ts",
+        "default": "./dist/cjs/configs/index.js"
+      }
     }
   },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
     "lint": "eslint --max-warnings 0",
     "lint:fix": "npm run lint -- --fix",
     "test": "vitest"
@@ -38,6 +50,7 @@
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-jsdoc": "^50.6.3",
     "globals": "^15.14.0",
+    "prettier": "^3.5.1",
     "tsup": "^8.0.2",
     "vitest": "^3.0.5"
   },

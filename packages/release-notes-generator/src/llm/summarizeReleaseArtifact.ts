@@ -1,11 +1,9 @@
 import { stripIndents } from "common-tags";
 import type { GenerateChatCompletion } from "./openai-api";
 import { systemMessage, userMessage } from "./openai-api";
-import type { Logger } from "../logger";
 import type { SomeArtifact } from "../artifact";
 
 export type MakeSummarizeReleaseArtifactArgs = {
-  logger?: Logger;
   generate: GenerateChatCompletion;
 };
 
@@ -15,7 +13,6 @@ export type SummarizeReleaseArtifactArgs = {
 };
 
 export function makeSummarizeReleaseArtifact({
-  logger,
   generate,
 }: MakeSummarizeReleaseArtifactArgs) {
   return async function summarizeReleaseArtifact({
@@ -59,10 +56,6 @@ export function makeSummarizeReleaseArtifact({
       userMessage({ content: createUserPromptForReleaseArtifact(artifact) }),
     ];
 
-    void logger?.log("info", "Summarizing release artifact", {
-      type: artifact.type,
-      id: artifact.id,
-    });
     const output = await generate({ messages: chatTemplate });
     if (!output) {
       throw new Error("Something went wrong while generating the summary ☹️");

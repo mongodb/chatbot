@@ -8,7 +8,7 @@ WORKDIR /bin
 COPY . ./
 
 # Install Lerna
-RUN npm install -g lerna
+RUN npm install lerna
 
 # Install system dependencies required for Playwright & Chromium
 RUN apk add --no-cache \

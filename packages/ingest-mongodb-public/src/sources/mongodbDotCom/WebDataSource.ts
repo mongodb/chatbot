@@ -1,38 +1,38 @@
 import { logger, Page } from "mongodb-rag-core";
 import { DataSource } from "mongodb-rag-core/dataSources";
 import * as cheerio from "cheerio";
-// import { Page as PuppeteerPage, Browser } from "puppeteer";
-import { Page as PlaywrightPage, Browser as PlaywrightBrowser } from "playwright";
+import { Page as PuppeteerPage, Browser } from "puppeteer";
+// import { Page as PlaywrightPage, Browser as PlaywrightBrowser } from "playwright";
 import TurndownService from "turndown";
 import * as turndownPluginGfm from "turndown-plugin-gfm";
 import { WebSource } from "./webSources";
 
 interface WebDataSourceParams extends WebSource {
-  // makePuppeteer: () => Promise<{ page: PuppeteerPage; browser: Browser }>;
-  makePlaywright: () => Promise<{ page: PlaywrightPage; browser: PlaywrightBrowser }>;
+  makePuppeteer: () => Promise<{ page: PuppeteerPage; browser: Browser }>;
+  // makePlaywright: () => Promise<{ page: PlaywrightPage; browser: PlaywrightBrowser }>;
 }
 
 export function makeWebDataSource({
   name,
   urls,
   staticMetadata,
-  // makePuppeteer,
-  makePlaywright,
+  makePuppeteer,
+  // makePlaywright,
 }: WebDataSourceParams): DataSource {
   return {
     name,
     async fetchPages() {
       try {
-        // const { page: puppeteerPage, browser } = await makePuppeteer();
-        const { page: playWrightPage, browser } = await makePlaywright();
-        logger.info(`playwright page: ${JSON.stringify(playWrightPage)}`);
-        logger.info(`playwright browser: ${JSON.stringify(browser)}`);
+        const { page: puppeteerPage, browser } = await makePuppeteer();
+        // const { page: playWrightPage, browser } = await makePlaywright();
+        logger.info(`puppeteer page: ${JSON.stringify(puppeteerPage)}`);
+        logger.info(`puppeteer browser: ${JSON.stringify(browser)}`);
         const pages: Page[] = [];
         const errors: string[] = [];
         for await (const url of urls) {
           const { content, error } = await scrapePage({
             url,
-            puppeteerPage: playWrightPage,
+            puppeteerPage,
           });
           if (content) {
             pages.push({
@@ -169,7 +169,7 @@ function getTitle(
 }
 
 async function getContent(
-  page: PlaywrightPage
+  page: PuppeteerPage
 ): Promise<Pick<Page, "body" | "metadata" | "title">> {
   const { bodyInnerHtml, headInnerHtml } = await page.evaluate(() => ({
     bodyInnerHtml: document.body.innerHTML,
@@ -200,8 +200,8 @@ async function scrapePage({
   puppeteerPage,
   url,
 }: {
-  // puppeteerPage: PuppeteerPage;
-  puppeteerPage: PlaywrightPage;
+  puppeteerPage: PuppeteerPage;
+  // puppeteerPage: PlaywrightPage;
   url: string;
 }): Promise<{ content: PageContent | null; error: string | null }> {
   // TODO: when productionizing, don't re-instantiate the browser on every call

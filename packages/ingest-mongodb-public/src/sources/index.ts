@@ -217,8 +217,8 @@ const makePlaywright = async () => {
     webSources.map(async (webSource) => {
       return await makeWebDataSource({
         ...webSource,
-        // makePuppeteer: makePuppeteer,
-        makePlaywright: makePlaywright,
+        makePuppeteer: makePuppeteer,
+        // makePlaywright: makePlaywright,
       });
     })
   );

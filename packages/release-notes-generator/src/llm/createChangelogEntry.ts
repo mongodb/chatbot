@@ -2,8 +2,6 @@ import { stripIndents } from "common-tags";
 import type { GenerateChatCompletion } from "./openai-api";
 import { systemMessage, userMessage } from "./openai-api";
 import type { Logger } from "../logger";
-import { PromisePool } from "@supercharge/promise-pool";
-import { removeStartOfString } from "../utils";
 import type { SomeArtifact } from "../artifact";
 
 const NO_CHANGELOG_ENTRY_SYMBOL = "<<<NO_CHANGELOG_ENTRY>>>";
@@ -97,51 +95,5 @@ export function makeCreateChangelogEntry({
       throw new Error(errorMessage);
     }
     return output.split("\n");
-  };
-}
-
-export type CreateChangelogEntriesArgs = {
-  artifacts: CreateChangelogEntryArgs["artifact"][];
-  concurrency?: number;
-};
-
-export function makeCreateChangelogEntries({
-  logger,
-  generate,
-  projectDescription,
-}: MakeCreateChangelogEntryArgs) {
-  const createChangelogEntry = makeCreateChangelogEntry({
-    logger,
-    generate,
-    projectDescription,
-  });
-  return async function createChangelogEntries({
-    artifacts,
-    concurrency = 4,
-  }: CreateChangelogEntriesArgs) {
-    const errors: Error[] = [];
-    const { results } = await PromisePool.withConcurrency(concurrency)
-      .for(artifacts)
-      .handleError((error) => {
-        errors.push(error);
-      })
-      .process(async (artifact) => {
-        return await createChangelogEntry({
-          artifact,
-        });
-      });
-    if (errors.length > 0) {
-      void logger?.log(
-        "info",
-        `Failed to generate ${errors.length} changelogs.`,
-        {
-          errors,
-        }
-      );
-    }
-    return results
-      .flat()
-      .filter((c) => c !== NO_CHANGELOG_ENTRY_SYMBOL)
-      .map((changelog) => removeStartOfString(changelog, "- "));
   };
 }

@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { z } from "zod";
+import { currentTimestamp } from "./utils";
 
 export const logLevelSchema = z.enum(["debug", "info", "warn", "error"]);
 export type LogLevel = z.infer<typeof logLevelSchema>;
@@ -96,4 +97,23 @@ export function createMultiLogger(loggers: Logger[]): Logger {
       return undefined;
     },
   };
+}
+
+export function createConsoleAndFileLogger(args: {
+  namespace: string;
+  outputDir: string;
+}): Logger {
+  if (args.namespace.length === 0) {
+    throw new Error("File logger namespace cannot be an empty string");
+  }
+  if (args.outputDir.length === 0) {
+    throw new Error("File logger output directory cannot be an empty string");
+  }
+
+  const filePath = path.join(
+    args.outputDir,
+    `${args.namespace}-${currentTimestamp()}.jsonl`
+  );
+
+  return createMultiLogger([createConsoleLogger(), createFileLogger(filePath)]);
 }

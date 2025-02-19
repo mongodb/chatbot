@@ -37,6 +37,9 @@ export async function generate(
       void logger?.log("debug", `Processing artifact`, { artifactIdentifier });
 
       // Summarize the artifact
+      void logger?.log("debug", "Summarizing artifact", {
+        artifactIdentifier,
+      });
       const summary = await config.summarizeArtifact({
         project: config.project,
         artifact,
@@ -49,8 +52,15 @@ export async function generate(
         metadata: artifact.metadata,
         summary,
       };
+      void logger?.log("debug", "Summarized artifact", {
+        artifactIdentifier,
+        summary,
+      });
 
       // Extract changes from the artifact
+      void logger?.log("debug", "Extracting changes from artifact", {
+        artifactIdentifier,
+      });
       const changes = await config.extractChanges({
         project: config.project,
         artifact: artifactWithSummary,
@@ -62,6 +72,9 @@ export async function generate(
       );
 
       // Classify each change
+      void logger?.log("debug", "Classifying changes", {
+        artifactIdentifier,
+      });
       const classifiedChanges: ClassifiedChange[] = [];
       for (const change of changes) {
         const classification = await config.classifyChange(change);
@@ -78,28 +91,26 @@ export async function generate(
       void logger?.log(
         "debug",
         `Classified ${classifiedChanges.length} changes from ${artifactIdentifier}`,
-        classifiedChanges
+        { classifiedChanges }
       );
       return updatedArtifact;
     });
 
-  const classifiedChanges = classifiedArtifacts.flatMap(
+  const allClassifiedChanges = classifiedArtifacts.flatMap(
     (artifact) => artifact.changes
   );
   void logger?.log(
     "info",
-    `Found ${classifiedChanges.length} total changes`,
-    classifiedChanges
+    `Found ${allClassifiedChanges.length} total changes`,
+    allClassifiedChanges
   );
 
-  const filteredChanges = classifiedChanges.filter((change) =>
+  const filteredChanges = allClassifiedChanges.filter((change) =>
     config.filterChange(change)
   );
-  void logger?.log(
-    "info",
-    `Filtered to ${filteredChanges.length} changes`,
-    filteredChanges
-  );
+  void logger?.log("info", `Filtered to ${filteredChanges.length} changes`, {
+    filteredChanges,
+  });
 
   return filteredChanges;
 }

@@ -9,7 +9,7 @@ import {
   type SummarizeArtifact,
   validateConfig,
 } from "./config";
-import config from "./atlas-cli.config";
+import config from "./configs/atlas-cli.config";
 
 const mockProjectInfo: ProjectInfo = {
   name: "Release Notes Generator Test Project",

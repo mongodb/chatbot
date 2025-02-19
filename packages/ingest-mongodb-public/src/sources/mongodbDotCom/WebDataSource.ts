@@ -1,27 +1,16 @@
 import { logger, Page } from "mongodb-rag-core";
 import { DataSource } from "mongodb-rag-core/dataSources";
 import * as cheerio from "cheerio";
-import {
-  Page as PlaywrightPage,
-  Browser as PlaywrightBrowser,
-  chromium,
-} from "playwright";
+import { Page as PlaywrightPage, chromium } from "playwright";
 import TurndownService from "turndown";
 import * as turndownPluginGfm from "turndown-plugin-gfm";
 import { WebSource } from "./webSources";
-
-interface WebDataSourceParams extends WebSource {
-  makePlaywright: () => Promise<{
-    page: PlaywrightPage;
-    browser: PlaywrightBrowser;
-  }>;
-}
 
 export function makeWebDataSource({
   name,
   urls,
   staticMetadata,
-}: WebDataSourceParams): DataSource {
+}: WebSource): DataSource {
   return {
     name,
     async fetchPages() {

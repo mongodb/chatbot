@@ -35,11 +35,7 @@ import {
   prepareWebSources,
   rawWebSources,
 } from "./mongodbDotCom/webSources";
-import {
-  makePlaywright,
-  makeWebDataSource,
-} from "./mongodbDotCom/WebDataSource";
-import { chromium } from "playwright";
+import { makeWebDataSource } from "./mongodbDotCom/WebDataSource";
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -190,10 +186,7 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
 
   return await Promise.all(
     webSources.map(async (webSource) => {
-      return await makeWebDataSource({
-        ...webSource,
-        makePlaywright,
-      });
+      return await makeWebDataSource(webSource);
     })
   );
 };

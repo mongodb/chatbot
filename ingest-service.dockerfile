@@ -2,7 +2,7 @@
 FROM node:18
 
 # # Install Playwright with dependencies
-RUN npx playwright install --with-deps
+RUN npx playwright install chromium --with-deps
 
 WORKDIR /bin
 COPY . ./

@@ -8,7 +8,7 @@ export default defineConfig([
     splitting: false,
     sourcemap: true,
     clean: true,
-    outDir: "dist/esm",
+    outDir: "build/esm",
   },
   {
     entry: ["src/index.ts"],
@@ -17,6 +17,6 @@ export default defineConfig([
     splitting: false,
     sourcemap: true,
     clean: true,
-    outDir: "dist/cjs",
+    outDir: "build/cjs",
   },
 ]);

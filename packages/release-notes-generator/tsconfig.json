@@ -6,7 +6,6 @@
     "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "strict": true,
-    "outDir": "dist",
     "skipLibCheck": true
   },
   "include": ["src/**/*"]

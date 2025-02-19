@@ -2,28 +2,28 @@
   "name": "release-notes-generator",
   "version": "0.0.0",
   "type": "module",
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/cjs/index.d.ts",
+  "main": "./build/cjs/index.js",
+  "module": "./build/esm/index.js",
+  "types": "./build/cjs/index.d.ts",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/esm/index.d.ts",
-        "default": "./dist/esm/index.js"
+        "types": "./build/esm/index.d.ts",
+        "default": "./build/esm/index.js"
       },
       "require": {
-        "types": "./dist/cjs/index.d.ts",
-        "default": "./dist/cjs/index.js"
+        "types": "./build/cjs/index.d.ts",
+        "default": "./build/cjs/index.js"
       }
     },
     "./configs": {
       "import": {
-        "types": "./dist/esm/configs/index.d.ts",
-        "default": "./dist/esm/configs/index.js"
+        "types": "./build/esm/configs/index.d.ts",
+        "default": "./build/esm/configs/index.js"
       },
       "require": {
-        "types": "./dist/cjs/configs/index.d.ts",
-        "default": "./dist/cjs/configs/index.js"
+        "types": "./build/cjs/configs/index.d.ts",
+        "default": "./build/cjs/configs/index.js"
       }
     }
   },

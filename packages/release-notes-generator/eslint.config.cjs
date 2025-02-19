@@ -9,7 +9,6 @@ module.exports = [
     files: ["src/**/*.ts"],
     ignores: [
       "build/",
-      "dist/",
       "node_modules/",
       "*.js",
       "*.cjs",

@@ -82,7 +82,10 @@ describe("prepareWebSources", () => {
 test.only('Playwright scraper extracts correct data', async () => {
   const executablePath = chromium.executablePath();
   console.log('>>>> executablePath:', executablePath);
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ 
+    headless: true,
+    executablePath: executablePath
+  });
   const page = await browser.newPage();
   const url = 'https://mongodb.com/company'; 
   await page.goto(url, { waitUntil: 'domcontentloaded' });

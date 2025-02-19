@@ -188,9 +188,14 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
 
 const makePuppeteer = async () => {
   console.log('hit makePuppeteer');
+
+  const executablePath = chromium.executablePath();
+  console.log('>>>> executablePath:', executablePath);
+
   const browser = await puppeteer.launch({
     args: ["--no-sandbox"],
     headless: "new",
+    executablePath: executablePath
     // executablePath: "/opt/homebrew/bin/chromium"
     // executablePath: "/usr/bin/chromium-browser"
     });

@@ -15,7 +15,8 @@ RUN apk add --no-cache \
       bash \
       libstdc++ \
       udev \
-      ttf-opensans
+      ttf-opensans \
+      playwright
 
 # If running Docker >= 1.13.0 use docker run's --init arg to reap zombie processes, otherwise
 # uncomment the following lines to have `dumb-init` as PID 1
@@ -36,7 +37,7 @@ RUN npm init -y && \
     npm run build -- --scope='{mongodb-rag-core,mongodb-rag-ingest,ingest-mongodb-public}'
 
 # Install Playwright with dependencies
-RUN npx playwright install --with-deps
+# RUN npx playwright install --with-deps
 
 # Add git for GitDataSource
 RUN apk add --no-cache git

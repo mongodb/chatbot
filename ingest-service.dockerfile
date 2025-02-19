@@ -18,13 +18,11 @@ RUN apk add --no-cache \
     nss \
     nspr \
     alsa-lib \
-    atk \
     cairo \
     cups-libs \
     dbus-libs \
     expat \
     fontconfig \
-    gtk3 \
     libxcomposite \
     libxdamage \
     libxext \

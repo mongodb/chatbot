@@ -3,12 +3,12 @@ FROM node:18-alpine
 WORKDIR /bin
 COPY . ./
 
-RUN apt-get update \
-    && apt-get install -y wget gnupg \
+RUN apk add update \
+    && apk add install -y wget gnupg \
     && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 \
+    && apk add update \
+    && apk add install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
@@ -27,7 +27,7 @@ RUN apt-get update \
 RUN npm init -y &&  \
     npm i puppeteer \
 
-RUN npm install lerna
+    RUN npm install lerna
 RUN npm run bootstrap -- --scope='{mongodb-rag-core,mongodb-rag-ingest,ingest-mongodb-public}'
 RUN npm run build -- --scope='{mongodb-rag-core,mongodb-rag-ingest,ingest-mongodb-public}'
 

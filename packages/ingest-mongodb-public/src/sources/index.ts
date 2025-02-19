@@ -184,11 +184,7 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
     sitemapUrls,
   });
 
-  return await Promise.all(
-    webSources.map(async (webSource) => {
-      return await makeWebDataSource(webSource);
-    })
-  );
+  return await Promise.all(webSources.map(makeWebDataSource));
 };
 
 /**

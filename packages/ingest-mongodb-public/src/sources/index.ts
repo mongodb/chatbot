@@ -37,7 +37,7 @@ import {
   rawWebSources,
 } from "./mongodbDotCom/webSources";
 import { makeWebDataSource } from "./mongodbDotCom/WebDataSource";
-import { chromium } from 'playwright';
+import { chromium } from "playwright";
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -186,44 +186,43 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
     sitemapUrls,
   });
 
-const makePuppeteer = async () => {
-  console.log('hit makePuppeteer:');
+  const makePuppeteer = async () => {
+    console.log("hit makePuppeteer:");
 
-  // const executablePath = chromium.executablePath();
-  // console.log('>>>> executablePath:', executablePath);
+    // const executablePath = chromium.executablePath();
+    // console.log('>>>> executablePath:', executablePath);
 
-  const browser = await puppeteer.launch({
-    args: ["--no-sandbox"],
-    headless: "new",
-    // executablePath: executablePath
-    // executablePath: "/opt/homebrew/bin/chromium"
-    // executablePath: "/usr/bin/chromium-browser"
+    const browser = await puppeteer.launch({
+      args: ["--no-sandbox"],
+      headless: "new",
+      // executablePath: executablePath
+      // executablePath: "/opt/homebrew/bin/chromium"
+      // executablePath: "/usr/bin/chromium-browser"
     });
-  console.log('browser', browser);
-  const page = await browser.newPage();
-  console.log('page', page);
-  return { page, browser };
-};
+    console.log("browser", browser);
+    const page = await browser.newPage();
+    console.log("page", page);
+    return { page, browser };
+  };
 
-const makePlaywright = async () => {
-  const browserPath = chromium.executablePath();
-  console.log(`Using Chromium executable at: ${browserPath}`);
-  const browser = await chromium.launch({
-    headless: true,
-    executablePath: browserPath
-  });
-  console.log('playwright browser', browser);
-  const page = await browser.newPage();
-  console.log('playwright page', page);
-  return { page, browser };
-};
-  
+  const makePlaywright = async () => {
+    const browserPath = chromium.executablePath();
+    console.log(`Using Chromium executable at: ${browserPath}`);
+    const browser = await chromium.launch({
+      headless: true,
+      executablePath: browserPath,
+    });
+    console.log("playwright browser", browser);
+    const page = await browser.newPage();
+    console.log("playwright page", page);
+    return { page, browser };
+  };
+
   return await Promise.all(
     webSources.map(async (webSource) => {
       return await makeWebDataSource({
         ...webSource,
-        makePuppeteer: makePuppeteer,
-        // makePlaywright: makePlaywright,
+        makePlaywright,
       });
     })
   );

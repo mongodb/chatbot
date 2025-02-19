@@ -85,6 +85,7 @@ function formatVersionJira(version: string): string {
 
 export default createConfig({
   logger,
+  llmMaxConcurrency: 4,
   project: {
     name: "MongoDB Atlas CLI",
     description: `The MongoDB Atlas CLI (atlas) allows you to manage your MongoDB Atlas

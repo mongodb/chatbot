@@ -79,7 +79,13 @@ export const configSchema = z.object({
    Logger instance for recording progress and debugging information
    */
   logger: loggerSchema.optional(),
+  /**
+   The maximum number of concurrent requests to the LLM API.
+   */
+  llmMaxConcurrency: z.number().optional().default(1),
 });
+
+export type ConfigInput = z.input<typeof configSchema>;
 
 export type Config = z.infer<typeof configSchema>;
 
@@ -90,8 +96,8 @@ export type ExtractChanges = Config["extractChanges"];
 export type ClassifyChange = Config["classifyChange"];
 export type FilterChange = Config["filterChange"];
 
-export function createConfig(config: Config): Partial<Config> {
-  return configSchema.partial().parse(config);
+export function createConfig(config: ConfigInput): Config {
+  return configSchema.parse(config);
 }
 
 export function validateConfig(config: unknown): Config {

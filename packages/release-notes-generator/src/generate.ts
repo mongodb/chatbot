@@ -1,6 +1,7 @@
 import { type Artifact, getArtifactIdentifier } from "./artifact";
 import { artifactWithChanges, type ClassifiedChange } from "./change";
 import type { Config, VersionRange } from "./config";
+import { PromisePool } from "@supercharge/promise-pool";
 
 export async function generate(
   config: Config,
@@ -17,62 +18,75 @@ export async function generate(
   const fetchedArtifacts = await config.fetchArtifacts(version);
   await logger?.log("debug", "Fetched artifacts", fetchedArtifacts);
 
-  const classifiedArtifacts: Artifact<string, unknown>[] = [];
-  for (const artifact of fetchedArtifacts) {
-    const artifactIdentifier = getArtifactIdentifier(artifact);
-    await logger?.log("debug", `Processing artifact`, { artifactIdentifier });
-
-    // Summarize the artifact
-    const summary = await config.summarizeArtifact({
-      project: config.project,
-      artifact,
-    });
-    const artifactWithSummary: Artifact<string, unknown> = {
-      id: artifact.id,
-      type: artifact.type,
-      data: artifact.data,
-      changes: artifact.changes,
-      metadata: artifact.metadata,
-      summary,
-    };
-
-    // Extract changes from the artifact
-    const changes = await config.extractChanges({
-      project: config.project,
-      artifact: artifactWithSummary,
-    });
-    await logger?.log(
-      "debug",
-      `Extracted ${changes.length} changes from ${artifactIdentifier}`,
-      changes
-    );
-
-    // Classify each change
-    const classifiedChanges: ClassifiedChange[] = [];
-    for (const change of changes) {
-      const classification = await config.classifyChange(change);
-      classifiedChanges.push({
-        ...change,
-        classification,
-        sourceIdentifier: artifactIdentifier,
+  const { results: classifiedArtifacts } = await PromisePool.withConcurrency(
+    config.llmMaxConcurrency
+  )
+    .for(fetchedArtifacts)
+    .handleError((error, artifact) => {
+      void logger?.log("error", "Error processing artifact", {
+        type: artifact.type,
+        id: artifact.id,
+        error: {
+          name: error.name,
+          message: error.message,
+        },
       });
+    })
+    .process(async (artifact) => {
+      const artifactIdentifier = getArtifactIdentifier(artifact);
+      void logger?.log("debug", `Processing artifact`, { artifactIdentifier });
+
+      // Summarize the artifact
+      const summary = await config.summarizeArtifact({
+        project: config.project,
+        artifact,
+      });
+      const artifactWithSummary: Artifact<string, unknown> = {
+        id: artifact.id,
+        type: artifact.type,
+        data: artifact.data,
+        changes: artifact.changes,
+        metadata: artifact.metadata,
+        summary,
+      };
+
+      // Extract changes from the artifact
+      const changes = await config.extractChanges({
+        project: config.project,
+        artifact: artifactWithSummary,
+      });
+      void logger?.log(
+        "debug",
+        `Extracted ${changes.length} changes from ${artifactIdentifier}`,
+        changes
+      );
+
+      // Classify each change
+      const classifiedChanges: ClassifiedChange[] = [];
+      for (const change of changes) {
+        const classification = await config.classifyChange(change);
+        classifiedChanges.push({
+          ...change,
+          classification,
+          sourceIdentifier: artifactIdentifier,
+        });
+      }
       const updatedArtifact = artifactWithChanges(
         artifactWithSummary,
         classifiedChanges
       );
-      classifiedArtifacts.push(updatedArtifact);
-    }
-    await logger?.log(
-      "debug",
-      `Classified ${classifiedChanges.length} changes from ${artifactIdentifier}`,
-      classifiedChanges
-    );
-  }
+      void logger?.log(
+        "debug",
+        `Classified ${classifiedChanges.length} changes from ${artifactIdentifier}`,
+        classifiedChanges
+      );
+      return updatedArtifact;
+    });
 
   const classifiedChanges = classifiedArtifacts.flatMap(
     (artifact) => artifact.changes
   );
-  await logger?.log(
+  void logger?.log(
     "info",
     `Found ${classifiedChanges.length} total changes`,
     classifiedChanges
@@ -81,7 +95,7 @@ export async function generate(
   const filteredChanges = classifiedChanges.filter((change) =>
     config.filterChange(change)
   );
-  await logger?.log(
+  void logger?.log(
     "info",
     `Filtered to ${filteredChanges.length} changes`,
     filteredChanges

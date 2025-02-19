@@ -1,8 +1,7 @@
 import { stripIndents } from "common-tags";
-import type { GenerateChatCompletion } from "../openai-api";
-import { systemMessage, userMessage } from "../openai-api";
+import type { GenerateChatCompletion } from "./openai-api";
+import { systemMessage, userMessage } from "./openai-api";
 import type { Logger } from "../logger";
-import { PromisePool } from "@supercharge/promise-pool";
 import type { SomeArtifact } from "../artifact";
 
 export type MakeSummarizeReleaseArtifactArgs = {
@@ -115,7 +114,7 @@ function createUserPromptForReleaseArtifact(artifact: SomeArtifact): string {
           {
             Artifact: `{ "type": "git-commit", "hash": "5b9efe53fc39e3f69c26946783f92ea2df7669ae", "message": "CLOUDP-245955: Add describe connectedOrgConfigs command (#2890)", files: [...] }`,
             Summary:
-              "This commit adds a new CLI command: `atlas federatedAuthentication federationSettings connectedOrgConfigs describe`\n\nThe command returns descriptions of the user's Atlas federated authentication connected organization configurations.",
+              "This commit adds a new CLI command: `atlas federatedAuthentication federationSettings connectedOrgConfigs describe`. The command returns a description of a connected organization's federated authentication configuration.",
           },
         ]
       );
@@ -131,17 +130,17 @@ function createUserPromptForReleaseArtifact(artifact: SomeArtifact): string {
           {
             Artifact: `{ "type": "jira-issue", "key": "CLOUDP-191365", "summary": "Move CLI release token to a cloud owned account" }`,
             Summary:
-              "This issue improves the release process of the CLI. Previously, the CLI was released with a token linked to an individual's GitHub account. This issue aims to transition to a more secure and organization-controlled approach by moving the token to a service account, specifically suggesting the use of the mms build account.",
+              "This updates the release process of the CLI to use a more scalable and secure approach. Previously, the CLI was released with a token linked to an individual's GitHub account. Instead, this uses the token linked to a shared service account.",
           },
           {
             Artifact: `{ "type": "jira-issue", "key": "CLOUDP-245955", "summary": "[AtlasCLI] Add connectedOrgs config describe" }`,
             Summary:
-              "This issue represents a new CLI command: `connectedOrgs config describe`. The command allows users to describe their connected organizations' configuration.",
+              "This adds a new CLI command: `atlas federatedAuthentication federationSettings connectedOrgConfigs describe`. The command returns a description of a connected organization's federated authentication configuration.",
           },
           {
             Artifact: `{ "type": "jira-issue", "key": "CLOUDP-247010", "summary":"AtlasCLI 1.22.0 Release" }`,
             Summary:
-              "This issue tracks the release of Atlas CLI version 1.22.0.",
+              "This issue tracks the release of Atlas CLI version 1.22.0 within MongoDB Engineering.",
           },
         ]
       );
@@ -150,60 +149,4 @@ function createUserPromptForReleaseArtifact(artifact: SomeArtifact): string {
     default:
       throw new Error(`Unsupported artifact type: ${artifact.type}`);
   }
-}
-
-export type SummarizeReleaseArtifactsArgs = Omit<
-  SummarizeReleaseArtifactArgs,
-  "artifact"
-> & {
-  artifacts: SummarizeReleaseArtifactArgs["artifact"][];
-  concurrency?: number;
-};
-
-export function makeSummarizeReleaseArtifacts({
-  logger,
-  generate,
-}: MakeSummarizeReleaseArtifactArgs) {
-  const summarizeReleaseArtifact = makeSummarizeReleaseArtifact({
-    logger,
-    generate,
-  });
-
-  return async function summarizeReleaseArtifacts({
-    artifacts,
-    concurrency = 4,
-    projectDescription,
-  }: SummarizeReleaseArtifactsArgs) {
-    const errors: Error[] = [];
-    const { results } = await PromisePool.withConcurrency(concurrency)
-      .for(artifacts)
-      .handleError((error, artifact) => {
-        void logger?.log("error", "Error summarizing artifact", {
-          type: artifact.type,
-          id: artifact.id,
-          error: {
-            name: error.name,
-            message: error.message,
-          },
-        });
-        errors.push(error);
-      })
-      .process(async (artifact) => {
-        artifact.summary = await summarizeReleaseArtifact({
-          artifact,
-          projectDescription,
-        });
-        return artifact;
-      });
-    if (errors.length > 0) {
-      void logger?.log(
-        "info",
-        `${errors.length} errors occurred while summarizing artifacts.`,
-        {
-          errors,
-        }
-      );
-    }
-    return results;
-  };
 }

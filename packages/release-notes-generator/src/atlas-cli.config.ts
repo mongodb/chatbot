@@ -14,7 +14,7 @@ import {
 import {
   makeAzureOpenAiClient,
   makeGenerateChatCompletion,
-} from "./openai-api";
+} from "./llm/openai-api";
 import { currentTimestamp } from "./utils";
 import { makeSummarizeReleaseArtifact } from "./llm/summarizeReleaseArtifacts";
 import { makeCreateChangelogEntry } from "./llm/createChangelogEntry";

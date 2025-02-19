@@ -1,6 +1,6 @@
 import { stripIndents } from "common-tags";
-import type { GenerateChatCompletion } from "../openai-api";
-import { systemMessage, userMessage } from "../openai-api";
+import type { GenerateChatCompletion } from "./openai-api";
+import { systemMessage, userMessage } from "./openai-api";
 import type { Logger } from "../logger";
 import { PromisePool } from "@supercharge/promise-pool";
 import { removeStartOfString } from "../utils";

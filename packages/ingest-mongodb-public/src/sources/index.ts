@@ -191,9 +191,10 @@ const makePuppeteer = async () => {
 
   // const executablePath = chromium.executablePath();
   // console.log('>>>> executablePath:', executablePath);
-
   const browser = await puppeteer.launch({
+    dumpio: true,
     args: ["--no-sandbox"],
+    // args: ["--no-sandbox", "--disable-gpu"],
     headless: "new",
     // executablePath: executablePath
     // executablePath: "/opt/homebrew/bin/chromium"

@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine
+FROM node:18-bullseye
 
 # Installs Chromium (100) package.
 RUN apk add --no-cache \

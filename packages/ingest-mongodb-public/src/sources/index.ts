@@ -37,6 +37,7 @@ import {
   rawWebSources,
 } from "./mongodbDotCom/webSources";
 import { makeWebDataSource } from "./mongodbDotCom/WebDataSource";
+import { chromium } from 'playwright';
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -184,24 +185,33 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
     rawWebSources,
     sitemapUrls,
   });
+
+const makePuppeteer = async () => {
+  console.log('hit makePuppeteer');
+  const browser = await puppeteer.launch({
+    args: ["--no-sandbox"],
+    headless: "new",
+    // executablePath: "/opt/homebrew/bin/chromium"
+    // executablePath: "/usr/bin/chromium-browser"
+    });
+  console.log('browser', browser);
+  const page = await browser.newPage();
+  console.log('page', page);
+  return { page, browser };
+};
+
+const makePlaywright = async () => {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
+  return { page, browser };
+};
   
   return await Promise.all(
     webSources.map(async (webSource) => {
       return await makeWebDataSource({
         ...webSource,
-        makePuppeteer: async () => {
-          console.log('hit makePuppeteer');
-          const browser = await puppeteer.launch({
-            args: ["--no-sandbox"],
-            headless: "new",
-            // executablePath: "/opt/homebrew/bin/chromium"
-            // executablePath: "/usr/bin/chromium-browser"
-            });
-          console.log('browser', browser);
-          const page = await browser.newPage();
-          console.log('page', page);
-          return { page, browser };
-        },
+        // makePuppeteer: makePuppeteer,
+        makePlaywright: makePlaywright,
       });
     })
   );
@@ -211,8 +221,8 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
   The constructors for the sources used by the docs chatbot.
  */
 export const sourceConstructors: SourceConstructor[] = [
-  () => makeSnootyDataSources(snootyDataApiBaseUrl, snootyProjectConfig),
-  () => makeDevCenterDataSource(devCenterProjectConfig),
+  // () => makeSnootyDataSources(snootyDataApiBaseUrl, snootyProjectConfig),
+  // () => makeDevCenterDataSource(devCenterProjectConfig),
   // mongoDbUniversitySourceConstructor,
   // mongooseSourceConstructor,
   // prismaSourceConstructor,

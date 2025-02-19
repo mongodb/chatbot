@@ -91,7 +91,6 @@ test.only('Playwright scraper extracts correct data', async () => {
           heading: document.querySelector('h1')?.textContent || 'No heading found',
       };
   });
-  expect(data.title).toBeTruthy();
   expect(data.title).toBe('About MongoDB | MongoDB');
   await browser.close();
 });

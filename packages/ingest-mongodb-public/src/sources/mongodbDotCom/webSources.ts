@@ -169,9 +169,9 @@ export const initialWebSources: InitialWebSource[] = [
   {
     name: "web-misc",
     urls: [
-      "https://www.mongodb.com/partners",
-      "https://www.mongodb.com/partners/partner-program",
-      "https://www.mongodb.com/part",
+      "https://www.mongodb.com",
+      "https://www.mongodb.com/atlas",
+      "https://www.mongodb.com/try/download/community",
       "https://www.mongodb.com/pricing",
     ],
     staticMetadata: {

@@ -7,6 +7,7 @@ import {
 import fs from "fs";
 import path from "path";
 import { Page as PlaywrightPage, Browser } from 'playwright';
+
 jest.setTimeout(60000);
 
 const SRC_ROOT = path.resolve(__dirname, "../../");

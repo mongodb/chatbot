@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 import { PromisePool } from "@supercharge/promise-pool";
 import { logger } from "../logger";
-import { PageStore, PersistedPage } from ".";
+import { Page } from "./Page";
 import {
   TransformedContent,
   TransformedContentStore,
@@ -14,57 +14,32 @@ export interface TransformConcurrencyOptions {
   processPages?: number;
 }
 
-export type TransformPage<T extends Omit<TransformedContent, "chunkAlgoHash">> =
-  (page: PersistedPage) => Promise<T[]>;
+export type TransformPage<T extends TransformedContent> = (
+  page: Page
+) => Promise<T[]>;
 
 /**
-  (Re-)transform content the pages in the page store that have changed since the given date
-  and stores the transformedContent in the transformedContent store.
+  (Re-)transform content for pages and persist the transformedContent in the TransformedContentStore.
  */
 export async function updateTransformedContent<TC extends TransformedContent>({
-  since,
   transformedContentStore,
-  pageStore,
-  sourceNames,
+  pages,
   transformPage,
   concurrencyOptions,
 }: {
-  since: Date;
   transformedContentStore: TransformedContentStore<TC>;
-  pageStore: PageStore;
+  pages: Page[];
   transformPage: TransformPage<TC>;
-  sourceNames?: string[];
   concurrencyOptions?: TransformConcurrencyOptions;
 }): Promise<void> {
-  const changedPages = await pageStore.loadPages({
-    updated: since,
-    sources: sourceNames,
-  });
-  logger.info(
-    `Found ${changedPages.length} changed pages since ${since}${
-      sourceNames ? ` in sources: ${sourceNames.join(", ")}` : ""
-    }`
-  );
   await PromisePool.withConcurrency(concurrencyOptions?.processPages ?? 1)
-    .for(changedPages)
+    .for(pages)
     .process(async (page) => {
-      switch (page.action) {
-        case "deleted":
-          logger.info(
-            `Deleting embedded content for ${page.sourceName}: ${page.url}`
-          );
-          await transformedContentStore.deleteContent({
-            page,
-          });
-          break;
-        case "created": // fallthrough
-        case "updated":
-          await updateTranformedContentForPage({
-            store: transformedContentStore,
-            page,
-            transformPage,
-          });
-      }
+      await updateTranformedContentForPage({
+        store: transformedContentStore,
+        page,
+        transformPage,
+      });
     });
 }
 
@@ -90,7 +65,7 @@ export async function updateTranformedContentForPage<
   store,
   transformPage,
 }: {
-  page: PersistedPage;
+  page: Page;
   store: TransformedContentStore<TC>;
   transformPage: TransformPage<TC>;
 }): Promise<void> {
@@ -105,40 +80,34 @@ export async function updateTranformedContentForPage<
     return;
   }
 
-  // In order to resume where we left off (in case of script restart), compare
-  // the date of any existing transformed content with the page updated date. If the content
-  // has been updated since the page was updated (and we have the expected
-  // number of transformed contents) and transformAlgoHash has not changed from what's in the
-  // database, assume the tranformed content for that page is complete and
-  // up-to-date. To force an update, you can delete the transformedContent from the
-  // collection.
   const existingContent = await store.loadContent({
     page,
   });
-  const chunkAlgoHash = getHashForFunc(transformPage);
-  if (
-    existingContent.length &&
-    existingContent[0].updated > page.updated &&
-    contentChunks.length === existingContent.length &&
-    existingContent[0].transformAlgoHash === chunkAlgoHash
-  ) {
+
+  const transformAlgoHash = getHashForFunc(transformPage);
+  const hasContentChunks = contentChunks.length > 0;
+  const hasSameNumberOfChunks = contentChunks.length === existingContent.length;
+  const hasSameTransformAlgoHash =
+    existingContent.at(0)?.transformAlgoHash === transformAlgoHash;
+
+  const doNotUpdate =
+    hasContentChunks && hasSameNumberOfChunks && hasSameTransformAlgoHash;
+  if (doNotUpdate) {
     logger.info(
-      `Transformed content for ${page.sourceName}:${page.url} already updated (${existingContent[0].updated}) since page update date (${page.updated}). Skipping embedding.`
+      `Transformed content for ${page.sourceName}:${page.url} already updated (${existingContent[0].updated}). Skipping transform.`
     );
     return;
   }
 
-  logger.info(
-    `${
-      page.action === "created" ? "Creating" : "Updating"
-    } transformed content for ${page.sourceName}:${page.url}`
-  );
+  logger.info(`Adding transformed content for: ${page.url}`);
 
-  const transformedContent = contentChunks.map((chunk) => ({
-    ...chunk,
-    updated: new Date(),
-    chunkAlgoHash,
-  }));
+  const transformedContent = contentChunks.map(
+    (chunk) =>
+      ({
+        ...chunk,
+        transformAlgoHash,
+      } satisfies TC)
+  );
 
   await store.updateContent({
     page,

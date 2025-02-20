@@ -99,6 +99,13 @@ describe("MongoDbTransformedContentStore", () => {
     expect(pageContent[0].sourceName).toBe(page.sourceName);
     expect(anotherPageContent[0].sourceName).toBe(anotherPage.sourceName);
   });
+
+  it("loads all content if no page is provided", async () => {
+    assert(store);
+    const allContent = await store.loadContent();
+    expect(allContent.length).toBe(2);
+  });
+
   it("does NOT load content for some other page", async () => {
     assert(store);
     expect(

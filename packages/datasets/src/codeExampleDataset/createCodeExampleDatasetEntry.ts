@@ -7,13 +7,13 @@ import {
 import { AstExtractedCodeblock } from "./AstExtractedCodeBlock";
 import { makeClassifyIsUsefulCodeBlockForTraining } from "./classifyIsUsefulCodeBlockForTraining";
 import { makeCreatePromptsFromText } from "./createPromptsFromText";
-import { PageDatasetEntry } from "../pageDataset/loadPageDataset";
+import { Page } from "mongodb-rag-core";
 
 export interface CodeExampleDatasetEntry {
   /**
     Code example.
    */
-  code: string;
+  text: string;
 
   /**
     Programming language of the code snippet. Programming language name in [Github Linguist list](https://github.com/github-linguist/linguist/blob/main/lib/linguist/languages.yml).
@@ -23,7 +23,11 @@ export interface CodeExampleDatasetEntry {
   /**
     URL of page that the code example came from.
    */
-  page_url: string;
+  url: string;
+
+  updated: Date;
+
+  sourceName: string;
 
   /**
     Title of the page that the code example came from.
@@ -87,7 +91,7 @@ export async function makeCreateCodeExampleDatasetEntry({
     page,
     codeBlock,
   }: {
-    page: PageDatasetEntry;
+    page: Page;
     codeBlock: AstExtractedCodeblock;
   }): Promise<CodeExampleDatasetEntry> {
     // Concurrent LLM API calls
@@ -111,9 +115,11 @@ export async function makeCreateCodeExampleDatasetEntry({
       : undefined;
 
     return {
-      code: codeBlock.code,
+      text: codeBlock.code,
       programming_language,
-      page_url: page.url,
+      url: page.url,
+      updated: new Date(),
+      sourceName: page.sourceName,
       page_title: page.title,
       classification,
       useful_for_training: isUseful,

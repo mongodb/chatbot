@@ -1,9 +1,23 @@
 import { MongoDbPageStore, PersistedPage } from "mongodb-rag-core";
+import { Filter } from "mongodb-rag-core/mongodb";
 
 export type PageDatasetEntry = Pick<
   PersistedPage,
   "url" | "body" | "metadata" | "title" | "sourceName" | "updated" | "format"
 >;
+
+export function makeLoadPagesFilter(
+  dataSourceRegex: RegExp,
+  forbiddenUrls: string[],
+  updatedSince?: Date
+): Filter<PersistedPage> {
+  return {
+    sourceName: { $regex: dataSourceRegex },
+    url: { $nin: forbiddenUrls },
+    action: { $ne: "deleted" },
+    ...(updatedSince && { updated: { $gt: updatedSince } }),
+  };
+}
 
 /**
   @param pageStore - datastore for pages
@@ -18,12 +32,7 @@ export async function loadPagesDataset(
 ): Promise<PageDatasetEntry[]> {
   return pageStore.aggregatePages<PageDatasetEntry>([
     {
-      $match: {
-        sourceName: { $regex: dataSourceRegex },
-        url: { $nin: forbiddenUrls },
-        action: { $ne: "deleted" },
-        ...(updatedSince && { updated: { $gt: updatedSince } }),
-      },
+      $match: makeLoadPagesFilter(dataSourceRegex, forbiddenUrls, updatedSince),
     },
     {
       $project: {

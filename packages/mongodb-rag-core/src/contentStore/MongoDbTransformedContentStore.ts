@@ -49,9 +49,10 @@ export function makeMongoDbTransformedContentStore<
       databaseName,
       collectionName,
     },
-    async loadContent({ page }) {
+    async loadContent(args) {
+      const page = args?.page;
       return await transformedContentCollection
-        .find(pageIdentity(page) as Filter<TC>)
+        .find(page ? (pageIdentity(page) as Filter<TC>) : {})
         .project<TC>({ _id: 0 })
         .toArray();
     },
@@ -83,7 +84,7 @@ export function makeMongoDbTransformedContentStore<
       });
       await mongoClient.withSession(async (session) => {
         await session.withTransaction(async () => {
-          // First delete all the embeddedContent for the given page
+          // First delete all transformed content for the given page
           const deleteResult = await transformedContentCollection.deleteMany(
             pageIdentity(page) as Filter<TC>,
             { session }
@@ -92,7 +93,7 @@ export function makeMongoDbTransformedContentStore<
             throw new Error("Deletion not acknowledged!");
           }
 
-          // Insert the embedded content for the page
+          // Insert the transformed content for the page
           const insertResult = await transformedContentCollection.insertMany(
             [...transformedContent] as OptionalUnlessRequiredId<TC>[],
             {

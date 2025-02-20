@@ -3,14 +3,20 @@ import {
   CORE_CHATBOT_APP_ENV_VARS,
   logger,
   makeMongoDbPageStore,
+  makeMongoDbTransformedContentStore,
+  updateTransformedContent,
 } from "mongodb-rag-core";
-import { loadPagesDataset } from "../../pageDataset/loadPageDataset";
-import { forbiddenUrls } from "../../mongoDbDatasetConstants";
+import { makeLoadPagesFilter } from "../../pageDataset/loadPageDataset";
+import {
+  forbiddenUrls,
+  publicDatasetSourceName,
+} from "../../mongoDbDatasetConstants";
 import { uploadDatasetToHuggingFace } from "../../uploadDatasetToHuggingFace";
 import { HUGGINGFACE } from "../../EnvVars";
 import path from "path";
-import { extractAndAnnotateCodeBlocks } from "../../codeExampleDataset/extractAndAnnotateCodeBlocks";
+import { makeTranformPageToAnnotatedCodeExamples } from "../../codeExampleDataset/transformPageToAnnotatedCodeExamples";
 import { model, openAiClient } from "../../openAi";
+import { CodeExampleDatasetEntry } from "../../codeExampleDataset/createCodeExampleDatasetEntry";
 
 async function uploadCodeExampleDatasetToHuggingFace() {
   logger.info("Staring upload code example dataset to Hugging Face script");
@@ -27,29 +33,41 @@ async function uploadCodeExampleDatasetToHuggingFace() {
     databaseName: MONGODB_DATABASE_NAME,
   });
 
-  // TODO: figure out logic to get since last upload
+  const transformedContentStore =
+    makeMongoDbTransformedContentStore<CodeExampleDatasetEntry>({
+      connectionUri: MONGODB_CONNECTION_URI,
+      databaseName: MONGODB_DATABASE_NAME,
+      collectionName: "code_examples",
+    });
 
+  const MAX_PAGE_TRANSFORM_CONCURRENCY = 8;
+
+  const transformPage = await makeTranformPageToAnnotatedCodeExamples(
+    openAiClient,
+    model,
+    MAX_PAGE_TRANSFORM_CONCURRENCY
+  );
   try {
-    logger.info("Loading pages dataset from MongoDB");
-    const pages = await loadPagesDataset(
-      pageStore,
-      // TODO: add back
-      //   publicDatasetSourceName,
-      /snooty-node/,
-      Array.from(forbiddenUrls)
-      // TODO: get since last upload
-    );
+    const pages = await pageStore.loadPages({
+      query: makeLoadPagesFilter(
+        publicDatasetSourceName,
+        Array.from(forbiddenUrls)
+      ),
+    });
     logger.info(`Loaded pages from MongoDB. Loaded ${pages.length} pages.`);
 
-    const dataset = await extractAndAnnotateCodeBlocks(
+    // Only transforms content when page was updated after the last transformed content update
+    await updateTransformedContent({
       pages,
-      openAiClient,
-      model,
-      5
-    );
+      transformedContentStore,
+      transformPage,
+    });
+    logger.info(`Updated transformed content in MongoDB`);
 
+    // Get entire code example dataset
+    const fullCodeExampleDataset = await transformedContentStore.loadContent();
     logger.info(
-      `Extracted and annotated code blocks. Dataset has ${dataset.length} entries`
+      `Loaded code example dataset from MongoDB. Loaded ${fullCodeExampleDataset.length} code examples.`
     );
 
     const currentDate = new Date().toISOString();
@@ -77,7 +95,7 @@ async function uploadCodeExampleDatasetToHuggingFace() {
             name: fileBaseName,
             ext: ".json",
           }),
-          content: new Blob([JSON.stringify(dataset)]),
+          content: new Blob([JSON.stringify(fullCodeExampleDataset)]),
         },
       ],
     });
@@ -86,8 +104,11 @@ async function uploadCodeExampleDatasetToHuggingFace() {
     );
     logger.info(res);
   } finally {
-    await pageStore.close();
-    logger.info("Closed MongoDB connection");
+    await Promise.allSettled([
+      pageStore.close(),
+      transformedContentStore.close(),
+    ]);
+    logger.info("Closed MongoDB connection(s)");
   }
 }
 uploadCodeExampleDatasetToHuggingFace();

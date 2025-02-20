@@ -1,9 +1,12 @@
-import { makeMongoDbPageStore } from "./MongoDbPageStore";
+import { text } from "express";
+import { MONGO_MEMORY_REPLICA_SET_URI } from "../test/constants";
 import { makeMongoDbTransformedContentStore } from "./MongoDbTransformedContentStore";
-import { Page } from "./Page";
+import { Page, PersistedPage } from "./Page";
 import { TransformedContent } from "./TransformedContent";
-import { persistPages } from "./updatePages";
-import { updateTransformedContent } from "./updateTransformedContent";
+import {
+  TransformPage,
+  updateTransformedContent,
+} from "./updateTransformedContent";
 
 const examplePage: Page = {
   title: "Example",
@@ -16,6 +19,27 @@ const examplePage: Page = {
   url: "https://example.com/test",
 };
 
+const pages: PersistedPage[] = [
+  {
+    ...examplePage,
+    updated: new Date(),
+    action: "updated",
+    url: "https://example.com/test/1",
+  },
+  {
+    ...examplePage,
+    updated: new Date(),
+    action: "created",
+    url: "https://example.com/test/2",
+  },
+  {
+    ...examplePage,
+    updated: new Date(),
+    action: "deleted",
+    url: "https://example.com/test/3",
+  },
+];
+
 const exampleTransformed: TransformedContent[] = [
   {
     sourceName: "test",
@@ -25,151 +49,173 @@ const exampleTransformed: TransformedContent[] = [
   },
 ];
 
-const transformPage = async () => {
-  return exampleTransformed;
+const transformPage: TransformPage<TransformedContent> = async (p) => {
+  return [
+    {
+      sourceName: p.sourceName,
+      text: "FOOBAR!! " + p.body,
+      url: p.url,
+      updated: new Date(),
+    },
+  ];
 };
 
-describe("updateEmbeddedContent", () => {
-  const pageStore = makeMongoDbPageStore({
-    // TODO: use in-memory database for testing
-  });
+describe("updateTransformedContent", () => {
+  const databaseName = "test_" + Date.now();
   const transformedContentStore = makeMongoDbTransformedContentStore({
-    // TODO: use in-memory database for testing
+    connectionUri: MONGO_MEMORY_REPLICA_SET_URI,
+    databaseName,
+    collectionName: "transformed_content",
   });
+
+  afterEach(async () => {
+    await transformedContentStore.drop();
+  });
+  afterAll(async () => {
+    await transformedContentStore.close();
+  });
+
+  it("updates transformed content for page if content doesn't exist", async () => {
+    await updateTransformedContent({
+      pages,
+      transformedContentStore,
+      transformPage,
+    });
+
+    expect(
+      (await transformedContentStore.loadContent()).length
+    ).toBeGreaterThanOrEqual(1);
+  });
+
   it("deletes embedded content for deleted page", async () => {
-    await persistPages({
-      pages: [{ ...examplePage }],
-      store: pageStore,
-      sourceName: "test",
-    });
-    let pages = await pageStore.loadPages();
-    expect(pages).toHaveLength(1);
-
-    const since = new Date("2000-01-01");
-
+    // Add content that is then 'deleted'
     await updateTransformedContent({
-      transformedContentStore,
-      pageStore,
-      since,
-      transformPage,
-    });
-
-    let embeddedContent = await transformedContentStore.loadContent({
-      page: examplePage,
-    });
-    expect(embeddedContent).toHaveLength(1);
-
-    await persistPages({
-      pages: [],
-      store: pageStore,
-      sourceName: "test",
-    });
-    pages = await pageStore.loadPages();
-    expect(pages).toHaveLength(1);
-    expect(pages[0].action).toBe("deleted");
-
-    await updateTransformedContent({
-      pageStore,
-      since,
+      pages: pages
+        .filter((page) => page.action === "deleted")
+        .map((p) => ({ ...p, action: "created" })),
       transformedContentStore,
       transformPage,
     });
-    embeddedContent = await transformedContentStore.loadContent({
-      page: examplePage,
-    });
-    // Embedded content for page was deleted
-    expect(embeddedContent).toHaveLength(0);
-  });
-  // TODO: this will need updates...should prob be more clever than current test
-  it("updates page if chunk algorithm changes", async () => {
-    await persistPages({
-      pages: [{ ...examplePage }],
-      store: pageStore,
-      sourceName: "test",
-    });
-    const pages = await pageStore.loadPages();
-    expect(pages).toHaveLength(1);
-
-    const since = new Date("2000-01-01");
-
+    // Note that the content is
     await updateTransformedContent({
+      pages: pages.filter((page) => page.action === "deleted"),
       transformedContentStore,
-      pageStore,
-      since,
       transformPage,
     });
-
-    const embeddedContent = await transformedContentStore.loadContent({
+    const transformedContent = await transformedContentStore.loadContent({
       page: examplePage,
     });
-    expect(embeddedContent).toHaveLength(1);
-    expect(embeddedContent[0].transformAlgoHash).toBe(
-      // You might need to update this expectation when the standard chunkPage
-      // function changes
-      "49d78a1d6b12ee6f433a2156060ed5ebfdefb8a90301f1c2fb04e4524944c5eb"
-    );
-    await updateTransformedContent({
-      transformedContentStore,
-      pageStore,
-      since,
-      transformPage,
-    });
-    const embeddedContent2 = await transformedContentStore.loadContent({
-      page: examplePage,
-    });
-    expect(embeddedContent2).toHaveLength(1);
-    expect(embeddedContent2[0].transformAlgoHash).toBe(
-      // You might need to update this expectation when the standard chunkPage
-      // function changes
-      "2cbfe9901657ca15260fe7f58c3132ac1ebd0d610896082ca1aaad0335f2e3f1"
-    );
+    // Transformed content for page was deleted
+    expect(transformedContent).toHaveLength(0);
   });
 
-  // TODO: this'll need some update too
-  describe("updateEmbeddedContent handles concurrency", () => {
+  it("deletes content when transformPage returns an empty array", async () => {
+    // Populate content
+    await updateTransformedContent({
+      pages,
+      transformedContentStore,
+      transformPage,
+    });
+
+    // Make sure content populated
+    expect(
+      (await transformedContentStore.loadContent()).length
+    ).toBeGreaterThanOrEqual(1);
+
+    // Now proceed to check deletion...
+    const transformPageEmpty: TransformPage<TransformedContent> = jest.fn(
+      async () => {
+        // Nothing to see here...
+        return [];
+      }
+    );
+    await updateTransformedContent({
+      pages,
+      transformedContentStore,
+      transformPage: transformPageEmpty,
+    });
+
+    expect(transformPageEmpty).toHaveBeenCalled();
+    // Content should be delete b/c transformPage returned empty array
+    expect(await transformedContentStore.loadContent()).toHaveLength(0);
+  });
+
+  it("updates page if transform algorithm changes", async () => {
+    // Add transformed content
+    await updateTransformedContent({
+      transformedContentStore,
+      pages,
+      transformPage,
+    });
+
+    // Load transformed content
+    const transformedContent = await transformedContentStore.loadContent({
+      page: pages[0],
+    });
+    const transformAlgoHash = transformedContent[0].transformAlgoHash;
+
+    expect(transformedContent).toHaveLength(1);
+    expect(transformAlgoHash).toEqual(expect.any(String));
+
+    const newTransformPage: TransformPage<TransformedContent> = async (p) => {
+      return [
+        {
+          sourceName: p.sourceName,
+          text: "FIZZBUZZ!! " + p.body,
+          url: p.url,
+          updated: new Date(),
+        },
+      ];
+    };
+
+    await updateTransformedContent({
+      transformedContentStore,
+      pages,
+      transformPage: newTransformPage,
+    });
+    const transformedContent2 = await transformedContentStore.loadContent({
+      page: pages[0],
+    });
+    expect(transformedContent2).toHaveLength(1);
+    expect(transformedContent2[0].transformAlgoHash).toEqual(
+      expect.any(String)
+    );
+    expect(transformedContent2[0].transformAlgoHash).not.toBe(
+      transformAlgoHash
+    );
+  });
+
+  it("processes pages concurrently", async () => {
     const startTimes: number[] = [];
     const endTimes: number[] = [];
-
-    let chunkPageSpy: jest.SpyInstance;
-
-    it("processes pages concurrently", async () => {
-      const concurrentPages: Page[] = [
-        { ...examplePage, url: "https://example.com/test1" },
-        { ...examplePage, url: "https://example.com/test2" },
-        { ...examplePage, url: "https://example.com/test3" },
-      ];
-
-      await persistPages({
-        pages: concurrentPages,
-        store: pageStore,
-        sourceName: "test",
-      });
-
-      const since = new Date("2000-01-01");
-
-      await updateTransformedContent({
-        transformedContentStore,
-        pageStore,
-        since,
-        transformPage,
-      });
-
-      const executionPairs = startTimes.map((startTime, i) => ({
-        startTime,
-        endTime: endTimes[i],
-      }));
-
-      // Ensure some overlaps indicating concurrency
-      expect(
-        executionPairs.some((pair, i, pairs) =>
-          pairs.some(
-            (otherPair, j) =>
-              i !== j &&
-              pair.startTime < otherPair.endTime &&
-              otherPair.startTime < pair.endTime
-          )
-        )
-      ).toBe(true);
+    const transformPage = async () => {
+      startTimes.push(Date.now());
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      endTimes.push(Date.now());
+      return exampleTransformed;
+    };
+    await updateTransformedContent({
+      transformedContentStore,
+      pages,
+      transformPage,
+      concurrencyOptions: { processPages: pages.length },
     });
+
+    const executionPairs = startTimes.map((startTime, i) => ({
+      startTime,
+      endTime: endTimes[i],
+    }));
+
+    // Ensure some overlaps indicating concurrency
+    expect(
+      executionPairs.some((pair, i, pairs) =>
+        pairs.some(
+          (otherPair, j) =>
+            i !== j &&
+            pair.startTime < otherPair.endTime &&
+            otherPair.startTime < pair.endTime
+        )
+      )
+    ).toBe(true);
   });
 });

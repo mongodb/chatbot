@@ -4,7 +4,7 @@
 import { Code, Heading, Node, Text } from "mdast";
 import { AstExtractedCodeblock } from "./AstExtractedCodeBlock.js";
 import { Parent } from "unist";
-import { PageDatasetEntry } from "../pageDataset/loadPageDataset.js";
+import { Page } from "mongodb-rag-core";
 
 // Import ESM modules dynamically
 export async function makePageParser() {
@@ -22,7 +22,7 @@ export async function makeExtractCodeBlocksWithHeadings() {
     page,
   }: {
     ast: Node;
-    page: PageDatasetEntry;
+    page: Page;
   }): AstExtractedCodeblock[] {
     const codeBlocks: AstExtractedCodeblock[] = [];
     visit(ast, "code", (node: Code, index: number, parent: Parent) => {

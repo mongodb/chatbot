@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import { Page } from ".";
 
 /**
@@ -33,7 +34,6 @@ export interface TransformedContent {
     tags?: string[];
     [k: string]: unknown;
   };
-
   /**
     Non-cryptographic hash of the actual chunking function (and its options)
     used to produce this chunk. Used to detect whether the chunk should be
@@ -62,9 +62,9 @@ export type DeleteTransformedContentArgs = {
  */
 export type TransformedContentStore<TC extends TransformedContent> = {
   /**
-    Load the content for the given page.
+    Load the content for the given page/all pages.
    */
-  loadContent(args: { page: Page }): Promise<TC[]>;
+  loadContent(args?: { page: Page }): Promise<TC[]>;
 
   /**
     Delete all content for the given page and/or data sources.

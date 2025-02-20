@@ -9,6 +9,9 @@ const jsonFileOutPath = path.resolve(
   "university-quiz-questions-annotated.json"
 );
 
+/**
+   Add metadata such as tags and the correct question type to previous quiz questions.
+ */
 const augmentJson = (filePath: string): QuizQuestionData[] => {
   const results: QuizQuestionData[] = [];
   const qqs = JSON.parse(fs.readFileSync(filePath, "utf-8"));

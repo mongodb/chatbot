@@ -1,35 +1,50 @@
 # Release Notes Generator
 
-A flexible and extensible tool for generating release notes from various sources like GitHub commits and Jira issues. The generator supports custom artifact sources, change classification, and filtering to create tailored release notes for your project.
+A flexible and extensible tool for generating changelogs and release notes from various sources like GitHub commits and Jira issues.
 
 ## Features
 
-- 🔄 Supports multiple artifact sources (GitHub, Jira, etc.)
-- 🎯 Customizable change classification and filtering
-- 📝 Extensible summarization capabilities
-- 🔍 Type-safe configuration with runtime validation
-- ⚡️ Concurrent processing with configurable rate limiting
-- 🎨 Standard config methods with customizable overrides
+- Supports multiple artifact sources (GitHub, Jira, etc.)
+- Includes standard config methods with customizable overrides
+- Uses a type-safe configuration with runtime validation
+- Allows for concurrent processing with configurable rate limiting
 
 ## Quick Start
 
 The fastest way to get started is using the standard configuration methods:
 
 ```typescript
-import { generate, createConfig } from "release-notes-generator";
-import { makeStandardConfigMethods } from "release-notes-generator/config";
-import { makeGitHubReleaseArtifacts } from "release-notes-generator/github";
-import { makeJiraReleaseArtifacts } from "release-notes-generator/jira";
+import {
+  createConfig,
+  generate,
+  makeStandardConfigMethods,
+  makeGitHubReleaseArtifacts,
+  makeJiraReleaseArtifacts,
+ } from "release-notes-generator";
 
 // Get the standard methods for processing changes
-const standardMethods = makeStandardConfigMethods();
+// You can customize any part of the configuration by replacing the standard methods with your own
+const standardMethods = makeStandardConfigMethods({
+  azureOpenAi: {
+    apiKey: "my-api-key",
+    apiVersion: "2024-02-15-preview",
+    deployment: "my-deployment",
+    endpoint: "https://my-endpoint.openai.azure.com",
+  },
+  logger: {
+    namespace: "my-project",
+  },
+});
 
 const config = createConfig({
+  // Use the standard methods for processing release artifacts
+  ...standardMethods,
+  // Provide information about your project
   project: {
     name: "My Project",
     description: "A description of what my project does",
   },
-  // Fetch artifacts from both GitHub and Jira
+  // Fetch release artifacts from your sources
   fetchArtifacts: async ({ current, previous }) => {
     const github = makeGitHubReleaseArtifacts({
       githubApi,
@@ -40,7 +55,8 @@ const config = createConfig({
     });
     const jira = makeJiraReleaseArtifacts({
       jiraApi,
-      version: current,
+      version: current, // Fetch Jira issues based on the fixVersion field
+      issuesKeys: ["EAI-123", "EAI-456"], // Or fetch specific issues by key
     });
 
     const [commits, issues] = await Promise.all([
@@ -50,11 +66,6 @@ const config = createConfig({
 
     return [...commits, ...issues];
   },
-  // Use standard methods for processing
-  summarizeArtifact: standardMethods.summarizeArtifact,
-  extractChanges: standardMethods.extractChanges,
-  classifyChange: standardMethods.classifyChange,
-  filterChange: standardMethods.filterChange,
 });
 
 // Generate release notes
@@ -69,7 +80,6 @@ You can customize any part of the configuration by replacing the standard method
 ```typescript
 const config = createConfig({
   // ... project and fetchArtifacts as above ...
-
   // Use standard methods but override classification
   ...standardMethods,
   classifyChange: async (change) => {
@@ -80,18 +90,25 @@ const config = createConfig({
     if (change.description.startsWith("fix:")) {
       return { audience: "external", scope: "fixed" };
     }
-    return { audience: "internal", scope: "updated" };
+    return standardMethods.classifyChange(change);
   },
 });
 ```
 
-## Configuration Guide
+## Configuration Reference
 
-The generator uses a type-safe configuration system that validates your config at runtime. You can use the standard methods from `makeStandardConfigMethods()` or customize each part:
+The generator uses a type-safe configuration system that validates your config
+at runtime. You can use the standard methods from `makeStandardConfigMethods()`
+or customize the tool with your own methods.
 
 ### Project Info
 
-Basic information about your project:
+This contains high-level information about your project, including the project
+name and a description. The tool passes this information to relevant processing
+stages to give additional context.
+
+The project description should specify the project's intended audience and the
+various use cases it supports.
 
 ```typescript
 project: {
@@ -100,44 +117,99 @@ project: {
 }
 ```
 
-### Artifact Collection
+### Gather Release Artifacts
 
-The `fetchArtifacts` function gathers release-related items from your sources:
+The `fetchArtifacts` method is responsible for sourcing relevant data and
+formatting them as [artifacts](#artifacts).
 
 ```typescript
 fetchArtifacts: async ({ current, previous }: VersionRange) => Promise<SomeArtifact[]>
 ```
 
-Built-in helpers for common sources:
+The tool includes built-in helpers for common artifact sources:
 
 - `makeGitHubReleaseArtifacts`: Fetches commits and diffs from GitHub
+
+  ```typescript
+  const github = makeGitHubReleaseArtifacts({
+    githubApi: new Octokit({ auth: process.env.GITHUB_TOKEN }),
+    owner: "mongodb",
+    repo: "chatbot",
+    version: current,
+    previousVersion: previous,
+  });
+
+  const commits = await github.getCommits(); // Fetches the commits between the previous version and the current version.
+  const diffs = await github.getDiffs();
+  const jiraIssueKeys = await github.getJiraIssueKeys("EAI");
+  ```
+
 - `makeJiraReleaseArtifacts`: Fetches issues from Jira
 
-### Change Processing
+  ```typescript
+  const jira = makeJiraReleaseArtifacts({
+    jiraApi: new JiraApi({ auth: process.env.JIRA_TOKEN }),
+    version: current,
+    issuesKeys: ["EAI-123", "EAI-456"],
+  });
 
-Three functions control how changes are processed. You can use the standard implementations from `makeStandardConfigMethods()` or provide your own:
+  const issues = await jira.getIssues(); // Fetches the specified issues or all issues for the current version.
+  ```
 
-1. `summarizeArtifact`: Creates human-readable summaries
+If you need to fetch artifacts from a source that is not supported by the
+built-in helpers, you can implement your own artifact source by following the
+[Artifact](#artifacts) interface.
 
-```typescript
-summarizeArtifact: async ({ project, artifact }) => Promise<string>
-```
+> [!NOTE]
+> If you define a custom artifact type, you must also implement custom
+> `summarizeArtifact` and `extractChanges` methods to handle the artifact type.
 
-2. `extractChanges`: Pulls out individual changes from artifacts
+### Process Artifacts Into Classified Changes
 
-```typescript
-extractChanges: async ({ project, artifact }) => Promise<Change[]>
-```
+These methods control how changes are processed.
 
-3. `classifyChange`: Categorizes changes for grouping
+1. `summarizeArtifact`: Creates a human-readable summary of a given artifact.
+   The standard implementation summarizes the artifact by calling an LLM with
+   the full artifact, the project description, and a set of few-shot examples.
 
-```typescript
-classifyChange: async (change: Change) => Promise<ChangelogClassification>
-```
+   ```typescript
+   summarizeArtifact: async ({ project, artifact }) => Promise<string>
+   ```
 
-### Filtering
+2. `extractChanges`: Pulls out a set of changes from each artifact. A change in
+   this context is a string that describes how the artifact affects the project
+   as well as a source identifier that points back to the artifact that it came
+   from. Each artifact may map to a single change, multiple changes, or no
+   changes at all. The standard implementation extracts changes based on the
+   full artifact, the project description, the artifact summary, and a set of
+   few-shot examples.
 
-Control which changes appear in the final output:
+   ```typescript
+   extractChanges: async ({ project, artifact }) => Promise<Change[]>
+   ```
+
+3. `classifyChange`: Categorizes each change along two dimensions: the audience
+   that it is intended for and the scope of the change. The standard
+   implementation uses the project description and a set of few-shot examples to
+   classify each change.
+
+   - The audience is either "internal", referring to engineers and other
+     stakeholders working on the project, or "external", referring to users of
+     the project.
+
+   - The scope is one of "added", "updated", "fixed", "deprecated", "removed",
+     or "security". For more information on the scope, see the [Keep A
+     Changelog](https://keepachangelog.com/) documentation.
+
+   ```typescript
+   classifyChange: async (change: Change) => Promise<ChangelogClassification>
+   ```
+
+### Filter Changes
+
+The `filterChange` method controls which changes appear in the final changelog
+output. The standard implementation includes all change classified as external
+but omits internal changes.
 
 ```typescript
 filterChange: (change: ClassifiedChange) => boolean
@@ -147,35 +219,27 @@ The standard filter (from `makeStandardConfigMethods()`) includes all external c
 
 ### Performance Tuning
 
-Configure concurrent processing:
+You can configure the tool to process changes concurrently by setting the
+`llmMaxConcurrency` option. By default, the tool will process changes one at a
+time.
 
 ```typescript
 llmMaxConcurrency?: number; // Default: 1
 ```
 
-## API Reference
+## Artifacts
 
-### Core Types
+The generator uses an artifact system to represent items from different sources.
 
-```typescript
-type Change = {
-  description: string;
-  sourceIdentifier?: string;
-};
+An artifact is a generic container for data that is relevant to a given release.
+The `type` field identifies the type of artifact (for example, `"git-commit"` or
+`"jira-issue"`), and the `data` field contains the raw data from the source.
 
-type ChangelogClassification = {
-  audience: "internal" | "external";
-  scope: "added" | "updated" | "fixed" | "deprecated" | "removed" | "security";
-};
-
-type ClassifiedChange = Change & {
-  classification: ChangelogClassification;
-};
-```
-
-### Artifacts
-
-The generator uses an artifact system to represent items from different sources:
+As the tool processes an artifact, it populates the `summary` and `changes`
+fields. The `summary` field is a human-readable summary of the artifact
+(generated by the `summarizeArtifact` method), and the `changes` field is a list
+of changes that are relevant to the release (generated by the `extractChanges`
+method).
 
 ```typescript
 type Artifact<T extends string, D> = {

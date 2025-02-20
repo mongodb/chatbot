@@ -6,6 +6,7 @@ import {
 } from "./webSources";
 import fs from "fs";
 import path from "path";
+import { Page as PlaywrightPage, Browser } from 'playwright';
 jest.setTimeout(60000);
 
 const SRC_ROOT = path.resolve(__dirname, "../../");
@@ -24,9 +25,6 @@ describe("getUrlsFromSitemap", () => {
       text: jest.fn().mockResolvedValue(sitemapXML),
     });
     const urls = await getUrlsFromSitemap("http://example.com/sitemap.xml");
-    expect(urls).toBeInstanceOf(Array);
-    expect(urls.length).toBeGreaterThan(0);
-    expect(typeof urls[0]).toBe("string");
     expect(urls).toStrictEqual([
       "https://www.mongodb.com/blog/post/supercharge-ai-data-management-knowledge-graphs",
       "https://www.mongodb.com/blog/post/reintroducing-versioned-mongodb-atlas-administration-api",
@@ -82,33 +80,35 @@ describe("prepareWebSources", () => {
 });
 
 describe("WebDataSource", () => {
-  const mockMakeBrowser = async () => {
-    const browser = {
-      newPage: jest.fn().mockResolvedValue({
-        goto: jest.fn(),
-        evaluate: jest.fn(),
+  const mockBrowser = {
+    page: {
+      goto: jest.fn().mockImplementation((url) => {
+        if (url.includes("not-a-real-page")) {
+          return { status: () => 404 };
+        }
+        return { status: () => 200 };
       }),
+      evaluate: jest.fn().mockImplementation(() => {
+        const html = fs.readFileSync(
+          path.resolve(SRC_ROOT, "../testData/mongodbdotcom-company-page.html"),
+          "utf-8"
+        );
+        return {
+          bodyInnerHtml: html,
+          headInnerHtml: html,
+        };
+      }),
+    } as unknown as PlaywrightPage,
+    browser: {
       close: jest.fn(),
-    };
-    const page = await browser.newPage();
-    return { page, browser };
+    } as unknown as Browser,
   };
-
-  beforeAll(() => {
-    jest.mock("./WebDataSource", () => ({
-      ...jest.requireActual("./WebDataSource"),
-      makeBrowser: jest.fn(mockMakeBrowser),
-    }));
-  });
-
-  afterAll(() => {
-    jest.restoreAllMocks();
-  });
 
   it("handles empty urls list", async () => {
     const source = await makeWebDataSource({
       name: "empty-source",
       urls: [],
+      makeBrowser: async () => mockBrowser,
     });
     const pages = await source.fetchPages();
     expect(pages.length).toBe(0);
@@ -117,6 +117,7 @@ describe("WebDataSource", () => {
     const source = await makeWebDataSource({
       name: "mongodb-dot-com",
       urls: ["https://www.mongodb.com/not-a-real-page"],
+      makeBrowser: async () => mockBrowser,
     });
     const pages = await source.fetchPages();
     expect(pages.length).toBe(0);
@@ -125,6 +126,7 @@ describe("WebDataSource", () => {
     const source = await makeWebDataSource({
       name: "valid-source",
       urls: ["https://www.mongodb.com/company"],
+      makeBrowser: async () => mockBrowser,
     });
     const pages = await source.fetchPages();
     expect(pages.length).toBe(1);

@@ -1,16 +1,24 @@
 import { logger, Page } from "mongodb-rag-core";
 import { DataSource } from "mongodb-rag-core/dataSources";
 import * as cheerio from "cheerio";
-import { Page as PlaywrightPage, chromium } from "playwright";
+import { Browser, Page as PlaywrightPage } from "playwright";
 import TurndownService from "turndown";
 import * as turndownPluginGfm from "turndown-plugin-gfm";
 import { WebSource } from "./webSources";
+
+interface WebSourceParams extends WebSource {
+  makeBrowser: () => Promise<{
+    page: PlaywrightPage;
+    browser: Browser;
+  }>;
+}
 
 export function makeWebDataSource({
   name,
   urls,
   staticMetadata,
-}: WebSource): DataSource {
+  makeBrowser,
+}: WebSourceParams): DataSource {
   return {
     name,
     async fetchPages() {
@@ -190,7 +198,6 @@ async function scrapePage({
   url,
 }: {
   browserPage: PlaywrightPage;
-  // puppeteerPage: PlaywrightPage;
   url: string;
 }): Promise<{ content: PageContent | null; error: string | null }> {
   logger.info(`Scraping page: ${url}`);
@@ -202,24 +209,12 @@ async function scrapePage({
     const response = await browserPage.goto(urlObj.toString(), {
       waitUntil: "domcontentloaded",
     });
-    // TODO: what if other non-200 status?
-    // consider changing to status !== 200 or 200 and other 'OK' statuses...
-    if (response?.status() === 404) {
-      throw new Error(`404`);
+    if (response?.status() !== 200) {
+      throw new Error(`${response?.status()}`);
     }
     content = await getContent(browserPage);
   } catch (err) {
     error = `failed to open the page: ${url} with the error: ${err}`;
   }
   return { content, error };
-}
-
-export async function makeBrowser() {
-  const browserPath = chromium.executablePath();
-  const browser = await chromium.launch({
-    headless: true,
-    executablePath: browserPath,
-  });
-  const page = await browser.newPage();
-  return { page, browser };
 }

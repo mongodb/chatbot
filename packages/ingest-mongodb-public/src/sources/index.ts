@@ -36,6 +36,7 @@ import {
   rawWebSources,
 } from "./mongodbDotCom/webSources";
 import { makeWebDataSource } from "./mongodbDotCom/WebDataSource";
+import { chromium } from "playwright";
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -183,8 +184,16 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
     rawWebSources,
     sitemapUrls,
   });
-
-  return await Promise.all(webSources.map(makeWebDataSource));
+  const makeBrowser = async () => {
+    const browserPath = chromium.executablePath();
+    const browser = await chromium.launch({
+      headless: true,
+      executablePath: browserPath,
+    });
+    const page = await browser.newPage();
+    return { page, browser };
+  };
+  return await Promise.all(webSources.map(source => makeWebDataSource({...source, makeBrowser})));
 };
 
 /**
@@ -192,14 +201,14 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
  */
 export const sourceConstructors: SourceConstructor[] = [
   webDataSourceConstructor,
-  () => makeSnootyDataSources(snootyDataApiBaseUrl, snootyProjectConfig),
-  () => makeDevCenterDataSource(devCenterProjectConfig),
-  mongoDbUniversitySourceConstructor,
-  mongooseSourceConstructor,
-  prismaSourceConstructor,
-  mongoDbCorpDataSource,
-  mongoDbUniMetadataSource,
-  practicalAggregationsDataSource,
-  terraformProviderSourceConstructor,
-  wiredTigerSourceConstructor,
+  // () => makeSnootyDataSources(snootyDataApiBaseUrl, snootyProjectConfig),
+  // () => makeDevCenterDataSource(devCenterProjectConfig),
+  // mongoDbUniversitySourceConstructor,
+  // mongooseSourceConstructor,
+  // prismaSourceConstructor,
+  // mongoDbCorpDataSource,
+  // mongoDbUniMetadataSource,
+  // practicalAggregationsDataSource,
+  // terraformProviderSourceConstructor,
+  // wiredTigerSourceConstructor,
 ];

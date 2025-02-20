@@ -1,14 +1,17 @@
-import * as csv from "csv";
+import { parse as parseCsv } from "csv-parse";
 import * as yaml from "yaml";
 import { promises as fs } from "fs";
+import { z } from "zod";
 
-type CsvEntry = {
-  questions: string;
-  faqId: string;
-  answer: string;
-  references: string;
-  author_email: string;
-};
+const csvEntrySchema = z.object({
+  questions: z.string(),
+  faqId: z.string(),
+  answer: z.string(),
+  references: z.string(),
+  author_email: z.string(),
+});
+
+type CsvEntry = z.infer<typeof csvEntrySchema>;
 
 type YamlEntry = {
   questions: string[];
@@ -27,9 +30,17 @@ async function main() {
   }
 
   const source = await fs.readFile(csvPath, "utf8");
-  const csvEntries = (await csv
-    .parse(source, { columns: true })
-    .toArray()) as CsvEntry[];
+  const parsedSource = parseCsv(source, { columns: true });
+  const csvEntries: CsvEntry[] = [];
+  for await (const entry of parsedSource) {
+    const csvEntryParseResult = csvEntrySchema.safeParse(entry);
+    if (!csvEntryParseResult.success) {
+      throw new Error(
+        `Invalid csv entry: ${JSON.stringify(csvEntryParseResult.error)}`
+      );
+    }
+    csvEntries.push(csvEntryParseResult.data);
+  }
 
   const yamlEntries = csvEntries.map(
     ({ answer, author_email, questions, references }): YamlEntry => ({

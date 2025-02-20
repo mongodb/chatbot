@@ -174,7 +174,7 @@ function imitateSystemMessagesWithUserMessages(openAiClient: OpenAI): OpenAI {
         ...args,
         messages: transformedMessages,
       } satisfies OpenAI.Chat.Completions.ChatCompletionCreateParams,
-      options satisfies OpenAI.RequestOptions<any> | undefined
+      options satisfies OpenAI.RequestOptions | undefined
     );
   }) as typeof openAiClient.chat.completions.create;
 

@@ -1,6 +1,6 @@
 import xml2js from "xml2js";
 
-export type RawWebSource = {
+export type InitialWebSource = {
   /**
    The name of the web source.
    */
@@ -23,7 +23,7 @@ export type RawWebSource = {
   staticMetadata?: Record<string, string>;
 };
 
-export const rawWebSources: RawWebSource[] = [
+export const initialWebSources: InitialWebSource[] = [
   {
     name: "company",
     urls: [
@@ -198,25 +198,25 @@ export type WebSource = {
 };
 
 type PrepareWebSourcesParams = {
-  rawWebSources: RawWebSource[];
+  initialWebSources: InitialWebSource[];
   sitemapUrls: string[];
 };
 
 /**
- Processes raw web sources
+ Processes initial web sources
  For web sources that have directories listed, all URLs within the directory are added to the web source urls list.
  The sitemapUrls are used to find the URLs in the directory.
  */
 export const prepareWebSources = async ({
-  rawWebSources,
+  initialWebSources,
   sitemapUrls,
 }: PrepareWebSourcesParams): Promise<WebSource[]> => {
   const webSources: WebSource[] = [];
-  for (const rawWebSource of rawWebSources) {
-    const { name, staticMetadata } = rawWebSource;
-    let urls = rawWebSource.urls || [];
-    if (rawWebSource.directoryUrls?.length) {
-      for (const directoryUrl of rawWebSource.directoryUrls) {
+  for (const initialWebSource of initialWebSources) {
+    const { name, staticMetadata } = initialWebSource;
+    let urls = initialWebSource.urls || [];
+    if (initialWebSource.directoryUrls?.length) {
+      for (const directoryUrl of initialWebSource.directoryUrls) {
         urls = [
           ...urls,
           ...sitemapUrls.filter((url) => url.includes(directoryUrl)),

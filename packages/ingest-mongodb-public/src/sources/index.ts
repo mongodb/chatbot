@@ -33,7 +33,7 @@ const { DEVCENTER_CONNECTION_URI, UNIVERSITY_DATA_API_KEY } = assertEnvVars(
 import {
   getUrlsFromSitemap,
   prepareWebSources,
-  rawWebSources,
+  initialWebSources,
 } from "./mongodbDotCom/webSources";
 import { makeWebDataSource } from "./mongodbDotCom/WebDataSource";
 import { chromium } from "playwright";
@@ -181,7 +181,7 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
     "https://www.mongodb.com/sitemap-pages.xml"
   );
   const webSources = await prepareWebSources({
-    rawWebSources,
+    initialWebSources,
     sitemapUrls,
   });
   const makeBrowser = async () => {

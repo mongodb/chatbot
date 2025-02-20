@@ -2,7 +2,7 @@ import { makeWebDataSource } from "./WebDataSource";
 import {
   getUrlsFromSitemap,
   prepareWebSources,
-  RawWebSource,
+  InitialWebSource,
 } from "./webSources";
 import fs from "fs";
 import path from "path";
@@ -36,7 +36,7 @@ describe("getUrlsFromSitemap", () => {
 });
 
 describe("prepareWebSources", () => {
-  const mockRawWebSources: RawWebSource[] = [
+  const mockInitialWebSources: InitialWebSource[] = [
     {
       name: "directory-web-source",
       urls: [],
@@ -68,14 +68,14 @@ describe("prepareWebSources", () => {
   ];
   it("processes raw web sources that have directories listed to create a url list", async () => {
     const webSources = await prepareWebSources({
-      rawWebSources: mockRawWebSources,
+      initialWebSources: mockInitialWebSources,
       sitemapUrls: mockSitemapUrls,
     });
     expect(webSources.length).toBe(2);
     const [directoryWebSource, urlWebSource] = webSources;
     expect(directoryWebSource.urls.length).toBe(4);
     expect(directoryWebSource.urls).toStrictEqual(mockSitemapUrls);
-    expect(urlWebSource.urls).toStrictEqual(mockRawWebSources[1].urls);
+    expect(urlWebSource.urls).toStrictEqual(mockInitialWebSources[1].urls);
   });
 });
 

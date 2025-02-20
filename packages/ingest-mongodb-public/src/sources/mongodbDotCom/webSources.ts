@@ -173,6 +173,13 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/atlas",
       "https://www.mongodb.com/try/download/community",
       "https://www.mongodb.com/pricing",
+      "https://www.mongodb.com/leadership",
+      "https://www.mongodb.com/legal/acceptable-use-policy",
+      "https://www.mongodb.com/legal/privacy-policy",
+      "https://www.mongodb.com/legal/terms-of-use",
+      "https://www.mongodb.com/why-use-mongodb",
+      "https://learn.mongodb.com",
+      "https://support.mongodb.com/",
     ],
   },
 ];

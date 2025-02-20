@@ -10,6 +10,8 @@ import {
   validateConfig,
 } from "./config";
 import atlasCliConfig from "./configs/atlas-cli.config";
+import mongoshConfig from "./configs/mongosh.config";
+import relationalMigratorConfig from "./configs/relational-migrator.config";
 
 const mockProjectInfo: ProjectInfo = {
   name: "Release Notes Generator Test Project",
@@ -71,10 +73,29 @@ describe("generateChangelogs", () => {
     expect(changes).toBeDefined();
     expect(changes.length).toBeGreaterThan(0);
   });
-  it.skip("generates changelogs for a real config", async () => {
+  // Skip this test because it uses real LLM calls and is slow
+  it.skip("generates changelogs for a real config (Atlas CLI)", async () => {
     const changes = await generate(validateConfig(atlasCliConfig), {
       current: "1.22.0",
       previous: "1.21.0",
+    });
+    expect(changes).toBeDefined();
+    expect(changes.length).toBeGreaterThan(0);
+  }, 300000);
+  // Skip this test because it uses real LLM calls and is slow
+  it.skip("generates changelogs for a real config (mongosh)", async () => {
+    const changes = await generate(validateConfig(mongoshConfig), {
+      current: "2.3.8",
+      previous: "2.3.7",
+    });
+    expect(changes).toBeDefined();
+    expect(changes.length).toBeGreaterThan(0);
+  }, 300000);
+  // Skip this test because it uses real LLM calls and is slow
+  it.skip("generates changelogs for a real config (relational-migrator)", async () => {
+    const changes = await generate(validateConfig(relationalMigratorConfig), {
+      current: "1.11.0",
+      previous: "1.10.0",
     });
     expect(changes).toBeDefined();
     expect(changes.length).toBeGreaterThan(0);

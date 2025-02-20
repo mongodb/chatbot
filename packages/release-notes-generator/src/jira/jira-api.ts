@@ -38,9 +38,7 @@ export const JiraReleaseInfoSchema = z.object({
   issueKeys: z
     .array(z.string())
     .optional()
-    .describe(
-      "Array of Jira issue keys (e.g., MIG-xxxx). If not provided, will be extracted from commit messages.",
-    ),
+    .describe("Array of Jira issue keys (e.g., MIG-xxxx)."),
   project: z.string().optional().describe("The Jira project key."),
 });
 

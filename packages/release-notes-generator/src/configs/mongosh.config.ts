@@ -32,22 +32,17 @@ const {
 export default createConfig({
   llmMaxConcurrency: 4,
   project: {
-    name: "MongoDB Atlas CLI",
+    name: "MongoDB Shell",
     description: stripIndents`
-      The MongoDB Atlas CLI (atlas) allows you to manage your MongoDB Atlas
-      database deployments from the command line. It provides a complete set of
-      functionality to:
+      The MongoDB Shell (mongosh) allows you to interact with MongoDB deployments from your terminal applications.
+      It uses a familar JavaScript API that lets you work with your databases and collections, including:
 
-      - Create and manage database deployments
-      - Configure database users and network access
-      - Load sample data and run performance tests
-      - Monitor deployment metrics and logs
-      - Manage backups and restore points
-      - And much more...
+      - CRUD and aggregation operations
+      - Index creation and management
+      - Database administration commands
 
-      The Atlas CLI is designed for both interactive use and automation through
-      scripts and CI/CD pipelines. It provides a consistent interface to Atlas
-      across all supported platforms and environments.`,
+      The Atlas CLI is designed for both interactive use and automation through scripts and CI/CD pipelines.
+      It can connect to any MongoDB deployment, including MongoDB Atlas clusters, self-managed deployments, and local instances.`,
   },
   ...makeStandardConfigMethods({
     azureOpenAi: {
@@ -57,8 +52,8 @@ export default createConfig({
       chatCompletionDeployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     },
     logger: {
-      namespace: "atlas-cli",
-      outputDir: "./logs/atlas-cli",
+      namespace: "mongosh",
+      outputDir: "./logs/mongosh",
     },
   }),
   fetchArtifacts: async (version): Promise<SomeArtifact[]> => {
@@ -66,18 +61,18 @@ export default createConfig({
       githubApi: makeGitHubApiClient({
         authToken: GITHUB_ACCESS_TOKEN,
       }),
-      owner: "mongodb",
-      repo: "mongodb-atlas-cli",
-      version: `atlascli/v${version.current}`,
-      previousVersion: `atlascli/v${version.previous}`,
+      owner: "mongodb-js",
+      repo: "mongosh",
+      version: `v${version.current}`,
+      previousVersion: `v${version.previous}`,
     });
     const jira = makeJiraReleaseArtifacts({
       jiraApi: makeJiraApiClient({
         username: JIRA_USERNAME,
         password: JIRA_PASSWORD,
       }),
-      project: "CLOUDP",
-      version: `atlascli-${version.current}`,
+      project: "MONGOSH",
+      version: version.current,
     });
 
     return Array<SomeArtifact>().concat(

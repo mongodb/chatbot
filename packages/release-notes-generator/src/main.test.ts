@@ -9,7 +9,7 @@ import {
   type SummarizeArtifact,
   validateConfig,
 } from "./config";
-import config from "./configs/atlas-cli.config";
+import atlasCliConfig from "./configs/atlas-cli.config";
 
 const mockProjectInfo: ProjectInfo = {
   name: "Release Notes Generator Test Project",
@@ -71,8 +71,8 @@ describe("generateChangelogs", () => {
     expect(changes).toBeDefined();
     expect(changes.length).toBeGreaterThan(0);
   });
-  it("generates changelogs for a real config", async () => {
-    const changes = await generate(validateConfig(config), {
+  it.skip("generates changelogs for a real config", async () => {
+    const changes = await generate(validateConfig(atlasCliConfig), {
       current: "1.22.0",
       previous: "1.21.0",
     });

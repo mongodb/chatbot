@@ -77,7 +77,7 @@ export const models: ModelConfig[] = [
     label: "gpt-4o",
     deployment: "gpt-4o",
     developer: "OpenAI",
-    maxConcurrency: 1,
+    maxConcurrency: 2,
     provider: "azure_openai",
     metadata: {
       modelVersion: "2024-08-06",
@@ -221,6 +221,15 @@ export const models: ModelConfig[] = [
   {
     label: "gemini-1.5-flash-002",
     deployment: "google/gemini-1.5-flash-002",
+    developer: "Google",
+    maxConcurrency: 3,
+    provider: "gcp_vertex_ai",
+    systemMessageAsUserMessage: false,
+    authorized: true,
+  },
+  {
+    label: "gemini-2-flash",
+    deployment: "models/gemini-2.0-flash-001",
     developer: "Google",
     maxConcurrency: 3,
     provider: "gcp_vertex_ai",

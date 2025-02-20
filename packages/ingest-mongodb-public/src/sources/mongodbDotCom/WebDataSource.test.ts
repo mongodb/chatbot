@@ -6,7 +6,7 @@ import {
 } from "./webSources";
 import fs from "fs";
 import path from "path";
-import { Page as PlaywrightPage, Browser } from 'playwright';
+import { Page as PlaywrightPage, Browser } from "playwright";
 
 jest.setTimeout(60000);
 

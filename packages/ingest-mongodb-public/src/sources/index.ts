@@ -193,7 +193,9 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
     const page = await browser.newPage();
     return { page, browser };
   };
-  return await Promise.all(webSources.map(source => makeWebDataSource({...source, makeBrowser})));
+  return await Promise.all(
+    webSources.map((source) => makeWebDataSource({ ...source, makeBrowser }))
+  );
 };
 
 /**
@@ -201,14 +203,14 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
  */
 export const sourceConstructors: SourceConstructor[] = [
   webDataSourceConstructor,
-  // () => makeSnootyDataSources(snootyDataApiBaseUrl, snootyProjectConfig),
-  // () => makeDevCenterDataSource(devCenterProjectConfig),
-  // mongoDbUniversitySourceConstructor,
-  // mongooseSourceConstructor,
-  // prismaSourceConstructor,
-  // mongoDbCorpDataSource,
-  // mongoDbUniMetadataSource,
-  // practicalAggregationsDataSource,
-  // terraformProviderSourceConstructor,
-  // wiredTigerSourceConstructor,
+  () => makeSnootyDataSources(snootyDataApiBaseUrl, snootyProjectConfig),
+  () => makeDevCenterDataSource(devCenterProjectConfig),
+  mongoDbUniversitySourceConstructor,
+  mongooseSourceConstructor,
+  prismaSourceConstructor,
+  mongoDbCorpDataSource,
+  mongoDbUniMetadataSource,
+  practicalAggregationsDataSource,
+  terraformProviderSourceConstructor,
+  wiredTigerSourceConstructor,
 ];

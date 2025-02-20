@@ -51,20 +51,20 @@ export const doAllCommand = async (
 
   await doUpdatePagesCommand(config, {});
 
-  // await doUpdateEmbedCommand(config, {
-  //   since: lastSuccessfulRunDate ?? new Date("2023-01-01"),
-  // });
+  await doUpdateEmbedCommand(config, {
+    since: lastSuccessfulRunDate ?? new Date("2023-01-01"),
+  });
 
   // cleanup - delete pages and embedded content that are no longer in the data sources
-  // await config.pageStore.deletePages({
-  //   dataSources: config.dataSources.map(({ name }) => name),
-  //   permanent: !!permanentlyDeletePages,
-  //   inverse: true,
-  // });
-  // await config.embeddedContentStore.deleteEmbeddedContent({
-  //   dataSources: config.dataSources.map(({ name }) => name),
-  //   inverseDataSources: true,
-  // });
+  await config.pageStore.deletePages({
+    dataSources: config.dataSources.map(({ name }) => name),
+    permanent: !!permanentlyDeletePages,
+    inverse: true,
+  });
+  await config.embeddedContentStore.deleteEmbeddedContent({
+    dataSources: config.dataSources.map(({ name }) => name),
+    inverseDataSources: true,
+  });
 
   logger.info(`Updating last successful run date`);
   await ingestMetaStore.updateLastSuccessfulRunDate();

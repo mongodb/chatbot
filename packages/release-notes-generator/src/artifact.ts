@@ -16,8 +16,6 @@ export const artifactSchema = <T extends string, D>(
     changes: z.array(classifiedChangeSchema).default([]),
     /** A human-readable summary of the artifact. */
     summary: z.string().optional(),
-    /** Additional metadata associated with the artifact. */
-    metadata: z.record(z.unknown()).optional().default({}),
   });
 
 export type Artifact<T extends string, D> = z.infer<

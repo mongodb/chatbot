@@ -1,3 +1,4 @@
+import type { SomeArtifact } from "./artifact";
 import { type Artifact, getArtifactIdentifier } from "./artifact";
 import { artifactWithChanges, type ClassifiedChange } from "./change";
 import type { Config, VersionRange } from "./config";
@@ -44,14 +45,14 @@ export async function generate(
         project: config.project,
         artifact,
       });
-      const artifactWithSummary: Artifact<string, unknown> = {
+      const artifactWithSummary = {
         id: artifact.id,
         type: artifact.type,
         data: artifact.data,
         changes: artifact.changes,
-        metadata: artifact.metadata,
         summary,
-      };
+      } satisfies SomeArtifact;
+
       void logger?.log("debug", "Summarized artifact", {
         artifactIdentifier,
         summary,

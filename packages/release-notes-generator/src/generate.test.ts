@@ -64,7 +64,7 @@ const mockConfig = validateConfig({
   }),
 });
 
-describe("generateChangelogs", () => {
+describe("generate", () => {
   it("generates changelogs based on a mock config", async () => {
     const changes = await generate(mockConfig, {
       current: "0.0.1",

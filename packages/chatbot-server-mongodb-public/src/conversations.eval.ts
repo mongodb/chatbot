@@ -4,7 +4,10 @@ import {
   traced,
   EvalScorer,
 } from "mongodb-rag-core/braintrust";
-import { getConversationsEvalCasesFromYaml } from "mongodb-rag-core/eval";
+import {
+  getConversationsEvalCasesFromYaml,
+  getConversationEvalCasesFromCSV,
+} from "mongodb-rag-core/eval";
 import { MongoDbTag } from "./mongoDbMetadata";
 import { config, conversations } from "./config";
 import { systemPrompt } from "./systemPrompt";
@@ -123,7 +126,10 @@ Eval("mongodb-chatbot-conversations", {
     const faqCases = getConversationsEvalCasesFromYaml(
       fs.readFileSync(path.resolve(basePath, "faq_conversations.yml"), "utf8")
     );
-    return [...miscCases, ...faqCases].map((evalCase) => {
+    const dotComCases = await getConversationEvalCasesFromCSV(
+      path.resolve(basePath, "dotcom_chatbot_evaluation_questions.yml")
+    );
+    return [...miscCases, ...faqCases, ...dotComCases].map((evalCase) => {
       const prevConversationMessages = evalCase.messages.slice(0, -1).map(
         (m) =>
           ({

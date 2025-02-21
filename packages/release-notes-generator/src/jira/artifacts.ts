@@ -1,4 +1,4 @@
-import { makeArtifact, createArtifactSchema } from "../artifact";
+import { artifactSchema } from "../artifact";
 import { z } from "zod";
 
 export const jiraIssueSchema = z.object({
@@ -17,8 +17,8 @@ export const jiraIssueSchema = z.object({
 
 export type JiraIssue = z.infer<typeof jiraIssueSchema>;
 
-export const jiraIssueArtifactSchema = createArtifactSchema(
-  z.literal("jira-issue"),
+export const jiraIssueArtifactSchema = artifactSchema(
+  "jira-issue",
   jiraIssueSchema,
 );
 
@@ -27,17 +27,12 @@ export type JiraIssueArtifact = z.infer<typeof jiraIssueArtifactSchema>;
 export function makeJiraIssueArtifact(args: {
   id: string;
   data: JiraIssue;
-  summary?: string;
 }): JiraIssueArtifact {
-  return makeArtifact(
-    {
-      id: args.id,
-      type: "jira-issue",
-      data: args.data,
-      summary: args.summary,
-    },
-    jiraIssueArtifactSchema,
-  );
+  return jiraIssueArtifactSchema.parse({
+    id: args.id,
+    type: "jira-issue",
+    data: args.data,
+  });
 }
 
 export function getJiraIssueIdentifier(artifact: JiraIssueArtifact): string {

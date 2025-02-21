@@ -1,4 +1,4 @@
-import { makeArtifact, createArtifactSchema } from "../artifact";
+import { artifactSchema } from "../artifact";
 import { z } from "zod";
 
 export const gitCommitSchema = z.object({
@@ -19,8 +19,8 @@ export const gitCommitSchema = z.object({
 
 export type GitCommit = z.infer<typeof gitCommitSchema>;
 
-export const gitCommitArtifactSchema = createArtifactSchema(
-  z.literal("git-commit"),
+export const gitCommitArtifactSchema = artifactSchema(
+  "git-commit",
   gitCommitSchema,
 );
 
@@ -31,15 +31,12 @@ export function makeGitCommitArtifact(args: {
   data: GitCommit;
   summary?: string;
 }): GitCommitArtifact {
-  return makeArtifact(
-    {
-      id: args.id,
-      type: "git-commit",
-      data: args.data,
-      summary: args.summary,
-    },
-    gitCommitArtifactSchema,
-  );
+  return gitCommitArtifactSchema.parse({
+    id: args.id,
+    type: "git-commit",
+    data: args.data,
+    summary: args.summary,
+  });
 }
 
 export function getGitCommitIdentifier(artifact: GitCommitArtifact): string {
@@ -75,27 +72,19 @@ export const gitDiffSchema = z.object({
 
 export type GitDiff = z.infer<typeof gitDiffSchema>;
 
-export const gitDiffArtifactSchema = createArtifactSchema(
-  z.literal("git-diff"),
-  gitDiffSchema,
-);
+export const gitDiffArtifactSchema = artifactSchema("git-diff", gitDiffSchema);
 
 export type GitDiffArtifact = z.infer<typeof gitDiffArtifactSchema>;
 
 export function makeGitDiffArtifact(args: {
   id: string;
   data: GitDiff;
-  summary?: string;
 }): GitDiffArtifact {
-  return makeArtifact(
-    {
-      id: args.id,
-      type: "git-diff",
-      data: args.data,
-      summary: args.summary,
-    },
-    gitDiffArtifactSchema,
-  );
+  return gitDiffArtifactSchema.parse({
+    id: args.id,
+    type: "git-diff",
+    data: args.data,
+  });
 }
 
 export function getGitDiffIdentifier(artifact: GitDiffArtifact): string {

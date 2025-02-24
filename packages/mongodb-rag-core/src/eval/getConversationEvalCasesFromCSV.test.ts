@@ -1,5 +1,6 @@
 import path from "path";
 import { getConversationEvalCasesFromCSV } from "./getConversationEvalCasesFromCSV";
+import { ConversationEvalCase } from "./getConversationEvalCasesFromYaml";
 
 const SRC_ROOT = path.resolve(__dirname, "../");
 
@@ -22,6 +23,28 @@ describe("getConversationEvalCasesFromCSV", () => {
         "https://www.mongodb.com/developer/products/mongodb/everything-you-know-is-wrong",
         "https://mongodb.com/docs/manual/",
       ],
+    });
+  });
+  it("should apply a tranform function that allows for customization of fields", async () => {
+    const csvFilePath = path.resolve(
+      SRC_ROOT,
+      "../testData/sampleChatbotEvaluationQuestions.csv"
+    );
+    function addTestDataSourceTag(evalCases: ConversationEvalCase[]) {
+      return evalCases.map((caseItem) => {
+        const tags = caseItem.tags || [];
+        if (!tags.includes("test")) {
+          tags.push("test");
+        }
+        return {
+          ...caseItem,
+          tags,
+        };
+      });
+    }
+    const records = await getConversationEvalCasesFromCSV(csvFilePath, addTestDataSourceTag);
+    expect(records[0]).toMatchObject({
+      tags: ["test"],
     });
   });
 });

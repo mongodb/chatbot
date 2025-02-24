@@ -3,7 +3,8 @@ import fs from "fs";
 import { ConversationEvalCase } from "./getConversationEvalCasesFromYaml";
 
 export const getConversationEvalCasesFromCSV = async (
-  csvFilePath: string
+  csvFilePath: string,
+  transform?: (records: ConversationEvalCase[]) => ConversationEvalCase[]
 ): Promise<ConversationEvalCase[]> => {
   const records = [];
   const parser = fs.createReadStream(csvFilePath).pipe(
@@ -33,6 +34,9 @@ export const getConversationEvalCasesFromCSV = async (
         : [],
     };
     records.push(formattedRecord);
+  }
+  if(transform) {
+    return (transform(records))
   }
   return records;
 };

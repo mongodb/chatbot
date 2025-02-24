@@ -2,11 +2,38 @@ import { OpenAI } from "mongodb-rag-core/openai";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { PromisePool } from "@supercharge/promise-pool";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 
 export interface GenerationNode<T> {
+  _id: ObjectId;
   parent: GenerationNode<unknown> | null;
   children?: GenerationNode<unknown>[];
   data: T;
+  updated: Date;
+}
+
+export type DbGenerationNode<T> = Omit<
+  GenerationNode<T>,
+  "parent" | "children"
+> & {
+  parent: ObjectId | null;
+  children?: ObjectId[];
+};
+
+export function convertGenerationNodeToDbNode<T>(
+  node: GenerationNode<T>
+): DbGenerationNode<T> {
+  const dbNode = {
+    ...node,
+    parent: node.parent?._id ?? null,
+    children: node.children?.map((child) => child._id),
+  };
+  // Remove the children field if there are no children
+  // So it's not populated in MongoDB as `children: null`
+  if (dbNode.children?.length === 0 || !dbNode.children) {
+    delete dbNode.children;
+  }
+  return dbNode;
 }
 
 export type GenerateChildren<
@@ -139,9 +166,10 @@ export function makeGenerateChildrenWithOpenAi<
       parsedChildren = trimmedChildren;
     }
     const nodes = parsedChildren.map((data) => ({
+      _id: new ObjectId(),
       parent,
-      children: undefined,
       data,
+      updated: new Date(),
     }));
 
     return nodes;

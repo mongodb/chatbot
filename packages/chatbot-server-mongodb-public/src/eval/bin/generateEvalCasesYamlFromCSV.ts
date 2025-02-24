@@ -1,3 +1,50 @@
+/**
+ # Generate Evaluation Cases YAML from CSV
+ 
+ This script converts conversation evaluation cases from a CSV file to YAML format.
+ It supports optional transformations of the evaluation cases during conversion.
+ 
+ ## Usage
+ 
+ Can be run through npm script or directly using node:
+ 
+ ```bash
+ npm run generate-eval-cases -- <csvFileName> <yamlFileName> [transformationType]
+ ```
+ 
+ Or:
+ 
+ ```bash
+ node generateEvalCasesYamlFromCSV.js <csvFileName> <yamlFileName> [transformationType]
+ ```
+ 
+ ### Arguments
+ 
+ - `csvFileName`: (Required) Name of the input CSV file (without .csv extension)
+ - `yamlFileName`: (Required) Name of the output YAML file (without .yml extension)
+ - `transformationType`: (Optional) Type of transformation to apply to the cases
+ 
+ ### Available Transformations
+ 
+ - `web`: Adds a "web" tag to all evaluation cases
+ 
+ ### File Paths
+ 
+ - Input CSV files should be placed in: `src/eval/bin/`
+ - Output YAML files will be generated in: `evalCases/`
+ 
+ ### Example
+ 
+ ```bash
+ npm run generate-eval-cases -- input output web
+ ```
+ 
+ This will:
+ 1. Read from: src/eval/bin/input.csv
+ 2. Apply the web transformation
+ 3. Write to: evalCases/output.yml
+*/
+
 import fs from "fs";
 import path from "path";
 import yaml from "yaml";
@@ -26,6 +73,7 @@ const transformationMap: Record<
   (cases: ConversationEvalCase[]) => ConversationEvalCase[]
 > = {
   web: addWebDataSourceTag,
+  // Add more transformation functions here as needed
 };
 
 async function main({

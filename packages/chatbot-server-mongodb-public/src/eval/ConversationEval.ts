@@ -146,9 +146,7 @@ const makeConversationFaithfulness: ConversationEvalScorerConstructor =
 
 const makeConversationAnswerRelevancy: ConversationEvalScorerConstructor =
   (judgeModelConfig) => async (args) => {
-    return AnswerRelevancy({
-      ...getConversationRagasConfig(args, judgeModelConfig),
-    });
+    return AnswerRelevancy(getConversationRagasConfig(args, judgeModelConfig));
   };
 
 const makeConversationContextRelevancy: ConversationEvalScorerConstructor =
@@ -166,7 +164,13 @@ const makeFactuality: ConversationEvalScorerConstructor =
         score: null,
       };
     } else
-      return Factuality(getConversationRagasConfig(args, judgeModelConfig));
+      return Factuality({
+        ...getConversationRagasConfig(args, judgeModelConfig),
+        // TODO: when https://github.com/braintrustdata/autoevals/issues/116 is fixed, remove this
+        // remove this so just using azure openai.
+        // right now uses non-azure openai
+        openAiApiKey: process.env.OPENAI_OPENAI_API_KEY,
+      });
   };
 
 export interface MakeConversationEvalParams {

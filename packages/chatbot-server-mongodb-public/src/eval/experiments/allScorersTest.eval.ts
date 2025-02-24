@@ -6,25 +6,18 @@ import {
   OPENAI_API_KEY,
   OPENAI_API_VERSION,
   OPENAI_ENDPOINT,
-} from "./eval/evalHelpers";
+} from "../evalHelpers";
 import fs from "fs";
 import path from "path";
-import { makeConversationEval } from "./eval/ConversationEval";
-import { systemPrompt } from "./systemPrompt";
-import { config, conversations } from "./config";
-console.log("api key", console.log(process.env.BRAINTRUST_API_KEY));
-console.log(
-  JUDGE_EMBEDDING_MODEL,
-  JUDGE_LLM,
-  OPENAI_API_KEY,
-  OPENAI_API_VERSION,
-  OPENAI_ENDPOINT
-);
+import { makeConversationEval } from "../ConversationEval";
+import { systemPrompt } from "../../systemPrompt";
+import { config, conversations } from "../../config";
+
 async function conversationEval() {
   // Get all the conversation eval cases from YAML
-  const basePath = path.resolve(__dirname, "..", "evalCases");
+  const basePath = path.resolve(__dirname, "..", "..", "..", "evalCases");
   const conversationEvalCases = getConversationsEvalCasesFromYaml(
-    fs.readFileSync(path.resolve(basePath, "full_package.yml"), "utf8")
+    fs.readFileSync(path.resolve(basePath, "all_scorers.yml"), "utf8")
   );
 
   const generateConfig = {
@@ -43,8 +36,7 @@ async function conversationEval() {
     projectName: "mongodb-chatbot-conversations",
     experimentName: "mongodb-chatbot-full",
     metadata: {
-      description:
-        "Evaluates how well the MongoDB AI Chatbot RAG pipeline works",
+      description: "Smoke test for different scorers",
     },
     maxConcurrency: 2,
     conversationEvalCases,

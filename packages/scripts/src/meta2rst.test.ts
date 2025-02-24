@@ -4,6 +4,7 @@ import {
   hasMetaDirective,
   constructMetaDirective,
   findRstPageTitle,
+  upsertMetaDirective,
 } from "./meta2rst";
 
 const rstContent = `Some content here.
@@ -184,5 +185,54 @@ This Is The Page Title
       findRstPageTitle(`This Is The Page Title
 ----------------------`)
     ).toEqual(2);
+  });
+});
+
+describe("upsertMetaDirective", () => {
+  it("adds a meta directive to a page that doesn't have one", () => {
+    const rstContent = `.. _this-is-a-page-anchor:
+
+~~~~~~~~~~~~~~~~~~~~~~
+This Is The Page Title
+~~~~~~~~~~~~~~~~~~~~~~`;
+
+    const updatedPageContent = upsertMetaDirective(rstContent, {
+      description: "This is a description.",
+      keywords: "This is a keyword.",
+    });
+    expect(updatedPageContent).toEqual(
+      rstContent +
+        "\n\n" +
+        `.. meta::
+   :keywords: This is a keyword.
+   :description: This is a description.
+`
+    );
+  });
+
+  it("updates a meta directive on a page that already has one", () => {
+    const rstContent = `.. _this-is-a-page-anchor:
+
+~~~~~~~~~~~~~~~~~~~~~~
+This Is The Page Title
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. meta::
+   :keywords: This is a keyword.
+   :description: This is a description.`;
+
+    const updatedPageContent = upsertMetaDirective(rstContent, {
+      keywords: null,
+      description: "This is the updated description.",
+    });
+    expect(updatedPageContent).toEqual(`.. _this-is-a-page-anchor:
+
+~~~~~~~~~~~~~~~~~~~~~~
+This Is The Page Title
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. meta::
+   :keywords: This is a keyword.
+   :description: This is the updated description.`);
   });
 });

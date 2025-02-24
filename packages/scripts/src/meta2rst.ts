@@ -1,3 +1,5 @@
+import fs from "fs";
+
 // Match the entire meta directive block
 const metaDirectiveRegex = /(?:^|\n)(.. meta::\s*\n(?:\s+:[^:]+:[^\n]*\n)*)/g;
 // To find specific fields within the matched directive
@@ -13,6 +15,7 @@ export function updateMetaDescription(
   newDescription: string
 ): string {
   return content.replace(metaDirectiveRegex, (match) => {
+    console.log("meta directive match", match);
     // Check if description field exists
     if (descriptionFieldRegex.test(match)) {
       // Replace existing description
@@ -129,4 +132,50 @@ export function findRstPageTitle(content: string): number {
 
   // No title found
   return -1;
+}
+
+export function upsertMetaDirective(
+  rstPageContent: string,
+  metaDirectiveArgs: {
+    description: string | null;
+    keywords: string | null;
+  }
+): string {
+  const pageHasMetaDirective = hasMetaDirective(rstPageContent);
+  if (pageHasMetaDirective) {
+    if (!metaDirectiveArgs.description) {
+      throw new Error("Meta description is required");
+    }
+    return updateMetaDescription(rstPageContent, metaDirectiveArgs.description);
+  } else {
+    const metaDirective = constructMetaDirective(metaDirectiveArgs);
+    const pageTitleLineNumber = findRstPageTitle(rstPageContent);
+    if (pageTitleLineNumber === -1) {
+      throw new Error("Page title not found");
+    }
+    const pageLines = rstPageContent.split("\n");
+    const newRstPageContent = [
+      ...pageLines.slice(0, pageTitleLineNumber),
+      "",
+      metaDirective,
+      "",
+      ...pageLines.slice(pageTitleLineNumber),
+    ].join("\n");
+    return newRstPageContent;
+  }
+}
+
+export function upsertMetaDirectiveInFile(
+  filePath: string,
+  metaDirectiveArgs: {
+    description: string | null;
+    keywords: string | null;
+  }
+): void {
+  const rstPageContent = fs.readFileSync(filePath, "utf8");
+  const newRstPageContent = upsertMetaDirective(
+    rstPageContent,
+    metaDirectiveArgs
+  );
+  fs.writeFileSync(filePath, newRstPageContent);
 }

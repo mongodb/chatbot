@@ -6,7 +6,6 @@ import {
 } from "mongodb-rag-core/braintrust";
 import {
   getConversationsEvalCasesFromYaml,
-  getConversationEvalCasesFromCSV,
 } from "mongodb-rag-core/eval";
 import { MongoDbTag } from "./mongoDbMetadata";
 import { config, conversations } from "./config";
@@ -126,7 +125,7 @@ Eval("mongodb-chatbot-conversations", {
     const faqCases = getConversationsEvalCasesFromYaml(
       fs.readFileSync(path.resolve(basePath, "faq_conversations.yml"), "utf8")
     );
-    const dotComCases = await getConversationEvalCasesFromCSV(
+    const dotComCases = await getConversationsEvalCasesFromYaml(
       path.resolve(basePath, "dotcom_chatbot_evaluation_questions.yml")
     );
     return [...miscCases, ...faqCases, ...dotComCases].map((evalCase) => {

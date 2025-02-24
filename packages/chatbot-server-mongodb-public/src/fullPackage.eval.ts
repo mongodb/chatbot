@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { getConversationsEvalCasesFromYaml } from "mongodb-rag-core/eval";
 import {
   JUDGE_EMBEDDING_MODEL,
@@ -11,17 +12,20 @@ import path from "path";
 import { makeConversationEval } from "./eval/ConversationEval";
 import { systemPrompt } from "./systemPrompt";
 import { config, conversations } from "./config";
-
+console.log("api key", console.log(process.env.BRAINTRUST_API_KEY));
+console.log(
+  JUDGE_EMBEDDING_MODEL,
+  JUDGE_LLM,
+  OPENAI_API_KEY,
+  OPENAI_API_VERSION,
+  OPENAI_ENDPOINT
+);
 async function conversationEval() {
   // Get all the conversation eval cases from YAML
   const basePath = path.resolve(__dirname, "..", "evalCases");
-  const miscCases = getConversationsEvalCasesFromYaml(
-    fs.readFileSync(path.resolve(basePath, "conversations.yml"), "utf8")
+  const conversationEvalCases = getConversationsEvalCasesFromYaml(
+    fs.readFileSync(path.resolve(basePath, "full_package.yml"), "utf8")
   );
-  const faqCases = getConversationsEvalCasesFromYaml(
-    fs.readFileSync(path.resolve(basePath, "faq_conversations.yml"), "utf8")
-  );
-  const conversationEvalCases = miscCases.concat(faqCases);
 
   const generateConfig = {
     systemPrompt,
@@ -37,7 +41,7 @@ async function conversationEval() {
   // Run the conversation eval
   makeConversationEval({
     projectName: "mongodb-chatbot-conversations",
-    experimentName: "mongodb-chatbot-latest",
+    experimentName: "mongodb-chatbot-full",
     metadata: {
       description:
         "Evaluates how well the MongoDB AI Chatbot RAG pipeline works",

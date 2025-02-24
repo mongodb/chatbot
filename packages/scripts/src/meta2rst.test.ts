@@ -218,8 +218,10 @@ This Is The Page Title
 ~~~~~~~~~~~~~~~~~~~~~~
 
 .. meta::
-   :keywords: This is a keyword.
-   :description: This is a description.`;
+   :keywords: code example
+   :description: This is the original description.
+
+Some more text`;
 
     const updatedPageContent = upsertMetaDirective(rstContent, {
       keywords: null,
@@ -232,7 +234,9 @@ This Is The Page Title
 ~~~~~~~~~~~~~~~~~~~~~~
 
 .. meta::
-   :keywords: This is a keyword.
-   :description: This is the updated description.`);
+   :keywords: code example
+   :description: This is the updated description.
+
+Some more text`);
   });
 });

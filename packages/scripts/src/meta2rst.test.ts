@@ -193,6 +193,26 @@ This Is The Page Title
 ----------------------`)
     ).toEqual(2);
   });
+
+  it("works if there's a frontmatter field list", () => {
+    const rstContent = `:template: product-landing
+:hidefeedback: header
+:noprevnext:
+
+.. _this-is-a-page-anchor:
+
+~~~~~~~~~~~~~~~~~~~~~~
+This Is The Page Title
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+This is some content`;
+    const lineNumber = findRstPageTitle(rstContent);
+    expect(lineNumber).toEqual(9);
+  });
 });
 
 describe("upsertMetaDirective", () => {

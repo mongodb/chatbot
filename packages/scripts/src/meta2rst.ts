@@ -80,11 +80,13 @@ export function findRstPageTitle(content: string): number {
   // Look for title pattern (line followed by adornment of same length)
   // We need to check for both underline-only and overline-underline patterns
 
-  // Skip any frontmatter (comments, directives, etc.)
+  // Skip any frontmatter (comments, directives, field lists, etc.)
   let i = 0;
   while (
     i < lines.length &&
-    (lines[i].trim().startsWith("..") || lines[i].trim() === "")
+    (lines[i].trim().startsWith("..") ||
+      lines[i].trim() === "" ||
+      lines[i].trim().startsWith(":")) // Add this condition to skip field lists
   ) {
     i++;
   }

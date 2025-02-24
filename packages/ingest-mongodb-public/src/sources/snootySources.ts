@@ -91,8 +91,14 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
   {
     type: "snooty",
     name: "docs-k8s-operator",
-    tags: ["docs", "kubernetes-operator", "kubernetes"],
+    tags: ["docs", "kubernetes-operator", "kubernetes", "k8s"],
     productName: "MongoDB Kubernetes Operator",
+  },
+  {
+    type: "snooty",
+    name: "atlas-operator",
+    tags: ["docs", "atlas", "kubernetes-operator", "kubernetes", "k8s"],
+    productName: "MongoDB Atlas Kubernetes Operator",
   },
   {
     type: "snooty",
@@ -104,7 +110,13 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
     type: "snooty",
     name: "kotlin",
     tags: ["docs", "driver", "kotlin", "kotlin-coroutines"],
-    productName: "Kotlin Driver",
+    productName: "Kotlin Coroutine Driver",
+  },
+  {
+    type: "snooty",
+    name: "kotlin-sync",
+    tags: ["docs", "driver", "kotlin", "kotlin-sync"],
+    productName: "Kotlin Sync Driver",
   },
   {
     type: "snooty",
@@ -223,6 +235,12 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
     name: "pymongo-arrow",
     tags: ["docs", "driver", "python", "pymongo-arrow"],
     productName: "PyMongo Arrow",
+  },
+  {
+    type: "snooty",
+    name: "django",
+    tags: ["docs", "django", "python", "backend"],
+    productName: "Django MongoDB Backend",
   },
   {
     type: "snooty",

@@ -27,7 +27,7 @@ export const getConversationEvalCasesFromCSV = async (
           content: question,
         },
       ],
-      expectation: idealAnswer,
+      reference: idealAnswer,
       expectedLinks: expectedSources
         ? expectedSources.split(",").map((link: string) => link.trim())
         : [],

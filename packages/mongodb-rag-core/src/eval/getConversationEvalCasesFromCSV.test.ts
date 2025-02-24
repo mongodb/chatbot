@@ -42,7 +42,10 @@ describe("getConversationEvalCasesFromCSV", () => {
         };
       });
     }
-    const records = await getConversationEvalCasesFromCSV(csvFilePath, addTestDataSourceTag);
+    const records = await getConversationEvalCasesFromCSV(
+      csvFilePath,
+      addTestDataSourceTag
+    );
     expect(records[0]).toMatchObject({
       tags: ["test"],
     });

@@ -15,17 +15,14 @@ export function updateMetaDescription(
   newDescription: string
 ): string {
   return content.replace(metaDirectiveRegex, (match) => {
-    console.log("meta directive match", match);
     // Check if description field exists
     if (descriptionFieldRegex.test(match)) {
       // Replace existing description
-      console.log("Replacing description field");
       return match.replace(
         descriptionFieldRegex,
         `$1:description: ${newDescription}\n`
       );
     } else {
-      console.log("Adding description field");
       // Add description field (preserve the final newline)
       return match.replace(/(\n)$/, `\n   :description: ${newDescription}$1`);
     }
@@ -75,6 +72,8 @@ export function constructMetaDirective(args: {
  @returns The line number where the title definition ends, or -1 if no title is found
  */
 export function findRstPageTitle(content: string): number {
+  const validAdornmentChars = /^[=\-`:'"~^\\_*+#<>]+$/;
+
   // Split the content into lines
   const lines = content.split("\n");
 
@@ -96,9 +95,6 @@ export function findRstPageTitle(content: string): number {
     const possibleTitle = lines[i + 1].trim();
     const possibleUnderline = lines[i + 2].trim();
 
-    // Check if adornment characters are valid
-    const validAdornmentChars = /^[=\-`:'\"~^\\_*+#<>]+$/;
-
     if (
       possibleOverline.length > 0 &&
       validAdornmentChars.test(possibleOverline) &&
@@ -115,9 +111,6 @@ export function findRstPageTitle(content: string): number {
   if (i + 1 < lines.length) {
     const possibleTitle = lines[i].trim();
     const possibleUnderline = lines[i + 1].trim();
-
-    // Check if adornment characters are valid
-    const validAdornmentChars = /^[=\-`:'\"~^\\_*+#<>]+$/;
 
     if (
       possibleTitle.length > 0 &&

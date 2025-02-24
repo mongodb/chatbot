@@ -5,7 +5,16 @@ import {
   constructMetaDirective,
   findRstPageTitle,
   upsertMetaDirective,
+  upsertMetaDirectiveInFile,
 } from "./meta2rst";
+import fs from "fs";
+import path from "path";
+
+// Mock fs.writeFileSync to prevent actual file writes
+jest.mock("fs", () => ({
+  ...jest.requireActual("fs"),
+  writeFileSync: jest.fn(),
+}));
 
 const rstContent = `Some content here.
 
@@ -66,7 +75,6 @@ More content here.`;
       rstContent,
       "Learn how to improve the performance of an application."
     );
-    console.log(updatedContent);
 
     const expectedUpdatedContent = `Some content here.
 
@@ -83,7 +91,6 @@ More content here.`;
       rstContent,
       "This is the updated description."
     );
-    console.log(updatedContent);
 
     const expectedUpdatedContent = `Some content here.
 
@@ -238,5 +245,98 @@ This Is The Page Title
    :description: This is the updated description.
 
 Some more text`);
+  });
+});
+
+describe("upsertMetaDirectiveInFile", () => {
+  beforeEach(() => {
+    // Clear mock before each test
+    jest.clearAllMocks();
+  });
+
+  it("adds a description to a file with meta directive but no description", () => {
+    // Use actual test file
+    const filePath = path.join(
+      __dirname,
+      "../testData/meta2rst/yes-meta-no-description.rst"
+    );
+
+    // Call the function with a new description
+    upsertMetaDirectiveInFile(filePath, {
+      keywords: null,
+      description: "This is a new description for testing.",
+    });
+
+    // Verify writeFileSync was called with the correct arguments
+    expect(fs.writeFileSync).toHaveBeenCalledTimes(1);
+    expect(fs.writeFileSync).toHaveBeenCalledWith(filePath, expect.any(String));
+
+    // Get the content that would have been written
+    const updatedContent = (fs.writeFileSync as jest.Mock).mock.calls[0][1];
+
+    // Verify the description was added correctly
+    expect(getMetaField(updatedContent, "description")).toEqual(
+      "This is a new description for testing."
+    );
+
+    // Verify keywords were preserved
+    expect(getMetaField(updatedContent, "keywords")).toEqual("code example");
+  });
+
+  it("updates a description in a file with existing meta directive and description", () => {
+    // Use actual test file
+    const filePath = path.join(
+      __dirname,
+      "../testData/meta2rst/yes-meta-yes-description.rst"
+    );
+
+    // Call the function with an updated description
+    upsertMetaDirectiveInFile(filePath, {
+      keywords: null,
+      description: "This is an updated description for testing.",
+    });
+
+    // Verify writeFileSync was called with the correct arguments
+    expect(fs.writeFileSync).toHaveBeenCalledTimes(1);
+    expect(fs.writeFileSync).toHaveBeenCalledWith(filePath, expect.any(String));
+
+    // Get the content that would have been written
+    const updatedContent = (fs.writeFileSync as jest.Mock).mock.calls[0][1];
+
+    // Verify the description was updated correctly
+    expect(getMetaField(updatedContent, "description")).toEqual(
+      "This is an updated description for testing."
+    );
+
+    // Verify keywords were preserved
+    expect(getMetaField(updatedContent, "keywords")).toEqual("code example");
+  });
+
+  it("adds a meta directive to a file without one", () => {
+    // Use actual test file
+    const filePath = path.join(
+      __dirname,
+      "../testData/meta2rst/no-meta-no-description.rst"
+    );
+
+    // Call the function with a new description and keywords
+    upsertMetaDirectiveInFile(filePath, {
+      keywords: "new keywords",
+      description: "This is a brand new description.",
+    });
+
+    // Verify writeFileSync was called with the correct arguments
+    expect(fs.writeFileSync).toHaveBeenCalledTimes(1);
+    expect(fs.writeFileSync).toHaveBeenCalledWith(filePath, expect.any(String));
+
+    // Get the content that would have been written
+    const updatedContent = (fs.writeFileSync as jest.Mock).mock.calls[0][1];
+
+    // Verify the meta directive was added with correct fields
+    expect(hasMetaDirective(updatedContent)).toBe(true);
+    expect(getMetaField(updatedContent, "description")).toEqual(
+      "This is a brand new description."
+    );
+    expect(getMetaField(updatedContent, "keywords")).toEqual("new keywords");
   });
 });

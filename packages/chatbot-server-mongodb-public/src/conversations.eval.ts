@@ -4,9 +4,7 @@ import {
   traced,
   EvalScorer,
 } from "mongodb-rag-core/braintrust";
-import {
-  getConversationsEvalCasesFromYaml,
-} from "mongodb-rag-core/eval";
+import { getConversationsEvalCasesFromYaml } from "mongodb-rag-core/eval";
 import { MongoDbTag } from "./mongoDbMetadata";
 import { config, conversations } from "./config";
 import { systemPrompt } from "./systemPrompt";

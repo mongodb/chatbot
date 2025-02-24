@@ -61,11 +61,8 @@
     an ODM, and then press to get more information about their use case to help
     the user make an informed decision.
   expectedLinks:
-    - >-
-      https://www.mongodb.com/developer/languages/javascript/mongoose-versus-nodejs-driver/ 
-
-
-      https://www.mongodb.com/developer/products/mongodb/mongodb-orms-odms-libraries/
+    - https://www.mongodb.com/developer/languages/javascript/mongoose-versus-nodejs-driver/
+    - https://www.mongodb.com/developer/products/mongodb/mongodb-orms-odms-libraries/
   tags:
     - web
 - name: Does MongoDB support LangGraph checkpointers? If so, are they asynchronous
@@ -78,14 +75,9 @@
     checkpointers are good for. It will continue by telling the user we offer
     both asynchronous and synchronous options.
   expectedLinks:
-    - >-
-      https://github.com/langchain-ai/langgraph/tree/main/libs/checkpoint
-
-
-      https://github.com/langchain-ai/langchain-mongodb/blob/main/libs/langgraph-checkpoint-mongodb/langgraph/checkpoint/mongodb/__init__.py
-
-
-      https://github.com/langchain-ai/langchain-mongodb/blob/main/libs/langgraph-checkpoint-mongodb/langgraph/checkpoint/mongodb/aio.py
+    - https://github.com/langchain-ai/langgraph/tree/main/libs/checkpoint
+    - https://github.com/langchain-ai/langchain-mongodb/blob/main/libs/langgraph-checkpoint-mongodb/langgraph/checkpoint/mongodb/__init__.py
+    - https://github.com/langchain-ai/langchain-mongodb/blob/main/libs/langgraph-checkpoint-mongodb/langgraph/checkpoint/mongodb/aio.py
   tags:
     - web
 - name: How does MongoDB compare to Postgres?
@@ -169,9 +161,8 @@
     power and versatility of Atlas Search without needing to set up a full Atlas
     collection or waiting for your search index to build. "
   expectedLinks:
-    - |-
-      https://www.mongodb.com/docs/atlas/atlas-search/tutorial/ 
-      https://search-playground.mongodb.com/tools/search-demo-builder
+    - https://www.mongodb.com/docs/atlas/atlas-search/tutorial/
+    - https://search-playground.mongodb.com/tools/search-demo-builder
   tags:
     - web
 - name: What is MongoDB Relational Migrator?
@@ -258,9 +249,8 @@
     in-memory storage engine for self-managed deployments, auditing self-managed
     deployments, and Kerberos authentication on self-managed deployments.
   expectedLinks:
-    - |-
-      https://www.mongodb.com/products/self-managed/community-edition
-      https://www.mongodb.com/products/self-managed/enterprise-advanced
+    - https://www.mongodb.com/products/self-managed/community-edition
+    - https://www.mongodb.com/products/self-managed/enterprise-advanced
   tags:
     - web
 - name: Is Community Edition free to use?
@@ -340,10 +330,8 @@
     Search Playground. This tool offers a sandbox environment for testing and
     also provides index and query definitions.
   expectedLinks:
-    - >-
-      https://www.mongodb.com/docs/atlas/atlas-search/create-index/
-
-      https://search-playground.mongodb.com/tools/search-demo-builder/snapshots/new
+    - https://www.mongodb.com/docs/atlas/atlas-search/create-index/
+    - https://search-playground.mongodb.com/tools/search-demo-builder/snapshots/new
   tags:
     - web
 - name: What is the difference between the tools on Atlas Serach Playground?
@@ -355,10 +343,8 @@
     Sandbox provides advanced customization and hands-on experimentation using
     JSON queries.
   expectedLinks:
-    - >-
-      https://search-playground.mongodb.com/tools/code-sandbox/snapshots/new
-
-      https://search-playground.mongodb.com/tools/search-demo-builder/snapshots/new
+    - https://search-playground.mongodb.com/tools/code-sandbox/snapshots/new
+    - https://search-playground.mongodb.com/tools/search-demo-builder/snapshots/new
   tags:
     - web
 - name: Does Atlas provide automated recommendations for performance optimization?
@@ -626,10 +612,9 @@
     import and export data to and from test, stage, and production environments,
     and optimize their data model for improved application performance.
   expectedLinks:
-    - |-
-      https://www.mongodb.com/docs/compass/current/editions/
-      https://www.mongodb.com/products/tools/compass 
-      https://www.mongodb.com/try/download/compass
+    - https://www.mongodb.com/docs/compass/current/editions/
+    - https://www.mongodb.com/products/tools/compass
+    - https://www.mongodb.com/try/download/compass
   tags:
     - web
 - name: Does MongoDB Compass help me with visualizing and understanding my data
@@ -649,10 +634,9 @@
     aggregation pipelines, making complex data transformations more accessible
     to users of varying skills levels
   expectedLinks:
-    - |-
-      https://www.mongodb.com/docs/compass/current/editions/
-      https://www.mongodb.com/products/tools/compass 
-      https://www.mongodb.com/try/download/compass
+    - https://www.mongodb.com/docs/compass/current/editions/
+    - https://www.mongodb.com/products/tools/compass
+    - https://www.mongodb.com/try/download/compass
   tags:
     - web
 - name: What is an ODL?
@@ -839,9 +823,8 @@
     and a large community of users around the globe. It is also available on any
     of the major cloud providers.
   expectedLinks:
-    - |-
-      https://www.mongodb.com/solutions/customer-case-studies
-      https://www.mongodb.com/resources/products/fundamentals/why-use-mongodb
+    - https://www.mongodb.com/solutions/customer-case-studies
+    - https://www.mongodb.com/resources/products/fundamentals/why-use-mongodb
   tags:
     - web
 - name: What is the pricing model for MongoDB, and what are the associated costs?
@@ -1102,9 +1085,8 @@
     scalability and data modeling flexibility support the delivery of
     personalized content at scale.
   expectedLinks:
-    - |-
-      https://www.mongodb.com/solutions/industries/media-and-entertainment
-      https://www.mongodb.com/solutions/customer-case-studies?industries=media
+    - https://www.mongodb.com/solutions/industries/media-and-entertainment
+    - https://www.mongodb.com/solutions/customer-case-studies?industries=media
   tags:
     - web
 - name: |

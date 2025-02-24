@@ -30,13 +30,16 @@ export const getConversationEvalCasesFromCSV = async (
       ],
       reference: idealAnswer,
       expectedLinks: expectedSources
-        ? expectedSources.split(",").map((link: string) => link.trim())
+        ? expectedSources
+            .split(/[\s,]+/)
+            .map((link: string) => link.trim())
+            .filter((link: string) => link.length > 0)
         : [],
     };
     records.push(formattedRecord);
   }
-  if(transform) {
-    return (transform(records))
+  if (transform) {
+    return transform(records);
   }
   return records;
 };

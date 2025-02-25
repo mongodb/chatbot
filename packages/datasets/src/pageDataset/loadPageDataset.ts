@@ -12,7 +12,7 @@ export function makeLoadPagesFilter(
   updatedSince?: Date
 ): Filter<PersistedPage> {
   return {
-    sourceName: { $regex: dataSourceRegex },
+    sourceName: dataSourceRegex,
     url: { $nin: forbiddenUrls },
     action: { $ne: "deleted" },
     ...(updatedSince && { updated: { $gt: updatedSince } }),

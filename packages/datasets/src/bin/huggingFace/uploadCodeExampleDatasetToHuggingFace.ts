@@ -11,7 +11,7 @@ import {
   publicDatasetSourceName,
 } from "../../mongoDbDatasetConstants";
 import { uploadDatasetToHuggingFace } from "../../uploadDatasetToHuggingFace";
-import { HUGGINGFACE } from "../../EnvVars";
+import { HUGGINGFACE, HUGGINGFACE_DOCS_CODE_EXAMPLES } from "../../EnvVars";
 import path from "path";
 import { makeTranformPageToAnnotatedCodeExamples } from "../../codeExampleDataset/transformPageToAnnotatedCodeExamples";
 import { model, openAiClient } from "../../openAi";
@@ -22,10 +22,14 @@ async function uploadCodeExampleDatasetToHuggingFace() {
 
   const {
     HUGGINGFACE_ACCESS_TOKEN,
-    HUGGINGFACE_DOCS_CODE_EXAMPLE_REPO,
+    HUGGINGFACE_DOCS_CODE_EXAMPLES_REPO,
     MONGODB_CONNECTION_URI,
     MONGODB_DATABASE_NAME,
-  } = assertEnvVars({ ...HUGGINGFACE, ...CORE_CHATBOT_APP_ENV_VARS });
+  } = assertEnvVars({
+    ...HUGGINGFACE,
+    ...CORE_CHATBOT_APP_ENV_VARS,
+    ...HUGGINGFACE_DOCS_CODE_EXAMPLES,
+  });
 
   const pageStore = makeMongoDbPageStore({
     connectionUri: MONGODB_CONNECTION_URI,
@@ -76,12 +80,12 @@ async function uploadCodeExampleDatasetToHuggingFace() {
     const fileBaseName = "public-code-examples";
 
     logger.info(
-      `Uploading dataset to Hugging Face repo '${HUGGINGFACE_DOCS_CODE_EXAMPLE_REPO}'`
+      `Uploading dataset to Hugging Face repo '${HUGGINGFACE_DOCS_CODE_EXAMPLES_REPO}'`
     );
 
     const res = await uploadDatasetToHuggingFace({
       huggingFace: {
-        repoName: HUGGINGFACE_DOCS_CODE_EXAMPLE_REPO,
+        repoName: HUGGINGFACE_DOCS_CODE_EXAMPLES_REPO,
         accessToken: HUGGINGFACE_ACCESS_TOKEN,
       },
       commit: {
@@ -99,7 +103,7 @@ async function uploadCodeExampleDatasetToHuggingFace() {
       ],
     });
     logger.info(
-      `Uploaded dataset to Hugging Face repo '${HUGGINGFACE_DOCS_CODE_EXAMPLE_REPO}'`
+      `Uploaded dataset to Hugging Face repo '${HUGGINGFACE_DOCS_CODE_EXAMPLES_REPO}'`
     );
     logger.info(res);
   } finally {

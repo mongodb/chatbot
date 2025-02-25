@@ -6,7 +6,6 @@ import {
   makeMongoDbTransformedContentStore,
   updateTransformedContent,
 } from "mongodb-rag-core";
-import { makeLoadPagesFilter } from "../../pageDataset/loadPageDataset";
 import {
   forbiddenUrls,
   publicDatasetSourceName,
@@ -112,3 +111,11 @@ async function uploadCodeExampleDatasetToHuggingFace() {
   }
 }
 uploadCodeExampleDatasetToHuggingFace();
+function makeLoadPagesFilter(
+  publicDatasetSourceName: RegExp,
+  arg1: string[]
+):
+  | import("mongodb").Filter<import("mongodb-rag-core").PersistedPage>
+  | undefined {
+  throw new Error("Function not implemented.");
+}

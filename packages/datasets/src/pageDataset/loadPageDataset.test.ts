@@ -73,7 +73,11 @@ describe("loadPagesDataset", () => {
   });
 
   it("should only return pages matching a regex", async () => {
-    const dataset = await loadPagesDataset(pageStore, /SourceA/, []);
+    const dataset = await loadPagesDataset({
+      pageStore,
+      dataSourceRegex: /SourceA/,
+      forbiddenUrls: [],
+    });
     // page1 should be returned, page2 as well if not forbidden & not deleted, page3 is deleted.
     // page4 is filtered out because dataSource doesn't match.
     expect(dataset.map((p) => p.url)).toContain("https://example.com/page1");
@@ -89,12 +93,11 @@ describe("loadPagesDataset", () => {
   });
 
   it("should exclude forbidden urls", async () => {
-    const dataset = await loadPagesDataset(
+    const dataset = await loadPagesDataset({
       pageStore,
-      /SourceA|SourceB/,
-      // forbid page2's URL
-      [samplePages[1].url]
-    );
+      dataSourceRegex: /SourceA|SourceB/,
+      forbiddenUrls: [samplePages[1].url],
+    });
     expect(dataset.map((p) => p.url)).toContain("https://example.com/page1");
     expect(dataset.map((p) => p.url)).not.toContain(
       "https://example.com/page2"
@@ -102,13 +105,21 @@ describe("loadPagesDataset", () => {
   });
 
   it("should not include pages with action 'deleted'", async () => {
-    const dataset = await loadPagesDataset(pageStore, /foo/, []);
+    const dataset = await loadPagesDataset({
+      pageStore,
+      dataSourceRegex: /foo/,
+      forbiddenUrls: [],
+    });
     const urls = dataset.map((p) => p.url);
     expect(urls).not.toContain("https://example.com/page3");
   });
 
   it("should only return the projected fields", async () => {
-    const dataset = await loadPagesDataset(pageStore, /foo/, []);
+    const dataset = await loadPagesDataset({
+      pageStore,
+      dataSourceRegex: /foo/,
+      forbiddenUrls: [],
+    });
     for (const page of dataset) {
       const pageKeys = Object.keys(page);
 
@@ -121,28 +132,5 @@ describe("loadPagesDataset", () => {
       expect(pageKeys).toContain("updated");
       expect(pageKeys).not.toContain("action");
     }
-  });
-  it("should only return pages updated since a given date", async () => {
-    const everythingSince = new Date(samplePages[0].updated.getTime() - 1000);
-    const allDataset = await loadPagesDataset(
-      pageStore,
-      /.*/,
-      [],
-      everythingSince
-    );
-    expect(allDataset).toHaveLength(
-      samplePages.filter((p) => p.action !== "deleted").length
-    );
-
-    const nothingSince = new Date(
-      samplePages[samplePages.length - 1].updated.getTime() + 1000
-    );
-    const nothingDataset = await loadPagesDataset(
-      pageStore,
-      /.*/,
-      [],
-      nothingSince
-    );
-    expect(nothingDataset).toHaveLength(0);
   });
 });

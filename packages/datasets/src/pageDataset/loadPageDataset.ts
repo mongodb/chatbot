@@ -1,38 +1,34 @@
 import { MongoDbPageStore, PersistedPage } from "mongodb-rag-core";
-import { Filter } from "mongodb-rag-core/mongodb";
 
-export type PageDatasetEntry = Pick<
+type PageDatasetEntry = Pick<
   PersistedPage,
   "url" | "body" | "metadata" | "title" | "sourceName" | "updated" | "format"
 >;
 
-export function makeLoadPagesFilter(
-  dataSourceRegex: RegExp,
-  forbiddenUrls: string[],
-  updatedSince?: Date
-): Filter<PersistedPage> {
-  return {
-    sourceName: dataSourceRegex,
-    url: { $nin: forbiddenUrls },
-    action: { $ne: "deleted" },
-    ...(updatedSince && { updated: { $gt: updatedSince } }),
-  };
+export interface LoadPagesDatasetParams {
+  pageStore: MongoDbPageStore;
+  /**
+    Regular expression to filter pages by `Page.dataSource`
+   */
+  dataSourceRegex: RegExp;
+  /**
+    Set of urls to exclude from the dataset
+   */
+  forbiddenUrls: string[];
 }
 
-/**
-  @param pageStore - datastore for pages
-  @param dataSourceRegex - regular expression to filter pages by dataSource
-  @param forbiddenUrls - set of urls to exclude from the dataset
- */
-export async function loadPagesDataset(
-  pageStore: MongoDbPageStore,
-  dataSourceRegex: RegExp,
-  forbiddenUrls: string[],
-  updatedSince?: Date
-): Promise<PageDatasetEntry[]> {
+export async function loadPagesDataset({
+  pageStore,
+  dataSourceRegex,
+  forbiddenUrls,
+}: LoadPagesDatasetParams): Promise<PageDatasetEntry[]> {
   return pageStore.aggregatePages<PageDatasetEntry>([
     {
-      $match: makeLoadPagesFilter(dataSourceRegex, forbiddenUrls, updatedSince),
+      $match: {
+        sourceName: dataSourceRegex,
+        url: { $nin: forbiddenUrls },
+        action: { $ne: "deleted" },
+      },
     },
     {
       $project: {

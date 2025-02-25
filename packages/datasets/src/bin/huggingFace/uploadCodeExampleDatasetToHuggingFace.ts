@@ -81,7 +81,7 @@ async function uploadCodeExampleDatasetToHuggingFace() {
     );
 
     const res = await uploadDatasetToHuggingFace({
-      hf: {
+      huggingFace: {
         repoName: HUGGINGFACE_DOCS_CODE_EXAMPLE_REPO,
         accessToken: HUGGINGFACE_ACCESS_TOKEN,
       },

@@ -4,7 +4,7 @@ import {
   logger,
   makeMongoDbPageStore,
 } from "mongodb-rag-core";
-import { loadPagesDataset } from "../../pageDataset/loadPageDataset";
+import { loadPagesDataset } from "../../loadPageDataset";
 import {
   forbiddenUrls,
   publicDatasetSourceName,

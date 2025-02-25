@@ -1,0 +1,44 @@
+- name: Search for 'and operator'
+  tags:
+    - top_search_term
+  messages:
+    - role: user
+      content: and operator
+  expectedLinks:
+    - reference/operator/query/and
+    - reference/operator/aggregation/and
+    - reference/operator/query/all
+  reference: |
+    The $and operator in MongoDB performs a logical AND operation on an array of conditions. A document matches if all conditions are true.
+
+    Syntax:
+
+    { "$and": [ { <condition1> }, { <condition2> }, ... ] }
+
+    Example:
+
+    Find documents where age > 25 and status = "active":
+
+    db.users.find({
+      $and: [
+        { age: { $gt: 25 } },
+        { status: "active" }
+      ]
+    });
+
+    Equivalent implicit form:
+
+    db.users.find({ age: { $gt: 25 }, status: "active" });
+
+    When to Use $and:
+      •	Multiple conditions on the same field:
+    { $and: [ { age: { $gt: 25 } }, { age: { $lt: 35 } } ] }
+      •	Dynamic query construction.
+      •	Combining with other operators:
+
+    db.users.find({
+      $and: [
+        { age: { $gt: 25 } },
+        { $or: [ { status: "active" }, { role: "admin" } ] }
+      ]
+    });

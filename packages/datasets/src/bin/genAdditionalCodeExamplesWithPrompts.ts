@@ -9,6 +9,7 @@ import yaml from "yaml";
 import { appendLlmMetadata } from "../codeExampleDataset/appendLlmMetadata.js";
 import { PersistedPage } from "mongodb-rag-core";
 import { model, openAiClient } from "../openAi.js";
+
 async function main(): Promise<void> {
   const basePath = path.resolve("data");
   const codeExamplesPath = path.resolve(

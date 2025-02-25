@@ -14,7 +14,7 @@ import { HUGGINGFACE } from "../../EnvVars";
 import path from "path";
 
 async function uploadContentDatasetToHuggingFace() {
-  logger.info("Staring upload content dataset to Hugging Face script");
+  logger.info("Starting upload content dataset to Hugging Face script");
 
   const {
     HUGGINGFACE_ACCESS_TOKEN,
@@ -30,11 +30,11 @@ async function uploadContentDatasetToHuggingFace() {
 
   try {
     logger.info("Loading pages dataset from MongoDB");
-    const dataset = await loadPagesDataset(
+    const dataset = await loadPagesDataset({
       pageStore,
-      publicDatasetSourceName,
-      Array.from(forbiddenUrls)
-    );
+      dataSourceRegex: publicDatasetSourceName,
+      forbiddenUrls: Array.from(forbiddenUrls),
+    });
     logger.info(
       `Loaded pages dataset from MongoDB. Dataset has ${dataset.length} entries`
     );
@@ -50,7 +50,7 @@ async function uploadContentDatasetToHuggingFace() {
     );
 
     const res = await uploadDatasetToHuggingFace({
-      hf: {
+      huggingFace: {
         repoName: HUGGINGFACE_DOCS_CONTENT_REPO,
         accessToken: HUGGINGFACE_ACCESS_TOKEN,
       },

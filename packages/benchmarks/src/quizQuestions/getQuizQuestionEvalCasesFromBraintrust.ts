@@ -32,10 +32,22 @@ export async function getQuizQuestionEvalCasesFromBraintrust({
       if (qq.questionType) {
         tags.push(qq.questionType);
       }
+      if (qq.tags) {
+        tags.push(...qq.tags);
+      }
       return {
-        input: qq,
+        input: {
+          questionText: qq.questionText,
+          answers: qq.answers,
+          questionType: qq.questionType,
+        },
         tags: tags.length > 0 ? tags : undefined,
         expected: quizQuestionToHelmAnswer(qq),
+        metadata: {
+          contentTitle: qq.contentTitle,
+          explanation: qq.explanation,
+          title: qq.title,
+        },
       } satisfies QuizQuestionEvalCase;
     });
   return quizQuestionData;

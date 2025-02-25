@@ -9,8 +9,38 @@ const subject = "food";
 const testQuestion = {
   contentTitle: "Best foods",
   title: "Best foods",
-  topicType: "food",
-  questionType: "multiple_choice",
+  topicType: "quiz",
+  questionType: "multipleCorrect",
+  questionText: "What's the best Italian food?",
+  answers: [
+    {
+      answer: "Tacos",
+      isCorrect: false,
+      label: "A",
+    },
+    {
+      answer: "Pizza",
+      isCorrect: true,
+      label: "B",
+    },
+    {
+      answer: "Sushi",
+      isCorrect: true,
+      label: "C",
+    },
+    {
+      answer: "Enchiladas",
+      isCorrect: false,
+      label: "D",
+    },
+  ],
+} satisfies QuizQuestionData;
+
+const testQuestionSingleCorrect = {
+  contentTitle: "Best foods",
+  title: "Best foods",
+  topicType: "quiz",
+  questionType: "singleCorrect",
   questionText: "What's the best Italian food?",
   answers: [
     {
@@ -106,5 +136,68 @@ describe("makeHelmQuizQuestionPrompt", () => {
         "The following are multiple choice questions (with answers)."
       )
     ).toBe(true);
+  });
+  it("should include few-shot examples", () => {
+    const prompt = makeHelmQuizQuestionPrompt({
+      quizQuestion: testQuestion,
+      quizQuestionExamples: [testQuestion],
+      subject,
+    });
+    expect(prompt).toMatchObject([
+      {
+        role: "system",
+        content: expect.any(String),
+      },
+      {
+        content: expect.any(String),
+        role: "user",
+      },
+      {
+        content: expect.any(String),
+        role: "assistant",
+      },
+      {
+        content: expect.any(String),
+        role: "user",
+      },
+    ]);
+  });
+  it("should only include examples with one correct answer for topicType=singleCorrect questions", () => {
+    const prompt = makeHelmQuizQuestionPrompt({
+      quizQuestion: testQuestionSingleCorrect,
+      quizQuestionExamples: [
+        {
+          ...testQuestion,
+          answers: [
+            ...testQuestion.answers,
+            {
+              answer: "Pasta",
+              isCorrect: true,
+              label: "E",
+            },
+          ],
+        },
+        testQuestionSingleCorrect,
+      ],
+      subject,
+    });
+    expect(prompt).toMatchObject([
+      {
+        role: "system",
+        content: expect.any(String),
+      },
+      {
+        content: expect.any(String),
+        role: "user",
+      },
+      {
+        content: expect.any(String),
+        role: "assistant",
+      },
+      {
+        content: expect.any(String),
+        role: "user",
+      },
+    ]);
   });
 });

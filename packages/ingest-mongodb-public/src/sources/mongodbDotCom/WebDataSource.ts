@@ -207,7 +207,7 @@ export async function scrapePage({
     const urlObj = new URL(url);
     urlObj.searchParams.set("optimizely_x", "0");
     const response = await browserPage.goto(urlObj.toString(), {
-      waitUntil: "domcontentloaded",
+      waitUntil: "networkidle",
     });
     if (response?.status() !== 200) {
       throw new Error(`${response?.status()}`);

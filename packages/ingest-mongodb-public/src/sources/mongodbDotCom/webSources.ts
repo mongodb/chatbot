@@ -174,11 +174,7 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/try/download/community",
       "https://www.mongodb.com/pricing",
     ],
-    staticMetadata: {
-      type: "Miscellaneous Web",
-    },
   },
-  // add more web sources here
 ];
 
 export async function getUrlsFromSitemap(

@@ -193,7 +193,7 @@ async function getContent(
 
 type PageContent = Pick<Page, "body" | "metadata" | "title">;
 
-async function scrapePage({
+export async function scrapePage({
   browserPage,
   url,
 }: {
@@ -214,7 +214,7 @@ async function scrapePage({
     }
     content = await getContent(browserPage);
   } catch (err) {
-    error = `failed to open the page: ${url} with the error: ${err}`;
+    error = `failed to open the page: ${url} with: ${err}`;
   }
   return { content, error };
 }

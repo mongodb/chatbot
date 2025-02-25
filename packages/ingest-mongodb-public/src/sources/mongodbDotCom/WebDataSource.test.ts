@@ -1,4 +1,4 @@
-import { makeWebDataSource } from "./WebDataSource";
+import { makeWebDataSource, scrapePage } from "./WebDataSource";
 import {
   getUrlsFromSitemap,
   prepareWebSources,
@@ -77,6 +77,58 @@ describe("prepareWebSources", () => {
     expect(directoryWebSource.urls.length).toBe(4);
     expect(directoryWebSource.urls).toStrictEqual(mockSitemapUrls);
     expect(urlWebSource.urls).toStrictEqual(mockInitialWebSources[1].urls);
+  });
+});
+
+describe("scrapePage", () => {
+  const mockBrowserPage = {
+    goto: jest.fn(),
+    evaluate: jest.fn(),
+  } as unknown as PlaywrightPage & { evaluate: jest.Mock };
+  it("returns content and no error for a valid URL", async () => {
+    (mockBrowserPage.goto as jest.Mock).mockImplementation(() =>
+      Promise.resolve({ status: () => 200 })
+    );
+    mockBrowserPage.evaluate.mockResolvedValue({
+      bodyInnerHtml: "<html><body><h1>Test Page</h1></body></html>",
+      headInnerHtml: "<html><head><title>Test Page</title></head></html>",
+    });
+    const { content, error } = await scrapePage({
+      browserPage: mockBrowserPage,
+      url: "https://www.mongodb.com/valid-page",
+    });
+    expect(error).toBeNull();
+    expect(content).toMatchObject({
+      body: "# Test Page",
+      metadata: {},
+      title: "Test Page",
+    });
+  });
+  it("returns an error for an invalid URL", async () => {
+    (mockBrowserPage.goto as jest.Mock).mockImplementation(() =>
+      Promise.resolve({ status: () => 404 })
+    );
+    const { content, error } = await scrapePage({
+      browserPage: mockBrowserPage,
+      url: "https://www.mongodb.com/not-a-real-page",
+    });
+    expect(content).toBeNull();
+    expect(error).toBe(
+      "failed to open the page: https://www.mongodb.com/not-a-real-page with: Error: 404"
+    );
+  });
+  it("returns an error when an exception is thrown", async () => {
+    (mockBrowserPage.goto as jest.Mock).mockImplementation(() =>
+      Promise.reject(new Error("Network error"))
+    );
+    const { content, error } = await scrapePage({
+      browserPage: mockBrowserPage,
+      url: "https://www.mongodb.com/exception-page",
+    });
+    expect(content).toBeNull();
+    expect(error).toBe(
+      "failed to open the page: https://www.mongodb.com/exception-page with: Error: Network error"
+    );
   });
 });
 

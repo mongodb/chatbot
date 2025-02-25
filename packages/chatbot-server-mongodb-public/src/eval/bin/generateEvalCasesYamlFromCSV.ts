@@ -20,7 +20,7 @@
  
  ### Arguments
  
- - `csvFileName`: (Required) Name of the input CSV file (without .csv extension)
+ - `csvFilePath`: (Required) Absolute path to the input CSV file
  - `yamlFileName`: (Required) Name of the output YAML file (without .yml extension)
  - `transformationType`: (Optional) Type of transformation to apply to the cases
  
@@ -30,19 +30,18 @@
  
  ### File Paths
  
- - Input CSV files should be placed in: `src/eval/bin/`
  - Output YAML files will be generated in: `evalCases/`
  
  ### Example
  
  ```bash
- npm run generate-eval-cases -- input output web
+ npm run generate-eval-cases -- Users/first.lastname/Downloads/input-file.csv output-file-name web
  ```
  
  This will:
- 1. Read from: src/eval/bin/input.csv
+ 1. Read from: /Users/first.lastname/Downloads/input-file.csv
  2. Apply the web transformation
- 3. Write to: evalCases/output.yml
+ 3. Write to: evalCases/output-file-name.yml
 */
 
 import fs from "fs";
@@ -77,15 +76,15 @@ const transformationMap: Record<
 };
 
 async function main({
-  csvFileName,
+  csvFilePath,
   yamlFileName,
   transformationType,
 }: {
-  csvFileName: string;
+  csvFilePath: string;
   yamlFileName: string;
   transformationType?: keyof typeof transformationMap;
 }): Promise<void> {
-  const csvFilePath = path.resolve(SRC_ROOT, `../eval/bin/${csvFileName}.csv`);
+  console.log(`Reading from: ${csvFilePath}`);
   const evalCases = await getConversationEvalCasesFromCSV(
     csvFilePath,
     transformationType ? transformationMap[transformationType] : undefined
@@ -102,7 +101,7 @@ async function main({
 
 if (require.main === module) {
   const args = process.argv.slice(2);
-  const [csvFileName, yamlFileName, transformationType] = args;
+  const [csvFilePath, yamlFileName, transformationType] = args;
   const availableTransformationTypes = Object.keys(transformationMap);
   if (
     args.length < 2 ||
@@ -114,7 +113,7 @@ if (require.main === module) {
         "Arguments:\n" +
         "  csvFileName: Input CSV file name (required)\n" +
         "  yamlFileName: Output YAML file name (required)\n" +
-        `  transformationType: Type of transformation to apply (optional, one of: ${availableTransformationTypes.join(
+        `  transformationType: Type of transformßation to apply (optional, one of: ${availableTransformationTypes.join(
           ", "
         )})\n` +
         "\nReceived args:",
@@ -122,9 +121,8 @@ if (require.main === module) {
     );
     process.exit(1);
   }
-
   main({
-    csvFileName,
+    csvFilePath,
     yamlFileName,
     transformationType,
   }).catch((error) => {

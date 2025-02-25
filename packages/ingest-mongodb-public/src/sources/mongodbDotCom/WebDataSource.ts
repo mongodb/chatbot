@@ -27,7 +27,7 @@ export function makeWebDataSource({
         const pages: Page[] = [];
         const errors: string[] = [];
         for await (const url of urls) {
-          logger.debug(`Scraping page: ${url}`);
+          logger.info(`Scraping page: ${url}`);
           const { content, error } = await scrapePage({
             url,
             browserPage,
@@ -178,12 +178,12 @@ async function getContent(
 
   // Note: must extract metadata before cleaning HTML b/c it's soon removed
   const metadata = getMetaTags($head);
+  const title = getTitle($body, $head);
 
   const cleanedHtml = removeHtmlElements($body);
 
   const markdown = mongoDbDotcomTurndownService.turndown(cleanedHtml);
 
-  const title = getTitle($body, $head);
 
   return {
     body: markdown,

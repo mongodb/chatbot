@@ -27,6 +27,7 @@ export function makeWebDataSource({
         const pages: Page[] = [];
         const errors: string[] = [];
         for await (const url of urls) {
+          logger.debug(`Scraping page: ${url}`);
           const { content, error } = await scrapePage({
             url,
             browserPage,
@@ -200,7 +201,6 @@ export async function scrapePage({
   browserPage: PlaywrightPage;
   url: string;
 }): Promise<{ content: PageContent | null; error: string | null }> {
-  logger.info(`Scraping page: ${url}`);
   let content: PageContent | null = null;
   let error: string | null = null;
   try {

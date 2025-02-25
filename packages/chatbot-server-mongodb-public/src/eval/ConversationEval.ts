@@ -166,10 +166,6 @@ const makeFactuality: ConversationEvalScorerConstructor =
     } else
       return Factuality({
         ...getConversationRagasConfig(args, judgeModelConfig),
-        // TODO: when https://github.com/braintrustdata/autoevals/issues/116 is fixed, remove this
-        // remove this so just using azure openai.
-        // right now uses non-azure openai
-        openAiApiKey: process.env.OPENAI_OPENAI_API_KEY,
       });
   };
 

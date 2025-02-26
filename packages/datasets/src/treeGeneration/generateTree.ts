@@ -37,14 +37,14 @@ export function convertGenerationNodeToDbNode<T>(
 }
 
 export type GenerateChildren<
-  ParentNode extends GenerationNode<unknown>,
+  ParentNode extends GenerationNode<unknown> | null,
   ChildNode extends GenerationNode<unknown> & {
     parent: ParentNode;
   }
 > = (parent: ParentNode) => Promise<ChildNode[]>;
 
 export interface MakeGenerateChildrenWithOpenAiParams<
-  ParentNode extends GenerationNode<unknown>,
+  ParentNode extends GenerationNode<unknown> | null,
   ChildDataSchema extends z.ZodTypeAny
 > {
   /**
@@ -84,9 +84,7 @@ export interface MakeGenerateChildrenWithOpenAiParams<
     Filter child nodes out of the response
    */
   filterNodes?: {
-    filter: (
-      node: GenerationNode<z.infer<ChildDataSchema>>
-    ) => Promise<boolean>;
+    filter: (node: z.infer<ChildDataSchema>) => Promise<boolean>;
     /**
       @default 1
      */
@@ -94,34 +92,39 @@ export interface MakeGenerateChildrenWithOpenAiParams<
   };
 }
 
-type WithParentNode<
+export type WithParentNode<
   Node extends GenerationNode<unknown>,
-  ParentNode extends GenerationNode<unknown>
+  ParentNode extends GenerationNode<unknown> | null
 > = Node & {
   parent: ParentNode;
 };
 
 export function makeGenerateChildrenWithOpenAi<
-  ParentNode extends GenerationNode<unknown>,
-  ChildDataSchema extends z.ZodTypeAny
+  ParentNode extends GenerationNode<unknown> | null,
+  ChildData
 >({
   makePromptMessages,
   openAiClient,
   clientConfig,
   response,
   filterNodes,
-}: MakeGenerateChildrenWithOpenAiParams<
+}: Omit<MakeGenerateChildrenWithOpenAiParams<ParentNode, any>, "response"> & {
+  response: {
+    name: string;
+    description?: string;
+    schema: z.ZodType<ChildData[]>;
+  };
+  filterNodes?: {
+    filter: (data: ChildData) => Promise<boolean>;
+    concurrency?: number;
+  };
+}): GenerateChildren<
   ParentNode,
-  ChildDataSchema
->): GenerateChildren<
-  ParentNode,
-  WithParentNode<GenerationNode<z.infer<ChildDataSchema>>, ParentNode>
+  WithParentNode<GenerationNode<ChildData>, ParentNode>
 > {
   return async function generateChildrenWithOpenAI(
     parent: ParentNode
-  ): Promise<
-    Array<WithParentNode<GenerationNode<z.infer<ChildDataSchema>>, ParentNode>>
-  > {
+  ): Promise<Array<WithParentNode<GenerationNode<ChildData>, ParentNode>>> {
     const messages = await makePromptMessages(parent);
 
     const completion = await openAiClient.chat.completions.create({
@@ -139,9 +142,14 @@ export function makeGenerateChildrenWithOpenAi<
           function: {
             name: response.name,
             description: response.description,
-            parameters: zodToJsonSchema(response.schema, {
-              target: "openApi3",
-            }),
+            parameters: zodToJsonSchema(
+              z.object({
+                items: response.schema,
+              }),
+              {
+                target: "openApi3",
+              }
+            ),
             strict: true,
           },
         },
@@ -153,17 +161,24 @@ export function makeGenerateChildrenWithOpenAi<
     if (!children) {
       throw new Error("No children returned from completion");
     }
-    let parsedChildren = response.schema.parse(JSON.parse(children));
+    // Parse the response and extract the items array
+    const parsedResponse = JSON.parse(children);
+    const itemsArray = parsedResponse.items || parsedResponse;
+    let parsedChildren = response.schema.parse(itemsArray);
     if (!parsedChildren) {
       throw new Error("Failed to parse children");
     }
 
     if (filterNodes) {
       const { filter, concurrency = 1 } = filterNodes;
-      const { results: trimmedChildren } = await PromisePool.for(parsedChildren)
+      const { results: filterResults } = await PromisePool.for(parsedChildren)
         .withConcurrency(concurrency)
-        .process(filter);
-      parsedChildren = trimmedChildren;
+        .process(async (data) => await filter(data));
+
+      // Filter the original array based on the filter results
+      parsedChildren = parsedChildren.filter(
+        (_, index) => filterResults[index]
+      );
     }
     const nodes = parsedChildren.map((data) => ({
       _id: new ObjectId(),

@@ -1,3 +1,4 @@
+import "dotenv/config";
 import {
   assertEnvVars,
   CORE_CHATBOT_APP_ENV_VARS,
@@ -123,9 +124,8 @@ function makeLoadPagesFilter(
   forbiddenUrls: string[]
 ): Filter<PersistedPage> {
   return {
-    dataSource: publicDatasetSourceName,
-    url: {
-      $nin: forbiddenUrls,
-    },
+    sourceName: publicDatasetSourceName,
+    url: { $nin: forbiddenUrls },
+    action: { $ne: "deleted" },
   };
 }

@@ -7,6 +7,11 @@ import {
   NaturalLanguageQuerySchema,
   UseCaseNode,
 } from "./nodeTypes";
+import {
+  makePromptDbInfo,
+  makePromptDbUserInfo,
+  makePromptUseCaseInfo,
+} from "./makePromptComponents";
 
 const nlQuerySystemPrompt = `You are an expert in natural language processing and database query understanding. Given a database use case, generate realistic natural language queries that a user might ask to fulfill their information needs.
 
@@ -51,35 +56,11 @@ export const generateNaturalLanguageQueries = makeGenerateChildrenWithOpenAi<
   }) => {
     const message = `Generate natural language queries for the following database use case:
 
-## Use Case
+${makePromptUseCaseInfo(useCase)}
 
-Use Case Title: ${useCase.title}
-Use Case Description: ${useCase.description}
-Complexity: ${useCase.complexity}
-Frequency: ${useCase.frequency}
-Data Needed: ${useCase.dataNeeded.join(", ")}
+${makePromptDbUserInfo(user)}
 
-## User Information
-
-Name: ${user.name}
-Job Title: ${user.jobTitle}
-Department: ${user.department}
-Expertise: ${user.expertise.join(", ")}
-
-## Database Information
-
-Name: ${databaseInfo.name}
-Description: ${databaseInfo.description}
-
-### Collections
-${databaseInfo.schema
-  .map(
-    (c) => `#### Collection \`${c.name}\`
-Description: ${c.description}
-Schema:
-${c.schema}`
-  )
-  .join("\n")}`;
+${makePromptDbInfo(databaseInfo)}`;
 
     return [
       { role: "system", content: nlQuerySystemPrompt },

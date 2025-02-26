@@ -5,7 +5,7 @@ import * as path from "path";
 import PromisePool from "@supercharge/promise-pool";
 import { generateDatabaseUsers } from "./generateDatabaseUsers";
 import { generateDatabaseUseCases } from "./generateUseCases";
-import { generateNaturalLanguageQueries } from "./generateNlQueries";
+import { generateNaturalLanguageQueries } from "./generateNaturalLanguageQueries";
 import { DatabaseInfoNode } from "./nodeTypes";
 import { sampleMovieDbInfo } from "./sampleData";
 

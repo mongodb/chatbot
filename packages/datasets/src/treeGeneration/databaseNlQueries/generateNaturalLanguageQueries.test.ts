@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb-rag-core/mongodb";
-import { generateNaturalLanguageQueries } from "./generateNlQueries";
+import { generateNaturalLanguageQueries } from "./generateNaturalLanguageQueries";
 import {
   DatabaseUserNode,
   DatabaseInfoNode,

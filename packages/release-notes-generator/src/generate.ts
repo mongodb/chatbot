@@ -1,5 +1,5 @@
 import type { SomeArtifact } from "./artifact";
-import { type Artifact, getArtifactIdentifier } from "./artifact";
+import { getArtifactIdentifier } from "./artifact";
 import { artifactWithChanges, type ClassifiedChange } from "./change";
 import type { Config, VersionRange } from "./config";
 import { PromisePool } from "@supercharge/promise-pool";

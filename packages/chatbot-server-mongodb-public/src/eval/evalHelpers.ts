@@ -1,3 +1,4 @@
+import "dotenv/config";
 import {
   assertEnvVars,
   AssistantMessage,
@@ -6,7 +7,6 @@ import {
 } from "mongodb-chatbot-server";
 import { EVAL_ENV_VARS } from "../EnvVars";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
-import { z } from "zod";
 import { strict as assert } from "assert";
 
 export const {
@@ -50,9 +50,20 @@ export function getLastAssistantMessageFromMessages(
 }
 
 export function getContextsFromUserMessage(userMessage: UserMessage) {
-  const { data: contexts } = z
-    .array(z.string())
-    .safeParse(userMessage.contextContent?.map((cc) => cc.text));
-  // Return empty array if no context text found
-  return contexts ?? [];
+  const initial: {
+    contexts: string[];
+    urls: string[];
+  } = {
+    contexts: [],
+    urls: [],
+  };
+  const contexts =
+    userMessage.contextContent
+      ?.map((cc) => cc.text)
+      .filter((text) => typeof text === "string") ?? [];
+  const urls =
+    userMessage.contextContent
+      ?.map((cc) => cc.url)
+      .filter((text) => typeof text === "string") ?? [];
+  return { contexts, urls };
 }

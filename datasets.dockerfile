@@ -1,8 +1,10 @@
 # Build stage
 FROM node:18 as builder
 
-WORKDIR /app
+WORKDIR /bin
 COPY . ./
 RUN npm install lerna && npm run bootstrap && npm run build -- --scope=datasets --include-dependencies
 
-WORKDIR /app
+ENV NODE_ENV=production
+
+WORKDIR /bin/packages/datasets

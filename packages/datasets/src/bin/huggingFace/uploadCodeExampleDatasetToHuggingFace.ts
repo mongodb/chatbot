@@ -4,6 +4,7 @@ import {
   logger,
   makeMongoDbPageStore,
   makeMongoDbTransformedContentStore,
+  PersistedPage,
   updateTransformedContent,
 } from "mongodb-rag-core";
 import {
@@ -16,6 +17,7 @@ import path from "path";
 import { makeTranformPageToAnnotatedCodeExamples } from "../../codeExampleDataset/transformPageToAnnotatedCodeExamples";
 import { model, openAiClient } from "../../openAi";
 import { CodeExampleDatasetEntry } from "../../codeExampleDataset/createCodeExampleDatasetEntry";
+import { Filter } from "mongodb-rag-core/mongodb";
 
 async function uploadCodeExampleDatasetToHuggingFace() {
   logger.info("Staring upload code example dataset to Hugging Face script");
@@ -115,11 +117,15 @@ async function uploadCodeExampleDatasetToHuggingFace() {
   }
 }
 uploadCodeExampleDatasetToHuggingFace();
+
 function makeLoadPagesFilter(
   publicDatasetSourceName: RegExp,
-  arg1: string[]
-):
-  | import("mongodb").Filter<import("mongodb-rag-core").PersistedPage>
-  | undefined {
-  throw new Error("Function not implemented.");
+  forbiddenUrls: string[]
+): Filter<PersistedPage> {
+  return {
+    dataSource: publicDatasetSourceName,
+    url: {
+      $nin: forbiddenUrls,
+    },
+  };
 }

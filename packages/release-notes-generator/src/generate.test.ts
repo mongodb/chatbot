@@ -9,9 +9,9 @@ import {
   type SummarizeArtifact,
   validateConfig,
 } from "./config";
-import atlasCliConfig from "./configs/atlas-cli.config";
+import atlasCliConfig from "./configs/atlasCli.config";
 import mongoshConfig from "./configs/mongosh.config";
-import relationalMigratorConfig from "./configs/relational-migrator.config";
+import relationalMigratorConfig from "./configs/relationalMigrator.config";
 
 const mockProjectInfo: ProjectInfo = {
   name: "Release Notes Generator Test Project",

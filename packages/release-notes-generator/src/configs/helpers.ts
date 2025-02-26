@@ -1,4 +1,3 @@
-import "dotenv/config";
 import type { ConfigInput } from "../config";
 import { createConsoleAndFileLogger } from "../logger";
 import {

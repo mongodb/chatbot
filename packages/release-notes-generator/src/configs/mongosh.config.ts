@@ -34,15 +34,23 @@ export default createConfig({
   project: {
     name: "MongoDB Shell",
     description: stripIndents`
-      The MongoDB Shell (mongosh) allows you to interact with MongoDB deployments from your terminal applications.
-      It uses a familar JavaScript API that lets you work with your databases and collections, including:
+      The MongoDB Shell, mongosh, is a JavaScript and Node.js REPL environment for
+      interacting with MongoDB deployments in Atlas, locally, or on another remote
+      host. Use the MongoDB Shell to test queries and interact with the data in your
+      MongoDB database.
 
-      - CRUD and aggregation operations
-      - Index creation and management
-      - Database administration commands
+      The MongoDB Shell can perform a variety of tasks, including:
 
-      The Atlas CLI is designed for both interactive use and automation through scripts and CI/CD pipelines.
-      It can connect to any MongoDB deployment, including MongoDB Atlas clusters, self-managed deployments, and local instances.`,
+      - Connecting to MongoDB deployments
+      - Creating and managing databases and collections
+      - Running queries and aggregations
+      - Inserting, updating, and deleting data
+      - Managing database users and roles
+      - Creating and managing indexes
+      - Running other administrative commands
+
+      The MongoDB Shell is particularly useful for developers and system
+      administrators who prefer working within a terminal environment.`,
   },
   ...makeStandardConfigMethods({
     azureOpenAi: {

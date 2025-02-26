@@ -50,10 +50,10 @@ export default createConfig({
       The MongoDB Relational Migrator tool help users migrate existing relational
       workloads to MongoDB. It includes a GUI client that lets you:
 
-      - design an effective MongoDB schema derived from an existing relational schema
-      - migrate data from Oracle, SQL Server, MySQL, PostgreSQL, or Sybase ASE to MongoDB,
+      - Design an effective MongoDB schema derived from an existing relational schema
+      - Migrate data from Oracle, SQL Server, MySQL, PostgreSQL, or Sybase ASE to MongoDB,
         while transforming to the target schema
-      - generate code artifacts to reduce the time required to update application code
+      - Generate code artifacts to reduce the time required to update application code
 
       Relational Migrator addresses common migration and data modeling challenges,
       de-risking an organization's transition to MongoDB while helping them take full

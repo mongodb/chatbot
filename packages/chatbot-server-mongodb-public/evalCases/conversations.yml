@@ -1390,3 +1390,82 @@
   tags:
     - ops-manager
     - cloud-manager
+- name: What is the Atlas Architecture Center?
+  expectation: Explain what the Atlas Architecture Center is and its main categories
+  messages:
+    - role: user
+      content: What is the Atlas Architecture Center?
+  tags:
+    - atlas-architecture
+    - overview
+  reference: |
+    The Atlas Architecture Center is a set of guidance on how to build a robust data platform in MongoDB's Atlas. This guidance draws from real-world best practices adopted by hundreds of large enterprises running MongoDB Atlas in production.
+    The recommendations provide the exact configurations you should use to optimize governance, security, automation, and more.
+    The recommendations are divided into the categorires of Operational Efficiency, Security, Reliability, Performance, and Cost Optimization.
+    Operational Efficiency covers the topics of automation, monitoring, and observability. Security covers the topics of network settings, of access control, and related recommendations around how to safeguard data integrity and privacy. Reliability covers the topics of hgh availability, of backups, and related recommendations to minimize downtime and prevent data loss. Performance covers the topics of built-in vertical and horizontal scaling to meet increased demand without over-provisioning. Cost Optimization covers the topics of visibility and of cost management while maintaining performance.
+
+- name: Operational Efficiency recommendations
+  expectation: Explain recommendations on Operational Efficiency for Atlas deployments
+  messages:
+    - role: user
+      content: Are there recommendations on Operational Efficiency for Atlas deployments?
+  tags:
+    - atlas-architecture
+    - operational-efficiency
+  expectedLinks:
+    - atlas/architecture/automation
+    - atlas/architecture/monitoring-alerts
+    - atlas/architecture/scalability
+    - atlas/architecture/production-notes
+  reference: |
+    The Atlas Architecture Center has recommendations on Operational Efficiency, in terms of the Atlas Architecture, is the category of Atlas topics that includes features that support your organization's operations with minimum expenditure of time and effort, including tools for automation and monitoring and alert tools and integrations. It covers recommendations and best practices as well as templates to apply these for your own production environments.
+
+- name: Security recommendations
+  expectation: Explain recommendations on Security for Atlas deployments
+  messages:
+    - role: user
+      content: Are there recommendations for Security for Atlas deployments?
+  tags:
+    - atlas-architecture
+    - security
+  expectedLinks:
+    - atlas/architecture/network-security/
+    - atlas/architecture/setup-cluster-security/
+    - atlas/architecture/auth/
+    - atlas/architecture/compliance/
+    - atlas/architecture/auditing-logging/
+  reference: |
+    The Atlas Architecture Center has recommendations on Security for Atlas Deployments. It provides guidance on features that ensure data integrity and privacy through comprehensive safeguarding measures, such as encryption at rest and in transit, fine-grained access controls, and adherence to regulatory standards. This covers everything from Network Security such as various means of estricting access to your database at a network level to auditing and logging to compliance standards such as how Atlas is compliant to various standards such as HIPAA.
+
+- name: Reliability recommendations
+  expectation: Explain recommendations on Reliability for Atlas deployments
+  messages:
+    - role: user
+      content: Are there recommendations on Reliablity for Atlas deployments?
+  tags:
+    - atlas-architecture
+    - reliability
+  reference: |
+    The Atlas Architecture Center has recommendations on Reliability for Atlas Deployments. It provides guidance on how to minimize downtime and prevent data loss, including support for high availability and fault tolerance using Atlas's features. It covers the topics of High Availability, Resiliency, Backups, and Disaster Recovery.
+
+- name: Performance recommendations
+  expectation: Explain recommendations on Performance for Atlas deployments
+  messages:
+    - role: user
+      content: Are there recommendations on Performance for Atlas deployments?
+  tags:
+    - atlas-architecture
+    - performance
+  reference: |
+    The Atlas Architecture Center has recommendations on Performance for Atlas Deployments. It provides guidance on how to implement automated scaling and tiered storage, for your clusters that allow your data operations to achieve low latency and high throughput, and scale your deployments to meet increasing demand. It provides an in-depth coverage on the topic of Scalability, including how to use auto-scaling to dynamically allocate resources based on growing workload demands as well as Atlas deployment templates for horizontal and vertical scaling.
+
+- name: Cost Optimization recommendations
+  expectation: Explain recommendations on Cost Optimization for Atlas deployments
+  messages:
+    - role: user
+      content: Are there recommendations on Cost Optimization for Atlas deployments?
+  tags:
+    - atlas-architecture
+    - cost-optimization
+  reference: |
+    The Atlas Architecture Center has recommendations on Cost Optimization for Atlas Deployments. It provides guidance on how to control database costs using Atlas's features. It covers implementing Cost-Saving Configurations using auto-scale to ensure your cluster is adequantely provision for its workload. Furthermore, it shows how you can use tags and access billing data programmatically to understand the costs of Atlas across environments, teams, and more.

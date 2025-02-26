@@ -5,18 +5,25 @@
 import path from "path";
 import fs from "fs";
 import { upsertMetaDirectiveInFile } from "./meta2rst";
+import { logger } from "mongodb-rag-core";
 
 const args = process.argv.slice(2);
 
-const filePath = path.resolve(args[0]);
+const filePathArg = args[0];
+if (!filePathArg) {
+  logger.error("File path is required");
+  process.exit(1);
+}
+
+const filePath = path.resolve(filePathArg);
 if (!fs.existsSync(filePath)) {
-  console.error(`File does not exist: ${filePath}`);
+  logger.error(`File does not exist: ${filePath}`);
   process.exit(1);
 }
 
 const metaDescription = args[1];
 if (!metaDescription) {
-  console.error("Meta description is required");
+  logger.error("Meta description is required");
   process.exit(1);
 }
 
@@ -25,9 +32,9 @@ try {
     description: metaDescription,
     keywords: null,
   });
-  console.log(`Updated meta description in ${filePath}`);
+  logger.info(`Updated meta description in ${filePath}`);
   process.exit(0);
 } catch (error) {
-  console.error(`Error updating meta description in ${filePath}: ${error}`);
+  logger.error(`Error updating meta description in ${filePath}: ${error}`);
   process.exit(1);
 }

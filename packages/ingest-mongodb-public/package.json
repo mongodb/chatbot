@@ -10,6 +10,7 @@
     "npm": ">=8"
   },
   "scripts": {
+    "preinstall": "npx playwright install chromium --with-deps",
     "clean": "rm -rf build",
     "build": "tsc -b",
     "watch": "tsc -b -w",
@@ -33,6 +34,7 @@
     "@types/node": "^12",
     "@types/node-fetch": "^2.6.4",
     "@types/turndown": "^5.0.2",
+    "@types/xml2js": "^0.4.14",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
     "eslint": "^8",
@@ -48,6 +50,8 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@playwright/test": "^1.50.1",
+    "cheerio": "^1.0.0",
     "common-tags": "^1.8.2",
     "docdoctor": "^0.1.2",
     "dotenv": "^16",
@@ -58,6 +62,9 @@
     "mongodb-rag-ingest": "*",
     "node-fetch": "^2.7.0",
     "striptags": "^3.2.0",
+    "turndown": "^7.2.0",
+    "turndown-plugin-gfm": "^1.0.2",
+    "xml2js": "^0.6.2",
     "yaml": "^2.6.0"
   }
 }

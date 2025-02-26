@@ -23,6 +23,10 @@ export const ConversationEvalCaseSchema = z.object({
     .array(z.string())
     .optional()
     .describe("Sections of links to relevant sources"),
+  reference: z
+    .string()
+    .optional()
+    .describe("Reference answer for model to output"),
 });
 
 export type ConversationEvalCase = z.infer<typeof ConversationEvalCaseSchema>;

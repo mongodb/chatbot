@@ -189,7 +189,6 @@ export const models: ModelConfig[] = [
     maxConcurrency: 1,
     authorized: true,
   },
-  // TODO: not working
   {
     label: "o3-mini",
     deployment: "o3-mini",

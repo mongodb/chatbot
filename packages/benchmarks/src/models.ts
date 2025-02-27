@@ -47,18 +47,6 @@ export interface ModelConfig {
   metadata?: Record<string, unknown>;
 
   /**
-    Whether to include the system message as a user message in the model call.
-    Needed for some models that don't support system messages.
-    Recasts the system message as a user message with the following tags:
-    ```jsx
-    <System_Message>
-    ${systemMessageContent}
-    </System_Message>
-    ```
-   */
-  systemMessageAsUserMessage?: boolean;
-
-  /**
     Whether the model is officially authorized by MongoDB.
    */
   authorized?: boolean;
@@ -215,7 +203,6 @@ export const models: ModelConfig[] = [
     developer: "Google",
     maxConcurrency: 3,
     provider: "gcp_vertex_ai",
-    systemMessageAsUserMessage: false,
     authorized: true,
   },
   {
@@ -224,7 +211,6 @@ export const models: ModelConfig[] = [
     developer: "Google",
     maxConcurrency: 3,
     provider: "gcp_vertex_ai",
-    systemMessageAsUserMessage: false,
     authorized: true,
   },
   {
@@ -233,7 +219,6 @@ export const models: ModelConfig[] = [
     developer: "Google",
     provider: "gcp_vertex_ai",
     maxConcurrency: 1,
-    systemMessageAsUserMessage: false,
     authorized: true,
   },
   {
@@ -242,7 +227,6 @@ export const models: ModelConfig[] = [
     developer: "Google",
     provider: "gcp_vertex_ai",
     maxConcurrency: 1,
-    systemMessageAsUserMessage: false,
     authorized: true,
   },
 ] as const;

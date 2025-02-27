@@ -1,9 +1,4 @@
 import { OpenAI, AzureOpenAI } from "mongodb-rag-core/openai";
-import {
-  BedrockRuntimeClient,
-  ConversationRole,
-  ConverseCommand,
-} from "@aws-sdk/client-bedrock-runtime";
 import { ModelConfig } from "./models";
 import { strict as assert } from "assert";
 import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
@@ -17,19 +12,13 @@ interface MakeOpenAiClientFactoryParams {
     apiVersion: string;
   };
   braintrust?: BaseModelProviderConfig;
-  radiant?: BaseModelProviderConfig & {
-    authCookie: string;
-  };
   vertexAi?: BaseModelProviderConfig;
-  bedrock?: ConstructorParameters<typeof BedrockRuntimeClient>[0];
 }
 
 export function makeOpenAiClientFactory({
   azure,
   braintrust,
-  radiant,
   vertexAi,
-  bedrock,
 }: MakeOpenAiClientFactoryParams) {
   return {
     makeOpenAiClient(modelConfig: ModelConfig) {
@@ -51,17 +40,6 @@ export function makeOpenAiClientFactory({
             baseURL: braintrust.endpoint,
           })
         );
-      } else if (modelConfig.provider === "radiant") {
-        assert(radiant, "Radiant OpenAI config must be provided");
-        openAiClient = wrapOpenAI(
-          new OpenAI({
-            apiKey: radiant.apiKey,
-            baseURL: radiant.endpoint,
-            defaultHeaders: {
-              Cookie: radiant.authCookie,
-            },
-          })
-        );
       } else if (modelConfig.provider === "gcp_vertex_ai") {
         assert(vertexAi, "GCP Vertex AI config must be provided");
         openAiClient = wrapOpenAI(
@@ -70,9 +48,6 @@ export function makeOpenAiClientFactory({
             baseURL: vertexAi.endpoint,
           })
         );
-      } else if (modelConfig.provider === "aws_bedrock") {
-        assert(bedrock, "AWS Bedrock config must be provided");
-        openAiClient = bedrockChatCompletionClient(bedrock);
       } else {
         throw new Error(`Unsupported provider: ${modelConfig.provider}`);
       }
@@ -83,79 +58,6 @@ export function makeOpenAiClientFactory({
       return openAiClient;
     },
   };
-}
-
-function bedrockChatCompletionClient(
-  bedrock: NonNullable<MakeOpenAiClientFactoryParams["bedrock"]>
-) {
-  const openAiClient = new OpenAI();
-  const bedrockClient = new BedrockRuntimeClient(bedrock);
-  const bedrockChatCompletionCreate = wrapTraced(
-    async function (
-      body: Parameters<typeof openAiClient.chat.completions.create>[0]
-    ) {
-      assert(body.stream !== true, "stream=true not supported for Anthropic");
-      assert(body.tools === undefined, "tools not supported for Anthropic");
-      assert(
-        body.tool_choice === undefined,
-        "tool_choice not supported for Anthropic"
-      );
-
-      const extractedSystemPrompt = body.messages.find(
-        (m) => m.role === "system"
-      )?.content as string | undefined;
-
-      const filteredMessages = body.messages.filter(
-        (m) => m.role === "user" || m.role === "assistant"
-      );
-
-      const input = new ConverseCommand({
-        modelId: body.model,
-        messages: filteredMessages.map((m) => ({
-          role: m.role as ConversationRole,
-          content: [{ text: m.content as string }],
-        })),
-        system: extractedSystemPrompt
-          ? [{ text: extractedSystemPrompt }]
-          : undefined,
-        inferenceConfig: {
-          maxTokens: body.max_tokens !== null ? body.max_tokens : 1000,
-          temperature: body.temperature !== null ? body.temperature : undefined,
-          topP: body.top_p !== null ? body.top_p : undefined,
-        },
-      });
-      const res = await bedrockClient.send(input);
-      const responseText = res.output?.message?.content?.[0].text;
-      assert(responseText, "No content found in response");
-      const responseRole = res?.output?.message?.role;
-      assert(responseRole, "No role found in response");
-
-      return {
-        created: Date.now(),
-        id: Date.now().toString(),
-        model: body.model,
-        object: "chat.completion",
-        choices: [
-          {
-            message: {
-              role: "assistant",
-              content: responseText,
-              refusal: null,
-            },
-            finish_reason: "stop",
-            index: 0,
-            logprobs: null,
-          },
-        ],
-      } satisfies OpenAI.Chat.Completions.ChatCompletion;
-    },
-    { name: "bedrockChatCompletionCreate" }
-  );
-
-  openAiClient.chat.completions.create =
-    bedrockChatCompletionCreate as typeof openAiClient.chat.completions.create;
-
-  return openAiClient;
 }
 
 function imitateSystemMessagesWithUserMessages(openAiClient: OpenAI): OpenAI {

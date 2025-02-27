@@ -23,18 +23,19 @@ export const getConversationEvalCasesFromCSV = async (
     const formattedRecord: ConversationEvalCase = {
       name: question,
       messages: [
-        {
-          role: "user" as const,
-          content: question,
-        },
+      {
+        role: "user" as const,
+        content: question,
+      },
       ],
       reference: idealAnswer,
       expectedLinks: expectedSources
-        ? expectedSources
-            .split(/[\s,]+/)
-            .map((link: string) => link.trim())
-            .filter((link: string) => link.length > 0)
-        : [],
+      ? expectedSources
+        // Split by one or more whitespace characters or commas (some entries may have commas, some may not)
+        .split(/[\s,]+/)
+        .map((link: string) => link.trim())
+        .filter((link: string) => link.length > 0)
+      : [],
     };
     records.push(formattedRecord);
   }

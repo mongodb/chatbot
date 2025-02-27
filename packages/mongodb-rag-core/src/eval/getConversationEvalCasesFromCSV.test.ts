@@ -6,7 +6,7 @@ const SRC_ROOT = path.resolve(__dirname, "../");
 
 describe("getConversationEvalCasesFromCSV", () => {
   it("should parse CSV data to produce evaluation cases", async () => {
-    const csvFilePath = path.resolve(
+    const csvFilePath = path.join(
       SRC_ROOT,
       "../testData/sampleChatbotEvaluationQuestions.csv"
     );
@@ -26,7 +26,7 @@ describe("getConversationEvalCasesFromCSV", () => {
     });
   });
   it("should apply a tranform function that allows for customization of fields", async () => {
-    const csvFilePath = path.resolve(
+    const csvFilePath = path.join(
       SRC_ROOT,
       "../testData/sampleChatbotEvaluationQuestions.csv"
     );

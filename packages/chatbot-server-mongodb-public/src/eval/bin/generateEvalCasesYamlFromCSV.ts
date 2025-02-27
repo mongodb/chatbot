@@ -89,7 +89,7 @@ async function main({
     csvFilePath,
     transformationType ? transformationMap[transformationType] : undefined
   );
-  const yamlFilePath = path.resolve(
+  const yamlFilePath = path.join(
     SRC_ROOT,
     `../../evalCases/${yamlFileName}.yml`
   );
@@ -99,6 +99,7 @@ async function main({
   console.log("YAML file written successfully");
 }
 
+// Checks if the script is being run directly (not imported as a module) and handles command-line arguments.
 if (require.main === module) {
   const args = process.argv.slice(2);
   const [csvFilePath, yamlFileName, transformationType] = args;

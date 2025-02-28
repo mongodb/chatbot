@@ -1,9 +1,9 @@
 import "dotenv/config";
 import { z } from "zod";
-import { makeGenerateChildrenWithOpenAi } from "../generateTree";
+import { makeGenerateChildrenWithOpenAi } from "../generateChildren";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import {
-  NaturalLanguageQuery,
+  DatabaseNlQueryNode,
   NaturalLanguageQuerySchema,
   UseCaseNode,
 } from "./nodeTypes";
@@ -35,7 +35,7 @@ Generate at least 10 natural language queries with 2-3 variations for each use c
 
 export const generateNaturalLanguageQueries = makeGenerateChildrenWithOpenAi<
   UseCaseNode,
-  NaturalLanguageQuery
+  DatabaseNlQueryNode
 >({
   openAiClient: new AzureOpenAI({
     apiKey: process.env.OPENAI_API_KEY!,
@@ -68,7 +68,7 @@ ${makePromptDbInfo(databaseInfo)}`;
     ];
   },
   response: {
-    schema: z.array(NaturalLanguageQuerySchema),
+    schema: NaturalLanguageQuerySchema,
     name: "generate_nl_query",
     description: "A natural language query for the database use case",
   },

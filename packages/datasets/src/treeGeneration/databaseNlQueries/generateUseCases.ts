@@ -1,11 +1,11 @@
 import "dotenv/config";
 import { z } from "zod";
-import { makeGenerateChildrenWithOpenAi } from "../generateTree";
+import { makeGenerateChildrenWithOpenAi } from "../generateChildren";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import {
-  DatabaseUseCase,
   DatabaseUseCaseSchema,
   DatabaseUserNode,
+  UseCaseNode,
 } from "./nodeTypes";
 import { makePromptDbInfo, makePromptDbUserInfo } from "./makePromptComponents";
 
@@ -24,7 +24,7 @@ Generate no more than 10 distinct use cases that reflect different information n
 
 export const generateDatabaseUseCases = makeGenerateChildrenWithOpenAi<
   DatabaseUserNode,
-  DatabaseUseCase
+  UseCaseNode
 >({
   openAiClient: new AzureOpenAI({
     apiKey: process.env.OPENAI_API_KEY!,

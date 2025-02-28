@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { GenerationNode, WithParentNode } from "../generateTree";
+import { GenerationNode, WithParentNode } from "../GenerationNode";
 
 export const DatabaseInfoSchema = z.object({
   name: z.string().describe("Name of the database"),
@@ -98,4 +98,16 @@ export type NaturalLanguageQuery = z.infer<typeof NaturalLanguageQuerySchema>;
 export type DatabaseNlQueryNode = WithParentNode<
   GenerationNode<NaturalLanguageQuery>,
   UseCaseNode
+>;
+
+export const DatabaseCodeSchema = z.object({
+  code: z.string(),
+  language: z.string(),
+});
+
+export type DatabaseCode = z.infer<typeof DatabaseCodeSchema>;
+
+export type DatabaseCodeNode = WithParentNode<
+  GenerationNode<DatabaseCode>,
+  DatabaseNlQueryNode
 >;

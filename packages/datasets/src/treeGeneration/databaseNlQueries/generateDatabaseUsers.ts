@@ -1,10 +1,11 @@
 import "dotenv/config";
 import { z } from "zod";
-import { makeGenerateChildrenWithOpenAi } from "../generateTree";
+import { makeGenerateChildrenWithOpenAi } from "../generateChildren";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import {
   DatabaseInfoNode,
   DatabaseUser,
+  DatabaseUserNode,
   DatabaseUserSchema,
 } from "./nodeTypes";
 
@@ -20,7 +21,7 @@ Create around 20 users.`;
 
 export const generateDatabaseUsers = makeGenerateChildrenWithOpenAi<
   DatabaseInfoNode,
-  DatabaseUser
+  DatabaseUserNode
 >({
   makePromptMessages: async (parent) => [
     {

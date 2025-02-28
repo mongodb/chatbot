@@ -64,10 +64,19 @@ async function makeSlackMessageText(
 
   const scores = await getLlmAsAJudgeScores(llmAsAJudge, tracingData);
 
+  const verifiedAnswerId = isVerifiedAnswer
+    ? assistantMessage.metadata?.verifiedAnswer?._id
+    : null;
+  const verifiedAnswerMd = verifiedAnswerId
+    ? `\n:white_check_mark: ${Md.bold(
+        `Verified Answer:`
+      )} ${verifiedAnswerId}}\n`
+    : "";
+
   const feedbackMd = `${Md.bold(
     rating === true ? "👍 Positive Feedback" : "👎 Negative Feedback"
   )}
-
+  ${verifiedAnswerMd}
 ${Md.bold("User Comment:")}
 ${userComment}`;
 

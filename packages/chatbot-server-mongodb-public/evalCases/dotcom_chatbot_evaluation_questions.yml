@@ -1,0 +1,1107 @@
+- name: What is MongoDB?
+  messages:
+    - role: user
+      content: What is MongoDB?
+  reference: MongoDB is a document database designed for ease of application
+    development and scaling. You can store hierarchical structured data in
+    documents, which are similar to JSON objects. MongoDB is available in
+    different environments, including MongoDB Atlas (a fully managed service in
+    the cloud), MongoDB Enterprise (a subscription-based, self-managed version),
+    and MongoDB Community (a free-to-use, self-managed version). It is popular
+    among development teams that use agile methodologies due to its flexible
+    schema approach. Let me know if you have any more questions!
+  expectedLinks:
+    - https://www.mongodb.com/docs/manual/introduction/
+    - https://www.mongodb.com/why-use-mongodb
+    - https://www.mongodb.com/developer/products/mongodb/everything-you-know-is-wrong
+    - https://mongodb.com/docs/manual/
+  tags:
+    - web
+- name: How does MongoDB help with AI projects?
+  messages:
+    - role: user
+      content: How does MongoDB help with AI projects?
+  reference: MongoDB will help you build intelligent applications powered by
+    semantic search and generative AI using native, full-featured vector
+    database capabilities. Generative AI uses vectors to enable intelligent
+    semantic search over unstructured data (text, images, and audio). Vectors
+    are critical in building recommendation engines, anomaly detection, and
+    conversational AI. MongoDB Atlas integrates operational and vector data in a
+    single, unified platform. With Atlas Vector Search built into the core
+    database, there’s no need to sync data between your operational and vector
+    databases—saving time, reducing complexity, and preventing errors. Your
+    operational and vector data stay in one place.
+  expectedLinks:
+    - https://www.mongodb.com/products/platform/atlas-vector-search
+  tags:
+    - web
+- name: what's better about your latest (or 8.0) release?
+  messages:
+    - role: user
+      content: what's better about your latest (or 8.0) release?
+  reference: "MongoDB 8.0 is the latest release and it's over 30% faster than
+    before. It is more secure with MongoDB Quaryable Encription, which
+    allows  customers to encrypt sensitive data on the client side, store it
+    securely as fully randomized encrypted data in the MongoDB database, and to
+    run expressive queries on the encrypted data for processing. MongoDB 8.0
+    makes it cheaper and easier to scale with horizontal scaling, applications
+    can scale beyond the limits of traditional database resources by splitting
+    data across multiple servers.  And MongoDB 8.0 provides greater control for
+    teams optimizing database performance for unpredictable spikes in usage and
+    sustained periods of high demand. "
+  expectedLinks:
+    - https://www.mongodb.com/blog/post/top-4-reasons-to-use-mongodb-8-0
+  tags:
+    - web
+- name: Should I use mongoose or the native driver for my new node app?
+  messages:
+    - role: user
+      content: Should I use mongoose or the native driver for my new node app?
+  reference: An ideal answer will tell a user some basic pros and cons about using
+    an ODM, and then press to get more information about their use case to help
+    the user make an informed decision.
+  expectedLinks:
+    - https://www.mongodb.com/developer/languages/javascript/mongoose-versus-nodejs-driver/
+    - https://www.mongodb.com/developer/products/mongodb/mongodb-orms-odms-libraries/
+  tags:
+    - web
+- name: Does MongoDB support LangGraph checkpointers? If so, are they asynchronous
+    or synchronous?
+  messages:
+    - role: user
+      content: Does MongoDB support LangGraph checkpointers? If so, are they
+        asynchronous or synchronous?
+  reference: An ideal answer will say yes, and give context around what
+    checkpointers are good for. It will continue by telling the user we offer
+    both asynchronous and synchronous options.
+  expectedLinks:
+    - https://github.com/langchain-ai/langgraph/tree/main/libs/checkpoint
+    - https://github.com/langchain-ai/langchain-mongodb/blob/main/libs/langgraph-checkpoint-mongodb/langgraph/checkpoint/mongodb/__init__.py
+    - https://github.com/langchain-ai/langchain-mongodb/blob/main/libs/langgraph-checkpoint-mongodb/langgraph/checkpoint/mongodb/aio.py
+  tags:
+    - web
+- name: How does MongoDB compare to Postgres?
+  messages:
+    - role: user
+      content: How does MongoDB compare to Postgres?
+  reference: Obviously better
+  expectedLinks:
+    - https://www.mongodb.com/resources/compare/mongodb-postgresql
+  tags:
+    - web
+- name: Can I use MongoDB for RAG implementations? How?
+  messages:
+    - role: user
+      content: Can I use MongoDB for RAG implementations? How?
+  reference: Yes, MongoDB acts as the data layer for RAG implementations thanks to
+    its ability to store and query vector embeddings. MongoDB supports seamless
+    integration with the most popular AI frameworks to cover the other aspects
+    of RAG implementations, mainly orchestration and generation of embeddings.
+  expectedLinks:
+    - https://www.mongodb.com/resources/basics/artificial-intelligence/retrieval-augmented-generation
+    - https://www.mongodb.com/docs/atlas/atlas-vector-search/rag/
+  tags:
+    - web
+- name: Does MongoDB generate embeddings?
+  messages:
+    - role: user
+      content: Does MongoDB generate embeddings?
+  reference: No, MongoDB does not generate embeddings. This functionality can be
+    achieved in MongoDB using integrations with all major AI services and cloud
+    providers, which allow developers to use the embedding model of their choice
+    and then perform indexing and searching, building apps efficiently and
+    securely all in one place.
+  expectedLinks:
+    - https://www.mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/
+    - https://www.mongodb.com/resources/basics/vector-embeddings
+  tags:
+    - web
+- name: What IDEs does MongoDB have extensions for?
+  messages:
+    - role: user
+      content: What IDEs does MongoDB have extensions for?
+  reference: Visual Studio Code (VS Code) and IntelliJ
+  expectedLinks:
+    - https://www.mongodb.com/products/tools/vs-code
+    - https://www.mongodb.com/products/tools/intellij
+    - https://www.mongodb.com/docs/mongodb-intellij/install/
+    - https://www.mongodb.com/docs/mongodb-vscode/
+  tags:
+    - web
+- name: Can I use Atlas Search and Atlas Vector Search locally?
+  messages:
+    - role: user
+      content: Can I use Atlas Search and Atlas Vector Search locally?
+  reference: "Yes, with the MongoDB Atlas CLI. "
+  expectedLinks:
+    - https://www.mongodb.com/products/tools/atlas-cli
+    - https://www.mongodb.com/docs/atlas/cli/current/
+  tags:
+    - web
+- name: How does Atlas Search differ from Atlas Vector Search?
+  messages:
+    - role: user
+      content: How does Atlas Search differ from Atlas Vector Search?
+  reference: Atlas Search allows for keyword or lexical search (i.e., based on the
+    actual text and any defined synonym mappings), whereas Atlas Vector Search
+    allows searching through data based on semantic meaning captured in vectors.
+  expectedLinks:
+    - https://www.mongodb.com/products/platform/atlas-vector-search
+  tags:
+    - web
+- name: Does using Atlas Search require an Atlas account?
+  messages:
+    - role: user
+      content: Does using Atlas Search require an Atlas account?
+  reference: "Yes, you can easily get started by signing up for Atlas. We have
+    also created a Getting Started guide and tutorial with instructions on how
+    to do things like load sample data on your cluster, create an Atlas Search
+    index, and run a sample query using Search Tester. We also have the Atlas
+    Search Playground, which is a sandbox environment where you can explore the
+    power and versatility of Atlas Search without needing to set up a full Atlas
+    collection or waiting for your search index to build. "
+  expectedLinks:
+    - https://www.mongodb.com/docs/atlas/atlas-search/tutorial/
+    - https://search-playground.mongodb.com/tools/search-demo-builder
+  tags:
+    - web
+- name: What is MongoDB Relational Migrator?
+  messages:
+    - role: user
+      content: What is MongoDB Relational Migrator?
+  reference: >-
+    Relational migrator is a completely free tool, developed by MongoDB, that
+    streamlines migrating from legacy relational databases to MongoDB. It
+    addresses the most common data modeling, code conversion, and migration
+    challenges users face when migrating to MongoDB, reducing the effort and
+    risk involved in migration projects. 
+
+
+    Use Relational Migrator to from Oracle, MySQL, SQL Server, PostgreSQL, Sybase ASE, IBM Db2, and more, to MongoDB.
+
+
+    The tool is available on Mac, Windows, Redhat, Ubuntu, and Docker
+  expectedLinks:
+    - https://www.mongodb.com/products/tools/relational-migrator
+  tags:
+    - web
+- name: Can I migrate from relational databases to MongoDB?
+  messages:
+    - role: user
+      content: Can I migrate from relational databases to MongoDB?
+  reference: >-
+    Yes, you can easily migrate from your relational database to MongoDB with
+    Relational Migrator — a completely free tool, developed by MongoDB, that
+    streamlines the migration process. It addresses the most common data
+    modeling, code conversion, and migration challenges users face when
+    migrating to MongoDB, reducing the effort and risk involved in migration
+    projects. 
+
+
+    Use Relational Migrator to from Oracle, MySQL, SQL Server, PostgreSQL, Sybase ASE, IBM Db2, and more, to MongoDB.
+
+
+    The tool is available on Mac, Windows, Redhat, Ubuntu, and Docker
+  expectedLinks:
+    - https://www.mongodb.com/products/tools/relational-migrator
+  tags:
+    - web
+- name: How can I migrate from MySQL to MongoDB?
+  messages:
+    - role: user
+      content: How can I migrate from MySQL to MongoDB?
+  reference: Yes, you can migrate from MySQL to MongoDB using Relational Migrator
+    — a free tool that streamlines the migration process. Follow this guide to
+    learn how.
+  expectedLinks:
+    - https://www.mongodb.com/resources/solutions/use-cases/mysql-to-mongodb
+  tags:
+    - web
+- name: How can I migrate from PostgreSQL to MongoDB?
+  messages:
+    - role: user
+      content: How can I migrate from PostgreSQL to MongoDB?
+  reference: Yes, you can migrate from MySQL to MongoDB using Relational Migrator
+    — a free tool that streamlines the migration process. Follow this guide to
+    learn how.
+  expectedLinks:
+    - https://www.mongodb.com/resources/compare/mongodb-postgresql/dsl-migrating-postgres-to-mongodb
+  tags:
+    - web
+- name: What is the difference between Community Edition and Atlas?
+  messages:
+    - role: user
+      content: What is the difference between Community Edition and Atlas?
+  reference: MongoDB Community Edition is a source-available, free-to-use version
+    of MongoDB’s document database. MongoDB Atlas includes a fully managed cloud
+    database and associated data services.
+  expectedLinks:
+    - https://www.mongodb.com/products/self-managed/community-edition
+  tags:
+    - web
+- name: What is the difference between Community Edition and Enterprise Advanced?
+  messages:
+    - role: user
+      content: What is the difference between Community Edition and Enterprise Advanced?
+  reference: MongoDB Community Edition is a source-available, free-to-use version
+    of MongoDB’s document database. MongoDB Enterprise Server provides several
+    capabilities not available in the MongoDB Community Edition, such as
+    in-memory storage engine for self-managed deployments, auditing self-managed
+    deployments, and Kerberos authentication on self-managed deployments.
+  expectedLinks:
+    - https://www.mongodb.com/products/self-managed/community-edition
+    - https://www.mongodb.com/products/self-managed/enterprise-advanced
+  tags:
+    - web
+- name: Is Community Edition free to use?
+  messages:
+    - role: user
+      content: Is Community Edition free to use?
+  reference: Yes, MongoDB Community Edition is the source-available and
+    free-to-use edition of MongoDB available under the Server Side Public
+    License.
+  expectedLinks:
+    - https://www.mongodb.com/legal/licensing/server-side-public-license
+  tags:
+    - web
+- name: What security features does MongoDB offer?
+  messages:
+    - role: user
+      content: What security features does MongoDB offer?
+  reference: "MongoDB offers robust security features that enable you to protect
+    your sensitive data and ensure compliance. We provide authentication,
+    authorization, auditing, data encryption, network security, and data
+    sovereignty features. "
+  expectedLinks:
+    - https://www.mongodb.com/products/capabilities/security
+  tags:
+    - web
+- name: Does MongoDB work for public sector organizations?
+  messages:
+    - role: user
+      content: Does MongoDB work for public sector organizations?
+  reference: "Yes, MongoDB offers Atlas for Government: a secure, fully managed,
+    FedRAMP-authorized cloud database specifically designed for the public
+    sector. "
+  expectedLinks:
+    - https://www.mongodb.com/solutions/industries/public-sector
+  tags:
+    - web
+- name: Can I use MongoDB as a vector database?
+  messages:
+    - role: user
+      content: Can I use MongoDB as a vector database?
+  reference: Yes. MongoDB Atlas is a full-featured vector database with native
+    vector search capabilities. You can store and search vectors alongside
+    operational data to build powerful search and AI applications.
+  expectedLinks:
+    - https://www.mongodb.com/products/platform/atlas-vector-search
+  tags:
+    - web
+- name: Does MongoBD support hybrid search?
+  messages:
+    - role: user
+      content: Does MongoBD support hybrid search?
+  reference: Yes. MongoDB supports full-text search, vector search, and hybrid
+    search, all in a single database.
+  expectedLinks:
+    - https://www.mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/
+  tags:
+    - web
+- name: Can MongoDB help me migrate from a relational database?
+  messages:
+    - role: user
+      content: Can MongoDB help me migrate from a relational database?
+  reference: Yes. MongoDB can help drive successful migrations with support
+    ranging from planning to complete end-to-end delivery
+  expectedLinks:
+    - https://www.mongodb.com/services/consulting/relational-migration-methodology
+  tags:
+    - web
+- name: How do index and query definitions work in Atlas Search?
+  messages:
+    - role: user
+      content: How do index and query definitions work in Atlas Search?
+  reference: >
+    You can create an Atlas Search index on either a single field or multiple
+    fields. Indexing fields that you frequently sort or filter helps expedite
+    the retrieval of documents containing the relevant data during query time.
+    To explore how this works, you can try the Demo Builder tool in the Atlas
+    Search Playground. This tool offers a sandbox environment for testing and
+    also provides index and query definitions.
+  expectedLinks:
+    - https://www.mongodb.com/docs/atlas/atlas-search/create-index/
+    - https://search-playground.mongodb.com/tools/search-demo-builder/snapshots/new
+  tags:
+    - web
+- name: What is the difference between the tools on Atlas Serach Playground?
+  messages:
+    - role: user
+      content: What is the difference between the tools on Atlas Serach Playground?
+  reference: The Search Demo Builder tool lets you quickly explore and test Atlas
+    Search features through a visual interface. For greater flexibility, Code
+    Sandbox provides advanced customization and hands-on experimentation using
+    JSON queries.
+  expectedLinks:
+    - https://search-playground.mongodb.com/tools/code-sandbox/snapshots/new
+    - https://search-playground.mongodb.com/tools/search-demo-builder/snapshots/new
+  tags:
+    - web
+- name: Does Atlas provide automated recommendations for performance optimization?
+  messages:
+    - role: user
+      content: Does Atlas provide automated recommendations for performance
+        optimization?
+  reference: Yes, MongoDB Atlas provides automated performance optimization
+    recommendations through a feature called Performance Advisor. The
+    Performance Advisor analyzes query patterns, indexes, and your database
+    workload to suggest improvements that can enhance performance. It
+    specifically looks at slow-running queries and proposes index changes or
+    creations that can make these queries more efficient.
+  expectedLinks:
+    - https://www.mongodb.com/docs/atlas/performance-advisor/
+  tags:
+    - web
+- name: How can I integrate MongoDB Atlas as part of my DevOps process?
+  messages:
+    - role: user
+      content: How can I integrate MongoDB Atlas as part of my DevOps process?
+  reference: You can integrate MongoDB Atlas into your DevOps processes using the
+    Atlas Administration API, Atlas CLI, or integrations we offer with IaC tools
+    like Hashicorp Terraform or AWS CloudFormation to programmatically manage
+    and scale Atlas resources.
+  expectedLinks:
+    - https://www.mongodb.com/docs/atlas/api/
+  tags:
+    - web
+- name: What is MongoDB Ops Manager?
+  messages:
+    - role: user
+      content: What is MongoDB Ops Manager?
+  reference: MongoDB Ops Manager is included with MongoDB Enterprise Advanced.
+    MongoDB Enterprise Advanced is the self- managed version of MongoDB. MongoDB
+    Ops Manager is designed to help you manage, monitor, and back up your
+    MongoDB deployments more effectively. It gives you advanced automation,
+    performance optimization, and security features tailored to enterprise-grade
+    applications.
+  expectedLinks:
+    - https://www.mongodb.com/docs/ops-manager/current/
+  tags:
+    - web
+- name: Does Atlas integrate with third-party monitoring tools?
+  messages:
+    - role: user
+      content: Does Atlas integrate with third-party monitoring tools?
+  reference: "We extend Atlas metrics into existing enterprise observability
+    stacks, enabling seamless integration without replacing current tools. This
+    creates a consolidated, single-pane view that unifies Atlas telemetry with
+    other tech and application metrics, ensuring comprehensive visibility into
+    both database and full-stack performance. "
+  expectedLinks:
+    - https://www.mongodb.com/blog/post/mongodb-database-observability-integrating-with-monitoring-tools
+    - https://cloud.mongodb.com/ecosystem
+  tags:
+    - web
+- name: How does MongoDB compare to Databricks?
+  messages:
+    - role: user
+      content: How does MongoDB compare to Databricks?
+  reference: >-
+    Databricks tends to come up as a complimentary data analytics platform that
+    one may deploy alongside MongoDB. Its rare that we encounter them
+    competitively head-to-head as the kinds of data they handle tends to be
+    non-operational (for context, when they refer to something as "real-time"
+    the perception tends to be in minutes if not hours, rather than sub-second
+    as our users would expect).
+
+
+    Databricks is designed primarily for high-volume analytical processing workloads (including high-concurrency reads with logical views etc.). It is far less suited for the large number of queries against subsets of rapidly changing data sets that MongoDB is a great fit for.
+
+
+    Additionally, Databricks tends to appeal to data engineers, data scientists and business analysts rather than application developers. So it is often sold to a different part of the business.
+  expectedLinks:
+    - https://docs.google.com/document/d/1lZCG-l0Y7e7crzVHb4MvtQabyLY5Y1Ahx_e8OKxOHE0/edit?tab=t.0#heading=h.m4z4fgczts1p
+  tags:
+    - web
+- name: Is Elasticsearch like MongoDB?
+  messages:
+    - role: user
+      content: Is Elasticsearch like MongoDB?
+  reference: >-
+    Both have different use cases. When it comes to application search
+    scenarios, Elasticsearch is generally used as a 'bolt-on' search engine,
+    while MongoDB is a developer data platform that allows three systems to be
+    compressed into a single solution.
+
+
+    By integrating a database, search engine and sync mechanism into a single unified and fully managed platform, Atlas Search is the fastest and easiest way to build relevance-based search directly into your applications.
+  expectedLinks:
+    - https://www.mongodb.com/resources/compare/mongodb-atlas-search-vs-elastic-elasticsearch
+  tags:
+    - web
+- name: How is Atlas Search different from MongoDB’s legacy text search?
+  messages:
+    - role: user
+      content: How is Atlas Search different from MongoDB’s legacy text search?
+  reference: >-
+    MongoDB offers legacy text search that supports basic queries on string
+    content. However, text indexes only work for text-based content and the
+    $text operator can be modified in limited ways.
+
+
+    In comparison, MongoDB Atlas Search offers:
+
+
+    ● Better results: Atlas Search can provide more ways to fine-tune the relevance of search results and support faster query results because it’s based on Apache Lucene, the open source search engine that also powers Elasticsearch and Solr.
+
+
+    ● Rich feature set: Atlas Search offers support for over 35 languages, multiple data types, fuzzy search, autocomplete, synonyms, custom scoring, index intersection, highlighting, and multiple search indexes per collection.
+
+
+    ● Defined roadmap: Atlas Search is constantly being improved with new features that help us increase the range of use cases you can target with Atlas Search.
+  expectedLinks:
+    - https://www.mongodb.com/resources/compare/mongodb-atlas-search-vs-elastic-elasticsearch
+  tags:
+    - web
+- name: What specific advantages does the new Atlas Flex tier provide over
+    traditional serverless models?
+  messages:
+    - role: user
+      content: What specific advantages does the new Atlas Flex tier provide over
+        traditional serverless models?
+  reference: Atlas Flex tier combines the flexibility of serverless scalability
+    with predictable, capped costs, avoiding complex and unpredictable billing.
+    It offers the robustness of dedicated resources while maintaining the
+    elasticity needed for development and operational efficiency.
+  expectedLinks:
+    - https://docs.google.com/document/d/1YIWdSHnXNh-kuJ1OUupde3cX36LrZ1i6_Zlgv05DUsw/edit?tab=t.0
+  tags:
+    - web
+- name: How does the new pricing model of the new Atlas Flex tier ensure more
+    predictability compared to previous offerings?
+  messages:
+    - role: user
+      content: How does the new pricing model of the new Atlas Flex tier ensure more
+        predictability compared to previous offerings?
+  reference: The pricing model consists of base fees, additional fees for burst
+    capacity, and a monthly cap. This means users will not experience unexpected
+    cost spikes, making budget management more reliable.
+  expectedLinks:
+    - https://docs.google.com/document/d/1YIWdSHnXNh-kuJ1OUupde3cX36LrZ1i6_Zlgv05DUsw/edit?tab=t.0
+  tags:
+    - web
+- name: What specific features were not available in the serverless tier that are
+    available in the new Atlas Flex tier?
+  messages:
+    - role: user
+      content: What specific features were not available in the serverless tier that
+        are available in the new Atlas Flex tier?
+  reference: >-
+    The most important feature of the new tier that wasn’t available in the
+    serverless tier is the ability to cap costs at a fixed level of $30/month.
+    The following new tier products and capabilities were unavailable in
+    serverless:
+
+    - Atlas Search
+
+    - Vector search
+
+    - Atlas Stream Processing 
+
+    - Changestreams 
+
+    - Atlas Triggers
+  expectedLinks:
+    - https://docs.google.com/document/d/1YIWdSHnXNh-kuJ1OUupde3cX36LrZ1i6_Zlgv05DUsw/edit?tab=t.0
+  tags:
+    - web
+- name: What specific features in the new Atlas Flex tier were unavailable in the
+    shared tier?
+  messages:
+    - role: user
+      content: What specific features in the new Atlas Flex tier were unavailable in
+        the shared tier?
+  reference: The most important feature of the new tier, which was unavailable in
+    the shared tier, is the ability to scale costs flexibly based on usage.
+    Since storage and compute costs are decoupled, costs can be lower depending
+    on customers’ usage patterns.
+  expectedLinks:
+    - https://docs.google.com/document/d/1YIWdSHnXNh-kuJ1OUupde3cX36LrZ1i6_Zlgv05DUsw/edit?tab=t.0
+  tags:
+    - web
+- name: What are the key differentiators when comparing MongoDB to Azure Data
+    Explorer (ADX)?
+  messages:
+    - role: user
+      content: What are the key differentiators when comparing MongoDB to Azure Data
+        Explorer (ADX)?
+  reference: >-
+    In previous occasions where Azure Data Explorer (ADX) has come up, it has
+    been with regards to time series use cases. It is recommended checking
+    whether that is the case for your customer or prospect before delving into
+    specific differentiators. ADX is often positioned based on the source
+    overview, however Cosmos DB also purports to be applicable for those use
+    cases.
+
+
+    It is worth noting that the differing internal Azure product groups will often compete against one another for overlapping capabilities. MongoDB's Competitive Intelligence team have seen a similar scenario for vector search being announced for Cosmos DB while the closely related semantic search is being delivered via Azure Cognitive Search.
+
+
+    This suggests a dis-jointed product strategy and one where the Microsoft product teams are structured adversarially rather than in a more coordinated fashion.
+  expectedLinks:
+    - https://learn.microsoft.com/en-us/azure/architecture/data-guide/scenarios/time-series
+  tags:
+    - web
+- name: How do I build AI applications with MongoDB?
+  messages:
+    - role: user
+      content: How do I build AI applications with MongoDB?
+  reference: The MongoDB AI Applications Program (MAAP) enables organizations to
+    quickly build and deploy modern applications enhanced with AI technology at
+    an enterprise scale. The MAAP Center of Excellence Team, a cross-functional
+    group of AI experts at MongoDB, works alongside customers across various
+    industries to overcome an array of technical challenges, empowering
+    organizations of all sizes to develop and implement AI applications
+    successfully.
+  expectedLinks:
+    - https://www.mongodb.com/services/consulting/ai-applications-program
+  tags:
+    - web
+- name: Does MongoDB offer support for developing AI applications?
+  messages:
+    - role: user
+      content: Does MongoDB offer support for developing AI applications?
+  reference: "Yes, with MongoDB AI Services you can take concrete steps to
+    validate, design, and build your generative AI solution with the experts who
+    know MongoDB best. "
+  expectedLinks:
+    - https://www.mongodb.com/services/consulting/ai-accelerator
+  tags:
+    - web
+- name: What is the cost to use relational migrator to migrate to MongoDB from
+    Oracle?
+  messages:
+    - role: user
+      content: What is the cost to use relational migrator to migrate to MongoDB from
+        Oracle?
+  reference: The MongoDB Relational Migrator is a free tool that streamlines
+    migrating from legacy relational databases to MongoDB. Relational Migrator
+    addresses the most common data modeling, code conversion, and migration
+    challenges, reducing the effort and risk involved in migration projects.
+    Migrate to MongoDB from Oracle, MySQL, SQL Server, PostgreSQL, Sybase ASE,
+    IBM Db2, and more.
+  expectedLinks:
+    - https://www.mongodb.com/products/tools/relational-migrator
+    - https://www.mongodb.com/resources/compare/mongodb-oracle
+  tags:
+    - web
+- name: What tool can I use to visually explore, update, and query my MongoDB data
+    to gain insights into and refine my data model to enhance application
+    performance?
+  messages:
+    - role: user
+      content: What tool can I use to visually explore, update, and query my MongoDB
+        data to gain insights into and refine my data model to enhance
+        application performance?
+  reference: For developers, Compass is a powerful GUI tool that can be an
+    invaluable complement to tools more oriented toward programmatic users like
+    the MongoDB Shell (which is also available as an embedded tool in Compass).
+    Developers who are new to MongoDB can easily explore their data and learn
+    more about how MongoDB works, and experienced developers and MongoDB users
+    can quickly write queries and aggregations to use in their applications,
+    import and export data to and from test, stage, and production environments,
+    and optimize their data model for improved application performance.
+  expectedLinks:
+    - https://www.mongodb.com/docs/compass/current/editions/
+    - https://www.mongodb.com/products/tools/compass
+    - https://www.mongodb.com/try/download/compass
+  tags:
+    - web
+- name: Does MongoDB Compass help me with visualizing and understanding my data
+    model?
+  messages:
+    - role: user
+      content: Does MongoDB Compass help me with visualizing and understanding my data
+        model?
+  reference: Yes, of course! Your schema does matter – and MongoDB offers you the
+    tools necessary to model your data in a way that best suits your
+    applications' use cases. MongoDB Compass offers a visual schema analyzer,
+    query building, and index management. The tool supports schema validation
+    using JSON schema and query operators, allowing users to enforce data
+    integrity and consistency. Compass enables users to view, insert, modify,
+    and delete documents in collections, providing a comprehensive interface for
+    data management. Additionally, it offers a visual interface for creating
+    aggregation pipelines, making complex data transformations more accessible
+    to users of varying skills levels
+  expectedLinks:
+    - https://www.mongodb.com/docs/compass/current/editions/
+    - https://www.mongodb.com/products/tools/compass
+    - https://www.mongodb.com/try/download/compass
+  tags:
+    - web
+- name: What is an ODL?
+  messages:
+    - role: user
+      content: What is an ODL?
+  reference: An Operational Data Layer (or ODL) is an architectural pattern that
+    centrally integrates and organizes siloed enterprise data, making it
+    available to consuming applications.
+  expectedLinks:
+    - https://www.mongodb.com/resources/basics/implementing-an-operational-data-layer
+  tags:
+    - web
+- name: How does MongoDB compare to Postgres?
+  messages:
+    - role: user
+      content: How does MongoDB compare to Postgres?
+  reference: The primary differences between PostgreSQL and MongoDB fall under how
+    they store and query data. As the name suggests, PostgreSQL is based on
+    Structured Query Language (SQL) and stores data in tables containing columns
+    and rows. MongoDB stores data in JSON-like documents and is queried using
+    the MongoDB Query API with a variety of programming languages.
+  expectedLinks:
+    - https://www.mongodb.com/resources/compare/mongodb-postgresql
+  tags:
+    - web
+- name: What is stream processing?
+  messages:
+    - role: user
+      content: What is stream processing?
+  reference: Stream processing is continuously ingesting and transforming event
+    data from an event messaging platform (like Apache Kafka) to perform various
+    functions. This could mean creating simple filters to remove unneeded data,
+    performing aggregations to count or sum data as needed, creating stateful
+    windows, and more. Stream processing can be a differentiating characteristic
+    in event-driven applications, allowing for more reactive, responsive
+    customer experiences.
+  expectedLinks:
+    - https://www.mongodb.com/resources/basics/what-is-stream-processing
+  tags:
+    - web
+- name: What is MongoDB Atlas database?
+  messages:
+    - role: user
+      content: What is MongoDB Atlas database?
+  reference: MongoDB Atlas is a fully managed cloud database service that
+    simplifies deploying, scaling, and managing MongoDB databases in the cloud.
+    It eliminates infrastructure setup and database management by automating
+    critical tasks such as provisioning, backups, scaling, and performance
+    optimization. Atlas database supports multi-cloud deployments on AWS, Azure,
+    and Google Cloud, enabling global scalability and resilience. Atlas is
+    designed to ensure engineering teams focus on building and innovating
+    applications rather than managing database infrastructure.
+  expectedLinks:
+    - https://www.mongodb.com/docs/atlas/
+  tags:
+    - web
+- name: How secure is MongoDB Atlas?
+  messages:
+    - role: user
+      content: How secure is MongoDB Atlas?
+  reference: >-
+    MongoDB Atlas delivers enterprise-grade security out of the box, ensuring
+    sensitive data is protected at every stage:
+
+    Access Control: Flexible role-based access controls and streamlined authentication ensure that only authorized users and applications can access data.
+
+    Encryption: Data is encrypted at rest, in transit, and in use to prevent unauthorized access, with no cryptography expertise required.
+
+    Automatic Patches: Security patches are applied automatically, protecting deployments without operational disruption.
+
+    Auditing: Granular auditing provides visibility into database activity to meet compliance and detect security issues.
+
+    Regulatory Compliance: Atlas supports multi-region clusters and is certified with 15+ compliance standards, helping meet data residency and privacy regulations for the most stringent compliance requirements.
+
+    These features make Atlas a reliable choice for enterprises with stringent security and compliance needs.
+  expectedLinks:
+    - https://www.mongodb.com/products/platform/trust
+  tags:
+    - web
+- name: How can I start using MongoDB?
+  messages:
+    - role: user
+      content: How can I start using MongoDB?
+  reference: >-
+    MongoDB Atlas is the easiest way to build with MongoDB, from prototype to
+    production. Sign up today and start learning or exploring with a
+    free-forever or serverless cluster. Upgrade to a dedicated cluster to access
+    all platform capabilities.
+
+
+    To start developing and testing locally, the MongoDB Atlas CLI offers a local development experience, including Atlas Search and Atlas Vector Search. MongoDB Community is also available for download across Windows, MacOS, and Linux distributions.
+  expectedLinks:
+    - https://www.mongodb.com/cloud/atlas/register
+  tags:
+    - web
+- name: Who founded MongoDB?
+  messages:
+    - role: user
+      content: Who founded MongoDB?
+  reference: Dwight Merriman, Eliot Horowitz, and Kevin Ryan founded MongoDB
+    (formerly 10gen) in 2007.
+  expectedLinks:
+    - https://www.mongodb.com/company
+  tags:
+    - web
+- name: What are the core values of MongoDB?
+  messages:
+    - role: user
+      content: What are the core values of MongoDB?
+  reference: At MongoDB, our values are more than posters on a wall. We live by
+    them, every day, which ensures we fulfill the Leadership Commitment. Think
+    big, go far; build together; embrace the powe of differences; make it
+    matter; be intellectually honest; own what you do.
+  expectedLinks:
+    - https://www.mongodb.com/company/values
+  tags:
+    - web
+- name: Is MongoDB currently hiring?
+  messages:
+    - role: user
+      content: Is MongoDB currently hiring?
+  reference: Yes, MongoDB is hiring. Please visit our teams page
+    [https://www.mongodb.com/company/careers/teams] to view our open roles.
+  expectedLinks:
+    - https://www.mongodb.com/company/careers
+  tags:
+    - web
+- name: What kind of training opportunities does MongoDB provide?
+  messages:
+    - role: user
+      content: What kind of training opportunities does MongoDB provide?
+  reference: MongoDB's training subscriptions offer unlimited live and on-demand
+    sessions tailored to every stage of your team’s MongoDB journey, with
+    adaptable scheduling and global availability.
+  expectedLinks:
+    - https://www.mongodb.com/services/training
+  tags:
+    - web
+- name: Can I hire MongoDB developers to build my application?
+  messages:
+    - role: user
+      content: Can I hire MongoDB developers to build my application?
+  reference: "MongoDB Jumpstart provides you with an interim development team to
+    not only advise you on your MongoDB vision, but to also execute it for you.
+    "
+  expectedLinks:
+    - https://www.mongodb.com/services/consulting
+  tags:
+    - web
+- name: How many customers user MongoDB?
+  messages:
+    - role: user
+      content: How many customers user MongoDB?
+  reference: More than 52,600 customers have chosen to build the applications of
+    today and tomorrow on MongoDB.
+  expectedLinks:
+    - https://www.mongodb.com/solutions/customer-case-studies
+  tags:
+    - web
+- name: What are some of the reasons Bendigo and Adelaide chose MongoDB?
+  messages:
+    - role: user
+      content: What are some of the reasons Bendigo and Adelaide chose MongoDB?
+  reference: Bendigo and Adelaide chose MongoDB Atlas because of the high levels
+    of security and reliability offered by MongoDB Atlas, its ability to manage
+    the bank’s real-time, operational data on a unified platform, and because of
+    the intuitive developer experience offered by MongoDB’s document model,
+    which maps to how developers think and code, enabling them to build
+    applications faster.
+  expectedLinks:
+    - https://www.mongodb.com/solutions/customer-case-studies/bendigo-and-adelaide-bank
+  tags:
+    - web
+- name: Are there any case studies demonstrating MongoDB’s effectiveness?
+  messages:
+    - role: user
+      content: Are there any case studies demonstrating MongoDB’s effectiveness?
+  reference: MongoDB is a general-purpose database that can provide many benefits
+    to your application development processes. It can help you build
+    applications that are more future-proof with its scaling capabilities and
+    flexible schema. With 50,000+ customers across many industries, it offers a
+    great developer experience with drivers for most major programming languages
+    and a large community of users around the globe. It is also available on any
+    of the major cloud providers.
+  expectedLinks:
+    - https://www.mongodb.com/solutions/customer-case-studies
+    - https://www.mongodb.com/resources/products/fundamentals/why-use-mongodb
+  tags:
+    - web
+- name: What is the pricing model for MongoDB, and what are the associated costs?
+  messages:
+    - role: user
+      content: What is the pricing model for MongoDB, and what are the associated costs?
+  reference: While our Atlas product offers a free forever option, you can find
+    dedicated pricing for production applications with sophisticated workload
+    requirementsand and serverless options pricing options for application
+    development and testing, or workloads with variable traffic.
+  expectedLinks:
+    - https://www.mongodb.com/pricing
+  tags:
+    - web
+- name: What industries or use cases is MongoDB best suited for?
+  messages:
+    - role: user
+      content: What industries or use cases is MongoDB best suited for?
+  reference: Yes, there are case studies that demonstrate MongoDB's effectiveness
+    from AI to IoT, payments, content management and more. MongoDB has been
+    successfully used in various industries such as telecommunications, gaming,
+    finance, healthcare, and retail.
+  expectedLinks:
+    - https://www.mongodb.com/solutions/use-cases
+  tags:
+    - web
+- name: What industries use MongoDB?
+  messages:
+    - role: user
+      content: What industries use MongoDB?
+  reference: >-
+    MongoDB is used across multiple industries, including:
+
+
+    -Financial Services (core banking, capital markets, fraud prevention, open finance)
+
+    -Healthcare (Interoperability, Connected health)
+
+    -Retail (product catalogs & inventory management, customer personalization)
+
+    -Manufacturing & Mobility (industry 4.0, predictive maintenance, smart supply chain, smart factory)
+
+    -Media and Entertainment (media personalization, customer data)
+
+    -Gaming (real-time leaderboards, player stats)
+
+    -Telecommunications (mobile edge and IoT, telco business agility)
+
+    -Public Sector (citizen services, data analytics for policy decisions, emergency response management)
+  expectedLinks:
+    - https://www.mongodb.com/solutions/industries
+  tags:
+    - web
+- name: How does MongoDB ensure data security and compliance in regulated industries?
+  messages:
+    - role: user
+      content: How does MongoDB ensure data security and compliance in regulated
+        industries?
+  reference: MongoDB incorporates robust security features such as encryption at
+    rest and in transit, advanced access control, auditing, and SSL/TLS
+    encryption. It complies with industry standards and regulations like GDPR,
+    HIPAA, and PCI-DSS, helping organizations meet their compliance requirements
+    while safeguarding sensitive data.
+  expectedLinks:
+    - https://www.mongodb.com/cloud/security
+  tags:
+    - web
+- name: Can MongoDB support the development of applications for 5G and IoT
+    services in telecom?
+  messages:
+    - role: user
+      content: Can MongoDB support the development of applications for 5G and IoT
+        services in telecom?
+  reference: Yes, MongoDB provides the agility and scalability needed to develop
+    and deploy applications for 5G and IoT services. Its ability to handle
+    diverse data types and real-time processing is crucial for supporting
+    advanced telecom services and innovations.
+  expectedLinks:
+    - https://www.mongodb.com/solutions/industries/telecommunications
+  tags:
+    - web
+- name: How can retailers use MongoDB to enhance customer personalization and
+    engagement?
+  messages:
+    - role: user
+      content: How can retailers use MongoDB to enhance customer personalization and
+        engagement?
+  reference: MongoDB allows retailers to collect and analyze customer data from
+    various channels, creating a unified view of customer behavior. This insight
+    enables personalized marketing, tailored recommendations, and improved
+    customer experiences, driving engagement and loyalty.
+  expectedLinks:
+    - https://www.mongodb.com/solutions/industries/retail
+  tags:
+    - web
+- name: How does MongoDB assist government agencies in modernizing legacy systems?
+  messages:
+    - role: user
+      content: How does MongoDB assist government agencies in modernizing legacy
+        systems?
+  reference: MongoDB helps agencies transition from outdated systems to modern
+    applications with its flexible data model. This enables improved service
+    delivery, data sharing between departments, and increased operational
+    efficiency.
+  expectedLinks:
+    - https://www.mongodb.com/solutions/industries/public-sector
+  tags:
+    - web
+- name: What security and compliance features does MongoDB offer for the public
+    sector?
+  messages:
+    - role: user
+      content: What security and compliance features does MongoDB offer for the public
+        sector?
+  reference: MongoDB provides robust security measures, including encryption and
+    advanced access controls, meeting strict government security standards and
+    compliance requirements like FedRAMP and GDPR.
+  expectedLinks:
+    - https://www.mongodb.com/solutions/industries/public-sector
+  tags:
+    - web
+- name: Can MongoDB help in building applications for autonomous driving technology?
+  messages:
+    - role: user
+      content: Can MongoDB help in building applications for autonomous driving
+        technology?
+  reference: Yes, MongoDB's ability to handle large volumes of complex sensor data
+    makes it suitable for applications in autonomous driving. It supports
+    real-time data processing required for vehicle navigation and
+    decision-making.
+  expectedLinks:
+    - https://www.mongodb.com/solutions/industries/manufacturing
+  tags:
+    - web
+- name: How does MongoDB support predictive maintenance strategies in
+    manufacturing operations?
+  messages:
+    - role: user
+      content: How does MongoDB support predictive maintenance strategies in
+        manufacturing operations?
+  reference: >-
+    Predictive maintenance relies on analyzing data from machinery to anticipate
+    failures. MongoDB's capabilities include:
+
+    -Scalable Data Ingestion: Handle high-frequency sensor data from numerous machines without performance degradation.
+
+    -Flexible Data Modeling: Store unstructured and semi-structured data, accommodating different sensor types and data formats.
+
+    -Advanced Analytics Integration: Work seamlessly with machine learning tools to develop predictive models.
+
+    This approach minimizes unplanned downtime, extends equipment life, and increases operational efficiency.
+  expectedLinks:
+    - https://www.mongodb.com/resources/solutions/use-cases/generative-ai-predictive-maintenance-applications
+  tags:
+    - web
+- name: |
+    How does MongoDB benefit the retail industry?
+  messages:
+    - role: user
+      content: |
+        How does MongoDB benefit the retail industry?
+  reference: In the retail industry, MongoDB is used to power e-commerce
+    platforms, real-time inventory management, and personalization engines. Its
+    flexibility and scaling capabilities allow retailers to manage large volumes
+    of product data and customer interactions effectively.
+  expectedLinks:
+    - https://www.mongodb.com/solutions/industries/retail
+    - https://www.mongodb.com/solutions/customer-case-studies?industries=retail
+  tags:
+    - web
+- name: |
+    What role does MongoDB play in the telecommunications industry?
+  messages:
+    - role: user
+      content: |
+        What role does MongoDB play in the telecommunications industry?
+  reference: MongoDB is used in the telecommunications sector to manage network
+    data, billing systems, and customer relationship management. Its ability to
+    handle large datasets and real-time processing makes it ideal for telecom
+    applications that require operational efficiency and customer insights.
+  expectedLinks:
+    - https://www.mongodb.com/solutions/industries/telecommunications
+    - https://www.mongodb.com/solutions/customer-case-studies?industries=telecommunications
+  tags:
+    - web
+- name: |
+    What benefits does MongoDB provide to the manufacturing sector?
+  messages:
+    - role: user
+      content: |
+        What benefits does MongoDB provide to the manufacturing sector?
+  reference: In manufacturing, MongoDB is used for IoT applications, supply chain
+    management, and predictive maintenance. It enables manufacturers to collect,
+    store, and analyze data from various sources to optimize production
+    processes and improve product quality.
+  expectedLinks:
+    - https://www.mongodb.com/solutions/industries/manufacturing
+    - https://www.mongodb.com/solutions/customer-case-studies?industries=manufacturing-and-mobility
+  tags:
+    - web
+- name: |
+    How is MongoDB used in the financial services industry?
+  messages:
+    - role: user
+      content: |
+        How is MongoDB used in the financial services industry?
+  reference: In the financial services industry, MongoDB is used for applications
+    like trading platforms, risk management systems, and customer analytics. Its
+    ability to handle large volumes of transactional data with low latency and
+    flexible schema supports the dynamic needs of financial institutions.
+  expectedLinks:
+    - https://www.mongodb.com/solutions/industries/financial-services
+    - https://www.mongodb.com/solutions/customer-case-studies?industries=financial-services
+  tags:
+    - web
+- name: |+
+    How is MongoDB used in the healthcare industry?
+
+  messages:
+    - role: user
+      content: |+
+        How is MongoDB used in the healthcare industry?
+
+  reference: MongoDB supports healthcare organizations by enabling them to build
+    applications that improve patient care and operational efficiency. It allows
+    for secure handling of medical data, interoperability between systems, and
+    supports a wide range of healthcare data types and formats.
+  expectedLinks:
+    - https://www.mongodb.com/solutions/industries/healthcare
+    - https://www.mongodb.com/solutions/customer-case-studies?industries=healthcare
+  tags:
+    - web
+- name: |
+    How is MongoDB used in the insurance industry?
+  messages:
+    - role: user
+      content: |
+        How is MongoDB used in the insurance industry?
+  reference: >
+    MongoDB's flexible and scalable data architecture allows insurance companies
+    to manage vast amounts of data from various sources, such as policy
+    information, claims, and customer interactions. This capability helps
+    insurers to deliver personalized services and enhance their operational
+    efficiencies.
+  expectedLinks:
+    - https://www.mongodb.com/solutions/industries/insurance
+    - https://www.mongodb.com/solutions/customer-case-studies?industries=insurance
+  tags:
+    - web
+- name: |
+    How can MongoDB assist in media and entertainment industries?
+  messages:
+    - role: user
+      content: |
+        How can MongoDB assist in media and entertainment industries?
+  reference: MongoDB helps media and entertainment companies manage content
+    delivery networks, user profiles, and recommendation systems. Its
+    scalability and data modeling flexibility support the delivery of
+    personalized content at scale.
+  expectedLinks:
+    - https://www.mongodb.com/solutions/industries/media-and-entertainment
+    - https://www.mongodb.com/solutions/customer-case-studies?industries=media
+  tags:
+    - web
+- name: |
+    How is MongoDB used in the energy industry?
+  messages:
+    - role: user
+      content: |
+        How is MongoDB used in the energy industry?
+  reference: MongoDB serves as an operational data hub for the energy industry,
+    enabling real-time data processing, data-driven drilling, production
+    optimization, and advanced analytics while allowing organizations to
+    securely deliver data as a service across different platforms and audiences
+    without disrupting existing infrastructure.
+  expectedLinks:
+    - https://www.mongodb.com/resources/solutions/use-cases/energy-modernization-with-mongodb
+    - https://www.mongodb.com/solutions/customer-case-studies?industries=energy-and-environmental
+  tags:
+    - web

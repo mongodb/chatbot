@@ -64,6 +64,13 @@ async function makeSlackMessageText(
 
   const scores = await getLlmAsAJudgeScores(llmAsAJudge, tracingData);
 
+  const messageId = messageWithCommentId.toHexString();
+  const braintrustLogUrl = makeBraintrustLogUrl({
+    orgName: "mongodb-education-ai",
+    projectName: "chatbot-responses-prod",
+    traceId: messageId,
+  });
+
   const verifiedAnswerId = isVerifiedAnswer
     ? assistantMessage.metadata?.verifiedAnswer?._id
     : null;
@@ -112,9 +119,8 @@ ${Md.listBullet(`Tags: ${tags.map(Md.codeInline).join(", ")}`)}`;
   const idMetadataMd = `Conversation ID: ${Md.codeInline(
     conversation._id.toHexString()
   )}
-Message ID/ Braintrust Trace ID: ${Md.codeInline(
-    messageWithCommentId.toHexString()
-  )}`;
+Message ID: ${Md.codeInline(messageId)}
+Braintrust Log: ${Md.link(braintrustLogUrl, messageId)}`;
 
   const scoresMd = `${Md.bold("Scores:")}
 ${
@@ -156,4 +162,16 @@ function extractFeedback(assistantMessage: AssistantMessage) {
     rating: assistantMessage.rating,
     userComment: assistantMessage.userComment,
   };
+}
+
+export function makeBraintrustLogUrl(args: {
+  orgName: string;
+  projectName: string;
+  traceId: string;
+}) {
+  const urlEncodedTraceId = encodeURI(`id = "${args.traceId}"`);
+  const searchFilter = encodeURI(
+    `{"filter":[{"text":"${urlEncodedTraceId}"}]}`
+  );
+  return `https://www.braintrust.dev/app/${args.orgName}/p/${args.projectName}/logs?search=${searchFilter}&r=${args.traceId}`;
 }

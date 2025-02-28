@@ -13,6 +13,10 @@ export interface PostCommentToSlackParams {
   conversation: Conversation;
   messageWithCommentId: ObjectId;
   llmAsAJudge: LlmAsAJudge;
+  braintrust?: {
+    orgName: string;
+    projectName: string;
+  };
 }
 export async function postCommentToSlack({
   slackToken,
@@ -20,13 +24,15 @@ export async function postCommentToSlack({
   conversation,
   messageWithCommentId,
   llmAsAJudge,
+  braintrust,
 }: PostCommentToSlackParams) {
   const client = new WebClient(slackToken);
   const builder = await makeSlackMessageText(
     conversation,
     messageWithCommentId,
     slackConversationId,
-    llmAsAJudge
+    llmAsAJudge,
+    braintrust
   );
   const res = await client.chat.postMessage({
     ...builder,
@@ -40,7 +46,11 @@ async function makeSlackMessageText(
   conversation: Conversation,
   messageWithCommentId: ObjectId,
   slackConversationId: string,
-  llmAsAJudge: LlmAsAJudge
+  llmAsAJudge: LlmAsAJudge,
+  braintrust?: {
+    orgName: string;
+    projectName: string;
+  }
 ) {
   const tracingData = extractTracingData(
     conversation.messages,
@@ -65,11 +75,13 @@ async function makeSlackMessageText(
   const scores = await getLlmAsAJudgeScores(llmAsAJudge, tracingData);
 
   const messageId = messageWithCommentId.toHexString();
-  const braintrustLogUrl = makeBraintrustLogUrl({
-    orgName: "mongodb-education-ai",
-    projectName: "chatbot-responses-prod",
-    traceId: messageId,
-  });
+  const braintrustLogUrl = braintrust
+    ? makeBraintrustLogUrl({
+        orgName: braintrust.orgName,
+        projectName: braintrust.projectName,
+        traceId: messageId,
+      })
+    : undefined;
 
   const verifiedAnswerId = isVerifiedAnswer
     ? assistantMessage.metadata?.verifiedAnswer?._id
@@ -83,7 +95,7 @@ async function makeSlackMessageText(
   const feedbackMd = `${Md.bold(
     rating === true ? "👍 Positive Feedback" : "👎 Negative Feedback"
   )}
-  ${verifiedAnswerMd}
+${verifiedAnswerMd}
 ${Md.bold("User Comment:")}
 ${userComment}`;
 
@@ -120,7 +132,11 @@ ${Md.listBullet(`Tags: ${tags.map(Md.codeInline).join(", ")}`)}`;
     conversation._id.toHexString()
   )}
 Message ID: ${Md.codeInline(messageId)}
-Braintrust Log: ${Md.link(braintrustLogUrl, messageId)}`;
+${
+  braintrustLogUrl
+    ? `Braintrust Log: ${Md.link(braintrustLogUrl, messageId)}`
+    : ""
+}`;
 
   const scoresMd = `${Md.bold("Scores:")}
 ${

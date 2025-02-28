@@ -260,6 +260,12 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
     tags: ["docs", "intellij", "plugin"],
     productName: "MongoDB IntelliJ Plugin",
   },
+  {
+    type: "snooty",
+    name: "atlas-architecture",
+    tags: ["docs", "atlas", "architecture"],
+    productName: "MongoDB Atlas Architecture Center",
+  },
 ];
 
 export const snootyDataApiBaseUrl = "https://snooty-data-api.mongodb.com/prod/";

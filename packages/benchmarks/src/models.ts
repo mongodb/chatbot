@@ -6,7 +6,7 @@ export type ModelDeveloper =
   | "Mistral"
   | "Amazon";
 
-export type ModelProvider = "braintrust" | "azure_openai" | "gcp_vertex_ai";
+export type ModelProvider = "braintrust" | "gcp_vertex_ai";
 
 export interface ModelConfig {
   /**

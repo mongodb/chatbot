@@ -4,6 +4,7 @@ import { GenerationNode, WithParentNode } from "../GenerationNode";
 export const DatabaseInfoSchema = z.object({
   name: z.string().describe("Name of the database"),
   description: z.string().describe("Brief description of the database"),
+  latestDate: z.date().describe("Latest date in the database"),
   schema: z.array(
     z.object({
       name: z.string(),
@@ -101,8 +102,9 @@ export type DatabaseNlQueryNode = WithParentNode<
 >;
 
 export const DatabaseCodeSchema = z.object({
-  code: z.string(),
-  language: z.string(),
+  queryPlan: z.string().describe("Plan for executing the code"),
+  code: z.string().describe("Executable code snippet"),
+  language: z.string().describe("Programming language used in the code"),
 });
 
 export type DatabaseCode = z.infer<typeof DatabaseCodeSchema>;

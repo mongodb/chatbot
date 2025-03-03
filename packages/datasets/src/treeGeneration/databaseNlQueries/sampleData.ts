@@ -1,10 +1,16 @@
 import { ObjectId } from "mongodb-rag-core/mongodb";
-import { DatabaseInfo, DatabaseUseCase, DatabaseUser } from "./nodeTypes";
+import {
+  DatabaseInfo,
+  DatabaseUseCase,
+  DatabaseUser,
+  NaturalLanguageQuery,
+} from "./nodeTypes";
 
 export const sampleMovieDbInfo: DatabaseInfo = {
   name: "MovieDB",
   description:
     "A database containing information about movies, actors, directors, and reviews",
+  latestDate: new Date("2017-09-13T00:37:11.000+00:00"),
   schema: [
     {
       name: "movies",
@@ -155,10 +161,7 @@ export const sampleDatabaseUsers = [
   },
 ] as const satisfies DatabaseUser[];
 
-export const sampleUseCases: Record<
-  (typeof sampleDatabaseUsers)[number]["name"],
-  DatabaseUseCase[]
-> = {
+export const sampleUseCases = {
   "Alice Chen": [
     {
       title: "Daily User Engagement Metrics",
@@ -344,4 +347,76 @@ export const sampleUseCases: Record<
       dataNeeded: ["user feedback", "movie reviews", "actor reviews"],
     },
   ],
-};
+} as const satisfies Record<
+  (typeof sampleDatabaseUsers)[number]["name"],
+  DatabaseUseCase[]
+>;
+
+export const sampleNlQueries = {
+  "Alice Chen": {
+    "Daily User Engagement Metrics": [
+      {
+        query:
+          "What are the top 10 most viewed movies in the last 24 hours with their like counts and comment counts?",
+        intent: "Track daily user engagement metrics for movies",
+        expectedResults:
+          "A list of 10 movies with their view counts, like counts, and comment counts, sorted by views in descending order",
+        complexity: "moderate",
+        variations: [
+          "Show me today's most popular movies by user interaction",
+          "Which movies had the highest engagement in the past day?",
+          "List the top performing movies today with their engagement stats",
+        ],
+        context:
+          "Part of daily user engagement analysis to understand platform usage patterns",
+        entities: ["movies", "views", "likes", "comments"],
+      },
+    ],
+    "Weekly Trending Movies Report": [
+      {
+        query:
+          "Which movies have shown the biggest increase in ratings and views over the past week compared to their previous week?",
+        intent: "Identify trending movies for marketing team",
+        expectedResults:
+          "A list of movies showing their rating and view count changes week-over-week, sorted by largest positive change",
+        complexity: "complex",
+        variations: [
+          "Find movies trending upward in the last 7 days",
+          "What movies are gaining the most popularity this week?",
+          "Show weekly growth trends in movie ratings and views",
+        ],
+        context:
+          "Weekly report for marketing team to identify movies gaining traction",
+        entities: ["movies", "ratings", "views", "weekly trends"],
+      },
+    ],
+    "Monthly Genre Popularity Analysis": [
+      {
+        query:
+          "Compare the average ratings and total views across different genres for the past month versus the previous month",
+        intent: "Analyze genre popularity trends month-over-month",
+        expectedResults:
+          "A comparison of genres showing their average ratings and total views for current and previous month, with percentage changes",
+        complexity: "complex",
+        variations: [
+          "How have different movie genres performed in the last month?",
+          "Which genres are trending up or down compared to last month?",
+          "Show month-over-month changes in genre popularity",
+        ],
+        context:
+          "Monthly analysis for content acquisition and recommendation system optimization",
+        entities: ["genres", "ratings", "views", "monthly trends"],
+      },
+    ],
+  },
+} as const satisfies Partial<
+  Record<
+    (typeof sampleDatabaseUsers)[number]["name"],
+    Partial<
+      Record<
+        (typeof sampleUseCases)[keyof typeof sampleUseCases][number]["title"],
+        NaturalLanguageQuery[]
+      >
+    >
+  >
+>;

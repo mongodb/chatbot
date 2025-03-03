@@ -79,7 +79,7 @@ export function makeMongoDbTransformedContentStore<
         assert(
           transformedContent.sourceName === page.sourceName &&
             transformedContent.url === page.url,
-          `TransformedContent source/url (${transformedContent.sourceName} / ${transformedContent.url}) must match give page source/url (${page.sourceName} / ${page.url})!`
+          `TransformedContent source/url (${transformedContent.sourceName} / ${transformedContent.url}) must match given page source/url (${page.sourceName} / ${page.url})!`
         );
       });
       await mongoClient.withSession(async (session) => {

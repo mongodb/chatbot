@@ -35,7 +35,7 @@ export interface CodeExampleDatasetEntry {
   page_title?: string;
 
   /**
-    Natural language prompts that coudl be used to generate the code example.
+    Natural language prompts that could be used to generate the code example.
    */
   prompts: string[];
 

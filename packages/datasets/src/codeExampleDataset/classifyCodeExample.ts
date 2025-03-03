@@ -1,8 +1,36 @@
 import "dotenv/config";
 import { START_SNIPPET, END_SNIPPET } from "./contextualizeCodeBlock";
 import { OpenAI } from "mongodb-rag-core/openai";
+import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
 
-export const classificationTypes: ClassificationType[] = [
+const ClassificationTypeSchema = z.object({
+  type: z
+    .enum([
+      "usage_example",
+      "api_reference",
+      "execution_output",
+      "error_message",
+      "example_data",
+      "cli_command",
+      "unknown",
+    ])
+    .describe("The type of classification"),
+});
+
+export type ClassificationType = z.infer<typeof ClassificationTypeSchema>;
+
+export type ClassificationTypeMetadata = ClassificationType & {
+  description: string;
+  /**
+    Useful for few-shot examples in the system prompt
+   */
+  examples?: {
+    text: string;
+  }[];
+};
+
+export const classificationTypes: ClassificationTypeMetadata[] = [
   {
     type: "usage_example",
     description: "Example of how to use a library or function",
@@ -136,18 +164,7 @@ ${contextStr}`;
 const classifyCodeExampleFunc: OpenAI.FunctionDefinition = {
   name: "classify_code_example",
   description: "Classify the type of code example",
-  parameters: {
-    type: "object",
-    properties: {
-      type: {
-        type: "string",
-        enum: classificationTypes.map(({ type }) => type),
-        description: "Type of code example",
-      },
-    },
-    required: ["type"],
-    additionalProperties: false,
-  },
+  parameters: zodToJsonSchema(ClassificationTypeSchema),
 };
 
 export interface MakeClassifyCodeExampleParams {
@@ -178,27 +195,9 @@ export function makeClassifyCodeExample({
         name: classifyCodeExampleFunc.name,
       },
     });
-    const classificationType = JSON.parse(
-      result?.choices?.[0].message?.function_call?.arguments ?? ""
-    ).type as ClassificationType["type"];
+    const { type: classificationType } = ClassificationTypeSchema.parse(
+      JSON.parse(result?.choices?.[0].message?.function_call?.arguments ?? "")
+    );
     return classificationType;
   };
-}
-
-export interface ClassificationType {
-  type:
-    | "usage_example"
-    | "api_reference"
-    | "execution_output"
-    | "error_message"
-    | "example_data"
-    | "cli_command"
-    | "unknown";
-  description: string;
-  /**
-    Useful for few-shot examples in the system prompt
-   */
-  examples?: {
-    text: string;
-  }[];
 }

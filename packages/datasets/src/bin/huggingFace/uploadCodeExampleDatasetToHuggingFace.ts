@@ -48,10 +48,14 @@ async function uploadCodeExampleDatasetToHuggingFace() {
   );
   try {
     const pages = await pageStore.loadPages({
-      query: makeLoadPagesFilter(
-        publicDatasetSourceName,
-        Array.from(forbiddenUrls)
-      ),
+      query: {
+        sourceName: publicDatasetSourceName,
+        url: {
+          $not: {
+            $in: Array.from(forbiddenUrls),
+          },
+        },
+      },
     });
     logger.info(`Loaded pages from MongoDB. Loaded ${pages.length} pages.`);
 
@@ -111,11 +115,3 @@ async function uploadCodeExampleDatasetToHuggingFace() {
   }
 }
 uploadCodeExampleDatasetToHuggingFace();
-function makeLoadPagesFilter(
-  publicDatasetSourceName: RegExp,
-  arg1: string[]
-):
-  | import("mongodb").Filter<import("mongodb-rag-core").PersistedPage>
-  | undefined {
-  throw new Error("Function not implemented.");
-}

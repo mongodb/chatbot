@@ -6,10 +6,6 @@ import {
   CORE_OPENAI_CONNECTION_ENV_VARS,
 } from "mongodb-rag-core";
 import { makeStandardConfigMethods } from "./helpers";
-import {
-  makeGitHubApiClient,
-  makeGitHubReleaseArtifacts,
-} from "../github/github-api";
 import { makeJiraApiClient, makeJiraReleaseArtifacts } from "../jira/jira-api";
 import { stripIndents } from "common-tags";
 
@@ -18,7 +14,6 @@ const {
   OPENAI_ENDPOINT,
   OPENAI_API_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  GITHUB_ACCESS_TOKEN,
   JIRA_USERNAME,
   JIRA_PASSWORD,
 } = assertEnvVars({

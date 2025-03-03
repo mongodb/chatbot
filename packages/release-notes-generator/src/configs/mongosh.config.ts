@@ -65,6 +65,9 @@ export default createConfig({
     },
   }),
   fetchArtifacts: async (version): Promise<SomeArtifact[]> => {
+    if (!version.previous) {
+      throw new Error("Previous version is required");
+    }
     const github = makeGitHubReleaseArtifacts({
       githubApi: makeGitHubApiClient({
         authToken: GITHUB_ACCESS_TOKEN,

@@ -220,14 +220,49 @@ function keyGenerator(request: Request) {
   return request.ip;
 }
 
-const addOriginAndIpToCustomData: AddCustomDataFunc = async (req, res) =>
-  res.locals.customData.origin
-    ? { origin: res.locals.customData.origin, ip: req.ip }
+const addIpToCustomData: AddCustomDataFunc = async (req, res) =>
+  req.ip
+    ? {
+        ip: req.ip,
+      }
     : undefined;
+
 const addOriginToCustomData: AddCustomDataFunc = async (_, res) =>
   res.locals.customData.origin
-    ? { origin: res.locals.customData.origin }
+    ? {
+        origin: res.locals.customData.origin,
+      }
     : undefined;
+
+const addUserAgentToCustomData: AddCustomDataFunc = async (req, res) =>
+  req.headers["user-agent"]
+    ? {
+        userAgent: req.headers["user-agent"],
+      }
+    : undefined;
+
+export type AddDefinedCustomDataFunc = (
+  ...args: Parameters<AddCustomDataFunc>
+) => Promise<Exclude<ConversationCustomData, undefined>>;
+
+export const defaultCreateConversationCustomData: AddDefinedCustomDataFunc =
+  async (req, res) => {
+    return {
+      ...(await addIpToCustomData(req, res)),
+      ...(await addOriginToCustomData(req, res)),
+      ...(await addUserAgentToCustomData(req, res)),
+    };
+  };
+
+export const defaultAddMessageToConversationCustomData: AddDefinedCustomDataFunc =
+  async (req, res) => {
+    return {
+      ...(await addIpToCustomData(req, res)),
+      ...(await addOriginToCustomData(req, res)),
+      ...(await addUserAgentToCustomData(req, res)),
+    };
+  };
+
 /**
   Constructor function to make the /conversations/* Express.js router.
  */
@@ -241,8 +276,8 @@ export function makeConversationsRouter({
   rateLimitConfig,
   generateUserPrompt,
   middleware = [requireValidIpAddress(), requireRequestOrigin()],
-  createConversationCustomData = addOriginAndIpToCustomData,
-  addMessageToConversationCustomData = addOriginToCustomData,
+  createConversationCustomData = defaultCreateConversationCustomData,
+  addMessageToConversationCustomData = defaultAddMessageToConversationCustomData,
   addMessageToConversationUpdateTrace,
   rateMessageUpdateTrace,
   commentMessageUpdateTrace,

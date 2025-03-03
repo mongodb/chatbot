@@ -16,9 +16,9 @@ import {
   requireValidIpAddress,
   requireRequestOrigin,
   AddCustomDataFunc,
-  ConversationCustomData,
   makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
+  defaultCreateConversationCustomData,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";
@@ -192,17 +192,11 @@ export const conversations = makeMongoDbConversationsService(
   mongodb.db(MONGODB_DATABASE_NAME)
 );
 
-export const createCustomConversationDataWithIpAuthUserAndOrigin: AddCustomDataFunc =
+export const createConversationCustomDataWithAuthUser: AddCustomDataFunc =
   async (req, res) => {
-    const customData: ConversationCustomData = {};
+    const customData = await defaultCreateConversationCustomData(req, res);
     if (req.cookies.auth_user) {
       customData.authUser = req.cookies.auth_user;
-    }
-    if (req.ip) {
-      customData.ip = req.ip;
-    }
-    if (res.locals.customData.origin) {
-      customData.origin = res.locals.customData.origin;
     }
     logRequest({
       reqId: getRequestId(req),
@@ -240,7 +234,7 @@ export const config: AppConfig = {
       cookieParser(),
     ],
     createConversationCustomData: !isProduction
-      ? createCustomConversationDataWithIpAuthUserAndOrigin
+      ? createConversationCustomDataWithAuthUser
       : undefined,
     addMessageToConversationUpdateTrace:
       makeAddMessageToConversationUpdateTrace(

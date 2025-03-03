@@ -107,6 +107,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       .post(testEndpointUrl)
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
+      .set("User-Agent", "test-user-agent")
       .send(requestBody);
     expect(res.statusCode).toEqual(200);
     const conversation = await conversations.findById({
@@ -116,7 +117,9 @@ describe("POST /conversations/:conversationId/messages", () => {
     const userMessageWithCustomData =
       conversation.messages[conversation.messages.length - 2];
     expect(userMessageWithCustomData?.customData).toStrictEqual({
+      ip: ipAddress,
       origin,
+      userAgent: "test-user-agent",
     });
   });
   test("uses previous message filter", async () => {

@@ -17,11 +17,11 @@ steps:
   - name: test
     image: node:18
     commands:
-      - echo "skipping tests"
-      # - npm ci
-      # - npm run build
-      # - npm run lint
-      # - npm run test
+      - npm ci
+      - npx playwright install chromium --with-deps
+      - npm run build
+      - npm run lint
+      - npm run test
 
     environment:
       PORT: 3000

@@ -35,24 +35,6 @@ describe.skip("Braintrust models", () => {
   );
 });
 
-describe.skip("Azure OpenAI models", () => {
-  test.each(models.filter((m) => m.provider === "azure_openai"))(
-    "'$label' model should generate data",
-    async (model) => {
-      const { OPENAI_API_KEY, OPENAI_ENDPOINT, OPENAI_API_VERSION } =
-        assertEnvVars(CORE_OPENAI_CONNECTION_ENV_VARS);
-      const openAiClientFactory = makeOpenAiClientFactory({
-        azure: {
-          apiKey: OPENAI_API_KEY,
-          endpoint: OPENAI_ENDPOINT,
-          apiVersion: OPENAI_API_VERSION,
-        },
-      });
-      const openAiClient = openAiClientFactory.makeOpenAiClient(model);
-      await expectModelResponse(openAiClient, model.deployment);
-    }
-  );
-});
 describe.skip("GCP Vertex AI models", () => {
   test.each(models.filter((m) => m.provider === "gcp_vertex_ai"))(
     "'$label' model should generate data",

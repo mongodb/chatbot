@@ -11,6 +11,7 @@ import {
 } from "./config";
 import atlasCliConfig from "./configs/atlasCli.config";
 import mongoshConfig from "./configs/mongosh.config";
+import opsManagerConfig from "./configs/opsManager.config";
 import relationalMigratorConfig from "./configs/relationalMigrator.config";
 
 const mockProjectInfo: ProjectInfo = {
@@ -91,6 +92,14 @@ describe("generate", () => {
     expect(changes).toBeDefined();
     expect(changes.length).toBeGreaterThan(0);
   }, 300000);
+  // Skip this test because it uses real LLM calls and is slow
+  it.skip("generates changelogs for a real config (opsManager)", async () => {
+    const changes = await generate(validateConfig(opsManagerConfig), {
+      current: "20250219",
+    });
+    expect(changes).toBeDefined();
+    expect(changes.length).toBeGreaterThan(0);
+  }, 3600000);
   // Skip this test because it uses real LLM calls and is slow
   it.skip("generates changelogs for a real config (relational-migrator)", async () => {
     const changes = await generate(validateConfig(relationalMigratorConfig), {

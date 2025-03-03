@@ -9,7 +9,7 @@ import { z } from "zod";
 
 export const versionRangeSchema = z.object({
   current: z.string(),
-  previous: z.string(),
+  previous: z.string().optional(),
 });
 
 export type VersionRange = z.infer<typeof versionRangeSchema>;

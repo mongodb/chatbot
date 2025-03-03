@@ -17,7 +17,9 @@ export async function generate(
 
   // Fetch all artifacts for the given version
   const fetchedArtifacts = await config.fetchArtifacts(version);
-  await logger?.log("debug", "Fetched artifacts", fetchedArtifacts);
+  await logger?.log("debug", `Fetched ${fetchedArtifacts.length} artifacts`, {
+    ids: fetchedArtifacts.map((artifact) => getArtifactIdentifier(artifact)),
+  });
 
   const { results: classifiedArtifacts } = await PromisePool.withConcurrency(
     config.llmMaxConcurrency,

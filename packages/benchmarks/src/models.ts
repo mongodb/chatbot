@@ -8,7 +8,7 @@ export type ModelDeveloper =
   | "DeepSeek"
   | "Alibaba Cloud";
 
-export type ModelProvider = "braintrust" | "azure_openai" | "gcp_vertex_ai";
+export type ModelProvider = "braintrust" | "gcp_vertex_ai";
 
 export interface ModelConfig {
   /**

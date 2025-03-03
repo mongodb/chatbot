@@ -9,6 +9,7 @@
     "createQualityTestsYaml-sept-2023": "npm run build && node ./build/createSept2023QualityTestsYaml.js",
     "scrubMessages": "npm run build && node ./build/scrubMessages.js",
     "sampleAndSaveMarkdownPages": "npm run build && node ./build/sampleAndSaveMarkdownPages.js",
+    "upsertMetaDirective": "npm run build && node ./build/upsertMetaDirective.js",
     "analyzeMessages": "npm run build && node ./build/analyzeMessages.js",
     "findFaq": "npm run build && node ./build/main/findFaqMain.js",
     "upgradeFaqEntries": "npm run build && node ./build/main/upgradeFaqEntriesMain.js",

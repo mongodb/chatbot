@@ -1,20 +1,36 @@
 import "dotenv/config";
-import { strict as assert } from "assert";
-import { START_SNIPPET, END_SNIPPET } from "./contextualizeCodeBlock.js";
-import { OpenAI, AzureOpenAI } from "mongodb-rag-core/openai";
-import {
-  assertEnvVars,
-  CORE_OPENAI_CHAT_COMPLETION_ENV_VARS,
-} from "mongodb-rag-core";
+import { START_SNIPPET, END_SNIPPET } from "./contextualizeCodeBlock";
+import { OpenAI } from "mongodb-rag-core/openai";
+import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
 
-const {
-  OPENAI_API_KEY,
-  OPENAI_API_VERSION,
-  OPENAI_ENDPOINT,
-  OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-} = assertEnvVars(CORE_OPENAI_CHAT_COMPLETION_ENV_VARS);
+const ClassificationTypeSchema = z.object({
+  type: z
+    .enum([
+      "usage_example",
+      "api_reference",
+      "execution_output",
+      "error_message",
+      "example_data",
+      "cli_command",
+      "unknown",
+    ])
+    .describe("The type of classification"),
+});
 
-const classificationTypes: ClassificationType[] = [
+export type ClassificationType = z.infer<typeof ClassificationTypeSchema>;
+
+export type ClassificationTypeMetadata = ClassificationType & {
+  description: string;
+  /**
+    Useful for few-shot examples in the system prompt
+   */
+  examples?: {
+    text: string;
+  }[];
+};
+
+export const classificationTypes: ClassificationTypeMetadata[] = [
   {
     type: "usage_example",
     description: "Example of how to use a library or function",
@@ -120,7 +136,8 @@ atlas accesslogs list --output json --projectId 618d48e05277a606ed2496fe --clust
     description:
       "Unknown classification type. The code example doesn't easily fit into any of the other categories.",
   },
-];
+] as const;
+
 const makeSystemPrompt = (
   contextStr: string
 ): string => `Your job is to classify a code example into one of the following categories.
@@ -147,37 +164,22 @@ ${contextStr}`;
 const classifyCodeExampleFunc: OpenAI.FunctionDefinition = {
   name: "classify_code_example",
   description: "Classify the type of code example",
-  parameters: {
-    type: "object",
-    properties: {
-      type: {
-        type: "string",
-        enum: classificationTypes.map(({ type }) => type),
-        description: "Type of code example",
-      },
-    },
-    required: ["type"],
-    additionalProperties: false,
-  },
+  parameters: zodToJsonSchema(ClassificationTypeSchema),
 };
 
-export function makeClassifyCodeExample() {
-  assert(OPENAI_API_KEY, "OPENAI_API_KEY is required");
-  assert(OPENAI_ENDPOINT, "OPENAI_ENDPOINT is required");
-  assert(
-    OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-    "OPENAI_CHAT_COMPLETION_DEPLOYMENT is required"
-  );
-  const openAiClient = new AzureOpenAI({
-    apiKey: OPENAI_API_KEY,
-    endpoint: OPENAI_ENDPOINT,
-    apiVersion: OPENAI_API_VERSION,
-  });
+export interface MakeClassifyCodeExampleParams {
+  openAiClient: OpenAI;
+  model: string;
+}
+export function makeClassifyCodeExample({
+  openAiClient,
+  model,
+}: MakeClassifyCodeExampleParams) {
   return async function classifyCodeExample({
     text,
   }: {
     text: string;
-  }): Promise<string> {
+  }): Promise<ClassificationTypeMetadata["type"]> {
     const result = await openAiClient.chat.completions.create({
       messages: [
         {
@@ -185,7 +187,7 @@ export function makeClassifyCodeExample() {
           content: makeSystemPrompt(text),
         },
       ],
-      model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+      model,
       temperature: 0,
       max_tokens: 300,
       functions: [classifyCodeExampleFunc],
@@ -193,20 +195,9 @@ export function makeClassifyCodeExample() {
         name: classifyCodeExampleFunc.name,
       },
     });
-    const classificationType = JSON.parse(
-      result?.choices?.[0].message?.function_call?.arguments ?? ""
-    ).type as string;
+    const { type: classificationType } = ClassificationTypeSchema.parse(
+      JSON.parse(result?.choices?.[0].message?.function_call?.arguments ?? "")
+    );
     return classificationType;
   };
-}
-
-interface ClassificationType {
-  type: string;
-  description: string;
-  /**
-    Useful for few-shot examples in the system prompt
-   */
-  examples?: {
-    text: string;
-  }[];
 }

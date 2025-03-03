@@ -1,8 +1,8 @@
 # MongoDB AI Chatbot Server
 
-This is an implementation of `mongodb-chatbot-server` that powers the MongoDB AI Chatbot.
+This is an implementation of `mongodb-chatbot-server` that powers the MongoDB Education Chatbot. You can query the chatbot from https://mongodb.com/docs. 
 
-The project is a Express.js server.
+The project uses an Express.js server.
 
 ## Usage
 

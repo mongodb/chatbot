@@ -21,7 +21,11 @@ async function conversationEval() {
   const faqCases = getConversationsEvalCasesFromYaml(
     fs.readFileSync(path.resolve(basePath, "faq_conversations.yml"), "utf8")
   );
-  const conversationEvalCases = miscCases.concat(faqCases);
+  const dotComCases = await getConversationsEvalCasesFromYaml(
+    path.resolve(basePath, "dotcom_chatbot_evaluation_questions.yml")
+  );
+
+  const conversationEvalCases = [...miscCases, ...faqCases, ...dotComCases];
 
   const generateConfig = {
     systemPrompt,

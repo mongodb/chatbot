@@ -234,6 +234,6 @@ you can checkout the following example implementations:
 - [MongoDB Docs Chatbot](https://github.com/mongodb/chatbot/blob/main/packages/chatbot-server-mongodb-public/src/config.ts):
   The configuration for the MongoDB Docs chatbot on https://www.mongodb.com/docs/.
   This is the most complex configuration example.
-- [Basic Chatbot Server](https://github.com/mongodb/chatbot/blob/main/examples/basic-chatbot-server/src/index.ts):
+- [Basic Chatbot Server](https://github.com/mongodb/chatbot/blob/main/examples/quick-start/packages/server):
   A simple chatbot created for example purposes. This can be used as a starting point
   for your own chatbot server.

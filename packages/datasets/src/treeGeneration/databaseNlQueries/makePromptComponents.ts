@@ -13,7 +13,7 @@ Description: ${databaseInfo.description}
 
 ### Collections
 
-${databaseInfo.schema
+${databaseInfo.collections
   .map(
     (c) => `#### Collection \`${c.name}\`
 Description: ${c.description}

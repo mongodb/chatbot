@@ -1,9 +1,4 @@
-import {
-  MongoClient,
-  UUID,
-  ObjectId,
-  Collection,
-} from "mongodb-rag-core/mongodb";
+import { MongoClient, ObjectId, Collection } from "mongodb-rag-core/mongodb";
 import {
   extractDeterministicSampleOfDocuments,
   MUST_HAVE_AT_LEAST_ONE_EXAMPLE_DOCUMENT_ERROR,

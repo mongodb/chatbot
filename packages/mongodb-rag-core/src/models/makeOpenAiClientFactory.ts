@@ -1,7 +1,7 @@
-import { OpenAI } from "mongodb-rag-core/openai";
+import { OpenAI } from "openai";
 import { ModelConfig } from "./models";
 import { strict as assert } from "assert";
-import { wrapOpenAI } from "mongodb-rag-core/braintrust";
+import { wrapOpenAI } from "braintrust";
 interface BaseModelProviderConfig {
   apiKey: string;
   endpoint: string;

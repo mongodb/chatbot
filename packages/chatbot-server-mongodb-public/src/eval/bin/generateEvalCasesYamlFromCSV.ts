@@ -82,12 +82,12 @@ const transformationMap: Record<
 };
 
 /**
- * Normalizes a URL by removing the protocol (http/https) and 'www.' prefix
- * normalizeUrl('https://www.example.com') // returns 'example.com'
- * normalizeUrl('http://example.com') // returns 'example.com'
+ Normalizes a URL by removing the protocol (http/https) and 'www.' prefix
+ normalizeUrl('https://www.example.com') // returns 'example.com'
+ normalizeUrl('http://example.com') // returns 'example.com'
  */
 function normalizeUrl(url: string): string {
-  return url.replace(/^https?:\/\/(www\.)?/i, '');
+  return url.replace(/^https?:\/\/(www\.)?/i, "");
 }
 
 const findMissingResources = async (
@@ -96,7 +96,7 @@ const findMissingResources = async (
   const results = await Promise.all(
     expectedUrls.map(async (url) => {
       const pageExists = await db.collection("pages").findOne({
-        url: { $regex: new RegExp(normalizeUrl(url))}
+        url: { $regex: new RegExp(normalizeUrl(url)) },
       });
       return !pageExists ? url : null;
     })
@@ -149,7 +149,6 @@ async function main({
   const yamlContent = yaml.stringify(evalCases);
   await fs.promises.writeFile(yamlFilePath, yamlContent, "utf8");
   console.log("YAML file written successfully");
-
 }
 
 // Checks if the script is being run directly (not imported as a module) and handles command-line arguments.

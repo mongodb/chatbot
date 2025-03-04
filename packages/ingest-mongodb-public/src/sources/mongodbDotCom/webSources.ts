@@ -179,7 +179,8 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/legal/terms-of-use",
       "https://www.mongodb.com/why-use-mongodb",
       "https://learn.mongodb.com",
-      "https://support.mongodb.com/",
+      "https://learn.mongodb.com/skills",
+      "https://support.mongodb.com",
     ],
   },
 ];

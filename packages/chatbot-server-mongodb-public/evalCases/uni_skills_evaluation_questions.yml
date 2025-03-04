@@ -1,0 +1,179 @@
+- name: What is a skill?
+  messages:
+    - role: user
+      content: What is a skill?
+  reference: MongoDB offers skills, each skill should take between 60-90 minutes
+    to attain for a specific skill. You can learn skills across all topics in
+    MongoDB starting with Data Modeling. You can take an assessment which will
+    earn you a badge to indicate mastery of a specific skill.
+  expectedLinks:
+    - https://learn.mongodb.com/skills
+- name: What skills are available for me to take?
+  messages:
+    - role: user
+      content: What skills are available for me to take?
+  reference: There is a range of skills available on our skills page. We are
+    building these out starting with several on data modeling topics. The skill
+    in data modeling we'd recommend you start with is "From Relational Model
+    (SQL) to MongoDB's Document Model". The other data modeling skills cover the
+    topics of Schema Patterns and Antipatterns, Advanced Schema Patterns and
+    Antipatterns, and Schema Design Optimization.
+  expectedLinks:
+    - https://learn.mongodb.com/skills
+- name: What skill do you have on the document model?
+  messages:
+    - role: user
+      content: What skill do you have on the document model?
+  reference: The skill, "From Relational Model (SQL) to MongoDB's Document Model",
+    teaches you about the document model. It covers how to model your workload,
+    how to design data relationships, and how to validate your schemas. You will
+    learn about the MongoDB metholodgy for converting from a relational model to
+    a document model.
+  expectedLinks:
+    - https://learn.mongodb.com/skills
+- name: What skill do you have on the schema patterns?
+  messages:
+    - role: user
+      content: What skill do you have on the schema patterns?
+  reference: The skill, "MongoDB Schema Design Patterns and Antipatterns", teaches
+    you about the schema patterns for the document model. It covers the three
+    most common schema design patterns, specifically the inheritance pattern,
+    the computed pattern, and the extended reference pattern. It teachs you when
+    and how you should apply them in your data model.
+  expectedLinks:
+    - https://learn.mongodb.com/skills
+    - https://www.mongodb.com/docs/manual/data-modeling/design-patterns/
+- name: What skill do you have on the schema antipatterns?
+  messages:
+    - role: user
+      content: What skill do you have on the schema antipatterns?
+  reference: >-
+    The skill, "MongoDB Schema Design Patterns and Antipatterns", teaches you
+    about the antipatterns that you might find when modeling your data for the
+    document model. This includes antipatterns such as unbounded arrays and
+    bloated documents. You will learn how to identify and avoid them in your
+    schema design. 
+
+    The skill, "MongoDB Advanced Schema Design Patterns and Antipatterns", also teaches you about more complex antipatterns such as massive number of collections, unnecessary indexes, data normalization, and case sensitivity. This category of antipattern is classified as an advanced as in order to identify their performance impacts you must do more than analyse the schema.
+  expectedLinks:
+    - https://learn.mongodb.com/skills
+- name: What skill do you have on advanced schema patterns?
+  messages:
+    - role: user
+      content: What skill do you have on advanced schema patterns?
+  reference: The skill, "MongoDB Advanced Schema Design Patterns and
+    Antipatterns", teaches you about advanced schema design patterns including
+    the approximation pattern and the schema versioning pattern. You will learn
+    how to identify when they are suitable and how you should apply them to your
+    data model.
+  expectedLinks:
+    - https://learn.mongodb.com/skills
+- name: What skill do you have on updating your schema?
+  messages:
+    - role: user
+      content: What skill do you have on updating your schema?
+  reference: The skill, "MongoDB Advanced Schema Design Patterns and
+    Antipatterns", teaches you about your schema lifecycle including the
+    recommendations on how to update the schema as well as how you can migrate
+    your application to the new schema without downtime. It also covers how to
+    use schema versioning to manage evolving your data model to new business
+    requirements which add new fields.
+  expectedLinks:
+    - https://learn.mongodb.com/skills
+    - https://www.mongodb.com/docs/manual/data-modeling/design-patterns/data-versioning/schema-versioning/
+- name: What skill do you have on migrating your schema?
+  messages:
+    - role: user
+      content: What skill do you have on migrating your schema?
+  reference: The skill, "MongoDB Advanced Schema Design Patterns and
+    Antipatterns", teaches you about your schema lifecycle including the
+    recommendations on how to update the schema as well as how you can migrate
+    your application to the new schema without downtime. It also covers how to
+    use schema versioning to manage evolving your data model to new business
+    requirements which add new fields.
+  expectedLinks:
+    - https://learn.mongodb.com/skills
+    - https://www.mongodb.com/docs/manual/data-modeling/design-patterns/data-versioning/schema-versioning/
+- name: What skill do you have to optimize an existing schema?
+  messages:
+    - role: user
+      content: What skill do you have to optimize an existing schema?
+  reference: The skill, "MongoDB Schema Design Optimization", teaches you how to
+    optimize your existing schema. You will learn how to implement schema
+    patterns (if you are not already doing so!) focused on performance
+    optimization such as the single collection pattern, the subset pattern, the
+    bucket pattern, and the outlier pattern. It will also teach how you can
+    design your data model for performance in a sharded cluster and more broadly
+    as a means to scale out your schema.
+  expectedLinks:
+    - https://learn.mongodb.com/skills
+    - https://www.mongodb.com/docs/manual/data-modeling/design-patterns/
+- name: What skill do you have on schema validation?
+  messages:
+    - role: user
+      content: What skill do you have on schema validation?
+  reference: The skill, "From Relational Model (SQL) to MongoDB's Document Model",
+    teaches you about the schema validation. It covers how to model your
+    workload, how to design data relationships, and how to validate your
+    schemas. You will learn about the MongoDB metholodgy for converting from a
+    relational model to a document model. You will also learn how to use
+    MongoDB's schema validation feature to enforce predefined rules for
+    documents in an application
+  expectedLinks:
+    - https://learn.mongodb.com/skills
+    - https://www.mongodb.com/docs/manual/core/schema-validation/
+- name: Does MongoDB offer any digital badges?
+  messages:
+    - role: user
+      content: Does MongoDB offer any digital badges?
+  reference: MongoDB offers a new skills catalog on the completion of a given
+    skill you can take an assessment to be awarded a digital badge. This badge
+    is a form of credentially that allows you to demonstrate your knowledge and
+    skills in MongoDB across various social channels. These badges are free to
+    earn and share.
+  expectedLinks:
+    - https://learn.mongodb.com/skills
+- name: What is the cost of earning a digital badge with MongoDB?
+  messages:
+    - role: user
+      content: What is the cost of earning a digital badge with MongoDB?
+  reference: Badges are free but you must earn them by taking an assessment. In
+    order to accept the badge you should create [create a Credly.com
+    account](https://www.credly.com/users/sign_up) which is also free. Credly is
+    an independent organization and provides the service MongoDB uses to deliver
+    digital badges.
+  expectedLinks:
+    - https://learn.mongodb.com/skills
+    - https://www.credly.com/users/sign_up
+- name: What is the easiest way to learn MongoDB?
+  messages:
+    - role: user
+      content: What is the easiest way to learn MongoDB?
+  reference: The easiest way to learn MongoDB is to take one of our database
+    skills offerings. These are short lasting no more than 90 minutes from start
+    to assessment which awards you a digital badge on completion. If you are new
+    to MongoDB we recommend starting with our skill on "From Relational Model
+    (SQL) to MongoDB's Document Model". You can see our full list of skill at
+    https://learn.mongodb.com/skills Each skill is focused on one topic, if you
+    want to learn MongoDB in a more complex fashion, we'd recommend taking our
+    12 hour course on "Introduction to MongoDB"
+    https://learn.mongodb.com/learning-paths/introduction-to-mongodb which gives
+    a broad and rounded introduction. The difference in learning between a skill
+    and a course is the time commitment, courses are longer whilst skills are
+    designed to be finished end to end in 90 minutes or less.
+  expectedLinks:
+    - https://learn.mongodb.com/skills
+    - https://learn.mongodb.com/learning-paths/introduction-to-mongodb
+- name: What is the difference between a skill and a course on learn.mongodb.com?
+  messages:
+    - role: user
+      content: What is the difference between a skill and a course on learn.mongodb.com?
+  reference: >-
+    The difference in learning between a skill and a course is the time
+    commitment, courses are longer whilst skills are designed to be finished end
+    to end in 90 minutes or less.
+
+    Each skill provides a digitial badge on completion, courses do not. The breath and depth of content in a skill is typically shallower than a course covering the same topics.
+  expectedLinks:
+    - https://learn.mongodb.com
+    - https://learn.mongodb.com/skills

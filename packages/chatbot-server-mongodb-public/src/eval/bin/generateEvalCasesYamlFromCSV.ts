@@ -81,12 +81,23 @@ const transformationMap: Record<
   // Add more transformation functions here as needed
 };
 
+/**
+ * Normalizes a URL by removing the protocol (http/https) and 'www.' prefix
+ * normalizeUrl('https://www.example.com') // returns 'example.com'
+ * normalizeUrl('http://example.com') // returns 'example.com'
+ */
+function normalizeUrl(url: string): string {
+  return url.replace(/^https?:\/\/(www\.)?/i, '');
+}
+
 const findMissingResources = async (
   expectedUrls: string[]
 ): Promise<string[]> => {
   const results = await Promise.all(
     expectedUrls.map(async (url) => {
-      const pageExists = await db.collection("pages").findOne({ url });
+      const pageExists = await db.collection("pages").findOne({
+        url: { $regex: new RegExp(normalizeUrl(url))}
+      });
       return !pageExists ? url : null;
     })
   );

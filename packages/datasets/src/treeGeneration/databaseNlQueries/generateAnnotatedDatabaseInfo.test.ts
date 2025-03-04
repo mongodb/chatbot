@@ -28,31 +28,46 @@ describe("generateAnnotatedDatabaseInfo", () => {
   afterAll(async () => {
     await mongoClient.close();
   });
-
-  it("should generate annotated DB info", async () => {
-    const model = "gpt-4o";
-    const dbInfo = await generateAnnotatedDatabaseInfo({
-      mongoDb: {
-        mongoClient,
-        databaseName: "sample_mflix",
-        numSamplesPerCollection: 2,
-      },
-      llm: {
-        model,
-        openAiClient: new OpenAI({
-          baseURL: BRAINTRUST_ENDPOINT,
-          apiKey: BRAINTRUST_API_KEY,
-        }),
-        // temperature: 0,
-        // max_completion_tokens: 2000,
-        max_tokens: 2000,
-      },
-    });
-    const pathOut = path.resolve(__dirname, model + "_annotatedDbSchema.yaml");
-    fs.writeFileSync(
-      pathOut,
-      yaml.stringify(JSON.parse(prettyPrintMongoDbDocument(dbInfo.data)))
-    );
-    console.log("Saved to", pathOut);
-  });
+  const dbNames = [
+    "sample_mflix",
+    "sample_weatherdata",
+    "sample_supplies",
+    "sample_airbnb",
+    "sample_analytics",
+    "sample_geospatial",
+    "sample_guides",
+    "sample_restaurants",
+  ];
+  it.each(dbNames)(
+    "should generate annotated DB info for %s",
+    async (dbName) => {
+      const model = "gpt-4o";
+      const dbInfo = await generateAnnotatedDatabaseInfo({
+        mongoDb: {
+          mongoClient,
+          databaseName: dbName,
+          numSamplesPerCollection: 2,
+        },
+        llm: {
+          model,
+          openAiClient: new OpenAI({
+            baseURL: BRAINTRUST_ENDPOINT,
+            apiKey: BRAINTRUST_API_KEY,
+          }),
+          temperature: 0,
+          max_completion_tokens: 2000,
+          //   max_tokens: 2000,
+        },
+      });
+      const pathOut = path.resolve(
+        __dirname,
+        dbName + "_" + model + "_" + "annotatedDbSchema.yaml"
+      );
+      fs.writeFileSync(
+        pathOut,
+        yaml.stringify(JSON.parse(prettyPrintMongoDbDocument(dbInfo.data)))
+      );
+      console.log("Saved to", pathOut);
+    }
+  );
 });

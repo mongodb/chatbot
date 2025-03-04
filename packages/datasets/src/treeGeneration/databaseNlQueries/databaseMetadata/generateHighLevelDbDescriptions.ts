@@ -68,10 +68,6 @@ export async function generateHighLevelDbDescriptions(
 ${prettyPrintMongoDbDocument(databaseMetadata)}`,
     },
   ] satisfies OpenAI.ChatCompletionMessageParam[];
-  console.log(
-    "Example docs::",
-    prettyPrintMongoDbDocument(databaseMetadata.collections[0].exampleDocuments)
-  );
   return await getOpenAiFunctionResponse({
     messages,
     llmOptions,

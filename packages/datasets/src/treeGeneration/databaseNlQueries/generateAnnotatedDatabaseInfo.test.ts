@@ -30,6 +30,7 @@ describe("generateAnnotatedDatabaseInfo", () => {
   });
 
   it("should generate annotated DB info", async () => {
+    const model = "gpt-4o";
     const dbInfo = await generateAnnotatedDatabaseInfo({
       mongoDb: {
         mongoClient,
@@ -37,16 +38,17 @@ describe("generateAnnotatedDatabaseInfo", () => {
         numSamplesPerCollection: 2,
       },
       llm: {
-        model: "gpt-4o-mini",
+        model,
         openAiClient: new OpenAI({
           baseURL: BRAINTRUST_ENDPOINT,
           apiKey: BRAINTRUST_API_KEY,
         }),
-        temperature: 0,
-        max_completion_tokens: 2000,
+        // temperature: 0,
+        // max_completion_tokens: 2000,
+        max_tokens: 2000,
       },
     });
-    const pathOut = path.resolve(__dirname, "annotatedDbSchema.yaml");
+    const pathOut = path.resolve(__dirname, model + "_annotatedDbSchema.yaml");
     fs.writeFileSync(
       pathOut,
       yaml.stringify(JSON.parse(prettyPrintMongoDbDocument(dbInfo.data)))

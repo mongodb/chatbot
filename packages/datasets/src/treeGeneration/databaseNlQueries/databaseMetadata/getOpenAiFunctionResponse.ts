@@ -54,7 +54,6 @@ function parseObjectFromOpenAiResponse<Schema extends ZodSchema>(
   if (!toolCall || toolCall.function.name !== functionName) {
     throw new Error("Unexpected response format from OpenAI");
   }
-
   const descriptions = JSON.parse(toolCall.function.arguments);
   return schema.parse(descriptions);
 }

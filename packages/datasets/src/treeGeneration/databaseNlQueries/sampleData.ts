@@ -11,7 +11,7 @@ export const sampleMovieDbInfo: DatabaseInfo = {
   description:
     "A database containing information about movies, actors, directors, and reviews",
   latestDate: new Date("2017-09-13T00:37:11.000+00:00"),
-  schema: [
+  collections: [
     {
       name: "movies",
       description:
@@ -30,6 +30,7 @@ export const sampleMovieDbInfo: DatabaseInfo = {
         },
         required: ["_id", "title", "year", "genre"],
       },
+      indexes: [],
       examples: [
         {
           _id: new ObjectId().toString(),
@@ -60,6 +61,7 @@ export const sampleMovieDbInfo: DatabaseInfo = {
     {
       name: "directors",
       description: "Information about movie directors",
+      indexes: [],
       schema: {
         type: "object",
         properties: {
@@ -96,6 +98,7 @@ export const sampleMovieDbInfo: DatabaseInfo = {
     {
       name: "users",
       description: "Users who interact with the movie database",
+      indexes: [],
       schema: {
         type: "object",
         properties: {

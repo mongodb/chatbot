@@ -5,12 +5,21 @@ export const DatabaseInfoSchema = z.object({
   name: z.string().describe("Name of the database"),
   description: z.string().describe("Brief description of the database"),
   latestDate: z.date().describe("Latest date in the database"),
-  schema: z.array(
+  collections: z.array(
     z.object({
       name: z.string(),
       description: z.string(),
       schema: z.any(),
       examples: z.array(z.any()),
+      indexes: z
+        .array(
+          z.object({
+            description: z.string().optional(),
+            name: z.string(),
+            key: z.any(),
+          })
+        )
+        .describe("Indexes on the collection."),
     })
   ),
 });

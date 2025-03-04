@@ -4,10 +4,9 @@ import {
   IndexDescription,
   MongoClient,
 } from "mongodb-rag-core/mongodb";
-import { OpenAI } from "mongodb-rag-core/openai";
 import { getSimplifiedSchema } from "mongodb-schema";
-import { strict as assert } from "assert";
 import { extractDeterministicSampleOfDocuments } from "./extractDeterministicSampleOfDocuments";
+import { truncateDocumentForLlm } from "./truncateDocument";
 
 export interface GetDatabaseMetadataParams {
   mongoClient: MongoClient;
@@ -20,6 +19,8 @@ export interface GetDatabaseMetadataParams {
   numSamplesPerCollection: number;
   latestDate?: Date;
 }
+
+type IndexDescriptionWithName = IndexDescription & { name: string };
 
 export interface CollectionInfo {
   /**
@@ -34,9 +35,10 @@ export interface CollectionInfo {
     If you include the indexes, the system prompt will list
     the indexes along with the collection.
    */
-  indexes?: IndexDescription[];
+  indexes: IndexDescriptionWithName[];
   /**
     Example documents to include in the system prompt.
+    Truncated to fix within the context of the LLM.
    */
   exampleDocuments: Document[];
 
@@ -89,11 +91,15 @@ async function getCollectionMetadata(
 
   const indexes = (await collection
     .listIndexes()
-    .toArray()) as unknown as IndexDescription[];
+    .toArray()) as unknown as IndexDescriptionWithName[];
   const exampleDocuments = await extractDeterministicSampleOfDocuments({
     collection,
     limit: sampleDocumentLimit,
   });
+
+  const exampleDocumentsTruncated = exampleDocuments.map((doc) =>
+    truncateDocumentForLlm(doc)
+  );
 
   const schema = await getSimplifiedSchema(exampleDocuments);
 
@@ -101,6 +107,6 @@ async function getCollectionMetadata(
     schema,
     indexes,
     collectionName,
-    exampleDocuments,
+    exampleDocuments: exampleDocumentsTruncated,
   };
 }

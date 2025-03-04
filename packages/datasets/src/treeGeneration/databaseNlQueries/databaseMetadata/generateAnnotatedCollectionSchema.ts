@@ -1,9 +1,9 @@
 import { OpenAI } from "mongodb-rag-core/openai";
 import { CollectionInfo, DatabaseMetadata } from "./getDatabaseMetadata";
 import { LlmOptions } from "./LlmOptions";
-import assert from "assert/strict";
 import { z } from "zod";
 import { getOpenAiFunctionResponse } from "./getOpenAiFunctionResponse";
+import { prettyPrintMongoDbDocument } from "./prettyPrintMongoDbDocument";
 
 const systemPrompt = `You are an expert MongoDB database architect. Your task is to analyze the provided database metadata and generate clear, concise descriptions and an annotated schema for the specified collection. The descriptions that you generate will be used in the prompt of a LLM for performing database-related tasks.
 
@@ -21,7 +21,7 @@ const functionName = "get_annotated_collection_schema";
 const functionDescription =
   "Generate annotated schema and index definitions for the specified collection.";
 
-function makeDetailedColelctionDescriptionSchema(
+function makeDetailedCollectionDescriptionSchema(
   collectionInfo: CollectionInfo
 ) {
   const indexNames = collectionInfo.indexes
@@ -48,19 +48,20 @@ function makeDetailedColelctionDescriptionSchema(
 }
 
 export type DetailedCollectionDescriptions = z.infer<
-  ReturnType<typeof makeDetailedColelctionDescriptionSchema>
+  ReturnType<typeof makeDetailedCollectionDescriptionSchema>
 >;
 
-export async function generateAnnotatedCollectionSchema(
-  databaseMetadata: DatabaseMetadata,
-  collectionName: string,
-  llmOptions: LlmOptions
-): Promise<DetailedCollectionDescriptions> {
-  const collection = databaseMetadata.collections.find(
-    (c) => c.collectionName === collectionName
-  );
-  assert(collection, `Collection ${collectionName} not found`);
+interface GenerateAnnotatedCollectionSchemaParams {
+  collectionMetadata: CollectionInfo;
+  databaseMetadata: DatabaseMetadata;
+  llm: LlmOptions;
+}
 
+export async function generateAnnotatedCollectionSchema({
+  collectionMetadata,
+  databaseMetadata,
+  llm: llmOptions,
+}: GenerateAnnotatedCollectionSchemaParams): Promise<DetailedCollectionDescriptions> {
   const messages = [
     {
       role: "system",
@@ -68,20 +69,24 @@ export async function generateAnnotatedCollectionSchema(
     },
     {
       role: "user",
-      content: `Analyze the following collection: '${collectionName}'.
+      content: `Analyze the following collection: '${
+        collectionMetadata.collectionName
+      }'.
 
 Database metadata:
-${JSON.stringify(databaseMetadata, null, 2)}
+${prettyPrintMongoDbDocument(databaseMetadata)}
         
-Again, analyze the collection named '${collectionName}'.`,
+Again, analyze the collection named '${collectionMetadata.collectionName}'.`,
     },
   ] satisfies OpenAI.ChatCompletionMessageParam[];
 
-  return await getOpenAiFunctionResponse({
+  const result = await getOpenAiFunctionResponse({
     messages,
     llmOptions,
-    schema: makeDetailedColelctionDescriptionSchema(collection),
+    schema: makeDetailedCollectionDescriptionSchema(collectionMetadata),
     functionName,
     functionDescription,
   });
+
+  return result;
 }

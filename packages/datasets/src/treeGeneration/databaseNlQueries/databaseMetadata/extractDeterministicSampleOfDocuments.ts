@@ -1,5 +1,5 @@
 import { strict as assert } from "assert";
-import { Collection } from "mongodb-rag-core/mongodb";
+import { Collection, BSON } from "mongodb-rag-core/mongodb";
 
 export interface ExtractSampleDocumentsParams {
   collection: Collection;
@@ -26,5 +26,6 @@ export async function extractDeterministicSampleOfDocuments({
     ])
     .toArray();
   assert(documents.length > 0, MUST_HAVE_AT_LEAST_ONE_EXAMPLE_DOCUMENT_ERROR);
+  console.log("retrieved docs", BSON.EJSON.stringify(documents));
   return documents;
 }

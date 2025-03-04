@@ -1,0 +1,470 @@
+name: sample_mflix
+description: The sample_mflix database is designed to manage and store
+  information related to movies, user accounts, comments, sessions, and theater
+  locations. It serves as a platform for users to interact with movie data,
+  leave comments, and manage their sessions while providing a comprehensive
+  overview of available theaters.
+latestDate:
+  $date: 2025-03-04T21:19:31.665Z
+collections:
+  - name: users
+    description: Stores user account information including names, emails, passwords,
+      and unique identifiers. This collection is fundamental for user
+      authentication and management, allowing users to create accounts and log
+      in to the system.
+    schema: |-
+      interface User {
+          /** Unique identifier for the user */
+          _id: ObjectId;
+          /** Name of the user */
+          name: string;
+          /** Email address of the user, must be unique */
+          email: string;
+          /** Hashed password of the user */
+          password: string;
+          /** Hash value for additional security or identification */
+          hash: Long;
+      }
+    examples:
+      - _id:
+          $oid: 59b99dd8cfa9a34dcd7885f7
+        name: Loras Tyrell
+        email: finn_jones@gameofthron.es
+        password: $2b$12$Eb5TLqYLS74pLP9r.2agNe56ht1dvFkQOCODxku8KQmLfldBGa7Cu
+        hash:
+          low: 2112934512
+          high: -2145758107
+          unsigned: false
+      - _id:
+          $oid: 59b99dc3cfa9a34dcd7885d5
+        name: Gendry
+        email: joe_dempsie@gameofthron.es
+        password: $2b$12$ctQymjuvXC5dQXYTWX695eJ/0IEXLfXhNiuzad0bL7j8n9YCBq92K
+        hash:
+          low: -414619909
+          high: -2133499436
+          unsigned: false
+    indexes:
+      - v: 2
+        key:
+          _id: 1
+        name: _id_
+        description: Default index on the _id field, ensuring each document has a unique
+          identifier.
+      - v: 2
+        key:
+          email: 1
+        name: email_1
+        unique: true
+        description: Unique index on the email field, ensuring no two users can have the
+          same email address. This is crucial for user authentication and
+          account management.
+  - name: comments
+    description: Holds session data for users, including unique user identifiers and
+      JWT tokens for authentication. This collection is crucial for maintaining
+      user sessions and ensuring secure access to the application.
+    schema: |-
+      interface Comment {
+          /** Unique identifier for the comment */
+          _id: ObjectId;
+          /** Name of the user who made the comment */
+          name: string;
+          /** Email of the user who made the comment */
+          email: string;
+          /** ID of the movie the comment is associated with */
+          movie_id: ObjectId;
+          /** The text content of the comment */
+          text: string;
+          /** Date when the comment was made */
+          date: Date;
+          /** Hash value for the comment, used for integrity checks */
+          hash: Long;
+      }
+    examples:
+      - _id:
+          $oid: 5a9427648b0beebeb69646cd
+        name: Bronn
+        email: jerome_flynn@gameofthron.es
+        movie_id:
+          $oid: 573a139af29313caabcf1573
+        text: Quia iure maxime odit voluptas aspernatur esse quis. Quo quas voluptas eum
+          laudantium molestiae quid...
+        date:
+          $date: 2011-10-28T17:48:22Z
+        hash:
+          low: 846989165
+          high: -2147366087
+          unsigned: false
+      - _id:
+          $oid: 5a9427658b0beebeb6977827
+        name: Lancel Lannister
+        email: eugene_simon@gameofthron.es
+        movie_id:
+          $oid: 573a13bff29313caabd5f4a4
+        text: Blanditiis inventore eaque corporis. Cupiditate porro consequatur
+          consectetur ex dolorem quod provid...
+        date:
+          $date: 1987-05-11T14:29:31Z
+        hash:
+          low: 1128150038
+          high: -2147320044
+          unsigned: false
+    indexes:
+      - v: 2
+        key:
+          _id: 1
+        name: _id_
+        description: Default index on the _id field, ensuring each document has a unique
+          identifier.
+  - name: movies
+    description: Contains detailed information about movies, including titles,
+      genres, plots, and ratings. This collection is central to the database,
+      providing the primary content that users interact with.
+    schema: |-
+      interface Movie {
+          /** Unique identifier for the movie */
+          _id: ObjectId;
+          /** Brief description of the movie's plot */
+          plot: string;
+          /** List of genres associated with the movie */
+          genres: string[];
+          /** Duration of the movie in minutes */
+          runtime: number;
+          /** Title of the movie */
+          title: string;
+          /** Number of comments made on the movie */
+          num_mflix_comments: number;
+          /** URL of the movie's poster */
+          poster: string;
+          /** List of countries where the movie was produced */
+          countries: string[];
+          /** Full description of the movie's plot */
+          fullplot: string;
+          /** List of languages spoken in the movie */
+          languages: string[];
+          /** Release date of the movie */
+          released: Date;
+          /** List of directors of the movie */
+          directors: string[];
+          /** List of writers of the movie */
+          writers: string[];
+          /** Awards information for the movie */
+          awards: {
+              /** Number of wins for the movie */
+              wins: number;
+              /** Number of nominations for the movie */
+              nominations: number;
+              /** Text description of the awards */
+              text: string;
+          };
+          /** Last updated timestamp for the movie record */
+          lastupdated: string;
+          /** Year the movie was released */
+          year: number;
+          /** IMDb information for the movie */
+          imdb: {
+              /** IMDb rating of the movie */
+              rating: number;
+              /** Number of votes on IMDb */
+              votes: number;
+              /** Unique IMDb identifier */
+              id: number;
+          };
+          /** Type of the movie (e.g., movie, series) */
+          type: string;
+          /** Tomatoes rating and reviews information */
+          tomatoes: {
+              /** Viewer ratings and reviews */
+              viewer: {
+                  /** Viewer rating */
+                  rating: number;
+                  /** Number of viewer reviews */
+                  numReviews: number;
+              };
+              /** DVD release date */
+              dvd: Date;
+              /** Last updated timestamp for the tomatoes information */
+              lastUpdated: Date;
+              /** Official website for the movie */
+              website: string;
+              /** Critic ratings and reviews */
+              critic: {
+                  /** Critic rating */
+                  rating: number;
+                  /** Number of critic reviews */
+                  numReviews: number;
+              };
+              /** Box office earnings */
+              boxOffice: string;
+              /** Consensus statement from critics */
+              consensus: string;
+              /** Rotten Tomatoes score */
+              rotten: number;
+              /** Production company */
+              production: string;
+              /** Number of fresh reviews */
+              fresh: number;
+          };
+      }
+    examples:
+      - _id:
+          $oid: 573a13bbf29313caabd526d0
+        plot: Van Erp shows us what the Dutch do in their spare time and takes a look at
+          the industry behind all t...
+        genres:
+          - Documentary
+        runtime: 90
+        title: Pretpark Nederland
+        num_mflix_comments: 0
+        poster: https://m.media-amazon.com/images/M/MV5BMTUwNjU0ODg3N15BMl5BanBnXkFtZTcwMzg3NjYxNA@@._V1_SY1000_SX67...
+        countries:
+          - Netherlands
+        fullplot: Van Erp displays the mechanics behind the Dutch tourism industry. Key
+          figures behind events and dest...
+        languages:
+          - Dutch
+          - Mandarin
+        released:
+          $date: 2006-10-18T00:00:00Z
+        directors:
+          - Michiel van Erp
+        writers:
+          - Renè van 't Erve (scenario)
+          - Michiel van Erp (scenario)
+        awards:
+          wins: 0
+          nominations: 1
+          text: 1 nomination.
+        lastupdated: 2015-02-26 00:48:24.883000000
+        year: 2006
+        imdb:
+          rating: 7.3
+          votes: 237
+          id: 882800
+        type: movie
+        tomatoes:
+          viewer:
+            rating: 2.2
+            numReviews: 19
+          dvd:
+            $date: 2010-06-22T00:00:00Z
+          lastUpdated:
+            $date: 2014-11-24T14:15:50Z
+        hash:
+          low: -1866172407
+          high: -2147460187
+          unsigned: false
+      - _id:
+          $oid: 573a13caf29313caabd7c4e0
+        fullplot: A drama centered on a rising country-music songwriter (Hedlund) who
+          sparks with a fallen star (Paltr...
+        imdb:
+          rating: 6.3
+          votes: 14066
+          id: 1555064
+        year: 2010
+        plot: A rising country-music songwriter works with a fallen star to work their
+          way fame, causing romantic ...
+        genres:
+          - Drama
+          - Music
+        rated: PG-13
+        metacritic: 45
+        title: Country Strong
+        lastupdated: 2015-09-03 00:39:54.710000000
+        languages:
+          - English
+        writers:
+          - Shana Feste
+        type: movie
+        tomatoes:
+          website: http://www.countrystrong-movie.com/?hs308=CST6186
+          viewer:
+            rating: 3.3
+            numReviews: 32825
+            meter: 53
+          dvd:
+            $date: 2011-04-12T00:00:00Z
+          critic:
+            rating: 4.5
+            numReviews: 130
+            meter: 22
+          boxOffice: $20.2M
+          consensus: The cast gives it their all, and Paltrow handles her songs with
+            aplomb, but Country Strong's cliched...
+          rotten: 101
+          production: Screen Gems
+          lastUpdated:
+            $date: 2015-08-17T18:04:40Z
+          fresh: 29
+        poster: https://m.media-amazon.com/images/M/MV5BMTUxMjQ0NjE3OV5BMl5BanBnXkFtZTcwODIxNDEwNA@@._V1_SY1000_SX67...
+        num_mflix_comments: 0
+        released:
+          $date: 2011-01-07T00:00:00Z
+        awards:
+          wins: 2
+          nominations: 6
+          text: Nominated for 1 Oscar. Another 1 win & 6 nominations.
+        countries:
+          - USA
+        cast:
+          - Gwyneth Paltrow
+          - Tim McGraw
+          - Garrett Hedlund
+          - ...and 1 more items
+        ...: 3 more keys
+    indexes:
+      - v: 2
+        key:
+          _id: 1
+        name: _id_
+        description: Default index on the _id field, ensuring each document has a unique
+          identifier.
+      - v: 2
+        key:
+          _fts: text
+          _ftsx: 1
+        name: cast_text_fullplot_text_genres_text_title_text
+        weights:
+          cast: 1
+          fullplot: 1
+          genres: 1
+          title: 1
+        default_language: english
+        language_override: language
+        textIndexVersion: 3
+        description: Text index on multiple fields (cast, fullplot, genres, title) to
+          support full-text search capabilities. This is useful for searching
+          movies by keywords in these fields.
+  - name: sessions
+    description: Stores user-generated comments related to specific movies, linking
+      users to their feedback on films. This collection enhances user engagement
+      by allowing users to share their thoughts and opinions on movies.
+    schema: |-
+      interface Session {
+          /** Unique identifier for the session document */
+          _id: ObjectId;
+          /** Unique identifier for the user associated with the session */
+          user_id: string;
+          /** JSON Web Token for user authentication */
+          jwt: string;
+          /** Hash value for the session, used for integrity checks */
+          hash: Long;
+      }
+    examples:
+      - _id:
+          $oid: 5a97f9c91c807bb9c6eb5fb4
+        user_id: t3qulfeem@kwiv5.6ur
+        jwt: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1MTk5MDkzMjEsIm5iZiI6MTUxOTkwOTMyMSwianRpIjoiNmJlZDA...
+        hash:
+          low: 875808947
+          high: -1976519675
+          unsigned: false
+    indexes:
+      - v: 2
+        key:
+          _id: 1
+        name: _id_
+        description: Default index on the _id field, ensuring each document has a unique
+          identifier.
+      - v: 2
+        key:
+          user_id: 1
+        name: user_id_1
+        unique: true
+        description: Unique index on the user_id field, ensuring no two sessions can be
+          associated with the same user. This is important for maintaining a
+          single active session per user.
+  - name: theaters
+    description: Maintains information about theater locations, including addresses
+      and geographical coordinates. This collection supports the database by
+      providing users with information on where they can watch movies.
+    schema: >-
+      interface Theater {
+          /** Unique identifier for the theater */
+          _id: ObjectId;
+          /** Unique identifier for the theater, used for referencing */
+          theaterId: number;
+          /** Location details of the theater */
+          location: {
+              /** Address of the theater */
+              address: {
+                  /** Street address of the theater */
+                  street1: string;
+                  /** City where the theater is located */
+                  city: string;
+                  /** State where the theater is located */
+                  state: string;
+                  /** Zipcode of the theater's location */
+                  zipcode: string;
+              };
+              /** Geographical data for the theater's location */
+              geo: {
+                  /** Type of the geographical data, e.g., Point */
+                  type: string;
+                  /** Coordinates of the theater's location in [longitude, latitude] format */
+                  coordinates: [number, number];
+              };
+          };
+          /** Hash value for the theater document */
+          hash: {
+              /** Low part of the hash value */
+              low: number;
+              /** High part of the hash value */
+              high: number;
+              /** Indicates if the hash is unsigned */
+              unsigned: boolean;
+          };
+      }
+    examples:
+      - _id:
+          $oid: 59a47287cfa9a3a73e51ec13
+        theaterId: 776
+        location:
+          address:
+            street1: 1679 Scenic Hwy N
+            city: Snellville
+            state: GA
+            zipcode: "30078"
+          geo:
+            type: Point
+            coordinates:
+              - -84.013058
+              - 33.882777
+        hash:
+          low: 1701361298
+          high: -2145791898
+          unsigned: false
+      - _id:
+          $oid: 59a47287cfa9a3a73e51ea22
+        theaterId: 2862
+        location:
+          address:
+            street1: 4156-E North Harlem Ave
+            city: Norridge
+            state: IL
+            zipcode: "60706"
+          geo:
+            type: Point
+            coordinates:
+              - -87.807425
+              - 41.953814
+        hash:
+          low: 1050492525
+          high: -2142047742
+          unsigned: false
+    indexes:
+      - v: 2
+        key:
+          _id: 1
+        name: _id_
+        description: Default index on the _id field, ensuring each document has a unique
+          identifier.
+      - v: 2
+        key:
+          location.geo: 2dsphere
+        name: geo index
+        2dsphereIndexVersion: 3
+        description: 2dsphere index on the location.geo field, enabling efficient
+          querying of geospatial data. This is useful for location-based
+          searches, such as finding theaters within a certain radius.

@@ -2,6 +2,8 @@ import { z } from "zod";
 import { DatabaseMetadata } from "./getDatabaseMetadata";
 import { LlmOptions } from "./LlmOptions";
 import { getOpenAiFunctionResponse } from "./getOpenAiFunctionResponse";
+import { prettyPrintMongoDbDocument } from "./prettyPrintMongoDbDocument";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 const systemPrompt = `You are an expert MongoDB database architect. Your task is to analyze the provided database metadata and generate clear, concise descriptions.
 
@@ -33,11 +35,12 @@ function createHighLevelDbDescriptionsSchema(
     (metadata) => metadata.collectionName
   );
   // Create a record schema where each key must be one of the collection names
-  const collectionDescriptionsSchema = z
-    .record(z.enum(collectionNames as [string, ...string[]]), z.string())
-    .describe(
-      "Record where key is collection name and value is the collection description."
-    );
+  const collectionDescriptionsSchema = z.array(
+    z.object({
+      collectionName: z.enum(collectionNames as [string, ...string[]]),
+      description: z.string(),
+    })
+  );
 
   return z.object({
     databaseDescription: z.string(),
@@ -54,18 +57,23 @@ export async function generateHighLevelDbDescriptions(
 ) {
   const schema = createHighLevelDbDescriptionsSchema(databaseMetadata);
 
+  const messages = [
+    {
+      role: "system",
+      content: systemPrompt,
+    },
+    {
+      role: "user",
+      content: `Database information:
+${prettyPrintMongoDbDocument(databaseMetadata)}`,
+    },
+  ] satisfies OpenAI.ChatCompletionMessageParam[];
+  console.log(
+    "Example docs::",
+    prettyPrintMongoDbDocument(databaseMetadata.collections[0].exampleDocuments)
+  );
   return await getOpenAiFunctionResponse({
-    messages: [
-      {
-        role: "system",
-        content: systemPrompt,
-      },
-      {
-        role: "user",
-        content: `Database information:
-${JSON.stringify(databaseMetadata, null, 2)}`,
-      },
-    ],
+    messages,
     llmOptions,
     schema,
     functionName,

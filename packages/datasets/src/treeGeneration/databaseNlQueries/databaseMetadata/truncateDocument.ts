@@ -1,4 +1,4 @@
-import { Document } from "mongodb-rag-core/mongodb";
+import { Document, ObjectId } from "mongodb-rag-core/mongodb";
 
 export interface TruncationOptions {
   maxStringLength?: number;
@@ -26,6 +26,9 @@ function truncateValue(
   // Handle dates
   if (value instanceof Date) {
     return value;
+  }
+  if (value instanceof ObjectId) {
+    return { $oid: value.toHexString() };
   }
 
   // Handle strings

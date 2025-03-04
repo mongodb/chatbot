@@ -18,9 +18,13 @@ export async function getOpenAiFunctionResponse<Schema extends ZodSchema>({
   functionName,
   functionDescription,
 }: GetOpenAiFunctionResponseParams<Schema>): Promise<z.infer<Schema>> {
-  const res = await llmOptions.openAiClient.chat.completions.create({
+  const parameters = zodToJsonSchema(schema, {
+    $refStrategy: "none",
+  });
+  const { openAiClient, ...createChatCompletionParams } = llmOptions;
+  const res = await openAiClient.chat.completions.create({
     messages,
-    ...llmOptions,
+    ...createChatCompletionParams,
     tool_choice: {
       type: "function",
       function: {
@@ -33,7 +37,7 @@ export async function getOpenAiFunctionResponse<Schema extends ZodSchema>({
         function: {
           name: functionName,
           description: functionDescription,
-          parameters: zodToJsonSchema(schema),
+          parameters,
         },
       },
     ],

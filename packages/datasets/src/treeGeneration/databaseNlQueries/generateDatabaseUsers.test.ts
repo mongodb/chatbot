@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { generateDatabaseUsers } from "./generateDatabaseUsers";
 import { DatabaseInfoNode, DatabaseInfoSchema } from "./nodeTypes";
-import { sampleDatabaseUsers } from "./sampleData";
+import { sampleDatabaseUsers, sampleLlmOptions } from "./sampleData";
 
 describe("generateDatabaseUsers", () => {
   jest.setTimeout(30000); // Increase timeout for OpenAI API calls
@@ -19,7 +19,7 @@ describe("generateDatabaseUsers", () => {
     };
 
     // Generate users for the movie database
-    const users = await generateDatabaseUsers(parentNode);
+    const users = await generateDatabaseUsers(parentNode, sampleLlmOptions);
 
     console.log(users.map((user) => user.data));
   });

@@ -1,10 +1,6 @@
-import "dotenv/config";
-import { z } from "zod";
 import { makeGenerateChildrenWithOpenAi } from "../generateChildren";
-import { AzureOpenAI } from "mongodb-rag-core/openai";
 import {
   DatabaseInfoNode,
-  DatabaseUser,
   DatabaseUserNode,
   DatabaseUserSchema,
 } from "./nodeTypes";
@@ -34,18 +30,8 @@ export const generateDatabaseUsers = makeGenerateChildrenWithOpenAi<
 ${JSON.stringify(parent.data, null, 2)}`,
     },
   ],
-  openAiClient: new AzureOpenAI({
-    apiKey: process.env.OPENAI_API_KEY!,
-    endpoint: process.env.OPENAI_ENDPOINT!,
-    apiVersion: process.env.OPENAI_API_VERSION!,
-  }),
-  clientConfig: {
-    model: "gpt-4o",
-    temperature: 0.5,
-    seed: 42,
-  },
   response: {
-    schema: z.array(DatabaseUserSchema),
+    schema: DatabaseUserSchema,
     name: "generate_database_users",
     description: "Generate a list of realistic database users",
   },

@@ -4,11 +4,13 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { PromisePool } from "@supercharge/promise-pool";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { GenerationNode, WithParentNode } from "./GenerationNode";
+import { LlmOptions } from "./databaseNlQueries/LlmOptions";
+import { Llm } from "mongodb-rag-core";
 
 export type GenerateChildren<
   ParentNode extends GenerationNode<unknown> | null,
   ChildNode extends WithParentNode<GenerationNode<unknown>, ParentNode>
-> = (parent: ParentNode) => Promise<ChildNode[]>;
+> = (parent: ParentNode, llmOptions: LlmOptions) => Promise<ChildNode[]>;
 
 export interface ResponseFunction {
   name: string;
@@ -31,11 +33,6 @@ export interface MakeGenerateChildrenWithOpenAiParams<
   makePromptMessages: (
     parentNode: ParentNode
   ) => Promise<OpenAI.ChatCompletionMessageParam[]>;
-  openAiClient: OpenAI;
-  clientConfig: Omit<
-    OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming,
-    "messages" | "tools" | "tool_choice"
-  >;
 
   /**
     Information on what the elements of the response should look like.
@@ -59,8 +56,6 @@ export function makeGenerateChildrenWithOpenAi<
   ChildNode extends WithParentNode<GenerationNode<unknown>, ParentNode>
 >({
   makePromptMessages,
-  openAiClient,
-  clientConfig,
   response,
   filterNodes,
 }: MakeGenerateChildrenWithOpenAiParams<
@@ -68,17 +63,19 @@ export function makeGenerateChildrenWithOpenAi<
   ChildNode
 >): GenerateChildren<ParentNode, ChildNode> {
   return async function generateChildrenWithOpenAI(
-    parent: ParentNode
+    parent: ParentNode,
+    llmOptions: LlmOptions
   ): Promise<ChildNode[]> {
     const messages = await makePromptMessages(parent);
 
     const responseSchema = z.object({
       items: response.schema,
     });
+    const { openAiClient, ...clientConfig } = llmOptions;
 
     const completion = await getCompletions({
       openAiClient,
-      clientConfig,
+      ...clientConfig,
       messages,
       response: { ...response, schema: responseSchema },
       numCompletions: 1,
@@ -109,8 +106,6 @@ export function makeGenerateNChoiceChildrenWithOpenAi<
   ChildNode extends WithParentNode<GenerationNode<unknown>, ParentNode>
 >({
   makePromptMessages,
-  openAiClient,
-  clientConfig,
   response,
   filterNodes,
   numCompletions,
@@ -122,13 +117,15 @@ export function makeGenerateNChoiceChildrenWithOpenAi<
   response: ResponseFunction;
 }): GenerateChildren<ParentNode, ChildNode> {
   return async function generateNChoiceChildrenWithOpenAI(
-    parent: ParentNode
+    parent: ParentNode,
+    llmOptions: LlmOptions
   ): Promise<ChildNode[]> {
     const messages = await makePromptMessages(parent);
+    const { openAiClient, ...clientConfig } = llmOptions;
 
     const completion = await getCompletions({
       openAiClient,
-      clientConfig,
+      ...clientConfig,
       messages,
       response,
       numCompletions,
@@ -147,19 +144,13 @@ export function makeGenerateNChoiceChildrenWithOpenAi<
   };
 }
 
-async function getCompletions<
-  ParentNode extends GenerationNode<unknown> | null,
-  ChildNode extends WithParentNode<GenerationNode<unknown>, ParentNode>
->({
+async function getCompletions({
   openAiClient,
-  clientConfig,
   messages,
   response,
   numCompletions,
-}: Pick<
-  MakeGenerateChildrenWithOpenAiParams<ParentNode, ChildNode>,
-  "openAiClient" | "clientConfig"
-> & {
+  ...clientConfig
+}: LlmOptions & {
   messages: OpenAI.ChatCompletionMessageParam[];
   numCompletions?: number;
   response: ResponseFunction;

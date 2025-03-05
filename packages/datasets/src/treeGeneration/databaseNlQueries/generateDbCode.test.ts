@@ -9,6 +9,7 @@ import {
   sampleDatabaseUsers,
   sampleUseCases,
   sampleNlQueries,
+  sampleLlmOptions,
 } from "./sampleData";
 import PromisePool from "@supercharge/promise-pool";
 import { strict as assert } from "assert";
@@ -74,7 +75,7 @@ describe("generateDbCode", () => {
         console.error(err);
       })
       .process(async (nlQueryNode) => {
-        const mqlCode = await generateDbCode(nlQueryNode);
+        const mqlCode = await generateDbCode(nlQueryNode, sampleLlmOptions);
 
         console.log(
           JSON.stringify(

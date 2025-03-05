@@ -9,6 +9,7 @@ import {
   sampleMovieDbInfo,
   sampleDatabaseUsers,
   sampleUseCases,
+  sampleLlmOptions,
 } from "./sampleData";
 import PromisePool from "@supercharge/promise-pool";
 
@@ -43,7 +44,10 @@ describe("generateNaturalLanguageQueries", () => {
       updated: new Date(),
     }));
     await PromisePool.for(useCaseNodes).process(async (useCase) => {
-      const nlQueries = await generateNaturalLanguageQueries(useCase);
+      const nlQueries = await generateNaturalLanguageQueries(
+        useCase,
+        sampleLlmOptions
+      );
       console.log(
         `Natural language queries for ${userNode.data.name} use case: ${useCase.data.title}`
       );

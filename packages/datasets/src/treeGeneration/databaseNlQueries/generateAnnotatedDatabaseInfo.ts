@@ -1,7 +1,7 @@
 import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
 import { DatabaseInfo, DatabaseInfoNode } from "./nodeTypes";
 import { getDatabaseMetadata } from "./databaseMetadata/getDatabaseMetadata";
-import { LlmOptions } from "./databaseMetadata/LlmOptions";
+import { LlmOptions } from "./LlmOptions";
 import { generateHighLevelDbDescriptions } from "./databaseMetadata/generateHighLevelDbDescriptions";
 import { generateAnnotatedCollectionSchema } from "./databaseMetadata/generateAnnotatedCollectionSchema";
 
@@ -15,6 +15,9 @@ interface GenerateAnnotatedDatabaseInfoParams {
   llm: LlmOptions;
 }
 
+/**
+  Generated LLM-annotated information about a MongoDB database.
+ */
 export async function generateAnnotatedDatabaseInfo({
   mongoDb: { mongoClient, databaseName, numSamplesPerCollection = 2 },
   latestDate = new Date(),

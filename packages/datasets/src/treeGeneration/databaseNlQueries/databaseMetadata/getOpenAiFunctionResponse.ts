@@ -1,6 +1,6 @@
 import { OpenAI } from "mongodb-rag-core/openai";
 import { ZodSchema, z } from "zod";
-import { LlmOptions } from "./LlmOptions";
+import { LlmOptions } from "../LlmOptions";
 import zodToJsonSchema from "zod-to-json-schema";
 
 interface GetOpenAiFunctionResponseParams<Schema extends ZodSchema> {

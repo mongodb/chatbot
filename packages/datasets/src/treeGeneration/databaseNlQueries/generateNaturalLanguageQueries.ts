@@ -1,7 +1,4 @@
-import "dotenv/config";
-import { z } from "zod";
 import { makeGenerateChildrenWithOpenAi } from "../generateChildren";
-import { AzureOpenAI } from "mongodb-rag-core/openai";
 import {
   DatabaseNlQueryNode,
   NaturalLanguageQuerySchema,
@@ -37,16 +34,6 @@ export const generateNaturalLanguageQueries = makeGenerateChildrenWithOpenAi<
   UseCaseNode,
   DatabaseNlQueryNode
 >({
-  openAiClient: new AzureOpenAI({
-    apiKey: process.env.OPENAI_API_KEY!,
-    endpoint: process.env.OPENAI_ENDPOINT!,
-    apiVersion: process.env.OPENAI_API_VERSION!,
-  }),
-  clientConfig: {
-    model: "gpt-4o",
-    temperature: 0.6,
-    seed: 42,
-  },
   makePromptMessages: async ({
     data: useCase,
     parent: {

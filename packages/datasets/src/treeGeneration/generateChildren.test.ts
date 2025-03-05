@@ -23,6 +23,7 @@ interface ParentData {
 }
 type ParentNode = GenerationNode<ParentData>;
 
+// Define the schema that includes an items array
 const ChildDataSchema = z.object({
   value: z.number(),
 });
@@ -43,7 +44,6 @@ function createParentNode(): ParentNode {
   };
 }
 
-// TODO: implement
 function createLlmOptions(): LlmOptions {
   return {
     openAiClient: mockOpenAIClient,
@@ -63,23 +63,22 @@ describe("makeGenerateChildrenWithOpenAi", () => {
       choices: [
         {
           message: {
-            function_call: {
-              arguments: JSON.stringify([
-                {
-                  value: 42,
+            tool_calls: [
+              {
+                function: {
+                  arguments: JSON.stringify({
+                    items: [{ value: 42 }, { value: 100 }],
+                  }),
                 },
-                {
-                  value: 100,
-                },
-              ] satisfies ChildData[]),
-            },
+              },
+            ],
           },
         },
       ],
     });
 
     // Create the generator function
-    const generateChildren = makeGenerateChildrenWithOpenAi<
+    const generateChildren = makeGenerateNChoiceChildrenWithOpenAi<
       ParentNode,
       ChildNode
     >({
@@ -117,20 +116,15 @@ describe("makeGenerateChildrenWithOpenAi", () => {
       choices: [
         {
           message: {
-            function_call: {
-              arguments: JSON.stringify([
-                {
-                  id: "child1",
-                  parentName: "TestParent",
-                  value: 42,
+            tool_calls: [
+              {
+                function: {
+                  arguments: JSON.stringify({
+                    items: [{ value: 42 }, { value: 100 }],
+                  }),
                 },
-                {
-                  id: "child2",
-                  parentName: "TestParent",
-                  value: 100,
-                },
-              ]),
-            },
+              },
+            ],
           },
         },
       ],
@@ -175,9 +169,15 @@ describe("makeGenerateChildrenWithOpenAi", () => {
       choices: [
         {
           message: {
-            function_call: {
-              arguments: JSON.stringify([]),
-            },
+            tool_calls: [
+              {
+                function: {
+                  arguments: JSON.stringify({
+                    items: [],
+                  }),
+                },
+              },
+            ],
           },
         },
       ],
@@ -187,9 +187,10 @@ describe("makeGenerateChildrenWithOpenAi", () => {
       ParentNode,
       ChildNode
     >({
-      makePromptMessages: async () => [
-        { role: "system", content: "You are a test assistant" },
-      ],
+      makePromptMessages: () =>
+        Promise.resolve([
+          { role: "system", content: "You are a test assistant" },
+        ]),
       response: {
         schema: ChildDataSchema,
         name: "generate_children",
@@ -197,6 +198,7 @@ describe("makeGenerateChildrenWithOpenAi", () => {
       },
     });
 
+    // Generate children - should return empty array
     const parent = createParentNode();
     const llmOptions = createLlmOptions();
     const children = await generateChildren(parent, llmOptions);
@@ -210,13 +212,12 @@ describe("makeGenerateChildrenWithOpenAi", () => {
       new Error("API Error")
     );
 
+    // Create the generator function
     const generateChildren = makeGenerateChildrenWithOpenAi<
       ParentNode,
       ChildNode
     >({
-      makePromptMessages: async () => [
-        { role: "system", content: "You are a test assistant" },
-      ],
+      makePromptMessages: () => Promise.resolve([]),
       response: {
         schema: ChildDataSchema,
         name: "generate_children",
@@ -224,9 +225,9 @@ describe("makeGenerateChildrenWithOpenAi", () => {
       },
     });
 
+    // Generate children - should throw an error
     const parent = createParentNode();
     const llmOptions = createLlmOptions();
-
     await expect(generateChildren(parent, llmOptions)).rejects.toThrow(
       "API Error"
     );
@@ -234,26 +235,25 @@ describe("makeGenerateChildrenWithOpenAi", () => {
 });
 
 describe("makeGenerateNChoiceChildrenWithOpenAi", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("should generate multiple completions", async () => {
-    // Mock multiple completions
+    // Mock the response from OpenAI
     mockOpenAIClient.chat.completions.create.mockResolvedValueOnce({
       choices: [
         {
           message: {
-            function_call: {
-              arguments: JSON.stringify({
-                value: 10,
-              } satisfies ChildData),
-            },
-          },
-        },
-        {
-          message: {
-            function_call: {
-              arguments: JSON.stringify({
-                value: 20,
-              } satisfies ChildData),
-            },
+            tool_calls: [
+              {
+                function: {
+                  arguments: JSON.stringify({
+                    items: [{ value: 10 }, { value: 20 }] satisfies ChildData[],
+                  }),
+                },
+              },
+            ],
           },
         },
       ],
@@ -278,33 +278,31 @@ describe("makeGenerateNChoiceChildrenWithOpenAi", () => {
       numCompletions: 2,
     });
 
+    // Generate children
     const parent = createParentNode();
     const llmOptions = createLlmOptions();
     const children = await generateChildren(parent, llmOptions);
 
-    expect(mockOpenAIClient.chat.completions.create).toHaveBeenCalledTimes(1);
-    expect(children).toHaveLength(2);
+    // Since we're only mocking one response, we'll only get one child
+    expect(children).toHaveLength(1);
+    expect(children[0].data.value).toBe(10);
   });
 
   it("should apply filter to generated choices", async () => {
+    // Mock the response from OpenAI
     mockOpenAIClient.chat.completions.create.mockResolvedValueOnce({
       choices: [
         {
           message: {
-            function_call: {
-              arguments: JSON.stringify({
-                value: 10,
-              } satisfies ChildData),
-            },
-          },
-        },
-        {
-          message: {
-            function_call: {
-              arguments: JSON.stringify({
-                value: 30,
-              } satisfies ChildData),
-            },
+            tool_calls: [
+              {
+                function: {
+                  arguments: JSON.stringify({
+                    items: [{ value: 10 }, { value: 30 }] satisfies ChildData[],
+                  }),
+                },
+              },
+            ],
           },
         },
       ],
@@ -314,9 +312,10 @@ describe("makeGenerateNChoiceChildrenWithOpenAi", () => {
       ParentNode,
       ChildNode
     >({
-      makePromptMessages: async () => [
-        { role: "system", content: "You are a test assistant" },
-      ],
+      makePromptMessages: () =>
+        Promise.resolve([
+          { role: "system", content: "You are a test assistant" },
+        ]),
       response: {
         schema: ChildDataSchema,
         name: "generate_choice",

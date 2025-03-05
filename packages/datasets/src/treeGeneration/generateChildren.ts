@@ -69,7 +69,7 @@ export function makeGenerateChildrenWithOpenAi<
     const messages = await makePromptMessages(parent);
 
     const responseSchema = z.object({
-      items: response.schema,
+      items: z.array(response.schema),
     });
     const { openAiClient, ...clientConfig } = llmOptions;
 
@@ -88,9 +88,8 @@ export function makeGenerateChildrenWithOpenAi<
     }
     // Parse the response and extract the items array
     const parsedResponse = JSON.parse(children);
-    const itemsArray = parsedResponse.items || parsedResponse;
 
-    let { items: parsedChildren } = responseSchema.parse(itemsArray);
+    let { items: parsedChildren } = responseSchema.parse(parsedResponse);
     if (!parsedChildren) {
       throw new Error("Failed to parse children");
     }

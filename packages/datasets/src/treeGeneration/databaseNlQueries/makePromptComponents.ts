@@ -40,7 +40,7 @@ Use Case Title: ${useCase.title}
 Use Case Description: ${useCase.description}
 Complexity: ${useCase.complexity}
 Frequency: ${useCase.frequency}
-Data Needed: ${useCase.dataNeeded.join(", ")}`;
+Data Needed: ${useCase.dataNeeded ? useCase.dataNeeded.join(", ") : "N/A"}`;
 }
 
 export function makePromptNaturalLanguageQueryInfo(

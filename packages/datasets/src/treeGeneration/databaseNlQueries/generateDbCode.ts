@@ -65,7 +65,7 @@ ${makePromptDbInfo(databaseInfo)}
       { role: "user", content: message },
     ];
   },
-  numCompletions: 5,
+  numCompletions: 8,
   response: {
     schema: DatabaseCodeSchema,
     name: "generate_db_code",

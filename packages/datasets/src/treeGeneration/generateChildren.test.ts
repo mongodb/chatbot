@@ -78,7 +78,7 @@ describe("makeGenerateChildrenWithOpenAi", () => {
     });
 
     // Create the generator function
-    const generateChildren = makeGenerateNChoiceChildrenWithOpenAi<
+    const generateChildren = makeGenerateChildrenWithOpenAi<
       ParentNode,
       ChildNode
     >({
@@ -237,9 +237,6 @@ describe("makeGenerateChildrenWithOpenAi", () => {
 describe("makeGenerateNChoiceChildrenWithOpenAi", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it("should generate multiple completions", async () => {
     // Mock the response from OpenAI
     mockOpenAIClient.chat.completions.create.mockResolvedValueOnce({
       choices: [
@@ -249,8 +246,21 @@ describe("makeGenerateNChoiceChildrenWithOpenAi", () => {
               {
                 function: {
                   arguments: JSON.stringify({
-                    items: [{ value: 10 }, { value: 20 }] satisfies ChildData[],
-                  }),
+                    value: 10,
+                  } satisfies ChildData),
+                },
+              },
+            ],
+          },
+        },
+        {
+          message: {
+            tool_calls: [
+              {
+                function: {
+                  arguments: JSON.stringify({
+                    value: 20,
+                  } satisfies ChildData),
                 },
               },
             ],
@@ -258,7 +268,9 @@ describe("makeGenerateNChoiceChildrenWithOpenAi", () => {
         },
       ],
     });
+  });
 
+  it("should generate multiple completions", async () => {
     const generateChildren = makeGenerateNChoiceChildrenWithOpenAi<
       ParentNode,
       ChildNode
@@ -284,30 +296,13 @@ describe("makeGenerateNChoiceChildrenWithOpenAi", () => {
     const children = await generateChildren(parent, llmOptions);
 
     // Since we're only mocking one response, we'll only get one child
-    expect(children).toHaveLength(1);
+    expect(children).toHaveLength(2);
     expect(children[0].data.value).toBe(10);
+    expect(children[1].data.value).toBe(20);
   });
 
   it("should apply filter to generated choices", async () => {
     // Mock the response from OpenAI
-    mockOpenAIClient.chat.completions.create.mockResolvedValueOnce({
-      choices: [
-        {
-          message: {
-            tool_calls: [
-              {
-                function: {
-                  arguments: JSON.stringify({
-                    items: [{ value: 10 }, { value: 30 }] satisfies ChildData[],
-                  }),
-                },
-              },
-            ],
-          },
-        },
-      ],
-    });
-
     const generateChildren = makeGenerateNChoiceChildrenWithOpenAi<
       ParentNode,
       ChildNode
@@ -321,9 +316,8 @@ describe("makeGenerateNChoiceChildrenWithOpenAi", () => {
         name: "generate_choice",
         description: "Generate a choice",
       },
-      // Filter out nodes with value > 20
       filterNodes: {
-        filter: async (node) => node.value <= 20,
+        filter: async (node) => node.value < 20,
       },
     });
 

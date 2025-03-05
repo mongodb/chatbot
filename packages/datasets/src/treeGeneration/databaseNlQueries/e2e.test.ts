@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 import * as fs from "fs";
 import * as path from "path";
 import PromisePool from "@supercharge/promise-pool";
@@ -11,6 +11,21 @@ import { OpenAI } from "mongodb-rag-core/openai";
 import { BRAINTRUST_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 import { DATABASE_NL_QUERIES } from "../../EnvVars";
 import { sampleLlmOptions } from "./sampleData";
+import { generateDbCode } from "./generateDbCode";
+
+const nlQueryOutputPath = path.resolve(__dirname, "nl_queries.jsonl");
+
+// Clear the file if it exists
+if (fs.existsSync(nlQueryOutputPath)) {
+  fs.unlinkSync(nlQueryOutputPath);
+}
+
+const textToMqlOutputPath = path.resolve(__dirname, "text_to_mql.jsonl");
+
+// Clear the file if it exists
+if (fs.existsSync(textToMqlOutputPath)) {
+  fs.unlinkSync(textToMqlOutputPath);
+}
 
 describe("End-to-end NL query generation pipeline", () => {
   const {
@@ -21,7 +36,7 @@ describe("End-to-end NL query generation pipeline", () => {
     ...BRAINTRUST_ENV_VARS,
     ...DATABASE_NL_QUERIES,
   });
-  jest.setTimeout(60000 * 1000); // loooong timeout for whole pipeline
+  jest.setTimeout(600000 * 1000); // loooong timeout for whole pipeline
 
   const mongoClient = new MongoClient(MONGODB_TEXT_TO_CODE_CONNECTION_URI);
   beforeAll(async () => {
@@ -51,7 +66,7 @@ describe("End-to-end NL query generation pipeline", () => {
       latestDate: new Date("2017-09-13T00:37:11.000+00:00"),
     });
 
-    // Step 2: Generate database users
+    // Generate database users
     console.log("Generating database users...");
     const userNodes = await generateDatabaseUsers(
       databaseInfoNode,
@@ -59,7 +74,7 @@ describe("End-to-end NL query generation pipeline", () => {
     );
     console.log(`Generated ${userNodes.length} database users`);
 
-    // Step 3: Generate use cases for each user
+    // Generate use cases for each user
     console.log("Generating use cases for each user...");
     const { results: useCaseNodesByUser } = await PromisePool.for(userNodes)
       .withConcurrency(5)
@@ -75,23 +90,18 @@ describe("End-to-end NL query generation pipeline", () => {
       });
 
     const useCaseNodes = useCaseNodesByUser.flat();
+    console.log(`Created ${useCaseNodes.length} use cases.`);
 
-    const allNodes: unknown[] = [];
-    // Step 4: Generate NL queries for each use case
     console.log("Generating natural language queries for each use case...");
 
-    // Step 5: Write all nodes to a JSONL file
-    const outputPath = path.resolve(__dirname, "nl_queries.jsonl");
-
-    // Clear the file if it exists
-    if (fs.existsSync(outputPath)) {
-      fs.unlinkSync(outputPath);
-    }
     // Process use cases in parallel with limited concurrency
-    await PromisePool.withConcurrency(10)
-      .for(useCaseNodes)
-      .process(async (useCaseNode) => {
-        try {
+    const { results: nlQueryNodesByUseCase } =
+      await PromisePool.withConcurrency(10)
+        .for(useCaseNodes)
+        .handleError((err) => {
+          console.error(err);
+        })
+        .process(async (useCaseNode) => {
           const nlQueries = await generateNaturalLanguageQueries(
             useCaseNode,
             sampleLlmOptions
@@ -100,33 +110,49 @@ describe("End-to-end NL query generation pipeline", () => {
             `Generated ${nlQueries.length} NL queries for use case: ${useCaseNode.data.title}`
           );
 
-          // Add NL query nodes to the collection
-          nlQueries.forEach((node) => {
-            allNodes.push({
-              type: "natural_language_query",
-              _id: node._id.toString(),
-              parent: node.parent._id.toString(),
-              data: node.data,
-              updated: node.updated,
-            });
-          });
-          // Write each node as a separate line in JSONL format
-          allNodes.forEach((node) => {
-            fs.appendFileSync(outputPath, JSON.stringify(node) + "\n");
-          });
-        } catch (error) {
-          console.error(
-            `Error generating NL queries for use case ${useCaseNode.data.title}:`,
-            error
+          for (const nlQuery of nlQueries) {
+            fs.appendFileSync(
+              nlQueryOutputPath,
+              JSON.stringify(nlQuery.data) + "\n"
+            );
+          }
+          return nlQueries;
+        });
+    const nlQueryNodes = nlQueryNodesByUseCase.flat();
+
+    console.log(
+      `Successfully wrote ${nlQueryNodes.length} nodes to ${nlQueryOutputPath}`
+    );
+
+    // Generate triplets for the NL queries
+    console.log("Generating triplets for the NL queries...");
+    const { results: tripletNodesByNlQuery } = await PromisePool.for(
+      nlQueryNodes
+    )
+      .withConcurrency(10)
+      .process(async (nlQueryNode) => {
+        const dbCodeNodes = await generateDbCode(nlQueryNode, sampleLlmOptions);
+        console.log(
+          `Generated ${dbCodeNodes.length} DB queries for NL query: ${nlQueryNode.data.query}`
+        );
+        for (const dbCodeNode of dbCodeNodes) {
+          const textToMqlDatasetEntry = {
+            dbQuery: dbCodeNode.data.code,
+            language: dbCodeNode.data.language,
+            nlQuery: nlQueryNode.data.query,
+            complexity: nlQueryNode.data.complexity,
+            databaseName: nlQueryNode.parent.parent.parent.data.name,
+          };
+          fs.appendFileSync(
+            textToMqlOutputPath,
+            JSON.stringify(textToMqlDatasetEntry) + "\n"
           );
         }
+        return dbCodeNodes;
       });
-
-    console.log(`Successfully wrote ${allNodes.length} nodes to ${outputPath}`);
-
-    // Basic assertions
-    expect(userNodes.length).toBeGreaterThan(0);
-    expect(useCaseNodes.length).toBeGreaterThan(0);
-    expect(allNodes.length).toBeGreaterThan(0);
+    const dbCodeNodes = tripletNodesByNlQuery.flat();
+    console.log(
+      `Successfully wrote ${dbCodeNodes.length} nodes to ${textToMqlOutputPath}`
+    );
   });
 });

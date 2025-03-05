@@ -17,7 +17,7 @@ export const sampleLlmOptions: LlmOptions = {
     apiKey: BRAINTRUST_API_KEY,
     baseURL: BRAINTRUST_ENDPOINT,
   }),
-  model: "gpt-4o",
+  model: "gpt-4o-mini",
   temperature: 0.5,
   seed: 42,
 };

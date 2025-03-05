@@ -1,14 +1,14 @@
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { generateDatabaseUsers } from "./generateDatabaseUsers";
 import { DatabaseInfoNode, DatabaseInfoSchema } from "./nodeTypes";
-import { sampleDatabaseUsers, sampleLlmOptions } from "./sampleData";
+import { sampleMovieDbInfo, sampleLlmOptions } from "./sampleData";
 
 describe("generateDatabaseUsers", () => {
-  jest.setTimeout(30000); // Increase timeout for OpenAI API calls
+  jest.setTimeout(3000 * 1000); // Increase timeout for OpenAI API calls
 
   it("should generate users for a movie database", async () => {
     // Validate the schema
-    const validatedInfo = DatabaseInfoSchema.parse(sampleDatabaseUsers);
+    const validatedInfo = DatabaseInfoSchema.parse(sampleMovieDbInfo);
 
     // Create a parent node with the database info
     const parentNode: DatabaseInfoNode = {

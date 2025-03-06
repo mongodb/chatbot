@@ -1,17 +1,17 @@
-- name: What is a skill?
+- name: What is a skill on MongoDB?
   messages:
     - role: user
-      content: What is a skill?
+      content: What is a skill on MongoDB?
   reference: MongoDB offers skills, each skill should take between 60-90 minutes
     to attain for a specific skill. You can learn skills across all topics in
     MongoDB starting with Data Modeling. You can take an assessment which will
     earn you a badge to indicate mastery of a specific skill.
   expectedLinks:
     - https://learn.mongodb.com/skills
-- name: What skills are available for me to take?
+- name: What skills badges are available for me to earn?
   messages:
     - role: user
-      content: What skills are available for me to take?
+      content: What skills badges are available for me to earn?
   reference: There is a range of skills available on our skills page. We are
     building these out starting with several on data modeling topics. The skill
     in data modeling we'd recommend you start with is "From Relational Model
@@ -20,10 +20,10 @@
     Antipatterns, and Schema Design Optimization.
   expectedLinks:
     - https://learn.mongodb.com/skills
-- name: What skill do you have on the document model?
+- name: What skill badge is available to earn on the document model?
   messages:
     - role: user
-      content: What skill do you have on the document model?
+      content: What skill badge is available to earn on the document model?
   reference: The skill, "From Relational Model (SQL) to MongoDB's Document Model",
     teaches you about the document model. It covers how to model your workload,
     how to design data relationships, and how to validate your schemas. You will
@@ -31,10 +31,11 @@
     a document model.
   expectedLinks:
     - https://learn.mongodb.com/skills
-- name: What skill do you have on the schema patterns?
+    - https://learn.mongodb.com/courses/relational-to-document-model
+- name: What skill badge is available to earn on schema patterns?
   messages:
     - role: user
-      content: What skill do you have on the schema patterns?
+      content: What skill badge is available to earn on schema patterns?
   reference: The skill, "MongoDB Schema Design Patterns and Antipatterns", teaches
     you about the schema patterns for the document model. It covers the three
     most common schema design patterns, specifically the inheritance pattern,
@@ -43,6 +44,9 @@
   expectedLinks:
     - https://learn.mongodb.com/skills
     - https://www.mongodb.com/docs/manual/data-modeling/design-patterns/
+    - https://learn.mongodb.com/courses/schema-design-patterns-and-antipatterns
+    - https://learn.mongodb.com/courses/advanced-schema-patterns-and-antipatterns
+    - https://learn.mongodb.com/courses/schema-design-optimization
 - name: What skill do you have on the schema antipatterns?
   messages:
     - role: user
@@ -57,10 +61,10 @@
     The skill, "MongoDB Advanced Schema Design Patterns and Antipatterns", also teaches you about more complex antipatterns such as massive number of collections, unnecessary indexes, data normalization, and case sensitivity. This category of antipattern is classified as an advanced as in order to identify their performance impacts you must do more than analyse the schema.
   expectedLinks:
     - https://learn.mongodb.com/skills
-- name: What skill do you have on advanced schema patterns?
+- name: What skill badges are availabe to earn on advanced schema patterns?
   messages:
     - role: user
-      content: What skill do you have on advanced schema patterns?
+      content: What skill badges are availabe to earn on advanced schema patterns?
   reference: The skill, "MongoDB Advanced Schema Design Patterns and
     Antipatterns", teaches you about advanced schema design patterns including
     the approximation pattern and the schema versioning pattern. You will learn
@@ -68,6 +72,7 @@
     data model.
   expectedLinks:
     - https://learn.mongodb.com/skills
+    - https://learn.mongodb.com/courses/advanced-schema-patterns-and-antipatterns
 - name: What skill do you have on updating your schema?
   messages:
     - role: user
@@ -81,6 +86,7 @@
   expectedLinks:
     - https://learn.mongodb.com/skills
     - https://www.mongodb.com/docs/manual/data-modeling/design-patterns/data-versioning/schema-versioning/
+    - https://learn.mongodb.com/courses/advanced-schema-patterns-and-antipatterns
 - name: What skill do you have on migrating your schema?
   messages:
     - role: user
@@ -94,6 +100,7 @@
   expectedLinks:
     - https://learn.mongodb.com/skills
     - https://www.mongodb.com/docs/manual/data-modeling/design-patterns/data-versioning/schema-versioning/
+    - https://learn.mongodb.com/courses/advanced-schema-patterns-and-antipatterns
 - name: What skill do you have to optimize an existing schema?
   messages:
     - role: user
@@ -108,6 +115,7 @@
   expectedLinks:
     - https://learn.mongodb.com/skills
     - https://www.mongodb.com/docs/manual/data-modeling/design-patterns/
+    - https://learn.mongodb.com/courses/schema-design-optimization
 - name: What skill do you have on schema validation?
   messages:
     - role: user
@@ -122,6 +130,7 @@
   expectedLinks:
     - https://learn.mongodb.com/skills
     - https://www.mongodb.com/docs/manual/core/schema-validation/
+    - https://learn.mongodb.com/courses/relational-to-document-model
 - name: Does MongoDB offer any digital badges?
   messages:
     - role: user

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { GenerationNode, WithParentNode } from "../GenerationNode";
 import { Document } from "mongodb-rag-core/mongodb";
+import { DatabaseExecutionResult } from "mongodb-rag-core/executeCode";
 
 export const DatabaseInfoSchema = z.object({
   name: z.string().describe("Name of the database"),
@@ -123,24 +124,6 @@ export type DatabaseCodeNode = WithParentNode<
   GenerationNode<DatabaseCode>,
   DatabaseNlQueryNode
 >;
-
-export interface DatabaseExecutionResult {
-  /**
-    The result of executing the generated driver code.
-    `null` if no result was returned.
-   */
-  result: Document | Document[] | number | null;
-  /**
-    An error message if an error occurred during execution.
-   */
-  error?: {
-    message: string;
-  };
-  /**
-    The time in milliseconds it took to execute the generated driver code.
-   */
-  executionTimeMs: number;
-}
 
 export type DatabaseExecutionResultNode = WithParentNode<
   GenerationNode<DatabaseExecutionResult>,

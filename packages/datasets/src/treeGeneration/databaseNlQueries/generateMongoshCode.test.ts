@@ -13,12 +13,12 @@ import {
 } from "./sampleData";
 import PromisePool from "@supercharge/promise-pool";
 import { strict as assert } from "assert";
-import { generateDbCode } from "./generateDbCode";
+import { generateMongoshCode } from "./generateMongoshCode";
 import yaml from "yaml";
 import path from "path";
 import fs from "fs";
 
-describe("generateDbCode", () => {
+describe("generateMqlCode", () => {
   jest.setTimeout(300000); // Increase timeout for OpenAI API calls
 
   it("should generate MQL code for a NL query", async () => {
@@ -75,7 +75,10 @@ describe("generateDbCode", () => {
         console.error(err);
       })
       .process(async (nlQueryNode) => {
-        const mqlCode = await generateDbCode(nlQueryNode, sampleLlmOptions);
+        const mqlCode = await generateMongoshCode(
+          nlQueryNode,
+          sampleLlmOptions
+        );
 
         console.log(
           JSON.stringify(

@@ -11,7 +11,7 @@ import { OpenAI } from "mongodb-rag-core/openai";
 import { BRAINTRUST_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 import { DATABASE_NL_QUERIES } from "../../EnvVars";
 import { sampleLlmOptions } from "./sampleData";
-import { generateDbCode } from "./generateDbCode";
+import { generateMongoshCode } from "./generateMongoshCode";
 
 const nlQueryOutputPath = path.resolve(__dirname, "nl_queries.jsonl");
 
@@ -131,7 +131,10 @@ describe("End-to-end NL query generation pipeline", () => {
     )
       .withConcurrency(10)
       .process(async (nlQueryNode) => {
-        const dbCodeNodes = await generateDbCode(nlQueryNode, sampleLlmOptions);
+        const dbCodeNodes = await generateMongoshCode(
+          nlQueryNode,
+          sampleLlmOptions
+        );
         console.log(
           `Generated ${dbCodeNodes.length} DB queries for NL query: ${nlQueryNode.data.query}`
         );

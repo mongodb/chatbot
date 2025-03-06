@@ -1,4 +1,8 @@
-import { makeGenerateNChoiceChildrenWithOpenAi } from "../generateChildren";
+import {
+  GenerateChildren,
+  MakeGenerateChildrenWithOpenAiParams,
+  makeGenerateNChoiceChildrenWithOpenAi,
+} from "../generateChildren";
 import {
   DatabaseNlQueryNode,
   DatabaseCodeNode,
@@ -41,7 +45,7 @@ For the language field, always put 'mongosh". For example the output should look
 ${JSON.stringify(abstractOutputExample)}
 `;
 
-export const generateDbCode = makeGenerateNChoiceChildrenWithOpenAi<
+export const generateMongoshCode = makeGenerateNChoiceChildrenWithOpenAi<
   DatabaseNlQueryNode,
   DatabaseCodeNode
 >({

@@ -6,7 +6,11 @@ import {
   DatabaseUserNode,
   DatabaseInfoNode,
 } from "./nodeTypes";
-import { sampleMovieDbInfo, sampleDatabaseUsers } from "./sampleData";
+import {
+  sampleMovieDbInfo,
+  sampleDatabaseUsers,
+  sampleLlmOptions,
+} from "./sampleData";
 
 describe("generateDatabaseUseCases", () => {
   jest.setTimeout(300000); // Increase timeout for OpenAI API calls
@@ -32,7 +36,10 @@ describe("generateDatabaseUseCases", () => {
     }));
 
     for (const userNode of userNodes) {
-      const useCases = await generateDatabaseUseCases(userNode);
+      const useCases = await generateDatabaseUseCases(
+        userNode,
+        sampleLlmOptions
+      );
       console.log("Use cases for user:", userNode.data.name);
       console.log(
         JSON.stringify(

@@ -33,6 +33,7 @@
     "./braintrust": "./build/braintrust.js",
     "./dataSources": "./build/dataSources/index.js",
     "./models": "./build/models/index.js",
+    "./executeCode": "./build/executeCode/index.js",
     "./eval": "./build/eval/index.js"
   },
   "scripts": {

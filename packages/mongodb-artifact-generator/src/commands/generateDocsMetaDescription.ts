@@ -103,6 +103,8 @@ export const action =
         logger,
       });
 
+      const start = new Date();
+      console.log("Beginning generation at", start.toISOString());
       const results = new Map<string, DocsMetadata["description"]>();
       await PromisePool.for(pages)
         .withConcurrency(llmMaxConcurrency)
@@ -111,7 +113,12 @@ export const action =
             `Error generating meta description for page ${page.url}: ${error.message}`
           );
         })
-        .process(async (page) => {
+        .process(async (page, i) => {
+          console.log(
+            `(${i + 1}/${pages.length}) Generating meta description for page ${
+              page.url
+            }`
+          );
           logger.logInfo(`Generating meta description for page ${page.url}...`);
           const text = page.body;
           const metadata = await generateDocsMetadata({
@@ -133,6 +140,13 @@ export const action =
         });
 
       logger.logInfo(`Generated meta descriptions for ${results.size} pages.`);
+      const end = new Date();
+      const duration = end.getTime() - start.getTime();
+      console.log(
+        "Finished generation at",
+        end.toISOString(),
+        `(${duration}ms)`
+      );
 
       const json = JSON.stringify(
         Object.fromEntries(results.entries()),

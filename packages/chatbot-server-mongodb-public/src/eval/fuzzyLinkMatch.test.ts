@@ -43,7 +43,7 @@ describe("fuzzyLinkMatch", () => {
   test("expected path is empty string", () => {
     const expected = "";
     const actual = "/path/to/resource";
-    expect(fuzzyLinkMatch(expected, actual)).toBe(true); // Every string includes an empty string
+    expect(fuzzyLinkMatch(expected, actual)).toBe(false);
   });
 
   test("expected path does not exist in actual path", () => {
@@ -56,5 +56,17 @@ describe("fuzzyLinkMatch", () => {
     const expected = "/path";
     const actual = "https://anotherdomain.com/path/";
     expect(fuzzyLinkMatch(expected, actual)).toBe(true);
+  });
+
+  test("expected url has no path, but actual does", () => {
+    const expected = "https://example.com";
+    const actual = "https://example.com/path/to/resource";
+    expect(fuzzyLinkMatch(expected, actual)).toBe(false);
+  });
+
+  test("actual url has not path, but expected does", () => {
+    const expected = "https://example.com/path/to/resource";
+    const actual = "https://example.com";
+    expect(fuzzyLinkMatch(expected, actual)).toBe(false);
   });
 });

@@ -49,16 +49,19 @@
 import fs from "fs";
 import path from "path";
 import yaml from "yaml";
-import { MongoClient } from "mongodb";
 import {
   getConversationEvalCasesFromCSV,
   ConversationEvalCase,
 } from "mongodb-rag-core/eval";
 import { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } from "../../config";
+import { makeMongoDbPageStore } from "mongodb-rag-core";
 
 const SRC_ROOT = path.resolve(__dirname, "../");
-const mongoClient = new MongoClient(MONGODB_CONNECTION_URI);
-const db = mongoClient.db(MONGODB_DATABASE_NAME);
+
+const pageStore = makeMongoDbPageStore({
+  connectionUri: MONGODB_CONNECTION_URI,
+  databaseName: MONGODB_DATABASE_NAME,
+});
 
 function addWebDataSourceTag(evalCases: ConversationEvalCase[]) {
   return evalCases.map((caseItem) => {
@@ -95,10 +98,10 @@ const findMissingResources = async (
 ): Promise<string[]> => {
   const results = await Promise.all(
     expectedUrls.map(async (url) => {
-      const pageExists = await db.collection("pages").findOne({
-        url: { $regex: new RegExp(normalizeUrl(url)) },
+      const page = await pageStore.loadPage({
+        query: { url: { $regex: new RegExp(normalizeUrl(url)) } },
       });
-      return !pageExists ? url : null;
+      return !page ? url : null;
     })
   );
   return results.filter((url) => url !== null) as string[];
@@ -124,18 +127,14 @@ async function main({
     csvFilePath,
     transformationType ? transformationMap[transformationType] : undefined
   );
-  const expectedSources = new Set<string>();
-  evalCases.forEach((caseItem) => {
-    caseItem.expectedLinks?.forEach((url) => {
-      expectedSources.add(url);
-    });
-  });
-  const urlList = Array.from(expectedSources);
-  const urlsNotIngested = await findMissingResources(urlList);
+  const expectedUrls = Array.from(
+    new Set(evalCases.flatMap((caseItem) => caseItem.expectedLinks ?? []))
+  );
+  const urlsNotIngested = await findMissingResources(expectedUrls);
   if (urlsNotIngested.length > 0) {
     console.warn(
       `Warning: ${urlsNotIngested.length}/${
-        urlList.length
+        expectedUrls.length
       } URLs are expected to be referenced by the chatbot, but have not been ingested:\n${urlsNotIngested
         .map((url) => `  - ${url}`)
         .join("\n")}`
@@ -184,6 +183,6 @@ if (require.main === module) {
       process.exit(1);
     })
     .finally(() => {
-      mongoClient.close();
+      pageStore.close();
     });
 }

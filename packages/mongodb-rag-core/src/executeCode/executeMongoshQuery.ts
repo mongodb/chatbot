@@ -2,6 +2,7 @@ import { Document, BSON } from "mongodb";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { ExecuteMongoDbQuery } from "./DatabaseExecutionResult";
+import { redactMongoDbConnectionUri } from "./redactMongoDbConnectionUri";
 
 const execAsync = promisify(exec);
 
@@ -14,6 +15,7 @@ export const executeMongoshQuery: ExecuteMongoDbQuery = async ({
   query,
   uri,
   databaseName,
+  execOptions,
 }) => {
   let result: Document | Document[] | number | null = null;
   let error: { message: string } | undefined = undefined;
@@ -25,9 +27,15 @@ export const executeMongoshQuery: ExecuteMongoDbQuery = async ({
     const startTime = Date.now();
 
     const modifiedQuery = appendToArrayIfNeeded(query);
+    const escapedQuery = modifiedQuery.replace(/'/g, "'\\''");
 
     const { stdout, stderr } = await execAsync(
-      `mongosh "${connectionUrl.toString()}" --quiet --json=relaxed --eval '${modifiedQuery}'`
+      `mongosh "${connectionUrl.toString()}" --quiet --json=relaxed --eval '${escapedQuery}'`,
+      {
+        maxBuffer: 1024 * 1024 * 30, // 30 MB
+        timeout: 30000,
+        ...execOptions,
+      }
     );
     const endTime = Date.now();
     executionTimeMs = endTime - startTime;
@@ -48,6 +56,12 @@ export const executeMongoshQuery: ExecuteMongoDbQuery = async ({
       message: execError.message || "Failed to execute mongosh command",
     };
   }
+
+  // Redact any MongoDB connection URIs in error messages
+  if (error && error.message) {
+    error.message = redactMongoDbConnectionUri(error.message);
+  }
+
   const data = {
     result,
     executionTimeMs,

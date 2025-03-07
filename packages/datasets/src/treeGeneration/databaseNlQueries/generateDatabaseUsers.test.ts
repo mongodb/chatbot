@@ -19,7 +19,7 @@ describe("generateDatabaseUsers", () => {
     };
 
     // Generate users for the movie database
-    const users = await generateDatabaseUsers(parentNode, sampleLlmOptions);
+    const users = await generateDatabaseUsers(parentNode, sampleLlmOptions, 20);
 
     console.log(users.map((user) => user.data));
   });

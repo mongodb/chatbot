@@ -34,20 +34,25 @@ export const generateNaturalLanguageQueries = makeGenerateChildrenWithOpenAi<
   UseCaseNode,
   DatabaseNlQueryNode
 >({
-  makePromptMessages: async ({
-    data: useCase,
-    parent: {
-      data: user,
-      parent: { data: databaseInfo },
+  makePromptMessages: async (
+    {
+      data: useCase,
+      parent: {
+        data: user,
+        parent: { data: databaseInfo },
+      },
     },
-  }) => {
+    numChildren
+  ) => {
     const message = `Generate natural language queries for the following database use case:
 
 ${makePromptUseCaseInfo(useCase)}
 
 ${makePromptDbUserInfo(user)}
 
-${makePromptDbInfo(databaseInfo)}`;
+${makePromptDbInfo(databaseInfo)}
+
+Generate exactly ${numChildren} natural language query(s).`;
 
     return [
       { role: "system", content: nlQuerySystemPrompt },

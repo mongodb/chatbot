@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { GenerationNode, WithParentNode } from "../GenerationNode";
-import { Document } from "mongodb-rag-core/mongodb";
 import { DatabaseExecutionResult } from "mongodb-rag-core/executeCode";
 
 export const DatabaseInfoSchema = z.object({
@@ -29,7 +28,7 @@ export const DatabaseInfoSchema = z.object({
 export type DatabaseInfo = z.infer<typeof DatabaseInfoSchema>;
 
 export type DatabaseInfoNode = WithParentNode<
-  GenerationNode<DatabaseInfo>,
+  GenerationNode<DatabaseInfo, "database_info">,
   null
 >;
 
@@ -51,7 +50,7 @@ export const DatabaseUserSchema = z.object({
 export type DatabaseUser = z.infer<typeof DatabaseUserSchema>;
 
 export type DatabaseUserNode = WithParentNode<
-  GenerationNode<DatabaseUser>,
+  GenerationNode<DatabaseUser, "database_user">,
   DatabaseInfoNode
 >;
 
@@ -77,7 +76,7 @@ export const DatabaseUseCaseSchema = z.object({
 export type DatabaseUseCase = z.infer<typeof DatabaseUseCaseSchema>;
 
 export type UseCaseNode = WithParentNode<
-  GenerationNode<DatabaseUseCase>,
+  GenerationNode<DatabaseUseCase, "database_use_case">,
   DatabaseUserNode
 >;
 
@@ -108,7 +107,7 @@ export const NaturalLanguageQuerySchema = z.object({
 export type NaturalLanguageQuery = z.infer<typeof NaturalLanguageQuerySchema>;
 
 export type DatabaseNlQueryNode = WithParentNode<
-  GenerationNode<NaturalLanguageQuery>,
+  GenerationNode<NaturalLanguageQuery, "natural_language_query">,
   UseCaseNode
 >;
 
@@ -121,11 +120,11 @@ export const DatabaseCodeSchema = z.object({
 export type DatabaseCode = z.infer<typeof DatabaseCodeSchema>;
 
 export type DatabaseCodeNode = WithParentNode<
-  GenerationNode<DatabaseCode>,
+  GenerationNode<DatabaseCode, "database_code">,
   DatabaseNlQueryNode
 >;
 
 export type DatabaseExecutionResultNode = WithParentNode<
-  GenerationNode<DatabaseExecutionResult>,
+  GenerationNode<DatabaseExecutionResult, "database_execution_result">,
   DatabaseCodeNode
 >;

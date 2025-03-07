@@ -1,8 +1,10 @@
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   DatabaseInfo,
+  DatabaseInfoNode,
   DatabaseUseCase,
   DatabaseUser,
+  DatabaseUserNode,
   NaturalLanguageQuery,
 } from "./nodeTypes";
 import { OpenAI } from "mongodb-rag-core/openai";
@@ -439,3 +441,42 @@ export const sampleNlQueries = {
     >
   >
 >;
+
+// Create a parent node with the database info
+export const databaseInfoNode: DatabaseInfoNode = {
+  _id: new ObjectId(),
+  parent: null,
+  type: "database_info",
+  data: sampleMovieDbInfo,
+  updated: new Date(),
+};
+
+// Create a user node with the parent reference
+export const userNodes: DatabaseUserNode[] = sampleDatabaseUsers.map(
+  (user) => ({
+    _id: new ObjectId(),
+    parent: databaseInfoNode,
+    data: user,
+    type: "database_user",
+    updated: new Date(),
+  })
+);
+
+// Get a sample user and their use cases
+const sampleUser = sampleDatabaseUsers[1]; // Daniel Garcia
+const userUseCases = sampleUseCases[sampleUser.name];
+
+// Create a user node with the parent reference
+export const userNode: DatabaseUserNode = {
+  _id: new ObjectId(),
+  parent: databaseInfoNode,
+  data: sampleUser,
+  updated: new Date(),
+};
+
+export const useCaseNodes = userUseCases.map((useCase) => ({
+  _id: new ObjectId(),
+  parent: userNode,
+  data: useCase,
+  updated: new Date(),
+}));

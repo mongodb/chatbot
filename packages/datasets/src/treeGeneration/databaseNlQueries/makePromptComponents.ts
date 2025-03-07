@@ -10,6 +10,7 @@ export function makePromptDbInfo(databaseInfo: DatabaseInfo) {
 
 Name: ${databaseInfo.name}
 Description: ${databaseInfo.description}
+Latest Date: ${databaseInfo.latestDate} (use this to inform dates in queries)
 
 ### Collections
 

@@ -91,6 +91,7 @@ export async function generateAnnotatedDatabaseInfo({
   return {
     _id: new ObjectId(),
     parent: null,
+    type: "database_info",
     data: annotatedDatabaseInfo,
     updated: new Date(),
   };

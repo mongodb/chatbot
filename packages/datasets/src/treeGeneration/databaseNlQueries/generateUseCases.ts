@@ -24,10 +24,10 @@ export const generateDatabaseUseCases = makeGenerateChildrenWithOpenAi<
   DatabaseUserNode,
   UseCaseNode
 >({
-  makePromptMessages: async ({
-    data: user,
-    parent: { data: databaseInfo },
-  }) => {
+  makePromptMessages: async (
+    { data: user, parent: { data: databaseInfo } },
+    numMessages
+  ) => {
     const message = `Generate information retrieval use cases for the following user:
     
 ${makePromptDbUserInfo(user)}
@@ -36,7 +36,9 @@ For a database with the following information:
 
 ${makePromptDbInfo(databaseInfo)}
 
-Based on this profile, what are the most realistic and specific information needs this person would have when working with the database?`;
+Based on this profile, what are the most realistic and specific information needs this person would have when working with the database?
+
+Generate exactly ${numMessages} use case(s).`;
 
     return [
       { role: "system", content: useCaseSystemPrompt },
@@ -44,8 +46,9 @@ Based on this profile, what are the most realistic and specific information need
     ];
   },
   response: {
-    schema: z.array(DatabaseUseCaseSchema),
+    schema: DatabaseUseCaseSchema,
     name: "generate_use_cases",
     description: "An array of information retrieval use cases for the user",
   },
+  childType: "database_use_case",
 });

@@ -56,10 +56,8 @@ function createLlmOptions(): LlmOptions {
 describe("makeGenerateChildrenWithOpenAi", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-  it("should generate child nodes from parent node", async () => {
     // Mock the response from OpenAI
-    mockOpenAIClient.chat.completions.create.mockResolvedValueOnce({
+    mockOpenAIClient.chat.completions.create.mockResolvedValue({
       choices: [
         {
           message: {
@@ -76,30 +74,30 @@ describe("makeGenerateChildrenWithOpenAi", () => {
         },
       ],
     });
+  });
 
-    // Create the generator function
-    const generateChildren = makeGenerateChildrenWithOpenAi<
-      ParentNode,
-      ChildNode
-    >({
-      makePromptMessages: async (parent) => [
-        { role: "system", content: "You are a test assistant" },
-        {
-          role: "user",
-          content: `Generate children for parent: ${parent.data.name}`,
-        },
-      ],
-      response: {
-        schema: ChildDataSchema,
-        name: "generate_children",
-        description: "Generate child nodes",
+  const generateChildren = makeGenerateChildrenWithOpenAi<
+    ParentNode,
+    ChildNode
+  >({
+    makePromptMessages: async (parent) => [
+      { role: "system", content: "You are a test assistant" },
+      {
+        role: "user",
+        content: `Generate children for parent: ${parent.data.name}`,
       },
-    });
+    ],
+    response: {
+      schema: ChildDataSchema,
+      name: "generate_children",
+      description: "Generate child nodes",
+    },
+  });
+  const parent = createParentNode();
+  const llmOptions = createLlmOptions();
 
-    // Generate children
-    const parent = createParentNode();
-    const llmOptions = createLlmOptions();
-    const children = await generateChildren(parent, llmOptions);
+  it("should generate child nodes from parent node", async () => {
+    const children = await generateChildren(parent, llmOptions, 2);
 
     // Assertions
     expect(mockOpenAIClient.chat.completions.create).toHaveBeenCalledTimes(1);
@@ -111,25 +109,6 @@ describe("makeGenerateChildrenWithOpenAi", () => {
   });
 
   it("should apply filter to generated nodes", async () => {
-    // Mock the response from OpenAI
-    mockOpenAIClient.chat.completions.create.mockResolvedValueOnce({
-      choices: [
-        {
-          message: {
-            tool_calls: [
-              {
-                function: {
-                  arguments: JSON.stringify({
-                    items: [{ value: 42 }, { value: 100 }],
-                  }),
-                },
-              },
-            ],
-          },
-        },
-      ],
-    });
-
     // Create the generator function with a filter
     const generateChildren = makeGenerateChildrenWithOpenAi<
       ParentNode,
@@ -153,19 +132,28 @@ describe("makeGenerateChildrenWithOpenAi", () => {
       },
     });
 
-    // Generate children
-    const parent = createParentNode();
-    const llmOptions = createLlmOptions();
-    const children = await generateChildren(parent, llmOptions);
+    const children = await generateChildren(parent, llmOptions, 1);
 
     // Assertions
     expect(children).toHaveLength(1);
     expect(children[0].data.value).toBe(42);
   });
 
+  it("should loop tool calls if necessary", async () => {
+    const children = await generateChildren(parent, llmOptions, 4);
+    expect(children).toHaveLength(4);
+    expect(mockOpenAIClient.chat.completions.create).toHaveBeenCalledTimes(2);
+  });
+
+  it("should truncate extra children", async () => {
+    const children = await generateChildren(parent, llmOptions, 3);
+    expect(children).toHaveLength(3);
+    expect(mockOpenAIClient.chat.completions.create).toHaveBeenCalledTimes(2);
+  });
+
   it("should handle empty response", async () => {
     // Mock an empty response
-    mockOpenAIClient.chat.completions.create.mockResolvedValueOnce({
+    mockOpenAIClient.chat.completions.create.mockResolvedValue({
       choices: [
         {
           message: {
@@ -183,27 +171,9 @@ describe("makeGenerateChildrenWithOpenAi", () => {
       ],
     });
 
-    const generateChildren = makeGenerateChildrenWithOpenAi<
-      ParentNode,
-      ChildNode
-    >({
-      makePromptMessages: () =>
-        Promise.resolve([
-          { role: "system", content: "You are a test assistant" },
-        ]),
-      response: {
-        schema: ChildDataSchema,
-        name: "generate_children",
-        description: "Generate child nodes",
-      },
-    });
-
-    // Generate children - should return empty array
-    const parent = createParentNode();
-    const llmOptions = createLlmOptions();
-    const children = await generateChildren(parent, llmOptions);
-
-    expect(children).toHaveLength(0);
+    await expect(generateChildren(parent, llmOptions, 1)).rejects.toThrow(
+      "No children returned from function call."
+    );
   });
 
   it("should handle API errors", async () => {
@@ -212,23 +182,7 @@ describe("makeGenerateChildrenWithOpenAi", () => {
       new Error("API Error")
     );
 
-    // Create the generator function
-    const generateChildren = makeGenerateChildrenWithOpenAi<
-      ParentNode,
-      ChildNode
-    >({
-      makePromptMessages: () => Promise.resolve([]),
-      response: {
-        schema: ChildDataSchema,
-        name: "generate_children",
-        description: "Generate child nodes",
-      },
-    });
-
-    // Generate children - should throw an error
-    const parent = createParentNode();
-    const llmOptions = createLlmOptions();
-    await expect(generateChildren(parent, llmOptions)).rejects.toThrow(
+    await expect(generateChildren(parent, llmOptions, 1)).rejects.toThrow(
       "API Error"
     );
   });
@@ -287,13 +241,12 @@ describe("makeGenerateNChoiceChildrenWithOpenAi", () => {
         name: "generate_choice",
         description: "Generate a choice",
       },
-      numCompletions: 2,
     });
 
     // Generate children
     const parent = createParentNode();
     const llmOptions = createLlmOptions();
-    const children = await generateChildren(parent, llmOptions);
+    const children = await generateChildren(parent, llmOptions, 2);
 
     // Since we're only mocking one response, we'll only get one child
     expect(children).toHaveLength(2);
@@ -323,7 +276,7 @@ describe("makeGenerateNChoiceChildrenWithOpenAi", () => {
 
     const parent = createParentNode();
     const llmOptions = createLlmOptions();
-    const children = await generateChildren(parent, llmOptions);
+    const children = await generateChildren(parent, llmOptions, 2);
 
     expect(children).toHaveLength(1);
     expect(children[0].data.value).toBe(10);

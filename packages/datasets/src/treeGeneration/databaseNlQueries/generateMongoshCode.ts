@@ -1,8 +1,4 @@
-import {
-  GenerateChildren,
-  MakeGenerateChildrenWithOpenAiParams,
-  makeGenerateNChoiceChildrenWithOpenAi,
-} from "../generateChildren";
+import { makeGenerateNChoiceChildrenWithOpenAi } from "../generateChildren";
 import {
   DatabaseNlQueryNode,
   DatabaseCodeNode,
@@ -38,6 +34,7 @@ Some general query-authoring tips:
 5. Include sorting (.sort()) and limiting (.limit()) when appropriate for result set management
 6. Handle null values and existence checks explicitly.
 7. For date operations, use proper MongoDB date operators ($dateToString, $dateToParts, etc.)
+8. For date operations, NEVER use an empty new date object (e.g. \`new Date()\`). ALWAYS specify the date, such as \`new Date("2024-10-24")\`. Use the provided 'Latest Date' field to inform dates in queries.
 
 Before wrting the mongosh query, think step-by-step about what the query should do in the "queryPlan" field.
 For the language field, always put 'mongosh". For example the output should look like: 
@@ -49,6 +46,7 @@ export const generateMongoshCode = makeGenerateNChoiceChildrenWithOpenAi<
   DatabaseNlQueryNode,
   DatabaseCodeNode
 >({
+  childType: "database_code",
   makePromptMessages: async ({
     data: naturalLanguageQuery,
     parent: {
@@ -69,7 +67,6 @@ ${makePromptDbInfo(databaseInfo)}
       { role: "user", content: message },
     ];
   },
-  numCompletions: 8,
   response: {
     schema: DatabaseCodeSchema,
     name: "generate_db_code",

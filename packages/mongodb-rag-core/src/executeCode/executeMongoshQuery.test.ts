@@ -8,7 +8,7 @@ jest.setTimeout(1000 * 60);
 // Note: skipping tests for CI b/c requires mongosh dependency.
 // Which we don't otherwise need. As this function is only used
 // in local env, it's ok to not validate in CI.
-describe.skip("executeMqlQuery", () => {
+describe("executeMqlQuery", () => {
   const mongoClient = new MongoClient(MONGO_MEMORY_SERVER_URI);
   const databaseName = "test_db_" + Date.now().toString();
   const collectionName = "users";
@@ -71,6 +71,20 @@ describe.skip("executeMqlQuery", () => {
 
     // Verify the result
     expect(res.result).toBe(2);
+    expect(res.executionTimeMs).toBeGreaterThanOrEqual(0);
+    expect(res.error).toBeUndefined();
+  });
+  it("should escape single quotes", async () => {
+    const singleQuoteInQuery = "db.users.find({ name: 'John' })";
+    const res = await executeMongoshQuery({
+      query: singleQuoteInQuery,
+      uri: MONGO_MEMORY_SERVER_URI,
+      databaseName: databaseName,
+    });
+
+    expect(
+      (res.result as { name: string }[]).find((u) => u.name === "John")
+    ).toBeTruthy();
     expect(res.executionTimeMs).toBeGreaterThanOrEqual(0);
     expect(res.error).toBeUndefined();
   });

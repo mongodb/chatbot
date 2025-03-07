@@ -77,7 +77,8 @@ describe("generateMqlCode", () => {
       .process(async (nlQueryNode) => {
         const mqlCode = await generateMongoshCode(
           nlQueryNode,
-          sampleLlmOptions
+          sampleLlmOptions,
+          8
         );
 
         console.log(

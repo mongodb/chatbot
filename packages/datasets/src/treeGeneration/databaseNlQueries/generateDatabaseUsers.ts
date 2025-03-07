@@ -5,7 +5,15 @@ import {
   DatabaseUserSchema,
 } from "./nodeTypes";
 
-export const systemPrompt = `You are an experienced database administrator and organizational psychologist who specializes in modeling realistic user personas for enterprise systems. Given the database context, create diverse users who might interact with applications built on this database. Take into account specific user personas, jobs, roles, and backgrounds of the industry for a given database.
+export const generateDatabaseUsers = makeGenerateChildrenWithOpenAi<
+  DatabaseInfoNode,
+  DatabaseUserNode
+>({
+  childType: "database_user",
+  makePromptMessages: async (parent, numChildren) => [
+    {
+      role: "system",
+      content: `You are an experienced database administrator and organizational psychologist who specializes in modeling realistic user personas for enterprise systems. Given the database context, create diverse users who might interact with applications built on this database. Take into account specific user personas, jobs, roles, and backgrounds of the industry for a given database.
 - Be sure to include industry-specifics to enrich the quality of the dataset.
 Also include general jobs that would still be relevant for the database, with the balance toward industry-specific roles.
 - Each user should have varying roles, expertise levels, and backgrounds that make sense for the database's domain.
@@ -13,16 +21,7 @@ Also include general jobs that would still be relevant for the database, with th
 
 Focus on creating realistic and diverse personas that would actually use this type of database. 
 
-Create around 20 users.`;
-
-export const generateDatabaseUsers = makeGenerateChildrenWithOpenAi<
-  DatabaseInfoNode,
-  DatabaseUserNode
->({
-  makePromptMessages: async (parent) => [
-    {
-      role: "system",
-      content: systemPrompt,
+Generate exactly ${numChildren} user(s).`,
     },
     {
       role: "user",

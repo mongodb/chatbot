@@ -5,12 +5,18 @@ import { PromisePool } from "@supercharge/promise-pool";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { GenerationNode, WithParentNode } from "./GenerationNode";
 import { LlmOptions } from "./databaseNlQueries/LlmOptions";
-import { Llm } from "mongodb-rag-core";
 
 export type GenerateChildren<
-  ParentNode extends GenerationNode<unknown> | null,
-  ChildNode extends WithParentNode<GenerationNode<unknown>, ParentNode>
-> = (parent: ParentNode, llmOptions: LlmOptions) => Promise<ChildNode[]>;
+  ParentNode extends GenerationNode<unknown, string | undefined> | null,
+  ChildNode extends WithParentNode<
+    GenerationNode<unknown, string | undefined>,
+    ParentNode
+  >
+> = (
+  parent: ParentNode,
+  llmOptions: LlmOptions,
+  numChildren: number
+) => Promise<ChildNode[]>;
 
 export interface ResponseFunction {
   name: string;
@@ -24,14 +30,18 @@ export interface ResponseFunction {
 }
 
 export interface MakeGenerateChildrenWithOpenAiParams<
-  ParentNode extends GenerationNode<unknown> | null,
-  ChildNode extends WithParentNode<GenerationNode<unknown>, ParentNode>
+  ParentNode extends GenerationNode<unknown, string | undefined> | null,
+  ChildNode extends WithParentNode<
+    GenerationNode<unknown, string | undefined>,
+    ParentNode
+  >
 > {
   /**
     Function that generates a prompt for a parent node.
     */
   makePromptMessages: (
-    parentNode: ParentNode
+    parentNode: ParentNode,
+    numChildren: number
   ) => Promise<OpenAI.ChatCompletionMessageParam[]>;
 
   /**
@@ -49,11 +59,19 @@ export interface MakeGenerateChildrenWithOpenAiParams<
      */
     concurrency?: number;
   };
+
+  /**
+    Name for child type.
+   */
+  childType?: ChildNode["type"];
 }
 
 export function makeGenerateChildrenWithOpenAi<
-  ParentNode extends GenerationNode<unknown> | null,
-  ChildNode extends WithParentNode<GenerationNode<unknown>, ParentNode>
+  ParentNode extends GenerationNode<unknown, string | undefined> | null,
+  ChildNode extends WithParentNode<
+    GenerationNode<unknown, string | undefined>,
+    ParentNode
+  >
 >({
   makePromptMessages,
   response,
@@ -64,62 +82,86 @@ export function makeGenerateChildrenWithOpenAi<
 >): GenerateChildren<ParentNode, ChildNode> {
   return async function generateChildrenWithOpenAI(
     parent: ParentNode,
-    llmOptions: LlmOptions
+    llmOptions: LlmOptions,
+    numChildren
   ): Promise<ChildNode[]> {
-    const messages = await makePromptMessages(parent);
+    const messages = await makePromptMessages(parent, numChildren);
 
     const responseSchema = z.object({
       items: z.array(response.schema),
     });
     const { openAiClient, ...clientConfig } = llmOptions;
 
-    const completion = await getCompletions({
-      openAiClient,
-      ...clientConfig,
-      messages,
-      response: { ...response, schema: responseSchema },
-      numCompletions: 1,
-    });
-    const children =
-      completion.choices[0].message.tool_calls?.[0].function.arguments;
+    // Loop running tool calls to generate
+    // exactly the correct amount of children.
+    const parsedChildren: ChildNode["data"][] = [];
+    while (parsedChildren.length < numChildren) {
+      const completion = await getCompletions({
+        openAiClient,
+        ...clientConfig,
+        messages,
+        response: { ...response, schema: responseSchema },
+        numCompletions: 1,
+      });
+      const responseMessage = completion.choices[0].message;
 
-    if (!children) {
-      throw new Error("No children returned from completion");
+      const children = responseMessage.tool_calls?.[0].function.arguments;
+
+      if (!children) {
+        throw new Error("No children returned from completion");
+      }
+      // Parse the response and extract the items array
+      const parsedResponse = JSON.parse(children);
+      const parsedItems = responseSchema.parse(parsedResponse).items;
+
+      if (parsedItems.length === 0) {
+        throw new Error("No children returned from function call.");
+      }
+
+      parsedChildren.push(...parsedItems);
+      messages.push(responseMessage, {
+        role: "user",
+        content: `Nice work, now generate ${
+          numChildren - parsedChildren.length
+        } more children`,
+      });
     }
-    // Parse the response and extract the items array
-    const parsedResponse = JSON.parse(children);
-
-    let { items: parsedChildren } = responseSchema.parse(parsedResponse);
-    if (!parsedChildren) {
-      throw new Error("Failed to parse children");
+    // Remove extra elements from the parsed children array
+    if (parsedChildren.length > numChildren) {
+      parsedChildren.splice(numChildren);
     }
 
-    parsedChildren = await filterChildNodes(filterNodes, parsedChildren);
+    const filteredChildren = await filterChildNodes(
+      filterNodes,
+      parsedChildren
+    );
 
-    return makeChildrenNodes(parent, parsedChildren);
+    return makeChildrenNodes(parent, filteredChildren);
   };
 }
 
 export function makeGenerateNChoiceChildrenWithOpenAi<
-  ParentNode extends GenerationNode<unknown> | null,
-  ChildNode extends WithParentNode<GenerationNode<unknown>, ParentNode>
+  ParentNode extends GenerationNode<unknown, string | undefined> | null,
+  ChildNode extends WithParentNode<
+    GenerationNode<unknown, string | undefined>,
+    ParentNode
+  >
 >({
   makePromptMessages,
   response,
   filterNodes,
-  numCompletions,
 }: Omit<
   MakeGenerateChildrenWithOpenAiParams<ParentNode, ChildNode>,
   "response"
 > & {
-  numCompletions?: number;
   response: ResponseFunction;
 }): GenerateChildren<ParentNode, ChildNode> {
   return async function generateNChoiceChildrenWithOpenAI(
     parent: ParentNode,
-    llmOptions: LlmOptions
+    llmOptions: LlmOptions,
+    numChildren: number
   ): Promise<ChildNode[]> {
-    const messages = await makePromptMessages(parent);
+    const messages = await makePromptMessages(parent, numChildren);
     const { openAiClient, ...clientConfig } = llmOptions;
 
     const completion = await getCompletions({
@@ -127,7 +169,7 @@ export function makeGenerateNChoiceChildrenWithOpenAi<
       ...clientConfig,
       messages,
       response,
-      numCompletions,
+      numCompletions: numChildren,
     });
 
     let children: ChildNode["data"][] = completion.choices
@@ -180,9 +222,13 @@ async function getCompletions({
   });
   return completion;
 }
+
 async function filterChildNodes<
-  ParentNode extends GenerationNode<unknown> | null,
-  ChildNode extends WithParentNode<GenerationNode<unknown>, ParentNode>,
+  ParentNode extends GenerationNode<unknown, string | undefined> | null,
+  ChildNode extends WithParentNode<
+    GenerationNode<unknown, string | undefined>,
+    ParentNode
+  >,
   C extends z.ZodTypeAny
 >(
   filterNodes: MakeGenerateChildrenWithOpenAiParams<
@@ -204,13 +250,21 @@ async function filterChildNodes<
 }
 
 function makeChildrenNodes<
-  ParentNode extends GenerationNode<unknown> | null,
-  ChildNode extends WithParentNode<GenerationNode<unknown>, ParentNode>
->(parent: ParentNode, children: ChildNode["data"][]): ChildNode[] {
+  ParentNode extends GenerationNode<unknown, string | undefined> | null,
+  ChildNode extends WithParentNode<
+    GenerationNode<unknown, string | undefined>,
+    ParentNode
+  >
+>(
+  parent: ParentNode,
+  children: ChildNode["data"][],
+  type?: ChildNode["type"]
+): ChildNode[] {
   return children.map(
     (child) =>
       ({
         _id: new ObjectId(),
+        type,
         parent,
         data: child,
         updated: new Date(),

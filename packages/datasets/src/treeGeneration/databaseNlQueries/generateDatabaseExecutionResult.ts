@@ -27,6 +27,7 @@ export async function generateDatabaseExecutionResult({
   return {
     _id: new ObjectId(),
     parent: generatedQuery,
+    type: "database_execution_result",
     updated: new Date(),
     data,
   };

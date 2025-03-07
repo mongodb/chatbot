@@ -16,6 +16,9 @@ export type MongoDbPageStore = DatabaseConnection &
   // We omit loadPages so that the generic override below works
   Omit<PageStore, "loadPages"> & {
     queryType: "mongodb";
+    loadPage(
+      args?: LoadPagesArgs<Filter<PersistedPage>>
+    ): Promise<PersistedPage | null>;
     loadPages(
       args?: LoadPagesArgs<Filter<PersistedPage>>
     ): Promise<PersistedPage[]>;
@@ -57,6 +60,12 @@ export function makeMongoDbPageStore({
     metadata: {
       databaseName,
       collectionName,
+    },
+    async loadPage(args) {
+      const filter: Filter<PersistedPage> = args
+        ? createQueryFilterFromLoadPagesArgs(args)
+        : {};
+      return pagesCollection.findOne(filter);
     },
     async loadPages(args) {
       const filter: Filter<PersistedPage> = args

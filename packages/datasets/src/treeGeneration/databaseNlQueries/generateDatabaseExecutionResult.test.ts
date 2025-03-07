@@ -16,7 +16,9 @@ import {
 import { DatabaseExecutionResult } from "mongodb-rag-core/executeCode";
 
 jest.setTimeout(1000 * 60);
-describe("generateDatabaseExecutionResults", () => {
+
+// Skipping LLM call tests
+describe.skip("generateDatabaseExecutionResults", () => {
   // Create a parent node with the database info
   const databaseInfoNode: DatabaseInfoNode = {
     _id: new ObjectId(),

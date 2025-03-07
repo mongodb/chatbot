@@ -18,7 +18,8 @@ import yaml from "yaml";
 import path from "path";
 import fs from "fs";
 
-describe("generateMqlCode", () => {
+// Skipping LLM call tests
+describe.skip("generateMqlCode", () => {
   jest.setTimeout(300000); // Increase timeout for OpenAI API calls
 
   it("should generate MQL code for a NL query", async () => {

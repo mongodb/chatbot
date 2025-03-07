@@ -4,69 +4,76 @@ import { executeMongoshQuery } from "mongodb-rag-core/executeCode";
 import * as fs from "fs";
 import * as path from "path";
 import PromisePool from "@supercharge/promise-pool";
-import { generateDatabaseUsers } from "./generateDatabaseUsers";
-import { generateDatabaseUseCases } from "./generateUseCases";
-import { generateNaturalLanguageQueries } from "./generateNaturalLanguageQueries";
-import { generateAnnotatedDatabaseInfo } from "./generateAnnotatedDatabaseInfo";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { BRAINTRUST_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
-import { DATABASE_NL_QUERIES } from "../../EnvVars";
-import { sampleLlmOptions } from "./sampleData";
-import { generateMongoshCode } from "./generateMongoshCode";
-import { makeMongoDbNodeStore } from "../MongoDbNodeStore";
-import { generateDatabaseExecutionResult } from "./generateDatabaseExecutionResult";
+import { DATABASE_NL_QUERIES } from "../EnvVars";
+import { generateAnnotatedDatabaseInfo } from "../treeGeneration/databaseNlQueries/generateAnnotatedDatabaseInfo";
+import { generateDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/generateDatabaseExecutionResult";
+import { generateDatabaseUsers } from "../treeGeneration/databaseNlQueries/generateDatabaseUsers";
+import { generateMongoshCode } from "../treeGeneration/databaseNlQueries/generateMongoshCode";
+import { generateNaturalLanguageQueries } from "../treeGeneration/databaseNlQueries/generateNaturalLanguageQueries";
+import { generateDatabaseUseCases } from "../treeGeneration/databaseNlQueries/generateUseCases";
+import { makeMongoDbNodeStore } from "../treeGeneration/MongoDbNodeStore";
+import { LlmOptions } from "../treeGeneration/databaseNlQueries/LlmOptions";
+import { datasetDatabases } from "../treeGeneration/databaseNlQueries/datasetDatabases";
 
-const nlQueryOutputPath = path.resolve(__dirname, "nl_queries.jsonl");
+const {
+  BRAINTRUST_API_KEY,
+  BRAINTRUST_ENDPOINT,
+  MONGODB_TEXT_TO_CODE_CONNECTION_URI,
+} = assertEnvVars({
+  ...BRAINTRUST_ENV_VARS,
+  ...DATABASE_NL_QUERIES,
+});
 
-// Clear the file if it exists
-if (fs.existsSync(nlQueryOutputPath)) {
-  fs.unlinkSync(nlQueryOutputPath);
+const dataOutDir = path.resolve(__dirname, "..", "..", "dataOut");
+
+// Validate that dataOutDir exists. Create if it doesn't
+if (!fs.existsSync(dataOutDir)) {
+  fs.mkdirSync(dataOutDir, { recursive: true });
+  console.log(`Created directory: ${dataOutDir}`);
 }
 
-const textToMqlOutputPath = path.resolve(__dirname, "text_to_mql.jsonl");
-
-// Clear the file if it exists
-if (fs.existsSync(textToMqlOutputPath)) {
-  fs.unlinkSync(textToMqlOutputPath);
-}
-
-// One point to control how many generations at each level.
-// Useful for debugging.
-const numGenerations = {
-  users: 8,
-  useCases: 3,
-  nlQueries: 3,
-  dbQueries: 8,
+const llmOptions: LlmOptions = {
+  openAiClient: new OpenAI({
+    apiKey: BRAINTRUST_API_KEY,
+    baseURL: BRAINTRUST_ENDPOINT,
+  }),
+  model: "gpt-4o",
+  temperature: 0.5,
+  seed: 42,
 };
 
-describe("End-to-end NL query generation pipeline", () => {
-  const {
-    BRAINTRUST_API_KEY,
-    BRAINTRUST_ENDPOINT,
-    MONGODB_TEXT_TO_CODE_CONNECTION_URI,
-  } = assertEnvVars({
-    ...BRAINTRUST_ENV_VARS,
-    ...DATABASE_NL_QUERIES,
-  });
-  jest.setTimeout(600000 * 1000); // loooong timeout for whole pipeline
+// One point to control generations at each level.
+// Useful for debugging.
+const config = {
+  users: { numGenerations: 8, llmConfig: llmOptions },
+  useCases: { numGenerations: 3, llmConfig: llmOptions },
+  nlQueries: { numGenerations: 3, llmConfig: llmOptions },
+  dbQueries: { numGenerations: 8, llmConfig: llmOptions },
+} as const satisfies Record<
+  string,
+  { numGenerations: number; llmConfig: LlmOptions }
+>;
 
-  const mongoClient = new MongoClient(MONGODB_TEXT_TO_CODE_CONNECTION_URI);
+async function generateMongoshDataset(
+  mongoClient: MongoClient,
+  databaseName: string
+) {
+  const textToMqlOutputPath = path.resolve(
+    dataOutDir,
+    `text_to_mql_${databaseName}_${Date.now()}.jsonl`
+  );
+
   const nodeStore = makeMongoDbNodeStore({
     mongoClient,
     collectionName: "nodes",
     databaseName: "db_to_code",
   });
 
-  beforeAll(async () => {
-    await mongoClient.connect();
-  });
+  await mongoClient.connect();
 
-  afterAll(async () => {
-    await mongoClient.close();
-  });
-
-  it("should generate database users, use cases, and NL queries", async () => {
-    const databaseName = "sample_mflix";
+  try {
     console.log(`Generating database info for database ${databaseName}`);
     const databaseInfoNode = await generateAnnotatedDatabaseInfo({
       mongoDb: {
@@ -91,8 +98,8 @@ describe("End-to-end NL query generation pipeline", () => {
     console.log("Generating database users...");
     const userNodes = await generateDatabaseUsers(
       databaseInfoNode,
-      sampleLlmOptions,
-      numGenerations.users
+      config.users.llmConfig,
+      config.users.numGenerations
     );
     await nodeStore.storeNodes({ nodes: userNodes });
 
@@ -105,8 +112,8 @@ describe("End-to-end NL query generation pipeline", () => {
       .process(async (userNode) => {
         const useCases = await generateDatabaseUseCases(
           userNode,
-          sampleLlmOptions,
-          numGenerations.useCases
+          config.useCases.llmConfig,
+          config.useCases.numGenerations
         );
         await nodeStore.storeNodes({ nodes: useCases });
         console.log(
@@ -130,8 +137,8 @@ describe("End-to-end NL query generation pipeline", () => {
         .process(async (useCaseNode) => {
           const nlQueries = await generateNaturalLanguageQueries(
             useCaseNode,
-            sampleLlmOptions,
-            numGenerations.nlQueries
+            config.nlQueries.llmConfig,
+            config.nlQueries.numGenerations
           );
           await nodeStore.storeNodes({
             nodes: nlQueries,
@@ -140,19 +147,9 @@ describe("End-to-end NL query generation pipeline", () => {
             `Generated ${nlQueries.length} NL queries for use case: ${useCaseNode.data.title}`
           );
 
-          for (const nlQuery of nlQueries) {
-            fs.appendFileSync(
-              nlQueryOutputPath,
-              JSON.stringify(nlQuery.data) + "\n"
-            );
-          }
           return nlQueries;
         });
     const nlQueryNodes = nlQueryNodesByUseCase.flat();
-
-    console.log(
-      `Successfully wrote ${nlQueryNodes.length} nodes to ${nlQueryOutputPath}`
-    );
 
     // Generate triplets for the NL queries
     console.log("Generating query nodes for the NL queries...");
@@ -163,8 +160,8 @@ describe("End-to-end NL query generation pipeline", () => {
       .process(async (nlQueryNode) => {
         const dbCodeNodes = await generateMongoshCode(
           nlQueryNode,
-          sampleLlmOptions,
-          numGenerations.dbQueries
+          config.dbQueries.llmConfig,
+          config.dbQueries.numGenerations
         );
         await nodeStore.storeNodes({ nodes: dbCodeNodes });
 
@@ -192,7 +189,6 @@ describe("End-to-end NL query generation pipeline", () => {
         );
         return dbExecution;
       });
-    // TODO: why hanging up here??
     console.log(`Generated ${dbExecutions.length} DB executions.`);
     await nodeStore.storeNodes({ nodes: dbExecutions });
     console.log(`Writing data out to ${textToMqlOutputPath}`);
@@ -214,5 +210,20 @@ describe("End-to-end NL query generation pipeline", () => {
     console.log(
       `Successfully wrote ${dbCodeNodes.length} nodes to ${textToMqlOutputPath}`
     );
-  });
-});
+  } finally {
+    await mongoClient.close();
+  }
+}
+
+async function main() {
+  const mongoClient = new MongoClient(MONGODB_TEXT_TO_CODE_CONNECTION_URI);
+  try {
+    await mongoClient.connect();
+    for (const databaseName of datasetDatabases) {
+      await generateMongoshDataset(mongoClient, databaseName);
+    }
+  } finally {
+    await mongoClient.close();
+  }
+}
+main();

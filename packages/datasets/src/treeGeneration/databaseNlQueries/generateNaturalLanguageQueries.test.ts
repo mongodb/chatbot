@@ -2,7 +2,8 @@ import { generateNaturalLanguageQueries } from "./generateNaturalLanguageQueries
 import { sampleLlmOptions, useCaseNodes, userNode } from "./sampleData";
 import PromisePool from "@supercharge/promise-pool";
 
-describe("generateNaturalLanguageQueries", () => {
+// Skipping LLM call tests
+describe.skip("generateNaturalLanguageQueries", () => {
   jest.setTimeout(300000); // Increase timeout for OpenAI API calls
 
   it("should generate natural language queries for a database use case", async () => {

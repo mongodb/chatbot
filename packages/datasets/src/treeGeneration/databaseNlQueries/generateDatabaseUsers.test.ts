@@ -3,7 +3,8 @@ import { generateDatabaseUsers } from "./generateDatabaseUsers";
 import { DatabaseInfoNode, DatabaseInfoSchema } from "./nodeTypes";
 import { sampleMovieDbInfo, sampleLlmOptions } from "./sampleData";
 
-describe("generateDatabaseUsers", () => {
+// Skipping LLM call tests
+describe.skip("generateDatabaseUsers", () => {
   jest.setTimeout(3000 * 1000); // Increase timeout for OpenAI API calls
 
   it("should generate users for a movie database", async () => {

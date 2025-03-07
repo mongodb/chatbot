@@ -1,7 +1,8 @@
 import { generateDatabaseUseCases } from "./generateUseCases";
 import { sampleLlmOptions, userNodes } from "./sampleData";
 
-describe("generateDatabaseUseCases", () => {
+// Skipping LLM call tests
+describe.skip("generateDatabaseUseCases", () => {
   jest.setTimeout(300000); // Increase timeout for OpenAI API calls
 
   it("should generate use cases for a database user", async () => {

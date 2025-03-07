@@ -21,7 +21,7 @@ export function fuzzyLinkMatch(expected: string, actual: string) {
   if (cleanActualPath && cleanExpectedPath) {
     return cleanActualPath.endsWith(cleanExpectedPath);
   } else {
-    // compare full normalized paths
+    // compare normalized full URLs
     const normalizedActual = normalizeUrl(actual);
     const normalizedExpected = normalizeUrl(expected);
     return normalizedActual === normalizedExpected;

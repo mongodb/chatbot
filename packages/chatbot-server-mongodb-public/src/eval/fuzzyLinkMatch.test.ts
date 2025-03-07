@@ -64,7 +64,7 @@ describe("fuzzyLinkMatch", () => {
     expect(fuzzyLinkMatch(expected, actual)).toBe(false);
   });
 
-  test("actual url has not path, but expected does", () => {
+  test("expected url has path, but actual does not", () => {
     const expected = "https://example.com/path/to/resource";
     const actual = "https://example.com";
     expect(fuzzyLinkMatch(expected, actual)).toBe(false);

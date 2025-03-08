@@ -1,0 +1,10 @@
+{
+    "mcpServers": {
+        "mongodb-mcp": {
+            "command": "node",
+            "args": [
+                "/Users/ben.p/projects/chatbot/packages/mcp/build/index.js"
+            ]
+        }
+    }
+}

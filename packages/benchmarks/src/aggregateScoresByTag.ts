@@ -1,0 +1,180 @@
+import { strict as assert } from "assert";
+import { EvalCase } from "mongodb-rag-core/braintrust";
+
+/**
+  Statistics for a set of scores
+ */
+export interface ScoreStats {
+  mean: number;
+  median: number;
+  mode: number | null;
+  min: number;
+  max: number;
+  count: number;
+}
+
+/**
+  @example
+  ```typescript
+  const tagStates: TagStates = new Map();
+  tagStates.set("some_tag", {
+    accuracy: {
+      mean: 0.9,
+      median: 0.9,
+      mode: 0.9,
+      min: 0.8,
+      max: 1.0,
+      count: 3,
+    },
+    relevance: {
+      mean: 0.8,
+      median: 0.8,
+      mode: null,
+      min: 0.7,
+      max: 0.9,
+      count: 3,
+    },
+  });
+  ```
+ */
+export type TagStats = Map<string, Record<string, ScoreStats>>;
+
+/**
+  Calculate statistics for an array of numeric values
+ */
+export function calculateStats(values: number[]): ScoreStats {
+  if (values.length === 0) {
+    throw new Error("Cannot calculate statistics for an empty array");
+  }
+
+  const sortedValues = [...values].sort((a, b) => a - b);
+
+  // Calculate mean
+  const sum = sortedValues.reduce((acc, val) => acc + val, 0);
+  const mean = sum / sortedValues.length;
+
+  // Calculate median
+  const mid = Math.floor(sortedValues.length / 2);
+  const median =
+    sortedValues.length % 2 === 0
+      ? (sortedValues[mid - 1] + sortedValues[mid]) / 2
+      : sortedValues[mid];
+
+  // Calculate mode (most frequent value)
+  const frequency: Record<number, number> = {};
+  let maxFreq = 0;
+  let mode: number | null = null;
+
+  for (const value of sortedValues) {
+    frequency[value] = (frequency[value] || 0) + 1;
+    if (frequency[value] > maxFreq) {
+      maxFreq = frequency[value];
+      mode = value;
+    }
+  }
+
+  // If all values appear the same number of times, there is no mode
+  if (
+    Object.values(frequency).every((freq) => freq === maxFreq) &&
+    Object.keys(frequency).length > 1
+  ) {
+    mode = null;
+  }
+
+  // Calculate min and max
+  const min = sortedValues[0];
+  const max = sortedValues[sortedValues.length - 1];
+
+  return {
+    mean,
+    median,
+    mode,
+    min,
+    max,
+    count: sortedValues.length,
+  };
+}
+
+export function aggregateScoresByTag<
+  EC extends EvalCase<unknown, unknown, unknown>,
+  Scores extends Record<string, number>
+>(
+  evalCasesWithScores: { evalCase: EC; scores: Scores }[],
+  aggregateScoreNames: (keyof Scores)[]
+): TagStats {
+  // First, collect all score values by tag and score name
+  const scoresByTag = new Map<string, Record<string, number[]>>();
+
+  for (const { evalCase, scores } of evalCasesWithScores) {
+    // Get tags from the eval case
+    const tags = evalCase.tags || [];
+    if (tags.length === 0) continue;
+
+    // Use the first tag as the primary tag
+    const tag = tags[0];
+
+    // Initialize the tag entry if it doesn't exist
+    if (!scoresByTag.has(tag)) {
+      scoresByTag.set(tag, {});
+    }
+
+    // Get the score record for this tag
+    const tagScores = scoresByTag.get(tag);
+    assert(tagScores, `Tag ${tag} not found`);
+
+    // Add each score to the appropriate array
+    for (const scoreName of aggregateScoreNames) {
+      const score = scores[scoreName as string];
+      if (score === undefined || score === null) continue;
+
+      // Initialize the score array if it doesn't exist
+      if (!tagScores[scoreName as string]) {
+        tagScores[scoreName as string] = [];
+      }
+
+      // Add the score to the array
+      tagScores[scoreName as string].push(score);
+    }
+  }
+
+  // Now calculate statistics for each tag and score
+  const tagStats = new Map<string, Record<string, ScoreStats>>();
+
+  for (const [tag, scores] of scoresByTag.entries()) {
+    const tagStat: Record<string, ScoreStats> = {};
+
+    for (const [scoreName, scoreValues] of Object.entries(scores)) {
+      if (scoreValues.length === 0) continue;
+      // Calculate statistics for this score
+      tagStat[scoreName] = calculateStats(scoreValues);
+    }
+
+    tagStats.set(tag, tagStat);
+  }
+
+  return tagStats;
+}
+
+/**
+  Converts the tagStats Map to a flat object with headers formatted as <Score>.mean, <Score>.length, etc.
+  This makes it easier to export the data to formats like CSV.flat object where keys are formatted as "<tag>.<score>.<stat>"
+ */
+export function convertTagStatsToFlatObject(
+  tagStats: TagStats
+): Record<string, Record<string, number | null>> {
+  const result: Record<string, Record<string, number | null>> = {};
+
+  // Process each tag
+  for (const [tag, scoreStats] of tagStats.entries()) {
+    result[tag] = {};
+
+    // Process each score type (accuracy, relevance, etc.)
+    for (const [scoreName, stats] of Object.entries(scoreStats)) {
+      for (const [statName, value] of Object.entries(stats)) {
+        result[tag][`${scoreName}.${statName}`] = value;
+      }
+    }
+  }
+
+  return result;
+}

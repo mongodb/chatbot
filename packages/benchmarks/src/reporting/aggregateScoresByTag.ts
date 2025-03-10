@@ -97,15 +97,21 @@ export function calculateStats(values: number[]): ScoreStats {
 
 export function aggregateScoresByTag<
   EC extends EvalCase<unknown, unknown, unknown>,
-  Scores extends Record<string, number>
+  ScoreType extends string = string
 >(
-  evalCasesWithScores: { evalCase: EC; scores: Scores }[],
-  aggregateScoreNames: (keyof Scores)[]
+  evalCasesWithScores: {
+    evalCase: EC;
+    scores?: Record<ScoreType, number | null | undefined>;
+  }[],
+  aggregateScoreNames: ScoreType[]
 ): TagStats {
   // First, collect all score values by tag and score name
   const scoresByTag = new Map<string, Record<string, number[]>>();
 
   for (const { evalCase, scores } of evalCasesWithScores) {
+    // Skip if scores is undefined
+    if (!scores) continue;
+
     // Get tags from the eval case
     const tags = evalCase.tags || [];
     if (tags.length === 0) continue;
@@ -124,16 +130,18 @@ export function aggregateScoresByTag<
 
     // Add each score to the appropriate array
     for (const scoreName of aggregateScoreNames) {
-      const score = scores[scoreName as string];
-      if (score === undefined || score === null) continue;
+      const score = scores[scoreName];
+      if (score === undefined || score === null) {
+        continue;
+      }
 
       // Initialize the score array if it doesn't exist
-      if (!tagScores[scoreName as string]) {
-        tagScores[scoreName as string] = [];
+      if (!tagScores[scoreName]) {
+        tagScores[scoreName] = [];
       }
 
       // Add the score to the array
-      tagScores[scoreName as string].push(score);
+      tagScores[scoreName].push(score);
     }
   }
 
@@ -144,7 +152,9 @@ export function aggregateScoresByTag<
     const tagStat: Record<string, ScoreStats> = {};
 
     for (const [scoreName, scoreValues] of Object.entries(scores)) {
-      if (scoreValues.length === 0) continue;
+      if (scoreValues.length === 0) {
+        continue;
+      }
       // Calculate statistics for this score
       tagStat[scoreName] = calculateStats(scoreValues);
     }
@@ -153,28 +163,4 @@ export function aggregateScoresByTag<
   }
 
   return tagStats;
-}
-
-/**
-  Converts the tagStats Map to a flat object with headers formatted as <Score>.mean, <Score>.length, etc.
-  This makes it easier to export the data to formats like CSV.flat object where keys are formatted as "<tag>.<score>.<stat>"
- */
-export function convertTagStatsToFlatObject(
-  tagStats: TagStats
-): Record<string, Record<string, number | null>> {
-  const result: Record<string, Record<string, number | null>> = {};
-
-  // Process each tag
-  for (const [tag, scoreStats] of tagStats.entries()) {
-    result[tag] = {};
-
-    // Process each score type (accuracy, relevance, etc.)
-    for (const [scoreName, stats] of Object.entries(scoreStats)) {
-      for (const [statName, value] of Object.entries(stats)) {
-        result[tag][`${scoreName}.${statName}`] = value;
-      }
-    }
-  }
-
-  return result;
 }

@@ -1,9 +1,5 @@
 import { EvalCase } from "mongodb-rag-core/braintrust";
-import {
-  aggregateScoresByTag,
-  calculateStats,
-  convertTagStatsToFlatObject,
-} from "./aggregateScoresByTag";
+import { aggregateScoresByTag, calculateStats } from "./aggregateScoresByTag";
 
 describe("calculateStats", () => {
   test("calculates correct statistics for an array of numbers", () => {
@@ -116,12 +112,16 @@ describe("convertTagStatsToFlatObject", () => {
 
 describe("aggregateScoresByTag", () => {
   // Helper function to create mock eval cases with scores
-  function createMockEvalCases(
-    tagData: { tag: string; scores: Record<string, number[]> }[]
-  ) {
+  function createMockEvalCases<T extends string>(
+    tagData: { tag: string; scores: Record<T, number[]> }[]
+  ): {
+    evalCase: EvalCase<unknown, unknown, unknown>;
+    scores: Record<string, number>;
+  }[] {
     return tagData.flatMap(({ tag, scores }) => {
-      return Object.entries(scores).flatMap(([scoreName, values]) => {
-        return values.map((value) => ({
+      return Object.entries(scores).flatMap(([scoreName, scoreValues]) => {
+        const typedScoreValues = scoreValues as number[];
+        return typedScoreValues.map((value: number) => ({
           evalCase: {
             input: {},
             tags: [tag],
@@ -236,7 +236,6 @@ describe("aggregateScoresByTag", () => {
     expect(mongodbStats?.accuracy).toBeDefined();
     expect(mongodbStats?.accuracy.mean).toBe(0.9);
     expect(mongodbStats?.accuracy.count).toBe(1);
-
     expect(mongodbStats?.relevance).toBeDefined();
     expect(mongodbStats?.relevance.mean).toBe(0.8);
     expect(mongodbStats?.relevance.count).toBe(1);
@@ -280,9 +279,39 @@ describe("aggregateScoresByTag", () => {
     expect(mongodbStats?.accuracy).toBeDefined();
     expect(mongodbStats?.accuracy.mean).toBe(0.8);
     expect(mongodbStats?.accuracy.count).toBe(1);
-
     expect(mongodbStats?.relevance).toBeDefined();
     expect(mongodbStats?.relevance.mean).toBe(0.9);
     expect(mongodbStats?.relevance.count).toBe(1);
+  });
+
+  test("handles optional scores property", () => {
+    const mockEvalCases = [
+      {
+        evalCase: {
+          input: {},
+          tags: ["mongodb"],
+          expected: {},
+          metadata: {},
+        } as EvalCase<unknown, unknown, unknown>,
+        // No scores property
+      },
+      {
+        evalCase: {
+          input: {},
+          tags: ["mongodb"],
+          expected: {},
+          metadata: {},
+        } as EvalCase<unknown, unknown, unknown>,
+        scores: { accuracy: 0.8 },
+      },
+    ];
+
+    const result = aggregateScoresByTag(mockEvalCases, ["accuracy"]);
+
+    // Should only include the case with scores
+    const mongodbStats = result.get("mongodb");
+    expect(mongodbStats?.accuracy).toBeDefined();
+    expect(mongodbStats?.accuracy.mean).toBe(0.8);
+    expect(mongodbStats?.accuracy.count).toBe(1);
   });
 });

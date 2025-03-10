@@ -39,7 +39,7 @@ const llmOptions: LlmOptions = {
     apiKey: BRAINTRUST_API_KEY,
     baseURL: BRAINTRUST_ENDPOINT,
   }),
-  model: "gpt-4o",
+  model: "gpt-4o-mini",
   temperature: 0.5,
   seed: 42,
 };
@@ -48,8 +48,8 @@ const llmOptions: LlmOptions = {
 // Useful for debugging.
 const config = {
   users: { numGenerations: 8, llmConfig: llmOptions },
-  useCases: { numGenerations: 3, llmConfig: llmOptions },
-  nlQueries: { numGenerations: 3, llmConfig: llmOptions },
+  useCases: { numGenerations: 8, llmConfig: llmOptions },
+  nlQueries: { numGenerations: 8, llmConfig: llmOptions },
   dbQueries: { numGenerations: 8, llmConfig: llmOptions },
 } as const satisfies Record<
   string,
@@ -58,16 +58,25 @@ const config = {
 
 async function generateMongoshDataset(
   mongoClient: MongoClient,
-  databaseName: string
+  databaseName: string,
+  now: number
 ) {
+  console.log(`Generating dataset for database ${databaseName}`);
+  // Write out each DB's dataset to a separate file
   const textToMqlOutputPath = path.resolve(
     dataOutDir,
-    `text_to_mql_${databaseName}_${Date.now()}.jsonl`
+    `text_to_mql_${databaseName}_${llmOptions.model}_${now}.jsonl`
+  );
+  // Write out all datasets to one collection in database
+  const collectionName = `nodes_${now}`;
+
+  console.log(
+    `Writing data out to ${textToMqlOutputPath} and ${collectionName} in database db_to_code`
   );
 
   const nodeStore = makeMongoDbNodeStore({
     mongoClient,
-    collectionName: "nodes",
+    collectionName,
     databaseName: "db_to_code",
   });
 
@@ -218,9 +227,10 @@ async function generateMongoshDataset(
 async function main() {
   const mongoClient = new MongoClient(MONGODB_TEXT_TO_CODE_CONNECTION_URI);
   try {
+    const now = Date.now();
     await mongoClient.connect();
     for (const databaseName of datasetDatabases) {
-      await generateMongoshDataset(mongoClient, databaseName);
+      await generateMongoshDataset(mongoClient, databaseName, now);
     }
   } finally {
     await mongoClient.close();

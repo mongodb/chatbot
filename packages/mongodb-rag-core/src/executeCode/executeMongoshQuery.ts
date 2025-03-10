@@ -20,7 +20,7 @@ export const executeMongoshQuery: ExecuteMongoDbQuery = async ({
   let result: Document | Document[] | number | null = null;
   let error: { message: string } | undefined = undefined;
 
-  let executionTimeMs = 0;
+  let executionTimeMs: number | null = null;
   try {
     const connectionUrl = new URL(uri);
     connectionUrl.pathname = databaseName;
@@ -42,6 +42,7 @@ export const executeMongoshQuery: ExecuteMongoDbQuery = async ({
 
     if (stderr && stderr.trim()) {
       error = { message: stderr.trim() };
+      executionTimeMs = null;
     } else if (stdout.trim()) {
       try {
         result = BSON.EJSON.parse(stdout.trim(), { relaxed: true });
@@ -49,6 +50,7 @@ export const executeMongoshQuery: ExecuteMongoDbQuery = async ({
         error = {
           message: `Failed to parse mongosh output: ${parseError.message}`,
         };
+        executionTimeMs = null;
       }
     }
   } catch (execError: any) {

@@ -129,7 +129,7 @@ describe("executeMqlQuery", () => {
 
     // Verify the error is captured
     expect(res.result).toBeNull();
-    expect(res.executionTimeMs).toBeGreaterThanOrEqual(0);
+    expect(res.executionTimeMs).toBeNull();
     expect(res.error).toBeDefined();
   });
 
@@ -143,7 +143,7 @@ describe("executeMqlQuery", () => {
 
     // Verify the parsing error is captured
     expect(res.result).toBeNull();
-    expect(res.executionTimeMs).toBeGreaterThanOrEqual(0);
+    expect(res.executionTimeMs).toBeNull();
     expect(res.error).toBeDefined();
   });
 
@@ -155,8 +155,7 @@ describe("executeMqlQuery", () => {
       databaseName: databaseName,
     });
 
-    // May or may not have an error depending on how mongosh handles stderr
-    expect(res.executionTimeMs).toBeGreaterThanOrEqual(0);
+    expect(res.executionTimeMs).toBeNull();
     expect(res.result).toBeNull();
     expect(res.error).toBeDefined();
   });

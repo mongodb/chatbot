@@ -26,6 +26,7 @@ export interface DatabaseExecutionResult {
   };
   /**
     The time in milliseconds it took to execute the generated driver code.
+    `null` if execution failed.
    */
-  executionTimeMs: number;
+  executionTimeMs: number | null;
 }

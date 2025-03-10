@@ -13,6 +13,7 @@
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {
+    "jsdom": "^26.0.0",
     "ts-node": "^10.9.2"
   }
 }

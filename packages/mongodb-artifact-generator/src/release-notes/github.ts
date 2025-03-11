@@ -58,6 +58,8 @@ async function withRateLimit<T>(
 ): Promise<T> {
   try {
     return await operation();
+    // Skipping no-explicit-any is fine because this will be deleted in favor of the release-notes-generator package
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (
       error?.status === 403 &&
@@ -126,7 +128,11 @@ export function makeGitHubReleaseArtifacts(
         commitPromise.then((response) => response.data)
       );
     }
-    return commitDetailPromises.get(commitSha)!;
+    const commitDetailPromise = commitDetailPromises.get(commitSha);
+    if (!commitDetailPromise) {
+      throw new Error(`No commit details found for ${commitSha}`);
+    }
+    return commitDetailPromise;
   };
 
   return {

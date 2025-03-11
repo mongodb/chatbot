@@ -1,13 +1,5 @@
+import { expectTypeTestsToPassAsync } from "jest-tsd";
 import { getEnv } from "./getEnv";
-
-// Mock process.env
-const mockProcessEnv = {
-  TEST_ENV_VAR: "test",
-};
-
-jest.mock("process", () => ({
-  env: mockProcessEnv,
-}));
 
 describe("getEnv", () => {
   const ORIGINAL_ENV = process.env;
@@ -19,6 +11,10 @@ describe("getEnv", () => {
 
   afterAll(() => {
     process.env = ORIGINAL_ENV;
+  });
+
+  it("does not produce static type errors", async () => {
+    await expectTypeTestsToPassAsync(__filename);
   });
 
   it("returns required env vars that are defined", () => {

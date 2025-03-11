@@ -14,10 +14,6 @@ interface GetEnvArgs<
   optional?: O;
 }
 
-type SomeEnv = {
-  [key: string]: string | undefined;
-};
-
 // Helper type to determine the type of an optional env var based on its default value
 type OptionalEnvType<T extends string | undefined> = T extends undefined
   ? string | undefined
@@ -27,16 +23,16 @@ type EnvFromArgs<
   R extends string,
   O extends Record<string, string | undefined>
 > = {
-  [K in keyof O]: OptionalEnvType<O[K]>;
-} & {
   [K in R]: string;
+} & {
+  [K in keyof O]: OptionalEnvType<O[K]>;
 };
 
 export function getEnv<
   R extends string = never,
   O extends Record<string, string | undefined> = Record<never, never>
 >({ required, optional }: GetEnvArgs<R, O>): EnvFromArgs<R, O> {
-  const env = { ...(optional as any) };
+  const env = { ...optional };
   const missingRequired: string[] = [];
   if (required) {
     required.forEach((key) => {

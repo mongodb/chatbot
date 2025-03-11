@@ -184,7 +184,6 @@ async function getContent(
 
   const markdown = mongoDbDotcomTurndownService.turndown(cleanedHtml);
 
-
   return {
     body: markdown,
     metadata,

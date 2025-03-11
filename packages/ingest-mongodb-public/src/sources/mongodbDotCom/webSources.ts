@@ -111,7 +111,6 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/solutions/use-cases/gaming",
       "https://www.mongodb.com/solutions/use-cases/payments",
       "https://www.mongodb.com/solutions/use-cases/serverless",
-
     ],
     staticMetadata: {
       type: "Solutions",

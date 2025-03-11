@@ -132,7 +132,7 @@ describe("OpenAiLlm", () => {
     expect(response.role).toBe("assistant");
     expect(response.function_call?.name).toBe("test_tool");
     expect(response.function_call?.arguments).toBeTruthy();
-    expect(JSON.parse(response.function_call!.arguments)).toStrictEqual({
+    expect(JSON.parse(response.function_call?.arguments ?? "")).toStrictEqual({
       test: "test",
     });
     expect(toolResponse).toStrictEqual({

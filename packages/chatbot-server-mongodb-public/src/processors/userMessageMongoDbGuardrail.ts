@@ -140,9 +140,7 @@ const fewShotExamples: OpenAI.ChatCompletionMessageParam[] = [
     rejectMessage: false,
   } satisfies UserMessageMongoDbGuardrailFunction),
   // Example 15
-  makeUserMessage(
-    "What is an ODL?"
-  ),
+  makeUserMessage("What is an ODL?"),
   makeAssistantFunctionCallMessage(name, {
     reasoning:
       "This query asks about an Operational Data Layer (ODL), which is an architectural pattern that can be used with MongoDB. Therefore, it is relevant to MongoDB.",

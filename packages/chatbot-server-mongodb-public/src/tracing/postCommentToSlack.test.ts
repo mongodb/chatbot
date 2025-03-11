@@ -23,6 +23,11 @@ const { SLACK_BOT_TOKEN, SLACK_COMMENT_CONVERSATION_ID } = process.env;
 
 describe.skip("postCommentToSlack", () => {
   it("should post message to slack", async () => {
+    if (!SLACK_BOT_TOKEN || !SLACK_COMMENT_CONVERSATION_ID) {
+      throw new Error(
+        "SLACK_BOT_TOKEN and SLACK_COMMENT_CONVERSATION_ID must be set"
+      );
+    }
     const id = new ObjectId();
     await postCommentToSlack({
       slackToken: SLACK_BOT_TOKEN,

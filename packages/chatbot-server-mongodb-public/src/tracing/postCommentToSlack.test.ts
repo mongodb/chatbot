@@ -1,12 +1,31 @@
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { makeBraintrustLogUrl, postCommentToSlack } from "./postCommentToSlack";
 import "dotenv/config";
+import {
+  assertEnvVars,
+  CORE_OPENAI_CONNECTION_ENV_VARS,
+} from "mongodb-rag-core";
+import { EVAL_ENV_VARS, SLACK_ENV_VARS } from "../EnvVars";
+
+const {
+  SLACK_BOT_TOKEN,
+  SLACK_COMMENT_CONVERSATION_ID,
+  JUDGE_EMBEDDING_MODEL,
+  JUDGE_LLM,
+  OPENAI_API_KEY,
+  OPENAI_ENDPOINT,
+  OPENAI_API_VERSION,
+} = assertEnvVars({
+  ...SLACK_ENV_VARS,
+  ...EVAL_ENV_VARS,
+  ...CORE_OPENAI_CONNECTION_ENV_VARS,
+});
 describe.skip("postCommentToSlack", () => {
   it("should post message to slack", async () => {
     const id = new ObjectId();
     await postCommentToSlack({
-      slackToken: process.env.SLACK_BOT_TOKEN!,
-      slackConversationId: process.env.SLACK_COMMENT_CONVERSATION_ID!,
+      slackToken: SLACK_BOT_TOKEN,
+      slackConversationId: SLACK_COMMENT_CONVERSATION_ID,
       conversation: {
         _id: new ObjectId(),
         createdAt: new Date(),
@@ -35,13 +54,13 @@ describe.skip("postCommentToSlack", () => {
       },
       messageWithCommentId: id,
       llmAsAJudge: {
-        judgeEmbeddingModel: process.env.JUDGE_EMBEDDING_MODEL!,
-        judgeModel: process.env.JUDGE_LLM!,
+        judgeEmbeddingModel: JUDGE_EMBEDDING_MODEL,
+        judgeModel: JUDGE_LLM,
         openAiConfig: {
           azureOpenAi: {
-            apiKey: process.env.OPENAI_API_KEY!,
-            endpoint: process.env.OPENAI_ENDPOINT!,
-            apiVersion: process.env.OPENAI_API_VERSION!,
+            apiKey: OPENAI_API_KEY,
+            endpoint: OPENAI_ENDPOINT,
+            apiVersion: OPENAI_API_VERSION,
           },
         },
       },

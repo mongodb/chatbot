@@ -50,13 +50,6 @@ export function getLastAssistantMessageFromMessages(
 }
 
 export function getContextsFromUserMessage(userMessage: UserMessage) {
-  const initial: {
-    contexts: string[];
-    urls: string[];
-  } = {
-    contexts: [],
-    urls: [],
-  };
   const contexts =
     userMessage.contextContent
       ?.map((cc) => cc.text)

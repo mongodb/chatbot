@@ -1,7 +1,6 @@
 import { Faithfulness, AnswerRelevancy, ContextRelevancy } from "autoevals";
 import { traced, wrapTraced } from "mongodb-rag-core/braintrust";
 import { extractTracingData } from "./extractTracingData";
-import { Llm } from "mongodb-rag-core";
 
 export interface LlmAsAJudge {
   judgeModel: string;
@@ -27,42 +26,6 @@ interface ScorerArgs {
   judgeModel: string;
   judgeEmbeddingModel: string;
 }
-
-const evaluators = [
-  {
-    name: "Faithfulness",
-    scorer: Faithfulness,
-  },
-  {
-    name: "AnswerRelevancy",
-    scorer: AnswerRelevancy,
-  },
-  {
-    name: "ContextRelevancy",
-    scorer: ContextRelevancy,
-  },
-] as const;
-
-const evaluateScorer = function makeTracedScorer(
-  evaluator: (typeof evaluators)[number],
-  openAiConfig: LlmAsAJudge
-) {
-  wrapTraced(
-    async ({ input, output, context }: ScorerArgs) => {
-      return evaluator.scorer({
-        input,
-        output,
-        context,
-        model: openAiConfig.judgeModel,
-        embeddingModel: openAiConfig.judgeEmbeddingModel,
-        ...openAiConfig,
-      });
-    },
-    {
-      name: evaluator.name,
-    }
-  );
-};
 
 const makeEvaluateWithLlmAsAJudge = (
   openAiConfig: LlmAsAJudge["openAiConfig"]

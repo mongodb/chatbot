@@ -1,25 +1,37 @@
-interface GetEnvArgs {
+interface GetEnvArgs<
+  R extends string,
+  O extends Record<string, string | undefined>
+> {
   /**
    A list of environment variables that are required.
    If any of these are missing, an error will be thrown.
    */
-  required?: string[];
+  required?: readonly R[];
   /**
    An object of environment variables that are optional.
    If any of these are missing, they will default to the value provided.
    */
-  optional?: Record<string, string | undefined>;
+  optional?: O;
 }
 
 type SomeEnv = {
   [key: string]: string | undefined;
 };
 
-export function getEnv<Env extends SomeEnv>({
-  required,
-  optional,
-}: GetEnvArgs): Env {
-  const env = { ...optional };
+type EnvFromArgs<
+  R extends string,
+  O extends Record<string, string | undefined>
+> = {
+  [K in keyof O]: string | undefined;
+} & {
+  [K in R]: string;
+};
+
+export function getEnv<
+  R extends string = never,
+  O extends Record<string, string | undefined> = Record<never, never>
+>({ required, optional }: GetEnvArgs<R, O>): EnvFromArgs<R, O> {
+  const env = { ...(optional as any) };
   const missingRequired: string[] = [];
   if (required) {
     required.forEach((key) => {
@@ -39,5 +51,5 @@ export function getEnv<Env extends SomeEnv>({
   for (const key in optional) {
     env[key] = process.env[key] ?? optional[key];
   }
-  return env as Env;
+  return env as EnvFromArgs<R, O>;
 }

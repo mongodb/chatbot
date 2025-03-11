@@ -47,10 +47,10 @@
     - https://learn.mongodb.com/courses/schema-design-patterns-and-antipatterns
     - https://learn.mongodb.com/courses/advanced-schema-patterns-and-antipatterns
     - https://learn.mongodb.com/courses/schema-design-optimization
-- name: What skill do you have on the schema antipatterns?
+- name: What skill badge do you have on the schema antipatterns?
   messages:
     - role: user
-      content: What skill do you have on the schema antipatterns?
+      content: What skill badge do you have on the schema antipatterns?
   reference: >-
     The skill, "MongoDB Schema Design Patterns and Antipatterns", teaches you
     about the antipatterns that you might find when modeling your data for the
@@ -73,10 +73,10 @@
   expectedLinks:
     - https://learn.mongodb.com/skills
     - https://learn.mongodb.com/courses/advanced-schema-patterns-and-antipatterns
-- name: What skill do you have on updating your schema?
+- name: What skill badge do you have on updating your schema?
   messages:
     - role: user
-      content: What skill do you have on updating your schema?
+      content: What skill badge do you have on updating your schema?
   reference: The skill, "MongoDB Advanced Schema Design Patterns and
     Antipatterns", teaches you about your schema lifecycle including the
     recommendations on how to update the schema as well as how you can migrate
@@ -87,10 +87,10 @@
     - https://learn.mongodb.com/skills
     - https://www.mongodb.com/docs/manual/data-modeling/design-patterns/data-versioning/schema-versioning/
     - https://learn.mongodb.com/courses/advanced-schema-patterns-and-antipatterns
-- name: What skill do you have on migrating your schema?
+- name: What skill badge do you have on migrating your schema?
   messages:
     - role: user
-      content: What skill do you have on migrating your schema?
+      content: What skill badge do you have on migrating your schema?
   reference: The skill, "MongoDB Advanced Schema Design Patterns and
     Antipatterns", teaches you about your schema lifecycle including the
     recommendations on how to update the schema as well as how you can migrate
@@ -101,10 +101,10 @@
     - https://learn.mongodb.com/skills
     - https://www.mongodb.com/docs/manual/data-modeling/design-patterns/data-versioning/schema-versioning/
     - https://learn.mongodb.com/courses/advanced-schema-patterns-and-antipatterns
-- name: What skill do you have to optimize an existing schema?
+- name: What skill badge do you have to optimize an existing schema?
   messages:
     - role: user
-      content: What skill do you have to optimize an existing schema?
+      content: What skill badge do you have to optimize an existing schema?
   reference: The skill, "MongoDB Schema Design Optimization", teaches you how to
     optimize your existing schema. You will learn how to implement schema
     patterns (if you are not already doing so!) focused on performance
@@ -116,10 +116,10 @@
     - https://learn.mongodb.com/skills
     - https://www.mongodb.com/docs/manual/data-modeling/design-patterns/
     - https://learn.mongodb.com/courses/schema-design-optimization
-- name: What skill do you have on schema validation?
+- name: What skill badge do you have on schema validation?
   messages:
     - role: user
-      content: What skill do you have on schema validation?
+      content: What skill badge do you have on schema validation?
   reference: The skill, "From Relational Model (SQL) to MongoDB's Document Model",
     teaches you about the schema validation. It covers how to model your
     workload, how to design data relationships, and how to validate your
@@ -185,4 +185,4 @@
     Each skill provides a digitial badge on completion, courses do not. The breath and depth of content in a skill is typically shallower than a course covering the same topics.
   expectedLinks:
     - https://learn.mongodb.com
-    - https://learn.mongodb.com/skills
+    - https://learn.mongodb.com/skills 

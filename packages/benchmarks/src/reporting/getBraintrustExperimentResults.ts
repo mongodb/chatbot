@@ -31,12 +31,41 @@ export async function getBraintrustExperimentResults<
     apiKey,
     open: true,
   });
-  const dataset = await experiment.asDataset();
-  // TODO: how to collect results of async generator
-  return dataset;
-  // return dataset
-  //   .map(getEvalCaseAndScores<EC, Output, ScoreTypes>)
-  //   .filter((r) => r.scores && r.evalCase.tags);
+  const dataset = await experiment.fetchedData();
+  const materializedRows: Record<
+    string,
+    EC & {
+      scores?: Record<ScoreTypes[number], number | null>;
+      output?: Output;
+    }
+  > = {};
+
+  // Collect all results from the async generator
+  for await (const item of dataset) {
+    if (item.root_span_id) {
+      if (!materializedRows[item.root_span_id]) {
+        materializedRows[item.root_span_id] = {} as unknown as EC;
+      }
+      if (item?.span_attributes?.type === "score") {
+        materializedRows[item.root_span_id].scores = {
+          ...materializedRows[item.root_span_id].scores,
+          ...(item.scores as Record<ScoreTypes[number], number | null>),
+        } as Record<ScoreTypes[number], number | null>;
+      } else if (item?.span_attributes?.type === "task") {
+        materializedRows[item.root_span_id].output = item.output as Output;
+      } else if (item?.span_attributes?.type === "eval") {
+        materializedRows[item.root_span_id].input = item.input as EC["input"];
+        materializedRows[item.root_span_id].tags = item.tags;
+        materializedRows[item.root_span_id].expected = item.expected;
+        materializedRows[item.root_span_id].metadata = item.metadata;
+      }
+    }
+  }
+
+  return Object.values(materializedRows);
+  // return dataset;
+  //.map(getEvalCaseAndScores<EC, Output, ScoreTypes>);
+  // .filter((r) => r.scores && r.evalCase.tags);
 }
 
 export function getEvalCaseAndScores<

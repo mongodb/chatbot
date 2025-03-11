@@ -1,6 +1,7 @@
 import { assertEnvVars } from "mongodb-rag-core";
 import { BRAINTRUST_ENV_VARS } from "../envVars";
 import { getBraintrustExperimentResults } from "./getBraintrustExperimentResults";
+
 describe("getBraintrustExperimentResults", () => {
   it("should return experiment results", async () => {
     const { BRAINTRUST_API_KEY } = assertEnvVars(BRAINTRUST_ENV_VARS);

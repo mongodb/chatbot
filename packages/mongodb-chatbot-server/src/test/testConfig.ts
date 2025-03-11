@@ -31,10 +31,9 @@ import {
 import { makeDefaultReferenceLinks } from "../processors/makeDefaultReferenceLinks";
 import { MONGO_MEMORY_SERVER_URI } from "./constants";
 
-
 let mongoClient: MongoClient | undefined;
 export let memoryDb: Db;
-const uri = MONGO_MEMORY_SERVER_URI
+const uri = MONGO_MEMORY_SERVER_URI;
 beforeAll(async () => {
   const testDbName = `conversations-test-${Date.now()}`;
   mongoClient = new MongoClient(uri);

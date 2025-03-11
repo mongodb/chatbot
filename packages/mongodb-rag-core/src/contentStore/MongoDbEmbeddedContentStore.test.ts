@@ -28,7 +28,6 @@ jest.setTimeout(30000);
 
 describe("MongoDbEmbeddedContentStore", () => {
   let store: MongoDbEmbeddedContentStore | undefined;
-  let embeddedContent;
   const page: PersistedPage = {
     action: "created",
     body: "foo",
@@ -65,7 +64,6 @@ describe("MongoDbEmbeddedContentStore", () => {
   });
   beforeEach(async () => {
     for (const page of pages) {
-      embeddedContent = await store?.loadEmbeddedContent({ page });
       await store?.updateEmbeddedContent({
         page,
         embeddedContent: [

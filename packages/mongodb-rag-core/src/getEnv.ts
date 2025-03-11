@@ -18,11 +18,16 @@ type SomeEnv = {
   [key: string]: string | undefined;
 };
 
+// Helper type to determine the type of an optional env var based on its default value
+type OptionalEnvType<T extends string | undefined> = T extends undefined
+  ? string | undefined
+  : string;
+
 type EnvFromArgs<
   R extends string,
   O extends Record<string, string | undefined>
 > = {
-  [K in keyof O]: string | undefined;
+  [K in keyof O]: OptionalEnvType<O[K]>;
 } & {
   [K in R]: string;
 };

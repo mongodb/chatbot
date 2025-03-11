@@ -84,9 +84,6 @@ describe("getEnv", () => {
         UNDEFINED_TEST_ENV_VAR: "default",
       },
     });
-    // env.TEST_ENV_VAR;
-    // env.TEST_ENV_VAR_2;
-    // env.UNDEFINED_TEST_ENV_VAR;
     expect(env).toEqual({
       TEST_ENV_VAR: "test",
       TEST_ENV_VAR_2: "test",

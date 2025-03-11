@@ -20,10 +20,12 @@ const optionalOnly = getEnv({
     DEBUG: undefined,
   },
 });
-// Should infer type: { PORT: string | undefined; HOST: string | undefined; DEBUG: string | undefined }
-const _optionalOnlyTest1: string | undefined = optionalOnly.PORT;
-const _optionalOnlyTest2: string | undefined = optionalOnly.HOST;
+// Should infer type: { PORT: string; HOST: string; DEBUG: string | undefined }
+const _optionalOnlyTest1: string = optionalOnly.PORT;
+const _optionalOnlyTest2: string = optionalOnly.HOST;
 const _optionalOnlyTest3: string | undefined = optionalOnly.DEBUG;
+// @ts-expect-error - PORT is string, not undefined
+const _optionalOnlyTest4: undefined = optionalOnly.PORT;
 // @ts-expect-error - NON_EXISTENT is not in the optional object
 const _optionalOnlyError = optionalOnly.NON_EXISTENT;
 
@@ -33,13 +35,17 @@ const mixed = getEnv({
   optional: {
     PORT: "3000",
     HOST: "localhost",
+    DEBUG: undefined,
   },
 });
-// Should infer type: { API_KEY: string; DATABASE_URL: string; PORT: string | undefined; HOST: string | undefined }
+// Should infer type: { API_KEY: string; DATABASE_URL: string; PORT: string; HOST: string; DEBUG: string | undefined }
 const _mixedTest1: string = mixed.API_KEY;
 const _mixedTest2: string = mixed.DATABASE_URL;
-const _mixedTest3: string | undefined = mixed.PORT;
-const _mixedTest4: string | undefined = mixed.HOST;
+const _mixedTest3: string = mixed.PORT;
+const _mixedTest4: string = mixed.HOST;
+const _mixedTest5: string | undefined = mixed.DEBUG;
+// @ts-expect-error - PORT is string, not undefined
+const _mixedTest6: undefined = mixed.PORT;
 // @ts-expect-error - NON_EXISTENT is not in either required or optional
 const _mixedError = mixed.NON_EXISTENT;
 
@@ -53,8 +59,9 @@ const _emptyError = empty.ANY_KEY;
 interface MyEnv {
   API_KEY: string;
   DATABASE_URL: string;
-  PORT: string | undefined;
-  HOST: string | undefined;
+  PORT: string;
+  HOST: string;
+  DEBUG: string | undefined;
 }
 
 // The following should all be assignable to MyEnv
@@ -63,6 +70,7 @@ const explicit1: MyEnv = getEnv({
   optional: {
     PORT: "3000",
     HOST: "localhost",
+    DEBUG: undefined,
   },
 });
 

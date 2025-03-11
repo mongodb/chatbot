@@ -1,4 +1,4 @@
-import { ERRORS, fuzzyMatch } from "./fuzzyMatch";
+import { fuzzyMatch, MongoDbOutput } from "./fuzzyMatch";
 
 describe("fuzzyMatch()", () => {
   test("should return true for identical arrays with identical objects in the same order", () => {
@@ -221,7 +221,7 @@ describe("fuzzyMatch()", () => {
   });
 
   test("should handle empty arrays", () => {
-    const mongoDbOutput: any[] = [];
+    const mongoDbOutput: MongoDbOutput[] = [];
     const expected = JSON.stringify([]);
 
     const result = fuzzyMatch({ mongoDbOutput, expected });

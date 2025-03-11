@@ -8,7 +8,7 @@ import {
   makeCreateCodeExampleDatasetEntry,
 } from "./createCodeExampleDatasetEntry";
 import { OpenAI } from "mongodb-rag-core/openai";
-import { Page, PersistedPage, TransformPage } from "mongodb-rag-core";
+import { Page, TransformPage } from "mongodb-rag-core";
 
 export async function makeTranformPageToAnnotatedCodeExamples(
   openAiClient: OpenAI,

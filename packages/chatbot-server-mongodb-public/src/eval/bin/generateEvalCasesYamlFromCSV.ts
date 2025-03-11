@@ -3,6 +3,7 @@
  
  This script converts conversation evaluation cases from a CSV file to YAML format.
  It supports optional transformations of the evaluation cases during conversion.
+ It also checks for missing resources in the database and logs them to the console.
  
  ## Usage
  
@@ -42,6 +43,7 @@
  1. Read from: /Users/first.lastname/Downloads/input-file.csv
  2. Apply the web transformation
  3. Write to: evalCases/output-file-name.yml
+ 4. Log missing resources to the console in a warning
 */
 
 import fs from "fs";
@@ -51,8 +53,15 @@ import {
   getConversationEvalCasesFromCSV,
   ConversationEvalCase,
 } from "mongodb-rag-core/eval";
+import { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } from "../../config";
+import { makeMongoDbPageStore } from "mongodb-rag-core";
 
 const SRC_ROOT = path.resolve(__dirname, "../");
+
+const pageStore = makeMongoDbPageStore({
+  connectionUri: MONGODB_CONNECTION_URI,
+  databaseName: MONGODB_DATABASE_NAME,
+});
 
 function addWebDataSourceTag(evalCases: ConversationEvalCase[]) {
   return evalCases.map((caseItem) => {
@@ -75,6 +84,35 @@ const transformationMap: Record<
   // Add more transformation functions here as needed
 };
 
+/**
+ Normalizes a URL by removing the protocol (http/https) and 'www.' prefix
+ normalizeUrl('https://www.example.com') // returns 'example.com'
+ normalizeUrl('http://example.com') // returns 'example.com'
+ */
+function normalizeUrl(url: string): string {
+  return url.replace(/^https?:\/\/(www\.)?/i, "");
+}
+
+const findMissingResources = async (
+  expectedUrls: string[]
+): Promise<string[]> => {
+  const results = await Promise.all(
+    expectedUrls.map(async (url) => {
+      const page = await pageStore.loadPage({
+        query: { url: { $regex: new RegExp(normalizeUrl(url)) } },
+      });
+      return !page ? url : null;
+    })
+  );
+  return results.filter((url) => url !== null) as string[];
+};
+
+/**
+ Main function to read CSV file, transform evaluation cases, and write to YAML file.
+ @param csvFilePath - Path to the input CSV file
+ @param yamlFileName - Name of the output YAML file
+ @param transformationType - Type of transformation to apply (optional)
+ */
 async function main({
   csvFilePath,
   yamlFileName,
@@ -89,13 +127,26 @@ async function main({
     csvFilePath,
     transformationType ? transformationMap[transformationType] : undefined
   );
+  const expectedUrls = Array.from(
+    new Set(evalCases.flatMap((caseItem) => caseItem.expectedLinks ?? []))
+  );
+  const urlsNotIngested = await findMissingResources(expectedUrls);
+  if (urlsNotIngested.length > 0) {
+    console.warn(
+      `Warning: ${urlsNotIngested.length}/${
+        expectedUrls.length
+      } URLs are expected to be referenced by the chatbot, but have not been ingested:\n${urlsNotIngested
+        .map((url) => `  - ${url}`)
+        .join("\n")}`
+    );
+  }
   const yamlFilePath = path.join(
     SRC_ROOT,
     `../../evalCases/${yamlFileName}.yml`
   );
   console.log(`Writing to: ${yamlFilePath}`);
   const yamlContent = yaml.stringify(evalCases);
-  fs.writeFileSync(yamlFilePath, yamlContent, "utf8");
+  await fs.promises.writeFile(yamlFilePath, yamlContent, "utf8");
   console.log("YAML file written successfully");
 }
 
@@ -126,8 +177,12 @@ if (require.main === module) {
     csvFilePath,
     yamlFileName,
     transformationType,
-  }).catch((error) => {
-    console.error("Error:", error);
-    process.exit(1);
-  });
+  })
+    .catch((error) => {
+      console.error("Error:", error);
+      process.exit(1);
+    })
+    .finally(() => {
+      pageStore.close();
+    });
 }

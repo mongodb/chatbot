@@ -16,9 +16,9 @@ import {
   requireValidIpAddress,
   requireRequestOrigin,
   AddCustomDataFunc,
-  ConversationCustomData,
   makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
+  defaultCreateConversationCustomData,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";
@@ -31,7 +31,7 @@ import express from "express";
 import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
-import { TRACING_ENV_VARS } from "./EnvVars";
+import { SLACK_ENV_VARS, TRACING_ENV_VARS } from "./EnvVars";
 import {
   makeAddMessageToConversationUpdateTrace,
   makeCommentMessageUpdateTrace,
@@ -56,6 +56,13 @@ export const {
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: "",
   ...TRACING_ENV_VARS,
 });
+
+// Optional env vars
+const {
+  BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
+  SLACK_BOT_TOKEN,
+  SLACK_COMMENT_CONVERSATION_ID,
+} = process.env;
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
@@ -192,17 +199,11 @@ export const conversations = makeMongoDbConversationsService(
   mongodb.db(MONGODB_DATABASE_NAME)
 );
 
-export const createCustomConversationDataWithIpAuthUserAndOrigin: AddCustomDataFunc =
+export const createConversationCustomDataWithAuthUser: AddCustomDataFunc =
   async (req, res) => {
-    const customData: ConversationCustomData = {};
+    const customData = await defaultCreateConversationCustomData(req, res);
     if (req.cookies.auth_user) {
       customData.authUser = req.cookies.auth_user;
-    }
-    if (req.ip) {
-      customData.ip = req.ip;
-    }
-    if (res.locals.customData.origin) {
-      customData.origin = res.locals.customData.origin;
     }
     logRequest({
       reqId: getRequestId(req),
@@ -224,12 +225,6 @@ const llmAsAJudgeConfig = {
   },
 };
 
-const {
-  BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
-  SLACK_BOT_TOKEN,
-  SLACK_COMMENT_CONVERSATION_ID,
-} = process.env;
-
 export const config: AppConfig = {
   conversationsRouterConfig: {
     llm,
@@ -240,7 +235,7 @@ export const config: AppConfig = {
       cookieParser(),
     ],
     createConversationCustomData: !isProduction
-      ? createCustomConversationDataWithIpAuthUserAndOrigin
+      ? createConversationCustomDataWithAuthUser
       : undefined,
     addMessageToConversationUpdateTrace:
       makeAddMessageToConversationUpdateTrace(

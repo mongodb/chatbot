@@ -8,15 +8,11 @@ interface BaseModelProviderConfig {
 }
 
 interface MakeOpenAiClientFactoryParams {
-  azure?: BaseModelProviderConfig & {
-    apiVersion: string;
-  };
   braintrust?: BaseModelProviderConfig;
   vertexAi?: BaseModelProviderConfig;
 }
 
 export function makeOpenAiClientFactory({
-  azure,
   braintrust,
   vertexAi,
 }: MakeOpenAiClientFactoryParams) {

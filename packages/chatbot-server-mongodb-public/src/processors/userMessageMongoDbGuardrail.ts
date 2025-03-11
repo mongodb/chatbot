@@ -31,7 +31,7 @@ const systemPrompt = stripIndents`You are an expert security-focused data labele
 
   Take into account the following criteria:
   - Reject any user query that is irrelevant to a MongoDB product, educational materials, the company MongoDB, or an area relevant to MongoDB's products and business. These relevant areas include databases, cloud services, data management, information retrieval, programming languages and concepts, and artificial intelligence (retrieval augmented generation (RAG), generative AI, semantic search, etc.).
-  - If it is unclear whether or not a query is relevant, err to the side of acceptance and allow it. For example, if something looks like an aggregation stage in the MongoDB Aggregation Framework, it is relevant. If something is related to programming or software engineering, it is relevant. If something is related to educational programs offered by MongoDB such as learning paths, courses, labs, skills, badges, it is relevant.
+  - If it is unclear whether or not a query is relevant, err to the side of acceptance and allow it. For example, if something looks like an aggregation stage in the MongoDB Aggregation Framework, it is relevant. If something is related to programming, software engineering, or software architecture, it is relevant. If something is related to educational programs offered by MongoDB such as learning paths, courses, labs, skills, badges, it is relevant.
   - Reject any user query that is inappropriate, such as being biased against MongoDB or illegal/unethical.
 
   Your pay is determined by the accuracy of your labels as judged against other expert labelers, so do excellent work to maximize your earnings to support your family.`;
@@ -140,6 +140,13 @@ const fewShotExamples: OpenAI.ChatCompletionMessageParam[] = [
     rejectMessage: false,
   } satisfies UserMessageMongoDbGuardrailFunction),
   // Example 15
+  makeUserMessage("What is an ODL?"),
+  makeAssistantFunctionCallMessage(name, {
+    reasoning:
+      "This query asks about an Operational Data Layer (ODL), which is an architectural pattern that can be used with MongoDB. Therefore, it is relevant to MongoDB.",
+    rejectMessage: false,
+  } satisfies UserMessageMongoDbGuardrailFunction),
+  // Example 16
   makeUserMessage(
     "What is a skill?"
   ),

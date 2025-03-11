@@ -2,7 +2,7 @@ import { Document } from "mongodb-rag-core/mongodb";
 import { EJSON } from "bson";
 import { strict as assert } from "assert";
 
-type MongoDbOutput = Document | number | Document[];
+export type MongoDbOutput = Document | number | Document[];
 
 export interface FuzzyMatchParams {
   mongoDbOutput: MongoDbOutput;

@@ -6,6 +6,7 @@
     "node": ">=18",
     "npm": ">=8"
   },
+  "private": true,
   "scripts": {
     "clean": "rm -rf build",
     "build": "tsc -b",

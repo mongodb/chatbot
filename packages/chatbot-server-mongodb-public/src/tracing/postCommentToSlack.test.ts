@@ -5,21 +5,22 @@ import {
   assertEnvVars,
   CORE_OPENAI_CONNECTION_ENV_VARS,
 } from "mongodb-rag-core";
-import { EVAL_ENV_VARS, SLACK_ENV_VARS } from "../EnvVars";
+import { EVAL_ENV_VARS } from "../EnvVars";
 
 const {
-  SLACK_BOT_TOKEN,
-  SLACK_COMMENT_CONVERSATION_ID,
   JUDGE_EMBEDDING_MODEL,
   JUDGE_LLM,
   OPENAI_API_KEY,
   OPENAI_ENDPOINT,
   OPENAI_API_VERSION,
 } = assertEnvVars({
-  ...SLACK_ENV_VARS,
   ...EVAL_ENV_VARS,
   ...CORE_OPENAI_CONNECTION_ENV_VARS,
 });
+
+// Optional env vars
+const { SLACK_BOT_TOKEN, SLACK_COMMENT_CONVERSATION_ID } = process.env;
+
 describe.skip("postCommentToSlack", () => {
   it("should post message to slack", async () => {
     const id = new ObjectId();

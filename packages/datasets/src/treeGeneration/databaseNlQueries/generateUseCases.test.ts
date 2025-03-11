@@ -1,5 +1,5 @@
 import { generateDatabaseUseCases } from "./generateUseCases";
-import { sampleLlmOptions, userNodes } from "./sampleData";
+import { makeSampleLlmOptions, userNodes } from "./sampleData";
 
 // Skipping LLM call tests
 describe.skip("generateDatabaseUseCases", () => {
@@ -9,7 +9,7 @@ describe.skip("generateDatabaseUseCases", () => {
     for (const userNode of userNodes) {
       const useCases = await generateDatabaseUseCases(
         userNode,
-        sampleLlmOptions,
+        makeSampleLlmOptions(),
         1
       );
       console.log("Use cases for user:", userNode.data.name);

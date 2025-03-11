@@ -10,7 +10,21 @@ import {
   makePromptUseCaseInfo,
 } from "./makePromptComponents";
 
-const nlQuerySystemPrompt = `You are an expert in natural language processing and database query understanding. Given a database use case, generate realistic natural language queries that a user might ask to fulfill their information needs.
+export const generateNaturalLanguageQueries = makeGenerateChildrenWithOpenAi<
+  UseCaseNode,
+  DatabaseNlQueryNode
+>({
+  makePromptMessages: async (
+    {
+      data: useCase,
+      parent: {
+        data: user,
+        parent: { data: databaseInfo },
+      },
+    },
+    numChildren
+  ) => {
+    const systemMessage = `You are an expert in natural language processing and database query understanding. Given a database use case, generate realistic natural language queries that a user might ask to fulfill their information needs.
 
 For each natural language query:
 - Create a query that sounds natural and conversational, as if a real user was asking it
@@ -28,34 +42,18 @@ If the use case relates to time windows or temporal analysis:
 - Include some queries with multiple time constraints when appropriate (e.g., "movies released between 2010 and 2020")
 - Use both specific dates and general time periods 
 
-Generate at least 10 natural language queries with 2-3 variations for each use case, maintaining the same complexity level as specified in the use case.`;
+Generate ${numChildren} natural language queries with multiple variations for each use case, maintaining the same complexity level as specified in the use case.`;
 
-export const generateNaturalLanguageQueries = makeGenerateChildrenWithOpenAi<
-  UseCaseNode,
-  DatabaseNlQueryNode
->({
-  makePromptMessages: async (
-    {
-      data: useCase,
-      parent: {
-        data: user,
-        parent: { data: databaseInfo },
-      },
-    },
-    numChildren
-  ) => {
     const message = `Generate natural language queries for the following database use case:
 
 ${makePromptUseCaseInfo(useCase)}
 
 ${makePromptDbUserInfo(user)}
 
-${makePromptDbInfo(databaseInfo)}
-
-Generate exactly ${numChildren} natural language query(s).`;
+${makePromptDbInfo(databaseInfo)}`;
 
     return [
-      { role: "system", content: nlQuerySystemPrompt },
+      { role: "system", content: systemMessage },
       { role: "user", content: message },
     ];
   },

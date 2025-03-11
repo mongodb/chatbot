@@ -14,15 +14,16 @@ import { BRAINTRUST_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 const { BRAINTRUST_API_KEY, BRAINTRUST_ENDPOINT } =
   assertEnvVars(BRAINTRUST_ENV_VARS);
 
-export const sampleLlmOptions: LlmOptions = {
-  openAiClient: new OpenAI({
-    apiKey: BRAINTRUST_API_KEY,
-    baseURL: BRAINTRUST_ENDPOINT,
-  }),
-  model: "gpt-4o-mini",
-  temperature: 0.5,
-  seed: 42,
-};
+export const makeSampleLlmOptions = () =>
+  ({
+    openAiClient: new OpenAI({
+      apiKey: BRAINTRUST_API_KEY,
+      baseURL: BRAINTRUST_ENDPOINT,
+    }),
+    model: "gpt-4o-mini",
+    temperature: 0.5,
+    seed: 42,
+  } satisfies LlmOptions);
 
 export const sampleMovieDbInfo: DatabaseInfo = {
   name: "MovieDB",

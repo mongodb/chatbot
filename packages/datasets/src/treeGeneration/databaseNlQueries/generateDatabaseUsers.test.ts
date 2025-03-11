@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { generateDatabaseUsers } from "./generateDatabaseUsers";
 import { DatabaseInfoNode, DatabaseInfoSchema } from "./nodeTypes";
-import { sampleMovieDbInfo, sampleLlmOptions } from "./sampleData";
+import { sampleMovieDbInfo, makeSampleLlmOptions } from "./sampleData";
 
 // Skipping LLM call tests
 describe.skip("generateDatabaseUsers", () => {
@@ -20,7 +20,11 @@ describe.skip("generateDatabaseUsers", () => {
     };
 
     // Generate users for the movie database
-    const users = await generateDatabaseUsers(parentNode, sampleLlmOptions, 20);
+    const users = await generateDatabaseUsers(
+      parentNode,
+      makeSampleLlmOptions(),
+      20
+    );
 
     console.log(users.map((user) => user.data));
   });

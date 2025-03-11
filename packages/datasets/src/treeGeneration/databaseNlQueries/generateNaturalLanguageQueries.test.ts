@@ -1,5 +1,5 @@
 import { generateNaturalLanguageQueries } from "./generateNaturalLanguageQueries";
-import { sampleLlmOptions, useCaseNodes, userNode } from "./sampleData";
+import { makeSampleLlmOptions, useCaseNodes, userNode } from "./sampleData";
 import PromisePool from "@supercharge/promise-pool";
 
 // Skipping LLM call tests
@@ -11,7 +11,7 @@ describe.skip("generateNaturalLanguageQueries", () => {
       async (useCase) => {
         const nlQueries = await generateNaturalLanguageQueries(
           useCase,
-          sampleLlmOptions,
+          makeSampleLlmOptions(),
           1
         );
         console.log(

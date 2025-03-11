@@ -9,7 +9,7 @@ import {
   sampleDatabaseUsers,
   sampleUseCases,
   sampleNlQueries,
-  sampleLlmOptions,
+  makeSampleLlmOptions,
 } from "./sampleData";
 import PromisePool from "@supercharge/promise-pool";
 import { strict as assert } from "assert";
@@ -78,7 +78,7 @@ describe.skip("generateMqlCode", () => {
       .process(async (nlQueryNode) => {
         const mqlCode = await generateMongoshCode(
           nlQueryNode,
-          sampleLlmOptions,
+          makeSampleLlmOptions(),
           8
         );
 

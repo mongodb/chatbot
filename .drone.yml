@@ -1089,3 +1089,32 @@ steps:
       DRONE_SERVER: ${DRONE_SYSTEM_PROTO}://${DRONE_SYSTEM_HOST}
       DRONE_TOKEN:
         from_secret: drone_token
+---
+kind: pipeline
+type: kubernetes
+name: production-deploy-datasets-service
+
+trigger:
+  event:
+    - promote
+  target:
+    - production
+  ref:
+    include:
+      - refs/tags/datasets-v*
+
+steps:
+  - name: deploy-production-datasets-service
+    image: quay.io/mongodb/drone-helm:v3
+    settings:
+      chart: mongodb/cronjobs
+      chart_version: 1.10.0
+      add_repos: [mongodb=https://10gen.github.io/helm-charts]
+      namespace: docs
+      release: datasets-service
+      values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-production,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-datasets-service
+      values_files:
+        - packages/datasets/environments/production.yml
+      api_server: https://api.prod.corp.mongodb.com
+      kubernetes_token:
+        from_secret: prod_kubernetes_token

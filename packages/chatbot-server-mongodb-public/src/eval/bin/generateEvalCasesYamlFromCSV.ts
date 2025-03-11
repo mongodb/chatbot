@@ -93,7 +93,7 @@ function normalizeUrl(url: string): string {
   return url.replace(/^https?:\/\/(www\.)?/i, "");
 }
 
-const findMissingResources = async (
+export const findMissingResources = async (
   expectedUrls: string[]
 ): Promise<string[]> => {
   const results = await Promise.all(

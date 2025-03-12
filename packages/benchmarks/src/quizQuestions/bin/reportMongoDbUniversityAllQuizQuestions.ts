@@ -17,9 +17,16 @@ import { aggregateExperimentScoreMean } from "../../reporting/aggregateExperimen
 
 const { BRAINTRUST_API_KEY } = assertEnvVars(BRAINTRUST_ENV_VARS);
 const projectName = "mongodb-multiple-choice";
-const experiments = [];
+const experiments = [
+  { experimentName: "mistral-large-2", model: "Mistral Large 2" },
+  { experimentName: "gemini-2-flash", model: "Gemini 2 Flash" },
+  { experimentName: "claude-35-sonnet-v2", model: "Claude 3.5 Sonnet v2" },
+  { experimentName: "llama-3.1-70b", model: "Llama 3.1 70B" },
+  { experimentName: "nova-pro-v1:0", model: "Nova Pro v1" },
+  { experimentName: "gpt-4o", model: "GPT-4o" },
+];
 
-const basePathOut = path.resolve(__dirname, "..", "..", "testData");
+const basePathOut = path.resolve(__dirname, "..", "..", "..", "testData");
 
 /**
 Ensures the output directory exists.
@@ -75,24 +82,15 @@ function createCsvHeaders(data: CsvData[]): CsvHeader[] {
 }
 
 async function main() {
-  const outputDir = path.join(basePathOut, "csv", "badge");
+  const outputDir = path.join(basePathOut, "csv", "allQuiz");
   ensureOutputDirectory(outputDir);
 
-  const titleTags = [
-    "Relational to Document Model",
-    "Schema Patterns and Antipatterns",
-    "Schema Design Optimization",
-    "Advanced Schema Patterns and Antipatterns",
-  ] as const;
-
-  // Define a type for the quiz titles
-  type QuizTitle = (typeof titleTags)[number];
-
-  // Use Record to create a type with the specific keys
   type ExperimentAggregate = {
     model: string;
-    "Total % Correct": number;
-  } & Partial<Record<QuizTitle, number>>;
+    "All Questions (% correct)": number;
+    "All Questions (count)": number;
+    [key: string]: string | number;
+  };
 
   const experimentAggregates: ExperimentAggregate[] = [];
 
@@ -111,27 +109,7 @@ async function main() {
       apiKey: BRAINTRUST_API_KEY,
     });
 
-    // Add the quiz name as a tag if metadata.title is defined
-    // Note: in the future we should do better tagging in advance to avoid hacks like this.
-    const resultsWithQuizNameTag = results.map((result) => {
-      // Only add metadata.title as a tag if it's defined
-      const additionalTags = result.metadata?.title
-        ? [result.metadata.title]
-        : [];
-
-      return {
-        ...result,
-        tags: [...(result.tags || []), ...additionalTags],
-      } satisfies ExperimentResult<
-        QuizQuestionEvalCase,
-        QuizQuestionTaskOutput,
-        ["CorrectQuizAnswer"]
-      >;
-    });
-
-    const tagAggregates = aggregateScoresByTag(resultsWithQuizNameTag, [
-      "CorrectQuizAnswer",
-    ]);
+    const tagAggregates = aggregateScoresByTag(results, ["CorrectQuizAnswer"]);
     const flatResults = convertTagStatsToFlatObject(tagAggregates);
 
     const csvEntries = Object.entries(flatResults).map(([key, value]) => ({
@@ -144,33 +122,28 @@ async function main() {
       path.join(outputDir, `${experimentName}_aggregates.csv`)
     );
 
-    const experimentAggregate: Partial<ExperimentAggregate> = {
+    const experimentAggregate: ExperimentAggregate = {
       model,
-      "Total % Correct": aggregateExperimentScoreMean(
-        resultsWithQuizNameTag,
+      "All Questions (% correct)": aggregateExperimentScoreMean(
+        results,
         "CorrectQuizAnswer"
       )?.mean as number,
+      "All Questions (count)": results.length,
     };
     const tagAggEntries = Array.from(tagAggregates.entries());
     // Convert the Map entries to an array that we can iterate over
     tagAggEntries.forEach(([tag, stats]) => {
-      // Type guard function to check if a string is a valid QuizTitle
-      function isQuizTitle(value: string): value is QuizTitle {
-        return titleTags.includes(value as any);
-      }
-
-      if (isQuizTitle(tag)) {
-        experimentAggregate[tag] = stats.CorrectQuizAnswer.mean;
-      }
+      experimentAggregate[`${tag} (% correct)`] = stats.CorrectQuizAnswer.mean;
+      experimentAggregate[`${tag} (count)`] = stats.CorrectQuizAnswer.count;
     });
-    experimentAggregates.push(experimentAggregate as ExperimentAggregate);
+    experimentAggregates.push(experimentAggregate);
   }
 
   // Write experiment aggregates to CSV
   await writeDataToCsv(
     experimentAggregates,
     createCsvHeaders(experimentAggregates),
-    path.join(outputDir, "badge_quiz_question_experiment_aggregates.csv")
+    path.join(outputDir, "all_quiz_question_experiment_aggregates.csv")
   );
 }
 

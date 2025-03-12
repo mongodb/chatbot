@@ -72,7 +72,7 @@ const experiments = [
   },
 ];
 
-const basePathOut = path.resolve(__dirname, "..", "..", "testData");
+const basePathOut = path.resolve(__dirname, "..", "..", "..", "testData");
 
 /**
 Ensures the output directory exists.

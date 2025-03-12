@@ -1,18 +1,7 @@
 import { strict as assert } from "assert";
 import { EvalCase } from "mongodb-rag-core/braintrust";
 import { ExperimentResult } from "./getBraintrustExperimentResults";
-
-/**
-  Statistics for a set of scores
- */
-export interface ScoreStats {
-  mean: number;
-  median: number;
-  mode: number | null;
-  min: number;
-  max: number;
-  count: number;
-}
+import { ScoreStats, calculateStats } from "./calculateStats";
 
 /**
   @example
@@ -40,62 +29,6 @@ export interface ScoreStats {
  */
 export type TagStats = Map<string, Record<string, ScoreStats>>;
 
-/**
-  Calculate statistics for an array of numeric values
- */
-export function calculateStats(values: number[]): ScoreStats {
-  if (values.length === 0) {
-    throw new Error("Cannot calculate statistics for an empty array");
-  }
-
-  const sortedValues = [...values].sort((a, b) => a - b);
-
-  // Calculate mean
-  const sum = sortedValues.reduce((acc, val) => acc + val, 0);
-  const mean = sum / sortedValues.length;
-
-  // Calculate median
-  const mid = Math.floor(sortedValues.length / 2);
-  const median =
-    sortedValues.length % 2 === 0
-      ? (sortedValues[mid - 1] + sortedValues[mid]) / 2
-      : sortedValues[mid];
-
-  // Calculate mode (most frequent value)
-  const frequency: Record<number, number> = {};
-  let maxFreq = 0;
-  let mode: number | null = null;
-
-  for (const value of sortedValues) {
-    frequency[value] = (frequency[value] || 0) + 1;
-    if (frequency[value] > maxFreq) {
-      maxFreq = frequency[value];
-      mode = value;
-    }
-  }
-
-  // If all values appear the same number of times, there is no mode
-  if (
-    Object.values(frequency).every((freq) => freq === maxFreq) &&
-    Object.keys(frequency).length > 1
-  ) {
-    mode = null;
-  }
-
-  // Calculate min and max
-  const min = sortedValues[0];
-  const max = sortedValues[sortedValues.length - 1];
-
-  return {
-    mean,
-    median,
-    mode,
-    min,
-    max,
-    count: sortedValues.length,
-  };
-}
-
 export function aggregateScoresByTag<
   EC extends EvalCase<unknown, unknown, unknown>,
   ScoreTypes extends string[]
@@ -114,32 +47,31 @@ export function aggregateScoresByTag<
     const tags = experimentResult.tags || [];
     if (tags.length === 0) continue;
 
-    // Use the first tag as the primary tag
-    const tag = tags[0];
-
-    // Initialize the tag entry if it doesn't exist
-    if (!scoresByTag.has(tag)) {
-      scoresByTag.set(tag, {});
-    }
-
-    // Get the score record for this tag
-    const tagScores = scoresByTag.get(tag);
-    assert(tagScores, `Tag ${tag} not found`);
-
-    // Add each score to the appropriate array
-    for (const scoreName of aggregateScoreNames) {
-      const score = experimentResult.scores[scoreName as ScoreTypes[number]];
-      if (score === undefined || score === null) {
-        continue;
+    for (const tag of tags) {
+      // Initialize the tag entry if it doesn't exist
+      if (!scoresByTag.has(tag)) {
+        scoresByTag.set(tag, {});
       }
 
-      // Initialize the score array if it doesn't exist
-      if (!tagScores[scoreName]) {
-        tagScores[scoreName] = [];
-      }
+      // Get the score record for this tag
+      const tagScores = scoresByTag.get(tag);
+      assert(tagScores, `Tag ${tag} not found`);
 
-      // Add the score to the array
-      tagScores[scoreName].push(score);
+      // Add each score to the appropriate array
+      for (const scoreName of aggregateScoreNames) {
+        const score = experimentResult.scores[scoreName as ScoreTypes[number]];
+        if (score === undefined || score === null) {
+          continue;
+        }
+
+        // Initialize the score array if it doesn't exist
+        if (!tagScores[scoreName]) {
+          tagScores[scoreName] = [];
+        }
+
+        // Add the score to the array
+        tagScores[scoreName].push(score);
+      }
     }
   }
 

@@ -1,5 +1,6 @@
 import { strict as assert } from "assert";
 import { EvalCase } from "mongodb-rag-core/braintrust";
+import { ExperimentResult } from "./getBraintrustExperimentResults";
 
 /**
   Statistics for a set of scores
@@ -97,23 +98,20 @@ export function calculateStats(values: number[]): ScoreStats {
 
 export function aggregateScoresByTag<
   EC extends EvalCase<unknown, unknown, unknown>,
-  ScoreType extends string = string
+  ScoreTypes extends string[]
 >(
-  evalCasesWithScores: {
-    evalCase: EC;
-    scores?: Record<ScoreType, number | null | undefined>;
-  }[],
-  aggregateScoreNames: ScoreType[]
+  experimentResults: ExperimentResult<EC, unknown, ScoreTypes>[],
+  aggregateScoreNames: string[]
 ): TagStats {
   // First, collect all score values by tag and score name
   const scoresByTag = new Map<string, Record<string, number[]>>();
 
-  for (const { evalCase, scores } of evalCasesWithScores) {
+  for (const experimentResult of experimentResults) {
     // Skip if scores is undefined
-    if (!scores) continue;
+    if (!experimentResult.scores) continue;
 
     // Get tags from the eval case
-    const tags = evalCase.tags || [];
+    const tags = experimentResult.tags || [];
     if (tags.length === 0) continue;
 
     // Use the first tag as the primary tag
@@ -130,7 +128,7 @@ export function aggregateScoresByTag<
 
     // Add each score to the appropriate array
     for (const scoreName of aggregateScoreNames) {
-      const score = scores[scoreName];
+      const score = experimentResult.scores[scoreName as ScoreTypes[number]];
       if (score === undefined || score === null) {
         continue;
       }

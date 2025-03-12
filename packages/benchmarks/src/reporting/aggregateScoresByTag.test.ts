@@ -1,5 +1,6 @@
 import { EvalCase } from "mongodb-rag-core/braintrust";
 import { aggregateScoresByTag, calculateStats } from "./aggregateScoresByTag";
+import { ExperimentResult } from "./getBraintrustExperimentResults";
 
 describe("calculateStats", () => {
   test("calculates correct statistics for an array of numbers", () => {
@@ -42,29 +43,6 @@ describe("calculateStats", () => {
 });
 
 describe("aggregateScoresByTag", () => {
-  // Helper function to create mock eval cases with scores
-  function createMockEvalCases<T extends string>(
-    tagData: { tag: string; scores: Record<T, number[]> }[]
-  ): {
-    evalCase: EvalCase<unknown, unknown, unknown>;
-    scores: Record<string, number>;
-  }[] {
-    return tagData.flatMap(({ tag, scores }) => {
-      return Object.entries(scores).flatMap(([scoreName, scoreValues]) => {
-        const typedScoreValues = scoreValues as number[];
-        return typedScoreValues.map((value: number) => ({
-          evalCase: {
-            input: {},
-            tags: [tag],
-            expected: {},
-            metadata: {},
-          } as EvalCase<unknown, unknown, unknown>,
-          scores: { [scoreName]: value },
-        }));
-      });
-    });
-  }
-
   test("aggregates scores by tag correctly", () => {
     const mockEvalCases = createMockEvalCases([
       {
@@ -73,6 +51,7 @@ describe("aggregateScoresByTag", () => {
           accuracy: [0.8, 0.9, 1.0],
           relevance: [0.7, 0.8, 0.9],
         },
+        input: "foo",
       },
       {
         tag: "postgres",
@@ -105,26 +84,15 @@ describe("aggregateScoresByTag", () => {
   test("handles eval cases with missing tags", () => {
     const mockEvalCases = [
       {
-        evalCase: {
-          input: {},
-          tags: [],
-          expected: {},
-          metadata: {},
-        } as EvalCase<unknown, unknown, unknown>,
-        scores: { accuracy: 0.9 },
-      },
-      {
-        evalCase: {
-          input: {},
-          tags: ["mongodb"],
-          expected: {},
-          metadata: {},
-        } as EvalCase<unknown, unknown, unknown>,
+        input: {},
+        tags: ["mongodb"],
+        expected: {},
+        metadata: {},
         scores: { accuracy: 0.8 },
       },
     ];
 
-    const result = aggregateScoresByTag(mockEvalCases as any, ["accuracy"]);
+    const result = aggregateScoresByTag(mockEvalCases, ["accuracy"]);
 
     // Should only have the mongodb tag
     expect(result.size).toBe(1);
@@ -134,28 +102,36 @@ describe("aggregateScoresByTag", () => {
   });
 
   test("handles eval cases with missing scores", () => {
-    const mockEvalCases = [
+    type ScoreTypes = ["accuracy", "relevance"];
+
+    const mockEvalCases: ExperimentResult<
+      EvalCase<unknown, unknown, unknown>,
+      unknown,
+      ScoreTypes
+    >[] = [
       {
-        evalCase: {
-          input: {},
-          tags: ["mongodb"],
-          expected: {},
-          metadata: {},
-        } as EvalCase<unknown, unknown, unknown>,
-        scores: { accuracy: 0.9 },
+        input: {},
+        tags: ["mongodb"],
+        expected: {},
+        metadata: {},
+        scores: { accuracy: 0.9, relevance: null } as Record<
+          "accuracy" | "relevance",
+          number | null
+        >,
       },
       {
-        evalCase: {
-          input: {},
-          tags: ["mongodb"],
-          expected: {},
-          metadata: {},
-        } as EvalCase<unknown, unknown, unknown>,
-        scores: { relevance: 0.8 }, // Different score type
+        input: {},
+        tags: ["mongodb"],
+        expected: {},
+        metadata: {},
+        scores: { accuracy: null, relevance: 0.8 } as Record<
+          "accuracy" | "relevance",
+          number | null
+        >, // Different score type
       },
     ];
 
-    const result = aggregateScoresByTag(mockEvalCases as any, [
+    const result = aggregateScoresByTag(mockEvalCases, [
       "accuracy",
       "relevance",
     ]);
@@ -168,21 +144,17 @@ describe("aggregateScoresByTag", () => {
   test("handles optional scores property", () => {
     const mockEvalCases = [
       {
-        evalCase: {
-          input: {},
-          tags: ["mongodb"],
-          expected: {},
-          metadata: {},
-        } as EvalCase<unknown, unknown, unknown>,
+        input: {},
+        tags: ["mongodb"],
+        expected: {},
+        metadata: {},
         // No scores property
       },
       {
-        evalCase: {
-          input: {},
-          tags: ["mongodb"],
-          expected: {},
-          metadata: {},
-        } as EvalCase<unknown, unknown, unknown>,
+        input: {},
+        tags: ["mongodb"],
+        expected: {},
+        metadata: {},
         scores: { accuracy: 0.8 },
       },
     ];
@@ -193,3 +165,30 @@ describe("aggregateScoresByTag", () => {
     expect(mongodbStats?.accuracy.count).toBe(1); // Only one case has scores
   });
 });
+
+// Helper function to create mock eval cases with scores
+function createMockEvalCases<T extends string>(
+  tagData: { tag: string; scores: Record<T, number[]>; input?: unknown }[]
+): ExperimentResult<EvalCase<unknown, unknown, unknown>, unknown, [T]>[] {
+  return tagData.flatMap(({ tag, scores, input = {} }) => {
+    return Object.entries(scores).flatMap(([scoreName, scoreValues]) => {
+      const typedScoreValues = scoreValues as number[];
+      return typedScoreValues.map((value: number) => {
+        // Create the base EvalCase properties
+        const result: ExperimentResult<
+          EvalCase<unknown, unknown, unknown>,
+          unknown,
+          [T]
+        > = {
+          input,
+          tags: [tag],
+          expected: {},
+          metadata: {},
+          // Create a properly typed scores object
+          scores: { [scoreName as T]: value } as Record<T, number | null>,
+        };
+        return result;
+      });
+    });
+  });
+}

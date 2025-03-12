@@ -147,8 +147,8 @@
     - role: user
       content: What is the cost of earning a digital badge with MongoDB?
   reference: Badges are free but you must earn them by taking an assessment. In
-    order to accept the badge you should create [create a Credly.com
-    account](https://www.credly.com/users/sign_up) which is also free. Credly is
+    order to accept the badge you should create a Credly.com
+    account which is also free. Credly is
     an independent organization and provides the service MongoDB uses to deliver
     digital badges.
   expectedLinks:

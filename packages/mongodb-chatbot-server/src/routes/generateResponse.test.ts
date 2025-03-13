@@ -1,4 +1,4 @@
-import { References } from "mongodb-rag-core";
+import { References, UserMessage } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { OpenAI } from "mongodb-rag-core/openai";
 import {
@@ -198,9 +198,9 @@ describe("generateResponse", () => {
       return {
         references,
         userMessage: {
-          role: "user" as const,
+          role: "user",
           content: userMessageText,
-        },
+        } satisfies UserMessage,
       };
     },
   } satisfies Omit<GenerateResponseParams, "shouldStream">;
@@ -276,9 +276,9 @@ describe("generateResponse", () => {
       }
       return {
         userMessage: {
-          role: "user" as const,
+          role: "user",
           content,
-        },
+        } satisfies UserMessage,
       };
     });
     const latestMessageText = "hello";

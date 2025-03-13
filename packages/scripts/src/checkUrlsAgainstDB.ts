@@ -10,7 +10,14 @@
  */
 
 import fs from "fs";
-import { findMissingResources } from "./generateEvalCasesYamlFromCSV";
+import { assertEnvVars, makeMongoDbPageStore } from "mongodb-rag-core";
+
+import "dotenv/config";
+
+const { MONGODB_DATABASE_NAME, MONGODB_CONNECTION_URI } = assertEnvVars({
+  MONGODB_DATABASE_NAME: "",
+  MONGODB_CONNECTION_URI: "",
+});
 
 async function getFinalUrl(url: string): Promise<string> {
   let currentUrl = url;
@@ -58,6 +65,15 @@ const getUrlRedirects = async (
   };
 };
 
+/**
+ Normalizes a URL by removing the protocol (http/https) and 'www.' prefix
+ normalizeUrl('https://www.example.com') // returns 'example.com'
+ normalizeUrl('http://example.com') // returns 'example.com'
+ */
+function normalizeUrl(url: string): string {
+  return url.replace(/^https?:\/\/(www\.)?/i, "");
+}
+
 async function main({ urlListFilePath }: { urlListFilePath: string }) {
   let urlList = JSON.parse(fs.readFileSync(urlListFilePath, "utf-8"));
   // if urlList is an array of objects, convert it to an array of strings
@@ -65,13 +81,22 @@ async function main({ urlListFilePath }: { urlListFilePath: string }) {
     urlList = urlList.map((urlObj: any) => urlObj.url);
   }
   // check list of urls against whats in the pages collection
-  const urlsNotIngested = await findMissingResources(urlList);
+  const pageStore = await makeMongoDbPageStore({
+    connectionUri: MONGODB_CONNECTION_URI,
+    databaseName: MONGODB_DATABASE_NAME,
+    collectionName: "pages",
+  });
+  const urlsNotIngested = await pageStore.getMissingPagesByUrl({
+    expectedUrls: urlList,
+    urlTransformer: normalizeUrl,
+  });
   // look for urls that redirect
   const { noRedirect, redirectTo } = await getUrlRedirects(urlsNotIngested);
   // check if the pages we are redirecting to are in the pages collection again
-  const urlsNotIngestedOfRedirectTo = await findMissingResources(
-    Array.from(redirectTo)
-  );
+  const urlsNotIngestedOfRedirectTo = await pageStore.getMissingPagesByUrl({
+    expectedUrls: Array.from(redirectTo),
+    urlTransformer: normalizeUrl,
+  });
   // the urls we need to ingest are the ones that don't redirect (no-redirect) and the urls we redirect-to
   const urlsToIngest = new Set([...noRedirect, ...urlsNotIngestedOfRedirectTo]);
   // Write needed URLs to file
@@ -82,6 +107,7 @@ async function main({ urlListFilePath }: { urlListFilePath: string }) {
     JSON.stringify(Array.from(urlsToIngest)),
     "utf-8"
   );
+  pageStore.close();
   console.log("Done");
 }
 
@@ -101,13 +127,8 @@ if (require.main === module) {
   }
   main({
     urlListFilePath,
-  })
-    .catch((error) => {
-      console.error("Error:", error);
-      process.exit(1);
-    })
-    .finally(() => {
-      console.log("hit finally");
-      process.exit(0);
-    });
+  }).catch((error) => {
+    console.error("Error:", error);
+    process.exit(1);
+  });
 }

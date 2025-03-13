@@ -21,9 +21,11 @@ async function main() {
   }
 }
 
-main();
+if (require.main === module) {
+  main();
+}
 
-const scrubMessages = async ({ db }: { db: Db }) => {
+export const scrubMessages = async ({ db }: { db: Db }) => {
   const scrubbedCollection =
     db.collection<ScrubbedMessage>("scrubbed_messages");
 
@@ -101,7 +103,7 @@ const scrubMessages = async ({ db }: { db: Db }) => {
             | "contextContent"
           >
         | "userCommented",
-        string | number | object
+        string | number | object | boolean
       >,
     },
     {

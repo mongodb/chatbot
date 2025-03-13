@@ -4,7 +4,7 @@ import { MessageAnalysis } from "./MessageAnalysis";
 
 export type ScrubbedMessage = Omit<
   Message,
-  "content" | "preprocessedContent" | "id"
+  "content" | "preprocessedContent" | "id" | "userComment"
 > & {
   /**
     The ID, which should match the ID of the original message within the
@@ -40,4 +40,11 @@ export type ScrubbedMessage = Omit<
     This can be convenient when comparing questions with their answer quality.
    */
   responseRating?: boolean;
+
+  /**
+    Indicates whether the original message had a user comment.
+    This is true if the original message had a userComment field (even if empty),
+    and false otherwise.
+   */
+  userCommented?: boolean;
 };

@@ -20,7 +20,7 @@ export type InitialWebSource = {
   /**
    Optional additional metadata determined by the web source.
    */
-  staticMetadata?: Record<string, string>;
+  staticMetadata?: Record<string, string | string[]>;
 };
 
 export const initialWebSources: InitialWebSource[] = [
@@ -188,7 +188,7 @@ export const initialWebSources: InitialWebSource[] = [
     name: "web-misc",
     urls: [
       "https://learn.mongodb.com",
-      "https://support.mongodb.com/",
+      "https://support.mongodb.com",
       "https://www.mongodb.com",
       "https://www.mongodb.com/atlas",
       "https://www.mongodb.com/leadership",
@@ -202,6 +202,20 @@ export const initialWebSources: InitialWebSource[] = [
       "https://www.mongodb.com/why-use-mongodb",
     ],
   },
+  {
+    name: "university-skills",
+    urls: [
+      "https://learn.mongodb.com/skills",
+      "https://learn.mongodb.com/courses/relational-to-document-model",
+      "https://learn.mongodb.com/courses/schema-design-patterns-and-antipatterns",
+      "https://learn.mongodb.com/courses/advanced-schema-patterns-and-antipatterns",
+      "https://learn.mongodb.com/courses/schema-design-optimization",
+      
+    ],
+    staticMetadata: {
+      tags: ["Skills", "MongoDB University"],
+    }
+  },
 ];
 
 export async function getUrlsFromSitemap(
@@ -214,11 +228,7 @@ export async function getUrlsFromSitemap(
   return parsedXML.urlset.url.map((url: { loc: string[] }) => url.loc[0]);
 }
 
-export type WebSource = {
-  name: string;
-  urls: string[];
-  staticMetadata?: Record<string, string>;
-};
+export type WebSource = Pick<InitialWebSource, "name" | "staticMetadata" | "urls">;
 
 type PrepareWebSourcesParams = {
   initialWebSources: InitialWebSource[];

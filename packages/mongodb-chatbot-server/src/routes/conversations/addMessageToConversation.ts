@@ -44,6 +44,7 @@ export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for 
 export type AddMessageRequestBody = z.infer<typeof AddMessageRequestBody>;
 export const AddMessageRequestBody = z.object({
   message: z.string(),
+  clientContext: z.object({}).passthrough().optional(),
 });
 
 export const AddMessageRequest = SomeExpressRequest.merge(
@@ -103,6 +104,7 @@ export interface AddMessageToConversationRouteParams {
 type MakeTracedResponseParams = Pick<
   GenerateResponseParams,
   | "latestMessageText"
+  | "clientContext"
   | "customData"
   | "dataStreamer"
   | "shouldStream"
@@ -123,6 +125,7 @@ export function makeAddMessageToConversationRoute({
 }: AddMessageToConversationRouteParams) {
   const generateResponseTraced = function ({
     latestMessageText,
+    clientContext,
     customData,
     dataStreamer,
     shouldStream,
@@ -133,6 +136,7 @@ export function makeAddMessageToConversationRoute({
     const tracedFunc = wrapTraced(
       ({
         latestMessageText,
+        clientContext,
         customData,
         dataStreamer,
         shouldStream,
@@ -141,6 +145,7 @@ export function makeAddMessageToConversationRoute({
       }: MakeTracedResponseParams) => {
         return generateResponse({
           latestMessageText,
+          clientContext,
           customData,
           dataStreamer,
           shouldStream,
@@ -167,6 +172,7 @@ export function makeAddMessageToConversationRoute({
     );
     return tracedFunc({
       latestMessageText,
+      clientContext,
       customData,
       dataStreamer,
       shouldStream,
@@ -183,7 +189,7 @@ export function makeAddMessageToConversationRoute({
     try {
       const {
         params: { conversationId: conversationIdString },
-        body: { message },
+        body: { message, clientContext },
         query: { stream },
         ip,
       } = req;
@@ -273,6 +279,7 @@ export function makeAddMessageToConversationRoute({
       const { messages } = await generateResponseTraced({
         conversation: traceConversation,
         latestMessageText,
+        clientContext,
         customData,
         dataStreamer,
         shouldStream,

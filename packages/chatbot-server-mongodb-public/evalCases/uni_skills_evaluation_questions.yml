@@ -2,33 +2,34 @@
   messages:
     - role: user
       content: What is a skill on MongoDB?
-  reference: MongoDB offers skills, each skill should take between 60-90 minutes
-    to attain for a specific skill. You can learn skills across all topics in
-    MongoDB starting with Data Modeling. You can take an assessment which will
-    earn you a badge to indicate mastery of a specific skill.
+  reference: MongoDB skills represent the knowledge and ability to work with MongoDB.
+    This includes topics like data modeling, aggregation, performance, and more.
+    MongoDB Skill Badges are free, focused credentials designed to help you quickly
+    learn and validate specific MongoDB skills. Each skill badge takes roughly 60-90
+    minutes to earn, including videos and hands-on labs followed by a short assessment
+    to verify your mastery.
   expectedLinks:
     - https://learn.mongodb.com/skills
 - name: What skills badges are available for me to earn?
   messages:
     - role: user
       content: What skills badges are available for me to earn?
-  reference: There is a range of skills available on our skills page. We are
-    building these out starting with several on data modeling topics. The skill
-    in data modeling we'd recommend you start with is "From Relational Model
-    (SQL) to MongoDB's Document Model". The other data modeling skills cover the
-    topics of Schema Patterns and Antipatterns, Advanced Schema Patterns and
-    Antipatterns, and Schema Design Optimization.
+  reference: MongoDB offers a range of Skill Badges that you can explore on our
+    skills page. Currently this includes several badges on data modeling topics and
+    we're working to add more over time. We recommend starting with the "Relational
+    to Document Model" skill. From there you can explore other topics like "Schema
+    Design Patterns and Antipatterns", "Advanced Schema Patterns and Antipatterns",
+    and "Schema Design Optimization".
   expectedLinks:
     - https://learn.mongodb.com/skills
 - name: What skill badge is available to earn on the document model?
   messages:
     - role: user
       content: What skill badge is available to earn on the document model?
-  reference: The skill, "From Relational Model (SQL) to MongoDB's Document Model",
-    teaches you about the document model. It covers how to model your workload,
-    how to design data relationships, and how to validate your schemas. You will
-    learn about the MongoDB metholodgy for converting from a relational model to
-    a document model.
+  reference: The "Relational to Document Model" skill teaches you about the document model.
+    It covers how to model your workload, how to design data relationships, and how to
+    validate your schemas. Further, you will learn about the MongoDB methodology for
+    converting from a relational model to a document model.
   expectedLinks:
     - https://learn.mongodb.com/skills
     - https://learn.mongodb.com/courses/relational-to-document-model
@@ -36,11 +37,11 @@
   messages:
     - role: user
       content: What skill badge is available to earn on schema patterns?
-  reference: The skill, "MongoDB Schema Design Patterns and Antipatterns", teaches
-    you about the schema patterns for the document model. It covers the three
+  reference: The "MongoDB Schema Design Patterns and Antipatterns" skill teaches
+    you how to structure data in the document model. It covers the three
     most common schema design patterns, specifically the inheritance pattern,
-    the computed pattern, and the extended reference pattern. It teachs you when
-    and how you should apply them in your data model.
+    the computed pattern, and the extended reference pattern. You will learn when
+    and how you should apply these patterns in your data model.
   expectedLinks:
     - https://learn.mongodb.com/skills
     - https://www.mongodb.com/docs/manual/data-modeling/design-patterns/
@@ -52,13 +53,16 @@
     - role: user
       content: What skill badge do you have on the schema antipatterns?
   reference: >-
-    The skill, "MongoDB Schema Design Patterns and Antipatterns", teaches you
-    about the antipatterns that you might find when modeling your data for the
-    document model. This includes antipatterns such as unbounded arrays and
-    bloated documents. You will learn how to identify and avoid them in your
-    schema design. 
+    The "MongoDB Schema Design Patterns and Antipatterns" skill teaches you
+    about patterns to avoid when modeling your data for the document model.
+    You will learn how to identify and avoid antipatterns such as unbounded
+    arrays and bloated documents in your schema design. 
 
-    The skill, "MongoDB Advanced Schema Design Patterns and Antipatterns", also teaches you about more complex antipatterns such as massive number of collections, unnecessary indexes, data normalization, and case sensitivity. This category of antipattern is classified as an advanced as in order to identify their performance impacts you must do more than analyse the schema.
+    The "MongoDB Advanced Schema Design Patterns and Antipatterns" skill teaches
+    you about more complex antipatterns such as massive number of collections,
+    unnecessary indexes, data normalization, and case sensitivity. This category of
+    antipattern is classified as "advanced" because you must do more than analyze
+    your schema to identify their performance impacts.
   expectedLinks:
     - https://learn.mongodb.com/skills
 - name: What skill badges are availabe to earn on advanced schema patterns?

@@ -21,9 +21,11 @@ async function main() {
   }
 }
 
-main();
+if (require.main === module) {
+  main();
+}
 
-const scrubMessages = async ({ db }: { db: Db }) => {
+export const scrubMessages = async ({ db }: { db: Db }) => {
   const scrubbedCollection =
     db.collection<ScrubbedMessage>("scrubbed_messages");
 
@@ -69,28 +71,39 @@ const scrubMessages = async ({ db }: { db: Db }) => {
         rejectQuery: "$messages.rejectQuery",
         customData: "$messages.customData",
         metadata: "$messages.metadata",
+        userCommented: {
+          $cond: {
+            // Evaluate to the user comment (if it exists) or false
+            if: { $ifNull: ["$messages.userComment", false] },
+            // If the user comment exists, evaluate to true
+            then: true,
+            // Otherwise, evaluate to false
+            else: false,
+          },
+        },
       } satisfies Record<
-        Exclude<
-          // This protects against unknown entries in the $project stage and
-          // ensures all of the fields that we do want are projected. We can't
-          // just use ScrubbedMessage/Message because we want the union of
-          // all possible Message-type keys.
-          | keyof UserMessage
-          | keyof AssistantMessage
-          | keyof SystemMessage
-          | keyof ScrubbedMessage,
-          // Add keys to omit from the projection below.
-          | "id"
-          | "content"
-          | "analysis"
-          | "responseRating"
-          | "functionCall"
-          | "contentForLlm"
-          | "preprocessedContent"
-          | "userComment"
-          | "contextContent"
-        >,
-        string | number
+        | Exclude<
+            // This protects against unknown entries in the $project stage and
+            // ensures all of the fields that we do want are projected. We can't
+            // just use ScrubbedMessage/Message because we want the union of
+            // all possible Message-type keys.
+            | keyof UserMessage
+            | keyof AssistantMessage
+            | keyof SystemMessage
+            | keyof ScrubbedMessage,
+            // Add keys to omit from the projection below.
+            | "id"
+            | "content"
+            | "analysis"
+            | "responseRating"
+            | "functionCall"
+            | "contentForLlm"
+            | "preprocessedContent"
+            | "userComment"
+            | "contextContent"
+          >
+        | "userCommented",
+        string | number | object | boolean
       >,
     },
     {

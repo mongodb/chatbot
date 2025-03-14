@@ -26,6 +26,7 @@
     "findPageTitles": "npm run build && node ./build/main/findPageTitlesMain.js",
     "listSlackMessages": "npm run build && node ./build/main/listSlackMessagesMain.js",
     "removeSlackMessage": "npm run build && node ./build/main/removeSlackMessageMain.js",
+    "checkUrlsAgainstDB": "npm run build && node ./build/checkUrlsAgainstDB.js",
     "test": "jest --forceExit",
     "build": "npm run clean && tsc -b tsconfig.build.json",
     "postbuild": "cp ./src/MessageAnalysis.d.ts ./build/",

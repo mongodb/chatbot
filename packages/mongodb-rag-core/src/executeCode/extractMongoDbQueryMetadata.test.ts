@@ -1,7 +1,7 @@
 import {
   extractMongoDbMethods,
   extractMongoDbQueryOperators,
-} from "./extractMongoDbTags";
+} from "./extractMongoDbQueryMetadata";
 
 describe("extractMongoDbMethods", () => {
   it("should extract MongoDB methods from code", () => {

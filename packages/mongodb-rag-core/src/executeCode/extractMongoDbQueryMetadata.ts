@@ -42,13 +42,26 @@ export const commonMongoDbNodeJsMethods = new Set([
   "limit",
   "skip",
   "project",
+  "projection",
   "toArray",
+  "next",
+  "hasNext",
+  "forEach",
+  "explain",
+  "hint",
+  "collation",
+  "batchSize",
+  "maxTimeMS",
 ]);
 
 /**
   Extracts MongoDB method calls from code.
+
  */
-export function extractMongoDbMethods(code: string): string[] {
+export function extractMongoDbMethods(
+  code: string,
+  methods: Set<string> = commonMongoDbNodeJsMethods
+): string[] {
   // Regular expression to match method calls on MongoDB collections
   // This pattern looks for method calls in the format collection.method() or chain.method()
   // We need to capture both direct collection methods and chained methods
@@ -60,7 +73,7 @@ export function extractMongoDbMethods(code: string): string[] {
   // Filter to only include known MongoDB methods and remove duplicates
   const methodsFound = matches
     .map((match) => match[1]) // Extract the method name from the regex match
-    .filter((method) => commonMongoDbNodeJsMethods.has(method));
+    .filter((method) => methods.has(method));
 
   // Remove duplicates by converting to Set and back to Array
   return [...new Set(methodsFound)];
@@ -72,14 +85,15 @@ export function extractMongoDbMethods(code: string): string[] {
 export function extractMongoDbQueryOperators(code: string): string[] {
   // Regular expression to match MongoDB query operators
   // This pattern looks for operators in the format $operatorName in various contexts
-  const operatorAsKeyRegex = /["']?(\$[a-zA-Z0-9]+)["']?\s*[:}\]\s]/g;
+  // 1. As an object key: { $match: {...} }
+  const operatorAsKeyRegex = /[{,]\s*["']?(\$[a-zA-Z0-9]+)["']?\s*:/g;
 
-  // Extract all operator matches from all patterns
-  const keyMatches = Array.from(code.matchAll(operatorAsKeyRegex));
+  // Extract the operator names from the matches and remove duplicates
+  const operatorsFound = Array.from(
+    new Set(
+      Array.from(code.matchAll(operatorAsKeyRegex)).map((match) => match[1])
+    )
+  );
 
-  // Extract the operator names from the    matches and remove duplicates
-  const operatorsFound = keyMatches.map((match) => match[1]); // Extract the operator name from the regex match
-
-  // Remove duplicates by converting to Set and back to Array
-  return [...new Set(operatorsFound)];
+  return operatorsFound;
 }

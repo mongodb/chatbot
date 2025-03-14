@@ -1,6 +1,10 @@
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { DatabaseCodeNode, DatabaseExecutionResultNode } from "./nodeTypes";
-import { ExecuteMongoDbQuery } from "mongodb-rag-core/executeCode";
+import {
+  ExecuteMongoDbQuery,
+  extractMongoDbMethods,
+  extractMongoDbQueryOperators,
+} from "mongodb-rag-core/executeCode";
 
 export interface ExecuteGeneratedQueryParams {
   generatedQuery: DatabaseCodeNode;
@@ -22,8 +26,18 @@ export async function generateDatabaseExecutionResult({
   const query = generatedQuery.data.code;
   const { uri, name: databaseName } = database;
 
-  const data = await executor({ query, uri, databaseName });
+  const executionResult = await executor({
+    query,
+    uri,
+    databaseName,
+  });
 
+  const metadata = {
+    queryOperators: extractMongoDbQueryOperators(query),
+    methods: extractMongoDbMethods(query),
+  };
+
+  const data = { ...executionResult, ...metadata };
   return {
     _id: new ObjectId(),
     parent: generatedQuery,

@@ -125,6 +125,12 @@ export type DatabaseCodeNode = WithParentNode<
 >;
 
 export type DatabaseExecutionResultNode = WithParentNode<
-  GenerationNode<DatabaseExecutionResult, "database_execution_result">,
+  GenerationNode<
+    DatabaseExecutionResult & {
+      queryOperators?: string[];
+      methods?: string[];
+    },
+    "database_execution_result"
+  >,
   DatabaseCodeNode
 >;

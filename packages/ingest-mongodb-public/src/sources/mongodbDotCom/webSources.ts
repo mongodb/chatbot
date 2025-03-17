@@ -185,6 +185,20 @@ export const initialWebSources: InitialWebSource[] = [
     },
   },
   {
+    name: "comparisons",
+    urls: [
+      "https://www.mongodb.com/resources/compare/advantages-of-mongodb",
+      "https://www.mongodb.com/resources/compare/cassandra-vs-mongodb",
+      "https://www.mongodb.com/resources/compare/compare-documentdb-cosmosdb",
+      "https://www.mongodb.com/resources/compare/couchbase-vs-mongodb",
+      "https://www.mongodb.com/resources/compare/mongodb-oracle",
+      "https://www.mongodb.com/resources/compare/mongodb-postgresql",
+    ],
+    staticMetadata: {
+      type: "Comparisons",
+    }
+  },
+  {
     name: "web-misc",
     urls: [
       "https://learn.mongodb.com",

@@ -7,6 +7,7 @@ import {
   startOfMonth,
   startOfWeek,
   startOfDay,
+  isStartOfMonth,
 } from "./materializedViewUtils";
 
 const { MONGODB_CONNECTION_URI } = assertEnvVars({
@@ -117,6 +118,24 @@ describe("Date utils", () => {
     it("returns the first day of the month", () => {
       const date = new Date("2021-01-15T00:00:00Z");
       expect(startOfMonth(date)).toEqual(new Date("2021-01-01T00:00:00Z"));
+    });
+  });
+
+  describe("isStartOfMonth", () => {
+    it("returns true if the date is the first day of the month", () => {
+      // Right date and right time
+      expect(isStartOfMonth("2024-02-01T00:00:00Z")).toBe(true);
+      expect(isStartOfMonth(new Date("2024-02-01T00:00:00Z"))).toBe(true);
+    });
+
+    it("returns false if the date is not the first day of the month", () => {
+      // Wrong date
+      expect(isStartOfMonth("2021-01-02T00:00:00Z")).toBe(false);
+      expect(isStartOfMonth(new Date("2021-01-02T00:00:00Z"))).toBe(false);
+      // Right date but wrong time
+      expect(isStartOfMonth(new Date("2021-01-01T10:00:00Z"))).toBe(false);
+      // Wrong date and wrong time
+      expect(isStartOfMonth("2021-01-02T10:00:00Z")).toBe(false);
     });
   });
 

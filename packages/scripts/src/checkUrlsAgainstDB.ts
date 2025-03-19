@@ -1,7 +1,7 @@
 /**
  @fileoverview Script to check if a list of URLs are ingested by the chatbot.
  Takes a JSON file containing URLs as input,
- checks if the urls are being ingested,
+ checks if the urls have been ingested,
  and writes a JSON file with a list of urls that are not ingested.
  To properly check the urls, 
  we normalize the urls by removing the protocol (http/https) and 'www.' prefix before comparing against the database.

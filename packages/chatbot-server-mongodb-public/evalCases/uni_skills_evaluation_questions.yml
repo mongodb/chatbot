@@ -139,11 +139,10 @@
   messages:
     - role: user
       content: Does MongoDB offer any digital badges?
-  reference: MongoDB offers a new skills catalog on the completion of a given
-    skill you can take an assessment to be awarded a digital badge. This badge
-    is a form of credentially that allows you to demonstrate your knowledge and
-    skills in MongoDB across various social channels. These badges are free to
-    earn and share.
+  reference: MongoDB offers a catalog of skill credentials. Upon completion of a given
+    skill's learning material you can take an assessment to be awarded a digital badge.
+    This badge allows you to demonstrate your knowledge and skills in MongoDB across
+    various social channels. These badges are free to earn and share.
   expectedLinks:
     - https://learn.mongodb.com/skills
 - name: What is the cost of earning a digital badge with MongoDB?
@@ -151,9 +150,8 @@
     - role: user
       content: What is the cost of earning a digital badge with MongoDB?
   reference: Badges are free but you must earn them by taking an assessment. In
-    order to accept the badge you should create a Credly.com
-    account which is also free. Credly is
-    an independent organization and provides the service MongoDB uses to deliver
+    order to accept the badge you must create a credly.com account which is also free.
+    Credly is an independent organization and provides the service MongoDB uses to deliver
     digital badges.
   expectedLinks:
     - https://learn.mongodb.com/skills
@@ -162,15 +160,17 @@
   messages:
     - role: user
       content: What is the easiest way to learn MongoDB?
-  reference: The easiest way to learn MongoDB is to take one of our database
-    skills offerings. These are short lasting no more than 90 minutes from start
-    to assessment which awards you a digital badge on completion. If you are new
-    to MongoDB we recommend starting with our skill on "From Relational Model
-    (SQL) to MongoDB's Document Model". You can see our full list of skill at
-    https://learn.mongodb.com/skills Each skill is focused on one topic, if you
-    want to learn MongoDB in a more complex fashion, we'd recommend taking our
-    12 hour course on "Introduction to MongoDB"
-    https://learn.mongodb.com/learning-paths/introduction-to-mongodb which gives
+  reference: >
+    The easiest way to learn MongoDB is to take one of our database skills
+    offerings. These are short courses focused on a single topic that last no
+    more than 90 minutes from start to finish and award you a digital badge
+    upon completion of an assessment. If you are new to MongoDB we recommend
+    starting with the "Relational to Document Model" skill. You can see the full
+    list of skills at https://learn.mongodb.com/skills.
+    
+    If you prefer a complete, in-depth course format, we recommend taking our
+    12 hour course "Introduction to MongoDB" which you can find at
+    https://learn.mongodb.com/learning-paths/introduction-to-mongodb. It gives
     a broad and rounded introduction. The difference in learning between a skill
     and a course is the time commitment, courses are longer whilst skills are
     designed to be finished end to end in 90 minutes or less.
@@ -182,11 +182,13 @@
     - role: user
       content: What is the difference between a skill and a course on learn.mongodb.com?
   reference: >-
-    The difference in learning between a skill and a course is the time
-    commitment, courses are longer whilst skills are designed to be finished end
+    The primary difference between a skill and a course is the time commitment.
+    Courses are longer and more hands-on whilst skills are designed to be finished end
     to end in 90 minutes or less.
 
-    Each skill provides a digitial badge on completion, courses do not. The breath and depth of content in a skill is typically shallower than a course covering the same topics.
+    Each skill provides a digital badge on completion, courses do not. The breadth and
+    depth of content in a skill is typically shallower than a course covering the same
+    topics.
   expectedLinks:
     - https://learn.mongodb.com
     - https://learn.mongodb.com/skills 

@@ -25,6 +25,10 @@ export type MongoDbPageStore = DatabaseConnection &
     aggregatePages<T extends Document = Document>(
       pipeline: Document[]
     ): Promise<T[]>;
+    getMissingPagesByUrl(args: {
+      expectedUrls: string[];
+      urlTransformer?: (url: string) => string;
+    }): Promise<string[]>;
     metadata: {
       databaseName: string;
       collectionName: string;
@@ -120,6 +124,26 @@ export function makeMongoDbPageStore({
           throw new Error(`Soft-delete pages not acknowledged!`);
         }
       }
+    },
+    async getMissingPagesByUrl(args: {
+      expectedUrls: string[];
+      urlTransformer?: (url: string) => string;
+    }) {
+      const results = await Promise.all(
+        args.expectedUrls.map(async (url) => {
+          const page = await this.loadPage({
+            query: {
+              url: {
+                $regex: new RegExp(
+                  args.urlTransformer ? args.urlTransformer(url) : url
+                ),
+              },
+            },
+          });
+          return !page ? url : null;
+        })
+      );
+      return results.filter((url) => url !== null) as string[];
     },
     async init() {
       await pagesCollection.createIndex({ url: 1 });

@@ -32,10 +32,10 @@ const { DEVCENTER_CONNECTION_URI, UNIVERSITY_DATA_API_KEY } = assertEnvVars(
 );
 import {
   getUrlsFromSitemap,
-  prepareWebSources,
   initialWebSources,
-} from "./mongodbDotCom/webSources";
-import { makeWebDataSource } from "./mongodbDotCom/WebDataSource";
+  makeWebDataSource,
+  prepareWebSources,
+} from "./mongodbDotCom";
 import { chromium } from "playwright";
 
 /**

@@ -5,7 +5,7 @@ import {
   makeGenerateChildrenWithOpenAi,
   makeGenerateNChoiceChildrenWithOpenAi,
 } from "./generateChildren";
-import { LlmOptions } from "./databaseNlQueries/LlmOptions";
+import { LlmOptions } from "./databaseNlQueries/databaseNodes/LlmOptions";
 
 // Mock OpenAI client
 const mockOpenAIClient = {

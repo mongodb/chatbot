@@ -8,7 +8,7 @@ import { assertEnvVars } from "mongodb-rag-core";
 import { BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
 import { DATABASE_NL_QUERIES } from "../EnvVars";
 import { prettyPrintMongoDbDocument } from "../treeGeneration/databaseNlQueries/databaseMetadata/prettyPrintMongoDbDocument";
-import { generateAnnotatedDatabaseInfo } from "../treeGeneration/databaseNlQueries/generateAnnotatedDatabaseInfo";
+import { generateAnnotatedDatabaseInfo } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
 import { datasetDatabases } from "../treeGeneration/databaseNlQueries/datasetDatabases";
 
 const dataOutDir = path.resolve(__dirname, "..", "..", "dataOut");

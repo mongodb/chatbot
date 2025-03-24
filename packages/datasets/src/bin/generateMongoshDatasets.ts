@@ -7,15 +7,16 @@ import PromisePool from "@supercharge/promise-pool";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { BRAINTRUST_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 import { DATABASE_NL_QUERIES } from "../EnvVars";
-import { generateAnnotatedDatabaseInfo } from "../treeGeneration/databaseNlQueries/generateAnnotatedDatabaseInfo";
-import { generateDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/generateDatabaseExecutionResult";
-import { generateDatabaseUsers } from "../treeGeneration/databaseNlQueries/generateDatabaseUsers";
-import { generateMongoshCode } from "../treeGeneration/databaseNlQueries/generateMongoshCode";
-import { generateNaturalLanguageQueries } from "../treeGeneration/databaseNlQueries/generateNaturalLanguageQueries";
-import { generateDatabaseUseCases } from "../treeGeneration/databaseNlQueries/generateUseCases";
+import { generateAnnotatedDatabaseInfo } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
+import { generateDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/databaseNodes/generateDatabaseExecutionResult";
+import { generateDatabaseUsers } from "../treeGeneration/databaseNlQueries/databaseNodes/generateDatabaseUsers";
+import { generateMongoshCode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateMongoshCode";
+import { generateNaturalLanguageQueries } from "../treeGeneration/databaseNlQueries/databaseNodes/generateNaturalLanguageQueries";
+import { generateDatabaseUseCases } from "../treeGeneration/databaseNlQueries/databaseNodes/generateUseCases";
 import { makeMongoDbNodeStore } from "../treeGeneration/MongoDbNodeStore";
-import { LlmOptions } from "../treeGeneration/databaseNlQueries/LlmOptions";
+import { LlmOptions } from "../treeGeneration/databaseNlQueries/databaseNodes/LlmOptions";
 import { datasetDatabases } from "../treeGeneration/databaseNlQueries/datasetDatabases";
+import { findMostFrequentAndPerformantDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/findMostFrequentAndPerformantDatabaseExecutionResult";
 
 const {
   BRAINTRUST_API_KEY,
@@ -48,13 +49,16 @@ const llmOptions: LlmOptions = {
 // Useful for debugging.
 const config = {
   users: { numGenerations: 8, llmConfig: llmOptions },
-  useCases: { numGenerations: 8, llmConfig: llmOptions },
-  nlQueries: { numGenerations: 8, llmConfig: llmOptions },
-  dbQueries: { numGenerations: 8, llmConfig: llmOptions },
+  useCases: { numGenerations: 8, llmConfig: llmOptions, concurrency: 10 },
+  nlQueries: { numGenerations: 8, llmConfig: llmOptions, concurrency: 10 },
+  dbQueries: { numGenerations: 16, llmConfig: llmOptions, concurrency: 10 },
+  dbExecutions: { concurrency: 20 },
 } as const satisfies Record<
   string,
-  { numGenerations: number; llmConfig: LlmOptions }
+  { numGenerations?: number; llmConfig?: LlmOptions; concurrency?: number }
 >;
+
+const DEFAULT_CONCURRENCY = 10;
 
 async function generateMongoshDataset(
   mongoClient: MongoClient,
@@ -117,7 +121,7 @@ async function generateMongoshDataset(
     // Generate use cases for each user
     console.log("Generating use cases for each user...");
     const { results: useCaseNodesByUser } = await PromisePool.for(userNodes)
-      .withConcurrency(5)
+      .withConcurrency(config.useCases.concurrency ?? 5)
       .process(async (userNode) => {
         const useCases = await generateDatabaseUseCases(
           userNode,
@@ -138,7 +142,9 @@ async function generateMongoshDataset(
 
     // Process use cases in parallel with limited concurrency
     const { results: nlQueryNodesByUseCase } =
-      await PromisePool.withConcurrency(10)
+      await PromisePool.withConcurrency(
+        config.nlQueries.concurrency ?? DEFAULT_CONCURRENCY
+      )
         .for(useCaseNodes)
         .handleError((err) => {
           console.error(err);
@@ -165,7 +171,7 @@ async function generateMongoshDataset(
     const { results: dbQCodeNodesByNlQuery } = await PromisePool.for(
       nlQueryNodes
     )
-      .withConcurrency(10)
+      .withConcurrency(config.dbQueries.concurrency ?? DEFAULT_CONCURRENCY)
       .process(async (nlQueryNode) => {
         const dbCodeNodes = await generateMongoshCode(
           nlQueryNode,
@@ -179,46 +185,61 @@ async function generateMongoshDataset(
         );
         return dbCodeNodes;
       });
-    const dbCodeNodes = dbQCodeNodesByNlQuery.flat();
-    const { results: dbExecutions } = await PromisePool.for(dbCodeNodes)
-      .withConcurrency(10)
-      .process(async (dbCodeNode) => {
-        const dbExecution = await generateDatabaseExecutionResult({
-          database: {
-            name: databaseName,
-            uri: MONGODB_TEXT_TO_CODE_CONNECTION_URI,
-          },
-          generatedQuery: dbCodeNode,
-          executor: executeMongoshQuery,
+    for (const dbCodeNodes of dbQCodeNodesByNlQuery) {
+      const { results: dbExecutions } = await PromisePool.for(dbCodeNodes)
+        .withConcurrency(config.dbExecutions.concurrency ?? DEFAULT_CONCURRENCY)
+        .process(async (dbCodeNode) => {
+          const dbExecution = await generateDatabaseExecutionResult({
+            database: {
+              name: databaseName,
+              uri: MONGODB_TEXT_TO_CODE_CONNECTION_URI,
+            },
+            generatedQuery: dbCodeNode,
+            executor: executeMongoshQuery,
+          });
+          console.log(
+            `Generated DB execution: ${dbExecution.data.result
+              ?.toString()
+              .slice(0, 20)} ...`
+          );
+          return dbExecution;
         });
-        console.log(
-          `Generated DB execution: ${dbExecution.data.result
-            ?.toString()
-            .slice(0, 20)} ...`
+      console.log(`Generated ${dbExecutions.length} DB executions.`);
+
+      // Find the most frequent and performant database execution result
+      const { fastestMostFrequentIndex } =
+        findMostFrequentAndPerformantDatabaseExecutionResult(
+          dbExecutions.map((node) => node.data)
         );
-        return dbExecution;
-      });
-    console.log(`Generated ${dbExecutions.length} DB executions.`);
-    await nodeStore.storeNodes({ nodes: dbExecutions });
-    console.log(`Writing data out to ${textToMqlOutputPath}`);
-    for (const dbExecution of dbExecutions) {
-      const textToMqlDatasetEntry = {
-        dbQuery: dbExecution.parent.data.code,
-        language: dbExecution.parent.data.language,
-        nlQuery: dbExecution.parent.parent.data.query,
-        complexity: dbExecution.parent.parent.data.complexity,
-        databaseName: dbExecution.parent.parent.parent.parent.data.name,
-        ...dbExecution.data,
-      };
-      fs.appendFileSync(
-        textToMqlOutputPath,
-        JSON.stringify(textToMqlDatasetEntry) + "\n"
+      if (
+        fastestMostFrequentIndex !== null &&
+        dbExecutions[fastestMostFrequentIndex].data.result !== null
+      ) {
+        dbExecutions[fastestMostFrequentIndex].data.isReferenceAnswer = true;
+      }
+
+      await nodeStore.storeNodes({ nodes: dbExecutions });
+      console.log(`Writing data out to ${textToMqlOutputPath}`);
+      for (const dbExecution of dbExecutions) {
+        const textToMqlDatasetEntry = {
+          dbQuery: dbExecution.parent.data.code,
+          language: dbExecution.parent.data.language,
+          nlQuery: dbExecution.parent.parent.data.query,
+          complexity: dbExecution.parent.parent.data.complexity,
+          databaseName:
+            dbExecution.parent.parent.parent.parent.parent.data.name,
+          ...dbExecution.data,
+        };
+        fs.appendFileSync(
+          textToMqlOutputPath,
+          JSON.stringify(textToMqlDatasetEntry) + "\n"
+        );
+      }
+
+      console.log(
+        `Successfully wrote ${dbCodeNodes.length} nodes to ${textToMqlOutputPath}`
       );
     }
-
-    console.log(
-      `Successfully wrote ${dbCodeNodes.length} nodes to ${textToMqlOutputPath}`
-    );
   } finally {
     await mongoClient.close();
   }

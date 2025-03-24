@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { GenerationNode, WithParentNode } from "../GenerationNode";
+import { GenerationNode, WithParentNode } from "../../GenerationNode";
 import { DatabaseExecutionResult } from "mongodb-rag-core/executeCode";
 
 export const DatabaseInfoSchema = z.object({
@@ -129,6 +129,7 @@ export type DatabaseExecutionResultNode = WithParentNode<
     DatabaseExecutionResult & {
       queryOperators?: string[];
       methods?: string[];
+      isReferenceAnswer?: boolean;
     },
     "database_execution_result"
   >,

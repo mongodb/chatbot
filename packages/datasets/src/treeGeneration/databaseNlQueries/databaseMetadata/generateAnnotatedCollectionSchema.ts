@@ -1,6 +1,6 @@
 import { OpenAI } from "mongodb-rag-core/openai";
 import { CollectionInfo, DatabaseMetadata } from "./getDatabaseMetadata";
-import { LlmOptions } from "../LlmOptions";
+import { LlmOptions } from "../databaseNodes/LlmOptions";
 import { z } from "zod";
 import { getOpenAiFunctionResponse } from "./getOpenAiFunctionResponse";
 import { prettyPrintMongoDbDocument } from "./prettyPrintMongoDbDocument";

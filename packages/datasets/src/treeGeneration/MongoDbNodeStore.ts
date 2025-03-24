@@ -110,6 +110,14 @@ export function makeMongoDbNodeStore({
       // Build the complete hierarchy and return
       return buildParentHierarchy(node) as Node;
     },
+
+    async updateNode<Node extends GenerationNode<unknown, string | undefined>>(
+      nodeId: ObjectId,
+      node: Node
+    ) {
+      const dbNode = convertGenerationNodeToDbNode(node);
+      await collection.updateOne({ _id: nodeId }, { $set: dbNode });
+    },
   };
 }
 

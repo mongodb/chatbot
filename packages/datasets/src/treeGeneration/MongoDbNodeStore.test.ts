@@ -137,4 +137,35 @@ describe("MongoDbNodeStore", () => {
     const result = await nodeStore.retrieveNode(nonExistentId);
     expect(result).toBeNull();
   });
+
+  it("should update an existing node", async () => {
+    // First, store a node
+    const testNode: Node = {
+      _id: new ObjectId(),
+      parent: null,
+      data: { name: "Original Name" },
+      updated: new Date(),
+    };
+
+    await nodeStore.storeNodes({
+      nodes: [testNode],
+    });
+
+    // Now update the node
+    const updatedNode: Node = {
+      ...testNode,
+      data: { name: "Updated Name" },
+      updated: new Date(), // Update the timestamp
+    };
+
+    await nodeStore.updateNode(testNode._id, updatedNode);
+
+    // Retrieve the node to verify it was updated
+    const retrievedNode = await nodeStore.retrieveNode<Node>(testNode._id);
+
+    // Verify the node was updated
+    expect(retrievedNode).toBeTruthy();
+    expect(retrievedNode?._id).toEqual(testNode._id);
+    expect(retrievedNode?.data.name).toBe("Updated Name");
+  });
 });

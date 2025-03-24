@@ -1,4 +1,4 @@
-import { makeGenerateNChoiceChildrenWithOpenAi } from "../generateChildren";
+import { makeGenerateNChoiceChildrenWithOpenAi } from "../../generateChildren";
 import {
   DatabaseNlQueryNode,
   DatabaseCodeNode,

@@ -1,4 +1,8 @@
-import { fuzzyClusterItems } from "./fuzzyClusterDatabaseExecutionResults";
+import {
+  fuzzyClusterItems,
+  findLargestCluster,
+  getClusterElementsFromIndexes,
+} from "./fuzzyClusterItems";
 
 describe("fuzzyClusterItems", () => {
   // Test with simple number array and exact matching
@@ -127,5 +131,66 @@ describe("fuzzyClusterItems", () => {
     // All items should be in the first cluster
     expect(clusters).toHaveLength(1);
     expect(clusters).toEqual([[0, 1, 2, 3, 4]]);
+  });
+});
+
+describe("findLargestCluster", () => {
+  it("should find the cluster with the most elements", () => {
+    const clusters = [[0, 2], [1, 4, 6, 8], [3, 5], [7]];
+    const largestCluster = findLargestCluster(clusters);
+
+    expect(largestCluster).toEqual(clusters[1]);
+  });
+
+  it("should return the first cluster when multiple clusters have the same size", () => {
+    const clusters = [
+      [0, 2],
+      [1, 4],
+      [3, 5],
+    ];
+    const largestCluster = findLargestCluster(clusters);
+
+    // All clusters have size 2, so it should return the first one
+    expect(largestCluster).toEqual(clusters[0]);
+  });
+
+  it("should handle a single cluster", () => {
+    const clusters = [[0, 1, 2, 3]];
+    const largestCluster = findLargestCluster(clusters);
+
+    expect(largestCluster).toEqual(clusters[0]);
+  });
+
+  it("should throw if empty clusters array", () => {
+    expect(() => {
+      findLargestCluster([]);
+    }).toThrow();
+  });
+});
+
+describe("getClusterElementsFromIndexes", () => {
+  it("should retrieve elements from the original array by their indexes", () => {
+    const items = ["apple", "banana", "cherry", "date", "elderberry"];
+    const indexes = [0, 2, 4];
+
+    const elements = getClusterElementsFromIndexes(items, indexes);
+
+    expect(elements).toEqual(["apple", "cherry", "elderberry"]);
+  });
+
+  it("should return an empty array when indexes is empty", () => {
+    const items = ["apple", "banana", "cherry"];
+    const indexes: number[] = [];
+
+    const elements = getClusterElementsFromIndexes(items, indexes);
+
+    expect(elements).toEqual([]);
+  });
+
+  it("should handle out-of-bounds indexes gracefully", () => {
+    const items = ["apple", "banana", "cherry"];
+    const indexes = [0, 5]; // 5 is out of bounds
+
+    expect(() => getClusterElementsFromIndexes(items, indexes)).toThrow();
   });
 });

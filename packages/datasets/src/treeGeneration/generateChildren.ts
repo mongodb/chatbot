@@ -4,7 +4,7 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { PromisePool } from "@supercharge/promise-pool";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { GenerationNode, WithParentNode } from "./GenerationNode";
-import { LlmOptions } from "./databaseNlQueries/LlmOptions";
+import { LlmOptions } from "./databaseNlQueries/databaseNodes/LlmOptions";
 
 export type GenerateChildren<
   ParentNode extends GenerationNode<unknown, string | undefined> | null,
@@ -76,6 +76,7 @@ export function makeGenerateChildrenWithOpenAi<
   makePromptMessages,
   response,
   filterNodes,
+  childType,
 }: MakeGenerateChildrenWithOpenAiParams<
   ParentNode,
   ChildNode
@@ -136,7 +137,7 @@ export function makeGenerateChildrenWithOpenAi<
       parsedChildren
     );
 
-    return makeChildrenNodes(parent, filteredChildren);
+    return makeChildrenNodes(parent, filteredChildren, childType);
   };
 }
 
@@ -150,6 +151,7 @@ export function makeGenerateNChoiceChildrenWithOpenAi<
   makePromptMessages,
   response,
   filterNodes,
+  childType,
 }: Omit<
   MakeGenerateChildrenWithOpenAiParams<ParentNode, ChildNode>,
   "response"
@@ -181,7 +183,7 @@ export function makeGenerateNChoiceChildrenWithOpenAi<
       throw new Error("No children returned from completion");
     }
     children = await filterChildNodes(filterNodes, children);
-    return makeChildrenNodes(parent, children);
+    return makeChildrenNodes(parent, children, childType);
   };
 }
 

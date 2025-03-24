@@ -1,9 +1,9 @@
 import { MongoClient, ObjectId } from "mongodb-rag-core/mongodb";
 import { DatabaseInfo, DatabaseInfoNode } from "./nodeTypes";
-import { getDatabaseMetadata } from "./databaseMetadata/getDatabaseMetadata";
+import { getDatabaseMetadata } from "../databaseMetadata/getDatabaseMetadata";
 import { LlmOptions } from "./LlmOptions";
-import { generateHighLevelDbDescriptions } from "./databaseMetadata/generateHighLevelDbDescriptions";
-import { generateAnnotatedCollectionSchema } from "./databaseMetadata/generateAnnotatedCollectionSchema";
+import { generateHighLevelDbDescriptions } from "../databaseMetadata/generateHighLevelDbDescriptions";
+import { generateAnnotatedCollectionSchema } from "../databaseMetadata/generateAnnotatedCollectionSchema";
 
 interface GenerateAnnotatedDatabaseInfoParams {
   mongoDb: {

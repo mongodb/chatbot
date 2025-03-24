@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { makeGenerateChildrenWithOpenAi } from "../generateChildren";
+import { makeGenerateChildrenWithOpenAi } from "../../generateChildren";
 import {
   DatabaseUseCaseSchema,
   DatabaseUserNode,

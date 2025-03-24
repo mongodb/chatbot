@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { DatabaseMetadata } from "./getDatabaseMetadata";
-import { LlmOptions } from "../LlmOptions";
+import { LlmOptions } from "../databaseNodes/LlmOptions";
 import { getOpenAiFunctionResponse } from "./getOpenAiFunctionResponse";
 import { prettyPrintMongoDbDocument } from "./prettyPrintMongoDbDocument";
 import { OpenAI } from "mongodb-rag-core/openai";

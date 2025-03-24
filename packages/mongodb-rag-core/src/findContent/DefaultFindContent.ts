@@ -39,6 +39,10 @@ export const makeDefaultFindContent = ({
         });
       }
     }
-    return { queryEmbedding: embedding, content };
+    return {
+      queryEmbedding: embedding,
+      content,
+      embeddingModelName: embedder.modelName,
+    };
   };
 };

@@ -21,6 +21,10 @@ describe("OpenAiEmbedFunc", () => {
     openAiClient,
   });
 
+  test("Should set modelName from deployment parameter", () => {
+    expect(embedder.modelName).toBe(OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT);
+  });
+
   test("Should return an array of numbers of length 1536", async () => {
     const { embedding } = await embedder.embed({
       text: "Hello world",

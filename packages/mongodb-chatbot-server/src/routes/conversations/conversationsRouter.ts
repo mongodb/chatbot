@@ -35,6 +35,10 @@ import {
   makeGetConversationRoute,
 } from "./getConversation";
 import { UpdateTraceFunc } from "./UpdateTraceFunc";
+import {
+  ChatCompletionRequest,
+  makeChatCompletionRoute,
+} from "./chat/completion";
 
 /**
   Configuration for rate limiting on the /conversations/* routes.
@@ -409,6 +413,26 @@ export function makeConversationsRouter({
       conversations,
       maxCommentLength: maxUserCommentLength,
       updateTrace: commentMessageUpdateTrace,
+    })
+  );
+
+  conversationsRouter.post(
+    "/chat/completions",
+    validateRequestSchema(ChatCompletionRequest),
+    makeChatCompletionRoute({
+      conversations,
+      llm,
+      maxInputLengthCharacters: 30000,
+      maxMessages: 50,
+      generateUserPrompt,
+      filterPreviousMessages,
+      createConversation: createConversationOnNullMessageId
+        ? {
+            createOnNullConversationId: createConversationOnNullMessageId,
+            systemMessage: systemPrompt,
+          }
+        : undefined,
+      updateTrace: addMessageToConversationUpdateTrace,
     })
   );
 

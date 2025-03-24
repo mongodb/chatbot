@@ -7,7 +7,7 @@ const dataOutDir = path.resolve(__dirname, "..", "..", "dataOut");
 async function main() {
   const textToMqlOutputPath = path.resolve(
     dataOutDir,
-    `text_to_mql_sample_mflix_gpt-4o-mini_1742837651199.jsonl`
+    "text_to_mql_sample_mflix_gpt-4o-mini_1742842836412.jsonl"
   );
   // Use readline interface to read the file line by line instead of loading it all at once
   const fileStream = fs.createReadStream(textToMqlOutputPath);
@@ -15,9 +15,11 @@ async function main() {
     input: fileStream,
     crlfDelay: Infinity,
   });
+  let totalAnsCount = 0;
   const referenceAnswers = [];
   // Count lines as we read them
   for await (const line of rl) {
+    totalAnsCount++;
     if (line.trim() && line.includes(`"isReferenceAnswer":true`)) {
       const parsedLine = JSON.parse(line);
       if (Array.isArray(parsedLine.result)) {
@@ -29,6 +31,7 @@ async function main() {
       }
     }
   }
+  console.log(`Total answers: ${totalAnsCount}`);
   console.log(`Text to MQL example count: ${referenceAnswers.length}`);
   const complexities = {
     simple: referenceAnswers.filter((r) => r.complexity === "simple").length,

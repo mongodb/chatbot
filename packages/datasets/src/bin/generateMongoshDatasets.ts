@@ -17,6 +17,7 @@ import { makeMongoDbNodeStore } from "../treeGeneration/MongoDbNodeStore";
 import { LlmOptions } from "../treeGeneration/databaseNlQueries/databaseNodes/LlmOptions";
 import { datasetDatabases } from "../treeGeneration/databaseNlQueries/datasetDatabases";
 import { findMostFrequentAndPerformantDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/findMostFrequentAndPerformantDatabaseExecutionResult";
+import { generateDatabaseNlQueryDatasetEntry } from "../treeGeneration/DatabaseNlQueryDatasetEntry";
 
 const {
   BRAINTRUST_API_KEY,
@@ -221,15 +222,8 @@ async function generateMongoshDataset(
       await nodeStore.storeNodes({ nodes: dbExecutions });
       console.log(`Writing data out to ${textToMqlOutputPath}`);
       for (const dbExecution of dbExecutions) {
-        const textToMqlDatasetEntry = {
-          dbQuery: dbExecution.parent.data.code,
-          language: dbExecution.parent.data.language,
-          nlQuery: dbExecution.parent.parent.data.query,
-          complexity: dbExecution.parent.parent.data.complexity,
-          databaseName:
-            dbExecution.parent.parent.parent.parent.parent.data.name,
-          ...dbExecution.data,
-        };
+        const textToMqlDatasetEntry =
+          generateDatabaseNlQueryDatasetEntry(dbExecution);
         fs.appendFileSync(
           textToMqlOutputPath,
           JSON.stringify(textToMqlDatasetEntry) + "\n"

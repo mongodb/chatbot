@@ -67,8 +67,8 @@ const embedder = {
   },
 };
 
-// TODO: deprecate mock store and use mongodb-memory-server instead. Move these test cases into the describe block below which uses mongodb-memory-server.
-describe("updateEmbeddedContent (test cases using mock store)", () => {
+// TODO: deprecate mock store and use mongodb-memory-server instead.
+describe("updateEmbeddedContent", () => {
   it("deletes embedded content for deleted page", async () => {
     const pageStore = makeMockPageStore();
 
@@ -298,7 +298,7 @@ describe("updateEmbeddedContent (test cases using mock store)", () => {
 });
 
 // These tests use "mongodb-memory-server", not mockEmbeddedContentStore
-describe("updateEmbeddedContent", () => {
+describe("updateEmbeddedContent updates chunks based on changes to copy or changes to the chunk algo", () => {
   let mongod: MongoMemoryReplSet | undefined;
   let pageStore: MongoDbPageStore;
   let embedStore: MongoDbEmbeddedContentStore;
@@ -391,7 +391,7 @@ describe("updateEmbeddedContent", () => {
     await mongod?.stop();
   });
 
-  it("updates embedded content for pages that have been updated after the 'since' date provided", async () => {
+  it("should update embedded content only for pages that have been updated (copy change) after the 'since' date provided", async () => {
     // Modify dates of pages and embedded content for testing
     const sinceDate = new Date("2024-01-01");
     const beforeSinceDate = new Date("2023-01-01");
@@ -448,7 +448,7 @@ describe("updateEmbeddedContent", () => {
       originalPage2Embedding[0].updated.getTime()
     );
   });
-  it("updates embedded content when page has not changed, but chunk algo has, ignoring since date", async () => {
+  it("should update embedded content when only chunk algo has changed", async () => {
     // change the chunking algo for the second page, but not the first
     await updateEmbeddedContent({
       since: new Date(),
@@ -480,7 +480,7 @@ describe("updateEmbeddedContent", () => {
       page2Embedding[0].chunkAlgoHash
     );
   });
-  it("use a new chunking algo on data sources, some of which have pages that have been updated", async () => {
+  it("should update embedded content when either chunk algo has changed or copy has changed", async () => {
     // SETUP: Modify dates of pages and embedded content for this test case
     const sinceDate = new Date("2024-01-01");
     const afterSinceDate = new Date("2025-01-01");

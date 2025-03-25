@@ -36,7 +36,7 @@ const getHashForFunc = (
 };
 
 /**
-  (Re-)embeddedContent the pages in the page store that have changed (copy change, or chunking algothrim change) 
+  (Re-)embeddedContent the pages in the page store that have changed (content and/or chunking algorithm change) 
   since the given date and stores the embeddedContent in the embeddedContent store.
  */
 export const updateEmbeddedContent = async ({

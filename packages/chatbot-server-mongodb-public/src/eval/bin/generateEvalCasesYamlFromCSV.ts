@@ -63,24 +63,34 @@ const pageStore = makeMongoDbPageStore({
   databaseName: MONGODB_DATABASE_NAME,
 });
 
-function addWebDataSourceTag(evalCases: ConversationEvalCase[]) {
-  return evalCases.map((caseItem) => {
-    const tags = caseItem.tags || [];
-    if (!tags.includes("web")) {
-      tags.push("web");
+const allowedTags: { [key: string]: boolean } = {
+  allowed: true,
+  alsoAllowed: true,
+}
+
+function validateTags(tagNames: string[], custom: boolean): void {
+  if (!custom) {
+    const invalidTags = tagNames.filter(tag => !allowedTags[tag]);
+    if (invalidTags.length) {
+      throw new Error(`Tags not allowed: ${invalidTags.join(', ')}. \n Use the "addCustomTags" transformation or use allowed tags: ${Object.keys(allowedTags)}\n`);
     }
-    return {
-      ...caseItem,
-      tags,
-    };
-  });
+  }
+}
+
+function addTags({ evalCases, tagNames, custom = false }: { evalCases: ConversationEvalCase[]; tagNames: string[]; custom?: boolean; }): ConversationEvalCase[] {
+  validateTags(tagNames, custom);
+  return evalCases.map(caseItem => ({
+    ...caseItem,
+    tags: [...(caseItem.tags || []), ...tagNames]
+  }));
 }
 
 const transformationMap: Record<
   string,
-  (cases: ConversationEvalCase[]) => ConversationEvalCase[]
+  (cases: ConversationEvalCase[], options?: string[]) => ConversationEvalCase[]
 > = {
-  web: addWebDataSourceTag,
+  addTags: (cases: ConversationEvalCase[], options?: string[]) => addTags({ evalCases: cases, tagNames: options || [] }),
+  addCustomTags: (cases: ConversationEvalCase[], options?: string[]) => addTags({ evalCases: cases, tagNames: options || [], custom: true }),
   // Add more transformation functions here as needed
 };
 
@@ -117,15 +127,17 @@ async function main({
   csvFilePath,
   yamlFileName,
   transformationType,
+  transformationOptions,
 }: {
   csvFilePath: string;
   yamlFileName: string;
   transformationType?: keyof typeof transformationMap;
+  transformationOptions?: string[];
 }): Promise<void> {
   console.log(`Reading from: ${csvFilePath}`);
   const evalCases = await getConversationEvalCasesFromCSV(
     csvFilePath,
-    transformationType ? transformationMap[transformationType] : undefined
+    transformationType ? (cases) => transformationMap[transformationType](cases, transformationOptions) : undefined,
   );
   const expectedUrls = Array.from(
     new Set(evalCases.flatMap((caseItem) => caseItem.expectedLinks ?? []))
@@ -153,7 +165,7 @@ async function main({
 // Checks if the script is being run directly (not imported as a module) and handles command-line arguments.
 if (require.main === module) {
   const args = process.argv.slice(2);
-  const [csvFilePath, yamlFileName, transformationType] = args;
+  const [csvFilePath, yamlFileName, transformationType, ...transformationOptions] = args;
   const availableTransformationTypes = Object.keys(transformationMap);
   if (
     args.length < 2 ||
@@ -161,7 +173,7 @@ if (require.main === module) {
       !availableTransformationTypes.includes(transformationType))
   ) {
     console.error(
-      "Usage: node generateEvalCasesYamlFromCSV.js <csvFileName> <yamlFileName> [transformationType]\n" +
+      "Usage: node generateEvalCasesYamlFromCSV.js <csvFileName> <yamlFileName> [transformationType] [tranformationOptions]\n" +
         "Arguments:\n" +
         "  csvFileName: Input CSV file name (required)\n" +
         "  yamlFileName: Output YAML file name (required)\n" +
@@ -177,6 +189,7 @@ if (require.main === module) {
     csvFilePath,
     yamlFileName,
     transformationType,
+    transformationOptions,
   })
     .catch((error) => {
       console.error("Error:", error);

@@ -46,13 +46,22 @@ const llmOptions: LlmOptions = {
   seed: 42,
 };
 
+/**
+  Magic number to specify the max results array size to evaluate.
+ */
+const MAX_RESULT_ARRAY_SIZE = 20;
+
 // One point to control generations at each level.
 // Useful for debugging.
 const config = {
   users: { numGenerations: 8, llmConfig: llmOptions },
   useCases: { numGenerations: 8, llmConfig: llmOptions, concurrency: 10 },
   nlQueries: { numGenerations: 8, llmConfig: llmOptions, concurrency: 10 },
-  dbQueries: { numGenerations: 16, llmConfig: llmOptions, concurrency: 10 },
+  dbQueries: {
+    numGenerations: 8,
+    llmConfig: { ...llmOptions, model: "gpt-4o-mini" },
+    concurrency: 25,
+  },
   dbExecutions: { concurrency: 20 },
 } as const satisfies Record<
   string,
@@ -198,6 +207,12 @@ async function generateMongoshDataset(
             generatedQuery: dbCodeNode,
             executor: executeMongoshQuery,
           });
+          if (
+            Array.isArray(dbExecution.data.result) &&
+            dbExecution.data.result?.length > MAX_RESULT_ARRAY_SIZE
+          ) {
+            throw new Error("Result array is too large to process.");
+          }
           console.log(
             `Generated DB execution: ${dbExecution.data.result
               ?.toString()
@@ -207,27 +222,38 @@ async function generateMongoshDataset(
         });
       console.log(`Generated ${dbExecutions.length} DB executions.`);
 
-      // Find the most frequent and performant database execution result
-      const { fastestMostFrequentIndex } =
-        findMostFrequentAndPerformantDatabaseExecutionResult(
-          dbExecutions.map((node) => node.data)
-        );
-      if (
-        fastestMostFrequentIndex !== null &&
-        dbExecutions[fastestMostFrequentIndex].data.result !== null
-      ) {
-        dbExecutions[fastestMostFrequentIndex].data.isReferenceAnswer = true;
-      }
+      try {
+        // Find the most frequent and performant database execution result
+        const { fastestMostFrequentIndex } =
+          findMostFrequentAndPerformantDatabaseExecutionResult(
+            dbExecutions.map((node) => node.data)
+          );
+        if (
+          fastestMostFrequentIndex !== null &&
+          dbExecutions[fastestMostFrequentIndex].data.result !== null
+        ) {
+          const dbResult = dbExecutions[fastestMostFrequentIndex].data.result;
+          if (
+            (Array.isArray(dbResult) && dbResult.length > 0) ||
+            !Array.isArray(dbResult)
+          ) {
+            dbExecutions[fastestMostFrequentIndex].data.isReferenceAnswer =
+              true;
+          }
+        }
 
-      await nodeStore.storeNodes({ nodes: dbExecutions });
-      console.log(`Writing data out to ${textToMqlOutputPath}`);
-      for (const dbExecution of dbExecutions) {
-        const textToMqlDatasetEntry =
-          generateDatabaseNlQueryDatasetEntry(dbExecution);
-        fs.appendFileSync(
-          textToMqlOutputPath,
-          JSON.stringify(textToMqlDatasetEntry) + "\n"
-        );
+        await nodeStore.storeNodes({ nodes: dbExecutions });
+        console.log(`Writing data out to ${textToMqlOutputPath}`);
+        for (const dbExecution of dbExecutions) {
+          const textToMqlDatasetEntry =
+            generateDatabaseNlQueryDatasetEntry(dbExecution);
+          fs.appendFileSync(
+            textToMqlOutputPath,
+            JSON.stringify(textToMqlDatasetEntry) + "\n"
+          );
+        }
+      } catch (error) {
+        console.error(error);
       }
 
       console.log(

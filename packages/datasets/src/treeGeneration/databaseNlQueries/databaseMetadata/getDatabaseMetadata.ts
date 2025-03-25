@@ -6,7 +6,7 @@ import {
 } from "mongodb-rag-core/mongodb";
 import { getSimplifiedSchema } from "mongodb-schema";
 import { extractDeterministicSampleOfDocuments } from "./extractDeterministicSampleOfDocuments";
-import { truncateDocumentForLlm } from "./truncateDbOperationOutputForLlm";
+import { truncateDbOperationOutputForLlm } from "./truncateDbOperationOutputForLlm";
 
 export interface GetDatabaseMetadataParams {
   mongoClient: MongoClient;
@@ -97,9 +97,8 @@ async function getCollectionMetadata(
     limit: sampleDocumentLimit,
   });
 
-  const exampleDocumentsTruncated = exampleDocuments.map((doc) =>
-    truncateDocumentForLlm(doc)
-  );
+  const exampleDocumentsTruncated =
+    truncateDbOperationOutputForLlm(exampleDocuments);
 
   const schema = await getSimplifiedSchema(exampleDocuments);
 

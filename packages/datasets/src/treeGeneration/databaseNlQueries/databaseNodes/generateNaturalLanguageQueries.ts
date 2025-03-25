@@ -33,14 +33,24 @@ For each natural language query:
 - Include specific entities relevant to the database domain (movie titles, actor names, etc.) where appropriate
 - Provide variations that express the same information need in different ways
 - Ensure the query would retrieve the information needed to satisfy the use case
-- The queru should sound conversational, as if the user were asking them to an AI chatbot.
+- The query should sound conversational, as if the user were asking them to an AI chatbot.
 
+Limiting queries: 
+- IMPORTANT: Design queries that will return a small number of results (ideally fewer than 20 documents)
+- Include specific filtering conditions and constraints to narrow down the result set
+- Avoid overly broad queries that might return the entire collection or a large subset of it
+
+To create more specific queries:
+- Use multiple filtering conditions when appropriate (e.g., "Find action movies from 2010 with a rating above 8.5")
+- Include specific values for fields (exact names, precise dates, specific ratings, etc.)
+- Use comparisons and ranges with specific thresholds
 
 If the use case relates to time windows or temporal analysis:
 - Include a variety of different time expressions (last 30 days, year 1998, past quarter, last summer, etc.)
 - Mix absolute time references (e.g., "in 2020", "during the 1990s") with relative ones (e.g., "in the past month", "over the last year")
 - Include some queries with multiple time constraints when appropriate (e.g., "movies released between 2010 and 2020")
 - Use both specific dates and general time periods 
+- Make sure to keep the time constraints within the provided 'Latest Date' field in mind.
 
 Generate ${numChildren} natural language queries with multiple variations for each use case, maintaining the same complexity level as specified in the use case.`;
 

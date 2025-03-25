@@ -120,7 +120,7 @@ function truncateValue(
   @returns A new document with truncated values
  */
 export function truncateDbOperationOutputForLlm<
-  T extends Document | Document[] | null
+  T extends Document | Document[] | null | number
 >(input: T, options: TruncationOptions = defaultTruncationOptions) {
   return truncateValue(input, options) as T;
 }

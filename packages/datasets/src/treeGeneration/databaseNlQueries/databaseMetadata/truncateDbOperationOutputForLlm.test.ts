@@ -2,7 +2,7 @@ import { Document } from "mongodb-rag-core/mongodb";
 import {
   truncateDbOperationOutputForLlm,
   TruncationOptions,
-} from "./truncateDocument";
+} from "./truncateDbOperationOutputForLlm";
 
 describe("truncateDbOperationOutputForLlm", () => {
   describe("string truncation", () => {

@@ -1,7 +1,8 @@
 /**
   Frequency of operators used. Based on internal dataset.
  */
-type Frequency = "uncommon" | "common" | "most_common";
+export type Frequency = "uncommon" | "common" | "most_common";
+
 export const operators: Record<string, Frequency> = {
   $eq: "most_common",
   $and: "most_common",

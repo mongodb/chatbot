@@ -63,13 +63,7 @@ export type MongoDbEmbeddedContentStore = EmbeddedContentStore &
   };
 
 function makeMatchQuery({ sourceNames, chunkAlgoHash }: GetSourcesMatchParams) {
-  let operator = "";
-  if (chunkAlgoHash.operation === "equals") {
-    operator = "$eq";
-  }
-  if (chunkAlgoHash.operation === "notEquals") {
-    operator = "$ne";
-  }
+  const operator = chunkAlgoHash.operation === "equals" ? "$eq" : "$ne";
   return {
     chunkAlgoHash: { [operator]: chunkAlgoHash.hashValue },
     // run on specific source names if specified, run on all if not

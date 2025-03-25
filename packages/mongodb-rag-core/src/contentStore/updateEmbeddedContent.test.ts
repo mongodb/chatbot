@@ -67,7 +67,8 @@ const embedder = {
   },
 };
 
-describe("updateEmbeddedContent", () => {
+// TODO: deprecate mock store and use mongodb-memory-server instead. Move these test cases into the describe block below which uses mongodb-memory-server.
+describe("updateEmbeddedContent (test cases using mock store)", () => {
   it("deletes embedded content for deleted page", async () => {
     const pageStore = makeMockPageStore();
 

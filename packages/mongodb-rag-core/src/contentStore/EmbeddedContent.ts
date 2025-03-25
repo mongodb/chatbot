@@ -1,4 +1,4 @@
-import { Page, PersistedPage } from ".";
+import { Page } from ".";
 import { VectorStore } from "../VectorStore";
 
 /**

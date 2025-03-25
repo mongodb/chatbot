@@ -36,8 +36,30 @@ const getHashForFunc = (
 };
 
 /**
-  (Re-)embeddedContent the pages in the page store that have changed (content and/or chunking algorithm change) 
-  since the given date and stores the embeddedContent in the embeddedContent store.
+ Updates embedded content for pages that have changed since a given date or have different chunking hashes.
+ 
+ @param options - The configuration options for updating embedded content
+ @param options.since - The date from which to check for content changes
+ @param options.embeddedContentStore - The store containing embedded content
+ @param options.pageStore - The store containing pages
+ @param options.sourceNames - Optional array of source names to filter pages by
+ @param options.embedder - The embedder instance used to generate embeddings
+ @param options.chunkOptions - Optional configuration for chunking algorithm
+ @param options.concurrencyOptions - Optional configuration for controlling concurrency during embedding
+ 
+ @remarks
+ The function performs the following steps:
+ 1. Finds pages with content changes since the specified date
+ 2. Identifies pages with different chunking hashes from the current algorithm
+ 3. Processes both sets of pages by either:
+ - Deleting embedded content for deleted pages
+ - Updating embedded content for created/updated pages
+ 
+ Processing is done with configurable concurrency to manage system resources.
+ 
+ @throws Will throw an error if there are issues accessing stores or processing pages
+ 
+ @returns Promise that resolves when all updates are complete
  */
 export const updateEmbeddedContent = async ({
   since,

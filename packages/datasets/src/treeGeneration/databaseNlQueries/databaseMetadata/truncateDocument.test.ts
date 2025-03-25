@@ -21,14 +21,37 @@ describe("truncateDocumentForLlm", () => {
   });
 
   describe("array truncation", () => {
-    it("should truncate long arrays", () => {
+    it("should truncate long arrays by showing half at beginning and half at end", () => {
       const doc: Document = {
-        tags: ["one", "two", "three", "four", "five"],
+        tags: ["one", "two", "three", "four", "five", "six", "seven", "eight"],
       };
-      const options: TruncationOptions = { maxArrayLength: 2 };
+      const options: TruncationOptions = { maxArrayLength: 4 };
       const result = truncateDocumentForLlm(doc, options);
-      expect(result.tags).toHaveLength(3); // 2 items + message
-      expect(result.tags[2]).toBe("...and 3 more items");
+
+      // Should have 2 at beginning, 2 at end, and 1 message in the middle
+      expect(result.tags).toHaveLength(5);
+      expect(result.tags[0]).toBe("one");
+      expect(result.tags[1]).toBe("two");
+      expect(result.tags[2]).toBe("...4 items omitted...");
+      expect(result.tags[3]).toBe("seven");
+      expect(result.tags[4]).toBe("eight");
+    });
+
+    it("should handle odd-length maxArrayLength by putting extra element in first half", () => {
+      const doc: Document = {
+        tags: ["one", "two", "three", "four", "five", "six", "seven", "eight"],
+      };
+      const options: TruncationOptions = { maxArrayLength: 5 };
+      const result = truncateDocumentForLlm(doc, options);
+
+      // Should have 3 at beginning, 2 at end, and 1 message in the middle
+      expect(result.tags).toHaveLength(6);
+      expect(result.tags[0]).toBe("one");
+      expect(result.tags[1]).toBe("two");
+      expect(result.tags[2]).toBe("three");
+      expect(result.tags[3]).toBe("...3 items omitted...");
+      expect(result.tags[4]).toBe("seven");
+      expect(result.tags[5]).toBe("eight");
     });
 
     it("should not truncate short arrays", () => {
@@ -41,18 +64,35 @@ describe("truncateDocumentForLlm", () => {
     it("should handle nested arrays", () => {
       const doc: Document = {
         matrix: [
-          [1, 2, 3, 4],
-          [5, 6, 7, 8],
-          [9, 10, 11, 12],
+          [1, 2, 3, 4, 5, 6],
+          [7, 8, 9, 10, 11, 12],
+          [13, 14, 15, 16, 17, 18],
+          [19, 20, 21, 22, 23, 24],
         ],
       };
       const options: TruncationOptions = {
         maxArrayLength: 2,
       };
       const result = truncateDocumentForLlm(doc, options);
-      expect(result.matrix).toHaveLength(3); // 2 arrays + message
-      expect(result.matrix[0]).toHaveLength(3); // 2 numbers + message
-      expect(result.matrix[2]).toBe("...and 1 more items");
+
+      // Should have 1 at beginning, 1 at end, and 1 message in the middle for outer array
+      expect(result.matrix).toHaveLength(3);
+
+      // Inner arrays should also be truncated
+      // First inner array should have 1 at beginning, 1 at end, and message
+      expect(result.matrix[0]).toHaveLength(3);
+      expect(result.matrix[0][0]).toBe(1);
+      expect(result.matrix[0][1]).toBe("...4 items omitted...");
+      expect(result.matrix[0][2]).toBe(6);
+
+      // Message for skipped arrays
+      expect(result.matrix[1]).toBe("...2 items omitted...");
+
+      // Last inner array should be truncated too
+      expect(result.matrix[2]).toHaveLength(3);
+      expect(result.matrix[2][0]).toBe(19);
+      expect(result.matrix[2][1]).toBe("...4 items omitted...");
+      expect(result.matrix[2][2]).toBe(24);
     });
   });
 
@@ -90,18 +130,18 @@ describe("truncateDocumentForLlm", () => {
     it("should handle complex nested structures", () => {
       const doc: Document = {
         title: "A very long title that needs truncation",
-        tags: ["tag1", "tag2", "tag3", "tag4"],
+        tags: ["tag1", "tag2", "tag3", "tag4", "tag5", "tag6", "tag7", "tag8"],
         metadata: {
           created: new Date("2025-01-01"),
           author: {
             name: "John Doe",
-            favorites: ["one", "two", "three", "four"],
+            favorites: ["one", "two", "three", "four", "five", "six"],
           },
         },
       };
       const options: TruncationOptions = {
         maxStringLength: 15,
-        maxArrayLength: 2,
+        maxArrayLength: 4,
         maxObjectDepth: 2,
         maxObjectKeys: 3,
       };
@@ -111,8 +151,12 @@ describe("truncateDocumentForLlm", () => {
       expect(result.title).toBe("A very long tit...");
 
       // Check array truncation
-      expect(result.tags).toHaveLength(3);
-      expect(result.tags[2]).toBe("...and 2 more items");
+      expect(result.tags).toHaveLength(5);
+      expect(result.tags[0]).toBe("tag1");
+      expect(result.tags[1]).toBe("tag2");
+      expect(result.tags[2]).toBe("...4 items omitted...");
+      expect(result.tags[3]).toBe("tag7");
+      expect(result.tags[4]).toBe("tag8");
 
       // Check object depth truncation
       expect(result.metadata).toEqual({
@@ -163,7 +207,16 @@ describe("truncateDocumentForLlm", () => {
       };
       const result = truncateDocumentForLlm(doc);
       expect(result.longString.length).toBe(103); // 100 chars + "..."
-      expect(result.longArray).toHaveLength(4); // 3 items + message
+
+      // Default maxArrayLength is 6, so we should have 3 at beginning, 3 at end, and message
+      expect(result.longArray).toHaveLength(7);
+      expect(result.longArray[0]).toBe(0);
+      expect(result.longArray[1]).toBe(1);
+      expect(result.longArray[2]).toBe(2);
+      expect(result.longArray[3]).toBe("...4 items omitted...");
+      expect(result.longArray[4]).toBe(7);
+      expect(result.longArray[5]).toBe(8);
+      expect(result.longArray[6]).toBe(9);
     });
   });
 });

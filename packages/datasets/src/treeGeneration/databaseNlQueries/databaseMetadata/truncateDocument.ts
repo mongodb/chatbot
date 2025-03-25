@@ -8,10 +8,19 @@ export interface TruncationOptions {
 }
 
 export const defaultTruncationOptions: TruncationOptions = {
+  /**
+    Max length of a string property value.
+   */
   maxStringLength: 100,
-  maxArrayLength: 3,
-  maxObjectDepth: 3,
-  maxObjectKeys: 20,
+  /**
+    Includes the half at the beginning and half at the end, removing middle elements.
+   */
+  maxArrayLength: 6,
+  /**
+    Maximum depth of nested objects. 
+   */
+  maxObjectDepth: 5,
+  maxObjectKeys: 25,
 };
 
 function truncateValue(
@@ -40,15 +49,36 @@ function truncateValue(
 
   // Handle arrays
   if (Array.isArray(value) && options.maxArrayLength) {
-    const truncatedArray = value
-      .slice(0, options.maxArrayLength)
-      .map((item) => truncateValue(item, options, currentDepth + 1));
-    if (value.length > options.maxArrayLength) {
-      truncatedArray.push(
-        `...and ${value.length - options.maxArrayLength} more items`
+    if (value.length <= options.maxArrayLength) {
+      // If array is already shorter than max length, just process each item
+      return value.map((item) =>
+        truncateValue(item, options, currentDepth + 1)
       );
+    } else {
+      // Calculate how many items to show at the beginning and end
+      const halfLength = Math.floor(options.maxArrayLength / 2);
+      const firstHalfLength =
+        options.maxArrayLength % 2 === 0 ? halfLength : halfLength + 1;
+
+      // Get first half of elements
+      const firstHalf = value
+        .slice(0, firstHalfLength)
+        .map((item) => truncateValue(item, options, currentDepth + 1));
+
+      // Get second half of elements
+      const secondHalf = value
+        .slice(value.length - halfLength)
+        .map((item) => truncateValue(item, options, currentDepth + 1));
+
+      // Add a message in the middle indicating how many items were skipped
+      const skippedCount = value.length - firstHalfLength - halfLength;
+
+      return [
+        ...firstHalf,
+        `...${skippedCount} items omitted...`,
+        ...secondHalf,
+      ];
     }
-    return truncatedArray;
   }
 
   // Handle objects

@@ -1,21 +1,24 @@
 import { Document } from "mongodb-rag-core/mongodb";
-import { truncateDocumentForLlm, TruncationOptions } from "./truncateDocument";
+import {
+  truncateDbOperationOutputForLlm,
+  TruncationOptions,
+} from "./truncateDocument";
 
-describe("truncateDocumentForLlm", () => {
+describe("truncateDbOperationOutputForLlm", () => {
   describe("string truncation", () => {
     it("should truncate long strings", () => {
       const doc: Document = {
         title: "This is a very long string that should be truncated",
       };
       const options: TruncationOptions = { maxStringLength: 10 };
-      const result = truncateDocumentForLlm(doc, options);
-      expect(result.title).toBe("This is a ...");
+      const result = truncateDbOperationOutputForLlm(doc, options);
+      expect(result?.title).toBe("This is a ...");
     });
 
     it("should not truncate short strings", () => {
       const doc: Document = { title: "Short" };
       const options: TruncationOptions = { maxStringLength: 10 };
-      const result = truncateDocumentForLlm(doc, options);
+      const result = truncateDbOperationOutputForLlm(doc, options);
       expect(result.title).toBe("Short");
     });
   });
@@ -26,7 +29,7 @@ describe("truncateDocumentForLlm", () => {
         tags: ["one", "two", "three", "four", "five", "six", "seven", "eight"],
       };
       const options: TruncationOptions = { maxArrayLength: 4 };
-      const result = truncateDocumentForLlm(doc, options);
+      const result = truncateDbOperationOutputForLlm(doc, options);
 
       // Should have 2 at beginning, 2 at end, and 1 message in the middle
       expect(result.tags).toHaveLength(5);
@@ -42,7 +45,7 @@ describe("truncateDocumentForLlm", () => {
         tags: ["one", "two", "three", "four", "five", "six", "seven", "eight"],
       };
       const options: TruncationOptions = { maxArrayLength: 5 };
-      const result = truncateDocumentForLlm(doc, options);
+      const result = truncateDbOperationOutputForLlm(doc, options);
 
       // Should have 3 at beginning, 2 at end, and 1 message in the middle
       expect(result.tags).toHaveLength(6);
@@ -57,7 +60,7 @@ describe("truncateDocumentForLlm", () => {
     it("should not truncate short arrays", () => {
       const doc: Document = { tags: ["one", "two"] };
       const options: TruncationOptions = { maxArrayLength: 3 };
-      const result = truncateDocumentForLlm(doc, options);
+      const result = truncateDbOperationOutputForLlm(doc, options);
       expect(result.tags).toEqual(["one", "two"]);
     });
 
@@ -73,7 +76,7 @@ describe("truncateDocumentForLlm", () => {
       const options: TruncationOptions = {
         maxArrayLength: 2,
       };
-      const result = truncateDocumentForLlm(doc, options);
+      const result = truncateDbOperationOutputForLlm(doc, options);
 
       // Should have 1 at beginning, 1 at end, and 1 message in the middle for outer array
       expect(result.matrix).toHaveLength(3);
@@ -105,7 +108,7 @@ describe("truncateDocumentForLlm", () => {
         key4: "value4",
       };
       const options: TruncationOptions = { maxObjectKeys: 2 };
-      const result = truncateDocumentForLlm(doc, options);
+      const result = truncateDbOperationOutputForLlm(doc, options);
       expect(Object.keys(result)).toHaveLength(3); // 2 keys + "..."
       expect(result["..."]).toBe("2 more keys");
     });
@@ -121,7 +124,7 @@ describe("truncateDocumentForLlm", () => {
         },
       };
       const options: TruncationOptions = { maxObjectDepth: 2 };
-      const result = truncateDocumentForLlm(doc, options);
+      const result = truncateDbOperationOutputForLlm(doc, options);
       expect(result.level1.level2).toBe("[Object]");
     });
   });
@@ -145,7 +148,7 @@ describe("truncateDocumentForLlm", () => {
         maxObjectDepth: 2,
         maxObjectKeys: 3,
       };
-      const result = truncateDocumentForLlm(doc, options);
+      const result = truncateDbOperationOutputForLlm(doc, options);
 
       // Check string truncation
       expect(result.title).toBe("A very long tit...");
@@ -176,7 +179,7 @@ describe("truncateDocumentForLlm", () => {
         nullField: null,
         undefinedField: undefined,
       };
-      const result = truncateDocumentForLlm(doc);
+      const result = truncateDbOperationOutputForLlm(doc);
       expect(result.nullField).toBeNull();
       expect(result.undefinedField).toBeUndefined();
     });
@@ -186,7 +189,7 @@ describe("truncateDocumentForLlm", () => {
         emptyArray: [],
         emptyObject: {},
       };
-      const result = truncateDocumentForLlm(doc);
+      const result = truncateDbOperationOutputForLlm(doc);
       expect(result.emptyArray).toEqual([]);
       expect(result.emptyObject).toEqual({});
     });
@@ -194,8 +197,57 @@ describe("truncateDocumentForLlm", () => {
     it("should handle Date objects", () => {
       const date = new Date("2025-01-01");
       const doc: Document = { date };
-      const result = truncateDocumentForLlm(doc);
+      const result = truncateDbOperationOutputForLlm(doc);
       expect(result.date).toEqual(date);
+    });
+
+    it("should handle null input", () => {
+      const result = truncateDbOperationOutputForLlm(null);
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("array of documents", () => {
+    it("should handle an array of documents", () => {
+      const docs: Document[] = [
+        { name: "Document 1", values: [1, 2, 3, 4, 5, 6, 7, 8] },
+        { name: "Document 2", values: [9, 10, 11, 12, 13, 14, 15, 16] },
+        { name: "Document 3", values: [17, 18, 19, 20, 21, 22, 23, 24] },
+        { name: "Document 4", values: [25, 26, 27, 28, 29, 30, 31, 32] },
+        { name: "Document 5", values: [33, 34, 35, 36, 37, 38, 39, 40] },
+      ];
+
+      const options: TruncationOptions = { maxArrayLength: 3 };
+      const result = truncateDbOperationOutputForLlm(
+        docs,
+        options
+      ) as Document[];
+
+      // Should truncate the outer array of documents
+      expect(result).toHaveLength(4); // 3 docs + message
+
+      // First two documents should be preserved
+      expect(result[0].name).toBe("Document 1");
+      expect(result[1].name).toBe("Document 2");
+
+      // Middle should be a message
+      expect(result[2]).toBe("...2 items omitted...");
+
+      // Last document should be preserved
+      expect(result[3].name).toBe("Document 5");
+
+      // Inner arrays should also be truncated
+      expect(result[0].values).toHaveLength(4); // 2 at start, 1 at end, 1 message
+      expect(result[0].values[0]).toBe(1);
+      expect(result[0].values[1]).toBe(2);
+      expect(result[0].values[2]).toBe("...5 items omitted...");
+      expect(result[0].values[3]).toBe(8);
+    });
+
+    it("should handle empty array of documents", () => {
+      const docs: Document[] = [];
+      const result = truncateDbOperationOutputForLlm(docs);
+      expect(result).toEqual([]);
     });
   });
 
@@ -205,7 +257,7 @@ describe("truncateDocumentForLlm", () => {
         longString: "x".repeat(200),
         longArray: Array.from({ length: 10 }, (_, i) => i),
       };
-      const result = truncateDocumentForLlm(doc);
+      const result = truncateDbOperationOutputForLlm(doc);
       expect(result.longString.length).toBe(103); // 100 chars + "..."
 
       // Default maxArrayLength is 6, so we should have 3 at beginning, 3 at end, and message

@@ -114,14 +114,13 @@ function truncateValue(
 }
 
 /**
-  Truncate long values in the document so that it fits within the context of the LLM.
-  @param document The MongoDB document to truncate
+  Truncate long values in the MongoDB outputs so that it fits within the context of the LLM.
+  @param input The MongoDB output to truncate
   @param options Configuration for how to truncate different types of values
   @returns A new document with truncated values
  */
-export function truncateDocumentForLlm(
-  document: Document,
-  options: TruncationOptions = defaultTruncationOptions
-): Document {
-  return truncateValue(document, options) as Document;
+export function truncateDbOperationOutputForLlm<
+  T extends Document | Document[] | null
+>(input: T, options: TruncationOptions = defaultTruncationOptions) {
+  return truncateValue(input, options) as T;
 }

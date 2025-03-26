@@ -12,9 +12,9 @@ export interface GetDatabaseMetadataParams {
   mongoClient: MongoClient;
 
   /**
-      Name of the MongoDB database to use in queries.
-      Currently, only one database is supported.
-     */
+    Name of the MongoDB database to use in queries.
+    Currently, only one database is supported.
+   */
   databaseName: string;
   numSamplesPerCollection: number;
   latestDate?: Date;

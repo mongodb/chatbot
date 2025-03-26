@@ -61,7 +61,7 @@ async function main() {
   const mongoClient = new MongoClient(MONGODB_TEXT_TO_CODE_CONNECTION_URI);
   try {
     await mongoClient.connect();
-    for (const databaseName of datasetDatabases) {
+    for (const { name: databaseName } of datasetDatabases) {
       await generateDbSchema(mongoClient, databaseName);
     }
   } finally {

@@ -1,4 +1,4 @@
-import { DatabaseExecutionResultNode } from "./databaseNlQueries/databaseNodes/nodeTypes";
+import { DatabaseExecutionResultNode } from "./databaseNodes/nodeTypes";
 
 export type DatabaseNlQueryDatasetEntry =
   DatabaseExecutionResultNode["data"] & {

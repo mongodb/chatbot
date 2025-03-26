@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import readline from "readline";
-import { DatabaseNlQueryDatasetEntry } from "../treeGeneration/DatabaseNlQueryDatasetEntry";
+import { DatabaseNlQueryDatasetEntry } from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
 import {
   operators,
   minRepresentationInDatasetByCommonality,
@@ -18,6 +18,11 @@ async function main() {
     "text_to_mql_sample_mflix_gpt-4o-mini_1742928450949.jsonl",
     "text_to_mql_sample_weatherdata_gpt-4o-mini_1742928450949.jsonl",
     "text_to_mql_sample_supplies_gpt-4o-mini_1742928450949.jsonl",
+    "text_to_mql_sample_airbnb_gpt-4o-mini_1742928450949.jsonl",
+    "text_to_mql_sample_analytics_gpt-4o-mini_1742928450949.jsonl",
+    "text_to_mql_sample_geospatial_gpt-4o-mini_1742928450949.jsonl",
+    "text_to_mql_sample_guides_gpt-4o-mini_1742928450949.jsonl",
+    "text_to_mql_sample_restaurants_gpt-4o-mini_1742928450949.jsonl",
   ].map((p) => path.resolve(dataOutDir, p));
 
   const allReferenceAnswers: DatabaseNlQueryDatasetEntry[] = [];
@@ -44,19 +49,33 @@ async function main() {
         }
       }
     }
+    console.log("Processsed dataset:", path.basename(textToMqlOutputPath));
     console.log(`Total answers: ${totalAnsCount}`);
     console.log(`Text to MQL example count: ${referenceAnswers.length}`);
-    const complexities = {
-      simple: referenceAnswers.filter((r) => r.complexity === "simple").length,
-      moderate: referenceAnswers.filter((r) => r.complexity === "moderate")
-        .length,
-      complex: referenceAnswers.filter((r) => r.complexity === "complex")
-        .length,
-    };
+    const complexities = countComplexities(referenceAnswers);
     console.log("Complexities:", complexities);
     allReferenceAnswers.push(...referenceAnswers);
   }
   countAndLogUsage(allReferenceAnswers);
+  const allReferenceAnswersPathOut = path.resolve(
+    dataOutDir,
+    "referenceAnswers.json"
+  );
+  fs.writeFileSync(
+    allReferenceAnswersPathOut,
+    JSON.stringify(allReferenceAnswers, null, 2)
+  );
+  console.log(
+    `Wrote ${allReferenceAnswers.length} reference answers to ${allReferenceAnswersPathOut}`
+  );
+}
+
+function countComplexities(entries: DatabaseNlQueryDatasetEntry[]) {
+  return {
+    simple: entries.filter((r) => r.complexity === "simple").length,
+    moderate: entries.filter((r) => r.complexity === "moderate").length,
+    complex: entries.filter((r) => r.complexity === "complex").length,
+  };
 }
 
 function countAndLogUsage(entries: DatabaseNlQueryDatasetEntry[]): void {
@@ -81,6 +100,7 @@ function countAndLogUsage(entries: DatabaseNlQueryDatasetEntry[]): void {
   // Check if operators are within bounds
   console.log("\nOperator usage analysis:");
   checkOperatorBounds(operatorPercentages);
+  console.log("\nComplexities:", countComplexities(entries));
 }
 
 function checkOperatorBounds(

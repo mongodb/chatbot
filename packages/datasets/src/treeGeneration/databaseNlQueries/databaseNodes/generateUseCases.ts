@@ -22,8 +22,19 @@ For each use case:
 - Consider the user's job title, department, expertise, and experience level
 - Create detailed scenarios that reflect real-world information needs they would have
 - Emphasize the business context and purpose behind each information need
+- Include a mixture of routine and specialized requirements using different aspects of the database. Such as but not limited to:
+  - Reporting on time periods
+  - Summarizing metrics across categories
+  - Finding specific records that meet multiple criteria
+  - Combining related data from different collections
+  - Searching for text patterns
+  - Analyzing trends over time
+  - Identifying geographic patterns
+  - Extracting subsets of data fields
+  - Ranking and limiting results
+  - ...etc.
 - Consider both routine information needs and occasional specialized requirements
-- Include a balance of "simple", "moderate", and "complex" queries, as appropriate for a given user. Some users may have different balances, depending on their role.
+- Include a balance of "simple", "moderate", and "complex" use cases, as appropriate for a given user. Some users may have different balances, depending on their role.
 - ONLY make use cases that are supported by information in the given database.
 
 Generate ${numMessages} use case(s).`;

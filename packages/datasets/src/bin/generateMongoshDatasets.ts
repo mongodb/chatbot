@@ -83,6 +83,10 @@ async function generateMongoshDataset({
   maxResultsArraySize = MAX_RESULT_ARRAY_SIZE,
 }: GenerateMongoshDatasetParams) {
   console.log(`Generating dataset for database ${dataset.databaseName}`);
+  const referenceAnswersOutputPath = path.resolve(
+    writeToFile.dataOutDir,
+    `referenceAnswers.dataset_${datasetUuid}.jsonl`
+  );
   // Write out each DB's dataset to a separate file
   const textToMqlOutputPath = path.resolve(
     writeToFile.dataOutDir,
@@ -235,6 +239,12 @@ async function generateMongoshDataset({
           textToMqlOutputPath,
           JSON.stringify(textToMqlDatasetEntry) + "\n"
         );
+        if (dbExecution.data.isReferenceAnswer) {
+          fs.appendFileSync(
+            referenceAnswersOutputPath,
+            JSON.stringify(textToMqlDatasetEntry) + "\n"
+          );
+        }
       }
     } catch (error) {
       console.error(error);

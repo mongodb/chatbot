@@ -33,6 +33,7 @@ type LlmGenerationConfig = {
   users: {
     llmConfig: LlmOptions;
     numGenerations: number;
+    concurrency: number;
   };
   useCases: {
     llmConfig: LlmOptions;
@@ -276,13 +277,12 @@ async function main() {
     console.log(`Created directory: ${dataOutDir}`);
   }
 
-  const llmOptions: LlmOptions = {
+  const defaultLlmConfig: LlmOptions = {
     openAiClient: new OpenAI({
       apiKey: BRAINTRUST_API_KEY,
       baseURL: BRAINTRUST_ENDPOINT,
     }),
-    model: "gpt-4o-mini",
-    temperature: 0.5,
+    model: "o3-mini",
     seed: 42,
   };
 
@@ -291,18 +291,26 @@ async function main() {
   const config = {
     database: {
       llmConfig: {
-        ...llmOptions,
+        ...defaultLlmConfig,
         model: "gpt-4o",
         temperature: 0,
         max_completion_tokens: 2000,
       },
     },
-    users: { numGenerations: 8, llmConfig: llmOptions },
-    useCases: { numGenerations: 8, llmConfig: llmOptions, concurrency: 10 },
-    nlQueries: { numGenerations: 8, llmConfig: llmOptions, concurrency: 10 },
+    users: { numGenerations: 8, llmConfig: defaultLlmConfig, concurrency: 20 },
+    useCases: {
+      numGenerations: 8,
+      llmConfig: defaultLlmConfig,
+      concurrency: 20,
+    },
+    nlQueries: {
+      numGenerations: 8,
+      llmConfig: defaultLlmConfig,
+      concurrency: 20,
+    },
     dbQueries: {
       numGenerations: 16,
-      llmConfig: { ...llmOptions },
+      llmConfig: { ...defaultLlmConfig, model: "gpt-4o", temperature: 0.5 },
       concurrency: 25,
     },
     dbExecutions: {
@@ -329,7 +337,7 @@ async function main() {
           connectionUri: MONGODB_TEXT_TO_CODE_CONNECTION_URI,
         },
         llmConfigs: config,
-        datasetUuid: now.toString(),
+        datasetUuid: `${defaultLlmConfig.model}_${now.toString()}`,
         writeToFile: {
           dataOutDir,
         },

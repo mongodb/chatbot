@@ -55,6 +55,7 @@ import {
 } from "mongodb-rag-core/eval";
 import { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } from "../../config";
 import { makeMongoDbPageStore } from "mongodb-rag-core";
+import { MongoDbTag } from "../../mongoDbMetadata";
 
 const SRC_ROOT = path.resolve(__dirname, "../");
 
@@ -63,25 +64,37 @@ const pageStore = makeMongoDbPageStore({
   databaseName: MONGODB_DATABASE_NAME,
 });
 
-const allowedTags: { [key: string]: boolean } = {
-  allowed: true,
-  alsoAllowed: true,
-}
-
 function validateTags(tagNames: string[], custom: boolean): void {
   if (!custom) {
-    const invalidTags = tagNames.filter(tag => !allowedTags[tag]);
-    if (invalidTags.length) {
-      throw new Error(`Tags not allowed: ${invalidTags.join(', ')}. \n Use the "addCustomTags" transformation or use allowed tags: ${Object.keys(allowedTags)}\n`);
+    // check if all tags are allowed using the enum MongoDbTag
+    const invalidTags = tagNames.filter((tag) => !(tag in MongoDbTag));
+    if (invalidTags.length > 0) {
+      throw new Error(
+        `Invalid tags found: ${invalidTags.join(
+          ", "
+        )} \nUse the "addCustomTags" transformation instead or use allowed tags: \n  - ${Object.keys(
+          MongoDbTag
+        )
+          .sort()
+          .join("\n  - ")}`
+      );
     }
   }
 }
 
-function addTags({ evalCases, tagNames, custom = false }: { evalCases: ConversationEvalCase[]; tagNames: string[]; custom?: boolean; }): ConversationEvalCase[] {
+function addTags({
+  evalCases,
+  tagNames,
+  custom = false,
+}: {
+  evalCases: ConversationEvalCase[];
+  tagNames: string[];
+  custom?: boolean;
+}): ConversationEvalCase[] {
   validateTags(tagNames, custom);
-  return evalCases.map(caseItem => ({
+  return evalCases.map((caseItem) => ({
     ...caseItem,
-    tags: [...(caseItem.tags || []), ...tagNames]
+    tags: [...(caseItem.tags || []), ...tagNames],
   }));
 }
 
@@ -89,8 +102,10 @@ const transformationMap: Record<
   string,
   (cases: ConversationEvalCase[], options?: string[]) => ConversationEvalCase[]
 > = {
-  addTags: (cases: ConversationEvalCase[], options?: string[]) => addTags({ evalCases: cases, tagNames: options || [] }),
-  addCustomTags: (cases: ConversationEvalCase[], options?: string[]) => addTags({ evalCases: cases, tagNames: options || [], custom: true }),
+  addTags: (cases: ConversationEvalCase[], options?: string[]) =>
+    addTags({ evalCases: cases, tagNames: options || [] }),
+  addCustomTags: (cases: ConversationEvalCase[], options?: string[]) =>
+    addTags({ evalCases: cases, tagNames: options || [], custom: true }),
   // Add more transformation functions here as needed
 };
 
@@ -137,7 +152,10 @@ async function main({
   console.log(`Reading from: ${csvFilePath}`);
   const evalCases = await getConversationEvalCasesFromCSV(
     csvFilePath,
-    transformationType ? (cases) => transformationMap[transformationType](cases, transformationOptions) : undefined,
+    transformationType
+      ? (cases) =>
+          transformationMap[transformationType](cases, transformationOptions)
+      : undefined
   );
   const expectedUrls = Array.from(
     new Set(evalCases.flatMap((caseItem) => caseItem.expectedLinks ?? []))
@@ -165,7 +183,12 @@ async function main({
 // Checks if the script is being run directly (not imported as a module) and handles command-line arguments.
 if (require.main === module) {
   const args = process.argv.slice(2);
-  const [csvFilePath, yamlFileName, transformationType, ...transformationOptions] = args;
+  const [
+    csvFilePath,
+    yamlFileName,
+    transformationType,
+    ...transformationOptions
+  ] = args;
   const availableTransformationTypes = Object.keys(transformationMap);
   if (
     args.length < 2 ||

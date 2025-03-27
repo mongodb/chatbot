@@ -547,6 +547,23 @@ describe("ConversationService", () => {
       const metadatas: AssistantMessageMetadata[] = [];
       let streamedMessageId: string | undefined;
       let finishedStreaming = false;
+
+      // Mock the fetchEventSource implementation to process our events
+      (FetchEventSource.fetchEventSource as jest.Mock).mockImplementation(
+        async (_url, options) => {
+          const { onmessage } = options;
+          // Process each event through the onmessage handler
+          for (const event of mockedEvents) {
+            await onmessage({ data: JSON.stringify(event.data) });
+          }
+          return {
+            ok: true,
+            status: 200,
+            headers: new Headers({ "content-type": "text/event-stream" }),
+          };
+        }
+      );
+
       await conversationService.addMessageStreaming({
         conversationId,
         message: "Hello world!",
@@ -570,26 +587,32 @@ describe("ConversationService", () => {
         },
       });
 
-      const filterableMockedEvents =
-        mockedEvents as FetchEventSource.MockEvent<ConversationStreamEvent>[];
+      // Filter out unknown events and only keep valid conversation events
+      const validEvents = mockedEvents.filter(
+        (event): event is FetchEventSource.MockEvent<ConversationStreamEvent> =>
+          event.data.type === "delta" ||
+          event.data.type === "references" ||
+          event.data.type === "metadata" ||
+          event.data.type === "finished"
+      );
 
       expect(deltas).toEqual(
         filterMockedConversationEventsData<DeltaStreamEvent>(
-          filterableMockedEvents,
+          validEvents,
           "delta"
         )
       );
 
       expect(references).toEqual(
         filterMockedConversationEventsData<ReferencesStreamEvent>(
-          filterableMockedEvents,
+          validEvents,
           "references"
         )
       );
 
       expect(metadatas).toEqual(
         filterMockedConversationEventsData<MetadataStreamEvent>(
-          filterableMockedEvents,
+          validEvents,
           "metadata"
         )
       );

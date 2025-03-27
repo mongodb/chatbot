@@ -29,6 +29,7 @@ export function Chatbot({
   onOpen,
   onClose,
   sortMessageReferences,
+  getClientContext,
   ...props
 }: ChatbotProps) {
   const { darkMode } = useDarkMode(props.darkMode);
@@ -50,6 +51,7 @@ export function Chatbot({
           <UserProvider user={user}>
             <InnerChatbot
               fetchOptions={fetchOptions}
+              getClientContext={getClientContext}
               isExperimental={isExperimental}
               maxCommentCharacters={maxCommentCharacters}
               maxInputCharacters={maxInputCharacters}
@@ -73,6 +75,7 @@ type InnerChatbotProps = Pick<
   ChatbotProps,
   | "children"
   | "fetchOptions"
+  | "getClientContext"
   | "isExperimental"
   | "maxCommentCharacters"
   | "maxInputCharacters"

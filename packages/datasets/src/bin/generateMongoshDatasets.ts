@@ -91,7 +91,7 @@ async function generateMongoshDataset({
   // Write out each DB's dataset to a separate file
   const textToMqlOutputPath = path.resolve(
     writeToFile.dataOutDir,
-    `text_to_mongosh.${dataset.databaseName}.dataset_${datasetUuid}.jsonl`
+    `text_to_mongosh.dataset_${datasetUuid}.${dataset.databaseName}.jsonl`
   );
 
   console.log(
@@ -282,7 +282,8 @@ async function main() {
       apiKey: BRAINTRUST_API_KEY,
       baseURL: BRAINTRUST_ENDPOINT,
     }),
-    model: "o3-mini",
+    model: "gpt-4o-mini",
+    temperature: 0.5,
     seed: 42,
   };
 
@@ -292,9 +293,8 @@ async function main() {
     database: {
       llmConfig: {
         ...defaultLlmConfig,
-        model: "gpt-4o",
         temperature: 0,
-        max_completion_tokens: 2000,
+        max_tokens: 2000,
       },
     },
     users: { numGenerations: 8, llmConfig: defaultLlmConfig, concurrency: 20 },
@@ -310,7 +310,7 @@ async function main() {
     },
     dbQueries: {
       numGenerations: 16,
-      llmConfig: { ...defaultLlmConfig, model: "gpt-4o", temperature: 0.5 },
+      llmConfig: defaultLlmConfig,
       concurrency: 25,
     },
     dbExecutions: {

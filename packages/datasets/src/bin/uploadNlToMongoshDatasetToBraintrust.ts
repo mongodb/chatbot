@@ -33,6 +33,7 @@ async function main() {
         language: entry.language,
         methods: entry.methods,
         queryOperators: entry.queryOperators,
+        generationUuid: entry.generationUuid,
       },
     };
   });

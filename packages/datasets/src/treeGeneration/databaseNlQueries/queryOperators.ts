@@ -1,7 +1,7 @@
 /**
   Frequency of operators used. Based on internal dataset.
  */
-export type Frequency = "uncommon" | "common" | "most_common";
+export type Frequency = "uncommon" | "common" | "most_common" | "not_defined";
 
 export const operators: Record<string, Frequency> = {
   $eq: "most_common",
@@ -36,11 +36,15 @@ export const operators: Record<string, Frequency> = {
   $add: "uncommon",
 };
 
-export const minRepresentationInDatasetByCommonality: Record<
+/**
+  Target minimum and maximum representation of operators in the dataset based on their frequency.
+ */
+export const representationInDatasetByCommonality: Record<
   Frequency,
   [min: number, max: number]
 > = {
   most_common: [0.2, 1],
   common: [0.01, 0.3],
   uncommon: [0.0001, 0.05],
+  not_defined: [0, 1],
 };

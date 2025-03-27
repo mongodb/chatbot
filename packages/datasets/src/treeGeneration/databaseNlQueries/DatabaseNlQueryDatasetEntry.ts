@@ -7,6 +7,7 @@ export type DatabaseNlQueryDatasetEntry =
     complexity: string;
     databaseName: string;
     dbQuery: string;
+    generationUuid?: string;
   };
 
 export function generateDatabaseNlQueryDatasetEntry(

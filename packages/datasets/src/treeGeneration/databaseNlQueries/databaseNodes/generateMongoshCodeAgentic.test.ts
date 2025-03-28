@@ -13,7 +13,7 @@ import {
 } from "./sampleData";
 import PromisePool from "@supercharge/promise-pool";
 import { strict as assert } from "assert";
-import { generateMongoshCode } from "./generateMongoshCodeAgentic";
+import { generateMongoshCode } from "../../../../dataOut/generateMongoshCodeAgentic";
 import yaml from "yaml";
 import path from "path";
 import fs from "fs";

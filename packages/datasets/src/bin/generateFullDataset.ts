@@ -5,7 +5,7 @@ import { DatabaseNlQueryDatasetEntry } from "../treeGeneration/databaseNlQueries
 import { isNonMutativeOperation } from "../treeGeneration/databaseNlQueries/databaseMetadata/isNonMutativeOperation";
 import {
   countAndLogUsage,
-  countComplexities,
+  countStringProperty,
 } from "../treeGeneration/databaseNlQueries/analyzeDataset";
 
 const dataOutDir = path.resolve(__dirname, "..", "..", "dataOut");
@@ -68,7 +68,7 @@ async function main() {
     );
     console.log(`Filtered out ${emptyResultCount} entries with empty results`);
     console.log(`Text to MQL example count: ${referenceAnswers.length}`);
-    const complexities = countComplexities(referenceAnswers);
+    const complexities = countStringProperty(referenceAnswers, "complexity");
     console.log("Complexities:", complexities);
     allReferenceAnswers.push(...referenceAnswers);
   }

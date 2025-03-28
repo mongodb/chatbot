@@ -1,20 +1,29 @@
 import {
-  Frequency,
   operators,
   representationInDatasetByCommonality,
 } from "./queryOperators";
 import { DatabaseNlQueryDatasetEntry } from "./DatabaseNlQueryDatasetEntry";
 
-export function countComplexities(entries: DatabaseNlQueryDatasetEntry[]) {
-  return {
-    simple: entries.filter((r) => r.complexity === "simple").length,
-    moderate: entries.filter((r) => r.complexity === "moderate").length,
-    complex: entries.filter((r) => r.complexity === "complex").length,
-  };
-}
-
 export function countAndLogUsage(entries: DatabaseNlQueryDatasetEntry[]): void {
   // Count and log methods usage
+  console.log("Total number of entries in dataset:", entries.length);
+
+  console.log("Queries by dataset:");
+  const dbEntryCount = countStringProperty(entries, "databaseName");
+  console.log("DB entry count:", dbEntryCount);
+  console.log(
+    "DB entry percentages:",
+    calculatePercentages(dbEntryCount, entries.length)
+  );
+
+  console.log("Queries by complexities:");
+  const complexityCount = countStringProperty(entries, "complexity");
+  console.log("Complexity count:", complexityCount);
+  console.log(
+    "Complexity percentages:",
+    calculatePercentages(complexityCount, entries.length)
+  );
+
   const methodCounts = countUsage(entries, "methods");
   console.log("Method counts:", methodCounts);
   console.log(
@@ -24,7 +33,7 @@ export function countAndLogUsage(entries: DatabaseNlQueryDatasetEntry[]): void {
 
   // Count and log query operators usage
   const operatorCounts = countUsage(entries, "queryOperators");
-  console.log("Total number of queries:", entries.length);
+
   console.log("Query operator counts:", operatorCounts);
   const operatorPercentages = calculatePercentages(
     operatorCounts,
@@ -53,6 +62,42 @@ export function countAndLogUsage(entries: DatabaseNlQueryDatasetEntry[]): void {
   console.table(
     operatorFrequencyEntries.filter((v) => v.label === "not_specified")
   );
+}
+
+export function countStringProperty<
+  T extends Record<K, string>,
+  K extends string
+>(entries: T[], property: K): Record<string, number> {
+  const counts: Record<string, number> = {};
+
+  for (const entry of entries) {
+    const value = entry[property] || "";
+    if (!counts[value]) {
+      counts[value] = 0;
+    }
+    counts[value]++;
+  }
+
+  return counts;
+}
+
+export function countUsage(
+  entries: DatabaseNlQueryDatasetEntry[],
+  property: "methods" | "queryOperators"
+): Record<string, number> {
+  const counts: Record<string, number> = {};
+
+  for (const entry of entries) {
+    const items = entry[property] || [];
+    for (const item of items) {
+      if (!counts[item]) {
+        counts[item] = 0;
+      }
+      counts[item]++;
+    }
+  }
+
+  return counts;
 }
 
 export function checkOperatorFrequency(
@@ -123,25 +168,6 @@ export function checkOperatorFrequency(
   }
 
   return operatorsBoundCheck;
-}
-
-export function countUsage(
-  entries: DatabaseNlQueryDatasetEntry[],
-  property: "methods" | "queryOperators"
-): Record<string, number> {
-  const counts: Record<string, number> = {};
-
-  for (const entry of entries) {
-    const items = entry[property] || [];
-    for (const item of items) {
-      if (!counts[item]) {
-        counts[item] = 0;
-      }
-      counts[item]++;
-    }
-  }
-
-  return counts;
 }
 
 export function calculatePercentages(

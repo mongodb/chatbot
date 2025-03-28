@@ -65,16 +65,16 @@ describe("MongoDbNodeStore", () => {
     const count = await collection.countDocuments();
     expect(count).toBe(3);
 
-    // Check that parent references are stored as ObjectIds
+    // Check that parent references are stored as ObjectIds and in the parents array
     const dbChildNode = await collection.findOne({ _id: childNode._id });
     expect(dbChildNode).toBeTruthy();
-    expect(dbChildNode?.parent).toEqual(rootNode._id);
+    expect(dbChildNode?.parents[0]).toEqual(rootNode._id);
 
     const dbGrandchildNode = await collection.findOne({
       _id: grandchildNode._id,
     });
     expect(dbGrandchildNode).toBeTruthy();
-    expect(dbGrandchildNode?.parent).toEqual(childNode._id);
+    expect(dbGrandchildNode?.parents[0]).toEqual(childNode._id);
   });
 
   it("should retrieve a node with its parent hierarchy", async () => {

@@ -1,9 +1,9 @@
 import {
-  countComplexities,
   countUsage,
   calculatePercentages,
   checkOperatorFrequency,
   countAndLogUsage,
+  countStringProperty,
 } from "./analyzeDataset";
 import { DatabaseNlQueryDatasetEntry } from "./DatabaseNlQueryDatasetEntry";
 import { Frequency } from "./queryOperators";
@@ -34,36 +34,6 @@ const sampleEntry = {
   language: "js",
   nlQuery: "what is foo?",
 };
-
-describe("countComplexities", () => {
-  test("should count entries by complexity", () => {
-    const entries: DatabaseNlQueryDatasetEntry[] = [
-      sampleEntry,
-      sampleEntry,
-      { ...sampleEntry, complexity: "moderate" },
-      { ...sampleEntry, complexity: "moderate" },
-      { ...sampleEntry, complexity: "complex" },
-    ];
-
-    const result = countComplexities(entries);
-
-    expect(result).toEqual({
-      simple: 2,
-      moderate: 2,
-      complex: 1,
-    });
-  });
-
-  test("should handle empty entries array", () => {
-    const result = countComplexities([]);
-
-    expect(result).toEqual({
-      simple: 0,
-      moderate: 0,
-      complex: 0,
-    });
-  });
-});
 
 describe("countUsage", () => {
   test("should count methods usage", () => {
@@ -108,6 +78,48 @@ describe("countUsage", () => {
     const result = countUsage(entries, "methods");
 
     expect(result).toEqual({});
+  });
+});
+
+describe("countStringProperty", () => {
+  test("should count occurrences of a string property", () => {
+    const entries = [
+      { databaseName: "sample_mflix", id: 1 },
+      { databaseName: "sample_mflix", id: 2 },
+      { databaseName: "sample_airbnb", id: 3 },
+      { databaseName: "sample_restaurants", id: 4 },
+    ];
+
+    const result = countStringProperty(entries, "databaseName");
+
+    expect(result).toEqual({
+      sample_mflix: 2,
+      sample_airbnb: 1,
+      sample_restaurants: 1,
+    });
+  });
+
+  test("should handle empty entries array", () => {
+    const entries: Array<{ databaseName: string }> = [];
+
+    const result = countStringProperty(entries, "databaseName");
+
+    expect(result).toEqual({});
+  });
+
+  test("should handle undefined or empty values", () => {
+    const entries = [
+      { databaseName: "sample_mflix" },
+      { databaseName: "" },
+      { databaseName: undefined as unknown as string },
+    ];
+
+    const result = countStringProperty(entries, "databaseName");
+
+    expect(result).toEqual({
+      sample_mflix: 1,
+      "": 2, // Both empty string and undefined are counted as empty string
+    });
   });
 });
 
@@ -269,6 +281,21 @@ describe("countAndLogUsage", () => {
     countAndLogUsage(entries);
 
     // Verify that console.log was called with the expected arguments
+    // Check for total entries count
+    expect(console.log).toHaveBeenCalledWith(
+      "Total number of entries in dataset:",
+      2
+    );
+
+    // Check for database name counts
+    expect(console.log).toHaveBeenCalledWith(
+      "DB entry count:",
+      expect.objectContaining({
+        foo: 2,
+      })
+    );
+
+    // Check for method counts
     expect(console.log).toHaveBeenCalledWith(
       "Method counts:",
       expect.objectContaining({
@@ -277,6 +304,7 @@ describe("countAndLogUsage", () => {
       })
     );
 
+    // Check for operator counts
     expect(console.log).toHaveBeenCalledWith(
       "Query operator counts:",
       expect.objectContaining({
@@ -285,7 +313,5 @@ describe("countAndLogUsage", () => {
         $group: 1,
       })
     );
-
-    expect(console.log).toHaveBeenCalledWith("Total number of queries:", 2);
   });
 });

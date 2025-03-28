@@ -37,6 +37,7 @@ const systemPrompt = stripIndents`
   - If a page is a landing/welcome page or is primarily a list of links to other page, the meta description should mention the type of listed items
   - Use proper capitalization for words and phrases that may be confused with proper nouns
     - For example, "Charts" is capitalized when referring to the MongoDB product with that name but not when referring to a specific chart type, e.g. bar chart or chloropleth chart.
+  - If a page is a tutorial, as indicated by the URL or content, the meta description should mention that it is a tutorial.
 
   Respond only with the generated description.
 `;

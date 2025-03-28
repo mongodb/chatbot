@@ -31,7 +31,7 @@ import express from "express";
 import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
-import { TRACING_ENV_VARS } from "./EnvVars";
+import { SLACK_ENV_VARS, TRACING_ENV_VARS } from "./EnvVars";
 import {
   makeAddMessageToConversationUpdateTrace,
   makeCommentMessageUpdateTrace,
@@ -56,6 +56,13 @@ export const {
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: "",
   ...TRACING_ENV_VARS,
 });
+
+// Optional env vars
+const {
+  BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
+  SLACK_BOT_TOKEN,
+  SLACK_COMMENT_CONVERSATION_ID,
+} = process.env;
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
@@ -217,12 +224,6 @@ const llmAsAJudgeConfig = {
     },
   },
 };
-
-const {
-  BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
-  SLACK_BOT_TOKEN,
-  SLACK_COMMENT_CONVERSATION_ID,
-} = process.env;
 
 export const config: AppConfig = {
   conversationsRouterConfig: {

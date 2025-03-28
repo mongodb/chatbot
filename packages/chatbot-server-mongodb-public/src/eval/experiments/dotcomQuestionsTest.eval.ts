@@ -17,7 +17,10 @@ async function conversationEval() {
   // Get dotcom question set eval cases from YAML
   const basePath = path.resolve(__dirname, "..", "..", "..", "evalCases");
   const conversationEvalCases = getConversationsEvalCasesFromYaml(
-    fs.readFileSync(path.resolve(basePath, "dotcom_chatbot_evaluation_questions.yml"), "utf8")
+    fs.readFileSync(
+      path.resolve(basePath, "dotcom_chatbot_evaluation_questions.yml"),
+      "utf8"
+    )
   );
 
   const generateConfig = {

@@ -77,7 +77,7 @@ database.collection("${collectionName}").find({ name: "Alice" }).toArray()`;
     expect(result.executionTimeMs).toBeGreaterThan(0);
   });
   it("should return an error if an error occurs during execution", async () => {
-    const errorMessage = "An error occurred";
+    const errorMessage = "An unknown error occurred";
     // Note: wrapping with IFEE b/c we must use eval()
     // with an _expression_ (like the IFEE)
     // not a statement (like `throw ...`)

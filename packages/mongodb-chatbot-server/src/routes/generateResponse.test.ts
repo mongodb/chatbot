@@ -1,4 +1,4 @@
-import { References } from "mongodb-rag-core";
+import { References, UserMessage } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { OpenAI } from "mongodb-rag-core/openai";
 import {
@@ -200,7 +200,7 @@ describe("generateResponse", () => {
         userMessage: {
           role: "user",
           content: userMessageText,
-        },
+        } satisfies UserMessage,
       };
     },
   } satisfies Omit<GenerateResponseParams, "shouldStream">;
@@ -230,6 +230,7 @@ describe("generateResponse", () => {
       `{"type":"references","data":${JSON.stringify(references)}}`
     );
   });
+
   it("should await response if shouldStream is false", async () => {
     await generateResponse({ ...baseArgs, shouldStream: false });
     const data = res._getData();
@@ -264,6 +265,45 @@ describe("generateResponse", () => {
     )}}\n\n`;
     expect(data).toContain(expectedMetadataEvent);
   });
+
+  it("passes clientContext data to the generateUserPrompt function", async () => {
+    const generateUserPrompt = jest.fn(async (args) => {
+      let content = args.userMessageText;
+      if (args.clientContext) {
+        content += `\n\nThe user provided the following context: ${JSON.stringify(
+          args.clientContext
+        )}`;
+      }
+      return {
+        userMessage: {
+          role: "user",
+          content,
+        } satisfies UserMessage,
+      };
+    });
+    const latestMessageText = "hello";
+    const clientContext = {
+      location: "Chicago, IL",
+      preferredLanguage: "Spanish",
+    };
+    const { messages } = await generateResponse({
+      ...baseArgs,
+      shouldStream: false,
+      generateUserPrompt,
+      latestMessageText,
+      clientContext,
+    });
+    expect(messages.at(-2)?.content).toContain(
+      `The user provided the following context: {"location":"Chicago, IL","preferredLanguage":"Spanish"}`
+    );
+    expect(generateUserPrompt).toHaveBeenCalledWith({
+      userMessageText: latestMessageText,
+      clientContext,
+      conversation,
+      reqId,
+    });
+  });
+
   it("should send a static message", async () => {
     const userMessage = {
       role: "user",

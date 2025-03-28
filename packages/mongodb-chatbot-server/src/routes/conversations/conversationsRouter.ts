@@ -220,7 +220,7 @@ function keyGenerator(request: Request) {
   return request.ip;
 }
 
-const addIpToCustomData: AddCustomDataFunc = async (req, res) =>
+const addIpToCustomData: AddCustomDataFunc = async (req) =>
   req.ip
     ? {
         ip: req.ip,
@@ -234,7 +234,7 @@ const addOriginToCustomData: AddCustomDataFunc = async (_, res) =>
       }
     : undefined;
 
-const addUserAgentToCustomData: AddCustomDataFunc = async (req, res) =>
+const addUserAgentToCustomData: AddCustomDataFunc = async (req) =>
   req.headers["user-agent"]
     ? {
         userAgent: req.headers["user-agent"],

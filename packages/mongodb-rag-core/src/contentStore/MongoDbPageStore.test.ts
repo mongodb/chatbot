@@ -298,4 +298,39 @@ describe("MongoDbPageStore", () => {
       expect(pageDataSources).not.toContain("source-4");
     });
   });
+
+  describe("getMissingPagesByUrl", () => {
+    beforeEach(async () => {
+      assert(store);
+      await store.updatePages(moviePages);
+    });
+
+    it("returns the missing pages by URL", async () => {
+      assert(store);
+      const missingUrls = await store.getMissingPagesByUrl({
+        expectedUrls: ["matrix1", "legally-blonde1", "non-existent-url"],
+      });
+
+      expect(missingUrls).toEqual(["non-existent-url"]);
+    });
+
+    it("returns an empty array when all pages exist", async () => {
+      assert(store);
+      const missingUrls = await store.getMissingPagesByUrl({
+        expectedUrls: ["matrix2", "legally-blonde2"],
+      });
+
+      expect(missingUrls).toEqual([]);
+    });
+
+    it("supports URL transformation", async () => {
+      assert(store);
+      const missingUrls = await store.getMissingPagesByUrl({
+        expectedUrls: ["MATRIX2", "LEGALLY-BLONDE2"],
+        urlTransformer: (url) => url.toLowerCase(),
+      });
+
+      expect(missingUrls).toEqual([]);
+    });
+  });
 });

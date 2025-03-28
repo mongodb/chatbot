@@ -209,6 +209,31 @@ describe("ConversationService", () => {
       expect(awaitedMessage.references).toEqual(mockMessage.references);
       expect(awaitedMessage.metadata?.conversationId).toBeDefined();
     });
+
+    it("includes client context (if provided) when adding messages", async () => {
+      const conversationId = "650b4b260f975ef031016c8b";
+      const mockMessage = {
+        id: "650b4be0d5a57dd66be2ccb8",
+        role: "assistant",
+        content: "I'm sorry, I don't know how to help with that.",
+        createdAt: new Date().getTime(),
+        references: [],
+      };
+      const getLastRequestOptions = mockFetchResponse({ data: mockMessage });
+
+      const clientContext = { userId: "123", sessionId: "456" };
+      await conversationService.addMessage({
+        conversationId,
+        message: "Hello world!",
+        clientContext,
+      });
+
+      const options = getLastRequestOptions();
+      const requestBody = JSON.parse(
+        (options as unknown as { body: string }).body
+      );
+      expect(requestBody.clientContext).toEqual(clientContext);
+    });
   });
 
   describe("addMessage (streaming)", () => {
@@ -423,110 +448,178 @@ describe("ConversationService", () => {
       expect(streamedConversationId).toBeDefined();
       expect(finishedStreaming).toEqual(true);
     });
-  });
 
-  it("gracefully handles unknown stream event types", async () => {
-    const conversationId = "650b4b260f975ef031016c8d";
-    type PotentiallyUnknownStreamEvent =
-      | ConversationStreamEvent
-      | UnknownStreamEvent;
-    const mockedEvents =
-      mockFetchEventSourceResponse<PotentiallyUnknownStreamEvent>(
+    it("includes client context (if provided) when streaming messages", async () => {
+      const conversationId = "650b4b260f975ef031016c8c";
+      const mockStreamedMessageId = "651466eecffc98fe887000da";
+      const clientContext = { userId: "123", sessionId: "456" };
+
+      mockFetchEventSourceResponse<ConversationStreamEvent>(
         {
           id: undefined,
           type: undefined,
-          data: { type: "unknown123", data: "Hello world!" },
+          data: { type: "delta", data: "Hello" },
         },
         {
           id: undefined,
           type: undefined,
-          data: {
-            type: "delta",
-            data: "Once upon a time there was a very long string.",
-          },
-        },
-        {
-          id: undefined,
-          type: undefined,
-          data: { type: "unknownABC", data: null },
-        },
-        {
-          id: undefined,
-          type: undefined,
-          data: {
-            type: "references",
-            data: [
-              { title: "Title 1", url: "https://example.com/1" },
-              { title: "Title 2", url: "https://example.com/2" },
-            ],
-          },
-        },
-        {
-          id: undefined,
-          type: undefined,
-          data: { type: "unknown", data: 42 },
-        },
-        {
-          id: undefined,
-          type: undefined,
-          data: { type: "finished", data: "650b4be0d5a57dd66be2ccb9" },
+          data: { type: "finished", data: mockStreamedMessageId },
         }
       );
 
-    const deltas: string[] = [];
-    const references: References[] = [];
-    const metadatas: AssistantMessageMetadata[] = [];
-    let streamedMessageId: string | undefined;
-    let finishedStreaming = false;
-    await conversationService.addMessageStreaming({
-      conversationId,
-      message: "Hello world!",
-      maxRetries: 0,
-      onResponseDelta: async (data: string) => {
-        console.log("onResponseDelta", data);
-        deltas.push(data);
-      },
-      onResponseFinished: async (messageId: string) => {
-        console.log("onResponseFinished", messageId);
-        streamedMessageId = messageId;
-        finishedStreaming = true;
-      },
-      onReferences: async (refs) => {
-        console.log("onReferences", refs);
-        references.push(refs);
-      },
-      onMetadata: async (metadata) => {
-        console.log("onMetadata", metadata);
-        metadatas.push(metadata);
-      },
+      let lastRequestOptions: { body: string } = { body: "" };
+      (FetchEventSource.fetchEventSource as jest.Mock).mockImplementation(
+        async (_url, options) => {
+          lastRequestOptions = options;
+          return {
+            ok: true,
+            status: 200,
+            headers: new Headers({ "content-type": "text/event-stream" }),
+          };
+        }
+      );
+
+      await conversationService.addMessageStreaming({
+        conversationId,
+        message: "Hello world!",
+        clientContext,
+        maxRetries: 0,
+        onResponseDelta: () => undefined,
+        onResponseFinished: () => undefined,
+        onReferences: () => undefined,
+        onMetadata: () => undefined,
+      });
+
+      const requestBody = JSON.parse(lastRequestOptions.body);
+      expect(requestBody.clientContext).toEqual(clientContext);
     });
 
-    const filterableMockedEvents =
-      mockedEvents as FetchEventSource.MockEvent<ConversationStreamEvent>[];
+    it("gracefully handles unknown stream event types", async () => {
+      const conversationId = "650b4b260f975ef031016c8d";
+      type PotentiallyUnknownStreamEvent =
+        | ConversationStreamEvent
+        | UnknownStreamEvent;
+      const mockedEvents =
+        mockFetchEventSourceResponse<PotentiallyUnknownStreamEvent>(
+          {
+            id: undefined,
+            type: undefined,
+            data: { type: "unknown123", data: "Hello world!" },
+          },
+          {
+            id: undefined,
+            type: undefined,
+            data: {
+              type: "delta",
+              data: "Once upon a time there was a very long string.",
+            },
+          },
+          {
+            id: undefined,
+            type: undefined,
+            data: { type: "unknownABC", data: null },
+          },
+          {
+            id: undefined,
+            type: undefined,
+            data: {
+              type: "references",
+              data: [
+                { title: "Title 1", url: "https://example.com/1" },
+                { title: "Title 2", url: "https://example.com/2" },
+              ],
+            },
+          },
+          {
+            id: undefined,
+            type: undefined,
+            data: { type: "unknown", data: 42 },
+          },
+          {
+            id: undefined,
+            type: undefined,
+            data: { type: "finished", data: "650b4be0d5a57dd66be2ccb9" },
+          }
+        );
 
-    expect(deltas).toEqual(
-      filterMockedConversationEventsData<DeltaStreamEvent>(
-        filterableMockedEvents,
-        "delta"
-      )
-    );
+      const deltas: string[] = [];
+      const references: References[] = [];
+      const metadatas: AssistantMessageMetadata[] = [];
+      let streamedMessageId: string | undefined;
+      let finishedStreaming = false;
 
-    expect(references).toEqual(
-      filterMockedConversationEventsData<ReferencesStreamEvent>(
-        filterableMockedEvents,
-        "references"
-      )
-    );
+      // Mock the fetchEventSource implementation to process our events
+      (FetchEventSource.fetchEventSource as jest.Mock).mockImplementation(
+        async (_url, options) => {
+          const { onmessage } = options;
+          // Process each event through the onmessage handler
+          for (const event of mockedEvents) {
+            await onmessage({ data: JSON.stringify(event.data) });
+          }
+          return {
+            ok: true,
+            status: 200,
+            headers: new Headers({ "content-type": "text/event-stream" }),
+          };
+        }
+      );
 
-    expect(metadatas).toEqual(
-      filterMockedConversationEventsData<MetadataStreamEvent>(
-        filterableMockedEvents,
-        "metadata"
-      )
-    );
+      await conversationService.addMessageStreaming({
+        conversationId,
+        message: "Hello world!",
+        maxRetries: 0,
+        onResponseDelta: async (data: string) => {
+          console.log("onResponseDelta", data);
+          deltas.push(data);
+        },
+        onResponseFinished: async (messageId: string) => {
+          console.log("onResponseFinished", messageId);
+          streamedMessageId = messageId;
+          finishedStreaming = true;
+        },
+        onReferences: async (refs) => {
+          console.log("onReferences", refs);
+          references.push(refs);
+        },
+        onMetadata: async (metadata) => {
+          console.log("onMetadata", metadata);
+          metadatas.push(metadata);
+        },
+      });
 
-    expect(streamedMessageId).toEqual("650b4be0d5a57dd66be2ccb9");
-    expect(finishedStreaming).toEqual(true);
+      // Filter out unknown events and only keep valid conversation events
+      const validEvents = mockedEvents.filter(
+        (event): event is FetchEventSource.MockEvent<ConversationStreamEvent> =>
+          event.data.type === "delta" ||
+          event.data.type === "references" ||
+          event.data.type === "metadata" ||
+          event.data.type === "finished"
+      );
+
+      expect(deltas).toEqual(
+        filterMockedConversationEventsData<DeltaStreamEvent>(
+          validEvents,
+          "delta"
+        )
+      );
+
+      expect(references).toEqual(
+        filterMockedConversationEventsData<ReferencesStreamEvent>(
+          validEvents,
+          "references"
+        )
+      );
+
+      expect(metadatas).toEqual(
+        filterMockedConversationEventsData<MetadataStreamEvent>(
+          validEvents,
+          "metadata"
+        )
+      );
+
+      expect(streamedMessageId).toEqual("650b4be0d5a57dd66be2ccb9");
+      expect(finishedStreaming).toEqual(true);
+    });
   });
 
   it("rates messages", async () => {

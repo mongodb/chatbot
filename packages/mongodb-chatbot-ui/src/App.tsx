@@ -85,6 +85,9 @@ function App() {
           shouldStream={shouldStream}
           darkMode={darkMode}
           fetchOptions={{ credentials: "include" }}
+          getClientContext={() => ({
+            user: "test-user-pls-ignore",
+          })}
           onOpen={() => {
             console.log("Dev Center Chatbot opened");
           }}

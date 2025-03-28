@@ -32,6 +32,7 @@ export type UseConversationParams = {
   shouldStream?: boolean;
   sortMessageReferences?: SortReferences;
   fetchOptions?: ConversationFetchOptions;
+  getClientContext?: () => Record<string, unknown>;
 };
 
 export function useConversation(params: UseConversationParams) {
@@ -134,6 +135,7 @@ export function useConversation(params: UseConversationParams) {
         await conversationService.addMessageStreaming({
           conversationId: state.conversationId ?? "null",
           message: content,
+          clientContext: params.getClientContext?.(),
           maxRetries: 0,
           onResponseDelta: async (data: string) => {
             bufferedTokens = [...bufferedTokens, data];
@@ -168,6 +170,7 @@ export function useConversation(params: UseConversationParams) {
         const response = await conversationService.addMessage({
           conversationId: state.conversationId ?? "null",
           message: content,
+          clientContext: params.getClientContext?.(),
         });
         if (response.metadata?.conversationId) {
           state.api.setConversationId(response.metadata.conversationId);

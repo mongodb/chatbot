@@ -158,6 +158,11 @@ export type ConversationFetchOptions = Omit<
   headers?: Headers;
 };
 
+export type AddMessageRequestBody = {
+  message: string;
+  clientContext?: Record<string, unknown>;
+};
+
 export type ConversationServiceConfig = {
   serverUrl: string;
   fetchOptions?: ConversationFetchOptions;
@@ -263,15 +268,21 @@ export class ConversationService {
   async addMessage({
     conversationId,
     message,
+    clientContext,
   }: {
     conversationId: string;
-    message: string;
-  }): Promise<MessageData> {
+  } & AddMessageRequestBody): Promise<MessageData> {
     const path = `/conversations/${conversationId}/messages`;
+    const requestBody: AddMessageRequestBody = {
+      message,
+    };
+    if (clientContext) {
+      requestBody.clientContext = clientContext;
+    }
     const resp = await fetch(this.getUrl(path), {
       ...this.fetchOptions,
       method: "POST",
-      body: JSON.stringify({ message }),
+      body: JSON.stringify(requestBody),
     });
     const data = await resp.json();
     if (resp.status === 400) {
@@ -295,6 +306,7 @@ export class ConversationService {
   async addMessageStreaming({
     conversationId,
     message,
+    clientContext,
     maxRetries = 0,
     onResponseDelta,
     onReferences,
@@ -303,15 +315,20 @@ export class ConversationService {
     signal,
   }: {
     conversationId: string;
-    message: string;
     maxRetries?: number;
     onResponseDelta: (delta: string) => void;
     onReferences: (references: References) => void;
     onMetadata: (metadata: AssistantMessageMetadata) => void;
     onResponseFinished: (messageId: string) => void;
     signal?: AbortSignal;
-  }): Promise<void> {
+  } & AddMessageRequestBody): Promise<void> {
     const path = `/conversations/${conversationId}/messages`;
+    const requestBody: AddMessageRequestBody = {
+      message,
+    };
+    if (clientContext) {
+      requestBody.clientContext = clientContext;
+    }
 
     let retryCount = 0;
     let moreToStream = true;
@@ -322,7 +339,7 @@ export class ConversationService {
       headers: Object.fromEntries(this.fetchOptions.headers),
       signal: signal ?? null,
       method: "POST",
-      body: JSON.stringify({ message }),
+      body: JSON.stringify(requestBody),
       openWhenHidden: true,
 
       onmessage(ev) {

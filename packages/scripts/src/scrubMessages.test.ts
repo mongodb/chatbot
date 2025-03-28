@@ -272,6 +272,41 @@ describe("scrubMessages", () => {
     expect(scrubbedMessage?.customData).toEqual(customData);
   });
 
+  it("should preserve embeddingModelName in messages", async () => {
+    // Arrange: Create a conversation with a message containing embeddingModelName
+    const conversationId = new ObjectId();
+    const messageId = new ObjectId();
+    const embeddingModelName = "test-embedding-model";
+
+    const conversation: Partial<Conversation> = {
+      _id: conversationId,
+      messages: [
+        {
+          id: messageId,
+          role: "user",
+          content: "Message with embedding model name",
+          createdAt: new Date(),
+          embeddingModelName,
+        } as Message,
+      ],
+    };
+
+    await db
+      .collection<Conversation>("conversations")
+      .insertOne(conversation as Conversation);
+
+    // Act: Run the scrubMessages function
+    await scrubMessages({ db });
+
+    // Assert: embeddingModelName should be preserved in the scrubbed message
+    const scrubbedMessage = await db
+      .collection<ScrubbedMessage>("scrubbed_messages")
+      .findOne({ _id: messageId });
+
+    expect(scrubbedMessage).toBeDefined();
+    expect(scrubbedMessage?.embeddingModelName).toBe(embeddingModelName);
+  });
+
   it("should handle system messages correctly", async () => {
     // Arrange: Create a conversation with a system message
     const conversationId = new ObjectId();

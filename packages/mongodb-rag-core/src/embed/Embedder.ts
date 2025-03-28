@@ -18,4 +18,5 @@ export type EmbedResult = {
  */
 export type Embedder = {
   embed(args: EmbedArgs): Promise<EmbedResult>;
+  modelName?: string;
 };

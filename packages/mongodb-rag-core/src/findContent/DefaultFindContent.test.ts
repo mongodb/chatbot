@@ -78,4 +78,21 @@ describe("makeDefaultFindContent()", () => {
     expect(content).toBeDefined();
     expect(content.length).toBe(0);
   });
+
+  test("Should include embeddingModelName from embedder", async () => {
+    const findContent = makeDefaultFindContent({
+      embedder,
+      store: embeddedContentStore,
+      findNearestNeighborsOptions: {
+        minScore: 0.1,
+      },
+    });
+    const query = "MongoDB Atlas";
+    const { content, embeddingModelName } = await findContent({
+      query,
+    });
+    expect(content).toBeDefined();
+    expect(content.length).toBeGreaterThan(0);
+    expect(embeddingModelName).toBe(OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT);
+  });
 });

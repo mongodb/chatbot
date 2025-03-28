@@ -99,7 +99,7 @@ export function makeRagGenerateUserPrompt({
 
     // --- VECTOR SEARCH / RETRIEVAL ---
     const findContentQuery = preprocessedUserMessageContent ?? userMessageText;
-    const { content, queryEmbedding } = await findContent({
+    const { content, queryEmbedding, embeddingModelName } = await findContent({
       query: findContentQuery,
     });
     if (content.length === 0) {
@@ -112,6 +112,7 @@ export function makeRagGenerateUserPrompt({
           role: "user",
           content: userMessageText,
           embedding: queryEmbedding,
+          embeddingModel: embeddingModelName,
         },
         rejectQuery: true,
       };

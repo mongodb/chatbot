@@ -47,4 +47,9 @@ export type ScrubbedMessage = Omit<
     and false otherwise.
    */
   userCommented?: boolean;
+
+  /**
+    The name of the embedding model used to generate the embedding for this message.
+   */
+  embeddingModelName?: string;
 };

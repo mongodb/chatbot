@@ -113,6 +113,12 @@ export type UserMessage = MessageBase & {
     The vector representation of the message content.
    */
   embedding?: number[];
+
+  /**
+    The model used to generate the embedding vector.
+    For example: "text-embedding-ada-002" or "text-embedding-3-small"
+   */
+  embeddingModel?: string;
 };
 
 /**

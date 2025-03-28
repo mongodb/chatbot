@@ -4,6 +4,8 @@ import {
   MongoClient,
 } from "mongodb-rag-core/mongodb";
 
+import { inspect } from "util";
+
 export type IndexDefinition = {
   spec: IndexSpecification;
   options?: CreateIndexesOptions;
@@ -22,10 +24,16 @@ export async function ensureCollectionWithIndex({
   collectionName,
   ...indexProps
 }: EnsureCollectionWithIndexParams) {
-  console.log("Ensuring collection with index:", {
-    collectionName,
-    ...indexProps,
-  });
+  console.log(
+    "Ensuring collection with index:",
+    inspect(
+      {
+        collectionName,
+        ...indexProps,
+      },
+      { depth: null, colors: false }
+    )
+  );
   await client.connect();
   const db = client.db(databaseName);
   const existingCollections = await db
@@ -78,8 +86,25 @@ export async function ensureIndex({
 }
 
 // Date utils
-export function startOfMonth(date: Date) {
-  return new Date(Date.UTC(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0));
+export function startOfMonth(date: Date | string) {
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  return new Date(
+    Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), 1, 0, 0, 0, 0)
+  );
+}
+
+export function isStartOfMonth(date?: Date | string): boolean {
+  if (!date) {
+    return false;
+  }
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  return (
+    dateObj.getUTCDate() === 1 &&
+    dateObj.getUTCHours() === 0 &&
+    dateObj.getUTCMinutes() === 0 &&
+    dateObj.getUTCSeconds() === 0 &&
+    dateObj.getUTCMilliseconds() === 0
+  );
 }
 
 export function startOfWeek(

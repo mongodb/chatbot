@@ -185,11 +185,6 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
   },
   {
     type: "snooty",
-    name: "guides",
-    tags: ["docs", "guides", "tutorial"],
-  },
-  {
-    type: "snooty",
     name: "visual-studio-extension",
     tags: ["docs", "visual-studio-extension", "visual-studio", "gui"],
     productName: "MongoDB Visual Studio Extension",

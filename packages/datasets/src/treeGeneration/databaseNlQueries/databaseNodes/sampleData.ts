@@ -1,6 +1,5 @@
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
-  DatabaseInfo,
   DatabaseInfoNode,
   DatabaseUseCase,
   DatabaseUser,
@@ -10,6 +9,7 @@ import {
 import { OpenAI } from "mongodb-rag-core/openai";
 import { LlmOptions } from "./LlmOptions";
 import { BRAINTRUST_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
+import { DatabaseInfo } from "mongodb-rag-core/executeCode";
 
 export const makeSampleLlmOptions = () => {
   const { BRAINTRUST_API_KEY, BRAINTRUST_ENDPOINT } =

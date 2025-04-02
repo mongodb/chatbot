@@ -1,12 +1,7 @@
-import {
-  Db,
-  Document,
-  IndexDescription,
-  MongoClient,
-} from "mongodb-rag-core/mongodb";
+import { Db, Document, IndexDescription, MongoClient } from "mongodb";
 import { getSimplifiedSchema } from "mongodb-schema";
 import { extractDeterministicSampleOfDocuments } from "./extractDeterministicSampleOfDocuments";
-import { truncateDbOperationOutputForLlm } from "./truncateDbOperationOutputForLlm";
+import { truncateDbOperationOutputForLlm } from "../truncateDbOperationOutputForLlm";
 
 export interface GetDatabaseMetadataParams {
   mongoClient: MongoClient;

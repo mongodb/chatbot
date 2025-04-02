@@ -1,5 +1,5 @@
-import { ObjectId, BSON } from "mongodb-rag-core/mongodb";
-import { prettyPrintMongoDbDocument } from "./prettyPrintMongoDbDocument";
+import { ObjectId, BSON } from "mongodb";
+import { prettyPrintMongoDbDocument } from "./databaseMetadata/prettyPrintMongoDbDocument";
 
 describe("prettyPrintMongoDbDocument", () => {
   it("should convert ObjectId to string representation", () => {

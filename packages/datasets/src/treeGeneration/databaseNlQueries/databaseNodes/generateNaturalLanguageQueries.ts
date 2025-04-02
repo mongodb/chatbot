@@ -50,7 +50,7 @@ If the use case relates to time windows or temporal analysis:
 - Mix absolute time references (e.g., "in 2020", "during the 1990s") with relative ones (e.g., "in the past month", "over the last year")
 - Include some queries with multiple time constraints when appropriate (e.g., "movies released between 2010 and 2020")
 - Use both specific dates and general time periods 
-- Make sure to keep the time constraints within the provided 'Latest Date' field in mind.
+- Make sure to keep the date provided in the 'Latest Date' field in mind when crafting the query.
 
 Generate ${numChildren} natural language queries with multiple variations for each use case, maintaining the same complexity level as specified in the use case.`;
 

@@ -1,4 +1,4 @@
-import { BSON } from "mongodb-rag-core/mongodb";
+import { BSON } from "mongodb";
 
 /**
   Converts MongoDB documents with BSON types to a readable string format using EJSON.

@@ -1,9 +1,9 @@
-import { MongoClient, ObjectId, Collection } from "mongodb-rag-core/mongodb";
+import { MongoClient, ObjectId, Collection } from "mongodb";
 import {
   extractDeterministicSampleOfDocuments,
   MUST_HAVE_AT_LEAST_ONE_EXAMPLE_DOCUMENT_ERROR,
 } from "./extractDeterministicSampleOfDocuments";
-import { MONGO_MEMORY_SERVER_URI } from "../../../test/constants";
+import { MONGO_MEMORY_SERVER_URI } from "../../test/constants";
 
 describe("extractDeterministicSampleOfDocuments", () => {
   let mongoClient: MongoClient;

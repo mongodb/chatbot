@@ -3,18 +3,18 @@ import {
   TextToDriverInput,
   TextToDriverMetadata,
   TextToDriverOutput,
-} from "./evalTypes";
-import {
-  QueryExecutionTimeMinutes,
-  SuccessfulExecution,
-} from "./evaluationMetrics";
+} from "./TextToDriverEval";
+import { SuccessfulExecution } from "./evaluationMetrics";
 
 const input = {
   dataset_name: "some dataset",
   nl_query: "some query",
 } satisfies TextToDriverInput;
 const expectedObj = [{ count: 1 }];
-const expected = JSON.stringify(expectedObj) satisfies TextToDriverExpected;
+const expected = {
+  result: expectedObj,
+  dbQuery: "some query",
+} satisfies TextToDriverExpected;
 const metadata = {
   sql: {
     query: "some query",
@@ -23,6 +23,7 @@ const metadata = {
       subcategories: ["JOIN"],
     },
   },
+  language: "python",
 } satisfies TextToDriverMetadata;
 const generatedCode = "some code";
 
@@ -120,27 +121,5 @@ describe("SuccessfulExecution", () => {
         score: 0,
       },
     ]);
-  });
-});
-
-describe("QueryExecutionTimeMinutes", () => {
-  it("should correctly convert execution time from ms to minutes", async () => {
-    const output = {
-      execution: {
-        result: null,
-        executionTimeMs: 500,
-      },
-      generatedCode,
-    } satisfies TextToDriverOutput;
-    const result = await QueryExecutionTimeMinutes({
-      output,
-      input,
-      expected,
-      metadata,
-    });
-    expect(result).toEqual({
-      name: "QueryExecutionTimeMinutes",
-      score: output.execution.executionTimeMs / 1000 / 60,
-    });
   });
 });

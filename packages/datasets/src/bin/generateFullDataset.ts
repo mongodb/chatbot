@@ -2,11 +2,11 @@ import fs from "fs";
 import path from "path";
 import readline from "readline";
 import { DatabaseNlQueryDatasetEntry } from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
-import { isNonMutativeOperation } from "../treeGeneration/databaseNlQueries/databaseMetadata/isNonMutativeOperation";
 import {
   countAndLogUsage,
   countStringProperty,
 } from "../treeGeneration/databaseNlQueries/analyzeDataset";
+import { isNonMutativeOperation } from "mongodb-rag-core/executeCode";
 
 const dataOutDir = path.resolve(__dirname, "..", "..", "dataOut");
 

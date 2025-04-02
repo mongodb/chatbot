@@ -8,3 +8,7 @@ export const envVars = {
   MONGODB_QUIZ_QUESTIONS_COLLECTION_NAME: "",
   ...GCP_VERTEX_AI_ENV_VARS,
 };
+
+export const TEXT_TO_DRIVER_ENV_VARS = {
+  MONGODB_TEXT_TO_DRIVER_CONNECTION_URI: "",
+};

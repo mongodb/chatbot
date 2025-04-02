@@ -1,5 +1,5 @@
+import { DatabaseInfo } from "mongodb-rag-core/executeCode";
 import {
-  DatabaseInfo,
   DatabaseUseCase,
   DatabaseUser,
   NaturalLanguageQuery,
@@ -19,7 +19,9 @@ ${databaseInfo.collections
     (c) => `#### Collection \`${c.name}\`
 Description: ${c.description}
 Schema:
-${c.schema}`
+${c.schema}
+Indexes:
+${c.indexes.map((i) => `${JSON.stringify(i)}`)}`
   )
   .join("\n")}`;
 }

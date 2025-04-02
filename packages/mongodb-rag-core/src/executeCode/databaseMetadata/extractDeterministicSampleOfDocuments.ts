@@ -1,5 +1,5 @@
 import { strict as assert } from "assert";
-import { Collection, BSON } from "mongodb-rag-core/mongodb";
+import { Collection } from "mongodb";
 
 export interface ExtractSampleDocumentsParams {
   collection: Collection;

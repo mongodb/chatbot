@@ -1,31 +1,9 @@
 import { z } from "zod";
 import { GenerationNode, WithParentNode } from "../../GenerationNode";
-import { DatabaseExecutionResult } from "mongodb-rag-core/executeCode";
-
-export const DatabaseInfoSchema = z.object({
-  name: z.string().describe("Name of the database"),
-  description: z.string().describe("Brief description of the database"),
-  latestDate: z.date().describe("Latest date in the database"),
-  collections: z.array(
-    z.object({
-      name: z.string(),
-      description: z.string(),
-      schema: z.any(),
-      examples: z.array(z.any()),
-      indexes: z
-        .array(
-          z.object({
-            description: z.string().optional(),
-            name: z.string(),
-            key: z.any(),
-          })
-        )
-        .describe("Indexes on the collection."),
-    })
-  ),
-});
-
-export type DatabaseInfo = z.infer<typeof DatabaseInfoSchema>;
+import {
+  DatabaseExecutionResult,
+  DatabaseInfo,
+} from "mongodb-rag-core/executeCode";
 
 export type DatabaseInfoNode = WithParentNode<
   GenerationNode<DatabaseInfo, "database_info">,

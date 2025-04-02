@@ -1,8 +1,8 @@
-import { Document } from "mongodb-rag-core/mongodb";
+import { Document } from "mongodb";
 import {
   truncateDbOperationOutputForLlm,
   TruncationOptions,
-} from "./truncateDbOperationOutputForLlm";
+} from "./databaseMetadata/truncateDbOperationOutputForLlm";
 
 describe("truncateDbOperationOutputForLlm", () => {
   describe("string truncation", () => {

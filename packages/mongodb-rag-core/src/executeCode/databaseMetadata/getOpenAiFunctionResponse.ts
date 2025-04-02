@@ -1,7 +1,7 @@
-import { OpenAI } from "mongodb-rag-core/openai";
+import { OpenAI } from "openai";
 import { ZodSchema, z } from "zod";
-import { LlmOptions } from "../databaseNodes/LlmOptions";
 import zodToJsonSchema from "zod-to-json-schema";
+import { LlmOptions } from "./LlmOptions";
 
 interface GetOpenAiFunctionResponseParams<Schema extends ZodSchema> {
   messages: OpenAI.ChatCompletionMessageParam[];

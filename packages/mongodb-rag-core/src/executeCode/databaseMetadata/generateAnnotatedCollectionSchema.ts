@@ -1,9 +1,9 @@
-import { OpenAI } from "mongodb-rag-core/openai";
+import { OpenAI } from "openai";
 import { CollectionInfo, DatabaseMetadata } from "./getDatabaseMetadata";
-import { LlmOptions } from "../databaseNodes/LlmOptions";
 import { z } from "zod";
 import { getOpenAiFunctionResponse } from "./getOpenAiFunctionResponse";
-import { prettyPrintMongoDbDocument } from "./prettyPrintMongoDbDocument";
+import { prettyPrintMongoDbDocument } from "../prettyPrintMongoDbDocument";
+import { LlmOptions } from "./LlmOptions";
 
 const systemPrompt = `You are an expert MongoDB database architect. Your task is to analyze the provided database metadata and generate clear, concise descriptions and an annotated schema for the specified collection. The descriptions that you generate will be used in the prompt of a LLM for performing database-related tasks.
 

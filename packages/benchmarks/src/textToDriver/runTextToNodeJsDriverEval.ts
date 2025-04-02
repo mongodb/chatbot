@@ -1,4 +1,4 @@
-import { Eval, traced } from "braintrust";
+import { traced } from "braintrust";
 import {
   GenerateDriverCodeParams,
   makeGenerateDriverCode,
@@ -6,23 +6,18 @@ import {
 } from "./generateDriverCode/makeGenerateDriverCode";
 import { OpenAI } from "mongodb-rag-core/openai";
 import {
-  loadBraintrustEvalCases,
+  loadLegacyTextToDriverBraintrustEvalCases,
   loadBraintrustMetadata,
 } from "./loadBraintrustDatasets";
 import {
-  TextToDriverExpected,
-  TextToDriverInput,
-  TextToDriverMetadata,
-  TextToDriverOutput,
-} from "./evalTypes";
-import {
-  QueryExecutionTimeMinutes,
-  SuccessfulExecution,
-} from "./evaluationMetrics";
+  TextToDriverEvalResult,
+  makeTextToDriverEval,
+} from "./TextToDriverEval";
+import { SuccessfulExecution } from "./evaluationMetrics";
 import { strict as assert } from "assert";
-import { executeGeneratedDriverCode } from "./executeGeneratedDriverCode";
+import { executeNodeJsDriverCode } from "mongodb-rag-core/executeCode";
 
-export interface MakeEvalParams {
+export interface MakeTextToDriverEvalParams {
   apiKey: string;
   projectName: string;
   maxConcurrency?: number;
@@ -42,6 +37,7 @@ export interface MakeEvalParams {
   };
   sleepBeforeMs?: number;
 }
+
 export async function runTextToDriverEval({
   apiKey,
   projectName,
@@ -54,28 +50,24 @@ export async function runTextToDriverEval({
   timeout,
   sleepBeforeMs = 0,
   dataset,
-}: MakeEvalParams) {
+}: MakeTextToDriverEvalParams): Promise<TextToDriverEvalResult> {
   const dbMetadatas = await loadBraintrustMetadata({
     apiKey,
     projectName,
   });
-  return Eval<
-    TextToDriverInput,
-    TextToDriverOutput,
-    TextToDriverExpected,
-    TextToDriverMetadata
-  >(projectName, {
+  return makeTextToDriverEval({
+    apiKey,
+    projectName,
     maxConcurrency,
     experimentName,
     timeout,
     metadata,
-    data: loadBraintrustEvalCases({
+    data: loadLegacyTextToDriverBraintrustEvalCases({
       apiKey,
       projectName,
       datasetName: dataset.name,
     }),
-
-    async task(input) {
+    task: async (input) => {
       try {
         await sleep(sleepBeforeMs);
         const metadata = dbMetadatas.find(
@@ -125,7 +117,7 @@ export async function runTextToDriverEval({
 
         const execution = await traced(
           async () =>
-            executeGeneratedDriverCode({
+            executeNodeJsDriverCode({
               generatedDriverCode: output,
               databaseName: metadata.databaseName,
               mongoClient: promptConfig.sampleGenerationConfig.mongoClient,
@@ -158,7 +150,7 @@ export async function runTextToDriverEval({
       }
     },
 
-    scores: [SuccessfulExecution, QueryExecutionTimeMinutes],
+    scores: [SuccessfulExecution],
   });
 }
 

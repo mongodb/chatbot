@@ -22,7 +22,7 @@
     "benchmark:MongoDbUniversityQuizQuestion": "npm run build && node ./build/quizQuestions/mongoDbUniversityQuizQuestionBenchmark.js",
     "benchmark:MongodbUniversityAllQuestionBenchmark": "npm run build && node ./build/quizQuestions/mongodbUniversityAllQuestionBenchmark.js",
     "benchmark:MongoDbUniversityBadgeQuestionBenchmark": "npm run build && node ./build/quizQuestions/mongoDbUniversityBadgeQuestionBenchmark.js",
-    "benchmark:TextToNodeJsDriver": "npm run build && node ./build/textToDriver/nodeJsDriverBenchmark.js"
+    "benchmark:TextToNodeJsDriver": "npm run build && node ./build/textToDriver/bin/nodeJsDriverBenchmark.js"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7",
@@ -47,7 +47,9 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^1.3.6",
     "@supercharge/promise-pool": "^3.2.0",
+    "ai": "^4.2.10",
     "csv-writer": "^1.6.0",
     "dotenv": "^16",
     "mongodb-chatbot-server": "*",

@@ -1,4 +1,5 @@
 import { extractCodeFromMarkdown } from "./extractCodeFromMarkdown";
+
 describe("extractCodeFromMarkdown", () => {
   it("should remove code block with a specified language", () => {
     const input = `

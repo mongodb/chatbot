@@ -7,7 +7,7 @@ import PromisePool from "@supercharge/promise-pool";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { BRAINTRUST_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 import { DATABASE_NL_QUERIES } from "../EnvVars";
-import { generateAnnotatedDatabaseInfo } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
+import { generateAnnotatedDatabaseInfoNode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
 import { generateDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/databaseNodes/generateDatabaseExecutionResult";
 import { generateDatabaseUsers } from "../treeGeneration/databaseNlQueries/databaseNodes/generateDatabaseUsers";
 import { generateMongoshCode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateMongoshCode";
@@ -101,7 +101,7 @@ async function generateMongoshDataset({
   const nodeStore = makeMongoDbNodeStore(persistence);
 
   console.log(`Generating database info for database ${dataset.databaseName}`);
-  const databaseInfoNode = await generateAnnotatedDatabaseInfo({
+  const databaseInfoNode = await generateAnnotatedDatabaseInfoNode({
     mongoDb: dataset,
     llm: llmConfigs.database.llmConfig,
     latestDate: dataset.latestDate,

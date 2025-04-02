@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { DatabaseMetadata } from "./getDatabaseMetadata";
-import { LlmOptions } from "../databaseNodes/LlmOptions";
+import { LlmOptions } from "./LlmOptions";
 import { getOpenAiFunctionResponse } from "./getOpenAiFunctionResponse";
-import { prettyPrintMongoDbDocument } from "./prettyPrintMongoDbDocument";
-import { OpenAI } from "mongodb-rag-core/openai";
+import { prettyPrintMongoDbDocument } from "../prettyPrintMongoDbDocument";
+import { OpenAI } from "openai";
 
 const systemPrompt = `You are an expert MongoDB database architect. Your task is to analyze the provided database metadata and generate clear, concise descriptions.
 

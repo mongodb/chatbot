@@ -1,4 +1,4 @@
-import { Document, ObjectId } from "mongodb-rag-core/mongodb";
+import { ObjectId, Document } from "mongodb";
 
 export interface TruncationOptions {
   maxStringLength?: number;

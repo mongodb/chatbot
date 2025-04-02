@@ -9,7 +9,7 @@ import {
   truncateDbOperationOutputForLlm,
 } from "mongodb-rag-core/executeCode";
 import { mongoshBaseSystemPrompt } from "./languagePrompts/mongosh";
-import { TextToDriverInput, TextToDriverOutput } from "../TextToDriverEval";
+import { TextToDriverEvalTask, TextToDriverOutput } from "../TextToDriverEval";
 import { makeDatabaseInfoPrompt } from "./makeDatabaseInfoPrompt";
 
 const THINK_TOOL_NAME = "think";
@@ -22,11 +22,9 @@ YOU MUST ALWAYS use the '${GENERATE_DB_CODE_TOOL_NAME}' tool to generate a query
 ALWAYS make AT LEAST 2 tool calls, at least one to '${THINK_TOOL_NAME}' and '${GENERATE_DB_CODE_TOOL_NAME}' before responding to the user.
 When you are satisfied with the results of '${GENERATE_DB_CODE_TOOL_NAME}', simply say 'Done'`;
 
-export interface GenerateMongoshCodeAgenticParams {
-  databaseName: string;
+export interface MakeGenerateMongoshCodeAgenticParams {
   uri: string;
-  databaseInfo: DatabaseInfo;
-  nlQuery: TextToDriverInput;
+  databaseInfos: Record<string, DatabaseInfo>;
   openai: OpenAIProvider;
   llmOptions: LlmOptions;
 }
@@ -35,84 +33,88 @@ export interface GenerateMongoshCodeAgenticParams {
   Generates a MongoDB Shell (mongosh) query and executes it.
   Uses an agentic pipeline to iteratively think and generate the code.
  */
-export async function generateMongoshCodeAgentic({
-  databaseName,
+export function makeGenerateMongoshCodeAgenticTask({
   uri,
-  databaseInfo,
-  nlQuery,
+  databaseInfos,
   openai,
   llmOptions,
-}: GenerateMongoshCodeAgenticParams) {
-  let latestExecution: DatabaseExecutionResult | null = null;
-  let latestCode: TextToDriverOutput["generatedCode"] | null = null;
+}: MakeGenerateMongoshCodeAgenticParams): TextToDriverEvalTask {
+  const generateMongoshCodeAgentic: TextToDriverEvalTask =
+    async function generateMongoshCodeAgentic({ dataset_name, nl_query }) {
+      let latestExecution: DatabaseExecutionResult | null = null;
+      let latestCode: TextToDriverOutput["generatedCode"] | null = null;
 
-  const res = await generateText({
-    temperature: llmOptions.temperature ?? undefined,
-    seed: llmOptions.seed ?? undefined,
-    maxTokens:
-      llmOptions.max_tokens ?? llmOptions.max_completion_tokens ?? undefined,
-    model: openai(llmOptions.model, {
-      structuredOutputs: true,
-    }),
-    tools: {
-      [THINK_TOOL_NAME]: tool({
-        description:
-          "Think about the query plan given the natural language query and any previous results (if present). Plan the next query accordingly.",
-        parameters: z.object({
-          thoughts: z
-            .string()
-            .describe("Your thoughts and plan for the next query"),
+      const res = await generateText({
+        temperature: llmOptions.temperature ?? undefined,
+        seed: llmOptions.seed ?? undefined,
+        maxTokens:
+          llmOptions.max_tokens ??
+          llmOptions.max_completion_tokens ??
+          undefined,
+        model: openai(llmOptions.model, {
+          structuredOutputs: true,
         }),
-        execute: async () => {
-          return "Ok, now generate the query or think more.";
+        tools: {
+          [THINK_TOOL_NAME]: tool({
+            description:
+              "Think about the query plan given the natural language query and any previous results (if present). Plan the next query accordingly.",
+            parameters: z.object({
+              thoughts: z
+                .string()
+                .describe("Your thoughts and plan for the next query"),
+            }),
+            execute: async () => {
+              return "Ok, now generate the query or think more.";
+            },
+          }),
+          [GENERATE_DB_CODE_TOOL_NAME]: tool({
+            description:
+              "A MongoDB Shell (mongosh) query for the database use case",
+            parameters: z.object({
+              code: z.string().describe("Executable mongosh code snippet"),
+            }),
+            execute: async (args) => {
+              const execution = await executeMongoshQuery({
+                databaseName: dataset_name,
+                query: args.code,
+                uri,
+              });
+              latestExecution = execution;
+              latestCode = args.code;
+              return {
+                ...execution,
+                result: truncateDbOperationOutputForLlm(execution.result),
+              };
+            },
+          }),
         },
-      }),
-      [GENERATE_DB_CODE_TOOL_NAME]: tool({
-        description:
-          "A MongoDB Shell (mongosh) query for the database use case",
-        parameters: z.object({
-          code: z.string().describe("Executable mongosh code snippet"),
-        }),
-        execute: async (args) => {
-          const execution = await executeMongoshQuery({
-            databaseName,
-            query: args.code,
-            uri,
-          });
-          latestExecution = execution;
-          latestCode = args.code;
-          return {
-            ...execution,
-            result: truncateDbOperationOutputForLlm(execution.result),
-          };
-        },
-      }),
-    },
-    maxSteps: 10,
-    messages: [
-      {
-        role: "system",
-        content: nlQuerySystemPrompt,
-      },
-      {
-        role: "user",
-        content: `Generate MongoDB Shell (mongosh) queries for the following database and natural language query:
+        maxSteps: 10,
+        messages: [
+          {
+            role: "system",
+            content: nlQuerySystemPrompt,
+          },
+          {
+            role: "user",
+            content: `Generate MongoDB Shell (mongosh) queries for the following database and natural language query:
 
-${makeDatabaseInfoPrompt(databaseInfo)}
+${makeDatabaseInfoPrompt(databaseInfos[dataset_name])}
 
-Natural language query: ${nlQuery.nl_query}`,
-      },
-    ],
-  });
-  if (!latestExecution) {
-    throw new Error("latestExecution is null");
-  }
-  if (!latestCode) {
-    throw new Error("latestCode is null");
-  }
-  return {
-    execution: latestExecution as DatabaseExecutionResult,
-    generatedCode: latestCode,
-    pipelineOutput: res,
-  } satisfies TextToDriverOutput & { pipelineOutput: typeof res };
+Natural language query: ${nl_query}`,
+          },
+        ],
+      });
+      if (!latestExecution) {
+        throw new Error("latestExecution is null");
+      }
+      if (!latestCode) {
+        throw new Error("latestCode is null");
+      }
+      return {
+        execution: latestExecution as DatabaseExecutionResult,
+        generatedCode: latestCode,
+        pipelineOutput: res,
+      } satisfies TextToDriverOutput & { pipelineOutput: typeof res };
+    };
+  return generateMongoshCodeAgentic;
 }

@@ -1,14 +1,12 @@
-import { generateMongoshCodeAgentic } from "./generateMongoshCodeAgentic";
+import { makeGenerateMongoshCodeAgenticTask } from "./generateMongoshCodeAgentic";
 import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
 import { createOpenAI } from "@ai-sdk/openai";
 import { TEXT_TO_DRIVER_ENV_VARS } from "../../envVars";
 import { makeSampleLlmOptions } from "../../test/makeSampleLlmOptions";
 import { annotatedDbSchemas } from "./annotatedDbSchemas";
 
-// Skipping LLM call tests
-describe.skip("generateMqlCode", () => {
-  jest.setTimeout(300000); // Increase timeout for OpenAI API calls
-
+describe.skip("generateMongoshCodeAgentic", () => {
+  // Skip tests if environment variables are not set
   const {
     BRAINTRUST_API_KEY,
     BRAINTRUST_ENDPOINT,
@@ -25,18 +23,26 @@ describe.skip("generateMqlCode", () => {
   const dbName = "sample_mflix";
 
   it("should generate MQL code for a NL query", async () => {
-    const nlQuery = "Count all movies with a rating of 5";
-    const mqlCode = await generateMongoshCodeAgentic({
-      databaseName: dbName,
+    const generateMongoshCodeAgentic = makeGenerateMongoshCodeAgenticTask({
+      llmOptions,
+      databaseInfos: annotatedDbSchemas,
+      openai,
       uri: MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
-      databaseInfo: annotatedDbSchemas[dbName],
-      nlQuery: {
+    });
+    const nlQuery = "Count all movies with a rating of 5";
+
+    // Create a mock for the second parameter that satisfies the EvalHooks interface
+    const mockHooks = jest.fn() as unknown as Parameters<
+      typeof generateMongoshCodeAgentic
+    >[1];
+
+    const mqlCode = await generateMongoshCodeAgentic(
+      {
         nl_query: nlQuery,
         dataset_name: dbName,
       },
-      openai,
-      llmOptions,
-    });
+      mockHooks
+    );
     console.log("GeneratedMqlCode", mqlCode.execution.result);
   });
 });

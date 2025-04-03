@@ -37,6 +37,7 @@ export const makeOpenAiEmbedder = ({
 
   const DEFAULT_WAIT_SECONDS = 5;
   return {
+    modelName: deployment,
     async embed({ text }) {
       return backOff(
         async () => {

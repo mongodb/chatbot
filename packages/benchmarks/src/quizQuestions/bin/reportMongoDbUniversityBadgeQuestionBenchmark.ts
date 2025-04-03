@@ -1,4 +1,4 @@
-import { BRAINTRUST_ENV_VARS } from "../../envVars";
+import { BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
 import { assertEnvVars } from "mongodb-rag-core";
 import {
   ExperimentResult,

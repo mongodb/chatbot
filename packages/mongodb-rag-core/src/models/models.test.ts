@@ -3,10 +3,10 @@
   Useful to test before executing benchmark runs to ensure all models are working.
  */
 import { assertEnvVars } from "mongodb-rag-core";
-import { BRAINTRUST_ENV_VARS, GCP_VERTEX_AI_ENV_VARS } from "./envVars";
+import { BRAINTRUST_ENV_VARS, GCP_VERTEX_AI_ENV_VARS } from "../CoreEnvVars";
 import { models } from "./models";
 import { makeOpenAiClientFactory } from "./makeOpenAiClientFactory";
-import { OpenAI } from "mongodb-rag-core/openai";
+import { OpenAI } from "openai";
 import "dotenv/config";
 
 jest.setTimeout(60000);

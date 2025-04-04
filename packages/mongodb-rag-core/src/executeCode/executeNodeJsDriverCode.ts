@@ -1,6 +1,7 @@
-import { Document, MongoClient } from "mongodb-rag-core/mongodb";
+import { MongoClient } from "mongodb";
 import vm from "vm";
 import { extractCodeFromMarkdown } from "./extractCodeFromMarkdown";
+import { DatabaseExecutionResult } from "./DatabaseExecutionResult";
 
 export interface ExecuteGeneratedDriverCodeParams {
   /**
@@ -18,42 +19,18 @@ export interface ExecuteGeneratedDriverCodeParams {
   databaseName: string;
 }
 
-export interface ExecuteGeneratedDriverCodeResult {
-  /**
-    The result of executing the generated driver code.
-    `null` if no result was returned.
-   */
-  result: Document | Document[] | number | null;
-  /**
-    An error message if an error occurred during execution.
-   */
-  error?: {
-    message: string;
-  };
-  /**
-    The time in milliseconds it took to execute the generated driver code.
-   */
-  executionTimeMs: number;
-}
-
 /**
-  Execute the generated driver code using the provided MongoDB client instance.
+  Execute the Node.js driver code using the provided MongoDB client instance.
 
-  This function expects that the generated driver code
+  This function expects that the driver code
   uses the `database` variable of type `Db` to access the MongoDB database.
-  If you do not provide a `database` variable in the generated driver code,
+  If you do not provide a `database` variable in the driver code,
   this function will not work as expected.
 
  */
-export async function executeGeneratedDriverCode(
+export async function executeNodeJsDriverCode(
   params: ExecuteGeneratedDriverCodeParams
-): Promise<{
-  result: Document | Document[] | number | null;
-  error?: {
-    message: string;
-  };
-  executionTimeMs: number;
-}> {
+): Promise<DatabaseExecutionResult> {
   const { generatedDriverCode, mongoClient, databaseName } = params;
   const database = mongoClient.db(databaseName);
 
@@ -76,13 +53,12 @@ export async function executeGeneratedDriverCode(
   } catch (error: unknown) {
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";
-    const endTime = Date.now();
     return {
       result: null,
       error: {
         message: errorMessage,
       },
-      executionTimeMs: endTime - startTime,
+      executionTimeMs: null,
     };
   }
 }

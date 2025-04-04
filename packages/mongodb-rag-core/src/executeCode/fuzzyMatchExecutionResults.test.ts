@@ -1,6 +1,6 @@
-import { fuzzyMatch, MongoDbOutput } from "./fuzzyMatch";
+import { fuzzyMatchExecutionResults } from "./fuzzyMatchExecutionResults";
 
-describe("fuzzyMatch()", () => {
+describe("fuzzyMatchExecutionResults()", () => {
   test("should return true for identical arrays with identical objects in the same order", () => {
     const mongoDbOutput = [
       { id: 1, name: "Alice", score: 95.0 },
@@ -8,13 +8,13 @@ describe("fuzzyMatch()", () => {
       { id: 3, name: "Charlie", score: 78.2 },
     ];
 
-    const expected = JSON.stringify([
+    const expected = [
       { id: 1, name: "Alice", score: 95.0 },
       { id: 2, name: "Bob", score: 85.5 },
       { id: 3, name: "Charlie", score: 78.2 },
-    ]);
+    ];
 
-    const result = fuzzyMatch({
+    const result = fuzzyMatchExecutionResults({
       mongoDbOutput,
       expected,
       orderMatters: true,
@@ -30,13 +30,17 @@ describe("fuzzyMatch()", () => {
       { id: 2, name: "Bob", score: 85.5 },
     ];
 
-    const expected = JSON.stringify([
+    const expected = [
       { id: 1, name: "Alice", score: 95.0 },
       { id: 2, name: "Bob", score: 85.5 },
       { id: 3, name: "Charlie", score: 78.2 },
-    ]);
+    ];
 
-    const result = fuzzyMatch({ mongoDbOutput, expected, orderMatters: false });
+    const result = fuzzyMatchExecutionResults({
+      mongoDbOutput,
+      expected,
+      orderMatters: false,
+    });
 
     expect(result).toBe(true);
   });
@@ -44,12 +48,16 @@ describe("fuzzyMatch()", () => {
   test("should return false for arrays with different lengths", () => {
     const mongoDbOutput = [{ id: 1, name: "Alice", score: 95.0 }];
 
-    const expected = JSON.stringify([
+    const expected = [
       { id: 1, name: "Alice", score: 95.0 },
       { id: 2, name: "Bob", score: 85.5 },
-    ]);
+    ];
 
-    const result = fuzzyMatch({ mongoDbOutput, expected, orderMatters: true });
+    const result = fuzzyMatchExecutionResults({
+      mongoDbOutput,
+      expected,
+      orderMatters: true,
+    });
 
     expect(result).toBe(false);
   });
@@ -57,9 +65,9 @@ describe("fuzzyMatch()", () => {
   test("should return true when numbers differ within allowed tolerance", () => {
     const mongoDbOutput = [{ id: 1, value: 100.005 }];
 
-    const expected = JSON.stringify([{ id: 1, value: 100.0 }]);
+    const expected = [{ id: 1, value: 100.0 }];
 
-    const result = fuzzyMatch({
+    const result = fuzzyMatchExecutionResults({
       mongoDbOutput,
       expected,
       orderMatters: true,
@@ -72,9 +80,9 @@ describe("fuzzyMatch()", () => {
   test("should return false when numbers differ beyond allowed tolerance", () => {
     const mongoDbOutput = [{ id: 1, value: 101.1 }];
 
-    const expected = JSON.stringify([{ id: 1, value: 100.0 }]);
+    const expected = [{ id: 1, value: 100.0 }];
 
-    const result = fuzzyMatch({
+    const result = fuzzyMatchExecutionResults({
       mongoDbOutput,
       expected,
       orderMatters: true,
@@ -87,9 +95,13 @@ describe("fuzzyMatch()", () => {
   test("should return false when strings differ in case or whitespace", () => {
     const mongoDbOutput = [{ id: 1, name: " Alice " }];
 
-    const expected = JSON.stringify([{ id: 1, name: "alice" }]);
+    const expected = [{ id: 1, name: "alice" }];
 
-    const result = fuzzyMatch({ mongoDbOutput, expected, orderMatters: true });
+    const result = fuzzyMatchExecutionResults({
+      mongoDbOutput,
+      expected,
+      orderMatters: true,
+    });
 
     expect(result).toBe(false);
   });
@@ -97,9 +109,13 @@ describe("fuzzyMatch()", () => {
   test("should return false when strings differ significantly", () => {
     const mongoDbOutput = [{ id: 1, name: "Bob" }];
 
-    const expected = JSON.stringify([{ id: 1, name: "Alice" }]);
+    const expected = [{ id: 1, name: "Alice" }];
 
-    const result = fuzzyMatch({ mongoDbOutput, expected, orderMatters: true });
+    const result = fuzzyMatchExecutionResults({
+      mongoDbOutput,
+      expected,
+      orderMatters: true,
+    });
 
     expect(result).toBe(false);
   });
@@ -107,9 +123,13 @@ describe("fuzzyMatch()", () => {
   test("should return true when objects have extra keys", () => {
     const mongoDbOutput = [{ id: 1, name: "Alice", age: 30 }];
 
-    const expected = JSON.stringify([{ id: 1, name: "Alice" }]);
+    const expected = [{ id: 1, name: "Alice" }];
 
-    const result = fuzzyMatch({ mongoDbOutput, expected, orderMatters: true });
+    const result = fuzzyMatchExecutionResults({
+      mongoDbOutput,
+      expected,
+      orderMatters: true,
+    });
 
     expect(result).toBe(true);
   });
@@ -141,9 +161,13 @@ describe("fuzzyMatch()", () => {
       },
     ];
 
-    const expected = JSON.stringify([{ Name: "Adjuntas" }, { Name: "Aguada" }]);
+    const expected = [{ Name: "Adjuntas" }, { Name: "Aguada" }];
 
-    const result = fuzzyMatch({ mongoDbOutput, expected, orderMatters: false });
+    const result = fuzzyMatchExecutionResults({
+      mongoDbOutput,
+      expected,
+      orderMatters: false,
+    });
 
     expect(result).toBe(true);
   });
@@ -159,7 +183,7 @@ describe("fuzzyMatch()", () => {
       },
     ];
 
-    const expected = JSON.stringify([
+    const expected = [
       {
         id: 1,
         details: {
@@ -167,9 +191,13 @@ describe("fuzzyMatch()", () => {
           scores: [95.0, 85.5],
         },
       },
-    ]);
+    ];
 
-    const result = fuzzyMatch({ mongoDbOutput, expected, orderMatters: false });
+    const result = fuzzyMatchExecutionResults({
+      mongoDbOutput,
+      expected,
+      orderMatters: false,
+    });
 
     expect(result).toBe(true);
   });
@@ -185,7 +213,7 @@ describe("fuzzyMatch()", () => {
       },
     ];
 
-    const expected = JSON.stringify([
+    const expected = [
       {
         id: 1,
         details: {
@@ -193,9 +221,9 @@ describe("fuzzyMatch()", () => {
           scores: [95.0, 85.5],
         },
       },
-    ]);
+    ];
 
-    const result = fuzzyMatch({ mongoDbOutput, expected });
+    const result = fuzzyMatchExecutionResults({ mongoDbOutput, expected });
 
     expect(result).toBe(false);
   });
@@ -203,9 +231,9 @@ describe("fuzzyMatch()", () => {
   test("should return true when comparing null values", () => {
     const mongoDbOutput = [{ id: 1, name: null }];
 
-    const expected = JSON.stringify([{ id: 1, name: null }]);
+    const expected = [{ id: 1, name: null }];
 
-    const result = fuzzyMatch({ mongoDbOutput, expected });
+    const result = fuzzyMatchExecutionResults({ mongoDbOutput, expected });
 
     expect(result).toBe(true);
   });
@@ -213,19 +241,19 @@ describe("fuzzyMatch()", () => {
   test("should return false when one value is null and the other is not", () => {
     const mongoDbOutput = [{ id: 1, name: null }];
 
-    const expected = JSON.stringify([{ id: 1, name: "Alice" }]);
+    const expected = [{ id: 1, name: "Alice" }];
 
-    const result = fuzzyMatch({ mongoDbOutput, expected });
+    const result = fuzzyMatchExecutionResults({ mongoDbOutput, expected });
 
     expect(result).toBe(false);
   });
 
   test("should handle empty arrays", () => {
-    const mongoDbOutput: MongoDbOutput[] = [];
-    const expected = JSON.stringify([]);
+    const mongoDbOutput: unknown[] = [];
+    const expected: unknown[] = [];
 
-    const result = fuzzyMatch({ mongoDbOutput, expected });
-    const resultOrdered = fuzzyMatch({
+    const result = fuzzyMatchExecutionResults({ mongoDbOutput, expected });
+    const resultOrdered = fuzzyMatchExecutionResults({
       mongoDbOutput,
       expected,
       orderMatters: true,
@@ -242,13 +270,13 @@ describe("fuzzyMatch()", () => {
       { id: 3, value: null },
     ];
 
-    const expected = JSON.stringify([
+    const expected = [
       { id: 1, value: 100 },
       { id: 2, value: 200 },
       { id: 3, value: null },
-    ]);
+    ];
 
-    const result = fuzzyMatch({ mongoDbOutput, expected });
+    const result = fuzzyMatchExecutionResults({ mongoDbOutput, expected });
 
     expect(result).toBe(false);
   });
@@ -259,12 +287,12 @@ describe("fuzzyMatch()", () => {
       { id: 2, name: "Bob" },
     ];
 
-    const expected = JSON.stringify([
+    const expected = [
       { id: 1, name: "Alice" },
       { id: 3, name: "Charlie" },
-    ]);
+    ];
 
-    const result = fuzzyMatch({ mongoDbOutput, expected });
+    const result = fuzzyMatchExecutionResults({ mongoDbOutput, expected });
 
     expect(result).toBe(false);
   });
@@ -273,9 +301,9 @@ describe("fuzzyMatch()", () => {
 describe("fuzzyMatch() with Aggregations", () => {
   test("should return true for exact matching aggregation with a single document", () => {
     const mongoDbOutput = [{ count: 10 }];
-    const expected = JSON.stringify([{ count: 10 }]);
+    const expected = [{ count: 10 }];
 
-    const result = fuzzyMatch({
+    const result = fuzzyMatchExecutionResults({
       mongoDbOutput,
       expected,
       isAggregation: true,
@@ -286,10 +314,10 @@ describe("fuzzyMatch() with Aggregations", () => {
   test("should return true for fuzzy match aggregation with multiple documents", () => {
     const mongoDbOutput = [{ count: 1 }, { count: 2 }];
 
-    const expected = JSON.stringify([{ OTHER: 1 }, { OTHER: 2 }]);
+    const expected = [{ OTHER: 1 }, { OTHER: 2 }];
 
     expect(
-      fuzzyMatch({
+      fuzzyMatchExecutionResults({
         mongoDbOutput,
         expected,
         isAggregation: true,
@@ -301,9 +329,9 @@ describe("fuzzyMatch() with Aggregations", () => {
     const allowedNumberDifference = 0.05;
 
     const mongoDbOutput = { count: 10 + allowedNumberDifference / 2 };
-    const expected = JSON.stringify([{ count: 10 }]);
+    const expected = [{ count: 10 }];
 
-    const result = fuzzyMatch({
+    const result = fuzzyMatchExecutionResults({
       mongoDbOutput,
       expected,
       isAggregation: true,
@@ -316,9 +344,9 @@ describe("fuzzyMatch() with Aggregations", () => {
   test("should return false when scalar aggregation result exceeds allowed tolerance", () => {
     const allowedNumberDifference = 0.05;
     const mongoDbOutput = { count: 11 + allowedNumberDifference * 2 };
-    const expected = JSON.stringify([{ count: 10 }]);
+    const expected = [{ count: 10 }];
 
-    const result = fuzzyMatch({
+    const result = fuzzyMatchExecutionResults({
       mongoDbOutput,
       expected,
       isAggregation: true,
@@ -330,9 +358,9 @@ describe("fuzzyMatch() with Aggregations", () => {
 
   test("should return true when aggregation result is a scalar and matches", () => {
     const mongoDbOutput = 100;
-    const expected = JSON.stringify([{ "count(*)": 100 }]);
+    const expected = [{ "count(*)": 100 }];
 
-    const result = fuzzyMatch({
+    const result = fuzzyMatchExecutionResults({
       mongoDbOutput,
       expected,
       isAggregation: true,
@@ -342,9 +370,9 @@ describe("fuzzyMatch() with Aggregations", () => {
   });
   test("should return false when aggregation result is a scalar and does not match", () => {
     const mongoDbOutput = 50;
-    const expected = JSON.stringify([{ "count(*)": 100 }]);
+    const expected = [{ "count(*)": 100 }];
 
-    const result = fuzzyMatch({
+    const result = fuzzyMatchExecutionResults({
       mongoDbOutput,
       expected,
       isAggregation: true,
@@ -355,9 +383,9 @@ describe("fuzzyMatch() with Aggregations", () => {
 
   test("should return true when aggregation output has extra keys", () => {
     const mongoDbOutput = [{ count: 10, extra: "ignore" }];
-    const expected = JSON.stringify([{ count: 10 }]);
+    const expected = [{ count: 10 }];
 
-    const result = fuzzyMatch({
+    const result = fuzzyMatchExecutionResults({
       mongoDbOutput,
       expected,
       isAggregation: true,
@@ -368,9 +396,9 @@ describe("fuzzyMatch() with Aggregations", () => {
 
   test("should return true when aggregation output has mismatched keys", () => {
     const mongoDbOutput = [{ total: 10 }];
-    const expected = JSON.stringify([{ count: 10 }]);
+    const expected = [{ count: 10 }];
 
-    const result = fuzzyMatch({
+    const result = fuzzyMatchExecutionResults({
       mongoDbOutput,
       expected,
       isAggregation: true,
@@ -389,16 +417,16 @@ describe("fuzzyMatch() with Aggregations", () => {
       },
     ];
 
-    const expected = JSON.stringify([
+    const expected = [
       {
         total: {
           amount: 100,
           items: 5,
         },
       },
-    ]);
+    ];
 
-    const result = fuzzyMatch({
+    const result = fuzzyMatchExecutionResults({
       mongoDbOutput,
       expected,
       isAggregation: true,
@@ -417,16 +445,16 @@ describe("fuzzyMatch() with Aggregations", () => {
       },
     ];
 
-    const expected = JSON.stringify([
+    const expected = [
       {
         total: {
           amount: 100,
           items: 6, // Different value here
         },
       },
-    ]);
+    ];
 
-    const result = fuzzyMatch({
+    const result = fuzzyMatchExecutionResults({
       mongoDbOutput,
       expected,
       isAggregation: true,
@@ -435,10 +463,10 @@ describe("fuzzyMatch() with Aggregations", () => {
     expect(result).toBe(false);
   });
   test("should return true when mixed types in aggregation results match", () => {
-    const expected = JSON.stringify([
+    const expected = [
       { Name: "Ray Ferris", "COUNT(*)": 1 },
       { Name: "Jackie Waring", "COUNT(*)": 2 },
-    ]);
+    ];
     const mongoDbOutput = [
       {
         _id: "6684f86294b83277ad66390b",
@@ -451,7 +479,7 @@ describe("fuzzyMatch() with Aggregations", () => {
         eventCount: 1,
       },
     ];
-    const result = fuzzyMatch({
+    const result = fuzzyMatchExecutionResults({
       mongoDbOutput,
       expected,
       isAggregation: true,
@@ -461,10 +489,10 @@ describe("fuzzyMatch() with Aggregations", () => {
     expect(result).toBe(true);
   });
   test("should return true when mixed types in aggregation results match - 2 ", () => {
-    const expected = JSON.stringify([
+    const expected = [
       { "count(*)": 4, Sex: "M" },
       { "count(*)": 3, Sex: "F" },
-    ]);
+    ];
     const mongoDbOutput = [
       {
         _id: "F",
@@ -475,7 +503,7 @@ describe("fuzzyMatch() with Aggregations", () => {
         count: 4,
       },
     ];
-    const result = fuzzyMatch({
+    const result = fuzzyMatchExecutionResults({
       mongoDbOutput,
       expected,
       isAggregation: true,

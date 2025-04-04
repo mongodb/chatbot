@@ -1,5 +1,8 @@
-import { TextToDriverEvalScorer } from "./evalTypes";
-import { fuzzyMatch } from "./fuzzyMatch";
+import {
+  fuzzyMatchExecutionResults,
+  isReasonableResult,
+} from "mongodb-rag-core/executeCode";
+import { TextToDriverEvalScorer } from "./TextToDriverEval";
 
 /**
   Check if the generated query successfully executed.
@@ -24,9 +27,9 @@ export const SuccessfulExecution: TextToDriverEvalScorer = async ({
   try {
     const isFuzzyMatch =
       output.execution.result !== null
-        ? fuzzyMatch({
+        ? fuzzyMatchExecutionResults({
             mongoDbOutput: output.execution.result,
-            expected: expected,
+            expected: expected.result,
             orderMatters: metadata.orderMatters,
             isAggregation: metadata.isAggregation,
           })
@@ -47,28 +50,13 @@ export const SuccessfulExecution: TextToDriverEvalScorer = async ({
 };
 
 /**
-  Number of milliseconds it took to execute the driver code.
+ Checks if the output is reasonable. Uses {@link isReasonableResult} to determine if the output is reasonable.
  */
-export const QueryRunTimeMs: TextToDriverEvalScorer = ({ output }) => {
+export const ReasonableOutput: TextToDriverEvalScorer = ({ output }) => {
+  const { isReasonable, reason } = isReasonableResult(output.execution.result);
   return {
-    name: "QueryRunTimeMs",
-    score: output.execution.executionTimeMs,
-  };
-};
-
-/**
-  Measure how long the query takes to execute in minutes.
-
-  Note: Measuring in minutes because
-  Braintrust throws an error if the score > 1.
- */
-export const QueryExecutionTimeMinutes: TextToDriverEvalScorer = async ({
-  output,
-}) => {
-  const executionTimeMinutes = output.execution.executionTimeMs / 1000 / 60;
-
-  return {
-    name: "QueryExecutionTimeMinutes",
-    score: executionTimeMinutes,
+    name: "ReasonableOutput",
+    score: isReasonable ? 1 : 0,
+    metadata: reason ? { reason } : undefined,
   };
 };

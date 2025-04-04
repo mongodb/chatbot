@@ -1,5 +1,4 @@
-import { assertEnvVars } from "mongodb-rag-core";
-import { BRAINTRUST_ENV_VARS } from "../envVars";
+import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
 import { getBraintrustExperimentResults } from "./getBraintrustExperimentResults";
 
 // Skipping braintrust integration test for CI

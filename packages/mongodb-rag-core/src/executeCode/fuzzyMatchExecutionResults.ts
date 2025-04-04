@@ -1,12 +1,12 @@
-import { Document } from "mongodb-rag-core/mongodb";
+import { Document } from "mongodb";
 import { EJSON } from "bson";
 import { strict as assert } from "assert";
 
-export type MongoDbOutput = Document | number | Document[];
+type MongoDbOutput = Document | number | Document[];
 
-export interface FuzzyMatchParams {
+export interface FuzzyMatchExecutionResultsParams {
   mongoDbOutput: MongoDbOutput;
-  expected: string;
+  expected: MongoDbOutput;
   /**
     If true, the order of elements in arrays matters.
     @default false
@@ -38,15 +38,15 @@ export const ERRORS = {
 
 export const fuzzyMatchSyntheticKey = "__output__";
 
-export function fuzzyMatch({
+export function fuzzyMatchExecutionResults({
   mongoDbOutput,
   expected,
   orderMatters = false,
   isAggregation = false,
   allowedNumberDifference = 0.01,
-}: FuzzyMatchParams): boolean | null {
+}: FuzzyMatchExecutionResultsParams): boolean | null {
   const outputEjson = EJSON.serialize(mongoDbOutput, { relaxed: true });
-  const expectedEjson = EJSON.parse(expected, { relaxed: true });
+  const expectedEjson = EJSON.serialize(expected, { relaxed: true });
 
   const outputIsArray = Array.isArray(outputEjson);
   const expectedIsArray = Array.isArray(expectedEjson);

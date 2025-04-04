@@ -1,4 +1,7 @@
-import { fuzzyMatchExecutionResults } from "mongodb-rag-core/executeCode";
+import {
+  fuzzyMatchExecutionResults,
+  isReasonableResult,
+} from "mongodb-rag-core/executeCode";
 import { TextToDriverEvalScorer } from "./TextToDriverEval";
 
 /**
@@ -44,4 +47,16 @@ export const SuccessfulExecution: TextToDriverEvalScorer = async ({
   }
 
   return [successfulExecution, correctOutputFuzzy];
+};
+
+/**
+ Checks if the output is reasonable. Uses {@link isReasonableResult} to determine if the output is reasonable.
+ */
+export const ReasonableOutput: TextToDriverEvalScorer = ({ output }) => {
+  const { isReasonable, reason } = isReasonableResult(output.execution.result);
+  return {
+    name: "ReasonableOutput",
+    score: isReasonable ? 1 : 0,
+    metadata: reason ? { reason } : undefined,
+  };
 };

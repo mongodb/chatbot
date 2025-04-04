@@ -15,14 +15,16 @@ describe.skip("generateMongoshCodeAgentic", () => {
     ...TEXT_TO_DRIVER_ENV_VARS,
     ...BRAINTRUST_ENV_VARS,
   });
-  const openai = createOpenAI({
-    apiKey: BRAINTRUST_API_KEY,
-    baseURL: BRAINTRUST_ENDPOINT,
-  });
   const llmOptions = makeSampleLlmOptions();
   const dbName = "sample_mflix";
 
   it("should generate MQL code for a NL query", async () => {
+    const openai = createOpenAI({
+      apiKey: BRAINTRUST_API_KEY,
+      baseURL: BRAINTRUST_ENDPOINT,
+    }).chat(llmOptions.model, {
+      structuredOutputs: true,
+    });
     const generateMongoshCodeAgentic = makeGenerateMongoshCodeAgenticTask({
       llmOptions,
       databaseInfos: annotatedDbSchemas,
@@ -38,8 +40,8 @@ describe.skip("generateMongoshCodeAgentic", () => {
 
     const mqlCode = await generateMongoshCodeAgentic(
       {
-        nl_query: nlQuery,
-        dataset_name: dbName,
+        nlQuery: nlQuery,
+        databaseName: dbName,
       },
       mockHooks
     );

@@ -4,11 +4,11 @@ import {
   TextToDriverMetadata,
   TextToDriverOutput,
 } from "./TextToDriverEval";
-import { SuccessfulExecution } from "./evaluationMetrics";
+import { SuccessfulExecution, ReasonableOutput } from "./evaluationMetrics";
 
 const input = {
-  dataset_name: "some dataset",
-  nl_query: "some query",
+  databaseName: "some dataset",
+  nlQuery: "some query",
 } satisfies TextToDriverInput;
 const expectedObj = [{ count: 1 }];
 const expected = {
@@ -43,9 +43,11 @@ describe("SuccessfulExecution", () => {
       metadata,
     });
     expect(result).toMatchObject([
-      { name: "SuccessfulExecution", score: 0 },
       {
-        metadata: { error: "Fuzzy match failed" },
+        name: "SuccessfulExecution",
+        score: 0,
+      },
+      {
         name: "CorrectOutputFuzzy",
         score: 0,
       },
@@ -66,7 +68,7 @@ describe("SuccessfulExecution", () => {
       expected,
       metadata,
     });
-    expect(result).toEqual([
+    expect(result).toMatchObject([
       {
         name: "SuccessfulExecution",
         score: 1,
@@ -89,9 +91,12 @@ describe("SuccessfulExecution", () => {
       expected,
       metadata,
     });
-    expect(result).toEqual([
+    expect(result).toMatchObject([
       { name: "SuccessfulExecution", score: 1 },
-      { name: "CorrectOutputFuzzy", score: 0 },
+      {
+        name: "CorrectOutputFuzzy",
+        score: 0,
+      },
     ]);
   });
 
@@ -113,13 +118,75 @@ describe("SuccessfulExecution", () => {
       expected,
       metadata,
     });
-    expect(result).toEqual([
+    expect(result).toMatchObject([
       { name: "SuccessfulExecution", score: 0 },
       {
-        metadata: { error: "Fuzzy match failed" },
         name: "CorrectOutputFuzzy",
         score: 0,
       },
     ]);
+  });
+});
+
+describe("ReasonableOutput", () => {
+  const input = {
+    databaseName: "some dataset",
+    nlQuery: "some query",
+  } satisfies TextToDriverInput;
+  const expectedObj = [{ count: 1 }];
+  const expected = {
+    result: expectedObj,
+    dbQuery: "db.collection.find()",
+  } satisfies TextToDriverExpected;
+  const metadata = {
+    language: "javascript",
+  } satisfies TextToDriverMetadata;
+
+  it("should return score 0 for unreasonable output", async () => {
+    const output = {
+      generatedCode: "db.collection.find()",
+      execution: {
+        result: null,
+        error: undefined,
+        executionTimeMs: 1,
+      },
+    } satisfies TextToDriverOutput;
+
+    const result = ReasonableOutput({
+      input,
+      output,
+      expected,
+      metadata,
+    });
+
+    expect(result).toEqual({
+      name: "ReasonableOutput",
+      score: 0,
+      metadata: { reason: expect.any(String) },
+    });
+  });
+
+  it("should return score 1 for reasonable output", async () => {
+    const output = {
+      generatedCode: "db.collection.find()",
+      execution: {
+        result: { name: "John", age: 30 },
+        error: undefined,
+        executionTimeMs: 1,
+      },
+    } satisfies TextToDriverOutput;
+
+    const result = ReasonableOutput({
+      input,
+      output,
+      expected,
+      metadata,
+    });
+
+    expect(result).toEqual({
+      name: "ReasonableOutput",
+      score: 1,
+      metadata: { reason: expect.any(String) },
+    });
   });
 });

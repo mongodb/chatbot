@@ -3,10 +3,10 @@ import { DatabaseExecutionResult } from "mongodb-rag-core/executeCode";
 import { z } from "zod";
 
 export const TextToDriverInputSchema = z.object({
-  nl_query: z.string().describe(`Natural language query for the database.
+  nlQuery: z.string().describe(`Natural language query for the database.
 
 @example "get the total number of books by each author"`),
-  dataset_name: z.string().describe(`The name of the dataset.
+  databaseName: z.string().describe(`The name of the dataset.
 
 @example "book-store-recommended"`),
 });
@@ -108,6 +108,7 @@ export const TextToDriverEvalCaseSchema: z.ZodSchema<
   EvalCase<TextToDriverInput, TextToDriverExpected, TextToDriverMetadata>
 > = z.object({
   input: TextToDriverInputSchema,
+  tags: z.array(z.string()).optional(),
   expected: TextToDriverExpectedSchema,
   metadata: TextToDriverMetadataSchema,
 });

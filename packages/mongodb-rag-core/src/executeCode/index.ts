@@ -7,5 +7,6 @@ export * from "./extractMongoDbQueryMetadata";
 export * from "./fuzzyMatchExecutionResults";
 export * from "./redactMongoDbConnectionUri";
 export * from "./isNonMutativeOperation";
+export * from "./isReasonableResult";
 export * from "./prettyPrintMongoDbDocument";
 export * from "./truncateDbOperationOutputForLlm";

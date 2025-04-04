@@ -1,4 +1,4 @@
-import { runTextToDriverEval } from "../runTextToNodeJsDriverEval";
+import { runTextToNodeJsDriverEval } from "../runTextToNodeJsDriverEval";
 import { models } from "mongodb-rag-core/models";
 import { assertEnvVars } from "mongodb-rag-core";
 import { MongoClient } from "mongodb-rag-core/mongodb";
@@ -62,7 +62,7 @@ async function main() {
               }-collection-schemas${RUN_ID ? `-${RUN_ID}` : ""}`;
               console.log(`Running experiment: ${experimentName}`);
               try {
-                await runTextToDriverEval({
+                await runTextToNodeJsDriverEval({
                   dataset: {
                     name: datasetName,
                   },

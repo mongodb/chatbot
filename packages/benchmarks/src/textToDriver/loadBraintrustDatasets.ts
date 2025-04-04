@@ -168,3 +168,19 @@ export async function loadLegacyTextToDriverBraintrustEvalCases({
 
   return evalCases;
 }
+
+export async function loadTextToDriverBraintrustEvalCases({
+  apiKey,
+  projectName,
+  datasetName,
+}: LoadBraintrustDatasetParams): Promise<TextToDriverEvalCase[]> {
+  const dataset = (
+    await initDataset(projectName, {
+      apiKey,
+      dataset: datasetName,
+    }).fetchedData()
+  ).map((d) => TextToDriverEvalCaseSchema.parse(d));
+  // TODO: get tags...
+
+  return dataset;
+}

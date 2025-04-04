@@ -1,5 +1,5 @@
 import { OpenAIProvider } from "@ai-sdk/openai";
-import { generateText, tool } from "ai";
+import { generateText, LanguageModelV1, tool } from "ai";
 import { z } from "zod";
 import {
   DatabaseExecutionResult,
@@ -25,8 +25,8 @@ When you are satisfied with the results of '${GENERATE_DB_CODE_TOOL_NAME}', simp
 export interface MakeGenerateMongoshCodeAgenticParams {
   uri: string;
   databaseInfos: Record<string, DatabaseInfo>;
-  openai: OpenAIProvider;
-  llmOptions: LlmOptions;
+  openai: LanguageModelV1;
+  llmOptions: Omit<LlmOptions, "openAiClient">;
 }
 
 /**
@@ -40,7 +40,7 @@ export function makeGenerateMongoshCodeAgenticTask({
   llmOptions,
 }: MakeGenerateMongoshCodeAgenticParams): TextToDriverEvalTask {
   const generateMongoshCodeAgentic: TextToDriverEvalTask =
-    async function generateMongoshCodeAgentic({ dataset_name, nl_query }) {
+    async function generateMongoshCodeAgentic({ databaseName, nlQuery }) {
       let latestExecution: DatabaseExecutionResult | null = null;
       let latestCode: TextToDriverOutput["generatedCode"] | null = null;
 
@@ -51,9 +51,7 @@ export function makeGenerateMongoshCodeAgenticTask({
           llmOptions.max_tokens ??
           llmOptions.max_completion_tokens ??
           undefined,
-        model: openai(llmOptions.model, {
-          structuredOutputs: true,
-        }),
+        model: openai,
         tools: {
           [THINK_TOOL_NAME]: tool({
             description:
@@ -75,7 +73,7 @@ export function makeGenerateMongoshCodeAgenticTask({
             }),
             execute: async (args) => {
               const execution = await executeMongoshQuery({
-                databaseName: dataset_name,
+                databaseName: databaseName,
                 query: args.code,
                 uri,
               });
@@ -98,9 +96,9 @@ export function makeGenerateMongoshCodeAgenticTask({
             role: "user",
             content: `Generate MongoDB Shell (mongosh) queries for the following database and natural language query:
 
-${makeDatabaseInfoPrompt(databaseInfos[dataset_name])}
+${makeDatabaseInfoPrompt(databaseInfos[databaseName])}
 
-Natural language query: ${nl_query}`,
+Natural language query: ${nlQuery}`,
           },
         ],
       });
@@ -113,8 +111,7 @@ Natural language query: ${nl_query}`,
       return {
         execution: latestExecution as DatabaseExecutionResult,
         generatedCode: latestCode,
-        pipelineOutput: res,
-      } satisfies TextToDriverOutput & { pipelineOutput: typeof res };
+      } satisfies TextToDriverOutput;
     };
   return generateMongoshCodeAgentic;
 }

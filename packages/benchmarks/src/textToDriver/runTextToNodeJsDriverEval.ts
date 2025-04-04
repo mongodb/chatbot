@@ -38,7 +38,7 @@ export interface MakeTextToDriverEvalParams {
   sleepBeforeMs?: number;
 }
 
-export async function runTextToDriverEval({
+export async function runTextToNodeJsDriverEval({
   apiKey,
   projectName,
   experimentName,
@@ -71,11 +71,11 @@ export async function runTextToDriverEval({
       try {
         await sleep(sleepBeforeMs);
         const metadata = dbMetadatas.find(
-          (metadata) => metadata.databaseName === input.dataset_name
+          (metadata) => metadata.databaseName === input.databaseName
         );
         assert(
           metadata,
-          `DB Metadata not found for database ${input.dataset_name}`
+          `DB Metadata not found for database ${input.databaseName}`
         );
         assert(
           metadata.collections.length,
@@ -108,7 +108,7 @@ export async function runTextToDriverEval({
             generateCode({
               openAiClient,
               llmOptions,
-              userPrompt: input.nl_query,
+              userPrompt: input.nlQuery,
             }),
           {
             name: "generateDriverCode",

@@ -1,6 +1,9 @@
 import "dotenv/config";
 import { MongoClient } from "mongodb-rag-core/mongodb";
-import { executeMongoshQuery } from "mongodb-rag-core/executeCode";
+import {
+  executeMongoshQuery,
+  isReasonableResult,
+} from "mongodb-rag-core/executeCode";
 import * as fs from "fs";
 import * as path from "path";
 import PromisePool from "@supercharge/promise-pool";
@@ -208,6 +211,12 @@ async function generateMongoshDataset({
             ?.toString()
             .slice(0, 20)} ...`
         );
+        const { isReasonable, reason } = isReasonableResult(
+          dbExecution.data.result
+        );
+        if (!isReasonable) {
+          throw new Error("Result is not reasonable. Reason: " + reason);
+        }
         return dbExecution;
       });
     console.log(`Generated ${dbExecutions.length} DB executions.`);
@@ -299,17 +308,17 @@ async function main() {
     },
     users: { numGenerations: 8, llmConfig: defaultLlmConfig, concurrency: 20 },
     useCases: {
-      numGenerations: 8,
+      numGenerations: 2,
       llmConfig: defaultLlmConfig,
       concurrency: 20,
     },
     nlQueries: {
-      numGenerations: 8,
+      numGenerations: 4,
       llmConfig: defaultLlmConfig,
       concurrency: 20,
     },
     dbQueries: {
-      numGenerations: 16,
+      numGenerations: 4,
       llmConfig: defaultLlmConfig,
       concurrency: 25,
     },
@@ -322,7 +331,7 @@ async function main() {
   try {
     const now = Date.now();
     await mongoClient.connect();
-    for (const db of datasetDatabases) {
+    for (const db of datasetDatabases.reverse()) {
       await generateMongoshDataset({
         persistence: {
           mongoClient,

@@ -16,6 +16,17 @@ const abstractOutputExample: DatabaseCode = {
   language: "mongosh",
 };
 
+const rules = [
+  "Ensure proper use of MongoDB operators ($eq, $gt, $lt, etc.) and data types (ObjectId, ISODate)",
+  "Include appropriate projections to return only necessary fields",
+  "For complex queries, use aggregation pipeline with proper stages ($match, $group, $lookup, etc.)",
+  "Consider performance by utilizing available indexes and optimizing query patterns",
+  "Include sorting (.sort()) and limiting (.limit()) when appropriate for result set management",
+  "Handle null values and existence checks explicitly.",
+  "For date operations, use proper MongoDB date operators ($dateToString, $dateToParts, etc.)",
+  "For date operations, NEVER use an empty new date object (e.g. `new Date()`). ALWAYS specify the date, such as `new Date(\"2024-10-24\")`. Use the provided 'Latest Date' field to inform dates in queries.",
+  "Keep the output clean. Do not include value `null` in results objects in aggregation. Also don't include empty string values.",
+];
 const nlQuerySystemPrompt = `You are an expert data analyst experienced at using MongoDB.
 Your job is to take information about a MongoDB database plus a natural language query and generate a MongoDB shell (mongosh) query to execute to retrieve the information needed to answer the natural language query.
 
@@ -26,21 +37,12 @@ Format the mongosh query in the following structure:
 \`db.<collection name>.find({/* query */})\` or \`db.<collection name>.aggregate({/* query */})\`
 
 Some general query-authoring tips:
+${rules.map((rule, i) => `${i + 1}. ${rule}`).join("\n")}
 
-1. Ensure proper use of MongoDB operators ($eq, $gt, $lt, etc.) and data types (ObjectId, ISODate)
-2. Include appropriate projections to return only necessary fields
-3. For complex queries, use aggregation pipeline with proper stages ($match, $group, $lookup, etc.)
-4. Consider performance by utilizing available indexes and optimizing query patterns
-5. Include sorting (.sort()) and limiting (.limit()) when appropriate for result set management
-6. Handle null values and existence checks explicitly.
-7. For date operations, use proper MongoDB date operators ($dateToString, $dateToParts, etc.)
-8. For date operations, NEVER use an empty new date object (e.g. \`new Date()\`). ALWAYS specify the date, such as \`new Date("2024-10-24")\`. Use the provided 'Latest Date' field to inform dates in queries.
+Before writing the mongosh query, think step-by-step about what the query should do in the "queryPlan" field.
+For the language field, always put 'mongosh'. For example the output should look like: 
 
-Before wrting the mongosh query, think step-by-step about what the query should do in the "queryPlan" field.
-For the language field, always put 'mongosh". For example the output should look like: 
-
-${JSON.stringify(abstractOutputExample)}
-`;
+${JSON.stringify(abstractOutputExample)}`;
 
 export const generateMongoshCode = makeGenerateNChoiceChildrenWithOpenAi<
   DatabaseNlQueryNode,

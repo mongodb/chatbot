@@ -134,6 +134,14 @@ const allModels: ModelConfig[] = [
     authorized: true,
   },
   {
+    label: "claude-37-sonnet",
+    deployment: "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+    developer: "Anthropic",
+    maxConcurrency: 1,
+    provider: "braintrust",
+    authorized: true,
+  },
+  {
     label: "claude-35-haiku",
     deployment: "us.anthropic.claude-3-5-haiku-20241022-v1:0",
     developer: "Anthropic",
@@ -246,14 +254,11 @@ const allModels: ModelConfig[] = [
   },
   {
     label: "deepseek-r1",
-    deployment: "accounts/fireworks/models/deepseek-r1",
+    deployment: "us.deepseek.r1-v1:0",
     developer: "DeepSeek",
     provider: "braintrust",
-    authorized: false,
+    authorized: true,
     maxConcurrency: 5,
-    metadata: {
-      host: "Fireworks",
-    },
   },
   {
     label: "mistral-small-3-instruct",

@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 import { PromisePool } from "@supercharge/promise-pool";
 import { ChunkOptions, ChunkFunc, chunkPage } from "../chunk";
-import { EmbeddedContent, EmbeddedContentStore } from "./EmbeddedContent";
+import { EmbeddedContentStore } from "./EmbeddedContent";
 import { Embedder } from "../embed";
 import { logger } from "../logger";
 import { PageStore, PersistedPage } from ".";
@@ -19,19 +19,13 @@ export interface EmbedConcurrencyOptions {
 }
 
 const getHashForFunc = (
-  chunkAlgoHashes: Map<string, string>,
   f: ChunkFunc,
   o?: Partial<ChunkOptions>
 ): string => {
   const data = JSON.stringify(o ?? {}) + f.toString();
-  const existingHash = chunkAlgoHashes.get(data);
-  if (existingHash) {
-    return existingHash;
-  }
   const hash = createHash("sha256");
   hash.update(data);
   const digest = hash.digest("hex");
-  chunkAlgoHashes.set(data, digest);
   return digest;
 };
 
@@ -89,9 +83,7 @@ export const updateEmbeddedContent = async ({
     }`
   );
   // find all pages with embeddings created using chunkingHashes different from the current chunkingHash
-  const chunkAlgoHashes = new Map<string, string>();
   const chunkAlgoHash = getHashForFunc(
-    chunkAlgoHashes,
     chunkPage,
     chunkOptions
   );

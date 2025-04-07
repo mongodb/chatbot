@@ -102,20 +102,6 @@ function normalizeUrl(url: string): string {
   return url.replace(/^https?:\/\/(www\.)?/i, "");
 }
 
-const findMissingResources = async (
-  expectedUrls: string[]
-): Promise<string[]> => {
-  const results = await Promise.all(
-    expectedUrls.map(async (url) => {
-      const page = await pageStore.loadPage({
-        query: { url: { $regex: new RegExp(normalizeUrl(url)) } },
-      });
-      return !page ? url : null;
-    })
-  );
-  return results.filter((url) => url !== null) as string[];
-};
-
 /**
  Main function to read CSV file, transform evaluation cases, and write to YAML file.
  @param csvFilePath - Path to the input CSV file
@@ -144,7 +130,10 @@ async function main({
   const expectedUrls = Array.from(
     new Set(evalCases.flatMap((caseItem) => caseItem.expectedLinks ?? []))
   );
-  const urlsNotIngested = await findMissingResources(expectedUrls);
+  const urlsNotIngested = await pageStore.getMissingPagesByUrl({
+    expectedUrls,
+    urlTransformer: normalizeUrl,
+  });
   if (urlsNotIngested.length > 0) {
     console.warn(
       `Warning: ${urlsNotIngested.length}/${

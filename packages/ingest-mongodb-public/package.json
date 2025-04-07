@@ -1,6 +1,6 @@
 {
   "name": "ingest-mongodb-public",
-  "version": "0.11.0",
+  "version": "0.12.1",
   "description": "Plugin for ingesting MongoDB public data sources.",
   "author": "",
   "license": "Apache-2.0",
@@ -22,7 +22,6 @@
     "ingest:pages": "../../node_modules/mongodb-rag-ingest/build/main.js pages init --config ./build/config.js && ingest pages update --config ./build/config.js",
     "ingest:embed": "../../node_modules/mongodb-rag-ingest/build/main.js embed init --config ./build/config.js && ingest embed update --config ./build/config.js",
     "ingest:pages:meta": "../../node_modules/mongodb-rag-ingest/build/main.js pages update --config ./build/meta.config.js",
-    "ingest:k8s:coachGtmPages": "../../node_modules/mongodb-rag-ingest/build/main.js pages update --config ./build/coachGtm.config.js",
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --forceExit"
   },
   "devDependencies": {

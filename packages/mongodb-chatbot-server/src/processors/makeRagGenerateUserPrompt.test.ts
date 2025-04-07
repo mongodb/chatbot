@@ -53,6 +53,7 @@ const mockFindContent: FindContentFunc = async () => {
   return {
     queryEmbedding: [0.1, 0.2, 0.3],
     content: mockContent,
+    embeddingModelName: "test-embedding-model",
   };
 };
 
@@ -181,6 +182,22 @@ describe("makeRagGenerateUserPrompt()", () => {
       reqId: "foo",
     });
     expect(calledFunc).toHaveBeenCalled();
+  });
+  test("should include embedding model name in user message when no content found", async () => {
+    const generateUserPromptFunc = makeRagGenerateUserPrompt({
+      ...mockConfig,
+      findContent: async () => ({
+        queryEmbedding: [],
+        content: [],
+        embeddingModelName: "test-embedding-model",
+      }),
+    });
+    const response = await generateUserPromptFunc({
+      userMessageText: "foo",
+      reqId: "foo",
+    });
+    expect(response.rejectQuery).toBe(true);
+    expect(response.userMessage.embeddingModel).toBe("test-embedding-model");
   });
 });
 

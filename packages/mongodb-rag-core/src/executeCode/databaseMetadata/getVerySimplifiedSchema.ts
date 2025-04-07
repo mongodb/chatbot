@@ -41,7 +41,6 @@ async function furtherSimplifySchema(
   elem: unknown
 ): Promise<Record<string, unknown>> {
   const schema = await getSimplifiedSchema(Array.isArray(elem) ? elem : [elem]);
-  console.log("OG schema", JSON.stringify(schema, null, 2));
   const result = furtherSimplySchemaRecursiveHelper(schema);
   return result;
 }
@@ -52,7 +51,6 @@ function furtherSimplySchemaRecursiveHelper(
   const result: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(schema)) {
-    // Handle case where value is an array (like in the console.log)
     if (Array.isArray(value) && value.length > 0) {
       const firstItem = value[0];
 

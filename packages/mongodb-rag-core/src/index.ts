@@ -25,3 +25,4 @@ export * from "./References";
 export * from "./VectorStore";
 export * from "./arrayFilters";
 export * from "./assertEnvVars";
+export * from "./mongoDbMetadata";

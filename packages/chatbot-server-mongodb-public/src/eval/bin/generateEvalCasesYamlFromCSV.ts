@@ -10,13 +10,13 @@
  Can be run through npm script or directly using node:
  
  ```bash
- npm run generate-eval-cases -- <csvFileName> <yamlFileName> [transformationType]
+ npm run generate-eval-cases -- <csvFileName> <yamlFileName> [transformationType] [transformationOptions]
  ```
  
  Or:
  
  ```bash
- node generateEvalCasesYamlFromCSV.js <csvFileName> <yamlFileName> [transformationType]
+ node generateEvalCasesYamlFromCSV.js <csvFileName> <yamlFileName> [transformationType] [transformationOptions]
  ```
  
  ### Arguments
@@ -24,10 +24,12 @@
  - `csvFilePath`: (Required) Absolute path to the input CSV file
  - `yamlFileName`: (Required) Name of the output YAML file (without .yml extension)
  - `transformationType`: (Optional) Type of transformation to apply to the cases
+ - `transformationOptions`: (Optional) Additional options for the transformation
  
  ### Available Transformations
  
- - `web`: Adds a "web" tag to all evaluation cases
+ - `addTags`: Adds specified tags to all evaluation cases
+ - `addCustomTags`: Adds specified custom tags to all evaluation cases
  
  ### File Paths
  
@@ -36,14 +38,14 @@
  ### Example
  
  ```bash
- npm run generate-eval-cases -- Users/first.lastname/Downloads/input-file.csv output-file-name web
+ npm run generate-eval-cases -- /path/to/input.csv output-name addTags tag1 tag2
  ```
  
  This will:
- 1. Read from: /Users/first.lastname/Downloads/input-file.csv
- 2. Apply the web transformation
- 3. Write to: evalCases/output-file-name.yml
- 4. Log missing resources to the console in a warning
+ 1. Read from: /path/to/input.csv
+ 2. Add tags "tag1" and "tag2" to all cases, after validating them against the MongoDbTags enum.
+ 3. Write to: evalCases/output-name.yml
+ 4. Log any missing resources to the console as warnings
 */
 
 import fs from "fs";
@@ -55,7 +57,7 @@ import {
 } from "mongodb-rag-core/eval";
 import { MONGODB_CONNECTION_URI, MONGODB_DATABASE_NAME } from "../../config";
 import { makeMongoDbPageStore } from "mongodb-rag-core";
-import { MongoDbTag } from "../../mongoDbMetadata";
+import { validateTags } from "mongodb-rag-core";
 
 const SRC_ROOT = path.resolve(__dirname, "../");
 
@@ -63,24 +65,6 @@ const pageStore = makeMongoDbPageStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
 });
-
-function validateTags(tagNames: string[], custom: boolean): void {
-  if (!custom) {
-    // check if all tags are allowed using the enum MongoDbTag
-    const invalidTags = tagNames.filter((tag) => !(tag in MongoDbTag));
-    if (invalidTags.length > 0) {
-      throw new Error(
-        `Invalid tags found: ${invalidTags.join(
-          ", "
-        )} \nUse the "addCustomTags" transformation instead or use allowed tags: \n  - ${Object.keys(
-          MongoDbTag
-        )
-          .sort()
-          .join("\n  - ")}`
-      );
-    }
-  }
-}
 
 function addTags({
   evalCases,

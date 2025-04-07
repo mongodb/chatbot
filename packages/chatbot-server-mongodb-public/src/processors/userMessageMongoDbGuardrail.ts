@@ -147,9 +147,7 @@ const fewShotExamples: OpenAI.ChatCompletionMessageParam[] = [
     rejectMessage: false,
   } satisfies UserMessageMongoDbGuardrailFunction),
   // Example 16
-  makeUserMessage(
-    "What is a skill?"
-  ),
+  makeUserMessage("What is a skill?"),
   makeAssistantFunctionCallMessage(name, {
     reasoning:
       "This query is asking about MongoDB University's skills program, which allows users to earn a skill badge for taking a short course and completing an assessment. Therefore, it is relevant to MongoDB.",

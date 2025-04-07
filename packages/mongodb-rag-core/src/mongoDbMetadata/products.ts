@@ -311,12 +311,14 @@ export const mongoDbProducts = [
   {
     id: "mongodb_university",
     name: "MongoDB University",
-    description: "Online platform that offers certifications, courses, labs, and skills badges",
+    description:
+      "Online platform that offers certifications, courses, labs, and skills badges",
   },
   {
     id: "skills",
     name: "MongoDB University Skills",
-    description: "An educational program that allows users to earn a skill badge after taking a short course and completing an assessment",
+    description:
+      "An educational program that allows users to earn a skill badge after taking a short course and completing an assessment",
   },
 ] as const satisfies MongoDbProduct[];
 

@@ -24,17 +24,22 @@ const systemPrompt = stripIndents`
   The meta description should conform to the following style guide:
 
   - The meta description should be one single sentence
-    - no character limit
-    - roughly 150 characters is a good target length
+    - maximum 160 characters
+    - minimum 130 characters
   - The meta description should focus on the page's primary content
     - Avoid mentioning secondary information from admonitions, notes, tips, warnings, etc.
     - Avoid specific facts or details, like a specific version number, unless it's the primary focus of the page
   - The meta description should start with a verb
   - The meta description should not repeat the page title verbatim
   - The meta description should not repeat low value or assumed terms. For example:
-    - Don't mention "MongoDB" in the description of a MongoDB docs page.
+    - Instead of "MongoDB Compass", "MongoDB Node.js Driver", "MongoDB Atlas", etc., use "Compass", "Node.js Driver", "Atlas", etc.
     - Don't mention "documentation" in the description of a docs page.
   - If a page is a landing/welcome page or is primarily a list of links to other page, the meta description should mention the type of listed items
+  - If a page is a tutorial, as indicated by the URL or content, the meta description should mention that it is a tutorial.
+  - Use proper capitalization for words and phrases that may be confused with proper nouns
+    - For example, "Charts" is capitalized when referring to the MongoDB product with that name but not when referring to a specific chart type, e.g. bar chart or chloropleth chart.
+  - Focus on the main content of the page. Do not include information that is only in admonitions, notes, tips, warnings, etc.
+  - Do not mention specific dates unless they are the primary focus of the page.
 
   Respond only with the generated description.
 `;

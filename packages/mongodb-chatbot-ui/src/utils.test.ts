@@ -8,6 +8,7 @@ import {
   getCurrentPageUrl,
   renameFields,
   omit,
+  nonProd,
 } from "./utils";
 
 const alice = { name: "alice", age: 25, createdAt: new Date("1999-01-01") };
@@ -130,5 +131,32 @@ describe("omit", () => {
     });
 
     expect(bobAfter).toEqual({ age: 42 });
+  });
+});
+
+describe("nonProd", () => {
+  const originalProcessEnv = process.env.NODE_ENV;
+  test("runs the provided callback in non-production environments", () => {
+    const callback = vi.fn();
+
+    try {
+      process.env.NODE_ENV = "development";
+      nonProd(callback);
+      expect(callback).toHaveBeenCalled();
+    } finally {
+      process.env.NODE_ENV = originalProcessEnv;
+    }
+  });
+
+  test("does not run the provided callback in production environments", () => {
+    const callback = vi.fn();
+
+    try {
+      process.env.MODE = "production";
+      nonProd(callback);
+      expect(callback).not.toHaveBeenCalled();
+    } finally {
+      process.env.MODE = originalProcessEnv;
+    }
   });
 });

@@ -174,7 +174,7 @@ describe("updateEmbeddedContent", () => {
     const endTimes: number[] = [];
 
     const mockEmbedder: jest.Mocked<Embedder> = {
-      embed: jest.fn().mockImplementation(async (param) => {
+      embed: jest.fn().mockImplementation(async () => {
         const startTime = Date.now();
         startTimes.push(startTime);
         await new Promise((resolve) => setTimeout(resolve, 50));

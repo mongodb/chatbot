@@ -68,6 +68,15 @@ paths:
                   format: markdown
                   description: |
                     Markdown-formatted message from the user.
+                clientContext:
+                  type: object
+                  description: |
+                    Additional context provided by the client. This is useful
+                    for passing information to the chatbot that is not part of
+                    the user's message but may be relevant to the chatbot's
+                    response. For example, the client may pass information about
+                    the user's preferences, location, preferred language, etc.
+                  additionalProperties: true
       responses:
         200:
           x-summary: OK

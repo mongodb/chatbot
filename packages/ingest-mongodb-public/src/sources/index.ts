@@ -30,6 +30,13 @@ import {
 const { DEVCENTER_CONNECTION_URI, UNIVERSITY_DATA_API_KEY } = assertEnvVars(
   PUBLIC_INGEST_ENV_VARS
 );
+import {
+  getUrlsFromSitemap,
+  initialWebSources,
+  makeWebDataSource,
+  prepareWebSources,
+} from "./mongodbDotCom";
+import { chromium } from "playwright";
 
 /**
   Async constructor for specific data sources -- parameters baked in.
@@ -169,10 +176,33 @@ function getTerraformPageUrl(siteBaseUrl: string, path: string) {
   }
 }
 
+const webDataSourceConstructor = async (): Promise<DataSource[]> => {
+  const sitemapUrls = await getUrlsFromSitemap(
+    "https://www.mongodb.com/sitemap-pages.xml"
+  );
+  const webSources = await prepareWebSources({
+    initialWebSources,
+    sitemapUrls,
+  });
+  const makeBrowser = async () => {
+    const browserPath = chromium.executablePath();
+    const browser = await chromium.launch({
+      headless: true,
+      executablePath: browserPath,
+    });
+    const page = await browser.newPage();
+    return { page, browser };
+  };
+  return await Promise.all(
+    webSources.map((source) => makeWebDataSource({ ...source, makeBrowser }))
+  );
+};
+
 /**
   The constructors for the sources used by the docs chatbot.
  */
 export const sourceConstructors: SourceConstructor[] = [
+  webDataSourceConstructor,
   () => makeSnootyDataSources(snootyDataApiBaseUrl, snootyProjectConfig),
   () => makeDevCenterDataSource(devCenterProjectConfig),
   mongoDbUniversitySourceConstructor,

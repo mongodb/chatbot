@@ -1,4 +1,5 @@
-import { Request, Router, RequestHandler, Response } from "express";
+import { Request, RequestHandler, Response } from "express";
+import Router from "express-promise-router";
 import { rateLimit, Options as RateLimitOptions } from "express-rate-limit";
 import slowDown, { Options as SlowDownOptions } from "express-slow-down";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
@@ -20,7 +21,6 @@ import {
 import {
   AddMessageRequest,
   AddMessageToConversationRouteParams,
-  AddMessageToConversationUpdateTraceFunc,
   makeAddMessageToConversationRoute,
 } from "./addMessageToConversation";
 import { requireRequestOrigin } from "../../middleware/requireRequestOrigin";
@@ -34,6 +34,7 @@ import {
   GetConversationRequest,
   makeGetConversationRoute,
 } from "./getConversation";
+import { UpdateTraceFunc } from "./UpdateTraceFunc";
 
 /**
   Configuration for rate limiting on the /conversations/* routes.
@@ -189,6 +190,9 @@ export interface ConversationsRouterParams {
 
   addMessageToConversationUpdateTrace?: AddMessageToConversationRouteParams["updateTrace"];
 
+  rateMessageUpdateTrace?: UpdateTraceFunc;
+  commentMessageUpdateTrace?: UpdateTraceFunc;
+
   /**
     Maximum number of characters allowed in a user's comment on an assistant {@link Message}.
     If not specified, user comments may be of any length.
@@ -216,14 +220,49 @@ function keyGenerator(request: Request) {
   return request.ip;
 }
 
-const addOriginAndIpToCustomData: AddCustomDataFunc = async (req, res) =>
-  res.locals.customData.origin
-    ? { origin: res.locals.customData.origin, ip: req.ip }
+const addIpToCustomData: AddCustomDataFunc = async (req) =>
+  req.ip
+    ? {
+        ip: req.ip,
+      }
     : undefined;
+
 const addOriginToCustomData: AddCustomDataFunc = async (_, res) =>
   res.locals.customData.origin
-    ? { origin: res.locals.customData.origin }
+    ? {
+        origin: res.locals.customData.origin,
+      }
     : undefined;
+
+const addUserAgentToCustomData: AddCustomDataFunc = async (req) =>
+  req.headers["user-agent"]
+    ? {
+        userAgent: req.headers["user-agent"],
+      }
+    : undefined;
+
+export type AddDefinedCustomDataFunc = (
+  ...args: Parameters<AddCustomDataFunc>
+) => Promise<Exclude<ConversationCustomData, undefined>>;
+
+export const defaultCreateConversationCustomData: AddDefinedCustomDataFunc =
+  async (req, res) => {
+    return {
+      ...(await addIpToCustomData(req, res)),
+      ...(await addOriginToCustomData(req, res)),
+      ...(await addUserAgentToCustomData(req, res)),
+    };
+  };
+
+export const defaultAddMessageToConversationCustomData: AddDefinedCustomDataFunc =
+  async (req, res) => {
+    return {
+      ...(await addIpToCustomData(req, res)),
+      ...(await addOriginToCustomData(req, res)),
+      ...(await addUserAgentToCustomData(req, res)),
+    };
+  };
+
 /**
   Constructor function to make the /conversations/* Express.js router.
  */
@@ -237,9 +276,11 @@ export function makeConversationsRouter({
   rateLimitConfig,
   generateUserPrompt,
   middleware = [requireValidIpAddress(), requireRequestOrigin()],
-  createConversationCustomData = addOriginAndIpToCustomData,
-  addMessageToConversationCustomData = addOriginToCustomData,
+  createConversationCustomData = defaultCreateConversationCustomData,
+  addMessageToConversationCustomData = defaultAddMessageToConversationCustomData,
   addMessageToConversationUpdateTrace,
+  rateMessageUpdateTrace,
+  commentMessageUpdateTrace,
   maxUserCommentLength,
   createConversationOnNullMessageId = true,
 }: ConversationsRouterParams) {
@@ -357,7 +398,7 @@ export function makeConversationsRouter({
   conversationsRouter.post(
     "/:conversationId/messages/:messageId/rating",
     validateRequestSchema(RateMessageRequest),
-    makeRateMessageRoute({ conversations })
+    makeRateMessageRoute({ conversations, updateTrace: rateMessageUpdateTrace })
   );
 
   // Comment on a message.
@@ -367,6 +408,7 @@ export function makeConversationsRouter({
     makeCommentMessageRoute({
       conversations,
       maxCommentLength: maxUserCommentLength,
+      updateTrace: commentMessageUpdateTrace,
     })
   );
 

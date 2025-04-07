@@ -99,7 +99,6 @@ describe("Data Conversion Functions", () => {
         functionResultMessage,
         assistantMessage,
       ] = exampleConversationInDatabase.messages;
-      const convoId = new ObjectId();
 
       expect(convertMessageFromDbToApi(systemMessage)).toEqual({
         id: "65ca766ab564b694eba8c330",

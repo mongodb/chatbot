@@ -16,7 +16,6 @@ import {
   AddMessageRequestBody,
   DEFAULT_MAX_INPUT_LENGTH,
   DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION,
-  makeAddMessageToConversationRoute,
 } from "./addMessageToConversation";
 import { ApiConversation, ApiMessage } from "./utils";
 import { stripIndent } from "common-tags";
@@ -29,8 +28,7 @@ import { NO_VECTOR_CONTENT, REJECT_QUERY_CONTENT } from "../../test/testConfig";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { Db, ObjectId } from "mongodb-rag-core/mongodb";
 
-const { OPENAI_CHAT_COMPLETION_DEPLOYMENT, OPENAI_ENDPOINT } =
-  assertEnvVars(CORE_ENV_VARS);
+const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars(CORE_ENV_VARS);
 jest.setTimeout(100000);
 describe("POST /conversations/:conversationId/messages", () => {
   let mongodb: Db;
@@ -109,6 +107,7 @@ describe("POST /conversations/:conversationId/messages", () => {
       .post(testEndpointUrl)
       .set("X-FORWARDED-FOR", ipAddress)
       .set("Origin", origin)
+      .set("User-Agent", "test-user-agent")
       .send(requestBody);
     expect(res.statusCode).toEqual(200);
     const conversation = await conversations.findById({
@@ -118,7 +117,9 @@ describe("POST /conversations/:conversationId/messages", () => {
     const userMessageWithCustomData =
       conversation.messages[conversation.messages.length - 2];
     expect(userMessageWithCustomData?.customData).toStrictEqual({
+      ip: ipAddress,
       origin,
+      userAgent: "test-user-agent",
     });
   });
   test("uses previous message filter", async () => {

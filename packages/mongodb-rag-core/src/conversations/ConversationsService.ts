@@ -113,6 +113,12 @@ export type UserMessage = MessageBase & {
     The vector representation of the message content.
    */
   embedding?: number[];
+
+  /**
+    The model used to generate the embedding vector.
+    For example: "text-embedding-ada-002" or "text-embedding-3-small"
+   */
+  embeddingModel?: string;
 };
 
 /**
@@ -124,10 +130,7 @@ export type SomeMessage =
   | SystemMessage
   | FunctionMessage;
 
-/**
-  Message stored in the database.
-*/
-export type Message = SomeMessage & {
+export type DbMessage<SomeMessage> = SomeMessage & {
   /**
       Unique identifier for the message.
      */
@@ -138,6 +141,11 @@ export type Message = SomeMessage & {
      */
   createdAt: Date;
 };
+
+/**
+  Message stored in the database.
+*/
+export type Message = DbMessage<SomeMessage>;
 
 export type ConversationCustomData = Record<string, unknown> | undefined;
 

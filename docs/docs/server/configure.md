@@ -64,8 +64,7 @@ import {
   UserMessage,
 } from "mongodb-chatbot-server";
 import { stripIndents } from "common-tags";
-import { makePreprocessMongoDbUserQuery } from "./processors/makePreprocessMongoDbUserQuery";
-import { AzureKeyCredential, OpenAIClient } from "@azure/openai";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
 
 const {
   MONGODB_CONNECTION_URI,
@@ -73,6 +72,7 @@ const {
   VECTOR_SEARCH_INDEX_NAME,
   OPENAI_ENDPOINT,
   OPENAI_API_KEY,
+  OPENAI_API_VERSION,
   OPENAI_EMBEDDING_DEPLOYMENT,
   OPENAI_EMBEDDING_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
@@ -105,10 +105,11 @@ const boostManual = makeBoostOnAtlasSearchFilter({
   totalMaxK: 5,
 });
 
-const openAiClient = new OpenAIClient(
-  OPENAI_ENDPOINT,
-  new AzureKeyCredential(OPENAI_API_KEY)
-);
+const openAiClient = new AzureOpenAI({
+  apiKey: OPENAI_API_KEY,
+  endpoint: OPENAI_ENDPOINT,
+  apiVersion: OPENAI_API_VERSION,
+});
 const systemPrompt: SystemPrompt = {
   role: "system",
   content: stripIndents`You are expert MongoDB documentation chatbot.
@@ -167,20 +168,12 @@ const llm = makeOpenAiChatLlm({
   },
 });
 
-const mongoDbUserQueryPreprocessor = makePreprocessMongoDbUserQuery({
-  azureOpenAiServiceConfig: {
-    apiKey: OPENAI_API_KEY,
-    baseUrl: OPENAI_ENDPOINT,
-    deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-    version: OPENAI_CHAT_COMPLETION_MODEL_VERSION,
-  },
-  numRetries: 0,
-  retryDelayMs: 5000,
-});
-
 const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
+  searchIndex: {
+    embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
+  }
 });
 
 const embedder = makeOpenAiEmbedder({
@@ -210,7 +203,6 @@ const findContent = makeDefaultFindContent({
 
 const generateUserPrompt: GenerateUserPromptFunc = makeRagGenerateUserPrompt({
   findContent,
-  queryPreprocessor: mongoDbUserQueryPreprocessor,
   makeUserMessage,
 });
 
@@ -242,6 +234,6 @@ you can checkout the following example implementations:
 - [MongoDB Docs Chatbot](https://github.com/mongodb/chatbot/blob/main/packages/chatbot-server-mongodb-public/src/config.ts):
   The configuration for the MongoDB Docs chatbot on https://www.mongodb.com/docs/.
   This is the most complex configuration example.
-- [Basic Chatbot Server](https://github.com/mongodb/chatbot/blob/main/examples/basic-chatbot-server/src/index.ts):
+- [Basic Chatbot Server](https://github.com/mongodb/chatbot/blob/main/examples/quick-start/packages/server):
   A simple chatbot created for example purposes. This can be used as a starting point
   for your own chatbot server.

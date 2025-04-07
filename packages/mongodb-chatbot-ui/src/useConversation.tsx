@@ -32,6 +32,7 @@ export type UseConversationParams = {
   shouldStream?: boolean;
   sortMessageReferences?: SortReferences;
   fetchOptions?: ConversationFetchOptions;
+  getClientContext?: () => Record<string, unknown>;
 };
 
 export function useConversation(params: UseConversationParams) {
@@ -74,11 +75,6 @@ export function useConversation(params: UseConversationParams) {
   };
 
   const submit = async (content: string) => {
-    if (!state.conversationId) {
-      console.error(`Cannot addMessage without a conversationId`);
-      return;
-    }
-
     const shouldStream =
       canUseServerSentEvents() && (params.shouldStream ?? true);
 
@@ -137,8 +133,9 @@ export function useConversation(params: UseConversationParams) {
       if (shouldStream) {
         state.api.createStreamingResponse();
         await conversationService.addMessageStreaming({
-          conversationId: state.conversationId,
+          conversationId: state.conversationId ?? "null",
           message: content,
+          clientContext: params.getClientContext?.(),
           maxRetries: 0,
           onResponseDelta: async (data: string) => {
             bufferedTokens = [...bufferedTokens, data];
@@ -151,6 +148,9 @@ export function useConversation(params: UseConversationParams) {
             references.push(...data);
           },
           onMetadata: async (metadata) => {
+            if (metadata?.conversationId) {
+              state.api.setConversationId(metadata.conversationId);
+            }
             state.api.updateMessageMetadata(
               STREAMING_MESSAGE_ID,
               (m) => ({ ...m, ...metadata } as AssistantMessageMetadata)
@@ -168,9 +168,13 @@ export function useConversation(params: UseConversationParams) {
         // in all at once.
         state.api.createStreamingResponse();
         const response = await conversationService.addMessage({
-          conversationId: state.conversationId,
+          conversationId: state.conversationId ?? "null",
           message: content,
+          clientContext: params.getClientContext?.(),
         });
+        if (response.metadata?.conversationId) {
+          state.api.setConversationId(response.metadata.conversationId);
+        }
         state.api.cancelStreamingResponse();
         state.api.addMessage(response);
       }

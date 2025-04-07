@@ -16,9 +16,9 @@ import {
   requireValidIpAddress,
   requireRequestOrigin,
   AddCustomDataFunc,
-  ConversationCustomData,
   makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
+  defaultCreateConversationCustomData,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";
@@ -31,8 +31,12 @@ import express from "express";
 import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
-import { makeAddMessageToConversationUpdateTrace } from "./tracing";
-import { TRACING_ENV_VARS } from "./EnvVars";
+import { SLACK_ENV_VARS, TRACING_ENV_VARS } from "./EnvVars";
+import {
+  makeAddMessageToConversationUpdateTrace,
+  makeCommentMessageUpdateTrace,
+  makeRateMessageUpdateTrace,
+} from "./tracing/routesUpdateTraceHandlers";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -52,6 +56,13 @@ export const {
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: "",
   ...TRACING_ENV_VARS,
 });
+
+// Optional env vars
+const {
+  BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
+  SLACK_BOT_TOKEN,
+  SLACK_COMMENT_CONVERSATION_ID,
+} = process.env;
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
@@ -188,17 +199,11 @@ export const conversations = makeMongoDbConversationsService(
   mongodb.db(MONGODB_DATABASE_NAME)
 );
 
-export const createCustomConversationDataWithIpAuthUserAndOrigin: AddCustomDataFunc =
+export const createConversationCustomDataWithAuthUser: AddCustomDataFunc =
   async (req, res) => {
-    const customData: ConversationCustomData = {};
+    const customData = await defaultCreateConversationCustomData(req, res);
     if (req.cookies.auth_user) {
       customData.authUser = req.cookies.auth_user;
-    }
-    if (req.ip) {
-      customData.ip = req.ip;
-    }
-    if (res.locals.customData.origin) {
-      customData.origin = res.locals.customData.origin;
     }
     logRequest({
       reqId: getRequestId(req),
@@ -207,6 +212,18 @@ export const createCustomConversationDataWithIpAuthUserAndOrigin: AddCustomDataF
     return customData;
   };
 export const isProduction = process.env.NODE_ENV === "production";
+
+const llmAsAJudgeConfig = {
+  judgeModel: JUDGE_LLM,
+  judgeEmbeddingModel: JUDGE_EMBEDDING_MODEL,
+  openAiConfig: {
+    azureOpenAi: {
+      apiKey: OPENAI_API_KEY,
+      endpoint: OPENAI_ENDPOINT,
+      apiVersion: OPENAI_API_VERSION,
+    },
+  },
+};
 
 export const config: AppConfig = {
   conversationsRouterConfig: {
@@ -218,24 +235,32 @@ export const config: AppConfig = {
       cookieParser(),
     ],
     createConversationCustomData: !isProduction
-      ? createCustomConversationDataWithIpAuthUserAndOrigin
+      ? createConversationCustomDataWithAuthUser
       : undefined,
     addMessageToConversationUpdateTrace:
       makeAddMessageToConversationUpdateTrace(
         retrievalConfig.findNearestNeighborsOptions.k,
-        {
-          percentToJudge: isProduction ? 0.1 : 1,
-          judgeModel: JUDGE_LLM,
-          judgeEmbeddingModel: JUDGE_EMBEDDING_MODEL,
-          openAiConfig: {
-            azureOpenAi: {
-              apiKey: OPENAI_API_KEY,
-              endpoint: OPENAI_ENDPOINT,
-              apiVersion: OPENAI_API_VERSION,
-            },
-          },
-        }
+        { ...llmAsAJudgeConfig, percentToJudge: isProduction ? 0.1 : 1 }
       ),
+    rateMessageUpdateTrace: makeRateMessageUpdateTrace(llmAsAJudgeConfig),
+    commentMessageUpdateTrace: makeCommentMessageUpdateTrace(
+      openAiClient,
+      JUDGE_LLM,
+      SLACK_BOT_TOKEN !== undefined &&
+        SLACK_COMMENT_CONVERSATION_ID !== undefined
+        ? {
+            token: SLACK_BOT_TOKEN,
+            conversationId: SLACK_COMMENT_CONVERSATION_ID,
+            llmAsAJudge: llmAsAJudgeConfig,
+            braintrust: BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME
+              ? {
+                  orgName: "mongodb-education-ai",
+                  projectName: BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
+                }
+              : undefined,
+          }
+        : undefined
+    ),
     generateUserPrompt,
     systemPrompt,
     maxUserMessagesInConversation: 50,

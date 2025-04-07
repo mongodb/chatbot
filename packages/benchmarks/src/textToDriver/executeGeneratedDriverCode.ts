@@ -73,12 +73,14 @@ export async function executeGeneratedDriverCode(
       result,
       executionTimeMs: endTime - startTime,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "An unknown error occurred";
     const endTime = Date.now();
     return {
       result: null,
       error: {
-        message: error.message || "An unknown error occurred",
+        message: errorMessage,
       },
       executionTimeMs: endTime - startTime,
     };

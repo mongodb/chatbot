@@ -1,5 +1,4 @@
 import {
-  MongoClient,
   makeMongoDbEmbeddedContentStore,
   makeOpenAiEmbedder,
   makeMongoDbConversationsService,
@@ -12,8 +11,9 @@ import {
   GenerateUserPromptFunc,
   makeRagGenerateUserPrompt,
   MakeUserMessageFunc,
-  OpenAI,
 } from "mongodb-chatbot-server";
+import { OpenAI } from "mongodb-rag-core/openai";
+import { MongoClient } from "mongodb-rag-core/mongodb";
 import path from "path";
 import { loadEnvVars } from "./loadEnvVars";
 
@@ -38,7 +38,7 @@ const llm = makeOpenAiChatLlm({
   deployment: OPENAI_CHAT_COMPLETION_MODEL,
   openAiLmmConfigOptions: {
     temperature: 0,
-    maxTokens: 500,
+    max_tokens: 500,
   },
 });
 
@@ -47,6 +47,9 @@ const llm = makeOpenAiChatLlm({
 const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
   databaseName: MONGODB_DATABASE_NAME,
+  searchIndex: {
+    embeddingName: OPENAI_EMBEDDING_MODEL,
+  },
 });
 
 // Creates vector embeddings for user queries to find matching content

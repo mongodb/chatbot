@@ -80,24 +80,24 @@ It has the following collections:
 
 The `pages` collection holds the plain text version of the content that is later chunked and embedded.
 
-Documents in the `pages` collection follow the [`PersistedPage`](./reference/core/modules.md#persistedpage) schema.
+Documents in the `pages` collection follow the [`PersistedPage`](./reference/core/namespaces/ContentStore.md#persistedpage) schema.
 
 ### `embedded_content` Collection
 
 The `embedded_content` collection holds the content that is queried by Atlas Vector Search.
-It is generated with the ingest CLI`embed`command from the data in the`pages` collection.
+It is generated with the ingest CLI `embed`commands from the data in the`pages` collection.
 
-Documents in the `embedded_content` collection follow the [`EmbeddedContent`](./reference/core/interfaces/EmbeddedContent.md) schema.
+Documents in the `embedded_content` collection follow the [`EmbeddedContent`](./reference/core/interfaces/ContentStore.EmbeddedContent.md) schema.
 
 ### `ingest_meta` Collection
 
 Stores metadata related to the ingest CLI. Currently, this a singleton collection
 that stores one document related to the ingest CLI's `all` command.
 
-Documents in the `ingest_meta` collection follow the [`IngestMetaEntry`](./reference/ingest/modules/index.md#ingestmetaentry) schema.
+Documents in the `ingest_meta` collection follow the [`IngestMetaEntry`](./reference/ingest/modules.md#ingestmetaentry) schema.
 
 ### `conversations` Collection
 
 Stores user conversations with the chatbot from the chat server.
 
-Documents in the `conversations` collection follow the [`Conversation`](./reference/server/interfaces/Conversation.md) schema.
+Documents in the `conversations` collection follow the [`Conversation`](./reference/core/namespaces/Conversations.md) schema.

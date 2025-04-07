@@ -2,7 +2,7 @@ import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { type VerifiedAnswer } from "../verifiedAnswer";
 import { type References } from "../references";
 import { strict as assert } from "node:assert";
-import { isProductionBuild } from "../utils";
+import { nonProd } from "../utils";
 
 export type Role = "user" | "assistant";
 
@@ -19,6 +19,13 @@ export type MessageData = {
 
 export type AssistantMessageMetadata = {
   [k: string]: unknown;
+
+  /**
+    The conversation ID that this message is part of. If you add a message
+    without specifying a conversation ID, which creates a new conversation, this
+    field contains the ID of the new conversation.
+  */
+  conversationId?: string;
 
   /**
     If the message came from the verified answers collection, contains the
@@ -151,6 +158,11 @@ export type ConversationFetchOptions = Omit<
   headers?: Headers;
 };
 
+export type AddMessageRequestBody = {
+  message: string;
+  clientContext?: Record<string, unknown>;
+};
+
 export type ConversationServiceConfig = {
   serverUrl: string;
   fetchOptions?: ConversationFetchOptions;
@@ -256,15 +268,21 @@ export class ConversationService {
   async addMessage({
     conversationId,
     message,
+    clientContext,
   }: {
     conversationId: string;
-    message: string;
-  }): Promise<MessageData> {
+  } & AddMessageRequestBody): Promise<MessageData> {
     const path = `/conversations/${conversationId}/messages`;
+    const requestBody: AddMessageRequestBody = {
+      message,
+    };
+    if (clientContext) {
+      requestBody.clientContext = clientContext;
+    }
     const resp = await fetch(this.getUrl(path), {
       ...this.fetchOptions,
       method: "POST",
-      body: JSON.stringify({ message }),
+      body: JSON.stringify(requestBody),
     });
     const data = await resp.json();
     if (resp.status === 400) {
@@ -288,6 +306,7 @@ export class ConversationService {
   async addMessageStreaming({
     conversationId,
     message,
+    clientContext,
     maxRetries = 0,
     onResponseDelta,
     onReferences,
@@ -296,15 +315,20 @@ export class ConversationService {
     signal,
   }: {
     conversationId: string;
-    message: string;
     maxRetries?: number;
     onResponseDelta: (delta: string) => void;
     onReferences: (references: References) => void;
     onMetadata: (metadata: AssistantMessageMetadata) => void;
     onResponseFinished: (messageId: string) => void;
     signal?: AbortSignal;
-  }): Promise<void> {
+  } & AddMessageRequestBody): Promise<void> {
     const path = `/conversations/${conversationId}/messages`;
+    const requestBody: AddMessageRequestBody = {
+      message,
+    };
+    if (clientContext) {
+      requestBody.clientContext = clientContext;
+    }
 
     let retryCount = 0;
     let moreToStream = true;
@@ -315,31 +339,31 @@ export class ConversationService {
       headers: Object.fromEntries(this.fetchOptions.headers),
       signal: signal ?? null,
       method: "POST",
-      body: JSON.stringify({ message }),
+      body: JSON.stringify(requestBody),
       openWhenHidden: true,
 
       onmessage(ev) {
         const event = JSON.parse(ev.data);
         if (!isSomeStreamEvent(event)) {
-          if (!isProductionBuild()) {
+          nonProd(() => {
             console.error(
               `Received an unknown event: ${JSON.stringify(event)}`
             );
-          }
+          });
           return;
         }
         if (!isConversationStreamEventType(event.type)) {
-          if (!isProductionBuild()) {
+          nonProd(() => {
             console.error(`Received an unknown event type: ${event.type}`);
-          }
+          });
           return;
         }
         if (!isConversationStreamEvent(event)) {
-          if (!isProductionBuild()) {
+          nonProd(() => {
             console.error(
               `Received an invalid conversation event: ${JSON.stringify(event)}`
             );
-          }
+          });
           return;
         }
         switch (event.type) {

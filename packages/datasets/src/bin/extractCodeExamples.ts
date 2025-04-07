@@ -1,10 +1,10 @@
 import fs from "fs";
 import path from "path";
-import { PersistedPage } from "../PersistedPage.js";
 import {
-  extractCodeBlocksWithHeadings,
+  makeExtractCodeBlocksWithHeadings,
   makePageParser,
-} from "../extractPageElements.js";
+} from "../codeExampleDataset/extractPageElements.js";
+import { PersistedPage } from "mongodb-rag-core";
 async function main(): Promise<void> {
   const basePath = path.resolve("data");
   const pathIn = path.resolve(
@@ -15,7 +15,9 @@ async function main(): Promise<void> {
     basePath,
     `docs-chatbot.code-examples-with-headings-${Date.now()}.json`
   );
-  const pageParser = makePageParser();
+  const pageParser = await makePageParser();
+  const extractCodeBlocksWithHeadings =
+    await makeExtractCodeBlocksWithHeadings();
   const pages = JSON.parse(fs.readFileSync(pathIn, "utf-8")) as PersistedPage[];
   const allCodeBlocks = [];
   for (const page of pages) {

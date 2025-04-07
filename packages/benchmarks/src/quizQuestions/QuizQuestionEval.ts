@@ -12,12 +12,24 @@ import {
   MakeHelmQuizQuestionPromptParams,
 } from "./makeHelmQuizQuestionPrompt";
 
-export type QuizQuestionEvalCaseInput = QuizQuestionData;
+export type QuizQuestionEvalCaseInput = Pick<
+  QuizQuestionData,
+  "questionText" | "answers" | "questionType"
+>;
 
 export type QuizQuestionTag = string;
 
+export type QuizQuestionMetadata = Pick<
+  QuizQuestionData,
+  "contentTitle" | "explanation" | "title"
+>;
+
 export interface QuizQuestionEvalCase
-  extends EvalCase<QuizQuestionEvalCaseInput, QuizQuestionTaskExpected, void> {
+  extends EvalCase<
+    QuizQuestionEvalCaseInput,
+    QuizQuestionTaskExpected,
+    QuizQuestionMetadata
+  > {
   tags?: QuizQuestionTag[];
 }
 
@@ -54,7 +66,6 @@ function makeQuizQuestionTask({
       stream: false,
       ...llmOptions,
       temperature: 0,
-      seed: 42, // Deterministically sample from the model, so same output every time
     });
     const { content } = res.choices[0].message;
     assert(content, "No content found in response");

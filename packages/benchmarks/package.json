@@ -20,6 +20,8 @@
     "textToDriver:makeDatabases": "npm run build && node ./build/textToDriver/makeDatabases/index.js",
     "benchmark:MongoDbDiscovery": "npm run build && node ./build/discovery/mongoDbDiscoveryBenchmark.js",
     "benchmark:MongoDbUniversityQuizQuestion": "npm run build && node ./build/quizQuestions/mongoDbUniversityQuizQuestionBenchmark.js",
+    "benchmark:MongodbUniversityAllQuestionBenchmark": "npm run build && node ./build/quizQuestions/mongodbUniversityAllQuestionBenchmark.js",
+    "benchmark:MongoDbUniversityBadgeQuestionBenchmark": "npm run build && node ./build/quizQuestions/mongoDbUniversityBadgeQuestionBenchmark.js",
     "benchmark:TextToNodeJsDriver": "npm run build && node ./build/textToDriver/nodeJsDriverBenchmark.js"
   },
   "devDependencies": {
@@ -30,6 +32,8 @@
     "@types/node-fetch": "^2.6.4",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
+    "chatbot-server-mongodb-public": "*",
+    "csv-parser": "^3.2.0",
     "eslint": "^8",
     "eslint-config-prettier": "^8",
     "eslint-plugin-jsdoc": "^46.4.5",
@@ -43,8 +47,8 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@aws-sdk/client-bedrock-runtime": "^3.705.0",
     "@supercharge/promise-pool": "^3.2.0",
+    "csv-writer": "^1.6.0",
     "dotenv": "^16",
     "mongodb-chatbot-server": "*",
     "mongodb-rag-core": "*",

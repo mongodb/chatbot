@@ -418,7 +418,7 @@ export const action =
             )}`
           );
         })
-        .process(async ({ summary, issue, prompt }, i) => {
+        .process(async ({ summary, issue, prompt }) => {
           const { response } = await generateResponse({
             summary,
             issue,

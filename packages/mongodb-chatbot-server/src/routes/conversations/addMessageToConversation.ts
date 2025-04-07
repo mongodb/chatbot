@@ -4,7 +4,12 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import { AssistantMessage, SystemMessage, UserMessage } from "mongodb-rag-core";
+import {
+  DbMessage,
+  FunctionMessage,
+  Message,
+  SystemMessage,
+} from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   ConversationsService,
@@ -30,7 +35,8 @@ import { GenerateUserPromptFunc } from "../../processors/GenerateUserPromptFunc"
 import { FilterPreviousMessages } from "../../processors/FilterPreviousMessages";
 import { filterOnlySystemPrompt } from "../../processors/filterOnlySystemPrompt";
 import { generateResponse, GenerateResponseParams } from "../generateResponse";
-import { braintrustLogger, wrapTraced } from "mongodb-rag-core/braintrust";
+import { wrapTraced } from "mongodb-rag-core/braintrust";
+import { UpdateTraceFunc, updateTraceIfExists } from "./UpdateTraceFunc";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 3000; // magic number for max input size for LLM
 export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for max messages in a conversation
@@ -38,6 +44,7 @@ export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for 
 export type AddMessageRequestBody = z.infer<typeof AddMessageRequestBody>;
 export const AddMessageRequestBody = z.object({
   message: z.string(),
+  clientContext: z.object({}).passthrough().optional(),
 });
 
 export const AddMessageRequest = SomeExpressRequest.merge(
@@ -54,17 +61,6 @@ export const AddMessageRequest = SomeExpressRequest.merge(
     body: AddMessageRequestBody,
   })
 );
-
-export type AddMessageToConversationUpdateTraceFuncParams = {
-  traceId: string;
-  logger: typeof braintrustLogger;
-  previousConversation: Conversation;
-  addedMessages: SomeMessage[];
-};
-
-export type AddMessageToConversationUpdateTraceFunc = (
-  params: AddMessageToConversationUpdateTraceFuncParams
-) => Promise<void>;
 
 export type AddMessageRequest = z.infer<typeof AddMessageRequest>;
 
@@ -102,12 +98,13 @@ export interface AddMessageToConversationRouteParams {
     after the response has been sent to the user.
     Can add additional tags, scores, etc.
    */
-  updateTrace?: AddMessageToConversationUpdateTraceFunc;
+  updateTrace?: UpdateTraceFunc;
 }
 
 type MakeTracedResponseParams = Pick<
   GenerateResponseParams,
   | "latestMessageText"
+  | "clientContext"
   | "customData"
   | "dataStreamer"
   | "shouldStream"
@@ -128,6 +125,7 @@ export function makeAddMessageToConversationRoute({
 }: AddMessageToConversationRouteParams) {
   const generateResponseTraced = function ({
     latestMessageText,
+    clientContext,
     customData,
     dataStreamer,
     shouldStream,
@@ -138,6 +136,7 @@ export function makeAddMessageToConversationRoute({
     const tracedFunc = wrapTraced(
       ({
         latestMessageText,
+        clientContext,
         customData,
         dataStreamer,
         shouldStream,
@@ -146,6 +145,7 @@ export function makeAddMessageToConversationRoute({
       }: MakeTracedResponseParams) => {
         return generateResponse({
           latestMessageText,
+          clientContext,
           customData,
           dataStreamer,
           shouldStream,
@@ -172,6 +172,7 @@ export function makeAddMessageToConversationRoute({
     );
     return tracedFunc({
       latestMessageText,
+      clientContext,
       customData,
       dataStreamer,
       shouldStream,
@@ -188,7 +189,7 @@ export function makeAddMessageToConversationRoute({
     try {
       const {
         params: { conversationId: conversationIdString },
-        body: { message },
+        body: { message, clientContext },
         query: { stream },
         ip,
       } = req;
@@ -247,9 +248,38 @@ export function makeAddMessageToConversationRoute({
 
       const assistantResponseMessageId = new ObjectId();
 
+      // Only include the necessary message info for the conversastion.
+      // This sends less data to Braintrust speeding up tracing
+      // and also being more readable in the Braintrust UI.
+      const traceConversation: Conversation = {
+        ...conversation,
+        messages: conversation.messages.map((message) => {
+          const baseFields = {
+            content: message.content,
+            id: message.id,
+            createdAt: message.createdAt,
+            metadata: message.metadata,
+          };
+
+          if (message.role === "function") {
+            return {
+              role: "function",
+              name: message.name,
+              ...baseFields,
+            } satisfies DbMessage<FunctionMessage>;
+          } else {
+            return { ...baseFields, role: message.role } satisfies Exclude<
+              Message,
+              FunctionMessage
+            >;
+          }
+        }),
+      };
+
       const { messages } = await generateResponseTraced({
-        conversation,
+        conversation: traceConversation,
         latestMessageText,
+        clientContext,
         customData,
         dataStreamer,
         shouldStream,
@@ -287,14 +317,12 @@ export function makeAddMessageToConversationRoute({
           dataStreamer.disconnect();
         }
 
-        if (updateTrace) {
-          await updateTrace({
-            traceId: assistantResponseMessageId.toHexString(),
-            logger: braintrustLogger,
-            previousConversation: conversation,
-            addedMessages: messages,
-          });
-        }
+        await updateTraceIfExists({
+          updateTrace,
+          conversations,
+          conversationId: conversation._id,
+          assistantResponseMessageId: dbAssistantMessage.id,
+        });
       }
     } catch (error) {
       const { httpStatus, message } =

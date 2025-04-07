@@ -1,20 +1,40 @@
 /**
-  Performs a case-insensitive, partial match
-  that the `expected` link or link fragment
-  ends with the `actual` link or link fragment.
-  Removes trailing `/` from paths.
-  Checks based solely on path, ignoring domain, query, and fragment.
-
-  If either input is not a valid URL,
-  it treats the input as a plain string
-  and performs a substring match.
-
-  @param expected - The expected link or link fragment to match within `actual`.
-  @param actual - The actual link or link fragment where the search is performed.
-  @returns `true` if the `expected` link or link fragment is found within `actual`, `false` otherwise.
+  Performs a case-insensitive match between two URLs or URL fragments.
+  
+  First attempts to match based on paths:
+  - Removes trailing slashes
+  - Checks if actual path ends with expected path (ignoring domain, query, and fragment)
+  
+  If either path is empty/invalid, falls back to exact match of normalized URLs:
+  - Removes protocol (http/https)
+  - Removes 'www.' prefix
+  
+  @param expected - The expected URL or URL fragment
+  @param actual - The actual URL or URL fragment to compare against
+  @returns true if URLs match according to above rules, false otherwise
  */
 export function fuzzyLinkMatch(expected: string, actual: string) {
-  return getCleanPath(actual).endsWith(getCleanPath(expected));
+  const cleanActualPath = getCleanPath(actual);
+  const cleanExpectedPath = getCleanPath(expected);
+
+  // if cleaned path is not an empty string, compare cleaned paths
+  if (cleanActualPath && cleanExpectedPath) {
+    return cleanActualPath.endsWith(cleanExpectedPath);
+  } else {
+    // compare normalized full URLs
+    const normalizedActual = normalizeUrl(actual);
+    const normalizedExpected = normalizeUrl(expected);
+    return normalizedActual === normalizedExpected;
+  }
+}
+
+/**
+ Normalizes a URL by removing the protocol (http/https) and 'www.' prefix
+ normalizeUrl('https://www.example.com') // returns 'example.com'
+ normalizeUrl('http://example.com') // returns 'example.com'
+ */
+function normalizeUrl(url: string): string {
+  return url.replace(/^https?:\/\/(www\.)?/i, "");
 }
 
 function cleanPath(path: string) {

@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine as builder
+FROM node:18
 
 ARG ENVIRONMENT
 ENV ENVIRONMENT=${ENVIRONMENT}

@@ -52,13 +52,7 @@ export function useChatbot({
     }
     onOpen?.();
     startTransition(() => {
-      if (!conversation.conversationId) {
-        conversation.createConversation().then(() => {
-          setOpen(true);
-        });
-      } else {
-        setOpen(true);
-      }
+      setOpen(true);
     });
   }
 
@@ -90,11 +84,6 @@ export function useChatbot({
   }
 
   function canSubmit(text: string) {
-    // Don't let users submit a message if the conversation hasn't fully loaded
-    if (!conversation.conversationId) {
-      console.error(`Cannot add message without a conversationId`);
-      return false;
-    }
     // Don't let users submit a message if something is wrong with their input text
     if (inputData.error) {
       console.error(`Cannot add message with invalid input text`);

@@ -4,21 +4,20 @@ import {
   Collection,
   Document,
 } from "mongodb-rag-core/mongodb";
-import { MongoMemoryServer } from "mongodb-memory-server";
 import { executeGeneratedDriverCode } from "./executeGeneratedDriverCode";
+import { MONGO_MEMORY_SERVER_URI } from "../test/constants";
+
 describe("executeGeneratedDriverCode", () => {
   jest.setTimeout(60000);
-  let mongoServer: MongoMemoryServer;
   let mongoClient: MongoClient;
   let db: Db;
   let collection: Collection<Document>;
-  const databaseName = "testdb";
+  const databaseName = "executeGeneratedDriverCode";
   const collectionName = "testCollection";
 
   beforeAll(async () => {
     // Start in-memory MongoDB instance
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
+    const uri = MONGO_MEMORY_SERVER_URI;
 
     mongoClient = new MongoClient(uri);
     await mongoClient.connect();
@@ -35,7 +34,6 @@ describe("executeGeneratedDriverCode", () => {
   afterAll(async () => {
     // Clean up
     await mongoClient.close();
-    await mongoServer.stop();
   });
 
   it("should execute generated driver code", async () => {
@@ -79,7 +77,7 @@ database.collection("${collectionName}").find({ name: "Alice" }).toArray()`;
     expect(result.executionTimeMs).toBeGreaterThan(0);
   });
   it("should return an error if an error occurs during execution", async () => {
-    const errorMessage = "An error occurred";
+    const errorMessage = "An unknown error occurred";
     // Note: wrapping with IFEE b/c we must use eval()
     // with an _expression_ (like the IFEE)
     // not a statement (like `throw ...`)

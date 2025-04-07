@@ -113,7 +113,7 @@ export const updateEmbeddedContent = async ({
   ];
   await PromisePool.withConcurrency(concurrencyOptions?.processPages ?? 1)
     .for(changedPages)
-    .process(async (page, index, pool) => {
+    .process(async (page) => {
       switch (page.action) {
         case "deleted":
           logger.info(
@@ -195,7 +195,7 @@ export const updateEmbeddedContentForPage = async ({
     concurrencyOptions?.createChunks ?? 1
   )
     .for(contentChunks)
-    .process(async (chunk, index, pool) => {
+    .process(async (chunk, index) => {
       logger.info(
         `Vectorizing chunk ${index + 1}/${contentChunks.length} for ${
           page.sourceName

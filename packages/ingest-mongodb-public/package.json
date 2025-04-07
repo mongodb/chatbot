@@ -1,6 +1,6 @@
 {
   "name": "ingest-mongodb-public",
-  "version": "0.10.0",
+  "version": "0.12.1",
   "description": "Plugin for ingesting MongoDB public data sources.",
   "author": "",
   "license": "Apache-2.0",
@@ -10,18 +10,18 @@
     "npm": ">=8"
   },
   "scripts": {
+    "preinstall": "npx playwright install chromium --with-deps",
     "clean": "rm -rf build",
     "build": "tsc -b",
     "watch": "tsc -b -w",
     "release": "release-it",
     "lint": "eslint ./src --ext ts --report-unused-disable-directives",
     "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
-    "ingest:all": "ingest all --config ./build/config.js",
+    "ingest:all": "../../node_modules/mongodb-rag-ingest/build/main.js all --config ./build/config.js",
     "ingest:k8s": "../../node_modules/mongodb-rag-ingest/build/main.js all --config ./build/config.js",
-    "ingest:pages": "ingest pages update --config ./build/config.js",
-    "ingest:embed": "ingest embed update --config ./build/config.js",
-    "ingest:pages:meta": "ingest pages update --config ./build/meta.config.js",
-    "ingest:k8s:coachGtmPages": "../../node_modules/mongodb-rag-ingest/build/main.js pages update --config ./build/coachGtm.config.js",
+    "ingest:pages": "../../node_modules/mongodb-rag-ingest/build/main.js pages init --config ./build/config.js && ingest pages update --config ./build/config.js",
+    "ingest:embed": "../../node_modules/mongodb-rag-ingest/build/main.js embed init --config ./build/config.js && ingest embed update --config ./build/config.js",
+    "ingest:pages:meta": "../../node_modules/mongodb-rag-ingest/build/main.js pages update --config ./build/meta.config.js",
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --forceExit"
   },
   "devDependencies": {
@@ -33,6 +33,7 @@
     "@types/node": "^12",
     "@types/node-fetch": "^2.6.4",
     "@types/turndown": "^5.0.2",
+    "@types/xml2js": "^0.4.14",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
     "eslint": "^8",
@@ -48,6 +49,8 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@playwright/test": "^1.50.1",
+    "cheerio": "^1.0.0",
     "common-tags": "^1.8.2",
     "docdoctor": "^0.1.2",
     "dotenv": "^16",
@@ -58,6 +61,9 @@
     "mongodb-rag-ingest": "*",
     "node-fetch": "^2.7.0",
     "striptags": "^3.2.0",
+    "turndown": "^7.2.0",
+    "turndown-plugin-gfm": "^1.0.2",
+    "xml2js": "^0.6.2",
     "yaml": "^2.6.0"
   }
 }

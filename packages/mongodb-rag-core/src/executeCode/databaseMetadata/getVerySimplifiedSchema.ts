@@ -5,23 +5,6 @@ import {
 } from "mongodb-schema";
 import { DatabaseExecutionResult } from "../DatabaseExecutionResult";
 
-export async function getOutputShape(result: unknown) {
-  if (Array.isArray(result) && result.length > 0) {
-    return `Array of objects with shape:
-${JSON.stringify(await getSimplifiedSchema(result))}`;
-  } else if (Array.isArray(result) && result.length === 0) {
-    return "empty array: []";
-  } else if (typeof result === "object" && result !== null) {
-    return `Single object with shape:
-${JSON.stringify(await getSimplifiedSchema([result]))}`;
-  } else if (typeof result === "string") return "string";
-  else if (typeof result === "number") return "number";
-  else if (typeof result === "boolean") return "boolean";
-  else if (result === null) return "null";
-  else if (result === undefined) return "undefined";
-  else return "unknown";
-}
-
 /**
   Given a {@link DatabaseExecutionResult}, return a JSON schema-like object of the result.
   This function builds on {@link getSimplifiedSchema}, but simplifies the types further.

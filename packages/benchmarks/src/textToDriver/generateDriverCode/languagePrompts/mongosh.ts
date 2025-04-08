@@ -1,11 +1,10 @@
 export const mongoshQueryAuthoringTips = [
   "Ensure proper use of MongoDB operators ($eq, $gt, $lt, etc.) and data types (ObjectId, ISODate)",
-  "Include appropriate projections to return only necessary fields",
   "For complex queries, use aggregation pipeline with proper stages ($match, $group, $lookup, etc.)",
   "Consider performance by utilizing available indexes and optimizing query patterns",
   "Include sorting (.sort()) and limiting (.limit()) when appropriate for result set management",
   "Handle null values and existence checks explicitly",
-  "For date operations, use proper MongoDB date operators ($dateToString, $dateToParts, etc.)",
+  "Do not include `null` in results objects in aggregation, e.g. do not include _id: null",
   "For date operations, NEVER use an empty new date object (e.g. `new Date()`). ALWAYS specify the date, such as `new Date(\"2024-10-24\")`. Use the provided 'Latest Date' field to inform dates in queries.",
 ];
 

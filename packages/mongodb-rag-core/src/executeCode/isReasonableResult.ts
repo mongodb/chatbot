@@ -1,10 +1,5 @@
 import { DatabaseExecutionResult } from "./DatabaseExecutionResult";
 
-export interface IsReasonableResultReturnValue {
-  isReasonable: boolean;
-  reason?: string;
-}
-
 export const REASONS = {
   NULL: "Result is null",
   ZERO: "Result is 0",
@@ -15,6 +10,50 @@ export const REASONS = {
   REASONABLE: "Result is reasonable",
 } as const;
 
+/**
+  Checks if the result is non-empty. A 'non-empty' result is one that does not meet the following criteria:
+  - null
+  - 0
+  - empty array
+  - empty object
+ */
+export function isNonEmptyResult(
+  result: DatabaseExecutionResult["result"]
+): IsReasonableResultReturnValue {
+  const emptyOutput = {
+    success: false,
+  };
+  const noOutput = result === null;
+  if (noOutput) {
+    return { ...emptyOutput, reason: REASONS.NULL };
+  }
+  const zeroOutput = result === 0;
+  if (zeroOutput) {
+    return { ...emptyOutput, reason: REASONS.ZERO };
+  }
+
+  const isArray = Array.isArray(result);
+  const isEmptyArray = isArray && result.length === 0;
+  if (isEmptyArray) {
+    return { ...emptyOutput, reason: REASONS.EMPTY_ARRAY };
+  }
+
+  const isEmptyObject =
+    typeof result === "object" && Object.keys(result).length === 0;
+  if (isEmptyObject) {
+    return { ...emptyOutput, reason: REASONS.EMPTY_OBJECT };
+  }
+
+  return {
+    success: true,
+    reason: REASONS.REASONABLE,
+  };
+}
+
+export interface IsReasonableResultReturnValue {
+  success: boolean;
+  reason?: string;
+}
 /**
  Checks if the result is reasonable. A 'reasonable' result is one that does not meet the following criteria:
  - null
@@ -28,31 +67,17 @@ export const REASONS = {
 export function isReasonableResult(
   result: DatabaseExecutionResult["result"]
 ): IsReasonableResultReturnValue {
+  const nonEmptyResult = isNonEmptyResult(result);
+  if (!nonEmptyResult.success) {
+    return nonEmptyResult;
+  }
+
   // Default to not reasonable output
   const reasonableOutput = {
-    isReasonable: false,
+    success: false,
   };
-  const noOutput = result === null;
-  if (noOutput) {
-    return { ...reasonableOutput, reason: REASONS.NULL };
-  }
-  const zeroOutput = result === 0;
-  if (zeroOutput) {
-    return { ...reasonableOutput, reason: REASONS.ZERO };
-  }
 
   const isArray = Array.isArray(result);
-  const isEmptyArray = isArray && result.length === 0;
-  if (isEmptyArray) {
-    return { ...reasonableOutput, reason: REASONS.EMPTY_ARRAY };
-  }
-
-  const isEmptyObject =
-    typeof result === "object" && Object.keys(result).length === 0;
-  if (isEmptyObject) {
-    return { ...reasonableOutput, reason: REASONS.EMPTY_OBJECT };
-  }
-
   // Check if array of objects contains null or empty string values
   if (
     isArray &&
@@ -137,8 +162,7 @@ export function isReasonableResult(
 
   // For successful cases, match the expected format in tests
   return {
-    ...reasonableOutput,
-    isReasonable: true,
+    success: true,
     reason: REASONS.REASONABLE,
   };
 }

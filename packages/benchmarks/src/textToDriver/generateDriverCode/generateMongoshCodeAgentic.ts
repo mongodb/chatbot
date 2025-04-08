@@ -1,4 +1,3 @@
-import { OpenAIProvider } from "@ai-sdk/openai";
 import { generateText, LanguageModelV1, tool } from "ai";
 import { z } from "zod";
 import {
@@ -11,7 +10,7 @@ import {
 import { mongoshBaseSystemPrompt } from "./languagePrompts/mongosh";
 import { TextToDriverEvalTask, TextToDriverOutput } from "../TextToDriverEval";
 import { makeDatabaseInfoPrompt } from "./makeDatabaseInfoPrompt";
-
+import { getVerySimplifiedSchema } from "mongodb-rag-core/executeCode";
 const THINK_TOOL_NAME = "think";
 const GENERATE_DB_CODE_TOOL_NAME = "generate_db_code";
 
@@ -40,10 +39,12 @@ export function makeGenerateMongoshCodeAgenticTask({
   llmOptions,
 }: MakeGenerateMongoshCodeAgenticParams): TextToDriverEvalTask {
   const generateMongoshCodeAgentic: TextToDriverEvalTask =
-    async function generateMongoshCodeAgentic({ databaseName, nlQuery }) {
+    async function generateMongoshCodeAgentic(
+      { databaseName, nlQuery },
+      hooks
+    ) {
       let latestExecution: DatabaseExecutionResult | null = null;
       let latestCode: TextToDriverOutput["generatedCode"] | null = null;
-
       const res = await generateText({
         temperature: llmOptions.temperature ?? undefined,
         seed: llmOptions.seed ?? undefined,
@@ -98,7 +99,10 @@ export function makeGenerateMongoshCodeAgenticTask({
 
 ${makeDatabaseInfoPrompt(databaseInfos[databaseName])}
 
-Natural language query: ${nlQuery}`,
+Natural language query: ${nlQuery}
+
+Your output should have the following shape:
+${await getVerySimplifiedSchema(hooks.expected?.result)}`,
           },
         ],
       });

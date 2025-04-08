@@ -1,23 +1,28 @@
-import { isReasonableResult, REASONS } from "./isReasonableResult";
+import {
+  isReasonableResult,
+  isNonEmptyResult,
+  REASONS,
+} from "./isReasonableResult";
 
-describe("isReasonableResult", () => {
+describe("isNonEmptyResult", () => {
   it("should return `false` for null output", async () => {
     const output = null;
 
-    const isReasonable = isReasonableResult(output);
+    const result = isNonEmptyResult(output);
 
-    expect(isReasonable).toEqual({
-      isReasonable: false,
+    expect(result).toEqual({
+      success: false,
       reason: REASONS.NULL,
     });
   });
+
   it("should return `false` for 0 output", async () => {
     const output = 0;
 
-    const isReasonable = isReasonableResult(output);
+    const result = isNonEmptyResult(output);
 
-    expect(isReasonable).toEqual({
-      isReasonable: false,
+    expect(result).toEqual({
+      success: false,
       reason: REASONS.ZERO,
     });
   });
@@ -25,10 +30,10 @@ describe("isReasonableResult", () => {
   it("should return `false` for empty array output", async () => {
     const output: unknown[] = [];
 
-    const isReasonable = isReasonableResult(output);
+    const result = isNonEmptyResult(output);
 
-    expect(isReasonable).toEqual({
-      isReasonable: false,
+    expect(result).toEqual({
+      success: false,
       reason: REASONS.EMPTY_ARRAY,
     });
   });
@@ -36,14 +41,28 @@ describe("isReasonableResult", () => {
   it("should return `false` for empty object output", async () => {
     const output = {};
 
-    const isReasonable = isReasonableResult(output);
+    const result = isNonEmptyResult(output);
 
-    expect(isReasonable).toEqual({
-      isReasonable: false,
+    expect(result).toEqual({
+      success: false,
       reason: REASONS.EMPTY_OBJECT,
     });
   });
 
+  it("should return `true` for non-empty values", async () => {
+    const validValues = [{ name: "John" }, [1, 2, 3], 42];
+
+    for (const output of validValues) {
+      const result = isNonEmptyResult(output);
+      expect(result).toEqual({
+        success: true,
+        reason: REASONS.REASONABLE,
+      });
+    }
+  });
+});
+
+describe("isReasonableResult", () => {
   describe("Array of objects", () => {
     it("should return `false` when array contains objects with null values", async () => {
       const output = [
@@ -54,7 +73,7 @@ describe("isReasonableResult", () => {
       const isReasonable = isReasonableResult(output);
 
       expect(isReasonable).toEqual({
-        isReasonable: false,
+        success: false,
         reason: REASONS.ARRAY_OF_NULL_OR_EMPTY,
       });
     });
@@ -68,7 +87,7 @@ describe("isReasonableResult", () => {
       const isReasonable = isReasonableResult(output);
 
       expect(isReasonable).toEqual({
-        isReasonable: false,
+        success: false,
         reason: REASONS.ARRAY_OF_NULL_OR_EMPTY,
       });
     });
@@ -82,7 +101,7 @@ describe("isReasonableResult", () => {
       const isReasonable = isReasonableResult(output);
 
       expect(isReasonable).toEqual({
-        isReasonable: true,
+        success: true,
         reason: REASONS.REASONABLE,
       });
     });
@@ -95,7 +114,7 @@ describe("isReasonableResult", () => {
       const isReasonable = isReasonableResult(output);
 
       expect(isReasonable).toEqual({
-        isReasonable: false,
+        success: false,
         reason: REASONS.ARRAY_OF_NULL_OR_EMPTY,
       });
     });
@@ -106,7 +125,7 @@ describe("isReasonableResult", () => {
       const isReasonable = isReasonableResult(output);
 
       expect(isReasonable).toEqual({
-        isReasonable: false,
+        success: false,
         reason: REASONS.ARRAY_OF_NULL_OR_EMPTY,
       });
     });
@@ -117,7 +136,7 @@ describe("isReasonableResult", () => {
       const isReasonable = isReasonableResult(output);
 
       expect(isReasonable).toEqual({
-        isReasonable: true,
+        success: true,
         reason: REASONS.REASONABLE,
       });
     });
@@ -130,7 +149,7 @@ describe("isReasonableResult", () => {
       const isReasonable = isReasonableResult(output);
 
       expect(isReasonable).toEqual({
-        isReasonable: false,
+        success: false,
         reason: REASONS.MIXED_ARRAY_NULL_OR_EMPTY,
       });
     });
@@ -141,29 +160,7 @@ describe("isReasonableResult", () => {
       const isReasonable = isReasonableResult(output);
 
       expect(isReasonable).toEqual({
-        isReasonable: false,
-        reason: REASONS.MIXED_ARRAY_NULL_OR_EMPTY,
-      });
-    });
-
-    it("should return `true` when mixed array contains valid values", async () => {
-      const output = ["John", { name: "Jane", age: 30 }, 42];
-
-      const isReasonable = isReasonableResult(output);
-
-      expect(isReasonable).toEqual({
-        isReasonable: true,
-        reason: REASONS.REASONABLE,
-      });
-    });
-
-    it("should return `false` when mixed array contains objects with empty string values", async () => {
-      const output = ["John", { name: "Jane", email: "" }, 42];
-
-      const isReasonable = isReasonableResult(output);
-
-      expect(isReasonable).toEqual({
-        isReasonable: false,
+        success: false,
         reason: REASONS.MIXED_ARRAY_NULL_OR_EMPTY,
       });
     });
@@ -174,7 +171,7 @@ describe("isReasonableResult", () => {
       const isReasonable = isReasonableResult(output);
 
       expect(isReasonable).toEqual({
-        isReasonable: false,
+        success: false,
         reason: REASONS.MIXED_ARRAY_NULL_OR_EMPTY,
       });
     });
@@ -185,7 +182,7 @@ describe("isReasonableResult", () => {
       const isReasonable = isReasonableResult(output);
 
       expect(isReasonable).toEqual({
-        isReasonable: false,
+        success: false,
         reason: REASONS.MIXED_ARRAY_NULL_OR_EMPTY,
       });
     });
@@ -196,18 +193,43 @@ describe("isReasonableResult", () => {
       const isReasonable = isReasonableResult(output);
 
       expect(isReasonable).toEqual({
-        isReasonable: true,
+        success: true,
         reason: REASONS.REASONABLE,
       });
     });
+  });
 
+  describe("Basic emptiness checks", () => {
+    it("should delegate to isNonEmptyResult for null values", async () => {
+      const output = null;
+      const nonEmptyResult = isNonEmptyResult(output);
+      const reasonableResult = isReasonableResult(output);
+      expect(reasonableResult).toEqual(nonEmptyResult);
+    });
+
+    it("should delegate to isNonEmptyResult for empty arrays", async () => {
+      const output: unknown[] = [];
+      const nonEmptyResult = isNonEmptyResult(output);
+      const reasonableResult = isReasonableResult(output);
+      expect(reasonableResult).toEqual(nonEmptyResult);
+    });
+
+    it("should delegate to isNonEmptyResult for empty objects", async () => {
+      const output = {};
+      const nonEmptyResult = isNonEmptyResult(output);
+      const reasonableResult = isReasonableResult(output);
+      expect(reasonableResult).toEqual(nonEmptyResult);
+    });
+  });
+
+  describe("Single values", () => {
     it("should return `true` for a single valid object", async () => {
       const output = { name: "John", age: 30 };
 
       const isReasonable = isReasonableResult(output);
 
       expect(isReasonable).toEqual({
-        isReasonable: true,
+        success: true,
         reason: REASONS.REASONABLE,
       });
     });
@@ -218,7 +240,7 @@ describe("isReasonableResult", () => {
       const isReasonable = isReasonableResult(output);
 
       expect(isReasonable).toEqual({
-        isReasonable: true,
+        success: true,
         reason: REASONS.REASONABLE,
       });
     });

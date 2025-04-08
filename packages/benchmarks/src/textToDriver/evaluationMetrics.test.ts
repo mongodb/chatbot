@@ -142,7 +142,7 @@ describe("ReasonableOutput", () => {
     language: "javascript",
   } satisfies TextToDriverMetadata;
 
-  it("should return score 0 for unreasonable output", async () => {
+  it("should return score 0 for empty, unreasonable output", async () => {
     const output = {
       generatedCode: "db.collection.find()",
       execution: {
@@ -159,14 +159,21 @@ describe("ReasonableOutput", () => {
       metadata,
     });
 
-    expect(result).toEqual({
-      name: "ReasonableOutput",
-      score: 0,
-      metadata: { reason: expect.any(String) },
-    });
+    expect(result).toEqual([
+      {
+        name: "NonEmptyOutput",
+        score: 0,
+        metadata: { reason: expect.any(String) },
+      },
+      {
+        name: "ReasonableOutput",
+        score: 0,
+        metadata: { reason: expect.any(String) },
+      },
+    ]);
   });
 
-  it("should return score 1 for reasonable output", async () => {
+  it("should return score 1 for nonempty, reasonable output", async () => {
     const output = {
       generatedCode: "db.collection.find()",
       execution: {
@@ -183,10 +190,47 @@ describe("ReasonableOutput", () => {
       metadata,
     });
 
-    expect(result).toEqual({
-      name: "ReasonableOutput",
-      score: 1,
-      metadata: { reason: expect.any(String) },
+    expect(result).toEqual([
+      {
+        name: "NonEmptyOutput",
+        score: 1,
+        metadata: { reason: expect.any(String) },
+      },
+      {
+        name: "ReasonableOutput",
+        score: 1,
+        metadata: { reason: expect.any(String) },
+      },
+    ]);
+  });
+  it("should return mixed scores for nonempty, unreasonable output", async () => {
+    const output = {
+      generatedCode: "db.collection.find()",
+      execution: {
+        result: [{ name: "", age: 30 }],
+        error: undefined,
+        executionTimeMs: 1,
+      },
+    } satisfies TextToDriverOutput;
+
+    const result = ReasonableOutput({
+      input,
+      output,
+      expected,
+      metadata,
     });
+
+    expect(result).toEqual([
+      {
+        name: "NonEmptyOutput",
+        score: 1,
+        metadata: { reason: expect.any(String) },
+      },
+      {
+        name: "ReasonableOutput",
+        score: 0,
+        metadata: { reason: expect.any(String) },
+      },
+    ]);
   });
 });

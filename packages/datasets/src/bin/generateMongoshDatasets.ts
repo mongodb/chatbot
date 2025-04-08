@@ -87,13 +87,18 @@ async function generateMongoshDataset({
   maxResultsArraySize = MAX_RESULT_ARRAY_SIZE,
 }: GenerateMongoshDatasetParams) {
   console.log(`Generating dataset for database ${dataset.databaseName}`);
+  const datasetOutDir = path.resolve(writeToFile.dataOutDir, datasetUuid);
+  if (!fs.existsSync(datasetOutDir)) {
+    fs.mkdirSync(datasetOutDir, { recursive: true });
+    console.log(`Created directory: ${datasetOutDir}`);
+  }
   const referenceAnswersOutputPath = path.resolve(
-    writeToFile.dataOutDir,
+    datasetOutDir,
     `referenceAnswers.dataset_${datasetUuid}.jsonl`
   );
   // Write out each DB's dataset to a separate file
   const textToMqlOutputPath = path.resolve(
-    writeToFile.dataOutDir,
+    datasetOutDir,
     `text_to_mongosh.dataset_${datasetUuid}.${dataset.databaseName}.jsonl`
   );
 
@@ -211,10 +216,8 @@ async function generateMongoshDataset({
             ?.toString()
             .slice(0, 20)} ...`
         );
-        const { isReasonable, reason } = isReasonableResult(
-          dbExecution.data.result
-        );
-        if (!isReasonable) {
+        const { success, reason } = isReasonableResult(dbExecution.data.result);
+        if (!success) {
           throw new Error("Result is not reasonable. Reason: " + reason);
         }
         return dbExecution;
@@ -291,8 +294,8 @@ async function main() {
       apiKey: BRAINTRUST_API_KEY,
       baseURL: BRAINTRUST_ENDPOINT,
     }),
-    model: "gpt-4o-mini",
-    temperature: 0.5,
+    model: "gpt-4o",
+    temperature: 0.7,
     seed: 42,
   };
 
@@ -303,24 +306,24 @@ async function main() {
       llmConfig: {
         ...defaultLlmConfig,
         temperature: 0,
-        max_tokens: 2000,
+        model: "gpt-4o",
       },
     },
-    users: { numGenerations: 8, llmConfig: defaultLlmConfig, concurrency: 20 },
+    users: { numGenerations: 8, llmConfig: defaultLlmConfig, concurrency: 8 },
     useCases: {
-      numGenerations: 2,
+      numGenerations: 8,
       llmConfig: defaultLlmConfig,
-      concurrency: 20,
+      concurrency: 10,
     },
     nlQueries: {
-      numGenerations: 4,
+      numGenerations: 8,
       llmConfig: defaultLlmConfig,
-      concurrency: 20,
+      concurrency: 10,
     },
     dbQueries: {
-      numGenerations: 4,
+      numGenerations: 8,
       llmConfig: defaultLlmConfig,
-      concurrency: 25,
+      concurrency: 10,
     },
     dbExecutions: {
       concurrency: 20,
@@ -346,7 +349,9 @@ async function main() {
           connectionUri: MONGODB_TEXT_TO_CODE_CONNECTION_URI,
         },
         llmConfigs: config,
-        datasetUuid: `${defaultLlmConfig.model}_${now.toString()}`,
+        datasetUuid: `${defaultLlmConfig.model}_temp_${
+          defaultLlmConfig.temperature
+        }_${now.toString()}`,
         writeToFile: {
           dataOutDir,
         },

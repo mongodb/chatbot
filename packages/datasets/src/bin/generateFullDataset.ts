@@ -12,10 +12,17 @@ const dataOutDir = path.resolve(__dirname, "..", "..", "dataOut");
 
 async function main() {
   const textToMqlOutputPaths = [
-    "referenceAnswers.dataset_gpt-4o_1743045028440.jsonl",
-    "referenceAnswers.dataset_gpt-4o-mini_1743045481392.jsonl",
-    "referenceAnswers.dataset_o3-mini_1743014512685.jsonl",
-  ].map((p) => path.resolve(dataOutDir, p));
+    path.resolve(
+      dataOutDir,
+      "gpt-4o_1743796354104",
+      "referenceAnswers.dataset_gpt-4o_1743796354104.jsonl"
+    ),
+    path.resolve(
+      dataOutDir,
+      "gpt-4o_temp_0.7_1743798673485",
+      "referenceAnswers.dataset_gpt-4o_temp_0.7_1743798673485.jsonl"
+    ),
+  ];
 
   const allReferenceAnswers: DatabaseNlQueryDatasetEntry[] = [];
   for (const textToMqlOutputPath of textToMqlOutputPaths) {
@@ -75,7 +82,7 @@ async function main() {
   countAndLogUsage(allReferenceAnswers);
   const allReferenceAnswersPathOut = path.resolve(
     dataOutDir,
-    "referenceAnswers.json"
+    "referenceAnswers.gpt-4o.json"
   );
   fs.writeFileSync(
     allReferenceAnswersPathOut,

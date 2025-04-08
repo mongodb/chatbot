@@ -1,9 +1,17 @@
 import path from "path";
 import fs from "fs";
 import { z } from "zod";
+import {
+  convertBraintrustDatabaseNlQueryDatasetEntryToFlat,
+  convertDatabaseNlQueryDatasetEntryToBraintrust,
+  DatabaseNlQueryDatasetEntryBraintrust,
+  DatabaseNlQueryDatasetEntryBraintrustSchema,
+} from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
+import { countAndLogUsage } from "../treeGeneration/databaseNlQueries/analyzeDataset";
 
 const dataOutDir = path.resolve(__dirname, "..", "..", "dataOut");
 
+DatabaseNlQueryDatasetEntryBraintrustSchema;
 const TextToMongoshEvalResult = z.object({
   input: z.object({
     databaseName: z.string(),
@@ -142,7 +150,6 @@ async function main() {
 
   console.log("Distribution of Complexity:", distributionOfComplexity);
 
-  // TODO: get distribution of databaseName
   const distributionOfDatabaseName: Record<string, number> = {};
   for (const key of Object.keys(filteredResults)) {
     const result = filteredResults[key];
@@ -304,12 +311,22 @@ function writeResultsAndCalculatePerformance(
 
   console.log("Performance by file:", filePerformance);
 
-  const filteredResults = Object.values(results).map((r) => {
-    const { aggregateScores, ...evalCase } = r;
-    return {
-      ...evalCase,
-    };
-  });
+  const filteredResults = Object.values(results)
+    .filter((res) => res.metadata)
+    .map((res) => {
+      const braintrustNlQuery: DatabaseNlQueryDatasetEntryBraintrust = {
+        input: res.input,
+        expected:
+          res.expected as DatabaseNlQueryDatasetEntryBraintrust["expected"],
+        tags: res.tags ?? [],
+        metadata: (res.metadata ??
+          {}) as DatabaseNlQueryDatasetEntryBraintrust["metadata"],
+      };
+      return convertBraintrustDatabaseNlQueryDatasetEntryToFlat(
+        braintrustNlQuery
+      );
+    });
+  countAndLogUsage(filteredResults);
   // Write filtered results to a file
   fs.writeFileSync(
     path.join(dataOutDir, "filteredTextToMongoshBenchmarkResults.json"),

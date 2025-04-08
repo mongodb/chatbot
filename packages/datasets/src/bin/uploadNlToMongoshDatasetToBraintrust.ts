@@ -15,7 +15,7 @@ async function main() {
   });
   const dataset = JSON.parse(
     fs.readFileSync(
-      path.resolve(dataOutDir, "referenceAnswers.gpt-4o.json"),
+      path.resolve(dataOutDir, "filteredTextToMongoshBenchmarkResults.json"),
       "utf-8"
     )
   ) as DatabaseNlQueryDatasetEntry[];
@@ -24,9 +24,10 @@ async function main() {
   const btDataset = dataset.map(convertDatabaseNlQueryDatasetEntryToBraintrust);
   const res = await uploadDatasetToBraintrust({
     apiKey: BRAINTRUST_API_KEY,
-    datasetName: "atlas_sample_data_benchmark_gpt-4o",
+    datasetName: "atlas_sample_data_benchmark_gpt-4o_filtered",
     projectName: "natural-language-to-mongosh",
-    description: "Natural language-to-Mongosh dataset",
+    description:
+      "Natural language-to-Mongosh dataset filtered to only include cases where more than 1 LLM was able to answer correctly.",
     dataset: btDataset,
   });
   console.log(res);

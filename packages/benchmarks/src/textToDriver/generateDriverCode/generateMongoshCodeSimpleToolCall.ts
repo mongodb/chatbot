@@ -1,4 +1,4 @@
-import { generateText, LanguageModelV1, tool, ToolSet } from "ai";
+import { generateText, LanguageModelV1, tool } from "ai";
 import { z } from "zod";
 import {
   DatabaseExecutionResult,
@@ -11,12 +11,10 @@ import { mongoshBaseSystemPrompt } from "./languagePrompts/mongosh";
 import { TextToDriverEvalTask, TextToDriverOutput } from "../TextToDriverEval";
 import {
   makeDatabaseInfoPrompt,
-  makeDatabaseInfoPromptSimple,
+  SchemaStrategy,
 } from "./makeDatabaseInfoPrompt";
 
 const GENERATE_DB_CODE_TOOL_NAME = "generate_db_code";
-
-type SchemaStrategy = "annotated" | "simple";
 
 export const nlQuerySystemPrompt = `${mongoshBaseSystemPrompt}
 
@@ -89,11 +87,7 @@ export function makeGenerateMongoshCodeSimpleTask({
             role: "user",
             content: `Generate MongoDB Shell (mongosh) queries for the following database and natural language query:
 
-${
-  schemaStrategy === "annotated"
-    ? makeDatabaseInfoPrompt(databaseInfos[databaseName])
-    : await makeDatabaseInfoPromptSimple(databaseInfos[databaseName])
-}
+${await makeDatabaseInfoPrompt(databaseInfos[databaseName], schemaStrategy)}
 
 Natural language query: ${nlQuery}`,
           },
@@ -191,11 +185,7 @@ export function makeGenerateMongoshCodeSimpleCotTask({
             role: "user",
             content: `Generate MongoDB Shell (mongosh) queries for the following database and natural language query:
 
-${
-  schemaStrategy === "annotated"
-    ? makeDatabaseInfoPrompt(databaseInfos[databaseName])
-    : await makeDatabaseInfoPromptSimple(databaseInfos[databaseName])
-}
+${await makeDatabaseInfoPrompt(databaseInfos[databaseName], schemaStrategy)}
 
 Natural language query: ${nlQuery}`,
           },

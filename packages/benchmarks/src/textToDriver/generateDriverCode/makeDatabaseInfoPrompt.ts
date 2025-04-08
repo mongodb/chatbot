@@ -3,65 +3,67 @@ import {
   getVerySimplifiedSchema,
   truncateDbOperationOutputForLlm,
 } from "mongodb-rag-core/executeCode";
+import yaml from "yaml";
 
-export function makeDatabaseInfoPrompt(databaseInfo: DatabaseInfo) {
+export type SchemaStrategy = "annotated" | "interpreted";
+
+function makeDatabaseOverview(databaseInfo: DatabaseInfo) {
   return `## Database Information
 
 Name: ${databaseInfo.name}
 Description: ${databaseInfo.description}
-Latest Date: ${databaseInfo.latestDate} (use this to inform dates in queries)
+Latest Date: ${databaseInfo.latestDate} (use this to inform dates in queries)`;
+}
 
-### Collections
+async function makeCollectionPrompt(
+  collections: DatabaseInfo["collections"],
+  schemaStrategy: SchemaStrategy
+) {
+  const collectionSchemas =
+    schemaStrategy === "annotated"
+      ? collections.map((c) => c.schema)
+      : await Promise.all(
+          collections.map(async (c) => {
+            const verySimplified = await getVerySimplifiedSchema(c.examples);
+            return typeof verySimplified === "string"
+              ? verySimplified
+              : prettyStringify(verySimplified);
+          })
+        );
+  return `### Collections
 
-${databaseInfo.collections
+${collections
   .map(
-    (c) => `#### Collection \`${c.name}\`
+    (c, i) => `#### Collection \`${c.name}\`
 Description: ${c.description}
 
 Schema:
-${c.schema}
+\`\`\`
+${collectionSchemas[i]}
+\`\`\`
 
 Example documents:
-${c.examples.map((d) => JSON.stringify(truncateDbOperationOutputForLlm(d)))}
+\`\`\`
+${c.examples.map((d) => prettyStringify(truncateDbOperationOutputForLlm(d)))}
+\`\`\`
 
 Indexes:
-${c.indexes.map((i) => `${JSON.stringify(i)}`)}`
+\`\`\`
+${c.indexes.map((i) => `${prettyStringify(i)}`)}`
   )
-  .join("\n")}`;
+  .join("\n\n")}
+\`\`\``;
 }
 
-export async function makeDatabaseInfoPromptSimple(databaseInfo: DatabaseInfo) {
-  // Create an array of promises
-  const collectionPromises = databaseInfo.collections.map(async (c) => {
-    const schema = await getVerySimplifiedSchema(c.examples);
-    return `#### Collection \`${c.name}\`
+export async function makeDatabaseInfoPrompt(
+  databaseInfo: DatabaseInfo,
+  schemaStrategy: SchemaStrategy = "annotated"
+) {
+  return `${makeDatabaseOverview(databaseInfo)}
 
-Schema:
-${JSON.stringify(schema)}
+${await makeCollectionPrompt(databaseInfo.collections, schemaStrategy)}`;
+}
 
-Example documents:
-${c.examples.map((d) => JSON.stringify(truncateDbOperationOutputForLlm(d)))}
-
-Indexes:
-${c.indexes
-  .map((i) => {
-    // Remove the generated description
-    const { description, ...index } = i;
-    return `${JSON.stringify(index)}`;
-  })
-  .join("\n")}`;
-  });
-
-  // Wait for all promises to resolve
-  const collectionsText = await Promise.all(collectionPromises);
-
-  return `## Database Information
-
-Name: ${databaseInfo.name}
-Description: ${databaseInfo.description}
-Latest Date: ${databaseInfo.latestDate} (use this to inform dates in queries)
-
-### Collections
-
-${collectionsText.join("\n")}`;
+function prettyStringify(obj: unknown, format: "json" | "yaml" = "json") {
+  return format === "json" ? JSON.stringify(obj, null, 2) : yaml.stringify(obj);
 }

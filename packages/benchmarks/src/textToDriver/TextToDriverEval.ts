@@ -153,7 +153,7 @@ export async function makeTextToDriverEval({
   projectName,
   experimentName,
   metadata,
-  maxConcurrency = 3,
+  maxConcurrency = 10,
   timeout,
   data,
   task,

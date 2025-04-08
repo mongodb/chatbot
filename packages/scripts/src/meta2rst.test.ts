@@ -86,6 +86,50 @@ More content here.`;
     expect(updatedContent).toEqual(expectedUpdatedContent);
   });
 
+  it("does not update existing description when allowOverwrite is false", () => {
+    const originalContent = `Some content here.
+
+.. meta::
+   :keywords: code example
+   :description: Original description
+
+More content here.`;
+
+    const updatedContent = updateMetaDescription(
+      originalContent,
+      "New description",
+      { allowOverwrite: false }
+    );
+
+    // Should remain unchanged
+    expect(updatedContent).toEqual(originalContent);
+  });
+
+  it("updates existing description when allowOverwrite is true", () => {
+    const originalContent = `Some content here.
+
+.. meta::
+   :keywords: code example
+   :description: Original description
+
+More content here.`;
+
+    const updatedContent = updateMetaDescription(
+      originalContent,
+      "New description",
+      { allowOverwrite: true }
+    );
+
+    const expectedContent = `Some content here.
+
+.. meta::
+   :keywords: code example
+   :description: New description
+
+More content here.`;
+    expect(updatedContent).toEqual(expectedContent);
+  });
+
   it("updates a description on an existing meta directive that already has one", () => {
     const updatedContent = updateMetaDescription(
       rstContent,

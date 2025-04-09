@@ -1,3 +1,4 @@
+export * from "./computeNormalizedLogisticalExecutionTime";
 export * from "./DatabaseExecutionResult";
 export * from "./databaseMetadata";
 export * from "./executeNodeJsDriverCode";

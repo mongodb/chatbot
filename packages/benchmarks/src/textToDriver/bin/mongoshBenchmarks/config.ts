@@ -21,9 +21,12 @@ export const MAX_CONCURRENT_EXPERIMENTS = 5;
 
 export const MODELS: ModelConfig[] = [
   // "gpt-4o",
-  // "gpt-4o-mini",
+  "gpt-4o-mini",
   // "claude-37-sonnet",
-  "o3-mini",
+  // "claude-35-haiku",
+  // "claude-35-sonnet-v2",
+  // "o3-mini",
+  // "llama-3.3-70b",
 ].map((label) => {
   const model = models.find((m) => m.label === label);
   assert(model, `Model ${label} not found`);
@@ -37,12 +40,12 @@ export function makeLlmOptions(
   if (model.label === "o3-mini") {
     return {
       model: model.deployment,
-      max_completion_tokens: 1000,
+      max_completion_tokens: 3000,
     };
   }
   return {
     model: model.deployment,
     temperature: 0,
-    max_tokens: 1000,
+    max_tokens: 3000,
   };
 }

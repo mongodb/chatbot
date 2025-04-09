@@ -3,15 +3,12 @@ import fs from "fs";
 import { z } from "zod";
 import {
   convertBraintrustDatabaseNlQueryDatasetEntryToFlat,
-  convertDatabaseNlQueryDatasetEntryToBraintrust,
   DatabaseNlQueryDatasetEntryBraintrust,
-  DatabaseNlQueryDatasetEntryBraintrustSchema,
 } from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
 import { countAndLogUsage } from "../treeGeneration/databaseNlQueries/analyzeDataset";
 
 const dataOutDir = path.resolve(__dirname, "..", "..", "dataOut");
 
-DatabaseNlQueryDatasetEntryBraintrustSchema;
 const TextToMongoshEvalResult = z.object({
   input: z.object({
     databaseName: z.string(),

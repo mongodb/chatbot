@@ -27,6 +27,7 @@ export type TextToDriverOutput = {
 export const TextToDriverExpectedSchema = z.object({
   dbQuery: z.string(),
   result: z.any(),
+  executionTimeMs: z.number(),
 });
 
 export type TextToDriverExpected = z.infer<typeof TextToDriverExpectedSchema>;

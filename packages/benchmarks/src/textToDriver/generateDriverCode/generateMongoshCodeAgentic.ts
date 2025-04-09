@@ -4,19 +4,30 @@ import {
   DatabaseExecutionResult,
   DatabaseInfo,
   executeMongoshQuery,
+  isReasonableResult,
   LlmOptions,
   truncateDbOperationOutputForLlm,
 } from "mongodb-rag-core/executeCode";
-import { mongoshBaseSystemPrompt } from "./languagePrompts/mongosh";
+import {
+  chainOfThoughtConsiderations,
+  mongoshBaseSystemPrompt,
+} from "./languagePrompts/mongosh";
 import { TextToDriverEvalTask, TextToDriverOutput } from "../TextToDriverEval";
 import { makeDatabaseInfoPrompt } from "./makeDatabaseInfoPrompt";
 import { getVerySimplifiedSchema } from "mongodb-rag-core/executeCode";
+
 const THINK_TOOL_NAME = "think";
 const GENERATE_DB_CODE_TOOL_NAME = "generate_db_code";
+const OUTPUT_SUMMARY = "outputSummary";
 
+// TODO: finish this up
 export const nlQuerySystemPrompt = `${mongoshBaseSystemPrompt}
 
-Always use the '${THINK_TOOL_NAME}' tool before you generate a query with the '${GENERATE_DB_CODE_TOOL_NAME}' tool. If the results seem suboptimal in some way, use the '${THINK_TOOL_NAME}' tool to plan a new query accordingly. Repeat as necessary.
+You may use the '${THINK_TOOL_NAME}' tool before you generate a query with the '${GENERATE_DB_CODE_TOOL_NAME}' tool.
+${chainOfThoughtConsiderations}
+
+If the results seem suboptimal in some way, use the '${THINK_TOOL_NAME}' tool to plan a new query accordingly. Refer to the '${OUTPUT_SUMMARY}' field to understand the results of the previous query. A query should be reasonable and correct. Repeat as necessary.
+
 YOU MUST ALWAYS use the '${GENERATE_DB_CODE_TOOL_NAME}' tool to generate a query before completing.
 ALWAYS make AT LEAST 2 tool calls, at least one to '${THINK_TOOL_NAME}' and '${GENERATE_DB_CODE_TOOL_NAME}' before responding to the user.
 When you are satisfied with the results of '${GENERATE_DB_CODE_TOOL_NAME}', simply say 'Done'`;
@@ -83,6 +94,7 @@ export function makeGenerateMongoshCodeAgenticTask({
               return {
                 ...execution,
                 result: truncateDbOperationOutputForLlm(execution.result),
+                [OUTPUT_SUMMARY]: isReasonableResult(execution.result),
               };
             },
           }),
@@ -97,7 +109,7 @@ export function makeGenerateMongoshCodeAgenticTask({
             role: "user",
             content: `Generate MongoDB Shell (mongosh) queries for the following database and natural language query:
 
-${makeDatabaseInfoPrompt(databaseInfos[databaseName])}
+${await makeDatabaseInfoPrompt(databaseInfos[databaseName])}
 
 Natural language query: ${nlQuery}
 

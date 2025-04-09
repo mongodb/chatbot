@@ -7,31 +7,40 @@ import {
   LlmOptions,
   truncateDbOperationOutputForLlm,
 } from "mongodb-rag-core/executeCode";
-import { mongoshBaseSystemPrompt } from "./languagePrompts/mongosh";
+import {
+  chainOfThoughtConsiderations,
+  genericFewShotExamples,
+  mongoshBaseSystemPrompt,
+} from "./languagePrompts/mongosh";
 import { TextToDriverEvalTask, TextToDriverOutput } from "../TextToDriverEval";
 import {
   makeDatabaseInfoPrompt,
   SchemaStrategy,
 } from "./makeDatabaseInfoPrompt";
+import { FewShotExample } from "./languagePrompts/FewShotExample";
 
 const GENERATE_DB_CODE_TOOL_NAME = "generate_db_code";
+const THOUGHTS_FIELD = "thoughts";
+const CODE_FIELD = "code";
 
 export const nlQuerySystemPrompt = `${mongoshBaseSystemPrompt}
 
 Use the '${GENERATE_DB_CODE_TOOL_NAME}' tool to generate a query.
 `;
 
+type FewShotPromptType = "basic" | "chainOfThought";
 export interface MakeGenerateMongoshCodeSimpleParams {
   uri: string;
   databaseInfos: Record<string, DatabaseInfo>;
   openai: LanguageModelV1;
   llmOptions: Omit<LlmOptions, "openAiClient">;
   schemaStrategy: SchemaStrategy;
+  fewShot?: FewShotPromptType;
 }
 
 /**
   Generates a MongoDB Shell (mongosh) query and executes it.
-  Uses an agentic pipeline to iteratively think and generate the code.
+  Uses tool-calling to generate the code.
  */
 export function makeGenerateMongoshCodeSimpleTask({
   uri,
@@ -39,6 +48,7 @@ export function makeGenerateMongoshCodeSimpleTask({
   openai,
   llmOptions,
   schemaStrategy = "annotated",
+  fewShot,
 }: MakeGenerateMongoshCodeSimpleParams): TextToDriverEvalTask {
   const generateMongoshCodeSimple: TextToDriverEvalTask =
     async function generateMongoshCodeSimple({ databaseName, nlQuery }) {
@@ -61,16 +71,18 @@ export function makeGenerateMongoshCodeSimpleTask({
             description:
               "A MongoDB Shell (mongosh) query for the database use case",
             parameters: z.object({
-              code: z.string().describe("Executable mongosh code snippet"),
+              [CODE_FIELD]: z
+                .string()
+                .describe("Executable mongosh code snippet"),
             }),
             execute: async (args) => {
               const execution = await executeMongoshQuery({
                 databaseName: databaseName,
-                query: args.code,
+                query: args[CODE_FIELD],
                 uri,
               });
               latestExecution = execution;
-              latestCode = args.code;
+              latestCode = args[CODE_FIELD];
               return {
                 ...execution,
                 result: truncateDbOperationOutputForLlm(execution.result),
@@ -88,7 +100,11 @@ export function makeGenerateMongoshCodeSimpleTask({
             content: `Generate MongoDB Shell (mongosh) queries for the following database and natural language query:
 
 ${await makeDatabaseInfoPrompt(databaseInfos[databaseName], schemaStrategy)}
-
+${
+  fewShot
+    ? "\n" + makeFewShotExamplesPrompt(genericFewShotExamples, fewShot) + "\n"
+    : ""
+}
 Natural language query: ${nlQuery}`,
           },
         ],
@@ -107,26 +123,18 @@ Natural language query: ${nlQuery}`,
   return generateMongoshCodeSimple;
 }
 
-const THOUGHTS_FIELD = "thoughts";
-const CODE_FIELD = "code";
-
 export const nlQuerySystemPromptCoT = `${mongoshBaseSystemPrompt}
 
 Use the '${GENERATE_DB_CODE_TOOL_NAME}' tool to generate a query.
 
-Before generating the query, in the '${THOUGHTS_FIELD}' field, think about what your query strategy should be. In your thoughts consider:
-1. What operation(s) to use and why to use them.
-2. What collections and fields are relevant to the query.
-3. Which indexes you can use to improve performance.
-4. Any specific transformations or projections.
-5. Any other relevant considerations.
+Before generating the query, in the '${THOUGHTS_FIELD}' field, think about what your query strategy should be. ${chainOfThoughtConsiderations}
 
 After you have thought about your query strategy, generate the query in the '${CODE_FIELD}' field.
 `;
 
 /**
   Generates a MongoDB Shell (mongosh) query and executes it. Uses chain-of-thought prompting.
-  Uses an agentic pipeline to iteratively think and generate the code.
+  Uses tool-calling to generate the code.
  */
 export function makeGenerateMongoshCodeSimpleCotTask({
   uri,
@@ -134,6 +142,7 @@ export function makeGenerateMongoshCodeSimpleCotTask({
   openai,
   llmOptions,
   schemaStrategy = "annotated",
+  fewShot,
 }: MakeGenerateMongoshCodeSimpleParams): TextToDriverEvalTask {
   const generateMongoshCodeSimple: TextToDriverEvalTask =
     async function generateMongoshCodeSimple({ databaseName, nlQuery }) {
@@ -164,11 +173,11 @@ export function makeGenerateMongoshCodeSimpleCotTask({
             execute: async (args) => {
               const execution = await executeMongoshQuery({
                 databaseName: databaseName,
-                query: args.code,
+                query: args[CODE_FIELD],
                 uri,
               });
               latestExecution = execution;
-              latestCode = args.code;
+              latestCode = args[CODE_FIELD];
               return {
                 ...execution,
                 result: truncateDbOperationOutputForLlm(execution.result),
@@ -186,7 +195,11 @@ export function makeGenerateMongoshCodeSimpleCotTask({
             content: `Generate MongoDB Shell (mongosh) queries for the following database and natural language query:
 
 ${await makeDatabaseInfoPrompt(databaseInfos[databaseName], schemaStrategy)}
-
+${
+  fewShot
+    ? "\n" + makeFewShotExamplesPrompt(genericFewShotExamples, fewShot) + "\n"
+    : ""
+}
 Natural language query: ${nlQuery}`,
           },
         ],
@@ -203,4 +216,38 @@ Natural language query: ${nlQuery}`,
       } satisfies TextToDriverOutput;
     };
   return generateMongoshCodeSimple;
+}
+
+function makeFewShotExamplesPrompt(
+  examples: FewShotExample[],
+  fewShotType: FewShotPromptType = "basic"
+): string {
+  if (fewShotType === "chainOfThought") {
+    return `
+  
+  A few example input and outputs:
+  
+  ${examples
+    .map(
+      (ex) => `Input: ${ex.input}
+Output:
+{
+  ${THOUGHTS_FIELD}: "${ex.output.chainOfThought}",
+  ${CODE_FIELD}: "${ex.output.content}"
+}`
+    )
+    .join("\n\n")}`;
+  } else {
+    return `A few example input and outputs:
+  
+  ${examples
+    .map(
+      (ex) => `Input: ${ex.input}
+Output:
+{
+  ${CODE_FIELD}: "${ex.output.content}"
+}`
+    )
+    .join("\n\n")}`;
+  }
 }

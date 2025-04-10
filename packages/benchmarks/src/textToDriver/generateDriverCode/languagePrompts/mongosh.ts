@@ -8,6 +8,7 @@ export const mongoshQueryAuthoringTips = [
   "Handle null values and existence checks explicitly",
   "Do not include `null` in results objects in aggregation, e.g. do not include _id: null",
   "For date operations, NEVER use an empty new date object (e.g. `new Date()`). ALWAYS specify the date, such as `new Date(\"2024-10-24\")`. Use the provided 'Latest Date' field to inform dates in queries.",
+  "For Decimal128 operations, prefer range queries over exact equality",
 ];
 
 export const mongoshSystemPromptGeneralInstruction = `You are an expert data analyst experienced at using MongoDB.
@@ -84,9 +85,13 @@ export const genericFewShotExamples: FewShotExample[] = [
   },
 ] as const;
 
+const chainOfThoughtTopics = [
+  "What operation(s) to use and why to use them.",
+  "What collections are relevant to the query.",
+  "What fields are relevant to the query.",
+  "Which indexes you can use to improve performance.",
+  "Any specific transformations or projections.",
+  "Any other relevant considerations.",
+];
 export const chainOfThoughtConsiderations = `Think step by step by step about the code in the answer before providing it. In your thoughts consider:
-1. What operation(s) to use and why to use them.
-2. What collections and fields are relevant to the query.
-3. Which indexes you can use to improve performance.
-4. Any specific transformations or projections.
-5. Any other relevant considerations.`;
+${chainOfThoughtTopics.map((topic, i) => `${i + 1}. ${topic}`).join("\n")}`;

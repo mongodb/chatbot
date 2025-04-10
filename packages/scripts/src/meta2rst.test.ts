@@ -218,6 +218,12 @@ This Is The Page Title
 This Is The Page Title
 ======================`)
     ).toEqual(3);
+    // Handle source constants in title
+    expect(
+      findRstPageTitle(`===========================
+This Is The Page Title {+some-source-constant+}
+===========================`)
+    ).toEqual(3);
     expect(
       findRstPageTitle(`----------------------
 This Is The Page Title
@@ -265,20 +271,33 @@ describe("upsertMetaDirective", () => {
 
 ~~~~~~~~~~~~~~~~~~~~~~
 This Is The Page Title
-~~~~~~~~~~~~~~~~~~~~~~`;
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+Some initial text`;
 
     const updatedPageContent = upsertMetaDirective(rstContent, {
       description: "This is a description.",
       keywords: "This is a keyword.",
     });
-    expect(updatedPageContent).toEqual(
-      rstContent +
-        "\n\n" +
-        `.. meta::
+    expect(updatedPageContent).toEqual(`.. _this-is-a-page-anchor:
+
+~~~~~~~~~~~~~~~~~~~~~~
+This Is The Page Title
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. meta::
    :keywords: This is a keyword.
    :description: This is a description.
-`
-    );
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+Some initial text`);
   });
 
   it("updates a meta directive on a page that already has one", () => {

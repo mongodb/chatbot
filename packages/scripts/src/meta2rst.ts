@@ -108,8 +108,7 @@ export function findRstPageTitle(content: string): number {
       possibleOverline.length > 0 &&
       validAdornmentChars.test(possibleOverline) &&
       possibleTitle.length > 0 &&
-      possibleUnderline === possibleOverline &&
-      possibleOverline.length >= possibleTitle.length
+      possibleUnderline === possibleOverline
     ) {
       // Found overline-title-underline pattern
       return i + 3; // Line number (1-based) of the underline
@@ -124,8 +123,7 @@ export function findRstPageTitle(content: string): number {
     if (
       possibleTitle.length > 0 &&
       possibleUnderline.length > 0 &&
-      validAdornmentChars.test(possibleUnderline) &&
-      possibleUnderline.length >= possibleTitle.length
+      validAdornmentChars.test(possibleUnderline)
     ) {
       // Found title-underline pattern
       return i + 2; // Line number (1-based) of the underline
@@ -166,6 +164,7 @@ export function upsertMetaDirective(
     const metaDirective = constructMetaDirective(metaDirectiveArgs);
     const pageTitleLineNumber = findRstPageTitle(rstPageContent);
     if (pageTitleLineNumber === -1) {
+      console.log(`\n\nPage title not found: ${rstPageContent.slice(0, 200)}`);
       throw new Error("Page title not found");
     }
     const pageLines = rstPageContent.split("\n");
@@ -173,7 +172,6 @@ export function upsertMetaDirective(
       ...pageLines.slice(0, pageTitleLineNumber),
       "",
       metaDirective,
-      "",
       ...pageLines.slice(pageTitleLineNumber),
     ].join("\n");
     return newRstPageContent;

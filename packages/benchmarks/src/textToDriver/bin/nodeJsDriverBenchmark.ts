@@ -85,7 +85,6 @@ async function main() {
                   openAiClient: openAiClientFactory.makeOpenAiClient(modelInfo),
                   maxConcurrency:
                     modelInfo.maxConcurrency ?? DEFAULT_MAX_CONCURRENCY,
-                  sleepBeforeMs: modelInfo.sleepBeforeMs,
                   promptConfig: {
                     customInstructions: prompts[promptType],
                     generateCollectionSchemas,

@@ -13,6 +13,7 @@ export type FindContentArgs = {
 export type FindContentResult = {
   queryEmbedding: number[];
   content: WithScore<EmbeddedContent>[];
+  embeddingModelName?: string;
 };
 
 export type FindContent = ({

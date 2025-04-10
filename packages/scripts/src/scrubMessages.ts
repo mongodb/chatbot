@@ -66,6 +66,7 @@ export const scrubMessages = async ({ db }: { db: Db }) => {
         createdAt: "$messages.createdAt",
         role: "$messages.role",
         embedding: "$messages.embedding",
+        embeddingModelName: "$messages.embeddingModelName",
         rating: "$messages.rating",
         references: "$messages.references",
         rejectQuery: "$messages.rejectQuery",
@@ -101,8 +102,10 @@ export const scrubMessages = async ({ db }: { db: Db }) => {
             | "preprocessedContent"
             | "userComment"
             | "contextContent"
+            | "embeddingModel"
           >
-        | "userCommented",
+        | "userCommented"
+        | "embeddingModelName",
         string | number | object | boolean
       >,
     },

@@ -2,10 +2,6 @@ import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
 import { uploadDatasetToBraintrust } from "../uploadDatasetToBraintrust";
 import fs from "fs";
 import path from "path";
-import {
-  convertDatabaseNlQueryDatasetEntryToBraintrust,
-  DatabaseNlQueryDatasetEntry,
-} from "../treeGeneration/databaseNlQueries/DatabaseNlQueryDatasetEntry";
 
 const dataOutDir = path.resolve(__dirname, "..", "..", "dataOut");
 

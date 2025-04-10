@@ -5,7 +5,7 @@ import {
 } from "./userMessageMongoDbGuardrail";
 import { Eval } from "braintrust";
 import { Scorer, LLMClassifierFromTemplate } from "autoevals";
-import { MongoDbTag } from "../mongoDbMetadata";
+import { MongoDbTag } from "mongodb-rag-core";
 import {
   JUDGE_LLM,
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,

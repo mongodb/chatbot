@@ -6,19 +6,19 @@ import { makeSampleLlmOptions } from "../../test/makeSampleLlmOptions";
 import { annotatedDbSchemas } from "./annotatedDbSchemas";
 
 describe.skip("generateMongoshCodeAgentic", () => {
-  // Skip tests if environment variables are not set
-  const {
-    BRAINTRUST_API_KEY,
-    BRAINTRUST_ENDPOINT,
-    MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
-  } = assertEnvVars({
-    ...TEXT_TO_DRIVER_ENV_VARS,
-    ...BRAINTRUST_ENV_VARS,
-  });
   const llmOptions = makeSampleLlmOptions();
   const dbName = "sample_mflix";
 
   it("should generate MQL code for a NL query", async () => {
+    // Skip tests if environment variables are not set
+    const {
+      BRAINTRUST_API_KEY,
+      BRAINTRUST_ENDPOINT,
+      MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
+    } = assertEnvVars({
+      ...TEXT_TO_DRIVER_ENV_VARS,
+      ...BRAINTRUST_ENV_VARS,
+    });
     const openai = createOpenAI({
       apiKey: BRAINTRUST_API_KEY,
       baseURL: BRAINTRUST_ENDPOINT,

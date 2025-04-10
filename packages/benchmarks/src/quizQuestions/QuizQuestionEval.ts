@@ -39,7 +39,8 @@ export type QuizQuestionTaskExpected = string;
 
 export type QuizQuestionEvalTask = EvalTask<
   QuizQuestionEvalCaseInput,
-  QuizQuestionTaskOutput
+  QuizQuestionTaskOutput,
+  QuizQuestionTaskExpected
 >;
 
 interface MakeQuizQuestionTaskParams {

@@ -1,9 +1,5 @@
-import { BRAINTRUST_ENV_VARS } from "../../envVars";
-import { assertEnvVars } from "mongodb-rag-core";
-import {
-  ExperimentResult,
-  getBraintrustExperimentResults,
-} from "../../reporting/getBraintrustExperimentResults";
+import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
+import { getBraintrustExperimentResults } from "../../reporting/getBraintrustExperimentResults";
 import path from "path";
 import fs from "fs";
 import { createObjectCsvWriter } from "csv-writer";

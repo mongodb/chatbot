@@ -7,9 +7,9 @@ import { OpenAI } from "mongodb-rag-core/openai";
 import { assertEnvVars } from "mongodb-rag-core";
 import { BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
 import { DATABASE_NL_QUERIES } from "../EnvVars";
-import { prettyPrintMongoDbDocument } from "../treeGeneration/databaseNlQueries/databaseMetadata/prettyPrintMongoDbDocument";
-import { generateAnnotatedDatabaseInfo } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
+import { generateAnnotatedDatabaseInfoNode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
 import { datasetDatabases } from "../treeGeneration/databaseNlQueries/datasetDatabases";
+import { prettyPrintMongoDbDocument } from "mongodb-rag-core/executeCode";
 
 const dataOutDir = path.resolve(__dirname, "..", "..", "dataOut");
 
@@ -34,7 +34,7 @@ async function generateDbSchema(mongoClient: MongoClient, dbName: string) {
     __dirname,
     "annotatedDbSchema" + "_" + dbName + "_" + model + ".yaml"
   );
-  const dbInfo = await generateAnnotatedDatabaseInfo({
+  const dbInfo = await generateAnnotatedDatabaseInfoNode({
     mongoDb: {
       mongoClient,
       databaseName: dbName,

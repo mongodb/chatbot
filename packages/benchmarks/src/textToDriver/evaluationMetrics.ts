@@ -1,5 +1,10 @@
-import { TextToDriverEvalScorer } from "./evalTypes";
-import { fuzzyMatch } from "./fuzzyMatch";
+import {
+  computeNormalizedLogisticalExecutionTime,
+  fuzzyMatchExecutionResults,
+  isNonEmptyResult,
+  isReasonableResult,
+} from "mongodb-rag-core/executeCode";
+import { TextToDriverEvalScorer } from "./TextToDriverEval";
 
 /**
   Check if the generated query successfully executed.
@@ -24,9 +29,9 @@ export const SuccessfulExecution: TextToDriverEvalScorer = async ({
   try {
     const isFuzzyMatch =
       output.execution.result !== null
-        ? fuzzyMatch({
+        ? fuzzyMatchExecutionResults({
             mongoDbOutput: output.execution.result,
-            expected: expected,
+            expected: expected.result,
             orderMatters: metadata.orderMatters,
             isAggregation: metadata.isAggregation,
           })
@@ -47,28 +52,47 @@ export const SuccessfulExecution: TextToDriverEvalScorer = async ({
 };
 
 /**
-  Number of milliseconds it took to execute the driver code.
+ Checks if the output is reasonable. Uses {@link isReasonableResult} to determine if the output is reasonable.
  */
-export const QueryRunTimeMs: TextToDriverEvalScorer = ({ output }) => {
-  return {
-    name: "QueryRunTimeMs",
-    score: output.execution.executionTimeMs,
-  };
-};
-
-/**
-  Measure how long the query takes to execute in minutes.
-
-  Note: Measuring in minutes because
-  Braintrust throws an error if the score > 1.
- */
-export const QueryExecutionTimeMinutes: TextToDriverEvalScorer = async ({
+export const ReasonableOutput: TextToDriverEvalScorer = ({
   output,
+  expected,
 }) => {
-  const executionTimeMinutes = output.execution.executionTimeMs / 1000 / 60;
+  const isNonEmpty = isNonEmptyResult(output.execution.result);
+  const isReasonable = isReasonableResult(output.execution.result);
 
-  return {
-    name: "QueryExecutionTimeMinutes",
-    score: executionTimeMinutes,
-  };
+  const shouldCalculateNormalizedExecutionTime =
+    isNonEmpty.success &&
+    // Not null or undefined
+    output.execution.executionTimeMs &&
+    output.execution.executionTimeMs > 0 &&
+    // Not null or undefined
+    expected.executionTimeMs &&
+    expected.executionTimeMs > 0;
+
+  return [
+    {
+      name: "NonEmptyOutput",
+      score: isNonEmpty.success ? 1 : 0,
+      metadata: isNonEmpty.reason ? { reason: isNonEmpty.reason } : undefined,
+    },
+    {
+      name: "NormalizedExecutionTimeNonEmpty",
+      score:
+        shouldCalculateNormalizedExecutionTime === true
+          ? computeNormalizedLogisticalExecutionTime(
+              // casting b/c check above
+              output.execution.executionTimeMs as number,
+              expected.executionTimeMs as number
+            )
+          : null,
+    },
+    {
+      name: "ReasonableOutput",
+      score: isReasonable.success ? 1 : 0,
+      metadata: isReasonable.reason
+        ? { reason: isReasonable.reason }
+        : undefined,
+    },
+  ];
 };

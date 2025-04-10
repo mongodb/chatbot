@@ -1,18 +1,13 @@
-import {
-  MongoClient,
-  Db,
-  Collection,
-  Document,
-} from "mongodb-rag-core/mongodb";
-import { executeGeneratedDriverCode } from "./executeGeneratedDriverCode";
+import { MongoClient, Db, Collection, Document } from "mongodb";
+import { executeNodeJsDriverCode } from "./executeNodeJsDriverCode";
 import { MONGO_MEMORY_SERVER_URI } from "../test/constants";
 
-describe("executeGeneratedDriverCode", () => {
+describe("executeNodeJsDriverCode", () => {
   jest.setTimeout(60000);
   let mongoClient: MongoClient;
   let db: Db;
   let collection: Collection<Document>;
-  const databaseName = "executeGeneratedDriverCode";
+  const databaseName = "executeNodeJsDriverCode";
   const collectionName = "testCollection";
 
   beforeAll(async () => {
@@ -38,7 +33,7 @@ describe("executeGeneratedDriverCode", () => {
 
   it("should execute generated driver code", async () => {
     const generatedDriverCode = `database.collection("${collectionName}").find({ name: "Alice" }).toArray()`;
-    const result = await executeGeneratedDriverCode({
+    const result = await executeNodeJsDriverCode({
       mongoClient,
       generatedDriverCode,
       databaseName,
@@ -51,7 +46,7 @@ describe("executeGeneratedDriverCode", () => {
   it("should execute generated driver code with inline comments", async () => {
     const generatedDriverCode = `// hey there
 database.collection("${collectionName}").find({ name: "Alice" }).toArray()`;
-    const result = await executeGeneratedDriverCode({
+    const result = await executeNodeJsDriverCode({
       mongoClient,
       generatedDriverCode,
       databaseName,
@@ -66,7 +61,7 @@ database.collection("${collectionName}").find({ name: "Alice" }).toArray()`;
   hey there
 */
 database.collection("${collectionName}").find({ name: "Alice" }).toArray()`;
-    const result = await executeGeneratedDriverCode({
+    const result = await executeNodeJsDriverCode({
       mongoClient,
       generatedDriverCode,
       databaseName,
@@ -82,7 +77,7 @@ database.collection("${collectionName}").find({ name: "Alice" }).toArray()`;
     // with an _expression_ (like the IFEE)
     // not a statement (like `throw ...`)
     const generatedDriverCode = `(() => { throw new Error("${errorMessage}"); })()`;
-    const result = await executeGeneratedDriverCode({
+    const result = await executeNodeJsDriverCode({
       mongoClient,
       generatedDriverCode,
       databaseName,
@@ -90,7 +85,7 @@ database.collection("${collectionName}").find({ name: "Alice" }).toArray()`;
 
     expect(result.error?.message).toBe(errorMessage);
     expect(result.result).toBeNull();
-    expect(result.executionTimeMs).toBeGreaterThanOrEqual(0);
+    expect(result.executionTimeMs).toBeNull();
   });
   it("should execute code in markdown code block", async () => {
     const generatedDriverCode = `
@@ -98,7 +93,7 @@ database.collection("${collectionName}").find({ name: "Alice" }).toArray()`;
 database.collection("${collectionName}").find({ name: "Alice" }).toArray()
 \`\`\`
     `;
-    const result = await executeGeneratedDriverCode({
+    const result = await executeNodeJsDriverCode({
       mongoClient,
       generatedDriverCode,
       databaseName,
@@ -110,7 +105,7 @@ database.collection("${collectionName}").find({ name: "Alice" }).toArray()
   });
   it("should execute code with trailing semicolon", async () => {
     const generatedDriverCode = `database.collection("${collectionName}").find({ name: "Alice" }).toArray();`;
-    const result = await executeGeneratedDriverCode({
+    const result = await executeNodeJsDriverCode({
       mongoClient,
       generatedDriverCode,
       databaseName,

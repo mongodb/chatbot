@@ -6,7 +6,6 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
 import {
   BRAINTRUST_API_KEY,
-  BRAINTRUST_ENDPOINT,
   DATASET_NAME,
   PROJECT_NAME,
   MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
@@ -16,6 +15,7 @@ import {
 } from "./config";
 import PromisePool from "@supercharge/promise-pool";
 import { makeGenerateMongoshCodePromptCompletionTask } from "../../generateDriverCode/generateMongoshCodePromptCompletion";
+import { getOpenAiEndpointAndApiKey } from "mongodb-rag-core/models";
 
 async function main() {
   await PromisePool.for(MODELS)
@@ -45,8 +45,7 @@ async function main() {
           chainOfThought,
           openai: wrapAISDKModel(
             createOpenAI({
-              apiKey: BRAINTRUST_API_KEY,
-              baseURL: BRAINTRUST_ENDPOINT,
+              ...(await getOpenAiEndpointAndApiKey(model)),
             }).chat(llmOptions.model, {
               structuredOutputs: true,
             })

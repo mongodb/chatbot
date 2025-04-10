@@ -63,10 +63,12 @@ export const ReasonableOutput: TextToDriverEvalScorer = ({
 
   const shouldCalculateNormalizedExecutionTime =
     isNonEmpty.success &&
-    output.execution.executionTimeMs !== null &&
+    // Not null or undefined
+    output.execution.executionTimeMs &&
     output.execution.executionTimeMs > 0 &&
-    expected.result.executionTimeMs !== null &&
-    expected.result.executionTimeMs > 0;
+    // Not null or undefined
+    expected.executionTimeMs &&
+    expected.executionTimeMs > 0;
 
   return [
     {
@@ -76,12 +78,14 @@ export const ReasonableOutput: TextToDriverEvalScorer = ({
     },
     {
       name: "NormalizedExecutionTimeNonEmpty",
-      score: shouldCalculateNormalizedExecutionTime
-        ? computeNormalizedLogisticalExecutionTime(
-            output.execution.executionTimeMs as number, // casting b/c check above
-            expected.result.executionTimeMs
-          )
-        : null,
+      score:
+        shouldCalculateNormalizedExecutionTime === true
+          ? computeNormalizedLogisticalExecutionTime(
+              // casting b/c check above
+              output.execution.executionTimeMs as number,
+              expected.executionTimeMs as number
+            )
+          : null,
     },
     {
       name: "ReasonableOutput",

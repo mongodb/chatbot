@@ -88,6 +88,7 @@
     "dotenv": "^16.3.1",
     "exponential-backoff": "^3.1.1",
     "front-matter": "^4.0.2",
+    "google-auth-library": "^9.15.1",
     "gpt3-tokenizer": "^1.1.5",
     "gray-matter": "^4.0.3",
     "ignore": "^5.3.2",

@@ -63,7 +63,7 @@ export interface ModelConfig {
   1. The hyperscalers are authorized (AWS, GCP, Azure)
   2. Assume all other model providers are unauthorized unless you explicitly know otherwise.
  */
-const allModels: ModelConfig[] = [
+const allModels = [
   {
     label: "gpt-4o",
     deployment: "gpt-4o",
@@ -153,7 +153,7 @@ const allModels: ModelConfig[] = [
     label: "llama-3-70b",
     deployment: "meta.llama3-70b-instruct-v1:0",
     developer: "Meta",
-    maxConcurrency: 1,
+    maxConcurrency: 3,
     provider: "braintrust",
     authorized: true,
   },
@@ -194,7 +194,7 @@ const allModels: ModelConfig[] = [
     deployment: "amazon.nova-lite-v1:0",
     developer: "Amazon",
     provider: "braintrust",
-    maxConcurrency: 3,
+    maxConcurrency: 5,
     authorized: true,
   },
   {
@@ -202,7 +202,7 @@ const allModels: ModelConfig[] = [
     deployment: "amazon.nova-micro-v1:0",
     developer: "Amazon",
     provider: "braintrust",
-    maxConcurrency: 3,
+    maxConcurrency: 20,
     authorized: true,
   },
   {
@@ -210,7 +210,7 @@ const allModels: ModelConfig[] = [
     deployment: "amazon.nova-pro-v1:0",
     developer: "Amazon",
     provider: "braintrust",
-    maxConcurrency: 1,
+    maxConcurrency: 5,
     authorized: true,
   },
   {
@@ -233,21 +233,29 @@ const allModels: ModelConfig[] = [
     label: "gemini-2-flash",
     deployment: "models/gemini-2.0-flash-001",
     developer: "Google",
-    maxConcurrency: 3,
+    maxConcurrency: 10,
     provider: "gcp_vertex_ai",
     authorized: true,
   },
   {
-    label: "gemini-1.5-pro-002",
-    deployment: "google/gemini-1.5-pro-002",
+    label: "gemini-2.0-flash-lite",
+    deployment: "models/gemini-2.0-flash-lite-001",
+    developer: "Google",
+    maxConcurrency: 10,
+    provider: "gcp_vertex_ai",
+    authorized: true,
+  },
+  {
+    label: "gemini-1.0-pro-002",
+    deployment: "google/gemini-1.0-pro-002",
     developer: "Google",
     provider: "gcp_vertex_ai",
     maxConcurrency: 1,
     authorized: true,
   },
   {
-    label: "gemini-1.0-pro-002",
-    deployment: "google/gemini-1.0-pro-002",
+    label: "gemini-1.5-pro-002",
+    deployment: "google/gemini-1.5-pro-002",
     developer: "Google",
     provider: "gcp_vertex_ai",
     maxConcurrency: 1,
@@ -283,7 +291,7 @@ const allModels: ModelConfig[] = [
       host: "Fireworks",
     },
   },
-] as const;
+] as const satisfies ModelConfig[];
 
 export const models = allModels.filter((m) => m.authorized);
 

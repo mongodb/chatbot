@@ -2,7 +2,7 @@ import { Document } from "mongodb";
 import {
   truncateDbOperationOutputForLlm,
   TruncationOptions,
-} from "./databaseMetadata/truncateDbOperationOutputForLlm";
+} from "./truncateDbOperationOutputForLlm";
 
 describe("truncateDbOperationOutputForLlm", () => {
   describe("string truncation", () => {

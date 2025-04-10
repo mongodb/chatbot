@@ -1,5 +1,5 @@
 import { ObjectId, BSON } from "mongodb";
-import { prettyPrintMongoDbDocument } from "./databaseMetadata/prettyPrintMongoDbDocument";
+import { prettyPrintMongoDbDocument } from "./prettyPrintMongoDbDocument";
 
 describe("prettyPrintMongoDbDocument", () => {
   it("should convert ObjectId to string representation", () => {

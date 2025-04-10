@@ -6,10 +6,9 @@ import { makeSampleLlmOptions } from "../../test/makeSampleLlmOptions";
 import { annotatedDbSchemas } from "./annotatedDbSchemas";
 
 describe.skip("generateMongoshCodeAgentic", () => {
-  const llmOptions = makeSampleLlmOptions();
-  const dbName = "sample_mflix";
-
   it("should generate MQL code for a NL query", async () => {
+    const llmOptions = makeSampleLlmOptions();
+    const dbName = "sample_mflix";
     // Skip tests if environment variables are not set
     const {
       BRAINTRUST_API_KEY,

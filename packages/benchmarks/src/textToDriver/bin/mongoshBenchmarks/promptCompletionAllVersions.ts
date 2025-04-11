@@ -4,7 +4,6 @@ import { ReasonableOutput, SuccessfulExecution } from "../../evaluationMetrics";
 import { annotatedDbSchemas } from "../../generateDriverCode/annotatedDbSchemas";
 import { createOpenAI } from "@ai-sdk/openai";
 import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
-import { makeGenerateMongoshCodeSimpleTask } from "../../generateDriverCode/generateMongoshCodeSimpleToolCall";
 import {
   BRAINTRUST_API_KEY,
   DATASET_NAME,
@@ -15,16 +14,44 @@ import {
   MODELS,
 } from "./config";
 import PromisePool from "@supercharge/promise-pool";
+import { makeGenerateMongoshCodePromptCompletionTask } from "../../generateDriverCode/generateMongoshCodePromptCompletion";
 import { getOpenAiEndpointAndApiKey } from "mongodb-rag-core/models";
+import { SystemPromptStrategy } from "../../generateDriverCode/generateMongoshCodePromptCompletion";
+import { SchemaStrategy } from "../../generateDriverCode/makeDatabaseInfoPrompt";
 
 async function main() {
-  await PromisePool.for(MODELS)
+  const schemaStrategies: SchemaStrategy[] = [
+    "annotated",
+    "interpreted",
+    "none",
+  ];
+  const systemPromptStrategies: SystemPromptStrategy[] = [
+    "default",
+    "chainOfThought",
+    "lazy",
+  ];
+  interface Experiment {
+    model: (typeof MODELS)[number];
+    schemaStrategy: SchemaStrategy;
+    systemPromptStrategy: SystemPromptStrategy;
+  }
+  const experiments: Experiment[] = [];
+  for (const model of MODELS) {
+    for (const schemaStrategy of schemaStrategies) {
+      for (const systemPromptStrategy of systemPromptStrategies) {
+        experiments.push({
+          model,
+          schemaStrategy,
+          systemPromptStrategy,
+        });
+      }
+    }
+  }
+  await PromisePool.for(experiments)
     .withConcurrency(MAX_CONCURRENT_EXPERIMENTS)
-    .process(async (model) => {
+    .process(async ({ model, schemaStrategy, systemPromptStrategy }) => {
       const llmOptions = makeLlmOptions(model);
-      const schemaStrategy = "annotated";
-      const fewShot = "basic";
-      const experimentName = `mongosh-benchmark-simple-tool-call-${schemaStrategy}-schema-few-shot-${fewShot}-${model.label}`;
+      const experimentName = `mongosh-benchmark-prompt-completion-${systemPromptStrategy}-${schemaStrategy}-schema-${model.label}`;
       console.log(`Running experiment: ${experimentName}`);
 
       await makeTextToDriverEval({
@@ -38,10 +65,12 @@ async function main() {
         }),
         maxConcurrency: model.maxConcurrency,
 
-        task: makeGenerateMongoshCodeSimpleTask({
+        task: makeGenerateMongoshCodePromptCompletionTask({
           uri: MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
           databaseInfos: annotatedDbSchemas,
           llmOptions,
+          systemPromptStrategy,
+          schemaStrategy,
           openai: wrapAISDKModel(
             createOpenAI({
               ...(await getOpenAiEndpointAndApiKey(model)),
@@ -49,13 +78,11 @@ async function main() {
               structuredOutputs: true,
             })
           ),
-          schemaStrategy,
-          fewShot,
         }),
         metadata: {
           llmOptions,
           model,
-          fewShot,
+          systemPromptStrategy,
           schemaStrategy,
         },
         scores: [SuccessfulExecution, ReasonableOutput],

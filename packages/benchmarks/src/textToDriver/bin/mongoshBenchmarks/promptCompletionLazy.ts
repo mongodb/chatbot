@@ -4,17 +4,17 @@ import { ReasonableOutput, SuccessfulExecution } from "../../evaluationMetrics";
 import { annotatedDbSchemas } from "../../generateDriverCode/annotatedDbSchemas";
 import { createOpenAI } from "@ai-sdk/openai";
 import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
-import { makeGenerateMongoshCodeSimpleTask } from "../../generateDriverCode/generateMongoshCodeSimpleToolCall";
 import {
   BRAINTRUST_API_KEY,
   DATASET_NAME,
+  PROJECT_NAME,
+  MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
   makeLlmOptions,
   MAX_CONCURRENT_EXPERIMENTS,
   MODELS,
-  MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
-  PROJECT_NAME,
 } from "./config";
 import PromisePool from "@supercharge/promise-pool";
+import { makeGenerateMongoshCodePromptCompletionTask } from "../../generateDriverCode/generateMongoshCodePromptCompletion";
 import { getOpenAiEndpointAndApiKey } from "mongodb-rag-core/models";
 
 async function main() {
@@ -22,8 +22,9 @@ async function main() {
     .withConcurrency(MAX_CONCURRENT_EXPERIMENTS)
     .process(async (model) => {
       const llmOptions = makeLlmOptions(model);
-      const schemaStrategy = "interpreted";
-      const experimentName = `mongosh-benchmark-simple-tool-call-${schemaStrategy}-schema-${model.label}`;
+      const systemPromptStrategy = "lazy";
+      const schemaStrategy = "none";
+      const experimentName = `mongosh-benchmark-prompt-completion-${systemPromptStrategy}-${schemaStrategy}-schema-${model.label}`;
       console.log(`Running experiment: ${experimentName}`);
 
       await makeTextToDriverEval({
@@ -37,10 +38,12 @@ async function main() {
         }),
         maxConcurrency: model.maxConcurrency,
 
-        task: makeGenerateMongoshCodeSimpleTask({
+        task: makeGenerateMongoshCodePromptCompletionTask({
           uri: MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
           databaseInfos: annotatedDbSchemas,
           llmOptions,
+          systemPromptStrategy,
+          schemaStrategy,
           openai: wrapAISDKModel(
             createOpenAI({
               ...(await getOpenAiEndpointAndApiKey(model)),
@@ -48,11 +51,11 @@ async function main() {
               structuredOutputs: true,
             })
           ),
-          schemaStrategy,
         }),
         metadata: {
           llmOptions,
           model,
+          systemPromptStrategy,
           schemaStrategy,
         },
         scores: [SuccessfulExecution, ReasonableOutput],

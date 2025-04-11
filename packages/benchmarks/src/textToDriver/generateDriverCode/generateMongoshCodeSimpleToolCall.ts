@@ -20,7 +20,7 @@ import {
 import { FewShotExample } from "./languagePrompts/FewShotExample";
 
 const GENERATE_DB_CODE_TOOL_NAME = "generate_db_code";
-const THOUGHTS_FIELD = "thoughts";
+const QUERY_PLAN_FIELD = "query_plan";
 const CODE_FIELD = "code";
 
 export const nlQuerySystemPrompt = `${mongoshBaseSystemPrompt}
@@ -52,7 +52,9 @@ export function makeGenerateMongoshCodeSimpleTask({
 }: MakeGenerateMongoshCodeSimpleParams): TextToDriverEvalTask {
   const generateMongoshCodeSimple: TextToDriverEvalTask =
     async function generateMongoshCodeSimple({ databaseName, nlQuery }) {
+      // eslint-disable-next-line prefer-const
       let latestExecution: DatabaseExecutionResult | null = null;
+      // eslint-disable-next-line prefer-const
       let latestCode: TextToDriverOutput["generatedCode"] | null = null;
       const res = await generateText({
         temperature: llmOptions.temperature ?? undefined,
@@ -67,27 +69,12 @@ export function makeGenerateMongoshCodeSimpleTask({
           type: "tool",
         },
         tools: {
-          [GENERATE_DB_CODE_TOOL_NAME]: tool({
-            description:
-              "A MongoDB Shell (mongosh) query for the database use case",
-            parameters: z.object({
-              [CODE_FIELD]: z
-                .string()
-                .describe("Executable mongosh code snippet"),
-            }),
-            execute: async (args) => {
-              const execution = await executeMongoshQuery({
-                databaseName: databaseName,
-                query: args[CODE_FIELD],
-                uri,
-              });
-              latestExecution = execution;
-              latestCode = args[CODE_FIELD];
-              return {
-                ...execution,
-                result: truncateDbOperationOutputForLlm(execution.result),
-              };
-            },
+          [GENERATE_DB_CODE_TOOL_NAME]: makeDbCodeTool({
+            databaseName,
+            uri,
+            latestExecution,
+            latestCode,
+            hasQueryPlan: false,
           }),
         },
         messages: [
@@ -127,9 +114,9 @@ export const nlQuerySystemPromptCoT = `${mongoshBaseSystemPrompt}
 
 Use the '${GENERATE_DB_CODE_TOOL_NAME}' tool to generate a query.
 
-Before generating the query, in the '${THOUGHTS_FIELD}' field, think about what your query strategy should be. ${chainOfThoughtConsiderations}
+Before generating the query, in the '${QUERY_PLAN_FIELD}' field, think about what your query plan should be. ${chainOfThoughtConsiderations}
 
-After you have thought about your query strategy, generate the query in the '${CODE_FIELD}' field.
+After you have thought about your query plan, generate the query in the '${CODE_FIELD}' field.
 `;
 
 /**
@@ -146,7 +133,9 @@ export function makeGenerateMongoshCodeSimpleCotTask({
 }: MakeGenerateMongoshCodeSimpleParams): TextToDriverEvalTask {
   const generateMongoshCodeSimple: TextToDriverEvalTask =
     async function generateMongoshCodeSimple({ databaseName, nlQuery }) {
+      // eslint-disable-next-line prefer-const
       let latestExecution: DatabaseExecutionResult | null = null;
+      // eslint-disable-next-line prefer-const
       let latestCode: TextToDriverOutput["generatedCode"] | null = null;
       const res = await generateText({
         temperature: llmOptions.temperature ?? undefined,
@@ -161,28 +150,12 @@ export function makeGenerateMongoshCodeSimpleCotTask({
           type: "tool",
         },
         tools: {
-          [GENERATE_DB_CODE_TOOL_NAME]: tool({
-            description:
-              "A MongoDB Shell (mongosh) query for the database use case",
-            parameters: z.object({
-              [THOUGHTS_FIELD]: z.string().describe("Reasoning about answer"),
-              [CODE_FIELD]: z
-                .string()
-                .describe("Executable mongosh code snippet"),
-            }),
-            execute: async (args) => {
-              const execution = await executeMongoshQuery({
-                databaseName: databaseName,
-                query: args[CODE_FIELD],
-                uri,
-              });
-              latestExecution = execution;
-              latestCode = args[CODE_FIELD];
-              return {
-                ...execution,
-                result: truncateDbOperationOutputForLlm(execution.result),
-              };
-            },
+          [GENERATE_DB_CODE_TOOL_NAME]: makeDbCodeTool({
+            databaseName,
+            uri,
+            latestExecution,
+            latestCode,
+            hasQueryPlan: true,
           }),
         },
         messages: [
@@ -218,6 +191,43 @@ Natural language query: ${nlQuery}`,
   return generateMongoshCodeSimple;
 }
 
+function makeDbCodeTool({
+  databaseName,
+  uri,
+  latestExecution,
+  latestCode,
+  hasQueryPlan = false,
+}: {
+  databaseName: string;
+  uri: string;
+  latestExecution: DatabaseExecutionResult | null;
+  latestCode: TextToDriverOutput["generatedCode"] | null;
+  hasQueryPlan: boolean;
+}) {
+  return tool({
+    description: "A MongoDB Shell (mongosh) query for the database use case",
+    parameters: z.object({
+      ...(hasQueryPlan
+        ? { [QUERY_PLAN_FIELD]: z.string().describe("Query plan") }
+        : {}),
+      [CODE_FIELD]: z.string().describe("Executable mongosh code snippet"),
+    }),
+    execute: async (args) => {
+      const execution = await executeMongoshQuery({
+        databaseName: databaseName,
+        query: args[CODE_FIELD],
+        uri,
+      });
+      latestExecution = execution;
+      latestCode = args[CODE_FIELD];
+      return {
+        ...execution,
+        result: truncateDbOperationOutputForLlm(execution.result),
+      };
+    },
+  });
+}
+
 function makeFewShotExamplesPrompt(
   examples: FewShotExample[],
   fewShotType: FewShotPromptType = "basic"
@@ -232,7 +242,7 @@ function makeFewShotExamplesPrompt(
       (ex) => `Input: ${ex.input}
 Output:
 {
-  ${THOUGHTS_FIELD}: "${ex.output.chainOfThought}",
+  ${QUERY_PLAN_FIELD}: "${ex.output.chainOfThought}",
   ${CODE_FIELD}: "${ex.output.content}"
 }`
     )

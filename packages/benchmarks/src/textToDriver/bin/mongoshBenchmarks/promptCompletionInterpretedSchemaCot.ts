@@ -4,26 +4,29 @@ import { ReasonableOutput, SuccessfulExecution } from "../../evaluationMetrics";
 import { annotatedDbSchemas } from "../../generateDriverCode/annotatedDbSchemas";
 import { createOpenAI } from "@ai-sdk/openai";
 import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
-import { makeGenerateMongoshCodeSimpleCotTask } from "../../generateDriverCode/generateMongoshCodeSimpleToolCall";
 import {
   BRAINTRUST_API_KEY,
   DATASET_NAME,
   PROJECT_NAME,
   MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
+  makeLlmOptions,
   MAX_CONCURRENT_EXPERIMENTS,
   MODELS,
-  makeLlmOptions,
 } from "./config";
 import PromisePool from "@supercharge/promise-pool";
+import { makeGenerateMongoshCodePromptCompletionTask } from "../../generateDriverCode/generateMongoshCodePromptCompletion";
 import { getOpenAiEndpointAndApiKey } from "mongodb-rag-core/models";
+import { SystemPromptStrategy } from "../../generateDriverCode/generateMongoshCodePromptCompletion";
+import { SchemaStrategy } from "../../generateDriverCode/makeDatabaseInfoPrompt";
 
 async function main() {
   await PromisePool.for(MODELS)
     .withConcurrency(MAX_CONCURRENT_EXPERIMENTS)
     .process(async (model) => {
       const llmOptions = makeLlmOptions(model);
-      const schemaStrategy = "annotated";
-      const experimentName = `mongosh-benchmark-simple-tool-call-cot-${schemaStrategy}-schema-${model.label}`;
+      const systemPromptStrategy: SystemPromptStrategy = "lazy";
+      const schemaStrategy: SchemaStrategy = "interpreted";
+      const experimentName = `mongosh-benchmark-prompt-completion-${systemPromptStrategy}-${schemaStrategy}-schema-${model.label}`;
       console.log(`Running experiment: ${experimentName}`);
 
       await makeTextToDriverEval({
@@ -37,10 +40,11 @@ async function main() {
         }),
         maxConcurrency: model.maxConcurrency,
 
-        task: makeGenerateMongoshCodeSimpleCotTask({
+        task: makeGenerateMongoshCodePromptCompletionTask({
           uri: MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
           databaseInfos: annotatedDbSchemas,
           llmOptions,
+          systemPromptStrategy: "default",
           openai: wrapAISDKModel(
             createOpenAI({
               ...(await getOpenAiEndpointAndApiKey(model)),
@@ -53,8 +57,8 @@ async function main() {
         metadata: {
           llmOptions,
           model,
+          systemPromptStrategy,
           schemaStrategy,
-          toolCallStrategy: "chainOfThought",
         },
         scores: [SuccessfulExecution, ReasonableOutput],
       });

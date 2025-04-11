@@ -22,9 +22,9 @@ async function main() {
     .withConcurrency(MAX_CONCURRENT_EXPERIMENTS)
     .process(async (model) => {
       const llmOptions = makeLlmOptions(model);
-      const chainOfThought = true;
+      const systemPromptStrategy = "default";
       const schemaStrategy = "annotated";
-      const experimentName = `mongosh-benchmark-simple-prompt-completion-chain-of-thought-${schemaStrategy}-schema-${model.label}`;
+      const experimentName = `mongosh-benchmark-prompt-completion-${systemPromptStrategy}-${schemaStrategy}-schema-${model.label}`;
       console.log(`Running experiment: ${experimentName}`);
 
       await makeTextToDriverEval({
@@ -42,7 +42,7 @@ async function main() {
           uri: MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
           databaseInfos: annotatedDbSchemas,
           llmOptions,
-          chainOfThought,
+          systemPromptStrategy: "default",
           openai: wrapAISDKModel(
             createOpenAI({
               ...(await getOpenAiEndpointAndApiKey(model)),
@@ -55,6 +55,8 @@ async function main() {
         metadata: {
           llmOptions,
           model,
+          systemPromptStrategy,
+          schemaStrategy,
         },
         scores: [SuccessfulExecution, ReasonableOutput],
       });

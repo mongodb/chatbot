@@ -22,13 +22,13 @@ export const MAX_CONCURRENT_EXPERIMENTS = 5;
 
 export const MODELS: ModelConfig[] = (
   [
-    "gpt-4o-mini",
+    // "gpt-4o-mini",
     // "gpt-4o",
     // "claude-3-haiku",
     // "claude-35-haiku",
     // "claude-35-sonnet",
     // "claude-35-sonnet-v2",
-    // "claude-37-sonnet",
+    "claude-37-sonnet",
     // "o3-mini",
     // "llama-3.1-70b",
     // "llama-3.2-90b",

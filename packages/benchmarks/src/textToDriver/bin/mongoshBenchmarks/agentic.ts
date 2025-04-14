@@ -28,8 +28,6 @@ async function main() {
         baseName: EXPERIMENT_BASE_NAME,
         experimentType: "agentic",
         model: model.label,
-        schemaStrategy: "none",
-        systemPromptStrategy: "default",
       });
       console.log(`Running experiment: ${experimentName}`);
 

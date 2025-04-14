@@ -13,7 +13,7 @@ export const DATASET_NAME =
 
 export const PROJECT_NAME = "natural-language-to-mongosh";
 
-export const EXPERIMENT_BASE_NAME = "mongosh-benchmark";
+export const EXPERIMENT_BASE_NAME = "mongosh-benchmark-official";
 
 export const {
   BRAINTRUST_API_KEY,
@@ -70,11 +70,11 @@ export const MODELS: ModelConfig[] = (
     "llama-3.3-70b",
     // "gemini-1.5-flash-002",
     "gemini-2-flash",
-    "gemini-2.0-flash-lite",
+    // "gemini-2.0-flash-lite",
     // "gemini-1.0-pro-002",
     // "gemini-1.5-pro-002",
-    "nova-micro-v1:0",
-    "nova-lite-v1:0",
+    // "nova-micro-v1:0",
+    // "nova-lite-v1:0",
     "nova-pro-v1:0",
     "mistral-large-2",
   ] satisfies (typeof models)[number]["label"][]

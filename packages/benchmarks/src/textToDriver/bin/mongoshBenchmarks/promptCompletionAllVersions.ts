@@ -13,8 +13,6 @@ import {
   MAX_CONCURRENT_EXPERIMENTS,
   MODELS,
   MAX_CONCURRENT_MODELS,
-  schemaStrategies,
-  systemPromptStrategies,
   Experiment,
   EXPERIMENT_BASE_NAME,
 } from "./config";
@@ -24,24 +22,64 @@ import { getOpenAiEndpointAndApiKey } from "mongodb-rag-core/models";
 import { makeExperimentName } from "../../makeExperimentName";
 
 async function main() {
-  const experimentsByModel: Record<
-    (typeof MODELS)[number]["label"],
-    Experiment[]
-  > = {};
   const experimentType = "promptCompletion";
-  for (const model of MODELS) {
-    for (const schemaStrategy of schemaStrategies) {
-      for (const systemPromptStrategy of systemPromptStrategies) {
-        experimentsByModel[model.label].push({
-          model,
-          schemaStrategy,
-          systemPromptStrategy,
-          type: experimentType,
-        });
-      }
-    }
-  }
-  await PromisePool.for(Object.values(experimentsByModel))
+  // For each model evaluate the following:
+  // 1. interpreted schema + default system prompt
+  // 2. interpreted schema + chain of thought system prompt
+  // 3. interpreted schema + lazy system prompt
+  // 4. annotated schema + default system prompt
+  // 5. annotated schema + chain of thought system prompt
+  // 6. annotated schema + lazy system prompt
+  // 7. no schema + lazy system prompt
+  const experiments = MODELS.reduce((acc, model) => {
+    acc[model.label] = [
+      {
+        schemaStrategy: "interpreted",
+        systemPromptStrategy: "default",
+        type: experimentType,
+        model,
+      },
+      {
+        schemaStrategy: "interpreted",
+        systemPromptStrategy: "chainOfThought",
+        type: experimentType,
+        model,
+      },
+      {
+        schemaStrategy: "interpreted",
+        systemPromptStrategy: "lazy",
+        type: experimentType,
+        model,
+      },
+      {
+        schemaStrategy: "annotated",
+        systemPromptStrategy: "default",
+        type: experimentType,
+        model,
+      },
+      {
+        schemaStrategy: "annotated",
+        systemPromptStrategy: "chainOfThought",
+        type: experimentType,
+        model,
+      },
+      {
+        schemaStrategy: "annotated",
+        systemPromptStrategy: "lazy",
+        type: experimentType,
+        model,
+      },
+      {
+        schemaStrategy: "none",
+        systemPromptStrategy: "lazy",
+        type: experimentType,
+        model,
+      },
+    ];
+    return acc;
+  }, {} as Record<(typeof MODELS)[number]["label"], Experiment[]>);
+
+  await PromisePool.for(Object.values(experiments))
     .withConcurrency(MAX_CONCURRENT_MODELS)
     .process(async (experiments) => {
       await PromisePool.for(experiments)

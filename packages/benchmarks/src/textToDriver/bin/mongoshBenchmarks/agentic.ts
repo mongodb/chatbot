@@ -13,16 +13,24 @@ import {
   MODELS,
   MAX_CONCURRENT_EXPERIMENTS,
   makeLlmOptions,
+  EXPERIMENT_BASE_NAME,
 } from "./config";
 import PromisePool from "@supercharge/promise-pool";
 import { getOpenAiEndpointAndApiKey } from "mongodb-rag-core/models";
+import { makeExperimentName } from "../../makeExperimentName";
 
 async function main() {
   await PromisePool.for(MODELS)
     .withConcurrency(MAX_CONCURRENT_EXPERIMENTS)
     .process(async (model) => {
       const llmOptions = makeLlmOptions(model);
-      const experimentName = `mongosh-benchmark-agentic-${model.label}`;
+      const experimentName = makeExperimentName({
+        baseName: EXPERIMENT_BASE_NAME,
+        experimentType: "agentic",
+        model: model.label,
+        schemaStrategy: "none",
+        systemPromptStrategy: "default",
+      });
       console.log(`Running experiment: ${experimentName}`);
 
       await makeTextToDriverEval({

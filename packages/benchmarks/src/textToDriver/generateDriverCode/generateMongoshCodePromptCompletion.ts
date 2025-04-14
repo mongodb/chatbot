@@ -11,10 +11,11 @@ import {
   mongoshSystemPromptGeneralInstruction,
 } from "./languagePrompts/mongosh";
 import { TextToDriverEvalTask, TextToDriverOutput } from "../TextToDriverEval";
+import { makeDatabaseInfoPrompt } from "./makeDatabaseInfoPrompt";
 import {
-  makeDatabaseInfoPrompt,
   SchemaStrategy,
-} from "./makeDatabaseInfoPrompt";
+  SystemPromptStrategy,
+} from "./languagePrompts/PromptStrategies";
 
 export const markdownPromptFormatting = `Format your output in a Markdown code block as such:
 \`\`\`mongosh
@@ -52,8 +53,6 @@ export const nlQuerySystemPromptLazy = `${mongoshSystemPromptGeneralInstruction}
 
 ${markdownPromptFormatting}
 `;
-
-export type SystemPromptStrategy = "chainOfThought" | "lazy" | "default";
 
 export interface MakeGenerateMongoshCodePromptCompletionParams {
   uri: string;

@@ -4,10 +4,8 @@ import {
   truncateDbOperationOutputForLlm,
 } from "mongodb-rag-core/executeCode";
 import yaml from "yaml";
+import { SchemaStrategy } from "./languagePrompts/PromptStrategies";
 
-export type SchemaStrategy = "annotated" | "interpreted" | "none";
-
-// TODO: support annotated`
 function makeDatabaseOverview(databaseInfo: DatabaseInfo, annotated: boolean) {
   return `## Database Information
 

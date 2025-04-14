@@ -16,11 +16,12 @@ import {
   schemaStrategies,
   systemPromptStrategies,
   Experiment,
+  fewShot,
   EXPERIMENT_BASE_NAME,
 } from "./config";
 import PromisePool from "@supercharge/promise-pool";
-import { makeGenerateMongoshCodePromptCompletionTask } from "../../generateDriverCode/generateMongoshCodePromptCompletion";
 import { getOpenAiEndpointAndApiKey } from "mongodb-rag-core/models";
+import { makeGenerateMongoshCodeToolCallTask } from "../../generateDriverCode/generateMongoshCodeToolCall";
 import { makeExperimentName } from "../../makeExperimentName";
 
 async function main() {
@@ -28,16 +29,19 @@ async function main() {
     (typeof MODELS)[number]["label"],
     Experiment[]
   > = {};
-  const experimentType = "promptCompletion";
+  const experimentType = "toolCall";
   for (const model of MODELS) {
     for (const schemaStrategy of schemaStrategies) {
       for (const systemPromptStrategy of systemPromptStrategies) {
-        experimentsByModel[model.label].push({
-          model,
-          schemaStrategy,
-          systemPromptStrategy,
-          type: experimentType,
-        });
+        for (const isFewShot of fewShot) {
+          experimentsByModel[model.label].push({
+            model,
+            schemaStrategy,
+            systemPromptStrategy,
+            type: experimentType,
+            fewShot: isFewShot,
+          });
+        }
       }
     }
   }
@@ -47,15 +51,16 @@ async function main() {
       await PromisePool.for(experiments)
         .withConcurrency(MAX_CONCURRENT_EXPERIMENTS)
         .process(async (experiment) => {
-          const { model, schemaStrategy, systemPromptStrategy, type } =
+          const { model, schemaStrategy, systemPromptStrategy, fewShot } =
             experiment;
           const llmOptions = makeLlmOptions(model);
           const experimentName = makeExperimentName({
             baseName: EXPERIMENT_BASE_NAME,
-            experimentType: type,
+            experimentType: experiment.type,
             model: model.label,
-            systemPromptStrategy,
-            schemaStrategy,
+            systemPromptStrategy: experiment.systemPromptStrategy,
+            schemaStrategy: experiment.schemaStrategy,
+            fewShot: experiment.fewShot,
           });
           console.log(`Running experiment: ${experimentName}`);
 
@@ -70,12 +75,13 @@ async function main() {
             }),
             maxConcurrency: model.maxConcurrency,
 
-            task: makeGenerateMongoshCodePromptCompletionTask({
+            task: makeGenerateMongoshCodeToolCallTask({
               uri: MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
               databaseInfos: annotatedDbSchemas,
               llmOptions,
               systemPromptStrategy,
               schemaStrategy,
+              fewShot,
               openai: wrapAISDKModel(
                 createOpenAI({
                   ...(await getOpenAiEndpointAndApiKey(model)),

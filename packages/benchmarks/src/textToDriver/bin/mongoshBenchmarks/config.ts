@@ -51,32 +51,35 @@ export interface Experiment {
   fewShot?: boolean;
 }
 
-export const MAX_CONCURRENT_EXPERIMENTS = 5;
+export const MAX_CONCURRENT_EXPERIMENTS = 2;
 
-export const MAX_CONCURRENT_MODELS = 5;
+export const MAX_CONCURRENT_MODELS = 2;
 
 export const MODELS: ModelConfig[] = (
   [
+    // benchmark models
     "gpt-4o-mini",
     "gpt-4o",
-    // "claude-3-haiku",
+    "o3-mini",
     "claude-35-haiku",
+    "claude-37-sonnet",
+    "llama-3.3-70b",
+    "gemini-2-flash",
+    "nova-pro-v1:0",
+    "mistral-large-2",
+    // Other models
+    // "gemini-2.5-pro-preview-03-25",
+    // "claude-3-haiku",
     // "claude-35-sonnet",
     // "claude-35-sonnet-v2",
-    "claude-37-sonnet",
-    "o3-mini",
     // "llama-3.1-70b",
     // "llama-3.2-90b",
-    "llama-3.3-70b",
     // "gemini-1.5-flash-002",
-    "gemini-2-flash",
     // "gemini-2.0-flash-lite",
     // "gemini-1.0-pro-002",
     // "gemini-1.5-pro-002",
     // "nova-micro-v1:0",
     // "nova-lite-v1:0",
-    "nova-pro-v1:0",
-    "mistral-large-2",
   ] satisfies (typeof models)[number]["label"][]
 ).map((label) => {
   const model = models.find((m) => m.label === label);

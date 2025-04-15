@@ -25,32 +25,18 @@ import { makeGenerateMongoshCodeToolCallTask } from "../../generateDriverCode/ge
 import { makeExperimentName } from "../../makeExperimentName";
 
 async function main() {
-  const experimentsByModel: Record<
-    (typeof MODELS)[number]["label"],
-    Experiment[]
-  > = {};
+  const toolCallModels = MODELS
+    // These models don't support tool calling
+    .filter((m) => !(m.label.includes("llama") || m.label.includes("mistral")));
+
   const experimentType = "toolCall";
-  for (const model of MODELS) {
-    for (const schemaStrategy of schemaStrategies) {
-      for (const systemPromptStrategy of systemPromptStrategies) {
-        for (const isFewShot of fewShot) {
-          experimentsByModel[model.label].push({
-            model,
-            schemaStrategy,
-            systemPromptStrategy,
-            type: experimentType,
-            fewShot: isFewShot,
-          });
-        }
-      }
-    }
-  }
+
   // For each model evaluate the following:
   // 1. annotated schema + default system prompt
   // 2. annotated schema + chain of thought system prompt
   // 3. annotated schema + default system prompt + few shot
   // 4. annotated schema + chain of thought system prompt + few shot
-  const experiments = MODELS.reduce((acc, model) => {
+  const experiments = toolCallModels.reduce((acc, model) => {
     acc[model.label] = [
       {
         schemaStrategy: "annotated",

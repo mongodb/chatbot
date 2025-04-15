@@ -246,6 +246,14 @@ const allModels = [
     authorized: true,
   },
   {
+    label: "gemini-2.5-pro-preview-03-25",
+    deployment: "models/gemini-2.5-pro-preview-03-25",
+    developer: "Google",
+    maxConcurrency: 5,
+    provider: "gcp_vertex_ai",
+    authorized: true,
+  },
+  {
     label: "gemini-1.0-pro-002",
     deployment: "google/gemini-1.0-pro-002",
     developer: "Google",

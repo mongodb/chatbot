@@ -3,11 +3,12 @@
   Useful to test before executing benchmark runs to ensure all models are working.
  */
 import { assertEnvVars } from "mongodb-rag-core";
-import { BRAINTRUST_ENV_VARS, GCP_VERTEX_AI_ENV_VARS } from "../CoreEnvVars";
+import { BRAINTRUST_ENV_VARS } from "../CoreEnvVars";
 import { models } from "./models";
 import { makeOpenAiClientFactory } from "./makeOpenAiClientFactory";
 import { OpenAI } from "openai";
 import "dotenv/config";
+import { getOpenAiEndpointAndApiKey } from "./getOpenAiEndpointAndApiKey";
 
 jest.setTimeout(60000);
 
@@ -36,13 +37,11 @@ describe.skip("GCP Vertex AI models", () => {
   test.each(models.filter((m) => m.provider === "gcp_vertex_ai"))(
     "'$label' model should generate data",
     async (model) => {
-      const { GCP_API_KEY, GCP_OPENAI_ENDPOINT } = assertEnvVars(
-        GCP_VERTEX_AI_ENV_VARS
-      );
+      const { apiKey, baseURL } = await getOpenAiEndpointAndApiKey(model);
       const openAiClientFactory = makeOpenAiClientFactory({
         vertexAi: {
-          apiKey: GCP_API_KEY,
-          endpoint: GCP_OPENAI_ENDPOINT,
+          apiKey,
+          endpoint: baseURL,
         },
       });
       const openAiClient = openAiClientFactory.makeOpenAiClient(model);

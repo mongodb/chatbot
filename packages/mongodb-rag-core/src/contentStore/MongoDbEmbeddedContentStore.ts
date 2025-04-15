@@ -64,6 +64,8 @@ export function makeMongoDbEmbeddedContentStore({
   searchIndex: {
     embeddingName,
     numDimensions = 1536,
+    // TODO: update to include the versioned content stuff
+    // version.iscurrent and version.label
     filters = [
       {
         type: "filter",
@@ -175,6 +177,7 @@ export function makeMongoDbEmbeddedContentStore({
         k: 3,
         minScore: 0,
         // User options override
+        // TODO: pass filters here
         ...(options ?? {}),
       };
       return embeddedContentCollection

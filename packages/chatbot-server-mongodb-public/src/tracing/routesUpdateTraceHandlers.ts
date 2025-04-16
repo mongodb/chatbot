@@ -27,6 +27,11 @@ export const makeAddMessageToConversationUpdateTrace: (
       typeof llmAsAJudge?.percentToJudge === "number" &&
       Math.random() < llmAsAJudge.percentToJudge;
 
+    const maybeAuthUser = conversation.customData?.authUser;
+    if (maybeAuthUser && typeof maybeAuthUser === "string") {
+      tracingData.tags.push(`auth_user`);
+    }
+
     logger.updateSpan({
       id: traceId,
       tags: tracingData.tags,
@@ -35,6 +40,9 @@ export const makeAddMessageToConversationUpdateTrace: (
         ...(shouldJudge
           ? await getLlmAsAJudgeScores(llmAsAJudge, tracingData)
           : undefined),
+      },
+      metadata: {
+        authUser: conversation.customData?.authUser ?? null,
       },
     });
   };

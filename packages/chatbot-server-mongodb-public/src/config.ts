@@ -31,7 +31,7 @@ import express from "express";
 import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
-import { SLACK_ENV_VARS, TRACING_ENV_VARS } from "./EnvVars";
+import { TRACING_ENV_VARS } from "./EnvVars";
 import {
   makeAddMessageToConversationUpdateTrace,
   makeCommentMessageUpdateTrace,

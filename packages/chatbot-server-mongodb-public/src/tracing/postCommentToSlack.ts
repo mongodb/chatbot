@@ -149,22 +149,31 @@ ${
     : "No LLM-as-Judge Scores"
 }`;
 
+  const messageBlocks = [
+    Blocks.Section({ text: feedbackMd }),
+    Blocks.Divider(),
+    Blocks.Section({ text: messagesMd }),
+    Blocks.Section({ text: referencesMd }),
+    Blocks.Divider(),
+    Blocks.Section({ text: scoresMd }),
+    Blocks.Divider(),
+    Blocks.Section({ text: messageMetadataMd }),
+    Blocks.Divider(),
+    Blocks.Section({ text: idMetadataMd }),
+  ];
+
+  const maybeAuthUser = conversation.customData?.authUser;
+  if (maybeAuthUser && typeof maybeAuthUser === "string") {
+    messageBlocks.unshift(
+      Blocks.Section({ text: `Auth User: ${Md.user(maybeAuthUser)}` })
+    );
+  }
+
   return BuilderMessage({
     channel: slackConversationId,
     text: "User Feedback",
   })
-    .blocks(
-      Blocks.Section({ text: feedbackMd }),
-      Blocks.Divider(),
-      Blocks.Section({ text: messagesMd }),
-      Blocks.Section({ text: referencesMd }),
-      Blocks.Divider(),
-      Blocks.Section({ text: scoresMd }),
-      Blocks.Divider(),
-      Blocks.Section({ text: messageMetadataMd }),
-      Blocks.Divider(),
-      Blocks.Section({ text: idMetadataMd })
-    )
+    .blocks(...messageBlocks)
     .asUser()
     .buildToObject();
 }

@@ -29,7 +29,7 @@ import { addReferenceSourceType } from "./processors/makeMongoDbReferences";
 import path from "path";
 import express from "express";
 import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
-import { AzureOpenAI } from "mongodb-rag-core/openai";
+import { AzureOpenAI, OpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import { SLACK_ENV_VARS, TRACING_ENV_VARS } from "./EnvVars";
 import {
@@ -67,16 +67,15 @@ const {
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
 export const openAiClient = wrapOpenAI(
-  new AzureOpenAI({
-    apiKey: OPENAI_API_KEY,
-    endpoint: OPENAI_ENDPOINT,
-    apiVersion: OPENAI_API_VERSION,
+  new OpenAI({
+    apiKey: process.env.BRAINTRUST_API_KEY,
+    baseURL: process.env.BRAINTRUST_ENDPOINT,
   })
 );
 
 export const llm = makeOpenAiChatLlm({
   openAiClient,
-  deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  deployment: "gpt-4.1-mini",
   openAiLmmConfigOptions: {
     temperature: 0,
     max_tokens: 1000,
@@ -102,7 +101,7 @@ export const verifiedAnswerConfig = {
   },
 };
 export const retrievalConfig = {
-  preprocessorLlm: OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
+  preprocessorLlm: "gpt-4.1-nano",
   embeddingModel: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   findNearestNeighborsOptions: {
     k: 5,
@@ -112,8 +111,13 @@ export const retrievalConfig = {
   },
 };
 
+const embedderOpenAiClient = new AzureOpenAI({
+  apiKey: OPENAI_API_KEY,
+  endpoint: OPENAI_ENDPOINT,
+  apiVersion: OPENAI_API_VERSION,
+});
 export const embedder = makeOpenAiEmbedder({
-  openAiClient,
+  openAiClient: embedderOpenAiClient,
   deployment: retrievalConfig.embeddingModel,
   backoffOptions: {
     numOfAttempts: 3,
@@ -140,7 +144,7 @@ export const verifiedAnswerStore = makeMongoDbVerifiedAnswerStore({
 });
 
 const verifiedAnswersEmbedder = makeOpenAiEmbedder({
-  openAiClient,
+  openAiClient: embedderOpenAiClient,
   deployment: verifiedAnswerConfig.embeddingModel,
   backoffOptions: {
     numOfAttempts: 3,
@@ -161,14 +165,6 @@ export const findVerifiedAnswer = wrapTraced(
   { name: "findVerifiedAnswer" }
 );
 
-export const preprocessorOpenAiClient = wrapOpenAI(
-  new AzureOpenAI({
-    apiKey: OPENAI_API_KEY,
-    endpoint: OPENAI_ENDPOINT,
-    apiVersion: OPENAI_API_VERSION,
-  })
-);
-
 export const generateUserPrompt = wrapTraced(
   makeVerifiedAnswerGenerateUserPrompt({
     findVerifiedAnswer,
@@ -180,7 +176,7 @@ export const generateUserPrompt = wrapTraced(
     },
     onNoVerifiedAnswerFound: wrapTraced(
       makeStepBackRagGenerateUserPrompt({
-        openAiClient: preprocessorOpenAiClient,
+        openAiClient,
         model: retrievalConfig.preprocessorLlm,
         findContent,
         numPrecedingMessagesToInclude: 6,

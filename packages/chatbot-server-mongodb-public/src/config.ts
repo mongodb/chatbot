@@ -37,6 +37,7 @@ import {
   makeCommentMessageUpdateTrace,
   makeRateMessageUpdateTrace,
 } from "./tracing/routesUpdateTraceHandlers";
+import { createOpenAI } from "@ai-sdk/openai";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -177,6 +178,10 @@ export const generateUserPrompt = wrapTraced(
     onNoVerifiedAnswerFound: wrapTraced(
       makeStepBackRagGenerateUserPrompt({
         openAiClient,
+        openai: createOpenAI({
+          apiKey: process.env.BRAINTRUST_API_KEY,
+          baseURL: process.env.BRAINTRUST_ENDPOINT,
+        }),
         model: retrievalConfig.preprocessorLlm,
         findContent,
         numPrecedingMessagesToInclude: 6,

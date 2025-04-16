@@ -1,21 +1,59 @@
 import {
-  EmbeddedContent,
   FindContentFunc,
+  FunctionMessage,
   GenerateUserPromptFunc,
   GenerateUserPromptFuncReturnValue,
-  Message,
+  updateFrontMatter,
   UserMessage,
+  AssistantMessage,
 } from "mongodb-chatbot-server";
 import { OpenAI } from "mongodb-rag-core/openai";
-import { stripIndents } from "common-tags";
 import { strict as assert } from "assert";
 import { logRequest } from "../utils";
 import { makeMongoDbReferences } from "./makeMongoDbReferences";
-import { extractMongoDbMetadataFromUserMessage } from "./extractMongoDbMetadataFromUserMessage";
 import { userMessageMongoDbGuardrail } from "./userMessageMongoDbGuardrail";
-import { retrieveRelevantContent } from "./retrieveRelevantContent";
+import { CoreMessage, generateText, tool } from "ai";
+import { z } from "zod";
+import {
+  mongoDbProductNames,
+  mongoDbProgrammingLanguageIds,
+} from "../mongoDbMetadata";
+import { OpenAIProvider } from "@ai-sdk/openai";
+import { SEARCH_CONTENT_TOOL_NAME, systemPrompt } from "../systemPrompt";
+
+function makeSearchContentTool(findContent: FindContentFunc) {
+  return tool({
+    description: "Search MongoDB content",
+    parameters: z.object({
+      query: z.string().describe("Search query"),
+      programmingLanguage: z
+        .enum(mongoDbProgrammingLanguageIds)
+        .nullable()
+        .describe(
+          'Programming language present in the content. If no programming language is present, set to `null`. Default to "javascript" if any programming language would answer the query.'
+        ),
+      mongoDbProduct: z.enum(mongoDbProductNames).describe(
+        `Most important MongoDB product present in the content.
+        Include "Driver" if the user is asking about a programming language with a MongoDB driver.
+        If the product is ambiguous, default to "MongoDB Server".`
+      ),
+    }),
+    execute: async ({ query, programmingLanguage, mongoDbProduct }) => {
+      const updatedQuery = updateFrontMatter(query, {
+        ...(programmingLanguage === null ? {} : { programmingLanguage }),
+        mongoDbProduct,
+      });
+      const { content } = await findContent({
+        query: updatedQuery,
+      });
+
+      return { references: makeMongoDbReferences(content) };
+    },
+  });
+}
 
 interface MakeStepBackGenerateUserPromptProps {
+  openai: OpenAIProvider;
   openAiClient: OpenAI;
   model: string;
   numPrecedingMessagesToInclude?: number;
@@ -29,6 +67,7 @@ interface MakeStepBackGenerateUserPromptProps {
   Also extract metadata to use in the search query or reject the user message.
  */
 export const makeStepBackRagGenerateUserPrompt = ({
+  openai,
   openAiClient,
   model,
   numPrecedingMessagesToInclude = 0,
@@ -58,175 +97,92 @@ export const makeStepBackRagGenerateUserPrompt = ({
         : messages
             .filter((m) => m.role !== "system")
             .slice(-numPrecedingMessagesToInclude);
-    // Run both at once to save time
-    const [metadata, guardrailResult] = await Promise.all([
-      extractMongoDbMetadataFromUserMessage({
-        openAiClient,
-        model,
-        userMessageText,
-        messages: precedingMessagesToInclude,
-      }),
-      userMessageMongoDbGuardrail({
-        userMessageText,
-        openAiClient,
-        model,
-        messages: precedingMessagesToInclude,
-      }),
-    ]);
-    if (guardrailResult.rejectMessage) {
-      const { reasoning } = guardrailResult;
-      logRequest({
-        reqId,
-        message: `Rejected user message: ${JSON.stringify({
+    const [guardrailResult, generateUserPromptResult] = await Promise.all([
+      (async () => {
+        const guardrailResult = await userMessageMongoDbGuardrail({
           userMessageText,
-          reasoning,
-        })}`,
-      });
-      return {
-        userMessage: {
+          openAiClient,
+          model,
+          messages: precedingMessagesToInclude,
+        });
+        if (guardrailResult.rejectMessage) {
+          const { reasoning } = guardrailResult;
+          logRequest({
+            reqId,
+            message: `Rejected user message: ${JSON.stringify({
+              userMessageText,
+              reasoning,
+            })}`,
+          });
+          return {
+            messages: [
+              {
+                role: "user",
+                content: userMessageText,
+                rejectQuery: true,
+                customData: {
+                  rejectionReason: reasoning,
+                },
+              } satisfies UserMessage,
+            ],
+            rejectQuery: true,
+          };
+        }
+      })(),
+      (async () => {
+        const userMessage = {
           role: "user",
           content: userMessageText,
-          rejectQuery: true,
-          customData: {
-            rejectionReason: reasoning,
-          },
-        } satisfies UserMessage,
-        rejectQuery: true,
-      };
-    }
-    logRequest({
-      reqId,
-      message: `Extracted metadata from user message: ${JSON.stringify(
-        metadata
-      )}`,
-    });
-    const metadataForQuery: Record<string, unknown> = {};
-    if (metadata.programmingLanguage) {
-      metadataForQuery.programmingLanguage = metadata.programmingLanguage;
-    }
-    if (metadata.mongoDbProduct) {
-      metadataForQuery.mongoDbProductName = metadata.mongoDbProduct;
-    }
+          customData,
+        } satisfies UserMessage;
 
-    const { transformedUserQuery, content, queryEmbedding, searchQuery } =
-      await retrieveRelevantContent({
-        findContent,
-        metadataForQuery,
-        model,
-        openAiClient,
-        precedingMessagesToInclude,
-        userMessageText,
-      });
+        const response = await generateText({
+          model: openai(model, {
+            structuredOutputs: true,
+          }),
+          maxTokens: maxContextTokenCount,
+          toolChoice: { type: "tool", toolName: SEARCH_CONTENT_TOOL_NAME },
 
-    logRequest({
-      reqId,
-      message: `Found ${content.length} results for query: ${content
-        .map((c) => c.text)
-        .join("---")}`,
-    });
-    const baseUserMessage = {
-      role: "user",
-      embedding: queryEmbedding,
-      content: userMessageText,
-      contextContent: content.map((c) => ({
-        text: c.text,
-        url: c.url,
-        score: c.score,
-      })),
-      customData: {
-        ...customData,
-        ...metadata,
-        searchQuery,
-        transformedUserQuery,
-      },
-    } satisfies UserMessage;
-    if (content.length === 0) {
-      return {
-        userMessage: {
-          ...baseUserMessage,
-          rejectQuery: true,
-          customData: {
-            ...customData,
-            rejectionReason: "Did not find any content matching the query",
+          tools: {
+            [SEARCH_CONTENT_TOOL_NAME]: makeSearchContentTool(findContent),
           },
-        },
-        rejectQuery: true,
-        references: [],
-      } satisfies GenerateUserPromptFuncReturnValue;
+          messages: [
+            systemPrompt,
+            ...precedingMessagesToInclude.map(
+              (m) =>
+                ({
+                  role: m.role === "function" ? "tool" : m.role,
+                  content: m.content,
+                } as CoreMessage)
+            ),
+            {
+              role: "user",
+              content: userMessageText,
+            },
+          ],
+        });
+        const toolCall = {
+          role: "assistant",
+          content: JSON.stringify(response.toolCalls[0].args),
+        } satisfies AssistantMessage;
+        const { references } = response.toolResults[0].result;
+        const toolResponse = {
+          role: "function",
+          name: SEARCH_CONTENT_TOOL_NAME,
+          content: JSON.stringify(response.toolResults[0].result, null, 2),
+        } satisfies FunctionMessage;
+        const messagesOut = [userMessage, toolCall, toolResponse];
+
+        return {
+          messages: messagesOut,
+          references,
+        } satisfies GenerateUserPromptFuncReturnValue;
+      })(),
+    ]);
+    if (guardrailResult) {
+      return guardrailResult;
     }
-    const userPrompt = {
-      ...baseUserMessage,
-      contentForLlm: makeUserContentForLlm({
-        userMessageText,
-        stepBackUserQuery: transformedUserQuery,
-        messages: precedingMessagesToInclude,
-        metadata,
-        content,
-        maxContextTokenCount,
-      }),
-    } satisfies UserMessage;
-    const references = makeMongoDbReferences(content);
-    logRequest({
-      reqId,
-      message: stripIndents`Generated user prompt for LLM: ${
-        userPrompt.contentForLlm
-      }
-      Generated references: ${JSON.stringify(references)}`,
-    });
-    return {
-      userMessage: userPrompt,
-      references,
-    } satisfies GenerateUserPromptFuncReturnValue;
+    return generateUserPromptResult;
   };
   return stepBackRagGenerateUserPrompt;
 };
-
-function makeUserContentForLlm({
-  userMessageText,
-  stepBackUserQuery,
-  messages,
-  metadata,
-  content,
-  maxContextTokenCount,
-}: {
-  userMessageText: string;
-  stepBackUserQuery: string;
-  messages: Message[];
-  metadata?: Record<string, unknown>;
-  content: EmbeddedContent[];
-  maxContextTokenCount: number;
-}) {
-  const previousConversationMessages = messages
-    .map((message) => message.role.toUpperCase() + ": " + message.content)
-    .join("\n");
-  const relevantMetadata = JSON.stringify({
-    ...(metadata ?? {}),
-    searchQuery: stepBackUserQuery,
-  });
-
-  let currentTotalTokenCount = 0;
-  const contentForLlm = [...content]
-    .filter((c) => {
-      if (currentTotalTokenCount < maxContextTokenCount) {
-        currentTotalTokenCount += c.tokenCount;
-        return true;
-      }
-      return false;
-    })
-    .map((c) => c.text)
-    .reverse()
-    .join("\n---\n");
-  return `Use the following information to respond to the "User message". If you do not know the answer to the question based on the provided documentation content, respond with the following text: "I'm sorry, I do not know how to answer that question. Please try to rephrase your query." NEVER include Markdown links in the answer.
-${
-  previousConversationMessages.length > 0
-    ? `Previous conversation messages: ${previousConversationMessages}`
-    : ""
-}
-
-Content from the MongoDB documentation:
-${contentForLlm}
-
-Relevant metadata: ${relevantMetadata}
-
-User message: ${userMessageText}`;
-}

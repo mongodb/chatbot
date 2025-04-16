@@ -36,10 +36,12 @@ describe("makeVerifiedAnswerGenerateUserPrompt", () => {
       },
       onNoVerifiedAnswerFound: async () => {
         return {
-          userMessage: {
-            role: "user",
-            content: "returned from onNoVerifiedAnswerFound",
-          },
+          messages: [
+            {
+              role: "user",
+              content: "returned from onNoVerifiedAnswerFound",
+            },
+          ],
         };
       },
     });
@@ -50,7 +52,7 @@ describe("makeVerifiedAnswerGenerateUserPrompt", () => {
       userMessageText: "not verified",
     });
     expect(answer.staticResponse).toBeUndefined();
-    expect(answer.userMessage.content).toBe(
+    expect(answer.messages[0].content).toBe(
       "returned from onNoVerifiedAnswerFound"
     ); // onNoVerifiedAnswerFound called
 
@@ -63,6 +65,6 @@ describe("makeVerifiedAnswerGenerateUserPrompt", () => {
     expect(answer.references).toHaveLength(1);
     expect(answer.references).toMatchObject(references);
     expect(answer.staticResponse?.content).toBe("verified answer");
-    expect(answer.userMessage.content).toBe(MAGIC_VERIFIABLE); // onNoVerifiedAnswerFound not called
+    expect(answer.messages[0].content).toBe(MAGIC_VERIFIABLE); // onNoVerifiedAnswerFound not called
   });
 });

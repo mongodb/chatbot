@@ -2,8 +2,8 @@ import {
   References,
   Conversation,
   ConversationCustomData,
-  UserMessage,
   AssistantMessage,
+  SomeMessage,
 } from "mongodb-rag-core";
 
 export type GenerateUserPromptFuncParams = {
@@ -50,10 +50,7 @@ export interface GenerateUserPromptFuncReturnValue {
    */
   rejectQuery?: boolean;
 
-  /**
-    The (preprocessed) user message to insert into the conversation.
-   */
-  userMessage: UserMessage;
+  messages: SomeMessage[];
 
   /**
     References returned with the LLM response

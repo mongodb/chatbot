@@ -42,11 +42,13 @@ export const makeVerifiedAnswerGenerateUserPrompt = ({
     const verifiedAnswer =
       onVerifiedAnswerFound?.(foundVerifiedAnswer) ?? foundVerifiedAnswer;
     return {
-      userMessage: {
-        embedding: queryEmbedding,
-        content: userMessageText,
-        role: "user",
-      },
+      messages: [
+        {
+          embedding: queryEmbedding,
+          content: userMessageText,
+          role: "user",
+        },
+      ],
       references: verifiedAnswer.references,
       staticResponse: {
         metadata: {

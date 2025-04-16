@@ -79,11 +79,19 @@ export function makeGenerateMongoshCodeToolCallTask({
   }[systemPromptStrategy];
   const generateMongoshCodeSimple: TextToDriverEvalTask =
     async function generateMongoshCodeSimple({ databaseName, nlQuery }) {
-      // eslint-disable-next-line prefer-const
-      let latestExecution: DatabaseExecutionResult | null = null;
-      // eslint-disable-next-line prefer-const
-      let latestCode: TextToDriverOutput["generatedCode"] | null = null;
-      const res = await generateText({
+      // We instantiate the result here so that we can mutate it
+      // in the tool call via closure
+      const finalResult: TextToDriverOutput = {
+        execution: {
+          result: null,
+          executionTimeMs: null,
+          error: {
+            message: "An unexpected error occurred",
+          },
+        },
+        generatedCode: "",
+      };
+      await generateText({
         temperature: llmOptions.temperature ?? undefined,
         seed: llmOptions.seed ?? undefined,
         maxTokens:
@@ -99,9 +107,8 @@ export function makeGenerateMongoshCodeToolCallTask({
           [GENERATE_DB_CODE_TOOL_NAME]: makeDbCodeTool({
             databaseName,
             uri,
-            latestExecution,
-            latestCode,
-            hasQueryPlan: false,
+            output: finalResult,
+            hasQueryPlan: systemPromptStrategy === "chainOfThought",
           }),
         },
         messages: [
@@ -128,16 +135,13 @@ Natural language query: ${nlQuery}`,
           },
         ],
       });
-      if (!latestExecution) {
+      if (!finalResult.execution) {
         throw new Error("latestExecution is null");
       }
-      if (!latestCode) {
+      if (!finalResult.generatedCode) {
         throw new Error("latestCode is null");
       }
-      return {
-        execution: latestExecution as DatabaseExecutionResult,
-        generatedCode: latestCode,
-      } satisfies TextToDriverOutput;
+      return finalResult;
     };
   return generateMongoshCodeSimple;
 }
@@ -145,14 +149,12 @@ Natural language query: ${nlQuery}`,
 function makeDbCodeTool({
   databaseName,
   uri,
-  latestExecution,
-  latestCode,
-  hasQueryPlan = false,
+  output,
+  hasQueryPlan,
 }: {
   databaseName: string;
   uri: string;
-  latestExecution: DatabaseExecutionResult | null;
-  latestCode: TextToDriverOutput["generatedCode"] | null;
+  output: TextToDriverOutput;
   hasQueryPlan: boolean;
 }) {
   return tool({
@@ -169,8 +171,8 @@ function makeDbCodeTool({
         query: args[CODE_FIELD],
         uri,
       });
-      latestExecution = execution;
-      latestCode = args[CODE_FIELD];
+      output.execution = execution;
+      output.generatedCode = args[CODE_FIELD];
       return {
         ...execution,
         result: truncateDbOperationOutputForLlm(execution.result),

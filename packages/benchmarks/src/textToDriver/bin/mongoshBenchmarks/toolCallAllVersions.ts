@@ -96,7 +96,6 @@ async function main() {
               datasetName: DATASET_NAME,
             }),
             maxConcurrency: model.maxConcurrency,
-
             task: makeGenerateMongoshCodeToolCallTask({
               uri: MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
               databaseInfos: annotatedDbSchemas,

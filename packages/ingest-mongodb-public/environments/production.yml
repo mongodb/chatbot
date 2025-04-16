@@ -24,11 +24,11 @@ cronJobs:
     resources:
       # guaranteed amount of resources
       requests:
-        cpu: 1
+        cpu: 2
         memory: 2Gi
       # maximum allowed resources
       limits:
-        cpu: 2
+        cpu: 4
         memory: 5Gi
     backoffLimit: 3
 

@@ -414,6 +414,7 @@ name: staging-build-ingest-mongodb-public
 trigger:
   branch:
     - main
+    - up_k8s_ingest_resources
   event:
     - push
   paths:
@@ -479,6 +480,7 @@ trigger:
 
   branch:
     - main
+    - - up_k8s_ingest_resources
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion

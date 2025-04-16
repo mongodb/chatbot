@@ -42,7 +42,7 @@ export const makeAddMessageToConversationUpdateTrace: (
           : undefined),
       },
       metadata: {
-        authUser: conversation.customData?.authUser ?? null,
+        authUser: maybeAuthUser ?? null,
       },
     });
   };

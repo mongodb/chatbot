@@ -193,8 +193,8 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
     const page = await browser.newPage();
     return { page, browser };
   };
-  return await Promise.all(
-    webSources.map((source) => makeWebDataSource({ ...source, makeBrowser }))
+  return webSources.map((source) =>
+    makeWebDataSource({ ...source, makeBrowser })
   );
 };
 

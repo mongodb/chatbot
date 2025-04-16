@@ -22,8 +22,8 @@ export function makeWebDataSource({
   return {
     name,
     async fetchPages() {
+      const { page: browserPage, browser } = await makeBrowser();
       try {
-        const { page: browserPage, browser } = await makeBrowser();
         const pages: Page[] = [];
         const errors: string[] = [];
         for await (const url of urls) {
@@ -46,11 +46,13 @@ export function makeWebDataSource({
           }
         }
         if (errors.length) logger.error(errors);
-        await browser.close();
         return pages;
       } catch (err) {
         logger.error(`Failed to fetch pages for source: ${name}`, err);
         throw err;
+      } finally {
+        await browserPage.close();
+        await browser.close();
       }
     },
   };

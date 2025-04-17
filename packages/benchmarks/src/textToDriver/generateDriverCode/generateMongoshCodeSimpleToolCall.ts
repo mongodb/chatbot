@@ -13,11 +13,9 @@ import {
   mongoshBaseSystemPrompt,
 } from "./languagePrompts/mongosh";
 import { TextToDriverEvalTask, TextToDriverOutput } from "../TextToDriverEval";
-import {
-  makeDatabaseInfoPrompt,
-  SchemaStrategy,
-} from "./makeDatabaseInfoPrompt";
+import { makeDatabaseInfoPrompt } from "./makeDatabaseInfoPrompt";
 import { FewShotExample } from "./languagePrompts/FewShotExample";
+import { SchemaStrategy } from "./languagePrompts/PromptStrategies";
 
 const GENERATE_DB_CODE_TOOL_NAME = "generate_db_code";
 const THOUGHTS_FIELD = "thoughts";

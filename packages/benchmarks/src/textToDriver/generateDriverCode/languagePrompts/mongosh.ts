@@ -1,13 +1,16 @@
 import { FewShotExample } from "./FewShotExample";
+import { listExamplesInPrompt } from "./listExamplesInPrompt";
 
 export const mongoshQueryAuthoringTips = [
   "Ensure proper use of MongoDB operators ($eq, $gt, $lt, etc.) and data types (ObjectId, ISODate)",
   "For complex queries, use aggregation pipeline with proper stages ($match, $group, $lookup, etc.)",
-  "Consider performance by utilizing available indexes and optimizing query patterns",
+  "Consider performance by utilizing available indexes, avoiding $where and full collection scans, and using covered queries where possible",
   "Include sorting (.sort()) and limiting (.limit()) when appropriate for result set management",
-  "Handle null values and existence checks explicitly",
+  "Handle null values and existence checks explicitly with $exists and $type operators to differentiate between missing fields, null values, and empty arrays",
   "Do not include `null` in results objects in aggregation, e.g. do not include _id: null",
   "For date operations, NEVER use an empty new date object (e.g. `new Date()`). ALWAYS specify the date, such as `new Date(\"2024-10-24\")`. Use the provided 'Latest Date' field to inform dates in queries.",
+  "For Decimal128 operations, prefer range queries over exact equality",
+  "When querying arrays, use appropriate operators like $elemMatch for complex matching, $all to match multiple elements, or $size for array length checks",
 ];
 
 export const mongoshSystemPromptGeneralInstruction = `You are an expert data analyst experienced at using MongoDB.
@@ -21,7 +24,21 @@ export const mongoshBaseSystemPrompt = `${mongoshSystemPromptGeneralInstruction}
 
 Some general query-authoring tips:
 
-${mongoshQueryAuthoringTips.map((tip, i) => `${i + 1}. ${tip}`).join("\n")}`;
+${listExamplesInPrompt(mongoshQueryAuthoringTips)}`;
+
+const chainOfThoughtTopics = [
+  "Which collections are relevant to the query.",
+  "Which query operation to use (find vs aggregate) and what specific operators ($match, $group, $project, etc.) are needed",
+  "What fields are relevant to the query.",
+  "Which indexes you can use to improve performance.",
+  "Any specific transformations or projections.",
+  "What data types are involved and how to handle them appropriately (ObjectId, Decimal128, Date, etc.)",
+  "What edge cases to consider (empty results, null values, missing fields)",
+  "How to handle any array fields that require special operators ($elemMatch, $all, $size)",
+  "Any other relevant considerations.",
+];
+export const chainOfThoughtConsiderations = `Think step by step by step about the code in the answer before providing it. In your thoughts consider:
+${listExamplesInPrompt(chainOfThoughtTopics)}`;
 
 export const genericFewShotExamples: FewShotExample[] = [
   {
@@ -83,10 +100,3 @@ export const genericFewShotExamples: FewShotExample[] = [
     },
   },
 ] as const;
-
-export const chainOfThoughtConsiderations = `Think step by step by step about the code in the answer before providing it. In your thoughts consider:
-1. What operation(s) to use and why to use them.
-2. What collections and fields are relevant to the query.
-3. Which indexes you can use to improve performance.
-4. Any specific transformations or projections.
-5. Any other relevant considerations.`;

@@ -1,7 +1,6 @@
 import { makeTextToDriverEval } from "../../TextToDriverEval";
 import { loadTextToDriverBraintrustEvalCases } from "../../loadBraintrustDatasets";
 import { ReasonableOutput, SuccessfulExecution } from "../../evaluationMetrics";
-import { makeGenerateMongoshCodeAgenticTask } from "../../generateDriverCode/generateMongoshCodeAgentic";
 import { annotatedDbSchemas } from "../../generateDriverCode/annotatedDbSchemas";
 import { createOpenAI } from "@ai-sdk/openai";
 import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
@@ -10,29 +9,34 @@ import {
   DATASET_NAME,
   PROJECT_NAME,
   MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
-  MODELS,
-  MAX_CONCURRENT_EXPERIMENTS,
   makeLlmOptions,
+  MAX_CONCURRENT_EXPERIMENTS,
+  MODELS,
   EXPERIMENT_BASE_NAME,
+  Experiment,
 } from "./config";
 import PromisePool from "@supercharge/promise-pool";
+import { makeGenerateMongoshCodePromptCompletionTask } from "../../generateDriverCode/generateMongoshCodePromptCompletion";
 import { getOpenAiEndpointAndApiKey } from "mongodb-rag-core/models";
 import { makeExperimentName } from "../../makeExperimentName";
 
 async function main() {
-  const experimentType = "agentic";
-  await PromisePool.for(
-    MODELS
-      // these models don't support tool calls. filtering out.
-      .filter((m) => !m.label.includes("llama") || m.label.includes("mistral"))
-  )
+  await PromisePool.for(MODELS)
     .withConcurrency(MAX_CONCURRENT_EXPERIMENTS)
     .process(async (model) => {
       const llmOptions = makeLlmOptions(model);
+      const experiment: Experiment = {
+        model,
+        schemaStrategy: "interpreted",
+        systemPromptStrategy: "lazy",
+        type: "promptCompletion",
+      };
       const experimentName = makeExperimentName({
         baseName: EXPERIMENT_BASE_NAME,
-        experimentType,
+        experimentType: experiment.type,
         model: model.label,
+        systemPromptStrategy: experiment.systemPromptStrategy,
+        schemaStrategy: experiment.schemaStrategy,
       });
       console.log(`Running experiment: ${experimentName}`);
 
@@ -40,14 +44,14 @@ async function main() {
         apiKey: BRAINTRUST_API_KEY,
         projectName: PROJECT_NAME,
         experimentName,
-        data: await loadTextToDriverBraintrustEvalCases({
+        data: loadTextToDriverBraintrustEvalCases({
           apiKey: BRAINTRUST_API_KEY,
           projectName: PROJECT_NAME,
           datasetName: DATASET_NAME,
         }),
         maxConcurrency: model.maxConcurrency,
 
-        task: makeGenerateMongoshCodeAgenticTask({
+        task: makeGenerateMongoshCodePromptCompletionTask({
           uri: MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
           databaseInfos: annotatedDbSchemas,
           llmOptions,
@@ -58,11 +62,12 @@ async function main() {
               structuredOutputs: true,
             })
           ),
+          systemPromptStrategy: experiment.systemPromptStrategy,
+          schemaStrategy: experiment.schemaStrategy,
         }),
         metadata: {
           llmOptions,
-          model,
-          experimentType,
+          ...experiment,
         },
         scores: [SuccessfulExecution, ReasonableOutput],
       });

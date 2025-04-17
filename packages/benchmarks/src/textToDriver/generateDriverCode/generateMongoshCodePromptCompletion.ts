@@ -8,12 +8,14 @@ import {
 import {
   chainOfThoughtConsiderations,
   mongoshBaseSystemPrompt,
+  mongoshSystemPromptGeneralInstruction,
 } from "./languagePrompts/mongosh";
 import { TextToDriverEvalTask, TextToDriverOutput } from "../TextToDriverEval";
+import { makeDatabaseInfoPrompt } from "./makeDatabaseInfoPrompt";
 import {
-  makeDatabaseInfoPrompt,
   SchemaStrategy,
-} from "./makeDatabaseInfoPrompt";
+  SystemPromptStrategy,
+} from "./languagePrompts/PromptStrategies";
 
 export const markdownPromptFormatting = `Format your output in a Markdown code block as such:
 \`\`\`mongosh
@@ -26,7 +28,7 @@ export const chainOfThoughtPrompt = `Write some thoughts about the query strateg
 
 For example:
 
-<your thoughts here>
+<your query plan here>
 
 \`\`\`mongosh
 <your code here>
@@ -44,13 +46,21 @@ ${chainOfThoughtPrompt}
 ${markdownPromptFormatting}
 `;
 
+/**
+  Maximally lazy prompting strategy.
+ */
+export const nlQuerySystemPromptLazy = `${mongoshSystemPromptGeneralInstruction}
+
+${markdownPromptFormatting}
+`;
+
 export interface MakeGenerateMongoshCodePromptCompletionParams {
   uri: string;
   databaseInfos: Record<string, DatabaseInfo>;
   openai: LanguageModelV1;
   llmOptions: Omit<LlmOptions, "openAiClient">;
   schemaStrategy: SchemaStrategy;
-  chainOfThought?: boolean;
+  systemPromptStrategy?: SystemPromptStrategy;
 }
 
 /**
@@ -63,11 +73,14 @@ export function makeGenerateMongoshCodePromptCompletionTask({
   openai,
   llmOptions,
   schemaStrategy = "annotated",
-  chainOfThought = false,
+  systemPromptStrategy = "default",
 }: MakeGenerateMongoshCodePromptCompletionParams): TextToDriverEvalTask {
-  const systemPrompt = chainOfThought
-    ? nlQuerySystemPromptCoT
-    : nlQuerySystemPrompt;
+  const systemPrompt =
+    systemPromptStrategy === "chainOfThought"
+      ? nlQuerySystemPromptCoT
+      : systemPromptStrategy === "lazy"
+      ? nlQuerySystemPromptLazy
+      : nlQuerySystemPrompt;
   const generateMongoshCodePromptCompletion: TextToDriverEvalTask =
     async function generateMongoshCodePromptCompletion({
       databaseName,

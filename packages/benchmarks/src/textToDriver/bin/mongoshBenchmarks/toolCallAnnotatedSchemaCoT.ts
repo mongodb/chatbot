@@ -4,26 +4,40 @@ import { ReasonableOutput, SuccessfulExecution } from "../../evaluationMetrics";
 import { annotatedDbSchemas } from "../../generateDriverCode/annotatedDbSchemas";
 import { createOpenAI } from "@ai-sdk/openai";
 import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
-import { makeGenerateMongoshCodeSimpleTask } from "../../generateDriverCode/generateMongoshCodeSimpleToolCall";
 import {
   BRAINTRUST_API_KEY,
   DATASET_NAME,
   PROJECT_NAME,
   MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
-  makeLlmOptions,
   MAX_CONCURRENT_EXPERIMENTS,
   MODELS,
+  makeLlmOptions,
+  EXPERIMENT_BASE_NAME,
+  Experiment,
 } from "./config";
 import PromisePool from "@supercharge/promise-pool";
 import { getOpenAiEndpointAndApiKey } from "mongodb-rag-core/models";
+import { makeGenerateMongoshCodeToolCallTask } from "../../generateDriverCode/generateMongoshCodeToolCall";
+import { makeExperimentName } from "../../makeExperimentName";
 
 async function main() {
   await PromisePool.for(MODELS)
     .withConcurrency(MAX_CONCURRENT_EXPERIMENTS)
     .process(async (model) => {
       const llmOptions = makeLlmOptions(model);
-      const schemaStrategy = "annotated";
-      const experimentName = `mongosh-benchmark-simple-tool-call-${schemaStrategy}-schema-${model.label}`;
+      const experiment: Experiment = {
+        model,
+        schemaStrategy: "annotated",
+        systemPromptStrategy: "chainOfThought",
+        type: "toolCall",
+      };
+      const experimentName = makeExperimentName({
+        baseName: EXPERIMENT_BASE_NAME,
+        experimentType: experiment.type,
+        model: model.label,
+        systemPromptStrategy: experiment.systemPromptStrategy,
+        schemaStrategy: experiment.schemaStrategy,
+      });
       console.log(`Running experiment: ${experimentName}`);
 
       await makeTextToDriverEval({
@@ -37,7 +51,7 @@ async function main() {
         }),
         maxConcurrency: model.maxConcurrency,
 
-        task: makeGenerateMongoshCodeSimpleTask({
+        task: makeGenerateMongoshCodeToolCallTask({
           uri: MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
           databaseInfos: annotatedDbSchemas,
           llmOptions,
@@ -48,11 +62,12 @@ async function main() {
               structuredOutputs: true,
             })
           ),
-          schemaStrategy,
+          systemPromptStrategy: experiment.systemPromptStrategy,
+          schemaStrategy: experiment.schemaStrategy,
         }),
         metadata: {
           llmOptions,
-          model,
+          ...experiment,
         },
         scores: [SuccessfulExecution, ReasonableOutput],
       });

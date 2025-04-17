@@ -17,12 +17,11 @@ steps:
   - name: test
     image: node:18
     commands:
-      # - npm ci
-      # - npx playwright install chromium --with-deps
-      # - npm run build
-      # - npm run lint
-      # - npm run test
-      - echo "skipping tests"
+      - npm ci
+      - npx playwright install chromium --with-deps
+      - npm run build
+      - npm run lint
+      - npm run test
 
     environment:
       PORT: 3000
@@ -415,7 +414,6 @@ name: staging-build-ingest-mongodb-public
 trigger:
   branch:
     - main
-    - up_k8s_ingest_resources
   event:
     - push
   paths:
@@ -481,7 +479,6 @@ trigger:
 
   branch:
     - main
-    - up_k8s_ingest_resources
 
 steps:
   # Deploys docker image associated with staging build that triggered promotion

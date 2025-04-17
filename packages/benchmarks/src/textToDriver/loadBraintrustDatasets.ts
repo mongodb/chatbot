@@ -180,7 +180,6 @@ export async function loadTextToDriverBraintrustEvalCases({
       dataset: datasetName,
     }).fetchedData()
   ).map((d) => TextToDriverEvalCaseSchema.parse(d));
-  // TODO: get tags...
 
   return dataset;
 }

@@ -20,7 +20,6 @@ const THINK_TOOL_NAME = "think";
 const GENERATE_DB_CODE_TOOL_NAME = "generate_db_code";
 const OUTPUT_SUMMARY = "outputSummary";
 
-// TODO: finish this up
 export const nlQuerySystemPrompt = `${mongoshBaseSystemPrompt}
 
 You may use the '${THINK_TOOL_NAME}' tool before you generate a query with the '${GENERATE_DB_CODE_TOOL_NAME}' tool.

@@ -1,12 +1,12 @@
-import { runTextToDriverEval } from "./runTextToDriverEval";
+import { runTextToNodeJsDriverEval } from "../runTextToNodeJsDriverEval";
 import { models } from "mongodb-rag-core/models";
 import { assertEnvVars } from "mongodb-rag-core";
 import { MongoClient } from "mongodb-rag-core/mongodb";
-import { NODE_JS_PROMPTS } from "./generateDriverCode/languagePrompts/nodeJs";
-import { TEXT_TO_DRIVER_ENV_VARS } from "./TextToDriverEnvVars";
+import { NODE_JS_PROMPTS } from "../generateDriverCode/languagePrompts/nodeJs";
+import { TEXT_TO_DRIVER_ENV_VARS } from "../TextToDriverEnvVars";
 import { BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
 import PromisePool from "@supercharge/promise-pool";
-import { openAiClientFactory } from "../openAiClients";
+import { openAiClientFactory } from "../../openAiClients";
 async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -62,7 +62,7 @@ async function main() {
               }-collection-schemas${RUN_ID ? `-${RUN_ID}` : ""}`;
               console.log(`Running experiment: ${experimentName}`);
               try {
-                await runTextToDriverEval({
+                await runTextToNodeJsDriverEval({
                   dataset: {
                     name: datasetName,
                   },
@@ -85,7 +85,6 @@ async function main() {
                   openAiClient: openAiClientFactory.makeOpenAiClient(modelInfo),
                   maxConcurrency:
                     modelInfo.maxConcurrency ?? DEFAULT_MAX_CONCURRENCY,
-                  sleepBeforeMs: modelInfo.sleepBeforeMs,
                   promptConfig: {
                     customInstructions: prompts[promptType],
                     generateCollectionSchemas,

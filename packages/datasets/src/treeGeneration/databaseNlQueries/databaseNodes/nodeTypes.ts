@@ -1,31 +1,9 @@
 import { z } from "zod";
 import { GenerationNode, WithParentNode } from "../../GenerationNode";
-import { DatabaseExecutionResult } from "mongodb-rag-core/executeCode";
-
-export const DatabaseInfoSchema = z.object({
-  name: z.string().describe("Name of the database"),
-  description: z.string().describe("Brief description of the database"),
-  latestDate: z.date().describe("Latest date in the database"),
-  collections: z.array(
-    z.object({
-      name: z.string(),
-      description: z.string(),
-      schema: z.any(),
-      examples: z.array(z.any()),
-      indexes: z
-        .array(
-          z.object({
-            description: z.string().optional(),
-            name: z.string(),
-            key: z.any(),
-          })
-        )
-        .describe("Indexes on the collection."),
-    })
-  ),
-});
-
-export type DatabaseInfo = z.infer<typeof DatabaseInfoSchema>;
+import {
+  DatabaseExecutionResult,
+  DatabaseInfo,
+} from "mongodb-rag-core/executeCode";
 
 export type DatabaseInfoNode = WithParentNode<
   GenerationNode<DatabaseInfo, "database_info">,
@@ -35,16 +13,11 @@ export type DatabaseInfoNode = WithParentNode<
 export const DatabaseUserSchema = z.object({
   name: z.string().describe("Full name of the database user"),
   jobTitle: z.string().describe("Current professional role or position"),
-  description: z.string().describe("Brief bio or background of the user"),
-  department: z
+  description: z
     .string()
-    .describe("Organizational department or team the user belongs to"),
-  expertise: z
-    .array(z.string())
-    .describe("List of technical skills or domain knowledge areas"),
-  yearsOfExperience: z
-    .number()
-    .describe("Total years of relevant professional experience"),
+    .describe(
+      "Background of the user. Consider including years of experience and relevant areas of expertise."
+    ),
 });
 
 export type DatabaseUser = z.infer<typeof DatabaseUserSchema>;
@@ -62,15 +35,11 @@ export const DatabaseUseCaseSchema = z.object({
     .describe(
       "Detailed description of what information the user needs and why"
     ),
-  frequency: z
-    .enum(["daily", "weekly", "monthly", "occasionally"])
-    .describe("How often the user needs this information"),
-  complexity: z
-    .enum(["simple", "moderate", "complex"])
-    .describe("Complexity level of the information need"),
   dataNeeded: z
     .array(z.string())
-    .describe("Types of data or information required for this use case"),
+    .describe(
+      "Types of data or information required for this use case, based on the information available in the database schema."
+    ),
 });
 
 export type DatabaseUseCase = z.infer<typeof DatabaseUseCaseSchema>;
@@ -81,27 +50,29 @@ export type UseCaseNode = WithParentNode<
 >;
 
 export const NaturalLanguageQuerySchema = z.object({
-  query: z
+  intent: z
     .string()
-    .describe("The natural language query text that a user might ask"),
-  intent: z.string().describe("The underlying intent or purpose of the query"),
-  expectedResults: z
-    .string()
-    .describe("Description of what results the user expects to see"),
+    .describe(
+      "The underlying intent or purpose of the query. Include any additional context that might be useful for understanding the query and any relevant database entities."
+    ),
+  collections: z
+    .array(z.string())
+    .describe("Key collections that the query is about"),
   complexity: z
     .enum(["simple", "moderate", "complex"])
     .describe("Complexity level of the query."),
-  variations: z
-    .array(z.string())
-    .describe("Alternative phrasings of the same query. At most three."),
-  context: z
+  query: z
     .string()
-    .describe("Additional context that might help understand the query"),
-  entities: z
-    .array(z.string())
-    .describe(
-      "Key entities (like movie titles, actor names, etc.) mentioned in the query"
-    ),
+    .describe("The natural language query text that a user might ask"),
+  resultsSchema: z.string().describe(`Schema of the shape of the results.
+The \`QueryResults\` type should extend \`number | Document | Document[]\`, where \`Document\` is the type of a MongoDB document.
+      Formatted in Typescript as such:
+\`\`\`typescript
+/**
+ * <Add a description of the shape of the expected results here.>
+ */
+type QueryResults =  /* <Add actual type definition of result shape> */
+\`\`\``),
 });
 
 export type NaturalLanguageQuery = z.infer<typeof NaturalLanguageQuerySchema>;

@@ -1,13 +1,16 @@
 import "dotenv/config";
 import { MongoClient } from "mongodb-rag-core/mongodb";
-import { executeMongoshQuery } from "mongodb-rag-core/executeCode";
+import {
+  executeMongoshQuery,
+  isReasonableResult,
+} from "mongodb-rag-core/executeCode";
 import * as fs from "fs";
 import * as path from "path";
 import PromisePool from "@supercharge/promise-pool";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { BRAINTRUST_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 import { DATABASE_NL_QUERIES } from "../EnvVars";
-import { generateAnnotatedDatabaseInfo } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
+import { generateAnnotatedDatabaseInfoNode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateAnnotatedDatabaseInfo";
 import { generateDatabaseExecutionResult } from "../treeGeneration/databaseNlQueries/databaseNodes/generateDatabaseExecutionResult";
 import { generateDatabaseUsers } from "../treeGeneration/databaseNlQueries/databaseNodes/generateDatabaseUsers";
 import { generateMongoshCode } from "../treeGeneration/databaseNlQueries/databaseNodes/generateMongoshCode";
@@ -84,13 +87,18 @@ async function generateMongoshDataset({
   maxResultsArraySize = MAX_RESULT_ARRAY_SIZE,
 }: GenerateMongoshDatasetParams) {
   console.log(`Generating dataset for database ${dataset.databaseName}`);
+  const datasetOutDir = path.resolve(writeToFile.dataOutDir, datasetUuid);
+  if (!fs.existsSync(datasetOutDir)) {
+    fs.mkdirSync(datasetOutDir, { recursive: true });
+    console.log(`Created directory: ${datasetOutDir}`);
+  }
   const referenceAnswersOutputPath = path.resolve(
-    writeToFile.dataOutDir,
+    datasetOutDir,
     `referenceAnswers.dataset_${datasetUuid}.jsonl`
   );
   // Write out each DB's dataset to a separate file
   const textToMqlOutputPath = path.resolve(
-    writeToFile.dataOutDir,
+    datasetOutDir,
     `text_to_mongosh.dataset_${datasetUuid}.${dataset.databaseName}.jsonl`
   );
 
@@ -101,7 +109,7 @@ async function generateMongoshDataset({
   const nodeStore = makeMongoDbNodeStore(persistence);
 
   console.log(`Generating database info for database ${dataset.databaseName}`);
-  const databaseInfoNode = await generateAnnotatedDatabaseInfo({
+  const databaseInfoNode = await generateAnnotatedDatabaseInfoNode({
     mongoDb: dataset,
     llm: llmConfigs.database.llmConfig,
     latestDate: dataset.latestDate,
@@ -208,6 +216,10 @@ async function generateMongoshDataset({
             ?.toString()
             .slice(0, 20)} ...`
         );
+        const { success, reason } = isReasonableResult(dbExecution.data.result);
+        if (!success) {
+          throw new Error("Result is not reasonable. Reason: " + reason);
+        }
         return dbExecution;
       });
     console.log(`Generated ${dbExecutions.length} DB executions.`);
@@ -282,8 +294,8 @@ async function main() {
       apiKey: BRAINTRUST_API_KEY,
       baseURL: BRAINTRUST_ENDPOINT,
     }),
-    model: "gpt-4o-mini",
-    temperature: 0.5,
+    model: "gpt-4o",
+    temperature: 0.7,
     seed: 42,
   };
 
@@ -294,24 +306,24 @@ async function main() {
       llmConfig: {
         ...defaultLlmConfig,
         temperature: 0,
-        max_tokens: 2000,
+        model: "gpt-4o",
       },
     },
-    users: { numGenerations: 8, llmConfig: defaultLlmConfig, concurrency: 20 },
+    users: { numGenerations: 8, llmConfig: defaultLlmConfig, concurrency: 8 },
     useCases: {
       numGenerations: 8,
       llmConfig: defaultLlmConfig,
-      concurrency: 20,
+      concurrency: 10,
     },
     nlQueries: {
       numGenerations: 8,
       llmConfig: defaultLlmConfig,
-      concurrency: 20,
+      concurrency: 10,
     },
     dbQueries: {
-      numGenerations: 16,
+      numGenerations: 8,
       llmConfig: defaultLlmConfig,
-      concurrency: 25,
+      concurrency: 10,
     },
     dbExecutions: {
       concurrency: 20,
@@ -322,7 +334,7 @@ async function main() {
   try {
     const now = Date.now();
     await mongoClient.connect();
-    for (const db of datasetDatabases) {
+    for (const db of datasetDatabases.reverse()) {
       await generateMongoshDataset({
         persistence: {
           mongoClient,
@@ -337,7 +349,9 @@ async function main() {
           connectionUri: MONGODB_TEXT_TO_CODE_CONNECTION_URI,
         },
         llmConfigs: config,
-        datasetUuid: `${defaultLlmConfig.model}_${now.toString()}`,
+        datasetUuid: `${defaultLlmConfig.model}_temp_${
+          defaultLlmConfig.temperature
+        }_${now.toString()}`,
         writeToFile: {
           dataOutDir,
         },

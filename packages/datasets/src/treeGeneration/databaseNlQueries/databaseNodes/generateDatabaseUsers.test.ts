@@ -1,7 +1,8 @@
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { generateDatabaseUsers } from "./generateDatabaseUsers";
-import { DatabaseInfoNode, DatabaseInfoSchema } from "./nodeTypes";
+import { DatabaseInfoNode } from "./nodeTypes";
 import { sampleMovieDbInfo, makeSampleLlmOptions } from "./sampleData";
+import { DatabaseInfoSchema } from "mongodb-rag-core/executeCode";
 
 // Skipping LLM call tests
 describe.skip("generateDatabaseUsers", () => {

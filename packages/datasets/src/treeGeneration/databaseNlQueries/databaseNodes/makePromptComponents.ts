@@ -1,5 +1,8 @@
 import {
   DatabaseInfo,
+  truncateDbOperationOutputForLlm,
+} from "mongodb-rag-core/executeCode";
+import {
   DatabaseUseCase,
   DatabaseUser,
   NaturalLanguageQuery,
@@ -19,7 +22,11 @@ ${databaseInfo.collections
     (c) => `#### Collection \`${c.name}\`
 Description: ${c.description}
 Schema:
-${c.schema}`
+${c.schema}
+Sample documents:
+${JSON.stringify(truncateDbOperationOutputForLlm(c.examples))}
+Indexes:
+${c.indexes.map((i) => `${JSON.stringify(i)}`)}`
   )
   .join("\n")}`;
 }
@@ -29,9 +36,7 @@ export function makePromptDbUserInfo(user: DatabaseUser) {
 
 Name: ${user.name}
 Job Title: ${user.jobTitle}
-Department: ${user.department}
-Expertise: ${user.expertise.join(", ")}
-Years of Experience: ${user.yearsOfExperience}`;
+Description: ${user.description}`;
 }
 
 export function makePromptUseCaseInfo(useCase: DatabaseUseCase) {
@@ -39,8 +44,6 @@ export function makePromptUseCaseInfo(useCase: DatabaseUseCase) {
 
 Use Case Title: ${useCase.title}
 Use Case Description: ${useCase.description}
-Complexity: ${useCase.complexity}
-Frequency: ${useCase.frequency}
 Data Needed: ${useCase.dataNeeded ? useCase.dataNeeded.join(", ") : "N/A"}`;
 }
 
@@ -50,5 +53,8 @@ export function makePromptNaturalLanguageQueryInfo(
   return `## Natural Language Query
 
 Query: ${query.query}
-Complexity: ${query.complexity}`;
+Intent: ${query.intent}
+Complexity: ${query.complexity}
+Collections: ${query.collections.join(", ")}
+Results schema: ${query.resultsSchema}`;
 }

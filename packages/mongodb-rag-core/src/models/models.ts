@@ -63,12 +63,12 @@ export interface ModelConfig {
   1. The hyperscalers are authorized (AWS, GCP, Azure)
   2. Assume all other model providers are unauthorized unless you explicitly know otherwise.
  */
-const allModels: ModelConfig[] = [
+const allModels = [
   {
     label: "gpt-4o",
     deployment: "gpt-4o",
     developer: "OpenAI",
-    maxConcurrency: 2,
+    maxConcurrency: 10,
     provider: "braintrust",
     metadata: {
       modelVersion: "2024-08-06",
@@ -80,7 +80,7 @@ const allModels: ModelConfig[] = [
     label: "gpt-4o-mini",
     deployment: "gpt-4o-mini",
     developer: "OpenAI",
-    maxConcurrency: 5,
+    maxConcurrency: 30,
     provider: "braintrust",
     metadata: {
       modelVersion: "2024-07-18",
@@ -121,7 +121,7 @@ const allModels: ModelConfig[] = [
     label: "claude-35-sonnet",
     deployment: "us.anthropic.claude-3-5-sonnet-20240620-v1:0",
     developer: "Anthropic",
-    maxConcurrency: 1,
+    maxConcurrency: 10,
     provider: "braintrust",
     authorized: true,
   },
@@ -129,7 +129,15 @@ const allModels: ModelConfig[] = [
     label: "claude-35-sonnet-v2",
     deployment: "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
     developer: "Anthropic",
-    maxConcurrency: 1,
+    maxConcurrency: 10,
+    provider: "braintrust",
+    authorized: true,
+  },
+  {
+    label: "claude-37-sonnet",
+    deployment: "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+    developer: "Anthropic",
+    maxConcurrency: 10,
     provider: "braintrust",
     authorized: true,
   },
@@ -137,7 +145,7 @@ const allModels: ModelConfig[] = [
     label: "claude-35-haiku",
     deployment: "us.anthropic.claude-3-5-haiku-20241022-v1:0",
     developer: "Anthropic",
-    maxConcurrency: 5,
+    maxConcurrency: 10,
     provider: "braintrust",
     authorized: true,
   },
@@ -145,7 +153,7 @@ const allModels: ModelConfig[] = [
     label: "llama-3-70b",
     deployment: "meta.llama3-70b-instruct-v1:0",
     developer: "Meta",
-    maxConcurrency: 1,
+    maxConcurrency: 3,
     provider: "braintrust",
     authorized: true,
   },
@@ -161,7 +169,7 @@ const allModels: ModelConfig[] = [
     label: "llama-3.1-70b",
     deployment: "us.meta.llama3-1-70b-instruct-v1:0",
     developer: "Meta",
-    maxConcurrency: 1,
+    maxConcurrency: 5,
     provider: "braintrust",
     authorized: true,
   },
@@ -169,7 +177,7 @@ const allModels: ModelConfig[] = [
     label: "llama-3.2-90b",
     deployment: "us.meta.llama3-2-90b-instruct-v1:0",
     developer: "Meta",
-    maxConcurrency: 1,
+    maxConcurrency: 5,
     provider: "braintrust",
     authorized: true,
   },
@@ -186,7 +194,7 @@ const allModels: ModelConfig[] = [
     deployment: "amazon.nova-lite-v1:0",
     developer: "Amazon",
     provider: "braintrust",
-    maxConcurrency: 3,
+    maxConcurrency: 5,
     authorized: true,
   },
   {
@@ -194,7 +202,7 @@ const allModels: ModelConfig[] = [
     deployment: "amazon.nova-micro-v1:0",
     developer: "Amazon",
     provider: "braintrust",
-    maxConcurrency: 3,
+    maxConcurrency: 20,
     authorized: true,
   },
   {
@@ -202,7 +210,7 @@ const allModels: ModelConfig[] = [
     deployment: "amazon.nova-pro-v1:0",
     developer: "Amazon",
     provider: "braintrust",
-    maxConcurrency: 1,
+    maxConcurrency: 5,
     authorized: true,
   },
   {
@@ -211,6 +219,7 @@ const allModels: ModelConfig[] = [
     developer: "OpenAI",
     provider: "braintrust",
     authorized: true,
+    maxConcurrency: 10,
   },
   {
     label: "gemini-1.5-flash-002",
@@ -224,16 +233,16 @@ const allModels: ModelConfig[] = [
     label: "gemini-2-flash",
     deployment: "models/gemini-2.0-flash-001",
     developer: "Google",
-    maxConcurrency: 3,
+    maxConcurrency: 10,
     provider: "gcp_vertex_ai",
     authorized: true,
   },
   {
-    label: "gemini-1.5-pro-002",
-    deployment: "google/gemini-1.5-pro-002",
+    label: "gemini-2.0-flash-lite",
+    deployment: "models/gemini-2.0-flash-lite-001",
     developer: "Google",
+    maxConcurrency: 10,
     provider: "gcp_vertex_ai",
-    maxConcurrency: 1,
     authorized: true,
   },
   {
@@ -245,15 +254,20 @@ const allModels: ModelConfig[] = [
     authorized: true,
   },
   {
+    label: "gemini-1.5-pro-002",
+    deployment: "google/gemini-1.5-pro-002",
+    developer: "Google",
+    provider: "gcp_vertex_ai",
+    maxConcurrency: 1,
+    authorized: true,
+  },
+  {
     label: "deepseek-r1",
-    deployment: "accounts/fireworks/models/deepseek-r1",
+    deployment: "us.deepseek.r1-v1:0",
     developer: "DeepSeek",
     provider: "braintrust",
-    authorized: false,
+    authorized: true,
     maxConcurrency: 5,
-    metadata: {
-      host: "Fireworks",
-    },
   },
   {
     label: "mistral-small-3-instruct",
@@ -277,7 +291,7 @@ const allModels: ModelConfig[] = [
       host: "Fireworks",
     },
   },
-] as const;
+] as const satisfies ModelConfig[];
 
 export const models = allModels.filter((m) => m.authorized);
 

@@ -81,7 +81,7 @@ describe("SuccessfulExecution", () => {
       expected,
       metadata,
     });
-    // We're expecting score 0 here because the fuzzy matcher is failing
+    // We're expecting score 0 here because CorrectOutputFuzzy is failing
     // due to the structure of expected.result
     expect(result).toMatchObject([
       {

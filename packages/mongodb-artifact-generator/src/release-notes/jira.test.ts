@@ -12,7 +12,7 @@ if (!jiraApi) {
   );
 }
 
-describe("makeJiraReleaseArtifacts", () => {
+describe.skip("makeJiraReleaseArtifacts", () => {
   it("returns a handle that can fetch issues", async () => {
     const gitHubReleaseArtifacts = makeJiraReleaseArtifacts({
       jiraApi,

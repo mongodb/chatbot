@@ -242,8 +242,8 @@ const allModels = [
     deployment: "amazon.nova-pro-v1:0",
     developer: "Amazon",
     provider: "braintrust",
-    maxConcurrency: 5,
     authorized: true,
+    maxConcurrency: 10,
   },
   {
     label: "gemini-1.5-flash-002",

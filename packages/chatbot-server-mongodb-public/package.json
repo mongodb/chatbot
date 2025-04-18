@@ -27,6 +27,7 @@
     "generate-eval-cases": "ts-node src/eval/bin/generateEvalCasesYamlFromCSV.ts"
   },
   "dependencies": {
+    "@segment/analytics-node": "^2.2.1",
     "@slack/web-api": "^7.8.0",
     "common-tags": "^1.8.2",
     "cookie-parser": "^1.4.6",

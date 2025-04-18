@@ -1,7 +1,7 @@
 import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
 import { TEXT_TO_DRIVER_ENV_VARS } from "../../TextToDriverEnvVars";
-
-export { MODELS, makeLlmOptions } from "../../../openAiClients";
+export { makeLlmOptions } from "../../../openAiClients";
+export { MODELS } from "../../../benchmarkModels";
 
 export const DATASET_NAME =
   "atlas_sample_data_benchmark_gpt-4o_filtered_with_execution_time";

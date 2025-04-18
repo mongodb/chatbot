@@ -51,7 +51,6 @@ export interface RunNlPromptResponseEvalParams {
   data: NlPromptResponseEvalCase[];
   projectName: string;
   experimentName: string;
-  llmOptions: LlmOptions;
   additionalMetadata?: Record<string, unknown>;
   maxConcurrency?: number;
   task: NlPromptResponseEvalTask;
@@ -63,12 +62,10 @@ export function runNlPromptResponseEval({
   projectName,
   experimentName,
   additionalMetadata,
-  llmOptions,
   task,
   maxConcurrency,
   scorers,
 }: RunNlPromptResponseEvalParams) {
-  const { openAiClient, ...llmConfig } = llmOptions;
   return Eval<
     NlPromptResponseEvalCaseInput,
     NlPromptResponseTaskOutput,
@@ -77,10 +74,7 @@ export function runNlPromptResponseEval({
     data,
     experimentName,
     maxConcurrency,
-    metadata: {
-      ...llmConfig,
-      ...additionalMetadata,
-    },
+    metadata: additionalMetadata,
     task,
     scores: scorers,
   });

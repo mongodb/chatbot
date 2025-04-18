@@ -19,6 +19,7 @@ import {
   makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
   defaultCreateConversationCustomData,
+  defaultAddMessageToConversationCustomData,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";
@@ -37,6 +38,7 @@ import {
   makeCommentMessageUpdateTrace,
   makeRateMessageUpdateTrace,
 } from "./tracing/routesUpdateTraceHandlers";
+import { useSegmentIds } from "./middleware/useSegmentIds";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -232,11 +234,23 @@ export const config: AppConfig = {
       blockGetRequests,
       requireValidIpAddress(),
       requireRequestOrigin(),
+      useSegmentIds(),
       cookieParser(),
     ],
     createConversationCustomData: !isProduction
       ? createConversationCustomDataWithAuthUser
       : undefined,
+    addMessageToConversationCustomData: async (req, res) => {
+      const defaultCustomData = await defaultAddMessageToConversationCustomData(
+        req,
+        res
+      );
+      return {
+        ...defaultCustomData,
+        segmentUserId: res.locals.customData.segmentUserId ?? "NOPE",
+        segmentAnonymousId: res.locals.customData.segmentAnonymousId ?? "NOPE",
+      };
+    },
     addMessageToConversationUpdateTrace:
       makeAddMessageToConversationUpdateTrace(
         retrievalConfig.findNearestNeighborsOptions.k,

@@ -1,10 +1,11 @@
 import { Analytics } from "@segment/analytics-node";
-import { logger } from "mongodb-rag-core";
+import { DbMessage, logger, UserMessage } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 
 export type TraceSegmentEventParams = {
   writeKey: string;
   eventName: string;
+  flushAt?: number;
 };
 
 export type AnyEventProperties = {
@@ -15,15 +16,27 @@ export type AnyEventProperties = {
   url: string;
 };
 
-export type TrackAnyEventParams = {
-  userId: string;
-  anonymousId: string;
+export type BaseEventParams = {
+  userId: string | undefined;
+  anonymousId: string | undefined;
   conversationId: ObjectId;
   origin: string;
   createdAt: Date;
 };
 
-function parseOriginUrl(origin: string | undefined) {
+export function getSegmentIds(message: DbMessage<UserMessage> | undefined) {
+  return {
+    userId: message?.customData?.segmentUserId as string | undefined,
+    anonymousId: message?.customData?.segmentAnonymousId as string | undefined,
+  };
+}
+
+type ParsedOrigin = {
+  path: string;
+  url: string;
+};
+
+function parseOriginUrl(origin: string | undefined): ParsedOrigin | null {
   if (!origin) {
     return null;
   }
@@ -38,7 +51,36 @@ function parseOriginUrl(origin: string | undefined) {
   }
 }
 
-export type TrackUserSentMessageParams = TrackAnyEventParams & {
+function validateAndParseParams(params: BaseEventParams) {
+  if (!params.userId || !params.anonymousId) {
+    logger.warn(
+      `Tried to track segment event but missing userId and/or anonymousId`
+    );
+    return null;
+  }
+  const parsedOrigin = parseOriginUrl(params.origin);
+  if (!parsedOrigin) {
+    return null;
+  }
+  return {
+    ...params,
+    parsedOrigin,
+  };
+}
+
+function createBaseProperties(
+  params: BaseEventParams & { parsedOrigin: ParsedOrigin }
+): AnyEventProperties {
+  return {
+    userId: params.userId,
+    anonymousId: params.anonymousId,
+    path: params.parsedOrigin.path,
+    url: params.parsedOrigin.url,
+    ai_chatId: params.conversationId.toString(),
+  };
+}
+
+export type TrackUserSentMessageParams = BaseEventParams & {
   tags: string[];
 };
 
@@ -49,44 +91,29 @@ export type UserSentMessageEventProperties = AnyEventProperties & {
 export function makeTrackUserSentMessage({
   writeKey,
   eventName,
+  flushAt = 1,
 }: TraceSegmentEventParams) {
-  const analytics = new Analytics({ writeKey });
-  return async function trackUserSentMessage({
-    userId,
-    anonymousId,
-    conversationId,
-    origin,
-    tags,
-    createdAt,
-  }: TrackUserSentMessageParams) {
-    if (!userId || !anonymousId) {
-      logger.warn(
-        `Tried to track segment event "${eventName}" but missing userId and/or anonymousId`
-      );
-      return;
-    }
-    const parsedOrigin = parseOriginUrl(origin);
-    if (!parsedOrigin) {
-      return;
-    }
+  const analytics = new Analytics({ writeKey, flushAt });
+  return async function trackUserSentMessage(
+    params: TrackUserSentMessageParams
+  ) {
+    const validatedParams = validateAndParseParams(params);
+    if (!validatedParams) return;
+
     await analytics.track({
       event: eventName,
-      userId,
-      anonymousId,
-      timestamp: createdAt?.toISOString(),
+      userId: validatedParams.userId,
+      anonymousId: validatedParams.anonymousId,
+      timestamp: validatedParams.createdAt?.toISOString(),
       properties: {
-        userId,
-        anonymousId,
-        path: parsedOrigin.path,
-        url: parsedOrigin.url,
-        ai_chatId: conversationId.toString(),
-        ai_chat_tags: tags.join(","),
+        ...createBaseProperties(validatedParams),
+        ai_chat_tags: params.tags.join(","),
       } satisfies UserSentMessageEventProperties,
     });
   };
 }
 
-export type TrackAssistantRespondedParams = TrackAnyEventParams & {
+export type TrackAssistantRespondedParams = BaseEventParams & {
   isVerifiedAnswer: boolean;
   rejectionReason?: string;
 };
@@ -99,46 +126,30 @@ export type AssistantRespondedProperties = AnyEventProperties & {
 export function makeTrackAssistantResponded({
   writeKey,
   eventName,
+  flushAt = 1,
 }: TraceSegmentEventParams) {
-  const analytics = new Analytics({ writeKey });
-  return async function trackAssistantResponded({
-    userId,
-    anonymousId,
-    conversationId,
-    origin,
-    createdAt,
-    isVerifiedAnswer,
-    rejectionReason,
-  }: TrackAssistantRespondedParams) {
-    if (!userId || !anonymousId) {
-      logger.warn(
-        `Tried to track segment event "${eventName}" but missing userId and/or anonymousId`
-      );
-      return;
-    }
-    const parsedOrigin = parseOriginUrl(origin);
-    if (!parsedOrigin) {
-      return;
-    }
+  const analytics = new Analytics({ writeKey, flushAt });
+  return async function trackAssistantResponded(
+    params: TrackAssistantRespondedParams
+  ) {
+    const validatedParams = validateAndParseParams(params);
+    if (!validatedParams) return;
+
     await analytics.track({
       event: eventName,
-      userId,
-      anonymousId,
-      timestamp: createdAt?.toISOString(),
+      userId: validatedParams.userId,
+      anonymousId: validatedParams.anonymousId,
+      timestamp: validatedParams.createdAt?.toISOString(),
       properties: {
-        userId,
-        anonymousId,
-        path: parsedOrigin.path,
-        url: parsedOrigin.url,
-        ai_chatId: conversationId.toString(),
-        ai_chat_verified: isVerifiedAnswer ? "true" : "false",
-        ai_chat_rejected_reason: rejectionReason,
+        ...createBaseProperties(validatedParams),
+        ai_chat_verified: params.isVerifiedAnswer ? "true" : "false",
+        ai_chat_rejected_reason: params.rejectionReason,
       } satisfies AssistantRespondedProperties,
     });
   };
 }
 
-export type TrackUserRatedMessageParams = TrackAnyEventParams & {
+export type TrackUserRatedMessageParams = BaseEventParams & {
   rating: boolean;
 };
 
@@ -149,44 +160,29 @@ export type UserRatedMessageProperties = AnyEventProperties & {
 export function makeTrackUserRatedMessage({
   writeKey,
   eventName,
+  flushAt = 1,
 }: TraceSegmentEventParams) {
-  const analytics = new Analytics({ writeKey });
-  return async function trackUserRatedMessage({
-    userId,
-    anonymousId,
-    conversationId,
-    origin,
-    createdAt,
-    rating,
-  }: TrackUserRatedMessageParams) {
-    if (!userId || !anonymousId) {
-      logger.warn(
-        `Tried to track segment event "${eventName}" but missing userId and/or anonymousId`
-      );
-      return;
-    }
-    const parsedOrigin = parseOriginUrl(origin);
-    if (!parsedOrigin) {
-      return;
-    }
+  const analytics = new Analytics({ writeKey, flushAt });
+  return async function trackUserRatedMessage(
+    params: TrackUserRatedMessageParams
+  ) {
+    const validatedParams = validateAndParseParams(params);
+    if (!validatedParams) return;
+
     await analytics.track({
       event: eventName,
-      userId,
-      anonymousId,
-      timestamp: createdAt?.toISOString(),
+      userId: validatedParams.userId,
+      anonymousId: validatedParams.anonymousId,
+      timestamp: validatedParams.createdAt?.toISOString(),
       properties: {
-        userId,
-        anonymousId,
-        path: parsedOrigin.path,
-        url: parsedOrigin.url,
-        ai_chatId: conversationId.toString(),
-        ai_chat_rating: rating ? "positive" : "negative",
+        ...createBaseProperties(validatedParams),
+        ai_chat_rating: params.rating ? "positive" : "negative",
       } satisfies UserRatedMessageProperties,
     });
   };
 }
 
-export type TrackUserCommentedMessageParams = TrackAnyEventParams & {
+export type TrackUserCommentedMessageParams = BaseEventParams & {
   comment: string;
   rating: boolean;
 };
@@ -199,40 +195,24 @@ export type UserCommentedMessageProperties = AnyEventProperties & {
 export function makeTrackUserCommentedMessage({
   writeKey,
   eventName,
+  flushAt = 1,
 }: TraceSegmentEventParams) {
-  const analytics = new Analytics({ writeKey });
-  return async function trackUserCommentedMessage({
-    userId,
-    anonymousId,
-    conversationId,
-    origin,
-    createdAt,
-    comment,
-    rating,
-  }: TrackUserCommentedMessageParams) {
-    if (!userId || !anonymousId) {
-      logger.warn(
-        `Tried to track segment event "${eventName}" but missing userId and/or anonymousId`
-      );
-      return;
-    }
-    const parsedOrigin = parseOriginUrl(origin);
-    if (!parsedOrigin) {
-      return;
-    }
+  const analytics = new Analytics({ writeKey, flushAt });
+  return async function trackUserCommentedMessage(
+    params: TrackUserCommentedMessageParams
+  ) {
+    const validatedParams = validateAndParseParams(params);
+    if (!validatedParams) return;
+
     await analytics.track({
       event: eventName,
-      userId,
-      anonymousId,
-      timestamp: createdAt?.toISOString(),
+      userId: validatedParams.userId,
+      anonymousId: validatedParams.anonymousId,
+      timestamp: validatedParams.createdAt?.toISOString(),
       properties: {
-        userId,
-        anonymousId,
-        path: parsedOrigin.path,
-        url: parsedOrigin.url,
-        ai_chatId: conversationId.toString(),
-        ai_chat_comment: comment,
-        ai_chat_rating: rating ? "positive" : "negative",
+        ...createBaseProperties(validatedParams),
+        ai_chat_comment: params.comment,
+        ai_chat_rating: params.rating ? "positive" : "negative",
       } satisfies UserCommentedMessageProperties,
     });
   };

@@ -29,6 +29,7 @@
     ".": "./build/index.js",
     "./langchain": "./build/langchain.js",
     "./mongodb": "./build/mongodb.js",
+    "./mongoDbMetadata": "./build/mongoDbMetadata/index.js",
     "./openai": "./build/openai.js",
     "./braintrust": "./build/braintrust.js",
     "./dataSources": "./build/dataSources/index.js",

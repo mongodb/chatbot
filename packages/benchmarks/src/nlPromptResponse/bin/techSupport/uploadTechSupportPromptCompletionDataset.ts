@@ -7,10 +7,22 @@ import {
   loadTechSupportQACsv,
   parseTechSupportQARow,
 } from "../../loadTechSupportDataset";
+import { createOpenAI } from "@ai-sdk/openai";
+import { getOpenAiEndpointAndApiKey, models } from "mongodb-rag-core/models";
+import { strict as assert } from "assert";
+import PromisePool from "@supercharge/promise-pool";
 
 async function main() {
   const { BRAINTRUST_API_KEY } = assertEnvVars({
     ...BRAINTRUST_ENV_VARS,
+  });
+
+  const modelLabel = "gpt-4.1";
+  const modelConfig = models.find((m) => m.label === modelLabel);
+  assert(modelConfig, `Model ${modelLabel} not found`);
+
+  const openai = createOpenAI({
+    ...(await getOpenAiEndpointAndApiKey(modelConfig)),
   });
   const csvPath = path.join(
     __dirname,
@@ -21,10 +33,16 @@ async function main() {
     "testData",
     "ts_jan_questions_reviewed.csv"
   );
+
   console.log(`Loading dataset from ${csvPath}`);
-  const dataset = loadTechSupportQACsv(csvPath)
-    .filter(filterTechSupportQARow)
-    .map(parseTechSupportQARow);
+  const { results: dataset } = await PromisePool.withConcurrency(
+    // Dividing by 3 b/c there are 3 concurrent llm calls
+    modelConfig.maxConcurrency / 3
+  )
+    .for(loadTechSupportQACsv(csvPath).filter(filterTechSupportQARow))
+    .process(async (row) => {
+      return await parseTechSupportQARow(row, openai.languageModel(modelLabel));
+    });
 
   console.log(`Total number of records: ${dataset.length}`);
   const res = await uploadDatasetToBraintrust({

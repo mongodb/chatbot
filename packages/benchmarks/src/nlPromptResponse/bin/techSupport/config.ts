@@ -3,7 +3,7 @@ import { MODELS } from "../../../benchmarkModels";
 import { models } from "mongodb-rag-core/models";
 import { OpenAI } from "mongodb-rag-core/openai";
 
-export const DATASET_NAME = "tech-support-q-and-a-verified";
+export const DATASET_NAME = "tech-support-q-and-a-verified-tagged";
 
 export const PROJECT_NAME = "tech-support-prompt-completion";
 

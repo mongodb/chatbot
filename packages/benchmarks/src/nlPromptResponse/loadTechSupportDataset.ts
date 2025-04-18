@@ -2,6 +2,8 @@ import fs from "fs";
 import path from "path";
 import { parse } from "csv-parse/sync";
 import { NlPromptResponseEvalCase } from "./NlQuestionAnswerEval";
+import { extractMongoDbTags } from "../tagData";
+import { LanguageModel } from "ai";
 
 /**
   Interface representing a row in the tech support Q&A CSV file
@@ -48,12 +50,15 @@ export function filterTechSupportQARow(row: TechSupportQARow): boolean {
   return isCorrect && hasQuestion && hasAnswer;
 }
 
-export const tags = ["tech_support"];
-
-export function parseTechSupportQARow(
-  row: TechSupportQARow
-): NlPromptResponseEvalCase {
-  // TODO: get better MDB tags...should use llm classifier once EAI-923 is merged
+export async function parseTechSupportQARow(
+  row: TechSupportQARow,
+  model: LanguageModel
+): Promise<NlPromptResponseEvalCase> {
+  const tags = ["tech_support"];
+  const conversation = `
+  Question: ${row.Question}
+  Answer: ${row.Answer}`;
+  tags.push(...(await extractMongoDbTags(model, conversation)));
   return {
     input: {
       messages: [

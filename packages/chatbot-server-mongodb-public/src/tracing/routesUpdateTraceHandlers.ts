@@ -34,14 +34,12 @@ export function makeAddMessageToConversationUpdateTrace({
   const segmentTrackUserSentMessage = segment
     ? makeTrackUserSentMessage({
         writeKey: segment.writeKey,
-        eventName: segment.eventName,
       })
     : undefined;
 
   const segmentTrackAssistantResponded = segment
     ? makeTrackAssistantResponded({
         writeKey: segment.writeKey,
-        eventName: segment.eventName,
       })
     : undefined;
 
@@ -130,7 +128,6 @@ export function makeRateMessageUpdateTrace({
   const segmentTrackUserRatedMessage = segment
     ? makeTrackUserRatedMessage({
         writeKey: segment.writeKey,
-        eventName: segment.eventName,
       })
     : undefined;
 
@@ -187,7 +184,6 @@ export function makeCommentMessageUpdateTrace({
   const segmentTrackUserCommentedMessage = segment
     ? makeTrackUserCommentedMessage({
         writeKey: segment.writeKey,
-        eventName: segment.eventName,
       })
     : undefined;
 

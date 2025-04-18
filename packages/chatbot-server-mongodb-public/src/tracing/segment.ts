@@ -11,14 +11,14 @@ export type TraceSegmentEventParams = {
 export type AnyEventProperties = {
   userId: string;
   anonymousId: string;
-  ai_chatId: string;
+  ai_chat_conversation_id: string;
   path: string;
   url: string;
 };
 
 const BaseEventParamsSchema = z.object({
-  userId: z.string(),
-  anonymousId: z.string(),
+  userId: z.string().optional(),
+  anonymousId: z.string().optional(),
   conversationId: z.instanceof(ObjectId),
   origin: z.string(),
   createdAt: z.date(),
@@ -26,14 +26,15 @@ const BaseEventParamsSchema = z.object({
 
 export type BaseEventParams = z.infer<typeof BaseEventParamsSchema>;
 
-export const ValidatedBaseEventParamsSchema = BaseEventParamsSchema.extend({
-  parsedOrigin: z.object({
-    path: z.string(),
-    url: z.string(),
-  }),
-});
+export const ValidatedBaseEventParamsSchema =
+  BaseEventParamsSchema.required().extend({
+    parsedOrigin: z.object({
+      path: z.string(),
+      url: z.string(),
+    }),
+  });
 
-export type ParsedBaseEventParams = z.infer<
+export type ValidatedBaseEventParams = z.infer<
   typeof ValidatedBaseEventParamsSchema
 >;
 
@@ -66,7 +67,7 @@ function parseOriginUrl(origin: string | undefined): ParsedOrigin | null {
 
 function validateAndParseParams(
   params: Partial<BaseEventParams>
-): (BaseEventParams & { parsedOrigin: ParsedOrigin }) | null {
+): ValidatedBaseEventParams | null {
   if (!params.userId || !params.anonymousId) {
     logger.warn(
       `Tried to track segment event but missing userId and/or anonymousId`
@@ -77,21 +78,21 @@ function validateAndParseParams(
   if (!parsedOrigin) {
     return null;
   }
-  return ValidatedBaseEventParamsSchema.parse({
+  return ValidatedBaseEventParamsSchema.required().parse({
     ...params,
     parsedOrigin,
   });
 }
 
 function createBaseProperties(
-  params: BaseEventParams & { parsedOrigin: ParsedOrigin }
+  params: ValidatedBaseEventParams
 ): AnyEventProperties {
   return {
     userId: params.userId,
     anonymousId: params.anonymousId,
     path: params.parsedOrigin.path,
     url: params.parsedOrigin.url,
-    ai_chatId: params.conversationId.toString(),
+    ai_chat_conversation_id: params.conversationId.toString(),
   };
 }
 
@@ -133,7 +134,7 @@ export type TrackAssistantRespondedParams = BaseEventParams & {
 };
 
 export type AssistantRespondedProperties = AnyEventProperties & {
-  ai_chat_verified: string;
+  ai_chat_verified_answer: string;
   ai_chat_rejected_reason?: string;
 };
 
@@ -155,7 +156,7 @@ export function makeTrackAssistantResponded({
       timestamp: validatedParams.createdAt?.toISOString(),
       properties: {
         ...createBaseProperties(validatedParams),
-        ai_chat_verified: params.isVerifiedAnswer ? "true" : "false",
+        ai_chat_verified_answer: params.isVerifiedAnswer ? "true" : "false",
         ai_chat_rejected_reason: params.rejectionReason,
       } satisfies AssistantRespondedProperties,
     });
@@ -200,7 +201,7 @@ export type TrackUserCommentedMessageParams = BaseEventParams & {
 };
 
 export type UserCommentedMessageProperties = AnyEventProperties & {
-  ai_chat_comment: string;
+  ai_chat_user_comment: string;
   ai_chat_rating: string;
 };
 
@@ -222,7 +223,7 @@ export function makeTrackUserCommentedMessage({
       timestamp: validatedParams.createdAt?.toISOString(),
       properties: {
         ...createBaseProperties(validatedParams),
-        ai_chat_comment: params.comment,
+        ai_chat_user_comment: params.comment,
         ai_chat_rating: params.rating ? "positive" : "negative",
       } satisfies UserCommentedMessageProperties,
     });

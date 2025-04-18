@@ -64,6 +64,7 @@ const {
   BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
   SLACK_BOT_TOKEN,
   SLACK_COMMENT_CONVERSATION_ID,
+  SEGMENT_WRITE_KEY,
 } = process.env;
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
@@ -227,6 +228,12 @@ const llmAsAJudgeConfig = {
   },
 };
 
+const segmentConfig = SEGMENT_WRITE_KEY
+  ? {
+      writeKey: SEGMENT_WRITE_KEY,
+    }
+  : undefined;
+
 export const config: AppConfig = {
   conversationsRouterConfig: {
     llm,
@@ -258,15 +265,11 @@ export const config: AppConfig = {
           ...llmAsAJudgeConfig,
           percentToJudge: isProduction ? 0.1 : 1,
         },
-        segment: {
-          writeKey: "TODO",
-        },
+        segment: segmentConfig,
       }),
     rateMessageUpdateTrace: makeRateMessageUpdateTrace({
       llmAsAJudge: llmAsAJudgeConfig,
-      segment: {
-        writeKey: "TODO",
-      },
+      segment: segmentConfig,
     }),
     commentMessageUpdateTrace: makeCommentMessageUpdateTrace({
       openAiClient,
@@ -286,9 +289,7 @@ export const config: AppConfig = {
                 : undefined,
             }
           : undefined,
-      segment: {
-        writeKey: "TODO",
-      },
+      segment: segmentConfig,
     }),
     generateUserPrompt,
     systemPrompt,

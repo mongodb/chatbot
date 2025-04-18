@@ -48,7 +48,7 @@ describe("Segment Tracking", () => {
           anonymousId: "anon123",
           path: "/chat",
           url: "https://example.com/chat",
-          ai_chatId: commonParams.conversationId.toString(),
+          ai_chat_conversation_id: commonParams.conversationId.toString(),
           ai_chat_tags: "tag1,tag2",
         },
       });
@@ -104,8 +104,8 @@ describe("Segment Tracking", () => {
           anonymousId: "anon123",
           path: "/chat",
           url: "https://example.com/chat",
-          ai_chatId: commonParams.conversationId.toString(),
-          ai_chat_verified: "true",
+          ai_chat_conversation_id: commonParams.conversationId.toString(),
+          ai_chat_verified_answer: "true",
         },
       });
     });
@@ -131,8 +131,8 @@ describe("Segment Tracking", () => {
           anonymousId: "anon123",
           path: "/chat",
           url: "https://example.com/chat",
-          ai_chatId: commonParams.conversationId.toString(),
-          ai_chat_verified: "false",
+          ai_chat_conversation_id: commonParams.conversationId.toString(),
+          ai_chat_verified_answer: "false",
           ai_chat_rejected_reason: "off-topic",
         },
       });
@@ -158,8 +158,8 @@ describe("Segment Tracking", () => {
           anonymousId: "anon123",
           path: "/chat",
           url: "https://example.com/chat",
-          ai_chatId: commonParams.conversationId.toString(),
-          ai_chat_verified: "false",
+          ai_chat_conversation_id: commonParams.conversationId.toString(),
+          ai_chat_verified_answer: "false",
         },
       });
     });
@@ -214,7 +214,7 @@ describe("Segment Tracking", () => {
           anonymousId: "anon123",
           path: "/chat",
           url: "https://example.com/chat",
-          ai_chatId: commonParams.conversationId.toString(),
+          ai_chat_conversation_id: commonParams.conversationId.toString(),
           ai_chat_rating: "positive",
         },
       });
@@ -240,7 +240,7 @@ describe("Segment Tracking", () => {
           anonymousId: "anon123",
           path: "/chat",
           url: "https://example.com/chat",
-          ai_chatId: commonParams.conversationId.toString(),
+          ai_chat_conversation_id: commonParams.conversationId.toString(),
           ai_chat_rating: "negative",
         },
       });
@@ -297,8 +297,8 @@ describe("Segment Tracking", () => {
           anonymousId: "anon123",
           path: "/chat",
           url: "https://example.com/chat",
-          ai_chatId: commonParams.conversationId.toString(),
-          ai_chat_comment: "This was very helpful!",
+          ai_chat_conversation_id: commonParams.conversationId.toString(),
+          ai_chat_user_comment: "This was very helpful!",
           ai_chat_rating: "positive",
         },
       });
@@ -325,8 +325,8 @@ describe("Segment Tracking", () => {
           anonymousId: "anon123",
           path: "/chat",
           url: "https://example.com/chat",
-          ai_chatId: commonParams.conversationId.toString(),
-          ai_chat_comment: "This wasn't helpful at all.",
+          ai_chat_conversation_id: commonParams.conversationId.toString(),
+          ai_chat_user_comment: "This wasn't helpful at all.",
           ai_chat_rating: "negative",
         },
       });

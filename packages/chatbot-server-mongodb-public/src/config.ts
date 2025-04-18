@@ -252,29 +252,44 @@ export const config: AppConfig = {
       };
     },
     addMessageToConversationUpdateTrace:
-      makeAddMessageToConversationUpdateTrace(
-        retrievalConfig.findNearestNeighborsOptions.k,
-        { ...llmAsAJudgeConfig, percentToJudge: isProduction ? 0.1 : 1 }
-      ),
-    rateMessageUpdateTrace: makeRateMessageUpdateTrace(llmAsAJudgeConfig),
-    commentMessageUpdateTrace: makeCommentMessageUpdateTrace(
+      makeAddMessageToConversationUpdateTrace({
+        k: retrievalConfig.findNearestNeighborsOptions.k,
+        llmAsAJudge: {
+          ...llmAsAJudgeConfig,
+          percentToJudge: isProduction ? 0.1 : 1,
+        },
+        segment: {
+          writeKey: "TODO",
+        },
+      }),
+    rateMessageUpdateTrace: makeRateMessageUpdateTrace({
+      llmAsAJudge: llmAsAJudgeConfig,
+      segment: {
+        writeKey: "TODO",
+      },
+    }),
+    commentMessageUpdateTrace: makeCommentMessageUpdateTrace({
       openAiClient,
-      JUDGE_LLM,
-      SLACK_BOT_TOKEN !== undefined &&
+      judgeLlm: JUDGE_LLM,
+      slack:
+        SLACK_BOT_TOKEN !== undefined &&
         SLACK_COMMENT_CONVERSATION_ID !== undefined
-        ? {
-            token: SLACK_BOT_TOKEN,
-            conversationId: SLACK_COMMENT_CONVERSATION_ID,
-            llmAsAJudge: llmAsAJudgeConfig,
-            braintrust: BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME
-              ? {
-                  orgName: "mongodb-education-ai",
-                  projectName: BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
-                }
-              : undefined,
-          }
-        : undefined
-    ),
+          ? {
+              token: SLACK_BOT_TOKEN,
+              conversationId: SLACK_COMMENT_CONVERSATION_ID,
+              llmAsAJudge: llmAsAJudgeConfig,
+              braintrust: BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME
+                ? {
+                    orgName: "mongodb-education-ai",
+                    projectName: BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
+                  }
+                : undefined,
+            }
+          : undefined,
+      segment: {
+        writeKey: "TODO",
+      },
+    }),
     generateUserPrompt,
     systemPrompt,
     maxUserMessagesInConversation: 50,

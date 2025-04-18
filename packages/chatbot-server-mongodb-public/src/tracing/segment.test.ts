@@ -31,7 +31,6 @@ describe("Segment Tracking", () => {
     it("should track user message with valid parameters", async () => {
       const trackUserSentMessage = makeTrackUserSentMessage({
         writeKey: "test-key",
-        eventName: "User Sent Message",
       });
 
       await trackUserSentMessage({
@@ -40,7 +39,7 @@ describe("Segment Tracking", () => {
       });
 
       expect(mockAnalytics.track).toHaveBeenCalledWith({
-        event: "User Sent Message",
+        event: "AI Chat User Sent Message",
         userId: "user123",
         anonymousId: "anon123",
         timestamp: commonParams.createdAt.toISOString(),
@@ -58,7 +57,6 @@ describe("Segment Tracking", () => {
     it("should not track when userId or anonymousId is missing", async () => {
       const trackUserSentMessage = makeTrackUserSentMessage({
         writeKey: "test-key",
-        eventName: "User Sent Message",
       });
 
       await trackUserSentMessage({
@@ -73,7 +71,6 @@ describe("Segment Tracking", () => {
     it("should not track when origin URL is invalid", async () => {
       const trackUserSentMessage = makeTrackUserSentMessage({
         writeKey: "test-key",
-        eventName: "User Sent Message",
       });
 
       await trackUserSentMessage({
@@ -90,7 +87,6 @@ describe("Segment Tracking", () => {
     it("should track assistant response with verified answer", async () => {
       const trackAssistantResponded = makeTrackAssistantResponded({
         writeKey: "test-key",
-        eventName: "Assistant Responded",
       });
 
       await trackAssistantResponded({
@@ -99,7 +95,7 @@ describe("Segment Tracking", () => {
       });
 
       expect(mockAnalytics.track).toHaveBeenCalledWith({
-        event: "Assistant Responded",
+        event: "AI Chat Assistant Responded",
         userId: "user123",
         anonymousId: "anon123",
         timestamp: commonParams.createdAt.toISOString(),
@@ -117,7 +113,6 @@ describe("Segment Tracking", () => {
     it("should track assistant response with rejection reason", async () => {
       const trackAssistantResponded = makeTrackAssistantResponded({
         writeKey: "test-key",
-        eventName: "Assistant Responded",
       });
 
       await trackAssistantResponded({
@@ -127,7 +122,7 @@ describe("Segment Tracking", () => {
       });
 
       expect(mockAnalytics.track).toHaveBeenCalledWith({
-        event: "Assistant Responded",
+        event: "AI Chat Assistant Responded",
         userId: "user123",
         anonymousId: "anon123",
         timestamp: commonParams.createdAt.toISOString(),
@@ -146,7 +141,6 @@ describe("Segment Tracking", () => {
     it("should track assistant responses with valid parameters", async () => {
       const trackAssistantResponded = makeTrackAssistantResponded({
         writeKey: "test-key",
-        eventName: "Assistant Responded",
       });
 
       await trackAssistantResponded({
@@ -155,7 +149,7 @@ describe("Segment Tracking", () => {
       });
 
       expect(mockAnalytics.track).toHaveBeenCalledWith({
-        event: "Assistant Responded",
+        event: "AI Chat Assistant Responded",
         userId: "user123",
         anonymousId: "anon123",
         timestamp: commonParams.createdAt.toISOString(),
@@ -173,7 +167,6 @@ describe("Segment Tracking", () => {
     it("should not track when userId or anonymousId is missing", async () => {
       const trackAssistantResponded = makeTrackAssistantResponded({
         writeKey: "test-key",
-        eventName: "Assistant Responded",
       });
 
       await trackAssistantResponded({
@@ -188,7 +181,6 @@ describe("Segment Tracking", () => {
     it("should not track when origin URL is invalid", async () => {
       const trackAssistantResponded = makeTrackAssistantResponded({
         writeKey: "test-key",
-        eventName: "Assistant Responded",
       });
 
       await trackAssistantResponded({
@@ -205,7 +197,6 @@ describe("Segment Tracking", () => {
     it("should track positive rating", async () => {
       const trackUserRatedMessage = makeTrackUserRatedMessage({
         writeKey: "test-key",
-        eventName: "User Rated Message",
       });
 
       await trackUserRatedMessage({
@@ -214,7 +205,7 @@ describe("Segment Tracking", () => {
       });
 
       expect(mockAnalytics.track).toHaveBeenCalledWith({
-        event: "User Rated Message",
+        event: "AI Chat User Rated Message",
         userId: "user123",
         anonymousId: "anon123",
         timestamp: commonParams.createdAt.toISOString(),
@@ -232,7 +223,6 @@ describe("Segment Tracking", () => {
     it("should track negative rating", async () => {
       const trackUserRatedMessage = makeTrackUserRatedMessage({
         writeKey: "test-key",
-        eventName: "User Rated Message",
       });
 
       await trackUserRatedMessage({
@@ -241,7 +231,7 @@ describe("Segment Tracking", () => {
       });
 
       expect(mockAnalytics.track).toHaveBeenCalledWith({
-        event: "User Rated Message",
+        event: "AI Chat User Rated Message",
         userId: "user123",
         anonymousId: "anon123",
         timestamp: commonParams.createdAt.toISOString(),
@@ -259,7 +249,6 @@ describe("Segment Tracking", () => {
     it("should not track when userId or anonymousId is missing", async () => {
       const trackUserRatedMessage = makeTrackUserRatedMessage({
         writeKey: "test-key",
-        eventName: "User Rated Message",
       });
 
       await trackUserRatedMessage({
@@ -274,7 +263,6 @@ describe("Segment Tracking", () => {
     it("should not track when origin URL is invalid", async () => {
       const trackUserRatedMessage = makeTrackUserRatedMessage({
         writeKey: "test-key",
-        eventName: "User Rated Message",
       });
 
       await trackUserRatedMessage({
@@ -291,7 +279,6 @@ describe("Segment Tracking", () => {
     it("should track user comment with positive rating", async () => {
       const trackUserCommentedMessage = makeTrackUserCommentedMessage({
         writeKey: "test-key",
-        eventName: "User Commented Message",
       });
 
       await trackUserCommentedMessage({
@@ -301,7 +288,7 @@ describe("Segment Tracking", () => {
       });
 
       expect(mockAnalytics.track).toHaveBeenCalledWith({
-        event: "User Commented Message",
+        event: "AI Chat User Commented Message",
         userId: "user123",
         anonymousId: "anon123",
         timestamp: commonParams.createdAt.toISOString(),
@@ -320,7 +307,6 @@ describe("Segment Tracking", () => {
     it("should track user comment with negative rating", async () => {
       const trackUserCommentedMessage = makeTrackUserCommentedMessage({
         writeKey: "test-key",
-        eventName: "User Commented Message",
       });
 
       await trackUserCommentedMessage({
@@ -330,7 +316,7 @@ describe("Segment Tracking", () => {
       });
 
       expect(mockAnalytics.track).toHaveBeenCalledWith({
-        event: "User Commented Message",
+        event: "AI Chat User Commented Message",
         userId: "user123",
         anonymousId: "anon123",
         timestamp: commonParams.createdAt.toISOString(),
@@ -349,7 +335,6 @@ describe("Segment Tracking", () => {
     it("should not track when userId or anonymousId is missing", async () => {
       const trackUserCommentedMessage = makeTrackUserCommentedMessage({
         writeKey: "test-key",
-        eventName: "User Commented Message",
       });
 
       await trackUserCommentedMessage({
@@ -365,7 +350,6 @@ describe("Segment Tracking", () => {
     it("should not track when origin URL is invalid", async () => {
       const trackUserCommentedMessage = makeTrackUserCommentedMessage({
         writeKey: "test-key",
-        eventName: "User Commented Message",
       });
 
       await trackUserCommentedMessage({

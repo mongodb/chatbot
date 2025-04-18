@@ -1,10 +1,10 @@
 import { Analytics } from "@segment/analytics-node";
 import { DbMessage, logger, UserMessage } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
+import { z } from "zod";
 
 export type TraceSegmentEventParams = {
   writeKey: string;
-  eventName: string;
   flushAt?: number;
 };
 
@@ -16,13 +16,26 @@ export type AnyEventProperties = {
   url: string;
 };
 
-export type BaseEventParams = {
-  userId: string | undefined;
-  anonymousId: string | undefined;
-  conversationId: ObjectId;
-  origin: string;
-  createdAt: Date;
-};
+const BaseEventParamsSchema = z.object({
+  userId: z.string(),
+  anonymousId: z.string(),
+  conversationId: z.instanceof(ObjectId),
+  origin: z.string(),
+  createdAt: z.date(),
+});
+
+export type BaseEventParams = z.infer<typeof BaseEventParamsSchema>;
+
+export const ValidatedBaseEventParamsSchema = BaseEventParamsSchema.extend({
+  parsedOrigin: z.object({
+    path: z.string(),
+    url: z.string(),
+  }),
+});
+
+export type ParsedBaseEventParams = z.infer<
+  typeof ValidatedBaseEventParamsSchema
+>;
 
 export function getSegmentIds(message: DbMessage<UserMessage> | undefined) {
   return {
@@ -51,7 +64,9 @@ function parseOriginUrl(origin: string | undefined): ParsedOrigin | null {
   }
 }
 
-function validateAndParseParams(params: BaseEventParams) {
+function validateAndParseParams(
+  params: Partial<BaseEventParams>
+): (BaseEventParams & { parsedOrigin: ParsedOrigin }) | null {
   if (!params.userId || !params.anonymousId) {
     logger.warn(
       `Tried to track segment event but missing userId and/or anonymousId`
@@ -62,10 +77,10 @@ function validateAndParseParams(params: BaseEventParams) {
   if (!parsedOrigin) {
     return null;
   }
-  return {
+  return ValidatedBaseEventParamsSchema.parse({
     ...params,
     parsedOrigin,
-  };
+  });
 }
 
 function createBaseProperties(
@@ -90,7 +105,6 @@ export type UserSentMessageEventProperties = AnyEventProperties & {
 
 export function makeTrackUserSentMessage({
   writeKey,
-  eventName,
   flushAt = 1,
 }: TraceSegmentEventParams) {
   const analytics = new Analytics({ writeKey, flushAt });
@@ -101,7 +115,7 @@ export function makeTrackUserSentMessage({
     if (!validatedParams) return;
 
     await analytics.track({
-      event: eventName,
+      event: "AI Chat User Sent Message",
       userId: validatedParams.userId,
       anonymousId: validatedParams.anonymousId,
       timestamp: validatedParams.createdAt?.toISOString(),
@@ -125,7 +139,6 @@ export type AssistantRespondedProperties = AnyEventProperties & {
 
 export function makeTrackAssistantResponded({
   writeKey,
-  eventName,
   flushAt = 1,
 }: TraceSegmentEventParams) {
   const analytics = new Analytics({ writeKey, flushAt });
@@ -136,7 +149,7 @@ export function makeTrackAssistantResponded({
     if (!validatedParams) return;
 
     await analytics.track({
-      event: eventName,
+      event: "AI Chat Assistant Responded",
       userId: validatedParams.userId,
       anonymousId: validatedParams.anonymousId,
       timestamp: validatedParams.createdAt?.toISOString(),
@@ -159,7 +172,6 @@ export type UserRatedMessageProperties = AnyEventProperties & {
 
 export function makeTrackUserRatedMessage({
   writeKey,
-  eventName,
   flushAt = 1,
 }: TraceSegmentEventParams) {
   const analytics = new Analytics({ writeKey, flushAt });
@@ -170,7 +182,7 @@ export function makeTrackUserRatedMessage({
     if (!validatedParams) return;
 
     await analytics.track({
-      event: eventName,
+      event: "AI Chat User Rated Message",
       userId: validatedParams.userId,
       anonymousId: validatedParams.anonymousId,
       timestamp: validatedParams.createdAt?.toISOString(),
@@ -194,7 +206,6 @@ export type UserCommentedMessageProperties = AnyEventProperties & {
 
 export function makeTrackUserCommentedMessage({
   writeKey,
-  eventName,
   flushAt = 1,
 }: TraceSegmentEventParams) {
   const analytics = new Analytics({ writeKey, flushAt });
@@ -205,7 +216,7 @@ export function makeTrackUserCommentedMessage({
     if (!validatedParams) return;
 
     await analytics.track({
-      event: eventName,
+      event: "AI Chat User Commented Message",
       userId: validatedParams.userId,
       anonymousId: validatedParams.anonymousId,
       timestamp: validatedParams.createdAt?.toISOString(),

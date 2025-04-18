@@ -15,16 +15,20 @@ import {
   TraceSegmentEventParams,
 } from "./segment";
 
-export const makeAddMessageToConversationUpdateTrace: (
-  k: number,
+export function makeAddMessageToConversationUpdateTrace({
+  k,
+  llmAsAJudge,
+  segment,
+}: {
+  k: number;
   llmAsAJudge?: LlmAsAJudge & {
     /**
     Percent of numbers to judge. Between 0 and 1.
    */
     percentToJudge: number;
-  },
-  segment?: TraceSegmentEventParams
-) => UpdateTraceFunc = (k, llmAsAJudge, segment) => {
+  };
+  segment?: TraceSegmentEventParams;
+}): UpdateTraceFunc {
   validatePercentToJudge(llmAsAJudge?.percentToJudge);
 
   const segmentTrackUserSentMessage = segment
@@ -99,7 +103,7 @@ export const makeAddMessageToConversationUpdateTrace: (
       },
     });
   };
-};
+}
 
 function getTracingScores(
   tracingData: ReturnType<typeof extractTracingData>,
@@ -116,10 +120,13 @@ function getTracingScores(
   };
 }
 
-export function makeRateMessageUpdateTrace(
-  llmAsAJudge: LlmAsAJudge,
-  segment?: TraceSegmentEventParams
-): UpdateTraceFunc {
+export function makeRateMessageUpdateTrace({
+  llmAsAJudge,
+  segment,
+}: {
+  llmAsAJudge: LlmAsAJudge;
+  segment?: TraceSegmentEventParams;
+}): UpdateTraceFunc {
   const segmentTrackUserRatedMessage = segment
     ? makeTrackUserRatedMessage({
         writeKey: segment.writeKey,
@@ -155,9 +162,14 @@ export function makeRateMessageUpdateTrace(
   };
 }
 
-export function makeCommentMessageUpdateTrace(
-  openAiClient: OpenAI,
-  judgeLlm: string,
+export function makeCommentMessageUpdateTrace({
+  openAiClient,
+  judgeLlm,
+  slack,
+  segment,
+}: {
+  openAiClient: OpenAI;
+  judgeLlm: string;
   slack?: {
     token: string;
     conversationId: string;
@@ -166,9 +178,9 @@ export function makeCommentMessageUpdateTrace(
       orgName: string;
       projectName: string;
     };
-  },
-  segment?: TraceSegmentEventParams
-): UpdateTraceFunc {
+  };
+  segment?: TraceSegmentEventParams;
+}): UpdateTraceFunc {
   const judgeMongoDbChatbotCommentSentiment =
     makeJudgeMongoDbChatbotCommentSentiment(openAiClient);
 

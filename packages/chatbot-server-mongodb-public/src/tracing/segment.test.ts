@@ -1,0 +1,381 @@
+import { Analytics } from "@segment/analytics-node";
+import { ObjectId } from "mongodb-rag-core/mongodb";
+import {
+  makeTrackUserSentMessage,
+  makeTrackAssistantResponded,
+  makeTrackUserRatedMessage,
+  makeTrackUserCommentedMessage,
+} from "./segment";
+
+jest.mock("@segment/analytics-node");
+
+describe("Segment Tracking", () => {
+  const mockAnalytics = {
+    track: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (Analytics as jest.Mock).mockImplementation(() => mockAnalytics);
+  });
+
+  const commonParams = {
+    userId: "user123",
+    anonymousId: "anon123",
+    conversationId: new ObjectId(),
+    origin: "https://example.com/chat",
+    createdAt: new Date(),
+  };
+
+  describe("trackUserSentMessage", () => {
+    it("should track user message with valid parameters", async () => {
+      const trackUserSentMessage = makeTrackUserSentMessage({
+        writeKey: "test-key",
+        eventName: "User Sent Message",
+      });
+
+      await trackUserSentMessage({
+        ...commonParams,
+        tags: ["tag1", "tag2"],
+      });
+
+      expect(mockAnalytics.track).toHaveBeenCalledWith({
+        event: "User Sent Message",
+        userId: "user123",
+        anonymousId: "anon123",
+        timestamp: commonParams.createdAt.toISOString(),
+        properties: {
+          userId: "user123",
+          anonymousId: "anon123",
+          path: "/chat",
+          url: "https://example.com/chat",
+          ai_chatId: commonParams.conversationId.toString(),
+          ai_chat_tags: "tag1,tag2",
+        },
+      });
+    });
+
+    it("should not track when userId or anonymousId is missing", async () => {
+      const trackUserSentMessage = makeTrackUserSentMessage({
+        writeKey: "test-key",
+        eventName: "User Sent Message",
+      });
+
+      await trackUserSentMessage({
+        ...commonParams,
+        userId: "",
+        tags: ["tag1"],
+      });
+
+      expect(mockAnalytics.track).not.toHaveBeenCalled();
+    });
+
+    it("should not track when origin URL is invalid", async () => {
+      const trackUserSentMessage = makeTrackUserSentMessage({
+        writeKey: "test-key",
+        eventName: "User Sent Message",
+      });
+
+      await trackUserSentMessage({
+        ...commonParams,
+        origin: "invalid-url",
+        tags: ["tag1"],
+      });
+
+      expect(mockAnalytics.track).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("trackAssistantResponded", () => {
+    it("should track assistant response with verified answer", async () => {
+      const trackAssistantResponded = makeTrackAssistantResponded({
+        writeKey: "test-key",
+        eventName: "Assistant Responded",
+      });
+
+      await trackAssistantResponded({
+        ...commonParams,
+        isVerifiedAnswer: true,
+      });
+
+      expect(mockAnalytics.track).toHaveBeenCalledWith({
+        event: "Assistant Responded",
+        userId: "user123",
+        anonymousId: "anon123",
+        timestamp: commonParams.createdAt.toISOString(),
+        properties: {
+          userId: "user123",
+          anonymousId: "anon123",
+          path: "/chat",
+          url: "https://example.com/chat",
+          ai_chatId: commonParams.conversationId.toString(),
+          ai_chat_verified: "true",
+        },
+      });
+    });
+
+    it("should track assistant response with rejection reason", async () => {
+      const trackAssistantResponded = makeTrackAssistantResponded({
+        writeKey: "test-key",
+        eventName: "Assistant Responded",
+      });
+
+      await trackAssistantResponded({
+        ...commonParams,
+        isVerifiedAnswer: false,
+        rejectionReason: "off-topic",
+      });
+
+      expect(mockAnalytics.track).toHaveBeenCalledWith({
+        event: "Assistant Responded",
+        userId: "user123",
+        anonymousId: "anon123",
+        timestamp: commonParams.createdAt.toISOString(),
+        properties: {
+          userId: "user123",
+          anonymousId: "anon123",
+          path: "/chat",
+          url: "https://example.com/chat",
+          ai_chatId: commonParams.conversationId.toString(),
+          ai_chat_verified: "false",
+          ai_chat_rejected_reason: "off-topic",
+        },
+      });
+    });
+
+    it("should track assistant responses with valid parameters", async () => {
+      const trackAssistantResponded = makeTrackAssistantResponded({
+        writeKey: "test-key",
+        eventName: "Assistant Responded",
+      });
+
+      await trackAssistantResponded({
+        ...commonParams,
+        isVerifiedAnswer: false,
+      });
+
+      expect(mockAnalytics.track).toHaveBeenCalledWith({
+        event: "Assistant Responded",
+        userId: "user123",
+        anonymousId: "anon123",
+        timestamp: commonParams.createdAt.toISOString(),
+        properties: {
+          userId: "user123",
+          anonymousId: "anon123",
+          path: "/chat",
+          url: "https://example.com/chat",
+          ai_chatId: commonParams.conversationId.toString(),
+          ai_chat_verified: "false",
+        },
+      });
+    });
+
+    it("should not track when userId or anonymousId is missing", async () => {
+      const trackAssistantResponded = makeTrackAssistantResponded({
+        writeKey: "test-key",
+        eventName: "Assistant Responded",
+      });
+
+      await trackAssistantResponded({
+        ...commonParams,
+        userId: "",
+        isVerifiedAnswer: true,
+      });
+
+      expect(mockAnalytics.track).not.toHaveBeenCalled();
+    });
+
+    it("should not track when origin URL is invalid", async () => {
+      const trackAssistantResponded = makeTrackAssistantResponded({
+        writeKey: "test-key",
+        eventName: "Assistant Responded",
+      });
+
+      await trackAssistantResponded({
+        ...commonParams,
+        origin: "invalid-url",
+        isVerifiedAnswer: true,
+      });
+
+      expect(mockAnalytics.track).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("trackUserRatedMessage", () => {
+    it("should track positive rating", async () => {
+      const trackUserRatedMessage = makeTrackUserRatedMessage({
+        writeKey: "test-key",
+        eventName: "User Rated Message",
+      });
+
+      await trackUserRatedMessage({
+        ...commonParams,
+        rating: true,
+      });
+
+      expect(mockAnalytics.track).toHaveBeenCalledWith({
+        event: "User Rated Message",
+        userId: "user123",
+        anonymousId: "anon123",
+        timestamp: commonParams.createdAt.toISOString(),
+        properties: {
+          userId: "user123",
+          anonymousId: "anon123",
+          path: "/chat",
+          url: "https://example.com/chat",
+          ai_chatId: commonParams.conversationId.toString(),
+          ai_chat_rating: "positive",
+        },
+      });
+    });
+
+    it("should track negative rating", async () => {
+      const trackUserRatedMessage = makeTrackUserRatedMessage({
+        writeKey: "test-key",
+        eventName: "User Rated Message",
+      });
+
+      await trackUserRatedMessage({
+        ...commonParams,
+        rating: false,
+      });
+
+      expect(mockAnalytics.track).toHaveBeenCalledWith({
+        event: "User Rated Message",
+        userId: "user123",
+        anonymousId: "anon123",
+        timestamp: commonParams.createdAt.toISOString(),
+        properties: {
+          userId: "user123",
+          anonymousId: "anon123",
+          path: "/chat",
+          url: "https://example.com/chat",
+          ai_chatId: commonParams.conversationId.toString(),
+          ai_chat_rating: "negative",
+        },
+      });
+    });
+
+    it("should not track when userId or anonymousId is missing", async () => {
+      const trackUserRatedMessage = makeTrackUserRatedMessage({
+        writeKey: "test-key",
+        eventName: "User Rated Message",
+      });
+
+      await trackUserRatedMessage({
+        ...commonParams,
+        userId: "",
+        rating: true,
+      });
+
+      expect(mockAnalytics.track).not.toHaveBeenCalled();
+    });
+
+    it("should not track when origin URL is invalid", async () => {
+      const trackUserRatedMessage = makeTrackUserRatedMessage({
+        writeKey: "test-key",
+        eventName: "User Rated Message",
+      });
+
+      await trackUserRatedMessage({
+        ...commonParams,
+        origin: "invalid-url",
+        rating: true,
+      });
+
+      expect(mockAnalytics.track).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("trackUserCommentedMessage", () => {
+    it("should track user comment with positive rating", async () => {
+      const trackUserCommentedMessage = makeTrackUserCommentedMessage({
+        writeKey: "test-key",
+        eventName: "User Commented Message",
+      });
+
+      await trackUserCommentedMessage({
+        ...commonParams,
+        comment: "This was very helpful!",
+        rating: true,
+      });
+
+      expect(mockAnalytics.track).toHaveBeenCalledWith({
+        event: "User Commented Message",
+        userId: "user123",
+        anonymousId: "anon123",
+        timestamp: commonParams.createdAt.toISOString(),
+        properties: {
+          userId: "user123",
+          anonymousId: "anon123",
+          path: "/chat",
+          url: "https://example.com/chat",
+          ai_chatId: commonParams.conversationId.toString(),
+          ai_chat_comment: "This was very helpful!",
+          ai_chat_rating: "positive",
+        },
+      });
+    });
+
+    it("should track user comment with negative rating", async () => {
+      const trackUserCommentedMessage = makeTrackUserCommentedMessage({
+        writeKey: "test-key",
+        eventName: "User Commented Message",
+      });
+
+      await trackUserCommentedMessage({
+        ...commonParams,
+        comment: "This wasn't helpful at all.",
+        rating: false,
+      });
+
+      expect(mockAnalytics.track).toHaveBeenCalledWith({
+        event: "User Commented Message",
+        userId: "user123",
+        anonymousId: "anon123",
+        timestamp: commonParams.createdAt.toISOString(),
+        properties: {
+          userId: "user123",
+          anonymousId: "anon123",
+          path: "/chat",
+          url: "https://example.com/chat",
+          ai_chatId: commonParams.conversationId.toString(),
+          ai_chat_comment: "This wasn't helpful at all.",
+          ai_chat_rating: "negative",
+        },
+      });
+    });
+
+    it("should not track when userId or anonymousId is missing", async () => {
+      const trackUserCommentedMessage = makeTrackUserCommentedMessage({
+        writeKey: "test-key",
+        eventName: "User Commented Message",
+      });
+
+      await trackUserCommentedMessage({
+        ...commonParams,
+        userId: "",
+        comment: "Test comment",
+        rating: true,
+      });
+
+      expect(mockAnalytics.track).not.toHaveBeenCalled();
+    });
+
+    it("should not track when origin URL is invalid", async () => {
+      const trackUserCommentedMessage = makeTrackUserCommentedMessage({
+        writeKey: "test-key",
+        eventName: "User Commented Message",
+      });
+
+      await trackUserCommentedMessage({
+        ...commonParams,
+        origin: "invalid-url",
+        comment: "Test comment",
+        rating: true,
+      });
+
+      expect(mockAnalytics.track).not.toHaveBeenCalled();
+    });
+  });
+});

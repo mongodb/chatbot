@@ -1,7 +1,7 @@
 import { ConversationsMiddleware } from "mongodb-chatbot-server";
 
-const SEGMENT_USER_ID_HEADER = "X-Segment-User-Id";
-const SEGMENT_ANONYMOUS_ID_HEADER = "X-Segment-Anonymous-Id";
+export const SEGMENT_USER_ID_HEADER = "X-Segment-User-Id";
+export const SEGMENT_ANONYMOUS_ID_HEADER = "X-Segment-Anonymous-Id";
 
 export function useSegmentIds(): ConversationsMiddleware {
   return (req, res, next) => {

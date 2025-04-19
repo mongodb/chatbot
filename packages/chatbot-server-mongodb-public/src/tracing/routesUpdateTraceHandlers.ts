@@ -6,17 +6,42 @@ import { LlmAsAJudge, getLlmAsAJudgeScores } from "./getLlmAsAJudgeScores";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { makeJudgeMongoDbChatbotCommentSentiment } from "./mongoDbChatbotCommentSentiment";
 import { postCommentToSlack } from "./postCommentToSlack";
+import {
+  getSegmentIds,
+  makeTrackAssistantResponded,
+  makeTrackUserCommentedMessage,
+  makeTrackUserRatedMessage,
+  makeTrackUserSentMessage,
+  TraceSegmentEventParams,
+} from "./segment";
 
-export const makeAddMessageToConversationUpdateTrace: (
-  k: number,
+export function makeAddMessageToConversationUpdateTrace({
+  k,
+  llmAsAJudge,
+  segment,
+}: {
+  k: number;
   llmAsAJudge?: LlmAsAJudge & {
     /**
     Percent of numbers to judge. Between 0 and 1.
    */
     percentToJudge: number;
-  }
-) => UpdateTraceFunc = (k, llmAsAJudge) => {
+  };
+  segment?: TraceSegmentEventParams;
+}): UpdateTraceFunc {
   validatePercentToJudge(llmAsAJudge?.percentToJudge);
+
+  const segmentTrackUserSentMessage = segment
+    ? makeTrackUserSentMessage({
+        writeKey: segment.writeKey,
+      })
+    : undefined;
+
+  const segmentTrackAssistantResponded = segment
+    ? makeTrackAssistantResponded({
+        writeKey: segment.writeKey,
+      })
+    : undefined;
 
   return async function ({ traceId, conversation, logger }) {
     const tracingData = extractTracingData(
@@ -30,6 +55,36 @@ export const makeAddMessageToConversationUpdateTrace: (
     const maybeAuthUser = conversation.customData?.authUser;
     if (maybeAuthUser && typeof maybeAuthUser === "string") {
       tracingData.tags.push(`auth_user`);
+    }
+
+    const userMessage = tracingData.userMessage;
+    const { userId, anonymousId } = getSegmentIds(userMessage);
+    if (userMessage) {
+      segmentTrackUserSentMessage?.({
+        userId,
+        anonymousId,
+        conversationId: conversation._id,
+        origin: userMessage.customData?.origin as string,
+        createdAt: userMessage.createdAt,
+        tags: tracingData.tags,
+      });
+    }
+
+    const assistantMessage = tracingData.assistantMessage;
+    if (userMessage && assistantMessage) {
+      segmentTrackAssistantResponded?.({
+        userId,
+        anonymousId,
+        conversationId: conversation._id,
+        origin: userMessage.customData?.origin as string,
+        createdAt: assistantMessage.createdAt,
+        isVerifiedAnswer: tracingData.isVerifiedAnswer ?? false,
+        rejectionReason: tracingData.rejectQuery
+          ? (assistantMessage.customData?.rejectionReason as
+              | string
+              | undefined) ?? "Unknown rejection reason"
+          : undefined,
+      });
     }
 
     logger.updateSpan({
@@ -46,7 +101,7 @@ export const makeAddMessageToConversationUpdateTrace: (
       },
     });
   };
-};
+}
 
 function getTracingScores(
   tracingData: ReturnType<typeof extractTracingData>,
@@ -63,26 +118,55 @@ function getTracingScores(
   };
 }
 
-export function makeRateMessageUpdateTrace(
-  llmAsAJudge: LlmAsAJudge
-): UpdateTraceFunc {
+export function makeRateMessageUpdateTrace({
+  llmAsAJudge,
+  segment,
+}: {
+  llmAsAJudge: LlmAsAJudge;
+  segment?: TraceSegmentEventParams;
+}): UpdateTraceFunc {
+  const segmentTrackUserRatedMessage = segment
+    ? makeTrackUserRatedMessage({
+        writeKey: segment.writeKey,
+      })
+    : undefined;
+
   return async function ({ traceId, conversation, logger }) {
+    const tracingData = extractTracingData(
+      conversation.messages,
+      ObjectId.createFromHexString(traceId)
+    );
+
+    const userMessage = tracingData.userMessage;
+    const assistantMessage = tracingData.assistantMessage;
+    const rating = assistantMessage?.rating;
+    const { userId, anonymousId } = getSegmentIds(userMessage);
+    if (userMessage && assistantMessage && rating !== undefined) {
+      segmentTrackUserRatedMessage?.({
+        userId,
+        anonymousId,
+        conversationId: conversation._id,
+        origin: userMessage.customData?.origin as string,
+        createdAt: new Date(),
+        rating,
+      });
+    }
+
     logger.updateSpan({
       id: traceId,
-      scores: await getLlmAsAJudgeScores(
-        llmAsAJudge,
-        extractTracingData(
-          conversation.messages,
-          ObjectId.createFromHexString(traceId)
-        )
-      ),
+      scores: await getLlmAsAJudgeScores(llmAsAJudge, tracingData),
     });
   };
 }
 
-export function makeCommentMessageUpdateTrace(
-  openAiClient: OpenAI,
-  judgeLlm: string,
+export function makeCommentMessageUpdateTrace({
+  openAiClient,
+  judgeLlm,
+  slack,
+  segment,
+}: {
+  openAiClient: OpenAI;
+  judgeLlm: string;
   slack?: {
     token: string;
     conversationId: string;
@@ -91,11 +175,46 @@ export function makeCommentMessageUpdateTrace(
       orgName: string;
       projectName: string;
     };
-  }
-): UpdateTraceFunc {
+  };
+  segment?: TraceSegmentEventParams;
+}): UpdateTraceFunc {
   const judgeMongoDbChatbotCommentSentiment =
     makeJudgeMongoDbChatbotCommentSentiment(openAiClient);
+
+  const segmentTrackUserCommentedMessage = segment
+    ? makeTrackUserCommentedMessage({
+        writeKey: segment.writeKey,
+      })
+    : undefined;
+
   return async function ({ traceId, conversation, logger }) {
+    const tracingData = extractTracingData(
+      conversation.messages,
+      ObjectId.createFromHexString(traceId)
+    );
+
+    const userMessage = tracingData.userMessage;
+    const assistantMessage = tracingData.assistantMessage;
+    const rating = assistantMessage?.rating;
+    const comment = assistantMessage?.userComment;
+    const { userId, anonymousId } = getSegmentIds(userMessage);
+    if (
+      userMessage &&
+      assistantMessage &&
+      rating !== undefined &&
+      comment !== undefined
+    ) {
+      segmentTrackUserCommentedMessage?.({
+        userId,
+        anonymousId,
+        conversationId: conversation._id,
+        origin: userMessage.customData?.origin as string,
+        createdAt: new Date(),
+        rating,
+        comment,
+      });
+    }
+
     logger.updateSpan({
       id: traceId,
       scores: {

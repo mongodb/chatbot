@@ -201,69 +201,85 @@ export function makeTrackAssistantResponded({
   };
 }
 
-// export type TrackUserRatedMessageParams = BaseTrackEventParams & {
-//   rating: boolean;
-// };
+export const TrackUserRatedMessageParamsSchema =
+  BaseTrackEventParamsSchema.extend({
+    rating: z.boolean(),
+  });
 
-// export type UserRatedMessageProperties = AnyEventProperties & {
-//   ai_chat_rating: "positive" | "negative";
-// };
+export type TrackUserRatedMessageParams = z.infer<
+  typeof TrackUserRatedMessageParamsSchema
+>;
 
-// export function makeTrackUserRatedMessage({
-//   writeKey,
-//   flushAt = 1,
-// }: TraceSegmentEventParams) {
-//   const analytics = new Analytics({ writeKey, flushAt });
-//   return async function trackUserRatedMessage(
-//     params: TrackUserRatedMessageParams
-//   ) {
-//     const validatedParams = validateAndParseParams(params);
-//     if (!validatedParams) return;
+export function makeTrackUserRatedMessage({
+  writeKey,
+  flushAt = 1,
+}: TraceSegmentEventParams) {
+  const analytics = new Analytics({ writeKey, flushAt });
+  return async function trackUserRatedMessage(
+    params: TrackUserRatedMessageParams
+  ) {
+    const parsedParams = TrackUserRatedMessageParamsSchema.safeParse(params);
+    if (!parsedParams.success) {
+      return;
+    }
 
-//     await analytics.track({
-//       event: "AI Chat User Rated Message",
-//       userId: validatedParams.userId,
-//       anonymousId: validatedParams.anonymousId,
-//       timestamp: validatedParams.createdAt?.toISOString(),
-//       properties: {
-//         ...createBaseProperties(validatedParams),
-//         ai_chat_rating: params.rating ? "positive" : "negative",
-//       } satisfies UserRatedMessageProperties,
-//     });
-//   };
-// }
+    const trackParams = SegmentTrackParamsSchema.safeParse({
+      event: "AI Chat User Rated Message",
+      userId: parsedParams.data.userId,
+      anonymousId: parsedParams.data.anonymousId,
+      timestamp: parsedParams.data.createdAt?.toISOString(),
+      properties: {
+        ...createBaseProperties(parsedParams.data),
+        ai_chat_rating: parsedParams.data.rating ? "positive" : "negative",
+      },
+    });
+    if (!trackParams.success) {
+      return;
+    }
 
-// export type TrackUserCommentedMessageParams = BaseTrackEventParams & {
-//   comment: string;
-//   rating: boolean;
-// };
+    await analytics.track(trackParams.data);
+  };
+}
 
-// export type UserCommentedMessageProperties = AnyEventProperties & {
-//   ai_chat_user_comment: string;
-//   ai_chat_rating: string;
-// };
+export const TrackUserCommentedMessageParamsSchema =
+  BaseTrackEventParamsSchema.extend({
+    comment: z.string(),
+    rating: z.boolean(),
+  });
 
-// export function makeTrackUserCommentedMessage({
-//   writeKey,
-//   flushAt = 1,
-// }: TraceSegmentEventParams) {
-//   const analytics = new Analytics({ writeKey, flushAt });
-//   return async function trackUserCommentedMessage(
-//     params: TrackUserCommentedMessageParams
-//   ) {
-//     const validatedParams = validateAndParseParams(params);
-//     if (!validatedParams) return;
+export type TrackUserCommentedMessageParams = z.infer<
+  typeof TrackUserCommentedMessageParamsSchema
+>;
 
-//     await analytics.track({
-//       event: "AI Chat User Commented Message",
-//       userId: validatedParams.userId,
-//       anonymousId: validatedParams.anonymousId,
-//       timestamp: validatedParams.createdAt?.toISOString(),
-//       properties: {
-//         ...createBaseProperties(validatedParams),
-//         ai_chat_user_comment: params.comment,
-//         ai_chat_rating: params.rating ? "positive" : "negative",
-//       } satisfies UserCommentedMessageProperties,
-//     });
-//   };
-// }
+export function makeTrackUserCommentedMessage({
+  writeKey,
+  flushAt = 1,
+}: TraceSegmentEventParams) {
+  const analytics = new Analytics({ writeKey, flushAt });
+  return async function trackUserCommentedMessage(
+    params: TrackUserCommentedMessageParams
+  ) {
+    const parsedParams =
+      TrackUserCommentedMessageParamsSchema.safeParse(params);
+    if (!parsedParams.success) {
+      return;
+    }
+
+    const trackParams = SegmentTrackParamsSchema.safeParse({
+      event: "AI Chat User Commented Message",
+      userId: parsedParams.data.userId,
+      anonymousId: parsedParams.data.anonymousId,
+      timestamp: parsedParams.data.createdAt?.toISOString(),
+      properties: {
+        ...createBaseProperties(parsedParams.data),
+        ai_chat_user_comment: parsedParams.data.comment,
+        ai_chat_rating: parsedParams.data.rating ? "positive" : "negative",
+      },
+    });
+    if (!trackParams.success) {
+      return;
+    }
+
+    await analytics.track(trackParams.data);
+  };
+}

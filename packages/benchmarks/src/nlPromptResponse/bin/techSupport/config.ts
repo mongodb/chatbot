@@ -1,6 +1,4 @@
-import { strict as assert } from "assert";
-import { MODELS } from "../../../benchmarkModels";
-import { models } from "mongodb-rag-core/models";
+import { getModelsFromLabels } from "../../../benchmarkModels";
 import { OpenAI } from "mongodb-rag-core/openai";
 
 export const DATASET_NAME = "tech-support-q-and-a-verified-tagged";
@@ -24,13 +22,9 @@ export const initialMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
   },
 ];
 
-const judgeModelLabels = ["gpt-4.1", "claude-37-sonnet"];
-const maybeJudgeModelsConfig = models.filter((m) =>
-  judgeModelLabels.includes(m.label)
-);
-assert(
-  maybeJudgeModelsConfig.length === judgeModelLabels.length,
-  `At least one of ${judgeModelLabels.join(", ")} not found`
-);
-export const judgeModelsConfig = maybeJudgeModelsConfig;
-export { MODELS };
+export const judgeModelsConfig = getModelsFromLabels([
+  "gpt-4.1",
+  "claude-37-sonnet",
+]);
+
+export const models = getModelsFromLabels(["gpt-4.1", "claude-37-sonnet"]);

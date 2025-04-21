@@ -1,7 +1,6 @@
 import PromisePool from "@supercharge/promise-pool";
 import {
   MAX_CONCURRENT_EXPERIMENTS,
-  MODELS,
   PROJECT_NAME,
   EXPERIMENT_BASE_NAME,
   EXPERIMENT_TYPE,
@@ -9,6 +8,7 @@ import {
   initialMessages,
   judgeModelsConfig,
   MAX_CONCURRENCY,
+  models,
 } from "./config";
 import { makeNlPromptCompletionTask } from "../../nlPromptCompletionTask";
 import {
@@ -40,7 +40,7 @@ async function main() {
     makeReferenceAlignment(config, label)
   );
 
-  await PromisePool.for(MODELS)
+  await PromisePool.for(models)
     .withConcurrency(MAX_CONCURRENT_EXPERIMENTS)
     .process(async (model) => {
       const openAiClient = wrapOpenAI(

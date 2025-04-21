@@ -51,7 +51,7 @@ export function makeWebDataSource({
         logger.error(`Failed to fetch pages for source: ${name}`, err);
         throw err;
       } finally {
-        await browserPage.close();
+        await browserPage.close?.();
         await browser.close();
       }
     },

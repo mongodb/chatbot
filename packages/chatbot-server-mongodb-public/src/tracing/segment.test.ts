@@ -2,7 +2,7 @@ import { Analytics } from "@segment/analytics-node";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   makeTrackUserSentMessage,
-  // makeTrackAssistantResponded,
+  makeTrackAssistantResponded,
   // makeTrackUserRatedMessage,
   // makeTrackUserCommentedMessage,
 } from "./segment";
@@ -26,7 +26,7 @@ describe("Segment Tracking", () => {
   };
 
   describe.only("trackUserSentMessage", () => {
-    it("should track user message with both IDs", async () => {
+    it("should track user message with both user IDs", async () => {
       const trackUserSentMessage = makeTrackUserSentMessage({
         writeKey: "test-key",
       });
@@ -134,115 +134,174 @@ describe("Segment Tracking", () => {
     });
   });
 
-  // describe("trackAssistantResponded", () => {
-  //   it("should track assistant response with verified answer", async () => {
-  //     const trackAssistantResponded = makeTrackAssistantResponded({
-  //       writeKey: "test-key",
-  //     });
+  describe.only("trackAssistantResponded", () => {
+    it("should track assistant response with verified answer", async () => {
+      const trackAssistantResponded = makeTrackAssistantResponded({
+        writeKey: "test-key",
+      });
 
-  //     await trackAssistantResponded({
-  //       ...commonParams,
-  //       isVerifiedAnswer: true,
-  //     });
+      await trackAssistantResponded({
+        ...commonParams,
+        userId: "user123",
+        anonymousId: "anon123",
+        isVerifiedAnswer: true,
+      });
 
-  //     expect(mockAnalytics.track).toHaveBeenCalledWith({
-  //       event: "AI Chat Assistant Responded",
-  //       userId: "user123",
-  //       anonymousId: "anon123",
-  //       timestamp: commonParams.createdAt.toISOString(),
-  //       properties: {
-  //         userId: "user123",
-  //         anonymousId: "anon123",
-  //         path: "/chat",
-  //         url: "https://example.com/chat",
-  //         ai_chat_conversation_id: commonParams.conversationId.toString(),
-  //         ai_chat_verified_answer: "true",
-  //       },
-  //     });
-  //   });
+      expect(mockAnalytics.track).toHaveBeenCalledWith({
+        event: "AI Chat Assistant Responded",
+        userId: "user123",
+        anonymousId: "anon123",
+        timestamp: commonParams.createdAt.toISOString(),
+        properties: {
+          userId: "user123",
+          anonymousId: "anon123",
+          path: "/chat",
+          url: "https://example.com/chat",
+          ai_chat_conversation_id: commonParams.conversationId.toString(),
+          ai_chat_verified_answer: "true",
+        },
+      });
+    });
 
-  //   it("should track assistant response with rejection reason", async () => {
-  //     const trackAssistantResponded = makeTrackAssistantResponded({
-  //       writeKey: "test-key",
-  //     });
+    it("should track assistant response with rejection reason", async () => {
+      const trackAssistantResponded = makeTrackAssistantResponded({
+        writeKey: "test-key",
+      });
 
-  //     await trackAssistantResponded({
-  //       ...commonParams,
-  //       isVerifiedAnswer: false,
-  //       rejectionReason: "off-topic",
-  //     });
+      await trackAssistantResponded({
+        ...commonParams,
+        userId: "user123",
+        anonymousId: "anon123",
+        isVerifiedAnswer: false,
+        rejectionReason: "off-topic",
+      });
 
-  //     expect(mockAnalytics.track).toHaveBeenCalledWith({
-  //       event: "AI Chat Assistant Responded",
-  //       userId: "user123",
-  //       anonymousId: "anon123",
-  //       timestamp: commonParams.createdAt.toISOString(),
-  //       properties: {
-  //         userId: "user123",
-  //         anonymousId: "anon123",
-  //         path: "/chat",
-  //         url: "https://example.com/chat",
-  //         ai_chat_conversation_id: commonParams.conversationId.toString(),
-  //         ai_chat_verified_answer: "false",
-  //         ai_chat_rejected_reason: "off-topic",
-  //       },
-  //     });
-  //   });
+      expect(mockAnalytics.track).toHaveBeenCalledWith({
+        event: "AI Chat Assistant Responded",
+        userId: "user123",
+        anonymousId: "anon123",
+        timestamp: commonParams.createdAt.toISOString(),
+        properties: {
+          userId: "user123",
+          anonymousId: "anon123",
+          path: "/chat",
+          url: "https://example.com/chat",
+          ai_chat_conversation_id: commonParams.conversationId.toString(),
+          ai_chat_verified_answer: "false",
+          ai_chat_rejected_reason: "off-topic",
+        },
+      });
+    });
 
-  //   it("should track assistant responses with valid parameters", async () => {
-  //     const trackAssistantResponded = makeTrackAssistantResponded({
-  //       writeKey: "test-key",
-  //     });
+    it("should track assistant response with both user IDs", async () => {
+      const trackAssistantResponded = makeTrackAssistantResponded({
+        writeKey: "test-key",
+      });
 
-  //     await trackAssistantResponded({
-  //       ...commonParams,
-  //       isVerifiedAnswer: false,
-  //     });
+      await trackAssistantResponded({
+        ...commonParams,
+        userId: "user123",
+        anonymousId: "anon123",
+        isVerifiedAnswer: false,
+      });
 
-  //     expect(mockAnalytics.track).toHaveBeenCalledWith({
-  //       event: "AI Chat Assistant Responded",
-  //       userId: "user123",
-  //       anonymousId: "anon123",
-  //       timestamp: commonParams.createdAt.toISOString(),
-  //       properties: {
-  //         userId: "user123",
-  //         anonymousId: "anon123",
-  //         path: "/chat",
-  //         url: "https://example.com/chat",
-  //         ai_chat_conversation_id: commonParams.conversationId.toString(),
-  //         ai_chat_verified_answer: "false",
-  //       },
-  //     });
-  //   });
+      expect(mockAnalytics.track).toHaveBeenCalledWith({
+        event: "AI Chat Assistant Responded",
+        userId: "user123",
+        anonymousId: "anon123",
+        timestamp: commonParams.createdAt.toISOString(),
+        properties: {
+          userId: "user123",
+          anonymousId: "anon123",
+          path: "/chat",
+          url: "https://example.com/chat",
+          ai_chat_conversation_id: commonParams.conversationId.toString(),
+          ai_chat_verified_answer: "false",
+        },
+      });
+    });
 
-  //   it("should not track when userId or anonymousId is missing", async () => {
-  //     const trackAssistantResponded = makeTrackAssistantResponded({
-  //       writeKey: "test-key",
-  //     });
+    it("should track with only userId", async () => {
+      const trackAssistantResponded = makeTrackAssistantResponded({
+        writeKey: "test-key",
+      });
 
-  //     await trackAssistantResponded({
-  //       ...commonParams,
-  //       userId: "",
-  //       isVerifiedAnswer: true,
-  //     });
+      await trackAssistantResponded({
+        ...commonParams,
+        userId: "user123",
+        isVerifiedAnswer: false,
+      });
 
-  //     expect(mockAnalytics.track).not.toHaveBeenCalled();
-  //   });
+      expect(mockAnalytics.track).toHaveBeenCalledWith({
+        event: "AI Chat Assistant Responded",
+        userId: "user123",
+        anonymousId: undefined,
+        timestamp: commonParams.createdAt.toISOString(),
+        properties: {
+          userId: "user123",
+          anonymousId: undefined,
+          path: "/chat",
+          url: "https://example.com/chat",
+          ai_chat_conversation_id: commonParams.conversationId.toString(),
+          ai_chat_verified_answer: "false",
+        },
+      });
+    });
 
-  //   it("should not track when origin URL is invalid", async () => {
-  //     const trackAssistantResponded = makeTrackAssistantResponded({
-  //       writeKey: "test-key",
-  //     });
+    it("should track with only anonymousId", async () => {
+      const trackAssistantResponded = makeTrackAssistantResponded({
+        writeKey: "test-key",
+      });
 
-  //     await trackAssistantResponded({
-  //       ...commonParams,
-  //       origin: "invalid-url",
-  //       isVerifiedAnswer: true,
-  //     });
+      await trackAssistantResponded({
+        ...commonParams,
+        anonymousId: "anon123",
+        isVerifiedAnswer: false,
+      });
 
-  //     expect(mockAnalytics.track).not.toHaveBeenCalled();
-  //   });
-  // });
+      expect(mockAnalytics.track).toHaveBeenCalledWith({
+        event: "AI Chat Assistant Responded",
+        userId: undefined,
+        anonymousId: "anon123",
+        timestamp: commonParams.createdAt.toISOString(),
+        properties: {
+          userId: undefined,
+          anonymousId: "anon123",
+          path: "/chat",
+          url: "https://example.com/chat",
+          ai_chat_conversation_id: commonParams.conversationId.toString(),
+          ai_chat_verified_answer: "false",
+        },
+      });
+    });
+
+    it("should not track when both userId and anonymousId are missing", async () => {
+      const trackAssistantResponded = makeTrackAssistantResponded({
+        writeKey: "test-key",
+      });
+
+      await trackAssistantResponded({
+        ...commonParams,
+        isVerifiedAnswer: false,
+      });
+
+      expect(mockAnalytics.track).not.toHaveBeenCalled();
+    });
+
+    it("should not track when origin URL is invalid", async () => {
+      const trackAssistantResponded = makeTrackAssistantResponded({
+        writeKey: "test-key",
+      });
+
+      await trackAssistantResponded({
+        ...commonParams,
+        origin: "invalid-url",
+        isVerifiedAnswer: true,
+      });
+
+      expect(mockAnalytics.track).not.toHaveBeenCalled();
+    });
+  });
 
   // describe("trackUserRatedMessage", () => {
   //   it("should track positive rating", async () => {

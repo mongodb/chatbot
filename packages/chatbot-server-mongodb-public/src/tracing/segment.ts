@@ -152,40 +152,54 @@ export function makeTrackUserSentMessage({
   };
 }
 
-export type TrackAssistantRespondedParams = BaseTrackEventParams & {
-  isVerifiedAnswer: boolean;
-  rejectionReason?: string;
-};
+export const TrackAssistantRespondedParamsSchema =
+  BaseTrackEventParamsSchema.extend({
+    isVerifiedAnswer: z.boolean(),
+    rejectionReason: z.string().optional(),
+  });
+
+export type TrackAssistantRespondedParams = z.infer<
+  typeof TrackAssistantRespondedParamsSchema
+>;
 
 export type AssistantRespondedProperties = AnyEventProperties & {
   ai_chat_verified_answer: string;
   ai_chat_rejected_reason?: string;
 };
 
-// export function makeTrackAssistantResponded({
-//   writeKey,
-//   flushAt = 1,
-// }: TraceSegmentEventParams) {
-//   const analytics = new Analytics({ writeKey, flushAt });
-//   return async function trackAssistantResponded(
-//     params: TrackAssistantRespondedParams
-//   ) {
-//     const validatedParams = validateAndParseParams(params);
-//     if (!validatedParams) return;
+export function makeTrackAssistantResponded({
+  writeKey,
+  flushAt = 1,
+}: TraceSegmentEventParams) {
+  const analytics = new Analytics({ writeKey, flushAt });
+  return async function trackAssistantResponded(
+    params: TrackAssistantRespondedParams
+  ) {
+    const parsedParams = TrackAssistantRespondedParamsSchema.safeParse(params);
+    if (!parsedParams.success) {
+      return;
+    }
 
-//     await analytics.track({
-//       event: "AI Chat Assistant Responded",
-//       userId: validatedParams.userId,
-//       anonymousId: validatedParams.anonymousId,
-//       timestamp: validatedParams.createdAt?.toISOString(),
-//       properties: {
-//         ...createBaseProperties(validatedParams),
-//         ai_chat_verified_answer: params.isVerifiedAnswer ? "true" : "false",
-//         ai_chat_rejected_reason: params.rejectionReason,
-//       } satisfies AssistantRespondedProperties,
-//     });
-//   };
-// }
+    const trackParams = SegmentTrackParamsSchema.safeParse({
+      event: "AI Chat Assistant Responded",
+      userId: parsedParams.data.userId,
+      anonymousId: parsedParams.data.anonymousId,
+      timestamp: parsedParams.data.createdAt?.toISOString(),
+      properties: {
+        ...createBaseProperties(parsedParams.data),
+        ai_chat_verified_answer: parsedParams.data.isVerifiedAnswer
+          ? "true"
+          : "false",
+        ai_chat_rejected_reason: parsedParams.data.rejectionReason,
+      },
+    });
+    if (!trackParams.success) {
+      return;
+    }
+
+    await analytics.track(trackParams.data);
+  };
+}
 
 // export type TrackUserRatedMessageParams = BaseTrackEventParams & {
 //   rating: boolean;

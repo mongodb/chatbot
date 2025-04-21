@@ -2,8 +2,11 @@ import fs from "fs";
 import path from "path";
 import { parse } from "csv-parse/sync";
 import { NlPromptResponseEvalCase } from "./NlQuestionAnswerEval";
-import { extractMongoDbTags } from "../tagData";
 import { LanguageModel } from "ai";
+import {
+  classifyMongoDbMetadata,
+  tagifyMetadata,
+} from "mongodb-rag-core/mongoDbMetadata";
 
 /**
   Interface representing a row in the tech support Q&A CSV file
@@ -58,7 +61,9 @@ export async function parseTechSupportQARow(
   const conversation = `
   Question: ${row.Question}
   Answer: ${row.Answer}`;
-  tags.push(...(await extractMongoDbTags(model, conversation)));
+  tags.push(
+    ...tagifyMetadata(await classifyMongoDbMetadata(model, conversation))
+  );
   return {
     input: {
       messages: [

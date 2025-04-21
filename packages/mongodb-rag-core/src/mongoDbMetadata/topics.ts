@@ -35,3 +35,5 @@ export const mongoDbTopics = [
     id: "iam",
   },
 ] as const satisfies MongoDbTopic[];
+
+export type MongoDbTopicId = (typeof mongoDbTopics)[number]["id"];

@@ -16,21 +16,13 @@ export type MongoDbTag =
   | (typeof mongoDbDriverIds)[number]
   | (typeof mongoDbTopicIds)[number];
 
-/**
-  All possible MongoDB tags as runtime object to validate tags.
-  */
-export const mongoDbTags = {
-  ...Object.fromEntries(
-    ([] as MongoDbTag[]).concat(
-      mongoDbProgrammingLanguageIds,
-      mongoDbProductIds,
-      mongoDbDriverIds,
-      mongoDbTopicIds
-    ).map(id => [id, id])
-  )
-} as const;
-export type MongoDbTags = keyof typeof mongoDbTags;
-
+// Combine all tag arrays into a single array
+const allTags = [
+  ...mongoDbProgrammingLanguageIds,
+  ...mongoDbProductIds,
+  ...mongoDbDriverIds,
+  ...mongoDbTopicIds,
+];
 
 /**
  Validates an array of tag names against the MongoDbTags enum.
@@ -46,15 +38,12 @@ export type MongoDbTags = keyof typeof mongoDbTags;
  */
 export const validateTags = (tagNames: string[], custom: boolean): void => {
   if (!custom) {
-    // check if all tags are allowed using the enum MongoDbTags
-    const invalidTags = tagNames.filter((tag) => !(tag in mongoDbTags));
+    const invalidTags = tagNames.filter((tag) => !allTags.includes(tag as MongoDbTag));
     if (invalidTags.length > 0) {
       throw new Error(
         `Invalid tags found: ${invalidTags.join(
           ", "
-        )} \nUse the "addCustomTags" transformation instead or use allowed tags: \n  - ${Object.keys(
-          mongoDbTags
-        )
+        )} \nUse the "addCustomTags" transformation instead or use allowed tags: \n  - ${allTags
           .sort()
           .join("\n  - ")}`
       );

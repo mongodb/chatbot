@@ -17,33 +17,20 @@ export type MongoDbTag =
   | (typeof mongoDbTopicIds)[number];
 
 /**
-  All possible MongoDB tags as enum.
+  All possible MongoDB tags as runtime object to validate tags.
   */
 export const mongoDbTags = {
-  // Add all programming language IDs
-  ...mongoDbProgrammingLanguageIds.reduce((acc, id) => {
-    acc[id] = id;
-    return acc;
-  }, {} as Record<string, string>),
-
-  // Add all product IDs
-  ...mongoDbProductIds.reduce((acc, id) => {
-    acc[id] = id;
-    return acc;
-  }, {} as Record<string, string>),
-
-  // Add all driver IDs
-  ...mongoDbDriverIds.reduce((acc, id) => {
-    acc[id] = id;
-    return acc;
-  }, {} as Record<string, string>),
-
-  // Add all topic IDs
-  ...mongoDbTopicIds.reduce((acc, id) => {
-    acc[id] = id;
-    return acc;
-  }, {} as Record<string, string>),
+  ...Object.fromEntries(
+    ([] as MongoDbTag[]).concat(
+      mongoDbProgrammingLanguageIds,
+      mongoDbProductIds,
+      mongoDbDriverIds,
+      mongoDbTopicIds
+    ).map(id => [id, id])
+  )
 } as const;
+export type MongoDbTags = keyof typeof mongoDbTags;
+
 
 /**
  Validates an array of tag names against the MongoDbTags enum.

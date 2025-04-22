@@ -28,12 +28,12 @@ export const judgeModelsConfig = getModelsFromLabels([
 ]);
 
 export const models = getModelsFromLabels([
-  // "gpt-4.1",
-  // "claude-37-sonnet",
+  "gpt-4.1",
+  "claude-37-sonnet",
   "gpt-4o",
   "gpt-4o-mini",
-  // "claude-35-sonnet-v2",
-  // "claude-35-sonnet",
+  "claude-35-sonnet-v2",
+  "claude-35-sonnet",
   "llama-3.1-70b",
   "llama-3.2-90b",
   "llama-3.3-70b",

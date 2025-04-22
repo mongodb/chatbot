@@ -65,7 +65,6 @@ export const makeReferenceAlignmentCouncil: (
       factualityMetrics.map((metric) => metric({ input, output, expected }))
     )) as Score[];
 
-    // TODO: fix this up
     // Filter out null scores and calculate average
     const validScores = factualityResults
       .filter(

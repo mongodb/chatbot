@@ -121,6 +121,7 @@ export function makeRateMessageRoute({
         });
         await updateTraceIfExists({
           updateTrace,
+          reqId,
           conversations,
           conversationId,
           assistantResponseMessageId: messageId,

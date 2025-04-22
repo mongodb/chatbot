@@ -19,6 +19,7 @@ import {
   makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
   defaultCreateConversationCustomData,
+  defaultAddMessageToConversationCustomData,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";
@@ -37,6 +38,7 @@ import {
   makeCommentMessageUpdateTrace,
   makeRateMessageUpdateTrace,
 } from "./tracing/routesUpdateTraceHandlers";
+import { useSegmentIds } from "./middleware/useSegmentIds";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -62,6 +64,7 @@ const {
   BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
   SLACK_BOT_TOKEN,
   SLACK_COMMENT_CONVERSATION_ID,
+  SEGMENT_WRITE_KEY,
 } = process.env;
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
@@ -225,6 +228,12 @@ const llmAsAJudgeConfig = {
   },
 };
 
+const segmentConfig = SEGMENT_WRITE_KEY
+  ? {
+      writeKey: SEGMENT_WRITE_KEY,
+    }
+  : undefined;
+
 export const config: AppConfig = {
   conversationsRouterConfig: {
     llm,
@@ -232,35 +241,57 @@ export const config: AppConfig = {
       blockGetRequests,
       requireValidIpAddress(),
       requireRequestOrigin(),
+      useSegmentIds(),
       cookieParser(),
     ],
     createConversationCustomData: !isProduction
       ? createConversationCustomDataWithAuthUser
       : undefined,
+    addMessageToConversationCustomData: async (req, res) => {
+      const defaultCustomData = await defaultAddMessageToConversationCustomData(
+        req,
+        res
+      );
+      return {
+        ...defaultCustomData,
+        segmentUserId: res.locals.customData.segmentUserId ?? undefined,
+        segmentAnonymousId:
+          res.locals.customData.segmentAnonymousId ?? undefined,
+      };
+    },
     addMessageToConversationUpdateTrace:
-      makeAddMessageToConversationUpdateTrace(
-        retrievalConfig.findNearestNeighborsOptions.k,
-        { ...llmAsAJudgeConfig, percentToJudge: isProduction ? 0.1 : 1 }
-      ),
-    rateMessageUpdateTrace: makeRateMessageUpdateTrace(llmAsAJudgeConfig),
-    commentMessageUpdateTrace: makeCommentMessageUpdateTrace(
+      makeAddMessageToConversationUpdateTrace({
+        k: retrievalConfig.findNearestNeighborsOptions.k,
+        llmAsAJudge: {
+          ...llmAsAJudgeConfig,
+          percentToJudge: isProduction ? 0.1 : 1,
+        },
+        segment: segmentConfig,
+      }),
+    rateMessageUpdateTrace: makeRateMessageUpdateTrace({
+      llmAsAJudge: llmAsAJudgeConfig,
+      segment: segmentConfig,
+    }),
+    commentMessageUpdateTrace: makeCommentMessageUpdateTrace({
       openAiClient,
-      JUDGE_LLM,
-      SLACK_BOT_TOKEN !== undefined &&
+      judgeLlm: JUDGE_LLM,
+      slack:
+        SLACK_BOT_TOKEN !== undefined &&
         SLACK_COMMENT_CONVERSATION_ID !== undefined
-        ? {
-            token: SLACK_BOT_TOKEN,
-            conversationId: SLACK_COMMENT_CONVERSATION_ID,
-            llmAsAJudge: llmAsAJudgeConfig,
-            braintrust: BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME
-              ? {
-                  orgName: "mongodb-education-ai",
-                  projectName: BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
-                }
-              : undefined,
-          }
-        : undefined
-    ),
+          ? {
+              token: SLACK_BOT_TOKEN,
+              conversationId: SLACK_COMMENT_CONVERSATION_ID,
+              llmAsAJudge: llmAsAJudgeConfig,
+              braintrust: BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME
+                ? {
+                    orgName: "mongodb-education-ai",
+                    projectName: BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
+                  }
+                : undefined,
+            }
+          : undefined,
+      segment: segmentConfig,
+    }),
     generateUserPrompt,
     systemPrompt,
     maxUserMessagesInConversation: 50,

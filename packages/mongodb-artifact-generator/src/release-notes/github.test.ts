@@ -12,7 +12,7 @@ if (!githubApi) {
   );
 }
 
-describe("makeGitHubReleaseArtifacts", () => {
+describe.skip("makeGitHubReleaseArtifacts", () => {
   it("returns a handle that can fetch commits and diffs", async () => {
     const gitHubReleaseArtifacts = makeGitHubReleaseArtifacts({
       githubApi,

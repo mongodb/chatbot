@@ -68,6 +68,9 @@ function makeCreateStatsMaterializedView({
           },
         ],
       });
+      console.log(
+        `Materializing ${granularity} stats for ${databaseName}.${messagesCollectionName} since ${since?.toISOString()}`
+      );
       return await client
         .db(databaseName)
         .collection(messagesCollectionName)
@@ -243,7 +246,6 @@ export async function createScrubbedMessageStatsViews({
 
     if (granularity.includes("daily")) {
       const dailyStart = Date.now();
-      console.log("Creating daily stats view");
       await createStatsMaterializedView<{
         year: number;
         dayOfYear: number;
@@ -288,7 +290,6 @@ export async function createScrubbedMessageStatsViews({
 
     if (granularity.includes("weekly")) {
       const weeklyStart = Date.now();
-      console.log("Creating weekly stats view");
       await createStatsMaterializedView<{
         year: number;
         week: number;
@@ -318,7 +319,6 @@ export async function createScrubbedMessageStatsViews({
 
     if (granularity.includes("monthly")) {
       const monthlyStart = Date.now();
-      console.log("Creating monthly stats view");
       await createStatsMaterializedView<{
         year: number;
         month: number;

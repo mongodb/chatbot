@@ -46,7 +46,7 @@ describe.skip("postCommentToSlack", () => {
             role: "assistant",
             content: "hello",
             rating: true,
-            userComment: "good",
+            userComment: "bahahah i can tag you now :bowser:",
             id,
             createdAt: new Date(),
             references: [
@@ -57,6 +57,9 @@ describe.skip("postCommentToSlack", () => {
             ],
           },
         ],
+        customData: {
+          authUser: "ben.p",
+        },
       },
       messageWithCommentId: id,
       llmAsAJudge: {

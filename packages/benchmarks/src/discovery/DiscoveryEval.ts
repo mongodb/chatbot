@@ -50,7 +50,8 @@ export interface DiscoveryTaskOutput {
 
 export type DiscoveryEvalTask = EvalTask<
   DiscoveryEvalCaseInput,
-  DiscoveryTaskOutput
+  DiscoveryTaskOutput,
+  void
 >;
 
 interface MakeDiscoveryTaskParams {

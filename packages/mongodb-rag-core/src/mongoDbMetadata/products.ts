@@ -4,10 +4,7 @@ import { mongoDbProgrammingLanguageIds } from "./programmingLanguages";
 export const MongoDbProductSchema = z.object({
   id: z.string().describe("Unique identifier for the product"),
   name: z.string().describe("Human-friendly name of the product"),
-  description: z
-    .string()
-    .optional()
-    .describe("Brief description of the product"),
+  description: z.string().describe("Brief description of the product"),
   programmingLanguage: z
     .enum(mongoDbProgrammingLanguageIds)
     .optional()
@@ -245,6 +242,8 @@ export const mongoDbProducts = [
     id: "atlas_triggers",
     name: "Atlas Triggers",
     parentProductId: "atlas",
+    description:
+      "Managed service that runs actions in response to events on MongoDB Atlas",
   },
   {
     id: "mongodb_ops_manager",
@@ -323,6 +322,7 @@ export const mongoDbProducts = [
 ] as const satisfies MongoDbProduct[];
 
 export type MongoDbProductName = (typeof mongoDbProducts)[number]["name"];
+export type MongoDbProductId = (typeof mongoDbProducts)[number]["id"];
 export type MongoDbProductNameEnum = [
   MongoDbProductName,
   ...MongoDbProductName[]

@@ -3,6 +3,7 @@ import { z } from "zod";
 export const mongoDbProgrammingLanguages = [
   {
     id: "shell",
+    name: "Shell",
   },
   {
     id: "javascript",
@@ -78,7 +79,7 @@ export const mongoDbProgrammingLanguageIds = mongoDbProgrammingLanguages.map(
 
 export const MongoDBProgrammingLanguageSchema = z.object({
   id: z.string().describe("Unique identifier for the topic"),
-  name: z.string().optional().describe("Human-friendly name of the topic"),
+  name: z.string().describe("Human-friendly name of the topic"),
   description: z.string().optional().describe("Brief description of the topic"),
 });
 export type MongoDbProgrammingLanguage = z.infer<

@@ -24,12 +24,12 @@ cronJobs:
     resources:
       # guaranteed amount of resources
       requests:
-        cpu: 1
-        memory: 2Gi
-      # maximum allowed resources
-      limits:
         cpu: 2
         memory: 4Gi
+      # maximum allowed resources
+      limits:
+        cpu: 4
+        memory: 8Gi
     backoffLimit: 3
   - name: ingest-content-test
     schedule: "0 8 * * *" # every day at 8am UTC (3AM EST)
@@ -52,12 +52,12 @@ cronJobs:
     resources:
       # guaranteed amount of resources
       requests:
-        cpu: 100m
-        memory: 2Gi
+        cpu: 2
+        memory: 4Gi
       # maximum allowed resources
       limits:
-        cpu: 500m
-        memory: 5Gi
+        cpu: 4
+        memory: 8Gi
     backoffLimit: 3
 
 # Alerts

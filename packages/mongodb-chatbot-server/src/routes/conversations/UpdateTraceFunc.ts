@@ -3,6 +3,7 @@ import { braintrustLogger } from "mongodb-rag-core/braintrust";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 
 export type UpdateTraceFuncParams = {
+  reqId: string;
   traceId: string;
   logger: typeof braintrustLogger;
   conversation: Conversation;
@@ -12,11 +13,13 @@ export type UpdateTraceFunc = (params: UpdateTraceFuncParams) => Promise<void>;
 
 export async function updateTraceIfExists({
   updateTrace,
+  reqId,
   conversations,
   assistantResponseMessageId,
   conversationId,
 }: {
   updateTrace?: UpdateTraceFunc;
+  reqId: string;
   conversations: ConversationsService;
   assistantResponseMessageId: ObjectId;
   conversationId: ObjectId;
@@ -28,6 +31,7 @@ export async function updateTraceIfExists({
     });
     if (updatedConversationForTrace !== null) {
       await updateTrace({
+        reqId,
         traceId: assistantResponseMessageId.toHexString(),
         logger: braintrustLogger,
         conversation: updatedConversationForTrace,

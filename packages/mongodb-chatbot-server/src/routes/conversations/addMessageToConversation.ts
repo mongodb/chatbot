@@ -319,6 +319,7 @@ export function makeAddMessageToConversationRoute({
 
         await updateTraceIfExists({
           updateTrace,
+          reqId,
           conversations,
           conversationId: conversation._id,
           assistantResponseMessageId: dbAssistantMessage.id,

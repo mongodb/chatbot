@@ -254,8 +254,9 @@ export const config: AppConfig = {
       );
       return {
         ...defaultCustomData,
-        segmentUserId: res.locals.customData.segmentUserId ?? "NOPE",
-        segmentAnonymousId: res.locals.customData.segmentAnonymousId ?? "NOPE",
+        segmentUserId: res.locals.customData.segmentUserId ?? undefined,
+        segmentAnonymousId:
+          res.locals.customData.segmentAnonymousId ?? undefined,
       };
     },
     addMessageToConversationUpdateTrace:

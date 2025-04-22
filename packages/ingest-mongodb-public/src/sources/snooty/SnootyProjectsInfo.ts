@@ -130,7 +130,7 @@ export const prepareSnootySources = async ({
 
         try {
           return makeSnootyDataSource({
-            name: `snooty-${project.name}`,
+            name: project.name,
             project: {
               ...project,
               currentBranch,

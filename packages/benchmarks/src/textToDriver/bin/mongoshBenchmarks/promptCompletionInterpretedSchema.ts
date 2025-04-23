@@ -12,19 +12,33 @@ import {
   makeLlmOptions,
   MAX_CONCURRENT_EXPERIMENTS,
   MODELS,
+  Experiment,
+  EXPERIMENT_BASE_NAME,
 } from "./config";
 import PromisePool from "@supercharge/promise-pool";
 import { makeGenerateMongoshCodePromptCompletionTask } from "../../generateDriverCode/generateMongoshCodePromptCompletion";
 import { getOpenAiEndpointAndApiKey } from "mongodb-rag-core/models";
+import { makeExperimentName } from "../../makeExperimentName";
 
 async function main() {
   await PromisePool.for(MODELS)
     .withConcurrency(MAX_CONCURRENT_EXPERIMENTS)
     .process(async (model) => {
       const llmOptions = makeLlmOptions(model);
-      const chainOfThought = true;
-      const schemaStrategy = "annotated";
-      const experimentName = `mongosh-benchmark-simple-prompt-completion-chain-of-thought-${schemaStrategy}-schema-${model.label}`;
+
+      const experiment: Experiment = {
+        model,
+        schemaStrategy: "interpreted",
+        systemPromptStrategy: "default",
+        type: "promptCompletion",
+      };
+      const experimentName = makeExperimentName({
+        baseName: EXPERIMENT_BASE_NAME,
+        experimentType: experiment.type,
+        model: model.label,
+        systemPromptStrategy: experiment.systemPromptStrategy,
+        schemaStrategy: experiment.schemaStrategy,
+      });
       console.log(`Running experiment: ${experimentName}`);
 
       await makeTextToDriverEval({
@@ -42,7 +56,8 @@ async function main() {
           uri: MONGODB_TEXT_TO_DRIVER_CONNECTION_URI,
           databaseInfos: annotatedDbSchemas,
           llmOptions,
-          chainOfThought,
+          systemPromptStrategy: experiment.systemPromptStrategy,
+          schemaStrategy: experiment.schemaStrategy,
           openai: wrapAISDKModel(
             createOpenAI({
               ...(await getOpenAiEndpointAndApiKey(model)),
@@ -50,11 +65,10 @@ async function main() {
               structuredOutputs: true,
             })
           ),
-          schemaStrategy,
         }),
         metadata: {
           llmOptions,
-          model,
+          ...experiment,
         },
         scores: [SuccessfulExecution, ReasonableOutput],
       });

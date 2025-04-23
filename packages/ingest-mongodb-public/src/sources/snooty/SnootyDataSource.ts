@@ -115,13 +115,7 @@ export type SnootyProjectConfig = ProjectBase & {
    */
   currentBranch: string;
 
-  // TODO: we don't need the following config option yet, but we will when we
-  // implement versions in the chatbot.
-  // /**
-  //  * Additional non-current branches to index
-  //  * @example ["master", "v4.11"]
-  //  */
-  // additionalBranches?: string[];
+  branches?: Branch[];
 
   /**
     The base URL of pages within the project site.
@@ -178,6 +172,7 @@ export const makeSnootyDataSource = ({
   const {
     baseUrl,
     currentBranch,
+    branches,
     name: snootyProjectName,
     tags,
     productName,
@@ -194,89 +189,97 @@ export const makeSnootyDataSource = ({
       // TODO: The manifest can be quite large (>100MB) so this could stand to
       // be re-architected to use AsyncGenerators and update page-by-page. For
       // now we can just accept the memory cost.
-      const getBranchDocumentsUrl = new URL(
-        `projects/${snootyProjectName}/${currentBranch}/documents`,
-        snootyDataApiBaseUrl
-      );
-      const { body } = await fetch(getBranchDocumentsUrl);
-      if (body === null) {
-        return [];
-      }
-      const stream = createInterface(body);
-      const linePromises: Promise<void>[] = [];
-      const pages: Page[] = [];
-      let siteTitle: string | undefined = undefined;
-      await new Promise<void>((resolve, reject) => {
-        stream.on("line", async (line) => {
-          const entry = JSON.parse(line) as SnootyManifestEntry;
-          switch (entry.type) {
-            case "page": {
-              const { data } = entry as SnootyPageEntry;
-              if (data.deleted) {
-                // Page marked deleted by Snooty API. Treat it as if it were not
-                // in the result set at all. The ingest system treats missing
-                // pages as if they have been deleted.
+      const pagesForAllBranches: Page[] = [];
+      for (const branch of branches ?? []) {
+        const getBranchDocumentsUrl = new URL(
+          `projects/${snootyProjectName}/${branch.gitBranchName}/documents`,
+          snootyDataApiBaseUrl)
+        const version = {
+          label: branch.label,
+          isCurrent: branch.isStableBranch,
+        }
+        const branchUrl = branch.fullUrl.replace("http://", "https://");
+        const { body } = await fetch(getBranchDocumentsUrl);
+        if (body === null) {
+          return [];
+        }
+        const stream = createInterface(body);
+        const linePromises: Promise<void>[] = [];
+        const pages: Page[] = [];
+        let siteTitle: string | undefined = undefined;
+        await new Promise<void>((resolve, reject) => {
+          stream.on("line", async (line) => {
+            const entry = JSON.parse(line) as SnootyManifestEntry;
+            switch (entry.type) {
+              case "page": {
+                const { data } = entry as SnootyPageEntry;
+                if (data.deleted) {
+                  // Page marked deleted by Snooty API. Treat it as if it were not
+                  // in the result set at all. The ingest system treats missing
+                  // pages as if they have been deleted.
+                  return;
+                }
+                return linePromises.push(
+                  (async () => {
+                    try {
+                      const page = await handlePage(data, {
+                        sourceName,
+                        baseUrl: branchUrl,
+                        tags: tags ?? [],
+                        productName,
+                        version,
+                      });
+                      if (page !== undefined) {
+                        pages.push(page);
+                      }
+                    } catch (error) {
+                      // Log the error and discard this document, but don't break the
+                      // overall fetchPages() call.
+                      logger.error(
+                        `SnootyDataSource handlePage failed with error: ${
+                          (error as Error)?.message
+                        }`
+                      );
+                    }
+                  })()
+                );
+              }
+              case "asset":
+                // Nothing to do with assets (images...) for now
+                return;
+              case "metadata": {
+                const { data } = entry as SnootyMetadataEntry;
+                siteTitle = data.title;
                 return;
               }
-              return linePromises.push(
-                (async () => {
-                  try {
-                    const page = await handlePage(data, {
-                      sourceName,
-                      baseUrl,
-                      tags: tags ?? [],
-                      productName,
-                      version,
-                    });
-                    if (page !== undefined) {
-                      pages.push(page);
-                    }
-                  } catch (error) {
-                    // Log the error and discard this document, but don't break the
-                    // overall fetchPages() call.
-                    logger.error(
-                      `SnootyDataSource handlePage failed with error: ${
-                        (error as Error)?.message
-                      }`
-                    );
-                  }
-                })()
-              );
+              case "timestamp":
+                // Nothing to do with timestamp document for now
+                return;
+              default:
+                return reject(
+                  new Error(
+                    `unexpected entry type from '${getBranchDocumentsUrl}': ${
+                      (entry as Record<string, unknown>).type as string
+                    }`
+                  )
+                );
             }
-            case "asset":
-              // Nothing to do with assets (images...) for now
-              return;
-            case "metadata": {
-              const { data } = entry as SnootyMetadataEntry;
-              siteTitle = data.title;
-              return;
-            }
-            case "timestamp":
-              // Nothing to do with timestamp document for now
-              return;
-            default:
-              return reject(
-                new Error(
-                  `unexpected entry type from '${getBranchDocumentsUrl}': ${
-                    (entry as Record<string, unknown>).type as string
-                  }`
-                )
-              );
+          });
+          stream.on("close", () => {
+            resolve();
+          });
+        });
+        await Promise.allSettled(linePromises);
+        // add metadata to all the pages
+        for (const page of pages) {
+          if (!page.metadata) {
+            page.metadata = {};
           }
-        });
-        stream.on("close", () => {
-          resolve();
-        });
-      });
-      await Promise.allSettled(linePromises);
-      // add metadata to all the pages
-      for (const page of pages) {
-        if (!page.metadata) {
-          page.metadata = {};
+          page.metadata.siteTitle = siteTitle;
         }
-        page.metadata.siteTitle = siteTitle;
+        pagesForAllBranches.push(...pages);
       }
-      return pages;
+      return pagesForAllBranches;
     },
   };
 };
@@ -290,6 +293,12 @@ export interface Branch {
     @example "master"
    */
   gitBranchName: string;
+
+  /**
+    Branch label
+    @example "v10.4 (current)"
+   */
+  label: string;
 
   /**
     Whether or not the branch is active.
@@ -340,7 +349,10 @@ export const handlePage = async (
     baseUrl: string;
     tags: string[];
     productName?: string;
-    version?: string;
+    version?: {
+      label: string;
+      isCurrent: boolean;
+    };
   }
 ): Promise<Page | undefined> => {
   // Strip first three path segments - according to Snooty team, they'll always

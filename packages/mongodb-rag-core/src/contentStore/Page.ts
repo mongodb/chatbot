@@ -28,6 +28,15 @@ export type Page = {
   sourceName: string;
 
   /**
+    The version of the page. This is relevant for versioned docs.
+    If the page is not versioned, this field should be undefined.
+   */
+  version?: {
+    label: string;
+    isCurrent: boolean;
+  }
+
+  /**
     Arbitrary metadata for page.
    */
   metadata?: PageMetadata;

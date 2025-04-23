@@ -24,6 +24,10 @@ export type SnootyProjectsInfo = {
   getCurrentVersionName(args: {
     projectName: string;
   }): Promise<string | undefined>;
+
+  getAllBranches(args: {
+    projectName: string
+  }): Promise<Branch[] | undefined>;
 };
 
 /**
@@ -38,6 +42,9 @@ export const makeSnootyProjectsInfo = async ({
   const response = await fetch(new URL("projects", snootyDataApiBaseUrl));
   const { data } =
     (await response.json()) as unknown as GetSnootyProjectsResponse;
+
+  // Preprocess data into a Map for faster lookups
+  const projectMap = new Map(data.map((project) => [project.project, project]));
 
   // Fix Snooty API data
   data.forEach((project) => {
@@ -56,7 +63,7 @@ export const makeSnootyProjectsInfo = async ({
     _data: data,
 
     async getBaseUrl({ projectName, branchName }) {
-      const metadata = data.find(({ project }) => project === projectName);
+      const metadata = projectMap.get(projectName);
       const branchMetaData = metadata?.branches.find(
         (branch) => branch.active && branch.gitBranchName === branchName
       );
@@ -77,6 +84,10 @@ export const makeSnootyProjectsInfo = async ({
       if (currentBranch.gitBranchName !== "master") {
         return currentBranch.gitBranchName;
       } else return;
+    },
+    async getAllBranches({ projectName }) {
+      const project = projectMap.get(projectName);
+      return project?.branches;
     },
   };
 };
@@ -127,13 +138,16 @@ export const prepareSnootySources = async ({
             projectName,
           }));
         version = version ? version + " (current)" : undefined;
-
+        const branches = await snootyProjectsInfo.getAllBranches({
+          projectName,
+        });
         try {
           return makeSnootyDataSource({
             name: project.name,
             project: {
               ...project,
               currentBranch,
+              branches,
               version,
               baseUrl:
                 project.baseUrl?.replace(/\/?$/, "/") ??

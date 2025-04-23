@@ -226,7 +226,7 @@ describe("handlePage()", () => {
       sourceName: "sample-source",
       baseUrl: "https://example.com",
       tags: ["a"],
-      version: "1.0",
+      version: {label: "1.0", isCurrent: true},
     });
     expect(result).toMatchObject({
       format: "openapi-yaml",
@@ -248,7 +248,7 @@ describe("handlePage()", () => {
       sourceName: "sample-source",
       baseUrl: "https://example.com",
       tags: ["a"],
-      version: "1.0",
+      version: {label: "1.0", isCurrent: true},
     });
     expect(result).toMatchObject({
       format: "md",

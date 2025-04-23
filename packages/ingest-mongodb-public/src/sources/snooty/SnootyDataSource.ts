@@ -191,6 +191,9 @@ export const makeSnootyDataSource = ({
       // now we can just accept the memory cost.
       const pagesForAllBranches: Page[] = [];
       for (const branch of branches ?? []) {
+        if (!branch.active) {
+          continue;
+        }
         const getBranchDocumentsUrl = new URL(
           `projects/${snootyProjectName}/${branch.gitBranchName}/documents`,
           snootyDataApiBaseUrl)

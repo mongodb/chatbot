@@ -24,6 +24,7 @@ envSecrets:
   OPENAI_API_KEY: docs-chatbot-staging
   BRAINTRUST_TRACING_API_KEY: docs-chatbot-staging
   SLACK_BOT_TOKEN: docs-chatbot-staging
+  SEGMENT_WRITE_KEY: docs-chatbot-staging
 
 ingress:
   enabled: true

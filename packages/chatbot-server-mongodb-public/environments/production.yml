@@ -24,6 +24,7 @@ envSecrets:
   OPENAI_API_KEY: docs-chatbot-prod
   BRAINTRUST_TRACING_API_KEY: docs-chatbot-prod
   SLACK_BOT_TOKEN: docs-chatbot-prod
+  SEGMENT_WRITE_KEY: docs-chatbot-prod
 
 ingress:
   enabled: true

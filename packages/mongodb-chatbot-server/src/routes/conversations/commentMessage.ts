@@ -156,6 +156,7 @@ export function makeCommentMessageRoute({
         });
         await updateTraceIfExists({
           updateTrace,
+          reqId,
           conversations,
           conversationId,
           assistantResponseMessageId: messageId,

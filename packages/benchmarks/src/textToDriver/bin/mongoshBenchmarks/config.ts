@@ -67,19 +67,6 @@ export const MODELS: ModelConfig[] = (
     "gemini-2-flash",
     "nova-pro-v1:0",
     "mistral-large-2",
-    // Other models
-    // "gemini-2.5-pro-preview-03-25",
-    // "claude-3-haiku",
-    // "claude-35-sonnet",
-    // "claude-35-sonnet-v2",
-    // "llama-3.1-70b",
-    // "llama-3.2-90b",
-    // "gemini-1.5-flash-002",
-    // "gemini-2.0-flash-lite",
-    // "gemini-1.0-pro-002",
-    // "gemini-1.5-pro-002",
-    // "nova-micro-v1:0",
-    // "nova-lite-v1:0",
   ] satisfies (typeof models)[number]["label"][]
 ).map((label) => {
   const model = models.find((m) => m.label === label);

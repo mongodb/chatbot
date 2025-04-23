@@ -97,6 +97,22 @@ const allModels = [
     maxConcurrency: 10,
   },
   {
+    label: "o3",
+    deployment: "o3",
+    developer: "OpenAI",
+    provider: "braintrust",
+    authorized: true,
+    maxConcurrency: 15,
+  },
+  {
+    label: "o4-mini",
+    deployment: "o4-mini",
+    developer: "OpenAI",
+    provider: "braintrust",
+    authorized: true,
+    maxConcurrency: 15,
+  },
+  {
     label: "gpt-4.1",
     deployment: "gpt-4.1",
     developer: "OpenAI",
@@ -243,7 +259,7 @@ const allModels = [
     developer: "Amazon",
     provider: "braintrust",
     authorized: true,
-    maxConcurrency: 10,
+    maxConcurrency: 30,
   },
   {
     label: "gemini-1.5-flash-002",
@@ -256,6 +272,14 @@ const allModels = [
   {
     label: "gemini-2-flash",
     deployment: "models/gemini-2.0-flash-001",
+    developer: "Google",
+    maxConcurrency: 10,
+    provider: "gcp_vertex_ai",
+    authorized: true,
+  },
+  {
+    label: "gemini-2.5-flash",
+    deployment: "models/gemini-2.5-flash-preview-04-17",
     developer: "Google",
     maxConcurrency: 10,
     provider: "gcp_vertex_ai",

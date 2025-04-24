@@ -108,19 +108,7 @@ export type SnootyMetadata = {
 
 export type SnootyProjectConfig = ProjectBase & {
   type: "snooty";
-
-  /**
-    Git branch name for the current (search indexed) version of the site.
-    @example "v4.10"
-   */
-  currentBranch: string;
-
   branches?: Branch[];
-
-  /**
-    The base URL of pages within the project site.
-   */
-  baseUrl: string;
 };
 
 /**
@@ -131,13 +119,8 @@ export type SnootyProjectConfig = ProjectBase & {
   in the Snooty Data API. `currentBranch` will be the name of the first branch
   entry with `isStableBranch` set to true in the Data API response.
  */
-export type LocallySpecifiedSnootyProjectConfig = Omit<
-  SnootyProjectConfig,
-  "baseUrl" | "currentBranch" | "version"
-> & {
-  baseUrl?: string;
-  currentBranch?: string;
-  versionNameOverride?: string;
+export type LocallySpecifiedSnootyProjectConfig = SnootyProjectConfig & {
+  currentVersionOverride?: string;
 };
 
 export type MakeSnootyDataSourceArgs = {
@@ -155,35 +138,20 @@ export type MakeSnootyDataSourceArgs = {
     The base URL for Snooty Data API requests.
    */
   snootyDataApiBaseUrl: string;
-
-  version?: string;
 };
 
 export const makeSnootyDataSource = ({
   name: sourceName,
   project,
   snootyDataApiBaseUrl,
-}: MakeSnootyDataSourceArgs): DataSource & {
-  _baseUrl: string;
-  _currentBranch: string;
-  _snootyProjectName: string;
-  _version?: string;
-} => {
+}: MakeSnootyDataSourceArgs): DataSource => {
   const {
-    baseUrl,
-    currentBranch,
     branches,
     name: snootyProjectName,
     tags,
     productName,
-    version,
   } = project;
   return {
-    // Additional members for testing purposes
-    _baseUrl: baseUrl,
-    _currentBranch: currentBranch,
-    _snootyProjectName: snootyProjectName,
-    _version: version,
     name: sourceName,
     async fetchPages() {
       // TODO: The manifest can be quite large (>100MB) so this could stand to

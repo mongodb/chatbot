@@ -125,36 +125,27 @@ export const prepareSnootySources = async ({
     await Promise.allSettled(
       projects.map(async (project) => {
         const { name: projectName } = project;
-        const currentBranch =
-          project.currentBranch ??
-          (
-            await snootyProjectsInfo.getCurrentBranch({
-              projectName,
-            })
-          ).gitBranchName;
-        let version =
-          project.versionNameOverride ??
-          (await snootyProjectsInfo.getCurrentVersionName({
-            projectName,
-          }));
-        version = version ? version + " (current)" : undefined;
-        const branches = await snootyProjectsInfo.getAllBranches({
+        let branches = await snootyProjectsInfo.getAllBranches({
           projectName,
-        });
+        }) as Branch[];
+        // modify branches if there is a currentVersionOverride
+        if (project.currentVersionOverride) {
+          branches = branches.map((branch) => {
+            if (branch.gitBranchName !== project.currentVersionOverride) {
+              return { ...branch, isStableBranch: false };
+            }
+            if (branch.gitBranchName === project.currentVersionOverride) {
+              return { ...branch, isStableBranch: true };
+            }
+            return branch;
+          });
+        }
         try {
           return makeSnootyDataSource({
             name: project.name,
             project: {
               ...project,
-              currentBranch,
               branches,
-              version,
-              baseUrl:
-                project.baseUrl?.replace(/\/?$/, "/") ??
-                (await snootyProjectsInfo.getBaseUrl({
-                  projectName,
-                  branchName: currentBranch,
-                })),
             },
             snootyDataApiBaseUrl,
           });
@@ -170,3 +161,4 @@ export const prepareSnootySources = async ({
     )
   ).map((result) => result.value);
 };
+

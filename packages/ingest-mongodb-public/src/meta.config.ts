@@ -74,9 +74,7 @@ export const standardConfig = {
       name: metaSnootyProject.name,
       project: {
         ...metaSnootyProject,
-        currentBranch: metaSnootyProject.currentBranch,
         type: "snooty",
-        baseUrl: metaSnootyProject.baseUrl?.replace(/\/?$/, "/"),
       },
       snootyDataApiBaseUrl,
     });

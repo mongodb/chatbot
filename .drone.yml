@@ -418,6 +418,7 @@ name: staging-build-ingest-mongodb-public
 trigger:
   branch:
     - main
+    - drone-test # TODO: Remove this before merging
   event:
     - push
   paths:

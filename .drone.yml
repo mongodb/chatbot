@@ -23,7 +23,6 @@ steps:
     image: node:18
     commands:
       - npm ci
-      # - npx playwright install chromium --with-deps
       - npm run build
       - npm run lint
       - npm run test
@@ -418,7 +417,6 @@ name: staging-build-ingest-mongodb-public
 trigger:
   branch:
     - main
-    - drone-test # TODO: Remove this before merging
   event:
     - push
   paths:

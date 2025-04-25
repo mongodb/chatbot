@@ -27,6 +27,7 @@ import { blockGetRequests } from "./middleware/blockGetRequests";
 import { getRequestId, logRequest } from "./utils";
 import { systemPrompt } from "./systemPrompt";
 import { addReferenceSourceType } from "./processors/makeMongoDbReferences";
+import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
 import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
@@ -243,6 +244,7 @@ export const config: AppConfig = {
       requireRequestOrigin(),
       useSegmentIds(),
       cookieParser(),
+      redactConnectionUri(),
     ],
     createConversationCustomData: !isProduction
       ? createConversationCustomDataWithAuthUser

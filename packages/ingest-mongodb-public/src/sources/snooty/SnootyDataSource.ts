@@ -113,13 +113,13 @@ export type SnootyProjectConfig = ProjectBase & {
 
 /**
   Specifies a locally-overrideable Snooty project configuration.
-
-  `baseUrl` and `currentBranch`, if undefined, will be filled in by the Snooty
-  Data API GET projects endpoint. You can set them yourself to override the data
-  in the Snooty Data API. `currentBranch` will be the name of the first branch
-  entry with `isStableBranch` set to true in the Data API response.
  */
 export type LocallySpecifiedSnootyProjectConfig = SnootyProjectConfig & {
+  /**
+    Can be set to a branch label to override the current version of the
+    project. Available branche labels can be found in the Snooty Data API
+    response for the project. https://snooty-data-api.mongodb.com/prod/projects  
+   */
   currentVersionOverride?: string;
 };
 

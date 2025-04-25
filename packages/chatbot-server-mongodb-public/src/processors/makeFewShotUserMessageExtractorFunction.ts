@@ -12,7 +12,7 @@ export interface MakeFewShotUserMessageExtractorFunctionParams<
     schema: T;
   };
   systemPrompt: string;
-  fewShotExamples: OpenAI.ChatCompletionMessageParam[];
+  fewShotExamples?: OpenAI.ChatCompletionMessageParam[];
 }
 
 /**
@@ -64,7 +64,7 @@ export function makeFewShotUserMessageExtractorFunction<
     Original user message: ${userMessageText}`.trim(),
     } satisfies OpenAI.ChatCompletionMessageParam;
     const res = await openAiClient.chat.completions.create({
-      messages: [systemPromptMessage, ...fewShotExamples, userMessage],
+      messages: [systemPromptMessage, ...(fewShotExamples ?? []), userMessage],
       temperature: 0,
       model,
       tools: [toolDefinition],

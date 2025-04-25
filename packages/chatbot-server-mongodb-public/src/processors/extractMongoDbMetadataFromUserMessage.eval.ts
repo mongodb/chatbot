@@ -1,14 +1,12 @@
+import "dotenv/config";
 import {
   extractMongoDbMetadataFromUserMessage,
   ExtractMongoDbMetadataFunction,
 } from "./extractMongoDbMetadataFromUserMessage";
-import { Eval } from "braintrust";
+import { Eval, wrapOpenAI } from "mongodb-rag-core/braintrust";
 import { Scorer } from "autoevals";
 import { MongoDbTag } from "../mongoDbMetadata";
-import {
-  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
-  openAiClient,
-} from "../eval/evalHelpers";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 interface ExtractMongoDbMetadataEvalCase {
   name: string;
@@ -204,21 +202,26 @@ const ProgrammingLanguageCorrect: Scorer<
   };
 };
 
-const model = OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT;
+const model = "gpt-4.1-nano";
 Eval("extract-mongodb-metadata", {
   data: evalCases,
   experimentName: model,
   metadata: {
     description:
-      "Evaluates whether the MongoDB user message guardrail is working correctly.",
+      "Evaluates whether the MongoDB user message metadata extractor is working correctly.",
     model,
   },
-  maxConcurrency: 3,
+  maxConcurrency: 15,
   timeout: 20000,
   async task(input) {
     try {
       return await extractMongoDbMetadataFromUserMessage({
-        openAiClient,
+        openAiClient: wrapOpenAI(
+          new OpenAI({
+            baseURL: process.env.BRAINTRUST_ENDPOINT,
+            apiKey: process.env.BRAINTRUST_API_KEY,
+          })
+        ),
         model,
         userMessageText: input,
       });

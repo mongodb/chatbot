@@ -8,9 +8,6 @@ jest.mock("autoevals", () => ({
   ContextRelevancy: jest.fn().mockResolvedValue({
     score: 0.8,
   }),
-  AnswerRelevancy: jest.fn().mockResolvedValue({
-    score: 0.8,
-  }),
 }));
 
 afterEach(() => {
@@ -100,7 +97,6 @@ describe("getLlmAsAJudgeScores", () => {
     const scores = await getLlmAsAJudgeScores(fakeBaseConfig, willJudge);
     expect(scores).toEqual({
       ContextRelevancy: 0.8,
-      AnswerRelevancy: 0.8,
       Faithfulness: 0.8,
     });
   });

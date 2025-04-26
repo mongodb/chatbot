@@ -12,8 +12,15 @@ export function hasMetaDirective(content: string): boolean {
 
 export function updateMetaDescription(
   content: string,
-  newDescription: string
+  newDescription: string,
+  options: UpsertMetaDirectiveOptions = {
+    allowOverwrite: true,
+  }
 ): string {
+  const hasMetaDescription = getMetaField(content, "description") !== null;
+  if (hasMetaDescription && !options.allowOverwrite) {
+    return content;
+  }
   return content.replace(metaDirectiveRegex, (match) => {
     // Check if description field exists
     if (descriptionFieldRegex.test(match)) {
@@ -101,8 +108,7 @@ export function findRstPageTitle(content: string): number {
       possibleOverline.length > 0 &&
       validAdornmentChars.test(possibleOverline) &&
       possibleTitle.length > 0 &&
-      possibleUnderline === possibleOverline &&
-      possibleOverline.length >= possibleTitle.length
+      possibleUnderline === possibleOverline
     ) {
       // Found overline-title-underline pattern
       return i + 3; // Line number (1-based) of the underline
@@ -117,8 +123,7 @@ export function findRstPageTitle(content: string): number {
     if (
       possibleTitle.length > 0 &&
       possibleUnderline.length > 0 &&
-      validAdornmentChars.test(possibleUnderline) &&
-      possibleUnderline.length >= possibleTitle.length
+      validAdornmentChars.test(possibleUnderline)
     ) {
       // Found title-underline pattern
       return i + 2; // Line number (1-based) of the underline
@@ -129,11 +134,20 @@ export function findRstPageTitle(content: string): number {
   return -1;
 }
 
+export type MetaDirectiveArgs = {
+  description: string | null;
+  keywords: string | null;
+};
+
+export type UpsertMetaDirectiveOptions = {
+  allowOverwrite: boolean;
+};
+
 export function upsertMetaDirective(
   rstPageContent: string,
-  metaDirectiveArgs: {
-    description: string | null;
-    keywords: string | null;
+  metaDirectiveArgs: MetaDirectiveArgs,
+  options: UpsertMetaDirectiveOptions = {
+    allowOverwrite: true,
   }
 ): string {
   const pageHasMetaDirective = hasMetaDirective(rstPageContent);
@@ -141,11 +155,16 @@ export function upsertMetaDirective(
     if (!metaDirectiveArgs.description) {
       throw new Error("Meta description is required");
     }
-    return updateMetaDescription(rstPageContent, metaDirectiveArgs.description);
+    return updateMetaDescription(
+      rstPageContent,
+      metaDirectiveArgs.description,
+      options
+    );
   } else {
     const metaDirective = constructMetaDirective(metaDirectiveArgs);
     const pageTitleLineNumber = findRstPageTitle(rstPageContent);
     if (pageTitleLineNumber === -1) {
+      console.log(`\n\nPage title not found: ${rstPageContent.slice(0, 200)}`);
       throw new Error("Page title not found");
     }
     const pageLines = rstPageContent.split("\n");
@@ -153,7 +172,6 @@ export function upsertMetaDirective(
       ...pageLines.slice(0, pageTitleLineNumber),
       "",
       metaDirective,
-      "",
       ...pageLines.slice(pageTitleLineNumber),
     ].join("\n");
     return newRstPageContent;
@@ -162,15 +180,16 @@ export function upsertMetaDirective(
 
 export function upsertMetaDirectiveInFile(
   filePath: string,
-  metaDirectiveArgs: {
-    description: string | null;
-    keywords: string | null;
+  metaDirectiveArgs: MetaDirectiveArgs,
+  options: UpsertMetaDirectiveOptions = {
+    allowOverwrite: true,
   }
 ): void {
   const rstPageContent = fs.readFileSync(filePath, "utf8");
   const newRstPageContent = upsertMetaDirective(
     rstPageContent,
-    metaDirectiveArgs
+    metaDirectiveArgs,
+    options
   );
   fs.writeFileSync(filePath, newRstPageContent);
 }

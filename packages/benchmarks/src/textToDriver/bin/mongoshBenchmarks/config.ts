@@ -67,6 +67,7 @@ export const MODELS: ModelConfig[] = (
     "gemini-2-flash",
     "nova-pro-v1:0",
     "mistral-large-2",
+<<<<<<< HEAD
     // Other models
     // "gemini-2.5-pro-preview-03-25",
     // "claude-3-haiku",
@@ -80,6 +81,8 @@ export const MODELS: ModelConfig[] = (
     // "gemini-1.5-pro-002",
     // "nova-micro-v1:0",
     // "nova-lite-v1:0",
+=======
+>>>>>>> upstream/main
   ] satisfies (typeof models)[number]["label"][]
 ).map((label) => {
   const model = models.find((m) => m.label === label);

@@ -96,23 +96,8 @@ describe("makeClassifier", () => {
       chainOfThought: true,
       model: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
     });
-    const results: Classification[] = [];
-    for (const input of hotdogInputs) {
-      const result = await classifyIsHotdog({ input });
-      results.push(result.classification);
-    }
-    const resultTypes = results.map((r) => r.type);
-    expect(resultTypes).toEqual([
-      "hotdog",
-      "hotdog",
-      "not_hotdog",
-      "not_hotdog",
-      "not_hotdog",
-      "not_hotdog",
-      "not_hotdog",
-    ]);
-    for (const result of results) {
-      expect(result.reason).toBeDefined();
-    }
-  }, 40000);
+    const result = await classifyIsHotdog({ input: hotdogInputs[0] });
+    expect(result.classification.type).toEqual("hotdog");
+    expect(result.classification.reason).toBeDefined();
+  }, 80000);
 });

@@ -9,13 +9,22 @@ import {
   UserMessage,
   ConversationCustomData,
   ChatLlm,
+  SystemMessage,
 } from "mongodb-rag-core";
 import { Request as ExpressRequest } from "express";
 import { logRequest } from "../utils";
 import { strict as assert } from "assert";
 import { GenerateUserPromptFunc } from "../processors/GenerateUserPromptFunc";
 import { FilterPreviousMessages } from "../processors/FilterPreviousMessages";
-
+import {
+  CoreMessage,
+  generateText,
+  LanguageModel,
+  streamText,
+  tool,
+  ToolChoice,
+} from "mongodb-rag-core/aiSdk";
+import { z } from "zod";
 export type ClientContext = Record<string, unknown>;
 
 export interface GenerateResponseParams {
@@ -41,6 +50,253 @@ interface GenerateResponseReturnValue {
 export type GenerateResponse = (
   params: GenerateResponseParams
 ) => Promise<GenerateResponseReturnValue>;
+
+type InputGuardrail<
+  Metadata extends Record<string, unknown> | undefined = Record<string, unknown>
+> = (
+  generateResponseParams: Omit<GenerateResponseParams, "inputGuardrail">
+) => Promise<{
+  rejected: boolean;
+  reason?: string;
+  message: string;
+  metadata: Metadata;
+}>;
+
+function withAbortControllerGuardrail<T, G>(
+  fn: (abortController: AbortController) => Promise<T>,
+  guardrailPromise?: Promise<G>
+): Promise<{ result: T | null; guardrailResult: Awaited<G> | undefined }> {
+  const abortController = new AbortController();
+  return (async () => {
+    try {
+      // Run both the main function and guardrail function in parallel
+      const [result, guardrailResult] = await Promise.all([
+        fn(abortController).catch((error) => {
+          // If the main function was aborted by the guardrail, return null
+          if (error.name === "AbortError") {
+            return null as T | null;
+          }
+          throw error;
+        }),
+        guardrailPromise,
+      ]);
+
+      return { result, guardrailResult };
+    } catch (error) {
+      // If an unexpected error occurs, abort any ongoing operations
+      if (!abortController.signal.aborted) {
+        abortController.abort();
+      }
+      throw error;
+    }
+  })();
+}
+
+// TODO: rename this to be clearer on what this is.
+// this is basically v2 of chatbot which makes the thing an agent.
+export const makeGenerateResponseAiSdk: (
+  languageModel: LanguageModel,
+  inputGuardrail?: InputGuardrail,
+  systemMessage?: SystemMessage
+) => GenerateResponse = (languageModel, inputGuardrail, systemMessage) =>
+  async function ({
+    conversation,
+    latestMessageText,
+    clientContext,
+    customData,
+    filterPreviousMessages,
+    shouldStream,
+    llm,
+    reqId,
+    llmNotWorkingMessage,
+    noRelevantContentMessage,
+    dataStreamer,
+    request,
+  }) {
+    try {
+      const tools = {
+        findContent: tool({
+          parameters: z.object({
+            bar: z.string(),
+          }),
+          execute: async (parameters) => {
+            const references: References = [];
+            return { references };
+          },
+        }),
+      };
+
+      // Get preceding messages to include in the LLM prompt
+      const filteredPreviousMessages = filterPreviousMessages
+        ? (await filterPreviousMessages(conversation)).map(
+            convertConversationMessageToLlmMessage
+          )
+        : [];
+
+      const generationArgs = {
+        model: languageModel,
+        messages: [
+          ...(systemMessage ? [systemMessage] : []),
+          ...filteredPreviousMessages,
+          {
+            role: "user",
+            content: latestMessageText,
+          },
+        ] as CoreMessage[],
+        tools,
+        toolChoice: {
+          type: "tool" as const,
+          toolName: "findContent",
+        } satisfies ToolChoice<typeof tools>,
+      };
+
+      // Guardrail used to validate the input
+      // while the LLM is generating the response
+      const inputGuardrailPromise = inputGuardrail
+        ? inputGuardrail({
+            conversation,
+            latestMessageText,
+            clientContext,
+            customData,
+            filterPreviousMessages,
+            shouldStream,
+            llm,
+            reqId,
+            llmNotWorkingMessage,
+            noRelevantContentMessage,
+            dataStreamer,
+            request,
+          })
+        : undefined;
+
+      if (shouldStream) {
+        // TODO: handle metadata..how?
+        // note: not sure if necessary.
+        // if (metadata) {
+        //   dataStreamer.streamData({ type: "metadata", data: metadata });
+        // }
+        const { result: textGenerationResult, guardrailResult } =
+          await withAbortControllerGuardrail(async (controller) => {
+            // TODO: refactor this an indepentdent function
+            const toolReferences: References = [];
+            const { fullStream, text } = streamText({
+              ...generationArgs,
+              abortSignal: controller.signal,
+            });
+            for await (const chunk of fullStream) {
+              switch (chunk.type) {
+                case "text-delta":
+                  dataStreamer?.streamData({
+                    data: chunk.textDelta,
+                    type: "delta",
+                  });
+                  break;
+                case "tool-result":
+                  // TODO: update to handle the retrieval tool call
+                  if (chunk.toolName === "findContent") {
+                    toolReferences.push(...chunk.result.references);
+                    dataStreamer?.streamData({
+                      data: chunk.result.references,
+                      type: "references",
+                    });
+                  }
+                  break;
+                default:
+                  break;
+              }
+            }
+            return {
+              text: await text,
+              references: toolReferences,
+            };
+          }, inputGuardrailPromise);
+        // TODO: thinkg about this..
+        // the remainder of this if statement should be the same for both stream/non-stream
+        // and therefore modularized into a single helper function.
+        // create that helper function.
+        const precedingMessages: SomeMessage[] = [];
+
+        if (guardrailResult?.rejected) {
+          return {
+            messages: [
+              ...precedingMessages,
+              {
+                role: "assistant",
+                content: guardrailResult.message,
+                metadata: guardrailResult.metadata,
+                customData,
+              } satisfies SomeMessage,
+            ],
+          };
+        }
+
+        return {
+          messages: [
+            ...precedingMessages,
+            {
+              role: "assistant",
+              content: textGenerationResult?.text || llmNotWorkingMessage,
+            } satisfies SomeMessage,
+          ],
+        };
+      }
+      // ---
+      // NO STREAMING
+      // ---
+      else {
+        // Use the withAbortControllerGuardrail pattern for non-streaming as well
+        const { result: textGenerationResult, guardrailResult } =
+          await withAbortControllerGuardrail(async (controller) => {
+            // Start the text generation with the abort controller
+            return generateText({
+              ...generationArgs,
+              abortSignal: controller.signal,
+            });
+          }, inputGuardrailPromise);
+
+        // TODO: here on down in the remainder of the else statement is what shoudl be modularized into the above mentioned function
+        if (guardrailResult?.rejected) {
+          return {
+            messages: [
+              {
+                role: "assistant",
+                content: guardrailResult.message,
+                metadata: guardrailResult.metadata,
+                customData,
+              } satisfies SomeMessage,
+            ],
+          };
+        }
+
+        // If we get here, the guardrail check passed and the text generation succeeded
+        return {
+          messages: [
+            {
+              role: "assistant",
+              content: textGenerationResult?.text || llmNotWorkingMessage,
+            } satisfies SomeMessage,
+          ],
+        };
+      }
+    } catch (error: unknown) {
+      // Handle other errors
+      console.error("Error in generateResponseAiSdk:", error);
+      return {
+        messages: [
+          // TODO: handle preceding messages
+          {
+            role: "assistant",
+            content: llmNotWorkingMessage,
+          },
+        ],
+      };
+    }
+  };
+
+// TODO:
+// this is the above mentioned function that takes preceding messages, the guardrail result, and the text generation result
+// should return the final messages to send to the user
+function handleReturnGeneration() {}
 
 /**
   Generate a response with/without streaming. Supports tool calling

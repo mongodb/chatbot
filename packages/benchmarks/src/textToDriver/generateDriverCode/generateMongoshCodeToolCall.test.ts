@@ -1,13 +1,20 @@
 import "dotenv/config";
 import { makeGenerateMongoshCodeToolCallTask } from "./generateMongoshCodeToolCall";
+<<<<<<< HEAD
 import { DatabaseInfo } from "mongodb-rag-core/executeCode";
+=======
+>>>>>>> upstream/main
 import { annotatedDbSchemas } from "./annotatedDbSchemas";
 import { createOpenAI } from "@ai-sdk/openai";
 import { getOpenAiEndpointAndApiKey, models } from "mongodb-rag-core/models";
 import { wrapAISDKModel } from "mongodb-rag-core/braintrust";
 import { assertEnvVars } from "mongodb-rag-core";
 
+<<<<<<< HEAD
 describe("makeGenerateMongoshCodeToolCallTask", () => {
+=======
+describe.skip("makeGenerateMongoshCodeToolCallTask", () => {
+>>>>>>> upstream/main
   const llmOptions = { model: "gpt-4o-mini" };
 
   it("returns execution and code when OpenAI returns valid tool call", async () => {

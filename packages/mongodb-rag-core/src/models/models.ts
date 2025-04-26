@@ -242,8 +242,8 @@ const allModels = [
     deployment: "amazon.nova-pro-v1:0",
     developer: "Amazon",
     provider: "braintrust",
-    maxConcurrency: 5,
     authorized: true,
+    maxConcurrency: 30,
   },
   {
     label: "gemini-1.5-flash-002",
@@ -256,6 +256,14 @@ const allModels = [
   {
     label: "gemini-2-flash",
     deployment: "models/gemini-2.0-flash-001",
+    developer: "Google",
+    maxConcurrency: 10,
+    provider: "gcp_vertex_ai",
+    authorized: true,
+  },
+  {
+    label: "gemini-2.5-flash",
+    deployment: "models/gemini-2.5-flash-preview-04-17",
     developer: "Google",
     maxConcurrency: 10,
     provider: "gcp_vertex_ai",

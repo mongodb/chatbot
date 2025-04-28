@@ -22,14 +22,15 @@ import { MongoClient, Db } from "mongodb-rag-core/mongodb";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { stripIndents } from "common-tags";
 import { AppConfig } from "../app";
-import {
-  GenerateUserPromptFunc,
-  MakeUserMessageFunc,
-  MakeUserMessageFuncParams,
-  makeFilterNPreviousMessages,
-} from "../processors";
+import { makeFilterNPreviousMessages } from "../processors";
 import { makeDefaultReferenceLinks } from "../processors/makeDefaultReferenceLinks";
 import { MONGO_MEMORY_SERVER_URI } from "./constants";
+import {
+  MakeUserMessageFunc,
+  MakeUserMessageFuncParams,
+  GenerateUserPromptFunc,
+  makeLegacyGeneratateResponse,
+} from "../routes";
 
 let mongoClient: MongoClient | undefined;
 export let memoryDb: Db;
@@ -237,10 +238,16 @@ export async function makeDefaultConfig(): Promise<AppConfig> {
   const conversations = makeMongoDbConversationsService(memoryDb);
   return {
     conversationsRouterConfig: {
-      llm,
-      generateUserPrompt: fakeGenerateUserPrompt,
-      filterPreviousMessages: filterPrevious12Messages,
-      systemPrompt,
+      generateResponse: makeLegacyGeneratateResponse({
+        llm,
+        generateUserPrompt: fakeGenerateUserPrompt,
+        filterPreviousMessages: filterPrevious12Messages,
+        systemMessage: systemPrompt,
+        llmNotWorkingMessage:
+          conversations.conversationConstants.LLM_NOT_WORKING,
+        noRelevantContentMessage:
+          conversations.conversationConstants.NO_RELEVANT_CONTENT,
+      }),
       conversations,
     },
     maxRequestTimeoutMs: 30000,

@@ -10,6 +10,7 @@ import {
   ConversationCustomData,
   ChatLlm,
   SystemMessage,
+  FindContentFunc,
 } from "mongodb-rag-core";
 import { Request as ExpressRequest } from "express";
 import { logRequest } from "../utils";
@@ -27,20 +28,26 @@ import {
 import { z } from "zod";
 export type ClientContext = Record<string, unknown>;
 
+// TODO: refactor to remove everything that's constant across requests.
+// only keep the request-specific data.
 export interface GenerateResponseParams {
   shouldStream: boolean;
-  llm: ChatLlm;
   latestMessageText: string;
   clientContext?: ClientContext;
   customData?: ConversationCustomData;
   dataStreamer?: DataStreamer;
-  generateUserPrompt?: GenerateUserPromptFunc;
-  filterPreviousMessages?: FilterPreviousMessages;
   reqId: string;
-  llmNotWorkingMessage: string;
-  noRelevantContentMessage: string;
   conversation: Conversation;
   request?: ExpressRequest;
+  // TODO: remove. this is just going away
+  generateUserPrompt?: GenerateUserPromptFunc;
+  llm: ChatLlm; // TODO: remove. going to constructor
+  // TODO: remove
+  filterPreviousMessages?: FilterPreviousMessages;
+  // TODO: remove. going to constructor
+  llmNotWorkingMessage: string;
+  // TODO: remove. going to constructor
+  noRelevantContentMessage: string;
 }
 
 interface GenerateResponseReturnValue {
@@ -53,9 +60,7 @@ export type GenerateResponse = (
 
 type InputGuardrail<
   Metadata extends Record<string, unknown> | undefined = Record<string, unknown>
-> = (
-  generateResponseParams: Omit<GenerateResponseParams, "inputGuardrail">
-) => Promise<{
+> = (generateResponseParams: Omit<GenerateResponseParams, "llm">) => Promise<{
   rejected: boolean;
   reason?: string;
   message: string;
@@ -96,20 +101,30 @@ function withAbortControllerGuardrail<T, G>(
 // this is basically v2 of chatbot which makes the thing an agent.
 export const makeGenerateResponseAiSdk: (
   languageModel: LanguageModel,
+  llmNotWorkingMessage: string,
+  noRelevantContentMessage: string,
+  findContent: FindContentFunc,
   inputGuardrail?: InputGuardrail,
-  systemMessage?: SystemMessage
-) => GenerateResponse = (languageModel, inputGuardrail, systemMessage) =>
+  systemMessage?: SystemMessage,
+  filterPreviousMessages?: FilterPreviousMessages
+) => GenerateResponse = (
+  languageModel,
+  llmNotWorkingMessage,
+  noRelevantContentMessage,
+  findContent,
+  inputGuardrail,
+  systemMessage,
+  filterPreviousMessages
+) =>
+  // TODO: refactor generate content func to just take these things in
+  // should only be these b/c these are the only request-specific params
   async function ({
     conversation,
     latestMessageText,
     clientContext,
     customData,
-    filterPreviousMessages,
     shouldStream,
-    llm,
     reqId,
-    llmNotWorkingMessage,
-    noRelevantContentMessage,
     dataStreamer,
     request,
   }) {
@@ -117,11 +132,13 @@ export const makeGenerateResponseAiSdk: (
       const tools = {
         findContent: tool({
           parameters: z.object({
-            bar: z.string(),
+            query: z.string(),
           }),
           execute: async (parameters) => {
-            const references: References = [];
-            return { references };
+            const { content } = await findContent({
+              query: parameters.query,
+            });
+            return { content };
           },
         }),
       };
@@ -158,14 +175,12 @@ export const makeGenerateResponseAiSdk: (
             latestMessageText,
             clientContext,
             customData,
-            filterPreviousMessages,
             shouldStream,
-            llm,
             reqId,
-            llmNotWorkingMessage,
-            noRelevantContentMessage,
             dataStreamer,
             request,
+            llmNotWorkingMessage,
+            noRelevantContentMessage,
           })
         : undefined;
 
@@ -194,9 +209,14 @@ export const makeGenerateResponseAiSdk: (
                 case "tool-result":
                   // TODO: update to handle the retrieval tool call
                   if (chunk.toolName === "findContent") {
-                    toolReferences.push(...chunk.result.references);
+                    const references = chunk.result.content.map((c) => ({
+                      url: c.url,
+                      title: c.metadata?.pageTitle ?? "",
+                      metadata: c.metadata,
+                    }));
+                    toolReferences.push(...references);
                     dataStreamer?.streamData({
-                      data: chunk.result.references,
+                      data: references,
                       type: "references",
                     });
                   }
@@ -296,7 +316,10 @@ export const makeGenerateResponseAiSdk: (
 // TODO:
 // this is the above mentioned function that takes preceding messages, the guardrail result, and the text generation result
 // should return the final messages to send to the user
-function handleReturnGeneration() {}
+function handleReturnGeneration() {
+  // TODO:
+  return;
+}
 
 /**
   Generate a response with/without streaming. Supports tool calling

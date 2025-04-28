@@ -18,7 +18,7 @@ import { FilterPreviousMessages } from "../processors/FilterPreviousMessages";
 import {
   GenerateResponseParams,
   GenerateResponseReturnValue,
-} from "./GenerateResponse";
+} from "./conversations/addMessageToConversation";
 
 export interface MakeRagGenerateUserPromptParams {
   /**

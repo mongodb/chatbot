@@ -15,13 +15,13 @@ import { strict as assert } from "assert";
 import { createResponse } from "node-mocks-http";
 import { Response as ExpressResponse } from "express";
 import { EventEmitter } from "stream-json/Parser";
-import { GenerateResponseParams } from "./GenerateResponse";
 import {
   MakeLegacyGenerateResponseParams,
   makeLegacyGeneratateResponse,
   awaitGenerateResponseMessage,
   streamGenerateResponseMessage,
 } from "./legacyGenerateResponse";
+import { GenerateResponseParams } from "./conversations/addMessageToConversation";
 
 const testFuncName = "test_func";
 const mockFunctionInvocation = {

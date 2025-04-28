@@ -1,14 +1,10 @@
 import request from "supertest";
 import "dotenv/config";
 import {
-  assertEnvVars,
-  CORE_ENV_VARS,
-  makeMongoDbConversationsService,
   ConversationsService,
   Conversation,
   defaultConversationConstants,
   Message,
-  makeOpenAiChatLlm,
   SomeMessage,
 } from "mongodb-rag-core";
 import { Express } from "express";
@@ -21,14 +17,10 @@ import { ApiConversation, ApiMessage } from "./utils";
 import { stripIndent } from "common-tags";
 import { makeApp, DEFAULT_API_PREFIX } from "../../app";
 import { makeTestApp } from "../../test/testHelpers";
-import { makeTestAppConfig, systemPrompt } from "../../test/testHelpers";
 import { AppConfig } from "../../app";
 import { strict as assert } from "assert";
-import { NO_VECTOR_CONTENT, REJECT_QUERY_CONTENT } from "../../test/testConfig";
-import { OpenAI } from "mongodb-rag-core/openai";
 import { Db, ObjectId } from "mongodb-rag-core/mongodb";
 
-const { OPENAI_CHAT_COMPLETION_DEPLOYMENT } = assertEnvVars(CORE_ENV_VARS);
 jest.setTimeout(100000);
 describe("POST /conversations/:conversationId/messages", () => {
   let mongodb: Db;

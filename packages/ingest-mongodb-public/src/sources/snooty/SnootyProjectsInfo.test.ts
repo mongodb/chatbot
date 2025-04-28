@@ -2,8 +2,10 @@ import { strict as assert } from "assert";
 import {
   GetSnootyProjectsResponse,
   makeSnootyProjectsInfo,
+  overrideCurrentVersion,
   prepareSnootySources,
 } from "./SnootyProjectsInfo";
+import { Page } from "mongodb-rag-core";
 
 const snootyDataApiBaseUrl = "https://snooty-data-api.mongodb.com/prod/";
 
@@ -18,28 +20,6 @@ describe("SnootyProjectsInfo", () => {
   });
   afterAll(() => {
     projectsInfo = undefined;
-  });
-
-  it("gets project base url", async () => {
-    const baseUrl = await projectsInfo?.getBaseUrl({
-      projectName: "docs",
-      branchName: "v6.0",
-    });
-    expect(baseUrl).toBe("https://mongodb.com/docs/v6.0");
-  });
-  it("throws for invalid branch", async () => {
-    const baseUrlPromise = projectsInfo?.getBaseUrl({
-      projectName: "docs",
-      branchName: "not-a-branch",
-    });
-    await expect(baseUrlPromise).rejects.toThrow();
-  });
-  it("throws for invalid project", async () => {
-    const baseUrlPromise = projectsInfo?.getBaseUrl({
-      projectName: "not-a-project",
-      branchName: "v6.0",
-    });
-    await expect(baseUrlPromise).rejects.toThrow();
   });
 
   it("corrects any string 'true' instead of boolean", async () => {
@@ -90,105 +70,115 @@ describe("SnootyProjectsInfo", () => {
     expect(findBadBoolBranches(projectsInfo?._data)).toBeUndefined();
   });
 
-  describe("prepareSnootySources", () => {
-    it("allows override baseUrl", async () => {
-      const sources = await prepareSnootySources({
-        projects: [
-          {
-            type: "snooty",
-            name: "cloud-docs",
-            currentBranch: "master",
-            tags: ["atlas", "docs"],
-            // No override
-          },
-          {
-            type: "snooty",
-            name: "cloud-docs",
-            currentBranch: "master",
-            tags: ["atlas", "docs"],
-            baseUrl: "https://override.example.com", // Override
-          },
-        ],
-        snootyDataApiBaseUrl,
-      });
-      expect(sources[0]._baseUrl).toBe("https://mongodb.com/docs/atlas/");
-      expect(sources[1]._baseUrl).toBe("https://override.example.com/");
+  it("gets all branches for a project", async () => {
+    const branches = await projectsInfo?.getAllBranches({
+      projectName: "docs",
     });
+    expect(branches).toBeDefined();
+    assert(branches !== undefined);
+    expect(branches.length).toBeGreaterThan(0);
+    const branch = branches[0]
+    expect(branch).toHaveProperty('active');
+    expect(branch).toHaveProperty('fullUrl');
+    expect(branch).toHaveProperty('label');
+    expect(branch).toHaveProperty('isStableBranch');
+    const stableBranch = branches.find((branch) => branch.isStableBranch);
+    expect(stableBranch).toBeDefined();
+  });
 
-    it("allows override currentBranch", async () => {
-      // Find some real branch names to test with in the data so that
-      // prepareSnootySources() doesn't throw exceptions about unknown branches.
-      const testProject = projectsInfo?._data.find(
-        ({ branches }) =>
-          branches.length > 1 &&
-          branches.find(({ isStableBranch }) => isStableBranch) &&
-          branches.find(
-            ({ isStableBranch, active }) => !isStableBranch && active
-          )
-      );
-      expect(testProject).toBeDefined();
-      assert(testProject !== undefined);
-      const actualCurrentBranch = testProject?.branches.find(
-        ({ isStableBranch }) => isStableBranch
-      );
-      expect(actualCurrentBranch).toBeDefined();
-      const someOtherBranch = testProject?.branches.find(
-        ({ isStableBranch, active }) => !isStableBranch && active
-      );
-      expect(someOtherBranch).toBeDefined();
-      assert(someOtherBranch !== undefined);
-      const sources = await prepareSnootySources({
-        projects: [
-          {
-            type: "snooty",
-            name: testProject.project,
-            tags: [],
-            // No currentBranch override
-          },
-          {
-            type: "snooty",
-            name: testProject.project,
-            tags: [],
-            // currentBranch override
-            currentBranch: someOtherBranch.gitBranchName,
-          },
-        ],
+  describe("prepareSnootySources", () => {
+    it("returns a list of Snooty data sources", async () => {
+      const projects = [
+        {
+          type: "snooty" as const,
+          name: "spark-connector",
+          tags: ["docs", "spark-connector", "spark", "apache-spark"],
+          productName: "MongoDB Spark Connector",
+        },
+      ];
+      const snootySources = await prepareSnootySources({
+        projects,
         snootyDataApiBaseUrl,
       });
-      expect(sources).toHaveLength(2);
-      expect(sources[0]._currentBranch).toBe(
-        actualCurrentBranch?.gitBranchName
-      );
-      expect(sources[1]._currentBranch).toBe(someOtherBranch.gitBranchName);
+      assert(snootySources !== undefined);
+      expect(snootySources.length).toBe(1);
+      const snootySource = snootySources[0];
+      expect(snootySource).toHaveProperty("name");
+      expect(snootySource).toHaveProperty("fetchPages");
+      expect(snootySource.name).toBe("spark-connector");
+      const pages = await snootySource.fetchPages();
+      assert(pages !== undefined);
+      expect(pages.length).toBeGreaterThan(0);
+      const page = pages[0];
+      expect(page.url).toBeDefined();
+      expect(page.body).toBeDefined();
+      expect(page.title).toBeDefined();
+      expect(page.metadata?.version).toBeDefined();
     });
-    it("allows override version with versionNameOverride", async () => {
-      const sources = await prepareSnootySources({
-        projects: [
-          {
-            type: "snooty",
-            name: "cloud-docs",
-            currentBranch: "master",
-            tags: ["atlas", "docs"],
-            // No override
-          },
-          {
-            type: "snooty",
-            name: "docs",
-            currentBranch: "v6.0",
-            tags: ["manual", "docs"],
-            versionNameOverride: "override",
-          },
-          {
-            type: "snooty",
-            name: "node",
-            tags: ["driver", "docs"],
-          },
-        ],
+    it("allows current version override", async () => {
+      const project = {
+        type: "snooty" as const,
+        name: "spark-connector",
+        tags: ["docs", "spark-connector", "spark", "apache-spark"],
+        productName: "MongoDB Spark Connector",
+      };
+      const snootySources = await prepareSnootySources({
+        projects: [project],
         snootyDataApiBaseUrl,
       });
-      expect(sources[0]._version).toBeUndefined();
-      expect(sources[1]._version).toBe("override (current)");
-      expect(sources[2]._version).toContain(" (current)");
+      assert(snootySources !== undefined);
+      const pages = await snootySources[0].fetchPages();
+      const versions = pages.map((page) => (page.metadata?.version as Page['version']));
+      const originalCurrentVersion = versions.find((version) => version?.isCurrent);
+      const currentVersionOverride = versions.find((version) => !version?.isCurrent)?.label;
+
+      // override the current version
+      const sourcesAfterOverride = await prepareSnootySources({
+        projects: [{
+          ...project,
+          currentVersionOverride,
+        }],
+        snootyDataApiBaseUrl,
+      });
+      const pagesAfterOverride = await sourcesAfterOverride[0].fetchPages();
+      const versionsAfterOverride = pagesAfterOverride.map((page) => (page.metadata?.version as Page['version']));
+      const currentVersionAfterOverride = versionsAfterOverride.find((version) => version?.isCurrent);
+
+      // Check that the current version is the one we set
+      expect(currentVersionAfterOverride?.label).toBe(currentVersionOverride);
+      expect(currentVersionAfterOverride?.isCurrent).toBe(true);
+      // Check that the previous current version is not current anymore
+      expect(originalCurrentVersion?.label).not.toBe(currentVersionOverride);
+      const previousCurrentVersionAfterOverride = versionsAfterOverride.find((version) => version?.label === originalCurrentVersion?.label);
+      expect(previousCurrentVersionAfterOverride?.isCurrent).toBe(false);
+    });
+  });
+
+  describe("overrideCurrentVersion", () => {
+    it("overrides current version by changing isStableBranch flags on the current version and on the branch to be set to current", () => {
+      const branches = [
+        {
+          gitBranchName: "master",
+          isStableBranch: true,
+          label: "master",
+          fullUrl: "https://docs.mongodb.com/master/",
+          active: true,
+        },
+        {
+          gitBranchName: "dev",
+          isStableBranch: false,
+          label: "dev",
+          fullUrl: "https://docs.mongodb.com/dev/",
+          active: true,
+        },
+      ];
+      const currentVersionOverride = "dev";
+      const overriddenBranches = overrideCurrentVersion({
+        branches,
+        currentVersionOverride,
+      });
+      expect(overriddenBranches[0].isStableBranch).toBe(false);
+      expect(overriddenBranches[1].isStableBranch).toBe(true);
     });
   });
 });

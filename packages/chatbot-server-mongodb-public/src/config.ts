@@ -20,6 +20,7 @@ import {
   makeDefaultFindVerifiedAnswer,
   defaultCreateConversationCustomData,
   defaultAddMessageToConversationCustomData,
+  makeLegacyGeneratateResponse,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";
@@ -237,14 +238,13 @@ const segmentConfig = SEGMENT_WRITE_KEY
 
 export const config: AppConfig = {
   conversationsRouterConfig: {
-    llm,
     middleware: [
       blockGetRequests,
       requireValidIpAddress(),
       requireRequestOrigin(),
       useSegmentIds(),
-      cookieParser(),
       redactConnectionUri(),
+      cookieParser(),
     ],
     createConversationCustomData: !isProduction
       ? createConversationCustomDataWithAuthUser
@@ -294,8 +294,13 @@ export const config: AppConfig = {
           : undefined,
       segment: segmentConfig,
     }),
-    generateUserPrompt,
-    systemPrompt,
+    generateResponse: makeLegacyGeneratateResponse({
+      llm,
+      generateUserPrompt,
+      systemMessage: systemPrompt,
+      llmNotWorkingMessage: "LLM not working. Sad!",
+      noRelevantContentMessage: "No relevant content found. Sad!",
+    }),
     maxUserMessagesInConversation: 50,
     maxUserCommentLength: 500,
     conversations,

@@ -385,7 +385,6 @@ describe("POST /conversations/:conversationId/messages", () => {
           ...appConfig,
           conversationsRouterConfig: {
             ...appConfig.conversationsRouterConfig,
-            llm: brokenLlmService,
           },
         }));
 

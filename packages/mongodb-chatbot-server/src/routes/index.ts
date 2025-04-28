@@ -1,2 +1,3 @@
 export * from "./conversations";
-export * from "./generateResponse";
+export * from "./GenerateResponse";
+export * from "./legacyGenerateResponse";

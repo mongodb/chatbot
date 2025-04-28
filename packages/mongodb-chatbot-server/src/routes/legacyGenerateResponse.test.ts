@@ -1,14 +1,7 @@
-import { References, UserMessage } from "mongodb-rag-core";
+import { References, SystemMessage, UserMessage } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { OpenAI } from "mongodb-rag-core/openai";
-import {
-  AwaitGenerateResponseParams,
-  GenerateResponseParams,
-  StreamGenerateResponseParams,
-  awaitGenerateResponseMessage,
-  generateResponse,
-  streamGenerateResponseMessage,
-} from "./generateResponse";
+
 import {
   AssistantMessage,
   ChatLlm,
@@ -22,6 +15,13 @@ import { strict as assert } from "assert";
 import { createResponse } from "node-mocks-http";
 import { Response as ExpressResponse } from "express";
 import { EventEmitter } from "stream-json/Parser";
+import { GenerateResponseParams } from "./GenerateResponse";
+import {
+  MakeLegacyGenerateResponseParams,
+  makeLegacyGeneratateResponse,
+  awaitGenerateResponseMessage,
+  streamGenerateResponseMessage,
+} from "./legacyGenerateResponse";
 
 const testFuncName = "test_func";
 const mockFunctionInvocation = {
@@ -185,25 +185,35 @@ const conversation: Conversation = {
 };
 const dataStreamer = makeDataStreamer();
 
+const systemMessage: SystemMessage = {
+  role: "system",
+  content: "you're a helpful assistant or something....",
+};
+
+const constructorArgs = {
+  llm: mockChatLlm,
+  llmNotWorkingMessage,
+  noRelevantContentMessage,
+  async generateUserPrompt({ userMessageText }) {
+    return {
+      references,
+      userMessage: {
+        role: "user",
+        content: userMessageText,
+      } satisfies UserMessage,
+    };
+  },
+  systemMessage,
+} satisfies MakeLegacyGenerateResponseParams;
+
 describe("generateResponse", () => {
   const baseArgs = {
-    llm: mockChatLlm,
     reqId,
-    llmNotWorkingMessage,
-    noRelevantContentMessage,
     conversation,
     dataStreamer,
     latestMessageText: "hello",
-    async generateUserPrompt({ userMessageText }) {
-      return {
-        references,
-        userMessage: {
-          role: "user",
-          content: userMessageText,
-        } satisfies UserMessage,
-      };
-    },
   } satisfies Omit<GenerateResponseParams, "shouldStream">;
+  const generateResponse = makeLegacyGeneratateResponse(constructorArgs);
   let res: ReturnType<typeof createResponse> & ExpressResponse;
   beforeEach(() => {
     res = createResponse({
@@ -244,10 +254,9 @@ describe("generateResponse", () => {
       metadata,
     } satisfies AssistantMessage;
 
-    await generateResponse({
-      ...baseArgs,
-      shouldStream: true,
-      async generateUserPrompt() {
+    const generateResponse = makeLegacyGeneratateResponse({
+      ...constructorArgs,
+      generateUserPrompt: async function () {
         return {
           userMessage: {
             role: "user",
@@ -256,6 +265,11 @@ describe("generateResponse", () => {
           staticResponse,
         };
       },
+    });
+
+    await generateResponse({
+      ...baseArgs,
+      shouldStream: true,
     });
 
     const data = res._getData();
@@ -286,10 +300,14 @@ describe("generateResponse", () => {
       location: "Chicago, IL",
       preferredLanguage: "Spanish",
     };
+
+    const generateResponse = makeLegacyGeneratateResponse({
+      ...constructorArgs,
+      generateUserPrompt,
+    });
     const { messages } = await generateResponse({
       ...baseArgs,
       shouldStream: false,
-      generateUserPrompt,
       latestMessageText,
       clientContext,
     });
@@ -313,16 +331,18 @@ describe("generateResponse", () => {
       role: "assistant",
       content: "static response",
     } satisfies OpenAiChatMessage;
+    const generateResponse = makeLegacyGeneratateResponse({
+      ...constructorArgs,
+      generateUserPrompt: async () => ({
+        userMessage,
+        staticResponse,
+      }),
+    });
     const { messages } = await generateResponse({
       ...baseArgs,
       shouldStream: false,
-      async generateUserPrompt() {
-        return {
-          userMessage,
-          staticResponse,
-        };
-      },
     });
+
     expect(messages).toMatchObject([userMessage, staticResponse]);
   });
   it("should reject query", async () => {
@@ -330,15 +350,17 @@ describe("generateResponse", () => {
       role: "user",
       content: "bad!",
     } satisfies OpenAiChatMessage;
+
+    const generateResponse = makeLegacyGeneratateResponse({
+      ...constructorArgs,
+      generateUserPrompt: async () => ({
+        userMessage,
+        rejectQuery: true,
+      }),
+    });
     const { messages } = await generateResponse({
       ...baseArgs,
       shouldStream: false,
-      async generateUserPrompt() {
-        return {
-          userMessage,
-          rejectQuery: true,
-        };
-      },
     });
     expect(messages).toMatchObject([
       {
@@ -362,7 +384,8 @@ describe("awaitGenerateResponseMessage", () => {
     llmNotWorkingMessage,
     noRelevantContentMessage,
     conversation,
-  } satisfies AwaitGenerateResponseParams;
+    systemMessage,
+  };
   it("should generate assistant response if no tools", async () => {
     const { messages } = await awaitGenerateResponseMessage(baseArgs);
     expect(messages).toHaveLength(1);
@@ -456,7 +479,8 @@ describe("streamGenerateResponseMessage", () => {
     conversation,
     dataStreamer,
     shouldGenerateMessage: true,
-  } satisfies StreamGenerateResponseParams;
+    systemMessage,
+  };
 
   it("should generate assistant response if no tools", async () => {
     const { messages } = await streamGenerateResponseMessage(baseArgs);

@@ -2,7 +2,7 @@ import { VerifiedAnswer, FindVerifiedAnswerFunc } from "mongodb-rag-core";
 import {
   GenerateUserPromptFunc,
   GenerateUserPromptFuncReturnValue,
-} from "./GenerateUserPromptFunc";
+} from "../routes/legacyGenerateResponse";
 
 export interface MakeVerifiedAnswerGenerateUserPromptParams {
   /**

@@ -1,5 +1,4 @@
 export * from "./FilterPreviousMessages";
-export * from "./GenerateUserPromptFunc";
 export * from "./MakeReferenceLinksFunc";
 export * from "./QueryPreprocessorFunc";
 export * from "./filterOnlySystemPrompt";

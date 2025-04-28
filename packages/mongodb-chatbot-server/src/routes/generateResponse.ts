@@ -98,7 +98,7 @@ function withAbortControllerGuardrail<T, G>(
 }
 
 // TODO: rename this to be clearer on what this is.
-// this is basically v2 of chatbot which makes the thing an agent.
+// this is basically v2 of chatbot server which makes the thing an agent.
 export const makeGenerateResponseAiSdk: (
   languageModel: LanguageModel,
   llmNotWorkingMessage: string,

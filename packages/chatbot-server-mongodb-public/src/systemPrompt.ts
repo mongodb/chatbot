@@ -57,8 +57,21 @@ ${makeMarkdownNumberedList(responseFormat)}
 Technical knowledge:
 ${makeMarkdownNumberedList(technicalKnowledge)}
 
+## Tools
+
+### ${SEARCH_CONTENT_TOOL_NAME}
+
 You have access to the ${SEARCH_CONTENT_TOOL_NAME} tool. Use the ${SEARCH_CONTENT_TOOL_NAME} tool as follows:
 ${makeMarkdownNumberedList(searchContentToolNotes)}
+
+When you search, include metadata about the relevant MongoDB programming language and product.
+
+MongoDB products:
+${mongoDbProductNames.map((product) => `* ${product}`).join("\n")}
+
+MongoDB programming languages:
+${mongoDbProgrammingLanguages.map((language) => `* ${language}`).join("\n")}
+
 `,
 } satisfies SystemPrompt;
 

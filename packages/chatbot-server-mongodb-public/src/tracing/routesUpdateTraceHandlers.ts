@@ -60,6 +60,12 @@ export function makeAddMessageToConversationUpdateTrace({
 
     // Send Segment events
     try {
+      if (segmentTrackUserSentMessage) {
+        logRequest({
+          reqId,
+          message: `Sending addMessageToConversation event to Segment for conversation ${conversation._id}`,
+        });
+      }
       const userMessage = tracingData.userMessage;
       const { userId, anonymousId } = getSegmentIds(userMessage);
       if (userMessage) {
@@ -71,6 +77,12 @@ export function makeAddMessageToConversationUpdateTrace({
           createdAt: userMessage.createdAt,
           tags: tracingData.tags,
         });
+      } else {
+        throw new Error(
+          `Missing required data ${JSON.stringify({
+            userMessage,
+          })}`
+        );
       }
 
       const assistantMessage = tracingData.assistantMessage;
@@ -88,6 +100,13 @@ export function makeAddMessageToConversationUpdateTrace({
                 | undefined) ?? "Unknown rejection reason"
             : undefined,
         });
+      } else {
+        throw new Error(
+          `Missing required data ${JSON.stringify({
+            userMessage,
+            assistantMessage,
+          })}`
+        );
       }
     } catch (error) {
       logRequest({
@@ -160,6 +179,12 @@ export function makeRateMessageUpdateTrace({
     const rating = assistantMessage?.rating;
     const { userId, anonymousId } = getSegmentIds(userMessage);
     try {
+      if (segmentTrackUserRatedMessage) {
+        logRequest({
+          reqId: traceId,
+          message: `Sending rateMessage event to Segment for conversation ${conversation._id}`,
+        });
+      }
       if (userMessage && assistantMessage && rating !== undefined) {
         segmentTrackUserRatedMessage?.({
           userId,
@@ -169,6 +194,14 @@ export function makeRateMessageUpdateTrace({
           createdAt: new Date(),
           rating,
         });
+      } else {
+        throw new Error(
+          `Missing required data ${JSON.stringify({
+            userMessage,
+            assistantMessage,
+            rating,
+          })}`
+        );
       }
     } catch (error) {
       logRequest({
@@ -233,6 +266,12 @@ export function makeCommentMessageUpdateTrace({
     const comment = assistantMessage?.userComment;
     const { userId, anonymousId } = getSegmentIds(userMessage);
     try {
+      if (segmentTrackUserCommentedMessage) {
+        logRequest({
+          reqId: traceId,
+          message: `Sending commentMessage event to Segment for conversation ${conversation._id}`,
+        });
+      }
       if (
         userMessage &&
         assistantMessage &&
@@ -248,6 +287,15 @@ export function makeCommentMessageUpdateTrace({
           rating,
           comment,
         });
+      } else {
+        throw new Error(
+          `Missing required data ${JSON.stringify({
+            userMessage,
+            assistantMessage,
+            rating,
+            comment,
+          })}`
+        );
       }
     } catch (error) {
       logRequest({

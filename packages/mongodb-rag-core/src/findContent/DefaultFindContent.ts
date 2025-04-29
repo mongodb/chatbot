@@ -25,13 +25,10 @@ export const makeDefaultFindContent = ({
       text: query,
     });
 
-    let content = await store.findNearestNeighbors(
-      embedding,
-      {
-        ...findNearestNeighborsOptions,
-        filter: filters,
-      }
-    );
+    let content = await store.findNearestNeighbors(embedding, {
+      ...findNearestNeighborsOptions,
+      filter: filters,
+    });
 
     for (const booster of searchBoosters ?? []) {
       if (await booster.shouldBoost({ text: query })) {

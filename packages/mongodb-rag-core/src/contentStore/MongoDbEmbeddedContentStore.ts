@@ -187,13 +187,16 @@ export function makeMongoDbEmbeddedContentStore({
       };
       // If version not specified in filter, assume current version
       let filter = { ...initialFilter };
-      if (!filter["metadata.version.isCurrent"] && !filter["metadata.version.label"]) {
+      if (
+        !filter["metadata.version.isCurrent"] &&
+        !filter["metadata.version.label"]
+      ) {
         filter = {
           ...filter,
-            $or : [
-              { "metadata.version.isCurrent": true },
-              { "metadata.version.isCurrent": null },
-            ]
+          $or: [
+            { "metadata.version.isCurrent": true },
+            { "metadata.version.isCurrent": null },
+          ],
         };
       }
       return embeddedContentCollection
@@ -222,8 +225,12 @@ export function makeMongoDbEmbeddedContentStore({
     async init() {
       await embeddedContentCollection.createIndex({ sourceName: 1 });
       await embeddedContentCollection.createIndex({ url: 1 });
-      await embeddedContentCollection.createIndex({ "metadata.version.isCurrent": 1 });
-      await embeddedContentCollection.createIndex({ "metadata.version.label": 1 });
+      await embeddedContentCollection.createIndex({
+        "metadata.version.isCurrent": 1,
+      });
+      await embeddedContentCollection.createIndex({
+        "metadata.version.label": 1,
+      });
 
       try {
         const searchIndex = {

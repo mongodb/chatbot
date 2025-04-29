@@ -48,7 +48,7 @@ export interface EmbeddedContent {
     version?: {
       isCurrent: boolean;
       label: string;
-    }
+    };
   };
 
   /**

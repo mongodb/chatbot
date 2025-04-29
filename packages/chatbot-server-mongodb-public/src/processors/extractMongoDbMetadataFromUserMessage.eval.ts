@@ -3,10 +3,13 @@ import {
   extractMongoDbMetadataFromUserMessage,
   ExtractMongoDbMetadataFunction,
 } from "./extractMongoDbMetadataFromUserMessage";
-import { Eval, wrapOpenAI } from "mongodb-rag-core/braintrust";
+import { Eval } from "mongodb-rag-core/braintrust";
 import { Scorer } from "autoevals";
 import { MongoDbTag } from "../mongoDbMetadata";
-import { OpenAI } from "mongodb-rag-core/openai";
+import {
+  openAiClient,
+  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
+} from "../eval/evalHelpers";
 
 interface ExtractMongoDbMetadataEvalCase {
   name: string;
@@ -202,7 +205,7 @@ const ProgrammingLanguageCorrect: Scorer<
   };
 };
 
-const model = "gpt-4.1-nano";
+const model = OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT;
 Eval("extract-mongodb-metadata", {
   data: evalCases,
   experimentName: model,
@@ -216,12 +219,7 @@ Eval("extract-mongodb-metadata", {
   async task(input) {
     try {
       return await extractMongoDbMetadataFromUserMessage({
-        openAiClient: wrapOpenAI(
-          new OpenAI({
-            baseURL: process.env.BRAINTRUST_ENDPOINT,
-            apiKey: process.env.BRAINTRUST_API_KEY,
-          })
-        ),
+        openAiClient,
         model,
         userMessageText: input,
       });

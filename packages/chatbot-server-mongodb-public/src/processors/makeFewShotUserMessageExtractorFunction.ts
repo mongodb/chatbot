@@ -74,12 +74,15 @@ export function makeFewShotUserMessageExtractorFunction<
       },
       stream: false,
     });
-    const metadata = schema.parse(
-      JSON.parse(
-        res.choices[0]?.message?.tool_calls?.[0]?.function.arguments ?? "{}"
-      )
+    const resToolCall = JSON.parse(
+      res.choices[0]?.message?.tool_calls?.[0]?.function.arguments ?? "{}"
     );
-    return metadata;
+    const metadata = schema.safeParse(resToolCall);
+    // Return the raw tool call if it fails to parse
+    if (!metadata.success) {
+      return resToolCall as unknown as z.infer<T>;
+    }
+    return metadata.data;
   };
 }
 

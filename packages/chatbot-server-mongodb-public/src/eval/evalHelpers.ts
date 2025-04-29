@@ -8,6 +8,7 @@ import {
 import { EVAL_ENV_VARS } from "../EnvVars";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { strict as assert } from "assert";
+import { wrapOpenAI } from "mongodb-rag-core/braintrust";
 
 export const {
   JUDGE_EMBEDDING_MODEL,
@@ -26,11 +27,13 @@ export const {
   OPENAI_API_VERSION: "",
 });
 
-export const openAiClient = new AzureOpenAI({
-  apiKey: OPENAI_API_KEY,
-  endpoint: OPENAI_ENDPOINT,
-  apiVersion: OPENAI_API_VERSION,
-});
+export const openAiClient = wrapOpenAI(
+  new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  })
+);
 
 export function getLastUserMessageFromMessages(
   messages: SomeMessage[]

@@ -175,7 +175,7 @@ const QuerySimilarity: Scorer<
   });
 };
 
-const model = "gpt-4.1-nano";
+const model = OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT;
 
 Eval("step-back-user-query", {
   data: evalCases,
@@ -189,12 +189,7 @@ Eval("step-back-user-query", {
   async task(input) {
     try {
       return await makeStepBackUserQuery({
-        openAiClient: wrapOpenAI(
-          new OpenAI({
-            baseURL: process.env.BRAINTRUST_ENDPOINT,
-            apiKey: process.env.BRAINTRUST_API_KEY,
-          })
-        ),
+        openAiClient,
         model,
         ...input,
       });

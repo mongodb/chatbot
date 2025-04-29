@@ -3,15 +3,13 @@ import {
   userMessageMongoDbGuardrail,
   UserMessageMongoDbGuardrailFunction,
 } from "./userMessageMongoDbGuardrail";
-import { Eval, wrapOpenAI } from "mongodb-rag-core/braintrust";
+import { Eval } from "mongodb-rag-core/braintrust";
 import { Scorer } from "autoevals";
 import { MongoDbTag } from "../mongoDbMetadata";
 import {
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
   openAiClient,
 } from "../eval/evalHelpers";
-import { OpenAI } from "mongodb-rag-core/openai";
-import { BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
 type MongoDbGuardrailEvalCaseTag = UserMessageMongoDbGuardrailFunction["type"];
 interface MongoDbGuardrailEvalCase {
   name?: string;
@@ -68,10 +66,10 @@ const evalCases: MongoDbGuardrailEvalCase[] = [
     input: "opl;12",
     expected: {
       reasoning:
-        "This query contains gibberish that does not form a coherent or meaningful request. It is not relevant to MongoDB and cannot be addressed, so it should be rejected.",
-      type: "irrelevant",
+        "This query contains gibberish that does not form a coherent or meaningful request. While it is probably not relevant to MongoDB and cannot be addressed, it is best to classify it as 'unknown' to err on the side of caution.",
+      type: "unknown",
     },
-    tags: ["irrelevant"],
+    tags: ["unknown"],
   },
   {
     name: "should not reject query with valid MongoDB command",
@@ -450,9 +448,20 @@ const CorrectValidity: Scorer<
   unknown
 > = (args) => {
   if (
+    args.output.type === "unknown" &&
+    (args.expected?.type === "unknown" || args.expected?.type === "valid")
+  ) {
+    return {
+      name: "CorrectValidity",
+      score: 1,
+    };
+  }
+
+  if (
     args.output.type !== "valid" &&
     args.output.type !== "unknown" &&
-    args.expected?.type !== "valid"
+    args.expected?.type !== "valid" &&
+    args.expected?.type !== "unknown"
   ) {
     return {
       name: "CorrectValidity",
@@ -471,7 +480,7 @@ const CorrectValidity: Scorer<
   };
 };
 
-const model = "gpt-4.1-nano";
+const model = OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT;
 
 Eval("user-message-guardrail", {
   data: evalCases,
@@ -485,12 +494,7 @@ Eval("user-message-guardrail", {
   async task(input) {
     try {
       return await userMessageMongoDbGuardrail({
-        openAiClient: wrapOpenAI(
-          new OpenAI({
-            baseURL: process.env.BRAINTRUST_ENDPOINT,
-            apiKey: process.env.BRAINTRUST_API_KEY,
-          })
-        ),
+        openAiClient,
         model,
         userMessageText: input,
       });

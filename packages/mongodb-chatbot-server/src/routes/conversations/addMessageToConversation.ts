@@ -4,12 +4,7 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import {
-  DbMessage,
-  FunctionMessage,
-  Message,
-  SystemMessage,
-} from "mongodb-rag-core";
+import { DbMessage, Message, ToolMessage } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   ConversationsService,
@@ -263,16 +258,16 @@ export function makeAddMessageToConversationRoute({
             metadata: message.metadata,
           };
 
-          if (message.role === "function") {
+          if (message.role === "tool") {
             return {
-              role: "function",
+              role: "tool",
               name: message.name,
               ...baseFields,
-            } satisfies DbMessage<FunctionMessage>;
+            } satisfies DbMessage<ToolMessage>;
           } else {
             return { ...baseFields, role: message.role } satisfies Exclude<
               Message,
-              FunctionMessage
+              ToolMessage
             >;
           }
         }),

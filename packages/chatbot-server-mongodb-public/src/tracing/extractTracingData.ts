@@ -55,7 +55,7 @@ export function extractTracingData(
   if (isVerifiedAnswer) {
     tags.push("verified_answer");
   }
-
+  // TODO: this is throwing errs now. figure out and fix.
   const llmDoesNotKnow = evalAssistantMessage?.content.includes(
     llmDoesNotKnowMessage
   );

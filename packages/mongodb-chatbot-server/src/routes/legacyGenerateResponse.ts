@@ -306,47 +306,6 @@ export async function awaitGenerateResponseMessage({
         messages: llmConversation,
       });
       newMessages.push(convertMessageFromLlmToDb(answer));
-
-      // LLM responds with tool call
-      if (answer?.function_call) {
-        assert(
-          llm.callTool,
-          "You must implement the callTool() method on your ChatLlm to access this code."
-        );
-        const toolAnswer = await llm.callTool({
-          messages: [...llmConversation, ...newMessages],
-          conversation,
-          request,
-        });
-        logRequest({
-          reqId,
-          message: `LLM tool call: ${JSON.stringify(toolAnswer)}`,
-        });
-        const {
-          toolCallMessage,
-          references: toolReferences,
-          rejectUserQuery,
-        } = toolAnswer;
-        newMessages.push(convertMessageFromLlmToDb(toolCallMessage));
-        // Update references from tool call
-        if (toolReferences) {
-          outputReferences.push(...toolReferences);
-        }
-        // Return static response if query rejected by tool call
-        if (rejectUserQuery) {
-          newMessages.push({
-            role: "assistant",
-            content: noRelevantContentMessage,
-          });
-        } else {
-          // Otherwise respond with LLM again
-          const answer = await llm.answerQuestionAwaited({
-            messages: [...llmConversation, ...newMessages],
-            // Only allow 1 tool call per user message.
-          });
-          newMessages.push(convertMessageFromLlmToDb(answer));
-        }
-      }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : JSON.stringify(err);
@@ -368,11 +327,7 @@ export async function awaitGenerateResponseMessage({
     }
   }
   // Add references to the last assistant message (excluding function calls)
-  if (
-    newMessages.at(-1)?.role === "assistant" &&
-    !(newMessages.at(-1) as AssistantMessage).functionCall &&
-    outputReferences.length > 0
-  ) {
+  if (newMessages.at(-1)?.role === "assistant" && outputReferences.length > 0) {
     (newMessages.at(-1) as AssistantMessage).references = outputReferences;
   }
   return { messages: newMessages };
@@ -463,59 +418,13 @@ export async function streamGenerateResponseMessage({
         }
       }
       const shouldCallTool = functionCallContent.name !== "";
-      if (shouldCallTool) {
-        initialAssistantMessage.functionCall = functionCallContent;
-      }
+
       newMessages.push(initialAssistantMessage);
 
       logRequest({
         reqId,
         message: `LLM response: ${JSON.stringify(initialAssistantMessage)}`,
       });
-      // Tool call
-      if (shouldCallTool) {
-        assert(
-          llm.callTool,
-          "You must implement the callTool() method on your ChatLlm to access this code."
-        );
-        const {
-          toolCallMessage,
-          references: toolReferences,
-          rejectUserQuery,
-        } = await llm.callTool({
-          messages: [...llmConversation, ...newMessages],
-          conversation,
-          dataStreamer,
-          request,
-        });
-        newMessages.push(convertMessageFromLlmToDb(toolCallMessage));
-
-        if (rejectUserQuery) {
-          newMessages.push({
-            role: "assistant",
-            content: noRelevantContentMessage,
-          });
-          dataStreamer.streamData({
-            type: "delta",
-            data: noRelevantContentMessage,
-          });
-        } else {
-          if (toolReferences) {
-            outputReferences.push(...toolReferences);
-          }
-          const answerStream = await llm.answerQuestionStream({
-            messages: [...llmConversation, ...newMessages],
-          });
-          const answerContent = await dataStreamer.stream({
-            stream: answerStream,
-          });
-          const answerMessage = {
-            role: "assistant",
-            content: answerContent,
-          } satisfies AssistantMessage;
-          newMessages.push(answerMessage);
-        }
-      }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : JSON.stringify(err);
@@ -567,19 +476,25 @@ export async function streamGenerateResponseMessage({
     });
   }
 
-  return { messages: newMessages.map(convertMessageFromLlmToDb) };
+  return { messages: newMessages };
 }
 
 export function convertMessageFromLlmToDb(
   message: OpenAiChatMessage
 ): SomeMessage {
+  if (message.role === "function") {
+    return {
+      content: message.content ?? "",
+      name: message.name,
+      role: "tool", // Changed from "function" to "tool"
+    };
+  }
+
+  // Handle other message types
   const dbMessage = {
     ...message,
     content: message?.content ?? "",
   };
-  if (message.role === "assistant" && message.function_call) {
-    (dbMessage as AssistantMessage).functionCall = message.function_call;
-  }
 
   return dbMessage;
 }
@@ -594,7 +509,7 @@ function convertConversationMessageToLlmMessage(
       role: "system",
     } satisfies OpenAiChatMessage;
   }
-  if (role === "function") {
+  if (role === "tool") {
     return {
       content: content,
       role: "function",
@@ -611,7 +526,17 @@ function convertConversationMessageToLlmMessage(
     return {
       content: content,
       role: "assistant",
-      ...(message.functionCall ? { function_call: message.functionCall } : {}),
+      ...(message.toolCall
+        ? {
+            function_call: {
+              name: message.toolCall.function?.name || "",
+              arguments:
+                typeof message.toolCall.function === "object"
+                  ? JSON.stringify(message.toolCall.function)
+                  : "{}",
+            },
+          }
+        : {}),
     } satisfies OpenAiChatMessage;
   }
   throw new Error(`Invalid message role: ${role}`);

@@ -7,3 +7,4 @@ export * from "./makeFilterNPreviousMessages";
 export * from "./makeVerifiedAnswerGenerateUserPrompt";
 export * from "./includeChunksForMaxTokensPossible";
 export * from "./InputGuardrail";
+export * from "./generateResponseWithSearchTool";

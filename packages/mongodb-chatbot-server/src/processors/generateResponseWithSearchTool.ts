@@ -7,6 +7,7 @@ import {
   UserMessage,
   AssistantMessage,
   ToolMessage,
+  EmbeddedContent,
 } from "mongodb-rag-core";
 import { z } from "zod";
 import { GenerateResponse } from "../routes/conversations/addMessageToConversation";
@@ -27,7 +28,8 @@ import {
 import { FilterPreviousMessages } from "./FilterPreviousMessages";
 import { InputGuardrail, withAbortControllerGuardrail } from "./InputGuardrail";
 import { strict as assert } from "assert";
-
+import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
+import { makeDefaultReferenceLinks } from "./makeDefaultReferenceLinks";
 export interface GenerateResponseWithSearchToolParams {
   languageModel: LanguageModel;
   llmNotWorkingMessage: string;
@@ -40,6 +42,7 @@ export interface GenerateResponseWithSearchToolParams {
    */
   searchTool: SearchTool;
   additionalTools?: ToolSet;
+  makeReferenceLinks?: MakeReferenceLinksFunc;
 }
 
 export const SEARCH_TOOL_NAME = "search_content";
@@ -48,11 +51,17 @@ export const DefaultSearchArgsSchema = z.object({ query: z.string() });
 export type SearchArguments = z.infer<typeof DefaultSearchArgsSchema>;
 
 export type SearchToolResult = {
-  content: FindContentResult["content"];
+  content: {
+    url: string;
+    text: string;
+    metadata?: Record<string, unknown>;
+  }[];
 };
 export type SearchTool = Tool<typeof DefaultSearchArgsSchema, SearchToolResult>;
 
-// this is basically v2 of chatbot server which makes the thing an agent.
+/**
+  Generate chatbot response using RAG and a search tool named {@link SEARCH_TOOL_NAME}.
+ */
 export function makeGenerateResponseWithSearchTool({
   languageModel,
   llmNotWorkingMessage,
@@ -61,6 +70,7 @@ export function makeGenerateResponseWithSearchTool({
   filterPreviousMessages,
   searchTool,
   additionalTools,
+  makeReferenceLinks,
 }: GenerateResponseWithSearchToolParams): GenerateResponse {
   return async function generateResponseWithSearchTool({
     conversation,
@@ -80,10 +90,11 @@ export function makeGenerateResponseWithSearchTool({
       // Get preceding messages to include in the LLM prompt
       const filteredPreviousMessages = filterPreviousMessages
         ? (await filterPreviousMessages(conversation)).map(
-            convertConversationMessageToLlmMessage
+            formatMessageForAiSdk
           )
         : [];
 
+      console.log("filteredPreviousMessages", filteredPreviousMessages);
       const generationArgs = {
         model: languageModel,
         messages: [
@@ -114,8 +125,8 @@ export function makeGenerateResponseWithSearchTool({
           })
         : undefined;
 
-      const { result: textGenerationResult, guardrailResult } =
-        await withAbortControllerGuardrail(async (controller) => {
+      const { result, guardrailResult } = await withAbortControllerGuardrail(
+        async (controller) => {
           const toolDefinitions = {
             [SEARCH_TOOL_NAME]: searchTool,
             ...(additionalTools ?? {}),
@@ -126,24 +137,48 @@ export function makeGenerateResponseWithSearchTool({
             ...generationArgs,
             abortSignal: controller.signal,
             tools: toolDefinitions,
+            maxSteps: 3,
           });
-          // TODO: add logic to get references..need to play around with the best approach for this...TBD
-          const references: References = [];
-          if (shouldStream) {
-            assert(dataStreamer, "dataStreamer is required for streaming");
-            await streamResults(fullStream, dataStreamer);
-          }
-          const stepResults = await steps;
-          return {
-            references,
-            stepResults,
-          };
-        }, inputGuardrailPromise);
+          console.log("ran thru the stream");
 
+          await handleStreamResults(
+            fullStream,
+            shouldStream,
+            dataStreamer,
+            makeReferenceLinks
+          );
+
+          const stepResults = await steps;
+          // TODO: add logic to get references..need to play around with the best approach for this...TBD
+          const references: References =
+            extractReferencesFromStepResults(stepResults);
+          // stepResults.forEach((stepResult) => {
+          //   if (stepResult.toolResults) {
+          //     (
+          //       stepResult.toolResults as ToolResultPart<SearchToolResult>[]
+          //     ).forEach((toolResult) => {
+          //       if (
+          //         toolResult.toolName === SEARCH_TOOL_NAME &&
+          //         toolResult.result?.content
+          //       ) {
+          //         // Add the content to references
+          //         references.push(...toolResult.result.content);
+          //       }
+          //     });
+          //   }
+          // });
+          return {
+            stepResults,
+            references,
+          };
+        },
+        inputGuardrailPromise
+      );
+      console.log("promised all");
       return handleReturnGeneration(
         userMessage,
         guardrailResult,
-        textGenerationResult,
+        result,
         customData,
         llmNotWorkingMessage
       );
@@ -206,14 +241,19 @@ function stepResultsToMessages<TOOLS extends ToolSet>(
     .flat();
 }
 
-async function streamResults(
+async function handleStreamResults(
   streamFromAiSdk: AsyncIterable<
     TextStreamPart<{
       readonly search_content: SearchTool;
     }>
   >,
-  dataStreamer: DataStreamer
+  shouldStream: boolean,
+  dataStreamer?: DataStreamer,
+  makeReferenceLinks?: MakeReferenceLinksFunc
 ) {
+  if (shouldStream) {
+    assert(dataStreamer, "dataStreamer is required for streaming");
+  }
   // Define type guards for each stream element type we care about
   function isTextDelta(
     chunk: unknown
@@ -242,46 +282,114 @@ async function streamResults(
     );
   }
 
-  // Keep track of references for caller
-  const toolReferences: References = [];
+  function isErrorResult(chunk: unknown): chunk is {
+    type: "error";
+    error: string;
+  } {
+    return (
+      typeof chunk === "object" &&
+      chunk !== null &&
+      "type" in chunk &&
+      chunk.type === "error" &&
+      "error" in chunk
+    );
+  }
 
+  function isFinishResult(chunk: unknown): chunk is {
+    type: "finish";
+  } {
+    return (
+      typeof chunk === "object" &&
+      chunk !== null &&
+      "type" in chunk &&
+      chunk.type === "finish"
+    );
+  }
+
+  const searchResults: SearchToolResult["content"] = [];
   // Process the stream with type guards instead of switch
   for await (const chunk of streamFromAiSdk) {
     // Cast to unknown first to allow proper type narrowing
     const item: unknown = chunk;
+    if ((item as { type: string }).type !== "text-delta") {
+      console.log("other item", item);
+    }
 
     // Handle text deltas
     if (isTextDelta(item)) {
-      dataStreamer?.streamData({
-        data: item.textDelta,
-        type: "delta",
-      });
+      if (shouldStream) {
+        dataStreamer?.streamData({
+          data: item.textDelta,
+          type: "delta",
+        });
+      }
     }
     // Handle tool results
     else if (isToolResult(item) && item.toolName === SEARCH_TOOL_NAME) {
+      console.log("tool result", item);
       const toolResult = item.result;
       if (
         toolResult &&
         "content" in toolResult &&
         Array.isArray(toolResult.content)
       ) {
-        const references = toolResult.content.map((c) => ({
-          url: c.url,
-          title: c.metadata?.pageTitle ?? "",
-          metadata: c.metadata,
-        }));
-
-        toolReferences.push(...references);
+        searchResults.push(...toolResult.content);
+      }
+    } else if (isFinishResult(item)) {
+      const referenceLinks = makeReferenceLinks
+        ? makeReferenceLinks(searchResults)
+        : makeDefaultReferenceLinks(searchResults);
+      if (shouldStream) {
         dataStreamer?.streamData({
-          data: references,
+          data: referenceLinks,
           type: "references",
         });
+      }
+      return referenceLinks;
+    }
+    // TODO: handle error cases
+    else if (isErrorResult(item)) {
+      if (shouldStream) {
+        dataStreamer?.disconnect();
+      }
+      throw new Error(item.error);
+    }
+  }
+}
+
+function extractReferencesFromStepResults<TS extends ToolSet>(
+  stepResults: StepResult<TS>[]
+): References {
+  const references: References = [];
+
+  for (const stepResult of stepResults) {
+    if (stepResult.toolResults) {
+      for (const toolResult of Object.values(stepResult.toolResults)) {
+        if (
+          toolResult.toolName === SEARCH_TOOL_NAME &&
+          toolResult.result?.content
+        ) {
+          // Map the search tool results to the References format
+          const searchResults = toolResult.result.content;
+          const referencesToAdd = searchResults.map(
+            (item: {
+              url: string;
+              text: string;
+              metadata?: Record<string, unknown>;
+            }) => ({
+              url: item.url,
+              title: item.text || item.url,
+              metadata: item.metadata || {},
+            })
+          );
+
+          references.push(...referencesToAdd);
+        }
       }
     }
   }
 
-  // Return collected references
-  return toolReferences;
+  return references;
 }
 
 /**
@@ -353,52 +461,38 @@ function handleReturnGeneration(
     ] satisfies SomeMessage[],
   };
 }
-
-function convertConversationMessageToLlmMessage(
-  message: SomeMessage
-): CoreMessage {
-  const { content, role } = message;
-  if (role === "system") {
+function formatMessageForAiSdk(message: SomeMessage): CoreMessage {
+  if (message.role === "assistant" && typeof message.content === "object") {
+    // Convert assistant messages with object content to proper format
+    if (message.toolCall) {
+      // This is a tool call message
+      return {
+        role: "assistant",
+        content: "",
+        function_call: {
+          name: message.toolCall.id,
+          arguments: JSON.stringify(message.toolCall.function),
+        },
+      } as CoreAssistantMessage;
+    } else {
+      // Fallback for other object content
+      return {
+        role: "assistant",
+        content: JSON.stringify(message.content),
+      } as CoreAssistantMessage;
+    }
+  } else if (message.role === "tool") {
+    // Convert tool messages to the format expected by the AI SDK
     return {
-      content: content,
-      role: "system",
-    } satisfies CoreSystemMessage;
+      role: "assistant", // Use assistant role instead of function
+      content:
+        typeof message.content === "string"
+          ? message.content
+          : JSON.stringify(message.content),
+      name: message.name, // Include the name property
+    } as CoreMessage;
+  } else {
+    // User and system messages can pass through
+    return message as CoreMessage;
   }
-  if (role === "tool") {
-    return {
-      content: [
-        {
-          type: "tool-result",
-          toolCallId: "",
-          result: content,
-          toolName: message.name,
-        } satisfies ToolResultPart,
-      ],
-      role: "tool",
-    } satisfies CoreToolMessage;
-  }
-  if (role === "user") {
-    return {
-      content: content,
-      role: "user",
-    } satisfies CoreUserMessage;
-  }
-  if (role === "assistant") {
-    return {
-      content: content,
-      role: "assistant",
-      ...(message.toolCall
-        ? {
-            function_call: {
-              name: message.toolCall.function?.name || "",
-              arguments:
-                typeof message.toolCall.function === "object"
-                  ? JSON.stringify(message.toolCall.function)
-                  : "{}",
-            },
-          }
-        : {}),
-    } satisfies CoreAssistantMessage;
-  }
-  throw new Error(`Invalid message role: ${role}`);
 }

@@ -1,12 +1,9 @@
 import {
   References,
   SomeMessage,
-  OpenAiChatMessage,
   SystemMessage,
   FindContentResult,
   DataStreamer,
-  EmbeddedContent,
-  WithScore,
   UserMessage,
   AssistantMessage,
   ToolMessage,
@@ -19,7 +16,6 @@ import {
   CoreSystemMessage,
   CoreToolMessage,
   CoreUserMessage,
-  generateText,
   LanguageModel,
   StepResult,
   streamText,
@@ -30,8 +26,9 @@ import {
 } from "mongodb-rag-core/aiSdk";
 import { FilterPreviousMessages } from "./FilterPreviousMessages";
 import { InputGuardrail, withAbortControllerGuardrail } from "./InputGuardrail";
+import { strict as assert } from "assert";
 
-interface GenerateResponseWithSearchToolParams {
+export interface GenerateResponseWithSearchToolParams {
   languageModel: LanguageModel;
   llmNotWorkingMessage: string;
   noRelevantContentMessage: string;
@@ -47,17 +44,12 @@ interface GenerateResponseWithSearchToolParams {
 
 export const SEARCH_TOOL_NAME = "search_content";
 
-// Zod schema for default search arguments (query)
 export const DefaultSearchArgsSchema = z.object({ query: z.string() });
 export type SearchArguments = z.infer<typeof DefaultSearchArgsSchema>;
 
-/** Tool type: takes SearchArguments, returns FindContentResult */
-// First, explicitly define the result type
 export type SearchToolResult = {
   content: FindContentResult["content"];
 };
-
-// Then use it in your tool definition
 export type SearchTool = Tool<typeof DefaultSearchArgsSchema, SearchToolResult>;
 
 // this is basically v2 of chatbot server which makes the thing an agent.
@@ -80,6 +72,10 @@ export function makeGenerateResponseWithSearchTool({
     dataStreamer,
     request,
   }) {
+    const userMessage = {
+      role: "user",
+      content: latestMessageText,
+    } satisfies UserMessage;
     try {
       // Get preceding messages to include in the LLM prompt
       const filteredPreviousMessages = filterPreviousMessages
@@ -87,11 +83,6 @@ export function makeGenerateResponseWithSearchTool({
             convertConversationMessageToLlmMessage
           )
         : [];
-
-      const userMessage = {
-        role: "user",
-        content: latestMessageText,
-      } satisfies UserMessage;
 
       const generationArgs = {
         model: languageModel,
@@ -123,67 +114,45 @@ export function makeGenerateResponseWithSearchTool({
           })
         : undefined;
 
-      if (shouldStream) {
-        const { result: textGenerationResult, guardrailResult } =
-          await withAbortControllerGuardrail(async (controller) => {
-            const toolDefinitions = {
-              [SEARCH_TOOL_NAME]: searchTool,
-              ...(additionalTools ?? {}),
-            };
+      const { result: textGenerationResult, guardrailResult } =
+        await withAbortControllerGuardrail(async (controller) => {
+          const toolDefinitions = {
+            [SEARCH_TOOL_NAME]: searchTool,
+            ...(additionalTools ?? {}),
+          };
 
-            // Pass the tools as a separate parameter
-            const { fullStream, steps } = streamText({
-              ...generationArgs,
-              abortSignal: controller.signal,
-              tools: toolDefinitions,
-            });
+          // Pass the tools as a separate parameter
+          const { fullStream, steps } = streamText({
+            ...generationArgs,
+            abortSignal: controller.signal,
+            tools: toolDefinitions,
+          });
+          // TODO: add logic to get references..need to play around with the best approach for this...TBD
+          const references: References = [];
+          if (shouldStream) {
+            assert(dataStreamer, "dataStreamer is required for streaming");
+            await streamResults(fullStream, dataStreamer);
+          }
+          const stepResults = await steps;
+          return {
+            references,
+            stepResults,
+          };
+        }, inputGuardrailPromise);
 
-            const references = dataStreamer
-              ? await streamResults(fullStream, dataStreamer)
-              : [];
-            const stepResults = await steps;
-            return {
-              references,
-              stepResults,
-            };
-          }, inputGuardrailPromise);
-
-        return handleReturnGeneration(
-          userMessage,
-          guardrailResult,
-          textGenerationResult,
-          customData,
-          llmNotWorkingMessage
-        );
-      }
-      // ---
-      // NO STREAMING
-      // ---
-      else {
-        // Use the withAbortControllerGuardrail pattern for non-streaming as well
-        const { result: textGenerationResult, guardrailResult } =
-          await withAbortControllerGuardrail(async (controller) => {
-            // Start the text generation with the abort controller
-            return generateText({
-              ...generationArgs,
-              abortSignal: controller.signal,
-            });
-          }, inputGuardrailPromise);
-
-        return handleReturnGeneration(
-          userMessage,
-          guardrailResult,
-          textGenerationResult,
-          customData,
-          llmNotWorkingMessage
-        );
-      }
+      return handleReturnGeneration(
+        userMessage,
+        guardrailResult,
+        textGenerationResult,
+        customData,
+        llmNotWorkingMessage
+      );
     } catch (error: unknown) {
       // Handle other errors
       console.error("Error in generateResponseAiSdk:", error);
       return {
         messages: [
-          // TODO: handle preceding messages
+          userMessage,
           {
             role: "assistant",
             content: llmNotWorkingMessage,

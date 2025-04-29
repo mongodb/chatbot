@@ -1,11 +1,15 @@
 import { EmbeddedContent } from "../contentStore/EmbeddedContent";
 import { WithScore } from "../VectorStore";
 
-export type FindContentFuncArgs<
-  Filters extends Record<string, unknown> = {}
-> = {
+type VectorSearchFilters = {
+  sourceName?: string;
+  "metadata.version.isCurrent"?: boolean;
+  "metadata.version.label"?: string;
+};
+
+export type FindContentFuncArgs = {
   query: string;
-  filters: Filters
+  filters?: VectorSearchFilters;
 };
 
 export type FindContentFunc = (

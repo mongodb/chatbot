@@ -4,6 +4,7 @@ import {
   ConversationFetchOptions,
   AssistantMessageMetadata,
   MessageData,
+  ConversationServiceConfig,
 } from "./services/conversations";
 import createMessage, { createMessageId } from "./createMessage";
 import { countRegexMatches, canUseServerSentEvents } from "./utils";
@@ -31,7 +32,7 @@ export type UseConversationParams = {
   serverBaseUrl: string;
   shouldStream?: boolean;
   sortMessageReferences?: SortReferences;
-  fetchOptions?: ConversationFetchOptions;
+  fetchOptions?: ConversationFetchOptions | (() => ConversationFetchOptions);
   getClientContext?: () => Record<string, unknown>;
 };
 

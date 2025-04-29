@@ -33,6 +33,7 @@ export const retrieveRelevantContent = async function ({
 
   const { content, queryEmbedding } = await findContent({
     query: searchQuery,
+    filters: {},
   });
 
   return { content, queryEmbedding, transformedUserQuery, searchQuery };

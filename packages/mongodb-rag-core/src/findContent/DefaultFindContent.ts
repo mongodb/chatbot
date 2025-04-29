@@ -20,14 +20,17 @@ export const makeDefaultFindContent = ({
   findNearestNeighborsOptions,
   searchBoosters,
 }: MakeDefaultFindContentFuncArgs): FindContentFunc => {
-  return async ({ query }) => {
+  return async ({ query, filters = {} }) => {
     const { embedding } = await embedder.embed({
       text: query,
     });
 
     let content = await store.findNearestNeighbors(
       embedding,
-      findNearestNeighborsOptions
+      {
+        ...findNearestNeighborsOptions,
+        filter: filters,
+      }
     );
 
     for (const booster of searchBoosters ?? []) {

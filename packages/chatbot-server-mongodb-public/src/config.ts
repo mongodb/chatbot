@@ -19,7 +19,6 @@ import {
   defaultCreateConversationCustomData,
   defaultAddMessageToConversationCustomData,
   makeGenerateResponseWithSearchTool,
-  DefaultSearchArgsSchema,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { blockGetRequests } from "./middleware/blockGetRequests";
@@ -39,8 +38,7 @@ import {
   makeRateMessageUpdateTrace,
 } from "./tracing/routesUpdateTraceHandlers";
 import { useSegmentIds } from "./middleware/useSegmentIds";
-import { tool, createOpenAI, azure, createAzure } from "mongodb-rag-core/aiSdk";
-import { z } from "zod";
+import { createAzure } from "mongodb-rag-core/aiSdk";
 import { makeSearchTool } from "./tools";
 export const {
   MONGODB_CONNECTION_URI,
@@ -191,14 +189,15 @@ const segmentConfig = SEGMENT_WRITE_KEY
       writeKey: SEGMENT_WRITE_KEY,
     }
   : undefined;
-const azureOpenAi = createOpenAI({
-  // apiKey: OPENAI_API_KEY,
+const azureOpenAi = createAzure({
+  apiKey: OPENAI_API_KEY,
   // baseURL: OPENAI_ENDPOINT,
-  // // resourceName: "docs-ai-chatbot",
-  apiKey: process.env.OPENAI_OPENAI_API_KEY,
+  resourceName: "docs-ai-chatbot",
+  apiVersion: OPENAI_API_VERSION,
+  // apiKey: process.env.OPENAI_OPENAI_API_KEY,
 });
 
-const languageModel = azureOpenAi("gpt-4.1-mini");
+const languageModel = azureOpenAi("gpt-4o");
 export const config: AppConfig = {
   conversationsRouterConfig: {
     middleware: [

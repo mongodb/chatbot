@@ -30,6 +30,7 @@ import { InputGuardrail, withAbortControllerGuardrail } from "./InputGuardrail";
 import { strict as assert } from "assert";
 import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
 import { makeDefaultReferenceLinks } from "./makeDefaultReferenceLinks";
+import { text } from "express";
 export interface GenerateResponseWithSearchToolParams {
   languageModel: LanguageModel;
   llmNotWorkingMessage: string;
@@ -43,6 +44,7 @@ export interface GenerateResponseWithSearchToolParams {
   searchTool: SearchTool;
   additionalTools?: ToolSet;
   makeReferenceLinks?: MakeReferenceLinksFunc;
+  maxSteps?: number;
 }
 
 export const SEARCH_TOOL_NAME = "search_content";
@@ -71,6 +73,7 @@ export function makeGenerateResponseWithSearchTool({
   searchTool,
   additionalTools,
   makeReferenceLinks,
+  maxSteps = 2,
 }: GenerateResponseWithSearchToolParams): GenerateResponse {
   return async function generateResponseWithSearchTool({
     conversation,
@@ -94,7 +97,6 @@ export function makeGenerateResponseWithSearchTool({
           )
         : [];
 
-      console.log("filteredPreviousMessages", filteredPreviousMessages);
       const generationArgs = {
         model: languageModel,
         messages: [
@@ -108,6 +110,7 @@ export function makeGenerateResponseWithSearchTool({
         } satisfies {
           [SEARCH_TOOL_NAME]: SearchTool;
         },
+        maxSteps,
       };
 
       // Guardrail used to validate the input
@@ -137,11 +140,9 @@ export function makeGenerateResponseWithSearchTool({
             ...generationArgs,
             abortSignal: controller.signal,
             tools: toolDefinitions,
-            maxSteps: 3,
           });
-          console.log("ran thru the stream");
 
-          await handleStreamResults(
+          const references = await handleStreamResults(
             fullStream,
             shouldStream,
             dataStreamer,
@@ -149,24 +150,16 @@ export function makeGenerateResponseWithSearchTool({
           );
 
           const stepResults = await steps;
-          // TODO: add logic to get references..need to play around with the best approach for this...TBD
-          const references: References =
-            extractReferencesFromStepResults(stepResults);
-          // stepResults.forEach((stepResult) => {
-          //   if (stepResult.toolResults) {
-          //     (
-          //       stepResult.toolResults as ToolResultPart<SearchToolResult>[]
-          //     ).forEach((toolResult) => {
-          //       if (
-          //         toolResult.toolName === SEARCH_TOOL_NAME &&
-          //         toolResult.result?.content
-          //       ) {
-          //         // Add the content to references
-          //         references.push(...toolResult.result.content);
-          //       }
-          //     });
-          //   }
-          // });
+          console.log(
+            "stepResults::",
+            stepResults.map((s) => ({
+              type: s.stepType,
+              calls: JSON.stringify(s.toolCalls),
+              results: JSON.stringify(s.toolResults),
+              text: s.text,
+            }))
+          );
+
           return {
             stepResults,
             references,
@@ -174,7 +167,6 @@ export function makeGenerateResponseWithSearchTool({
         },
         inputGuardrailPromise
       );
-      console.log("promised all");
       return handleReturnGeneration(
         userMessage,
         guardrailResult,
@@ -184,7 +176,6 @@ export function makeGenerateResponseWithSearchTool({
       );
     } catch (error: unknown) {
       // Handle other errors
-      console.error("Error in generateResponseAiSdk:", error);
       return {
         messages: [
           userMessage,
@@ -311,9 +302,6 @@ async function handleStreamResults(
   for await (const chunk of streamFromAiSdk) {
     // Cast to unknown first to allow proper type narrowing
     const item: unknown = chunk;
-    if ((item as { type: string }).type !== "text-delta") {
-      console.log("other item", item);
-    }
 
     // Handle text deltas
     if (isTextDelta(item)) {
@@ -326,7 +314,6 @@ async function handleStreamResults(
     }
     // Handle tool results
     else if (isToolResult(item) && item.toolName === SEARCH_TOOL_NAME) {
-      console.log("tool result", item);
       const toolResult = item.result;
       if (
         toolResult &&

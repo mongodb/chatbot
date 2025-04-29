@@ -19,7 +19,7 @@ import {
   makeDefaultFindVerifiedAnswer,
   defaultCreateConversationCustomData,
   defaultAddMessageToConversationCustomData,
-  makeLegacyGeneratateResponse,
+  makeLegacyGenerateResponse,
   makeVerifiedAnswerGenerateResponse,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
@@ -184,7 +184,7 @@ export const generateResponse = wrapTraced(
       };
     },
     onNoVerifiedAnswerFound: wrapTraced(
-      makeLegacyGeneratateResponse({
+      makeLegacyGenerateResponse({
         llm,
         generateUserPrompt: makeStepBackRagGenerateUserPrompt({
           openAiClient: preprocessorOpenAiClient,

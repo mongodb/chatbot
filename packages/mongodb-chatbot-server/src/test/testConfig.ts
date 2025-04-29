@@ -29,7 +29,7 @@ import {
   MakeUserMessageFunc,
   MakeUserMessageFuncParams,
   GenerateUserPromptFunc,
-  makeLegacyGeneratateResponse,
+  makeLegacyGenerateResponse,
 } from "../routes";
 
 let mongoClient: MongoClient | undefined;
@@ -238,7 +238,7 @@ export async function makeDefaultConfig(): Promise<AppConfig> {
   const conversations = makeMongoDbConversationsService(memoryDb);
   return {
     conversationsRouterConfig: {
-      generateResponse: makeLegacyGeneratateResponse({
+      generateResponse: makeLegacyGenerateResponse({
         llm,
         generateUserPrompt: fakeGenerateUserPrompt,
         filterPreviousMessages: filterPrevious12Messages,

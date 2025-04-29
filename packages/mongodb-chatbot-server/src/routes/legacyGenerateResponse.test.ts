@@ -17,11 +17,11 @@ import { Response as ExpressResponse } from "express";
 import { EventEmitter } from "stream-json/Parser";
 import {
   MakeLegacyGenerateResponseParams,
-  makeLegacyGeneratateResponse,
+  makeLegacyGenerateResponse,
   awaitGenerateResponseMessage,
   streamGenerateResponseMessage,
 } from "./legacyGenerateResponse";
-import { GenerateResponseParams } from "./conversations/addMessageToConversation";
+import { GenerateResponseParams } from "../processors/GenerateResponse";
 
 const testFuncName = "test_func";
 const mockFunctionInvocation = {
@@ -213,7 +213,7 @@ describe("generateResponse", () => {
     dataStreamer,
     latestMessageText: "hello",
   } satisfies Omit<GenerateResponseParams, "shouldStream">;
-  const generateResponse = makeLegacyGeneratateResponse(constructorArgs);
+  const generateResponse = makeLegacyGenerateResponse(constructorArgs);
   let res: ReturnType<typeof createResponse> & ExpressResponse;
   beforeEach(() => {
     res = createResponse({
@@ -254,7 +254,7 @@ describe("generateResponse", () => {
       metadata,
     } satisfies AssistantMessage;
 
-    const generateResponse = makeLegacyGeneratateResponse({
+    const generateResponse = makeLegacyGenerateResponse({
       ...constructorArgs,
       generateUserPrompt: async function () {
         return {
@@ -301,7 +301,7 @@ describe("generateResponse", () => {
       preferredLanguage: "Spanish",
     };
 
-    const generateResponse = makeLegacyGeneratateResponse({
+    const generateResponse = makeLegacyGenerateResponse({
       ...constructorArgs,
       generateUserPrompt,
     });
@@ -331,7 +331,7 @@ describe("generateResponse", () => {
       role: "assistant",
       content: "static response",
     } satisfies OpenAiChatMessage;
-    const generateResponse = makeLegacyGeneratateResponse({
+    const generateResponse = makeLegacyGenerateResponse({
       ...constructorArgs,
       generateUserPrompt: async () => ({
         userMessage,
@@ -351,7 +351,7 @@ describe("generateResponse", () => {
       content: "bad!",
     } satisfies OpenAiChatMessage;
 
-    const generateResponse = makeLegacyGeneratateResponse({
+    const generateResponse = makeLegacyGenerateResponse({
       ...constructorArgs,
       generateUserPrompt: async () => ({
         userMessage,

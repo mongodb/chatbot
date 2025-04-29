@@ -142,7 +142,7 @@ export interface MakeLegacyGenerateResponseParams {
   @deprecated Make legacy generate response conform to the current system.
   To be replaced later in a later PR in this epic.
  */
-export function makeLegacyGeneratateResponse({
+export function makeLegacyGenerateResponse({
   llm,
   generateUserPrompt,
   filterPreviousMessages,

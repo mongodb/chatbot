@@ -7,6 +7,7 @@ import {
   GenerateResponse,
   GenerateResponseReturnValue,
 } from "../routes/conversations/addMessageToConversation";
+import { strict as assert } from "assert";
 
 export interface MakeVerifiedAnswerGenerateResponseParams {
   /**
@@ -33,7 +34,7 @@ export const makeVerifiedAnswerGenerateResponse = ({
   onNoVerifiedAnswerFound,
 }: MakeVerifiedAnswerGenerateResponseParams): GenerateResponse => {
   return async (args) => {
-    const { latestMessageText } = args;
+    const { latestMessageText, shouldStream, dataStreamer } = args;
     const { answer: foundVerifiedAnswer, queryEmbedding } =
       await findVerifiedAnswer({
         query: latestMessageText,
@@ -45,6 +46,32 @@ export const makeVerifiedAnswerGenerateResponse = ({
 
     const verifiedAnswer =
       onVerifiedAnswerFound?.(foundVerifiedAnswer) ?? foundVerifiedAnswer;
+
+    const metadata = {
+      verifiedAnswer: {
+        _id: verifiedAnswer._id,
+        created: verifiedAnswer.created,
+        updated: verifiedAnswer.updated,
+      },
+    };
+    const { answer, references } = verifiedAnswer;
+
+    if (shouldStream) {
+      assert(dataStreamer, "Must have dataStreamer if shouldStream=true");
+      dataStreamer.streamData({
+        type: "metadata",
+        data: metadata,
+      });
+      dataStreamer.streamData({
+        type: "delta",
+        data: answer,
+      });
+      dataStreamer.streamData({
+        type: "references",
+        data: references,
+      });
+    }
+
     const messages = [
       {
         role: "user",
@@ -53,15 +80,9 @@ export const makeVerifiedAnswerGenerateResponse = ({
       },
       {
         role: "assistant",
-        content: verifiedAnswer.answer,
-        references: verifiedAnswer.references,
-        metadata: {
-          verifiedAnswer: {
-            _id: verifiedAnswer._id,
-            created: verifiedAnswer.created,
-            updated: verifiedAnswer.updated,
-          },
-        },
+        content: answer,
+        references,
+        metadata,
       },
     ] satisfies SomeMessage[];
     return { messages } satisfies GenerateResponseReturnValue;

@@ -1,166 +1,266 @@
 import {
+  FindContentFunc,
+  EmbeddedContent,
+  UserMessage,
   References,
   SomeMessage,
-  DataStreamer,
-  Conversation,
   escapeNewlines,
   OpenAiChatMessage,
   AssistantMessage,
-  UserMessage,
-  ConversationCustomData,
   ChatLlm,
+  SystemMessage,
+  Conversation,
+  ConversationCustomData,
 } from "mongodb-rag-core";
-import { Request as ExpressRequest } from "express";
+import { QueryPreprocessorFunc, MakeReferenceLinksFunc } from "../processors";
 import { logRequest } from "../utils";
 import { strict as assert } from "assert";
-import { GenerateUserPromptFunc } from "../processors/GenerateUserPromptFunc";
 import { FilterPreviousMessages } from "../processors/FilterPreviousMessages";
+import {
+  GenerateResponseParams,
+  GenerateResponseReturnValue,
+} from "../processors/GenerateResponse";
 
-export type ClientContext = Record<string, unknown>;
+export type GenerateUserPromptFuncParams = {
+  /**
+    Original user message
+   */
+  userMessageText: string;
 
-export interface GenerateResponseParams {
-  shouldStream: boolean;
-  llm: ChatLlm;
-  latestMessageText: string;
-  clientContext?: ClientContext;
-  customData?: ConversationCustomData;
-  dataStreamer?: DataStreamer;
-  generateUserPrompt?: GenerateUserPromptFunc;
-  filterPreviousMessages?: FilterPreviousMessages;
+  /**
+    Conversation with preceding messages
+   */
+  conversation?: Conversation;
+
+  /**
+    Additional contextual information provided by the user's client. This can
+    include arbitrary data that might be useful for generating a response. For
+    example, this could include the user's location, the device they are using,
+    their preferred programming language, etc.
+   */
+  clientContext?: Record<string, unknown>;
+
+  /**
+    String Id for request
+   */
   reqId: string;
-  llmNotWorkingMessage: string;
-  noRelevantContentMessage: string;
-  conversation: Conversation;
-  request?: ExpressRequest;
-}
 
-interface GenerateResponseReturnValue {
-  messages: SomeMessage[];
-}
+  /**
+    Custom data for the message request.
+   */
+  customData?: ConversationCustomData;
+};
 
-export type GenerateResponse = (
-  params: GenerateResponseParams
-) => Promise<GenerateResponseReturnValue>;
+export interface GenerateUserPromptFuncReturnValue {
+  /**
+    If defined, this message should be sent as a response instead of generating
+    a response to the user query with the LLM.
+   */
+  staticResponse?: AssistantMessage;
+
+  /**
+    If true, no response should be generated with an LLM. Instead, return the
+    `staticResponse` if set or otherwise respond with a standard static
+    rejection response.
+   */
+  rejectQuery?: boolean;
+
+  /**
+    The (preprocessed) user message to insert into the conversation.
+   */
+  userMessage: UserMessage;
+
+  /**
+    References returned with the LLM response
+   */
+  references?: References;
+}
 
 /**
-  Generate a response with/without streaming. Supports tool calling
-  and standard response generation.
-  Response includes the user message with any data mutations
-  and the assistant response message, plus any intermediate tool calls.
+  Generate the user prompt sent to the {@link ChatLlm}.
+  This function is a flexible construct that you can use to customize
+  the chatbot behavior. For example, you can use this function to
+  perform retrieval augmented generation (RAG) or chain of thought prompting.
+  Include whatever logic in here to construct the user message
+  that the LLM responds to.
+
+  If you are doing RAG, this can include the content from vector search.
  */
-export async function generateResponse({
-  shouldStream,
+export type GenerateUserPromptFunc = (
+  params: GenerateUserPromptFuncParams
+) => Promise<GenerateUserPromptFuncReturnValue>;
+
+export interface MakeRagGenerateUserPromptParams {
+  /**
+    Transform the user's message before sending it to the `findContent` function.
+   */
+  queryPreprocessor?: QueryPreprocessorFunc;
+
+  /**
+    Find content based on the user's message and preprocessing.
+   */
+  findContent: FindContentFunc;
+
+  /**
+    If not specified, uses {@link makeDefaultReferenceLinks}.
+   */
+  makeReferenceLinks?: MakeReferenceLinksFunc;
+
+  /**
+    Number of tokens from the found context to send to the `makeUserMessage` function.
+    All chunks that exceed this threshold are discarded.
+   */
+  maxChunkContextTokens?: number;
+
+  /**
+    Construct user message which is sent to the LLM and stored in the database.
+   */
+  makeUserMessage: MakeUserMessageFunc;
+}
+
+export interface MakeUserMessageFuncParams {
+  content: EmbeddedContent[];
+  originalUserMessage: string;
+  preprocessedUserMessage?: string;
+  queryEmbedding?: number[];
+  rejectQuery?: boolean;
+}
+
+export type MakeUserMessageFunc = (
+  params: MakeUserMessageFuncParams
+) => Promise<UserMessage>;
+export interface MakeLegacyGenerateResponseParams {
+  llm: ChatLlm;
+  generateUserPrompt?: GenerateUserPromptFunc;
+  filterPreviousMessages?: FilterPreviousMessages;
+  llmNotWorkingMessage: string;
+  noRelevantContentMessage: string;
+  systemMessage: SystemMessage;
+}
+
+/**
+  @deprecated Make legacy generate response conform to the current system.
+  To be replaced later in a later PR in this epic.
+ */
+export function makeLegacyGenerateResponse({
   llm,
-  latestMessageText,
-  clientContext,
-  customData,
   generateUserPrompt,
   filterPreviousMessages,
-  dataStreamer,
-  reqId,
   llmNotWorkingMessage,
   noRelevantContentMessage,
-  conversation,
-  request,
-}: GenerateResponseParams): Promise<GenerateResponseReturnValue> {
-  const { userMessage, references, staticResponse, rejectQuery } =
-    await (generateUserPrompt
-      ? generateUserPrompt({
-          userMessageText: latestMessageText,
-          clientContext,
-          conversation,
-          reqId,
-          customData,
-        })
-      : {
-          userMessage: {
-            role: "user",
-            content: latestMessageText,
+  systemMessage,
+}: MakeLegacyGenerateResponseParams) {
+  return async function generateResponse({
+    shouldStream,
+    latestMessageText,
+    clientContext,
+    customData,
+    dataStreamer,
+    reqId,
+    conversation,
+    request,
+  }: GenerateResponseParams): Promise<GenerateResponseReturnValue> {
+    const { userMessage, references, staticResponse, rejectQuery } =
+      await (generateUserPrompt
+        ? generateUserPrompt({
+            userMessageText: latestMessageText,
+            clientContext,
+            conversation,
+            reqId,
             customData,
-          } satisfies UserMessage,
-        });
-  // Add request custom data to user message.
-  const userMessageWithCustomData = customData
-    ? {
-        ...userMessage,
-        // Override request custom data fields with user message custom data fields.
-        customData: { ...customData, ...(userMessage.customData ?? {}) },
-      }
-    : userMessage;
-  const newMessages: SomeMessage[] = [userMessageWithCustomData];
+          })
+        : {
+            userMessage: {
+              role: "user",
+              content: latestMessageText,
+              customData,
+            } satisfies UserMessage,
+          });
+    // Add request custom data to user message.
+    const userMessageWithCustomData = customData
+      ? {
+          ...userMessage,
+          // Override request custom data fields with user message custom data fields.
+          customData: { ...customData, ...(userMessage.customData ?? {}) },
+        }
+      : userMessage;
+    const newMessages: SomeMessage[] = [userMessageWithCustomData];
 
-  // Metadata for streaming
-  let streamingResponseMetadata: Record<string, unknown> | undefined;
-  // Send static response if query rejected or static response provided
-  if (rejectQuery) {
-    const rejectionMessage = {
-      role: "assistant",
-      content: noRelevantContentMessage,
-      references: references ?? [],
-    } satisfies AssistantMessage;
-    newMessages.push(rejectionMessage);
-  } else if (staticResponse) {
-    newMessages.push(staticResponse);
-    // Need to specify response metadata for streaming
-    streamingResponseMetadata = staticResponse.metadata;
-  }
-
-  // Prepare conversation messages for LLM
-  const previousConversationMessagesForLlm = (
-    filterPreviousMessages
-      ? await filterPreviousMessages(conversation)
-      : conversation.messages
-  ).map(convertConversationMessageToLlmMessage);
-  const newMessagesForLlm = newMessages.map((m) => {
-    // Use transformed content if it exists for user message
-    // (e.g. from a custom user prompt, query preprocessor, etc),
-    // otherwise use original content.
-    if (m.role === "user") {
-      return {
-        content: m.contentForLlm ?? m.content,
-        role: "user",
-      } satisfies OpenAiChatMessage;
+    // Metadata for streaming
+    let streamingResponseMetadata: Record<string, unknown> | undefined;
+    // Send static response if query rejected or static response provided
+    if (rejectQuery) {
+      const rejectionMessage = {
+        role: "assistant",
+        content: noRelevantContentMessage,
+        references: references ?? [],
+      } satisfies AssistantMessage;
+      newMessages.push(rejectionMessage);
+    } else if (staticResponse) {
+      newMessages.push(staticResponse);
+      // Need to specify response metadata for streaming
+      streamingResponseMetadata = staticResponse.metadata;
     }
-    return convertConversationMessageToLlmMessage(m);
-  });
-  const llmConversation = [
-    ...previousConversationMessagesForLlm,
-    ...newMessagesForLlm,
-  ];
 
-  const shouldGenerateMessage = !rejectQuery && !staticResponse;
+    // Prepare conversation messages for LLM
+    const previousConversationMessagesForLlm = (
+      filterPreviousMessages
+        ? await filterPreviousMessages(conversation)
+        : conversation.messages
+    ).map(convertConversationMessageToLlmMessage);
+    const newMessagesForLlm = newMessages.map((m) => {
+      // Use transformed content if it exists for user message
+      // (e.g. from a custom user prompt, query preprocessor, etc),
+      // otherwise use original content.
+      if (m.role === "user") {
+        return {
+          content: m.contentForLlm ?? m.content,
+          role: "user",
+        } satisfies OpenAiChatMessage;
+      }
+      return convertConversationMessageToLlmMessage(m);
+    });
+    const llmConversation = [
+      ...previousConversationMessagesForLlm,
+      ...newMessagesForLlm,
+    ];
 
-  if (shouldStream) {
-    assert(dataStreamer, "Data streamer required for streaming");
-    const { messages } = await streamGenerateResponseMessage({
-      dataStreamer,
-      reqId,
-      llm,
-      llmConversation,
-      noRelevantContentMessage,
-      llmNotWorkingMessage,
-      request,
-      shouldGenerateMessage,
-      conversation,
-      references,
-      metadata: streamingResponseMetadata,
-    });
-    newMessages.push(...messages);
-  } else {
-    const { messages } = await awaitGenerateResponseMessage({
-      reqId,
-      llm,
-      llmConversation,
-      llmNotWorkingMessage,
-      noRelevantContentMessage,
-      request,
-      shouldGenerateMessage,
-      conversation,
-      references,
-    });
-    newMessages.push(...messages);
-  }
-  return { messages: newMessages };
+    const shouldGenerateMessage = !rejectQuery && !staticResponse;
+
+    if (shouldStream) {
+      assert(dataStreamer, "Data streamer required for streaming");
+      const { messages } = await streamGenerateResponseMessage({
+        dataStreamer,
+        reqId,
+        llm,
+        llmConversation,
+        noRelevantContentMessage,
+        llmNotWorkingMessage,
+        request,
+        shouldGenerateMessage,
+        conversation,
+        references,
+        metadata: streamingResponseMetadata,
+        systemMessage,
+      });
+      newMessages.push(...messages);
+    } else {
+      const { messages } = await awaitGenerateResponseMessage({
+        reqId,
+        llm,
+        llmConversation,
+        llmNotWorkingMessage,
+        noRelevantContentMessage,
+        request,
+        shouldGenerateMessage,
+        conversation,
+        references,
+        systemMessage,
+      });
+      newMessages.push(...messages);
+    }
+    return { messages: newMessages };
+  };
 }
 
 type BaseGenerateResponseMessageParams = Omit<
@@ -187,7 +287,8 @@ export async function awaitGenerateResponseMessage({
   references,
   conversation,
   shouldGenerateMessage = true,
-}: AwaitGenerateResponseParams): Promise<GenerateResponseReturnValue> {
+}: AwaitGenerateResponseParams &
+  MakeLegacyGenerateResponseParams): Promise<GenerateResponseReturnValue> {
   const newMessages: SomeMessage[] = [];
   const outputReferences: References = [];
 
@@ -297,7 +398,8 @@ export async function streamGenerateResponseMessage({
   request,
   metadata,
   shouldGenerateMessage,
-}: StreamGenerateResponseParams): Promise<GenerateResponseReturnValue> {
+}: StreamGenerateResponseParams &
+  MakeLegacyGenerateResponseParams): Promise<GenerateResponseReturnValue> {
   const newMessages: SomeMessage[] = [];
   const outputReferences: References = [];
 

@@ -33,13 +33,11 @@ export const CreateConversationRequest = SomeExpressRequest.extend({
 export interface CreateConversationRouteParams {
   conversations: ConversationsService;
   createConversationCustomData?: AddCustomDataFunc;
-  systemPrompt: SystemMessage;
 }
 
 export function makeCreateConversationRoute({
   conversations,
   createConversationCustomData,
-  systemPrompt,
 }: CreateConversationRouteParams) {
   return async (
     req: ExpressRequest,
@@ -58,7 +56,6 @@ export function makeCreateConversationRoute({
       );
       const conversationInDb = await conversations.create({
         customData,
-        initialMessages: [systemPrompt],
       });
       const responseConversation =
         convertConversationFromDbToApi(conversationInDb);

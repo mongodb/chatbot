@@ -1,5 +1,5 @@
 import { Scorer, EmbeddingSimilarity } from "autoevals";
-import { Eval, wrapOpenAI } from "mongodb-rag-core/braintrust";
+import { Eval } from "mongodb-rag-core/braintrust";
 import {
   makeStepBackUserQuery,
   StepBackUserQueryMongoDbFunction,
@@ -15,7 +15,6 @@ import {
   JUDGE_EMBEDDING_MODEL,
   openAiClient,
 } from "../eval/evalHelpers";
-import { OpenAI } from "mongodb-rag-core/openai";
 
 interface ExtractMongoDbMetadataEvalCase {
   name?: string;

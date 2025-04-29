@@ -19,7 +19,7 @@ import { FilterPreviousMessages } from "../processors/FilterPreviousMessages";
 import {
   GenerateResponseParams,
   GenerateResponseReturnValue,
-} from "./conversations/addMessageToConversation";
+} from "../processors/GenerateResponse";
 
 export type GenerateUserPromptFuncParams = {
   /**

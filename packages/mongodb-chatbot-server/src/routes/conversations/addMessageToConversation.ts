@@ -4,20 +4,13 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import {
-  DbMessage,
-  FunctionMessage,
-  Message,
-  SystemMessage,
-} from "mongodb-rag-core";
+import { DbMessage, FunctionMessage, Message } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import {
   ConversationsService,
   Conversation,
   SomeMessage,
   makeDataStreamer,
-  DataStreamer,
-  ConversationCustomData,
 } from "mongodb-rag-core";
 import {
   ApiMessage,
@@ -34,27 +27,11 @@ import {
 } from "./conversationsRouter";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
 import { UpdateTraceFunc, updateTraceIfExists } from "./UpdateTraceFunc";
+import {
+  GenerateResponse,
+  GenerateResponseParams,
+} from "../../processors/GenerateResponse";
 
-export type ClientContext = Record<string, unknown>;
-
-export interface GenerateResponseParams {
-  shouldStream: boolean;
-  latestMessageText: string;
-  clientContext?: ClientContext;
-  customData?: ConversationCustomData;
-  dataStreamer?: DataStreamer;
-  reqId: string;
-  conversation: Conversation;
-  request?: ExpressRequest;
-}
-
-export interface GenerateResponseReturnValue {
-  messages: SomeMessage[];
-}
-
-export type GenerateResponse = (
-  params: GenerateResponseParams
-) => Promise<GenerateResponseReturnValue>;
 export const DEFAULT_MAX_INPUT_LENGTH = 3000; // magic number for max input size for LLM
 export const DEFAULT_MAX_USER_MESSAGES_IN_CONVERSATION = 7; // magic number for max messages in a conversation
 

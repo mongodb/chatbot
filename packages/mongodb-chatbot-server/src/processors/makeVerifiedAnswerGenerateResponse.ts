@@ -3,11 +3,11 @@ import {
   FindVerifiedAnswerFunc,
   SomeMessage,
 } from "mongodb-rag-core";
+import { strict as assert } from "assert";
 import {
   GenerateResponse,
   GenerateResponseReturnValue,
-} from "../routes/conversations/addMessageToConversation";
-import { strict as assert } from "assert";
+} from "./GenerateResponse";
 
 export interface MakeVerifiedAnswerGenerateResponseParams {
   /**

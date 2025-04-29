@@ -69,6 +69,14 @@ export function makeMongoDbEmbeddedContentStore({
         type: "filter",
         path: "sourceName",
       },
+      {
+        type: "filter",
+        path: "metadata.version.label",
+      },
+      {
+        type: "filter",
+        path: "metadata.version.isCurrent",
+      },
     ],
     name = "vector_index",
   },
@@ -166,7 +174,7 @@ export function makeMongoDbEmbeddedContentStore({
         path,
         k,
         minScore,
-        filter = {},
+        filter: initialFilter = {},
         numCandidates,
       }: Partial<FindNearestNeighborsOptions> = {
         // Default options
@@ -177,6 +185,17 @@ export function makeMongoDbEmbeddedContentStore({
         // User options override
         ...(options ?? {}),
       };
+      // If version not specified in filter, assume current version
+      let filter = { ...initialFilter };
+      if (!filter["metadata.version.isCurrent"] && !filter["metadata.version.label"]) {
+        filter = {
+          ...filter,
+            $or : [
+              { "metadata.version.isCurrent": true },
+              { "metadata.version.isCurrent": null },
+            ]
+        };
+      }
       return embeddedContentCollection
         .aggregate<WithScore<EmbeddedContent>>([
           {
@@ -203,6 +222,8 @@ export function makeMongoDbEmbeddedContentStore({
     async init() {
       await embeddedContentCollection.createIndex({ sourceName: 1 });
       await embeddedContentCollection.createIndex({ url: 1 });
+      await embeddedContentCollection.createIndex({ "metadata.version.isCurrent": 1 });
+      await embeddedContentCollection.createIndex({ "metadata.version.label": 1 });
 
       try {
         const searchIndex = {
@@ -216,7 +237,9 @@ export function makeMongoDbEmbeddedContentStore({
                 similarity: "cosine",
                 type: "vector",
               },
-              ...filters,
+              { type: "filter", path: "sourceName" },
+              { type: "filter", path: "metadata.version.label" },
+              { type: "filter", path: "metadata.version.isCurrent" },
             ],
           },
         };

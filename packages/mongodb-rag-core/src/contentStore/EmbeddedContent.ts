@@ -45,6 +45,10 @@ export interface EmbeddedContent {
     pageTitle?: string;
     tags?: string[];
     [k: string]: unknown;
+    version?: {
+      isCurrent: boolean;
+      label: string;
+    }
   };
 
   /**

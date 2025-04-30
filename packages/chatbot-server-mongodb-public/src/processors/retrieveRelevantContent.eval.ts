@@ -69,7 +69,8 @@ const { k } = retrievalConfig.findNearestNeighborsOptions;
 
 const retrieveRelevantContentEvalTask: EvalTask<
   RetrievalEvalCaseInput,
-  RetrievalTaskOutput
+  RetrievalTaskOutput,
+  unknown
 > = async function (data) {
   const metadataForQuery = await extractMongoDbMetadataFromUserMessage({
     openAiClient: preprocessorOpenAiClient,

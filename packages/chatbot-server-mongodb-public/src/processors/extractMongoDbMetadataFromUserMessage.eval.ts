@@ -1,13 +1,14 @@
+import "dotenv/config";
 import {
   extractMongoDbMetadataFromUserMessage,
   ExtractMongoDbMetadataFunction,
 } from "./extractMongoDbMetadataFromUserMessage";
-import { Eval } from "braintrust";
+import { Eval } from "mongodb-rag-core/braintrust";
 import { Scorer } from "autoevals";
 import { MongoDbTag } from "../mongoDbMetadata";
 import {
-  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
   openAiClient,
+  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
 } from "../eval/evalHelpers";
 
 interface ExtractMongoDbMetadataEvalCase {
@@ -210,10 +211,10 @@ Eval("extract-mongodb-metadata", {
   experimentName: model,
   metadata: {
     description:
-      "Evaluates whether the MongoDB user message guardrail is working correctly.",
+      "Evaluates whether the MongoDB user message metadata extractor is working correctly.",
     model,
   },
-  maxConcurrency: 3,
+  maxConcurrency: 15,
   timeout: 20000,
   async task(input) {
     try {

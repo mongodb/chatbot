@@ -126,9 +126,9 @@ function getTracingScores(
   k: number
 ) {
   return {
-    AcceptedQuery: tracingData.rejectQuery === true ? 0 : 1,
+    InputGuardrailPass: tracingData.rejectQuery === true ? 0 : 1,
     VerifiedAnswer: tracingData.isVerifiedAnswer === true ? 1 : 0,
-    LlmAnswered: tracingData.llmDoesNotKnow === true ? 0 : 1,
+    LlmAnswerAttempted: tracingData.llmDoesNotKnow === true ? 0 : 1,
     HasRating: tracingData.rating !== undefined ? 1 : 0,
     HasComment: tracingData.comment !== undefined ? 1 : 0,
     [`RetrievedChunksOver${k}`]:

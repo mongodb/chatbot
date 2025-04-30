@@ -126,15 +126,25 @@ function getTracingScores(
   k: number
 ) {
   return {
-    InputGuardrailPass: tracingData.rejectQuery === true ? 0 : 1,
-    VerifiedAnswer: tracingData.isVerifiedAnswer === true ? 1 : 0,
-    LlmAnswerAttempted: tracingData.llmDoesNotKnow === true ? 0 : 1,
+    // These metrics should start at 0,
+    // and are updated in other update trace handlers as needed
     HasRating: tracingData.rating !== undefined ? 1 : 0,
     HasComment: tracingData.comment !== undefined ? 1 : 0,
-    [`RetrievedChunksOver${k}`]:
-      tracingData.isVerifiedAnswer !== true
-        ? tracingData.numRetrievedChunks / k
-        : null,
+    VerifiedAnswer: tracingData.isVerifiedAnswer === true ? 1 : 0,
+    // Only calculate these metrics if the answer is not verified
+    InputGuardrailPass: tracingData.isVerifiedAnswer
+      ? null
+      : tracingData.rejectQuery === true
+      ? 0
+      : 1,
+    LlmAnswerAttempted: tracingData.isVerifiedAnswer
+      ? null
+      : tracingData.llmDoesNotKnow === true
+      ? 0
+      : 1,
+    [`RetrievedChunksOver${k}`]: tracingData.isVerifiedAnswer
+      ? null
+      : tracingData.numRetrievedChunks / k,
   };
 }
 

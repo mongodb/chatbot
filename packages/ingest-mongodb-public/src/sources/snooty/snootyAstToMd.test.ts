@@ -277,6 +277,51 @@ Some of your App Services App's features are associated with user accounts. For 
 
 `);
   });
+
+  it("renders external links if configured", () => {
+    const sampleAst = JSON.parse(
+      fs.readFileSync(Path.resolve(SRC_ROOT, "TODO: add"), {
+        encoding: "utf-8",
+      })
+    );
+    expect(snootyAstToMd(sampleAst, true))
+      .toBe
+      // TODO
+      ();
+  });
+  it("doesn't render external links if not configured", () => {
+    const sampleAst = JSON.parse(
+      fs.readFileSync(Path.resolve(SRC_ROOT, "TODO: add"), {
+        encoding: "utf-8",
+      })
+    );
+    expect(snootyAstToMd(sampleAst))
+      .toBe
+      // TODO
+      ();
+  });
+  it("renders internal links if configured", () => {
+    const sampleAst = JSON.parse(
+      fs.readFileSync(Path.resolve(SRC_ROOT, "TODO: add"), {
+        encoding: "utf-8",
+      })
+    );
+    expect(snootyAstToMd(sampleAst, true))
+      .toBe
+      // TODO
+      ();
+  });
+  it("doesn't render internal links if not configured", () => {
+    const sampleAst = JSON.parse(
+      fs.readFileSync(Path.resolve(SRC_ROOT, "TODO: add"), {
+        encoding: "utf-8",
+      })
+    );
+    expect(snootyAstToMd(sampleAst))
+      .toBe
+      // TODO
+      ();
+  });
 });
 describe("getTitleFromSnootyAst", () => {
   it("extracts a title", () => {

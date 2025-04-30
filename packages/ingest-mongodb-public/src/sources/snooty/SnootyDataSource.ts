@@ -90,6 +90,23 @@ export type SnootyMetaNode = SnootyNode & {
 };
 
 /**
+  Internal `ref` links
+ */
+export type SnootyRefRoleNode = SnootyNode & {
+  type: "ref_role";
+  domain?: "std" | string;
+  fileid?: [path: string, fragment?: string];
+};
+
+/**
+  External links
+ */
+export type SnootyReferenceNode = SnootyNode & {
+  type: "reference";
+  refuri?: string;
+};
+
+/**
   A page in the Snooty manifest.
  */
 export type SnootyPageData = {

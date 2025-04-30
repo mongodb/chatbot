@@ -2,6 +2,7 @@ import {
   SnootyFacetNode,
   SnootyMetaNode,
   SnootyNode,
+  SnootyReferenceNode,
   SnootyTextNode,
 } from "./SnootyDataSource";
 import { strict as assert } from "assert";
@@ -10,8 +11,11 @@ import { renderSnootyTable } from "./renderSnootyTable";
 /**
   Renders a snooty AST node as markdown.
  */
-export const snootyAstToMd = (node: SnootyNode): string => {
-  return renderAst(node, { parentHeadingLevel: 0 })
+export const snootyAstToMd = (
+  node: SnootyNode,
+  includeLinks?: boolean
+): string => {
+  return renderAst(node, { parentHeadingLevel: 0, includeLinks })
     .replaceAll(/ +\n/g, "\n")
     .replaceAll(/\n{3,}/g, "\n\n") // remove extra newlines with just 2
     .trimStart();
@@ -20,11 +24,12 @@ export const snootyAstToMd = (node: SnootyNode): string => {
 type RenderState = {
   parentHeadingLevel: number;
   listBullet?: string;
+  includeLinks?: boolean;
 };
 
 // Private implementation. Use snootyAstToMd.
 const renderAst = (node: SnootyNode, state: RenderState): string => {
-  const { parentHeadingLevel, listBullet } = state;
+  const { parentHeadingLevel, listBullet, includeLinks } = state;
   // Base cases (terminal nodes)
   if (node.children === undefined) {
     // value nodes
@@ -57,6 +62,7 @@ const renderAst = (node: SnootyNode, state: RenderState): string => {
         .map((subnode) =>
           renderAst(subnode, {
             parentHeadingLevel: parentHeadingLevel + (isHeading ? 1 : 0),
+            includeLinks,
           })
         )
         .join("")}\n\n`;
@@ -64,12 +70,12 @@ const renderAst = (node: SnootyNode, state: RenderState): string => {
 
     case "heading":
       return `${"#".repeat(parentHeadingLevel)} ${node.children
-        .map((child) => renderAst(child, { parentHeadingLevel }))
+        .map((child) => renderAst(child, { parentHeadingLevel, includeLinks }))
         .join("")}\n\n`;
 
     case "paragraph":
       return `${node.children
-        .map((child) => renderAst(child, { parentHeadingLevel }))
+        .map((child) => renderAst(child, { parentHeadingLevel, includeLinks }))
         .join("")}\n\n`;
 
     case "list": {
@@ -79,6 +85,7 @@ const renderAst = (node: SnootyNode, state: RenderState): string => {
           renderAst(listItem, {
             parentHeadingLevel,
             listBullet: isOrderedList ? `${index + 1}. ` : "- ",
+            includeLinks,
           })
         )
         .join("\n");
@@ -86,7 +93,7 @@ const renderAst = (node: SnootyNode, state: RenderState): string => {
 
     case "listItem":
       return `${node.children
-        .map((child) => renderAst(child, { parentHeadingLevel }))
+        .map((child) => renderAst(child, { parentHeadingLevel, includeLinks }))
         .join("")
         .split("\n")
         .map((line, i) =>
@@ -99,7 +106,7 @@ const renderAst = (node: SnootyNode, state: RenderState): string => {
     // recursive inline cases
     case "literal":
       return `\`${node.children
-        .map((child) => renderAst(child, { parentHeadingLevel }))
+        .map((child) => renderAst(child, { parentHeadingLevel, includeLinks }))
         .join("")}\``;
 
     case "directive":
@@ -107,24 +114,53 @@ const renderAst = (node: SnootyNode, state: RenderState): string => {
 
     case "emphasis":
       return `*${node.children
-        .map((child) => renderAst(child, { parentHeadingLevel }))
+        .map((child) => renderAst(child, { parentHeadingLevel, includeLinks }))
         .join("")}*`;
 
     case "strong":
       return `**${node.children
-        .map((child) => renderAst(child, { parentHeadingLevel }))
+        .map((child) => renderAst(child, { parentHeadingLevel, includeLinks }))
         .join("")}**`;
 
-    case "refrole":
-      // Just include link text -- don't include URLs because they negatively
-      // impact vector searchability
+    case "ref_role":
+      if (
+        includeLinks &&
+        node.domain === "std" &&
+        Array.isArray(node.fileid) &&
+        node.fileid?.at(0) === "string" &&
+        node.fileid?.at(1) === "string"
+      ) {
+        return `[${node.children
+          .map((subnode) =>
+            renderAst(subnode, { parentHeadingLevel, includeLinks })
+          )
+          .join("")}](${node.fileid?.[0] + "#" + node.fileid?.[1]})`;
+      }
       return node.children
-        .map((subnode) => renderAst(subnode, { parentHeadingLevel }))
+        .map((subnode) =>
+          renderAst(subnode, { parentHeadingLevel, includeLinks })
+        )
         .join("");
 
+    // non-ref links
+    case "reference":
+      if (includeLinks && typeof node.refuri === "string") {
+        return `[${node.children
+          .map((subnode) =>
+            renderAst(subnode, { parentHeadingLevel, includeLinks })
+          )
+          .join("")}](${node.refuri})`;
+      }
+      return node.children
+        .map((subnode) =>
+          renderAst(subnode, { parentHeadingLevel, includeLinks })
+        )
+        .join("");
     default:
       return node.children
-        .map((subnode) => renderAst(subnode, { parentHeadingLevel }))
+        .map((subnode) =>
+          renderAst(subnode, { parentHeadingLevel, includeLinks })
+        )
         .join("");
   }
 };

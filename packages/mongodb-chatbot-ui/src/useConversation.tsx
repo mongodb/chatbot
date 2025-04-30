@@ -4,7 +4,6 @@ import {
   ConversationFetchOptions,
   AssistantMessageMetadata,
   MessageData,
-  ConversationServiceConfig,
 } from "./services/conversations";
 import createMessage, { createMessageId } from "./createMessage";
 import { countRegexMatches, canUseServerSentEvents } from "./utils";

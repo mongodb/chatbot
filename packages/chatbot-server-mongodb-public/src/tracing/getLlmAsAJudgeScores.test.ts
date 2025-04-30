@@ -49,6 +49,8 @@ describe("getLlmAsAJudgeScores", () => {
     llmDoesNotKnow: false,
     numRetrievedChunks: 1,
     rejectQuery: false,
+    rating: undefined,
+    comment: undefined,
   } satisfies Parameters<typeof getLlmAsAJudgeScores>[1];
 
   it("shouldn't judge verified answer", async () => {

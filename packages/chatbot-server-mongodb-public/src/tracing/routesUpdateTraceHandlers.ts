@@ -126,9 +126,11 @@ function getTracingScores(
   k: number
 ) {
   return {
-    RejectedQuery: tracingData.rejectQuery === true ? 1 : null,
-    VerifiedAnswer: tracingData.isVerifiedAnswer === true ? 1 : null,
-    LlmDoesNotKnow: tracingData.llmDoesNotKnow === true ? 1 : null,
+    AcceptedQuery: tracingData.rejectQuery === true ? 0 : 1,
+    VerifiedAnswer: tracingData.isVerifiedAnswer === true ? 1 : 0,
+    LlmAnswered: tracingData.llmDoesNotKnow === true ? 0 : 1,
+    HasRating: tracingData.rating !== undefined ? 1 : 0,
+    HasComment: tracingData.comment !== undefined ? 1 : 0,
     [`RetrievedChunksOver${k}`]:
       tracingData.isVerifiedAnswer !== true
         ? tracingData.numRetrievedChunks / k
@@ -181,7 +183,10 @@ export function makeRateMessageUpdateTrace({
     try {
       logger.updateSpan({
         id: traceId,
-        scores: await getLlmAsAJudgeScores(llmAsAJudge, tracingData),
+        scores: {
+          ...(await getLlmAsAJudgeScores(llmAsAJudge, tracingData)),
+          HasRating: 1,
+        },
       });
     } catch (error) {
       logRequest({
@@ -261,6 +266,7 @@ export function makeCommentMessageUpdateTrace({
       logger.updateSpan({
         id: traceId,
         scores: {
+          HasComment: 1,
           CommentSentiment: (
             await judgeMongoDbChatbotCommentSentiment({
               judgeLlm,

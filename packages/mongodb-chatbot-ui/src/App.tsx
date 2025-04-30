@@ -69,7 +69,10 @@ function App() {
           serverBaseUrl={serverBaseUrl}
           shouldStream={shouldStream}
           darkMode={darkMode}
-          fetchOptions={{ credentials: "include" }}
+          fetchOptions={() => ({
+            credentials: "include",
+            headers: getSegmentIdHeaders(),
+          })}
           onOpen={() => {
             console.log("Docs Chatbot opened");
           }}
@@ -85,10 +88,10 @@ function App() {
           serverBaseUrl={serverBaseUrl}
           shouldStream={shouldStream}
           darkMode={darkMode}
-          fetchOptions={{
+          fetchOptions={() => ({
             credentials: "include",
             headers: getSegmentIdHeaders(),
-          }}
+          })}
           getClientContext={() => ({
             user: "test-user-pls-ignore",
           })}

@@ -95,9 +95,8 @@ export function makeAddMessageToConversationUpdateTrace({
           createdAt: assistantMessage.createdAt,
           isVerifiedAnswer: tracingData.isVerifiedAnswer ?? false,
           rejectionReason: tracingData.rejectQuery
-            ? (assistantMessage.customData?.rejectionReason as
-                | string
-                | undefined) ?? "Unknown rejection reason"
+            ? (userMessage.customData?.rejectionReason as string | undefined) ??
+              "Unknown rejection reason"
             : undefined,
         });
       } else {

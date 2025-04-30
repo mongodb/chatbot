@@ -832,7 +832,7 @@ describe("ConversationService", () => {
       expect(addOptions.credentials).toBe("include");
 
       // For addMessageStreaming, we need to mock fetchEventSource to capture headers
-      let streamingOptions: any;
+      let streamingOptions: Partial<FetchEventSource.FetchEventSourceInit>;
       (FetchEventSource.fetchEventSource as jest.Mock).mockImplementation(
         async (_url, options) => {
           streamingOptions = options;

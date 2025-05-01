@@ -2,7 +2,6 @@ import {
   SnootyFacetNode,
   SnootyMetaNode,
   SnootyNode,
-  SnootyReferenceNode,
   SnootyTextNode,
 } from "./SnootyDataSource";
 import { strict as assert } from "assert";
@@ -13,9 +12,9 @@ import { renderSnootyTable } from "./renderSnootyTable";
  */
 export const snootyAstToMd = (
   node: SnootyNode,
-  includeLinks?: boolean
+  links?: RenderLinks
 ): string => {
-  return renderAst(node, { parentHeadingLevel: 0, includeLinks })
+  return renderAst(node, { parentHeadingLevel: 0 }, links)
     .replaceAll(/ +\n/g, "\n")
     .replaceAll(/\n{3,}/g, "\n\n") // remove extra newlines with just 2
     .trimStart();
@@ -24,12 +23,22 @@ export const snootyAstToMd = (
 type RenderState = {
   parentHeadingLevel: number;
   listBullet?: string;
+};
+
+export type RenderLinks = {
   includeLinks?: boolean;
+  baseUrl?: string;
+  includeRefAnchors?: boolean;
 };
 
 // Private implementation. Use snootyAstToMd.
-const renderAst = (node: SnootyNode, state: RenderState): string => {
-  const { parentHeadingLevel, listBullet, includeLinks } = state;
+const renderAst = (
+  node: SnootyNode,
+  state: RenderState,
+  links?: RenderLinks
+): string => {
+  const { parentHeadingLevel, listBullet } = state;
+
   // Base cases (terminal nodes)
   if (node.children === undefined) {
     // value nodes
@@ -60,40 +69,47 @@ const renderAst = (node: SnootyNode, state: RenderState): string => {
       const isHeading = node.children[0]?.type === "heading";
       return `${node.children
         .map((subnode) =>
-          renderAst(subnode, {
-            parentHeadingLevel: parentHeadingLevel + (isHeading ? 1 : 0),
-            includeLinks,
-          })
+          renderAst(
+            subnode,
+            {
+              ...state,
+              parentHeadingLevel: parentHeadingLevel + (isHeading ? 1 : 0),
+            },
+            links
+          )
         )
         .join("")}\n\n`;
     }
 
     case "heading":
       return `${"#".repeat(parentHeadingLevel)} ${node.children
-        .map((child) => renderAst(child, { parentHeadingLevel, includeLinks }))
+        .map((child) => renderAst(child, { ...state }, links))
         .join("")}\n\n`;
 
     case "paragraph":
       return `${node.children
-        .map((child) => renderAst(child, { parentHeadingLevel, includeLinks }))
+        .map((child) => renderAst(child, { ...state }, links))
         .join("")}\n\n`;
 
     case "list": {
       const isOrderedList = node.enumtype === "arabic";
       return node.children
         .map((listItem, index) =>
-          renderAst(listItem, {
-            parentHeadingLevel,
-            listBullet: isOrderedList ? `${index + 1}. ` : "- ",
-            includeLinks,
-          })
+          renderAst(
+            listItem,
+            {
+              ...state,
+              listBullet: isOrderedList ? `${index + 1}. ` : "- ",
+            },
+            links
+          )
         )
         .join("\n");
     }
 
     case "listItem":
       return `${node.children
-        .map((child) => renderAst(child, { parentHeadingLevel, includeLinks }))
+        .map((child) => renderAst(child, { ...state }, links))
         .join("")
         .split("\n")
         .map((line, i) =>
@@ -106,61 +122,88 @@ const renderAst = (node: SnootyNode, state: RenderState): string => {
     // recursive inline cases
     case "literal":
       return `\`${node.children
-        .map((child) => renderAst(child, { parentHeadingLevel, includeLinks }))
+        .map((child) => renderAst(child, { ...state }, links))
         .join("")}\``;
 
     case "directive":
-      return renderDirective(node, parentHeadingLevel);
+      return renderDirective(node, { ...state }, links);
 
     case "emphasis":
       return `*${node.children
-        .map((child) => renderAst(child, { parentHeadingLevel, includeLinks }))
+        .map((child) => renderAst(child, { ...state }, links))
         .join("")}*`;
 
     case "strong":
       return `**${node.children
-        .map((child) => renderAst(child, { parentHeadingLevel, includeLinks }))
+        .map((child) => renderAst(child, { ...state }, links))
         .join("")}**`;
 
     case "ref_role":
-      if (
-        includeLinks &&
-        node.domain === "std" &&
-        Array.isArray(node.fileid) &&
-        node.fileid?.at(0) === "string" &&
-        node.fileid?.at(1) === "string"
-      ) {
-        return `[${node.children
-          .map((subnode) =>
-            renderAst(subnode, { parentHeadingLevel, includeLinks })
-          )
-          .join("")}](${node.fileid?.[0] + "#" + node.fileid?.[1]})`;
+      if (links?.includeLinks) {
+        // For internal refs
+        if (
+          Array.isArray(node.fileid) &&
+          typeof node.fileid?.at(0) === "string"
+        ) {
+          // type validated in above if statement
+          const slug = (node.fileid?.at(0) as string)
+            // Add trailing slash if not present
+            .replace(/\/?$/, "/")
+            // Remove leading slash if present
+            .replace(/^\//, "");
+          // Fragment is optional. For example, not included for :doc: roles
+          const fragment = node.fileid?.at(1) ? "#" + node.fileid?.at(1) : "";
+          const baseUrl = links?.baseUrl?.replace(/\/?$/, "/") ?? "";
+          const url = `${baseUrl}${slug}${fragment}`;
+
+          return `[${node.children
+            .map((subnode) => renderAst(subnode, { ...state }, links))
+            .join("")
+            .trim()}](${url})`;
+        }
+        // For external refs (intersphinx)
+        else if (typeof node.url === "string") {
+          return `[${node.children
+            .map((subnode) => renderAst(subnode, { ...state }, links))
+            .join("")
+            .trim()}](${node.url})`;
+        } // Something unexpected occured. Do not process ref link.
+        return node.children
+          .map((subnode) => renderAst(subnode, { ...state }, links))
+          .join("");
       }
+
       return node.children
-        .map((subnode) =>
-          renderAst(subnode, { parentHeadingLevel, includeLinks })
-        )
+        .map((subnode) => renderAst(subnode, { ...state }, links))
         .join("");
 
     // non-ref links
     case "reference":
-      if (includeLinks && typeof node.refuri === "string") {
+      if (links?.includeLinks && typeof node.refuri === "string") {
         return `[${node.children
-          .map((subnode) =>
-            renderAst(subnode, { parentHeadingLevel, includeLinks })
-          )
-          .join("")}](${node.refuri})`;
+          .map((subnode) => renderAst(subnode, { ...state }, links))
+          .join("")
+          .trim()}](${node.refuri})`;
       }
       return node.children
-        .map((subnode) =>
-          renderAst(subnode, { parentHeadingLevel, includeLinks })
-        )
+        .map((subnode) => renderAst(subnode, { ...state }, links))
         .join("");
+    case "target":
+      if (links?.includeRefAnchors && typeof node.html_id === "string") {
+        return (
+          `<div id="${node.html_id}"></div>\n\n` +
+          node.children
+            .map((subnode) => renderAst(subnode, { ...state }, links))
+            .join("")
+        );
+      }
+      return node.children
+        .map((subnode) => renderAst(subnode, { ...state }, links))
+        .join("");
+
     default:
       return node.children
-        .map((subnode) =>
-          renderAst(subnode, { parentHeadingLevel, includeLinks })
-        )
+        .map((subnode) => renderAst(subnode, { ...state }, links))
         .join("");
   }
 };
@@ -171,7 +214,8 @@ const renderAst = (node: SnootyNode, state: RenderState): string => {
  */
 const renderDirective = (
   node: SnootyNode,
-  parentHeadingLevel: number
+  state: RenderState,
+  links?: RenderLinks
 ): string => {
   assert(
     node.children,
@@ -179,7 +223,7 @@ const renderDirective = (
   );
   switch (node.name) {
     case "list-table":
-      return renderSnootyTable(node);
+      return renderSnootyTable(node, links);
     case "tab": {
       const tabName = (
         node.argument && Array.isArray(node.argument) && node.argument.length
@@ -187,17 +231,17 @@ const renderDirective = (
           : ""
       ).trim();
       return `\n\n<Tab ${`name="${tabName ?? ""}"`}>\n\n${node.children
-        .map((child) => renderAst(child, { parentHeadingLevel }))
+        .map((child) => renderAst(child, { ...state }, links))
         .join("")}\n\n</Tab>\n\n`;
     }
     case "tabs":
     case "tabs-drivers":
       return `\n\n<Tabs>\n\n${node.children
-        .map((child) => renderAst(child, { parentHeadingLevel }))
+        .map((child) => renderAst(child, { ...state }, links))
         .join("")}\n\n</Tabs>\n\n`;
     default:
       return node.children
-        .map((subnode) => renderAst(subnode, { parentHeadingLevel }))
+        .map((subnode) => renderAst(subnode, { ...state }, links))
         .join("");
   }
 };

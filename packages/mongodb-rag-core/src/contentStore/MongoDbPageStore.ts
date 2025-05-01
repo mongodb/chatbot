@@ -29,6 +29,12 @@ export type MongoDbPageStore = DatabaseConnection &
       expectedUrls: string[];
       urlTransformer?: (url: string) => string;
     }): Promise<string[]>;
+    getDataSourceVersions(dataSource: string): Promise<
+      {
+        version: string;
+        isCurrent: boolean;
+      }[]
+    >;
     metadata: {
       databaseName: string;
       collectionName: string;
@@ -144,6 +150,33 @@ export function makeMongoDbPageStore({
         })
       );
       return results.filter((url) => url !== null) as string[];
+    },
+    async getDataSourceVersions(dataSource: string) {
+      const pipeline = [
+        {
+          $match: {
+            sourceName: dataSource, // Filter by the specified data source
+            action: { $ne: "deleted" }, // Exclude deleted pages
+          },
+        },
+        {
+          $group: {
+            _id: "$metadata.version.label", // Group by version label
+            isCurrent: { $first: "$metadata.version.isCurrent" }, // Get the first occurrence of isCurrent
+          },
+        },
+        {
+          $project: {
+            version: "$_id", // Rename _id to version
+            isCurrent: 1, // Include isCurrent in the output
+            _id: 0, // Exclude _id from the output
+          },
+        },
+      ];
+      console.log("pipeline", pipeline);
+      return pagesCollection
+        .aggregate<{ version: string; isCurrent: boolean }>(pipeline)
+        .toArray();
     },
     async init() {
       await pagesCollection.createIndex({ url: 1 });

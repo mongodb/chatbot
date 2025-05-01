@@ -333,4 +333,40 @@ describe("MongoDbPageStore", () => {
       expect(missingUrls).toEqual([]);
     });
   });
+
+  describe("getDataSourceVersions", () => {
+    const moviePagesWithVersion = moviePages.map((page, index) => ({
+      ...page,
+      sourceName: `movie-source`,
+      metadata: {
+        version: {
+          label: `${index % 2 ? 1 : 2}`,
+          isCurrent: index % 2 ? false : true,
+        },
+      },
+    }));
+    beforeEach(async () => {
+      assert(store);
+      await store.updatePages(moviePagesWithVersion);
+    });
+
+    it("returns list of versions for a specific data source", async () => {
+      assert(store);
+
+      const dataSourceVersions = await store.getDataSourceVersions(
+        "movie-source"
+      );
+
+      const version1 = dataSourceVersions.find(
+        ({ version }) => version === "1"
+      );
+      const version2 = dataSourceVersions.find(
+        ({ version }) => version === "2"
+      );
+      expect(version1).toBeDefined();
+      expect(version2).toBeDefined();
+      expect(version1?.isCurrent).toBe(false);
+      expect(version2?.isCurrent).toBe(true);
+    });
+  });
 });

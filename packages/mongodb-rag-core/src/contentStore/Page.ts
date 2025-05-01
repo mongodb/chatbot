@@ -34,7 +34,7 @@ export type Page = {
   version?: {
     label: string;
     isCurrent: boolean;
-  }
+  };
 
   /**
     Arbitrary metadata for page.

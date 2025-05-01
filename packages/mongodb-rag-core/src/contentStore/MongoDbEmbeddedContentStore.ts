@@ -174,7 +174,7 @@ export function makeMongoDbEmbeddedContentStore({
         path,
         k,
         minScore,
-        filter: initialFilter = {},
+        filter = {},
         numCandidates,
       }: Partial<FindNearestNeighborsOptions> = {
         // Default options
@@ -185,20 +185,6 @@ export function makeMongoDbEmbeddedContentStore({
         // User options override
         ...(options ?? {}),
       };
-      // If version not specified in filter, assume current version
-      let filter = { ...initialFilter };
-      if (
-        !filter["metadata.version.isCurrent"] &&
-        !filter["metadata.version.label"]
-      ) {
-        filter = {
-          ...filter,
-          $or: [
-            { "metadata.version.isCurrent": true },
-            { "metadata.version.isCurrent": null },
-          ],
-        };
-      }
       return embeddedContentCollection
         .aggregate<WithScore<EmbeddedContent>>([
           {
@@ -208,7 +194,7 @@ export function makeMongoDbEmbeddedContentStore({
               path,
               limit: k,
               numCandidates: numCandidates ?? k * 15,
-              filter,
+              filter: handleFilters(filter),
             },
           },
           {
@@ -244,9 +230,7 @@ export function makeMongoDbEmbeddedContentStore({
                 similarity: "cosine",
                 type: "vector",
               },
-              { type: "filter", path: "sourceName" },
-              { type: "filter", path: "metadata.version.label" },
-              { type: "filter", path: "metadata.version.isCurrent" },
+              ...filters,
             ],
           },
         };
@@ -264,3 +248,40 @@ export function makeMongoDbEmbeddedContentStore({
     },
   };
 }
+
+type VectorSearchFilter = {
+  sourceName?: string;
+  "metadata.version.label"?: string;
+  "metadata.version.isCurrent"?: boolean;
+  $or?: {
+    "metadata.version.isCurrent": boolean | null;
+  }[];
+};
+
+const handleFilters = (
+  filter: FindNearestNeighborsOptions["filter"]
+): VectorSearchFilter => {
+  const vectorSearchFilter: VectorSearchFilter = {};
+  if (filter.sourceName) {
+    vectorSearchFilter["sourceName"] = filter.sourceName;
+  }
+  // Handle version filter. Note: unversioned embeddings (isCurrent: null) are treated as current
+  const { current, label } = filter.version ?? {};
+  if (label) {
+    vectorSearchFilter["metadata.version.label"] = label;
+  }
+  // Return current embeddings if either:
+  // 1. current=true was explicitly requested, or
+  // 2. [Default] no version filters were specified (current and label are undefined)
+  else if (current === true || current === undefined) {
+    vectorSearchFilter["$or"] = [
+      { "metadata.version.isCurrent": true },
+      { "metadata.version.isCurrent": null },
+    ];
+  }
+  // Only find embeddings that are explicitly marked as non-current (isCurrent: false)
+  else if (current === false) {
+    vectorSearchFilter["metadata.version.isCurrent"] = false;
+  }
+  return vectorSearchFilter;
+};

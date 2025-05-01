@@ -101,7 +101,6 @@ export function makeRagGenerateUserPrompt({
     const findContentQuery = preprocessedUserMessageContent ?? userMessageText;
     const { content, queryEmbedding, embeddingModelName } = await findContent({
       query: findContentQuery,
-      filters: {}
     });
     if (content.length === 0) {
       logRequest({

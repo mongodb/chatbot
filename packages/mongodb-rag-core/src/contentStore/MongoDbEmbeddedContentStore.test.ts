@@ -268,7 +268,7 @@ describe("nearest neighbor search", () => {
     assert(store);
     const query = "db.collection.insertOne()";
     const filter = {
-      sourceName: { $eq: "not-a-source-name" },
+      sourceName: "not-a-source-name",
     };
     const { embedding } = await embedder.embed({
       text: query,
@@ -309,12 +309,13 @@ describe("nearest neighbor search", () => {
       matches.filter((match) => match.metadata?.version?.isCurrent === true)
     ).toHaveLength(5);
   });
+
   it("Should filter content to version requested", async () => {
     assert(store);
     const query = "db.collection.insertOne()";
     const filter = {
       sourceName: "docs",
-      "metadata.version.label": "7.0",
+      version: {label: "7.0"},
     };
     const { embedding } = await embedder.embed({
       text: query,

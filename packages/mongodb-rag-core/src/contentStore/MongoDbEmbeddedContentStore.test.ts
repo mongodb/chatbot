@@ -249,7 +249,7 @@ describe("nearest neighbor search", () => {
     assert(store);
     const query = "db.collection.insertOne()";
     const filter = {
-      sourceName: "snooty-docs",
+      sourceName: "docs",
     };
 
     const { embedding } = await embedder.embed({
@@ -261,7 +261,7 @@ describe("nearest neighbor search", () => {
       filter,
     });
     expect(
-      matches.filter((match) => match.sourceName !== "snooty-docs")
+      matches.filter((match) => match.sourceName !== "docs")
     ).toHaveLength(0);
   });
   test("Should filter content to not match a non-existent source", async () => {

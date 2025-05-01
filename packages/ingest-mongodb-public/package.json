@@ -22,6 +22,7 @@
     "ingest:pages": "../../node_modules/mongodb-rag-ingest/build/main.js pages init --config ./build/config.js && ingest pages update --config ./build/config.js",
     "ingest:embed": "../../node_modules/mongodb-rag-ingest/build/main.js embed init --config ./build/config.js && ingest embed update --config ./build/config.js",
     "ingest:pages:meta": "../../node_modules/mongodb-rag-ingest/build/main.js pages update --config ./build/meta.config.js",
+    "ingest:pages:docsWithLinks": "../../node_modules/mongodb-rag-ingest/build/main.js pages update --config ./build/docsWithLinks.config.js",
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --forceExit"
   },
   "devDependencies": {

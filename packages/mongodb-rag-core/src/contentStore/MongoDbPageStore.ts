@@ -12,7 +12,6 @@ import {
   SourceVersions,
 } from "./Page";
 import { Filter, Document } from "mongodb";
-import { source } from "common-tags";
 
 export type MongoDbPageStore = DatabaseConnection &
   // We omit loadPages so that the generic override below works

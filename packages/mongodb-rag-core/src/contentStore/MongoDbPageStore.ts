@@ -9,8 +9,10 @@ import {
   LoadPagesArgs,
   PageStore,
   PersistedPage,
+  SourceVersions,
 } from "./Page";
 import { Filter, Document } from "mongodb";
+import { source } from "common-tags";
 
 export type MongoDbPageStore = DatabaseConnection &
   // We omit loadPages so that the generic override below works
@@ -29,12 +31,9 @@ export type MongoDbPageStore = DatabaseConnection &
       expectedUrls: string[];
       urlTransformer?: (url: string) => string;
     }): Promise<string[]>;
-    getDataSourceVersions(dataSource: string): Promise<
-      {
-        version: string;
-        isCurrent: boolean;
-      }[]
-    >;
+    getDataSourceVersions(args: {
+      dataSources: string[];
+    }): Promise<Array<SourceVersions>>;
     metadata: {
       databaseName: string;
       collectionName: string;
@@ -151,31 +150,41 @@ export function makeMongoDbPageStore({
       );
       return results.filter((url) => url !== null) as string[];
     },
-    async getDataSourceVersions(dataSource: string) {
+    async getDataSourceVersions(args?: {
+      dataSources: string[];
+    }): Promise<Array<SourceVersions>> {
       const pipeline = [
         {
           $match: {
-            sourceName: dataSource, // Filter by the specified data source
+            ...(args && { sourceName: { $in: args.dataSources } }), // Filter by data sources if provided
             action: { $ne: "deleted" }, // Exclude deleted pages
+            "metadata.version.label": { $exists: true }, // Exclude unversioned pages
           },
         },
         {
           $group: {
-            _id: "$metadata.version.label", // Group by version label
-            isCurrent: { $first: "$metadata.version.isCurrent" }, // Get the first occurrence of isCurrent
+            _id: "$sourceName", // Group by sourceName
+            versions: {
+              $addToSet: "$metadata.version", // Collect unique versions
+            },
           },
         },
         {
           $project: {
-            version: "$_id", // Rename _id to version
-            isCurrent: 1, // Include isCurrent in the output
-            _id: 0, // Exclude _id from the output
+            _id: 0,
+            sourceName: "$_id",
+            versions: {
+              $sortArray: {
+                input: "$versions",
+                sortBy: {
+                  label: 1, // sort by label in ascending order
+                },
+              },
+            },
           },
         },
       ];
-      return pagesCollection
-        .aggregate<{ version: string; isCurrent: boolean }>(pipeline)
-        .toArray();
+      return pagesCollection.aggregate<SourceVersions>(pipeline).toArray();
     },
     async init() {
       await pagesCollection.createIndex({ url: 1 });

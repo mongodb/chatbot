@@ -349,24 +349,48 @@ describe("MongoDbPageStore", () => {
       assert(store);
       await store.updatePages(moviePagesWithVersion);
     });
+    afterAll(async () => {
+      assert(store);
+      await store.deletePages({
+        dataSources: ["movie-source", "another-movie-source"],
+        permanent: true,
+      });
+    });
 
     it("returns list of versions for a specific data source", async () => {
       assert(store);
+      const dataSourceVersions = await store.getDataSourceVersions({
+        dataSources: ["movie-source"],
+      });
 
-      const dataSourceVersions = await store.getDataSourceVersions(
-        "movie-source"
-      );
+      expect(dataSourceVersions.length).toBe(1);
+      const movieSourceVersions = dataSourceVersions[0];
+      expect(movieSourceVersions.sourceName).toBe("movie-source");
+      expect(movieSourceVersions.versions.length).toBe(2);
+      expect(movieSourceVersions.versions[0]).toMatchObject({
+        label: "1",
+        isCurrent: false,
+      });
+      expect(movieSourceVersions.versions[1]).toMatchObject({
+        label: "2",
+        isCurrent: true,
+      });
+    });
 
-      const version1 = dataSourceVersions.find(
-        ({ version }) => version === "1"
+    it("returns list of versions for all data sources", async () => {
+      assert(store);
+      // add another versioned data source
+      const anotherMoviePagesWithVersion = moviePagesWithVersion.map(
+        (page) => ({
+          ...page,
+          sourceName: `another-movie-source`,
+        })
       );
-      const version2 = dataSourceVersions.find(
-        ({ version }) => version === "2"
-      );
-      expect(version1).toBeDefined();
-      expect(version2).toBeDefined();
-      expect(version1?.isCurrent).toBe(false);
-      expect(version2?.isCurrent).toBe(true);
+      await store.updatePages(anotherMoviePagesWithVersion);
+
+      const dataSourceVersions = await store.getDataSourceVersions();
+
+      expect(dataSourceVersions.length).toBe(2);
     });
   });
 });

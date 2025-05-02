@@ -28,25 +28,26 @@ export type Page = {
   sourceName: string;
 
   /**
-    The version of the page. This is relevant for versioned docs.
-    If the page is not versioned, this field should be undefined.
-   */
-  version?: {
-    label: string;
-    isCurrent: boolean;
-  };
-
-  /**
     Arbitrary metadata for page.
    */
   metadata?: PageMetadata;
 };
+
+interface VersionInfo {
+  isCurrent: boolean;
+  label: string;
+}
 
 export type PageMetadata = {
   /**
     Arbitrary tags.
    */
   tags?: string[];
+  /**
+    The version of the page. This is relevant for versioned docs.
+    If the page is not versioned, this field should be undefined.
+   */
+  version?: VersionInfo;
   /**
     Page-level metadata. Should not be chunked.
    */
@@ -112,6 +113,10 @@ export type DeletePagesArgs = {
   inverse?: boolean;
 };
 
+export interface SourceVersions {
+  [sourceName: string]: VersionInfo[];
+}
+
 /**
   Data store for {@link Page} objects.
  */
@@ -136,6 +141,13 @@ export type PageStore = {
     Deletes pages from the store.
    */
   deletePages(args?: DeletePagesArgs): Promise<void>;
+
+  /**
+    Gets a list of versions for dataSources.
+   */
+  getDataSourceVersions(args?: {
+    dataSources: string[];
+  }): Promise<SourceVersions[]>;
 
   /**
     Close connection to data store.

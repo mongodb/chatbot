@@ -145,12 +145,7 @@ export const makeSnootyDataSource = ({
   project,
   snootyDataApiBaseUrl,
 }: MakeSnootyDataSourceArgs): DataSource => {
-  const {
-    branches,
-    name: snootyProjectName,
-    tags,
-    productName,
-  } = project;
+  const { branches, name: snootyProjectName, tags, productName } = project;
   return {
     name: sourceName,
     async fetchPages() {
@@ -164,11 +159,12 @@ export const makeSnootyDataSource = ({
         }
         const getBranchDocumentsUrl = new URL(
           `projects/${snootyProjectName}/${branch.gitBranchName}/documents`,
-          snootyDataApiBaseUrl)
+          snootyDataApiBaseUrl
+        );
         const version = {
           label: branch.label,
           isCurrent: branch.isStableBranch,
-        }
+        };
         const branchUrl = branch.fullUrl.replace("http://", "https://");
         const { body } = await fetch(getBranchDocumentsUrl);
         if (body === null) {

@@ -1,7 +1,8 @@
 import { CommandModule } from "yargs";
-import { logger, updatePages } from "mongodb-rag-core";
+import { logger } from "../../logger";
 import { LoadConfigArgs } from "../withConfig";
 import { withConfig, withConfigOptions, ResolvedConfig } from "../withConfig";
+import { updatePages } from "../../pageStore/updatePages";
 
 const commandModule: CommandModule<Record<string, unknown>, LoadConfigArgs> = {
   command: "pages <action>",

@@ -1,4 +1,4 @@
-import { MongoClient } from "mongodb-rag-core/mongodb";
+import { MongoClient } from "mongodb";
 
 /**
   The ingest meta has information about ingest runs so that the script can

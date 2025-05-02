@@ -1,6 +1,6 @@
-import { PageStore, PageConcurrencyOptions } from "mongodb-rag-core";
-import { DataSource } from "mongodb-rag-core/dataSources";
-import { makeIngestMetaStore } from "mongodb-rag-ingest";
+import { PageStore } from "../pageStore/Page";
+import { PageConcurrencyOptions } from "../pageStore/updatePages";
+import { DataSource } from "../sources/DataSource";
 import { IngestMetaStore } from "./IngestMetaStore";
 
 /**

@@ -1,6 +1,6 @@
 import yargs from "yargs";
 import Path from "path";
-import { logger } from "mongodb-rag-core";
+import { logger } from "../logger";
 import { Config } from "./Config";
 
 export type LoadConfigArgs = {

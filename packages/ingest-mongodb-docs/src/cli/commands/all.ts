@@ -1,5 +1,5 @@
 import { CommandModule } from "yargs";
-import { logger } from "mongodb-rag-core";
+import { logger } from "../../logger";
 import { doUpdatePagesCommand as standarddoUpdatePagesCommand } from "./pages";
 import {
   ResolvedConfig,

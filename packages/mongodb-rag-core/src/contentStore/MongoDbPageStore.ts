@@ -173,7 +173,6 @@ export function makeMongoDbPageStore({
           },
         },
       ];
-      console.log("pipeline", pipeline);
       return pagesCollection
         .aggregate<{ version: string; isCurrent: boolean }>(pipeline)
         .toArray();

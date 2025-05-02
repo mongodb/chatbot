@@ -2,10 +2,10 @@ import {
   References,
   SomeMessage,
   SystemMessage,
-  FindContentResult,
   DataStreamer,
   UserMessage,
   AssistantMessage,
+  ToolMessage,
   EmbeddedContent,
 } from "mongodb-rag-core";
 import { z } from "zod";
@@ -13,9 +13,6 @@ import { GenerateResponse } from "../routes/conversations/addMessageToConversati
 import {
   CoreAssistantMessage,
   CoreMessage,
-  CoreSystemMessage,
-  CoreToolMessage,
-  CoreUserMessage,
   LanguageModel,
   StepResult,
   streamText,
@@ -23,15 +20,13 @@ import {
   Tool,
   ToolCallUnion,
   ToolResult,
-  ToolResultPart,
   ToolSet,
 } from "mongodb-rag-core/aiSdk";
 import { FilterPreviousMessages } from "./FilterPreviousMessages";
 import { InputGuardrail, withAbortControllerGuardrail } from "./InputGuardrail";
 import { strict as assert } from "assert";
 import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
-import { makeDefaultReferenceLinks } from "./makeDefaultReferenceLinks";
-import { text } from "express";
+
 export interface GenerateResponseWithSearchToolParams {
   languageModel: LanguageModel;
   llmNotWorkingMessage: string;
@@ -163,11 +158,9 @@ export function makeGenerateResponseWithSearchTool({
                     >
                   ) => {
                     if (toolResult.toolName === SEARCH_TOOL_NAME) {
-                      // TODO: logic to get references
-                      const stepReferences = makeReferenceLinks(
-                        extractReferencesFromStepResults(stepResults) ?? []
-                      );
-                      references.push(...stepReferences);
+                      const extractedReferences: References =
+                        extractReferencesFromStepResults(toolResults);
+                      references.push(...extractedReferences);
                     }
                   }
                 );
@@ -192,7 +185,9 @@ export function makeGenerateResponseWithSearchTool({
 
           return {
             stepResults,
-            references,
+            references: makeReferenceLinks
+              ? makeReferenceLinks(references)
+              : references,
           };
         },
         inputGuardrailPromise
@@ -290,10 +285,10 @@ async function handleStreamResults(
   }
 }
 
-function extractReferencesFromStepResults<TS extends ToolSet>(
-  stepResults: StepResult<TS>[]
-): References {
-  const references: References = [];
+function extractReferencesFromStepResults<
+  TS extends { [SEARCH_TOOL_NAME]: SearchTool }
+>(stepResults: StepResult<TS>[]) {
+  const content: Partial<EmbeddedContent>[] = [];
 
   for (const stepResult of stepResults) {
     if (stepResult.toolResults) {
@@ -304,25 +299,19 @@ function extractReferencesFromStepResults<TS extends ToolSet>(
         ) {
           // Map the search tool results to the References format
           const searchResults = toolResult.result.content;
-          const referencesToAdd = searchResults.map(
-            (item: {
-              url: string;
-              text: string;
-              metadata?: Record<string, unknown>;
-            }) => ({
-              url: item.url,
-              title: item.text || item.url,
-              metadata: item.metadata || {},
-            })
-          );
+          const referencesToAdd = searchResults.map((item) => ({
+            url: item.url,
+            title: item.metadata?.pageTitle ?? item.url,
+            metadata: item.metadata ?? {},
+          }));
 
-          references.push(...referencesToAdd);
+          content.push(...referencesToAdd);
         }
       }
     }
   }
 
-  return references;
+  return content;
 }
 
 /**
@@ -394,6 +383,7 @@ function handleReturnGeneration(
     ] satisfies SomeMessage[],
   };
 }
+
 function formatMessageForAiSdk(message: SomeMessage): CoreMessage {
   if (message.role === "assistant" && typeof message.content === "object") {
     // Convert assistant messages with object content to proper format

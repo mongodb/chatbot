@@ -6,7 +6,6 @@ import {
   DataStreamer,
   UserMessage,
   AssistantMessage,
-  ToolMessage,
   EmbeddedContent,
 } from "mongodb-rag-core";
 import { z } from "zod";
@@ -22,6 +21,8 @@ import {
   streamText,
   TextStreamPart,
   Tool,
+  ToolCallUnion,
+  ToolResult,
   ToolResultPart,
   ToolSet,
 } from "mongodb-rag-core/aiSdk";
@@ -52,14 +53,23 @@ export const SEARCH_TOOL_NAME = "search_content";
 export const DefaultSearchArgsSchema = z.object({ query: z.string() });
 export type SearchArguments = z.infer<typeof DefaultSearchArgsSchema>;
 
-export type SearchToolResult = {
+export type SearchToolReturnValue = {
   content: {
     url: string;
     text: string;
     metadata?: Record<string, unknown>;
   }[];
 };
-export type SearchTool = Tool<typeof DefaultSearchArgsSchema, SearchToolResult>;
+export type SearchTool = Tool<
+  typeof DefaultSearchArgsSchema,
+  SearchToolReturnValue
+>;
+
+export type SearchToolResult = ToolResult<
+  typeof SEARCH_TOOL_NAME,
+  SearchArguments,
+  SearchToolReturnValue
+>;
 
 /**
   Generate chatbot response using RAG and a search tool named {@link SEARCH_TOOL_NAME}.
@@ -128,6 +138,7 @@ export function makeGenerateResponseWithSearchTool({
           })
         : undefined;
 
+      const references: References = [];
       const { result, guardrailResult } = await withAbortControllerGuardrail(
         async (controller) => {
           const toolDefinitions = {
@@ -140,14 +151,33 @@ export function makeGenerateResponseWithSearchTool({
             ...generationArgs,
             abortSignal: controller.signal,
             tools: toolDefinitions,
+            onStepFinish: async ({ stepType, toolResults }) => {
+              // Add tool results to references
+              if (stepType === "tool-result") {
+                toolResults?.forEach(
+                  (
+                    toolResult: ToolResult<
+                      typeof SEARCH_TOOL_NAME,
+                      SearchArguments,
+                      SearchToolResult
+                    >
+                  ) => {
+                    if (toolResult.toolName === SEARCH_TOOL_NAME) {
+                      // TODO: logic to get references
+                      const stepReferences = makeReferenceLinks(
+                        extractReferencesFromStepResults(stepResults) ?? []
+                      );
+                      references.push(...stepReferences);
+                    }
+                  }
+                );
+              }
+            },
           });
-
-          const references = await handleStreamResults(
-            fullStream,
-            shouldStream,
-            dataStreamer,
-            makeReferenceLinks
-          );
+          if (shouldStream) {
+            assert(dataStreamer, "dataStreamer is required for streaming");
+            await handleStreamResults(fullStream, shouldStream, dataStreamer);
+          }
 
           const stepResults = await steps;
           console.log(
@@ -233,113 +263,29 @@ function stepResultsToMessages<TOOLS extends ToolSet>(
 }
 
 async function handleStreamResults(
-  streamFromAiSdk: AsyncIterable<
-    TextStreamPart<{
-      readonly search_content: SearchTool;
-    }>
-  >,
+  streamFromAiSdk: AsyncIterable<TextStreamPart<ToolSet>>,
   shouldStream: boolean,
-  dataStreamer?: DataStreamer,
-  makeReferenceLinks?: MakeReferenceLinksFunc
+  dataStreamer?: DataStreamer
 ) {
-  if (shouldStream) {
-    assert(dataStreamer, "dataStreamer is required for streaming");
-  }
-  // Define type guards for each stream element type we care about
-  function isTextDelta(
-    chunk: unknown
-  ): chunk is { type: "text-delta"; textDelta: string } {
-    return (
-      typeof chunk === "object" &&
-      chunk !== null &&
-      "type" in chunk &&
-      chunk.type === "text-delta" &&
-      "textDelta" in chunk
-    );
-  }
-
-  function isToolResult(chunk: unknown): chunk is {
-    type: "tool-result";
-    toolName: string;
-    result: SearchToolResult;
-  } {
-    return (
-      typeof chunk === "object" &&
-      chunk !== null &&
-      "type" in chunk &&
-      chunk.type === "tool-result" &&
-      "toolName" in chunk &&
-      "result" in chunk
-    );
-  }
-
-  function isErrorResult(chunk: unknown): chunk is {
-    type: "error";
-    error: string;
-  } {
-    return (
-      typeof chunk === "object" &&
-      chunk !== null &&
-      "type" in chunk &&
-      chunk.type === "error" &&
-      "error" in chunk
-    );
-  }
-
-  function isFinishResult(chunk: unknown): chunk is {
-    type: "finish";
-  } {
-    return (
-      typeof chunk === "object" &&
-      chunk !== null &&
-      "type" in chunk &&
-      chunk.type === "finish"
-    );
-  }
-
-  const searchResults: SearchToolResult["content"] = [];
-  // Process the stream with type guards instead of switch
   for await (const chunk of streamFromAiSdk) {
-    // Cast to unknown first to allow proper type narrowing
-    const item: unknown = chunk;
-
-    // Handle text deltas
-    if (isTextDelta(item)) {
-      if (shouldStream) {
-        dataStreamer?.streamData({
-          data: item.textDelta,
-          type: "delta",
-        });
-      }
-    }
-    // Handle tool results
-    else if (isToolResult(item) && item.toolName === SEARCH_TOOL_NAME) {
-      const toolResult = item.result;
-      if (
-        toolResult &&
-        "content" in toolResult &&
-        Array.isArray(toolResult.content)
-      ) {
-        searchResults.push(...toolResult.content);
-      }
-    } else if (isFinishResult(item)) {
-      const referenceLinks = makeReferenceLinks
-        ? makeReferenceLinks(searchResults)
-        : makeDefaultReferenceLinks(searchResults);
-      if (shouldStream) {
-        dataStreamer?.streamData({
-          data: referenceLinks,
-          type: "references",
-        });
-      }
-      return referenceLinks;
-    }
-    // TODO: handle error cases
-    else if (isErrorResult(item)) {
-      if (shouldStream) {
-        dataStreamer?.disconnect();
-      }
-      throw new Error(item.error);
+    switch (chunk.type) {
+      case "text-delta":
+        if (shouldStream) {
+          dataStreamer?.streamData({
+            data: chunk.textDelta,
+            type: "delta",
+          });
+        }
+        break;
+      case "error":
+        if (shouldStream) {
+          dataStreamer?.disconnect();
+        }
+        throw new Error(
+          typeof chunk.error === "string" ? chunk.error : String(chunk.error)
+        );
+      default:
+        break;
     }
   }
 }

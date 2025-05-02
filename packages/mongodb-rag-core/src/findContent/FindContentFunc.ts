@@ -1,8 +1,9 @@
 import { EmbeddedContent } from "../contentStore/EmbeddedContent";
-import { WithScore } from "../VectorStore";
+import { QueryFilters, WithScore } from "../VectorStore";
 
 export type FindContentFuncArgs = {
   query: string;
+  filters?: QueryFilters;
 };
 
 export type FindContentFunc = (

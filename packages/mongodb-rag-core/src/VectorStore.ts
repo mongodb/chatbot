@@ -16,6 +16,17 @@ export type VectorStore<T> = {
 export type WithScore<T> = T & { score: number };
 
 /**
+  Filters for querying the vector store.
+ */
+export type QueryFilters = {
+  sourceName?: string;
+  version?: {
+    current?: boolean;
+    label?: string;
+  };
+};
+
+/**
   Options for performing a nearest-neighbor search.
  */
 export type FindNearestNeighborsOptions = {
@@ -49,5 +60,5 @@ export type FindNearestNeighborsOptions = {
   /**
     Search filter expression.
    */
-  filter: Record<string, unknown>;
+  filter: QueryFilters;
 };

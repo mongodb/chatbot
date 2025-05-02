@@ -245,11 +245,12 @@ describe("nearest neighbor search", () => {
     );
     expect(matches).toHaveLength(5);
   });
+
   test("Should filter content to only match specific sourceName", async () => {
     assert(store);
     const query = "db.collection.insertOne()";
     const filter = {
-      sourceName: "snooty-docs",
+      sourceName: "docs",
     };
 
     const { embedding } = await embedder.embed({
@@ -260,15 +261,16 @@ describe("nearest neighbor search", () => {
       ...findNearestNeighborOptions,
       filter,
     });
-    expect(
-      matches.filter((match) => match.sourceName !== "snooty-docs")
-    ).toHaveLength(0);
+    expect(matches.filter((match) => match.sourceName !== "docs")).toHaveLength(
+      0
+    );
   });
+
   test("Should filter content to not match a non-existent source", async () => {
     assert(store);
     const query = "db.collection.insertOne()";
     const filter = {
-      sourceName: { $eq: "not-a-source-name" },
+      sourceName: "not-a-source-name",
     };
     const { embedding } = await embedder.embed({
       text: query,
@@ -287,6 +289,52 @@ describe("nearest neighbor search", () => {
     expect(matches.length).toBeGreaterThan(0);
   });
 
+  it("Should filter content to current version by default", async () => {
+    assert(store);
+    const query = "db.collection.insertOne()";
+    const filter = {
+      sourceName: "docs",
+    };
+    const { embedding } = await embedder.embed({
+      text: query,
+    });
+
+    const matches = await store.findNearestNeighbors(embedding, {
+      ...findNearestNeighborOptions,
+      filter,
+    });
+
+    expect(
+      matches.filter((match) => match.metadata?.version?.isCurrent !== true)
+    ).toHaveLength(0);
+    expect(
+      matches.filter((match) => match.metadata?.version?.isCurrent === true)
+    ).toHaveLength(5);
+  });
+
+  it("Should filter content to version requested", async () => {
+    assert(store);
+    const query = "db.collection.insertOne()";
+    const filter = {
+      sourceName: "docs",
+      version: { label: "7.0" },
+    };
+    const { embedding } = await embedder.embed({
+      text: query,
+    });
+
+    const matches = await store.findNearestNeighbors(embedding, {
+      ...findNearestNeighborOptions,
+      filter,
+    });
+    expect(
+      matches.filter((match) => match.metadata?.version?.label !== "7.0")
+    ).toHaveLength(0);
+    expect(
+      matches.filter((match) => match.metadata?.version?.label === "7.0")
+    ).toHaveLength(5);
+  });
+
   it("does not find nearest neighbors for irrelevant embedding", async () => {
     assert(store);
 
@@ -302,6 +350,15 @@ describe("nearest neighbor search", () => {
 describe("initialized DB", () => {
   let store: MongoDbEmbeddedContentStore | undefined;
   let mongoClient: MongoClient | undefined;
+  type VectorSearchIndex = {
+    statusDetail: any;
+    latestDefinition: {
+      fields: any[];
+    };
+    latestDefinitionVersion: { version: number; createdAt: Date };
+    name: string;
+    type: string;
+  };
   beforeEach(async () => {
     // Need to use real Atlas connection in order to run vector searches
     store = makeMongoDbEmbeddedContentStore({
@@ -309,7 +366,11 @@ describe("initialized DB", () => {
       databaseName: MONGODB_DATABASE_NAME,
       searchIndex: {
         embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
-        filters: [{ type: "filter", path: "sourceName" }],
+        filters: [
+          { type: "filter", path: "sourceName" },
+          { type: "filter", path: "metadata.version.label" },
+          { type: "filter", path: "metadata.version.isCurrent" },
+        ],
         name: VECTOR_SEARCH_INDEX_NAME,
       },
     });
@@ -333,12 +394,31 @@ describe("initialized DB", () => {
     expect(indexes?.some((el) => el.name === "_id_")).toBe(true);
     expect(indexes?.some((el) => el.name === "sourceName_1")).toBe(true);
     expect(indexes?.some((el) => el.name === "url_1")).toBe(true);
+    expect(
+      indexes?.some((el) => el.name === "metadata.version.isCurrent_1")
+    ).toBe(true);
+    expect(indexes?.some((el) => el.name === "metadata.version.label_1")).toBe(
+      true
+    );
 
     const vectorIndexes = await coll?.listSearchIndexes().toArray();
+    if (!vectorIndexes) return;
+
     expect(
       vectorIndexes?.some(
-        (vi) => (vi as unknown as { type: string }).type === "vectorSearch"
+        (vi) => (vi as VectorSearchIndex).type === "vectorSearch"
       )
     ).toBe(true);
+
+    const vectorSearchIndex = vectorIndexes?.find(
+      (vi) => vi.name === VECTOR_SEARCH_INDEX_NAME
+    ) as VectorSearchIndex;
+
+    const filterPaths = vectorSearchIndex.latestDefinition.fields
+      .filter((field: { type: string }) => field.type === "filter")
+      .map((field: { path: any }) => field.path);
+    expect(filterPaths).toContain("sourceName");
+    expect(filterPaths).toContain("metadata.version.label");
+    expect(filterPaths).toContain("metadata.version.isCurrent");
   });
 });

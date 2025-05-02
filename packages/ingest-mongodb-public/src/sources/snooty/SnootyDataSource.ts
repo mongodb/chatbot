@@ -6,6 +6,7 @@ import {
   snootyAstToMd,
   getTitleFromSnootyAst,
   getMetadataFromSnootyAst,
+  RenderLinks,
 } from "./snootyAstToMd";
 import {
   getTitleFromSnootyOpenApiSpecAst,
@@ -90,6 +91,25 @@ export type SnootyMetaNode = SnootyNode & {
 };
 
 /**
+  Internal `ref` links
+ */
+export type SnootyRefRoleNode = SnootyNode & {
+  type: "ref_role";
+} & ( // For refs internal to current site
+    | { fileid?: [path: string, fragment?: string] }
+    // For refs external to current site
+    | { url?: string }
+  );
+
+/**
+  External links
+ */
+export type SnootyReferenceNode = SnootyNode & {
+  type: "reference";
+  refuri?: string;
+};
+
+/**
   A page in the Snooty manifest.
  */
 export type SnootyPageData = {
@@ -138,16 +158,35 @@ export type MakeSnootyDataSourceArgs = {
     The base URL for Snooty Data API requests.
    */
   snootyDataApiBaseUrl: string;
+
+  /**
+    Configuration for rendering links and anchor links.
+   */
+  links?: RenderLinks;
 };
 
 export const makeSnootyDataSource = ({
   name: sourceName,
   project,
   snootyDataApiBaseUrl,
-}: MakeSnootyDataSourceArgs): DataSource => {
-  const { branches, name: snootyProjectName, tags, productName } = project;
+  links,
+}: MakeSnootyDataSourceArgs): DataSource & {
+  _baseUrl: string;
+  _currentBranch: string;
+  _snootyProjectName: string;
+  _version?: string;
+} => {
+  const { name: snootyProjectName, tags, productName, branches } = project;
   return {
     name: sourceName,
+    _baseUrl: snootyDataApiBaseUrl,
+    _currentBranch:
+      branches?.find((branch) => branch.active && branch.isStableBranch)
+        ?.gitBranchName ||
+      branches?.[0]?.gitBranchName ||
+      "",
+    _snootyProjectName: snootyProjectName,
+    _version: undefined,
     async fetchPages() {
       // TODO: The manifest can be quite large (>100MB) so this could stand to
       // be re-architected to use AsyncGenerators and update page-by-page. For
@@ -195,6 +234,10 @@ export const makeSnootyDataSource = ({
                         tags: tags ?? [],
                         productName,
                         version,
+                        links: {
+                          ...links,
+                          baseUrl: branchUrl,
+                        },
                       });
                       if (page !== undefined) {
                         pages.push(page);
@@ -311,6 +354,7 @@ export const handlePage = async (
     tags: tagsIn = [],
     productName,
     version,
+    links,
   }: {
     sourceName: string;
     baseUrl: string;
@@ -320,6 +364,7 @@ export const handlePage = async (
       label: string;
       isCurrent: boolean;
     };
+    links?: RenderLinks;
   }
 ): Promise<Page | undefined> => {
   // Strip first three path segments - according to Snooty team, they'll always
@@ -339,6 +384,11 @@ export const handlePage = async (
   let body = "";
   let title: string | undefined;
   let format: PageFormat;
+  const baseUrlTrailingSlash = baseUrl.replace(/\/?$/, "/");
+  const url = new URL(pagePath, baseUrlTrailingSlash).href.replace(
+    /\/?$/, // Add trailing slash
+    "/"
+  );
   if (page.ast.options?.template === "openapi") {
     format = "openapi-yaml";
     body = await snootyAstToOpenApiSpec(page.ast);
@@ -346,7 +396,7 @@ export const handlePage = async (
     tags.push("openapi");
   } else {
     format = "md";
-    body = snootyAstToMd(page.ast);
+    body = snootyAstToMd(page.ast, links);
     title = getTitleFromSnootyAst(page.ast);
   }
   const { metadata: pageMetadata, noIndex } = getMetadataFromSnootyAst(
@@ -357,10 +407,7 @@ export const handlePage = async (
   }
 
   return {
-    url: new URL(pagePath, baseUrl.replace(/\/?$/, "/")).href.replace(
-      /\/?$/, // Add trailing slash
-      "/"
-    ),
+    url,
     sourceName,
     title,
     body: truncateEmbeddings(body),

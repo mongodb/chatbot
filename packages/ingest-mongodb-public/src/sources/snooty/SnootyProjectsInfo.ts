@@ -7,6 +7,7 @@ import {
   LocallySpecifiedSnootyProjectConfig,
 } from "./SnootyDataSource";
 import { filterFulfilled } from "mongodb-rag-core";
+import { RenderLinks } from "./snootyAstToMd";
 
 /** Schema for API response from https://snooty-data-api.mongodb.com/prod/projects */
 export type GetSnootyProjectsResponse = {
@@ -14,10 +15,7 @@ export type GetSnootyProjectsResponse = {
 };
 
 export type SnootyProjectsInfo = {
-
-  getAllBranches(args: {
-    projectName: string
-  }): Promise<Branch[] | undefined>;
+  getAllBranches(args: { projectName: string }): Promise<Branch[] | undefined>;
 };
 
 /**
@@ -66,9 +64,11 @@ export const makeSnootyProjectsInfo = async ({
 export const prepareSnootySources = async ({
   projects,
   snootyDataApiBaseUrl,
+  links,
 }: {
   projects: LocallySpecifiedSnootyProjectConfig[];
   snootyDataApiBaseUrl: string;
+  links?: Omit<RenderLinks, "baseUrl">;
 }) => {
   const snootyProjectsInfo = await makeSnootyProjectsInfo({
     snootyDataApiBaseUrl,
@@ -77,9 +77,9 @@ export const prepareSnootySources = async ({
     await Promise.allSettled(
       projects.map(async (project) => {
         const { name: projectName } = project;
-        let branches = await snootyProjectsInfo.getAllBranches({
+        let branches = (await snootyProjectsInfo.getAllBranches({
           projectName,
-        }) as Branch[];
+        })) as Branch[];
         // modify branches if there is a currentVersionOverride
         if (project.currentVersionOverride) {
           branches = overrideCurrentVersion({
@@ -95,6 +95,7 @@ export const prepareSnootySources = async ({
               branches,
             },
             snootyDataApiBaseUrl,
+            links,
           });
         } catch (error) {
           logger.error(
@@ -109,10 +110,13 @@ export const prepareSnootySources = async ({
   ).map((result) => result.value);
 };
 
-export const overrideCurrentVersion = ({ branches, currentVersionOverride }: {
+export const overrideCurrentVersion = ({
+  branches,
+  currentVersionOverride,
+}: {
   branches: Branch[];
   currentVersionOverride: string;
-}) => { 
+}) => {
   return branches.map((branch) => {
     if (branch.label !== currentVersionOverride) {
       return { ...branch, isStableBranch: false };
@@ -122,4 +126,4 @@ export const overrideCurrentVersion = ({ branches, currentVersionOverride }: {
     }
     return branch;
   });
-}
+};

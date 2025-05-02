@@ -1,3 +1,4 @@
+import { RenderLinks } from "./snooty/snootyAstToMd";
 import { LocallySpecifiedSnootyProjectConfig } from "./snooty/SnootyDataSource";
 import { prepareSnootySources } from "./snooty/SnootyProjectsInfo";
 
@@ -266,9 +267,11 @@ export const snootyDataApiBaseUrl = "https://snooty-data-api.mongodb.com/prod/";
 
 export const makeSnootyDataSources = (
   snootyDataApiBaseUrl: string,
-  projects: LocallySpecifiedSnootyProjectConfig[]
+  projects: LocallySpecifiedSnootyProjectConfig[],
+  links?: Omit<RenderLinks, "baseUrl">
 ) =>
   prepareSnootySources({
     projects,
     snootyDataApiBaseUrl,
+    links,
   });

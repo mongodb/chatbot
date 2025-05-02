@@ -245,6 +245,7 @@ describe("nearest neighbor search", () => {
     );
     expect(matches).toHaveLength(5);
   });
+
   test("Should filter content to only match specific sourceName", async () => {
     assert(store);
     const query = "db.collection.insertOne()";
@@ -260,10 +261,11 @@ describe("nearest neighbor search", () => {
       ...findNearestNeighborOptions,
       filter,
     });
-    expect(
-      matches.filter((match) => match.sourceName !== "docs")
-    ).toHaveLength(0);
+    expect(matches.filter((match) => match.sourceName !== "docs")).toHaveLength(
+      0
+    );
   });
+
   test("Should filter content to not match a non-existent source", async () => {
     assert(store);
     const query = "db.collection.insertOne()";
@@ -315,7 +317,7 @@ describe("nearest neighbor search", () => {
     const query = "db.collection.insertOne()";
     const filter = {
       sourceName: "docs",
-      version: {label: "7.0"},
+      version: { label: "7.0" },
     };
     const { embedding } = await embedder.embed({
       text: query,
@@ -332,6 +334,7 @@ describe("nearest neighbor search", () => {
       matches.filter((match) => match.metadata?.version?.label === "7.0")
     ).toHaveLength(5);
   });
+
   it("does not find nearest neighbors for irrelevant embedding", async () => {
     assert(store);
 

@@ -249,7 +249,7 @@ export function makeMongoDbEmbeddedContentStore({
   };
 }
 
-type VectorSearchFilter = {
+type MongoDbAtlasVectorSearchFilter = {
   sourceName?: string;
   "metadata.version.label"?: string;
   "metadata.version.isCurrent"?: boolean;
@@ -260,8 +260,8 @@ type VectorSearchFilter = {
 
 const handleFilters = (
   filter: FindNearestNeighborsOptions["filter"]
-): VectorSearchFilter => {
-  const vectorSearchFilter: VectorSearchFilter = {};
+): MongoDbAtlasVectorSearchFilter => {
+  const vectorSearchFilter: MongoDbAtlasVectorSearchFilter = {};
   if (filter.sourceName) {
     vectorSearchFilter["sourceName"] = filter.sourceName;
   }

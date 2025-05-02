@@ -13,7 +13,8 @@
     "forceConsistentCasingInFileNames": true,
     "strictNullChecks": true,
     "skipLibCheck": true,
-    "strict": true
+    "strict": true,
+    "outDir": "./build"
   },
   "include": ["./src/**/*.ts"]
 }

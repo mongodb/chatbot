@@ -121,10 +121,11 @@ describe("loadPagesDataset", () => {
   it("should not include pages with action 'deleted'", async () => {
     const dataset = await loadPagesDataset({
       pageStore,
-      dataSourceRegex: /foo/,
+      dataSourceRegex: /.*/,
       forbiddenUrls: [],
     });
     const urls = dataset.map((p) => p.url);
+    expect(urls.length).toBeGreaterThan(0);
     expect(urls).not.toContain("https://example.com/page3");
   });
 
@@ -142,9 +143,10 @@ describe("loadPagesDataset", () => {
   it("should only return the projected fields", async () => {
     const dataset = await loadPagesDataset({
       pageStore,
-      dataSourceRegex: /foo/,
+      dataSourceRegex: /.*/, // accept all sources
       forbiddenUrls: [],
     });
+    expect(dataset.length).toBeGreaterThan(0);
     for (const page of dataset) {
       const pageKeys = Object.keys(page);
 

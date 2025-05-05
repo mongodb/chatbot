@@ -20,7 +20,7 @@ const options: HandleHtmlPageFuncOptions = {
     `https://example.com/${pathInRepo}`.replace(/index\.html$/, "testing.html"),
   metadata: {
     productName: "Java Reactive Streams Driver",
-    version: javaVersion,
+    versionLabel: javaVersion,
   },
   extractMetadata: () => ({
     foo: "bar",

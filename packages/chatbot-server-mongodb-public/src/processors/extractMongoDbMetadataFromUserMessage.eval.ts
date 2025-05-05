@@ -5,7 +5,7 @@ import {
 } from "./extractMongoDbMetadataFromUserMessage";
 import { Eval } from "mongodb-rag-core/braintrust";
 import { Scorer } from "autoevals";
-import { MongoDbTag } from "mongodb-rag-core";
+import { MongoDbTag } from "mongodb-rag-core/mongoDbMetadata";
 import {
   openAiClient,
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,

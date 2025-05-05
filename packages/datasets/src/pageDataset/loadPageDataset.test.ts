@@ -54,7 +54,7 @@ describe("loadPagesDataset", () => {
       format: "html",
       action: "created",
     },
-    // This page does not represent a current version
+    // This page represents an older version and should not be returned
     {
       url: "https://example.com/old-version/page4",
       body: "Page 4 body",

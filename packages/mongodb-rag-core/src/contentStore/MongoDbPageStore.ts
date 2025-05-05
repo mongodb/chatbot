@@ -32,7 +32,7 @@ export type MongoDbPageStore = DatabaseConnection &
     }): Promise<string[]>;
     getDataSourceVersions(args: {
       dataSources: string[];
-    }): Promise<Array<SourceVersions>>;
+    }): Promise<SourceVersions[]>;
     metadata: {
       databaseName: string;
       collectionName: string;
@@ -151,7 +151,7 @@ export function makeMongoDbPageStore({
     },
     async getDataSourceVersions(args?: {
       dataSources: string[];
-    }): Promise<Array<SourceVersions>> {
+    }): Promise<SourceVersions[]> {
       const pipeline = [
         {
           $match: {

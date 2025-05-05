@@ -12,18 +12,21 @@ import {
 Accepts the results of multiple experiments in a project. Groups them by the eval case so that results for different models are grouped together for the same case.
  */
 export function materializeExperimentResultsByCase<Case extends BaseCase>(
-  results: ResultsByExperiment,
-  type: ExperimentType
+  resultsByExperiment: ResultsByExperiment,
+  type: ExperimentType,
+  metadata?: Record<string, unknown>
 ): Case[] {
   // Create a map to group results by case ID
   const caseMap = new Map<string, Case>();
 
   // Process each experiment result
-  for (const [experimentName, experimentResults] of Object.entries(results)) {
+  for (const [experimentName, { results }] of Object.entries(
+    resultsByExperiment
+  )) {
     // Process each case in the experiment
     switch (type) {
       case "prompt_response":
-        for (const evalCase of experimentResults as ExperimentResult<
+        for (const evalCase of results as ExperimentResult<
           NlPromptResponseEvalCase,
           NlPromptResponseTaskOutput,
           string[]
@@ -86,6 +89,9 @@ export function materializeExperimentResultsByCase<Case extends BaseCase>(
 function parseModelFromExperimentName(experimentName: string): string {
   // Try to extract model from URL query parameter format
   const modelMatch = experimentName.match(/[?&]model=([^&]+)/);
+  if (!modelMatch) {
+    return experimentName;
+  }
   const modelName =
     modelMatch && modelMatch[1] ? modelMatch[1] : experimentName;
 

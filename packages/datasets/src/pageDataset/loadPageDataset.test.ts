@@ -121,7 +121,7 @@ describe("loadPagesDataset", () => {
   it("should not include pages with action 'deleted'", async () => {
     const dataset = await loadPagesDataset({
       pageStore,
-      dataSourceRegex: /.*/,
+      dataSourceRegex: /.*/, // accept all sources
       forbiddenUrls: [],
     });
     const urls = dataset.map((p) => p.url);

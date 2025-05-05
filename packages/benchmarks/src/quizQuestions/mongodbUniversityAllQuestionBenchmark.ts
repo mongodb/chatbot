@@ -1,10 +1,10 @@
-import { models } from "mongodb-rag-core/models";
+import { getOpenAiEndpointAndApiKey, models } from "mongodb-rag-core/models";
 import "dotenv/config";
 import PromisePool from "@supercharge/promise-pool";
 import { runQuizQuestionEval } from "./QuizQuestionEval";
 import { getQuizQuestionEvalCasesFromBraintrust } from "./getQuizQuestionEvalCasesFromBraintrust";
 import { mongoDbQuizQuestionExamples } from "./mongoDbQuizQuestionExamples";
-import { openAiClientFactory } from "../openAiClients";
+import { OpenAI } from "mongodb-rag-core/openai";
 
 async function main() {
   const DEFAULT_MAX_CONCURRENCY = 15;
@@ -46,7 +46,9 @@ async function main() {
         await runQuizQuestionEval({
           projectName,
           model: modelInfo.deployment,
-          openaiClient: openAiClientFactory.makeOpenAiClient(modelInfo),
+          openaiClient: new OpenAI({
+            ...(await getOpenAiEndpointAndApiKey(modelInfo)),
+          }),
           experimentName,
           additionalMetadata: {
             ...modelInfo,

@@ -12,6 +12,7 @@ import { DocsChatbot } from "./DocsChatbot";
 import { DevCenterChatbot } from "./DevCenterChatbot";
 import { HotkeyTrigger } from "./HotkeyTrigger";
 import { makePrioritizeReferenceDomain } from "./references";
+import { getSegmentIdHeaders } from "./segment";
 
 const prefersDarkMode = () =>
   window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
@@ -68,7 +69,10 @@ function App() {
           serverBaseUrl={serverBaseUrl}
           shouldStream={shouldStream}
           darkMode={darkMode}
-          fetchOptions={{ credentials: "include" }}
+          fetchOptions={() => ({
+            credentials: "include",
+            headers: getSegmentIdHeaders(),
+          })}
           onOpen={() => {
             console.log("Docs Chatbot opened");
           }}
@@ -84,7 +88,10 @@ function App() {
           serverBaseUrl={serverBaseUrl}
           shouldStream={shouldStream}
           darkMode={darkMode}
-          fetchOptions={{ credentials: "include" }}
+          fetchOptions={() => ({
+            credentials: "include",
+            headers: getSegmentIdHeaders(),
+          })}
           getClientContext={() => ({
             user: "test-user-pls-ignore",
           })}

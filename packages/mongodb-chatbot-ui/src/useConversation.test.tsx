@@ -221,4 +221,114 @@ describe("useConversation", () => {
       expect(result.current.messages[1].rating).toBe(false);
     });
   });
+
+  it("uses static fetchOptions when provided", async () => {
+    const testHeaderValue = "static";
+    const fetchOptions = { headers: { "X-Test-Header": testHeaderValue } };
+    const { result } = renderUseConversation({
+      ...baseUseConversationParams,
+      fetchOptions,
+    });
+
+    mockNextFetchResult({
+      json: {
+        _id: new ObjectId().toHexString(),
+        createdAt: Date.now(),
+        messages: [],
+      },
+    });
+    await act(async () => {
+      await result.current.createConversation();
+    });
+    await waitFor(() => {
+      const fetchCalls = (global.fetch as jest.Mock).mock.calls;
+      expect(fetchCalls.length).toBeGreaterThan(0);
+      const lastCallArgs = fetchCalls[fetchCalls.length - 1];
+      expect(lastCallArgs[0]).toBe(
+        "http://localhost:3000/api/v1/conversations"
+      );
+
+      // Get the headers from the request options
+      const headers = lastCallArgs[1].headers;
+      // Check if it's a Headers object or a plain object
+      const headerValue =
+        headers instanceof Headers
+          ? headers.get("X-Test-Header")
+          : headers["X-Test-Header"];
+
+      expect(headerValue).toBe(testHeaderValue);
+    });
+  });
+
+  it("uses dynamic fetchOptions with changing headers between requests", async () => {
+    let callCount = 0;
+    const fetchOptions = () => {
+      callCount += 1;
+      return { headers: { "X-Test-Header": `dynamic-${callCount}` } };
+    };
+    const { result } = renderUseConversation({
+      ...baseUseConversationParams,
+      fetchOptions,
+    });
+
+    // First request
+    mockNextFetchResult({
+      json: {
+        _id: new ObjectId().toHexString(),
+        createdAt: Date.now(),
+        messages: [],
+      },
+    });
+    await act(async () => {
+      await result.current.createConversation();
+    });
+    await waitFor(() => {
+      const fetchCalls = (global.fetch as jest.Mock).mock.calls;
+      expect(fetchCalls.length).toBeGreaterThan(0);
+      const lastCallArgs = fetchCalls[fetchCalls.length - 1];
+      expect(lastCallArgs[0]).toBe(
+        "http://localhost:3000/api/v1/conversations"
+      );
+
+      // Get the headers from the request options
+      const headers = lastCallArgs[1].headers;
+      // Check if it's a Headers object or a plain object
+      const headerValue =
+        headers instanceof Headers
+          ? headers.get("X-Test-Header")
+          : headers["X-Test-Header"];
+
+      expect(headerValue).toBe("dynamic-1");
+    });
+
+    // Second request
+    mockNextFetchResult({
+      json: {
+        _id: new ObjectId().toHexString(),
+        createdAt: Date.now(),
+        messages: [],
+      },
+    });
+    await act(async () => {
+      await result.current.createConversation();
+    });
+    await waitFor(() => {
+      const fetchCalls = (global.fetch as jest.Mock).mock.calls;
+      expect(fetchCalls.length).toBeGreaterThan(1);
+      const lastCallArgs = fetchCalls[fetchCalls.length - 1];
+      expect(lastCallArgs[0]).toBe(
+        "http://localhost:3000/api/v1/conversations"
+      );
+
+      // Get the headers from the request options
+      const headers = lastCallArgs[1].headers;
+      // Check if it's a Headers object or a plain object
+      const headerValue =
+        headers instanceof Headers
+          ? headers.get("X-Test-Header")
+          : headers["X-Test-Header"];
+
+      expect(headerValue).toBe("dynamic-2");
+    });
+  });
 });

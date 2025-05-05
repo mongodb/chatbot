@@ -12,7 +12,7 @@ export interface MakeFewShotUserMessageExtractorFunctionParams<
     schema: T;
   };
   systemPrompt: string;
-  fewShotExamples: OpenAI.ChatCompletionMessageParam[];
+  fewShotExamples?: OpenAI.ChatCompletionMessageParam[];
 }
 
 /**
@@ -64,7 +64,7 @@ export function makeFewShotUserMessageExtractorFunction<
     Original user message: ${userMessageText}`.trim(),
     } satisfies OpenAI.ChatCompletionMessageParam;
     const res = await openAiClient.chat.completions.create({
-      messages: [systemPromptMessage, ...fewShotExamples, userMessage],
+      messages: [systemPromptMessage, ...(fewShotExamples ?? []), userMessage],
       temperature: 0,
       model,
       tools: [toolDefinition],
@@ -74,12 +74,15 @@ export function makeFewShotUserMessageExtractorFunction<
       },
       stream: false,
     });
-    const metadata = schema.parse(
-      JSON.parse(
-        res.choices[0]?.message?.tool_calls?.[0]?.function.arguments ?? "{}"
-      )
+    const resToolCall = JSON.parse(
+      res.choices[0]?.message?.tool_calls?.[0]?.function.arguments ?? "{}"
     );
-    return metadata;
+    const metadata = schema.safeParse(resToolCall);
+    // Return the raw tool call if it fails to parse
+    if (!metadata.success) {
+      return resToolCall as unknown as z.infer<T>;
+    }
+    return metadata.data;
   };
 }
 

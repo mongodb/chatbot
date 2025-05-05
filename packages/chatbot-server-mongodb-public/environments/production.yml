@@ -8,7 +8,7 @@ env:
   OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
   ALLOWED_ORIGINS: https://mongodb.com,https://www.mongodb.com,https://learn.mongodb.com
   NODE_ENV: production
-  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: gpt-4o-mini
+  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: gpt-4.1-nano
   OPENAI_API_VERSION: "2024-06-01"
   OPENAI_CHAT_COMPLETION_DEPLOYMENT: gpt-4o
   OPENAI_VERIFIED_ANSWER_EMBEDDING_DEPLOYMENT: "docs-chatbot-embedding-ada-002"
@@ -24,6 +24,7 @@ envSecrets:
   OPENAI_API_KEY: docs-chatbot-prod
   BRAINTRUST_TRACING_API_KEY: docs-chatbot-prod
   SLACK_BOT_TOKEN: docs-chatbot-prod
+  SEGMENT_WRITE_KEY: docs-chatbot-prod
 
 ingress:
   enabled: true

@@ -2,6 +2,11 @@ kind: pipeline
 type: kubernetes
 name: test-all
 
+resources:
+  requests:
+    cpu: 2000
+    memory: 8GiB
+
 trigger:
   event:
     - push
@@ -18,7 +23,6 @@ steps:
     image: node:18
     commands:
       - npm ci
-      - npx playwright install chromium --with-deps
       - npm run build
       - npm run lint
       - npm run test
@@ -237,8 +241,7 @@ steps:
       namespace: docs
       release: chat-server-qa
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-qa,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-qa.docs.staging.corp.mongodb.com
-      values_files:
-        ["packages/mongodb-chatbot-server/environments/qa.yml"]
+      values_files: ["packages/mongodb-chatbot-server/environments/qa.yml"]
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token

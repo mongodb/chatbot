@@ -8,9 +8,6 @@ jest.mock("autoevals", () => ({
   ContextRelevancy: jest.fn().mockResolvedValue({
     score: 0.8,
   }),
-  AnswerRelevancy: jest.fn().mockResolvedValue({
-    score: 0.8,
-  }),
 }));
 
 afterEach(() => {
@@ -52,6 +49,8 @@ describe("getLlmAsAJudgeScores", () => {
     llmDoesNotKnow: false,
     numRetrievedChunks: 1,
     rejectQuery: false,
+    rating: undefined,
+    comment: undefined,
   } satisfies Parameters<typeof getLlmAsAJudgeScores>[1];
 
   it("shouldn't judge verified answer", async () => {
@@ -100,7 +99,6 @@ describe("getLlmAsAJudgeScores", () => {
     const scores = await getLlmAsAJudgeScores(fakeBaseConfig, willJudge);
     expect(scores).toEqual({
       ContextRelevancy: 0.8,
-      AnswerRelevancy: 0.8,
       Faithfulness: 0.8,
     });
   });

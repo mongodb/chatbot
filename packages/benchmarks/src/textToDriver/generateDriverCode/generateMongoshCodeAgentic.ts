@@ -16,19 +16,24 @@ import { TextToDriverEvalTask, TextToDriverOutput } from "../TextToDriverEval";
 import { makeDatabaseInfoPrompt } from "./makeDatabaseInfoPrompt";
 import { getVerySimplifiedSchema } from "mongodb-rag-core/executeCode";
 
-const THINK_TOOL_NAME = "think";
+const QUERY_PLAN_TOOL_NAME = "query_plan";
 const GENERATE_DB_CODE_TOOL_NAME = "generate_db_code";
 const OUTPUT_SUMMARY = "outputSummary";
 
 export const nlQuerySystemPrompt = `${mongoshBaseSystemPrompt}
 
-You may use the '${THINK_TOOL_NAME}' tool before you generate a query with the '${GENERATE_DB_CODE_TOOL_NAME}' tool.
+You may use the '${QUERY_PLAN_TOOL_NAME}' tool before you generate a query with the '${GENERATE_DB_CODE_TOOL_NAME}' tool.
 ${chainOfThoughtConsiderations}
 
-If the results seem suboptimal in some way, use the '${THINK_TOOL_NAME}' tool to plan a new query accordingly. Refer to the '${OUTPUT_SUMMARY}' field to understand the results of the previous query. A query should be reasonable and correct. Repeat as necessary.
+If the results seem suboptimal in some way, use the '${QUERY_PLAN_TOOL_NAME}' tool to plan a new query accordingly. Refer to the '${OUTPUT_SUMMARY}' field to understand the results of the previous query. A query should be reasonable and correct. Repeat as necessary.
+
+A few considerations while debugging queries:
+1. It may be advantageous to adopt a strategy of progressive complexity if you are not clear what to do. Build up and execute your query incrementally across multiple tool calls. Using the \`$project\` operator can be helpful to verify the shape of the data you are working with.
+2. Use can use the \`$type\` operator to verify a field's BSON type.
+
 
 YOU MUST ALWAYS use the '${GENERATE_DB_CODE_TOOL_NAME}' tool to generate a query before completing.
-ALWAYS make AT LEAST 2 tool calls, at least one to '${THINK_TOOL_NAME}' and '${GENERATE_DB_CODE_TOOL_NAME}' before responding to the user.
+ALWAYS make AT LEAST 2 tool calls, at least one to '${QUERY_PLAN_TOOL_NAME}' and '${GENERATE_DB_CODE_TOOL_NAME}' before responding to the user.
 When you are satisfied with the results of '${GENERATE_DB_CODE_TOOL_NAME}', simply say 'Done'`;
 
 export interface MakeGenerateMongoshCodeAgenticParams {
@@ -36,6 +41,7 @@ export interface MakeGenerateMongoshCodeAgenticParams {
   databaseInfos: Record<string, DatabaseInfo>;
   openai: LanguageModelV1;
   llmOptions: Omit<LlmOptions, "openAiClient">;
+  includeOutputShape?: boolean;
 }
 
 /**
@@ -47,6 +53,7 @@ export function makeGenerateMongoshCodeAgenticTask({
   databaseInfos,
   openai,
   llmOptions,
+  includeOutputShape = false,
 }: MakeGenerateMongoshCodeAgenticParams): TextToDriverEvalTask {
   const generateMongoshCodeAgentic: TextToDriverEvalTask =
     async function generateMongoshCodeAgentic(
@@ -64,7 +71,7 @@ export function makeGenerateMongoshCodeAgenticTask({
           undefined,
         model: openai,
         tools: {
-          [THINK_TOOL_NAME]: tool({
+          [QUERY_PLAN_TOOL_NAME]: tool({
             description:
               "Think about the query plan given the natural language query and any previous results (if present). Plan the next query accordingly.",
             parameters: z.object({
@@ -106,14 +113,18 @@ export function makeGenerateMongoshCodeAgenticTask({
           },
           {
             role: "user",
-            content: `Generate MongoDB Shell (mongosh) queries for the following database and natural language query:
+            content:
+              `Generate MongoDB Shell (mongosh) queries for the following database and natural language query:
 
 ${await makeDatabaseInfoPrompt(databaseInfos[databaseName])}
 
 Natural language query: ${nlQuery}
-
-Your output should have the following shape:
-${await getVerySimplifiedSchema(hooks.expected?.result)}`,
+${
+  includeOutputShape
+    ? `Your output should have the following shape:
+${await getVerySimplifiedSchema(hooks.expected?.result)}`
+    : ""
+}`.trimEnd(),
           },
         ],
       });

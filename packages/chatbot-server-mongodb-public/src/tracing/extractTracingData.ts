@@ -63,6 +63,9 @@ export function extractTracingData(
     tags.push("llm_does_not_know");
   }
 
+  const rating = evalAssistantMessage?.rating;
+  const comment = evalAssistantMessage?.userComment;
+
   return {
     tags,
     rejectQuery,
@@ -71,6 +74,8 @@ export function extractTracingData(
     numRetrievedChunks,
     userMessage: previousUserMessage,
     assistantMessage: evalAssistantMessage,
+    rating,
+    comment,
   };
 }
 

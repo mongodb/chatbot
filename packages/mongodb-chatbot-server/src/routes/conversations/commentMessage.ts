@@ -150,12 +150,10 @@ export function makeCommentMessageRoute({
         braintrustLogger.logFeedback({
           id: traceId,
           comment,
-          scores: {
-            HasComment: 1,
-          },
         });
         await updateTraceIfExists({
           updateTrace,
+          reqId,
           conversations,
           conversationId,
           assistantResponseMessageId: messageId,

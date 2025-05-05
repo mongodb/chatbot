@@ -2,24 +2,32 @@ import { strict as assert } from "assert";
 import encodeUrl from "encodeurl";
 import { findAll } from "docdoctor";
 import { SnootyNode } from "./SnootyDataSource";
-import { snootyAstToMd } from "./snootyAstToMd";
+import { RenderLinks, snootyAstToMd } from "./snootyAstToMd";
 
 /**
   Return a string of MD from a Snooty AST node.
  */
-export const renderSnootyTable = (node: SnootyNode) => {
+export const renderSnootyTable = (node: SnootyNode, links?: RenderLinks) => {
   // Table information in snooty AST is expressed in terms of lists and
   // listItems under a list-table directive. We don't want to render the
   // list bullets in the table, so we handle tables differently.
   const table = parseSnootyTable(node);
   return [
     "\n\n<table>",
-    renderRows(table.headerRows, {
-      isHeader: true,
-    }),
-    renderRows(table.dataRows, {
-      isHeader: false,
-    }),
+    renderRows(
+      table.headerRows,
+      {
+        isHeader: true,
+      },
+      links
+    ),
+    renderRows(
+      table.dataRows,
+      {
+        isHeader: false,
+      },
+      links
+    ),
     "</table>\n\n",
   ]
     .join("\n")
@@ -31,10 +39,14 @@ type RenderTableElementOptions = {
   isHeader: boolean;
 };
 
-export const renderRows = (rows: Row[], options: RenderTableElementOptions) => {
+export const renderRows = (
+  rows: Row[],
+  options: RenderTableElementOptions,
+  links?: RenderLinks
+) => {
   return rows
     .map((row) => {
-      return ["<tr>", renderCells(row.cells, options), "</tr>"];
+      return ["<tr>", renderCells(row.cells, options, links), "</tr>"];
     })
     .flat(1)
     .join("\n");
@@ -42,7 +54,8 @@ export const renderRows = (rows: Row[], options: RenderTableElementOptions) => {
 
 export const renderCells = (
   cells: Cell[],
-  options: RenderTableElementOptions
+  options: RenderTableElementOptions,
+  links?: RenderLinks
 ) => {
   return cells
     .map((cell) => {
@@ -55,7 +68,7 @@ export const renderCells = (
               )}"`
             : ""
         }>`,
-        snootyAstToMd(cell.content),
+        snootyAstToMd(cell.content, links),
         `</${tag}>`,
       ];
     })
@@ -87,7 +100,10 @@ export type Table = {
   intermediate data structure `Table` with `Row`s and `Cell`s makes it easier to
   work with and render.
  */
-export const parseSnootyTable = (node: SnootyNode): Table => {
+export const parseSnootyTable = (
+  node: SnootyNode,
+  links?: RenderLinks
+): Table => {
   assert(node.name === "list-table");
   if (node.children === undefined) {
     throw new Error(

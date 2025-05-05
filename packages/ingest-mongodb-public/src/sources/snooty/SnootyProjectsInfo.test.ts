@@ -5,7 +5,7 @@ import {
   overrideCurrentVersion,
   prepareSnootySources,
 } from "./SnootyProjectsInfo";
-import { Page } from "mongodb-rag-core";
+import { PageMetadata } from "mongodb-rag-core";
 
 const snootyDataApiBaseUrl = "https://snooty-data-api.mongodb.com/prod/";
 
@@ -128,7 +128,7 @@ describe("SnootyProjectsInfo", () => {
       });
       assert(snootySources !== undefined);
       const pages = await snootySources[0].fetchPages();
-      const versions = pages.map((page) => (page.metadata?.version as Page['version']));
+      const versions = pages.map((page) => (page.metadata?.version as PageMetadata['version']));
       const originalCurrentVersion = versions.find((version) => version?.isCurrent);
       const currentVersionOverride = versions.find((version) => !version?.isCurrent)?.label;
 
@@ -141,7 +141,7 @@ describe("SnootyProjectsInfo", () => {
         snootyDataApiBaseUrl,
       });
       const pagesAfterOverride = await sourcesAfterOverride[0].fetchPages();
-      const versionsAfterOverride = pagesAfterOverride.map((page) => (page.metadata?.version as Page['version']));
+      const versionsAfterOverride = pagesAfterOverride.map((page) => (page.metadata?.version as PageMetadata['version']));
       const currentVersionAfterOverride = versionsAfterOverride.find((version) => version?.isCurrent);
 
       // Check that the current version is the one we set

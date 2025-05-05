@@ -9,6 +9,7 @@ import {
   LoadPagesArgs,
   PageStore,
   PersistedPage,
+  SourceVersions,
 } from "./Page";
 import { Filter, Document } from "mongodb";
 
@@ -29,6 +30,9 @@ export type MongoDbPageStore = DatabaseConnection &
       expectedUrls: string[];
       urlTransformer?: (url: string) => string;
     }): Promise<string[]>;
+    getDataSourceVersions(args: {
+      dataSources: string[];
+    }): Promise<SourceVersions[]>;
     metadata: {
       databaseName: string;
       collectionName: string;
@@ -144,6 +148,42 @@ export function makeMongoDbPageStore({
         })
       );
       return results.filter((url) => url !== null) as string[];
+    },
+    async getDataSourceVersions(args?: {
+      dataSources: string[];
+    }): Promise<SourceVersions[]> {
+      const pipeline = [
+        {
+          $match: {
+            ...(args && { sourceName: { $in: args.dataSources } }), // Filter by data sources if provided
+            action: { $ne: "deleted" }, // Exclude deleted pages
+            "metadata.version.label": { $exists: true }, // Exclude unversioned pages
+          },
+        },
+        {
+          $group: {
+            _id: "$sourceName", // Group by sourceName
+            versions: {
+              $addToSet: "$metadata.version", // Collect unique versions
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            sourceName: "$_id",
+            versions: {
+              $sortArray: {
+                input: "$versions",
+                sortBy: {
+                  label: 1, // sort by label in ascending order
+                },
+              },
+            },
+          },
+        },
+      ];
+      return pagesCollection.aggregate<SourceVersions>(pipeline).toArray();
     },
     async init() {
       await pagesCollection.createIndex({ url: 1 });

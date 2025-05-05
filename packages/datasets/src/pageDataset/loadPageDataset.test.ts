@@ -54,6 +54,20 @@ describe("loadPagesDataset", () => {
       format: "html",
       action: "created",
     },
+    // This page does not represent a current version
+    {
+      url: "https://example.com/old-version/page4",
+      body: "Page 4 body",
+      metadata: {
+        extra: "info4",
+        version: { isCurrent: false, label: "old version" },
+      },
+      title: "Page 4",
+      sourceName: "SourceD",
+      updated: new Date(),
+      format: "html",
+      action: "created",
+    },
   ];
 
   beforeAll(async () => {
@@ -112,6 +126,17 @@ describe("loadPagesDataset", () => {
     });
     const urls = dataset.map((p) => p.url);
     expect(urls).not.toContain("https://example.com/page3");
+  });
+
+  it("should not include pages representing a non current version", async () => {
+    const dataset = await loadPagesDataset({
+      pageStore,
+      dataSourceRegex: /SourceD/,
+      forbiddenUrls: [],
+    });
+    const urls = dataset.map((p) => p.url);
+    expect(urls).toContain("https://example.com/page4");
+    expect(urls).not.toContain("https://example.com/old-version/page4");
   });
 
   it("should only return the projected fields", async () => {

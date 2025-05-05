@@ -29,7 +29,7 @@ export async function loadPagesDataset({
         url: { $nin: forbiddenUrls },
         action: { $ne: "deleted" },
         $or: [
-          { "metadata.version.isCurrent": { $exists: true } },
+          { "metadata.version.isCurrent": { $exists: false } },
           { "metadata.version.isCurrent": true },
         ],
       },

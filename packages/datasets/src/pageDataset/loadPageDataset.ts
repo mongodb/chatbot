@@ -28,6 +28,10 @@ export async function loadPagesDataset({
         sourceName: dataSourceRegex,
         url: { $nin: forbiddenUrls },
         action: { $ne: "deleted" },
+        $or: [
+          { "metadata.version.isCurrent": { $exists: false } },
+          { "metadata.version.isCurrent": true },
+        ],
       },
     },
     {

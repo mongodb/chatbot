@@ -6,7 +6,7 @@ import {
 } from "./makeStepBackUserQuery";
 import { Message, updateFrontMatter } from "mongodb-chatbot-server";
 import { ObjectId } from "mongodb-rag-core/mongodb";
-import { MongoDbTag } from "../mongoDbMetadata";
+import { MongoDbTag } from "mongodb-rag-core/mongoDbMetadata";
 import {
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_API_KEY,

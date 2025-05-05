@@ -8,7 +8,7 @@ import { OpenAI } from "mongodb-rag-core/openai";
 import {
   mongoDbProductNames,
   mongoDbProgrammingLanguageIds,
-} from "../mongoDbMetadata";
+} from "mongodb-rag-core/mongoDbMetadata";
 
 export const ExtractMongoDbMetadataFunctionSchema = z.object({
   programmingLanguage: z

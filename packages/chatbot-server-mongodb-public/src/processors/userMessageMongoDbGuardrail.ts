@@ -123,14 +123,14 @@ const fewShotExamples: OpenAI.ChatCompletionMessageParam[] = [
       "This query is unclear but could be about filtering data, which is a common operation in MongoDB. Therefore, it is relevant to MongoDB.",
     type: "valid",
   } satisfies UserMessageMongoDbGuardrailFunction),
-  // Example 12
+  // Example 9
   makeUserMessage("and"),
   makeAssistantFunctionCallMessage(name, {
     reasoning:
       "This query is unclear and may be a typo or incomplete. However, it could be related to the $and operator in MongoDB. It is certainly not inappropriate. Therefore, it is relevant to MongoDB.",
     type: "valid",
   } satisfies UserMessageMongoDbGuardrailFunction),
-  // Example 9
+  // Example 10
   makeUserMessage(
     "What courses do you have on generative artificial intelligence?"
   ),
@@ -139,14 +139,14 @@ const fewShotExamples: OpenAI.ChatCompletionMessageParam[] = [
       "This query asks for courses on generative artificial intelligence, which is a relevant area to MongoDB's business. Therefore, it is relevant to MongoDB.",
     type: "valid",
   } satisfies UserMessageMongoDbGuardrailFunction),
-  // Example 10
+  // Example 11
   makeUserMessage("What is an ODL?"),
   makeAssistantFunctionCallMessage(name, {
     reasoning:
       "This query asks about an Operational Data Layer (ODL), which is an architectural pattern that can be used with MongoDB. Therefore, it is relevant to MongoDB.",
     type: "valid",
   } satisfies UserMessageMongoDbGuardrailFunction),
-  // Example 11
+  // Example 12
   makeUserMessage("What is a skill?"),
   makeAssistantFunctionCallMessage(name, {
     reasoning:

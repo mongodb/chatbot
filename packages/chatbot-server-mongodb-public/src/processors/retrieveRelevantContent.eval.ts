@@ -20,7 +20,7 @@ import { binaryNdcgAtK } from "../eval/scorers/binaryNdcgAtK";
 import { f1AtK } from "../eval/scorers/f1AtK";
 import { precisionAtK } from "../eval/scorers/precisionAtK";
 import { recallAtK } from "../eval/scorers/recallAtK";
-import { MongoDbTag } from "../mongoDbMetadata";
+import { MongoDbTag } from "mongodb-rag-core/mongoDbMetadata";
 import {
   extractMongoDbMetadataFromUserMessage,
   ExtractMongoDbMetadataFunction,

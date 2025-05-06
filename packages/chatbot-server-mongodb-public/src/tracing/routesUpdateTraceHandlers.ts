@@ -16,11 +16,16 @@ import {
 } from "./segment";
 import { logRequest } from "../utils";
 import { ScrubbedMessageStore } from "./scrubbedMessages/ScrubbedMessageStore";
+import { LanguageModel } from "ai";
+import { makeScrubbedMessagesFromTracingData } from "./scrubbedMessages/makeScrubbedMessagesFromTracingData";
+import { redactPii } from "./scrubbedMessages/redactPii";
 
 export function makeAddMessageToConversationUpdateTrace({
   k,
   llmAsAJudge,
   segment,
+  scrubbedMessageStore,
+  analyzerModel,
 }: {
   k: number;
   llmAsAJudge?: LlmAsAJudge & {
@@ -31,6 +36,7 @@ export function makeAddMessageToConversationUpdateTrace({
   };
   segment?: TraceSegmentEventParams;
   scrubbedMessageStore: ScrubbedMessageStore;
+  analyzerModel: LanguageModel;
 }): UpdateTraceFunc {
   validatePercentToJudge(llmAsAJudge?.percentToJudge);
 
@@ -58,6 +64,21 @@ export function makeAddMessageToConversationUpdateTrace({
     const maybeAuthUser = conversation.customData?.authUser;
     if (maybeAuthUser && typeof maybeAuthUser === "string") {
       tracingData.tags.push(`auth_user`);
+    }
+    try {
+      const scrubbedMessages = await makeScrubbedMessagesFromTracingData(
+        tracingData,
+        analyzerModel
+      );
+      await scrubbedMessageStore.insertScrubbedMessages({
+        messages: scrubbedMessages,
+      });
+    } catch (error) {
+      logRequest({
+        reqId,
+        message: `Error scrubbing messages ${error}`,
+        type: "error",
+      });
     }
 
     // Send Segment events
@@ -171,9 +192,11 @@ function getTracingScores(
 export function makeRateMessageUpdateTrace({
   llmAsAJudge,
   segment,
+  scrubbedMessageStore,
 }: {
   llmAsAJudge: LlmAsAJudge;
   segment?: TraceSegmentEventParams;
+  scrubbedMessageStore: ScrubbedMessageStore;
 }): UpdateTraceFunc {
   const segmentTrackUserRatedMessage = segment
     ? makeTrackUserRatedMessage({
@@ -191,6 +214,23 @@ export function makeRateMessageUpdateTrace({
     const assistantMessage = tracingData.assistantMessage;
     const rating = assistantMessage?.rating;
     const { userId, anonymousId } = getSegmentIds(userMessage);
+
+    // Update the scrubbed message with the rating
+    try {
+      await scrubbedMessageStore.updateScrubbedMessage({
+        id: ObjectId.createFromHexString(traceId),
+        message: {
+          responseRating: rating,
+        },
+      });
+    } catch (error) {
+      logRequest({
+        reqId: traceId,
+        message: `Error scrubbing messages ${error}`,
+        type: "error",
+      });
+    }
+
     try {
       if (segmentTrackUserRatedMessage) {
         logRequest({
@@ -247,6 +287,7 @@ export function makeCommentMessageUpdateTrace({
   judgeLlm,
   slack,
   segment,
+  scrubbedMessageStore,
 }: {
   openAiClient: OpenAI;
   judgeLlm: string;
@@ -260,6 +301,7 @@ export function makeCommentMessageUpdateTrace({
     };
   };
   segment?: TraceSegmentEventParams;
+  scrubbedMessageStore: ScrubbedMessageStore;
 }): UpdateTraceFunc {
   const judgeMongoDbChatbotCommentSentiment =
     makeJudgeMongoDbChatbotCommentSentiment(openAiClient);
@@ -281,6 +323,26 @@ export function makeCommentMessageUpdateTrace({
     const rating = assistantMessage?.rating;
     const comment = assistantMessage?.userComment;
     const { userId, anonymousId } = getSegmentIds(userMessage);
+
+    // Update the scrubbed message with the comment
+    try {
+      const { redactedText: userComment, piiFound } = redactPii(comment ?? "");
+      await scrubbedMessageStore.updateScrubbedMessage({
+        id: ObjectId.createFromHexString(traceId),
+        message: {
+          userComment,
+          userCommented: true,
+          userCommentPii: piiFound,
+        },
+      });
+    } catch (error) {
+      logRequest({
+        reqId: traceId,
+        message: `Error scrubbing messages ${error}`,
+        type: "error",
+      });
+    }
+
     try {
       if (segmentTrackUserCommentedMessage) {
         logRequest({

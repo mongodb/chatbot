@@ -67,7 +67,7 @@ const embedder = {
   },
 };
 
-// TODO: deprecate mock store and use mongodb-memory-server instead.
+// TODO: deprecate mock store and use mongodb-memory-server instead. https://jira.mongodb.org/browse/EAI-935
 describe("updateEmbeddedContent", () => {
   it("deletes embedded content for deleted page", async () => {
     const pageStore = makeMockPageStore();

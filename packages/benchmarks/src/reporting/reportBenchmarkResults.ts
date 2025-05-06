@@ -10,7 +10,6 @@ import {
   getBraintrustExperimentSummary,
   GetExperimentMetadataResponse,
 } from "./getBraintrustExperimentSummary";
-import assert from "assert";
 
 export type ExperimentType =
   | "prompt_response"
@@ -23,19 +22,28 @@ export interface ReportBenchmarkResultsParams {
   experimentType: ExperimentType;
 }
 
-export type ResultsByExperiment = Record<
+export type ResultsByExperiment<
+  ER extends ExperimentResult<
+    EvalCase<unknown, unknown, unknown>,
+    unknown,
+    string[]
+  >
+> = Record<
   string,
   {
-    results: ExperimentResult<
-      EvalCase<unknown, unknown, unknown>,
-      unknown,
-      string[]
-    >[];
+    results: ER[];
     metadata: GetExperimentMetadataResponse;
   }
 >;
 
-export async function reportBenchmarkResults<Case extends BaseCase>({
+export async function reportBenchmarkResults<
+  ER extends ExperimentResult<
+    EvalCase<unknown, unknown, unknown>,
+    unknown,
+    string[]
+  >,
+  Case extends BaseCase
+>({
   apiKey,
   projectName,
   experimentType,
@@ -46,9 +54,13 @@ export async function reportBenchmarkResults<Case extends BaseCase>({
       project_name: projectName,
     },
   });
-  const allExperimentResults: ResultsByExperiment = {};
+  const allExperimentResults: ResultsByExperiment<ER> = {};
   for (const experiment of experiments) {
-    const results = await getBraintrustExperimentResults({
+    const results = await getBraintrustExperimentResults<
+      ER,
+      ER["output"],
+      string[]
+    >({
       apiKey,
       experimentName: experiment.name,
       projectName,
@@ -60,7 +72,7 @@ export async function reportBenchmarkResults<Case extends BaseCase>({
     });
     allExperimentResults[experiment.name] = { results, metadata };
   }
-  return materializeExperimentResultsByCase<Case>(
+  return materializeExperimentResultsByCase<ER, Case>(
     allExperimentResults,
     experimentType
   );

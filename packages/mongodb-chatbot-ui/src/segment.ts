@@ -1,9 +1,22 @@
+function stripLiteralQuotes(str?: string) {
+  return str?.replace(/^"|"$/g, "");
+}
+
 /**
  * Get Segment IDs from the browser's local storage.
  */
 export function getSegmentIds() {
-  const userId = localStorage.getItem("ajs_user_id") ?? undefined;
-  const anonymousId = localStorage.getItem("ajs_anonymous_id") ?? undefined;
+  const analytics =
+    typeof window !== "undefined" && window.analytics ? window.analytics : null;
+
+  const userId = stripLiteralQuotes(
+    analytics?.user().id() ?? localStorage.getItem("ajs_user_id") ?? undefined
+  );
+  const anonymousId = stripLiteralQuotes(
+    analytics?.user().anonymousId() ??
+      localStorage.getItem("ajs_anonymous_id") ??
+      undefined
+  );
   return {
     userId,
     anonymousId,

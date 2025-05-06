@@ -65,12 +65,6 @@ describe("snootyAstToMd", () => {
     const result = snootyAstToMd(ast);
     expect(result.split("\n")[0]).toBe("# FAQ");
   });
-  it("does not render links", () => {
-    const result = snootyAstToMd(samplePage.data.ast);
-    // expect result to not include something like [link text](https://some-base-url.com/faq)
-    const expectedNotIncludes = `](`;
-    expect(result).not.toContain(expectedNotIncludes);
-  });
   it("renders definition lists", () => {
     const result = snootyAstToMd(samplePage.data.ast);
     expect(result.startsWith("# $merge (aggregation)")).toBe(true);
@@ -86,11 +80,12 @@ describe("snootyAstToMd", () => {
         }
       )
     );
-    const result = snootyAstToMd(samplePage.data.ast);
     it("Renders code examples with language", () => {
+      const result = snootyAstToMd(samplePage.data.ast);
       expect(result).toContain("```json\n");
     });
     it("Renders code examples without language", () => {
+      const result = snootyAstToMd(samplePage.data.ast);
       expect(result).toContain("```\n");
       expect(result).not.toContain("```undefined\n");
     });
@@ -276,6 +271,147 @@ Some of your App Services App's features are associated with user accounts. For 
 - Item 2
 
 `);
+  });
+  describe("renders links", () => {
+    const hasMarkdownLink = /\[.*?\]\(.*?\)/;
+    const baseUrl = "__FAKE_BASE_URL__";
+
+    it("renders external links if configured", () => {
+      const sampleAst = JSON.parse(
+        fs.readFileSync(
+          Path.resolve(
+            SRC_ROOT,
+            "../testData/samplePageWithExternalLinks.json"
+          ),
+          {
+            encoding: "utf-8",
+          }
+        )
+      );
+      const mdPage = snootyAstToMd(sampleAst.data.ast, {
+        baseUrl,
+        includeLinks: true,
+      });
+      const refuri = "https://www.mongodb.com/docs/drivers/";
+      expect(mdPage).toContain(`(${refuri})`);
+      expect(mdPage).toMatch(hasMarkdownLink);
+    });
+    it("doesn't render external links if not configured", () => {
+      const sampleAst = JSON.parse(
+        fs.readFileSync(
+          Path.resolve(
+            SRC_ROOT,
+            "../testData/samplePageWithExternalLinks.json"
+          ),
+          {
+            encoding: "utf-8",
+          }
+        )
+      );
+      const mdPage = snootyAstToMd(sampleAst.data.ast);
+      expect(mdPage).not.toMatch(hasMarkdownLink);
+      expect(mdPage).toBeTruthy();
+    });
+    it("renders internal links if configured", () => {
+      const sampleAst = JSON.parse(
+        fs.readFileSync(
+          Path.resolve(
+            SRC_ROOT,
+            "../testData/samplePageWithInternalLinks.json"
+          ),
+          {
+            encoding: "utf-8",
+          }
+        )
+      );
+      const mdPage = snootyAstToMd(sampleAst.data.ast, {
+        includeLinks: true,
+        baseUrl,
+      });
+      expect(mdPage).toMatch(hasMarkdownLink);
+      const slug = "reference/operator/aggregation/merge";
+      const fragment = "mongodb-pipeline-pipe.-merge";
+      expect(mdPage).toContain(`(${baseUrl}/${slug}/#${fragment})`);
+    });
+    it("renders internal links without fragment (#)", () => {
+      const sampleAst = JSON.parse(
+        fs.readFileSync(
+          Path.resolve(
+            SRC_ROOT,
+            "../testData/samplePageWithInternalLinksNoFragment.json"
+          ),
+          {
+            encoding: "utf-8",
+          }
+        )
+      );
+      const mdPage = snootyAstToMd(sampleAst.data.ast, {
+        includeLinks: true,
+        baseUrl,
+      });
+      expect(mdPage).toMatch(hasMarkdownLink);
+      const slug = "reference/operator/aggregation/merge";
+      expect(mdPage).toContain(`(${baseUrl}/${slug}/)`);
+    });
+    it("renders internal links to another site if configured (intersphinx)", () => {
+      const sampleAst = JSON.parse(
+        fs.readFileSync(
+          Path.resolve(SRC_ROOT, "../testData/samplePageWithIntersphinx.json"),
+          {
+            encoding: "utf-8",
+          }
+        )
+      );
+      const mdPage = snootyAstToMd(sampleAst.data.ast, {
+        includeLinks: true,
+        baseUrl,
+      });
+      const url =
+        "https://www.mongodb.com/docs/master/faq/indexes/#std-label-faq-indexes-random-data-performance";
+      expect(mdPage).toMatch(hasMarkdownLink);
+      expect(mdPage).toContain(`(${url})`);
+    });
+    it("doesn't render internal links if not configured", () => {
+      const sampleAst = JSON.parse(
+        fs.readFileSync(
+          Path.resolve(
+            SRC_ROOT,
+            "../testData/samplePageWithInternalLinks.json"
+          ),
+          {
+            encoding: "utf-8",
+          }
+        )
+      );
+      const mdPage = snootyAstToMd(sampleAst.data.ast);
+
+      expect(mdPage).not.toMatch(hasMarkdownLink);
+      expect(mdPage).toBeTruthy();
+    });
+    it("renders ref anchor links if configured", () => {
+      const sampleAst = JSON.parse(
+        fs.readFileSync(Path.resolve(SRC_ROOT, "../testData/samplePage.json"), {
+          encoding: "utf-8",
+        })
+      );
+      const mdPage = snootyAstToMd(sampleAst.data.ast, {
+        includeRefAnchors: true,
+        baseUrl,
+        includeLinks: true,
+      });
+      const htmlId = "std-label-agg-merge";
+      expect(mdPage).toContain(`<div id="${htmlId}"></div>\n\n`);
+    });
+    it("doesn't render ref anchor links if not configured", () => {
+      const sampleAst = JSON.parse(
+        fs.readFileSync(Path.resolve(SRC_ROOT, "../testData/samplePage.json"), {
+          encoding: "utf-8",
+        })
+      );
+      const mdPage = snootyAstToMd(sampleAst.data.ast);
+      const htmlId = "std-label-agg-merge";
+      expect(mdPage).not.toContain(`<div id="${htmlId}"></div>\n\n`);
+    });
   });
 });
 describe("getTitleFromSnootyAst", () => {

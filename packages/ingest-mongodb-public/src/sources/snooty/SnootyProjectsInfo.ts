@@ -7,6 +7,7 @@ import {
   LocallySpecifiedSnootyProjectConfig,
 } from "./SnootyDataSource";
 import { filterFulfilled } from "mongodb-rag-core";
+import { RenderLinks } from "./snootyAstToMd";
 
 /** Schema for API response from https://snooty-data-api.mongodb.com/prod/projects */
 export type GetSnootyProjectsResponse = {
@@ -66,9 +67,11 @@ export const makeSnootyProjectsInfo = async ({
 export const prepareSnootySources = async ({
   projects,
   snootyDataApiBaseUrl,
+  links,
 }: {
   projects: LocallySpecifiedSnootyProjectConfig[];
   snootyDataApiBaseUrl: string;
+  links?: Omit<RenderLinks, "baseUrl">;
 }) => {
   const snootyProjectsInfo = await makeSnootyProjectsInfo({
     snootyDataApiBaseUrl,
@@ -95,6 +98,7 @@ export const prepareSnootySources = async ({
               branches,
             },
             snootyDataApiBaseUrl,
+            links,
           });
         } catch (error) {
           logger.error(

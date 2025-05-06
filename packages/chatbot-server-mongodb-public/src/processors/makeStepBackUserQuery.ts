@@ -110,8 +110,9 @@ const fewShotExamples: OpenAI.ChatCompletionMessageParam[] = [
       mongoDbProduct: "MongoDB University",
     })
   ),
-  makeAssistantFunctionCallMessage(name,{
-    transformedUserQuery: "What is the skill badge program on MongoDB University?",
+  makeAssistantFunctionCallMessage(name, {
+    transformedUserQuery:
+      "What is the skill badge program on MongoDB University?",
   } satisfies StepBackUserQueryMongoDbFunction),
 ];
 

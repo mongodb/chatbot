@@ -31,13 +31,7 @@ const makeEvaluateWithLlmAsAJudge = (
   openAiConfig: LlmAsAJudge["openAiConfig"]
 ) =>
   wrapTraced(
-    async function ({
-      input,
-      output,
-      context,
-      judgeEmbeddingModel,
-      judgeModel,
-    }: ScorerArgs) {
+    async function ({ input, output, context, judgeModel }: ScorerArgs) {
       return Promise.all([
         traced(
           async () =>
@@ -50,20 +44,6 @@ const makeEvaluateWithLlmAsAJudge = (
             }),
           {
             name: "Faithfulness",
-          }
-        ),
-        traced(
-          async () =>
-            AnswerRelevancy({
-              input,
-              output,
-              context,
-              model: judgeModel,
-              embeddingModel: judgeEmbeddingModel,
-              ...openAiConfig,
-            }),
-          {
-            name: "AnswerRelevancy",
           }
         ),
         traced(
@@ -113,7 +93,7 @@ export async function getLlmAsAJudgeScores(
 
   const evaluateWithLlmAsAJudge = makeEvaluateWithLlmAsAJudge(openAiConfig);
 
-  const [faithfulness, answerRelevancy, contextRelevancy] = context
+  const [faithfulness, contextRelevancy] = context
     ? await evaluateWithLlmAsAJudge({
         input,
         output,
@@ -121,11 +101,10 @@ export async function getLlmAsAJudgeScores(
         judgeModel,
         judgeEmbeddingModel,
       })
-    : [nullScore, nullScore, nullScore];
+    : [nullScore, nullScore];
 
   return {
     Faithfulness: faithfulness.score,
-    AnswerRelevancy: answerRelevancy.score,
     ContextRelevancy: contextRelevancy.score,
   };
 }

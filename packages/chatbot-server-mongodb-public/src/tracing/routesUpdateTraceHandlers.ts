@@ -60,6 +60,12 @@ export function makeAddMessageToConversationUpdateTrace({
 
     // Send Segment events
     try {
+      if (segmentTrackUserSentMessage) {
+        logRequest({
+          reqId,
+          message: `Sending addMessageToConversation event to Segment for conversation ${conversation._id}`,
+        });
+      }
       const userMessage = tracingData.userMessage;
       const { userId, anonymousId } = getSegmentIds(userMessage);
       if (userMessage) {
@@ -71,6 +77,12 @@ export function makeAddMessageToConversationUpdateTrace({
           createdAt: userMessage.createdAt,
           tags: tracingData.tags,
         });
+      } else {
+        throw new Error(
+          `Missing required data ${JSON.stringify({
+            userMessage,
+          })}`
+        );
       }
 
       const assistantMessage = tracingData.assistantMessage;
@@ -83,11 +95,17 @@ export function makeAddMessageToConversationUpdateTrace({
           createdAt: assistantMessage.createdAt,
           isVerifiedAnswer: tracingData.isVerifiedAnswer ?? false,
           rejectionReason: tracingData.rejectQuery
-            ? (assistantMessage.customData?.rejectionReason as
-                | string
-                | undefined) ?? "Unknown rejection reason"
+            ? (userMessage.customData?.rejectionReason as string | undefined) ??
+              "Unknown rejection reason"
             : undefined,
         });
+      } else {
+        throw new Error(
+          `Missing required data ${JSON.stringify({
+            userMessage,
+            assistantMessage,
+          })}`
+        );
       }
     } catch (error) {
       logRequest({
@@ -126,13 +144,25 @@ function getTracingScores(
   k: number
 ) {
   return {
-    RejectedQuery: tracingData.rejectQuery === true ? 1 : null,
-    VerifiedAnswer: tracingData.isVerifiedAnswer === true ? 1 : null,
-    LlmDoesNotKnow: tracingData.llmDoesNotKnow === true ? 1 : null,
-    [`RetrievedChunksOver${k}`]:
-      tracingData.isVerifiedAnswer !== true
-        ? tracingData.numRetrievedChunks / k
-        : null,
+    // These metrics should start at 0,
+    // and are updated in other update trace handlers as needed
+    HasRating: tracingData.rating !== undefined ? 1 : 0,
+    HasComment: tracingData.comment !== undefined ? 1 : 0,
+    VerifiedAnswer: tracingData.isVerifiedAnswer === true ? 1 : 0,
+    // Only calculate these metrics if the answer is not verified
+    InputGuardrailPass: tracingData.isVerifiedAnswer
+      ? null
+      : tracingData.rejectQuery === true
+      ? 0
+      : 1,
+    LlmAnswerAttempted: tracingData.isVerifiedAnswer
+      ? null
+      : tracingData.llmDoesNotKnow === true
+      ? 0
+      : 1,
+    [`RetrievedChunksOver${k}`]: tracingData.isVerifiedAnswer
+      ? null
+      : tracingData.numRetrievedChunks / k,
   };
 }
 
@@ -160,6 +190,12 @@ export function makeRateMessageUpdateTrace({
     const rating = assistantMessage?.rating;
     const { userId, anonymousId } = getSegmentIds(userMessage);
     try {
+      if (segmentTrackUserRatedMessage) {
+        logRequest({
+          reqId: traceId,
+          message: `Sending rateMessage event to Segment for conversation ${conversation._id}`,
+        });
+      }
       if (userMessage && assistantMessage && rating !== undefined) {
         segmentTrackUserRatedMessage?.({
           userId,
@@ -169,6 +205,14 @@ export function makeRateMessageUpdateTrace({
           createdAt: new Date(),
           rating,
         });
+      } else {
+        throw new Error(
+          `Missing required data ${JSON.stringify({
+            userMessage,
+            assistantMessage,
+            rating,
+          })}`
+        );
       }
     } catch (error) {
       logRequest({
@@ -181,7 +225,10 @@ export function makeRateMessageUpdateTrace({
     try {
       logger.updateSpan({
         id: traceId,
-        scores: await getLlmAsAJudgeScores(llmAsAJudge, tracingData),
+        scores: {
+          ...(await getLlmAsAJudgeScores(llmAsAJudge, tracingData)),
+          HasRating: 1,
+        },
       });
     } catch (error) {
       logRequest({
@@ -233,6 +280,12 @@ export function makeCommentMessageUpdateTrace({
     const comment = assistantMessage?.userComment;
     const { userId, anonymousId } = getSegmentIds(userMessage);
     try {
+      if (segmentTrackUserCommentedMessage) {
+        logRequest({
+          reqId: traceId,
+          message: `Sending commentMessage event to Segment for conversation ${conversation._id}`,
+        });
+      }
       if (
         userMessage &&
         assistantMessage &&
@@ -248,6 +301,15 @@ export function makeCommentMessageUpdateTrace({
           rating,
           comment,
         });
+      } else {
+        throw new Error(
+          `Missing required data ${JSON.stringify({
+            userMessage,
+            assistantMessage,
+            rating,
+            comment,
+          })}`
+        );
       }
     } catch (error) {
       logRequest({
@@ -261,6 +323,7 @@ export function makeCommentMessageUpdateTrace({
       logger.updateSpan({
         id: traceId,
         scores: {
+          HasComment: 1,
           CommentSentiment: (
             await judgeMongoDbChatbotCommentSentiment({
               judgeLlm,

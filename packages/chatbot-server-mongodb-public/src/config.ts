@@ -27,8 +27,10 @@ import { blockGetRequests } from "./middleware/blockGetRequests";
 import { getRequestId, logRequest } from "./utils";
 import { systemPrompt } from "./systemPrompt";
 import { addReferenceSourceType } from "./processors/makeMongoDbReferences";
+import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
+import { logger } from "mongodb-rag-core";
 import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
@@ -234,6 +236,8 @@ const segmentConfig = SEGMENT_WRITE_KEY
     }
   : undefined;
 
+logger.info(`Segment logging is ${segmentConfig ? "enabled" : "disabled"}`);
+
 export const config: AppConfig = {
   conversationsRouterConfig: {
     llm,
@@ -243,6 +247,7 @@ export const config: AppConfig = {
       requireRequestOrigin(),
       useSegmentIds(),
       cookieParser(),
+      redactConnectionUri(),
     ],
     createConversationCustomData: !isProduction
       ? createConversationCustomDataWithAuthUser

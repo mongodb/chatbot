@@ -15,6 +15,7 @@ import {
   TraceSegmentEventParams,
 } from "./segment";
 import { logRequest } from "../utils";
+import { ScrubbedMessageStore } from "./scrubbedMessages/ScrubbedMessageStore";
 
 export function makeAddMessageToConversationUpdateTrace({
   k,
@@ -29,6 +30,7 @@ export function makeAddMessageToConversationUpdateTrace({
     percentToJudge: number;
   };
   segment?: TraceSegmentEventParams;
+  scrubbedMessageStore: ScrubbedMessageStore;
 }): UpdateTraceFunc {
   validatePercentToJudge(llmAsAJudge?.percentToJudge);
 

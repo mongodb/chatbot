@@ -35,6 +35,7 @@ steps:
       VECTOR_SEARCH_INDEX_NAME: vector_index
       OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
       OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: gpt-4o-mini
+      OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT: gpt-4.1-mini
       OPENAI_API_VERSION: "2024-06-01"
       OPENAI_RESOURCE_NAME: "docs-ai-chatbot-useast2resource-sandbox"
       BRAINTRUST_TEXT_TO_DRIVER_PROJECT_NAME: "text-to-node-js-driver-benchmark"

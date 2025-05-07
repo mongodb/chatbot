@@ -80,6 +80,17 @@ export type DeleteEmbeddedContentArgs = {
 };
 
 /**
+  Filters for querying the embedded content vector store.
+ */
+export type QueryFilters = {
+  sourceName?: string;
+  version?: {
+    current?: boolean;
+    label?: string;
+  };
+};
+
+/**
   Data store of the embedded content.
  */
 export type EmbeddedContentStore = VectorStore<EmbeddedContent> & {

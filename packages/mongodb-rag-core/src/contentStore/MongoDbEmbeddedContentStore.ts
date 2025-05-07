@@ -1,6 +1,10 @@
 import { pageIdentity } from ".";
 import { DatabaseConnection } from "../DatabaseConnection";
-import { EmbeddedContent, EmbeddedContentStore } from "./EmbeddedContent";
+import {
+  EmbeddedContent,
+  EmbeddedContentStore,
+  QueryFilters,
+} from "./EmbeddedContent";
 import { FindNearestNeighborsOptions, WithScore } from "../VectorStore";
 import {
   MakeMongoDbDatabaseConnectionParams,
@@ -259,7 +263,7 @@ type MongoDbAtlasVectorSearchFilter = {
 };
 
 const handleFilters = (
-  filter: FindNearestNeighborsOptions["filter"]
+  filter: QueryFilters
 ): MongoDbAtlasVectorSearchFilter => {
   const vectorSearchFilter: MongoDbAtlasVectorSearchFilter = {};
   if (filter.sourceName) {

@@ -60,11 +60,15 @@ export const {
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_RESOURCE_NAME,
   JUDGE_EMBEDDING_MODEL,
   JUDGE_LLM,
 } = assertEnvVars({
   ...CORE_ENV_VARS,
+  OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT: "",
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: "",
+  OPENAI_RESOURCE_NAME: "",
   ...TRACING_ENV_VARS,
 });
 
@@ -86,9 +90,10 @@ export const openAiClient = wrapOpenAI(
   })
 );
 
+// For parts of the application that use the Vercel AI SDK
 export const azure = createAzure({
   apiKey: OPENAI_API_KEY,
-  baseURL: OPENAI_ENDPOINT,
+  resourceName: OPENAI_RESOURCE_NAME,
   apiVersion: OPENAI_API_VERSION,
 });
 
@@ -292,7 +297,7 @@ export const config: AppConfig = {
         embeddingModelName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
         scrubbedMessageStore,
         analyzerModel: wrapAISDKModel(
-          azure(OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT)
+          azure(OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT)
         ),
       }),
     rateMessageUpdateTrace: makeRateMessageUpdateTrace({

@@ -58,33 +58,11 @@ const replacements: Record<Pii, string> = {
 function redactNames(text: string): string {
   // Convert text to lowercase for case-insensitive matching
   const lowerText = text.toLowerCase();
-  console.log("Original text:", text);
-  console.log("Lowercase text:", lowerText);
+
   const matches = nameMatcher.search(lowerText);
-  console.log("Matches found:", matches);
 
   if (!matches || matches.length === 0) {
     return text;
-  }
-
-  // We need to find the actual position of 'aaron' in the original text
-  // Let's print the characters around the reported position
-  for (const match of matches) {
-    const position = match[0];
-    const keywords = match[1];
-    if (keywords && keywords.length > 0) {
-      const keyword = keywords[0];
-      console.log(`Found '${keyword}' at position ${position}`);
-      console.log(
-        `Context: '${lowerText.substring(
-          Math.max(0, position - 10),
-          position
-        )}[${keyword}]${lowerText.substring(
-          position + keyword.length,
-          Math.min(lowerText.length, position + keyword.length + 10)
-        )}`
-      );
-    }
   }
 
   // Find the actual occurrences of the names in the original text

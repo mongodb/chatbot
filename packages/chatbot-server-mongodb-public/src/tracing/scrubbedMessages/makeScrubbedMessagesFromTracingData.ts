@@ -37,7 +37,7 @@ export async function makeScrubbedMessagesFromTracingData({
     metadata: userMessage.metadata,
     embedding: userMessage.embedding,
     embeddingModelName,
-    messagePii: userMessagePii,
+    messagePii: userMessagePii.length ? userMessagePii : undefined,
     userCommentPii: undefined,
     rejectQuery: userMessage.rejectQuery,
   } satisfies ScrubbedMessage<MessageAnalysis>;
@@ -57,8 +57,7 @@ export async function makeScrubbedMessagesFromTracingData({
     customData: assistantMessage.customData,
     pii: assistantMessagePii?.length ? true : undefined,
     metadata: assistantMessage.metadata,
-    messagePii: assistantMessagePii,
-    userCommentPii: undefined,
+    messagePii: assistantMessagePii.length ? assistantMessagePii : undefined,
   } satisfies ScrubbedMessage<MessageAnalysis>;
   return [scrubbedUserMessage, scrubbedAssistantMessage];
 }

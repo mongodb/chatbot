@@ -34,7 +34,7 @@ describe("makeScrubbedMessagesFromTracingData", () => {
     assistantMessageIndex: 1,
   } as ReturnType<typeof extractTracingData>;
 
-  it("should create scrubbed messages from tracing data without analysis", async () => {
+  it("should create scrubbed messages from tracing data", async () => {
     // Call the function
     const result = await makeScrubbedMessagesFromTracingData({
       tracingData: mockTracingData,
@@ -50,14 +50,14 @@ describe("makeScrubbedMessagesFromTracingData", () => {
       conversationId: mockTracingData.conversationId,
       index: mockTracingData.userMessageIndex,
       role: "user",
-      content: "redacted-user message content",
+      content: "user message content",
       createdAt: mockTracingData.userMessage.createdAt,
       customData: mockTracingData.userMessage.customData,
       pii: undefined,
       metadata: mockTracingData.userMessage.metadata,
       embedding: mockTracingData.userMessage.embedding,
       embeddingModelName: "test-embedding-model",
-      messagePii: [],
+      messagePii: undefined,
       userCommentPii: undefined,
       rejectQuery: false,
     });
@@ -68,13 +68,12 @@ describe("makeScrubbedMessagesFromTracingData", () => {
       conversationId: mockTracingData.conversationId,
       index: mockTracingData.assistantMessageIndex,
       role: "assistant",
-      content: "redacted-assistant message content",
+      content: "assistant message content",
       createdAt: mockTracingData.assistantMessage.createdAt,
       customData: mockTracingData.assistantMessage.customData,
       pii: undefined,
       metadata: mockTracingData.assistantMessage.metadata,
-      messagePii: [],
-      userCommentPii: undefined,
+      messagePii: undefined,
     });
   });
 });

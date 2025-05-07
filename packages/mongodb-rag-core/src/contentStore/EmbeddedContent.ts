@@ -49,6 +49,7 @@ export interface EmbeddedContent {
       isCurrent: boolean;
       label: string;
     };
+    pageType?: string;
   };
 
   /**
@@ -88,6 +89,7 @@ export type QueryFilters = {
     current?: boolean;
     label?: string;
   };
+  pageType?: string;
 };
 
 /**

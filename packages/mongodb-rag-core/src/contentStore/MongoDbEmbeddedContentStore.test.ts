@@ -335,6 +335,25 @@ describe("nearest neighbor search", () => {
     ).toHaveLength(5);
   });
 
+  it("Should filter content to pageType requested", async () => {
+    assert(store);
+    const query = "db.collection.insertOne()";
+    const filter = {
+      pageType: "tech-docs",
+    };
+    const { embedding } = await embedder.embed({
+      text: query,
+    });
+
+    const matches = await store.findNearestNeighbors(embedding, {
+      ...findNearestNeighborOptions,
+      filter,
+    });
+    expect(
+      matches.filter((match) => match.metadata?.pageType === "tech-docs")
+    ).toHaveLength(5);
+  });
+
   it("does not find nearest neighbors for irrelevant embedding", async () => {
     assert(store);
 
@@ -400,6 +419,7 @@ describe("initialized DB", () => {
     expect(indexes?.some((el) => el.name === "metadata.version.label_1")).toBe(
       true
     );
+    expect(indexes?.some((el) => el.name === "metadata.pageType_1")).toBe(true);
 
     const vectorIndexes = await coll?.listSearchIndexes().toArray();
     if (!vectorIndexes) return;
@@ -420,5 +440,6 @@ describe("initialized DB", () => {
     expect(filterPaths).toContain("sourceName");
     expect(filterPaths).toContain("metadata.version.label");
     expect(filterPaths).toContain("metadata.version.isCurrent");
+    expect(filterPaths).toContain("metadata.pageType");
   });
 });

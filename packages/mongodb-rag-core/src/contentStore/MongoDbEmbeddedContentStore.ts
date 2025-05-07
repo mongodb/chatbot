@@ -81,6 +81,10 @@ export function makeMongoDbEmbeddedContentStore({
         type: "filter",
         path: "metadata.version.isCurrent",
       },
+      {
+        type: "filter",
+        path: "metadata.pageType",
+      },
     ],
     name = "vector_index",
   },
@@ -221,6 +225,9 @@ export function makeMongoDbEmbeddedContentStore({
       await embeddedContentCollection.createIndex({
         "metadata.version.label": 1,
       });
+      await embeddedContentCollection.createIndex({
+        "metadata.pageType": 1,
+      });
 
       try {
         const searchIndex = {
@@ -260,6 +267,7 @@ type MongoDbAtlasVectorSearchFilter = {
   $or?: {
     "metadata.version.isCurrent": boolean | null;
   }[];
+  "metadata.pageType"?: string;
 };
 
 const handleFilters = (
@@ -268,6 +276,9 @@ const handleFilters = (
   const vectorSearchFilter: MongoDbAtlasVectorSearchFilter = {};
   if (filter.sourceName) {
     vectorSearchFilter["sourceName"] = filter.sourceName;
+  }
+  if (filter.pageType) {
+    vectorSearchFilter["metadata.pageType"] = filter.pageType;
   }
   // Handle version filter. Note: unversioned embeddings (isCurrent: null) are treated as current
   const { current, label } = filter.version ?? {};

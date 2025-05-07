@@ -49,6 +49,12 @@ export type PageMetadata = {
    */
   version?: VersionInfo;
   /**
+    The page type. Other types may be added in the future. 
+    "tech-docs" indicates documents from the mongodb.com/docs site. SnootyDataSource has this type
+    "devcenter" indicates documents from the mongodb.com/developer site. DevCenterDataSource has this type
+   */
+  pageType?: "tech-docs" | "devcenter";
+  /**
     Page-level metadata. Should not be chunked.
    */
   page?: Record<string, unknown>;

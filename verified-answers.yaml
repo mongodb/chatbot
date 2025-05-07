@@ -1739,3 +1739,35 @@
       title: "MongoDB Learning Badges"
     - url: https://learn.mongodb.com/pages/certification-program
       title: "MongoDB Certification Program"
+- answer: >-
+    MongoDB Atlas offers several product and pricing options:
+    
+    - **Atlas Free Tier**: You can start with the free tier, which provides 512MB of storage and shared resources. This is suitable for learning and initial development.
+    - **Atlas Flex Tier**: This option offers flexible pricing at $0.011/hour, with a $30 monthly limit, suitable for development and testing.
+    - **Atlas Dedicated Tier**: For production applications, dedicated clusters start at $57/month, with options to scale storage, RAM, and CPU based on your needs.
+    
+    Community Edition is available for free if you prefer to self-manage your database locally or in a hybrd/private cloud.
+    
+    Enterprise Advanced is also available with a license for on-premises deployment or the cloud, while providing several capabilities unavailable in Community Edition.
+    
+    For more detailed information on pricing and customizing your deployment, you may want to [contact MongoDB sales](https://www.mongodb.com/company/contact) or [explore the pricing options further](https://www.mongodb.com/pricing).
+  author_email: bill.mitchell@mongodb.com
+  questions:
+    - How much does MongoDB cost?
+    - How much will MongoDB Atlas cost for my data storage needs?
+    - How does MongoDB's pricing model accommodate scaling applications?
+    - What is the price difference between using MongoDB's Enterprise advanced versus Atlas?
+    - How can I optimize my budget when transitioning my company's databases to MongoDB Atlas?
+    - I need to talk to sales regarding enterprise pricing options for Atlas?
+    - Are there additional charges for using MongoDB's advanced features in Atlas?
+    - Help me generate a quote for a MongoDB Atlas deployment tailored for a startup environment?
+    - Help me estimate the monthly cost of using MongoDB Atlas given my anticipated workload and storage requirements?"
+  references:
+    - url: https://www.mongodb.com/company/contact
+      title: Contact Us
+    - url: https://www.mongodb.com/pricing
+      title: Pricing
+    - url: https://www.mongodb.com/cloud/atlas/register
+      title: Atlas Registration
+    - url: https://www.mongodb.com/try/download/community
+      title: Community Edition Download

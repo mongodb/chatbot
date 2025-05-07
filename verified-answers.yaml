@@ -1753,6 +1753,7 @@
     For more detailed information on pricing and customizing your deployment, you may want to [contact MongoDB sales](https://www.mongodb.com/company/contact) or [explore the pricing options further](https://www.mongodb.com/pricing).
   author_email: bill.mitchell@mongodb.com
   questions:
+    - How much does MongoDB cost?
     - How much will MongoDB Atlas cost for my data storage needs?
     - How does MongoDB's pricing model accommodate scaling applications?
     - What is the price difference between using MongoDB's Enterprise advanced versus Atlas?

@@ -1,4 +1,4 @@
-import { ObjectId, WithId } from "mongodb-rag-core/mongodb";
+import { ObjectId } from "mongodb-rag-core/mongodb";
 import { ScrubbedMessage } from "./ScrubbedMessage";
 
 export interface ScrubbedMessageStore<
@@ -12,7 +12,7 @@ export interface ScrubbedMessageStore<
   }): Promise<void>;
   updateScrubbedMessage(args: {
     id: ObjectId;
-    message: Omit<ScrubbedMessage<SmAnalysis>, "_id">;
+    message: Partial<Omit<ScrubbedMessage<SmAnalysis>, "_id">>;
   }): Promise<void>;
   findScrubbedMessageById(args: {
     id: ObjectId;

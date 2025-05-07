@@ -23,7 +23,6 @@ describe("MongoDbScrubbedMessageStore", () => {
     return {
       _id: options.id || new ObjectId(),
       conversationId: options.conversationId || new ObjectId(),
-      ipAddress: "127.0.0.1",
       index: options.index !== undefined ? options.index : 0,
       role: options.role || "user",
       content: "", // Required by Message type
@@ -78,7 +77,6 @@ describe("MongoDbScrubbedMessageStore", () => {
     expect(insertedMessage?.conversationId.toString()).toBe(
       conversationId.toString()
     );
-    expect(insertedMessage?.ipAddress).toBe("127.0.0.1");
   });
 
   it("should insert multiple scrubbed messages", async () => {
@@ -145,7 +143,6 @@ describe("MongoDbScrubbedMessageStore", () => {
     const updatedIpAddress = "192.168.1.1";
     const updateData: Omit<ScrubbedMessage, "_id"> = {
       conversationId,
-      ipAddress: updatedIpAddress,
       index: initialMessage.index,
       role: initialMessage.role,
       content: initialMessage.content,
@@ -159,7 +156,6 @@ describe("MongoDbScrubbedMessageStore", () => {
     const updatedMessage = await findMessageDirectly({ _id: messageId });
 
     expect(updatedMessage).toBeDefined();
-    expect(updatedMessage?.ipAddress).toBe(updatedIpAddress);
   });
 
   it("should find a scrubbed message by id", async () => {

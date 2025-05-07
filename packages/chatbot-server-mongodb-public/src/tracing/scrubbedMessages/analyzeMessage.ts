@@ -1,7 +1,6 @@
 import { mongoDbTopics } from "mongodb-rag-core/mongoDbMetadata";
 import { z } from "zod";
-// TODO: add the ai sdk to this project
-import { generateObject, LanguageModel } from "ai";
+import { generateObject, LanguageModel } from "mongodb-rag-core/aiSdk";
 
 export const MessageAnalysisSchema = z.object({
   topics: z

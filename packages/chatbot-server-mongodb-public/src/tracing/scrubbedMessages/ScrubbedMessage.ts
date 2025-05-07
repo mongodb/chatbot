@@ -1,10 +1,10 @@
 import { ObjectId } from "mongodb";
-import { Message } from "mongodb-rag-core";
+import { DbMessage, SomeMessage } from "mongodb-rag-core";
 import { Pii } from "./redactPii";
 
 export type ScrubbedMessage<
   Analysis extends Record<string, unknown> | undefined = undefined
-> = Omit<Message, "id"> & {
+> = Omit<DbMessage<SomeMessage>, "id"> & {
   /**
     The ID, which should match the ID of the original message within the
     conversation.
@@ -15,11 +15,6 @@ export type ScrubbedMessage<
     The ID of the original conversation.
    */
   conversationId: ObjectId;
-
-  /**
-    The IP address of the user in the conversation.
-   */
-  ipAddress: string;
 
   /**
     The ordinal number of this message in relation to other messages in the original conversation.
@@ -50,9 +45,24 @@ export type ScrubbedMessage<
   userComment?: string;
 
   /**
+    Whether preprocessor suggested not to answer based on the input.
+   */
+  rejectQuery?: boolean;
+
+  /**
+    The vector representation of the message content.
+   */
+  embedding?: number[];
+
+  /**
     The name of the embedding model used to generate the embedding for this message.
    */
   embeddingModelName?: string;
+
+  /**
+    Whether the original message contains any PII.
+   */
+  pii?: boolean;
 
   /**
    Any PII redacted from the original message.

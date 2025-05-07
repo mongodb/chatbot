@@ -16,9 +16,10 @@ import {
 } from "./segment";
 import { logRequest } from "../utils";
 import { ScrubbedMessageStore } from "./scrubbedMessages/ScrubbedMessageStore";
-import { LanguageModel } from "ai";
+import { LanguageModel } from "mongodb-rag-core/aiSdk";
 import { makeScrubbedMessagesFromTracingData } from "./scrubbedMessages/makeScrubbedMessagesFromTracingData";
 import { redactPii } from "./scrubbedMessages/redactPii";
+import { MessageAnalysis } from "./scrubbedMessages/analyzeMessage";
 
 export function makeAddMessageToConversationUpdateTrace({
   k,
@@ -26,6 +27,7 @@ export function makeAddMessageToConversationUpdateTrace({
   segment,
   scrubbedMessageStore,
   analyzerModel,
+  embeddingModelName,
 }: {
   k: number;
   llmAsAJudge?: LlmAsAJudge & {
@@ -35,8 +37,9 @@ export function makeAddMessageToConversationUpdateTrace({
     percentToJudge: number;
   };
   segment?: TraceSegmentEventParams;
-  scrubbedMessageStore: ScrubbedMessageStore;
+  scrubbedMessageStore: ScrubbedMessageStore<MessageAnalysis>;
   analyzerModel: LanguageModel;
+  embeddingModelName: string;
 }): UpdateTraceFunc {
   validatePercentToJudge(llmAsAJudge?.percentToJudge);
 
@@ -55,7 +58,8 @@ export function makeAddMessageToConversationUpdateTrace({
   return async function ({ traceId, conversation, logger, reqId }) {
     const tracingData = extractTracingData(
       conversation.messages,
-      ObjectId.createFromHexString(traceId)
+      ObjectId.createFromHexString(traceId),
+      conversation._id
     );
     const shouldJudge =
       typeof llmAsAJudge?.percentToJudge === "number" &&
@@ -66,10 +70,13 @@ export function makeAddMessageToConversationUpdateTrace({
       tracingData.tags.push(`auth_user`);
     }
     try {
-      const scrubbedMessages = await makeScrubbedMessagesFromTracingData(
+      const scrubbedMessages = await makeScrubbedMessagesFromTracingData({
         tracingData,
-        analyzerModel
-      );
+        analysis: {
+          model: analyzerModel,
+        },
+        embeddingModelName,
+      });
       await scrubbedMessageStore.insertScrubbedMessages({
         messages: scrubbedMessages,
       });
@@ -196,7 +203,7 @@ export function makeRateMessageUpdateTrace({
 }: {
   llmAsAJudge: LlmAsAJudge;
   segment?: TraceSegmentEventParams;
-  scrubbedMessageStore: ScrubbedMessageStore;
+  scrubbedMessageStore: ScrubbedMessageStore<MessageAnalysis>;
 }): UpdateTraceFunc {
   const segmentTrackUserRatedMessage = segment
     ? makeTrackUserRatedMessage({
@@ -207,7 +214,8 @@ export function makeRateMessageUpdateTrace({
   return async function ({ traceId, conversation, logger }) {
     const tracingData = extractTracingData(
       conversation.messages,
-      ObjectId.createFromHexString(traceId)
+      ObjectId.createFromHexString(traceId),
+      conversation._id
     );
 
     const userMessage = tracingData.userMessage;
@@ -217,8 +225,9 @@ export function makeRateMessageUpdateTrace({
 
     // Update the scrubbed message with the rating
     try {
+      assert(assistantMessage?.id, "Missing assistant message for rating");
       await scrubbedMessageStore.updateScrubbedMessage({
-        id: ObjectId.createFromHexString(traceId),
+        id: assistantMessage.id,
         message: {
           responseRating: rating,
         },
@@ -301,7 +310,7 @@ export function makeCommentMessageUpdateTrace({
     };
   };
   segment?: TraceSegmentEventParams;
-  scrubbedMessageStore: ScrubbedMessageStore;
+  scrubbedMessageStore: ScrubbedMessageStore<MessageAnalysis>;
 }): UpdateTraceFunc {
   const judgeMongoDbChatbotCommentSentiment =
     makeJudgeMongoDbChatbotCommentSentiment(openAiClient);
@@ -315,7 +324,8 @@ export function makeCommentMessageUpdateTrace({
   return async function ({ traceId, conversation, logger }) {
     const tracingData = extractTracingData(
       conversation.messages,
-      ObjectId.createFromHexString(traceId)
+      ObjectId.createFromHexString(traceId),
+      conversation._id
     );
 
     const userMessage = tracingData.userMessage;
@@ -327,13 +337,20 @@ export function makeCommentMessageUpdateTrace({
     // Update the scrubbed message with the comment
     try {
       const { redactedText: userComment, piiFound } = redactPii(comment ?? "");
+      assert(assistantMessage?.id, "Missing assistant message for comment");
+      const fieldsToUpdate: Record<string, unknown> = {
+        userComment,
+        userCommented: true,
+        userCommentPii: piiFound,
+      };
+      // Update PII only if true.
+      // This way it doesn't override it previously having been set.
+      if (piiFound?.length) {
+        fieldsToUpdate.pii = true;
+      }
       await scrubbedMessageStore.updateScrubbedMessage({
-        id: ObjectId.createFromHexString(traceId),
-        message: {
-          userComment,
-          userCommented: true,
-          userCommentPii: piiFound,
-        },
+        id: assistantMessage.id,
+        message: fieldsToUpdate,
       });
     } catch (error) {
       logRequest({

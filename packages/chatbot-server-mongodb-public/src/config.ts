@@ -38,7 +38,12 @@ import {
 } from "mongodb-rag-core/braintrust";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
-import { TRACING_ENV_VARS } from "./EnvVars";
+import {
+  ANALYZER_ENV_VARS,
+  AZURE_OPENAI_ENV_VARS,
+  PREPROCESSOR_ENV_VARS,
+  TRACING_ENV_VARS,
+} from "./EnvVars";
 import {
   makeAddMessageToConversationUpdateTrace,
   makeCommentMessageUpdateTrace,
@@ -66,9 +71,8 @@ export const {
   JUDGE_LLM,
 } = assertEnvVars({
   ...CORE_ENV_VARS,
-  OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT: "",
-  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: "",
-  OPENAI_RESOURCE_NAME: "",
+  ...PREPROCESSOR_ENV_VARS,
+  ...AZURE_OPENAI_ENV_VARS,
   ...TRACING_ENV_VARS,
 });
 

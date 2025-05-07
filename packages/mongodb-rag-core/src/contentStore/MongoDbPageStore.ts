@@ -32,7 +32,7 @@ export type MongoDbPageStore = DatabaseConnection &
     }): Promise<string[]>;
     getDataSourceVersions(args: {
       dataSources: string[];
-    }): Promise<SourceVersions[]>;
+    }): Promise<SourceVersions>;
     metadata: {
       databaseName: string;
       collectionName: string;
@@ -151,7 +151,7 @@ export function makeMongoDbPageStore({
     },
     async getDataSourceVersions(args?: {
       dataSources: string[];
-    }): Promise<SourceVersions[]> {
+    }): Promise<SourceVersions> {
       const pipeline = [
         {
           $match: {
@@ -182,8 +182,35 @@ export function makeMongoDbPageStore({
             },
           },
         },
+        // create an object with sourceName as key and versions as value
+        // to be used in the $arrayToObject operator
+        {
+          $group: {
+            _id: null,
+            sources: {
+              $push: {
+                k: "$sourceName",
+                v: "$versions",
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            sourceVersions: {
+              $arrayToObject: "$sources",
+            },
+          },
+        },
       ];
-      return pagesCollection.aggregate<SourceVersions>(pipeline).toArray();
+      const result = await pagesCollection
+        .aggregate<{ sourceVersions: SourceVersions }>(pipeline)
+        .next();
+      if (!result) {
+        return {};
+      }
+      return result.sourceVersions;
     },
     async init() {
       await pagesCollection.createIndex({ url: 1 });

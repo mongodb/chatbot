@@ -147,7 +147,7 @@ export type PageStore = {
    */
   getDataSourceVersions(args?: {
     dataSources: string[];
-  }): Promise<SourceVersions[]>;
+  }): Promise<SourceVersions>;
 
   /**
     Close connection to data store.

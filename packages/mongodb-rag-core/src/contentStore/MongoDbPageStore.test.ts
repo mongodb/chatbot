@@ -362,18 +362,13 @@ describe("MongoDbPageStore", () => {
       const dataSourceVersions = await store.getDataSourceVersions({
         dataSources: ["movie-source"],
       });
-
-      expect(dataSourceVersions.length).toBe(1);
-      const movieSourceVersions = dataSourceVersions[0];
-      expect(movieSourceVersions.sourceName).toBe("movie-source");
-      expect(movieSourceVersions.versions.length).toBe(2);
-      expect(movieSourceVersions.versions[0]).toMatchObject({
-        label: "1",
-        isCurrent: false,
-      });
-      expect(movieSourceVersions.versions[1]).toMatchObject({
-        label: "2",
-        isCurrent: true,
+      const movieSourceVersions = dataSourceVersions["movie-source"];
+      expect(movieSourceVersions).toBeDefined();
+      expect(dataSourceVersions).toMatchObject({
+        "movie-source": [
+          { label: "1", isCurrent: false },
+          { label: "2", isCurrent: true },
+        ],
       });
     });
 
@@ -390,7 +385,9 @@ describe("MongoDbPageStore", () => {
 
       const dataSourceVersions = await store.getDataSourceVersions();
 
-      expect(dataSourceVersions.length).toBe(2);
+      expect(Object.keys(dataSourceVersions).length).toBe(2);
+      expect(dataSourceVersions).toHaveProperty("movie-source");
+      expect(dataSourceVersions).toHaveProperty("another-movie-source");
     });
   });
 });

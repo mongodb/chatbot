@@ -13,7 +13,7 @@ export const makeMockPageStore = (): PageStore => {
       return;
     },
     async getDataSourceVersions(_args) {
-      return [];
+      return {};
     },
   };
 };

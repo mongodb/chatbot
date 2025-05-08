@@ -1,10 +1,10 @@
-import { DatasetRecord, initDataset, initLogger } from "braintrust";
+import { DatasetRecord, initDataset, initLogger, Logger } from "braintrust";
 
 export * from "braintrust";
 
 export const makeBraintrustLogger = (
   params: Parameters<typeof initLogger>[0]
-) => initLogger(params);
+) => initLogger(params) as Logger<true>;
 
 export async function uploadDatasetToBraintrust({
   apiKey,

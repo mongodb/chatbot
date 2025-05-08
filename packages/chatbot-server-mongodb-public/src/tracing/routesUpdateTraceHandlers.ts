@@ -15,11 +15,13 @@ import {
   TraceSegmentEventParams,
 } from "./segment";
 import { logRequest } from "../utils";
+import { Logger } from "mongodb-rag-core/braintrust";
 
 export function makeAddMessageToConversationUpdateTrace({
   k,
   llmAsAJudge,
   segment,
+  braintrustLogger,
 }: {
   k: number;
   llmAsAJudge?: LlmAsAJudge & {
@@ -29,6 +31,7 @@ export function makeAddMessageToConversationUpdateTrace({
     percentToJudge: number;
   };
   segment?: TraceSegmentEventParams;
+  braintrustLogger: Logger<true>;
 }): UpdateTraceFunc {
   validatePercentToJudge(llmAsAJudge?.percentToJudge);
 
@@ -44,7 +47,7 @@ export function makeAddMessageToConversationUpdateTrace({
       })
     : undefined;
 
-  return async function ({ traceId, conversation, logger, reqId }) {
+  return async function ({ traceId, conversation, reqId }) {
     const tracingData = extractTracingData(
       conversation.messages,
       ObjectId.createFromHexString(traceId)
@@ -116,7 +119,7 @@ export function makeAddMessageToConversationUpdateTrace({
     }
 
     try {
-      logger.updateSpan({
+      braintrustLogger.updateSpan({
         id: traceId,
         tags: tracingData.tags,
         scores: {
@@ -169,9 +172,11 @@ function getTracingScores(
 export function makeRateMessageUpdateTrace({
   llmAsAJudge,
   segment,
+  braintrustLogger,
 }: {
   llmAsAJudge: LlmAsAJudge;
   segment?: TraceSegmentEventParams;
+  braintrustLogger: Logger<true>;
 }): UpdateTraceFunc {
   const segmentTrackUserRatedMessage = segment
     ? makeTrackUserRatedMessage({
@@ -179,7 +184,7 @@ export function makeRateMessageUpdateTrace({
       })
     : undefined;
 
-  return async function ({ traceId, conversation, logger }) {
+  return async function ({ traceId, conversation }) {
     const tracingData = extractTracingData(
       conversation.messages,
       ObjectId.createFromHexString(traceId)
@@ -223,7 +228,7 @@ export function makeRateMessageUpdateTrace({
     }
 
     try {
-      logger.updateSpan({
+      braintrustLogger.updateSpan({
         id: traceId,
         scores: {
           ...(await getLlmAsAJudgeScores(llmAsAJudge, tracingData)),
@@ -245,6 +250,7 @@ export function makeCommentMessageUpdateTrace({
   judgeLlm,
   slack,
   segment,
+  braintrustLogger,
 }: {
   openAiClient: OpenAI;
   judgeLlm: string;
@@ -258,6 +264,7 @@ export function makeCommentMessageUpdateTrace({
     };
   };
   segment?: TraceSegmentEventParams;
+  braintrustLogger: Logger<true>;
 }): UpdateTraceFunc {
   const judgeMongoDbChatbotCommentSentiment =
     makeJudgeMongoDbChatbotCommentSentiment(openAiClient);
@@ -268,7 +275,7 @@ export function makeCommentMessageUpdateTrace({
       })
     : undefined;
 
-  return async function ({ traceId, conversation, logger }) {
+  return async function ({ traceId, conversation }) {
     const tracingData = extractTracingData(
       conversation.messages,
       ObjectId.createFromHexString(traceId)
@@ -320,7 +327,7 @@ export function makeCommentMessageUpdateTrace({
     }
 
     try {
-      logger.updateSpan({
+      braintrustLogger.updateSpan({
         id: traceId,
         scores: {
           HasComment: 1,

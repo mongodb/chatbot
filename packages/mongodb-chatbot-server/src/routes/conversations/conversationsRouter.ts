@@ -35,6 +35,7 @@ import {
   makeGetConversationRoute,
 } from "./getConversation";
 import { UpdateTraceFunc } from "./UpdateTraceFunc";
+import { Logger } from "mongodb-rag-core/braintrust";
 
 /**
   Configuration for rate limiting on the /conversations/* routes.
@@ -206,6 +207,7 @@ export interface ConversationsRouterParams {
     @default true
    */
   createConversationOnNullMessageId?: boolean;
+  braintrustLogger?: Logger<true>;
 }
 
 export const rateLimitResponse = {
@@ -283,6 +285,7 @@ export function makeConversationsRouter({
   commentMessageUpdateTrace,
   maxUserCommentLength,
   createConversationOnNullMessageId = true,
+  braintrustLogger,
 }: ConversationsRouterParams) {
   const conversationsRouter = Router();
   // Set the customData and conversations on the response locals
@@ -378,6 +381,7 @@ export function makeConversationsRouter({
         }
       : undefined,
     updateTrace: addMessageToConversationUpdateTrace,
+    braintrustLogger,
   });
   conversationsRouter.post(
     "/:conversationId/messages",
@@ -398,7 +402,11 @@ export function makeConversationsRouter({
   conversationsRouter.post(
     "/:conversationId/messages/:messageId/rating",
     validateRequestSchema(RateMessageRequest),
-    makeRateMessageRoute({ conversations, updateTrace: rateMessageUpdateTrace })
+    makeRateMessageRoute({
+      conversations,
+      updateTrace: rateMessageUpdateTrace,
+      braintrustLogger,
+    })
   );
 
   // Comment on a message.
@@ -409,6 +417,7 @@ export function makeConversationsRouter({
       conversations,
       maxCommentLength: maxUserCommentLength,
       updateTrace: commentMessageUpdateTrace,
+      braintrustLogger,
     })
   );
 

@@ -41,6 +41,13 @@ import {
   makeRateMessageUpdateTrace,
 } from "./tracing/routesUpdateTraceHandlers";
 import { useSegmentIds } from "./middleware/useSegmentIds";
+import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
+
+export const braintrustLogger = makeBraintrustLogger({
+  apiKey: process.env.BRAINTRUST_API_KEY,
+  projectName: process.env.BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
+});
+
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -272,10 +279,12 @@ export const config: AppConfig = {
           percentToJudge: isProduction ? 0.1 : 1,
         },
         segment: segmentConfig,
+        braintrustLogger,
       }),
     rateMessageUpdateTrace: makeRateMessageUpdateTrace({
       llmAsAJudge: llmAsAJudgeConfig,
       segment: segmentConfig,
+      braintrustLogger,
     }),
     commentMessageUpdateTrace: makeCommentMessageUpdateTrace({
       openAiClient,
@@ -296,6 +305,7 @@ export const config: AppConfig = {
             }
           : undefined,
       segment: segmentConfig,
+      braintrustLogger,
     }),
     generateUserPrompt,
     systemPrompt,
@@ -303,6 +313,7 @@ export const config: AppConfig = {
     maxUserCommentLength: 500,
     conversations,
     maxInputLengthCharacters: 3000,
+    braintrustLogger,
   },
   maxRequestTimeoutMs: 60000,
   corsOptions: {

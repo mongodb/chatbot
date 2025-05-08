@@ -335,11 +335,11 @@ describe("nearest neighbor search", () => {
     ).toHaveLength(5);
   });
 
-  it("Should filter content to pageType requested", async () => {
+  it("Should filter content to sourceType requested", async () => {
     assert(store);
     const query = "db.collection.insertOne()";
     const filter = {
-      pageType: "tech-docs",
+      sourceType: "tech-docs",
     };
     const { embedding } = await embedder.embed({
       text: query,
@@ -350,7 +350,7 @@ describe("nearest neighbor search", () => {
       filter,
     });
     expect(
-      matches.filter((match) => match.metadata?.pageType === "tech-docs")
+      matches.filter((match) => match.sourceType === "tech-docs")
     ).toHaveLength(5);
   });
 
@@ -419,7 +419,7 @@ describe("initialized DB", () => {
     expect(indexes?.some((el) => el.name === "metadata.version.label_1")).toBe(
       true
     );
-    expect(indexes?.some((el) => el.name === "metadata.pageType_1")).toBe(true);
+    expect(indexes?.some((el) => el.name === "sourceType_1")).toBe(true);
 
     const vectorIndexes = await coll?.listSearchIndexes().toArray();
     if (!vectorIndexes) return;
@@ -440,6 +440,6 @@ describe("initialized DB", () => {
     expect(filterPaths).toContain("sourceName");
     expect(filterPaths).toContain("metadata.version.label");
     expect(filterPaths).toContain("metadata.version.isCurrent");
-    expect(filterPaths).toContain("metadata.pageType");
+    expect(filterPaths).toContain("sourceType");
   });
 });

@@ -79,11 +79,11 @@ export function makeDevCenterPage(
     }),
     format: "md",
     sourceName: name,
+    sourceType: "devcenter",
     metadata: {
       tags: extractTags(document.tags),
       pageDescription: document.description,
       contentType: document.type,
-      pageType: "devcenter",
     },
     url: /^https?:\/\//.test(document.calculated_slug)
       ? document.calculated_slug

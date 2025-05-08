@@ -173,7 +173,12 @@ export const makeSnootyDataSource = ({
   snootyDataApiBaseUrl,
   links,
 }: MakeSnootyDataSourceArgs): DataSource => {
-  const { branches, name: snootyProjectName, tags, productName } = project;
+  const {
+    branches,
+    name: snootyProjectName,
+    tags,
+    productName,
+  } = project;
   return {
     name: sourceName,
     async fetchPages() {
@@ -187,12 +192,11 @@ export const makeSnootyDataSource = ({
         }
         const getBranchDocumentsUrl = new URL(
           `projects/${snootyProjectName}/${branch.gitBranchName}/documents`,
-          snootyDataApiBaseUrl
-        );
+          snootyDataApiBaseUrl)
         const version = {
           label: branch.label,
           isCurrent: branch.isStableBranch,
-        };
+        }
         const branchUrl = branch.fullUrl.replace("http://", "https://");
         const { body } = await fetch(getBranchDocumentsUrl);
         if (body === null) {
@@ -401,12 +405,12 @@ export const handlePage = async (
     title,
     body: truncateEmbeddings(body),
     format,
+    sourceType: "tech-docs",
     metadata: {
       page: pageMetadata,
       tags,
       productName,
       version,
-      pageType: "tech-docs",
     },
   };
 };

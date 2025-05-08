@@ -7,6 +7,7 @@ import {
   LocallySpecifiedSnootyProjectConfig,
 } from "./SnootyDataSource";
 import { filterFulfilled } from "mongodb-rag-core";
+import { RenderLinks } from "./snootyAstToMd";
 
 /** Schema for API response from https://snooty-data-api.mongodb.com/prod/projects */
 export type GetSnootyProjectsResponse = {
@@ -103,9 +104,11 @@ async function getCurrentBranch(data: SnootyProject[], projectName: string) {
 export const prepareSnootySources = async ({
   projects,
   snootyDataApiBaseUrl,
+  links,
 }: {
   projects: LocallySpecifiedSnootyProjectConfig[];
   snootyDataApiBaseUrl: string;
+  links?: Omit<RenderLinks, "baseUrl">;
 }) => {
   const snootyProjectsInfo = await makeSnootyProjectsInfo({
     snootyDataApiBaseUrl,
@@ -128,6 +131,13 @@ export const prepareSnootySources = async ({
           }));
         version = version ? version + " (current)" : undefined;
 
+        const baseUrl =
+          project.baseUrl?.replace(/\/?$/, "/") ??
+          (await snootyProjectsInfo.getBaseUrl({
+            projectName,
+            branchName: currentBranch,
+          }));
+
         try {
           return makeSnootyDataSource({
             name: `snooty-${project.name}`,
@@ -135,14 +145,15 @@ export const prepareSnootySources = async ({
               ...project,
               currentBranch,
               version,
-              baseUrl:
-                project.baseUrl?.replace(/\/?$/, "/") ??
-                (await snootyProjectsInfo.getBaseUrl({
-                  projectName,
-                  branchName: currentBranch,
-                })),
+              baseUrl,
             },
             snootyDataApiBaseUrl,
+            links: links?.includeLinks
+              ? {
+                  ...links,
+                  baseUrl,
+                }
+              : undefined,
           });
         } catch (error) {
           logger.error(

@@ -61,6 +61,7 @@ describe("makeDevCenterPage()", () => {
         tags: ["Realm", "GitHub Actions", "JavaScript"],
         pageDescription: devCenterDoc.description,
         contentType: devCenterDoc.type,
+        pageType: "devcenter",
       },
       url: "https://example.com/developer/products/realm/build-ci-cd-pipelines-realm-apps-github-actions",
     });

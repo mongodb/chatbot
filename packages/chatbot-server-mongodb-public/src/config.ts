@@ -44,7 +44,7 @@ import { useSegmentIds } from "./middleware/useSegmentIds";
 import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
 
 export const braintrustLogger = makeBraintrustLogger({
-  apiKey: process.env.BRAINTRUST_API_KEY,
+  apiKey: process.env.BRAINTRUST_TRACING_API_KEY,
   projectName: process.env.BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
 });
 

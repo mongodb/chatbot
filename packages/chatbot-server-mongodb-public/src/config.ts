@@ -50,6 +50,7 @@ import {
   makeRateMessageUpdateTrace,
 } from "./tracing/routesUpdateTraceHandlers";
 import { useSegmentIds } from "./middleware/useSegmentIds";
+import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
 import { createAzure } from "mongodb-rag-core/aiSdk";
@@ -83,6 +84,11 @@ const {
   SLACK_COMMENT_CONVERSATION_ID,
   SEGMENT_WRITE_KEY,
 } = process.env;
+
+export const braintrustLogger = makeBraintrustLogger({
+  apiKey: process.env.BRAINTRUST_TRACING_API_KEY,
+  projectName: process.env.BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
+});
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
@@ -298,6 +304,7 @@ export const config: AppConfig = {
           percentToJudge: isProduction ? 0.1 : 1,
         },
         segment: segmentConfig,
+        braintrustLogger,
         embeddingModelName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
         scrubbedMessageStore,
         analyzerModel: wrapAISDKModel(
@@ -308,6 +315,7 @@ export const config: AppConfig = {
       llmAsAJudge: llmAsAJudgeConfig,
       segment: segmentConfig,
       scrubbedMessageStore,
+      braintrustLogger,
     }),
     commentMessageUpdateTrace: makeCommentMessageUpdateTrace({
       openAiClient,
@@ -329,6 +337,7 @@ export const config: AppConfig = {
           : undefined,
       segment: segmentConfig,
       scrubbedMessageStore,
+      braintrustLogger,
     }),
     generateUserPrompt,
     systemPrompt,
@@ -336,6 +345,7 @@ export const config: AppConfig = {
     maxUserCommentLength: 500,
     conversations,
     maxInputLengthCharacters: 3000,
+    braintrustLogger,
   },
   maxRequestTimeoutMs: 60000,
   corsOptions: {

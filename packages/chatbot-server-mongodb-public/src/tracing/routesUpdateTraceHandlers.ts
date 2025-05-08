@@ -16,12 +16,20 @@ import {
 } from "./segment";
 import { logRequest } from "../utils";
 import { Logger } from "mongodb-rag-core/braintrust";
+import { ScrubbedMessageStore } from "./scrubbedMessages/ScrubbedMessageStore";
+import { LanguageModel } from "mongodb-rag-core/aiSdk";
+import { makeScrubbedMessagesFromTracingData } from "./scrubbedMessages/makeScrubbedMessagesFromTracingData";
+import { redactPii } from "./scrubbedMessages/redactPii";
+import { MessageAnalysis } from "./scrubbedMessages/analyzeMessage";
 
 export function makeAddMessageToConversationUpdateTrace({
   k,
   llmAsAJudge,
   segment,
   braintrustLogger,
+  scrubbedMessageStore,
+  analyzerModel,
+  embeddingModelName,
 }: {
   k: number;
   llmAsAJudge?: LlmAsAJudge & {
@@ -32,6 +40,9 @@ export function makeAddMessageToConversationUpdateTrace({
   };
   segment?: TraceSegmentEventParams;
   braintrustLogger: Logger<true>;
+  scrubbedMessageStore: ScrubbedMessageStore<MessageAnalysis>;
+  analyzerModel: LanguageModel;
+  embeddingModelName: string;
 }): UpdateTraceFunc {
   validatePercentToJudge(llmAsAJudge?.percentToJudge);
 
@@ -50,7 +61,8 @@ export function makeAddMessageToConversationUpdateTrace({
   return async function ({ traceId, conversation, reqId }) {
     const tracingData = extractTracingData(
       conversation.messages,
-      ObjectId.createFromHexString(traceId)
+      ObjectId.createFromHexString(traceId),
+      conversation._id
     );
     const shouldJudge =
       typeof llmAsAJudge?.percentToJudge === "number" &&
@@ -59,6 +71,24 @@ export function makeAddMessageToConversationUpdateTrace({
     const maybeAuthUser = conversation.customData?.authUser;
     if (maybeAuthUser && typeof maybeAuthUser === "string") {
       tracingData.tags.push(`auth_user`);
+    }
+    try {
+      const scrubbedMessages = await makeScrubbedMessagesFromTracingData({
+        tracingData,
+        analysis: {
+          model: analyzerModel,
+        },
+        embeddingModelName,
+      });
+      await scrubbedMessageStore.insertScrubbedMessages({
+        messages: scrubbedMessages,
+      });
+    } catch (error) {
+      logRequest({
+        reqId,
+        message: `Error scrubbing messages ${error}`,
+        type: "error",
+      });
     }
 
     // Send Segment events
@@ -172,10 +202,12 @@ function getTracingScores(
 export function makeRateMessageUpdateTrace({
   llmAsAJudge,
   segment,
+  scrubbedMessageStore,
   braintrustLogger,
 }: {
   llmAsAJudge: LlmAsAJudge;
   segment?: TraceSegmentEventParams;
+  scrubbedMessageStore: ScrubbedMessageStore<MessageAnalysis>;
   braintrustLogger: Logger<true>;
 }): UpdateTraceFunc {
   const segmentTrackUserRatedMessage = segment
@@ -187,13 +219,32 @@ export function makeRateMessageUpdateTrace({
   return async function ({ traceId, conversation }) {
     const tracingData = extractTracingData(
       conversation.messages,
-      ObjectId.createFromHexString(traceId)
+      ObjectId.createFromHexString(traceId),
+      conversation._id
     );
 
     const userMessage = tracingData.userMessage;
     const assistantMessage = tracingData.assistantMessage;
     const rating = assistantMessage?.rating;
     const { userId, anonymousId } = getSegmentIds(userMessage);
+
+    // Update the scrubbed message with the rating
+    try {
+      assert(assistantMessage?.id, "Missing assistant message for rating");
+      await scrubbedMessageStore.updateScrubbedMessage({
+        id: assistantMessage.id,
+        message: {
+          responseRating: rating,
+        },
+      });
+    } catch (error) {
+      logRequest({
+        reqId: traceId,
+        message: `Error scrubbing messages ${error}`,
+        type: "error",
+      });
+    }
+
     try {
       if (segmentTrackUserRatedMessage) {
         logRequest({
@@ -251,6 +302,7 @@ export function makeCommentMessageUpdateTrace({
   slack,
   segment,
   braintrustLogger,
+  scrubbedMessageStore,
 }: {
   openAiClient: OpenAI;
   judgeLlm: string;
@@ -265,6 +317,7 @@ export function makeCommentMessageUpdateTrace({
   };
   segment?: TraceSegmentEventParams;
   braintrustLogger: Logger<true>;
+  scrubbedMessageStore: ScrubbedMessageStore<MessageAnalysis>;
 }): UpdateTraceFunc {
   const judgeMongoDbChatbotCommentSentiment =
     makeJudgeMongoDbChatbotCommentSentiment(openAiClient);
@@ -278,7 +331,8 @@ export function makeCommentMessageUpdateTrace({
   return async function ({ traceId, conversation }) {
     const tracingData = extractTracingData(
       conversation.messages,
-      ObjectId.createFromHexString(traceId)
+      ObjectId.createFromHexString(traceId),
+      conversation._id
     );
 
     const userMessage = tracingData.userMessage;
@@ -286,6 +340,33 @@ export function makeCommentMessageUpdateTrace({
     const rating = assistantMessage?.rating;
     const comment = assistantMessage?.userComment;
     const { userId, anonymousId } = getSegmentIds(userMessage);
+
+    // Update the scrubbed message with the comment
+    try {
+      const { redactedText: userComment, piiFound } = redactPii(comment ?? "");
+      assert(assistantMessage?.id, "Missing assistant message for comment");
+      const fieldsToUpdate: Record<string, unknown> = {
+        userComment,
+        userCommented: true,
+        userCommentPii: piiFound,
+      };
+      // Update PII only if true.
+      // This way it doesn't override it previously having been set.
+      if (piiFound?.length) {
+        fieldsToUpdate.pii = true;
+      }
+      await scrubbedMessageStore.updateScrubbedMessage({
+        id: assistantMessage.id,
+        message: fieldsToUpdate,
+      });
+    } catch (error) {
+      logRequest({
+        reqId: traceId,
+        message: `Error scrubbing messages ${error}`,
+        type: "error",
+      });
+    }
+
     try {
       if (segmentTrackUserCommentedMessage) {
         logRequest({

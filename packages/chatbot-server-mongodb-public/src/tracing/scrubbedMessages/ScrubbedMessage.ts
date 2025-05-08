@@ -1,11 +1,10 @@
 import { ObjectId } from "mongodb";
-import { Message } from "mongodb-chatbot-server";
-import { MessageAnalysis } from "./MessageAnalysis";
+import { DbMessage, SomeMessage } from "mongodb-rag-core";
+import { Pii } from "./redactPii";
 
-export type ScrubbedMessage = Omit<
-  Message,
-  "content" | "preprocessedContent" | "id" | "userComment"
-> & {
+export type ScrubbedMessage<
+  Analysis extends Record<string, unknown> | undefined = undefined
+> = Omit<DbMessage<SomeMessage>, "id"> & {
   /**
     The ID, which should match the ID of the original message within the
     conversation.
@@ -18,11 +17,6 @@ export type ScrubbedMessage = Omit<
   conversationId: ObjectId;
 
   /**
-    The IP address of the user in the conversation.
-   */
-  ipAddress: string;
-
-  /**
     The ordinal number of this message in relation to other messages in the original conversation.
    */
   index: number;
@@ -31,7 +25,7 @@ export type ScrubbedMessage = Omit<
     An LLM-populated analysis of the original message that should be devoid of
     any possible PII.
    */
-  analysis?: MessageAnalysis;
+  analysis?: Analysis;
 
   /**
     For messages with the "user" role, the rating field of the subsequent
@@ -48,8 +42,35 @@ export type ScrubbedMessage = Omit<
    */
   userCommented?: boolean;
 
+  userComment?: string;
+
+  /**
+    Whether preprocessor suggested not to answer based on the input.
+   */
+  rejectQuery?: boolean;
+
+  /**
+    The vector representation of the message content.
+   */
+  embedding?: number[];
+
   /**
     The name of the embedding model used to generate the embedding for this message.
    */
   embeddingModelName?: string;
+
+  /**
+    Whether the original message contains any PII.
+   */
+  pii?: boolean;
+
+  /**
+   Any PII redacted from the original message.
+   */
+  messagePii?: Pii[];
+
+  /**
+   Any PII redacted from the original user comment.
+   */
+  userCommentPii?: Pii[];
 };

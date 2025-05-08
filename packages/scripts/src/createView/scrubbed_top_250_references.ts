@@ -1,6 +1,6 @@
 import { MongoClient, ObjectId } from "mongodb";
 import { assertEnvVars } from "mongodb-rag-core";
-import { ScrubbedMessage } from "../ScrubbedMessage";
+import { ScrubbedMessage } from "chatbot-server-mongodb-public";
 
 import "dotenv/config";
 

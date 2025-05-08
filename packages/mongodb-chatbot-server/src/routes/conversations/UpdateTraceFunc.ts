@@ -1,5 +1,4 @@
 import { Conversation, ConversationsService } from "mongodb-rag-core";
-import { Logger } from "mongodb-rag-core/braintrust";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 
 export type UpdateTraceFuncParams = {

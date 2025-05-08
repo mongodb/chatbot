@@ -54,7 +54,8 @@ async function makeSlackMessageText(
 ) {
   const tracingData = extractTracingData(
     conversation.messages,
-    messageWithCommentId
+    messageWithCommentId,
+    conversation._id
   );
   const {
     isVerifiedAnswer,

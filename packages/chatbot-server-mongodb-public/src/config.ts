@@ -31,16 +31,28 @@ import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
 import { logger } from "mongodb-rag-core";
-import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
+import {
+  wrapOpenAI,
+  wrapTraced,
+  wrapAISDKModel,
+} from "mongodb-rag-core/braintrust";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
-import { TRACING_ENV_VARS } from "./EnvVars";
+import {
+  ANALYZER_ENV_VARS,
+  AZURE_OPENAI_ENV_VARS,
+  PREPROCESSOR_ENV_VARS,
+  TRACING_ENV_VARS,
+} from "./EnvVars";
 import {
   makeAddMessageToConversationUpdateTrace,
   makeCommentMessageUpdateTrace,
   makeRateMessageUpdateTrace,
 } from "./tracing/routesUpdateTraceHandlers";
 import { useSegmentIds } from "./middleware/useSegmentIds";
+import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
+import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
+import { createAzure } from "mongodb-rag-core/aiSdk";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -53,11 +65,14 @@ export const {
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_RESOURCE_NAME,
   JUDGE_EMBEDDING_MODEL,
   JUDGE_LLM,
 } = assertEnvVars({
   ...CORE_ENV_VARS,
-  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: "",
+  ...PREPROCESSOR_ENV_VARS,
+  ...AZURE_OPENAI_ENV_VARS,
   ...TRACING_ENV_VARS,
 });
 
@@ -78,6 +93,13 @@ export const openAiClient = wrapOpenAI(
     apiVersion: OPENAI_API_VERSION,
   })
 );
+
+// For parts of the application that use the Vercel AI SDK
+export const azure = createAzure({
+  apiKey: OPENAI_API_KEY,
+  resourceName: OPENAI_RESOURCE_NAME,
+  apiVersion: OPENAI_API_VERSION,
+});
 
 export const llm = makeOpenAiChatLlm({
   openAiClient,
@@ -218,6 +240,10 @@ export const createConversationCustomDataWithAuthUser: AddCustomDataFunc =
   };
 export const isProduction = process.env.NODE_ENV === "production";
 
+const scrubbedMessageStore = makeMongoDbScrubbedMessageStore<MessageAnalysis>({
+  db: mongodb.db(MONGODB_DATABASE_NAME),
+});
+
 const llmAsAJudgeConfig = {
   judgeModel: JUDGE_LLM,
   judgeEmbeddingModel: JUDGE_EMBEDDING_MODEL,
@@ -272,10 +298,16 @@ export const config: AppConfig = {
           percentToJudge: isProduction ? 0.1 : 1,
         },
         segment: segmentConfig,
+        embeddingModelName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
+        scrubbedMessageStore,
+        analyzerModel: wrapAISDKModel(
+          azure(OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT)
+        ),
       }),
     rateMessageUpdateTrace: makeRateMessageUpdateTrace({
       llmAsAJudge: llmAsAJudgeConfig,
       segment: segmentConfig,
+      scrubbedMessageStore,
     }),
     commentMessageUpdateTrace: makeCommentMessageUpdateTrace({
       openAiClient,
@@ -296,6 +328,7 @@ export const config: AppConfig = {
             }
           : undefined,
       segment: segmentConfig,
+      scrubbedMessageStore,
     }),
     generateUserPrompt,
     systemPrompt,

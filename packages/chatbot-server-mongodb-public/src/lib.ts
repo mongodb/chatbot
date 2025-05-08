@@ -4,3 +4,5 @@
  */
 export { systemPrompt } from "./systemPrompt";
 export * as mongoDbMetadata from "mongodb-rag-core";
+export * from "./tracing/scrubbedMessages/ScrubbedMessage";
+export { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";

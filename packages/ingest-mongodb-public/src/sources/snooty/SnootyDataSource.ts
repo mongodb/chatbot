@@ -405,6 +405,7 @@ export const handlePage = async (
     title,
     body: truncateEmbeddings(body),
     format,
+    sourceType: "tech-docs",
     metadata: {
       page: pageMetadata,
       tags,

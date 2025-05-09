@@ -38,6 +38,11 @@ export interface EmbeddedContent {
   updated: Date;
 
   /**
+    The source type indicates where the page was loaded from.
+   */
+  sourceType?: Page["sourceType"];
+
+  /**
     Arbitrary metadata associated with the content. If the content text has
     metadata in Front Matter format, this metadata should match that metadata.
    */
@@ -88,6 +93,7 @@ export type QueryFilters = {
     current?: boolean;
     label?: string;
   };
+  sourceType?: Page["sourceType"];
 };
 
 /**

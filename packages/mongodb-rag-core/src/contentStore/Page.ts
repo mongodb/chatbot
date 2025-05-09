@@ -28,6 +28,12 @@ export type Page = {
   sourceName: string;
 
   /**
+    The source type indicates where the page was loaded from. 
+    @example "tech-docs" indicates documents from the mongodb.com/docs site. SnootyDataSource has this type
+   */
+  sourceType?: string;
+
+  /**
     Arbitrary metadata for page.
    */
   metadata?: PageMetadata;

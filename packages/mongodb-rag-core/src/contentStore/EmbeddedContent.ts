@@ -93,7 +93,7 @@ export type QueryFilters = {
     current?: boolean;
     label?: string;
   };
-  sourceType?: string;
+  sourceType?: Page["sourceType"];
 };
 
 /**

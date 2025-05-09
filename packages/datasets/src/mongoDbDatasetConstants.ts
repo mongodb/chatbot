@@ -17,6 +17,6 @@ export const forbiddenUrls = new Set([
 ]);
 
 /**
-  The {@link PersistedPage.sourceName} for public datasets should contain `snooty` (Docs) or `devcenter` (Developer Center).
+  The {@link PersistedPage.sourceType} for public datasets should be either `tech-docs` (Docs) or `devcenter` (Developer Center).
  */
-export const publicDatasetSourceName = /snooty|devcenter/;
+export const publicDatasetSourceTypes = ["tech-docs", "devcenter"];

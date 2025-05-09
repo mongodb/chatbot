@@ -20,7 +20,7 @@ const options: HandleHtmlPageFuncOptions = {
     `https://example.com/${pathInRepo}`.replace(/index\.html$/, "testing.html"),
   metadata: {
     productName: "Java Reactive Streams Driver",
-    version: javaVersion,
+    versionLabel: javaVersion,
   },
   extractMetadata: () => ({
     foo: "bar",
@@ -66,7 +66,7 @@ describe("handleHtmlDocument()", () => {
   it("should extract metadata from DOM", () => {
     expect(page.metadata).toMatchObject({
       foo: "bar",
-      version: "4.10",
+      versionLabel: "4.10",
       productName: "Java Reactive Streams Driver",
     });
   });

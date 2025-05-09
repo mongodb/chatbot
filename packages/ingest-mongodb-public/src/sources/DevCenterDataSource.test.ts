@@ -57,6 +57,7 @@ describe("makeDevCenterPage()", () => {
       }),
       format: "md",
       sourceName: "devcenter",
+      sourceType: "devcenter",
       metadata: {
         tags: ["Realm", "GitHub Actions", "JavaScript"],
         pageDescription: devCenterDoc.description,

@@ -333,4 +333,61 @@ describe("MongoDbPageStore", () => {
       expect(missingUrls).toEqual([]);
     });
   });
+
+  describe("getDataSourceVersions", () => {
+    const moviePagesWithVersion = moviePages.map((page, index) => ({
+      ...page,
+      sourceName: `movie-source`,
+      metadata: {
+        version: {
+          label: `${index % 2 ? 1 : 2}`,
+          isCurrent: index % 2 ? false : true,
+        },
+      },
+    }));
+    beforeEach(async () => {
+      assert(store);
+      await store.updatePages(moviePagesWithVersion);
+    });
+    afterAll(async () => {
+      assert(store);
+      await store.deletePages({
+        dataSources: ["movie-source", "another-movie-source"],
+        permanent: true,
+      });
+    });
+
+    it("returns list of versions for a specific data source", async () => {
+      assert(store);
+      const dataSourceVersions = await store.getDataSourceVersions({
+        dataSources: ["movie-source"],
+      });
+      const movieSourceVersions = dataSourceVersions["movie-source"];
+      expect(movieSourceVersions).toBeDefined();
+      expect(dataSourceVersions).toMatchObject({
+        "movie-source": [
+          { label: "1", isCurrent: false },
+          { label: "2", isCurrent: true },
+        ],
+      });
+    });
+
+    it("returns list of versions for all data sources", async () => {
+      assert(store);
+      // add another versioned data source
+      const anotherMoviePagesWithVersion = moviePagesWithVersion.map(
+        (page) => ({
+          ...page,
+          sourceName: `another-movie-source`,
+        })
+      );
+      await store.updatePages(anotherMoviePagesWithVersion);
+
+      const dataSourceVersions = await store.getDataSourceVersions();
+
+      expect(Object.keys(dataSourceVersions).length).toBe(2);
+      expect(dataSourceVersions).toHaveProperty("movie-source");
+      expect(dataSourceVersions).toHaveProperty("another-movie-source");
+    });
+  });
 });

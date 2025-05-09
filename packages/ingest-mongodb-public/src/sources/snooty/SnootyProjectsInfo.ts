@@ -15,16 +15,7 @@ export type GetSnootyProjectsResponse = {
 };
 
 export type SnootyProjectsInfo = {
-  getBaseUrl(args: {
-    projectName: string;
-    branchName: string;
-  }): Promise<string>;
-
-  getCurrentBranch(args: { projectName: string }): Promise<Branch>;
-
-  getCurrentVersionName(args: {
-    projectName: string;
-  }): Promise<string | undefined>;
+  getAllBranches(args: { projectName: string }): Promise<Branch[] | undefined>;
 };
 
 /**
@@ -39,6 +30,9 @@ export const makeSnootyProjectsInfo = async ({
   const response = await fetch(new URL("projects", snootyDataApiBaseUrl));
   const { data } =
     (await response.json()) as unknown as GetSnootyProjectsResponse;
+
+  // Preprocess data into a Map for faster lookups
+  const projectMap = new Map(data.map((project) => [project.project, project]));
 
   // Fix Snooty API data
   data.forEach((project) => {
@@ -56,47 +50,13 @@ export const makeSnootyProjectsInfo = async ({
   return {
     _data: data,
 
-    async getBaseUrl({ projectName, branchName }) {
-      const metadata = data.find(({ project }) => project === projectName);
-      const branchMetaData = metadata?.branches.find(
-        (branch) => branch.active && branch.gitBranchName === branchName
-      );
-      // Make sure there is an active branch at the specified branch name
-      if (branchMetaData === undefined) {
-        throw new Error(
-          `For project '${projectName}', no active branch found for '${branchName}'.`
-        );
-      }
-      return branchMetaData.fullUrl.replace("http://", "https://");
-    },
-
-    async getCurrentBranch({ projectName }) {
-      return await getCurrentBranch(data, projectName);
-    },
-    async getCurrentVersionName({ projectName }) {
-      const currentBranch = await getCurrentBranch(data, projectName);
-      if (currentBranch.gitBranchName !== "master") {
-        return currentBranch.gitBranchName;
-      } else return;
+    async getAllBranches({ projectName }) {
+      const project = projectMap.get(projectName);
+      return project?.branches;
     },
   };
 };
 
-/**
-  Helper function used in methods of makeSnootyProjectsInfo()
- */
-async function getCurrentBranch(data: SnootyProject[], projectName: string) {
-  const metadata = data.find(({ project }) => project === projectName);
-  const currentBranch = metadata?.branches.find(
-    ({ active, isStableBranch }) => active && isStableBranch
-  );
-  if (currentBranch === undefined) {
-    throw new Error(
-      `For project '${projectName}', no active branch found with isStableBranch == true.`
-    );
-  }
-  return currentBranch;
-}
 /**
   Fill the details of the defined Snooty data sources with the info in the
   Snooty Data API projects endpoint.
@@ -117,43 +77,25 @@ export const prepareSnootySources = async ({
     await Promise.allSettled(
       projects.map(async (project) => {
         const { name: projectName } = project;
-        const currentBranch =
-          project.currentBranch ??
-          (
-            await snootyProjectsInfo.getCurrentBranch({
-              projectName,
-            })
-          ).gitBranchName;
-        let version =
-          project.versionNameOverride ??
-          (await snootyProjectsInfo.getCurrentVersionName({
-            projectName,
-          }));
-        version = version ? version + " (current)" : undefined;
-
-        const baseUrl =
-          project.baseUrl?.replace(/\/?$/, "/") ??
-          (await snootyProjectsInfo.getBaseUrl({
-            projectName,
-            branchName: currentBranch,
-          }));
-
+        let branches = (await snootyProjectsInfo.getAllBranches({
+          projectName,
+        })) as Branch[];
+        // modify branches if there is a currentVersionOverride
+        if (project.currentVersionOverride) {
+          branches = overrideCurrentVersion({
+            branches,
+            currentVersionOverride: project.currentVersionOverride,
+          });
+        }
         try {
           return makeSnootyDataSource({
-            name: `snooty-${project.name}`,
+            name: project.name,
             project: {
               ...project,
-              currentBranch,
-              version,
-              baseUrl,
+              branches,
             },
             snootyDataApiBaseUrl,
-            links: links?.includeLinks
-              ? {
-                  ...links,
-                  baseUrl,
-                }
-              : undefined,
+            links,
           });
         } catch (error) {
           logger.error(
@@ -166,4 +108,22 @@ export const prepareSnootySources = async ({
       })
     )
   ).map((result) => result.value);
+};
+
+export const overrideCurrentVersion = ({
+  branches,
+  currentVersionOverride,
+}: {
+  branches: Branch[];
+  currentVersionOverride: string;
+}) => {
+  return branches.map((branch) => {
+    if (branch.label !== currentVersionOverride) {
+      return { ...branch, isStableBranch: false };
+    }
+    if (branch.label === currentVersionOverride) {
+      return { ...branch, isStableBranch: true };
+    }
+    return branch;
+  });
 };

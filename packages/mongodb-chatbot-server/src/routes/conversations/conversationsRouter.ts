@@ -16,7 +16,6 @@ import {
 import {
   AddMessageRequest,
   AddMessageToConversationRouteParams,
-  GenerateResponse,
   makeAddMessageToConversationRoute,
 } from "./addMessageToConversation";
 import { requireRequestOrigin } from "../../middleware/requireRequestOrigin";
@@ -27,6 +26,7 @@ import {
   makeGetConversationRoute,
 } from "./getConversation";
 import { UpdateTraceFunc } from "./UpdateTraceFunc";
+import { GenerateResponse } from "../../processors/GenerateResponse";
 
 /**
   Configuration for rate limiting on the /conversations/* routes.

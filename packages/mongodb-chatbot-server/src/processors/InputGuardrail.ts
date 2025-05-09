@@ -1,4 +1,4 @@
-import { GenerateResponseParams } from "../routes/conversations/addMessageToConversation";
+import { GenerateResponseParams } from "./GenerateResponse";
 
 export type InputGuardrail<
   Metadata extends Record<string, unknown> | undefined = Record<string, unknown>

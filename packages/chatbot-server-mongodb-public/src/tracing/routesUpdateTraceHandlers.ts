@@ -1,5 +1,5 @@
 import { strict as assert } from "assert";
-import { UpdateTraceFunc } from "mongodb-chatbot-server/build/routes/conversations/UpdateTraceFunc";
+import { UpdateTraceFunc } from "mongodb-chatbot-server";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { extractTracingData } from "./extractTracingData";
 import { LlmAsAJudge, getLlmAsAJudgeScores } from "./getLlmAsAJudgeScores";

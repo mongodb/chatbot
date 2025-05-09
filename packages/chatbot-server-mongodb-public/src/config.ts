@@ -39,7 +39,6 @@ import {
 } from "./tracing/routesUpdateTraceHandlers";
 import { useSegmentIds } from "./middleware/useSegmentIds";
 import { createAzure } from "mongodb-rag-core/aiSdk";
-import { makeSearchTool } from "./tools";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -192,12 +191,12 @@ const segmentConfig = SEGMENT_WRITE_KEY
 const azureOpenAi = createAzure({
   apiKey: OPENAI_API_KEY,
   // baseURL: OPENAI_ENDPOINT,
-  resourceName: "docs-ai-chatbot",
-  apiVersion: OPENAI_API_VERSION,
+  resourceName: process.env.OPENAI_RESOURCE_NAME,
+  // apiVersion: OPENAI_API_VERSION,
   // apiKey: process.env.OPENAI_OPENAI_API_KEY,
 });
 
-const languageModel = azureOpenAi("gpt-4o");
+const languageModel = azureOpenAi("gpt-4.1");
 export const config: AppConfig = {
   conversationsRouterConfig: {
     middleware: [
@@ -259,13 +258,12 @@ export const config: AppConfig = {
     generateResponse: makeGenerateResponseWithSearchTool({
       languageModel,
       systemMessage: systemPrompt,
-      searchTool: makeSearchTool(findContent),
       makeReferenceLinks: makeMongoDbReferences,
       filterPreviousMessages: async (conversation) => {
         return conversation.messages;
       },
       llmNotWorkingMessage: "LLM not working. Sad!",
-      noRelevantContentMessage: "No relevant content found. Sad!",
+      findContent,
     }),
     maxUserMessagesInConversation: 50,
     maxUserCommentLength: 500,

@@ -57,22 +57,21 @@ ${makeMarkdownNumberedList(responseFormat)}
 Technical knowledge:
 ${makeMarkdownNumberedList(technicalKnowledge)}
 
+You know about the following products:
+${mongoDbProductNames.map((product) => `* ${product}`).join("\n")}
+
+You know about the following programming languages:
+${mongoDbProgrammingLanguages.map((language) => `* ${language}`).join("\n")}
+
 ## Tools
 
-### ${SEARCH_TOOL_NAME}
+<tool name="${SEARCH_TOOL_NAME}">
 
 You have access to the ${SEARCH_TOOL_NAME} tool. Use the ${SEARCH_TOOL_NAME} tool as follows:
 ${makeMarkdownNumberedList(searchContentToolNotes)}
 
 When you search, include metadata about the relevant MongoDB programming language and product.
-
-MongoDB products:
-${mongoDbProductNames.map((product) => `* ${product}`).join("\n")}
-
-MongoDB programming languages:
-${mongoDbProgrammingLanguages.map((language) => `* ${language}`).join("\n")}
-
-`,
+</tool>`,
 } satisfies SystemPrompt;
 
 function makeMarkdownNumberedList(items: string[]) {

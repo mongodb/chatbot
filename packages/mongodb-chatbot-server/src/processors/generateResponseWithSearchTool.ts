@@ -7,46 +7,52 @@ import {
   AssistantMessage,
   ToolMessage,
   EmbeddedContent,
+  FindContentFunc,
 } from "mongodb-rag-core";
 import { z } from "zod";
-import { GenerateResponse } from "../routes/conversations/addMessageToConversation";
+import { GenerateResponse } from "./GenerateResponse";
 import {
   CoreAssistantMessage,
   CoreMessage,
   LanguageModel,
+  Schema,
   StepResult,
   streamText,
   TextStreamPart,
+  tool,
   Tool,
-  ToolCallUnion,
+  ToolCallPart,
   ToolResult,
   ToolSet,
 } from "mongodb-rag-core/aiSdk";
 import { FilterPreviousMessages } from "./FilterPreviousMessages";
 import { InputGuardrail, withAbortControllerGuardrail } from "./InputGuardrail";
 import { strict as assert } from "assert";
-import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
+import {
+  EmbeddedContentForModel,
+  MakeReferenceLinksFunc,
+} from "./MakeReferenceLinksFunc";
+import { makeDefaultReferenceLinks } from "./makeDefaultReferenceLinks";
 
 export interface GenerateResponseWithSearchToolParams {
   languageModel: LanguageModel;
   llmNotWorkingMessage: string;
-  noRelevantContentMessage: string;
   inputGuardrail?: InputGuardrail;
   systemMessage: SystemMessage;
   filterPreviousMessages?: FilterPreviousMessages;
   /**
     Required tool for performing content search and gathering {@link References}
    */
-  searchTool: SearchTool;
   additionalTools?: ToolSet;
   makeReferenceLinks?: MakeReferenceLinksFunc;
   maxSteps?: number;
+  findContent: FindContentFunc;
 }
 
 export const SEARCH_TOOL_NAME = "search_content";
 
-export const DefaultSearchArgsSchema = z.object({ query: z.string() });
-export type SearchArguments = z.infer<typeof DefaultSearchArgsSchema>;
+export const SearchArgsSchema = z.object({ query: z.string() });
+export type SearchArguments = z.infer<typeof SearchArgsSchema>;
 
 export type SearchToolReturnValue = {
   content: {
@@ -55,10 +61,6 @@ export type SearchToolReturnValue = {
     metadata?: Record<string, unknown>;
   }[];
 };
-export type SearchTool = Tool<
-  typeof DefaultSearchArgsSchema,
-  SearchToolReturnValue
->;
 
 export type SearchToolResult = ToolResult<
   typeof SEARCH_TOOL_NAME,
@@ -75,10 +77,10 @@ export function makeGenerateResponseWithSearchTool({
   inputGuardrail,
   systemMessage,
   filterPreviousMessages,
-  searchTool,
   additionalTools,
   makeReferenceLinks,
   maxSteps = 2,
+  findContent,
 }: GenerateResponseWithSearchToolParams): GenerateResponse {
   return async function generateResponseWithSearchTool({
     conversation,
@@ -102,19 +104,27 @@ export function makeGenerateResponseWithSearchTool({
           )
         : [];
 
+      const searchTool = tool({
+        parameters: SearchArgsSchema,
+        execute: async ({ query }) => {
+          return await findContent({
+            query,
+          });
+        },
+        description: "Search for relevant content.",
+      });
+      const tools: ToolSet = {
+        [SEARCH_TOOL_NAME]: searchTool,
+        ...(additionalTools ?? {}),
+      };
       const generationArgs = {
         model: languageModel,
         messages: [
           systemMessage,
           ...filteredPreviousMessages,
           userMessage,
-        ] as CoreMessage[],
-        tools: {
-          [SEARCH_TOOL_NAME]: searchTool,
-          ...(additionalTools ?? {}),
-        } satisfies {
-          [SEARCH_TOOL_NAME]: SearchTool;
-        },
+        ] satisfies CoreMessage[],
+        tools,
         maxSteps,
       };
 
@@ -133,62 +143,85 @@ export function makeGenerateResponseWithSearchTool({
           })
         : undefined;
 
-      const references: References = [];
+      const references: EmbeddedContentForModel[] = [];
       const { result, guardrailResult } = await withAbortControllerGuardrail(
         async (controller) => {
-          const toolDefinitions = {
-            [SEARCH_TOOL_NAME]: searchTool,
-            ...(additionalTools ?? {}),
-          };
-
           // Pass the tools as a separate parameter
           const { fullStream, steps } = streamText({
             ...generationArgs,
             abortSignal: controller.signal,
-            tools: toolDefinitions,
-            onStepFinish: async ({ stepType, toolResults }) => {
-              // Add tool results to references
-              if (stepType === "tool-result") {
-                toolResults?.forEach(
-                  (
-                    toolResult: ToolResult<
-                      typeof SEARCH_TOOL_NAME,
-                      SearchArguments,
-                      SearchToolResult
-                    >
-                  ) => {
-                    if (toolResult.toolName === SEARCH_TOOL_NAME) {
-                      const extractedReferences: References =
-                        extractReferencesFromStepResults(toolResults);
-                      references.push(...extractedReferences);
-                    }
-                  }
-                );
-              }
+            onStepFinish: async ({ toolResults }) => {
+              toolResults?.forEach((toolResult) => {
+                if (
+                  toolResult.toolName === SEARCH_TOOL_NAME &&
+                  toolResult.result?.content
+                ) {
+                  // Map the search tool results to the References format
+                  const searchResults = toolResult.result
+                    .content as SearchToolResult["result"]["content"];
+                  const referencesToAdd = searchResults.map(
+                    (item: {
+                      url: string;
+                      text: string;
+                      metadata?: Record<string, unknown>;
+                    }) => ({
+                      url: item.url,
+                      text: item.text,
+                      metadata: item.metadata,
+                    })
+                  );
+                  references.push(...referencesToAdd);
+                }
+              });
             },
           });
           if (shouldStream) {
             assert(dataStreamer, "dataStreamer is required for streaming");
-            await handleStreamResults(fullStream, shouldStream, dataStreamer);
+            for await (const chunk of fullStream) {
+              switch (chunk.type) {
+                case "text-delta":
+                  if (shouldStream) {
+                    dataStreamer?.streamData({
+                      data: chunk.textDelta,
+                      type: "delta",
+                    });
+                  }
+                  break;
+                case "error":
+                  console.error("Error in stream:", chunk.error);
+                  throw new Error(
+                    typeof chunk.error === "string"
+                      ? chunk.error
+                      : String(chunk.error)
+                  );
+                default:
+                  break;
+              }
+            }
           }
 
-          const stepResults = await steps;
-          console.log(
-            "stepResults::",
-            stepResults.map((s) => ({
-              type: s.stepType,
-              calls: JSON.stringify(s.toolCalls),
-              results: JSON.stringify(s.toolResults),
-              text: s.text,
-            }))
-          );
-
-          return {
-            stepResults,
-            references: makeReferenceLinks
+          try {
+            // Transform filtered references to include the required title property
+            const referencesOut = makeReferenceLinks
               ? makeReferenceLinks(references)
-              : references,
-          };
+              : makeDefaultReferenceLinks(references);
+            dataStreamer?.streamData({
+              data: referencesOut,
+              type: "references",
+            });
+            const stepResults = await steps;
+
+            return {
+              stepResults,
+              references: referencesOut,
+            } satisfies {
+              stepResults: StepResult<ToolSet>[];
+              references: References;
+            };
+          } catch (error: unknown) {
+            console.error("Error in stream:", error);
+            throw new Error(typeof error === "string" ? error : String(error));
+          }
         },
         inputGuardrailPromise
       );
@@ -273,9 +306,7 @@ async function handleStreamResults(
         }
         break;
       case "error":
-        if (shouldStream) {
-          dataStreamer?.disconnect();
-        }
+        console.error("Error in stream:", chunk.error);
         throw new Error(
           typeof chunk.error === "string" ? chunk.error : String(chunk.error)
         );
@@ -285,35 +316,51 @@ async function handleStreamResults(
   }
 }
 
-function extractReferencesFromStepResults<
-  TS extends { [SEARCH_TOOL_NAME]: SearchTool }
->(stepResults: StepResult<TS>[]) {
-  const content: Partial<EmbeddedContent>[] = [];
+type ToolParameters = z.ZodTypeAny | Schema<any>;
 
-  for (const stepResult of stepResults) {
-    if (stepResult.toolResults) {
-      for (const toolResult of Object.values(stepResult.toolResults)) {
-        if (
-          toolResult.toolName === SEARCH_TOOL_NAME &&
-          toolResult.result?.content
-        ) {
-          // Map the search tool results to the References format
-          const searchResults = toolResult.result.content;
-          const referencesToAdd = searchResults.map((item) => ({
-            url: item.url,
-            title: item.metadata?.pageTitle ?? item.url,
-            metadata: item.metadata ?? {},
-          }));
+type inferParameters<PARAMETERS extends ToolParameters> =
+  PARAMETERS extends Schema<any>
+    ? PARAMETERS["_type"]
+    : PARAMETERS extends z.ZodTypeAny
+    ? z.infer<PARAMETERS>
+    : never;
 
-          content.push(...referencesToAdd);
-        }
-      }
-    }
-  }
+// Extract tools that have an execute property and return their result types
+type ExecutableTools<TOOLS extends ToolSet> = {
+  [K in keyof TOOLS]: TOOLS[K] extends { execute: (...args: any[]) => any }
+    ? K
+    : never;
+}[keyof TOOLS];
 
-  return content;
-}
+// Get the result type of a tool's execute function
+type ToolExecuteResult<T> = T extends { execute: (...args: any[]) => infer R }
+  ? Awaited<R>
+  : never;
 
+// Map tool names to their result types
+type ToolResults<TOOLS extends ToolSet> = {
+  [K in ExecutableTools<TOOLS>]: {
+    toolName: K & string;
+    toolCallId: string;
+    args: inferParameters<TOOLS[K & keyof TOOLS]["parameters"]>;
+    result: ToolExecuteResult<TOOLS[K & keyof TOOLS]>;
+  };
+};
+// Helper type to get a value from an object
+type ValueOf<
+  ObjectType,
+  ValueType extends keyof ObjectType = keyof ObjectType
+> = ObjectType[ValueType];
+
+// Create a union type of all possible tool results
+type ToolResultUnion<TOOLS extends ToolSet> = ValueOf<ToolResults<TOOLS>>;
+
+// Create an array type for tool results
+type ToolResultArray<TOOLS extends ToolSet> = Array<
+  ToolResultUnion<TOOLS> & { type: "tool-result" }
+>;
+
+// ... (rest of the code remains the same)
 /**
   Generate the final messages to send to the user based on guardrail result and text generation result
  */
@@ -391,18 +438,21 @@ function formatMessageForAiSdk(message: SomeMessage): CoreMessage {
       // This is a tool call message
       return {
         role: "assistant",
-        content: "",
-        function_call: {
-          name: message.toolCall.id,
-          arguments: JSON.stringify(message.toolCall.function),
-        },
-      } as CoreAssistantMessage;
+        content: [
+          {
+            type: "tool-call",
+            toolCallId: message.toolCall.id,
+            toolName: message.toolCall.function.name,
+            args: message.toolCall.function.arguments,
+          } satisfies ToolCallPart,
+        ],
+      } satisfies CoreAssistantMessage;
     } else {
       // Fallback for other object content
       return {
         role: "assistant",
         content: JSON.stringify(message.content),
-      } as CoreAssistantMessage;
+      } satisfies CoreAssistantMessage;
     }
   } else if (message.role === "tool") {
     // Convert tool messages to the format expected by the AI SDK
@@ -412,10 +462,9 @@ function formatMessageForAiSdk(message: SomeMessage): CoreMessage {
         typeof message.content === "string"
           ? message.content
           : JSON.stringify(message.content),
-      name: message.name, // Include the name property
-    } as CoreMessage;
+    } satisfies CoreMessage;
   } else {
     // User and system messages can pass through
-    return message as CoreMessage;
+    return message satisfies CoreMessage;
   }
 }

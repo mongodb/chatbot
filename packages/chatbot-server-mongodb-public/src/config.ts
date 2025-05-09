@@ -8,7 +8,6 @@ import {
   makeMongoDbVerifiedAnswerStore,
   makeOpenAiEmbedder,
   makeMongoDbConversationsService,
-  makeOpenAiChatLlm,
   AppConfig,
   CORE_ENV_VARS,
   assertEnvVars,
@@ -16,17 +15,16 @@ import {
   requireValidIpAddress,
   requireRequestOrigin,
   AddCustomDataFunc,
-  makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
   defaultCreateConversationCustomData,
   defaultAddMessageToConversationCustomData,
+  makeGenerateResponseWithSearchTool,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
-import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";
 import { blockGetRequests } from "./middleware/blockGetRequests";
 import { getRequestId, logRequest } from "./utils";
 import { systemPrompt } from "./systemPrompt";
-import { addReferenceSourceType } from "./processors/makeMongoDbReferences";
+import { makeMongoDbReferences } from "./processors/makeMongoDbReferences";
 import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
@@ -40,6 +38,7 @@ import {
   makeRateMessageUpdateTrace,
 } from "./tracing/routesUpdateTraceHandlers";
 import { useSegmentIds } from "./middleware/useSegmentIds";
+import { createAzure } from "mongodb-rag-core/aiSdk";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -77,19 +76,6 @@ export const openAiClient = wrapOpenAI(
     apiVersion: OPENAI_API_VERSION,
   })
 );
-
-export const llm = makeOpenAiChatLlm({
-  openAiClient,
-  deployment: OPENAI_CHAT_COMPLETION_DEPLOYMENT,
-  openAiLmmConfigOptions: {
-    temperature: 0,
-    max_tokens: 1000,
-  },
-});
-
-llm.answerQuestionAwaited = wrapTraced(llm.answerQuestionAwaited, {
-  name: "answerQuestionAwaited",
-});
 
 export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   connectionUri: MONGODB_CONNECTION_URI,
@@ -165,38 +151,6 @@ export const findVerifiedAnswer = wrapTraced(
   { name: "findVerifiedAnswer" }
 );
 
-export const preprocessorOpenAiClient = wrapOpenAI(
-  new AzureOpenAI({
-    apiKey: OPENAI_API_KEY,
-    endpoint: OPENAI_ENDPOINT,
-    apiVersion: OPENAI_API_VERSION,
-  })
-);
-
-export const generateUserPrompt = wrapTraced(
-  makeVerifiedAnswerGenerateUserPrompt({
-    findVerifiedAnswer,
-    onVerifiedAnswerFound: (verifiedAnswer) => {
-      return {
-        ...verifiedAnswer,
-        references: verifiedAnswer.references.map(addReferenceSourceType),
-      };
-    },
-    onNoVerifiedAnswerFound: wrapTraced(
-      makeStepBackRagGenerateUserPrompt({
-        openAiClient: preprocessorOpenAiClient,
-        model: retrievalConfig.preprocessorLlm,
-        findContent,
-        numPrecedingMessagesToInclude: 6,
-      }),
-      { name: "makeStepBackRagGenerateUserPrompt" }
-    ),
-  }),
-  {
-    name: "generateUserPrompt",
-  }
-);
-
 export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 
 export const conversations = makeMongoDbConversationsService(
@@ -234,17 +188,24 @@ const segmentConfig = SEGMENT_WRITE_KEY
       writeKey: SEGMENT_WRITE_KEY,
     }
   : undefined;
+const azureOpenAi = createAzure({
+  apiKey: OPENAI_API_KEY,
+  // baseURL: OPENAI_ENDPOINT,
+  resourceName: process.env.OPENAI_RESOURCE_NAME,
+  // apiVersion: OPENAI_API_VERSION,
+  // apiKey: process.env.OPENAI_OPENAI_API_KEY,
+});
 
+const languageModel = azureOpenAi("gpt-4.1");
 export const config: AppConfig = {
   conversationsRouterConfig: {
-    llm,
     middleware: [
       blockGetRequests,
       requireValidIpAddress(),
       requireRequestOrigin(),
       useSegmentIds(),
-      cookieParser(),
       redactConnectionUri(),
+      cookieParser(),
     ],
     createConversationCustomData: !isProduction
       ? createConversationCustomDataWithAuthUser
@@ -294,8 +255,16 @@ export const config: AppConfig = {
           : undefined,
       segment: segmentConfig,
     }),
-    generateUserPrompt,
-    systemPrompt,
+    generateResponse: makeGenerateResponseWithSearchTool({
+      languageModel,
+      systemMessage: systemPrompt,
+      makeReferenceLinks: makeMongoDbReferences,
+      filterPreviousMessages: async (conversation) => {
+        return conversation.messages;
+      },
+      llmNotWorkingMessage: "LLM not working. Sad!",
+      findContent,
+    }),
     maxUserMessagesInConversation: 50,
     maxUserCommentLength: 500,
     conversations,

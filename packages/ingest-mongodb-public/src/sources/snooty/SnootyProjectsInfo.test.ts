@@ -77,11 +77,11 @@ describe("SnootyProjectsInfo", () => {
     expect(branches).toBeDefined();
     assert(branches !== undefined);
     expect(branches.length).toBeGreaterThan(0);
-    const branch = branches[0]
-    expect(branch).toHaveProperty('active');
-    expect(branch).toHaveProperty('fullUrl');
-    expect(branch).toHaveProperty('label');
-    expect(branch).toHaveProperty('isStableBranch');
+    const branch = branches[0];
+    expect(branch).toHaveProperty("active");
+    expect(branch).toHaveProperty("fullUrl");
+    expect(branch).toHaveProperty("label");
+    expect(branch).toHaveProperty("isStableBranch");
     const stableBranch = branches.find((branch) => branch.isStableBranch);
     expect(stableBranch).toBeDefined();
   });
@@ -128,28 +128,42 @@ describe("SnootyProjectsInfo", () => {
       });
       assert(snootySources !== undefined);
       const pages = await snootySources[0].fetchPages();
-      const versions = pages.map((page) => (page.metadata?.version as PageMetadata['version']));
-      const originalCurrentVersion = versions.find((version) => version?.isCurrent);
-      const currentVersionOverride = versions.find((version) => !version?.isCurrent)?.label;
+      const versions = pages.map(
+        (page) => page.metadata?.version as PageMetadata["version"]
+      );
+      const originalCurrentVersion = versions.find(
+        (version) => version?.isCurrent
+      );
+      const currentVersionOverride = versions.find(
+        (version) => !version?.isCurrent
+      )?.label;
 
       // override the current version
       const sourcesAfterOverride = await prepareSnootySources({
-        projects: [{
-          ...project,
-          currentVersionOverride,
-        }],
+        projects: [
+          {
+            ...project,
+            currentVersionOverride,
+          },
+        ],
         snootyDataApiBaseUrl,
       });
       const pagesAfterOverride = await sourcesAfterOverride[0].fetchPages();
-      const versionsAfterOverride = pagesAfterOverride.map((page) => (page.metadata?.version as PageMetadata['version']));
-      const currentVersionAfterOverride = versionsAfterOverride.find((version) => version?.isCurrent);
+      const versionsAfterOverride = pagesAfterOverride.map(
+        (page) => page.metadata?.version as PageMetadata["version"]
+      );
+      const currentVersionAfterOverride = versionsAfterOverride.find(
+        (version) => version?.isCurrent
+      );
 
       // Check that the current version is the one we set
       expect(currentVersionAfterOverride?.label).toBe(currentVersionOverride);
       expect(currentVersionAfterOverride?.isCurrent).toBe(true);
       // Check that the previous current version is not current anymore
       expect(originalCurrentVersion?.label).not.toBe(currentVersionOverride);
-      const previousCurrentVersionAfterOverride = versionsAfterOverride.find((version) => version?.label === originalCurrentVersion?.label);
+      const previousCurrentVersionAfterOverride = versionsAfterOverride.find(
+        (version) => version?.label === originalCurrentVersion?.label
+      );
       expect(previousCurrentVersionAfterOverride?.isCurrent).toBe(false);
     });
   });

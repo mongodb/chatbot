@@ -226,7 +226,7 @@ export function makeMongoDbEmbeddedContentStore({
         "metadata.version.label": 1,
       });
       await embeddedContentCollection.createIndex({
-        "sourceType": 1,
+        sourceType: 1,
       });
 
       try {
@@ -267,7 +267,7 @@ type MongoDbAtlasVectorSearchFilter = {
   $or?: {
     "metadata.version.isCurrent": boolean | null;
   }[];
-  "sourceType"?: string;
+  sourceType?: string;
 };
 
 const handleFilters = (

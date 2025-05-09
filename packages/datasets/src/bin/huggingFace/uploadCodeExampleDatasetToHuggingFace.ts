@@ -124,7 +124,7 @@ function makeLoadPagesFilter(
   forbiddenUrls: string[]
 ): Filter<PersistedPage> {
   return {
-    sourceType: {$in: publicDatasetSourceTypes},
+    sourceType: { $in: publicDatasetSourceTypes },
     url: { $nin: forbiddenUrls },
     action: { $ne: "deleted" },
     $or: [

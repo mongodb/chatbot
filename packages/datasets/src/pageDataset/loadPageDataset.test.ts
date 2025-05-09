@@ -61,7 +61,10 @@ describe("loadPagesDataset", () => {
     {
       url: "https://example.com/page5",
       body: "Page 5 body",
-      metadata: { extra: "info1", version: { isCurrent: true, label: 'current' } }, 
+      metadata: {
+        extra: "info1",
+        version: { isCurrent: true, label: "current" },
+      },
       title: "Page 5",
       sourceName: "SourceE",
       updated: new Date(),
@@ -73,7 +76,10 @@ describe("loadPagesDataset", () => {
     {
       url: "https://example.com/old-version/page5",
       body: "Page 5 body",
-      metadata: { extra: "info5", version: { isCurrent: false, label: 'old-version' } }, 
+      metadata: {
+        extra: "info5",
+        version: { isCurrent: false, label: "old-version" },
+      },
       title: "Page 5",
       sourceName: "SourceE",
       updated: new Date(),

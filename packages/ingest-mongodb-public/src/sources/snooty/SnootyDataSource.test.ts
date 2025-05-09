@@ -26,7 +26,7 @@ describe("SnootyDataSource", () => {
         gitBranchName: "v6.0",
         label: "v6.0 (current)",
         active: true,
-        fullUrl: "https://mongodb.com/docs/v6.0/", 
+        fullUrl: "https://mongodb.com/docs/v6.0/",
         isStableBranch: true,
       },
     ],
@@ -86,21 +86,23 @@ describe("SnootyDataSource", () => {
     it("should skip inactive branches", async () => {
       const inactiveProject: SnootyProjectConfig = {
         ...project,
-        branches: [{
-          gitBranchName: 'v5.0',
-          label: 'v5.0',
-          active: false,
-          fullUrl: 'https://mongodb.com/docs/v5.0/',
-          isStableBranch: false
-        }]
+        branches: [
+          {
+            gitBranchName: "v5.0",
+            label: "v5.0",
+            active: false,
+            fullUrl: "https://mongodb.com/docs/v5.0/",
+            isStableBranch: false,
+          },
+        ],
       };
-  
+
       const source = makeSnootyDataSource({
-        name: "test-source", 
+        name: "test-source",
         project: inactiveProject,
-        snootyDataApiBaseUrl: "https://snooty-api.example.com"
+        snootyDataApiBaseUrl: "https://snooty-api.example.com",
       });
-  
+
       const pages = await source.fetchPages();
       expect(pages).toHaveLength(0);
     });
@@ -175,7 +177,10 @@ describe("SnootyDataSource", () => {
       const pages = await source.fetchPages();
       for (const page of pages) {
         expect(page.metadata?.siteTitle).toBeDefined();
-        expect(page.metadata?.version).toStrictEqual({ label: 'v6.0 (current)', isCurrent: true },);
+        expect(page.metadata?.version).toStrictEqual({
+          label: "v6.0 (current)",
+          isCurrent: true,
+        });
       }
     });
 
@@ -264,14 +269,14 @@ describe("handlePage()", () => {
       sourceName: "sample-source",
       baseUrl: "https://example.com",
       tags: ["a"],
-      version: {label: "1.0", isCurrent: true},
+      version: { label: "1.0", isCurrent: true },
     });
     expect(result).toMatchObject({
       format: "openapi-yaml",
       title: "Atlas App Services Data API",
       metadata: {
         tags: ["a", "openapi"],
-        version: {label: "1.0", isCurrent: true},
+        version: { label: "1.0", isCurrent: true },
       },
     });
   });
@@ -286,14 +291,14 @@ describe("handlePage()", () => {
       sourceName: "sample-source",
       baseUrl: "https://example.com",
       tags: ["a"],
-      version: {label: "1.0", isCurrent: true},
+      version: { label: "1.0", isCurrent: true },
     });
     expect(result).toMatchObject({
       format: "md",
       title: "$merge (aggregation)",
       metadata: {
         tags: ["a"],
-        version: {label: "1.0", isCurrent: true},
+        version: { label: "1.0", isCurrent: true },
       },
     });
     expect(result?.body).toContain("# $merge (aggregation)");

@@ -28,12 +28,31 @@ export type SnootyPageEntry = SnootyManifestEntry & {
   data: SnootyPageData;
 };
 
+/** Represents an entry in the Snooty Table of Contents */
+export interface SnootyTocEntry {
+  title: {
+    type: "text";
+    position: {
+      start: {
+        line: number;
+      };
+    };
+    value: string;
+  }[];
+  slug?: string;
+  url?: string;
+  children: SnootyTocEntry[];
+  options?: {
+    drawer?: boolean;
+  };
+}
+
 /**
   Represents metadata in a Snooty manifest file.
  */
 export type SnootyMetadataEntry = SnootyManifestEntry & {
   type: "metadata";
-  data: { title?: string };
+  data: { title?: string; toctree: SnootyTocEntry; toctreeOrder: string[] };
 };
 
 /**

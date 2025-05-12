@@ -16,7 +16,6 @@ async function main() {
   const { BRAINTRUST_API_KEY, BRAINTRUST_ENDPOINT } = assertEnvVars({
     ...BRAINTRUST_ENV_VARS,
   });
-  // TODO: get from braintrust
   const openAiClient = wrapOpenAI(
     new OpenAI({
       apiKey: BRAINTRUST_API_KEY,

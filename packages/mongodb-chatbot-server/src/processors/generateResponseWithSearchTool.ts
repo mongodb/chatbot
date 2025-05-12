@@ -106,7 +106,11 @@ export function makeGenerateResponseWithSearchTool({
 
       const searchTool = tool({
         parameters: SearchArgsSchema,
-        execute: async ({ query }) => {
+        execute: async ({ query }, { toolCallId }) => {
+          dataStreamer?.streamData({
+            data: `Searching for '${query}'...`,
+            type: "processing",
+          });
           return await findContent({
             query,
           });
@@ -149,6 +153,7 @@ export function makeGenerateResponseWithSearchTool({
           // Pass the tools as a separate parameter
           const { fullStream, steps } = streamText({
             ...generationArgs,
+            toolChoice: "auto",
             abortSignal: controller.signal,
             onStepFinish: async ({ toolResults }) => {
               toolResults?.forEach((toolResult) => {

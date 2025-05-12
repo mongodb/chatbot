@@ -21,7 +21,7 @@ export const resourceFilePaths: Record<string, string> = {
 };
 
 // Function to read the markdown file
-const readMarkdownFile = async (uri: string): Promise<string> => {
+export const readMarkdownFile = async (uri: string): Promise<string> => {
   try {
     // Look up the file path based on the URI (now absolute path)
     const filePath = resourceFilePaths[uri];

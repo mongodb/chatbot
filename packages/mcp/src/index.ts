@@ -1,7 +1,7 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { registerResources } from './helpers/resourceHandler.js';
-// import { registerTools } from './helpers/toolHandler.js';
+import { registerTools } from './helpers/toolHandler.js';
 // import { createEJsonTransport } from "./helpers/EJsonTransport.js";
 
 const server = new Server({
@@ -9,11 +9,16 @@ const server = new Server({
     version: "1.0.0",
 }, {
     capabilities: {
-        resources: {}
+        resources: {},
+        tools: {
+            listTools: {},
+            callTool: {}
+        }
     }
 });
 
 registerResources(server);
+registerTools(server);
 
 async function main() {
   const transport = new StdioServerTransport();

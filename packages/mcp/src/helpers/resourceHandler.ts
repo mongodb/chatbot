@@ -8,8 +8,10 @@ import { readFile } from "fs/promises";
 import path from "path";
 
 // Map of resource URIs to file paths - can be modified to add more resources
-const resourceFilePaths: Record<string, string> = {
-  "docs://vectorSearch": "../datasets/atlasVectorSearchSummary.md",
+export const resourceFilePaths: Record<string, string> = {
+  "docs://vector-search": "./src/resources/vector-search.md",
+  "docs://atlas-cli": "./src/resources/atlas-cli.md",
+  "docs://kotlin-coroutine": "./src/resources/kotlin-coroutine-driver.md",
 };
 
 // Function to read the markdown file
@@ -30,6 +32,7 @@ const readMarkdownFile = async (uri: string): Promise<string> => {
 };
 
 export const registerResources = (server: Server): void => {
+ 
  // List available resources when clients request them
  server.setRequestHandler(ListResourcesRequestSchema, async () => {
    return {
@@ -37,9 +40,21 @@ export const registerResources = (server: Server): void => {
        {
          uri: "docs://vectorSearch",
          name: "Atlas Vector Search Docs",
-         description: "Condensed version of MongoDB's Atlas Vector Search documentation",
+         description: "Documentation for MongoDB Atlas Vector Search",
          mimeType: "text/markdown",
        },
+       {
+        uri: "docs://atlas-sLI",
+        name: "Atlas CLI Docs",
+        description: "Documentation for the MongoDB Atlas CLI",
+        mimeType: "text/markdown",
+       },
+       {
+        uri: "docs://kotlin-coroutine",
+        name: "Kotlin Coroutine Driver Docs",
+        description: "Documentation for the MongoDB Kotlin Coroutine Driver",
+        mimeType: "text/markdown",
+       }
      ],
    };
  });
@@ -47,7 +62,7 @@ export const registerResources = (server: Server): void => {
  server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   const uri = request.params.uri;
 
-  if (uri === "docs://vectorSearch") {
+  if (uri === "docs://vector-search" || uri === "docs://atlas-cli" || uri === "docs://kotlin-coroutine") {
     const markdownContents = await readMarkdownFile(uri);
     return {
       contents: [

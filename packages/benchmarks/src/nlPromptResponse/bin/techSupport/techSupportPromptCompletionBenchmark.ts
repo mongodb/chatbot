@@ -69,6 +69,7 @@ async function main() {
         additionalMetadata: {
           judgeModelsConfig,
           ...staticLlmOptions,
+          model: model.label,
         },
         task: makeNlPromptCompletionTask({
           llmOptions,

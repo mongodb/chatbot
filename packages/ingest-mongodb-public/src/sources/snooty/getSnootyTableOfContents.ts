@@ -6,9 +6,9 @@ import {
   SnootyMetadataEntry,
   SnootyTocEntry,
 } from "./SnootyDataSource";
-import { PageStore, PersistedPage } from "mongodb-rag-core";
+import { Page } from "mongodb-rag-core";
 
-interface TableOfContents {
+export interface TableOfContents {
   title?: string;
   url: string;
   children: TableOfContents[];
@@ -25,12 +25,12 @@ export async function getSnootyTableOfContents({
   snootyProjectName,
   currentBranch,
   baseUrl,
-  pageStore,
+  pages,
 }: {
   snootyProjectName: string;
   currentBranch: string;
   baseUrl: string;
-  pageStore: PageStore;
+  pages: Page[];
 }): Promise<GetTableOfContentsReturnType | null> {
   const getBranchDocumentsUrl = new URL(
     `projects/${snootyProjectName}/${currentBranch}/documents`,
@@ -50,24 +50,23 @@ export async function getSnootyTableOfContents({
             const {
               data: { toctree, toctreeOrder, title },
             } = entry as SnootyMetadataEntry;
-            const urls = toctreeOrder.map((entry) =>
+            // We don't need the URLs array anymore since we're using the page map directly
+            const _urls = toctreeOrder.map((entry) =>
               mergeSlugWithBaseUrl(baseUrl, entry)
             );
-            const pages = await pageStore.loadPages({
-              urls,
-            });
+
             // Precompute page map for faster lookup
             const pageMap = pages.reduce((acc, page) => {
               acc[page.url] = page;
               return acc;
-            }, {} as Record<string, PersistedPage>);
+            }, {} as Record<string, Page>);
 
             const toc = parseTocTree(toctree, baseUrl, pageMap);
             stream.close();
             const out = {
               title,
               toctreeOrder: toctreeOrder.map((entry) =>
-                mergeSlugWithBaseUrl(baseUrl, entry)
+                addTrailingSlash(mergeSlugWithBaseUrl(baseUrl, entry))
               ),
               toc,
             };
@@ -84,10 +83,65 @@ export async function getSnootyTableOfContents({
   return tocMetadata;
 }
 
-interface TableOfContents {
-  title?: string;
-  url: string;
-  children: TableOfContents[];
+// FIXME: this works great in the test, but fails miserably on real data
+// Unclear why. It returns wayyy too many items, a few OOMs more than the correct number of links.
+export function flattenTableOfContents(
+  toc: TableOfContents,
+  entryUrl?: string,
+  pageMap?: Record<string, unknown>
+): TableOfContents[] {
+  // Use a non-recursive approach to avoid duplicate entries
+  const result: TableOfContents[] = [];
+  const urlSet = new Set<string>();
+  const queue: TableOfContents[] = [];
+
+  // Start with either the entry point or the root
+  if (entryUrl) {
+    const entryToc = findEntryToc(toc, entryUrl);
+    if (entryToc) {
+      queue.push(entryToc);
+    }
+  } else {
+    queue.push(toc);
+  }
+
+  // Process the queue
+  while (queue.length > 0) {
+    const current = queue.shift();
+    if (!current) continue;
+
+    // Only process each URL once
+    if (!urlSet.has(current.url)) {
+      // If pageMap is provided, only include entries that exist in the page map
+      if (!pageMap || pageMap[current.url]) {
+        urlSet.add(current.url);
+        result.push(current);
+      }
+
+      // Add children to the queue (even if parent wasn't included)
+      for (const child of current.children) {
+        queue.push(child);
+      }
+    }
+  }
+
+  return result;
+}
+
+function findEntryToc(
+  toc: TableOfContents,
+  entryUrl: string
+): TableOfContents | null {
+  if (toc.url === entryUrl) {
+    return toc;
+  }
+  for (const child of toc.children) {
+    const result = findEntryToc(child, entryUrl);
+    if (result) {
+      return result;
+    }
+  }
+  return null;
 }
 
 function mergeSlugWithBaseUrl(baseUrl: string, slug: string): string {
@@ -98,10 +152,14 @@ function mergeSlugWithBaseUrl(baseUrl: string, slug: string): string {
   return `${normalizedBaseUrl}${normalizedSlug}`;
 }
 
+function addTrailingSlash(str: string): string {
+  return str.endsWith("/") ? str : `${str}/`;
+}
+
 function parseTocTree(
   tocTree: SnootyTocEntry,
   baseUrl: string,
-  pages: Record<string, PersistedPage>
+  pages: Record<string, Page>
 ): TableOfContents {
   const url =
     tocTree.url ??

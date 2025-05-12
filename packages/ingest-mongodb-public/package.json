@@ -54,11 +54,13 @@
   },
   "dependencies": {
     "@playwright/test": "1.51.1",
+    "@supercharge/promise-pool": "^3.2.0",
     "cheerio": "^1.0.0",
     "common-tags": "^1.8.2",
     "docdoctor": "^0.1.2",
     "dotenv": "^16",
     "encodeurl": "^2.0.0",
+    "gpt-tokenizer": "^2.9.0",
     "html-to-text": "^9.0.5",
     "jsonl-parse-stringify": "^1.0.3",
     "mongodb-rag-core": "*",

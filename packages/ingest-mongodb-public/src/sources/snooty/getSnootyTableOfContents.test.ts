@@ -1,4 +1,8 @@
-import { getSnootyTableOfContents } from "./getSnootyTableOfContents";
+import {
+  flattenTableOfContents,
+  getSnootyTableOfContents,
+  TableOfContents,
+} from "./getSnootyTableOfContents";
 import fs from "fs";
 import Path from "path";
 import nock from "nock";
@@ -38,13 +42,6 @@ describe("getSnootyTableOfContents", () => {
     updated: new Date(),
     action: "updated",
   };
-  const mockPageStore: PageStore = {
-    loadPages: async () => {
-      return [mockPage];
-    },
-    updatePages: jest.fn(),
-    deletePages: jest.fn(),
-  };
 
   const baseMock = nock(snootyDataApiBaseUrl);
   beforeEach(() => {
@@ -62,7 +59,7 @@ describe("getSnootyTableOfContents", () => {
       snootyProjectName: project.name,
       currentBranch: project.currentBranch,
       baseUrl: project.baseUrl,
-      pageStore: mockPageStore,
+      pages: [mockPage],
     });
     expect(
       toc?.toctreeOrder.every((url) => url.startsWith(project.baseUrl))
@@ -81,5 +78,41 @@ describe("getSnootyTableOfContents", () => {
     const path = Path.resolve(SRC_ROOT, "../testData/toc.json");
     console.log("writing to ", path);
     fs.writeFileSync(path, JSON.stringify(toc));
+  });
+});
+
+describe("flattenTableOfContents", () => {
+  const nestedPage3 = {
+    title: "Other page",
+    description: "info about this other page!",
+    url: "https://mongodb.com/docs/v6.0/other-page",
+    children: [],
+  } satisfies TableOfContents;
+
+  const nestedPage2 = {
+    title: "Introduction",
+    description: "info about this great page!",
+    url: "https://mongodb.com/docs/v6.0/introduction",
+    children: [nestedPage3],
+  } satisfies TableOfContents;
+
+  const rootPage = {
+    title: "MongoDB Manual",
+    url: "https://mongodb.com/docs/v6.0/",
+    children: [nestedPage2],
+  } satisfies TableOfContents;
+
+  it("should flatten the table of contents", () => {
+    const flattened = flattenTableOfContents(rootPage);
+    expect(flattened).toHaveLength(3);
+    expect(flattened[0]).toMatchObject(rootPage);
+    expect(flattened[1]).toMatchObject(nestedPage2);
+    expect(flattened[2]).toMatchObject(nestedPage3);
+  });
+  it("should return the table of contents for a specific entry", () => {
+    const entry = flattenTableOfContents(rootPage, nestedPage2.url);
+    expect(entry).toHaveLength(2);
+    expect(entry[0]).toMatchObject(nestedPage2);
+    expect(entry[1]).toMatchObject(nestedPage3);
   });
 });

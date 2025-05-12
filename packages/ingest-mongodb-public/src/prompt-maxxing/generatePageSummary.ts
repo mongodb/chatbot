@@ -2,6 +2,7 @@ import { Page, SomeTokenizer, chunkMd } from "mongodb-rag-core";
 import { encode } from "gpt-tokenizer/model/gpt-4o";
 import { OpenAI } from "mongodb-rag-core/openai";
 import { LlmOptions } from "./LlmOptions";
+import { makeBulletPrompt } from "./makeBulletPrompt";
 
 const gpt4oTokenizer: SomeTokenizer = {
   encode(text) {
@@ -54,6 +55,29 @@ export function makeGeneratePageSummary({
   };
 }
 
+const generalGuidelines = [
+  "Prioritize actionable content: steps, code examples (with language identifiers), API usage, configuration, command syntax.",
+  "Crucial details MUST be preserved: required parameters, flags, error conditions, security notes, configuration steps.",
+  "This compressed text will be used as part of a guide given to LLMs to use to help them generate code related to this product.",
+  "An LLM is the main consumer of the compressed text, not a human. Write for LLM consumption.",
+  "Be mindful to compress the text as much as reasonably possible while still preserving the important information.",
+  "Use concise language that maximizes information density while maintaining clarity.",
+  "Skew towards more concise summaries than the target percentage if you can make a reasonable LLM summary in less than that percentage of the original text.",
+  "Only maintain the most important markdown headings",
+];
+
+const whatToAvoid = [
+  "Avoid marketing language, subjective statements, and overly verbose conceptual explanations.",
+  "Avoid explanations of why a feature exists (unless critical)",
+  "Avoid repetition of information already present in structured elements (like parameters described in a table).",
+];
+
+const formattingNotes = [
+  "Format text in Github Flavored Markdown.",
+  "Use code blocks as relevant (e.g. ```python\ncode\n```).",
+  "Include a H1 title for each page. (e.g. # My Page Title)",
+];
+
 const makeSystemPrompt = (
   topic: string,
   percentToInclude = 15,
@@ -66,18 +90,16 @@ This text will be used in the prompt of a LLM to answer questions about the prod
 ONLY respond with the compressed text, no introduction/conclusion statements.
 
 <general_guidelines>
-1. Keep code examples showing important behaviors, like API usage.
-2. This compressed text will be used as part of a guide given to LLMs to use to help them generate code related to this product. 
-3. An LLM is the main consumer of the compressed text, not a human.
-4. Be mindful to compress the text as much as reasonably possible while still preserving the important information.
-5. Skew towards more concise summaries than the ${percentToInclude}% target if you can make a reasonable LLM summary in less than that percentage of the original text.
+${makeBulletPrompt(generalGuidelines)}
 </general_guidelines>
 
 <formatting_notes>
-1. Format text in Github Flavored Markdown.
-2. Use code blocks as relevant (e.g. \`\`\`python\ncode\n\`\`\`).
-3. Include a H1 title for each page. (e.g. # My Page Title)
+${makeBulletPrompt(formattingNotes)}
 </formatting_notes>
+
+<what_to_avoid>
+${makeBulletPrompt(whatToAvoid)}
+</what_to_avoid>
 
 ${
   customInstructions

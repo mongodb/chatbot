@@ -25,5 +25,40 @@ const config: AppConfig = {
 
 ## Retrieval Augmented Generation (RAG)
 
-To perform retrieval augmented generation (RAG) using a `GenerateUserMessageFunc`,
+To perform retrieval augmented generation (RAG) using a `GenerateUserPromptFunc`,
 refer to the [RAG](./rag/index.md) guide.
+
+## Client Context
+
+You can pass additional information from the user's client to the
+`GenerateUserPromptFunc` function by setting the `clientContext` property in the
+request body. This can include arbitrary data that might be useful for generating
+a response. For example, this could include the user's location, the device they
+are using, their preferred programming language, etc.
+
+Any value provided in the `clientContext` property of the request body is
+available in the `clientContext` property of the `GenerateUserPromptFunc`
+function. You can use this information to customize the user prompt.
+
+### Example
+
+The following example shows how to use the `clientContext` property to customize
+the user prompt.
+
+```ts
+const generateUserPrompt: GenerateUserPromptFunc = async ({
+  userMessageText,
+  clientContext,
+}) => {
+  return {
+    userMessage: {
+      role: "user",
+      contentForLlm: `The user provided the following context:
+currentLocation: ${clientContext.currentLocation}
+preferredLanguage: ${clientContext.preferredLanguage}
+
+${userMessageText}`,
+    },
+  }
+};
+```

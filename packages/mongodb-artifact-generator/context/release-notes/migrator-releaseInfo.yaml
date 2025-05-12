@@ -1,0 +1,48 @@
+github:
+  owner: "mongodb-ets"
+  repo: "migrator"
+  version: "1.11.0"
+  previousVersion: "1.10.0"
+jira:
+  project: "MIG"
+  version: "1.11.0"
+projectDescription: >-
+  MongoDB Relational Migrator is a tool to help you migrate relational workloads to
+  MongoDB. Relational Migrator allows you to:
+
+  - design an effective MongoDB schema derived from an existing relational schema
+  - migrate data from Oracle, SQL Server, MySQL, PostgreSQL, or Sybase ASE to MongoDB,
+    while transforming to the target schema
+  - generate code artifacts to reduce the time required to update application code
+
+  Relational Migrator addresses common migration and data modeling challenges,
+  de-risking an organization's transition to MongoDB while helping them take full
+  advantage of the document model. Relational Migrator is therefore designed for use
+  by personnel put in charge by their organisation to carry out the transition from
+  relational databases to MongoDB.
+
+  Relational Migrator analyzes an existing relational schema and gives recommendations
+  for mapping to a new MongoDB schema. The visual interface is used to consolidate a
+  large number of tables into a smaller number of collections by using embedded
+  documents and arrays.
+
+  Snapshots or continuous sync jobs can be created to migrate data from an existing
+  relational database to a target MongoDB cluster based on the new schema mapping.
+  After migrating, data validation can be conducted right from Relational Migrator.
+
+  Relational Migrator also assists with writing new code or updating existing code to
+  work with MongoDB. Generate Java, JavaScript, and C# code from the new data model,
+  and convert existing SQL queries, triggers, and stored procedures to MongoDB Query
+  API syntax.
+
+  The application is a React + Spring Boot web application, deployed as a fat Spring
+  Boot JAR file that contains the compiled frontend artifacts and serves them as
+  static resources. The Spring Boot application contains an embedded Tomcat server
+  which also serves the REST API requests coming from the frontend.
+
+  The following is a partial list of internal dependies used by the project. Any
+  upgrades or changes to these are not user facing and should not be included in
+  external release notes:
+
+  - @sentry/react
+  - Debezium JDBC connector

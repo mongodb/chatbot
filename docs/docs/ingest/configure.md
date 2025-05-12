@@ -17,7 +17,7 @@ npm install mongodb-rag-ingest mongodb-rag-core
 The MongoDB Ingest CLI uses a [CommonJS](https://en.wikipedia.org/wiki/CommonJS)
 JavaScript configuration file to determine how to ingest content.
 
-Every configuration file must export a [`Config`](../reference/ingest/modules/index.md#config) object as its default export.
+Every configuration file must export a [`Config`](../reference/ingest/modules.md#config) object as its default export.
 
 You must either:
 
@@ -54,7 +54,7 @@ tsc --module commonjs --target es2017 --outDir dist ingest.config.ts
 Then run the Ingest CLI with the compiled configuration file:
 
 ```bash
-ingest pages --config dist/ingest.config.js --sourceName my-data-source
+ingest pages update --config dist/ingest.config.js --sourceName my-data-source
 ```
 
 ## Example Configuration
@@ -74,11 +74,10 @@ Example configuration file:
 import { makeIngestMetaStore, type Config } from "mongodb-rag-ingest";
 import {
   makeOpenAiEmbedder,
-  OpenAIClient,
-  AzureKeyCredential,
   makeMongoDbEmbeddedContentStore,
   makeMongoDbPageStore,
 } from "mongodb-rag-core";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { standardChunkFrontMatterUpdater } from "mongodb-rag-core";
 import { type DataSource } from "mongodb-rag-core";
 const {
@@ -88,16 +87,18 @@ const {
   MONGODB_DATABASE_NAME,
   OPENAI_ENDPOINT,
   OPENAI_API_KEY,
+  OPENAI_API_VERSION,
   OPENAI_EMBEDDING_DEPLOYMENT,
 } = process.env;
 
 export default {
   embedder: () =>
     makeOpenAiEmbedder({
-      openAiClient: new OpenAIClient(
-        OPENAI_ENDPOINT,
-        new AzureKeyCredential(OPENAI_API_KEY)
-      ),
+      openAiClient: new AzureOpenAI({
+        apiKey: OPENAI_API_KEY,
+        endpoint: OPENAI_ENDPOINT,
+        apiVersion: OPENAI_API_VERSION,
+      }),
       deployment: OPENAI_EMBEDDING_DEPLOYMENT,
       backoffOptions: {
         numOfAttempts: 25,
@@ -108,6 +109,9 @@ export default {
     makeMongoDbEmbeddedContentStore({
       connectionUri: MONGODB_CONNECTION_URI,
       databaseName: MONGODB_DATABASE_NAME,
+      searchIndex: {
+        embeddingName: OPENAI_EMBEDDING_DEPLOYMENT,
+      }
     }),
   pageStore: () =>
     makeMongoDbPageStore({

@@ -47,7 +47,10 @@ const config: Config = {
       "docusaurus-plugin-typedoc",
       {
         id: "core",
-        entryPoints: ["../packages/mongodb-rag-core/src/index.ts"],
+        entryPoints: [
+          "../packages/mongodb-rag-core/src/index.ts",
+          "../packages/mongodb-rag-core/src/dataSources/index.ts",
+        ],
         tsconfig: "../packages/mongodb-rag-core/tsconfig.json",
         sidebar: {
           fullNames: true,

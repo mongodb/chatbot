@@ -1,3 +1,4 @@
+import { RenderLinks } from "./snooty/snootyAstToMd";
 import { LocallySpecifiedSnootyProjectConfig } from "./snooty/SnootyDataSource";
 import { prepareSnootySources } from "./snooty/SnootyProjectsInfo";
 
@@ -91,8 +92,14 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
   {
     type: "snooty",
     name: "docs-k8s-operator",
-    tags: ["docs", "kubernetes-operator", "kubernetes"],
+    tags: ["docs", "kubernetes-operator", "kubernetes", "k8s"],
     productName: "MongoDB Kubernetes Operator",
+  },
+  {
+    type: "snooty",
+    name: "atlas-operator",
+    tags: ["docs", "atlas", "kubernetes-operator", "kubernetes", "k8s"],
+    productName: "MongoDB Atlas Kubernetes Operator",
   },
   {
     type: "snooty",
@@ -104,7 +111,13 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
     type: "snooty",
     name: "kotlin",
     tags: ["docs", "driver", "kotlin", "kotlin-coroutines"],
-    productName: "Kotlin Driver",
+    productName: "Kotlin Coroutine Driver",
+  },
+  {
+    type: "snooty",
+    name: "kotlin-sync",
+    tags: ["docs", "driver", "kotlin", "kotlin-sync"],
+    productName: "Kotlin Sync Driver",
   },
   {
     type: "snooty",
@@ -173,11 +186,6 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
   },
   {
     type: "snooty",
-    name: "guides",
-    tags: ["docs", "guides", "tutorial"],
-  },
-  {
-    type: "snooty",
     name: "visual-studio-extension",
     tags: ["docs", "visual-studio-extension", "visual-studio", "gui"],
     productName: "MongoDB Visual Studio Extension",
@@ -226,6 +234,12 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
   },
   {
     type: "snooty",
+    name: "django",
+    tags: ["docs", "django", "python", "backend"],
+    productName: "Django MongoDB Backend",
+  },
+  {
+    type: "snooty",
     name: "ops-manager",
     tags: ["docs", "ops-manager"],
     productName: "MongoDB Ops Manager",
@@ -242,15 +256,23 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
     tags: ["docs", "intellij", "plugin"],
     productName: "MongoDB IntelliJ Plugin",
   },
+  {
+    type: "snooty",
+    name: "atlas-architecture",
+    tags: ["docs", "atlas", "architecture"],
+    productName: "MongoDB Atlas Architecture Center",
+  },
 ];
 
 export const snootyDataApiBaseUrl = "https://snooty-data-api.mongodb.com/prod/";
 
 export const makeSnootyDataSources = (
   snootyDataApiBaseUrl: string,
-  projects: LocallySpecifiedSnootyProjectConfig[]
+  projects: LocallySpecifiedSnootyProjectConfig[],
+  links?: Omit<RenderLinks, "baseUrl">
 ) =>
   prepareSnootySources({
     projects,
     snootyDataApiBaseUrl,
+    links,
   });

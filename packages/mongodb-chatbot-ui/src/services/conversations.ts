@@ -153,19 +153,24 @@ const isConversationStreamEvent = (
  */
 export type ConversationFetchOptions = Omit<
   RequestInit,
-  "body" | "method" | "headers" | "signal"
-> & {
-  headers?: Headers;
+  "body" | "method" | "signal"
+>;
+
+export type AddMessageRequestBody = {
+  message: string;
+  clientContext?: Record<string, unknown>;
 };
 
 export type ConversationServiceConfig = {
   serverUrl: string;
-  fetchOptions?: ConversationFetchOptions;
+  fetchOptions?: ConversationFetchOptions | (() => ConversationFetchOptions);
 };
 
 export class ConversationService {
   private serverUrl: string;
-  private fetchOptions: ConversationFetchOptions & { headers: Headers };
+  private getFetchOptions: () => ConversationFetchOptions & {
+    headers: Headers;
+  };
 
   constructor(config: ConversationServiceConfig) {
     assert(
@@ -184,14 +189,20 @@ export class ConversationService {
       [`${CUSTOM_REQUEST_ORIGIN_HEADER}`]: getCustomRequestOrigin() ?? "",
     });
 
-    this.fetchOptions = {
-      ...(config.fetchOptions ?? {}),
-      headers: this.mergeHeaders(
-        defaultHeaders,
-        config.fetchOptions?.headers
-          ? new Headers(config.fetchOptions?.headers)
-          : new Headers()
-      ),
+    this.getFetchOptions = () => {
+      const fetchOptions =
+        typeof config.fetchOptions === "function"
+          ? config.fetchOptions()
+          : config.fetchOptions;
+      return {
+        ...(fetchOptions ?? {}),
+        headers: this.mergeHeaders(
+          defaultHeaders,
+          fetchOptions?.headers
+            ? new Headers(fetchOptions.headers)
+            : new Headers()
+        ),
+      };
     };
   }
 
@@ -230,7 +241,7 @@ export class ConversationService {
   async createConversation(): Promise<ConversationData> {
     const path = `/conversations`;
     const resp = await fetch(this.getUrl(path), {
-      ...this.fetchOptions,
+      ...this.getFetchOptions(),
       method: "POST",
     });
     const conversation = await resp.json();
@@ -249,7 +260,7 @@ export class ConversationService {
 
   async getConversation(conversationId: string): Promise<ConversationData> {
     const path = `/conversations/${conversationId}`;
-    const resp = await fetch(this.getUrl(path), this.fetchOptions);
+    const resp = await fetch(this.getUrl(path), this.getFetchOptions());
     if (resp.status === 404) {
       throw new Error(`Conversation not found: ${conversationId}`);
     }
@@ -263,15 +274,21 @@ export class ConversationService {
   async addMessage({
     conversationId,
     message,
+    clientContext,
   }: {
     conversationId: string;
-    message: string;
-  }): Promise<MessageData> {
+  } & AddMessageRequestBody): Promise<MessageData> {
     const path = `/conversations/${conversationId}/messages`;
+    const requestBody: AddMessageRequestBody = {
+      message,
+    };
+    if (clientContext) {
+      requestBody.clientContext = clientContext;
+    }
     const resp = await fetch(this.getUrl(path), {
-      ...this.fetchOptions,
+      ...this.getFetchOptions(),
       method: "POST",
-      body: JSON.stringify({ message }),
+      body: JSON.stringify(requestBody),
     });
     const data = await resp.json();
     if (resp.status === 400) {
@@ -295,6 +312,7 @@ export class ConversationService {
   async addMessageStreaming({
     conversationId,
     message,
+    clientContext,
     maxRetries = 0,
     onResponseDelta,
     onReferences,
@@ -303,26 +321,33 @@ export class ConversationService {
     signal,
   }: {
     conversationId: string;
-    message: string;
     maxRetries?: number;
     onResponseDelta: (delta: string) => void;
     onReferences: (references: References) => void;
     onMetadata: (metadata: AssistantMessageMetadata) => void;
     onResponseFinished: (messageId: string) => void;
     signal?: AbortSignal;
-  }): Promise<void> {
+  } & AddMessageRequestBody): Promise<void> {
     const path = `/conversations/${conversationId}/messages`;
+    const requestBody: AddMessageRequestBody = {
+      message,
+    };
+    if (clientContext) {
+      requestBody.clientContext = clientContext;
+    }
 
     let retryCount = 0;
     let moreToStream = true;
 
+    const fetchOptions = this.getFetchOptions();
+
     await fetchEventSource(this.getUrl(path, { stream: "true" }), {
-      ...this.fetchOptions,
+      ...fetchOptions,
       // Need to convert Headers to plain object for fetchEventSource
-      headers: Object.fromEntries(this.fetchOptions.headers),
+      headers: Object.fromEntries(fetchOptions.headers),
       signal: signal ?? null,
       method: "POST",
-      body: JSON.stringify({ message }),
+      body: JSON.stringify(requestBody),
       openWhenHidden: true,
 
       onmessage(ev) {
@@ -449,7 +474,7 @@ export class ConversationService {
   }): Promise<boolean> {
     const path = `/conversations/${conversationId}/messages/${messageId}/rating`;
     const res = await fetch(this.getUrl(path), {
-      ...this.fetchOptions,
+      ...this.getFetchOptions(),
       method: "POST",
       body: JSON.stringify({ rating }),
     });
@@ -477,7 +502,7 @@ export class ConversationService {
   }): Promise<void> {
     const path = `/conversations/${conversationId}/messages/${messageId}/comment`;
     const res = await fetch(this.getUrl(path), {
-      ...this.fetchOptions,
+      ...this.getFetchOptions(),
       method: "POST",
       body: JSON.stringify({ comment }),
     });

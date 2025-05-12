@@ -55,12 +55,13 @@ import {
   QueryPreprocessorFunc,
   makeRagGenerateUserPrompt,
 } from "mongodb-chatbot-server";
-import { OpenAIClient, AzureKeyCredential } from "@azure/openai";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
 
-const openAiClient = new OpenAIClient(
-  OPENAI_ENDPOINT,
-  new AzureKeyCredential(OPENAI_API_KEY)
-);
+const openAiClient = new AzureOpenAI({
+  apiKey: OPENAI_API_KEY,
+  endpoint: OPENAI_ENDPOINT,
+  apiVersion: OPENAI_API_VERSION,
+});
 const querySystemPrompt: SystemPrompt = {
   role: "system",
   content: `Transform the query into a relevant question about MongoDB products or company.

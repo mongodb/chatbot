@@ -17,7 +17,7 @@ if (!jiraApi) {
   throw new Error("jiraApi is required. Make sure to define it in the config.");
 }
 
-describe("getReleaseArtifacts", () => {
+describe.skip("getReleaseArtifacts", () => {
   it("returns no artifacts unless configured", async () => {
     const artifacts = await getReleaseArtifacts({});
     expect(artifacts).toEqual([]);

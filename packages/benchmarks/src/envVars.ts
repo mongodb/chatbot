@@ -1,26 +1,4 @@
-export const RADIANT_ENV_VARS = {
-  RADIANT_ENDPOINT: "",
-  RADIANT_API_KEY: "",
-  MONGODB_AUTH_COOKIE: "",
-  OPENAI_API_VERSION: "",
-};
-
-export const BRAINTRUST_ENV_VARS = {
-  BRAINTRUST_API_KEY: "",
-  BRAINTRUST_ENDPOINT: "",
-};
-
-export const GCP_VERTEX_AI_ENV_VARS = {
-  GCP_OPENAI_ENDPOINT: "",
-  GCP_API_KEY: "",
-};
-
-export const AWS_BEDROCK_ENV_VARS = {
-  AWS_REGION: "",
-  AWS_ACCESS_KEY_ID: "",
-  AWS_SECRET_ACCESS_KEY: "",
-  AWS_SESSION_TOKEN: "",
-};
+import { GCP_VERTEX_AI_ENV_VARS } from "mongodb-rag-core";
 
 export const envVars = {
   MONGODB_DATABASE_NAME: "",
@@ -29,6 +7,8 @@ export const envVars = {
   MONGODB_QUIZ_QUESTIONS_CONNECTION_URI: "",
   MONGODB_QUIZ_QUESTIONS_COLLECTION_NAME: "",
   ...GCP_VERTEX_AI_ENV_VARS,
-  ...AWS_BEDROCK_ENV_VARS,
-  ...RADIANT_ENV_VARS,
+};
+
+export const TEXT_TO_DRIVER_ENV_VARS = {
+  MONGODB_TEXT_TO_DRIVER_CONNECTION_URI: "",
 };

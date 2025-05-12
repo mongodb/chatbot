@@ -2,8 +2,8 @@ import { strict as assert } from "assert";
 import { MongoDbPageStore, makeMongoDbPageStore } from "./MongoDbPageStore";
 import { PersistedPage } from "./Page";
 import "dotenv/config";
-import { MongoMemoryServer } from "mongodb-memory-server";
 import { MongoClient } from "mongodb";
+import { MONGO_MEMORY_SERVER_URI } from "../test/constants";
 
 jest.setTimeout(60000);
 const moviePages: PersistedPage[] = [
@@ -65,29 +65,21 @@ const moviePages: PersistedPage[] = [
 ];
 
 const pageUrls = (pages: PersistedPage[]) => pages.map(({ url }) => url);
+const uri = MONGO_MEMORY_SERVER_URI;
 
 describe("MongoDbPageStore", () => {
   let store: MongoDbPageStore | undefined;
-  let mongoServer: MongoMemoryServer;
-  let uri: string;
   beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    uri = mongoServer.getUri();
-  });
-  beforeEach(async () => {
     store = await makeMongoDbPageStore({
       connectionUri: uri,
       databaseName: "test-database",
     });
   });
-
   afterEach(async () => {
-    assert(store);
-    await store.drop();
-    await store.close();
+    await store?.drop();
   });
   afterAll(async () => {
-    await mongoServer.stop();
+    await store?.close();
   });
 
   it("handles pages", async () => {
@@ -304,6 +296,41 @@ describe("MongoDbPageStore", () => {
       expect(pageDataSources).not.toContain("source-0");
       expect(pageDataSources).not.toContain("source-3");
       expect(pageDataSources).not.toContain("source-4");
+    });
+  });
+
+  describe("getMissingPagesByUrl", () => {
+    beforeEach(async () => {
+      assert(store);
+      await store.updatePages(moviePages);
+    });
+
+    it("returns the missing pages by URL", async () => {
+      assert(store);
+      const missingUrls = await store.getMissingPagesByUrl({
+        expectedUrls: ["matrix1", "legally-blonde1", "non-existent-url"],
+      });
+
+      expect(missingUrls).toEqual(["non-existent-url"]);
+    });
+
+    it("returns an empty array when all pages exist", async () => {
+      assert(store);
+      const missingUrls = await store.getMissingPagesByUrl({
+        expectedUrls: ["matrix2", "legally-blonde2"],
+      });
+
+      expect(missingUrls).toEqual([]);
+    });
+
+    it("supports URL transformation", async () => {
+      assert(store);
+      const missingUrls = await store.getMissingPagesByUrl({
+        expectedUrls: ["MATRIX2", "LEGALLY-BLONDE2"],
+        urlTransformer: (url) => url.toLowerCase(),
+      });
+
+      expect(missingUrls).toEqual([]);
     });
   });
 });

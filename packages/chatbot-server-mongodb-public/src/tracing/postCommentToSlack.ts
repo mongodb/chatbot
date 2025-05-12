@@ -13,6 +13,10 @@ export interface PostCommentToSlackParams {
   conversation: Conversation;
   messageWithCommentId: ObjectId;
   llmAsAJudge: LlmAsAJudge;
+  braintrust?: {
+    orgName: string;
+    projectName: string;
+  };
 }
 export async function postCommentToSlack({
   slackToken,
@@ -20,13 +24,15 @@ export async function postCommentToSlack({
   conversation,
   messageWithCommentId,
   llmAsAJudge,
+  braintrust,
 }: PostCommentToSlackParams) {
   const client = new WebClient(slackToken);
   const builder = await makeSlackMessageText(
     conversation,
     messageWithCommentId,
     slackConversationId,
-    llmAsAJudge
+    llmAsAJudge,
+    braintrust
   );
   const res = await client.chat.postMessage({
     ...builder,
@@ -40,11 +46,16 @@ async function makeSlackMessageText(
   conversation: Conversation,
   messageWithCommentId: ObjectId,
   slackConversationId: string,
-  llmAsAJudge: LlmAsAJudge
+  llmAsAJudge: LlmAsAJudge,
+  braintrust?: {
+    orgName: string;
+    projectName: string;
+  }
 ) {
   const tracingData = extractTracingData(
     conversation.messages,
-    messageWithCommentId
+    messageWithCommentId,
+    conversation._id
   );
   const {
     isVerifiedAnswer,
@@ -59,15 +70,33 @@ async function makeSlackMessageText(
   assert(assistantMessage, "Assistant message not found");
   assert(userMessage, "User message not found");
   const { rating, userComment } = extractFeedback(assistantMessage);
-  assert(rating, "Rating not found");
-  assert(userComment, "User comment not found");
+  assert(rating !== undefined, "Rating not found");
+  assert(userComment !== undefined, "User comment not found");
 
   const scores = await getLlmAsAJudgeScores(llmAsAJudge, tracingData);
+
+  const messageId = messageWithCommentId.toHexString();
+  const braintrustLogUrl = braintrust
+    ? makeBraintrustLogUrl({
+        orgName: braintrust.orgName,
+        projectName: braintrust.projectName,
+        traceId: messageId,
+      })
+    : undefined;
+
+  const verifiedAnswerId = isVerifiedAnswer
+    ? assistantMessage.metadata?.verifiedAnswer?._id
+    : null;
+  const verifiedAnswerMd = verifiedAnswerId
+    ? `\n:white_check_mark: ${Md.bold(
+        `Verified Answer:`
+      )} ${verifiedAnswerId}}\n`
+    : "";
 
   const feedbackMd = `${Md.bold(
     rating === true ? "👍 Positive Feedback" : "👎 Negative Feedback"
   )}
-
+${verifiedAnswerMd}
 ${Md.bold("User Comment:")}
 ${userComment}`;
 
@@ -103,9 +132,12 @@ ${Md.listBullet(`Tags: ${tags.map(Md.codeInline).join(", ")}`)}`;
   const idMetadataMd = `Conversation ID: ${Md.codeInline(
     conversation._id.toHexString()
   )}
-Message ID/ Braintrust Trace ID: ${Md.codeInline(
-    messageWithCommentId.toHexString()
-  )}`;
+Message ID: ${Md.codeInline(messageId)}
+${
+  braintrustLogUrl
+    ? `Braintrust Log: ${Md.link(braintrustLogUrl, messageId)}`
+    : ""
+}`;
 
   const scoresMd = `${Md.bold("Scores:")}
 ${
@@ -118,22 +150,31 @@ ${
     : "No LLM-as-Judge Scores"
 }`;
 
+  const messageBlocks = [
+    Blocks.Section({ text: feedbackMd }),
+    Blocks.Divider(),
+    Blocks.Section({ text: messagesMd }),
+    Blocks.Section({ text: referencesMd }),
+    Blocks.Divider(),
+    Blocks.Section({ text: scoresMd }),
+    Blocks.Divider(),
+    Blocks.Section({ text: messageMetadataMd }),
+    Blocks.Divider(),
+    Blocks.Section({ text: idMetadataMd }),
+  ];
+
+  const maybeAuthUser = conversation.customData?.authUser;
+  if (maybeAuthUser && typeof maybeAuthUser === "string") {
+    messageBlocks.unshift(
+      Blocks.Section({ text: `Auth User: ${Md.user(maybeAuthUser)}` })
+    );
+  }
+
   return BuilderMessage({
     channel: slackConversationId,
     text: "User Feedback",
   })
-    .blocks(
-      Blocks.Section({ text: feedbackMd }),
-      Blocks.Divider(),
-      Blocks.Section({ text: messagesMd }),
-      Blocks.Section({ text: referencesMd }),
-      Blocks.Divider(),
-      Blocks.Section({ text: scoresMd }),
-      Blocks.Divider(),
-      Blocks.Section({ text: messageMetadataMd }),
-      Blocks.Divider(),
-      Blocks.Section({ text: idMetadataMd })
-    )
+    .blocks(...messageBlocks)
     .asUser()
     .buildToObject();
 }
@@ -147,4 +188,16 @@ function extractFeedback(assistantMessage: AssistantMessage) {
     rating: assistantMessage.rating,
     userComment: assistantMessage.userComment,
   };
+}
+
+export function makeBraintrustLogUrl(args: {
+  orgName: string;
+  projectName: string;
+  traceId: string;
+}) {
+  const urlEncodedTraceId = encodeURI(`id = "${args.traceId}"`);
+  const searchFilter = encodeURI(
+    `{"filter":[{"text":"${urlEncodedTraceId}"}]}`
+  );
+  return `https://www.braintrust.dev/app/${args.orgName}/p/${args.projectName}/logs?search=${searchFilter}&r=${args.traceId}`;
 }

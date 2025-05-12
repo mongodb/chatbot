@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 import { PromisePool } from "@supercharge/promise-pool";
 import { ChunkOptions, ChunkFunc, chunkPage } from "../chunk";
-import { EmbeddedContent, EmbeddedContentStore } from "./EmbeddedContent";
+import { EmbeddedContentStore } from "./EmbeddedContent";
 import { Embedder } from "../embed";
 import { logger } from "../logger";
 import { PageStore, PersistedPage } from ".";
@@ -50,7 +50,7 @@ export const updateEmbeddedContent = async ({
   );
   await PromisePool.withConcurrency(concurrencyOptions?.processPages ?? 1)
     .for(changedPages)
-    .process(async (page, index, pool) => {
+    .process(async (page) => {
       switch (page.action) {
         case "deleted":
           logger.info(
@@ -145,7 +145,7 @@ export const updateEmbeddedContentForPage = async ({
     concurrencyOptions?.createChunks ?? 1
   )
     .for(contentChunks)
-    .process(async (chunk, index, pool) => {
+    .process(async (chunk, index) => {
       logger.info(
         `Vectorizing chunk ${index + 1}/${contentChunks.length} for ${
           page.sourceName

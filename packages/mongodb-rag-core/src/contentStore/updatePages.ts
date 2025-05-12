@@ -26,7 +26,7 @@ export const updatePages = async ({
 }): Promise<void> => {
   await PromisePool.withConcurrency(concurrencyOptions?.processDataSources ?? 1)
     .for(sources)
-    .process(async (source, index, pool) => {
+    .process(async (source) => {
       logger.info(`Fetching pages for ${source.name}`);
       const pages = await source.fetchPages();
       logger.info(`${source.name} returned ${pages.length} pages to process`);

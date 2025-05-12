@@ -1,18 +1,18 @@
 {
   "name": "datasets",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "main": "index.js",
-  "type": "module",
   "engines": {
     "node": ">=18",
     "npm": ">=8"
   },
+  "private": true,
   "scripts": {
     "clean": "rm -rf build",
     "build": "tsc -b",
     "watch": "tsc -b -w",
     "release": "release-it",
-    "test": "echo \"No test specified\" && exit 0",
+    "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --forceExit",
     "lint": "eslint ./src --ext ts --report-unused-disable-directives",
     "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
     "extractCodeExamples": "npm run build && node ./build/bin/extractCodeExamples.js",
@@ -33,15 +33,21 @@
     "countExamplesByLength": "npm run build && node ./build/bin/countExamplesByLength.js",
     "summarizeAtlasVectorSearchDocs": "npm run build && node ./build/bin/summarizeAtlasVectorSearchDocs.js",
     "summarizeKotlinDriverDocs": "npm run build && node ./build/bin/summarizeKotlinDriverDocs.js",
-    "summarizePracticalAggregationsBook": "npm run build && node ./build/bin/summarizePracticalAggregationsBook.js"
+    "summarizePracticalAggregationsBook": "npm run build && node ./build/bin/summarizePracticalAggregationsBook.js",
+    "uploadContentDatasetToHuggingFace": "npm run build && node ./build/bin/huggingFace/uploadContentDatasetToHuggingFace.js",
+    "uploadCodeExampleDatasetToHuggingFace": "npm run build && node ./build/bin/huggingFace/uploadCodeExampleDatasetToHuggingFace.js",
+    "generateDbSchemas": "npm run build && node ./build/bin/generateDbSchemas.js",
+    "generateMongoshDatasets": "npm run build && node ./build/bin/generateMongoshDatasets.js"
   },
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.12",
+    "@huggingface/hub": "^1.0.1",
     "@supercharge/promise-pool": "^3.2.0",
     "@types/unist": "^3.0.2",
     "csv": "^6.3.9",
     "gpt-tokenizer": "^2.8.1",
     "langchain": "^0.3.14",
+    "lang-map": "^0.4.0",
     "llamaindex": "^0.2.9",
     "lodash.samplesize": "^4.2.0",
     "mongodb-rag-core": "*",
@@ -51,13 +57,17 @@
     "unified": "^11.0.4",
     "unist-util-visit": "^5.0.0",
     "unist-util-visit-parents": "^6.0.1",
-    "yaml": "^2.4.1"
+    "yaml": "^2.4.1",
+    "zod": "^3.24.2",
+    "zod-to-json-schema": "^3.24.3"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "@types/lodash.samplesize": "^4.2.9"
+    "@types/lodash.samplesize": "^4.2.9",
+    "jest": "^29.7.0",
+    "mongodb-memory-server": "^10.1.3"
   }
 }

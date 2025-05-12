@@ -8,14 +8,13 @@ import {
   PersistedPage,
 } from "mongodb-rag-core";
 import { DataSource } from "mongodb-rag-core/dataSources";
-import { MongoMemoryReplSet } from "mongodb-memory-server";
 import "dotenv/config";
 import { doAllCommand } from "./all";
 import { IngestMetaStore, makeIngestMetaStore } from "../IngestMetaStore";
 import "dotenv/config";
 import { strict as assert } from "assert";
-import { MongoClient } from "mongodb-rag-core/mongodb";
 import { doUpdatePagesCommand } from "./pages";
+import { MONGO_MEMORY_REPLICA_SET_URI } from "../test/constants";
 
 jest.setTimeout(1000000);
 
@@ -28,7 +27,6 @@ describe("allCommand", () => {
     },
   };
 
-  let mongod: MongoMemoryReplSet | undefined;
   let pageStore: MongoDbPageStore;
   let embedStore: MongoDbEmbeddedContentStore;
   let ingestMetaStore: IngestMetaStore;
@@ -66,10 +64,7 @@ describe("allCommand", () => {
   );
   beforeAll(async () => {
     databaseName = "test-all-command";
-    mongod = await MongoMemoryReplSet.create();
-    uri = mongod.getUri();
-  });
-  beforeEach(async () => {
+    uri = MONGO_MEMORY_REPLICA_SET_URI;
     embedStore = makeMongoDbEmbeddedContentStore({
       connectionUri: uri,
       databaseName,
@@ -84,6 +79,8 @@ describe("allCommand", () => {
       databaseName,
       entryId: "all",
     });
+  });
+  beforeEach(async () => {
     // create pages and verify that they have been created
     await updatePages({ sources: mockDataSources, pageStore });
     pages = await pageStore.loadPages();
@@ -108,13 +105,11 @@ describe("allCommand", () => {
 
   afterEach(async () => {
     await pageStore?.drop();
-    await pageStore?.close();
     await embedStore.drop();
-    await embedStore.close();
   });
   afterAll(async () => {
-    assert(mongod);
-    await mongod.stop();
+    await pageStore?.close();
+    await embedStore.close();
   });
 
   it("updates the metadata with the last successful timestamp", async () => {

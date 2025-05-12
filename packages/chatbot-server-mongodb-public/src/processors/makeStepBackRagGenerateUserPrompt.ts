@@ -73,7 +73,10 @@ export const makeStepBackRagGenerateUserPrompt = ({
         messages: precedingMessagesToInclude,
       }),
     ]);
-    if (guardrailResult.rejectMessage) {
+    if (
+      guardrailResult.type === "inappropriate" ||
+      guardrailResult.type === "irrelevant"
+    ) {
       const { reasoning } = guardrailResult;
       logRequest({
         reqId,
@@ -89,6 +92,7 @@ export const makeStepBackRagGenerateUserPrompt = ({
           rejectQuery: true,
           customData: {
             rejectionReason: reasoning,
+            rejectionType: guardrailResult.type,
           },
         } satisfies UserMessage,
         rejectQuery: true,

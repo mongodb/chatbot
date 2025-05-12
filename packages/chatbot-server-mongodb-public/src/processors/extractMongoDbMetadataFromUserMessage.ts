@@ -8,7 +8,7 @@ import { OpenAI } from "mongodb-rag-core/openai";
 import {
   mongoDbProductNames,
   mongoDbProgrammingLanguageIds,
-} from "../mongoDbMetadata";
+} from "mongodb-rag-core/mongoDbMetadata";
 
 export const ExtractMongoDbMetadataFunctionSchema = z.object({
   programmingLanguage: z
@@ -37,8 +37,7 @@ const name = "extract_mongodb_metadata";
 const description = "Extract MongoDB-related metadata from a user message";
 
 const systemPrompt = `You are an expert data labeler employed by MongoDB.
-You must label metadata about the user query based on its context in the conversation.
-Your pay is determined by the accuracy of your labels as judged against other expert labelers, so do excellent work to maximize your earnings to support your family.`;
+You must label metadata about the user query based on its context in the conversation.`;
 
 const fewShotExamples: OpenAI.Chat.ChatCompletionMessageParam[] = [
   // Example 1

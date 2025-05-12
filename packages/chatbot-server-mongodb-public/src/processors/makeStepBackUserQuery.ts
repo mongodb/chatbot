@@ -104,6 +104,16 @@ const fewShotExamples: OpenAI.ChatCompletionMessageParam[] = [
   makeAssistantFunctionCallMessage(name, {
     transformedUserQuery: "How to create a new cluster in MongoDB Atlas?",
   } satisfies StepBackUserQueryMongoDbFunction),
+  // Example 9
+  makeUserMessage(
+    updateFrontMatter("What is a skill?", {
+      mongoDbProduct: "MongoDB University",
+    })
+  ),
+  makeAssistantFunctionCallMessage(name, {
+    transformedUserQuery:
+      "What is the skill badge program on MongoDB University?",
+  } satisfies StepBackUserQueryMongoDbFunction),
 ];
 
 /**

@@ -42,6 +42,7 @@ import {
   MakeReferenceLinksFunc,
   makeRagGenerateUserPrompt,
 } from "mongodb-chatbot-server";
+
 const noReferencesFunc: MakeReferenceLinksFunc = () => [];
 
 const ragGenerateUserPrompt = makeRagGenerateUserPrompt({

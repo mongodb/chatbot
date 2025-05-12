@@ -1,5 +1,5 @@
 import { createRunId } from "./runId";
-import { promises as fs, writeFileSync } from "fs";
+import { writeFileSync } from "fs";
 
 function mockStaticDate(input: ConstructorParameters<typeof Date>[0]) {
   const date = new Date(input);

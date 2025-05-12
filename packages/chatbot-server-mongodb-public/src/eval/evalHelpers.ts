@@ -1,13 +1,15 @@
+import "dotenv/config";
 import {
   assertEnvVars,
   AssistantMessage,
   SomeMessage,
   UserMessage,
 } from "mongodb-chatbot-server";
-import { EVAL_ENV_VARS } from "../EnvVars";
+import { AZURE_OPENAI_ENV_VARS, EVAL_ENV_VARS } from "../EnvVars";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
-import { z } from "zod";
 import { strict as assert } from "assert";
+import { wrapOpenAI } from "mongodb-rag-core/braintrust";
+import { createAzure } from "mongodb-rag-core/aiSdk";
 
 export const {
   JUDGE_EMBEDDING_MODEL,
@@ -17,18 +19,28 @@ export const {
   OPENAI_ENDPOINT,
   OPENAI_API_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_RESOURCE_NAME,
 } = assertEnvVars({
   ...EVAL_ENV_VARS,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT: "",
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: "",
+  ...AZURE_OPENAI_ENV_VARS,
   OPENAI_API_KEY: "",
   OPENAI_ENDPOINT: "",
   OPENAI_API_VERSION: "",
 });
 
-export const openAiClient = new AzureOpenAI({
+export const openAiClient = wrapOpenAI(
+  new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  })
+);
+
+export const azureOpenAiProvider = createAzure({
   apiKey: OPENAI_API_KEY,
-  endpoint: OPENAI_ENDPOINT,
+  resourceName: OPENAI_RESOURCE_NAME,
   apiVersion: OPENAI_API_VERSION,
 });
 
@@ -50,9 +62,13 @@ export function getLastAssistantMessageFromMessages(
 }
 
 export function getContextsFromUserMessage(userMessage: UserMessage) {
-  const { data: contexts } = z
-    .array(z.string())
-    .safeParse(userMessage.contextContent?.map((cc) => cc.text));
-  // Return empty array if no context text found
-  return contexts ?? [];
+  const contexts =
+    userMessage.contextContent
+      ?.map((cc) => cc.text)
+      .filter((text) => typeof text === "string") ?? [];
+  const urls =
+    userMessage.contextContent
+      ?.map((cc) => cc.url)
+      .filter((text) => typeof text === "string") ?? [];
+  return { contexts, urls };
 }

@@ -9,6 +9,9 @@
     "node": ">=18",
     "npm": ">=8"
   },
+  "exports": {
+    ".": "./build/lib.js"
+  },
   "scripts": {
     "preinstall": "npx playwright install chromium --with-deps",
     "clean": "rm -rf build",

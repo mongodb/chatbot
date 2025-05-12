@@ -4,8 +4,9 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "build": "tsc && chmod 755 build/index.js",
-    "start": "node build/index.js"
+    "build": "tsc && chmod 755 build/index.js && npm run copy-resources",
+    "start": "node build/index.js",
+    "copy-resources": "mkdir -p build/resources && cp -r src/resources/*.md build/resources/"
   },
   "files": [
     "build"

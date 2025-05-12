@@ -6,24 +6,29 @@ import {
 import { type Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { readFile } from "fs/promises";
 import path from "path";
+import { fileURLToPath } from 'url';
 
-// Map of resource URIs to file paths - can be modified to add more resources
+// Get the directory name of the current module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const resourcesDir = path.join(__dirname, "../resources");
+
+// Map of resource URIs to file paths with absolute paths
 export const resourceFilePaths: Record<string, string> = {
-  "docs://vector-search": "./src/resources/vector-search.md",
-  "docs://atlas-cli": "./src/resources/atlas-cli.md",
-  "docs://kotlin-coroutine": "./src/resources/kotlin-coroutine-driver.md",
+  "docs://vector-search": path.join(resourcesDir, "vector-search.md"),
+  "docs://atlas-cli": path.join(resourcesDir, "atlas-cli.md"),
+  "docs://kotlin-coroutine": path.join(resourcesDir, "kotlin-coroutine-driver.md"),
 };
 
 // Function to read the markdown file
 const readMarkdownFile = async (uri: string): Promise<string> => {
   try {
-    // Look up the file path based on the URI
-    const relativePath = resourceFilePaths[uri];
-    if (!relativePath) {
+    // Look up the file path based on the URI (now absolute path)
+    const filePath = resourceFilePaths[uri];
+    if (!filePath) {
       throw new Error(`No file path mapping found for URI: ${uri}`);
     }
     
-    const filePath = path.resolve(process.cwd(), relativePath);
     return await readFile(filePath, "utf-8");
   } catch (error) {
     console.error("Error reading markdown file:", error);
@@ -38,13 +43,13 @@ export const registerResources = (server: Server): void => {
    return {
      resources: [
        {
-         uri: "docs://vectorSearch",
+         uri: "docs://vector-search",
          name: "Atlas Vector Search Docs",
          description: "Documentation for MongoDB Atlas Vector Search",
          mimeType: "text/markdown",
        },
        {
-        uri: "docs://atlas-sLI",
+        uri: "docs://atlas-cli",
         name: "Atlas CLI Docs",
         description: "Documentation for the MongoDB Atlas CLI",
         mimeType: "text/markdown",

@@ -1,12 +1,12 @@
 {
   "name": "mcp",
   "version": "1.0.0",
-  "type": "module",
   "main": "index.js",
   "scripts": {
-    "build": "tsc && chmod 755 build/index.js && npm run copy-resources",
+    "postbuild": "npm run copy-resources",
+    "build": "tsc && chmod 755 build/index.js",
     "start": "node build/index.js",
-    "copy-resources": "mkdir -p build/resources && cp -r src/resources/*.md build/resources/"
+    "copy-resources": "mkdir -p build/static && cp -r static/ build/static/"
   },
   "files": [
     "build"

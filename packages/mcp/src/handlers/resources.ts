@@ -3,14 +3,11 @@ import {
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { type Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { readFile } from "fs/promises";
 import path from "path";
-import { fileURLToPath } from "url";
+import fs from "fs";
+import { staticDirPath } from "./staticDirPath.js";
 
-// Get the directory name of the current module
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const resourcesDir = path.join(__dirname, "../resources");
+const resourcesDir = path.join(staticDirPath, "resources");
 
 export const guidesResources = [
   {
@@ -19,6 +16,7 @@ export const guidesResources = [
     description: "Guide for MongoDB Atlas Vector Search",
     mimeType: "text/markdown",
     uri: "docs://vector-search",
+    guide: fs.readFileSync(path.join(resourcesDir, "vector-search.md"), "utf8"),
   },
   {
     id: "atlas-cli",
@@ -26,13 +24,18 @@ export const guidesResources = [
     description: "Guide for the MongoDB Atlas CLI",
     mimeType: "text/markdown",
     uri: "docs://atlas-cli",
+    guide: fs.readFileSync(path.join(resourcesDir, "atlas-cli.md"), "utf8"),
   },
   {
-    id: "kotlin-coroutine",
+    id: "kotlin-coroutine-driver",
     name: "Kotlin Coroutine Driver",
     description: "Guide for the MongoDB Kotlin Coroutine Driver",
     mimeType: "text/markdown",
-    uri: "docs://kotlin-coroutine",
+    uri: "docs://kotlin-coroutine-driver",
+    guide: fs.readFileSync(
+      path.join(resourcesDir, "kotlin-coroutine-driver.md"),
+      "utf8"
+    ),
   },
   {
     id: "data-modeling",
@@ -40,6 +43,18 @@ export const guidesResources = [
     description: "Guide for MongoDB Data Modeling",
     mimeType: "text/markdown",
     uri: "docs://data-modeling",
+    guide: fs.readFileSync(path.join(resourcesDir, "data-modeling.md"), "utf8"),
+  },
+  {
+    id: "atlas-stream-processing",
+    name: "Atlas Stream Processing",
+    description: "Guide for MongoDB Atlas Stream Processing",
+    mimeType: "text/markdown",
+    uri: "docs://atlas-stream-processing",
+    guide: fs.readFileSync(
+      path.join(resourcesDir, "atlas-stream-processing.md"),
+      "utf8"
+    ),
   },
 ] as const;
 
@@ -54,22 +69,6 @@ export const resourceFilePaths: Record<string, string> = guidesResources.reduce(
   {} as Record<string, string>
 );
 
-// Function to read the markdown file
-export const readMarkdownFile = async (uri: string): Promise<string> => {
-  try {
-    // Look up the file path based on the URI (now absolute path)
-    const filePath = resourceFilePaths[uri];
-    if (!filePath) {
-      throw new Error(`No file path mapping found for URI: ${uri}`);
-    }
-
-    return await readFile(filePath, "utf-8");
-  } catch (error) {
-    console.error("Error reading markdown file:", error);
-    throw new Error("Failed to read markdown file");
-  }
-};
-
 export const registerResources = (server: Server): void => {
   // List available resources when clients request them
   server.setRequestHandler(ListResourcesRequestSchema, async () => {
@@ -82,13 +81,16 @@ export const registerResources = (server: Server): void => {
     const uri = request.params.uri;
 
     if (guideUris.has(uri)) {
-      const markdownContents = await readMarkdownFile(uri);
+      const guide = guidesResources.find((guide) => guide.uri === uri)?.guide;
+      if (!guide) {
+        throw new Error(`Guide not found: ${uri}`);
+      }
       return {
         contents: [
           {
             uri,
             mimeType: "text/markdown",
-            text: markdownContents,
+            text: guide,
           },
         ],
       };

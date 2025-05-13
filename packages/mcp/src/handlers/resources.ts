@@ -48,7 +48,7 @@ export const guidesResources = [
     description: "Guide for generative AI integrations with Atlas Vector Search and popular AI frameworks and platforms.",
     mimeType: "text/markdown",
     uri: "docs://atlas-cli",
-    guide: fs.readFileSync(path.join(resourcesDir, "atlas-cli.md"), "utf8"),
+    guide: fs.readFileSync(path.join(resourcesDir, "ai-integrations.md"), "utf8"),
   },
   {
     id: "atlas-stream-processing",

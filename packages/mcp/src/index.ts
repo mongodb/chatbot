@@ -10,19 +10,19 @@ import {
   makeMongoDbPageStore,
   makeOpenAiEmbedder,
 } from "mongodb-rag-core";
-import { OpenAI } from "mongodb-rag-core/openai";
+import { AzureOpenAI } from "mongodb-rag-core/openai";
 import "dotenv/config";
 
 const {
-  BRAINTRUST_API_KEY,
-  BRAINTRUST_ENDPOINT,
+  OPENAI_API_KEY,
+  OPENAI_ENDPOINT,
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
   VECTOR_SEARCH_INDEX_NAME,
   OPENAI_EMBEDDING_MODEL,
 } = assertEnvVars({
-  BRAINTRUST_API_KEY: "",
-  BRAINTRUST_ENDPOINT: "",
+  OPENAI_API_KEY: "",
+  OPENAI_ENDPOINT: "",
   MONGODB_CONNECTION_URI: "",
   MONGODB_DATABASE_NAME: "",
   VECTOR_SEARCH_INDEX_NAME: "",
@@ -59,9 +59,10 @@ const embeddedContentStore = makeMongoDbEmbeddedContentStore({
 });
 const findContent = makeDefaultFindContent({
   embedder: makeOpenAiEmbedder({
-    openAiClient: new OpenAI({
-      apiKey: BRAINTRUST_API_KEY,
-      baseURL: BRAINTRUST_ENDPOINT,
+    openAiClient: new AzureOpenAI({
+      apiKey: OPENAI_API_KEY,
+      baseURL: OPENAI_ENDPOINT,
+      apiVersion: "2024-06-01",
     }),
     deployment: OPENAI_EMBEDDING_MODEL,
   }),

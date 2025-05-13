@@ -63,7 +63,7 @@
     "gpt-tokenizer": "^2.9.0",
     "html-to-text": "^9.0.5",
     "jsonl-parse-stringify": "^1.0.3",
-    "mongodb-rag-core": "*",
+    "mongodb-rag-core": "^0.7.0",
     "mongodb-rag-ingest": "*",
     "node-fetch": "^2.7.0",
     "striptags": "^3.2.0",

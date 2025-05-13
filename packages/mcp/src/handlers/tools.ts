@@ -135,7 +135,12 @@ export const makeTools = ({
       definition: {
         name: "list-guides",
         description:
-          "List available documentation guides for a specific MongoDB topic.",
+          `List available MongoDB documentation guides.
+    
+           Use this tool when you receive a question or task related to MongoDB 
+           or its products (e.g. MongoDB Atlas). This tool lists available documentation 
+           guides for a specific MongoDB topic. Then, use the 'use-guides' tool to 
+           retrieve up-to-date, accurate information.`,
         inputSchema: {
           type: "object",
           properties: {},

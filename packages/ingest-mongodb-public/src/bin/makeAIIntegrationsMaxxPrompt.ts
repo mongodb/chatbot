@@ -29,12 +29,12 @@ async function main() {
 
   const model = "o3";
 
-  const bullets = [
-    "For the language tabs, only include programming examples from the Python and Node.js drivers.",
-  ];
+  // const bullets = [
+  //   "For the language tabs, only include programming examples from the Node.js driver.",
+  // ];
   const config = {
-    topic: "Atlas Vector Search",
-    customInstructions: makeBulletPrompt(bullets),
+    topic: "MongoDB Atlas - Getting Started:,
+    // customInstructions: makeBulletPrompt(bullets),
     maxChunkSize: 80000,
     percentToInclude: 15,
     options: {
@@ -51,12 +51,10 @@ async function main() {
       },
       filter: (page) =>
         isMdPage(page) &&
-        page.url.includes("atlas/atlas-vector-search") &&
-        !page.url.includes("/ai-integrations/") &&
-        !page.url.includes("changelog"),
+        page.url.includes("atlas/atlas-vector-search/ai-integrations/")
       // TODO: validate
       //   entryUrl:
-      //     "https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/",
+      //     "https://www.mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/",
     },
     maxConcurrency: 20,
   } satisfies GenerateMakeSnootySiteMaxxPromptParams;
@@ -67,7 +65,7 @@ async function main() {
     return;
   }
 
-  const pathOut = path.join(maxxPromptsDir, "atlasVectorSearchPythonAndNode.md");
+  const pathOut = path.join(maxxPromptsDir, "ai-integrations.md");
   console.log(`Writing maxx prompt to ${pathOut}`);
   fs.writeFileSync(pathOut, maxxPrompt);
   console.log(`Wrote maxx prompt to ${pathOut}`);

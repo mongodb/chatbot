@@ -108,6 +108,8 @@
     "remark-parse": "^11.0.0",
     "unified": "^11.0.4",
     "unist-util-visit": "^5.0.0",
+    "use-sync-external-store": "^1.5.0",
+    "use-zustand": "^0.2.0",
     "zustand": "^5.0.2"
   },
   "devDependencies": {

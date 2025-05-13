@@ -17,9 +17,11 @@
   "description": "",
   "devDependencies": {
     "@types/node": "^22.15.17",
+    "dotenv": "^16.5.0",
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.11.2"
+    "@modelcontextprotocol/sdk": "^1.11.2",
+    "mongodb-rag-core": "*"
   }
 }

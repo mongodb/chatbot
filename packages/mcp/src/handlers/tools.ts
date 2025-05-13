@@ -13,56 +13,6 @@ import { strict as assert } from "assert";
 // Available documentation guides
 const docsGuides = guidesResources.map((guide) => guide.id);
 
-// Define argument types
-type UseGuidesArgs = {
-  docsGuide: (typeof docsGuides)[number];
-};
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD:packages/mcp/src/handlers/tools.ts
-=======
-// Tool definitions
-export const tools = {
-  "list-guides": {
-    name: "list-guides",
-    description:
-      `List available MongoDB documentation guides.
-    
-       Use this tool when you receive a question or task related to MongoDB 
-       or its products (Atlas, Atlas Vector Search, Atlas CLI).
-       This tool lists available documentation guides for a specific MongoDB topic.
-       Then, use the 'use-guides' tool to retrieve up-to-date, accurate information.`,
-    inputSchema: {
-      type: "object",
-      properties: {},
-      required: [],
-    },
-  },
-  "use-guides": {
-    name: "use-guides",
-    description:
-      "Help the user complete a task using the provided MongoDB documentation guides.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        docsGuide: {
-          type: "string",
-          enum: docsGuides,
-          description:
-            "Documentation guide to use for answering questions or completing task related to MongoDB.",
-        },
-      },
-      required: ["docsGuide"],
-    },
-  },
-};
-
->>>>>>> 8ecfce0c (Create 2 guides + improve tool descriptions):packages/mcp/src/helpers/toolHandler.ts
->>>>>>> 25808277 (fixes)
-=======
->>>>>>> f93d1dd0 (merge conflicts)
 const listGuides = () => {
   return {
     content: [
@@ -109,7 +59,6 @@ const useGuides = async (args: UseGuidesArgs) => {
   } satisfies CallToolResult;
 };
 
-<<<<<<< HEAD
 interface GetPageArgs {
   url: string;
 }
@@ -186,47 +135,15 @@ export const makeTools = ({
       definition: {
         name: "list-guides",
         description:
-          "List available documentation guides for a specific MongoDB topic.",
+          `List available MongoDB documentation guides.
+    
+           Use this tool when you receive a question or task related to MongoDB 
+           or its products. This tool lists available documentation guides for a specific MongoDB topic.
+           Then, use the 'use-guides' tool to retrieve up-to-date, accurate information.`,
         inputSchema: {
           type: "object",
           properties: {},
           required: [],
-=======
-// Tool definitions + handlers
-export const tools = {
-  "list-guides": {
-    definition: {
-      name: "list-guides",
-      description:
-        `List available MongoDB documentation guides.
-    
-        Use this tool when you receive a question or task related to MongoDB 
-        or its products (Atlas, Atlas Vector Search, Atlas CLI).
-        This tool lists available documentation guides for a specific MongoDB topic.
-        Then, use the 'use-guides' tool to retrieve up-to-date, accurate information.`,
-      inputSchema: {
-        type: "object",
-        properties: {},
-        required: [],
-      },
-    },
-    handler: listGuides,
-  },
-  "use-guide": {
-    definition: {
-      name: "use-guide",
-      description:
-        "Complete a specific task using the provided MongoDB documentation guides",
-      inputSchema: {
-        type: "object",
-        properties: {
-          docsGuide: {
-            type: "string",
-            enum: docsGuides,
-            description:
-              "Documentation guide to use for answering a question or completing a task",
-          },
->>>>>>> f93d1dd0 (merge conflicts)
         },
       },
       handler: listGuides,

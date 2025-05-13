@@ -29,12 +29,12 @@ async function main() {
 
   const model = "o3";
 
-  const bullets = [
-    "For the language tabs, only include programming examples from the Python and Node.js drivers.",
-  ];
+  // const bullets = [
+  //   "For the language tabs, only include programming examples from the Node.js driver.",
+  // ];
   const config = {
-    topic: "Atlas Vector Search",
-    customInstructions: makeBulletPrompt(bullets),
+    topic: "MongoDB Atlas - Creating and Managing Clusters",
+    // customInstructions: makeBulletPrompt(bullets),
     maxChunkSize: 80000,
     percentToInclude: 15,
     options: {
@@ -51,12 +51,19 @@ async function main() {
       },
       filter: (page) =>
         isMdPage(page) &&
-        page.url.includes("atlas/atlas-vector-search") &&
-        !page.url.includes("/ai-integrations/") &&
-        !page.url.includes("changelog"),
+        (page.url.includes("atlas/tutorial/") ||
+        page.url.includes("atlas/getting-started/") ||
+        page.url.includes("atlas/sample-data/") ||
+        page.url.includes("atlas/atlas-ui/") ||
+        page.url.includes("atlas/security/") ||
+        (()=>{
+          // Using a self-executing function to run regex test
+          // Match paths containing either "cluster" or "database-deployment"
+          const pattern = /atlas\/.*?(cluster|database-deployment)/i;
+          return pattern.test(page.url);
+        })()),
+        
       // TODO: validate
-      //   entryUrl:
-      //     "https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/",
     },
     maxConcurrency: 20,
   } satisfies GenerateMakeSnootySiteMaxxPromptParams;
@@ -67,7 +74,7 @@ async function main() {
     return;
   }
 
-  const pathOut = path.join(maxxPromptsDir, "atlasVectorSearchPythonAndNode.md");
+  const pathOut = path.join(maxxPromptsDir, "AtlasClusters.md");
   console.log(`Writing maxx prompt to ${pathOut}`);
   fs.writeFileSync(pathOut, maxxPrompt);
   console.log(`Wrote maxx prompt to ${pathOut}`);

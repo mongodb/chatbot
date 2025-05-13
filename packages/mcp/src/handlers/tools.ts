@@ -13,6 +13,11 @@ import { strict as assert } from "assert";
 // Available documentation guides
 const docsGuides = guidesResources.map((guide) => guide.id);
 
+// Define argument types
+type UseGuidesArgs = {
+  docsGuide: (typeof docsGuides)[number];
+};
+
 const listGuides = () => {
   return {
     content: [

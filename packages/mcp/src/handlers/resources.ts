@@ -16,7 +16,7 @@ export const guidesResources = [
     id: "atlas-get-started",
     name: "Get Started with MongoDB Atlas",
     description:
-      "Guide for general information about creating Atlas Clusters and next steps.",
+      "Guide for general information about deploying Atlas clusters and next steps.",
     mimeType: "text/markdown",
     uri: "docs://atlas-get-started",
     guide: fs.readFileSync(
@@ -31,6 +31,14 @@ export const guidesResources = [
     mimeType: "text/markdown",
     uri: "docs://data-modeling",
     guide: fs.readFileSync(path.join(resourcesDir, "data-modeling.md"), "utf8"),
+  },
+  {
+    id: "atlas-security",
+    name: "MongoDB Atlas Security",
+    description: "Guide for MongoDB Atlas security features, configurations, and best practices.",
+    mimeType: "text/markdown",
+    uri: "docs://atlas-security",
+    guide: fs.readFileSync(path.join(resourcesDir, "atlas-security.md"), "utf8"),
   },
   {
     id: "atlas-cli",

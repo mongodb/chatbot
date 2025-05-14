@@ -4,7 +4,6 @@ import { registerResources } from "./handlers/resources.js";
 import { registerTools } from "./handlers/tools.js";
 import { registerPrompts } from "./handlers/prompts.js";
 import {
-  assertEnvVars,
   makeDefaultFindContent,
   makeMongoDbEmbeddedContentStore,
   makeMongoDbPageStore,
@@ -12,22 +11,37 @@ import {
 } from "mongodb-rag-core";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import "dotenv/config";
+import argv from "yargs-parser";
+import { strict as assert } from "assert";
 
-const {
-  OPENAI_API_KEY,
-  OPENAI_ENDPOINT,
-  MONGODB_CONNECTION_URI,
-  MONGODB_DATABASE_NAME,
-  VECTOR_SEARCH_INDEX_NAME,
-  OPENAI_EMBEDDING_MODEL,
-} = assertEnvVars({
-  OPENAI_API_KEY: "",
-  OPENAI_ENDPOINT: "",
-  MONGODB_CONNECTION_URI: "",
-  MONGODB_DATABASE_NAME: "",
-  VECTOR_SEARCH_INDEX_NAME: "",
-  OPENAI_EMBEDDING_MODEL: "",
-});
+let {
+  openAiApiKey,
+  openAiEndpoint,
+  openAiApiVersion,
+  openAiEmbeddingModel,
+  vectorSearchIndexName,
+  mongoDbConnectionUri,
+  mongoDbDatabaseName,
+} = argv(process.argv.slice(2));
+
+// Set default values to env or reasonable defaults
+openAiApiKey ??= process.env.OPENAI_API_KEY;
+openAiEndpoint ??= process.env.OPENAI_ENDPOINT;
+openAiApiVersion ??= process.env.OPENAI_API_VERSION ?? "2024-06-01";
+openAiEmbeddingModel ??=
+  process.env.OPENAI_EMBEDDING_MODEL ?? "text-embedding-3-small";
+vectorSearchIndexName ??=
+  process.env.VECTOR_SEARCH_INDEX_NAME ?? openAiEmbeddingModel;
+mongoDbConnectionUri ??= process.env.MONGODB_CONNECTION_URI;
+mongoDbDatabaseName ??= process.env.MONGODB_DATABASE_NAME;
+
+assert(openAiApiKey, "openAiApiKey is required");
+assert(openAiEndpoint, "openAiEndpoint is required");
+assert(openAiApiVersion, "openAiApiVersion is required");
+assert(openAiEmbeddingModel, "openAiEmbeddingModel is required");
+assert(vectorSearchIndexName, "vectorSearchIndexName is required");
+assert(mongoDbConnectionUri, "mongoDbConnectionUri is required");
+assert(mongoDbDatabaseName, "mongoDbDatabaseName is required");
 
 const server = new Server(
   {
@@ -47,24 +61,24 @@ const server = new Server(
 );
 
 const pageStore = makeMongoDbPageStore({
-  connectionUri: MONGODB_CONNECTION_URI,
-  databaseName: MONGODB_DATABASE_NAME,
+  connectionUri: mongoDbConnectionUri,
+  databaseName: mongoDbDatabaseName,
 });
 const embeddedContentStore = makeMongoDbEmbeddedContentStore({
-  connectionUri: MONGODB_CONNECTION_URI,
-  databaseName: MONGODB_DATABASE_NAME,
+  connectionUri: mongoDbConnectionUri,
+  databaseName: mongoDbDatabaseName,
   searchIndex: {
-    embeddingName: VECTOR_SEARCH_INDEX_NAME,
+    embeddingName: vectorSearchIndexName,
   },
 });
 const findContent = makeDefaultFindContent({
   embedder: makeOpenAiEmbedder({
     openAiClient: new AzureOpenAI({
-      apiKey: OPENAI_API_KEY,
-      baseURL: OPENAI_ENDPOINT,
-      apiVersion: "2024-06-01",
+      apiKey: openAiApiKey,
+      baseURL: openAiEndpoint,
+      apiVersion: openAiApiVersion,
     }),
-    deployment: OPENAI_EMBEDDING_MODEL,
+    deployment: openAiEmbeddingModel,
   }),
   store: embeddedContentStore,
 });

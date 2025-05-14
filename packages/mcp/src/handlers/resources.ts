@@ -1,6 +1,8 @@
 import {
   ListResourcesRequestSchema,
+  ListResourcesResult,
   ReadResourceRequestSchema,
+  ReadResourceResult,
 } from "@modelcontextprotocol/sdk/types.js";
 import { type Server } from "@modelcontextprotocol/sdk/server/index.js";
 import path from "path";
@@ -13,10 +15,14 @@ export const guidesResources = [
   {
     id: "atlas-clusters",
     name: "MongoDB Atlas Clusters",
-    description: "Guide for general information about creating and managing Atlas Clusters, including common issues, configuration, security, and more.",
+    description:
+      "Guide for general information about creating and managing Atlas Clusters, including common issues, configuration, security, and more.",
     mimeType: "text/markdown",
     uri: "docs://atlas-clusters",
-    guide: fs.readFileSync(path.join(resourcesDir, "atlas-clusters.md"), "utf8"),
+    guide: fs.readFileSync(
+      path.join(resourcesDir, "atlas-clusters.md"),
+      "utf8"
+    ),
   },
   {
     id: "data-modeling",
@@ -29,7 +35,8 @@ export const guidesResources = [
   {
     id: "atlas-cli",
     name: "Atlas CLI",
-    description: "Guide for working with MongoDB Atlas from the command line using the Atlas CLI",
+    description:
+      "Guide for working with MongoDB Atlas from the command line using the Atlas CLI",
     mimeType: "text/markdown",
     uri: "docs://atlas-cli",
     guide: fs.readFileSync(path.join(resourcesDir, "atlas-cli.md"), "utf8"),
@@ -45,10 +52,14 @@ export const guidesResources = [
   {
     id: "ai-integrations",
     name: "AI Integrations",
-    description: "Guide for generative AI integrations with Atlas Vector Search and popular AI frameworks and platforms.",
+    description:
+      "Guide for generative AI integrations with Atlas Vector Search and popular AI frameworks and platforms.",
     mimeType: "text/markdown",
     uri: "docs://atlas-cli",
-    guide: fs.readFileSync(path.join(resourcesDir, "ai-integrations.md"), "utf8"),
+    guide: fs.readFileSync(
+      path.join(resourcesDir, "ai-integrations.md"),
+      "utf8"
+    ),
   },
   {
     id: "atlas-stream-processing",
@@ -89,8 +100,14 @@ export const registerResources = (server: Server): void => {
   // List available resources when clients request them
   server.setRequestHandler(ListResourcesRequestSchema, async () => {
     return {
-      resources: guidesResources,
-    };
+      resources: guidesResources.map((guide) => ({
+        id: guide.id,
+        name: guide.name,
+        description: guide.description,
+        mimeType: guide.mimeType,
+        uri: guide.uri,
+      })),
+    } satisfies ListResourcesResult;
   });
   // Read resource contents
   server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
@@ -109,7 +126,7 @@ export const registerResources = (server: Server): void => {
             text: guide,
           },
         ],
-      };
+      } satisfies ReadResourceResult;
     }
 
     throw new Error("Resource not found");

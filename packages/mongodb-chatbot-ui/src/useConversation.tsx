@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import {
   ConversationService,
   ConversationFetchOptions,
@@ -15,6 +15,7 @@ import {
   STREAMING_MESSAGE_ID,
 } from "./conversationStore";
 import { useConversationStateContext } from "./useConversationStateContext";
+import { useZustand } from "use-zustand";
 
 export type ConversationMethods = {
   createConversation: () => Promise<void>;
@@ -40,8 +41,16 @@ export type UseConversationParams = {
   getClientContext?: () => Record<string, unknown>;
 };
 
-export function useConversation(params: UseConversationParams) {
-  const state = useConversationStateContext();
+export function useConversation(params: UseConversationParams): Conversation {
+  const store = useConversationStateContext();
+
+  // Use the custom useZustand hook to subscribe to the store
+  const conversationState = useZustand(
+    store,
+    (state) => state, // Select the entire state
+    Object.is // Use Object.is for shallow comparison
+  );
+
   const conversationService = useMemo(() => {
     return new ConversationService({
       serverUrl: params.serverBaseUrl,
@@ -56,14 +65,17 @@ export function useConversation(params: UseConversationParams) {
     params.sortMessageReferences ??
     makePrioritizeCurrentMongoDbReferenceDomain();
 
-  const endConversationWithError = (errorMessage: string) => {
-    state.api.setConversationError(errorMessage);
-  };
+  const endConversationWithError = useCallback(
+    (errorMessage: string) => {
+      store.getState().api.setConversationError(errorMessage);
+    },
+    [store]
+  );
 
-  const createConversation = async () => {
+  const createConversation = useCallback(async () => {
     try {
       const conversation = await conversationService.createConversation();
-      state.api.initialize({
+      store.getState().api.initialize({
         conversationId: conversation._id,
         messages: conversation.messages.map(createMessage),
       });
@@ -77,199 +89,231 @@ export function useConversation(params: UseConversationParams) {
       console.error(errorMessage);
       endConversationWithError(errorMessage);
     }
-  };
+  }, [conversationService, store, endConversationWithError]);
 
-  const submit = async (content: string) => {
-    const shouldStream =
-      canUseServerSentEvents() && (params.shouldStream ?? true);
+  const submit = useCallback(
+    async (content: string) => {
+      const shouldStream =
+        canUseServerSentEvents() && (params.shouldStream ?? true);
 
-    // Stream control
-    const abortController = new AbortController();
-    let finishedStreaming = false;
-    let finishedBuffering = !shouldStream;
-    let streamedMessageId: string | null = null;
-    let references: References | null = null;
-    let bufferedTokens: string[] = [];
-    let streamedTokens: string[] = [];
-    const streamingIntervalMs = 50;
-    const streamingInterval = setInterval(() => {
-      const [nextToken, ...remainingTokens] = bufferedTokens;
+      // Stream control
+      const abortController = new AbortController();
+      let finishedStreaming = false;
+      let finishedBuffering = !shouldStream;
+      let streamedMessageId: string | null = null;
+      let references: References | null = null;
+      let bufferedTokens: string[] = [];
+      let streamedTokens: string[] = [];
+      const streamingIntervalMs = 50;
 
-      bufferedTokens = remainingTokens;
+      // We need to manage the interval state within the hook
+      let streamingInterval: ReturnType<typeof setInterval> | undefined;
+      let cleanupInterval: ReturnType<typeof setInterval> | undefined;
 
-      if (nextToken) {
-        state.api.appendStreamingResponse(nextToken);
-      }
+      streamingInterval = setInterval(() => {
+        const [nextToken, ...remainingTokens] = bufferedTokens;
 
-      const allBufferedTokensDispatched =
-        finishedStreaming && bufferedTokens.length === 0;
+        bufferedTokens = remainingTokens;
 
-      if (references && allBufferedTokensDispatched) {
-        // Count the number of markdown code fences in the response. If
-        // it's odd, the streaming message stopped in the middle of a
-        // code block and we need to escape from it.
-        const numCodeFences = countRegexMatches(
-          /```/g,
-          streamedTokens.join("")
-        );
-        if (numCodeFences % 2 !== 0) {
-          state.api.appendStreamingResponse("\n```\n\n");
+        if (nextToken) {
+          store.getState().api.appendStreamingResponse(nextToken);
         }
 
-        state.api.appendStreamingReferences(
-          references.sort(sortMessageReferences)
-        );
-        references = null;
-      }
-      if (!finishedBuffering && allBufferedTokensDispatched) {
-        if (!streamedMessageId) {
-          streamedMessageId = createMessageId();
-        }
-        state.api.finishStreamingResponse(streamedMessageId);
-        finishedBuffering = true;
-      }
-    }, streamingIntervalMs);
+        const allBufferedTokensDispatched =
+          finishedStreaming && bufferedTokens.length === 0;
 
-    try {
-      state.api.addMessage({
-        role: "user",
-        content,
-      });
-      if (shouldStream) {
-        state.api.createStreamingResponse();
-        await conversationService.addMessageStreaming({
-          conversationId: state.conversationId ?? "null",
-          message: content,
-          clientContext: params.getClientContext?.(),
-          maxRetries: 0,
-          onResponseDelta: async (data: string) => {
-            bufferedTokens = [...bufferedTokens, data];
-            streamedTokens = [...streamedTokens, data];
-          },
-          onReferences: async (data: References) => {
-            if (references === null) {
-              references = [];
-            }
-            references.push(...data);
-          },
-          onMetadata: async (metadata) => {
-            if (metadata?.conversationId) {
-              state.api.setConversationId(metadata.conversationId);
-            }
-            state.api.updateMessageMetadata(
-              STREAMING_MESSAGE_ID,
-              (m) => ({ ...m, ...metadata } as AssistantMessageMetadata)
+        if (references && allBufferedTokensDispatched) {
+          // Count the number of markdown code fences in the response. If
+          // it's odd, the streaming message stopped in the middle of a
+          // code block and we need to escape from it.
+          const numCodeFences = countRegexMatches(
+            /```/g,
+            streamedTokens.join("")
+          );
+          if (numCodeFences % 2 !== 0) {
+            store.getState().api.appendStreamingResponse("\n```\n\n");
+          }
+
+          store
+            .getState()
+            .api.appendStreamingReferences(
+              references.sort(sortMessageReferences)
             );
-          },
-          onResponseFinished: async (messageId: string) => {
-            streamedMessageId = messageId;
-            finishedStreaming = true;
-          },
-          signal: abortController.signal,
-        });
-      } else {
-        // We start a streaming response to indicate the loading state
-        // but we'll never append to it since the response message comes
-        // in all at once.
-        state.api.createStreamingResponse();
-        const response = await conversationService.addMessage({
-          conversationId: state.conversationId ?? "null",
-          message: content,
-          clientContext: params.getClientContext?.(),
-        });
-        if (response.metadata?.conversationId) {
-          state.api.setConversationId(response.metadata.conversationId);
+          references = null;
         }
-        state.api.cancelStreamingResponse();
-        state.api.addMessage(response);
-      }
-    } catch (error) {
-      abortController.abort();
-      console.error(`Failed to add message: ${error}`);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      state.api.cancelStreamingResponse();
-      clearInterval(streamingInterval);
-      endConversationWithError(errorMessage);
-      throw error;
-    }
-
-    let cleanupInterval: ReturnType<typeof setInterval> | undefined;
-    return new Promise<void>((resolve) => {
-      cleanupInterval = setInterval(() => {
-        if (finishedBuffering) {
-          clearInterval(streamingInterval);
-          clearInterval(cleanupInterval);
-          resolve();
+        if (!finishedBuffering && allBufferedTokensDispatched) {
+          if (!streamedMessageId) {
+            streamedMessageId = createMessageId();
+          }
+          store.getState().api.finishStreamingResponse(streamedMessageId);
+          finishedBuffering = true;
         }
       }, streamingIntervalMs);
-    });
-  };
 
-  const getMessage = (messageId: string) => {
-    return state.messages.find((message) => message.id === messageId);
-  };
+      try {
+        store.getState().api.addMessage({
+          role: "user",
+          content,
+        });
+        if (shouldStream) {
+          store.getState().api.createStreamingResponse();
+          await conversationService.addMessageStreaming({
+            conversationId: conversationState.conversationId ?? "null",
+            message: content,
+            clientContext: params.getClientContext?.(),
+            maxRetries: 0,
+            onResponseDelta: async (data: string) => {
+              bufferedTokens = [...bufferedTokens, data];
+              streamedTokens = [...streamedTokens, data];
+            },
+            onReferences: async (data: References) => {
+              if (references === null) {
+                references = [];
+              }
+              references.push(...data);
+            },
+            onMetadata: async (metadata) => {
+              if (metadata?.conversationId) {
+                store.getState().api.setConversationId(metadata.conversationId);
+              }
+              store
+                .getState()
+                .api.updateMessageMetadata(
+                  STREAMING_MESSAGE_ID,
+                  (m) => ({ ...m, ...metadata } as AssistantMessageMetadata)
+                );
+            },
+            onResponseFinished: async (messageId: string) => {
+              streamedMessageId = messageId;
+              finishedStreaming = true;
+            },
+            signal: abortController.signal,
+          });
+        } else {
+          // We start a streaming response to indicate the loading state
+          // but we'll never append to it since the response message comes
+          // in all at once.
+          store.getState().api.createStreamingResponse();
+          const response = await conversationService.addMessage({
+            conversationId: conversationState.conversationId ?? "null",
+            message: content,
+            clientContext: params.getClientContext?.(),
+          });
+          if (response.metadata?.conversationId) {
+            store
+              .getState()
+              .api.setConversationId(response.metadata.conversationId);
+          }
+          store.getState().api.cancelStreamingResponse();
+          store.getState().api.addMessage(response);
+        }
+      } catch (error) {
+        abortController.abort();
+        console.error(`Failed to add message: ${error}`);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        store.getState().api.cancelStreamingResponse();
+        clearInterval(streamingInterval);
+        endConversationWithError(errorMessage);
+        throw error;
+      }
 
-  const rateMessage = async (messageId: string, rating: boolean) => {
-    if (!state.conversationId) {
-      console.error(`Cannot rateMessage without a conversationId`);
-      return;
-    }
-    await conversationService.rateMessage({
-      conversationId: state.conversationId,
-      messageId,
-      rating,
-    });
-    state.api.rateMessage(messageId, rating);
-  };
+      return new Promise<void>((resolve) => {
+        cleanupInterval = setInterval(() => {
+          if (finishedBuffering) {
+            clearInterval(streamingInterval);
+            clearInterval(cleanupInterval);
+            resolve();
+          }
+        }, streamingIntervalMs);
+      });
+    },
+    [
+      params.shouldStream,
+      params.getClientContext,
+      sortMessageReferences,
+      store,
+      conversationService,
+      conversationState.conversationId,
+      endConversationWithError,
+    ]
+  );
 
-  const commentMessage = async (messageId: string, comment: string) => {
-    if (!state.conversationId) {
-      console.error(`Cannot commentMessage without a conversationId`);
-      return;
-    }
-    await conversationService.commentMessage({
-      conversationId: state.conversationId,
-      messageId,
-      comment,
-    });
-  };
+  const getMessage = useCallback(
+    (messageId: string) => {
+      return store
+        .getState()
+        .messages.find((message) => message.id === messageId);
+    },
+    [store]
+  );
+
+  const rateMessage = useCallback(
+    async (messageId: string, rating: boolean) => {
+      if (!conversationState.conversationId) {
+        console.error(`Cannot rateMessage without a conversationId`);
+        return;
+      }
+      await conversationService.rateMessage({
+        conversationId: conversationState.conversationId,
+        messageId,
+        rating,
+      });
+      store.getState().api.rateMessage(messageId, rating);
+    },
+    [conversationService, conversationState.conversationId, store]
+  );
+
+  const commentMessage = useCallback(
+    async (messageId: string, comment: string) => {
+      if (!conversationState.conversationId) {
+        console.error(`Cannot commentMessage without a conversationId`);
+        return;
+      }
+      await conversationService.commentMessage({
+        conversationId: conversationState.conversationId,
+        messageId,
+        comment,
+      });
+    },
+    [conversationService, conversationState.conversationId]
+  );
 
   /**
    * Switch to a different, existing conversation.
    */
-  const switchConversation = async (conversationId: string) => {
-    try {
-      const conversation = await conversationService.getConversation(
-        conversationId
-      );
-      state.api.initialize({
-        conversationId: conversation._id,
-        messages: conversation.messages.map(createMessage),
-      });
-    } catch (error) {
-      const errorMessage =
-        typeof error === "string"
-          ? error
-          : error instanceof Error
-          ? error.message
-          : "Failed to switch conversation.";
-      console.error(errorMessage);
-      // Rethrow the error so that we can handle it in the UI
-      throw error;
-    }
-  };
+  const switchConversation = useCallback(
+    async (conversationId: string) => {
+      try {
+        const conversation = await conversationService.getConversation(
+          conversationId
+        );
+        store.getState().api.initialize({
+          conversationId: conversation._id,
+          messages: conversation.messages.map(createMessage),
+        });
+      } catch (error) {
+        const errorMessage =
+          typeof error === "string"
+            ? error
+            : error instanceof Error
+            ? error.message
+            : "Failed to switch conversation.";
+        console.error(errorMessage);
+        // Rethrow the error so that we can handle it in the UI
+        throw error;
+      }
+    },
+    [conversationService, store]
+  );
 
   return {
-    conversationId: state.conversationId,
-    messages: state.messages,
-    error: state.error,
-    streamingMessageId: state.streamingMessageId,
+    ...conversationState,
     createConversation,
     submit,
     getMessage,
     rateMessage,
     commentMessage,
     switchConversation,
-  } satisfies Conversation;
+  };
 }

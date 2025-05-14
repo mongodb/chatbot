@@ -1,5 +1,15 @@
-import { startTransition, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { useConversation, type UseConversationParams } from "./useConversation";
+
+// Define a fallback function if startTransition is not available
+const startTransitionFallback = (callback: () => void) => {
+  callback();
+};
+
+const startTransition =
+  typeof React.startTransition === "function"
+    ? React.startTransition
+    : startTransitionFallback;
 
 export type OpenCloseHandlers = {
   onOpen?: () => void;

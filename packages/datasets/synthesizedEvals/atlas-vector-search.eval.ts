@@ -6,6 +6,7 @@ import { readFileSync } from "fs";
 import { z } from "zod";
 import { LlmOptions } from "mongodb-rag-core/executeCode";
 import { stripIndent } from "common-tags";
+import path from "path";
 
 const { BRAINTRUST_API_KEY, BRAINTRUST_ENDPOINT } =
   assertEnvVars(BRAINTRUST_ENV_VARS);
@@ -33,12 +34,30 @@ export type EvalData = z.infer<typeof evalDataSchema>;
 
 const evalData = z
   .array(evalDataSchemaWithResponse)
-  .parse(JSON.parse(readFileSync("atlasVectorSearchEvals.json", "utf-8")))
+  .parse(
+    JSON.parse(
+      readFileSync(path.join(__dirname, "atlas-vector-search.json"), "utf-8")
+    )
+  )
   .map(({ response, ...e }) => ({
     input: e,
     tags: ["atlas-vector-search"],
     expected: response,
+    metadata: {
+      urlIndex: e.urlIndex,
+      url: e.url,
+      difficulty: e.difficulty,
+      type: e.type,
+    },
   }));
+
+const vectorSearchGuide = readFileSync(
+  path.join(
+    __dirname,
+    "../../ingest-mongodb-public/maxxPrompts/atlasVectorSearch.md"
+  ),
+  "utf-8"
+);
 
 function makePrompt(input: {
   evalData: EvalData;
@@ -114,12 +133,6 @@ export function makeReferenceAlignmentScorer(args: {
     return {
       ...factuality,
       name,
-      metadata: {
-        urlIndex: input.urlIndex,
-        url: input.url,
-        difficulty: input.difficulty,
-        type: input.type,
-      },
     };
   };
 }
@@ -134,37 +147,35 @@ const referenceAlignment = makeReferenceAlignmentScorer({
 
 async function main() {
   console.log("evalData", evalData.length);
-  console.log("__dirname", __dirname);
-  // readFileSync(
-  //   "../../../ingest-mongodb-public/maxxPrompts/atlasVectorSearch.md"
-  // );
-  // await Eval("distilled-guides", {
-  //   experimentName: "no-guide",
-  //   data: evalData,
-  //   maxConcurrency: 5,
-  //   async task(input) {
-  //     const aiResponse = await chat(makePrompt({ evalData: input }));
-  //     if (aiResponse === null) {
-  //       throw new Error("AI response is null");
-  //     }
-  //     return aiResponse;
-  //   },
-  //   scores: [referenceAlignment],
-  // });
+  await Eval("distilled-guides", {
+    experimentName: "no-guide-atlas-vector-search",
+    data: evalData,
+    maxConcurrency: 10,
+    async task(input) {
+      const aiResponse = await chat(makePrompt({ evalData: input }));
+      if (aiResponse === null) {
+        throw new Error("AI response is null");
+      }
+      return aiResponse;
+    },
+    scores: [referenceAlignment],
+  });
 
-  // await Eval("distilled-guides", {
-  //   experimentName: "distilled-atlas-vector-search",
-  //   data: evalData,
-  //   maxConcurrency: 5,
-  //   async task(input) {
-  //     const aiResponse = await chat(makePrompt({ evalData: input }));
-  //     if (aiResponse === null) {
-  //       throw new Error("AI response is null");
-  //     }
-  //     return aiResponse;
-  //   },
-  //   scores: [referenceAlignment],
-  // });
+  await Eval("distilled-guides", {
+    experimentName: "distilled-atlas-vector-search",
+    data: evalData,
+    maxConcurrency: 10,
+    async task(input) {
+      const aiResponse = await chat(
+        makePrompt({ evalData: input, guide: vectorSearchGuide })
+      );
+      if (aiResponse === null) {
+        throw new Error("AI response is null");
+      }
+      return aiResponse;
+    },
+    scores: [referenceAlignment],
+  });
 }
 
 main();

@@ -13,6 +13,12 @@ import { AzureOpenAI } from "mongodb-rag-core/openai";
 import "dotenv/config";
 import argv from "yargs-parser";
 import { strict as assert } from "assert";
+import fs from "fs";
+import { logPath } from "./logPath.js";
+import { logger } from "mongodb-rag-core";
+
+// Suppress all logs from mongodb-rag-core
+logger.level = "silent";
 
 let {
   openAiApiKey,
@@ -90,18 +96,20 @@ registerPrompts(server);
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("MCP Server running on stdio");
-  server.onclose = async () => {
-    console.error("Shutting down MCP Server");
-    await pageStore.close();
-    await embeddedContentStore.close();
-    process.exit(0);
-  };
+  fs.appendFileSync(logPath, "MCP Server running on stdio\n");
+  // server.onclose = async () => {
+  //   fs.appendFileSync(logPath, "Shutting down MCP Server\n");
+  //   await pageStore.close();
+  //   await embeddedContentStore.close();
+  //   process.exit(0);
+  // };
 }
 
-main().catch(async (error: unknown) => {
-  await pageStore.close();
-  await embeddedContentStore.close();
-  console.error("Fatal error in main():", error);
-  process.exit(1);
-});
+main();
+// .catch(async (error: unknown) => {
+//   await pageStore.close();
+//   await embeddedContentStore.close();
+//   fs.appendFileSync(logPath, "Fatal error in main():\n");
+//   fs.appendFileSync(logPath, JSON.stringify(error));
+//   process.exit(1);
+// });

@@ -1,3 +1,4 @@
+import axios from "axios";
 import {
   ListToolsRequestSchema,
   CallToolRequestSchema,
@@ -9,6 +10,25 @@ import { type Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { guidesResources } from "./resources.js";
 import { FindContentFunc, PageStore } from "mongodb-rag-core";
 import { strict as assert } from "assert";
+import fs from "fs";
+import { logPath } from "../logPath.js";
+import { logger } from "mongodb-rag-core";
+
+// Suppress all logs from mongodb-rag-core
+logger.level = "silent";
+
+console.log = () => {
+  return;
+};
+console.info = () => {
+  return;
+};
+console.warn = () => {
+  return;
+};
+console.error = () => {
+  return;
+};
 
 // Available documentation guides
 const docsGuides = guidesResources.map((guide) => guide.id);
@@ -90,36 +110,85 @@ ${page.body}`,
 };
 
 interface SearchContentArgs {
-  query: string;
+  searchQuery: string;
 }
 const makeSearchContent =
   (findContent: FindContentFunc) => async (args: SearchContentArgs) => {
-    if (!args.query) throw new Error("Must provide a search query.");
+    if (!args.searchQuery) throw new Error("Must provide a search query.");
 
-    const { query } = args;
+    const { searchQuery } = args;
+    try {
+      // const content: { text: string; url: string }[] = [];
+      // Write to a log file instead of console.error to avoid interfering with JSON-RPC
+      fs.appendFileSync(logPath, `Query: ${searchQuery}\n`);
 
-    const { content } = await findContent({
-      query,
-    });
-    if (!content) {
-      throw new Error(`Content not found: ${query}`);
-    }
+      // Create URL object for better parameter handling
+      const url = new URL("http://localhost:3000/content/search");
+      url.searchParams.append("q", searchQuery);
 
-    const returnedContent = content.map(({ text, url }) => {
+      // Log the URL we're fetching
+      fs.appendFileSync(logPath, `Fetching URL: ${url.toString()}\n`);
+
+      let returnedContent: { url: string; text: string }[] = [];
+
+      try {
+        const res = await axios(url.toString());
+
+        // Log the response status
+        fs.appendFileSync(
+          logPath,
+          `Response status: ${res.status} ${res.statusText}\n`
+        );
+
+        if (res.status !== 200) {
+          throw new Error(
+            `Status not 200. It's ${res.status} ${res.statusText}`
+          );
+        }
+
+        // Try to get the response text first for debugging
+        returnedContent = await res.data;
+        fs.appendFileSync(logPath, `Response text: ${returnedContent}\n`);
+      } catch (error) {
+        const fetchError = error as Error;
+        fs.appendFileSync(logPath, `Fetch error: ${fetchError.message}\n`);
+        throw fetchError;
+      }
+
+      fs.appendFileSync(logPath, JSON.stringify(returnedContent));
+
+      const formattedResults =
+        returnedContent.length > 0
+          ? `Found ${returnedContent.length} results:\n\n${returnedContent
+              .map(
+                (item) => `<result>
+<url>${item.url}</url>
+<text>
+${item.text}
+</text>
+</result>`
+              )
+              .join("\n\n")}`
+          : `No results found for query: ${searchQuery}`;
+
       return {
-        url,
-        text,
-      };
-    });
-
-    return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(returnedContent),
-        },
-      ],
-    } satisfies CallToolResult;
+        content: [
+          {
+            type: "text",
+            text: formattedResults,
+          },
+        ],
+      } satisfies CallToolResult;
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error searching content: ${error}`,
+          },
+        ],
+      } satisfies CallToolResult;
+    }
   };
 
 // Tool definitions + handlers
@@ -194,13 +263,13 @@ export const makeTools = ({
         inputSchema: {
           type: "object",
           properties: {
-            query: {
+            searchQuery: {
               type: "string",
               description:
                 "Search query to use to search the MongoDB documentation",
             },
           },
-          required: ["query"],
+          required: ["searchQuery"],
         },
       },
       handler: makeSearchContent(findContent),
@@ -217,7 +286,8 @@ export const registerTools = (
   const tools = makeTools({ pageStore, findContent });
   // This handler responds to the ListTools request
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    console.error("ListTools request received, returning tools");
+    // Log to file instead of console.error
+    fs.appendFileSync(logPath, "ListTools request received, returning tools\n");
     return {
       tools: Object.values(tools).map((tool) => tool.definition),
     } satisfies ListToolsResult;
@@ -226,16 +296,19 @@ export const registerTools = (
   // This handler responds to the CallTool request
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: params } = request.params ?? {};
-    console.error(`CallTool request received for tool: ${name}`);
+    // Log to file instead of console.error
+    fs.appendFileSync(logPath, `CallTool request received for tool: ${name}\n`);
+    fs.appendFileSync(logPath, `Params: ${JSON.stringify(params)}\n`);
 
     if (!name) throw new Error("Tool name is required");
 
     if (name === "list-guides") {
-      console.error("Executing list-guides tool");
+      fs.appendFileSync(logPath, "Executing list-guides tool\n");
       return tools["list-guides"].handler();
     } else if (name === "use-guide") {
-      console.error(
-        `Executing use-guide tool with params: ${JSON.stringify(params)}`
+      fs.appendFileSync(
+        logPath,
+        `Executing use-guide tool with params: ${JSON.stringify(params)}\n`
       );
       const docsGuide = params?.docsGuide;
       assert(
@@ -243,26 +316,36 @@ export const registerTools = (
           docsGuides.includes(docsGuide as UseGuidesArgs["docsGuide"]),
         `Docs guide must be one of the following: ${docsGuides.join(", ")}`
       );
-      return tools["use-guide"].handler({
+      return await tools["use-guide"].handler({
         docsGuide: docsGuide as UseGuidesArgs["docsGuide"],
       });
     } else if (name === "get-page") {
-      console.error(
-        `Executing get-page tool with params: ${JSON.stringify(params)}`
+      fs.appendFileSync(
+        logPath,
+        `Executing get-page tool with params: ${JSON.stringify(params)}\n`
       );
       const url = params?.url;
       assert(typeof url === "string", "URL is required for get-page tool");
       return tools["get-page"].handler({ url });
     } else if (name === "search-content") {
-      console.error(
-        `Executing search-content tool with params: ${JSON.stringify(params)}`
+      // Log to file instead of console.error to avoid interfering with JSON-RPC
+      fs.appendFileSync(logPath, "searching...\n");
+      fs.appendFileSync(
+        logPath,
+        `Executing search-content tool with params: ${JSON.stringify(params)}\n`
       );
-      const query = params?.query;
+      const searchQuery = params?.searchQuery;
+      fs.appendFileSync(logPath, `Query: ${searchQuery}\n`);
       assert(
-        typeof query === "string",
+        typeof searchQuery === "string",
         "Query is required for search-content tool"
       );
-      return tools["search-content"].handler({ query });
+      const searchContent = makeSearchContent(findContent);
+      const results = (await searchContent({
+        searchQuery,
+      })) satisfies CallToolResult;
+      fs.appendFileSync(logPath, `Results: ${JSON.stringify(results)}\n`);
+      return results;
     } else {
       throw new Error(`Tool not found: ${name}`);
     }

@@ -27,9 +27,7 @@ import {
   MakeMongoDbUniversityDataSourceParams,
   makeMongoDbUniversityDataSource,
 } from "./mongodb-university";
-const { DEVCENTER_CONNECTION_URI, UNIVERSITY_DATA_API_KEY } = assertEnvVars(
-  PUBLIC_INGEST_ENV_VARS
-);
+
 import {
   getUrlsFromSitemap,
   initialWebSources,
@@ -42,30 +40,6 @@ import { chromium } from "playwright";
   Async constructor for specific data sources -- parameters baked in.
  */
 export type SourceConstructor = () => Promise<DataSource | DataSource[]>;
-
-export const devCenterProjectConfig: DevCenterProjectConfig = {
-  type: "devcenter",
-  name: "devcenter",
-  collectionName: "search_content_prod",
-  databaseName: "devcenter",
-  baseUrl: "https://www.mongodb.com/developer",
-  connectionUri: DEVCENTER_CONNECTION_URI,
-};
-
-const mongoDbUniversitySourceConstructor = async () => {
-  const universityDataApiKey = UNIVERSITY_DATA_API_KEY;
-  assert(!!universityDataApiKey, "UNIVERSITY_DATA_API_KEY required");
-  const universityConfig: MakeMongoDbUniversityDataSourceParams = {
-    sourceName: "mongodb-university",
-    baseUrl: "https://api.learn.mongodb.com/rest/catalog",
-    apiKey: universityDataApiKey,
-    tiCatalogItems: {
-      publicOnly: true,
-      nestAssociatedContent: true,
-    },
-  };
-  return makeMongoDbUniversityDataSource(universityConfig);
-};
 
 export const mongoDbCorpDataSourceConfig: MakeMdOnGithubDataSourceParams = {
   name: "mongodb-corp",
@@ -204,8 +178,6 @@ const webDataSourceConstructor = async (): Promise<DataSource[]> => {
 export const sourceConstructors: SourceConstructor[] = [
   webDataSourceConstructor,
   () => makeSnootyDataSources(snootyDataApiBaseUrl, snootyProjectConfig),
-  () => makeDevCenterDataSource(devCenterProjectConfig),
-  mongoDbUniversitySourceConstructor,
   mongooseSourceConstructor,
   prismaSourceConstructor,
   mongoDbCorpDataSource,

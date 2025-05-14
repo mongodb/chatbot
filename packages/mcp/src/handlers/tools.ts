@@ -82,38 +82,44 @@ const useGuides = async (args: UseGuidesArgs) => {
 interface GetPageArgs {
   url: string;
 }
-const makeGetPage = (pageStore: PageStore) => async (args: GetPageArgs) => {
-  if (!args.url) throw new Error("Must provide the URL of the page to get.");
+const makeGetPage =
+  (serverBaseUrl = "http://localhost:3000") =>
+  async (args: GetPageArgs) => {
+    if (!args.url) throw new Error("Must provide the URL of the page to get.");
 
-  const { url } = args;
+    const { url } = args;
 
-  const [page] = await pageStore.loadPages({
-    query: {
-      url,
-    },
-  });
-  if (!page) {
-    throw new Error(`Page not found: ${url}`);
-  }
+    const endpointObj = new URL(`${serverBaseUrl}/content/page`);
+    endpointObj.searchParams.append("url", url);
 
-  return {
-    content: [
-      {
-        type: "text",
-        text: `url: ${page.url}
+    const { data: page } = await axios.get<{
+      url: string;
+      title: string;
+      body: string;
+    }>(endpointObj.toString());
+    if (!page) {
+      throw new Error(`Page not found: ${url}`);
+    }
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: `url: ${page.url}
 title: ${page.title}
 ---
 ${page.body}`,
-      },
-    ],
-  } satisfies CallToolResult;
-};
+        },
+      ],
+    } satisfies CallToolResult;
+  };
 
 interface SearchContentArgs {
   searchQuery: string;
 }
 const makeSearchContent =
-  (findContent: FindContentFunc) => async (args: SearchContentArgs) => {
+  (serverBaseUrl = "http://localhost:3000") =>
+  async (args: SearchContentArgs) => {
     if (!args.searchQuery) throw new Error("Must provide a search query.");
 
     const { searchQuery } = args;
@@ -123,7 +129,7 @@ const makeSearchContent =
       fs.appendFileSync(logPath, `Query: ${searchQuery}\n`);
 
       // Create URL object for better parameter handling
-      const url = new URL("http://localhost:3000/content/search");
+      const url = new URL(`${serverBaseUrl}/content/search`);
       url.searchParams.append("q", searchQuery);
 
       // Log the URL we're fetching
@@ -192,13 +198,7 @@ ${item.text}
   };
 
 // Tool definitions + handlers
-export const makeTools = ({
-  pageStore,
-  findContent,
-}: {
-  pageStore: PageStore;
-  findContent: FindContentFunc;
-}) => {
+export const makeTools = (serverBaseUrl = "http://localhost:3000") => {
   return {
     "list-guides": {
       definition: {
@@ -254,7 +254,7 @@ export const makeTools = ({
           required: ["url"],
         },
       },
-      handler: makeGetPage(pageStore),
+      handler: makeGetPage(serverBaseUrl),
     },
     "search-content": {
       definition: {
@@ -272,7 +272,7 @@ export const makeTools = ({
           required: ["searchQuery"],
         },
       },
-      handler: makeSearchContent(findContent),
+      handler: makeSearchContent(serverBaseUrl),
     },
   } satisfies Record<string, { definition: Tool; handler: (args: any) => any }>;
 };
@@ -280,10 +280,9 @@ export const makeTools = ({
 // Register the tools with the server
 export const registerTools = (
   server: Server,
-  pageStore: PageStore,
-  findContent: FindContentFunc
+  serverBaseUrl = "http://localhost:3000"
 ): void => {
-  const tools = makeTools({ pageStore, findContent });
+  const tools = makeTools(serverBaseUrl);
   // This handler responds to the ListTools request
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     // Log to file instead of console.error
@@ -340,7 +339,7 @@ export const registerTools = (
         typeof searchQuery === "string",
         "Query is required for search-content tool"
       );
-      const searchContent = makeSearchContent(findContent);
+      const searchContent = makeSearchContent(serverBaseUrl);
       const results = (await searchContent({
         searchQuery,
       })) satisfies CallToolResult;

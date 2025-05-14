@@ -13,14 +13,14 @@ const resourcesDir = path.join(staticDirPath, "resources");
 
 export const guidesResources = [
   {
-    id: "atlas-clusters",
-    name: "MongoDB Atlas Clusters",
+    id: "atlas-get-started",
+    name: "Get Started with MongoDB Atlas",
     description:
-      "Guide for general information about creating and managing Atlas Clusters, including common issues, configuration, security, and more.",
+      "Guide for general information about creating Atlas Clusters and next steps.",
     mimeType: "text/markdown",
-    uri: "docs://atlas-clusters",
+    uri: "docs://atlas-get-started",
     guide: fs.readFileSync(
-      path.join(resourcesDir, "atlas-clusters.md"),
+      path.join(resourcesDir, "atlas-get-started.md"),
       "utf8"
     ),
   },

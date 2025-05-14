@@ -24,6 +24,11 @@ function makePromptMessages(promptPath: string): GetPromptResult["messages"] {
 }
 
 const prompts = {
+  "get-started": {
+    name: "get-started",
+    description: "Get Started with MongoDB Atlas",
+    messages: makePromptMessages(path.join(promptsDir, "get-started.md")),
+  },
   "data-modeling": {
     name: "data-modeling",
     description: "Best practices for MongoDB data modeling",

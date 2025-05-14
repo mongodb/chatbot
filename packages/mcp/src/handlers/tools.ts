@@ -177,14 +177,13 @@ export const makeTools = ({
         inputSchema: {
           type: "object",
           properties: {
-            docsGuide: {
+            url: {
               type: "string",
-              enum: docsGuides,
               description:
-                "Documentation guide to use to answer a question or complete a task",
+                "URL of the page to get from the MongoDB documentation",
             },
           },
-          required: ["docsGuide"],
+          required: ["url"],
         },
       },
       handler: makeGetPage(pageStore),

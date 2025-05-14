@@ -134,8 +134,7 @@ export const makeTools = ({
     "list-guides": {
       definition: {
         name: "list-guides",
-        description:
-          `List available MongoDB documentation guides.
+        description: `List available MongoDB documentation guides.
     
            Use this tool when you receive a question or task related to MongoDB 
            or its products (e.g. MongoDB Atlas). This tool lists available documentation 
@@ -177,14 +176,13 @@ export const makeTools = ({
         inputSchema: {
           type: "object",
           properties: {
-            docsGuide: {
+            url: {
               type: "string",
-              enum: docsGuides,
               description:
-                "Documentation guide to use to answer a question or complete a task",
+                "URL of the page to get. This should be a URL to a MongoDB documentation page.",
             },
           },
-          required: ["docsGuide"],
+          required: ["url"],
         },
       },
       handler: makeGetPage(pageStore),
@@ -219,7 +217,7 @@ export const registerTools = (
   const tools = makeTools({ pageStore, findContent });
   // This handler responds to the ListTools request
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    console.log("ListTools request received, returning tools");
+    console.error("ListTools request received, returning tools");
     return {
       tools: Object.values(tools).map((tool) => tool.definition),
     } satisfies ListToolsResult;
@@ -228,15 +226,15 @@ export const registerTools = (
   // This handler responds to the CallTool request
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: params } = request.params ?? {};
-    console.log(`CallTool request received for tool: ${name}`);
+    console.error(`CallTool request received for tool: ${name}`);
 
     if (!name) throw new Error("Tool name is required");
 
     if (name === "list-guides") {
-      console.log("Executing list-guides tool");
+      console.error("Executing list-guides tool");
       return tools["list-guides"].handler();
     } else if (name === "use-guide") {
-      console.log(
+      console.error(
         `Executing use-guide tool with params: ${JSON.stringify(params)}`
       );
       const docsGuide = params?.docsGuide;
@@ -249,14 +247,14 @@ export const registerTools = (
         docsGuide: docsGuide as UseGuidesArgs["docsGuide"],
       });
     } else if (name === "get-page") {
-      console.log(
+      console.error(
         `Executing get-page tool with params: ${JSON.stringify(params)}`
       );
       const url = params?.url;
       assert(typeof url === "string", "URL is required for get-page tool");
       return tools["get-page"].handler({ url });
     } else if (name === "search-content") {
-      console.log(
+      console.error(
         `Executing search-content tool with params: ${JSON.stringify(params)}`
       );
       const query = params?.query;

@@ -90,9 +90,9 @@ registerPrompts(server);
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.log("MCP Server running on stdio");
+  console.error("MCP Server running on stdio");
   server.onclose = async () => {
-    console.log("Shutting down MCP Server");
+    console.error("Shutting down MCP Server");
     await pageStore.close();
     await embeddedContentStore.close();
     process.exit(0);

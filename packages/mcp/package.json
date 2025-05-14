@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.11.2",
-    "mongodb-rag-core": "*"
+    "mongodb-rag-core": "*",
+    "yargs-parser": "^21.1.1"
   }
 }

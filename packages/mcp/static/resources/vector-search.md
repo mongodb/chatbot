@@ -1951,3 +1951,51 @@ Filtering allowed only on boolean, date, number, objectId, string, UUID fields.
 
 </section>
 </guide>
+
+## Voyage AI Models
+
+All models below (except where noted) have a context length of 32,000 tokens and can output embedding dimensions of 1024 (default), 256, 512, or 2048.
+
+voyage-3-large: Best general-purpose and multilingual retrieval quality.
+voyage-3.5: Optimized for general-purpose and multilingual retrieval quality.
+voyage-3.5-lite: Optimized for latency and cost.
+voyage-code-3: Optimized for code retrieval.
+voyage-finance-2:
+Context Length: 32,000 tokens
+Embedding Dimension: 1024
+Optimized for finance retrieval and RAG.
+voyage-law-2:
+Context Length: 16,000 tokens
+Embedding Dimension: 1024
+Optimized for legal retrieval and RAG; improved general performance.
+voyage-code-2:
+Context Length: 16,000 tokens
+Embedding Dimension: 1536
+Previous generation, optimized for code retrieval.
+Older Models:
+Several older models exist (e.g., voyage-3, voyage-large-2-instruct, voyage-2, voyage-01, voyage-multilingual-2, etc.). Users are encouraged to transition to the newer models listed above for improved quality, efficiency, and features. Some older models are deprecated.
+
+Usage example:
+
+pip install --quiet --upgrade voyageai pymongo
+
+```python
+import os
+import voyageai
+
+# Specify your Voyage API key and embedding model
+os.environ["VOYAGE_API_KEY"] = "<api-key>"
+model = "voyage-3-large"
+vo = voyageai.Client()
+
+# Define a function to generate embeddings
+def get_embedding(data, input_type = "document"):
+  embeddings = vo.embed(
+      data, model = model, input_type = input_type
+  ).embeddings
+  return embeddings[0]
+
+# Generate an embedding
+embedding = get_embedding("foo")
+print(embedding)
+```

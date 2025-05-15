@@ -4,7 +4,6 @@ import { registerResources } from "./handlers/resources.js";
 import { registerTools } from "./handlers/tools.js";
 import { registerPrompts } from "./handlers/prompts.js";
 import {
-  assertEnvVars,
   makeDefaultFindContent,
   makeMongoDbEmbeddedContentStore,
   makeMongoDbPageStore,
@@ -12,22 +11,19 @@ import {
 } from "mongodb-rag-core";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import "dotenv/config";
+import argv from "yargs-parser";
+import { strict as assert } from "assert";
+import fs from "fs";
+import { logPath } from "./logPath.js";
+import { logger } from "mongodb-rag-core";
 
-const {
-  OPENAI_API_KEY,
-  OPENAI_ENDPOINT,
-  MONGODB_CONNECTION_URI,
-  MONGODB_DATABASE_NAME,
-  VECTOR_SEARCH_INDEX_NAME,
-  OPENAI_EMBEDDING_MODEL,
-} = assertEnvVars({
-  OPENAI_API_KEY: "",
-  OPENAI_ENDPOINT: "",
-  MONGODB_CONNECTION_URI: "",
-  MONGODB_DATABASE_NAME: "",
-  VECTOR_SEARCH_INDEX_NAME: "",
-  OPENAI_EMBEDDING_MODEL: "",
-});
+// Suppress all logs from mongodb-rag-core
+logger.level = "silent";
+
+let { serverBaseUrl } = argv(process.argv.slice(2));
+
+// Set default values to env or reasonable defaults
+serverBaseUrl ??= process.env.SERVER_BASE_URL ?? "http://localhost:3000";
 
 const server = new Server(
   {
@@ -46,48 +42,27 @@ const server = new Server(
   }
 );
 
-const pageStore = makeMongoDbPageStore({
-  connectionUri: MONGODB_CONNECTION_URI,
-  databaseName: MONGODB_DATABASE_NAME,
-});
-const embeddedContentStore = makeMongoDbEmbeddedContentStore({
-  connectionUri: MONGODB_CONNECTION_URI,
-  databaseName: MONGODB_DATABASE_NAME,
-  searchIndex: {
-    embeddingName: VECTOR_SEARCH_INDEX_NAME,
-  },
-});
-const findContent = makeDefaultFindContent({
-  embedder: makeOpenAiEmbedder({
-    openAiClient: new AzureOpenAI({
-      apiKey: OPENAI_API_KEY,
-      baseURL: OPENAI_ENDPOINT,
-      apiVersion: "2024-06-01",
-    }),
-    deployment: OPENAI_EMBEDDING_MODEL,
-  }),
-  store: embeddedContentStore,
-});
-
 registerResources(server);
-registerTools(server, pageStore, findContent);
+registerTools(server, serverBaseUrl);
 registerPrompts(server);
 
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.log("MCP Server running on stdio");
-  server.onclose = async () => {
-    console.log("Shutting down MCP Server");
-    await pageStore.close();
-    await embeddedContentStore.close();
-    process.exit(0);
-  };
+  fs.appendFileSync(logPath, "MCP Server running on stdio\n");
+  // server.onclose = async () => {
+  //   fs.appendFileSync(logPath, "Shutting down MCP Server\n");
+  //   await pageStore.close();
+  //   await embeddedContentStore.close();
+  //   process.exit(0);
+  // };
 }
 
-main().catch(async (error: unknown) => {
-  await pageStore.close();
-  await embeddedContentStore.close();
-  console.error("Fatal error in main():", error);
-  process.exit(1);
-});
+main();
+// .catch(async (error: unknown) => {
+//   await pageStore.close();
+//   await embeddedContentStore.close();
+//   fs.appendFileSync(logPath, "Fatal error in main():\n");
+//   fs.appendFileSync(logPath, JSON.stringify(error));
+//   process.exit(1);
+// });

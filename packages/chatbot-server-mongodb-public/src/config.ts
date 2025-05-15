@@ -30,7 +30,7 @@ import { addReferenceSourceType } from "./processors/makeMongoDbReferences";
 import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
-import { logger } from "mongodb-rag-core";
+import { logger, makeMongoDbPageStore } from "mongodb-rag-core";
 import {
   wrapOpenAI,
   wrapTraced,
@@ -54,6 +54,7 @@ import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
 import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
 import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
 import { createAzure } from "mongodb-rag-core/aiSdk";
+import { strict as assert } from "assert";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -126,6 +127,11 @@ export const embeddedContentStore = makeMongoDbEmbeddedContentStore({
   searchIndex: {
     embeddingName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
   },
+});
+
+const pageStore = makeMongoDbPageStore({
+  connectionUri: MONGODB_CONNECTION_URI,
+  databaseName: MONGODB_DATABASE_NAME,
 });
 
 export const verifiedAnswerConfig = {
@@ -356,6 +362,47 @@ export const config: AppConfig = {
   expressAppConfig: !isProduction
     ? async (app) => {
         const staticAssetsPath = path.join(__dirname, "..", "static");
+        app.get("/content/search", async (req, res) => {
+          const { q } = req.query;
+          logger.info(`Search query: ${q}`);
+          if (!q) {
+            res.status(400).send("Missing query parameter 'q'");
+            return;
+          }
+          assert(typeof q === "string");
+          const searchContent = await findContent({
+            query: q,
+          });
+          const content = searchContent.content.map(({ url, text }) => {
+            return {
+              url,
+              text,
+            };
+          });
+          logger.info(`Search results: ${JSON.stringify(content)}`);
+
+          res.json(content);
+        });
+        app.get("/content/page", async (req, res) => {
+          const { url } = req.query;
+          if (!url) {
+            res.status(400).send("Missing query parameter 'url'");
+            return;
+          }
+          assert(typeof url === "string");
+          const [page] = await pageStore.loadPages({
+            urls: [url],
+          });
+          if (!page) {
+            res.status(404).send("Page not found");
+            return;
+          }
+          res.json({
+            url: page.url,
+            title: page.title,
+            body: page.body,
+          });
+        });
         app.use(express.static(staticAssetsPath));
       }
     : undefined,

@@ -8,7 +8,6 @@ import {
 import fs from "fs";
 import path from "path";
 import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
-import { makeBulletPrompt } from "../prompt-maxxing/makeBulletPrompt";
 
 const maxxPromptsDir = path.resolve(__dirname, "..", "..", "maxxPrompts");
 
@@ -28,15 +27,10 @@ async function main() {
   });
 
   const model = "o3";
-
-  // const bullets = [
-  //   "For the language tabs, only include programming examples from the Node.js driver.",
-  // ];
   const config = {
-    topic: "MongoDB Atlas - Creating and Managing Clusters",
-    // customInstructions: makeBulletPrompt(bullets),
+    topic: "MongoDB Atlas - Get Started Tutorials",
     maxChunkSize: 80000,
-    percentToInclude: 15,
+    percentToInclude: 10,
     options: {
       model,
       //   temperature: 0,
@@ -51,19 +45,9 @@ async function main() {
       },
       filter: (page) =>
         isMdPage(page) &&
-        (page.url.includes("atlas/tutorial/") ||
-        page.url.includes("atlas/getting-started/") ||
-        page.url.includes("atlas/sample-data/") ||
-        page.url.includes("atlas/atlas-ui/") ||
-        page.url.includes("atlas/security/") ||
-        (()=>{
-          // Using a self-executing function to run regex test
-          // Match paths containing either "cluster" or "database-deployment"
-          const pattern = /atlas\/.*?(cluster|database-deployment)/i;
-          return pattern.test(page.url);
-        })()),
-        
-      // TODO: validate
+        (page.url.includes("atlas/tutorial") ||
+          page.url.includes("atlas/getting-started")),
+          
     },
     maxConcurrency: 20,
   } satisfies GenerateMakeSnootySiteMaxxPromptParams;
@@ -74,7 +58,7 @@ async function main() {
     return;
   }
 
-  const pathOut = path.join(maxxPromptsDir, "AtlasClusters.md");
+  const pathOut = path.join(maxxPromptsDir, "atlasGetStarted.md");
   console.log(`Writing maxx prompt to ${pathOut}`);
   fs.writeFileSync(pathOut, maxxPrompt);
   console.log(`Wrote maxx prompt to ${pathOut}`);

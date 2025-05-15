@@ -4,9 +4,11 @@ import {
   makeMongoDbPageStore,
 } from "mongodb-rag-core";
 import { synthesizePages } from "../synthesizePages.js";
+import { synthesizeEvals } from "../synthesizeEvals.js";
 import "dotenv/config";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import fs from "fs";
+import path from "path";
 
 const {
   OPENAI_API_KEY,
@@ -57,6 +59,39 @@ export async function main() {
   const fileName = "atlasVectorSearchSummary.md";
   console.log("writing summary to file", fileName);
   fs.writeFileSync(fileName, summary, "utf-8");
+  const evals = await synthesizeEvals({
+    topic: "MongoDB Atlas Vector Search",
+    pageStore,
+    model: "gpt-4o-mini",
+    openAiClient: new AzureOpenAI({
+      apiKey: OPENAI_API_KEY,
+      endpoint: OPENAI_ENDPOINT,
+      apiVersion: OPENAI_API_VERSION,
+    }),
+    urls,
+  });
+  const evalsFileName = "atlas-vector-search.json";
+  const evalsFilePath = path.join(
+    __dirname,
+    "..",
+    "..",
+    "synthesizedEvals",
+    evalsFileName
+  );
+  console.log("writing evals to file", evalsFilePath);
+  fs.writeFileSync(
+    evalsFilePath,
+    JSON.stringify(
+      evals.flatMap(({ url, urlIndex, evals }) =>
+        evals.map((e) => ({
+          url,
+          urlIndex,
+          ...e,
+        }))
+      )
+    ),
+    "utf-8"
+  );
   await pageStore.close();
   console.log("done");
 }

@@ -19,10 +19,10 @@ const openAiClient = wrapOpenAI(
 );
 
 const evalDataSchema = z.object({
-  url: z.string(),
-  urlIndex: z.number(),
-  difficulty: z.enum(["basic", "intermediate", "advanced"]),
-  type: z.enum(["question", "code_example"]),
+  url: z.string().optional(),
+  urlIndex: z.number().optional(),
+  difficulty: z.enum(["basic", "intermediate", "advanced"]).optional(),
+  type: z.enum(["question", "code_example"]).optional(),
   prompt: z.string(),
 });
 
@@ -63,6 +63,10 @@ function makePrompt(input: {
   evalData: EvalData;
   guide?: string;
 }): OpenAI.ChatCompletionMessageParam[] {
+  const evalData = {
+    type: "question",
+    ...input.evalData,
+  };
   return [
     {
       role: "system",
@@ -84,12 +88,12 @@ function makePrompt(input: {
       role: "user",
       content: stripIndent`
         Please ${
-          input.evalData.type === "question"
+          evalData.type === "question"
             ? "answer the following user question"
             : "give an example of the following"
         }:
 
-        ${input.evalData.prompt}
+        ${evalData.prompt}
       `,
     },
   ];
@@ -132,9 +136,24 @@ export function makeReferenceAlignmentScorer(args: {
     });
     return {
       ...factuality,
+      score: remapFactualityScore(factuality.score),
       name,
     };
   };
+}
+
+function remapFactualityScore(score: number | null) {
+  if (score === null) {
+    score = 0;
+  }
+  switch (score) {
+    case 0.4:
+      return 0.25;
+    case 0.6:
+      return 0.75;
+    default:
+      return score;
+  }
 }
 
 const referenceAlignment = makeReferenceAlignmentScorer({

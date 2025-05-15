@@ -1,1 +1,1382 @@
-[{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/","urlIndex":0,"difficulty":"basic","type":"question","prompt":"What is Atlas Vector Search?","response":"Atlas Vector Search is a feature that allows you to perform vector search on data stored in MongoDB Atlas, querying data based on semantic meaning rather than just keyword matches."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/","urlIndex":0,"difficulty":"intermediate","type":"question","prompt":"What are the use cases supported by Atlas Vector Search?","response":"Atlas Vector Search supports use cases such as semantic search, hybrid search, and generative search, including retrieval-augmented generation (RAG)."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/","urlIndex":0,"difficulty":"advanced","type":"question","prompt":"What is the difference between ANN and ENN search in Atlas Vector Search?","response":"ANN (Approximate Nearest Neighbor) search is used for efficiently finding similar vectors without scanning every vector embedding, while ENN (Exact Nearest Neighbor) search exhaustively searches for the most similar vectors among all indexed vector embeddings."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/","urlIndex":0,"difficulty":"advanced","type":"code_example","prompt":"How do you create an Atlas Vector Search index?","response":"To create an Atlas Vector Search index, you define which fields in your collection contain your vector embeddings. You must also ensure these embeddings are less than or equal to 4096 dimensions in length. Specific implementation details can be found in the documentation on 'How to Index Fields for Vector Search'."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/","urlIndex":0,"difficulty":"intermediate","type":"question","prompt":"Can Atlas Vector Search be integrated with AI frameworks?","response":"Yes, Atlas Vector Search can be integrated with popular AI frameworks and services such as OpenAI, AWS, and Google to implement vector search in AI-powered applications."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/","urlIndex":0,"difficulty":"basic","type":"question","prompt":"What is Atlas Vector Search used for?","response":"Atlas Vector Search is used to perform vector search on data stored in Atlas, allowing queries based on semantic meaning rather than just keyword matches, which helps retrieve more relevant search results."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/","urlIndex":0,"difficulty":"intermediate","type":"question","prompt":"What are some use cases of Atlas Vector Search?","response":"Atlas Vector Search supports use cases such as semantic search, hybrid search, and generative search, including retrieval-augmented generation (RAG)."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/","urlIndex":0,"difficulty":"advanced","type":"question","prompt":"What is the difference between ANN and ENN in the context of Atlas Vector Search?","response":"ANN (Approximate Nearest Neighbor) search finds similar vectors efficiently without scanning every vector embedding, while ENN (Exact Nearest Neighbor) search exhaustively checks all indexed vector embeddings to find the most similar ones."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/","urlIndex":0,"difficulty":"advanced","type":"code_example","prompt":"Provide an example of how to create an Atlas Vector Search query.","response":"```json\n{\n  \"$vectorSearch\": {\n    \"queryVector\": [0.1, 0.2, 0.3], \n    \"searchAlgorithm\": \"ANN\"\n  }\n}\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/","urlIndex":0,"difficulty":"intermediate","type":"question","prompt":"How does Atlas Vector Search determine semantic similarity?","response":"Atlas Vector Search determines semantic similarity by identifying the vector embeddings that are closest in distance to the query vector."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/","urlIndex":0,"difficulty":"basic","type":"question","prompt":"What is a vector in the context of Atlas Vector Search?","response":"A vector in the context of Atlas Vector Search is an array of numbers that represents data in multiple dimensions."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/","urlIndex":0,"difficulty":"advanced","type":"question","prompt":"How can you combine vector search with other types of search in Atlas?","response":"You can combine vector search with full-text search queries to return the most relevant results for your use case."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-quick-start/","urlIndex":1,"difficulty":"basic","type":"question","prompt":"What is the purpose of MongoDB Atlas Vector Search?","response":"The purpose of MongoDB Atlas Vector Search is to perform semantic search, returning documents that are similar to a given query by leveraging vector embeddings."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-quick-start/","urlIndex":1,"difficulty":"intermediate","type":"question","prompt":"What steps are involved in loading sample documents into an Atlas cluster for Vector Search?","response":"The steps involve using the Atlas UI or CLI to create an Atlas cluster, loading a sample dataset, and then creating a Vector Search index on the relevant fields."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-quick-start/","urlIndex":1,"difficulty":"advanced","type":"question","prompt":"Explain how to create a vector search index in an Atlas deployment using PyMongo.","response":"To create a vector search index in an Atlas deployment using PyMongo, define a SearchIndexModel with the `plot_embedding` field specified as a vector type with 1536 dimensions and a similarity measurement method (e.g., dotProduct), then call `collection.create_search_index(model=search_index_model)`."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-quick-start/","urlIndex":1,"difficulty":"basic","type":"question","prompt":"How do I perform a vector search query using the MongoDB shell?","response":"To perform a vector search query using the MongoDB shell, construct an aggregate command using the `$vectorSearch` stage with your query parameters, like the index name, path, query vector, number of candidates, and limit, followed by a `$project` stage to format the results."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-quick-start/","urlIndex":1,"difficulty":"intermediate","type":"code_example","prompt":"Can you show an example of a vector search query in Python?","response":"```python\npipeline = [\n    {\n        '$vectorSearch': {\n            'index': 'vector_index',\n            'path': 'plot_embedding',\n            'queryVector': [-0.0016261312, -0.028070757, ...],\n            'numCandidates': 150,\n            'limit': 10\n        }\n    },\n    {\n        '$project': {\n            '_id': 0,\n            'plot': 1,\n            'title': 1,\n            'score': {'$meta': 'vectorSearchScore'}\n        }\n    }\n]\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/","urlIndex":2,"difficulty":"basic","type":"question","prompt":"What is the purpose of creating vector embeddings in MongoDB Atlas?","response":"Vector embeddings capture meaningful relationships in data and enable semantic search and retrieval-augmented generation (RAG) with Atlas Vector Search."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/","urlIndex":2,"difficulty":"intermediate","type":"question","prompt":"What are the steps involved in creating vector embeddings using Atlas Vector Search?","response":"The steps include defining a function that uses an embedding model to generate vector embeddings, creating embeddings from your data and storing them in Atlas, and creating embeddings from search terms to run vector search queries."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/","urlIndex":2,"difficulty":"advanced","type":"question","prompt":"How does the choice of embedding model impact the performance of vector search in MongoDB Atlas?","response":"The choice of embedding model affects the metrics such as embedding dimensions, retrieval average, and model size, which in turn influences the efficiency and relevance of search results."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/","urlIndex":2,"difficulty":"intermediate","type":"code_example","prompt":"Show how to create vector embeddings in Python using an embedding model.","response":"```python\nfrom sentence_transformers import SentenceTransformer\n\n# Load the embedding model\nmodel = SentenceTransformer('nomic-ai/nomic-embed-text-v1', trust_remote_code=True)\n\n# Define a function to generate embeddings\n\ndef get_embedding(data):\n    return model.encode(data)\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/","urlIndex":2,"difficulty":"basic","type":"question","prompt":"What prerequisites must be met to create embeddings in MongoDB Atlas?","response":"You must have an Atlas account with a cluster running MongoDB version 6.0.11, 7.0.2, or later, a code editor, and if using OpenAI models, an OpenAI API key."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/","urlIndex":2,"difficulty":"intermediate","type":"code_example","prompt":"Write code to run a vector search query in MongoDB Atlas.","response":"```python\n# Sample vector search query in Python\nquery_embedding = get_embedding('ocean tragedy')\npipeline = [\n  { '$vectorSearch': { 'queryVector': query_embedding, 'index': 'vector_index', 'path': 'embedding', 'exact': True, 'limit': 5 } },\n  { '$project': { '_id': 0, 'text': 1, 'score': { '$meta': 'vectorSearchScore' } } }\n]\nresults = collection.aggregate(pipeline)\nfor doc in results:\n    print(doc)\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/","urlIndex":2,"difficulty":"intermediate","type":"question","prompt":"What kind of index is necessary for performing vector search queries in MongoDB Atlas?","response":"You need a vector search index defined on the field that contains vector embeddings, specifying the embeddings type and similarity measure."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/","urlIndex":2,"difficulty":"advanced","type":"question","prompt":"What are the consequences of having mismatched dimensions between embedded data and the index in MongoDB Atlas?","response":"Mismatched dimensions can lead to errors when executing vector search queries, as the query embeddings must match the dimensions of the indexed embeddings."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/","urlIndex":2,"difficulty":"advanced","type":"code_example","prompt":"Show an example of how to create a vector index in MongoDB Atlas using C#.","response":"```csharp\npublic void CreateVectorIndex()\n{\n    var indexDefinition = new BsonDocument\n    {\n        {\n            \"fields\",\n            new BsonArray\n            {\n                new BsonDocument\n                {\n                    { \"type\", \"vector\" },\n                    { \"path\", \"embedding\" },\n                    { \"numDimensions\", 1536 },\n                    { \"similarity\", \"dotProduct\" }\n                }\n            }\n        }\n    };\n    var indexModel = new SearchIndexModel(\"vector_index\", indexDefinition, SearchIndexType.VectorSearch);\n    searchIndexView.CreateOne(indexModel);\n}\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/","urlIndex":2,"difficulty":"basic","type":"question","prompt":"What can I do with vector embeddings in MongoDB Atlas?","response":"Vector embeddings can be stored alongside other data in Atlas, allowing for semantic search and retrieval-augmented generation (RAG) using Atlas Vector Search."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/","urlIndex":2,"difficulty":"basic","type":"question","prompt":"What is required to get started with vector embeddings in MongoDB Atlas?","response":"To get started, you need to define a function for generating embeddings, create embeddings from your data, and create embeddings from search terms to run vector search queries."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/","urlIndex":2,"difficulty":"intermediate","type":"question","prompt":"What should be included in the prerequisites to use Atlas Vector Search?","response":"Prerequisites typically include having an Atlas account with a cluster, knowledge of how to create embeddings using an embedding model, the ability to set up your project's access list, and access to an embedding model API like Hugging Face or OpenAI."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/","urlIndex":2,"difficulty":"advanced","type":"question","prompt":"What does the CreateVectorIndex function do?","response":"The CreateVectorIndex function creates an Atlas Vector Search index on the specified collection to enable vector search queries. It specifies the vector type, the similarity measure (like dot product), and the number of dimensions."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/","urlIndex":2,"difficulty":"intermediate","type":"code_example","prompt":"Show me an example of how to define a function that generates vector embeddings using Python.","response":"```python\nfrom sentence_transformers import SentenceTransformer\n\n# Load the embedding model\nmodel = SentenceTransformer('nomic-ai/nomic-embed-text-v1')\n\ndef get_embedding(data, precision='float32'):\n    return model.encode(data, precision=precision).tolist()\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/","urlIndex":2,"difficulty":"basic","type":"question","prompt":"What is the purpose of using embeddings with Atlas Vector Search?","response":"Embeddings capture meaningful relationships in the data, allowing for semantic search and improved information retrieval within Atlas."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/","urlIndex":2,"difficulty":"advanced","type":"question","prompt":"What considerations should I make when choosing an embedding model for Atlas Vector Search?","response":"When choosing an embedding model, consider metrics like embedding dimensions, max tokens, model size, and retrieval average to ensure optimal performance and relevance in your search results."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/","urlIndex":2,"difficulty":"intermediate","type":"question","prompt":"How can I compress my embeddings for storage in MongoDB Atlas?","response":"You can compress embeddings by converting them to BSON `binData` vectors, which are more storage-efficient than the default float32 array format."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/","urlIndex":2,"difficulty":"intermediate","type":"question","prompt":"What is the difference between using an open-source embedding model and a proprietary model in MongoDB Atlas?","response":"Open-source models can be loaded locally without needing an API key, while proprietary models typically require an API key and often provide better performance and more features."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/","urlIndex":2,"difficulty":"basic","type":"question","prompt":"What are the steps to create a vector search query in MongoDB Atlas?","response":"To create a vector search query, you need to generate a query embedding, specify the index and path in the $vectorSearch operator, and use an aggregation pipeline to retrieve the results."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/","urlIndex":3,"difficulty":"basic","type":"question","prompt":"What is the `vectorSearch` type used for?","response":"The `vectorSearch` type is used to index fields for running `$vectorSearch` queries in MongoDB Atlas."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/","urlIndex":3,"difficulty":"basic","type":"question","prompt":"What tools can be used to create an Atlas Vector Search index?","response":"You can use the Atlas UI, Atlas Administration API, Atlas CLI, `mongosh`, or a supported MongoDB Driver to create an Atlas Vector Search index."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/","urlIndex":3,"difficulty":"intermediate","type":"question","prompt":"What are the limitations for indexing arrays in a `vectorSearch` type index definition?","response":"In a `vectorSearch` type index definition, you can only index arrays with a single element. You cannot index fields inside arrays of documents or arrays of objects."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/","urlIndex":3,"difficulty":"intermediate","type":"code_example","prompt":"Show an example of an Atlas Vector Search index definition in JSON format.","response":"```json\n{\n  \"fields\": [\n    {\n      \"type\": \"vector\",\n      \"path\": \"<field-to-index>\",\n      \"numDimensions\": <number-of-dimensions>,\n      \"similarity\": \"euclidean | cosine | dotProduct\"\n    },\n    {\n      \"type\": \"filter\",\n      \"path\": \"<filter-field>\"\n    }\n  ]\n}\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/","urlIndex":3,"difficulty":"advanced","type":"question","prompt":"How does Atlas Vector Search handle low CPU utilization on an idle node?","response":"When using Atlas Vector Search indexes, you might experience elevated resource consumption on an idle node due to essential operations performed by the underlying mongot process, which can cause variable CPU utilization depending on the number, complexity, and size of the indexes."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/","urlIndex":3,"difficulty":"advanced","type":"question","prompt":"What are the requirements for vector ingestion in Atlas Vector Search?","response":"For efficient storage, embeddings should be converted to BSON BinData vectors with subtype `float32`, `int1`, or `int8`. Additionally, the vector dimensions must be specified between 1 and 8192, and the value must be a multiple of 8 for certain types."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/","urlIndex":3,"difficulty":"intermediate","type":"code_example","prompt":"Write a command using the Atlas API to create a new Atlas Vector Search index.","response":"```shell\ncurl --user \"{PUBLIC-KEY}:{PRIVATE-KEY}\" --digest \\\n     --header \"Accept: application/json\" \\\n     --header \"Content-Type: application/json\" \\\n     --include \\\n     --request POST \"https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes\" \\\n     --data '{\"database\": \"<name-of-database>\", \"collectionName\": \"<name-of-collection>\", \"type\": \"vectorSearch\", \"name\": \"<index-name>\", \"definition\": {\"fields\":[{\"type\": \"vector\", \"path\": \"<field-to-index>\", \"numDimensions\": <number-of-dimensions>, \"similarity\": \"euclidean | cosine | dotProduct\"}]}}'\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/","urlIndex":5,"difficulty":"basic","type":"question","prompt":"What is vector quantization?","response":"Vector quantization is the process of shrinking full-fidelity vectors into fewer bits to reduce the amount of memory required to store each vector. It enables the storage of more vectors or vectors with higher dimensions, reducing resource consumption and improving speed."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/","urlIndex":5,"difficulty":"intermediate","type":"question","prompt":"What types of automatic quantization does Atlas Vector Search support?","response":"Atlas Vector Search supports automatic scalar quantization and automatic binary quantization of vector embeddings."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/","urlIndex":5,"difficulty":"advanced","type":"question","prompt":"What are the differences in RAM cost reduction between scalar and binary quantization in Atlas Vector Search?","response":"In Atlas Vector Search, scalar quantization reduces the vector embedding's RAM cost to one fourth (1/4) of the pre-quantization cost, while binary quantization reduces it to one twenty-fourth (1/24) of the pre-quantization cost."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/","urlIndex":5,"difficulty":"basic","type":"question","prompt":"How do you enable automatic quantization for vectors in Atlas Vector Search?","response":"You enable automatic quantization by specifying a `quantization` field with a value of either `scalar` or `binary` in your index definition."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/","urlIndex":5,"difficulty":"intermediate","type":"question","prompt":"What are the data type requirements for automatic quantization in Atlas Vector Search?","response":"The requirements include supporting BSON `binData` format, with specific types such as `binData(int1)`, `binData(int8)`, and `binData(float32)` for different ingest methods."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/","urlIndex":5,"difficulty":"advanced","type":"code_example","prompt":"Show an example of creating a search index with vector fields in Atlas for embedding types.","response":"```javascript\nconst index = {\n  name: '<INDEX-NAME>',\n  type: 'vectorSearch',\n  definition: {\n    fields: [\n      {\n        type: 'vector',\n        numDimensions: 1024,\n        path: 'bsonEmbeddings.float32',\n        similarity: 'dotProduct',\n      },\n      {\n        type: 'vector',\n        numDimensions: 1024,\n        path: 'bsonEmbeddings.int8',\n        similarity: 'dotProduct',\n      },\n      {\n        type: 'vector',\n        numDimensions: 1024,\n        path: 'bsonEmbeddings.int1',\n        similarity: 'euclidean',\n      },\n    ],\n  },\n};\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/","urlIndex":5,"difficulty":"basic","type":"question","prompt":"What is vector quantization?","response":"Vector quantization is the process of shrinking full-fidelity vectors into fewer bits, reducing the amount of memory required to store each vector by indexing a reduced representation."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/","urlIndex":5,"difficulty":"basic","type":"question","prompt":"What features are supported by Atlas Vector Search?","response":"Atlas Vector Search supports features like ingestion of BSON BinData vectors with the int1 subtype, automatic scalar quantization, and automatic binary quantization."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/","urlIndex":5,"difficulty":"intermediate","type":"question","prompt":"What is the difference between scalar quantization and binary quantization in Atlas Vector Search?","response":"Scalar quantization converts float values into discrete integers by mapping continuous values into bins, while binary quantization converts float values into binary values based on a midpoint, allowing for greater memory savings (1/4 for scalar and 1/24 for binary) when storing vectors."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/","urlIndex":5,"difficulty":"intermediate","type":"question","prompt":"What are the requirements for automatic binary quantization in Atlas Vector Search?","response":"The requirements for automatic binary quantization include index definition settings, no requirement for BSON binData format, and the storage type must be binData(float32) or array(double). Additionally, it supports similarity methods like cosine, euclidean, and dotProduct."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/","urlIndex":5,"difficulty":"advanced","type":"code_example","prompt":"Show an example of connecting to MongoDB Atlas from Python using PyMongo and performing a vector search query.","response":"```python\nfrom pymongo import MongoClient\n\n# Connect to MongoDB Atlas\nclient = MongoClient('your_connection_string')\n\ndatabase = client['your_database']\ncollection = database['your_collection']\n\n# Define your query vector\nquery_vector = # your BSON Binary vector here\n\n# Run vector search query\npipeline = [\n    { '$vectorSearch': { \n        'index': 'your_index_name',\n        'path': 'your_vector_field',\n        'queryVector': query_vector, \n        'numCandidates': 5, \n        'limit': 10\n    }}\n]\nresults = collection.aggregate(pipeline)\nfor result in results:\n    print(result)\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/deployment-options/","urlIndex":7,"difficulty":"basic","type":"question","prompt":"What are the deployment options for MongoDB Atlas clusters?","response":"You can structure your Atlas cluster with different deployment types, cloud providers, and cluster tiers to meet the needs of pre-production or production environments."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/deployment-options/","urlIndex":7,"difficulty":"intermediate","type":"question","prompt":"What type of cluster is recommended for a production environment in MongoDB Atlas?","response":"For production-ready applications, a dedicated cluster with separate Search Nodes for workload isolation is recommended."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/deployment-options/","urlIndex":7,"difficulty":"intermediate","type":"question","prompt":"What is the memory requirement for indexing vectors in Atlas Vector Search?","response":"Atlas Vector Search holds the entire index in memory, thus you need enough memory for the Atlas Vector Search index and JVM. For example, for an embedding with OpenAI 'text-embedding-ada-002' with a vector dimension of 1536, the space requirement is 6kb per vector."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/deployment-options/","urlIndex":7,"difficulty":"advanced","type":"code_example","prompt":"Show an example configuration for binary quantization for 10 million embeddings with 1536 dimensions.","response":"```json\n{\n  \"fields\":[\n    {\n      \"type\": \"vector\",\n      \"path\": \"my-embeddings\",\n      \"numDimensions\": 1536,\n      \"similarity\": \"euclidean\",\n      \"quantization\": \"binary\"\n    }\n  ]\n}\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/deployment-options/","urlIndex":7,"difficulty":"advanced","type":"question","prompt":"Explain the disk to RAM ratios recommended for scalar and binary quantization in MongoDB Atlas.","response":"For scalar quantization, a disk to RAM ratio of roughly 4:1 is recommended, while for binary quantization, a ratio of approximately 24:1 should be maintained."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/rag/","urlIndex":6,"difficulty":"basic","type":"question","prompt":"What is retrieval-augmented generation (RAG)?","response":"Retrieval-augmented generation (RAG) is an architecture used to augment large language models (LLMs) with additional data to generate more accurate responses."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/rag/","urlIndex":6,"difficulty":"basic","type":"question","prompt":"What are the limitations of LLMs that RAG addresses?","response":"RAG addresses limitations such as stale data, lack of access to local data, and the risk of hallucinations."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/rag/","urlIndex":6,"difficulty":"intermediate","type":"question","prompt":"How does Atlas Vector Search contribute to implementing RAG?","response":"Atlas Vector Search allows for the retrieval of semantically similar documents based on user questions, augmenting the LLM with relevant data to generate more accurate responses."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/rag/","urlIndex":6,"difficulty":"intermediate","type":"question","prompt":"What are the steps involved in implementing RAG with Atlas Vector Search?","response":"The steps include ingestion of custom data as vector embeddings, retrieval of relevant documents using Atlas Vector Search, and generation of responses using an LLM."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/rag/","urlIndex":6,"difficulty":"advanced","type":"code_example","prompt":"Show how to create a vector index for Atlas Vector Search using C#.","response":"```csharp\npublic string CreateVectorIndex()\n{\n    var searchIndexView = Collection.SearchIndexes;\n    var name = \"vector_index\";\n    var type = SearchIndexType.VectorSearch;\n    var definition = new BsonDocument\n    {\n        { \"fields\", new BsonArray\n            {\n                new BsonDocument\n                {\n                    { \"type\", \"vector\" },\n                    { \"path\", \"embedding\" },\n                    { \"numDimensions\", 1536 },\n                    { \"similarity\", \"cosine\" }\n                }\n            }\n        }\n    };\n    var model = new CreateSearchIndexModel(name, type, definition);\n    searchIndexView.CreateOne(model);\n    return $\"New vector index named {name} is building.\";\n}\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/rag/","urlIndex":6,"difficulty":"advanced","type":"question","prompt":"What is the process of generating embeddings for a PDF in C#?","response":"To generate embeddings for a PDF, you load the PDF using a document loader, split the text into chunks, convert each chunk into vector embeddings, and then store those embeddings in Atlas."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/rag/","urlIndex":6,"difficulty":"advanced","type":"question","prompt":"Compare the approach of data ingestion for RAG in Python and Go.","response":"Both Python and Go follow similar steps in data ingestion: load the data, split into chunks, convert to vector embeddings, and store in Atlas. However, they utilize different libraries and syntax specific to their respective languages."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/rag/","urlIndex":6,"difficulty":"basic","type":"question","prompt":"What is the purpose of using chunking in RAG?","response":"Chunking improves performance by splitting data into smaller parts, making it easier to process and retrieve relevant information."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/rag/","urlIndex":6,"difficulty":"advanced","type":"code_example","prompt":"Show an example of how to retrieve documents using Atlas Vector Search in Java.","response":"```java\n// Define a method to retrieve relevant data.\npublic List<BsonDocument>? PerformVectorQuery(float[] vector) {\n    var vectorSearchStage = new BsonDocument\n    {\n        {\n            \"$vectorSearch\",\n            new BsonDocument\n            {\n                { \"index\", \"vector_index\" },\n                { \"path\", \"embedding\" },\n                { \"queryVector\", new BsonArray(vector) },\n                { \"exact\", true },\n                { \"limit\", 5 }\n            }\n        }\n    };\n    var projectStage = new BsonDocument\n    {\n        {\n            \"$project\",\n            new BsonDocument\n            {\n                { \"_id\", 0 },\n                { \"text\", 1 },\n                { \"score\",\n                    new BsonDocument\n                    {\n                        { \"$meta\", \"vectorSearchScore\"}\n                    }\n                }\n            }\n        }\n    };\n    var pipeline = new[] { vectorSearchStage, projectStage };\n    return Collection.Aggregate<BsonDocument>(pipeline).ToList();\n}\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/","urlIndex":8,"difficulty":"basic","type":"question","prompt":"What is ANN search in MongoDB Atlas?","response":"ANN (Approximate Nearest Neighbor) search in MongoDB Atlas is a method to perform semantic search against vector data stored in a collection."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/","urlIndex":8,"difficulty":"basic","type":"question","prompt":"What do you need to perform semantic search against data in your Atlas Cluster?","response":"To perform semantic search, you need an Atlas cluster with MongoDB version 6.0.11 or v7.0.2 or later, sample data loaded into your cluster, and a client that supports queries."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/","urlIndex":8,"difficulty":"intermediate","type":"question","prompt":"What steps are involved in creating an Atlas Vector Search index?","response":"The steps to create an Atlas Vector Search index include going to the Clusters page, accessing the Atlas Search page, clicking Create Search Index, configuring the index with the appropriate fields and settings, and reviewing then creating the index."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/","urlIndex":8,"difficulty":"intermediate","type":"code_example","prompt":"How do you create an Atlas Vector Search index for the plot_embedding field in Python?","response":"```python\nfrom pymongo import MongoClient\nfrom pymongo.operations import SearchIndexModel\n\nuri = '<connection-string>'\nclient = MongoClient(uri)\ndatabase = client['sample_mflix']\ncollection = database['embedded_movies']\n\nsearch_index_model = SearchIndexModel(\n    definition={\n        'fields': [\n            {'type': 'vector', 'path': 'plot_embedding', 'numDimensions': 1536, 'similarity': 'dotProduct', 'quantization': 'scalar'},\n            {'type': 'filter', 'path': 'genres'},\n            {'type': 'filter', 'path': 'year'}\n        ]\n    },\n    name='vector_index',\n    type='vectorSearch'\n)\n\nresult = collection.create_search_index(model=search_index_model)\nprint('New search index named ' + result + ' is building.')\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/","urlIndex":8,"difficulty":"advanced","type":"question","prompt":"What query structure is used to perform a pre-filter by AND operator in the `$vectorSearch` stage?","response":"The query structure uses the `$and` operator along with filters for specific genres and year ranges to pre-filter the documents for the `$vectorSearch` stage."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/","urlIndex":8,"difficulty":"advanced","type":"code_example","prompt":"Show an example of a `$vectorSearch` query using the AND operator in MongoDB shell.","response":"```javascript\ndb.embedded_movies.aggregate([\n  {\n    \"$vectorSearch\": {\n      \"index\": \"vector_index\",\n      \"path\": \"plot_embedding\",\n      \"filter\": {\n        \"$and\": [{\n          \"genres\": {\n            \"$nin\": [\"Drama\", \"Western\", \"Crime\"],\n            \"$in\": [\"Action\", \"Adventure\", \"Family\"]\n          }\n        }, {\n          \"year\": {\n            \"$gte\": 1960,\n            \"$lte\": 2000\n          }\n        }]\n      },\n      \"queryVector\": [-0.020156775, -0.024996493, ...],\n      \"numCandidates\": 200,\n      \"limit\": 10\n    }\n  },\n  {\n    \"$project\": {\n      \"_id\": 0,\n      \"title\": 1,\n      \"genres\": 1,\n      \"plot\": 1,\n      \"year\": 1,\n      \"score\": { $meta: \"vectorSearchScore\" }\n    }\n  }\n])\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/","urlIndex":8,"difficulty":"advanced","type":"question","prompt":"What are the requirements to create an Atlas Vector Search index?","response":"To create an Atlas Vector Search index, you need Project Data Access Admin access or higher, an Atlas cluster with the appropriate MongoDB version, and you must be working with vector fields defined in your collection."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/rag/","urlIndex":6,"difficulty":"basic","type":"question","prompt":"What is Retrieval-Augmented Generation (RAG)?","response":"Retrieval-Augmented Generation (RAG) is an architecture that augments large language models (LLMs) with additional data to generate more accurate responses."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/rag/","urlIndex":6,"difficulty":"basic","type":"question","prompt":"What are the limitations of large language models (LLMs) addressed by RAG?","response":"The limitations of large language models (LLMs) addressed by RAG include stale data, no access to local data, and hallucinations."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/rag/","urlIndex":6,"difficulty":"intermediate","type":"question","prompt":"What are the steps to implement RAG with Atlas Vector Search?","response":"To implement RAG with Atlas Vector Search, the steps include ingestion (storing custom data as vector embeddings in a vector database), retrieval (using Atlas Vector Search to find semantically similar documents), and generation (prompting the LLM with retrieved documents as context)."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/rag/","urlIndex":6,"difficulty":"intermediate","type":"code_example","prompt":"Show an example of how to define a function to generate embeddings in Python.","response":"```python\nfrom sentence_transformers import SentenceTransformer\n\n# Load the embedding model\nmodel = SentenceTransformer('nomic-ai/nomic-embed-text-v1', trust_remote_code=True)\n\ndef get_embedding(data):\n    \"\"\"Generates vector embeddings for the given data.\"\"\"\n    return model.encode(data).tolist()\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/rag/","urlIndex":6,"difficulty":"advanced","type":"question","prompt":"What is the role of Atlas Vector Search in RAG implementations?","response":"Atlas Vector Search plays a critical role in RAG implementations by providing a retrieval system that searches for and returns the most relevant documents based on a user's query, which augments the LLM with additional relevant data."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/rag/","urlIndex":6,"difficulty":"advanced","type":"code_example","prompt":"How do you create a vector search index in Atlas using Python?","response":"```python\nfrom pymongo.operations import SearchIndexModel\n\n# Create your index model, then create the search index\nsearch_index_model = SearchIndexModel(...)\ncollection.create_search_index(model=search_index_model)\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/rag/","urlIndex":6,"difficulty":"intermediate","type":"question","prompt":"How do you retrieve documents using Atlas Vector Search?","response":"To retrieve documents using Atlas Vector Search, you define an Atlas Vector Search index on the collection, convert the user's question into vector embeddings, and run a vector search query against the data in Atlas."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/rag/","urlIndex":6,"difficulty":"advanced","type":"question","prompt":"What techniques can be used to improve the performance of vector search queries in Atlas?","response":"To improve the performance of vector search queries in Atlas, you can use advanced retrieval systems, pre-filtering based on other fields in the collection, and hybrid search combining semantic search with full-text search results."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/","urlIndex":9,"difficulty":"basic","type":"question","prompt":"What is hybrid search in MongoDB Atlas?","response":"Hybrid search in MongoDB Atlas is the combination of Atlas Vector Search and Atlas Search queries to provide unified search results."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/","urlIndex":9,"difficulty":"intermediate","type":"question","prompt":"What are the benefits of performing a hybrid search?","response":"Hybrid search allows for more comprehensive results by combining full-text search, which finds exact matches for query terms, with semantic search, which identifies semantically similar documents."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/","urlIndex":9,"difficulty":"intermediate","type":"question","prompt":"What is Reciprocal Rank Fusion?","response":"Reciprocal Rank Fusion is a technique to combine results from different search methods into a single result set by calculating reciprocal ranks of documents in the results, applying weights to each method, and combining those scores."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/","urlIndex":9,"difficulty":"advanced","type":"code_example","prompt":"Show an example of a query that combines semantic search and full-text search using Atlas.","response":"```javascript\nvar vector_weight = 0.1;\nvar full_text_weight = 0.9;\ndb.embedded_movies.aggregate([\n  {\n    \"$vectorSearch\": {\n      \"index\": \"rrf-vector-search\",\n      \"path\": \"plot_embedding\",\n      \"queryVector\": [-0.003091304, -0.018973768, ...],\n      \"numCandidates\": 100,\n      \"limit\": 20\n    }\n  },\n  {\n    \"$unionWith\": {\n      \"coll\": \"embedded_movies\",\n      \"pipeline\": [\n        {\n          \"$search\": {\n            \"index\": \"rrf-full-text-search\",\n            \"phrase\": {\n              \"query\": \"star wars\",\n              \"path\": \"title\"\n            }\n          }\n        },\n        {\n          \"$limit\": 20\n        }\n      ]\n    }\n  },\n  // additional pipeline stages...\n]);\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/","urlIndex":8,"difficulty":"basic","type":"question","prompt":"What is the purpose of the tutorial on performing semantic search against data in your Atlas cluster?","response":"The tutorial describes how to perform an Approximate Nearest Neighbor (ANN) search on a vector in the `plot_embedding` field in the `sample_mflix.embedded_movies` collection on your Atlas cluster."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/","urlIndex":8,"difficulty":"intermediate","type":"question","prompt":"What are the prerequisites for following the tutorial on Atlas Vector Search?","response":"Before beginning the tutorial, you need to complete the common prerequisites including having the appropriate access in Atlas."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/","urlIndex":8,"difficulty":"advanced","type":"question","prompt":"How do you create an Atlas Vector Search index on the `plot_embedding` field?","response":"To create an Atlas Vector Search index on the `plot_embedding` field, you need to specify the index name, the database (`sample_mflix`), and the collection (`embedded_movies`), as well as the index definition which includes the vector type for `plot_embedding` and filter types for `genres` and `year`."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/","urlIndex":8,"difficulty":"advanced","type":"code_example","prompt":"Can you provide an example of a query using the `$vectorSearch` stage to filter by the `genres` and `year` fields?","response":"```json\ndb.embedded_movies.aggregate([\n  {\n    \"$vectorSearch\": {\n      \"index\": \"vector_index\",\n      \"path\": \"plot_embedding\",\n      \"filter\": {\n        \"$and\": [{\n          \"genres\": {\n            \"$nin\": [\"Drama\", \"Western\", \"Crime\"],\n            \"$in\": [\"Action\", \"Adventure\", \"Family\"]\n          }\n        }, {\n          \"year\": {\n            \"$gte\": 1960,\n            \"$lte\": 2000\n          }\n        }]\n      },\n      \"queryVector\": [-0.020156775, -0.024996493, ...],\n      \"numCandidates\": 200,\n      \"limit\": 10\n    }\n  },\n  {\n    \"$project\": {\n      \"_id\": 0,\n      \"title\": 1,\n      \"genres\": 1,\n      \"plot\": 1,\n      \"year\": 1,\n      \"score\": { $meta: \"vectorSearchScore\" }\n    }\n  }\n])\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/","urlIndex":10,"difficulty":"basic","type":"question","prompt":"What does the tutorial on Building a Local RAG Implementation with Atlas Vector Search demonstrate?","response":"The tutorial demonstrates how to implement retrieval-augmented generation (RAG) locally using Atlas Vector Search, including steps such as creating a local Atlas deployment, setting up the environment, generating vector embeddings, creating an Atlas Vector Search index, and using a local LLM to answer questions on your data."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/","urlIndex":10,"difficulty":"intermediate","type":"question","prompt":"What are the prerequisites for completing the tutorial to build a Local RAG Implementation with Atlas Vector Search?","response":"The prerequisites include having the Atlas CLI installed, MongoDB Command Line Database Tools, and relevant programming environment set up based on the chosen language (C#, Go, Java, Node.js, or Python), along with having Ollama installed."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/","urlIndex":10,"difficulty":"advanced","type":"question","prompt":"How does the tutorial recommend generating vector embeddings, and what models are suggested for this task?","response":"The tutorial recommends using a local embedding model such as the Nomic Embed Text embedding model or Mistral 7B generative model to generate vector embeddings. It provides code examples for downloading these models and using them to process data and generate embeddings."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/","urlIndex":10,"difficulty":"intermediate","type":"question","prompt":"What are the different programming languages supported in this tutorial for building a local RAG implementation?","response":"The tutorial supports multiple programming languages including C#, Go, Java, Node.js, and Python for building a local RAG implementation using Atlas Vector Search."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/","urlIndex":10,"difficulty":"advanced","type":"code_example","prompt":"Show an example of how to connect to MongoDB Atlas from Python using PyMongo as described in the tutorial.","response":"```python\nfrom pymongo import MongoClient\nclient = MongoClient('your_connection_string')\n# Now you can use client to access your database\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/","urlIndex":10,"difficulty":"basic","type":"question","prompt":"What is the purpose of creating a vector index in Atlas?","response":"The purpose of creating a vector index in Atlas is to enable efficient vector search on a specified field, allowing for similarity searching across vector embeddings, which is essential for implementing retrieval-augmented generation (RAG) functionalities."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/","urlIndex":10,"difficulty":"intermediate","type":"code_example","prompt":"Provide an example of how to create an Atlas Vector Search index using Python.","response":"```python\nfrom pymongo.operations import SearchIndexModel\n\nsearch_index_model = SearchIndexModel(\n  definition = {\n    \"fields\": [\n      {\n        \"type\": \"vector\",\n        \"numDimensions\": 1024,\n        \"path\": \"embeddings\",\n        \"similarity\": \"cosine\"\n      }\n    ]\n  },\n  name = \"vector_index\",\n  type = \"vectorSearch\"\n)\ncollection.create_search_index(model=search_index_model)\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/","urlIndex":9,"difficulty":"basic","type":"question","prompt":"What is hybrid search in MongoDB Atlas?","response":"Hybrid search in MongoDB Atlas is the combination of Atlas Vector Search and Atlas Search queries to produce unified search results."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/","urlIndex":9,"difficulty":"basic","type":"question","prompt":"What steps are involved to create an Atlas Vector Search index?","response":"The steps include creating an Atlas Vector Search index on the 'plot_embedding' field that contains vector embeddings representing movie plot summaries."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/","urlIndex":9,"difficulty":"basic","type":"question","prompt":"What is the purpose of reciprocal rank fusion?","response":"Reciprocal rank fusion combines results from different search methods, such as semantic and full-text searches, into a single result set."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/","urlIndex":9,"difficulty":"intermediate","type":"question","prompt":"How does semantic search differ from full-text search?","response":"Semantic search can identify semantically similar documents even without exact matches in terms, while full-text is effective only for exact term matches."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/","urlIndex":9,"difficulty":"intermediate","type":"question","prompt":"What are the required prerequisites for running hybrid searches in MongoDB Atlas?","response":"Prerequisites include having an Atlas cluster with MongoDB version v6.0.11 or later, sample data loaded into the cluster, and appropriate client access."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/","urlIndex":9,"difficulty":"advanced","type":"code_example","prompt":"Show an example of how to create an Atlas Vector Search index using Node.js.","response":"```javascript\nimport { MongoClient } from 'mongodb';\n\nconst client = new MongoClient(process.env.ATLAS_CONNECTION_STRING);\nasync function run() {\n    try {\n        const database = client.db(\"sample_mflix\");\n        const collection = database.collection(\"embedded_movies\");\n\n        const index = {\n            name: \"rrf-vector-search\",\n            type: \"vectorSearch\",\n            definition: {\n              \"fields\": [\n                {\n                  \"type\": \"vector\",\n                  \"numDimensions\": 1536,\n                  \"path\": \"plot_embedding\",\n                  \"similarity\": \"dotProduct\"\n                }\n              ]\n            }\n        };\n\n        const result = await collection.createSearchIndex(index);\n        console.log(result);\n    } finally {\n        await client.close();\n    }\n}\nrun().catch(console.dir);\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/","urlIndex":9,"difficulty":"advanced","type":"code_example","prompt":"Can you write a sample MongoDB query for a hybrid search?","response":"```javascript\ndb.embedded_movies.aggregate([\n  {\n    \"$vectorSearch\": {\n      \"index\": \"rrf-vector-search\",\n      \"path\": \"plot_embedding\",\n      \"queryVector\": [-0.003091304, -0.018973768, ...],\n      \"numCandidates\": 100,\n      \"limit\": 20\n    }\n  },\n  {\n    \"$unionWith\": {\n      \"coll\": \"embedded_movies\",\n      \"pipeline\": [\n        {\n          \"$search\": {\n            \"index\": \"rrf-full-text-search\",\n            \"phrase\": {\n              \"query\": \"star wars\",\n              \"path\": \"title\"\n            }\n          }\n        },\n        { \"$limit\": 20 },\n        { \"$group\": { \"_id\": null, \"docs\": { \"$push\": \"$$ROOT\" }}},\n        { \"$unwind\": { \"path\": \"$docs\", \"includeArrayIndex\": \"rank\" }}\n      ]\n    }\n  }\n]);\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/","urlIndex":10,"difficulty":"basic","type":"question","prompt":"What is retrieval-augmented generation (RAG)?","response":"Retrieval-augmented generation (RAG) is a method that combines a retrieval system with a generative model to answer questions based on external data."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/","urlIndex":10,"difficulty":"basic","type":"question","prompt":"What steps are involved in building a local RAG implementation with Atlas Vector Search?","response":"The steps involved are: 1. Create a local Atlas deployment or deploy a cluster on the cloud. 2. Set up the environment. 3. Use a local embedding model to generate vector embeddings. 4. Create an Atlas Vector Search index on your data. 5. Use a local LLM (Large Language Model) to answer questions on your data."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/","urlIndex":10,"difficulty":"intermediate","type":"question","prompt":"What are the prerequisites for using MongoDB Atlas in this tutorial?","response":"Prerequisites include the Atlas CLI installed and running v1.14.3 or later, MongoDB Command Line Database Tools installed, and specific requirements depending on the programming language used (e.g., Python v3.10 or later, .NET version 8.0 or higher, etc.)."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/","urlIndex":10,"difficulty":"intermediate","type":"question","prompt":"What command is used to create a local Atlas deployment using the Atlas CLI?","response":"You use the command `atlas deployments setup` to create a local deployment using the Atlas CLI."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/","urlIndex":10,"difficulty":"advanced","type":"question","prompt":"How do you generate embeddings using the nomic-embed-text model in C#?","response":"You use the OllamaEmbeddingGenerator initialized with the model's URL and call the `GenerateEmbeddingVectorAsync` method with the text to generate the embeddings."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/","urlIndex":10,"difficulty":"advanced","type":"code_example","prompt":"Show example code to create an Atlas Vector Search index using Python.","response":"```python\nfrom pymongo.operations import SearchIndexModel\n\n# Create your index model, then create the search index\nsearch_index_model = SearchIndexModel(\n  definition = {\n    \"fields\": [\n      {\n        \"type\": \"vector\",\n        \"numDimensions\": 1024,\n        \"path\": \"embeddings\",\n        \"similarity\": \"cosine\"\n      }\n    ]\n  },\n  name = \"vector_index\",\n  type = \"vectorSearch\"\n)\ncollection.create_search_index(model=search_index_model)\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/","urlIndex":11,"difficulty":"basic","type":"question","prompt":"What is Atlas Vector Search used for?","response":"Atlas Vector Search is used to leverage popular AI technologies and integrations for applications like Retrieval-Augmented Generation (RAG) and other AI-powered functionalities."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/","urlIndex":11,"difficulty":"intermediate","type":"question","prompt":"What are some frameworks that can integrate with Atlas Vector Search?","response":"Some frameworks that can integrate with Atlas Vector Search include LangChain, LangGraph, LangChainGo, LangChain4j, LlamaIndex, Semantic Kernel, Haystack, and Spring AI."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/","urlIndex":11,"difficulty":"advanced","type":"question","prompt":"What is the role of LangGraph in the context of Atlas Vector Search?","response":"LangGraph is a specialized framework within the LangChain ecosystem designed for building AI agents and complex multi-agent workflows, enabling advanced agentic applications using Atlas Vector Search."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/","urlIndex":11,"difficulty":"intermediate","type":"code_example","prompt":"Show an example of how to integrate Atlas Vector Search using LangChain.","response":"For the integration of Atlas Vector Search with LangChain, refer to the resources in the LangChain documentation for step-by-step guidance on setting up the integration."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/","urlIndex":11,"difficulty":"advanced","type":"question","prompt":"How does Amazon Bedrock integrate with Atlas Vector Search?","response":"Amazon Bedrock can integrate Atlas Vector Search as a knowledge base to store custom data and implement RAG (Retrieval-Augmented Generation) for building generative AI applications."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/","urlIndex":11,"difficulty":"basic","type":"question","prompt":"What is Atlas Vector Search?","response":"Atlas Vector Search is a feature of MongoDB Atlas that allows for the integration of vector search capabilities in AI-powered applications."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/","urlIndex":11,"difficulty":"basic","type":"question","prompt":"Which frameworks can you integrate with Atlas Vector Search?","response":"You can integrate Atlas Vector Search with frameworks such as LangChain, LlamaIndex, Semantic Kernel, Haystack, and Spring AI."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/","urlIndex":11,"difficulty":"intermediate","type":"question","prompt":"What is LangChain and how does it relate to Atlas Vector Search?","response":"LangChain is a framework that simplifies creating LLM applications, and it can be integrated with Atlas Vector Search to implement RAG (Retrieval-Augmented Generation) in various use cases."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/","urlIndex":11,"difficulty":"intermediate","type":"question","prompt":"How can Amazon Bedrock be used with Atlas Vector Search?","response":"Amazon Bedrock can be integrated with Atlas Vector Search as a knowledge base to store custom data and implement RAG (Retrieval-Augmented Generation) for generative AI applications."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/","urlIndex":11,"difficulty":"advanced","type":"code_example","prompt":"Show an example of integrating Atlas Vector Search with LangChain in Python.","response":"```python\n# Example of using LangChain with Atlas Vector Search\nfrom langchain import LangChain\nlc = LangChain()\n# Configure LangChain to integrate with Atlas Vector Search\nlc.configure_vector_search('your_atlas_vector_search_configuration')\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/","urlIndex":12,"difficulty":"basic","type":"question","prompt":"What is the purpose of measuring the accuracy of Atlas Vector Search query results?","response":"The purpose of measuring the accuracy of Atlas Vector Search query results is to evaluate how closely the results for an Approximate Nearest Neighbor (ANN) search match the results of an Exact Nearest Neighbor (ENN) search."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/","urlIndex":12,"difficulty":"intermediate","type":"question","prompt":"What are some prerequisites for trying out the examples in the accuracy measurement section?","response":"Some prerequisites include having an Atlas cluster (optionally with the sample dataset) and having `mongosh` installed."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/","urlIndex":12,"difficulty":"advanced","type":"question","prompt":"What is the recommendation for improving storage and speed of queries when creating a Vector Search index?","response":"The recommendation is to use quantized vectors to improve the storage of your vectors and speed of your queries."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/","urlIndex":12,"difficulty":"advanced","type":"code_example","prompt":"Can you show an example of an ENN (Exact Nearest Neighbor) query using mongosh?","response":"```shell\ndb.embedded_movies.aggregate([\n  {\n    \"$vectorSearch\": {\n      \"index\": \"vector_index\",\n      \"path\": \"plot_embedding\",\n      \"filter\": {\n        \"$and\": [\n          {\n            \"genres\": { \"$eq\": \"Action\" }\n          },\n          {\n            \"genres\": { \"$ne\": \"Western\" }\n          }\n        ]\n      },\n      \"queryVector\": [-0.0241895392537117, -0.01683979481458664, ..., 4.4379456085152924e-05, -0.011239991523325443, 0.006791108753532171, ...],\n      \"exact\": true,\n      \"limit\": 10\n    }\n  },\n  {\n    \"$project\": {\n      \"_id\": 0,\n      \"plot\": 1,\n      \"title\": 1,\n      \"genres\": 1,\n      \"score\": { $meta: \"vectorSearchScore\" }\n    }\n  }\n])\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tune-vector-search/","urlIndex":13,"difficulty":"basic","type":"question","prompt":"What does Atlas Vector Search enable you to do?","response":"Atlas Vector Search enables you to perform Approximate Nearest Neighbor (ANN) queries that search for results similar to a selected product, search for images, and more."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tune-vector-search/","urlIndex":13,"difficulty":"intermediate","type":"question","prompt":"What is one recommended way to improve indexing speed in Atlas Vector Search?","response":"One recommended way to improve indexing speed is to reduce the number of vector dimensions used in the search."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tune-vector-search/","urlIndex":13,"difficulty":"intermediate","type":"question","prompt":"What is the purpose of pre-filtering data in Atlas Vector Search?","response":"Pre-filtering data narrows the scope of the semantic search and ensures that not all vectors are considered for comparison, which can improve query performance."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tune-vector-search/","urlIndex":13,"difficulty":"advanced","type":"question","prompt":"What are the advantages of using dedicated Search Nodes in Atlas Vector Search?","response":"Using dedicated Search Nodes helps avoid resource contention between the `mongot` and `mongod` processes and enables parallel segment search by default for `$vectorSearch` queries."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tune-vector-search/","urlIndex":13,"difficulty":"advanced","type":"code_example","prompt":"How would you exclude vector fields from the results using the $project stage in Atlas Vector Search?","response":"```json\n{\n  \"$project\": {\n    \"field1\": 1,     // include this field\n    \"field2\": 1,     // include another field\n    \"vector_field\": 0 // exclude the vector field\n  }\n}\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tune-vector-search/","urlIndex":13,"difficulty":"intermediate","type":"question","prompt":"What method can help reduce query latency for initial vector search queries?","response":"Warming up the filesystem cache helps reduce query latency for initial vector search queries, as it allows indexed vectors to be accessed more quickly for subsequent queries."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/tune-vector-search/","urlIndex":13,"difficulty":"advanced","type":"question","prompt":"How does scalar quantization differ from binary quantization in the context of Atlas Vector Search?","response":"Scalar quantization reduces the precision of each dimension, such as converting 32-bit floating-point numbers to 8-bit integers, preserving recall for most embedding models. In contrast, binary quantization reduces vectors to either `1` or `0`, which performs better for Quantization Aware Training (QAT) embedding models."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/","urlIndex":12,"difficulty":"basic","type":"question","prompt":"What is the purpose of measuring the accuracy of your Atlas Vector Search query results?","response":"The purpose of measuring the accuracy of your Atlas Vector Search query results is to evaluate how closely the results for an ANN (Approximate Nearest Neighbor) search match the results of an ENN (Exact Nearest Neighbor) search."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/","urlIndex":12,"difficulty":"intermediate","type":"question","prompt":"What are the prerequisites for trying the examples on measuring query accuracy?","response":"You need an Atlas cluster with, optionally, the sample dataset and `mongosh`."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/","urlIndex":12,"difficulty":"intermediate","type":"question","prompt":"What are the steps outlined to evaluate the accuracy of your `$vectorSearch` query results?","response":"To evaluate the accuracy, you must: 1. Create an Atlas Vector Search index on the vector field and any other fields for pre-filtering. 2. Construct and run the ENN query followed by the ANN query. 3. Compare the results of the ANN query with the ENN query."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/","urlIndex":12,"difficulty":"advanced","type":"question","prompt":"What is the trade-off between accuracy and speed when comparing ENN and ANN query results?","response":"The trade-off between accuracy and speed occurs because ENN (Exact Nearest Neighbor) searches examine all possible candidates, returning the closest match, while ANN (Approximate Nearest Neighbor) searches use approximations to speed up the search, potentially altering the scores and results."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/","urlIndex":12,"difficulty":"advanced","type":"code_example","prompt":"How can you switch to the `sample_mflix` database in `mongosh`?","response":"```sh\nuse sample_mflix\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/","urlIndex":12,"difficulty":"advanced","type":"code_example","prompt":"Show an example query for running an ENN (Exact Nearest Neighbor) search using `mongosh`.","response":"```shell\ndb.embedded_movies.aggregate([\n  {\n    \"$vectorSearch\": {\n      \"index\": \"vector_index\",\n      \"path\": \"plot_embedding\",\n      \"filter\": {\n        \"$and\": [\n          {\n            \"genres\": { \"$eq\": \"Action\" }\n          },\n          {\n            \"genres\": { \"$ne\": \"Western\" }\n          }\n        ]\n      },\n      \"queryVector\": [-0.0241895392537117, ...],\n      \"exact\": true,\n      \"limit\": 10\n    }\n  },\n  {\n    \"$project\": {\n      \"_id\": 0,\n      \"plot\": 1,\n      \"title\": 1,\n      \"genres\": 1,\n      \"score\": { $meta: \"vectorSearchScore\" }\n    }\n  }\n])\n```"},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/","urlIndex":14,"difficulty":"basic","type":"question","prompt":"Where can I seek help for Atlas Vector Search issues?","response":"For direct assistance with Atlas Vector Search issues, you can start a discussion on the MongoDB Developer Community or contact support."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/","urlIndex":14,"difficulty":"intermediate","type":"question","prompt":"What versions of MongoDB are required to use the `$vectorSearch` stage?","response":"To use the `$vectorSearch` stage, your cluster must run MongoDB 6.0.11 or higher, or 7.0.2 or higher."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/","urlIndex":14,"difficulty":"intermediate","type":"question","prompt":"What should you do if `$vectorSearch` returns no results?","response":"If `$vectorSearch` returns no results, ensure that you're using the same embedding model for both your data and your query, and confirm that your Atlas Vector Search index has finished building."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/","urlIndex":14,"difficulty":"advanced","type":"question","prompt":"What error might you encounter when using filtering with LangChain and how can you resolve it?","response":"You might encounter an error stating 'Error during document retrieval or generation process: MongoServerError: PlanExecutor error during aggregation :: caused by :: Path 'field' needs to be indexed as token'. To resolve this, check that an index on 'field' exists as an Atlas Vector Search index, not an Atlas Search index, or create the index if none exists."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/","urlIndex":14,"difficulty":"advanced","type":"code_example","prompt":"What does the error `Command not found` indicate when creating an Atlas Vector Search index?","response":"The `Command not found` error may indicate that you are running the command against an Atlas cluster with a MongoDB version earlier than 6.0.11 or 7.0.2, or that you are running the command against an `M0` Free Tier cluster. In the latter case, you may still create the index using the Atlas UI if the cluster version is compatible."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/","urlIndex":14,"difficulty":"intermediate","type":"question","prompt":"What types of fields does Atlas Vector Search support for filtering?","response":"Atlas Vector Search supports filtering on fields with boolean, date, number, objectId, string, and UUID values."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/","urlIndex":14,"difficulty":"basic","type":"question","prompt":"What should I do if I encounter the error '`$vectorSearch` is not allowed with the current configuration'?","response":"You should ensure your cluster is running MongoDB 6.0.11 or later, or 7.0.2 or later, and check if the corresponding feature flag is enabled."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/","urlIndex":14,"difficulty":"intermediate","type":"question","prompt":"How can I check the MongoDB version of my Atlas cluster?","response":"To check the MongoDB version of your Atlas cluster, go to the Clusters page in Atlas, locate the information pane for your desired cluster, and consult the Version number in the bottom section of the information pane."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/","urlIndex":14,"difficulty":"advanced","type":"question","prompt":"Why might `$vectorSearch` return no results? What can I do to resolve this?","response":"`$vectorSearch` might return no results if you are using different embedding models for your data and query, or if the Atlas Vector Search index has not finished building. Ensure the same embedding model is used and wait until the index has completed building."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/","urlIndex":14,"difficulty":"basic","type":"question","prompt":"What types of values does Atlas Vector Search support for filtering?","response":"Atlas Vector Search supports filtering only on fields with boolean, date, number, objectId, string, and UUID values."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/","urlIndex":14,"difficulty":"intermediate","type":"code_example","prompt":"What might cause the error 'Error during document retrieval' when using filtering with LangChain?","response":"```js\nError during the document retrieval or generation process:\nMongoServerError: PlanExecutor error during aggregation :: caused\nby :: Path 'field' needs to be indexed as token\n``` \nThis error may occur if the index on 'field' is not created as an Atlas Vector Search index or if no index exists on 'field'."},{"url":"https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/","urlIndex":14,"difficulty":"advanced","type":"question","prompt":"What are the reasons for encountering a 'Command not found' error when creating an Atlas Vector Search index?","response":"A 'Command not found' error when creating an Atlas Vector Search index can occur if you run the command on an Atlas cluster with MongoDB version earlier than 6.0.11 or 7.0.2, or against an `M0` Free Tier cluster. Ensure you are using a compatible version and that the index is created via the Atlas UI if on Free Tier."}]
+[
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/",
+    "urlIndex": 0,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is Atlas Vector Search?",
+    "response": "Atlas Vector Search is a feature that allows you to perform vector search on data stored in MongoDB Atlas, querying data based on semantic meaning rather than just keyword matches."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/",
+    "urlIndex": 0,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What are the use cases supported by Atlas Vector Search?",
+    "response": "Atlas Vector Search supports use cases such as semantic search, hybrid search, and generative search, including retrieval-augmented generation (RAG)."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/",
+    "urlIndex": 0,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "What is the difference between ANN and ENN search in Atlas Vector Search?",
+    "response": "ANN (Approximate Nearest Neighbor) search is used for efficiently finding similar vectors without scanning every vector embedding, while ENN (Exact Nearest Neighbor) search exhaustively searches for the most similar vectors among all indexed vector embeddings."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/",
+    "urlIndex": 0,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "How do you create an Atlas Vector Search index?",
+    "response": "To create an Atlas Vector Search index, you define which fields in your collection contain your vector embeddings. You must also ensure these embeddings are less than or equal to 4096 dimensions in length. Specific implementation details can be found in the documentation on 'How to Index Fields for Vector Search'."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/",
+    "urlIndex": 0,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "Can Atlas Vector Search be integrated with AI frameworks?",
+    "response": "Yes, Atlas Vector Search can be integrated with popular AI frameworks and services such as OpenAI, AWS, and Google to implement vector search in AI-powered applications."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/",
+    "urlIndex": 0,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is Atlas Vector Search used for?",
+    "response": "Atlas Vector Search is used to perform vector search on data stored in Atlas, allowing queries based on semantic meaning rather than just keyword matches, which helps retrieve more relevant search results."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/",
+    "urlIndex": 0,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What are some use cases of Atlas Vector Search?",
+    "response": "Atlas Vector Search supports use cases such as semantic search, hybrid search, and generative search, including retrieval-augmented generation (RAG)."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/",
+    "urlIndex": 0,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "What is the difference between ANN and ENN in the context of Atlas Vector Search?",
+    "response": "ANN (Approximate Nearest Neighbor) search finds similar vectors efficiently without scanning every vector embedding, while ENN (Exact Nearest Neighbor) search exhaustively checks all indexed vector embeddings to find the most similar ones."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/",
+    "urlIndex": 0,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "Provide an example of how to create an Atlas Vector Search query.",
+    "response": "```json\n{\n  \"$vectorSearch\": {\n    \"queryVector\": [0.1, 0.2, 0.3], \n    \"searchAlgorithm\": \"ANN\"\n  }\n}\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/",
+    "urlIndex": 0,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "How does Atlas Vector Search determine semantic similarity?",
+    "response": "Atlas Vector Search determines semantic similarity by identifying the vector embeddings that are closest in distance to the query vector."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/",
+    "urlIndex": 0,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is a vector in the context of Atlas Vector Search?",
+    "response": "A vector in the context of Atlas Vector Search is an array of numbers that represents data in multiple dimensions."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/",
+    "urlIndex": 0,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "How can you combine vector search with other types of search in Atlas?",
+    "response": "You can combine vector search with full-text search queries to return the most relevant results for your use case."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-quick-start/",
+    "urlIndex": 1,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is the purpose of MongoDB Atlas Vector Search?",
+    "response": "The purpose of MongoDB Atlas Vector Search is to perform semantic search, returning documents that are similar to a given query by leveraging vector embeddings."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-quick-start/",
+    "urlIndex": 1,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What steps are involved in loading sample documents into an Atlas cluster for Vector Search?",
+    "response": "The steps involve using the Atlas UI or CLI to create an Atlas cluster, loading a sample dataset, and then creating a Vector Search index on the relevant fields."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-quick-start/",
+    "urlIndex": 1,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "Explain how to create a vector search index in an Atlas deployment using PyMongo.",
+    "response": "To create a vector search index in an Atlas deployment using PyMongo, define a SearchIndexModel with the `plot_embedding` field specified as a vector type with 1536 dimensions and a similarity measurement method (e.g., dotProduct), then call `collection.create_search_index(model=search_index_model)`."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-quick-start/",
+    "urlIndex": 1,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "How do I perform a vector search query using the MongoDB shell?",
+    "response": "To perform a vector search query using the MongoDB shell, construct an aggregate command using the `$vectorSearch` stage with your query parameters, like the index name, path, query vector, number of candidates, and limit, followed by a `$project` stage to format the results."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-quick-start/",
+    "urlIndex": 1,
+    "difficulty": "intermediate",
+    "type": "code_example",
+    "prompt": "Can you show an example of a vector search query in Python?",
+    "response": "```python\npipeline = [\n    {\n        '$vectorSearch': {\n            'index': 'vector_index',\n            'path': 'plot_embedding',\n            'queryVector': [-0.0016261312, -0.028070757, ...],\n            'numCandidates': 150,\n            'limit': 10\n        }\n    },\n    {\n        '$project': {\n            '_id': 0,\n            'plot': 1,\n            'title': 1,\n            'score': {'$meta': 'vectorSearchScore'}\n        }\n    }\n]\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/",
+    "urlIndex": 2,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is the purpose of creating vector embeddings in MongoDB Atlas?",
+    "response": "Vector embeddings capture meaningful relationships in data and enable semantic search and retrieval-augmented generation (RAG) with Atlas Vector Search."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/",
+    "urlIndex": 2,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What are the steps involved in creating vector embeddings using Atlas Vector Search?",
+    "response": "The steps include defining a function that uses an embedding model to generate vector embeddings, creating embeddings from your data and storing them in Atlas, and creating embeddings from search terms to run vector search queries."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/",
+    "urlIndex": 2,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "How does the choice of embedding model impact the performance of vector search in MongoDB Atlas?",
+    "response": "The choice of embedding model affects the metrics such as embedding dimensions, retrieval average, and model size, which in turn influences the efficiency and relevance of search results."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/",
+    "urlIndex": 2,
+    "difficulty": "intermediate",
+    "type": "code_example",
+    "prompt": "Show how to create vector embeddings in Python using an embedding model.",
+    "response": "```python\nfrom sentence_transformers import SentenceTransformer\n\n# Load the embedding model\nmodel = SentenceTransformer('nomic-ai/nomic-embed-text-v1', trust_remote_code=True)\n\n# Define a function to generate embeddings\n\ndef get_embedding(data):\n    return model.encode(data)\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/",
+    "urlIndex": 2,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What prerequisites must be met to create embeddings in MongoDB Atlas?",
+    "response": "You must have an Atlas account with a cluster running MongoDB version 6.0.11, 7.0.2, or later, a code editor, and if using OpenAI models, an OpenAI API key."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/",
+    "urlIndex": 2,
+    "difficulty": "intermediate",
+    "type": "code_example",
+    "prompt": "Write code to run a vector search query in MongoDB Atlas.",
+    "response": "```python\n# Sample vector search query in Python\nquery_embedding = get_embedding('ocean tragedy')\npipeline = [\n  { '$vectorSearch': { 'queryVector': query_embedding, 'index': 'vector_index', 'path': 'embedding', 'exact': True, 'limit': 5 } },\n  { '$project': { '_id': 0, 'text': 1, 'score': { '$meta': 'vectorSearchScore' } } }\n]\nresults = collection.aggregate(pipeline)\nfor doc in results:\n    print(doc)\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/",
+    "urlIndex": 2,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What kind of index is necessary for performing vector search queries in MongoDB Atlas?",
+    "response": "You need a vector search index defined on the field that contains vector embeddings, specifying the embeddings type and similarity measure."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/",
+    "urlIndex": 2,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "What are the consequences of having mismatched dimensions between embedded data and the index in MongoDB Atlas?",
+    "response": "Mismatched dimensions can lead to errors when executing vector search queries, as the query embeddings must match the dimensions of the indexed embeddings."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/",
+    "urlIndex": 2,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "Show an example of how to create a vector index in MongoDB Atlas using C#.",
+    "response": "```csharp\npublic void CreateVectorIndex()\n{\n    var indexDefinition = new BsonDocument\n    {\n        {\n            \"fields\",\n            new BsonArray\n            {\n                new BsonDocument\n                {\n                    { \"type\", \"vector\" },\n                    { \"path\", \"embedding\" },\n                    { \"numDimensions\", 1536 },\n                    { \"similarity\", \"dotProduct\" }\n                }\n            }\n        }\n    };\n    var indexModel = new SearchIndexModel(\"vector_index\", indexDefinition, SearchIndexType.VectorSearch);\n    searchIndexView.CreateOne(indexModel);\n}\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/",
+    "urlIndex": 2,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What can I do with vector embeddings in MongoDB Atlas?",
+    "response": "Vector embeddings can be stored alongside other data in Atlas, allowing for semantic search and retrieval-augmented generation (RAG) using Atlas Vector Search."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/",
+    "urlIndex": 2,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is required to get started with vector embeddings in MongoDB Atlas?",
+    "response": "To get started, you need to define a function for generating embeddings, create embeddings from your data, and create embeddings from search terms to run vector search queries."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/",
+    "urlIndex": 2,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What should be included in the prerequisites to use Atlas Vector Search?",
+    "response": "Prerequisites typically include having an Atlas account with a cluster, knowledge of how to create embeddings using an embedding model, the ability to set up your project's access list, and access to an embedding model API like Hugging Face or OpenAI."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/",
+    "urlIndex": 2,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "What does the CreateVectorIndex function do?",
+    "response": "The CreateVectorIndex function creates an Atlas Vector Search index on the specified collection to enable vector search queries. It specifies the vector type, the similarity measure (like dot product), and the number of dimensions."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/",
+    "urlIndex": 2,
+    "difficulty": "intermediate",
+    "type": "code_example",
+    "prompt": "Show me an example of how to define a function that generates vector embeddings using Python.",
+    "response": "```python\nfrom sentence_transformers import SentenceTransformer\n\n# Load the embedding model\nmodel = SentenceTransformer('nomic-ai/nomic-embed-text-v1')\n\ndef get_embedding(data, precision='float32'):\n    return model.encode(data, precision=precision).tolist()\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/",
+    "urlIndex": 2,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is the purpose of using embeddings with Atlas Vector Search?",
+    "response": "Embeddings capture meaningful relationships in the data, allowing for semantic search and improved information retrieval within Atlas."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/",
+    "urlIndex": 2,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "What considerations should I make when choosing an embedding model for Atlas Vector Search?",
+    "response": "When choosing an embedding model, consider metrics like embedding dimensions, max tokens, model size, and retrieval average to ensure optimal performance and relevance in your search results."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/",
+    "urlIndex": 2,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "How can I compress my embeddings for storage in MongoDB Atlas?",
+    "response": "You can compress embeddings by converting them to BSON `binData` vectors, which are more storage-efficient than the default float32 array format."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/",
+    "urlIndex": 2,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What is the difference between using an open-source embedding model and a proprietary model in MongoDB Atlas?",
+    "response": "Open-source models can be loaded locally without needing an API key, while proprietary models typically require an API key and often provide better performance and more features."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/create-embeddings/",
+    "urlIndex": 2,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What are the steps to create a vector search query in MongoDB Atlas?",
+    "response": "To create a vector search query, you need to generate a query embedding, specify the index and path in the $vectorSearch operator, and use an aggregation pipeline to retrieve the results."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/",
+    "urlIndex": 3,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is the `vectorSearch` type used for?",
+    "response": "The `vectorSearch` type is used to index fields for running `$vectorSearch` queries in MongoDB Atlas."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/",
+    "urlIndex": 3,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What tools can be used to create an Atlas Vector Search index?",
+    "response": "You can use the Atlas UI, Atlas Administration API, Atlas CLI, `mongosh`, or a supported MongoDB Driver to create an Atlas Vector Search index."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/",
+    "urlIndex": 3,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What are the limitations for indexing arrays in a `vectorSearch` type index definition?",
+    "response": "In a `vectorSearch` type index definition, you can only index arrays with a single element. You cannot index fields inside arrays of documents or arrays of objects."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/",
+    "urlIndex": 3,
+    "difficulty": "intermediate",
+    "type": "code_example",
+    "prompt": "Show an example of an Atlas Vector Search index definition in JSON format.",
+    "response": "```json\n{\n  \"fields\": [\n    {\n      \"type\": \"vector\",\n      \"path\": \"<field-to-index>\",\n      \"numDimensions\": <number-of-dimensions>,\n      \"similarity\": \"euclidean | cosine | dotProduct\"\n    },\n    {\n      \"type\": \"filter\",\n      \"path\": \"<filter-field>\"\n    }\n  ]\n}\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/",
+    "urlIndex": 3,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "How does Atlas Vector Search handle low CPU utilization on an idle node?",
+    "response": "When using Atlas Vector Search indexes, you might experience elevated resource consumption on an idle node due to essential operations performed by the underlying mongot process, which can cause variable CPU utilization depending on the number, complexity, and size of the indexes."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/",
+    "urlIndex": 3,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "What are the requirements for vector ingestion in Atlas Vector Search?",
+    "response": "For efficient storage, embeddings should be converted to BSON BinData vectors with subtype `float32`, `int1`, or `int8`. Additionally, the vector dimensions must be specified between 1 and 8192, and the value must be a multiple of 8 for certain types."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/",
+    "urlIndex": 3,
+    "difficulty": "intermediate",
+    "type": "code_example",
+    "prompt": "Write a command using the Atlas API to create a new Atlas Vector Search index.",
+    "response": "```shell\ncurl --user \"{PUBLIC-KEY}:{PRIVATE-KEY}\" --digest \\\n     --header \"Accept: application/json\" \\\n     --header \"Content-Type: application/json\" \\\n     --include \\\n     --request POST \"https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes\" \\\n     --data '{\"database\": \"<name-of-database>\", \"collectionName\": \"<name-of-collection>\", \"type\": \"vectorSearch\", \"name\": \"<index-name>\", \"definition\": {\"fields\":[{\"type\": \"vector\", \"path\": \"<field-to-index>\", \"numDimensions\": <number-of-dimensions>, \"similarity\": \"euclidean | cosine | dotProduct\"}]}}'\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/",
+    "urlIndex": 5,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is vector quantization?",
+    "response": "Vector quantization is the process of shrinking full-fidelity vectors into fewer bits to reduce the amount of memory required to store each vector. It enables the storage of more vectors or vectors with higher dimensions, reducing resource consumption and improving speed."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/",
+    "urlIndex": 5,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What types of automatic quantization does Atlas Vector Search support?",
+    "response": "Atlas Vector Search supports automatic scalar quantization and automatic binary quantization of vector embeddings."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/",
+    "urlIndex": 5,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "What are the differences in RAM cost reduction between scalar and binary quantization in Atlas Vector Search?",
+    "response": "In Atlas Vector Search, scalar quantization reduces the vector embedding's RAM cost to one fourth (1/4) of the pre-quantization cost, while binary quantization reduces it to one twenty-fourth (1/24) of the pre-quantization cost."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/",
+    "urlIndex": 5,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "How do you enable automatic quantization for vectors in Atlas Vector Search?",
+    "response": "You enable automatic quantization by specifying a `quantization` field with a value of either `scalar` or `binary` in your index definition."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/",
+    "urlIndex": 5,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What are the data type requirements for automatic quantization in Atlas Vector Search?",
+    "response": "The requirements include supporting BSON `binData` format, with specific types such as `binData(int1)`, `binData(int8)`, and `binData(float32)` for different ingest methods."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/",
+    "urlIndex": 5,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "Show an example of creating a search index with vector fields in Atlas for embedding types.",
+    "response": "```javascript\nconst index = {\n  name: '<INDEX-NAME>',\n  type: 'vectorSearch',\n  definition: {\n    fields: [\n      {\n        type: 'vector',\n        numDimensions: 1024,\n        path: 'bsonEmbeddings.float32',\n        similarity: 'dotProduct',\n      },\n      {\n        type: 'vector',\n        numDimensions: 1024,\n        path: 'bsonEmbeddings.int8',\n        similarity: 'dotProduct',\n      },\n      {\n        type: 'vector',\n        numDimensions: 1024,\n        path: 'bsonEmbeddings.int1',\n        similarity: 'euclidean',\n      },\n    ],\n  },\n};\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/",
+    "urlIndex": 5,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is vector quantization?",
+    "response": "Vector quantization is the process of shrinking full-fidelity vectors into fewer bits, reducing the amount of memory required to store each vector by indexing a reduced representation."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/",
+    "urlIndex": 5,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What features are supported by Atlas Vector Search?",
+    "response": "Atlas Vector Search supports features like ingestion of BSON BinData vectors with the int1 subtype, automatic scalar quantization, and automatic binary quantization."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/",
+    "urlIndex": 5,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What is the difference between scalar quantization and binary quantization in Atlas Vector Search?",
+    "response": "Scalar quantization converts float values into discrete integers by mapping continuous values into bins, while binary quantization converts float values into binary values based on a midpoint, allowing for greater memory savings (1/4 for scalar and 1/24 for binary) when storing vectors."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/",
+    "urlIndex": 5,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What are the requirements for automatic binary quantization in Atlas Vector Search?",
+    "response": "The requirements for automatic binary quantization include index definition settings, no requirement for BSON binData format, and the storage type must be binData(float32) or array(double). Additionally, it supports similarity methods like cosine, euclidean, and dotProduct."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/",
+    "urlIndex": 5,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "Show an example of connecting to MongoDB Atlas from Python using PyMongo and performing a vector search query.",
+    "response": "```python\nfrom pymongo import MongoClient\n\n# Connect to MongoDB Atlas\nclient = MongoClient('your_connection_string')\n\ndatabase = client['your_database']\ncollection = database['your_collection']\n\n# Define your query vector\nquery_vector = # your BSON Binary vector here\n\n# Run vector search query\npipeline = [\n    { '$vectorSearch': { \n        'index': 'your_index_name',\n        'path': 'your_vector_field',\n        'queryVector': query_vector, \n        'numCandidates': 5, \n        'limit': 10\n    }}\n]\nresults = collection.aggregate(pipeline)\nfor result in results:\n    print(result)\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/deployment-options/",
+    "urlIndex": 7,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What are the deployment options for MongoDB Atlas clusters?",
+    "response": "You can structure your Atlas cluster with different deployment types, cloud providers, and cluster tiers to meet the needs of pre-production or production environments."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/deployment-options/",
+    "urlIndex": 7,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What type of cluster is recommended for a production environment in MongoDB Atlas?",
+    "response": "For production-ready applications, a dedicated cluster with separate Search Nodes for workload isolation is recommended."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/deployment-options/",
+    "urlIndex": 7,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What is the memory requirement for indexing vectors in Atlas Vector Search?",
+    "response": "Atlas Vector Search holds the entire index in memory, thus you need enough memory for the Atlas Vector Search index and JVM. For example, for an embedding with OpenAI 'text-embedding-ada-002' with a vector dimension of 1536, the space requirement is 6kb per vector."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/deployment-options/",
+    "urlIndex": 7,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "Show an example configuration for binary quantization for 10 million embeddings with 1536 dimensions.",
+    "response": "```json\n{\n  \"fields\":[\n    {\n      \"type\": \"vector\",\n      \"path\": \"my-embeddings\",\n      \"numDimensions\": 1536,\n      \"similarity\": \"euclidean\",\n      \"quantization\": \"binary\"\n    }\n  ]\n}\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/deployment-options/",
+    "urlIndex": 7,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "Explain the disk to RAM ratios recommended for scalar and binary quantization in MongoDB Atlas.",
+    "response": "For scalar quantization, a disk to RAM ratio of roughly 4:1 is recommended, while for binary quantization, a ratio of approximately 24:1 should be maintained."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/rag/",
+    "urlIndex": 6,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is retrieval-augmented generation (RAG)?",
+    "response": "Retrieval-augmented generation (RAG) is an architecture used to augment large language models (LLMs) with additional data to generate more accurate responses."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/rag/",
+    "urlIndex": 6,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What are the limitations of LLMs that RAG addresses?",
+    "response": "RAG addresses limitations such as stale data, lack of access to local data, and the risk of hallucinations."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/rag/",
+    "urlIndex": 6,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "How does Atlas Vector Search contribute to implementing RAG?",
+    "response": "Atlas Vector Search allows for the retrieval of semantically similar documents based on user questions, augmenting the LLM with relevant data to generate more accurate responses."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/rag/",
+    "urlIndex": 6,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What are the steps involved in implementing RAG with Atlas Vector Search?",
+    "response": "The steps include ingestion of custom data as vector embeddings, retrieval of relevant documents using Atlas Vector Search, and generation of responses using an LLM."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/rag/",
+    "urlIndex": 6,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "Show how to create a vector index for Atlas Vector Search using C#.",
+    "response": "```csharp\npublic string CreateVectorIndex()\n{\n    var searchIndexView = Collection.SearchIndexes;\n    var name = \"vector_index\";\n    var type = SearchIndexType.VectorSearch;\n    var definition = new BsonDocument\n    {\n        { \"fields\", new BsonArray\n            {\n                new BsonDocument\n                {\n                    { \"type\", \"vector\" },\n                    { \"path\", \"embedding\" },\n                    { \"numDimensions\", 1536 },\n                    { \"similarity\", \"cosine\" }\n                }\n            }\n        }\n    };\n    var model = new CreateSearchIndexModel(name, type, definition);\n    searchIndexView.CreateOne(model);\n    return $\"New vector index named {name} is building.\";\n}\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/rag/",
+    "urlIndex": 6,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "What is the process of generating embeddings for a PDF in C#?",
+    "response": "To generate embeddings for a PDF, you load the PDF using a document loader, split the text into chunks, convert each chunk into vector embeddings, and then store those embeddings in Atlas."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/rag/",
+    "urlIndex": 6,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "Compare the approach of data ingestion for RAG in Python and Go.",
+    "response": "Both Python and Go follow similar steps in data ingestion: load the data, split into chunks, convert to vector embeddings, and store in Atlas. However, they utilize different libraries and syntax specific to their respective languages."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/rag/",
+    "urlIndex": 6,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is the purpose of using chunking in RAG?",
+    "response": "Chunking improves performance by splitting data into smaller parts, making it easier to process and retrieve relevant information."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/rag/",
+    "urlIndex": 6,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "Show an example of how to retrieve documents using Atlas Vector Search in Java.",
+    "response": "```java\n// Define a method to retrieve relevant data.\npublic List<BsonDocument>? PerformVectorQuery(float[] vector) {\n    var vectorSearchStage = new BsonDocument\n    {\n        {\n            \"$vectorSearch\",\n            new BsonDocument\n            {\n                { \"index\", \"vector_index\" },\n                { \"path\", \"embedding\" },\n                { \"queryVector\", new BsonArray(vector) },\n                { \"exact\", true },\n                { \"limit\", 5 }\n            }\n        }\n    };\n    var projectStage = new BsonDocument\n    {\n        {\n            \"$project\",\n            new BsonDocument\n            {\n                { \"_id\", 0 },\n                { \"text\", 1 },\n                { \"score\",\n                    new BsonDocument\n                    {\n                        { \"$meta\", \"vectorSearchScore\"}\n                    }\n                }\n            }\n        }\n    };\n    var pipeline = new[] { vectorSearchStage, projectStage };\n    return Collection.Aggregate<BsonDocument>(pipeline).ToList();\n}\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/",
+    "urlIndex": 8,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is ANN search in MongoDB Atlas?",
+    "response": "ANN (Approximate Nearest Neighbor) search in MongoDB Atlas is a method to perform semantic search against vector data stored in a collection."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/",
+    "urlIndex": 8,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What do you need to perform semantic search against data in your Atlas Cluster?",
+    "response": "To perform semantic search, you need an Atlas cluster with MongoDB version 6.0.11 or v7.0.2 or later, sample data loaded into your cluster, and a client that supports queries."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/",
+    "urlIndex": 8,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What steps are involved in creating an Atlas Vector Search index?",
+    "response": "The steps to create an Atlas Vector Search index include going to the Clusters page, accessing the Atlas Search page, clicking Create Search Index, configuring the index with the appropriate fields and settings, and reviewing then creating the index."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/",
+    "urlIndex": 8,
+    "difficulty": "intermediate",
+    "type": "code_example",
+    "prompt": "How do you create an Atlas Vector Search index for the plot_embedding field in Python?",
+    "response": "```python\nfrom pymongo import MongoClient\nfrom pymongo.operations import SearchIndexModel\n\nuri = '<connection-string>'\nclient = MongoClient(uri)\ndatabase = client['sample_mflix']\ncollection = database['embedded_movies']\n\nsearch_index_model = SearchIndexModel(\n    definition={\n        'fields': [\n            {'type': 'vector', 'path': 'plot_embedding', 'numDimensions': 1536, 'similarity': 'dotProduct', 'quantization': 'scalar'},\n            {'type': 'filter', 'path': 'genres'},\n            {'type': 'filter', 'path': 'year'}\n        ]\n    },\n    name='vector_index',\n    type='vectorSearch'\n)\n\nresult = collection.create_search_index(model=search_index_model)\nprint('New search index named ' + result + ' is building.')\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/",
+    "urlIndex": 8,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "What query structure is used to perform a pre-filter by AND operator in the `$vectorSearch` stage?",
+    "response": "The query structure uses the `$and` operator along with filters for specific genres and year ranges to pre-filter the documents for the `$vectorSearch` stage."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/",
+    "urlIndex": 8,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "Show an example of a `$vectorSearch` query using the AND operator in MongoDB shell.",
+    "response": "```javascript\ndb.embedded_movies.aggregate([\n  {\n    \"$vectorSearch\": {\n      \"index\": \"vector_index\",\n      \"path\": \"plot_embedding\",\n      \"filter\": {\n        \"$and\": [{\n          \"genres\": {\n            \"$nin\": [\"Drama\", \"Western\", \"Crime\"],\n            \"$in\": [\"Action\", \"Adventure\", \"Family\"]\n          }\n        }, {\n          \"year\": {\n            \"$gte\": 1960,\n            \"$lte\": 2000\n          }\n        }]\n      },\n      \"queryVector\": [-0.020156775, -0.024996493, ...],\n      \"numCandidates\": 200,\n      \"limit\": 10\n    }\n  },\n  {\n    \"$project\": {\n      \"_id\": 0,\n      \"title\": 1,\n      \"genres\": 1,\n      \"plot\": 1,\n      \"year\": 1,\n      \"score\": { $meta: \"vectorSearchScore\" }\n    }\n  }\n])\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/",
+    "urlIndex": 8,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "What are the requirements to create an Atlas Vector Search index?",
+    "response": "To create an Atlas Vector Search index, you need Project Data Access Admin access or higher, an Atlas cluster with the appropriate MongoDB version, and you must be working with vector fields defined in your collection."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/rag/",
+    "urlIndex": 6,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is Retrieval-Augmented Generation (RAG)?",
+    "response": "Retrieval-Augmented Generation (RAG) is an architecture that augments large language models (LLMs) with additional data to generate more accurate responses."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/rag/",
+    "urlIndex": 6,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What are the limitations of large language models (LLMs) addressed by RAG?",
+    "response": "The limitations of large language models (LLMs) addressed by RAG include stale data, no access to local data, and hallucinations."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/rag/",
+    "urlIndex": 6,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What are the steps to implement RAG with Atlas Vector Search?",
+    "response": "To implement RAG with Atlas Vector Search, the steps include ingestion (storing custom data as vector embeddings in a vector database), retrieval (using Atlas Vector Search to find semantically similar documents), and generation (prompting the LLM with retrieved documents as context)."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/rag/",
+    "urlIndex": 6,
+    "difficulty": "intermediate",
+    "type": "code_example",
+    "prompt": "Show an example of how to define a function to generate embeddings in Python.",
+    "response": "```python\nfrom sentence_transformers import SentenceTransformer\n\n# Load the embedding model\nmodel = SentenceTransformer('nomic-ai/nomic-embed-text-v1', trust_remote_code=True)\n\ndef get_embedding(data):\n    \"\"\"Generates vector embeddings for the given data.\"\"\"\n    return model.encode(data).tolist()\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/rag/",
+    "urlIndex": 6,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "What is the role of Atlas Vector Search in RAG implementations?",
+    "response": "Atlas Vector Search plays a critical role in RAG implementations by providing a retrieval system that searches for and returns the most relevant documents based on a user's query, which augments the LLM with additional relevant data."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/rag/",
+    "urlIndex": 6,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "How do you create a vector search index in Atlas using Python?",
+    "response": "```python\nfrom pymongo.operations import SearchIndexModel\n\n# Create your index model, then create the search index\nsearch_index_model = SearchIndexModel(...)\ncollection.create_search_index(model=search_index_model)\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/rag/",
+    "urlIndex": 6,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "How do you retrieve documents using Atlas Vector Search?",
+    "response": "To retrieve documents using Atlas Vector Search, you define an Atlas Vector Search index on the collection, convert the user's question into vector embeddings, and run a vector search query against the data in Atlas."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/rag/",
+    "urlIndex": 6,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "What techniques can be used to improve the performance of vector search queries in Atlas?",
+    "response": "To improve the performance of vector search queries in Atlas, you can use advanced retrieval systems, pre-filtering based on other fields in the collection, and hybrid search combining semantic search with full-text search results."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/",
+    "urlIndex": 9,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is hybrid search in MongoDB Atlas?",
+    "response": "Hybrid search in MongoDB Atlas is the combination of Atlas Vector Search and Atlas Search queries to provide unified search results."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/",
+    "urlIndex": 9,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What are the benefits of performing a hybrid search?",
+    "response": "Hybrid search allows for more comprehensive results by combining full-text search, which finds exact matches for query terms, with semantic search, which identifies semantically similar documents."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/",
+    "urlIndex": 9,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What is Reciprocal Rank Fusion?",
+    "response": "Reciprocal Rank Fusion is a technique to combine results from different search methods into a single result set by calculating reciprocal ranks of documents in the results, applying weights to each method, and combining those scores."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/",
+    "urlIndex": 9,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "Show an example of a query that combines semantic search and full-text search using Atlas.",
+    "response": "```javascript\nvar vector_weight = 0.1;\nvar full_text_weight = 0.9;\ndb.embedded_movies.aggregate([\n  {\n    \"$vectorSearch\": {\n      \"index\": \"rrf-vector-search\",\n      \"path\": \"plot_embedding\",\n      \"queryVector\": [-0.003091304, -0.018973768, ...],\n      \"numCandidates\": 100,\n      \"limit\": 20\n    }\n  },\n  {\n    \"$unionWith\": {\n      \"coll\": \"embedded_movies\",\n      \"pipeline\": [\n        {\n          \"$search\": {\n            \"index\": \"rrf-full-text-search\",\n            \"phrase\": {\n              \"query\": \"star wars\",\n              \"path\": \"title\"\n            }\n          }\n        },\n        {\n          \"$limit\": 20\n        }\n      ]\n    }\n  },\n  // additional pipeline stages...\n]);\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/",
+    "urlIndex": 8,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is the purpose of the tutorial on performing semantic search against data in your Atlas cluster?",
+    "response": "The tutorial describes how to perform an Approximate Nearest Neighbor (ANN) search on a vector in the `plot_embedding` field in the `sample_mflix.embedded_movies` collection on your Atlas cluster."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/",
+    "urlIndex": 8,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What are the prerequisites for following the tutorial on Atlas Vector Search?",
+    "response": "Before beginning the tutorial, you need to complete the common prerequisites including having the appropriate access in Atlas."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/",
+    "urlIndex": 8,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "How do you create an Atlas Vector Search index on the `plot_embedding` field?",
+    "response": "To create an Atlas Vector Search index on the `plot_embedding` field, you need to specify the index name, the database (`sample_mflix`), and the collection (`embedded_movies`), as well as the index definition which includes the vector type for `plot_embedding` and filter types for `genres` and `year`."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial/",
+    "urlIndex": 8,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "Can you provide an example of a query using the `$vectorSearch` stage to filter by the `genres` and `year` fields?",
+    "response": "```json\ndb.embedded_movies.aggregate([\n  {\n    \"$vectorSearch\": {\n      \"index\": \"vector_index\",\n      \"path\": \"plot_embedding\",\n      \"filter\": {\n        \"$and\": [{\n          \"genres\": {\n            \"$nin\": [\"Drama\", \"Western\", \"Crime\"],\n            \"$in\": [\"Action\", \"Adventure\", \"Family\"]\n          }\n        }, {\n          \"year\": {\n            \"$gte\": 1960,\n            \"$lte\": 2000\n          }\n        }]\n      },\n      \"queryVector\": [-0.020156775, -0.024996493, ...],\n      \"numCandidates\": 200,\n      \"limit\": 10\n    }\n  },\n  {\n    \"$project\": {\n      \"_id\": 0,\n      \"title\": 1,\n      \"genres\": 1,\n      \"plot\": 1,\n      \"year\": 1,\n      \"score\": { $meta: \"vectorSearchScore\" }\n    }\n  }\n])\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/",
+    "urlIndex": 10,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What does the tutorial on Building a Local RAG Implementation with Atlas Vector Search demonstrate?",
+    "response": "The tutorial demonstrates how to implement retrieval-augmented generation (RAG) locally using Atlas Vector Search, including steps such as creating a local Atlas deployment, setting up the environment, generating vector embeddings, creating an Atlas Vector Search index, and using a local LLM to answer questions on your data."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/",
+    "urlIndex": 10,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What are the prerequisites for completing the tutorial to build a Local RAG Implementation with Atlas Vector Search?",
+    "response": "The prerequisites include having the Atlas CLI installed, MongoDB Command Line Database Tools, and relevant programming environment set up based on the chosen language (C#, Go, Java, Node.js, or Python), along with having Ollama installed."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/",
+    "urlIndex": 10,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "How does the tutorial recommend generating vector embeddings, and what models are suggested for this task?",
+    "response": "The tutorial recommends using a local embedding model such as the Nomic Embed Text embedding model or Mistral 7B generative model to generate vector embeddings. It provides code examples for downloading these models and using them to process data and generate embeddings."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/",
+    "urlIndex": 10,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What are the different programming languages supported in this tutorial for building a local RAG implementation?",
+    "response": "The tutorial supports multiple programming languages including C#, Go, Java, Node.js, and Python for building a local RAG implementation using Atlas Vector Search."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/",
+    "urlIndex": 10,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "Show an example of how to connect to MongoDB Atlas from Python using PyMongo as described in the tutorial.",
+    "response": "```python\nfrom pymongo import MongoClient\nclient = MongoClient('your_connection_string')\n# Now you can use client to access your database\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/",
+    "urlIndex": 10,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is the purpose of creating a vector index in Atlas?",
+    "response": "The purpose of creating a vector index in Atlas is to enable efficient vector search on a specified field, allowing for similarity searching across vector embeddings, which is essential for implementing retrieval-augmented generation (RAG) functionalities."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/",
+    "urlIndex": 10,
+    "difficulty": "intermediate",
+    "type": "code_example",
+    "prompt": "Provide an example of how to create an Atlas Vector Search index using Python.",
+    "response": "```python\nfrom pymongo.operations import SearchIndexModel\n\nsearch_index_model = SearchIndexModel(\n  definition = {\n    \"fields\": [\n      {\n        \"type\": \"vector\",\n        \"numDimensions\": 1024,\n        \"path\": \"embeddings\",\n        \"similarity\": \"cosine\"\n      }\n    ]\n  },\n  name = \"vector_index\",\n  type = \"vectorSearch\"\n)\ncollection.create_search_index(model=search_index_model)\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/",
+    "urlIndex": 9,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is hybrid search in MongoDB Atlas?",
+    "response": "Hybrid search in MongoDB Atlas is the combination of Atlas Vector Search and Atlas Search queries to produce unified search results."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/",
+    "urlIndex": 9,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What steps are involved to create an Atlas Vector Search index?",
+    "response": "The steps include creating an Atlas Vector Search index on the 'plot_embedding' field that contains vector embeddings representing movie plot summaries."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/",
+    "urlIndex": 9,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is the purpose of reciprocal rank fusion?",
+    "response": "Reciprocal rank fusion combines results from different search methods, such as semantic and full-text searches, into a single result set."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/",
+    "urlIndex": 9,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "How does semantic search differ from full-text search?",
+    "response": "Semantic search can identify semantically similar documents even without exact matches in terms, while full-text is effective only for exact term matches."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/",
+    "urlIndex": 9,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What are the required prerequisites for running hybrid searches in MongoDB Atlas?",
+    "response": "Prerequisites include having an Atlas cluster with MongoDB version v6.0.11 or later, sample data loaded into the cluster, and appropriate client access."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/",
+    "urlIndex": 9,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "Show an example of how to create an Atlas Vector Search index using Node.js.",
+    "response": "```javascript\nimport { MongoClient } from 'mongodb';\n\nconst client = new MongoClient(process.env.ATLAS_CONNECTION_STRING);\nasync function run() {\n    try {\n        const database = client.db(\"sample_mflix\");\n        const collection = database.collection(\"embedded_movies\");\n\n        const index = {\n            name: \"rrf-vector-search\",\n            type: \"vectorSearch\",\n            definition: {\n              \"fields\": [\n                {\n                  \"type\": \"vector\",\n                  \"numDimensions\": 1536,\n                  \"path\": \"plot_embedding\",\n                  \"similarity\": \"dotProduct\"\n                }\n              ]\n            }\n        };\n\n        const result = await collection.createSearchIndex(index);\n        console.log(result);\n    } finally {\n        await client.close();\n    }\n}\nrun().catch(console.dir);\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/reciprocal-rank-fusion/",
+    "urlIndex": 9,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "Can you write a sample MongoDB query for a hybrid search?",
+    "response": "```javascript\ndb.embedded_movies.aggregate([\n  {\n    \"$vectorSearch\": {\n      \"index\": \"rrf-vector-search\",\n      \"path\": \"plot_embedding\",\n      \"queryVector\": [-0.003091304, -0.018973768, ...],\n      \"numCandidates\": 100,\n      \"limit\": 20\n    }\n  },\n  {\n    \"$unionWith\": {\n      \"coll\": \"embedded_movies\",\n      \"pipeline\": [\n        {\n          \"$search\": {\n            \"index\": \"rrf-full-text-search\",\n            \"phrase\": {\n              \"query\": \"star wars\",\n              \"path\": \"title\"\n            }\n          }\n        },\n        { \"$limit\": 20 },\n        { \"$group\": { \"_id\": null, \"docs\": { \"$push\": \"$$ROOT\" }}},\n        { \"$unwind\": { \"path\": \"$docs\", \"includeArrayIndex\": \"rank\" }}\n      ]\n    }\n  }\n]);\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/",
+    "urlIndex": 10,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is retrieval-augmented generation (RAG)?",
+    "response": "Retrieval-augmented generation (RAG) is a method that combines a retrieval system with a generative model to answer questions based on external data."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/",
+    "urlIndex": 10,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What steps are involved in building a local RAG implementation with Atlas Vector Search?",
+    "response": "The steps involved are: 1. Create a local Atlas deployment or deploy a cluster on the cloud. 2. Set up the environment. 3. Use a local embedding model to generate vector embeddings. 4. Create an Atlas Vector Search index on your data. 5. Use a local LLM (Large Language Model) to answer questions on your data."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/",
+    "urlIndex": 10,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What are the prerequisites for using MongoDB Atlas in this tutorial?",
+    "response": "Prerequisites include the Atlas CLI installed and running v1.14.3 or later, MongoDB Command Line Database Tools installed, and specific requirements depending on the programming language used (e.g., Python v3.10 or later, .NET version 8.0 or higher, etc.)."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/",
+    "urlIndex": 10,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What command is used to create a local Atlas deployment using the Atlas CLI?",
+    "response": "You use the command `atlas deployments setup` to create a local deployment using the Atlas CLI."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/",
+    "urlIndex": 10,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "How do you generate embeddings using the nomic-embed-text model in C#?",
+    "response": "You use the OllamaEmbeddingGenerator initialized with the model's URL and call the `GenerateEmbeddingVectorAsync` method with the text to generate the embeddings."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tutorials/local-rag/",
+    "urlIndex": 10,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "Show example code to create an Atlas Vector Search index using Python.",
+    "response": "```python\nfrom pymongo.operations import SearchIndexModel\n\n# Create your index model, then create the search index\nsearch_index_model = SearchIndexModel(\n  definition = {\n    \"fields\": [\n      {\n        \"type\": \"vector\",\n        \"numDimensions\": 1024,\n        \"path\": \"embeddings\",\n        \"similarity\": \"cosine\"\n      }\n    ]\n  },\n  name = \"vector_index\",\n  type = \"vectorSearch\"\n)\ncollection.create_search_index(model=search_index_model)\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/",
+    "urlIndex": 11,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is Atlas Vector Search used for?",
+    "response": "Atlas Vector Search is used to leverage popular AI technologies and integrations for applications like Retrieval-Augmented Generation (RAG) and other AI-powered functionalities."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/",
+    "urlIndex": 11,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What are some frameworks that can integrate with Atlas Vector Search?",
+    "response": "Some frameworks that can integrate with Atlas Vector Search include LangChain, LangGraph, LangChainGo, LangChain4j, LlamaIndex, Semantic Kernel, Haystack, and Spring AI."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/",
+    "urlIndex": 11,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "What is the role of LangGraph in the context of Atlas Vector Search?",
+    "response": "LangGraph is a specialized framework within the LangChain ecosystem designed for building AI agents and complex multi-agent workflows, enabling advanced agentic applications using Atlas Vector Search."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/",
+    "urlIndex": 11,
+    "difficulty": "intermediate",
+    "type": "code_example",
+    "prompt": "Show an example of how to integrate Atlas Vector Search using LangChain.",
+    "response": "For the integration of Atlas Vector Search with LangChain, refer to the resources in the LangChain documentation for step-by-step guidance on setting up the integration."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/",
+    "urlIndex": 11,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "How does Amazon Bedrock integrate with Atlas Vector Search?",
+    "response": "Amazon Bedrock can integrate Atlas Vector Search as a knowledge base to store custom data and implement RAG (Retrieval-Augmented Generation) for building generative AI applications."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/",
+    "urlIndex": 11,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is Atlas Vector Search?",
+    "response": "Atlas Vector Search is a feature of MongoDB Atlas that allows for the integration of vector search capabilities in AI-powered applications."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/",
+    "urlIndex": 11,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "Which frameworks can you integrate with Atlas Vector Search?",
+    "response": "You can integrate Atlas Vector Search with frameworks such as LangChain, LlamaIndex, Semantic Kernel, Haystack, and Spring AI."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/",
+    "urlIndex": 11,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What is LangChain and how does it relate to Atlas Vector Search?",
+    "response": "LangChain is a framework that simplifies creating LLM applications, and it can be integrated with Atlas Vector Search to implement RAG (Retrieval-Augmented Generation) in various use cases."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/",
+    "urlIndex": 11,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "How can Amazon Bedrock be used with Atlas Vector Search?",
+    "response": "Amazon Bedrock can be integrated with Atlas Vector Search as a knowledge base to store custom data and implement RAG (Retrieval-Augmented Generation) for generative AI applications."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/",
+    "urlIndex": 11,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "Show an example of integrating Atlas Vector Search with LangChain in Python.",
+    "response": "```python\n# Example of using LangChain with Atlas Vector Search\nfrom langchain import LangChain\nlc = LangChain()\n# Configure LangChain to integrate with Atlas Vector Search\nlc.configure_vector_search('your_atlas_vector_search_configuration')\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/",
+    "urlIndex": 12,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is the purpose of measuring the accuracy of Atlas Vector Search query results?",
+    "response": "The purpose of measuring the accuracy of Atlas Vector Search query results is to evaluate how closely the results for an Approximate Nearest Neighbor (ANN) search match the results of an Exact Nearest Neighbor (ENN) search."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/",
+    "urlIndex": 12,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What are some prerequisites for trying out the examples in the accuracy measurement section?",
+    "response": "Some prerequisites include having an Atlas cluster (optionally with the sample dataset) and having `mongosh` installed."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/",
+    "urlIndex": 12,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "What is the recommendation for improving storage and speed of queries when creating a Vector Search index?",
+    "response": "The recommendation is to use quantized vectors to improve the storage of your vectors and speed of your queries."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/",
+    "urlIndex": 12,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "Can you show an example of an ENN (Exact Nearest Neighbor) query using mongosh?",
+    "response": "```shell\ndb.embedded_movies.aggregate([\n  {\n    \"$vectorSearch\": {\n      \"index\": \"vector_index\",\n      \"path\": \"plot_embedding\",\n      \"filter\": {\n        \"$and\": [\n          {\n            \"genres\": { \"$eq\": \"Action\" }\n          },\n          {\n            \"genres\": { \"$ne\": \"Western\" }\n          }\n        ]\n      },\n      \"queryVector\": [-0.0241895392537117, -0.01683979481458664, ..., 4.4379456085152924e-05, -0.011239991523325443, 0.006791108753532171, ...],\n      \"exact\": true,\n      \"limit\": 10\n    }\n  },\n  {\n    \"$project\": {\n      \"_id\": 0,\n      \"plot\": 1,\n      \"title\": 1,\n      \"genres\": 1,\n      \"score\": { $meta: \"vectorSearchScore\" }\n    }\n  }\n])\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tune-vector-search/",
+    "urlIndex": 13,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What does Atlas Vector Search enable you to do?",
+    "response": "Atlas Vector Search enables you to perform Approximate Nearest Neighbor (ANN) queries that search for results similar to a selected product, search for images, and more."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tune-vector-search/",
+    "urlIndex": 13,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What is one recommended way to improve indexing speed in Atlas Vector Search?",
+    "response": "One recommended way to improve indexing speed is to reduce the number of vector dimensions used in the search."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tune-vector-search/",
+    "urlIndex": 13,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What is the purpose of pre-filtering data in Atlas Vector Search?",
+    "response": "Pre-filtering data narrows the scope of the semantic search and ensures that not all vectors are considered for comparison, which can improve query performance."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tune-vector-search/",
+    "urlIndex": 13,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "What are the advantages of using dedicated Search Nodes in Atlas Vector Search?",
+    "response": "Using dedicated Search Nodes helps avoid resource contention between the `mongot` and `mongod` processes and enables parallel segment search by default for `$vectorSearch` queries."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tune-vector-search/",
+    "urlIndex": 13,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "How would you exclude vector fields from the results using the $project stage in Atlas Vector Search?",
+    "response": "```json\n{\n  \"$project\": {\n    \"field1\": 1,     // include this field\n    \"field2\": 1,     // include another field\n    \"vector_field\": 0 // exclude the vector field\n  }\n}\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tune-vector-search/",
+    "urlIndex": 13,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What method can help reduce query latency for initial vector search queries?",
+    "response": "Warming up the filesystem cache helps reduce query latency for initial vector search queries, as it allows indexed vectors to be accessed more quickly for subsequent queries."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/tune-vector-search/",
+    "urlIndex": 13,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "How does scalar quantization differ from binary quantization in the context of Atlas Vector Search?",
+    "response": "Scalar quantization reduces the precision of each dimension, such as converting 32-bit floating-point numbers to 8-bit integers, preserving recall for most embedding models. In contrast, binary quantization reduces vectors to either `1` or `0`, which performs better for Quantization Aware Training (QAT) embedding models."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/",
+    "urlIndex": 12,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What is the purpose of measuring the accuracy of your Atlas Vector Search query results?",
+    "response": "The purpose of measuring the accuracy of your Atlas Vector Search query results is to evaluate how closely the results for an ANN (Approximate Nearest Neighbor) search match the results of an ENN (Exact Nearest Neighbor) search."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/",
+    "urlIndex": 12,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What are the prerequisites for trying the examples on measuring query accuracy?",
+    "response": "You need an Atlas cluster with, optionally, the sample dataset and `mongosh`."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/",
+    "urlIndex": 12,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What are the steps outlined to evaluate the accuracy of your `$vectorSearch` query results?",
+    "response": "To evaluate the accuracy, you must: 1. Create an Atlas Vector Search index on the vector field and any other fields for pre-filtering. 2. Construct and run the ENN query followed by the ANN query. 3. Compare the results of the ANN query with the ENN query."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/",
+    "urlIndex": 12,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "What is the trade-off between accuracy and speed when comparing ENN and ANN query results?",
+    "response": "The trade-off between accuracy and speed occurs because ENN (Exact Nearest Neighbor) searches examine all possible candidates, returning the closest match, while ANN (Approximate Nearest Neighbor) searches use approximations to speed up the search, potentially altering the scores and results."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/",
+    "urlIndex": 12,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "How can you switch to the `sample_mflix` database in `mongosh`?",
+    "response": "```sh\nuse sample_mflix\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/evaluate-results/",
+    "urlIndex": 12,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "Show an example query for running an ENN (Exact Nearest Neighbor) search using `mongosh`.",
+    "response": "```shell\ndb.embedded_movies.aggregate([\n  {\n    \"$vectorSearch\": {\n      \"index\": \"vector_index\",\n      \"path\": \"plot_embedding\",\n      \"filter\": {\n        \"$and\": [\n          {\n            \"genres\": { \"$eq\": \"Action\" }\n          },\n          {\n            \"genres\": { \"$ne\": \"Western\" }\n          }\n        ]\n      },\n      \"queryVector\": [-0.0241895392537117, ...],\n      \"exact\": true,\n      \"limit\": 10\n    }\n  },\n  {\n    \"$project\": {\n      \"_id\": 0,\n      \"plot\": 1,\n      \"title\": 1,\n      \"genres\": 1,\n      \"score\": { $meta: \"vectorSearchScore\" }\n    }\n  }\n])\n```"
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/",
+    "urlIndex": 14,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "Where can I seek help for Atlas Vector Search issues?",
+    "response": "For direct assistance with Atlas Vector Search issues, you can start a discussion on the MongoDB Developer Community or contact support."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/",
+    "urlIndex": 14,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What versions of MongoDB are required to use the `$vectorSearch` stage?",
+    "response": "To use the `$vectorSearch` stage, your cluster must run MongoDB 6.0.11 or higher, or 7.0.2 or higher."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/",
+    "urlIndex": 14,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What should you do if `$vectorSearch` returns no results?",
+    "response": "If `$vectorSearch` returns no results, ensure that you're using the same embedding model for both your data and your query, and confirm that your Atlas Vector Search index has finished building."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/",
+    "urlIndex": 14,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "What error might you encounter when using filtering with LangChain and how can you resolve it?",
+    "response": "You might encounter an error stating 'Error during document retrieval or generation process: MongoServerError: PlanExecutor error during aggregation :: caused by :: Path 'field' needs to be indexed as token'. To resolve this, check that an index on 'field' exists as an Atlas Vector Search index, not an Atlas Search index, or create the index if none exists."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/",
+    "urlIndex": 14,
+    "difficulty": "advanced",
+    "type": "code_example",
+    "prompt": "What does the error `Command not found` indicate when creating an Atlas Vector Search index?",
+    "response": "The `Command not found` error may indicate that you are running the command against an Atlas cluster with a MongoDB version earlier than 6.0.11 or 7.0.2, or that you are running the command against an `M0` Free Tier cluster. In the latter case, you may still create the index using the Atlas UI if the cluster version is compatible."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/",
+    "urlIndex": 14,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "What types of fields does Atlas Vector Search support for filtering?",
+    "response": "Atlas Vector Search supports filtering on fields with boolean, date, number, objectId, string, and UUID values."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/",
+    "urlIndex": 14,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What should I do if I encounter the error '`$vectorSearch` is not allowed with the current configuration'?",
+    "response": "You should ensure your cluster is running MongoDB 6.0.11 or later, or 7.0.2 or later, and check if the corresponding feature flag is enabled."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/",
+    "urlIndex": 14,
+    "difficulty": "intermediate",
+    "type": "question",
+    "prompt": "How can I check the MongoDB version of my Atlas cluster?",
+    "response": "To check the MongoDB version of your Atlas cluster, go to the Clusters page in Atlas, locate the information pane for your desired cluster, and consult the Version number in the bottom section of the information pane."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/",
+    "urlIndex": 14,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "Why might `$vectorSearch` return no results? What can I do to resolve this?",
+    "response": "`$vectorSearch` might return no results if you are using different embedding models for your data and query, or if the Atlas Vector Search index has not finished building. Ensure the same embedding model is used and wait until the index has completed building."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/",
+    "urlIndex": 14,
+    "difficulty": "basic",
+    "type": "question",
+    "prompt": "What types of values does Atlas Vector Search support for filtering?",
+    "response": "Atlas Vector Search supports filtering only on fields with boolean, date, number, objectId, string, and UUID values."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/",
+    "urlIndex": 14,
+    "difficulty": "intermediate",
+    "type": "code_example",
+    "prompt": "What might cause the error 'Error during document retrieval' when using filtering with LangChain?",
+    "response": "```js\nError during the document retrieval or generation process:\nMongoServerError: PlanExecutor error during aggregation :: caused\nby :: Path 'field' needs to be indexed as token\n``` \nThis error may occur if the index on 'field' is not created as an Atlas Vector Search index or if no index exists on 'field'."
+  },
+  {
+    "url": "https://mongodb.com/docs/atlas/atlas-vector-search/troubleshooting/",
+    "urlIndex": 14,
+    "difficulty": "advanced",
+    "type": "question",
+    "prompt": "What are the reasons for encountering a 'Command not found' error when creating an Atlas Vector Search index?",
+    "response": "A 'Command not found' error when creating an Atlas Vector Search index can occur if you run the command on an Atlas cluster with MongoDB version earlier than 6.0.11 or 7.0.2, or against an `M0` Free Tier cluster. Ensure you are using a compatible version and that the index is created via the Atlas UI if on Free Tier."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "What is Atlas Vector Search?",
+    "response": "You can use Atlas Vector Search to perform vector search on your data stored in Atlas. Vector search allows you to query your data based on semantic meaning rather than just keyword matches, which helps you retrieve more relevant search results. It enables your AI-powered applications to support use cases such as semantic search, hybrid search, and generative search, including RAG."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "How do I create a vector search index?",
+    "response": "You can use the vectorSearch type to index fields for running $vectorSearch queries. You can define the index for the vector embeddings that you want to query and any additional fields that you want to use to pre-filter your data. Filtering your data is useful to narrow the scope of your semantic search and ensure that certain vector embeddings are not considered for comparison, such as in a multi-tenant environment. \n\nYou can use the Atlas UI, Atlas Administration API, Atlas CLI, mongosh, or a supported MongoDB Driver to create your Atlas Vector Search index."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "How do I query a vector search index?",
+    "response": "Atlas Vector Search queries take the form of an aggregation pipeline stage. For the $vectorSearch queries, Atlas Vector Search returns the results of your semantic search.\n\nThe field that you want to search must be indexed as Atlas Vector Search vector type inside a vectorSearch index type.\n\n$vectorSearch\nA $vectorSearch pipeline has the following prototype form:\n\n{\n  \"$vectorSearch\": {\n    \"exact\": true | false,\n    \"filter\": {<filter-specification>},\n    \"index\": \"<index-name>\",\n    \"limit\": <number-of-results>,\n    \"numCandidates\": <number-of-candidates>,\n    \"path\": \"<field-to-search>\",\n    \"queryVector\": [<array-of-numbers>]\n  }\n}"
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "How do I tune the accuracy of my queries?",
+    "response": "For ANN search, we recommend that you specify a numCandidates number at least 20 times higher than the number of documents to return (limit) to increase accuracy. For example, if you set limit to return 5 results, consider setting numCandidates to 100 as a starting point.\n\nThis overrequest pattern is the recommended way to trade off latency and recall in your ANN searches. However, we recommend tuning this parameter based on your specific dataset size and query requirements. To ensure that you get accurate results, consider the following variables:\n\nIndex Size: Larger collections typically require higher numCandidates values to maintain recall. A collection with millions of vectors might need significantly more candidates than one with thousands of vectors.\n\nLimit Value: Because numCandidates is highly correlated with the index size, low limit values require proportionally higher numCandidates values to maintain recall.\n\nVector Quantization: Quantized vectors reduce storage at the cost of accuracy. Using quantized vectors (int8 or int1 subtypes) might require higher numCandidates values compared to full precision float32 vectors to maintain similar recall."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "How should i evaluate the accuracy of my ANN searches?",
+    "response": "You can measure the accuracy of your Atlas Vector Search query by evaluating how closely the results for an ANN search match the results of an ENN search against quantized vectors by using the same query criteria. That is, you can compare the results of ANN search with the results of ENN search and measure how frequently the ANN search results include the nearest neighbors in the results from the ENN search.\n\n\nENN search examines all possible candidates and returns the closest match to the query based on the similarity score. ANN search uses approximations to speed up the search, which might alter the set of returned documents. If you increase the numCandidates value in the ANN query, the results will be a closer match to the ENN query results. However, this would consume additional computational resources and might reduce query speed. The tenth document in the results reflects the trade-off between accuracy and speed. Altering the represention of the vector by indexing higher dimension vector or working with float vectors instead of quantized vectors can further improve the representational capacity of your embeddings which would help accuracy.\n\nAfter quantitatively evaluating results against the ENN ground truth, we recommend testing a set of 100 queries in the same manner and computing the \"jaccard similarity\" between the result sets. Jaccard similarity can be computed by dividing the intersection between two sets, that is, the overlapping items, by the total set size. This gives a sense for recall performance of ANN queries, including those performed against quantized vectors."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "Why are my vector search queries so slow?",
+    "response": "To implement RAG with Atlas Vector Search, you ingest data into Atlas, retrieve documents with Atlas Vector Search, and generate responses using an LLM.\n\nData ingestion for RAG involves processing your custom data and storing it in a vector database to prepare it for retrieval. To create a basic ingestion pipeline with Atlas as the vector database, do the following:\n\nLoad the data.\n\nUse tools like document loaders or data connectors to load data from different data formats and locations.\n\nSplit the data into chunks.\n\nProcess, or chunk, your data. Chunking involves splitting your data into smaller parts to improve performance.\n\nConvert the data to vector embeddings.\n\nConvert your data into vector embeddings by using an embedding model. To learn more, see How to Create Vector Embeddings.\n\nStore the data and embeddings in Atlas.\n\nStore these embeddings in Atlas. You store embeddings as a field alongside other data in your collection."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "I have enough memory, how can I further improve performance?",
+    "response": "Reduce Vector Dimensions\nAtlas Vector Search supports up to 8192, inclusive, vector dimensions. However, vector search indexing and queries are computationally intensive, as larger vectors require more floating point comparisons. Therefore, where possible, we recommend reducing the number of dimensions after ensuring that you can measure the impact of changing embedding models on the accuracy of your vector queries.\n\nAvoid Indexing Vectors When Running Queries\nVector embeddings consume computational resources during indexing. We recommend avoiding indexing and re-indexing during a vector search. If you decide to change the embedding model that produces the vectors to index, we recommend that you re-index the new vectors into a new index rather than updating the index that is currently in use.\n\nPre-Filter Data\nIf you have more vectors or vectors with higher dimensions, you can narrow the scope of your semantic search and ensure that not all vectors are considered for comparison. We recommend including the filter option inside your $vectorSearch pipeline, which performs pre-filtering to reduce the number of documents to perform the vector search on. Also, consider the performance impact of very high-dimensional vectors, as query performance could degrade with large arrays.\n\nUse Dedicated Search Nodes\nIf you deploy the mongod and mongot processes on the same node, there might be resource contention between the processes. To optimize the performance of your Atlas Vector Search queries, we recommend that you deploy the mongot process on dedicated Search Nodes. This not only helps avoid resource contention between the mongot and mongod processes, but also enables parallel segment search by default for $vectorSearch queries on Search Nodes.\n\nExclude Vector Fields From the Results\nYou can request existing fields from the documents in the results and newly computed fields to be returned in the $project stage. To improve query performance, use the $project stage to judiciously select the fields to return in the results, unless you need all the fields in the results. We recommend excluding the vector field in the $project stage because vector embeddings might be large and impact query latency in returning the results.\nles more efficient usage of memory for vector search use cases.\n\nWarm up the Filesystem Cache\nWhen you perform vector search, your queries initially perform random seeks on disk as you traverse the Hierarchical Navigable Small Worlds graph and the vector values are read into memory. This causes very high latency for initial queries. The latency improves when Hierarchical Navigable Small Worlds traversal reads all indexed vectors into memory, which allows them to be accessed much more quickly for subsequent queries.\n\nHowever, this cache warming process must be repeated on large writes, or when your index is rebuilt.\n\nUse binData Vectors\nThe BinData vector subtypes provide 3x storage savings when using float vectors in mongod, and also support indexing vectors with alternative types such as int8 vectors and int1 vectors. This significantly reduced resource profile accelerates the internal query path that mongod uses to retrieve documents from the database for every $vectorSearch query. Using binData vectors, even when you are using binData floats, materially accelerates query latency especially when the limit (number of results) is greater than 20.\n\nQuantize the Vector Embeddings\nScalar quantization reduces the precision of each individual dimension such as converting 32-bit floating-point numbers to 8-bit integers. However, it retains the ability to retrieve relevant information well for most embedding models. On the other hand, binary quantization reduces the vectors to either 1 or 0, which performs better for QAT embedding models.\n\nScalar quantization is good at preserving recall for vectors from most embedding models. If your have vectors from QAT embedding models, binary quantization can provide better performance because the training process trains the model to adapt to the extreme reduction in precision."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "Are updates to Atlas Vector Search indexes within the transaction commit of MongoDB?",
+    "response": "No, Atlas vector search indexes are updated in an eventually consistent manner"
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "How can i combine vector search with lexical search?",
+    "response": "[TO FILL] update when $rankFusion syntax is released"
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "Can I use a prefilter with my vector search queries?",
+    "response": "Yes, you can specify an MQL style prefilter in your $vectorSearch queries to reduce the scope of the search significantly considering a static or dynamic predicate. Any filter fields should be added at index time."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "What are some limitations I should be aware of with $vectorSearch?",
+    "response": "It must be the first stage in your pipeline, the largest number of results the stage can return is 10000, it doesn't supported nested embedding search, you cannot pass the results of $vectorSearch to a $lookup or $facet pipeline."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "How can I add embeddings to my collection?",
+    "response": "1. Define a function that uses an embedding model to generate vector embeddings.\n\n2. Create embeddings from your data and store them in Atlas.\n\n3. Create embeddings from your search terms and run a vector search query.\n\nFor production applications, you typically write a script to generate vector embeddings. You can start with the sample code on this page and customize it for your use case."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "How can I perform RAG with MongoDB?",
+    "response": "To implement RAG with Atlas Vector Search, you ingest data into Atlas, retrieve documents with Atlas Vector Search, and generate responses using an LLM.\n\n1. Use tools like document loaders or data connectors to load data from different data formats and locations.\n\n2. Process, or chunk, your data. Chunking involves splitting your data into smaller parts to improve performance.\n\n3. Convert your data into vector embeddings by using an embedding model. \nStore the data and embeddings in Atlas.\n\n4. Store these embeddings in Atlas. You store embeddings as a field alongside other data in your collection.\n\nTo perform basic retrieval with Atlas Vector Search, do the following:\n\n1. Define an Atlas Vector Search index on the collection that contains your vector embeddings.\n\n2. Choose one of the following methods to retrieve documents based on the user's question:\n\na. Use an Atlas Vector Search integration with a popular framework or service. These integrations include built-in libraries and tools that enable you to easily build retrieval systems with Atlas Vector Search.\n\nb. Build your own retrieval system. You can define your own functions and pipelines to run Atlas Vector Search queries specific to your use case.\n\nTo generate responses, combine your retrieval system with an LLM. After you perform a vector search to retrieve relevant documents, you provide the user's question along with the relevant documents as context to the LLM so that it can generate a more accurate response.\n\nChoose one of the following methods to connect to an LLM:\n\na. Use an Atlas Vector Search integration with a popular framework or service. These integrations include built-in libraries and tools to help you connect to LLMs with minimal set-up.\n\nb. Call the LLM's API. Most AI providers offer APIs to their generative models that you can use to generate responses.\n\nLoad an open-source LLM. If you don't have API keys or credits, you can use an open-source LLM by loading it locally from your application. For an example implementation, see the Build a Local RAG Implementation with Atlas Vector Search tutorial."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "How does vector quantization work?",
+    "response": "Quantization reduces the precision of vector data to save memory and improve performance. Atlas Vector Search supports scalar quantization (converting high-precision numbers to lower-precision ones like 32-bit floats to 8-bit integers) and binary quantization (reducing vectors to 1s and 0s). Scalar quantization works well for most embedding models, while binary quantization is better for QAT embedding models."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "Is there any way of testing vector search locally?",
+    "response": "Yes, you can use the Atlas CLI to deploy a local instance of vector search and test queries, such as for integration tests or learning how to index data and execute queries."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "How do you recommend modeling multitenanted vector search workloads?",
+    "response": "We recommend storing all tenant data in a single collection, as well as in a single database and cluster. You can distinguish between tenants by including a tenant_id field within each document. This field can be any unique identifier for the tenant, such as a UUID or a tenant name. You can use this field as a pre-filter in your Atlas Vector Search indexes and queries.\n\n\nIf you experience performance issues due to unequal distribution of data (some large tenants and many small tenants), use MongoDB Views to separate large tenants from smaller tenants:\n\n- Large Tenants (Top 1%):\n\nCreate a view for each large tenant.\n\nCreate an index for each view.\n\nMaintain a record of large tenants that you check at query-time to route queries accordingly.\n\n- Small Tenants (Remaining Tenants):\n\nCreate a single view for all small tenants.\n\nBuild a single index for this view.\n\nUse the tenant_id field as a pre-filter to route queries accordingly."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "Why would i use Atlas Vector Search instead of a dedicated vector database?",
+    "response": "Unlike standalone vector databases, Atlas Vector Search is built into the core database, eliminating the need to synchronize data between operational and vector databases—reducing complexity and preventing errors.\n\nFor independent scalability to mimic the capablities of a vector database without requiring syncing between multiple data sources, Atlas offers search nodes for scaling out vector search and lexical search workloads."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "What is MongoDB Atlas Vector Search, and how does it support RAG applications?",
+    "response": "MongoDB Atlas Vector Search is a feature integrated into MongoDB Atlas that enables semantic search on vector embeddings stored alongside your operational data. It allows you to query data based on meaning rather than exact keyword matches, which is essential for RAG applications where you need to retrieve semantically relevant context for your LLMs. By storing vector embeddings alongside your data in a single database, you avoid synchronization issues that come with separate operational and vector databases."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "What are the minimum requirements to use Atlas Vector Search for a RAG application?",
+    "response": "o use Atlas Vector Search for RAG, you need an Atlas cluster running MongoDB version 6.0.11, 7.0.2, or later. You'll also need to create a vector search index on your data, have a method to generate embeddings (such as using OpenAI or Voyage embedding models), and connect to an LLM for the generation part of RAG."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "What similarity methods does Atlas Vector Search support?",
+    "response": "Atlas Vector Search supports three similarity functions: euclidean (measuring distance between vector endpoints), cosine (measuring angle between vectors without considering magnitude), and dotProduct (similar to cosine but takes vector magnitude into account). These typically strongly correlate with the selected embedding model used to produce the vectors."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "What maximum dimensionality does Atlas Vector Search support?",
+    "response": "Atlas Vector Search supports up to 8192 vector dimensions. However, since vector search operations are computationally intensive, MongoDB recommends reducing dimensions where possible to improve performance, after testing to ensure this doesn't impact the accuracy of your searches."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "Can I use Atlas Vector Search without external API keys?",
+    "response": "Yes, MongoDB provides tutorials and examples for implementing RAG using local open-source models through tools like Ollama, eliminating the need for external API keys. You can use local embedding models to generate vector embeddings and local LLMs to answer questions based on the retrieved context from Atlas Vector Search"
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "How does Atlas Vector Search integrate with frameworks like LangChain?",
+    "response": "MongoDB provides official integrations with LangChain through the langchain-mongodb package, which includes components like MongoDBAtlasVectorSearch for storing and retrieving embeddings, specialized retrievers like MongoDBAtlasParentDocumentRetriever, and document loaders. These components make it easy to implement RAG with LangChain and Atlas Vector Search."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "What's the difference between ANN and ENN search in Atlas Vector Search?",
+    "response": "ANN (Approximate Nearest Neighbors) search uses the Hierarchical Navigable Small Worlds algorithm to find similar vectors quickly without scanning every vector. It's ideal for large datasets with minimal filtering. ENN (Exact Nearest Neighbors) exhaustively searches all indexed vectors to find the exact closest matches, offering higher accuracy but potentially slower performance, best for smaller datasets or highly selective filters."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "What's the syntax for running a vector search query in MongoDB?",
+    "response": "Vector search queries use the $vectorSearch aggregation stage. A basic query looks like:\ndb.collection.aggregate([\n  {\n    $vectorSearch: {\n      index: \"vector_index\",\n      queryVector: [0.1, 0.2, ...],\n      path: \"embedding_field\",\n      numCandidates: 100,\n      limit: 10\n    }\n  }\n])\nThe query requires the index name, a query vector, the field path containing embeddings, number of candidates to consider, and a limit for returned results."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "What embedding models work with Atlas Vector Search?",
+    "response": "Atlas Vector Search works with embeddings from any provider, as long as they're under the supported dimension limit (8,192). You can use popular models from providers like OpenAI, Anthropic, Google, and Voyage AI, or open-source models. MongoDB supports ingesting, indexing, and querying scalar and binary quantized vectors."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "Can I use Atlas Vector Search with LlamaIndex?",
+    "response": "Yes, you can integrate Atlas Vector Search with LlamaIndex. This involves setting up your Atlas cluster, loading data into a LlamaIndex index, storing vector embeddings in MongoDB using the MongoDBAtlasVectorSearch vector store, and running semantic searches using LlamaIndex's VectorIndexRetriever to generate context-aware responses."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "How does Atlas Vector Search handle scoring of search results?",
+    "response": "Atlas Vector Search assigns a score between 0 and 1 to each result, where 0 indicates low similarity and 1 indicates high similarity. For cosine and dotProduct similarities, it normalizes scores to ensure they aren't negative. For euclidean similarity, it uses a special algorithm to transform distances into 0-1 scores. You can retrieve scores using $vectorSearchScore in a $meta expression."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "Can Atlas Vector Search work with image or audio data?",
+    "response": "Yes, Atlas Vector Search can work with any kind of data that can be converted to vector embeddings, including text, images, and audio. You store the vectors alongside your rich document data, making it possible to create multimodal applications that search across different data types."
+  },
+  {
+    "type": "question",
+    "urlIndex": -1,
+    "prompt": "Are there any ready-to-use templates for RAG with Atlas Vector Search",
+    "response": "Yes, the GenAI-Showcase repo on github has many example notebooks of how to use Atlas Vector Search to build RAG, agentic, or other GenAI applications."
+  }
+]

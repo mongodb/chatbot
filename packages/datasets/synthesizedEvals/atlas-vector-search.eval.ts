@@ -7,6 +7,19 @@ import { z } from "zod";
 import { LlmOptions } from "mongodb-rag-core/executeCode";
 import { stripIndent } from "common-tags";
 import path from "path";
+import { models as coreModels } from "mongodb-rag-core/models";
+import PromisePool from "@supercharge/promise-pool";
+
+export const models = coreModels.filter((m) =>
+  [
+    "gpt-4.1",
+    "claude-37-sonnet",
+    "llama-3.3-70b",
+    "gemini-2.5-pro-preview-03-25",
+    "nova-pro-v1:0",
+    "mistral-large-2",
+  ].includes(m.label)
+);
 
 const { BRAINTRUST_API_KEY, BRAINTRUST_ENDPOINT } =
   assertEnvVars(BRAINTRUST_ENV_VARS);
@@ -164,37 +177,60 @@ const referenceAlignment = makeReferenceAlignmentScorer({
   },
 });
 
+function makeExperimentName(args: {
+  guide: boolean;
+  product: string;
+  model: string;
+}) {
+  return `${args.guide ? "guide" : "raw"}-${args.product}?model="${
+    args.model
+  }"`;
+}
+
 async function main() {
   console.log("evalData", evalData.length);
-  await Eval("distilled-guides", {
-    experimentName: "no-guide-atlas-vector-search",
-    data: evalData,
-    maxConcurrency: 10,
-    async task(input) {
-      const aiResponse = await chat(makePrompt({ evalData: input }));
-      if (aiResponse === null) {
-        throw new Error("AI response is null");
-      }
-      return aiResponse;
-    },
-    scores: [referenceAlignment],
-  });
 
-  await Eval("distilled-guides", {
-    experimentName: "distilled-atlas-vector-search",
-    data: evalData,
-    maxConcurrency: 10,
-    async task(input) {
-      const aiResponse = await chat(
-        makePrompt({ evalData: input, guide: vectorSearchGuide })
-      );
-      if (aiResponse === null) {
-        throw new Error("AI response is null");
-      }
-      return aiResponse;
-    },
-    scores: [referenceAlignment],
-  });
+  await PromisePool.for(models)
+    .withConcurrency(2)
+    .process(async (model) => {
+      await Eval("distilled-guides", {
+        experimentName: makeExperimentName({
+          guide: false,
+          product: "atlas-vector-search",
+          model: model.label,
+        }),
+        data: evalData,
+        maxConcurrency: 10,
+        async task(input) {
+          const aiResponse = await chat(makePrompt({ evalData: input }));
+          if (aiResponse === null) {
+            throw new Error("AI response is null");
+          }
+          return aiResponse;
+        },
+        scores: [referenceAlignment],
+      });
+
+      await Eval("distilled-guides", {
+        experimentName: makeExperimentName({
+          guide: true,
+          product: "atlas-vector-search",
+          model: model.label,
+        }),
+        data: evalData,
+        maxConcurrency: 10,
+        async task(input) {
+          const aiResponse = await chat(
+            makePrompt({ evalData: input, guide: vectorSearchGuide })
+          );
+          if (aiResponse === null) {
+            throw new Error("AI response is null");
+          }
+          return aiResponse;
+        },
+        scores: [referenceAlignment],
+      });
+    });
 }
 
 main();

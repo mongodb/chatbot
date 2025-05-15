@@ -118,10 +118,17 @@ const llmOptions = {
   seed: 42,
 };
 
-async function chat(messages: OpenAI.ChatCompletionMessageParam[]) {
-  const res = await openAiClient.chat.completions.create({
-    messages,
+async function chat(args: {
+  messages: OpenAI.ChatCompletionMessageParam[];
+  llmOptions?: Partial<LlmOptions>;
+}) {
+  const options = {
     ...llmOptions,
+    ...args.llmOptions,
+  };
+  const res = await openAiClient.chat.completions.create({
+    messages: args.messages,
+    ...options,
   });
   return res.choices[0].message.content;
 }
@@ -187,13 +194,15 @@ function makeExperimentName(args: {
   }"`;
 }
 
+const BRAINTRUST_PROJECT_NAME = "distilled-guides";
+
 async function main() {
   console.log("evalData", evalData.length);
 
   await PromisePool.for(models)
     .withConcurrency(2)
     .process(async (model) => {
-      await Eval("distilled-guides", {
+      await Eval(BRAINTRUST_PROJECT_NAME, {
         experimentName: makeExperimentName({
           guide: false,
           product: "atlas-vector-search",
@@ -202,7 +211,12 @@ async function main() {
         data: evalData,
         maxConcurrency: 10,
         async task(input) {
-          const aiResponse = await chat(makePrompt({ evalData: input }));
+          const aiResponse = await chat({
+            messages: makePrompt({ evalData: input }),
+            llmOptions: {
+              model: model.label,
+            },
+          });
           if (aiResponse === null) {
             throw new Error("AI response is null");
           }
@@ -211,7 +225,7 @@ async function main() {
         scores: [referenceAlignment],
       });
 
-      await Eval("distilled-guides", {
+      await Eval(BRAINTRUST_PROJECT_NAME, {
         experimentName: makeExperimentName({
           guide: true,
           product: "atlas-vector-search",
@@ -220,9 +234,12 @@ async function main() {
         data: evalData,
         maxConcurrency: 10,
         async task(input) {
-          const aiResponse = await chat(
-            makePrompt({ evalData: input, guide: vectorSearchGuide })
-          );
+          const aiResponse = await chat({
+            messages: makePrompt({ evalData: input, guide: vectorSearchGuide }),
+            llmOptions: {
+              model: model.label,
+            },
+          });
           if (aiResponse === null) {
             throw new Error("AI response is null");
           }

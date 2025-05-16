@@ -1,0 +1,28 @@
+{
+  "name": "mcp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "postbuild": "npm run copy-resources",
+    "build": "tsc && chmod 755 build/index.js",
+    "start": "node build/index.js",
+    "copy-resources": "mkdir -p build/static && cp -r static/ build/static/"
+  },
+  "files": [
+    "build"
+  ],
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^22.15.17",
+    "dotenv": "^16.5.0",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.11.2",
+    "mongodb-rag-core": "*",
+    "yargs-parser": "^21.1.1"
+  }
+}

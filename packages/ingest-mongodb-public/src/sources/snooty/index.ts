@@ -1,3 +1,4 @@
+export * from "./getSnootyTableOfContents";
 export * from "./SnootyDataSource";
 export * from "./SnootyProjectsInfo";
 export * from "./renderSnootyTable";

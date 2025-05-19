@@ -10,7 +10,7 @@ export interface LoadPagesDatasetParams {
   /**
     Regular expression to filter pages by `Page.dataSource`
    */
-  dataSourceTypes: string[];
+  dataSourceRegex: RegExp;
   /**
     Set of urls to exclude from the dataset
    */
@@ -19,19 +19,15 @@ export interface LoadPagesDatasetParams {
 
 export async function loadPagesDataset({
   pageStore,
-  dataSourceTypes,
+  dataSourceRegex,
   forbiddenUrls,
 }: LoadPagesDatasetParams): Promise<PageDatasetEntry[]> {
   return pageStore.aggregatePages<PageDatasetEntry>([
     {
       $match: {
-        sourceType: { $in: dataSourceTypes },
+        sourceName: dataSourceRegex,
         url: { $nin: forbiddenUrls },
         action: { $ne: "deleted" },
-        $or: [
-          { "metadata.version.isCurrent": { $exists: false } },
-          { "metadata.version.isCurrent": true },
-        ],
       },
     },
     {

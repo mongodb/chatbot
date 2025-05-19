@@ -10,7 +10,7 @@ import {
 } from "mongodb-rag-core";
 import {
   forbiddenUrls,
-  publicDatasetSourceTypes,
+  publicDatasetSourceName,
 } from "../../mongoDbDatasetConstants";
 import { uploadDatasetToHuggingFace } from "../../uploadDatasetToHuggingFace";
 import { HUGGINGFACE, HUGGINGFACE_DOCS_CODE_EXAMPLES } from "../../EnvVars";
@@ -21,7 +21,7 @@ import { CodeExampleDatasetEntry } from "../../codeExampleDataset/createCodeExam
 import { Filter } from "mongodb-rag-core/mongodb";
 
 async function uploadCodeExampleDatasetToHuggingFace() {
-  logger.info("Starting upload code example dataset to Hugging Face script");
+  logger.info("Staring upload code example dataset to Hugging Face script");
 
   const {
     HUGGINGFACE_ACCESS_TOKEN,
@@ -56,7 +56,7 @@ async function uploadCodeExampleDatasetToHuggingFace() {
   try {
     const pages = await pageStore.loadPages({
       query: makeLoadPagesFilter(
-        publicDatasetSourceTypes,
+        publicDatasetSourceName,
         Array.from(forbiddenUrls)
       ),
     });
@@ -120,16 +120,12 @@ async function uploadCodeExampleDatasetToHuggingFace() {
 uploadCodeExampleDatasetToHuggingFace();
 
 function makeLoadPagesFilter(
-  publicDatasetSourceTypes: string[],
+  publicDatasetSourceName: RegExp,
   forbiddenUrls: string[]
 ): Filter<PersistedPage> {
   return {
-    sourceType: { $in: publicDatasetSourceTypes },
+    sourceName: publicDatasetSourceName,
     url: { $nin: forbiddenUrls },
     action: { $ne: "deleted" },
-    $or: [
-      { "metadata.version.isCurrent": { $exists: false } },
-      { "metadata.version.isCurrent": true },
-    ],
   };
 }

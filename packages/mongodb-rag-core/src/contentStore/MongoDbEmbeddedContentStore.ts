@@ -1,10 +1,6 @@
 import { pageIdentity } from ".";
 import { DatabaseConnection } from "../DatabaseConnection";
-import {
-  EmbeddedContent,
-  EmbeddedContentStore,
-  QueryFilters,
-} from "./EmbeddedContent";
+import { EmbeddedContent, EmbeddedContentStore } from "./EmbeddedContent";
 import { FindNearestNeighborsOptions, WithScore } from "../VectorStore";
 import {
   MakeMongoDbDatabaseConnectionParams,
@@ -72,18 +68,6 @@ export function makeMongoDbEmbeddedContentStore({
       {
         type: "filter",
         path: "sourceName",
-      },
-      {
-        type: "filter",
-        path: "metadata.version.label",
-      },
-      {
-        type: "filter",
-        path: "metadata.version.isCurrent",
-      },
-      {
-        type: "filter",
-        path: "sourceType",
       },
     ],
     name = "vector_index",
@@ -202,7 +186,7 @@ export function makeMongoDbEmbeddedContentStore({
               path,
               limit: k,
               numCandidates: numCandidates ?? k * 15,
-              filter: handleFilters(filter),
+              filter,
             },
           },
           {
@@ -219,15 +203,6 @@ export function makeMongoDbEmbeddedContentStore({
     async init() {
       await embeddedContentCollection.createIndex({ sourceName: 1 });
       await embeddedContentCollection.createIndex({ url: 1 });
-      await embeddedContentCollection.createIndex({
-        "metadata.version.isCurrent": 1,
-      });
-      await embeddedContentCollection.createIndex({
-        "metadata.version.label": 1,
-      });
-      await embeddedContentCollection.createIndex({
-        sourceType: 1,
-      });
 
       try {
         const searchIndex = {
@@ -259,44 +234,3 @@ export function makeMongoDbEmbeddedContentStore({
     },
   };
 }
-
-type MongoDbAtlasVectorSearchFilter = {
-  sourceName?: string;
-  "metadata.version.label"?: string;
-  "metadata.version.isCurrent"?: boolean;
-  $or?: {
-    "metadata.version.isCurrent": boolean | null;
-  }[];
-  sourceType?: string;
-};
-
-const handleFilters = (
-  filter: QueryFilters
-): MongoDbAtlasVectorSearchFilter => {
-  const vectorSearchFilter: MongoDbAtlasVectorSearchFilter = {};
-  if (filter.sourceName) {
-    vectorSearchFilter["sourceName"] = filter.sourceName;
-  }
-  if (filter.sourceType) {
-    vectorSearchFilter["sourceType"] = filter.sourceType;
-  }
-  // Handle version filter. Note: unversioned embeddings (isCurrent: null) are treated as current
-  const { current, label } = filter.version ?? {};
-  if (label) {
-    vectorSearchFilter["metadata.version.label"] = label;
-  }
-  // Return current embeddings if either:
-  // 1. current=true was explicitly requested, or
-  // 2. [Default] no version filters were specified (current and label are undefined)
-  else if (current === true || current === undefined) {
-    vectorSearchFilter["$or"] = [
-      { "metadata.version.isCurrent": true },
-      { "metadata.version.isCurrent": null },
-    ];
-  }
-  // Only find embeddings that are explicitly marked as non-current (isCurrent: false)
-  else if (current === false) {
-    vectorSearchFilter["metadata.version.isCurrent"] = false;
-  }
-  return vectorSearchFilter;
-};

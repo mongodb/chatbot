@@ -11,9 +11,6 @@ export const makeMockPageStore = (): PageStore => {
     },
     async deletePages() {
       return;
-    },
-    async getDataSourceVersions() {
-      return {};
-    },
+    }
   };
 };

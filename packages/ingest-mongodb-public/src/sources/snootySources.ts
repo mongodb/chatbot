@@ -21,6 +21,7 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
     name: "docs",
     tags: ["docs", "manual"],
     productName: "MongoDB Server",
+    versionNameOverride: "v7.0",
   },
   {
     type: "snooty",

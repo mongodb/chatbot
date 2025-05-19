@@ -236,6 +236,55 @@ const addOriginToCustomData: AddCustomDataFunc = async (_, res) =>
       }
     : undefined;
 
+function getOriginCode(origin: string): string {
+    const learnOriginRegex = /learn\\.mongodb\\.com/;
+    const learnOriginCode = "LEARN";
+    const isLearnOrigin = learnOriginRegex.test(origin);
+    if (isLearnOrigin) {
+      return learnOriginCode;
+    }
+
+    const developerOriginRegex = /mongodb\\.com\/developer/;
+    const developerOriginCode = "DEVELOPER";
+    const isDeveloperOrigin = developerOriginRegex.test(origin);
+    if (isDeveloperOrigin) {
+      return developerOriginCode;
+    }
+
+    const docsOriginRegex = /mongodb\\.com\/docs/;
+    const docsOriginCode = "DOCS";
+    const isDocsOrigin = docsOriginRegex.test(origin);
+    if (isDocsOrigin) {
+      return docsOriginCode;
+    }
+
+    const dotcomOriginRegex = /^https:\/\/www\.mongodb\.com\/(?:\?(?:[^#]*)?)?(?:#.*)?$/;
+    const dotcomOriginCode = "DOTCOM";
+    const isDotcomOrigin = dotcomOriginRegex.test(origin);
+    if (isDotcomOrigin) {
+      return dotcomOriginCode;
+    }
+
+    const geminiAssistantOriginRegex = /google-gemini-code-assist/;
+    const geminiAssistantOriginCode = "GEMINI_CODE_ASSIST";
+    const isGeminiAssistantOrigin = geminiAssistantOriginRegex.test(origin);
+    if (isGeminiAssistantOrigin) {
+      return geminiAssistantOriginCode;
+    }
+
+    const otherOriginCode = "OTHER";
+    return otherOriginCode;
+}
+
+const addOriginCodeToCustomData: AddCustomDataFunc = async (_, res) => {
+  const origin = res.locals.customData.origin;
+  return typeof origin === "string" && origin.length > 0
+    ? {
+        originCode: getOriginCode(origin),
+      } 
+    : undefined;
+}
+
 const addUserAgentToCustomData: AddCustomDataFunc = async (req) =>
   req.headers["user-agent"]
     ? {
@@ -252,6 +301,7 @@ export const defaultCreateConversationCustomData: AddDefinedCustomDataFunc =
     return {
       ...(await addIpToCustomData(req, res)),
       ...(await addOriginToCustomData(req, res)),
+      ...(await addOriginCodeToCustomData(req, res)),
       ...(await addUserAgentToCustomData(req, res)),
     };
   };
@@ -261,6 +311,7 @@ export const defaultAddMessageToConversationCustomData: AddDefinedCustomDataFunc
     return {
       ...(await addIpToCustomData(req, res)),
       ...(await addOriginToCustomData(req, res)),
+      ...(await addOriginCodeToCustomData(req, res)),
       ...(await addUserAgentToCustomData(req, res)),
     };
   };

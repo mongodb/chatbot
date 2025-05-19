@@ -25,6 +25,7 @@ describe("SnootyDataSource", () => {
     version: "version_name",
   };
   const snootyDataApiBaseUrl = "https://snooty-data-api.mongodb.com/prod/";
+
   describe("makeSnootyDataSource()", () => {
     const sampleDataPath = Path.resolve(
       SRC_ROOT,
@@ -208,6 +209,17 @@ describe("SnootyDataSource", () => {
       expect(pages).toHaveLength(1);
       noIndexMock.done();
     });
+
+    it("includes tocIndex in metadata", async () => {
+      const source = await makeSnootyDataSource({
+        name: `snooty-test`,
+        project,
+        snootyDataApiBaseUrl,
+      });
+      const pages = await source.fetchPages();
+
+      expect(pages[0].metadata?.page?.tocIndex).toBe(0);
+    });
   });
 });
 
@@ -227,6 +239,7 @@ describe("handlePage()", () => {
       baseUrl: "https://example.com",
       tags: ["a"],
       version: "1.0",
+      toc: [],
     });
     expect(result).toMatchObject({
       format: "openapi-yaml",
@@ -234,6 +247,9 @@ describe("handlePage()", () => {
       metadata: {
         tags: ["a", "openapi"],
         version: "1.0",
+        page: {
+          tocIndex: undefined,
+        },
       },
     });
   });
@@ -249,6 +265,7 @@ describe("handlePage()", () => {
       baseUrl: "https://example.com",
       tags: ["a"],
       version: "1.0",
+      toc: [],
     });
     expect(result).toMatchObject({
       format: "md",
@@ -256,6 +273,9 @@ describe("handlePage()", () => {
       metadata: {
         tags: ["a"],
         version: "1.0",
+        page: {
+          tocIndex: undefined,
+        },
       },
     });
     expect(result?.body).toContain("# $merge (aggregation)");

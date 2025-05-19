@@ -19,10 +19,17 @@ describe("SnootyDataSource", () => {
   const project: SnootyProjectConfig = {
     type: "snooty",
     name: "docs",
-    currentBranch: "v6.0",
     tags: ["docs", "manual"],
-    baseUrl: "https://mongodb.com/docs/v6.0/",
     version: "version_name",
+    branches: [
+      {
+        gitBranchName: "v6.0",
+        label: "v6.0 (current)",
+        active: true,
+        fullUrl: "https://mongodb.com/docs/v6.0/",
+        isStableBranch: true,
+      },
+    ],
   };
   const snootyDataApiBaseUrl = "https://snooty-data-api.mongodb.com/prod/";
   describe("makeSnootyDataSource()", () => {
@@ -40,7 +47,7 @@ describe("SnootyDataSource", () => {
     const baseMock = nock(snootyDataApiBaseUrl);
     beforeEach(() => {
       baseMock
-        .get(`/projects/${project.name}/${project.currentBranch}/documents`)
+        .get(`/projects/${project.name}/v6.0/documents`)
         .reply(200, () => {
           return fs.createReadStream(sampleDataPath);
         });
@@ -49,7 +56,7 @@ describe("SnootyDataSource", () => {
     afterEach(() => {
       nock.cleanAll();
     });
-    it("successfully loads pages", async () => {
+    it("successfully loads pages for active branches", async () => {
       const source = await makeSnootyDataSource({
         name: `snooty-test`,
         project,
@@ -76,6 +83,29 @@ describe("SnootyDataSource", () => {
         body: firstPageText,
       });
     });
+    it("should skip inactive branches", async () => {
+      const inactiveProject: SnootyProjectConfig = {
+        ...project,
+        branches: [
+          {
+            gitBranchName: "v5.0",
+            label: "v5.0",
+            active: false,
+            fullUrl: "https://mongodb.com/docs/v5.0/",
+            isStableBranch: false,
+          },
+        ],
+      };
+
+      const source = makeSnootyDataSource({
+        name: "test-source",
+        project: inactiveProject,
+        snootyDataApiBaseUrl: "https://snooty-api.example.com",
+      });
+
+      const pages = await source.fetchPages();
+      expect(pages).toHaveLength(0);
+    });
     it("removes 'index' from page_id", async () => {
       const source = await makeSnootyDataSource({
         name: "snooty-docs",
@@ -101,7 +131,10 @@ describe("SnootyDataSource", () => {
         sourceName: "snooty-docs",
         metadata: {
           tags: ["docs", "manual"],
-          version: "version_name",
+          version: {
+            isCurrent: true,
+            label: "v6.0 (current)",
+          },
         },
         url: "https://mongodb.com/docs/v6.0/administration/analyzing-mongodb-performance/index/",
       });
@@ -112,7 +145,10 @@ describe("SnootyDataSource", () => {
         sourceName: "snooty-docs",
         metadata: {
           tags: ["docs", "manual"],
-          version: "version_name",
+          version: {
+            isCurrent: true,
+            label: "v6.0 (current)",
+          },
         },
         url: "https://mongodb.com/docs/v6.0/administration/index/backup-sharded-clusters/",
       });
@@ -123,7 +159,10 @@ describe("SnootyDataSource", () => {
         sourceName: "snooty-docs",
         metadata: {
           tags: ["docs", "manual"],
-          version: "version_name",
+          version: {
+            isCurrent: true,
+            label: "v6.0 (current)",
+          },
         },
         url: "https://mongodb.com/docs/v6.0/administration/change-streams-production-recommendations/how-to-index/",
       });
@@ -138,6 +177,10 @@ describe("SnootyDataSource", () => {
       const pages = await source.fetchPages();
       for (const page of pages) {
         expect(page.metadata?.siteTitle).toBeDefined();
+        expect(page.metadata?.version).toStrictEqual({
+          label: "v6.0 (current)",
+          isCurrent: true,
+        });
       }
     });
 
@@ -158,7 +201,7 @@ describe("SnootyDataSource", () => {
       // Hot swap the mocked backend's data source. The sample data now has one marked deleted.
       nock.cleanAll();
       baseMock
-        .get(`/projects/${project.name}/${project.currentBranch}/documents`)
+        .get(`/projects/${project.name}/v6.0/documents`)
         .reply(200, () => {
           return fs.createReadStream(
             Path.resolve(
@@ -186,7 +229,7 @@ describe("SnootyDataSource", () => {
         snootyDataApiBaseUrl: mockUrl,
       });
       noIndexMock
-        .get(`/projects/${project.name}/${project.currentBranch}/documents`)
+        .get(`/projects/${project.name}/v6.0/documents`)
         .reply(200, () => {
           const noIndexAst = jsonLify(
             Path.resolve(SRC_ROOT, "../testData/noindex.json")
@@ -226,14 +269,14 @@ describe("handlePage()", () => {
       sourceName: "sample-source",
       baseUrl: "https://example.com",
       tags: ["a"],
-      version: "1.0",
+      version: { label: "1.0", isCurrent: true },
     });
     expect(result).toMatchObject({
       format: "openapi-yaml",
       title: "Atlas App Services Data API",
       metadata: {
         tags: ["a", "openapi"],
-        version: "1.0",
+        version: { label: "1.0", isCurrent: true },
       },
     });
   });
@@ -248,14 +291,14 @@ describe("handlePage()", () => {
       sourceName: "sample-source",
       baseUrl: "https://example.com",
       tags: ["a"],
-      version: "1.0",
+      version: { label: "1.0", isCurrent: true },
     });
     expect(result).toMatchObject({
       format: "md",
       title: "$merge (aggregation)",
       metadata: {
         tags: ["a"],
-        version: "1.0",
+        version: { label: "1.0", isCurrent: true },
       },
     });
     expect(result?.body).toContain("# $merge (aggregation)");

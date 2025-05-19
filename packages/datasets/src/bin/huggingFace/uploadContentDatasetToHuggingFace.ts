@@ -6,7 +6,7 @@ import {
 } from "mongodb-rag-core";
 import {
   forbiddenUrls,
-  publicDatasetSourceTypes,
+  publicDatasetSourceName,
 } from "../../mongoDbDatasetConstants";
 import { uploadDatasetToHuggingFace } from "../../uploadDatasetToHuggingFace";
 import { HUGGINGFACE, HUGGINGFACE_DOCS_CONTENT } from "../../EnvVars";
@@ -36,7 +36,7 @@ async function uploadContentDatasetToHuggingFace() {
     logger.info("Loading pages dataset from MongoDB");
     const dataset = await loadPagesDataset({
       pageStore,
-      dataSourceTypes: publicDatasetSourceTypes,
+      dataSourceRegex: publicDatasetSourceName,
       forbiddenUrls: Array.from(forbiddenUrls),
     });
     logger.info(

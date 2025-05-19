@@ -71,10 +71,12 @@ export const standardConfig = {
   }),
   dataSources: async () => {
     const source = makeSnootyDataSource({
-      name: metaSnootyProject.name,
+      name: `snooty-${metaSnootyProject.name}`,
       project: {
         ...metaSnootyProject,
+        currentBranch: metaSnootyProject.currentBranch,
         type: "snooty",
+        baseUrl: metaSnootyProject.baseUrl?.replace(/\/?$/, "/"),
       },
       snootyDataApiBaseUrl,
     });

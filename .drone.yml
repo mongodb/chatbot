@@ -724,8 +724,10 @@ trigger:
       - packages/scripts/**/*
       - packages/mongodb-rag-core/**/*
       - packages/mongodb-chatbot-server/**/*
+      - packages/chatbot-server-mongodb-public/**/*
       - package-lock.json
       - package.json
+      - scripts-service.dockerfile
 
 steps:
   # Builds and publishes Docker image for staging
@@ -777,8 +779,10 @@ trigger:
       - packages/scripts/**/*
       - packages/mongodb-rag-core/**/*
       - packages/mongodb-chatbot-server/**/*
+      - packages/chatbot-server-mongodb-public/**/*
       - package-lock.json
       - package.json
+      - scripts-service.dockerfile
 
   branch:
     - main

@@ -7,29 +7,25 @@ import { z } from "zod";
 import { LlmOptions } from "mongodb-rag-core/executeCode";
 import { stripIndent } from "common-tags";
 import path from "path";
-import { models as coreModels } from "mongodb-rag-core/models";
+import {
+  models as coreModels,
+  getOpenAiEndpointAndApiKey,
+} from "mongodb-rag-core/models";
 import PromisePool from "@supercharge/promise-pool";
 
 export const models = coreModels.filter((m) =>
   [
-    "gpt-4.1",
-    "claude-37-sonnet",
-    "llama-3.3-70b",
+    // "gpt-4.1",
+    // "claude-37-sonnet",
+    // "llama-3.3-70b",
     "gemini-2.5-pro-preview-03-25",
-    "nova-pro-v1:0",
-    "mistral-large-2",
+    // "nova-pro-v1:0",
+    // "mistral-large-2",
   ].includes(m.label)
 );
 
 const { BRAINTRUST_API_KEY, BRAINTRUST_ENDPOINT } =
   assertEnvVars(BRAINTRUST_ENV_VARS);
-
-const openAiClient = wrapOpenAI(
-  new OpenAI({
-    apiKey: BRAINTRUST_API_KEY,
-    baseURL: BRAINTRUST_ENDPOINT,
-  })
-);
 
 const evalDataSchema = z.object({
   url: z.string().optional(),
@@ -119,6 +115,7 @@ const llmOptions = {
 };
 
 async function chat(args: {
+  openAiClient: OpenAI;
   messages: OpenAI.ChatCompletionMessageParam[];
   llmOptions?: Partial<LlmOptions>;
 }) {
@@ -126,7 +123,7 @@ async function chat(args: {
     ...llmOptions,
     ...args.llmOptions,
   };
-  const res = await openAiClient.chat.completions.create({
+  const res = await args.openAiClient.chat.completions.create({
     messages: args.messages,
     ...options,
   });
@@ -134,7 +131,9 @@ async function chat(args: {
 }
 
 export function makeReferenceAlignmentScorer(args: {
-  llmOptions: LlmOptions;
+  openAiApiKey: string;
+  openAiBaseUrl: string;
+  model: string;
   name_postfix?: string;
 }): EvalScorer<EvalData, string, string> {
   return async function ({ input, output, expected }) {
@@ -146,13 +145,9 @@ export function makeReferenceAlignmentScorer(args: {
       input: input.prompt,
       output,
       expected,
-      // Note: need to do the funky casting here
-      // b/c of different `OpenAI` client typing
-      // that is not relevant here.
-      client: args.llmOptions.openAiClient as unknown as Parameters<
-        typeof Factuality
-      >[0]["client"],
-      model: args.llmOptions.model,
+      openAiApiKey: args.openAiApiKey,
+      openAiBaseUrl: args.openAiBaseUrl,
+      model: args.model,
     });
     return {
       ...factuality,
@@ -164,7 +159,7 @@ export function makeReferenceAlignmentScorer(args: {
 
 function remapFactualityScore(score: number | null) {
   if (score === null) {
-    score = 0;
+    return null;
   }
   switch (score) {
     case 0.4:
@@ -177,11 +172,9 @@ function remapFactualityScore(score: number | null) {
 }
 
 const referenceAlignment = makeReferenceAlignmentScorer({
-  llmOptions: {
-    ...llmOptions,
-    model: "gpt-4o-mini",
-    openAiClient,
-  },
+  openAiApiKey: BRAINTRUST_API_KEY,
+  openAiBaseUrl: BRAINTRUST_ENDPOINT,
+  model: "gpt-4.1",
 });
 
 function makeExperimentName(args: {
@@ -201,7 +194,17 @@ async function main() {
 
   await PromisePool.for(models)
     .withConcurrency(2)
+    .handleError((error, model) => {
+      console.error(`Error for model ${model.label}:`, error);
+    })
     .process(async (model) => {
+      const { apiKey, baseURL } = await getOpenAiEndpointAndApiKey(model);
+      const openAiClient = wrapOpenAI(
+        new OpenAI({
+          apiKey,
+          baseURL,
+        })
+      );
       await Eval(BRAINTRUST_PROJECT_NAME, {
         experimentName: makeExperimentName({
           guide: false,
@@ -209,12 +212,13 @@ async function main() {
           model: model.label,
         }),
         data: evalData,
-        maxConcurrency: 10,
+        maxConcurrency: model.maxConcurrency,
         async task(input) {
           const aiResponse = await chat({
             messages: makePrompt({ evalData: input }),
+            openAiClient,
             llmOptions: {
-              model: model.label,
+              model: model.deployment,
             },
           });
           if (aiResponse === null) {
@@ -232,12 +236,13 @@ async function main() {
           model: model.label,
         }),
         data: evalData,
-        maxConcurrency: 10,
+        maxConcurrency: model.maxConcurrency,
         async task(input) {
           const aiResponse = await chat({
             messages: makePrompt({ evalData: input, guide: vectorSearchGuide }),
+            openAiClient,
             llmOptions: {
-              model: model.label,
+              model: model.deployment,
             },
           });
           if (aiResponse === null) {

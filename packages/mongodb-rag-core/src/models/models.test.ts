@@ -15,7 +15,7 @@ jest.setTimeout(60000);
 // NOTE: due to this issue https://github.com/nodejs/node/issues/39964,
 // you must run the tests with a Node version >= 20.0.0
 
-describe.skip("Braintrust models", () => {
+describe("Braintrust models", () => {
   test.each(models.filter((m) => m.provider === "braintrust"))(
     "'$label' model should generate data",
     async (model) => {

@@ -86,7 +86,7 @@ export function makeAddMessageToConversationUpdateTrace({
     } catch (error) {
       logRequest({
         reqId,
-        message: `Error scrubbing messages ${error}`,
+        message: `Error scrubbing messages while adding message ${error}`,
         type: "error",
       });
     }
@@ -237,10 +237,18 @@ export function makeRateMessageUpdateTrace({
           responseRating: rating,
         },
       });
+
+      assert(userMessage?.id, "Missing user message for rating");
+      await scrubbedMessageStore.updateScrubbedMessage({
+        id: userMessage.id,
+        message: {
+          responseRating: rating,
+        },
+      });
     } catch (error) {
       logRequest({
         reqId: traceId,
-        message: `Error scrubbing messages ${error}`,
+        message: `Error scrubbing messages during rating ${error}`,
         type: "error",
       });
     }
@@ -345,7 +353,7 @@ export function makeCommentMessageUpdateTrace({
     try {
       const { redactedText: userComment, piiFound } = redactPii(comment ?? "");
       assert(assistantMessage?.id, "Missing assistant message for comment");
-      const fieldsToUpdate: Record<string, unknown> = {
+      const assistantMessageFieldsToUpdate: Record<string, unknown> = {
         userComment,
         userCommented: true,
         userCommentPii: piiFound,
@@ -353,16 +361,25 @@ export function makeCommentMessageUpdateTrace({
       // Update PII only if true.
       // This way it doesn't override it previously having been set.
       if (piiFound?.length) {
-        fieldsToUpdate.pii = true;
+        assistantMessageFieldsToUpdate.pii = true;
       }
       await scrubbedMessageStore.updateScrubbedMessage({
         id: assistantMessage.id,
-        message: fieldsToUpdate,
+        message: assistantMessageFieldsToUpdate,
+      });
+
+      assert(userMessage?.id, "Missing user message for comment");
+      const userMessageFieldsToUpdate: Record<string, unknown> = {
+        userCommented: true,
+      }
+      await scrubbedMessageStore.updateScrubbedMessage({
+        id: userMessage.id,
+        message: userMessageFieldsToUpdate,
       });
     } catch (error) {
       logRequest({
         reqId: traceId,
-        message: `Error scrubbing messages ${error}`,
+        message: `Error scrubbing messages during comment ${error}`,
         type: "error",
       });
     }

@@ -38,6 +38,11 @@ export interface EmbeddedContent {
   updated: Date;
 
   /**
+    The source type indicates where the page was loaded from.
+   */
+  sourceType?: Page["sourceType"];
+
+  /**
     Arbitrary metadata associated with the content. If the content text has
     metadata in Front Matter format, this metadata should match that metadata.
    */
@@ -45,6 +50,10 @@ export interface EmbeddedContent {
     pageTitle?: string;
     tags?: string[];
     [k: string]: unknown;
+    version?: {
+      isCurrent: boolean;
+      label: string;
+    };
   };
 
   /**
@@ -73,6 +82,18 @@ export type DeleteEmbeddedContentArgs = {
    If true, delete pages that do NOT match the data sources in the query.
    */
   inverseDataSources?: boolean;
+};
+
+/**
+  Filters for querying the embedded content vector store.
+ */
+export type QueryFilters = {
+  sourceName?: string;
+  version?: {
+    current?: boolean;
+    label?: string;
+  };
+  sourceType?: Page["sourceType"];
 };
 
 /**

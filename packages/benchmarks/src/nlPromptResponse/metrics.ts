@@ -37,8 +37,23 @@ export const makeReferenceAlignment: (
     return {
       ...factuality,
       name,
+      score: remapFactualityScore(factuality.score),
     };
   };
+
+function remapFactualityScore(score: number | null | undefined) {
+  if (score === null || score === undefined) {
+    return null;
+  }
+  switch (score) {
+    case 0.4:
+      return 0.5;
+    case 0.6:
+      return 0.8;
+    default:
+      return score;
+  }
+}
 
 export const makeReferenceAlignmentCouncil: (
   llmOptions: LlmOptions[]

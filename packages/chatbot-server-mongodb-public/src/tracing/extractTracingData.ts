@@ -41,11 +41,17 @@ export function extractTracingData(
   const mongoDbProduct = previousUserMessage?.customData?.mongoDbProduct as
     | string
     | undefined;
+  const requestOriginCode = previousUserMessage?.customData?.originCode as
+    | string
+    | undefined;
   if (programmingLanguage) {
     tags.push(tagify(programmingLanguage));
   }
   if (mongoDbProduct) {
     tags.push(tagify(mongoDbProduct));
+  }
+  if (requestOriginCode) {
+    tags.push(tagify(requestOriginCode));
   }
 
   const numRetrievedChunks = previousUserMessage?.contextContent?.length ?? 0;

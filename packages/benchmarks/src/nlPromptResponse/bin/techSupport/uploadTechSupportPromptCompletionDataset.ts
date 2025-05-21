@@ -1,5 +1,5 @@
 import { uploadDatasetToBraintrust } from "mongodb-rag-core/braintrust";
-import { DATASET_NAME, PROJECT_NAME } from "./config";
+import { techSupportConfig } from "./config";
 import { BRAINTRUST_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 import path from "path";
 import {
@@ -31,7 +31,7 @@ async function main() {
     "..",
     "..",
     "testData",
-    "ts_jan_questions_reviewed.csv"
+    "ts_jan_questions_reviewed_top_100.csv"
   );
 
   console.log(`Loading dataset from ${csvPath}`);
@@ -45,10 +45,11 @@ async function main() {
     });
 
   console.log(`Total number of records: ${dataset.length}`);
+  const { datasets, projectName } = techSupportConfig;
   const res = await uploadDatasetToBraintrust({
     apiKey: BRAINTRUST_API_KEY,
-    datasetName: DATASET_NAME,
-    projectName: PROJECT_NAME,
+    datasetName: datasets[0].datasetName,
+    projectName,
     description:
       "Tech support prompt completion dataset. Created by technical services team, January 2025.",
     dataset,

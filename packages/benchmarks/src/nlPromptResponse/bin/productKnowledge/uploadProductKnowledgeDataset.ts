@@ -54,10 +54,10 @@ async function main() {
 
   console.log(`Loaded ${dataset.length} records`);
   console.log(`Total number of records: ${dataset.length}`);
-  const { datasetName, projectName } = productKnowledgeConfig;
+  const { datasets, projectName } = productKnowledgeConfig;
   const res = await uploadDatasetToBraintrust({
     apiKey: BRAINTRUST_API_KEY,
-    datasetName,
+    datasetName: datasets[0].datasetName,
     projectName,
     description:
       "Product knowledge prompt completion dataset. Created by Product team, spring 2025.",

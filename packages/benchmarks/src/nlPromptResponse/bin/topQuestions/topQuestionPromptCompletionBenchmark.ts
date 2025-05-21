@@ -1,4 +1,6 @@
 import "dotenv/config";
+import { topQuestionsConfig } from "./config";
+import { runNlPromptResponseBenchmark } from "../../runNlPromptResponseBenchmark";
 import {
   models,
   judgeModelsConfig,
@@ -7,16 +9,24 @@ import {
   EXPERIMENT_TYPE,
   BRAINTRUST_API_KEY,
 } from "../globalConfig";
-import { runNlPromptResponseBenchmark } from "../../runNlPromptResponseBenchmark";
-
-import { productKnowledgeConfig } from "./config";
 
 runNlPromptResponseBenchmark({
-  ...productKnowledgeConfig,
+  ...topQuestionsConfig,
   models,
   judgeModelsConfig,
   experimentType: EXPERIMENT_TYPE,
   maxConcurrentPerExperiment: MAX_CONCURRENCY,
   maxConcurrentExperiments: MAX_CONCURRENT_EXPERIMENTS,
   braintrustApiKey: BRAINTRUST_API_KEY,
+  filterDataset: (de) => {
+    // Only return top 100 tech support questions
+    if (de.tags.includes("tech_support")) {
+      if (de.tags.includes("ts_top_100")) {
+        return true;
+      }
+      return false;
+    }
+    // Otherwise return all
+    return true;
+  },
 });

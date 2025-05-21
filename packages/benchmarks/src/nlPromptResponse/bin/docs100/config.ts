@@ -1,14 +1,14 @@
-import { BenchmarkConfig } from "../globalConfig";
+import { BenchmarkConfig } from "../../runNlPromptResponseBenchmark";
+
+const projectName = "docs-100-prompt-completion";
 
 export const docs100Config: BenchmarkConfig = {
-  datasetName: "docs-100-prompt-completion",
-  projectName: "docs-100-prompt-completion",
-  experimentBaseName: "docs-100",
-  initialMessages: [
+  datasets: [
     {
-      role: "system",
-      content:
-        "You are a helpful MongoDB assistant. Answer the user's question directly, informatively, and concisely.",
+      projectName,
+      datasetName: "docs-100-prompt-completion",
     },
   ],
+  projectName,
+  experimentBaseName: "docs-100",
 };

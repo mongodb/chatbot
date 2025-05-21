@@ -1,14 +1,14 @@
-import { BenchmarkConfig } from "../globalConfig";
+import { BenchmarkConfig } from "../../runNlPromptResponseBenchmark";
+
+const projectName = "product-knowledge-prompt-completion";
 
 export const productKnowledgeConfig: BenchmarkConfig = {
-  datasetName: "product-knowledge-prompt-completion",
-  projectName: "product-knowledge-prompt-completion",
-  experimentBaseName: "product-knowledge",
-  initialMessages: [
+  datasets: [
     {
-      role: "system",
-      content:
-        "You are a helpful MongoDB assistant. Answer the user's question directly, informatively, and concisely.",
+      projectName,
+      datasetName: "product-knowledge-prompt-completion",
     },
   ],
+  projectName,
+  experimentBaseName: "product-knowledge",
 };

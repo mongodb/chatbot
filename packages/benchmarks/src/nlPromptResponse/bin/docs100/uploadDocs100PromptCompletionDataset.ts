@@ -48,10 +48,10 @@ async function main() {
 
   console.log(`Loaded ${dataset.length} records`);
   console.log(`Total number of records: ${dataset.length}`);
-  const { datasetName, projectName } = docs100Config;
+  const { datasets, projectName } = docs100Config;
   const res = await uploadDatasetToBraintrust({
     apiKey: BRAINTRUST_API_KEY,
-    datasetName,
+    datasetName: datasets[0].datasetName,
     projectName,
     description:
       "Docs 100 prompt completion dataset. Created by Docs team, May 2025.",

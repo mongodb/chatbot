@@ -3,7 +3,7 @@ import { DbMessage, SomeMessage } from "mongodb-rag-core";
 import { Pii } from "./redactPii";
 
 export type ScrubbedMessage<
-  Analysis extends Record<string, unknown> | undefined = undefined,
+  Analysis extends Record<string, unknown> | undefined = undefined
 > = Omit<DbMessage<SomeMessage>, "id"> & {
   /**
     The ID, which should match the ID of the original message within the

@@ -481,9 +481,3 @@ export function makeConversationsRouter({
 
   return conversationsRouter;
 }
-
-let o = getOriginCode("https://www.mongodb.com/docs/atlas/security/config-db-auth/");
-console.log(o);
-
-let o2 = getOriginCode("google-gemini-code-assist");
-console.log(o2);

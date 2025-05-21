@@ -236,51 +236,37 @@ const addOriginToCustomData: AddCustomDataFunc = async (_, res) =>
       }
     : undefined;
 
-function getOriginCode(origin: string): string {
-    const learnOriginRegex = /learn\\.mongodb\\.com/;
-    const learnOriginCode = "LEARN";
-    const isLearnOrigin = learnOriginRegex.test(origin);
-    if (isLearnOrigin) {
-      return learnOriginCode;
-    }
+const enum OriginCode {
+  Learn = "LEARN",
+  Developer = "DEVELOPER",
+  Docs = "DOCS",
+  Dotcom = "DOTCOM",
+  GeminiCodeAssist = "GEMINI_CODE_ASSIST",
+  VsCode = "VSCODE",
+  Other = "OTHER",
+}
 
-    const developerOriginRegex = /mongodb\\.com\/developer/;
-    const developerOriginCode = "DEVELOPER";
-    const isDeveloperOrigin = developerOriginRegex.test(origin);
-    if (isDeveloperOrigin) {
-      return developerOriginCode;
-    }
+interface OriginRule {
+  regex: RegExp;
+  code: OriginCode;
+}
 
-    const docsOriginRegex = /mongodb\\.com\/docs/;
-    const docsOriginCode = "DOCS";
-    const isDocsOrigin = docsOriginRegex.test(origin);
-    if (isDocsOrigin) {
-      return docsOriginCode;
-    }
+const ORIGIN_RULES: OriginRule[] = [
+  { regex: /learn\.mongodb\.com/, code: OriginCode.Learn },
+  { regex: /^https:\/\/www\.mongodb\.com\/(?:\?(?:[^#]*)?)?(?:#.*)?$/, code: OriginCode.Dotcom },
+  { regex: /mongodb\.com\/developer/, code: OriginCode.Developer },
+  { regex: /mongodb\.com\/docs/, code: OriginCode.Docs },
+  { regex: /google-gemini-code-assist/, code: OriginCode.GeminiCodeAssist },
+  { regex: /vscode-mongodb-copilot/, code: OriginCode.VsCode },
+];
 
-    const dotcomOriginRegex = /^https:\/\/www\.mongodb\.com\/(?:\?(?:[^#]*)?)?(?:#.*)?$/;
-    const dotcomOriginCode = "DOTCOM";
-    const isDotcomOrigin = dotcomOriginRegex.test(origin);
-    if (isDotcomOrigin) {
-      return dotcomOriginCode;
+export function getOriginCode(origin: string): OriginCode {
+  for (const rule of ORIGIN_RULES) {
+    if (rule.regex.test(origin)) {
+      return rule.code;
     }
-
-    const geminiAssistantOriginRegex = /google-gemini-code-assist/;
-    const geminiAssistantOriginCode = "GEMINI_CODE_ASSIST";
-    const isGeminiAssistantOrigin = geminiAssistantOriginRegex.test(origin);
-    if (isGeminiAssistantOrigin) {
-      return geminiAssistantOriginCode;
-    }
-
-    const vscodeOriginRegex = /vscode-mongodb-copilot/;
-    const vscodeOriginCode = "VSCODE";
-    const isVscodeOrigin = vscodeOriginRegex.test(origin);
-    if (isVscodeOrigin) {
-      return vscodeOriginCode;
-    }
-
-    const otherOriginCode = "OTHER";
-    return otherOriginCode;
+  }
+  return OriginCode.Other;
 }
 
 const addOriginCodeToCustomData: AddCustomDataFunc = async (_, res) => {

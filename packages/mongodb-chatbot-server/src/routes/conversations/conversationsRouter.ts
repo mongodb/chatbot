@@ -260,7 +260,7 @@ const ORIGIN_RULES: OriginRule[] = [
   { regex: /vscode-mongodb-copilot/, code: OriginCode.VsCode },
 ];
 
-export function getOriginCode(origin: string): OriginCode {
+function getOriginCode(origin: string): OriginCode {
   for (const rule of ORIGIN_RULES) {
     if (rule.regex.test(origin)) {
       return rule.code;

@@ -1,4 +1,7 @@
-import { materializeExperimentResultsByCase } from "./materializeExperimentResultsByCase";
+import {
+  materializeExperimentResultsByCase,
+  providerFromModel,
+} from "./materializeExperimentResultsByCase";
 import { ResultsByExperiment } from "./reportBenchmarkResults";
 import { ExperimentResult } from "./getBraintrustExperimentResults";
 import {
@@ -241,5 +244,59 @@ describe("materializeExperimentResultsByCase", () => {
         naturalLanguageToCodeType
       )
     ).toThrow(`Unsupported experiment type: ${naturalLanguageToCodeType}`);
+  });
+});
+
+describe("providerFromModel", () => {
+  it("returns the correct provider for OpenAI models", () => {
+    expect(providerFromModel("gpt-4o")).toBe("OpenAI");
+    expect(providerFromModel("gpt-4o-mini")).toBe("OpenAI");
+    expect(providerFromModel("o3-mini")).toBe("OpenAI");
+    expect(providerFromModel("o3-mini-high")).toBe("OpenAI");
+    expect(providerFromModel("o3")).toBe("OpenAI");
+    expect(providerFromModel("o4-mini")).toBe("OpenAI");
+    expect(providerFromModel("gpt-4.1")).toBe("OpenAI");
+    expect(providerFromModel("gpt-4.1-mini")).toBe("OpenAI");
+    expect(providerFromModel("gpt-4.1-nano")).toBe("OpenAI");
+    expect(providerFromModel("gpt-35-turbo-16k")).toBe("OpenAI");
+  });
+  it("returns the correct provider for Anthropic models", () => {
+    expect(providerFromModel("claude-3-sonnet")).toBe("Anthropic");
+    expect(providerFromModel("claude-3-haiku")).toBe("Anthropic");
+    expect(providerFromModel("claude-35-sonnet")).toBe("Anthropic");
+    expect(providerFromModel("claude-35-sonnet-v2")).toBe("Anthropic");
+    expect(providerFromModel("claude-37-sonnet")).toBe("Anthropic");
+    expect(providerFromModel("claude-35-haiku")).toBe("Anthropic");
+  });
+  it("returns the correct provider for Meta models", () => {
+    expect(providerFromModel("llama-3-70b")).toBe("Meta");
+    expect(providerFromModel("llama-3.1-70b")).toBe("Meta");
+    expect(providerFromModel("llama-3.2-90b")).toBe("Meta");
+    expect(providerFromModel("llama-3.3-70b")).toBe("Meta");
+  });
+  it("returns the correct provider for Mistral models", () => {
+    expect(providerFromModel("mistral-large-2")).toBe("Mistral");
+    expect(providerFromModel("mistral-small-3-instruct")).toBe("Mistral");
+  });
+  it("returns the correct provider for Amazon models", () => {
+    expect(providerFromModel("nova-lite-v1:0")).toBe("Amazon");
+    expect(providerFromModel("nova-micro-v1:0")).toBe("Amazon");
+    expect(providerFromModel("nova-pro-v1:0")).toBe("Amazon");
+  });
+  it("returns the correct provider for Google models", () => {
+    expect(providerFromModel("gemini-1.5-flash-002")).toBe("Google");
+    expect(providerFromModel("gemini-2-flash")).toBe("Google");
+    expect(providerFromModel("gemini-2.5-flash")).toBe("Google");
+    expect(providerFromModel("gemini-2.0-flash-lite")).toBe("Google");
+    expect(providerFromModel("gemini-2.5-pro-preview-03-25")).toBe("Google");
+    expect(providerFromModel("gemini-1.0-pro-002")).toBe("Google");
+    expect(providerFromModel("gemini-1.5-pro-002")).toBe("Google");
+  });
+  it("returns the correct provider for DeepSeek models", () => {
+    expect(providerFromModel("deepseek-coder")).toBe("DeepSeek");
+    expect(providerFromModel("deepseek-r1")).toBe("DeepSeek");
+  });
+  it("returns the correct provider for Alibaba models", () => {
+    expect(providerFromModel("qwen-2.5-72b-instruct")).toBe("Alibaba");
   });
 });

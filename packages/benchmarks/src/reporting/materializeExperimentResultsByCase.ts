@@ -39,12 +39,16 @@ export function materializeExperimentResultsByCase<
           // If this case hasn't been seen before, create a new BaseCase
           if (!caseMap.has(caseId)) {
             const baseCase: BaseCase = {
-              id: new ObjectId(),
+              _id: new ObjectId(),
               type,
               tags: evalCase.tags ?? [],
               name: evalCase.input.messages[0].content,
               prompt: evalCase.input.messages,
               expected: evalCase.expected.reference ?? "",
+              metadata: {
+                ...evalCase.metadata,
+                caseId,
+              },
               // Populate results subsequently
               results: {},
             };
@@ -121,29 +125,29 @@ function parseModelFromExperimentName(experimentName: string): string {
 }
 
 export function providerFromModel(model: string) {
-  if (model.includes('claude')) {
-    return 'Anthropic';
+  if (model.includes("gpt") || model.match(/o\d/)) {
+    return "OpenAI";
   }
-  if (model.includes('qwen')) {
-    return 'Qwen';
+  if (model.includes("claude")) {
+    return "Anthropic";
   }
-  if (model.includes('deepseek')) {
-    return 'DeepSeek';
+  if (model.includes("gemini") || model.includes("gemma")) {
+    return "Google";
   }
-  if (model.includes('llama')) {
-    return 'Meta';
+  if (model.includes("llama")) {
+    return "Meta";
   }
-  if (model.includes('mistral')) {
-    return 'Mistral';
+  if (model.includes("nova")) {
+    return "Amazon";
   }
-  if (model.includes('gemini') || model.includes('gemma')) {
-    return 'Google';
+  if (model.includes("qwen")) {
+    return "Alibaba";
   }
-  if (model.includes('nova')) {
-    return 'Amazon';
+  if (model.includes("deepseek")) {
+    return "DeepSeek";
   }
-  if (model.includes('gpt') || model.match(/o\d/)) {
-    return 'OpenAI';
+  if (model.includes("mistral")) {
+    return "Mistral";
   }
-  return 'Unknown';
+  return "Unknown";
 }

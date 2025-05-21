@@ -13,7 +13,7 @@ export type BaseCase<
   /*
   A unique identifier for the prompt.
   */
-  id: ObjectId;
+  _id: ObjectId;
 
   /*
   The type of prompt. This determines the format of the prompt, its expected response, and the type of metrics we use to evaluate the results.
@@ -63,7 +63,7 @@ type Result<
   The name of the model that was used to generate the result.
   */
   model: string;
-  
+
   /*
   The name of the company/lab that created the model.
   */

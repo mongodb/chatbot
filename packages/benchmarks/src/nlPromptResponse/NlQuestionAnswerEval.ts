@@ -5,7 +5,6 @@ import {
   EvalTask,
 } from "mongodb-rag-core/braintrust";
 import { ConversationEvalCase } from "mongodb-rag-core/eval";
-import { LlmOptions } from "mongodb-rag-core/executeCode";
 
 export type NlPromptResponseEvalCaseInput = {
   messages: ConversationEvalCase["messages"];

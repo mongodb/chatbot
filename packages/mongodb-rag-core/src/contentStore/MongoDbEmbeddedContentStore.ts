@@ -263,10 +263,7 @@ export function makeMongoDbEmbeddedContentStore({
 type MongoDbAtlasVectorSearchFilter = {
   sourceName?: string;
   "metadata.version.label"?: string;
-  "metadata.version.isCurrent"?: boolean;
-  $or?: {
-    "metadata.version.isCurrent": boolean | { $ne: boolean };
-  }[];
+  "metadata.version.isCurrent"?: boolean | { $ne: boolean };
   sourceType?: string;
 };
 
@@ -289,10 +286,7 @@ const handleFilters = (
   // 1. current=true was explicitly requested, or
   // 2. [Default] no version filters were specified (current and label are undefined)
   else if (current === true || current === undefined) {
-    vectorSearchFilter["$or"] = [
-      { "metadata.version.isCurrent": true },
-      { "metadata.version.isCurrent": { $ne: false } }, // Include unversioned embeddings
-    ];
+    vectorSearchFilter["metadata.version.isCurrent"] = { $ne: false }; // Include unversioned embeddings
   }
   // Only find embeddings that are explicitly marked as non-current (isCurrent: false)
   else if (current === false) {

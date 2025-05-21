@@ -63,6 +63,11 @@ type Result<
   The name of the model that was used to generate the result.
   */
   model: string;
+  
+  /*
+  The name of the company/lab that created the model.
+  */
+  provider: string;
 
   /*
   The date and time the result was generated.

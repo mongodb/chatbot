@@ -62,6 +62,7 @@ export function materializeExperimentResultsByCase<
           // Store the model output and metrics in the results object
           baseCase.results[model] = {
             model,
+            provider: providerFromModel(model),
             date: new Date(),
             response: evalCase.output ? evalCase.output.response : "",
             metrics: {},
@@ -117,4 +118,32 @@ function parseModelFromExperimentName(experimentName: string): string {
 
   // Return the model name (either without hash or the original if no hash was found)
   return modelName;
+}
+
+export function providerFromModel(model: string) {
+  if (model.includes('claude')) {
+    return 'Anthropic';
+  }
+  if (model.includes('qwen')) {
+    return 'Qwen';
+  }
+  if (model.includes('deepseek')) {
+    return 'DeepSeek';
+  }
+  if (model.includes('llama')) {
+    return 'Meta';
+  }
+  if (model.includes('mistral')) {
+    return 'Mistral';
+  }
+  if (model.includes('gemini') || model.includes('gemma')) {
+    return 'Google';
+  }
+  if (model.includes('nova')) {
+    return 'Amazon';
+  }
+  if (model.includes('gpt') || model.match(/o\d/)) {
+    return 'OpenAI';
+  }
+  return 'Unknown';
 }

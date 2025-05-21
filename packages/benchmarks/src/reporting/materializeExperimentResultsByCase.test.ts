@@ -2,7 +2,7 @@ import {
   materializeExperimentResultsByCase,
   providerFromModel,
 } from "./materializeExperimentResultsByCase";
-import { ResultsByExperiment } from "./reportBenchmarkResults";
+import { ExperimentType, ResultsByExperiment } from "./reportBenchmarkResults";
 import { ExperimentResult } from "./getBraintrustExperimentResults";
 import {
   NlPromptResponseEvalCase,
@@ -230,13 +230,13 @@ describe("materializeExperimentResultsByCase", () => {
     });
   });
   it("should throw for unsupported experiment types", () => {
-    const multipleChoiceType = "multiple_choice";
+    const fakeExperimentType = "invalid_experiment_type";
     expect(() =>
       materializeExperimentResultsByCase(
         mockResultsByExperiment,
-        multipleChoiceType
+        fakeExperimentType as ExperimentType
       )
-    ).toThrow(`Unsupported experiment type: ${multipleChoiceType}`);
+    ).toThrow(`Unsupported experiment type: ${fakeExperimentType}`);
     const naturalLanguageToCodeType = "natural_language_to_code";
     expect(() =>
       materializeExperimentResultsByCase(

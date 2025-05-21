@@ -6,10 +6,7 @@ type ChatCompletionMessageParam = OpenAI.Chat.ChatCompletionMessageParam;
 /**
  This represents a single prompt that we pass to models for evaluation.
 */
-export type BaseCase<
-  CaseMetadata extends Record<string, unknown> = Record<string, unknown>,
-  CaseResult extends Result = Result
-> = {
+export type BaseCase = {
   /*
   A unique identifier for the prompt.
   */
@@ -28,7 +25,7 @@ export type BaseCase<
   /*
   Metadata about the prompt.
   */
-  metadata?: CaseMetadata;
+  metadata?: Record<string, unknown>;
 
   /*
   A human readable label for the case. For most cases this will just be the natural language query.
@@ -49,16 +46,14 @@ export type BaseCase<
    A list of results for the prompt.
    */
   results: {
-    [modelName: string]: CaseResult;
+    [modelName: string]: Result;
   };
 };
 
 /**
  This represents the result of running a prompt through a specific model.
 */
-type Result<
-  Metadata extends Record<string, unknown> = Record<string, unknown>
-> = {
+export type Result = {
   /*
   The name of the model that was used to generate the result.
   */
@@ -82,7 +77,7 @@ type Result<
   /*
   Additional metadata about the result. For example, we could use this to map results back to their experiment name in Braintrust
   */
-  metadata?: Metadata;
+  metadata?: Record<string, unknown>;
 
   /*
   A list of evaluation metrics that we use to judge the quality of the result.

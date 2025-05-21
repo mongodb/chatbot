@@ -11,10 +11,12 @@ import {
   GetExperimentMetadataResponse,
 } from "./getBraintrustExperimentSummary";
 
-export type ExperimentType =
-  | "prompt_response"
-  | "natural_language_to_code"
-  | "multiple_choice";
+export const experimentTypes = [
+  "prompt_response",
+  "natural_language_to_code",
+  "multiple_choice",
+] as const;
+export type ExperimentType = (typeof experimentTypes)[number];
 
 export interface ReportBenchmarkResultsParams {
   apiKey: string;

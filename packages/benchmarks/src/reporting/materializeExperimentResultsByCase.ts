@@ -1,5 +1,5 @@
 import { EvalCase } from "mongodb-rag-core/braintrust";
-import { BaseCase } from "./EvalCases";
+import { BaseCase, Result } from "./EvalCases";
 import { ExperimentResult } from "./getBraintrustExperimentResults";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { ExperimentType, ResultsByExperiment } from "./reportBenchmarkResults";
@@ -7,6 +7,22 @@ import {
   NlPromptResponseEvalCase,
   NlPromptResponseTaskOutput,
 } from "../nlPromptResponse/NlQuestionAnswerEval";
+import {
+  QuizQuestionEvalCase,
+  QuizQuestionTaskOutput,
+} from "../quizQuestions/QuizQuestionEval";
+
+type PromptResponseExperimentResult = ExperimentResult<
+  NlPromptResponseEvalCase,
+  NlPromptResponseTaskOutput,
+  string[]
+>;
+
+type MultipleChoiceExperimentResult = ExperimentResult<
+  QuizQuestionEvalCase,
+  QuizQuestionTaskOutput,
+  string[]
+>;
 
 /**
 Accepts the results of multiple experiments in a project. Groups them by the eval case so that results for different models are grouped together for the same case.
@@ -28,65 +44,122 @@ export function materializeExperimentResultsByCase<
   )) {
     // Process each case in the experiment
     switch (type) {
-      case "prompt_response":
-        for (const evalCase of results as ExperimentResult<
-          NlPromptResponseEvalCase,
-          NlPromptResponseTaskOutput,
-          string[]
-        >[]) {
-          const caseId = getCaseId(evalCase.id, evalCase.input);
-
-          // If this case hasn't been seen before, create a new BaseCase
-          if (!caseMap.has(caseId)) {
-            const baseCase: BaseCase = {
-              _id: new ObjectId(),
-              type,
-              tags: evalCase.tags ?? [],
-              name: evalCase.input.messages[0].content,
-              prompt: evalCase.input.messages,
-              expected: evalCase.expected.reference ?? "",
-              metadata: {
-                ...evalCase.metadata,
-                caseId,
-              },
-              // Populate results subsequently
-              results: {},
-            };
-            caseMap.set(caseId, baseCase as Case);
-          }
-
-          // Add this model's output to the case
-          const baseCase = caseMap.get(caseId);
-          if (!baseCase) {
-            throw new Error(`Case ${caseId} not found`);
-          }
-
-          const model = parseModelFromExperimentName(experimentName);
-
-          // Store the model output and metrics in the results object
-          baseCase.results[model] = {
+      case "prompt_response": {
+        createCases<Case, PromptResponseExperimentResult>({
+          caseMap,
+          results: results as PromptResponseExperimentResult[],
+          experimentName,
+          createBaseCase: ({ caseId, result }) => ({
+            _id: new ObjectId(),
+            type,
+            tags: result.tags ?? [],
+            name: result.input.messages[0].content,
+            prompt: result.input.messages,
+            expected: result.expected.reference ?? "",
+            metadata: {
+              ...result.metadata,
+              caseId,
+            },
+            results: {},
+          }),
+          createCaseResult: ({ model, result }) => ({
             model,
             provider: providerFromModel(model),
             date: new Date(),
-            response: evalCase.output ? evalCase.output.response : "",
+            response: result.output ? result.output.response : "",
+            metadata: {},
             metrics: {},
-          };
-
-          if (evalCase.scores) {
-            addScoresToCase(evalCase.scores, baseCase, model);
-          }
-        }
+          }),
+        });
         break;
+      }
+      case "multiple_choice": {
+        createCases<Case, MultipleChoiceExperimentResult>({
+          caseMap,
+          results: results as MultipleChoiceExperimentResult[],
+          experimentName,
+          createBaseCase: ({ caseId, result }) => ({
+            _id: new ObjectId(),
+            type,
+            tags: result.tags ?? [],
+            name: result.input.questionText,
+            prompt: [
+              {
+                role: "user",
+                content: result.input.questionText,
+              },
+            ],
+            expected: result.expected,
+            metadata: {
+              ...result.metadata,
+              caseId,
+            },
+            results: {},
+          }),
+          createCaseResult: ({ model, result }) => ({
+            model,
+            provider: providerFromModel(model),
+            date: new Date(),
+            response: result.output ?? "",
+            metadata: {},
+            metrics: {},
+          }),
+        });
+        break;
+      }
       default:
         throw new Error(`Unsupported experiment type: ${type}`);
     }
   }
 
-  // Convert map to array for return
   return Array.from(caseMap.values());
 }
 function getCaseId(caseId: string | undefined, input: unknown): string {
   return caseId ?? JSON.stringify(input);
+}
+
+function createCases<
+  Case extends BaseCase,
+  ER extends ExperimentResult<
+    EvalCase<unknown, unknown, unknown>,
+    unknown,
+    string[]
+  >
+>(args: {
+  caseMap: Map<string, Case>;
+  results: ER[];
+  experimentName: string;
+  createBaseCase: (args: { caseId: string; result: ER }) => BaseCase;
+  createCaseResult: (args: { model: string; result: ER }) => Result;
+}) {
+  const { caseMap, experimentName, createBaseCase, createCaseResult } = args;
+  for (const result of args.results) {
+    const caseId = getCaseId(result.id, result.input);
+
+    // If this case hasn't been seen before, create a new BaseCase
+    if (!caseMap.has(caseId)) {
+      const baseCase = createBaseCase({ caseId, result });
+      caseMap.set(caseId, baseCase as Case);
+    }
+
+    // Add this model's output to the case
+    const baseCase = caseMap.get(caseId);
+    if (!baseCase) {
+      throw new Error(`Case ${caseId} not found`);
+    }
+
+    const model = parseModelFromExperimentName(experimentName);
+
+    // Store the model output and metrics in the results object
+    baseCase.results[model] = createCaseResult({
+      model,
+      result,
+    });
+
+    if (result.scores) {
+      addScoresToCase(result.scores, baseCase, model);
+    }
+  }
 }
 
 function addScoresToCase<C extends BaseCase>(

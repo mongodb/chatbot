@@ -1,17 +1,14 @@
-import { OpenAI } from "mongodb-rag-core/openai";
+import { BenchmarkConfig } from "../globalConfig";
 
-export const DATASET_NAME = "product-knowledge-prompt-completion";
-
-export const PROJECT_NAME = "product-knowledge-prompt-completion";
-
-export const EXPERIMENT_BASE_NAME = "product-knowledge";
-
-export const initialMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-  {
-    role: "system",
-    content:
-      "You are a helpful MongoDB assistant. Answer the user's question directly, informatively, and concisely.",
-  },
-];
-
-export * from "../globalConfig";
+export const productKnowledgeConfig: BenchmarkConfig = {
+  datasetName: "product-knowledge-prompt-completion",
+  projectName: "product-knowledge-prompt-completion",
+  experimentBaseName: "product-knowledge",
+  initialMessages: [
+    {
+      role: "system",
+      content:
+        "You are a helpful MongoDB assistant. Answer the user's question directly, informatively, and concisely.",
+    },
+  ],
+};

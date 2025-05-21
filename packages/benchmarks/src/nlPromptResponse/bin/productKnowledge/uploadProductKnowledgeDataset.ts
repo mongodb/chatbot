@@ -1,5 +1,5 @@
 import { uploadDatasetToBraintrust } from "mongodb-rag-core/braintrust";
-import { DATASET_NAME, PROJECT_NAME } from "./config";
+import { productKnowledgeConfig } from "./config";
 import { BRAINTRUST_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 import path from "path";
 import { createOpenAI } from "@ai-sdk/openai";
@@ -54,10 +54,11 @@ async function main() {
 
   console.log(`Loaded ${dataset.length} records`);
   console.log(`Total number of records: ${dataset.length}`);
+  const { datasetName, projectName } = productKnowledgeConfig;
   const res = await uploadDatasetToBraintrust({
     apiKey: BRAINTRUST_API_KEY,
-    datasetName: DATASET_NAME,
-    projectName: PROJECT_NAME,
+    datasetName,
+    projectName,
     description:
       "Product knowledge prompt completion dataset. Created by Product team, spring 2025.",
     dataset,

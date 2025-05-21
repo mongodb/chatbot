@@ -265,7 +265,7 @@ type MongoDbAtlasVectorSearchFilter = {
   "metadata.version.label"?: string;
   "metadata.version.isCurrent"?: boolean;
   $or?: {
-    "metadata.version.isCurrent": boolean | null;
+    "metadata.version.isCurrent": boolean | { $ne: boolean };
   }[];
   sourceType?: string;
 };
@@ -291,7 +291,7 @@ const handleFilters = (
   else if (current === true || current === undefined) {
     vectorSearchFilter["$or"] = [
       { "metadata.version.isCurrent": true },
-      { "metadata.version.isCurrent": null },
+      { "metadata.version.isCurrent": { $ne: false } }, // Include unversioned embeddings
     ];
   }
   // Only find embeddings that are explicitly marked as non-current (isCurrent: false)

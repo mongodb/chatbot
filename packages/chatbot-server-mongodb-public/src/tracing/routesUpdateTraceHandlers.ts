@@ -17,6 +17,7 @@ import {
 import { logRequest } from "../utils";
 import { Logger } from "mongodb-rag-core/braintrust";
 import { ScrubbedMessageStore } from "./scrubbedMessages/ScrubbedMessageStore";
+import { ScrubbedMessage } from "./scrubbedMessages/ScrubbedMessage";
 import { LanguageModel } from "mongodb-rag-core/aiSdk";
 import { makeScrubbedMessagesFromTracingData } from "./scrubbedMessages/makeScrubbedMessagesFromTracingData";
 import { redactPii } from "./scrubbedMessages/redactPii";
@@ -242,8 +243,8 @@ export function makeRateMessageUpdateTrace({
       await scrubbedMessageStore.updateScrubbedMessage({
         id: userMessage.id,
         message: {
-          responseRating: rating,
-        },
+          "response.responseRating": rating,
+        } as Partial<Omit<ScrubbedMessage, "_id">>,
       });
     } catch (error) {
       logRequest({
@@ -369,12 +370,11 @@ export function makeCommentMessageUpdateTrace({
       });
 
       assert(userMessage?.id, "Missing user message for comment");
-      const userMessageFieldsToUpdate: Record<string, unknown> = {
-        userCommented: true,
-      }
       await scrubbedMessageStore.updateScrubbedMessage({
         id: userMessage.id,
-        message: userMessageFieldsToUpdate,
+        message: { 
+          "response.userCommented": true 
+        } as Partial<Omit<ScrubbedMessage, "_id">>,
       });
     } catch (error) {
       logRequest({

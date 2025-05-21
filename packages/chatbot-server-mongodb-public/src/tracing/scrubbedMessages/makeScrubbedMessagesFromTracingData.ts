@@ -35,6 +35,9 @@ export async function makeScrubbedMessagesFromTracingData({
     customData: userMessage.customData,
     pii: userMessagePii?.length ? true : undefined,
     metadata: userMessage.metadata,
+    response: {
+      isVerifiedAnswer: tracingData?.isVerifiedAnswer ? true : false,
+    },
     embedding: userMessage.embedding,
     embeddingModelName,
     messagePii: userMessagePii.length ? userMessagePii : undefined,
@@ -43,18 +46,28 @@ export async function makeScrubbedMessagesFromTracingData({
   } satisfies ScrubbedMessage<MessageAnalysis>;
 
   // Assistant message scrubbing
+  const assistantAnalysis = analysis && !tracingData.isVerifiedAnswer
+    ? await analyzeMessage(assistantMessage.content, analysis.model) 
+    : undefined;
   const {
     redactedText: redactedAssistantContent,
     piiFound: assistantMessagePii,
   } = redactPii(assistantMessage.content);
+
   const scrubbedAssistantMessage = {
     _id: assistantMessage.id,
     conversationId: tracingData.conversationId,
     index: tracingData.assistantMessageIndex,
+    analysis: assistantAnalysis,
     role: assistantMessage.role,
     content: redactedAssistantContent,
     createdAt: assistantMessage.createdAt,
     customData: assistantMessage.customData,
+    request: {
+      userTopics: userAnalysis?.topics,
+      origin: userMessage?.customData?.origin,
+      originCode: userMessage?.customData?.originCode,
+    },
     pii: assistantMessagePii?.length ? true : undefined,
     metadata: assistantMessage.metadata,
     messagePii: assistantMessagePii.length ? assistantMessagePii : undefined,

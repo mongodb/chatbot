@@ -3,7 +3,7 @@ import { DbMessage, SomeMessage } from "mongodb-rag-core";
 import { Pii } from "./redactPii";
 
 export type ScrubbedMessage<
-  Analysis extends Record<string, unknown> | undefined = undefined
+  Analysis extends Record<string, unknown> | undefined = undefined,
 > = Omit<DbMessage<SomeMessage>, "id"> & {
   /**
     The ID, which should match the ID of the original message within the
@@ -73,4 +73,16 @@ export type ScrubbedMessage<
    Any PII redacted from the original user comment.
    */
   userCommentPii?: Pii[];
+
+  /**
+   For 'user' role messages, track information about the subsequent assistant 
+   response to the user message.
+   */
+  response?: Record<string, unknown> | undefined;
+
+  /**
+   For 'assistant' role messages, track information about the user request preceding 
+   this assistant response.
+   */
+  request?: Record<string, unknown> | undefined;
 };

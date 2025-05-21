@@ -335,6 +335,26 @@ describe("nearest neighbor search", () => {
     ).toHaveLength(5);
   });
 
+  it("Should be able to handle content that is not versioned", async () => {
+    assert(store);
+    const query = "tell me about MongoDB";
+    const filter = {
+      sourceName: "blog", // blog is not versioned
+    };
+    const { embedding } = await embedder.embed({
+      text: query,
+    });
+
+    const matches = await store.findNearestNeighbors(embedding, {
+      ...findNearestNeighborOptions,
+      filter,
+    });
+
+    expect(
+      matches.filter((match) => match.metadata?.version === undefined)
+    ).toHaveLength(5);
+  });
+
   it("Should filter content to sourceType requested", async () => {
     assert(store);
     const query = "db.collection.insertOne()";

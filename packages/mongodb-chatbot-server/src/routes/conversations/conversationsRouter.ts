@@ -272,6 +272,13 @@ function getOriginCode(origin: string): string {
       return geminiAssistantOriginCode;
     }
 
+    const vscodeOriginRegex = /vscode-mongodb-copilot/;
+    const vscodeOriginCode = "VSCODE";
+    const isVscodeOrigin = vscodeOriginRegex.test(origin);
+    if (isVscodeOrigin) {
+      return vscodeOriginCode;
+    }
+
     const otherOriginCode = "OTHER";
     return otherOriginCode;
 }
@@ -474,3 +481,9 @@ export function makeConversationsRouter({
 
   return conversationsRouter;
 }
+
+let o = getOriginCode("https://www.mongodb.com/docs/atlas/security/config-db-auth/");
+console.log(o);
+
+let o2 = getOriginCode("google-gemini-code-assist");
+console.log(o2);

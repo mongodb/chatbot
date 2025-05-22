@@ -9,10 +9,10 @@ import {
 } from "../globalConfig";
 import { runNlPromptResponseBenchmark } from "../../runNlPromptResponseBenchmark";
 
-import { productKnowledgeConfig } from "./config";
+import { docs100Config } from "./config";
 
 runNlPromptResponseBenchmark({
-  ...productKnowledgeConfig,
+  ...docs100Config,
   models,
   judgeModelsConfig,
   experimentType: EXPERIMENT_TYPE,

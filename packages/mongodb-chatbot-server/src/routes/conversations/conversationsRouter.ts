@@ -236,6 +236,50 @@ const addOriginToCustomData: AddCustomDataFunc = async (_, res) =>
       }
     : undefined;
 
+export const originCodes = [
+  "LEARN",
+  "DEVELOPER",
+  "DOCS",
+  "DOTCOM",
+  "GEMINI_CODE_ASSIST",
+  "VSCODE",
+  "OTHER",
+] as const;
+
+export type OriginCode = (typeof originCodes)[number];
+
+interface OriginRule {
+  regex: RegExp;
+  code: OriginCode;
+}
+
+const ORIGIN_RULES: OriginRule[] = [
+  { regex: /learn\.mongodb\.com/, code: "LEARN" },
+  { regex: /mongodb\.com\/developer/, code: "DEVELOPER" },
+  { regex: /mongodb\.com\/docs/, code: "DOCS" },
+  { regex: /mongodb\.com\//, code: "DOTCOM" },
+  { regex: /google-gemini-code-assist/, code: "GEMINI_CODE_ASSIST" },
+  { regex: /vscode-mongodb-copilot/, code: "VSCODE" },
+];
+
+function getOriginCode(origin: string): OriginCode {
+  for (const rule of ORIGIN_RULES) {
+    if (rule.regex.test(origin)) {
+      return rule.code;
+    }
+  }
+  return "OTHER";
+}
+
+const addOriginCodeToCustomData: AddCustomDataFunc = async (_, res) => {
+  const origin = res.locals.customData.origin;
+  return typeof origin === "string" && origin.length > 0
+    ? {
+        originCode: getOriginCode(origin),
+      } 
+    : undefined;
+}
+
 const addUserAgentToCustomData: AddCustomDataFunc = async (req) =>
   req.headers["user-agent"]
     ? {
@@ -252,6 +296,7 @@ export const defaultCreateConversationCustomData: AddDefinedCustomDataFunc =
     return {
       ...(await addIpToCustomData(req, res)),
       ...(await addOriginToCustomData(req, res)),
+      ...(await addOriginCodeToCustomData(req, res)),
       ...(await addUserAgentToCustomData(req, res)),
     };
   };
@@ -261,6 +306,7 @@ export const defaultAddMessageToConversationCustomData: AddDefinedCustomDataFunc
     return {
       ...(await addIpToCustomData(req, res)),
       ...(await addOriginToCustomData(req, res)),
+      ...(await addOriginCodeToCustomData(req, res)),
       ...(await addUserAgentToCustomData(req, res)),
     };
   };

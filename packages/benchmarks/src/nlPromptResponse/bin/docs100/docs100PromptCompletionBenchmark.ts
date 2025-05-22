@@ -1,6 +1,4 @@
 import "dotenv/config";
-import { techSupportConfig } from "./config";
-import { runNlPromptResponseBenchmark } from "../../runNlPromptResponseBenchmark";
 import {
   models,
   judgeModelsConfig,
@@ -9,9 +7,12 @@ import {
   EXPERIMENT_TYPE,
   BRAINTRUST_API_KEY,
 } from "../globalConfig";
+import { runNlPromptResponseBenchmark } from "../../runNlPromptResponseBenchmark";
+
+import { docs100Config } from "./config";
 
 runNlPromptResponseBenchmark({
-  ...techSupportConfig,
+  ...docs100Config,
   models,
   judgeModelsConfig,
   experimentType: EXPERIMENT_TYPE,

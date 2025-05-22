@@ -1,16 +1,12 @@
 import { uploadDatasetToBraintrust } from "mongodb-rag-core/braintrust";
-import { techSupportConfig } from "./config";
+import { docs100Config } from "./config";
 import { BRAINTRUST_ENV_VARS, assertEnvVars } from "mongodb-rag-core";
 import path from "path";
-import {
-  filterTechSupportQARow,
-  loadTechSupportQACsv,
-  parseTechSupportQARow,
-} from "../../loadTechSupportDataset";
 import { createOpenAI } from "@ai-sdk/openai";
 import { getOpenAiEndpointAndApiKey, models } from "mongodb-rag-core/models";
 import { strict as assert } from "assert";
 import PromisePool from "@supercharge/promise-pool";
+import { loadDocs100QACsv, parseDocs100QARow } from "../../loadDocs100Dataset";
 
 async function main() {
   const { BRAINTRUST_API_KEY } = assertEnvVars({
@@ -31,7 +27,7 @@ async function main() {
     "..",
     "..",
     "testData",
-    "ts_jan_questions_reviewed_top_100.csv"
+    "docs_100_qa.csv"
   );
 
   console.log(`Loading dataset from ${csvPath}`);
@@ -39,19 +35,26 @@ async function main() {
     // Dividing by 3 b/c there are 3 concurrent llm calls
     modelConfig.maxConcurrency / 3
   )
-    .for(loadTechSupportQACsv(csvPath).filter(filterTechSupportQARow))
+    .for(loadDocs100QACsv(csvPath))
+    .handleError((error, row) => {
+      console.error(
+        `Error processing row for question: ${row.Question}`,
+        error
+      );
+    })
     .process(async (row) => {
-      return await parseTechSupportQARow(row, openai.languageModel(modelLabel));
+      return await parseDocs100QARow(row, openai.languageModel(modelLabel));
     });
 
+  console.log(`Loaded ${dataset.length} records`);
   console.log(`Total number of records: ${dataset.length}`);
-  const { datasets, projectName } = techSupportConfig;
+  const { datasets, projectName } = docs100Config;
   const res = await uploadDatasetToBraintrust({
     apiKey: BRAINTRUST_API_KEY,
     datasetName: datasets[0].datasetName,
     projectName,
     description:
-      "Tech support prompt completion dataset. Created by technical services team, January 2025.",
+      "Docs 100 prompt completion dataset. Created by Docs team, May 2025.",
     dataset,
   });
   console.log(res);

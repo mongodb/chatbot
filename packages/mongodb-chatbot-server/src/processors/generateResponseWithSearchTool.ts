@@ -6,8 +6,6 @@ import {
   UserMessage,
   AssistantMessage,
   ToolMessage,
-  EmbeddedContent,
-  FindContentFunc,
 } from "mongodb-rag-core";
 import { z } from "zod";
 import { GenerateResponse } from "./GenerateResponse";
@@ -15,26 +13,48 @@ import {
   CoreAssistantMessage,
   CoreMessage,
   LanguageModel,
-  Schema,
   StepResult,
   streamText,
-  TextStreamPart,
-  tool,
   Tool,
   ToolCallPart,
-  ToolResult,
+  ToolChoice,
+  ToolExecutionOptions,
+  ToolResultUnion,
   ToolSet,
 } from "mongodb-rag-core/aiSdk";
 import { FilterPreviousMessages } from "./FilterPreviousMessages";
 import { InputGuardrail, withAbortControllerGuardrail } from "./InputGuardrail";
 import { strict as assert } from "assert";
-import {
-  EmbeddedContentForModel,
-  MakeReferenceLinksFunc,
-} from "./MakeReferenceLinksFunc";
+import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
 import { makeDefaultReferenceLinks } from "./makeDefaultReferenceLinks";
 
-export interface GenerateResponseWithSearchToolParams {
+export const SEARCH_TOOL_NAME = "search_content";
+
+export type SearchToolReturnValue = {
+  content: {
+    url: string;
+    text: string;
+    metadata?: Record<string, unknown>;
+  }[];
+};
+
+export type SearchTool<ARGUMENTS extends z.ZodTypeAny> = Tool<
+  ARGUMENTS,
+  SearchToolReturnValue
+> & {
+  execute: (
+    args: z.infer<ARGUMENTS>,
+    options: ToolExecutionOptions
+  ) => PromiseLike<SearchToolReturnValue>;
+};
+
+type SearchToolResult<ARGUMENTS extends z.ZodTypeAny> = ToolResultUnion<{
+  [SEARCH_TOOL_NAME]: SearchTool<ARGUMENTS>;
+}>;
+
+export interface GenerateResponseWithSearchToolParams<
+  ARGUMENTS extends z.ZodTypeAny
+> {
   languageModel: LanguageModel;
   llmNotWorkingMessage: string;
   inputGuardrail?: InputGuardrail;
@@ -46,32 +66,16 @@ export interface GenerateResponseWithSearchToolParams {
   additionalTools?: ToolSet;
   makeReferenceLinks?: MakeReferenceLinksFunc;
   maxSteps?: number;
-  findContent: FindContentFunc;
+  toolChoice?: ToolChoice<{ search_content: SearchTool<ARGUMENTS> }>;
+  searchTool: SearchTool<ARGUMENTS>;
 }
-
-export const SEARCH_TOOL_NAME = "search_content";
-
-export const SearchArgsSchema = z.object({ query: z.string() });
-export type SearchArguments = z.infer<typeof SearchArgsSchema>;
-
-export type SearchToolReturnValue = {
-  content: {
-    url: string;
-    text: string;
-    metadata?: Record<string, unknown>;
-  }[];
-};
-
-export type SearchToolResult = ToolResult<
-  typeof SEARCH_TOOL_NAME,
-  SearchArguments,
-  SearchToolReturnValue
->;
 
 /**
   Generate chatbot response using RAG and a search tool named {@link SEARCH_TOOL_NAME}.
  */
-export function makeGenerateResponseWithSearchTool({
+export function makeGenerateResponseWithSearchTool<
+  ARGUMENTS extends z.ZodTypeAny
+>({
   languageModel,
   llmNotWorkingMessage,
   inputGuardrail,
@@ -80,8 +84,9 @@ export function makeGenerateResponseWithSearchTool({
   additionalTools,
   makeReferenceLinks,
   maxSteps = 2,
-  findContent,
-}: GenerateResponseWithSearchToolParams): GenerateResponse {
+  searchTool,
+  toolChoice,
+}: GenerateResponseWithSearchToolParams<ARGUMENTS>): GenerateResponse {
   return async function generateResponseWithSearchTool({
     conversation,
     latestMessageText,
@@ -104,23 +109,11 @@ export function makeGenerateResponseWithSearchTool({
           )
         : [];
 
-      const searchTool = tool({
-        parameters: SearchArgsSchema,
-        execute: async ({ query }, { toolCallId }) => {
-          dataStreamer?.streamData({
-            data: `Searching for '${query}'...`,
-            type: "processing",
-          });
-          return await findContent({
-            query,
-          });
-        },
-        description: "Search for relevant content.",
-      });
-      const tools: ToolSet = {
+      const toolSet = {
         [SEARCH_TOOL_NAME]: searchTool,
         ...(additionalTools ?? {}),
-      };
+      } satisfies ToolSet;
+
       const generationArgs = {
         model: languageModel,
         messages: [
@@ -128,7 +121,8 @@ export function makeGenerateResponseWithSearchTool({
           ...filteredPreviousMessages,
           userMessage,
         ] satisfies CoreMessage[],
-        tools,
+        tools: toolSet,
+        toolChoice,
         maxSteps,
       };
 
@@ -147,37 +141,38 @@ export function makeGenerateResponseWithSearchTool({
           })
         : undefined;
 
-      const references: EmbeddedContentForModel[] = [];
+      const references: any[] = [];
       const { result, guardrailResult } = await withAbortControllerGuardrail(
         async (controller) => {
           // Pass the tools as a separate parameter
-          const { fullStream, steps } = streamText({
+          const { fullStream, steps, text } = streamText({
             ...generationArgs,
-            toolChoice: "auto",
             abortSignal: controller.signal,
             onStepFinish: async ({ toolResults }) => {
-              toolResults?.forEach((toolResult) => {
-                if (
-                  toolResult.toolName === SEARCH_TOOL_NAME &&
-                  toolResult.result?.content
-                ) {
-                  // Map the search tool results to the References format
-                  const searchResults = toolResult.result
-                    .content as SearchToolResult["result"]["content"];
-                  const referencesToAdd = searchResults.map(
-                    (item: {
-                      url: string;
-                      text: string;
-                      metadata?: Record<string, unknown>;
-                    }) => ({
-                      url: item.url,
-                      text: item.text,
-                      metadata: item.metadata,
-                    })
-                  );
-                  references.push(...referencesToAdd);
+              toolResults?.forEach(
+                (toolResult: SearchToolResult<ARGUMENTS>) => {
+                  if (
+                    toolResult.toolName === SEARCH_TOOL_NAME &&
+                    toolResult.result.content
+                  ) {
+                    // Map the search tool results to the References format
+                    const searchResults = toolResult.result
+                      .content as SearchToolResult<ARGUMENTS>["result"]["content"];
+                    const referencesToAdd = searchResults.map(
+                      (item: {
+                        url: string;
+                        text: string;
+                        metadata?: Record<string, unknown>;
+                      }) => ({
+                        url: item.url,
+                        text: item.text,
+                        metadata: item.metadata,
+                      })
+                    );
+                    references.push(...referencesToAdd);
+                  }
                 }
-              });
+              );
             },
           });
           if (shouldStream) {
@@ -215,13 +210,16 @@ export function makeGenerateResponseWithSearchTool({
               type: "references",
             });
             const stepResults = await steps;
+            const finalText = await text; // Await the text promise
 
             return {
               stepResults,
               references: referencesOut,
+              text: finalText, // Include the final text response as a string
             } satisfies {
-              stepResults: StepResult<ToolSet>[];
+              stepResults: StepResult<typeof toolSet>[];
               references: References;
+              text: string; // Update type definition
             };
           } catch (error: unknown) {
             console.error("Error in stream:", error);
@@ -251,7 +249,8 @@ export function makeGenerateResponseWithSearchTool({
     }
   };
 }
-
+// TODO: somewhere in here, it's taking the tool call results, and formatting them as normal assistant messages, which is confusing the model in subsequent genrations
+// see https://www.braintrust.dev/app/mongodb-education-ai/p/chatbot-responses-dev/logs?r=682fadec303d9ec3dcc510bf&s=52058b8a-ad63-4628-8ecd-07b43c747cd4
 function stepResultsToMessages<TOOLS extends ToolSet>(
   stepResults?: StepResult<TOOLS>[],
   references?: References
@@ -295,88 +294,17 @@ function stepResultsToMessages<TOOLS extends ToolSet>(
     .flat();
 }
 
-async function handleStreamResults(
-  streamFromAiSdk: AsyncIterable<TextStreamPart<ToolSet>>,
-  shouldStream: boolean,
-  dataStreamer?: DataStreamer
-) {
-  for await (const chunk of streamFromAiSdk) {
-    switch (chunk.type) {
-      case "text-delta":
-        if (shouldStream) {
-          dataStreamer?.streamData({
-            data: chunk.textDelta,
-            type: "delta",
-          });
-        }
-        break;
-      case "error":
-        console.error("Error in stream:", chunk.error);
-        throw new Error(
-          typeof chunk.error === "string" ? chunk.error : String(chunk.error)
-        );
-      default:
-        break;
-    }
-  }
-}
-
-type ToolParameters = z.ZodTypeAny | Schema<any>;
-
-type inferParameters<PARAMETERS extends ToolParameters> =
-  PARAMETERS extends Schema<any>
-    ? PARAMETERS["_type"]
-    : PARAMETERS extends z.ZodTypeAny
-    ? z.infer<PARAMETERS>
-    : never;
-
-// Extract tools that have an execute property and return their result types
-type ExecutableTools<TOOLS extends ToolSet> = {
-  [K in keyof TOOLS]: TOOLS[K] extends { execute: (...args: any[]) => any }
-    ? K
-    : never;
-}[keyof TOOLS];
-
-// Get the result type of a tool's execute function
-type ToolExecuteResult<T> = T extends { execute: (...args: any[]) => infer R }
-  ? Awaited<R>
-  : never;
-
-// Map tool names to their result types
-type ToolResults<TOOLS extends ToolSet> = {
-  [K in ExecutableTools<TOOLS>]: {
-    toolName: K & string;
-    toolCallId: string;
-    args: inferParameters<TOOLS[K & keyof TOOLS]["parameters"]>;
-    result: ToolExecuteResult<TOOLS[K & keyof TOOLS]>;
-  };
-};
-// Helper type to get a value from an object
-type ValueOf<
-  ObjectType,
-  ValueType extends keyof ObjectType = keyof ObjectType
-> = ObjectType[ValueType];
-
-// Create a union type of all possible tool results
-type ToolResultUnion<TOOLS extends ToolSet> = ValueOf<ToolResults<TOOLS>>;
-
-// Create an array type for tool results
-type ToolResultArray<TOOLS extends ToolSet> = Array<
-  ToolResultUnion<TOOLS> & { type: "tool-result" }
->;
-
-// ... (rest of the code remains the same)
 /**
   Generate the final messages to send to the user based on guardrail result and text generation result
  */
-function handleReturnGeneration(
+function handleReturnGeneration<TOOLS extends ToolSet>(
   userMessage: UserMessage,
   guardrailResult:
     | { rejected: boolean; message: string; metadata?: Record<string, unknown> }
     | undefined,
   textGenerationResult:
     | {
-        stepResults?: StepResult<ToolSet>[];
+        stepResults?: StepResult<TOOLS>[];
         references?: References;
         text?: string;
       }
@@ -428,10 +356,16 @@ function handleReturnGeneration(
   return {
     messages: [
       userMessage,
-      ...stepResultsToMessages(
+      ...stepResultsToMessages<TOOLS>(
         textGenerationResult.stepResults,
         textGenerationResult.references
       ),
+      {
+        role: "assistant",
+        content: textGenerationResult.text || "",
+        references: textGenerationResult.references,
+        customData,
+      },
     ] satisfies SomeMessage[],
   };
 }

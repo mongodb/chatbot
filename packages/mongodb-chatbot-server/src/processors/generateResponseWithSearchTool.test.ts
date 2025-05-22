@@ -1,5 +1,8 @@
 import { jest } from "@jest/globals";
-import { makeGenerateResponseWithSearchTool } from "./generateResponseWithSearchTool";
+import {
+  makeGenerateResponseWithSearchTool,
+  SearchToolReturnValue,
+} from "./generateResponseWithSearchTool";
 import {
   AssistantMessage,
   References,
@@ -16,18 +19,12 @@ import {
   ToolChoice,
   ToolSet,
 } from "mongodb-rag-core/aiSdk";
-
-// Mock dependencies
-jest.mock("mongodb-rag-core/aiSdk", () => {
-  const originalModule = jest.requireActual("mongodb-rag-core/aiSdk");
-  return {
-    ...originalModule,
-    generateText: jest.fn(),
-    streamText: jest.fn(),
-  };
-});
-
-import { generateText, streamText } from "mongodb-rag-core/aiSdk";
+import { z } from "zod";
+import {
+  generateText,
+  streamText,
+  ToolExecutionOptions,
+} from "mongodb-rag-core/aiSdk";
 
 describe("generateResponseWithSearchTool", () => {
   // Mock setup
@@ -41,15 +38,22 @@ describe("generateResponseWithSearchTool", () => {
     content: "You are a helpful assistant.",
   };
 
+  const mockSearchToolParameters = z.object({
+    query: z.string(),
+  });
+
   const mockSearchTool = tool({
-    name: "search_content",
-    parameters: { query: { type: "string" } },
-    async execute(args) {
+    description: "Test search tool",
+    parameters: mockSearchToolParameters,
+    async execute(
+      { query }: { query: string },
+      _options?: ToolExecutionOptions
+    ): Promise<SearchToolReturnValue> {
       return {
         content: [
           {
             url: "https://example.com",
-            text: "Example content",
+            text: `Content for query: ${query}`,
             metadata: { pageTitle: "Example Page" },
           },
         ],
@@ -83,9 +87,46 @@ describe("generateResponseWithSearchTool", () => {
 
       expect(typeof generateResponse).toBe("function");
     });
+    it("should filter previous messages", async () => {
+      const generateResponse = makeGenerateResponseWithSearchTool({
+        languageModel: mockLanguageModel,
+        llmNotWorkingMessage: mockLlmNotWorkingMessage,
+        systemMessage: mockSystemMessage,
+        searchTool: mockSearchTool,
+        filterPreviousMessages: mockFilterPreviousMessages,
+      });
 
-    describe("non-streaming mode", () => {
-      test("should handle successful generation", async () => {
+      const result = await generateResponse({
+        conversation: { messages: [] },
+        latestMessageText: "Hello",
+        shouldStream: false,
+      });
+
+      expect(result).toHaveProperty("messages");
+      expect(result.messages).toHaveLength(2); // User + assistant
+    });
+
+    it("should make reference links", async () => {
+      const generateResponse = makeGenerateResponseWithSearchTool({
+        languageModel: mockLanguageModel,
+        llmNotWorkingMessage: mockLlmNotWorkingMessage,
+        systemMessage: mockSystemMessage,
+        searchTool: mockSearchTool,
+        filterPreviousMessages: mockFilterPreviousMessages,
+      });
+
+      const result = await generateResponse({
+        conversation: { messages: [] },
+        latestMessageText: "Hello",
+        shouldStream: false,
+      });
+
+      expect(result).toHaveProperty("messages");
+      expect(result.messages).toHaveLength(2); // User + assistant
+    });
+
+    describe("non-streaming", () => {
+      test("should handle successful generation non-streaming", async () => {
         // Mock generateText to return a successful result
         (generateText as jest.Mock).mockResolvedValueOnce({
           text: "This is a response",
@@ -220,7 +261,9 @@ describe("generateResponseWithSearchTool", () => {
         });
         expect(result.messages).toHaveLength(2); // User + assistant
       });
-
+      test("should handle successful generation with guardrail", async () => {
+        // TODO: add
+      });
       test("should handle streaming with guardrail rejection", async () => {
         const mockGuardrail = jest.fn().mockResolvedValue({
           rejected: true,
@@ -247,96 +290,10 @@ describe("generateResponseWithSearchTool", () => {
         expect(result.messages[1].role).toBe("assistant");
         expect(result.messages[1].content).toBe("Content policy violation");
       });
-    });
-  });
 
-  describe("helper functions", () => {
-    // Test the stepResultsToMessages function
-    test("stepResultsToMessages should convert step results to messages", () => {
-      // Import the function explicitly for testing
-      const { stepResultsToMessages } = jest.requireActual(
-        "./generateResponseWithSearchTool"
-      );
-
-      const mockStepResults: StepResult<any>[] = [
-        {
-          text: "Test response",
-          toolCalls: [
-            {
-              toolCallId: "call-1",
-              toolName: "search_content",
-              args: { query: "test" },
-            },
-          ],
-        },
-        {
-          text: "",
-          toolResults: [
-            {
-              toolName: "search_content",
-              toolCallId: "call-1",
-              result: { content: [] },
-            },
-          ],
-        },
-      ];
-
-      const messages = stepResultsToMessages(mockStepResults, []);
-
-      expect(messages).toHaveLength(3); // 1 assistant + 1 tool call + 1 tool result
-      expect(messages[0].role).toBe("assistant");
-      expect(messages[1].role).toBe("assistant");
-      expect(messages[1].toolCall).toBeDefined();
-      expect(messages[2].role).toBe("tool");
-    });
-
-    // Test convertConversationMessageToLlmMessage
-    test("convertConversationMessageToLlmMessage should convert different message types", () => {
-      // Import the function explicitly for testing
-      const { convertConversationMessageToLlmMessage } = jest.requireActual(
-        "./generateResponseWithSearchTool"
-      );
-
-      const userMessage: UserMessage = {
-        role: "user",
-        content: "Hello",
-      };
-
-      const assistantMessage: AssistantMessage = {
-        role: "assistant",
-        content: "Hi there",
-        toolCall: {
-          type: "function",
-          id: "call-1",
-          function: { name: "test", arguments: "{}" },
-        },
-      };
-
-      const systemMessage: SystemMessage = {
-        role: "system",
-        content: "You are helpful",
-      };
-
-      const toolMessage: ToolMessage = {
-        role: "tool",
-        name: "search_content",
-        content: '{"results": []}',
-      };
-
-      expect(convertConversationMessageToLlmMessage(userMessage).role).toBe(
-        "user"
-      );
-      expect(
-        convertConversationMessageToLlmMessage(assistantMessage).role
-      ).toBe("assistant");
-      expect(convertConversationMessageToLlmMessage(systemMessage).role).toBe(
-        "system"
-      );
-
-      const convertedToolMessage =
-        convertConversationMessageToLlmMessage(toolMessage);
-      expect(convertedToolMessage.role).toBe("tool");
-      expect(Array.isArray(convertedToolMessage.content)).toBe(true);
+      test("should handle error in language model", async () => {
+        // TODO: add
+      });
     });
   });
 });

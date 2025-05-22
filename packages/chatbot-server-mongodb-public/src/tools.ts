@@ -1,57 +1,62 @@
-import { SearchToolResult } from "mongodb-chatbot-server";
+import { SearchTool, SearchToolReturnValue } from "mongodb-chatbot-server";
 import { FindContentFunc, updateFrontMatter } from "mongodb-rag-core";
-import { tool } from "mongodb-rag-core/aiSdk";
+import { tool, ToolExecutionOptions } from "mongodb-rag-core/aiSdk";
 import { z } from "zod";
 import {
   mongoDbProducts,
   mongoDbProgrammingLanguageIds,
 } from "./mongoDbMetadata";
 
-// export function makeSearchTool(findContent: FindContentFunc): SearchTool {
-//   return tool({
-//     parameters: z.object({
-//       productName: z
-//         .enum(
-//           mongoDbProducts.map((product) => product.id) as [string, ...string[]]
-//         )
-//         .nullable()
-//         .optional()
-//         .describe(
-//           "Most relevant MongoDB product for query. Leave null if unknown"
-//         ),
-//       programmingLanguage: z
-//         .enum(mongoDbProgrammingLanguageIds)
-//         .nullable()
-//         .optional()
-//         .describe(
-//           "Most relevant programming language for query. Leave null if unknown"
-//         ),
-//       query: z.string().describe("Search query"),
-//     }),
-//     description: "Search MongoDB content",
-//     async execute({ query, productName, programmingLanguage }) {
-//       // Ensure we match the SearchToolResult type exactly
-//       const nonNullMetadata: Record<string, string> = {};
-//       if (productName) {
-//         nonNullMetadata.productName = productName;
-//       }
-//       if (programmingLanguage) {
-//         nonNullMetadata.programmingLanguage = programmingLanguage;
-//       }
+const SearchToolArgsSchema = z.object({
+  productName: z
+    .enum(mongoDbProducts.map((product) => product.id) as [string, ...string[]])
+    .nullable()
+    .optional()
+    .describe("Most relevant MongoDB product for query. Leave null if unknown"),
+  programmingLanguage: z
+    .enum(mongoDbProgrammingLanguageIds)
+    .nullable()
+    .optional()
+    .describe(
+      "Most relevant programming language for query. Leave null if unknown"
+    ),
+  query: z.string().describe("Search query"),
+});
 
-//       const queryWithMetadata = updateFrontMatter(query, nonNullMetadata);
-//       const content = await findContent({ query: queryWithMetadata });
+export type SearchToolArgs = z.infer<typeof SearchToolArgsSchema>;
 
-//       // Ensure the returned structure matches SearchToolResult
-//       const result: SearchToolResult["result"] = {
-//         content: content.content.map((item) => ({
-//           url: item.url,
-//           text: item.text,
-//           metadata: item.metadata,
-//         })),
-//       };
+export function makeSearchTool(
+  findContent: FindContentFunc
+): SearchTool<typeof SearchToolArgsSchema> {
+  return tool({
+    parameters: SearchToolArgsSchema,
+    description: "Search MongoDB content",
+    async execute(
+      args: SearchToolArgs,
+      _options: ToolExecutionOptions
+    ): Promise<SearchToolReturnValue> {
+      const { query, productName, programmingLanguage } = args;
 
-//       return result;
-//     },
-//   });
-// }
+      const nonNullMetadata: Record<string, string> = {};
+      if (productName) {
+        nonNullMetadata.productName = productName;
+      }
+      if (programmingLanguage) {
+        nonNullMetadata.programmingLanguage = programmingLanguage;
+      }
+
+      const queryWithMetadata = updateFrontMatter(query, nonNullMetadata);
+      const content = await findContent({ query: queryWithMetadata });
+
+      const result: SearchToolReturnValue = {
+        content: content.content.map((item) => ({
+          url: item.url,
+          text: item.text,
+          metadata: item.metadata,
+        })),
+      };
+
+      return result;
+    },
+  });
+}

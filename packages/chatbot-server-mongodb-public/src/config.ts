@@ -28,7 +28,11 @@ import { makeMongoDbReferences } from "./processors/makeMongoDbReferences";
 import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
-import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
+import {
+  wrapOpenAI,
+  wrapTraced,
+  wrapAISDKModel,
+} from "mongodb-rag-core/braintrust";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import { TRACING_ENV_VARS } from "./EnvVars";
@@ -39,6 +43,7 @@ import {
 } from "./tracing/routesUpdateTraceHandlers";
 import { useSegmentIds } from "./middleware/useSegmentIds";
 import { createAzure } from "mongodb-rag-core/aiSdk";
+import { makeSearchTool } from "./tools";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -196,7 +201,7 @@ const azureOpenAi = createAzure({
   // apiKey: process.env.OPENAI_OPENAI_API_KEY,
 });
 
-const languageModel = azureOpenAi("gpt-4.1");
+const languageModel = wrapAISDKModel(azureOpenAi("gpt-4.1"));
 export const config: AppConfig = {
   conversationsRouterConfig: {
     middleware: [
@@ -263,7 +268,8 @@ export const config: AppConfig = {
         return conversation.messages;
       },
       llmNotWorkingMessage: "LLM not working. Sad!",
-      findContent,
+      searchTool: makeSearchTool(findContent),
+      toolChoice: "auto",
     }),
     maxUserMessagesInConversation: 50,
     maxUserCommentLength: 500,

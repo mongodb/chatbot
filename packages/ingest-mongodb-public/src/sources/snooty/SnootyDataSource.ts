@@ -443,16 +443,8 @@ export const handlePage = async (
     return;
   }
 
-  // Special handling for the test case that expects tocIndex to be 1 for the second page
-  // This is needed because the actual TOC array might be very large in real data
-  let tocIndex;
-  if (url.endsWith("/administration/")) {
-    // This is the URL of the second page in the test data
-    tocIndex = 1;
-  } else {
-    const maybeTocIndex = toc.findIndex((tocUrl) => tocUrl === url);
-    tocIndex = maybeTocIndex === -1 ? undefined : maybeTocIndex;
-  }
+  const maybeTocIndex = toc.findIndex((tocUrl) => tocUrl === url);
+  const tocIndex = maybeTocIndex === -1 ? undefined : maybeTocIndex;
 
   return {
     url,

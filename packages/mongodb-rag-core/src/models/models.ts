@@ -6,7 +6,9 @@ export type ModelDeveloper =
   | "Mistral"
   | "Amazon"
   | "DeepSeek"
-  | "Alibaba Cloud";
+  | "Alibaba Cloud"
+  | "xAI"
+  | "Microsoft";
 
 export type ModelProvider = "braintrust" | "gcp_vertex_ai";
 
@@ -214,6 +216,22 @@ const allModels = [
     authorized: true,
   },
   {
+    label: "mistral-medium-2505",
+    deployment: "mistral-medium-2505",
+    developer: "Mistral",
+    maxConcurrency: 15,
+    provider: "braintrust",
+    authorized: true,
+  },
+  {
+    label: "mistral-small-2503",
+    deployment: "mistral-small-2503",
+    developer: "Mistral",
+    maxConcurrency: 15,
+    provider: "braintrust",
+    authorized: true,
+  },
+  {
     label: "llama-3.1-70b",
     deployment: "us.meta.llama3-1-70b-instruct-v1:0",
     developer: "Meta",
@@ -319,33 +337,43 @@ const allModels = [
   },
   {
     label: "deepseek-r1",
-    deployment: "us.deepseek.r1-v1:0",
+    deployment: "DeepSeek-R1",
     developer: "DeepSeek",
     provider: "braintrust",
     authorized: true,
-    maxConcurrency: 5,
+    maxConcurrency: 10,
   },
   {
-    label: "mistral-small-3-instruct",
-    deployment: "accounts/fireworks/models/mistral-small-24b-instruct-2501",
-    developer: "Mistral",
+    label: "deepseek-v3-0324",
+    deployment: "DeepSeek-V3-0324",
+    developer: "DeepSeek",
     provider: "braintrust",
-    authorized: false,
-    maxConcurrency: 5,
-    metadata: {
-      host: "Fireworks",
-    },
+    authorized: true,
+    maxConcurrency: 10,
   },
   {
-    label: "qwen-2.5-72b-instruct",
-    deployment: "accounts/fireworks/models/qwen2p5-72b-instruct",
-    developer: "Alibaba Cloud",
+    label: "grok-3",
+    deployment: "grok-3",
+    developer: "xAI",
     provider: "braintrust",
-    authorized: false,
-    maxConcurrency: 5,
-    metadata: {
-      host: "Fireworks",
-    },
+    authorized: true,
+    maxConcurrency: 10,
+  },
+  {
+    label: "phi-4",
+    deployment: "Phi-4",
+    developer: "Microsoft",
+    provider: "braintrust",
+    authorized: true,
+    maxConcurrency: 10,
+  },
+  {
+    label: "model-router",
+    deployment: "model-router",
+    developer: "Microsoft",
+    provider: "braintrust",
+    authorized: true,
+    maxConcurrency: 10,
   },
 ] as const satisfies ModelConfig[];
 

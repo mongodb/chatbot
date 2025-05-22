@@ -3,6 +3,7 @@ import { analyzeMessage, MessageAnalysis } from "./analyzeMessage";
 import { redactPii } from "./redactPii";
 import { ScrubbedMessage } from "./ScrubbedMessage";
 import { LanguageModel } from "mongodb-rag-core/aiSdk";
+import { OriginCode } from "mongodb-chatbot-server";
 
 export async function makeScrubbedMessagesFromTracingData({
   tracingData,
@@ -53,7 +54,7 @@ export async function makeScrubbedMessagesFromTracingData({
     redactedText: redactedAssistantContent,
     piiFound: assistantMessagePii,
   } = redactPii(assistantMessage.content);
-
+  
   const scrubbedAssistantMessage = {
     _id: assistantMessage.id,
     conversationId: tracingData.conversationId,
@@ -64,9 +65,9 @@ export async function makeScrubbedMessagesFromTracingData({
     createdAt: assistantMessage.createdAt,
     customData: assistantMessage.customData,
     request: {
-      userTopics: userAnalysis?.topics,
-      origin: userMessage?.customData?.origin,
-      originCode: userMessage?.customData?.originCode,
+      userTopics: userAnalysis?.topics ?? undefined,
+      origin: userMessage?.customData?.origin as string,
+      originCode: userMessage?.customData?.originCode as OriginCode,
     },
     pii: assistantMessagePii?.length ? true : undefined,
     metadata: assistantMessage.metadata,

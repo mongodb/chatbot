@@ -373,7 +373,8 @@ export function makeCommentMessageUpdateTrace({
       await scrubbedMessageStore.updateScrubbedMessage({
         id: userMessage.id,
         message: { 
-          "response.userCommented": true 
+          "response.userCommented": true,
+          "response.userComment": userComment
         } as Partial<Omit<ScrubbedMessage, "_id">>,
       });
     } catch (error) {

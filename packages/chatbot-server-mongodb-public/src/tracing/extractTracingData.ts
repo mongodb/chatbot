@@ -7,6 +7,7 @@ import {
 import { ObjectId } from "mongodb-rag-core/mongodb";
 import { llmDoesNotKnowMessage } from "../systemPrompt";
 import { strict as assert } from "assert";
+import { OriginCode } from "mongodb-chatbot-server";
 
 export function extractTracingData(
   messages: Message[],
@@ -42,7 +43,7 @@ export function extractTracingData(
     | string
     | undefined;
   const requestOriginCode = previousUserMessage?.customData?.originCode as
-    | string
+    | OriginCode
     | undefined;
   if (programmingLanguage) {
     tags.push(tagify(programmingLanguage));

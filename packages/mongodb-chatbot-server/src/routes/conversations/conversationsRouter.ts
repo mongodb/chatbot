@@ -236,15 +236,17 @@ const addOriginToCustomData: AddCustomDataFunc = async (_, res) =>
       }
     : undefined;
 
-const enum OriginCode {
-  Learn = "LEARN",
-  Developer = "DEVELOPER",
-  Docs = "DOCS",
-  Dotcom = "DOTCOM",
-  GeminiCodeAssist = "GEMINI_CODE_ASSIST",
-  VsCode = "VSCODE",
-  Other = "OTHER",
-}
+export const originCodes = [
+  "LEARN",
+  "DEVELOPER",
+  "DOCS",
+  "DOTCOM",
+  "GEMINI_CODE_ASSIST",
+  "VSCODE",
+  "OTHER",
+] as const;
+
+export type OriginCode = (typeof originCodes)[number];
 
 interface OriginRule {
   regex: RegExp;
@@ -252,12 +254,12 @@ interface OriginRule {
 }
 
 const ORIGIN_RULES: OriginRule[] = [
-  { regex: /learn\.mongodb\.com/, code: OriginCode.Learn },
-  { regex: /^https:\/\/www\.mongodb\.com\/(?:\?(?:[^#]*)?)?(?:#.*)?$/, code: OriginCode.Dotcom },
-  { regex: /mongodb\.com\/developer/, code: OriginCode.Developer },
-  { regex: /mongodb\.com\/docs/, code: OriginCode.Docs },
-  { regex: /google-gemini-code-assist/, code: OriginCode.GeminiCodeAssist },
-  { regex: /vscode-mongodb-copilot/, code: OriginCode.VsCode },
+  { regex: /learn\.mongodb\.com/, code: "LEARN" },
+  { regex: /mongodb\.com\/developer/, code: "DEVELOPER" },
+  { regex: /mongodb\.com\/docs/, code: "DOCS" },
+  { regex: /mongodb\.com\//, code: "DOTCOM" },
+  { regex: /google-gemini-code-assist/, code: "GEMINI_CODE_ASSIST" },
+  { regex: /vscode-mongodb-copilot/, code: "VSCODE" },
 ];
 
 function getOriginCode(origin: string): OriginCode {
@@ -266,7 +268,7 @@ function getOriginCode(origin: string): OriginCode {
       return rule.code;
     }
   }
-  return OriginCode.Other;
+  return "OTHER";
 }
 
 const addOriginCodeToCustomData: AddCustomDataFunc = async (_, res) => {

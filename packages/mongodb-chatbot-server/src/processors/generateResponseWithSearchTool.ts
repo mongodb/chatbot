@@ -15,12 +15,15 @@ import {
   LanguageModel,
   StepResult,
   streamText,
+  StreamTextResult,
   Tool,
   ToolCallPart,
   ToolChoice,
   ToolExecutionOptions,
   ToolResultUnion,
   ToolSet,
+  AssistantResponse,
+  CoreToolMessage,
 } from "mongodb-rag-core/aiSdk";
 import { FilterPreviousMessages } from "./FilterPreviousMessages";
 import { InputGuardrail, withAbortControllerGuardrail } from "./InputGuardrail";
@@ -144,10 +147,14 @@ export function makeGenerateResponseWithSearchTool<
       const references: any[] = [];
       const { result, guardrailResult } = await withAbortControllerGuardrail(
         async (controller) => {
+          let toolChoice = generationArgs.toolChoice;
           // Pass the tools as a separate parameter
-          const { fullStream, steps, text } = streamText({
+          const result = streamText({
             ...generationArgs,
+            // Abort the stream if the guardrail AbortController is triggered
             abortSignal: controller.signal,
+            toolChoice,
+            // Add the search tool results to the references
             onStepFinish: async ({ toolResults }) => {
               toolResults?.forEach(
                 (toolResult: SearchToolResult<ARGUMENTS>) => {
@@ -155,21 +162,10 @@ export function makeGenerateResponseWithSearchTool<
                     toolResult.toolName === SEARCH_TOOL_NAME &&
                     toolResult.result.content
                   ) {
+                    toolChoice = "auto";
                     // Map the search tool results to the References format
-                    const searchResults = toolResult.result
-                      .content as SearchToolResult<ARGUMENTS>["result"]["content"];
-                    const referencesToAdd = searchResults.map(
-                      (item: {
-                        url: string;
-                        text: string;
-                        metadata?: Record<string, unknown>;
-                      }) => ({
-                        url: item.url,
-                        text: item.text,
-                        metadata: item.metadata,
-                      })
-                    );
-                    references.push(...referencesToAdd);
+                    const searchResults = toolResult.result.content;
+                    references.push(...searchResults);
                   }
                 }
               );
@@ -177,7 +173,7 @@ export function makeGenerateResponseWithSearchTool<
           });
           if (shouldStream) {
             assert(dataStreamer, "dataStreamer is required for streaming");
-            for await (const chunk of fullStream) {
+            for await (const chunk of result.fullStream) {
               switch (chunk.type) {
                 case "text-delta":
                   if (shouldStream) {
@@ -209,18 +205,7 @@ export function makeGenerateResponseWithSearchTool<
               data: referencesOut,
               type: "references",
             });
-            const stepResults = await steps;
-            const finalText = await text; // Await the text promise
-
-            return {
-              stepResults,
-              references: referencesOut,
-              text: finalText, // Include the final text response as a string
-            } satisfies {
-              stepResults: StepResult<typeof toolSet>[];
-              references: References;
-              text: string; // Update type definition
-            };
+            return result;
           } catch (error: unknown) {
             console.error("Error in stream:", error);
             throw new Error(typeof error === "string" ? error : String(error));
@@ -228,14 +213,29 @@ export function makeGenerateResponseWithSearchTool<
         },
         inputGuardrailPromise
       );
-      return handleReturnGeneration(
+      const text = await result?.text;
+      assert(text, "text is required");
+      const steps = await result?.steps;
+      assert(steps, "steps is required");
+      // console.log("steps", steps);
+      const messages = (await result?.response)?.messages;
+      assert(messages, "messages is required");
+
+      console.log("messages", JSON.stringify(messages, null, 2));
+      return handleReturnGeneration({
         userMessage,
         guardrailResult,
-        result,
+        messages,
         customData,
-        llmNotWorkingMessage
-      );
+        references,
+      });
     } catch (error: unknown) {
+      // TODO: handle guardrail failure so that the guardrail err is persisted.
+
+      dataStreamer?.streamData({
+        data: llmNotWorkingMessage,
+        type: "delta",
+      });
       // Handle other errors
       return {
         messages: [
@@ -249,125 +249,100 @@ export function makeGenerateResponseWithSearchTool<
     }
   };
 }
-// TODO: somewhere in here, it's taking the tool call results, and formatting them as normal assistant messages, which is confusing the model in subsequent genrations
-// see https://www.braintrust.dev/app/mongodb-education-ai/p/chatbot-responses-dev/logs?r=682fadec303d9ec3dcc510bf&s=52058b8a-ad63-4628-8ecd-07b43c747cd4
-function stepResultsToMessages<TOOLS extends ToolSet>(
-  stepResults?: StepResult<TOOLS>[],
-  references?: References
-): SomeMessage[] {
-  if (!stepResults) {
-    return [];
-  }
-  return stepResults
-    .map((stepResult) => {
-      if (stepResult.toolCalls) {
-        return stepResult.toolCalls.map(
-          (toolCall) =>
-            ({
-              role: "assistant",
-              content: toolCall.args,
-              toolCall: {
-                function: toolCall.args,
-                id: toolCall.toolCallId,
-                type: "function",
-              },
-            } satisfies AssistantMessage)
-        );
-      }
-      if (stepResult.toolResults) {
-        return stepResult.toolResults.map(
-          (toolResult) =>
-            ({
-              role: "tool",
-              name: toolResult.toolName,
-              content: toolResult.result,
-            } satisfies ToolMessage)
-        );
-      } else {
-        return {
-          role: "assistant",
-          content: stepResult.text,
-          references,
-        } satisfies AssistantMessage;
-      }
-    })
-    .flat();
-}
 
+type ResponseMessage = CoreAssistantMessage | CoreToolMessage;
 /**
   Generate the final messages to send to the user based on guardrail result and text generation result
  */
-function handleReturnGeneration<TOOLS extends ToolSet>(
-  userMessage: UserMessage,
+function handleReturnGeneration({
+  userMessage,
+  guardrailResult,
+  messages,
+  references,
+}: {
+  userMessage: UserMessage;
   guardrailResult:
     | { rejected: boolean; message: string; metadata?: Record<string, unknown> }
-    | undefined,
-  textGenerationResult:
-    | {
-        stepResults?: StepResult<TOOLS>[];
-        references?: References;
-        text?: string;
-      }
-    | null
-    | undefined,
-  customData?: Record<string, unknown>,
-  fallbackMessage = "Sorry, I'm having trouble generating a response."
-): { messages: SomeMessage[] } {
-  if (guardrailResult?.rejected) {
-    return {
-      messages: [
-        userMessage,
-        {
-          role: "assistant",
-          content: guardrailResult.message,
-          metadata: guardrailResult.metadata,
-          customData,
-        },
-      ] satisfies SomeMessage[],
-    };
-  }
-
-  if (!textGenerationResult) {
-    return {
-      messages: [
-        userMessage,
-        {
-          role: "assistant",
-          content: fallbackMessage,
-        },
-      ],
-    };
-  }
-
-  // Check if stepResults exist, if not but we have text, create a response with just the text
-  if (!textGenerationResult.stepResults?.length && textGenerationResult.text) {
-    return {
-      messages: [
-        userMessage,
-        {
-          role: "assistant",
-          content: textGenerationResult.text,
-          references: textGenerationResult.references,
-        },
-      ],
-    };
-  }
-
+    | undefined;
+  messages: ResponseMessage[];
+  references?: References;
+  customData?: Record<string, unknown>;
+}): { messages: SomeMessage[] } {
+  userMessage.rejectQuery = guardrailResult?.rejected;
+  userMessage.customData = {
+    ...userMessage.customData,
+    ...guardrailResult,
+  };
   return {
     messages: [
       userMessage,
-      ...stepResultsToMessages<TOOLS>(
-        textGenerationResult.stepResults,
-        textGenerationResult.references
-      ),
-      {
-        role: "assistant",
-        content: textGenerationResult.text || "",
-        references: textGenerationResult.references,
-        customData,
-      },
+      ...formatMessageForGeneration(messages, references ?? []),
     ] satisfies SomeMessage[],
   };
+}
+
+// TODO: implement this
+function formatMessageForGeneration(
+  messages: ResponseMessage[],
+  references: References
+): SomeMessage[] {
+  const messagesOut = messages
+    .map((m) => {
+      if (m.role === "assistant") {
+        const baseMessage: Partial<AssistantMessage> & { role: "assistant" } = {
+          role: "assistant",
+        };
+        if (typeof m.content === "string") {
+          baseMessage.content = m.content;
+        } else {
+          m.content.forEach((c) => {
+            if (c.type === "text") {
+              baseMessage.content = c.text;
+            }
+            if (c.type === "tool-call") {
+              baseMessage.toolCall = {
+                id: c.toolCallId,
+                function: {
+                  name: c.toolName,
+                  arguments: JSON.stringify(c.args),
+                },
+                type: "function",
+              };
+            }
+          });
+        }
+
+        return {
+          ...baseMessage,
+          content: baseMessage.content ?? "",
+        } satisfies AssistantMessage;
+      } else if (m.role === "tool") {
+        const baseMessage: Partial<ToolMessage> & { role: "tool" } = {
+          role: "tool",
+        };
+        if (typeof m.content === "string") {
+          baseMessage.content = m.content;
+        } else {
+          m.content.forEach((c) => {
+            if (c.type === "tool-result") {
+              baseMessage.name = c.toolName;
+              baseMessage.content = JSON.stringify(c.result);
+            }
+          });
+        }
+        return {
+          ...baseMessage,
+          name: baseMessage.name ?? "",
+          content: baseMessage.content ?? "",
+        } satisfies ToolMessage;
+      }
+    })
+    .filter((m): m is AssistantMessage | ToolMessage => m !== undefined);
+  const latestMessage = messagesOut.at(-1);
+  if (latestMessage?.role === "assistant") {
+    latestMessage.references = references;
+  }
+  return messagesOut;
 }
 
 function formatMessageForAiSdk(message: SomeMessage): CoreMessage {

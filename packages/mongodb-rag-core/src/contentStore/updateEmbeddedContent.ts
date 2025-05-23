@@ -211,6 +211,7 @@ export const updateEmbeddedContentForPage = async ({
         },
         updated: new Date(),
         chunkAlgoHash,
+        sourceType: page.sourceType,
       };
     });
 

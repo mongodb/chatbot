@@ -6,6 +6,7 @@ import {
   snootyAstToMd,
   getTitleFromSnootyAst,
   getMetadataFromSnootyAst,
+  RenderLinks,
 } from "./snootyAstToMd";
 import {
   getTitleFromSnootyOpenApiSpecAst,
@@ -90,6 +91,25 @@ export type SnootyMetaNode = SnootyNode & {
 };
 
 /**
+  Internal `ref` links
+ */
+export type SnootyRefRoleNode = SnootyNode & {
+  type: "ref_role";
+} & ( // For refs internal to current site
+    | { fileid?: [path: string, fragment?: string] }
+    // For refs external to current site
+    | { url?: string }
+  );
+
+/**
+  External links
+ */
+export type SnootyReferenceNode = SnootyNode & {
+  type: "reference";
+  refuri?: string;
+};
+
+/**
   A page in the Snooty manifest.
  */
 export type SnootyPageData = {
@@ -108,42 +128,19 @@ export type SnootyMetadata = {
 
 export type SnootyProjectConfig = ProjectBase & {
   type: "snooty";
-
-  /**
-    Git branch name for the current (search indexed) version of the site.
-    @example "v4.10"
-   */
-  currentBranch: string;
-
-  // TODO: we don't need the following config option yet, but we will when we
-  // implement versions in the chatbot.
-  // /**
-  //  * Additional non-current branches to index
-  //  * @example ["master", "v4.11"]
-  //  */
-  // additionalBranches?: string[];
-
-  /**
-    The base URL of pages within the project site.
-   */
-  baseUrl: string;
+  branches?: Branch[];
 };
 
 /**
   Specifies a locally-overrideable Snooty project configuration.
-
-  `baseUrl` and `currentBranch`, if undefined, will be filled in by the Snooty
-  Data API GET projects endpoint. You can set them yourself to override the data
-  in the Snooty Data API. `currentBranch` will be the name of the first branch
-  entry with `isStableBranch` set to true in the Data API response.
  */
-export type LocallySpecifiedSnootyProjectConfig = Omit<
-  SnootyProjectConfig,
-  "baseUrl" | "currentBranch" | "version"
-> & {
-  baseUrl?: string;
-  currentBranch?: string;
-  versionNameOverride?: string;
+export type LocallySpecifiedSnootyProjectConfig = SnootyProjectConfig & {
+  /**
+    Can be set to a branch label to override the current version of the
+    project. Available branche labels can be found in the Snooty Data API
+    response for the project. https://snooty-data-api.mongodb.com/prod/projects  
+   */
+  currentVersionOverride?: string;
 };
 
 export type MakeSnootyDataSourceArgs = {
@@ -163,120 +160,125 @@ export type MakeSnootyDataSourceArgs = {
   snootyDataApiBaseUrl: string;
 
   version?: string;
+
+  /**
+    Configuration for rendering links and anchor links.
+   */
+  links?: RenderLinks;
 };
 
 export const makeSnootyDataSource = ({
   name: sourceName,
   project,
   snootyDataApiBaseUrl,
-}: MakeSnootyDataSourceArgs): DataSource & {
-  _baseUrl: string;
-  _currentBranch: string;
-  _snootyProjectName: string;
-  _version?: string;
-} => {
-  const {
-    baseUrl,
-    currentBranch,
-    name: snootyProjectName,
-    tags,
-    productName,
-    version,
-  } = project;
+  links,
+}: MakeSnootyDataSourceArgs): DataSource => {
+  const { branches, name: snootyProjectName, tags, productName } = project;
   return {
-    // Additional members for testing purposes
-    _baseUrl: baseUrl,
-    _currentBranch: currentBranch,
-    _snootyProjectName: snootyProjectName,
-    _version: version,
     name: sourceName,
     async fetchPages() {
       // TODO: The manifest can be quite large (>100MB) so this could stand to
       // be re-architected to use AsyncGenerators and update page-by-page. For
       // now we can just accept the memory cost.
-      const getBranchDocumentsUrl = new URL(
-        `projects/${snootyProjectName}/${currentBranch}/documents`,
-        snootyDataApiBaseUrl
-      );
-      const { body } = await fetch(getBranchDocumentsUrl);
-      if (body === null) {
-        return [];
-      }
-      const stream = createInterface(body);
-      const linePromises: Promise<void>[] = [];
-      const pages: Page[] = [];
-      let siteTitle: string | undefined = undefined;
-      await new Promise<void>((resolve, reject) => {
-        stream.on("line", async (line) => {
-          const entry = JSON.parse(line) as SnootyManifestEntry;
-          switch (entry.type) {
-            case "page": {
-              const { data } = entry as SnootyPageEntry;
-              if (data.deleted) {
-                // Page marked deleted by Snooty API. Treat it as if it were not
-                // in the result set at all. The ingest system treats missing
-                // pages as if they have been deleted.
+      const pagesForAllBranches: Page[] = [];
+      for (const branch of branches ?? []) {
+        if (!branch.active) {
+          continue;
+        }
+        const getBranchDocumentsUrl = new URL(
+          `projects/${snootyProjectName}/${branch.gitBranchName}/documents`,
+          snootyDataApiBaseUrl
+        );
+        const version = {
+          label: branch.label,
+          isCurrent: branch.isStableBranch,
+        };
+        const branchUrl = branch.fullUrl.replace("http://", "https://");
+        const { body } = await fetch(getBranchDocumentsUrl);
+        if (body === null) {
+          return [];
+        }
+        const stream = createInterface(body);
+        const linePromises: Promise<void>[] = [];
+        const pages: Page[] = [];
+        let siteTitle: string | undefined = undefined;
+        await new Promise<void>((resolve, reject) => {
+          stream.on("line", async (line) => {
+            const entry = JSON.parse(line) as SnootyManifestEntry;
+            switch (entry.type) {
+              case "page": {
+                const { data } = entry as SnootyPageEntry;
+                if (data.deleted) {
+                  // Page marked deleted by Snooty API. Treat it as if it were not
+                  // in the result set at all. The ingest system treats missing
+                  // pages as if they have been deleted.
+                  return;
+                }
+                return linePromises.push(
+                  (async () => {
+                    try {
+                      const page = await handlePage(data, {
+                        sourceName,
+                        baseUrl: branchUrl,
+                        tags: tags ?? [],
+                        productName,
+                        version,
+                        links: {
+                          ...links,
+                          baseUrl: branchUrl,
+                        },
+                      });
+                      if (page !== undefined) {
+                        pages.push(page);
+                      }
+                    } catch (error) {
+                      // Log the error and discard this document, but don't break the
+                      // overall fetchPages() call.
+                      logger.error(
+                        `SnootyDataSource handlePage failed with error: ${
+                          (error as Error)?.message
+                        }`
+                      );
+                    }
+                  })()
+                );
+              }
+              case "asset":
+                // Nothing to do with assets (images...) for now
+                return;
+              case "metadata": {
+                const { data } = entry as SnootyMetadataEntry;
+                siteTitle = data.title;
                 return;
               }
-              return linePromises.push(
-                (async () => {
-                  try {
-                    const page = await handlePage(data, {
-                      sourceName,
-                      baseUrl,
-                      tags: tags ?? [],
-                      productName,
-                      version,
-                    });
-                    if (page !== undefined) {
-                      pages.push(page);
-                    }
-                  } catch (error) {
-                    // Log the error and discard this document, but don't break the
-                    // overall fetchPages() call.
-                    logger.error(
-                      `SnootyDataSource handlePage failed with error: ${
-                        (error as Error)?.message
-                      }`
-                    );
-                  }
-                })()
-              );
+              case "timestamp":
+                // Nothing to do with timestamp document for now
+                return;
+              default:
+                return reject(
+                  new Error(
+                    `unexpected entry type from '${getBranchDocumentsUrl}': ${
+                      (entry as Record<string, unknown>).type as string
+                    }`
+                  )
+                );
             }
-            case "asset":
-              // Nothing to do with assets (images...) for now
-              return;
-            case "metadata": {
-              const { data } = entry as SnootyMetadataEntry;
-              siteTitle = data.title;
-              return;
-            }
-            case "timestamp":
-              // Nothing to do with timestamp document for now
-              return;
-            default:
-              return reject(
-                new Error(
-                  `unexpected entry type from '${getBranchDocumentsUrl}': ${
-                    (entry as Record<string, unknown>).type as string
-                  }`
-                )
-              );
+          });
+          stream.on("close", () => {
+            resolve();
+          });
+        });
+        await Promise.allSettled(linePromises);
+        // add metadata to all the pages
+        for (const page of pages) {
+          if (!page.metadata) {
+            page.metadata = {};
           }
-        });
-        stream.on("close", () => {
-          resolve();
-        });
-      });
-      await Promise.allSettled(linePromises);
-      // add metadata to all the pages
-      for (const page of pages) {
-        if (!page.metadata) {
-          page.metadata = {};
+          page.metadata.siteTitle = siteTitle;
         }
-        page.metadata.siteTitle = siteTitle;
+        pagesForAllBranches.push(...pages);
       }
-      return pages;
+      return pagesForAllBranches;
     },
   };
 };
@@ -290,6 +292,12 @@ export interface Branch {
     @example "master"
    */
   gitBranchName: string;
+
+  /**
+    Branch label
+    @example "v10.4 (current)"
+   */
+  label: string;
 
   /**
     Whether or not the branch is active.
@@ -335,12 +343,17 @@ export const handlePage = async (
     tags: tagsIn = [],
     productName,
     version,
+    links,
   }: {
     sourceName: string;
     baseUrl: string;
     tags: string[];
     productName?: string;
-    version?: string;
+    version?: {
+      label: string;
+      isCurrent: boolean;
+    };
+    links?: RenderLinks;
   }
 ): Promise<Page | undefined> => {
   // Strip first three path segments - according to Snooty team, they'll always
@@ -360,6 +373,11 @@ export const handlePage = async (
   let body = "";
   let title: string | undefined;
   let format: PageFormat;
+  const baseUrlTrailingSlash = baseUrl.replace(/\/?$/, "/");
+  const url = new URL(pagePath, baseUrlTrailingSlash).href.replace(
+    /\/?$/, // Add trailing slash
+    "/"
+  );
   if (page.ast.options?.template === "openapi") {
     format = "openapi-yaml";
     body = await snootyAstToOpenApiSpec(page.ast);
@@ -367,7 +385,7 @@ export const handlePage = async (
     tags.push("openapi");
   } else {
     format = "md";
-    body = snootyAstToMd(page.ast);
+    body = snootyAstToMd(page.ast, links);
     title = getTitleFromSnootyAst(page.ast);
   }
   const { metadata: pageMetadata, noIndex } = getMetadataFromSnootyAst(
@@ -378,14 +396,12 @@ export const handlePage = async (
   }
 
   return {
-    url: new URL(pagePath, baseUrl.replace(/\/?$/, "/")).href.replace(
-      /\/?$/, // Add trailing slash
-      "/"
-    ),
+    url,
     sourceName,
     title,
     body: truncateEmbeddings(body),
     format,
+    sourceType: "tech-docs",
     metadata: {
       page: pageMetadata,
       tags,

@@ -1,4 +1,4 @@
-import { mongoDbMetadata } from "chatbot-server-mongodb-public";
+import mongoDbMetadata from "mongodb-rag-core/mongoDbMetadata";
 import { QuizQuestionData } from "../QuizQuestionData";
 
 const { mongoDbProductNames, mongoDbTopics, mongoDbProgrammingLanguages } =

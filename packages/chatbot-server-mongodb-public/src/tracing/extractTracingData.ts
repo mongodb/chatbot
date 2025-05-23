@@ -10,20 +10,25 @@ import { strict as assert } from "assert";
 
 export function extractTracingData(
   messages: Message[],
-  assistantMessageId: ObjectId
+  assistantMessageId: ObjectId,
+  conversationId: ObjectId
 ) {
   const evalAssistantMessageIdx = messages.findLastIndex(
     (message) =>
       message.role === "assistant" && message.id.equals(assistantMessageId)
   );
   assert(evalAssistantMessageIdx !== -1, "Assistant message not found");
-  const evalAssistantMessage = messages[evalAssistantMessageIdx] as
-    | DbMessage<AssistantMessage>
-    | undefined;
+  const evalAssistantMessage = messages[
+    evalAssistantMessageIdx
+  ] as DbMessage<AssistantMessage>;
 
-  const previousUserMessage = messages
+  const previousUserMessageIdx = messages
     .slice(0, evalAssistantMessageIdx)
-    .findLast((m): m is DbMessage<UserMessage> => m.role === "user");
+    .findLastIndex((m): m is DbMessage<UserMessage> => m.role === "user");
+  assert(previousUserMessageIdx !== -1, "User message not found");
+  const previousUserMessage = messages[
+    previousUserMessageIdx
+  ] as DbMessage<UserMessage>;
 
   const tags = [];
 
@@ -63,14 +68,22 @@ export function extractTracingData(
     tags.push("llm_does_not_know");
   }
 
+  const rating = evalAssistantMessage?.rating;
+  const comment = evalAssistantMessage?.userComment;
+
   return {
+    conversationId: conversationId,
     tags,
     rejectQuery,
     isVerifiedAnswer,
     llmDoesNotKnow,
     numRetrievedChunks,
     userMessage: previousUserMessage,
+    userMessageIndex: previousUserMessageIdx,
     assistantMessage: evalAssistantMessage,
+    assistantMessageIndex: evalAssistantMessageIdx,
+    rating,
+    comment,
   };
 }
 

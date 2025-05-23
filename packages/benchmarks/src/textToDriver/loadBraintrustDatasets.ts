@@ -1,7 +1,10 @@
 import { initDataset } from "braintrust";
 import { z } from "zod";
 import { Document, BSON } from "mongodb-rag-core/mongodb";
-import { TextToDriverEvalCase, TextToDriverEvalCaseSchema } from "./evalTypes";
+import {
+  TextToDriverEvalCase,
+  TextToDriverEvalCaseSchema,
+} from "./TextToDriverEval";
 import "dotenv/config";
 
 const { EJSON } = BSON;
@@ -128,9 +131,11 @@ export async function loadBraintrustDbDocuments({
 }
 
 /**
-  Load the evaluation cases for the text-to-driver task from Braintrust.
+  @deprecated
+  Load the **legacy** evaluation cases for the text-to-driver task from Braintrust.
+  This structure was used in the original text-to-node.js driver benchmark. It is no longer used.
  */
-export async function loadBraintrustEvalCases({
+export async function loadLegacyTextToDriverBraintrustEvalCases({
   apiKey,
   projectName,
   datasetName,
@@ -143,20 +148,38 @@ export async function loadBraintrustEvalCases({
   const evalCases = (await dataset.fetchedData()).map((d) => {
     const evalCase = TextToDriverEvalCaseSchema.parse(d);
     const tags: string[] = [];
-    if (evalCase.metadata.sql.tags?.category) {
+    if (evalCase.metadata.sql?.tags?.category) {
       tags.push(evalCase.metadata.sql.tags.category);
     }
-    if (evalCase.metadata.sql.tags?.subcategories) {
+    evalCase.expected.result = EJSON.parse(evalCase.expected.result, {
+      relaxed: true,
+    });
+    if (evalCase.metadata.sql?.tags?.subcategories) {
       tags.push(...evalCase.metadata.sql.tags.subcategories);
     }
     evalCase.tags = tags;
     evalCase.metadata.orderMatters =
-      evalCase.metadata.sql.query.includes("ORDER BY") ?? false;
+      evalCase.metadata.sql?.query.includes("ORDER BY") ?? false;
     evalCase.metadata.isAggregation =
-      evalCase.metadata.sql.tags?.subcategories.includes("AGGREGATION") ??
+      evalCase.metadata.sql?.tags?.subcategories.includes("AGGREGATION") ??
       false;
     return evalCase;
   });
 
   return evalCases;
+}
+
+export async function loadTextToDriverBraintrustEvalCases({
+  apiKey,
+  projectName,
+  datasetName,
+}: LoadBraintrustDatasetParams): Promise<TextToDriverEvalCase[]> {
+  const dataset = (
+    await initDataset(projectName, {
+      apiKey,
+      dataset: datasetName,
+    }).fetchedData()
+  ).map((d) => TextToDriverEvalCaseSchema.parse(d));
+
+  return dataset;
 }

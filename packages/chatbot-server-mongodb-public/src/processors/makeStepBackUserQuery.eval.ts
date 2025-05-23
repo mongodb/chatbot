@@ -1,12 +1,12 @@
 import { Scorer, EmbeddingSimilarity } from "autoevals";
-import { Eval } from "braintrust";
+import { Eval } from "mongodb-rag-core/braintrust";
 import {
   makeStepBackUserQuery,
   StepBackUserQueryMongoDbFunction,
 } from "./makeStepBackUserQuery";
 import { Message, updateFrontMatter } from "mongodb-chatbot-server";
 import { ObjectId } from "mongodb-rag-core/mongodb";
-import { MongoDbTag } from "../mongoDbMetadata";
+import { MongoDbTag } from "mongodb-rag-core/mongoDbMetadata";
 import {
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_API_KEY,
@@ -17,7 +17,7 @@ import {
 } from "../eval/evalHelpers";
 
 interface ExtractMongoDbMetadataEvalCase {
-  name: string;
+  name?: string;
   input: {
     previousMessages?: Message[];
     userMessageText: string;
@@ -46,7 +46,10 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
   {
     name: "should step back based on previous messages",
     input: {
-      userMessageText: "code example",
+      userMessageText: updateFrontMatter("code example", {
+        programmingLanguage: "javascript",
+        mongoDbProduct: "Driver",
+      }),
       previousMessages: [
         {
           role: "user",
@@ -142,6 +145,17 @@ const evalCases: ExtractMongoDbMetadataEvalCase[] = [
     } satisfies StepBackUserQueryMongoDbFunction,
     tags: ["performance", "indexes"],
   },
+  {
+    input: {
+      userMessageText: updateFrontMatter("langchain quickstart", {
+        mongoDbProduct: "Drivers",
+        programmingLanguage: "python",
+      }),
+    },
+    expected: {
+      transformedUserQuery: "How do I get started with LangChain?",
+    } satisfies StepBackUserQueryMongoDbFunction,
+  },
 ];
 
 const QuerySimilarity: Scorer<
@@ -170,8 +184,7 @@ Eval("step-back-user-query", {
       "Evaluate the function that mutates the user query for better search results.",
     model,
   },
-  maxConcurrency: 3,
-  timeout: 20000,
+  maxConcurrency: 10,
   async task(input) {
     try {
       return await makeStepBackUserQuery({

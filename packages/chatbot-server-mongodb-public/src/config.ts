@@ -19,6 +19,7 @@ import {
   makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
   defaultCreateConversationCustomData,
+  defaultAddMessageToConversationCustomData,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";
@@ -26,17 +27,33 @@ import { blockGetRequests } from "./middleware/blockGetRequests";
 import { getRequestId, logRequest } from "./utils";
 import { systemPrompt } from "./systemPrompt";
 import { addReferenceSourceType } from "./processors/makeMongoDbReferences";
+import { redactConnectionUri } from "./middleware/redactConnectionUri";
 import path from "path";
 import express from "express";
-import { wrapOpenAI, wrapTraced } from "mongodb-rag-core/braintrust";
+import { logger } from "mongodb-rag-core";
+import {
+  wrapOpenAI,
+  wrapTraced,
+  wrapAISDKModel,
+} from "mongodb-rag-core/braintrust";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
 import { MongoClient } from "mongodb-rag-core/mongodb";
-import { SLACK_ENV_VARS, TRACING_ENV_VARS } from "./EnvVars";
+import {
+  ANALYZER_ENV_VARS,
+  AZURE_OPENAI_ENV_VARS,
+  PREPROCESSOR_ENV_VARS,
+  TRACING_ENV_VARS,
+} from "./EnvVars";
 import {
   makeAddMessageToConversationUpdateTrace,
   makeCommentMessageUpdateTrace,
   makeRateMessageUpdateTrace,
 } from "./tracing/routesUpdateTraceHandlers";
+import { useSegmentIds } from "./middleware/useSegmentIds";
+import { makeBraintrustLogger } from "mongodb-rag-core/braintrust";
+import { makeMongoDbScrubbedMessageStore } from "./tracing/scrubbedMessages/MongoDbScrubbedMessageStore";
+import { MessageAnalysis } from "./tracing/scrubbedMessages/analyzeMessage";
+import { createAzure } from "mongodb-rag-core/aiSdk";
 export const {
   MONGODB_CONNECTION_URI,
   MONGODB_DATABASE_NAME,
@@ -49,11 +66,14 @@ export const {
   OPENAI_CHAT_COMPLETION_MODEL_VERSION,
   OPENAI_CHAT_COMPLETION_DEPLOYMENT,
   OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT,
+  OPENAI_RESOURCE_NAME,
   JUDGE_EMBEDDING_MODEL,
   JUDGE_LLM,
 } = assertEnvVars({
   ...CORE_ENV_VARS,
-  OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: "",
+  ...PREPROCESSOR_ENV_VARS,
+  ...AZURE_OPENAI_ENV_VARS,
   ...TRACING_ENV_VARS,
 });
 
@@ -62,7 +82,13 @@ const {
   BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
   SLACK_BOT_TOKEN,
   SLACK_COMMENT_CONVERSATION_ID,
+  SEGMENT_WRITE_KEY,
 } = process.env;
+
+export const braintrustLogger = makeBraintrustLogger({
+  apiKey: process.env.BRAINTRUST_TRACING_API_KEY,
+  projectName: process.env.BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
+});
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
@@ -73,6 +99,13 @@ export const openAiClient = wrapOpenAI(
     apiVersion: OPENAI_API_VERSION,
   })
 );
+
+// For parts of the application that use the Vercel AI SDK
+export const azure = createAzure({
+  apiKey: OPENAI_API_KEY,
+  resourceName: OPENAI_RESOURCE_NAME,
+  apiVersion: OPENAI_API_VERSION,
+});
 
 export const llm = makeOpenAiChatLlm({
   openAiClient,
@@ -213,6 +246,10 @@ export const createConversationCustomDataWithAuthUser: AddCustomDataFunc =
   };
 export const isProduction = process.env.NODE_ENV === "production";
 
+const scrubbedMessageStore = makeMongoDbScrubbedMessageStore<MessageAnalysis>({
+  db: mongodb.db(MONGODB_DATABASE_NAME),
+});
+
 const llmAsAJudgeConfig = {
   judgeModel: JUDGE_LLM,
   judgeEmbeddingModel: JUDGE_EMBEDDING_MODEL,
@@ -225,6 +262,14 @@ const llmAsAJudgeConfig = {
   },
 };
 
+const segmentConfig = SEGMENT_WRITE_KEY
+  ? {
+      writeKey: SEGMENT_WRITE_KEY,
+    }
+  : undefined;
+
+logger.info(`Segment logging is ${segmentConfig ? "enabled" : "disabled"}`);
+
 export const config: AppConfig = {
   conversationsRouterConfig: {
     llm,
@@ -232,41 +277,75 @@ export const config: AppConfig = {
       blockGetRequests,
       requireValidIpAddress(),
       requireRequestOrigin(),
+      useSegmentIds(),
       cookieParser(),
+      redactConnectionUri(),
     ],
     createConversationCustomData: !isProduction
       ? createConversationCustomDataWithAuthUser
       : undefined,
+    addMessageToConversationCustomData: async (req, res) => {
+      const defaultCustomData = await defaultAddMessageToConversationCustomData(
+        req,
+        res
+      );
+      return {
+        ...defaultCustomData,
+        segmentUserId: res.locals.customData.segmentUserId ?? undefined,
+        segmentAnonymousId:
+          res.locals.customData.segmentAnonymousId ?? undefined,
+      };
+    },
     addMessageToConversationUpdateTrace:
-      makeAddMessageToConversationUpdateTrace(
-        retrievalConfig.findNearestNeighborsOptions.k,
-        { ...llmAsAJudgeConfig, percentToJudge: isProduction ? 0.1 : 1 }
-      ),
-    rateMessageUpdateTrace: makeRateMessageUpdateTrace(llmAsAJudgeConfig),
-    commentMessageUpdateTrace: makeCommentMessageUpdateTrace(
+      makeAddMessageToConversationUpdateTrace({
+        k: retrievalConfig.findNearestNeighborsOptions.k,
+        llmAsAJudge: {
+          ...llmAsAJudgeConfig,
+          percentToJudge: isProduction ? 0.1 : 1,
+        },
+        segment: segmentConfig,
+        braintrustLogger,
+        embeddingModelName: OPENAI_RETRIEVAL_EMBEDDING_DEPLOYMENT,
+        scrubbedMessageStore,
+        analyzerModel: wrapAISDKModel(
+          azure(OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT)
+        ),
+      }),
+    rateMessageUpdateTrace: makeRateMessageUpdateTrace({
+      llmAsAJudge: llmAsAJudgeConfig,
+      segment: segmentConfig,
+      scrubbedMessageStore,
+      braintrustLogger,
+    }),
+    commentMessageUpdateTrace: makeCommentMessageUpdateTrace({
       openAiClient,
-      JUDGE_LLM,
-      SLACK_BOT_TOKEN !== undefined &&
+      judgeLlm: JUDGE_LLM,
+      slack:
+        SLACK_BOT_TOKEN !== undefined &&
         SLACK_COMMENT_CONVERSATION_ID !== undefined
-        ? {
-            token: SLACK_BOT_TOKEN,
-            conversationId: SLACK_COMMENT_CONVERSATION_ID,
-            llmAsAJudge: llmAsAJudgeConfig,
-            braintrust: BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME
-              ? {
-                  orgName: "mongodb-education-ai",
-                  projectName: BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
-                }
-              : undefined,
-          }
-        : undefined
-    ),
+          ? {
+              token: SLACK_BOT_TOKEN,
+              conversationId: SLACK_COMMENT_CONVERSATION_ID,
+              llmAsAJudge: llmAsAJudgeConfig,
+              braintrust: BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME
+                ? {
+                    orgName: "mongodb-education-ai",
+                    projectName: BRAINTRUST_CHATBOT_TRACING_PROJECT_NAME,
+                  }
+                : undefined,
+            }
+          : undefined,
+      segment: segmentConfig,
+      scrubbedMessageStore,
+      braintrustLogger,
+    }),
     generateUserPrompt,
     systemPrompt,
     maxUserMessagesInConversation: 50,
     maxUserCommentLength: 500,
     conversations,
     maxInputLengthCharacters: 3000,
+    braintrustLogger,
   },
   maxRequestTimeoutMs: 60000,
   corsOptions: {

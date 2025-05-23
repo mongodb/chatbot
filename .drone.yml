@@ -2,6 +2,11 @@ kind: pipeline
 type: kubernetes
 name: test-all
 
+resources:
+  requests:
+    cpu: 2000
+    memory: 8GiB
+
 trigger:
   event:
     - push
@@ -18,7 +23,6 @@ steps:
     image: node:18
     commands:
       - npm ci
-      - npx playwright install chromium --with-deps
       - npm run build
       - npm run lint
       - npm run test
@@ -31,7 +35,9 @@ steps:
       VECTOR_SEARCH_INDEX_NAME: vector_index
       OPENAI_CHAT_COMPLETION_MODEL_VERSION: 2023-06-01-preview
       OPENAI_PREPROCESSOR_CHAT_COMPLETION_DEPLOYMENT: gpt-4o-mini
+      OPENAI_ANALYZER_CHAT_COMPLETION_DEPLOYMENT: gpt-4.1-mini
       OPENAI_API_VERSION: "2024-06-01"
+      OPENAI_RESOURCE_NAME: "docs-ai-chatbot-useast2resource-sandbox"
       BRAINTRUST_TEXT_TO_DRIVER_PROJECT_NAME: "text-to-node-js-driver-benchmark"
       BRAINTRUST_API_KEY:
         from_secret: braintrust_api_key
@@ -237,8 +243,7 @@ steps:
       namespace: docs
       release: chat-server-qa
       values: image.tag=git-${DRONE_COMMIT_SHA:0:7}-qa,image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}-chat-server,ingress.enabled=true,ingress.hosts[0]=chat-qa.docs.staging.corp.mongodb.com
-      values_files:
-        ["packages/mongodb-chatbot-server/environments/qa.yml"]
+      values_files: ["packages/mongodb-chatbot-server/environments/qa.yml"]
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
@@ -719,8 +724,10 @@ trigger:
       - packages/scripts/**/*
       - packages/mongodb-rag-core/**/*
       - packages/mongodb-chatbot-server/**/*
+      - packages/chatbot-server-mongodb-public/**/*
       - package-lock.json
       - package.json
+      - scripts-service.dockerfile
 
 steps:
   # Builds and publishes Docker image for staging
@@ -772,8 +779,10 @@ trigger:
       - packages/scripts/**/*
       - packages/mongodb-rag-core/**/*
       - packages/mongodb-chatbot-server/**/*
+      - packages/chatbot-server-mongodb-public/**/*
       - package-lock.json
       - package.json
+      - scripts-service.dockerfile
 
   branch:
     - main

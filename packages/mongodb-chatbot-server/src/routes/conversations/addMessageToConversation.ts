@@ -35,7 +35,7 @@ import { GenerateUserPromptFunc } from "../../processors/GenerateUserPromptFunc"
 import { FilterPreviousMessages } from "../../processors/FilterPreviousMessages";
 import { filterOnlySystemPrompt } from "../../processors/filterOnlySystemPrompt";
 import { generateResponse, GenerateResponseParams } from "../generateResponse";
-import { wrapTraced } from "mongodb-rag-core/braintrust";
+import { wrapTraced, Logger } from "mongodb-rag-core/braintrust";
 import { UpdateTraceFunc, updateTraceIfExists } from "./UpdateTraceFunc";
 
 export const DEFAULT_MAX_INPUT_LENGTH = 3000; // magic number for max input size for LLM
@@ -99,6 +99,7 @@ export interface AddMessageToConversationRouteParams {
     Can add additional tags, scores, etc.
    */
   updateTrace?: UpdateTraceFunc;
+  braintrustLogger?: Logger<true>;
 }
 
 type MakeTracedResponseParams = Pick<
@@ -319,6 +320,7 @@ export function makeAddMessageToConversationRoute({
 
         await updateTraceIfExists({
           updateTrace,
+          reqId,
           conversations,
           conversationId: conversation._id,
           assistantResponseMessageId: dbAssistantMessage.id,

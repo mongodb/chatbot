@@ -58,3 +58,4 @@ export {
   type PoweredByAtlasVectorSearchProps,
 } from "./PoweredByAtlasVectorSearch.tsx";
 export { ChatWindow, type ChatWindowProps } from "./ChatWindow.tsx";
+export { getSegmentIds, getSegmentIdHeaders } from "./segment.ts";

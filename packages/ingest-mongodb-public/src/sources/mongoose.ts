@@ -26,7 +26,7 @@ export const mongooseSourceConstructor = async () => {
     metadata: {
       productName: "Mongoose ODM",
       tags: ["node.js", "community library", "mongoose", "odm"],
-      version: "v7.x (current)",
+      versionLabel: "v7.x (current)",
     },
   });
 };

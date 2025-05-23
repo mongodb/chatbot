@@ -1,5 +1,6 @@
 import { Conversation, ConversationsService } from "mongodb-rag-core";
 import { ObjectId } from "mongodb-rag-core/mongodb";
+import { logRequest } from "../../utils";
 
 export type UpdateTraceFuncParams = {
   reqId: string;
@@ -32,6 +33,14 @@ export async function updateTraceIfExists({
         reqId,
         traceId: assistantResponseMessageId.toHexString(),
         conversation: updatedConversationForTrace,
+      }).catch((error) => {
+        logRequest({
+          reqId,
+          type: "error",
+          message: `Failed to update trace with Error: ${JSON.stringify(
+            error
+          )}`,
+        });
       });
     }
   }

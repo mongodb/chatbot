@@ -79,6 +79,7 @@ export function makeAddMessageToConversationUpdateTrace({
           model: analyzerModel,
         },
         embeddingModelName,
+        reqId,
       });
       await scrubbedMessageStore.insertScrubbedMessages({
         messages: scrubbedMessages,
@@ -149,14 +150,25 @@ export function makeAddMessageToConversationUpdateTrace({
     }
 
     try {
+      const judgeScores = shouldJudge
+        ? await getLlmAsAJudgeScores(llmAsAJudge, tracingData).catch(
+            (error) => {
+              logRequest({
+                reqId,
+                message: `Error getting LLM as a judge scores in addMessageToConversationUpdateTrace: ${error}`,
+                type: "error",
+              });
+              return undefined;
+            }
+          )
+        : undefined;
+
       braintrustLogger.updateSpan({
         id: traceId,
         tags: tracingData.tags,
         scores: {
           ...getTracingScores(tracingData, k),
-          ...(shouldJudge
-            ? await getLlmAsAJudgeScores(llmAsAJudge, tracingData)
-            : undefined),
+          ...(judgeScores ?? {}),
         },
         metadata: {
           authUser: maybeAuthUser ?? null,

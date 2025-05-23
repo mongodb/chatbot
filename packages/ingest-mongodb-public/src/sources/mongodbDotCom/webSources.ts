@@ -196,7 +196,7 @@ export const initialWebSources: InitialWebSource[] = [
     ],
     staticMetadata: {
       type: "Comparisons",
-    }
+    },
   },
   {
     name: "blog",
@@ -395,7 +395,7 @@ export const initialWebSources: InitialWebSource[] = [
     ],
     staticMetadata: {
       type: "Blog",
-    }
+    },
   },
   {
     name: "web-misc",
@@ -423,11 +423,10 @@ export const initialWebSources: InitialWebSource[] = [
       "https://learn.mongodb.com/courses/schema-design-patterns-and-antipatterns",
       "https://learn.mongodb.com/courses/advanced-schema-patterns-and-antipatterns",
       "https://learn.mongodb.com/courses/schema-design-optimization",
-      
     ],
     staticMetadata: {
       tags: ["Skills", "MongoDB University"],
-    }
+    },
   },
 ];
 
@@ -441,7 +440,10 @@ export async function getUrlsFromSitemap(
   return parsedXML.urlset.url.map((url: { loc: string[] }) => url.loc[0]);
 }
 
-export type WebSource = Pick<InitialWebSource, "name" | "staticMetadata" | "urls">;
+export type WebSource = Pick<
+  InitialWebSource,
+  "name" | "staticMetadata" | "urls"
+>;
 
 type PrepareWebSourcesParams = {
   initialWebSources: InitialWebSource[];

@@ -1,8 +1,9 @@
-import { pageIdentity } from ".";
+import { pageIdentity, PersistedPage } from ".";
 import { DatabaseConnection } from "../DatabaseConnection";
 import {
   EmbeddedContent,
   EmbeddedContentStore,
+  GetSourcesMatchParams,
   QueryFilters,
 } from "./EmbeddedContent";
 import { FindNearestNeighborsOptions, WithScore } from "../VectorStore";
@@ -61,6 +62,21 @@ export type MongoDbEmbeddedContentStore = EmbeddedContentStore &
     };
     init(): Promise<void>;
   };
+
+function makeMatchQuery({ sourceNames, chunkAlgoHash }: GetSourcesMatchParams) {
+  const operator = chunkAlgoHash.operation === "equals" ? "$eq" : "$ne";
+  return {
+    chunkAlgoHash: { [operator]: chunkAlgoHash.hashValue },
+    // run on specific source names if specified, run on all if not
+    ...(sourceNames
+      ? {
+          sourceName: {
+            $in: sourceNames,
+          },
+        }
+      : undefined),
+  };
+}
 
 export function makeMongoDbEmbeddedContentStore({
   connectionUri,
@@ -257,16 +273,30 @@ export function makeMongoDbEmbeddedContentStore({
         }
       }
     },
+
+    async getDataSources(matchQuery: GetSourcesMatchParams): Promise<string[]> {
+      const result = await embeddedContentCollection
+        .aggregate([
+          { $match: makeMatchQuery(matchQuery) },
+          {
+            $group: {
+              _id: null,
+              uniqueSources: { $addToSet: "$sourceName" },
+            },
+          },
+          { $project: { _id: 0, uniqueSources: 1 } },
+        ])
+        .toArray();
+      const uniqueSources = result.length > 0 ? result[0].uniqueSources : [];
+      return uniqueSources;
+    },
   };
 }
 
 type MongoDbAtlasVectorSearchFilter = {
   sourceName?: string;
   "metadata.version.label"?: string;
-  "metadata.version.isCurrent"?: boolean;
-  $or?: {
-    "metadata.version.isCurrent": boolean | null;
-  }[];
+  "metadata.version.isCurrent"?: boolean | { $ne: boolean };
   sourceType?: string;
 };
 
@@ -289,10 +319,7 @@ const handleFilters = (
   // 1. current=true was explicitly requested, or
   // 2. [Default] no version filters were specified (current and label are undefined)
   else if (current === true || current === undefined) {
-    vectorSearchFilter["$or"] = [
-      { "metadata.version.isCurrent": true },
-      { "metadata.version.isCurrent": null },
-    ];
+    vectorSearchFilter["metadata.version.isCurrent"] = { $ne: false }; // Include unversioned embeddings
   }
   // Only find embeddings that are explicitly marked as non-current (isCurrent: false)
   else if (current === false) {

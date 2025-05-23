@@ -28,10 +28,7 @@ export async function loadPagesDataset({
         sourceType: { $in: dataSourceTypes },
         url: { $nin: forbiddenUrls },
         action: { $ne: "deleted" },
-        $or: [
-          { "metadata.version.isCurrent": { $exists: false } },
-          { "metadata.version.isCurrent": true },
-        ],
+        "metadata.version.isCurrent": { $ne: false },
       },
     },
     {

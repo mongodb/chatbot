@@ -32,6 +32,7 @@ describe("SnootyDataSource", () => {
     ],
   };
   const snootyDataApiBaseUrl = "https://snooty-data-api.mongodb.com/prod/";
+
   describe("makeSnootyDataSource()", () => {
     const sampleDataPath = Path.resolve(
       SRC_ROOT,
@@ -251,6 +252,17 @@ describe("SnootyDataSource", () => {
       expect(pages).toHaveLength(1);
       noIndexMock.done();
     });
+
+    it("includes tocIndex in metadata", async () => {
+      const source = await makeSnootyDataSource({
+        name: `snooty-test`,
+        project,
+        snootyDataApiBaseUrl,
+      });
+      const pages = await source.fetchPages();
+
+      expect(pages[0].metadata?.page?.tocIndex).toBe(0);
+    });
   });
 });
 
@@ -270,6 +282,7 @@ describe("handlePage()", () => {
       baseUrl: "https://example.com",
       tags: ["a"],
       version: { label: "1.0", isCurrent: true },
+      toc: [],
     });
     expect(result).toMatchObject({
       format: "openapi-yaml",
@@ -292,6 +305,7 @@ describe("handlePage()", () => {
       baseUrl: "https://example.com",
       tags: ["a"],
       version: { label: "1.0", isCurrent: true },
+      toc: [],
     });
     expect(result).toMatchObject({
       format: "md",

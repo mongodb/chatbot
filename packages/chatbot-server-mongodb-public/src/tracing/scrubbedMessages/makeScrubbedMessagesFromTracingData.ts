@@ -1,4 +1,3 @@
-import { logRequest } from "../../utils";
 import { extractTracingData } from "../extractTracingData";
 import { analyzeMessage, MessageAnalysis } from "./analyzeMessage";
 import { redactPii } from "./redactPii";
@@ -9,32 +8,19 @@ export async function makeScrubbedMessagesFromTracingData({
   tracingData,
   analysis,
   embeddingModelName,
-  reqId,
 }: {
   tracingData: ReturnType<typeof extractTracingData>;
   analysis?: {
     model: LanguageModel;
   };
   embeddingModelName: string;
-  reqId: string;
 }): Promise<ScrubbedMessage<MessageAnalysis>[]> {
   const { userMessage, assistantMessage } = tracingData;
 
+  // User message scrubbing
   const userAnalysis = analysis
-    ? await analyzeMessage(userMessage.content, analysis.model).catch(
-        (error) => {
-          logRequest({
-            reqId,
-            message: `Error analyzing scrubbed user message in tracing: ${JSON.stringify(
-              error
-            )}`,
-            type: "error",
-          });
-          return undefined;
-        }
-      )
+    ? await analyzeMessage(userMessage.content, analysis.model)
     : undefined;
-
   const { redactedText: redactedUserContent, piiFound: userMessagePii } =
     redactPii(userMessage.content);
 

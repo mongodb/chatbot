@@ -264,9 +264,14 @@ export const config: AppConfig = {
       languageModel,
       systemMessage: systemPrompt,
       makeReferenceLinks: makeMongoDbReferences,
-      // TODO: update to only include user/assistant, no tool calls
       filterPreviousMessages: async (conversation) => {
-        return conversation.messages;
+        return conversation.messages.filter((message) => {
+          return (
+            message.role === "user" ||
+            // Only include assistant messages that are not tool calls
+            (message.role === "assistant" && !message.toolCall)
+          );
+        });
       },
       llmNotWorkingMessage: conversations.conversationConstants.LLM_NOT_WORKING,
       searchTool: makeSearchTool(findContent),

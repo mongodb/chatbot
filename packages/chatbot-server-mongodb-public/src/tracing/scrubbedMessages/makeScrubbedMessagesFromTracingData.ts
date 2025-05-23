@@ -25,7 +25,7 @@ export async function makeScrubbedMessagesFromTracingData({
         (error) => {
           logRequest({
             reqId,
-            message: `Error analyzing user message in tracing: ${JSON.stringify(
+            message: `Error analyzing scrubbed user message in tracing: ${JSON.stringify(
               error
             )}`,
             type: "error",

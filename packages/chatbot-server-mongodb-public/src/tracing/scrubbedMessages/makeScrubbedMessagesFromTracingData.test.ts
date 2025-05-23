@@ -39,6 +39,7 @@ describe("makeScrubbedMessagesFromTracingData", () => {
     const result = await makeScrubbedMessagesFromTracingData({
       tracingData: mockTracingData,
       embeddingModelName: "test-embedding-model",
+      reqId: "test-req-id",
     });
 
     // Assertions

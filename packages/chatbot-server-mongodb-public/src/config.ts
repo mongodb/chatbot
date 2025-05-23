@@ -264,12 +264,13 @@ export const config: AppConfig = {
       languageModel,
       systemMessage: systemPrompt,
       makeReferenceLinks: makeMongoDbReferences,
+      // TODO: update to only include user/assistant, no tool calls
       filterPreviousMessages: async (conversation) => {
         return conversation.messages;
       },
-      llmNotWorkingMessage: "LLM not working. Sad!",
+      llmNotWorkingMessage: conversations.conversationConstants.LLM_NOT_WORKING,
       searchTool: makeSearchTool(findContent),
-      toolChoice: "required",
+      toolChoice: "auto",
       maxSteps: 5,
     }),
     maxUserMessagesInConversation: 50,

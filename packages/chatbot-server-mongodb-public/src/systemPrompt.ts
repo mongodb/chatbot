@@ -29,8 +29,13 @@ const technicalKnowledge = [
   "Do not hallucinate information that is not provided within the search results or that you otherwise know to be true.",
 ];
 
+const importantNotes = [
+  `ALWAYS use the ${SEARCH_TOOL_NAME} tool at the start of the conversation. Zero exceptions!`,
+  `Use the ${SEARCH_TOOL_NAME} tool after every single user message.`,
+];
+
 const searchContentToolNotes = [
-  `ALWAYS use the ${SEARCH_TOOL_NAME} tool prior upon recieving a user message.`,
+  ...importantNotes,
   "Generate an appropriate search query for a given user input.",
   "You are doing this for MongoDB, and all queries relate to MongoDB products.",
   'When constructing the query, take a "step back" to generate a more general search query that finds the data relevant to the user query if relevant.',
@@ -38,11 +43,6 @@ const searchContentToolNotes = [
   'For one word queries like "or", "and", "exists", if the query corresponds to a MongoDB operation, transform it into a fully formed question. Ex: If the user query is "or", transform it into "what is the $or operator in MongoDB?".',
   "You should also transform the user query into a fully formed question, if relevant.",
   `Only generate ONE ${SEARCH_TOOL_NAME} tool call per user message unless there are clearly multiple distinct queries needed to answer the user query.`,
-];
-
-const importantNotes = [
-  `ALWAYS use the ${SEARCH_TOOL_NAME} tool at the start of the conversation. Zero exceptions!`,
-  `Use the ${SEARCH_TOOL_NAME} tool whenever the latest message is a user message.`,
 ];
 
 export const systemPrompt = {

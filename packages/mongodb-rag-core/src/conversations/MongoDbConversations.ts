@@ -14,8 +14,8 @@ import {
   AddSomeMessageParams,
   AssistantMessage,
   SystemMessage,
-  FunctionMessage,
   CommentMessageParams,
+  ToolMessage,
 } from "./ConversationsService";
 
 /**
@@ -203,9 +203,7 @@ export function createMessageFromOpenAIChatMessage(
       ...dbMessageBase,
       role: chatMessage.role,
       content: chatMessage.content ?? "",
-      ...(chatMessage.functionCall
-        ? { functionCall: chatMessage.functionCall }
-        : {}),
+      ...(chatMessage.toolCall ? { toolCall: chatMessage.toolCall } : {}),
     } satisfies AssistantMessage;
   }
   if (chatMessage.role === "system") {
@@ -215,13 +213,13 @@ export function createMessageFromOpenAIChatMessage(
       content: chatMessage.content,
     } satisfies SystemMessage;
   }
-  if (chatMessage.role === "function") {
+  if (chatMessage.role === "tool") {
     return {
       ...dbMessageBase,
       role: chatMessage.role,
       content: chatMessage.content ?? "",
       name: chatMessage.name,
-    } satisfies FunctionMessage;
+    } satisfies ToolMessage;
   }
   throw new Error(`Invalid message for message: ${chatMessage}`);
 }

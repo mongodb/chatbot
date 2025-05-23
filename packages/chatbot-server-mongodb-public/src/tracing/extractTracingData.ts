@@ -12,6 +12,7 @@ export function extractTracingData(
   messages: Message[],
   assistantMessageId: ObjectId
 ) {
+  // FIXME: this is throwing after the generation is complete. don't forget to fix before merge of EAI-990
   const evalAssistantMessageIdx = messages.findLastIndex(
     (message) =>
       message.role === "assistant" && message.id.equals(assistantMessageId)
@@ -55,7 +56,7 @@ export function extractTracingData(
   if (isVerifiedAnswer) {
     tags.push("verified_answer");
   }
-
+  // TODO: this is throwing errs now. figure out and fix.
   const llmDoesNotKnow = evalAssistantMessage?.content.includes(
     llmDoesNotKnowMessage
   );

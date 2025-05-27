@@ -14,7 +14,7 @@ import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
 export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
   // Filter chunks with unique URLs
   const uniqueUrls = new Set();
-  const uniqueReferences = chunks.filter((chunk) => {
+  const uniqueReferenceChunks = chunks.filter((chunk) => {
     if (!uniqueUrls.has(chunk.url)) {
       uniqueUrls.add(chunk.url);
       return true; // Keep the referencesas it has a unique URL
@@ -22,21 +22,19 @@ export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
     return false; // Discard the referencesas its URL is not unique
   });
 
-  return uniqueReferences.map((reference) => {
-    const url = new URL(reference.url).href;
+  return uniqueReferenceChunks.map((chunk) => {
+    const url = new URL(chunk.url).href;
     // Ensure title is always a string by checking its type
-    const pageTitle = reference.metadata?.pageTitle;
+    const pageTitle = chunk.metadata?.pageTitle;
     const title = typeof pageTitle === "string" ? pageTitle : url;
-    const sourceName =
-      typeof reference.metadata?.sourceName === "string"
-        ? reference.metadata?.sourceName
-        : undefined;
+    const sourceName = chunk.sourceName;
+
     return {
       title,
       url,
       metadata: {
         sourceName,
-        tags: reference.metadata?.tags ?? [],
+        tags: chunk.metadata?.tags ?? [],
       },
     };
   }) satisfies References;

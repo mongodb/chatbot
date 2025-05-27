@@ -72,6 +72,7 @@ export const scrubMessages = async ({ db }: { db: Db }) => {
         rejectQuery: "$messages.rejectQuery",
         customData: "$messages.customData",
         metadata: "$messages.metadata",
+        toolCall: "$messages.toolCall",
         userCommented: {
           $cond: {
             // Evaluate to the user comment (if it exists) or false

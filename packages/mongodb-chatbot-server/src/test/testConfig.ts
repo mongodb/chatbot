@@ -8,7 +8,7 @@ import {
   CORE_ENV_VARS,
   assertEnvVars,
   makeMongoDbConversationsService,
-  SystemPrompt,
+  SystemMessage,
 } from "mongodb-rag-core";
 import { MongoClient, Db } from "mongodb-rag-core/mongodb";
 import { AzureOpenAI } from "mongodb-rag-core/openai";
@@ -90,7 +90,7 @@ export const findContent = makeDefaultFindContent({
 export const REJECT_QUERY_CONTENT = "REJECT_QUERY";
 export const NO_VECTOR_CONTENT = "NO_VECTOR_CONTENT";
 
-export const systemPrompt: SystemPrompt = {
+export const systemPrompt: SystemMessage = {
   role: "system",
   content: stripIndents`You're just a mock chatbot. What you think and say does not matter.`,
 };
@@ -111,7 +111,7 @@ export function makeMongoDbReferences(chunks: EmbeddedContent[]) {
     chunks.map((chunk) => ({
       title: chunk.metadata?.pageTitle ?? chunk.url,
       url: chunk.url,
-      metadata: chunk.metadata,
+      text: chunk.text,
     }))
   );
   return baseReferences.map((ref) => {
@@ -125,19 +125,44 @@ export function makeMongoDbReferences(chunks: EmbeddedContent[]) {
 
 export const filterPrevious12Messages = makeFilterNPreviousMessages(12);
 
+export const mockAssistantResponse = {
+  role: "assistant" as const,
+  content: "some content",
+};
+
 export const mockGenerateResponse: GenerateResponse = async ({
   latestMessageText,
+  customData,
+  dataStreamer,
+  shouldStream,
 }) => {
+  if (shouldStream) {
+    dataStreamer?.streamData({
+      type: "delta",
+      data: mockAssistantResponse.content,
+    });
+    dataStreamer?.streamData({
+      type: "references",
+      data: [
+        {
+          url: "https://mongodb.com",
+          title: "mongodb.com",
+        },
+      ],
+    });
+    dataStreamer?.streamData({
+      type: "finished",
+      data: "",
+    });
+  }
   return {
     messages: [
       {
-        role: "user",
+        role: "user" as const,
         content: latestMessageText,
+        customData,
       },
-      {
-        role: "assistant",
-        content: "some content",
-      },
+      { ...mockAssistantResponse },
     ],
   };
 };

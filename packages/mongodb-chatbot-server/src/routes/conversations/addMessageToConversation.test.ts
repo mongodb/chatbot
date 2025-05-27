@@ -20,6 +20,7 @@ import { makeTestApp } from "../../test/testHelpers";
 import { AppConfig } from "../../app";
 import { strict as assert } from "assert";
 import { Db, ObjectId } from "mongodb-rag-core/mongodb";
+import { mockAssistantResponse } from "../../test/testConfig";
 
 jest.setTimeout(100000);
 describe("POST /conversations/:conversationId/messages", () => {
@@ -65,8 +66,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         .send(requestBody);
       const message: ApiMessage = res.body;
       expect(res.statusCode).toEqual(200);
-      expect(message.role).toBe("assistant");
-      expect(message.content).toContain("Realm");
+      expect(message).toMatchObject(mockAssistantResponse);
       const request2Body: AddMessageRequestBody = {
         message: stripIndent`i'm want to learn more about this Realm thing. a few questions:
             can i use realm with javascript?
@@ -79,8 +79,7 @@ describe("POST /conversations/:conversationId/messages", () => {
         .send(request2Body);
       const message2: ApiMessage = res2.body;
       expect(res2.statusCode).toEqual(200);
-      expect(message2.role).toBe("assistant");
-      expect(message2.content).toContain("Realm");
+      expect(message2).toMatchObject(mockAssistantResponse);
       const conversationInDb = await mongodb
         .collection<Conversation>("conversations")
         .findOne({
@@ -349,7 +348,6 @@ describe("POST /conversations/:conversationId/messages", () => {
         res.body.metadata.conversationId
       );
       expect(conversation?.messages).toHaveLength(2);
-      console.log(conversation?.messages[0]);
       expect(conversation?.messages[0]).toMatchObject({
         content: message.message,
         role: "user",

@@ -81,13 +81,17 @@ describe("GET /conversations/:conversationId", () => {
         {
           role: "assistant",
           content: "",
-          functionCall: {
-            name: "addNumbers",
-            arguments: `[1, 2, 3, 4, 5]`,
+          toolCall: {
+            id: "abc123",
+            type: "function",
+            function: {
+              name: "addNumbers",
+              arguments: `[1, 2, 3, 4, 5]`,
+            },
           },
         },
         {
-          role: "function",
+          role: "tool",
           name: "addNumbers",
           content: "15",
         },

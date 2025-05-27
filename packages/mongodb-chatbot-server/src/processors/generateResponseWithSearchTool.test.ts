@@ -9,7 +9,6 @@ import {
   AssistantMessage,
   DataStreamer,
   SystemMessage,
-  UserMessage,
 } from "mongodb-rag-core";
 import { z } from "zod";
 import {
@@ -35,7 +34,7 @@ const mockReqId = "test";
 
 const mockContent = [
   {
-    url: "https://example.com",
+    url: "https://example.com/",
     text: `Content!`,
     metadata: {
       pageTitle: "Example Page",
@@ -46,7 +45,6 @@ const mockContent = [
 const mockReferences = mockContent.map((content) => ({
   url: content.url,
   title: content.metadata.pageTitle,
-  metadata: content.metadata,
 }));
 
 // Create a mock search tool that matches the SearchTool interface
@@ -233,9 +231,9 @@ describe("generateResponseWithSearchTool", () => {
 
       const result = await generateResponse(generateResponseBaseArgs);
 
-      expect((result.messages.at(-1) as AssistantMessage).references).toEqual(
-        mockReferences
-      );
+      const references = (result.messages.at(-1) as AssistantMessage)
+        .references;
+      expect(references).toMatchObject(mockReferences);
     });
 
     describe("non-streaming", () => {
@@ -378,13 +376,7 @@ function expectSuccessfulResult(result: GenerateResponseReturnValue) {
     role: "tool",
     name: "search_content",
     content: JSON.stringify({
-      content: [
-        {
-          url: "https://example.com",
-          text: "Content!",
-          metadata: { pageTitle: "Example Page" },
-        },
-      ],
+      content: mockContent,
     }),
   });
   expect(result.messages[3]).toMatchObject({

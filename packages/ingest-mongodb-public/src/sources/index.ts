@@ -27,9 +27,6 @@ import {
   MakeMongoDbUniversityDataSourceParams,
   makeMongoDbUniversityDataSource,
 } from "./mongodb-university";
-const { DEVCENTER_CONNECTION_URI, UNIVERSITY_DATA_API_KEY } = assertEnvVars(
-  PUBLIC_INGEST_ENV_VARS
-);
 import {
   getUrlsFromSitemap,
   initialWebSources,
@@ -37,6 +34,13 @@ import {
   prepareWebSources,
 } from "./mongodbDotCom";
 import { chromium } from "playwright";
+
+const { DEVCENTER_CONNECTION_URI, UNIVERSITY_DATA_API_KEY } = assertEnvVars(
+  PUBLIC_INGEST_ENV_VARS
+);
+
+export { snootyProjectConfig };
+export * from "./snooty/SnootyDataSource";
 
 /**
   Async constructor for specific data sources -- parameters baked in.

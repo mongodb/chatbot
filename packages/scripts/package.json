@@ -25,6 +25,7 @@
     "removeTestDatabases": "npm run build && node ./build/removeTestDatabases.js",
     "getConversationText": "npm run build && node ./build/getConversationText.js",
     "findPageTitles": "npm run build && node ./build/main/findPageTitlesMain.js",
+    "findUningestedDocsSites": "npm run build && node ./build/findUningestedDocsSites.js",
     "listSlackMessages": "npm run build && node ./build/main/listSlackMessagesMain.js",
     "removeSlackMessage": "npm run build && node ./build/main/removeSlackMessageMain.js",
     "checkUrlsAgainstDB": "npm run build && node ./build/checkUrlsAgainstDB.js",
@@ -48,6 +49,7 @@
     "mongodb-chatbot-server": "*",
     "mongodb-rag-core": "*",
     "chatbot-server-mongodb-public": "*",
+    "ingest-mongodb-public": "*",
     "yaml": "^2.3.4",
     "yargs": "^17.7.2"
   },

@@ -103,8 +103,14 @@ export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [
   {
     type: "snooty",
     name: "mck",
-    tags: ["docs", "kubernetes", "k8s", "kubernetes-controllers", "kubernetes-operator"],
-    productName: "MongoDB Controllers for Kubernetes"
+    tags: [
+      "docs",
+      "kubernetes",
+      "k8s",
+      "kubernetes-controllers",
+      "kubernetes-operator",
+    ],
+    productName: "MongoDB Controllers for Kubernetes",
   },
   {
     type: "snooty",

@@ -65,7 +65,7 @@ export async function makeScrubbedMessagesFromTracingData({
     createdAt: assistantMessage.createdAt,
     customData: assistantMessage.customData,
     request: {
-      userTopics: userAnalysis?.topics ?? undefined,
+      userTopics: userAnalysis?.topics,
       origin: userMessage?.customData?.origin as string,
       originCode: userMessage?.customData?.originCode as OriginCode,
     },

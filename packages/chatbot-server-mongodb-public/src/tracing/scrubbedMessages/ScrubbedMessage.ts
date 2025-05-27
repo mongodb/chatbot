@@ -92,7 +92,7 @@ export type ScrubbedMessage<
    this assistant response.
    */
   request?: {
-    userTopics?: string[];
+    userTopics?: string[] | null;
     origin?: string;
     originCode?: OriginCode;
     [key: string]: unknown;

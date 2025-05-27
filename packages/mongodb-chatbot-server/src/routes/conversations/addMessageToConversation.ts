@@ -369,7 +369,6 @@ async function addMessagesToDatabase({
     >[0]["messages"]
   )[messages.length - 1].id = assistantResponseMessageId;
 
-  console.log("messages out::", messages);
   const conversationId = conversation._id;
   const dbMessages = await conversations.addManyConversationMessages({
     conversationId,

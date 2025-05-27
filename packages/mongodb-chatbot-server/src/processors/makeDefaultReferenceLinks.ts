@@ -10,26 +10,30 @@ import { MakeReferenceLinksFunc } from "./MakeReferenceLinksFunc";
   }
   ```
  */
-export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (chunks) => {
+export const makeDefaultReferenceLinks: MakeReferenceLinksFunc = (
+  references
+) => {
   // Filter chunks with unique URLs
   const uniqueUrls = new Set();
-  const uniqueChunks = chunks.filter((chunk) => {
-    if (!uniqueUrls.has(chunk.url)) {
-      uniqueUrls.add(chunk.url);
-      return true; // Keep the chunk as it has a unique URL
+  const uniqueReferences = references.filter((reference) => {
+    if (!uniqueUrls.has(reference.url)) {
+      uniqueUrls.add(reference.url);
+      return true; // Keep the referencesas it has a unique URL
     }
-    return false; // Discard the chunk as its URL is not unique
+    return false; // Discard the referencesas its URL is not unique
   });
 
-  return uniqueChunks.map((chunk) => {
-    const url = new URL(chunk.url).href;
-    const title = chunk.metadata?.pageTitle ?? url;
+  return uniqueReferences.map((reference) => {
+    const url = new URL(reference.url).href;
+    // Ensure title is always a string by checking its type
+    const pageTitle = reference.metadata?.pageTitle;
+    const title = typeof pageTitle === "string" ? pageTitle : url;
     return {
       title,
       url,
       metadata: {
-        sourceName: chunk.sourceName,
-        tags: chunk.metadata?.tags ?? [],
+        sourceName: reference.metadata?.sourceName ?? "",
+        tags: reference.metadata?.tags ?? [],
       },
     };
   });

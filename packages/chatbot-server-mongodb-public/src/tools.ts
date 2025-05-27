@@ -51,8 +51,11 @@ export function makeSearchTool(
       const result: SearchToolReturnValue = {
         content: content.content.map((item) => ({
           url: item.url,
+          metadata: {
+            pageTitle: item.metadata?.pageTitle,
+            sourceName: item.sourceName,
+          },
           text: item.text,
-          metadata: item.metadata,
         })),
       };
 

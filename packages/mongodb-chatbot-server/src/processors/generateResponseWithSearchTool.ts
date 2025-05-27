@@ -2,7 +2,6 @@ import {
   References,
   SomeMessage,
   SystemMessage,
-  DataStreamer,
   UserMessage,
   AssistantMessage,
   ToolMessage,
@@ -13,16 +12,13 @@ import {
   CoreAssistantMessage,
   CoreMessage,
   LanguageModel,
-  StepResult,
   streamText,
-  StreamTextResult,
   Tool,
   ToolCallPart,
   ToolChoice,
   ToolExecutionOptions,
   ToolResultUnion,
   ToolSet,
-  AssistantResponse,
   CoreToolMessage,
 } from "mongodb-rag-core/aiSdk";
 import { FilterPreviousMessages } from "./FilterPreviousMessages";
@@ -100,6 +96,9 @@ export function makeGenerateResponseWithSearchTool<
     dataStreamer,
     request,
   }) {
+    if (shouldStream) {
+      assert(dataStreamer, "dataStreamer is required for streaming");
+    }
     const userMessage = {
       role: "user",
       content: latestMessageText,
@@ -129,6 +128,7 @@ export function makeGenerateResponseWithSearchTool<
         maxSteps,
       };
 
+      // TODO: EAI-995: validate that this works as part of guardrail changes
       // Guardrail used to validate the input
       // while the LLM is generating the response
       const inputGuardrailPromise = inputGuardrail
@@ -144,16 +144,14 @@ export function makeGenerateResponseWithSearchTool<
           })
         : undefined;
 
-      const references: any[] = [];
+      const references: References = [];
       const { result, guardrailResult } = await withAbortControllerGuardrail(
         async (controller) => {
-          let toolChoice = generationArgs.toolChoice;
           // Pass the tools as a separate parameter
           const result = streamText({
             ...generationArgs,
             // Abort the stream if the guardrail AbortController is triggered
             abortSignal: controller.signal,
-            toolChoice,
             // Add the search tool results to the references
             onStepFinish: async ({ toolResults }) => {
               toolResults?.forEach(
@@ -162,37 +160,48 @@ export function makeGenerateResponseWithSearchTool<
                     toolResult.toolName === SEARCH_TOOL_NAME &&
                     toolResult.result.content
                   ) {
-                    toolChoice = "auto";
                     // Map the search tool results to the References format
                     const searchResults = toolResult.result.content;
-                    references.push(...searchResults);
+                    references.push(
+                      ...searchResults.map(
+                        (result) =>
+                          ({
+                            url: result.url,
+                            title:
+                              typeof result.metadata?.pageTitle === "string"
+                                ? result.metadata.pageTitle
+                                : "",
+                            metadata: result.metadata,
+                          } satisfies References[number])
+                      )
+                    );
                   }
                 }
               );
             },
           });
-          if (shouldStream) {
-            assert(dataStreamer, "dataStreamer is required for streaming");
-            for await (const chunk of result.fullStream) {
-              switch (chunk.type) {
-                case "text-delta":
-                  if (shouldStream) {
-                    dataStreamer?.streamData({
-                      data: chunk.textDelta,
-                      type: "delta",
-                    });
-                  }
-                  break;
-                case "error":
-                  console.error("Error in stream:", chunk.error);
-                  throw new Error(
-                    typeof chunk.error === "string"
-                      ? chunk.error
-                      : String(chunk.error)
-                  );
-                default:
-                  break;
-              }
+
+          for await (const chunk of result.fullStream) {
+            switch (chunk.type) {
+              case "text-delta":
+                if (shouldStream) {
+                  dataStreamer?.streamData({
+                    data: chunk.textDelta,
+                    type: "delta",
+                  });
+                }
+                break;
+              case "tool-call":
+                // do nothing with tool calls for now...
+                break;
+              case "error":
+                throw new Error(
+                  typeof chunk.error === "string"
+                    ? chunk.error
+                    : String(chunk.error)
+                );
+              default:
+                break;
             }
           }
 
@@ -207,7 +216,6 @@ export function makeGenerateResponseWithSearchTool<
             });
             return result;
           } catch (error: unknown) {
-            console.error("Error in stream:", error);
             throw new Error(typeof error === "string" ? error : String(error));
           }
         },
@@ -215,13 +223,9 @@ export function makeGenerateResponseWithSearchTool<
       );
       const text = await result?.text;
       assert(text, "text is required");
-      const steps = await result?.steps;
-      assert(steps, "steps is required");
-      // console.log("steps", steps);
       const messages = (await result?.response)?.messages;
       assert(messages, "messages is required");
 
-      console.log("messages", JSON.stringify(messages, null, 2));
       return handleReturnGeneration({
         userMessage,
         guardrailResult,
@@ -230,8 +234,6 @@ export function makeGenerateResponseWithSearchTool<
         references,
       });
     } catch (error: unknown) {
-      // TODO: handle guardrail failure so that the guardrail err is persisted.
-
       dataStreamer?.streamData({
         data: llmNotWorkingMessage,
         type: "delta",
@@ -251,6 +253,7 @@ export function makeGenerateResponseWithSearchTool<
 }
 
 type ResponseMessage = CoreAssistantMessage | CoreToolMessage;
+
 /**
   Generate the final messages to send to the user based on guardrail result and text generation result
  */
@@ -281,7 +284,6 @@ function handleReturnGeneration({
   };
 }
 
-// TODO: implement this
 function formatMessageForGeneration(
   messages: ResponseMessage[],
   references: References

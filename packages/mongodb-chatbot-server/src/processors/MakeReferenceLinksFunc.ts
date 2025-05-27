@@ -8,6 +8,4 @@ export type EmbeddedContentForModel = Pick<
 /**
   Function that generates the references in the response to user.
  */
-export type MakeReferenceLinksFunc = (
-  chunks: (Partial<EmbeddedContent> & EmbeddedContentForModel)[]
-) => References;
+export type MakeReferenceLinksFunc = (references: References) => References;

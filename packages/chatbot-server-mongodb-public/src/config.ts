@@ -16,10 +16,11 @@ import {
   requireValidIpAddress,
   requireRequestOrigin,
   AddCustomDataFunc,
-  makeVerifiedAnswerGenerateUserPrompt,
   makeDefaultFindVerifiedAnswer,
   defaultCreateConversationCustomData,
   defaultAddMessageToConversationCustomData,
+  makeLegacyGenerateResponse,
+  makeVerifiedAnswerGenerateResponse,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { makeStepBackRagGenerateUserPrompt } from "./processors/makeStepBackRagGenerateUserPrompt";
@@ -173,8 +174,8 @@ export const preprocessorOpenAiClient = wrapOpenAI(
   })
 );
 
-export const generateUserPrompt = wrapTraced(
-  makeVerifiedAnswerGenerateUserPrompt({
+export const generateResponse = wrapTraced(
+  makeVerifiedAnswerGenerateResponse({
     findVerifiedAnswer,
     onVerifiedAnswerFound: (verifiedAnswer) => {
       return {
@@ -183,11 +184,17 @@ export const generateUserPrompt = wrapTraced(
       };
     },
     onNoVerifiedAnswerFound: wrapTraced(
-      makeStepBackRagGenerateUserPrompt({
-        openAiClient: preprocessorOpenAiClient,
-        model: retrievalConfig.preprocessorLlm,
-        findContent,
-        numPrecedingMessagesToInclude: 6,
+      makeLegacyGenerateResponse({
+        llm,
+        generateUserPrompt: makeStepBackRagGenerateUserPrompt({
+          openAiClient: preprocessorOpenAiClient,
+          model: retrievalConfig.preprocessorLlm,
+          findContent,
+          numPrecedingMessagesToInclude: 6,
+        }),
+        systemMessage: systemPrompt,
+        llmNotWorkingMessage: "LLM not working. Sad!",
+        noRelevantContentMessage: "No relevant content found. Sad!",
       }),
       { name: "makeStepBackRagGenerateUserPrompt" }
     ),
@@ -237,14 +244,13 @@ const segmentConfig = SEGMENT_WRITE_KEY
 
 export const config: AppConfig = {
   conversationsRouterConfig: {
-    llm,
     middleware: [
       blockGetRequests,
       requireValidIpAddress(),
       requireRequestOrigin(),
       useSegmentIds(),
-      cookieParser(),
       redactConnectionUri(),
+      cookieParser(),
     ],
     createConversationCustomData: !isProduction
       ? createConversationCustomDataWithAuthUser
@@ -294,8 +300,7 @@ export const config: AppConfig = {
           : undefined,
       segment: segmentConfig,
     }),
-    generateUserPrompt,
-    systemPrompt,
+    generateResponse,
     maxUserMessagesInConversation: 50,
     maxUserCommentLength: 500,
     conversations,

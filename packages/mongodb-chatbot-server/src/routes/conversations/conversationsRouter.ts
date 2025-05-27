@@ -3,12 +3,7 @@ import Router from "express-promise-router";
 import { rateLimit, Options as RateLimitOptions } from "express-rate-limit";
 import slowDown, { Options as SlowDownOptions } from "express-slow-down";
 import validateRequestSchema from "../../middleware/validateRequestSchema";
-import {
-  ChatLlm,
-  SystemPrompt,
-  ConversationCustomData,
-  ConversationsService,
-} from "mongodb-rag-core";
+import { ConversationCustomData, ConversationsService } from "mongodb-rag-core";
 import {
   CommentMessageRequest,
   makeCommentMessageRoute,
@@ -27,14 +22,11 @@ import { requireRequestOrigin } from "../../middleware/requireRequestOrigin";
 import { NextFunction, ParamsDictionary } from "express-serve-static-core";
 import { requireValidIpAddress } from "../../middleware";
 import {
-  FilterPreviousMessages,
-  GenerateUserPromptFunc,
-} from "../../processors";
-import {
   GetConversationRequest,
   makeGetConversationRoute,
 } from "./getConversation";
 import { UpdateTraceFunc } from "./UpdateTraceFunc";
+import { GenerateResponse } from "../../processors/GenerateResponse";
 
 /**
   Configuration for rate limiting on the /conversations/* routes.
@@ -118,30 +110,17 @@ export type ConversationsMiddleware = RequestHandler<
   Configuration for the /conversations/* routes.
  */
 export interface ConversationsRouterParams {
-  llm: ChatLlm;
   conversations: ConversationsService;
-  systemPrompt: SystemPrompt;
-
   /**
-    Function to generate the user prompt sent to the {@link ChatLlm}.
-    You can perform any preprocessing of the user's message
-    including retrieval augmented generation here.
+    Logic to generate the response on the addMessageToConversation route.
    */
-  generateUserPrompt?: GenerateUserPromptFunc;
+  generateResponse: GenerateResponse;
 
   /**
     Maximum number of characters in user input.
     Server returns 400 error if user input is longer than this.
    */
   maxInputLengthCharacters?: number;
-
-  /**
-    Function to filter which previous messages are sent to the {@link ChatLlm}.
-    For example, you may only want to send the system prompt to the LLM
-    with the user message or the system prompt and X prior messages.
-    Defaults to sending only the system prompt.
-   */
-  filterPreviousMessages?: FilterPreviousMessages;
 
   /**
     Maximum number of user-sent messages in a conversation.
@@ -267,14 +246,11 @@ export const defaultAddMessageToConversationCustomData: AddDefinedCustomDataFunc
   Constructor function to make the /conversations/* Express.js router.
  */
 export function makeConversationsRouter({
-  llm,
   conversations,
-  systemPrompt,
+  generateResponse,
   maxInputLengthCharacters,
   maxUserMessagesInConversation,
-  filterPreviousMessages,
   rateLimitConfig,
-  generateUserPrompt,
   middleware = [requireValidIpAddress(), requireRequestOrigin()],
   createConversationCustomData = defaultCreateConversationCustomData,
   addMessageToConversationCustomData = defaultAddMessageToConversationCustomData,
@@ -329,7 +305,6 @@ export function makeConversationsRouter({
     makeCreateConversationRoute({
       conversations,
       createConversationCustomData,
-      systemPrompt,
     })
   );
 
@@ -364,20 +339,17 @@ export function makeConversationsRouter({
    */
   const addMessageToConversationRoute = makeAddMessageToConversationRoute({
     conversations,
-    llm,
     maxInputLengthCharacters,
     maxUserMessagesInConversation,
     addMessageToConversationCustomData,
-    generateUserPrompt,
-    filterPreviousMessages,
     createConversation: createConversationOnNullMessageId
       ? {
           createOnNullConversationId: createConversationOnNullMessageId,
           addCustomData: createConversationCustomData,
-          systemMessage: systemPrompt,
         }
       : undefined,
     updateTrace: addMessageToConversationUpdateTrace,
+    generateResponse,
   });
   conversationsRouter.post(
     "/:conversationId/messages",

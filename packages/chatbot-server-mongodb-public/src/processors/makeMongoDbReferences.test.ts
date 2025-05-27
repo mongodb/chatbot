@@ -66,14 +66,19 @@ describe("makeMongoDbReferences", () => {
         chunkIndex: 0,
       },
     ] satisfies EmbeddedContent[];
-    const result = makeMongoDbReferences(chunks);
+    const result = makeMongoDbReferences(
+      chunks.map((c) => ({
+        ...c,
+        title: c.metadata?.pageTitle,
+      }))
+    );
     expect(result).toEqual([
       {
         url: "https://www.example.com/blog",
         title: "Example Blog",
         metadata: {
-          sourceName: "example",
           sourceType: "Blog",
+          sourceName: "example",
           tags: ["external", "example"],
         },
       },
@@ -81,8 +86,8 @@ describe("makeMongoDbReferences", () => {
         url: "https://www.mongodb.com/love-your-developers",
         title: "Love Your Developers",
         metadata: {
-          sourceName: "mongodb-dotcom",
           sourceType: "Article",
+          sourceName: "mongodb-dotcom",
           tags: ["external", "example"],
         },
       },
@@ -90,8 +95,8 @@ describe("makeMongoDbReferences", () => {
         url: "https://www.mongodb.com/developer/products/mongodb/best-practices-flask-mongodb",
         title: "Best Practices for Using Flask and MongoDB",
         metadata: {
-          sourceName: "devcenter",
           sourceType: "Article",
+          sourceName: "devcenter",
           tags: ["devcenter", "example", "python", "flask"],
         },
       },
@@ -114,7 +119,12 @@ describe("makeMongoDbReferences", () => {
         chunkIndex: 0,
       },
     ];
-    const result = makeMongoDbReferences(chunks);
+    const result = makeMongoDbReferences(
+      chunks.map((c) => ({
+        ...c,
+        title: c.metadata?.pageTitle,
+      }))
+    );
     expect(result).toEqual([
       {
         url: "https://www.example.com/somepage",
@@ -134,13 +144,11 @@ describe("addReferenceSourceType", () => {
       url: "https://mongodb.com/docs/manual/reference/operator/query/eq/",
       title: "$eq",
       metadata: {
-        sourceName: "snooty-docs",
         tags: ["docs", "manual"],
       },
     };
     const result = addReferenceSourceType(reference);
     expect(result.metadata).toEqual({
-      sourceName: reference.metadata?.sourceName,
       tags: reference.metadata?.tags,
       sourceType: "Docs",
     });
@@ -151,7 +159,6 @@ describe("addReferenceSourceType", () => {
       url: "https://mongodb.com/docs/manual/reference/operator/query/eq/",
       title: "$eq",
       metadata: {
-        sourceName: "snooty-docs",
         sourceType: "ThinAir",
         tags: ["docs", "manual"],
       },
@@ -169,7 +176,6 @@ describe("addReferenceSourceType", () => {
       url: "https://example.com/random-thoughts/hotdogs-are-tacos",
       title: "Hotdogs Are Just Tacos",
       metadata: {
-        sourceName: "some-random-blog",
         tags: ["external"],
       },
     };

@@ -19,6 +19,7 @@ import {
   defaultCreateConversationCustomData,
   defaultAddMessageToConversationCustomData,
   makeGenerateResponseWithSearchTool,
+  makeVerifiedAnswerGenerateResponse,
 } from "mongodb-chatbot-server";
 import cookieParser from "cookie-parser";
 import { blockGetRequests } from "./middleware/blockGetRequests";
@@ -156,10 +157,62 @@ export const findVerifiedAnswer = wrapTraced(
   { name: "findVerifiedAnswer" }
 );
 
+export const preprocessorOpenAiClient = wrapOpenAI(
+  new AzureOpenAI({
+    apiKey: OPENAI_API_KEY,
+    endpoint: OPENAI_ENDPOINT,
+    apiVersion: OPENAI_API_VERSION,
+  })
+);
 export const mongodb = new MongoClient(MONGODB_CONNECTION_URI);
 
 export const conversations = makeMongoDbConversationsService(
   mongodb.db(MONGODB_DATABASE_NAME)
+);
+const azureOpenAi = createAzure({
+  apiKey: OPENAI_API_KEY,
+  // baseURL: OPENAI_ENDPOINT,
+  resourceName: process.env.OPENAI_RESOURCE_NAME,
+  // apiVersion: OPENAI_API_VERSION,
+  // apiKey: process.env.OPENAI_OPENAI_API_KEY,
+});
+const languageModel = wrapAISDKModel(azureOpenAi("gpt-4.1"));
+
+export const generateResponse = wrapTraced(
+  makeVerifiedAnswerGenerateResponse({
+    findVerifiedAnswer,
+    onVerifiedAnswerFound: (verifiedAnswer) => {
+      return {
+        ...verifiedAnswer,
+        references: verifiedAnswer.references.map(addReferenceSourceType),
+      };
+    },
+    onNoVerifiedAnswerFound: wrapTraced(
+      makeGenerateResponseWithSearchTool({
+        languageModel,
+        systemMessage: systemPrompt,
+        makeReferenceLinks: makeMongoDbReferences,
+        filterPreviousMessages: async (conversation) => {
+          return conversation.messages.filter((message) => {
+            return (
+              message.role === "user" ||
+              // Only include assistant messages that are not tool calls
+              (message.role === "assistant" && !message.toolCall)
+            );
+          });
+        },
+        llmNotWorkingMessage:
+          conversations.conversationConstants.LLM_NOT_WORKING,
+        searchTool: makeSearchTool(findContent),
+        toolChoice: "auto",
+        maxSteps: 5,
+      }),
+      { name: "makeStepBackRagGenerateUserPrompt" }
+    ),
+  }),
+  {
+    name: "generateUserPrompt",
+  }
 );
 
 export const createConversationCustomDataWithAuthUser: AddCustomDataFunc =
@@ -193,15 +246,7 @@ const segmentConfig = SEGMENT_WRITE_KEY
       writeKey: SEGMENT_WRITE_KEY,
     }
   : undefined;
-const azureOpenAi = createAzure({
-  apiKey: OPENAI_API_KEY,
-  // baseURL: OPENAI_ENDPOINT,
-  resourceName: process.env.OPENAI_RESOURCE_NAME,
-  // apiVersion: OPENAI_API_VERSION,
-  // apiKey: process.env.OPENAI_OPENAI_API_KEY,
-});
 
-const languageModel = wrapAISDKModel(azureOpenAi("gpt-4.1"));
 export const config: AppConfig = {
   conversationsRouterConfig: {
     middleware: [
@@ -260,24 +305,7 @@ export const config: AppConfig = {
           : undefined,
       segment: segmentConfig,
     }),
-    generateResponse: makeGenerateResponseWithSearchTool({
-      languageModel,
-      systemMessage: systemPrompt,
-      makeReferenceLinks: makeMongoDbReferences,
-      filterPreviousMessages: async (conversation) => {
-        return conversation.messages.filter((message) => {
-          return (
-            message.role === "user" ||
-            // Only include assistant messages that are not tool calls
-            (message.role === "assistant" && !message.toolCall)
-          );
-        });
-      },
-      llmNotWorkingMessage: conversations.conversationConstants.LLM_NOT_WORKING,
-      searchTool: makeSearchTool(findContent),
-      toolChoice: "auto",
-      maxSteps: 5,
-    }),
+    generateResponse,
     maxUserMessagesInConversation: 50,
     maxUserCommentLength: 500,
     conversations,
